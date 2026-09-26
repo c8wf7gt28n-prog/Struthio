@@ -196,3 +196,5 @@ html body #controls[data-wing-low="true"] button[data-control$="_WING"]::before{
 html body #controls[data-wing-low="true"] button[data-control="LEFT_WING"]::before{
   background:conic-gradient(rgba(6,2,0,.85) calc((1 - var(--wing-level,1)) * 1turn),transparent 0);
 }
+/* wing buttons a little bigger (were clamp(82px,23vw,112px)) */
+:root{--wing-d:clamp(92px,26vw,126px)}
