@@ -13,23 +13,24 @@ const DRIFT=(amplitude,period)=>Object.freeze({profile:'DRIFT_X_SOFT',amplitude,
 const BOB=(amplitude,period)=>Object.freeze({profile:'BOB_Y_SOFT',amplitude,period,dwell:0});
 // [id, x, y, width, island art, mirrored, motion, phase offset]. One fixed,
 // hand-placed map: a zig-zag of stepping islands with a wide rest island about
-// once a screen; the upper tower is sparser, smaller and starts to drift.
+// once a screen. From the second screen up, many perches drift or bob (the
+// rest islands and the launch pad stay still); phase offsets keep them apart.
 const ISLANDS=[
 // 1 LAUNCH PAD: low perches either side of the grid floor.
 ['T01',14,284,56,'STD_05',0],['T02',182,280,54,'STD_04',1],
 ['T03',98,236,54,'STD_07',0],
-['T04',222,196,50,'STD_02',1],['T05',34,188,52,'STD_01',0],
+['T04',222,196,50,'STD_02',1,BOB(5,300),40],['T05',34,188,52,'STD_01',0],
 // 2 STAIRCASE: a rest island, then steps climbing left to right.
 ['T06',98,148,88,'STD_09',0],
-['T07',16,106,50,'STD_03',1],['T08',200,98,50,'STD_07',1],
-['T09',68,62,46,'STD_06',0],
+['T07',16,106,50,'STD_03',1,DRIFT(10,360),0],['T08',200,98,50,'STD_07',1],
+['T09',68,62,46,'STD_06',0,BOB(6,320),120],
 ['T10',128,20,52,'STD_02',0],
-['T11',188,-24,54,'STD_04',1],
+['T11',188,-24,54,'STD_04',1,BOB(5,400),200],
 // 3 TWIN COLUMNS: two ladders of perches around an open central shaft.
 ['T12',18,-50,52,'STD_01',0],
-['T13',196,-80,50,'STD_03',1],['T14',32,-106,48,'STD_06',0],
-['T15',186,-136,54,'STD_07',1],['T16',14,-162,52,'STD_02',1],
-['T17',200,-192,48,'STD_06',1],['T18',30,-218,50,'STD_03',0],
+['T13',196,-80,50,'STD_03',1,BOB(6,340),60],['T14',32,-106,48,'STD_06',0],
+['T15',186,-136,54,'STD_07',1,DRIFT(8,380),150],['T16',14,-162,52,'STD_02',1],
+['T17',200,-192,48,'STD_06',1,BOB(6,300),220],['T18',30,-218,50,'STD_03',0],
 // 4 REST AND DRIFT: a wide landing, then two islands that move.
 ['T19',96,-256,96,'STD_09',1],
 ['T20',214,-306,50,'STD_02',0,DRIFT(12,420)],['T21',30,-314,54,'STD_05',1],
@@ -37,20 +38,20 @@ const ISLANDS=[
 ['T23',30,-404,50,'STD_01',1],
 // 5 STAIRCASE BACK: right to left, across the wrap seam.
 ['T24',200,-414,52,'STD_07',0],
-['T25',138,-458,50,'STD_03',1],
+['T25',138,-458,50,'STD_03',1,DRIFT(10,360),90],
 ['T26',76,-502,52,'STD_01',0],['T27',214,-506,76,'STD_08',1],
-['T28',14,-546,54,'STD_04',0],
-['T29',208,-590,48,'STD_06',1],
+['T28',14,-546,54,'STD_04',0,BOB(6,330),30],
+['T29',208,-590,48,'STD_06',1,DRIFT(8,340),170],
 // 6 THE VOID: open sky with one rest island and one drifting stone.
 ['T30',92,-640,92,'STD_09',0],
-['T31',196,-722,46,'STD_06',0,DRIFT(14,380)],['T32',24,-736,50,'STD_02',1],
+['T31',196,-722,46,'STD_06',0,DRIFT(14,380)],['T32',24,-736,50,'STD_02',1,BOB(6,360),110],
 // 7 CROWN: an arc of islands with a drifting keystone above.
 ['T33',6,-812,52,'STD_05',0],['T34',200,-816,52,'STD_04',1],
-['T35',60,-862,50,'STD_07',0],['T36',146,-866,50,'STD_01',1],
+['T35',60,-862,50,'STD_07',0,DRIFT(8,380),0],['T36',146,-866,50,'STD_01',1,BOB(6,320),160],
 ['T37',92,-912,76,'STD_08',0],
 ['T38',210,-948,46,'STD_03',1,DRIFT(12,340)],
 // 8 SUMMIT: side perches and the pedestal under the moon.
-['T39',20,-990,52,'STD_02',0],
+['T39',20,-990,52,'STD_02',0,DRIFT(8,360),250],
 ['T40',104,-1034,46,'STD_06',1,BOB(8,400)],
 ['T41',8,-1086,50,'STD_03',0],
 ['T42',150,-1066,92,'STD_09',1],

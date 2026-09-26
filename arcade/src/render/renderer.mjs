@@ -78,25 +78,55 @@ fn fxHash(p: vec2f) -> f32 {
 fn hump(x: f32) -> f32 { return 4.0 * x * (1.0 - x); }
 fn wave1(x: f32) -> f32 { let f = fract(x); return select(-hump(f * 2.0 - 1.0), hump(f * 2.0), f < 0.5); }
 fn arcadeAmbient(base: vec3f, wp: vec2f, t: f32) -> vec3f {
-  // Branch-free and short: every term is weighted by a 0/1 mask, so every GPU
-  // (and software rasteriser) runs it as one straight line.
+  // Branch-free: every term is weighted by a 0/1 mask, so every GPU (and
+  // software rasteriser) runs it as one straight line. t is in ticks (60/s).
   let hi = max(base.r, max(base.g, base.b));
+  let lit = clamp((hi - 0.16) * 3.0, 0.0, 1.0);          // painted lines and lights
   let horizon = frame.fx.y;
   let rear = step(wp.x, ${WORLD_PLATE_W}.0 - 1.0);
-  // near: a faint shimmer climbs the cyan edges (8 s)
-  let cyan = clamp((min(base.g, base.b) - base.r - 0.12) * 3.333, 0.0, 1.0);
-  let sn = hump(fract(t * 0.0020833 + wp.y * 0.0011111)); let sn2 = sn * sn; let sn4 = sn2 * sn2;
-  let nearGain = (1.0 - rear) * 0.07 * sn4 * sn4 * sn2 * cyan;
-  // rear floor: one broad energy band travelling toward the viewer (6.5 s)
-  let sf = hump(fract(t * 0.0025641 - (wp.y - horizon) * 0.0013158)); let sf2 = sf * sf;
-  let floorGain = rear * step(horizon, wp.y) * 0.13 * sf2 * sf2 * sf2 * clamp((hi - 0.18) * 3.125, 0.0, 1.0);
-  // rear sky: ~15% of stars twinkle (1.8-4.5 s, 8-12%), none on the moon
+  let near = 1.0 - rear;
+  // 1 GRID: light pulses slide along the painted grid toward the viewer, four
+  //   bands in view, one band-spacing every 1.5 s.
+  let dy = max(wp.y - horizon, 1.0);
+  let gp = hump(fract(pow(dy, 0.62) / 12.0 - t / 90.0));
+  let gp2 = gp * gp; let gp4 = gp2 * gp2; let band = gp4 * gp4 * gp2;
+  let floorMask = rear * step(horizon + 2.0, wp.y) * smoothstep(horizon + 4.0, horizon + 70.0, wp.y);
+  let gridGain = floorMask * band * (0.95 * lit + 0.10);
+  // 2 STARS: about half the stars twinkle (1.2-3.4 s, 40%-160%), a few flash.
   let h = fxHash(floor(wp * 0.1));
   let g = wp - frame.globe.xy;
-  let star = rear * step(wp.y, horizon - 330.0) * step(0.42, hi) * step(20000.0, dot(g, g)) * step(h, 0.15);
-  let k = h * 6.6667;                    // 0..1 within the chosen 15%
-  let starGain = star * (0.08 + 0.04 * k) * wave1(t / ((1.8 + 2.7 * fract(k * 7.13)) * 60.0) + fract(k * 13.7));
-  return base * (1.0 + frame.fx.w * (nearGain + floorGain + starGain));
+  let sky = rear * step(wp.y, horizon - 330.0);
+  let star = sky * step(0.42, hi) * step(20000.0, dot(g, g)) * step(h, 0.55);
+  let k = h / 0.55;
+  let tw = wave1(t / ((1.2 + 2.2 * fract(k * 7.13)) * 60.0) + fract(k * 13.7));
+  let flash = pow(max(wave1(t / ((7.0 + 9.0 * fract(k * 3.7)) * 60.0) + fract(k * 5.1)), 0.0), 14.0);
+  let starGain = star * ((0.25 + 0.35 * k) * tw + 1.2 * flash * step(k, 0.3));
+  // 3 CITY: the horizon glow breathes (5 s) and light climbs the spires (3.3 s).
+  let city = rear * step(horizon - 540.0, wp.y) * step(wp.y, horizon + 6.0) * lit;
+  let cp = hump(fract((horizon - wp.y) / 520.0 - t / 200.0));
+  let cp2 = cp * cp; let cp4 = cp2 * cp2;
+  let cityGain = city * (0.10 * sin(t * 0.020944) + 0.85 * cp4 * cp4 * cp4 * cp4);
+  // 4 NEAR PILLARS: gold glints run up the vines (5 s); cyan edges shimmer (8 s).
+  let gold = near * clamp((base.r - base.b - 0.20) * 3.0, 0.0, 1.0) * step(base.b, base.g) * step(0.35, hi);
+  let gl = hump(fract(t / 300.0 + wp.y * 0.0009 + wp.x * 0.0004)); let gl2 = gl * gl; let gl4 = gl2 * gl2;
+  let cyan = clamp((min(base.g, base.b) - base.r - 0.12) * 3.333, 0.0, 1.0);
+  let sn = hump(fract(t * 0.0020833 + wp.y * 0.0011111)); let sn2 = sn * sn; let sn4 = sn2 * sn2;
+  let nearGain = gold * 0.9 * gl4 * gl4 * gl4 + near * 0.22 * sn4 * sn4 * sn2 * cyan;
+  // 5 SHOOTING STAR: most 7.5 s windows, a streak crosses the sky in 0.8 s
+  //   (behind the moon, never across it).
+  let epoch = floor(t / 450.0);
+  let lt = t - epoch * 450.0;
+  let h1 = fxHash(vec2f(epoch, 3.0)); let h2 = fxHash(vec2f(epoch, 7.0)); let h3 = fxHash(vec2f(epoch, 11.0));
+  let dir = normalize(vec2f(select(-1.0, 1.0, h3 > 0.5), 0.42 + 0.3 * h2));
+  let head = vec2f(80.0 + 608.0 * h1, 120.0 + 900.0 * h2) + dir * 14.0 * lt;
+  let rel = wp - head;
+  let along = -dot(rel, dir);
+  let perp = abs(rel.x * dir.y - rel.y * dir.x);
+  let tail = 1.0 - clamp(along / 120.0, 0.0, 1.0);
+  let streak = sky * step(14000.0, dot(g, g)) * step(fxHash(vec2f(epoch, 1.0)), 0.7) * step(0.0, along) * tail * tail
+    * (1.0 - smoothstep(0.6, 2.4, perp)) * smoothstep(0.0, 6.0, lt) * (1.0 - smoothstep(38.0, 50.0, lt));
+  let m = frame.fx.w;
+  return base * (1.0 + m * (gridGain + starGain + cityGain + nearGain)) + m * streak * 1.4 * vec3f(0.85, 0.92, 1.0);
 }
 // Island palette: crimson tips -> the GAME OVER red (hue 18, a little less
 // saturated), and the lemon-yellow caps are turned toward the controller gold

@@ -6,8 +6,14 @@ const P = T.TOWER_PLATFORMS;
 const rings = [];
 T.RING_SETS.forEach((set, si) => set.forEach((r) => rings.push({ ...r, key: `S${si + 1}.${r.order}` })));
 rings.push({ ...T.GOLD_RING, key: 'GOLD' });
+// Islands move, so the whole report runs at several points of their cycles;
+// every island and ring must be reachable at each one.
+const PHASES = (process.env.PHASES || '0,85,170,255').split(',').map(Number);
+let totalBad = 0;
+for (const phase of PHASES) {
+console.log(`\n=== world at tick ${phase} ===`);
 const t0 = Date.now();
-const { edges, ringBest } = analyze(rings);
+const { edges, ringBest } = analyze(rings, { phases: [phase] });
 console.log('analysis ms', Date.now() - t0);
 // BFS from ground
 const seen = new Set([0]), q = [0];
@@ -30,5 +36,8 @@ table.forEach((row, i) => console.log(`set ${String(i + 1).padStart(2)} flaps ${
 console.log('gold', ringBest.get('GOLD'));
 let bad2 = bad.length;
 for (const r of rings) if (!ringBest.get(r.key)) bad2++;
-console.log(bad2 ? `LAYOUT FAILURES: ${bad2}` : 'layout: every island and ring is reachable');
-process.exitCode = bad2 ? 1 : 0;
+console.log(bad2 ? `LAYOUT FAILURES at tick ${phase}: ${bad2}` : `tick ${phase}: every island and ring is reachable`);
+totalBad += bad2;
+}
+console.log(totalBad ? `LAYOUT FAILURES: ${totalBad}` : `layout: every island and ring is reachable at ticks ${PHASES.join(', ')}`);
+process.exitCode = totalBad ? 1 : 0;

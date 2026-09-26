@@ -57,9 +57,8 @@ Gamepads work as well.
 The suite covers:
 
 - **tower-rings**: static ring placement rules.
-- **tower-report**: every island and ring is reachable in flight.
+- **tower-report**: every island and ring is reachable in flight, at four points of the islands' motion cycles.
 - **save**: slots, corruption and restore.
-- **parity**: identical to the console arcade it was forked from (skipped when the console build isn't present).
 - **tower-sim**: a 12-round bot soak, with the cap, zone, camera, save and determinism rules checked every tick.
 
 Test hooks (`window.__struthio`, URL flags such as `?seed=7`) exist only on a

@@ -87,7 +87,7 @@ validateArcadeArt({rear,near,islands,metadata});
 return{rear,near,islands,islandSpec:metadata,bird};
 }
 export const ARCADE_REAR_HORIZON=1682;
-const ARCADE_GLOBE=Object.freeze({cx:608,cy:254,r:118,homeFrom:-50,homeSpan:88,periods:18,turnSeconds:120,crossfade:7,mode:'COLOUR'});
+const ARCADE_GLOBE=Object.freeze({cx:608,cy:254,r:118,homeFrom:-50,homeSpan:88,periods:18,turnSeconds:50,crossfade:7,mode:'COLOUR'});
 export const MOON_TURN_PER_TICK=1/(ARCADE_GLOBE.turnSeconds*60),MOON_BEAT_SURGE=5;
 export function buildArcadeGlobe(rear){
 if (!rear||rear.w!==768||rear.h!==2304) return null;
