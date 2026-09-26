@@ -21,7 +21,8 @@ if (!navigator.onLine&&!sw.controller){state.offlineNote='OFFLINE INSTALL REQUIR
 return{
 state,
 get offlineNote(){return state.offlineNote;},
-acceptUpdate(){const w=state.waiting||(state.registration&&state.registration.waiting);if (!w) return false;state.accepting=true;w.postMessage({type:'SKIP_WAITING'});return true;},
+// New workers take over by themselves; if none is waiting, a reload picks the update up.
+acceptUpdate(){const w=state.waiting||(state.registration&&state.registration.waiting);state.accepting=true;if (!w){state.reloaded=true;location.reload();return true;}w.postMessage({type:'SKIP_WAITING'});return true;},
 };
 }
 export{setupPwa};
