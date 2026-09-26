@@ -1,0 +1,18 @@
+# Cloudflare Pages / Netlify response headers for STRUTHIO ARCADE.
+# Other hosts: mirror these rules in the host's own config.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+# The service worker must never come from an HTTP cache, or installed players
+# would keep the previous build.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+  Content-Type: application/manifest+json

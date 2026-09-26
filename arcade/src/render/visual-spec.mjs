@@ -1,0 +1,39 @@
+// STRUTHIO ARCADE · the named colour palette used by the atlas swatches.
+const VISUAL_SPEC=Object.freeze({
+palette:Object.freeze({
+black:'#000000',
+voidDeep:'#020406',
+ink:'#090A0B',
+navySoft:'#173A46',
+chromeDark:'#62717B',
+chromeLight:'#F3F4EC',
+white:'#FFFDF3',
+cyanDeep:'#083A44',
+cyanDark:'#0D6875',
+cyan:'#20C4D7',
+cyanLight:'#7BEFFF',
+earthDark:'#2A1914',
+ochre:'#D69543',
+gold:'#E2A93F',
+goldLight:'#FFD56A',
+lava:'#B91E18',
+lavaHot:'#F24A22',
+ember:'#FF9D3B',
+green:'#48D78A',
+goldDeep:'#4A2E08',
+ringDeep:'#33060F',
+ringDark:'#6E0D18',
+ring:'#A5121E',
+ringLight:'#D8303A',
+ivoryDark:'#AC9F84',
+ivory:'#DED2B4',
+ivoryLight:'#F6ECD4',
+kingdomCrimsonLight:'#D8342C',
+kingdomGold:'#DAA94C',
+kingdomGoldLight:'#F5E5C1',
+}),
+});
+function visualPalette(authorityPalette={}){
+return{...VISUAL_SPEC.palette,...authorityPalette};
+}
+export{visualPalette};
