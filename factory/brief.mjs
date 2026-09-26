@@ -17,7 +17,7 @@ export const QUESTIONS=Object.freeze([
 export const CONSOLE_CONTRACT=Object.freeze({
 schema:'STRUTHIO_EPISODE_PACK_API_V1',
 console_api_version:1,
-compatible_console_build:'STRUTHIO-CONSOLE-3.5.4',
+compatible_console_build:'STRUTHIO-CONSOLE-3.6.0',
 ownership:{
 console:['simulation','physics','jousting','AI','scoring','controls','camera','renderer','HUD','save protocol','PWA shell','192-pose full bird atlas with vertical-ascent bank','optional 32-state full Hero rider atlas','192-frame rider registration map','sprite-profile selection'],
 episode:['identity','world art','environment palette','music','story','dialogue','cinema','title/manual/icon/share presentation'],

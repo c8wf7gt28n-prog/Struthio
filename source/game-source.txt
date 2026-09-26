@@ -1,6 +1,6 @@
 // ==============================================================================
 // STRUTHIO CONSOLE — GAME SOURCE
-// Build STRUTHIO-CONSOLE-3.5.4
+// Build STRUTHIO-CONSOLE-3.6.0
 // Created by R.A. Peddycoart.
 // ==============================================================================
 
@@ -58,12 +58,24 @@ const {arenaContent,activateArena,stepWorld,circuitPre,parseArcade,buildPlatform
 const {integrate,inRing,boxesOverlap,standingPlatform} = __modules[8];
 const {rivalIntent} = __modules[9];
 const {stepCinema,enterCinema} = __modules[10];
-const {ascentMetrics,cumulativeSpawnCeiling,courseSpawnAnchor} = __modules[11];
+const {ascentMetrics,cumulativeSpawnCeiling,courseSpawnAnchor,bitCount} = __modules[11];
+const {nextU32} = __modules[3];
+const T = __modules[42];
 const {entityBox,BIRD_BOX,RIDER_BOX,EGG_BOX,LANCE_Y_SUB,FLAP_COOLDOWN_TICKS,RESPAWN_HIDDEN_TICKS,SHIMMER_TICKS,emptyPlayer,BOSS_HITS_TO_DEFEAT,BOSS_HURT_TICKS,freshScore} = __modules[5];
 
 const EMPTY_INPUT = Object.freeze({ left: false, right: false, flapEdge: false, flapHeld: false });
 
 function playerActive(s) { return s.player.invulnerableTicks <= SHIMMER_TICKS; }
+
+// The Arcade Tower raises the ceiling to the top of the tower; every other
+// arena keeps the authored constants untouched.
+const TOWER_C = new WeakMap();
+function simC(A, content) {
+  if (!content || content.kind !== 'TOWER') return A.sim_constants;
+  let c = TOWER_C.get(A);
+  if (!c) { c = Object.freeze({ ...A.sim_constants, playTop: T.TOWER_PLAY_TOP }); TOWER_C.set(A, c); }
+  return c;
+}
 function actorBox(a) { return entityBox(a.x, a.y, a.kind === 'RIDER' ? RIDER_BOX : a.kind === 'EGG' ? EGG_BOX : BIRD_BOX); }
 
 function rules(s) { return s._C.scoring; }
@@ -191,9 +203,11 @@ function aiIntents(A, s, content) {
   for (const a of s.actors) {
     if (a.lifecycle !== 'MOUNTED') continue;
     const aiClass = a.class === 'BOSS' ? bossRec.duel.bossClass : a.class;
-    const corner = a.ghost === 'CLYDE' && content.kind === 'NORMAL' && s.sim.mode === 'CAMPAIGN'
-      ? courseSpawnAnchor(s, content, a.id - 1) : content.enemySpawns[0];
-    const intent = rivalIntent(A, s, a, aiClass, corner, playerActive(s));
+    const tower = content.kind === 'TOWER';
+    const corner = tower ? [a.x < 128 * 256 ? 24 : 232, Math.floor(s.player.y / 256) - 70]
+      : a.ghost === 'CLYDE' && content.kind === 'NORMAL' && s.sim.mode === 'CAMPAIGN'
+        ? courseSpawnAnchor(s, content, a.id - 1) : content.enemySpawns[0];
+    const intent = rivalIntent(A, s, a, aiClass, corner, playerActive(s), tower ? s.player.y - 40 * 256 : undefined);
 
     if (a.class === 'BOSS' && (s.boss.hurt | 0) > 0) {
       intent.dir = wrappedDelta(a.x, s.player.x) >= 0 ? -1 : 1;
@@ -248,7 +262,7 @@ function integrateHuman(C, p, pIntent, world, dartTargets, events) {
 }
 
 function integrateAll(A, s, content, pIntent, intents, events) {
-  const C = A.sim_constants, p = s.player;
+  const C = simC(A, content), p = s.player;
   const previousWorld = { platforms: s.world.platforms.map((platform) => ({ ...platform, rect: platform.rect.slice() })), lavaY: s.world.lavaY };
   const actorFooting = new Map();
   for (const actor of s.actors) {
@@ -417,7 +431,7 @@ function lifecycleStage(A, s, content, events) {
     const a = s.actors.find((x) => x.id === req.id);
     if (!a || a.lifecycle === 'REMOVED') continue;
     if (req.to === 'DISMOUNTED') { a.lifecycle = 'DISMOUNTED'; a.kind = 'RIDER'; a.timer = L.dismountMinimum; }
-    else if (req.to === 'EGG') { a.lifecycle = 'EGG'; a.kind = 'EGG'; a.timer = L.egg; a.vx = 0; }
+    else if (req.to === 'EGG') { a.lifecycle = 'EGG'; a.kind = 'EGG'; a.timer = content.kind === 'TOWER' ? content.rules.eggTicks : L.egg; a.vx = 0; }
     else if (req.to === 'REMOVED') { a.lifecycle = 'REMOVED'; }
   }
   s._lifecycle = [];
@@ -425,6 +439,7 @@ function lifecycleStage(A, s, content, events) {
   s.actors = s.actors.filter((a) => a.lifecycle !== 'REMOVED');
   s.objectives.authorizedActorIds = s.actors.map((a) => a.id);
 
+  if (content.kind === 'TOWER') return towerSpawnStage(A, s, content, events);
   if (content.kind === 'BOSS' && s.boss.phase !== 'DUEL') return;
   if (s.objectives.spawnCursor < cumulativeSpawnCeiling(s, content) && !s._locked) {
     const live = s.actors.filter((a) => ['SPAWNING', 'MOUNTED', 'REMOUNTING', 'HATCHING'].includes(a.lifecycle)).length;
@@ -453,6 +468,7 @@ function lifecycleStage(A, s, content, events) {
 }
 
 function objectivesStage(A, s, content, events) {
+  if (content.kind === 'TOWER') return towerObjectives(A, s, content, events);
   const C = A.sim_constants, p = s.player;
   let routeComplete = false, hostileClear = false;
 
@@ -613,6 +629,160 @@ function transitionsStage(A, s, content, events) {
   if (s._arcadeWaveAdvance) { s.actors = []; s.objectives.authorizedActorIds = []; events.push({ type: 'WAVE_INTRO' }); }
 }
 
+// ------------------------------------------------------------------------------
+// ARCADE TOWER stages (3.6). Tower bookkeeping (round, kills, respawn island,
+// the first-move latch and the round-clear hold) lives in objectives.routeId
+// and objectives.waveId, so saves keep the existing schema. In the tower,
+// objectives.spawnCursor is the arrival cooldown in ticks.
+// ------------------------------------------------------------------------------
+const TOWER_LIVE = ['SPAWNING', 'MOUNTED', 'REMOUNTING', 'HATCHING'];
+const TOWER_RING_SCORE = 500;
+
+function towerPre(A, s, content, input, events) {
+  const t = s._tower = T.parseTower(s);
+  if (t.hold > 0) {                        // gold ring taken: hold at the moon
+    s._locked = true;
+    t.hold -= 1;
+    if (t.hold === 0) towerNextRound(A, s, t, events);
+    return;
+  }
+  // Rivals only start flying in once the player moves.
+  if (!t.go && playerActive(s) && (input.flapEdge || input.left || input.right || input.dartEdge)) {
+    t.go = true;
+    s.objectives.spawnCursor = T.TOWER_FIRST_ARRIVAL;
+    events.push({ type: 'TOWER_GO', round: t.round });
+  }
+}
+
+function towerNextRound(A, s, t, events) {
+  const C = A.sim_constants;
+  t.round += 1; t.go = false; t.check = 0; t.hold = 0;
+  s.objectives.ringMask = 0; s.objectives.spawnCursor = 0; s.objectives.hostileClear = false;
+  const [x, y] = T.towerSpawnFor(0);
+  s.player = emptyPlayer(x, y);
+  s.player.wing = C.wingMax;
+  s.player.invulnerableTicks = RESPAWN_HIDDEN_TICKS + T.ROUND_SWEEP_TICKS + SHIMMER_TICKS;
+  s.actors = []; s.objectives.authorizedActorIds = [];
+  if (s.score) { s.score.sectorClean = true; s.score.eggChain = 0; }
+  events.push({ type: 'ROUND_START', round: t.round });
+  events.push({ type: 'CHECKPOINT_REQUEST', reason: 'ROUND_START' });
+}
+
+// An arrival point more than a screen (plus a sprite) above or below the
+// player, so a rival never appears on screen: it flies in.
+function towerArrival(s, content) {
+  const p = s.player, py = Math.floor(p.y / 256);
+  const box = { state: s.rng.gameplayState };
+  const draw = () => nextU32(box);
+  const [near, far] = T.TOWER_ARRIVAL;
+  const floor = T.TOWER_GROUND - 30;
+  const up = py - far >= T.TOWER_PLAY_TOP, down = py + far <= floor;
+  if (!up && !down) { s.rng.gameplayState = box.state; return null; }
+  const fromAbove = up && (!down || (draw() & 1) === 0);
+  const dist = near + (draw() % (far - near + 1));
+  const y = fromAbove ? py - dist : py + dist;
+  let x = -1;
+  for (let tries = 0; tries < 6 && x < 0; tries++) {
+    const cx = draw() & 255;
+    const b = entityBox(px(cx), px(y), BIRD_BOX);
+    const blocked = s.world.platforms.some((q) => {
+      if (!q.collidable) return false;
+      const top = (q.rect[1] - 6) * 256, bottom = (q.rect[1] + q.rect[3] + 6) * 256;
+      if (b.b <= top || b.t >= bottom) return false;
+      for (const sh of [0, -65536, 65536]) if (b.l + sh < (q.rect[0] + q.rect[2]) * 256 && b.r + sh > q.rect[0] * 256) return true;
+      return false;
+    });
+    if (!blocked) x = cx;
+  }
+  const pick = draw();
+  s.rng.gameplayState = box.state;
+  if (x < 0) return null;
+  return { x, y, fromAbove, pick };
+}
+
+// The nearby zone: anything that falls more than TOWER_DESPAWN px from the
+// player is quietly retired; arrivals top the zone back up to the round's cap.
+// Eggs and fallen riders count toward the cap, so a beaten rival returns by
+// hatching or, once its egg is collected, as a fresh arrival after the delay.
+function towerSpawnStage(A, s, content, events) {
+  const t = s._tower, R = content.rules, p = s.player;
+  let dropped = 0;
+  s.actors = s.actors.filter((a) => {
+    if (Math.abs(a.y - p.y) <= T.TOWER_DESPAWN * 256) return true;
+    if (TOWER_LIVE.includes(a.lifecycle)) dropped += 1;
+    events.push({ type: 'DESPAWN', actor: a.id });
+    return false;
+  });
+  if (dropped) s.objectives.spawnCursor = Math.max(s.objectives.spawnCursor, R.fillGap);
+  s.objectives.authorizedActorIds = s.actors.map((a) => a.id);
+  if (!t.go || t.hold > 0 || s._locked || !playerActive(s)) return;
+  if (s.objectives.spawnCursor > 0) { s.objectives.spawnCursor -= 1; return; }
+  const live = s.actors.filter((a) => a.lifecycle !== 'REMOVED').length;
+  if (live >= R.cap) return;
+  const spot = towerArrival(s, content);
+  if (!spot) { s.objectives.spawnCursor = 12; return; }
+  const cls = T.towerClassFor(spot.y, R, spot.pick);             // higher is harder
+  const tier = Math.min(5, R.tierBase + (T.towerBand(spot.y) === 2 ? 1 : 0));
+  const id = s.sim.nextActorId;
+  const actor = { id, kind: 'RIVAL', class: cls, ghost: T.GHOSTS[mod(id, 4)], tier, lifecycle: 'MOUNTED', x: px(spot.x), y: px(spot.y),
+    vx: 0, vy: spot.fromAbove ? 192 : -320, facing: spot.x < 128 ? 1 : -1, phase: 0, timer: 0, rngDraws: 0, joustAwarded: false };
+  s.sim.nextActorId += 1;
+  s.actors.push(actor);
+  s.objectives.authorizedActorIds.push(id);
+  s.objectives.spawnCursor = R.fillGap;
+  events.push({ type: 'SPAWN', actor: id, cls, ghost: actor.ghost, tower: true, fromAbove: spot.fromAbove });
+}
+
+// Six rings in any order; then the gold ring at the moon destroys every rival
+// and clears the round.
+function towerObjectives(A, s, content, events) {
+  const t = s._tower, p = s.player;
+  if (!playerActive(s) || s._locked || s._deathThisTick || t.hold > 0) return;
+  const pb = entityBox(p.x, p.y, BIRD_BOX);
+  for (const ring of content.rings) {
+    const bit = 1 << (ring.order - 1);
+    if ((s.objectives.ringMask & bit) || !inRing(pb, ring)) continue;
+    s.objectives.ringMask |= bit;
+    const count = bitCount(s.objectives.ringMask & 63);
+    addScore(s, TOWER_RING_SCORE, events, 'RING', { order: ring.order });
+    events.push({ type: 'RING', ringId: ring.id, order: ring.order, count, total: content.rings.length, progression: false });
+    if (count === content.rings.length) events.push({ type: 'GOLD_RING_OPEN', round: t.round });
+  }
+  if ((s.objectives.ringMask & 63) !== 63 || !inRing(pb, content.goldRing)) return;
+  const R = rules(s);
+  let blasted = 0;
+  for (const a of s.actors) {
+    const armed = TOWER_LIVE.includes(a.lifecycle);
+    let amount = 0;
+    if (armed) { blasted += 1; amount = addScore(s, joustValue(R, a), events, 'BLAST', { cls: a.class }); }
+    events.push({ type: 'TOWER_BLAST', actor: a.id, x: a.x, y: a.y, armed, amount });
+  }
+  t.kills += blasted;
+  s.actors = []; s.objectives.authorizedActorIds = [];
+  s.objectives.ringMask |= 64;
+  events.push({ type: 'RING', ringId: content.goldRing.id, order: 7, gold: true, count: 6, total: 6, progression: false });
+  const clean = !!s.score.sectorClean;
+  if (clean) addScore(s, R.survival, events, 'SURVIVAL');
+  addScore(s, content.rules.clearBonus, events, 'ROUND_CLEAR', { round: t.round });
+  events.push({ type: 'ROUND_CLEAR', round: t.round, blasted, clean });
+  t.hold = T.ROUND_CLEAR_HOLD;
+  events.push({ type: 'CHECKPOINT_REQUEST', reason: 'ROUND_CLEAR' });
+}
+
+// Kills, the respawn island (the last static island stood on), and the write
+// back into routeId/waveId.
+function towerPost(A, s, content, events) {
+  const t = s._tower, p = s.player;
+  const wins = events.filter((e) => e.type === 'JOUST_WIN' && e.cls !== 'BOSS').length;
+  if (wins) { t.kills += wins; s.objectives.spawnCursor = Math.max(s.objectives.spawnCursor, content.rules.replaceDelay); }
+  if (playerActive(s) && !s._deathThisTick && p.groundedPlatformId) {
+    const idx = T.PLATFORM_INDEX.get(p.groundedPlatformId);
+    const plat = T.TOWER_PLATFORMS[idx];
+    if (plat && (plat.motion === 'STATIC' || plat.motion === undefined) && idx !== t.check) { t.check = idx; events.push({ type: 'TOWER_CHECK', island: plat.id }); }
+  }
+  T.writeTower(s, t);
+}
+
 function applyUnlimitedContinue(state, C) {
   if (!state || !state.sim || state.sim.shell !== 'GAMEOVER') return false;
   if (state.sim.mode === 'ARCADE') return false;
@@ -636,6 +806,7 @@ function stepTick(A, s, input = EMPTY_INPUT) {
   }
   const content = arenaContent(A, s);
   if (s.boss.phase === 'TRANSITION') s._locked = true;
+  if (content.kind === 'TOWER') towerPre(A, s, content, input, events);
 
   stageTimers(s);
 
@@ -652,6 +823,8 @@ function stepTick(A, s, input = EMPTY_INPUT) {
   objectivesStage(A, s, content, events);
 
   bossStage(A, s, content, events);
+
+  if (content.kind === 'TOWER') towerPost(A, s, content, events);
 
   transitionsStage(A, s, content, events);
   return finish(s, events);
@@ -683,7 +856,7 @@ function startCampaign(A, s, events = []) {
 
 function startArcade(A, s, events = []) {
   s.sim.shell = 'PLAY';
-  s.objectives.routeId = 'ARC_C1_R1'; s.objectives.waveId = 'ARC_W1';
+  T.writeTower(s, { round: 1, kills: 0, check: 0, go: false, hold: 0 });
   activateArena(A, s, events);
   return events;
 }
@@ -909,10 +1082,10 @@ function encodePhase(window, flapCd, flapWanted, dir) {
   return (window << 7) | ((flapCd & 15) << 3) | (flapWanted ? 4 : 0) | (dir === -1 ? 1 : dir === 1 ? 2 : 0);
 }
 
-function targetFor(ghost, s, actor, corner) {
+function targetFor(ghost, s, actor, corner, centerY = CENTER_Y) {
   const p = s.player;
   if (ghost === 'PINKY') return { x: p.x + 4 * p.vx, y: p.y + 4 * p.vy };
-  if (ghost === 'INKY') { const lx = p.x + 4 * p.vx, ly = p.y + 4 * p.vy; return { x: 2 * CENTER_X - lx, y: 2 * CENTER_Y - ly }; }
+  if (ghost === 'INKY') { const lx = p.x + 4 * p.vx, ly = p.y + 4 * p.vy; return { x: 2 * CENTER_X - lx, y: 2 * centerY - ly }; }
   if (ghost === 'CLYDE') {
     const dx = wrappedDelta(actor.x, p.x), dy = p.y - actor.y;
     if (Math.abs(dx) > CLYDE_RADIUS || Math.abs(dy) > CLYDE_RADIUS) return { x: p.x, y: p.y };
@@ -921,7 +1094,9 @@ function targetFor(ghost, s, actor, corner) {
   return { x: p.x, y: p.y };
 }
 
-function rivalIntent(A, s, actor, aiClass, corner, playerActive) {
+// centerY: the Arcade Tower passes a centre that follows the player, since the
+// tower is eight screens tall rather than one 384-pixel arena.
+function rivalIntent(A, s, actor, aiClass, corner, playerActive, centerY = CENTER_Y) {
   const C = A.sim_constants;
   let ph = decodePhase(actor.phase);
   const stall = actor.timer >= C.stallHuntTicks;
@@ -934,7 +1109,7 @@ function rivalIntent(A, s, actor, aiClass, corner, playerActive) {
     const tier = Math.max(0, actor.tier);
     let window = Math.max(4, (CLASS_WINDOW[aiClass] || 12) + (5 - tier) * 3);
     if (stall) window = 4;
-    const t = targetFor(ghost, s, actor, corner);
+    const t = targetFor(ghost, s, actor, corner, centerY);
     const dx = wrappedDelta(actor.x, t.x);
     let dir = dx > 512 ? 1 : dx < -512 ? -1 : 0;
 
@@ -946,7 +1121,7 @@ function rivalIntent(A, s, actor, aiClass, corner, playerActive) {
     if (aiClass === 'SHADOW' && (r & 3) === 0) dir = -dir;
     if (r === 15 && !flapWanted) flapWanted = true;
     if (((draw >>> 4) % 6) > tier && !stall) dir = 0;
-    if (!playerActive) { dir = 0; flapWanted = actor.y > CENTER_Y; }
+    if (!playerActive) { dir = 0; flapWanted = actor.y > centerY; }
 
     if (actor.y + 25 * 256 > s.world.lavaY - 24 * 256) flapWanted = true;
     ph = { window, flapCd: 0, flapWanted, dir };
@@ -967,12 +1142,13 @@ return {rivalIntent,decodePhase,CLASS_FLAP_PERIOD};
 
 // ==============================================================================
 //  6. src/sim/content.mjs
-//     Arenas: Campaign sectors, boss rooms and Arcade stages.
+//     Arenas: Campaign sectors, boss rooms, the Arcade tower and the VS arena.
 // ==============================================================================
 __modules[7] = (() => {
 const {contentSelection,actOf} = __modules[6];
 const {px,tdiv,mod} = __modules[4];
 const {emptyPlayer} = __modules[5];
+const {isTower,towerContent} = __modules[42];
 
 function levelRecord(A, n) { return A.campaign_levels[n - 1]; }
 function bossRecord(A, milestone) { return A.bosses.bosses.find((b) => b.milestone === milestone); }
@@ -1042,6 +1218,9 @@ function carryEntries(s) {
 }
 
 function arenaContent(A, s) {
+  // 3.6: the Arcade is one tall tower (src/sim/tower.mjs). The course/wave
+  // stages below remain for the VS arena and pre-3.6 records.
+  if (isTower(s)) return towerContent(s);
   if (s.sim.mode === 'ARCADE') {
     const { course, wave } = parseArcade(s);
 
@@ -1250,7 +1429,161 @@ return {arenaContent,activateArena,stepWorld,circuitPre,parseArcade,lavaWarningN
 
 
 // ==============================================================================
-//  7. src/sim/ascent.mjs
+//  7. src/sim/tower.mjs
+//     Arcade Tower (3.6): one hand-placed, 8-screen map from the grid floor to
+//     the moon, ten fixed ring placements, and the round rules.
+// ==============================================================================
+__modules[42] = (() => {
+// ARCADE TOWER (3.6): the Arcade is one tall level. Sim coordinates keep the
+// normal 256-wide wrap; y runs from the grid floor (GROUND top 336) up to the
+// moon (TOWER_TOP). The ascent camera presents y at ASCENT_NORMAL_SCALE (2x),
+// so 1536 sim px fill exactly the 8 screens (3072 px) the Arcade plates span.
+const {px,mod} = __modules[4];
+const TOWER_SCREENS=8,TOWER_SCREEN=192;
+const TOWER_GROUND=336;
+const TOWER_BOTTOM=360;
+const TOWER_TOP=TOWER_BOTTOM-TOWER_SCREENS*TOWER_SCREEN;
+const TOWER_PLAY_TOP=TOWER_TOP+20;
+const DRIFT=(amplitude,period)=>Object.freeze({profile:'DRIFT_X_SOFT',amplitude,period,dwell:0});
+const BOB=(amplitude,period)=>Object.freeze({profile:'BOB_Y_SOFT',amplitude,period,dwell:0});
+// [id, x, y, width, island art, mirrored, motion, phase offset]. One fixed,
+// hand-placed map: a zig-zag of stepping islands with a wide rest island about
+// once a screen; the upper tower is sparser, smaller and starts to drift.
+const ISLANDS=[
+// 1 LAUNCH PAD: low perches either side of the grid floor.
+['T01',14,284,56,'STD_05',0],['T02',182,280,54,'STD_04',1],
+['T03',98,236,54,'STD_07',0],
+['T04',222,196,50,'STD_02',1],['T05',34,188,52,'STD_01',0],
+// 2 STAIRCASE: a rest island, then steps climbing left to right.
+['T06',98,148,88,'STD_09',0],
+['T07',16,106,50,'STD_03',1],['T08',200,98,50,'STD_07',1],
+['T09',68,62,46,'STD_06',0],
+['T10',128,20,52,'STD_02',0],
+['T11',188,-24,54,'STD_04',1],
+// 3 TWIN COLUMNS: two ladders of perches around an open central shaft.
+['T12',18,-50,52,'STD_01',0],
+['T13',196,-80,50,'STD_03',1],['T14',32,-106,48,'STD_06',0],
+['T15',186,-136,54,'STD_07',1],['T16',14,-162,52,'STD_02',1],
+['T17',200,-192,48,'STD_06',1],['T18',30,-218,50,'STD_03',0],
+// 4 REST AND DRIFT: a wide landing, then two islands that move.
+['T19',96,-256,96,'STD_09',1],
+['T20',214,-306,50,'STD_02',0,DRIFT(12,420)],['T21',30,-314,54,'STD_05',1],
+['T22',124,-360,54,'STD_04',0,BOB(6,460)],
+['T23',30,-404,50,'STD_01',1],
+// 5 STAIRCASE BACK: right to left, across the wrap seam.
+['T24',200,-414,52,'STD_07',0],
+['T25',138,-458,50,'STD_03',1],
+['T26',76,-502,52,'STD_01',0],['T27',214,-506,76,'STD_08',1],
+['T28',14,-546,54,'STD_04',0],
+['T29',208,-590,48,'STD_06',1],
+// 6 THE VOID: open sky with one rest island and one drifting stone.
+['T30',92,-640,92,'STD_09',0],
+['T31',196,-722,46,'STD_06',0,DRIFT(14,380)],['T32',24,-736,50,'STD_02',1],
+// 7 CROWN: an arc of islands with a drifting keystone above.
+['T33',6,-812,52,'STD_05',0],['T34',200,-816,52,'STD_04',1],
+['T35',60,-862,50,'STD_07',0],['T36',146,-866,50,'STD_01',1],
+['T37',92,-912,76,'STD_08',0],
+['T38',210,-948,46,'STD_03',1,DRIFT(12,340)],
+// 8 SUMMIT: side perches and the pedestal under the moon.
+['T39',20,-990,52,'STD_02',0],
+['T40',104,-1034,46,'STD_06',1,BOB(8,400)],
+['T41',8,-1086,50,'STD_03',0],
+['T42',150,-1066,92,'STD_09',1],
+];
+const TOWER_PLATFORMS=Object.freeze([
+Object.freeze({id:'GROUND',motion:'STATIC',phaseOffset:0,rect:Object.freeze([0,TOWER_GROUND,256,16]),surface:'SAFE'}),
+...ISLANDS.map(([id,x,y,w,look,mirror,motion='STATIC',phaseOffset=0])=>Object.freeze({
+id,motion,phaseOffset,rect:Object.freeze([x,y,w,8]),surface:'SAFE',look,mirror:!!mirror,
+})),
+]);
+const PLATFORM_INDEX=new Map(TOWER_PLATFORMS.map((p,i)=>[p.id,i]));
+function towerSpawnFor(index){
+const p=TOWER_PLATFORMS[index]||TOWER_PLATFORMS[0];
+if (p.id==='GROUND') return[32,TOWER_GROUND-25];
+return[mod(p.rect[0]+(p.rect[2]>>1)-14,256),p.rect[1]-25];
+}
+// Gold ring: in front of the moon at the top of the rear plate (the moon sits
+// at rear-plate logical (203,85); at the summit the camera shows rows 0..384).
+const GOLD_RING=Object.freeze({id:'TWR_GOLD',order:7,center:Object.freeze([203,TOWER_TOP+43]),radius:11,color:'GREEN'});
+// Ten fixed ring placements, one per round, then the cycle repeats. Each set
+// spreads six rings through the whole tower so every round is a full climb.
+const RING_SETS_RAW=[
+[[126,204],[160,70],[110,-150],[100,-316],[176,-560],[130,-760]],
+[[240,240],[40,30],[230,-240],[170,-520],[60,-690],[240,-880]],
+[[60,150],[150,-60],[20,-270],[170,-410],[120,-700],[30,-950]],
+[[128,300],[2,60],[110,-200],[238,-272],[100,-560],[170,-1000]],
+[[200,150],[90,-20],[150,-300],[20,-450],[236,-760],[128,-960]],
+[[246,306],[150,56],[250,-108],[60,-470],[150,-790],[60,-1130]],
+[[40,236],[210,40],[130,-220],[250,-470],[20,-780],[236,-1020]],
+[[170,190],[4,-20],[128,-300],[176,-600],[120,-830],[90,-1100]],
+[[96,300],[100,100],[216,-160],[60,-600],[240,-770],[110,-1130]],
+[[180,236],[40,-80],[170,-330],[10,-620],[60,-1040],[250,-1000]],
+];
+const RING_SETS=Object.freeze(RING_SETS_RAW.map((set)=>Object.freeze(set.map(([x,y],i)=>Object.freeze({
+id:`TWR_R${i+1}`,order:i+1,center:Object.freeze([x,y]),radius:11,color:'CYAN',
+})))));
+const TOWER_HAZARD=Object.freeze({kind:'STATIC',lavaY:352,period:0,warning:0,active:0,amplitude:0,phaseOffset:0});
+const GHOSTS=Object.freeze(['BLINKY','PINKY','INKY','CLYDE']);
+// The nearby zone: rivals exist within ZONE px above and below the player.
+// Arrivals start ARRIVAL px away (more than a full screen plus a sprite, so
+// they are always off screen when they appear) and fly in.
+const TOWER_ZONE=288,TOWER_DESPAWN=300,TOWER_ARRIVAL=[220,252];
+const TOWER_FIRST_ARRIVAL=45;
+const ROUND_CLEAR_HOLD=75;
+const ROUND_SWEEP_TICKS=60;
+function towerRules(round){
+const r=Math.max(1,round|0),k=r-1;
+return{
+round:r,
+cap:Math.min(8,3+k),
+fillGap:Math.max(40,90-8*k),
+replaceDelay:Math.max(60,240-36*k),
+classShift:Math.min(.5,.12*k),
+tierBase:Math.min(4,1+(k>>1)),
+eggTicks:Math.max(150,360-30*k),
+ringSet:mod(k,RING_SETS.length),
+clearBonus:Math.min(15000,5000+1000*k),
+};
+}
+function parseTowerRound(s){const m=/^TWR_R(\d+)$/.exec(s.objectives.routeId);return m?Math.max(1,Number(m[1])):0;}
+function isTower(s){return !!s&&s.sim.mode==='ARCADE'&&/^TWR_R\d+$/.test(s.objectives.routeId);}
+function parseTower(s){
+const m=/^TWR_K(\d+)_C(\d+)_G([01])_H(\d+)$/.exec(s.objectives.waveId)||[];
+const check=Number(m[2]||0);
+return{round:parseTowerRound(s)||1,kills:Number(m[1]||0),check:check<TOWER_PLATFORMS.length?check:0,go:m[3]==='1',hold:Number(m[4]||0)};
+}
+function writeTower(s,t){
+s.objectives.routeId=`TWR_R${Math.max(1,t.round|0)}`;
+s.objectives.waveId=`TWR_K${Math.max(0,t.kills|0)}_C${Math.max(0,t.check|0)}_G${t.go?1:0}_H${Math.max(0,t.hold|0)}`;
+}
+function towerAltitude(yPx){return Math.max(0,Math.min(1,(TOWER_GROUND-yPx)/(TOWER_GROUND-TOWER_TOP)));}
+function towerBand(yPx){const a=towerAltitude(yPx);return a<1/3?0:a<2/3?1:2;}
+function towerClassFor(yPx,rules,draw){
+const eff=towerAltitude(yPx)+rules.classShift;
+const w=eff<1/3?[80,20,0]:eff<2/3?[30,55,15]:eff<1?[10,45,45]:[0,40,60];
+const pick=draw%100;
+return pick<w[0]?'BOUNDER':pick<w[0]+w[1]?'HUNTER':'SHADOW';
+}
+function towerContent(s){
+const t=parseTower(s),rules=towerRules(t.round);
+return{
+kind:'TOWER',contentId:'TOWER',platforms:TOWER_PLATFORMS,playerSpawn:towerSpawnFor(t.check),
+enemySpawns:[[128,TOWER_GROUND-60]],rings:RING_SETS[rules.ringSet],goldRing:GOLD_RING,ringsAnyOrder:true,
+rosterList:[],ghostFor:(i)=>GHOSTS[mod(i,4)],maxMounted:rules.cap,spawnCadenceTicks:rules.fillGap,
+hazard:TOWER_HAZARD,audioState:'ACT_1',round:t.round,stage:t.round,tier:rules.tierBase,tower:t,rules,
+carried:0,ringsProgression:false,combatProgression:false,
+};
+}
+return{
+TOWER_PLATFORMS,PLATFORM_INDEX,RING_SETS,GOLD_RING,TOWER_TOP,TOWER_BOTTOM,TOWER_GROUND,TOWER_PLAY_TOP,TOWER_SCREEN,TOWER_SCREENS,
+TOWER_ZONE,TOWER_DESPAWN,TOWER_ARRIVAL,TOWER_FIRST_ARRIVAL,ROUND_CLEAR_HOLD,ROUND_SWEEP_TICKS,GHOSTS,
+towerRules,parseTower,writeTower,isTower,towerContent,towerSpawnFor,towerAltitude,towerBand,towerClassFor,
+};
+})();
+
+
+// ==============================================================================
+//  8. src/sim/ascent.mjs
 //     Campaign ascent: rings and resolved rivals open altitude.
 // ==============================================================================
 __modules[11] = (() => {
@@ -1319,7 +1652,7 @@ return {ascentMetrics,cumulativeSpawnCeiling,courseSpawnAnchor,bitCount,campaign
 
 
 // ==============================================================================
-//  8. src/sim/cinema.mjs
+//  9. src/sim/cinema.mjs
 //     Sky Cinema runtime: shot advance, hold-to-skip, completion.
 // ==============================================================================
 __modules[10] = (() => {
@@ -1412,7 +1745,7 @@ return {stepCinema,enterCinema,filmShots};
 
 
 // ==============================================================================
-//  9. src/sim/autopilot.mjs
+// 10. src/sim/autopilot.mjs
 //     The Cinema reel pilot.
 // ==============================================================================
 __modules[27] = (() => {
@@ -1464,7 +1797,7 @@ return {createPilot};
 
 
 // ==============================================================================
-// 10. src/sim/vs.mjs
+// 11. src/sim/vs.mjs
 //     VS: two humans and one AI, one rule for all three birds, the ring race.
 // ==============================================================================
 __modules[41] = (() => {
@@ -1708,7 +2041,7 @@ return {VsGame,vsCompat,newVsState,stepVs,encodeInput,decodeInput,predictInput,v
 
 
 // ==============================================================================
-// 11. src/core/circuit.mjs
+// 12. src/core/circuit.mjs
 //     Circuit reducer and active-content selection.
 // ==============================================================================
 __modules[6] = (() => {
@@ -1780,7 +2113,7 @@ return {reduceCircuit,contentSelection,actOf};
 
 
 // ==============================================================================
-// 12. src/core/fixed.mjs
+// 13. src/core/fixed.mjs
 //     Integer subpixel maths and wrap.
 // ==============================================================================
 __modules[4] = (() => {
@@ -1847,7 +2180,7 @@ return {px,tdiv,mod,WRAP,wrappedDelta,clamp,compareRational,nearestWrapShift,flo
 
 
 // ==============================================================================
-// 13. src/core/rng.mjs
+// 14. src/core/rng.mjs
 //     The seeded random number generator.
 // ==============================================================================
 __modules[3] = (() => {
@@ -1876,7 +2209,7 @@ return {seedState,nextU32};
 
 
 // ==============================================================================
-// 14. src/core/canonical.mjs
+// 15. src/core/canonical.mjs
 //     Canonical JSON for digests and saves.
 // ==============================================================================
 __modules[1] = (() => {
@@ -1932,7 +2265,7 @@ return {digest,checkpointChecksum};
 
 
 // ==============================================================================
-// 15. src/core/sha256.mjs
+// 16. src/core/sha256.mjs
 //     SHA-256, in plain JavaScript.
 // ==============================================================================
 __modules[0] = (() => {
@@ -2006,7 +2339,7 @@ return {sha256Hex};
 
 
 // ==============================================================================
-// 16. src/input/input.mjs
+// 17. src/input/input.mjs
 //     Input normalisation: wings, chords, darts, keyboard, pad.
 // ==============================================================================
 __modules[33] = (() => {
@@ -2228,7 +2561,7 @@ return {InputNormalizer,KEY_MAP,GamepadReader};
 
 
 // ==============================================================================
-// 17. src/save/schema.mjs
+// 18. src/save/schema.mjs
 //     A small JSON Schema validator for the save state.
 // ==============================================================================
 __modules[34] = (() => {
@@ -2302,7 +2635,7 @@ return {validate};
 
 
 // ==============================================================================
-// 18. src/save/checkpoint.mjs
+// 19. src/save/checkpoint.mjs
 //     Checkpoint write / restore protocol.
 // ==============================================================================
 __modules[35] = (() => {
@@ -2407,7 +2740,7 @@ return {writeCheckpoint,restoreCheckpoint,resetData,KEYS,keysFor,memoryStorage};
 
 
 // ==============================================================================
-// 19. src/data/authority.mjs
+// 20. src/data/authority.mjs
 //     Loading and validating the authority (the rules data).
 // ==============================================================================
 __modules[2] = (() => {
@@ -2421,7 +2754,7 @@ const AUTHORITY_FILES = [
 
 const PRESENTATION_FILES = new Set(['cinema', 'audio', 'palette', 'font_5x7', 'story_strings']);
 
-const BUILD_ID = 'STRUTHIO-CONSOLE-3.5.4';
+const BUILD_ID = 'STRUTHIO-CONSOLE-3.6.0';
 let ACTIVE_IDENTITY = Object.freeze({ episodeId: 'empty', buildId: BUILD_ID, saveNamespace: 'struthio.console.empty.v1' });
 
 function configureCartridge(manifest) {

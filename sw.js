@@ -1,4 +1,4 @@
-const BUILD='STRUTHIO-CONSOLE-3.5.4';
+const BUILD='STRUTHIO-CONSOLE-3.6.0';
 const CACHE_PREFIX='struthio-console-';
 const CACHE=`${CACHE_PREFIX}${BUILD}`;
 const CARTRIDGE_CACHE='struthio-cartridge-packs-v1';

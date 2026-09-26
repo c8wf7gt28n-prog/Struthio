@@ -123,7 +123,7 @@ const AUTHORITY_FILES=[
 'state.schema',
 ];
 const PRESENTATION_FILES=new Set(['cinema','audio','palette','font_5x7','story_strings']);
-const BUILD_ID='STRUTHIO-CONSOLE-3.5.4';
+const BUILD_ID='STRUTHIO-CONSOLE-3.6.0';
 let ACTIVE_IDENTITY=Object.freeze({episodeId:'empty',buildId:BUILD_ID,saveNamespace:'struthio.console.empty.v1'});
 function configureCartridge(manifest){
 if (!manifest){ACTIVE_IDENTITY=Object.freeze({episodeId:'empty',buildId:BUILD_ID,saveNamespace:'struthio.console.empty.v1'});return ACTIVE_IDENTITY;}
@@ -367,10 +367,158 @@ return{legal:true,state:s,events};
 }
 return{reduceCircuit,contentSelection,actOf};
 })();
+__modules[42]=(()=>{
+// ARCADE TOWER (3.6): the Arcade is one tall level. Sim coordinates keep the
+// normal 256-wide wrap; y runs from the grid floor (GROUND top 336) up to the
+// moon (TOWER_TOP). The ascent camera presents y at ASCENT_NORMAL_SCALE (2x),
+// so 1536 sim px fill exactly the 8 screens (3072 px) the Arcade plates span.
+const{px,mod}=__modules[4];
+const TOWER_SCREENS=8,TOWER_SCREEN=192;
+const TOWER_GROUND=336;
+const TOWER_BOTTOM=360;
+const TOWER_TOP=TOWER_BOTTOM-TOWER_SCREENS*TOWER_SCREEN;
+const TOWER_PLAY_TOP=TOWER_TOP+20;
+const DRIFT=(amplitude,period)=>Object.freeze({profile:'DRIFT_X_SOFT',amplitude,period,dwell:0});
+const BOB=(amplitude,period)=>Object.freeze({profile:'BOB_Y_SOFT',amplitude,period,dwell:0});
+// [id, x, y, width, island art, mirrored, motion, phase offset]. One fixed,
+// hand-placed map: a zig-zag of stepping islands with a wide rest island about
+// once a screen; the upper tower is sparser, smaller and starts to drift.
+const ISLANDS=[
+// 1 LAUNCH PAD: low perches either side of the grid floor.
+['T01',14,284,56,'STD_05',0],['T02',182,280,54,'STD_04',1],
+['T03',98,236,54,'STD_07',0],
+['T04',222,196,50,'STD_02',1],['T05',34,188,52,'STD_01',0],
+// 2 STAIRCASE: a rest island, then steps climbing left to right.
+['T06',98,148,88,'STD_09',0],
+['T07',16,106,50,'STD_03',1],['T08',200,98,50,'STD_07',1],
+['T09',68,62,46,'STD_06',0],
+['T10',128,20,52,'STD_02',0],
+['T11',188,-24,54,'STD_04',1],
+// 3 TWIN COLUMNS: two ladders of perches around an open central shaft.
+['T12',18,-50,52,'STD_01',0],
+['T13',196,-80,50,'STD_03',1],['T14',32,-106,48,'STD_06',0],
+['T15',186,-136,54,'STD_07',1],['T16',14,-162,52,'STD_02',1],
+['T17',200,-192,48,'STD_06',1],['T18',30,-218,50,'STD_03',0],
+// 4 REST AND DRIFT: a wide landing, then two islands that move.
+['T19',96,-256,96,'STD_09',1],
+['T20',214,-306,50,'STD_02',0,DRIFT(12,420)],['T21',30,-314,54,'STD_05',1],
+['T22',124,-360,54,'STD_04',0,BOB(6,460)],
+['T23',30,-404,50,'STD_01',1],
+// 5 STAIRCASE BACK: right to left, across the wrap seam.
+['T24',200,-414,52,'STD_07',0],
+['T25',138,-458,50,'STD_03',1],
+['T26',76,-502,52,'STD_01',0],['T27',214,-506,76,'STD_08',1],
+['T28',14,-546,54,'STD_04',0],
+['T29',208,-590,48,'STD_06',1],
+// 6 THE VOID: open sky with one rest island and one drifting stone.
+['T30',92,-640,92,'STD_09',0],
+['T31',196,-722,46,'STD_06',0,DRIFT(14,380)],['T32',24,-736,50,'STD_02',1],
+// 7 CROWN: an arc of islands with a drifting keystone above.
+['T33',6,-812,52,'STD_05',0],['T34',200,-816,52,'STD_04',1],
+['T35',60,-862,50,'STD_07',0],['T36',146,-866,50,'STD_01',1],
+['T37',92,-912,76,'STD_08',0],
+['T38',210,-948,46,'STD_03',1,DRIFT(12,340)],
+// 8 SUMMIT: side perches and the pedestal under the moon.
+['T39',20,-990,52,'STD_02',0],
+['T40',104,-1034,46,'STD_06',1,BOB(8,400)],
+['T41',8,-1086,50,'STD_03',0],
+['T42',150,-1066,92,'STD_09',1],
+];
+const TOWER_PLATFORMS=Object.freeze([
+Object.freeze({id:'GROUND',motion:'STATIC',phaseOffset:0,rect:Object.freeze([0,TOWER_GROUND,256,16]),surface:'SAFE'}),
+...ISLANDS.map(([id,x,y,w,look,mirror,motion='STATIC',phaseOffset=0])=>Object.freeze({
+id,motion,phaseOffset,rect:Object.freeze([x,y,w,8]),surface:'SAFE',look,mirror:!!mirror,
+})),
+]);
+const PLATFORM_INDEX=new Map(TOWER_PLATFORMS.map((p,i)=>[p.id,i]));
+function towerSpawnFor(index){
+const p=TOWER_PLATFORMS[index]||TOWER_PLATFORMS[0];
+if (p.id==='GROUND') return[32,TOWER_GROUND-25];
+return[mod(p.rect[0]+(p.rect[2]>>1)-14,256),p.rect[1]-25];
+}
+// Gold ring: in front of the moon at the top of the rear plate (the moon sits
+// at rear-plate logical (203,85); at the summit the camera shows rows 0..384).
+const GOLD_RING=Object.freeze({id:'TWR_GOLD',order:7,center:Object.freeze([203,TOWER_TOP+43]),radius:11,color:'GREEN'});
+// Ten fixed ring placements, one per round, then the cycle repeats. Each set
+// spreads six rings through the whole tower so every round is a full climb.
+const RING_SETS_RAW=[
+[[126,204],[160,70],[110,-150],[100,-316],[176,-560],[130,-760]],
+[[240,240],[40,30],[230,-240],[170,-520],[60,-690],[240,-880]],
+[[60,150],[150,-60],[20,-270],[170,-410],[120,-700],[30,-950]],
+[[128,300],[2,60],[110,-200],[238,-272],[100,-560],[170,-1000]],
+[[200,150],[90,-20],[150,-300],[20,-450],[236,-760],[128,-960]],
+[[246,306],[150,56],[250,-108],[60,-470],[150,-790],[60,-1130]],
+[[40,236],[210,40],[130,-220],[250,-470],[20,-780],[236,-1020]],
+[[170,190],[4,-20],[128,-300],[176,-600],[120,-830],[90,-1100]],
+[[96,300],[100,100],[216,-160],[60,-600],[240,-770],[110,-1130]],
+[[180,236],[40,-80],[170,-330],[10,-620],[60,-1040],[250,-1000]],
+];
+const RING_SETS=Object.freeze(RING_SETS_RAW.map((set)=>Object.freeze(set.map(([x,y],i)=>Object.freeze({
+id:`TWR_R${i+1}`,order:i+1,center:Object.freeze([x,y]),radius:11,color:'CYAN',
+})))));
+const TOWER_HAZARD=Object.freeze({kind:'STATIC',lavaY:352,period:0,warning:0,active:0,amplitude:0,phaseOffset:0});
+const GHOSTS=Object.freeze(['BLINKY','PINKY','INKY','CLYDE']);
+// The nearby zone: rivals exist within ZONE px above and below the player.
+// Arrivals start ARRIVAL px away (more than a full screen plus a sprite, so
+// they are always off screen when they appear) and fly in.
+const TOWER_ZONE=288,TOWER_DESPAWN=300,TOWER_ARRIVAL=[220,252];
+const TOWER_FIRST_ARRIVAL=45;
+const ROUND_CLEAR_HOLD=75;
+const ROUND_SWEEP_TICKS=60;
+function towerRules(round){
+const r=Math.max(1,round|0),k=r-1;
+return{
+round:r,
+cap:Math.min(8,3+k),
+fillGap:Math.max(40,90-8*k),
+replaceDelay:Math.max(60,240-36*k),
+classShift:Math.min(.5,.12*k),
+tierBase:Math.min(4,1+(k>>1)),
+eggTicks:Math.max(150,360-30*k),
+ringSet:mod(k,RING_SETS.length),
+clearBonus:Math.min(15000,5000+1000*k),
+};
+}
+function parseTowerRound(s){const m=/^TWR_R(\d+)$/.exec(s.objectives.routeId);return m?Math.max(1,Number(m[1])):0;}
+function isTower(s){return !!s&&s.sim.mode==='ARCADE'&&/^TWR_R\d+$/.test(s.objectives.routeId);}
+function parseTower(s){
+const m=/^TWR_K(\d+)_C(\d+)_G([01])_H(\d+)$/.exec(s.objectives.waveId)||[];
+const check=Number(m[2]||0);
+return{round:parseTowerRound(s)||1,kills:Number(m[1]||0),check:check<TOWER_PLATFORMS.length?check:0,go:m[3]==='1',hold:Number(m[4]||0)};
+}
+function writeTower(s,t){
+s.objectives.routeId=`TWR_R${Math.max(1,t.round|0)}`;
+s.objectives.waveId=`TWR_K${Math.max(0,t.kills|0)}_C${Math.max(0,t.check|0)}_G${t.go?1:0}_H${Math.max(0,t.hold|0)}`;
+}
+function towerAltitude(yPx){return Math.max(0,Math.min(1,(TOWER_GROUND-yPx)/(TOWER_GROUND-TOWER_TOP)));}
+function towerBand(yPx){const a=towerAltitude(yPx);return a<1/3?0:a<2/3?1:2;}
+function towerClassFor(yPx,rules,draw){
+const eff=towerAltitude(yPx)+rules.classShift;
+const w=eff<1/3?[80,20,0]:eff<2/3?[30,55,15]:eff<1?[10,45,45]:[0,40,60];
+const pick=draw%100;
+return pick<w[0]?'BOUNDER':pick<w[0]+w[1]?'HUNTER':'SHADOW';
+}
+function towerContent(s){
+const t=parseTower(s),rules=towerRules(t.round);
+return{
+kind:'TOWER',contentId:'TOWER',platforms:TOWER_PLATFORMS,playerSpawn:towerSpawnFor(t.check),
+enemySpawns:[[128,TOWER_GROUND-60]],rings:RING_SETS[rules.ringSet],goldRing:GOLD_RING,ringsAnyOrder:true,
+rosterList:[],ghostFor:(i)=>GHOSTS[mod(i,4)],maxMounted:rules.cap,spawnCadenceTicks:rules.fillGap,
+hazard:TOWER_HAZARD,audioState:'ACT_1',round:t.round,stage:t.round,tier:rules.tierBase,tower:t,rules,
+carried:0,ringsProgression:false,combatProgression:false,
+};
+}
+return{
+TOWER_PLATFORMS,PLATFORM_INDEX,RING_SETS,GOLD_RING,TOWER_TOP,TOWER_BOTTOM,TOWER_GROUND,TOWER_PLAY_TOP,TOWER_SCREEN,TOWER_SCREENS,
+TOWER_ZONE,TOWER_DESPAWN,TOWER_ARRIVAL,TOWER_FIRST_ARRIVAL,ROUND_CLEAR_HOLD,ROUND_SWEEP_TICKS,GHOSTS,
+towerRules,parseTower,writeTower,isTower,towerContent,towerSpawnFor,towerAltitude,towerBand,towerClassFor,
+};
+})();
 __modules[7]=(()=>{
 const{contentSelection,actOf}=__modules[6];
 const{px,tdiv,mod}=__modules[4];
 const{emptyPlayer}=__modules[5];
+const{isTower,towerContent}=__modules[42];
 function levelRecord(A,n){return A.campaign_levels[n-1];}
 function bossRecord(A,milestone){return A.bosses.bosses.find((b)=>b.milestone===milestone);}
 function circuitPre(s){
@@ -430,6 +578,7 @@ const carry=s.objectives&&Array.isArray(s.objectives.carry)?s.objectives.carry:[
 return carry.map((c)=>({class:c.class,tier:c.tier,ghost:c.ghost,paid:!!c.paid,carried:true}));
 }
 function arenaContent(A,s){
+if (isTower(s)) return towerContent(s);
 if (s.sim.mode==='ARCADE'){
 const{course,wave}=parseArcade(s);
 const ws=arcadeWorld(course,wave);
@@ -731,10 +880,10 @@ return{window:phase>>7,flapCd:(phase>>3)&15,flapWanted:!!(phase&4),dir:[0,-1,1][
 function encodePhase(window,flapCd,flapWanted,dir){
 return (window<<7)|((flapCd&15)<<3)|(flapWanted?4:0)|(dir===-1?1:dir===1?2:0);
 }
-function targetFor(ghost,s,actor,corner){
+function targetFor(ghost,s,actor,corner,centerY=CENTER_Y){
 const p=s.player;
 if (ghost==='PINKY') return{x:p.x+4*p.vx,y:p.y+4*p.vy};
-if (ghost==='INKY'){const lx=p.x+4*p.vx,ly=p.y+4*p.vy;return{x:2*CENTER_X-lx,y:2*CENTER_Y-ly};}
+if (ghost==='INKY'){const lx=p.x+4*p.vx,ly=p.y+4*p.vy;return{x:2*CENTER_X-lx,y:2*centerY-ly};}
 if (ghost==='CLYDE'){
 const dx=wrappedDelta(actor.x,p.x),dy=p.y-actor.y;
 if (Math.abs(dx)>CLYDE_RADIUS||Math.abs(dy)>CLYDE_RADIUS) return{x:p.x,y:p.y};
@@ -742,7 +891,7 @@ return{x:corner[0]*256,y:corner[1]*256};
 }
 return{x:p.x,y:p.y};
 }
-function rivalIntent(A,s,actor,aiClass,corner,playerActive){
+function rivalIntent(A,s,actor,aiClass,corner,playerActive,centerY=CENTER_Y){
 const C=A.sim_constants;
 let ph=decodePhase(actor.phase);
 const stall=actor.timer>=C.stallHuntTicks;
@@ -755,7 +904,7 @@ actor.rngDraws+=1;
 const tier=Math.max(0,actor.tier);
 let window=Math.max(4,(CLASS_WINDOW[aiClass]||12)+(5-tier)*3);
 if (stall) window=4;
-const t=targetFor(ghost,s,actor,corner);
+const t=targetFor(ghost,s,actor,corner,centerY);
 const dx=wrappedDelta(actor.x,t.x);
 let dir=dx>512?1:dx<-512?-1:0;
 const lanceGap=(t.y+LANCE_Y_SUB)-(actor.y+LANCE_Y_SUB);
@@ -766,7 +915,7 @@ if (aiClass==='BOUNDER'&&r===0) dir=-dir;
 if (aiClass==='SHADOW'&&(r&3)===0) dir=-dir;
 if (r===15&&!flapWanted) flapWanted=true;
 if (((draw>>>4)%6)>tier&&!stall) dir=0;
-if (!playerActive){dir=0;flapWanted=actor.y>CENTER_Y;}
+if (!playerActive){dir=0;flapWanted=actor.y>centerY;}
 if (actor.y+25*256>s.world.lavaY-24*256) flapWanted=true;
 ph={window,flapCd:0,flapWanted,dir};
 }else{
@@ -921,10 +1070,19 @@ const{arenaContent,activateArena,stepWorld,circuitPre,parseArcade,buildPlatforms
 const{integrate,inRing,boxesOverlap,standingPlatform}=__modules[8];
 const{rivalIntent}=__modules[9];
 const{stepCinema,enterCinema}=__modules[10];
-const{ascentMetrics,cumulativeSpawnCeiling,courseSpawnAnchor}=__modules[11];
+const{ascentMetrics,cumulativeSpawnCeiling,courseSpawnAnchor,bitCount}=__modules[11];
+const{nextU32}=__modules[3];
+const T=__modules[42];
 const{entityBox,BIRD_BOX,RIDER_BOX,EGG_BOX,LANCE_Y_SUB,FLAP_COOLDOWN_TICKS,RESPAWN_HIDDEN_TICKS,SHIMMER_TICKS,emptyPlayer,BOSS_HITS_TO_DEFEAT,BOSS_HURT_TICKS,freshScore}=__modules[5];
 const EMPTY_INPUT=Object.freeze({left:false,right:false,flapEdge:false,flapHeld:false});
 function playerActive(s){return s.player.invulnerableTicks<=SHIMMER_TICKS;}
+const TOWER_C=new WeakMap();
+function simC(A,content){
+if (!content||content.kind!=='TOWER') return A.sim_constants;
+let c=TOWER_C.get(A);
+if (!c){c=Object.freeze({...A.sim_constants,playTop:T.TOWER_PLAY_TOP});TOWER_C.set(A,c);}
+return c;
+}
 function actorBox(a){return entityBox(a.x,a.y,a.kind==='RIDER'?RIDER_BOX:a.kind==='EGG'?EGG_BOX:BIRD_BOX);}
 function rules(s){return s._C.scoring;}
 function ensureScoreState(s){
@@ -1039,9 +1197,11 @@ const bossRec=content.kind==='BOSS'?content.record:null;
 for (const a of s.actors){
 if (a.lifecycle!=='MOUNTED') continue;
 const aiClass=a.class==='BOSS'?bossRec.duel.bossClass:a.class;
-const corner=a.ghost==='CLYDE'&&content.kind==='NORMAL'&&s.sim.mode==='CAMPAIGN'
+const tower=content.kind==='TOWER';
+const corner=tower?[a.x<128*256?24:232,Math.floor(s.player.y/256)-70]
+:a.ghost==='CLYDE'&&content.kind==='NORMAL'&&s.sim.mode==='CAMPAIGN'
 ?courseSpawnAnchor(s,content,a.id-1):content.enemySpawns[0];
-const intent=rivalIntent(A,s,a,aiClass,corner,playerActive(s));
+const intent=rivalIntent(A,s,a,aiClass,corner,playerActive(s),tower?s.player.y-40*256:undefined);
 if (a.class==='BOSS'&&(s.boss.hurt|0)>0){
 intent.dir=wrappedDelta(a.x,s.player.x)>=0?-1:1;
 intent.flap=(s.boss.hurt&7)===0&&a.y>140*256;
@@ -1090,7 +1250,7 @@ if (p.lavaPhase==='SAFE'){p.lavaPhase='SINK';p.lavaTicks=C.lavaRescueWindowTicks
 return null;
 }
 function integrateAll(A,s,content,pIntent,intents,events){
-const C=A.sim_constants,p=s.player;
+const C=simC(A,content),p=s.player;
 const previousWorld={platforms:s.world.platforms.map((platform)=>({...platform,rect:platform.rect.slice()})),lavaY:s.world.lavaY};
 const actorFooting=new Map();
 for (const actor of s.actors){
@@ -1246,12 +1406,13 @@ for (const req of s._lifecycle){
 const a=s.actors.find((x)=>x.id===req.id);
 if (!a||a.lifecycle==='REMOVED') continue;
 if (req.to==='DISMOUNTED'){a.lifecycle='DISMOUNTED';a.kind='RIDER';a.timer=L.dismountMinimum;}
-else if (req.to==='EGG'){a.lifecycle='EGG';a.kind='EGG';a.timer=L.egg;a.vx=0;}
+else if (req.to==='EGG'){a.lifecycle='EGG';a.kind='EGG';a.timer=content.kind==='TOWER'?content.rules.eggTicks:L.egg;a.vx=0;}
 else if (req.to==='REMOVED'){a.lifecycle='REMOVED';}
 }
 s._lifecycle=[];
 s.actors=s.actors.filter((a)=>a.lifecycle!=='REMOVED');
 s.objectives.authorizedActorIds=s.actors.map((a)=>a.id);
+if (content.kind==='TOWER') return towerSpawnStage(A,s,content,events);
 if (content.kind==='BOSS'&&s.boss.phase!=='DUEL') return;
 if (s.objectives.spawnCursor<cumulativeSpawnCeiling(s,content)&&!s._locked){
 const live=s.actors.filter((a)=>['SPAWNING','MOUNTED','REMOUNTING','HATCHING'].includes(a.lifecycle)).length;
@@ -1277,6 +1438,7 @@ events.push({type:'SPAWN',actor:actor.id,cls:actor.class,ghost:actor.ghost});
 }
 }
 function objectivesStage(A,s,content,events){
+if (content.kind==='TOWER') return towerObjectives(A,s,content,events);
 const C=A.sim_constants,p=s.player;
 let routeComplete=false,hostileClear=false;
 if (playerActive(s)&&!s._locked&&!s._deathThisTick&&s.boss.phase!=='TRANSITION'&&s.boss.phase!=='DUEL'&&s.boss.phase!=='CLEAR'){
@@ -1422,6 +1584,142 @@ if (s._newArena){activateArena(A,s,events);events.push({type:'CHECKPOINT_REQUEST
 if (s._arcadeCourseAdvance){const c=arenaContent(A,s);s.world.contentId=c.contentId;s.world.platforms=buildPlatforms(c);events.push({type:'ARENA_ACTIVATE',contentId:c.contentId,audioState:c.audioState});}
 if (s._arcadeWaveAdvance){s.actors=[];s.objectives.authorizedActorIds=[];events.push({type:'WAVE_INTRO'});}
 }
+
+// ARCADE TOWER stages. Tower bookkeeping (round, kills, respawn island, the
+// first-move latch and the round-clear hold) lives in objectives.routeId and
+// waveId; objectives.spawnCursor is the arrival cooldown in ticks.
+const TOWER_LIVE=['SPAWNING','MOUNTED','REMOUNTING','HATCHING'];
+const TOWER_RING_SCORE=500;
+function towerPre(A,s,content,input,events){
+const t=s._tower=T.parseTower(s);
+if (t.hold>0){
+s._locked=true;
+t.hold-=1;
+if (t.hold===0) towerNextRound(A,s,t,events);
+return;
+}
+if (!t.go&&playerActive(s)&&(input.flapEdge||input.left||input.right||input.dartEdge)){
+t.go=true;
+s.objectives.spawnCursor=T.TOWER_FIRST_ARRIVAL;
+events.push({type:'TOWER_GO',round:t.round});
+}
+}
+function towerNextRound(A,s,t,events){
+const C=A.sim_constants;
+t.round+=1;t.go=false;t.check=0;t.hold=0;
+s.objectives.ringMask=0;s.objectives.spawnCursor=0;s.objectives.hostileClear=false;
+const[x,y]=T.towerSpawnFor(0);
+s.player=emptyPlayer(x,y);
+s.player.wing=C.wingMax;
+s.player.invulnerableTicks=RESPAWN_HIDDEN_TICKS+T.ROUND_SWEEP_TICKS+SHIMMER_TICKS;
+s.actors=[];s.objectives.authorizedActorIds=[];
+if (s.score){s.score.sectorClean=true;s.score.eggChain=0;}
+events.push({type:'ROUND_START',round:t.round});
+events.push({type:'CHECKPOINT_REQUEST',reason:'ROUND_START'});
+}
+function towerArrival(s,content){
+const p=s.player,py=Math.floor(p.y/256);
+const box={state:s.rng.gameplayState};
+const draw=()=>nextU32(box);
+const[near,far]=T.TOWER_ARRIVAL;
+const floor=T.TOWER_GROUND-30;
+const up=py-far>=T.TOWER_PLAY_TOP,down=py+far<=floor;
+if (!up&&!down){s.rng.gameplayState=box.state;return null;}
+const fromAbove=up&&(!down||(draw()&1)===0);
+const dist=near+(draw()%(far-near+1));
+const y=fromAbove?py-dist:py+dist;
+let x=-1;
+for (let tries=0;tries<6&&x<0;tries++){
+const cx=draw()&255;
+const b=entityBox(px(cx),px(y),BIRD_BOX);
+const blocked=s.world.platforms.some((q)=>{
+if (!q.collidable) return false;
+const top=(q.rect[1]-6)*256,bottom=(q.rect[1]+q.rect[3]+6)*256;
+if (b.b<=top||b.t>=bottom) return false;
+for (const sh of[0,-65536,65536]) if (b.l+sh<(q.rect[0]+q.rect[2])*256&&b.r+sh>q.rect[0]*256) return true;
+return false;
+});
+if (!blocked) x=cx;
+}
+const pick=draw();
+s.rng.gameplayState=box.state;
+if (x<0) return null;
+return{x,y,fromAbove,pick};
+}
+function towerSpawnStage(A,s,content,events){
+const t=s._tower,R=content.rules,p=s.player;
+let dropped=0;
+s.actors=s.actors.filter((a)=>{
+if (Math.abs(a.y-p.y)<=T.TOWER_DESPAWN*256) return true;
+if (TOWER_LIVE.includes(a.lifecycle)) dropped+=1;
+events.push({type:'DESPAWN',actor:a.id});
+return false;
+});
+if (dropped) s.objectives.spawnCursor=Math.max(s.objectives.spawnCursor,R.fillGap);
+s.objectives.authorizedActorIds=s.actors.map((a)=>a.id);
+if (!t.go||t.hold>0||s._locked||!playerActive(s)) return;
+if (s.objectives.spawnCursor>0){s.objectives.spawnCursor-=1;return;}
+// Eggs and fallen riders still count: a beaten rival comes back by hatching,
+// or, once its egg is collected, as a fresh arrival after the delay.
+const live=s.actors.filter((a)=>a.lifecycle!=='REMOVED').length;
+if (live>=R.cap) return;
+const spot=towerArrival(s,content);
+if (!spot){s.objectives.spawnCursor=12;return;}
+const cls=T.towerClassFor(spot.y,R,spot.pick);
+const tier=Math.min(5,R.tierBase+(T.towerBand(spot.y)===2?1:0));
+const id=s.sim.nextActorId;
+const actor={id,kind:'RIVAL',class:cls,ghost:T.GHOSTS[mod(id,4)],tier,lifecycle:'MOUNTED',x:px(spot.x),y:px(spot.y),
+vx:0,vy:spot.fromAbove?192:-320,facing:spot.x<128?1:-1,phase:0,timer:0,rngDraws:0,joustAwarded:false};
+s.sim.nextActorId+=1;
+s.actors.push(actor);
+s.objectives.authorizedActorIds.push(id);
+s.objectives.spawnCursor=R.fillGap;
+events.push({type:'SPAWN',actor:id,cls,ghost:actor.ghost,tower:true,fromAbove:spot.fromAbove});
+}
+function towerObjectives(A,s,content,events){
+const t=s._tower,p=s.player;
+if (!playerActive(s)||s._locked||s._deathThisTick||t.hold>0) return;
+const pb=entityBox(p.x,p.y,BIRD_BOX);
+for (const ring of content.rings){
+const bit=1<<(ring.order-1);
+if ((s.objectives.ringMask&bit)||!inRing(pb,ring)) continue;
+s.objectives.ringMask|=bit;
+const count=bitCount(s.objectives.ringMask&63);
+addScore(s,TOWER_RING_SCORE,events,'RING',{order:ring.order});
+events.push({type:'RING',ringId:ring.id,order:ring.order,count,total:content.rings.length,progression:false});
+if (count===content.rings.length) events.push({type:'GOLD_RING_OPEN',round:t.round});
+}
+if ((s.objectives.ringMask&63)!==63||!inRing(pb,content.goldRing)) return;
+const R=rules(s);
+let blasted=0;
+for (const a of s.actors){
+const armed=TOWER_LIVE.includes(a.lifecycle);
+let amount=0;
+if (armed){blasted+=1;amount=addScore(s,joustValue(R,a),events,'BLAST',{cls:a.class});}
+events.push({type:'TOWER_BLAST',actor:a.id,x:a.x,y:a.y,armed,amount});
+}
+t.kills+=blasted;
+s.actors=[];s.objectives.authorizedActorIds=[];
+s.objectives.ringMask|=64;
+events.push({type:'RING',ringId:content.goldRing.id,order:7,gold:true,count:6,total:6,progression:false});
+const clean=!!s.score.sectorClean;
+if (clean) addScore(s,R.survival,events,'SURVIVAL');
+addScore(s,content.rules.clearBonus,events,'ROUND_CLEAR',{round:t.round});
+events.push({type:'ROUND_CLEAR',round:t.round,blasted,clean});
+t.hold=T.ROUND_CLEAR_HOLD;
+events.push({type:'CHECKPOINT_REQUEST',reason:'ROUND_CLEAR'});
+}
+function towerPost(A,s,content,events){
+const t=s._tower,p=s.player;
+const wins=events.filter((e)=>e.type==='JOUST_WIN'&&e.cls!=='BOSS').length;
+if (wins){t.kills+=wins;s.objectives.spawnCursor=Math.max(s.objectives.spawnCursor,content.rules.replaceDelay);}
+if (playerActive(s)&&!s._deathThisTick&&p.groundedPlatformId){
+const idx=T.PLATFORM_INDEX.get(p.groundedPlatformId);
+const plat=T.TOWER_PLATFORMS[idx];
+if (plat&&(plat.motion==='STATIC'||plat.motion===undefined)&&idx!==t.check){t.check=idx;events.push({type:'TOWER_CHECK',island:plat.id});}
+}
+T.writeTower(s,t);
+}
 function applyUnlimitedContinue(state,C){
 if (!state||!state.sim||state.sim.shell!=='GAMEOVER') return false;
 if (state.sim.mode==='ARCADE') return false;
@@ -1443,6 +1741,7 @@ return finish(s,events);
 }
 const content=arenaContent(A,s);
 if (s.boss.phase==='TRANSITION') s._locked=true;
+if (content.kind==='TOWER') towerPre(A,s,content,input,events);
 stageTimers(s);
 const pIntent=playerIntent(A,s,input,events);
 const intents=aiIntents(A,s,content);
@@ -1451,6 +1750,7 @@ joustStage(A,s,content,events);
 lifecycleStage(A,s,content,events);
 objectivesStage(A,s,content,events);
 bossStage(A,s,content,events);
+if (content.kind==='TOWER') towerPost(A,s,content,events);
 transitionsStage(A,s,content,events);
 return finish(s,events);
 }
@@ -1475,7 +1775,7 @@ return events;
 }
 function startArcade(A,s,events=[]){
 s.sim.shell='PLAY';
-s.objectives.routeId='ARC_C1_R1';s.objectives.waveId='ARC_W1';
+T.writeTower(s,{round:1,kills:0,check:0,go:false,hold:0});
 activateArena(A,s,events);
 return events;
 }
@@ -2527,6 +2827,11 @@ const clearance=visualClearanceBelow(p,content,scaleY),centre=p.id==='BOSS_C';
 const master=centre?boss:flank;
 map.set(p.id,planFor(p,master,!centre&&p.rect[0]>128,clearance));
 }
+}else if (floating.length&&floating.every((p)=>p.look&&byId.has(p.look))){
+for (const p of floating){
+const clearance=visualClearanceBelow(p,content,scaleY);
+map.set(p.id,planFor(p,byId.get(p.look),!!p.mirror,clearance));
+}
 }else{
 const options=floating.map((p)=>{
 const clearance=visualClearanceBelow(p,content,scaleY),seed=platformHash(p);
@@ -2612,9 +2917,11 @@ for (let y=ry;y<ry+rh;y++) surface.p.fill(0,(y*surface.w+rx)*4,(y*surface.w+rx+r
 const items=platforms.map((p)=>({p,plan:layout.get(p.id)})).filter((it)=>it.plan&&!it.plan.ground)
 .map((it)=>({...it,g:islandGeometry(it.plan,it.p.rect[2])}))
 .sort((a,b)=>(b.g.H+b.g.decorH)-(a.g.H+a.g.decorH)||b.g.W-a.g.W);
-const slots=new Map(),sheet={w:surface.w,p:surface.p};
+const slots=new Map(),sheet={w:surface.w,p:surface.p},shared=new Map();
 let x=0,y=0,shelf=0;
 for (const{p,plan,g}of items){
+const key=`${plan.id}/${plan.mirror?1:0}/${g.W}x${g.H}+${g.decorH}`;
+if (shared.has(key)){slots.set(p.id,shared.get(key));continue;}
 const tall=g.H+g.decorH;
 if (x+g.W>rw){x=0;y+=shelf+2;shelf=0;}
 if (y+tall>rh||g.W>rw) continue;
@@ -2624,7 +2931,8 @@ if (g.decorH) resampleSlice(surface,dx,dy,g.W,g.decorH,sheet,sx,origin[1]+m.y,m.
 const by=dy+g.decorH;
 resampleSlice(surface,dx,by,g.W,g.capH,sheet,sx,capY,m.w,CAP_ROWS,plan.mirror);
 resampleSlice(surface,dx,by+g.capH,g.W,g.H-g.capH,sheet,sx,capY+CAP_ROWS,m.w,m.h-m.capTop-CAP_ROWS,plan.mirror);
-slots.set(p.id,Object.freeze({x:dx,y:by,w:g.W,h:g.H,decorY:dy,decorH:g.decorH}));
+const slot=Object.freeze({x:dx,y:by,w:g.W,h:g.H,decorY:dy,decorH:g.decorH});
+slots.set(p.id,slot);shared.set(key,slot);
 x+=g.W+2;shelf=Math.max(shelf,tall);
 }
 return slots;
@@ -4014,6 +4322,7 @@ actSummitTop:-((normalCount-1)*ASCENT_SECTOR_SPAN),
 };
 }
 function ascentProfile(A,s,content){
+if (content&&content.kind==='TOWER') return towerAscentProfile(s,content);
 if (!campaignAscentActive(s,content)) return arcadeAscentProfile(A,s,content);
 const level=content.kind==='BOSS'?content.milestone:content.level;
 const act=actOf(level);
@@ -4092,12 +4401,63 @@ return profile?profile.baseY+localY*profile.scaleY-profile.cameraTop:localY;
 function projectAnchoredY(profile,localTop,anchorY){
 return profile?profile.baseY+(localTop+anchorY)*profile.scaleY-profile.cameraTop-anchorY:localTop;
 }
+// ARCADE TOWER camera: one 8-screen climb from the grid floor to the moon,
+// following the player both up and down. Presentation y = 2 x sim y, the same
+// scale as every ascent stage, and the camera spans the same 2688 px the
+// eight Arcade courses did, so the rear, near and island layers keep their
+// existing scroll speeds.
+const TOWER_CAMERA_BOTTOM=ASCENT_CAMERA_TRAVEL;
+const TOWER_CAMERA_TOP=-7*ASCENT_SECTOR_SPAN;
+const TOWER_DEAD_ZONE=Object.freeze([150,290]);
+const TOWER_KEEP=Object.freeze([40,376]);
+const TOWER_SUMMIT_HOLD=330;
+function towerFeet(s){return (floorDiv(s.player.y,256)+PLAYER_SPRITE_ANCHOR_Y)*ASCENT_NORMAL_SCALE;}
+function towerAscentProfile(s,content){
+const feet=towerFeet(s);
+const targetTop=clamp(feet-Math.round((TOWER_DEAD_ZONE[0]+TOWER_DEAD_ZONE[1])/2),TOWER_CAMERA_TOP,TOWER_CAMERA_BOTTOM);
+return{
+active:true,arcade:true,tower:true,
+key:'TOWER',act:2000,level:content.round||1,kind:'TOWER',
+scaleY:ASCENT_NORMAL_SCALE,baseY:0,initialTop:TOWER_CAMERA_BOTTOM,summitTop:TOWER_CAMERA_TOP,targetTop,
+travel:0,progressSteps:0,maxSteps:0,metrics:null,
+bounds:{actInitialTop:TOWER_CAMERA_BOTTOM,actSummitTop:TOWER_CAMERA_TOP},
+};
+}
+function towerCameraStep(cam,s,profile){
+const feet=towerFeet(s);
+const hidden=s.player.invulnerableTicks>SHIMMER_TICKS;
+if (cam.top===null) cam.top=profile.targetTop;
+let desired=cam.top;
+if (hidden) desired=profile.targetTop;
+else if (feet-desired<TOWER_DEAD_ZONE[0]) desired=feet-TOWER_DEAD_ZONE[0];
+else if (feet-desired>TOWER_DEAD_ZONE[1]) desired=feet-TOWER_DEAD_ZONE[1];
+// In the top screen the camera settles on the summit so the gold ring sits
+// on the moon (the rear plate only lines up with the world at the summit).
+if (!hidden&&feet-TOWER_CAMERA_TOP<TOWER_SUMMIT_HOLD) desired=TOWER_CAMERA_TOP;
+desired=clamp(desired,TOWER_CAMERA_TOP,TOWER_CAMERA_BOTTOM);
+const elapsed=cam.lastTick===null?0:Math.max(0,Math.min(5,s.sim.tick-cam.lastTick));
+cam.lastTick=s.sim.tick;
+for (let i=0;i<elapsed;i++){
+const delta=desired-cam.top;
+if (delta===0) break;
+const step=Math.max(2,Math.min(40,Math.ceil(Math.abs(delta)*.16)));
+cam.top+=Math.sign(delta)*Math.min(Math.abs(delta),step);
+}
+if (!hidden) cam.top=clamp(cam.top,feet-TOWER_KEEP[1],feet-TOWER_KEEP[0]);
+cam.top=clamp(cam.top,TOWER_CAMERA_TOP,TOWER_CAMERA_BOTTOM);
+return{...withCamera(profile,Math.round(cam.top)),cameraTarget:desired};
+}
 class AscentCamera{
 constructor(A){this.A=A;this.top=null;this.key='';this.act=0;this.lastTick=null;}
 reset(){this.top=null;this.key='';this.act=0;this.lastTick=null;}
 resolve(s,content){
 const profile=ascentProfile(this.A,s,content);
 if (!profile){this.reset();return null;}
+if (profile.kind==='TOWER'){
+if (this.key!=='TOWER'){this.top=null;this.lastTick=null;}
+this.key='TOWER';this.act=profile.act;
+return towerCameraStep(this,s,profile);
+}
 const cameraTarget=ascentCameraTarget(this.A,s,profile);
 const changedAct=this.top===null||this.act!==profile.act;
 const changedKey=this.key!==profile.key;
@@ -4162,11 +4522,13 @@ const arcade=s.sim.mode==='ARCADE';
 const trueScore=Math.max(0,Math.trunc(s.sim.score||0));
 const carry=Math.floor(trueScore/1000000);
 const score=String(trueScore%1000000).padStart(6,'0');
-const position=arcade
+const tower=!!content&&content.kind==='TOWER';
+const position=tower?{a:'R',av:two(content.round||1),b:'',bv:''}
+:arcade
 ?{a:'S',av:two(view.arcade?.course||0),b:'T',bv:String(content?.tier||1)}
 :{a:'L',av:two(s.circuit.levelCursor),b:'W',bv:two(s.circuit.waveCursor)};
 const ring={visible:false,value:0,max:6,due:false,subdued:false,boss:false};
-const rival={visible:false,value:0,max:0,due:false,subdued:false};
+const rival={visible:false,value:0,max:0,due:false,subdued:false,single:false};
 const boss={visible:false,phase:'',remaining:0,hits:3,text:''};
 if (content&&content.kind==='BOSS'){
 const hitsToDefeat=3;
@@ -4176,6 +4538,10 @@ else if (s.boss.phase==='DUEL'){
 const remaining=Math.max(0,hitsToDefeat-(s.boss.hits|0));
 Object.assign(boss,{visible:true,phase:'DUEL',remaining,hits:hitsToDefeat,text:'◆'.repeat(remaining)+'◇'.repeat(hitsToDefeat-remaining)});
 }
+}else if (tower){
+const mask=s.objectives.ringMask>>>0;
+Object.assign(ring,{visible:true,value:bitCount(mask&63),max:content.rings.length,due:(mask&63)===63&&!(mask&64)});
+Object.assign(rival,{visible:true,value:content.tower.kills,max:0,single:true});
 }else if (content){
 if (!arcade){
 const m=view.ascent?.metrics||ascentMetrics(s,content);
@@ -4203,9 +4569,9 @@ if (s.sim.shell==='PAUSE'){toast='PAUSED';toastKind='pause';}
 return{live,paused:s.sim.shell==='PAUSE',score,trueScore,carry,mode:s.sim.mode,position,ring,rival,boss,joust,toast:live?toast:'',toastKind:live?toastKind:''};
 }
 function hudAriaLabel(m){
-const parts=[`Score ${m.trueScore}.`,...(m.mode==='ARCADE'?[`Stage ${Number(m.position.av)}.`,`Tier ${Number(m.position.bv)}.`]:[`Level ${Number(m.position.av)}.`,`Wave ${Number(m.position.bv)}.`])];
+const parts=[`Score ${m.trueScore}.`,...(m.position.a==='R'?[`Round ${Number(m.position.av)}.`]:m.mode==='ARCADE'?[`Stage ${Number(m.position.av)}.`,`Tier ${Number(m.position.bv)}.`]:[`Level ${Number(m.position.av)}.`,`Wave ${Number(m.position.bv)}.`])];
 if (m.ring.visible) parts.push(`${m.ring.boss?'Boss ring':'Ring'} ${m.ring.value} of ${m.ring.max}${m.ring.due?', due':''}.`);
-if (m.rival.visible) parts.push(`Rivals ${m.rival.value} of ${m.rival.max}${m.rival.due?', due':''}.`);
+if (m.rival.visible) parts.push(m.rival.single?`Rivals defeated ${m.rival.value}.`:`Rivals ${m.rival.value} of ${m.rival.max}${m.rival.due?', due':''}.`);
 if (m.boss.visible) parts.push(m.boss.phase==='DUEL'?`Boss: ${m.boss.remaining} of ${m.boss.hits} hits remaining.`:'Boss ready.');
 parts.push(`${m.joust.value} of ${m.joust.max} Joust Marks remaining.`);
 return parts.join(' ');
@@ -4242,12 +4608,14 @@ if (crown){crown.hidden=!(model.carry>0);crown.dataset.carry=model.carry>1?Strin
 if (model.live&&lastCarry!==null&&model.carry>lastCarry) rollover(model.score);
 lastCarry=model.live?model.carry:null;
 posA.textContent=model.position.a;if (posB) posB.textContent=model.position.b;posAv.textContent=model.position.av;posBv.textContent=model.position.bv;
+if (posB) posB.hidden=!model.position.b;posBv.hidden=!model.position.bv;
 ringEl.hidden=!model.ring.visible;
 ringEl.classList.toggle('is-due',model.ring.due);ringEl.classList.toggle('is-subdued',model.ring.subdued);ringEl.classList.toggle('is-boss',model.ring.boss);
 ringVal.textContent=`${two(model.ring.value)}/${two(model.ring.max)}`;
 rivalEl.hidden=!model.rival.visible;
 rivalEl.classList.toggle('is-due',model.rival.due);rivalEl.classList.toggle('is-subdued',model.rival.subdued);
-rivalVal.textContent=`${two(model.rival.value)}/${two(model.rival.max)}`;
+rivalVal.textContent=model.rival.single?(model.rival.value>99?String(model.rival.value):two(model.rival.value)):`${two(model.rival.value)}/${two(model.rival.max)}`;
+rivalEl.classList.toggle('is-count',!!model.rival.single);
 bossEl.hidden=!model.boss.visible;
 bossVal.textContent=model.boss.text;
 joustVal.textContent=`${two(model.joust.value)}/${model.joust.max}`;
@@ -4452,6 +4820,7 @@ scene.islandLayoutSource=content.platforms;
 scene.islandLayoutId=content.contentId;
 scene.islandLayoutScale=scaleY;
 scene.islandLayoutArt=scene.atlas.artSet;
+scene.islandBakeStats={platforms:content.platforms.length,baked:scene.islandSlots.size,unique:new Set(scene.islandSlots.values()).size};
 scene.atlasDirty=true;
 }
 return scene.islandLayout.get(platform.id);
@@ -4474,6 +4843,7 @@ function drawPlatform(scene,platform,content,tick,ascent=null,drive=null){
 if (platform.phase==='ABSENT'||platform.phase==='GONE'||platform.phase==='REMOVED') return;
 const[x,y,width]=platform.rect;
 const screenY=projectY(ascent,y);
+if (ascent&&ascent.tower&&(screenY>400||screenY<-130)) return;
 const plan=islandPlan(scene,platform,content,ascent);
 if (!plan) return;
 if (plan.ground) drawGroundCourt(scene,platform,plan,x,screenY,width,tick,drive);
@@ -4585,6 +4955,22 @@ const cy=projectY(ascent,r.center[1]);
 if (s.boss.ringsMask&(1<<i)) scene.spentRing(r.center[0],cy);
 else emitLiveRing(add,'GREEN',r.center[0],cy,tick+i*7,ringAge(scene,`${s.world.contentId}:${r.id??i}`,tick),Z.RING);
 });
+return;
+}
+if (content.kind==='TOWER'){
+const mask=s.objectives.ringMask;
+const age=ringAge(scene,`TOWER:${content.round}`,tick);
+for (const r of content.rings){
+if (mask&(1<<(r.order-1))) continue;
+const cy=projectY(ascent,r.center[1]);
+if (cy<-20||cy>404) continue;
+emitLiveRing(add,ringKindFor(r.color),r.center[0],cy,tick+r.order*9,age,Z.RING);
+}
+const gold=content.goldRing;
+if ((mask&63)===63&&!(mask&64)){
+const cy=projectY(ascent,gold.center[1]);
+if (cy>-20&&cy<404) emitLiveRing(add,ringKindFor(gold.color),gold.center[0],cy,tick,ringAge(scene,`TOWER:GOLD:${content.round}`,tick),Z.RING);
+}
 return;
 }
 const next=content.rings.find((r)=>!(s.objectives.ringMask&(1<<(r.order-1))));
@@ -4782,7 +5168,19 @@ s.objectives.spawnCursor===s.actors.length&&s.objectives.spawnCursor<=(content.o
 if (first) scene.textCentered(s.sim.mode==='ARCADE'?`STAGE ${content.stage||1}`:`WAVE ${s.circuit.waveCursor}`,181,Z.OVERLAY,2,128,'GOLD');
 if (first&&content.carried) scene.textCentered(`+${content.carried} CARRIED`,202,Z.OVERLAY,1,128,'LAVA');
 }
-if (s.player.invulnerableTicks>SHIMMER_TICKS&&s.sim.shell==='PLAY') scene.textCentered('READY',182,Z.OVERLAY,2,128,'CYAN');
+const tower=content.kind==='TOWER'?content.tower:null;
+if (tower&&s.sim.shell==='PLAY'){
+if (tower.hold>0){
+scene.swatch('shade',20,156,216,44,Z.OVERLAY+.02);
+scene.textCentered(`ROUND ${tower.round} CLEAR`,164,Z.OVERLAY,2,128,'GOLD');
+scene.textCentered('EVERY RIVAL DESTROYED',188,Z.OVERLAY,1,128,'WHITE');
+}else if (!tower.go){
+scene.swatch('shade',24,150,208,66,Z.OVERLAY+.02);
+scene.textCentered(`ROUND ${tower.round}`,160,Z.OVERLAY,3,128,'GOLD');
+scene.textCentered('FIND 6 RINGS',192,Z.OVERLAY,1,128,'WHITE');
+scene.textCentered('THEN THE GOLD RING AT THE MOON',204,Z.OVERLAY,1,128,'CYAN');
+}else if (s.player.invulnerableTicks>SHIMMER_TICKS) scene.textCentered('READY',182,Z.OVERLAY,2,128,'CYAN');
+}else if (s.player.invulnerableTicks>SHIMMER_TICKS&&s.sim.shell==='PLAY') scene.textCentered('READY',182,Z.OVERLAY,2,128,'CYAN');
 if (s.sim.shell==='PAUSE'){
 shade(scene);
 scene.textCentered('PAUSED',164,Z.TOP,2,128,'CYAN');
@@ -4798,6 +5196,7 @@ scene.textCentered(`FINAL ${fmt(s.sim.score)}`,118,Z.TOP,1,128,'WHITE');
 if (info&&info.isNew){if ((view.renderTick>>4)&1) scene.textCentered('NEW HIGH SCORE',130,Z.TOP,1,128,'GOLD');}
 else if (info&&info.best) scene.textCentered(`HI ${fmt(info.best.score)}`,130,Z.TOP,1,128,'DIM');
 if (info&&info.legacy) scene.textCentered('LEGACY RUN - NOT RECORDED',240,Z.TOP,1,128,'DIM');
+else if (info&&info.round) scene.textCentered(`REACHED ROUND ${info.round}`,240,Z.TOP,1,128,'CYAN');
 }
 const items=view.gameOverItems||['CONTINUE'];
 const sel=view.gameOverIndex|0;
@@ -5300,7 +5699,7 @@ return{writeCheckpoint,restoreCheckpoint,resetData,KEYS,keysFor,memoryStorage};
 })();
 __modules[36]=(()=>{
 const PROTECTED=new Set(['joust-win','player-death','boss-clear','circuit-sync']);
-const EVENT_TO_SFX={FLAP:'flap',RING:'ring',CIRCUIT_SYNC:'circuit-sync',JOUST_CLASH:'joust-clash',JOUST_WIN:'joust-win',BOSS_HIT:'joust-win',PLAYER_DEATH:'player-death',EGG:'egg',HATCH:'hatch',BOSS_CLEAR:'boss-clear',LAVA_WARNING:'lava-warning'};
+const EVENT_TO_SFX={FLAP:'flap',RING:'ring',CIRCUIT_SYNC:'circuit-sync',JOUST_CLASH:'joust-clash',JOUST_WIN:'joust-win',BOSS_HIT:'joust-win',PLAYER_DEATH:'player-death',EGG:'egg',HATCH:'hatch',BOSS_CLEAR:'boss-clear',LAVA_WARNING:'lava-warning',ROUND_CLEAR:'boss-clear',GOLD_RING_OPEN:'circuit-sync',ROUND_START:'circuit-sync'};
 const SFX_MIDI={flap:68,ring:76,'circuit-sync':80,'joust-clash':40,'joust-win':83,'player-death':36,egg:64,hatch:59,'boss-clear':88,'lava-warning':37};
 const SFX_LEN={flap:0.06,ring:0.18,'circuit-sync':0.5,'joust-clash':0.08,'joust-win':0.35,'player-death':0.4,egg:0.12,hatch:0.3,'boss-clear':0.9,'lava-warning':0.6};
 const CONSOLE_VOICES=Object.freeze([
@@ -5660,6 +6059,7 @@ const{Game}=__modules[13];
 const{newState}=__modules[5];
 const{payloadOf,EMPTY_INPUT,applyUnlimitedContinue}=__modules[12];
 const{arenaContent,lavaWarningNow,parseArcade}=__modules[7];
+const{isTower,parseTower}=__modules[42];
 const{createRenderer,FatalError,WORLD_PLATE_W,WORLD_PLATE_H,MATERIAL_WORLD,MATERIAL_ARCADE_PLAYER,GLOBE_MAP_W,GLOBE_MAP_H}=__modules[16];
 const{buildAtlas,paintWorld,atlasDigest}=__modules[24];
 const{RIDER_ATLAS_W,RIDER_ATLAS_H,validateRiderAttachments}=__modules[22];
@@ -5699,6 +6099,7 @@ const HOME_ITEMS=Object.freeze(['CARTRIDGE','ARCADE SCORE ATTACK','VS','QUICK RE
 const VS_ITEMS=Object.freeze(['CREATE MATCH','JOIN MATCH','BACK']);
 function arcadeItems(active){return active?['RESUME RUN','NEW RUN','BACK']:['NEW RUN','BACK'];}
 const SCORE_POPUP=Object.freeze({EGG:'GOLD',JOUST:'WHITE',RING:'CYAN',BOSS_RING:'CYAN',BOSS_HIT:'LAVA'});
+const TOWER_BANNER_TICKS=150;
 const RECORDS_KEY='struthio.console.presentation.records.v1';
 const fmtScore=(n)=>Math.max(0,Math.trunc(n||0)).toLocaleString('en-US');
 function retireBannerText(e,mode){
@@ -6189,18 +6590,22 @@ let menu={items:[...FRESH_TITLE_ITEMS],index:0,note:''};
 let renderTick=0,crawlTicks=0,crawlHold=0,acc=0,last=performance.now();
 let prev=new Map(),prevPlayer=null;
 let banner=null,saveWarning=!!storage.getItem(KEYS.WARNING);
+let cameraOverride=null;
 const popups=[];
 let gameOverInfo=null,winnerInfo=null;
 function readRecords(){try{const r=JSON.parse(storage.getItem(RECORDS_KEY)||'{}');return r&&typeof r==='object'?r:{};}catch{return{};}}
 function writeRecords(r){try{storage.setItem(RECORDS_KEY,JSON.stringify(r));}catch{}}
+// Arcade Tower (3.6) keeps its own high-score table: recs.arcadeTower. The
+// pre-3.6 stage table (recs.arcade) is left untouched and no longer shown.
 function recordArcadeRun(s){
-const recs=readRecords(),prevBest=recs.arcade||null,legacy=!!s.score?.legacy;
-const stage=parseArcadeStage(s);
-const run={score:s.sim.score,stage,deaths:s.score?.deaths||0,build:BUILD_ID,scoreVersion:2,date:new Date().toISOString().slice(0,10)};
+const recs=readRecords(),prevBest=recs.arcadeTower||null;
+const tower=isTower(s),legacy=!!s.score?.legacy||!tower;
+const t=tower?parseTower(s):{round:1,kills:0};
+const run={score:s.sim.score,round:t.round,kills:t.kills,deaths:s.score?.deaths||0,build:BUILD_ID,scoreVersion:3,date:new Date().toISOString().slice(0,10)};
 const isNew=!legacy&&(!prevBest||run.score>prevBest.score);
-if (isNew){recs.arcade=run;writeRecords(recs);}
-app.arcadeRecord=recs.arcade||null;
-return{final:run.score,stage,best:(isNew?run:prevBest),isNew,legacy};
+if (isNew){recs.arcadeTower=run;writeRecords(recs);}
+app.arcadeRecord=recs.arcadeTower||null;
+return{final:run.score,round:run.round,best:(isNew?run:prevBest),isNew,legacy};
 }
 function recordCampaignRun(s){
 const recs=readRecords();recs.campaign=recs.campaign||{};
@@ -6210,16 +6615,15 @@ const isNew=!legacy&&(!prevBest||run.score>prevBest.score);
 if (isNew){recs.campaign[id]=run;writeRecords(recs);}
 return{final:run.score,best:isNew?run:prevBest,isNew,legacy,continuesUsed:run.continuesUsed};
 }
-function parseArcadeStage(s){const m=/^ARC_C(\d+)_/.exec(s.objectives.routeId);return m?Number(m[1]):1;}
 function arcadeRestore(){
 const r=restoreCheckpoint(storage,schema,'ARCADE');
 const p=r.status==='RESTORE'?r.record.payload:null;
-const active=!!p&&p.sim.shell!=='GAMEOVER'&&!!p.score&&!p.score.legacy;
+const active=!!p&&p.sim.shell!=='GAMEOVER'&&!!p.score&&!p.score.legacy&&isTower(p);
 return{...r,active};
 }
 function arcadeNote(){
-const best=readRecords().arcade;
-return best?`HI ${fmtScore(best.score)} · STAGE ${best.stage}`:'NO RECORD YET';
+const best=readRecords().arcadeTower;
+return best?`HI ${fmtScore(best.score)} · ROUND ${best.round}`:'NO RECORD YET';
 }
 const feel=freshFeelState();
 const musicElement=document.getElementById('music-track');
@@ -6898,6 +7302,13 @@ if (e.type==='HOSTILE_CLEAR'&&!contentBefore.kind.startsWith('BOSS')) banner={te
 if (e.type==='CIRCUIT_SYNC') banner={text:A.story_strings.SYNC,until:renderTick+C.waveClearTicks};
 if (e.type==='SECTOR_RETIRED') banner={text:retireBannerText(e,game.state.sim.mode),until:renderTick+150};
 if (e.type==='EXTRA_LIFE') banner={text:'EXTRA JOUST MARK',until:renderTick+100};
+if (e.type==='GOLD_RING_OPEN') banner={text:'6/6 · THE GOLD RING IS AT THE MOON',until:renderTick+TOWER_BANNER_TICKS};
+if (e.type==='ROUND_CLEAR') banner={text:`ROUND ${e.round} CLEAR${e.clean?' · NO LOSSES':''}`,until:renderTick+TOWER_BANNER_TICKS};
+if (e.type==='TOWER_BLAST'){
+const bx=Math.floor(e.x/256)+14,by=Math.floor(e.y/256);
+if (e.amount) popups.push({text:String(e.amount),tone:'GOLD',x:bx,y:by+4,tick:renderTick,contentId:before});
+if (popups.length>12) popups.shift();
+}
 if (e.type==='SCORE_AWARD'){
 if (e.kind==='BOSS_PERFECT') banner={text:`PERFECT BOSS +${e.amount}`,until:renderTick+120};
 const pop=SCORE_POPUP[e.kind];
@@ -6911,6 +7322,7 @@ if (popups.length>8) popups.shift();
 }
 if (e.type==='PLAYER_DEATH'||e.type==='CINEMA_START'||e.type==='GAMEOVER'||e.type==='WINNER') input.cleanup();
 if (e.type==='GAMEOVER'){gameOverIndex=0;if (game.state.sim.mode==='ARCADE') gameOverInfo=recordArcadeRun(game.state);}
+if (e.type==='ROUND_CLEAR'){pulseHaptic([20,30,40]);if (music) music.duck({depth:.35,attack:.004,hold:.08,release:.5});}
 if (e.type==='WINNER') winnerInfo=recordCampaignRun(game.state);
 if (e.type==='CINEMA_START') input.setMode('CINEMA_SKY');
 if (e.type==='CINEMA_COMPLETE'){input.setMode(game.state.sim.shell==='WINNER'?'ATTRACT':'PLAY');if (game.state.sim.shell==='PLAY') onArena();}
@@ -6918,8 +7330,8 @@ const playerX=Math.floor(game.state.player.x/256)+14;
 const playerTop=Math.floor(game.state.player.y/256);
 if (e.type==='FLAP') triggerFeel(feel,{kind:'FLAP',tick:renderTick,duration:5,strength:.32,priority:1,x:playerX,y:playerTop,space:'PLAYER_CENTER',contentId:before});
 if (e.type==='RING'){
-const ring=contentBefore.rings.find((candidate)=>candidate.id===e.ringId);
-triggerFeel(feel,{kind:e.boss||e.order===6?'RING_GREEN':'RING',tick:renderTick,duration:22,strength:.92,priority:3,x:ring?.center[0]??playerX,y:ring?.center[1]??playerTop,space:ring?'WORLD':'PLAYER_CENTER',contentId:before});
+const ring=contentBefore.rings.find((candidate)=>candidate.id===e.ringId)||(contentBefore.goldRing&&contentBefore.goldRing.id===e.ringId?contentBefore.goldRing:null);
+triggerFeel(feel,{kind:e.boss||e.gold||(e.order===6&&e.count===undefined)?'RING_GREEN':'RING',tick:renderTick,duration:22,strength:.92,priority:3,x:ring?.center[0]??playerX,y:ring?.center[1]??playerTop,space:ring?'WORLD':'PLAYER_CENTER',contentId:before});
 if (music) music.duck({depth:.82,attack:.006,hold:.012,release:.11});
 pulseHaptic(8);
 }
@@ -6983,6 +7395,7 @@ selectMusic();
 view.musicDrive=music?music.visualState():null;
 view.content=reelPlay?arenaContent(A,s):game&&s.sim.shell!=='CINEMA_SKY'&&s.sim.shell!=='ATTRACT'?arenaContent(A,s):null;
 view.ascent=view.content?ascentCamera.resolve(s,view.content):null;
+if (cameraOverride!==null&&view.ascent&&view.ascent.tower){const top=cameraOverride,b=view.ascent.bounds;view.ascent={...view.ascent,cameraTop:top,backgroundProgress:Math.max(0,Math.min(1,(b.actInitialTop-top)/Math.max(1,b.actInitialTop-b.actSummitTop)))};}
 view.feel=sampleFeelState(feel,renderTick);
 view.lavaWarning=view.content&&view.content.kind!=='BOSS'?lavaWarningNow(A,s,view.content):false;
 view.arcade=s.sim.mode==='ARCADE'?parseArcade(s):null;
@@ -7255,11 +7668,13 @@ startNewGame,continueGame,checkpoint,toTitle,startTheater,get theater(){return t
 tickOnce(frame=EMPTY_INPUT){if (game){const r=stepGameWith(frame);return r;}return null;},
 refreshWorld(){if (game) onArena();},
 worldDigest(){return atlasDigest(atlas);},
+islandBakeStats(){return scene.islandBakeStats||null;},
 sceneStats(){const by={};let area=0;for (const q of scene.list){const k=q.flags||0;const a=Math.abs(q.w*q.h);by[k]=(by[k]||0)+a;area+=a;}return{instances:scene.list.length,overdraw:+(area/(256*384)).toFixed(2),byMaterial:by};},
 sceneProbe(){return{ascent:view.ascent?{kind:view.ascent.kind,arcade:!!view.ascent.arcade,cameraTop:view.ascent.cameraTop,baseY:view.ascent.baseY,targetTop:view.ascent.targetTop,backgroundProgress:view.ascent.backgroundProgress,scaleY:view.ascent.scaleY}:null,world:scene.list.filter((q)=>q.flags===MATERIAL_WORLD).map((q)=>({...q})),platforms:scene.list.filter((q)=>q.z>=.76&&q.z<.77&&q.sw>1).map((q)=>({...q}))};},
 async readLogical(){return renderer.readLogical();},
 async readScene3x(){return renderer.readScene3x();},
 setUpdateReadyForTest(){app.updateReady=true;},
+setCameraOverrideForTest(top){cameraOverride=Number.isFinite(top)?Math.round(top):null;},
 stop(){
 app.stopped=true;
 if (music) music.stop();
@@ -7271,4 +7686,4 @@ return{boot,showFatal};
 })();
 export const boot=__modules[40].boot;
 export const showFatal=__modules[40].showFatal;
-export const __sim={get Game(){return __modules[13].Game;},get authority(){return __modules[2];},get content(){return __modules[7];},get state(){return __modules[5];},get ascent(){return __modules[11];},get validate(){return __modules[34].validate;},get checkpoint(){return __modules[35];},get circuit(){return __modules[6];},get step(){return __modules[12];},get vs(){return __modules[41];},get reel(){return __modules[28];},get islands(){return __modules[18];}};
+export const __sim={get Game(){return __modules[13].Game;},get authority(){return __modules[2];},get content(){return __modules[7];},get state(){return __modules[5];},get ascent(){return __modules[11];},get validate(){return __modules[34].validate;},get checkpoint(){return __modules[35];},get circuit(){return __modules[6];},get step(){return __modules[12];},get vs(){return __modules[41];},get reel(){return __modules[28];},get islands(){return __modules[18];},get tower(){return __modules[42];},get ai(){return __modules[9];},get physics(){return __modules[8];},get camera(){return __modules[30];}};
