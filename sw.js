@@ -9,7 +9,7 @@ const CORE=[
 './factory/style.css','./factory/manifest.webmanifest','./factory/README.txt',
 './manifest.webmanifest','./console-assets/icon-192.png',
 './console-assets/icon-512.png','./console-assets/apple-touch-icon.png',
-'./console-assets/console-machine.css','./console-assets/console-moonrise.css','./console-assets/console-manual.webp','./console-assets/console-poster.webp',
+'./console-assets/console-machine.css','./console-assets/console-moonrise.css','./console-assets/console-controller.css','./console-assets/console-manual.webp','./console-assets/console-poster.webp',
 './console-assets/console-cartridge.webp',
 './console-assets/arcade/arcade-background-rear.webp','./console-assets/arcade/arcade-middle-near.webp','./console-assets/arcade/arcade-islands-v4.webp','./console-assets/arcade/arcade-islands.metadata.json','./console-assets/arcade/tarmac-at-midnight-loop.mp3','./console-assets/arcade/arcade-jouster-48.webp',
 './console-assets/full-bird-192.webp','./console-assets/rider-attachments.webp','./console-assets/rider-attachments.json',

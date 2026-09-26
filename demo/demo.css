@@ -1,0 +1,52 @@
+/* STRUTHIO · ARCADE demo edition: the hero art is the title screen. */
+body.is-demo #title-screen,body.is-demo #title-screen.is-home{background:#000}
+body.is-demo #title-screen::before{display:block;inset:-30px;background:center/cover var(--title-art,none);filter:blur(26px) brightness(.35)}
+body.is-demo #title-screen::after,
+body.is-demo #title-machine-bar,
+body.is-demo #home-button,
+body.is-demo #title-menu .wordmark,
+body.is-demo #title-menu h2,
+body.is-demo #dev-code,
+body.is-demo #title-hint,
+body.is-demo #title-credit,
+body.is-demo .console-options,
+body.is-demo #home-sign{display:none!important}
+body.is-demo #title-screen.is-home #title-art,body.is-demo #title-art{
+  display:block;position:absolute;inset:0;width:100%;height:100%;max-height:none;
+  object-fit:cover;object-position:50% 0;filter:none;
+  animation:demo-breathe 14s ease-in-out infinite alternate;transform-origin:50% 38%;
+}
+@keyframes demo-breathe{from{transform:scale(1)}to{transform:scale(1.035)}}
+body.is-demo #title-screen.is-home #title-menu,body.is-demo #title-menu{
+  position:absolute;top:auto;left:0;right:0;bottom:0;max-height:none;overflow:visible;
+  margin:0;padding:12px max(18px,calc((100% - 380px)/2)) max(10px,env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.78) 30%,rgba(0,0,0,.92));
+  box-shadow:none;clip-path:none;border:0;
+}
+body.is-demo #title-screen.is-home #title-actions,body.is-demo #title-actions{grid-template-columns:1fr;gap:8px}
+body.is-demo #title-actions.has-two{grid-template-columns:1fr 1fr}
+body.is-demo #title-screen.is-home #title-actions button,body.is-demo #title-actions button{grid-column:auto;min-height:48px;border-radius:999px;clip-path:none;
+  font:900 clamp(15px,4.4vw,19px)/1 "Arial Black",Arial,Helvetica,sans-serif;letter-spacing:.08em}
+body.is-demo #title-actions button.is-primary{
+  color:#1a0800;
+  background:linear-gradient(180deg,#fff3c4 0%,#ffd36b 30%,#f7a52a 70%,#d9650f 100%);
+  border:1px solid #fff0b8;
+  box-shadow:0 0 0 1px #6a2604,0 0 22px rgba(255,160,40,.55),inset 0 1px rgba(255,255,255,.7),inset 0 -3px 0 rgba(160,50,0,.55);
+  animation:demo-call 1.6s ease-in-out infinite alternate;
+}
+@keyframes demo-call{to{box-shadow:0 0 0 1px #6a2604,0 0 34px rgba(255,170,50,.85),inset 0 1px rgba(255,255,255,.7),inset 0 -3px 0 rgba(160,50,0,.55)}}
+body.is-demo #title-actions button:not(.is-primary){
+  color:#ffe2a0;background:linear-gradient(180deg,rgba(40,24,8,.92),rgba(10,6,2,.95));border:1px solid #c98a2a;
+}
+body.is-demo #title-actions button[aria-current="true"]{outline:2px solid #6fb6ff;outline-offset:3px;box-shadow:0 0 0 1px #6a2604,0 0 26px rgba(80,150,255,.55)}
+body.is-demo #title-actions button[aria-current="true"]::before{display:none}
+body.is-demo #title-actions button[aria-current="true"]{padding-left:12px}
+body.is-demo #title-note{margin:10px 0 0;color:#ffd36b;font:800 11px/1.3 "Arial Narrow",Arial,sans-serif;letter-spacing:.16em;text-align:center;text-shadow:0 1px 3px #000}
+@media (prefers-reduced-motion:reduce){body.is-demo #title-art,body.is-demo #title-actions button.is-primary{animation:none}}
+/* boot, rotate and error screens wear the hero art instead of the console frame */
+body.is-demo::before{display:none}
+body.is-demo #console-boot,body.is-demo #fatal,body.is-demo #rotate{
+  background:#000 url("./hero-art.webp") center top/cover no-repeat!important;background-blend-mode:normal!important}
+body.is-demo #fatal,body.is-demo #rotate{background-color:rgba(0,0,0,.72)!important;background-blend-mode:multiply!important}
+body.is-demo #console-boot .boot-console{background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.85) 40%);padding-bottom:max(28px,env(safe-area-inset-bottom))}
+body.is-demo #console-boot .wordmark{display:none}

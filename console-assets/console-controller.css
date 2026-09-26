@@ -1,0 +1,123 @@
+/* STRUTHIO CONSOLE 3.6 · premium controller.
+   Two lit wing buttons: a machined gold bezel (outer ring, dark channel, inner
+   amber ring, dark channel) around a deep navy well with a neon-blue wing
+   glyph. The inner amber ring is the wing meter: the spent share of the ring
+   goes dark (conic overlay on ::before, driven by --wing-level) and pulses red
+   when the wing runs low. Loaded after the shell/machine/moonrise sheets. */
+#controls{
+  --ctl-glyph:#5fb0ff;
+  --ctl-glyph-core:#d8ecff;
+  --ctl-glow:rgba(42,120,255,.85);
+  --ctl-gold-hi:#fff2c2;
+  --ctl-gold:#f7b43a;
+  --ctl-gold-mid:#e38a16;
+  --ctl-gold-lo:#8a4306;
+  --ctl-channel:rgba(18,7,0,.96);
+  --ctl-well:#051126;
+}
+#controls button[data-control$="_WING"]{
+  border:0;
+  padding:0;
+  color:var(--ctl-glyph);
+  background:
+    /* navy well */
+    radial-gradient(closest-side,#0b2044 0%,#07162f 36%,#030a1a 52%,#01040b 55.4%,transparent 56%),
+    /* dark channels either side of the inner ring */
+    radial-gradient(closest-side,transparent 55.6%,var(--ctl-channel) 56.2% 59%,transparent 59.6% 75.4%,var(--ctl-channel) 76% 80%,transparent 80.6%),
+    /* inner ring runs warmer and deeper than the outer bezel */
+    radial-gradient(closest-side,transparent 59%,rgba(255,110,0,.34) 59.6% 75.4%,transparent 76%),
+    /* soft top light across the metal */
+    radial-gradient(ellipse 70% 55% at 38% 18%,rgba(255,255,255,.38),transparent 70%),
+    /* machined gold */
+    conic-gradient(from -24deg,var(--ctl-gold-hi),var(--ctl-gold) 11%,var(--ctl-gold-lo) 23%,var(--ctl-gold) 35%,var(--ctl-gold-hi) 48%,var(--ctl-gold-mid) 61%,var(--ctl-gold-lo) 74%,var(--ctl-gold) 87%,var(--ctl-gold-hi));
+  box-shadow:
+    0 0 0 1px rgba(255,226,150,.55),
+    0 0 14px 1px rgba(255,160,40,.55),
+    0 0 34px 4px rgba(255,120,10,.28),
+    inset 0 0 0 1px rgba(255,244,200,.5),
+    inset 0 -3px 6px rgba(60,20,0,.45);
+}
+#controls button[data-control="LEFT_WING"],#controls button[data-control="RIGHT_WING"]{padding:0}
+/* the wing meter lives on the inner ring (66%..79% of the radius) */
+#controls button[data-control$="_WING"]::before{
+  inset:12%;
+  z-index:0;
+  background:conic-gradient(transparent calc(var(--wing-level,1) * 1turn),rgba(6,2,0,.78) 0);
+  -webkit-mask:radial-gradient(farthest-side,transparent 77.4%,#000 78%);
+  mask:radial-gradient(farthest-side,transparent 77.4%,#000 78%);
+  filter:none;
+}
+#controls button[data-control="LEFT_WING"]::before{
+  background:conic-gradient(rgba(6,2,0,.78) calc((1 - var(--wing-level,1)) * 1turn),transparent 0);
+}
+#controls[data-wing-low="true"] button[data-control$="_WING"]::before{
+  background:conic-gradient(rgba(250,56,29,.55) 0 1turn);
+  animation:ctl-low .45s ease-in-out infinite alternate;
+}
+@keyframes ctl-low{from{opacity:.35}to{opacity:1}}
+/* touch light: a blue bloom in the well where the thumb lands */
+#controls button[data-control$="_WING"]::after{
+  inset:22%;
+  border-radius:50%;
+  z-index:0;
+  background:radial-gradient(circle at var(--touch-x) var(--touch-y),rgba(70,150,255,.55),transparent 70%);
+}
+#controls .wing{
+  position:relative;
+  z-index:1;
+  width:52%;
+  height:52%;
+  stroke:var(--ctl-glyph);
+  stroke-width:2.2;
+  filter:drop-shadow(0 0 1.5px var(--ctl-glyph-core)) drop-shadow(0 0 5px var(--ctl-glow)) drop-shadow(0 0 12px rgba(40,110,255,.45));
+}
+#controls button[data-control$="_WING"]:active,
+#controls button[data-control$="_WING"].is-held{
+  transform:translateY(1px) scale(.965);
+  filter:brightness(1.12) saturate(1.1);
+  box-shadow:
+    0 0 0 1px rgba(255,236,170,.8),
+    0 0 20px 3px rgba(255,176,50,.8),
+    0 0 48px 8px rgba(255,130,20,.4),
+    inset 0 0 0 1px rgba(255,248,214,.7),
+    inset 0 2px 8px rgba(60,20,0,.5);
+}
+#controls button[data-control$="_WING"].is-held .wing{
+  stroke:var(--ctl-glyph-core);
+  filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 8px var(--ctl-glow)) drop-shadow(0 0 18px rgba(40,110,255,.7));
+}
+#controls.is-darting button.is-held{color:#ff5a3c}
+#controls.is-darting button.is-held .wing{stroke:#ff6a48;filter:drop-shadow(0 0 6px rgba(255,70,30,.9))}
+/* title/menus: the bezel stays lit, the glyph idles dim */
+#controls.is-title button[data-control$="_WING"] .wing{opacity:.55}
+#controls.is-title button[data-control="LEFT_WING"],#controls.is-title button[data-control="RIGHT_WING"]{border:0}
+#controls button.is-unavailable{opacity:.4;filter:saturate(.5)}
+/* BOTH: gold lettering under a neon-blue arrow */
+#controls .chord-cue{
+  opacity:1;
+  font:800 clamp(13px,3.6vw,17px)/1 "Arial Black","Arial Rounded MT Bold",Arial,Helvetica,sans-serif;
+  letter-spacing:.06em;
+  color:#ffc24a;
+  background:linear-gradient(180deg,#fff0b8 0%,#ffc24a 46%,#f08a1a 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 6px rgba(255,150,30,.55));
+}
+#controls .chord-cue::before{
+  content:"";
+  display:block;
+  width:.95em;height:1.15em;
+  margin:0 auto .28em;
+  background:linear-gradient(180deg,#9fd0ff,#4a9dff);
+  clip-path:polygon(50% 0,100% 44%,68% 44%,68% 100%,32% 100%,32% 44%,0 44%);
+  filter:drop-shadow(0 0 5px rgba(60,140,255,.9));
+}
+@media (prefers-contrast:more){
+  #controls button[data-control$="_WING"]{background:#000;box-shadow:0 0 0 4px #ffc24a}
+  #controls .wing{filter:none;stroke:#9fd0ff}
+  #controls .chord-cue{-webkit-text-fill-color:#ffc24a;filter:none}
+}
+@media (prefers-reduced-motion:reduce){
+  #controls[data-wing-low="true"] button[data-control$="_WING"]::before{animation:none}
+  #controls button[data-control$="_WING"]{transition:none}
+}

@@ -6097,7 +6097,10 @@ const TICK_MS=1000/60;
 const BOSS_BACKGROUND_MILESTONES=Object.freeze([5,11,17,23,29]);
 const HOME_ITEMS=Object.freeze(['CARTRIDGE','ARCADE SCORE ATTACK','VS','QUICK REFERENCE','DEVELOPMENT']);
 const VS_ITEMS=Object.freeze(['CREATE MATCH','JOIN MATCH','BACK']);
-function arcadeItems(active){return active?['RESUME RUN','NEW RUN','BACK']:['NEW RUN','BACK'];}
+function arcadeItems(active){
+if (DEMO) return active?['RESUME RUN','NEW RUN']:['NEW RUN'];
+return active?['RESUME RUN','NEW RUN','BACK']:['NEW RUN','BACK'];
+}
 const SCORE_POPUP=Object.freeze({EGG:'GOLD',JOUST:'WHITE',RING:'CYAN',BOSS_RING:'CYAN',BOSS_HIT:'LAVA'});
 const TOWER_BANNER_TICKS=150;
 const RECORDS_KEY='struthio.console.presentation.records.v1';
@@ -6357,6 +6360,13 @@ const credit=document.getElementById('episode-credit');if (credit&&ui.credit) cr
 const powerLabel=document.getElementById('title-power-label');if (powerLabel) powerLabel.textContent=internal?'SYSTEM ROM':'CARTRIDGE ON';
 const cartridgeButton=document.getElementById('cartridge-open');if (cartridgeButton) cartridgeButton.textContent=internal?'OPEN CARTRIDGE SLOT':'CHANGE CARTRIDGE';
 document.title=`STRUTHIO CONSOLE — ${episode.title}`;
+if (DEMO){
+const hero=document.querySelector('meta[name="struthio-hero"]')?.content||'';
+const art=document.getElementById('title-art');
+if (art&&hero){art.src='./'+hero;art.alt='STRUTHIO arcade adventure: a knight on a war bird jousts a rival among floating crystal islands under the moon.';}
+if (title&&hero){title.setAttribute('aria-label','STRUTHIO arcade start screen');title.style.setProperty('--title-art',`url("${new URL('./'+hero,document.baseURI).href}")`);}
+document.title='STRUTHIO · ARCADE';
+}
 const root=document.documentElement;
 resetCartridgePalette(root);
 const roles=palette.roles||[];
@@ -6371,18 +6381,24 @@ if (semantic.rejected.length) console.warn('PALETTE_FALLBACK',JSON.stringify(sem
 return semantic;
 }
 const LAYOUT_DEBUG_KEY='struthio.console.presentation.layout-debug.v1';
+// STRUTHIO ARCADE demo edition: a page carrying <meta name="struthio-edition"
+// content="ARCADE_DEMO"> boots the built-in ROM straight to an Arcade-only
+// title; cartridges, Campaign, VS, the manual and the developer menu are off.
+const EDITION=(typeof document!=='undefined'&&document.querySelector('meta[name="struthio-edition"]')?.content)||'CONSOLE';
+const DEMO=EDITION==='ARCADE_DEMO';
 async function boot({base='./',storage=localStorageAdapter(),flags={}}={}){
 const storageBlocked=!storage;
 if (storageBlocked) storage=memoryStorage();
-const app={fatal:null,flags,buildId:BUILD_ID,releaseBuild:(document.querySelector('meta[name=build]')||{}).content||'',storageBlocked};
+const app={fatal:null,flags,edition:EDITION,demo:DEMO,buildId:BUILD_ID,releaseBuild:(document.querySelector('meta[name=build]')||{}).content||'',storageBlocked};
 window.__struthio=app;
 const deviceDebug=storage.getItem(LAYOUT_DEBUG_KEY)||'off';
 if (deviceDebug==='on'||deviceDebug==='on-noshim') app.flags={...flags,debug:'layout',...(deviceDebug==='on-noshim'?{shim:'off'}:{})};
 app.viewportShim=installViewportShim({disabled:app.flags.shim==='off'});
 try{
+if (DEMO) document.body.classList.add('is-demo');
 let loaded=await loadConfiguredEpisode(base,{
-forceEmpty:flags.episode==='none',
-useInternalRom:flags.rom==='dev-00',
+forceEmpty:!DEMO&&flags.episode==='none',
+useInternalRom:DEMO||flags.rom==='dev-00',
 });
 if (!loaded.episode&&flags.episode!=='none'&&loaded.internalAvailable){
 loaded=await loadConfiguredEpisode(base,{useInternalRom:true});
@@ -6391,10 +6407,10 @@ app.slotEmptyFallback=true;
 app.slot=loaded.slot?{title:loaded.slot.title,source:loaded.slot.source,id:loaded.slot.id}:null;
 app.console=loaded.config;
 app.cartridgeSource=loaded.source;
-if (loaded.source==='installed') await ensureCartridgeRouting(base);
-app.cartridgeManager=setupCartridgeManager({base,loaded,validateManifest:validateEpisodePack});
+if (!DEMO&&loaded.source==='installed') await ensureCartridgeRouting(base);
+app.cartridgeManager=DEMO?null:setupCartridgeManager({base,loaded,validateManifest:validateEpisodePack});
 app.qrLog=[];
-app.qrCart=setupQrCart({base,validateManifest:validateEpisodePack,log:(e,d)=>{app.qrLog.push([e,d]);if (app.qrLog.length>40) app.qrLog.shift();}});
+app.qrCart=DEMO?null:setupQrCart({base,validateManifest:validateEpisodePack,log:(e,d)=>{app.qrLog.push([e,d]);if (app.qrLog.length>40) app.qrLog.shift();}});
 if (!loaded.episode){
 configureCartridge(null);
 showEmptyConsole(loaded.config);
@@ -6479,7 +6495,7 @@ if (!renderer.uploadWorld(atlas.world,atlas.waterMask)) throw new Error('WORLD_P
 const session=createSession({A,atlas,renderer,canvas,storage,app,base,panels:cinemaPanels.present,reel,episode,heroSprites,arcadeBirdSheet:arcadeArt.art?.bird||null});
 app.session=session;
 await session.start();
-finishConsoleBoot(`${episode.title} · ${loaded.source==='internal'?'INTERNAL ROM READY':'CARTRIDGE READY'}`);
+finishConsoleBoot(DEMO?'READY':`${episode.title} · ${loaded.source==='internal'?'INTERNAL ROM READY':'CARTRIDGE READY'}`);
 return session;
 }catch (e){
 let code=e instanceof FatalError?e.code:'FATAL_BOOT';
@@ -6688,8 +6704,8 @@ const devInput=document.getElementById('dev-code-input');
 const homeButton=document.getElementById('home-button');
 const slotInfo=app.slot||null;
 const runtimeIsSlot=app.cartridgeSource==='installed'||app.cartridgeSource==='deployed';
-let menuLevel=app.flags.menu==='cartridge'?'CARTRIDGE':'HOME';
-let returnLevel='CARTRIDGE';
+let menuLevel=app.demo?'ARCADE':app.flags.menu==='cartridge'?'CARTRIDGE':'HOME';
+let returnLevel=app.demo?'ARCADE':'CARTRIDGE';
 let devUnlocked=storage.getItem(DEV_UNLOCK_KEY)==='yes';
 let tcsCal=null;
 let netPanel=null;
@@ -6722,6 +6738,7 @@ button.textContent=TITLE_LABEL[item]||item;
 return button;
 }));
 titleActions.classList.toggle('has-save',menu.items.includes('CONTINUE'));
+titleActions.classList.toggle('has-two',menu.items.length===2);
 renderedMenuItems=itemsKey;
 }
 for (const button of titleActions.children){
@@ -6737,7 +6754,7 @@ if (titleScreenRoot.dataset.level!==menuLevel) titleScreenRoot.dataset.level=men
 }
 if (titleHeading){const h=homeLike?LEVEL_HEADING[menuLevel]:cartridgeHeading;if (titleHeading.textContent!==h) titleHeading.textContent=h;}
 if (devForm&&devForm.hidden===(menuLevel==='LOCK')) devForm.hidden=menuLevel!=='LOCK';
-if (homeButton&&homeButton.hidden===(menuLevel==='CARTRIDGE')) homeButton.hidden=menuLevel!=='CARTRIDGE';
+if (homeButton&&homeButton.hidden===(!DEMO&&menuLevel==='CARTRIDGE')) homeButton.hidden=DEMO||menuLevel!=='CARTRIDGE';
 const note=menu.note||(saveWarning?'SAVE NOT UPDATED':app.updateReady?'UPDATE READY':pwa.offlineNote||'');
 if (titleNote&&titleNote.textContent!==note) titleNote.textContent=note;
 syncRiderToggle();
@@ -7262,7 +7279,7 @@ sfx('PLAYER_DEATH');input.cleanup();if (music) music.duck({depth:.3,attack:.006,
 else if (e.type==='VS_DEATH'&&e.who===seat&&e.cause==='LAVA'){sfx('PLAYER_DEATH');input.cleanup();}
 else if (e.type==='VS_GO'){sfx('CIRCUIT_SYNC');pulseHaptic(10);}
 }
-{
+if (!DEMO){
 const relayOverride=app.flags.relay||(document.querySelector('meta[name="struthio-vs-relay"]')?.content||'').trim();
 app.relayUrl=relayUrlFor(base,relayOverride);
 vsUi=setupVs({
@@ -7487,7 +7504,7 @@ if (ev.target.closest?.('#manual-screen')||ev.code.startsWith('Arrow')) return;
 }
 if (document.body.classList.contains('cartridge-open')) return;
 if (ev.target.closest?.('#dev-code')){if (ev.key==='Escape'){ev.preventDefault();setLevel('HOME','','DEVELOPMENT');}return;}
-if (!ev.repeat&&ev.code==='Escape'&&screen==='ATTRACT'&&!game&&menuLevel!=='HOME'){ev.preventDefault();setLevel('HOME','',menuLevel==='CARTRIDGE'?'CARTRIDGE':menuLevel==='ARCADE'?'ARCADE SCORE ATTACK':menuLevel==='VS'?'VS':'DEVELOPMENT');return;}
+if (!DEMO&&!ev.repeat&&ev.code==='Escape'&&screen==='ATTRACT'&&!game&&menuLevel!=='HOME'){ev.preventDefault();setLevel('HOME','',menuLevel==='CARTRIDGE'?'CARTRIDGE':menuLevel==='ARCADE'?'ARCADE SCORE ATTACK':menuLevel==='VS'?'VS':'DEVELOPMENT');return;}
 if ((ev.code==='Enter'||ev.code==='Space')&&ev.target.closest?.('button')&&!ev.target.closest('#title-actions, #controls')) return;
 if (ev.code in{ArrowLeft:1,ArrowRight:1,ArrowDown:1,Space:1,ArrowUp:1,KeyA:1,KeyD:1,KeyW:1,Enter:1,KeyM:1,KeyC:1,Escape:1}) ev.preventDefault();
 ensureAudio();
@@ -7628,7 +7645,7 @@ return region==='LEFT_WING'?'Left wing: up-left flap; slide down to DART':'Right
 },
 });
 if (devForm) devForm.addEventListener('submit',(ev)=>{ev.preventDefault();tryUnlock();});
-if (homeButton) homeButton.addEventListener('click',()=>{if (screen==='ATTRACT'&&!game) setLevel('HOME','','CARTRIDGE');});
+if (homeButton) homeButton.addEventListener('click',()=>{if (!DEMO&&screen==='ATTRACT'&&!game) setLevel('HOME','','CARTRIDGE');});
 if (titleActions) titleActions.addEventListener('click',(ev)=>{
 const button=ev.target.closest('button[data-title-item]');
 if (!button||screen!=='ATTRACT'||game) return;
