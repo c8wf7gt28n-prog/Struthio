@@ -1,0 +1,210 @@
+/* STRUTHIO ARCADE · cabinet frame and HUD skin. Gunmetal bezel with machined
+   gold trim, neon-blue light rails and star rivets, matched to the wing
+   controller. The frame sits over the edges of the screen; the page content is
+   inset by the same amount so it never hides any of the game. */
+:root{
+  --fr:clamp(12px,4.6vw,26px);            /* side bezel, about 5% of a phone's width */
+  --fr-top:calc(var(--fr) * 1.4);         /* top bezel carries the crest */
+  --fr-bot:var(--fr);
+  --fr-col:min(100vw,620px);              /* the cabinet column on wide screens */
+  --fr-side:calc((100vw - var(--fr-col)) / 2);
+  --fr-gold:#f7b43a;
+  --fr-gold-hi:#fff2c2;
+  --fr-gold-mid:#e38a16;
+  --fr-gold-lo:#8a4306;
+  --fr-blue:#3d8dff;
+  --fr-blue-hi:#9fd0ff;
+  --fr-red:#ff3347;
+  --fr-bone:#f7eedd;
+  --hud-font:"DIN Alternate","Bahnschrift","DIN Condensed","Arial Narrow",Arial,Helvetica,sans-serif;
+}
+html,body{background:#020306}
+
+/* ---- the page sits inside the bezel ----------------------------------------- */
+main{
+  left:var(--fr-side);right:var(--fr-side);
+  padding:
+    calc(env(safe-area-inset-top) + var(--fr-top))
+    calc(env(safe-area-inset-right) + var(--fr))
+    calc(var(--safe-bottom) + var(--fr-bot))
+    calc(env(safe-area-inset-left) + var(--fr));
+  background:#020306;
+}
+#title-screen{
+  top:calc(env(safe-area-inset-top) + var(--fr-top));
+  left:calc(var(--fr-side) + env(safe-area-inset-left) + var(--fr));
+  right:calc(var(--fr-side) + env(safe-area-inset-right) + var(--fr));
+  bottom:calc(var(--deck-h) + var(--safe-bottom) + var(--fr-bot));
+}
+#update{z-index:7}
+
+/* ---- frame ------------------------------------------------------------------- */
+#frame{
+  position:fixed;z-index:6;pointer-events:none;
+  top:env(safe-area-inset-top);bottom:var(--safe-bottom);
+  left:calc(var(--fr-side) + env(safe-area-inset-left));right:calc(var(--fr-side) + env(safe-area-inset-right));
+}
+/* gunmetal band, cut out where the game shows through */
+#frame::before{
+  content:"";position:absolute;inset:0;
+  padding:var(--fr-top) var(--fr) var(--fr-bot);
+  border-radius:clamp(10px,3vw,18px);
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.06),transparent 12%,transparent 88%,rgba(255,255,255,.06)),
+    linear-gradient(180deg,#1b212d,#0c1018 30%,#0a0d14 70%,#161b26);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+}
+/* the band above the frame (under the iPhone status bar) stays the same metal */
+#frame::after{
+  content:"";position:absolute;left:0;right:0;bottom:100%;height:env(safe-area-inset-top);
+  background:#0a0d14;
+}
+.fr-line{position:absolute;display:block;box-sizing:border-box}
+.fr-out{
+  inset:3px;
+  border:1.5px solid rgba(247,180,58,.85);
+  border-radius:clamp(8px,2.6vw,15px);
+  box-shadow:0 0 6px rgba(255,150,30,.35),inset 0 0 6px rgba(255,150,30,.22);
+}
+.fr-in{
+  top:calc(var(--fr-top) - 3px);bottom:calc(var(--fr-bot) - 3px);
+  left:calc(var(--fr) - 3px);right:calc(var(--fr) - 3px);
+  border:2px solid var(--fr-gold);
+  border-radius:7px;
+  box-shadow:0 0 0 1px rgba(60,20,0,.8),0 0 9px rgba(255,150,30,.55),inset 0 0 8px rgba(255,150,30,.3);
+}
+/* neon-blue light rails down the side bezels, broken by an amber pip */
+.fr-rail{
+  position:absolute;display:block;width:3px;border-radius:2px;
+  top:calc(var(--fr-top) + 9%);bottom:calc(var(--fr-bot) + 9%);
+  background:linear-gradient(180deg,
+    transparent 0,var(--fr-blue) 3% 44%,transparent 44% 46.5%,#ff9a2a 46.5% 53.5%,transparent 53.5% 56%,var(--fr-blue) 56% 97%,transparent 100%);
+  box-shadow:0 0 5px rgba(61,141,255,.9),0 0 13px rgba(47,125,255,.5);
+}
+.fr-l{left:calc(var(--fr) / 2 - 1.5px)}
+.fr-r{right:calc(var(--fr) / 2 - 1.5px)}
+/* crests: top tab with the gold star and blue wings, a smaller one below */
+.fr-crest{position:absolute;left:50%;transform:translateX(-50%);width:min(58%,calc(var(--fr) * 11));overflow:visible;filter:drop-shadow(0 0 4px rgba(255,150,30,.35))}
+.fr-top{top:0;height:calc(var(--fr-top) + 5px)}
+.fr-bot{bottom:0;height:calc(var(--fr-bot) + 4px);width:min(44%,calc(var(--fr) * 8))}
+.fr-gem,.fr-star{position:absolute;overflow:visible;filter:drop-shadow(0 0 3px rgba(255,190,70,.9)) drop-shadow(0 0 8px rgba(255,140,20,.5))}
+.fr-gem{left:50%;width:calc(var(--fr) * 1.15);height:calc(var(--fr) * 1.15);transform:translateX(-50%)}
+.fr-gem-top{top:calc(var(--fr-top) * .08)}
+.fr-gem-bot{bottom:calc(var(--fr-bot) * -.02);width:calc(var(--fr) * .95);height:calc(var(--fr) * .95)}
+.fr-star{width:calc(var(--fr) * 1.05);height:calc(var(--fr) * 1.05)}
+.fr-tl{top:calc(var(--fr-top) / 2 - var(--fr) * .525);left:calc(var(--fr) * -.025)}
+.fr-tr{top:calc(var(--fr-top) / 2 - var(--fr) * .525);right:calc(var(--fr) * -.025)}
+.fr-bl{bottom:calc(var(--fr-bot) / 2 - var(--fr) * .525);left:calc(var(--fr) * -.025)}
+.fr-br{bottom:calc(var(--fr-bot) / 2 - var(--fr) * .525);right:calc(var(--fr) * -.025)}
+
+/* controller deck: a gold rule with blue light ends between the game and the wings */
+#controls::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;
+  background:
+    linear-gradient(90deg,transparent 0,var(--fr-blue) 3% 16%,transparent 16%) 0 0/100% 100% no-repeat,
+    linear-gradient(90deg,transparent 84%,var(--fr-blue) 84% 97%,transparent 100%) 0 0/100% 100% no-repeat,
+    linear-gradient(90deg,transparent 17%,var(--fr-gold-lo) 18%,var(--fr-gold) 35%,var(--fr-gold-hi) 50%,var(--fr-gold) 65%,var(--fr-gold-lo) 82%,transparent 83%);
+  box-shadow:0 0 8px rgba(255,150,30,.35);
+}
+
+/* ---- HUD: a machined-gold bar to match the wing controller -------------------- */
+#top-hud{
+  --c:clamp(7px,2vw,11px);                 /* corner chamfer */
+  width:100%;max-width:580px;
+  height:calc(clamp(40px,5.8dvh,54px) * var(--hud-scale));
+  margin:3px 0 5px;
+  padding:0 clamp(8px,2.6vw,16px);
+  background:none;
+  isolation:isolate;
+  color:var(--fr-bone);
+  font:700 calc(clamp(12px,3.4vw,17px) * var(--hud-scale))/1 var(--hud-font);
+  letter-spacing:.02em;
+}
+/* gold outline: a chamfered gold plate with a dark plate inset on top of it */
+#top-hud::before,#top-hud::after{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  clip-path:polygon(var(--c) 0,calc(100% - var(--c)) 0,100% var(--c),100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,var(--c) 100%,0 calc(100% - var(--c)),0 var(--c));
+}
+#top-hud::before{
+  inset:0;
+  background:linear-gradient(90deg,var(--fr-gold-lo),var(--fr-gold) 12%,var(--fr-gold-hi) 50%,var(--fr-gold) 88%,var(--fr-gold-lo));
+  filter:drop-shadow(0 0 6px rgba(255,150,30,.5));
+}
+#top-hud::after{
+  inset:1.5px;
+  --c:calc(clamp(7px,2vw,11px) - .6px);
+  background:
+    /* amber corner caps, as on the controller bezel */
+    linear-gradient(135deg,var(--fr-gold) 0 calc(var(--c) * .85),transparent 0) top left/calc(var(--c) * 2) calc(var(--c) * 2) no-repeat,
+    linear-gradient(225deg,var(--fr-gold) 0 calc(var(--c) * .85),transparent 0) top right/calc(var(--c) * 2) calc(var(--c) * 2) no-repeat,
+    linear-gradient(45deg,var(--fr-gold) 0 calc(var(--c) * .85),transparent 0) bottom left/calc(var(--c) * 2) calc(var(--c) * 2) no-repeat,
+    linear-gradient(315deg,var(--fr-gold) 0 calc(var(--c) * .85),transparent 0) bottom right/calc(var(--c) * 2) calc(var(--c) * 2) no-repeat,
+    /* blue light at the two ends */
+    linear-gradient(90deg,rgba(61,141,255,.35),transparent 2.5%,transparent 97.5%,rgba(61,141,255,.35)),
+    /* faint top sheen */
+    linear-gradient(180deg,rgba(255,255,255,.07),transparent 45%),
+    linear-gradient(180deg,#0d1320,#060910 60%,#0a0e17);
+}
+/* gold dividers */
+#top-hud>span{
+  height:62%;
+  padding:0 clamp(5px,1.8vw,12px);
+  border-left:0;
+  background:
+    linear-gradient(180deg,var(--fr-gold-hi),var(--fr-gold) 40%,var(--fr-gold-mid)) left center/2px 100% no-repeat;
+}
+#top-hud>span:first-child{background:none;padding-left:2px}
+#hud-score{
+  color:var(--fr-bone);font-size:1.6em;letter-spacing:.03em;
+  text-shadow:0 0 10px rgba(255,236,200,.25),0 1px 0 rgba(0,0,0,.9);
+}
+#top-hud>#hud-position{color:var(--fr-blue);font-size:1.05em;text-shadow:0 0 8px rgba(61,141,255,.75)}
+#hud-ring,#hud-rival{color:var(--fr-bone);font-size:1.05em}
+.hud-obj{gap:.45em}
+/* gold ring */
+#hud-ring i{
+  width:1.05em;height:1.05em;border:.2em solid var(--fr-gold);opacity:1;
+  box-shadow:0 0 6px rgba(255,160,40,.9),inset 0 0 3px rgba(255,160,40,.7);
+}
+.hud-obj.is-due{color:var(--fr-gold-hi)}
+.hud-obj.is-due i{border-color:var(--fr-gold-hi);box-shadow:0 0 10px #ffc24a,0 0 18px rgba(255,160,40,.8),inset 0 0 4px #ffc24a}
+.hud-obj.is-due::after{background:var(--fr-gold)}
+/* gold crossed swords */
+#hud-rival svg{color:var(--fr-gold);width:1.15em;height:1.15em;filter:drop-shadow(0 0 3px rgba(255,160,40,.8))}
+/* JOUST label, count, and the lives bar in a gold-edged track */
+#top-hud>#hud-joust{gap:.34em;justify-content:center;padding-right:2px}
+#hud-joust small{font-size:.72em;letter-spacing:.16em;color:var(--fr-bone)}
+#hud-joust b{font-size:1.05em;color:var(--fr-bone);letter-spacing:.02em}
+#top-hud.is-low #hud-joust b{color:var(--fr-red);text-shadow:0 0 8px rgba(255,51,71,.6)}
+#hud-joust i{
+  height:6px;width:100%;box-sizing:border-box;border-radius:4px;
+  border:1px solid var(--fr-gold);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.45),transparent 60%) 0 0/calc(var(--joust) * 100%) 100% no-repeat,
+    linear-gradient(90deg,#1e6dff,#6ab8ff) 0 0/calc(var(--joust) * 100%) 100% no-repeat,
+    #060b16;
+  box-shadow:0 0 5px rgba(255,150,30,.45),0 0 8px rgba(61,141,255,.3);
+}
+/* toast sits under the bar in the same trim */
+#hud-toast{
+  top:calc(100% + 6px);
+  border:1px solid var(--fr-gold);border-radius:3px;
+  background:rgba(6,9,16,.94);color:var(--fr-gold-hi);
+  font:700 11px/1.2 var(--hud-font);letter-spacing:.12em;
+  box-shadow:0 0 8px rgba(255,150,30,.35);
+}
+#hud-toast[data-kind="warning"]{color:var(--fr-red);border-color:var(--fr-red)}
+#hud-toast[data-kind="pause"]{color:var(--fr-bone);border-color:var(--fr-gold)}
+
+@media (max-width:359px){
+  #top-hud>span{padding:0 4px}
+  #hud-score{font-size:1.4em}
+}
+@media (prefers-contrast:more){
+  #frame::before{background:#000}
+  .fr-rail,.fr-crest g{display:none}
+  #top-hud::after{background:#000}
+}
+@media (prefers-reduced-transparency:reduce){#hud-toast{background:#060910}}
