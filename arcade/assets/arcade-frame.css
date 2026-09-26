@@ -166,23 +166,33 @@ html body #title-screen #title-note{
   @keyframes arcade-start-pulse{from{opacity:1}to{opacity:.55}}
 }
 
-/* ---- wing buttons: slimmer gold bezel, and a GAME OVER red circle around the
-   navy well. Radii are fractions of the button radius:
-   well 0-60% | red circle 60-64.5% | inner gold ring 65-83% | channel 83-86.5% | bezel 87-100% */
+/* ---- wing buttons: two circles. A thin gold outer bezel, and inside it a
+   slightly thicker GAME OVER red ring that is the flap-reserve meter.
+   Radii are fractions of the button radius:
+   well 0-71.5% | red meter ring 71.5-84% | dark gap 84-89.6% | gold bezel 90-100% */
 html body #controls button[data-control$="_WING"]{
   background:
-    /* soft red glow just inside the circle, like the lettering it matches */
-    radial-gradient(closest-side,transparent 52%,rgba(232,112,74,.34) 59.9%,transparent 60%),
-    radial-gradient(closest-side,#0b2044 0%,#07162f 38%,#030a1a 56%,#01040b 59.6%,transparent 60%),
-    radial-gradient(closest-side,transparent 59.8%,var(--fr-red) 60.2% 64.4%,transparent 64.8%),
-    radial-gradient(closest-side,transparent 64.4%,var(--ctl-channel) 64.8% 65.2%,transparent 65.6% 82.6%,var(--ctl-channel) 83% 86.5%,transparent 86.9%),
-    radial-gradient(closest-side,transparent 65%,rgba(255,110,0,.30) 65.6% 82.6%,transparent 83%),
+    /* soft red glow just inside the ring */
+    radial-gradient(closest-side,transparent 62%,rgba(232,112,74,.30) 71.4%,transparent 71.5%),
+    /* navy well */
+    radial-gradient(closest-side,#0b2044 0%,#07162f 44%,#030a1a 64%,#01040b 71%,transparent 71.5%),
+    /* red meter ring */
+    radial-gradient(closest-side,transparent 71.3%,var(--fr-red) 71.7% 83.7%,transparent 84.1%),
+    /* dark gap between the ring and the bezel */
+    radial-gradient(closest-side,transparent 83.9%,var(--ctl-channel) 84.3% 89.6%,transparent 90%),
     radial-gradient(ellipse 70% 55% at 38% 18%,rgba(255,255,255,.34),transparent 70%),
     conic-gradient(from -24deg,var(--ctl-gold-hi),var(--ctl-gold) 11%,var(--ctl-gold-lo) 23%,var(--ctl-gold) 35%,var(--ctl-gold-hi) 48%,var(--ctl-gold-mid) 61%,var(--ctl-gold-lo) 74%,var(--ctl-gold) 87%,var(--ctl-gold-hi));
 }
-/* wing meter: rides the inner gold ring (65-83% of the radius) */
+/* flap reserve: the spent part of the red ring goes dark */
 html body #controls button[data-control$="_WING"]::before{
-  inset:17%;
-  -webkit-mask:radial-gradient(farthest-side,transparent 78.1%,#000 78.6%);
-  mask:radial-gradient(farthest-side,transparent 78.1%,#000 78.6%);
+  inset:8%;
+  -webkit-mask:radial-gradient(farthest-side,transparent 84.9%,#000 85.4%);
+  mask:radial-gradient(farthest-side,transparent 84.9%,#000 85.4%);
+}
+/* low reserve: the meter stays readable and its spent part flashes */
+html body #controls[data-wing-low="true"] button[data-control$="_WING"]::before{
+  background:conic-gradient(transparent calc(var(--wing-level,1) * 1turn),rgba(6,2,0,.85) 0);
+}
+html body #controls[data-wing-low="true"] button[data-control="LEFT_WING"]::before{
+  background:conic-gradient(rgba(6,2,0,.85) calc((1 - var(--wing-level,1)) * 1turn),transparent 0);
 }
