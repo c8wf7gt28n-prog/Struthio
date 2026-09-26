@@ -8,7 +8,7 @@ import{loadArt}from './art.mjs';
 import{createSession}from './session.mjs';
 import{memoryStorage}from '../save/checkpoint.mjs';
 
-export const BUILD_ID='STRUTHIO-ARCADE-1.3.2';
+export const BUILD_ID='STRUTHIO-ARCADE-1.3.3';
 const FATAL_HINT={
 FATAL_SECURE_CONTEXT:'Open the game over https or from localhost.',
 FATAL_WEBGPU_UNAVAILABLE:'This browser does not support WebGPU, which the game needs. Play in a current Chrome or Edge (desktop or Android), or Safari on iPhone, iPad or Mac running version 26 or later.',

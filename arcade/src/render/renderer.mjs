@@ -8,8 +8,9 @@ const MATERIAL_WORLD=8;
 const MATERIAL_ARCADE_PLAYER=10;
 const MATERIAL_ARCADE_ISLAND=11;
 const GLOBE_MAP_W=1536,GLOBE_MAP_H=768;
-// Island reds are drawn in the GAME OVER red (see islandRed).
-const ISLAND_RED_HUE='18.0',ISLAND_RED_DESAT='0.14';
+// Island reds are drawn in the GAME OVER red and the yellow caps in the
+// balanced gold the controller and HUD share (see islandPalette).
+const ISLAND_RED_HUE='18.0',ISLAND_RED_DESAT='0.14',ISLAND_GOLD_SHIFT='8.0';
 const SPRITE_WGSL=`struct Frame { logical: vec2f, invAtlas: vec2f, reserved0: vec2f, invWorld: vec2f, invBird: vec2f, reserved1: vec2f, tick: vec2f, globe: vec4f, fx: vec4f, look: vec4f }
 struct VOut { @builtin(position) position: vec4f, @location(0) uv: vec2f, @location(2) @interpolate(flat) material: f32, @location(3) uvWorld: vec2f, @location(4) uvBird: vec2f }
 @group(0) @binding(0) var<uniform> frame: Frame;
@@ -97,22 +98,28 @@ fn arcadeAmbient(base: vec3f, wp: vec2f, t: f32) -> vec3f {
   let starGain = star * (0.08 + 0.04 * k) * wave1(t / ((1.8 + 2.7 * fract(k * 7.13)) * 60.0) + fract(k * 13.7));
   return base * (1.0 + frame.fx.w * (nearGain + floorGain + starGain));
 }
-// Island reds -> the GAME OVER red: crimson tips are turned toward red-orange
-// (hue 18) and lose a little saturation. Golds (hue 40+) and blues are untouched.
-fn islandRed(c: vec3f) -> vec3f {
+// Island palette: crimson tips -> the GAME OVER red (hue 18, a little less
+// saturated), and the lemon-yellow caps are turned toward the controller gold
+// so the two yellows meet halfway. Blues are untouched.
+fn islandPalette(c: vec3f) -> vec3f {
   let mx = max(c.r, max(c.g, c.b));
   let d = mx - min(c.r, min(c.g, c.b));
-  if (d < 0.0001 || mx != c.r) { return c; }
-  var h = (c.g - c.b) / d * 60.0;                   // -60..60 around red
+  if (d < 0.0001) { return c; }
+  var h = 0.0;
+  if (mx == c.r) { h = (c.g - c.b) / d * 60.0; }
+  else if (mx == c.g) { h = ((c.b - c.r) / d + 2.0) * 60.0; }
+  else { return c; }
   let s = d / mx;
-  let w = smoothstep(-48.0, -32.0, h) * (1.0 - smoothstep(20.0, 32.0, h)) * smoothstep(0.28, 0.45, s) * smoothstep(0.10, 0.20, mx);
-  h = mix(h, ${ISLAND_RED_HUE}, w);
-  let s2 = s * (1.0 - ${ISLAND_RED_DESAT} * w);
+  let lit = smoothstep(0.10, 0.20, mx);
+  let wr = smoothstep(-48.0, -32.0, h) * (1.0 - smoothstep(20.0, 32.0, h)) * smoothstep(0.28, 0.45, s) * lit;
+  let wy = smoothstep(34.0, 42.0, h) * (1.0 - smoothstep(66.0, 76.0, h)) * smoothstep(0.25, 0.40, s) * lit;
+  h = mix(h, ${ISLAND_RED_HUE}, wr) - ${ISLAND_GOLD_SHIFT} * wy;
+  let s2 = s * (1.0 - ${ISLAND_RED_DESAT} * wr);
   let k = (vec3f(5.0, 3.0, 1.0) + vec3f((h + 360.0) / 60.0)) % vec3f(6.0);
   return vec3f(mx) - mx * s2 * clamp(min(k, vec3f(4.0) - k), vec3f(0.0), vec3f(1.0));
 }
 fn arcadeIsland(c: vec3f, t: f32) -> vec3f {
-  let c0 = islandRed(c);
+  let c0 = islandPalette(c);
   let red = select(0.0, 1.0, c.r > 0.55 && c.g < 0.40 && c.r > c.b * 1.4);
   let core = clamp((min(c.g, c.b) - c.r - 0.15) / 0.35, 0.0, 1.0) * step(0.6, c.b);
   let amp = frame.fx.w * (0.04 + 0.08 * frame.fx.z) * (0.75 + 0.25 * wave1(t * 0.0079577));
