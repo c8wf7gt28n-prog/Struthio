@@ -1,0 +1,22 @@
+STRUTHIO TACTILE CONTROL STENCIL — P2.5.2 PRINT RC1
+
+This is the high-quality QC revision of P2.5.1 SIGNATURE STYLE.
+
+FIT IS LOCKED
+The proven P2.5.1 / P2.5.0 / P2.4.8 phone-fit and dual-wing geometry is unchanged.
+
+QC CHANGES ONLY
+- QR enlarged to 20.30 mm field / 0.70 mm module pitch.
+- QR recess deepened to 0.40 mm.
+- Four-module quiet zone retained and checker exclusion made bounds-safe.
+- Maker signature increased to 2.15 mm, 0.30 mm deep, with slight stroke expansion.
+- STRUTHIO relief increased from 0.50 to 0.55 mm.
+
+QR
+Payload: R.A. PEDDYCOART
+The actual exported STL was sampled at all 441 QR module centers and matched the intended matrix with zero mismatches.
+Use contrasting paint-fill / a contrasting finishing process for dependable scanning.
+
+PRINT
+Use the PRINT_ORIENTED STL or 3MF.
+TPU 95A. Scale 100%. Start at 0.20 mm layers, 5 perimeters, 5–6 top/bottom layers, 20–30% infill, and an 8–12 mm brim. Use the printer/filament manufacturer's TPU profile as the baseline.

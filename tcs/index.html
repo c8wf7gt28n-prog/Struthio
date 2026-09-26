@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TCS CAD Files</title>
+<link rel="icon" href="../console-assets/icon-192.png">
+<style>
+:root{--gold:#FACA3A;--red:#FA381D;--cyan:#1CB2E0;--cream:#FBF6D1;--ink:#050505;--dim:#bdb49a}
+html,body{margin:0;background:var(--ink);color:var(--cream);font:400 15px/1.45 Arial,Helvetica,sans-serif}
+main{max-width:760px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px 40px;box-sizing:border-box}
+h1{font-size:22px;color:var(--gold);margin:6px 0 2px;letter-spacing:.04em;text-shadow:2px 2px 0 var(--red)}
+h2{font-size:15px;color:var(--cyan);letter-spacing:.14em;margin:26px 0 8px}
+.kick{color:var(--cyan);letter-spacing:.2em;font-weight:700;font-size:12px}
+.lock{border:2px solid var(--gold);border-radius:10px;padding:12px 14px;margin:14px 0;background:#110e0a}
+.lock b{color:var(--gold)}
+ul.dl{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+ul.dl li{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#16120e;border:1px solid #3a3226;border-radius:8px;padding:0 12px 0 0}
+ul.dl a{color:var(--cream);text-decoration:none;font-weight:700;padding:13px 12px;flex:1;min-height:44px;box-sizing:border-box}
+ul.dl li:first-child,ul.dl li:nth-child(2){border-color:var(--gold)}
+ul.dl span{color:var(--dim);font-size:13px;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{border-bottom:1px solid #2a241c;padding:6px 4px;vertical-align:top}
+td:nth-child(2){white-space:nowrap;color:var(--gold);font-family:"Courier New",monospace}
+td:nth-child(3){color:var(--dim)}
+.table{overflow-x:auto}
+img{width:100%;border-radius:8px;border:1px solid #3a3226;background:#111}
+.back{display:inline-block;margin-top:24px;color:var(--ink);background:var(--gold);padding:12px 16px;border-radius:8px;text-decoration:none;font-weight:700;min-height:44px;box-sizing:border-box}
+ol{padding-left:20px} li{margin:3px 0}
+</style>
+</head>
+<body>
+<main>
+<p class="kick">DEVELOPMENT · TACTILE CONTROL STENCIL</p>
+<h1>TCS P2.5.2 PRINT RC1 — CAD FILES</h1>
+<div class="lock"><b>STATUS: CONFIRMED BY OWNER.</b> Fit geometry locked (phone pocket 65.05 × 8.15 mm, seat 1.60 mm). Two wing openings Ø14.60 mm, centres 25.221 / 51.738 mm, y 20.046 mm.
+<br><b>Software cross-check (iPhone 13 mini, 0.15368 mm per pt):</b> Console wing centres 101.3 / 273.8 pt → spacing <b>26.510 mm</b> vs stencil <b>26.517 mm</b> (Δ 0.007 mm). Console wing Ø86.3 pt = 13.26 mm inside the 14.60 mm opening (0.67 mm clearance per side). Pair centred on the screen (187.55 pt) and on the stencil (−0.015 mm).</div>
+<h2>DOWNLOAD / PRINT</h2>
+<ul class="dl">
+<li><a href="P2.5.2/STRUTHIO_Tactile_Stencil_P2.5.2_PRINT_ORIENTED.3mf" download>PRINT THIS — 3MF, print-oriented (mm)</a><span>185 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_Tactile_Stencil_P2.5.2_PRINT_ORIENTED.stl" download>PRINT THIS — STL, print-oriented</a><span>800 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_Tactile_Stencil_P2.5.2_PRINT_RC1.3mf" download>3MF, design orientation</a><span>170 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_Tactile_Stencil_P2.5.2_PRINT_RC1.stl" download>STL, design orientation</a><span>800 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_Tactile_Stencil_P2.5.2_PRINT_RC1.scad" download>OpenSCAD source (parametric)</a><span>19 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_Tactile_Stencil_P2.5.2_PRINT_RC1_dimension_schedule.csv" download>Dimension schedule (CSV)</a><span>1 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_TCS_P2.5.2_measurements.csv" download>Owner-confirmed measurements (CSV)</a><span>1 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_P2_5_2_PRINT_RC1_QA_REPORT.txt" download>QA report</a><span>2 KB</span></li>
+<li><a href="P2.5.2/STRUTHIO_Tactile_Stencil_P2.5.2_PRINT_RC1_README.txt" download>Print README</a><span>1 KB</span></li>
+</ul>
+<h2>PRINT SETTINGS</h2>
+<ol>
+<li>Use the <b>PRINT_ORIENTED</b> 3MF or STL. Scale 100%.</li>
+<li>TPU 95A. 0.20 mm layers, 5 perimeters, 5–6 top/bottom layers, 20–30% infill, 8–12 mm brim (standing orientation).</li>
+<li>Start from the printer/filament maker's TPU profile. Check the slicer preview around the lettering, the QR and the top of both circular wells.</li>
+<li>Paint-fill the rear QR (0.40 mm deboss, 0.70 mm modules, level M, payload “R.A. PEDDYCOART”) — geometry alone gives no optical contrast.</li>
+</ol>
+<h2>MEASUREMENTS</h2>
+<div class="table"><table>
+<tr><td>actual mesh width</td><td>76.98814 mm</td><td>PASS</td></tr>
+<tr><td>actual mesh height</td><td>50.78744 mm</td><td>PASS</td></tr>
+<tr><td>actual mesh depth</td><td>13.62415 mm</td><td>includes 0.55 mm raised wordmark</td></tr>
+<tr><td>pocket width</td><td>65.05 mm</td><td>LOCKED</td></tr>
+<tr><td>pocket depth</td><td>8.15 mm</td><td>LOCKED</td></tr>
+<tr><td>phone seat y</td><td>1.60 mm</td><td>LOCKED</td></tr>
+<tr><td>front plate</td><td>2.15 mm</td><td>LOCKED</td></tr>
+<tr><td>rear plate</td><td>2.80 mm</td><td>LOCKED</td></tr>
+<tr><td>left wing center x</td><td>25.22084 mm</td><td>LOCKED</td></tr>
+<tr><td>right wing center x</td><td>51.73766 mm</td><td>LOCKED</td></tr>
+<tr><td>wing center y</td><td>20.04634 mm</td><td>LOCKED</td></tr>
+<tr><td>physical wing opening diameter</td><td>14.59971 mm</td><td>LOCKED</td></tr>
+<tr><td>wing shallow recess gap</td><td>11.23711 mm</td><td>PASS</td></tr>
+<tr><td>top web above wing recess</td><td>10.71380 mm</td><td>PASS</td></tr>
+<tr><td>lower web to waist</td><td>7.60649 mm</td><td>PASS</td></tr>
+<tr><td>front wordmark relief</td><td>0.55 mm</td><td>QC strengthened from 0.50</td></tr>
+<tr><td>qr field</td><td>20.30 x 20.30 mm</td><td>QC enlarged from 17.98</td></tr>
+<tr><td>qr module pitch</td><td>0.70 mm</td><td>QC enlarged from 0.62</td></tr>
+<tr><td>qr quiet zone</td><td>4 per side modules</td><td>DENSO requirement</td></tr>
+<tr><td>qr deboss depth</td><td>0.40 mm</td><td>two 0.20-mm layers</td></tr>
+<tr><td>qr error correction</td><td>M level</td><td>mesh-verified pattern</td></tr>
+<tr><td>qr payload</td><td>R.A. PEDDYCOART text</td><td>verified</td></tr>
+<tr><td>maker signature size</td><td>2.15 mm</td><td>QC enlarged from 2.00</td></tr>
+<tr><td>maker signature depth</td><td>0.30 mm</td><td>QC deepened from 0.20</td></tr>
+<tr><td>maker signature stroke boost</td><td>0.06 mm</td><td>printability</td></tr>
+<tr><td>qr mesh matrix mismatches</td><td>0 modules</td><td>PASS = 0</td></tr>
+<tr><td>rear wall remaining under qr</td><td>2.40 mm</td><td>PASS</td></tr>
+</table></div>
+<h2>QC</h2>
+<img src="P2.5.2/STRUTHIO_P2_5_2_QC_DASHBOARD.webp" alt="P2.5.2 release-candidate QC dashboard: mesh watertight, fit lock unchanged, dual-wing structure, QR decode pass" loading="lazy">
+<p></p>
+<img src="P2.5.2/STRUTHIO_P2_5_2_PRINT_RC1_ACTUAL_CAD_MULTIANGLE.webp" alt="Multi-angle renders of the P2.5.2 stencil CAD" loading="lazy">
+<img src="P2.5.2/STRUTHIO_P2_5_2_QR_PRINT_SIM.webp" alt="Simulated print of the stencil QR mark" loading="lazy" style="image-rendering:pixelated;max-width:280px">
+<img src="P2.5.2/STRUTHIO_P2_5_2_QR_REFERENCE_VERIFIED.webp" alt="Verified QR reference used for the print check" loading="lazy" style="image-rendering:pixelated;max-width:280px">
+<a class="back" href="../">BACK TO CONSOLE</a>
+</main>
+</body>
+</html>

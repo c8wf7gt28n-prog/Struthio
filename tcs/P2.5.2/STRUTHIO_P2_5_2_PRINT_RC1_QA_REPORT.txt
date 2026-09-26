@@ -1,0 +1,56 @@
+STRUTHIO TACTILE CONTROL STENCIL — P2.5.2 PRINT RC1
+HIGH-QUALITY QC REPORT
+
+VERDICT
+PASS for a physical print-release candidate. Fit geometry remains locked. The fixes below address fabrication robustness and identity-detail printability only.
+
+MESH
+Watertight: True
+Winding consistent: True
+Valid enclosed volume: True
+Connected components: 1
+Duplicate faces: 0
+Degenerate faces: 0
+Actual extents: 76.98814 x 50.78744 x 13.62415 mm
+
+FIT LOCK
+Pocket: 65.05 x 8.15 mm
+Phone seat: 1.60 mm
+Front plate: 2.15 mm
+Rear plate: 2.80 mm
+Dual-wing centers and Ø14.59971 mm through openings unchanged from P2.5.1.
+
+DUAL-WING STRUCTURAL CHECK
+Center spacing: 26.51682 mm
+Gap between shallow recesses: 11.23711 mm
+Top material web: 10.71380 mm
+Lower web to waist notch: 7.60649 mm
+Control midpoint offset from chassis center: -0.04067 mm
+Result: PASS. The two control wells are mechanically well separated and nearly perfectly centered as a pair.
+
+QR QC
+Payload: R.A. PEDDYCOART
+Version: 1
+Error correction: M
+Field: 20.30 mm square
+Module pitch: 0.70 mm
+Quiet zone: four modules = 2.80 mm on every side
+Additional checker clearance outside field: 1.40 mm
+Deboss depth: 0.40 mm
+Rear material remaining under deepest QR recess: 2.40 mm
+Actual exported-STL module-center comparison: 0 mismatches out of 441 cells (PASS requires 0).
+Reference decode tests: {'clean': True, 'blur': True, 'dark_growth': True, 'dark_shrink': True}
+The QR should still be paint-filled or otherwise given optical contrast; geometry alone does not create black/white contrast.
+
+IDENTITY QC
+Front STRUTHIO relief: 0.55 mm
+Maker signature: 2.15 mm high, 0.30 mm deboss, +0.06 mm stroke expansion
+Rear checker clearing now tests full checker-tile bounds, not only tile centers, preventing any texture tile from intruding into the QR/signature protected area.
+
+3MF
+Unit metadata: millimeter
+Reloaded extents: [76.98813919999999, 50.7874392, 13.6241459]
+Print-oriented extents: [76.98813919999999, 13.6241459, 50.7874392]
+
+PRINT NOTE
+Use the PRINT_ORIENTED file, TPU 95A, 100% scale. A brim remains appropriate for the standing orientation. Inspect the slicer preview around lettering, QR, and the top of the circular wells. Apply contrasting paint-fill to the QR after printing for reliable scanning.

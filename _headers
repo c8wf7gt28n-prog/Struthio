@@ -1,0 +1,30 @@
+# Cloudflare Pages / Netlify response headers for STRUTHIO CONSOLE.
+# Other hosts: mirror these rules in the host's own config.
+
+# camera=(self): the Development QR loader and VS JOIN scan QR codes with the rear camera.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(), usb=()
+
+# The service worker must never be served from an HTTP cache, or installed
+# players would keep the previous build indefinitely.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# The shell and manifest revalidate on every load; the service worker holds
+# the offline copy, keyed by build.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+  Content-Type: application/manifest+json
+/factory/
+  Cache-Control: no-cache
+/factory/index.html
+  Cache-Control: no-cache
+/factory/manifest.webmanifest
+  Cache-Control: no-cache
+  Content-Type: application/manifest+json

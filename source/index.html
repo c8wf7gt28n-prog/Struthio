@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>STRUTHIO · Game Source</title>
+<link rel="icon" href="../console-assets/icon-192.png">
+<style>
+:root{--ink:#050505;--panel:#0d0b08;--cream:#fbf6d1;--dim:#a99f80;--gold:#faca3a;--red:#fa381d;--cyan:#1cb2e0;
+--kw:#faca3a;--str:#5fd9f2;--num:#ff8a4c;--fn:#ffc46b;--const:#ff7c9c;--prop:#e2d8b8;--re:#d69cff;--com:#8a7f62;--punc:#9fa3b3;--tpl:#7fe6c6}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--cream)}
+body{font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding-bottom:env(safe-area-inset-bottom)}
+header{background:linear-gradient(180deg,#050505 0,#0b0906 100%);padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;
+box-shadow:0 2px 0 var(--gold),0 4px 0 #000,0 6px 0 var(--red),0 8px 0 #000,0 10px 0 var(--cyan),0 16px 24px rgba(0,0,0,.6)}
+.kick{font:700 11px/1.2 Arial,sans-serif;letter-spacing:.2em;color:var(--cyan)}
+h1{margin:4px 0 2px;font:900 22px/1.1 "Arial Narrow",Arial,sans-serif;letter-spacing:.04em;color:var(--gold);text-shadow:2px 2px 0 var(--red)}
+.meta{font:12px/1.3 Arial,sans-serif;color:var(--dim)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.bar select,.bar a,.bar button{min-height:44px;padding:0 14px;border:1px solid #6d5a2b;border-radius:6px;background:#15110b;color:var(--cream);
+font:700 13px Arial,sans-serif;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;cursor:pointer}
+.bar select{flex:1 1 180px;max-width:100%}
+.bar .gold{background:linear-gradient(180deg,#fff0b0,var(--gold) 60%,#e08a1c);color:#140702;border-color:#5a1a06}
+main{padding:18px 0 40px}
+.code{counter-reset:none}
+.ln{display:grid;grid-template-columns:4.2em 1fr;min-height:1.45em}
+.ln:target{background:rgba(250,202,58,.14)}
+.n{color:#4d4533;text-align:right;padding-right:1em;user-select:none;-webkit-user-select:none;text-decoration:none;font-size:12px;line-height:1.7}
+.n:hover{color:var(--gold)}
+.t{white-space:pre;padding-right:14px;overflow-wrap:normal}
+body.wrap .t{white-space:pre-wrap;overflow-wrap:anywhere}
+body:not(.wrap) main{overflow-x:auto}
+.ln.banner{background:linear-gradient(90deg,rgba(250,202,58,.16),rgba(250,56,29,.08) 60%,transparent)}
+.ln.banner .t{color:var(--gold);font-weight:700}
+.ln.title .t{color:var(--gold);font-weight:900;font-size:15px;text-shadow:1px 1px 0 #6a1206}
+.k{color:var(--kw);font-weight:700}.s{color:var(--str)}.tp{color:var(--tpl)}.m{color:var(--num)}.f{color:var(--fn)}
+.c{color:var(--const)}.p{color:var(--prop)}.r{color:var(--re)}.cm{color:var(--com);font-style:italic}.o{color:var(--punc)}
+#status{padding:24px 16px;color:var(--dim)}
+@media (max-width:520px){body{font-size:12.5px}.ln{grid-template-columns:3.4em 1fr}.n{font-size:10.5px;line-height:1.8}}
+@media (min-width:900px){body{font-size:13px}.ln{grid-template-columns:5em 1fr}}
+/* a '// ====' rule line is drawn as the Console stripe instead of 78 '=' */
+.ln.rule{min-height:12px;align-items:center}
+.ln.rule .t{height:10px;margin:6px 14px 6px 0;font-size:0;background:linear-gradient(180deg,var(--gold) 0 2px,transparent 2px 4px,var(--red) 4px 6px,transparent 6px 8px,var(--cyan) 8px 10px);opacity:.85}
+.ln.rule .n{visibility:hidden}
+#top{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:6;min-width:48px;min-height:48px;padding:0 12px;border:1px solid #5a1a06;border-radius:24px;
+background:linear-gradient(180deg,#fff0b0,var(--gold) 60%,#e08a1c);color:#140702;font:900 12px Arial,sans-serif;letter-spacing:.06em;box-shadow:0 6px 18px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .2s}
+#top.on{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body class="wrap">
+<header>
+<div class="kick">DEVELOPMENT · GAME SOURCE</div>
+<h1>STRUTHIO — THE GAME</h1>
+<div class="meta" id="meta">The deterministic simulation and its rules, exactly as the Console runs them.</div>
+<div class="bar">
+<select id="jump" aria-label="Jump to module"><option value="">Jump to module…</option></select>
+<button type="button" id="wrap" aria-pressed="true">WRAP ON</button>
+<a href="game-source.txt" download class="gold">DOWNLOAD .TXT</a>
+<a href="../">BACK TO CONSOLE</a>
+</div>
+</header>
+<button type="button" id="top" aria-label="Back to top">▲ TOP</button>
+<main><div id="status">Loading the source…</div><div class="code" id="code"></div></main>
+<script>
+(() => {
+const KW = new Set('await break case catch class const continue debugger default delete do else export extends false finally for from function if import in instanceof let new null of return static super switch this throw true try typeof undefined var void while with yield async get set'.split(' '));
+const REGEX_AFTER = new Set(['return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else', 'yield', 'await']);
+// Tokenize to [class, text] pairs; the classes are CSS names above ('' = plain).
+function tokenize(src) {
+const out = []; let i = 0, prev = '';
+const push = (cls, text, sig) => { out.push([cls, text]); if (sig !== undefined) prev = sig; };
+while (i < src.length) {
+const c = src[i], d = src[i + 1];
+if (/\s/.test(c)) { let j = i; while (j < src.length && /\s/.test(src[j])) j++; push('', src.slice(i, j)); i = j; continue; }
+if (c === '/' && d === '/') { let j = src.indexOf('\n', i); if (j < 0) j = src.length; push('cm', src.slice(i, j)); i = j; continue; }
+if (c === '/' && d === '*') { let j = src.indexOf('*/', i + 2); j = j < 0 ? src.length : j + 2; push('cm', src.slice(i, j)); i = j; continue; }
+if (c === '"' || c === "'") { let j = i + 1; while (j < src.length && src[j] !== c && src[j] !== '\n') { if (src[j] === '\\') j++; j++; } push('s', src.slice(i, j + 1), ')'); i = j + 1; continue; }
+if (c === '`') { // template: literal parts coloured, ${ } parts left as code text
+let j = i + 1, depth = 0;
+while (j < src.length) { if (src[j] === '\\') { j += 2; continue; } if (src[j] === '`' && depth === 0) break; if (src[j] === '$' && src[j + 1] === '{') depth++; else if (src[j] === '}' && depth) depth--; j++; }
+push('tp', src.slice(i, j + 1), ')'); i = j + 1; continue;
+}
+if (c === '/' && (prev === '' || prev === 'op' || prev === '(' || REGEX_AFTER.has(prev))) {
+let j = i + 1, cls = false;
+while (j < src.length && src[j] !== '\n') { const e = src[j]; if (e === '\\') { j += 2; continue; } if (cls) { if (e === ']') cls = false; } else if (e === '[') cls = true; else if (e === '/') break; j++; }
+j++; while (j < src.length && /[a-z]/i.test(src[j])) j++;
+push('r', src.slice(i, j), ')'); i = j; continue;
+}
+if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(d))) { let j = i + 1; while (j < src.length && /[\w.]/.test(src[j])) j++; push('m', src.slice(i, j), 'id'); i = j; continue; }
+if (/[A-Za-z_$]/.test(c)) {
+let j = i + 1; while (j < src.length && /[\w$]/.test(src[j])) j++;
+const w = src.slice(i, j); let k = j; while (src[k] === ' ') k++;
+const before = out.length ? out[out.length - 1][1] : '';
+const cls = KW.has(w) ? 'k' : src[k] === '(' ? 'f' : /^[A-Z][A-Z0-9_]{2,}$/.test(w) ? 'c' : before === '.' ? 'p' : '';
+push(cls, w, KW.has(w) && REGEX_AFTER.has(w) ? w : 'id'); i = j; continue;
+}
+if (c === ')' || c === ']') { push('o', c, ')'); i++; continue; }
+if (c === '(' || c === '[') { push('o', c, '('); i++; continue; }
+push('o', c, 'op'); i++;
+}
+return out;
+}
+const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function render(text) {
+const lines = [[]];
+for (const [cls, t] of tokenize(text)) {
+const parts = t.split('\n');
+parts.forEach((p, k) => { if (k) lines.push([]); if (p) lines[lines.length - 1].push(cls ? `<span class="${cls}">${esc(p)}</span>` : esc(p)); });
+}
+const jump = document.getElementById('jump');
+const html = [];
+const rawLines = text.split('\n');
+lines.forEach((l, n) => {
+const raw = rawLines[n] || '';
+// A module title sits directly under a '// ====' rule; the contents list does not.
+const mod = n > 0 && /^\/\/ ={20,}/.test(rawLines[n - 1]) ? /^\/\/ +(\d+)\. (src\/\S+)/.exec(raw) : null;
+const cls = /^\/\/ ={20,}$/.test(raw) ? ' rule' : mod ? ' banner title' : '';
+const id = `L${n + 1}`;
+if (mod) { const o = document.createElement('option'); o.value = id; o.textContent = `${mod[1]}. ${mod[2].replace('src/', '')}`; jump.appendChild(o); }
+html.push(`<div class="ln${cls}" id="${id}"><a class="n" href="#${id}">${n + 1}</a><span class="t">${l.join('') || ' '}</span></div>`);
+});
+document.getElementById('code').innerHTML = html.join('');
+const build = (/^\/\/ Build (\S+)/m.exec(text) || [])[1];
+document.getElementById('meta').textContent = `${build ? build + ' · ' : ''}${lines.length.toLocaleString()} lines · the deterministic simulation and its rules, exactly as the Console runs them.`;
+document.getElementById('status').remove();
+if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}
+const top = document.getElementById('top');
+top.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+addEventListener('scroll', () => top.classList.toggle('on', scrollY > 600), { passive: true });
+document.getElementById('jump').addEventListener('change', (e) => { if (e.target.value) { location.hash = e.target.value; e.target.value = ''; } });
+document.getElementById('wrap').addEventListener('click', (e) => {
+const on = !document.body.classList.contains('wrap'); document.body.classList.toggle('wrap', on);
+e.currentTarget.textContent = on ? 'WRAP ON' : 'WRAP OFF'; e.currentTarget.setAttribute('aria-pressed', String(on));
+});
+fetch('game-source.txt').then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); }).then(render)
+.catch((e) => { document.getElementById('status').textContent = `The source could not be loaded (${e.message}).`; });
+})();
+</script>
+</body>
+</html>

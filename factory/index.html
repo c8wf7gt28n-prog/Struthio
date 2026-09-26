@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="description" content="STRUTHIO Cartridge Workshop — imagine a world, build its cartridge, and load it into the Console Machine.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="../console-assets/icon-192.png">
+<link rel="apple-touch-icon" href="../console-assets/apple-touch-icon.png">
+<link rel="stylesheet" href="./style.css">
+<title>STRUTHIO Cartridge Workshop</title>
+</head>
+<body>
+<main id="factory-shell">
+<header class="masthead" aria-label="STRUTHIO Cartridge Workshop">
+<a class="console-link" href="../" aria-label="Return to STRUTHIO Console">STRUTHIO</a>
+<span>CARTRIDGE WORKSHOP <b>0.7</b></span>
+</header>
+<section id="home" class="screen active" aria-labelledby="home-title">
+<div class="radar" aria-hidden="true"></div>
+<div class="home-copy">
+<p class="eyebrow">SAME SKY · NEW WORLDS</p>
+<h1 id="home-title">MAKE THE WORLD.<br><span>LOAD THE CARTRIDGE.</span></h1>
+<p class="lede">Describe the world you want. The Workshop shapes your answers into one STRUTHIO cartridge ready for Slot A.</p>
+</div>
+<div class="home-actions">
+<button id="newBtn" class="primary" type="button">MAKE A CARTRIDGE</button>
+<button id="continueBtn" type="button">RESUME CARTRIDGE</button>
+<button id="installReadyBtn" class="quiet" type="button">LOAD A FINISHED CARTRIDGE</button>
+<button id="checkZipBtn" class="quiet" type="button">CHECK A CARTRIDGE ZIP</button>
+<input id="checkZipFile" type="file" accept=".zip,application/zip,application/x-zip-compressed" hidden>
+</div>
+<p id="checkZipStatus" class="check-status" role="status" aria-live="polite"></p>
+<p class="law">THE CONSOLE KEEPS THE GAME · THE CARTRIDGE CHANGES THE WORLD</p>
+</section>
+<section id="wizard" class="screen" aria-labelledby="question">
+<div class="progress" aria-hidden="true"><i id="bar"></i></div>
+<div class="step-meta"><span id="stepGroup">IDENTITY</span><b id="stepNo">01</b></div>
+<div class="question-card">
+<h2 id="question">What is this Episode called?</h2>
+<p id="help"></p>
+<div class="mode-picker" role="group" aria-label="Direction authority">
+<button type="button" data-mode="LOCK" aria-label="Lock this answer">LOCK</button>
+<button type="button" data-mode="GUIDE" aria-label="Use this as guidance">GUIDE</button>
+<button type="button" data-mode="AUTO" aria-label="Let the production agent decide">AUTO</button>
+</div>
+<textarea id="answer" rows="5" maxlength="1200" autocomplete="off" autocapitalize="sentences" aria-describedby="help wizardStatus"></textarea>
+<p class="mode-key"><b>LOCK</b> exact · <b>GUIDE</b> interpret · <b>AUTO</b> decide</p>
+<p id="wizardStatus" class="status" role="status" aria-live="polite"></p>
+</div>
+<nav class="step-actions" aria-label="Question navigation">
+<button id="backBtn" class="quiet" type="button">BACK</button>
+<button id="nextBtn" class="primary" type="button">NEXT</button>
+</nav>
+</section>
+<section id="review" class="screen" aria-labelledby="review-title">
+<div class="section-copy">
+<p class="eyebrow">DIRECTOR REVIEW</p>
+<h2 id="review-title">YOUR AUTHORITY MAP</h2>
+<p>LOCK survives interpretation. GUIDE shapes production. AUTO gives the agent room to make the strongest compatible choice.</p>
+</div>
+<div class="authority-counts" aria-label="Answer authority summary">
+<div><b id="lockCount">0</b><span>LOCK</span></div>
+<div><b id="guideCount">0</b><span>GUIDE</span></div>
+<div><b id="autoCount">0</b><span>AUTO</span></div>
+</div>
+<div class="focus-card">
+<h3>PRIMARY DIRECTION</h3>
+<p id="reviewFocusText"></p>
+</div>
+<div class="contract-card">
+<b>CONSOLE API V1 IS ATTACHED</b>
+<span>Physics, controls, AI, scoring, collision, renderer, HUD, save, and PWA shell remain Console-owned.</span>
+</div>
+<nav class="step-actions" aria-label="Review navigation">
+<button id="reviewBackBtn" class="quiet" type="button">EDIT</button>
+<button id="reviewNextBtn" class="primary" type="button">APPROVE BRIEF</button>
+</nav>
+</section>
+<section id="publish" class="screen" aria-labelledby="publish-title">
+<div class="section-copy compact">
+<p class="eyebrow">PRODUCTION HANDOFF</p>
+<h2 id="publish-title">BRIEF → CHATGPT → ZIP</h2>
+<p>The brief includes your direction and the exact Console API v1 manufacturing contract.</p>
+</div>
+<ol class="handoff-steps">
+<li><b>Share or copy</b><span>Send the production brief to ChatGPT.</span></li>
+<li><b>Review proposal</b><span>ChatGPT proposes one coherent Episode first.</span></li>
+<li><b>Approve production</b><span>Final asset work starts only after your approval.</span></li>
+<li><b>Download one ZIP</b><span>The result is a validated, ready-to-install cartridge.</span></li>
+<li><b>Return and install</b><span>Select that ZIP from Files in the Console slot.</span></li>
+</ol>
+<div class="publish-actions">
+<button id="shareBtn" class="primary" type="button">SHARE BRIEF</button>
+<button id="publishBtn" type="button">COPY + OPEN CHATGPT</button>
+<button id="downloadBtn" class="quiet" type="button">DOWNLOAD BRIEF JSON</button>
+<button id="consoleBtn" class="install" type="button">RETURN TO CARTRIDGE SLOT</button>
+</div>
+<p id="handoffStatus" class="status" role="status" aria-live="polite"></p>
+<button id="publishBackBtn" class="text-button" type="button">BACK TO REVIEW</button>
+</section>
+</main>
+<noscript><p class="noscript" role="alert">JavaScript is required to use the Episode Factory.</p></noscript>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

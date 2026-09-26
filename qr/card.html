@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>STRUTHIO Episode Card</title>
+<link rel="icon" href="../console-assets/icon-192.png">
+<style>
+:root{--gold:#FACA3A;--red:#FA381D;--cyan:#1CB2E0;--cream:#FBF6D1;--ink:#050505}
+html,body{margin:0;background:#1a1612;color:var(--cream);font:700 14px/1.2 Arial,Helvetica,sans-serif}
+main{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px;box-sizing:border-box}
+.card{width:63mm;height:88mm;box-sizing:border-box;border-radius:3mm;background:linear-gradient(160deg,#0b0908,#050505 60%);border:1.2mm solid var(--gold);
+box-shadow:0 0 0 .5mm var(--red) inset,0 8px 30px rgba(0,0,0,.6);display:grid;grid-template-rows:auto 1fr auto auto;padding:2.6mm 3mm 2.4mm;position:relative;overflow:hidden;color:var(--cream)}
+.top{display:flex;justify-content:space-between;align-items:baseline;font-size:2.4mm;letter-spacing:.16em;color:var(--cyan)}
+.top b{color:var(--gold)}
+.art{margin:1.6mm 0;border:.35mm solid var(--gold);border-radius:1.2mm;background:#000 center/cover no-repeat;min-height:20mm}
+.title{font-size:3.6mm;letter-spacing:.05em;color:var(--gold);text-shadow:.3mm .3mm 0 var(--red);margin:0 0 1.4mm}
+.qrrow{display:flex;gap:2.4mm;align-items:flex-end}
+.qr{background:#fff;padding:0;border-radius:.6mm;line-height:0}
+.qr svg{display:block;width:25mm;height:25mm}
+.meta{flex:1;font-size:2.2mm;line-height:1.35;color:var(--cream)}
+.code{font:700 3.4mm/1 "Courier New",monospace;color:var(--ink);background:var(--gold);padding:.8mm 1.2mm;border-radius:.6mm;display:inline-block;margin-bottom:1.2mm;letter-spacing:.06em}
+.fine{font-size:1.7mm;color:#bdb49a;letter-spacing:.1em;margin-top:1.2mm;display:flex;justify-content:space-between}
+.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.tools a,.tools button{display:inline-flex;align-items:center;justify-content:center;font:700 14px Arial;color:var(--ink);background:var(--gold);border:0;border-radius:6px;padding:12px 16px;min-height:44px;text-decoration:none;cursor:pointer}
+.tools a.alt{background:#2a241c;color:var(--cream)}
+p.note{max-width:420px;text-align:center;color:#bdb49a;font-weight:400;line-height:1.4;margin:0}
+@media print{ html,body{background:#fff} .tools,p.note{display:none} main{padding:0;min-height:0} .card{box-shadow:none} @page{size:63mm 88mm;margin:0} }
+</style>
+</head>
+<body>
+<main>
+<article class="card" id="card" aria-label="Printable STRUTHIO episode card">
+<div class="top"><span>STRUTHIO <b>EPISODE CARDS</b></span><span id="num">#0000</span></div>
+<div class="art" id="art" role="img" aria-label="Episode art"></div>
+<div>
+<h1 class="title" id="title">LOADING…</h1>
+<div class="qrrow">
+<div class="qr" id="qr" aria-label="QR code"></div>
+<div class="meta"><span class="code" id="code">----</span><br>SCAN WITH<br>STRUTHIO CONSOLE<br><span style="color:var(--cyan)">DEVELOPMENT › QR LOADER</span></div>
+</div>
+</div>
+<div class="fine"><span id="rel">QR-CART v0.1</span><span>EC LEVEL M · 4-MODULE QUIET ZONE</span></div>
+</article>
+<div class="tools"><button type="button" onclick="print()">PRINT CARD</button><a class="alt" href="../">BACK TO CONSOLE</a></div>
+<p class="note">The QR carries only this Console's card address. Keep art, foil and borders outside the white square. Print at 100% (63 × 88 mm), then test on the phone under glare before a print run.</p>
+</main>
+<script type="module">
+import qrcode from '../console/vendor/qrcode.mjs';
+const params = new URLSearchParams(location.search);
+const code = (params.get('code') || 'DEMO-0001').toUpperCase().replace(/[^A-Z0-9-]/g, '');
+const base = new URL('../', location.href);
+const payload = new URL('cart/' + code, base).href;
+document.getElementById('code').textContent = code;
+try {
+const reg = await (await fetch(new URL('cart/registry.json', base), { cache: 'no-cache' })).json();
+const e = reg.cards[code];
+document.getElementById('title').textContent = e ? e.title : 'UNKNOWN CARD';
+document.getElementById('num').textContent = '#' + (e?.number || '0000');
+document.getElementById('rel').textContent = e ? `${e.cartridgeId.toUpperCase()} · ${e.release}` : 'QR-CART v0.1';
+if (e?.art) document.getElementById('art').style.backgroundImage = `url("${new URL(e.art, base).href}")`;
+} catch { document.getElementById('title').textContent = 'OFFLINE'; }
+const q = qrcode(0, 'M'); q.addData(payload); q.make();
+// 4-module quiet zone, drawn as crisp SVG squares (black on plain white).
+const n = q.getModuleCount(), qz = 4, size = n + qz * 2;
+let d = '';
+for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + qz} ${r + qz}h1v1h-1z`;
+document.getElementById('qr').innerHTML = `<svg viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges" role="img" aria-label="QR code for ${code}"><rect width="${size}" height="${size}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+document.getElementById('qr').dataset.payload = payload;
+document.getElementById('qr').dataset.version = String((n - 17) / 4);
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="struthio-vs-relay" content="wss://struthio-network.struthio.workers.dev/vs/ws">
+<meta name="build" content="STRUTHIO-CONSOLE-3.5.4">
+<meta name="description" content="Same sky. New worlds. Insert a STRUTHIO cartridge or play the built-in DEV-00 ROM, even offline.">
+<meta name="author" content="R.A. Peddycoart">
+<meta property="og:type" content="website">
+<meta property="og:title" content="STRUTHIO CONSOLE MACHINE">
+<meta property="og:description" content="Same sky. New worlds. Insert a STRUTHIO cartridge and play.">
+<meta property="og:image" content="./console-assets/share-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="STRUTHIO CONSOLE symbol.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./console-assets/icon-192.png">
+<link rel="apple-touch-icon" href="./console-assets/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>STRUTHIO CONSOLE MACHINE</title>
+<link rel="stylesheet" href="./console-assets/console-shell.css">
+<link rel="stylesheet" href="./console-assets/console-machine.css">
+<link rel="stylesheet" href="./console-assets/console-moonrise.css">
+</head>
+<body class="is-booting">
+<section id="console-boot" role="status" aria-live="polite" aria-label="STRUTHIO Console is starting">
+<div class="boot-console">
+<div class="wordmark" aria-hidden="true"><b>STRUTHIO</b><span>CONSOLE</span></div>
+<span class="boot-kicker">STRUTHIO CONSOLE MACHINE</span>
+<div class="boot-progress" aria-hidden="true"><i></i></div>
+<p data-boot-status>READING CARTRIDGE BAY</p>
+<small>SAME SKY · NEW WORLDS</small>
+</div>
+</section>
+<main>
+<div id="top-hud" role="group" aria-hidden="true">
+<span id="hud-score"><i id="hud-crown" hidden aria-hidden="true"></i><b>000000</b></span>
+<span id="hud-position"><span id="hud-pos-a">L</span><b id="hud-pos-av">01</b><span class="w" id="hud-pos-b">W</span><b id="hud-pos-bv">01</b></span>
+<span id="hud-ring" class="hud-obj"><i aria-hidden="true"></i><b>00/06</b></span>
+<span id="hud-rival" class="hud-obj"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5 13 3M13.5 13.5 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.5 2.2 13.8 2.2 13.8 5.5M5.5 2.2 2.2 2.2 2.2 5.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><b>00/00</b></span>
+<span id="hud-boss" hidden><small>BOSS</small><b></b></span>
+<span id="hud-joust"><span><small><span class="full">JOUST</span><span class="short">J</span></small><b>11/11</b></span><i aria-hidden="true"></i></span>
+<div id="hud-toast" role="status" aria-live="polite"></div>
+</div>
+<p id="hud-sr" class="sr" role="status" aria-live="polite"></p>
+<div id="cabinet">
+<canvas id="game" width="768" height="1152" tabindex="0" role="application" aria-label="STRUTHIO game arena. Tap either wing to flap in that direction, tap both for a strong vertical flap, and slide a wing downward to DART. Escape or a controller's Start button pauses."></canvas>
+</div>
+<div id="controls" role="group" aria-label="Game controls">
+<span class="chord-cue" aria-hidden="true">BOTH</span>
+<button type="button" data-control="LEFT_WING" aria-label="Left wing"><svg class="wing" viewBox="0 0 48 48" aria-hidden="true"><path d="M38 10C25 12 14 21 10 37c9-7 17-8 27-7-7-4-11-8-14-13 6 2 10 1 15-7Z"/></svg><span class="sr">Left wing</span></button>
+<button type="button" data-control="RIGHT_WING" aria-label="Right wing"><svg class="wing" viewBox="0 0 48 48" aria-hidden="true"><path d="M10 10c13 2 24 11 28 27-9-7-17-8-27-7 7-4 11-8 14-13-6 2-10 1-15-7Z"/></svg><span class="sr">Right wing</span></button>
+</div>
+</main>
+<section id="title-screen" aria-label="STRUTHIO game start screen">
+<div id="title-machine-bar" class="machine-topbar" aria-hidden="true"><span>STRUTHIO <b>CONSOLE</b></span><span></span><small id="title-power-label" class="machine-power">CARTRIDGE ON</small></div>
+<img id="title-art" alt="Active STRUTHIO cartridge title art." fetchpriority="high">
+<button id="home-button" type="button" hidden>&#9664; HOME</button>
+<div id="title-menu">
+<div class="wordmark home-only" aria-hidden="true"><b>STRUTHIO</b><span>CONSOLE</span></div>
+<h2>CHOOSE A MODE</h2>
+<form id="dev-code" hidden autocomplete="off"><label for="dev-code-input">Developer code</label><input id="dev-code-input" type="password" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go"></form>
+<nav id="title-actions" aria-label="Start options"></nav>
+<p id="title-note" role="status" aria-live="polite">CARTRIDGE READY</p>
+<p id="title-hint">Tap a mode, or use the wings: left and right choose, both together select.</p>
+<p id="title-credit"><span id="episode-credit">STRUTHIO CONSOLE MACHINE</span><strong>R.A. Peddycoart</strong></p>
+<div class="console-options" aria-label="Console presentation options">
+<button id="rider-toggle" type="button" aria-pressed="false" hidden>HD RIDER · OFF</button>
+<button id="cartridge-open" type="button">CHANGE CARTRIDGE</button>
+</div>
+</div>
+<p id="home-sign"><span>R.A. PEDDYCOART</span><b id="home-version">v3.5.4</b></p>
+</section>
+<section id="manual-screen" role="dialog" aria-modal="true" aria-label="STRUTHIO Console manual. Tap anywhere, press a wing, or press Escape to close." tabindex="-1" hidden>
+<div id="manual-scroll"><img id="manual-image" alt="STRUTHIO Console manual, twelve panels: 1 objective, rings equal level, rivals equal wave; 2 joust rule, higher wins, even bounces, lower loses; 3 rings and waves, dull is locked, sparkling is ready; 4 eggs, collect before hatch; 5 wing and landing, flap up, land to refill, ground is faster; 6 arena movement, left and right wrap; 7 boss duels, 3 rings, win 3 jousts; 8 HUD; 9 controls, left wing flaps up-left, right wing flaps up-right, hold for dart down assist; 10 enemy types runner, hopper, diver; 11 continue with 3 lives; 12 win the sky."></div>
+<button id="manual-close" type="button">CLOSE MANUAL</button>
+</section>
+<audio id="music-track" preload="auto" loop playsinline webkit-playsinline aria-hidden="true"></audio>
+<section id="rotate" aria-live="polite"><i aria-hidden="true"></i><span>TURN YOUR PHONE UPRIGHT</span><small>STRUTHIO CONSOLE plays in portrait. The game pauses meanwhile.</small></section>
+<button id="update" type="button" hidden aria-label="Update ready: reload to the new version">UPDATE READY</button>
+<section id="fatal" hidden role="alert" aria-live="assertive">
+<h1>STRUTHIO CONSOLE CANNOT START</h1>
+<p class="hint">This game needs WebGPU. Play in a current Chrome or Edge, or Safari 26 or later.</p>
+<p class="detail"></p>
+<p class="code"></p>
+</section>
+<section id="empty-console" hidden role="status" aria-live="polite">
+<div class="machine-topbar" aria-hidden="true"><span>STRUTHIO <b>CONSOLE</b></span><span></span><small class="machine-power">POWER ON</small></div>
+<div class="slot-beacon" aria-hidden="true">SLOT A · EMPTY</div>
+<div class="frame-window">
+<div class="empty-identity"><h1><b>STRUTHIO</b><span>CONSOLE</span></h1><p>SAME SKY · NEW WORLDS</p></div>
+<div class="empty-dock">
+<h2>CHOOSE YOUR WORLD</h2>
+<p>Insert a STRUTHIO cartridge into Slot A, or start the protected DEV-00 game built into the machine.</p>
+<div class="empty-actions">
+<button id="empty-cartridge-open" type="button"><span>INSERT A CARTRIDGE</span><small>CHOOSE ZIP FROM FILES</small></button>
+<button id="empty-rom-open" type="button"><span>PLAY BUILT-IN DEV-00</span><small>INTERNAL ROM · ALWAYS READY</small></button>
+<button id="factory-open-empty" type="button"><span>CARTRIDGE WORKSHOP</span><small>DESIGN A NEW WORLD</small></button>
+</div>
+<p class="machine-foot">SLOT A REMOVABLE · DEV-00 BUILT IN · OFFLINE READY · R.A. Peddycoart</p>
+<small data-console-build>STRUTHIO-CONSOLE-3.5.4</small>
+</div>
+</div>
+</section>
+<section id="cartridge-panel" hidden role="dialog" aria-modal="true" aria-labelledby="cartridge-heading" aria-describedby="cartridge-current cartridge-status">
+<div id="cartridge-card" data-state="empty">
+<div class="slot-card-header"><span>STRUTHIO CONSOLE</span><b>SLOT A</b><span class="machine-power">POWER</span></div>
+<div class="slot-stage" aria-hidden="true">
+<img class="slot-cartridge" src="./console-assets/console-cartridge.webp" alt="">
+<div class="slot-label" id="slot-label-title">WAITING FOR A WORLD</div>
+</div>
+<h2 id="cartridge-heading">INSERT A CARTRIDGE</h2>
+<p id="cartridge-current">Choose a finished STRUTHIO cartridge ZIP from Files.</p>
+<div class="slot-guide" aria-hidden="true"><span><b>01</b>CHOOSE ZIP</span><span><b>02</b>CONSOLE READS</span><span><b>03</b>WORLD STARTS</span></div>
+<div id="cartridge-actions">
+<button id="cartridge-install" type="button">CHOOSE CARTRIDGE ZIP</button>
+<button id="cartridge-play-rom" type="button">PLAY BUILT-IN DEV-00</button>
+<button id="factory-open" type="button">OPEN CARTRIDGE WORKSHOP</button>
+<button id="cartridge-remove" type="button" hidden>EJECT CARTRIDGE</button>
+<button id="cartridge-close" type="button">BACK TO CONSOLE</button>
+</div>
+<p id="cartridge-status" role="status" aria-live="polite"></p>
+<input id="cartridge-file" type="file" accept=".zip,application/zip,application/x-zip-compressed" hidden>
+</div>
+</section>
+<noscript><section role="alert" style="color:#FF6B2D;padding:24px">JavaScript is required.</section></noscript>
+<script type="module">
+import { boot, showFatal } from './app.mjs';
+// Test flags (freeze, seed, quality, visualFreeze, renderTick) only on a local
+// server. The published shell accepts only quality and the protected ROM route.
+const params = Object.fromEntries(new URLSearchParams(location.search));
+const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+const flags = local ? params : Object.fromEntries(Object.entries(params).filter(([k, v]) => k === 'quality' || k === 'rom' || (k === 'debug' && v === 'layout') || (k === 'shim' && v === 'off') || (k === 'menu' && v === 'cartridge')));
+boot({ flags }).then((session) => {
+const upd = document.getElementById('update');
+setInterval(() => { upd.hidden = !(window.__struthio && window.__struthio.updateReady && !session.game); }, 500);
+}).catch(() => {});
+window.addEventListener('error', (e) => { if (!document.getElementById('fatal').hidden) return; showFatal('FATAL_SCRIPT', e.message); });
+</script>
+</body>
+</html>

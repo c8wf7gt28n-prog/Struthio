@@ -1,0 +1,28 @@
+parameter,unit,value,status/notes
+actual_mesh_width,mm,76.98814,PASS
+actual_mesh_height,mm,50.78744,PASS
+actual_mesh_depth,mm,13.62415,includes 0.55 mm raised wordmark
+pocket_width,mm,65.05,LOCKED
+pocket_depth,mm,8.15,LOCKED
+phone_seat_y,mm,1.60,LOCKED
+front_plate,mm,2.15,LOCKED
+rear_plate,mm,2.80,LOCKED
+left_wing_center_x,mm,25.22084,LOCKED
+right_wing_center_x,mm,51.73766,LOCKED
+wing_center_y,mm,20.04634,LOCKED
+physical_wing_opening_diameter,mm,14.59971,LOCKED
+wing_shallow_recess_gap,mm,11.23711,PASS
+top_web_above_wing_recess,mm,10.71380,PASS
+lower_web_to_waist,mm,7.60649,PASS
+front_wordmark_relief,mm,0.55,QC strengthened from 0.50
+qr_field,mm,20.30 x 20.30,QC enlarged from 17.98
+qr_module_pitch,mm,0.70,QC enlarged from 0.62
+qr_quiet_zone,modules,4 per side,DENSO requirement
+qr_deboss_depth,mm,0.40,two 0.20-mm layers
+qr_error_correction,level,M,mesh-verified pattern
+qr_payload,text,R.A. PEDDYCOART,verified
+maker_signature_size,mm,2.15,QC enlarged from 2.00
+maker_signature_depth,mm,0.30,QC deepened from 0.20
+maker_signature_stroke_boost,mm,0.06,printability
+qr_mesh_matrix_mismatches,modules,0,PASS = 0
+rear_wall_remaining_under_qr,mm,2.40,PASS
