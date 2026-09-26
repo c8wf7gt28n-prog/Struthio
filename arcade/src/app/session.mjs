@@ -64,7 +64,7 @@ return best?`HI ${fmtScore(best.score)} · ROUND ${best.round}`:'NO RECORD YET';
 function savedRun(){
 const r=restoreCheckpoint(storage,SAVE_SCHEMA);
 const p=r.status==='RESTORE'?r.record.payload:null;
-return{...r,active:!!p&&p.sim.shell!=='GAMEOVER'};
+return{...r,active:!!p&&p.sim.shell!=='GAMEOVER',round:p?.tower?.round||1};
 }
 function checkpoint(reason){
 if (!game) return null;
@@ -304,8 +304,8 @@ const titleNote=document.getElementById('title-note');
 let renderedMenuItems='';
 function refreshTitleMenu(note=menu.note){
 const run=savedRun();
-const items=run.active?['RESUME RUN','NEW RUN']:['NEW RUN'];
-menu={items,index:0,note:note||(run.status==='REJECTED'?'SAVED RUN COULD NOT BE READ':recordNote())};
+// Arcade title: one flashing START. It continues a run left mid-climb, else starts a new one.
+menu={items:['START'],index:0,resume:run.active,note:note||(run.status==='REJECTED'?'SAVED RUN COULD NOT BE READ':run.active?`CONTINUE · ROUND ${run.round||1}`:recordNote())};
 if (controlDeck) controlDeck.sync();
 }
 function moveTitle(delta){
@@ -316,9 +316,7 @@ syncShellUi();
 if (titleRoot&&!titleRoot.hidden) titleActions?.children[menu.index]?.focus({preventScroll:true});
 }
 function selectTitle(){
-const item=menu.items[menu.index];
-if (item==='NEW RUN') startNewGame();
-else if (item==='RESUME RUN') resumeRun();
+if (menu.resume) resumeRun();else startNewGame();
 }
 function syncShellUi(){
 const titleVisible=screen==='TITLE';
@@ -522,20 +520,20 @@ onShellAction(action){
 if (isPaused()){if (action==='BOTH') resume('DECK');return;}
 if (isGameOver()){if (action==='BOTH') confirmGameOver();else moveGameOver(action==='PREV'?-1:1);syncShellUi();return;}
 if (screen!=='TITLE') return;
-if (action==='BOTH') selectTitle();else moveTitle(action==='PREV'?-1:1);
+selectTitle();
 syncShellUi();
 },
 labelFor(region){
-if (screen==='TITLE'){
-const count=Math.max(1,menu.items.length),i=menu.index;
-const both=`; press both wings together to select ${menu.items[i]}`;
-if (region==='LEFT_WING') return `Left wing: previous option, ${menu.items[(i-1+count)%count]}${both}`;
-if (region==='RIGHT_WING') return `Right wing: next option, ${menu.items[(i+1)%count]}${both}`;
-}
+if (screen==='TITLE') return 'Start';
 if (isPaused()) return 'Paused: press both wings together to resume';
 if (isGameOver()) return `${region==='RIGHT_WING'?'Next':'Previous'} option; press both wings together to select ${GAMEOVER_ITEMS[gameOverIndex]}`;
 return region==='LEFT_WING'?'Left wing: up-left flap; slide down to DART':'Right wing: up-right flap; slide down to DART';
 },
+});
+// Arcade title: a tap anywhere on the title screen starts.
+if (titleRoot) titleRoot.addEventListener('click',(ev)=>{
+if (screen!=='TITLE'||ev.target.closest('#title-actions')) return;
+ensureAudio();selectTitle();syncShellUi();
 });
 if (titleActions) titleActions.addEventListener('click',(ev)=>{
 const button=ev.target.closest('button[data-title-item]');

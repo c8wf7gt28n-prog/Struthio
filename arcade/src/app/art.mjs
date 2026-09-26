@@ -1,5 +1,5 @@
 // STRUTHIO ARCADE · loading the art: decode WebP to RGBA, check the Arcade plates
-// and island sheet, mark the jouster sheet's rim texels for the renderer, and
+// and island sheet, drop the jouster sheet's dark outline, and
 // build the turning moon globe from the rear plate.
 import{WORLD_PLATE_W,WORLD_PLATE_H,GLOBE_MAP_W,GLOBE_MAP_H}from '../render/renderer.mjs';
 import{ISLAND_SHEET}from '../render/islands.mjs';
@@ -64,7 +64,8 @@ const i=y*w+x,k=i*4;
 if (a[i]<128) continue;
 const r=p[k],g=p[k+1],b=p[k+2],mx=Math.max(r,g,b);
 if (mx<=17){
-if (clear(x+2,y)||clear(x-2,y)||clear(x,y+2)||clear(x,y-2)){p[k]=0;p[k+1]=255;p[k+2]=0;n++;}
+// the dark outer outline is dropped: birds read without an outline.
+if (clear(x+2,y)||clear(x-2,y)||clear(x,y+2)||clear(x,y-2)){p[k+3]=0;n++;}
 }else if (r+20<b&&g<=b*0.8&&mx>=38&&mx<=158){
 const t=Math.min(1,Math.max(0,(mx/255-0.10)/0.35)),sm=t*t*(3-2*t);
 p[k]=0;p[k+1]=0;p[k+2]=Math.round(40+215*sm);

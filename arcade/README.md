@@ -18,6 +18,10 @@ loaded, the game installs as an app and plays offline.
 
     python3 -m http.server 8000     # then open http://localhost:8000/
 
+The title screen flashes START: tap anywhere, press a wing, Enter, Space or a
+controller's Start. START continues a run you left mid-climb; otherwise it
+starts a new one.
+
 Controls:
 
 | Action | Touch | Keys |
@@ -32,7 +36,8 @@ Gamepads work as well.
 ## Layout
 
     index.html             page shell (hero art title, HUD, controller)
-    assets/arcade.css      all styles
+    assets/arcade.css      base styles
+    assets/arcade-frame.css side rails, HUD skin and the START title
     assets/art, audio      art plates, island sheet, sprites, music loop
     src/core               sha256, canonical JSON digests, rng, fixed-point maths
     src/sim                deterministic 60 Hz tower sim (state, step, ai, physics, world, tower data)

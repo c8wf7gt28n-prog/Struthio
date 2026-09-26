@@ -136,6 +136,8 @@ fn arcadeIsland(c: vec3f, t: f32) -> vec3f {
 }`;
 const BLOOM_GAIN='1.8',BLOOM_BRIGHT_GAIN='1.0',BLOOM_BRIGHT_KNEE=Object.freeze(['0.40','0.90']);
 const POST_EXPOSURE='1.8',POST_WHITE='1.6',POST_LOW_RUNG_GLOW='0.35';
+// Cyan emitters bloom at 30% of their old strength, and cyan is pulled toward blue.
+const CYAN_BLOOM='0.3',CYAN_TO_BLUE='0.46';
 const POST_WGSL=`struct Post { viewport: vec2f, scene: vec2f, logical: vec2f, quality: u32, tick: u32, fx: vec4f, music: vec4f }
 // The post pass reads exclusively through textureLoad, so it declares no
 // sampler. A declared-but-unused sampler is dropped from the 'auto' bind group
@@ -149,11 +151,20 @@ struct VOut { @builtin(position) p: vec4f, @location(0) uv: vec2f }
 @vertex fn vs(@builtin(vertex_index) i:u32)->VOut { var pos=array<vec2f,3>(vec2f(-1.0,-1.0),vec2f(3.0,-1.0),vec2f(-1.0,3.0));var o:VOut;o.p=vec4f(pos[i],0.0,1.0);o.uv=vec2f((pos[i].x+1.0)*0.5,1.0-(pos[i].y+1.0)*0.5);return o; }
 fn emission(c:vec3f,pulse:vec3f)->vec3f {
   let hi=max(c.r,max(c.g,c.b));
-  let cyan=select(0.0,hi,c.b>0.34&&c.g>0.27&&c.b>c.r*1.20);
+  let cyan=select(0.0,hi,c.b>0.34&&c.g>0.27&&c.b>c.r*1.20)*${CYAN_BLOOM};
   // The green ceiling excludes the gold platform caps from red/orange bloom.
   let lava=select(0.0,hi,c.r>0.42&&c.g<0.48&&c.r>c.g*1.25&&c.r>c.b*1.45);
   let violet=select(0.0,hi,c.b>0.35&&c.r>0.35&&c.g<c.r*0.78);
   return c*(cyan*pulse.x+lava*pulse.y+violet*pulse.z);
+}
+// Cyan -> blue: only pixels where green and blue both stand well above red and
+// sit close together (cyan/teal) lose some green and a little light; whites,
+// golds, reds, greens and violets are left alone.
+fn deCyan(c:vec3f)->vec3f {
+  let lift=clamp((min(c.g,c.b)-c.r)/max(max(c.g,c.b),0.001),0.0,1.0);
+  let ratio=c.g/max(c.b,0.001);
+  let w=lift*smoothstep(0.50,0.80,ratio)*(1.0-smoothstep(1.12,1.40,ratio));
+  return vec3f(c.r*(1.0-0.30*w),c.g*(1.0-${CYAN_TO_BLUE}*w),c.b*(1.0-0.10*w));
 }
 fn glowAt(p:vec2i,pulse:vec3f)->vec3f {
   let dims=vec2i(post.scene);
@@ -165,7 +176,7 @@ fn glowAt(p:vec2i,pulse:vec3f)->vec3f {
   let dims=vec2i(post.scene);
   let p=clamp(vec2i(floor(i.uv*post.scene)),vec2i(0),dims-vec2i(1));
   var c=textureLoad(logicalTexture,p,0);
-  if(post.quality==0u){ let x0=c.rgb*${POST_EXPOSURE}; return vec4f(clamp(x0*(vec3f(1.0)+x0/(${POST_WHITE}*${POST_WHITE}))/(vec3f(1.0)+x0),vec3f(0.0),vec3f(1.0)),c.a); }
+  if(post.quality==0u){ let x0=c.rgb*${POST_EXPOSURE}; return vec4f(deCyan(clamp(x0*(vec3f(1.0)+x0/(${POST_WHITE}*${POST_WHITE}))/(vec3f(1.0)+x0),vec3f(0.0),vec3f(1.0))),c.a); }
   let t=f32(post.tick&511u)*0.012271846;
   let pulse=vec3f(post.fx.x*(0.84+0.16*sin(t+f32(p.x+p.y)*0.018)),post.fx.y*(0.82+0.18*sin(t*0.73+f32(p.y)*0.025)),post.fx.z*(0.84+0.16*sin(t*1.13)));
   // Multi-radius contour halation: reduced quality keeps the tight four-tap
@@ -186,7 +197,7 @@ fn glowAt(p:vec2i,pulse:vec3f)->vec3f {
   let vignette=1.0-0.10*smoothstep(0.38,1.12,dot(centered,centered));
   let x=(c.rgb+glow)*${POST_EXPOSURE};
   let toned=x*(vec3f(1.0)+x/(${POST_WHITE}*${POST_WHITE}))/(vec3f(1.0)+x);
-  return vec4f(clamp(toned*scan*vignette,vec3f(0.0),vec3f(1.0)),c.a);
+  return vec4f(deCyan(clamp(toned*scan*vignette,vec3f(0.0),vec3f(1.0))),c.a);
 }`;
 const POST_SHARED_WGSL=POST_WGSL.slice(0,POST_WGSL.indexOf('@fragment'));
 const POST_EMIT_WGSL=`${POST_SHARED_WGSL}
