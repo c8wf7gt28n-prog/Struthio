@@ -136,8 +136,8 @@ fn arcadeIsland(c: vec3f, t: f32) -> vec3f {
 }`;
 const BLOOM_GAIN='1.8',BLOOM_BRIGHT_GAIN='1.0',BLOOM_BRIGHT_KNEE=Object.freeze(['0.40','0.90']);
 const POST_EXPOSURE='1.8',POST_WHITE='1.6',POST_LOW_RUNG_GLOW='0.35';
-// Cyan emitters bloom at 30% of their old strength, and cyan is pulled toward blue.
-const CYAN_BLOOM='0.3',CYAN_TO_BLUE='0.46';
+// Cyan emitters bloom at 30% of their old strength; gradeArcade sets the final look.
+const CYAN_BLOOM='0.3',BLUE_DESAT='0.30',BLUE_DIM='0.12',VIBRANCE='0.94';
 const POST_WGSL=`struct Post { viewport: vec2f, scene: vec2f, logical: vec2f, quality: u32, tick: u32, fx: vec4f, music: vec4f }
 // The post pass reads exclusively through textureLoad, so it declares no
 // sampler. A declared-but-unused sampler is dropped from the 'auto' bind group
@@ -157,14 +157,30 @@ fn emission(c:vec3f,pulse:vec3f)->vec3f {
   let violet=select(0.0,hi,c.b>0.35&&c.r>0.35&&c.g<c.r*0.78);
   return c*(cyan*pulse.x+lava*pulse.y+violet*pulse.z);
 }
-// Cyan -> blue: only pixels where green and blue both stand well above red and
-// sit close together (cyan/teal) lose some green and a little light; whites,
-// golds, reds, greens and violets are left alone.
-fn deCyan(c:vec3f)->vec3f {
-  let lift=clamp((min(c.g,c.b)-c.r)/max(max(c.g,c.b),0.001),0.0,1.0);
-  let ratio=c.g/max(c.b,0.001);
-  let w=lift*smoothstep(0.50,0.80,ratio)*(1.0-smoothstep(1.12,1.40,ratio));
-  return vec3f(c.r*(1.0-0.30*w),c.g*(1.0-${CYAN_TO_BLUE}*w),c.b*(1.0-0.10*w));
+// Arcade grade: cyan and azure are pulled to a softer slate blue (hue 218,
+// less saturation, a little less light); everything else only loses a touch
+// of vibrance, so golds, reds and whites keep their look.
+fn rgb2hsv(c:vec3f)->vec3f {
+  let mx=max(c.r,max(c.g,c.b));let d=mx-min(c.r,min(c.g,c.b));
+  var h=0.0;
+  if(d>0.00001){
+    if(mx==c.r){h=(c.g-c.b)/d;if(h<0.0){h+=6.0;}}
+    else if(mx==c.g){h=(c.b-c.r)/d+2.0;}
+    else{h=(c.r-c.g)/d+4.0;}
+  }
+  return vec3f(h*60.0,select(0.0,d/mx,mx>0.00001),mx);
+}
+fn hsv2rgb(q:vec3f)->vec3f {
+  let k=(vec3f(5.0,3.0,1.0)+vec3f(q.x/60.0))%vec3f(6.0);
+  return vec3f(q.z)-q.z*q.y*clamp(min(k,vec3f(4.0)-k),vec3f(0.0),vec3f(1.0));
+}
+fn gradeArcade(c:vec3f)->vec3f {
+  var q=rgb2hsv(c);
+  let w=smoothstep(160.0,178.0,q.x)*(1.0-smoothstep(228.0,245.0,q.x))*smoothstep(0.10,0.25,q.y);
+  q.x=mix(q.x,218.0,w*0.85);
+  q.y=q.y*(1.0-${BLUE_DESAT}*w)*${VIBRANCE};
+  q.z=q.z*(1.0-${BLUE_DIM}*w);
+  return hsv2rgb(q);
 }
 fn glowAt(p:vec2i,pulse:vec3f)->vec3f {
   let dims=vec2i(post.scene);
@@ -176,7 +192,7 @@ fn glowAt(p:vec2i,pulse:vec3f)->vec3f {
   let dims=vec2i(post.scene);
   let p=clamp(vec2i(floor(i.uv*post.scene)),vec2i(0),dims-vec2i(1));
   var c=textureLoad(logicalTexture,p,0);
-  if(post.quality==0u){ let x0=c.rgb*${POST_EXPOSURE}; return vec4f(deCyan(clamp(x0*(vec3f(1.0)+x0/(${POST_WHITE}*${POST_WHITE}))/(vec3f(1.0)+x0),vec3f(0.0),vec3f(1.0))),c.a); }
+  if(post.quality==0u){ let x0=c.rgb*${POST_EXPOSURE}; return vec4f(gradeArcade(clamp(x0*(vec3f(1.0)+x0/(${POST_WHITE}*${POST_WHITE}))/(vec3f(1.0)+x0),vec3f(0.0),vec3f(1.0))),c.a); }
   let t=f32(post.tick&511u)*0.012271846;
   let pulse=vec3f(post.fx.x*(0.84+0.16*sin(t+f32(p.x+p.y)*0.018)),post.fx.y*(0.82+0.18*sin(t*0.73+f32(p.y)*0.025)),post.fx.z*(0.84+0.16*sin(t*1.13)));
   // Multi-radius contour halation: reduced quality keeps the tight four-tap
@@ -197,7 +213,7 @@ fn glowAt(p:vec2i,pulse:vec3f)->vec3f {
   let vignette=1.0-0.10*smoothstep(0.38,1.12,dot(centered,centered));
   let x=(c.rgb+glow)*${POST_EXPOSURE};
   let toned=x*(vec3f(1.0)+x/(${POST_WHITE}*${POST_WHITE}))/(vec3f(1.0)+x);
-  return vec4f(deCyan(clamp(toned*scan*vignette,vec3f(0.0),vec3f(1.0))),c.a);
+  return vec4f(gradeArcade(clamp(toned*scan*vignette,vec3f(0.0),vec3f(1.0))),c.a);
 }`;
 const POST_SHARED_WGSL=POST_WGSL.slice(0,POST_WGSL.indexOf('@fragment'));
 const POST_EMIT_WGSL=`${POST_SHARED_WGSL}

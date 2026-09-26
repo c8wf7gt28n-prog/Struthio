@@ -425,6 +425,14 @@ function resizeRenderer(){
 const b=cabinet?cabinet.getBoundingClientRect():{width:window.innerWidth,height:window.innerHeight};
 renderer.resize(Math.max(256,b.width),Math.max(384,b.height));
 }
+// The side rails' lines run exactly beside the game picture.
+function syncGameBox(){
+const r=canvas.getBoundingClientRect(),root=document.documentElement.style;
+root.setProperty('--game-top',`${Math.round(r.top)}px`);
+root.setProperty('--game-h',`${Math.round(r.height)}px`);
+}
+if (typeof ResizeObserver==='function') new ResizeObserver(syncGameBox).observe(canvas);
+window.addEventListener('resize',()=>requestAnimationFrame(syncGameBox));
 
 // ---- input ------------------------------------------------------------------
 function logical(ev){
