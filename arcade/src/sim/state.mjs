@@ -10,7 +10,9 @@ export const EGG_BOX=Object.freeze({l:11,r:18,t:17,b:25});
 export const LANCE_Y_SUB=(BIRD_BOX.t-5)*256;
 export const FLAP_COOLDOWN_TICKS=7;
 export const RESPAWN_HIDDEN_TICKS=84;
-export const SHIMMER_TICKS=90;
+// Mercy invincibility after a respawn: 2.5 s, as long as Super Mario Bros.'
+// after a hit (158 frames).
+export const SHIMMER_TICKS=150;
 
 export function emptyPlayer(x,y){
 return{x:px(x),y:px(y),vx:0,vy:0,groundedPlatformId:null,facing:1,wing:64,flapCooldown:0,footingTicks:0,lavaPhase:'SAFE',lavaTicks:0,invulnerableTicks:0};
@@ -20,7 +22,7 @@ return{x:px(x),y:px(y),vx:0,vy:0,groundedPlatformId:null,facing:1,wing:64,flapCo
 // arriving (the player has moved), the round-clear hold, and the arrival
 // cooldown in ticks.
 export function emptyTower(round=1){
-return{round,ringMask:0,kills:0,check:0,go:false,hold:0,cooldown:0};
+return{round,ringMask:0,kills:0,check:0,go:false,hold:0,cooldown:0,mercy:0};
 }
 export function newState(seed,R){
 return{

@@ -48,9 +48,24 @@ if (best===null||compareRational(num,den,best.num,best.den)<0||(compareRational(
 if (best){newY=best.top-box.b*256;e.vy=0;landed=best.id;}
 }
 if (landed===null&&e.vy<0){
+const corner=(opts.cornerPx|0)*256;
 for (const p of collidable){
 const ps=platSpan(p);
 if (ob.t>=ps.bottom&&nb.t<ps.bottom&&overlapsX(nb.l,nb.r,ps.pl,ps.pr)){
+// Corner correction: a head that only clips the end of an island by up to
+// cornerPx is slid clear of it and keeps rising.
+if (corner>0){
+let nudge=0;
+for (const sft of SHIFTS){
+const l=nb.l+sft,r=nb.r+sft;
+if (!(l<ps.pr&&r>ps.pl)) continue;
+const intoLeft=r-ps.pl,intoRight=ps.pr-l;
+if (intoLeft<=corner&&intoLeft<=intoRight) nudge=-intoLeft;
+else if (intoRight<=corner) nudge=intoRight;
+break;
+}
+if (nudge!==0){newX=mod(newX+nudge,WRAP);nb=entityBox(newX,newY,box);continue;}
+}
 newY=ps.bottom-box.t*256;e.vy=C.headBumpVy;headBump=true;break;
 }
 }
@@ -77,12 +92,12 @@ if ('groundedPlatformId' in e) e.groundedPlatformId=landed;
 const lava=entityBox(newX,newY,box).b>=world.lavaY;
 return{landed,lava,headBump};
 }
-function inRing(box,ring){
+function inRing(box,ring,slackPx=0){
 const cx=tdiv(box.l+box.r,2),cy=tdiv(box.t+box.b,2);
 const rx=ring.center[0]*256,ry=ring.center[1]*256;
 let dx=cx-rx;dx+=nearestWrapShift(dx);
 const dy=cy-ry;
-const r=ring.radius*256;
+const r=(ring.radius+slackPx)*256;
 return dx*dx+dy*dy<=r*r;
 }
 function boxesOverlap(a,b){

@@ -21,42 +21,67 @@ html,body{background:#020306}
 /* ---- the page sits between the rails ---------------------------------------- */
 main{
   left:var(--fr-side);right:var(--fr-side);
+  padding-top:calc(env(safe-area-inset-top) + var(--fr));
   padding-left:calc(env(safe-area-inset-left) + var(--fr));
   padding-right:calc(env(safe-area-inset-right) + var(--fr));
   background:#020306;
 }
 #title-screen{
+  top:calc(env(safe-area-inset-top) + var(--fr));
   left:calc(var(--fr-side) + env(safe-area-inset-left) + var(--fr));
   right:calc(var(--fr-side) + env(safe-area-inset-right) + var(--fr));
 }
 #update{z-index:7}
 
-/* ---- side rails: dark bezels full height; a blue line and a gold edge run
-   only beside the game picture (--game-top/--game-h come from the page) ---- */
-#frame{position:fixed;inset:0;left:var(--fr-side);right:var(--fr-side);z-index:6;pointer-events:none}
+/* ---- frame: dark bezels down both sides and across the top. A gold edge and a
+   blue line (red pips at the sides and top) run up beside the game, over the
+   HUD and across; they stop at the bottom of the game picture
+   (--game-top/--game-h come from the page). ---- */
+#frame{position:fixed;inset:0;left:var(--fr-side);right:var(--fr-side);z-index:6;pointer-events:none;
+  --fr-y0:env(safe-area-inset-top);                          /* top of the top bezel */
+  --fr-bot:calc(var(--game-top,0px) + var(--game-h,100vh));  /* bottom of the game */
+}
 .fr-side{
   position:absolute;top:0;bottom:0;width:var(--fr);display:block;
   background:linear-gradient(90deg,#05070c,#0d111a 55%,#05070c);
 }
 .fr-l{left:env(safe-area-inset-left)}
 .fr-r{right:env(safe-area-inset-right)}
-.fr-side::before,.fr-side::after{content:"";position:absolute;top:var(--game-top,0px);height:var(--game-h,100%)}
-/* gold edge against the picture */
-.fr-side::before{width:1.5px;background:var(--fr-gold);box-shadow:0 0 4px rgba(247,180,58,.45)}
-.fr-l::before{right:0}
-.fr-r::before{left:0}
-/* blue line with a red pip at mid height */
-.fr-side::after{
-  left:38%;width:2px;border-radius:1px;
-  background:linear-gradient(180deg,var(--fr-blue-deep) 0 46%,transparent 46% 47%,var(--fr-red) 47% 53%,transparent 53% 54%,var(--fr-blue-deep) 54% 100%);
+.fr-top{
+  position:absolute;display:block;left:0;right:0;top:0;height:calc(var(--fr-y0) + var(--fr));
+  background:linear-gradient(180deg,#05070c,#0d111a 55%,#05070c) bottom/100% var(--fr) no-repeat,#05070c;
+}
+.fr-line{position:absolute;display:block;box-sizing:border-box;border-bottom:0}
+/* gold edge against the picture and the HUD */
+.fr-gold-line{
+  top:calc(var(--fr-y0) + var(--fr) - 1.5px);
+  left:calc(env(safe-area-inset-left) + var(--fr) - 1.5px);
+  right:calc(env(safe-area-inset-right) + var(--fr) - 1.5px);
+  height:calc(var(--fr-bot) - var(--fr-y0) - var(--fr) + 1.5px);
+  border:1.5px solid var(--fr-gold);border-bottom:0;border-radius:6px 6px 0 0;
+  box-shadow:0 0 4px rgba(247,200,58,.45),inset 0 0 4px rgba(247,200,58,.25);
+}
+/* blue line through the middle of the bezel */
+.fr-blue-line{
+  top:calc(var(--fr-y0) + var(--fr) * .38);
+  left:calc(env(safe-area-inset-left) + var(--fr) * .38);
+  right:calc(env(safe-area-inset-right) + var(--fr) * .38);
+  height:calc(var(--fr-bot) - var(--fr-y0) - var(--fr) * .38);
+  border:2px solid var(--fr-blue-deep);border-bottom:0;border-radius:9px 9px 0 0;
   box-shadow:0 0 3px rgba(95,176,255,.35);
 }
+/* red pips on the blue line: mid-height of each side and the top centre */
+.fr-pip{position:absolute;display:block;background:var(--fr-red);border-radius:1px;box-shadow:0 0 4px rgba(232,112,74,.55)}
+.fr-pip-l,.fr-pip-r{width:2px;top:calc(var(--game-top,0px) + var(--game-h,100vh) * .47);height:calc(var(--game-h,100vh) * .06)}
+.fr-pip-l{left:calc(env(safe-area-inset-left) + var(--fr) * .38)}
+.fr-pip-r{right:calc(env(safe-area-inset-right) + var(--fr) * .38)}
+.fr-pip-t{height:2px;top:calc(var(--fr-y0) + var(--fr) * .38);left:47%;width:6%}
 
 /* ---- HUD: a machined-gold bar to match the wing controller -------------------- */
 #top-hud{
   width:100%;max-width:580px;
   height:calc(clamp(36px,5.2dvh,48px) * var(--hud-scale));
-  margin:0 0 4px;
+  margin:3px 0 4px;
   padding:0 clamp(8px,2.6vw,16px);
   background:none;
   color:var(--fr-bone);
@@ -218,3 +243,41 @@ html body #controls button[data-control$="_WING"]{
     inset 0 0 0 1px rgba(255,248,200,.5),
     inset 0 -3px 6px rgba(60,32,0,.45);
 }
+
+/* ---- wing buttons, arcade style: flat colour, a thick gold rim, a black gap,
+   the red flap-reserve ring, and a pixel-art wing in a dark navy well.
+   Radii (fraction of the button radius): well 0-69% | red ring 69-81% |
+   black gap 81-88.6% | gold rim 88.6-100%. ---- */
+html body #controls button[data-control$="_WING"]{
+  background:
+    radial-gradient(closest-side,#0e2350 0%,#081534 40%,#030a1c 62%,#01030a 68.8%,transparent 69.2%),
+    radial-gradient(closest-side,transparent 69%,var(--fr-red) 69.4% 80.8%,transparent 81.2%),
+    radial-gradient(closest-side,transparent 81%,#000 81.4% 88.4%,transparent 88.8%),
+    var(--fr-gold);
+  box-shadow:none;
+}
+html body #controls button[data-control$="_WING"]:active,
+html body #controls button[data-control$="_WING"].is-held{
+  transform:translateY(1px) scale(.97);filter:brightness(1.12);
+  box-shadow:0 0 0 2px rgba(255,236,160,.55),0 0 18px 2px rgba(247,200,58,.55);
+}
+/* flap reserve: the spent part of the red ring goes dark (ring = 69-81%) */
+html body #controls button[data-control$="_WING"]::before{
+  inset:9.5%;
+  -webkit-mask:radial-gradient(farthest-side,transparent 85.2%,#000 85.7%);
+  mask:radial-gradient(farthest-side,transparent 85.2%,#000 85.7%);
+}
+/* the pixel wing: crisp, with a blue glow in the well */
+html body #controls .wing{
+  width:56%;height:56%;fill:initial;stroke:none;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 0 2px rgba(40,110,255,.95)) drop-shadow(0 0 7px rgba(40,110,255,.6));
+}
+html body #controls button[data-control$="_WING"].is-held .wing{filter:drop-shadow(0 0 3px #6fb6ff) drop-shadow(0 0 12px rgba(40,110,255,.9))}
+html body #controls.is-darting button.is-held .wing{filter:drop-shadow(0 0 4px rgba(255,90,40,.95)) drop-shadow(0 0 10px rgba(255,70,30,.6))}
+html body #controls.is-title button[data-control$="_WING"] .wing{opacity:.6}
+/* BOTH: flat gold lettering under a flat blue arrow */
+html body #controls .chord-cue{
+  color:var(--fr-gold);-webkit-text-fill-color:var(--fr-gold);background:none;filter:none;
+}
+html body #controls .chord-cue::before{background:#2f7bff;filter:drop-shadow(0 0 5px rgba(47,123,255,.9))}

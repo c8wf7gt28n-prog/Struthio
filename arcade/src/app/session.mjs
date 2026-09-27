@@ -53,7 +53,8 @@ function writeRecords(r){try{storage.setItem(KEYS.RECORDS,JSON.stringify(r));}ca
 function recordRun(s){
 const recs=readRecords(),prevBest=recs.best||null;
 const run={score:s.sim.score,round:s.tower.round,kills:s.tower.kills,deaths:s.run.deaths,build:app.buildId,date:new Date().toISOString().slice(0,10)};
-const isNew=!prevBest||run.score>prevBest.score;
+// A run is a record only if it scored and beats the best (0 never counts).
+const isNew=run.score>0&&(!prevBest||run.score>prevBest.score);
 if (isNew){recs.best=run;writeRecords(recs);}
 return{final:run.score,round:run.round,best:isNew?run:prevBest,isNew};
 }

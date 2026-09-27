@@ -46,6 +46,10 @@ function eggValue(S,chain){return S.eggChain[Math.min(chain,S.eggChain.length-1)
 function playerDeath(s,events,content,cause){
 events.push({type:'PLAYER_DEATH',cause});
 s.run.deaths+=1;s.run.eggChain=0;s.run.clean=false;
+// Quiet assist (after Nintendo's Super Guide / Invincibility Leaf): deaths since
+// the last ring are counted; from the third, one fewer rival is in play until
+// the next ring.
+s.tower.mercy=Math.min(9,(s.tower.mercy|0)+1);
 s.sim.lives-=1;
 s.player=emptyPlayer(content.playerSpawn[0],content.playerSpawn[1]);
 s.player.invulnerableTicks=RESPAWN_HIDDEN_TICKS+SHIMMER_TICKS;
@@ -103,6 +107,9 @@ intents.set(a.id,rivalIntent(R,s,a,a.class,corner,playerActive(s),s.player.y-40*
 }
 return intents;
 }
+// Head corner correction (as in Celeste): clipping an island's underside by up
+// to 4 px slides the player round the edge instead of bonking.
+const CORNER_CORRECT_PX=4;
 export function integrateHuman(C,p,pIntent,world,dartTargets,events){
 if (pIntent.flap){
 if (pIntent.kind==='LEFT'||pIntent.kind==='RIGHT'){
@@ -132,7 +139,7 @@ if (pIntent.flap){p.lavaPhase='RESCUED';p.vy=C.lavaRescueVy;p.invulnerableTicks=
 else{p.vy=64;p.y+=p.vy;p.vx=0;return p.lavaTicks===0?'SINK_DEATH':'SINK';}
 }
 const wasGrounded=!!p.groundedPlatformId;
-const r=integrate(p,BIRD_BOX,pIntent.ax,C,world,{grounded:wasGrounded});
+const r=integrate(p,BIRD_BOX,pIntent.ax,C,world,{grounded:wasGrounded,cornerPx:CORNER_CORRECT_PX});
 if (r.landed){
 p.footingTicks+=1;
 if (p.footingTicks>=C.wingRechargeArmTicks&&(p.footingTicks-C.wingRechargeArmTicks)%C.wingRechargeIntervalTicks===0&&p.wing<C.wingMax) p.wing+=1;
@@ -346,7 +353,7 @@ return false;
 if (dropped) t.cooldown=Math.max(t.cooldown,RR.fillGap);
 if (!t.go||t.hold>0||s._locked||!playerActive(s)) return;
 if (t.cooldown>0){t.cooldown-=1;return;}
-if (s.actors.length>=RR.cap) return;
+if (s.actors.length>=Math.max(2,RR.cap-((t.mercy|0)>=3?1:0))) return;
 const spot=arrivalPoint(s);
 if (!spot){t.cooldown=12;return;}
 const cls=T.towerClassFor(spot.y,RR,spot.pick);                  // higher is harder
@@ -360,20 +367,23 @@ events.push({type:'SPAWN',actor:id,cls,ghost:T.GHOSTS[mod(id,4)],fromAbove:spot.
 }
 // Six rings in any order; then the gold ring at the moon destroys every rival
 // and clears the round.
+// Rings are caught 2 px beyond their drawn radius: a graze counts.
+const RING_SLACK_PX=2;
 function rings(R,s,content,events){
 const t=s.tower,p=s.player,S=R.scoring;
 if (!playerActive(s)||s._locked||s._deathThisTick||t.hold>0) return;
 const pb=entityBox(p.x,p.y,BIRD_BOX);
 for (const ring of content.rings){
 const bit=1<<(ring.order-1);
-if ((t.ringMask&bit)||!inRing(pb,ring)) continue;
+if ((t.ringMask&bit)||!inRing(pb,ring,RING_SLACK_PX)) continue;
 t.ringMask|=bit;
+t.mercy=0;
 const count=bitCount(t.ringMask&63);
 addScore(s,R,S.ring,events,'RING',{order:ring.order});
 events.push({type:'RING',ringId:ring.id,order:ring.order,count,total:content.rings.length});
 if (count===content.rings.length) events.push({type:'GOLD_RING_OPEN',round:t.round});
 }
-if ((t.ringMask&63)!==63||!inRing(pb,content.goldRing)) return;
+if ((t.ringMask&63)!==63||!inRing(pb,content.goldRing,RING_SLACK_PX)) return;
 let blasted=0;
 for (const a of s.actors){
 const armed=LIVE.includes(a.lifecycle);

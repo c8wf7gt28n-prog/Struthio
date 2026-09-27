@@ -33,6 +33,26 @@ Controls:
 
 Gamepads work as well.
 
+## Forgiveness
+
+Small, invisible helps in the player's favour, after Celeste's and Nintendo's
+published practice:
+
+- **Mercy invincibility:** 2.5 s after a respawn, as long as Super Mario Bros.
+  after a hit (158 frames).
+- **Joust grace:** a rival up to 2.5 px higher only bounces you; it no longer
+  knocks you off.
+- **Corner correction:** clipping an island's underside by up to 4 px slides
+  you round the edge instead of bonking (Celeste).
+- **Ring slack:** rings are caught 2 px beyond their drawn radius.
+- **Quiet assist:** from the third death since your last ring, one fewer rival
+  is in play until you take a ring (after Nintendo's Super Guide and
+  Invincibility Leaf).
+- **Flap buffer:** a flap pressed up to 8 ticks early is kept and fires as soon
+  as it can (already in the input layer).
+
+You start with 11 Joust Marks (lives), the maximum.
+
 ## Layout
 
     index.html             page shell (hero art title, HUD, controller)
