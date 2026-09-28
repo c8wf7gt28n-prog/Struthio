@@ -244,48 +244,40 @@ html body #controls button[data-control$="_WING"]{
     inset 0 -3px 6px rgba(60,32,0,.45);
 }
 
-/* ---- wing buttons: glowing arcade rings (gold rim, black gap, the red
-   flap-reserve ring) and a neon-blue three-feather wing in a navy well.
-   Radii (fraction of the button radius): well 0-72% | dark line 72-74% |
-   red ring 74-87% | black gap 87-90.5% | gold rim 90.5-100%. ---- */
+/* ---- wing buttons: pixel art (a 28x28 sprite drawn as crisp SVG rects): a
+   two-tone gold rim, black gap, the red flap-reserve ring, black line, navy
+   well and a three-feather blue wing (mirrored right). ---- */
 html body #controls button[data-control$="_WING"]{
-  background:
-    /* soft red glow just inside and outside the red ring */
-    radial-gradient(closest-side,transparent 64%,rgba(232,112,74,.30) 71.8%,transparent 72%),
-    radial-gradient(closest-side,#0e2350 0%,#081534 42%,#030a1c 64%,#01030a 71.8%,transparent 72.2%),
-    radial-gradient(closest-side,transparent 72%,#050203 72.3% 73.8%,transparent 74.2%),
-    /* red ring, lit a touch brighter along its middle */
-    radial-gradient(closest-side,transparent 74%,#c95636 74.4%,var(--fr-red) 77%,#f79272 80.5%,var(--fr-red) 84%,#c95636 86.6%,transparent 87%),
-    radial-gradient(closest-side,transparent 86.8%,#000 87.2% 90.2%,transparent 90.6%),
-    /* gold rim, lit the same way */
-    radial-gradient(closest-side,transparent 90.4%,#d9a322 90.8%,var(--fr-gold) 93%,#fff0a8 95.3%,var(--fr-gold) 97.6%,#d9a322 99.6%,transparent 100%);
-  box-shadow:0 0 12px 1px rgba(247,200,58,.55),0 0 30px 4px rgba(247,170,40,.22);
+  background:transparent;
+  box-shadow:0 0 12px 1px rgba(247,200,58,.45),0 0 28px 4px rgba(247,170,40,.18);
 }
 html body #controls button[data-control$="_WING"]:active,
 html body #controls button[data-control$="_WING"].is-held{
-  transform:translateY(1px) scale(.97);filter:brightness(1.15);
-  box-shadow:0 0 16px 3px rgba(255,214,90,.8),0 0 40px 8px rgba(247,170,40,.4);
+  transform:translateY(1px) scale(.97);filter:brightness(1.18);
+  box-shadow:0 0 16px 3px rgba(255,214,90,.75),0 0 36px 8px rgba(247,170,40,.35);
 }
-/* flap reserve: the spent part of the red ring goes dark (ring = 74-87%) */
+html body #controls .wing.pix-btn{
+  position:absolute;inset:0;width:100%;height:100%;z-index:0;
+  fill:initial;stroke:none;filter:none;image-rendering:pixelated;
+}
+/* flap reserve: the spent part of the red ring's pixels goes dark */
 html body #controls button[data-control$="_WING"]::before{
-  inset:6.5%;
-  -webkit-mask:radial-gradient(farthest-side,transparent 84.8%,#000 85.3%);
-  mask:radial-gradient(farthest-side,transparent 84.8%,#000 85.3%);
+  inset:0;z-index:1;
+  -webkit-mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' shape-rendering='crispEdges'><rect x='11' y='3' width='6' height='1'/><rect x='8' y='4' width='12' height='1'/><rect x='7' y='5' width='4' height='1'/><rect x='17' y='5' width='4' height='1'/><rect x='6' y='6' width='3' height='1'/><rect x='19' y='6' width='3' height='1'/><rect x='5' y='7' width='3' height='1'/><rect x='20' y='7' width='3' height='1'/><rect x='4' y='8' width='3' height='1'/><rect x='21' y='8' width='3' height='1'/><rect x='4' y='9' width='2' height='1'/><rect x='22' y='9' width='2' height='1'/><rect x='4' y='10' width='2' height='1'/><rect x='22' y='10' width='2' height='1'/><rect x='3' y='11' width='2' height='1'/><rect x='23' y='11' width='2' height='1'/><rect x='3' y='12' width='2' height='1'/><rect x='23' y='12' width='2' height='1'/><rect x='3' y='13' width='2' height='1'/><rect x='23' y='13' width='2' height='1'/><rect x='3' y='14' width='2' height='1'/><rect x='23' y='14' width='2' height='1'/><rect x='3' y='15' width='2' height='1'/><rect x='23' y='15' width='2' height='1'/><rect x='3' y='16' width='2' height='1'/><rect x='23' y='16' width='2' height='1'/><rect x='4' y='17' width='2' height='1'/><rect x='22' y='17' width='2' height='1'/><rect x='4' y='18' width='2' height='1'/><rect x='22' y='18' width='2' height='1'/><rect x='4' y='19' width='3' height='1'/><rect x='21' y='19' width='3' height='1'/><rect x='5' y='20' width='3' height='1'/><rect x='20' y='20' width='3' height='1'/><rect x='6' y='21' width='3' height='1'/><rect x='19' y='21' width='3' height='1'/><rect x='7' y='22' width='4' height='1'/><rect x='17' y='22' width='4' height='1'/><rect x='8' y='23' width='12' height='1'/><rect x='11' y='24' width='6' height='1'/></svg>") center/100% 100% no-repeat;
+  mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' shape-rendering='crispEdges'><rect x='11' y='3' width='6' height='1'/><rect x='8' y='4' width='12' height='1'/><rect x='7' y='5' width='4' height='1'/><rect x='17' y='5' width='4' height='1'/><rect x='6' y='6' width='3' height='1'/><rect x='19' y='6' width='3' height='1'/><rect x='5' y='7' width='3' height='1'/><rect x='20' y='7' width='3' height='1'/><rect x='4' y='8' width='3' height='1'/><rect x='21' y='8' width='3' height='1'/><rect x='4' y='9' width='2' height='1'/><rect x='22' y='9' width='2' height='1'/><rect x='4' y='10' width='2' height='1'/><rect x='22' y='10' width='2' height='1'/><rect x='3' y='11' width='2' height='1'/><rect x='23' y='11' width='2' height='1'/><rect x='3' y='12' width='2' height='1'/><rect x='23' y='12' width='2' height='1'/><rect x='3' y='13' width='2' height='1'/><rect x='23' y='13' width='2' height='1'/><rect x='3' y='14' width='2' height='1'/><rect x='23' y='14' width='2' height='1'/><rect x='3' y='15' width='2' height='1'/><rect x='23' y='15' width='2' height='1'/><rect x='3' y='16' width='2' height='1'/><rect x='23' y='16' width='2' height='1'/><rect x='4' y='17' width='2' height='1'/><rect x='22' y='17' width='2' height='1'/><rect x='4' y='18' width='2' height='1'/><rect x='22' y='18' width='2' height='1'/><rect x='4' y='19' width='3' height='1'/><rect x='21' y='19' width='3' height='1'/><rect x='5' y='20' width='3' height='1'/><rect x='20' y='20' width='3' height='1'/><rect x='6' y='21' width='3' height='1'/><rect x='19' y='21' width='3' height='1'/><rect x='7' y='22' width='4' height='1'/><rect x='17' y='22' width='4' height='1'/><rect x='8' y='23' width='12' height='1'/><rect x='11' y='24' width='6' height='1'/></svg>") center/100% 100% no-repeat;
 }
-/* the neon wing */
-html body #controls .wing{
-  width:60%;height:60%;fill:initial;stroke:none;
-  filter:drop-shadow(0 0 2px rgba(60,140,255,1)) drop-shadow(0 0 9px rgba(40,120,255,.75));
+/* the touch light sits in the well, above the art */
+html body #controls button[data-control$="_WING"]::after{z-index:2}
+html body #controls button[data-control$="_WING"].is-held .wing.pix-btn{filter:drop-shadow(0 0 6px rgba(95,176,255,.7))}
+html body #controls.is-darting button.is-held .wing.pix-btn{filter:drop-shadow(0 0 6px rgba(255,90,40,.8))}
+html body #controls.is-title button[data-control$="_WING"] .wing.pix-btn{opacity:.75}
+/* BOTH: pixel lettering (the game's 5x7 font) under a pixel arrow */
+html body #controls .chord-cue.is-pix{
+  font-size:0;line-height:0;background:none;filter:drop-shadow(0 0 5px rgba(247,190,40,.45));
+  -webkit-text-fill-color:initial;
 }
-html body #controls button[data-control$="_WING"].is-held .wing{filter:drop-shadow(0 0 3px #9fd8ff) drop-shadow(0 0 14px rgba(40,120,255,.95))}
-html body #controls.is-darting button.is-held .wing{filter:drop-shadow(0 0 4px rgba(255,90,40,.95)) drop-shadow(0 0 12px rgba(255,70,30,.6))}
-html body #controls.is-title button[data-control$="_WING"] .wing{opacity:.6}
-/* BOTH: glowing gold lettering under a glowing blue arrow */
-html body #controls .chord-cue{
-  color:var(--fr-gold);-webkit-text-fill-color:var(--fr-gold);background:none;
-  filter:drop-shadow(0 0 5px rgba(247,190,40,.75));
-}
-html body #controls .chord-cue::before{background:linear-gradient(180deg,#8fd0ff,#2f7bff);filter:drop-shadow(0 0 6px rgba(47,123,255,.95))}
+html body #controls .chord-cue.is-pix::before{content:none;display:none}
+html body #controls .both-pix{display:block;width:clamp(44px,12.5vw,60px);height:auto;image-rendering:pixelated}
 
 /* ---- title art holds still (no slow float) ---------------------------------- */
 html body #title-screen #title-art,html body #title-screen.is-home #title-art{animation:none;transform:none}

@@ -40,6 +40,8 @@ published practice:
 
 - **Mercy invincibility:** 2.5 s after a respawn, as long as Super Mario Bros.
   after a hit (158 frames).
+- **Straight up wins:** rising straight up (a both-wings flap, no sideways
+  drift) always wins a contact with a rival, whatever the heights.
 - **Joust grace:** a rival up to 2.5 px higher only bounces you; it no longer
   knocks you off.
 - **Corner correction:** clipping an island's underside by up to 4 px slides

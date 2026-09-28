@@ -230,6 +230,10 @@ if (r.lava) s._lifecycle.push({id:a.id,to:'REMOVED',why:'EGG_LAVA'});
 }
 }
 }
+// "Totally vertical up": climbing (vy<0) with under 0.1 px/tick of sideways
+// drift. A both-wings flap zeroes vx, so this is the straight-up flap.
+const VERTICAL_VX_SUBPX=24;
+function risingStraight(p){return p.vy<0&&Math.abs(p.vx)<=VERTICAL_VX_SUBPX;}
 function joustStage(R,s,content,events){
 const C=R.sim,S=R.scoring,p=s.player;
 if (!playerActive(s)||s._locked||s._deathThisTick) return;
@@ -254,7 +258,10 @@ const bounce=()=>{ea.vx=dx>=0?-C.lanceBounceVx:C.lanceBounceVx;eb.vx=-ea.vx;ea.v
 if (aId!==0){bounce();events.push({type:'JOUST_CLASH',a:aId,b:bId});continue;}
 const delta=(p.y+LANCE_Y_SUB)-(eb.y+LANCE_Y_SUB);
 let result;
-if (Math.abs(delta)<=C.lanceTieBandSubpx) result='CLASH';
+// Rising straight up (a both-wings flap: no sideways speed, still climbing)
+// always wins the contact, whatever the heights.
+if (risingStraight(p)) result='RIVAL_LOSES';
+else if (Math.abs(delta)<=C.lanceTieBandSubpx) result='CLASH';
 else if (delta>0) result=delta<=C.lanceTieBandSubpx+C.playerGraceSubpx?'CLASH':'PLAYER_LOSES';
 else result='RIVAL_LOSES';
 if (result==='PLAYER_LOSES'&&p.invulnerableTicks>0) result='CLASH';

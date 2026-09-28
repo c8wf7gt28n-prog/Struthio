@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const suites = ['tower-rings.mjs', 'tower-report.mjs', 'save.mjs', 'tower-sim.mjs'];
+const suites = ['tower-rings.mjs', 'rules.mjs', 'tower-report.mjs', 'save.mjs', 'tower-sim.mjs'];
 let failed = 0;
 for (const f of suites) {
   const t0 = Date.now();
