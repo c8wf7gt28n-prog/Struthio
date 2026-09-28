@@ -536,7 +536,7 @@ labelFor(region){
 if (screen==='TITLE') return 'Start';
 if (isPaused()) return 'Paused: press both wings together to resume';
 if (isGameOver()) return `${region==='RIGHT_WING'?'Next':'Previous'} option; press both wings together to select ${GAMEOVER_ITEMS[gameOverIndex]}`;
-return region==='LEFT_WING'?'Left wing: up-left flap; slide down to DART':'Right wing: up-right flap; slide down to DART';
+return region==='LEFT_WING'?'Left wing: up-left flap; flick down to DART':'Right wing: up-right flap; flick down to DART';
 },
 });
 // Arcade title: a tap anywhere on the title screen starts.

@@ -3,7 +3,7 @@
 // state and inputs always produce the same next state.
 import{digest}from '../core/canonical.mjs';
 import{nextU32}from '../core/rng.mjs';
-import{px,mod,wrappedDelta}from '../core/fixed.mjs';
+import{px,mod,wrappedDelta,tdiv}from '../core/fixed.mjs';
 import{integrate,inRing,boxesOverlap,standingPlatform}from './physics.mjs';
 import{rivalIntent}from './ai.mjs';
 import{stepWorld,activateTower}from './world.mjs';
@@ -149,6 +149,31 @@ if (p.lavaPhase==='SAFE'){p.lavaPhase='SINK';p.lavaTicks=C.lavaRescueWindowTicks
 }else if (p.lavaPhase==='RESCUED') p.lavaPhase='SAFE';
 return null;
 }
+// Falling riders and eggs steer onto the nearest island below them that they
+// can still reach before landing (the grid floor always counts), so an egg is
+// laid on an island instead of dropping past it. Pure integer maths: the fall
+// time to each island top is stepped with the same gravity the physics uses.
+const EGG_EDGE_MARGIN_PX=5;
+function fallSteerVx(C,s,a,box){
+const feet=a.y+box.b*256,cx=a.x+tdiv((box.l+box.r)*256,2);
+let best=null;
+for (const p of s.world.platforms){
+if (!p.collidable) continue;
+const top=p.rect[1]*256;
+if (top<feet) continue;
+let t=0,y=0,v=a.vy;
+while (y<top-feet&&t<400){v=Math.min(v+C.gravitySubpxPerTick2,C.maxFall);y+=v;t+=1;}
+const margin=Math.min(EGG_EDGE_MARGIN_PX,p.rect[2]>>2)*256;
+const l=p.rect[0]*256+margin,r=(p.rect[0]+p.rect[2])*256-margin;
+const toL=wrappedDelta(cx,l),toR=wrappedDelta(cx,r);
+const inside=wrappedDelta(l,cx)>=0&&wrappedDelta(cx,r)>=0;
+const dx=inside?0:(Math.abs(toL)<=Math.abs(toR)?toL:toR);
+if (Math.abs(dx)>Math.max(1,t)*C.maxAirSpeed) continue;
+if (best===null||top<best.top||(top===best.top&&Math.abs(dx)<Math.abs(best.dx))) best={top,dx,t};
+}
+if (!best) return a.vx;
+return Math.max(-C.maxAirSpeed,Math.min(C.maxAirSpeed,tdiv(best.dx,Math.max(1,best.t))));
+}
 function integrateAll(R,s,content,pIntent,intents,events){
 const C=physicsOf(R),p=s.player;
 const previousWorld={platforms:s.world.platforms.map((platform)=>({...platform,rect:platform.rect.slice()})),lavaY:s.world.lavaY};
@@ -189,15 +214,16 @@ a.x=e.x;a.y=e.y;a.vx=e.vx;a.vy=e.vy;
 if (r.lava){a.vy=C.lavaRescueVy;}
 }else if (a.lifecycle==='DISMOUNTED'){
 const g0=standingPlatform(a.x,a.y,RIDER_BOX,s.world);
+if (!g0) a.vx=fallSteerVx(C,s,a,RIDER_BOX);
 const e={x:a.x,y:a.y,vx:a.vx,vy:a.vy,groundedPlatformId:g0};
-const drag=e.vx>0?-Math.min(C.airDrag,e.vx):e.vx<0?Math.min(C.airDrag,-e.vx):0;
+const drag=g0?(e.vx>0?-Math.min(C.airDrag,e.vx):e.vx<0?Math.min(C.airDrag,-e.vx):0):0;
 const r=integrate(e,RIDER_BOX,drag,C,s.world,{grounded:!!g0});
 a.x=e.x;a.y=e.y;a.vx=e.vx;a.vy=e.vy;
 if (r.lava) s._lifecycle.push({id:a.id,to:'REMOVED',why:'RIDER_LAVA'});
 else if (r.landed&&a.timer===0) s._lifecycle.push({id:a.id,to:'EGG'});
 }else if (a.lifecycle==='EGG'){
 const g0=standingPlatform(a.x,a.y,EGG_BOX,s.world);
-const e={x:a.x,y:a.y,vx:0,vy:a.vy,groundedPlatformId:g0};
+const e={x:a.x,y:a.y,vx:g0?0:fallSteerVx(C,s,a,EGG_BOX),vy:a.vy,groundedPlatformId:g0};
 const r=integrate(e,EGG_BOX,0,C,s.world,{grounded:!!g0});
 a.x=e.x;a.y=e.y;a.vy=e.vy;
 if (r.lava) s._lifecycle.push({id:a.id,to:'REMOVED',why:'EGG_LAVA'});

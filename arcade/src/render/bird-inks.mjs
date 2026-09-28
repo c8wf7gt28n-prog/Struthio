@@ -6,9 +6,11 @@ const BIRD_INKS=Object.freeze([
 {shadow:[68,14,10],mid:[224,104,16],light:[255,162,40],highlight:[255,220,156],body:[182,144,108],bodyMix:0.62,horn:[120,78,44],hornMix:0.95,hornRamp:0},
 {shadow:[58,22,10],mid:[192,148,26],light:[252,216,74],highlight:[255,246,196],body:[232,206,146],bodyMix:0.84,horn:[214,74,34],hornMix:0.90,hornRamp:0},
 {shadow:[96,44,12],mid:[230,168,52],light:[255,226,110],highlight:[255,252,224],body:[255,240,190],bodyMix:0.92,horn:[236,110,40],hornMix:0.95,hornRamp:0},
-{shadow:[34,18,8],mid:[128,74,28],light:[226,168,58],highlight:[110,236,255],body:[250,204,80],bodyMix:0.96,horn:[214,44,36],hornMix:1.00,hornRamp:0},
+// 6: the player - electric-blue plumage, white wing flashes, gold legs and
+// beak, crimson cape: the HUD's blue, gold and red, cool against warm rivals.
+{shadow:[70,8,12],mid:[196,30,40],light:[255,96,80],highlight:[255,230,220],body:[240,246,255],bodyMix:0.92,horn:[247,200,58],hornMix:1.00,hornRamp:0},
 ]);
-const ARCADE_PLAYER_GLOW=[110,245,255];
+const ARCADE_PLAYER_GLOW=[220,240,255];
 const PLAYER_BLUES=Object.freeze([
 {mid:[14,132,166],light:[60,216,238]},
 {mid:[22,96,190],light:[86,170,255]},
@@ -23,7 +25,7 @@ const JOUSTER_LOOK=Object.freeze([
 {plume:[112,66,172],rim:[224,128,255]},
 {plume:[190,136,36],rim:[255,226,120]},
 {plume:[190,136,36],rim:[255,226,120]},
-{plume:[176,214,228],rim:[120,246,255]},
+{plume:[52,120,255],rim:[95,176,255]},
 ]);
 const v3=(rgb)=>`vec3f(${rgb.map((n)=>`${n}.0`).join(',')})/255.0`;
 const inkLiteral=(k)=>`Ink(${v3(k.shadow)},${v3(k.mid)},${v3(k.light)},${v3(k.highlight)},${v3(k.body)},${k.bodyMix.toFixed(2)},${v3(k.horn)},${k.hornMix.toFixed(2)},${k.hornRamp},${v3(JOUSTER_LOOK[BIRD_INKS.indexOf(k)].plume)},${v3(JOUSTER_LOOK[BIRD_INKS.indexOf(k)].rim)})`;

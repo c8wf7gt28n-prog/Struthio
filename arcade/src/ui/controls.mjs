@@ -121,6 +121,20 @@ if (button) paintContact(button,e);
 try{root.setPointerCapture(e.pointerId);}catch{}
 sync();
 }
+// DART: a downward flick on a wing. Anything within 60 degrees of straight
+// down counts, checked while moving and again on release (so a fast flick that
+// lifts off early still darts). A diagonal flick picks the dart's side; a
+// straight-down one darts to that wing's side.
+const DART_CONE=Math.tan(60*Math.PI/180),DART_SIDE_CONE=Math.tan(20*Math.PI/180);
+function tryDart(e,region){
+const g=gesture.get(e.pointerId);
+if (!g||g.darted||!DIRECTIONS.has(region)) return;
+const dx=e.clientX-g.x,dy=e.clientY-g.y;
+if (dy<g.diameter*.10||Math.abs(dx)>dy*DART_CONE) return;
+const side=Math.abs(dx)>dy*DART_SIDE_CONE?(dx<0?'LEFT_WING':'RIGHT_WING'):region;
+g.darted=input.controlDart(pointerKey(e.pointerId),side);
+if (g.darted) root.classList.add('is-darting');
+}
 function move(e){
 const current=active.get(e.pointerId);
 if (!current) return;
@@ -134,14 +148,7 @@ return;
 let next=current;
 if (DIRECTIONS.has(current)){
 const g=gesture.get(e.pointerId);
-if (g&&!g.darted){
-const dx=e.clientX-g.x,dy=e.clientY-g.y;
-const threshold=g.diameter*.12;
-if (dy>=threshold&&Math.abs(dx)<=dy*Math.tan(35*Math.PI/180)){
-g.darted=input.controlDart(pointerKey(e.pointerId),current);
-if (g.darted) root.classList.add('is-darting');
-}
-}
+tryDart(e,current);
 next=input.controlPointerMove(pointerKey(e.pointerId),current)||current;
 }
 const button=buttons.get(next);
@@ -150,6 +157,7 @@ sync();
 }
 function release(e,cancelled=false){
 if (!active.has(e.pointerId)) return;
+if (!cancelled) tryDart(e,active.get(e.pointerId));
 if (e.cancelable) e.preventDefault();
 if (!cancelled) ensureAudio();
 if (shell.pointers.has(e.pointerId)){
