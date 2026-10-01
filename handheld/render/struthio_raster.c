@@ -205,7 +205,22 @@ static inline const uint8_t *texel_uv(const st_rgba_t *t, float u, float v) {
 }
 static inline uint8_t u8(float v) { v = clampf(v, 0, 1); return (uint8_t)(v * 255.0f + 0.5f); }
 
-void st_raster_scene(uint8_t *scene, float *depth, int W, int H, const st_quads_t *q, const st_textures_t *tx, const st_frame_params_t *fp) {
+void st_grid_init(st_grid_t *g, int w, int h, int vw, int vh, int16_t *vx, int16_t *vy, int16_t *ox, int16_t *oy) {
+    g->w = w; g->h = h; g->vw = vw; g->vh = vh; g->vx = vx; g->vy = vy; g->ox = ox; g->oy = oy;
+    // the browser's nearest scaling: output pixel centre -> canvas pixel
+    for (int x = 0; x < w; x++) { int v = (int)floor((x + 0.5) * vw / w); vx[x] = (int16_t)(v < vw ? v : vw - 1); }
+    for (int y = 0; y < h; y++) { int v = (int)floor((y + 0.5) * vh / h); vy[y] = (int16_t)(v < vh ? v : vh - 1); }
+    for (int v = 0; v < vw; v++) { int x = (int)floor((v + 0.5) * w / vw); ox[v] = (int16_t)(x < w ? x : w - 1); }
+    for (int v = 0; v < vh; v++) { int y = (int)floor((v + 0.5) * h / vh); oy[v] = (int16_t)(y < h ? y : h - 1); }
+}
+// first output index whose canvas centre is >= edge (vx is non-decreasing)
+static int first_at_or_after(const int16_t *map, int n, float edge) {
+    int lo = 0, hi = n;
+    while (lo < hi) { int mid = (lo + hi) / 2; if ((float)map[mid] + 0.5f >= edge) hi = mid; else lo = mid + 1; }
+    return lo;
+}
+void st_raster_scene(uint8_t *scene, float *depth, const st_grid_t *g, const st_quads_t *q, const st_textures_t *tx, const st_frame_params_t *fp) {
+    const int W = g->w, H = g->h, VW = g->vw, VH = g->vh;
     // clear: [0.027, 0.075, 0.122, 1], depth 1
     const uint8_t clear[4] = {u8(0.027f), u8(0.075f), u8(0.122f), 255};
     for (int i = 0; i < W * H; i++) { memcpy(scene + (size_t)i * 4, clear, 4); depth[i] = 1.0f; }
@@ -220,16 +235,13 @@ void st_raster_scene(uint8_t *scene, float *depth, int W, int H, const st_quads_
         float ssy = (float)it->sy, ssh = it->sh > 1 ? (float)(it->sh - 1) : 0.0f;
         float z = clampf((float)it->z, 0, 1);
         int mat = it->flags;
-        // screen rect via NDC like the vertex shader
-        float x0 = ((dx / 256.0f * 2.0f - 1.0f) + 1.0f) * 0.5f * W, x1 = (((dx + dw) / 256.0f * 2.0f - 1.0f) + 1.0f) * 0.5f * W;
-        float y0 = (1.0f - (1.0f - dy / 384.0f * 2.0f)) * 0.5f * H, y1 = (1.0f - (1.0f - (dy + dh) / 384.0f * 2.0f)) * 0.5f * H;
+        // canvas-space rect via NDC like the vertex shader
+        float x0 = ((dx / 256.0f * 2.0f - 1.0f) + 1.0f) * 0.5f * VW, x1 = (((dx + dw) / 256.0f * 2.0f - 1.0f) + 1.0f) * 0.5f * VW;
+        float y0 = (1.0f - (1.0f - dy / 384.0f * 2.0f)) * 0.5f * VH, y1 = (1.0f - (1.0f - (dy + dh) / 384.0f * 2.0f)) * 0.5f * VH;
         if (x1 < x0) { float t = x0; x0 = x1; x1 = t; }
         if (y1 < y0) { float t = y0; y0 = y1; y1 = t; }
-        int px0 = (int)ceilf(x0 - 0.5f), px1 = (int)ceilf(x1 - 0.5f), py0 = (int)ceilf(y0 - 0.5f), py1 = (int)ceilf(y1 - 0.5f);
-        if (px0 < 0) px0 = 0;
-        if (py0 < 0) py0 = 0;
-        if (px1 > W) px1 = W;
-        if (py1 > H) py1 = H;
+        int px0 = first_at_or_after(g->vx, W, x0), px1 = first_at_or_after(g->vx, W, x1);
+        int py0 = first_at_or_after(g->vy, H, y0), py1 = first_at_or_after(g->vy, H, y1);
         if (px0 >= px1 || py0 >= py1) continue;
         float inv_w = 1.0f / (x1 - x0), inv_h = 1.0f / (y1 - y0);
         const st_rgba_t *tt = mat == ST_MAT_WORLD ? &tx->world : ((mat >= 2 && mat <= 7) || mat == ST_MAT_PLAYER) ? &tx->bird : &tx->atlas;
@@ -238,12 +250,13 @@ void st_raster_scene(uint8_t *scene, float *depth, int W, int H, const st_quads_
         const float ua = (ssx + 0.5f) * itw, ub = (ssx + ssw + 0.5f) * itw;
         const float va = (ssy + 0.5f) * ith, vb = (ssy + ssh + 0.5f) * ith;
         for (int py = py0; py < py1; py++) {
-            float v = ((py + 0.5f) - y0) * inv_h;
+            float cy = (float)g->vy[py] + 0.5f;
+            float v = (cy - y0) * inv_h;
             float vv = va + (vb - va) * v;
             for (int px = px0; px < px1; px++) {
                 float *dp = &depth[(size_t)py * W + px];
                 if (!(z <= *dp)) continue;
-                float u = ((px + 0.5f) - x0) * inv_w;
+                float u = (((float)g->vx[px] + 0.5f) - x0) * inv_w;
                 float uu = ua + (ub - ua) * u;
                 const uint8_t *s = texel_uv(tt, uu, vv);
                 float c[4];
@@ -255,7 +268,7 @@ void st_raster_scene(uint8_t *scene, float *depth, int W, int H, const st_quads_
                     c[0] = w.r; c[1] = w.g; c[2] = w.b; c[3] = s[3] / 255.0f;
                 } else if ((mat >= 2 && mat <= 7) || mat == ST_MAT_PLAYER) {
                     float in[3] = {s[0] / 255.0f, s[1] / 255.0f, s[2] / 255.0f};
-                    float phase = fp->ambient_tick * BLUE_CYCLE_RATE + (py + 0.5f) * BLUE_CYCLE_TRAVEL;
+                    float phase = fp->ambient_tick * BLUE_CYCLE_RATE + cy * BLUE_CYCLE_TRAVEL;
                     st_bird_ink(in, mat == ST_MAT_PLAYER ? 6 : mat - 2, phase, 1.0f, c);
                     c[3] = s[3] / 255.0f;
                 } else if (mat == ST_MAT_ISLAND) {
@@ -308,12 +321,6 @@ void st_tone(const float in[3], float out[3]) {
     tone_raw(in, out);
     for (int i = 0; i < 3; i++) out[i] = clampf(out[i], 0, 1);
 }
-static inline v3 load(const uint8_t *s, int W, int H, int x, int y) {
-    x = x < 0 ? 0 : x >= W ? W - 1 : x;
-    y = y < 0 ? 0 : y >= H ? H - 1 : y;
-    const uint8_t *p = s + ((size_t)y * W + x) * 4;
-    return V3(p[0] / 255.0f, p[1] / 255.0f, p[2] / 255.0f);
-}
 static v3 pulse_at(const st_frame_params_t *fp, float t, int x, int y) {
     return V3(fp->cyan * (0.84f + 0.16f * sinf(t + (float)(x + y) * 0.018f)), fp->lava * (0.82f + 0.18f * sinf(t * 0.73f + (float)y * 0.025f)),
               fp->violet * (0.84f + 0.16f * sinf(t * 1.13f)));
@@ -333,10 +340,19 @@ static v3 bilinear(const float *img, int w, int h, float u, float v) {     // u,
     }
     return acc;
 }
-void st_raster_post(const uint8_t *scene, uint8_t *out, int W, int H, int logical_h, const st_frame_params_t *fp, float *scratch) {
+// The scene as the post pass sees it: canvas pixel (cx, cy) -> the output
+// pixel that shows it (identity at full size), clamped like textureLoad.
+static inline v3 load_canvas(const uint8_t *s, const st_grid_t *g, int cx, int cy) {
+    cx = cx < 0 ? 0 : cx >= g->vw ? g->vw - 1 : cx;
+    cy = cy < 0 ? 0 : cy >= g->vh ? g->vh - 1 : cy;
+    const uint8_t *p = s + ((size_t)g->oy[cy] * g->w + g->ox[cx]) * 4;
+    return V3(p[0] / 255.0f, p[1] / 255.0f, p[2] / 255.0f);
+}
+void st_raster_post(const uint8_t *scene, uint8_t *out, const st_grid_t *g, const st_frame_params_t *fp, float *scratch) {
+    const int W = g->w, H = g->h, VW = g->vw, VH = g->vh;
     uint32_t tk = (uint32_t)fp->ambient_tick;
     float t = (float)(tk & 511u) * 0.012271846f;
-    int bw = (W + 3) / 4, bh = (H + 3) / 4;
+    int bw = (VW + 3) / 4, bh = (VH + 3) / 4;
     float *emit = scratch, *glow = scratch + (size_t)bw * bh * 3;
     if (fp->quality > 1) {
         for (int ey = 0; ey < bh; ey++) for (int ex = 0; ex < bw; ex++) {
@@ -344,8 +360,8 @@ void st_raster_post(const uint8_t *scene, uint8_t *out, int W, int H, int logica
             v3 pulse = pulse_at(fp, t, bx + 2, by + 2);
             v3 e = V3(0, 0, 0);
             for (int y = 0; y < 4; y++) for (int x = 0; x < 4; x++) {
-                int sx = bx + x < W - 1 ? bx + x : W - 1, sy = by + y < H - 1 ? by + y : H - 1;
-                v3 c = load(scene, W, H, sx, sy);
+                int sx = bx + x < VW - 1 ? bx + x : VW - 1, sy = by + y < VH - 1 ? by + y : VH - 1;
+                v3 c = load_canvas(scene, g, sx, sy);
                 float L = c.r * 0.2126f + c.g * 0.7152f + c.b * 0.0722f;
                 v3 em = emission(c, pulse);
                 float k = smoothstepf(0.40f, 0.90f, L) * 1.0f * (0.85f + 0.15f * pulse.r);
@@ -356,34 +372,30 @@ void st_raster_post(const uint8_t *scene, uint8_t *out, int W, int H, int logica
         }
         for (int gy = 0; gy < bh; gy++) for (int gx = 0; gx < bw; gx++) {
             float u = (gx + 0.5f) / bw, v = (gy + 0.5f) / bh, pu = 1.0f / bw, pv = 1.0f / bh;
-#define TAP(ox, oy) bilinear(emit, bw, bh, u + (ox) * pu, v + (oy) * pv)
-            v3 g = V3(0, 0, 0), s;
+#define TAP(ox_, oy_) bilinear(emit, bw, bh, u + (ox_) * pu, v + (oy_) * pv)
+            v3 gsum = V3(0, 0, 0), s;
             const float rad[4] = {1.5f, 3.75f, 8.25f, 16.0f}, wt[4] = {0.028f, 0.014f, 0.007f, 0.0045f};
             for (int k = 0; k < 4; k++) {
                 float r = rad[k];
                 v3 a = TAP(r, 0), b = TAP(-r, 0), c = TAP(0, r), d = TAP(0, -r);
-                g.r += (a.r + b.r + c.r + d.r) * wt[k]; g.g += (a.g + b.g + c.g + d.g) * wt[k]; g.b += (a.b + b.b + c.b + d.b) * wt[k];
+                gsum.r += (a.r + b.r + c.r + d.r) * wt[k]; gsum.g += (a.g + b.g + c.g + d.g) * wt[k]; gsum.b += (a.b + b.b + c.b + d.b) * wt[k];
             }
             const float dg[2] = {1.25f, 11.3f}, dwt[2] = {0.022f, 0.0045f};
             for (int k = 0; k < 2; k++) {
                 float r = dg[k];
                 v3 a = TAP(r, r), b = TAP(-r, r), c = TAP(r, -r), d = TAP(-r, -r);
                 s = V3(a.r + b.r + c.r + d.r, a.g + b.g + c.g + d.g, a.b + b.b + c.b + d.b);
-                g.r += s.r * dwt[k]; g.g += s.g * dwt[k]; g.b += s.b * dwt[k];
+                gsum.r += s.r * dwt[k]; gsum.g += s.g * dwt[k]; gsum.b += s.b * dwt[k];
             }
 #undef TAP
             float *o = glow + ((size_t)gy * bw + gx) * 3;
-            o[0] = g.r; o[1] = g.g; o[2] = g.b;
+            o[0] = gsum.r; o[1] = gsum.g; o[2] = gsum.b;
         }
     }
-    // Scanlines are every third row of the 3x scene; at a non-integer scale the
-    // panel sees their average.
-    float sc_scale = (float)H / (float)logical_h;
-    int iscale = (int)(sc_scale + 0.5f);
-    if (iscale < 1) iscale = 1;
-    bool integer_scale = fabsf(sc_scale - (float)iscale) < 1e-4f;
-    float scan_mean = (2.0f + 0.93f) / 3.0f;
+    int scale = (int)floorf((float)VH / 384.0f + 0.5f);
+    if (scale < 1) scale = 1;
     for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) {
+        int cx = g->vx[x], cy = g->vy[y];
         const uint8_t *src = scene + ((size_t)y * W + x) * 4;
         uint8_t *o = out + ((size_t)y * W + x) * 4;
         v3 c = V3(src[0] / 255.0f, src[1] / 255.0f, src[2] / 255.0f);
@@ -393,22 +405,22 @@ void st_raster_post(const uint8_t *scene, uint8_t *out, int W, int H, int logica
             st_tone(in, tn);
             st_grade_arcade(tn, rgb);
         } else {
-            v3 pulse = pulse_at(fp, t, x, y);
-            v3 a = emission(load(scene, W, H, x + 2, y), pulse), b = emission(load(scene, W, H, x - 2, y), pulse);
-            v3 cc = emission(load(scene, W, H, x, y + 2), pulse), d = emission(load(scene, W, H, x, y - 2), pulse);
+            v3 pulse = pulse_at(fp, t, cx, cy);
+            v3 a = emission(load_canvas(scene, g, cx + 2, cy), pulse), b = emission(load_canvas(scene, g, cx - 2, cy), pulse);
+            v3 cc = emission(load_canvas(scene, g, cx, cy + 2), pulse), d = emission(load_canvas(scene, g, cx, cy - 2), pulse);
             v3 glw = V3((a.r + b.r + cc.r + d.r) * 0.068f, (a.g + b.g + cc.g + d.g) * 0.068f, (a.b + b.b + cc.b + d.b) * 0.068f);
+            float u = (cx + 0.5f) / VW, v = (cy + 0.5f) / VH;
             if (fp->quality > 1) {
-                v3 g = bilinear(glow, bw, bh, (x + 0.5f) / W, (y + 0.5f) / H);
-                glw.r += g.r * 1.8f; glw.g += g.g * 1.8f; glw.b += g.b * 1.8f;
+                v3 gl = bilinear(glow, bw, bh, u, v);
+                glw.r += gl.r * 1.8f; glw.g += gl.g * 1.8f; glw.b += gl.b * 1.8f;
             }
             v3 em = emission(c, pulse);
             float k = 0.10f + fp->impact * 0.10f;
             glw.r += em.r * k; glw.g += em.g * k; glw.b += em.b * k;
             if (fp->quality <= 1) { glw.r += em.r * 0.35f; glw.g += em.g * 0.35f; glw.b += em.b * 0.35f; }
-            float beat = 1.0f + 0.6f * fp->bloom_beat;
-            glw = scale3(glw, beat);
-            float scan = integer_scale ? ((y % iscale) == iscale - 1 ? 0.93f : 1.0f) : scan_mean;
-            float cu = (x + 0.5f) / W * 2.0f - 1.0f, cv = (y + 0.5f) / H * 2.0f - 1.0f;
+            glw = scale3(glw, 1.0f + 0.6f * fp->bloom_beat);
+            float scan = (cy % scale) == scale - 1 ? 0.93f : 1.0f;
+            float cu = u * 2.0f - 1.0f, cv = v * 2.0f - 1.0f;
             float vignette = 1.0f - 0.10f * smoothstepf(0.38f, 1.12f, cu * cu + cv * cv);
             float in[3] = {c.r + glw.r, c.g + glw.g, c.b + glw.b}, tn[3];
             tone_raw(in, tn);

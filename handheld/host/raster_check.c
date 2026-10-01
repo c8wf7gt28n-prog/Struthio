@@ -3,7 +3,9 @@
 // reference capture rendered with the browser's WebGPU renderer, rasterizes
 // them with the C rasterizer at 3x (768x1152) and compares, pixel for pixel,
 // the scene buffer (before post) and the final frames at quality 0 and 2.
-//   raster_check [--png outdir] trace tick...
+//   raster_check [--panel] [--png outdir] trace tick...
+// --panel: render the handheld's 286 x 429 game picture and compare it with the
+// browser frame as a 320 x 480 window shows it (nearest canvas pixels).
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +15,9 @@
 #include "struthio_replay.h"
 #include "struthio_scene.h"
 
-enum { W = 768, H = 1152 };
+enum { VW = 768, VH = 1152, PW = 286, PH = 429 };
+static int W = VW, H = VH;     // output size (canvas, or --panel: the handheld's 286 x 429)
+static bool panel;
 static const char *REF = "../build/reference";
 static void *slurp(const char *path, size_t *size) {
     FILE *f = fopen(path, "rb");
@@ -32,7 +36,7 @@ static st_rgba_t tex(const char *name, int w, int h) {
     return t;
 }
 typedef struct { double mae, psnr, over8; long n; } diff_t;
-static diff_t compare(const uint8_t *a, const uint8_t *b) {
+static diff_t compare(const uint8_t *a, const uint8_t *b) {   // over W x H
     double se = 0, ae = 0; long over = 0;
     for (long i = 0; i < (long)W * H; i++) {
         int m = 0;
@@ -58,28 +62,34 @@ static void post(void *c_, long t, const st_state_t *s, const st_events_t *ev) {
     st_scene_build(&c->sc, s, st_camera_resolve(&c->cam, s), &menu, &c->q);
     for (int k = 0; k < c->nt; k++) {
         if (c->ticks[k] != t) continue;
-        static uint8_t scene[W * H * 4], out[W * H * 4];
-        static float depth[W * H], scratch[2 * 192 * 288 * 3];
+        static uint8_t scene[VW * VH * 4], out[VW * VH * 4], refp[VW * VH * 4];
+        static float depth[VW * VH], scratch[2 * 192 * 288 * 3];
+        static int16_t gx[VW], gy[VH], gox[VW], goy[VH];
+        st_grid_t grid;
+        st_grid_init(&grid, W, H, VW, VH, gx, gy, gox, goy);
         st_frame_params_t fp;
         st_frame_params_default(&fp, c->sc.render_tick, c->sc.moon_phase, st_scene_impact(&c->sc, s));
-        st_raster_scene(scene, depth, W, H, &c->q, &c->tx, &fp);
+        st_raster_scene(scene, depth, &grid, &c->q, &c->tx, &fp);
         char p[512];
         snprintf(p, sizeof p, "%s/%s_%ld_scene.rgba", REF, c->name, t);
         uint8_t *ref = slurp(p, NULL);
         if (!ref) { printf("  t%ld: no reference frame (capture.mjs --frames)\n", t); continue; }
-        diff_t d = compare(scene, ref);
-        printf("  %s t%-6ld scene  : PSNR %5.1f dB  mean |d| %5.2f  pixels off >8: %5.2f%%\n", c->name, t, d.psnr, d.mae, d.over8);
+        // what the browser shows at the output size: the nearest canvas pixel
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) memcpy(refp + ((size_t)y * W + x) * 4, ref + ((size_t)gy[y] * VW + gx[x]) * 4, 4);
+        diff_t d = compare(scene, refp);
+        printf("  %s%s t%-6ld scene  : PSNR %5.1f dB  mean |d| %5.2f  pixels off >8: %5.2f%%\n", panel ? "panel " : "", c->name, t, d.psnr, d.mae, d.over8);
         if (d.psnr < 30) c->fails++;
         if (c->png) { snprintf(p, sizeof p, "%s/%s_%ld_c_scene.rgba", c->png, c->name, t); write_rgba(p, scene); }
         free(ref);
         for (int qv = 0; qv <= 2; qv += 2) {
             fp.quality = qv;
-            st_raster_post(scene, out, W, H, 384, &fp, scratch);
+            st_raster_post(scene, out, &grid, &fp, scratch);
             snprintf(p, sizeof p, "%s/%s_%ld_q%d.rgba", REF, c->name, t, qv);
             ref = slurp(p, NULL);
             if (!ref) continue;
-            d = compare(out, ref);
-            printf("  %s t%-6ld final q%d: PSNR %5.1f dB  mean |d| %5.2f  pixels off >8: %5.2f%%\n", c->name, t, qv, d.psnr, d.mae, d.over8);
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) memcpy(refp + ((size_t)y * W + x) * 4, ref + ((size_t)gy[y] * VW + gx[x]) * 4, 4);
+            d = compare(out, refp);
+            printf("  %s%s t%-6ld final q%d: PSNR %5.1f dB  mean |d| %5.2f  pixels off >8: %5.2f%%\n", panel ? "panel " : "", c->name, t, qv, d.psnr, d.mae, d.over8);
             if (d.psnr < 30) c->fails++;
             if (c->png) { snprintf(p, sizeof p, "%s/%s_%ld_c_q%d.rgba", c->png, c->name, t, qv); write_rgba(p, out); }
             free(ref);
@@ -89,7 +99,11 @@ static void post(void *c_, long t, const st_state_t *s, const st_events_t *ev) {
 int main(int argc, char **argv) {
     int a = 1;
     const char *png = NULL;
-    if (a + 1 < argc && !strcmp(argv[a], "--png")) { png = argv[a + 1]; a += 2; }
+    for (;;) {
+        if (a + 1 < argc && !strcmp(argv[a], "--png")) { png = argv[a + 1]; a += 2; continue; }
+        if (a < argc && !strcmp(argv[a], "--panel")) { panel = true; W = PW; H = PH; a++; continue; }
+        break;
+    }
     if (a >= argc) { fprintf(stderr, "usage: raster_check [--png dir] trace tick...\n"); return 2; }
     static ctx_t c;
     memset(&c, 0, sizeof c);

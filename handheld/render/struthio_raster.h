@@ -41,13 +41,26 @@ typedef struct {
 
 void st_frame_params_default(st_frame_params_t *p, int32_t render_tick, double moon_phase, double impact);
 
-// Draws quads into scene (RGBA8, w = 256*scale, h = 384*scale), clearing it
-// first. depth must hold w*h floats.
-void st_raster_scene(uint8_t *scene, float *depth, int w, int h, const st_quads_t *q, const st_textures_t *tex,
+// The browser's canvas is 768x1152 (3x). Shown smaller with image-rendering:
+// pixelated, each screen pixel is the nearest canvas pixel. A grid maps every
+// output pixel to the canvas pixel it shows, so the C renderer evaluates
+// exactly those pixels: at w x h = 768 x 1152 it is the canvas itself; at the
+// handheld's 286 x 429 it is what the browser shows in a 320 x 480 window.
+typedef struct {
+    int w, h;            // output pixels
+    int vw, vh;          // canvas pixels (768 x 1152)
+    int16_t *vx, *vy;    // output column / row -> canvas column / row
+    int16_t *ox, *oy;    // canvas column / row -> nearest output column / row (post halo taps)
+} st_grid_t;
+// Builds a grid for w x h (vx, vy: w and h entries; ox, oy: vw and vh entries).
+void st_grid_init(st_grid_t *g, int w, int h, int vw, int vh, int16_t *vx, int16_t *vy, int16_t *ox, int16_t *oy);
+
+// Draws quads into scene (RGBA8, g->w x g->h), clearing it first. depth: w*h floats.
+void st_raster_scene(uint8_t *scene, float *depth, const st_grid_t *g, const st_quads_t *q, const st_textures_t *tex,
                      const st_frame_params_t *fp);
-// The post pass: scene -> out (both RGBA8, same size). scratch: at least
-// 2 * ceil(w/4) * ceil(h/4) * 3 floats for quality 2.
-void st_raster_post(const uint8_t *scene, uint8_t *out, int w, int h, int logical_h, const st_frame_params_t *fp, float *scratch);
+// The post pass in canvas coordinates: scene -> out (both RGBA8, g->w x g->h).
+// scratch: 2 * ceil(vw/4) * ceil(vh/4) * 3 floats for quality 2.
+void st_raster_post(const uint8_t *scene, uint8_t *out, const st_grid_t *g, const st_frame_params_t *fp, float *scratch);
 
 // Per-texel colour functions of the sprite pass (exposed for asset baking).
 void st_bird_ink(const float in[3], int ink, float phase, float jouster, float out[3]);
