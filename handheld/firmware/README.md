@@ -1,29 +1,73 @@
-# STRUTHIO ESP32-S3 Prototype A0 firmware scaffold
+# STRUTHIO ESP32-S3 Prototype A0 firmware
 
-This is a **bring-up scaffold**, not a finished port of the WebGPU game.
+ESP-IDF 5.5+ app for the Waveshare ESP32-S3-Touch-LCD-3.5B. The game is the
+bit-exact C port in `../core` (built as the `struthio` component); this folder
+adds the hardware around it.
 
-What is implemented now:
-- A0 pin lock: GPIO17 = LEFT, GPIO18 = RIGHT, active-low to GND.
-- 8 ms software debounce.
-- Existing 100 ms opposite-wing chord window.
-- Immediate first-wing flap; later chord can issue STRAIGHT correction just like the browser input path.
-- Initial hold-to-DART experiment at 230 ms.
-- hidden service-mode request by holding BOTH at boot for 650 ms.
-- direct boot to `game_start_new_run()` after hardware initialization.
-- fixed 60 Hz simulation loop with initial 30 fps render cadence.
-- host-side tests for the input mapper.
+## Tasks
 
-## Host-test the control state machine
-```bash
-cd host_test
-make run
-```
+| Task | Core | Rate | Job |
+| --- | --- | --- | --- |
+| `wings` | 0 | 1 kHz | GPIO17/18 -> debounce -> input normalizer (`struthio_buttons.c`) |
+| `game` | 1 | 60 Hz fixed | normalizer frame -> `st_step()` -> events; snapshot every 2nd tick; watchdog |
+| `render` | 0 | <= 30 fps | newest snapshot -> greybox renderer -> panel in 40-line RGB565 bands; may drop frames |
 
-## ESP-IDF integration path
-1. Install ESP-IDF using Espressif's supported installer.
-2. First build/flash Waveshare's ESP-IDF example for the exact 3.5B revision and prove the display/audio/power hardware works.
-3. Create a clean ESP-IDF application and copy this `main/` directory into it.
-4. Replace the `board_display_init`, `board_audio_init`, and `game_render` stubs with the tested Waveshare code/BSP calls.
-5. Only then begin transplanting the deterministic STRUTHIO simulation modules into portable C/C++.
+The game clock uses a rational microsecond schedule (exactly 60 ticks/s on
+average) and never waits on the panel. Flash writes (high score) happen in the
+render task, never inside a tick. GAME OVER: either wing starts a new run after
+one second.
 
-This repository intentionally does not vendor-copy Waveshare code. Their public repo and current examples should remain the upstream hardware reference.
+## Controls
+
+| Action | Buttons |
+| --- | --- |
+| Flap left / right | press that wing (flaps at once, no added latency) |
+| Steer | hold a wing |
+| Straight-up flap | both wings within 100 ms |
+| DART | trial C (default): hold both wings 200 ms, dives toward facing |
+| Service mode | hold both wings while powering on |
+
+DART trials A (hold one wing 230 ms) and B (tap then hold) are kept for the
+thumb test. On the golden bots' press timelines they fire 40-78 unwanted darts
+a minute, because steering is holding a wing and a flap while steering is a
+quick re-press. Trial C fires 0.3-2 a minute. Run
+`make -C host_test run` for the report.
+
+## Service mode
+
+Hold both wings at power-on:
+
+- build, reset reason, free PSRAM / internal RAM
+- live wing states, press counts, darts fired, active DART trial
+- **on-device golden replay:** the embedded `climb.trace` (10,011 ticks) is run
+  through the core, with every tick's SHA-256 checked against the browser. It
+  shows PASS/FAIL, simulation µs/tick, and µs/tick including the digest. Both
+  timings include a one-tick yield every 256 ticks.
+- panel benchmark: ms per full 320x480 present
+
+LEFT tap cycles the DART trial (saved in NVS). RIGHT tap re-runs the checks.
+Power-cycle to play.
+
+## Build
+
+    cd handheld/firmware
+    idf.py set-target esp32s3
+    idf.py build flash monitor
+
+Not yet built with the real toolchain: this environment cannot download it.
+`make -C host_test compile` type-checks every source against `host_shim/`, a
+stand-in for the IDF headers. That catches mistakes in this code, not
+mismatches with the real SDK.
+
+## Board adapter (the one file to finish on the bench)
+
+`main/board_waveshare_35b.c` implements `board.h`. Panel (AXS15231B over QSPI),
+power (AXP2101, backlight) and audio (ES8311 + NS4150B) init are deliberately
+not written from memory. Copy them from Waveshare's example for the exact board
+revision, then set `g_panel`. Until then the firmware boots headless: the game
+runs at 60 Hz and logs over USB, and service mode still runs the golden replay.
+
+## Host tests
+
+    make -C host_test run       # button unit tests + DART trial report
+    make -C host_test compile   # type-check the firmware against host_shim

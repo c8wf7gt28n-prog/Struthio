@@ -1,0 +1,80 @@
+# STRUTHIO · ESP32-S3 handheld (Prototype A0, v0.5)
+
+A dedicated two-button STRUTHIO handheld: power on, the game starts, two
+physical wing buttons play it. This folder holds everything for Prototype A0:
+the C port of the game, its proof against the browser build, the firmware, the
+enclosure CAD and the bring-up documents.
+
+**v0.5 in one line:** the STRUTHIO ARCADE 1.8.0 simulation now runs in portable
+C and reproduces the browser build bit for bit. 75,144 recorded ticks across
+five traces give the same SHA-256 state digest on every tick. The firmware
+around it is written and waits only for the board.
+
+## What is proven, what is not
+
+| Area | Status | Evidence |
+| --- | --- | --- |
+| Simulation port (physics, AI, jousts, eggs, rings, rounds, lives) | **Bit-exact with 1.8.0** | `host/replay`: every tick's canonical-state SHA-256, the digest chain and the final state digest match the browser on all 5 golden traces |
+| Input normalizer (flap queue, 100 ms chord, 8-tick flap buffer) | **Bit-exact with 1.8.0** | the same replay checks every frame the normalizer produces |
+| Rulebook constants | **Locked to rules.mjs** | `core/struthio_rules.h` is generated; the core `static_assert`s against it |
+| Port authority | **1.8.0, checked** | `docs/PORT_AUTHORITY.md`; `--check` fails if the arcade sim changes |
+| Greybox renderer + 320x480 presenter | Works on host | `docs/renders/a0_greybox_sheet.png` (frames from a replayed run) |
+| Physical buttons (debounce, chord timing, DART trials) | Host-tested | `firmware/host_test` |
+| DART gesture | **Measured; proposal C** | trials A/B fire 40-78 unwanted darts/min on the bots' press timelines, C fires 0.3-2/min; needs a human thumb test |
+| Firmware (tasks, 60 Hz loop, NVS, watchdog, service mode) | Type-checked on host only | `make -C firmware/host_test compile` against an ESP-IDF header shim, **not** `idf.py build` (toolchain download blocked in this environment) |
+| Panel, power, audio on the Waveshare 3.5B | **Not started** | needs the board: `firmware/main/board_waveshare_35b.c` |
+| Enclosure fit, switch feel, battery, USB-C extension | Unchanged from v0.4 | needs prints and parts |
+
+## Run the checks
+
+    handheld/run_tests.sh
+
+Needs Node 22 and a C compiler. It checks the port authority and the generated
+C. It re-records the goldens from the browser sources, replays them through the
+C core, runs the button tests and the DART report, and type-checks the firmware.
+
+## Layout
+
+    core/       portable C11 port of the 1.8.0 simulation (no heap, no floats in state)
+      struthio_core.h        state, events, st_step(), digests
+      struthio_sim.c         world, physics, AI, joust, lifecycle, arrivals, rings, rounds
+      struthio_input.c       the browser InputNormalizer, wing path
+      struthio_digest.c      canonical JSON + SHA-256, identical to the browser's digest()
+      struthio_replay.c      golden-trace replay (host test and on-device service mode)
+      struthio_tower.c       GENERATED from arcade/src/sim/tower.mjs
+      struthio_rules.h       GENERATED from arcade/src/data/rules.mjs
+    render/     greybox renderer (256x384 indexed) + 1.25x RGB565 line presenter
+    golden/     five browser-recorded traces (button timelines, frames, per-tick digests)
+    tools/      golden exporter, generators, port authority (Node, read arcade/ unmodified)
+    host/       replay comparator and render demo (PNG) for the desktop
+    firmware/   ESP-IDF app: main.c, buttons, service mode, board adapter, host tests
+    cad/        A0 enclosure (OpenSCAD + STLs), unchanged from v0.4
+    docs/       bring-up checklist, wiring, BOM, validation report, port authority
+
+## How the proof works
+
+`tools/golden_export.mjs` runs the unmodified browser `Game` and
+`InputNormalizer` headless. A climbing bot presses two virtual wing buttons
+with millisecond timing. Every tick records the presses, the frame the
+normalizer produced and the first 64 bits of the tick's SHA-256 state digest.
+The C side replays the same presses through its own normalizer and simulation.
+It serializes its state to the same canonical JSON and hashes it, and must match
+on every tick. A mismatch names the tick; `--dump` on both sides gives the two
+canonical lines to diff.
+
+Mutation check: deliberately breaking gravity, ring slack, an AI branch, the
+egg-landing margin or the chord window each fails within a few hundred ticks.
+One mutation is **not** caught: moving the "rising straight up" joust threshold
+from 24 to 25 subpixels. No trace hits that exact boundary.
+
+## Next on the bench
+
+1. Run Waveshare's own ESP-IDF example on the board in hand.
+2. Move its panel / power init into `firmware/main/board_waveshare_35b.c`.
+3. `idf.py build flash monitor`, hold both wings at power-on: service mode runs
+   the golden replay **on the ESP32-S3**. It shows PASS/FAIL, µs per tick and
+   the panel ms per frame.
+4. Power-cycle: the game starts. Play a round with the two buttons (the A0 gate).
+5. Thumb-test the DART trials (LEFT in service mode cycles A / B / C / OFF).
+
+See `docs/A0_BRINGUP_CHECKLIST.md`.

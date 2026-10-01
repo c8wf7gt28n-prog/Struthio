@@ -8,6 +8,9 @@ Use the board's exposed general-purpose GPIOs:
 - other side of both switches -> **GND** (for example header pin 30)
 
 Firmware configures GPIO17/GPIO18 as inputs with pull-ups. Pressing a button pulls the line LOW.
+The lines are sampled at 1 kHz and debounced for 8 ms. Each press is stamped at its raw edge, so the 100 ms chord window measures real thumb timing.
+
+No extra wiring for DART: trial C (the v0.5 default) is both wings held for 200 ms.
 
 GPIO17 and GPIO18 are preferred for A0 because the board publishes them as exposed GPIOs, while GPIO0/45/46 are boot strapping pins and GPIO19/20 are native USB.
 

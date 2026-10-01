@@ -1,15 +1,24 @@
 # A0 bring-up checklist
 
+Before the board arrives: `handheld/run_tests.sh` must pass.
+
 ## Electrical bench first
 - [ ] Run Waveshare factory / ESP-IDF display example before modifying firmware.
 - [ ] Confirm exact board revision in hand.
-- [ ] Confirm USB flashing and serial logging.
-- [ ] Confirm GPIO17 and GPIO18 read HIGH idle / LOW pressed with display active.
-- [ ] Confirm two-button chord test at 100 ms window.
-- [ ] Confirm hold-to-DART test at initial 230 ms threshold.
-- [ ] Measure full-screen RGB565 transfer time at 320x480.
+- [ ] Copy the example's panel (AXS15231B QSPI) and power (AXP2101, backlight) init into
+      `firmware/main/board_waveshare_35b.c`; set `g_panel`.
+- [ ] `idf.py build flash monitor`; confirm USB flashing and serial logging.
+- [ ] Hold both wings at power-on: service mode. Record **GOLDEN PASS**, sim µs/tick,
+      digest µs/tick and panel ms/frame from the screen or the log.
+- [ ] Confirm GPIO17 and GPIO18 read HIGH idle / LOW pressed with display active
+      (service mode shows live wing states and press counts).
+- [ ] Confirm two-button chord at the 100 ms window (a straight-up flap in play).
+- [ ] Thumb-test DART trials C (default), A and B (LEFT in service mode cycles them).
+      Lock one only after real play.
+- [ ] If 40-line bands misbehave on the AXS15231B, try full-frame writes; record which works.
 - [ ] Confirm 30 fps sustained display path; attempt 60 fps second.
-- [ ] Confirm audio on low gain using 8-ohm speaker.
+- [ ] Wire `board_audio_init` / `board_audio_cue` (ES8311 + NS4150B); confirm audio on low
+      gain using 8-ohm speaker.
 
 ## Mechanical fit
 - [ ] Print front shell only; test LCD opening and board width.
