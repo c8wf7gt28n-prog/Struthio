@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # STRUTHIO HANDHELD · joins the four A1 preview renders into one labelled sheet
-# (renders/a083_sheet.png) for the manual.
+# (renders/a084_sheet.png) for the manual.
 from PIL import Image, ImageDraw, ImageFont
 import os
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'renders'))
@@ -22,5 +22,5 @@ for n, label in names:
     tiles.append(tile)
 sheet = Image.new('RGB', (640 * 4 + 30, 820), (255, 255, 255))
 for k, t in enumerate(tiles): sheet.paste(t, (k * 650, 0))
-sheet.save('a083_sheet.png', optimize=True)
-print('renders/a083_sheet.png')
+sheet.save('a084_sheet.png', optimize=True)
+print('renders/a084_sheet.png')

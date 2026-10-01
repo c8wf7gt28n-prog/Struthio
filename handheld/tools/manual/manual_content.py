@@ -1,16 +1,16 @@
-# STRUTHIO HANDHELD · the manual's text (v0.7, the C port and the A1 portable arcade). Layout helpers are
+# STRUTHIO HANDHELD · the manual's text (v0.8, the C port and the A1 portable arcade). Layout helpers are
 # in build_manual.py. Every figure quoted here comes from handheld/run_tests.sh
 # or the documents in handheld/docs; keep them in step when either changes.
 import os
 
-VERSION = 'v0.7'
+VERSION = 'v0.8'
 DATE = '2026-10-01'
-FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.7.docx'
-TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.7 - the C port and the A1 portable arcade'
+FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.8.docx'
+TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.8 - the C port and the A1 portable arcade'
 SUBJECT = 'The C port of STRUTHIO ARCADE 1.8.0 on the Prototype A0 handheld: architecture, controls, graphics, firmware, build, verification and bring-up'
-DESCRIPTION = 'v0.7: A1 portable-arcade hardware. v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
+DESCRIPTION = 'v0.8: A1 made truly STRUTHIO (CAD A0.8.4). v0.7: A1 portable-arcade hardware. v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
 HEADER = 'STRUTHIO  /  ESP32-S3 HANDHELD  /  C PORT MANUAL'
-FOOTER_VERSION = 'C Port Manual v0.7'
+FOOTER_VERSION = 'C Port Manual v0.8'
 
 
 def write(d, root, v04):
@@ -383,63 +383,85 @@ def write(d, root, v04):
         'play, a chunky moulded body, big action buttons, full-colour art on the face, a screwed-shut back. The plastic '
         'idea is a **portable arcade**: the screen in a moulded bezel at the top, a printed art panel below it, and two big '
         'gold buttons, held in a tapered body that flares out at the bottom like the period handhelds.')
-    d.gold('A1 AUTHORITY: R.A. PEDDYCOART\'S CAD A0.8.2, FIT-FIXED AS A0.8.3', [
+    d.gold('A1 AUTHORITY: CAD A0.8.4, FROM R.A. PEDDYCOART\'S A0.8.2', [
         '`cad/a1/STRUTHIO082.scad` is the author\'s robust-lower-chassis revision, kept exactly as received. '
-        '`cad/a1/STRUTHIO083.scad` is the same file with four fit fixes found by exporting and probing every part '
-        '(see "A0.8.3 fit fixes" below). Print from A0.8.3.',
+        '`STRUTHIO083.scad` adds four fit fixes; `STRUTHIO084.scad` adds the STRUTHIO identity and three more fixes the '
+        'identity work exposed. Print from A0.8.4.',
         'It keeps the A0 hardware datums (88 x 128 mm footprint, LCD, wing switch and screw positions) and is still a '
         'candidate until the board, front shell and one wing cap have been fit-tested.'])
+    d.figure(R('cad', 'a1', 'renders', 'a084_struthio_front.png'),
+             'FIGURE 4 - A1 as the player sees it, assembled from the A0.8.4 CAD to scale: navy shell, gold LEFT WING and '
+             'RIGHT WING caps, the art sticker cut to the CAD template (STRUTHIO logo and the joust from the game\'s box '
+             'art), and a real frame from the C panel renderer in the screen opening.', 0.62)
+    d.h2('Truly STRUTHIO: the identity pass (A0.8.4)')
+    d.p('The heritage shell could have been any 1990s handheld. A0.8.4 makes every visible part come from the game:')
+    d.table(['Element', 'From the game', 'In A0.8.4'], [
+        ['The two buttons', 'The controls are LEFT WING and RIGHT WING (`rules.mjs` input regions)', 'Wing-shaped gold caps: rounded root toward the screen, three scalloped primaries sweeping outward, a groove along each feather'],
+        ['Colours', 'The game palette in `rules.mjs`', 'Navy #102838 shell, gold #E2A93F wings, void #07131F art panel, ring cyan #20C4D7 accent'],
+        ['Front art', 'The STRUTHIO box art (`arcade/assets/art/hero-art.webp`)', 'Sticker with the STRUTHIO logo over the joust, cut exactly to the CAD template, 600 dpi with 1.5 mm bleed'],
+        ['Screen', 'The game itself', 'The C port\'s picture (section 6), not an illustration'],
+        ['Back', 'The gold ring every round ends at', 'STRUTHIO wordmark and a gold-ring emblem debossed 0.5 mm into the battery blister'],
+    ], [1.6, 3.2, 4.2])
+    d.figure(R('cad', 'a1', 'renders', 'a084_identity_details.png'),
+             'FIGURE 5 - The wing caps as installed (player\'s view) and the rear shell with the debossed STRUTHIO mark and gold ring.', 1.0)
+    d.figure(R('cad', 'a1', 'art', 'sticker_front_proof.png'),
+             'FIGURE 6 - Front sticker proof: art with bleed (dashed), cut line (magenta) and the cut-away wing and grille '
+             'holes. Print file: `cad/a1/art/sticker_front_print.png` (600 dpi).', 0.8)
     d.figure(R('docs', 'renders', 'a1_concept_sheet.png'),
-             'FIGURE 4 - A1 concept renders: cream shell, front and three-quarter, rear with the model label and pixel-ostrich '
-             'battery-door art, both sides with the slide POWER switch, the USB-C bottom, and the 88 x 128 x 23 mm envelope '
-             '(18.6 mm at the top, 22.5 mm at the speaker).', 1.0)
-    d.figure(R('docs', 'renders', 'a1_concept_graphite.png'),
-             'FIGURE 5 - A1 concept render in graphite. The picture on the screen is illustrative, not the game; the device '
-             'shows the C renderer\'s picture (FIGURE 1).', 0.55)
-    d.figure(R('cad', 'a1', 'renders', 'a083_sheet.png'),
-             'FIGURE 6 - The A0.8.3 CAD as exported: front (shell, sticker panel, caps), assembly, rear shell with the battery '
-             'and speaker blisters, and the centre section. Preview colours are the CAD\'s heritage green and STRUTHIO gold.', 1.0)
-    d.h2('What the A0.8.3 shell is')
-    d.table(['Feature', 'A0.8.3', 'Status'], [
+             'FIGURE 7 - The author\'s A1 concept renders: cream shell, rear model label and pixel-ostrich art, slide POWER '
+             'switch, USB-C bottom, and the 88 x 128 x 23 mm envelope (18.6 mm at the top, 22.5 mm at the speaker).', 1.0)
+    d.figure(R('cad', 'a1', 'renders', 'a084_sheet.png'),
+             'FIGURE 8 - The A0.8.4 CAD as exported: front, assembly, rear shell with the battery and speaker blisters, and the centre section.', 1.0)
+    d.h2('What the A0.8.4 shell is')
+    d.table(['Feature', 'A0.8.4', 'Status'], [
         ['Footprint', '88 x 128 mm, the A0 box; shrink target 85 x 125 mm after the fit proof', 'Locked for fit test'],
         ['Depth', 'Thin contour: 18.6 mm where only the board is, 22.5 mm over the speaker, 23.0 mm over the battery (A0: 25 mm everywhere)', 'Candidate'],
         ['Silhouette', 'Rounded superellipse crown, narrow waist, flared lower body and feet, shallow bottom arch (1.8 mm rise)', 'Tunable block'],
         ['Screen', 'Locked LCD opening inside a 56.5 x 81 mm lens land, recessed 0.55 mm', 'Opening locked; land tunable'],
-        ['Art panel', 'Trapezoid sticker recess below the LCD: 69 mm wide at the top, 74 mm at the bottom, y -24.2 to -56, 0.28 mm deep; the shell stays visible around the screen', 'Tunable'],
-        ['Buttons', 'Round 23 mm gold caps, 1.8 mm proud, on the A0 switch centres (x +/-21.5, y -47.5); wing-shaped caps selectable with `BUTTON_STYLE`', 'Feel test'],
-        ['Speaker', 'Four 9 mm slots between the buttons; speaker raised 3.5 mm to y -43.5', 'Candidate'],
-        ['Lower chassis', '1.8 mm internal backer plate, 31 mm collars round both buttons, U-boss behind the USB-C opening', 'Candidate'],
-        ['Front face', 'No screws through the front: the 4 M2 screws go in from the back', 'Candidate'],
+        ['Art panel', 'Trapezoid sticker recess from y -27.2 (0.5 mm below the lens land) to the bottom contour, 72 mm wide at the top, 78 mm at the bottom, 0.28 mm deep', 'Tunable'],
+        ['Buttons', '28 x 18.5 mm gold wing caps, 1.8 mm proud, feather grooves, on the A0 switch centres (x +/-21.5, y -47.5); `BUTTON_STYLE="round"` restores the 23 mm discs', 'Feel test'],
+        ['Speaker', 'Four 9 mm slots between the wings, 2.75 mm of shell either side; speaker raised 3.5 mm to y -43.5', 'Candidate'],
+        ['Lower chassis', '1.8 mm internal backer plate and collars that follow the button outline, U-boss behind the USB-C opening', 'Candidate'],
+        ['Rear', 'No screws through the front (4 M2 from the back); STRUTHIO wordmark and gold ring debossed into the battery blister', 'Candidate'],
         ['Front controls', 'Two wing buttons only. No START, SOUND, ALL CLEAR or touch on the front', '**Locked**'],
         ['Power', 'Side slide switch in the concept renders; the CAD has an optional side aperture (`OPTIONAL_POWER_SWITCH`, off)', 'Part not chosen'],
         ['Service access', 'Side slot to the board\'s PWR / BOOT / RESET keys', 'Fit test'],
     ], [1.6, 5.4, 2.0])
-    d.h2('A0.8.3 fit fixes')
-    d.p('All four A0.8.2 parts export as single watertight solids. Probing the exported meshes found four places where the '
-        'new outline or the new cap no longer met the parts around them. A0.8.3 changes only those:')
-    d.table(['Problem in A0.8.2', 'Cause', 'A0.8.3 fix'], [
-        ['USB-C opening blocked by ~1.1 mm of wall; the internal U-boss poked ~1 mm out of the bottom arch', 'Cut and boss placed from the old square bottom (y -64); the arch puts the centre edge at y -62.2', 'Cut and boss follow the arch (`BOTTOM_EDGE_CENTER_Y`)'],
-        ['Side service slot did not open', 'Cut started at x 41.4; the waist puts the outer wall at x ~41.0', 'Slot starts inside the cavity; same for the optional power aperture'],
-        ['Buttons held pressed', 'Stem tip at z 7.3, B3F plunger tip at 13.7 - 7.3 = 6.4: 0.9 mm into a switch with 0.25 mm travel', 'Stem stops 0.10 mm short of the plunger and follows `SWITCH_PCB_PLANE_Z` when it is shimmed'],
-        ['Battery reference 0.15 mm inside the board envelope', 'Started at z 14.7, board back at 14.85', 'Sits on the board\'s back face'],
+    d.h2('Fit fixes since A0.8.2')
+    d.p('All parts export as single watertight solids. Probing the exported meshes and the sticker template found seven '
+        'places where a part no longer met its neighbours. Each fix is commented in the SCAD header:')
+    d.table(['Problem in A0.8.2', 'Cause', 'Fix (version)'], [
+        ['USB-C opening blocked by ~1.1 mm of wall; the U-boss poked ~1 mm out of the bottom arch', 'Cut and boss placed from the old square bottom (y -64); the arch puts the centre edge at y -62.2', 'Follow the arch, `BOTTOM_EDGE_CENTER_Y` (0.8.3)'],
+        ['Side service slot did not open', 'Cut started at x 41.4; the waist puts the outer wall at x ~41.0', 'Starts inside the cavity; same for the power aperture (0.8.3)'],
+        ['Buttons held pressed', 'Stem tip at z 7.3, B3F plunger tip at 13.7 - 7.3 = 6.4: 0.9 mm into a 0.25 mm-travel switch', 'Stem stops 0.10 mm short and follows `SWITCH_PCB_PLANE_Z` (0.8.3)'],
+        ['Battery reference 0.15 mm inside the board envelope', 'Started at z 14.7, board back at 14.85', 'Sits on the board\'s back face (0.8.3)'],
+        ['Wing clearances only 58% in Y', '`wing2d` offset in unit space, then scaled non-uniformly', 'Offset after scaling: true mm in X and Y (0.8.4)'],
+        ['Art sticker covered the bottom 2.6 mm of the screen and overlapped the lens land', 'Top corners inset upward (+R), so the panel ran to y -19.8, not -24.2', 'Corners fixed; top at -27.2 (0.8.4)'],
+        ['Wing tips cut the sticker into slivers; 32 mm wings left 0.8 mm of shell beside the grille', 'Panel too small for wing caps; A0.8.2\'s wing fallback too wide', 'Panel 72 / 78 mm to the bottom contour; wings 28 mm; collars follow the outline (0.8.4)'],
     ], [3.0, 3.2, 2.8])
-    d.p('`cad/a1/export_a1.sh` exports the STLs, the sticker template SVG and the preview renders, then runs '
-        '`check_a1.py`: one watertight solid per part, USB-C and service openings clear, nothing outside the outline, each '
-        'stem resting 0 to 0.25 mm before its plunger, caps captured. The same checks fail on A0.8.2 at exactly the four '
-        'problems above.')
+    d.p('`cad/a1/export_a1.sh` exports the STLs, the sticker template, the art and the renders, then runs `check_a1.py`:')
+    d.bullets([
+        'one watertight solid per part; nothing outside the outline;',
+        'USB-C and side service openings clear;',
+        'each stem resting 0 to 0.25 mm before its B3F plunger;',
+        'each cap neck passing its opening with 0.2 mm clearance all round, its flange overlapping the opening by 0.3 mm all round (captured) and clearing the backer plate;',
+        'at least 1.5 mm of shell between each wing opening and the grille;',
+        'the art sticker below the lens land, with exactly six holes (two wings, four slots), each 0.8 mm inside its edge.'])
+    d.p('Run against A0.8.2 the checks fail at exactly the problems above; with A0.8.2\'s 32 mm wings the grille check fails '
+        'at 0.79 mm.')
     d.h2('Concept renders vs the CAD: to settle')
     d.table(['Concept render', 'CAD A0.8.3', 'To decide'], [
         ['Rear label: "Li-Ion 2000 mAh"', 'Battery cavity 36 x 52 x 6.2 mm', 'Cells of that footprint and thickness are usually well under 2000 mAh; pick the cell from the measured draw and its datasheet, then set the label'],
         ['Slide POWER switch on the side', 'Optional aperture on the right side, off by default', 'Choose the switch and the side; see "Power" below'],
         ['Speaker vents on the rear shell', 'Front grille, closed rear blister', 'Keep the front grille; rear vents only if the speaker is too quiet'],
-        ['Cream or graphite shell', 'Heritage green preview colour', 'Pick a filament; the STL has no colour'],
-        ['Art panel shows the STRUTHIO logo and the arena', 'Sticker recess and template SVG', 'Make the print-ready sticker art for the template'],
+        ['Cream or graphite shell', 'Navy (STRUTHIO palette) preview colour', 'Pick a filament: navy keeps the game palette; cream is the heritage alternative'],
+        ['Art panel shows the STRUTHIO logo and the arena', 'Art made: `art/sticker_front_print.png`, cut to the A0.8.4 template', 'Print a test sticker and check colour and registration'],
     ], [2.6, 2.6, 3.8])
     d.h2('Buttons')
     d.p('The wing buttons decide whether STRUTHIO feels like a toy or like a dev board. Build both constructions and choose '
         'by thumb, in the same sessions as the DART test:')
     d.table(['', 'A  Tactile (A0, CAD default)', 'B  Rubber dome (1990s feel)'], [
-        ['Mechanism', 'Omron B3F-4050 under the round cap', 'Hard cap on a silicone dome; a carbon pill shorts gold interdigitated pads on a small PCB'],
+        ['Mechanism', 'Omron B3F-4050 under the wing cap', 'Hard cap on a silicone dome; a carbon pill shorts gold interdigitated pads on a small PCB'],
         ['Feel', 'Crisp click, short travel', 'Soft, quiet, longer travel: the period handheld feel'],
         ['Parts', 'Off-the-shelf switch, 18 x 18 mm perfboard', 'Custom button PCB (ENIG pads) and domes; the CAD switch plane moves'],
         ['Electrical', 'Clean contact, short bounce', 'Contact resistance of tens to hundreds of ohms and a slower make: re-check the 8 ms debounce and the internal pull-up'],
@@ -476,10 +498,10 @@ def write(d, root, v04):
     d.table(['Item', 'A1'], [
         ['Material', 'PETG or ASA for strength (PLA for fit checks only); the originals were moulded ABS'],
         ['Walls and closure', '2.4 mm walls, 3 mm front, 2.2 mm rear skin; 4 x M2 screws from the back into the front'],
-        ['Colours', 'Cream or graphite shell (concept renders), STRUTHIO gold buttons; the CAD previews in heritage green'],
-        ['Front art', 'Sticker in the art-panel recess: STRUTHIO logo and the arena, from the game\'s own art'],
+        ['Colours', 'Navy shell, gold wings (STRUTHIO palette); cream or graphite are the concept-render alternatives'],
+        ['Front art', 'Sticker in the art-panel recess: STRUTHIO logo over the joust, from the game\'s box art (`art/sticker_front_print.png`)'],
         ['Rear label', 'Model plate: "STRUTHIO  MODEL S3-01  ESP32-S3 HANDHELD  3.5\\" 320 x 480 LCD", the cell chemistry and capacity (once measured), "MADE FOR HIGHER FLIGHT", R.A. PEDDYCOART'],
-        ['Rear art', 'Pixel ostrich and STRUTHIO wordmark on the battery-blister panel'],
+        ['Rear mark', 'STRUTHIO wordmark and gold ring debossed in the battery blister (A0.8.4); a printed label can add the pixel ostrich'],
     ], [2.0, 7.0])
     d.h2('Reference-unit study')
     d.p('One afternoon with one or two used early-1990s LCD handhelds settles most of the feel questions. For each, record '
@@ -506,6 +528,7 @@ def write(d, root, v04):
     d.h2('A1 acceptance tests (in addition to section 12)')
     d.table(['Test', 'Method', 'Pass'], [
         ['CAD checks', '`cad/a1/export_a1.sh`', 'A1 CHECK: all pass'],
+        ['Test sticker', 'Print the proof at 100% and lay it in the printed recess', 'Cut line meets the recess; wing and grille holes clear the caps and slots'],
         ['Fit coupon', 'Print `part="front_fit_coupon"`, place the board and one cap', 'Glass untouched; cap moves freely; no click at rest; clicks within 0.35 mm of travel'],
         ['Button feel', '3 players, 10 minutes each, tactile and rubber-dome buttons', 'A clear preference; no missed or double flaps'],
         ['Power switch', '50 OFF / ON cycles', 'Starts into a run every time; OFF draws nothing measurable (battery-lead wiring)'],
@@ -589,7 +612,7 @@ def write(d, root, v04):
         'Lock 30 fps or a higher rate from the measurements.',
         'Audio: one embedded music stream and pre-rendered SFX cues through the ES8311; audio never touches the game state.',
         'Battery, then the full A0 shell.',
-        'A1 (section 11): print the A0.8.3 fit coupon, then the shell; button feel test (tactile vs rubber dome); choose the slide switch and its wiring; measure the draw and pick the cell; print-ready front sticker for the template; reference-unit study.'])
+        'A1 (section 11): print the A0.8.4 fit coupon and a test sticker, then the shell; button feel test (tactile vs rubber dome); choose the slide switch and its wiring; measure the draw and pick the cell; print-ready front sticker for the template; reference-unit study.'])
     d.p('Open decisions: whether retail boot shows a sub-second mark or nothing; USB-only updates or a hidden OTA path; '
         'the shell shrink from 88 x 128 x 25 mm toward 85 x 125 x 23 mm after the fit print.')
 
@@ -603,7 +626,7 @@ def write(d, root, v04):
         '  host/       replay, scene/raster/panel checks, amb_test, make_pak',
         '  tools/      golden exporter, generators, port authority, browser reference capture, this manual',
         '  golden/     five browser-recorded traces',
-        '  cad/        A0 enclosure (OpenSCAD source, STLs, renders); a1/: A1 CAD (A0.8.2 as received, A0.8.3 fit-fixed), exports, checks, renders',
+        '  cad/        A0 enclosure (OpenSCAD source, STLs, renders); a1/: A1 CAD (A0.8.2 as received, A0.8.3 fit-fixed, A0.8.4 STRUTHIO), checks, art, renders',
         '  docs/       this manual, graphics port, validation report, bring-up, wiring, BOM, port authority',
         '  run_tests.sh'])
     d.p('This manual is generated: `python3 handheld/tools/manual/build_manual.py STRUTHIO_ESP32_HANDHELD_v0.4.docx` '
@@ -631,6 +654,7 @@ def write(d, root, v04):
         ['v0.5', '2026-10-01', 'Simulation ported to C, bit-exact with 1.8.0 on 75,144 ticks; exact normalizer; DART trials measured; firmware on the core.'],
         ['v0.6', '2026-10-01', 'Browser renderer ported (scene builder equal on every tick; materials and post measured vs WebGPU; HUD captured); asset pack; two-core panel renderer; firmware renders the browser picture. Manual rewritten for the C port.'],
         ['v0.7', '2026-10-01', 'Hardware chapter for A1, a 1990s-style "portable arcade": R.A. Peddycoart\'s CAD A0.8.2 adopted as the authority and fit-fixed as A0.8.3 (USB-C opening, service slot, button pre-travel, battery datum; checked by cad/a1/check_a1.py); concept renders; buttons, slide POWER switch, screen and art panel, shell and labels, reference-unit study, A1 BOM and tests; player\'s instruction sheet (Appendix C).'],
+        ['v0.8', '2026-10-01', 'A1 made truly STRUTHIO (CAD A0.8.4): wing-shaped LEFT/RIGHT WING caps, the game palette, front art sticker from the box art cut to the CAD template, debossed STRUTHIO mark and gold ring; three more fit fixes (wing clearances, art panel over the screen, wing slivers); checks extended to caps, grille web and sticker.'],
     ], [1.2, 1.4, 6.4])
     d.h1('Appendix C. Player\'s instruction sheet (draft)', new_page=True)
     d.p('The folded sheet that goes in the box, in the 1990s style: short, friendly, nothing a player does not need. '
