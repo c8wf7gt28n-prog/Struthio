@@ -30,8 +30,11 @@ fi
 echo "PASS: render/struthio_scene_data.c is current"
 
 step "graphics: the device's decomposed ambience equals the shader's"
-make -s -C host build/amb_test build/scene_check build/raster_check build/panel_check build/make_pak
+make -s -C host build/amb_test build/scene_check build/raster_check build/panel_check build/make_pak build/band_order_test
 host/build/amb_test | tail -1
+
+step "firmware: two-core band hand-off vs the AXS15231B QSPI write model"
+host/build/band_order_test 200 | tail -1
 
 # The rest compares against the browser's own WebGPU output and DOM HUD,
 # captured with headless Chromium (tools/reference/capture.mjs --frames
@@ -57,5 +60,12 @@ make -s -C firmware/host_test run
 
 step "firmware: type-check against the ESP-IDF host shim"
 make -s -C firmware/host_test compile
+
+step "firmware: compile against the real ESP-IDF 5.5.5 headers and board drivers"
+if python3 -c "import kconfgen" 2>/dev/null && [ -d /usr/include/newlib ] && { [ -d build/idf_check/esp-idf ] || git ls-remote -q https://github.com/espressif/esp-idf.git v5.5.5 >/dev/null 2>&1; }; then
+  firmware/idf_check/idf_check.sh | tail -1
+else
+  echo "SKIP: real-header check (needs pip esp-idf-kconfig, apt libnewlib-dev and git access to github.com)"
+fi
 
 printf '\nALL HANDHELD CHECKS PASS\n'

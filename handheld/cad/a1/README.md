@@ -37,4 +37,4 @@ It then runs `check_a1.py`, which verifies:
 
 Run against A0.8.2, the checks fail at its problems.
 
-Edit the tunable block at the top of the SCAD. Keep the LOCKED A0 datums until the fit coupon (`part="front_fit_coupon"`), a test sticker and one cap have been printed and tested. See section 11 of `docs/STRUTHIO_ESP32_HANDHELD_v0.8.docx`.
+Edit the tunable block at the top of the SCAD. Keep the LOCKED A0 datums until the fit coupon (`part="front_fit_coupon"`), a test sticker and one cap have been printed and tested. See section 11 of `docs/STRUTHIO_ESP32_HANDHELD_v0.9.docx`.

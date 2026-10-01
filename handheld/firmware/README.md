@@ -68,15 +68,28 @@ Not yet built with the real toolchain: this environment cannot download it.
 stand-in for the IDF headers. That catches mistakes in this code, not
 mismatches with the real SDK.
 
-## Board adapter (the one file to finish on the bench)
+## Board adapter
 
-`main/board_waveshare_35b.c` implements `board.h`. Panel (AXS15231B over QSPI),
-power (AXP2101, backlight) and audio (ES8311 + NS4150B) init are deliberately
-not written from memory. Copy them from Waveshare's example for the exact board
-revision, then set `g_panel`. Until then the firmware boots headless: the game
-runs at 60 Hz and logs over USB, and service mode still runs the golden replay.
+`main/board_waveshare_35b.c` and `main/board_pmu.cpp` implement `board.h`. They are ported, not written from
+memory, from Waveshare's own ESP-IDF example (Apache-2.0, commit 840daf2). That covers:
+- the I2C bus;
+- the AXP2101 rails, charger and power key (vendor values, through the vendored XPowersLib, MIT);
+- the TCA9554 LCD reset pulse;
+- the AXS15231B QSPI panel with the vendor's init commands;
+- the LEDC backlight.
 
-## Host tests
+Audio (ES8311) is still a stub. The panel drivers come from the component registry (`main/idf_component.yml`).
+
+Two board facts shape the code:
+- **No row address over QSPI.** A band at y 0 starts a frame and every other band continues where the last one ended. So bands must reach the panel top to bottom: the two render cores pass a turn back and forth (`band_out` in main.c), and the adapter counts any band that arrives out of order. `host/band_order_test` shows the earlier scheme would have misplaced most bands.
+- **The wings share pins with the camera.** GPIO17/18 are the camera's VSYNC/HREF, so no camera module may be fitted (`main/board_pins.h`).
+
+## Checks without the board
 
     make -C host_test run       # button unit tests + DART trial report
-    make -C host_test compile   # type-check the firmware against host_shim
+    make -C host_test compile   # hardware-independent sources against host_shim
+    idf_check/idf_check.sh      # every source against the REAL ESP-IDF 5.5.5 headers + board drivers
+
+`idf_check` fetches ESP-IDF and the driver components by git (pinned). It generates the real `sdkconfig.h` with Espressif's kconfgen from `sdkconfig.defaults`, then compiles everything with `-Wall -Wextra -Werror` for a 32-bit newlib target. It catches wrong struct fields, signatures and missing functions. It is still not `idf.py build`: nothing is generated for Xtensa or linked.
+
+

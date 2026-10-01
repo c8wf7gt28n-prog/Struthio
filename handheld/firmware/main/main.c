@@ -46,9 +46,7 @@
 #include "struthio_panel.h"
 #include "struthio_scene.h"
 
-#define STRUTHIO_GPIO_LEFT_WING   17
-#define STRUTHIO_GPIO_RIGHT_WING  18
-#define STRUTHIO_BUTTON_ACTIVE_LEVEL 0     // normally-open switch to GND, pull-up on
+#include "board_pins.h"                  // wings on GPIO17/18 (camera VSYNC/HREF: no camera fitted)
 
 static const char *TAG = "STRUTHIO";
 
@@ -88,7 +86,7 @@ static st_panel_textures_t g_tex;
 static st_hud_assets_t g_hud_assets;
 static st_panel_luts_t *g_luts;
 static st_panel_work_t *g_work[2];          // one per core
-static SemaphoreHandle_t g_display_lock, g_helper_go, g_helper_done;
+static SemaphoreHandle_t g_turn[2], g_helper_go, g_helper_done;   // g_turn: whose band goes to the panel next
 static TaskHandle_t g_helper_task;
 static const frame_slot_t *g_helper_frame;
 
@@ -168,19 +166,27 @@ static bool map_asset_pack(void) {
     }
     if (!g_luts || !g_slots || !g_work[0] || !g_work[1] || !g_work[0]->line || !g_work[1]->line) { ESP_LOGW(TAG, "assets: out of memory"); return false; }
     st_panel_luts_init(g_luts);
-    g_display_lock = xSemaphoreCreateMutex();
+    g_turn[0] = xSemaphoreCreateBinary();
+    g_turn[1] = xSemaphoreCreateBinary();
     g_helper_go = xSemaphoreCreateBinary();
     g_helper_done = xSemaphoreCreateBinary();
-    return g_display_lock && g_helper_go && g_helper_done;
+    if (!g_turn[0] || !g_turn[1] || !g_helper_go || !g_helper_done) return false;
+    xSemaphoreGive(g_turn[0]);              // band 0 of the first frame goes first
+    return true;
 }
-// A finished band: to the panel's byte order, then out (one sender at a time).
+// A finished band: to the panel's byte order, then out IN ORDER. The AXS15231B
+// takes a frame top to bottom with no row address (board.h), so band k waits
+// for band k-1. Even bands come from core 0 and odd bands from core 1, so the
+// two cores hand the turn back and forth. While one core's band is on the bus,
+// the other core is already rendering its next band.
 static void band_out(void *ctx, int y0, int rows, const uint16_t *px) {
     (void)ctx;
     uint16_t *b = (uint16_t *)px;           // the workspace's own DMA line buffer
     for (int i = 0; i < rows * ST_PANEL_W; i++) b[i] = (uint16_t)(b[i] << 8 | b[i] >> 8);
-    xSemaphoreTake(g_display_lock, portMAX_DELAY);
+    int k = y0 / ST_BAND_ROWS, next = (k + 1) % ST_PANEL_BANDS;
+    xSemaphoreTake(g_turn[k & 1], portMAX_DELAY);
     board_display_lines(y0, rows, b);
-    xSemaphoreGive(g_display_lock);
+    xSemaphoreGive(g_turn[next & 1]);
 }
 static void render_bands(const frame_slot_t *f, int core) {
     st_panel_render_bands(&g_tex, &g_hud_assets, &f->hud, g_luts, &f->quads, &f->fp, core, 2, g_work[core], band_out, NULL);
@@ -333,10 +339,10 @@ static void game_task(void *arg) {
 // ---- render task ---------------------------------------------------------------------------
 static void log_stats(void) {
     if ((g_stats.frames % 300) == 0)
-        ESP_LOGI(TAG, "tick %llu sim %lu us (max %lu) scene %lu us render %lu us present %lu us missed %lu",
+        ESP_LOGI(TAG, "tick %llu sim %lu us (max %lu) scene %lu us render %lu us present %lu us missed %lu band-order %lu",
                  (unsigned long long)g_stats.ticks, (unsigned long)g_stats.sim_us_last, (unsigned long)g_stats.sim_us_max,
                  (unsigned long)g_stats.scene_us, (unsigned long)g_stats.render_us, (unsigned long)g_stats.present_us,
-                 (unsigned long)g_stats.missed_deadlines);
+                 (unsigned long)g_stats.missed_deadlines, (unsigned long)board_display_order_errors());
 }
 // The panel renderer: the newest published frame, split between the cores.
 static void render_panel_frame(void) {

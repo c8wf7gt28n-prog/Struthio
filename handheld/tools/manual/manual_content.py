@@ -1,16 +1,16 @@
-# STRUTHIO HANDHELD · the manual's text (v0.8, the C port and the A1 portable arcade). Layout helpers are
+# STRUTHIO HANDHELD · the manual's text (v0.9, the C port and the A1 portable arcade). Layout helpers are
 # in build_manual.py. Every figure quoted here comes from handheld/run_tests.sh
 # or the documents in handheld/docs; keep them in step when either changes.
 import os
 
-VERSION = 'v0.8'
+VERSION = 'v0.9'
 DATE = '2026-10-01'
-FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.8.docx'
-TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.8 - the C port and the A1 portable arcade'
+FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.9.docx'
+TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.9 - the C port and the A1 portable arcade'
 SUBJECT = 'The C port of STRUTHIO ARCADE 1.8.0 on the Prototype A0 handheld: architecture, controls, graphics, firmware, build, verification and bring-up'
-DESCRIPTION = 'v0.8: A1 made truly STRUTHIO (CAD A0.8.4). v0.7: A1 portable-arcade hardware. v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
+DESCRIPTION = 'v0.9: board adapter ported from the vendor example, real-header compile, band order. v0.8: A1 made truly STRUTHIO (CAD A0.8.4). v0.7: A1 portable-arcade hardware. v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
 HEADER = 'STRUTHIO  /  ESP32-S3 HANDHELD  /  C PORT MANUAL'
-FOOTER_VERSION = 'C Port Manual v0.8'
+FOOTER_VERSION = 'C Port Manual v0.9'
 
 
 def write(d, root, v04):
@@ -53,9 +53,11 @@ def write(d, root, v04):
         ['Device panel renderer + asset pack', 'Measured', '`host/panel_check`: game picture 24.9-30.3 dB, HUD 43.2 dB; two-core band split identical to one pass'],
         ['Decomposed ambience used by the device', '**Proven**', '`host/amb_test`: worst difference 0.00000 against the shader formula'],
         ['Wing buttons (debounce, chord timing, DART trials, service hold)', 'Host-tested', '`firmware/host_test`; DART trial report on the bots\' press timelines'],
-        ['Firmware (tasks, 60 Hz loop, frames, NVS, watchdog, service mode)', 'Type-checked only', '`make -C firmware/host_test compile` against an ESP-IDF header shim'],
-        ['`idf.py build`, flashing, on-device replay', '**Not yet**', 'toolchain download blocked in the build environment'],
-        ['Panel, power and audio drivers for the Waveshare 3.5B', '**Not yet**', '`firmware/main/board_waveshare_35b.c` is a stub'],
+        ['Firmware (tasks, 60 Hz loop, frames, NVS, watchdog, service mode)', 'Compiled against the real headers', '`firmware/idf_check`: every source against ESP-IDF 5.5.5 and the board drivers, real sdkconfig, -Werror (syntax and types; not linked)'],
+        ['Two-core band hand-off to the panel', '**Proven on host**', '`host/band_order_test`: 0 bands misplaced; the earlier scheme misplaced ~79%'],
+        ['`idf.py build`, flashing, on-device replay', '**Not yet**', 'the Xtensa toolchain download is blocked in the build environment'],
+        ['Panel, power and backlight for the Waveshare 3.5B', 'Ported, not run', 'from Waveshare\'s own ESP-IDF example (pins, init order, AXS15231B init commands, AXP2101 rails); needs the board'],
+        ['Audio (ES8311)', '**Not yet**', 'stub; no device sound assets yet'],
         ['Renderer speed on the ESP32-S3', '**Not yet**', '8-10 ms per frame on one x86 core; the device figure comes from the boot log'],
         ['Fit, switch feel, battery, speaker, USB-C extension', '**Not yet**', 'needs prints and parts (CAD unchanged from v0.4)'],
     ], [3.2, 1.4, 4.4])
@@ -286,7 +288,8 @@ def write(d, root, v04):
         'make -C handheld/host scene       # scene builder vs the browser draw lists',
         'make -C handheld/host pak         # build/assets/struthio.pak',
         'make -C handheld/firmware/host_test run       # button tests + DART report',
-        'make -C handheld/firmware/host_test compile   # type-check the firmware'])
+        'make -C handheld/firmware/host_test compile   # hardware-independent sources vs a header shim',
+        'handheld/firmware/idf_check/idf_check.sh      # every source vs the real ESP-IDF 5.5.5 headers'])
     d.p('Needs Node 22 and a C compiler. The graphics comparisons need the browser references in `handheld/build/reference` '
         '(not committed: they are large). Produce them with headless Chromium:')
     d.code([
@@ -303,9 +306,12 @@ def write(d, root, v04):
     d.p('ESP-IDF 5.5 or newer (Waveshare\'s requirement for this board). `sdkconfig.defaults` sets 16 MB flash, the '
         'custom partition table, octal PSRAM at 80 MHz, 240 MHz CPU, 1 kHz FreeRTOS tick, the 3 s task watchdog and the '
         'USB Serial/JTAG console. Without the pack in flash the build warns and the firmware runs the greybox renderer.')
-    d.warn('NOT YET BUILT WITH THE REAL TOOLCHAIN', 'The build environment could not download ESP-IDF. '
-           '`make -C host_test compile` type-checks every firmware source against a stand-in for the IDF headers. That '
-           'catches mistakes in this code, not mismatches with the real SDK. The first `idf.py build` may need small fixes.')
+    d.warn('NOT YET BUILT WITH THE REAL TOOLCHAIN', ['The build environment cannot download the Xtensa compiler. Instead, '
+           '`firmware/idf_check/idf_check.sh` fetches ESP-IDF 5.5.5 and the board driver components by git (pinned), '
+           'generates the real `sdkconfig.h` from `sdkconfig.defaults` with Espressif\'s kconfgen, and compiles every '
+           'firmware source against them with -Wall -Wextra -Werror. That catches wrong struct fields, signatures and '
+           'missing functions; deliberately broken copies are rejected.',
+           'It is still not `idf.py build`: nothing is compiled for Xtensa or linked. The first real build may need small fixes.'])
 
     # ---- 9 -------------------------------------------------------------------------------
     d.h1('9. How the port is verified')
@@ -358,6 +364,40 @@ def write(d, root, v04):
     d.p('GPIO17/18 are published as free GPIOs and sit next to each other on the header. GPIO0, 3, 45 and 46 are '
         'strapping pins and GPIO19/20 are native USB, so none of those are used for the wings. No extra wire is needed '
         'for DART: trial C uses the same two switches.')
+    d.warn('THE WINGS SHARE PINS WITH THE CAMERA CONNECTOR', 'Waveshare\'s example uses GPIO17 as the camera\'s VSYNC and '
+           'GPIO18 as its HREF. The wings work only with no camera module fitted and the camera never initialised; '
+           'STRUTHIO has no camera code. Leave the camera FPC connector empty.')
+    d.h2('Board pin map')
+    d.p('From Waveshare\'s ESP-IDF example (commit 840daf2); the schematic for the revision in hand is the authority.')
+    d.table(['Function', 'Pins'], [
+        ['LCD AXS15231B, QSPI on SPI2', 'CS 12, SCLK 5, D0-D3 1-4; backlight 6 (LEDC, 5 kHz); reset via the TCA9554 expander, EXIO1'],
+        ['I2C', 'SDA 8, SCL 7: AXP2101 (0x34), TCA9554, ES8311, touch, IMU, RTC'],
+        ['I2S (ES8311)', 'MCLK 44, BCLK 13, LRCK 15, DOUT 16, DIN 14'],
+        ['SD card', 'CMD 10, CLK 11, D0 9'],
+        ['Camera (unused)', 'XCLK 38, PCLK 41, VSYNC 17 (left wing), HREF 18 (right wing), data 45 47 48 46 42 40 39 21'],
+        ['BOOT, USB, UART0 TX', '0; 19 and 20; 43'],
+    ], [2.4, 6.6])
+    d.p('Almost every GPIO is spoken for. With no camera fitted, the spare pins for the slide-switch signal wiring or later '
+        'buttons are 21, 38-42, 47 and 48 (not 45 or 46: strapping). With no SD card, 9-11 are free too.')
+    d.h2('The board adapter')
+    d.p('`firmware/main/board_waveshare_35b.c` and `board_pmu.cpp` are ported from Waveshare\'s ESP-IDF example '
+        '(Apache-2.0), not written from memory:')
+    d.bullets([
+        'I2C on 7/8. The AXP2101 gets the vendor\'s rail voltages and enables, charger and power key, through XPowersLib (MIT, vendored).',
+        'The TCA9554 LCD reset pulse: EXIO1 low 100 ms, high 200 ms.',
+        'The AXS15231B over QSPI at 40 MHz with the vendor\'s 32 init commands. The driver comes from the component registry, version 2.1.1; 2.0.2 fixed a deadlock on a failed transfer.',
+        'The display is switched on with `disp_on_off(panel, false)`: this driver\'s sense is inverted.',
+        'The LEDC backlight on GPIO6.',
+        '`board_display_lines` waits for the driver\'s transfer-done callback, so a band buffer is never overwritten while it is still on the bus.',
+        'XPowersLib\'s Kconfig defaults to the AXP192 chip on ESP32-S3; `sdkconfig.defaults` sets the AXP2101.'])
+    d.h2('No row address: bands in order')
+    d.p('In QSPI mode the AXS15231B is sent no row address. The driver writes a band at y 0 as RAMWR (start of frame) and every '
+        'other band as RAMWRC (continue at the write pointer). So a frame must reach the panel top to bottom with no gaps. '
+        'The two render cores now hand a turn back and forth: band k waits until band k-1 is on the bus, while the other '
+        'core already renders the next band. The adapter counts any band that would land on the wrong rows, and the log '
+        'prints the count (`band-order`).')
+    d.p('`host/band_order_test` runs the real band renderer on two threads into a simulated panel with exactly this write '
+        'model: the earlier "send whichever band is ready" scheme misplaced 4,736 of 6,000 bands; the turn scheme misplaces none.')
     d.h2('Minimal BOM')
     d.table(['Qty', 'Part', 'Requirement'], [
         ['1', 'Main carrier', 'Waveshare ESP32-S3-Touch-LCD-3.5B'],
@@ -543,14 +583,13 @@ def write(d, root, v04):
     d.h1('12. Bring-up on the board')
     d.p('Before the board arrives, `handheld/run_tests.sh` must pass. Then, in this order, so faults stay separable:')
     d.steps([
-        'Record the board revision. Flash and run Waveshare\'s own ESP-IDF example unchanged.',
-        'Move the example\'s panel (AXS15231B over QSPI), power (AXP2101, backlight) and later audio init into `firmware/main/board_waveshare_35b.c`. `board_display_lines()` must accept 16-line bands, high byte first.',
-        '`idf.py build flash monitor` without the asset pack first. The game runs on the greybox renderer.',
+        'Record the board revision and compare its schematic with `firmware/main/board_pins.h`. Leave the camera connector empty. Flash and run Waveshare\'s own example once, unchanged, to prove the board.',
+        '`idf.py build flash monitor` without the asset pack first. The board adapter is already ported (section 10). Expect `AXP2101 id ...` and `AXS15231B 320x480 QSPI at 40 MHz` in the log and the greybox picture on the panel. If the screen stays dark, check the TCA9554 reset pulse and the backlight duty first.',
         'Hold both wings at power-on. Record GOLDEN PASS, sim µs per tick, digest µs per tick and the panel ms per frame.',
         'Confirm GPIO17/18 read high idle and low pressed with the display active (service mode shows live states and counts).',
         '`make -C handheld/host pak`, flash again with the pack. Read `scene` and `render` µs in the log every 300 frames: the first device measurement of the C renderer.',
         'Play. Confirm the 100 ms chord and thumb-test DART trial C, then A and B. Lock one only after real play.',
-        'If 16-line bands misbehave on the AXS15231B, try larger bands or full-frame writes and record which works.',
+        'Watch `band-order` in the log: it must stay 0. If bands tear or shift, check the transfer-done wait first, then try larger bands.',
         'Wire the audio (ES8311 + NS4150B) at low gain with the 8-ohm speaker.',
         'Print the front shell only; test the LCD opening and board width. Then one wing cap; tune `SWITCH_PCB_PLANE_Z`. Then the rear shell.',
         'Battery last: polarity, charge, low-battery and shutdown behaviour before enclosing the cell. Measure the current in play, at idle and at each backlight level: the A1 runtime comes from these numbers.'])
@@ -592,8 +631,9 @@ def write(d, root, v04):
     d.h2('Risk register')
     d.table(['Risk', 'Impact', 'Mitigation / trigger'], [
         ['Renderer too slow on the ESP32-S3', 'High', 'measured at bring-up step 6; see section 12 for the order of fixes'],
-        ['QSPI panel bandwidth', 'High', 'bands go out as they finish; try band sizes and full-frame writes; 30 fps target'],
-        ['First real `idf.py build` finds SDK mismatches', 'Medium', 'small, local fixes; the shim only type-checks'],
+        ['QSPI panel bandwidth', 'High', '40 MHz quad = 20 MB/s raw, 307 KB a frame: ~15 ms of bus time per frame, overlapped with rendering; 30 fps target'],
+        ['First real `idf.py build` finds problems', 'Low-medium', 'the real-header check already passes; what is left is codegen, linking and component versions'],
+        ['A camera module fitted by mistake', 'Medium', 'the wings share its VSYNC/HREF pins; keep the connector empty, say so on the label'],
         ['DART gesture under a real thumb', 'High', 'trials A/B/C switchable in service mode without a rebuild'],
         ['Flash-cache contention between textures and the panel DMA', 'Medium', 'move hot textures to PSRAM'],
         ['Simulation drift after a browser update', 'High', 'port authority `--check` and the goldens fail until ported'],
@@ -655,6 +695,7 @@ def write(d, root, v04):
         ['v0.6', '2026-10-01', 'Browser renderer ported (scene builder equal on every tick; materials and post measured vs WebGPU; HUD captured); asset pack; two-core panel renderer; firmware renders the browser picture. Manual rewritten for the C port.'],
         ['v0.7', '2026-10-01', 'Hardware chapter for A1, a 1990s-style "portable arcade": R.A. Peddycoart\'s CAD A0.8.2 adopted as the authority and fit-fixed as A0.8.3 (USB-C opening, service slot, button pre-travel, battery datum; checked by cad/a1/check_a1.py); concept renders; buttons, slide POWER switch, screen and art panel, shell and labels, reference-unit study, A1 BOM and tests; player\'s instruction sheet (Appendix C).'],
         ['v0.8', '2026-10-01', 'A1 made truly STRUTHIO (CAD A0.8.4): wing-shaped LEFT/RIGHT WING caps, the game palette, front art sticker from the box art cut to the CAD template, debossed STRUTHIO mark and gold ring; three more fit fixes (wing clearances, art panel over the screen, wing slivers); checks extended to caps, grille web and sticker.'],
+        ['v0.9', '2026-10-01', 'ESP32 preparation: board adapter ported from Waveshare\'s example (AXP2101, TCA9554 reset, AXS15231B QSPI, backlight); pin map (the wings share the camera\'s VSYNC/HREF); bands sent strictly in order (the panel has no row address over QSPI; proven by host/band_order_test); every firmware source compiled against the real ESP-IDF 5.5.5 headers (firmware/idf_check).'],
     ], [1.2, 1.4, 6.4])
     d.h1('Appendix C. Player\'s instruction sheet (draft)', new_page=True)
     d.p('The folded sheet that goes in the box, in the 1990s style: short, friendly, nothing a player does not need. '

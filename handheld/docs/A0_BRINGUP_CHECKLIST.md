@@ -2,11 +2,19 @@
 
 Before the board arrives: `handheld/run_tests.sh` must pass.
 
+Also before the board: `firmware/idf_check/idf_check.sh` compiles the firmware against the real
+ESP-IDF 5.5.5 headers and board drivers (run_tests.sh runs it).
+
 ## Electrical bench first
 - [ ] Run Waveshare factory / ESP-IDF display example before modifying firmware.
-- [ ] Confirm exact board revision in hand.
-- [ ] Copy the example's panel (AXS15231B QSPI) and power (AXP2101, backlight) init into
-      `firmware/main/board_waveshare_35b.c`; set `g_panel`.
+- [ ] Confirm the exact board revision in hand; compare its schematic with `firmware/main/board_pins.h`.
+- [ ] Leave the camera connector EMPTY: the wings use the camera's VSYNC/HREF pins (GPIO17/18).
+- [x] Panel (AXS15231B over QSPI), TCA9554 LCD reset, AXP2101 rails and backlight are already ported from
+      the vendor example into `board_waveshare_35b.c` / `board_pmu.cpp`. Expect to debug them, not write them.
+- [ ] First flash: the log shows `AXP2101 id ...`, `AXS15231B 320x480 QSPI at 40 MHz`, and the greybox picture appears.
+      If the screen stays dark, check the TCA9554 reset pulse and the backlight duty first.
+- [ ] Every 300 frames the log prints `band-order N`; it must stay 0. Non-zero means bands reached the panel
+      out of order (see board.h); `host/band_order_test` shows why.
 - [ ] `idf.py build flash monitor`; confirm USB flashing and serial logging.
 - [ ] Hold both wings at power-on: service mode. Record **GOLDEN PASS**, sim µs/tick,
       digest µs/tick and panel ms/frame from the screen or the log.

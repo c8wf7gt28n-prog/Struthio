@@ -12,9 +12,11 @@ clean:
 	rm -f test_buttons
 .PHONY: all run clean
 
-# Type-check every firmware source on the host against host_shim/ (a stand-in
-# for the ESP-IDF headers). Not a substitute for `idf.py build`.
-FW_SRC = ../main/main.c ../main/service.c ../main/board_waveshare_35b.c ../main/struthio_buttons.c
+# Type-check the hardware-independent firmware sources on the host against
+# host_shim/ (a stand-in for the ESP-IDF headers). The board adapter
+# (board_waveshare_35b.c, board_pmu.cpp) and everything else are checked
+# against the REAL ESP-IDF headers by ../idf_check/idf_check.sh.
+FW_SRC = ../main/main.c ../main/service.c ../main/struthio_buttons.c
 compile:
 	@for f in $(FW_SRC); do $(CC) $(CFLAGS) -fsyntax-only -I../host_shim -I../main -I../../core -I../../render $$f || exit 1; done
 	@echo "PASS: firmware sources type-check against host_shim (not a real idf.py build)"

@@ -1,0 +1,9 @@
+## STRUTHIO HANDHELD · managed components, fetched by idf.py from components.espressif.com.
+## The same drivers Waveshare's ESP32-S3-Touch-LCD-3.5B example uses.
+dependencies:
+  idf: ">=5.5"
+  # AXS15231B panel. 2.0.2 fixed a deadlock when a colour transfer fails
+  # (board_display_lines waits on every transfer). The vendor example used ^1.0.0.
+  espressif/esp_lcd_axs15231b: "^2.1.1"
+  # TCA9554 I/O expander: the LCD reset line (EXIO1)
+  espressif/esp_io_expander_tca9554: "^2.0.0"

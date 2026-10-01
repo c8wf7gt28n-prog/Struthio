@@ -7,7 +7,7 @@ HDRS = ../core/struthio_core.h ../core/struthio_input.h ../core/struthio_replay.
 BUILD = build
 
 RENDER = ../render/struthio_greybox.c ../render/struthio_scene.c ../render/struthio_scene_data.c ../render/struthio_raster.c ../render/struthio_panel.c ../render/struthio_pak.c
-all: $(BUILD)/replay $(BUILD)/render_demo $(BUILD)/scene_check $(BUILD)/raster_check $(BUILD)/panel_check $(BUILD)/make_pak $(BUILD)/amb_test
+all: $(BUILD)/replay $(BUILD)/render_demo $(BUILD)/scene_check $(BUILD)/raster_check $(BUILD)/panel_check $(BUILD)/make_pak $(BUILD)/amb_test $(BUILD)/band_order_test
 
 $(BUILD)/replay: replay.c $(CORE) $(HDRS)
 	@mkdir -p $(BUILD)
@@ -41,6 +41,10 @@ pak: $(BUILD)/make_pak
 $(BUILD)/amb_test: amb_test.c ../render/struthio_raster.c ../render/struthio_raster.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I../core -I../render amb_test.c ../render/struthio_raster.c -lm -o $@
+
+$(BUILD)/band_order_test: band_order_test.c $(CORE) $(RENDER) $(HDRS) ../render/struthio_panel.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -I../core -I../render band_order_test.c $(CORE) $(RENDER) -lm -lpthread -o $@
 
 scene: $(BUILD)/scene_check
 	./$(BUILD)/scene_check ../golden/*.trace
