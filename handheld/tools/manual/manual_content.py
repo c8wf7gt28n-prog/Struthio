@@ -1,16 +1,16 @@
-# STRUTHIO HANDHELD · the manual's text (v0.9, the C port and the A1 portable arcade). Layout helpers are
+# STRUTHIO HANDHELD · the manual's text (v0.10, the C port and the A1 portable arcade). Layout helpers are
 # in build_manual.py. Every figure quoted here comes from handheld/run_tests.sh
 # or the documents in handheld/docs; keep them in step when either changes.
 import os
 
-VERSION = 'v0.9'
+VERSION = 'v0.10'
 DATE = '2026-10-01'
-FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.9.docx'
-TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.9 - the C port and the A1 portable arcade'
+FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.10.docx'
+TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.10 - the C port and the A1 portable arcade'
 SUBJECT = 'The C port of STRUTHIO ARCADE 1.8.0 on the Prototype A0 handheld: architecture, controls, graphics, firmware, build, verification and bring-up'
-DESCRIPTION = 'v0.9: board adapter ported from the vendor example, real-header compile, band order. v0.8: A1 made truly STRUTHIO (CAD A0.8.4). v0.7: A1 portable-arcade hardware. v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
+DESCRIPTION = 'v0.10: wiring schematics. v0.9: board adapter ported from the vendor example, real-header compile, band order. v0.8: A1 made truly STRUTHIO (CAD A0.8.4). v0.7: A1 portable-arcade hardware. v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
 HEADER = 'STRUTHIO  /  ESP32-S3 HANDHELD  /  C PORT MANUAL'
-FOOTER_VERSION = 'C Port Manual v0.9'
+FOOTER_VERSION = 'C Port Manual v0.10'
 
 
 def write(d, root, v04):
@@ -398,6 +398,30 @@ def write(d, root, v04):
         'prints the count (`band-order`).')
     d.p('`host/band_order_test` runs the real band renderer on two threads into a simulated panel with exactly this write '
         'model: the earlier "send whichever band is ready" scheme misplaced 4,736 of 6,000 bands; the turn scheme misplaces none.')
+    d.h2('Wiring schematics')
+    d.p('Five sheets cover all the wiring, generated from the same pin facts the firmware uses '
+        '(`docs/schematics/make_schematics.py`; pins from `firmware/main/board_pins.h`, positions from the A1 CAD). '
+        'S1 and S4 show traces already on the Waveshare board, for probing during bring-up. S2, S3 and S5 show what is '
+        'wired by hand. Solid lines are known; dashed lines are proposals or positions to confirm on the board in hand.')
+    sch = lambda n: R('docs', 'schematics', 'png', n + '.png')
+    d.figure(sch('s1_system'), 'SHEET S1 - System overview: every bus the ESP32-S3 uses, with I2C addresses. Grey dashed parts are unused; the camera must not be fitted.', 1.0)
+    d.figure(sch('s2_wings'), 'SHEET S2 - Wing buttons: GPIO17 / GPIO18, internal pull-ups, normally-open switches to GND. The only wiring the game itself needs.', 1.0)
+    d.figure(sch('s3_power'), 'SHEET S3 - Power: USB-C panel extension, the AXP2101, the protected LiPo and the slide POWER switch (option A in the battery lead, option B as a signal).', 1.0)
+    d.figure(sch('s4_display_audio'), 'SHEET S4 - Display and audio on the board: QSPI to the AXS15231B, backlight PWM, the TCA9554 LCD reset, I2S to the ES8311 and NS4150B.', 1.0)
+    d.figure(sch('s5_harness'), 'SHEET S5 - Harness inside the A1 shell, rear view to scale: switch boards, speaker, LiPo cavity, slide switch and USB-C extension routes.', 1.0)
+    d.h2('Wire list: everything wired by hand')
+    d.table(['#', 'From', 'To', 'Wire', 'Notes'], [
+        ['W1', 'Header pin 16 (GPIO17)', 'LEFT WING switch, contact 1', 'white, ~22 AWG, ~110 mm', 'proposal colour; confirm the pin on the board'],
+        ['W2', 'Header pin 18 (GPIO18)', 'RIGHT WING switch, contact 1', 'blue, ~22 AWG, ~110 mm', ''],
+        ['W3', 'Header pin 30 (GND)', 'LEFT WING switch, contact 2', 'black, ~22 AWG', 'any GND pin will do'],
+        ['W4', 'LEFT WING switch, contact 2', 'RIGHT WING switch, contact 2', 'black, ~22 AWG, ~45 mm', 'GND daisy-chain'],
+        ['W5', 'Speaker +/-', 'Board speaker header', 'speaker lead, 2 core', 'header position from the vendor drawing; low gain first'],
+        ['W6', 'LiPo + (protected)', 'Slide switch, common', 'red, rated >= 2 A', 'option A only; never switch the negative lead'],
+        ['W7', 'Slide switch, ON contact', 'Board BAT connector +', 'red', 'check the connector polarity before plugging in'],
+        ['W8', 'LiPo -', 'Board BAT connector -', 'black', ''],
+        ['W9', 'USB-C panel jack', 'Board USB-C', 'short full-data male-to-female extension', 'data lines needed for flashing and the log'],
+        ['W10', 'Spare GPIO (e.g. 21)', 'Slide switch -> GND', 'thin, 2 core', 'option B only, instead of W6/W7; needs firmware'],
+    ], [0.5, 2.0, 2.0, 1.9, 2.6])
     d.h2('Minimal BOM')
     d.table(['Qty', 'Part', 'Requirement'], [
         ['1', 'Main carrier', 'Waveshare ESP32-S3-Touch-LCD-3.5B'],
@@ -696,6 +720,7 @@ def write(d, root, v04):
         ['v0.7', '2026-10-01', 'Hardware chapter for A1, a 1990s-style "portable arcade": R.A. Peddycoart\'s CAD A0.8.2 adopted as the authority and fit-fixed as A0.8.3 (USB-C opening, service slot, button pre-travel, battery datum; checked by cad/a1/check_a1.py); concept renders; buttons, slide POWER switch, screen and art panel, shell and labels, reference-unit study, A1 BOM and tests; player\'s instruction sheet (Appendix C).'],
         ['v0.8', '2026-10-01', 'A1 made truly STRUTHIO (CAD A0.8.4): wing-shaped LEFT/RIGHT WING caps, the game palette, front art sticker from the box art cut to the CAD template, debossed STRUTHIO mark and gold ring; three more fit fixes (wing clearances, art panel over the screen, wing slivers); checks extended to caps, grille web and sticker.'],
         ['v0.9', '2026-10-01', 'ESP32 preparation: board adapter ported from Waveshare\'s example (AXP2101, TCA9554 reset, AXS15231B QSPI, backlight); pin map (the wings share the camera\'s VSYNC/HREF); bands sent strictly in order (the panel has no row address over QSPI; proven by host/band_order_test); every firmware source compiled against the real ESP-IDF 5.5.5 headers (firmware/idf_check).'],
+        ['v0.10', '2026-10-01', 'Wiring schematics S1-S5 (system, wing buttons, power and the slide switch, display and audio, harness in the A1 shell) and a wire list (section 10).'],
     ], [1.2, 1.4, 6.4])
     d.h1('Appendix C. Player\'s instruction sheet (draft)', new_page=True)
     d.p('The folded sheet that goes in the box, in the 1990s style: short, friendly, nothing a player does not need. '
