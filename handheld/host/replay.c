@@ -43,7 +43,8 @@ int main(int argc, char **argv) {
         if (!data) { fails++; continue; }
         st_replay_result_t r;
         clock_t c0 = clock();
-        bool ok = st_replay(data, size, true, on_tick, &dump, &r);
+        st_replay_hooks_t hooks = {&dump, NULL, on_tick};
+        bool ok = st_replay(data, size, true, &hooks, &r);
         double secs = (double)(clock() - c0) / CLOCKS_PER_SEC;
         printf("%s %-7s %6ld ticks  score %6d  round %2d  deaths %3ld  jousts %3ld  eggs %3ld  darts %3ld  chain %.16s\n",
                ok ? "PASS" : "FAIL", r.name, r.ran, r.score, r.round, r.event_counts[ST_EV_PLAYER_DEATH],
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
                         r.why, r.first_bad_tick, r.name, r.first_bad_tick);
         if (timing) {
             c0 = clock();
-            st_replay(data, size, false, NULL, NULL, &r);
+            st_replay(data, size, false, NULL, &r);
             double sim = (double)(clock() - c0) / CLOCKS_PER_SEC;
             printf("     host: %.2f us/tick simulation, %.2f us/tick with digest\n", 1e6 * sim / r.ran, 1e6 * secs / r.ran);
         }

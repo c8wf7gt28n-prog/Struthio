@@ -1,7 +1,7 @@
 // STRUTHIO HANDHELD · reference capture: runs the browser game's own renderer
 // (WebGPU, headless Chromium with SwiftShader) over the golden traces.
 //
-//   node handheld/tools/reference/capture.mjs [--frames] [--textures] [trace names...]
+//   node handheld/tools/reference/capture.mjs [--frames] [--textures] [--list=trace:tick] [trace names...]
 //
 // Writes, under handheld/build/reference/ (not committed):
 //   <trace>.ihash          u32 per tick: hash of the browser's instance list
@@ -20,7 +20,11 @@ const out = path.join(root, 'handheld', 'build', 'reference');
 fs.mkdirSync(path.join(out, 'textures'), { recursive: true });
 const args = process.argv.slice(2);
 const wantFrames = args.includes('--frames'), wantTextures = args.includes('--textures');
+const listArgs = args.filter((a) => a.startsWith('--list')).map((a) => a.split('=')[1] || '');
 const names = args.filter((a) => !a.startsWith('--'));
+// --list=trace:tick writes that tick's full browser instance list (to diff a scene_check mismatch)
+const LISTS = {};
+for (const spec of listArgs) { const [n, t] = spec.split(':'); (LISTS[n] ||= []).push(+t); if (!names.includes(n)) names.push(n); }
 const TRACES = names.length ? names : ['climb', 'mortal', 'duel', 'raw', 'late'];
 // Ticks to capture as frames (and full instance lists) per trace.
 export const FRAME_TICKS = {
@@ -62,8 +66,9 @@ const upload = (name) => `fetch('/upload/${name}', { method: 'POST', body: new B
 for (const name of TRACES) {
   const t0 = Date.now();
   const ticks = wantFrames ? FRAME_TICKS[name] || [] : [];
-  const n = await page.evaluate(async ({ name, ticks }) => {
-    const r = await window.__ref.replay(`/handheld/golden/${name}.trace`, { capture: ticks, lists: ticks, qualities: [0, 2], scene: true });
+  const lists = [...ticks, ...(LISTS[name] || [])];
+  const n = await page.evaluate(async ({ name, ticks, lists }) => {
+    const r = await window.__ref.replay(`/handheld/golden/${name}.trace`, { capture: ticks, lists, qualities: [0, 2], scene: true });
     const post = (file, data) => fetch('/upload/' + file, { method: 'POST', body: new Blob([data]) });
     await post(`${name}.ihash`, r.hashes.buffer);
     for (const [t, list] of Object.entries(r.lists)) await post(`${name}_${t}.json`, JSON.stringify(list));
@@ -72,7 +77,7 @@ for (const name of TRACES) {
       await post(`${name}_${t}_view.json`, JSON.stringify(c.view));
     }
     return r.ticks;
-  }, { name, ticks });
+  }, { name, ticks, lists });
   console.log(`${name}: ${n} ticks hashed, ${ticks.length} frames (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
 }
 if (wantTextures) {

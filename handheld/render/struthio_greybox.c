@@ -4,44 +4,8 @@
 #include <string.h>
 #include "struthio_rules.h"
 
-// ---- camera (arcade/src/render/camera.mjs TowerCamera) ------------------------------
-enum { SCALE_Y = 2, SPAN = 336, ANCHOR_Y = 25, CAM_BOTTOM = SPAN, CAM_TOP = -7 * SPAN, DZ0 = 150, DZ1 = 290,
-       KEEP0 = 40, KEEP1 = 376, SUMMIT_HOLD = 330 };
-static double clampd(double v, double lo, double hi) { return v < lo ? lo : v > hi ? hi : v; }
+enum { SCALE_Y = 2, ANCHOR_Y = 25 };
 static int32_t floor_div256(int32_t v) { return v >= 0 ? v / 256 : -((-v + 255) / 256); }
-static int32_t feet_of(const st_state_t *s) { return (floor_div256(s->player.y) + ANCHOR_Y) * SCALE_Y; }
-
-void st_camera_reset(st_camera_t *c) { c->have = false; c->top = 0; c->last_tick = 0; }
-int32_t st_camera_resolve(st_camera_t *c, const st_state_t *s) {
-    int32_t feet = feet_of(s);
-    double target = clampd(feet - (DZ0 + DZ1) / 2, CAM_TOP, CAM_BOTTOM);
-    bool hidden = s->player.invulnerable_ticks > ST_SHIMMER_TICKS;
-    if (!c->have) { c->top = target; c->have = true; c->last_tick = s->sim.tick; }
-    double desired = c->top;
-    if (hidden) desired = target;
-    else if (feet - desired < DZ0) desired = feet - DZ0;
-    else if (feet - desired > DZ1) desired = feet - DZ1;
-    if (!hidden && feet - CAM_TOP < SUMMIT_HOLD) desired = CAM_TOP;
-    desired = clampd(desired, CAM_TOP, CAM_BOTTOM);
-    int32_t elapsed = s->sim.tick - c->last_tick;
-    if (elapsed < 0) elapsed = 0;
-    if (elapsed > 5) elapsed = 5;
-    c->last_tick = s->sim.tick;
-    for (int i = 0; i < elapsed; i++) {
-        double delta = desired - c->top;
-        if (delta == 0) break;
-        double ad = delta < 0 ? -delta : delta;
-        double step = (double)(int64_t)(ad * .16);
-        if (step < ad * .16) step += 1;               // Math.ceil
-        if (step < 2) step = 2;
-        if (step > 40) step = 40;
-        c->top += (delta > 0 ? 1 : -1) * (ad < step ? ad : step);
-    }
-    if (!hidden) c->top = clampd(c->top, feet - KEEP1, feet - KEEP0);
-    c->top = clampd(c->top, CAM_TOP, CAM_BOTTOM);
-    double r = c->top;
-    return (int32_t)(r >= 0 ? (int64_t)(r + 0.5) : -(int64_t)(-r + 0.5));
-}
 
 // ---- primitives -------------------------------------------------------------------------
 static void px_(uint8_t *fb, int x, int y, uint8_t c) {

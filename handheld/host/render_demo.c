@@ -130,7 +130,8 @@ int main(int argc, char **argv) {
     }
     st_camera_reset(&d.cam);
     st_replay_result_t r;
-    st_replay(data, (size_t)size, false, on_tick, &d, &r);
+    st_replay_hooks_t hooks = {&d, NULL, on_tick};
+    st_replay(data, (size_t)size, false, &hooks, &r);
     if (sheet) { write_png(d.out, d.sheet_rgb, d.sw, sh); printf("wrote %s (%d frames)\n", d.out, d.nshots); }
     if (d.renders) printf("host render: %.3f ms/frame average\n", 1000.0 * d.render_s / d.renders);
     return 0;

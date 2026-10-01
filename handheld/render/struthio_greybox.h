@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "struthio_core.h"
+#include "struthio_scene.h"     // st_camera_t
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,15 +21,6 @@ extern "C" {
 
 enum { ST_FB_W = 256, ST_FB_H = 384, ST_PANEL_W = 320, ST_PANEL_H = 480 };
 
-typedef struct {
-    bool have;
-    double top;
-    int32_t last_tick;
-} st_camera_t;
-
-void st_camera_reset(st_camera_t *c);
-// TowerCamera.resolve(): follows the player's feet; returns cameraTop.
-int32_t st_camera_resolve(st_camera_t *c, const st_state_t *s);
 
 typedef struct {
     int32_t camera_top;

@@ -24,12 +24,15 @@ typedef struct {
     long event_counts[ST_EV_COUNT];
 } st_replay_result_t;
 
-// Called after every tick (optional): render, dump or time it.
+// Optional hooks: pre runs before each tick's step, post after it (render,
+// dump or time it).
 typedef void (*st_replay_tick_fn)(void *ctx, long tick, const st_state_t *s, const st_events_t *ev);
+typedef void (*st_replay_pre_fn)(void *ctx, long tick, const st_state_t *s);
+typedef struct { void *ctx; st_replay_pre_fn pre; st_replay_tick_fn post; } st_replay_hooks_t;
 
 // verify_digests: false skips the per-tick SHA-256 (fast simulation timing).
-// Returns true when the whole trace matched.
-bool st_replay(const uint8_t *data, size_t size, bool verify_digests, st_replay_tick_fn cb, void *ctx, st_replay_result_t *out);
+// hooks may be NULL. Returns true when the whole trace matched.
+bool st_replay(const uint8_t *data, size_t size, bool verify_digests, const st_replay_hooks_t *hooks, st_replay_result_t *out);
 
 #ifdef __cplusplus
 }

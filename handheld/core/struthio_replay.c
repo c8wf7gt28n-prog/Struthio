@@ -54,7 +54,9 @@ static st_state_t g_s;
 static st_events_t g_ev;
 static st_norm_t g_norm;
 
-bool st_replay(const uint8_t *data, size_t size, bool verify, st_replay_tick_fn cb, void *ctx, st_replay_result_t *o) {
+bool st_replay(const uint8_t *data, size_t size, bool verify, const st_replay_hooks_t *hooks, st_replay_result_t *o) {
+    st_replay_tick_fn cb = hooks ? hooks->post : NULL;
+    void *ctx = hooks ? hooks->ctx : NULL;
     memset(o, 0, sizeof *o);
     o->first_bad_tick = -1;
     if (size < 12 || memcmp(data, "STRGOLD1", 8) != 0) { fail(o, 0, "not a golden trace"); return false; }
@@ -115,6 +117,7 @@ bool st_replay(const uint8_t *data, size_t size, bool verify, st_replay_tick_fn 
             uint8_t got = encode_frame(&in);
             if (got != want_frame) { snprintf(why, sizeof why, "frame 0x%02x, browser 0x%02x", got, want_frame); fail(o, t, why); break; }
         }
+        if (hooks && hooks->pre) hooks->pre(ctx, t, &g_s);
         st_step(&g_s, &in, &g_ev);
         for (int i = 0; i < g_ev.n; i++) o->event_counts[g_ev.e[i].type]++;
         if (verify) {
