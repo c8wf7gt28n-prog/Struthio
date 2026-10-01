@@ -1,16 +1,16 @@
-# STRUTHIO HANDHELD · the manual's text (v0.6, the C port). Layout helpers are
+# STRUTHIO HANDHELD · the manual's text (v0.7, the C port and the A1 portable arcade). Layout helpers are
 # in build_manual.py. Every figure quoted here comes from handheld/run_tests.sh
 # or the documents in handheld/docs; keep them in step when either changes.
 import os
 
-VERSION = 'v0.6'
+VERSION = 'v0.7'
 DATE = '2026-10-01'
-FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.6.docx'
-TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.6 - the C port'
+FILENAME = 'STRUTHIO_ESP32_HANDHELD_v0.7.docx'
+TITLE = 'STRUTHIO ESP32-S3 Handheld Manual v0.7 - the C port and the A1 portable arcade'
 SUBJECT = 'The C port of STRUTHIO ARCADE 1.8.0 on the Prototype A0 handheld: architecture, controls, graphics, firmware, build, verification and bring-up'
-DESCRIPTION = 'v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
+DESCRIPTION = 'v0.7: A1 portable-arcade hardware. v0.6: rewritten for the C port. v0.5: bit-exact simulation. v0.4: A0 CAD and wiring lock.'
 HEADER = 'STRUTHIO  /  ESP32-S3 HANDHELD  /  C PORT MANUAL'
-FOOTER_VERSION = 'C Port Manual v0.6'
+FOOTER_VERSION = 'C Port Manual v0.7'
 
 
 def write(d, root, v04):
@@ -21,7 +21,8 @@ def write(d, root, v04):
             'Manual for the C port of STRUTHIO ARCADE 1.8.0 on Prototype A0',
             f'C PORT MANUAL  /  {VERSION}  /  {DATE}',
             'Supersedes the v0.4 prototype path. The game now runs as portable C, proven against the browser build tick '
-            'for tick; the browser renderer is ported and measured; the firmware is written. What remains needs the board.')
+            'for tick; the browser renderer is ported and measured; the firmware is written. v0.7 adds the A1 hardware: '
+            'a portable arcade in the spirit of the 1990s LCD handhelds. What remains needs the board.')
     d.gold('WHAT THIS MANUAL DESCRIBES', [
         'The handheld software as it exists in `handheld/` on branch `claude/handheld-core-port`: the C simulation, the '
         'two-button input layer, the C port of the browser renderer, the asset pack, the ESP-IDF firmware, the host '
@@ -341,8 +342,9 @@ def write(d, root, v04):
     ], [3.4, 5.6])
 
     # ---- 10 ------------------------------------------------------------------------------
-    d.h1('10. Hardware', new_page=True)
-    d.p('Unchanged from v0.4: the software was written around these locks.')
+    d.h1('10. Hardware: the A0 bench prototype', new_page=True)
+    d.p('A0 proves the electronics and the two-button game on the bench. Its locks are unchanged from v0.4, and the software '
+        'was written around them. Section 11 turns A0 into a finished-looking handheld.')
     d.table(['Item', 'A0 choice', 'Status'], [
         ['Carrier', 'Waveshare ESP32-S3-Touch-LCD-3.5B, portrait: ESP32-S3R8 240 MHz, 8 MB PSRAM, 16 MB flash, 320 x 480 AXS15231B QSPI, AXP2101, ES8311 + NS4150B', 'LOCKED FOR A0'],
         ['Left wing', 'GPIO17 (header pin 16), switch to GND, pull-up, active low', 'LOCKED FOR A0'],
@@ -374,8 +376,168 @@ def write(d, root, v04):
         'hence the extension. `SWITCH_PCB_PLANE_Z` shims the switch plane after the first cap print.')
     d.figure(v04('image4.png'), 'FIGURE 3 - Prototype A0 engineering lock (v0.4 CAD): 88 x 128 x 25 mm envelope, portrait carrier, two wing controls. Its 230 ms hold-to-DART note is the v0.4 trial A; the default is now trial C (section 3).', 1.0)
 
-    # ---- 11 ------------------------------------------------------------------------------
-    d.h1('11. Bring-up on the board')
+
+    # ---- 11: A1, the portable arcade ---------------------------------------------------
+    d.h1('11. A1: a portable arcade', new_page=True)
+    d.p('STRUTHIO was always meant to feel like the dedicated LCD games of the early 1990s, the Tiger Electronics '
+        'handhelds and their cousins: one game per device, switch it on and play, a chunky plastic body, big action '
+        'buttons, a row of small pill buttons for the housekeeping, full-colour art printed all over the face, a battery '
+        'door held by a screw, an ALL CLEAR pinhole and a folded instruction sheet in the box. A1 takes the proven A0 '
+        'electronics and gives them that object.')
+    d.gold('THE PLASTIC IDEA: A PORTABLE ARCADE', [
+        'The face reads like an arcade cabinet shrunk into the hand. **Marquee** on top (the STRUTHIO logo from the game\'s '
+        'box art), the **screen** in a raised bezel below it, then the **control deck**: a pill row, two big wing buttons on '
+        'round pads, a slotted speaker, all printed over the box-art battle scene, and a "PORTABLE ARCADE" tagline band at '
+        'the bottom.',
+        'The vertical, tapered body follows the portrait handhelds of the period, which suits STRUTHIO\'s portrait screen.'])
+    d.gold('INSPIRED BY, NOT COPIED FROM', 'A1 borrows the genre, not anyone\'s marks: no Tiger, Konami or other company '
+           'names, logos, typography or recognisable trade dress on the shell, labels, leaflet or packaging. STRUTHIO\'s own '
+           'box art, logo and palette carry the look.')
+    refs = os.environ.get('STRUTHIO_REF_PHOTOS')    # the reference photos are third-party: not in the repository
+    has_refs = bool(refs) and os.path.exists(refs)
+    if has_refs:
+        d.figure(refs,
+                 'FIGURE 4 - Reference units supplied for A1 (third-party products, shown for reference only): a landscape '
+                 '1990s LCD handheld with full-face art, pill row and slotted grille, and two vertical tapered handhelds with '
+                 'the screen on top and the controls on an art panel below.', 1.0)
+    d.h2('What A1 takes from the reference units')
+    d.table(['Seen on the references', 'STRUTHIO A1', 'Status'], [
+        ['One game; switch on and you are playing', 'Power-on starts a run; no menu, no START needed', '**Done** in firmware'],
+        ['Vertical tapered body, screen at the top, controls below', '88 mm wide at the top, 82 mm at the bottom, 158 x 25 mm; crowned top, scooped bottom', 'Proposal; grows A0\'s 128 mm by 30 mm'],
+        ['Full-face printed art overlay', 'Marquee logo, box-art scene behind the control deck, tagline band', 'Proposal; art from `hero-art.webp`'],
+        ['Screen in a raised frame', 'Raised bezel with a gold rim around a clear lens', 'Proposal'],
+        ['Pill row: OFF, SOUND, PAUSE / SELECT, ON/START, ALL CLEAR', 'OFF, SOUND, PAUSE, ON/START pills and an ALL CLEAR pinhole, labels printed under them', 'Proposal; GPIO and firmware not done'],
+        ['Big round button pads, hard caps on rubber domes', 'The A0 wing caps on round pads; B3F tactile (A0) or a rubber-dome variant', 'Feel test'],
+        ['Slotted speaker grille in a raised oval', 'Raised oval with four slots over the 28 mm speaker', 'Proposal; audio not wired yet'],
+        ['Reflective LCD, no backlight, very long battery life', 'Backlit 320 x 480 IPS: STRUTHIO\'s real picture; shorter battery life', 'Deliberate difference'],
+        ['Cells behind a door held by a small screw', 'Battery door with one captive screw; LiPo inside, or an AA pack option', 'Proposal'],
+        ['Auto power-off', 'Sleep after idle at GAME OVER or PAUSE; a wing press wakes it', 'Proposal; firmware not done'],
+        ['Solid, bright single-colour plastic', 'Deep navy shell with gold caps; a bright colourway is a later option', 'Proposal'],
+        ['Folded instruction sheet', 'Player\'s instruction sheet, Appendix C', '**Drafted**'],
+    ], [2.8, 3.8, 2.4])
+    d.p('Measure the reference units before locking A1 (see "Reference-unit study" below). Every number in this chapter is a '
+        'STRUTHIO proposal, not a measurement of another company\'s product.')
+    d.figure(R('cad', 'a1', 'a1_portable_arcade.png'),
+             f'FIGURE {5 if has_refs else 4} - A1 "portable arcade", front and rear, to scale. The screen shows a real frame from the C panel renderer; '
+             'the overlay uses the game\'s own box art. LCD and screw positions come from the A0 CAD; the rest is the A1 '
+             'proposal (source: cad/a1/make_layout.py).', 1.0)
+    d.h2('The front face')
+    d.p('Coordinates are mm from the A0 face centre, y up, as in the A0 OpenSCAD model. The A1 body extends A0\'s '
+        '-64 to +64 to -88 to +70: 6 mm more for the marquee, 24 mm more for the control deck.')
+    d.table(['Zone', 'Position', 'Notes'], [
+        ['Marquee', 'y +54.5 to +68.6; logo 61 mm wide, stripes across the full width', 'STRUTHIO logo from the box art; gold / red stripes either side'],
+        ['Screen bezel', 'raised frame 55.4 x 79.8 mm around the screen, gold rim', 'Lens recessed in the bezel'],
+        ['Screen window', '48.96 x 73.44 mm active area centred at y +13.78', 'Opening 0.55 mm inside the active area on each side (A0 rule)'],
+        ['Control deck art', 'x -38 to +38, y -25.5 to -77', 'Box-art battle scene printed on the overlay'],
+        ['Pill row', 'y -30: OFF x -28, SOUND x -14, PAUSE x 0, ON/START x +14; ALL CLEAR pinhole x +28', 'Pills 9.2 x 3.8 mm on a dark strip, labels underneath'],
+        ['Wing buttons', 'x -21.5 and +21.5, y -51 on 26 mm round pads', 'The A0 caps, lowered 3.5 mm from A0\'s -47.5 to clear the pill row'],
+        ['Speaker', 'raised oval 26 x 9.5 mm centred at y -70.75', 'Four slots over the 28 mm speaker'],
+        ['Tagline band', 'y -80', '"PORTABLE ARCADE" between striped bars'],
+        ['USB-C', 'bottom edge', 'The A0 extension opening: charging and flashing'],
+    ], [1.8, 3.6, 3.6])
+    d.h2('Buttons')
+    d.p('The wing buttons decide whether STRUTHIO feels like a toy or like a dev board. Build both constructions and choose '
+        'by thumb, in the same sessions as the DART test:')
+    d.table(['', 'A  Tactile (A0)', 'B  Rubber dome (1990s feel)'], [
+        ['Mechanism', 'Omron B3F-4050 under a printed cap', 'Hard cap on a silicone dome; a carbon pill shorts gold interdigitated pads on a small PCB'],
+        ['Feel', 'Crisp click, short travel', 'Soft, quiet, longer travel: the 1990s handheld feel'],
+        ['Parts', 'Off-the-shelf switch, perfboard', 'Custom button PCB (ENIG pads) and a dome sheet that also carries the pills'],
+        ['Electrical', 'Clean contact, short bounce', 'Contact resistance of tens to hundreds of ohms and a slower make: re-check the 8 ms debounce and the internal pull-up'],
+        ['Risk', 'Clicky, less toy-like', 'Feel varies with dome choice; needs a PCB spin'],
+    ], [1.4, 3.4, 4.2])
+    d.p('The pill row, as on the references:')
+    d.table(['Pill', 'Does', 'Hardware', 'Firmware'], [
+        ['OFF', 'Saves and switches the device off', 'One GPIO', 'Asks the AXP2101 to power down (not written yet)'],
+        ['SOUND', 'Speaker on / off, remembered', 'One GPIO', 'Mute flag in NVS (not written yet)'],
+        ['PAUSE', 'Stops and resumes play', 'One GPIO', 'Drives the sim\'s existing PAUSE state (not written yet)'],
+        ['ON/START', 'Switches on; the run starts by itself', 'Plunger onto the board\'s PWR key', 'None: power-on already starts a run'],
+        ['ALL CLEAR', 'Hard reset, with a paper clip', 'Pinhole, recessed ~3 mm, onto the board\'s RESET key', 'None: the board restarts into a new run'],
+    ], [1.2, 2.6, 2.6, 2.6])
+    d.bullets([
+        '**Pill GPIOs (3):** choose from the expansion header after the schematic check, never GPIO0, 3, 45, 46 (strapping) or 19, 20 (USB). Prefer pins that can wake the chip from deep sleep (the ESP32-S3 RTC-capable GPIOs; confirm in the datasheet). GPIO17/18, the wings, are in that group.',
+        '**PWR and RESET keys** are on the board: the ON/START plunger and the ALL CLEAR pin must reach them from the front. Their positions come from the vendor drawing; if a key sits too far from its pill, wire a small switch in parallel instead (check the schematic first).',
+        '**BOOT** stays behind the battery door: only needed for recovery flashing.'])
+    d.h2('Power: batteries the Tiger way')
+    d.p('Tiger games ran for a long time on a few cells because a reflective LCD draws almost nothing. STRUTHIO\'s backlit '
+        'IPS panel and 240 MHz dual-core renderer draw far more, so battery life is the one place A1 cannot match the '
+        'originals. Two ways to power it:')
+    d.table(['', 'A  Internal LiPo (recommended)', 'B  AA pack (heritage option)'], [
+        ['Cells', 'One protected 1-cell LiPo, ~36 x 52 x 6.2 mm cavity', '3 x AA in a holder (NiMH or alkaline)'],
+        ['Connection', 'The board\'s battery connector; the AXP2101 charges it from USB-C', 'A 5 V boost module into the board\'s 5 V input (USB-C path, or a 5 V header pin if the schematic confirms one)'],
+        ['Charging', 'USB-C, cells stay inside', 'None: swap cells, like the originals'],
+        ['Door', 'Battery door with one captive screw hides the cell', 'Battery door with one captive screw; spring contacts'],
+        ['Depth', 'Fits the 25 mm A0 envelope', 'AA cells are 14.5 mm thick: needs a deeper rear or a rear bulge; check before choosing'],
+    ], [1.4, 3.6, 4.0])
+    d.warn('POWER SAFETY', ['Never connect AA, NiMH or any non-lithium pack to the board\'s LiPo connector: its charger would try to charge it.',
+           'Do not feed the boost output and a USB cable at the same time unless the two are joined through a power-path or ideal-diode circuit.',
+           'Use only a protected LiPo, and check polarity on the connector before plugging it in (the A0 rule).'])
+    d.p('**Battery life is measured, not guessed.** Hours = usable watt-hours / measured watts. Example only: a 1,000 mAh '
+        'LiPo holds about 3.7 Wh, so at 1 W it would last roughly 3.5 hours. Measure the real draw in play, at idle and with '
+        'the backlight at each level (bring-up step 11) before choosing a cell or promising a runtime.')
+    d.p('**Auto power-off (proposal):** after two minutes untouched on GAME OVER or PAUSE, turn the backlight off and put the '
+        'ESP32-S3 into deep sleep with either wing as the wake source; the AXP2101 PWR long press stays the full off. '
+        'This needs firmware that is not written yet.')
+    d.h2('Screen window and bezel overlay')
+    d.bullets([
+        'A clear 1.0-1.5 mm acrylic or polycarbonate lens sits in a recess in the front shell, the way the originals framed their LCDs.',
+        'The bezel art is printed on the back of the lens or on a thin sheet behind it (second-surface print), so play cannot rub it off.',
+        'Keep at least 0.4 mm between the lens and the display glass and never clamp the glass (A0 rule).',
+        'The IPS panel is bright; a matte or anti-glare lens is an option if reflections bother players. Test both under room light.'])
+    d.h2('Shell, finish and labels')
+    d.table(['Item', 'A1 proposal'], [
+        ['Material', 'Print in PETG or ASA for strength (PLA for fit checks only); the originals were moulded ABS'],
+        ['Walls and closure', 'A0 values: 2.4 mm walls, 3 mm front plate, 4 x M2 screws with heat-set inserts'],
+        ['Finish', 'Sand, prime, matte graphite paint; or print in a graphite filament and leave it'],
+        ['Colours', 'Deep navy shell (STRUTHIO navy #102838), gold wing caps and bezel rim, light grey pills; the overlay carries the box-art colours. A bright single-colour shell, as on the references, is a later colourway'],
+        ['Front overlay', 'One full-face printed overlay (marquee, deck art, pill labels, tagline) under a clear protective film, cut around the screen bezel, pills, pads and grille'],
+        ['Rear label', 'Vinyl label plate: "STRUTHIO PORTABLE ARCADE", SERVICE: hold both wings while switching on, ALL CLEAR: press the pinhole, Charge: USB-C'],
+        ['Battery door', 'Separate printed part, one captive M2 screw, a hook at the far end'],
+    ], [2.0, 7.0])
+    d.h2('Reference-unit study')
+    d.p('One afternoon with real 1990s handhelds settles most A1 questions. For each reference unit, record in '
+        '`docs/A1_REFERENCE_UNITS.md`:')
+    d.bullets([
+        'outer width, height, depth and corner radius; weight with cells;',
+        'action-button cap size, travel and force (a kitchen scale and a ruler are enough), and how the dome feels;',
+        'pill button size and spacing; screen window inset and lens thickness;',
+        'battery door design, screw type, cell type and count;',
+        'grille hole size and pattern; label placement on the back.'])
+    d.p('Compare with 88 x 128 x 25 mm and the A0 button positions; adjust the A1 CAD only from these measurements.')
+    d.h2('A1 changes to the electronics')
+    d.table(['Change', 'What it needs', 'Status'], [
+        ['Rubber-dome wing buttons (option B)', '2-button PCB with gold interdigitated pads, GPIO17/18/GND harness unchanged', 'Design after the feel test'],
+        ['OFF, SOUND and PAUSE pills', '3 free GPIOs, 3 small switches or domes, firmware', 'Pins TBD from the schematic'],
+        ['ON/START pill', 'Printed plunger to the board PWR key', 'Position from the vendor drawing'],
+        ['ALL CLEAR pinhole', 'Pin onto the board RESET key, or a parallel switch', 'Position from the vendor drawing'],
+        ['Taller body (158 mm)', 'New A1 CAD; the extra deck space can also take the battery or AA holder', 'CAD not drawn yet'],
+        ['AA pack (option B)', '3 x AA holder, 5 V boost module, power-path if USB stays connected', 'Only if the depth allows'],
+        ['Low-battery warning', 'AXP2101 battery level to a HUD icon', 'Firmware proposal'],
+    ], [2.6, 4.2, 2.2])
+    d.h2('A1 BOM additions (candidates, not locked)')
+    d.table(['Qty', 'Part', 'Requirement'], [
+        ['1', 'Lens', '1.0-1.5 mm clear acrylic or polycarbonate, cut to the window recess'],
+        ['1', 'Face overlay', 'Full-colour printed film with a clear protective laminate, die- or knife-cut'],
+        ['3', 'Pill switches', '6 x 6 mm tactile switches, or domes on the same sheet (OFF, SOUND, PAUSE)'],
+        ['1 set', 'Rubber domes + button PCB', 'Option B wing buttons'],
+        ['1', 'Battery door', 'Printed, with one captive M2 screw'],
+        ['1', 'AA holder + 5 V boost', 'Option B power only'],
+        ['1 set', 'Labels', 'Rear label plate and pill labels, vinyl'],
+    ], [0.8, 2.6, 5.6])
+    d.h2('A1 acceptance tests (in addition to section 12)')
+    d.table(['Test', 'Method', 'Pass'], [
+        ['Button feel', '3 players, 10 minutes each, A and B wing buttons', 'A clear preference; no missed or double flaps'],
+        ['Pills', 'OFF, SOUND, PAUSE, ON/START 50 presses each; ALL CLEAR 10', 'Every press acts once; ALL CLEAR always restarts into a new run'],
+        ['Battery door', '20 open / close cycles', 'Screw holds; door does not rattle'],
+        ['Drop', 'Five drops from 1 m onto carpet', 'No rattles, cracks or loose parts; the game still plays'],
+        ['Runtime', 'Play from full until the low-battery warning', 'Measured hours recorded; meets the number chosen for A1'],
+        ['Lens', 'Room light and window light', 'Picture readable; no glare complaint, or anti-glare lens chosen'],
+    ], [1.6, 3.6, 3.8])
+    d.p('If STRUTHIO is ever sold or given as a toy, the applicable toy-safety rules apply (for example EN 71 in Europe and '
+        'ASTM F963 in the United States, which among other things cover battery compartments and small parts), as do '
+        'lithium-battery rules. That is outside A1, which is a prototype for adults to test.')
+
+    # ---- 12 ------------------------------------------------------------------------------
+    d.h1('12. Bring-up on the board')
     d.p('Before the board arrives, `handheld/run_tests.sh` must pass. Then, in this order, so faults stay separable:')
     d.steps([
         'Record the board revision. Flash and run Waveshare\'s own ESP-IDF example unchanged.',
@@ -388,7 +550,7 @@ def write(d, root, v04):
         'If 16-line bands misbehave on the AXS15231B, try larger bands or full-frame writes and record which works.',
         'Wire the audio (ES8311 + NS4150B) at low gain with the 8-ohm speaker.',
         'Print the front shell only; test the LCD opening and board width. Then one wing cap; tune `SWITCH_PCB_PLANE_Z`. Then the rear shell.',
-        'Battery last: polarity, charge, low-battery and shutdown behaviour before enclosing the cell.'])
+        'Battery last: polarity, charge, low-battery and shutdown behaviour before enclosing the cell. Measure the current in play, at idle and at each backlight level: the A1 runtime comes from these numbers.'])
     d.h2('If the renderer is too slow')
     d.p('The frame budget at 30 fps is 33 ms over two cores, and the scene builder runs in the game task every tick. '
         'In order of cost to fidelity:')
@@ -411,7 +573,7 @@ def write(d, root, v04):
     ], [1.6, 3.2, 4.2])
 
     # ---- 12 ------------------------------------------------------------------------------
-    d.h1('12. Known deviations from the browser')
+    d.h1('13. Known deviations from the browser')
     d.p('Every intentional difference is named here rather than left to drift.')
     d.table(['Deviation', 'Why'], [
         ['DART is a held two-wing gesture (trial C), not a downward flick', 'two buttons cannot flick; pending a thumb test'],
@@ -422,31 +584,37 @@ def write(d, root, v04):
         ['No island music pulse (0-4%)', 'no music yet; small effect'],
         ['Display at <= 30 fps, simulation at 60 Hz', 'panel bandwidth and render time; to be measured'],
         ['Audio: not yet implemented (cue hook only)', 'needs the board'],
+        ['A1 adds OFF, SOUND and PAUSE pills, ALL CLEAR and auto power-off, which the browser does not have', 'the handheld\'s own housekeeping, 1990s style'],
     ], [4.6, 4.4])
     d.h2('Risk register')
     d.table(['Risk', 'Impact', 'Mitigation / trigger'], [
-        ['Renderer too slow on the ESP32-S3', 'High', 'measured at bring-up step 6; see section 11 for the order of fixes'],
+        ['Renderer too slow on the ESP32-S3', 'High', 'measured at bring-up step 6; see section 12 for the order of fixes'],
         ['QSPI panel bandwidth', 'High', 'bands go out as they finish; try band sizes and full-frame writes; 30 fps target'],
         ['First real `idf.py build` finds SDK mismatches', 'Medium', 'small, local fixes; the shim only type-checks'],
         ['DART gesture under a real thumb', 'High', 'trials A/B/C switchable in service mode without a rebuild'],
         ['Flash-cache contention between textures and the panel DMA', 'Medium', 'move hot textures to PSRAM'],
         ['Simulation drift after a browser update', 'High', 'port authority `--check` and the goldens fail until ported'],
         ['Enclosure built too early', 'Medium', 'no final shell until the bare-board prototype passes A0'],
+        ['Battery life far below the 1990s originals', 'Medium', 'measure first; auto-off, backlight levels, LiPo size; say so on the box'],
+        ['AA option does not fit the 25 mm depth', 'Medium', 'rear bulge or LiPo only; decided from the depth check'],
+        ['Rubber-dome feel or bounce unsuitable', 'Medium', 'keep the B3F tactile construction'],
+        ['Look too close to another company\'s product', 'Medium', 'STRUTHIO art and palette only; no third-party marks or trade dress'],
     ], [3.2, 1.0, 4.8])
 
     # ---- 13 ------------------------------------------------------------------------------
-    d.h1('13. Next work and open decisions')
+    d.h1('14. Next work and open decisions')
     d.steps([
-        'Bring up the board (section 11) and record the first device numbers: µs per tick, scene µs, render ms, panel ms.',
+        'Bring up the board (section 12) and record the first device numbers: µs per tick, scene µs, render ms, panel ms.',
         'Lock the DART gesture after a thumb test.',
         'Lock 30 fps or a higher rate from the measurements.',
         'Audio: one embedded music stream and pre-rendered SFX cues through the ES8311; audio never touches the game state.',
-        'Battery, then the full A0 shell, then the A1 industrial design.'])
+        'Battery, then the full A0 shell.',
+        'A1 (section 11): reference-unit study, A1 CAD for the 158 mm portable-arcade body, wing-button feel test (tactile vs rubber dome), pill GPIOs, OFF / SOUND / PAUSE / auto-off firmware, print-ready face overlay from the box art, battery door, then the A1 print.'])
     d.p('Open decisions: whether retail boot shows a sub-second mark or nothing; USB-only updates or a hidden OTA path; '
         'the shell shrink from 88 x 128 x 25 mm toward 85 x 125 x 23 mm after the fit print.')
 
     # ---- 14 ------------------------------------------------------------------------------
-    d.h1('14. Repository map')
+    d.h1('15. Repository map')
     d.code([
         'handheld/',
         '  core/       C11 simulation, normalizer, digests, replay (portable, no heap)',
@@ -455,7 +623,7 @@ def write(d, root, v04):
         '  host/       replay, scene/raster/panel checks, amb_test, make_pak',
         '  tools/      golden exporter, generators, port authority, browser reference capture, this manual',
         '  golden/     five browser-recorded traces',
-        '  cad/        A0 enclosure: OpenSCAD source, STLs, renders',
+        '  cad/        A0 enclosure (OpenSCAD source, STLs, renders); a1/: portable-arcade layout drawing',
         '  docs/       this manual, graphics port, validation report, bring-up, wiring, BOM, port authority',
         '  run_tests.sh'])
     d.p('This manual is generated: `python3 handheld/tools/manual/build_manual.py STRUTHIO_ESP32_HANDHELD_v0.4.docx` '
@@ -471,15 +639,35 @@ def write(d, root, v04):
 
     # ---- appendix ------------------------------------------------------------------------
     d.h1('Appendix A. Industrial design direction (carried from v0.3)', new_page=True)
-    d.p('Concept visualisations for planning, not fabrication authority. Geometry in section 10 is the engineering authority.')
+    d.p('Concept visualisations for planning, not fabrication authority. Geometry in sections 10 and 11 is the engineering authority.')
     d.figure(v04('image3.png'), 'FIGURE A - Preferred product direction: graphite shell, warm retro stripes, two dominant wing controls, portrait display.', 1.0)
     d.figure(v04('image1.png'), 'FIGURE B - Integrated final-design board: front, perspective, rear, side, packaging and exploded assembly.', 1.0)
     d.figure(v04('image2.png'), 'FIGURE C - Heritage handheld direction: two buttons first, the game screen second, everything else hidden.', 1.0)
-    d.h1('Appendix B. Change history')
+    d.h1('Appendix B. Change history', new_page=True)
     d.table(['Version', 'Date', 'Change'], [
         ['v0.1-v0.2', '2026-09', 'Prototype path from STRUTHIO ARCADE 1.6.0; industrial design boards.'],
         ['v0.3', '2026-09-28', 'CAD and ESP32-S3 engineering kickoff.'],
         ['v0.4', '2026-09-28', 'A0 enclosure files, GPIO17/18 wing lock, host-tested input scaffold.'],
         ['v0.5', '2026-10-01', 'Simulation ported to C, bit-exact with 1.8.0 on 75,144 ticks; exact normalizer; DART trials measured; firmware on the core.'],
         ['v0.6', '2026-10-01', 'Browser renderer ported (scene builder equal on every tick; materials and post measured vs WebGPU; HUD captured); asset pack; two-core panel renderer; firmware renders the browser picture. Manual rewritten for the C port.'],
+        ['v0.7', '2026-10-01', 'Hardware chapter for A1, a 1990s-style "portable arcade" handheld: reference units, layout drawing with the game\'s box art, buttons, power and battery door, screen window, shell and labels, reference-unit study, A1 BOM and tests; player\'s instruction sheet (Appendix C).'],
     ], [1.2, 1.4, 6.4])
+    d.h1('Appendix C. Player\'s instruction sheet (draft)', new_page=True)
+    d.p('The folded sheet that goes in the box, in the 1990s style: short, friendly, nothing a player does not need. '
+        'Rules are taken from the game itself (STRUTHIO ARCADE 1.8.0, as ported).')
+    d.callout('STRUTHIO PORTABLE ARCADE  -  HOW TO PLAY', [
+        '**TURN ON.** Press ON/START. The game starts by itself. OFF switches it off.',
+        '**FLY.** Press the LEFT WING or the RIGHT WING to flap that way. Hold a wing to steer.',
+        '**STRAIGHT UP.** Press both wings together.',
+        '**DART.** Hold both wings down to dive the way you are facing.',
+        '**JOUST.** Meet a rival with your lance higher than theirs to knock them off. Rising straight up always wins. Lances level? You both bounce.',
+        '**EGGS.** A beaten rival leaves an egg. Grab it before it hatches: 250, 500, 750, then 1,000 points for each egg in a row.',
+        '**RINGS.** Fly through the six rings (500 points each). When all six are yours, the gold ring opens at the moon: reach it to clear the round.',
+        '**LIVES.** You start with 11 jousts. Extra ones at 30,000 points and every 100,000 after. Keep out of the lava.',
+        '**GAME OVER.** Hold both wings to play again.'], fill='F0EFE7', bar='E2A93F')
+    d.callout('BUTTONS AND CARE', [
+        '**SOUND** turns the speaker on and off.  **PAUSE** stops the game; press again to go on.  **ALL CLEAR** (the little hole) restarts the game: press it gently with the end of a paper clip.',
+        'Charge with a USB-C cable at the bottom. If the game ever stops responding, press ALL CLEAR.',
+        'Keep away from water. Do not open the battery door except to change batteries.'], fill='EAF4F4', bar='20C4D7')
+    d.p('OFF, SOUND, PAUSE, ALL CLEAR, the battery door and the charging line depend on A1 choices still open; edit the sheet when they are locked.',
+        size=17, color='60656C')
