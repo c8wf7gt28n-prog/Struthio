@@ -119,6 +119,7 @@ try {
     input.setMode('PLAY');
     const ptr = { n: 0, L: 0, R: 0 };
     const sc = new Scene(R, atlas);
+    ref.replayScene = sc;
     const camera = new TowerCamera();
     const feel = freshFeelState();
     const popups = [];

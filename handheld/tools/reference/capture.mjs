@@ -77,7 +77,8 @@ for (const name of TRACES) {
 }
 if (wantTextures) {
   const meta = await page.evaluate(async () => {
-    const { atlas, art, globe, scene } = window.__ref;
+    const { atlas, art, globe } = window.__ref;
+    const scene = window.__ref.replayScene;
     const post = (file, data) => fetch('/upload/tex_' + file, { method: 'POST', body: new Blob([data]) });
     await post('atlas.rgba', atlas.surface.p);
     await post('world.rgba', atlas.world.p);
