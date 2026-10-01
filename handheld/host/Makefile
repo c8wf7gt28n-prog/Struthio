@@ -6,8 +6,8 @@ CORE = ../core/struthio_sim.c ../core/struthio_tower.c ../core/struthio_digest.c
 HDRS = ../core/struthio_core.h ../core/struthio_input.h ../core/struthio_replay.h ../core/struthio_rules.h
 BUILD = build
 
-RENDER = ../render/struthio_greybox.c ../render/struthio_scene.c ../render/struthio_scene_data.c
-all: $(BUILD)/replay $(BUILD)/render_demo $(BUILD)/scene_check
+RENDER = ../render/struthio_greybox.c ../render/struthio_scene.c ../render/struthio_scene_data.c ../render/struthio_raster.c
+all: $(BUILD)/replay $(BUILD)/render_demo $(BUILD)/scene_check $(BUILD)/raster_check
 
 $(BUILD)/replay: replay.c $(CORE) $(HDRS)
 	@mkdir -p $(BUILD)
@@ -20,6 +20,10 @@ $(BUILD)/render_demo: render_demo.c $(CORE) $(RENDER) $(HDRS) ../render/struthio
 $(BUILD)/scene_check: scene_check.c $(CORE) $(RENDER) $(HDRS) ../render/struthio_scene.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I../core -I../render scene_check.c $(CORE) $(RENDER) -lm -o $@
+
+$(BUILD)/raster_check: raster_check.c $(CORE) $(RENDER) $(HDRS) ../render/struthio_raster.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I../core -I../render raster_check.c $(CORE) $(RENDER) -lm -o $@
 
 scene: $(BUILD)/scene_check
 	./$(BUILD)/scene_check ../golden/*.trace
