@@ -2,15 +2,20 @@
 #   make -C handheld/host test
 CC ?= cc
 CFLAGS ?= -std=c11 -Wall -Wextra -Werror -O2
-CORE = ../core/struthio_sim.c ../core/struthio_tower.c ../core/struthio_digest.c ../core/struthio_input.c
-HDRS = ../core/struthio_core.h ../core/struthio_input.h
+CORE = ../core/struthio_sim.c ../core/struthio_tower.c ../core/struthio_digest.c ../core/struthio_input.c ../core/struthio_replay.c
+HDRS = ../core/struthio_core.h ../core/struthio_input.h ../core/struthio_replay.h ../core/struthio_rules.h
 BUILD = build
 
-all: $(BUILD)/replay
+RENDER = ../render/struthio_greybox.c
+all: $(BUILD)/replay $(BUILD)/render_demo
 
 $(BUILD)/replay: replay.c $(CORE) $(HDRS)
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I../core replay.c $(CORE) -o $@
+
+$(BUILD)/render_demo: render_demo.c $(CORE) $(RENDER) $(HDRS) ../render/struthio_greybox.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I../core -I../render render_demo.c $(CORE) $(RENDER) -o $@
 
 test: $(BUILD)/replay
 	./$(BUILD)/replay ../golden/*.trace

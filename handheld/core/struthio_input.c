@@ -1,6 +1,11 @@
 // STRUTHIO HANDHELD · InputNormalizer port (arcade/src/input/input.mjs).
 #include "struthio_input.h"
 #include <string.h>
+#include "struthio_rules.h"
+
+_Static_assert(ST_NORM_CHORD_WINDOW_MS == STR_INPUT_CHORD_WINDOW_MS, "chord window differs from rules.mjs");
+_Static_assert(ST_NORM_FLAP_BUFFER_TICKS == STR_INPUT_FLAP_BUFFER_TICKS, "flap buffer differs from rules.mjs");
+_Static_assert(ST_NORM_QUEUE_MAX == STR_SIM_INPUT_FLAP_QUEUE_MAX, "flap queue differs from rules.mjs");
 
 static int idx(st_side_t side) { return side == ST_SIDE_RIGHT ? 1 : 0; }
 static bool regions_enabled(const st_norm_t *n) { return n->mode == ST_MODE_PLAY || n->mode == ST_MODE_ATTRACT; }
