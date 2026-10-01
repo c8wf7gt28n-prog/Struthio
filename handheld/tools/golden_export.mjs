@@ -11,15 +11,7 @@
 //   node handheld/tools/golden_export.mjs --check    # regenerate and compare
 //   node handheld/tools/golden_export.mjs --dump NAME TICK   # canonical state line
 //
-// Trace format (little-endian), version 1:
-//   "STRGOLD1"  u32 headerLen  header JSON (utf-8)
-//   per tick:   u8 nOps, nOps x {u8 msOffset, u8 op}, u8 acceptFlap (bit1 in raw
-//               traces: the dart has no side), u8 frame,
-//               8 bytes of the tick digest (first 16 hex digits)
-//   op: 1 LEFT_DOWN 2 LEFT_UP 3 RIGHT_DOWN 4 RIGHT_UP 5 DART_LEFT 6 DART_RIGHT
-//       7 CLEANUP (the session's input.cleanup() after a death / game over)
-//   frame: bit0 left, bit1 right, bit2 flapEdge, bit3 chordEdge, bit4 dartEdge,
-//          bit5 dartSide RIGHT, bits6-7 flapKind (1 LEFT, 2 RIGHT, 3 STRAIGHT)
+// Trace format: see trace.mjs.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -28,14 +20,14 @@ import R from '../../arcade/src/data/rules.mjs';
 import { Game } from '../../arcade/src/sim/game.mjs';
 import { InputNormalizer } from '../../arcade/src/input/input.mjs';
 import * as T from '../../arcade/src/sim/tower.mjs';
-import { SHIMMER_TICKS } from '../../arcade/src/sim/state.mjs';
 import { canonicalOf } from './canonical_line.mjs';
+import { OP, tickTimeMs, applyOp, encodeFrame, canAcceptBufferedFlap, applyCheats as applyHeaderCheats } from './trace.mjs';
+export { OP };
+const applyCheats = (s, sc) => applyHeaderCheats(s, sc);
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const GOLDEN = path.join(here, '..', 'golden');
 const SUB = 256;
-export const OP = { LEFT_DOWN: 1, LEFT_UP: 2, RIGHT_DOWN: 3, RIGHT_UP: 4, DART_LEFT: 5, DART_RIGHT: 6, CLEANUP: 7 };
-const KIND = { LEFT: 1, RIGHT: 2, STRAIGHT: 3 };
 
 // Scenarios. cheats: livesFloor keeps lives >= 3, shield keeps the player
 // unbeatable in jousts (the arcade tower soak test's harness pokes, applied
@@ -142,34 +134,6 @@ function makeHands() {
   };
 }
 
-export function tickTimeMs(tick) { return Math.floor((tick * 1000) / 60); }
-
-// Applies one recorded op to the browser InputNormalizer, as the session's
-// touch-controller path would (one pointer per wing press).
-export function applyOp(input, op, ptr) {
-  switch (op) {
-    case OP.LEFT_DOWN: ptr.L = ++ptr.n; input.controlPointerDown(ptr.L, 'LEFT_WING'); break;
-    case OP.LEFT_UP: input.pointerUp(ptr.L); break;
-    case OP.RIGHT_DOWN: ptr.R = ++ptr.n; input.controlPointerDown(ptr.R, 'RIGHT_WING'); break;
-    case OP.RIGHT_UP: input.pointerUp(ptr.R); break;
-    // a dart belongs to the wing's latest press (a physical wing has one pointer)
-    case OP.DART_LEFT: if (!ptr.L) ptr.L = ++ptr.n; input.controlDart(ptr.L, 'LEFT_WING'); break;
-    case OP.DART_RIGHT: if (!ptr.R) ptr.R = ++ptr.n; input.controlDart(ptr.R, 'RIGHT_WING'); break;
-    case OP.CLEANUP: input.cleanup(); break;
-  }
-}
-export function encodeFrame(f) {
-  return (f.left ? 1 : 0) | (f.right ? 2 : 0) | (f.flapEdge ? 4 : 0) | (f.chordEdge ? 8 : 0) |
-    (f.dartEdge ? 16 : 0) | (f.dartSide === 'RIGHT' ? 32 : 0) | ((f.flapEdge ? KIND[f.flapKind] || 0 : 0) << 6);
-}
-export function canAcceptBufferedFlap(s) {           // arcade/src/app/session.mjs
-  if (!s || s.sim.shell !== 'PLAY') return true;
-  return s.player.flapCooldown === 0 && s.player.wing > 0 && s.player.invulnerableTicks <= SHIMMER_TICKS;
-}
-export function applyCheats(s, sc) {
-  if (sc.livesFloor && s.sim.lives < 3) s.sim.lives = 3;
-  if (sc.shield && s.player.invulnerableTicks < 2) s.player.invulnerableTicks = 2;
-}
 export function newScenarioGame(sc) {
   const g = new Game(R, { seed: sc.seed });
   g.state.tower.round = sc.startRound;
