@@ -67,6 +67,12 @@ void st_bird_ink(const float in[3], int ink, float phase, float jouster, float o
 void st_island_palette(const float in[3], float out[3]);
 void st_grade_arcade(const float in[3], float out[3]);
 void st_tone(const float in[3], float out[3]);     // exposure 1.8, white 1.6
+// World plate texel at full-resolution plate coordinates (wx, wy): the turning
+// moon and the Arcade ambience. tx supplies only the globe map and its params.
+void st_world_shade(float rgb[3], float wx, float wy, const st_textures_t *tx, const st_frame_params_t *fp);
+// The island material's music-driven pulse for an island texel's ORIGINAL
+// colour (before the palette): a brightness factor of 1.0 to ~1.04.
+float st_island_pulse(const float in[3], float t, const st_frame_params_t *fp);
 
 #ifdef __cplusplus
 }

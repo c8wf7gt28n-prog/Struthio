@@ -106,6 +106,20 @@ void st_island_palette(const float in[3], float out[3]) {
     v3 o = hsv_pick(mx, s2, h + 360.0f);
     out[0] = o.r; out[1] = o.g; out[2] = o.b;
 }
+v3 st_globe_surface_(v3 base, float wx, float wy, const st_textures_t *tx, float spin);
+v3 st_arcade_ambient_(v3 base, float wx, float wy, float t, const st_frame_params_t *fp, const st_textures_t *tx);
+float st_island_pulse(const float in[3], float t, const st_frame_params_t *fp) {
+    float red = (in[0] > 0.55f && in[1] < 0.40f && in[0] > in[2] * 1.4f) ? 1.0f : 0.0f;
+    float core = clampf((minf(in[1], in[2]) - in[0] - 0.15f) / 0.35f, 0, 1) * stepf(0.6f, in[2]);
+    float amp = fp->motion * (0.04f + 0.08f * fp->beat) * (0.75f + 0.25f * wave1(t * 0.0079577f));
+    return 1.0f + amp * maxf(red, core);
+}
+void st_world_shade(float rgb[3], float wx, float wy, const st_textures_t *tx, const st_frame_params_t *fp) {
+    v3 w = V3(rgb[0], rgb[1], rgb[2]);
+    w = st_globe_surface_(w, wx, wy, tx, fractf(fp->moon_phase));
+    w = st_arcade_ambient_(w, wx, wy, fp->ambient_tick, fp, tx);
+    rgb[0] = w.r; rgb[1] = w.g; rgb[2] = w.b;
+}
 static v3 arcade_island(v3 c, float t, const st_frame_params_t *fp) {
     float in[3] = {c.r, c.g, c.b}, o[3];
     st_island_palette(in, o);
@@ -122,7 +136,8 @@ static float fx_hash(float px, float py) {
     a += d; b += d; c += d;
     return fractf((a + b) * c);
 }
-static v3 globe_surface(v3 base, float wx, float wy, const st_textures_t *tx, float spin) {
+v3 st_globe_surface_(v3 base, float wx, float wy, const st_textures_t *tx, float spin);
+v3 st_globe_surface_(v3 base, float wx, float wy, const st_textures_t *tx, float spin) {
     if (wx >= 768.0f) return base;
     const float *g = tx->globe_params;
     float r = fabsf(g[2]);
@@ -142,7 +157,8 @@ static v3 globe_surface(v3 base, float wx, float wy, const st_textures_t *tx, fl
     float detail = p[0] / 255.0f * 4.0f;
     return clamp3(V3(q[1] / 255.0f * detail, q[2] / 255.0f * detail, q[3] / 255.0f * detail));
 }
-static v3 arcade_ambient(v3 base, float wx, float wy, float t, const st_frame_params_t *fp, const st_textures_t *tx) {
+v3 st_arcade_ambient_(v3 base, float wx, float wy, float t, const st_frame_params_t *fp, const st_textures_t *tx);
+v3 st_arcade_ambient_(v3 base, float wx, float wy, float t, const st_frame_params_t *fp, const st_textures_t *tx) {
     float hi = max3(base);
     float lit = clampf((hi - 0.16f) * 3.0f, 0, 1);
     float horizon = fp->horizon;
@@ -263,8 +279,8 @@ void st_raster_scene(uint8_t *scene, float *depth, const st_grid_t *g, const st_
                 if (mat == ST_MAT_WORLD) {
                     v3 w = V3(s[0] / 255.0f, s[1] / 255.0f, s[2] / 255.0f);
                     float wx = uu * (float)tt->w, wy = vv * (float)tt->h;
-                    w = globe_surface(w, wx, wy, tx, spin);
-                    w = arcade_ambient(w, wx, wy, fp->ambient_tick, fp, tx);
+                    w = st_globe_surface_(w, wx, wy, tx, spin);
+                    w = st_arcade_ambient_(w, wx, wy, fp->ambient_tick, fp, tx);
                     c[0] = w.r; c[1] = w.g; c[2] = w.b; c[3] = s[3] / 255.0f;
                 } else if ((mat >= 2 && mat <= 7) || mat == ST_MAT_PLAYER) {
                     float in[3] = {s[0] / 255.0f, s[1] / 255.0f, s[2] / 255.0f};
