@@ -13,7 +13,8 @@
 //
 // Trace format (little-endian), version 1:
 //   "STRGOLD1"  u32 headerLen  header JSON (utf-8)
-//   per tick:   u8 nOps, nOps x {u8 msOffset, u8 op}, u8 acceptFlap, u8 frame,
+//   per tick:   u8 nOps, nOps x {u8 msOffset, u8 op}, u8 acceptFlap (bit1 in raw
+//               traces: the dart has no side), u8 frame,
 //               8 bytes of the tick digest (first 16 hex digits)
 //   op: 1 LEFT_DOWN 2 LEFT_UP 3 RIGHT_DOWN 4 RIGHT_UP 5 DART_LEFT 6 DART_RIGHT
 //       7 CLEANUP (the session's input.cleanup() after a death / game over)
@@ -205,6 +206,8 @@ function run(sc, { dumpTick = -1 } = {}) {
       const chordEdge = want.chord || (want.jitter & 7) === 0;
       frame = { left: want.dir < 0, right: want.dir > 0, flapEdge: want.flap || chordEdge && (want.jitter & 1) === 0,
         flapKind: kind, chordEdge, flapHeld: false, dartEdge: !!want.dart, dartSide: want.dart ? (want.dart < 0 ? 'LEFT' : 'RIGHT') : null };
+      // a side-less dart (the handheld's both-wings DART): the sim darts toward facing
+      if (frame.dartEdge && (want.jitter % 3) === 0) frame.dartSide = null;
       if (!frame.flapEdge) { frame.flapKind = null; frame.chordEdge = false; }
     } else {
       hands(want, tick, ops);
@@ -220,7 +223,7 @@ function run(sc, { dumpTick = -1 } = {}) {
     let o = 0;
     rec[o++] = ops.length;
     for (const [ms, op] of ops) { rec[o++] = ms; rec[o++] = op; }
-    rec[o++] = accept ? 1 : 0;
+    rec[o++] = (accept ? 1 : 0) | (frame.dartEdge && !frame.dartSide ? 2 : 0);   // bit1: raw side-less dart
     rec[o++] = encodeFrame(frame);
     Buffer.from(r.digest.slice(0, 16), 'hex').copy(rec, o);
     chunks.push(rec);

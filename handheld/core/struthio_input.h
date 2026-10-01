@@ -34,6 +34,8 @@ void st_norm_init(st_norm_t *n);
 void st_norm_set_mode(st_norm_t *n, st_mode_t mode);       // a mode change cleans up
 void st_norm_wing_down(st_norm_t *n, st_side_t side, uint32_t now_ms);
 void st_norm_wing_up(st_norm_t *n, st_side_t side);
+// side NONE (handheld only) darts toward the bird's facing, as the sim does
+// for a frame with dartEdge and no dartSide.
 bool st_norm_dart(st_norm_t *n, st_side_t side);
 void st_norm_cleanup(st_norm_t *n);                        // after a death / game over
 // One frame per 60 Hz tick. accept_flap = st_can_accept_buffered_flap(state).

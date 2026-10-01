@@ -59,9 +59,12 @@ void st_norm_wing_up(st_norm_t *n, st_side_t side) {                     // poin
     n->darted[idx(side)] = false;
 }
 bool st_norm_dart(st_norm_t *n, st_side_t side) {                        // controlDart -> queueDart
-    int i = idx(side);
-    if (n->darted[i] || n->n_darts >= ST_NORM_QUEUE_MAX) return false;
-    n->darted[i] = true;
+    if (n->n_darts >= ST_NORM_QUEUE_MAX) return false;
+    if (side != ST_SIDE_NONE) {                 // ST_SIDE_NONE: a handheld dart toward facing
+        int i = idx(side);
+        if (n->darted[i]) return false;
+        n->darted[i] = true;
+    }
     n->dart_queue[n->n_darts++] = (uint8_t)side;
     return true;
 }
@@ -84,7 +87,8 @@ st_input_t st_norm_frame(st_norm_t *n, bool accept_flap) {
         if (n->flap_wait_ticks >= ST_NORM_FLAP_BUFFER_TICKS) { n->n = 0; n->flap_wait_ticks = 0; }
     } else n->flap_wait_ticks = 0;
     st_side_t dart = ST_SIDE_NONE;
-    if (n->n_darts > 0) {
+    bool have_dart = n->n_darts > 0;
+    if (have_dart) {
         dart = (st_side_t)n->dart_queue[0];
         for (int i = 1; i < n->n_darts; i++) n->dart_queue[i - 1] = n->dart_queue[i];
         n->n_darts--;
@@ -94,7 +98,7 @@ st_input_t st_norm_frame(st_norm_t *n, bool accept_flap) {
     f.flap_edge = have;
     f.flap_kind = have ? kind : ST_FLAP_NONE;
     f.chord_edge = have && chord;
-    f.dart_edge = dart != ST_SIDE_NONE;
+    f.dart_edge = have_dart;
     f.dart_side = dart;
     return f;
 }

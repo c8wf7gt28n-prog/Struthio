@@ -97,12 +97,16 @@ bool st_replay(const uint8_t *data, size_t size, bool verify, st_replay_tick_fn 
             case 7: st_norm_cleanup(&g_norm); break;
             }
         }
-        bool want_accept = *p++ != 0;
+        bool want_accept = (*p & 1) != 0, sideless_dart = (*p & 2) != 0;
+        p++;
         uint8_t want_frame = *p++;
         const uint8_t *want_digest = p;
         p += 8;
         st_input_t in;
-        if (raw) in = decode_frame(want_frame);
+        if (raw) {
+            in = decode_frame(want_frame);
+            if (sideless_dart) in.dart_side = ST_SIDE_NONE;
+        }
         else {
             bool accept = st_can_accept_buffered_flap(&g_s);
             char why[64];
