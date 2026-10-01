@@ -32,6 +32,20 @@ BaseType_t xTaskCreatePinnedToCore(TaskFunction_t fn, const char *name, const ui
 uint32_t ulTaskNotifyTake(BaseType_t clear, TickType_t wait);
 #define xTaskNotifyGive(t) xTaskGenericNotify_shim(t)
 BaseType_t xTaskGenericNotify_shim(TaskHandle_t t);
+typedef void *SemaphoreHandle_t;
+SemaphoreHandle_t xSemaphoreCreateMutex(void);
+SemaphoreHandle_t xSemaphoreCreateBinary(void);
+BaseType_t xSemaphoreTake(SemaphoreHandle_t s, TickType_t wait);
+BaseType_t xSemaphoreGive(SemaphoreHandle_t s);
+// partitions
+typedef enum { ESP_PARTITION_TYPE_APP = 0, ESP_PARTITION_TYPE_DATA = 1 } esp_partition_type_t;
+typedef int esp_partition_subtype_t;
+typedef struct { esp_partition_type_t type; esp_partition_subtype_t subtype; uint32_t address, size; char label[17]; } esp_partition_t;
+typedef enum { ESP_PARTITION_MMAP_DATA = 0, ESP_PARTITION_MMAP_INST = 1 } esp_partition_mmap_memory_t;
+typedef uint32_t esp_partition_mmap_handle_t;
+const esp_partition_t *esp_partition_find_first(esp_partition_type_t type, esp_partition_subtype_t subtype, const char *label);
+esp_err_t esp_partition_mmap(const esp_partition_t *p, size_t offset, size_t size, esp_partition_mmap_memory_t memory,
+                             const void **out_ptr, esp_partition_mmap_handle_t *out_handle);
 // GPIO
 typedef int gpio_num_t;
 typedef enum { GPIO_MODE_INPUT = 1 } gpio_mode_t;

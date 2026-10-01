@@ -74,22 +74,45 @@ void st_hud_update(st_hud_t *h, const st_hud_assets_t *a, const st_state_t *s, c
 }
 
 // ---- band compositing -------------------------------------------------------------------------
-typedef struct { uint8_t rgb[ST_BAND_ROWS][ST_PANEL_W][3]; uint16_t depth[ST_BAND_ROWS][ST_GAME_W]; } band_t;
+typedef st_panel_work_t band_t;
 
+// HUD layers are premultiplied RGBA8, raw or run-length coded per row
+// (struthio_pak.h): a token t, t >> 6 = 0: (t & 63) + 1 literal pixels follow;
+// 2: that many transparent pixels; 3: that many pixels as in the base layer.
+// Decodes one row into out (w pixels; NULL just advances); returns the next row.
+static const uint8_t *rle_row(const uint8_t *src, int w, uint8_t (*out)[4]) {
+    for (int x = 0; x < w;) {
+        uint8_t t = *src++;
+        int n = (t & 63) + 1, k = t >> 6;
+        if (out) {
+            if (k == 0) memcpy(out[x], src, (size_t)n * 4);
+            else if (k == 2) memset(out[x], 0, (size_t)n * 4);
+        }
+        if (k == 0) src += n * 4;
+        x += n;
+    }
+    return src;
+}
 static void layer_over(band_t *b, int y0, int rows, const st_hud_layer_t *l, float opacity, float bright) {
     if (!l || !l->p || !l->w || opacity <= 0) return;
     int ly0 = l->y > y0 ? l->y : y0, ly1 = l->y + l->h < y0 + rows ? l->y + l->h : y0 + rows;
+    if (ly0 >= ly1) return;
+    uint8_t (*px)[4] = b->hud_row;
+    const uint8_t *src = l->p, *bsrc = l->base ? l->base->p : NULL;
+    if (l->rle) for (int y = l->y; y < ly0; y++) { src = rle_row(src, l->w, NULL); if (bsrc) bsrc = rle_row(bsrc, l->w, NULL); }
+    else src += (size_t)(ly0 - l->y) * l->w * 4;
     for (int y = ly0; y < ly1; y++) {
-        const uint8_t *src = l->p + ((size_t)(y - l->y) * l->w) * 4;
+        if (l->rle) {
+            if (bsrc) bsrc = rle_row(bsrc, l->w, px);     // the base row first; copy runs keep it
+            src = rle_row(src, l->w, px);
+        } else { memcpy(px, src, (size_t)l->w * 4); src += (size_t)l->w * 4; }
         uint8_t (*dst)[3] = b->rgb[y - y0];
-        for (int x = 0; x < l->w; x++, src += 4) {
-            int px = l->x + x;
-            if (px < 0 || px >= ST_PANEL_W || !src[3]) continue;
-            float a = src[3] / 255.0f * opacity, ia = 1.0f - a;
-            for (int c = 0; c < 3; c++) {
-                float v = src[c] / 255.0f * opacity * bright + dst[px][c] / 255.0f * ia;
-                dst[px][c] = u8f(v);
-            }
+        for (int x = 0; x < l->w; x++) {
+            const uint8_t *q = px[x];
+            int x_ = l->x + x;
+            if (!q[3] || x_ < 0 || x_ >= ST_PANEL_W) continue;
+            float a = q[3] / 255.0f * opacity, ia = 1.0f - a;
+            for (int c = 0; c < 3; c++) dst[x_][c] = u8f(q[c] / 255.0f * opacity * bright + dst[x_][c] / 255.0f * ia);
         }
     }
 }
@@ -120,12 +143,26 @@ static void hud_over(band_t *b, int y0, int rows, const st_hud_assets_t *a, cons
     if (h->toast) layer_over(b, y0, rows, h->toast, h->toast_opacity * op, 1);
 }
 
-static inline const uint8_t *tex_at(const st_tex_t *t, int x, int y) {
+// One texel as RGBA8 (plus the attribute bytes of the world plates).
+static inline void texel(const st_tex_t *t, int x, int y, uint8_t o[4], uint8_t attr[2]) {
     x = x < 0 ? 0 : x >= t->w ? t->w - 1 : x;
     y = y < 0 ? 0 : y >= t->h ? t->h - 1 : y;
-    return t->p + ((size_t)y * t->w + x) * 4;
+    size_t i = (size_t)y * t->w + x;
+    const uint8_t *p;
+    uint16_t c;
+    switch (t->format) {
+    case ST_TEX_565: p = t->p + i * 2; c = (uint16_t)(p[0] | p[1] << 8); o[3] = 255; break;
+    case ST_TEX_565A8: p = t->p + i * 3; c = (uint16_t)(p[0] | p[1] << 8); o[3] = p[2]; break;
+    case ST_TEX_REAR: p = t->p + i * 4; c = (uint16_t)(p[0] | p[1] << 8); o[3] = 255; attr[0] = p[2]; attr[1] = p[3]; break;
+    case ST_TEX_NEAR: p = t->p + i * 4; c = (uint16_t)(p[0] | p[1] << 8); o[3] = p[2]; attr[0] = p[3]; break;
+    default: p = t->p + i * 4; memcpy(o, p, 4); return;
+    }
+    o[0] = (uint8_t)(((c >> 11) * 255 + 15) / 31);
+    o[1] = (uint8_t)((((c >> 5) & 63) * 255 + 31) / 63);
+    o[2] = (uint8_t)(((c & 31) * 255 + 15) / 31);
 }
-static void draw_quads(band_t *b, int y0, int rows, const st_panel_textures_t *tx, const st_quads_t *q, const st_frame_params_t *fp) {
+static void draw_quads(band_t *b, int y0, int rows, const st_panel_textures_t *tx, const st_quads_t *q, const st_frame_params_t *fp,
+                       const st_amb_frame_t *af) {
     // game rows of this band
     int g0 = y0 - ST_GAME_Y, g1 = y0 + rows - ST_GAME_Y;
     if (g0 < 0) g0 = 0;
@@ -166,11 +203,15 @@ static void draw_quads(band_t *b, int y0, int rows, const st_panel_textures_t *t
             else t = &tx->atlas;
         }
         float inv_w = 1.0f / (x1 - x0), inv_h = 1.0f / (y1l - y0l);
+        const bool rear = world && t == &tx->world_rear;
+        const float spin = fp->moon_phase - floorf(fp->moon_phase);
         for (int py = py0; py < py1; py++) {
             float cy = (py + 0.5f) * ky;
             float v = (cy - y0l) * inv_h;
             float ty = ssy + v * ssh + 0.5f;
             int iy = (int)floorf((ty - oy) * scale);
+            st_amb_row_t arow;
+            if (world) st_amb_row(af, ty, rear, &arow);
             uint8_t (*row)[3] = b->rgb[py + ST_GAME_Y - y0];
             uint16_t *drow = b->depth[py + ST_GAME_Y - y0];
             for (int px = px0; px < px1; px++) {
@@ -178,24 +219,48 @@ static void draw_quads(band_t *b, int y0, int rows, const st_panel_textures_t *t
                 float u = ((px + 0.5f) * kx - x0) * inv_w;
                 float txf = ssx + u * ssw + 0.5f;
                 float c[3], a;
+                uint8_t s4[4], attr[2] = {0, 0};
                 if (tx->bilinear && scale < 1.0f) {
-                    // premultiplied bilinear at the footprint centre
+                    // premultiplied bilinear at the footprint centre (attributes from the nearest texel)
                     float fx = (txf - ox) * scale - 0.5f, fy = (ty - oy) * scale - 0.5f;
                     int ix0 = (int)floorf(fx), iy0 = (int)floorf(fy);
                     float wx = fx - ix0, wy = fy - iy0, acc[4] = {0, 0, 0, 0};
                     for (int j = 0; j < 2; j++) for (int i = 0; i < 2; i++) {
-                        const uint8_t *s = tex_at(t, ix0 + i, iy0 + j);
-                        float w = (i ? wx : 1 - wx) * (j ? wy : 1 - wy), sa = s[3] / 255.0f * w;
-                        acc[0] += s[0] / 255.0f * sa; acc[1] += s[1] / 255.0f * sa; acc[2] += s[2] / 255.0f * sa; acc[3] += sa;
+                        uint8_t q4[4], qa[2];
+                        texel(t, ix0 + i, iy0 + j, q4, qa);
+                        float w = (i ? wx : 1 - wx) * (j ? wy : 1 - wy), sa = q4[3] / 255.0f * w;
+                        acc[0] += q4[0] / 255.0f * sa; acc[1] += q4[1] / 255.0f * sa; acc[2] += q4[2] / 255.0f * sa; acc[3] += sa;
                     }
                     if (acc[3] < 0.0039f) continue;
                     a = acc[3]; c[0] = acc[0] / a; c[1] = acc[1] / a; c[2] = acc[2] / a;
+                    if (world) texel(t, (int)floorf((txf - ox) * scale), iy, s4, attr);
                 } else {
-                    const uint8_t *s = tex_at(t, (int)floorf((txf - ox) * scale), iy);
-                    if (s[3] == 0) continue;
-                    c[0] = s[0] / 255.0f; c[1] = s[1] / 255.0f; c[2] = s[2] / 255.0f; a = s[3] / 255.0f;
+                    texel(t, (int)floorf((txf - ox) * scale), iy, s4, attr);
+                    if (s4[3] == 0) continue;
+                    c[0] = s4[0] / 255.0f; c[1] = s4[1] / 255.0f; c[2] = s4[2] / 255.0f; a = s4[3] / 255.0f;
                 }
-                if (world) st_world_shade(c, txf, ty, &tx->globe, fp);
+                if (world) {
+                    int ix = (int)floorf((txf - ox) * scale);
+                    if (rear && (attr[1] & 128) && tx->globe_lut) {
+                        // the turning moon (colour mode): this texel's latitude row and longitude
+                        int gx = ix - tx->globe_x0, gy = iy - tx->globe_y0;
+                        if (gx >= 0 && gy >= 0 && gx < tx->globe_w && gy < tx->globe_h) {
+                            const uint16_t *e = tx->globe_lut + ((size_t)gy * tx->globe_w + gx) * 2;
+                            float u = e[1] / 65536.0f - spin;
+                            u -= floorf(u);
+                            uint8_t g4[4], ga[2];
+                            texel(&tx->globe_map, (int)(u * tx->globe_map.w) % tx->globe_map.w, e[0], g4, ga);
+                            c[0] = g4[0] / 255.0f; c[1] = g4[1] / 255.0f; c[2] = g4[2] / 255.0f;
+                        }
+                    } else {
+                        st_amb_texel_t at = {0};
+                        at.rear = rear;
+                        if (rear) { at.lit = attr[0] / 255.0f; at.star = (attr[1] & 127) != 0; at.star_w = (attr[1] & 127) / 127.0f; }
+                        else { at.gold = (attr[0] >> 4) / 15.0f; at.cyan = (attr[0] & 15) / 15.0f; }
+                        float streak, g = st_amb_gain(af, &arow, &at, txf, ty, &streak);
+                        c[0] = c[0] * g + streak * 0.85f; c[1] = c[1] * g + streak * 0.92f; c[2] = c[2] * g + streak;
+                    }
+                }
                 (void)island;                    // palette baked; the 0-4% music pulse is not reproduced
                 drow[px] = z;
                 uint8_t *d = row[px + ST_GAME_X];
@@ -210,10 +275,21 @@ static void draw_quads(band_t *b, int y0, int rows, const st_panel_textures_t *t
 
 void st_panel_render(const st_panel_textures_t *tx, const st_hud_assets_t *hud_a, const st_hud_t *hud, const st_panel_luts_t *luts,
                      const st_quads_t *q, const st_frame_params_t *fp, st_band_fn out, void *ctx) {
-    static band_t b;
-    static uint16_t line[ST_BAND_ROWS * ST_PANEL_W];
+    static st_panel_work_t work;
+    st_panel_render_bands(tx, hud_a, hud, luts, q, fp, 0, 1, &work, out, ctx);
+}
+void st_panel_render_bands(const st_panel_textures_t *tx, const st_hud_assets_t *hud_a, const st_hud_t *hud, const st_panel_luts_t *luts,
+                           const st_quads_t *q, const st_frame_params_t *fp, int first, int stride, st_panel_work_t *w,
+                           st_band_fn out, void *ctx) {
+    band_t *bp = w;
+    uint16_t *line = w->line ? w->line : w->line_store;
     const uint8_t clear[3] = {u8f(0.027f), u8f(0.075f), u8f(0.122f)};
-    for (int y0 = 0; y0 < ST_PANEL_H; y0 += ST_BAND_ROWS) {
+    st_amb_frame_t af;
+    st_textures_t gp;
+    memset(&gp, 0, sizeof gp);
+    memcpy(gp.globe_params, tx->globe_params, sizeof gp.globe_params);
+    st_amb_frame(&af, fp, &gp);
+    for (int y0 = first * ST_BAND_ROWS; y0 < ST_PANEL_H; y0 += stride * ST_BAND_ROWS) {
         int rows = ST_PANEL_H - y0 < ST_BAND_ROWS ? ST_PANEL_H - y0 : ST_BAND_ROWS;
         // the frame, and the game area cleared
         for (int r = 0; r < rows; r++) {
@@ -221,19 +297,25 @@ void st_panel_render(const st_panel_textures_t *tx, const st_hud_assets_t *hud_a
             bool game_row = y >= ST_GAME_Y && y < ST_GAME_Y + ST_GAME_H;
             for (int x = 0; x < ST_PANEL_W; x++) {
                 bool game = game_row && x >= ST_GAME_X && x < ST_GAME_X + ST_GAME_W;
-                if (game) memcpy(b.rgb[r][x], clear, 3);
-                else if (hud_a && hud_a->chrome) memcpy(b.rgb[r][x], hud_a->chrome + ((size_t)y * ST_PANEL_W + x) * 4, 3);
-                else memset(b.rgb[r][x], 0, 3);
+                if (game) memcpy(bp->rgb[r][x], clear, 3);
+                else if (hud_a && hud_a->chrome) {
+                    const uint8_t *cp = hud_a->chrome + ((size_t)y * ST_PANEL_W + x) * 2;
+                    uint16_t c = (uint16_t)(cp[0] | cp[1] << 8);
+                    bp->rgb[r][x][0] = (uint8_t)(((c >> 11) * 255 + 15) / 31);
+                    bp->rgb[r][x][1] = (uint8_t)((((c >> 5) & 63) * 255 + 31) / 63);
+                    bp->rgb[r][x][2] = (uint8_t)(((c & 31) * 255 + 15) / 31);
+                }
+                else memset(bp->rgb[r][x], 0, 3);
             }
-            for (int x = 0; x < ST_GAME_W; x++) b.depth[r][x] = 65535;
+            for (int x = 0; x < ST_GAME_W; x++) bp->depth[r][x] = 65535;
         }
-        draw_quads(&b, y0, rows, tx, q, fp);
+        draw_quads(bp, y0, rows, tx, q, fp, &af);
         // post (quality 0): tone per channel, then the Arcade grade on the panel's RGB565
         for (int r = 0; r < rows && !luts->skip_post; r++) {
             int y = y0 + r;
             if (y < ST_GAME_Y || y >= ST_GAME_Y + ST_GAME_H) continue;
             for (int x = ST_GAME_X; x < ST_GAME_X + ST_GAME_W; x++) {
-                uint8_t *p = b.rgb[r][x];
+                uint8_t *p = bp->rgb[r][x];
                 uint32_t tr = luts->tone[0][p[0]], tg = luts->tone[1][p[1]], tb = luts->tone[2][p[2]];
                 uint16_t i565 = (uint16_t)((((tr * 31 + 32767) / 65535) << 11) | (((tg * 63 + 32767) / 65535) << 5) | ((tb * 31 + 32767) / 65535));
                 uint16_t o = luts->grade[i565];
@@ -242,9 +324,9 @@ void st_panel_render(const st_panel_textures_t *tx, const st_hud_assets_t *hud_a
                 p[2] = (uint8_t)(((o & 31) * 255 + 15) / 31);
             }
         }
-        hud_over(&b, y0, rows, hud_a, hud);
+        hud_over(bp, y0, rows, hud_a, hud);
         for (int r = 0; r < rows; r++) for (int x = 0; x < ST_PANEL_W; x++) {
-            const uint8_t *p = b.rgb[r][x];
+            const uint8_t *p = bp->rgb[r][x];
             line[r * ST_PANEL_W + x] = (uint16_t)(((p[0] * 31 + 127) / 255) << 11 | ((p[1] * 63 + 127) / 255) << 5 | ((p[2] * 31 + 127) / 255));
         }
         out(ctx, y0, rows, line);

@@ -70,6 +70,27 @@ void st_tone(const float in[3], float out[3]);     // exposure 1.8, white 1.6
 // World plate texel at full-resolution plate coordinates (wx, wy): the turning
 // moon and the Arcade ambience. tx supplies only the globe map and its params.
 void st_world_shade(float rgb[3], float wx, float wy, const st_textures_t *tx, const st_frame_params_t *fp);
+// ---- the Arcade ambience, decomposed for the device ----------------------------------
+// arcade_ambient() = base * (1 + m * (grid + star + city + near)) + m * streak * (.85,.92,1)*1.4,
+// split into what is constant per texel (baked), per plate row (once a frame)
+// and per frame, so the device evaluates no transcendental per pixel.
+typedef struct { float lit, star_k, gold, cyan, star_w; bool rear, star; } st_amb_texel_t;   // per texel (star_w: star coverage)
+typedef struct { float grid, city, sn10; } st_amb_row_t;                                   // per row, per frame
+typedef struct {
+    float t, m, horizon, gx, gy;
+    // shooting star
+    bool streak_on;
+    float hx, hy, dx, dy, lt;
+    float gl_phase_t;              // t / 300
+} st_amb_frame_t;
+void st_amb_texel(const float rgb[3], float wx, float wy, const st_frame_params_t *fp, const st_textures_t *tx, st_amb_texel_t *o);
+void st_amb_frame(st_amb_frame_t *af, const st_frame_params_t *fp, const st_textures_t *tx);
+void st_amb_row(const st_amb_frame_t *af, float wy, bool rear, st_amb_row_t *o);
+// gain (multiplies base) and the additive streak brightness for one texel
+float st_amb_gain(const st_amb_frame_t *af, const st_amb_row_t *row, const st_amb_texel_t *tx_, float wx, float wy, float *streak);
+float st_amb_streak(const st_amb_frame_t *af, float wx, float wy);
+float st_hump12(float x);
+
 // The island material's music-driven pulse for an island texel's ORIGINAL
 // colour (before the palette): a brightness factor of 1.0 to ~1.04.
 float st_island_pulse(const float in[3], float t, const st_frame_params_t *fp);

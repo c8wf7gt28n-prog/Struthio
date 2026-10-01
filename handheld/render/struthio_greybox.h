@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-enum { ST_FB_W = 256, ST_FB_H = 384, ST_PANEL_W = 320, ST_PANEL_H = 480 };
+enum { ST_FB_W = 256, ST_FB_H = 384 };    // ST_PANEL_W, ST_PANEL_H: struthio_scene.h
 
 
 typedef struct {

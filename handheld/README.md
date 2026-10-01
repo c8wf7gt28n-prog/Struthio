@@ -7,8 +7,11 @@ enclosure CAD and the bring-up documents.
 
 **v0.5 in one line:** the STRUTHIO ARCADE 1.8.0 simulation now runs in portable
 C and reproduces the browser build bit for bit. 75,144 recorded ticks across
-five traces give the same SHA-256 state digest on every tick. The firmware
-around it is written and waits only for the board.
+five traces give the same SHA-256 state digest on every tick. The
+browser's renderer is ported too (scene builder, materials, post, HUD) and
+measured against the browser's own WebGPU and DOM output; the device draws the
+same picture at 320x480 from an asset pack in flash. The firmware around it is
+written and waits only for the board.
 
 ## What is proven, what is not
 
@@ -18,7 +21,11 @@ around it is written and waits only for the board.
 | Input normalizer (flap queue, 100 ms chord, 8-tick flap buffer) | **Bit-exact with 1.8.0** | the same replay checks every frame the normalizer produces |
 | Rulebook constants | **Locked to rules.mjs** | `core/struthio_rules.h` is generated; the core `static_assert`s against it |
 | Port authority | **1.8.0, checked** | `docs/PORT_AUTHORITY.md`; `--check` fails if the arcade sim changes |
-| Greybox renderer + 320x480 presenter | Works on host | `docs/renders/a0_greybox_sheet.png` (frames from a replayed run) |
+| Scene builder (every quad the browser draws) | **Equal to the browser** | `host/scene_check`: per-tick instance-list hash matches on all 75,144 ticks |
+| Rasterizer, materials, post (reference) | Measured vs WebGPU | `host/raster_check` at 3x: 35.7–50.6 dB |
+| Device panel renderer + asset pack (picture, HUD, frame) | Measured on host | `host/panel_check`: 24.9–30.3 dB vs the browser frame area-filtered to 286x429, HUD 43.2 dB; `docs/GRAPHICS_PORT.md` |
+| Panel renderer speed on the ESP32-S3 | **Not measured** | 8–10 ms/frame on one x86 core; needs the board |
+| Greybox renderer (fallback without the asset pack) | Works on host | `docs/renders/a0_greybox_sheet.png` |
 | Physical buttons (debounce, chord timing, DART trials) | Host-tested | `firmware/host_test` |
 | DART gesture | **Measured; proposal C** | trials A/B fire 40-78 unwanted darts/min on the bots' press timelines, C fires 0.3-2/min; needs a human thumb test |
 | Firmware (tasks, 60 Hz loop, NVS, watchdog, service mode) | Type-checked on host only | `make -C firmware/host_test compile` against an ESP-IDF header shim, **not** `idf.py build` (toolchain download blocked in this environment) |
@@ -32,6 +39,9 @@ around it is written and waits only for the board.
 Needs Node 22 and a C compiler. It checks the port authority and the generated
 C. It re-records the goldens from the browser sources, replays them through the
 C core, runs the button tests and the DART report, and type-checks the firmware.
+When the browser references are present (`build/reference`, see
+`docs/GRAPHICS_PORT.md`) it also runs the scene, rasterizer, HUD and panel
+comparisons and builds the asset pack.
 
 ## Layout
 
@@ -43,10 +53,15 @@ C core, runs the button tests and the DART report, and type-checks the firmware.
       struthio_replay.c      golden-trace replay (host test and on-device service mode)
       struthio_tower.c       GENERATED from arcade/src/sim/tower.mjs
       struthio_rules.h       GENERATED from arcade/src/data/rules.mjs
-    render/     greybox renderer (256x384 indexed) + 1.25x RGB565 line presenter
+    render/     the browser renderer's port
+      struthio_scene.c       scene builder: the browser's quads, every tick
+      struthio_raster.c      float reference rasterizer, materials, post
+      struthio_panel.c       device renderer: 320x480 in 16-line bands, HUD, LUT post
+      struthio_pak.c         asset pack loader (mapped from flash)
+      struthio_greybox.c     fallback greybox renderer
     golden/     five browser-recorded traces (button timelines, frames, per-tick digests)
-    tools/      golden exporter, generators, port authority (Node, read arcade/ unmodified)
-    host/       replay comparator and render demo (PNG) for the desktop
+    tools/      golden exporter, generators, port authority, browser reference capture (Node)
+    host/       replay, scene/raster/panel checks, asset pack builder (make_pak)
     firmware/   ESP-IDF app: main.c, buttons, service mode, board adapter, host tests
     cad/        A0 enclosure (OpenSCAD + STLs), unchanged from v0.4
     docs/       bring-up checklist, wiring, BOM, validation report, port authority
@@ -74,7 +89,10 @@ from 24 to 25 subpixels. No trace hits that exact boundary.
 3. `idf.py build flash monitor`, hold both wings at power-on: service mode runs
    the golden replay **on the ESP32-S3**. It shows PASS/FAIL, µs per tick and
    the panel ms per frame.
-4. Power-cycle: the game starts. Play a round with the two buttons (the A0 gate).
+4. `make -C host pak`, flash with the asset pack, power-cycle: the game starts
+   in the browser's picture. Read the `render` time in the log (the panel
+   renderer's first device measurement). Play a round with the two buttons
+   (the A0 gate).
 5. Thumb-test the DART trials (LEFT in service mode cycles A / B / C / OFF).
 
 See `docs/A0_BRINGUP_CHECKLIST.md`.

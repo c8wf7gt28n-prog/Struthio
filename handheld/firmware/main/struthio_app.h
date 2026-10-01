@@ -9,7 +9,7 @@ typedef struct {
     uint64_t ticks;
     uint32_t game_over_tick;
     uint32_t sim_us_last, sim_us_max;
-    uint32_t render_us, present_us, frames;
+    uint32_t scene_us, render_us, present_us, frames;
     uint32_t missed_deadlines;
 } app_stats_t;
 extern app_stats_t g_stats;

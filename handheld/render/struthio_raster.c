@@ -204,6 +204,74 @@ v3 st_arcade_ambient_(v3 base, float wx, float wy, float t, const st_frame_param
     return V3(base.r * gain + m * streak * 1.4f * 0.85f, base.g * gain + m * streak * 1.4f * 0.92f, base.b * gain + m * streak * 1.4f);
 }
 
+// ---- the ambience, decomposed (see struthio_raster.h) ------------------------------------
+void st_amb_texel(const float rgb[3], float wx, float wy, const st_frame_params_t *fp, const st_textures_t *tx, st_amb_texel_t *o) {
+    v3 base = V3(rgb[0], rgb[1], rgb[2]);
+    float hi = max3(base);
+    o->lit = clampf((hi - 0.16f) * 3.0f, 0, 1);
+    o->rear = stepf(wx, 768.0f - 1.0f) > 0;
+    float horizon = fp->horizon;
+    float h = fx_hash(floorf(wx * 0.1f), floorf(wy * 0.1f));
+    float gx = wx - tx->globe_params[0], gy = wy - tx->globe_params[1], gg = gx * gx + gy * gy;
+    float sky = (o->rear ? 1.0f : 0.0f) * stepf(wy, horizon - 330.0f);
+    o->star = sky * stepf(0.42f, hi) * stepf(20000.0f, gg) * stepf(h, 0.55f) > 0;
+    o->star_k = h / 0.55f;
+    o->star_w = o->star ? 1.0f : 0.0f;
+    float nearm = o->rear ? 0.0f : 1.0f;
+    o->gold = nearm * clampf((base.r - base.b - 0.20f) * 3.0f, 0, 1) * stepf(base.b, base.g) * stepf(0.35f, hi);
+    o->cyan = clampf((minf(base.g, base.b) - base.r - 0.12f) * 3.333f, 0, 1);
+}
+static float star_term(float k, float t) {
+    float tw = wave1(t / ((1.2f + 2.2f * fractf(k * 7.13f)) * 60.0f) + fractf(k * 13.7f));
+    float flash = powf(maxf(wave1(t / ((7.0f + 9.0f * fractf(k * 3.7f)) * 60.0f) + fractf(k * 5.1f)), 0.0f), 14.0f);
+    return (0.25f + 0.35f * k) * tw + 1.2f * flash * stepf(k, 0.3f);
+}
+void st_amb_frame(st_amb_frame_t *af, const st_frame_params_t *fp, const st_textures_t *tx) {
+    float t = fp->ambient_tick;
+    af->t = t; af->m = fp->motion; af->horizon = fp->horizon; af->gx = tx->globe_params[0]; af->gy = tx->globe_params[1];
+    float epoch = floorf(t / 450.0f), lt = t - epoch * 450.0f;
+    float h1 = fx_hash(epoch, 3.0f), h2 = fx_hash(epoch, 7.0f), h3 = fx_hash(epoch, 11.0f);
+    float dxr = h3 > 0.5f ? 1.0f : -1.0f, dyr = 0.42f + 0.3f * h2, dl = sqrtf(dxr * dxr + dyr * dyr);
+    af->dx = dxr / dl; af->dy = dyr / dl; af->lt = lt;
+    af->hx = 80.0f + 608.0f * h1 + af->dx * 14.0f * lt; af->hy = 120.0f + 900.0f * h2 + af->dy * 14.0f * lt;
+    af->streak_on = stepf(fx_hash(epoch, 1.0f), 0.7f) > 0 && lt < 50.0f;
+    af->gl_phase_t = t / 300.0f;
+}
+void st_amb_row(const st_amb_frame_t *af, float wy, bool rear, st_amb_row_t *o) {
+    float t = af->t, horizon = af->horizon, r = rear ? 1.0f : 0.0f;
+    float dy = maxf(wy - horizon, 1.0f);
+    float gp = hump(fractf(powf(dy, 0.62f) / 12.0f - t / 90.0f));
+    float gp2 = gp * gp, gp4 = gp2 * gp2, band = gp4 * gp4 * gp2;
+    o->grid = r * stepf(horizon + 2.0f, wy) * smoothstepf(horizon + 4.0f, horizon + 70.0f, wy) * band;
+    float cp = hump(fractf((horizon - wy) / 520.0f - t / 200.0f)), cp2 = cp * cp, cp4 = cp2 * cp2;
+    o->city = r * stepf(horizon - 540.0f, wy) * stepf(wy, horizon + 6.0f) * (0.10f * sinf(t * 0.020944f) + 0.85f * cp4 * cp4 * cp4 * cp4);
+    float sn = hump(fractf(t * 0.0020833f + wy * 0.0011111f)), sn2 = sn * sn, sn4 = sn2 * sn2;
+    o->sn10 = (1.0f - r) * 0.22f * sn4 * sn4 * sn2;
+}
+float st_hump12(float x) { float gl = hump(fractf(x)), gl2 = gl * gl, gl4 = gl2 * gl2; return gl4 * gl4 * gl4; }
+float st_amb_streak(const st_amb_frame_t *af, float wx, float wy) {
+    if (!af->streak_on || wx > 767.0f || wy > af->horizon - 330.0f) return 0;
+    float gx = wx - af->gx, gy = wy - af->gy;
+    if (gx * gx + gy * gy < 14000.0f) return 0;
+    float rx = wx - af->hx, ry = wy - af->hy;
+    float along = -(rx * af->dx + ry * af->dy), perp = fabsf(rx * af->dy - ry * af->dx);
+    if (along < 0.0f) return 0;
+    float tail = 1.0f - clampf(along / 120.0f, 0, 1);
+    return tail * tail * (1.0f - smoothstepf(0.6f, 2.4f, perp)) * smoothstepf(0.0f, 6.0f, af->lt) * (1.0f - smoothstepf(38.0f, 50.0f, af->lt));
+}
+float st_amb_gain(const st_amb_frame_t *af, const st_amb_row_t *row, const st_amb_texel_t *x, float wx, float wy, float *streak) {
+    float grid = row->grid * (0.95f * x->lit + 0.10f);
+    // stars: the twinkle period depends steeply on the star's hash, so it is
+    // recomputed exactly for star texels (a few per cent of the sky)
+    float star = 0.0f;
+    if (x->star) star = x->star_w * star_term(fx_hash(floorf(wx * 0.1f), floorf(wy * 0.1f)) / 0.55f, af->t);
+    float city = row->city * x->lit;
+    float nearg = x->gold > 0 ? x->gold * 0.9f * st_hump12(af->gl_phase_t + wy * 0.0009f + wx * 0.0004f) : 0.0f;
+    nearg += row->sn10 * x->cyan;
+    *streak = af->m * st_amb_streak(af, wx, wy) * 1.4f;
+    return 1.0f + af->m * (grid + star + city + nearg);
+}
+
 // ---- the sprite pass -----------------------------------------------------------------------------
 void st_frame_params_default(st_frame_params_t *p, int32_t render_tick, double moon_phase, double impact) {
     memset(p, 0, sizeof *p);
@@ -445,4 +513,12 @@ void st_raster_post(const uint8_t *scene, uint8_t *out, const st_grid_t *g, cons
         }
         o[0] = u8(rgb[0]); o[1] = u8(rgb[1]); o[2] = u8(rgb[2]); o[3] = src[3];
     }
+}
+
+// test hook: the undecomposed ambience alone (no globe)
+float st_world_test_(const float in[3], float wx, float wy, const st_textures_t *tx, const st_frame_params_t *fp, float out[3]);
+float st_world_test_(const float in[3], float wx, float wy, const st_textures_t *tx, const st_frame_params_t *fp, float out[3]) {
+    v3 w = st_arcade_ambient_(V3(in[0], in[1], in[2]), wx, wy, fp->ambient_tick, fp, tx);
+    out[0] = w.r; out[1] = w.g; out[2] = w.b;
+    return 0;
 }

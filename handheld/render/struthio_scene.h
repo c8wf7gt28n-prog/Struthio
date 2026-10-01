@@ -22,6 +22,7 @@ typedef struct {
 
 enum { ST_MAT_ATLAS = 0, ST_MAT_WORLD = 8, ST_MAT_PLAYER = 10, ST_MAT_ISLAND = 11 };
 enum { ST_MAX_QUADS = 4096 };
+enum { ST_PANEL_W = 320, ST_PANEL_H = 480 };     // the handheld panel, portrait
 
 // ---- generated tables (render/struthio_scene_data.c) ------------------------------
 typedef struct { const char *name; int16_t x, y; } st_swatch_t;

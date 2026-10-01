@@ -9,13 +9,21 @@ adds the hardware around it.
 | Task | Core | Rate | Job |
 | --- | --- | --- | --- |
 | `wings` | 0 | 1 kHz | GPIO17/18 -> debounce -> input normalizer (`struthio_buttons.c`) |
-| `game` | 1 | 60 Hz fixed | normalizer frame -> `st_step()` -> events; snapshot every 2nd tick; watchdog |
-| `render` | 0 | <= 30 fps | newest snapshot -> greybox renderer -> panel in 40-line RGB565 bands; may drop frames |
+| `game` | 1 | 60 Hz fixed | normalizer frame -> `st_step()` -> events -> scene builder + HUD model (every tick, as the browser); a frame published every 2nd tick; watchdog |
+| `render` | 0 | <= 30 fps | newest frame -> panel renderer, even 16-line bands -> panel as each band finishes; may drop frames |
+| `render1` | 1 | with `render` | the odd bands of the same frame (below `game` in priority) |
+
+The picture is the browser's: `render/struthio_panel.c` draws the quads the
+scene builder produces (the same lists the browser hands WebGPU) with
+textures from the asset pack, which is mapped from the `assets` flash
+partition. Frames are triple-buffered in PSRAM. Without an asset pack in
+flash the firmware falls back to the greybox renderer.
 
 The game clock uses a rational microsecond schedule (exactly 60 ticks/s on
 average) and never waits on the panel. Flash writes (high score) happen in the
-render task, never inside a tick. GAME OVER: either wing starts a new run after
-one second.
+render task, never inside a tick. GAME OVER shows the browser's result
+screen; both wings held together start a new run after one second, so a stray
+flap from the last fight cannot skip it.
 
 ## Controls
 
@@ -50,9 +58,10 @@ Power-cycle to play.
 
 ## Build
 
+    make -C handheld/host pak          # build/assets/struthio.pak (needs build/reference, see docs)
     cd handheld/firmware
     idf.py set-target esp32s3
-    idf.py build flash monitor
+    idf.py build flash monitor         # flashes the app and the asset pack
 
 Not yet built with the real toolchain: this environment cannot download it.
 `make -C host_test compile` type-checks every source against `host_shim/`, a

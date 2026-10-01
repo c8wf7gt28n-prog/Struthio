@@ -1,21 +1,22 @@
 // STRUTHIO HANDHELD · panel renderer check (host).
 // Replays a golden trace through the C sim, scene builder and the panel
-// renderer (the device's band renderer: baked panel-density textures, HUD
-// layers, LUT post), renders whole 320x480 frames at chosen ticks, and
+// renderer (the device's band renderer: the asset pack, HUD layers, LUT post), renders whole 320x480 frames at chosen ticks, and
 // measures the game picture against the browser's own WebGPU frame (quality
 // 0) area-filtered from 768x1152 down to 286x429.
 //   [BILINEAR=1] panel_check [--png outdir] trace tick...
+//   panel_check --hud    the HUD from the pack vs the browser's DOM HUD (hud_capture.mjs truths)
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "struthio_core.h"
+#include "struthio_pak.h"
 #include "struthio_panel.h"
 #include "struthio_replay.h"
 #include "struthio_scene.h"
 
-static const char *REF = "../build/reference", *BAKE = "../build/bake";
+static const char *REF = "../build/reference", *PAK = "../build/assets/struthio.pak";
 static void *slurp(const char *path, size_t *size) {
     FILE *f = fopen(path, "rb");
     if (!f) return NULL;
@@ -26,54 +27,7 @@ static void *slurp(const char *path, size_t *size) {
     if (size) *size = (size_t)n;
     return d;
 }
-static st_tex_t load_tex(const char *name) {
-    char p[512]; snprintf(p, sizeof p, "%s/%s.tex", BAKE, name);
-    uint8_t *d = slurp(p, NULL);
-    if (!d) { fprintf(stderr, "missing %s (run build/bake_textures)\n", p); exit(2); }
-    st_tex_t t = {(int)((uint32_t *)d)[0], (int)((uint32_t *)d)[1], d + 8};
-    return t;
-}
-// ---- HUD assets from tools/reference/hud_capture.mjs ---------------------------------------
 static st_hud_assets_t hud;
-static st_hud_layer_t *slot_for(const char *n) {
-    int a, b, c;
-    char v;
-    if (sscanf(n, "score_%d_%d", &a, &b) == 2) return &hud.score[a][b];
-    if (sscanf(n, "round_%d_%d", &a, &b) == 2) return &hud.round[a][b];
-    if (sscanf(n, "kills2_%c_%d_%d", &v, &b, &c) == 3) return &hud.kills2[v - 'a'][b][c];
-    if (sscanf(n, "kills3_%c_%d_%d", &v, &b, &c) == 3) return &hud.kills3[v - 'a'][b][c];
-    if (sscanf(n, "swords_%c_%d", &v, &a) == 2) return &hud.swords[v - 'a'][a == 3];
-    if (!strncmp(n, "ring_", 5) && strstr(n, "_due")) return &hud.ring[n[5] - 'a'][7];
-    if (sscanf(n, "ring_%c_%d", &v, &a) == 2) return &hud.ring[v - 'a'][a];
-    if (sscanf(n, "static_%c", &v) == 1) return &hud.statics[v - 'a'];
-    if (sscanf(n, "joust_b_%d", &a) == 1) return &hud.joust_b[a];
-    if (sscanf(n, "joust_i_%d", &a) == 1) return &hud.joust_i[a];
-    if (!strcmp(n, "toast_extra")) return &hud.toast_extra;
-    if (!strcmp(n, "toast_gold")) return &hud.toast_gold;
-    if (!strcmp(n, "toast_paused")) return &hud.toast_paused;
-    if (sscanf(n, "toast_clear_%d", &a) == 1 && a < ST_HUD_ROUNDS) return &hud.toast_clear[a];
-    if (sscanf(n, "toast_clean_%d", &a) == 1 && a < ST_HUD_ROUNDS) return &hud.toast_clean[a];
-    return NULL;
-}
-static void load_hud(void) {
-    char p[512];
-    snprintf(p, sizeof p, "%s/hud/chrome.rgba", REF);
-    hud.chrome = slurp(p, NULL);
-    snprintf(p, sizeof p, "%s/hud/hud.json", REF);
-    char *j = slurp(p, NULL);
-    if (!j || !hud.chrome) { fprintf(stderr, "missing HUD capture (tools/reference/hud_capture.mjs)\n"); exit(2); }
-    int n = 0;
-    for (char *s = strstr(j, "\"name\": \""); s; s = strstr(s + 1, "\"name\": \"")) {
-        char name[64]; int x, y, w, h;
-        if (sscanf(s, "\"name\": \"%63[^\"]\", \"x\": %d, \"y\": %d, \"w\": %d, \"h\": %d", name, &x, &y, &w, &h) != 5) continue;
-        st_hud_layer_t *l = slot_for(name);
-        if (!l || !w) continue;
-        snprintf(p, sizeof p, "%s/hud/%s.rgba", REF, name);
-        l->x = (int16_t)x; l->y = (int16_t)y; l->w = (int16_t)w; l->h = (int16_t)h; l->p = slurp(p, NULL);
-        n++;
-    }
-    printf("HUD: chrome + %d layers\n", n);
-}
 
 // ---- the check ---------------------------------------------------------------------------
 static uint16_t frame565[ST_PANEL_W * ST_PANEL_H];
@@ -128,6 +82,14 @@ static void post(void *c_, long t, const st_state_t *s, const st_events_t *ev) {
         clock_t c0 = clock();
         st_panel_render(&c->tx, &hud, &c->hud, &c->luts, &c->q, &fp, band, NULL);
         c->secs += (double)(clock() - c0) / CLOCKS_PER_SEC; c->frames++;
+        {   // the device splits each frame between two cores: even and odd bands must give the same frame
+            static uint16_t single[ST_PANEL_W * ST_PANEL_H];
+            static st_panel_work_t w0, w1;
+            memcpy(single, frame565, sizeof single);
+            st_panel_render_bands(&c->tx, &hud, &c->hud, &c->luts, &c->q, &fp, 1, 2, &w1, band, NULL);
+            st_panel_render_bands(&c->tx, &hud, &c->hud, &c->luts, &c->q, &fp, 0, 2, &w0, band, NULL);
+            if (memcmp(single, frame565, sizeof single)) { printf("  %s t%ld: two-core band split differs from one pass\n", c->name, t); c->fails++; }
+        }
         for (int i = 0; i < ST_PANEL_W * ST_PANEL_H; i++) {
             uint16_t v = frame565[i];
             rgb[i * 3] = (uint8_t)(((v >> 11) * 255 + 15) / 31); rgb[i * 3 + 1] = (uint8_t)((((v >> 5) & 63) * 255 + 31) / 63); rgb[i * 3 + 2] = (uint8_t)(((v & 31) * 255 + 15) / 31);
@@ -217,22 +179,63 @@ static void write_png_rgb(const char *path, const uint8_t *rgb, int w, int h) {
     chunk(f, "IEND", NULL, 0);
     fclose(f); free(raw); free(z);
 }
+// The two truth frames hud_capture.mjs renders with the DOM (hud.json "truths").
+static int hud_truths(const st_panel_textures_t *tx, st_panel_luts_t *luts) {
+    static const struct { int32_t score, round, rings, kills, lives; bool due; int toast; } T[2] = {
+        {12340, 3, 4, 17, 2, false, 7}, {98765, 12, 6, 204, 11, true, -1}};
+    int fails = 0;
+    for (int n = 0; n < 2; n++) {
+        st_hud_t h;
+        memset(&h, 0, sizeof h);
+        h.score = T[n].score; h.round = T[n].round; h.rings = T[n].rings; h.kills = T[n].kills; h.lives = T[n].lives; h.due = T[n].due;
+        h.toast = T[n].toast > 0 ? &hud.toast_clear[T[n].toast] : &hud.toast_gold;
+        h.toast_opacity = 1; h.due_brightness = 1; h.opacity = 1;
+        st_quads_t q;
+        q.n = 0;
+        st_frame_params_t fp;
+        st_frame_params_default(&fp, 0, 0, 0);
+        st_panel_render(tx, &hud, &h, luts, &q, &fp, band, NULL);
+        char p[512];
+        snprintf(p, sizeof p, "%s/hud/truth_%d.rgba", REF, n);
+        uint8_t *truth = slurp(p, NULL);
+        if (!truth) { fprintf(stderr, "missing %s\n", p); return 1; }
+        const int top = 81;                      // the bar and the toast, above the game picture's content
+        double se = 0;
+        int worst = 0;
+        for (int i = 0; i < ST_PANEL_W * top; i++) {
+            int x = i % ST_PANEL_W, y = i / ST_PANEL_W;
+            if (y >= ST_GAME_Y && x >= ST_GAME_X && x < ST_GAME_X + ST_GAME_W) continue;      // the game picture (toast lower part included)
+            uint16_t v = frame565[i];
+            int c[3] = {((v >> 11) * 255 + 15) / 31, (((v >> 5) & 63) * 255 + 31) / 63, ((v & 31) * 255 + 15) / 31};
+            for (int ch = 0; ch < 3; ch++) { int d = c[ch] - truth[i * 4 + ch]; se += d * d; if (abs(d) > worst) worst = abs(d); }
+        }
+        double psnr = 10 * log10(255.0 * 255.0 / (se / (ST_PANEL_W * top * 3.0) + 1e-12));
+        printf("  HUD truth %d (score %d, lives %d%s): PSNR %.1f dB, worst %d (RGB565 panel)\n", n, T[n].score, T[n].lives, T[n].due ? ", gold due" : "", psnr, worst);
+        if (psnr < 34) fails++;
+        free(truth);
+    }
+    return fails;
+}
 int main(int argc, char **argv) {
     int a = 1;
     const char *png = NULL;
+    bool hud_only = argc > 1 && !strcmp(argv[1], "--hud");
     if (a + 1 < argc && !strcmp(argv[a], "--png")) { png = argv[a + 1]; a += 2; }
-    if (a >= argc) { fprintf(stderr, "usage: panel_check [--png dir] trace tick...\n"); return 2; }
+    if (a >= argc && !hud_only) { fprintf(stderr, "usage: panel_check [--png dir] trace tick...\n"); return 2; }
     static ctx_t c;
     memset(&c, 0, sizeof c);
-    c.tx.world_rear = load_tex("world_rear"); c.tx.world_near = load_tex("world_near");
-    c.tx.bird[0] = load_tex("bird_ink6"); c.tx.bird[1] = load_tex("bird_ink1"); c.tx.bird[2] = load_tex("bird_ink2"); c.tx.bird[3] = load_tex("bird_ink3");
-    c.tx.atlas = load_tex("atlas"); c.tx.atlas_hi = load_tex("atlas_hi");
-    st_tex_t g = load_tex("globe");
-    c.tx.globe.globe = (st_rgba_t){g.w, g.h, g.p};
-    c.tx.globe.globe_params[0] = 608; c.tx.globe.globe_params[1] = 254; c.tx.globe.globe_params[2] = -118; c.tx.globe.globe_params[3] = 0.0020943951f;
-    load_hud();
+    size_t pak_size;
+    uint8_t *pak = slurp(PAK, &pak_size);
+    char err[96];
+    if (!pak) { fprintf(stderr, "missing %s (make -C handheld/host pak)\n", PAK); return 2; }
+    if (!st_pak_open(pak, pak_size, &c.tx, &hud, err, sizeof err)) { fprintf(stderr, "%s: %s\n", PAK, err); return 2; }
     c.tx.bilinear = getenv("BILINEAR") && *getenv("BILINEAR") && *getenv("BILINEAR") != '0';
     st_panel_luts_init(&c.luts);
+    if (hud_only) {
+        int f = hud_truths(&c.tx, &c.luts);
+        printf(f ? "HUD CHECK: %d truth(s) below 34 dB\n" : "HUD CHECK: pack layers recompose the browser HUD\n", f);
+        return f ? 1 : 0;
+    }
     const char *trace = argv[a++];
     const char *base = strrchr(trace, '/') ? strrchr(trace, '/') + 1 : trace;
     static char name[64];
@@ -248,7 +251,7 @@ int main(int argc, char **argv) {
     st_replay_hooks_t hooks = {&c, pre, post};
     st_replay_result_t r;
     st_replay(data, size, false, &hooks, &r);
-    if (c.frames) printf("  host: %.1f ms per 320x480 panel frame (float reference path, one core)\n", 1000 * c.secs / c.frames);
+    if (c.frames) printf("  host: %.1f ms per 320x480 panel frame (host, one core)\n", 1000 * c.secs / c.frames);
     printf(c.fails ? "PANEL CHECK: %d frame(s) below 24 dB\n" : "PANEL CHECK: all frames >= 24 dB\n", c.fails);
     return c.fails ? 1 : 0;
 }
