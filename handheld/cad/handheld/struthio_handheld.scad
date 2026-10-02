@@ -38,6 +38,13 @@
  - Power switch: left side wall at y = 12 (the right side keeps a service
    slot for the board's BOOT / RESET buttons).
 
+ HANDEDNESS: the design frame has x to the RIGHT AS SEEN FROM THE FRONT (the
+ player's view), like every drawing, the CP1 Gerbers and the manual. With z
+ into the handheld that is a mirror image of normal right-handed CAD space,
+ so every exported STL is physical() = mirror([1,0,0]) of the design: printed,
+ the power switch is on the player's left and the USB jack right of centre.
+ Views and checks convert back to the design frame.
+
  Stack in the control zone (z):
    0.0 .. 3.0   front shell; key holes = key outline + 0.30
    -1.8 / -1.5  wing / rocker key tops (proud)
@@ -493,9 +500,11 @@ module battery_pocket_cut(){
     rr2d(BAT_W+2*BAT_POCKET_CLEAR,BAT_H+2*BAT_POCKET_CLEAR,1.5);   // tighter corners for the THOR pouch
 }
 
+module physical(){ mirror([1,0,0]) children(); }   // design frame -> printed part (see HANDEDNESS)
 module rear_mark_cut(){
-  // Seen from behind (+z) model X already runs left to right: no mirror.
-  translate([0,BAT_Y,BATTERY_TOTAL_D-REAR_MARK_DEPTH]) linear_extrude(REAR_MARK_DEPTH+0.2) {
+  // Written mirrored in the design frame so it reads correctly on the printed
+  // (physical) back.
+  translate([0,BAT_Y,BATTERY_TOTAL_D-REAR_MARK_DEPTH]) linear_extrude(REAR_MARK_DEPTH+0.2) mirror([1,0,0]) {
     translate([0,-9]) text(REAR_MARK_TEXT, size=REAR_MARK_SIZE, font=REAR_MARK_FONT, halign="center", valign="center");
     translate([0,6]) difference(){ circle(d=REAR_RING_D); circle(d=REAR_RING_D-2*REAR_RING_W); }
   }
@@ -713,7 +722,7 @@ module front_cut(){
   if(SHELL_STYLE=="sleek") screw_xy() translate([0,0,1.5]) cylinder(d=PILOT_D, h=JOIN_Z, $fn=24);
 }
 module front_shell(){
-  if(SHELL_STYLE=="sleek") color(SHELL_RGB) import("stl/struthio_front.stl");
+  if(SHELL_STYLE=="sleek") color(SHELL_RGB) physical() import("stl/struthio_front.stl");
   else color(SHELL_RGB) difference(){
     union(){ linear_extrude(FRONT_T) body2d(); front_add(); }
     front_cut();
@@ -843,7 +852,7 @@ module back_cut_sleek(){
 // the rear-cavity bore; build_shell.py trims it to the inner surface so the
 // back skin closes the cavity
 module speaker_bore(){ translate([SPKR_X,SPKR_Y,SPKR_Z+SPKR_T+0.5]) cylinder(d=SPKR_TUBE_ID, h=SHELL_ZB); }
-module back_shell_sleek(){ color(SHELL_RGB) import("stl/struthio_back.stl"); }
+module back_shell_sleek(){ color(SHELL_RGB) physical() import("stl/struthio_back.stl"); }
 
 module back_shell_a0(){
   color(SHELL_RGB) difference(){
@@ -946,7 +955,7 @@ module internals(){ board_envelope(0.8); battery_ref(); speaker_ref(); cm1_mat()
 if(part=="design_front") design_front();
 else if(part=="front") front_shell();
 else if(part=="back") back_shell();
-else if(part=="mat") cm1_mat();
+else if(part=="mat") physical() cm1_mat();
 else if(part=="cp1_outline") cp1_outline2d();
 else if(part=="mat_outline") mat_outline2d();
 else if(part=="body_outline") body2d();

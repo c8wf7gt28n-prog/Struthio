@@ -1,0 +1,182 @@
+<!doctype html>
+<!-- STRUTHIO HANDHELD · studio renders of the real CAD parts (three.js).
+     render.mjs opens this page with ?view=...&shell=... and screenshots it. -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#0b1520;overflow:hidden}canvas{display:block}</style></head>
+<body><script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const Q = new URLSearchParams(location.search);
+const VIEW = Q.get('view') || 'hero';
+const W = +(Q.get('w') || 1600), H = +(Q.get('h') || 2000);
+const COLORS = {
+  navy:     { shell: 0x0f2638, key: 0xd9951c, bg: [0x13283a, 0x05090e] },
+  ivory:    { shell: 0xd9d0bc, key: 0xd08a14, bg: [0x3a3f46, 0x15181c] },
+  graphite: { shell: 0x222428, key: 0xc8321f, bg: [0x2c3036, 0x0a0b0d] },
+  cyan:     { shell: 0x15596a, key: 0xd9951c, bg: [0x123842, 0x050c0f] },
+};
+const C = COLORS[Q.get('shell') || 'navy'];
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.32;
+// background: a soft vertical gradient
+{ const c = document.createElement('canvas'); c.width = 2; c.height = 512; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, '#' + C.bg[0].toString(16).padStart(6, '0')); gr.addColorStop(1, '#' + C.bg[1].toString(16).padStart(6, '0'));
+  g.fillStyle = gr; g.fillRect(0, 0, 2, 512); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+
+const key = new THREE.DirectionalLight(0xfff1dd, 2.9); key.position.set(-120, 160, 220); key.castShadow = true;
+key.shadow.mapSize.set(4096, 4096); Object.assign(key.shadow.camera, { left: -160, right: 160, top: 160, bottom: -160, near: 10, far: 900 });
+key.shadow.radius = 6; key.shadow.bias = -0.0004; scene.add(key);
+const rim = new THREE.DirectionalLight(0x9fd8ff, 1.6); rim.position.set(180, 90, -160); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffffff, 0.45); fill.position.set(160, -60, 140); scene.add(fill);
+
+const loader = new STLLoader(), tex = new THREE.TextureLoader();
+const load = (u) => new Promise((ok) => loader.load(u, ok));
+const ltex = (u) => new Promise((ok) => tex.load(u, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; ok(t); }));
+
+// The STLs are the printed parts (right-handed). Turn them 180 degrees about y so
+// the front faces the camera (+z): x then runs to the right as the player sees it,
+// which is the design frame the sticker, screen and internals below are placed in.
+function frontFacing(g) {
+  g.rotateY(Math.PI);
+  g.deleteAttribute('normal');
+  return toCreasedNormals(g, Math.PI / 7);
+}
+function svgRings(text) {
+  const d = text.match(/<path d="([^"]*)"/s)[1];
+  return d.split('M').slice(1).map((s) => [...s.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].map((m) => new THREE.Vector2(+m[1], -m[2])))
+          .filter((r) => r.length > 2).sort((a, b) => Math.abs(THREE.ShapeUtils.area(b)) - Math.abs(THREE.ShapeUtils.area(a)));
+}
+function shapeFrom(rings) {
+  const outer = rings[0]; if (THREE.ShapeUtils.isClockWise(outer)) outer.reverse();
+  const s = new THREE.Shape(outer);
+  for (const h of rings.slice(1)) { if (!THREE.ShapeUtils.isClockWise(h)) h.reverse(); s.holes.push(new THREE.Path(h)); }
+  return s;
+}
+
+const shellMat = new THREE.MeshPhysicalMaterial({ color: C.shell, roughness: 0.42, metalness: 0.0, clearcoat: 0.35, clearcoatRoughness: 0.45, sheen: 0.2 });
+const keyMat = new THREE.MeshPhysicalMaterial({ color: C.key, roughness: 0.5, metalness: 0.0, sheen: 0.35, sheenRoughness: 0.6, sheenColor: 0xffc860 });
+
+const root = new THREE.Group(); scene.add(root);
+const parts = {};
+const [front, back, mat] = await Promise.all(['front', 'back', 'mat'].map((n) => load(`assets/struthio_${n}.stl`)));
+parts.front = new THREE.Mesh(frontFacing(front), shellMat);
+parts.back = new THREE.Mesh(frontFacing(back), shellMat);
+parts.mat = new THREE.Mesh(frontFacing(mat), keyMat);
+for (const m of Object.values(parts)) { m.castShadow = true; m.receiveShadow = true; root.add(m); }
+
+// sticker: the cut outline, textured with the print file (the print PNG covers the outline + 1.5 mm bleed box)
+{
+  const rings = svgRings(await (await fetch('assets/struthio_sticker_cut.svg')).text());
+  const shape = shapeFrom(rings);
+  const g = new THREE.ShapeGeometry(shape, 24);
+  const bb = new THREE.Box2().setFromPoints(rings[0]); bb.expandByScalar(1.5);
+  const uv = g.attributes.uv, pos = g.attributes.position;
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, (pos.getX(i) - bb.min.x) / (bb.max.x - bb.min.x), (pos.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
+  const t = await ltex('assets/sticker_front_print.png');
+  const st = new THREE.Mesh(g, new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.15 }));
+  st.position.z = -0.27 + 0.29; st.receiveShadow = true; parts.sticker = st; root.add(st);
+}
+// screen (active area, lit) and the clear lens over the land
+{
+  const t = await ltex('assets/screen_frame.png');
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(48.96, 73.44), new THREE.MeshBasicMaterial({ map: t, toneMapped: false }));
+  scr.position.set(0, 13.78, -3.2); scr.material.color.setScalar(0.92); parts.screen = scr; root.add(scr);
+  const lens = new THREE.Mesh(new THREE.BoxGeometry(56.2, 80.7, 1.0), new THREE.MeshPhysicalMaterial({
+    color: 0xffffff, roughness: 0.02, transmission: 1, thickness: 1, ior: 1.49, transparent: true, opacity: 0.18, clearcoat: 1 }));
+  lens.position.set(0, 13.78, -0.05 + 0.5); parts.lens = lens; root.add(lens);
+}
+
+// internals for the exploded view: CP1, speaker, board, battery, E-Switch, screws
+function box(w, h, d, color, x, y, z, rough = 0.6, metal = 0) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal }));
+  m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; return m;
+}
+if (VIEW === 'exploded') {
+  const cp1Rings = svgRings(await (await fetch('assets/cp1_outline.svg')).text());
+  const cp1 = new THREE.Group();
+  const pcb = new THREE.Mesh(new THREE.ExtrudeGeometry(shapeFrom(cp1Rings), { depth: 1.0, bevelEnabled: false, curveSegments: 24 }),
+                             new THREE.MeshStandardMaterial({ color: 0x1e5c34, roughness: 0.5 }));
+  pcb.position.z = -6.6; cp1.add(pcb);
+  for (const [x, y] of [[-24, -46], [24, -46], [-12, -61.2], [12, -61.2]]) {
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.1, 40), new THREE.MeshStandardMaterial({ color: 0xd8b25a, roughness: 0.25, metalness: 1 }));
+    pad.rotation.x = Math.PI / 2; pad.position.set(x, y, -5.55); cp1.add(pad);
+  }
+  parts.cp1 = cp1; root.add(cp1);
+  const spk = new THREE.Group();
+  const cone = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 5.2, 64), new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4, metalness: 0.6 }));
+  cone.rotation.x = Math.PI / 2; cone.position.set(0, -52.6, -9.8); spk.add(cone); parts.speaker = spk; root.add(spk);
+  const board = new THREE.Group();
+  board.add(box(61, 92.44, 1.6, 0x1f6b3a, 0, 13.78, -13.9));
+  board.add(box(52, 78, 4.2, 0x0b0f14, 0, 13.78, -5.7, 0.25, 0.1));
+  for (const [w, h, x, y] of [[14, 14, -12, 30], [10, 8, 14, 40], [8, 6, 16, -10], [18, 7, -10, -20]]) board.add(box(w, h, 2, 0x2a2e33, x, y, -15.7, 0.5, 0.3));
+  const scr2 = parts.screen.clone(); scr2.position.z = -3.55; board.add(scr2);
+  parts.board = board; root.add(board);
+  const bat = box(34, 52, 5.0, 0xb9bec4, 0, 13.5, -18.1, 0.35, 0.8); parts.battery = bat; root.add(bat);
+  const sw = box(6.6, 12.7, 6.71, 0x2b2b30, -34.95, 12, -10.2, 0.5, 0.2); parts.switch = sw; root.add(sw);
+  root.remove(parts.screen);
+}
+
+// ---- views -----------------------------------------------------------------------
+const cam = new THREE.PerspectiveCamera(22, W / H, 10, 3000);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.ShadowMaterial({ opacity: 0.35 }));
+ground.receiveShadow = true;
+function lay(rx, ry, rz) { root.rotation.set(rx, ry, rz); }
+if (VIEW === 'hero') {
+  lay(-0.30, -0.42, 0.06); cam.position.set(0, 60, 520); cam.lookAt(0, 0, 0);
+} else if (VIEW === 'front') {
+  lay(0, 0, 0); cam.position.set(0, 0, 560); cam.lookAt(0, -3, 0);
+} else if (VIEW === 'back') {
+  lay(0.25, Math.PI + 0.5, -0.05); cam.position.set(0, 10, 520); cam.lookAt(0, 0, 0);
+} else if (VIEW === 'side') {
+  lay(0, -Math.PI / 2, 0); cam.position.set(0, 0, 560); cam.lookAt(0, -2, 0);
+} else if (VIEW === 'exploded') {
+  const gap = { lens: 46, sticker: 28, front: 0, mat: -26, cp1: -48, speaker: -72, board: -100, switch: -100, battery: -132, back: -168 };
+  for (const [n, z] of Object.entries(gap)) if (parts[n]) parts[n].position.z += z;
+  lay(-0.32, -0.82, 0.0); cam.position.set(0, 60, 600);
+}
+// frame the whole subject: fit its bounding sphere in the view, keeping the camera direction
+{
+  root.updateMatrixWorld(true);
+  const sph = new THREE.Box3().setFromObject(root).getBoundingSphere(new THREE.Sphere());
+  const dir = cam.position.clone().sub(new THREE.Vector3(0, 0, 0)).normalize();
+  const fit = Q.get('fit') ? +Q.get('fit') : (VIEW === 'exploded' ? 0.74 : 1.18);
+  const vfov = THREE.MathUtils.degToRad(cam.fov), hfov = 2 * Math.atan(Math.tan(vfov / 2) * cam.aspect);
+  const dist = fit * sph.radius / Math.sin(Math.min(vfov, hfov) / 2);
+  cam.position.copy(sph.center).addScaledVector(dir, dist); cam.lookAt(sph.center);
+  cam.near = dist / 20; cam.far = dist * 6;
+}
+if (VIEW !== 'exploded') {
+  // lie the handheld on an unseen floor below it for a contact shadow
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -78; scene.add(ground);
+}
+cam.updateProjectionMatrix();
+renderer.render(scene, cam);
+// project named part centres to screen space for callouts
+// callout anchors: a visible point on each part (design frame, z negative into the body;
+// for the box meshes, switch and battery, relative to the box centre)
+const ANCHOR = { lens: [24, 44, 0.5], sticker: [-34, -42, 0], front: [-41, 30, -1], mat: [-30, -50, -3],
+                 cp1: [33, -40, -6.1], speaker: [12, -62, -9.8], board: [-27, 52, -5], switch: [-3.3, 0, 0],
+                 battery: [15, 4, 2.5], back: [41, -28, -12], screen: [0, 13.8, -3.2] };
+const labels = {};
+root.updateMatrixWorld(true);
+for (const [n, m] of Object.entries(parts)) {
+  const a = ANCHOR[n] ? m.localToWorld(new THREE.Vector3(...ANCHOR[n])) : new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
+  const c = a.project(cam);
+  labels[n] = [(c.x + 1) / 2 * W, (1 - c.y) / 2 * H];
+}
+window.LABELS = labels;
+window.DONE = true;
+</script></body></html>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""STRUTHIO HANDHELD · beginner figures for Build Manual 1.2.
+"""STRUTHIO HANDHELD · beginner figures for the build manual.
 
 Every number drawn here comes from the repository: pins and timings from
 firmware/main (board_pins.h, struthio_buttons.h, main.c), the flash map from
@@ -133,7 +133,7 @@ def fig_pullup():
             d.multiline_text((ox + 470, 520), 'a tiny current flows;\nthe pin is pulled to 0 V', font=F(24), fill=GOLD_D)
         else:
             d.multiline_text((ox + 470, 520), 'no path to GND:\nthe resistor holds 3.3 V', font=F(24), fill=NAVY)
-    text(d, (W // 2, 950), '* header pin numbers are the v0.10 proposal from the published 2x16 pinout image: confirm them on the board in your hand.', 24, GREY, False, 'ma')
+    text(d, (W // 2, 950), '* header pin numbers are from the published 2x16 pinout image: confirm them on the board in your hand.', 24, GREY, False, 'ma')
     save(im, 'f01_pullup.png')
 
 # ---- F2: multimeter -------------------------------------------------------------------------------
@@ -370,7 +370,7 @@ def fig_flash():
              ('nvs  24 KB\nhigh score,\nDART trial', 0x9000, 0x6000, GOLD), ('phy 4 KB', 0xF000, 0x1000, (200, 200, 200)),
              ('factory app  4 MB\nthe STRUTHIO firmware\n(idf.py flash)', 0x10000, 0x400000, (120, 170, 210)),
              ('assets  9 MB partition\nstruthio.pak, 8.3 MB used\nmapped, never copied to RAM', 0x410000, 0x900000, (130, 200, 150)),
-             ('music 2.9 MB\nsoundtrack 1.9 MB\n(24 kHz ADPCM)', 0xD10000, 0x2F0000, (240, 190, 120))]
+             ('music 2.9 MB\nsoundtrack 1.8 MB\n(24 kHz ADPCM)', 0xD10000, 0x2F0000, (240, 190, 120))]
     x0, x1, y0, y1 = 60, 1940, 300, 430
     total = 0x1000000
     import math
@@ -398,10 +398,10 @@ def fig_flash():
         else:
             d.line([(cx, y1), (cx, ty + 12)], fill=INK, width=2); text(d, (cx + 10, ty), lab, 24, INK)
     text(d, (x1, y1 + 44), 'ends at 0x1000000 = 16 MB', 20, GREY, False, 'ra')
-    d.multiline_text((60, 660), '•  idf.py flash writes the bootloader, the partition table, the app AND, when\n'
-                     '    build/assets/struthio.pak and struthio_music.ima exist, the art and the soundtrack (firmware/CMakeLists.txt).\n'
-                     '•  No pack: a CMake warning and the greybox renderer. No soundtrack: a warning, sound effects only.\n'
-                     '•  nvs survives re-flashing the app; "idf.py erase-flash" clears it (high score, DART trial and volume reset).',
+    d.multiline_text((60, 660), '•  idf.py flash writes the bootloader, the partition table, the app, the art pack and the soundtrack\n'
+                     '    (firmware/CMakeLists.txt). With -D STRUTHIO_ART=greybox an 8-byte marker replaces the art: greybox picture.\n'
+                     '•  idf.py app-flash writes only the app: the art, the music and the settings stay.\n'
+                     '•  nvs survives re-flashing; "idf.py erase-flash" clears it (high score, DART mode and volume reset).',
                      font=F(24), fill=INK, spacing=10)
     save(im, 'f06_flashmap.png')
 
@@ -525,7 +525,7 @@ def fig_pipeline():
         d.multiline_text((x + bw / 2, 250), a, font=F(30, True), fill=INK, anchor='mm', align='center', spacing=4)
         d.multiline_text((x + bw / 2, 350), b, font=F(24), fill=GREY, anchor='ma', align='center', spacing=4)
         if i < n - 1: arrow(d, (x + bw + 4, 250), (x + bw + gap - 4, 250), head=18)
-    d.multiline_text((40, 520), 'If struthio.pak is missing, the panel renderer is replaced by the greybox renderer (flat palette, no textures): '
+    d.multiline_text((40, 520), 'Without the art pack (or with STRUTHIO_ART=greybox) the greybox renderer draws instead (flat palette, no textures): '
                      'the game itself is identical.\nThe game never waits for the screen: if drawing is slow, frames are dropped, never game ticks.',
                      font=F(25), fill=INK, spacing=8)
     save(im, 'f10_pipeline.png')
@@ -534,7 +534,7 @@ def fig_pipeline():
 def fig_bench():
     W, H = 2000, 1000
     im, d = canvas(W, H)
-    title(d, W, 'The A0 bench: everything the first playable round needs', 'USB power only: no battery, no speaker, no shell, camera connector empty')
+    title(d, W, 'The bench build: everything the first playable round needs', 'USB power only: no battery, no speaker, no shell, camera connector empty')
     # computer
     box(d, (60, 220, 480, 520), fill=(230, 230, 235)); text(d, (270, 330), 'computer', 34, INK, True, 'mm')
     text(d, (270, 380), 'idf.py monitor', 26, GREY, False, 'mm', mono=True)
@@ -587,7 +587,7 @@ def fig_audio():
     my = 520
     box(d, (40, my, 40 + bw, my + 130), fill=AMBER)
     text(d, (40 + bw / 2, my + 65), 'music partition', 30, INK, True, 'mm')
-    d.multiline_text((40 + bw / 2, my + 145), '160 s loop, 24 kHz\nIMA ADPCM, 1.9 MB', font=F(24), fill=GREY, anchor='ma', align='center', spacing=4)
+    d.multiline_text((40 + bw / 2, my + 145), '160 s loop, 24 kHz\nIMA ADPCM, 1.8 MB', font=F(24), fill=GREY, anchor='ma', align='center', spacing=4)
     box(d, (xs[1], my, xs[1] + bw, my + 130), fill=(250, 220, 170))
     text(d, (xs[1] + bw / 2, my + 65), 'decode x2', 32, INK, True, 'mm')
     d.multiline_text((xs[1] + bw / 2, my + 145), 'to 48 kHz', font=F(24), fill=GREY, anchor='ma', align='center')
@@ -600,7 +600,7 @@ def fig_audio():
     d.ellipse((mx - 50, 395, mx + 50, 495), fill=WHITE, outline=NAVY, width=5); text(d, (mx, 445), '+', 60, NAVY, True, 'mm')
     d.line([(xs[3] + bw + 6, y + 65), (mx, y + 65)], fill=NAVY, width=6); arrow(d, (mx, y + 65), (mx, 393))
     arrow(d, (xs[2] + bw + 6, my + 65), (mx - 40, 480))
-    out = [('ES8311', 'I2S 48 kHz\n16-bit mono'), ('NS4150B', 'amplifier'), ('speaker', '6\u20138 \u03a9, ~1 W')]
+    out = [('ES8311', 'I2S 48 kHz\n16-bit mono'), ('NS4150B', 'amplifier'), ('speaker', 'PUI 28 mm, 8 \u03a9')]
     ox = mx + 120
     for i, (a, b) in enumerate(out):
         bx = ox + i * 0

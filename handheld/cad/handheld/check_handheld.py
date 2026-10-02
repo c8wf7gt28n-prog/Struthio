@@ -44,11 +44,23 @@ def section(m, z):
     path, _ = sec.to_2D(to_2D=np.eye(4))
     return unary_union(list(path.polygons_full)).buffer(0)
 
-front = trimesh.load('stl/struthio_front.stl')
-back = trimesh.load('stl/struthio_back.stl')
-mat = trimesh.load('stl/struthio_mat.stl')
+# the STLs are the physical parts, the mirror of the design frame (HANDEDNESS in
+# the SCAD); mirror them back so every check reads in design coordinates
+def design_frame(path):
+    m = trimesh.load(path)
+    m.apply_transform(np.diag([-1.0, 1.0, 1.0, 1.0]))
+    return m
+front = design_frame('stl/struthio_front.stl')
+back = design_frame('stl/struthio_back.stl')
+mat = design_frame('stl/struthio_mat.stl')
 for name, m in (('front', front), ('back', back), ('mat (CM1)', mat)):
     check(m.is_watertight and len(m.split(only_watertight=False)) == 1, f'{name}: one watertight solid')
+# handedness of the PRINTED back shell (raw STL, right-handed): looking at the front
+# (from -z) the player's left is +x, where the power-switch slot must be
+_raw = trimesh.load('stl/struthio_back.stl')
+_slot = [[40.3, P['PWR_Y'], P['PWR_Z']]]
+check(not _raw.contains(_slot)[0] and _raw.contains([[40.3, P['PWR_Y'], P['PWR_Z'] - 2.6]])[0],
+      "printed back: power-switch slot on the player's left, seen from the front")
 
 # ---- envelope -----------------------------------------------------------------------------
 w = back.bounds[1][0] - back.bounds[0][0]; h = back.bounds[1][1] - back.bounds[0][1]

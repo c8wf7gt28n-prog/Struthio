@@ -9,7 +9,7 @@ int main(void) {
     static uint8_t fb[ST_FB_W * ST_FB_H];
     memset(fb, STR_PAL_INK, sizeof fb);
     st_draw_text(fb, 8, 8, "STRUTHIO SERVICE", STR_PAL_GOLD_LIGHT, 2);
-    st_draw_text(fb, 8, 30, "A0 / CORE 1.8.0 PORT / OCT  2 2026", STR_PAL_GOLD, 1);
+    st_draw_text(fb, 8, 30, "HANDHELD / CORE 1.8.0 / OCT  2 2026", STR_PAL_GOLD, 1);
     st_draw_text(fb, 8, 48, "RESET 1  PSRAM 8192K  RAM 312K", STR_PAL_IVORY, 1);
     st_draw_text(fb, 8, 72, "LEFT UP 12   RIGHT DOWN 9", STR_PAL_CYAN_LIGHT, 1);
     st_draw_text(fb, 8, 84, "DART ROCKER ONLY  FIRED 3", STR_PAL_CYAN_LIGHT, 1);

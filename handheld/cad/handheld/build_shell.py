@@ -8,6 +8,8 @@
 #   - the outer and inner skins are lofted here: the core outline grown
 #     outward by the revolved side profiles (shell_prof_out / _in), which is
 #     what the SCAD's minkowski() describes;
+#   - the design frame has x right as seen from the front; the STLs written are
+#     its mirror image, the physical parts (see HANDEDNESS in the SCAD)
 #   - front = (outer ∩ z<=FRONT_T) ∪ front_add − front_cut
 #     back  = (outer ∩ z>=FRONT_T) − (inner − back_add) − back_cut − (bore ∩ inner)
 #   python3 build_shell.py      (from cad/handheld; needs openscad, numpy, trimesh, manifold3d)
@@ -117,7 +119,8 @@ def main():
     cavity = inner - parts['back_add']
     back = ((outer ^ slab(ft, P['SHELL_ZB'] + 1)) - cavity) - parts['back_cut'] - (parts['speaker_bore'] ^ inner)
     os.makedirs(os.path.join(HERE, 'stl'), exist_ok=True)
-    for name, man in (('front', front), ('back', back)):
+    # printed parts are the mirror of the design frame (struthio_handheld.scad, HANDEDNESS)
+    for name, man in (('front', front.mirror([1, 0, 0])), ('back', back.mirror([1, 0, 0]))):
         path = os.path.join(HERE, 'stl', f'struthio_{name}.stl')
         write(man, path)
         b = man.bounding_box()
