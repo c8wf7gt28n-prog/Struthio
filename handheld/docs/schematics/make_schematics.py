@@ -207,8 +207,8 @@ def s2():
               'The only signal wiring STRUTHIO adds to the board. Internal pull-ups, no external parts. 1 kHz sampling, 8 ms debounce in firmware.', trim=110)
     s.box(120, 205, 380, 560, 'ESP32-S3', None, fill='#EAF4F4')
     s.text(310, 745, '(on the Waveshare 3.5B)', 11.5, GREY)
-    rows = [('GPIO17', 'LEFT WING', 'L', 'white', 'header J8-15'), ('GPIO18', 'RIGHT WING', 'R', 'blue', 'header J8-17'),
-            ('GPIO21', 'DART LEFT', 'DL', 'yellow', 'header J8-6'), ('GPIO38', 'DART RIGHT', 'DR', 'orange', 'header J8-8')]
+    rows = [('GPIO17', 'LEFT WING', 'L', 'white', 'header pin 16'), ('GPIO18', 'RIGHT WING', 'R', 'blue', 'header pin 18'),
+            ('GPIO21', 'DART LEFT', 'DL', 'yellow', 'header pin 5'), ('GPIO38', 'DART RIGHT', 'DR', 'orange', 'header pin 7')]
     for k, (gpio, name, pad, colour, hp) in enumerate(rows):
         y = 290 + 120 * k
         s.text(290, y - 22, 'internal pull-up', 11, GREY, 400, 'end')
@@ -228,7 +228,7 @@ def s2():
     s.text(960, 222, 'STRUTHIO-CP1: carbon pill on ENIG comb = switch', 12.5, INK, 700)
     s.wire([(1100, 290), (1100, 760)], 'gnd', 2.6)
     s.wire([(1100, 760), (1100, 800), (500, 800), (500, 765)], 'gnd', 2.6)
-    s.text(800, 822, 'black wire: CP1 pad G → board GND, header J8-29 (any GND pin)', 11.5, INK, 600)
+    s.text(800, 822, 'black wire: CP1 pad G → board GND, header pin 29 (any GND pin)', 11.5, INK, 600)
     s.gnd(1100, 800)
     s.note(1190, 250, ['Pressed  → GPIO reads 0 (LOW)', 'Released → GPIO reads 1 (pull-up)', '',
                        'Wings: one flap per press;', 'both within 100 ms = straight up.', 'DART ends: one dart per press,',

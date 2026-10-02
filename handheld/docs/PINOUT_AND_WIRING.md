@@ -1,18 +1,19 @@
 # STRUTHIO handheld — pinout and wiring
 
 The firmware's copy of this map is `firmware/main/board_pins.h`. Header pin
-numbers are J8 on Waveshare's schematic (both revisions; see `HARDWARE_FACTS.md`);
-the GPIO numbers are what counts: check the label printed beside the header.
+numbers follow Waveshare's pinout diagram (pin 1 = BAT, at the battery-socket end, on
+the row nearer the board edge). The schematic's J8 numbers swap the two rows; see
+`HARDWARE_FACTS.md`.
 
 ## Controls (all inputs, internal pull-up, active low, common GND)
 
 | Control | GPIO | Header pin | CP1 pad | Wire |
 | --- | --- | --- | --- | --- |
-| LEFT WING | 17 | J8-15 | L | white |
-| RIGHT WING | 18 | J8-17 | R | blue |
-| DART LEFT | 21 | J8-6 | DL | yellow |
-| DART RIGHT | 38 | J8-8 | DR | orange |
-| GND | — | J8-3, 4, 29 or 30 | G | black |
+| LEFT WING | 17 | 16 | L | white |
+| RIGHT WING | 18 | 18 | R | blue |
+| DART LEFT | 21 | 5 | DL | yellow |
+| DART RIGHT | 38 | 7 | DR | orange |
+| GND | — | 3, 4, 29 or 30 | G | black |
 
 Sampled at 1 kHz, debounced for 8 ms; each press keeps the time of its first
 edge, so the 100 ms chord window measures real thumb timing.

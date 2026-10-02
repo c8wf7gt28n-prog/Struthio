@@ -110,7 +110,7 @@ def fig_pullup():
         d.line([(x, 640), (ox + 600, 640)], fill=INK, width=5)
         d.ellipse((ox + 410, 628, ox + 434, 652), fill=GOLD, outline=INK, width=2)
         text(d, (ox + 440, 588), 'GPIO17', 28, NAVY, True)
-        text(d, (ox + 440, 660), 'header J8 pin 15*', 24, GREY)
+        text(d, (ox + 440, 660), 'header pin 16*', 24, GREY)
         # switch
         sx = ox + 700
         d.line([(ox + 600, 640), (sx, 640)], fill=INK, width=5)

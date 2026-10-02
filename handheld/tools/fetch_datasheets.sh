@@ -11,6 +11,7 @@ get ESP32-S3-Touch-LCD-3.5B_V2.0.pdf      $W/ESP32-S3-Touch-LCD-3.5B_V2.0.pdf
 get ESP32-S3-Touch-LCD-3.5B-Schematic.pdf $W/ESP32-S3-Touch-LCD-3.5B-Schematic.pdf
 get size_bare_board.webp https://docs.waveshare.com/assets/images/ESP32-S3-Touch-LCD-3.5B-details-size-1-ceb0bb9af8bcc0e1bfe44210143033e1.webp
 get size_cased_C.webp    https://docs.waveshare.com/assets/images/ESP32-S3-Touch-LCD-3.5B-details-size-c58333b4af38d04a25ef2d68ee5dbd8e.webp
+get header_pinout.jpg   https://www.waveshare.com/img/devkit/ESP32-S3-Touch-LCD-3.5B/ESP32-S3-Touch-LCD-3.5B-details-intro.jpg
 get 500SSP1S1M7QEA.pdf https://configured-product-images.s3.amazonaws.com/2D/specs/500SSP1S1M7QEA.pdf
 get E-Switch_500.pdf   https://configured-product-images.s3.amazonaws.com/Datasheets/500.pdf
 get AS02808MR-R.pdf    https://api.puiaudio.com/filename/AS02808MR-R.pdf

@@ -1049,13 +1049,13 @@ a.h2('Controls and fit')
 a.table(['Sample / print', 'Part', 'Travel (mm)', 'Force (g) / snap', 'Result'], [[str(i), '', '', '', ''] for i in range(1, 5)], size=9)
 
 chapter('SHOP SHEET F — Pin and wire card', None)
-a.p('From firmware/main/board_pins.h and Waveshare\'s example (commit 840daf2). Header pin numbers are J8 on Waveshare\'s schematic (both board revisions); the GPIO number printed beside the header is what counts.')
+a.p('From firmware/main/board_pins.h and Waveshare\'s example (commit 840daf2). Header pin numbers follow Waveshare\'s pinout diagram: pin 1 is BAT, at the battery-socket end of the header.')
 a.table(['#', 'From', 'To', 'Wire', 'Notes'], [
-    ['W1', 'GPIO17 (header J8 pin 15)', 'CP1 pad L — LEFT WING', 'white, ~24 AWG', 'Bench: LEFT switch S leg'],
-    ['W2', 'GPIO18 (header J8 pin 17)', 'CP1 pad R — RIGHT WING', 'blue, ~24 AWG', 'Bench: RIGHT switch S leg'],
-    ['W3', 'GPIO21 (header J8 pin 6)', 'CP1 pad DL — DART LEFT', 'yellow, ~24 AWG', 'Handheld'],
-    ['W4', 'GPIO38 (header J8 pin 8)', 'CP1 pad DR — DART RIGHT', 'orange, ~24 AWG', 'Handheld'],
-    ['W5', 'GND (header J8 pin 3, 4, 29 or 30)', 'CP1 pad G — common ground', 'black, ~24 AWG', 'Bench: both switches\' G legs'],
+    ['W1', 'GPIO17 (header pin 16)', 'CP1 pad L — LEFT WING', 'white, ~24 AWG', 'Bench: LEFT switch S leg'],
+    ['W2', 'GPIO18 (header pin 18)', 'CP1 pad R — RIGHT WING', 'blue, ~24 AWG', 'Bench: RIGHT switch S leg'],
+    ['W3', 'GPIO21 (header pin 5)', 'CP1 pad DL — DART LEFT', 'yellow, ~24 AWG', 'Handheld'],
+    ['W4', 'GPIO38 (header pin 7)', 'CP1 pad DR — DART RIGHT', 'orange, ~24 AWG', 'Handheld'],
+    ['W5', 'GND (header pin 3, 4, 29 or 30)', 'CP1 pad G — common ground', 'black, ~24 AWG', 'Bench: both switches\' G legs'],
     ['W6', 'Board speaker header + / −', 'PUI AS02808MR-R', '2-core lead', 'Confirm the header'],
     ['W7', 'THOR-503450 BAT+', 'E-Switch COMMON', 'red, ≥ 22 AWG', 'Meter COMMON first'],
     ['W8', 'E-Switch ON throw', 'Board BAT+', 'red, ≥ 22 AWG', 'Other throw: insulated = OFF'],
@@ -1155,7 +1155,7 @@ a.table(['Check', 'Result'], [
     ['Sticker print file', 'PDF page exactly 87.0 x 43.9 mm; PNG carries 600 dpi'],
 ], widths=[3, 4.8], size=8.5)
 a.h2('Still to confirm on the parts in your hand')
-a.bullets(['The board\'s USB-C position (the CAD assumes bottom centre, right-angle plug).', 'Which end of the header is pin 1 (taken from the label on Waveshare\'s cased version).',
+a.bullets(['The board\'s USB-C position (the CAD assumes bottom centre, right-angle plug).', 'The header socket depth (sets how far the mating pins go in).',
            'The board\'s speaker and battery connector positions and battery polarity.',
            'The E-Switch actuator is 3.83 mm square (E-Switch drawing T511012); the shell slot is checked on the first print.',
            'PUI AS02808MR-R frame: modelled round; re-check the 29.2 mm pocket for a square frame.',

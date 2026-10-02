@@ -12,6 +12,7 @@ The PDFs themselves are not stored in the repository (some forbid copying).
 | Waveshare schematic, first release | `ESP32-S3-Touch-LCD-3.5B-Schematic.pdf` | 71fe3528189c6242 |
 | Waveshare dimension drawing (bare board) | `…-details-size-1-….webp` | ce448ce06c3665db |
 | Waveshare dimension drawing (cased "-C" version) | `…-details-size-c….webp` | 1c4953f7e3625b22 |
+| Waveshare header pinout diagram | `ESP32-S3-Touch-LCD-3.5B-details-intro.jpg` | (image) |
 | E-Switch drawing T511012 rev C | `500SSP1S1M7QEA.pdf` | 57d0ea1c47d45d63 |
 | E-Switch 500 series datasheet | `500.pdf` | a46cf77d0dac1a82 |
 | PUI Audio data sheet rev D (2025-07-17) | `AS02808MR-R.pdf` | 9745b0373bdd5e52 |
@@ -30,51 +31,53 @@ centre: (±36.00, ±24.25) mm. Edge distances 10.22 mm and 6.25 mm.
 
 **Expansion header J8:** 2 × 16 **female** socket, 2.54 mm pitch, on the back,
 along the long edge on the battery-socket side, centred on the board's long axis.
-Both schematic revisions give the same pin map:
 
-| Pin | Net | | Pin | Net |
+Pin numbers below are **Waveshare's pinout diagram** (docs.waveshare.com, "Pinout
+Definition"), which is what the docs and the board use. The schematic's J8 symbol
+numbers the same pins with the two rows swapped (its pin 1 is VBUS, its pin 2 VBAT);
+the nets in each pair agree, so only the numbering differs. Both schematic revisions
+are identical here.
+
+| Pin | Signal | | Pin | Signal |
 |---|---|---|---|---|
-| 1 | VBUS (USB 5 V, after the ferrite) | | 2 | VBAT (battery +, AXP2101 BAT) |
+| 1 | BAT (battery +, AXP2101 BAT) | | 2 | 5V (USB VBUS) |
 | 3 | GND | | 4 | GND |
-| 5 | USB_N (GPIO19, D−) | | 6 | **IO21** — DART LEFT |
-| 7 | USB_P (GPIO20, D+) | | 8 | **IO38** — DART RIGHT |
-| 9 | ESP_SCLK | | 10 | IO39 |
-| 11 | ESP_MOSI | | 12 | IO40 |
-| 13 | ESP_MISO | | 14 | IO41 (CAM_PCLK) |
-| 15 | **IO17** — LEFT WING | | 16 | IO42 |
-| 17 | **IO18** — RIGHT WING | | 18 | IO45 (strapping) |
-| 19 | IO0 (BOOT) | | 20 | IO46 (strapping) |
-| 21 | ESP_EN (reset) | | 22 | IO47 |
-| 23 | PWRON (AXP2101 power key) | | 24 | IO48 |
-| 25 | ESP_SCL | | 26 | ESP_TXD |
-| 27 | ESP_SDA | | 28 | ESP_RXD |
+| 5 | **GPIO21** — DART LEFT | | 6 | DN (GPIO19, USB D−) |
+| 7 | **GPIO38** — DART RIGHT | | 8 | DP (GPIO20, USB D+) |
+| 9 | GPIO39 | | 10 | GPIO11 |
+| 11 | GPIO40 | | 12 | GPIO10 |
+| 13 | GPIO41 | | 14 | GPIO9 |
+| 15 | GPIO42 | | 16 | **GPIO17** — LEFT WING |
+| 17 | GPIO45 (strapping) | | 18 | **GPIO18** — RIGHT WING |
+| 19 | GPIO46 (strapping) | | 20 | BOOT (GPIO0) |
+| 21 | GPIO47 | | 22 | RST (ESP_EN) |
+| 23 | GPIO48 | | 24 | PWR (AXP2101 power key) |
+| 25 | TXD (GPIO43) | | 26 | SCL (GPIO7) |
+| 27 | RXD (GPIO44) | | 28 | SDA (GPIO8) |
 | 29 | GND | | 30 | GND |
-| 31 | VCC3V3 | | 32 | VCC3V3 |
+| 31 | 3V3 | | 32 | 3V3 |
 
 All four STRUTHIO controls are on the header: no firmware change is needed.
 
 **Header position (measured** from the drawing, ±0.5 mm; seen from the back,
 landscape, origin at the board centre, x toward the right-hand short edge, y toward
 the header edge): pin columns at x = −19.05 + 2.54·k (k = 0…15, the header is
-centred); row centre y ≈ +23.2. Pin 1 (VBUS) is at the end nearest the USB-C edge,
-odd pins on the row toward the board centre (from the "-C" version's printed label;
-**confirm** on the board).
-
-**Header height:** the socket's mating face is at the 11.50 mm overall thickness,
-measured from the cover glass. Socket depth: **confirm** (it is a low socket, so
-the mating male header needs short pins; the first fit print checks it).
+centred); row centre y ≈ +23.2. Pin 1 (BAT) is at the end beside the battery socket
+J7, i.e. the USB-C end; **odd pins are on the row nearer the board edge**, even pins
+on the row toward the centre (pinout diagram, and the label printed on the cased
+"-C" version).
 
 **Board sockets:**
 
 | Ref | Type | Pins | Where (back view) |
 |---|---|---|---|
-| J5 | USB-C 16P | VBUS, D+/D− (to J8 pins 1, 7, 5), CC 5.1 kΩ to GND | left short edge |
+| J5 | USB-C 16P | VBUS, D+/D− (to header pins 2, 8, 6), CC 5.1 kΩ to GND | left short edge |
 | J7 | PH1.25-2P (battery) | 1 = VBAT, 2 = GND | bottom-left, beside MIC / RTC_BKP |
 | J9 | PH1.25-2P (speaker) | 1 = OUT+, 2 = OUT− (NS4150B bridge output: **neither pin is ground**) | top edge, beside the BOOT key |
 | J6 | SH1.0-2P | RTC backup cell | bottom-left |
-| K3 | PWR key | to PWRON (J8 pin 23) | top edge |
+| K3 | PWR key | to PWRON (header pin 24) | top edge |
 
-**Power path:** USB VBUS → AXP2101 VBUS; battery J7 pin 1 = VBAT = J8 pin 2 →
+**Power path:** USB VBUS → AXP2101 VBUS; battery J7 pin 1 = VBAT = header pin 1 →
 AXP2101 BAT (pin 33), with a 10 kΩ NTC on TS fitted on the board.
 
 ## E-Switch 500SSP1S1M7QEA
