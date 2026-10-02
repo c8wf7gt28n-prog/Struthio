@@ -29,6 +29,19 @@ def cropped(path, name, pad=24):
     im.crop((max(0, x0 - pad), max(0, y0 - pad), min(im.width, x1 + pad), min(im.height, y1 + pad))).save(out)
     return out
 
+def shell_sheet():
+    """front and back three-quarter views plus the side profile, one figure"""
+    ims = [Image.open(cropped(A15('renders', n), 'c_' + n)).convert('RGB') for n in ('front_angle.png', 'rear_angle.png')]
+    side = Image.open(cropped(A15('renders', 'side.png'), 'c_side.png')).convert('RGB')
+    h = 900
+    ims = [i.resize((int(i.width * h / i.height), h)) for i in ims]
+    side = side.resize((int(side.width * h / side.height), h))
+    W = sum(i.width for i in ims) + side.width + 80
+    sheet = Image.new('RGB', (W, h), 'white'); x = 0
+    for i in ims + [side]:
+        sheet.paste(i, (x, 0)); x += i.width + 40
+    out = FG('a15_shell_sheet.png'); sheet.save(out); return out
+
 K.open_doc(SRC)
 At = K.At
 
@@ -70,7 +83,7 @@ a.table(['Loop (from 1.5)', 'Status in 1.6', 'Where it is'], [
     ['1. Firmware v0.12: direct DART + hard-power NVS policy', 'DONE. GPIO21 / GPIO38 read at 1 kHz with the wings\' 8 ms debounce; one press = one dart that way. '
      'High score, DART mode and volume are written only when they change, and every flash write is read back.',
      'firmware/main/struthio_buttons.c, main.c, sdkconfig.defaults; host test "rocker"'],
-    ['2. A1.5 CAD', 'DONE. Silicone mat pocket, 44 x 9 mm DART rocker, PUI chamber, THOR cavity, E-Switch, USB path, new sticker. 50 of 50 fit checks pass.',
+    ['2. A1.5 CAD', 'DONE. Sculpted shell, silicone mat pocket, 44 x 9 mm DART rocker, PUI chamber, THOR cavity, E-Switch, USB path, new sticker. 54 of 54 fit checks pass.',
      'cad/a15/STRUTHIO15.scad, stl/, svg/, dxf/, renders/, check_a15.py'],
     ['3. CP1 PCB + CM1 drawing', 'DONE for ordering. CP1 Gerbers pass their own design-rule check; the CM1 drawing is ready to send for quotes. '
      'Quotes and first samples are your step.', 'cad/a15/cp1/cp1_gerbers.zip; cad/a15/drawings/STRUTHIO-CM1_drawing.pdf, STRUTHIO-CP1_drawing.pdf'],
@@ -79,14 +92,26 @@ a.table(['Loop (from 1.5)', 'Status in 1.6', 'Where it is'], [
     ['5. Real-board audio / runtime / control validation', 'OPEN: yours. Nothing in this edition has been flashed, printed, fabricated or molded yet.',
      'Steps 7–12, Shop Sheets B, C and E'],
 ], widths=[2.2, 4.2, 2.8], size=9)
-a.h2('The one size change: 88 x 134 mm')
+a.h2('Size and shape: 88 x 137.4 x 23 mm, sculpted')
 a.p('You chose to keep every locked control size and grow the body at the bottom only. The rocker below the wings needed about 3–4 mm. '
     'The CAD needs 6 mm, because the speaker sits behind CP1 between the wings and must also clear the board\'s USB-C plug. '
-    'The result is 88 x 134 x 23 mm (A0.8.4: 88 x 128 x 23). The top edge, screen opening, lens land, board datums and top screws are unchanged. '
-    'The bottom arch is dropped for a flat, stronger lower rail.')
+    'On the centre line the body now runs from y +64 to −70 (A0.8.4: +64 to −64). The screen opening, lens land and board datums are unchanged.')
+a.p('You then asked for the case to be "sleek and stylish, not a block", in the spirit of the 1991 Konami handheld. The shell is now sculpted:', )
+a.bullets([
+    ('Silhouette: ', 'a concave top and bottom whose corners lift 2.0 mm / drop 1.8 mm, broad shoulders around the screen, a waist below it and '
+     'flared hips around the wings. 88 mm wide; 137.4 mm tall at the corners.'),
+    ('Side view: ', 'a rounded front edge (1.6 mm), a straight side wall to 9 mm deep, then the sides roll 12 mm inward into a pillow back. '
+     'The wall stays at least 1.8 mm thick all the way round the roll; the battery and speaker sit under the flat middle of the back.'),
+    ('Screws that actually clamp: ', 'four M2 x 10 socket-head thread-forming screws go in from the back, through counterbored posts in the back shell '
+     'and into bosses on the front shell. They moved in to x ±35 so the counterbores stay on the back face.'),
+    ('Tunable: ', 'TOP_LIFT, BOTTOM_DROP, SHELL_RF, SHELL_ZS and SHELL_RB at the top of STRUTHIO15.scad; set TOP_LIFT and BOTTOM_DROP to 0 for a '
+     'straight 134 mm top and bottom. SHELL_STYLE = "a0" brings back the old slab.'),
+])
 a.callout('USB-C CAVEAT: the position of the board\'s own USB-C connector is NOT confirmed. The CAD assumes bottom centre (as A0) with a '
           'right-angle plug turning into a channel to a panel jack at x = +19.25 mm. If your board\'s connector is elsewhere, change USB_PLUG_* '
           'in STRUTHIO15.scad and re-run check_a15.py. The extra 2 mm may then not be needed.', fill='FCE4D6')
+a.figure(shell_sheet(), 'FIGURE 1.6C — The sculpted A1.5 shell (cad/a15/renders): front three-quarter, back three-quarter with the pillow back, '
+         'and the side profile (front face on the right).', width=6.4)
 a.figure(A15('drawings', 'a15_face_layout.png'), 'FIGURE 1.6A — A1.5 face layout (cad/a15/drawings/a15_face_layout.png). '
          'All control dimensions are measured from the speaker-window centre (0, −47).', width=6.4)
 a.figure(A15('renders', 'a15_struthio_front.png'), 'FIGURE 1.6B — A1.5 front: the new sticker art composed onto the CAD render. A preview, not a photograph.', width=3.2)
@@ -202,7 +227,8 @@ K.replace_in(K.para('5. Battery selection is already locked'),
 K.set_text(K.para('Now the CAD becomes physical.'),
            'Now the CAD becomes physical. A1.5 (cad/a15/STRUTHIO15.scad) is the print authority. It keeps A0.8.4\'s screen, board and crown datums and adds '
            'the silicone controls, DART rocker, PUI chamber, THOR cavity and E-Switch. To fit the rocker below the wings and the speaker clear of the '
-           'board\'s USB-C plug, the body grows 6 mm at the bottom only: 88 x 134 mm. A0.8.4 stays in cad/a1 as the historical baseline.')
+           'board\'s USB-C plug, the body grows 6 mm at the bottom. The shell is sculpted (Figure 1.6C): 88 x 137.4 x 23 mm, rounded front edge, '
+           'pillow back. Its front and back STLs are built by cad/a15/build_shell.py. A0.8.4 stays in cad/a1 as the historical baseline.')
 K.set_text(K.para('If you print anything before A1.5 CAD is complete'),
            'Print the A1.5 front first, in PLA, as a fit coupon. Confirm the LCD opening, board width and lens land, then the carrier, CP1 and speaker seat.')
 K.replace_in(K.para('Do NOT print the old A0.8.4 wing caps'),
@@ -219,30 +245,33 @@ a.h2('A1.5 CAD numbers (cad/a15/STRUTHIO15.scad)')
 a.p('All dimensions in millimetres. x right, y up, from the board centre line; z from the front face back. Change a number at the top of the file, '
     'export again, and run the checks. Do not edit the STL files themselves.')
 a.table(['Parameter', 'Value', 'What it controls'], [
-    ['BODY_W x (BODY_H + BOTTOM_EXT)', '88 x 134 (128 + 6)', 'Outer footprint; grows at the bottom only; depth 23 as A0.8.4'],
-    ['BOTTOM_ARCH', 'false', 'Flat lower rail (A0.8.4 had a 1.8 mm arch)'],
+    ['Centre line (BODY_H + BOTTOM_EXT)', 'y +64 .. −70 (128 + 6)', 'Screen, board and rocker datums; grows at the bottom only'],
+    ['TOP_LIFT / BOTTOM_DROP', '2.0 / 1.8', 'Concave top and bottom: corners beyond the centre line; overall 88 x 137.4 x 23'],
+    ['SHELL_RF / SHELL_ZS / SHELL_RB', '1.6 / 9.0 / 12.0', 'Front edge radius / straight side wall depth / how far the back rolls in'],
     ['BTN_X, BTN_Y', '±24, −46', 'Wing key centres; faces 28 x 18.5'],
     ['Rocker', '44 x 9 face at y −61.2; contacts x ±12', 'DART rocker; contacts 24.0 apart'],
     ['Travel (pill face above CP1)', 'wings 1.5, rocker ends 1.3', 'Locked travel; rocker centre stop 1.1'],
     ['SPKR_X, SPKR_Y', '0, −52.6', 'PUI centre behind CP1; window Ø13 at (0, −47); pocket Ø29.2'],
     ['BAT_W x BAT_H x BAT_T, BAT_Y', '36 x 54 x 6.2, 13.5', 'THOR-503450 (cavity 37.4 x 55.4 x 6.35)'],
-    ['SCREW_X, SCREW_Y / SCREW_Y_BOT', '±37, 55.5 / −63', 'Four rear M2-class screws; the lower pair moved below the wing skirts'],
+    ['SCREW_X, SCREW_Y / SCREW_Y_BOT', '±35, 55.5 / −63', 'Four M2 x 10 socket-head screws from the back: counterbore seat z 13, front-boss pilot 1.7'],
     ['USB_PLUG_*', 'x −6..16, y −37.5..−32.8, z 7.5..14', 'Right-angle plug keep-out (board connector position: CONFIRM)'],
     ['USB channel / jack', 'x 16.5..22; jack at x +19.25', 'Path to the bottom-wall panel jack'],
     ['E-Switch', 'left wall (x −38.25), y 12', 'BAT+ hard cut; actuator 2.1 proud; the right side keeps the BOOT / RESET service slot'],
     ['STICKER_TOP / BOTTOM, widths', '−27.2 / −68.0, 82 / 86', 'Art panel: 2 wing holes, rocker hole, 5 grille slots'],
 ], widths=[2.4, 2.4, 4.2], size=9)
 a.h2('A1.5 export / check commands')
-a.code(['cd handheld/cad/a15', './export_a15.sh            # needs OpenSCAD 2021.01 or newer, Python trimesh + shapely',
+a.code(['cd handheld/cad/a15', './export_a15.sh            # needs OpenSCAD 2021.01 or newer, Python trimesh + shapely + manifold3d',
+        'python3 build_shell.py     # the sculpted front + back alone (about 10 s)',
         '#  -> stl/struthio_a15_front.stl, _back.stl, _mat.stl',
         '#  -> svg/struthio_a15_front_sticker.svg, dxf/ (CP1, CM1, key outlines), renders/, art/',
-        '#  -> A1.5 CHECK: all pass   (50 checks)',
+        '#  -> A1.5 CHECK: all pass   (54 checks)',
         'python3 check_a15.py       # the checks alone',
         'python3 cp1/make_cp1.py    # CP1 Gerbers + CP1 DRC: all pass',
         'python3 drawings/make_drawings.py   # CM1 / CP1 drawings'])
 a.p('What the checks prove: every part is one watertight solid; each key passes its opening with ≥0.25 mm clearance and is captured by ≥0.5 mm of flange; '
     'each pill rests exactly its locked travel above CP1; CP1 and the mat clear the board and the screw posts; the speaker window is sealed; '
-    'the speaker clears the USB plug keep-out (1.1 mm); the battery and E-Switch volumes are free of plastic; every sticker hole sits inside the sticker.')
+    'the speaker clears the USB plug keep-out (1.1 mm); the battery, board and E-Switch volumes are free of plastic; the wall is at least 1.8 mm '
+    'through the roll; each screw has a pilot, a clearance hole, a counterbore and ≥4 mm of thread; every sticker hole sits inside the sticker.')
 K.set_text(K.para('A0.8.4 historical export / check commands'), 'A0.8.4 historical export / check commands')
 K.set_text(K.para('The included A0.8.4 STL/SCAD files remain useful'),
            'The A0.8.4 STL/SCAD files in cad/a1 remain for historical geometry checks. The A1.5 files in cad/a15 carry the silicone, DART, PUI, THOR '
@@ -292,6 +321,9 @@ bom = K.table_hdr('QtyPart')
 K.set_cell(K.cells(K.row_with(bom, 'STRUTHIO-CM1;'))[4], 'LOCKED; drawing cad/a15/drawings/STRUTHIO-CM1_drawing.pdf; quote + first samples')
 K.set_cell(K.cells(K.row_with(bom, 'STRUTHIO-CP1;'))[4], 'LOCKED; Gerbers cad/a15/cp1/cp1_gerbers.zip (ENIG, 1.0 mm)')
 K.set_cell(K.cells(K.row_with(bom, 'A1.5 control harness'))[4], 'LOCKED wiring; read by v0.12')
+scr = K.row_with(bom, 'Case screws')
+K.set_cell(K.cells(scr)[2], 'M2 x 10 socket head, thread-forming for plastics (into 1.7 mm pilots)')
+K.set_cell(K.cells(scr)[4], 'Specified by the A1.5 CAD; confirm length on the printed shell')
 K.set_cell(K.cells(K.row_with(bom, 'Printed A1.5 shell'))[4], 'A1.5 CAD released: cad/a15/stl (front coupon first)')
 st_row = K.row_with(bom, 'Front art sticker')
 K.set_cell(K.cells(st_row)[2], 'Printed + laminated; A1.5 art around the DART rocker')
@@ -330,9 +362,10 @@ K.replace_in(K.para('Which DART trial is best?'), 'Trial C remains the A0/v0.11 
 K.replace_in(K.para('Which DART trial is best?'), 'on GPIO21 / GPIO38 once v0.12 support is installed.',
              'on GPIO21 / GPIO38, read by v0.12. On A1.5 set DART mode to ROCKER ONLY in service mode.')
 a = At(K.para('The log scrolls too fast to read.'))
-a.p('The A1.5 body is 88 x 134 mm, the 1.5 decision said about 3–4 mm. The rocker alone needed that; the speaker between the wings must also clear the '
-    'board\'s USB-C plug, which takes the total to 6 mm. If your board\'s connector is not where the CAD assumes, the extra may not be needed.',
-    bold_lead='Why is A1.5 6 mm taller than A0.8.4, not 3–4?  ')
+a.p('On the centre line it grew 6 mm, not 3–4: the rocker alone needed that, but the speaker between the wings must also clear the board\'s USB-C plug. '
+    'If your board\'s connector is not where the CAD assumes, the extra may not be needed. The other 3.4 mm is styling: the concave top and bottom '
+    'lift the corners (TOP_LIFT, BOTTOM_DROP; 0 makes them straight).',
+    bold_lead='Why is A1.5 137.4 mm tall when A0.8.4 was 128?  ')
 a.p('Yes. cad/a15/cp1/cp1_gerbers.zip is ready for a PCB maker: 2 layers, 1.0 mm, ENIG. It is cheap, so order it before the silicone samples.',
     bold_lead='Can I order CP1 now?  ')
 
@@ -360,7 +393,7 @@ a.bullets([('DONE — CP1 PCB + CM1 drawing: ', 'cad/a15/cp1/cp1_gerbers.zip (CP
 K.replace_in(K.para('• The v0.11 software core is well defined'), 'The v0.11 software core is well defined',
              'The v0.12 software core is well defined (it adds the DART rocker and the hard-power save policy)')
 K.set_text(K.para('• The A0.8.4 shell envelope remains a strong baseline'),
-           '• The A1.5 CAD (cad/a15) replaces A0.8.4 as print authority: 88 x 134 x 23 mm, 50 of 50 fit checks pass. A0.8.4 stays as the historical baseline.')
+           '• The A1.5 CAD (cad/a15) replaces A0.8.4 as print authority: a sculpted 88 x 137.4 x 23 mm shell, 54 of 54 fit checks pass. A0.8.4 stays as the historical baseline.')
 K.set_text(K.para('• Next actions are concrete'),
            '• Next actions are physical: order CP1, get CM1 quotes and samples, print the A1.5 front coupon, confirm the board\'s USB-C position, '
            'then run the audio, runtime and control tests on a real board.')
@@ -373,13 +406,13 @@ a.bullets(['E-Switch 500SSP1S1M7QEA distributor listings used for the CAD dimens
 ver = K.table_hdr('CheckResult')
 last = K.row_with(ver, 'A1 CAD (A0.8.4)')
 for vals in reversed([
-        ['A1.5 CAD', '50 of 50 fit checks pass (check_a15.py): keys, travel, rocker stop, speaker seal, USB keep-out, battery, E-Switch, sticker'],
+        ['A1.5 CAD', '54 of 54 fit checks pass (check_a15.py): keys, travel, rocker stop, speaker seal, USB keep-out, battery, E-Switch, board, wall through the roll, screws, sticker'],
         ['STRUTHIO-CP1', 'CP1 DRC: all pass (clearance ≥0.25 mm, copper ≥0.4 mm from edges, each 6 mm pill bridges signal and GND); Gerbers re-read by gerbonara'],
         ['DART rocker (host test)', '4 bot timelines: 27/27, 291/304, 63/63, 82/84 darts; the missing ones are re-presses faster than a thumb; no other darts']]):
     K.add_row(ver, vals, after=last, like=last)
 
 hist = K.table_hdr('EditionWhat changed')
-K.add_row(hist, ['v0.12 / Build Manual 1.6', 'A1.5 loops closed: GPIO21/38 DART rocker + write-on-change saves (v0.12); A1.5 CAD 88 x 134 mm with 50 checks; '
+K.add_row(hist, ['v0.12 / Build Manual 1.6', 'A1.5 loops closed: GPIO21/38 DART rocker + write-on-change saves (v0.12); sculpted A1.5 CAD, 88 x 137.4 x 23 mm, 54 checks; '
                  'CP1 Gerbers + CM1/CP1 drawings; v0.12 ZIP with both prebuilt assets.'])
 
 K.doc.save(OUT)

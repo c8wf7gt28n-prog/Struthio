@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # STRUTHIO HANDHELD · exports the A1.5 print files, outlines, previews and the
 # sticker art, then runs the fit checks. Needs OpenSCAD 2021.01+ (renders need
-# a display; xvfb-run is used when there is none) and Python trimesh/shapely.
+# a display; xvfb-run is used when there is none) and Python trimesh/shapely/manifold3d.
 #   handheld/cad/a15/export_a15.sh
 set -euo pipefail
 cd "$(dirname "$0")"
 SRC=STRUTHIO15.scad
 mkdir -p stl svg renders
-for p in front back mat; do openscad -q -o "stl/struthio_a15_$p.stl" -D "part=\"$p\"" "$SRC" & done
+openscad -q -o stl/struthio_a15_mat.stl -D 'part="mat"' "$SRC" &
+python3 build_shell.py &      # sculpted front + back (manifold3d; CGAL is too slow on the curved skin)
 openscad -q -o svg/struthio_a15_front_sticker.svg -D 'part="sticker"' "$SRC" &
 openscad -q -o svg/cp1_outline.svg -D 'part="cp1_outline"' "$SRC" &
 openscad -q -o svg/cm1_outline.svg -D 'part="mat_outline"' "$SRC" &
@@ -25,6 +26,8 @@ ra() { $X openscad -q --colorscheme=Tomorrow --imgsize="$3" --projection=p --vie
 ra cutaway         -260,-160,150,0,0,0   1600,1300
 ra front_angle     110,-160,260,0,0,0    1300,1700
 ra internals_angle -90,-170,260,0,0,0    1300,1700
+ra rear_angle      -110,-170,230,0,0,0   1300,1700
+r side          0,0,300,0,0,0          1700,700
 if command -v node >/dev/null && node -e "import('/opt/node22/lib/node_modules/playwright/index.mjs')" 2>/dev/null; then
   python3 art/make_sticker.py && node art/render_sticker.mjs
   FRONT=renders/front.png python3 art/compose_front.py

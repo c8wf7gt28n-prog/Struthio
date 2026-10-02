@@ -52,8 +52,35 @@ for name, m in (('front', front), ('back', back), ('mat (CM1)', mat)):
 
 # ---- envelope -----------------------------------------------------------------------------
 w = back.bounds[1][0] - back.bounds[0][0]; h = back.bounds[1][1] - back.bounds[0][1]
-check(abs(w - 88) < 0.2 and abs(h - 134) < 0.2, f'footprint {w:.1f} x {h:.1f} mm (88 x 134: +6 mm at the bottom only)')
-check(abs(back.bounds[1][1] - 64) < 0.2, 'top edge unchanged at y +64 (screen, board, crown datums untouched)')
+check(abs(w - 88) < 0.2 and h < 138.5, f'footprint {w:.1f} x {h:.1f} mm (88 wide; sculpted top and bottom corners lift {P["TOP_LIFT"]} / drop {P["BOTTOM_DROP"]})')
+def solid_at(m, pts): return np.asarray(m.contains(np.asarray(pts, float)))
+top_c = [y for y in np.arange(62.0, 66.0, 0.05) if solid_at(back, [[0, y, 8.0]])[0]]
+bot_c = [y for y in np.arange(-72.0, -68.0, 0.05) if solid_at(back, [[0, y, 8.0]])[0]]
+check(abs(max(top_c) - 64) < 0.15 and abs(min(bot_c) + 70) < 0.15,
+      f'centre line: top {max(top_c):.1f}, bottom {min(bot_c):.1f} (y +64 / -70: screen, board and rocker datums untouched)')
+bd = [[x, y, z] for x in np.linspace(-30.75, 30.75, 9) for y in np.linspace(-32.6, 60.2, 13) for z in np.linspace(4.6, 14.8, 5)]
+check(not solid_at(back, bd).any() and not solid_at(front, bd).any(),
+      'board envelope (61 x 92.4 x 11.5 + fit) is free of shell material behind the A0.8.4 front locating rails (z >= 4.6)')
+# wall thickness through the roll: shortest distance from the skin to the main cavity, at several depths
+thin = []
+for z in (6.0, 16.0, 17.5, 19.0, 20.3):   # clear of the side slots (z 7..15.6)
+    sec = section(back, z)
+    polys = list(sec.geoms) if hasattr(sec, 'geoms') else [sec]
+    body = max(polys, key=lambda q: q.area)
+    hole = max(body.interiors, key=lambda r: Polygon(r).area)
+    posts = unary_union([Point(x, y).buffer(P['SCREW_POST_OD']/2 + 0.6) for x in (-P['SCREW_X'], P['SCREW_X']) for y in (P['SCREW_Y'], P['SCREW_Y_BOT'])])
+    thin.append((body.exterior.difference(posts).distance(Polygon(hole).exterior.difference(posts)), z))
+t_min, z_min = min(thin)
+check(t_min >= 1.8, f'side wall >= 1.8 mm all the way round the roll, away from the screw posts (thinnest {t_min:.2f} mm at z {z_min})')
+# screws: front boss pilot, back post clearance and counterbore on one axis
+sx, sys_ = P['SCREW_X'], (P['SCREW_Y'], P['SCREW_Y_BOT'])
+ok_pilot = all(not solid_at(front, [[x, y, z] for z in np.arange(1.7, P['JOIN_Z'], 0.5)]).any() and solid_at(front, [[x + P['PILOT_D']/2 + 0.6, y, 5.0]])[0]
+               for x in (-sx, sx) for y in sys_)
+ok_clear = all(not solid_at(back, [[x, y, z] for z in np.arange(P['JOIN_Z'] + 0.2, 23.5, 0.5)]).any() for x in (-sx, sx) for y in sys_)
+seat = all(solid_at(back, [[x + P['CLEAR_D']/2 + 0.4, y, P['CBORE_Z'] - 0.5]])[0] for x in (-sx, sx) for y in sys_)
+check(ok_pilot and ok_clear and seat, f'4 screws: M2 pilot in each front boss, clearance + counterbore through each back post, head seat at z {P["CBORE_Z"]}')
+eng = P['JOIN_Z'] - (P['CBORE_Z'] - 10.0) if P['CBORE_Z'] - 10.0 < P['JOIN_Z'] else 0
+check(eng >= 4.0, f'an M2 x 10 from the seat engages {eng:.1f} mm of the front boss (>= 4)')
 
 # ---- controls -----------------------------------------------------------------------------
 face = section(front, 1.5)
@@ -131,16 +158,16 @@ seal = Point(P['SPKR_X'], P['WINDOW_Y']).buffer(P['WINDOW_D']/2 + 0.8).differenc
 check(seal.difference(carrier).area < 0.2, 'carrier seals 0.8 mm all round the speaker window (gap area {:.2f} mm2, facet noise)'.format(seal.difference(carrier).area))
 spk_disc = spk.buffer(28/2)
 usb_plug = box(P['USB_PLUG_X0'], P['USB_PLUG_Y0'], P['USB_PLUG_X1'], P['USB_PLUG_Y1'])
-usb_ch = box(P['USB_CH_X0'], P['BODY_BOTTOM'] + 2.4, P['USB_CH_X1'], P['USB_PLUG_Y1'])
+usb_ch = box(P['USB_CH_X0'], P['USB_CH_Y0'], P['USB_CH_X1'], P['USB_PLUG_Y1'])
 check(spk_disc.distance(usb_plug) > 0.3, f'speaker clears the USB-C plug keep-out by {spk_disc.distance(usb_plug):.2f} mm (plug position: CONFIRM)')
 kp = [[x, y, z] for x in np.arange(P['USB_PLUG_X0'], P['USB_PLUG_X1'], 1.0) for y in np.arange(P['USB_PLUG_Y0'], P['USB_PLUG_Y1'], 0.5)
       for z in np.arange(P['USB_PLUG_Z0'], P['USB_PLUG_Z1'], 1.0)]
-kc = [[x, y, z] for x in np.arange(P['USB_CH_X0'], P['USB_CH_X1'], 1.0) for y in np.arange(P['BODY_BOTTOM'] + 3.5, P['USB_PLUG_Y1'], 1.0)
+kc = [[x, y, z] for x in np.arange(P['USB_CH_X0'], P['USB_CH_X1'], 1.0) for y in np.arange(P['USB_CH_Y0'] + 0.1, P['USB_PLUG_Y1'], 1.0)
       for z in np.arange(P['USB_PLUG_Z0'], P['USB_PLUG_Z1'], 1.0)]
 check(not back.contains(kp).any() and not front.contains(kp).any(), 'USB-C plug keep-out free of shell material')
-check(not back.contains(kc).any() and not front.contains(kc).any(), 'USB cable channel free of shell material down to the jack')
+check(not back.contains(kc).any() and not front.contains(kc).any(), 'USB cable channel free of shell material down to the back of the jack boss')
 check(spk_disc.distance(usb_ch) > 0.3, f'speaker ring clears the USB cable channel by {spk_disc.distance(usb_ch):.2f} mm')
-ys = np.arange(P['BODY_BOTTOM'] - 1, P['BODY_BOTTOM'] + 6, 0.1)
+ys = np.arange(P['USB_WALL_Y'] - 1, P['USB_WALL_Y'] + 6, 0.1)
 blocked = [y for x in (P['USB_JACK_X'] - 5, P['USB_JACK_X'], P['USB_JACK_X'] + 5) for z in (10.0, 12.4, 14.8)
            for y, s in zip(ys, back.contains([[x, y, z] for y in ys])) if s]
 check(not blocked, f'USB-C panel jack open through the bottom wall at x {P["USB_JACK_X"]:+.2f}')

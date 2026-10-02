@@ -24,8 +24,14 @@
  ------------------------------------
  - Owner decision: keep every locked control size and grow the body at the
    bottom only. The rocker below the wings, plus the speaker clearing the
-   board's USB-C plug, needs 6.0 mm: 88 x 134 mm (BOTTOM_EXT). The bottom
-   arch is dropped for a flat, strong lower rail.
+   board's USB-C plug, needs 6.0 mm (BOTTOM_EXT): centre line y +64 .. -70.
+ - Owner decision (later the same day): "sleek and stylish, not a block".
+   The shell is sculpted (SHELL_STYLE, see the parameters): a 1991-handheld
+   silhouette with concave top and bottom, a waist and flared hips, a
+   rounded front edge and a pillow back. 88 x 137.4 x 23 mm overall (the
+   corners lift 2.0 / drop 1.8 beyond the unchanged centre line). The four
+   screws move in to x +-35 and now actually clamp: back-post counterbores
+   into front-shell bosses. Front and back STLs come from build_shell.py.
  - The wings sit as high as the board allows (their silicone skirts end
    1 mm below the board's lower edge); the rocker is centred below them.
  - The speaker is mounted behind CP1 (CP1 + the printed carrier are the rigid
@@ -113,7 +119,7 @@ BAT_H = 54.0;   // THOR-503450 with PCM
 BAT_T = 6.2;
 BAT_Y = 13.5;
 
-SCREW_X = 37.0;
+SCREW_X = 35.0;          // A1.5 sculpted: in from 37 so the counterbores stay on the back face
 SCREW_Y = 55.5;
 SCREW_Y_BOT = -63.0;     // A1.5 lower pair, below the wing skirts
 SCREW_D = 2.2;
@@ -153,6 +159,53 @@ BOTTOM_ARCH_RX = 31.0; // narrower arch preserves broad structural feet and lowe
 BOTTOM_ARCH_RY = 10.0;
 BOTTOM_ARCH = false;    // A1.5: flat lower rail
 BOTTOM_EDGE_CENTER_Y = BOTTOM_ARCH ? BOTTOM_ARCH_Y + BOTTOM_ARCH_RY : BODY_BOTTOM;
+
+// A1.5 SCULPTED SHELL (owner, 2026-10-02: "sleek and stylish, not a block").
+// Front view: a 1991 dedicated-handheld silhouette: concave top and bottom
+// with lifted corners, broad shoulders around the screen, a waist below it
+// and flared hips around the wings. Side view: the front edge is rounded,
+// the side wall runs straight to SHELL_ZS and then rolls into a pillow back
+// (a quarter ellipse, SHELL_RB across x SHELL_ZB-SHELL_ZS deep). The outer
+// and inner surfaces are the same core outline grown by a revolved profile
+// (minkowski), so the wall stays ~WALL thick through the roll.
+// "a0" restores the A0.8.4 slab (vertical walls, flat back + blisters).
+SHELL_STYLE = "sleek";
+TOP_LIFT = 2.0;       // concave top: corners rise this far above the centre (y +64)
+BOTTOM_DROP = 1.8;    // concave bottom: corners drop this far below the centre (y -70)
+SHELL_RF = 1.6;       // front edge radius
+SHELL_ZS = 9.0;       // side wall straight from SHELL_RF to here ...
+SHELL_ZB = 23.0;      // ... then rolls to the back face (= BATTERY_TOTAL_D)
+SHELL_RB = 12.0;      // how far the roll moves in; also the smallest corner radius in plan
+// Catmull-Rom control points, right half, top centre clockwise to bottom centre
+function sleek_half() = [
+  [0, 64.0], [16, 64.0+0.25*TOP_LIFT], [29, 64.0+0.85*TOP_LIFT], [37.2, 64.0+TOP_LIFT-0.2], [41.4, 61.2],
+  [42.6, 52], [42.3, 38], [41.8, 26], [41.6, 14], [41.4, 4], [40.0, -7], [37.8, -16], [38.6, -26],
+  [41.2, -36], [43.6, -46], [44.0, -56], [43.3, -64.5], [40.2, -69.0-BOTTOM_DROP], [33, -70.0-BOTTOM_DROP],
+  [20, -70.0-0.35*BOTTOM_DROP], [0, -70.0]];
+function cr_pt(p0,p1,p2,p3,t) = 0.5*((2*p1) + (-p0+p2)*t + (2*p0-5*p1+4*p2-p3)*t*t + (-p0+3*p1-3*p2+p3)*t*t*t);
+function sleek_ctrl() = let(h=sleek_half(), n=len(h)) concat(h, [for(i=[n-2:-1:1]) [-h[i][0], h[i][1]]]);
+function sleek_pts(k=12) = let(c=sleek_ctrl(), n=len(c))
+  [for(i=[0:n-1], j=[0:k-1]) cr_pt(c[(i-1+n)%n], c[i], c[(i+1)%n], c[(i+2)%n], j/k)];
+module sleek_raw2d(){ polygon(sleek_pts()); }
+// side profiles (r, z) revolved around the core outline
+function shell_prof_out() = concat(
+  [for(i=[0:8]) let(a=90*i/8) [SHELL_RB-SHELL_RF+SHELL_RF*sin(a), SHELL_RF-SHELL_RF*cos(a)]],
+  [for(i=[0:24]) let(a=90*i/24) [SHELL_RB*cos(a), SHELL_ZS+(SHELL_ZB-SHELL_ZS)*sin(a)]],
+  [[0,0]]);
+function shell_prof_in() = let(rw=SHELL_RB-WALL, zt=SHELL_ZB-BACK_WALL) concat(
+  [[rw, FRONT_T-1.0]],
+  [for(i=[0:24]) let(a=90*i/24) [rw*cos(a), SHELL_ZS+(zt-SHELL_ZS)*sin(a)]],
+  [[0, FRONT_T-1.0]]);
+CEIL_Z = SHELL_ZB - BACK_WALL;   // 20.8: inner back face over the flat part of the back
+// screws: four rear M2 thread-forming screws through counterbored posts in the
+// back shell into bosses on the front shell
+JOIN_Z = 8.0;          // front bosses end here; back posts start 0.1 above
+FRONT_BOSS_OD = 5.0;
+PILOT_D = 1.7;         // M2 thread-forming into PETG / ASA (confirm with the screw maker's chart)
+CLEAR_D = 2.4;
+CBORE_D = 4.2;         // M2 socket head (3.8 mm)
+SCREW_POST_OD = 7.2;   // back posts: ~1.5 mm round the counterbore
+CBORE_Z = 13.0;        // head seat: M2 x 10 reaches z 3.0, 5 mm into the boss
 
 // Screen lens / bezel cosmetics. Opening itself remains locked above.
 LENS_LAND_W = 56.5;
@@ -296,6 +349,8 @@ USB_PLUG_Z0 = 7.5;   USB_PLUG_Z1 = 14.0;
 USB_CH_X0 = 16.5;    USB_CH_X1 = 22.0;        // cable channel down the right side
 USB_JACK_X = 19.25;                           // panel jack centre in the bottom wall
 USB15_BOSS_W = 16.0;
+USB_WALL_Y = -70.6;        // sculpted outline's bottom edge at x = USB_JACK_X (check_a15 measures it)
+USB_CH_Y0 = USB_WALL_Y + WALL + USB_BOSS_DEPTH;   // the cable channel ends at the back of the jack boss
 // E-Switch 500SSP1S1M7QEA, left side wall (pins: CONFIRM against the drawing)
 PWR_Y = 12.0;
 PWR_BODY_L = 12.7;   // along y (slide direction)
@@ -367,7 +422,8 @@ module bottom_arch_cut2d(){
 }
 
 module heritage_body_raw2d(){
-  difference(){
+  if(SHELL_STYLE=="sleek") offset(r=SHELL_RB) offset(delta=-SHELL_RB) sleek_raw2d();
+  else difference(){
     heritage_body_pre_arch2d();
     if(BOTTOM_ARCH) bottom_arch_cut2d();
   }
@@ -582,7 +638,7 @@ module cp1_outline2d(){
   difference(){
     intersection(){
       body2d(-CP1_EDGE_INSET);
-      translate([-BODY_W/2, BODY_BOTTOM]) square([BODY_W, CP1_TOP_Y - BODY_BOTTOM]);
+      translate([-BODY_W/2, BODY_BOTTOM-BOTTOM_DROP-1]) square([BODY_W, CP1_TOP_Y - BODY_BOTTOM+BOTTOM_DROP+1]);
     }
     window2d();
     for(x=[-SCREW_X,SCREW_X]) translate([x,SCREW_Y_BOT]) circle(r=CP1_POST_CLEAR);
@@ -611,6 +667,21 @@ module speaker_rear_cavity_cut(){
 }
 
 // ============================================================================
+// SCULPTED OUTER / INNER SOLIDS
+// ============================================================================
+module shell_core2d(){ offset(delta=-SHELL_RB) heritage_body_raw2d(); }
+module shell_outer(){
+  if(SHELL_STYLE=="sleek")
+    minkowski(){ linear_extrude(0.002, center=true) shell_core2d(); rotate_extrude($fn=48) polygon(shell_prof_out()); }
+  else linear_extrude(BATTERY_TOTAL_D) body2d();
+}
+module shell_inner(){
+  minkowski(){ linear_extrude(0.002, center=true) shell_core2d(); rotate_extrude($fn=48) polygon(shell_prof_in()); }
+}
+module zslab(z0, z1){ translate([-80,-100,z0]) cube([160,200,z1-z0]); }
+module screw_xy(){ for(x=[-SCREW_X,SCREW_X], y=[SCREW_Y_BOT,SCREW_Y]) translate([x,y]) children(); }
+
+// ============================================================================
 // FRONT SHELL (with the printed silicone carrier)
 // ============================================================================
 module key_holes_cut(){
@@ -636,25 +707,35 @@ module carrier(){
     }
   for(p=CP1_PIN_XY) translate([p[0],p[1],CARRIER_Z0-0.02]) cylinder(d=CP1_PIN_D, h=CP1_Z+CP1_T+0.8-CARRIER_Z0);
 }
-module front_shell(){
-  color(SHELL_RGB) difference(){
-    union(){
-      linear_extrude(FRONT_T) body2d();
-      // perimeter locating lip, above the control zone only (the mat runs to the wall below)
-      translate([0,0,FRONT_T-0.20]) linear_extrude(1.70)
-        intersection(){
-          difference(){ body2d(-WALL-0.35); body2d(-WALL-1.8); }
-          translate([-BODY_W/2, CP1_TOP_Y]) square([BODY_W, BODY_H]);
-        }
-      for(x=[-BOARD_W/2-0.6, BOARD_W/2-1.4])
-        translate([x, BOARD_Y-BOARD_H/2+5, FRONT_T-0.20]) cube([2.0,BOARD_H-10,1.70]);
-      carrier();
+// The sculpted parts are built by build_shell.py (manifold3d): OpenSCAD 2021's
+// CGAL takes far too long on the curved skin. It exports the pieces below,
+// lofts the skin from shell_core2d() with the same profiles, and writes
+// stl/struthio_a15_front.stl and _back.stl, which the views import.
+module front_add(){
+  if(SHELL_STYLE=="sleek") screw_xy() translate([0,0,FRONT_T-0.2]) cylinder(d=FRONT_BOSS_OD, h=JOIN_Z-FRONT_T+0.2);
+  // perimeter locating lip, above the control zone only (the mat runs to the wall below)
+  translate([0,0,FRONT_T-0.20]) linear_extrude(1.70)
+    intersection(){
+      difference(){ body2d(-WALL-0.35); body2d(-WALL-1.8); }
+      translate([-BODY_W/2, CP1_TOP_Y]) square([BODY_W, BODY_H]);
     }
-    sticker_recess_cut();
-    lens_recess_cut();
-    screen_cut();
-    key_holes_cut();
-    speaker_grill15_cuts();
+  for(x=[-BOARD_W/2-0.6, BOARD_W/2-1.4])
+    translate([x, BOARD_Y-BOARD_H/2+5, FRONT_T-0.20]) cube([2.0,BOARD_H-10,1.70]);
+  carrier();
+}
+module front_cut(){
+  sticker_recess_cut();
+  lens_recess_cut();
+  screen_cut();
+  key_holes_cut();
+  speaker_grill15_cuts();
+  if(SHELL_STYLE=="sleek") screw_xy() translate([0,0,1.5]) cylinder(d=PILOT_D, h=JOIN_Z, $fn=24);
+}
+module front_shell(){
+  if(SHELL_STYLE=="sleek") color(SHELL_RGB) import("stl/struthio_a15_front.stl");
+  else color(SHELL_RGB) difference(){
+    union(){ linear_extrude(FRONT_T) body2d(); front_add(); }
+    front_cut();
   }
 }
 
@@ -719,7 +800,7 @@ module speaker_ref(){
 module usb_keepout(){
   color([0.9,0.2,0.9,0.35]) {
     translate([USB_PLUG_X0,USB_PLUG_Y0,USB_PLUG_Z0]) cube([USB_PLUG_X1-USB_PLUG_X0,USB_PLUG_Y1-USB_PLUG_Y0,USB_PLUG_Z1-USB_PLUG_Z0]);
-    translate([USB_CH_X0,BODY_BOTTOM+WALL,USB_PLUG_Z0]) cube([USB_CH_X1-USB_CH_X0,USB_PLUG_Y1-(BODY_BOTTOM+WALL),USB_PLUG_Z1-USB_PLUG_Z0]);
+    translate([USB_CH_X0,USB_CH_Y0,USB_PLUG_Z0]) cube([USB_CH_X1-USB_CH_X0,USB_PLUG_Y1-USB_CH_Y0,USB_PLUG_Z1-USB_PLUG_Z0]);
   }
 }
 module power_switch_ref(){
@@ -733,7 +814,57 @@ function pwr_wall_x() = 38.25;   // left inner wall over y 5.65..18.35 (38.32 at
 // ============================================================================
 // BACK SHELL
 // ============================================================================
-module back_shell(){
+module back_shell(){ if(SHELL_STYLE=="sleek") back_shell_sleek(); else back_shell_a0(); }
+// internal features of the sculpted back shell (trimmed to the outer skin)
+module back_features_sleek(){
+  // screw posts from the joint to the back
+  screw_xy() translate([0,0,JOIN_Z+0.1]) cylinder(d=SCREW_POST_OD, h=SHELL_ZB-JOIN_Z);
+  // Features run on into the skin (they are trimmed to the outer surface), so
+  // none ends tangent to the curved inner surface.
+  // board hold-downs from the board back to the ceiling
+  for(x=[-27,27], y=[BOARD_Y-38, BOARD_Y+38]) translate([x-3,y-3,14.6]) cube([6,6,SHELL_ZB-14.6+1]);
+  // USB-C panel-jack boss at the bottom wall
+  translate([USB_JACK_X-USB15_BOSS_W/2,USB_WALL_Y+WALL-0.5,USB_BOSS_Z0])
+    difference(){
+      cube([USB15_BOSS_W,USB_BOSS_DEPTH+0.5,SHELL_ZB-USB_BOSS_Z0+1]);
+      translate([1.5,-0.2,1.6]) cube([USB15_BOSS_W-3.0,USB_BOSS_DEPTH+0.9,USB_BOSS_H-3.2]);
+    }
+  // battery side ribs
+  for(x=[-BAT_W/2-1.4, BAT_W/2+0.4]) translate([x,BAT_Y-BAT_H/2-1,14.0]) cube([1.0,BAT_H+2,SHELL_ZB-14.0+1]);
+  // speaker locating ring (open over its top arc, where the USB-C plug passes)
+  translate([SPKR_X,SPKR_Y,SPKR_Z]) difference(){
+    cylinder(d=SPKR_POCKET_D+2*SPKR_RING_WALL, h=SPKR_T);
+    translate([0,0,-0.1]) cylinder(d=SPKR_POCKET_D, h=SPKR_T+0.2);
+    translate([USB_PLUG_X0-0.3-SPKR_X, USB_PLUG_Y0-0.3-SPKR_Y, -0.2]) cube([USB_PLUG_X1-USB_PLUG_X0+0.6, 20, SPKR_T+0.4]);
+  }
+  // rear-cavity tube from the speaker's rear rim to the back skin
+  translate([SPKR_X,SPKR_Y,SPKR_Z+SPKR_T+0.5]) cylinder(d=SPKR_TUBE_ID+2*SPKR_RING_WALL, h=SHELL_ZB);
+  // E-Switch cradle
+  translate([-pwr_wall_x()-0.5, PWR_Y-PWR_BODY_L/2-1.2, PWR_Z+PWR_BODY_H/2])
+    cube([PWR_BODY_W+0.5, PWR_BODY_L+2.4, SHELL_ZB-(PWR_Z+PWR_BODY_H/2)+1]);
+  for(dy=[-PWR_BODY_L/2-1.2, PWR_BODY_L/2])
+    translate([-pwr_wall_x()-0.5, PWR_Y+dy, PWR_Z-PWR_BODY_H/2]) cube([PWR_BODY_W+0.5, 1.2, PWR_BODY_H+0.02]);
+}
+module back_cut_sleek(){
+  battery_pocket_cut();
+  if(REAR_MARK) rear_mark_cut();
+  // screw clearance + counterbore from the back
+  screw_xy() { translate([0,0,JOIN_Z-0.5]) cylinder(d=CLEAR_D, h=CBORE_Z-JOIN_Z+0.6, $fn=24);
+               translate([0,0,CBORE_Z]) cylinder(d=CBORE_D, h=SHELL_ZB, $fn=32); }
+  // USB-C panel jack through the bottom wall and boss
+  translate([USB_JACK_X-7.0,USB_WALL_Y-2.0,9.2]) cube([14.0,WALL+USB_BOSS_DEPTH+2.5,6.4]);
+  // A0 side service access (BOOT / RESET), right side
+  translate([BODY_W/2-8.0,1.0,7.0]) cube([10.0,24.0,7.5]);
+  // E-Switch actuator slot, left wall
+  translate([-BODY_W/2-2, PWR_Y-(PWR_ACT_W+PWR_TRAVEL)/2-0.3, PWR_Z-PWR_ACT_W/2-0.3])
+    cube([BODY_W/2-pwr_wall_x()+2.5, PWR_ACT_W+PWR_TRAVEL+0.6, PWR_ACT_W+0.6]);
+}
+// the rear-cavity bore; build_shell.py trims it to the inner surface so the
+// back skin closes the cavity
+module speaker_bore(){ translate([SPKR_X,SPKR_Y,SPKR_Z+SPKR_T+0.5]) cylinder(d=SPKR_TUBE_ID, h=SHELL_ZB); }
+module back_shell_sleek(){ color(SHELL_RGB) import("stl/struthio_a15_back.stl"); }
+
+module back_shell_a0(){
   color(SHELL_RGB) difference(){
     union(){
       translate([0,0,FRONT_T])
@@ -838,6 +969,12 @@ else if(part=="mat") cm1_mat();
 else if(part=="cp1_outline") cp1_outline2d();
 else if(part=="mat_outline") mat_outline2d();
 else if(part=="body_outline") body2d();
+else if(part=="core2d") shell_core2d();
+else if(part=="front_add") front_add();
+else if(part=="front_cut") front_cut();
+else if(part=="back_add") back_features_sleek();
+else if(part=="back_cut") back_cut_sleek();
+else if(part=="speaker_bore") speaker_bore();
 else if(part=="keys_outline") keys2d(0,0);
 else if(part=="reference") internals();
 else if(part=="sticker") sticker_template_2d();
