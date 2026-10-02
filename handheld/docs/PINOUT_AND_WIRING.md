@@ -1,18 +1,18 @@
 # STRUTHIO handheld — pinout and wiring
 
 The firmware's copy of this map is `firmware/main/board_pins.h`. Header pin
-numbers are from Waveshare's published 2x16 pinout image: **confirm them on
-the board in your hand** before soldering.
+numbers are J8 on Waveshare's schematic (both revisions; see `HARDWARE_FACTS.md`);
+the GPIO numbers are what counts: check the label printed beside the header.
 
 ## Controls (all inputs, internal pull-up, active low, common GND)
 
 | Control | GPIO | Header pin | CP1 pad | Wire |
 | --- | --- | --- | --- | --- |
-| LEFT WING | 17 | 16 (confirm) | L | white |
-| RIGHT WING | 18 | 18 (confirm) | R | blue |
-| DART LEFT | 21 | confirm | DL | yellow |
-| DART RIGHT | 38 | confirm | DR | orange |
-| GND | — | 30 (confirm) | G | black |
+| LEFT WING | 17 | J8-15 | L | white |
+| RIGHT WING | 18 | J8-17 | R | blue |
+| DART LEFT | 21 | J8-6 | DL | yellow |
+| DART RIGHT | 38 | J8-8 | DR | orange |
+| GND | — | J8-3, 4, 29 or 30 | G | black |
 
 Sampled at 1 kHz, debounced for 8 ms; each press keeps the time of its first
 edge, so the 100 ms chord window measures real thumb timing.
@@ -28,9 +28,9 @@ XCLK. Leave the camera FPC connector empty; the firmware has no camera code.
 | From | To | Notes |
 | --- | --- | --- |
 | THOR-503450 BAT+ | E-Switch 500SSP1S1M7QEA common | red, >= 22 AWG |
-| E-Switch ON throw | board BAT+ (MX1.25 battery header) | the other throw stays unconnected = OFF |
+| E-Switch throw 1 | board BAT+ (J7, PH1.25-2P, pin 1) | throw 3 stays unconnected: positions 2 and 3 are OFF |
 | THOR-503450 BAT- | board BAT- | never switched |
-| board speaker header | PUI AS02808MR-R | confirm the header position |
+| board speaker socket J9 (PH1.25-2P) | PUI AS02808MR-R | pin 1 OUT+, pin 2 OUT−; neither is ground |
 | USB-C panel jack | board USB-C | short full-data extension |
 
 ## Full board pin map (Waveshare ESP-IDF example, commit 840daf2)

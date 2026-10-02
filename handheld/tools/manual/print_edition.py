@@ -684,7 +684,7 @@ chapter('Step 8 — Sound and power on the bench', 8)
 a.p('With the game proven, add the speaker, then learn the power system on USB. The battery itself still waits until the handheld is assembled.')
 a.audio('AUDIO GUIDE — Chapter 11: Prove the speaker with the vendor audio example', [
     'The speaker is the PUI Audio AS02808MR-R: 28 mm across, 5.2 mm thick, 8 ohms, 1 watt rated, about 500 hertz resonance. Connect it to the '
-    'board\'s speaker header with a matching two-wire lead, and confirm the header on your board.',
+    'board\'s speaker socket J9 (PH1.25, 2 pins) with a matching two-wire lead. Neither speaker wire is ground: never join one to GND.',
     'Run Waveshare\'s audio example at low volume first. If it causes resets, noise or display trouble, remove the speaker and go back to the '
     'last good state. When it plays cleanly, boot STRUTHIO: service mode should say AUDIO OK and MUSIC OK, and the round-clear sting plays when '
     'the checks finish.'])
@@ -987,7 +987,7 @@ a.table(['Qty', 'Part', 'Specification', 'When', 'Note'], [
     ['1', 'Control PCB', 'STRUTHIO-CP1, 2 layers, 1.0 mm FR-4, ENIG', 'After the bench PASS', 'cad/handheld/cp1/cp1_gerbers.zip'],
     ['1', 'Silicone keys', 'STRUTHIO-CM1, gold VMQ, 50 Shore A ±5, 4 carbon pills', 'After the bench PASS', 'cad/handheld/drawings/STRUTHIO-CM1_drawing.pdf'],
     ['1', 'Battery', 'THOR-503450, 3.7 V 1000 mAh, protected, about 5 x 34 x 52 mm', 'Last', 'Matching MX1.25 2-pin lead; meter the polarity'],
-    ['1', 'Power switch', 'E-Switch 500SSP1S1M7QEA, SPDT slide', 'With the battery', 'Hard cut in BAT+'],
+    ['1', 'Power switch', 'E-Switch 500SSP1S1M7QEA, right-angle slide, 3 positions', 'With the battery', 'Hard cut in BAT+'],
     ['1', 'USB-C extension', 'Short male-to-female, full data + power', 'Fitting the shell', 'Fit-selected'],
     ['1 set', 'Shell', 'struthio_front.stl + struthio_back.stl', 'Step 10', 'Front coupon first'],
     ['4', 'Screws', 'M2 x 10 socket head, thread-forming for plastics', 'Step 10', 'Into 1.7 mm pilots'],
@@ -1049,13 +1049,13 @@ a.h2('Controls and fit')
 a.table(['Sample / print', 'Part', 'Travel (mm)', 'Force (g) / snap', 'Result'], [[str(i), '', '', '', ''] for i in range(1, 5)], size=9)
 
 chapter('SHOP SHEET F — Pin and wire card', None)
-a.p('From firmware/main/board_pins.h and Waveshare\'s example (commit 840daf2). Header pin numbers are from Waveshare\'s published pinout image: confirm them on your board.')
+a.p('From firmware/main/board_pins.h and Waveshare\'s example (commit 840daf2). Header pin numbers are J8 on Waveshare\'s schematic (both board revisions); the GPIO number printed beside the header is what counts.')
 a.table(['#', 'From', 'To', 'Wire', 'Notes'], [
-    ['W1', 'GPIO17 (header pin 16, confirm)', 'CP1 pad L — LEFT WING', 'white, ~24 AWG', 'Bench: LEFT switch S leg'],
-    ['W2', 'GPIO18 (header pin 18, confirm)', 'CP1 pad R — RIGHT WING', 'blue, ~24 AWG', 'Bench: RIGHT switch S leg'],
-    ['W3', 'GPIO21 (header pin: confirm)', 'CP1 pad DL — DART LEFT', 'yellow, ~24 AWG', 'Handheld'],
-    ['W4', 'GPIO38 (header pin: confirm)', 'CP1 pad DR — DART RIGHT', 'orange, ~24 AWG', 'Handheld'],
-    ['W5', 'GND (e.g. header pin 30, confirm)', 'CP1 pad G — common ground', 'black, ~24 AWG', 'Bench: both switches\' G legs'],
+    ['W1', 'GPIO17 (header J8 pin 15)', 'CP1 pad L — LEFT WING', 'white, ~24 AWG', 'Bench: LEFT switch S leg'],
+    ['W2', 'GPIO18 (header J8 pin 17)', 'CP1 pad R — RIGHT WING', 'blue, ~24 AWG', 'Bench: RIGHT switch S leg'],
+    ['W3', 'GPIO21 (header J8 pin 6)', 'CP1 pad DL — DART LEFT', 'yellow, ~24 AWG', 'Handheld'],
+    ['W4', 'GPIO38 (header J8 pin 8)', 'CP1 pad DR — DART RIGHT', 'orange, ~24 AWG', 'Handheld'],
+    ['W5', 'GND (header J8 pin 3, 4, 29 or 30)', 'CP1 pad G — common ground', 'black, ~24 AWG', 'Bench: both switches\' G legs'],
     ['W6', 'Board speaker header + / −', 'PUI AS02808MR-R', '2-core lead', 'Confirm the header'],
     ['W7', 'THOR-503450 BAT+', 'E-Switch COMMON', 'red, ≥ 22 AWG', 'Meter COMMON first'],
     ['W8', 'E-Switch ON throw', 'Board BAT+', 'red, ≥ 22 AWG', 'Other throw: insulated = OFF'],
@@ -1155,9 +1155,9 @@ a.table(['Check', 'Result'], [
     ['Sticker print file', 'PDF page exactly 87.0 x 43.9 mm; PNG carries 600 dpi'],
 ], widths=[3, 4.8], size=8.5)
 a.h2('Still to confirm on the parts in your hand')
-a.bullets(['The board\'s USB-C position (the CAD assumes bottom centre, right-angle plug).', 'Header pins for GPIO21 and GPIO38 (and 17, 18, GND).',
+a.bullets(['The board\'s USB-C position (the CAD assumes bottom centre, right-angle plug).', 'Which end of the header is pin 1 (taken from the label on Waveshare\'s cased version).',
            'The board\'s speaker and battery connector positions and battery polarity.',
-           'E-Switch 500SSP1S1M7QEA pin positions and actuator width (2.0 mm assumed).',
+           'The E-Switch actuator is 3.83 mm square (E-Switch drawing T511012); the shell slot is checked on the first print.',
            'PUI AS02808MR-R frame: modelled round; re-check the 29.2 mm pocket for a square frame.',
            'CM1 feel: travel and snap come from the moulder\'s web; the CAD fixes only the geometry.'])
 a.h2('References')
