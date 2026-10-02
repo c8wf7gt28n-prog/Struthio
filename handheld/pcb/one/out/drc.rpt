@@ -1,43 +1,43 @@
 ** Drc report for /home/user/Struthio/handheld/pcb/one/out/struthio_one.kicad_pcb **
-** Created on 2026-10-02 13:33:26 **
+** Created on 2026-10-02 21:05:06 **
 
 ** Found 12 DRC violations **
-[lib_footprint_issues]: The current configuration does not include the library ''.
-    Local override; Severity: warning
-    @(122.1000 mm, 112.0000 mm): Footprint R1
 [lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
     Local override; Severity: warning
     @(75.5141 mm, 150.0000 mm): Footprint SW5
-[lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
-    Local override; Severity: warning
-    @(116.0000 mm, 159.0000 mm): Footprint SW4
-[lib_footprint_issues]: The current configuration does not include the library ''.
-    Local override; Severity: warning
-    @(122.2000 mm, 110.0000 mm): Footprint C1
 [lib_footprint_issues]: The current configuration does not include the library ''.
     Local override; Severity: warning
     @(122.6000 mm, 117.0000 mm): Footprint Q2
-[lib_footprint_issues]: The current configuration does not include the library ''.
-    Local override; Severity: warning
-    @(122.2000 mm, 114.0000 mm): Footprint D1
-[lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
-    Local override; Severity: warning
-    @(118.0000 mm, 141.7000 mm): Footprint SW2
 [lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
     Local override; Severity: warning
     @(84.0000 mm, 159.0000 mm): Footprint SW3
 [lib_footprint_issues]: The current configuration does not include the library ''.
     Local override; Severity: warning
-    @(93.0000 mm, 138.0000 mm): Footprint Q1
+    @(122.1000 mm, 112.0000 mm): Footprint R1
 [lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
     Local override; Severity: warning
-    @(82.0000 mm, 141.7000 mm): Footprint SW1
+    @(116.0000 mm, 159.0000 mm): Footprint SW4
 [lib_footprint_issues]: The current configuration does not include the library ''.
     Local override; Severity: warning
     @(102.0000 mm, 138.0000 mm): Footprint J2
 [lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
     Local override; Severity: warning
     @(123.2000 mm, 86.2200 mm): Footprint J1
+[lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
+    Local override; Severity: warning
+    @(82.0000 mm, 141.7000 mm): Footprint SW1
+[lib_footprint_issues]: The current configuration does not include the library ''.
+    Local override; Severity: warning
+    @(122.2000 mm, 110.0000 mm): Footprint C1
+[lib_footprint_issues]: The current configuration does not include the library ''.
+    Local override; Severity: warning
+    @(122.2000 mm, 114.0000 mm): Footprint D1
+[lib_footprint_issues]: The current configuration does not include the library 'STRUTHIO'.
+    Local override; Severity: warning
+    @(118.0000 mm, 141.7000 mm): Footprint SW2
+[lib_footprint_issues]: The current configuration does not include the library ''.
+    Local override; Severity: warning
+    @(93.0000 mm, 138.0000 mm): Footprint Q1
 
 ** Found 0 unconnected pads **
 

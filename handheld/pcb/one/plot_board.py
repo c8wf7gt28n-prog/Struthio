@@ -43,5 +43,5 @@ def plot(layer, path, title):
     print('wrote', os.path.relpath(path, HERE))
 
 if __name__ == '__main__':
-    plot(pcbnew.F_Cu, os.path.join(OUT, 'board_top.png'), 'STRUTHIO ONE rev C - top (parts side), seen from the front')
-    plot(pcbnew.B_Cu, os.path.join(OUT, 'board_bottom.png'), 'STRUTHIO ONE rev C - bottom copper, seen through from the front')
+    plot(pcbnew.F_Cu, os.path.join(OUT, 'board_top.png'), 'STRUTHIO ONE rev D - top (parts side), seen from the front')
+    plot(pcbnew.B_Cu, os.path.join(OUT, 'board_bottom.png'), 'STRUTHIO ONE rev D - bottom copper, seen through from the front')

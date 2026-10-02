@@ -92,14 +92,17 @@ def silk_rect(x0, y0, x1, y1, layer=pcbnew.F_SilkS):
     add_poly_edges([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], layer, 0.15)
 
 # J1: Waveshare header numbering, odd pins on the edge row (x 24.47), pin 1 at the top
-HDR_NETS = {1: 'BAT', 3: 'GND', 4: 'GND', 5: 'GPIO21', 7: 'GPIO38', 16: 'GPIO17', 18: 'GPIO18', 24: 'PWRON', 29: 'GND', 30: 'GND'}
+HDR_NETS = {1: 'BAT', 3: 'GND', 4: 'GND', 5: 'GPIO21', 7: 'GPIO38', 9: 'GND', 16: 'GPIO17', 18: 'GPIO18', 24: 'PWRON', 29: 'GND', 30: 'GND'}
+# pin 9 (GPIO39) to GND: rev D's model strap. The firmware reads it at boot: tied = the ONE (slide switch,
+# 1000 mAh, 200 mA charge, long press never off); open = the ONE SLIM.
 xe, xc = G.HDR_ROW_X[1], G.HDR_ROW_X[0]
 j1 = new_fp('J1', 'Header_2x16_Waveshare',  (xe + xc) / 2, G.HDR_PIN1_Y - 7.5 * 2.54)
 for n in range(1, 33):
     k = (n - 1) // 2
     x = (xe if n % 2 else xc) - (xe + xc) / 2
     y = G.HDR_PIN1_Y - k * 2.54 - (G.HDR_PIN1_Y - 7.5 * 2.54)
-    add_pad(j1, n, x, y, pcbnew.PAD_SHAPE_RECT if n == 1 else pcbnew.PAD_SHAPE_CIRCLE, (1.7, 1.7), drill=1.02, netname=HDR_NETS.get(n))
+    pad = add_pad(j1, n, x, y, pcbnew.PAD_SHAPE_RECT if n == 1 else pcbnew.PAD_SHAPE_CIRCLE, (1.7, 1.7), drill=1.02, netname=HDR_NETS.get(n))
+    if n == 9: pad.SetZoneConnection(pcbnew.ZONE_CONNECTION_FULL)   # the strap: tracks crowd its thermal spokes
 silk_rect(xc - 1.4 - 0.1, G.HDR_PIN1_Y + 1.4, xe + 1.4, G.HDR_PIN1_Y - 15 * 2.54 - 1.4)
 silk_text('1', xe + 2.4, G.HDR_PIN1_Y, 1.0)
 
@@ -155,7 +158,7 @@ d1 = lib_fp('D1', '1N4148WS', 'Diode_SMD', 'D_SOD-323', *SP['D1']); nets(d1, {'1
 
 # labels
 silk_text('STRUTHIO ONE', 0, -44.0, 1.6)
-silk_text('rev C', 0, -47.0, 1.0)
+silk_text('rev D', 0, -47.0, 1.0)
 
 # ---- ground pour on both layers ------------------------------------------------------------------------
 def add_zone(layer):

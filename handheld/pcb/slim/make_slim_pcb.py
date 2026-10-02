@@ -3,11 +3,14 @@
 
     /usr/bin/python3 make_slim_pcb.py         (KiCad 7 pcbnew, tracks planned by hand below)
 
-The circuit, parts and tracks are the ONE's (pcb/one/make_one_pcb.py, rev C); what changes:
+Rev S2 (foolproof): the ONE's circuit (pcb/one/make_one_pcb.py) without the slide switch and the power-on pulse:
+the Waveshare's own PWR key is the power button, so the cell connects straight through Q1 (reverse-battery
+guard) to header pin 1. The battery socket is surface-mount (no leads to trim). Header pin 9 stays open: the
+firmware reads that as "ONE SLIM" (the ONE board ties it to GND). What else differs from the ONE board:
   - 0.8 mm board, outline from cad/slim/slim_cad.py (0.3 mm further in than the ONE's)
-  - J1 is NOT assembled: the builder fits 8 bare header pins (pins 1, 3, 4, 5, 7, 16, 18, 24) with the
+  - J1 is NOT assembled: the builder fits 12 bare header pins (odd 1-7, even 4-18) with the
     printed pin jig, so the board can lie on the socket (docs/STRUTHIO_ONE_SLIM.md)
-  - through-hole leads (SW5, J2) are trimmed flush by the builder; the back shell has 0.5 mm reliefs over them
+  - parts: SW1-4 (TS-1187A), J2 (JST S2B-PH-SM4-TB, LCSC C295747), Q1 (AO3401A): all surface-mount
 
 Every position comes from cad/one/one_cad.py (as set up by slim_cad.py), so the board, the case and the fit
 checks share one set of numbers. The design frame there is the view from the
@@ -101,7 +104,7 @@ def silk_rect(x0, y0, x1, y1, layer=pcbnew.F_SilkS):
     add_poly_edges([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], layer, 0.15)
 
 # J1: Waveshare header numbering, odd pins on the edge row (x 24.47), pin 1 at the top
-HDR_NETS = {1: 'BAT', 3: 'GND', 4: 'GND', 5: 'GPIO21', 7: 'GPIO38', 16: 'GPIO17', 18: 'GPIO18', 24: 'PWRON', 29: 'GND', 30: 'GND'}
+HDR_NETS = {1: 'BAT', 3: 'GND', 4: 'GND', 5: 'GPIO21', 7: 'GPIO38', 16: 'GPIO17', 18: 'GPIO18', 29: 'GND', 30: 'GND'}   # 9 open: SLIM
 xe, xc = G.HDR_ROW_X[1], G.HDR_ROW_X[0]
 j1 = new_fp('J1', 'Header_2x16_Waveshare',  (xe + xc) / 2, G.HDR_PIN1_Y - 7.5 * 2.54)
 for n in range(1, 33):
@@ -122,25 +125,15 @@ for ref, (key, sig) in SW.items():
         add_pad(fp, 'ABCD'[i], dx, dy, pcbnew.PAD_SHAPE_RECT, (1.0, 0.75), netname={0: sig, 3: 'GND'}.get(i))
     silk_rect(x - 2.0, y - 2.6, x + 2.0, y + 2.6)            # between the pads
 
-# SW5: SS-12D06-G030 (G-Switch drawing SK-12D06-G030 rev A0): three 0.7 x 1.3 mm pins at 4.7 mm pitch, bent down
-# 4.1 mm behind the body to their outside face, so the pin centre is 3.75 mm behind it. Pin 2 is the common;
-# the slider's contact moves with the knob, so knob toward pin 1 (toward the screen) joins 2-1: ON.
-body, knob, x_front = G.psw_box()
-xp = x_front + G.PSW_DEPTH + 3.75
-sw5 = new_fp('SW5', 'SS-12D06-G030', xp, G.PSW_Y)
-for i, dy in enumerate((4.7, 0.0, -4.7)):
-    add_pad(sw5, i + 1, 0, dy, pcbnew.PAD_SHAPE_CIRCLE, (2.4, 2.4), drill=1.6, netname=('BAT', 'BAT_RAW', None)[i])
-silk_rect(x_front + 1.8, G.PSW_Y - G.PSW_LEN / 2, x_front + G.PSW_DEPTH, G.PSW_Y + G.PSW_LEN / 2)   # (the body overhangs the edge)
-silk_text('ON', x_front + 4.0, G.PSW_Y + 4.0, 1.2)
-sw5.Reference().SetPosition(P(xp - 1.0, G.PSW_Y - 8.4))
 j1.Reference().SetPosition(P(18.6, G.HDR_PIN1_Y + 2.4))
 
-# J2: JST S2B-PH-K-S, entry facing up (toward the battery), pin 1 = +
+# J2: JST S2B-PH-SM4-TB (surface-mount, side entry), entry facing +x, pin 1 = +
 lib = '/usr/share/kicad/footprints/Connector_JST.pretty'
-j2 = pcbnew.FootprintLoad(lib, 'JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal')
-j2.SetReference('J2'); j2.SetValue('S2B-PH-K-S'); board.Add(j2)
+j2 = pcbnew.FootprintLoad(lib, 'JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal')
+j2.SetReference('J2'); j2.SetValue('S2B-PH-SM4-TB'); board.Add(j2)
 j2.SetOrientationDegrees(90); j2.SetPosition(P(G.PH_SOCK[0], G.PH_SOCK[1]))   # entry faces +x
-for pad in j2.Pads(): pad.SetNet(net('BAT_IN' if pad.GetNumber() == '1' else 'GND'))
+for pad in j2.Pads():
+    if pad.GetNumber() in ('1', '2'): pad.SetNet(net('BAT_IN' if pad.GetNumber() == '1' else 'GND'))
 p1 = [p for p in j2.Pads() if p.GetNumber() == '1'][0].GetPosition()
 silk_text('+', pcbnew.ToMM(p1.x) - OX - 2.6, OY - pcbnew.ToMM(p1.y) - 0.6, 1.4)
 silk_text('BATTERY', G.PH_SOCK[0] + 3.0, G.PH_SOCK[1] - 3.4, 1.0)
@@ -156,17 +149,13 @@ def lib_fp(ref, value, lib, name, x, y, rot=0.0):
 def nets(fp, m):
     for pad in fp.Pads(): pad.SetNet(net(m[pad.GetNumber()]))
 SP = G.SMD_PARTS
-q1 = lib_fp('Q1', 'AO3401A', 'Package_TO_SOT_SMD', 'SOT-23', *SP['Q1']); nets(q1, {'1': 'GND', '2': 'BAT_RAW', '3': 'BAT_IN'})
-q2 = lib_fp('Q2', 'AO3400A', 'Package_TO_SOT_SMD', 'SOT-23', *SP['Q2']); nets(q2, {'1': 'PG', '2': 'GND', '3': 'PWRON'})
-c1 = lib_fp('C1', '10uF', 'Capacitor_SMD', 'C_0805_2012Metric', *SP['C1']); nets(c1, {'1': 'PG', '2': 'BAT'})
-r1 = lib_fp('R1', '470k', 'Resistor_SMD', 'R_0402_1005Metric', *SP['R1']); nets(r1, {'1': 'PG', '2': 'GND'})
-d1 = lib_fp('D1', '1N4148WS', 'Diode_SMD', 'D_SOD-323', *SP['D1']); nets(d1, {'1': 'PG', '2': 'GND'})   # 1 = cathode
+q1 = lib_fp('Q1', 'AO3401A', 'Package_TO_SOT_SMD', 'SOT-23', *SP['Q1']); nets(q1, {'1': 'GND', '2': 'BAT', '3': 'BAT_IN'})
 
 # labels
 silk_text('STRUTHIO ONE SLIM', 0, -44.0, 1.6)
-silk_text('rev S1  0.8 mm', 0, -47.0, 1.0)
-silk_text('J1: PINS 1 3 4 5 7 16 18 24 ONLY', 0, -56.0, 1.0, pcbnew.B_SilkS)
-silk_text('PINS 3.0 MM OUT OF THE FRONT', 0, -58.0, 1.0, pcbnew.B_SilkS)
+silk_text('rev S2  0.8 mm', 0, -47.0, 1.0)
+silk_text('J1: PINS 1-7 ODD + 4-18 EVEN, 9 EMPTY', 0, -56.0, 1.0, pcbnew.B_SilkS)
+silk_text('USE THE PRINTED PIN JIG', 0, -58.0, 1.0, pcbnew.B_SilkS)
 
 # ---- ground pour on both layers ------------------------------------------------------------------------
 def add_zone(layer):
@@ -224,27 +213,14 @@ def route():
     via(bx, by + 1.6, 'GPIO21'); track([(bx, by + 1.6), (bx, by)], 'GPIO21')
     x, y = hx[1]; track([(x, y), (xbat, y - (xbat - x)), (xbat, -34.3)], 'BAT', width=W_PWR)
     via(xbat, -34.3, 'BAT')
-    p1 = pad_xy(sw5, 1)
-    track([(xbat, -34.3), (p1[0] + 3.7, -34.3), (p1[0], -38.0), p1], 'BAT', pcbnew.B_Cu, W_PWR)
-    # battery in: J2 pin 1 -> Q1 drain; Q1 source -> slide switch common; Q1 gate to ground
-    j2p1, p2 = pad_xy(j2, 1), pad_xy(sw5, 2)
+    # battery in: J2 pin 1 -> Q1 drain; Q1 source -> BAT (header pin 1), back up the right lane; Q1 gate to ground
+    j2p1 = pad_xy(j2, 1)
     qd, qs, qg = pad_xy(q1, 3), pad_xy(q1, 2), pad_xy(q1, 1)
     track([j2p1, (qd[0], j2p1[1]), qd], 'BAT_IN', width=W_PWR)
-    yb = -38.4
-    track([qs, (qs[0] - 0.6, yb), (-29.0, yb), (-29.0, p2[1]), p2], 'BAT_RAW', width=W_PWR)
+    yv = qs[1] - 1.35                                                     # come up under Q1's source, clear of its gate
+    track([(xbat, -34.3), (qs[0] + 2.4, -34.3), (qs[0] + 2.4, yv), (qs[0], yv)], 'BAT', pcbnew.B_Cu, W_PWR)
+    via(qs[0], yv, 'BAT'); track([(qs[0], yv), qs], 'BAT', width=W_PWR)
     track([qg, (qg[0], qg[1] + 1.1)], 'GND'); via(qg[0], qg[1] + 1.1, 'GND')
-    # power-on pulse on the strip, below the header: PWRON runs down between the two pin rows
-    pw = pad_xy(j1, 24); qd2, qg2, qs2 = pad_xy(q2, 3), pad_xy(q2, 1), pad_xy(q2, 2)
-    track([pw, (23.2, pw[1] - (23.2 - pw[0])), (23.2, -6.8), (24.9, -8.5), (24.9, qd2[1]), qd2], 'PWRON', width=0.2)
-    cp, cb = pad_xy(c1, 1), pad_xy(c1, 2); rp, rg = pad_xy(r1, 1), pad_xy(r1, 2); dk, da = pad_xy(d1, 1), pad_xy(d1, 2)
-    xg = 21.0                                                            # the gate node: a short bus down the left
-    track([cp, (xg, cp[1]), (xg, rp[1]), rp], 'PG', width=0.3)
-    track([(xg, rp[1]), (xg, dk[1]), dk], 'PG', width=0.3)
-    track([(xg, dk[1]), (xg, qg2[1]), qg2], 'PG', width=0.3)
-    track([qs2, (qs2[0], qs2[1] - 1.3)], 'GND'); via(qs2[0], qs2[1] - 1.3, 'GND')
-    track([rg, (23.9, -13.0)], 'GND', width=0.3); track([da, (23.9, -13.0)], 'GND', width=0.3); via(23.9, -13.0, 'GND')
-    via(xbat, -9.0, 'BAT'); track([(xbat, -9.0), (23.9, -9.0)], 'BAT', pcbnew.B_Cu, width=0.4)
-    via(23.9, -9.0, 'BAT'); track([(23.9, -9.0), (cb[0], -9.0), cb], 'BAT', width=0.4)
     # ground stitching beside the switches and on the strip
     for x, y in [(-21.5, -53.5), (24, -53.5), (-16, -65.0), (16, -65.0), (17.6, 22.0), (17.6, 5.0), (17.6, -12.0),
                  (-9, -47.5), (9, -47.5), (0, -60), (-31.5, -58), (31.5, -58)]:
@@ -263,16 +239,18 @@ def main():
     rpt = os.path.join(OUT, 'drc.rpt')
     pcbnew.WriteDRCReport(b, rpt, pcbnew.EDA_UNITS_MILLIMETRES, True)
     print('wrote', path, 'and', rpt)
-    with open(os.path.join(OUT, 'tht_leads.txt'), 'w') as f:                # for the back shell's reliefs (slim_cad.py)
-        for ref in ('SW5', 'J2'):
-            for p in b.FindFootprintByReference(ref).Pads():
+    with open(os.path.join(OUT, 'tht_leads.txt'), 'w') as f:                # through-hole leads the builder trims (none in S2)
+        for fp in b.GetFootprints():
+            if fp.GetReference() == 'J1': continue
+            ref = fp.GetReference()
+            for p in fp.Pads():
+                if p.GetAttribute() != pcbnew.PAD_ATTRIB_PTH: continue
                 q = p.GetPosition(); f.write(f'{ref} {p.GetNumber()} {pcbnew.ToMM(q.x) - OX:.3f} {OY - pcbnew.ToMM(q.y):.3f}\n')
 
 def write_assembly():
     """JLCPCB BOM and placement (CPL) files"""
-    lcsc = {'J1': '', 'SW1': 'C318884', 'SW2': 'C318884', 'SW3': 'C318884', 'SW4': 'C318884', 'SW5': 'C17179519', 'J2': 'C173752'}
-    lcsc.update({'Q1': 'C15127', 'Q2': 'C20917', 'C1': 'C15850', 'R1': 'C25790', 'D1': 'C2128'})
-    comment = {'J1': 'PZ254-2-16-Z-8.5 2x16 male header (standard mounting)', 'SW5': 'SS-12D06-G030', 'J2': 'S2B-PH-K-S'}
+    lcsc = {'J1': '', 'SW1': 'C318884', 'SW2': 'C318884', 'SW3': 'C318884', 'SW4': 'C318884', 'J2': 'C295747', 'Q1': 'C15127'}
+    comment = {'J2': 'S2B-PH-SM4-TB(LF)(SN)'}
     rows = {}
     for fp in board.GetFootprints():
         ref = fp.GetReference(); v = comment.get(ref, fp.GetValue())

@@ -8,7 +8,8 @@ The SLIM keeps the ONE's outline, face panel, keys and controls (one_cad.py, imp
   0.0  - 1.0   face panel (1.0 mm acrylic, unchanged)
   1.0  - 1.5   0.5 mm shell rim over the glass border (the glass sits in a pocket in the 1.6 mm face)
   1.5  - 14.1  Waveshare: glass front to the top of its J8 socket (Waveshare 3D model: 12.6 mm)
-  14.1 - 14.9  ONE SLIM board, 0.8 mm, lying ON the J8 socket: 8 bare header pins go 3.0 mm into it
+  14.1 - 14.9  ONE SLIM board, 0.8 mm, on the front shell's bosses; 12 bare header pins stand 3.6 mm out of it
+               (they go 3.6 mm into J8 if its top is 12.6 mm behind the glass, 2.5 mm if it is 11.5: both work)
   14.9 - 15.0  clearance
   15.0 - 16.5  back wall, 1.5 mm
 
@@ -16,6 +17,10 @@ Behind the Waveshare (its back parts stand at most 9.5 mm behind the glass, Wave
 3.7 mm deep bay: a 3.0 mm LiPo (302535, 250 mAh; a 303450, about 500 mAh, fits the same bay) and a
 15 x 11 x 2.5 mm speaker (Same Sky CMS-151125-078SP). The Waveshare is screwed to the back shell through three
 of its own M2 standoffs (SMTSO-M2X4 in the 3D model), and the shells meet in a tongue-and-groove joint.
+
+Rev S2 (foolproof): no slide switch: a printed plunger in the left wall presses the Waveshare's own PWR key
+(press: on, hold 4 s: off); one screw size (5 x M2 x 6 countersunk); the battery socket is surface-mount (no
+leads to trim); clips hold the leads; a keyed pin jig (with an 11 mm axle gauge) and a panel jig.
 
 Design frame as one_cad: x right seen from the front, y up, z INTO the case from the front face. STLs are
 written physical (mirrored in x), like the ONE's.
@@ -41,8 +46,9 @@ WS_PARTS = 9.5                        # glass front to the back of every other p
 Z_BACK = Z_GLASS + WS_STANDOFF        # 13.0 standoff tips
 Z_SOCK = Z_GLASS + WS_SOCKET          # 14.1 socket top
 ONE_T = 0.8
-Z_ONE = Z_SOCK                        # the board's front face lies on the socket
-PIN_INSERT = 3.0                      # bare pins into the socket (a standard header's short tail is 3.0 mm)
+Z_ONE = Z_SOCK                        # the board's front face: on the bosses, level with a 12.6 mm socket top
+PIN_OUT = 3.6                         # bare pins stand this far out of the board's front (the jig sets it)
+WS_SOCKET_LOW = 11.5                  # the other socket height the build must survive (Waveshare's drawing)
 ZIN = DEPTH - BACK_WALL               # 15.0 back wall, inside face
 Z_SPLIT = 11.0                        # front shell / back shell
 RB = 3.0                              # back edge round (the ONE's 5.0 would pull the inside wall in onto the board)
@@ -71,8 +77,8 @@ BAY = dict(x0=-18.5, x1=15.5, y0=-7.0, y1=45.0, z0=Z_GLASS + WS_PARTS + 0.3, t=3
 CELL = dict(x0=-18.5, x1=6.5, y0=-7.0, y1=31.0)            # 302535 as fitted
 FOAM_T = 1.0
 SPK = dict(x0=-18.5, x1=-3.5, y0=-21.5, y1=-10.5, t=2.5)   # CMS-151125-078SP, 15 x 11 x 2.5, against the back wall
-# the cell lead: along under the bay's bottom edge, then down to J2 (the ONE board's battery socket)
-LEAD = dict(x0=-2.0, x1=10.5, y0=-33.0, y1=BAY['y0'], z0=Z_GLASS + WS_PARTS + 0.1, z1=ZIN)
+# the cell lead: along under the bay's bottom edge, then down between two clips to J2 (the battery socket)
+LEAD = dict(x0=2.6, x1=6.4, y0=-33.0, y1=BAY['y0'], z0=Z_GLASS + WS_PARTS + 0.1, z1=ZIN)
 LEAD_ALONG = dict(x0=-14.4, x1=10.5, y0=-9.0, y1=BAY['y0'] - 0.4, z0=Z_GLASS + WS_PARTS + 0.1, z1=ZIN)
 SPK_LEAD = dict(x0=-23.5, x1=-20.0, y0=-17.0, y1=10.6, z0=Z_GLASS + WS_PARTS + 0.1, z1=ZIN)    # speaker lead up to J9
 
@@ -80,11 +86,23 @@ SPK_LEAD = dict(x0=-23.5, x1=-20.0, y0=-17.0, y1=10.6, z0=Z_GLASS + WS_PARTS + 0
 CSK_D, CSK_HOLE = 4.0, 2.3
 WS_SCREWS = [(x, y) for x, y in o.standoffs() if not (x > 0 and y < o.BCY)]   # three standoffs; the 4th is under the ONE strip
 WS_SCREW_L = 6.0
-LOWER_SCREW_L = 8.0
+LOWER_SCREW_L = 6.0                   # one screw for the whole case: M2 x 6 countersunk
 PILOT_D = o.PILOT_D
 
-# the ONE SLIM's header pins (J8 numbering): BAT, GND x2, DART L/R, LEFT/RIGHT WING, PWR
-PINS = (1, 3, 4, 5, 7, 16, 18, 24)
+# the ONE SLIM's header pins (J8 numbering), two straight strips cut from any 2.54 mm header:
+#   odd row 1-7 (BAT, GND, DART L, DART R) and even row 4-18 (GND ... LEFT WING 16, RIGHT WING 18; the others
+#   land on empty pads). Pin 9 stays empty: that is how the firmware knows it is a SLIM.
+PINS = (1, 3, 5, 7) + tuple(range(4, 19, 2))
+# lead clips: pairs of posts from the back wall, the lead pressed between them
+CLIPS = [(1.9, -14.0), (7.1, -14.0), (1.9, -26.0), (7.1, -26.0), (-24.2, 4.0), (-19.3, 4.0)]
+# the power button: a printed plunger through the left wall onto the Waveshare's PWR key (its actuator ends
+# 26.85 mm left of centre, 7.1-9.3 mm behind the glass: Waveshare 3D model)
+PWR_Y = o.SIDE_KEYS_Y['PWR']
+PWR_KEY_X = -26.85
+PLUNGER = dict(head=(3.0, 2.0), proud=0.8, flange=(5.2, 2.55, 0.8), tip=(1.6, 1.3), gap=0.2, hole=0.2)
+# J2: JST S2B-PH-SM4-TB, surface-mount side entry (LCSC C295747): body 7.9 x 7.6, 5.0 tall (confirm), entry to +x
+J2_BODY = dict(x0=-1.2, x1=6.4, y0=-41.95, y1=-34.05, h=5.0)
+Q1_XY = (-7.0, -38.0)
 
 def pin_xy(n):
     """J8 pin n in the case frame: odd pins on the row nearer the edge (one_cad.HDR_ROW_X)"""
@@ -105,21 +123,32 @@ def ring2d(a, b):
     return out.offset(-a, mf.JoinType.Round) - out.offset(-b, mf.JoinType.Round)
 
 def joint_keepout():
-    """where the joint's land, groove and tongue stop: the power switch, its knob slot, the edge-key pin holes, USB-C"""
-    body, knob, _ = o.psw_box()
-    b = body.bounding_box()
-    k = box(b[0] - 0.4, b[3] + 0.4, b[1] - 0.4, b[4] + 0.4, -1, DEPTH + 1)
+    """where the joint's land, groove and tongue stop: the power button, the edge-key pin holes, USB-C"""
+    f = PLUNGER['flange']
+    k = box(-o.UPPER_W / 2 - 2, PWR_KEY_X, PWR_Y - f[0] / 2 - 0.6, PWR_Y + f[0] / 2 + 0.6, -1, DEPTH + 1)
     return k + shared_cuts()
+
+PLUNGER_Z = Z_GLASS + 8.2                                   # centre of the actuator (7.1-9.3 behind the glass)
+def plunger(press=0.0):
+    """the power button, at rest (press = 0) or pushed in by press mm"""
+    P = PLUNGER; xo = -o.UPPER_W / 2; xi = xo + o.WALL; z = PLUNGER_Z
+    hw, hh = P['head']; fw, fh, ft = P['flange']; tw, th = P['tip']
+    m = box(xo - P['proud'], xi, PWR_Y - hw / 2, PWR_Y + hw / 2, z - hh / 2, z + hh / 2)                   # head + shank
+    m += box(xi, xi + ft, PWR_Y - fw / 2, PWR_Y + fw / 2, z - fh / 2, z + fh / 2)                         # flange
+    m += box(xi + ft, PWR_KEY_X - P['gap'], PWR_Y - tw / 2, PWR_Y + tw / 2, z - th / 2 + 0.25, z + th / 2 + 0.25)   # tip, above the board edge
+    return m.translate([press, 0, 0])
+
+def plunger_hole():
+    P = PLUNGER; hw, hh = P['head']; c = P['hole']
+    return box(-o.UPPER_W / 2 - 2, -o.UPPER_W / 2 + o.WALL + 0.01, PWR_Y - hw / 2 - c, PWR_Y + hw / 2 + c, PLUNGER_Z - hh / 2 - c, PLUNGER_Z + hh / 2 + c)
 
 # =========================================================================================================
 def shared_cuts():
     """openings that cross the split line"""
     c = box(-6.4, 6.4, o.BCY + o.BH / 2 - 7.0, o.Y_TOP + 2, USB_Z - 3.5, USB_Z + 3.5)          # USB-C plug
-    for y in o.SIDE_KEYS_Y.values():                                                           # pin holes onto the edge keys
+    for k, y in o.SIDE_KEYS_Y.items():                                                         # pin holes onto RST and BOOT
+        if k == 'PWR': continue                                                                # (PWR has the plunger)
         c += box(-o.UPPER_W / 2 - 2, -26.6, y - 0.8, y + 0.8, Z_GLASS + SIDE_SWITCH_Z[0] - 0.1, Z_GLASS + SIDE_SWITCH_Z[1] + 0.1)
-    zc = Z_ONE - o.PSW_H / 2                                                                   # power slider
-    c += box(-o.LOWER_W / 2 - 3, -o.LOWER_W / 2 + 6, o.PSW_Y - o.PSW_KNOB / 2 - o.PSW_TRAVEL / 2 - 0.4,
-             o.PSW_Y + o.PSW_KNOB / 2 + o.PSW_TRAVEL / 2 + 0.4, min(zc - o.PSW_KNOB / 2 - 0.3, Z_SPLIT - 0.5), zc + o.PSW_KNOB / 2 + 0.3)
     return c
 
 def front_shell():
@@ -139,7 +168,7 @@ def front_shell():
     cut += prism(keys2d(o.KEY_CLEAR), -1, o.COLLAR_Z + 0.1)
     cut += o.rocker_axle_hole()
     for x, y in o.LOWER_SCREWS: cut += cyl_z(PILOT_D, x, y, Z_ONE - 6.5, Z_ONE + 0.1)
-    cut += shared_cuts()
+    cut += shared_cuts() + plunger_hole()
     cut += prism(ring2d(*GROOVE), Z_SPLIT - GROOVE_DEPTH, Z_SPLIT + 0.1)                     # the groove
     return shell - cut
 
@@ -151,17 +180,17 @@ def csk(x, y):
 
 def one_pads():
     """bosses from the back wall onto the ONE SLIM's back: behind every switch, round the strip, at J2"""
-    pts = list(o.switch_xy().values()) + [(18.3, 22.0), (27.8, 20.0), (18.3, 0.0), (27.8, -6.0), (18.3, -24.0), (2.0, -44.0), (-20.0, -44.0)]
+    pts = list(o.switch_xy().values()) + [(18.3, 22.0), (27.8, 20.0), (18.3, 0.0), (27.8, -6.0), (18.3, -24.0), (2.0, -46.0), (-20.0, -44.0)]
     return pts
 
-# through-hole leads of the slide switch and the battery socket, trimmed flush (pcb/slim/out/tht_leads.txt)
-THT_LEADS = [(-24.486, -45.3), (-24.486, -50.0), (-24.486, -54.7), (2.0, -38.0), (2.0, -36.0)]
+THT_LEADS = []                       # rev S2: no through-hole parts but the header pins
 
 def pin_pockets():
-    """relief in the back wall over the soldered pin tips and trimmed leads (0.5 mm deep)"""
+    """relief in the back wall over the soldered pin tips (0.5 mm deep), one per row"""
     c = M()
-    for x, y in [pin_xy(n) for n in PINS] + THT_LEADS:
-        c += box(x - 1.3, x + 1.3, y - 1.3, y + 1.3, ZIN - 0.05, ZIN + 0.5)
+    for row in ([n for n in PINS if n % 2], [n for n in PINS if not n % 2]):
+        xs = [pin_xy(n)[0] for n in row]; ys = [pin_xy(n)[1] for n in row]
+        c += box(min(xs) - 1.3, max(xs) + 1.3, min(ys) - 1.3, max(ys) + 1.3, ZIN - 0.05, ZIN + 0.5)
     return c
 
 def back_shell():
@@ -182,6 +211,7 @@ def back_shell():
     cx, cy, w, h = (s['x0'] + s['x1']) / 2, (s['y0'] + s['y1']) / 2, s['x1'] - s['x0'], s['y1'] - s['y0']
     add += prism(rrect(w + 2.4, h + 2.4, 1.2, cx, cy) - rrect(w + 0.4, h + 0.4, 0.3, cx, cy), ZIN - 1.5, ZIN + 0.01)
     add += box(-22.0, 22.0, 51.0, 53.0, Z_BACK, ZIN + 0.01)                                               # stiffening rib over the USB end
+    for x, y in CLIPS: add += cyl_z(1.2, x, y, ZIN - 2.5, ZIN + 0.01, 16)                                  # lead clips
     add += tongue()
     shell = shell + (add ^ (inner + tongue()))
     cut = shared_cuts() + pin_pockets()
@@ -207,7 +237,10 @@ def ref_waveshare():
     g = Z_GLASS
     m = prism(board2d(), g, g + 4.4)                                            # glass + LCD (full outline)
     m += box(-26.68, 26.68, -26.19, 56.74, g + 4.4, g + 8.4)                     # LCD body and its flex
-    m += box(-27.26, 27.26, -25.23, 52.79, g + 5.9, g + WS_PARTS)               # board + low parts
+    low = box(-27.26, 27.26, -25.23, 52.79, g + 5.9, g + WS_PARTS)              # board + low parts
+    for y in o.SIDE_KEYS_Y.values():                                            # the edge keys are the outermost parts there
+        low -= box(-27.3, -26.85, y - 2.3, y + 2.3, g + 7.55, g + WS_PARTS + 0.1)
+    m += low
     for x0, x1, y0, y1, h in WS_TALL.values(): m += box(x0, x1, y0, y1, g + 5.9, g + h)
     for y in o.SIDE_KEYS_Y.values(): m += box(-26.85, -23.2, y - 2.3, y + 2.3, g + SIDE_SWITCH_Z[0], g + SIDE_SWITCH_Z[1])
     for x, y in o.standoffs(): m += cyl_z(4.0, x, y, g + 5.9, Z_BACK) - cyl_z(1.6, x, y, g + 7.5, Z_BACK + 0.1)   # M2 standoffs
@@ -225,11 +258,26 @@ def one2d():
 def one_board():
     return prism(one2d(), Z_ONE, Z_ONE + ONE_T)
 
+def one_board_drilled():
+    """the board with its 32 J1 holes (1.02 mm), for the jig checks"""
+    m = one_board()
+    for n in range(1, 33):
+        x, y = pin_xy(n); m -= cyl_z(1.02, x, y, Z_ONE - 1, Z_ONE + ONE_T + 1, 16)
+    return m
+
 def ref_pins():
     m = M()
     for n in PINS:
-        x, y = pin_xy(n); m += box(x - 0.32, x + 0.32, y - 0.32, y + 0.32, Z_ONE - PIN_INSERT, Z_ONE + ONE_T + 0.05)
+        x, y = pin_xy(n); m += box(x - 0.32, x + 0.32, y - 0.32, y + 0.32, Z_ONE - PIN_OUT, Z_ONE + ONE_T + 0.05)
     return m
+
+def ref_parts():
+    """the ONE SLIM's front-face parts: four tact switches, J2 with the cell's plug, Q1"""
+    j = J2_BODY
+    m = o.ref_switches() + box(j['x0'], j['x1'], j['y0'], j['y1'], Z_ONE - j['h'], Z_ONE)
+    m += box(j['x1'], j['x1'] + 6.0, j['y0'] + 0.2, j['y1'] - 0.2, Z_ONE - j['h'] + 0.4, Z_ONE - 0.4)       # the cell's plug
+    x, y = Q1_XY
+    return m + box(x - 1.5, x + 1.5, y - 1.5, y + 1.5, Z_ONE - 1.3, Z_ONE)
 
 def ref_battery(cell=CELL):
     b = BAY; return box(cell['x0'], cell['x1'], cell['y0'], cell['y1'], b['z0'], b['z0'] + b['t'])
@@ -252,36 +300,44 @@ def ref_screws():
     return m
 
 # ---- builder's helpers -----------------------------------------------------------------------------------------
-SPACER_T = 1.1          # print and fit only if YOUR board's J8 top is 11.5 mm behind the glass, not 12.6 (measure it)
-
+AXLE_LEN = 11.0
 def pin_jig():
-    """sets the bare pins: the ONE SLIM lies face down on it, the header's long side goes through the board into
-    these 3.0 mm blind holes, so after soldering every pin stands exactly PIN_INSERT out of the board's front"""
+    """sets the pins, and only fits one way: the ONE SLIM lies face down on it, inside the fence that hugs the strip's
+    top end and outer edge; each header strip goes in long side first, through the board, into blind holes
+    PIN_OUT deep. Solder, slide the plastic off, snip flush. Also: a slot that cuts the rocker's 1.75 mm filament
+    axle to 11 mm (push the filament to the closed end, cut at the open end)."""
     xs = [pin_xy(n)[0] for n in PINS]; ys = [pin_xy(n)[1] for n in PINS]
-    x0, x1, y0, y1 = min(xs) - 3.5, max(xs) + 3.5, min(ys) - 3.5, max(ys) + 3.5
-    jig = box(x0, x1, y0, y1, 0, 2.0 + PIN_INSERT)
+    x0, x1, y0, y1 = o.STRIP_X[0] + 0.5, o.STRIP_X[1] + 2.2, min(ys) - 4.0, o.STRIP_TOP + 2.2
+    z1 = Z_ONE; z0 = z1 - PIN_OUT - 2.0
+    jig = box(x0, x1, y0, y1, z0, z1)
     for n in PINS:
-        x, y = pin_xy(n); jig -= cyl_z(1.15, x, y, 2.0, 2.0 + PIN_INSERT + 1, 24)
-    return jig
+        x, y = pin_xy(n); jig -= cyl_z(1.15, x, y, z1 - PIN_OUT, z1 + 1, 24)
+    fence = box(o.STRIP_X[1] + 0.2, x1, y0, y1, z1 - 0.01, z1 + 0.6) + box(x0, x1, o.STRIP_TOP + 0.2, y1, z1 - 0.01, z1 + 0.6)
+    jig += fence
+    for n in (11, 20):                                    # two pegs in empty J1 holes: a board turned over will not sit
+        x, y = pin_xy(n); jig += cyl_z(0.85, x, y, z1 - 0.01, z1 + 0.7, 16)
+    gauge = box(x1, x1 + 4.0, y0, y0 + AXLE_LEN + 3.0, z0, z1)                                  # the axle gauge
+    gauge -= box(x1 + 1.05, x1 + 2.95, y0 + 1.5, y0 + 30, z1 - 1.5, z1 + 1)                  # closed end at y0 + 1.5
+    gauge -= box(x1 - 1, x1 + 5, y0 + 1.5 + AXLE_LEN, y0 + 30, z0 - 1, z1 + 1)                 # the block ends at 11 mm
+    return jig + gauge
 
-def pin_spacer():
-    """1.1 mm plate with the pin holes: lies on J8 under the ONE SLIM (and on the jig while soldering) when J8's
-    top is 11.5 mm behind the glass instead of the 12.6 the case is drawn for"""
-    xs = [pin_xy(n)[0] for n in PINS]; ys = [pin_xy(n)[1] for n in PINS]
-    p = box(min(xs) - 1.6, max(xs) + 1.6, min(ys) - 1.6, max(ys) + 1.6, 0, SPACER_T)
-    for n in PINS:
-        x, y = pin_xy(n); p -= cyl_z(1.15, x, y, -1, 2, 24)
-    return p
+def panel_jig():
+    """drops over the case's front: its skirt hugs the outline, the panel goes into its window exactly where it
+    belongs. Press the panel down, lift the jig off."""
+    outer = body2d().offset(3.4, mf.JoinType.Round)
+    window = body2d().offset(-o.PANEL_INSET + 0.15, mf.JoinType.Round)
+    skirt = outer - body2d().offset(0.3, mf.JoinType.Round)
+    return prism(outer - window, -0.2, o.PANEL_T) + prism(skirt, o.PANEL_T - 0.01, o.PANEL_T + 4.0)
 
 PARTS = {
     'slim_front': front_shell, 'slim_back': back_shell,
     'slim_wing_left': lambda: wing_cap(-1), 'slim_wing_right': lambda: wing_cap(1), 'slim_rocker': rocker_cap,
-    'slim_pin_jig': pin_jig, 'slim_pin_spacer': pin_spacer,
+    'slim_power_button': plunger, 'slim_pin_jig': pin_jig, 'slim_panel_jig': panel_jig,
 }
 REFS = {
     'ref_panel': o.face_panel, 'ref_glyphs': o.ref_glyphs, 'ref_foam': ref_foam, 'ref_waveshare': ref_waveshare,
     'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker, 'ref_screws': ref_screws,
-    'ref_switches': lambda: o.ref_switches() + o.psw_box()[0] + o.psw_box()[1] + o.ref_ph_socket() + ref_pins() + o.ref_smd(),
+    'ref_switches': lambda: ref_parts() + ref_pins(),
 }
 
 def main(names=None):
