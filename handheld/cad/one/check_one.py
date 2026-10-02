@@ -52,6 +52,7 @@ for n, m in [('Waveshare board', ws), ('ONE board', one), ('battery', bat), ('sp
     v = clash(m, shells)
     check(f'{n} clears the shell', v < 0.5, f'{v:.2f} mm3 overlap')
 check('ONE board clears the Waveshare board', clash(one, ws) < 0.01)
+check('small parts on the ONE board (power-on pulse, reverse-battery FET) clear everything', clash(o.ref_smd(), shells + ws + bat + spk + sw + ph + hbody) < 0.01)
 check('battery socket and plug clear the Waveshare board and keys', clash(ph, ws + sw) < 0.01)
 check('battery clears the ONE board and speaker', clash(bat, one + spk) < 0.01)
 check('speaker clears the ONE board', clash(spk, one) < 0.01)
@@ -78,11 +79,16 @@ gap = o.ROCKER_GAP
 check('rocker: flange room to rock', gap > (o.ROCKER_W / 2) * th, f'flange gap {gap} mm, end lift {(o.ROCKER_W/2)*th:.2f} mm')
 
 # ---- header and screws ------------------------------------------------------------------------------------
-check('header: 3.0 mm short end mates into the ~4 mm socket', o.Z_ONE - o.HDR_BODY == o.Z_BACK)
-tails_z = o.Z_ONE + o.ONE_T + (6.0 - o.ONE_T)
-check('header: long tails clear the back (pocket)', tails_z <= o.DEPTH - o.BACK_WALL + 0.8 - 0.1, f'tails to z {tails_z:.1f}')
-check('lower screws: M2 x 8 bite 4.4 mm into the front bosses', (o.Z_ONE + o.ONE_T + 2.0) - 8.0 <= o.Z_ONE - 4.0)
-check('board screws: M2 x 8 reach 3.0 mm into the standoffs', abs((o.Z_BACK + 5.0) - 8.0 - (o.Z_BACK - 3.0)) < 0.01)
+check('header: pins go 3.0-3.6 mm into the ~4 mm socket (+-0.3 board stack)', 3.0 <= o.HDR_MATE - (o.Z_ONE - o.HDR_BODY - o.Z_BACK) - 0.3 and o.HDR_MATE - (o.Z_ONE - o.HDR_BODY - o.Z_BACK) + 0.3 <= 3.7, f'{o.HDR_MATE - (o.Z_ONE - o.HDR_BODY - o.Z_BACK):.2f} mm')
+tails_z = o.Z_ONE + o.HDR_TAIL
+check('header: tails clear the back (pocket)', tails_z <= o.DEPTH - o.BACK_WALL + 0.8 - 0.1, f'tails to z {tails_z:.1f}')
+_bite = o.Z_ONE - (o.SCREW_SEAT - o.SCREW_L)
+check('lower screws: M2 x 8 bite 4-6 mm into the front bosses (pilot 6 mm deep)', 4.0 <= _bite <= 6.0, f'{_bite:.2f} mm')
+check('lower screws: heads below the back face, 1 mm+ of plastic under them', o.SCREW_SEAT + o.SCREW_HEAD <= o.DEPTH and o.SCREW_SEAT - (o.Z_ONE + o.ONE_T) >= 1.0,
+      f'{o.SCREW_SEAT - (o.Z_ONE + o.ONE_T):.2f} mm under the head')
+check('Waveshare: located by 3 pegs and the header, posts stop 0.3 mm short (no screws into it)', o.PEG_D < o.WS_HOLE_D - 0.3 and o.PEG_LEN < 1.6)
+_gap = (o.DEPTH - o.BACK_WALL) - (o.BAT['z0'] + o.BAT['t'])
+check('foam behind the battery: compressed 15-40 % (clamps battery and board)', 0.15 <= 1 - _gap / o.FOAM_T <= 0.40, f'{_gap:.2f} mm gap for {o.FOAM_T} mm foam')
 check('ONE board sits on the front bosses', abs(o.Z_ONE - front.bounding_box()[5]) < 0.01)
 
 # ---- handedness: the printed front, seen from the front, has the power switch on the player's left ----------

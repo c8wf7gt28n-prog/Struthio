@@ -79,8 +79,12 @@ extern "C" bool board_pmu_init(i2c_master_bus_handle_t bus) {
     s_pmu.enableCPUSLDO();
     s_pmu.enableDLDO1();
     s_pmu.enableDLDO2();
-    // power key: hold 4 s to switch off, 128 ms to switch on (vendor values)
-    s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_4S);
+    // power key. On the STRUTHIO ONE the slide switch is the on/off: when it turns on, the ONE board holds
+    // PWR (header pin 24) low for ~3-8 s, because on battery alone the AXP2101 waits for that key before it
+    // connects the battery (datasheet 6.5.2). So a long press must never mean "power off": that is switched
+    // off here, at every boot (the slide switch's hard cut resets the PMU's registers each time).
+    s_pmu.disableLongPressShutdown();
+    s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_10S);
     s_pmu.setPowerKeyPressOnTime(XPOWERS_POWERON_128MS);
     // measurement and charger. Vendor values: 200 mA constant current, 4.1 V
     // target. Check both against the chosen cell's datasheet before lock.

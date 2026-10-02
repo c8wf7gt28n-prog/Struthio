@@ -61,10 +61,15 @@ SIDE_KEYS_Y = {'PWR': BCY + 25.0, 'RST': BCY + 16.5, 'BOOT': BCY + 8.0}   # on t
 SPK_J9 = (-26.0, BCY + 0.4)            # speaker socket (PH1.25) near the left edge
 
 # ---- ONE board -------------------------------------------------------------------------------------
-HDR_BODY = 2.5                         # header plastic between the boards
-Z_ONE = Z_BACK + HDR_BODY              # 15.8: ONE front face
+# J1, HCTL PZ254-2-16-Z-8.5 (LCSC C2894977): 6.0 mm mating pins, 2.54 mm plastic, 3.0 mm tail. Mounted the
+# standard way (plastic on the ONE board's front face, tail through it), as any assembler fits it. The case
+# sets the depth: the ONE board rests on the front shell's bosses, so the pins go HDR_INSERT into the
+# Waveshare's ~4 mm J8 socket and the plastic stands clear of the socket.
+HDR_MATE, HDR_BODY, HDR_TAIL = 6.0, 2.54, 3.0
+HDR_INSERT = 3.3                       # pin depth in the socket (socket ~4.0 deep; +-0.3 board stack tolerance)
+Z_ONE = Z_BACK + (HDR_MATE - HDR_INSERT) + HDR_BODY    # 18.54: ONE front face
 ONE_T = 1.6
-STRIP_X = (16.5, 30.4)                 # strip under the header, down the right side
+STRIP_X = (16.5, 29.4)                 # strip under the header, down the right side
 STRIP_TOP = HDR_PIN1_Y + 3.6           # 36.4
 PLATE_TOP = -33.5                      # plate below the Waveshare board (bottom edge -32.44)
 
@@ -88,16 +93,34 @@ PSW_LEN, PSW_DEPTH, PSW_H = 12.7, 6.4, 6.6
 PSW_KNOB, PSW_KNOB_OUT, PSW_TRAVEL = 3.9, 3.0, 2.2
 # ---- battery and speaker ------------------------------------------------------------------------------
 BAT = dict(x0=-21.0, x1=13.0, y0=6.5, y1=58.5, z0=Z_BACK + 0.2, t=5.2)    # THOR-503450 5 x 34 x 52 (+0.2)
-PH_SOCK = (2.0, -38.0)                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
+PH_SOCK = (2.0, -38.0)
+# small parts on the ONE board's front face (pcb/one): Q1 reverse-battery FET in the battery line; Q2, C1, R1, D1
+# hold the Waveshare's PWR key (header pin 24) down for a few seconds whenever the slide switch turns on,
+# because on battery alone its AXP2101 waits for that key before it connects the battery (datasheet 6.5.2)
+SMD_PARTS = {'Q1': (-7.0, -38.0), 'C1': (22.2, -10.0), 'R1': (22.1, -12.0), 'D1': (22.2, -14.0), 'Q2': (22.6, -17.0)}
+SMD_H = 1.3                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
 SPK = dict(x0=-21.0, x1=-1.0, y0=-31.0, y1=-1.0, t=5.6)                    # boxed speaker, ~30 x 20 (confirm)
 # ---- screws ---------------------------------------------------------------------------------------------
 LOWER_SCREWS = [(-29.5, -62.5), (29.5, -62.5)]
 PLATE_POSTS = [(-29.0, -36.5), (29.0, -36.5)]
 PILOT_D, CLEAR_D, CBORE_D = 1.7, 2.4, 4.2
+SCREW_L, SCREW_HEAD = 8.0, 1.6                # M2 x 8 pan head (ISO 7045: head 1.6 high, 3.8 across)
+SCREW_SEAT = DEPTH - SCREW_HEAD - 0.2        # head 0.2 below the back face
 HOOK_X, HOOK_W = 19.0, 8.0
+
+# The Waveshare is not screwed (its M2 holes have no confirmed thread): the back shell's posts locate it with
+# pegs, and a foam pad behind the battery presses battery and board against the front shell.
+POST_GAP, PEG_D, PEG_LEN = 0.3, 1.8, 1.0
+WS_HOLE_D = 2.2                        # M2 clearance hole in the Waveshare board (confirm: 2.2-2.5)
+FOAM_T = 3.0                           # foam pad behind the battery (compresses into the gap)
 
 def standoffs():
     return [(sx * HOLE_DX, BCY + sy * HOLE_DY) for sx in (-1, 1) for sy in (1, -1)]
+
+def peg_posts():
+    """three of the four holes get a post and peg; the lower-right one sits under the header strip, where the
+    header itself holds that corner and the strip's tracks need the room"""
+    return [(x, y) for x, y in standoffs() if not (x > 0 and y < BCY)]
 
 # =========================================================================================================
 # 2D
@@ -194,11 +217,10 @@ def board2d(d=0.0):
 
 def one2d():
     """ONE board outline: the plate below the Waveshare board plus the strip up the right side"""
-    inner = body2d().offset(-WALL - 0.4, mf.JoinType.Round)
+    inner = body2d().offset(-WALL - 1.2, mf.JoinType.Round)       # clear of the back shell's inner round-over
     plate = inner ^ CS.square([200, PLATE_TOP + 100]).translate([-100, -100])
     strip = rrect(STRIP_X[1] - STRIP_X[0], STRIP_TOP - PLATE_TOP + 2, 1.0, sum(STRIP_X) / 2, (STRIP_TOP + PLATE_TOP - 2) / 2)
     o = (plate + strip).offset(1.0, mf.JoinType.Round).offset(-1.0, mf.JoinType.Round)
-    o = o - circle(6.4, HOLE_DX, BCY - HOLE_DY)                       # back-shell post to the lower-right standoff
     for x, y in LOWER_SCREWS: o = o - circle(CLEAR_D, x, y)
     return o
 
@@ -335,7 +357,9 @@ def back_shell():
     shell = (outer ^ box(-100, 100, -100, 100, Z_SPLIT, DEPTH + 1)) - inner
     add = M()
     zin = DEPTH - BACK_WALL
-    for x, y in standoffs(): add += cyl_z(5.5, x, y, Z_BACK + 0.1, zin + 0.01)
+    for x, y in peg_posts():                                            # posts over the Waveshare's M2 holes:
+        add += cyl_z(5.5, x, y, Z_BACK + POST_GAP, zin + 0.01)            # stop just short of its back,
+        add += cyl_z(PEG_D, x, y, Z_BACK - PEG_LEN, Z_BACK + POST_GAP + 0.01)   # a peg in each hole locates it
     for x, y in LOWER_SCREWS: add += cyl_z(6.0, x, y, Z_ONE + ONE_T + 0.05, zin + 0.01)
     for x, y in ((18.3, 25.0), (18.3, -20.0)): add += cyl_z(3.5, x, y, Z_ONE + ONE_T + 0.05, zin + 0.01)   # hold the strip
     # battery locators: corners of the bay, from the back down to the battery's back face
@@ -354,10 +378,8 @@ def back_shell():
         add += box(sx * HOOK_X - HOOK_W / 2 + 0.5, sx * HOOK_X + HOOK_W / 2 - 0.5, Y_TOP - BACK_WALL, Y_TOP - BACK_WALL + 0.7, 9.0, 10.4)
     shell = shell + (add ^ inner) + (add ^ box(-100, 100, Y_TOP - 4, Y_TOP + 1, 8.0, Z_SPLIT + 1))
     cut = shared_cuts()
-    for x, y in standoffs():
-        cut += cyl_z(CLEAR_D, x, y, Z_BACK - 1, DEPTH + 1) + cyl_z(CBORE_D, x, y, Z_BACK + 5.0, DEPTH + 1)
     for x, y in LOWER_SCREWS:
-        cut += cyl_z(CLEAR_D, x, y, Z_ONE, DEPTH + 1) + cyl_z(CBORE_D, x, y, Z_ONE + ONE_T + 2.0, DEPTH + 1)
+        cut += cyl_z(CLEAR_D, x, y, Z_ONE, DEPTH + 1) + cyl_z(CBORE_D, x, y, SCREW_SEAT, DEPTH + 1)   # head sunk flush
     cut += box(HDR_ROW_X[0] - 1.6, HDR_ROW_X[1] + 1.6, HDR_PIN1_Y - 15 * 2.54 - 1.6, HDR_PIN1_Y + 1.6, zin - 0.05, zin + 0.8)  # header tails
     for i in range(7):                                                  # speaker grille
         x = s['x0'] + 2.2 + i * (s['x1'] - s['x0'] - 4.4) / 6
@@ -393,7 +415,9 @@ def one_board():
 
 # ---- reference volumes (for checks and renders) --------------------------------------------------------
 def ref_waveshare():
-    return prism(board2d(), Z_GLASS, Z_BACK)
+    m = prism(board2d(), Z_GLASS, Z_BACK)
+    for x, y in standoffs(): m -= cyl_z(WS_HOLE_D, x, y, Z_BACK - 1.6, Z_BACK + 0.1)   # the M2 holes in its PCB
+    return m
 
 def ref_battery():
     b = BAT; return box(b['x0'], b['x1'], b['y0'], b['y1'], b['z0'], b['z0'] + b['t'])
@@ -410,10 +434,16 @@ def ref_switches():
     for x, y in switch_xy().values(): m += box(x - 2.55, x + 2.55, y - 2.55, y + 2.55, Z_ONE - SW_H, Z_ONE)
     return m
 
+def ref_smd():
+    m = M()
+    for x, y in SMD_PARTS.values(): m += box(x - 1.5, x + 1.5, y - 1.5, y + 1.5, Z_ONE - SMD_H, Z_ONE)
+    return m
+
 def ref_header():
     y1 = HDR_PIN1_Y + 1.27; y0 = HDR_PIN1_Y - 15 * 2.54 - 1.27
-    body = box(HDR_ROW_X[0] - 1.27, HDR_ROW_X[1] + 1.27, y0, y1, Z_BACK, Z_ONE)
-    tails = box(HDR_ROW_X[0] - 0.4, HDR_ROW_X[1] + 0.4, y0 + 0.9, y1 - 0.9, Z_ONE + ONE_T, Z_ONE + 6.0)
+    body = box(HDR_ROW_X[0] - 1.27, HDR_ROW_X[1] + 1.27, y0, y1, Z_ONE - HDR_BODY, Z_ONE)
+    body += box(HDR_ROW_X[0] - 0.4, HDR_ROW_X[1] + 0.4, y0 + 0.9, y1 - 0.9, Z_BACK, Z_ONE - HDR_BODY)   # pins, to the socket face
+    tails = box(HDR_ROW_X[0] - 0.4, HDR_ROW_X[1] + 0.4, y0 + 0.9, y1 - 0.9, Z_ONE + ONE_T, Z_ONE + HDR_TAIL)
     return body, tails
 
 def ref_ph_socket(plug=True):
@@ -446,7 +476,7 @@ PARTS = {
 
 REFS = {
     'ref_panel': face_panel, 'ref_glyphs': ref_glyphs, 'ref_waveshare': ref_waveshare, 'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker,
-    'ref_switches': lambda: ref_switches() + psw_box()[0] + psw_box()[1] + ref_ph_socket() + ref_header()[0],
+    'ref_switches': lambda: ref_switches() + psw_box()[0] + psw_box()[1] + ref_ph_socket() + ref_header()[0] + ref_smd(),
 }
 
 def main(names=None):
