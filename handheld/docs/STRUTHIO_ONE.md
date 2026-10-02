@@ -13,7 +13,7 @@ Anything marked **confirm** has not been measured on a real part yet.
 
 | | |
 |---|---|
-| Height | 134.0 mm |
+| Height | 136.0 mm (the bottom edge is gently scooped; 2 mm extra below the controls keeps the face solid under the rocker) |
 | Width | 65.0 mm above y = −30 (straight sides), then a gentle flare to 74.0 mm across the controls |
 | Thickness | 23.0 mm, which is about the minimum the header stack allows (~22 mm) |
 | Top | soft round corners (R 9), no crown |

@@ -29,7 +29,7 @@ for n, m in [('front shell', front), ('back shell', back)] + list(caps.items()):
     check(f'{n}: one watertight solid', m.status().name == 'NoError' and len(parts) == 1, f'{len(parts)} piece(s), {m.volume()/1000:.1f} cm3')
 
 b = o.body2d().bounds()
-check(f'outline: {o.LOWER_W:.0f} x 134, 65 wide above y -30', abs((b[2] - b[0]) - o.LOWER_W) < 0.3 and abs((b[3] - b[1]) - 134.0) < 0.1
+check(f'outline: {o.LOWER_W:.0f} x {o.Y_TOP - o.Y_BOTTOM:.0f}, 65 wide above y -30', abs((b[2] - b[0]) - o.LOWER_W) < 0.3 and abs((b[3] - b[1]) - (o.Y_TOP - o.Y_BOTTOM)) < 0.1
       and all(abs(o.wall_x_at(y, 1) + o.WALL - 32.5) < 0.1 for y in np.arange(-28.0, 50.0, 0.5)),
       f'{b[2]-b[0]:.2f} x {b[3]-b[1]:.2f} mm')
 panel = o.face_panel()
@@ -43,8 +43,8 @@ _p = o.panel2d(); _q = _p.offset(-1.5, _mf.JoinType.Round).offset(1.5, _mf.JoinT
 check('face panel: nothing narrower than 3 mm', _p.area() - _q.area() < 3.0, f'{_p.area() - _q.area():.1f} mm2 narrower')
 _bridge = (o.WING_Y - o.BTN_D / 2 - o.WELL) - (o.ROCKER_Y + o.ROCKER_H / 2 + o.WELL)
 check('face panel: 3.5 mm or more between the button wells and the rocker well', _bridge >= 3.5 - 1e-6, f'{_bridge:.2f} mm')
-_lip = (o.ROCKER_Y - o.ROCKER_H / 2 - o.KEY_CLEAR) - o.body2d().bounds()[1]
-check('shell: 6 mm or more of face below the rocker', _lip >= 6.0, f'{_lip:.2f} mm')
+_lip = (o.ROCKER_Y - o.ROCKER_H / 2 - o.KEY_CLEAR) - max((o.body2d() ^ o.CS.square([0.02, 200]).translate([x - 0.01, -100])).bounds()[1] for x in np.linspace(-o.ROCKER_W / 2, o.ROCKER_W / 2, 23))
+check('shell: 7 mm or more of face below the rocker (at the shallowest point of the curve)', _lip >= 7.0, f'{_lip:.2f} mm')
 
 # ---- what sits in the case -------------------------------------------------------------------------------
 for n, m in [('Waveshare board', ws), ('ONE board', one), ('battery', bat), ('speaker', spk), ('tact switches', sw),

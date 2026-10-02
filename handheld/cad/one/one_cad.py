@@ -30,7 +30,7 @@ Y_TOP = 64.0            # flat top, soft corners
 R_TOP = 9.0
 Y_STRAIGHT = -30.0      # the sides are straight from here up
 LOWER_W = 74.0          # controller section: a gentle flare from the 65 mm upper body
-Y_BOTTOM = -70.0        # lowest point (bottom corners); the bottom edge is gently concave
+Y_BOTTOM = -72.0        # lowest point (bottom corners); the bottom edge is gently concave
 FILLET_WAIST = 6.0      # concave fillet where the straight sides meet the flare
 RF = 2.0                # front edge radius
 RB = 5.0                # back edge radius
@@ -131,7 +131,7 @@ def lower_half():
     h, H = UPPER_W / 2, LOWER_W / 2
     return [(0.0, Y_STRAIGHT + 16), (16.0, Y_STRAIGHT + 16), (h, Y_STRAIGHT + 16), (h, Y_STRAIGHT + 10), (h, Y_STRAIGHT + 5),
             (h, Y_STRAIGHT), (h + 0.5, Y_STRAIGHT - 2.6), (h + 1.6, Y_STRAIGHT - 5.4), (H - 1.6, -39.0), (H - 0.4, -43.0),
-            (H, -48.0), (H, -56.0), (H - 0.5, -64.0), (H - 2.2, -68.6), (H - 7.5, -70.0), (16.0, -70.0), (0.0, -70.0)]
+            (H, -48.0), (H, -56.0), (H - 0.5, -65.5), (H - 2.2, -70.4), (H - 7.5, -72.0), (16.0, -71.0), (0.0, -70.6)]
 
 def body2d():
     half = lower_half()                                   # top centre clockwise to the bottom centre
