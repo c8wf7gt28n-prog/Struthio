@@ -18,6 +18,8 @@ def clash(a, b):
     return vol(a ^ b)
 
 front, back = o.front_shell(), o.back_shell()
+_lc = o.LEAD_CHANNEL; _ch = o.box(_lc['x0'], _lc['x1'], _lc['y0'], _lc['y1'], _lc['z0'], _lc['z1'])
+
 caps = {'left wing': o.wing_cap(-1), 'right wing': o.wing_cap(1), 'rocker': o.rocker_cap()}
 shells = front + back
 ws, one, bat, spk = o.ref_waveshare(), o.one_board(), o.ref_battery(), o.ref_speaker()
@@ -56,7 +58,15 @@ check('small parts on the ONE board (power-on pulse, reverse-battery FET) clear 
 check('battery socket and plug clear the Waveshare board and keys', clash(ph, ws + sw) < 0.01)
 check('battery clears the ONE board and speaker', clash(bat, one + spk) < 0.01)
 check('speaker clears the ONE board', clash(spk, one) < 0.01)
+_b = o.SPK_BAY; _zin = o.DEPTH - o.BACK_WALL
+_bay = o.box(_b['x0'], _b['x1'], _b['y0'], _b['y1'], _zin - _b['t'], _zin)
+check(f"speaker bay {_b['x1'] - _b['x0']:.0f} x {_b['y1'] - _b['y0']:.0f} x {_b['t']} mm is free (battery, ONE board, lead channel, posts)",
+      clash(_bay, bat + one + ws + hbody + o.ref_smd() + shells) < 0.01 and clash(_bay, _ch) < 0.01)
 check('nothing else on the ONE strip: header only', clash(hbody, bat + spk) < 0.01)
+_kb = pknob.bounding_box()
+_sweep = o.box(_kb[0], _kb[3], _kb[1], _kb[4], o.Z_SPLIT - 0.5, _kb[5])        # the knob as the back shell closes down over it
+check('back shell closes over the power knob (slot open at the split line)', clash(_sweep, back) < 0.01)
+check('battery lead has a clear channel from the cell to J2 (2 mm, beside the speaker)', clash(_ch, shells + spk + one + sw + o.ref_smd() + hbody) < 0.01)
 check('power knob passes through the wall slot', clash(pknob, shells) < 0.5 and pknob.bounding_box()[0] < -o.wall_x_at(o.PSW_Y, -1) * -1 - o.WALL,
       f'knob tip x {pknob.bounding_box()[0]:.2f}, outer wall {o.wall_x_at(o.PSW_Y, -1) - o.WALL:.2f}')
 
@@ -72,6 +82,10 @@ for n, c in caps.items():
     tip = c.bounding_box()[5]
     check(f'{n} cap: stem stops {o.PRETRAVEL} mm above its switch', abs((o.Z_ONE - o.SW_H) - tip - o.PRETRAVEL) < 0.01, f'tip z {tip:.2f}')
     check(f'{n} cap: captured (flange wider than the opening)', clash(c ^ o.box(-60, 60, -80, 70, o.COLLAR_Z, o.COLLAR_Z + 1.5), front) < 0.01)
+for side, n in ((-1, 'left wing'), (1, 'right wing')):
+    c = caps[n]; cx = side * o.WING_X
+    turned = c.translate([-cx, -o.WING_Y, 0]).rotate([0, 0, 8]).translate([cx, o.WING_Y, 0])
+    check(f'{n} cap: keyed, cannot turn (engraved wing stays upright)', clash(turned, front) > 0.3, f'{clash(turned, front):.2f} mm3 if turned 8 deg')
 # rocker: one end pressed must not press the other
 th = (o.PRETRAVEL + 0.25) / o.DART_X
 check('rocker: pressing one end lifts the other', th * o.DART_X > o.PRETRAVEL, f'{np.degrees(th):.2f} deg to fire one end')

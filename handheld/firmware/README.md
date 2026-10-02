@@ -61,6 +61,12 @@ on recorded play.
 
 ## Hard power
 
+On the STRUTHIO ONE the slide switch cuts the battery, and the ONE board holds the
+Waveshare's PWR key (header pin 24) for ~3-8 s each time the switch turns on: on
+battery alone the AXP2101 waits for that key before it connects the cell (datasheet
+6.5.2). The firmware turns off "long press PWR = power off" at every boot, so that hold
+never switches the handheld off again.
+
 The slide switch cuts BAT+, so power can vanish at any moment. NVS is built to
 survive that. The firmware writes the high score, the DART mode and the volume
 only when they change, never periodically, and reads back every flash write

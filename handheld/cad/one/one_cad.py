@@ -75,6 +75,7 @@ PLATE_TOP = -33.5                      # plate below the Waveshare board (bottom
 
 # ---- controls (visible geometry frozen from the handheld design) -----------------------------------
 WING_X, WING_Y, BTN_D = 18.0, -41.7, 14.0  # flap up-left / up-right, both = straight up: round caps, a wing engraved in each
+KEY_OUT, KEY_W = 0.75, 1.6                # anti-turn key on each wing cap (in a slot in its collar)
 GLYPH_DEPTH = 0.5                      # engraved wing on the cap top (paint-fill it, or leave it as a shadow)
 ROCKER_W, ROCKER_H, ROCKER_R, ROCKER_Y = 44.0, 7.2, 3.0, -59.0
 DART_X = 16.0                          # rocker-end switches (under the cap ends)
@@ -98,8 +99,15 @@ PH_SOCK = (2.0, -38.0)
 # hold the Waveshare's PWR key (header pin 24) down for a few seconds whenever the slide switch turns on,
 # because on battery alone its AXP2101 waits for that key before it connects the battery (datasheet 6.5.2)
 SMD_PARTS = {'Q1': (-7.0, -38.0), 'C1': (22.2, -10.0), 'R1': (22.1, -12.0), 'D1': (22.2, -14.0), 'Q2': (22.6, -17.0)}
-SMD_H = 1.3                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
-SPK = dict(x0=-21.0, x1=-1.0, y0=-31.0, y1=-1.0, t=5.6)                    # boxed speaker, ~30 x 20 (confirm)
+SMD_H = 1.3
+# the battery lead: out of the cell's bottom end, down the Waveshare's back between the speaker and the ONE strip,
+# to the plug in J2 (entry facing +x, so the lead leaves the plug toward the right and turns up)
+LEAD_CHANNEL = dict(x0=2.0, x1=15.5, y0=-33.0, y1=BAT['y0'], z0=Z_BACK + 0.1, z1=Z_BACK + 2.2)                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
+# The speaker that comes with the Waveshare: its size is not published. The back shell gives it the whole free
+# space (bounded by the battery, the battery lead's channel, the ONE plate and a peg post) as a shallow bay,
+# and double-sided tape holds whatever box arrives. SPK is a typical 30 x 20 x 5.6 box drawn in the bay.
+SPK_BAY = dict(x0=-21.0, x1=1.0, y0=-31.8, y1=5.6, t=7.5)
+SPK = dict(x0=-20.0, x1=0.0, y0=-28.1, y1=1.9, t=5.6)
 # ---- screws ---------------------------------------------------------------------------------------------
 LOWER_SCREWS = [(-29.5, -62.5), (29.5, -62.5)]
 PLATE_POSTS = [(-29.0, -36.5), (29.0, -36.5)]
@@ -299,7 +307,15 @@ def key_collars():
     opening = keys2d(KEY_CLEAR)
     ring = opening.offset(COLLAR_T, mf.JoinType.Round) - opening
     c = prism(ring, FRONT_SKIN - 0.01, COLLAR_Z)
+    for side in (-1, 1):                                                # key slots: the round wing caps cannot turn
+        c -= key_box(side, 0.3, 0.2, FRONT_SKIN + 0.01, COLLAR_Z + 0.1)
     return c
+
+def key_box(side, dr, dw, z0, z1):
+    """the wing cap's anti-turn key (dr, dw = clearance round it), on the outer side of the cap"""
+    r = BTN_D / 2; cx = side * WING_X
+    x0, x1 = (cx + side * (r - 0.6), cx + side * (r + KEY_OUT + dr))
+    return box(min(x0, x1), max(x0, x1), WING_Y - KEY_W / 2 - dw, WING_Y + KEY_W / 2 + dw, z0, z1)
 
 def rocker_axle_hole():
     y0 = ROCKER_Y - ROCKER_H / 2 - KEY_CLEAR - COLLAR_T + 0.8          # blind in the bottom collar wall
@@ -333,7 +349,7 @@ def shared_cuts():
         c += box(-UPPER_W / 2 - 2, -BW / 2 + 0.1, y - 0.8, y + 0.8, Z_GLASS + 8.5, Z_GLASS + 11.5)
     zc = Z_ONE - PSW_H / 2                                                                            # power slider
     c += box(-LOWER_W / 2 - 3, -LOWER_W / 2 + 6, PSW_Y - PSW_KNOB / 2 - PSW_TRAVEL / 2 - 0.4,
-             PSW_Y + PSW_KNOB / 2 + PSW_TRAVEL / 2 + 0.4, zc - PSW_KNOB / 2 - 0.3, zc + PSW_KNOB / 2 + 0.3)
+             PSW_Y + PSW_KNOB / 2 + PSW_TRAVEL / 2 + 0.4, min(zc - PSW_KNOB / 2 - 0.3, Z_SPLIT - 0.5), zc + PSW_KNOB / 2 + 0.3)   # open at the split: the back shell closes over the knob
     return c
 
 def wall_x_at(y, side=-1):
@@ -368,10 +384,10 @@ def back_shell():
         for y in (BAT['y0'] - 1.4, BAT['y1'] + 0.2):
             add += box(x, x + 1.2, y, y + 1.2, bz - 2.0, zin + 0.01)
     # speaker cradle: a frame round the box, the box sits against the back wall
-    s = SPK; sz0 = zin - s['t']
-    frame = prism(rrect(s['x1'] - s['x0'] + 3.4, s['y1'] - s['y0'] + 3.4, 1.5, (s['x0'] + s['x1']) / 2, (s['y0'] + s['y1']) / 2)
-                  - rrect(s['x1'] - s['x0'] + 1.0, s['y1'] - s['y0'] + 1.0, 0.8, (s['x0'] + s['x1']) / 2, (s['y0'] + s['y1']) / 2),
-                  sz0 + 1.5, zin + 0.01)
+    s = SPK_BAY
+    frame = prism(rrect(s['x1'] - s['x0'] + 2.4, s['y1'] - s['y0'] + 2.4, 1.5, (s['x0'] + s['x1']) / 2, (s['y0'] + s['y1']) / 2)
+                  - rrect(s['x1'] - s['x0'] + 0.4, s['y1'] - s['y0'] + 0.4, 0.3, (s['x0'] + s['x1']) / 2, (s['y0'] + s['y1']) / 2),
+                  zin - 2.0, zin + 0.01)                                # a 2 mm lip round the speaker bay
     add += frame
     for sx in (-1, 1):                                                  # top hooks
         add += box(sx * HOOK_X - HOOK_W / 2, sx * HOOK_X + HOOK_W / 2, Y_TOP - BACK_WALL - 1.2, Y_TOP - BACK_WALL + 0.05, 8.8, Z_SPLIT + 1.0)
@@ -390,6 +406,7 @@ def wing_cap(side):
     w = wing2d(side)
     cap = prism(w, -WING_PROUD, COLLAR_Z) + prism(wing2d(side, FLANGE), COLLAR_Z, COLLAR_Z + 1.0)
     cap -= prism(glyph2d(side), -WING_PROUD - 0.1, -WING_PROUD + GLYPH_DEPTH)
+    cap += key_box(side, 0.0, 0.0, FRONT_SKIN + 0.3, COLLAR_Z - 0.2)
     tip = Z_ONE - SW_H - PRETRAVEL
     cap += cyl_z(4.0, side * WING_X, WING_Y, COLLAR_Z + 0.5, tip)
     return cap
