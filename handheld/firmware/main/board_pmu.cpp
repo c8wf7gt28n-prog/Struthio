@@ -79,7 +79,7 @@ extern "C" bool board_pmu_init(i2c_master_bus_handle_t bus) {
     s_pmu.enableCPUSLDO();
     s_pmu.enableDLDO1();
     s_pmu.enableDLDO2();
-    // power key. On the STRUTHIO ONE the slide switch is the on/off: when it turns on, the ONE board holds
+    // power key (until board_pmu_model says which handheld). On the STRUTHIO ONE the slide switch is the on/off: when it turns on, the ONE board holds
     // PWR (header pin 24) low for ~3-8 s, because on battery alone the AXP2101 waits for that key before it
     // connects the battery (datasheet 6.5.2). So a long press must never mean "power off": that is switched
     // off here, at every boot (the slide switch's hard cut resets the PMU's registers each time).
@@ -87,8 +87,7 @@ extern "C" bool board_pmu_init(i2c_master_bus_handle_t bus) {
     s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_10S);
     s_pmu.setPowerKeyPressOnTime(XPOWERS_POWERON_128MS);
     // measurement and charger: 4.1 V target (vendor value, gentle on the cell). The constant current starts at
-    // 100 mA, safe for the ONE Slim's 250 mAh cell (0.4 C); main.c raises it to 200 mA when the service screen
-    // says a larger cell is fitted (board_pmu_charge_ma).
+    // 100 mA, safe for the ONE SLIM's 250 mAh cell (0.4 C); board_pmu_model sets 200 mA on the ONE.
     s_pmu.disableTSPinMeasure();
     s_pmu.enableBattDetection();
     s_pmu.enableVbusVoltageMeasure();
@@ -120,6 +119,17 @@ extern "C" void board_pmu_power_off(void) {
     if (s_ok) s_pmu.shutdown();
 }
 
-extern "C" void board_pmu_charge_ma(int ma) {
-    if (s_ok) s_pmu.setChargerConstantCurr(ma >= 200 ? XPOWERS_AXP2101_CHG_CUR_200MA : XPOWERS_AXP2101_CHG_CUR_100MA);
+extern "C" void board_pmu_model(bool slide_switch) {
+    if (!s_ok) return;
+    if (slide_switch) {                              // ONE: see the power key note in board_pmu_init
+        s_pmu.disableLongPressShutdown();
+        s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_10S);
+        s_pmu.setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_200MA);   // THOR-503450, 1000 mAh: 0.2 C
+    } else {                                         // ONE SLIM: the PWR key is the power button
+        s_pmu.setPowerKeyPressOnTime(XPOWERS_POWERON_512MS);         // kept while the cell stays connected
+        s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_4S);
+        s_pmu.setLongPressPowerOFF();
+        s_pmu.enableLongPressShutdown();
+        s_pmu.setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_100MA);   // 302535, 250 mAh: 0.4 C
+    }
 }

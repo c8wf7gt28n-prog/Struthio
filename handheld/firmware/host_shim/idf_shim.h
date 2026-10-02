@@ -59,6 +59,9 @@ typedef enum { GPIO_INTR_DISABLE = 0 } gpio_int_type_t;
 typedef struct { uint64_t pin_bit_mask; gpio_mode_t mode; gpio_pullup_t pull_up_en; gpio_pulldown_t pull_down_en; gpio_int_type_t intr_type; } gpio_config_t;
 esp_err_t gpio_config(const gpio_config_t *cfg);
 int gpio_get_level(gpio_num_t pin);
+typedef enum { GPIO_PULLUP_ONLY, GPIO_PULLDOWN_ONLY, GPIO_PULLUP_PULLDOWN, GPIO_FLOATING } gpio_pull_mode_t;
+esp_err_t gpio_set_pull_mode(gpio_num_t pin, gpio_pull_mode_t pull);
+void esp_rom_delay_us(uint32_t us);
 // heap caps
 #define MALLOC_CAP_DMA (1 << 3)
 #define MALLOC_CAP_8BIT (1 << 2)

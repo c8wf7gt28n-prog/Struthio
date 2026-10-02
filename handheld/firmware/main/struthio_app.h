@@ -36,15 +36,18 @@ int app_volume(void);
 bool app_flip(void);
 void app_set_flip(bool flip);
 void app_set_volume(int level);              // saved in NVS
-// Backlight level (saved) and the fitted cell (saved; sets the charge current: 0 = 250 mAh, 100 mA;
-// 1 = 500 mAh or larger, 200 mA). The service screen's rocker taps change them.
+// Backlight level (saved; the service screen's rocker LEFT tap changes it). The model comes from the strap on
+// header pin 9 (board_pins.h): the ONE (slide switch, 1000 mAh) or the ONE SLIM (power button, 250 mAh).
 enum { APP_BRIGHT_LEVELS = 4 };
 int app_brightness(void);
 int app_brightness_percent(void);
 void app_set_brightness(int level);
-int app_cell(void);
-void app_set_cell(int large);
+bool app_is_one(void);
 void app_backlight_on(void);                 // light the panel once a picture is on it
+
+// First power-on (NVS "tested" unset): the guided check of every button, the battery, the speaker and the
+// picture's way up. Returns when the builder presses both wings to play; saves "tested".
+void selftest_run(st_buttons_t *buttons, st_norm_t *norm);
 
 // Hidden service mode (both wings at power-on). Never returns: power-cycle to play.
 void service_mode_run(st_buttons_t *buttons, st_norm_t *norm);

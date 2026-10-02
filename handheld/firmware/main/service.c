@@ -12,8 +12,8 @@
 // LEFT tap: next DART trial (saved).  LEFT held 1 s: next volume level (saved;
 // plays the ring chime).  RIGHT tap: run the replay + benchmark again (the
 // round-clear sting plays when it finishes). RIGHT held 1 s: screen turned 180.
-// DART rocker LEFT tap: next backlight level.  DART rocker RIGHT tap: the fitted
-// cell (250 mAh / 500 mAh or larger: charge current 100 / 200 mA). Both saved.
+// DART rocker LEFT tap: next backlight level (saved). DART rocker RIGHT tap: run
+// the first-power self-test again at the next power-on.
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -121,7 +121,7 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
             bool rk = st_buttons_rocker_held(b, side == 0 ? ST_SIDE_LEFT : ST_SIDE_RIGHT);
             if (!rk && was_rocker[side]) {                   // rocker taps: brightness, cell
                 if (side == 0) app_set_brightness(app_brightness() + 1);
-                else app_set_cell(!app_cell());
+                else { app_save_i32("tested", 0); ESP_LOGI(TAG, "self-test at the next power-on"); }
                 app_audio_test(ST_EV_FLAP);
             }
             was_rocker[side] = rk;
@@ -154,15 +154,15 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
                          pw.charging ? "  CHARGING" : "", pw.vbus_present ? "  USB" : "");
             else snprintf(t, sizeof t, "BATT NONE%s", board_power_read(&pw) && pw.vbus_present ? "  USB" : "");
             st_draw_text(fb, 8, 156, t, STR_PAL_IVORY, 1);
-            snprintf(t, sizeof t, "LIGHT %d/100  CELL %s %d MA", app_brightness_percent(),
-                     app_cell() ? "500+ MAH" : "250 MAH", app_cell() ? 200 : 100);
+            snprintf(t, sizeof t, "LIGHT %d/100  %s  CHARGE %d MA", app_brightness_percent(),
+                     app_is_one() ? "ONE" : "ONE SLIM", app_is_one() ? 200 : 100);
             st_draw_text(fb, 8, 168, t, STR_PAL_IVORY, 1);
             st_draw_text(fb, 8, 180, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 192, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 204, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 216, "RIGHT HOLD 1 S: TURN SCREEN 180", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 228, "DART LEFT TAP: BRIGHTNESS", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 240, "DART RIGHT TAP: CELL SIZE", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 240, "DART RIGHT TAP: SELF-TEST NEXT TIME", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 252, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
             app_present(fb);
         }

@@ -25,5 +25,9 @@
 #define STRUTHIO_GPIO_DART_LEFT   21
 #define STRUTHIO_GPIO_DART_RIGHT  38
 
+// Which handheld (read once at boot, internal pull-up): the ONE board (rev D) ties header pin 9 (GPIO39) to
+// GND; the ONE SLIM board leaves it open. Open = SLIM = the safe charge current for the small cell.
+#define STRUTHIO_GPIO_MODEL_STRAP 39
+
 // Inputs are active-low: a normally-open switch connects the GPIO to GND when pressed.
 #define STRUTHIO_BUTTON_ACTIVE_LEVEL 0

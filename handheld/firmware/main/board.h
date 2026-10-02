@@ -34,8 +34,12 @@ void board_display_flip(bool flip);
 typedef struct { bool battery_present, charging, vbus_present; uint16_t battery_mv; int battery_percent; } board_power_t;
 bool board_power_read(board_power_t *out);
 void board_power_off(void);
-// Charger constant current for the fitted cell: 100 (cells up to ~400 mAh) or 200 mA.
-void board_power_charge_ma(int ma);
+// Which handheld this board sits in, set once at boot:
+//   ONE (23 mm): slide switch + power-on pulse on PWR (header pin 24) -> a long press must never mean "off";
+//                1000 mAh cell -> 200 mA charge.
+//   ONE SLIM (16.5 mm): no switch; the Waveshare's own PWR key is the power button -> press 0.5 s: on,
+//                hold 4 s: off; 250 mAh cell -> 100 mA charge.
+void board_power_model(bool slide_switch);
 // ES8311 codec + NS4150B amplifier, mono speaker: 48 kHz, 16-bit, one channel.
 bool board_audio_init(void);
 // Queues n samples for the I2S DMA; blocks while the DMA buffers are full

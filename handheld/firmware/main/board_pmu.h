@@ -11,7 +11,7 @@ extern "C" {
 bool board_pmu_init(i2c_master_bus_handle_t bus);   // rails, charger, power key (vendor values)
 bool board_pmu_read(board_power_t *out);
 void board_pmu_power_off(void);
-void board_pmu_charge_ma(int ma);
+void board_pmu_model(bool slide_switch);
 #ifdef __cplusplus
 }
 #endif

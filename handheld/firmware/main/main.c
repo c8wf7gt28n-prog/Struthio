@@ -38,6 +38,7 @@
 #include "esp_log.h"
 #include "esp_partition.h"
 #include "esp_random.h"
+#include "esp_rom_sys.h"
 #include "esp_task_wdt.h"
 #include "esp_timer.h"
 #include "nvs.h"
@@ -301,12 +302,14 @@ void app_set_volume(int level) {
 bool app_audio_ok(void) { return g_audio_ok; }
 bool app_music_ok(void) { return g_music_ok; }
 
-// ---- power: brightness, cell size, idle dimming, auto-off, low battery ----------------------------
+// ---- power: model, brightness, idle dimming, auto-off, low battery ----------------------------------
 // The backlight is the biggest load the firmware controls (docs/STRUTHIO_ONE_SLIM.md, run time), so it
 // starts at 70 %, drops to a glow after 30 s with no button, and the toy switches itself off after 5 min
-// with no button or below 3.30 V (never on USB). Slide the switch off and on again to wake it.
+// with no button or below 3.30 V (never on USB). Wake it: SLIM, press the power button; ONE, slide the
+// switch off and on.
 static const uint8_t BRIGHT_PERCENT[APP_BRIGHT_LEVELS] = {30, 50, 70, 100};
-static int g_bright = 2, g_cell = 0;
+static int g_bright = 2;
+static bool g_one;                          // true: the 23 mm ONE (slide switch, 1000 mAh); false: ONE SLIM
 static volatile uint32_t g_last_input_ms;
 static volatile bool g_backlight_on;
 enum { IDLE_DIM_MS = 30000, IDLE_OFF_MS = 5 * 60 * 1000, LOW_BATT_MV = 3300, LOW_BATT_SECONDS = 5, DIM_PERCENT = 8 };
@@ -318,12 +321,16 @@ void app_set_brightness(int level) {
     ESP_LOGI(TAG, "brightness %d %%", BRIGHT_PERCENT[g_bright]);
 }
 int app_brightness_percent(void) { return BRIGHT_PERCENT[g_bright]; }
-int app_cell(void) { return g_cell; }
-void app_set_cell(int large) {
-    g_cell = large ? 1 : 0;
-    board_power_charge_ma(g_cell ? 200 : 100);
-    app_save_i32("cell", g_cell);
-    ESP_LOGI(TAG, "cell %s: charge %d mA", g_cell ? "500 mAh or larger" : "250 mAh", g_cell ? 200 : 100);
+bool app_is_one(void) { return g_one; }
+static bool read_model_strap(void) {
+    gpio_config_t cfg = { .pin_bit_mask = 1ULL << STRUTHIO_GPIO_MODEL_STRAP, .mode = GPIO_MODE_INPUT,
+                          .pull_up_en = GPIO_PULLUP_ENABLE, .pull_down_en = GPIO_PULLDOWN_DISABLE, .intr_type = GPIO_INTR_DISABLE };
+    gpio_config(&cfg);
+    esp_rom_delay_us(50);
+    int low = 0;
+    for (int i = 0; i < 8; i++) { low += gpio_get_level((gpio_num_t)STRUTHIO_GPIO_MODEL_STRAP) == 0; esp_rom_delay_us(20); }
+    gpio_set_pull_mode((gpio_num_t)STRUTHIO_GPIO_MODEL_STRAP, GPIO_FLOATING);   // a tied pin then draws nothing
+    return low == 8;                         // all 8 reads low: the ONE's strap; anything else: SLIM (safe)
 }
 // the first picture is on the panel: light it (not before, so the panel's power-up noise never shows)
 void app_backlight_on(void) {
@@ -568,7 +575,7 @@ void app_main(void) {
     st_buttons_init(&g_buttons, &g_norm, trial, app_now_ms());
     g_bright = (int)app_load_i32("bright", 2);
     if (g_bright < 0 || g_bright >= APP_BRIGHT_LEVELS) g_bright = 2;
-    g_cell = app_load_i32("cell", 0) ? 1 : 0;
+    g_one = read_model_strap();
     g_last_input_ms = app_now_ms();
 
     g_fb = heap_caps_malloc(ST_FB_W * ST_FB_H, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
@@ -577,7 +584,8 @@ void app_main(void) {
     configASSERT(g_fb && g_band);
 
     board_power_init();
-    board_power_charge_ma(g_cell ? 200 : 100);
+    board_power_model(g_one);
+    ESP_LOGI(TAG, "model: %s", g_one ? "ONE (slide switch, 1000 mAh, 200 mA)" : "ONE SLIM (power button, 250 mAh, 100 mA)");
     g_display_ok = board_display_init();
     if (g_display_ok && app_flip()) board_display_flip(true);
 
@@ -592,6 +600,7 @@ void app_main(void) {
         }
         vTaskDelay(1);
     }
+    if (!app_load_i32("tested", 0)) selftest_run(&g_buttons, &g_norm);   // first power-on: the guided check
     st_norm_init(&g_norm);                    // discard boot-guard presses
     st_buttons_init(&g_buttons, &g_norm, trial, app_now_ms());
     app_audio_start();

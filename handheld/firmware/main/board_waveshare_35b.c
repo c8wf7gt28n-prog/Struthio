@@ -115,7 +115,7 @@ bool board_power_init(void) {
 }
 bool board_power_read(board_power_t *out) { return board_pmu_read(out); }
 void board_power_off(void) { board_pmu_power_off(); }
-void board_power_charge_ma(int ma) { board_pmu_charge_ma(ma); }
+void board_power_model(bool slide_switch) { board_pmu_model(slide_switch); }
 
 // ---- display ---------------------------------------------------------------------------------
 static bool IRAM_ATTR on_trans_done(esp_lcd_panel_io_handle_t io, esp_lcd_panel_io_event_data_t *ev, void *ctx) {
