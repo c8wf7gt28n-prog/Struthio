@@ -40,10 +40,10 @@ def parse(lines):
             rows = []
             while i < n and lines[i].startswith('|'):
                 cells = [c.strip() for c in lines[i].strip().strip('|').split('|')]
-                if not all(re.fullmatch(r':?-{3,}:?', c) for c in cells if c): rows.append(cells)
+                if not (any(cells) and all(re.fullmatch(r':?-{3,}:?', c) for c in cells if c)): rows.append(cells)
                 i += 1
             head, body = rows[0], rows[1:]
-            t = '<table><thead><tr>' + ''.join(f'<th>{inline(c)}</th>' for c in head) + '</tr></thead><tbody>'
+            t = '<table>' + ('<thead><tr>' + ''.join(f'<th>{inline(c)}</th>' for c in head) + '</tr></thead>' if any(head) else '') + '<tbody>'
             t += ''.join('<tr>' + ''.join(f'<td>{inline(c)}</td>' for c in r) + '</tr>' for r in body)
             out.append(t + '</tbody></table>'); continue
         m = LIST.match(ln)

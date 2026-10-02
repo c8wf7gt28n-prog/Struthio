@@ -108,7 +108,8 @@ window cut out, stuck on the panel's back.
 
 ## Before assembly: flash and test the Waveshare on its own
 
-Flash the STRUTHIO firmware over USB-C with the Waveshare on the bench (see the software part of the manual).
+Flash the STRUTHIO firmware over USB-C with the Waveshare on the bench: follow the **Flashing Guide**
+(`STRUTHIO_ONE_FLASHING.md`, also a PDF in the documents and firmware packages).
 The game must come up on the screen before you build it in. The firmware also sets the power chip up for the
 ONE's slide switch, so flash it **before** you power the board from the battery.
 
