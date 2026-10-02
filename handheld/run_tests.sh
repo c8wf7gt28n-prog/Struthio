@@ -94,4 +94,12 @@ else
   echo "SKIP: real-header check (needs pip esp-idf-kconfig, apt libnewlib-dev and git access to github.com)"
 fi
 
+step "cad: A1.5 fit checks (STRUTHIO15.scad exports) and the STRUTHIO-CP1 design-rule check"
+if python3 -c "import trimesh, shapely" 2>/dev/null; then
+  (cd cad/a15 && python3 check_a15.py | tail -1)
+  (cd cad/a15 && python3 cp1/make_cp1.py | tail -1)
+else
+  echo "SKIP: CAD checks (needs pip trimesh shapely)"
+fi
+
 printf '\nALL HANDHELD CHECKS PASS\n'
