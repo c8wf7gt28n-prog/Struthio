@@ -30,7 +30,7 @@ for n, m in [('front shell', front), ('back shell', back)] + list(caps.items()):
 
 b = o.body2d().bounds()
 check('outline: 88 x 134, 65 wide above y -30', abs((b[2] - b[0]) - 88.0) < 0.3 and abs((b[3] - b[1]) - 134.0) < 0.1
-      and all(abs(o.wall_x_at(y, 1) + o.WALL - 32.5) < 0.1 for y in (-28, -10, 20, 50)),
+      and all(abs(o.wall_x_at(y, 1) + o.WALL - 32.5) < 0.1 for y in np.arange(-28.0, 50.0, 0.5)),
       f'{b[2]-b[0]:.2f} x {b[3]-b[1]:.2f} mm')
 check('thickness 23.0 mm', abs(back.bounding_box()[5] - o.DEPTH) < 0.01 and abs(front.bounding_box()[2]) < 0.01)
 

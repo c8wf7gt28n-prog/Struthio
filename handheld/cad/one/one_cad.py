@@ -129,7 +129,8 @@ def lower_half():
 def body2d():
     half = lower_half()                                   # top centre clockwise to the bottom centre
     ring = half + [(-x, y) for x, y in reversed(half[1:-1])]
-    lower = poly(cr(ring))
+    lower = poly(cr(ring)) ^ CS.square([200, 100]).translate([-100, Y_STRAIGHT + 9 - 100])     # flare only: the spline
+    lower = lower + rrect(UPPER_W, 12.0, 0.0, 0, Y_STRAIGHT + 4)        # overshoots at its top corner, the sides are drawn straight
     upper = rrect(UPPER_W, Y_TOP - (Y_STRAIGHT - 6), R_TOP, 0, (Y_TOP + Y_STRAIGHT - 6) / 2)
     b = upper + lower
     b = b.offset(FILLET_WAIST, mf.JoinType.Round).offset(-FILLET_WAIST, mf.JoinType.Round)   # waist fillet
