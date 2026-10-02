@@ -76,13 +76,67 @@ win_top = o.BCY + WIN_H / 2; win_bot = o.BCY - WIN_H / 2
 frame_out = FRAME[-1][0]
 panel_top = outer[:, 1].max(); half_w = o.UPPER_W / 2 - o.PANEL_INSET
 
-# controller: the game's skyline and grid, horizon just above the wings, fading in from the black
+# controller background, behind the buttons (BG below; PANEL_BG=grid|rain|islands|stripes overrides it)
+BG = os.environ.get('PANEL_BG', 'grid')
+rng = np.random.default_rng(7)                                   # fixed seed: the same art every run
 BG_W = 88.0
-s = BG_W / rear.width                            # mm per px: the background is drawn 88 mm wide
-HORIZON_PX, HORIZON_Y = 1690, -40.0
-top_y = HORIZON_Y + HORIZON_PX * s
-sc = rear.resize((round(L(BG_W)), round(L(rear.height * s))), Image.LANCZOS)
-lay = Image.new('RGB', (W, H), INK_BLACK); lay.paste(sc, tuple(round(v) for v in px(-BG_W / 2, top_y)))
+s = BG_W / rear.width                                            # mm per px: the game background drawn 88 mm wide
+
+def stars_layer():
+    """the game's star field (the sky part of background-rear), no skyline"""
+    sky = rear.crop((0, 200, rear.width, 1300))
+    sc = sky.resize((round(L(BG_W)), round(L(sky.height * s))), Image.LANCZOS)
+    lay = Image.new('RGB', (W, H), INK_BLACK)
+    for top in (-28.0, -28.0 - sky.height * s):
+        lay.paste(sc, tuple(round(v) for v in px(-BG_W / 2, top)))
+    return lay
+
+def bg_grid():
+    HORIZON_PX, HORIZON_Y = 1690, -40.0
+    sc = rear.resize((round(L(BG_W)), round(L(rear.height * s))), Image.LANCZOS)
+    lay = Image.new('RGB', (W, H), INK_BLACK); lay.paste(sc, tuple(round(v) for v in px(-BG_W / 2, HORIZON_Y + HORIZON_PX * s)))
+    return lay
+
+def bg_rain():
+    """black with rising pixel streaks in the buttons' blue and orange (the BOTH badge's style)"""
+    lay = Image.new('RGB', (W, H), INK_BLACK); dl = ImageDraw.Draw(lay)
+    q = 0.38                                                     # one pixel, mm
+    cols = [(36, 104, 214)] * 5 + [(90, 170, 255)] * 3 + [(246, 150, 32)] * 2
+    for _ in range(120):
+        x = round(rng.uniform(-37, 37) / q) * q
+        y_top = rng.uniform(-70, -30); n = int(rng.integers(3, 16)); c = cols[int(rng.integers(len(cols)))]
+        for k in range(n):
+            if rng.random() < 0.28: continue                     # broken, dashed streaks
+            y = y_top - k * q * 1.6; fade = 1 - k / (n + 1)
+            col = tuple(int(v * (0.35 + 0.65 * fade)) for v in c)
+            dl.rectangle([*px(x, y), *px(x + q * 0.8, y - q)], fill=col)
+    return lay
+
+def bg_islands():
+    """the star field with the game's own floating islands drifting round the buttons"""
+    lay = stars_layer()
+    sheet = Image.open(os.path.join(ART, 'islands.webp')).convert('RGBA')
+    def put(box, cx, cy, w):
+        im = sheet.crop(box); h = w * im.height / im.width
+        im = im.resize((round(L(w)), round(L(h))), Image.LANCZOS)
+        x, y = px(cx - w / 2, cy + h / 2); lay.paste(im, (round(x), round(y)), im)
+    put((0, 240, 705, 480), 0, -64.5, 70.0)                     # the long island along the bottom edge
+    put((1200, 0, 1440, 240), -31.0, -37.0, 9.0)
+    put((1060, 290, 1220, 400), 30.5, -36.5, 8.0)
+    put((1550, 290, 1700, 400), -31.5, -54.0, 6.5)
+    put((1400, 290, 1530, 400), 31.5, -54.5, 6.0)
+    return lay
+
+def bg_stripes():
+    """stars, with the box art's stripes along the bottom: the third stripe band of the face"""
+    lay = stars_layer()
+    st = hero.crop((22, 140, 112, 296)).resize((round(L(BG_W)), round(L(5.4))), Image.LANCZOS)
+    lay.paste(st, tuple(round(v) for v in px(-BG_W / 2, -60.6)))
+    dl = ImageDraw.Draw(lay)
+    dl.rectangle([*px(-BG_W / 2, -66.0), *px(BG_W / 2, -80)], fill=INK_BLACK)
+    return lay
+
+lay = {'grid': bg_grid, 'rain': bg_rain, 'islands': bg_islands, 'stripes': bg_stripes}[BG]()
 ramp = Image.new('L', (1, H))
 for j in range(H):
     y = Y1 - j / PX
@@ -173,6 +227,8 @@ for h in holes: cut.paste(0, (0, 0), mask_poly(h))
 cut.paste(0, (0, 0), window)
 
 def save(img, name):
+    if os.environ.get('PANEL_PREVIEW'): return                  # preview runs never touch the deliverables
+    if os.environ.get('PANEL_PREVIEW'): return                  # preview runs never touch the deliverables
     img.save(os.path.join(HERE, name), dpi=(DPI, DPI), optimize=True); print('wrote', name, img.size)
 
 pr = art.convert('RGBA'); pr.putalpha(ink)
@@ -185,6 +241,8 @@ proof = Image.new('RGB', (W, H), (205, 208, 212)); proof.paste(art, (0, 0), cut)
 dp = ImageDraw.Draw(proof)
 for r in [outer] + holes: dp.line([px(x, y) for x, y in np.vstack([r, r[:1]])], fill=(236, 0, 140), width=5)
 dp.rounded_rectangle(rrect_box(0, o.BCY, WIN_W, WIN_H), radius=L(WIN_R), outline=(0, 170, 255), width=5)
+if os.environ.get('PANEL_PREVIEW'):
+    proof.crop((0, int(H * 0.62), W, H)).resize((W // 3, (H - int(H * 0.62)) // 3), Image.LANCZOS).save(os.environ['PANEL_PREVIEW']); sys.exit(0)
 proof.resize((W // 3, H // 3), Image.LANCZOS).save(os.path.join(HERE, 'one_panel_proof.png'), optimize=True)
 print('wrote one_panel_proof.png')
 

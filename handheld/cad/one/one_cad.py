@@ -69,7 +69,7 @@ STRIP_TOP = HDR_PIN1_Y + 3.6           # 36.4
 PLATE_TOP = -33.5                      # plate below the Waveshare board (bottom edge -32.44)
 
 # ---- controls (visible geometry frozen from the handheld design) -----------------------------------
-WING_X, WING_Y, BTN_D = 18.0, -43.8, 16.0  # flap up-left / up-right, both = straight up: round caps, a wing engraved in each
+WING_X, WING_Y, BTN_D = 18.0, -43.8, 14.0  # flap up-left / up-right, both = straight up: round caps, a wing engraved in each
 GLYPH_DEPTH = 0.5                      # engraved wing on the cap top (paint-fill it, or leave it as a shadow)
 ROCKER_W, ROCKER_H, ROCKER_R, ROCKER_Y = 44.0, 9.0, 3.0, -61.2
 DART_X = 16.0                          # rocker-end switches (under the cap ends)
