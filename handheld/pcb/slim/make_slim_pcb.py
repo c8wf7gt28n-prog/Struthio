@@ -1,36 +1,27 @@
 #!/usr/bin/env python3
-"""STRUTHIO ONE SLIM · the ONE board, 0.8 mm thick, lying on the Waveshare's J8 socket.
+"""STRUTHIO ONE SLIM · the ONE board, 0.8 mm thick, behind the Waveshare's J8 socket.
 
     /usr/bin/python3 make_slim_pcb.py         (KiCad 7 pcbnew, tracks planned by hand below)
 
-Rev S2 (foolproof): the ONE's circuit (pcb/one/make_one_pcb.py) without the slide switch and the power-on pulse:
-the Waveshare's own PWR key is the power button, so the cell connects straight through Q1 (reverse-battery
-guard) to header pin 1. The battery socket is surface-mount (no leads to trim). Header pin 9 stays open: the
-firmware reads that as "ONE SLIM" (the ONE board ties it to GND). What else differs from the ONE board:
-  - 0.8 mm board, outline from cad/slim/slim_cad.py (0.3 mm further in than the ONE's)
-  - J1 is NOT assembled: the builder fits 12 bare header pins (odd 1-7, even 4-18) with the
-    printed pin jig, so the board can lie on the socket (docs/STRUTHIO_ONE_SLIM.md)
-  - parts: SW1-4 (TS-1187A), J2 (JST S2B-PH-SM4-TB, LCSC C295747), Q1 (AO3401A): all surface-mount
+Rev S4 (no soldering): JLCPCB fits every part, the header included. The ONE's circuit without the slide switch
+and the power-on pulse: the Waveshare's own PWR key is the power button, so the cell connects straight through
+Q1 (reverse-battery guard) to header pin 1. Header pin 9 has no net: the firmware reads that as "ONE SLIM"
+(the ONE board ties it to GND).
+  - 0.8 mm board, outline from cad/slim/slim_cad.py
+  - the case's front bosses hold the board 2.4 mm + the header plastic behind the socket, so the pins go 3.6 mm in
 
 Every position comes from cad/one/one_cad.py (as set up by slim_cad.py), so the board, the case and the fit
-checks share one set of numbers. The design frame there is the view from the
-front; KiCad's top view of this board is the same view (the top side faces the
-front of the handheld), so KiCad x = design x and KiCad y = -design y (+ origin).
+checks share one set of numbers. The design frame there is the view from the front; KiCad's top view of this
+board is the same view (the top side faces the front of the handheld), so KiCad x = design x and
+KiCad y = -design y (+ origin).
 
-Parts (all on the top side, all assembled by JLCPCB):
-  J1   2 x 16 male header, 2.54 mm, HCTL PZ254-2-16-Z-8.5 (C2894977), mounted the standard
-       way (plastic on the top side). The case sets how far its 6 mm pins go into the
-       Waveshare's ~4 mm socket (3.3 mm). Pad numbers = Waveshare's header numbers (pin 1 = BAT).
-  SW1-4  XKB TS-1187A-B-A-B tact switches (C318884, JLC basic): LEFT, RIGHT, DART L, DART R
-  SW5  G-Switch SS-12D06-G030 right-angle slide switch, 3 A (C17179519): battery hard cut
-  J2   JST S2B-PH-K-S side-entry PH 2.0 socket (C173752): the battery plugs in here
-  Q1   AO3401A P-FET (C15127): reverse-battery protection (a reversed battery lead switches it off)
-  Q2, C1, R1, D1   AO3400A (C20917), 10 uF (C15850), 470 k (C25790), 1N4148WS (C2128): power-on pulse.
-       On battery alone the Waveshare's AXP2101 keeps its battery switch off until the PWR key is held
-       (AXP2101 datasheet 6.5.2). When the slide switch turns on, C1 lifts Q2's gate and Q2 holds PWR
-       (header pin 24) low for ~3-8 s as C1 charges through R1; D1 empties C1 when the switch turns off.
-       The firmware turns off "long press = power off" at boot, so the long press is harmless.
-  All parts are JLC basic parts except J1, J2 and SW5.
+Parts (all on the top side, all surface-mount, all assembled by JLCPCB):
+  J1A, J1B  Ckmtw B-2100N10P-B110 (C124391): 2 x 5 male header, 2.54 mm, surface-mount, 6.0 mm pins.
+            J1A on Waveshare pins 1-10, J1B on 15-24 (a free row between them, so the plastics never touch).
+            Footprint from the datasheet (210SMT-2*XP): pads 3.45 x 1.0, 8.4 mm across, 1.5 mm apart.
+  SW1-4     XKB TS-1187A-B-A-B tact switches (C318884, JLC basic): LEFT, RIGHT, DART L, DART R
+  J2        JST S2B-PH-SM4-TB (C295747): surface-mount side-entry PH 2.0 socket, the battery plugs in here
+  Q1        AO3401A P-FET (C15127, JLC basic): reverse-battery protection
 """
 import csv, os, subprocess, sys, shutil
 import pcbnew
@@ -103,17 +94,33 @@ def silk_text(text, x, y, size=1.0, layer=pcbnew.F_SilkS):
 def silk_rect(x0, y0, x1, y1, layer=pcbnew.F_SilkS):
     add_poly_edges([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], layer, 0.15)
 
-# J1: Waveshare header numbering, odd pins on the edge row (x 24.47), pin 1 at the top
-HDR_NETS = {1: 'BAT', 3: 'GND', 4: 'GND', 5: 'GPIO21', 7: 'GPIO38', 16: 'GPIO17', 18: 'GPIO18', 29: 'GND', 30: 'GND'}   # 9 open: SLIM
+# J1A, J1B: Waveshare header numbering, odd pins on the edge row (x 24.47), pin 1 at the top. Each pin's
+# foot runs outward: odd-row pads to the edge side, even-row pads to the inside.
+HDR_NETS = {1: 'BAT', 3: 'GND', 4: 'GND', 5: 'GPIO21', 7: 'GPIO38', 16: 'GPIO17', 18: 'GPIO18'}   # 9: no net (SLIM)
 xe, xc = G.HDR_ROW_X[1], G.HDR_ROW_X[0]
-j1 = new_fp('J1', 'Header_2x16_Waveshare',  (xe + xc) / 2, G.HDR_PIN1_Y - 7.5 * 2.54)
-for n in range(1, 33):
-    k = (n - 1) // 2
-    x = (xe if n % 2 else xc) - (xe + xc) / 2
-    y = G.HDR_PIN1_Y - k * 2.54 - (G.HDR_PIN1_Y - 7.5 * 2.54)
-    add_pad(j1, n, x, y, pcbnew.PAD_SHAPE_RECT if n == 1 else pcbnew.PAD_SHAPE_CIRCLE, (1.7, 1.7), drill=1.02, netname=HDR_NETS.get(n))
-silk_rect(xc - 1.4 - 0.1, G.HDR_PIN1_Y + 1.4, xe + 1.4, G.HDR_PIN1_Y - 15 * 2.54 - 1.4)
-silk_text('1', xe + 2.4, G.HDR_PIN1_Y, 1.0)
+XM = (xe + xc) / 2
+PAD_C, PAD_L, PAD_W = 0.75 + 3.45 / 2, 3.45, 1.0
+HDR = {}
+for ref, (r0, r1) in S.HDR_ROWS.items():
+    yc = G.HDR_PIN1_Y - (r0 + r1) / 2 * 2.54
+    fp = new_fp(ref, 'B-2100N10P-B110', XM, yc, fpname='PinHeader_2x05_P2.54mm_SMD_Ckmtw210SMT')
+    for k in range(r0, r1 + 1):
+        for n in (2 * k + 1, 2 * k + 2):
+            dx = PAD_C if n % 2 else -PAD_C
+            add_pad(fp, n - 2 * r0, dx, G.HDR_PIN1_Y - k * 2.54 - yc, pcbnew.PAD_SHAPE_RECT, (PAD_L, PAD_W), netname=HDR_NETS.get(n))
+    HDR[ref] = (fp, r0)
+    yt, yb = G.HDR_PIN1_Y - r0 * 2.54 + 1.27, G.HDR_PIN1_Y - r1 * 2.54 - 1.27
+    for yy in (yt + 0.2, yb - 0.2): add_poly_edges([(XM - 2.54, yy), (XM + 2.54, yy)], pcbnew.F_SilkS, 0.15)
+    fp.Reference().SetPosition(P(17.6, yt - 0.6)); fp.Reference().SetTextSize(pcbnew.VECTOR2I(MM(0.8), MM(0.8)))
+silk_text('1', xe + 4.2, G.HDR_PIN1_Y + 1.6, 0.9)
+
+def hdr_pad(n):
+    """(x, y) of the pad for Waveshare pin n"""
+    for fp, r0 in HDR.values():
+        q = [p for p in fp.Pads() if p.GetNumber() == str(n - 2 * r0)]
+        if q and r0 * 2 < n <= r0 * 2 + 10:
+            c = q[0].GetPosition(); return (pcbnew.ToMM(c.x) - OX, OY - pcbnew.ToMM(c.y))
+    raise KeyError(n)
 
 # SW1-4: TS-1187A. Only the diagonal pads carry nets: A to the GPIO, D to GND. A diagonal pair is never
 # joined inside the switch, so the key works whichever way the assembler turns the part.
@@ -125,7 +132,6 @@ for ref, (key, sig) in SW.items():
         add_pad(fp, 'ABCD'[i], dx, dy, pcbnew.PAD_SHAPE_RECT, (1.0, 0.75), netname={0: sig, 3: 'GND'}.get(i))
     silk_rect(x - 2.0, y - 2.6, x + 2.0, y + 2.6)            # between the pads
 
-j1.Reference().SetPosition(P(18.6, G.HDR_PIN1_Y + 2.4))
 
 # J2: JST S2B-PH-SM4-TB (surface-mount, side entry), entry facing +x, pin 1 = +
 lib = '/usr/share/kicad/footprints/Connector_JST.pretty'
@@ -153,9 +159,9 @@ q1 = lib_fp('Q1', 'AO3401A', 'Package_TO_SOT_SMD', 'SOT-23', *SP['Q1']); nets(q1
 
 # labels
 silk_text('STRUTHIO ONE SLIM', 0, -44.0, 1.6)
-silk_text('rev S2  0.8 mm', 0, -47.0, 1.0)
-silk_text('J1: PINS 1-7 ODD + 4-18 EVEN, 9 EMPTY', 0, -56.0, 1.0, pcbnew.B_SilkS)
-silk_text('USE THE PRINTED PIN JIG', 0, -58.0, 1.0, pcbnew.B_SilkS)
+silk_text('rev S4  0.8 mm', 0, -47.0, 1.0)
+silk_text('EVERY PART FITTED BY JLCPCB', 0, -56.0, 1.0, pcbnew.B_SilkS)
+silk_text('NO SOLDERING', 0, -58.0, 1.0, pcbnew.B_SilkS)
 
 # ---- ground pour on both layers ------------------------------------------------------------------------
 def add_zone(layer):
@@ -187,42 +193,48 @@ def pad_xy(fp, num):
     return (pcbnew.ToMM(p.x) - OX, OY - pcbnew.ToMM(p.y))
 
 def route():
-    hx = {n: pad_xy(j1, n) for n in (1, 5, 7, 16, 18)}
     sw = {r: board.FindFootprintByReference(r) for r in ('SW1', 'SW2', 'SW3', 'SW4')}
-    # left channel (x < even row): GPIO17, GPIO18
-    xa, xb = 19.6, 20.25
-    # GPIO17 drops to the bottom layer under the strip, runs under the right button at the switch row
-    # and comes back up under the left switch; GPIO18 turns straight into the right switch
-    x, y = hx[16]; track([(x, y), (xb - 0.0, y - 0.65), (xa, y - 1.3), (xa, -34.9), (19.0, -35.5)], 'GPIO17')
-    via(19.0, -35.5, 'GPIO17')
+    pi, po = XM - PAD_C + PAD_L / 2, XM + PAD_C - PAD_L / 2                    # inner ends of the even / odd pads
+    # ---- left: the wings (even row of J1B), out under the pads' outer ends and down two lanes by the strip edge
+    xg17, xg18 = 17.3, 18.1
+    x, y = hdr_pad(16); x0 = x - PAD_L / 2 + 0.3
+    track([(x0, y), (xg17 + 0.6, y), (xg17, y - 0.6), (xg17, -35.0)], 'GPIO17')
+    via(xg17, -35.6, 'GPIO17'); track([(xg17, -35.0), (xg17, -35.6)], 'GPIO17')
     cx, cy = G.switch_xy()['LEFT']
-    track([(19.0, -35.5), (19.0, cy), (cx, cy)], 'GPIO17', pcbnew.B_Cu)
+    track([(xg17, -35.6), (xg17, cy), (cx, cy)], 'GPIO17', pcbnew.B_Cu)      # under the right switch, below the BAT run
     via(cx, cy, 'GPIO17')
     bx, by = pad_xy(sw['SW1'], 'A'); track([(cx, cy), (bx + (by - cy), by), (bx, by)], 'GPIO17')
-    x, y = hx[18]; track([(x, y), (xb, y - 0.65), (xb, -36.6)], 'GPIO18')
-    ax, ay = pad_xy(sw['SW2'], 'A'); track([(xb, -36.6), (ax, -36.6 - (xb - ax)), (ax, ay)], 'GPIO18')
-    # right channel (x > odd row): GPIO38, GPIO21, BAT
-    x38, x21, xbat = 25.8, 26.45, 27.3                                # close to the odd row: the strip edge clears the back shell
-    bx, by = pad_xy(sw['SW4'], 'A'); yr = by + 1.8                       # run above the rocker switch row
-    x, y = hx[7]; track([(x, y), (x38, y - (x38 - x)), (x38, yr)], 'GPIO38')
-    track([(x38, yr), (bx, yr), (bx, by)], 'GPIO38')
-    x, y = hx[5]; track([(x, y), (x21, y - (x21 - x)), (x21, -49.5), (x21 + 1.0, -50.5)], 'GPIO21')
+    x, y = hdr_pad(18)
+    track([(x0, y), (xg18 + 0.4, y), (xg18, y - 0.4), (xg18, -36.6)], 'GPIO18')
+    ax, ay = pad_xy(sw['SW2'], 'A'); track([(xg18, -36.6), (ax, -36.6 - (xg18 - ax)), (ax, ay)], 'GPIO18')
+    # ---- right: BAT, DART L, DART R (odd row of J1A). BAT goes out to a via by the edge; the darts drop to vias
+    # between the rows under the plastic. All three cross the header zone on the bottom layer.
+    xbat, x21, x38 = 28.3, 26.45, 25.8
+    x, y = hdr_pad(1); track([(x, y), (xbat, y)], 'BAT', width=W_PWR); via(xbat, y, 'BAT')
+    for n, sig, xl, xv in ((5, 'GPIO21', x21, 27.0), (7, 'GPIO38', 25.3, 25.3)):
+        x, y = hdr_pad(n); yv = y - 1.27
+        track([(po + 0.3, y), (XM + 0.0, y - (po + 0.3 - XM)), (XM, yv)], sig); via(XM, yv, sig)
+        yu = 1.4 if sig == 'GPIO21' else 2.6                                      # back up below J1B
+        track([(XM, yv), (xl, yv), (xl, yu + 0.6), (xv, yu)], sig, pcbnew.B_Cu); via(xv, yu, sig)
+    track([(27.0, 1.4), (x21, 0.85), (x21, -49.5), (x21 + 1.0, -50.5)], 'GPIO21')
     via(x21 + 1.0, -50.5, 'GPIO21')
     bx, by = pad_xy(sw['SW3'], 'A')
     track([(x21 + 1.0, -50.5), (bx, -50.5), (bx, by + 1.6)], 'GPIO21', pcbnew.B_Cu)
     via(bx, by + 1.6, 'GPIO21'); track([(bx, by + 1.6), (bx, by)], 'GPIO21')
-    x, y = hx[1]; track([(x, y), (xbat, y - (xbat - x)), (xbat, -34.3)], 'BAT', width=W_PWR)
-    via(xbat, -34.3, 'BAT')
-    # battery in: J2 pin 1 -> Q1 drain; Q1 source -> BAT (header pin 1), back up the right lane; Q1 gate to ground
+    bx, by = pad_xy(sw['SW4'], 'A'); yr = by + 1.8                            # run above the rocker switch row
+    track([(25.3, 2.6), (x38, 2.1), (x38, yr), (bx, yr), (bx, by)], 'GPIO38')
+    # battery in: J2 pin 1 -> Q1 drain; Q1 source -> BAT, up the bottom layer to header pin 1; Q1 gate to ground
     j2p1 = pad_xy(j2, 1)
     qd, qs, qg = pad_xy(q1, 3), pad_xy(q1, 2), pad_xy(q1, 1)
     track([j2p1, (qd[0], j2p1[1]), qd], 'BAT_IN', width=W_PWR)
     yv = qs[1] - 1.35                                                     # come up under Q1's source, clear of its gate
-    track([(xbat, -34.3), (qs[0] + 2.4, -34.3), (qs[0] + 2.4, yv), (qs[0], yv)], 'BAT', pcbnew.B_Cu, W_PWR)
+    track([(xbat, hdr_pad(1)[1]), (xbat, -34.3), (qs[0] + 2.4, -34.3), (qs[0] + 2.4, yv), (qs[0], yv)], 'BAT', pcbnew.B_Cu, W_PWR)
     via(qs[0], yv, 'BAT'); track([(qs[0], yv), qs], 'BAT', width=W_PWR)
     track([qg, (qg[0], qg[1] + 1.1)], 'GND'); via(qg[0], qg[1] + 1.1, 'GND')
-    # ground stitching beside the switches and on the strip
-    for x, y in [(-21.5, -53.5), (24, -53.5), (-16, -65.0), (16, -65.0), (17.6, 22.0), (17.6, 5.0), (17.6, -12.0),
+    # ground: the two GND header pads straight down to the bottom pour, and stitching beside the switches
+    x, y = hdr_pad(3); track([(po + 0.3, y), (XM, y - (po + 0.3 - XM)), (XM, y - 1.27)], 'GND'); via(XM, y - 1.27, 'GND')
+    x, y = hdr_pad(4); track([(x, y), (x - 1.9, y)], 'GND'); via(x - 1.9, y, 'GND')
+    for x, y in [(-21.5, -53.5), (24, -53.5), (-16, -65.0), (16, -65.0), (XM, 19.0), (21.0, 0.0), (21.0, -12.0),
                  (-9, -47.5), (9, -47.5), (0, -60), (-31.5, -58), (31.5, -58)]:
         via(x, y, 'GND')
 
@@ -239,9 +251,8 @@ def main():
     rpt = os.path.join(OUT, 'drc.rpt')
     pcbnew.WriteDRCReport(b, rpt, pcbnew.EDA_UNITS_MILLIMETRES, True)
     print('wrote', path, 'and', rpt)
-    with open(os.path.join(OUT, 'tht_leads.txt'), 'w') as f:                # through-hole leads the builder trims (none in S2)
+    with open(os.path.join(OUT, 'tht_leads.txt'), 'w') as f:                # through-hole leads (none since S2)
         for fp in b.GetFootprints():
-            if fp.GetReference() == 'J1': continue
             ref = fp.GetReference()
             for p in fp.Pads():
                 if p.GetAttribute() != pcbnew.PAD_ATTRIB_PTH: continue
@@ -249,12 +260,11 @@ def main():
 
 def write_assembly():
     """JLCPCB BOM and placement (CPL) files"""
-    lcsc = {'J1': '', 'SW1': 'C318884', 'SW2': 'C318884', 'SW3': 'C318884', 'SW4': 'C318884', 'J2': 'C295747', 'Q1': 'C15127'}
+    lcsc = {'J1A': 'C124391', 'J1B': 'C124391', 'SW1': 'C318884', 'SW2': 'C318884', 'SW3': 'C318884', 'SW4': 'C318884', 'J2': 'C295747', 'Q1': 'C15127'}
     comment = {'J2': 'S2B-PH-SM4-TB(LF)(SN)'}
     rows = {}
     for fp in board.GetFootprints():
         ref = fp.GetReference(); v = comment.get(ref, fp.GetValue())
-        if ref == 'J1': continue                                          # fitted by the builder: 8 bare pins
         rows.setdefault((v, fp.GetFPIDAsString(), lcsc[ref]), []).append(ref)
     with open(os.path.join(OUT, 'BOM_JLCPCB.csv'), 'w', newline='') as f:
         w = csv.writer(f); w.writerow(['Comment', 'Designator', 'Footprint', 'LCSC Part #'])
@@ -262,7 +272,6 @@ def write_assembly():
     with open(os.path.join(OUT, 'CPL_JLCPCB.csv'), 'w', newline='') as f:
         w = csv.writer(f); w.writerow(['Designator', 'Mid X', 'Mid Y', 'Layer', 'Rotation'])
         for fp in board.GetFootprints():
-            if fp.GetReference() == 'J1': continue
             c = fp.GetPosition()
             w.writerow([fp.GetReference(), f'{pcbnew.ToMM(c.x) - OX:.3f}mm', f'{OY - pcbnew.ToMM(c.y):.3f}mm', 'Top', f'{fp.GetOrientationDegrees():.0f}'])
 

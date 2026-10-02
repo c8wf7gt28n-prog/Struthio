@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""STRUTHIO ONE SLIM · fit checks: the 16.5 mm stack, the joint, the screws, the bays, the keys.
+"""STRUTHIO ONE SLIM · fit checks: the 22.2 mm stack, the joint, the screws, the bays, the keys.
 
     python3 check_slim.py        prints one PASS/FAIL line per check and a summary
 """
@@ -28,7 +28,7 @@ front, back = s.front_shell(), s.back_shell()
 shells = front + back
 caps = {'left wing': s.wing_cap(-1), 'right wing': s.wing_cap(1), 'rocker': s.rocker_cap()}
 ws, one, cell, bay, spk = s.ref_waveshare(), s.one_board(), s.ref_battery(), s.ref_bay(), s.ref_speaker()
-pins, screws = s.ref_pins(), s.ref_screws()
+pins, hdrs, screws = s.ref_pins(), s.ref_headers(), s.ref_screws()
 sw = s.ref_parts(); btn = s.plunger(); clips = sum((s.cyl_z(1.2, x, y, s.ZIN - 2.5, s.ZIN, 16) for x, y in s.CLIPS), s.M())
 lead = s.box(*(s.LEAD[k] for k in ('x0', 'x1', 'y0', 'y1', 'z0', 'z1'))) + s.box(*(s.LEAD_ALONG[k] for k in ('x0', 'x1', 'y0', 'y1', 'z0', 'z1')))
 slead = s.box(*(s.SPK_LEAD[k] for k in ('x0', 'x1', 'y0', 'y1', 'z0', 'z1')))
@@ -39,7 +39,7 @@ for n, m in [('front shell', front), ('back shell', back)] + list(caps.items()):
     parts = [p for p in m.decompose() if p.volume() > 0.01]
     check(f'{n}: one watertight solid', m.status().name == 'NoError' and len(parts) == 1, f'{len(parts)} piece(s), {m.volume()/1000:.1f} cm3')
 import manifold3d as mf
-check('thickness 16.5 mm, panel included', abs(back.bounding_box()[5] - s.DEPTH) < 0.01 and abs(panel.bounding_box()[2]) < 0.01,
+check('thickness 22.2 mm, panel included (under the 23 mm limit)', abs(back.bounding_box()[5] - s.DEPTH) < 0.01 and abs(panel.bounding_box()[2]) < 0.01 and s.DEPTH < 23.0,
       f'{back.bounding_box()[5]:.2f} mm')
 b = o.body2d().bounds()
 check('outline unchanged from the ONE: 74 x 136', abs(b[2] - b[0] - 74) < 0.3 and abs(b[3] - b[1] - 136) < 0.1, f'{b[2]-b[0]:.2f} x {b[3]-b[1]:.2f}')
@@ -56,17 +56,17 @@ def _seg_d(pt, a, b):
     ab = b - a; t = np.clip(np.dot(pt - a, ab) / max(np.dot(ab, ab), 1e-12), 0, 1); return np.linalg.norm(pt - (a + t * ab))
 _dense = np.array([_po[i] + (_po[i + 1] - _po[i]) * f for i in range(len(_po) - 1) for f in np.linspace(0, 1, 20)])
 _wmin = min(min(_seg_d(q, _dense[i], _dense[i + 1]) for i in range(len(_dense) - 1)) for q in _pi[1:])
-check('back edge: an elliptical round (3 x 5.5 mm), walls still 1.5 mm or more all through it', _wmin >= 1.5 - 0.01, f'thinnest {_wmin:.2f} mm')
-check('stack adds up: panel + rim + Waveshare to its socket + ONE SLIM + 0.1 + back wall = 16.5',
-      abs(o.PANEL_T + s.RIM + s.WS_SOCKET + s.ONE_T + 0.1 + s.BACK_WALL - s.DEPTH) < 1e-9)
+check('back edge: an elliptical round (3 x 7.5 mm), walls still 1.5 mm or more all through it', _wmin >= 1.5 - 0.01, f'thinnest {_wmin:.2f} mm')
+check('stack adds up: panel + rim + Waveshare to its socket + 2.4 + header plastic + ONE SLIM + 0.1 + back wall = 22.2',
+      abs(o.PANEL_T + s.RIM + s.WS_SOCKET + (s.HDR_PIN - s.HDR_INSERT) + s.HDR_PLASTIC + s.ONE_T + 0.1 + s.BACK_WALL - s.DEPTH) < 1e-9)
 
 # ---- walls ("not thin enough to feel cheap") --------------------------------------------------------------
 check('back wall 1.5 mm solid (PETG: 4 perimeters / 5+ solid layers)', s.BACK_WALL >= 1.5 and thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, (-5.0, -50.0)) >= 1.5 - 0.02,
       f'{thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, (-5.0, -50.0)):.2f} mm at the controller zone')
-check('back wall over the pin tips: 1.0 mm (0.5 mm relief)', all(0.98 <= thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, s.pin_xy(n)) <= 1.02 for n in s.PINS))
+check('back wall 1.5 mm over the header too (nothing goes through the board)', all(thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, s.pin_xy(n)) >= 1.5 - 0.02 for n in s.PINS))
 import os as _os
 _t = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..', 'pcb', 'slim', 'out', 'tht_leads.txt')
-check('no through-hole leads to trim on the board (only the header pins)', not s.THT_LEADS and (not _os.path.exists(_t) or not open(_t).read().strip()))
+check('no through-hole parts on the board: nothing to solder or trim', not s.THT_LEADS and (not _os.path.exists(_t) or not open(_t).read().strip()))
 check('face: 1.6 mm of shell behind the panel round the controls (the ONE had 0.8)', thinnest(front, 0.0, 5.0, (0.0, -66.0)) >= 1.6 - 0.02,
       f'{thinnest(front, 0.0, 5.0, (0.0, -66.0)):.2f} mm')
 check('rim over the glass border: 0.5 mm, backed by the glass and covered by the panel', abs(thinnest(front, 0.0, s.Z_GLASS + 0.5, (0.0, o.BCY + o.AA_H / 2 + 3.0)) - s.RIM) < 0.03)
@@ -85,12 +85,15 @@ check('joint: shells meet at the split face (no gap, no overlap)', clash(front, 
 # ---- the Waveshare and the ONE SLIM ---------------------------------------------------------------------
 check('Waveshare clears the shells', clash(ws, shells) < 0.5, f'{clash(ws, shells):.2f} mm3')
 check('glass sits on the 0.5 mm rim, in a pocket (x/y located by it)', abs(ws.bounding_box()[2] - s.Z_GLASS) < 0.01)
-check('ONE SLIM sits on the front bosses, level with a 12.6 mm socket top', abs(s.Z_ONE - (s.Z_GLASS + s.WS_SOCKET)) < 1e-9 and clash(one, ws) < 0.01)
+_hgap = (s.Z_ONE - s.HDR_PLASTIC) - (s.Z_GLASS + s.WS_SOCKET)
+check('ONE SLIM sits on the front bosses; the header plastic stays 2.4 mm off a 12.6 mm socket', abs(_hgap - 2.4) < 1e-9 and clash(one + (hdrs ^ s.box(-99, 99, -99, 99, s.Z_GLASS + s.WS_SOCKET, 99)), ws) < 0.01, f'{_hgap:.2f} mm')
 check('ONE SLIM: 0.1 mm under the back wall, pressed down by 11 pads', abs(s.ZIN - (s.Z_ONE + s.ONE_T) - 0.1) < 1e-9 and len(s.one_pads()) >= 11)
 _ins = [s.PIN_OUT - (s.Z_ONE - (s.Z_GLASS + h)) for h in (s.WS_SOCKET, s.WS_SOCKET_LOW)]
-check('header pins reach into J8 2.5-3.8 mm whichever height its socket is (12.6 or 11.5 mm)', all(2.5 - 1e-9 <= i <= 3.8 for i in _ins) and clash(pins, shells) < 0.01,
+check('header pins reach into J8 2.5-3.8 mm whichever height its socket is (12.6 or 11.5 mm), never near its 5.0 mm bottom', all(2.5 - 1e-9 <= i <= 3.8 for i in _ins) and clash(hdrs, shells) < 0.01,
       ' / '.join(f'{i:.1f} mm' for i in _ins))
-check('12 pins in two straight strips (odd 1-7, even 4-18); pin 9 empty (the SLIM)', sorted(s.PINS) == sorted((1, 3, 5, 7) + tuple(range(4, 19, 2))) and 9 not in s.PINS)
+_sig = {1, 3, 4, 5, 7, 16, 18}
+_r = sorted(s.HDR_ROWS.values())
+check('two 2 x 5 headers (pins 1-10 and 15-24) carry every signal pin; a free row between their plastics', _sig <= set(s.PINS) and len(s.PINS) == 20 and _r[1][0] - _r[0][1] >= 2)
 check('ONE SLIM and its parts (switches, J2 and the cell plug, Q1) clear the shells', clash(one + sw, shells) < 0.5, f'{clash(one + sw, shells):.2f} mm3')
 check('ONE SLIM\'s parts clear the Waveshare', clash(sw, ws) < 0.01)
 
@@ -103,11 +106,11 @@ check('power button: captured (its flange is bigger than the wall hole, the key 
 check('power button: whole in the front shell (fitted before the Waveshare)', btn.bounding_box()[5] < s.Z_SPLIT)
 
 # ---- battery, speaker, leads ---------------------------------------------------------------------------------
-check('battery bay 3.0 x 34 x 52 is free (303450 fits; 302535 in its corner)', clash(bay, ws + one + shells + spk + slead) < 0.5 and clash(bay, lead) < 0.01,
+check('battery bay 5.0 x 34 x 52 is free (the ONE\'s 1000 mAh THOR-503450)', clash(bay, ws + one + shells + spk + slead) < 0.5 and clash(bay, lead) < 0.01,
       f'{clash(bay, ws + one + shells):.2f} mm3')
-check('battery bay: 0.3 mm above the Waveshare\'s back parts (9.5 mm behind the glass)', abs(s.BAY['z0'] - (s.Z_GLASS + s.WS_PARTS) - 0.3) < 1e-9)
+check('battery bay: on the back wall, clear of the Waveshare\'s back parts (9.5 mm behind the glass)', s.BAY['z0'] - (s.Z_GLASS + s.WS_PARTS) >= 0.3, f"{s.BAY['z0'] - (s.Z_GLASS + s.WS_PARTS):.1f} mm clear")
 _gap = s.ZIN - (s.BAY['z0'] + s.BAY['t'])
-check('foam tape behind the cell: 1.0 mm compressed 20-40 %', 0.2 <= 1 - _gap / s.FOAM_T <= 0.4, f'{_gap:.2f} mm gap')
+check('foam tape behind the cell: 1.0 mm squeezed 20-40 %', 0.2 <= 1 - _gap / s.FOAM_T <= 0.4, f'{_gap:.2f} mm gap')
 check('speaker clears the Waveshare, shells, ONE SLIM', clash(spk, ws + shells + one) < 0.01)
 check('cell lead: clear channel from the bay to J2, between two clips', clash(lead, ws + shells + spk + one + sw) < 0.01)
 check('lead clips: clear of the Waveshare, the cell bay and the speaker', clash(clips, ws + bay + spk + one) < 0.01)
@@ -115,9 +118,9 @@ check('speaker lead: clear channel up the left side to J9', clash(slead, ws + sh
 
 # ---- screws ---------------------------------------------------------------------------------------------------
 _ws_bite = s.WS_SCREW_L - (s.DEPTH - s.Z_BACK)
-check('Waveshare screws: M2 x 6 countersunk into its standoffs, 2.5 mm of thread (standoff 4 mm)', 2.0 <= _ws_bite <= 3.5, f'{_ws_bite:.2f} mm')
+check('Waveshare screws: M2 x 12 countersunk into its standoffs, 2-3.5 mm of thread, tip 0.5 mm+ off its board', 2.0 <= _ws_bite <= 3.5 and s.DEPTH - s.WS_SCREW_L >= s.Z_GLASS + 7.5 + 0.5, f'{_ws_bite:.2f} mm')
 _lb = s.LOWER_SCREW_L - (s.DEPTH - s.Z_ONE)
-check('lower screws: the same M2 x 6 through ONE SLIM into the front bosses, 3-6 mm bite', 3.0 <= _lb <= 6.0 and s.LOWER_SCREW_L == s.WS_SCREW_L, f'{_lb:.2f} mm')
+check('lower screws: the same M2 x 12 through ONE SLIM into the front bosses, 3-10 mm bite, inside the pilot', 3.0 <= _lb <= 10.0 and s.LOWER_SCREW_L == s.WS_SCREW_L and s.Z_ONE - s.LOWER_SCREW_L + 1.5 <= s.DEPTH - s.LOWER_SCREW_L, f'{_lb:.2f} mm')
 check('screw heads flush, 0.5 mm+ of plastic under the countersink', (s.CSK_D - s.CSK_HOLE) / 2 + 0.5 <= s.DEPTH - s.Z_BACK)
 check('posts bear on the standoff tips (clamp the board to the rim)', all(abs(min(p.bounding_box()[2] for p in (back ^ s.cyl_z(4.9, x, y, 0, 20)).decompose()) - s.Z_BACK) < 0.01 for x, y in s.WS_SCREWS))
 check('screws clear the Waveshare parts and the battery', clash(screws, bay + spk + one) < 0.01)
@@ -142,14 +145,11 @@ check('pin holes line up with the three edge keys (actuators 7.1-9.3 mm behind t
 _u = s.WS_TALL['USB-C']
 check('USB-C opening centred on the socket', clash(s.box(-4.0, 4.0, o.BCY + o.BH / 2 - 6.0, o.Y_TOP + 1, s.Z_GLASS + 6.7, s.Z_GLASS + 10.75), shells) < 0.01)
 
-# ---- builder's jigs -------------------------------------------------------------------------------------------------
+# ---- finish and the axle gauge -------------------------------------------------------------------------------------------------
 check('the name on the back: 0.35 mm deep, 1.1 mm of back wall left under it', abs(s.TEXT_DEPTH - 0.35) < 1e-9 and s.BACK_WALL - s.TEXT_DEPTH >= 1.1 and vol(s.back_text() ^ back) < 0.01)
 check('openings chamfered 0.5 mm on the outside (USB-C, power button, pin holes)', vol(s.chamfers() ^ shells) < 0.01)
-jig = s.pin_jig()
-check('pin jig: holds every pin at PIN_OUT and keeps clear of the board (one way only: fence on the strip end and edge)',
-      clash(jig, s.one_board_drilled()) < 0.01 and clash(jig, pins) < 0.01)
-_flip = s.one_board_drilled().mirror([1, 0, 0]).translate([o.STRIP_X[0] + o.STRIP_X[1], 0, 0])     # the strip turned over
-check('pin jig: a board turned over hits the pegs and cannot sit flat', clash(jig, _flip) > 0.2, f'{clash(jig, _flip):.1f} mm3')
+_g = s.axle_gauge(); _gb = _g.bounding_box()
+check('axle gauge: one solid; its slot cuts the filament at 11 mm', len(_g.decompose()) == 1 and abs((_gb[4] - 1.5) - s.AXLE_LEN) < 0.01)
 
 pf = o.physical(front)
 slot = o.physical(s.box(-40, -30, s.PWR_Y - 1, s.PWR_Y + 1, s.PLUNGER_Z - 0.8, s.PLUNGER_Z + 0.8))

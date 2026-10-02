@@ -13,7 +13,7 @@ const STEPS = [
   ['s02_rocker', `show=${FRONT},${CAPS},${ROCK}&hl=${ROCK}&cam=inside`],
   ['s03_power_button', `show=${FRONT},${CAPS},${ROCK},${BTN}&hl=${BTN}&cam=inside`],
   ['s04_waveshare', `show=${FRONT},${CAPS},${ROCK},${BTN},ref_waveshare&hl=ref_waveshare&cam=inside`],
-  ['s05_pins', `show=${ONE},pin_jig&hl=pin_jig&cam=front&screen=0`],
+  ['s05_board', `show=${ONE}&hl=ref_switches&cam=front&screen=0`],
   ['s06_one_slim', `show=${FRONT},${CAPS},${ROCK},${BTN},ref_waveshare,${ONE}&hl=${ONE}&cam=inside`],
   ['s07_back_shell', `show=one_back,ref_speaker,ref_battery,ref_foam&hl=ref_speaker,ref_battery,ref_foam&cam=backshell`],
   ['s08_closed', `show=${FRONT},one_back,${CAPS},${ROCK},${BTN},ref_screws&hl=one_back,ref_screws&cam=back`],

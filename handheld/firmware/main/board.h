@@ -39,8 +39,8 @@ void board_power_off(void);
 // Which handheld this board sits in, set once at boot:
 //   ONE (23 mm): slide switch + power-on pulse on PWR (header pin 24) -> a long press must never mean "off";
 //                1000 mAh cell -> 200 mA charge.
-//   ONE SLIM (16.5 mm): no switch; the Waveshare's own PWR key is the power button -> press 0.5 s: on,
-//                hold 4 s: off; 250 mAh cell -> 100 mA charge.
+//   ONE SLIM (22.2 mm): no switch; the Waveshare's own PWR key is the power button -> press 0.5 s: on,
+//                hold 4 s: off; the same 1000 mAh cell -> 200 mA charge (rev S4; S2/S3 had 250 mAh).
 void board_power_model(bool slide_switch);
 // ONE SLIM: true once after each short press of the power button (the AXP2101's PKEY short-press flag).
 bool board_power_key_pressed(void);

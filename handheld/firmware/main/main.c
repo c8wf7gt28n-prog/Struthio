@@ -586,7 +586,7 @@ void app_main(void) {
 
     board_power_init();
     board_power_model(g_one);
-    ESP_LOGI(TAG, "model: %s", g_one ? "ONE (slide switch, 1000 mAh, 200 mA)" : "ONE SLIM (power button, 250 mAh, 100 mA)");
+    ESP_LOGI(TAG, "model: %s", g_one ? "ONE (slide switch, 1000 mAh, 200 mA)" : "ONE SLIM (power button, 1000 mAh, 200 mA)");
     g_display_ok = board_display_init();
     if (g_display_ok && app_flip()) board_display_flip(true);
 
