@@ -34,7 +34,9 @@ The full manual for the C port is `docs/STRUTHIO_ESP32_HANDHELD_v0.10.docx`
 | Firmware (tasks, 60 Hz loop, NVS, watchdog, service mode) | **Compiled against the real ESP-IDF 5.5.5 headers** | `firmware/idf_check/idf_check.sh` (real sdkconfig, board drivers, -Werror); **not** `idf.py build` (the Xtensa toolchain download is blocked here) |
 | Two-core band hand-off to the panel | **Proven on host** | `host/band_order_test`: the AXS15231B has no row address over QSPI; 0 bands misplaced (the earlier scheme: ~79%) |
 | Panel, power, backlight on the Waveshare 3.5B | Ported, not run | from Waveshare's ESP-IDF example: `firmware/main/board_waveshare_35b.c`, `board_pmu.cpp`; wings share the camera's VSYNC/HREF pins (no camera fitted) |
-| Audio (ES8311) | **Not started** | stub |
+| Game sound: SFX synth + conductor | **Equal to the browser** | `audio/`: C vs the browser's own conductor + mixer on all five traces, 76 dB SNR, max 2 LSB (`docs/AUDIO_PORT.md`) |
+| Soundtrack | **In flash** | 160 s loop as 24 kHz IMA ADPCM (1.92 MB) in a new `music` partition (`make -C host music`) |
+| Audio on the Waveshare 3.5B (ES8311) | Ported, not run | `board_audio_*` via esp_codec_dev, as the vendor example; volume in service mode |
 | Enclosure fit, switch feel, battery, USB-C extension | Unchanged from v0.4 | needs prints and parts |
 
 ## Run the checks
@@ -64,9 +66,11 @@ comparisons and builds the asset pack.
       struthio_panel.c       device renderer: 320x480 in 16-line bands, HUD, LUT post
       struthio_pak.c         asset pack loader (mapped from flash)
       struthio_greybox.c     fallback greybox renderer
+    audio/      the browser's sound: synth + conductor (SFX), music loop, output stage
+      struthio_audio_data.h  GENERATED from rules.mjs, conductor.mjs, session.mjs
     golden/     five browser-recorded traces (button timelines, frames, per-tick digests)
     tools/      golden exporter, generators, port authority, browser reference capture (Node)
-    host/       replay, scene/raster/panel checks, asset pack builder (make_pak)
+    host/       replay, scene/raster/panel/audio checks, asset pack builder (make_pak), make_music
     firmware/   ESP-IDF app: main.c, buttons, service mode, board adapter, host tests
     cad/        A0 enclosure (OpenSCAD + STLs), unchanged from v0.4
     docs/       bring-up checklist, wiring, BOM, validation report, port authority

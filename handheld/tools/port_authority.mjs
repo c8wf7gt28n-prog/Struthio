@@ -26,6 +26,10 @@ const FILES = [
   ['arcade/src/input/input.mjs', 'core/struthio_input.c (InputNormalizer, wing path)'],
   ['arcade/src/app/session.mjs', 'canAcceptBufferedFlap, cleanup on death, restart on GAME OVER'],
   ['arcade/src/render/camera.mjs', 'render/struthio_greybox.c (presentation only)'],
+  ['arcade/src/audio/synth.mjs', 'audio/struthio_audio.c (sta_mixer: the worklet Mixer)'],
+  ['arcade/src/audio/conductor.mjs', 'audio/struthio_audio.c (sta_conductor), audio/struthio_audio_data.h (generated)'],
+  ['arcade/src/audio/music.mjs', 'audio/struthio_audio.c (music gain and ducking)'],
+  ['arcade/assets/audio/tarmac-at-midnight-loop.mp3', 'build/assets/struthio_music.ima (host/make_music)'],
 ];
 const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, f))).digest('hex');
 const version = (fs.readFileSync(path.join(root, 'arcade', 'index.html'), 'utf8').match(/STRUTHIO[^<]*?(\d+\.\d+\.\d+)/) || [])[1] || 'unknown';

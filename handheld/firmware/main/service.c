@@ -8,7 +8,10 @@
 //     then again without digests to time the bare simulation per tick
 //     (both include a 1-tick yield every 256 ticks, so they slightly over-report)
 //   - panel benchmark: full 320x480 presents, ms per frame
-// LEFT tap: next DART trial (saved).  RIGHT tap: run the replay + benchmark again.
+//   - sound: codec found, music loop found, volume level
+// LEFT tap: next DART trial (saved).  LEFT held 1 s: next volume level (saved;
+// plays the ring chime).  RIGHT tap: run the replay + benchmark again (the
+// round-clear sting plays when it finishes).
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -67,18 +70,40 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
     st_norm_init(norm);
     st_norm_set_mode(norm, ST_MODE_PLAY);
     st_buttons_init(b, norm, (st_dart_trial_t)b->trial, app_now_ms());
+    app_audio_start();
     run_checks();
+    app_audio_test(ST_EV_ROUND_CLEAR);
     uint8_t *fb = app_framebuffer();
     uint32_t frame = 0;
+    // Taps act on release, so a hold can mean something else (LEFT: volume).
+    uint32_t down_at[2] = {0, 0};
+    bool was[2] = {false, false}, held_used[2] = {false, false};
     for (;;) {
-        st_buttons_sample(b, app_pin_pressed(17), app_pin_pressed(18), app_now_ms());
-        st_input_t f = st_norm_frame(norm, true);
-        if (f.flap_edge && f.flap_kind == ST_FLAP_LEFT) {
-            st_dart_trial_t t = (st_dart_trial_t)((b->trial + 1) % (ST_DART_OFF + 1));
-            b->trial = (uint8_t)t;
-            app_save_i32("dart", t);
-            ESP_LOGI(TAG, "DART trial -> %s", st_dart_trial_name(t));
-        } else if (f.flap_edge && f.flap_kind == ST_FLAP_RIGHT) run_checks();
+        uint32_t now = app_now_ms();
+        st_buttons_sample(b, app_pin_pressed(17), app_pin_pressed(18), now);
+        (void)st_norm_frame(norm, true);     // keep the normalizer's queue drained
+        for (int side = 0; side < 2; side++) {
+            bool held = st_buttons_held(b, side == 0 ? ST_SIDE_LEFT : ST_SIDE_RIGHT);
+            if (held && !was[side]) { down_at[side] = now; held_used[side] = false; }
+            if (held && side == 0 && !held_used[0] && now - down_at[0] >= 1000) {
+                held_used[0] = true;
+                app_set_volume(app_volume() + 1);
+                app_audio_test(ST_EV_RING);
+            }
+            if (!held && was[side] && !held_used[side]) {
+                if (side == 0) {
+                    st_dart_trial_t t = (st_dart_trial_t)((b->trial + 1) % (ST_DART_OFF + 1));
+                    b->trial = (uint8_t)t;
+                    app_save_i32("dart", t);
+                    ESP_LOGI(TAG, "DART trial -> %s", st_dart_trial_name(t));
+                    app_audio_test(ST_EV_FLAP);
+                } else {
+                    run_checks();
+                    app_audio_test(ST_EV_ROUND_CLEAR);
+                }
+            }
+            was[side] = held;
+        }
         if (app_display_ok() && (frame++ % 8) == 0) {
             char t[48];
             memset(fb, STR_PAL_INK, ST_FB_W * ST_FB_H);
@@ -95,9 +120,13 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
             st_draw_text(fb, 8, 108, g_replay_line[0], strstr(g_replay_line[0], "PASS") ? STR_PAL_GREEN : STR_PAL_LAVA_HOT, 1);
             st_draw_text(fb, 8, 120, g_replay_line[1], STR_PAL_IVORY, 1);
             st_draw_text(fb, 8, 132, g_bench_line, STR_PAL_IVORY, 1);
-            st_draw_text(fb, 8, 160, "LEFT: NEXT DART TRIAL", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 172, "RIGHT: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 184, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
+            snprintf(t, sizeof t, "AUDIO %s  MUSIC %s  VOL %d/%d", app_audio_ok() ? "OK" : "NO CODEC", app_music_ok() ? "OK" : "NONE",
+                     app_volume(), APP_VOLUME_LEVELS - 1);
+            st_draw_text(fb, 8, 144, t, app_audio_ok() ? STR_PAL_IVORY : STR_PAL_LAVA_HOT, 1);
+            st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART TRIAL", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 180, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 192, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 204, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
             app_present(fb);
         }
         vTaskDelay(1);

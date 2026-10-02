@@ -18,6 +18,6 @@ clean:
 # against the REAL ESP-IDF headers by ../idf_check/idf_check.sh.
 FW_SRC = ../main/main.c ../main/service.c ../main/struthio_buttons.c
 compile:
-	@for f in $(FW_SRC); do $(CC) $(CFLAGS) -fsyntax-only -I../host_shim -I../main -I../../core -I../../render $$f || exit 1; done
+	@for f in $(FW_SRC); do $(CC) $(CFLAGS) -fsyntax-only -I../host_shim -I../main -I../../core -I../../render -I../../audio $$f || exit 1; done
 	@echo "PASS: firmware sources type-check against host_shim (not a real idf.py build)"
 .PHONY: compile

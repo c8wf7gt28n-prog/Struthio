@@ -12,6 +12,7 @@ adds the hardware around it.
 | `game` | 1 | 60 Hz fixed | normalizer frame -> `st_step()` -> events -> scene builder + HUD model (every tick, as the browser); a frame published every 2nd tick; watchdog |
 | `render` | 0 | <= 30 fps | newest frame -> panel renderer, even 16-line bands -> panel as each band finishes; may drop frames |
 | `render1` | 1 | with `render` | the odd bands of the same frame (below `game` in priority) |
+| `audio` | 0 | 5.33 ms blocks | game events -> the browser's conductor + synth, plus the soundtrack -> ES8311 (`../audio`, `docs/AUDIO_PORT.md`) |
 
 The picture is the browser's: `render/struthio_panel.c` draws the quads the
 scene builder produces (the same lists the browser hands WebGPU) with
@@ -34,6 +35,7 @@ flap from the last fight cannot skip it.
 | Straight-up flap | both wings within 100 ms |
 | DART | trial C (default): hold both wings 200 ms, dives toward facing |
 | Service mode | hold both wings while powering on |
+| Volume (in service mode) | hold LEFT 1 s: next of 5 levels (0 = off), saved |
 
 DART trials A (hold one wing 230 ms) and B (tap then hold) are kept for the
 thumb test. On the golden bots' press timelines they fire 40-78 unwanted darts
@@ -53,15 +55,19 @@ Hold both wings at power-on:
   timings include a one-tick yield every 256 ticks.
 - panel benchmark: ms per full 320x480 present
 
-LEFT tap cycles the DART trial (saved in NVS). RIGHT tap re-runs the checks.
+LEFT tap cycles the DART trial (saved in NVS). LEFT held 1 s steps the volume
+(saved; a chime plays). RIGHT tap re-runs the checks; the round-clear sting
+plays when they finish. The screen shows AUDIO OK / NO CODEC, MUSIC OK / NONE
+and the volume.
 Power-cycle to play.
 
 ## Build
 
     make -C handheld/host pak          # build/assets/struthio.pak (needs build/reference, see docs)
+    make -C handheld/host music        # build/assets/struthio_music.ima (needs ffmpeg and the arcade MP3)
     cd handheld/firmware
     idf.py set-target esp32s3
-    idf.py build flash monitor         # flashes the app and the asset pack
+    idf.py build flash monitor         # flashes the app, the asset pack and the soundtrack
 
 Not yet built with the real toolchain: this environment cannot download it.
 `make -C host_test compile` type-checks every source against `host_shim/`, a
@@ -78,7 +84,7 @@ memory, from Waveshare's own ESP-IDF example (Apache-2.0, commit 840daf2). That 
 - the AXS15231B QSPI panel with the vendor's init commands;
 - the LEDC backlight.
 
-Audio (ES8311) is still a stub. The panel drivers come from the component registry (`main/idf_component.yml`).
+Audio: the ES8311 through espressif/esp_codec_dev, as the vendor's `bsp_es8311.c` (48 kHz mono, playback only). The panel and codec drivers come from the component registry (`main/idf_component.yml`).
 
 Two board facts shape the code:
 - **No row address over QSPI.** A band at y 0 starts a frame and every other band continues where the last one ended. So bands must reach the panel top to bottom: the two render cores pass a turn back and forth (`band_out` in main.c), and the adapter counts any band that arrives out of order. `host/band_order_test` shows the earlier scheme would have misplaced most bands.

@@ -37,6 +37,10 @@ SemaphoreHandle_t xSemaphoreCreateMutex(void);
 SemaphoreHandle_t xSemaphoreCreateBinary(void);
 BaseType_t xSemaphoreTake(SemaphoreHandle_t s, TickType_t wait);
 BaseType_t xSemaphoreGive(SemaphoreHandle_t s);
+typedef void *QueueHandle_t;
+QueueHandle_t xQueueCreate(UBaseType_t length, UBaseType_t item_size);
+BaseType_t xQueueSend(QueueHandle_t q, const void *item, TickType_t wait);
+BaseType_t xQueueReceive(QueueHandle_t q, void *item, TickType_t wait);
 // partitions
 typedef enum { ESP_PARTITION_TYPE_APP = 0, ESP_PARTITION_TYPE_DATA = 1 } esp_partition_type_t;
 typedef int esp_partition_subtype_t;

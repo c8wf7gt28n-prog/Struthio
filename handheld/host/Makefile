@@ -7,7 +7,7 @@ HDRS = ../core/struthio_core.h ../core/struthio_input.h ../core/struthio_replay.
 BUILD = build
 
 RENDER = ../render/struthio_greybox.c ../render/struthio_scene.c ../render/struthio_scene_data.c ../render/struthio_raster.c ../render/struthio_panel.c ../render/struthio_pak.c
-all: $(BUILD)/replay $(BUILD)/render_demo $(BUILD)/scene_check $(BUILD)/raster_check $(BUILD)/panel_check $(BUILD)/make_pak $(BUILD)/amb_test $(BUILD)/band_order_test
+all: $(BUILD)/replay $(BUILD)/render_demo $(BUILD)/scene_check $(BUILD)/raster_check $(BUILD)/panel_check $(BUILD)/make_pak $(BUILD)/amb_test $(BUILD)/band_order_test $(BUILD)/audio_check $(BUILD)/make_music
 
 $(BUILD)/replay: replay.c $(CORE) $(HDRS)
 	@mkdir -p $(BUILD)
@@ -46,6 +46,22 @@ $(BUILD)/band_order_test: band_order_test.c $(CORE) $(RENDER) $(HDRS) ../render/
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -I../core -I../render band_order_test.c $(CORE) $(RENDER) -lm -lpthread -o $@
 
+AUDIO = ../audio/struthio_audio.c
+$(BUILD)/audio_check: audio_check.c $(CORE) $(AUDIO) $(HDRS) ../audio/struthio_audio.h ../audio/struthio_audio_data.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I../core -I../audio audio_check.c $(CORE) $(AUDIO) -lm -o $@
+
+$(BUILD)/make_music: make_music.c
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) make_music.c -lm -o $@
+
+# the handheld soundtrack from the arcade's MP3 (needs ffmpeg)
+MUSIC_SRC = ../../arcade/assets/audio/tarmac-at-midnight-loop.mp3
+music: $(BUILD)/make_music
+	@mkdir -p ../build/assets ../build/audio
+	ffmpeg -v error -y -i $(MUSIC_SRC) -ac 1 -ar 24000 -f s16le ../build/audio/music24k.raw
+	./$(BUILD)/make_music ../build/audio/music24k.raw ../build/assets/struthio_music.ima
+
 scene: $(BUILD)/scene_check
 	./$(BUILD)/scene_check ../golden/*.trace
 
@@ -54,4 +70,4 @@ test: $(BUILD)/replay
 
 clean:
 	rm -rf $(BUILD)
-.PHONY: all test clean scene pak
+.PHONY: all test clean scene pak music

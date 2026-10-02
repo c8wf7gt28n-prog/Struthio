@@ -16,9 +16,11 @@ int main(void) {
     st_draw_text(fb, 8, 108, "GOLDEN PASS 10011 TICKS", STR_PAL_GREEN, 1);
     st_draw_text(fb, 8, 120, "SIM 180 US/TICK  +DIGEST 420", STR_PAL_IVORY, 1);
     st_draw_text(fb, 8, 132, "PANEL 9.8 MS/FRAME 102 FPS", STR_PAL_IVORY, 1);
-    st_draw_text(fb, 8, 160, "LEFT: NEXT DART TRIAL", STR_PAL_IVORY_DARK, 1);
-    st_draw_text(fb, 8, 172, "RIGHT: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
-    st_draw_text(fb, 8, 184, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 144, "AUDIO OK  MUSIC OK  VOL 2/4", STR_PAL_IVORY, 1);
+    st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART TRIAL", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 180, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 192, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 204, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
     printf("P6\n%d %d\n255\n", ST_PANEL_W, ST_PANEL_H);
     uint16_t line[ST_PANEL_W];
     for (int y = 0; y < ST_PANEL_H; y++) {

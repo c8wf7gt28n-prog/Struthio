@@ -29,6 +29,32 @@ if git rev-parse --git-dir >/dev/null 2>&1 && ! git diff --quiet -- render/strut
 fi
 echo "PASS: render/struthio_scene_data.c is current"
 
+step "audio: generated tables (voices, SFX, priorities, ducks) match the arcade"
+node tools/gen_audio.mjs >/dev/null
+if git rev-parse --git-dir >/dev/null 2>&1 && ! git diff --quiet -- audio/struthio_audio_data.h; then
+  echo "FAIL: regenerated audio/struthio_audio_data.h differs; review and commit it"; exit 1
+fi
+echo "PASS: audio/struthio_audio_data.h is current"
+
+step "audio: C conductor + synth vs the browser's own, sample by sample"
+make -s -C host build/audio_check build/make_music
+mkdir -p build/audio
+for t in climb mortal duel raw late; do
+  host/build/audio_check --events golden/$t.trace build/audio/$t.events >/dev/null
+  host/build/audio_check --render build/audio/$t.events build/audio/$t.c.pcm >/dev/null
+  node tools/audio_reference.mjs build/audio/$t.events build/audio/$t.c.pcm
+done
+if command -v ffmpeg >/dev/null; then
+  ffmpeg -v error -y -i ../arcade/assets/audio/tarmac-at-midnight-loop.mp3 -ac 1 -ar 24000 -f s16le build/audio/music24k.raw
+  host/build/make_music build/audio/music24k.raw build/audio/check.ima | sed 's/^/  /'
+  if [ -f build/assets/struthio_music.ima ] && ! cmp -s build/audio/check.ima build/assets/struthio_music.ima; then
+    echo "FAIL: build/assets/struthio_music.ima is not the arcade soundtrack (make -C host music)"; exit 1
+  fi
+  echo "PASS: soundtrack encodes reproducibly"
+else
+  echo "SKIP: soundtrack check (needs ffmpeg)"
+fi
+
 step "graphics: the device's decomposed ambience equals the shader's"
 make -s -C host build/amb_test build/scene_check build/raster_check build/panel_check build/make_pak build/band_order_test
 host/build/amb_test | tail -1

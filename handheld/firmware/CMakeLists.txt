@@ -15,3 +15,11 @@ if(EXISTS ${STRUTHIO_PAK})
 else()
     message(WARNING "no ${STRUTHIO_PAK}: flashing without the asset pack (greybox renderer)")
 endif()
+# The soundtrack (`make -C ../host music`, from the arcade's MP3): written to
+# the 'music' partition. Without it the game plays its sound effects only.
+set(STRUTHIO_MUSIC ${CMAKE_CURRENT_LIST_DIR}/../build/assets/struthio_music.ima)
+if(EXISTS ${STRUTHIO_MUSIC})
+    esptool_py_flash_to_partition(flash "music" "${STRUTHIO_MUSIC}")
+else()
+    message(WARNING "no ${STRUTHIO_MUSIC}: flashing without the soundtrack (sound effects only)")
+endif()

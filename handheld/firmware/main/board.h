@@ -32,9 +32,13 @@ void board_backlight(uint8_t percent);
 typedef struct { bool battery_present, charging, vbus_present; uint16_t battery_mv; int battery_percent; } board_power_t;
 bool board_power_read(board_power_t *out);
 void board_power_off(void);
-// ES8311 codec + NS4150B amplifier, mono speaker. Cues are fire-and-forget.
+// ES8311 codec + NS4150B amplifier, mono speaker: 48 kHz, 16-bit, one channel.
 bool board_audio_init(void);
-void board_audio_cue(st_event_type_t event);
+// Queues n samples for the I2S DMA; blocks while the DMA buffers are full
+// (that wait paces the audio task). An underrun plays silence.
+void board_audio_write(const int16_t *pcm, int n);
+// Codec output volume, 0 (muted) to 100.
+void board_audio_volume(int percent);
 
 #ifdef __cplusplus
 }

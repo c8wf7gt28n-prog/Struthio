@@ -4,7 +4,8 @@
 // repository waveshareteam/ESP32-S3-Touch-LCD-3.5B, commit 840daf2:
 // ESP-IDF/01_factory/main/main.cpp (init order, TCA9554 reset pulse) and
 // components/esp_bsp/bsp_{i2c,display}.c (pins, AXS15231B init commands,
-// LEDC backlight). The panel driver is espressif/esp_lcd_axs15231b; see
+// LEDC backlight), and bsp_es8311.c for audio. The panel driver is
+// espressif/esp_lcd_axs15231b, audio espressif/esp_codec_dev; see
 // main/idf_component.yml. Pins: board_pins.h. Not yet run on hardware.
 //
 // The STRUTHIO-specific part is how pixels go out. A band is sent with
@@ -17,8 +18,11 @@
 #include "board_pmu.h"
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
+#include "driver/i2s_std.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"
+#include "esp_codec_dev.h"
+#include "esp_codec_dev_defaults.h"
 #include "esp_io_expander_tca9554.h"
 #include "esp_lcd_axs15231b.h"
 #include "esp_lcd_panel_io.h"
@@ -180,8 +184,80 @@ void board_backlight(uint8_t percent) {
 }
 
 // ---- audio -----------------------------------------------------------------------------------
-// ES8311 (I2C 0x18) + NS4150B. Pins in board_pins.h; the vendor example
-// (bsp_es8311.c) drives it through espressif/esp_codec_dev. Not wired yet:
-// STRUTHIO has no sound assets for the device yet (manual section 14).
-bool board_audio_init(void) { return false; }
-void board_audio_cue(st_event_type_t event) { (void)event; }
+// ES8311 codec (I2C, ES8311_CODEC_DEFAULT_ADDR 0x30 8-bit = 0x18) + NS4150B
+// amplifier, through espressif/esp_codec_dev as the vendor's bsp_es8311.c does
+// (same I2S pins and slot format, MCLK = 256 x fs, no PA pin). Differences:
+// playback only (no RX channel), 48 kHz mono for the STRUTHIO mixer, and an
+// I2S that plays silence on underrun.
+enum { PIN_I2S_MCLK = 44, PIN_I2S_BCLK = 13, PIN_I2S_LRCK = 15, PIN_I2S_DOUT = 16, PIN_I2S_DIN = 14 };
+#define AUDIO_RATE 48000
+static i2s_chan_handle_t s_i2s_tx;
+static esp_codec_dev_handle_t s_speaker;
+
+bool board_audio_init(void) {
+    if (s_speaker) return true;
+    if (!s_i2c) { ESP_LOGE(TAG, "audio: no I2C bus"); return false; }
+    i2s_chan_config_t chan = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
+    chan.dma_desc_num = 4;
+    chan.dma_frame_num = 256;                       // 4 x 5.3 ms queued at most
+    chan.auto_clear = true;
+    if (i2s_new_channel(&chan, &s_i2s_tx, NULL) != ESP_OK) { ESP_LOGE(TAG, "audio: I2S channel failed"); return false; }
+    i2s_std_config_t std = {0};
+    std.clk_cfg.sample_rate_hz = AUDIO_RATE;
+    std.clk_cfg.clk_src = I2S_CLK_SRC_DEFAULT;
+    std.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_256;
+    std.slot_cfg.data_bit_width = I2S_DATA_BIT_WIDTH_16BIT;
+    std.slot_cfg.slot_bit_width = I2S_SLOT_BIT_WIDTH_AUTO;
+    std.slot_cfg.slot_mode = I2S_SLOT_MODE_STEREO;
+    std.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
+    std.slot_cfg.ws_width = 16;
+    std.slot_cfg.ws_pol = false;
+    std.slot_cfg.bit_shift = true;
+    std.slot_cfg.left_align = true;
+    std.slot_cfg.big_endian = false;
+    std.slot_cfg.bit_order_lsb = false;
+    std.gpio_cfg.mclk = (gpio_num_t)PIN_I2S_MCLK;
+    std.gpio_cfg.bclk = (gpio_num_t)PIN_I2S_BCLK;
+    std.gpio_cfg.ws = (gpio_num_t)PIN_I2S_LRCK;
+    std.gpio_cfg.dout = (gpio_num_t)PIN_I2S_DOUT;
+    std.gpio_cfg.din = I2S_GPIO_UNUSED;
+    if (i2s_channel_init_std_mode(s_i2s_tx, &std) != ESP_OK || i2s_channel_enable(s_i2s_tx) != ESP_OK) {
+        ESP_LOGE(TAG, "audio: I2S init failed");
+        return false;
+    }
+    audio_codec_i2s_cfg_t i2s_cfg = {.port = I2S_NUM_0, .rx_handle = NULL, .tx_handle = s_i2s_tx};
+    const audio_codec_data_if_t *data_if = audio_codec_new_i2s_data(&i2s_cfg);
+    audio_codec_i2c_cfg_t i2c_cfg = {.port = 0, .addr = ES8311_CODEC_DEFAULT_ADDR, .bus_handle = s_i2c};
+    const audio_codec_ctrl_if_t *ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
+    if (!data_if || !ctrl_if || !gpio_if) { ESP_LOGE(TAG, "audio: codec interfaces failed"); return false; }
+    es8311_codec_cfg_t es = {0};
+    es.ctrl_if = ctrl_if;
+    es.gpio_if = gpio_if;
+    es.codec_mode = ESP_CODEC_DEV_WORK_MODE_DAC;
+    es.pa_pin = -1;
+    es.use_mclk = true;
+    es.hw_gain.pa_voltage = 5.0f;
+    es.hw_gain.codec_dac_voltage = 3.3f;
+    const audio_codec_if_t *codec_if = es8311_codec_new(&es);
+    if (!codec_if) { ESP_LOGE(TAG, "ES8311 not found"); return false; }
+    esp_codec_dev_cfg_t dev = {.dev_type = ESP_CODEC_DEV_TYPE_OUT, .codec_if = codec_if, .data_if = data_if};
+    s_speaker = esp_codec_dev_new(&dev);
+    if (!s_speaker) { ESP_LOGE(TAG, "audio: codec device failed"); return false; }
+    esp_codec_set_disable_when_closed(s_speaker, false);
+    esp_codec_dev_sample_info_t fs = {.sample_rate = AUDIO_RATE, .channel = 1, .bits_per_sample = 16};
+    if (esp_codec_dev_open(s_speaker, &fs) != ESP_CODEC_DEV_OK) { ESP_LOGE(TAG, "audio: codec open failed"); s_speaker = NULL; return false; }
+    esp_codec_dev_set_out_vol(s_speaker, 0);
+    ESP_LOGI(TAG, "ES8311 audio %d Hz mono", AUDIO_RATE);
+    return true;
+}
+void board_audio_write(const int16_t *pcm, int n) {
+    if (!s_speaker) { vTaskDelay(pdMS_TO_TICKS(5)); return; }
+    esp_codec_dev_write(s_speaker, (void *)pcm, n * (int)sizeof(int16_t));
+}
+void board_audio_volume(int percent) {
+    if (!s_speaker) return;
+    if (percent < 0) percent = 0; else if (percent > 100) percent = 100;
+    esp_codec_dev_set_out_mute(s_speaker, percent == 0);
+    esp_codec_dev_set_out_vol(s_speaker, percent);
+}

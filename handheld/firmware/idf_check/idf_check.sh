@@ -5,7 +5,8 @@
 # Fetches by git, pinned (sparse, headers only, ~150 MB, cached in
 # handheld/build/idf_check):
 #   ESP-IDF v5.5.5; esp_lcd_axs15231b 2.1.1 (esp-iot-solution @88152bf);
-#   esp_io_expander 1.2.1 + tca9554 2.0.3, esp_lcd_touch 1.2.1 (esp-bsp @73ee07b)
+#   esp_io_expander 1.2.1 + tca9554 2.0.3, esp_lcd_touch 1.2.1 (esp-bsp @73ee07b);
+#   esp_codec_dev 1.5.2 (esp-adf @d6e1ef5)
 # generates the real sdkconfig.h from ESP-IDF's Kconfig and our
 # sdkconfig.defaults with Espressif's kconfgen (pip esp-idf-kconfig), then
 # checks main/*.c, main/*.cpp and the struthio component sources with
@@ -37,6 +38,7 @@ fetch esp-idf https://github.com/espressif/esp-idf.git v5.5.5 \
 fetch iot https://github.com/espressif/esp-iot-solution.git 88152bff24d5fbc05ff2ffed3d5208c247711ded '/components/display/lcd/esp_lcd_axs15231b/**'
 fetch bsp https://github.com/espressif/esp-bsp.git 73ee07b1ad56f865f13a2739be8bb6808c1da58a \
   '/components/io_expander/esp_io_expander/**' '/components/io_expander/esp_io_expander_tca9554/**' '/components/lcd_touch/esp_lcd_touch/**'
+fetch adf https://github.com/espressif/esp-adf.git d6e1ef5ccf29ca52dcb8332a3232505366755012 '/components/esp_codec_dev/**'
 python3 -c "import kconfgen" 2>/dev/null || { echo "need: pip install esp-idf-kconfig"; exit 2; }
 [ -d /usr/include/newlib ] || { echo "need: apt-get install libnewlib-dev"; exit 2; }
 
@@ -44,7 +46,7 @@ IDF="$C/esp-idf"; I="$IDF/components"
 # --- sdkconfig.h, as the build system would generate it --------------------------------
 {
   find "$I" -maxdepth 2 -name Kconfig | sort | sed 's/.*/source "&"/'
-  for k in "$FW"/components/*/Kconfig "$C"/bsp/components/io_expander/esp_io_expander/Kconfig \
+  for k in "$FW"/components/*/Kconfig "$C"/adf/components/esp_codec_dev/Kconfig "$C"/bsp/components/io_expander/esp_io_expander/Kconfig \
            "$C"/bsp/components/lcd_touch/esp_lcd_touch/Kconfig; do [ -f "$k" ] && echo "source \"$k\""; done
 } > "$C/kconfigs.in"
 find "$I" -maxdepth 2 -name Kconfig.projbuild | sort | sed 's/.*/source "&"/' > "$C/kconfigs_projbuild.in"
@@ -76,17 +78,18 @@ for root, ds, fs in os.walk(I):
         rest.append(root)
 dirs = first + sorted(set(rest) - set(first))
 dirs += [f'{C}/iot/components/display/lcd/esp_lcd_axs15231b/include', f'{C}/bsp/components/io_expander/esp_io_expander/include',
-         f'{C}/bsp/components/io_expander/esp_io_expander_tca9554/include', f'{C}/bsp/components/lcd_touch/esp_lcd_touch/include']
+         f'{C}/bsp/components/io_expander/esp_io_expander_tca9554/include', f'{C}/bsp/components/lcd_touch/esp_lcd_touch/include',
+         f'{C}/adf/components/esp_codec_dev/include', f'{C}/adf/components/esp_codec_dev/interface', f'{C}/adf/components/esp_codec_dev/device/include']
 print('\n'.join(d for d in dirs if os.path.isdir(d)))
 PY
 # --- compile ---------------------------------------------------------------------------
 INC=$(sed 's/^/-isystem /' "$C/incs.txt" | tr '\n' ' ')
 XP="-isystem $FW/components/XPowersLib/src -isystem $FW/components/XPowersLib/src/REG"
-OURS="-I$FW/main -I$H/core -I$H/render -I$C"
+OURS="-I$FW/main -I$H/core -I$H/render -I$H/audio -I$C"
 DEFS="-DESP_PLATFORM -DIDF_VER=\"v5.5.5\" -D_GNU_SOURCE -D__XTENSA__=1 -D_POSIX_READER_WRITER_LOCKS"
 GCCINC=$(gcc -print-file-name=include)
 fails=0
-for f in "$FW"/main/*.c "$FW"/main/*.cpp "$H"/core/*.c "$H"/render/*.c; do
+for f in "$FW"/main/*.c "$FW"/main/*.cpp "$H"/core/*.c "$H"/render/*.c "$H"/audio/*.c; do
   case "$f" in
     *.cpp) cmd=(g++ -std=gnu++2b -m32 -fsyntax-only -nostdinc -nostdinc++ -isystem "$HERE/cxxshim" -isystem "$GCCINC" -isystem /usr/include/newlib) ;;
     *)     cmd=(gcc -std=gnu17 -m32 -fsyntax-only -nostdinc -isystem "$GCCINC" -isystem /usr/include/newlib) ;;

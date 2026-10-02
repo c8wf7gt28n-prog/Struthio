@@ -25,6 +25,10 @@ exporter, port the change, and regenerate this file; `--check` (run by
 | `arcade/src/input/input.mjs` | `26f7ca0218e33b83c6099930c278e51fc13845f01e7227aedb67cf8a6c76159f` | core/struthio_input.c (InputNormalizer, wing path) |
 | `arcade/src/app/session.mjs` | `0b11c6e20e8bf60f641883e2c51c502864867de800f9c086d98bca9e4cc4aa5c` | canAcceptBufferedFlap, cleanup on death, restart on GAME OVER |
 | `arcade/src/render/camera.mjs` | `d123e4104c77d113c77d0ca1dae86ab335f84d2db8b68be5677cb05b6d1b18b0` | render/struthio_greybox.c (presentation only) |
+| `arcade/src/audio/synth.mjs` | `135af4fd2da2e6d6d65a84fcf7317f99a85465f9e677abdbef754c576bddc592` | audio/struthio_audio.c (sta_mixer: the worklet Mixer) |
+| `arcade/src/audio/conductor.mjs` | `9d321ba6aeafd6ce7ade78946e2f1c3787f031550d8bc9f9b723bf9ad41b9117` | audio/struthio_audio.c (sta_conductor), audio/struthio_audio_data.h (generated) |
+| `arcade/src/audio/music.mjs` | `9ac61c41630b9045512ea4ff1946b51d3f3120e1616ce8827dde71209617e02d` | audio/struthio_audio.c (music gain and ducking) |
+| `arcade/assets/audio/tarmac-at-midnight-loop.mp3` | `c55b3994f7be7bb710820f64336d49b1c822c5891ecbf3e83ef3ee64efcea08c` | build/assets/struthio_music.ima (host/make_music) |
 
 Notes
 

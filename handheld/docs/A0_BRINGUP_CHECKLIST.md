@@ -25,8 +25,10 @@ ESP-IDF 5.5.5 headers and board drivers (run_tests.sh runs it).
       Lock one only after real play.
 - [ ] If 40-line bands misbehave on the AXS15231B, try full-frame writes; record which works.
 - [ ] Confirm 30 fps sustained display path; attempt 60 fps second.
-- [ ] Wire `board_audio_init` / `board_audio_cue` (ES8311 + NS4150B); confirm audio on low
-      gain using 8-ohm speaker.
+- [ ] Speaker on the header. Service mode: "AUDIO OK  MUSIC OK"; the round-clear sting plays after
+      the checks. Hold LEFT 1 s to step the volume (starts at 2 of 4); a chime plays.
+- [ ] In play: flap, ring, joust, egg and death sounds over the music; the music ducks on rings.
+      Note the log's `audio <us>` (budget 5333 us) and whether `render` time changed.
 
 ## Mechanical fit
 - [ ] Print front shell only; test LCD opening and board width.

@@ -369,8 +369,8 @@ def fig_flash():
     parts = [('bootloader', 0x0, 0x8000, (180, 180, 180)), ('partition\ntable', 0x8000, 0x1000, (150, 150, 150)),
              ('nvs  24 KB\nhigh score,\nDART trial', 0x9000, 0x6000, GOLD), ('phy 4 KB', 0xF000, 0x1000, (200, 200, 200)),
              ('factory app  4 MB\nthe STRUTHIO firmware\n(idf.py flash)', 0x10000, 0x400000, (120, 170, 210)),
-             ('assets  11 MB partition\nstruthio.pak, 8.3 MB used\nmapped, never copied to RAM', 0x410000, 0xB00000, (130, 200, 150)),
-             ('free', 0xF10000, 0xF0000, (240, 240, 240))]
+             ('assets  9 MB partition\nstruthio.pak, 8.3 MB used\nmapped, never copied to RAM', 0x410000, 0x900000, (130, 200, 150)),
+             ('music 2.9 MB\nsoundtrack 1.9 MB\n(24 kHz ADPCM)', 0xD10000, 0x2F0000, (240, 190, 120))]
     x0, x1, y0, y1 = 60, 1940, 300, 430
     total = 0x1000000
     import math
@@ -387,7 +387,7 @@ def fig_flash():
         text(d, (x + 4, y1 + 14), f'0x{o:X}', 20, GREY, False, 'la') if w > 120 or o in (0x10000,) else None
         x += w
     # callouts for the small ones
-    small = [(0, 'bootloader'), (1, 'partition table'), (2, 'nvs 24 KB: high score + DART trial'), (3, 'phy 4 KB: radio calibration')]
+    small = [(0, 'bootloader'), (1, 'partition table'), (2, 'nvs 24 KB: high score, DART trial, volume'), (3, 'phy 4 KB: radio calibration')]
     xs = [x0]
     for w in widths: xs.append(xs[-1] + w)
     for i, (idx, lab) in enumerate(small):
@@ -397,11 +397,11 @@ def fig_flash():
             d.line([(cx, y0), (cx, ty + 30)], fill=INK, width=2); text(d, (cx + 10, ty), lab, 24, INK)
         else:
             d.line([(cx, y1), (cx, ty + 12)], fill=INK, width=2); text(d, (cx + 10, ty), lab, 24, INK)
-    text(d, (x1, y1 + 14), '0x1000000 = 16 MB', 20, GREY, False, 'ra')
+    text(d, (x1, y1 + 44), 'ends at 0x1000000 = 16 MB', 20, GREY, False, 'ra')
     d.multiline_text((60, 660), '•  idf.py flash writes the bootloader, the partition table, the app AND, when\n'
-                     '    build/assets/struthio.pak exists, the asset pack into "assets" (firmware/CMakeLists.txt).\n'
-                     '•  No pack at build time: a CMake warning, and the firmware runs the greybox renderer.\n'
-                     '•  nvs survives re-flashing the app; "idf.py erase-flash" clears it (high score resets).',
+                     '    build/assets/struthio.pak and struthio_music.ima exist, the art and the soundtrack (firmware/CMakeLists.txt).\n'
+                     '•  No pack: a CMake warning and the greybox renderer. No soundtrack: a warning, sound effects only.\n'
+                     '•  nvs survives re-flashing the app; "idf.py erase-flash" clears it (high score, DART trial and volume reset).',
                      font=F(24), fill=INK, spacing=10)
     save(im, 'f06_flashmap.png')
 
@@ -567,6 +567,51 @@ def fig_bench():
     d.multiline_text((500, 560), 'Leave OFF the bench:\n• the LiPo battery\n• the speaker\n• any camera module\n• the shell', font=F(28), fill=RED, spacing=8)
     save(im, 'f11_bench.png')
 
+# ---- F12: sound path ----------------------------------------------------------------------------
+def fig_audio():
+    W, H = 2000, 900
+    im, d = canvas(W, H)
+    title(d, W, 'How the handheld makes its sound', 'audio/struthio_audio.c (the browser\'s conductor + synth, ported and checked sample by sample) \u2192 firmware audio task \u2192 ES8311')
+    top = [('game events', 'FLAP, RING, JOUST,\nEGG, HATCH, DEATH,\nGOLD RING, ROUND', (225, 240, 250)),
+           ('conductor', 'priority, min gap,\nbeat quantize,\npitch jitter', (200, 230, 160)),
+           ('synth', '7 voices: noise,\nsine, triangle,\npulse + filter', (130, 200, 150)),
+           ('SFX level', 'x 0.68 x 0.92\ncompressor\n(-12 dB, 8:1)', (120, 170, 210))]
+    bw, gap, y = 330, 120, 170
+    xs = [40 + i * (bw + gap) for i in range(4)]
+    for x, (a, b, c) in zip(xs, top):
+        box(d, (x, y, x + bw, y + 130), fill=c)
+        text(d, (x + bw / 2, y + 65), a, 32, INK, True, 'mm')
+        d.multiline_text((x + bw / 2, y + 145), b, font=F(24), fill=GREY, anchor='ma', align='center', spacing=4)
+    for i in range(3): arrow(d, (xs[i] + bw + 6, y + 65), (xs[i + 1] - 6, y + 65))
+    # music lane
+    my = 520
+    box(d, (40, my, 40 + bw, my + 130), fill=AMBER)
+    text(d, (40 + bw / 2, my + 65), 'music partition', 30, INK, True, 'mm')
+    d.multiline_text((40 + bw / 2, my + 145), '160 s loop, 24 kHz\nIMA ADPCM, 1.9 MB', font=F(24), fill=GREY, anchor='ma', align='center', spacing=4)
+    box(d, (xs[1], my, xs[1] + bw, my + 130), fill=(250, 220, 170))
+    text(d, (xs[1] + bw / 2, my + 65), 'decode x2', 32, INK, True, 'mm')
+    d.multiline_text((xs[1] + bw / 2, my + 145), 'to 48 kHz', font=F(24), fill=GREY, anchor='ma', align='center')
+    box(d, (xs[2], my, xs[2] + bw, my + 130), fill=(250, 220, 170))
+    text(d, (xs[2] + bw / 2, my + 65), 'x 0.56, ducked', 30, INK, True, 'mm')
+    d.multiline_text((xs[2] + bw / 2, my + 145), 'dips on rings, jousts,\ndeaths, round clear', font=F(24), fill=GREY, anchor='ma', align='center', spacing=4)
+    arrow(d, (40 + bw + 6, my + 65), (xs[1] - 6, my + 65)); arrow(d, (xs[1] + bw + 6, my + 65), (xs[2] - 6, my + 65))
+    # mix + output
+    mx = 1870
+    d.ellipse((mx - 50, 395, mx + 50, 495), fill=WHITE, outline=NAVY, width=5); text(d, (mx, 445), '+', 60, NAVY, True, 'mm')
+    d.line([(xs[3] + bw + 6, y + 65), (mx, y + 65)], fill=NAVY, width=6); arrow(d, (mx, y + 65), (mx, 393))
+    arrow(d, (xs[2] + bw + 6, my + 65), (mx - 40, 480))
+    out = [('ES8311', 'I2S 48 kHz\n16-bit mono'), ('NS4150B', 'amplifier'), ('speaker', '6\u20138 \u03a9, ~1 W')]
+    ox = mx + 120
+    for i, (a, b) in enumerate(out):
+        bx = ox + i * 0
+    # output column on the right edge
+    box(d, (1440, 720, 1980, 860), fill=(230, 230, 230))
+    text(d, (1710, 760), 'ES8311 \u2192 NS4150B \u2192 speaker', 26, INK, True, 'mm')
+    text(d, (1710, 810), 'volume: 5 levels (service mode)', 22, GREY, False, 'mm')
+    arrow(d, (mx, 497), (mx, 718))
+    text(d, (mx - 20, 600), 'clip, 48 kHz', 22, GREY, False, 'ra')
+    save(im, 'f12_audio.png')
+
 if __name__ == '__main__':
-    for f in (fig_pullup, fig_multimeter, fig_solder, fig_switchboard, fig_timing, fig_flash, fig_cores, fig_golden, fig_hud, fig_pipeline, fig_bench):
+    for f in (fig_pullup, fig_multimeter, fig_solder, fig_switchboard, fig_timing, fig_flash, fig_cores, fig_golden, fig_hud, fig_pipeline, fig_bench, fig_audio):
         f()

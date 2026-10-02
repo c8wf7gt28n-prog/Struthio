@@ -14,11 +14,15 @@
  *                 on core 0, odd bands on core 1, 16 lines each straight to the
  *                 panel. It may drop frames; it never slows the game.
  *                 Without an asset pack it falls back to the greybox renderer.
+ *  - audio task   core 0, above the renderer: game events -> the port of the
+ *                 browser's conductor + synth (SFX) and the soundtrack loop
+ *                 from the 'music' partition -> 48 kHz mono -> ES8311
+ *                 (audio/struthio_audio.c). Volume level in NVS.
  *  - GAME OVER: both wings held together start a new run (a flap cannot)
  *  - both wings held at power-on -> service mode (diagnostics, on-device golden
  *    replay, panel benchmark, DART trial selection)
  *
- * Persistence: high score + DART trial in NVS, written from the render task,
+ * Persistence: high score, DART trial and volume in NVS, written from the render task,
  * never inside a game tick. The task watchdog resets a hung game back into play.
  */
 #include <stdbool.h>
@@ -27,6 +31,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "freertos/queue.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
@@ -38,6 +43,7 @@
 #include "nvs_flash.h"
 #include "board.h"
 #include "struthio_app.h"
+#include "struthio_audio.h"
 #include "struthio_buttons.h"
 #include "struthio_core.h"
 #include "struthio_greybox.h"
@@ -202,6 +208,82 @@ static void render_helper_task(void *arg) {
 }
 bool app_display_ok(void) { return g_display_ok; }
 
+// ---- sound ---------------------------------------------------------------------------------
+// The game task posts each event (type + the actor ids JOUST_CLASH needs); the
+// audio task turns them into notes between 256-frame renders and hands the
+// samples to the I2S DMA, whose wait paces it. Volume: 5 levels, codec percent.
+typedef struct { uint8_t type; int16_t a, b; } audio_msg_t;
+static QueueHandle_t g_audio_q;
+static sta_audio_t g_audio;
+static bool g_audio_ok, g_music_ok;
+static int g_volume = 2;
+static const int VOLUME_PERCENT[APP_VOLUME_LEVELS] = {0, 45, 60, 72, 85};   // bench-tune: low first
+
+static const uint8_t *map_music(size_t *size) {
+    const esp_partition_t *part = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, 0x41, "music");
+    if (!part) { ESP_LOGW(TAG, "no music partition"); return NULL; }
+    const void *p = NULL;
+    esp_partition_mmap_handle_t h;
+    if (esp_partition_mmap(part, 0, part->size, ESP_PARTITION_MMAP_DATA, &p, &h) != ESP_OK) { ESP_LOGW(TAG, "music: mmap failed"); return NULL; }
+    *size = part->size;
+    return p;
+}
+static void audio_task(void *arg) {
+    (void)arg;
+    static int16_t pcm[2 * STA_BLOCK];
+    for (;;) {
+        audio_msg_t m;
+        while (xQueueReceive(g_audio_q, &m, 0) == pdTRUE) {
+            st_event_t e = {0};
+            e.type = m.type;
+            e.n = 2;
+            e.f[0] = (st_field_t){"a", ST_F_INT, m.a, NULL};
+            e.f[1] = (st_field_t){"b", ST_F_INT, m.b, NULL};
+            sta_audio_event(&g_audio, &e);
+        }
+        int64_t t0 = esp_timer_get_time();
+        sta_audio_render(&g_audio, pcm, 2 * STA_BLOCK);
+        uint32_t us = (uint32_t)(esp_timer_get_time() - t0);
+        g_stats.audio_us = us;
+        if (us > g_stats.audio_us_max) g_stats.audio_us_max = us;
+        board_audio_write(pcm, 2 * STA_BLOCK);
+    }
+}
+bool app_audio_start(void) {
+    if (g_audio_q) return g_audio_ok;
+    size_t music_size = 0;
+    const uint8_t *music = map_music(&music_size);
+    sta_audio_init(&g_audio, music, music_size, esp_random());
+    g_music_ok = g_audio.music_on;
+    if (music && !g_music_ok) ESP_LOGW(TAG, "music: not a STRUTHIO music file (flash build/assets/struthio_music.ima; see README)");
+    g_audio_q = xQueueCreate(32, sizeof(audio_msg_t));
+    g_audio_ok = g_audio_q && board_audio_init();
+    g_volume = (int)app_load_i32("volume", 2);
+    if (g_volume < 0 || g_volume >= APP_VOLUME_LEVELS) g_volume = 2;
+    if (g_audio_ok) {
+        board_audio_volume(VOLUME_PERCENT[g_volume]);
+        xTaskCreatePinnedToCore(audio_task, "audio", 4096, NULL, 8, NULL, 0);
+    }
+    ESP_LOGI(TAG, "audio %s, music %s, volume %d/%d", g_audio_ok ? "ok" : "OFF", g_music_ok ? "160 s loop" : "none", g_volume, APP_VOLUME_LEVELS - 1);
+    return g_audio_ok;
+}
+void app_audio_post(const st_event_t *e) {
+    if (!g_audio_q) return;
+    const st_field_t *a = st_event_field(e, "a"), *b = st_event_field(e, "b");
+    audio_msg_t m = {e->type, (int16_t)(a ? a->i : -1), (int16_t)(b ? b->i : -1)};
+    xQueueSend(g_audio_q, &m, 0);            // full queue: the sound is skipped, the game never waits
+}
+void app_audio_test(int event_type) { st_event_t e = {0}; e.type = (uint8_t)event_type; app_audio_post(&e); }
+int app_volume(void) { return g_volume; }
+void app_set_volume(int level) {
+    g_volume = ((level % APP_VOLUME_LEVELS) + APP_VOLUME_LEVELS) % APP_VOLUME_LEVELS;
+    board_audio_volume(VOLUME_PERCENT[g_volume]);
+    app_save_i32("volume", g_volume);
+    ESP_LOGI(TAG, "volume %d/%d", g_volume, APP_VOLUME_LEVELS - 1);
+}
+bool app_audio_ok(void) { return g_audio_ok; }
+bool app_music_ok(void) { return g_music_ok; }
+
 // ---- input task: 1 kHz --------------------------------------------------------------------
 static void input_task(void *arg) {
     (void)arg;
@@ -233,7 +315,7 @@ static void new_run(void) {
 static void on_events(const st_events_t *ev) {
     for (int i = 0; i < ev->n; i++) {
         const st_event_t *e = &ev->e[i];
-        board_audio_cue((st_event_type_t)e->type);
+        app_audio_post(e);
         switch (e->type) {
         case ST_EV_PLAYER_DEATH:
         case ST_EV_GAMEOVER:
@@ -339,10 +421,11 @@ static void game_task(void *arg) {
 // ---- render task ---------------------------------------------------------------------------
 static void log_stats(void) {
     if ((g_stats.frames % 300) == 0)
-        ESP_LOGI(TAG, "tick %llu sim %lu us (max %lu) scene %lu us render %lu us present %lu us missed %lu band-order %lu",
+        ESP_LOGI(TAG, "tick %llu sim %lu us (max %lu) scene %lu us render %lu us present %lu us missed %lu band-order %lu audio %lu us (max %lu) per 5333",
                  (unsigned long long)g_stats.ticks, (unsigned long)g_stats.sim_us_last, (unsigned long)g_stats.sim_us_max,
                  (unsigned long)g_stats.scene_us, (unsigned long)g_stats.render_us, (unsigned long)g_stats.present_us,
-                 (unsigned long)g_stats.missed_deadlines, (unsigned long)board_display_order_errors());
+                 (unsigned long)g_stats.missed_deadlines, (unsigned long)board_display_order_errors(),
+                 (unsigned long)g_stats.audio_us, (unsigned long)g_stats.audio_us_max);
 }
 // The panel renderer: the newest published frame, split between the cores.
 static void render_panel_frame(void) {
@@ -426,7 +509,7 @@ void app_main(void) {
     }
     st_norm_init(&g_norm);                    // discard boot-guard presses
     st_buttons_init(&g_buttons, &g_norm, trial, app_now_ms());
-    board_audio_init();
+    app_audio_start();
     board_backlight(100);
     g_panel_ok = g_display_ok && map_asset_pack();
     new_run();
