@@ -29,7 +29,7 @@ ra internals_angle -90,-170,260,0,0,0    1300,1700
 ra rear_angle      -110,-170,230,0,0,0   1300,1700
 r side          0,0,300,0,0,0          1700,700
 if command -v node >/dev/null && node -e "import('/opt/node22/lib/node_modules/playwright/index.mjs')" 2>/dev/null; then
-  python3 art/make_sticker.py && node art/render_sticker.mjs
+  python3 art/make_sticker.py && node art/render_sticker.mjs && python3 art/finish_sticker.py
   FRONT=renders/front.png python3 art/compose_front.py
 else
   echo "SKIP: sticker art and composed front (Node + Playwright not found)"

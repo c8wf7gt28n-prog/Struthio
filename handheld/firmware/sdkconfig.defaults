@@ -1,4 +1,4 @@
-# STRUTHIO HANDHELD · Prototype A0 defaults (Waveshare ESP32-S3-Touch-LCD-3.5B)
+# STRUTHIO HANDHELD defaults (Waveshare ESP32-S3-Touch-LCD-3.5B)
 CONFIG_IDF_TARGET="esp32s3"
 CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
 CONFIG_PARTITION_TABLE_CUSTOM=y
@@ -18,7 +18,7 @@ CONFIG_ESP_SYSTEM_PANIC_PRINT_REBOOT=y
 CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
 # AXP2101 PMIC (XPowersLib defaults to AXP192 on ESP32-S3; board_pmu.cpp also defines it)
 CONFIG_XPOWERS_CHIP_AXP2101=y
-# A1.5 hard power (the slide switch cuts BAT+): read back every flash write.
+# Hard power (the slide switch cuts BAT+): read back every flash write.
 # NVS itself tolerates power loss; settings are written only when they change.
 CONFIG_SPI_FLASH_VERIFY_WRITE=y
 CONFIG_SPI_FLASH_LOG_FAILED_WRITE=y

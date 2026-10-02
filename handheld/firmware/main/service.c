@@ -109,7 +109,7 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
             char t[48];
             memset(fb, STR_PAL_INK, ST_FB_W * ST_FB_H);
             st_draw_text(fb, 8, 8, "STRUTHIO SERVICE", STR_PAL_GOLD_LIGHT, 2);
-            st_draw_text(fb, 8, 30, "A0 / CORE 1.8.0 PORT / " __DATE__, STR_PAL_GOLD, 1);
+            st_draw_text(fb, 8, 30, "HANDHELD / CORE 1.8.0 / " __DATE__, STR_PAL_GOLD, 1);
             snprintf(t, sizeof t, "RESET %d  PSRAM %uK  RAM %uK", (int)esp_reset_reason(),
                      (unsigned)(heap_caps_get_free_size(MALLOC_CAP_SPIRAM) / 1024), (unsigned)(heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024));
             st_draw_text(fb, 8, 48, t, STR_PAL_IVORY, 1);

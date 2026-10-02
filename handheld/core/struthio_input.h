@@ -37,7 +37,7 @@ void st_norm_wing_up(st_norm_t *n, st_side_t side);
 // side NONE (handheld only) darts toward the bird's facing, as the sim does
 // for a frame with dartEdge and no dartSide.
 bool st_norm_dart(st_norm_t *n, st_side_t side);
-// Handheld A1.5: one press of a DART-rocker end. Each press is a fresh pointer
+// Handheld: one press of a DART-rocker end. Each press is a fresh pointer
 // to the browser's queueDart (one dart, in that direction), so it never
 // touches a wing's own once-per-press dart state.
 bool st_norm_dart_button(st_norm_t *n, st_side_t side);

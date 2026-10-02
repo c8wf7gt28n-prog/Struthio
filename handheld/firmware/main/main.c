@@ -1,5 +1,5 @@
 /*
- * STRUTHIO ESP32-S3 Handheld - Prototype A0 firmware.
+ * STRUTHIO ESP32-S3 Handheld firmware.
  *
  * POWER ON -> STRUTHIO STARTS -> two physical wing buttons play a full round.
  *
@@ -132,7 +132,7 @@ int32_t app_load_i32(const char *key, int32_t fallback) {
     }
     return v;
 }
-// Hard power (A1.5: the slide switch cuts BAT+): NVS survives power loss at any
+// Hard power (the slide switch cuts BAT+): NVS survives power loss at any
 // moment, but a value being written at that instant can be lost. So settings
 // are written only when they change, never periodically, and flash writes are
 // read back (CONFIG_SPI_FLASH_VERIFY_WRITE).
@@ -165,6 +165,10 @@ static bool map_asset_pack(void) {
     const void *p = NULL;
     esp_partition_mmap_handle_t h;
     if (esp_partition_mmap(part, 0, part->size, ESP_PARTITION_MMAP_DATA, &p, &h) != ESP_OK) { ESP_LOGW(TAG, "assets: mmap failed"); return false; }
+    if (memcmp(p, "STRGREY0", 8) == 0) {   // idf.py -D STRUTHIO_ART=greybox
+        ESP_LOGI(TAG, "assets: greybox marker (STRUTHIO_ART=greybox): flat-colour renderer by request");
+        return false;
+    }
     char err[96];
     if (!st_pak_open(p, part->size, &g_tex, &g_hud_assets, err, sizeof err)) {
         ESP_LOGW(TAG, "assets: %s (flash build/assets/struthio.pak; see README)", err);
@@ -490,7 +494,7 @@ static void render_task(void *arg) {
 
 // ---- boot ---------------------------------------------------------------------------------
 void app_main(void) {
-    ESP_LOGI(TAG, "STRUTHIO Prototype A0 boot (core: STRUTHIO ARCADE 1.8.0 port)");
+    ESP_LOGI(TAG, "STRUTHIO handheld boot (core: STRUTHIO ARCADE 1.8.0 port)");
     init_wing_gpio();
     nvs_init_or_erase();
     st_dart_trial_t trial = (st_dart_trial_t)app_load_i32("dart", ST_DART_TRIAL_C_BOTH_HOLD);

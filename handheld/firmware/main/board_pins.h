@@ -12,10 +12,10 @@
 //   BOOT 0    USB D-/D+ 19/20    UART0 TX 43
 //
 // THE WINGS USE THE CAMERA'S VSYNC/HREF PINS. GPIO17/18 are only free when no
-// camera module is fitted and the camera is never initialised. A0 has no
-// camera. Keep the FPC connector empty; the firmware has no camera code.
+// camera module is fitted and the camera is never initialised. STRUTHIO has
+// no camera. Keep the FPC connector empty; the firmware has no camera code.
 //
-// A1.5 DART rocker: GPIO21 DART LEFT, GPIO38 DART RIGHT (camera D7 / XCLK:
+// DART rocker: GPIO21 DART LEFT, GPIO38 DART RIGHT (camera D7 / XCLK:
 // free with no camera). Remaining spare pins with no camera fitted:
 // 39, 40, 41, 42, 47, 48. Avoid 45 and 46: they are
 // strapping pins. If the SD slot stays empty, 9, 10 and 11 are free too.

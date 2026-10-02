@@ -1,4 +1,4 @@
-// STRUTHIO HANDHELD · greybox renderer (Prototype A0, phase 4).
+// STRUTHIO HANDHELD · greybox renderer.
 //
 // Draws the simulation into one 256 x 384 8-bit indexed framebuffer (98,304
 // bytes) using the rulebook palette, then presents it to the 320 x 480 panel

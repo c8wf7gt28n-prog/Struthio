@@ -15,9 +15,9 @@
 // tens of unwanted darts a minute because steering IS holding a wing and a
 // flap while steering IS a quick re-press. C uses the one idle gesture: both
 // wings held after the straight-up chord.
-// A1.5 adds a two-end silicone DART rocker (GPIO21 DART LEFT, GPIO38 DART
+// The handheld adds a two-end silicone DART rocker (GPIO21 DART LEFT, GPIO38 DART
 // RIGHT, active low): each debounced press of an end is one directional dart.
-// The wing trials stay for A0 boards without a rocker; on A1.5 select
+// The wing trials stay for bench boards without a rocker; on the handheld select
 // ROCKER ONLY (trial OFF) in service mode so the wings never dart.
 // Portable C: no ESP-IDF headers, host-tested in firmware/host_test.
 #pragma once

@@ -129,7 +129,7 @@ static void trial_report(const char *path) {
     uint32_t hl = d[8] | d[9] << 8 | d[10] << 16 | (uint32_t)d[11] << 24;
     if (memmem(d + 12, hl, "\"raw\":true", 10)) { free(d); return; }
     const char *name = strrchr(path, '/') ? strrchr(path, '/') + 1 : path;
-    for (int trial = 0; trial < 4; trial++) {   // 3: A1.5 rocker (trial OFF + the bot's darts on the rocker)
+    for (int trial = 0; trial < 4; trial++) {   // 3: the rocker (trial OFF + the bot's darts on the rocker)
         st_buttons_t b;
         st_buttons_init(&b, NULL, trial == 3 ? ST_DART_OFF : (st_dart_trial_t)trial, 0);
         bool L = false, R = false, rk[2] = {false, false};
@@ -163,7 +163,7 @@ static void trial_report(const char *path) {
         double minutes = ticks / 3600.0;
         if (trial == 3) {
             bool ok = (long)b.darts == intended - too_fast;
-            printf("  %-12s A1.5 ROCKER       %5u darts fired in %4.1f min; the bot asked for %ld (%ld faster than a thumb can re-press): %s\n",
+            printf("  %-12s ROCKER            %5u darts fired in %4.1f min; the bot asked for %ld (%ld faster than a thumb can re-press): %s\n",
                    name, b.darts, minutes, intended, too_fast, ok ? "every press darts, nothing else does" : "MISMATCH");
             if (!ok) exit(1);
             continue;
