@@ -11,7 +11,9 @@
 //   - sound: codec found, music loop found, volume level
 // LEFT tap: next DART trial (saved).  LEFT held 1 s: next volume level (saved;
 // plays the ring chime).  RIGHT tap: run the replay + benchmark again (the
-// round-clear sting plays when it finishes).
+// round-clear sting plays when it finishes). RIGHT held 1 s: screen turned 180.
+// DART rocker LEFT tap: next backlight level.  DART rocker RIGHT tap: the fitted
+// cell (250 mAh / 500 mAh or larger: charge current 100 / 200 mA). Both saved.
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -73,13 +75,18 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
     st_norm_set_mode(norm, ST_MODE_PLAY);
     st_buttons_init(b, norm, (st_dart_trial_t)b->trial, app_now_ms());
     app_audio_start();
+    if (app_display_ok()) {                  // a dark picture first, then light the panel
+        memset(app_framebuffer(), STR_PAL_INK, ST_FB_W * ST_FB_H);
+        app_present(app_framebuffer());
+        app_backlight_on();
+    }
     run_checks();
     app_audio_test(ST_EV_ROUND_CLEAR);
     uint8_t *fb = app_framebuffer();
     uint32_t frame = 0;
     // Taps act on release, so a hold can mean something else (LEFT: volume).
     uint32_t down_at[2] = {0, 0};
-    bool was[2] = {false, false}, held_used[2] = {false, false};
+    bool was[2] = {false, false}, held_used[2] = {false, false}, was_rocker[2] = {false, false};
     for (;;) {
         uint32_t now = app_now_ms();
         st_buttons_sample(b, app_pin_pressed(17), app_pin_pressed(18), now);
@@ -111,6 +118,13 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
                 }
             }
             was[side] = held;
+            bool rk = st_buttons_rocker_held(b, side == 0 ? ST_SIDE_LEFT : ST_SIDE_RIGHT);
+            if (!rk && was_rocker[side]) {                   // rocker taps: brightness, cell
+                if (side == 0) app_set_brightness(app_brightness() + 1);
+                else app_set_cell(!app_cell());
+                app_audio_test(ST_EV_FLAP);
+            }
+            was_rocker[side] = rk;
         }
         if (app_display_ok() && (frame++ % 8) == 0) {
             char t[48];
@@ -140,11 +154,16 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
                          pw.charging ? "  CHARGING" : "", pw.vbus_present ? "  USB" : "");
             else snprintf(t, sizeof t, "BATT NONE%s", board_power_read(&pw) && pw.vbus_present ? "  USB" : "");
             st_draw_text(fb, 8, 156, t, STR_PAL_IVORY, 1);
-            st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 180, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 192, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 204, "RIGHT HOLD 1 S: TURN SCREEN 180", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 216, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
+            snprintf(t, sizeof t, "LIGHT %d/100  CELL %s  CHARGE %d MA", app_brightness_percent(),
+                     app_cell() ? "500+ MAH" : "250 MAH", app_cell() ? 200 : 100);
+            st_draw_text(fb, 8, 168, t, STR_PAL_IVORY, 1);
+            st_draw_text(fb, 8, 180, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 192, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 204, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 216, "RIGHT HOLD 1 S: TURN SCREEN 180", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 228, "DART LEFT TAP: BRIGHTNESS", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 240, "DART RIGHT TAP: CELL SIZE", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 252, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
             app_present(fb);
         }
         vTaskDelay(1);

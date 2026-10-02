@@ -36,6 +36,15 @@ int app_volume(void);
 bool app_flip(void);
 void app_set_flip(bool flip);
 void app_set_volume(int level);              // saved in NVS
+// Backlight level (saved) and the fitted cell (saved; sets the charge current: 0 = 250 mAh, 100 mA;
+// 1 = 500 mAh or larger, 200 mA). The service screen's rocker taps change them.
+enum { APP_BRIGHT_LEVELS = 4 };
+int app_brightness(void);
+int app_brightness_percent(void);
+void app_set_brightness(int level);
+int app_cell(void);
+void app_set_cell(int large);
+void app_backlight_on(void);                 // light the panel once a picture is on it
 
 // Hidden service mode (both wings at power-on). Never returns: power-cycle to play.
 void service_mode_run(st_buttons_t *buttons, st_norm_t *norm);

@@ -56,7 +56,7 @@ HOLE_DX, HOLE_DY = 24.25, 36.0         # M2 standoffs at (±24.25, BCY ± 36.0)
 # pin 1 (BAT) at the top, odd pins on the row nearer the edge.
 HDR_ROW_X = (21.93, 24.47)             # even row, odd row (measured, ±0.5)
 HDR_PIN1_Y = BCY + 19.05
-USB_X, USB_Z = 0.0, 11.7               # board USB-C: centre of the opening (z estimated, generous cut)
+USB_X, USB_Z = 0.0, Z_GLASS + 8.72     # board USB-C: centre (Waveshare 3D model: 6.69-10.75 behind the glass)
 SIDE_KEYS_Y = {'PWR': BCY + 25.0, 'RST': BCY + 16.5, 'BOOT': BCY + 8.0}   # on the left edge
 SPK_J9 = (-26.0, BCY + 0.4)            # speaker socket (PH1.25) near the left edge
 
@@ -116,9 +116,10 @@ SCREW_L, SCREW_HEAD = 8.0, 1.6                # M2 x 8 pan head (ISO 7045: head 
 SCREW_SEAT = DEPTH - SCREW_HEAD - 0.2        # head 0.2 below the back face
 HOOK_X, HOOK_W = 19.0, 8.0
 
-# The Waveshare is not screwed (its M2 holes have no confirmed thread): the back shell's posts locate it with
-# pegs, and a foam pad behind the battery presses battery and board against the front shell.
-POST_GAP, PEG_D, PEG_LEN = 0.3, 1.8, 1.0
+# The Waveshare is not screwed: the back shell's posts locate it with pegs in its standoffs (threaded M2 SMT
+# standoffs in Waveshare's 3D model, 4 mm tall: the pegs are thin enough for a thread), and a foam pad behind
+# the battery presses battery and board against the front shell. (The ONE SLIM screws into them.)
+POST_GAP, PEG_D, PEG_LEN = 0.3, 1.4, 1.0   # the Waveshare 3D model shows M2 threaded standoffs (minor dia ~1.57): the peg fits inside the thread
 WS_HOLE_D = 2.2                        # M2 clearance hole in the Waveshare board (confirm: 2.2-2.5)
 FOAM_T = 3.0                           # foam pad behind the battery (compresses into the gap)
 
@@ -346,7 +347,7 @@ def shared_cuts():
     """openings that cross the split line"""
     c = box(USB_X - 6.4, USB_X + 6.4, BCY + BH / 2 - 0.5, Y_TOP + 2, USB_Z - 3.9, USB_Z + 3.9)      # USB-C plug
     for y in SIDE_KEYS_Y.values():                                                                    # pin holes
-        c += box(-UPPER_W / 2 - 2, -BW / 2 + 0.1, y - 0.8, y + 0.8, Z_GLASS + 8.5, Z_GLASS + 11.5)
+        c += box(-UPPER_W / 2 - 2, -26.6, y - 0.8, y + 0.8, Z_GLASS + 7.0, Z_GLASS + 9.4)   # onto the actuators (3D model: 7.1-9.3 behind the glass)
     zc = Z_ONE - PSW_H / 2                                                                            # power slider
     c += box(-LOWER_W / 2 - 3, -LOWER_W / 2 + 6, PSW_Y - PSW_KNOB / 2 - PSW_TRAVEL / 2 - 0.4,
              PSW_Y + PSW_KNOB / 2 + PSW_TRAVEL / 2 + 0.4, min(zc - PSW_KNOB / 2 - 0.3, Z_SPLIT - 0.5), zc + PSW_KNOB / 2 + 0.3)   # open at the split: the back shell closes over the knob

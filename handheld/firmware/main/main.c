@@ -301,6 +301,60 @@ void app_set_volume(int level) {
 bool app_audio_ok(void) { return g_audio_ok; }
 bool app_music_ok(void) { return g_music_ok; }
 
+// ---- power: brightness, cell size, idle dimming, auto-off, low battery ----------------------------
+// The backlight is the biggest load the firmware controls (docs/STRUTHIO_ONE_SLIM.md, run time), so it
+// starts at 70 %, drops to a glow after 30 s with no button, and the toy switches itself off after 5 min
+// with no button or below 3.30 V (never on USB). Slide the switch off and on again to wake it.
+static const uint8_t BRIGHT_PERCENT[APP_BRIGHT_LEVELS] = {30, 50, 70, 100};
+static int g_bright = 2, g_cell = 0;
+static volatile uint32_t g_last_input_ms;
+static volatile bool g_backlight_on;
+enum { IDLE_DIM_MS = 30000, IDLE_OFF_MS = 5 * 60 * 1000, LOW_BATT_MV = 3300, LOW_BATT_SECONDS = 5, DIM_PERCENT = 8 };
+int app_brightness(void) { return g_bright; }
+void app_set_brightness(int level) {
+    g_bright = ((level % APP_BRIGHT_LEVELS) + APP_BRIGHT_LEVELS) % APP_BRIGHT_LEVELS;
+    if (g_backlight_on) board_backlight(BRIGHT_PERCENT[g_bright]);
+    app_save_i32("bright", g_bright);
+    ESP_LOGI(TAG, "brightness %d %%", BRIGHT_PERCENT[g_bright]);
+}
+int app_brightness_percent(void) { return BRIGHT_PERCENT[g_bright]; }
+int app_cell(void) { return g_cell; }
+void app_set_cell(int large) {
+    g_cell = large ? 1 : 0;
+    board_power_charge_ma(g_cell ? 200 : 100);
+    app_save_i32("cell", g_cell);
+    ESP_LOGI(TAG, "cell %s: charge %d mA", g_cell ? "500 mAh or larger" : "250 mAh", g_cell ? 200 : 100);
+}
+// the first picture is on the panel: light it (not before, so the panel's power-up noise never shows)
+void app_backlight_on(void) {
+    if (g_backlight_on) return;
+    g_backlight_on = true;
+    board_backlight(BRIGHT_PERCENT[g_bright]);
+    ESP_LOGI(TAG, "first frame lit %lu ms after reset", (unsigned long)app_now_ms());
+}
+static void power_task(void *arg) {
+    (void)arg;
+    bool dim = false;
+    int low = 0;
+    for (uint32_t n = 1;; n++) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        if (!g_backlight_on) continue;
+        uint32_t idle = app_now_ms() - g_last_input_ms;
+        if (!dim && idle >= IDLE_DIM_MS) { dim = true; board_backlight(DIM_PERCENT); }
+        else if (dim && idle < IDLE_DIM_MS) { dim = false; board_backlight(BRIGHT_PERCENT[g_bright]); }
+        if (n % 10) continue;                                  // the battery once a second
+        board_power_t pw;
+        if (!board_power_read(&pw) || pw.vbus_present) { low = 0; continue; }   // on USB: never switch off
+        low = (pw.battery_present && pw.battery_mv > 0 && pw.battery_mv < LOW_BATT_MV) ? low + 1 : 0;
+        if (idle >= IDLE_OFF_MS || low >= LOW_BATT_SECONDS) {
+            ESP_LOGW(TAG, "switching off: %s", low ? "battery low" : "no button for 5 min");
+            board_backlight(0);
+            vTaskDelay(pdMS_TO_TICKS(20));
+            board_power_off();
+        }
+    }
+}
+
 // ---- input task: 1 kHz --------------------------------------------------------------------
 static void input_task(void *arg) {
     (void)arg;
@@ -308,6 +362,7 @@ static void input_task(void *arg) {
         bool l = app_pin_pressed(STRUTHIO_GPIO_LEFT_WING), r = app_pin_pressed(STRUTHIO_GPIO_RIGHT_WING);
         bool dl = app_pin_pressed(STRUTHIO_GPIO_DART_LEFT), dr = app_pin_pressed(STRUTHIO_GPIO_DART_RIGHT);
         uint32_t now = app_now_ms();
+        if (l || r || dl || dr) g_last_input_ms = now;
         portENTER_CRITICAL(&g_input_mux);
         st_buttons_sample(&g_buttons, l, r, now);
         st_buttons_sample_rocker(&g_buttons, dl, dr, now);
@@ -478,7 +533,7 @@ static void render_task(void *arg) {
         ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(500));
         esp_task_wdt_reset();
         if (g_high_score_dirty) { g_high_score_dirty = false; app_save_i32("best", g_high_score); }
-        if (g_panel_ok) { render_panel_frame(); log_stats(); continue; }
+        if (g_panel_ok) { render_panel_frame(); app_backlight_on(); log_stats(); continue; }
         // fallback without an asset pack: the greybox renderer
         uint32_t frame;
         portENTER_CRITICAL(&g_snap_mux);
@@ -496,6 +551,7 @@ static void render_task(void *arg) {
         g_stats.render_us = (uint32_t)(t1 - t0);
         g_stats.present_us = (uint32_t)(t2 - t1);
         g_stats.frames++;
+        app_backlight_on();
         log_stats();
     }
 }
@@ -510,6 +566,10 @@ void app_main(void) {
     g_high_score = app_load_i32("best", 0);
     st_norm_init(&g_norm);
     st_buttons_init(&g_buttons, &g_norm, trial, app_now_ms());
+    g_bright = (int)app_load_i32("bright", 2);
+    if (g_bright < 0 || g_bright >= APP_BRIGHT_LEVELS) g_bright = 2;
+    g_cell = app_load_i32("cell", 0) ? 1 : 0;
+    g_last_input_ms = app_now_ms();
 
     g_fb = heap_caps_malloc(ST_FB_W * ST_FB_H, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     if (!g_fb) g_fb = heap_caps_malloc(ST_FB_W * ST_FB_H, MALLOC_CAP_SPIRAM);
@@ -517,12 +577,15 @@ void app_main(void) {
     configASSERT(g_fb && g_band);
 
     board_power_init();
+    board_power_charge_ma(g_cell ? 200 : 100);
     g_display_ok = board_display_init();
     if (g_display_ok && app_flip()) board_display_flip(true);
 
-    // Hidden service mode: hold BOTH wings while powering on (650 ms within an 800 ms guard).
+    // Hidden service mode: hold BOTH wings while powering on (650 ms within an 800 ms guard). The guard only
+    // runs when a wing is already down, so a normal power-on does not wait for it.
     uint32_t guard = app_now_ms();
-    while ((uint32_t)(app_now_ms() - guard) < 800) {
+    bool wing_down = app_pin_pressed(STRUTHIO_GPIO_LEFT_WING) || app_pin_pressed(STRUTHIO_GPIO_RIGHT_WING);
+    while (wing_down && (uint32_t)(app_now_ms() - guard) < 800) {
         st_buttons_sample(&g_buttons, app_pin_pressed(STRUTHIO_GPIO_LEFT_WING), app_pin_pressed(STRUTHIO_GPIO_RIGHT_WING), app_now_ms());
         if (st_buttons_service_requested(&g_buttons, app_now_ms())) {
             service_mode_run(&g_buttons, &g_norm);   // never returns
@@ -532,7 +595,6 @@ void app_main(void) {
     st_norm_init(&g_norm);                    // discard boot-guard presses
     st_buttons_init(&g_buttons, &g_norm, trial, app_now_ms());
     app_audio_start();
-    board_backlight(100);
     g_panel_ok = g_display_ok && map_asset_pack();
     new_run();
     ESP_LOGI(TAG, "DART trial %s, best %ld, display %s, renderer %s", st_dart_trial_name(trial), (long)g_high_score,
@@ -542,4 +604,5 @@ void app_main(void) {
     xTaskCreatePinnedToCore(render_task, "render", 6144, NULL, 5, &g_render_task, 0);
     xTaskCreatePinnedToCore(game_task, "game", 12288, NULL, 9, NULL, 1);
     if (g_panel_ok) xTaskCreatePinnedToCore(render_helper_task, "render1", 6144, NULL, 4, &g_helper_task, 1);
+    xTaskCreatePinnedToCore(power_task, "power", 3072, NULL, 3, NULL, 0);
 }

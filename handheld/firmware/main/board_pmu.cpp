@@ -86,8 +86,9 @@ extern "C" bool board_pmu_init(i2c_master_bus_handle_t bus) {
     s_pmu.disableLongPressShutdown();
     s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_10S);
     s_pmu.setPowerKeyPressOnTime(XPOWERS_POWERON_128MS);
-    // measurement and charger. Vendor values: 200 mA constant current, 4.1 V
-    // target. Check both against the chosen cell's datasheet before lock.
+    // measurement and charger: 4.1 V target (vendor value, gentle on the cell). The constant current starts at
+    // 100 mA, safe for the ONE Slim's 250 mAh cell (0.4 C); main.c raises it to 200 mA when the service screen
+    // says a larger cell is fitted (board_pmu_charge_ma).
     s_pmu.disableTSPinMeasure();
     s_pmu.enableBattDetection();
     s_pmu.enableVbusVoltageMeasure();
@@ -95,7 +96,7 @@ extern "C" bool board_pmu_init(i2c_master_bus_handle_t bus) {
     s_pmu.enableSystemVoltageMeasure();
     s_pmu.setChargingLedMode(XPOWERS_CHG_LED_OFF);
     s_pmu.setPrechargeCurr(XPOWERS_AXP2101_PRECHARGE_50MA);
-    s_pmu.setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_200MA);
+    s_pmu.setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_100MA);
     s_pmu.setChargerTerminationCurr(XPOWERS_AXP2101_CHG_ITERM_25MA);
     s_pmu.setChargeTargetVoltage(XPOWERS_AXP2101_CHG_VOL_4V1);
     s_pmu.enableButtonBatteryCharge();
@@ -117,4 +118,8 @@ extern "C" bool board_pmu_read(board_power_t *out) {
 
 extern "C" void board_pmu_power_off(void) {
     if (s_ok) s_pmu.shutdown();
+}
+
+extern "C" void board_pmu_charge_ma(int ma) {
+    if (s_ok) s_pmu.setChargerConstantCurr(ma >= 200 ? XPOWERS_AXP2101_CHG_CUR_200MA : XPOWERS_AXP2101_CHG_CUR_100MA);
 }

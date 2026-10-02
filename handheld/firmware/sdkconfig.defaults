@@ -25,3 +25,13 @@ CONFIG_XPOWERS_CHIP_AXP2101=y
 # NVS itself tolerates power loss; settings are written only when they change.
 CONFIG_SPI_FLASH_VERIFY_WRITE=y
 CONFIG_SPI_FLASH_LOG_FAILED_WRITE=y
+# Boot time (docs/STRUTHIO_ONE_SLIM.md): no PSRAM pattern test, no full image hash at power-on (every flash
+# write is read back, and esptool verifies the image when it is flashed), a quiet bootloader.
+CONFIG_SPIRAM_MEMTEST=n
+CONFIG_BOOTLOADER_SKIP_VALIDATE_ON_POWER_ON=y
+CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y
+# Boot time (docs/STRUTHIO_ONE_SLIM.md): no PSRAM pattern test, no full image hash at power-on (every flash
+# write is read back, and esptool verifies the image when it is flashed), a quiet bootloader.
+CONFIG_SPIRAM_MEMTEST=n
+CONFIG_BOOTLOADER_SKIP_VALIDATE_ON_POWER_ON=y
+CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y
