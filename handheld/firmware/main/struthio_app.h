@@ -37,7 +37,7 @@ bool app_flip(void);
 void app_set_flip(bool flip);
 void app_set_volume(int level);              // saved in NVS
 // Backlight level (saved; the service screen's rocker LEFT tap changes it). The model comes from the strap on
-// header pin 9 (board_pins.h): the ONE (slide switch, 1000 mAh) or the ONE SLIM (power button, 1000 mAh).
+// header pin 9 (board_pins.h): the ONE (slide switch, 1000 mAh) or the ONE SLIM (power button, 250 mAh).
 enum { APP_BRIGHT_LEVELS = 4 };
 int app_brightness(void);
 int app_brightness_percent(void);

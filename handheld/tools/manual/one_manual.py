@@ -566,7 +566,7 @@ def build(out_pdf):
         # ---- part 7: panel -------------------------------------------------------------------------------------------
         H.append('<h1>Fit the face panel</h1><p class="part">Part 7 · step 14, last</p>'
                  + step(14, 'Face panel', img(st('step14_face_panel'), crop_dark=True),
-                        '<p>Peel the protective film off the back. Tape on the <b>black areas only</b>. Line the panel up 2.4 mm in from the case's edge all round, the wells over the buttons, '
+                        '<p>Peel the protective film off the back. Tape on the <b>black areas only</b>. Line the panel up 2.4 mm in from the case\'s edge all round, the wells over the buttons, '
                         'and press it down from the middle outward. Peel the front film.</p>', check='The panel sits flat with an even border all round; every button moves freely in its well.'))
         # ---- part 8: play ---------------------------------------------------------------------------------------------
         H.append('<h1>How to play</h1><p class="part">Part 8</p>' + fig(d_controls(), 'The controls, and what is on the sides', 'diag')

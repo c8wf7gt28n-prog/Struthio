@@ -21,7 +21,7 @@ rocker, same game. What changed is everything behind the face.
 |---|---|---|
 | Thickness | 23.0 mm | **16.5 mm** (−28 %) |
 | Battery | THOR-503450, 1000 mAh, 5.0 mm | 302535, about 250 mAh, 3.0 mm (a 303450, about 500 mAh, fits the same bay) |
-| Speaker | the one that comes with the Waveshare (5–6 mm box) | Same Sky (CUI) CMS-151125-078SP, 15 × 11 × 2.5 mm |
+| Speaker | the one that comes with the Waveshare (5–6 mm box) | a plug-in 1 W 8 Ω cavity speaker, about 15 × 10 × 3.6 mm, its 1.25 mm plug straight into J9 |
 | ONE board | 1.6 mm, on a 2 × 16 header with 2.54 mm plastic | 0.8 mm, on the front shell's bosses, 12 bare pins into the Waveshare's socket |
 | Power | slide switch and a power-on pulse circuit | the Waveshare's own power key, pressed through the left side: press to switch on, hold 4 s to switch off |
 | Waveshare | clamped by pegs and foam | screwed to the back shell through three of its own M2 standoffs |
@@ -84,7 +84,7 @@ The battery bay (3.0 × 34 × 52 mm) and the speaker sit where only the "everyth
 | Part | Spec | Notes |
 |---|---|---|
 | Battery | LiPo pouch **302535**, 3.7 V, about 250 mAh, protection board, PH 2.0 lead (2 pins) | Sold as 200 to 250 mAh depending on the maker: **confirm** with your seller. 3.0 × 25 × 35 mm, about 38 mm long with its protection board. Optional: **303450**, about 500 mAh, 3.0 × 34 × 52 mm with its board (confirm the size). |
-| Speaker | **Same Sky (formerly CUI Devices) CMS-151125-078SP**: 15 × 11 × 2.5 mm, 8 Ω, 0.7 W, solder pads | Mouser / DigiKey. Solder the Waveshare's speaker lead (the PH 1.25 plug) to its pads. |
+| Speaker | **Mini cavity speaker, 1 W 8 Ω, with its own lead and a 1.25 mm 2-pin plug** ("JST PH 1.25" in the listings), about **15 × 10 × 3.6 mm**; nothing bigger than 15.3 × 11 × 3.7 | Its plug goes straight into the Waveshare's J9: nothing to solder. Sits 0.3 mm clear of the Waveshare's parts (**confirm** the thickness with the seller) |
 | ONE SLIM board | `pcb/slim/out/struthio_one_slim_gerbers.zip`, **0.8 mm thickness**, BOM + CPL | Set "PCB thickness 0.8" on the order. J1 is not on the BOM. |
 | Header pins | one standard 2.54 mm male header strip | You use 12 pins of it: a strip of 4 and a strip of 8. |
 | Screws | 5 × **M2 × 6 countersunk** (ISO 10642 / DIN 965) | Three into the Waveshare's standoffs, two in the lower corners. |
@@ -130,15 +130,14 @@ The Windows 11 manual has every step with a picture and a check. In short:
 1. **Flash** the board on its own: double-click `FLASH_ME.bat` (package 1). It installs what it needs and finds the board.
 2. **Pins** (the one soldering job): lay the ONE SLIM face down in the printed pin jig (it only fits one way), push
    a strip of 4 and a strip of 8 header pins through, long side first, solder, slide the plastic off, snip flush.
-3. **Speaker**: solder the Waveshare speaker's lead to the CMS-151125's two pads (either way round).
-4. **Front shell**: wing buttons, rocker (cut its axle in the jig's slot), power button (from the inside, it only fits one
+3. **Front shell**: wing buttons, rocker (cut its axle in the jig's slot), power button (from the inside, it only fits one
    way), then the Waveshare face down into the glass pocket, then the ONE SLIM onto it, pins into J8.
-5. **Back shell**: speaker into its lip, cell taped into the bay's lower-left corner with the foam tape, leads under
+4. **Back shell**: speaker into its lip, cell taped into the bay's lower-left corner with the foam tape, leads under
    their clips. Plug the speaker into J9, the cell into J2.
-6. **Close**: tongue into the groove, 5 × M2 × 6.
-7. **Power on**: press the button on the left side. The first power-on check walks you through every button, the
+5. **Close**: tongue into the groove, 5 × M2 × 6.
+6. **Power on**: press the button on the left side. The first power-on check walks you through every button, the
    power button, the speaker and the battery. Both wings to play.
-8. **Face panel**: peel the liner, drop the panel into its pocket inside the lip, press from the middle out.
+7. **Face panel**: peel the liner, drop the panel into its pocket inside the lip, press from the middle out.
 
 ## 6. Battery and run time
 
@@ -230,7 +229,7 @@ rules: don't charge it in a hot car, and print it in PETG or ASA, not PLA.
 | Waveshare heights (socket 12.6, standoffs 11.5, parts 9.5) | Waveshare's 3D model. **Confirm the socket height** (section 3) |
 | Standoffs are threaded M2 | 3D model part name SMTSO-M2X4 (an M2 × 4 SMT nut). Confirm with a screw before closing |
 | 302535 capacity and size | 200–250 mAh depending on the maker: confirm with the seller |
-| Speaker size and pads | Same Sky CMS-151125-078SP listing: 15 × 11 × 2.5 mm, 8 Ω, 0.7 W, solder pads |
+| Speaker size and plug | seller listings: about 15.2 × 10.2 × 3.6 mm, 1.25 mm 2-pin plug: confirm (the pocket takes up to 15.3 × 11.0 × 3.7; J9 is a 1.25 mm socket) |
 | Run time, boot time, heat | estimates (section 6, 7, 8): measure |
 
 ## 10. Also fixed on the ONE (same evidence)

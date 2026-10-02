@@ -32,9 +32,9 @@ const root = new THREE.Group(); root.rotation.y = Math.PI; scene.add(root);
 const MODEL = q.get('model') === 'slim' ? 'slim' : 'one';
 const names = ['stl/one_front', 'stl/one_back', 'stl/one_wing_left', 'stl/one_wing_right', 'stl/one_rocker',
   'refs/ref_panel', 'refs/ref_glyphs', 'refs/ref_foam', 'refs/ref_waveshare', 'refs/ref_one', 'refs/ref_battery', 'refs/ref_speaker', 'refs/ref_switches'];
-if (MODEL === 'slim') names.push('refs/ref_screws', 'stl/slim_power_button', 'stl/slim_axle_gauge');
+if (MODEL === 'slim') names.push('refs/ref_screws', 'stl/slim_power_button', 'stl/slim_pin_jig');
 const file = (n) => MODEL === 'slim' ? n.replace('stl/one_', 'stl/slim_') : n;
-const partKey = (n) => n.split('/')[1].replace(/^slim_(power_button|axle_gauge)$/, '$1');
+const partKey = (n) => n.split('/')[1].replace(/^slim_(power_button|pin_jig|panel_jig)$/, '$1');
 const geo = Object.fromEntries(await Promise.all(names.map(async (n) => [partKey(n), await load(`assets/${MODEL}/${file(n)}.stl`)])));
 const M = {
   one_front: mat(shellColor, { roughness: 0.45 }), one_back: mat(shellColor, { roughness: 0.5 }),
@@ -44,7 +44,7 @@ const M = {
   ref_panel: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.04, metalness: 0, transparent: true, opacity: 0.07, clearcoat: 1, side: THREE.DoubleSide }),
   ref_waveshare: mat(0x101418, { roughness: 0.2 }), ref_one: mat(0x1f6b3a, { roughness: 0.6 }), ref_battery: mat(0xb9c2cc, { metalness: 0.4, roughness: 0.3 }),
   ref_speaker: mat(0x18181a), ref_switches: mat(0x9aa3ad, { metalness: 0.3 }), ref_screws: mat(0xc9ced4, { metalness: 0.8, roughness: 0.25 }),
-  power_button: mat(0x15181e, { roughness: 0.4 }), axle_gauge: mat(0xe0b040, { roughness: 0.6 }),
+  power_button: mat(0x15181e, { roughness: 0.4 }), pin_jig: mat(0xe0b040, { roughness: 0.6 }), panel_jig: mat(0xe0b040, { roughness: 0.6 }),
 };
 const meshes = {};
 for (const [n, g] of Object.entries(geo)) { const m = new THREE.Mesh(g, M[n]); meshes[n] = m; root.add(m); }
@@ -80,7 +80,7 @@ else if (view === 'inside') {   // the front shell from behind, with everything 
   cam.position.set(...C);
 } else if (view === 'exploded') {
   const k = q.has('explode') ? +q.get('explode') : 1;              // 0 = assembled .. 1 = fully apart (animation frames)
-  show(ALL.filter((n) => n !== 'axle_gauge')); screen.visible = false; if (art) art.position.z += 22 * k;
+  show(ALL.filter((n) => !['pin_jig', 'panel_jig'].includes(n))); screen.visible = false; if (art) art.position.z += 22 * k;
   const dz = { ref_panel: -22, ref_glyphs: 26, one_front: 0, one_wing_left: 26, one_wing_right: 26, one_rocker: 26, ref_waveshare: 34, ref_battery: 58,
                ref_speaker: 58, ref_one: 82, ref_switches: 82, one_back: 120 };
   dz.power_button = 26; dz.ref_screws = 150; dz.ref_foam = 58;

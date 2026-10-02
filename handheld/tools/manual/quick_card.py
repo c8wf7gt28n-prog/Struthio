@@ -12,11 +12,10 @@ from one_manual import img, png, COMMIT, TODAY
 ST = os.path.join(HH, 'docs', 'renders', 'slim', 'steps')
 CAP = os.path.join(HERE, 'captures')
 STEPS = [
-    ('Order', None, 'Everything on <b>STRUTHIO_ORDER</b> (package 5): the screen board, cell, speaker, 5 screws, a header strip, foam tape. '
+    ('Order', None, 'Everything on <b>STRUTHIO_ORDER</b> (package 5): the screen board, cell, plug-in speaker, 5 screws, a header strip, foam tape. '
                     'Board from JLCPCB at <b>0.8 mm</b>; print the 7 parts in PETG.'),
     ('Flash', None, 'Plug the screen board in by USB-C. Double-click <b>FLASH_ME.bat</b> (package 1). Wait for <b>DONE</b>.'),
     ('Pins', 's05_pins', 'Board <b>face down</b> in the pin jig. A strip of 4 and a strip of 8 pins, long side first. Solder, slide the plastic off, snip flush.'),
-    ('Speaker', None, 'Solder the Waveshare speaker lead to the new speaker\'s two pads, either way round.'),
     ('Front shell', 's04_waveshare', 'Wing buttons, rocker (axle cut in the jig\'s slot), power button, then the screen board face down.'),
     ('Board', 's06_one_slim', 'The ONE SLIM onto the screen board, pins into the long socket, flat on its posts.'),
     ('Back shell', 's07_back_shell', 'Speaker in its lip, cell taped in the corner, leads under the clips. Plug the speaker into <b>J9</b>, the cell into <b>J2</b>.'),

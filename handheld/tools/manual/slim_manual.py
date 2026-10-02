@@ -36,7 +36,7 @@ def d_overview():
         'prt': (610, 60, 220, 52, 'Print the parts\n(package 4)', 'step'),
         'buy': (850, 60, 220, 52, 'Buy the screen board,\ncell, speaker, screws', 'step'),
         'fl': (490, 160, 330, 50, 'Flash: double-click FLASH_ME.bat  ·  Part 4', 'warn'),
-        'pr': (490, 240, 330, 50, 'Prepare the board: 12 pins, speaker  ·  Part 5', 'step'),
+        'pr': (490, 240, 330, 50, 'Prepare the board: solder 12 pins  ·  Part 5', 'step'),
         'as': (490, 320, 330, 50, 'Assemble: steps 1-8  ·  Part 6', 'step'),
         'pw': (490, 400, 330, 50, 'Press power: the screen checks itself\nPart 7', 'step'),
         'pn': (490, 480, 330, 46, 'Face panel, with its jig  ·  Part 8', 'step'),
@@ -220,13 +220,13 @@ def build(out_pdf):
                  '<b>4</b> 3D print, <b>5</b> documents (this manual). The shopping list on its own: <code>STRUTHIO_ORDER</code> in package 5.</p>')
         H.append('<h1>The whole build at a glance</h1><p class="part">Part 1</p>'
                  '<p>Four things are made or bought at the same time. When the screen board arrives you put the game on it, '
-                 'solder 12 pins and a speaker, build, switch on: the handheld checks itself.</p>' + fig(d_overview(), 'The build, start to finish', 'diag')
+                 'solder 12 pins, build, switch on: the handheld checks itself.</p>' + fig(d_overview(), 'The build, start to finish', 'diag')
                  + fig(img(os.path.join(REN, 'slim_exploded.png'), crop_dark=True, maxh='90mm'), 'Everything that goes into it, front to back. The animated version is slim_assembly.gif in package 5', 'render'))
         H.append('<h1>What you need</h1><p class="part">Part 2</p><h2>Buy</h2><table><tr><th>✓</th><th>Qty</th><th>Item</th><th>Exactly what</th></tr>' + ''.join(
             f'<tr><td>☐</td><td>{q}</td><td><b>{a}</b></td><td>{b}</td></tr>' for q, a, b in [
-                (1, 'Screen board', '<b>Waveshare ESP32-S3-Touch-LCD-3.5B</b>, the bare board (not "-C"). Its speaker lead comes with it.'),
+                (1, 'Screen board', '<b>Waveshare ESP32-S3-Touch-LCD-3.5B</b>, the bare board (not "-C").'),
                 (1, 'Battery', 'LiPo <b>302535</b>, about 250 mAh, with protection board, <b>JST PH 2.0 mm</b> 2-pin plug.'),
-                (1, 'Speaker', '<b>Same Sky (CUI) CMS-151125-078SP</b>, 15 × 11 × 2.5 mm (Mouser, DigiKey).'),
+                (1, 'Speaker', 'Mini cavity speaker, <b>1 W 8 Ω</b>, about <b>15 × 10 × 3.6 mm</b>, with its lead and a <b>1.25 mm 2-pin plug</b> (plugs straight in: no soldering).'),
                 (5, 'Screws', '<b>M2 × 6 countersunk</b> (flat head). All five the same.'),
                 (1, 'Header strip', '2.54 mm male header, single row (you use 12 pins).'),
                 (1, 'Foam tape', 'Double-sided, <b>1.0 mm</b> thick, about 20 × 30 mm.'),
@@ -235,7 +235,7 @@ def build(out_pdf):
             f'<tr><td>☐</td><td><b>{a}</b></td><td>{b}</td></tr>' for a, b in [
                 ('ONE SLIM board', 'JLCPCB, assembled, 0.8 mm (package 3)'), ('Face panel', 'an acrylic shop (package 2)'),
                 ('7 printed parts', 'your printer or a print service (package 4)')]) + '</table>'
-                 '<h2>Tools</h2><ul class="tick"><li>A soldering iron and solder (12 pins and 2 pads)</li><li>Flush cutters</li>'
+                 '<h2>Tools</h2><ul class="tick"><li>A soldering iron and solder (12 header pins)</li><li>Flush cutters</li>'
                  '<li>A small Phillips screwdriver (PH0)</li><li>A paperclip (only for re-flashing through the case later)</li>'
                  '<li>A Windows 11 computer with internet access</li></ul>')
         bt = os.path.join(HH, 'pcb', 'slim', 'out', 'board_top.png')
@@ -245,7 +245,7 @@ def build(out_pdf):
                  '<li>Turn on <b>PCB Assembly</b>, top side. Upload <code>BOM_JLCPCB.csv</code> and <code>CPL_JLCPCB.csv</code>: six small parts, all surface-mount.</li>'
                  '<li>In the placement preview, <b>J2</b>\'s opening faces the board\'s <b>right</b> edge (compare with the picture). Rotate in 90° steps if not.</li></ol>'
                  + fig(png(bt, '50%'), 'The board as ordered (top side, seen from the front of the handheld)', 'diag')
-                 + '<h2>The face panel (package 2, folder ONE_SLIM)</h2><p>The SLIM's own panel files (it sits in a pocket, so it is cut smaller than the ONE's). Send an acrylic shop the files and this sentence: <b>1.0 mm clear cast acrylic, cut to the DXF, reverse-printed '
+                 + '<h2>The face panel (package 2, folder ONE_SLIM)</h2><p>The SLIM\'s own panel files (it sits in a pocket, so it is cut smaller than the ONE\'s). Send an acrylic shop the files and this sentence: <b>1.0 mm clear cast acrylic, cut to the DXF, reverse-printed '
                  '(colour, then white) from the mirrored PNG, window left clear; clear adhesive transfer tape (3M 468MP) laminated on the back, except over the window.</b></p>'
                  + '<h2>The printed parts (package 4, folder ONE_SLIM)</h2><p>Front shell, back shell, two wing buttons, rocker, power button, pin jig. '
                  'PETG (or ASA), 0.2 mm layers, 4 walls, 6 top and bottom layers, 40 % infill. No printer? Upload the STLs to a print service and ask for '
@@ -263,7 +263,7 @@ def build(out_pdf):
                  + '<h2>If it doesn\'t work</h2>' + fig(d_flash(), 'Flashing problems', 'diag')
                  + '<div class="box"><b>Download mode</b>: hold the board\'s <b>BOOT</b> key, press and release <b>RESET</b>, release BOOT. FLASH_ME asks for it when it needs it. '
                    'In the finished case the two keys are behind the pin holes on the left side (Part 9).</div>')
-        H.append('<h1>Prepare the board</h1><p class="part">Part 5 · the one soldering job: 12 pins and 2 speaker pads</p>'
+        H.append('<h1>Prepare the board</h1><p class="part">Part 5 · the one soldering job: 12 header pins</p>'
                  + step('5.1', 'Cut two header strips', '', '<p>From the header strip, cut a strip of <b>4</b> pins and a strip of <b>8</b> pins (snip between pins).</p>')
                  + step('5.2', 'Board face down in the jig', img(st('s05_pins'), crop_dark=True),
                         '<p>Lay the ONE SLIM <b>face down</b> (buttons down) on the printed <b>pin jig</b>, its strip inside the jig\'s fence. Two small pegs go into two holes: '
@@ -272,8 +272,7 @@ def build(out_pdf):
                         '<p>Push the 4-pin strip into the outer row\'s top four holes and the 8-pin strip into the inner row (the jig only has holes where pins go), '
                         '<b>long side first</b>, until they stop. Solder each pin on the back. Slide the black plastic off the pins with pliers, then snip every pin flush with the board.</p>',
                         check=f'12 pins stand {s.PIN_OUT} mm out of the front, straight; nothing sticks out at the back.')
-                 + step('5.4', 'The speaker', '', '<p>Cut the Waveshare speaker\'s lead off its old speaker, leaving it long. Strip and tin the two wires and solder them to the '
-                        'CMS-151125\'s two pads, either way round (the amplifier drives both).</p>', check='Two clean joints; the lead\'s plug still on its other end.'))
+                 )
         H.append('<h1>Assemble</h1><p class="part">Part 6 · steps 1-8 · on a soft cloth, nothing needs force</p>'
                  + step(1, 'Wing buttons', img(st('s01_wing_buttons'), crop_dark=True),
                         '<p>From the <b>inside</b> of the front shell, push each round cap into its collar, its key in the slot on the collar\'s outer side.</p>',
@@ -334,7 +333,7 @@ def build(out_pdf):
                 ('STUCK DOWN on the check screen', 'That cap\'s stem touches its switch: take the cap out, sand 0.2 mm off the stem tip.'),
                 ('A button never turns OK', 'Is the ONE SLIM flat on its posts, every pin in J8? Does the cap move freely?'),
                 ('POWER never turns OK', 'Does the power button click its key? Push it in from outside: it must move freely.'),
-                ('No click, no sound', 'Speaker plug in J9? Speaker face against the grille? Speaker pads soldered?'),
+                ('No click, no sound', 'Speaker plug fully in J9? Speaker face against the grille?'),
                 ('NO BATTERY', 'J2 plug fully in? Red to +.'),
                 ('Back shell won\'t close', 'A lead is in the way: under its clips? Never force it.'),
                 ('Picture upside down', 'On the check screen: hold LEFT 2 s. Later: service mode, hold RIGHT 1 s.'),

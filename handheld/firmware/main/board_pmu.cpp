@@ -87,8 +87,7 @@ extern "C" bool board_pmu_init(i2c_master_bus_handle_t bus) {
     s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_10S);
     s_pmu.setPowerKeyPressOnTime(XPOWERS_POWERON_128MS);
     // measurement and charger: 4.1 V target (vendor value, gentle on the cell). The constant current starts at
-    // 100 mA, safe for any cell this board may meet (0.4 C on a 250 mAh one); board_pmu_model sets 200 mA once it
-    // knows the handheld (both carry the 1000 mAh THOR-503450 since SLIM rev S4).
+    // 100 mA, safe for the ONE SLIM's 250 mAh cell (0.4 C); board_pmu_model sets 200 mA on the ONE.
     s_pmu.disableTSPinMeasure();
     s_pmu.enableBattDetection();
     s_pmu.enableVbusVoltageMeasure();
@@ -131,7 +130,7 @@ extern "C" void board_pmu_model(bool slide_switch) {
         s_pmu.setPowerKeyPressOffTime(XPOWERS_POWEROFF_4S);
         s_pmu.setLongPressPowerOFF();
         s_pmu.enableLongPressShutdown();
-        s_pmu.setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_200MA);   // THOR-503450, 1000 mAh: 0.2 C (rev S4)
+        s_pmu.setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_100MA);   // 302535, 250 mAh: 0.4 C
         s_pmu.disableIRQ(XPOWERS_AXP2101_ALL_IRQ);                     // only the short-press flag (self-test)
         s_pmu.enableIRQ(XPOWERS_AXP2101_PKEY_SHORT_IRQ);
         s_pmu.clearIrqStatus();

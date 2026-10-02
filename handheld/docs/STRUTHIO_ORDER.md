@@ -7,9 +7,9 @@ the longest (about one to two weeks).
 
 | ☐ | Qty | Part | Exactly what | Where |
 |---|---|---|---|---|
-| ☐ | 1 | Screen board | **Waveshare ESP32-S3-Touch-LCD-3.5B**: the bare board, not the "-C" version in a case. Its speaker lead comes with it | Waveshare's shop, or search the exact name |
+| ☐ | 1 | Screen board | **Waveshare ESP32-S3-Touch-LCD-3.5B**: the bare board, not the "-C" version in a case. | Waveshare's shop, or search the exact name |
 | ☐ | 1 | Battery | LiPo pouch **302535**, 3.7 V, about 250 mAh, **with protection board**, **JST PH 2.0 mm 2-pin plug**, lead 60–100 mm. 3.0 × 25 × 35 mm (about 38 mm long with its board) | Search "302535 250mAh PH2.0". Sellers list it as 200 to 250 mAh: either works |
-| ☐ | 1 | Speaker | **Same Sky (CUI Devices) CMS-151125-078SP**: 15 × 11 × 2.5 mm, 8 Ω, 0.7 W (the -67 version is the same speaker, waterproofed) | Mouser, DigiKey |
+| ☐ | 1 | Speaker | **Mini cavity speaker, 1 W 8 Ω, with its own lead and a 1.25 mm 2-pin plug** ("JST PH 1.25" in the listings), about **15 × 10 × 3.6 mm**; nothing bigger than 15.3 × 11 × 3.7 | Search "1W 8ohm cavity speaker 1.25mm"; often sold in packs of 4 |
 | ☐ | 5 | Screws | **M2 × 6 countersunk** (flat head), ISO 10642 or DIN 965. All five are the same | Any screw shop; a mixed M2 kit works |
 | ☐ | 1 | Header | One strip of **2.54 mm male header pins**, single row, 40 pins (you use 12) | Any electronics shop |
 | ☐ | 1 | Foam tape | **Double-sided foam tape, 1.0 mm thick**, about 20 × 30 mm | Hardware store |
@@ -45,5 +45,5 @@ The adhesive makes fitting it peel-and-stick. Cheaper: a clear cut panel and the
 
 ## Tools
 
-A small Phillips screwdriver (PH0), a soldering iron and solder (for the 12 header pins and the 2 speaker pads), flush
+A small Phillips screwdriver (PH0), a soldering iron and solder (for the 12 header pins: the only soldering), flush
 cutters, a paperclip. A computer with a USB port.
