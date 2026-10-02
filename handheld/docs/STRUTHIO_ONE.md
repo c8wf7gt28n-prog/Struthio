@@ -19,7 +19,7 @@ Anything marked **confirm** has not been measured on a real part yet.
 | Top | soft round corners (R 9), no crown |
 | Screen | visible 47.86 mm wide, glass 48.96 mm, side margin 8.02 mm |
 | Face | one 1.0 mm clear acrylic panel: the lens over the screen and the front art in one piece. Its cut-outs make a 1 mm well round each key |
-| Controls | two round wing buttons, 16 mm across: left flaps up-left, right flaps up-right, **both together flap straight up**. Under them is the rocker for the aim-assisted dart. All symmetric about the centreline. |
+| Controls | two round wing buttons, 14 mm across: left flaps up-left, right flaps up-right, **both together flap straight up**. Under them is the rocker for the aim-assisted dart, engraved with a double-ended dart through an aiming reticle. All symmetric about the centreline. |
 | Power | slide switch on the player's left side, at the controller |
 
 ## Stack-up (front to back)
@@ -58,7 +58,7 @@ diagonally, so a switch works however it is rotated. Header pins used are 1 BAT,
 | 6 × M2 × 8 screws | All from the back: 4 into the Waveshare holes, 2 at the bottom |
 | 1.75 mm filament, about 50 mm | The rocker axle |
 | Thin foam pad | Optional, behind the battery |
-| Printed parts | `cad/one/stl/`: front, back, two wing buttons, rocker. Each wing button has a 0.5 mm deep wing engraved on top: fill it with a blue paint pen, or leave it plain. |
+| Printed parts | `cad/one/stl/`: front, back, two wing buttons, rocker. Each wing button has a wing engraved 0.5 mm deep on top, and the rocker has a dart and reticle. Fill them with a blue paint pen, or leave them plain. |
 | Face panel | 1.0 mm clear cast acrylic, cut from `cad/one/panel/one_panel_cut.dxf` and back-printed (see below) |
 | Thin double-sided tape | To stick the panel down: clear adhesive transfer tape, or thin strips under the black areas only |
 

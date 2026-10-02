@@ -2,9 +2,10 @@
 """STRUTHIO ONE · the face panel: one 1.0 mm clear acrylic piece, laser-cut, with the art
 printed on its BACK. It is the lens over the screen, the front art and the key wells in one.
 
-The art is the game's own (arcade/assets/art): the STRUTHIO logo and the HOME VIDEO GAME strip
-from the box art, the box art's yellow/red picture frame round the screen, and the skyline and
-grid from the game background behind the controls. The screen window is left unprinted (clear).
+The art is the game's own (arcade/assets/art): the STRUTHIO logo and stripes and the yellow/red picture
+frame from the box art, then the game's scene under the screen (islands and moon over the stars, the city
+skyline, the grid) with orange/blue rings round the wing buttons and the dart bay and a BOTH badge.
+The screen window is left unprinted (clear).
 
     python3 make_panel.py        writes, in this folder:
       one_panel_cut.dxf / .svg       cut lines (outline + 3 key cut-outs), mm, seen from the front
@@ -16,7 +17,7 @@ grid from the game background behind the controls. The screen window is left unp
 """
 import json, os, sys
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..'))
@@ -77,17 +78,17 @@ frame_out = FRAME[-1][0]
 panel_top = outer[:, 1].max(); half_w = o.UPPER_W / 2 - o.PANEL_INSET
 
 # controller background, behind the buttons (BG below; PANEL_BG=grid|rain|islands|stripes overrides it)
-BG = os.environ.get('PANEL_BG', 'grid')
+BG = os.environ.get('PANEL_BG', 'scene')
 rng = np.random.default_rng(7)                                   # fixed seed: the same art every run
 BG_W = 88.0
 s = BG_W / rear.width                                            # mm per px: the game background drawn 88 mm wide
 
 def stars_layer():
     """the game's star field (the sky part of background-rear), no skyline"""
-    sky = rear.crop((0, 200, rear.width, 1300))
+    sky = rear.crop((0, 420, rear.width, 1400))                  # below the moon
     sc = sky.resize((round(L(BG_W)), round(L(sky.height * s))), Image.LANCZOS)
     lay = Image.new('RGB', (W, H), INK_BLACK)
-    for top in (-28.0, -28.0 - sky.height * s):
+    for top in (-22.0, -22.0 - sky.height * s):
         lay.paste(sc, tuple(round(v) for v in px(-BG_W / 2, top)))
     return lay
 
@@ -136,11 +137,38 @@ def bg_stripes():
     dl.rectangle([*px(-BG_W / 2, -66.0), *px(BG_W / 2, -80)], fill=INK_BLACK)
     return lay
 
-lay = {'grid': bg_grid, 'rain': bg_rain, 'islands': bg_islands, 'stripes': bg_stripes}[BG]()
+def bg_scene():
+    """the game itself under the screen: floating islands and the moon over the stars, a low city skyline on the
+    horizon behind the buttons, the glowing grid and its reflections below (all from the game's own art)"""
+    lay = stars_layer()
+    sw = 74.0; ss = sw / rear.width; HZ = -40.5                  # drawn 74 mm wide, horizon at y -40.5
+    grid = rear.crop((0, 1690, rear.width, rear.height))
+    grid = grid.resize((round(L(sw)), round(L(grid.height * ss))), Image.LANCZOS)
+    lay.paste(grid, tuple(round(v) for v in px(-sw / 2, HZ)))
+    sky = rear.crop((0, 1560, rear.width, 1690))                 # the skyline, kept low: 6.5 mm
+    sky = sky.resize((round(L(sw)), round(L(6.5))), Image.LANCZOS)
+    x, y = px(-sw / 2, HZ + 6.5); box = (round(x), round(y), round(x) + sky.width, round(y) + sky.height)
+    lay.paste(ImageChops.lighter(lay.crop(box), sky), box[:2])
+    moon = rear.crop((470, 110, 750, 390))
+    mw = 6.4; moon = moon.resize((round(L(mw)), round(L(mw))), Image.LANCZOS)
+    x, y = px(9.5 - mw / 2, -29.0 + mw / 2)
+    box = (round(x), round(y), round(x) + moon.width, round(y) + moon.height)
+    lay.paste(ImageChops.lighter(lay.crop(box), moon), box[:2])
+    sheet = Image.open(os.path.join(ART, 'islands.webp')).convert('RGBA')
+    for (sx, sy, sw_, sh), cx, cy, w in (((661, 0, 173, 219), -24.0, -29.6, 6.0), ((168, 0, 160, 205), -6.5, -30.4, 4.6),
+                                         ((1388, 0, 268, 262), 24.5, -29.4, 6.6)):
+        im = sheet.crop((sx, sy, sx + sw_, sy + sh)); h = w * im.height / im.width
+        im = im.resize((round(L(w)), round(L(h))), Image.LANCZOS)
+        x, y = px(cx - w / 2, cy + h / 2); lay.paste(im, (round(x), round(y)), im)
+    return lay
+
+SHOW_STRIP = os.environ.get('PANEL_STRIP') == '1'                # the HOME VIDEO GAME strip (off: the scene starts at the frame)
+FADE_Y = -32.6 if SHOW_STRIP else o.BCY - WIN_H / 2 - FRAME[-1][0] - 0.3
+lay = {'scene': bg_scene, 'grid': bg_grid, 'rain': bg_rain, 'islands': bg_islands, 'stripes': bg_stripes}[BG]()
 ramp = Image.new('L', (1, H))
 for j in range(H):
     y = Y1 - j / PX
-    ramp.putpixel((0, j), int(255 * np.clip((-32.6 - y) / 3.0, 0, 1)))
+    ramp.putpixel((0, j), int(255 * np.clip(((FADE_Y) - y) / 1.6, 0, 1)))
 art = Image.composite(lay, art, ramp.resize((W, H)))
 
 # top band: the logo from the box art, its stripes carried out to the panel edges
@@ -154,13 +182,14 @@ paste_fit(art, STRIPE_R, half_w + BLEED - seg / 2, st_cy, w_mm=seg, h_mm=st_h)
 paste_fit(art, LOGO, 0, band_cy, h_mm=logo_h, feather=0.5)
 
 # below the screen: HOME VIDEO GAME / ARCADE ADVENTURE, stripes to the edges
-TEXT = hero.crop((165, 1368, 776, 1493)); text_h = 5.6; text_w = text_h * TEXT.width / TEXT.height
-text_cy = win_bot - frame_out - 0.8 - text_h / 2
-TS_L, TS_R = hero.crop((22, 1368, 150, 1493)), hero.crop((792, 1368, 920, 1493))
-seg = half_w + BLEED - text_w / 2 + 0.5
-paste_fit(art, TS_L, -half_w - BLEED + seg / 2, text_cy, w_mm=seg, h_mm=text_h)
-paste_fit(art, TS_R, half_w + BLEED - seg / 2, text_cy, w_mm=seg, h_mm=text_h)
-paste_fit(art, TEXT, 0, text_cy, h_mm=text_h, feather=0.4)
+if SHOW_STRIP:
+  TEXT = hero.crop((165, 1368, 776, 1493)); text_h = 5.6; text_w = text_h * TEXT.width / TEXT.height
+  text_cy = win_bot - frame_out - 0.8 - text_h / 2
+  TS_L, TS_R = hero.crop((22, 1368, 150, 1493)), hero.crop((792, 1368, 920, 1493))
+  seg = half_w + BLEED - text_w / 2 + 0.5
+  paste_fit(art, TS_L, -half_w - BLEED + seg / 2, text_cy, w_mm=seg, h_mm=text_h)
+  paste_fit(art, TS_R, half_w + BLEED - seg / 2, text_cy, w_mm=seg, h_mm=text_h)
+  paste_fit(art, TEXT, 0, text_cy, h_mm=text_h, feather=0.4)
 
 # the wing buttons: an orange ring and a thin blue ring round each well, ticks on the outer side
 ORANGE, BLUE, SKY = (246, 150, 32), (36, 104, 214), (90, 170, 255)
@@ -174,7 +203,7 @@ rw = o.BTN_D / 2 + o.WELL                                        # the well edge
 ty = o.WING_Y + 3.4 - 4.6 - 1.0                                  # BOTH baseline (top of the word)
 halo = Image.new('L', (W, H), 0); dh = ImageDraw.Draw(halo)      # dark field behind the rings and the BOTH badge
 for sd in (-1, 1):
-    cx, cy = sd * o.WING_X, o.WING_Y; R = rw + 3.0
+    cx, cy = sd * o.WING_X, o.WING_Y; R = rw + 2.2
     dh.ellipse([*px(cx - R, cy + R), *px(cx + R, cy - R)], fill=235)
 dh.rounded_rectangle([*px(-5.2, o.WING_Y + 7.4), *px(5.2, ty - 2.3 - 2.4)], radius=L(1.5), fill=235)
 halo = halo.filter(ImageFilter.GaussianBlur(L(1.2)))
@@ -190,6 +219,13 @@ for sd in (-1, 1):
     for yy in (-0.9, 0.9):
         x0, x1 = sorted((cx + sd * (rw + 1.9), cx + sd * (rw + 2.4)))
         bar(x0, cy + yy - 0.15, x1, cy + yy + 0.15, BLUE)
+# the dart rocker's bay: the same orange and blue outline, following the cut
+def bay(t):
+    return o.rocker2d(o.WELL + t) + o.rrect(o.ROCKER_W + 2 * (o.WELL + t), 40.0, 0.0, 0, o.ROCKER_Y - 20.0)
+def fill(cs, col):
+    for pg in cs.to_polygons(): d.polygon([px(x, y) for x, y in pg], fill=col)
+fill(bay(1.6), BLUE); fill(bay(1.35), INK_BLACK); fill(bay(1.1), ORANGE); fill(bay(0.35), INK_BLACK)
+
 # BOTH: straight up. A pixel arrow with streaks, the word, a dashed rule
 ax, ay = 0.0, o.WING_Y + 3.4
 head = [(-2.6, 0.0), (0.0, 3.2), (2.6, 0.0), (0.7, 0.55), (0.7, -4.6), (-0.7, -4.6), (-0.7, 0.55)]

@@ -166,6 +166,15 @@ def glyph2d(side):
         for pg in f.to_polygons(): out += poly([(-side * x * r + side * WING_X, y * r + WING_Y) for x, y in pg])
     return out
 
+def dart_glyph2d():
+    """engraved on the rocker: a double-ended dart through an aiming reticle (press an end: dart that way)"""
+    y = ROCKER_Y
+    g = circle(5.2, 0, y, 64) - circle(3.8, 0, y, 64) + circle(1.2, 0, y, 32)
+    for sx in (-1, 1):
+        g += rrect(11.6, 0.9, 0.45, sx * 9.4, y)                                  # shaft
+        g += poly([(sx * 19.6, y), (sx * 15.2, y + 2.3), (sx * 16.0, y), (sx * 15.2, y - 2.3)])   # head
+    return g
+
 def rocker2d(delta=0.0):
     return rrect(ROCKER_W + 2 * delta, ROCKER_H + 2 * delta, ROCKER_R + delta, 0, ROCKER_Y)
 
@@ -369,11 +378,13 @@ def rocker_cap():
     cap = prism(rocker2d(), -ROCKER_PROUD, z0) + prism(rocker2d(FLANGE), z0, z0 + 1.0)
     tip = Z_ONE - SW_H - PRETRAVEL
     for sx in (-1, 1): cap += cyl_z(4.0, sx * DART_X, ROCKER_Y, z0 + 0.5, tip)
+    cap -= prism(dart_glyph2d(), -ROCKER_PROUD - 0.1, -ROCKER_PROUD + GLYPH_DEPTH)
     return cap - cyl_y(AXLE_D + 0.05, 0, AXLE_Z, ROCKER_Y - 10, ROCKER_Y + 10)
 
 def ref_glyphs():
     """render only: the engraved wings, filled (paint)"""
-    return sum((prism(glyph2d(s), -WING_PROUD + 0.02, -WING_PROUD + GLYPH_DEPTH) for s in (-1, 1)), M())
+    g = sum((prism(glyph2d(s), -WING_PROUD + 0.02, -WING_PROUD + GLYPH_DEPTH) for s in (-1, 1)), M())
+    return g + prism(dart_glyph2d(), -ROCKER_PROUD + 0.02, -ROCKER_PROUD + GLYPH_DEPTH)
 
 def face_panel():
     return prism(panel2d(), 0.0, PANEL_T)
