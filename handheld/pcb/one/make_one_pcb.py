@@ -114,7 +114,7 @@ for i, dy in enumerate((4.7, 0.0, -4.7)):
     add_pad(sw5, i + 1, 0, dy, pcbnew.PAD_SHAPE_CIRCLE, (2.2, 2.2), drill=1.4, netname=('BAT', 'BAT_RAW', None)[i])
 silk_rect(x_front + 0.6, G.PSW_Y - G.PSW_LEN / 2, x_front + G.PSW_DEPTH, G.PSW_Y + G.PSW_LEN / 2)
 silk_text('ON', x_front + 3.2, G.PSW_Y + 4.0, 1.2)
-sw5.Reference().SetPosition(P(xp + 2.6, G.PSW_Y + 7.6))
+sw5.Reference().SetPosition(P(xp - 1.0, G.PSW_Y - 8.4))
 j1.Reference().SetPosition(P(18.6, G.HDR_PIN1_Y + 2.4))
 
 # J2: JST S2B-PH-K-S, entry facing up (toward the battery), pin 1 = +
@@ -129,7 +129,7 @@ silk_text('BATTERY', G.PH_SOCK[0] + 3.0, G.PH_SOCK[1] - 3.4, 1.0)
 
 # labels
 silk_text('STRUTHIO ONE', 0, -44.0, 1.6)
-silk_text('rev A', 0, -47.0, 1.0)
+silk_text('rev B', 0, -47.0, 1.0)
 silk_text('J1: LONG PINS THROUGH THIS BOARD', 0.0, -64.0, 0.9, pcbnew.B_SilkS)
 
 # ---- ground pour on both layers ------------------------------------------------------------------------
@@ -166,10 +166,16 @@ def route():
     sw = {r: board.FindFootprintByReference(r) for r in ('SW1', 'SW2', 'SW3', 'SW4')}
     # left channel (x < even row): GPIO17, GPIO18
     xa, xb = 19.6, 20.25
-    x, y = hx[16]; track([(x, y), (xb - 0.0, y - 0.65), (xa, y - 1.3), (xa, -41.8)], 'GPIO17')
-    bx, by = pad_xy(sw['SW1'], 'A'); track([(xa, -41.8), (bx, -41.8), (bx, by)], 'GPIO17')
-    x, y = hx[18]; track([(x, y), (xb, y - 0.65), (xb, -40.5)], 'GPIO18')
-    ax, ay = pad_xy(sw['SW2'], 'A'); track([(xb, -40.5), (ax, -40.5 - (ax - xb)), (ax, ay)], 'GPIO18')
+    # GPIO17 drops to the bottom layer under the strip, runs under the right button at the switch row
+    # and comes back up under the left switch; GPIO18 turns straight into the right switch
+    x, y = hx[16]; track([(x, y), (xb - 0.0, y - 0.65), (xa, y - 1.3), (xa, -34.9), (19.0, -35.5)], 'GPIO17')
+    via(19.0, -35.5, 'GPIO17')
+    cx, cy = G.switch_xy()['LEFT']
+    track([(19.0, -35.5), (19.0, cy), (cx, cy)], 'GPIO17', pcbnew.B_Cu)
+    via(cx, cy, 'GPIO17')
+    bx, by = pad_xy(sw['SW1'], 'A'); track([(cx, cy), (bx + (by - cy), by), (bx, by)], 'GPIO17')
+    x, y = hx[18]; track([(x, y), (xb, y - 0.65), (xb, -36.6)], 'GPIO18')
+    ax, ay = pad_xy(sw['SW2'], 'A'); track([(xb, -36.6), (ax, -36.6 - (xb - ax)), (ax, ay)], 'GPIO18')
     # right channel (x > odd row): GPIO38, GPIO21, BAT
     x38, x21, xbat = 27.95, 28.6, 29.5
     x, y = hx[7]; track([(x, y), (x38, y - (x38 - x)), (x38, -57.5)], 'GPIO38')
@@ -187,8 +193,8 @@ def route():
     j2p1, p2 = pad_xy(j2, 1), pad_xy(sw5, 2)
     track([j2p1, (j2p1[0] - 2.0, j2p1[1]), (-29.0, j2p1[1]), (-29.0, p2[1]), p2], 'BAT_RAW', width=W_PWR)
     # ground stitching beside the switches and on the strip
-    for x, y in [(-24, -53.5), (24, -53.5), (-16, -65.0), (16, -65.0), (17.6, 22.0), (17.6, 5.0), (17.6, -12.0),
-                 (-10, -44), (10, -44), (0, -60), (-36, -40), (36, -40)]:
+    for x, y in [(-21.5, -53.5), (24, -53.5), (-16, -65.0), (16, -65.0), (17.6, 22.0), (17.6, 5.0), (17.6, -12.0),
+                 (-9, -47.5), (9, -47.5), (0, -60), (-31.5, -58), (31.5, -58)]:
         via(x, y, 'GND')
 
 def main():

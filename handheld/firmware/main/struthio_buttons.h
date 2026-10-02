@@ -17,8 +17,8 @@
 // wings held after the straight-up chord.
 // The handheld adds a two-end silicone DART rocker (GPIO21 DART LEFT, GPIO38 DART
 // RIGHT, active low): each debounced press of an end is one directional dart.
-// The wing trials stay for bench boards without a rocker; on the handheld select
-// ROCKER ONLY (trial OFF) in service mode so the wings never dart.
+// ROCKER ONLY (trial OFF) is the default: both wings mean straight up, never a dart.
+// The wing trials stay for bench boards without a rocker (select C in service mode).
 // Portable C: no ESP-IDF headers, host-tested in firmware/host_test.
 #pragma once
 #include <stdbool.h>

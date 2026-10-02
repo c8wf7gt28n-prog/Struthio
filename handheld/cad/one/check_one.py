@@ -29,7 +29,7 @@ for n, m in [('front shell', front), ('back shell', back)] + list(caps.items()):
     check(f'{n}: one watertight solid', m.status().name == 'NoError' and len(parts) == 1, f'{len(parts)} piece(s), {m.volume()/1000:.1f} cm3')
 
 b = o.body2d().bounds()
-check('outline: 88 x 134, 65 wide above y -30', abs((b[2] - b[0]) - 88.0) < 0.3 and abs((b[3] - b[1]) - 134.0) < 0.1
+check(f'outline: {o.LOWER_W:.0f} x 134, 65 wide above y -30', abs((b[2] - b[0]) - o.LOWER_W) < 0.3 and abs((b[3] - b[1]) - 134.0) < 0.1
       and all(abs(o.wall_x_at(y, 1) + o.WALL - 32.5) < 0.1 for y in np.arange(-28.0, 50.0, 0.5)),
       f'{b[2]-b[0]:.2f} x {b[3]-b[1]:.2f} mm')
 panel = o.face_panel()

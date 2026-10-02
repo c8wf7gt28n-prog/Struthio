@@ -14,12 +14,12 @@ Anything marked **confirm** has not been measured on a real part yet.
 | | |
 |---|---|
 | Height | 134.0 mm |
-| Width | 65.0 mm above y = −30 (straight sides); 88.0 mm across the controller |
+| Width | 65.0 mm above y = −30 (straight sides), then a gentle flare to 74.0 mm across the controls |
 | Thickness | 23.0 mm, which is about the minimum the header stack allows (~22 mm) |
 | Top | soft round corners (R 9), no crown |
 | Screen | visible 47.86 mm wide, glass 48.96 mm, side margin 8.02 mm |
 | Face | one 1.0 mm clear acrylic panel: the lens over the screen and the front art in one piece. Its cut-outs make a 1 mm well round each key |
-| Controls | two wings (left/right flap) and a rocker underneath (two buttons), symmetric about the centreline |
+| Controls | two round wing buttons, 16 mm across: left flaps up-left, right flaps up-right, **both together flap straight up**. Under them is the rocker for the aim-assisted dart. All symmetric about the centreline. |
 | Power | slide switch on the player's left side, at the controller |
 
 ## Stack-up (front to back)
@@ -38,8 +38,8 @@ Anything marked **confirm** has not been measured on a real part yet.
 | Ref | Part | LCSC | Job |
 |---|---|---|---|
 | J1 | PZ254-2-16-Z-8.5 2 × 16 header | C2894977 | Plugs into the Waveshare J8. **Long pins go through the board**, so the 3 mm end mates. |
-| SW1, SW2 | TS-1187A-B-A-B tact switch | C318884 | Left / right wing (GPIO17 / GPIO18) |
-| SW3, SW4 | TS-1187A-B-A-B tact switch | C318884 | Rocker left / right end (GPIO21 / GPIO38) |
+| SW1, SW2 | TS-1187A-B-A-B tact switch | C318884 | Left / right wing button (GPIO17 / GPIO18) |
+| SW3, SW4 | TS-1187A-B-A-B tact switch | C318884 | Dart rocker, left / right end (GPIO21 / GPIO38) |
 | SW5 | SS-12D06-G030 slide switch, 3 A | C17179519 | Hard battery cut: BAT_RAW → BAT (header pin 1). Which end is ON: **confirm**. |
 | J2 | JST S2B-PH-K-S | C173752 | Battery plug, entry faces right |
 
@@ -58,7 +58,7 @@ diagonally, so a switch works however it is rotated. Header pins used are 1 BAT,
 | 6 × M2 × 8 screws | All from the back: 4 into the Waveshare holes, 2 at the bottom |
 | 1.75 mm filament, about 50 mm | The rocker axle |
 | Thin foam pad | Optional, behind the battery |
-| Printed parts | `cad/one/stl/`: front, back, two wings, rocker |
+| Printed parts | `cad/one/stl/`: front, back, two wing buttons, rocker. Each wing button has a 0.5 mm deep wing engraved on top: fill it with a blue paint pen, or leave it plain. |
 | Face panel | 1.0 mm clear cast acrylic, cut from `cad/one/panel/one_panel_cut.dxf` and back-printed (see below) |
 | Thin double-sided tape | To stick the panel down: clear adhesive transfer tape, or thin strips under the black areas only |
 
@@ -95,7 +95,7 @@ Cut out the screen window and stick it on the back of the panel; the result look
 
 ## Assembly
 
-1. Press the wing and rocker caps into the front shell from the inside. Slide the filament axle through the rocker.
+1. Press the two round wing buttons (engraved wing pointing up and outwards) and the rocker into the front shell from the inside. Slide the filament axle through the rocker.
 2. Lay the Waveshare board screen down in the front shell, with USB-C at the top.
 3. Lower the ONE board on, so that J1 goes straight into the Waveshare J8 socket. Press it evenly until it sits on the posts.
 4. Set the power switch to OFF. Plug the battery into J2 on the ONE board, then lay the battery on the Waveshare board's back. Add the foam pad if you are using it.
@@ -104,6 +104,11 @@ Cut out the screen window and stick it on the back of the panel; the result look
 7. Peel the panel's backing film. Put tape on the black areas of its back, line it up inside the rim and press it down.
 8. Switch on. Charge through the Waveshare USB-C.
 9. If the picture is upside down, open service mode and **hold RIGHT for 1 s**. The setting is saved; power-cycle the handheld to play.
+
+## Firmware setting
+
+The dart mode defaults to **ROCKER ONLY**, so holding both wing buttons only ever flaps straight up and never fires a dart.
+A bench test with no rocker can switch to mode C (hold both for 0.2 s to dart) in service mode with a LEFT tap.
 
 ## Still to confirm on real parts
 

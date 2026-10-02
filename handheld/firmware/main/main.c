@@ -505,8 +505,8 @@ void app_main(void) {
     ESP_LOGI(TAG, "STRUTHIO handheld boot (core: STRUTHIO ARCADE 1.8.0 port)");
     init_wing_gpio();
     nvs_init_or_erase();
-    st_dart_trial_t trial = (st_dart_trial_t)app_load_i32("dart", ST_DART_TRIAL_C_BOTH_HOLD);
-    if (trial > ST_DART_OFF) trial = ST_DART_TRIAL_C_BOTH_HOLD;
+    st_dart_trial_t trial = (st_dart_trial_t)app_load_i32("dart", ST_DART_OFF);     // ROCKER ONLY: every ONE has the rocker
+    if (trial > ST_DART_OFF) trial = ST_DART_OFF;
     g_high_score = app_load_i32("best", 0);
     st_norm_init(&g_norm);
     st_buttons_init(&g_buttons, &g_norm, trial, app_now_ms());

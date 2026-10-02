@@ -29,7 +29,7 @@ UPPER_W = 65.0          # upper body: straight sides from Y_STRAIGHT up
 Y_TOP = 64.0            # flat top, soft corners
 R_TOP = 9.0
 Y_STRAIGHT = -30.0      # the sides are straight from here up
-LOWER_W = 88.0          # controller section (frozen geometry)
+LOWER_W = 74.0          # controller section: a gentle flare from the 65 mm upper body
 Y_BOTTOM = -70.0        # lowest point (bottom corners); the bottom edge is gently concave
 FILLET_WAIST = 6.0      # concave fillet where the straight sides meet the flare
 RF = 2.0                # front edge radius
@@ -69,7 +69,8 @@ STRIP_TOP = HDR_PIN1_Y + 3.6           # 36.4
 PLATE_TOP = -33.5                      # plate below the Waveshare board (bottom edge -32.44)
 
 # ---- controls (visible geometry frozen from the handheld design) -----------------------------------
-WING_X, WING_Y, WING_W, WING_H = 24.0, -46.0, 28.0, 18.5
+WING_X, WING_Y, BTN_D = 18.0, -43.8, 16.0  # flap up-left / up-right, both = straight up: round caps, a wing engraved in each
+GLYPH_DEPTH = 0.5                      # engraved wing on the cap top (paint-fill it, or leave it as a shadow)
 ROCKER_W, ROCKER_H, ROCKER_R, ROCKER_Y = 44.0, 9.0, 3.0, -61.2
 DART_X = 16.0                          # rocker-end switches (under the cap ends)
 KEY_CLEAR = 0.45                       # opening around a cap
@@ -90,8 +91,8 @@ BAT = dict(x0=-21.0, x1=13.0, y0=6.5, y1=58.5, z0=Z_BACK + 0.2, t=5.2)    # THOR
 PH_SOCK = (4.0, -38.0)                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
 SPK = dict(x0=-21.0, x1=-1.0, y0=-31.0, y1=-1.0, t=5.6)                    # boxed speaker, ~30 x 20 (confirm)
 # ---- screws ---------------------------------------------------------------------------------------------
-LOWER_SCREWS = [(-36.0, -62.0), (36.0, -62.0)]
-PLATE_POSTS = [(-30.0, -36.0), (30.0, -36.0)]
+LOWER_SCREWS = [(-29.5, -62.5), (29.5, -62.5)]
+PLATE_POSTS = [(-29.0, -36.5), (29.0, -36.5)]
 PILOT_D, CLEAR_D, CBORE_D = 1.7, 2.4, 4.2
 HOOK_X, HOOK_W = 19.0, 8.0
 
@@ -127,11 +128,10 @@ def rrect(w, h, r, cx=0.0, cy=0.0, n=24):
 
 def lower_half():
     """right half of the controller section, from the straight side round to the bottom centre"""
-    h = UPPER_W / 2
+    h, H = UPPER_W / 2, LOWER_W / 2
     return [(0.0, Y_STRAIGHT + 16), (16.0, Y_STRAIGHT + 16), (h, Y_STRAIGHT + 16), (h, Y_STRAIGHT + 10), (h, Y_STRAIGHT + 5),
-            (h, Y_STRAIGHT), (h + 0.8, Y_STRAIGHT - 2.6), (h + 3.2, Y_STRAIGHT - 5.2),
-            (39.6, -38.6), (42.8, -42.6), (43.9, -48.0), (44.0, -56.0), (43.4, -64.0), (41.2, -68.6),
-            (34.5, -70.0), (20.0, -69.0), (0.0, -68.6)]
+            (h, Y_STRAIGHT), (h + 0.5, Y_STRAIGHT - 2.6), (h + 1.6, Y_STRAIGHT - 5.4), (H - 1.6, -39.0), (H - 0.4, -43.0),
+            (H, -48.0), (H, -56.0), (H - 0.5, -64.0), (H - 2.2, -68.4), (H - 7.5, -70.0), (16.0, -69.0), (0.0, -68.6)]
 
 def body2d():
     half = lower_half()                                   # top centre clockwise to the bottom centre
@@ -144,12 +144,27 @@ def body2d():
     return b.offset(-3, mf.JoinType.Round).offset(3, mf.JoinType.Round)
 
 def wing2d(side, delta=0.0):
-    pts = [[0.36, 0.44], [0.47, 0.30], [0.50, 0.08], [0.45, -0.16], [0.34, -0.30], [0.16, -0.36], [0.08, -0.24],
-           [-0.08, -0.44], [-0.15, -0.27], [-0.32, -0.50], [-0.38, -0.31], [-0.50, -0.38], [-0.47, -0.14],
-           [-0.34, 0.12], [-0.12, 0.33], [0.10, 0.46], [0.24, 0.50]]
-    p = [(side * -1 * x * WING_W + side * WING_X, WING_Y + y * WING_H) for x, y in pts]   # side -1 = player's left
-    c = poly(p)
-    return c.offset(delta, mf.JoinType.Round) if delta else c
+    """wing button outline (side -1 = player's left): a round cap"""
+    return circle(BTN_D + 2 * delta, side * WING_X, WING_Y, 96)
+
+def glyph2d(side):
+    """the wing engraved in a cap: three feathers, round and full at the outer tip, tapering to a point low
+    on the inner side (side -1 = player's left: the wing reaches up and out to the left)"""
+    r = BTN_D / 2
+    out = CS()
+    for base, ctl, tip, wmax in (((0.50, -0.18), (-0.02, 0.02), (-0.54, 0.52), 0.30),
+                                 ((0.46, -0.44), (-0.04, -0.28), (-0.50, 0.12), 0.26),
+                                 ((0.38, -0.68), (0.00, -0.56), (-0.36, -0.28), 0.21)):
+        t = np.linspace(0, 1, 48)[:, None]
+        base, tip, ctl = np.array(base), np.array(tip), np.array(ctl)
+        sp = (1 - t) ** 2 * base + 2 * (1 - t) * t * ctl + t ** 2 * tip            # spine (quadratic Bezier)
+        d = np.gradient(sp, axis=0); d /= np.linalg.norm(d, axis=1)[:, None]
+        n = np.c_[-d[:, 1], d[:, 0]]
+        w = wmax * np.clip(t[:, 0], 0, 1) ** 0.8 / 2                                  # a point where they meet, full at the tip
+        ring = np.vstack([sp + n * w[:, None], (sp - n * w[:, None])[::-1]])
+        f = poly(ring) + CS.circle(wmax / 2, 32).translate(list(map(float, tip)))    # round tip
+        for pg in f.to_polygons(): out += poly([(-side * x * r + side * WING_X, y * r + WING_Y) for x, y in pg])
+    return out
 
 def rocker2d(delta=0.0):
     return rrect(ROCKER_W + 2 * delta, ROCKER_H + 2 * delta, ROCKER_R + delta, 0, ROCKER_Y)
@@ -162,7 +177,9 @@ def circle(d, x=0.0, y=0.0, n=48):
 
 def panel2d():
     """face panel: the body inset PANEL_INSET, minus the key wells"""
-    return body2d().offset(-PANEL_INSET, mf.JoinType.Round) - keys2d(WELL)
+    bay = rrect(ROCKER_W + 2 * WELL, 40.0, 0.0, 0, ROCKER_Y - 20.0)                   # the rocker's well runs out of the
+    p = body2d().offset(-PANEL_INSET, mf.JoinType.Round) - keys2d(WELL) - bay       # bottom edge: straight sides, no hooks
+    return p.offset(-0.8, mf.JoinType.Round).offset(0.8, mf.JoinType.Round)       # no slivers or sharp horns
 
 def board2d(d=0.0):
     return rrect(BW + 2 * d, BH + 2 * d, BR + d, 0, BCY)
@@ -265,7 +282,7 @@ def front_shell():
     add = key_collars()
     for sx in (-1, 1):                                                  # board locating ribs
         add += box(sx * 11 - 1.0, sx * 11 + 1.0, BCY + BH / 2 + 0.25, Y_TOP - 0.5, FRONT_SKIN - 0.01, 9.0)
-    for x in (-22.0, 0.0, 22.0):
+    for x in (-26.0, 0.0, 26.0):
         add += box(x - 1.5, x + 1.5, Y_STRAIGHT - 6.0, BCY - BH / 2 - 0.25, FRONT_SKIN - 0.01, 9.0)
     for x, y in LOWER_SCREWS: add += cyl_z(6.0, x, y, FRONT_SKIN - 0.01, Z_ONE)
     for x, y in PLATE_POSTS: add += cyl_z(4.0, x, y, FRONT_SKIN - 0.01, Z_ONE)
@@ -342,6 +359,7 @@ def back_shell():
 def wing_cap(side):
     w = wing2d(side)
     cap = prism(w, -WING_PROUD, COLLAR_Z) + prism(wing2d(side, FLANGE), COLLAR_Z, COLLAR_Z + 1.0)
+    cap -= prism(glyph2d(side), -WING_PROUD - 0.1, -WING_PROUD + GLYPH_DEPTH)
     tip = Z_ONE - SW_H - PRETRAVEL
     cap += cyl_z(4.0, side * WING_X, WING_Y, COLLAR_Z + 0.5, tip)
     return cap
@@ -352,6 +370,10 @@ def rocker_cap():
     tip = Z_ONE - SW_H - PRETRAVEL
     for sx in (-1, 1): cap += cyl_z(4.0, sx * DART_X, ROCKER_Y, z0 + 0.5, tip)
     return cap - cyl_y(AXLE_D + 0.05, 0, AXLE_Z, ROCKER_Y - 10, ROCKER_Y + 10)
+
+def ref_glyphs():
+    """render only: the engraved wings, filled (paint)"""
+    return sum((prism(glyph2d(s), -WING_PROUD + 0.02, -WING_PROUD + GLYPH_DEPTH) for s in (-1, 1)), M())
 
 def face_panel():
     return prism(panel2d(), 0.0, PANEL_T)
@@ -413,7 +435,7 @@ PARTS = {
 }
 
 REFS = {
-    'ref_panel': face_panel, 'ref_waveshare': ref_waveshare, 'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker,
+    'ref_panel': face_panel, 'ref_glyphs': ref_glyphs, 'ref_waveshare': ref_waveshare, 'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker,
     'ref_switches': lambda: ref_switches() + psw_box()[0] + psw_box()[1] + ref_ph_socket() + ref_header()[0],
 }
 

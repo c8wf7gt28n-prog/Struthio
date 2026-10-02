@@ -1,8 +1,8 @@
 Designator,Mid X,Mid Y,Layer,Rotation
 J2,4.000mm,-38.000mm,Top,90
-SW5,-31.199mm,-50.000mm,Top,0
+SW5,-24.786mm,-50.000mm,Top,0
 SW4,16.000mm,-61.200mm,Top,0
 SW3,-16.000mm,-61.200mm,Top,0
-SW2,24.000mm,-46.000mm,Top,0
-SW1,-24.000mm,-46.000mm,Top,0
+SW2,18.000mm,-43.800mm,Top,0
+SW1,-18.000mm,-43.800mm,Top,0
 J1,23.200mm,13.780mm,Top,0

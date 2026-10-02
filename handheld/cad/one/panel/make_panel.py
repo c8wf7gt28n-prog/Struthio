@@ -77,11 +77,12 @@ frame_out = FRAME[-1][0]
 panel_top = outer[:, 1].max(); half_w = o.UPPER_W / 2 - o.PANEL_INSET
 
 # controller: the game's skyline and grid, horizon just above the wings, fading in from the black
-s = o.LOWER_W / rear.width                       # mm per px: the background spans the full 88 mm
+BG_W = 88.0
+s = BG_W / rear.width                            # mm per px: the background is drawn 88 mm wide
 HORIZON_PX, HORIZON_Y = 1690, -40.0
 top_y = HORIZON_Y + HORIZON_PX * s
-sc = rear.resize((round(L(o.LOWER_W)), round(L(rear.height * s))), Image.LANCZOS)
-lay = Image.new('RGB', (W, H), INK_BLACK); lay.paste(sc, tuple(round(v) for v in px(-o.LOWER_W / 2, top_y)))
+sc = rear.resize((round(L(BG_W)), round(L(rear.height * s))), Image.LANCZOS)
+lay = Image.new('RGB', (W, H), INK_BLACK); lay.paste(sc, tuple(round(v) for v in px(-BG_W / 2, top_y)))
 ramp = Image.new('L', (1, H))
 for j in range(H):
     y = Y1 - j / PX
@@ -99,13 +100,60 @@ paste_fit(art, STRIPE_R, half_w + BLEED - seg / 2, st_cy, w_mm=seg, h_mm=st_h)
 paste_fit(art, LOGO, 0, band_cy, h_mm=logo_h, feather=0.5)
 
 # below the screen: HOME VIDEO GAME / ARCADE ADVENTURE, stripes to the edges
-TEXT = hero.crop((165, 1368, 776, 1493)); text_h = 7.6; text_w = text_h * TEXT.width / TEXT.height
-text_cy = win_bot - frame_out - 1.1 - text_h / 2
+TEXT = hero.crop((165, 1368, 776, 1493)); text_h = 5.6; text_w = text_h * TEXT.width / TEXT.height
+text_cy = win_bot - frame_out - 0.8 - text_h / 2
 TS_L, TS_R = hero.crop((22, 1368, 150, 1493)), hero.crop((792, 1368, 920, 1493))
 seg = half_w + BLEED - text_w / 2 + 0.5
 paste_fit(art, TS_L, -half_w - BLEED + seg / 2, text_cy, w_mm=seg, h_mm=text_h)
 paste_fit(art, TS_R, half_w + BLEED - seg / 2, text_cy, w_mm=seg, h_mm=text_h)
 paste_fit(art, TEXT, 0, text_cy, h_mm=text_h, feather=0.4)
+
+# the wing buttons: an orange ring and a thin blue ring round each well, ticks on the outer side
+ORANGE, BLUE, SKY = (246, 150, 32), (36, 104, 214), (90, 170, 255)
+d = ImageDraw.Draw(art)
+def ring(cx, cy, r0, r1, col):
+    d.ellipse([*px(cx - r1, cy + r1), *px(cx + r1, cy - r1)], fill=col)
+    d.ellipse([*px(cx - r0, cy + r0), *px(cx + r0, cy - r0)], fill=INK_BLACK)
+def bar(x0, y0, x1, y1, col):
+    a, b = px(x0, y1), px(x1, y0); d.rectangle([a, b], fill=col)
+rw = o.BTN_D / 2 + o.WELL                                        # the well edge (the acrylic's cut)
+ty = o.WING_Y + 3.4 - 4.6 - 1.0                                  # BOTH baseline (top of the word)
+halo = Image.new('L', (W, H), 0); dh = ImageDraw.Draw(halo)      # dark field behind the rings and the BOTH badge
+for sd in (-1, 1):
+    cx, cy = sd * o.WING_X, o.WING_Y; R = rw + 3.0
+    dh.ellipse([*px(cx - R, cy + R), *px(cx + R, cy - R)], fill=235)
+dh.rounded_rectangle([*px(-5.2, o.WING_Y + 7.4), *px(5.2, ty - 2.3 - 2.4)], radius=L(1.5), fill=235)
+halo = halo.filter(ImageFilter.GaussianBlur(L(1.2)))
+art = Image.composite(Image.new('RGB', (W, H), INK_BLACK), art, halo)
+d = ImageDraw.Draw(art)
+for sd in (-1, 1):
+    cx, cy = sd * o.WING_X, o.WING_Y
+    ring(cx, cy, rw + 1.35, rw + 1.6, BLUE)
+    ring(cx, cy, rw + 0.35, rw + 1.1, ORANGE)
+    for k, (t0, t1) in enumerate(((rw + 1.9, rw + 2.6), (rw + 2.9, rw + 3.2))):              # outer ticks
+        x0, x1 = (cx + sd * t0, cx + sd * t1) if sd > 0 else (cx + sd * t1, cx + sd * t0)
+        bar(x0, cy - 0.22, x1, cy + 0.22, ORANGE if k == 0 else BLUE)
+    for yy in (-0.9, 0.9):
+        x0, x1 = sorted((cx + sd * (rw + 1.9), cx + sd * (rw + 2.4)))
+        bar(x0, cy + yy - 0.15, x1, cy + yy + 0.15, BLUE)
+# BOTH: straight up. A pixel arrow with streaks, the word, a dashed rule
+ax, ay = 0.0, o.WING_Y + 3.4
+head = [(-2.6, 0.0), (0.0, 3.2), (2.6, 0.0), (0.7, 0.55), (0.7, -4.6), (-0.7, -4.6), (-0.7, 0.55)]
+d.polygon([px(ax + x, ay + y) for x, y in head], fill=BLUE)
+d.polygon([px(ax + x * 0.62, ay + 0.35 + y * 0.62) for x, y in head[:3]], fill=SKY)
+for x, h in ((-1.6, 2.4), (-2.3, 1.4), (1.6, 2.4), (2.3, 1.4), (-1.15, 3.4), (1.15, 3.4)):   # streaks under the head
+    bar(ax + x - 0.12, ay - 0.4 - h, ax + x + 0.12, ay - 0.4, BLUE if abs(x) > 2 else SKY)
+from PIL import ImageFont
+FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf'
+cap = 2.3                                                        # cap height, mm
+f = ImageFont.truetype(FONT, round(L(cap) / 0.73))
+tw = d.textlength('BOTH', font=f)
+ty = ay - 4.6 - 1.0
+x0, y0 = px(ax, ty)
+d.text((x0 - tw / 2, y0), 'BOTH', font=f, fill=ORANGE)
+for x0 in np.arange(-5.4, 5.4, 1.2):
+    bar(x0, ty - cap - 1.25, x0 + 0.8, ty - cap - 1.0, ORANGE)
+bar(-0.12, ty - cap - 1.9, 0.12, ty - cap - 0.4, SKY)
 
 # the box art's picture frame round the screen
 d = ImageDraw.Draw(art)

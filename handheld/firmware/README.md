@@ -49,13 +49,13 @@ never inside a tick.
 | Steer | hold a wing |
 | Straight-up flap | both wings within 100 ms |
 | DART | press an end of the DART rocker: GPIO21 darts left, GPIO38 darts right (one dart per press) |
-| DART without a rocker (bench) | DART mode C (default): hold both wings 200 ms |
+| DART without a rocker (bench) | select DART mode C in service mode: hold both wings 200 ms |
 | Restart after GAME OVER | hold both wings together for one second |
 | Service mode | hold both wings while powering on |
 
-DART modes, chosen in service mode and saved: `C BOTH-HOLD` (default, for a
-bench build with only two wing switches), `ROCKER ONLY` (the handheld: the wings
-never dart), and two experimental wing gestures, `A HOLD` and `B TAP-HOLD`. The
+DART modes, chosen in service mode and saved: `ROCKER ONLY` (default, the
+handheld: the wings never dart), `C BOTH-HOLD` (for a bench build with only two wing
+switches), and two experimental wing gestures, `A HOLD` and `B TAP-HOLD`. The
 rocker darts in every mode. `make -C host_test run` prints how each mode behaves
 on recorded play.
 
