@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STRUTHIO Flasher</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* layout: one narrow column, the install button the only loud thing on the page */
+:root {
+  --bg: #f3f4f8; --panel: #ffffff; --ink: #141a2b; --muted: #4f5a72; --gold: #b7791f; --accent: #1f5fd1; --line: #d9dde8;
+  --display: 'Press Start 2P', 'Courier New', monospace; --body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root { --bg: #0d1424; --panel: #141d33; --ink: #eef1f8; --muted: #a7b1c8; --gold: #f2b544; --accent: #6aa2ff; --line: #26324f; color-scheme: dark } }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--body); padding: 32px 16px 48px }
+main { max-width: 640px; margin: 0 auto; display: grid; gap: 22px }
+h1 { font: 22px/1.4 var(--display); color: var(--gold); margin: 0; letter-spacing: .04em }
+p { margin: 0 }
+.lead { color: var(--muted) }
+ol { margin: 0; padding-left: 22px; display: grid; gap: 10px }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 14px }
+esp-web-install-button button[slot="activate"] { font: 13px/1 var(--display); background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 16px 22px; cursor: pointer }
+esp-web-install-button button[slot="activate"]:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px }
+.note { font-size: 15px; color: var(--muted) }
+esp-web-install-button:not(:defined) span { display: none }
+.note[hidden] { display: none }
+code { font-family: ui-monospace, Consolas, monospace; font-size: .92em }
+</style>
+</head>
+<body>
+<main>
+  <h1>STRUTHIO</h1>
+  <p class="lead">Put the game on your Waveshare ESP32-S3-Touch-LCD-3.5B board, straight from this page. Nothing to install.</p>
+  <section class="card">
+    <ol>
+      <li>Use <b>Chrome</b> or <b>Edge</b> on a computer (phones and Safari cannot reach USB).</li>
+      <li>Plug the board in with a USB-C <b>data</b> cable.</li>
+      <li>Press <b>Install STRUTHIO</b>, pick the port that appears (often "USB JTAG/serial debug unit"), confirm.</li>
+      <li>Wait about two minutes. When it says it is done, unplug the board: the first power-on check starts.</li>
+    </ol>
+    <esp-web-install-button manifest="manifest.json">
+      <button slot="activate">Install STRUTHIO</button>
+      <span slot="unsupported">This browser cannot reach USB. Open this page in Chrome or Edge on a computer, or use FLASH_ME.bat from the package.</span>
+      <span slot="not-allowed">This page must be opened over https (or from localhost) to reach USB.</span>
+    </esp-web-install-button>
+  </section>
+  <p class="note">No port appears? Put the board in download mode: hold BOOT, press and release RESET, release BOOT, then press Install again. In a finished case the BOOT and RESET keys are the two small pin holes on the left side.</p>
+  <p class="note">It writes five files: the bootloader, the partition table, the game, its pictures (<code>0x410000</code>) and its music (<code>0xD10000</code>), and checks each one.</p>
+</main>
+<p class="note" id="noload" hidden>The flasher could not start. Use FLASH_ME.bat from the package instead.</p>
+<script type="module" src="esp-web-tools/install-button.js" onerror="document.getElementById('noload').hidden=false"></script>
+</body>
+</html>

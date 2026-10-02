@@ -17,7 +17,7 @@ partition_table/partition-table.bin, struthio.bin). Writes, in DIST (default: <r
 
 Needs: git, node + Playwright (for the PDFs), KiCad's python (board pictures are made by pcb/one/plot_board.py).
 """
-import argparse, datetime, hashlib, io, os, shutil, subprocess, sys, tempfile, zipfile
+import argparse, json, datetime, hashlib, io, os, shutil, subprocess, sys, tempfile, zipfile
 
 HH = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 REPO = os.path.dirname(HH)
@@ -73,15 +73,22 @@ def copy_tree(src, dst):
             shutil.copy2(os.path.join(d, f), os.path.join(dst, rel, f))
 
 # ---------------------------------------------------------------------------------------------------------
+def commit_short():
+    return git('rev-parse', '--short', 'HEAD')
+
 def pkg_flashing(work, prebuilt, docs):
     root = os.path.join(work, 'struthio')
     for t in ('core', 'render', 'audio', 'golden', 'host', 'firmware'):
         copy_tree(os.path.join(HH, t), os.path.join(root, 'handheld', t))
     put(os.path.join(HH, 'build', 'assets'), os.path.join(root, 'handheld', 'build', 'assets'))
     put(os.path.join(HH, 'tools', 'struthio_doctor.py'), os.path.join(root, 'handheld', 'tools', 'struthio_doctor.py'))
-    for f in ('STRUTHIO.bat', 'struthio.sh', 'README_FIRST.txt'):
-        put(os.path.join(HH, 'tools', 'launcher', f), os.path.join(root, f))
-    os.chmod(os.path.join(root, 'struthio.sh'), 0o755)
+    for f in ('FLASH_ME.bat', 'flash_me.sh', 'STRUTHIO.bat', 'struthio.sh', 'README_FIRST.txt'):
+        src, dst = os.path.join(HH, 'tools', 'launcher', f), os.path.join(root, f)
+        if f.endswith('.bat'):                                            # cmd.exe needs CRLF for its labels
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            open(dst, 'w', newline='\r\n').write(open(src).read())
+        else: put(src, dst)
+    for f in ('struthio.sh', 'flash_me.sh'): os.chmod(os.path.join(root, f), 0o755)
     pb = os.path.join(root, 'prebuilt')
     put(os.path.join(prebuilt, 'bootloader', 'bootloader.bin'), os.path.join(pb, 'bootloader.bin'))
     put(os.path.join(prebuilt, 'partition_table', 'partition-table.bin'), os.path.join(pb, 'partition-table.bin'))
@@ -95,6 +102,14 @@ def pkg_flashing(work, prebuilt, docs):
 0x410000 ../handheld/build/assets/struthio.pak
 0xd10000 ../handheld/build/assets/struthio_music.ima
 """.lstrip())
+    wf = os.path.join(root, 'webflash')                                     # the browser flasher, pointing at the files above
+    put(os.path.join(HH, 'tools', 'webflash', 'index.html'), os.path.join(wf, 'index.html'))
+    copy_tree(os.path.join(HH, 'tools', 'webflash', 'esp-web-tools'), os.path.join(wf, 'esp-web-tools'))
+    parts = [('../prebuilt/bootloader.bin', 0x0), ('../prebuilt/partition-table.bin', 0x8000), ('../prebuilt/struthio.bin', 0x10000),
+             ('../handheld/build/assets/struthio.pak', 0x410000), ('../handheld/build/assets/struthio_music.ima', 0xD10000)]
+    json.dump({'name': 'STRUTHIO', 'version': commit_short(), 'new_install_prompt_erase': True,
+               'builds': [{'chipFamily': 'ESP32-S3', 'parts': [{'path': n, 'offset': o} for n, o in parts]}]},
+              open(os.path.join(wf, 'manifest.json'), 'w'), indent=2)
     put(docs['flash_pdf'], os.path.join(root, 'manual', 'STRUTHIO_ONE_Flashing_Guide.pdf'))
     put(docs['manual_pdf'], os.path.join(root, 'manual', 'STRUTHIO_ONE_Build_Manual_Windows11.pdf'))
     sums = []

@@ -59,6 +59,8 @@ echo  ===============================================================
 if defined IDF_OK (echo    ESP-IDF : ready) else (echo    ESP-IDF : NOT FOUND - see option 1)
 if defined PORT (echo    Board   : %PORT%) else (echo    Board   : not chosen yet - option 2)
 echo  ---------------------------------------------------------------
+echo    G  PUT THE GAME ON THE BOARD   (ready-made, no ESP-IDF needed)
+echo  ---------------------------------------------------------------
 echo    1  Check my setup              (doctor: package, ESP-IDF, port)
 echo    2  Find / choose the board's port
 echo    3  Build the firmware          (first time: sets the chip)
@@ -75,6 +77,7 @@ echo    0  Exit
 echo  ---------------------------------------------------------------
 set "CH="
 set /p CH=  Choose:
+if /i "%CH%"=="G" goto flashme
 if "%CH%"=="1" goto doctor
 if "%CH%"=="2" goto choose_port
 if "%CH%"=="3" goto build
@@ -88,6 +91,11 @@ if /i "%CH%"=="D" goto desktop
 if /i "%CH%"=="M" goto manual
 if /i "%CH%"=="F" goto folder
 if "%CH%"=="0" goto end
+goto menu
+
+rem --------------------------------------------------------------------------
+:flashme
+call "%ROOT%\FLASH_ME.bat"
 goto menu
 
 rem --------------------------------------------------------------------------

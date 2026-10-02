@@ -46,6 +46,8 @@ while true; do
   if [ -n "$PORT" ]; then echo "    Board   : $PORT"; else echo "    Board   : not chosen yet - option 2"; fi
   cat <<'MENU'
   ---------------------------------------------------------------
+    G  PUT THE GAME ON THE BOARD   (ready-made, no ESP-IDF needed)
+  ---------------------------------------------------------------
     1  Check my setup              (doctor: package, ESP-IDF, port)
     2  Find / choose the board's port
     3  Build the firmware          (first time: sets the chip)
@@ -61,6 +63,7 @@ while true; do
 MENU
   read -r -p "  Choose: " CH
   case "$CH" in
+    g|G) PORT="$PORT" STRUTHIO_PORT="$PORT" "$ROOT/flash_me.sh"; pause;;
     1) find_idf >/dev/null 2>&1; run "$(py)" "$HH/tools/struthio_doctor.py"; pause;;
     2) find_idf >/dev/null 2>&1
        FOUND="$("$(py)" "$HH/tools/struthio_doctor.py" --port 2>/dev/null)"
