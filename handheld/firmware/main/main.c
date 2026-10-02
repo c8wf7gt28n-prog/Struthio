@@ -355,8 +355,10 @@ enum { RESTART_GUARD_TICKS = 60 };
 // feel, popups and animation clocks advance per frame); every 2nd tick's
 // result is published for the renderer.
 static void build_frame(void) {
-    static const char *const ITEMS[2] = {"NEW RUN", "TITLE"};
-    st_menu_t menu = {ITEMS, 2, 0, g_over};
+    // The handheld has no title screen: GAME OVER offers one thing, a new run on
+    // both wings, so the menu shows the browser's single-item "BOTH WINGS CONTINUE".
+    static const char *const ITEMS[1] = {"NEW RUN"};
+    st_menu_t menu = {ITEMS, 1, 0, g_over};
     frame_slot_t *f = &g_slots[g_slot_build];
     st_scene_build(&g_scene, &g_state, st_camera_resolve(&g_camera, &g_state), &menu, &f->quads);
     st_hud_update(&g_hud, &g_hud_assets, &g_state, &g_scene);
