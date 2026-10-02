@@ -88,7 +88,7 @@ def pkg_flashing(work, prebuilt, docs):
     put(os.path.join(prebuilt, 'struthio.bin'), os.path.join(pb, 'struthio.bin'))
     # the art pack and the soundtrack are flashed from handheld/build/assets (one copy in the package)
     open(os.path.join(pb, 'flash_args.txt'), 'w', newline='\n').write("""
---flash_mode dio --flash_freq 80m --flash_size 16MB
+--flash-mode dio --flash-freq 80m --flash-size 16MB
 0x0 bootloader.bin
 0x8000 partition-table.bin
 0x10000 struthio.bin
@@ -96,6 +96,7 @@ def pkg_flashing(work, prebuilt, docs):
 0xd10000 ../handheld/build/assets/struthio_music.ima
 """.lstrip())
     put(docs['flash_pdf'], os.path.join(root, 'manual', 'STRUTHIO_ONE_Flashing_Guide.pdf'))
+    put(docs['manual_pdf'], os.path.join(root, 'manual', 'STRUTHIO_ONE_Build_Manual_Windows11.pdf'))
     sums = []
     for d, _, files in os.walk(root):
         for f in files:
@@ -235,6 +236,7 @@ If a cap is tight, take 0.1-0.2 mm off its sides with fine sandpaper; never forc
 
 def pkg_docs(work, docs):
     root = os.path.join(work, 'STRUTHIO_ONE_Documents')
+    put(docs['manual_pdf'], os.path.join(root, 'STRUTHIO_ONE_Build_Manual_Windows11.pdf'))
     put(docs['build_pdf'], os.path.join(root, 'STRUTHIO_ONE_Build_Guide.pdf'))
     put(docs['flash_pdf'], os.path.join(root, 'STRUTHIO_ONE_Flashing_Guide.pdf'))
     put(docs['facts_pdf'], os.path.join(root, 'Hardware_Facts.pdf'))
@@ -252,7 +254,10 @@ def pkg_docs(work, docs):
 STRUTHIO ONE - DOCUMENTS
 ========================
 
-  STRUTHIO_ONE_Build_Guide.pdf     everything about the hardware: parts, printing, ordering,
+  STRUTHIO_ONE_Build_Manual_Windows11.pdf
+                                   START HERE: the whole build in one manual, in build order,
+                                   with pictures of every step, screenshots and diagrams
+  STRUTHIO_ONE_Build_Guide.pdf     the hardware reference: parts, printing, ordering,
                                    the 14 assembly steps, tests, faults, what to confirm
   STRUTHIO_ONE_Flashing_Guide.pdf  putting the game on the Waveshare board
   Hardware_Facts.pdf               the manufacturers' data the design is built on
@@ -320,6 +325,8 @@ def main():
             [os.path.join(r, 'one_front.png') + ':the finished handheld', os.path.join(r, 'one_exploded.png') + ':how it goes together'])
         pdf(os.path.join(HH, 'docs', 'STRUTHIO_ONE_FLASHING.md'), docs['flash_pdf'], foot)
         pdf(os.path.join(HH, 'docs', 'HARDWARE_FACTS.md'), docs['facts_pdf'], foot)
+        docs['manual_pdf'] = os.path.join(work, 'manual.pdf')
+        subprocess.check_call([sys.executable, os.path.join(HH, 'tools', 'manual', 'one_manual.py'), docs['manual_pdf']], stdout=subprocess.DEVNULL)
         made = []
         for i, (fn, name) in enumerate([(lambda w: pkg_flashing(w, args.prebuilt, docs), 'Firmware_Flashing'),
                                         (pkg_panel, 'Face_Panel_Print'), (pkg_pcb, 'PCB_JLCPCB'), (pkg_3d, '3D_Print'),

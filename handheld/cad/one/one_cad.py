@@ -424,6 +424,11 @@ def ref_glyphs():
     g = sum((prism(glyph2d(s), -WING_PROUD + 0.02, -WING_PROUD + GLYPH_DEPTH) for s in (-1, 1)), M())
     return g + prism(dart_glyph2d(), -ROCKER_PROUD + 0.02, -ROCKER_PROUD + GLYPH_DEPTH)
 
+def ref_foam():
+    """render only: the foam pad on the battery, as fitted (compressed into the gap)"""
+    b = BAT; z0 = b['z0'] + b['t']
+    return box(b['x0'] + 2, b['x1'] - 2, b['y0'] + 3, b['y1'] - 3, z0, DEPTH - BACK_WALL - 0.05)
+
 def face_panel():
     return prism(panel2d(), 0.0, PANEL_T)
 
@@ -492,7 +497,7 @@ PARTS = {
 }
 
 REFS = {
-    'ref_panel': face_panel, 'ref_glyphs': ref_glyphs, 'ref_waveshare': ref_waveshare, 'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker,
+    'ref_panel': face_panel, 'ref_glyphs': ref_glyphs, 'ref_foam': ref_foam, 'ref_waveshare': ref_waveshare, 'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker,
     'ref_switches': lambda: ref_switches() + psw_box()[0] + psw_box()[1] + ref_ph_socket() + ref_header()[0] + ref_smd(),
 }
 

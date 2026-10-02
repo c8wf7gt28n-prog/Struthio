@@ -136,7 +136,7 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
             st_draw_text(fb, 8, 144, t, app_audio_ok() ? STR_PAL_IVORY : STR_PAL_LAVA_HOT, 1);
             board_power_t pw;                                    // the ONE's first-power check: is the cell there, charging?
             if (board_power_read(&pw) && pw.battery_present)
-                snprintf(t, sizeof t, "BATT %u.%02uV %d%%%s%s", pw.battery_mv / 1000, (pw.battery_mv % 1000) / 10, pw.battery_percent,
+                snprintf(t, sizeof t, "BATT %u.%02uV %d/100%s%s", pw.battery_mv / 1000, (pw.battery_mv % 1000) / 10, pw.battery_percent,   // the font has no %
                          pw.charging ? "  CHARGING" : "", pw.vbus_present ? "  USB" : "");
             else snprintf(t, sizeof t, "BATT NONE%s", board_power_read(&pw) && pw.vbus_present ? "  USB" : "");
             st_draw_text(fb, 8, 156, t, STR_PAL_IVORY, 1);

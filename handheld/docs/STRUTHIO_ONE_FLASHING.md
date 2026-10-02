@@ -28,11 +28,11 @@ If nothing appears, put the board in **download mode**: hold **BOOT**, press and
 ## 3. Route A: flash the prebuilt firmware (quickest)
 
 1. Install **Python 3** (python.org; on Windows tick "Add python.exe to PATH").
-2. In a terminal: `python -m pip install esptool` (macOS / Linux: `python3 -m pip install esptool`).
+2. In a terminal: `python -m pip install "esptool>=5"` (macOS / Linux: `python3 -m pip install "esptool>=5"`).
 3. Go into the `prebuilt` folder: `cd C:\struthio\prebuilt` (or `cd ~/struthio/prebuilt`).
 4. Flash (replace `COM5` with your port from step 2):
 
-       python -m esptool --chip esp32s3 -p COM5 -b 460800 write_flash @flash_args.txt
+       python -m esptool --chip esp32s3 -p COM5 -b 460800 write-flash @flash_args.txt
 
    The art pack and soundtrack take a few minutes. Every part ends with **`Hash of data verified.`**
 5. Press **RST** once. The game appears with **READY** in the middle.
@@ -98,5 +98,5 @@ correct. The buttons are tested after assembly (build guide, step 11).
 | `handheld/core`, `render`, `audio` | The game itself (portable C) |
 | `handheld/host`, `golden` | Desktop checks: the game replays the arcade's recorded runs bit for bit (menu option D) |
 | `handheld/tools/struthio_doctor.py` | The setup check (menu option 1) |
-| `manual/` | This guide as a PDF |
+| `manual/` | The whole build manual (Windows 11) and this guide, as PDFs |
 | `SHA256SUMS.txt` | The fingerprint of every file |
