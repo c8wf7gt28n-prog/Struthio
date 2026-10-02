@@ -3,17 +3,21 @@
 The ONE, 16.5 mm thick instead of 23.0. Same outline (74 × 136 mm), same face panel, same buttons and
 rocker, same game. What changed is everything behind the face.
 
+**Rev S2 is the foolproof build.** Start with `STRUTHIO_ORDER.md` (one shopping list) and the Windows 11 manual
+(`STRUTHIO_ONE_SLIM_Build_Manual_Windows11.pdf`, package 5). This page is the design reference behind them.
+
 | | ONE | ONE SLIM |
 |---|---|---|
 | Thickness | 23.0 mm | **16.5 mm** (−28 %) |
 | Battery | THOR-503450, 1000 mAh, 5.0 mm | 302535, about 250 mAh, 3.0 mm (a 303450, about 500 mAh, fits the same bay) |
 | Speaker | the one that comes with the Waveshare (5–6 mm box) | Same Sky (CUI) CMS-151125-078SP, 15 × 11 × 2.5 mm |
-| ONE board | 1.6 mm, on a 2 × 16 header with 2.54 mm plastic | 0.8 mm, lying on the Waveshare's socket on 8 bare pins |
+| ONE board | 1.6 mm, on a 2 × 16 header with 2.54 mm plastic | 0.8 mm, on the front shell's bosses, 12 bare pins into the Waveshare's socket |
+| Power | slide switch and a power-on pulse circuit | the Waveshare's own power key, pressed through the left side: press to switch on, hold 4 s to switch off |
 | Waveshare | clamped by pegs and foam | screwed to the back shell through three of its own M2 standoffs |
 | Shell joint | flat faces, two hooks | tongue and groove all round, 0.15 mm clearance each side |
 | Face behind the panel | 0.8 mm | 1.6 mm (0.5 mm only where it lies on the glass) |
 | Back wall | 1.8 mm | 1.5 mm |
-| Screws | 2 × M2 × 8 pan head | 3 × M2 × 6 and 2 × M2 × 8, countersunk, flush with the back |
+| Screws | 2 × M2 × 8 pan head | 5 × M2 × 6, countersunk, flush with the back: one screw size |
 
 Pictures (from the 3D model): `docs/renders/slim/` — `slim_hero.png`, `slim_front.png`, `slim_back.png`,
 `slim_inside.png`, `slim_exploded.png`, and `one_vs_slim_side.png` (the two side by side, same scale).
@@ -22,8 +26,8 @@ Files:
 
 | What | Where |
 |---|---|
-| Case model and its checks | `cad/slim/slim_cad.py`, `cad/slim/check_slim.py` (53 checks, all pass) |
-| Printed parts | `cad/slim/stl/` (front, back, two wing caps, rocker, pin jig, pin spacer) |
+| Case model and its checks | `cad/slim/slim_cad.py`, `cad/slim/check_slim.py` (61 checks, all pass) |
+| Printed parts | `cad/slim/stl/` (front, back, two wing caps, rocker, power button, pin jig, panel jig) |
 | Board (KiCad 7) | `pcb/slim/make_slim_pcb.py` → `pcb/slim/out/` (Gerbers zip, BOM, CPL, DRC report, pictures) |
 | Firmware | the same as the ONE (`firmware/`), it works in both |
 
@@ -44,7 +48,7 @@ unless it says otherwise. Depths are measured into the case from the front of th
 The ONE lost its depth in three places:
 
 - **The header.** A standard 2 × 16 header puts 2.54 mm of plastic between the two boards, and the ONE board
-  sat 4.5 mm behind the socket. On the SLIM the board lies on the socket and 8 bare pins go 3.0 mm into it.
+  sat 4.5 mm behind the socket. On the SLIM the board sits level with the socket top and 12 bare pins stand 3.6 mm out of it.
 - **The battery.** The ONE's 5 mm cell sat *behind* the socket, 13.3 mm deep and more. The Waveshare's 3D model
   shows that, away from its socket, standoffs and connectors, nothing on the back of the board stands more
   than 9.5 mm behind the glass. The SLIM's 3.0 mm cell lies in that space, 0.3 mm above those parts and
@@ -70,20 +74,16 @@ The battery bay (3.0 × 34 × 52 mm) and the speaker sit where only the "everyth
 | Battery | LiPo pouch **302535**, 3.7 V, about 250 mAh, protection board, PH 2.0 lead (2 pins) | Sold as 200 to 250 mAh depending on the maker: **confirm** with your seller. 3.0 × 25 × 35 mm, about 38 mm long with its protection board. Optional: **303450**, about 500 mAh, 3.0 × 34 × 52 mm with its board (confirm the size). |
 | Speaker | **Same Sky (formerly CUI Devices) CMS-151125-078SP**: 15 × 11 × 2.5 mm, 8 Ω, 0.7 W, solder pads | Mouser / DigiKey. Solder the Waveshare's speaker lead (the PH 1.25 plug) to its pads. |
 | ONE SLIM board | `pcb/slim/out/struthio_one_slim_gerbers.zip`, **0.8 mm thickness**, BOM + CPL | Set "PCB thickness 0.8" on the order. J1 is not on the BOM. |
-| Header pins | one standard 2.54 mm male header, 6 mm long side, 3 mm short side | You use 8 pins of it. |
-| Screws | 3 × **M2 × 6 countersunk** (ISO 10642 / DIN 965), 2 × **M2 × 8 countersunk** | Into the Waveshare's standoffs, and the two lower corners. |
+| Header pins | one standard 2.54 mm male header strip | You use 12 pins of it: a strip of 4 and a strip of 8. |
+| Screws | 5 × **M2 × 6 countersunk** (ISO 10642 / DIN 965) | Three into the Waveshare's standoffs, two in the lower corners. |
 | Foam tape | double-sided, **1.0 mm** thick, about 20 × 30 mm | Holds the cell to the back shell. |
 
-## 3. Measure first (2 minutes, before you order)
+## 3. The socket height (nothing to measure)
 
-The case is drawn for the socket height in Waveshare's 3D model: **12.6 mm** from the front of the glass to the
-top of the J8 socket. Waveshare's drawing gives the board as 11.5 mm thick, which is the height of its standoffs,
-not of the socket. Check yours with calipers (depth rod on the socket, body on the glass):
-
-- **12.6 mm:** build as drawn.
-- **11.5 mm:** also print `slim_pin_spacer.stl` (1.1 mm). It lies on the socket under the ONE SLIM, and on the jig
-  while you solder (so the pins stand 4.1 mm out).
-- **Anything else:** tell us the number before printing.
+Waveshare's 3D model puts the top of the J8 socket **12.6 mm** behind the glass; Waveshare's drawing gives the
+board as 11.5 mm thick, which may or may not include the socket. Rev S2 works with either: the ONE SLIM board
+is held by the front shell's bosses, not by the socket, and its pins stand 3.6 mm out, so they go **3.6 mm** into a
+12.6 mm socket or **2.5 mm** into an 11.5 mm one. Both are enough for the socket's contacts.
 
 ## 4. Print
 
@@ -108,34 +108,25 @@ Weight of the printed parts: about 36 cm³, **about 46 g in PETG**.
 The front shell has a 1.0 mm groove, 1.6 mm deep, in its split face; the back shell has a 0.7 mm tongue, 1.5 mm
 long. That is 0.15 mm of play each side, and the tongue stops 0.1 mm short of the bottom of the groove, so the
 shells close on their faces, not on the tongue. The walls are thickened to 2.75 mm round the joint by a 1 mm land
-on the inside. The tongue runs round the whole case except at the power switch, USB-C and the three pin holes.
+on the inside. The tongue runs round the whole case except at the power button, USB-C and the two pin holes.
 If it is tight on your printer, run a fine file along the tongue; don't open the groove.
 
 ## 5. Build
 
-1. **Flash the board** exactly as for the ONE (Part 4 of the Windows 11 manual). Same firmware.
-2. **Pins.** Cut 8 pins' worth of header (strips of 4, 1, 2 and 1). Lay the ONE SLIM *face down* on the printed
-   pin jig (its 8 blind holes line up with the J1 holes marked on the back silkscreen: 1, 3, 4, 5, 7, 16, 18, 24).
-   Push each strip's **long** side down through the board into the jig until it bottoms. Solder the pins on the
-   back of the board, then slide the plastic carrier off over the short ends and snip the pins **flush**. Every pin
-   now stands 3.0 mm out of the front.
-3. **Trim** the slide switch's and battery socket's leads flush on the back (0.5 mm or less: the back shell has
-   0.5 mm reliefs over them and the pins).
-4. **Speaker.** Cut the stock speaker off its lead and solder the lead to the CMS-151125's two pads (either way
-   round: the amplifier drives both wires). Put the speaker in its lip in the back shell, face against the grille.
-5. **Battery.** Check the plug: red to the **+** next to J2. Put the foam tape on the cell's back and stick the cell
-   into the bay's lower-left corner in the back shell, lead at the bottom.
-6. **Front shell.** Caps and rocker (with its axle) in, as for the ONE. Lay the Waveshare face down into the glass
-   pocket.
-7. **ONE SLIM.** Lower it onto the Waveshare, pins into J8. It lies flat on the socket and on the front shell's
-   bosses. (Spacer first, if step 3 told you so.)
-8. **Close.** Speaker plug into J9, battery plug into J2, the leads in their channels (battery: down the middle to
-   J2; speaker: up the left side). Back shell on, tongue into the groove. **3 × M2 × 6** into the Waveshare's
-   standoffs (snug, not tight: they are small threads), **2 × M2 × 8** in the lower corners.
-9. **First power.** Hold both wings and slide the switch on: the service screen. **Rocker right** sets
-   CELL 250 MAH (charge 100 mA; that is the default) or 500+ MAH (200 mA). **Rocker left** sets the brightness.
-   Check the BATT line. Slide off, slide on: the game.
-10. **Face panel, last**, exactly as for the ONE.
+The Windows 11 manual has every step with a picture and a check. In short:
+
+1. **Flash** the board on its own: double-click `FLASH_ME.bat` (package 1). It installs what it needs and finds the board.
+2. **Pins** (the one soldering job): lay the ONE SLIM face down in the printed pin jig (it only fits one way), push
+   a strip of 4 and a strip of 8 header pins through, long side first, solder, slide the plastic off, snip flush.
+3. **Speaker**: solder the Waveshare speaker's lead to the CMS-151125's two pads (either way round).
+4. **Front shell**: wing buttons, rocker (cut its axle in the jig's slot), power button (from the inside, it only fits one
+   way), then the Waveshare face down into the glass pocket, then the ONE SLIM onto it, pins into J8.
+5. **Back shell**: speaker into its lip, cell taped into the bay's lower-left corner with the foam tape, leads under
+   their clips. Plug the speaker into J9, the cell into J2.
+6. **Close**: tongue into the groove, 5 × M2 × 6.
+7. **Power on**: press the button on the left side. The first power-on check walks you through every button, the
+   power button, the speaker and the battery. Both wings to play.
+8. **Face panel**: drop the panel jig over the case, peel, place the panel in its window, press, lift the jig.
 
 ## 6. Battery and run time
 
@@ -151,7 +142,7 @@ If it is tight on your printer, run a fine file along the tongue; don't open the
 | Charge current | 200 mA (fine for 1000 mAh) | **100 mA** by default (0.4 C for 250 mAh); 200 mA when the service screen says 500+ mAh |
 | Wi-Fi, Bluetooth | never started | never started |
 
-To wake it after it switched itself off: slide the switch off and on again.
+To wake it after it switched itself off: press the power button. To switch it off yourself: hold the power button 4 s.
 
 What is left on purpose: the game runs at 60 Hz and draws 30 frames a second on both cores at 240 MHz. That is the
 game; slowing the CPU would cost frames. Measure first (below), then decide.
@@ -177,7 +168,7 @@ Nobody publishes the Waveshare board's current, so this is an estimate from part
 | 1000 mAh (the ONE) | about 900 mAh | 4.1 – 8.5 h | |
 
 Charging the 250 mAh cell from empty at 100 mA: about **3 hours** (the last 20 % are slower). Switched off by the
-slide switch it draws nothing; switched off by the firmware it draws about 40 µA: a full 250 mAh cell lasts
+power chip's off state it draws about 40 µA: a full 250 mAh cell lasts
 months like that.
 
 ### Measure your own (and tighten these numbers)
@@ -192,7 +183,7 @@ months like that.
 
 | Stage | Time | Changed? |
 |---|---|---|
-| The ONE board holds the PWR key; the AXP2101 waits its ONLEVEL time | 0.128 – 2 s (set in the chip at the factory; the firmware's 128 ms setting does not survive the switch cutting the battery) | no: fixed in the chip |
+| You hold the power button; the AXP2101 waits its ONLEVEL time | the very first time: 0.128 – 2 s (set in the chip at the factory: hold until the screen lights); after that **0.5 s** (the firmware sets it, and the cell stays connected, so it keeps) | yes |
 | Power rails up, ESP32-S3 out of reset | a few ms | |
 | ROM, bootloader, app image | was: whole 0.6 MB image hashed, PSRAM pattern test, bootloader logs | **image hash and PSRAM test off at power-on, bootloader quiet** (`sdkconfig.defaults`). esptool still verifies the image when it is flashed, and flash writes are read back |
 | PMU, LCD reset (100 + 200 ms, Waveshare's values), panel set-up | about 0.35 s | no (vendor timing) |
@@ -201,7 +192,7 @@ months like that.
 | Backlight on | was: before the first frame (a flash of noise) | **with the first frame** |
 
 Measured in the emulator (QEMU, which runs slower than the board): the first game frame came **0.99 s sooner**.
-On the board, expect the switch-to-picture time to drop from about ONLEVEL + 1.5 s to about **ONLEVEL + 0.6 s**
+On the board, expect press-to-picture to drop from about ONLEVEL + 1.5 s to about **0.5 s + 0.6 s ≈ 1.1 s**
 (estimate). The firmware logs it over USB: `first frame lit N ms after reset`.
 
 Next step, only after measuring on a real board: Waveshare's LCD reset waits (100 ms low, 200 ms high) are
@@ -232,6 +223,8 @@ rules: don't charge it in a hot car, and print it in PETG or ASA, not PLA.
 
 ## 10. Also fixed on the ONE (same evidence)
 
+(The ONE board is now rev D: its header pin 9 is tied to ground so the firmware knows it is a ONE and charges its 1000 mAh cell at 200 mA. The CELL setting is gone.)
+
 The Waveshare 3D model showed three things the ONE's case had wrong; the ONE's model and STLs are updated
 (its 65 checks still pass):
 
@@ -240,8 +233,8 @@ The Waveshare 3D model showed three things the ONE's case had wrong; the ONE's m
 - The USB-C opening was centred 1.2 mm too far back. Moved (the plug still fits either way, now centred).
 - The back shell's pegs (1.8 mm) went into the M2 standoffs, which are threaded (about 1.6 mm inside): now 1.4 mm.
 - The ONE's header goes 1.1 mm deeper into the socket than drawn if the socket is 12.6 mm tall, as in the 3D
-  model: about 4.4 mm into a 5.1 mm socket. Measure it as in section 3; if yours is 12.6, snip 1 mm off the
-  header's long pins before soldering it.
+  model: about 4.4 mm into a 5.1 mm socket. Measure from the glass front to the socket top with calipers; if it
+  is 12.6 mm, snip 1 mm off the header's long pins before plugging the ONE board on.
 - **Firmware, both models:** the service screen never switched the backlight on (it only came on in the game).
-  Fixed. The ONE's 1000 mAh cell now needs **CELL 500+ MAH** on the service screen to charge at 200 mA
-  (otherwise it charges at a safe but slow 100 mA).
+  Fixed. The firmware tells the two apart by header pin 9 (tied to ground on the ONE board rev D) and sets the
+  charge current itself: 200 mA for the ONE's 1000 mAh cell, 100 mA for the SLIM's 250 mAh cell.

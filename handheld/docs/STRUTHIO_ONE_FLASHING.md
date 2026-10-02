@@ -4,9 +4,14 @@ This puts the STRUTHIO game on the Waveshare ESP32-S3-Touch-LCD-3.5B. Do it **be
 board into the case (build guide, "Before assembly"), with the Waveshare on its own on the bench.
 Later updates work the same way through the USB-C port in the ONE's top edge.
 
-There are two ways. **Route A** needs only Python and one command. **Route B** builds the firmware
-from source with Espressif's ESP-IDF and the STRUTHIO menu. Both put the same program, art pack and
-soundtrack on the board.
+**The easy way:** plug the board in and double-click **`FLASH_ME.bat`** (Windows) or run **`./flash_me.sh`**
+(macOS / Linux) in the unzipped package. It installs Python and esptool the first time, finds the board by
+Espressif's USB ID, flashes, checks every byte, and ends with DONE. The menus' option **G** runs it too.
+The `webflash` folder does the same from a browser page once it is hosted on https.
+
+The rest of this guide is what FLASH_ME does underneath, by hand. **Route A** needs only Python and one
+command. **Route B** builds the firmware from source with Espressif's ESP-IDF and the STRUTHIO menu. All
+of them put the same program, art pack and soundtrack on the board.
 
 ## 1. What you need
 

@@ -154,11 +154,11 @@ def d_nothing_happens():
 
 def d_flash_flow():
     N = {
-        'a': (230, 34, 360, 40, 'Run the flash command (step 4.6)', 'start'),
-        'q': (230, 112, 230, 78, 'Every part says\n"Hash of data\nverified."?', 'dec'),
-        'ok': (230, 210, 330, 44, 'Press RST: the game shows READY', 'end'),
-        'f1': (560, 112, 280, 74, 'Error: "Failed to connect"?\nDownload mode: hold BOOT,\ntap RST, release BOOT', 'warn'),
-        'f2': (560, 210, 280, 58, 'No COM port at all?\nAnother USB-C cable (data),\nanother USB socket', 'warn'),
+        'a': (230, 34, 360, 40, 'Double-click FLASH_ME.bat (step 4.3)', 'start'),
+        'q': (230, 112, 230, 78, 'It ends with\nDONE?', 'dec'),
+        'ok': (230, 210, 330, 44, 'Unplug: ready to build in', 'end'),
+        'f1': (560, 112, 280, 74, '"Flashing stopped"?\nDownload mode: hold BOOT,\ntap RST, release BOOT', 'warn'),
+        'f2': (560, 210, 280, 58, '"No board found"?\nAnother USB-C cable (data),\nanother USB socket', 'warn'),
     }
     Ed = [('a', 'q', ''), ('q', 'ok', 'yes'), ('q', 'f1', 'no', 'side'), ('f1', 'f2', ''), ('f1', 'a', 'then again', 'up')]
     return flow(720, 245, N, Ed, size=12)
@@ -483,7 +483,7 @@ def build(out_pdf):
         bt = os.path.join(HH, 'pcb', 'one', 'out', 'board_top.png')
         H.append('<h1>Order and make the parts</h1><p class="part">Part 3</p>'
                  '<h2>The ONE board (package 3, JLCPCB)</h2><ol>'
-                 '<li>On jlcpcb.com upload <code>struthio_one_gerbers.zip</code>: 2 layers, 1.6 mm, any colour.</li>'
+                 '<li>On jlcpcb.com upload <code>struthio_one_gerbers.zip</code> (rev D): 2 layers, 1.6 mm, any colour.</li>'
                  '<li>Turn on <b>PCB Assembly</b>, top side, <b>Standard</b> PCBA (three parts are through-hole). Upload <code>BOM_JLCPCB.csv</code> and <code>CPL_JLCPCB.csv</code>.</li>'
                  '<li>In the placement preview, compare with the picture below: <b>J1</b> an ordinary header on the strip; <b>J2</b> opening toward the right edge; '
                  '<b>SW5</b> knob off the left edge; <b>Q1, Q2</b> single leg as on the silkscreen; <b>D1</b> band toward the left. Rotate any part that differs in 90° steps.</li></ol>'
@@ -497,32 +497,24 @@ def build(out_pdf):
         H.append('<h1>Flash the full game (Windows 11)</h1><p class="part">Part 4 · do this as soon as the Waveshare board arrives, before you build it in</p>'
                  '<p>This puts the whole game on the board: the program, the art pack and the soundtrack. You need nothing but Python and one command. '
                  'The board stays on its own on the desk, connected by USB-C.</p>'
-                 + step('4.1', 'Install Python', fig(d_win_python(), 'The Python installer', 'illus'),
-                        '<p>Download Python 3 from <b>python.org/downloads</b> and run it. <b>Tick "Add python.exe to PATH"</b>, then click <b>Install Now</b>.</p>',
-                        check='Python installed.')
-                 + step('4.2', 'Install the flashing tool', '', '<p>Right-click the <b>Start</b> button → <b>Terminal</b>. Type, then Enter:</p>'
-                        '<div class="cmd"><b>PS&gt;</b> py -m pip install "esptool&gt;=5"</div>', check='The last line says "Successfully installed esptool-5…" (or "Requirement already satisfied").')
-                 + step('4.3', 'Unzip the firmware package', '', '<p>Right-click <code>STRUTHIO_ONE_1_Firmware_Flashing.zip</code> → <b>Extract All…</b> → type <code>C:\\</code> → Extract. '
+                 + step('4.1', 'Unzip the firmware package', '', '<p>Right-click <code>STRUTHIO_ONE_1_Firmware_Flashing.zip</code> → <b>Extract All…</b> → type <code>C:\\</code> → Extract. '
                         'You now have <code>C:\\struthio</code>:</p>' + d_folders(), warn='Not inside OneDrive, and no spaces in the path: <code>C:\\struthio</code> exactly.')
-                 + step('4.4', 'Plug the board in, find its port', fig(d_win_devmgr(), 'Device Manager', 'illus'),
-                        '<p>Connect the Waveshare to the PC with the USB-C <b>data</b> cable. Right-click <b>Start</b> → <b>Device Manager</b> → <b>Ports (COM &amp; LPT)</b>. '
-                        'The entry that appears when you plug it in is the board. Remember its number, e.g. <b>COM5</b>.</p>',
-                        check='You know your board\'s COM number.', warn='Nothing appears? Try another cable (many only charge) and another USB socket.')
-                 + step('4.5', 'Go to the prebuilt folder', '', '<p>In the Terminal:</p><div class="cmd"><b>PS&gt;</b> cd C:\\struthio\\prebuilt</div>')
-                 + step('4.6', 'Flash', '', '<p>Type this, with <b>your</b> COM number, then Enter. It takes a few minutes; don\'t unplug.</p>'
-                        '<div class="cmd"><b>PS C:\\struthio\\prebuilt&gt;</b> py -m esptool --chip esp32s3 -p COM5 -b 460800 write-flash @flash_args.txt</div>',
-                        check='Five parts, each ending with "Hash of data verified." (screenshot below).')
-                 + fig(png(fs, '100%'), 'The real output of that command. <b>1</b> connected; <b>2</b> each part written and checked. '
-                       'Captured against Espressif\'s ESP32-S3 emulator, so its port reads <code>socket://localhost:5555</code> where yours says <b>COM5</b>, '
-                       'its prompt is the bench computer&rsquo;s, and its command shows <code>python</code> where you type <code>py</code>; lines left out are marked · · ·', 'real')
-                 + step('4.7', 'Start the game', fig(png(os.path.join(CAP, 'fw_ready.png'), '62%'), 'What the board shows: the game waiting at READY', 'real'),
-                        '<p>Press the board\'s <b>RST</b> button once. The game appears with <b>READY</b> in the middle. With no buttons yet, it waits there: that\'s correct.</p>',
-                        check='READY on the screen. Unplug the board: it\'s ready to build in.')
+                 + step('4.2', 'Plug the board in', '', '<p>Connect the Waveshare to the PC with the USB-C <b>data</b> cable.</p>')
+                 + step('4.3', 'Double-click FLASH_ME.bat', '', '<p>In <code>C:\\struthio</code>, double-click <b>FLASH_ME.bat</b>. The first time it installs Python and the flashing tool '
+                        '(allow it if Windows asks), then finds the board by itself, writes the game, its pictures and its music, and checks every byte.</p>',
+                        warn='"Windows protected your PC"? Click <b>More info</b>, then <b>Run anyway</b> (it is a plain text file you can read in Notepad).',
+                        check='The window ends with DONE.')
+                 + fig(png(fs, '100%'), 'What FLASH_ME runs underneath, by hand: the same esptool command (in <code>C:\\struthio\\prebuilt</code>: '
+                       '<code>py -m esptool --chip esp32s3 -p COM5 -b 460800 write-flash @flash_args.txt</code>). <b>1</b> connected; <b>2</b> each part written and checked. '
+                       'Captured against Espressif\'s ESP32-S3 emulator, so the port reads <code>socket://localhost:5555</code>; lines left out are marked · · ·', 'real')
+                 + step('4.4', 'Start the game', fig(png(os.path.join(CAP, 'fw_ready.png'), '62%'), 'What the board shows: the game waiting at READY', 'real'),
+                        '<p>Unplug the board: it\'s ready to build in. (Pressed RST with no buttons fitted, it shows the first power-on check waiting for presses: that\'s correct.)</p>',
+                        check='FLASH_ME said DONE.')
                  + '<h2>If flashing doesn\'t work</h2>' + fig(d_flash_flow(), 'Flashing problems', 'diag')
                  + '<div class="box"><b>Download mode</b> (only if it won\'t connect): hold the board\'s <b>BOOT</b> button, press and release <b>RST</b>, release <b>BOOT</b>, then run 4.6 again. '
-                   'The COM number can change in download mode: look again in Device Manager. After a later re-flash through the finished case, the same buttons are behind the '
+                   'FLASH_ME looks for the board again by itself. After a later re-flash through the finished case, the same buttons are behind the '
                    'pin holes on the left side (Part 8).</div>'
-                 + '<div class="box"><b>Prefer clicking to typing?</b> Espressif\'s browser flasher <b>espressif.github.io/esptool-js</b> (Chrome or Edge) does the same: '
+                 + '<div class="box"><b>Another way:</b> Espressif\'s browser flasher <b>espressif.github.io/esptool-js</b> (Chrome or Edge) does the same: '
                    'add <code>prebuilt\\bootloader.bin</code> at <code>0x0</code>, <code>partition-table.bin</code> at <code>0x8000</code>, <code>struthio.bin</code> at <code>0x10000</code>, '
                    '<code>handheld\\build\\assets\\struthio.pak</code> at <code>0x410000</code>, <code>struthio_music.ima</code> at <code>0xd10000</code>.</div>')
         # ---- part 5: assembly -----------------------------------------------------------------------------------
@@ -559,18 +551,16 @@ def build(out_pdf):
         # ---- part 6: power + test --------------------------------------------------------------------------------
         H.append('<h1>First power and test</h1><p class="part">Part 6 · steps 10-13</p>'
                  + step(10, 'Switch on', img(st('step10_first_power'), crop_dark=True),
-                        '<p>Slide the switch <b>up</b>. Within a few seconds the screen lights and the game starts. Slide it down: off at once.</p>'
+                        '<p>Slide the switch <b>up</b>. Within a few seconds the screen lights. The first time it shows the <b>first power-on check</b> (next step). Slide it down: off at once.</p>'
                         '<p>Left alone, it dims after 30 s and switches itself off after 5 minutes (slide off and on to wake it).</p>',
-                        check='The game appears. (Nothing? Part 9.)')
+                        check='The screen lights. (Nothing? Part 9.)')
                  + fig(d_power_on(), 'What happens when you slide the switch up', 'diag')
-                 + step(11, 'Test every control', fig(png(os.path.join(CAP, 'fw_service_one_example.png'), '72%'), 'The service screen (example values)', 'real'),
-                        '<p>Hold <b>both wing buttons</b>, slide the switch up, keep holding until the service screen appears. Press each wing button and each rocker end: '
-                        'its counter goes up by one per press, and none counts by itself. <b>BATT</b> shows the battery (<b>BATT NONE</b>: the cell isn\'t connected).</p>'
-                        '<p>Switch off to leave.</p>', check='LEFT, RIGHT, ROCKER L and ROCKER R each count one per press; BATT shows a voltage.')
-                 + step(12, 'Picture the wrong way up? Battery size', '', '<p>In service mode, <b>hold RIGHT for 1 s</b> to turn the picture. It\'s saved.</p>'
-                        '<p>Then tap the <b>rocker\'s right end</b> until the LIGHT line says <b>CELL 500+ MAH 200 MA</b>: the ONE\'s 1000 mAh battery charges at 200 mA. '
-                        '(The firmware starts at 100 mA, safe for the small ONE SLIM cell.) The rocker\'s left end sets the brightness. Switch off and on to play.</p>',
-                        check='The LIGHT line says CELL 500+ MAH 200 MA.')
+                 + step(11, 'The first power-on check', fig(png(os.path.join(CAP, 'fw_selftest_example.png'), '72%'), 'The check, all done (example values, shown on a ONE SLIM: the ONE has no POWER row)', 'real'),
+                        '<p>Press each wing button and each rocker end <b>once</b>: each turns <b>OK</b> and clicks (the click is the speaker). <b>BATTERY</b> shows the cell. '
+                        'When all four are OK, press <b>both wings</b>: the game starts. The check never runs again.</p>',
+                        warn='STUCK DOWN next to a button: its cap rubs (Part 9). NO BATTERY: check the battery plug.', check='ALL GOOD, then the game.')
+                 + step(12, 'Picture the wrong way up?', '', '<p>On the check screen, <b>hold LEFT for 2 s</b>. Later, in service mode (both wings held while switching on), <b>hold RIGHT for 1 s</b>. '
+                        'Either is saved. The ONE board tells the firmware it is a ONE (header pin 9), so the 1000 mAh battery charges at 200 mA by itself.</p>')
                  + step(13, 'Charge', '', '<p>Plug USB-C in <b>with the switch ON</b>. With the switch OFF the battery is disconnected: USB still runs the game but doesn\'t charge.</p>',
                         check='In service mode BATT says CHARGING and USB.'))
         # ---- part 7: panel -------------------------------------------------------------------------------------------
@@ -592,7 +582,7 @@ def build(out_pdf):
         # ---- part 9: faults ---------------------------------------------------------------------------------------------
         H.append('<h1>If something is wrong</h1><p class="part">Part 9</p>' + fig(d_nothing_happens(), 'The screen stays dark when you switch on', 'diag')
                  + '<table><tr><th>What you see</th><th>What to do</th></tr>' + ''.join(f'<tr><td>{a}</td><td>{b}</td></tr>' for a, b in [
-                     ('A button counts by itself (service mode)', 'Its stem touches the switch: take the cap out, sand 0.2 mm off the stem tip.'),
+                     ('STUCK DOWN on the check screen, or a button counts by itself', 'Its stem touches the switch: take the cap out, sand 0.2 mm off the stem tip.'),
                      ('A button doesn\'t count', 'Is the ONE board on all four posts? Does the cap move freely?'),
                      ('No sound', 'Speaker plug in J9? Speaker face against the grille?'),
                      ('Back shell won\'t close', 'A lead or the foam is in the way. Knob in its slot? Never force it.'),
@@ -602,10 +592,10 @@ def build(out_pdf):
         H.append('<h1>How it works</h1><p class="part">Part 10</p>' + fig(d_block(), 'The electrics: what the ONE board does', 'diag')
                  + fig(d_stack(), 'The 23 mm stack, front to back', 'diag')
                  + '<div><h2>The ONE board</h2><table><tr><th>Part</th><th>Job</th></tr>' + ''.join(f'<tr><td>{a}</td><td>{b}</td></tr>' for a, b in [
-                     ('J1 header', 'into the Waveshare J8: BAT, GND, 4 buttons, PWR'), ('SW1-SW4', 'the wing buttons and rocker ends'),
+                     ('J1 header', 'into the Waveshare J8: BAT, GND, 4 buttons, PWR, and pin 9 to GND (tells the firmware it is a ONE)'), ('SW1-SW4', 'the wing buttons and rocker ends'),
                      ('SW5', 'the slide switch: a real battery cut'), ('J2', 'the battery plug'), ('Q1', 'reverse-battery guard'),
                      ('Q2, C1, R1, D1', 'power-on pulse on PWR (pin 24)')]) + '</table>'
-                 + '<h2>Header pins used</h2><p>1 BAT · 3, 4, 29, 30 GND · 5 GPIO21 (rocker L) · 7 GPIO38 (rocker R) · 16 GPIO17 (left wing) · 18 GPIO18 (right wing) · 24 PWR</p></div>'
+                 + '<h2>Header pins used</h2><p>1 BAT · 3, 4, 29, 30 GND · 9 GND (model strap) · 5 GPIO21 (rocker L) · 7 GPIO38 (rocker R) · 16 GPIO17 (left wing) · 18 GPIO18 (right wing) · 24 PWR</p></div>'
                  + '<h2>Things to confirm on the first build</h2><table><tr><th>What</th><th>Designed for</th><th>If different</th></tr>' + ''.join(
                      f'<tr><td>{a}</td><td>{b}</td><td>{c}</td></tr>' for a, b, c in [
                          ('J8 socket depth', '~4 mm, pins 3.3 mm in', 'pins must hold; a 0.3 mm shim under the posts changes the depth'),

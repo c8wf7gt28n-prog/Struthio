@@ -112,6 +112,7 @@ def pkg_flashing(work, prebuilt, docs):
               open(os.path.join(wf, 'manifest.json'), 'w'), indent=2)
     put(docs['flash_pdf'], os.path.join(root, 'manual', 'STRUTHIO_ONE_Flashing_Guide.pdf'))
     put(docs['manual_pdf'], os.path.join(root, 'manual', 'STRUTHIO_ONE_Build_Manual_Windows11.pdf'))
+    put(docs['slim_manual_pdf'], os.path.join(root, 'manual', 'STRUTHIO_ONE_SLIM_Build_Manual_Windows11.pdf'))
     sums = []
     for d, _, files in os.walk(root):
         for f in files:
@@ -171,7 +172,7 @@ def pkg_pcb(work):
     put(os.path.join(HH, 'pcb', 'one', 'make_one_pcb.py'), os.path.join(root, 'kicad', 'make_one_pcb.py'))
     bom = open(os.path.join(out, 'BOM_JLCPCB.csv')).read().strip()
     text(os.path.join(root, 'README_ORDER.txt'), f"""
-STRUTHIO ONE - CONTROL BOARD (rev C), JLCPCB
+STRUTHIO ONE - CONTROL BOARD (rev D), JLCPCB
 ============================================
 
 1. jlcpcb.com > Order now > upload struthio_one_gerbers.zip.
@@ -214,7 +215,7 @@ Files
         put(os.path.join(so, f), os.path.join(slim, 'kicad', f))
     put(os.path.join(HH, 'pcb', 'slim', 'make_slim_pcb.py'), os.path.join(slim, 'kicad', 'make_slim_pcb.py'))
     text(os.path.join(slim, 'README_ORDER.txt'), """
-STRUTHIO ONE SLIM - CONTROL BOARD (rev S1), JLCPCB
+STRUTHIO ONE SLIM - CONTROL BOARD (rev S2), JLCPCB
 ==================================================
 
 The same circuit as the ONE's board, on a 0.8 mm board shaped for the 16.5 mm case.
@@ -222,10 +223,11 @@ The same circuit as the ONE's board, on a 0.8 mm board shaped for the 16.5 mm ca
 1. jlcpcb.com > Order now > upload struthio_one_slim_gerbers.zip.
    2 layers, PCB THICKNESS 0.8 mm (not the default 1.6), any colour.
 2. PCB Assembly: TOP side, STANDARD PCBA. Upload BOM_JLCPCB.csv and CPL_JLCPCB.csv.
-   J1 (the header) is NOT in them: you fit 8 bare pins yourself with the printed pin jig
+   Six parts, all surface-mount: SW1-SW4, J2 (battery socket, C295747), Q1.
+   J1 (the header) is NOT in them: you fit 12 bare pins yourself with the printed pin jig
    (docs: STRUTHIO_ONE_SLIM, section 5). The back silkscreen lists the 8 holes.
-3. Check the placement preview as for the ONE (J2 opening to the right, SW5 knob off the left edge).
-4. When the boards arrive: snip SW5's and J2's leads on the back flush (0.5 mm or less).
+3. In the placement preview: J2's opening faces the board's RIGHT edge.
+4. Nothing to trim when the boards arrive: every assembled part is surface-mount.
 """)
     return root, 'STRUTHIO_ONE_PCB'
 
@@ -285,15 +287,18 @@ layers, 40 % gyroid. Every wall in this case is then solid plastic. Not PLA.
   slim_back.stl           its BACK down             none (the tongue points up; countersinks are 45 deg)
   slim_wing_left/right    TOP face down             none
   slim_rocker.stl         TOP face down             none
-  slim_pin_jig.stl        flat                      none   (a tool: sets the 8 header pins)
-  slim_pin_spacer.stl     flat                      none   ONLY if your Waveshare's J8 socket top is
-                                                           11.5 mm behind the glass, not 12.6 (measure)
+  slim_power_button.stl   on its SIDE (flat face)   none   (small: print two in case one is lost)
+  slim_pin_jig.stl        flat                      none   a tool: sets the 12 header pins, cuts the axle
+  slim_panel_jig.stl      plate down                none   a tool: puts the face panel exactly in place
 
 The shells meet in a tongue and groove: 0.7 mm tongue, 1.0 mm groove, 0.15 mm play each side.
 If it is tight, file the tongue lightly; never open the groove.
 
-Also needed: 3 x M2 x 6 and 2 x M2 x 8 countersunk screws, 1.0 mm double-sided foam tape,
-an 11 mm piece of 1.75 mm filament (the rocker's axle).
+Also needed: 5 x M2 x 6 countersunk screws (one size for everything), 1.0 mm double-sided foam
+tape, a piece of 1.75 mm filament (the rocker's axle: the pin jig's slot cuts it to 11 mm).
+
+No printer? Upload these STLs to a print service and ask for MJF nylon (PA12) or PETG.
+Not resin: too brittle for the screw bosses.
 """)
     return root, 'STRUTHIO_ONE_3D_Print'
 
@@ -304,6 +309,11 @@ def pkg_docs(work, docs):
     put(docs['flash_pdf'], os.path.join(root, 'STRUTHIO_ONE_Flashing_Guide.pdf'))
     put(docs['facts_pdf'], os.path.join(root, 'Hardware_Facts.pdf'))
     put(docs['slim_pdf'], os.path.join(root, 'STRUTHIO_ONE_SLIM_Guide.pdf'))
+    put(docs['slim_manual_pdf'], os.path.join(root, 'STRUTHIO_ONE_SLIM_Build_Manual_Windows11.pdf'))
+    put(docs['quick_pdf'], os.path.join(root, 'STRUTHIO_ONE_SLIM_Quick_Start.pdf'))
+    put(docs['order_pdf'], os.path.join(root, 'STRUTHIO_ORDER.pdf'))
+    put(os.path.join(HH, 'docs', 'STRUTHIO_ORDER.md'), os.path.join(root, 'markdown', 'STRUTHIO_ORDER.md'))
+    put(os.path.join(HH, 'docs', 'renders', 'slim', 'slim_assembly.gif'), os.path.join(root, 'slim_assembly.gif'))
     put(os.path.join(HH, 'docs', 'STRUTHIO_ONE_SLIM.md'), os.path.join(root, 'markdown', 'STRUTHIO_ONE_SLIM_Guide.md'))
     rs = os.path.join(HH, 'docs', 'renders', 'slim')
     for f in sorted(os.listdir(rs)):
@@ -322,11 +332,16 @@ def pkg_docs(work, docs):
 STRUTHIO ONE - DOCUMENTS
 ========================
 
+  STRUTHIO_ONE_SLIM_Quick_Start.pdf
+                                   START HERE: the whole ONE SLIM build on one page
+  STRUTHIO_ORDER.pdf               everything to buy and order, in one list
+  STRUTHIO_ONE_SLIM_Build_Manual_Windows11.pdf
+                                   the ONE SLIM build manual: every step with a picture and a check
+  slim_assembly.gif                how it goes together (animation)
+  STRUTHIO_ONE_SLIM_Guide.pdf      the ONE SLIM's design: the 16.5 mm stack, battery run time,
+                                   boot time, heat, printing
   STRUTHIO_ONE_Build_Manual_Windows11.pdf
-                                   START HERE: the whole build in one manual, in build order,
-                                   with pictures of every step, screenshots and diagrams
-  STRUTHIO_ONE_SLIM_Guide.pdf      the 16.5 mm ONE SLIM: what changes, parts, build, battery
-                                   run time, boot time, heat
+                                   the 23 mm ONE (the original design), its build manual
   STRUTHIO_ONE_Build_Guide.pdf     the hardware reference: parts, printing, ordering,
                                    the 14 assembly steps, tests, faults, what to confirm
   STRUTHIO_ONE_Flashing_Guide.pdf  putting the game on the Waveshare board
@@ -397,6 +412,12 @@ def main():
             [os.path.join(r, 'one_front.png') + ':the finished handheld', os.path.join(r, 'one_exploded.png') + ':how it goes together'])
         pdf(os.path.join(HH, 'docs', 'STRUTHIO_ONE_FLASHING.md'), docs['flash_pdf'], foot)
         pdf(os.path.join(HH, 'docs', 'HARDWARE_FACTS.md'), docs['facts_pdf'], foot)
+        docs['slim_manual_pdf'] = os.path.join(work, 'slim_manual.pdf')
+        subprocess.check_call([sys.executable, os.path.join(HH, 'tools', 'manual', 'slim_manual.py'), docs['slim_manual_pdf']], stdout=subprocess.DEVNULL)
+        docs['quick_pdf'] = os.path.join(work, 'quick.pdf')
+        subprocess.check_call([sys.executable, os.path.join(HH, 'tools', 'manual', 'quick_card.py'), docs['quick_pdf']], stdout=subprocess.DEVNULL)
+        docs['order_pdf'] = os.path.join(work, 'order.pdf')
+        pdf(os.path.join(HH, 'docs', 'STRUTHIO_ORDER.md'), docs['order_pdf'], foot)
         docs['slim_pdf'] = os.path.join(work, 'slim.pdf'); rs = os.path.join(HH, 'docs', 'renders', 'slim')
         pdf(os.path.join(HH, 'docs', 'STRUTHIO_ONE_SLIM.md'), docs['slim_pdf'], foot,
             [os.path.join(rs, 'slim_hero.png') + ':the ONE SLIM (from the 3D model)', os.path.join(rs, 'one_vs_slim_side.png') + ':23.0 mm and 16.5 mm, same scale'])

@@ -140,16 +140,16 @@ Work on a soft cloth. Nothing needs force.
 9. **Close.** Put the back shell's two top hooks into the slots inside the front shell's top edge and swing it down. The power knob
    slides into its slot, the pegs drop into the Waveshare's holes. If anything stops it closing, open it and look: a
    lead is caught. Fit the two M2 × 8 screws at the bottom, **snug, not tight**.
-10. **First power.** Slide the switch **up**. The screen lights within a few seconds and the game
-    starts. Slide it down: it goes off at once.
-11. **Test every control.** Hold **both wing buttons**, slide the switch up, keep holding until the service screen
-    appears. Press each wing button and each end of the rocker: each one's counter must go up by one per press, and
-    none may count by itself. The BATT line shows the cell's voltage and charge (and CHARGING / USB when plugged in);
-    "BATT NONE" means the cell isn't connected. Leave service mode by switching off.
-12. **Screen the wrong way up?** In service mode, **hold RIGHT for 1 s**. It is saved; switch off and on to play.
-    While you are there: tap the **rocker's right end** until the screen says **CELL 500+ MAH** (the ONE's 1000 mAh
-    cell then charges at 200 mA; the default, for the SLIM's small cell, is 100 mA). The rocker's left end sets the
-    brightness (70 % to start). Both are saved.
+10. **First power.** Slide the switch **up**. The screen lights within a few seconds. The first time, it shows the
+    **first power-on check**. Slide it down: it goes off at once.
+11. **Test every control** on the check screen: press each wing button and each end of the rocker once. Each turns
+    OK and clicks (the click is the speaker). STUCK DOWN means a cap rubs its switch. BATTERY shows the cell. When all
+    four are OK, press both wings: the game starts, and the check never runs again (service mode, rocker right tap,
+    asks for it again).
+12. **Screen the wrong way up?** On the check screen, **hold LEFT for 2 s**; later, in service mode (both wings held
+    while switching on), **hold RIGHT for 1 s**. Both are saved. The ONE board (rev D) ties header pin 9 to ground,
+    so the firmware knows it is a ONE and charges the 1000 mAh cell at 200 mA by itself. The service screen's rocker
+    left end sets the brightness (70 % to start).
 13. **Charge.** Plug USB-C in **with the switch ON**. With the switch OFF the battery is disconnected: USB runs the
     handheld but doesn't charge the cell.
 14. **Face panel, last.** Peel the protective film off the back, put tape on the black areas only, line the panel up
