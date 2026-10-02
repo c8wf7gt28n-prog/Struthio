@@ -154,7 +154,7 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
                          pw.charging ? "  CHARGING" : "", pw.vbus_present ? "  USB" : "");
             else snprintf(t, sizeof t, "BATT NONE%s", board_power_read(&pw) && pw.vbus_present ? "  USB" : "");
             st_draw_text(fb, 8, 156, t, STR_PAL_IVORY, 1);
-            snprintf(t, sizeof t, "LIGHT %d/100  CELL %s  CHARGE %d MA", app_brightness_percent(),
+            snprintf(t, sizeof t, "LIGHT %d/100  CELL %s %d MA", app_brightness_percent(),
                      app_cell() ? "500+ MAH" : "250 MAH", app_cell() ? 200 : 100);
             st_draw_text(fb, 8, 168, t, STR_PAL_IVORY, 1);
             st_draw_text(fb, 8, 180, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);

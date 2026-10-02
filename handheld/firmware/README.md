@@ -79,7 +79,20 @@ free memory; live wing and rocker states with press counts; the DART mode and
 darts fired; the on-device golden replay (the embedded `climb.trace`, 10,011
 ticks, every tick's SHA-256 checked); simulation and panel timings; and the
 AUDIO / MUSIC / VOL line. LEFT tap: next DART mode. LEFT held 1 s: next volume
-level (a chime plays). RIGHT tap: run the checks again. Power-cycle to play.
+level (a chime plays). RIGHT tap: run the checks again. RIGHT held 1 s: turn the
+screen 180. Rocker LEFT tap: brightness (30 / 50 / 70 / 100 %, default 70). Rocker
+RIGHT tap: the fitted cell, which sets the charge current: CELL 250 MAH (100 mA,
+default) or CELL 500+ MAH (200 mA; choose it for the ONE's 1000 mAh cell). The
+LIGHT line shows both. Power-cycle to play.
+
+## Power
+
+The power task (main.c) dims the backlight to 8 % after 30 s with no button,
+switches the toy off (AXP2101 off, about 40 uA) after 5 min with no button or
+after 5 s below 3.30 V on battery, and never on USB. The backlight comes on with
+the first frame; the 800 ms service-mode guard runs only when a wing is held at
+power-on; `sdkconfig.defaults` skips the PSRAM test and the image hash at
+power-on. Run time, boot time and heat: `docs/STRUTHIO_ONE_SLIM.md`.
 
 ## Board adapter
 

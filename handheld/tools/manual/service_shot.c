@@ -19,11 +19,14 @@ int main(void) {
     st_draw_text(fb, 8, 132, "PANEL 9.8 MS/FRAME 102 FPS", STR_PAL_IVORY, 1);
     st_draw_text(fb, 8, 144, "AUDIO OK  MUSIC OK  VOL 2/4", STR_PAL_IVORY, 1);
     st_draw_text(fb, 8, 156, "BATT 3.92V 78/100  CHARGING  USB", STR_PAL_IVORY, 1);
-    st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
-    st_draw_text(fb, 8, 180, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
-    st_draw_text(fb, 8, 192, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
-    st_draw_text(fb, 8, 204, "RIGHT HOLD 1 S: TURN SCREEN 180", STR_PAL_IVORY_DARK, 1);
-    st_draw_text(fb, 8, 216, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 168, "LIGHT 70/100  CELL 500+ MAH 200 MA", STR_PAL_IVORY, 1);
+    st_draw_text(fb, 8, 180, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 192, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 204, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 216, "RIGHT HOLD 1 S: TURN SCREEN 180", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 228, "DART LEFT TAP: BRIGHTNESS", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 240, "DART RIGHT TAP: CELL SIZE", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 252, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
     printf("P6\n%d %d\n255\n", ST_PANEL_W, ST_PANEL_H);
     uint16_t line[ST_PANEL_W];
     for (int y = 0; y < ST_PANEL_H; y++) {

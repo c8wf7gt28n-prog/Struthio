@@ -491,7 +491,7 @@ def build(out_pdf):
                  + '<h2>The face panel (package 2)</h2><p>Send the shop the files and this sentence: <b>1.0 mm clear cast acrylic, cut to the DXF, reverse-printed (colour, then white) '
                  'from the mirrored PNG, window left clear.</b> Cheaper: a clear cut panel and the art printed on sticker vinyl, stuck on its back.</p>'
                  + fig(img(os.path.join(HH, 'cad', 'one', 'panel', 'one_panel_proof.png'), maxh='70mm'), 'The proof: cut lines magenta, the clear window blue') + fig(d_panel_layers(), 'What the shop makes, in layers (the window stays clear)', 'diag')
-                 + '<h2>The printed parts (package 4)</h2><p>PLA or PETG, 0.2 mm layers, 3 walls. One of each STL. The wing buttons and rocker print engraving-down: keep the first layer neat.</p>'
+                 + '<h2>The printed parts (package 4)</h2><p>PETG (or ASA), 0.2 mm layers, 4 walls, 6 top and bottom layers, 40 % infill: solid walls. Not PLA (it softens in a hot car). One of each STL. The wing buttons and rocker print engraving-down: keep the first layer neat.</p>'
                  + fig(d_bed(), 'How each part sits on the bed', 'diag'))
         # ---- part 4: flashing ---------------------------------------------------------------------------------
         H.append('<h1>Flash the full game (Windows 11)</h1><p class="part">Part 4 · do this as soon as the Waveshare board arrives, before you build it in</p>'
@@ -559,14 +559,18 @@ def build(out_pdf):
         # ---- part 6: power + test --------------------------------------------------------------------------------
         H.append('<h1>First power and test</h1><p class="part">Part 6 · steps 10-13</p>'
                  + step(10, 'Switch on', img(st('step10_first_power'), crop_dark=True),
-                        '<p>Slide the switch <b>up</b>. Within about 3-8 s the screen lights and the game starts. Slide it down: off at once.</p>',
+                        '<p>Slide the switch <b>up</b>. Within a few seconds the screen lights and the game starts. Slide it down: off at once.</p>'
+                        '<p>Left alone, it dims after 30 s and switches itself off after 5 minutes (slide off and on to wake it).</p>',
                         check='The game appears. (Nothing? Part 9.)')
                  + fig(d_power_on(), 'What happens when you slide the switch up', 'diag')
                  + step(11, 'Test every control', fig(png(os.path.join(CAP, 'fw_service_one_example.png'), '72%'), 'The service screen (example values)', 'real'),
                         '<p>Hold <b>both wing buttons</b>, slide the switch up, keep holding until the service screen appears. Press each wing button and each rocker end: '
                         'its counter goes up by one per press, and none counts by itself. <b>BATT</b> shows the battery (<b>BATT NONE</b>: the cell isn\'t connected).</p>'
                         '<p>Switch off to leave.</p>', check='LEFT, RIGHT, ROCKER L and ROCKER R each count one per press; BATT shows a voltage.')
-                 + step(12, 'Picture the wrong way up?', '', '<p>In service mode, <b>hold RIGHT for 1 s</b>. It\'s saved. Switch off and on to play.</p>')
+                 + step(12, 'Picture the wrong way up? Battery size', '', '<p>In service mode, <b>hold RIGHT for 1 s</b> to turn the picture. It\'s saved.</p>'
+                        '<p>Then tap the <b>rocker\'s right end</b> until the LIGHT line says <b>CELL 500+ MAH 200 MA</b>: the ONE\'s 1000 mAh battery charges at 200 mA. '
+                        '(The firmware starts at 100 mA, safe for the small ONE SLIM cell.) The rocker\'s left end sets the brightness. Switch off and on to play.</p>',
+                        check='The LIGHT line says CELL 500+ MAH 200 MA.')
                  + step(13, 'Charge', '', '<p>Plug USB-C in <b>with the switch ON</b>. With the switch OFF the battery is disconnected: USB still runs the game but doesn\'t charge.</p>',
                         check='In service mode BATT says CHARGING and USB.'))
         # ---- part 7: panel -------------------------------------------------------------------------------------------

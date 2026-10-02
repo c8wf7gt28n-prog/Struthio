@@ -69,7 +69,7 @@ so a switch works whichever way round it is fitted. Header pins used: 1 BAT, 3/4
 
 ## Printing
 
-PLA or PETG, 0.2 mm layers, 3 walls.
+PETG (or ASA), 0.2 mm layers, 4 walls, 6 top and bottom layers, 40 % gyroid infill: every wall is then solid plastic. Not PLA: it softens at 55–60 °C (a car in summer) and creeps under the screws. (Why, and the 16.5 mm ONE SLIM: `docs/STRUTHIO_ONE_SLIM.md`.)
 
 | Part | Put on the bed | Supports |
 |---|---|---|
@@ -140,13 +140,16 @@ Work on a soft cloth. Nothing needs force.
 9. **Close.** Put the back shell's two top hooks into the slots inside the front shell's top edge and swing it down. The power knob
    slides into its slot, the pegs drop into the Waveshare's holes. If anything stops it closing, open it and look: a
    lead is caught. Fit the two M2 × 8 screws at the bottom, **snug, not tight**.
-10. **First power.** Slide the switch **up**. The screen lights within about 3–8 s (the power-on pulse) and the game
+10. **First power.** Slide the switch **up**. The screen lights within a few seconds and the game
     starts. Slide it down: it goes off at once.
 11. **Test every control.** Hold **both wing buttons**, slide the switch up, keep holding until the service screen
     appears. Press each wing button and each end of the rocker: each one's counter must go up by one per press, and
     none may count by itself. The BATT line shows the cell's voltage and charge (and CHARGING / USB when plugged in);
     "BATT NONE" means the cell isn't connected. Leave service mode by switching off.
 12. **Screen the wrong way up?** In service mode, **hold RIGHT for 1 s**. It is saved; switch off and on to play.
+    While you are there: tap the **rocker's right end** until the screen says **CELL 500+ MAH** (the ONE's 1000 mAh
+    cell then charges at 200 mA; the default, for the SLIM's small cell, is 100 mA). The rocker's left end sets the
+    brightness (70 % to start). Both are saved.
 13. **Charge.** Plug USB-C in **with the switch ON**. With the switch OFF the battery is disconnected: USB runs the
     handheld but doesn't charge the cell.
 14. **Face panel, last.** Peel the protective film off the back, put tape on the black areas only, line the panel up

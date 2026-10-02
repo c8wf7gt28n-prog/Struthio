@@ -51,7 +51,7 @@ RB = 3.0                              # back edge round (the ONE's 5.0 would pul
 # inside thickens them to 2.75 mm round the joint)
 LAND = 1.0
 GROOVE = (0.85, 1.85)                 # in the front shell, 1.0 wide, 1.6 deep
-TONGUE = (0.95, 1.75)                 # on the back shell, 0.8 wide: 0.10 mm clearance each side
+TONGUE = (1.00, 1.70)                 # on the back shell, 0.7 wide: 0.15 mm clearance each side (FDM)
 GROOVE_DEPTH, TONGUE_LEN = 1.6, 1.5   # 0.1 mm clear at the bottom: the shells close on their faces, not the tongue
 
 # the Waveshare's own parts that stand tallest (Waveshare 3D model, case frame, glass front = 0), for the checks

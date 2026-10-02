@@ -62,7 +62,7 @@ check('side walls 1.75 mm, 2.75 mm through the joint band', o.WALL >= 1.75 and s
 
 # ---- tongue and groove -------------------------------------------------------------------------------------
 g0, g1 = s.GROOVE; t0, t1 = s.TONGUE
-check('joint: tongue 0.8 mm in a 1.0 mm groove, 0.10 mm clearance each side', abs((t0 - g0) - 0.10) < 1e-9 and abs((g1 - t1) - 0.10) < 1e-9)
+check('joint: tongue 0.7 mm in a 1.0 mm groove, 0.15 mm clearance each side (FDM)', abs((t0 - g0) - 0.15) < 1e-9 and abs((g1 - t1) - 0.15) < 1e-9)
 check('joint: 1.5 mm engagement, 0.1 mm clear at the bottom (the shells close on their faces)', abs(s.GROOVE_DEPTH - s.TONGUE_LEN - 0.1) < 1e-9 and s.TONGUE_LEN >= 1.5)
 check('joint: groove lips 0.85 / 0.90 mm thick', g0 >= 0.85 - 1e-9 and (o.WALL + s.LAND) - g1 >= 0.9 - 1e-9)
 check('joint: tongue clears the front shell (closed)', clash(s.tongue(), front) < 0.01, f'{clash(s.tongue(), front):.3f} mm3')
