@@ -183,5 +183,5 @@ Work on a soft cloth. Nothing needs force.
 
 ## Design lock
 
-Locked on 2026-10-02 at the commit that adds this section (git tag `one-lock-1`). Changes after the lock are
+Locked on 2026-10-02 at commit `8729dac` on branch `claude/handheld-core-port`. Changes after the lock are
 fixes found on the first build, each listed here.
