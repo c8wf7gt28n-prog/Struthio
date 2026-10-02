@@ -142,13 +142,24 @@ def bg_scene():
     horizon behind the buttons, the glowing grid and its reflections below (all from the game's own art)"""
     lay = stars_layer()
     sw = 74.0; ss = sw / rear.width; HZ = -40.5                  # drawn 74 mm wide, horizon at y -40.5
-    grid = rear.crop((0, 1690, rear.width, rear.height))
+    grid = rear.crop((0, 1672, rear.width, rear.height))
     grid = grid.resize((round(L(sw)), round(L(grid.height * ss))), Image.LANCZOS)
     lay.paste(grid, tuple(round(v) for v in px(-sw / 2, HZ)))
-    sky = rear.crop((0, 1560, rear.width, 1690))                 # the skyline, kept low: 6.5 mm
+    HZ_PX = 1672                                                 # the horizon row in background-rear
+    sky = rear.crop((0, 1530, rear.width, HZ_PX))                # the side spires, kept low: 6.5 mm
     sky = sky.resize((round(L(sw)), round(L(6.5))), Image.LANCZOS)
+    hole = Image.new('L', sky.size, 255)                         # minus the centre, where the castle stands whole
+    ImageDraw.Draw(hole).rectangle([sky.width // 2 - L(5.5), 0, sky.width // 2 + L(5.5), sky.height], fill=0)
+    sky = Image.composite(sky, Image.new('RGB', sky.size, (0, 0, 0)), hole.filter(ImageFilter.GaussianBlur(L(1.2))))
     x, y = px(-sw / 2, HZ + 6.5); box = (round(x), round(y), round(x) + sky.width, round(y) + sky.height)
     lay.paste(ImageChops.lighter(lay.crop(box), sky), box[:2])
+    ch = 15.0; cw = ch * 190 / (HZ_PX - 1290) * 1.5             # the central castle: whole, tip just under the frame
+    castle = rear.crop((289, 1290, 479, HZ_PX)).resize((round(L(cw)), round(L(ch))), Image.LANCZOS)
+    fade = Image.new('L', castle.size, 0)
+    ImageDraw.Draw(fade).rectangle([L(1.6), 0, castle.width - L(1.6), castle.height], fill=255)
+    castle = Image.composite(castle, Image.new('RGB', castle.size, (0, 0, 0)), fade.filter(ImageFilter.GaussianBlur(L(0.8))))
+    x, y = px(-cw / 2, HZ + ch); box = (round(x), round(y), round(x) + castle.width, round(y) + castle.height)
+    lay.paste(ImageChops.lighter(lay.crop(box), castle), box[:2])
     moon = rear.crop((470, 110, 750, 390))
     mw = 6.4; moon = moon.resize((round(L(mw)), round(L(mw))), Image.LANCZOS)
     x, y = px(9.5 - mw / 2, -29.0 + mw / 2)
