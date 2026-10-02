@@ -9,10 +9,11 @@ void st_buttons_init(st_buttons_t *b, st_norm_t *norm, st_dart_trial_t trial, ui
     b->norm = norm;
     b->trial = (uint8_t)trial;
     b->candidate_since[0] = b->candidate_since[1] = now_ms;
+    b->rocker_since[0] = b->rocker_since[1] = now_ms;
 }
 const char *st_dart_trial_name(st_dart_trial_t t) {
     return t == ST_DART_TRIAL_A_HOLD ? "A HOLD" : t == ST_DART_TRIAL_B_TAP_HOLD ? "B TAP-HOLD"
-         : t == ST_DART_TRIAL_C_BOTH_HOLD ? "C BOTH-HOLD" : "OFF";
+         : t == ST_DART_TRIAL_C_BOTH_HOLD ? "C BOTH-HOLD" : "ROCKER ONLY";
 }
 static void on_press(st_buttons_t *b, int i, uint32_t edge_ms) {
     b->press_at[i] = edge_ms;
@@ -61,6 +62,21 @@ void st_buttons_sample(st_buttons_t *b, bool left, bool right, uint32_t now_ms) 
         }
     }
 }
+void st_buttons_sample_rocker(st_buttons_t *b, bool dart_left, bool dart_right, uint32_t now_ms) {
+    const bool raw[2] = {dart_left, dart_right};
+    for (int i = 0; i < 2; i++) {
+        if (raw[i] != b->rocker_candidate[i]) { b->rocker_candidate[i] = raw[i]; b->rocker_since[i] = now_ms; }
+        if (b->rocker_candidate[i] != b->rocker_stable[i] && (uint32_t)(now_ms - b->rocker_since[i]) >= ST_BTN_DEBOUNCE_MS) {
+            b->rocker_stable[i] = b->rocker_candidate[i];
+            if (b->rocker_stable[i]) {
+                b->rocker_presses[i]++;
+                b->darts++;
+                if (b->norm) st_norm_dart_button(b->norm, side_of(i));
+            }
+        }
+    }
+}
+bool st_buttons_rocker_held(const st_buttons_t *b, st_side_t side) { return b->rocker_stable[side == ST_SIDE_RIGHT ? 1 : 0]; }
 bool st_buttons_held(const st_buttons_t *b, st_side_t side) { return b->stable[side == ST_SIDE_RIGHT ? 1 : 0]; }
 bool st_buttons_service_requested(const st_buttons_t *b, uint32_t now_ms) {
     return b->both_timing && (uint32_t)(now_ms - b->both_since) >= ST_SERVICE_HOLD_MS;

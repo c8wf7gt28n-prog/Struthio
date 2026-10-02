@@ -2,7 +2,7 @@
 //
 // Screen + USB log:
 //   - build, reset reason, PSRAM / internal heap
-//   - live wing states, debounced press counts, darts fired, DART trial
+//   - live wing and DART-rocker states, debounced press counts, darts fired, DART trial
 //   - ON-DEVICE GOLDEN REPLAY: the embedded climb.trace (10,011 ticks) through
 //     the C core with every tick's SHA-256 digest checked against the browser,
 //     then again without digests to time the bare simulation per tick
@@ -81,6 +81,7 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
     for (;;) {
         uint32_t now = app_now_ms();
         st_buttons_sample(b, app_pin_pressed(17), app_pin_pressed(18), now);
+        st_buttons_sample_rocker(b, app_pin_pressed(21), app_pin_pressed(38), now);
         (void)st_norm_frame(norm, true);     // keep the normalizer's queue drained
         for (int side = 0; side < 2; side++) {
             bool held = st_buttons_held(b, side == 0 ? ST_SIDE_LEFT : ST_SIDE_RIGHT);
@@ -117,13 +118,16 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
             st_draw_text(fb, 8, 72, t, STR_PAL_CYAN_LIGHT, 1);
             snprintf(t, sizeof t, "DART %s  FIRED %lu", st_dart_trial_name((st_dart_trial_t)b->trial), (unsigned long)b->darts);
             st_draw_text(fb, 8, 84, t, STR_PAL_CYAN_LIGHT, 1);
+            snprintf(t, sizeof t, "ROCKER L %s %lu   R %s %lu", st_buttons_rocker_held(b, ST_SIDE_LEFT) ? "DOWN" : "UP  ", (unsigned long)b->rocker_presses[0],
+                     st_buttons_rocker_held(b, ST_SIDE_RIGHT) ? "DOWN" : "UP  ", (unsigned long)b->rocker_presses[1]);
+            st_draw_text(fb, 8, 96, t, STR_PAL_CYAN_LIGHT, 1);
             st_draw_text(fb, 8, 108, g_replay_line[0], strstr(g_replay_line[0], "PASS") ? STR_PAL_GREEN : STR_PAL_LAVA_HOT, 1);
             st_draw_text(fb, 8, 120, g_replay_line[1], STR_PAL_IVORY, 1);
             st_draw_text(fb, 8, 132, g_bench_line, STR_PAL_IVORY, 1);
             snprintf(t, sizeof t, "AUDIO %s  MUSIC %s  VOL %d/%d", app_audio_ok() ? "OK" : "NO CODEC", app_music_ok() ? "OK" : "NONE",
                      app_volume(), APP_VOLUME_LEVELS - 1);
             st_draw_text(fb, 8, 144, t, app_audio_ok() ? STR_PAL_IVORY : STR_PAL_LAVA_HOT, 1);
-            st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART TRIAL", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 180, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 192, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 204, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);

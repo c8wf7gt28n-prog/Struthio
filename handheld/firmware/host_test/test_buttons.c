@@ -92,7 +92,30 @@ static void unit_tests(void) {
     assert(!st_buttons_service_requested(&btn, now));
     run(200, true, true);
     assert(st_buttons_service_requested(&btn, now));
-    puts("PASS: wing buttons (debounce, chord, DART trials A/B/C, service)");
+    // 9. DART rocker: each debounced press of an end is one dart that way; bounce
+    //    and a held end do not repeat; it leaves flaps and the wing chord alone
+    reset(ST_DART_OFF);
+    for (int i = 0; i < 6; i++, now++) st_buttons_sample_rocker(&btn, i % 2 == 0, false, now);
+    for (int i = 0; i < 300; i++, now++) st_buttons_sample_rocker(&btn, true, false, now);
+    assert(btn.rocker_presses[0] == 1 && btn.darts == 1);
+    f = frame();
+    assert(f.dart_edge && f.dart_side == ST_SIDE_LEFT && !f.flap_edge);
+    f = frame();
+    assert(!f.dart_edge);
+    for (int i = 0; i < 30; i++, now++) st_buttons_sample_rocker(&btn, false, false, now);
+    for (int i = 0; i < 30; i++, now++) st_buttons_sample_rocker(&btn, false, true, now);
+    f = frame();
+    assert(f.dart_edge && f.dart_side == ST_SIDE_RIGHT && btn.rocker_presses[1] == 1);
+    // wings held through rocker presses: the STRAIGHT chord and steering are unchanged
+    reset(ST_DART_OFF);
+    run(5, true, false);
+    for (int i = 0; i < 40; i++, now++) { st_buttons_sample(&btn, true, true, now); st_buttons_sample_rocker(&btn, true, false, now); }
+    f = frame();
+    assert(f.flap_edge && f.flap_kind == ST_FLAP_STRAIGHT && f.chord_edge && f.dart_edge && f.dart_side == ST_SIDE_LEFT);
+    assert(btn.darts == 1);                       // ROCKER ONLY: holding both wings never darts
+    run(400, true, true);
+    assert(btn.darts == 1);
+    puts("PASS: wing buttons (debounce, chord, DART trials A/B/C, rocker, service)");
 }
 
 // ---- DART trial report ------------------------------------------------------------------
@@ -106,10 +129,12 @@ static void trial_report(const char *path) {
     uint32_t hl = d[8] | d[9] << 8 | d[10] << 16 | (uint32_t)d[11] << 24;
     if (memmem(d + 12, hl, "\"raw\":true", 10)) { free(d); return; }
     const char *name = strrchr(path, '/') ? strrchr(path, '/') + 1 : path;
-    for (int trial = 0; trial < 3; trial++) {
+    for (int trial = 0; trial < 4; trial++) {   // 3: A1.5 rocker (trial OFF + the bot's darts on the rocker)
         st_buttons_t b;
-        st_buttons_init(&b, NULL, (st_dart_trial_t)trial, 0);
-        bool L = false, R = false;
+        st_buttons_init(&b, NULL, trial == 3 ? ST_DART_OFF : (st_dart_trial_t)trial, 0);
+        bool L = false, R = false, rk[2] = {false, false};
+        uint32_t rk_until[2] = {0, 0}, rk_busy[2] = {0, 0};
+        long too_fast = 0;
         long intended = 0, ticks = 0;
         uint32_t ms = 0;
         const uint8_t *p = d + 12 + hl, *end = d + size;
@@ -123,13 +148,26 @@ static void trial_report(const char *path) {
                 while (k < nops && base + ops[2 * k] <= ms) {
                     uint8_t op = ops[2 * k + 1];
                     if (op == 1) L = true; else if (op == 2) L = false; else if (op == 3) R = true; else if (op == 4) R = false;
-                    else if (op == 5 || op == 6) intended++;
+                    else if (op == 5 || op == 6) {
+                        intended++;
+                        // a thumb press: 40 ms down, 40 ms up before the next one
+                        if (trial == 3) { int e = op - 5; if (ms < rk_busy[e]) too_fast++; else { rk[e] = true; rk_until[e] = ms + 40; rk_busy[e] = ms + 80; } }
+                    }
                     k++;
                 }
                 st_buttons_sample(&b, L, R, ms);
+                for (int e = 0; e < 2; e++) if (rk[e] && ms >= rk_until[e]) rk[e] = false;
+                st_buttons_sample_rocker(&b, rk[0], rk[1], ms);
             }
         }
         double minutes = ticks / 3600.0;
+        if (trial == 3) {
+            bool ok = (long)b.darts == intended - too_fast;
+            printf("  %-12s A1.5 ROCKER       %5u darts fired in %4.1f min; the bot asked for %ld (%ld faster than a thumb can re-press): %s\n",
+                   name, b.darts, minutes, intended, too_fast, ok ? "every press darts, nothing else does" : "MISMATCH");
+            if (!ok) exit(1);
+            continue;
+        }
         printf("  %-12s trial %-10s %5u darts fired in %4.1f min (%5.1f/min); the bot asked for %ld (%4.1f/min)\n",
                name, st_dart_trial_name((st_dart_trial_t)trial), b.darts, minutes, b.darts / minutes, intended, intended / minutes);
     }

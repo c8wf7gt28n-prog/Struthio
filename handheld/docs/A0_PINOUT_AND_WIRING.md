@@ -6,6 +6,7 @@ Use the board's exposed general-purpose GPIOs:
 - **LEFT WING -> GPIO17** (Waveshare expansion header pin 16 in the published 2x16 pinout image)
 - **RIGHT WING -> GPIO18** (header pin 18)
 - other side of both switches -> **GND** (for example header pin 30)
+- A1.5 DART rocker: **DART LEFT -> GPIO21**, **DART RIGHT -> GPIO38**, common GND, active low (firmware v0.12). Confirm which header positions carry 21 and 38 on the board in hand.
 
 Firmware configures GPIO17/GPIO18 as inputs with pull-ups. Pressing a button pulls the line LOW.
 The lines are sampled at 1 kHz and debounced for 8 ms. Each press is stamped at its raw edge, so the 100 ms chord window measures real thumb timing.
@@ -27,7 +28,7 @@ GPIO17 and GPIO18 are preferred for A0 because the board publishes them as expos
 | Camera (unused in STRUTHIO) | XCLK 38, PCLK 41, **VSYNC 17, HREF 18**, D 45 47 48 46 42 40 39 21 |
 | BOOT / USB / UART0 TX | 0 / 19, 20 / 43 |
 
-Almost every GPIO is spoken for. With no camera fitted, spare pins for a slide-switch signal or later buttons are **21, 38, 39, 40, 41, 42, 47, 48**. 45 and 46 are also camera pins, but they are strapping pins, so avoid them. With the SD slot empty, 9, 10 and 11 are free as well. Check on the schematic which of these reach the expansion header. The firmware's copy of this map is `firmware/main/board_pins.h`.
+Almost every GPIO is spoken for. With no camera fitted, spare pins are **39, 40, 41, 42, 47, 48** (21 and 38 now carry the A1.5 DART rocker). 45 and 46 are also camera pins, but they are strapping pins, so avoid them. With the SD slot empty, 9, 10 and 11 are free as well. Check on the schematic which of these reach the expansion header. The firmware's copy of this map is `firmware/main/board_pins.h`.
 
 ## Candidate switch
 **Omron B3F-4050** projected-plunger 12 x 12 mm through-hole tactile switch is the first feel-test candidate. Omron specifies 7.3 mm height and 1.27 N operating force for B3F-4050. The related B3F-4055 shares the general projected-plunger mechanical family and gives a firmer alternative. Do not call either final until a real thumb test is performed through the printed STRUTHIO caps.

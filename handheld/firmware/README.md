@@ -8,7 +8,7 @@ adds the hardware around it.
 
 | Task | Core | Rate | Job |
 | --- | --- | --- | --- |
-| `wings` | 0 | 1 kHz | GPIO17/18 -> debounce -> input normalizer (`struthio_buttons.c`) |
+| `wings` | 0 | 1 kHz | GPIO17/18 wings + GPIO21/38 DART rocker -> debounce -> input normalizer (`struthio_buttons.c`) |
 | `game` | 1 | 60 Hz fixed | normalizer frame -> `st_step()` -> events -> scene builder + HUD model (every tick, as the browser); a frame published every 2nd tick; watchdog |
 | `render` | 0 | <= 30 fps | newest frame -> panel renderer, even 16-line bands -> panel as each band finishes; may drop frames |
 | `render1` | 1 | with `render` | the odd bands of the same frame (below `game` in priority) |
@@ -33,7 +33,8 @@ flap from the last fight cannot skip it.
 | Flap left / right | press that wing (flaps at once, no added latency) |
 | Steer | hold a wing |
 | Straight-up flap | both wings within 100 ms |
-| DART | trial C (default): hold both wings 200 ms, dives toward facing |
+| DART (A1.5) | press an end of the DART rocker: GPIO21 darts left, GPIO38 darts right (one dart per press) |
+| DART (A0, no rocker) | trial C (default): hold both wings 200 ms, dives toward facing. On A1.5 set the DART mode to ROCKER ONLY in service mode |
 | Service mode | hold both wings while powering on |
 | Volume (in service mode) | hold LEFT 1 s: next of 5 levels (0 = off), saved |
 
@@ -42,6 +43,14 @@ thumb test. On the golden bots' press timelines they fire 40-78 unwanted darts
 a minute, because steering is holding a wing and a flap while steering is a
 quick re-press. Trial C fires 0.3-2 a minute. Run
 `make -C host_test run` for the report.
+
+## Hard power (A1.5)
+
+The slide switch cuts BAT+, so power can vanish at any moment. NVS is built to
+survive that (a value being written at that instant can be lost, the store
+recovers). The firmware writes high score, DART mode and volume only when they
+change, never periodically, and reads back every flash write
+(`CONFIG_SPI_FLASH_VERIFY_WRITE`, `CONFIG_SPI_FLASH_LOG_FAILED_WRITE`).
 
 ## Service mode
 

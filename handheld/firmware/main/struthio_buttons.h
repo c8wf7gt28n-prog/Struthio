@@ -15,6 +15,10 @@
 // tens of unwanted darts a minute because steering IS holding a wing and a
 // flap while steering IS a quick re-press. C uses the one idle gesture: both
 // wings held after the straight-up chord.
+// A1.5 adds a two-end silicone DART rocker (GPIO21 DART LEFT, GPIO38 DART
+// RIGHT, active low): each debounced press of an end is one directional dart.
+// The wing trials stay for A0 boards without a rocker; on A1.5 select
+// ROCKER ONLY (trial OFF) in service mode so the wings never dart.
 // Portable C: no ESP-IDF headers, host-tested in firmware/host_test.
 #pragma once
 #include <stdbool.h>
@@ -43,6 +47,8 @@ typedef struct {
     uint32_t press_at[2], release_at[2];
     bool released_once[2], tap_armed[2], darted[2];
     uint32_t presses[2], darts;     // counters for service mode
+    bool rocker_candidate[2], rocker_stable[2];   // DART LEFT, DART RIGHT
+    uint32_t rocker_since[2], rocker_presses[2];
     uint32_t both_since;
     bool both_timing, both_darted;
 } st_buttons_t;
@@ -51,6 +57,9 @@ void st_buttons_init(st_buttons_t *b, st_norm_t *norm, st_dart_trial_t trial, ui
 // One sample of both raw switch levels (true = pressed). Call at ~1 kHz.
 void st_buttons_sample(st_buttons_t *b, bool left, bool right, uint32_t now_ms);
 bool st_buttons_held(const st_buttons_t *b, st_side_t side);
+// One sample of the DART rocker's two contacts (true = pressed), same rate.
+void st_buttons_sample_rocker(st_buttons_t *b, bool dart_left, bool dart_right, uint32_t now_ms);
+bool st_buttons_rocker_held(const st_buttons_t *b, st_side_t side);
 // True once both wings have been held together for ST_SERVICE_HOLD_MS.
 bool st_buttons_service_requested(const st_buttons_t *b, uint32_t now_ms);
 const char *st_dart_trial_name(st_dart_trial_t t);

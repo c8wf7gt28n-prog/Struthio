@@ -15,12 +15,15 @@
 // camera module is fitted and the camera is never initialised. A0 has no
 // camera. Keep the FPC connector empty; the firmware has no camera code.
 //
-// Spare pins for the slide-switch "signal" wiring or later buttons, with no
-// camera fitted: 21, 38, 39, 40, 41, 42, 47, 48. Avoid 45 and 46: they are
+// A1.5 DART rocker: GPIO21 DART LEFT, GPIO38 DART RIGHT (camera D7 / XCLK:
+// free with no camera). Remaining spare pins with no camera fitted:
+// 39, 40, 41, 42, 47, 48. Avoid 45 and 46: they are
 // strapping pins. If the SD slot stays empty, 9, 10 and 11 are free too.
 // Check on the schematic which of these reach the expansion header.
 #define STRUTHIO_GPIO_LEFT_WING   17
 #define STRUTHIO_GPIO_RIGHT_WING  18
+#define STRUTHIO_GPIO_DART_LEFT   21
+#define STRUTHIO_GPIO_DART_RIGHT  38
 
 // Inputs are active-low: a normally-open switch connects the GPIO to GND when pressed.
 #define STRUTHIO_BUTTON_ACTIVE_LEVEL 0

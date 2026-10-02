@@ -12,12 +12,13 @@ int main(void) {
     st_draw_text(fb, 8, 30, "A0 / CORE 1.8.0 PORT / OCT  2 2026", STR_PAL_GOLD, 1);
     st_draw_text(fb, 8, 48, "RESET 1  PSRAM 8192K  RAM 312K", STR_PAL_IVORY, 1);
     st_draw_text(fb, 8, 72, "LEFT UP 12   RIGHT DOWN 9", STR_PAL_CYAN_LIGHT, 1);
-    st_draw_text(fb, 8, 84, "DART B  FIRED 3", STR_PAL_CYAN_LIGHT, 1);
+    st_draw_text(fb, 8, 84, "DART ROCKER ONLY  FIRED 3", STR_PAL_CYAN_LIGHT, 1);
+    st_draw_text(fb, 8, 96, "ROCKER L UP   2   R UP   1", STR_PAL_CYAN_LIGHT, 1);
     st_draw_text(fb, 8, 108, "GOLDEN PASS 10011 TICKS", STR_PAL_GREEN, 1);
     st_draw_text(fb, 8, 120, "SIM 180 US/TICK  +DIGEST 420", STR_PAL_IVORY, 1);
     st_draw_text(fb, 8, 132, "PANEL 9.8 MS/FRAME 102 FPS", STR_PAL_IVORY, 1);
     st_draw_text(fb, 8, 144, "AUDIO OK  MUSIC OK  VOL 2/4", STR_PAL_IVORY, 1);
-    st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART TRIAL", STR_PAL_IVORY_DARK, 1);
+    st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
     st_draw_text(fb, 8, 180, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
     st_draw_text(fb, 8, 192, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
     st_draw_text(fb, 8, 204, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);

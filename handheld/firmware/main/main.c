@@ -3,7 +3,8 @@
  *
  * POWER ON -> STRUTHIO STARTS -> two physical wing buttons play a full round.
  *
- *  - input task   1 kHz, core 0: GPIO17/18 -> debounce -> input normalizer
+ *  - input task   1 kHz, core 0: GPIO17/18 wings + GPIO21/38 DART rocker ->
+ *                 debounce -> input normalizer
  *  - game task    60 Hz fixed, core 1: frame -> st_step (the bit-exact port of
  *                 STRUTHIO ARCADE 1.8.0) -> events -> the scene builder (the
  *                 port of the browser's scene.mjs: the same quads, every tick)
@@ -22,7 +23,7 @@
  *  - both wings held at power-on -> service mode (diagnostics, on-device golden
  *    replay, panel benchmark, DART trial selection)
  *
- * Persistence: high score, DART trial and volume in NVS, written from the render task,
+ * Persistence: high score, DART trial and volume in NVS, written only on change, written from the render task,
  * never inside a game tick. The task watchdog resets a hung game back into play.
  */
 #include <stdbool.h>
@@ -103,7 +104,8 @@ bool app_pin_pressed(int pin) { return gpio_get_level((gpio_num_t)pin) == STRUTH
 
 static void init_wing_gpio(void) {
     gpio_config_t cfg = {
-        .pin_bit_mask = (1ULL << STRUTHIO_GPIO_LEFT_WING) | (1ULL << STRUTHIO_GPIO_RIGHT_WING),
+        .pin_bit_mask = (1ULL << STRUTHIO_GPIO_LEFT_WING) | (1ULL << STRUTHIO_GPIO_RIGHT_WING) |
+                        (1ULL << STRUTHIO_GPIO_DART_LEFT) | (1ULL << STRUTHIO_GPIO_DART_RIGHT),
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -130,8 +132,13 @@ int32_t app_load_i32(const char *key, int32_t fallback) {
     }
     return v;
 }
+// Hard power (A1.5: the slide switch cuts BAT+): NVS survives power loss at any
+// moment, but a value being written at that instant can be lost. So settings
+// are written only when they change, never periodically, and flash writes are
+// read back (CONFIG_SPI_FLASH_VERIFY_WRITE).
 void app_save_i32(const char *key, int32_t v) {
     nvs_handle_t h;
+    if (app_load_i32(key, ~v) == v) return;   // unchanged: no flash write
     if (nvs_open("struthio", NVS_READWRITE, &h) != ESP_OK) return;
     if (nvs_set_i32(h, key, v) == ESP_OK) nvs_commit(h);
     nvs_close(h);
@@ -289,9 +296,11 @@ static void input_task(void *arg) {
     (void)arg;
     for (;;) {
         bool l = app_pin_pressed(STRUTHIO_GPIO_LEFT_WING), r = app_pin_pressed(STRUTHIO_GPIO_RIGHT_WING);
+        bool dl = app_pin_pressed(STRUTHIO_GPIO_DART_LEFT), dr = app_pin_pressed(STRUTHIO_GPIO_DART_RIGHT);
         uint32_t now = app_now_ms();
         portENTER_CRITICAL(&g_input_mux);
         st_buttons_sample(&g_buttons, l, r, now);
+        st_buttons_sample_rocker(&g_buttons, dl, dr, now);
         portEXIT_CRITICAL(&g_input_mux);
         vTaskDelay(1);                       // CONFIG_FREERTOS_HZ=1000
     }

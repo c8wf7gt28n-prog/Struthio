@@ -68,6 +68,11 @@ bool st_norm_dart(st_norm_t *n, st_side_t side) {                        // cont
     n->dart_queue[n->n_darts++] = (uint8_t)side;
     return true;
 }
+bool st_norm_dart_button(st_norm_t *n, st_side_t side) {
+    if (n->n_darts >= ST_NORM_QUEUE_MAX || side == ST_SIDE_NONE) return false;
+    n->dart_queue[n->n_darts++] = (uint8_t)side;
+    return true;
+}
 st_input_t st_norm_frame(st_norm_t *n, bool accept_flap) {
     st_input_t f;
     memset(&f, 0, sizeof f);
