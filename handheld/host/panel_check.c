@@ -15,6 +15,7 @@
 #include "struthio_panel.h"
 #include "struthio_replay.h"
 #include "struthio_scene.h"
+#include "struthio_hud_heart.h"
 
 static const char *REF = "../build/reference", *PAK = "../build/assets/struthio.pak";
 static void *slurp(const char *path, size_t *size) {
@@ -205,6 +206,7 @@ static int hud_truths(const st_panel_textures_t *tx, st_panel_luts_t *luts) {
         for (int i = 0; i < ST_PANEL_W * top; i++) {
             int x = i % ST_PANEL_W, y = i / ST_PANEL_W;
             if (y >= ST_GAME_Y && x >= ST_GAME_X && x < ST_GAME_X + ST_GAME_W) continue;      // the game picture (toast lower part included)
+            if (x >= ST_HEART_X0 && x < ST_HEART_X1 && y >= ST_HEART_Y0 && y < ST_HEART_Y1) continue;   // the heart (handheld only)
             uint16_t v = frame565[i];
             int c[3] = {((v >> 11) * 255 + 15) / 31, (((v >> 5) & 63) * 255 + 31) / 63, ((v & 31) * 255 + 15) / 31};
             for (int ch = 0; ch < 3; ch++) { int d = c[ch] - truth[i * 4 + ch]; se += d * d; if (abs(d) > worst) worst = abs(d); }

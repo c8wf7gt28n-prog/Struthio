@@ -20,6 +20,7 @@
 #include <string.h>
 #include "struthio_pak.h"
 #include "struthio_raster.h"
+#include "struthio_hud_heart.h"
 
 static const double S = 286.0 / 768.0;
 static const float GLOBE[4] = {608, 254, -118, 0.0020943951f};   // renderer.mjs: centre, radius (colour mode), rad/tick
@@ -163,6 +164,38 @@ static uint8_t *rle(const uint8_t *p, const uint8_t *base, int w, int h, size_t 
     return o;
 }
 
+// The static HUD layer with the "J" before the joust count replaced by a red heart: the layer is widened to
+// the heart's box, the J's pixels are cleared and the heart is drawn (8 x 8 samples a pixel, premultiplied).
+static uint8_t *heart_layer(uint8_t *l, int lx, int ly, int *w, int h) {
+    int w2 = ST_HEART_X1 - lx;
+    if (w2 < *w) w2 = *w;
+    uint8_t *o = calloc((size_t)w2 * h, 4);
+    for (int y = 0; y < h; y++) memcpy(o + (size_t)y * w2 * 4, l + (size_t)y * *w * 4, (size_t)*w * 4);
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w2; x++) {
+            int px = lx + x, py = ly + y;
+            if (px < ST_HEART_X0 || px >= ST_HEART_X1 || py < ST_HEART_Y0 || py >= ST_HEART_Y1) continue;
+            float cover = 0, shade = 0;
+            for (int sy = 0; sy < 8; sy++)
+                for (int sx = 0; sx < 8; sx++) {
+                    float u = (px + (sx + 0.5f) / 8 - ST_HEART_CX) / 3.9f;           // the heart curve
+                    float v = -(py + (sy + 0.5f) / 8 - ST_HEART_CY) / 3.7f + 0.12f;  // (u^2 + v^2 - 1)^3 = u^2 v^3
+                    float k = u * u + v * v - 1;
+                    if (k * k * k - u * u * v * v * v <= 0) { cover += 1; shade += 0.5f + 0.5f * (v + 0.2f * -u); }
+                }
+            uint8_t *q = o + ((size_t)y * w2 + x) * 4;
+            if (cover == 0) { q[0] = q[1] = q[2] = q[3] = 0; continue; }
+            float a = cover / 64, t = shade / cover;                                  // t: 0 dark lower right .. 1 lit upper left
+            if (t < 0) t = 0;
+            if (t > 1) t = 1;
+            float r = 170 + 85 * t, g = 22 + 70 * t * t, b = 38 + 64 * t * t;      // deep red to a warm highlight
+            q[0] = (uint8_t)(r * a + 0.5f); q[1] = (uint8_t)(g * a + 0.5f); q[2] = (uint8_t)(b * a + 0.5f); q[3] = (uint8_t)(255 * a + 0.5f);
+        }
+    free(l);
+    *w = w2;
+    return o;
+}
+
 int main(int argc, char **argv) {
     const char *ref = argc > 1 ? argv[1] : "../build/reference";
     const char *out = argc > 2 ? argv[2] : "../build/assets/struthio.pak";
@@ -288,6 +321,7 @@ int main(int argc, char **argv) {
         if (!lw2 || !lh2 || !strncmp(name, "truth", 5)) continue;
         snprintf(p, sizeof p, "%s/hud/%s.rgba", ref, name);
         uint8_t *l = slurp(p, (size_t)lw2 * lh2 * 4, NULL);
+        if (!strcmp(name, "static_a") || !strcmp(name, "static_b")) l = heart_layer(l, x, y, &lw2, lh2);
         // round toasts: the first of each size is the base the others are coded against
         const uint8_t *base = NULL;
         int base_entry = -1;
