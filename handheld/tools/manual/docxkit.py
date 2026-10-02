@@ -181,8 +181,9 @@ def add_row(tbl, values, after=None, like=None):
     for tc, v in zip(cells(new), values): set_cell(tc, v)
     (after if after is not None else rows(tbl)[-1]).addnext(new)
     return new
-def replace_figure(caption_prefix, png_path, caption=None):
-    """swap the picture above a caption for a new PNG (same width, new height)"""
+def replace_figure(caption_prefix, png_path, caption=None, max_h_in=None):
+    """swap the picture above a caption for a new PNG (same width, new height;
+    with max_h_in, a tall picture is scaled down to that height instead)"""
     from PIL import Image
     cap = para(caption_prefix)
     pic = cap.getprevious()
@@ -193,7 +194,10 @@ def replace_figure(caption_prefix, png_path, caption=None):
     w, h = Image.open(png_path).size
     for ext in list(pic.iter('{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}extent')) + \
                list(pic.iter('{http://schemas.openxmlformats.org/drawingml/2006/main}ext')):
-        cx = int(ext.get('cx')); ext.set('cy', str(int(cx * h / w)))
+        cx = int(ext.get('cx')); cy = int(cx * h / w)
+        if max_h_in and cy > max_h_in * 914400:
+            cy = int(max_h_in * 914400); ext.set('cx', str(int(cy * w / h)))
+        ext.set('cy', str(cy))
     if caption: set_text(cap, caption)
 def table_hdr(prefix):
     """the table whose first row's text starts with prefix"""
