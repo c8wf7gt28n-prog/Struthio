@@ -1,0 +1,83 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>STRUTHIO ONE studio</title>
+<style>html,body{margin:0;background:#0d1620;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+// STRUTHIO ONE · renders the printed parts (cad/one/stl) and the reference volumes (cad/one/refs).
+//   one_studio.html?view=front|back|inside|exploded|side&shell=navy|graphite|ivory&w=1600&h=1000
+// The STLs are physical parts in the design frame mirrored in x (see one_cad.py HANDEDNESS):
+// turning them 180 degrees about y puts the front face toward +z with the player's left on the left.
+import * as THREE from 'three';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const q = new URLSearchParams(location.search);
+const view = q.get('view') || 'front', W = +(q.get('w') || 1600), H = +(q.get('h') || 1000);
+const SHELLS = { navy: 0x1b2f4a, graphite: 0x2b2e33, ivory: 0xe8e1cf, cyan: 0x1c8aa0 };
+const shellColor = SHELLS[q.get('shell') || 'navy'];
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1620);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(-120, 160, 220); scene.add(key);
+const rim = new THREE.DirectionalLight(0x88aaff, 0.6); rim.position.set(150, -60, -120); scene.add(rim);
+const loader = new STLLoader();
+const load = (p) => new Promise((ok, no) => loader.load(p, (g) => { g.computeVertexNormals(); ok(g); }, undefined, no));
+const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, metalness: 0.05, side: THREE.DoubleSide, ...o });
+const root = new THREE.Group(); root.rotation.y = Math.PI; scene.add(root);
+const names = ['stl/one_front', 'stl/one_back', 'stl/one_wing_left', 'stl/one_wing_right', 'stl/one_rocker',
+  'refs/ref_waveshare', 'refs/ref_one', 'refs/ref_battery', 'refs/ref_speaker', 'refs/ref_switches'];
+const geo = Object.fromEntries(await Promise.all(names.map(async (n) => [n.split('/')[1], await load(`assets/one/${n}.stl`)])));
+const M = {
+  one_front: mat(shellColor, { roughness: 0.45 }), one_back: mat(shellColor, { roughness: 0.5 }),
+  one_wing_left: mat(0xe0a92a, { roughness: 0.35 }), one_wing_right: mat(0xe0a92a, { roughness: 0.35 }), one_rocker: mat(0xe0a92a, { roughness: 0.35 }),
+  ref_waveshare: mat(0x101418, { roughness: 0.2 }), ref_one: mat(0x1f6b3a, { roughness: 0.6 }), ref_battery: mat(0xb9c2cc, { metalness: 0.4, roughness: 0.3 }),
+  ref_speaker: mat(0x18181a), ref_switches: mat(0x9aa3ad, { metalness: 0.3 }),
+};
+const meshes = {};
+for (const [n, g] of Object.entries(geo)) { const m = new THREE.Mesh(g, M[n]); meshes[n] = m; root.add(m); }
+// the picture on the glass (active area 48.96 x 73.44 at y 13.78), just behind the front skin
+const tex = await new THREE.TextureLoader().loadAsync('assets/screen_frame.png'); tex.colorSpace = THREE.SRGBColorSpace;
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(48.96, 73.44), new THREE.MeshBasicMaterial({ map: tex }));
+screen.position.set(0, 13.78, -1.79); scene.add(screen);   // world: front face at z = 0, case toward -z
+let art = null;
+try {
+  const at = await new THREE.TextureLoader().loadAsync('assets/one/sticker.png'); at.colorSpace = THREE.SRGBColorSpace;
+  const b = JSON.parse(await (await fetch('assets/one/sticker.json')).text());
+  art = new THREE.Mesh(new THREE.PlaneGeometry(b.w, b.h), new THREE.MeshStandardMaterial({ map: at, transparent: true, roughness: 0.35 }));
+  art.position.set(b.cx, b.cy, 0.06); scene.add(art);
+} catch (e) { /* no sticker yet */ }
+const show = (list) => { for (const [n, m] of Object.entries(meshes)) m.visible = list.includes(n); };
+const cam = new THREE.PerspectiveCamera(22, W / H, 1, 5000);
+const ALL = Object.keys(meshes), SHELL = ['one_front', 'one_back', 'one_wing_left', 'one_wing_right', 'one_rocker'];
+if (view === 'front') { show(SHELL); cam.position.set(0, -4, 420); }
+else if (view === 'hero') { show(SHELL); cam.position.set(-190, 120, 330); }
+else if (view === 'back') { show(SHELL); screen.visible = false; if (art) art.visible = false; cam.position.set(0, -4, -420); }
+else if (view === 'side') { show(SHELL); cam.position.set(-430, 0, -12); }
+else if (view === 'inside') {   // the front shell from behind, with everything that sits in it
+  show(['one_front', 'one_wing_left', 'one_wing_right', 'one_rocker', 'ref_waveshare', 'ref_one', 'ref_battery', 'ref_speaker', 'ref_switches']);
+  screen.visible = false; if (art) art.visible = false; cam.position.set(110, -60, -380);
+} else if (view === 'exploded') {
+  show(ALL); screen.visible = false; if (art) art.visible = false;
+  const dz = { one_front: 0, one_wing_left: 26, one_wing_right: 26, one_rocker: 26, ref_waveshare: 34, ref_battery: 58,
+               ref_speaker: 58, ref_one: 82, ref_switches: 82, one_back: 120 };
+  for (const [n, z] of Object.entries(dz)) meshes[n].position.z = z;       // root is turned: +z here is toward the back
+  cam.position.set(-330, 170, 230);
+}
+cam.up.set(0, 1, 0);
+const box = new THREE.Box3().setFromObject(root), c = box.getCenter(new THREE.Vector3());
+cam.lookAt(c); cam.updateMatrixWorld();
+// fit: scale the camera distance until the projected box fills 86 % of the frame
+const corners = []; for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new THREE.Vector3(x, y, z));
+const dir = cam.position.clone().sub(c);
+for (let i = 0; i < 30; i++) {
+  cam.position.copy(c.clone().add(dir)); cam.lookAt(c); cam.updateMatrixWorld();
+  let m = 0; for (const p of corners) { const v = p.clone().project(cam); m = Math.max(m, Math.abs(v.x), Math.abs(v.y)); }
+  dir.multiplyScalar(m / 0.86 > 1.02 || m / 0.86 < 0.98 ? m / 0.86 : 1);
+}
+renderer.render(scene, cam);
+window.DONE = true;
+</script></body></html>
