@@ -32,6 +32,8 @@ def colour_spans(ln):
     if m:
         c = {'PASS': GREEN, 'FAIL': RED, 'WARN': YELLOW, 'INFO': CYAN}[m.group(1)]
         return [(m.group(1), c, True), (m.group(2), FG, False)]
+    if ln.startswith('  · · ·'):
+        return [(ln, (92, 98, 110), False)]
     if ln.lstrip().startswith('->'):
         return [(ln, DIM, False)]
     if ln.startswith(('GOLDEN REPLAY:', 'Hash of data verified', 'Project build complete', '0 FAIL', 'Done')):

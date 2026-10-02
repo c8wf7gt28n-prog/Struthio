@@ -8,7 +8,7 @@ number matches the release package built by tools/package/make_package.py.
 
     python3 tools/manual/print_edition.py TEMPLATE.docx FIG_DIR USER_IMG_DIR OUT.docx [PAGES.json]
 
-FIG_DIR: figs12.py + figs_print.py output and service.png.
+FIG_DIR: figs12.py + figs_print.py + screens.py output.
 USER_IMG_DIR: the owner's own pictures (heritage photos 06.png, illustrated
 board sheet 12.png, browser screenshot 13.png); not stored in the repository.
 PAGES.json: heading -> page, from a first PDF render, fills the contents page.
@@ -60,7 +60,7 @@ def prep(path, width_in, dpi=220):
     if im.width > w: im = im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
     photo = len(im.resize((160, max(1, 160 * im.height // im.width))).getcolors(1 << 16) or range(9999)) > 3000
     out = os.path.join(TMP, f'{len(os.listdir(TMP)):03d}' + ('.jpg' if photo else '.png'))
-    im.save(out, quality=88, optimize=True) if photo else im.save(out, optimize=True)
+    im.save(out, quality=86, optimize=True) if photo else im.quantize(256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(out, optimize=True)
     return out
 _fig = a.figure
 a.figure = lambda path, caption, width=6.4: _fig(prep(path, width), caption, width)
@@ -153,6 +153,7 @@ a.table(['If you are…', 'Read first', 'Then'], [
     ['curious how the game works', '"How the software works"', 'Shop Sheet G, the glossary'],
     ['stuck', 'Step 13 and Shop Sheet D', 'Go back one gate'],
 ], widths=[2.2, 2.4, 3])
+a.source('A NOTE ON THE SCREENSHOTS — every terminal picture in this manual is real output from the release package, captured on a Linux computer with ESP-IDF 5.5.5 (prompt maker@bench). On Windows the text is the same; only the paths read C:\\struthio\\… Numbered call-outs are explained in each caption. Screens marked "emulator" come from the same firmware running in Espressif\'s ESP32-S3 emulator (QEMU), because no board was attached: the board\'s chips are missing there, so a few lines differ, as each caption says.')
 a.h2('Safety first')
 stop('This is an adult prototype build, not a toy for children. A lithium cell can burn if it is punctured, shorted, over-charged or wired '
      'backwards: the battery goes in LAST, after everything works on USB power, and its polarity is checked with a meter first. A soldering '
@@ -378,12 +379,14 @@ code('# macOS / Linux, once:', 'mkdir -p ~/esp && cd ~/esp',
      'git clone -b v5.5.5 --recursive https://github.com/espressif/esp-idf.git',
      'cd esp-idf && ./install.sh esp32s3', '# every new terminal:', '. ~/esp/esp-idf/export.sh',
      'idf.py --version          # prints ESP-IDF v5.5.5')
+fig(FG('s01_version.png'), 'Check the version in every new terminal. (1) It must say v5.5.5.', 3.2)
 a.bullets(['Linux only: add yourself to the serial-port group once — sudo usermod -a -G dialout $USER — then log out and in.',
            '"idf.py: command not found" (or "not recognized") means this terminal has not been set up: use the ESP-IDF shortcut, or run export.sh.'])
 a.h2('The build menu')
 a.p('Windows: open "ESP-IDF 5.5 CMD" from the Start menu, then type cd /d C:\\struthio and STRUTHIO.bat. (Double-clicking STRUTHIO.bat also '
     'works: it looks for ESP-IDF in the usual places.) macOS / Linux: cd ~/struthio, then ./struthio.sh.')
-fig(FG('p03_menu.png'), 'The build menu. Every option prints the command it runs; the board\'s port is remembered in struthio_port.txt.', 5.4)
+fig(FG('p03_menu.png'), 'The build menu on Windows. Every option prints the command it runs; the board\'s port is remembered in struthio_port.txt.', 5.4)
+fig(FG('s03_menu_sh.png'), 'The same menu on macOS and Linux (./struthio.sh), as it appears on a computer with ESP-IDF ready and no board chosen yet.', 4.6)
 a.table(['Option', 'What it does', 'The command it runs'], [
     ['1', 'Check my setup (the doctor)', 'python handheld/tools/struthio_doctor.py'],
     ['2', 'Find the board\'s port and remember it', 'struthio_doctor.py --port (or you type it)'],
@@ -401,7 +404,8 @@ a.h2('The setup doctor')
 a.p('Option 1 checks everything this manual asks you to check by hand: every package file against SHA256SUMS.txt, that the art and soundtrack '
     'fit their flash areas, the folder path, Python, the ESP-IDF version, the firmware folder, and which serial port is the board. Each FAIL '
     'or WARN line says what to do.')
-fig(FG('p04_doctor.png'), 'The doctor on a ready computer (example output). Before the board is plugged in, the port line is a WARN: that is normal.', 5.6)
+fig(FG('s02_doctor.png'), 'The doctor on a ready computer. (1) Every file in the package is intact. (2) ESP-IDF 5.5.5 is found. (3) No board plugged in '
+    'yet: a WARN, which is normal at this point. (4) The verdict: 0 FAIL means you can build and flash.', 6.0)
 a.h2('Windows 11, step by step')
 a.table(['Stage', 'What to do', 'PASS means'], [
     ['W1 install', 'ESP-IDF Tools Installer, v5.5.5.', '"ESP-IDF 5.5 CMD" is in the Start menu; idf.py --version prints v5.5.5'],
@@ -420,14 +424,9 @@ a.p('These prove, before any hardware, that the C game on your computer equals t
     'Windows, xcode-select --install on macOS, build-essential on Linux. Menu option D, or:')
 code('cd handheld', 'make -C host test               # the C game vs the browser, every tick',
      'make -C firmware/host_test run  # button and rocker tests + DART mode report')
-a.p('PASS looks exactly like this (the chain fingerprints must match too):')
-a.code(['PASS climb    10011 ticks  score  60250  round  4  deaths   0  jousts  13  eggs   3  darts  30  chain 3c9d8a4075eebdab',
-        'PASS duel     20000 ticks  score  37750  round  3  deaths  23  jousts  37  eggs   3  darts 237  chain 88879e49392e99c1',
-        'PASS late     10990 ticks  score 136250  round 11  deaths   0  jousts  60  eggs  13  darts  67  chain 66e9011ca571b5f7',
-        'PASS mortal   14143 ticks  score  77500  round  5  deaths  12  jousts  23  eggs   3  darts  81  chain 25b7dd681c36acce',
-        'PASS raw      20000 ticks  score  65750  round  5  deaths  30  jousts  65  eggs  15  darts 194  chain cfa154009f20e9e1',
-        'GOLDEN REPLAY: all 5 traces bit-exact',
-        'PASS: wing buttons (debounce, chord, DART trials A/B/C, rocker, service)'], size=6.8)
+a.p('PASS looks exactly like this: the same scores and the same chain fingerprints, character for character.')
+fig(FG('s04_desktop.png'), 'The desktop checks. (1) Each recorded game replays with the same score, round and fingerprint as the browser. '
+    '(2) All five match. (3) The button, chord, DART-mode and rocker tests pass.', 6.6)
 a.p('The second command then prints a DART mode report: how often each mode fires on recorded play. The ROCKER lines end "every press darts, '
     'nothing else does".')
 
@@ -469,13 +468,22 @@ a.h2('The greybox test (gate 2)')
 a.p('Menu option 4, or:')
 code('cd handheld/firmware', 'idf.py set-target esp32s3                                   # once per fresh folder',
      'idf.py -p PORT -D STRUTHIO_ART=greybox build flash monitor')
-a.p('The first build takes several minutes. In the log you see "STRUTHIO_ART=greybox: flashing the greybox marker" during the build, then the boot log below with '
-    '"assets: greybox marker" and "renderer greybox".')
-fig(DR('a0_greybox_sheet.png'), 'The greybox renderer: the same game, flat colours. This is what the greybox test looks like.', 5.8)
+a.p('This is what each stage looks like. You can run them one at a time (set-target, build, flash, monitor) or all at once.')
+fig(FG('s05_settarget.png'), 'idf.py set-target esp32s3, once per fresh firmware folder. (1) The chip is set. (2) Without -D the build '
+    'chooses full art; the greybox command below says greybox explicitly.', 6.6)
+fig(FG('s06_build.png'), 'The greybox build: about 1,130 steps, one to several minutes the first time. (1) The greybox marker will go where the '
+    'art would. (2) The program is about 600 KB, 86 % of its 4 MB area free. (3) Done.', 6.6)
+fig(FG('s07_flash.png'), 'Flashing. This capture flashed Espressif\'s ESP32-S3 emulator, so the port reads socket://localhost:5555 and the MAC '
+    'is zeros; on your computer it is your PORT and your board\'s MAC. (1) The chip answered. (2) The program written, (3) and read back '
+    'correctly: every file ends with this line. (4) The 8-byte greybox marker. (5) The board restarts into STRUTHIO.', 6.6)
+a.p('The log window then shows the boot log below with "assets: greybox marker" and "renderer greybox", and the board shows the greybox game.')
 ok('GREYBOX PASS: the log reaches NEW RUN and "renderer greybox"; the screen shows the flat-colour game; no error lines.')
+fig(FG('s13_fw_screens.png'), 'The firmware\'s own screens, drawn by the compiled firmware (in the emulator) and read straight out of its memory: '
+    'the greybox test, the full-art round start, play, and GAME OVER. On the board you see exactly these pictures.', 6.6)
 a.h2('The full-art flash (gate 5, after Steps 6 and 7)')
 a.p('Once the controls work and service mode says GOLDEN PASS, flash the real picture. Menu option 5, or:')
 code('idf.py -p PORT -D STRUTHIO_ART=full build flash monitor')
+fig(FG('s08_full_switch.png'), 'Switching to full art: (1) during the configure step the build now names struthio.pak for the art area.', 6.6)
 a.p('This flash writes the program, the 8.3 MB art pack and the 1.8 MB soundtrack, so it takes a few minutes. Later, menu option 6 '
     '(idf.py app-flash) rewrites only the program in seconds and leaves the art and music alone.')
 ok('FULL-ART PASS: the boot line says "renderer panel (asset pack)" and the real STRUTHIO picture is on screen.')
@@ -495,6 +503,9 @@ a.table(['System', 'PORT is usually', 'How to find it'], [
 a.bullets(['Flashing says it cannot connect: hold BOOT, press and release RESET, release BOOT, flash again; press RESET afterwards to run.',
            'In the log window: Ctrl + ] leaves; Ctrl + T then Y pauses; Ctrl + T then L saves the log to a file; Ctrl + T then R resets the board.'])
 a.h2('Reading the boot log, line by line')
+fig(FG('s09_bootlog.png'), 'A boot log after the full-art flash (emulator). (1) Power-on. (2) The partition table: assets and music where '
+    'the flash plan put them. (3) STRUTHIO starts. (4) A run begins. (5) The art pack is in use. On the board, the AXP2101, AXS15231B and ES8311 '
+    'lines appear between (3) and (4); the emulator has none of those chips.', 6.6)
 a.p('These are the lines STRUTHIO prints, in order. Angle brackets are filled in by the board.')
 a.table(['Log line (as printed)', 'What it means', 'Good when'], [
     ['STRUTHIO handheld boot (core: STRUTHIO ARCADE 1.8.0 port)', 'Your firmware is running.', 'After every reset'],
@@ -510,6 +521,9 @@ a.table(['Log line (as printed)', 'What it means', 'Good when'], [
     ['GAME OVER score <n> (best <n>)', 'All Joust Marks used.', ''],
 ], widths=[3.4, 2.6, 1.8], size=8.5)
 a.h2('Error lines and what to do first')
+fig(FG('s11_no_chips.png'), 'What a board whose chips do not answer prints (captured on the emulator, which has none of them). (1) The power chip. '
+    '(2) The I/O expander that releases the screen from reset: the screen stays dark. (3) The audio codec. (4) The game still starts, silently. '
+    'Red E lines like these on a real board point at the board or its revision, not at the game.', 6.6)
 a.table(['If the log says', 'Likely cause', 'First action'], [
     ['I2C bus failed', 'The I2C driver could not start.', 'Re-flash the unmodified firmware; check the board revision.'],
     ['AXP2101 not found', 'The power chip did not answer at 0x34.', 'Is it the 3.5B board? Run the vendor example again.'],
@@ -525,6 +539,15 @@ a.table(['If the log says', 'Likely cause', 'First action'], [
     ['audio: no I2C bus / I2S channel failed / I2S init failed / codec interfaces failed / codec device failed / codec open failed', 'The audio path could not start.', 'Re-flash the unmodified firmware; report with the log.'],
     ['music: not a STRUTHIO music file (…)', 'The soundtrack area is empty or damaged.', 'Flash again (option 5); sound effects still play.'],
 ], widths=[3.2, 2.4, 2.2], size=8.5)
+
+a.h2('Lines that look alarming but are normal')
+a.table(['You may see', 'Why it is fine'], [
+    ['Could not use \'git describe\' to determine PROJECT_VER', 'The package is not a git checkout; the version is simply "1".'],
+    ['NOTE: … Kconfig … \'default 0\' is not a valid bool value', 'Notes from ESP-IDF\'s own settings files, not from STRUTHIO.'],
+    ['WARNING: Deprecated: Option \'--flash_mode\' is deprecated', 'esptool v5 prefers new spellings; ESP-IDF 5.5.5 still uses the old ones.'],
+    ['NOTE: Cannot compress file \'greybox_marker.bin\'', 'The marker is 8 bytes; it is written as it is.'],
+    ['W (…) rtcinit / MSPI Timing lines during boot', 'Chip start-up messages from ESP-IDF; STRUTHIO\'s lines start with STRUTHIO:.'],
+], widths=[3.6, 4.2], size=8.5)
 
 # ======================================================================================================
 # STEP 6
@@ -575,7 +598,9 @@ a.audio('AUDIO GUIDE — Chapter 8: Service mode and the GOLDEN PASS', [
     'The words you want are GOLDEN PASS. That is much stronger than watching a bird move: it says the chip in your hands runs the same game, '
     'not an imitation. Write down the timings: they are your board\'s first real measurements.',
     'If the replay fails, keep the log line: it names the tick and the reason. Run the desktop checks before changing anything.'])
-fig(FG('service.png'), 'The service screen, drawn on the desktop with the firmware\'s own text and layout. The numbers are EXAMPLES.', 3.0)
+fig(FG('s14_fw_service.png'), 'The service screen, drawn by the firmware itself (emulator). GOLDEN PASS 10011 TICKS is the line that matters. '
+    'Differences on your board: LEFT / RIGHT / ROCKER read UP when released (the emulator holds every input down, which also stepped the volume to 3 '
+    'and fired 3 darts), AUDIO reads OK, and SIM, DIGEST and PANEL are your board\'s real timings.', 2.9)
 a.table(['Line', 'Meaning', 'What you want'], [
     ['HANDHELD / CORE 1.8.0 / <date>', 'When this firmware was built.', 'Today\'s date after you flash'],
     ['RESET <n>  PSRAM <n>K  RAM <n>K', 'Why the chip last reset; free memory.', 'Record in Shop Sheet E'],
@@ -593,6 +618,8 @@ a.table(['In service mode', 'Does'], [
     ['RIGHT tap', 'Run the checks again (the round-clear sting plays when they finish)'],
     ['Power off and on', 'Back to the game'],
 ], widths=[2.2, 5.6], size=9)
+fig(FG('s10_service_log.png'), 'Service mode in the log. (1) The replay passed with the same chain fingerprint as the desktop (3c9d8a40…). '
+    'The timings in this capture are the emulator\'s; record your board\'s in Shop Sheet E.', 6.6)
 ok('GATE 4 PASS: GOLDEN PASS 10011 TICKS on the device, and each control counts +1 per press.')
 a.h2('DART modes')
 a.table(['Mode', 'How a dart fires', 'Use it on'], [
@@ -614,7 +641,7 @@ a.bullets(['Flap: tap LEFT to flap up and left, RIGHT to flap up and right. Both
            'Eggs: collect them before they hatch: an egg lasts 6 s, hatches for 1 s, then the rival remounts in 1.5 s.',
            'Rings: fly through all six rings in any order. Then the gold ring at the moon opens: take it to blast every rival and clear the round.',
            'Lava: touch it and you sink. Flap within 0.3 s to escape, or you lose a Joust Mark (a life).',
-           'Restart after GAME OVER: press both wings together; it works from one second after GAME OVER, so a stray flap cannot skip the score.'])
+           'Restart after GAME OVER: the screen says BOTH WINGS CONTINUE. Press both wings together; it works from one second after GAME OVER, so a stray flap cannot skip the score.'])
 a.table(['Scoring event', 'Points (the rulebook)'], [
     ['Joust win', 'BOUNDER 500, HUNTER 750, SHADOW 1,000, plus 250 per tier'],
     ['Eggs in a row', '250, 500, 750, then 1,000 each (the chain resets when you lose a life)'],
@@ -734,7 +761,8 @@ a.steps(['Upload handheld/cad/handheld/cp1/cp1_gerbers.zip to any PCB maker that
          'Board size 82.25 x 35.53 mm. The outline already includes the speaker window and the two screw notches.',
          'Check the maker\'s preview against Figure 9.3: four combs on the front, five wire pads labelled G, L, DL, DR, R on the back.'])
 fig(CAD('drawings', 'STRUTHIO-CP1_drawing.png'), 'STRUTHIO-CP1 drawing (PDF: cad/handheld/drawings/STRUTHIO-CP1_drawing.pdf).')
-fig(CAD('cp1', 'cp1_layers.png'), 'CP1 copper as generated: front combs and GND bus, back traces and the wire-pad row.')
+fig(FG('s15_cp1_gerber.png'), 'What a PCB maker\'s preview of cp1_gerbers.zip should look like (rendered by tracespace, an independent Gerber viewer): '
+    'gold combs on the front, the labelled pad row on the back. The two heat-stake holes at the top corners are unplated, so some viewers draw them faintly.', 5.6)
 a.h2('Quoting STRUTHIO-CM1 (silicone keys)')
 a.steps(['Send cad/handheld/drawings/STRUTHIO-CM1_drawing.pdf (and the STL, stl/struthio_mat.stl, if asked) to a silicone keypad moulder.',
          'Ask for the values on the drawing: gold VMQ silicone, 50 Shore A ±5, 6.0 x 0.5 mm carbon pills ≤100 Ω; wings 1.5 mm / 125 g / 45–55 % snap; '
@@ -882,6 +910,8 @@ a.audio('AUDIO GUIDE — Chapter 18: Troubleshooting rules', [
     'work and the silicone keys do not, it is the mechanical stack, not a GPIO. If USB power works and battery power does not, it is the power '
     'wiring and polarity, not the game.',
     'Keep notes. Stop when a gate fails: the sequence is designed so you never debug ten systems at once.'])
+fig(FG('s12_reboot.png'), 'The persistence test in the log: after a cold power-on (1), the boot line still shows the best score (2). '
+    'Captured on the emulator after a game that scored 2,000.', 6.6)
 a.h2('Acceptance checklist')
 a.checks(['USB-C power, flashing and the log all work through the panel jack.', 'Twenty cold boots, twenty live runs.',
           'LEFT, RIGHT, DART LEFT and DART RIGHT each register once per press.', 'Chords and DART behave in real play (DART mode ROCKER ONLY).',
@@ -1110,9 +1140,15 @@ a.table(['Check', 'Result'], [
     ['Partition table (ESP-IDF 5.5.5 gen_esp32part.py)', 'Valid; fills the 16 MB flash exactly; art 8.3 MB fits 9 MB, music 1.8 MB fits 2.9 MB'],
     ['idf.py set-target esp32s3 (ESP-IDF 5.5.5 CMake, Kconfig, component manager)', 'Configures; flash plan: bootloader 0x0, table 0x8000, struthio.bin 0x10000, art 0x410000, music 0xD10000'],
     ['STRUTHIO_ART=greybox / full', 'greybox writes the 8-byte marker to 0x410000; full writes struthio.pak; adding or removing a file in build/assets re-runs the configure step'],
-    ['Firmware sources', 'Compile against the real ESP-IDF 5.5.5 headers and drivers with -Wall -Wextra -Werror (the Xtensa link happens on your computer)'],
-    ['Build menu', 'Every option run through Windows cmd (Wine) with a stand-in idf.py; struthio.sh run on Linux'],
-    ['Setup doctor', 'Run from the package: 168 files match SHA256SUMS.txt'],
+    ['Firmware build (ESP-IDF 5.5.5, Espressif xtensa-esp-elf 14.2.0)', 'idf.py build from the package: 1,130 steps, no warnings from STRUTHIO\'s code; struthio.bin 0x93520 bytes (86 % of 4 MB free)'],
+    ['idf.py flash (esptool v5.4.0)', 'Into Espressif\'s ESP32-S3 emulator in download mode: every file "Hash of data verified" and read back byte for byte'],
+    ['Firmware in the emulator (QEMU, 8 MB PSRAM)', 'Boots to NEW RUN; greybox marker and art pack both recognised; plays at 60 ticks per second with 0 missed ticks and band-order 0'],
+    ['Golden replay on the compiled firmware', 'Service mode: golden replay climb PASS, 10,011 ticks, chain 3c9d8a4075eebdab, the same as the desktop and the browser'],
+    ['Settings after a hard power-off', 'The high score is still there after a cold power-on (nvs)'],
+    ['Screens in this manual', 'Drawn by the compiled firmware and read out of the emulator\'s memory; terminal pictures are real captures (tools/manual/captures)'],
+    ['Build menu', 'STRUTHIO.bat: every option run through Windows cmd (Wine) with a stand-in idf.py; struthio.sh run on Linux'],
+    ['CP1 Gerbers', 'Rendered by an independent viewer (tracespace): combs, pads, labels, outline and drills as drawn'],
+    ['Setup doctor', 'Run from the package: 173 files match SHA256SUMS.txt; 0 FAIL'],
     ['CAD from the package', 'export_handheld.sh: HANDHELD CAD CHECK all pass (55 checks); CP1 DRC: all pass'],
     ['C game vs browser', '5 traces, 75,144 ticks, SHA-256 equal every tick; scene builder equal every tick'],
     ['Pictures and sound vs browser', 'Panel renderer 24.9–30.3 dB; HUD 43.2 dB; sound: 8,031 notes, 76–77 dB, max difference 2 LSB'],

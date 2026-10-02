@@ -1,0 +1,16 @@
+STRUTHIO HANDHELD · setup doctor
+Linux 6.18.44-fc-v51 · package: /home/maker/struthio
+
+PASS  package complete: 173 files match SHA256SUMS.txt
+PASS  struthio.pak: 8.3 MB fits the assets partition (9.0 MB)
+PASS  struthio_music.ima: 1.8 MB fits the music partition (2.9 MB)
+PASS  package path is safe: /home/maker/struthio
+PASS  Python 3.11.15
+PASS  ESP-IDF v5.5.5 (/home/maker/esp/esp-idf/tools/idf.py)
+INFO  firmware not set up yet (normal before the first build)
+      -> menu option "Build" runs: idf.py set-target esp32s3
+WARN  no ESP32-S3 USB port found; other ports: /dev/ttyS0
+      -> plug the board in with a DATA cable; if nothing appears, try another cable / USB port
+PASS  C compiler and make found (desktop checks)
+
+0 FAIL, 1 WARN: you can build and flash

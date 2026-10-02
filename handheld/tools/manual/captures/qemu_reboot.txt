@@ -1,0 +1,114 @@
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x4 (SPI_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xd24
+load:0x403cb700,len:0x2eec
+entry 0x403c8924
+I (24) boot: ESP-IDF v5.5.5 2nd stage bootloader
+I (25) boot: compile time Oct  2 2026 08:28:27
+I (25) boot: Multicore bootloader
+I (29) boot: chip revision: v0.3
+I (29) boot: efuse block revision: v0.0
+I (30) boot.esp32s3: Boot SPI Speed : 80MHz
+I (31) boot.esp32s3: SPI Mode       : SLOW READ
+I (31) boot.esp32s3: SPI Flash Size : 16MB
+I (33) boot: Enabling RNG early entropy source...
+I (37) boot: Partition Table:
+I (37) boot: ## Label            Usage          Type ST Offset   Length
+I (37) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (38) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (39) boot:  2 factory          factory app      00 00 00010000 00400000
+I (39) boot:  3 assets           Unknown data     01 40 00410000 00900000
+I (40) boot:  4 music            Unknown data     01 41 00d10000 002f0000
+I (41) boot: End of partition table
+I (43) esp_image: segment 0: paddr=00010020 vaddr=3c050020 size=2e3cch (189388) map
+I (88) esp_image: segment 1: paddr=0003e3f4 vaddr=3fc94100 size=01c24h (  7204) load
+I (92) esp_image: segment 2: paddr=00040020 vaddr=42000020 size=49bfch (302076) map
+I (172) esp_image: segment 3: paddr=00089c24 vaddr=3fc95d24 size=0190ch (  6412) load
+I (175) esp_image: segment 4: paddr=0008b538 vaddr=40374000 size=10074h ( 65652) load
+I (187) esp_image: segment 5: paddr=0009b5b4 vaddr=50000000 size=00020h (    32) load
+I (189) boot: Loaded app from partition at offset 0x10000
+I (190) boot: Disabling RNG early entropy source...
+W (415) rtcinit: o_code calibration fail
+
+I (222) octal_psram: vendor id    : 0x0d (AP)
+I (223) octal_psram: dev id       : 0x02 (generation 3)
+I (223) octal_psram: density      : 0x03 (64 Mbit)
+I (224) octal_psram: good-die     : 0x01 (Pass)
+I (224) octal_psram: Latency      : 0x01 (Fixed)
+I (225) octal_psram: VCC          : 0x00 (1.8V)
+I (225) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (225) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (226) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (226) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (227) octal_psram: DriveStrength: 0x00 (1/1)
+I (227) MSPI Timing: Enter psram timing tuning
+W MSPI Timing: tuning fail, best point is fallen back to index 5
+I (232) esp_psram: Found 8MB PSRAM device
+I (233) esp_psram: Speed: 80MHz
+I (234) cpu_start: Multicore app
+I (260) esp_psram: SPI SRAM memory test OK
+I (270) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (272) cpu_start: Pro cpu start user code
+I (272) cpu_start: cpu freq: 240000000 Hz
+I (272) app_init: Application information:
+I (272) app_init: Project name:     struthio
+I (272) app_init: App version:      1
+I (272) app_init: Compile time:     Oct  2 2026 08:28:20
+I (273) app_init: ELF file SHA256:  91486927a...
+I (273) app_init: ESP-IDF:          v5.5.5
+I (273) efuse_init: Min chip rev:     v0.0
+I (273) efuse_init: Max chip rev:     v0.99 
+I (273) efuse_init: Chip rev:         v0.3
+I (273) heap_init: Initializing. RAM available for dynamic allocation:
+I (273) heap_init: At 3FCA81B8 len 00041558 (261 KiB): RAM
+I (273) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (274) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (274) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (275) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (280) spi_flash: detected chip: issi
+I (280) spi_flash: flash io: dio
+I (281) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (282) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (287) main_task: Started on CPU0
+I (297) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (301) main_task: Calling app_main()
+I (302) STRUTHIO: STRUTHIO handheld boot (core: STRUTHIO ARCADE 1.8.0 port)
+E (1390) pmu: AXP2101 not found
+E (2393) tca9554: write_direction_reg(136): Write direction reg failed
+E (2393) tca9554: reset(153): Write dir reg failed
+E (2393) tca9554: esp_io_expander_new_i2c_tca9554(83): Reset failed
+E (2395) board: TCA9554 not found: the LCD stays in reset
+W (2395) board: QEMU COPY: display stand-in, frames kept in memory
+E (3393) I2C_If: Fail to write to dev 30
+E (3497) I2C_If: Fail to write to dev 30
+E (3597) I2C_If: Fail to write to dev 30
+E (3697) I2C_If: Fail to write to dev 30
+E (3797) I2C_If: Fail to write to dev 30
+E (3897) I2C_If: Fail to write to dev 30
+E (3997) I2C_If: Fail to write to dev 30
+E (4097) I2C_If: Fail to write to dev 30
+E (4197) I2C_If: Fail to write to dev 30
+E (4297) I2C_If: Fail to write to dev 30
+E (4397) I2C_If: Fail to write to dev 30
+E (4497) I2C_If: Fail to write to dev 30
+E (4597) I2C_If: Fail to write to dev 30
+E (4700) I2C_If: Fail to read from dev 30
+I (4700) ES8311: Work in Slave mode
+E (4801) I2C_If: Fail to write to dev 30
+E (4901) I2C_If: Fail to write to dev 30
+E (5001) I2C_If: Fail to read from dev 30
+E (5101) I2C_If: Fail to write to dev 30
+E (5202) I2C_If: Fail to write to dev 30
+E (5303) I2C_If: Fail to write to dev 30
+E (5405) I2C_If: Fail to write to dev 30
+E (5505) I2C_If: Fail to write to dev 30
+E (5505) ES8311: Open fail
+E (5506) board: ES8311 not found
+I (5509) STRUTHIO: audio OFF, music 160 s loop, volume 2/4
+I (5839) STRUTHIO: NEW RUN seed 3499148300
+I (5839) STRUTHIO: DART trial C BOTH-HOLD, best 2000, display ok, renderer panel (asset pack)
+I (5842) main_task: Returned from app_main()

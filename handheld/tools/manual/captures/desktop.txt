@@ -1,0 +1,32 @@
+make: Entering directory '/home/maker/struthio/handheld/host'
+cc -std=c11 -Wall -Wextra -Werror -O2 -I../core replay.c ../core/struthio_sim.c ../core/struthio_tower.c ../core/struthio_digest.c ../core/struthio_input.c ../core/struthio_replay.c -o build/replay
+./build/replay ../golden/*.trace
+PASS climb    10011 ticks  score  60250  round  4  deaths   0  jousts  13  eggs   3  darts  30  chain 3c9d8a4075eebdab
+PASS duel     20000 ticks  score  37750  round  3  deaths  23  jousts  37  eggs   3  darts 237  chain 88879e49392e99c1
+PASS late     10990 ticks  score 136250  round 11  deaths   0  jousts  60  eggs  13  darts  67  chain 66e9011ca571b5f7
+PASS mortal   14143 ticks  score  77500  round  5  deaths  12  jousts  23  eggs   3  darts  81  chain 25b7dd681c36acce
+PASS raw      20000 ticks  score  65750  round  5  deaths  30  jousts  65  eggs  15  darts 194  chain cfa154009f20e9e1
+GOLDEN REPLAY: all 5 traces bit-exact
+make: Leaving directory '/home/maker/struthio/handheld/host'
+make: Entering directory '/home/maker/struthio/handheld/firmware/host_test'
+cc -std=c11 -Wall -Wextra -Werror -O2 -D_GNU_SOURCE -I../main -I../../core test_buttons.c ../main/struthio_buttons.c ../../core/struthio_input.c -o test_buttons
+./test_buttons ../../golden/*.trace
+PASS: wing buttons (debounce, chord, DART trials A/B/C, rocker, service)
+DART trial report (bot press timelines played through each physical trial):
+  climb.trace  trial A HOLD       194 darts fired in  2.8 min ( 69.8/min); the bot asked for 27 ( 9.7/min)
+  climb.trace  trial B TAP-HOLD   110 darts fired in  2.8 min ( 39.6/min); the bot asked for 27 ( 9.7/min)
+  climb.trace  trial C BOTH-HOLD     1 darts fired in  2.8 min (  0.4/min); the bot asked for 27 ( 9.7/min)
+  climb.trace  ROCKER               27 darts fired in  2.8 min; the bot asked for 27 (0 faster than a thumb can re-press): every press darts, nothing else does
+  duel.trace   trial A HOLD       390 darts fired in  5.6 min ( 70.2/min); the bot asked for 304 (54.7/min)
+  duel.trace   trial B TAP-HOLD   232 darts fired in  5.6 min ( 41.8/min); the bot asked for 304 (54.7/min)
+  duel.trace   trial C BOTH-HOLD     4 darts fired in  5.6 min (  0.7/min); the bot asked for 304 (54.7/min)
+  duel.trace   ROCKER              291 darts fired in  5.6 min; the bot asked for 304 (13 faster than a thumb can re-press): every press darts, nothing else does
+  late.trace   trial A HOLD       212 darts fired in  3.1 min ( 69.4/min); the bot asked for 63 (20.6/min)
+  late.trace   trial B TAP-HOLD   149 darts fired in  3.1 min ( 48.8/min); the bot asked for 63 (20.6/min)
+  late.trace   trial C BOTH-HOLD     1 darts fired in  3.1 min (  0.3/min); the bot asked for 63 (20.6/min)
+  late.trace   ROCKER               63 darts fired in  3.1 min; the bot asked for 63 (0 faster than a thumb can re-press): every press darts, nothing else does
+  mortal.trace trial A HOLD       308 darts fired in  3.9 min ( 78.4/min); the bot asked for 84 (21.4/min)
+  mortal.trace trial B TAP-HOLD   184 darts fired in  3.9 min ( 46.8/min); the bot asked for 84 (21.4/min)
+  mortal.trace trial C BOTH-HOLD     8 darts fired in  3.9 min (  2.0/min); the bot asked for 84 (21.4/min)
+  mortal.trace ROCKER               82 darts fired in  3.9 min; the bot asked for 84 (2 faster than a thumb can re-press): every press darts, nothing else does
+make: Leaving directory '/home/maker/struthio/handheld/firmware/host_test'

@@ -1,0 +1,18 @@
+[H[J[3J  ===============================================================
+    STRUTHIO HANDHELD  -  build menu
+  ===============================================================
+    ESP-IDF : ready
+    Board   : not chosen yet - option 2
+  ---------------------------------------------------------------
+    1  Check my setup              (doctor: package, ESP-IDF, port)
+    2  Find / choose the board's port
+    3  Build the firmware          (first time: sets the chip)
+    4  GREYBOX test   - build, flash, watch the log   (Step 5)
+    5  FULL ART       - build, flash, watch the log   (Step 5)
+    6  Quick flash    - program only, keeps art + music
+    7  Watch the log  (monitor)     leave with Ctrl + ]
+    8  Download-mode help (BOOT + RESET)
+    9  Erase the whole board        (clears high score + settings)
+    D  Desktop checks               (Step 3)
+    0  Exit
+  ---------------------------------------------------------------
