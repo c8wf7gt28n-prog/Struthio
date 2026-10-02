@@ -9,6 +9,9 @@ CONFIG_SPIRAM_MODE_OCT=y
 CONFIG_SPIRAM_SPEED_80M=y
 CONFIG_COMPILER_OPTIMIZATION_PERF=y
 CONFIG_FREERTOS_HZ=1000
+# Service mode runs the golden replay on the main task: st_step needs about
+# 6.2 KB of stack (joust_stage alone 5.1 KB), the same as the 12 KB game task.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=12288
 # A hung game or render task resets the toy back into the game.
 CONFIG_ESP_TASK_WDT_EN=y
 CONFIG_ESP_TASK_WDT_TIMEOUT_S=3

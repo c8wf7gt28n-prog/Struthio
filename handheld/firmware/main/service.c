@@ -45,7 +45,8 @@ static void run_checks(void) {
     st_replay_hooks_t hooks = {NULL, NULL, yield_tick};
     bool ok = st_replay(climb_trace_start, size, true, &hooks, &r);
     int64_t t1 = esp_timer_get_time();
-    st_replay(climb_trace_start, size, false, &hooks, &r);
+    st_replay_result_t timing;   // the timing run skips the digests, so its chain is not the game's
+    st_replay(climb_trace_start, size, false, &hooks, &timing);
     int64_t t2 = esp_timer_get_time();
     double us_digest = (double)(t1 - t0) / (r.ran ? r.ran : 1), us_sim = (double)(t2 - t1) / (r.ran ? r.ran : 1);
     snprintf(g_replay_line[0], sizeof g_replay_line[0], "GOLDEN %s %ld TICKS", ok ? "PASS" : "FAIL", r.ran);
