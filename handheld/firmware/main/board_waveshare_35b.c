@@ -176,6 +176,11 @@ void board_display_lines(int y0, int n, const uint16_t *buf) {
 }
 uint32_t board_display_order_errors(void) { return s_order_errors; }
 
+void board_display_flip(bool flip) {
+    if (!s_panel) return;
+    esp_lcd_panel_mirror(s_panel, flip, flip);   // MADCTL: rows and columns reversed; bands still arrive in order
+}
+
 void board_backlight(uint8_t percent) {
     if (!s_panel) return;
     if (percent > 100) percent = 100;

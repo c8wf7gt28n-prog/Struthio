@@ -92,6 +92,11 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
                 app_set_volume(app_volume() + 1);
                 app_audio_test(ST_EV_RING);
             }
+            if (held && side == 1 && !held_used[1] && now - down_at[1] >= 1000) {
+                held_used[1] = true;
+                app_set_flip(!app_flip());
+                app_audio_test(ST_EV_FLAP);
+            }
             if (!held && was[side] && !held_used[side]) {
                 if (side == 0) {
                     st_dart_trial_t t = (st_dart_trial_t)((b->trial + 1) % (ST_DART_OFF + 1));
@@ -131,7 +136,8 @@ void service_mode_run(st_buttons_t *b, st_norm_t *norm) {
             st_draw_text(fb, 8, 168, "LEFT TAP: NEXT DART MODE", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 180, "LEFT HOLD 1 S: VOLUME", STR_PAL_IVORY_DARK, 1);
             st_draw_text(fb, 8, 192, "RIGHT TAP: RUN CHECKS AGAIN", STR_PAL_IVORY_DARK, 1);
-            st_draw_text(fb, 8, 204, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 204, "RIGHT HOLD 1 S: TURN SCREEN 180", STR_PAL_IVORY_DARK, 1);
+            st_draw_text(fb, 8, 216, "POWER-CYCLE TO PLAY", STR_PAL_IVORY_DARK, 1);
             app_present(fb);
         }
         vTaskDelay(1);

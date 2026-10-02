@@ -32,6 +32,9 @@ bool app_music_ok(void);
 void app_audio_post(const st_event_t *e);
 void app_audio_test(int event_type);        // plays that event's sound
 int app_volume(void);
+// Screen turned 180 degrees (saved): the service screen's RIGHT hold toggles it.
+bool app_flip(void);
+void app_set_flip(bool flip);
 void app_set_volume(int level);              // saved in NVS
 
 // Hidden service mode (both wings at power-on). Never returns: power-cycle to play.

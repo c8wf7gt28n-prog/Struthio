@@ -286,6 +286,12 @@ void app_audio_post(const st_event_t *e) {
 }
 void app_audio_test(int event_type) { st_event_t e = {0}; e.type = (uint8_t)event_type; app_audio_post(&e); }
 int app_volume(void) { return g_volume; }
+bool app_flip(void) { return app_load_i32("flip", 0) != 0; }
+void app_set_flip(bool flip) {
+    board_display_flip(flip);
+    app_save_i32("flip", flip ? 1 : 0);
+    ESP_LOGI(TAG, "screen %s", flip ? "turned 180" : "normal");
+}
 void app_set_volume(int level) {
     g_volume = ((level % APP_VOLUME_LEVELS) + APP_VOLUME_LEVELS) % APP_VOLUME_LEVELS;
     board_audio_volume(VOLUME_PERCENT[g_volume]);
@@ -512,6 +518,7 @@ void app_main(void) {
 
     board_power_init();
     g_display_ok = board_display_init();
+    if (g_display_ok && app_flip()) board_display_flip(true);
 
     // Hidden service mode: hold BOTH wings while powering on (650 ms within an 800 ms guard).
     uint32_t guard = app_now_ms();

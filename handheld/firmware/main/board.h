@@ -28,6 +28,8 @@ bool board_display_init(void);
 void board_display_lines(int y0, int n, const uint16_t *buf);
 uint32_t board_display_order_errors(void);
 void board_backlight(uint8_t percent);
+// Turn the picture 180 degrees (the case may hold the board either way up).
+void board_display_flip(bool flip);
 // Battery and charger state from the AXP2101.
 typedef struct { bool battery_present, charging, vbus_present; uint16_t battery_mv; int battery_percent; } board_power_t;
 bool board_power_read(board_power_t *out);

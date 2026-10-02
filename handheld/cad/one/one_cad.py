@@ -80,7 +80,7 @@ PSW_LEN, PSW_DEPTH, PSW_H = 12.7, 6.4, 6.6
 PSW_KNOB, PSW_KNOB_OUT, PSW_TRAVEL = 3.9, 3.0, 2.2
 # ---- battery and speaker ------------------------------------------------------------------------------
 BAT = dict(x0=-21.0, x1=13.0, y0=6.5, y1=58.5, z0=Z_BACK + 0.2, t=5.2)    # THOR-503450 5 x 34 x 52 (+0.2)
-PH_SOCK = (16.0, -38.0)                # JST S2B-PH-K-S on the plate, entry facing up
+PH_SOCK = (4.0, -38.0)                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
 SPK = dict(x0=-21.0, x1=-1.0, y0=-31.0, y1=-1.0, t=5.6)                    # boxed speaker, ~30 x 20 (confirm)
 # ---- screws ---------------------------------------------------------------------------------------------
 LOWER_SCREWS = [(-36.0, -62.0), (36.0, -62.0)]
@@ -369,8 +369,12 @@ def ref_header():
     tails = box(HDR_ROW_X[0] - 0.4, HDR_ROW_X[1] + 0.4, y0 + 0.9, y1 - 0.9, Z_ONE + ONE_T, Z_ONE + 6.0)
     return body, tails
 
-def ref_ph_socket():
-    x, y = PH_SOCK; return box(x - 4.0, x + 4.0, y - 3.0, y + 3.0, Z_ONE - 6.0, Z_ONE)
+def ref_ph_socket(plug=True):
+    """S2B-PH-K-S body (rotated 90: pins on a vertical line, pin 2 2 mm above pin 1) and the mated plug"""
+    x, y = PH_SOCK
+    m = box(x - 1.46, x + 6.36, y - 2.06, y + 4.06, Z_ONE - 6.0, Z_ONE)
+    if plug: m += box(x + 6.36, x + 12.5, y - 1.9, y + 3.9, Z_ONE - 5.6, Z_ONE - 0.4)
+    return m
 
 # =========================================================================================================
 # export

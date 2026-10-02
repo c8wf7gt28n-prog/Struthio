@@ -40,6 +40,7 @@ for n, m in [('Waveshare board', ws), ('ONE board', one), ('battery', bat), ('sp
     v = clash(m, shells)
     check(f'{n} clears the shell', v < 0.5, f'{v:.2f} mm3 overlap')
 check('ONE board clears the Waveshare board', clash(one, ws) < 0.01)
+check('battery socket and plug clear the Waveshare board and keys', clash(ph, ws + sw) < 0.01)
 check('battery clears the ONE board and speaker', clash(bat, one + spk) < 0.01)
 check('speaker clears the ONE board', clash(spk, one) < 0.01)
 check('nothing else on the ONE strip: header only', clash(hbody, bat + spk) < 0.01)
