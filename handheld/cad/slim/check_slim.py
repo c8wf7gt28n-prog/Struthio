@@ -49,7 +49,12 @@ check('stack adds up: panel + rim + Waveshare to its socket + ONE SLIM + 0.1 + b
 # ---- walls ("not thin enough to feel cheap") --------------------------------------------------------------
 check('back wall 1.5 mm solid (PETG: 4 perimeters / 5+ solid layers)', s.BACK_WALL >= 1.5 and thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, (-5.0, -50.0)) >= 1.5 - 0.02,
       f'{thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, (-5.0, -50.0)):.2f} mm at the controller zone')
-check('back wall over the pin tips: 1.0 mm or more (0.5 mm relief)', thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, s.pin_xy(16)) >= 0.98)
+check('back wall over the pin tips and trimmed leads: 1.0 mm (0.5 mm relief)', all(0.98 <= thinnest(back, s.ZIN - 0.2, s.DEPTH + 0.1, xy) <= 1.02 for xy in [s.pin_xy(n) for n in s.PINS] + s.THT_LEADS))
+import os as _os
+_t = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..', 'pcb', 'slim', 'out', 'tht_leads.txt')
+if _os.path.exists(_t):
+    _leads = [tuple(map(float, l.split()[2:4])) for l in open(_t) if l.strip()]
+    check('lead reliefs match the board file (pcb/slim)', all(min(abs(a - c) + abs(b - d) for c, d in s.THT_LEADS) < 0.01 for a, b in _leads))
 check('face: 1.6 mm of shell behind the panel round the controls (the ONE had 0.8)', thinnest(front, 0.0, 5.0, (0.0, -66.0)) >= 1.6 - 0.02,
       f'{thinnest(front, 0.0, 5.0, (0.0, -66.0)):.2f} mm')
 check('rim over the glass border: 0.5 mm, backed by the glass and covered by the panel', abs(thinnest(front, 0.0, s.Z_GLASS + 0.5, (0.0, o.BCY + o.AA_H / 2 + 3.0)) - s.RIM) < 0.03)

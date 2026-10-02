@@ -154,11 +154,14 @@ def one_pads():
     pts = list(o.switch_xy().values()) + [(18.3, 22.0), (27.8, 20.0), (18.3, 0.0), (27.8, -6.0), (18.3, -24.0), (2.0, -44.0), (-20.0, -44.0)]
     return pts
 
+# through-hole leads of the slide switch and the battery socket, trimmed flush (pcb/slim/out/tht_leads.txt)
+THT_LEADS = [(-24.486, -45.3), (-24.486, -50.0), (-24.486, -54.7), (2.0, -38.0), (2.0, -36.0)]
+
 def pin_pockets():
-    """relief in the back wall over the soldered pin tips (0.5 mm deep)"""
+    """relief in the back wall over the soldered pin tips and trimmed leads (0.5 mm deep)"""
     c = M()
-    for n in PINS:
-        x, y = pin_xy(n); c += box(x - 1.1, x + 1.1, y - 1.1, y + 1.1, ZIN - 0.05, ZIN + 0.5)
+    for x, y in [pin_xy(n) for n in PINS] + THT_LEADS:
+        c += box(x - 1.3, x + 1.3, y - 1.3, y + 1.3, ZIN - 0.05, ZIN + 0.5)
     return c
 
 def back_shell():

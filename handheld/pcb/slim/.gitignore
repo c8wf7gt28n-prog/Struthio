@@ -1,0 +1,7 @@
+out/one.dsn
+out/one.ses
+out/test*.ses
+out/logs/
+out/*.kicad_prl
+out/*-bak
+logs/
