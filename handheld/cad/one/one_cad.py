@@ -69,9 +69,9 @@ STRIP_TOP = HDR_PIN1_Y + 3.6           # 36.4
 PLATE_TOP = -33.5                      # plate below the Waveshare board (bottom edge -32.44)
 
 # ---- controls (visible geometry frozen from the handheld design) -----------------------------------
-WING_X, WING_Y, BTN_D = 18.0, -43.8, 14.0  # flap up-left / up-right, both = straight up: round caps, a wing engraved in each
+WING_X, WING_Y, BTN_D = 18.0, -41.7, 14.0  # flap up-left / up-right, both = straight up: round caps, a wing engraved in each
 GLYPH_DEPTH = 0.5                      # engraved wing on the cap top (paint-fill it, or leave it as a shadow)
-ROCKER_W, ROCKER_H, ROCKER_R, ROCKER_Y = 44.0, 9.0, 3.0, -61.2
+ROCKER_W, ROCKER_H, ROCKER_R, ROCKER_Y = 44.0, 7.2, 3.0, -59.0
 DART_X = 16.0                          # rocker-end switches (under the cap ends)
 KEY_CLEAR = 0.45                       # opening around a cap
 COLLAR_T, COLLAR_Z = 1.6, 6.0          # guide collar: wall, depth (z FRONT_SKIN .. COLLAR_Z)
@@ -88,7 +88,7 @@ PSW_LEN, PSW_DEPTH, PSW_H = 12.7, 6.4, 6.6
 PSW_KNOB, PSW_KNOB_OUT, PSW_TRAVEL = 3.9, 3.0, 2.2
 # ---- battery and speaker ------------------------------------------------------------------------------
 BAT = dict(x0=-21.0, x1=13.0, y0=6.5, y1=58.5, z0=Z_BACK + 0.2, t=5.2)    # THOR-503450 5 x 34 x 52 (+0.2)
-PH_SOCK = (4.0, -38.0)                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
+PH_SOCK = (2.0, -38.0)                 # JST S2B-PH-K-S pin 1 on the plate; entry faces right (+x)
 SPK = dict(x0=-21.0, x1=-1.0, y0=-31.0, y1=-1.0, t=5.6)                    # boxed speaker, ~30 x 20 (confirm)
 # ---- screws ---------------------------------------------------------------------------------------------
 LOWER_SCREWS = [(-29.5, -62.5), (29.5, -62.5)]
@@ -131,12 +131,12 @@ def lower_half():
     h, H = UPPER_W / 2, LOWER_W / 2
     return [(0.0, Y_STRAIGHT + 16), (16.0, Y_STRAIGHT + 16), (h, Y_STRAIGHT + 16), (h, Y_STRAIGHT + 10), (h, Y_STRAIGHT + 5),
             (h, Y_STRAIGHT), (h + 0.5, Y_STRAIGHT - 2.6), (h + 1.6, Y_STRAIGHT - 5.4), (H - 1.6, -39.0), (H - 0.4, -43.0),
-            (H, -48.0), (H, -56.0), (H - 0.5, -64.0), (H - 2.2, -68.4), (H - 7.5, -70.0), (16.0, -69.0), (0.0, -68.6)]
+            (H, -48.0), (H, -56.0), (H - 0.5, -64.0), (H - 2.2, -68.6), (H - 7.5, -70.0), (16.0, -70.0), (0.0, -70.0)]
 
 def body2d():
     half = lower_half()                                   # top centre clockwise to the bottom centre
     ring = half + [(-x, y) for x, y in reversed(half[1:-1])]
-    lower = poly(cr(ring)) ^ CS.square([200, 100]).translate([-100, Y_STRAIGHT + 9 - 100])     # flare only: the spline
+    lower = poly(cr(ring)) ^ CS.square([200, Y_STRAIGHT + 9 - Y_BOTTOM]).translate([-100, Y_BOTTOM])  # flare only: the spline
     lower = lower + rrect(UPPER_W, 12.0, 0.0, 0, Y_STRAIGHT + 4)        # overshoots at its top corner, the sides are drawn straight
     upper = rrect(UPPER_W, Y_TOP - (Y_STRAIGHT - 6), R_TOP, 0, (Y_TOP + Y_STRAIGHT - 6) / 2)
     b = upper + lower
@@ -186,8 +186,7 @@ def circle(d, x=0.0, y=0.0, n=48):
 
 def panel2d():
     """face panel: the body inset PANEL_INSET, minus the key wells"""
-    bay = rrect(ROCKER_W + 2 * WELL, 40.0, 0.0, 0, ROCKER_Y - 20.0)                   # the rocker's well runs out of the
-    p = body2d().offset(-PANEL_INSET, mf.JoinType.Round) - keys2d(WELL) - bay       # bottom edge: straight sides, no hooks
+    p = body2d().offset(-PANEL_INSET, mf.JoinType.Round) - keys2d(WELL)
     return p.offset(-0.8, mf.JoinType.Round).offset(0.8, mf.JoinType.Round)       # no slivers or sharp horns
 
 def board2d(d=0.0):

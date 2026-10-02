@@ -38,6 +38,13 @@ pp = [p for p in panel.decompose() if p.volume() > 0.01]
 check('face panel: one piece, 1.0 mm', len(pp) == 1 and abs(panel.bounding_box()[5] - panel.bounding_box()[2] - 1.0) < 0.01)
 check('face panel sits on the shell face', abs(front.bounding_box()[2] - o.PANEL_T) < 0.01 and clash(panel, shells) < 0.01)
 check('face panel stays on the flat, inside the edge round-over', o.PANEL_INSET > o.RF)
+import manifold3d as _mf
+_p = o.panel2d(); _q = _p.offset(-1.5, _mf.JoinType.Round).offset(1.5, _mf.JoinType.Round)
+check('face panel: nothing narrower than 3 mm', _p.area() - _q.area() < 3.0, f'{_p.area() - _q.area():.1f} mm2 narrower')
+_bridge = (o.WING_Y - o.BTN_D / 2 - o.WELL) - (o.ROCKER_Y + o.ROCKER_H / 2 + o.WELL)
+check('face panel: 3.5 mm or more between the button wells and the rocker well', _bridge >= 3.5 - 1e-6, f'{_bridge:.2f} mm')
+_lip = (o.ROCKER_Y - o.ROCKER_H / 2 - o.KEY_CLEAR) - o.body2d().bounds()[1]
+check('shell: 6 mm or more of face below the rocker', _lip >= 6.0, f'{_lip:.2f} mm')
 
 # ---- what sits in the case -------------------------------------------------------------------------------
 for n, m in [('Waveshare board', ws), ('ONE board', one), ('battery', bat), ('speaker', spk), ('tact switches', sw),

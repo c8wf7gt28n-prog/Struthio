@@ -81,7 +81,7 @@ The files are in `cad/one/panel/` and are made by `make_panel.py`:
 
 | File | What it is |
 |---|---|
-| `one_panel_cut.dxf` / `.svg` | Cut lines in mm, seen from the front: the outline and the two wing cut-outs. The rocker sits in an open bay at the bottom edge. |
+| `one_panel_cut.dxf` / `.svg` | Cut lines in mm, seen from the front: the outline and three cut-outs (two wing buttons, the rocker). Nothing on the panel is narrower than 3 mm. |
 | `one_panel_print_MIRRORED.png` | The art to print on the **back** of the panel (600 dpi, 1 mm bleed). The screen window is transparent: **no ink there**. |
 | `one_panel_white.png` | White underprint, printed behind the colour so the art isn't see-through. It covers everything except the window. |
 | `one_panel_print.png` | The same art as you'll see it from the front, for checking. |

@@ -230,9 +230,9 @@ for sd in (-1, 1):
     for yy in (-0.9, 0.9):
         x0, x1 = sorted((cx + sd * (rw + 1.9), cx + sd * (rw + 2.4)))
         bar(x0, cy + yy - 0.15, x1, cy + yy + 0.15, BLUE)
-# the dart rocker's bay: the same orange and blue outline, following the cut
+# the dart rocker: the same orange and blue outline round its well
 def bay(t):
-    return o.rocker2d(o.WELL + t) + o.rrect(o.ROCKER_W + 2 * (o.WELL + t), 40.0, 0.0, 0, o.ROCKER_Y - 20.0)
+    return o.rocker2d(o.WELL + t)
 def fill(cs, col):
     for pg in cs.to_polygons(): d.polygon([px(x, y) for x, y in pg], fill=col)
 fill(bay(1.6), BLUE); fill(bay(1.35), INK_BLACK); fill(bay(1.1), ORANGE); fill(bay(0.35), INK_BLACK)

@@ -178,13 +178,14 @@ def route():
     ax, ay = pad_xy(sw['SW2'], 'A'); track([(xb, -36.6), (ax, -36.6 - (xb - ax)), (ax, ay)], 'GPIO18')
     # right channel (x > odd row): GPIO38, GPIO21, BAT
     x38, x21, xbat = 27.95, 28.6, 29.5
-    x, y = hx[7]; track([(x, y), (x38, y - (x38 - x)), (x38, -57.5)], 'GPIO38')
-    bx, by = pad_xy(sw['SW4'], 'A'); track([(x38, -57.5), (bx, -57.5), (bx, by)], 'GPIO38')
+    bx, by = pad_xy(sw['SW4'], 'A'); yr = by + 1.8                       # run above the rocker switch row
+    x, y = hx[7]; track([(x, y), (x38, y - (x38 - x)), (x38, yr)], 'GPIO38')
+    track([(x38, yr), (bx, yr), (bx, by)], 'GPIO38')
     x, y = hx[5]; track([(x, y), (x21, y - (x21 - x)), (x21, -49.5), (29.6, -50.5)], 'GPIO21')
     via(29.6, -50.5, 'GPIO21')
     bx, by = pad_xy(sw['SW3'], 'A')
-    track([(29.6, -50.5), (bx, -50.5), (bx, -56.6)], 'GPIO21', pcbnew.B_Cu)
-    via(bx, -56.6, 'GPIO21'); track([(bx, -56.6), (bx, by)], 'GPIO21')
+    track([(29.6, -50.5), (bx, -50.5), (bx, by + 1.6)], 'GPIO21', pcbnew.B_Cu)
+    via(bx, by + 1.6, 'GPIO21'); track([(bx, by + 1.6), (bx, by)], 'GPIO21')
     x, y = hx[1]; track([(x, y), (xbat, y - (xbat - x)), (xbat, -34.3)], 'BAT', width=W_PWR)
     via(xbat, -34.3, 'BAT')
     p1 = pad_xy(sw5, 1)
