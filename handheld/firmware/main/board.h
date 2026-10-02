@@ -40,6 +40,8 @@ void board_power_off(void);
 //   ONE SLIM (16.5 mm): no switch; the Waveshare's own PWR key is the power button -> press 0.5 s: on,
 //                hold 4 s: off; 250 mAh cell -> 100 mA charge.
 void board_power_model(bool slide_switch);
+// ONE SLIM: true once after each short press of the power button (the AXP2101's PKEY short-press flag).
+bool board_power_key_pressed(void);
 // ES8311 codec + NS4150B amplifier, mono speaker: 48 kHz, 16-bit, one channel.
 bool board_audio_init(void);
 // Queues n samples for the I2S DMA; blocks while the DMA buffers are full

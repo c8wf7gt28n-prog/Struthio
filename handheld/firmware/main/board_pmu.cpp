@@ -131,5 +131,16 @@ extern "C" void board_pmu_model(bool slide_switch) {
         s_pmu.setLongPressPowerOFF();
         s_pmu.enableLongPressShutdown();
         s_pmu.setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_100MA);   // 302535, 250 mAh: 0.4 C
+        s_pmu.disableIRQ(XPOWERS_AXP2101_ALL_IRQ);                     // only the short-press flag (self-test)
+        s_pmu.enableIRQ(XPOWERS_AXP2101_PKEY_SHORT_IRQ);
+        s_pmu.clearIrqStatus();
     }
+}
+
+extern "C" bool board_pmu_key_pressed(void) {
+    if (!s_ok) return false;
+    s_pmu.getIrqStatus();
+    bool pressed = s_pmu.isPekeyShortPressIrq();
+    if (pressed) s_pmu.clearIrqStatus();
+    return pressed;
 }

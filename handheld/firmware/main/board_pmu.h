@@ -12,6 +12,7 @@ bool board_pmu_init(i2c_master_bus_handle_t bus);   // rails, charger, power key
 bool board_pmu_read(board_power_t *out);
 void board_pmu_power_off(void);
 void board_pmu_model(bool slide_switch);
+bool board_pmu_key_pressed(void);
 #ifdef __cplusplus
 }
 #endif

@@ -3,6 +3,7 @@
 // Runs at every power-on until it has passed once (NVS "tested"), before the game:
 //   - press each of the four buttons once: each turns OK and clicks (the click proves the speaker)
 //   - a button already held when the check starts and held for 2 s is reported STUCK (its cap rubs the switch)
+//   - ONE SLIM: a short press of the power button turns OK (the power chip reports it)
 //   - the battery: found / not found, its voltage, USB and charging
 //   - the picture upside down: hold LEFT WING 2 s to turn it (saved)
 //   - all four OK: press both wings to play (saved: the check never runs again; service mode's DART RIGHT tap
@@ -31,7 +32,9 @@ void selftest_run(st_buttons_t *b, st_norm_t *norm) {
     bool seen[KEYS] = {0}, was[KEYS], stuck[KEYS] = {0}, from_start[KEYS], used[KEYS] = {0};
     uint32_t down_at[KEYS], now = app_now_ms();
     for (int i = 0; i < KEYS; i++) { was[i] = from_start[i] = app_pin_pressed(PIN[i]); down_at[i] = now; }
-    bool lit = false;
+    board_power_t pw0;
+    bool lit = false, pwr_ok = app_is_one() || !board_power_read(&pw0);   // ONE: the slide switch is the power; no power
+                                                                          // chip answering: nothing to test (the screen says)
     for (uint32_t frame = 0;; frame++) {
         now = app_now_ms();
         for (int i = 0; i < KEYS; i++) {
@@ -47,7 +50,8 @@ void selftest_run(st_buttons_t *b, st_norm_t *norm) {
             }
             was[i] = p;
         }
-        bool all = seen[0] && seen[1] && seen[2] && seen[3];
+        if (!pwr_ok && (frame % 16) == 0 && board_power_key_pressed()) { pwr_ok = true; app_audio_test(ST_EV_FLAP); }
+        bool all = seen[0] && seen[1] && seen[2] && seen[3] && pwr_ok;
         if (all && was[0] && was[1] && !used[0]) {                                     // both wings: play
             app_save_i32("tested", 1);
             app_audio_test(ST_EV_ROUND_CLEAR);
@@ -65,6 +69,10 @@ void selftest_run(st_buttons_t *b, st_norm_t *norm) {
             for (int i = 0; i < KEYS; i++) {
                 snprintf(t, sizeof t, "%s %s", NAME[i], stuck[i] ? "STUCK DOWN" : seen[i] ? "OK" : "PRESS IT");
                 st_draw_text(fb, 16, y, t, stuck[i] ? STR_PAL_LAVA_HOT : seen[i] ? STR_PAL_GREEN : STR_PAL_CYAN_LIGHT, 1); y += 12;
+            }
+            if (!app_is_one()) {
+                snprintf(t, sizeof t, "%s %s", "POWER (SIDE)  ", pwr_ok ? "OK" : "PRESS IT SHORT");
+                st_draw_text(fb, 16, y, t, pwr_ok ? STR_PAL_GREEN : STR_PAL_CYAN_LIGHT, 1); y += 12;
             }
             y += 6;
             st_draw_text(fb, 8, y, "EACH PRESS CLICKS: THAT IS THE", STR_PAL_IVORY_DARK, 1); y += 12;
