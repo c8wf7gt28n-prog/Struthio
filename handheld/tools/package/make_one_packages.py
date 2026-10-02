@@ -158,8 +158,36 @@ Cheaper way
   Order only the clear cut panel, print one_panel_print.png on clear or white sticker vinyl
   at 100 % (600 dpi), cut out the screen window and stick it on the back of the panel.
 
-Fitting: last step of the build guide. Tape on the black areas only, line it up inside the
-rim, press from the middle outward.
+Fitting: last step of the build guide. Tape on the black areas only, line it up 2.4 mm in from
+the case's edge all round, press from the middle outward.
+""")
+    sp = os.path.join(HH, 'cad', 'slim', 'panel'); slim = os.path.join(root, 'ONE_SLIM')
+    for f in ('slim_panel_cut.dxf', 'slim_panel_cut.svg', 'slim_panel_print.png', 'slim_panel_print_MIRRORED.png',
+              'slim_panel_white.png', 'slim_panel_proof.png'):
+        put(os.path.join(sp, f), os.path.join(slim, f))
+    put(os.path.join(HH, 'docs', 'renders', 'slim', 'slim_front.png'), os.path.join(slim, 'preview_on_the_handheld.png'))
+    xs, ys = [], []
+    lines = open(os.path.join(sp, 'slim_panel_cut.dxf')).read().split('\n')
+    for i, v in enumerate(lines):
+        if v == '10': xs.append(float(lines[i + 1]))
+        if v == '20': ys.append(float(lines[i + 1]))
+    text(os.path.join(slim, 'README_ORDER.txt'), f"""
+STRUTHIO ONE SLIM - FACE PANEL
+==============================
+
+The ONE SLIM's panel sits in a pocket inside a 1.0 mm lip, so it is cut a little smaller than the ONE's:
+finished size {max(xs) - min(xs):.2f} x {max(ys) - min(ys):.2f} mm, 1.0 mm thick, three cut-outs. Order THESE files
+for a ONE SLIM (the ONE's panel will not fit its pocket).
+
+What to ask the shop for
+------------------------
+  1.0 mm CLEAR CAST ACRYLIC, laser cut to slim_panel_cut.dxf (units: mm, seen from the front).
+  REVERSE-PRINTED (UV) on the back: first colour from slim_panel_print_MIRRORED.png,
+  then white from slim_panel_white.png. The screen window stays CLEAR.
+  Then: clear adhesive transfer tape (3M 468MP or equal) laminated on the back, except over the window.
+
+Fitting: peel the back liner, drop the panel into its pocket (it only goes in one way: the button
+wells line up), press it down from the middle outward, peel the front film.
 """)
     return root, 'STRUTHIO_ONE_Face_Panel'
 
@@ -215,7 +243,7 @@ Files
         put(os.path.join(so, f), os.path.join(slim, 'kicad', f))
     put(os.path.join(HH, 'pcb', 'slim', 'make_slim_pcb.py'), os.path.join(slim, 'kicad', 'make_slim_pcb.py'))
     text(os.path.join(slim, 'README_ORDER.txt'), """
-STRUTHIO ONE SLIM - CONTROL BOARD (rev S2), JLCPCB
+STRUTHIO ONE SLIM - CONTROL BOARD (rev S2, used by case rev S3), JLCPCB
 ==================================================
 
 The same circuit as the ONE's board, on a 0.8 mm board shaped for the 16.5 mm case.
@@ -289,7 +317,6 @@ layers, 40 % gyroid. Every wall in this case is then solid plastic. Not PLA.
   slim_rocker.stl         TOP face down             none
   slim_power_button.stl   on its SIDE (flat face)   none   (small: print two in case one is lost)
   slim_pin_jig.stl        flat                      none   a tool: sets the 12 header pins, cuts the axle
-  slim_panel_jig.stl      plate down                none   a tool: puts the face panel exactly in place
 
 The shells meet in a tongue and groove: 0.7 mm tongue, 1.0 mm groove, 0.15 mm play each side.
 If it is tight, file the tongue lightly; never open the groove.

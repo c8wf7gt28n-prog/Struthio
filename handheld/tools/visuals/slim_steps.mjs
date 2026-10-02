@@ -18,7 +18,7 @@ const STEPS = [
   ['s07_back_shell', `show=one_back,ref_speaker,ref_battery,ref_foam&hl=ref_speaker,ref_battery,ref_foam&cam=backshell`],
   ['s08_closed', `show=${FRONT},one_back,${CAPS},${ROCK},${BTN},ref_screws&hl=one_back,ref_screws&cam=back`],
   ['s09_first_power', `show=${FRONT},one_back,${CAPS},ref_glyphs,${ROCK},${BTN}&cam=front`],
-  ['s10_panel', `show=ref_panel,panel_jig,${FRONT},one_back,${CAPS},ref_glyphs,${ROCK},${BTN}&hl=panel_jig&cam=front`],
+  ['s10_panel', `show=ref_panel,${FRONT},one_back,${CAPS},ref_glyphs,${ROCK},${BTN}&hl=ref_panel&cam=front`],
 ];
 const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 async function shot(path, query, w, h) {

@@ -27,8 +27,8 @@ From package 3, folder `ONE_SLIM`:
 
 ## 3. Print the case
 
-From package 4, folder `ONE_SLIM`: front shell, back shell, two wing buttons, rocker, power button, pin jig,
-panel jig. And an 11 mm piece of 1.75 mm filament for the rocker's axle (the pin jig has a slot that cuts it to length).
+From package 4, folder `ONE_SLIM`: front shell, back shell, two wing buttons, rocker, power button, pin jig.
+And an 11 mm piece of 1.75 mm filament for the rocker's axle (the pin jig has a slot that cuts it to length).
 
 - **Your own printer:** PETG (or ASA), 0.2 mm layers, 4 walls, 6 top and bottom layers, 40 % infill. Not PLA.
 - **No printer:** upload the STLs to a print service (JLCPCB's 3D printing, or any local one). Ask for **MJF nylon
@@ -36,7 +36,7 @@ panel jig. And an 11 mm piece of 1.75 mm filament for the rocker's axle (the pin
 
 ## 4. Order the face panel
 
-From package 2. Send a laser-cutting and UV-printing shop the files and this sentence:
+From package 2, folder `ONE_SLIM` (the SLIM's panel sits in a pocket, so it is cut smaller than the ONE's). Send a laser-cutting and UV-printing shop the files and this sentence:
 
 > 1.0 mm clear cast acrylic, cut to the DXF, reverse-printed (colour, then white) from the mirrored PNG, window left
 > clear. Please laminate clear adhesive transfer tape (3M 468MP or equal) on the back, except over the window.

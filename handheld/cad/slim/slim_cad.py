@@ -109,10 +109,51 @@ def pin_xy(n):
     k = (n - 1) // 2
     return (o.HDR_ROW_X[1] if n % 2 else o.HDR_ROW_X[0], o.HDR_PIN1_Y - 2.54 * k)
 
+# ---- rev S3: the finish --------------------------------------------------------------------------------------
+# the face panel sits in a pocket: a 1.0 mm lip all round, 2.6 mm wide (its outer edge is the 2 mm front round),
+# so the panel's edge is covered and it lines itself up. The panel is cut 0.2 mm smaller than the pocket.
+LIP_POCKET = 2.6
+PANEL_CLEAR = 0.2
+# the back edge: an elliptical round, 3 mm across the back and 5.5 mm up the side (it was a 3 mm circle): the side
+# you see is shorter, so the case looks thinner. The inside follows it at WALL_T, so no wall gets thinner.
+EDGE_A, EDGE_B = 3.0, 5.5
+WALL_T = 1.6
+# the buttons: the wings are dished 0.5 mm, the rocker is domed (its ends 0.5 mm lower than its middle); every top
+# edge is rounded 0.5 mm; engravings follow the curved tops, 0.4 mm deep
+DISH, DOME_SAG, TOP_ROUND, ENGRAVE = 0.5, 0.5, 0.5, 0.4
+ROCKER_TOP = -1.8                     # the rocker's middle, 1.8 mm proud (its ends 1.3)
+# the back: engraved 0.35 mm
+BACK_TEXT = [('STRUTHIO', 4.2, -43.0), ('R.A. PEDDYCOART', 3.0, -50.5)]
+TEXT_DEPTH = 0.35
+
+def profile_out():
+    """(r, z) outside, r = out from the core ring (K = EDGE_A in from the outline): the lip's 2 mm front round from
+    z = 0, straight sides, then the elliptical back edge"""
+    K, RF = EDGE_A, o.RF
+    p = [(K - RF + math.sqrt(max(0.0, RF * RF - (RF - z) ** 2)), z) for z in np.linspace(0, RF, 9)]
+    cz = DEPTH - EDGE_B
+    p += [(K - EDGE_A + EDGE_A * math.cos(t), cz + EDGE_B * math.sin(t)) for t in np.linspace(0, math.pi / 2, 33)[1:]]
+    return p
+
+def profile_in():
+    """the inside: the side wall WALL in, then the back edge's ellipse offset WALL_T square to it, then the back
+    wall's inside face at ZIN"""
+    K = EDGE_A; cz = DEPTH - EDGE_B
+    p = [(K - o.WALL, FRONT_SKIN)]
+    for t in np.linspace(0, math.pi / 2, 65):
+        nx, nz = math.cos(t) / EDGE_A, math.sin(t) / EDGE_B
+        n = math.hypot(nx, nz)
+        r = min(EDGE_A * math.cos(t) - WALL_T * nx / n, K - o.WALL)
+        z = min(cz + EDGE_B * math.sin(t) - WALL_T * nz / n, ZIN)
+        if z > p[-1][1] + 1e-6: p.append((r, z))
+    p.append((p[-1][0], ZIN))
+    return p
+
 def setup():
     """point one_cad's shared helpers (skins, caps, switch, board outline) at the SLIM stack"""
     for k, v in dict(DEPTH=DEPTH, BACK_WALL=BACK_WALL, FRONT_SKIN=FRONT_SKIN, Z_GLASS=Z_GLASS, Z_BACK=Z_BACK,
-                     Z_ONE=Z_ONE, ONE_T=ONE_T, Z_SPLIT=Z_SPLIT, USB_Z=USB_Z, RB=RB, K=RB).items():
+                     Z_ONE=Z_ONE, ONE_T=ONE_T, Z_SPLIT=Z_SPLIT, USB_Z=USB_Z, RB=RB, K=EDGE_A,
+                     PANEL_INSET=LIP_POCKET + PANEL_CLEAR, profile_out=profile_out, profile_in=profile_in).items():
         setattr(o, k, v)
     o._CACHE.clear()
 setup()
@@ -168,8 +209,10 @@ def front_shell():
     cut += prism(keys2d(o.KEY_CLEAR), -1, o.COLLAR_Z + 0.1)
     cut += o.rocker_axle_hole()
     for x, y in o.LOWER_SCREWS: cut += cyl_z(PILOT_D, x, y, Z_ONE - 6.5, Z_ONE + 0.1)
-    cut += shared_cuts() + plunger_hole()
+    cut += shared_cuts() + plunger_hole() + chamfers()
+    cut += prism(body2d().offset(-LIP_POCKET, mf.JoinType.Round), -1, o.PANEL_T)              # the panel's pocket
     cut += prism(ring2d(*GROOVE), Z_SPLIT - GROOVE_DEPTH, Z_SPLIT + 0.1)                     # the groove
+    cut += prism(ring2d(GROOVE[0] - 0.15, GROOVE[1] + 0.15), Z_SPLIT - 0.3, Z_SPLIT + 0.1)    # its lead-in
     return shell - cut
 
 def csk(x, y):
@@ -214,7 +257,7 @@ def back_shell():
     for x, y in CLIPS: add += cyl_z(1.2, x, y, ZIN - 2.5, ZIN + 0.01, 16)                                  # lead clips
     add += tongue()
     shell = shell + (add ^ (inner + tongue()))
-    cut = shared_cuts() + pin_pockets()
+    cut = shared_cuts() + pin_pockets() + chamfers() + back_text()
     for x, y in WS_SCREWS + o.LOWER_SCREWS: cut += csk(x, y)
     for i in range(6):                                                                                      # speaker grille
         x = s['x0'] + 2.0 + i * (w - 4.0) / 5
@@ -222,14 +265,96 @@ def back_shell():
     return shell - cut
 
 def tongue():
-    return prism(ring2d(*TONGUE), Z_SPLIT - TONGUE_LEN, Z_SPLIT + 0.01) - joint_keepout()
+    t = prism(ring2d(*TONGUE), Z_SPLIT - TONGUE_LEN + 0.3, Z_SPLIT + 0.01)
+    t += prism(ring2d(TONGUE[0] + 0.15, TONGUE[1] - 0.15), Z_SPLIT - TONGUE_LEN, Z_SPLIT - TONGUE_LEN + 0.31)   # lead-in
+    return t - joint_keepout()
 
-# ---- caps: the ONE's, with stems for the SLIM's switch height ---------------------------------------------
+def chamfers():
+    """0.5 mm chamfers round the openings in the outside: USB-C, the power button, the two pin holes"""
+    c = 0.5
+    def frustum(b, axis, outer):
+        x0, x1, y0, y1, z0, z1 = b
+        if axis == 'y':
+            big = box(x0 - c, x1 + c, outer - 0.01, outer + 2, z0 - c, z1 + c); small = box(x0, x1, outer - c - 0.01, outer - c, z0, z1)
+        else:
+            big = box(outer - 2, outer + 0.01, y0 - c, y1 + c, z0 - c, z1 + c); small = box(outer + c, outer + c + 0.01, y0, y1, z0, z1)
+        return M.batch_hull([big, small])
+    m = frustum((-6.4, 6.4, 0, 0, USB_Z - 3.5, USB_Z + 3.5), 'y', o.Y_TOP)
+    P = PLUNGER; hw, hh = P['head']; h = P['hole']
+    m += frustum((0, 0, PWR_Y - hw / 2 - h, PWR_Y + hw / 2 + h, PLUNGER_Z - hh / 2 - h, PLUNGER_Z + hh / 2 + h), 'x', -o.UPPER_W / 2)
+    for k in ('RST', 'BOOT'):
+        y = o.SIDE_KEYS_Y[k]
+        m += frustum((0, 0, y - 0.8, y + 0.8, Z_GLASS + SIDE_SWITCH_Z[0] - 0.1, Z_GLASS + SIDE_SWITCH_Z[1] + 0.1), 'x', -o.UPPER_W / 2)
+    return m
+
+# ---- caps: dished wings, a domed rocker, rounded top edges, stems for the SLIM's switch height ----------------
+def _sphere_c(side):
+    """the wing dish: a sphere in front of the cap, DISH deep in the middle of the flat top"""
+    r = o.BTN_D / 2 - TOP_ROUND
+    R = (r * r + DISH * DISH) / (2 * DISH)
+    return R, (side * o.WING_X, o.WING_Y, -o.WING_PROUD + DISH - R)
+
 def wing_cap(side):
-    return o.wing_cap(side)
+    cx, cy, top, r = side * o.WING_X, o.WING_Y, -o.WING_PROUD, o.BTN_D / 2
+    prof = [(0.0, top)] + [(r - TOP_ROUND + TOP_ROUND * math.sin(a), top + TOP_ROUND - TOP_ROUND * math.cos(a)) for a in np.linspace(0, math.pi / 2, 9)]
+    prof += [(r, top + TOP_ROUND + 0.1), (0.0, top + TOP_ROUND + 0.1)]
+    cap = M.revolve(CS([prof]), 96).translate([cx, cy, 0])                                                     # rounded top
+    cap += prism(wing2d(side), top + TOP_ROUND, o.COLLAR_Z) + prism(wing2d(side, o.FLANGE), o.COLLAR_Z, o.COLLAR_Z + 1.0)
+    R, c = _sphere_c(side)
+    cap -= M.sphere(R, 512).translate(list(c))                                                                 # the dish
+    cap -= prism(o.glyph2d(side), top - 1, top + 2) ^ M.sphere(R + ENGRAVE, 512).translate(list(c))            # the wing, 0.4 deep
+    cap += o.key_box(side, 0.0, 0.0, FRONT_SKIN + 0.3, o.COLLAR_Z - 0.2)
+    cap += cyl_z(4.0, cx, cy, o.COLLAR_Z + 0.5, Z_ONE - o.SW_H - o.PRETRAVEL)
+    return cap
+
+def _dome():
+    half = o.ROCKER_W / 2
+    Rc = (half * half + DOME_SAG * DOME_SAG) / (2 * DOME_SAG)
+    return Rc, ROCKER_TOP + Rc
 
 def rocker_cap():
-    return o.rocker_cap()
+    z0 = o.COLLAR_Z + o.ROCKER_GAP; top = ROCKER_TOP
+    cap = prism(rocker2d(), top + TOP_ROUND, z0) + prism(rocker2d(o.FLANGE), z0, z0 + 1.0)
+    n = 8
+    for i in range(n):                                                                       # rounded top edge, in layers
+        h = (i + 0.5) / n * TOP_ROUND
+        inset = TOP_ROUND - math.sqrt(max(0.0, TOP_ROUND ** 2 - (TOP_ROUND - h) ** 2))
+        cap += prism(rocker2d(-inset), top + i / n * TOP_ROUND - 0.001, top + (i + 1) / n * TOP_ROUND + 0.001)
+    Rc, zc = _dome()
+    cap = cap ^ s_cyl_y(2 * Rc, zc)                                                              # the dome
+    cap -= prism(o.dart_glyph2d(), top - 1, top + 2) - s_cyl_y(2 * (Rc - ENGRAVE), zc)           # the dart, 0.4 deep
+    tip = Z_ONE - o.SW_H - o.PRETRAVEL
+    for sx in (-1, 1): cap += cyl_z(4.0, sx * o.DART_X, o.ROCKER_Y, z0 + 0.5, tip)
+    return cap - o.cyl_y(o.AXLE_D + 0.05, 0, o.AXLE_Z, o.ROCKER_Y - 10, o.ROCKER_Y + 10)
+
+def s_cyl_y(d, zc):
+    return o.cyl_y(d, 0, zc, o.ROCKER_Y - 10, o.ROCKER_Y + 10, 8192)
+
+def ref_glyphs():
+    """render only: the engraved wings and dart, filled (paint), following the curved tops"""
+    g = M()
+    for side in (-1, 1):
+        R, c = _sphere_c(side)
+        g += (prism(o.glyph2d(side), -5, 2) ^ M.sphere(R + ENGRAVE - 0.02, 512).translate(list(c))) - M.sphere(R + 0.02, 512).translate(list(c))
+    Rc, zc = _dome()
+    g += (prism(o.dart_glyph2d(), -5, 2) ^ s_cyl_y(2 * (Rc - 0.02), zc)) - s_cyl_y(2 * (Rc - ENGRAVE + 0.02), zc)
+    return g
+
+def text2d(text, height, cy):
+    """engraving text as seen from the BACK (mirrored in the design frame, which looks from the front), centred"""
+    from matplotlib.textpath import TextPath
+    from matplotlib.font_manager import FontProperties
+    tp = TextPath((0, 0), text, size=height / 0.73, prop=FontProperties(family='DejaVu Sans', weight='bold'))
+    polys = [[(float(x), float(y)) for x, y in p] for p in tp.to_polygons() if len(p) > 2]
+    cs = CS(polys, mf.FillRule.EvenOdd)
+    b = cs.bounds()
+    cs = cs.translate([-(b[0] + b[2]) / 2, -(b[1] + b[3]) / 2])
+    return cs.mirror([1, 0]).translate([0, cy])
+
+def back_text():
+    m = M()
+    for t, h, y in BACK_TEXT: m += prism(text2d(t, h, y), DEPTH - TEXT_DEPTH, DEPTH + 1)
+    return m
 
 # ---- reference volumes ------------------------------------------------------------------------------------------
 def ref_waveshare():
@@ -321,21 +446,13 @@ def pin_jig():
     gauge -= box(x1 - 1, x1 + 5, y0 + 1.5 + AXLE_LEN, y0 + 30, z0 - 1, z1 + 1)                 # the block ends at 11 mm
     return jig + gauge
 
-def panel_jig():
-    """drops over the case's front: its skirt hugs the outline, the panel goes into its window exactly where it
-    belongs. Press the panel down, lift the jig off."""
-    outer = body2d().offset(3.4, mf.JoinType.Round)
-    window = body2d().offset(-o.PANEL_INSET + 0.15, mf.JoinType.Round)
-    skirt = outer - body2d().offset(0.3, mf.JoinType.Round)
-    return prism(outer - window, -0.2, o.PANEL_T) + prism(skirt, o.PANEL_T - 0.01, o.PANEL_T + 4.0)
-
 PARTS = {
     'slim_front': front_shell, 'slim_back': back_shell,
     'slim_wing_left': lambda: wing_cap(-1), 'slim_wing_right': lambda: wing_cap(1), 'slim_rocker': rocker_cap,
-    'slim_power_button': plunger, 'slim_pin_jig': pin_jig, 'slim_panel_jig': panel_jig,
+    'slim_power_button': plunger, 'slim_pin_jig': pin_jig,
 }
 REFS = {
-    'ref_panel': o.face_panel, 'ref_glyphs': o.ref_glyphs, 'ref_foam': ref_foam, 'ref_waveshare': ref_waveshare,
+    'ref_panel': o.face_panel, 'ref_glyphs': ref_glyphs, 'ref_foam': ref_foam, 'ref_waveshare': ref_waveshare,
     'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker, 'ref_screws': ref_screws,
     'ref_switches': lambda: ref_parts() + ref_pins(),
 }

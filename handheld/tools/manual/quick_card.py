@@ -13,7 +13,7 @@ ST = os.path.join(HH, 'docs', 'renders', 'slim', 'steps')
 CAP = os.path.join(HERE, 'captures')
 STEPS = [
     ('Order', None, 'Everything on <b>STRUTHIO_ORDER</b> (package 5): the screen board, cell, speaker, 5 screws, a header strip, foam tape. '
-                    'Board from JLCPCB at <b>0.8 mm</b>; print the 8 parts in PETG.'),
+                    'Board from JLCPCB at <b>0.8 mm</b>; print the 7 parts in PETG.'),
     ('Flash', None, 'Plug the screen board in by USB-C. Double-click <b>FLASH_ME.bat</b> (package 1). Wait for <b>DONE</b>.'),
     ('Pins', 's05_pins', 'Board <b>face down</b> in the pin jig. A strip of 4 and a strip of 8 pins, long side first. Solder, slide the plastic off, snip flush.'),
     ('Speaker', None, 'Solder the Waveshare speaker lead to the new speaker\'s two pads, either way round.'),
@@ -22,7 +22,7 @@ STEPS = [
     ('Back shell', 's07_back_shell', 'Speaker in its lip, cell taped in the corner, leads under the clips. Plug the speaker into <b>J9</b>, the cell into <b>J2</b>.'),
     ('Close', 's08_closed', 'Tongue into the groove. <b>5 × M2 × 6</b>, snug.'),
     ('Power', None, 'Press the button on the left side. The screen checks every button, the speaker and the battery. <b>Both wings</b>: play.'),
-    ('Panel', 's10_panel', 'Panel jig over the front, panel into its window, press, lift the jig.'),
+    ('Panel', 's10_panel', 'Peel the liner, drop the panel into its pocket inside the lip, press from the middle out.'),
 ]
 CSS = """
 @page { size: A4; margin: 10mm; }
@@ -48,7 +48,7 @@ def build(out_pdf):
            f'<h1>STRUTHIO ONE SLIM</h1><div class="sub">Quick start · the whole build on one page · every step is in the manual with a picture and a check</div>'
            f'<div class="grid">{"".join(tiles)}</div>'
            f'<div class="foot">Off: hold the power button 4 s. Charge: USB-C, about 3 hours. Re-flash: FLASH_ME.bat again. '
-           f'Full manual: STRUTHIO_ONE_SLIM_Build_Manual_Windows11.pdf · rev S2 · commit {COMMIT} · {TODAY}</div></body></html>')
+           f'Full manual: STRUTHIO_ONE_SLIM_Build_Manual_Windows11.pdf · rev S3 · commit {COMMIT} · {TODAY}</div></body></html>')
     with tempfile.TemporaryDirectory() as t:
         hp = os.path.join(t, 'card.html'); open(hp, 'w', encoding='utf-8').write(doc)
         subprocess.check_call(['node', os.path.join(HH, 'tools', 'package', 'html2pdf.mjs'), hp, out_pdf])

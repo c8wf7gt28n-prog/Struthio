@@ -32,7 +32,7 @@ const root = new THREE.Group(); root.rotation.y = Math.PI; scene.add(root);
 const MODEL = q.get('model') === 'slim' ? 'slim' : 'one';
 const names = ['stl/one_front', 'stl/one_back', 'stl/one_wing_left', 'stl/one_wing_right', 'stl/one_rocker',
   'refs/ref_panel', 'refs/ref_glyphs', 'refs/ref_foam', 'refs/ref_waveshare', 'refs/ref_one', 'refs/ref_battery', 'refs/ref_speaker', 'refs/ref_switches'];
-if (MODEL === 'slim') names.push('refs/ref_screws', 'stl/slim_power_button', 'stl/slim_pin_jig', 'stl/slim_panel_jig');
+if (MODEL === 'slim') names.push('refs/ref_screws', 'stl/slim_power_button', 'stl/slim_pin_jig');
 const file = (n) => MODEL === 'slim' ? n.replace('stl/one_', 'stl/slim_') : n;
 const partKey = (n) => n.split('/')[1].replace(/^slim_(power_button|pin_jig|panel_jig)$/, '$1');
 const geo = Object.fromEntries(await Promise.all(names.map(async (n) => [partKey(n), await load(`assets/${MODEL}/${file(n)}.stl`)])));
@@ -54,8 +54,8 @@ const screen = new THREE.Mesh(new THREE.PlaneGeometry(48.96, 73.44), new THREE.M
 screen.position.set(0, 13.78, MODEL === 'slim' ? -1.49 : -1.79); scene.add(screen);   // world: front face at z = 0, case toward -z
 let art = null;
 try {
-  const at = await new THREE.TextureLoader().loadAsync('assets/one/sticker.png');   // (the SLIM wears the same face) at.colorSpace = THREE.SRGBColorSpace;
-  const b = JSON.parse(await (await fetch('assets/one/sticker.json')).text());
+  const at = await new THREE.TextureLoader().loadAsync(`assets/${MODEL}/sticker.png`); at.colorSpace = THREE.SRGBColorSpace;   // each model's own panel art
+  const b = JSON.parse(await (await fetch(`assets/${MODEL}/sticker.json`)).text());
   art = new THREE.Mesh(new THREE.PlaneGeometry(b.w, b.h), new THREE.MeshStandardMaterial({ map: at, transparent: true, roughness: 0.3, alphaTest: 0.5 }));
   art.position.set(b.cx, b.cy, -0.97); scene.add(art);   // printed on the back of the 1 mm acrylic face panel
 } catch (e) { /* no sticker yet */ }

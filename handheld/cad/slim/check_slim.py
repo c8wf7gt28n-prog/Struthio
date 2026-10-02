@@ -38,11 +38,25 @@ panel = o.face_panel()
 for n, m in [('front shell', front), ('back shell', back)] + list(caps.items()):
     parts = [p for p in m.decompose() if p.volume() > 0.01]
     check(f'{n}: one watertight solid', m.status().name == 'NoError' and len(parts) == 1, f'{len(parts)} piece(s), {m.volume()/1000:.1f} cm3')
+import manifold3d as mf
 check('thickness 16.5 mm, panel included', abs(back.bounding_box()[5] - s.DEPTH) < 0.01 and abs(panel.bounding_box()[2]) < 0.01,
       f'{back.bounding_box()[5]:.2f} mm')
 b = o.body2d().bounds()
 check('outline unchanged from the ONE: 74 x 136', abs(b[2] - b[0] - 74) < 0.3 and abs(b[3] - b[1] - 136) < 0.1, f'{b[2]-b[0]:.2f} x {b[3]-b[1]:.2f}')
-check('face panel sits on the shell face', abs(front.bounding_box()[2] - o.PANEL_T) < 0.01 and clash(panel, shells) < 0.01)
+check('face panel sits in its pocket, flush with the lip', abs(front.bounding_box()[2]) < 0.01 and abs(panel.bounding_box()[2]) < 0.01 and clash(panel, shells) < 0.01)
+_gap = (o.body2d().offset(-s.LIP_POCKET, mf.JoinType.Round) - o.panel2d().offset(s.PANEL_CLEAR - 0.01, mf.JoinType.Round)).area()
+check('face panel: 0.2 mm clear of the lip all round (drops in, lines itself up)', (o.panel2d().offset(s.PANEL_CLEAR - 0.02, mf.JoinType.Round) - o.body2d().offset(-s.LIP_POCKET, mf.JoinType.Round)).area() < 0.01)
+check('lip: 1.0 mm tall, 2.6 mm wide, round on its outside edge', abs(thinnest(front, -0.5, o.PANEL_T, (0.0, -70.6 + 2.3)) - o.PANEL_T) < 0.05,
+      f'{thinnest(front, -0.5, o.PANEL_T, (0.0, -70.6 + 2.3)):.2f} mm at the bottom edge')
+_p = o.panel2d(); _q = _p.offset(-1.5, mf.JoinType.Round).offset(1.5, mf.JoinType.Round)
+check('face panel (resized for the pocket): nothing narrower than 3 mm', _p.area() - _q.area() < 3.0, f'{_p.area() - _q.area():.1f} mm2 narrower')
+# walls through the elliptical back edge: every inside point at least WALL_T - 0.05 from the outside
+_po = np.array([(r, z) for r, z in s.profile_out()]); _pi = np.array([(r, z) for r, z in s.profile_in()])
+def _seg_d(pt, a, b):
+    ab = b - a; t = np.clip(np.dot(pt - a, ab) / max(np.dot(ab, ab), 1e-12), 0, 1); return np.linalg.norm(pt - (a + t * ab))
+_dense = np.array([_po[i] + (_po[i + 1] - _po[i]) * f for i in range(len(_po) - 1) for f in np.linspace(0, 1, 20)])
+_wmin = min(min(_seg_d(q, _dense[i], _dense[i + 1]) for i in range(len(_dense) - 1)) for q in _pi[1:])
+check('back edge: an elliptical round (3 x 5.5 mm), walls still 1.5 mm or more all through it', _wmin >= 1.5 - 0.01, f'thinnest {_wmin:.2f} mm')
 check('stack adds up: panel + rim + Waveshare to its socket + ONE SLIM + 0.1 + back wall = 16.5',
       abs(o.PANEL_T + s.RIM + s.WS_SOCKET + s.ONE_T + 0.1 + s.BACK_WALL - s.DEPTH) < 1e-9)
 
@@ -115,6 +129,12 @@ for n, c in caps.items():
     tip = c.bounding_box()[5]
     check(f'{n} cap: stem stops {o.PRETRAVEL} mm above its switch', abs((s.Z_ONE - o.SW_H) - tip - o.PRETRAVEL) < 0.01, f'tip z {tip:.2f}')
     check(f'{n} cap: captured, clears panel', clash(c ^ s.box(-60, 60, -80, 70, o.COLLAR_Z, o.COLLAR_Z + 1.5), front) < 0.01 and clash(c, panel) < 0.01)
+_wl = caps['left wing']
+_mid = thinnest(_wl, -3, 0, (-o.WING_X, o.WING_Y + 3.5)); _rim = thinnest(_wl, -3, 0, (-o.WING_X, o.WING_Y + 6.0))
+check('wing caps: dished (the middle sits lower than the rim), rim 1.8 mm proud', _rim - _mid > 0.25 and abs(_wl.bounding_box()[2] + o.WING_PROUD) < 0.02, f'rim {_rim:.2f}, toward the middle {_mid:.2f} mm above z 0')
+_rk = caps['rocker']
+_c = thinnest(_rk, -3, 0, (6.0, o.ROCKER_Y + 2.5)); _e = thinnest(_rk, -3, 0, (19.0, o.ROCKER_Y - 2.8))
+check('rocker: domed (its ends lower than its middle), ends still 1.2 mm proud', _c - _e > 0.25 and _e >= 1.2, f'middle {_c:.2f}, end {_e:.2f} mm proud')
 
 # ---- edge keys and USB (from the Waveshare 3D model) ----------------------------------------------------------
 check('pin holes line up with the three edge keys (actuators 7.1-9.3 mm behind the glass)',
@@ -123,8 +143,8 @@ _u = s.WS_TALL['USB-C']
 check('USB-C opening centred on the socket', clash(s.box(-4.0, 4.0, o.BCY + o.BH / 2 - 6.0, o.Y_TOP + 1, s.Z_GLASS + 6.7, s.Z_GLASS + 10.75), shells) < 0.01)
 
 # ---- builder's jigs -------------------------------------------------------------------------------------------------
-pj = s.panel_jig()
-check('panel jig: the panel drops into its window with 0.15 mm all round', clash(pj, panel) < 0.01 and clash(pj, shells) < 0.01)
+check('the name on the back: 0.35 mm deep, 1.1 mm of back wall left under it', abs(s.TEXT_DEPTH - 0.35) < 1e-9 and s.BACK_WALL - s.TEXT_DEPTH >= 1.1 and vol(s.back_text() ^ back) < 0.01)
+check('openings chamfered 0.5 mm on the outside (USB-C, power button, pin holes)', vol(s.chamfers() ^ shells) < 0.01)
 jig = s.pin_jig()
 check('pin jig: holds every pin at PIN_OUT and keeps clear of the board (one way only: fence on the strip end and edge)',
       clash(jig, s.one_board_drilled()) < 0.01 and clash(jig, pins) < 0.01)

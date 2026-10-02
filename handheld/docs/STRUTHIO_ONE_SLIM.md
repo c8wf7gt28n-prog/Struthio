@@ -3,6 +3,17 @@
 The ONE, 16.5 mm thick instead of 23.0. Same outline (74 × 136 mm), same face panel, same buttons and
 rocker, same game. What changed is everything behind the face.
 
+**Case rev S3 (with board rev S2) is the finished build.** S3 added the finish:
+
+| | |
+|---|---|
+| Face | the panel sits in a pocket inside a 1.0 mm lip, 2.6 mm wide, flush with it, 0.2 mm clear all round: its edge is covered and it lines itself up (the panel jig is gone). The panel files are recalculated for the pocket |
+| Back edge | an elliptical round, 3 mm across the back and 5.5 mm up the side (it was a 3 mm circle): the side you see is shorter, so it looks thinner. The inside follows it, so every wall is still 1.5 mm or more |
+| Buttons | wings dished 0.5 mm, the rocker domed along its length (ends 0.5 mm lower), all top edges rounded 0.5 mm, engravings 0.4 mm deep following the curves |
+| Back | engraved STRUTHIO and R.A. PEDDYCOART, 0.35 mm deep (1.15 mm of wall left under them) |
+| Details | 0.5 mm chamfers round USB-C, the power button and the pin holes; lead-ins on the tongue and the groove so the shells find each other |
+| Firmware | the picture fades up when it starts, dims slowly, wakes quickly, and fades out after a goodbye chime when it switches itself off |
+
 **Rev S2 is the foolproof build.** Start with `STRUTHIO_ORDER.md` (one shopping list) and the Windows 11 manual
 (`STRUTHIO_ONE_SLIM_Build_Manual_Windows11.pdf`, package 5). This page is the design reference behind them.
 
@@ -26,8 +37,9 @@ Files:
 
 | What | Where |
 |---|---|
-| Case model and its checks | `cad/slim/slim_cad.py`, `cad/slim/check_slim.py` (61 checks, all pass) |
-| Printed parts | `cad/slim/stl/` (front, back, two wing caps, rocker, power button, pin jig, panel jig) |
+| Case model and its checks | `cad/slim/slim_cad.py`, `cad/slim/check_slim.py` (68 checks, all pass) |
+| Printed parts | `cad/slim/stl/` (front, back, two wing caps, rocker, power button, pin jig) |
+| Face panel files | `cad/slim/panel/` (the SLIM's own: it sits in a pocket, so it is cut smaller than the ONE's) |
 | Board (KiCad 7) | `pcb/slim/make_slim_pcb.py` → `pcb/slim/out/` (Gerbers zip, BOM, CPL, DRC report, pictures) |
 | Firmware | the same as the ONE (`firmware/`), it works in both |
 
@@ -126,7 +138,7 @@ The Windows 11 manual has every step with a picture and a check. In short:
 6. **Close**: tongue into the groove, 5 × M2 × 6.
 7. **Power on**: press the button on the left side. The first power-on check walks you through every button, the
    power button, the speaker and the battery. Both wings to play.
-8. **Face panel**: drop the panel jig over the case, peel, place the panel in its window, press, lift the jig.
+8. **Face panel**: peel the liner, drop the panel into its pocket inside the lip, press from the middle out.
 
 ## 6. Battery and run time
 

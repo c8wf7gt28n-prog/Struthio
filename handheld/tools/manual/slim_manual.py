@@ -205,7 +205,7 @@ def build(out_pdf):
         H.append(f'<div class="cover"><div><h1 class="first">STRUTHIO ONE SLIM</h1><div class="sub">Build manual · Windows 11 · every step in build order</div></div>'
                  f'{img(os.path.join(REN, "slim_hero.png"), crop_dark=True, maxh="150mm")}'
                  f'<div style="font-size:9pt;color:#4a5866">16.5 mm thin. One click to flash, one soldering job, one screw size. The handheld checks itself the first time you switch it on.<br>'
-                 f'Rev S2 · commit {COMMIT} · {TODAY}</div></div>')
+                 f'Case rev S3 · board rev S2 · commit {COMMIT} · {TODAY}</div></div>')
         H.append('<h1>Contents</h1><table class="toc">' + ''.join(
             f'<tr><td><b>Part {k}</b></td><td>{x}</td></tr>' for k, x in enumerate([
                 'The whole build at a glance', 'What you need', 'Order and make the parts', 'Put the game on the board',
@@ -234,7 +234,7 @@ def build(out_pdf):
                  '<h2>Made for you (Part 3)</h2><table><tr><th>✓</th><th>Item</th><th>From</th></tr>' + ''.join(
             f'<tr><td>☐</td><td><b>{a}</b></td><td>{b}</td></tr>' for a, b in [
                 ('ONE SLIM board', 'JLCPCB, assembled, 0.8 mm (package 3)'), ('Face panel', 'an acrylic shop (package 2)'),
-                ('8 printed parts', 'your printer or a print service (package 4)')]) + '</table>'
+                ('7 printed parts', 'your printer or a print service (package 4)')]) + '</table>'
                  '<h2>Tools</h2><ul class="tick"><li>A soldering iron and solder (12 pins and 2 pads)</li><li>Flush cutters</li>'
                  '<li>A small Phillips screwdriver (PH0)</li><li>A paperclip (only for re-flashing through the case later)</li>'
                  '<li>A Windows 11 computer with internet access</li></ul>')
@@ -245,9 +245,9 @@ def build(out_pdf):
                  '<li>Turn on <b>PCB Assembly</b>, top side. Upload <code>BOM_JLCPCB.csv</code> and <code>CPL_JLCPCB.csv</code>: six small parts, all surface-mount.</li>'
                  '<li>In the placement preview, <b>J2</b>\'s opening faces the board\'s <b>right</b> edge (compare with the picture). Rotate in 90° steps if not.</li></ol>'
                  + fig(png(bt, '50%'), 'The board as ordered (top side, seen from the front of the handheld)', 'diag')
-                 + '<h2>The face panel (package 2)</h2><p>Send an acrylic shop the files and this sentence: <b>1.0 mm clear cast acrylic, cut to the DXF, reverse-printed '
+                 + '<h2>The face panel (package 2, folder ONE_SLIM)</h2><p>The SLIM's own panel files (it sits in a pocket, so it is cut smaller than the ONE's). Send an acrylic shop the files and this sentence: <b>1.0 mm clear cast acrylic, cut to the DXF, reverse-printed '
                  '(colour, then white) from the mirrored PNG, window left clear; clear adhesive transfer tape (3M 468MP) laminated on the back, except over the window.</b></p>'
-                 + '<h2>The printed parts (package 4, folder ONE_SLIM)</h2><p>Front shell, back shell, two wing buttons, rocker, power button, pin jig, panel jig. '
+                 + '<h2>The printed parts (package 4, folder ONE_SLIM)</h2><p>Front shell, back shell, two wing buttons, rocker, power button, pin jig. '
                  'PETG (or ASA), 0.2 mm layers, 4 walls, 6 top and bottom layers, 40 % infill. No printer? Upload the STLs to a print service and ask for '
                  '<b>MJF nylon (PA12)</b> or <b>PETG</b>; not resin, which is too brittle for the screws.</p>' + fig(M.d_bed(), 'How the shells and buttons sit on the bed', 'diag'))
         H.append('<h1>Put the game on the board</h1><p class="part">Part 4 · as soon as the screen board arrives, before you build it in</p>'
@@ -313,9 +313,10 @@ def build(out_pdf):
                  + fig(d_power(), 'Power from now on', 'diag')
                  + step(11, 'Charge', '', '<p>Plug USB-C in, on or off. The cell charges at 100 mA: about 3 hours from empty.</p>', check='Plugged in, it keeps running and never switches itself off.'))
         H.append('<h1>Fit the face panel</h1><p class="part">Part 8 · last</p>'
-                 + step(12, 'Panel, with its jig', img(st('s10_panel'), crop_dark=True),
-                        '<p>Drop the printed panel jig over the front of the case (its skirt hugs the sides). Peel the panel\'s back liner, drop the panel into the jig\'s window, '
-                        'press it down from the middle outward, lift the jig off. Peel the front film.</p>', check='The panel sits flat; every button moves freely in its well.'))
+                 + step(12, 'Panel into its pocket', img(st('s10_panel'), crop_dark=True),
+                        '<p>Peel the panel\'s back liner. Drop it into the pocket in the front of the case: the 1 mm lip all round lines it up, and it only goes in one way '
+                        '(the button wells fit their buttons). Press it down from the middle outward. Peel the front film.</p>',
+                        check='The panel sits flush with the lip all round; every button moves freely in its well.'))
         H.append('<h1>How to play</h1><p class="part">Part 9</p>' + fig(d_controls(), 'The controls, and what is on the sides', 'diag')
                  + '<div class="two">' + fig(png(os.path.join(CAP, 'fw_play.png'), '70%'), 'The game running', 'real')
                  + '<div><h2>The controls</h2><table><tr><th>Press</th><th>Does</th></tr>'
@@ -348,7 +349,7 @@ def build(out_pdf):
                          ('Standoffs threaded M2', 'the 3D model says SMT M2 nuts', 'if a screw won\'t bite, use a slightly longer one'),
                          ('Power button reaches its key', 'tip 0.2 mm from it, 0.6 mm travel', 'a drop of glue + 0.3 mm shim on the tip'),
                          ('302535 size', '3.0 × 25 × 38 mm with its board', 'any 3.0 mm cell up to 34 × 52 mm fits the bay')]) + '</table>'
-                 + f'<p style="font-size:8.5pt;color:#6b7783">STRUTHIO ONE SLIM build manual · rev S2 · commit {COMMIT} · {TODAY}. Made from the design files by tools/manual/slim_manual.py.</p>')
+                 + f'<p style="font-size:8.5pt;color:#6b7783">STRUTHIO ONE SLIM build manual · case rev S3, board rev S2 · commit {COMMIT} · {TODAY}. Made from the design files by tools/manual/slim_manual.py.</p>')
         doc = f'<!doctype html><html><head><meta charset="utf-8"><title>STRUTHIO ONE SLIM build manual</title><style>{CSS}</style></head><body>{"".join(H)}</body></html>'
         hp = os.path.join(t, 'manual.html'); open(hp, 'w', encoding='utf-8').write(doc)
         subprocess.check_call(['node', os.path.join(HH, 'tools', 'package', 'html2pdf.mjs'), hp, out_pdf])

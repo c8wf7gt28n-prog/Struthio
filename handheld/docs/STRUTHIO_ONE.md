@@ -153,7 +153,7 @@ Work on a soft cloth. Nothing needs force.
 13. **Charge.** Plug USB-C in **with the switch ON**. With the switch OFF the battery is disconnected: USB runs the
     handheld but doesn't charge the cell.
 14. **Face panel, last.** Peel the protective film off the back, put tape on the black areas only, line the panel up
-    inside the rim (the button wells over the buttons) and press it down from the middle outward. Peel the front film.
+    2.4 mm in from the case's edge all round (the button wells over the buttons) and press it down from the middle outward. Peel the front film.
 
 ## If something is wrong
 

@@ -316,7 +316,7 @@ enum { IDLE_DIM_MS = 30000, IDLE_OFF_MS = 5 * 60 * 1000, LOW_BATT_MV = 3300, LOW
 int app_brightness(void) { return g_bright; }
 void app_set_brightness(int level) {
     g_bright = ((level % APP_BRIGHT_LEVELS) + APP_BRIGHT_LEVELS) % APP_BRIGHT_LEVELS;
-    if (g_backlight_on) board_backlight(BRIGHT_PERCENT[g_bright]);
+    if (g_backlight_on) board_backlight_fade(BRIGHT_PERCENT[g_bright], 150);
     app_save_i32("bright", g_bright);
     ESP_LOGI(TAG, "brightness %d %%", BRIGHT_PERCENT[g_bright]);
 }
@@ -336,7 +336,7 @@ static bool read_model_strap(void) {
 void app_backlight_on(void) {
     if (g_backlight_on) return;
     g_backlight_on = true;
-    board_backlight(BRIGHT_PERCENT[g_bright]);
+    board_backlight_fade(BRIGHT_PERCENT[g_bright], 300);                 // the picture fades up
     ESP_LOGI(TAG, "first frame lit %lu ms after reset", (unsigned long)app_now_ms());
 }
 static void power_task(void *arg) {
@@ -347,16 +347,17 @@ static void power_task(void *arg) {
         vTaskDelay(pdMS_TO_TICKS(100));
         if (!g_backlight_on) continue;
         uint32_t idle = app_now_ms() - g_last_input_ms;
-        if (!dim && idle >= IDLE_DIM_MS) { dim = true; board_backlight(DIM_PERCENT); }
-        else if (dim && idle < IDLE_DIM_MS) { dim = false; board_backlight(BRIGHT_PERCENT[g_bright]); }
+        if (!dim && idle >= IDLE_DIM_MS) { dim = true; board_backlight_fade(DIM_PERCENT, 800); }          // a slow dim
+        else if (dim && idle < IDLE_DIM_MS) { dim = false; board_backlight_fade(BRIGHT_PERCENT[g_bright], 120); }   // a quick wake
         if (n % 10) continue;                                  // the battery once a second
         board_power_t pw;
         if (!board_power_read(&pw) || pw.vbus_present) { low = 0; continue; }   // on USB: never switch off
         low = (pw.battery_present && pw.battery_mv > 0 && pw.battery_mv < LOW_BATT_MV) ? low + 1 : 0;
         if (idle >= IDLE_OFF_MS || low >= LOW_BATT_SECONDS) {
             ESP_LOGW(TAG, "switching off: %s", low ? "battery low" : "no button for 5 min");
-            board_backlight(0);
-            vTaskDelay(pdMS_TO_TICKS(20));
+            app_audio_test(ST_EV_RING);                                  // a goodbye chime, then the picture fades out
+            board_backlight_fade(0, 400);
+            vTaskDelay(pdMS_TO_TICKS(500));
             board_power_off();
         }
     }

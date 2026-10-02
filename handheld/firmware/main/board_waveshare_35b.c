@@ -183,6 +183,16 @@ void board_display_flip(bool flip) {
     esp_lcd_panel_mirror(s_panel, flip, flip);   // MADCTL: rows and columns reversed; bands still arrive in order
 }
 
+void board_backlight_fade(uint8_t percent, int ms) {
+    static bool fades;
+    if (!s_panel) return;
+    if (!fades) fades = ledc_fade_func_install(0) == ESP_OK;
+    if (!fades || ms <= 0) { board_backlight(percent); return; }
+    if (percent > 100) percent = 100;
+    ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, (uint32_t)percent * 1023u / 100u, ms);
+    ledc_fade_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, LEDC_FADE_NO_WAIT);
+}
+
 void board_backlight(uint8_t percent) {
     if (!s_panel) return;
     if (percent > 100) percent = 100;

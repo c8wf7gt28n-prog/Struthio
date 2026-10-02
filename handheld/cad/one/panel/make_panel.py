@@ -21,7 +21,14 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..'))
+# STRUTHIO_MODEL=slim: the ONE SLIM's panel (it sits in a pocket, so it is a little smaller), written to cad/slim/panel
+MODEL = os.environ.get('STRUTHIO_MODEL', 'one')
+if MODEL == 'slim':
+    sys.path.insert(0, os.path.join(HERE, '..', '..', 'slim'))
+    import slim_cad                                              # sets one_cad's numbers to the SLIM's
 import one_cad as o
+OUT = HERE if MODEL == 'one' else os.path.join(HERE, '..', '..', 'slim', 'panel')
+os.makedirs(OUT, exist_ok=True)
 
 ART = os.path.join(HERE, '..', '..', '..', '..', 'arcade', 'assets', 'art')
 DPI = 600
@@ -275,8 +282,8 @@ cut.paste(0, (0, 0), window)
 
 def save(img, name):
     if os.environ.get('PANEL_PREVIEW'): return                  # preview runs never touch the deliverables
-    if os.environ.get('PANEL_PREVIEW'): return                  # preview runs never touch the deliverables
-    img.save(os.path.join(HERE, name), dpi=(DPI, DPI), optimize=True); print('wrote', name, img.size)
+    name = name.replace('one_', MODEL + '_', 1)
+    img.save(os.path.join(OUT, name), dpi=(DPI, DPI), optimize=True); print('wrote', name, img.size)
 
 pr = art.convert('RGBA'); pr.putalpha(ink)
 save(pr, 'one_panel_print.png')
@@ -290,8 +297,8 @@ for r in [outer] + holes: dp.line([px(x, y) for x, y in np.vstack([r, r[:1]])], 
 dp.rounded_rectangle(rrect_box(0, o.BCY, WIN_W, WIN_H), radius=L(WIN_R), outline=(0, 170, 255), width=5)
 if os.environ.get('PANEL_PREVIEW'):
     proof.crop((0, int(H * 0.62), W, H)).resize((W // 3, (H - int(H * 0.62)) // 3), Image.LANCZOS).save(os.environ['PANEL_PREVIEW']); sys.exit(0)
-proof.resize((W // 3, H // 3), Image.LANCZOS).save(os.path.join(HERE, 'one_panel_proof.png'), optimize=True)
-print('wrote one_panel_proof.png')
+proof.resize((W // 3, H // 3), Image.LANCZOS).save(os.path.join(OUT, f'{MODEL}_panel_proof.png'), optimize=True)
+print(f'wrote {MODEL}_panel_proof.png')
 
 # cut files ----------------------------------------------------------------------------------------------------
 def dxf(path, rs):
@@ -309,13 +316,13 @@ def svg(path, rs):
     open(path, 'w').write(f'<svg xmlns="http://www.w3.org/2000/svg" width="{w:.3f}mm" height="{h:.3f}mm" viewBox="0 0 {w:.3f} {h:.3f}">'
                           f'<g fill="none" stroke="#ff0000" stroke-width="0.1">{paths}</g></svg>\n')
 
-dxf(os.path.join(HERE, 'one_panel_cut.dxf'), [outer] + holes)
-svg(os.path.join(HERE, 'one_panel_cut.svg'), [outer] + holes)
+dxf(os.path.join(OUT, f'{MODEL}_panel_cut.dxf'), [outer] + holes)
+svg(os.path.join(OUT, f'{MODEL}_panel_cut.svg'), [outer] + holes)
 bw, bh = np.ptp(outer[:, 0]), np.ptp(outer[:, 1])
-print(f'wrote one_panel_cut.dxf/.svg  panel {bw:.2f} x {bh:.2f} mm, {len(holes)} cut-outs')
+print(f'wrote {MODEL}_panel_cut.dxf/.svg  panel {bw:.2f} x {bh:.2f} mm, {len(holes)} cut-outs')
 
 # studio sticker (render only): the art clipped exactly, transparent in the window and cut-outs
-st = os.path.join(HERE, '..', '..', '..', 'build', 'one_sticker'); os.makedirs(st, exist_ok=True)
+st = os.path.join(HERE, '..', '..', '..', 'build', f'{MODEL}_sticker'); os.makedirs(st, exist_ok=True)
 tex = art.convert('RGBA'); tex.putalpha(cut); tex = tex.resize((W // 2, H // 2), Image.LANCZOS)
 tex.save(os.path.join(st, 'sticker.png'))
 json.dump({'w': X1 - X0, 'h': Y1 - Y0, 'cx': (X0 + X1) / 2, 'cy': (Y0 + Y1) / 2}, open(os.path.join(st, 'sticker.json'), 'w'))
