@@ -102,7 +102,7 @@ def check_idf():
         report('PASS', f'ESP-IDF v{ver} ({exe})')
     else:
         report('WARN', f'ESP-IDF {ver or "version unknown"} found; this build is checked with v5.5.5',
-               'install ESP-IDF v5.5.x (manual, Step 3) if the build fails')
+               'install ESP-IDF v5.5.x (flashing guide, section 4) if the build fails')
     return True
 
 def check_firmware_folder():

@@ -62,14 +62,14 @@ echo  ---------------------------------------------------------------
 echo    1  Check my setup              (doctor: package, ESP-IDF, port)
 echo    2  Find / choose the board's port
 echo    3  Build the firmware          (first time: sets the chip)
-echo    4  GREYBOX test   - build, flash, watch the log   (Step 5)
-echo    5  FULL ART       - build, flash, watch the log   (Step 5)
+echo    4  GREYBOX test   - build, flash, watch the log
+echo    5  FULL ART       - build, flash, watch the log
 echo    6  Quick flash    - program only, keeps art + music
 echo    7  Watch the log  (monitor)     leave with Ctrl + ]
 echo    8  Download-mode help (BOOT + RESET)
 echo    9  Erase the whole board        (clears high score + settings)
-echo    D  Desktop checks (WSL)         (Step 3)
-echo    M  Open the build manual
+echo    D  Desktop checks (WSL)
+echo    M  Open the flashing guide
 echo    F  Open the package folder
 echo    0  Exit
 echo  ---------------------------------------------------------------
@@ -232,11 +232,11 @@ echo  ^> wsl --cd "%HH%" make -C firmware/host_test run
 wsl --cd "%HH%" make -C firmware/host_test run
 echo.
 echo  PASS means: 5 lines starting "PASS", then "GOLDEN REPLAY: all 5 traces bit-exact",
-echo  then "PASS: wing buttons (...)". The manual, Step 3, shows the exact lines.
+echo  then "PASS: wing buttons (...)". The flashing guide, section 4, shows the exact lines.
 goto pause_menu
 
 :manual
-if exist "%ROOT%\manual\STRUTHIO_Build_Manual.pdf" start "" "%ROOT%\manual\STRUTHIO_Build_Manual.pdf"
+if exist "%ROOT%\manual\STRUTHIO_ONE_Flashing_Guide.pdf" start "" "%ROOT%\manual\STRUTHIO_ONE_Flashing_Guide.pdf"
 goto menu
 
 :folder
@@ -257,7 +257,7 @@ echo  %~1 OK.
 exit /b 0
 :result_fail
 echo.
-echo  %~1 FAILED - read the first "error:" line above, then see Step 12 of the manual.
+echo  %~1 FAILED - read the first "error:" line above, then see section 6 of the flashing guide.
 exit /b 1
 
 :need_idf
@@ -269,7 +269,7 @@ echo  ESP-IDF was not found in this window.
 echo  Fix: open the Start menu, run "ESP-IDF 5.5 CMD", then type:
 echo       cd /d "%ROOT%"
 echo       STRUTHIO.bat
-echo  (Install ESP-IDF 5.5.x first if you have not: manual, Step 3.)
+echo  (Install ESP-IDF 5.5.x first if you have not: flashing guide, section 4.)
 exit /b 1
 
 :need_python

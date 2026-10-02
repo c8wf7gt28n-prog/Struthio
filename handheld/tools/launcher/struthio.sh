@@ -25,7 +25,7 @@ find_idf() {
 need_idf() {
   find_idf && return 0
   echo; echo "ESP-IDF was not found. In this terminal run:  . ~/esp/esp-idf/export.sh"
-  echo "(Install ESP-IDF 5.5.x first if you have not: manual, Step 3.)"; return 1
+  echo "(Install ESP-IDF 5.5.x first if you have not: flashing guide, section 4.)"; return 1
 }
 py() { command -v python3 >/dev/null 2>&1 && echo python3 || echo python; }
 need_port() { [ -n "$PORT" ] && return 0; echo; echo "Choose the board's port first (option 2)."; return 1; }
@@ -49,13 +49,13 @@ while true; do
     1  Check my setup              (doctor: package, ESP-IDF, port)
     2  Find / choose the board's port
     3  Build the firmware          (first time: sets the chip)
-    4  GREYBOX test   - build, flash, watch the log   (Step 5)
-    5  FULL ART       - build, flash, watch the log   (Step 5)
+    4  GREYBOX test   - build, flash, watch the log
+    5  FULL ART       - build, flash, watch the log
     6  Quick flash    - program only, keeps art + music
     7  Watch the log  (monitor)     leave with Ctrl + ]
     8  Download-mode help (BOOT + RESET)
     9  Erase the whole board        (clears high score + settings)
-    D  Desktop checks               (Step 3)
+    D  Desktop checks      
     0  Exit
   ---------------------------------------------------------------
 MENU
