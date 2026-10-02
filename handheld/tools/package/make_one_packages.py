@@ -351,7 +351,8 @@ Start with Struthio/handheld/docs/STRUTHIO_ONE.md (the build guide).
     full = os.path.join(dist, f'STRUTHIO_Full_Backup_{commit}.zip'); write(full, entries)
     out = [full]
     if os.path.getsize(full) > PART_LIMIT:
-        groups = [('docs', lambda n: n.startswith(prefix + 'handheld/docs/')),
+        groups = [('renders', lambda n: n.startswith(prefix + 'handheld/docs/renders/')),
+                  ('docs', lambda n: n.startswith(prefix + 'handheld/docs/')),
                   ('cad', lambda n: n.startswith(prefix + 'handheld/cad/')),
                   ('rest', lambda n: True)]
         left = list(entries); k = 0
@@ -360,6 +361,7 @@ Start with Struthio/handheld/docs/STRUTHIO_ONE.md (the build guide).
             if not any(n.endswith('RESTORE.txt') for n, _ in sel): sel.append((f'{prefix}RESTORE.txt', restore.encode()))
             k += 1
             p = os.path.join(dist, f'STRUTHIO_Full_Backup_{commit}_part{k}of{len(groups)}_{name}.zip'); write(p, sel); out.append(p)
+            if os.path.getsize(p) > PART_LIMIT: sys.exit(f'{p} is over the part limit: split it further')
     return out
 
 # ---------------------------------------------------------------------------------------------------------

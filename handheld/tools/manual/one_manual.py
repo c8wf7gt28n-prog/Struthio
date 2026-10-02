@@ -367,9 +367,9 @@ def flash_shot(out):
     for l in lines:
         if not l.strip() or 'VID/PID' in l or l.startswith('Writing at') or l.startswith('NOTE:'): continue
         keep.append(l)
-    want = ['$ python', 'esptool v', 'Connected to ESP32-S3', 'Chip type', 'Stub flasher running', "Writing 'bootloader.bin'", 'Wrote 20848', 'Hash of data verified',
-            "Writing 'struthio.bin'", 'Wrote 608', 'Hash of data verified', "Writing '../handheld/build/assets/struthio.pak'", 'Wrote 8661084', 'Hash of data verified',
-            "Writing '../handheld/build/assets/struthio_music.ima'", 'Wrote 1920020', 'Hash of data verified', 'Hard resetting']
+    want = ['$ python', 'esptool v', 'Connected to ESP32-S3', 'Chip type', 'Stub flasher running', "Writing 'bootloader.bin'", 'Wrote ', 'Hash of data verified',
+            "Writing 'struthio.bin'", 'Wrote ', 'Hash of data verified', "Writing '../handheld/build/assets/struthio.pak'", 'Wrote ', 'Hash of data verified',
+            "Writing '../handheld/build/assets/struthio_music.ima'", 'Wrote ', 'Hash of data verified', 'Hard resetting']
     idx, k = [], 0
     for w in want:
         while k < len(keep) and w not in keep[k]: k += 1
