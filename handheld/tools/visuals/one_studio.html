@@ -29,11 +29,12 @@ const load = (p) => new Promise((ok, no) => loader.load(p, (g) => { g.computeVer
 const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, metalness: 0.05, side: THREE.DoubleSide, ...o });
 const root = new THREE.Group(); root.rotation.y = Math.PI; scene.add(root);
 const names = ['stl/one_front', 'stl/one_back', 'stl/one_wing_left', 'stl/one_wing_right', 'stl/one_rocker',
-  'refs/ref_waveshare', 'refs/ref_one', 'refs/ref_battery', 'refs/ref_speaker', 'refs/ref_switches'];
+  'refs/ref_panel', 'refs/ref_waveshare', 'refs/ref_one', 'refs/ref_battery', 'refs/ref_speaker', 'refs/ref_switches'];
 const geo = Object.fromEntries(await Promise.all(names.map(async (n) => [n.split('/')[1], await load(`assets/one/${n}.stl`)])));
 const M = {
   one_front: mat(shellColor, { roughness: 0.45 }), one_back: mat(shellColor, { roughness: 0.5 }),
   one_wing_left: mat(0xe0a92a, { roughness: 0.35 }), one_wing_right: mat(0xe0a92a, { roughness: 0.35 }), one_rocker: mat(0xe0a92a, { roughness: 0.35 }),
+  ref_panel: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.04, metalness: 0, transparent: true, opacity: 0.07, clearcoat: 1, side: THREE.DoubleSide }),
   ref_waveshare: mat(0x101418, { roughness: 0.2 }), ref_one: mat(0x1f6b3a, { roughness: 0.6 }), ref_battery: mat(0xb9c2cc, { metalness: 0.4, roughness: 0.3 }),
   ref_speaker: mat(0x18181a), ref_switches: mat(0x9aa3ad, { metalness: 0.3 }),
 };
@@ -47,12 +48,12 @@ let art = null;
 try {
   const at = await new THREE.TextureLoader().loadAsync('assets/one/sticker.png'); at.colorSpace = THREE.SRGBColorSpace;
   const b = JSON.parse(await (await fetch('assets/one/sticker.json')).text());
-  art = new THREE.Mesh(new THREE.PlaneGeometry(b.w, b.h), new THREE.MeshStandardMaterial({ map: at, transparent: true, roughness: 0.35 }));
-  art.position.set(b.cx, b.cy, 0.06); scene.add(art);
+  art = new THREE.Mesh(new THREE.PlaneGeometry(b.w, b.h), new THREE.MeshStandardMaterial({ map: at, transparent: true, roughness: 0.3, alphaTest: 0.5 }));
+  art.position.set(b.cx, b.cy, -0.97); scene.add(art);   // printed on the back of the 1 mm acrylic face panel
 } catch (e) { /* no sticker yet */ }
 const show = (list) => { for (const [n, m] of Object.entries(meshes)) m.visible = list.includes(n); };
 const cam = new THREE.PerspectiveCamera(22, W / H, 1, 5000);
-const ALL = Object.keys(meshes), SHELL = ['one_front', 'one_back', 'one_wing_left', 'one_wing_right', 'one_rocker'];
+const ALL = Object.keys(meshes), SHELL = ['ref_panel', 'one_front', 'one_back', 'one_wing_left', 'one_wing_right', 'one_rocker'];
 if (view === 'front') { show(SHELL); cam.position.set(0, -4, 420); }
 else if (view === 'hero') { show(SHELL); cam.position.set(-190, 120, 330); }
 else if (view === 'back') { show(SHELL); screen.visible = false; if (art) art.visible = false; cam.position.set(0, -4, -420); }
@@ -61,8 +62,8 @@ else if (view === 'inside') {   // the front shell from behind, with everything 
   show(['one_front', 'one_wing_left', 'one_wing_right', 'one_rocker', 'ref_waveshare', 'ref_one', 'ref_battery', 'ref_speaker', 'ref_switches']);
   screen.visible = false; if (art) art.visible = false; cam.position.set(110, -60, -380);
 } else if (view === 'exploded') {
-  show(ALL); screen.visible = false; if (art) art.visible = false;
-  const dz = { one_front: 0, one_wing_left: 26, one_wing_right: 26, one_rocker: 26, ref_waveshare: 34, ref_battery: 58,
+  show(ALL); screen.visible = false; if (art) art.position.z += 22;   // the art travels with the panel
+  const dz = { ref_panel: -22, one_front: 0, one_wing_left: 26, one_wing_right: 26, one_rocker: 26, ref_waveshare: 34, ref_battery: 58,
                ref_speaker: 58, ref_one: 82, ref_switches: 82, one_back: 120 };
   for (const [n, z] of Object.entries(dz)) meshes[n].position.z = z;       // root is turned: +z here is toward the back
   cam.position.set(-330, 170, 230);

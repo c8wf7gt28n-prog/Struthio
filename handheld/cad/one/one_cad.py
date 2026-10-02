@@ -5,7 +5,8 @@ Design frame: x to the right and y up as seen from the FRONT, z into the case
 (z = 0 is the front face, z = DEPTH the back face). Units: mm.
 
 What goes in the case, front to back (see docs/STRUTHIO_ONE.md):
-  front shell   z 0 .. Z_SPLIT     face, screen window, key collars, bosses
+  face panel    z 0 .. 1.0         1 mm clear acrylic, art printed on its back (laser-cut, not printed)
+  front shell   z 1.0 .. Z_SPLIT   0.8 mm face, screen window, key collars, bosses
   Waveshare     z 1.8 .. 13.3      glass on the front skin, board back + socket at 13.3
   ONE board     z 15.8 .. 17.4     on the 2.5 mm header body, keys and switch on its front
   battery       z 13.5 .. 18.7     on the Waveshare board's back, beside the ONE strip
@@ -37,6 +38,12 @@ WALL = 1.75             # side wall (board 61.0 in a 65.0 body)
 FRONT_SKIN = 1.8        # front face thickness over the glass
 BACK_WALL = 1.8
 Z_SPLIT = 12.0          # front shell / back shell
+# ---- face panel: one laser-cut 1.0 mm clear acrylic piece, art printed on its back (panel/) ---------------
+# It is the front face: lens over the screen, the art round it, and its cut-outs round the keys make
+# 1 mm wells. The printed shell face sits PANEL_T back, so the case is still DEPTH thick overall.
+PANEL_T = 1.0
+PANEL_INSET = RF + 0.4  # panel edge inside the body outline (on the flat, clear of the edge round-over)
+WELL = 1.6              # panel cut-out beyond each key cap
 
 # ---- Waveshare ESP32-S3-Touch-LCD-3.5B (docs/HARDWARE_FACTS.md) --------------------------------------
 BW, BH, BR = 61.0, 92.44, 6.0          # glass outline
@@ -153,6 +160,10 @@ def keys2d(delta):
 def circle(d, x=0.0, y=0.0, n=48):
     return CS.circle(d / 2, n).translate([x, y])
 
+def panel2d():
+    """face panel: the body inset PANEL_INSET, minus the key wells"""
+    return body2d().offset(-PANEL_INSET, mf.JoinType.Round) - keys2d(WELL)
+
 def board2d(d=0.0):
     return rrect(BW + 2 * d, BH + 2 * d, BR + d, 0, BCY)
 
@@ -217,7 +228,7 @@ def loft(ring, normal, prof):
 
 K = RB  # the core outline sits RB inside the body; every station grows it back out
 def profile_out():
-    p = [(K - RF + math.sqrt(max(0.0, RF * RF - (RF - z) ** 2)), z) for z in np.linspace(0, RF, 9)]
+    p = [(K - RF + math.sqrt(max(0.0, RF * RF - (RF - z) ** 2)), PANEL_T + z) for z in np.linspace(0, RF, 9)]
     p += [(K - RB + RB * math.cos(a), DEPTH - RB + RB * math.sin(a)) for a in np.linspace(0, math.pi / 2, 17)]
     return p
 
@@ -342,6 +353,9 @@ def rocker_cap():
     for sx in (-1, 1): cap += cyl_z(4.0, sx * DART_X, ROCKER_Y, z0 + 0.5, tip)
     return cap - cyl_y(AXLE_D + 0.05, 0, AXLE_Z, ROCKER_Y - 10, ROCKER_Y + 10)
 
+def face_panel():
+    return prism(panel2d(), 0.0, PANEL_T)
+
 def one_board():
     return prism(one2d(), Z_ONE, Z_ONE + ONE_T)
 
@@ -399,7 +413,7 @@ PARTS = {
 }
 
 REFS = {
-    'ref_waveshare': ref_waveshare, 'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker,
+    'ref_panel': face_panel, 'ref_waveshare': ref_waveshare, 'ref_one': one_board, 'ref_battery': ref_battery, 'ref_speaker': ref_speaker,
     'ref_switches': lambda: ref_switches() + psw_box()[0] + psw_box()[1] + ref_ph_socket() + ref_header()[0],
 }
 

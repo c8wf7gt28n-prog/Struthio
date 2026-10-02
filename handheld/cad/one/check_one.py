@@ -32,7 +32,12 @@ b = o.body2d().bounds()
 check('outline: 88 x 134, 65 wide above y -30', abs((b[2] - b[0]) - 88.0) < 0.3 and abs((b[3] - b[1]) - 134.0) < 0.1
       and all(abs(o.wall_x_at(y, 1) + o.WALL - 32.5) < 0.1 for y in np.arange(-28.0, 50.0, 0.5)),
       f'{b[2]-b[0]:.2f} x {b[3]-b[1]:.2f} mm')
-check('thickness 23.0 mm', abs(back.bounding_box()[5] - o.DEPTH) < 0.01 and abs(front.bounding_box()[2]) < 0.01)
+panel = o.face_panel()
+check('thickness 23.0 mm, panel included', abs(back.bounding_box()[5] - o.DEPTH) < 0.01 and abs(panel.bounding_box()[2]) < 0.01)
+pp = [p for p in panel.decompose() if p.volume() > 0.01]
+check('face panel: one piece, 1.0 mm', len(pp) == 1 and abs(panel.bounding_box()[5] - panel.bounding_box()[2] - 1.0) < 0.01)
+check('face panel sits on the shell face', abs(front.bounding_box()[2] - o.PANEL_T) < 0.01 and clash(panel, shells) < 0.01)
+check('face panel stays on the flat, inside the edge round-over', o.PANEL_INSET > o.RF)
 
 # ---- what sits in the case -------------------------------------------------------------------------------
 for n, m in [('Waveshare board', ws), ('ONE board', one), ('battery', bat), ('speaker', spk), ('tact switches', sw),
@@ -53,6 +58,8 @@ for n, c in caps.items():
     check(f'{n} cap: free at rest', clash(c, shells) < 0.5, f'{clash(c, shells):.2f} mm3')
     pressed = c.translate([0, 0, travel])
     check(f'{n} cap: free when pressed {travel:.2f} mm', clash(pressed, shells) < 0.5)
+    check(f'{n} cap: clears the face panel at rest and pressed', clash(c, panel) < 0.01 and clash(pressed, panel) < 0.01)
+    check(f'{n} cap: stands at least 1.5 mm above the panel', c.bounding_box()[2] <= -1.5 + 0.01, f'{-c.bounding_box()[2]:.1f} mm')
     check(f'{n} cap: never touches the board, switch body or speaker', clash(pressed, one + spk + pbody + ph) < 0.01)
     tip = c.bounding_box()[5]
     check(f'{n} cap: stem stops {o.PRETRAVEL} mm above its switch', abs((o.Z_ONE - o.SW_H) - tip - o.PRETRAVEL) < 0.01, f'tip z {tip:.2f}')
