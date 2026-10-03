@@ -238,10 +238,16 @@ def pin_pockets():
         c += box(min(xs) - 1.3, max(xs) + 1.3, min(ys) - 1.3, max(ys) + 1.3, ZIN - 0.05, ZIN + 0.5)
     return c
 
+def inner_grown(d=0.1):
+    """the inside volume grown d into the walls: features clipped to it overlap the wall instead of meeting its
+    surface face to face (which leaves pinched seams once the STL is merged)"""
+    ring, normal = o.ring_from(body2d().offset(-o.K, mf.JoinType.Round))
+    return o.loft(ring, normal, [(r + d, z if z < ZIN - 1e-6 else ZIN + d) for r, z in profile_in()])
+
 def back_shell():
     outer, inner = o.skins()
     shell = (outer ^ box(-100, 100, -100, 100, Z_SPLIT, DEPTH + 1)) - inner
-    add = prism(ring2d(o.WALL - 0.01, o.WALL + LAND), Z_SPLIT, Z_SPLIT + 2.0) - joint_keepout()          # joint land
+    add = prism(ring2d(o.WALL - 0.1, o.WALL + LAND), Z_SPLIT, Z_SPLIT + 2.0) - joint_keepout()           # joint land
     for x, y in WS_SCREWS: add += cyl_z(5.0, x, y, Z_BACK, ZIN + 0.01)                                       # posts onto the standoffs
     for x, y in o.LOWER_SCREWS: add += cyl_z(6.0, x, y, Z_ONE + ONE_T, ZIN + 0.01)
     for x, y in one_pads(): add += cyl_z(3.5, x, y, Z_ONE + ONE_T, ZIN + 0.01)
@@ -252,13 +258,14 @@ def back_shell():
             w = 1.2 if sx < 0 else 0.8                                              # right: 0.2 mm clear of the ONE strip
             add += box(min(xa, xa + sx * w), max(xa, xa + sx * w), min(ya, ya - sy * 4), max(ya, ya - sy * 4), bz, ZIN + 0.01)
             add += box(min(xa, xa - sx * 4), max(xa, xa - sx * 4), min(ya, ya + sy * 1.2), max(ya, ya + sy * 1.2), bz, ZIN + 0.01)
+            add += box(min(xa, xa + sx * w), max(xa, xa + sx * w), min(ya, ya + sy * 1.2), max(ya, ya + sy * 1.2), bz, ZIN + 0.01)   # the corner
     s = SPK                                                                                                 # speaker lip
     cx, cy, w, h = (s['x0'] + s['x1']) / 2, (s['y0'] + s['y1']) / 2, s['x1'] - s['x0'], s['y1'] - s['y0']
     add += prism(rrect(w + 2.4, h + 2.4, 1.2, cx, cy) - rrect(w + 0.4, h + 0.4, 0.3, cx, cy), ZIN - 1.5, ZIN + 0.01)
     add += box(-22.0, 22.0, 51.0, 53.0, Z_BACK, ZIN + 0.01)                                               # stiffening rib over the USB end
     for x, y in CLIPS: add += cyl_z(1.2, x, y, ZIN - 2.5, ZIN + 0.01, 16)                                  # lead clips
     add += tongue()
-    shell = shell + (add ^ (inner + tongue()))
+    shell = shell + (add ^ (inner_grown() + tongue()))
     cut = shared_cuts() + pin_pockets() + chamfers() + back_text()
     for x, y in WS_SCREWS + o.LOWER_SCREWS: cut += csk(x, y)
     for i in range(6):                                                                                      # speaker grille
@@ -299,9 +306,8 @@ def _sphere_c(side):
 def wing_cap(side):
     cx, cy, top, r = side * o.WING_X, o.WING_Y, -o.WING_PROUD, o.BTN_D / 2
     prof = [(0.0, top)] + [(r - TOP_ROUND + TOP_ROUND * math.sin(a), top + TOP_ROUND - TOP_ROUND * math.cos(a)) for a in np.linspace(0, math.pi / 2, 9)]
-    prof += [(r, top + TOP_ROUND + 0.1), (0.0, top + TOP_ROUND + 0.1)]
-    cap = M.revolve(CS([prof]), 96).translate([cx, cy, 0])                                                     # rounded top
-    cap += prism(wing2d(side), top + TOP_ROUND, o.COLLAR_Z) + prism(wing2d(side, o.FLANGE), o.COLLAR_Z, o.COLLAR_Z + 1.0)
+    prof += [(r, o.COLLAR_Z), (r + o.FLANGE, o.COLLAR_Z), (r + o.FLANGE, o.COLLAR_Z + 1.0), (0.0, o.COLLAR_Z + 1.0)]
+    cap = M.revolve(CS([prof]), 96).translate([cx, cy, 0])       # rounded top, body and flange in one piece (no seams)
     R, c = _sphere_c(side)
     cap -= M.sphere(R, 512).translate(list(c))                                                                 # the dish
     cap -= prism(o.glyph2d(side), top - 1, top + 2) ^ M.sphere(R + ENGRAVE, 512).translate(list(c))            # the wing, 0.4 deep

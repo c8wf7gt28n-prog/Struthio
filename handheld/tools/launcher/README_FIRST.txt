@@ -1,36 +1,57 @@
-STRUTHIO - FIRMWARE
-===================
+STRUTHIO - THE SOFTWARE
+=======================
 
-This package puts the STRUTHIO game on the Waveshare ESP32-S3-Touch-LCD-3.5B board.
+This folder puts the STRUTHIO game on the screen board
+(Waveshare ESP32-S3-Touch-LCD-3.5B). You do it once, before you build the board into the case.
 
-1. Unzip the whole package, for example to C:\struthio (Windows) or ~/struthio (macOS / Linux).
 
-2. Plug the board into the computer with a USB-C DATA cable.
+THE ONLY THING YOU NEED TO DO
+-----------------------------
+  1. Unzip the whole package to C:\  (you get C:\struthio). Not inside OneDrive, no spaces in the path.
+  2. Plug the screen board into the computer with a USB-C DATA cable.
+  3. Double-click  FLASH_ME.bat
+     (macOS / Linux: open a terminal in this folder and run  ./flash_me.sh)
+  4. Wait for DONE (about 2 minutes; the first time a few more, while it installs Python and esptool).
+  5. Unplug. The next time the board powers on, its screen walks you through a check of every
+     button, the speaker and the battery.
 
-3. Windows: double-click  FLASH_ME.bat
-   macOS / Linux: open a terminal in this folder and run  ./flash_me.sh
+If it says it cannot find the board: hold BOOT, press and release RESET, release BOOT, run it again.
+If Windows says "Windows protected your PC": More info, then Run anyway (it is a plain text file:
+open it in Notepad to read what it does).
 
-   It installs what it needs the first time (Python and esptool), finds the board by itself,
-   writes the game, its pictures and its music, and checks every byte. About 2 minutes.
 
-4. When it says DONE, unplug the board. The next time it powers on, its screen walks you through
-   a check of every button, the speaker and the battery.
+WHAT IS IN THIS FOLDER
+----------------------
+You use the first two lines. Everything below them is there so the game can be rebuilt, checked
+or changed later; you can ignore it.
 
-If it cannot find the board: hold BOOT, press and release RESET, release BOOT, and let it look again.
+  FLASH_ME.bat               START HERE (Windows): finds the board, writes the game, checks every byte
+  flash_me.sh                the same for macOS and Linux
 
-What is where
--------------
-  FLASH_ME.bat / flash_me.sh       put the ready-made game on the board (start here)
-  prebuilt\                        the game, ready to flash, and flash_args.txt (the addresses)
-  webflash\                        the same thing as a web page (works once it is hosted on https)
-  STRUTHIO.bat / struthio.sh       the build menu, to build the firmware yourself with ESP-IDF 5.5
-  manual\                          the build manual and the flashing guide (PDF)
-  handheld\firmware\               the firmware source (ESP-IDF 5.5)
-  handheld\build\assets\           the art pack and soundtrack (do not edit)
-  handheld\core, render, audio     the game itself (portable C)
-  handheld\host, golden            the desktop checks
-  handheld\tools\struthio_doctor.py   the setup check the menu runs
-  SHA256SUMS.txt                   fingerprints of every file (the doctor uses them)
+  prebuilt\                  the finished game, ready to write to the board
+    bootloader.bin           the board's start-up code
+    partition-table.bin      how the board's 16 MB of flash is divided
+    struthio.bin             the game itself
+    flash_args.txt           which file goes to which address
+  handheld\build\assets\     the game's pictures (struthio.pak) and music (struthio_music.ima);
+                             FLASH_ME writes these too. Do not edit them
 
-The by-hand command, if you ever want it (from the prebuilt folder):
+  webflash\                  the same flasher as a web page (Chrome or Edge); it only works once the
+                             page is hosted on https, so use FLASH_ME instead
+  manual\                    the build manual and the flashing guide (PDF)
+  SHA256SUMS.txt             a fingerprint of every file, so the setup check can tell nothing is damaged
+
+  For building the game yourself (not needed to play):
+  STRUTHIO.bat / struthio.sh the build menu (needs Espressif's ESP-IDF 5.5): build, flash, check the setup
+  handheld\firmware\         the board's program (ESP-IDF project): screen, buttons, sound, power
+  handheld\core\             the game rules (portable C, the same on the board and on a PC)
+  handheld\render\           drawing the picture
+  handheld\audio\            the sound effects and the music player
+  handheld\host\, golden\    desktop checks: the game run on a PC and compared frame by frame
+  handheld\tools\struthio_doctor.py   the setup check the build menu runs
+
+
+BY HAND (only if FLASH_ME cannot be used)
+-----------------------------------------
+From the prebuilt folder, with Python and esptool installed (pip install esptool), COM5 = your port:
     python -m esptool --chip esp32s3 -p COM5 -b 460800 write-flash @flash_args.txt

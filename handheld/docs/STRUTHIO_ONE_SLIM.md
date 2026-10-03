@@ -37,7 +37,7 @@ Files:
 
 | What | Where |
 |---|---|
-| Case model and its checks | `cad/slim/slim_cad.py`, `cad/slim/check_slim.py` (68 checks, all pass) |
+| Case model and its checks | `cad/slim/slim_cad.py`, `cad/slim/check_slim.py` (69 checks, all pass) |
 | Printed parts | `cad/slim/stl/` (front, back, two wing caps, rocker, power button, pin jig) |
 | Face panel files | `cad/slim/panel/` (the SLIM's own: it sits in a pocket, so it is cut smaller than the ONE's) |
 | Board (KiCad 7) | `pcb/slim/make_slim_pcb.py` → `pcb/slim/out/` (Gerbers zip, BOM, CPL, DRC report, pictures) |

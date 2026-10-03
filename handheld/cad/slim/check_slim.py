@@ -155,6 +155,14 @@ pf = o.physical(front)
 slot = o.physical(s.box(-40, -30, s.PWR_Y - 1, s.PWR_Y + 1, s.PLUNGER_Z - 0.8, s.PLUNGER_Z + 0.8))
 check('printed front: power button hole on the player\'s left (physical +x)', slot.bounding_box()[0] > 0 and clash(pf, slot) < vol(slot))
 
+# ---- the printed files, as a print service reads them -------------------------------------------------------
+import glob as _glob, trimesh as _tm
+_bad = []
+for _f in sorted(_glob.glob(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'stl', '*.stl'))):
+    _m = _tm.load(_f)                                   # vertices merged by position, as slicers and quote sites do
+    if not (_m.is_watertight and _m.is_winding_consistent and _m.body_count == 1): _bad.append(_os.path.basename(_f))
+check('every STL is one watertight solid once its vertices are merged (quote sites and slicers accept it as is)', not _bad, ', '.join(_bad))
+
 n_fail = R.count(False)
 print(f"\nSTRUTHIO ONE SLIM CAD CHECK: {'all pass' if not n_fail else f'{n_fail} FAIL'} ({len(R)} checks)")
 sys.exit(1 if n_fail else 0)
