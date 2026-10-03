@@ -67,6 +67,13 @@ if (view === 'front') { show(SHELL); cam.position.set(0, -4, 420); }
 else if (view === 'hero') { show(SHELL); cam.position.set(-190, 120, 330); }
 else if (view === 'back') { show(MODEL === 'slim' ? SHELL.concat(['ref_screws']) : SHELL); screen.visible = false; if (art) art.visible = false; cam.position.set(0, -4, -420); }
 else if (view === 'side') { show(SHELL); cam.position.set(-430, 0, -12); }
+else if (view === 'dir') {      // any direction: ?view=dir&dx=&dy=&dz= (world: +z = the face, -x = the player's left, +y = the USB-C end)
+  const d = new THREE.Vector3(+(q.get('dx') || 0), +(q.get('dy') || 0), +(q.get('dz') || 1)).normalize();
+  show(d.z < -0.2 && MODEL === 'slim' ? SHELL.concat(['ref_screws']) : SHELL);
+  screen.visible = d.z > 0.2; if (art) art.visible = d.z > 0.2;
+  if (Math.abs(d.y) > 0.98) cam.up.set(0, 0, d.y > 0 ? -1 : 1);     // straight down an end: the face up in the picture
+  cam.position.copy(d.multiplyScalar(430));
+}
 else if (view === 'inside') {   // the front shell from behind, with everything that sits in it
   show(['one_front', 'ref_glyphs', 'one_wing_left', 'one_wing_right', 'one_rocker', 'ref_waveshare', 'ref_one', 'ref_battery', 'ref_speaker', 'ref_switches']);
   screen.visible = false; if (art) art.visible = false; cam.position.set(110, -60, -380);
@@ -88,8 +95,11 @@ else if (view === 'inside') {   // the front shell from behind, with everything 
   if (q.has('explode')) { box0 = new THREE.Box3(); for (const [n, z] of Object.entries(dz)) if (meshes[n]) { meshes[n].position.z = z; } box0.setFromObject(root); for (const [n, z] of Object.entries(dz)) if (meshes[n]) meshes[n].position.z = z * k; }
   cam.position.set(-330, 170, 230);
 }
-cam.up.set(0, 1, 0);
+if (view !== 'dir' || Math.abs(cam.position.y) < 0.98 * 430) cam.up.set(0, 1, 0);
 const box = box0 || new THREE.Box3().setFromObject(root), c = box.getCenter(new THREE.Vector3());
+// close-ups: &ty=/&tx= aim at that world point (y = the design's y), &zoom= fills the frame that much more
+if (q.has('ty')) c.y = +q.get('ty'); if (q.has('tx')) c.x = +q.get('tx'); if (q.has('tz')) c.z = +q.get('tz');
+const FILL = 0.86 * +(q.get('zoom') || 1);
 cam.lookAt(c); cam.updateMatrixWorld();
 // fit: scale the camera distance until the projected box fills 86 % of the frame
 const corners = []; for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new THREE.Vector3(x, y, z));
@@ -97,7 +107,7 @@ const dir = cam.position.clone().sub(c);
 for (let i = 0; i < 30; i++) {
   cam.position.copy(c.clone().add(dir)); cam.lookAt(c); cam.updateMatrixWorld();
   let m = 0; for (const p of corners) { const v = p.clone().project(cam); m = Math.max(m, Math.abs(v.x), Math.abs(v.y)); }
-  dir.multiplyScalar(m / 0.86 > 1.02 || m / 0.86 < 0.98 ? m / 0.86 : 1);
+  dir.multiplyScalar(m / FILL > 1.02 || m / FILL < 0.98 ? m / FILL : 1);
 }
 renderer.render(scene, cam);
 window.DONE = true;
