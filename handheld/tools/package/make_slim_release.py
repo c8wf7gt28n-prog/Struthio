@@ -76,9 +76,14 @@ TOLERANCES
 FINISH
   As printed is fine. Optional: dyed black (MJF), or a light bead blast. No paint on the button sides.
 
+ALSO ASK FOR
+  A short piece (5 cm is plenty) of 1.75 mm PETG or PLA filament: the rocker's axle, cut to 11 mm with the jig.
+  Any FDM shop has it; it costs nothing. (Or use any 1.7-1.75 mm rod.)
+
 TEXT TO PASTE INTO THE QUOTE REQUEST
   "Please quote 1 set of the 7 attached STL parts (8 pieces: 2 of slim_power_button, 1 of each other),
-   MJF PA12 (or PETG FDM), standard tolerance, dyed black or natural. Millimetres, watertight, print as is."
+   MJF PA12 (or PETG FDM), standard tolerance, dyed black or natural. Millimetres, watertight, print as is.
+   Please add a 5 cm piece of 1.75 mm filament if you can."
 
 preview\\ shows the finished handheld (from the 3D model).
 """)
@@ -271,7 +276,7 @@ def main():
         lines += [os.path.basename(p), f'    {what[key]}', f'    {os.path.getsize(p) / 1e6:.2f} MB  sha256 {sha(p)}', '']
     lines += ['Also to buy (see 3_Order_List.pdf): the Waveshare ESP32-S3-Touch-LCD-3.5B screen board, a 302535 LiPo cell',
               '(PH 2.0 plug), a plug-in 1 W 8 ohm cavity speaker (1.25 mm plug), 5 x M2 x 6 countersunk screws, a 2.54 mm',
-              'header strip, 1.0 mm double-sided foam tape.']
+              'header strip, 1.0 mm double-sided foam tape, 5 cm of 1.75 mm filament (the rocker axle).']
     text(os.path.join(dist, 'READ_ME_FIRST.txt'), '\n'.join(lines))
     print('\n'.join(lines))
 
