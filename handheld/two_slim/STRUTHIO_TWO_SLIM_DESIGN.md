@@ -133,6 +133,8 @@ The firmware never starts the camera, SD card, RTC or IMU, so their absence is i
 | Step | Output | Depends on |
 |---|---|---|
 | 1. This spec | done | |
+| 3a. Netlist + schematic | **done (v0.1)**: `netlist.py` (114 parts, 87 nets) → `make_two_slim_sch.py` → `out/struthio_two_slim.kicad_sch` + PDF; KiCad's own netlist read back matches pin for pin | |
+| 4a. Floorplan | **done (v0.1)**: `floorplan.py` → `out/floorplan.png`; board 69.6 × 131.5 mm in the SLIM case, every area on the board, nothing overlapping | |
 | 2. Panel RFQ | an answer from Jinghua or Startek, a datasheet | |
 | 3. Schematic (KiCad, generated like the SLIM board) | ERC clean, every value from the reference | 2 for the FPC pin order |
 | 4. Floorplan + case | board outline and placement inside the 74 × 136 case; case model at ~11-12 mm with checks | 3 |
