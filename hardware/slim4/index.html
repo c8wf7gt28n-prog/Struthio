@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#0b1012">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="STRUTHIO VIS">
+  <title>STRUTHIO Hardware Visualization Studio 1.0 · Layered Project · R24</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="eye.css">
+</head>
+<body>
+<div id="app">
+  <header class="studioBar">
+    <div class="brand"><b>STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.0</span></div>
+    <div class="headerTools">
+      <button type="button" class="eyeBtn" id="eyeBtn" aria-pressed="true" aria-label="Toggle Eye mode"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg><span>EYE</span></button>
+      <div class="sourceStatus" id="sourceStatus" aria-label="Source authority status"><span class="srcCase">CASE R10</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ✓</span></div>
+      <button type="button" class="aboutBtn" id="aboutBtn" aria-label="About STRUTHIO Visualization Studio">i</button>
+    </div>
+  </header>
+
+  <main class="studioStage">
+    <section class="viewport" id="viewport">
+      <canvas id="view" aria-label="Interactive STRUTHIO hardware model"></canvas>
+      <div class="reticle" aria-hidden="true"></div>
+      <canvas id="eyeLayer" aria-hidden="true"></canvas>
+      <div class="eyeTools" id="eyeTools">
+        <button type="button" id="toolFlip" aria-label="Flip to the other side of the board"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.7M20 4v4.7h-4.7M20 12a8 8 0 0 1-13.7 5.6L4 15.3M4 20v-4.7h4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>FLIP</span></button>
+        <button type="button" id="toolMode" aria-label="Cycle display mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 8l9 5 9-5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span id="toolModeLbl">SOLID</span></button>
+        <button type="button" id="toolHome" aria-label="Reset the camera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>HOME</span></button>
+      </div>
+      <section class="eyeSheet" id="eyeDeck" aria-label="Details">
+        <div class="deckTabs" role="tablist">
+          <button type="button" data-tab="tour" class="on">DETAILS</button><button type="button" data-tab="find">FIND</button><button type="button" data-tab="send">SEND</button>
+          <button type="button" id="deckClose" class="close" aria-label="Close details">×</button>
+        </div>
+        <div class="deckBody">
+          <div class="pane on" id="paneTour"><div class="stopDetail" id="stopDetail"></div></div>
+          <div class="pane" id="paneFind">
+            <input id="findInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="U1 · ESP32 · 3V3_SYS" aria-label="Search parts and nets">
+            <div class="cats" id="findCats"></div>
+            <div class="findCount" id="findCount"></div>
+            <div class="findList" id="findList"></div>
+          </div>
+          <div class="pane" id="paneSend">
+            <p class="lead">Press SNAP, then press and hold the picture to copy it into the chat. The code lets me reopen your exact view.</p>
+            <div class="sendRow"><button type="button" id="snapBtn2" class="go">SNAP THIS VIEW</button><a id="snapSave" class="btn" hidden>SAVE PNG</a></div>
+            <div id="snapOut" class="snapOut"></div><p id="snapHint" class="hint" hidden>Press and hold the image to copy or save it.</p>
+            <label class="fld">VIEW CODE<textarea id="codeOut" rows="2" readonly spellcheck="false"></textarea></label>
+            <button type="button" id="copyCode">COPY</button>
+            <label class="fld">PASTE A CODE FROM CLAUDE<textarea id="pasteIn" rows="2" spellcheck="false" placeholder="STR|0,-1.2,160,0,-18,0|SOLID|build.assembled|U1,U2||note"></textarea></label>
+            <div class="sendRow"><button type="button" id="applyCode" class="go">APPLY</button><span id="pasteMsg" class="hint"></span></div>
+          </div>
+        </div>
+      </section>
+      <section class="eyeDock" id="eyeBar" data-basis="FILE" aria-label="Views">
+        <div class="capRow">
+          <button type="button" id="eyeTitle" class="cap" aria-expanded="false"><i class="dot" aria-hidden="true"></i><small id="eyeIdx">01/12</small><b id="eyeName">WHOLE BOARD</b><span id="eyeGist"></span></button>
+          <button type="button" id="tabFind" class="ic" aria-label="Find a part or net"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+          <button type="button" id="tabSend" class="ic" aria-label="Send a snapshot to Claude"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h4l1.6-2.5h5.8L16.5 8h4v11h-17Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.2" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        </div>
+        <div class="reel" id="reel"></div>
+      </section>
+      <div class="plotView" id="plotView" hidden><div class="plotZoom" id="plotZoom"><button type="button" data-w="100" class="on">FIT</button><button type="button" data-w="220">2×</button><button type="button" data-w="450">4×</button></div><button type="button" id="plotClose" aria-label="Close plot">×</button><div class="plotScroll"><img id="plotImg" alt="KiCad rear plot of R21, mirrored"></div></div>
+
+      <div class="telemetry topLeft" id="viewReadout">θ -37° · φ 47° · Z 290</div>
+      <div class="telemetry topRight" id="modeReadout">SOLID</div>
+      <div class="telemetry bottomLeft" id="selectedReadout">SEL BOARD</div>
+      <div class="telemetry stackReadout" id="stackReadout">BUILD · ASSEMBLED</div>
+      <div class="telemetry bottomRight" id="fpsReadout">165 PARTS</div>
+
+      <div class="gestureHint" id="gestureHint"><b>1F</b> orbit · <b>2F</b> move · <b>pinch</b> zoom · <b>2×</b> home</div>
+
+      <aside class="viewWindow" id="viewWindow" aria-label="Movable PCB inspector">
+        <div class="windowBar" id="windowBar">
+          <span>HARDWARE / PCB INSPECTOR</span>
+          <div class="windowActions">
+            <button type="button" id="windowHome" title="Return inspector to home position" aria-label="Return inspector to home position">↗</button>
+            <button type="button" id="windowMin" aria-expanded="true" title="Collapse inspector" aria-label="Collapse inspector">−</button>
+          </div>
+        </div>
+        <div class="windowBody" id="windowBody">
+          <div class="searchRow">
+            <input id="partSearch" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="U1 · J2 · SW1" aria-label="Find PCB reference">
+            <button type="button" id="findPart">FIND</button>
+          </div>
+          <div class="partInfo" id="partInfo">Tap a component, trace, or via — or search a reference.</div>
+          <div class="boardStats" id="boardStats"></div>
+          <div class="authorityMap" id="authorityMap" aria-label="Fabrication source map">
+            <div><span>CASE</span><b id="caseSource">R10 · FRONT CAD</b></div>
+            <div><span>PCB</span><b id="pcbSource">R21 · NOT FAB</b></div>
+            <div><span>ACRYLIC</span><b id="artSource">CLEAR FILM · 0.20*</b></div>
+          </div>
+          <label class="referenceToggle"><input id="referenceToggle" type="checkbox"><span>SHOW R3 CASE CAD · REFERENCE ONLY</span></label>
+          <div class="microTools">
+            <label>EXPLODE <output id="explodeOut">0</output><input id="explode" type="range" min="0" max="30" step="1" value="0"></label>
+            <label>FRONT SLICE <output id="sliceOut">14</output><input id="slice" type="range" min="-6" max="14" step="0.5" value="14"></label>
+          </div>
+          <div class="fileTools">
+            <label class="fileControl">LOAD PCB<input id="fileInput" type="file" accept=".kicad_pcb,.json,application/json,text/plain"></label>
+            <button type="button" id="resetModel">R24</button>
+            <button type="button" id="snapBtn">PNG</button>
+          </div>
+        </div>
+      </aside>
+
+      <nav class="buildStack" id="buildStack" aria-label="Physical build stack from front to rear">
+        <div class="stackHead"><b>BUILD</b><button type="button" id="layersBtn" aria-expanded="false">LAYERS</button><span id="stackSourceBadge">FILE</span></div>
+        <section class="layerPanel" id="layerPanel" aria-label="Three parent layers and sublayers" hidden>
+          <div class="layerPanelHead"><b>VISIBILITY LAYERS</b><button type="button" id="layersClose" aria-label="Close layers">×</button></div>
+          <div class="layerGroups">
+            <details class="layerGroup" open>
+              <summary><label><input type="checkbox" data-parent="case" checked><b>CASE</b></label><span>R10 FRONT</span></summary>
+              <label class="layerChild"><input type="checkbox" data-layer="shell" checked> Front shell</label>
+              <label class="layerChild"><input type="checkbox" data-layer="display"> LCD module</label>
+              <label class="layerChild"><input type="checkbox" data-layer="lens"> Protective lens</label>
+              <label class="layerChild"><input type="checkbox" data-layer="controls"> Molded controls</label>
+              <div class="layerPending">Rear shell · speakers · battery · chambers pending</div>
+            </details>
+            <details class="layerGroup" open>
+              <summary><label><input type="checkbox" data-parent="pcb" checked><b>PCB</b></label><span>R21</span></summary>
+              <label class="layerChild"><input type="checkbox" data-layer="pcb" checked> Board substrate</label>
+              <label class="layerChild"><input type="checkbox" data-layer="frontParts" checked> Front components</label>
+              <label class="layerChild"><input type="checkbox" data-layer="backParts" checked> Rear components</label>
+              <label class="layerChild"><input type="checkbox" data-layer="copper" checked> Copper · pads · vias</label>
+            </details>
+            <details class="layerGroup" open>
+              <summary><label><input type="checkbox" data-parent="acrylic" checked><b>ACRYLIC</b></label><span>FILM</span></summary>
+              <label class="layerChild"><input type="checkbox" data-layer="acrylic" checked> Clear face film*</label>
+              <div class="layerPending">Print · white ink · relief · adhesive pending</div>
+            </details>
+          </div>
+          <small class="layerNote">*0.20 mm assumed. Pending layers have no geometry yet.</small>
+        </section>
+        <div class="stackWheel" id="stackWheel" role="listbox" aria-label="Build stack layer">
+          <button data-value="build.assembled" data-source="build"><small>BUILD</small><b>PCB + FRONT</b></button>
+          <button data-value="art.clear" data-source="art"><small>FILM</small><b>CLEAR FACE</b></button>
+          <button data-value="art.relief" data-source="art"><small>ART</small><b>RELIEF</b></button>
+          <button data-value="art.print" data-source="art"><small>ART</small><b>PRINT</b></button>
+          <button data-value="art.white" data-source="art"><small>ART</small><b>WHITE</b></button>
+          <button data-value="art.adhesive" data-source="art"><small>ART</small><b>ADHESIVE</b></button>
+          <button data-value="case.front" data-source="case"><small>CASE</small><b>FRONT</b></button>
+          <button data-value="case.window" data-source="case"><small>CASE</small><b>LCD MODULE</b></button>
+          <button data-value="case.lens" data-source="case"><small>CASE</small><b>LENS</b></button>
+          <button data-value="case.controls" data-source="case"><small>CASE</small><b>CONTROLS</b></button>
+          <button data-value="pcb.top" data-source="pcb"><small>PCB</small><b>COMP +</b></button>
+          <button data-value="pcb.fcu" data-source="pcb"><small>PCB</small><b>F.Cu</b></button>
+          <button data-value="pcb.inner" data-source="pcb"><small>PCB</small><b>INNER</b></button>
+          <button data-value="pcb.core" data-source="pcb"><small>PCB</small><b>CORE</b></button>
+          <button data-value="pcb.bcu" data-source="pcb"><small>PCB</small><b>B.Cu</b></button>
+          <button data-value="pcb.bottom" data-source="pcb"><small>PCB</small><b>COMP −</b></button>
+          <button data-value="pcb.pads" data-source="pcb"><small>PCB</small><b>PADS/VIA</b></button>
+          <button data-value="case.audio" data-source="case"><small>CASE</small><b>AUDIO</b></button>
+          <button data-value="case.battery" data-source="case"><small>CASE</small><b>BATTERY</b></button>
+          <button data-value="case.structure" data-source="case"><small>CASE</small><b>STRUCT</b></button>
+          <button data-value="case.rear" data-source="case"><small>CASE</small><b>REAR</b></button>
+          <button data-value="build.back" data-source="build"><small>BUILD</small><b>BACK</b></button>
+        </div>
+        <div class="stackState" id="stackState">PCB + FRONT STACK · REAR OPEN</div>
+      </nav>
+
+      <div class="studioDock" id="studioDock">
+        <div class="wheelBlock">
+          <span class="wheelLabel">VIEW</span>
+          <div class="pickerWheel" id="viewWheel" role="listbox" aria-label="View angle">
+            <button data-value="home">HOME</button><button data-value="top">TOP</button><button data-value="back">BACK</button><button data-value="front">FRONT</button><button data-value="side">SIDE</button><button data-value="edge">EDGE</button>
+          </div>
+        </div>
+        <div class="wheelBlock">
+          <span class="wheelLabel">MODE</span>
+          <div class="pickerWheel" id="modeWheel" role="listbox" aria-label="Visualization mode">
+            <button data-value="SOLID">SOLID</button><button data-value="XRAY">XRAY</button><button data-value="WIRE">WIRE</button><button data-value="COPPER">COPPER</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="studioFoot">IN-HOUSE · STRUTHIO PROJECT · R.A. PEDDYCOART · FILE-DERIVED · UNKNOWN IS NEVER GUESSED</footer>
+</div>
+
+<div class="portraitGate" id="portraitGate" aria-live="polite">
+  <div class="portraitGlyph">▯</div>
+  <b>PORTRAIT REQUIRED</b>
+  <span>STRUTHIO Visualization Studio 1.0 is designed as a portrait-only engineering instrument.</span>
+  <span class="rotateNote">Rotate the device upright.</span>
+</div>
+
+<div class="aboutSheet" id="aboutSheet" hidden>
+  <div class="aboutCard" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="aboutHead"><div><b id="aboutTitle">STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.0</span></div><button type="button" id="aboutClose" aria-label="Close about panel">×</button></div>
+    <p class="mission">Primary in-house file-authoritative hardware visualization platform for the STRUTHIO Project.</p>
+    <p>Created in necessity for <b>R.A. Peddycoart</b> to visualize, inspect, discuss, and iterate STRUTHIO hardware with AI collaborators.</p>
+    <div class="aboutGrid">
+      <div><b>LOCAL-FIRST</b><span>KiCad and CALC-3D files are parsed on-device by the studio.</span></div>
+      <div><b>ENGINEERING VIEW</b><span>Inspect the three physical parent layers — Case, PCB, Acrylic — and scrub the complete front-to-back build stack.</span></div>
+      <div><b>PORTRAIT INSTRUMENT</b><span>One-finger orbit, two-finger translation, pinch zoom, movable inspector, and scroll-wheel controls.</span></div>
+      <div><b>AUTHORITY RULE</b><span>Loaded fabrication sources are authoritative. Missing sources remain visibly unresolved; the studio does not invent replacement geometry.</span></div>
+    </div>
+    <p class="aboutFine">STRUTHIO Project · Visualization Studio 1.0 · R.A. Peddycoart</p>
+  </div>
+</div>
+
+<script src="model-data.js"></script>
+<script src="case-r3-data.js"></script>
+<script src="case-layer-data.js"></script>
+<script src="acrylic-layer-data.js"></script>
+<script src="app.js"></script>
+<script src="eye.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+{
+  "project": "STRUTHIO SLIM4",
+  "package_revision": "R24",
+  "package_status": "cross-platform engineering/debug handoff; not a fabrication release",
+  "units": "mm",
+  "coordinate_system": {
+    "xy": "SLIM4_R21 PCB datum",
+    "z_origin": "bottom of PCB is Z=0",
+    "positive_z": "toward device front"
+  },
+  "parent_layers": [
+    {
+      "id": "PCB",
+      "revision": "R21",
+      "authority": "locked baseline; unchanged",
+      "native": [
+        "LAYERS/01_PCB/SLIM4_R21.kicad_pcb",
+        "LAYERS/01_PCB/SLIM4_R21.kicad_pro",
+        "LAYERS/01_PCB/fp-lib-table",
+        "LAYERS/01_PCB/SLIM4.pretty/"
+      ],
+      "interchange": [
+        "LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json"
+      ],
+      "status": "engineering review; not fabrication release"
+    },
+    {
+      "id": "CASE",
+      "revision": "R10",
+      "native_source": [
+        "LAYERS/02_CASE/build_r10.py",
+        "LAYERS/02_CASE/export_layer_formats.py"
+      ],
+      "interchange": [
+        "LAYERS/02_CASE/STRUTHIO_CASE_FRONT_R10.step",
+        "LAYERS/02_CASE/STRUTHIO_CASE_FRONT_R10.stl",
+        "LAYERS/02_CASE/CASE_FRONT_SHELL_R10.step",
+        "LAYERS/02_CASE/CASE_SCREEN_STACK_R10.step",
+        "LAYERS/02_CASE/CASE_CONTROLS_R10.step",
+        "LAYERS/02_CASE/CASE_LAYER_R10_MESH.json"
+      ],
+      "status": "front shell/screen/control candidate only; rear/audio/battery incomplete",
+      "envelope_mm": [
+        104.0,
+        135.3
+      ],
+      "minimum_front_shell_mm": 2.0
+    },
+    {
+      "id": "ACRYLIC",
+      "revision": "R0",
+      "native_source": [
+        "LAYERS/02_CASE/build_r10.py",
+        "LAYERS/02_CASE/export_layer_formats.py"
+      ],
+      "interchange": [
+        "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R0.step",
+        "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R0.stl",
+        "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R0.svg",
+        "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R0.dxf",
+        "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R0_CUT_SPEC.json",
+        "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R0_MESH.json"
+      ],
+      "status": "clear film/cutline study only; print artwork pending",
+      "assumed_thickness_mm": 0.2,
+      "screen_cutout": false
+    }
+  ],
+  "viewer": {
+    "entry": "index.html",
+    "pcb_mesh": "model-data.js",
+    "case_mesh": "case-layer-data.js",
+    "acrylic_mesh": "acrylic-layer-data.js",
+    "offline_service_worker": "sw.js"
+  },
+  "reference_only": [
+    "REFERENCES/R10_CONTEXT/STRUTHIO_R10_UNSEPARATED_CONTEXT_REFERENCE.step",
+    "R21_REFERENCE/CAD_REFERENCE/SLIM4_R3/"
+  ],
+  "release_gates": "PRODUCTION_GATES.md",
+  "cross_platform_instructions": "AI_HANDOFF.md",
+  "sha256": {
+    "LAYERS/01_PCB/SLIM4_R21.kicad_pcb": "daac1da0536f04f493232b1141e38cf9c74efe9c03a60bfd4f9ae5aa5241e5c0",
+    "LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json": "92a31435a101cde7c15bce1106509073e7c92d27b594e5bb4053f0475538cd6e",
+    "LAYERS/02_CASE/STRUTHIO_CASE_FRONT_R10.step": "72f9e77a3ad1dd48daf3ba89faa17966af137be4ac23c1dac3f91d80d75ba0e7",
+    "LAYERS/02_CASE/STRUTHIO_CASE_FRONT_R10.stl": "e86ebe22938c464aec1f00946fdb2130706a68bcdc7a4200c359374c2c74384d",
+    "LAYERS/02_CASE/CASE_FRONT_SHELL_R10.step": "f9366fb7ec0d0f06636022941edfb815b5671fc8738ee3fbbba3050b8cf62eed",
+    "LAYERS/02_CASE/CASE_SCREEN_STACK_R10.step": "bbeca76f655baab8cd38957c429a650df2faa3ff46de3ef435501391e192ab9a",
+    "LAYERS/02_CASE/CASE_CONTROLS_R10.step": "729e6afaf0d248db3a9838ba305738115749014f8298e14e792b53ff253362bf",
+    "LAYERS/02_CASE/CASE_LAYER_R10_MESH.json": "8299370c2323fe752f8b76b8bb9d7d67f2fc0765383257db6574578c73430470",
+    "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R0.step": "53ac655437758c91980389e407880d5039bc0d34979f20949fc906c565ba1642",
+    "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R0.svg": "d0d5531d8d66722a25d1cd21a942adf71cda72f4da7c0291f9ffa9681fad6ec5",
+    "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R0.dxf": "66d7c4d127a201399f3c44a85fb19b79895bd6281502979a7012677806bd3f59",
+    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R0_MESH.json": "54cf785c7448810397de46184d85f66807c174e5adfbf75e0cbc529648881451"
+  },
+  "checksums_file": "SHA256SUMS.txt (all package payloads except manifest and checksum file)"
+}

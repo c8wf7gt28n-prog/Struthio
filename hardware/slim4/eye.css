@@ -1,0 +1,103 @@
+/* STRUTHIO Studio · EYE layer. Additive styles; the studio's own CSS is untouched. */
+:root{--eyefont:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+.eyeBtn{display:inline-flex;align-items:center;gap:5px;height:29px;padding:0 9px 0 8px;border:1px solid #6a4a1c;border-radius:15px;background:#150f07;color:var(--amber);font:800 .6rem/1 var(--eyefont);letter-spacing:.12em;cursor:pointer}
+.eyeBtn[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#1b1205}
+.eyeBtn:focus-visible,.eyeSheet button:focus-visible,.eyeDock button:focus-visible,.eyeTools button:focus-visible,.eyeSheet input:focus-visible,.eyeSheet textarea:focus-visible,.plotView button:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+
+#eyeLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;display:none}
+#app.eyeOn #eyeLayer{display:block}
+
+/* Eye mode: one clean view, one dock, three round tools. Everything else steps aside. */
+#app:not(.eyeOn) .eyeDock,#app:not(.eyeOn) .eyeSheet,#app:not(.eyeOn) .eyeTools,#app:not(.eyeOn) .plotView{display:none}
+#app.eyeOn{grid-template-rows:42px minmax(0,1fr)}
+#app.eyeOn .viewWindow,#app.eyeOn .telemetry,#app.eyeOn .gestureHint,#app.eyeOn .buildStack,#app.eyeOn .studioDock,#app.eyeOn .studioFoot,#app.eyeOn .brand span{display:none}
+
+.eyeTools{position:absolute;z-index:12;right:8px;top:10px;display:flex;flex-direction:column;gap:8px}
+.eyeTools button{width:46px;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid #2d4147;border-radius:12px;background:#071012e6;backdrop-filter:blur(8px);color:#cfe0e0;padding:0;font:800 .42rem/1 var(--eyefont);letter-spacing:.08em;cursor:pointer}
+.eyeTools button svg{width:19px;height:19px}
+.eyeTools button:active{background:#10252a;color:var(--cyan)}
+
+/* bottom dock: what we are looking at, and the film strip to change it */
+.eyeDock{--dock:150px;position:absolute;z-index:14;left:6px;right:6px;bottom:6px;border:1px solid #2d4147;border-radius:14px;background:#071012ec;backdrop-filter:blur(10px);overflow:hidden;min-width:0}
+.capRow{display:grid;grid-template-columns:minmax(0,1fr) 42px 42px;align-items:stretch;border-bottom:1px solid #18282c}
+.cap{display:grid;grid-template-columns:8px auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:7px;row-gap:2px;align-items:center;text-align:left;border:0;background:transparent;color:var(--text);padding:8px 4px 7px 12px;min-width:0;cursor:pointer;font:inherit}
+.cap .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.eyeDock[data-basis="INFERRED"] .dot{background:var(--amber)}.eyeDock[data-basis="GAP"] .dot{background:var(--red)}
+.cap b{font-size:.7rem;letter-spacing:.09em;color:#f1f7f6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cap small{grid-column:3;grid-row:1;justify-self:end;font-size:.48rem;letter-spacing:.08em;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cap b{grid-column:2;grid-row:1}
+.cap span{grid-column:2/-1;grid-row:2;font-size:.58rem;line-height:1.25;color:#9db0b1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.capRow .ic{border:0;border-left:1px solid #18282c;background:transparent;color:var(--cyan);padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.capRow .ic svg{width:19px;height:19px}.capRow .ic:active{background:#10252a}
+
+.reel{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x proximity;padding:7px 8px;scrollbar-width:none;background:#03090b}
+.reel::-webkit-scrollbar{display:none}
+.frame{position:relative;flex:0 0 auto;width:54px;scroll-snap-align:center;display:grid;grid-template-rows:6px 84px 6px;border:1px solid #243a40;border-radius:3px;background:#0b1316;padding:0;color:var(--text);font:inherit;cursor:pointer;overflow:hidden}
+.frame .sprock{background:radial-gradient(circle at 4px 50%,#03090b 0 1.6px,transparent 2px) 0 0/8px 100% repeat-x}
+.frame .shot{position:relative;display:block;background:#010708;overflow:hidden}
+.frame .shot img{display:block;width:100%;height:100%;object-fit:cover}
+.frame .shot .plotThumb{object-fit:contain;background:#eef2f2;padding:3px}
+.frame .shot i{position:absolute;left:3px;bottom:2px;font-style:normal;font-size:.5rem;font-weight:800;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;font-variant-numeric:tabular-nums}
+.frame.on{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}
+.frame.on .shot i{color:var(--amber)}
+
+/* details sheet: opens above the dock on demand */
+.eyeSheet{position:absolute;z-index:13;left:6px;right:6px;bottom:164px;max-height:min(54%,420px);display:flex;flex-direction:column;min-width:0;background:#060d10f7;border:1px solid #31464b;border-radius:14px;box-shadow:0 12px 30px #000a;opacity:0;transform:translateY(14px);pointer-events:none;visibility:hidden;transition:opacity .2s,transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s;overflow:hidden}
+.eyeSheet.open{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition:opacity .2s,transform .24s cubic-bezier(.2,.8,.2,1)}
+.deckTabs{flex:0 0 38px;display:flex;align-items:stretch;border-bottom:1px solid #1f3237}
+.deckTabs button{flex:1;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;color:#73878a;font:800 .58rem/1 var(--eyefont);letter-spacing:.14em;cursor:pointer}
+.deckTabs button.on{color:#f1f7f6;border-bottom-color:var(--amber)}
+.deckTabs .close{flex:0 0 44px;color:var(--cyan);font-size:1.15rem}
+.deckBody{flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain}
+.pane{display:none;min-width:0;padding:10px 12px 14px}
+.pane.on{display:block}
+#paneTour{padding:0}
+
+.stopDetail{padding:10px 12px 16px}
+.sdHead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sdHead b{font-size:.74rem;letter-spacing:.09em}
+.basis{font-size:.46rem;font-weight:800;letter-spacing:.1em;padding:3px 5px;border-radius:3px;border:1px solid}
+.b-FILE{color:var(--green);border-color:#38572a}.b-INFERRED{color:var(--amber);border-color:#7a5a21}.b-GAP{color:var(--red);border-color:#7b3b30}
+.stopDetail p,.lead{margin:0 0 9px;font-size:.68rem;line-height:1.5;color:#c3d2d2;max-width:62ch}
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:4px;margin:0 0 10px}
+.facts div{border:1px solid #1f3237;border-radius:5px;background:#091215;padding:5px 7px;min-width:0}
+.facts dt{font-size:.45rem;letter-spacing:.1em;color:var(--muted)}
+.facts dd{margin:2px 0 0;font-size:.62rem;color:#e4eeee;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.sdActs,.sendRow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.eyeSheet button.go,.eyeSheet .btn,.eyeSheet #copyCode,#codeBtn{height:34px;padding:0 12px;border:1px solid #31464b;border-radius:6px;background:#101a1e;color:var(--cyan);font:800 .58rem/1 var(--eyefont);letter-spacing:.1em;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+.eyeSheet button.go{background:var(--amber);border-color:var(--amber);color:#1b1205}
+.plotBtn{display:block;width:100%;margin:0 0 10px;padding:6px;border:1px solid #31464b;border-radius:6px;background:#eef2f2;cursor:zoom-in}
+.plotBtn img{display:block;margin:0 auto;max-height:150px;max-width:100%}
+
+#findInput{width:100%;box-sizing:border-box;height:38px;border:1px solid #31464b;border-radius:7px;background:#081114;color:#f1f7f6;padding:0 11px;font:700 .8rem var(--eyefont);letter-spacing:.06em;text-transform:uppercase}
+.cats{display:flex;gap:5px;overflow-x:auto;margin:8px 0 4px;scrollbar-width:none}.cats::-webkit-scrollbar{display:none}
+.cats button{flex:0 0 auto;height:26px;padding:0 10px;border:1px solid #2a3f45;border-radius:13px;background:transparent;color:#8aa0a2;font:800 .52rem/1 var(--eyefont);letter-spacing:.1em;cursor:pointer}
+.cats button.on{background:#12292e;border-color:var(--cyan);color:var(--cyan)}
+.findCount{font-size:.55rem;color:var(--muted);margin:6px 0}
+.row{display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;align-items:baseline;width:100%;text-align:left;border:0;border-bottom:1px solid #162529;background:transparent;color:var(--text);padding:9px 2px;font:inherit;cursor:pointer;min-height:40px}
+.row b{font-size:.72rem;color:var(--amber);overflow-wrap:anywhere}
+.row.net{grid-template-columns:minmax(0,1fr);gap:2px}.row.net b{color:var(--cyan)}
+.row span{font-size:.58rem;color:#a2b4b5;overflow-wrap:anywhere}
+.row:active{background:#0e1d21}
+.empty{padding:16px 2px;font-size:.62rem;color:var(--muted);line-height:1.5}
+
+.fld{display:block;margin:12px 0 6px;font-size:.5rem;letter-spacing:.12em;color:var(--muted)}
+.fld textarea{display:block;width:100%;box-sizing:border-box;margin-top:5px;border:1px solid #2a3f45;border-radius:6px;background:#081114;color:#dbe7e7;padding:7px 9px;font:.6rem/1.45 var(--eyefont);resize:none}
+.snapOut{margin-top:10px}.snapOut img{display:block;max-width:min(100%,260px);border:1px solid #31464b;border-radius:6px;-webkit-touch-callout:default;user-select:auto}
+.hint{font-size:.55rem;color:var(--muted);margin:6px 0 0}
+.stale{border:1px solid #7a5a21;border-radius:5px;background:#1b130b;color:#e7b16e !important;padding:6px 8px}
+
+.plotView{position:absolute;inset:0;z-index:30;background:#05090bf2;display:grid;grid-template-rows:minmax(0,1fr)}
+.plotView[hidden]{display:none}
+.plotView #plotClose{position:absolute;right:10px;top:10px;z-index:2;width:36px;height:36px;border:1px solid #31464b;border-radius:50%;background:#101a1e;color:var(--text);font-size:1.2rem;cursor:pointer}
+.plotZoom{position:absolute;left:10px;top:10px;z-index:2;display:flex;gap:4px}.plotZoom button{height:36px;padding:0 12px;border:1px solid #31464b;border-radius:18px;background:#101a1e;color:#8aa0a2;font:800 .58rem/1 var(--eyefont);letter-spacing:.1em;cursor:pointer}.plotZoom button.on{color:var(--amber);border-color:var(--amber)}
+.plotScroll{overflow:auto;padding:54px 12px 12px;-webkit-overflow-scrolling:touch}
+.plotScroll img{display:block;width:100%;max-width:none;background:#eef2f2;border-radius:4px}
+
+@media (orientation:landscape) and (min-width:700px) and (min-height:520px){
+  #app{visibility:visible;pointer-events:auto;width:min(100vw,460px);margin:0 auto;border-left:1px solid #1c2a2e;border-right:1px solid #1c2a2e}
+  .portraitGate{display:none}
+  body{background:#030708}
+}
+@media (max-width:360px){.eyeBtn span{display:none}.eyeBtn{padding:0 8px}}
+@media (prefers-reduced-motion:reduce){.eyeSheet{transition:none}}
