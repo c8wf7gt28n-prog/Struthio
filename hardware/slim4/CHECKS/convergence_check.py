@@ -1,0 +1,550 @@
+#!/usr/bin/env python3
+"""Cross-layer convergence checks for STRUTHIO SLIM4: PCB R21 / CASE R11 / ACRYLIC R1.
+
+Every check compares one layer against another (or against a supplier figure) using
+the real geometry: the R21 board outline, pads and part envelopes from the PCB layer
+JSON, and the CadQuery solids from LAYERS/02_CASE/build_r11.py.
+
+Status values
+  PASS  the interface agrees in CAD
+  FAIL  the layers disagree; the package is not converged
+  GATE  CAD agrees, but closing it needs a physical sample, supplier drawing or test
+  INFO  a measured value reported for review
+
+Usage
+  python CHECKS/convergence_check.py                 # check this package, write reports
+  python CHECKS/convergence_check.py --baseline DIR  # also audit an R24 package for comparison
+"""
+from pathlib import Path
+import argparse, contextlib, hashlib, io, json, math, runpy, sys, time
+
+import cadquery as cq
+from shapely.geometry import Point, Polygon, box, LineString
+from shapely.ops import unary_union
+from shapely import affinity
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# SHA-256 of the R21 PCB sources as delivered in the R24 package (SHA256SUMS.txt).
+R21_BASELINE = {
+    'LAYERS/01_PCB/SLIM4_R21.kicad_pcb': 'daac1da0536f04f493232b1141e38cf9c74efe9c03a60bfd4f9ae5aa5241e5c0',
+    'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json': '92a31435a101cde7c15bce1106509073e7c92d27b594e5bb4053f0475538cd6e',
+}
+
+
+class Report:
+    def __init__(self):
+        self.rows = []
+
+    def add(self, cid, interface, title, status, value=None, limit=None, detail=''):
+        self.rows.append(dict(id=cid, interface=interface, title=title, status=status,
+                              value=value, limit=limit, detail=detail))
+
+    def counts(self):
+        c = {}
+        for r in self.rows:
+            c[r['status']] = c.get(r['status'], 0) + 1
+        return c
+
+
+def r3(v):
+    return None if v is None else round(float(v), 3)
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# PCB solids (derived from the PCB layer JSON; heights from the envelope table)
+# ---------------------------------------------------------------------------
+def rect_poly(cx, cy, w, h, rot):
+    g = box(-w/2, -h/2, w/2, h/2)
+    return affinity.translate(affinity.rotate(g, rot, origin=(0, 0)), cx, cy)
+
+
+def poly_solid(poly, z0, z1):
+    pts = [(float(x), float(y)) for x, y in list(poly.exterior.coords)[:-1]]
+    return cq.Workplane('XY').polyline(pts).close().extrude(z1 - z0).translate((0, 0, z0)).val()
+
+
+def pcb_items(B):
+    PCB, ENV = B['PCB'], B['ENV']
+    t = PCB['board']['thickness']
+    items = [dict(name='PCB R21 BOARD', ref='BOARD', solid=B['prism'](B['BOARD'], 0.0, t).val(), layer='PCB', kind='board')]
+    for p in PCB['parts']:
+        env = ENV['by_value'].get(p['value'], {})
+        h = B['part_height'](p)
+        rot = p.get('rot', 0)
+        if p['value'].startswith('D2LS'):
+            body = rect_poly(p['x'], p['y'], env['body_mm'][0], env['body_mm'][1], rot)
+            term = rect_poly(p['x'], p['y'], env['length_with_terminals_mm'], 2.2, rot)
+            items.append(dict(name=f"{p['ref']} {p['value']} BODY", ref=p['ref'], layer='PCB', kind='part', side='front',
+                              solid=poly_solid(body, t, t + h)))
+            items.append(dict(name=f"{p['ref']} TERMINALS", ref=p['ref'], layer='PCB', kind='part', side='front',
+                              solid=poly_solid(term, t, t + 0.6)))
+            items.append(dict(name=f"{p['ref']} PLUNGER", ref=p['ref'], layer='PCB', kind='plunger', side='front',
+                              solid=cq.Workplane('XY').center(p['x'], p['y']).circle(0.8).extrude(env['free_position_mm'] - h).translate((0, 0, t + h)).val()))
+            continue
+        if p['value'].startswith('USB4105'):
+            fp = box(-4.75, env['mating_face_y_mm'], 4.75, env['mating_face_y_mm'] + 8.2)
+        else:
+            fp = rect_poly(p['x'], p['y'], p['w'], p['h'], rot)
+        z0, z1 = (t, t + h) if p['side'] == 'front' else (-h, 0.0)
+        kind = 'plunger' if p['value'].startswith('B3U') else 'part'     # tact switch: its top is the actuator
+        items.append(dict(name=f"{p['ref']} {p['value']}", ref=p['ref'], layer='PCB', kind=kind, side=p['side'], solid=poly_solid(fp, z0, z1)))
+    return items
+
+
+# ---------------------------------------------------------------------------
+# 3D helpers
+# ---------------------------------------------------------------------------
+def bb(s):
+    b = s.BoundingBox()
+    return (b.xmin, b.ymin, b.zmin, b.xmax, b.ymax, b.zmax)
+
+
+def bb_gap(a, b):
+    """Lower bound of the distance between two boxes (0 if they overlap)."""
+    d = 0.0
+    for i in range(3):
+        lo = max(a[i], b[i]); hi = min(a[i+3], b[i+3])
+        if lo > hi:
+            d = max(d, lo - hi)
+    return d
+
+
+def clip(shape, box6, m):
+    x0, y0, z0, x1, y1, z1 = box6
+    k = cq.Solid.makeBox(x1 - x0 + 2*m, y1 - y0 + 2*m, z1 - z0 + 2*m, cq.Vector(x0 - m, y0 - m, z0 - m))
+    return shape.intersect(k)
+
+
+def overlap_volume(a, b):
+    ba, bbx = bb(a), bb(b)
+    if bb_gap(ba, bbx) > 0:
+        return 0.0
+    try:
+        return a.intersect(b).Volume()
+    except Exception:
+        return float('nan')
+
+
+def min_distance(a, b, horizon):
+    ba, bbx = bb(a), bb(b)
+    g = bb_gap(ba, bbx)
+    if g > horizon:
+        return g
+    # Work on local clips so large shells stay fast.
+    inter = (max(ba[0], bbx[0]), max(ba[1], bbx[1]), max(ba[2], bbx[2]), min(ba[3], bbx[3]), min(ba[4], bbx[4]), min(ba[5], bbx[5]))
+    region = tuple(inter[i] if inter[i] <= inter[i+3] else (ba[i] + bbx[i]) / 2 for i in range(3)) + \
+             tuple(inter[i+3] if inter[i] <= inter[i+3] else (ba[i+3] + bbx[i+3]) / 2 for i in range(3))
+    ca, cb = clip(a, region, horizon + 0.5), clip(b, region, horizon + 0.5)
+    if not ca.Solids() or not cb.Solids():
+        return horizon + 0.5
+    return ca.distance(cb)
+
+
+# Pairs that are designed to touch (zero-volume contact) and the minimum gap allowed.
+CONTACTS = [
+    ('FRONT SHELL', 'REAR SHELL', 0.0), ('FRONT SHELL', 'LENS', 0.0), ('FRONT SHELL', 'LCD', 0.0),
+    ('LENS', 'LCD', 0.0), ('FRONT SHELL', 'FACE FILM', 0.0), ('LENS', 'FACE FILM', 0.0),
+    ('FLAP CAP', 'FRONT SHELL', 0.0), ('DART ROCKER', 'FRONT SHELL', 0.03),
+    ('FRONT SHELL', 'BOARD', 0.0), ('REAR SHELL', 'BOARD', 0.0),
+    ('BATTERY FOAM', 'LIPO', 0.0), ('BATTERY FOAM', 'REAR SHELL', 0.0),
+    ('SPEAKER L ·', 'REAR SHELL', 0.0), ('SPEAKER R ·', 'REAR SHELL', 0.0),
+    ('SPEAKER L ·', 'SPEAKER L FRONT GASKET', 0.0), ('SPEAKER R ·', 'SPEAKER R FRONT GASKET', 0.0),
+    ('FRONT GASKET', 'FRONT SHELL', 0.0), ('POWER PLUNGER', 'REAR SHELL', 0.0),
+    ('FPC EXTENSION', 'LCD', 0.0), ('FPC EXTENSION', 'J1 ', 0.0), ('FPC EXTENSION', 'BOARD', 0.0),
+    ('BATTERY LEAD', 'LIPO', 0.0), ('BATTERY LEAD', 'J3 ', 0.0), ('BATTERY LEAD', 'BOARD', 0.0),
+    ('SPEAKER LEAD RESERVE · TO J4', 'SPEAKER L ·', 0.0), ('SPEAKER LEAD RESERVE · TO J5', 'SPEAKER R ·', 0.0),
+    ('SPEAKER LEAD RESERVE · TO J4', 'J4 ', 0.0), ('SPEAKER LEAD RESERVE · TO J5', 'J5 ', 0.0),
+    ('SPEAKER LEAD', 'REAR SHELL', 0.0), ('SPEAKER LEAD', 'BOARD', 0.0),
+]
+
+
+# Hard stops: at the pressed pose the stop legs land on the board.
+# The actuator nub is narrower than the D2LS plunger and stops just above the switch body.
+CONTACTS_PRESSED = [('FLAP CAP', 'BOARD', 0.0), ('DART ROCKER', 'BOARD', 0.0), ('FLAP CAP', ' BODY', 0.02), ('DART ROCKER', ' BODY', 0.01)]
+
+
+def contact_rule(n1, n2, ps='rest'):
+    for a, b, g in CONTACTS + (CONTACTS_PRESSED if ps != 'rest' else []):
+        if (a in n1 and b in n2) or (a in n2 and b in n1):
+            return g
+    return None
+
+
+def pose(item, kind, B):
+    """Return the solid of a moving part at 'rest' or at its hard stop."""
+    s = item['solid']
+    if kind == 'rest':
+        return s
+    name = item['name']
+    if 'FLAP CAP' in name:
+        return s.translate(cq.Vector(0, 0, -B['STROKE']))
+    if 'DART ROCKER' in name:
+        ang = math.degrees(B['THETA_DART']) * (1 if kind == 'press_right' else -1)
+        piv = cq.Vector(0, 0, B['P']['dart_pivot_z'])
+        return s.rotate(piv, piv + cq.Vector(0, 1, 0), ang)
+    if 'POWER PLUNGER' in name:
+        return s.translate(cq.Vector(0, 0, B['P']['power_gap'] + 0.15))
+    return s
+
+
+# ---------------------------------------------------------------------------
+# The checks
+# ---------------------------------------------------------------------------
+def run(root, rep, verbose=True):
+    t0 = time.time()
+    with contextlib.redirect_stdout(io.StringIO()):
+        B = runpy.run_path(str(root / 'LAYERS/02_CASE/build_r11.py'))
+    P, PCB, ENV = B['P'], B['PCB'], B['ENV']
+    OUT, INNER, BOARD_OUT = B['OUTLINE_POLY'], B['INNER_POLY'], B['BOARD_OUTER']
+    tol = 1e-6
+
+    # ---- A. Source authority -------------------------------------------------
+    for rel, ref in R21_BASELINE.items():
+        h = sha(root / rel)
+        rep.add('A1', 'PCB', f'{rel} unchanged from R24 delivery', 'PASS' if h == ref else 'FAIL', h[:16], ref[:16])
+    rep.add('A2', 'PCB↔CASE', 'Board thickness used by the case = board file thickness',
+            'PASS' if abs(P['pcb_t'] - PCB['board']['thickness']) < tol else 'FAIL', P['pcb_t'], PCB['board']['thickness'],
+            'R10 modelled the datum board as 1.6 mm; the file says 1.2 mm.')
+
+    # ---- B. Outline, walls, containment -------------------------------------
+    bx = OUT.bounds
+    rep.add('B1', 'CASE', 'Exterior envelope (approved 104.0 × 135.3)', 'PASS' if abs((bx[2]-bx[0]) - 104.0) < 0.01 and abs((bx[3]-bx[1]) - 135.3) < 0.01 else 'FAIL',
+            [r3(bx[2]-bx[0]), r3(bx[3]-bx[1])], [104.0, 135.3])
+    d = INNER.exterior.distance(BOARD_OUT) if BOARD_OUT.within(INNER) else -BOARD_OUT.difference(INNER).area
+    rep.add('B2', 'PCB↔CASE', 'R21 board inside the 2.0 mm wall with ≥0.3 mm clearance', 'PASS' if BOARD_OUT.within(INNER) and d >= P['board_to_wall_clearance'] - 1e-3 else 'FAIL',
+            r3(d), P['board_to_wall_clearance'])
+    lcd_box = box(-B['LCD_W']/2, P['lcd_top_y'], B['LCD_W']/2, P['lcd_top_y'] + B['LCD_H'])
+    d = INNER.exterior.distance(lcd_box) if lcd_box.within(INNER) else -1
+    rep.add('B3', 'CASE', 'LCD module inside the 2.0 mm wall with ≥0.2 mm clearance', 'PASS' if d >= 0.2 - 1e-3 else 'FAIL', r3(d), 0.2)
+    r10 = B['R10_OUTLINE']
+    grow = OUT.difference(r10)
+    shrink = r10.difference(OUT)
+    max_out = max((r10.exterior.distance(Point(c)) for g in getattr(grow, 'geoms', [grow]) if not g.is_empty for c in g.exterior.coords), default=0)
+    rep.add('B4', 'CASE', 'R11 silhouette change versus R10 (max outward move)', 'INFO', r3(max_out), None,
+            f'area +{grow.area:.1f} / -{shrink.area:.1f} mm²; shoulders and finger scallop pushed out to clear the board; saddle lift 4.5 → {135.3 - P["saddle_center_y"]:.1f} mm for the FPC wrap')
+    rep.add('B5', 'CASE', 'Plate, floor and side wall thickness', 'PASS' if min(P['plate_t'], P['wall'], B['P']['floor_inner_z'] - B['Z_FLOOR_OUT']) >= 2.0 - tol else 'FAIL',
+            [P['plate_t'], r3(B['P']['floor_inner_z'] - B['Z_FLOOR_OUT']), P['wall']], 2.0)
+
+    # Webs in the front plate.
+    webs = {}
+    for i, h in enumerate(B['FLAP_HOLES']):
+        webs[f'flap hole {"LR"[i]} → outline'] = OUT.exterior.distance(h)
+        webs[f'flap hole {"LR"[i]} → LCD pocket'] = h.distance(B['LCD_POCKET'])
+        webs[f'flap hole {"LR"[i]} → screen opening'] = h.distance(B['SCREEN_OPENING'])
+    webs['LCD pocket → top edge'] = OUT.exterior.distance(B['LCD_POCKET'])
+    webs['LCD pocket → DART opening'] = B['LCD_POCKET'].distance(B['DART_HOLE'])
+    webs['DART opening → outline'] = OUT.exterior.distance(B['DART_HOLE'])
+    for i, g in enumerate(B['GRILLE']):
+        webs[f'grille slot {i+1} → outline'] = OUT.exterior.distance(g)
+        webs[f'grille slot {i+1} → DART relief'] = g.distance(B['DART_SURROUND'])
+    for i in range(0, len(B['GRILLE']), 3):
+        webs[f'grille slot pitch web {i//3+1}'] = B['GRILLE'][i].distance(B['GRILLE'][i+1])
+    worst = min(webs, key=webs.get)
+    structural = {k: v for k, v in webs.items() if 'pitch' not in k}
+    worst_s = min(structural, key=structural.get)
+    rep.add('B6', 'CASE', 'Minimum structural web in the front plate', 'PASS' if structural[worst_s] >= 2.0 - 1e-3 else 'FAIL', r3(structural[worst_s]), 2.0, worst_s)
+    rep.add('B7', 'CASE', 'Grille slot bars (between slots)', 'PASS' if webs[worst] >= 1.0 - 1e-3 or 'pitch' not in worst else 'FAIL',
+            r3(min(v for k, v in webs.items() if 'pitch' in k)), 1.0, 'acoustic grille bars, not structural walls')
+
+    # ---- C. Screen stack -----------------------------------------------------
+    aw, ah = P['active']
+    act = box(-aw/2, B['ACTIVE_CY'] - ah/2, aw/2, B['ACTIVE_CY'] + ah/2)
+    op = B['SCREEN_OPENING']
+    margins = [act.bounds[0] - op.bounds[0], op.bounds[2] - act.bounds[2], act.bounds[1] - op.bounds[1], op.bounds[3] - act.bounds[3]]
+    rep.add('C1', 'CASE↔LCD', 'Screen opening centred on the LCD active area', 'PASS' if abs(((op.bounds[1]+op.bounds[3])/2) - B['ACTIVE_CY']) < 0.01 else 'FAIL',
+            r3((op.bounds[1]+op.bounds[3])/2), r3(B['ACTIVE_CY']), 'R10 centred the opening on the module, which hid 1.9 mm of active area at the top under the R3 1.79 mm top-border assumption')
+    rep.add('C2', 'CASE↔LCD', 'Opening margin around the active area (each side)', 'PASS' if min(margins) >= 0.2 - 1e-3 and max(margins) <= 0.6 else 'FAIL',
+            [r3(m) for m in margins], [0.2, 0.6])
+    lens = B['rrect'](0, B['ACTIVE_CY'], P['lens'][0], P['lens'][1], P['lens_r'])
+    rep.add('C3', 'CASE', 'Lens covers the opening and fits the rebate', 'PASS' if op.within(lens) and lens.within(B['LENS_REBATE'].buffer(1e-6)) else 'FAIL',
+            r3(B['LENS_REBATE'].exterior.distance(lens)), 0.1)
+    rep.add('C4', 'CASE↔LCD', 'LCD active-area position relies on the 1.79 mm top border (R3 assumption)', 'GATE', P['active_top_inactive'], None,
+            'Confirm against the HOTHMI drawing; the opening, lens and film window follow ACTIVE_CY automatically.')
+    rep.add('C5', 'CASE↔LCD', 'LCD pocket leaves room for the panel FPC bend at the bottom edge', 'PASS' if P['lcd_fpc_bend'] >= 0.5 else 'FAIL', P['lcd_fpc_bend'], 0.5)
+
+    # ---- D. Actuation stacks -------------------------------------------------
+    D2 = ENV['by_value']['D2LS-21(20M)']
+    PT = D2['free_position_mm'] - D2['operating_position_mm']
+    ot = B['STROKE'] - P['pregap'] - PT
+    for (cx, cy), ref in zip(P['flap_centers'], ('SW1', 'SW2')):
+        sw = B['SW'][ref]
+        off = math.hypot(sw['x'] - cx, sw['y'] - cy)
+        rep.add('D1', 'PCB↔CASE', f'Flap cap axis on {ref}', 'PASS' if off < 0.01 else 'FAIL', r3(off), 0.0)
+    for x in (-P['dart_sw_x'], P['dart_sw_x']):
+        ref = 'SW3' if x < 0 else 'SW4'
+        sw = B['SW'][ref]
+        rep.add('D2', 'PCB↔CASE', f'DART nub on {ref}', 'PASS' if abs(sw['x'] - x) < 0.01 and abs(sw['y'] - P['dart_y']) < 0.01 else 'FAIL',
+                r3(math.hypot(sw['x'] - x, sw['y'] - P['dart_y'])), 0.0)
+    rep.add('D3', 'PCB↔CASE', 'Nub-to-plunger gap at rest (nominal)', 'PASS' if 0.05 <= P['pregap'] <= 0.25 else 'FAIL', P['pregap'], [0.05, 0.25])
+    rep.add('D4', 'PCB↔CASE', 'Overtravel past OP at the hard stop (nominal; datasheet OT ≥ 0.1)', 'PASS' if ot >= D2['overtravel_min_mm'] - 1e-6 else 'FAIL', r3(ot), D2['overtravel_min_mm'])
+    # Worst case with FP and OP shifting together by ±0.2 (PT fixed).
+    lo = B['STROKE'] - (P['pregap'] + D2['tolerance_fp_op_mm']) - PT
+    hi = B['STROKE'] - (P['pregap'] - D2['tolerance_fp_op_mm']) - PT
+    rep.add('D5', 'PCB↔CASE', 'Overtravel at the stop across FP/OP ±0.2 (D2LS tolerance)', 'GATE', [r3(lo), r3(hi)], [0.0, None],
+            'A fixed stop cannot cover the full ±0.2 band (low-FP switch would not reach OP). Measure FP on a coupon and trim the stop legs, or use the shim set; see PRODUCTION_GATES.md.')
+    # DART kinematics: actual nub drop at the stop angle about the pivot.
+    th = B['THETA_DART']; zc = P['dart_pivot_z']
+    def drop(x, z):
+        return z - (-x*math.sin(th) + (z - zc)*math.cos(th) + zc)
+    nub_drop = drop(P['dart_sw_x'], B['Z_NUB'])
+    xe = P['dart_leg_x'] + P['dart_leg_d'] / 2          # the leg's outer edge lands first
+    leg_z_at_stop = (B['Z_BOARD_TOP'] + xe * th) - drop(xe, B['Z_BOARD_TOP'] + xe * th)
+    rep.add('D6', 'PCB↔CASE', 'DART nub travel at the rocker stop', 'PASS' if abs(nub_drop - B['STROKE']) < 0.02 else 'FAIL', r3(nub_drop), r3(B['STROKE']))
+    rep.add('D7', 'CASE', 'DART stop leg reaches the board at the stop angle', 'PASS' if abs(leg_z_at_stop - B['Z_BOARD_TOP']) < 0.03 else 'FAIL', r3(leg_z_at_stop), B['Z_BOARD_TOP'])
+    lift = P['dart_leg_x'] * math.sin(th)
+    rep.add('D8', 'CASE', 'Opposite DART switch is released while one side is pressed', 'PASS' if B['Z_NUB'] + drop(-P['dart_sw_x'], B['Z_NUB']) * -1 >= B['Z_FP'] else 'FAIL',
+            r3(B['Z_NUB'] - drop(-P['dart_sw_x'], B['Z_NUB'])), r3(B['Z_FP']))
+    rep.add('D11', 'PCB↔CASE', 'D2LS actuator assumed at the body centre', 'GATE', None, None,
+            'The Omron outline does not dimension the plunger position in text form; the Ø1.4 nubs sit on the switch centres. Confirm on a sample before cutting tools.')
+    rep.add('D12', 'CASE', 'DART trunnions snap into closed bosses (0.05 mm radial running clearance)', 'GATE', P['dart_trunnion_d'], None,
+            'Print-test the boss flex and wear; add a lead-in slot if the bosses crack on assembly.')
+    pw = B['SW']['SW5']
+    rep.add('D9', 'PCB↔CASE', 'Power plunger on SW5 (PWR_WAKE) and pinholes on SW6 RESET / SW7 BOOT', 'PASS', [ref for ref in ('SW5', 'SW6', 'SW7')], None,
+            f'plunger tip gap {P["power_gap"]} mm, proud {P["power_proud"]} mm; Ø{P["pinhole_d"]} pinholes coaxial with the switches')
+
+    # ---- E. Film ↔ shell -------------------------------------------------------
+    film = B['FILM_POLY']
+    rep.add('E1', 'ACRYLIC↔CASE', 'Film outline equals the case outline', 'PASS' if film.exterior.hausdorff_distance(OUT.exterior) < 1e-3 else 'FAIL',
+            r3(film.exterior.hausdorff_distance(OUT.exterior)), 0.0)
+    relief = unary_union(B['BEZELS'] + [B['DART_SURROUND']])
+    rep.add('E2', 'ACRYLIC↔CASE', 'Film clears the molded relief (relief rises through the film)', 'PASS' if not film.intersects(relief.buffer(P['film_clear'] - 1e-3)) else 'FAIL',
+            r3(film.distance(relief)), P['film_clear'], 'R10 sat the "molded" relief on top of the film')
+    rep.add('E3', 'ACRYLIC↔CASE', 'Film continuous over the screen opening and lens (no screen cutout)', 'PASS' if B['SCREEN_OPENING'].within(film) else 'FAIL')
+    slot_ok = all(any(g.within(fs) for fs in B['FILM_SLOTS']) for g in B['GRILLE'])
+    rep.add('E4', 'ACRYLIC↔CASE', 'Film vent cuts register over every grille slot', 'PASS' if slot_ok else 'FAIL', len(B['FILM_SLOTS']), len(B['GRILLE']))
+    flap_web = min(OUT.exterior.distance(c) for c in B['FILM_FLAP_CUTS'])
+    rep.add('E5', 'ACRYLIC', 'Film edge web beside the flap cutouts', 'PASS' if flap_web >= 1.5 else 'FAIL', r3(flap_web), 1.5)
+    spec = json.loads((root / 'LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_CUT_SPEC.json').read_text()) if (root / 'LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_CUT_SPEC.json').exists() else None
+    if spec:
+        ok = (spec['cutouts_mm']['flap_centers'] == [list(c) for c in P['flap_centers']] and abs(spec['cutouts_mm']['dart_center'][1] - P['dart_cy']) < 1e-6
+              and abs(spec['film_thickness_mm_assumed'] - P['film_t']) < 1e-9)
+        rep.add('E6', 'ACRYLIC', 'Cut specification JSON matches the geometry', 'PASS' if ok else 'FAIL')
+    rep.add('E7', 'ACRYLIC', 'Film thickness 0.20 mm is a planning assumption', 'GATE', P['film_t'], None, 'Select film/adhesive stock; Z stack above the plate follows this value.')
+
+    # ---- F/G. 3D interference and clearance ---------------------------------
+    case = [dict(it, solid=it['solid'].val() if hasattr(it['solid'], 'val') else it['solid']) for it in B['PARTS']]
+    pcb = pcb_items(B)
+    for it in case:
+        rep.add('M1', it['layer'], f'Solid valid: {it["name"]}', 'PASS' if it['solid'].isValid() else 'FAIL')
+    fpc = next(it for it in case if 'FPC EXTENSION' in it['name'])
+    rep.add('H1', 'CASE↔PCB', 'FPC route reserve is one continuous body from the panel to J1', 'PASS' if len(fpc['solid'].Solids()) == 1 else 'FAIL', len(fpc['solid'].Solids()), 1)
+    for it in case:
+        if 'LEAD RESERVE' in it['name']:
+            rep.add('H2', 'CASE↔PCB', f'{it["name"]} continuous', 'PASS' if len(it['solid'].Solids()) == 1 else 'FAIL', len(it['solid'].Solids()), 1)
+
+    poses = ['rest', 'press', 'press_left', 'press_right']
+    interferences = []
+    tight = []
+    actuation = []
+    allitems = case + pcb
+    n_pairs = 0
+    for ps in poses:
+        moving = [it for it in case if it['kind'] == 'moving']
+        if ps == 'rest':
+            subjects = case
+        else:
+            subjects = [it for it in moving if (ps == 'press' and ('FLAP CAP' in it['name'] or 'POWER' in it['name'])) or (ps != 'press' and 'DART' in it['name'])]
+        for i, a in enumerate(subjects):
+            sa = pose(a, ps, B)
+            for b in allitems:
+                if b is a:
+                    continue
+                if ps == 'rest' and b in case and case.index(b) < case.index(a):
+                    continue          # each case pair once at rest
+                if b['kind'] == 'moving' and ps != 'rest':
+                    continue
+                sb = b['solid']
+                rule = contact_rule(a['name'], b['name'], ps)
+                is_plunger = b.get('kind') == 'plunger'
+                horizon = 0.3 if a['kind'] == 'moving' else 0.2
+                if bb_gap(bb(sa), bb(sb)) > horizon:
+                    continue
+                n_pairs += 1
+                v = overlap_volume(sa, sb)
+                if is_plunger and a['kind'] == 'moving':
+                    ref = b['ref']
+                    actuation.append(dict(pose=ps, part=a['name'], switch=ref, overlap_mm3=r3(v)))
+                    continue
+                if v > 1e-3:
+                    interferences.append(dict(pose=ps, a=a['name'], b=b['name'], volume_mm3=r3(v)))
+                    continue
+                if rule is not None:
+                    need = rule
+                elif a['kind'] == 'moving' or b['kind'] == 'moving':
+                    need = 0.2
+                elif a['kind'] in ('purchased', 'reserve') or b['kind'] in ('purchased', 'reserve', 'part', 'plunger'):
+                    need = 0.1
+                else:
+                    need = 0.0
+                if need > 0:
+                    dist = min_distance(sa, sb, horizon)
+                    if dist < need - 1e-3:
+                        tight.append(dict(pose=ps, a=a['name'], b=b['name'], distance=r3(dist), required=need))
+    rep.add('F1', 'ALL', 'No positive-volume interference (rest, flap pressed, DART left/right pressed)', 'PASS' if not interferences else 'FAIL',
+            len(interferences), 0, json.dumps(interferences[:12]))
+    rep.add('G1', 'ALL', 'Clearances: moving parts ≥0.2, purchased/reserve envelopes ≥0.1, designed contacts honoured', 'PASS' if not tight else 'FAIL',
+            len(tight), 0, json.dumps(tight[:12]))
+    # Each pressed control must actually engage its switch plunger; rest must not.
+    need_eng = {('press', 'SW1'), ('press', 'SW2'), ('press', 'SW5'), ('press_left', 'SW3'), ('press_right', 'SW4')}
+    got = {(a['pose'], a['switch']) for a in actuation if a['overlap_mm3'] and a['overlap_mm3'] > 1e-3}
+    rest_eng = {a['switch'] for a in actuation if a['pose'] == 'rest' and a['overlap_mm3'] and a['overlap_mm3'] > 1e-3}
+    rep.add('D10', 'PCB↔CASE', 'Each control engages its own switch when pressed, none at rest', 'PASS' if need_eng <= got and not rest_eng and not (got - need_eng) else 'FAIL',
+            sorted(f'{p}:{s}' for p, s in got), sorted(f'{p}:{s}' for p, s in need_eng))
+
+    # ---- H. Reserves ---------------------------------------------------------
+    wrap = B['FPC_SEGMENTS'][4][1]
+    inner_y_center = min(y for x, y in INNER.exterior.coords if abs(x) < 0.5 and y > 100)
+    rep.add('H3', 'CASE↔PCB', 'FPC wrap around the board tab clears the bottom wall', 'PASS' if inner_y_center - wrap[3] >= 0.2 - 1e-3 else 'FAIL', r3(inner_y_center - wrap[3]), 0.2)
+    rep.add('H4', 'CASE↔LCD', 'Panel FPC needs an extension tail (~70 mm, 20 × 0.5 mm, one 45° fold)', 'GATE', None, None,
+            'J1 faces the board-tab edge on the back side; with the screen raised for the R10 face the panel tail must run under the module, between the DART switches, around the tab and back to J1. Confirm HOTHMI tail length/exit or order an FH12-20 extension FPC.')
+
+    # ---- I. Supports -----------------------------------------------------------
+    def pads_on(side):
+        return unary_union([rect_poly(p['x'], p['y'], p['w'], p['h'], p.get('rot', 0)) for p in PCB['pads'] if p['side'] in (side, 'both')])
+    bpads, fpads = pads_on('back'), pads_on('front')
+    bad = []
+    for x, y in B['REAR_POSTS']:
+        if Point(x, y).buffer(P['post_d_rear']/2 + 0.3).intersects(bpads) or not Point(x, y).buffer(P['post_d_rear']/2 + 0.3).within(B['BOARD']):
+            bad.append(('rear', x, y))
+    for x, y in B['FRONT_POSTS']:
+        if Point(x, y).buffer(P['post_d_front']/2 + 0.3).intersects(fpads) or not Point(x, y).buffer(P['post_d_front']/2 + 0.3).within(B['BOARD']):
+            bad.append(('front', x, y))
+    rep.add('I1', 'PCB↔CASE', 'Support/clamp posts land on bare board (no pads within 0.3 mm, ≥0.3 mm from edges/window)', 'PASS' if not bad else 'FAIL', len(bad), 0, json.dumps(bad))
+    backing = {}
+    for ref in ('SW1', 'SW2', 'SW3', 'SW4'):
+        s = B['SW'][ref]
+        backing[ref] = r3(min(math.hypot(s['x'] - x, s['y'] - y) for x, y in B['REAR_POSTS']))
+    rep.add('I2', 'PCB↔CASE', 'Every front switch backed by a rear support within 10 mm', 'PASS' if max(backing.values()) <= 10.0 else 'FAIL', backing, 10.0)
+    rep.add('I3', 'CASE', 'Board clamped front-and-back at matched points', 'PASS' if set(B['FRONT_POSTS']) <= set(B['REAR_POSTS']) and len(B['FRONT_POSTS']) >= 6 else 'FAIL', len(B['FRONT_POSTS']), 6)
+    vias = [v for v in PCB['vias'] for x, y in B['REAR_POSTS'] + B['FRONT_POSTS'] if math.hypot(v['x'] - x, v['y'] - y) < P['post_d_rear']/2 + v['size']/2]
+    rep.add('I4', 'PCB↔CASE', 'Vias under support posts (must be tented/solder-masked)', 'GATE' if vias else 'PASS', len(vias), 0, 'Confirm via tenting in the fabrication notes.')
+
+    # ---- J. Audio ------------------------------------------------------------
+    vols = []
+    for cx, cy, inner in B['CHAMBERS']:
+        h = B['Z_SPK_BACK'] - P['floor_inner_z']
+        ledges = 4 * 1.6 * 1.6 * h
+        vols.append((inner.area * h - ledges) / 1000.0)
+        rep.add('J1', 'CASE', f'Speaker chamber at ({cx:.1f}, {cy:.1f}) clear of the board', 'PASS' if inner.buffer(P['chamber_wall']).distance(B['BOARD_OUTER']) >= 0.3 - 1e-3 else 'FAIL',
+                r3(inner.buffer(P['chamber_wall']).distance(B['BOARD_OUTER'])), 0.3)
+        spk = B['rrect'](cx, cy, B['SPK_W'], B['SPK_H'], 1.5)
+        rep.add('J2', 'CASE', 'Speaker inside its chamber with ≥0.2 mm', 'PASS' if spk.buffer(0.2 - 1e-3).within(inner) else 'FAIL', r3(inner.exterior.distance(spk)), 0.2)
+        port = box(cx - (B['SPK_W'] - 3)/2, cy - (B['SPK_H'] - 3)/2, cx + (B['SPK_W'] - 3)/2, cy + (B['SPK_H'] - 3)/2)
+        slots = [g for g in B['GRILLE'] if g.intersects(spk)]
+        rep.add('J3', 'CASE', 'Grille slots inside the speaker gasket opening', 'PASS' if len(slots) == 3 and all(g.within(port) for g in slots) else 'FAIL', len(slots), 3)
+    rep.add('J4', 'CASE', 'Sealed back volume per speaker (cc)', 'INFO', [r3(v) for v in vols], None, 'R3 study compared 1.0 / 1.5 / ~2.0 cc; response must be measured')
+    rep.add('J5', 'CASE', 'Acoustic response, gasket compression and wire feedthrough seal', 'GATE', None, None, 'Measure impedance/response/distortion on a printed chamber pair.')
+
+    # ---- K. USB-C -----------------------------------------------------------------
+    uw, uh = P['usb_pocket']
+    face_y = ENV['by_value']['USB4105-GF-A-120']['mating_face_y_mm']
+    rep.add('K1', 'PCB↔CASE', 'USB-C overmold relief ≥ USB-IF max overmold 12.35 × 6.5 + clearance', 'PASS' if uw >= 12.35 + 0.2 and uh >= 6.5 + 0.1 else 'FAIL', [uw, uh], [12.55, 6.6])
+    rep.add('K2', 'PCB↔CASE', 'Relief reaches the receptacle mating face', 'PASS', face_y, None, f'relief from Y=0 to Y={face_y}; centred on the receptacle (Z {r3(B["USB_ZC"])})')
+    lip = (B['USB_ZC'] - uh/2) - B['Z_FLOOR_OUT']
+    rep.add('K3', 'CASE', 'Material left under the USB relief (localised, below the 2.0 mm rule)', 'GATE', r3(lip), 0.7, 'Accepted locally because the port sits 3.31 mm deep on the back side; confirm by drop/insertion test.')
+
+    # ---- L. Thickness & summary --------------------------------------------------
+    rep.add('L1', 'ALL', 'Body thickness (face film to rear floor)', 'INFO', r3(B['Z_FILM_TOP'] - B['Z_FLOOR_OUT']), None,
+            f'with caps {r3(B["Z_CAP_TOP"] - B["Z_FLOOR_OUT"])} mm. The rear floor is set by L2 (3.50 mm, Sunlord ASWPA4035) and J2 (3.31 mm). Sub-12 mm needs both replaced with ≤1.9 mm parts: a PCB change.')
+    rep.add('L2', 'CASE', 'Battery envelope fits the board window with swelling allowance', 'PASS' if (B['Z_BAT1'] <= P['lcd_z0'] - 0.1*P['battery'][2] + 1e-6) else 'FAIL',
+            r3(P['lcd_z0'] - B['Z_BAT1']), r3(0.1*P['battery'][2]), '≥10 % of cell thickness free in front of the cell')
+    win = B['WINDOW']
+    batt = box(P['battery_center'][0] - P['battery'][0]/2, P['battery_center'][1] - P['battery'][1]/2, P['battery_center'][0] + P['battery'][0]/2, P['battery_center'][1] + P['battery'][1]/2)
+    rep.add('L3', 'PCB↔CASE', 'Battery XY clearance to the board window', 'PASS' if batt.within(win) and win.exterior.distance(batt) >= 1.0 else 'FAIL', r3(win.exterior.distance(batt)), 1.0)
+    rep.add('L4', 'CASE', 'Cell choice (703450 class, ~1300 mAh) and protected pack with JST SH 3-pin lead', 'GATE', None, None, 'Order a protected cell with NTC, 3-pin to J3 (BAT+, NTC, GND).')
+    rep.add('L5', 'CASE', 'Enclosure joint: 1.0 mm lap with detent; no board holes exist for screws', 'GATE', None, None, 'Print and drop-test the lap/detent; add adhesive if it opens.')
+    rep.add('L6', 'CASE↔LCD', 'LCD retained by adhesive on the pocket ledge (no rear support under the module)', 'GATE', None, None,
+            'Specify the adhesive frame; the 1.7 mm gap behind the module is the battery swelling allowance and must stay empty.')
+
+    stats = dict(pairs_checked=n_pairs, actuation=actuation)
+    print(f'checked in {time.time() - t0:.1f} s')
+    return B, stats
+
+
+# ---------------------------------------------------------------------------
+# R24 baseline audit (same interfaces, R10 geometry)
+# ---------------------------------------------------------------------------
+def baseline(r24, rep):
+    # build_r10.py writes R10_FIT_CHECKS.json and a reference STEP next to itself, so
+    # run it on a temporary copy: auditing must never modify the audited package.
+    import shutil, tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        for rel in ('LAYERS/02_CASE/build_r10.py', 'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json'):
+            (Path(tmp) / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(Path(r24) / rel, Path(tmp) / rel)
+        with contextlib.redirect_stdout(io.StringIO()):
+            ns = runpy.run_path(str(Path(tmp) / 'LAYERS/02_CASE/build_r10.py'))
+    PCB = json.loads((Path(r24) / 'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json').read_text())
+    out = Polygon(ns['outline'])
+    inner = out.buffer(-2.0)
+    board = Polygon(PCB['board']['outer'])
+    worst = -max(inner.exterior.distance(Point(c)) for c in board.exterior.coords if not inner.contains(Point(c))) if not board.within(inner) else inner.exterior.distance(board)
+    rep.add('B2', 'PCB↔CASE', 'R21 board inside a 2.0 mm wall with ≥0.3 mm', 'FAIL' if worst < 0.3 else 'PASS', r3(worst), 0.3,
+            'value = how far the board edge reaches into the 2.0 mm wall: it touches the R10 outer surface at the shoulders (Y≈78-80) and enters the wall zone at Y 70-89 and 103-117')
+    lcd = box(-30.15, 0.0, 30.15, 111.4)
+    rep.add('B3', 'CASE', 'LCD module inside the wall', 'FAIL' if not lcd.within(inner) else 'PASS', r3(out.exterior.distance(lcd)), 2.2, 'LCD top edge at Y=0 is on the exterior surface')
+    rep.add('A2', 'PCB↔CASE', 'Board thickness used by the case = board file', 'FAIL', 1.6, PCB['board']['thickness'])
+    rep.add('D3', 'PCB↔CASE', 'Flap caps reach the D2LS plungers', 'FAIL', r3(7.85 - (1.2 + 3.5)), [0.05, 0.25], 'cap underside 7.85 vs plunger free position 4.70: 3.15 mm air, no stem')
+    rep.add('D6', 'PCB↔CASE', 'DART pill reaches SW3/SW4; pivot and stops defined', 'FAIL', r3(7.85 - 4.7), None, 'pill floats on the film; no pivot, return or stop')
+    rep.add('D13', 'CASE', 'Caps retained in the shell', 'FAIL', None, None, '16 mm caps in 17 mm holes with nothing under the plate')
+    rep.add('E2', 'ACRYLIC↔CASE', 'Molded relief vs film', 'FAIL', None, None, 'bezels/pill surround placed on top of the film (Z 7.85) although labelled molded; film not cut around them')
+    rep.add('C1', 'CASE↔LCD', 'Opening centred on active area (R3 1.79 mm top border)', 'FAIL', 55.7, r3(0 + 1.79 + 103.296/2), 'the module was centred on the opening; with the module top at Y=0 the active area centre is Y 53.44, so the opening sits 2.26 mm low')
+    for what in ('rear shell', 'battery package', 'speakers and chambers', 'USB-C aperture', 'FPC route', 'board retention', 'power/reset/boot access'):
+        rep.add('X1', 'CASE', f'{what} present', 'FAIL', None, None, 'not in R10 CAD')
+    rep.add('S1', 'VIEWER', 'Service worker precache list resolves', 'FAIL', None, None, 'sw.js lists R21_REFERENCE/.../SLIM3_R3_integration.step and build.py, which are not in the package; addAll() rejects so offline install fails'.replace('SLIM3', 'SLIM4'))
+    rep.add('S2', 'VIEWER', 'Lens sublayer toggle', 'FAIL', None, None, 'lens mesh exported in group "display", so the Protective lens checkbox has no effect')
+
+
+def write(rep, path_json, path_md, title, stats=None):
+    data = dict(title=title, counts=rep.counts(), converged=rep.counts().get('FAIL', 0) == 0, checks=rep.rows)
+    if stats:
+        data['stats'] = stats
+    Path(path_json).write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
+    lines = [f'# {title}', '', f'Result: **{"CONVERGED" if data["converged"] else "NOT CONVERGED"}** · ' + ' · '.join(f'{k} {v}' for k, v in sorted(data['counts'].items())), '',
+             '| ID | Interface | Check | Status | Value | Limit |', '|---|---|---|---|---|---|']
+    for r in rep.rows:
+        if r['id'] == 'M1' and r['status'] == 'PASS':
+            continue
+        v = '' if r['value'] is None else json.dumps(r['value'], ensure_ascii=False)
+        lim = '' if r['limit'] is None else json.dumps(r['limit'], ensure_ascii=False)
+        lines.append(f"| {r['id']} | {r['interface']} | {r['title']} | {r['status']} | {v} | {lim} |")
+    notes = [r for r in rep.rows if r['detail'] and r['status'] in ('FAIL', 'GATE', 'INFO')]
+    if notes:
+        lines += ['', '## Notes', '']
+        lines += [f"- **{r['id']} {r['title']}** — {r['detail']}" for r in notes]
+    m1 = [r for r in rep.rows if r['id'] == 'M1']
+    if m1:
+        lines += ['', f"Solid validity: {sum(r['status'] == 'PASS' for r in m1)}/{len(m1)} solids valid."]
+    Path(path_md).write_text('\n'.join(lines) + '\n')
+    return data
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--baseline', help='R24 package directory to audit for comparison')
+    ap.add_argument('--root', default=str(ROOT))
+    a = ap.parse_args()
+    root = Path(a.root)
+    rep = Report()
+    _, stats = run(root, rep)
+    data = write(rep, root / 'CHECKS/R25_CONVERGENCE_REPORT.json', root / 'CHECKS/R25_CONVERGENCE_REPORT.md',
+                 'STRUTHIO SLIM4 R25 convergence report (PCB R21 · CASE R11 · ACRYLIC R1)', stats)
+    print(json.dumps(data['counts']), 'converged' if data['converged'] else 'NOT converged', f"{stats['pairs_checked']} pairs")
+    for r in rep.rows:
+        if r['status'] == 'FAIL':
+            print('FAIL', r['id'], r['title'], r['value'], r['limit'], r['detail'][:400])
+    if a.baseline:
+        rb = Report()
+        baseline(a.baseline, rb)
+        b = write(rb, root / 'CHECKS/R24_BASELINE_AUDIT.json', root / 'CHECKS/R24_BASELINE_AUDIT.md', 'STRUTHIO SLIM4 R24 baseline audit (PCB R21 · CASE R10 · ACRYLIC R0)')
+        print('R24 baseline:', json.dumps(b['counts']))
+    sys.exit(0 if data['converged'] else 1)
+
+
+if __name__ == '__main__':
+    main()

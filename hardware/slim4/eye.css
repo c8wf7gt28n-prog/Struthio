@@ -101,3 +101,4 @@
 }
 @media (max-width:360px){.eyeBtn span{display:none}.eyeBtn{padding:0 8px}}
 @media (prefers-reduced-motion:reduce){.eyeSheet{transition:none}}
+#app.eyeOn .layerPanel{display:none}

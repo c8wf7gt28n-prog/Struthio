@@ -1,0 +1,165 @@
+{
+  "title": "STRUTHIO SLIM4 R24 baseline audit (PCB R21 · CASE R10 · ACRYLIC R0)",
+  "counts": {
+    "FAIL": 17
+  },
+  "converged": false,
+  "checks": [
+    {
+      "id": "B2",
+      "interface": "PCB↔CASE",
+      "title": "R21 board inside a 2.0 mm wall with ≥0.3 mm",
+      "status": "FAIL",
+      "value": -1.999,
+      "limit": 0.3,
+      "detail": "value = how far the board edge reaches into the 2.0 mm wall: it touches the R10 outer surface at the shoulders (Y≈78-80) and enters the wall zone at Y 70-89 and 103-117"
+    },
+    {
+      "id": "B3",
+      "interface": "CASE",
+      "title": "LCD module inside the wall",
+      "status": "FAIL",
+      "value": 0.0,
+      "limit": 2.2,
+      "detail": "LCD top edge at Y=0 is on the exterior surface"
+    },
+    {
+      "id": "A2",
+      "interface": "PCB↔CASE",
+      "title": "Board thickness used by the case = board file",
+      "status": "FAIL",
+      "value": 1.6,
+      "limit": 1.2,
+      "detail": ""
+    },
+    {
+      "id": "D3",
+      "interface": "PCB↔CASE",
+      "title": "Flap caps reach the D2LS plungers",
+      "status": "FAIL",
+      "value": 3.15,
+      "limit": [
+        0.05,
+        0.25
+      ],
+      "detail": "cap underside 7.85 vs plunger free position 4.70: 3.15 mm air, no stem"
+    },
+    {
+      "id": "D6",
+      "interface": "PCB↔CASE",
+      "title": "DART pill reaches SW3/SW4; pivot and stops defined",
+      "status": "FAIL",
+      "value": 3.15,
+      "limit": null,
+      "detail": "pill floats on the film; no pivot, return or stop"
+    },
+    {
+      "id": "D13",
+      "interface": "CASE",
+      "title": "Caps retained in the shell",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "16 mm caps in 17 mm holes with nothing under the plate"
+    },
+    {
+      "id": "E2",
+      "interface": "ACRYLIC↔CASE",
+      "title": "Molded relief vs film",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "bezels/pill surround placed on top of the film (Z 7.85) although labelled molded; film not cut around them"
+    },
+    {
+      "id": "C1",
+      "interface": "CASE↔LCD",
+      "title": "Opening centred on active area (R3 1.79 mm top border)",
+      "status": "FAIL",
+      "value": 55.7,
+      "limit": 53.438,
+      "detail": "the module was centred on the opening; with the module top at Y=0 the active area centre is Y 53.44, so the opening sits 2.26 mm low"
+    },
+    {
+      "id": "X1",
+      "interface": "CASE",
+      "title": "rear shell present",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "not in R10 CAD"
+    },
+    {
+      "id": "X1",
+      "interface": "CASE",
+      "title": "battery package present",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "not in R10 CAD"
+    },
+    {
+      "id": "X1",
+      "interface": "CASE",
+      "title": "speakers and chambers present",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "not in R10 CAD"
+    },
+    {
+      "id": "X1",
+      "interface": "CASE",
+      "title": "USB-C aperture present",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "not in R10 CAD"
+    },
+    {
+      "id": "X1",
+      "interface": "CASE",
+      "title": "FPC route present",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "not in R10 CAD"
+    },
+    {
+      "id": "X1",
+      "interface": "CASE",
+      "title": "board retention present",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "not in R10 CAD"
+    },
+    {
+      "id": "X1",
+      "interface": "CASE",
+      "title": "power/reset/boot access present",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "not in R10 CAD"
+    },
+    {
+      "id": "S1",
+      "interface": "VIEWER",
+      "title": "Service worker precache list resolves",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "sw.js lists R21_REFERENCE/.../SLIM4_R3_integration.step and build.py, which are not in the package; addAll() rejects so offline install fails"
+    },
+    {
+      "id": "S2",
+      "interface": "VIEWER",
+      "title": "Lens sublayer toggle",
+      "status": "FAIL",
+      "value": null,
+      "limit": null,
+      "detail": "lens mesh exported in group \"display\", so the Protective lens checkbox has no effect"
+    }
+  ]
+}

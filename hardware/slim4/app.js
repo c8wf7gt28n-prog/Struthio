@@ -17,7 +17,7 @@
     shell: true,
     explode: 0,
     slice: 14,
-    layers: {pcb:true,parts:true,frontParts:true,backParts:true,copper:true,display:false,lens:false,acrylic:true,battery:false,speakers:false,controls:false},
+    layers: {pcb:true,parts:true,frontParts:true,backParts:true,copper:true,display:false,lens:false,acrylic:true,battery:false,speakers:false,controls:false,rear:false,routes:false},
     groupVisibility: {case:true,pcb:true,acrylic:true},
     authority: {pcb:true,case:true,art:true},
     referenceMode: false,
@@ -140,10 +140,15 @@
   function partHeight(p){return p.z||1;}
   function explodeOffset(group,side){
     const e=state.explode;
+    if(group==='acrylic')return e*1.0;
+    if(group==='controls')return e*.9;
+    if(group==='shell')return e*.75;
+    if(group==='lens')return e*.62;
     if(group==='display')return e*.55;
-    if(group==='controls')return e*.46;
+    if(group==='routes')return e*.2;
     if(group==='battery')return -e*.55;
     if(group==='speakers')return -e*.34;
+    if(group==='rear')return -e*.9;
     if(group==='parts')return (side==='back'?-1:1)*e*.13;
     return 0;
   }
@@ -166,10 +171,10 @@
     }
     const m=model.mechanical||{};
     const allowMechanical=state.groupVisibility.case&&(state.authority.case||state.referenceMode);
-    const cad=state.groupVisibility.case?(state.referenceMode?(window.STRUTHIO_CASE_R3?.parts||null):(state.authority.case?([...(window.STRUTHIO_CASE_R10?.parts||[]),...(window.STRUTHIO_ACRYLIC_R0?.parts||[]) ]):null)):null;
+    const cad=state.groupVisibility.case?(state.referenceMode?(window.STRUTHIO_CASE_R3?.parts||null):(state.authority.case?([...(window.STRUTHIO_CASE_LAYER?.parts||[]),...(window.STRUTHIO_ACRYLIC_LAYER?.parts||[]) ]):null)):null;
     if(cad){
-      const enabled={shell:state.shell,display:state.layers.display,lens:state.layers.lens,acrylic:state.authority.art&&state.groupVisibility.acrylic&&state.layers.acrylic,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls};
-      for(const item of cad){if(!enabled[item.group])continue;const faces=[];for(const tri of item.triangles){const pts=tri.p.map(v=>W(v[0],v[1],v[2]));if(pts.every(v=>v.z<state.slice))faces.push({pts,shade:tri.s});}addObjectFaces(cmds,{ref:item.name},faces,item.color,item.opacity??1,item.name,'mechanical',item.group);}
+      const enabled={shell:state.shell,display:state.layers.display,lens:state.layers.lens,acrylic:state.authority.art&&state.groupVisibility.acrylic&&state.layers.acrylic,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls,rear:state.layers.rear,routes:state.layers.routes};
+      for(const item of cad){if(!enabled[item.group])continue;const off=explodeOffset(item.group);const faces=[];for(const tri of item.triangles){if(!tri.p.every(v=>v[2]<state.slice))continue;const pts=tri.p.map(v=>W(v[0],v[1],v[2]+off));faces.push({pts,shade:tri.s});}addObjectFaces(cmds,{ref:item.name},faces,item.color,item.opacity??1,item.name,'mechanical',item.group);}
     }else{
       if(allowMechanical && state.layers.display && m.display){const d=m.display,off=explodeOffset('display');addObjectFaces(cmds,{ref:'DISPLAY'},boxFaces({...d,z0:d.z0+off,z1:d.z0+d.d+off}),COLORS.display,.24,'DISPLAY','mechanical','display');}
       if(allowMechanical && state.layers.battery && m.battery){const d=m.battery,off=explodeOffset('battery');addObjectFaces(cmds,{ref:'BATTERY'},boxFaces({...d,z0:d.z0+off,z1:d.z0+d.d+off}),COLORS.battery,.88,'BATTERY','mechanical','battery');}
@@ -259,7 +264,7 @@
   }
 
   function drawShell(basis,w,h){
-    if(!state.groupVisibility.case || !state.shell || !(state.authority.case||state.referenceMode) || window.STRUTHIO_CASE_R10 || window.STRUTHIO_CASE_R3 || !model.mechanical?.shell)return;
+    if(!state.groupVisibility.case || !state.shell || !(state.authority.case||state.referenceMode) || window.STRUTHIO_CASE_LAYER || window.STRUTHIO_CASE_R3 || !model.mechanical?.shell)return;
     const sh=model.mechanical.shell,o=sh.outline,z0=sh.z0,z1=Math.min(sh.z1,state.slice);
     if(z1<=z0)return;
     ctx.save();ctx.strokeStyle=rgba(COLORS.shell,.55);ctx.lineWidth=1.1;ctx.setLineDash([5,4]);
@@ -441,7 +446,7 @@
     document.querySelectorAll('#layerPanel [data-parent]').forEach(el=>el.checked=!!state.groupVisibility[el.dataset.parent]);
     document.querySelectorAll('#layerPanel [data-layer]').forEach(el=>el.checked=el.dataset.layer==='shell'?!!state.shell:!!state.layers[el.dataset.layer]);
   }
-  function setAllOff(){state.layers={pcb:false,parts:false,frontParts:false,backParts:false,copper:false,display:false,lens:false,acrylic:false,battery:false,speakers:false,controls:false};state.shell=false;state.partSideFilter='all';state.copperFilter='all';}
+  function setAllOff(){state.layers={pcb:false,parts:false,frontParts:false,backParts:false,copper:false,display:false,lens:false,acrylic:false,battery:false,speakers:false,controls:false,rear:false,routes:false};state.shell=false;state.partSideFilter='all';state.copperFilter='all';}
   $('#layersBtn').addEventListener('click',()=>{const panel=$('#layerPanel');panel.hidden=!panel.hidden;$('#layersBtn').setAttribute('aria-expanded',String(!panel.hidden));if(!panel.hidden)syncLayerPanel();});
   $('#layersClose').addEventListener('click',()=>{$('#layerPanel').hidden=true;$('#layersBtn').setAttribute('aria-expanded','false');});
   $('#layerPanel').addEventListener('change',e=>{
@@ -456,9 +461,9 @@
   function setAuthorityStatus(){
     const pcbName=(model.source||model.name||'PCB').replace(/^.*[\\/]/,'');
     $('#pcbSource').textContent=(state.authority.pcb?`${pcbName} · SOURCE FILE`:'SOURCE MISSING');
-    $('#caseSource').textContent=state.authority.case?'R10 · FRONT CAD':(state.referenceMode?'R3 CAD · REFERENCE':'SOURCE MISSING');
+    $('#caseSource').textContent=state.authority.case?'R11 · FULL CAD':(state.referenceMode?'R3 CAD · REFERENCE':'SOURCE MISSING');
     $('#artSource').textContent=state.authority.art?'CLEAR FILM · 0.20*':'SOURCE MISSING';
-    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R10':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
+    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R11':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
     document.querySelectorAll('#stackWheel button').forEach(b=>{const src=b.dataset.source;b.classList.toggle('missing',src==='art'&&!state.authority.art || src==='case'&&!state.authority.case&&!state.referenceMode);b.classList.toggle('reference',src==='case'&&!state.authority.case&&state.referenceMode);});
   }
   function applyStack(key){
@@ -488,16 +493,19 @@
       if(key==='case.window'){state.layers.display=true;state.layers.lens=true;}
       else if(key==='case.lens')state.layers.lens=true;
       else if(key==='case.controls')state.layers.controls=true;
-      // R10 has no rear shell, chamber, or final battery package; leave these views empty and explicit.
+      if(key==='case.rear'){state.layers.rear=true;state.shell=false;}
+      else if(key==='case.audio'){state.layers.rear=true;state.layers.speakers=true;state.layers.routes=true;state.layers.pcb=true;}
+      else if(key==='case.battery'){state.layers.rear=true;state.layers.battery=true;state.layers.routes=true;state.layers.pcb=true;}
+      else if(key==='case.structure'){state.shell=true;state.layers.rear=true;state.layers.pcb=true;}
     }
     if(key==='art.clear')state.layers.acrylic=true;
     else if(key==='case.window')state.layers.display=true;
     else if(key==='case.lens'){state.layers.lens=true;}
     const pendingArt=meta.source==='art'&&key!=='art.clear';
-    const pendingCase=['case.audio','case.battery','case.structure','case.rear'].includes(key);
+    const pendingCase=false;
     const partialBuild=meta.source==='build'&&(!state.authority.case||!state.authority.art);
-    $('#stackState').textContent=pendingArt?'ARTWORK LAYER · NOT DESIGNED':pendingCase?'REAR / AUDIO PACKAGE · NOT IN R10 CAD':partialBuild?'PARTIAL · SOURCE INCOMPLETE':key==='build.assembled'?'FRONT STACK + PCB · REAR OPEN':meta.label.replace(' · ',' / ');
-    $('#stackReadout').textContent=meta.label+(pendingArt||pendingCase?' · PENDING':partialBuild?' · PARTIAL':key==='build.assembled'?' · REAR OPEN':'');
+    $('#stackState').textContent=pendingArt?'ARTWORK LAYER · NOT DESIGNED':pendingCase?'':partialBuild?'PARTIAL · SOURCE INCOMPLETE':key==='build.assembled'?'FRONT STACK + PCB · R11 REAR IN CASE.REAR':meta.label.replace(' · ',' / ');
+    $('#stackReadout').textContent=meta.label+(pendingArt||pendingCase?' · PENDING':partialBuild?' · PARTIAL':'');
     syncLayerPanel();schedule();
   }
   function initVerticalWheel(id,initial,onChange){
@@ -572,7 +580,7 @@
       else model=parseKicad(text,file.name);
       state.authority.pcb=true;setAuthorityStatus();
       state.selected={type:'board',ref:'BOARD'};$('#selectedReadout').textContent='SEL BOARD';updateBoardStats();
-      $('#partInfo').innerHTML=`Loaded <b>${escapeHTML(file.name)}</b><br>${model.parts.length} footprints · ${(model.segments||[]).length} routed segments · ${(model.vias||[]).length} vias.<br>The bundled R10 case and clear acrylic film remain visible as separate, fixed-datum design layers; compare fit before relying on loaded-board alignment.`;
+      $('#partInfo').innerHTML=`Loaded <b>${escapeHTML(file.name)}</b><br>${model.parts.length} footprints · ${(model.segments||[]).length} routed segments · ${(model.vias||[]).length} vias.<br>The bundled R11 case and R1 clear acrylic film remain visible as separate, fixed-datum design layers; compare fit before relying on loaded-board alignment.`;
       resetView('home');
     }catch(err){$('#partInfo').textContent='Load failed: '+err.message;}
     e.target.value='';

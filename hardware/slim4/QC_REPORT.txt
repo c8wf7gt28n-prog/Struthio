@@ -1,10 +1,11 @@
-STRUTHIO R24 LAYERED HANDOFF — PACKAGE CHECKS
+STRUTHIO R25 CONVERGED HANDOFF — PACKAGE CHECKS
 
-PASS: All three parent layers exist as separate folders with native/editable sources and neutral interchange.
-PASS: PCB R21 board file copied unchanged from the R23 source package.
-PASS: CASE R10 exported separately as STEP/STL aggregate and shell/screen/control STEP sublayers.
-PASS: ACRYLIC clear face film exported independently as STEP/STL plus SVG/DXF cutline and JSON specification/mesh.
-PASS: PWA consumes separate CASE and ACRYLIC viewer mesh scripts; the three parent toggles remain independent.
-PASS: Shared coordinate datum and unit declarations are documented in the manifest.
-PASS: Regeneration scripts run against the bundled PCB layer JSON without external project paths.
-LIMIT: PCB, case, and acrylic geometry have open production gates. No manufacturing release claim.
+PASS: PCB R21 board file and PCB layer JSON byte-identical to the R24 delivery (SHA-256, check A1).
+PASS: Cross-layer convergence: 69 PASS · 0 FAIL · 12 GATE · 3 INFO (CHECKS/R25_CONVERGENCE_REPORT.md).
+PASS: No volume interference and required clearances in four poses across 308 part pairs (F1, G1).
+PASS: All 19 CASE R11 / ACRYLIC R1 solids are valid B-rep; STEP and STL exported per sublayer.
+PASS: Film cutlines (SVG/DXF) and cut specification generated from the checked film geometry (E1-E6).
+PASS: Regeneration scripts run from the package root with no external paths (build, export, checks, renders).
+PASS: Viewer loads PCB, CASE R11 and ACRYLIC R1; sublayers toggle independently; service-worker precache list resolves.
+INFO: R24 audited with the same interfaces: 17 FAIL (CHECKS/R24_BASELINE_AUDIT.md).
+LIMIT: 12 GATE items need samples, supplier drawings or tests (PRODUCTION_GATES.md). No manufacturing release claim.

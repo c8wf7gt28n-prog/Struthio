@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="STRUTHIO VIS">
-  <title>STRUTHIO Hardware Visualization Studio 1.0 · Layered Project · R24</title>
+  <title>STRUTHIO Hardware Visualization Studio 1.0 · Layered Project · R25</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="styles.css">
@@ -20,7 +20,7 @@
     <div class="brand"><b>STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.0</span></div>
     <div class="headerTools">
       <button type="button" class="eyeBtn" id="eyeBtn" aria-pressed="true" aria-label="Toggle Eye mode"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg><span>EYE</span></button>
-      <div class="sourceStatus" id="sourceStatus" aria-label="Source authority status"><span class="srcCase">CASE R10</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ✓</span></div>
+      <div class="sourceStatus" id="sourceStatus" aria-label="Source authority status"><span class="srcCase">CASE R11</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ✓</span></div>
       <button type="button" class="aboutBtn" id="aboutBtn" aria-label="About STRUTHIO Visualization Studio">i</button>
     </div>
   </header>
@@ -93,9 +93,9 @@
           <div class="partInfo" id="partInfo">Tap a component, trace, or via — or search a reference.</div>
           <div class="boardStats" id="boardStats"></div>
           <div class="authorityMap" id="authorityMap" aria-label="Fabrication source map">
-            <div><span>CASE</span><b id="caseSource">R10 · FRONT CAD</b></div>
+            <div><span>CASE</span><b id="caseSource">R11 · FULL CAD</b></div>
             <div><span>PCB</span><b id="pcbSource">R21 · NOT FAB</b></div>
-            <div><span>ACRYLIC</span><b id="artSource">CLEAR FILM · 0.20*</b></div>
+            <div><span>ACRYLIC</span><b id="artSource">CLEAR FILM R1 · 0.20*</b></div>
           </div>
           <label class="referenceToggle"><input id="referenceToggle" type="checkbox"><span>SHOW R3 CASE CAD · REFERENCE ONLY</span></label>
           <div class="microTools">
@@ -104,7 +104,7 @@
           </div>
           <div class="fileTools">
             <label class="fileControl">LOAD PCB<input id="fileInput" type="file" accept=".kicad_pcb,.json,application/json,text/plain"></label>
-            <button type="button" id="resetModel">R24</button>
+            <button type="button" id="resetModel">R25</button>
             <button type="button" id="snapBtn">PNG</button>
           </div>
         </div>
@@ -112,32 +112,7 @@
 
       <nav class="buildStack" id="buildStack" aria-label="Physical build stack from front to rear">
         <div class="stackHead"><b>BUILD</b><button type="button" id="layersBtn" aria-expanded="false">LAYERS</button><span id="stackSourceBadge">FILE</span></div>
-        <section class="layerPanel" id="layerPanel" aria-label="Three parent layers and sublayers" hidden>
-          <div class="layerPanelHead"><b>VISIBILITY LAYERS</b><button type="button" id="layersClose" aria-label="Close layers">×</button></div>
-          <div class="layerGroups">
-            <details class="layerGroup" open>
-              <summary><label><input type="checkbox" data-parent="case" checked><b>CASE</b></label><span>R10 FRONT</span></summary>
-              <label class="layerChild"><input type="checkbox" data-layer="shell" checked> Front shell</label>
-              <label class="layerChild"><input type="checkbox" data-layer="display"> LCD module</label>
-              <label class="layerChild"><input type="checkbox" data-layer="lens"> Protective lens</label>
-              <label class="layerChild"><input type="checkbox" data-layer="controls"> Molded controls</label>
-              <div class="layerPending">Rear shell · speakers · battery · chambers pending</div>
-            </details>
-            <details class="layerGroup" open>
-              <summary><label><input type="checkbox" data-parent="pcb" checked><b>PCB</b></label><span>R21</span></summary>
-              <label class="layerChild"><input type="checkbox" data-layer="pcb" checked> Board substrate</label>
-              <label class="layerChild"><input type="checkbox" data-layer="frontParts" checked> Front components</label>
-              <label class="layerChild"><input type="checkbox" data-layer="backParts" checked> Rear components</label>
-              <label class="layerChild"><input type="checkbox" data-layer="copper" checked> Copper · pads · vias</label>
-            </details>
-            <details class="layerGroup" open>
-              <summary><label><input type="checkbox" data-parent="acrylic" checked><b>ACRYLIC</b></label><span>FILM</span></summary>
-              <label class="layerChild"><input type="checkbox" data-layer="acrylic" checked> Clear face film*</label>
-              <div class="layerPending">Print · white ink · relief · adhesive pending</div>
-            </details>
-          </div>
-          <small class="layerNote">*0.20 mm assumed. Pending layers have no geometry yet.</small>
-        </section>
+
         <div class="stackWheel" id="stackWheel" role="listbox" aria-label="Build stack layer">
           <button data-value="build.assembled" data-source="build"><small>BUILD</small><b>PCB + FRONT</b></button>
           <button data-value="art.clear" data-source="art"><small>FILM</small><b>CLEAR FACE</b></button>
@@ -162,8 +137,38 @@
           <button data-value="case.rear" data-source="case"><small>CASE</small><b>REAR</b></button>
           <button data-value="build.back" data-source="build"><small>BUILD</small><b>BACK</b></button>
         </div>
-        <div class="stackState" id="stackState">PCB + FRONT STACK · REAR OPEN</div>
+        <div class="stackState" id="stackState">PCB + FRONT STACK</div>
       </nav>
+      <section class="layerPanel" id="layerPanel" aria-label="Three parent layers and sublayers" hidden>
+        <div class="layerPanelHead"><b>VISIBILITY LAYERS</b><button type="button" id="layersClose" aria-label="Close layers">×</button></div>
+        <div class="layerGroups">
+          <details class="layerGroup" open>
+            <summary><label><input type="checkbox" data-parent="case" checked><b>CASE</b></label><span>R11 FULL</span></summary>
+            <label class="layerChild"><input type="checkbox" data-layer="shell" checked> Front shell</label>
+            <label class="layerChild"><input type="checkbox" data-layer="rear"> Rear shell · chambers · supports</label>
+            <label class="layerChild"><input type="checkbox" data-layer="display"> LCD module</label>
+            <label class="layerChild"><input type="checkbox" data-layer="lens"> Protective lens</label>
+            <label class="layerChild"><input type="checkbox" data-layer="controls"> Caps · DART rocker · power plunger</label>
+            <label class="layerChild"><input type="checkbox" data-layer="battery"> Battery envelope</label>
+            <label class="layerChild"><input type="checkbox" data-layer="speakers"> Speakers · gaskets</label>
+            <label class="layerChild"><input type="checkbox" data-layer="routes"> FPC and harness routes</label>
+            <div class="layerPending">Purchased-part envelopes and routes are reserves; see CHECKS/R25_CONVERGENCE_REPORT.md</div>
+          </details>
+          <details class="layerGroup" open>
+            <summary><label><input type="checkbox" data-parent="pcb" checked><b>PCB</b></label><span>R21</span></summary>
+            <label class="layerChild"><input type="checkbox" data-layer="pcb" checked> Board substrate</label>
+            <label class="layerChild"><input type="checkbox" data-layer="frontParts" checked> Front components</label>
+            <label class="layerChild"><input type="checkbox" data-layer="backParts" checked> Rear components</label>
+            <label class="layerChild"><input type="checkbox" data-layer="copper" checked> Copper · pads · vias</label>
+          </details>
+          <details class="layerGroup" open>
+            <summary><label><input type="checkbox" data-parent="acrylic" checked><b>ACRYLIC</b></label><span>FILM R1</span></summary>
+            <label class="layerChild"><input type="checkbox" data-layer="acrylic" checked> Clear face film R1*</label>
+            <div class="layerPending">Print · white ink · relief · adhesive pending</div>
+          </details>
+        </div>
+        <small class="layerNote">*0.20 mm assumed. Pending layers have no geometry yet.</small>
+      </section>
 
       <div class="studioDock" id="studioDock">
         <div class="wheelBlock">

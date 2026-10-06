@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "STRUTHIO Hardware Studio R24 Review",
-  "short_name": "STRUTHIO R24",
-  "description": "R24 motherboard engineering review viewer. Not released for fabrication or assembly.",
+  "name": "STRUTHIO Hardware Studio R25 Review",
+  "short_name": "STRUTHIO R25",
+  "description": "R25 converged hardware review viewer: PCB R21, CASE R11, ACRYLIC R1. Not released for fabrication or assembly.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
