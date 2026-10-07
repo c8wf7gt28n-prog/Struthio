@@ -42,7 +42,7 @@ Package layout:
   ASSEMBLY/          all three layers in one STEP, and the build order
   CHECKS/            convergence checker and its reports, renderer and renders,
                      component height table, manifest/checksum generator, viewer
-                     deploy-bundle builder
+                     deploy-bundle builder, builder-pack generator
   REFERENCES/        reference only, not authorities: the R10 fit-study STEP and the
                      SLIM4 R3 integration study (each folder has a README)
   root               viewer (index.html, app.js, eye.js, styles.css, eye.css, model-data.js,
@@ -64,6 +64,14 @@ writes index.html (CSS inlined), studio.js (scripts and meshes, coordinates pack
 0.01 mm), R21_REAR_BOARD.svg (trimmed), sw.js, manifest and two icons. Upload that folder as
 its own site or at its own path. Nothing in the package changes; rebuild the bundle after
 any viewer or mesh change. Do not serve it under another PWA's service-worker scope.
+
+Files for the builders (PCB house, 3D print service, sticker printer): from the package root,
+  python -B CHECKS/build_builder_packs.py <folder outside the package>
+writes STRUTHIO_SLIM4_R25_BUILDER_FILES/ (1_PCB_FABRICATION, 2_3D_PRINTING, 3_ACRYLIC_STICKER,
+each with an order README) and its zip. Needs KiCad 7.0.x (kicad-cli, and a python3 that
+imports pcbnew) besides requirements.txt. The R21 board is plotted from a temporary copy and
+its hash is checked before and after; nothing in the package changes. R21 remains an
+engineering-review board: the PCB pack is labelled prototype only.
 
 CHECKS/R24_BASELINE_AUDIT.* is a frozen comparison. To regenerate it, unzip the R24
 package (identity in AI_CHANGE_REPORT_R25.md) and add --baseline <unzipped R24 folder>

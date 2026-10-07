@@ -112,6 +112,15 @@
     "offline_service_worker": "sw.js",
     "deploy_bundle_builder": "CHECKS/build_viewer_bundle.py"
   },
+  "builder_packs": {
+    "generator": "CHECKS/build_builder_packs.py",
+    "needs": "KiCad 7.0.x (kicad-cli, pcbnew) and requirements.txt",
+    "folders": [
+      "1_PCB_FABRICATION",
+      "2_3D_PRINTING",
+      "3_ACRYLIC_STICKER"
+    ]
+  },
   "reference_only": [
     "REFERENCES/R10_CONTEXT/STRUTHIO_R10_UNSEPARATED_CONTEXT_REFERENCE.step",
     "REFERENCES/SLIM4_R3_INTEGRATION/",

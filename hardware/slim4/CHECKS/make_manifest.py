@@ -45,6 +45,8 @@ manifest = {
     'viewer': {'entry': 'index.html', 'pcb_mesh': 'model-data.js', 'case_mesh': 'case-layer-data.js', 'acrylic_mesh': 'acrylic-layer-data.js',
                'reference_mesh': 'case-r3-data.js', 'pcb_rear_plot': 'R21_REAR_BOARD.svg', 'offline_service_worker': 'sw.js',
                'deploy_bundle_builder': 'CHECKS/build_viewer_bundle.py'},
+    'builder_packs': {'generator': 'CHECKS/build_builder_packs.py', 'needs': 'KiCad 7.0.x (kicad-cli, pcbnew) and requirements.txt',
+                      'folders': ['1_PCB_FABRICATION', '2_3D_PRINTING', '3_ACRYLIC_STICKER']},
     'reference_only': ['REFERENCES/R10_CONTEXT/STRUTHIO_R10_UNSEPARATED_CONTEXT_REFERENCE.step', 'REFERENCES/SLIM4_R3_INTEGRATION/', 'case-r3-data.js'],
     'release_gates': 'PRODUCTION_GATES.md', 'cross_platform_instructions': 'AI_HANDOFF.md', 'change_report': 'AI_CHANGE_REPORT_R25.md',
     'sha256': {p: sha(p) for p in ['LAYERS/01_PCB/SLIM4_R21.kicad_pcb', 'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json'] + case_files + acr_files + ['ASSEMBLY/STRUTHIO_SLIM4_R25_ASSEMBLY.step']},

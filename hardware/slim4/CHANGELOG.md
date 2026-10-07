@@ -1,3 +1,13 @@
+# R25 builder packs
+
+No geometry, check or source changed. New `CHECKS/build_builder_packs.py` writes the files for the three suppliers, each folder with an order README:
+
+- **1_PCB_FABRICATION**: Gerber X2 (13 layers) and Excellon drill zip plotted with KiCad 7.0.11 from a temporary copy of the unchanged R21 board; BOM (52 lines, LCSC numbers where the board records them; 14 parts by manufacturer number only, C310 still to be bound); placement (CPL, 165 parts); assembly drawings; drill maps; KiCad 7.0.11 DRC (0 violations, 0 unconnected, 0 footprint errors; zone fills current); the KiCad source. The README carries the board specification read from the file (6 layers, 1.2 mm, 0.10 mm track/space, 269 tented 0.20/0.45 vias, two vias in pads, USB-C plated slots) and keeps R21's "prototype only" status and its release gates.
+- **2_3D_PRINTING**: one STL and one STEP per printed part (front shell, rear shell, flap caps L/R, DART rocker, power plunger), meshes checked closed, volumes checked against the CAD, with a process recommendation and the features to protect.
+- **3_ACRYLIC_STICKER**: the R1 cut line as a 1:1 PDF in a CutContour spot colour, SVG and DXF (the DXF is identical to the R1 file), an A4 1:1 check drawing with the screen keep-clear zone, and the optional 0.7 mm lens outline. Print artwork is still not designed; the README flags the zero-margin perimeter and the 1.0 mm vent slots for the printer to confirm.
+
+Rebuilds are byte-identical (plot timestamps are pinned to the package date).
+
 # R25 viewer deploy bundle
 
 No geometry, check or viewer source changed. New `CHECKS/build_viewer_bundle.py` writes a deployable copy of the viewer: 7 files, about 2.7 MB (about 465 KB zipped), against 30 precached files and 5.3 MB for the viewer inside the package and about 250 files and 45 MB for the whole package. The CSS is inlined; scripts and meshes are joined into `studio.js`; CASE, ACRYLIC and R3 mesh coordinates are packed as Int16 at 0.01 mm (largest decode error 0.005 mm) with Uint16 shades (exact), and unpacked at load, so `app.js` and `eye.js` run unchanged. The SVG is trimmed to 0.001 mm. Its service worker precaches only those files. Headless-browser checks match the package viewer (CAD picks, LAYERS panel, R3 overlay, offline cache, no errors).
