@@ -4,7 +4,7 @@ This folder holds the R22 board: R21 plus the fixes from the electrical and land
 
 **Status: ready to order, except one part: JLCPCB has no stock of the ESP32-P4NRW32X (U1) — see *Sourcing U1* below.** `ORDER/STRUTHIO_SLIM4_R22_PCB_ORDER.zip` holds everything JLCPCB needs (Gerbers + drill, BOM, CPL) and a README with the exact order options.
 
-The display is the Startek KD047HDFID001 (4.7 in 720 × 1280 IPS). J1 is a fixed display port, and one custom flex maps it to the panel's cable. The flex is designed when Startek's datasheet with the pin definition arrives, so the main board does not depend on that pinout (`DISPLAY_PORT.md`). Firmware pin map: `FIRMWARE_PINMAP.md`.
+The display is the Startek KD047HDFID001 (4.7 in 720 × 1280 IPS). J1 is a fixed display port, and one custom flex maps it to the panel's cable. The flex is designed when Startek's datasheet with the pin definition arrives, so the main board does not depend on that pinout (`DISPLAY_PORT.md`). Firmware pin map: `FIRMWARE_PINMAP.md`. Display flex: `display_flex/` (complete except the panel's pin table, which is in Startek's datasheet).
 
 ## What changed from R21
 
