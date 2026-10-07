@@ -1,15 +1,14 @@
-STRUTHIO R25 CONVERGED HANDOFF — PACKAGE CHECKS (clean re-issue)
+STRUTHIO R26 ENGINEERING PROTOTYPE PACKAGE — PACKAGE CHECKS
 
 PASS: PCB R21 board file and PCB layer JSON byte-identical to the R24 delivery (SHA-256, check A1).
-PASS: Cross-layer convergence: 72 PASS · 0 FAIL · 12 GATE · 3 INFO (CHECKS/R25_CONVERGENCE_REPORT.md).
-PASS: No volume interference and required clearances: 308 pair evaluations over 273 distinct part pairs whose bounding boxes come within 0.2-0.3 mm (270 at rest, 16 with the flaps and power plunger pressed, 11 DART left, 11 DART right) (F1, G1).
-PASS: All 19 CASE R11 / ACRYLIC R1 solids are valid B-rep. STEP for every sublayer; STL for the CASE aggregate (without route reserves), front shell, rear shell, controls and film.
-PASS: Film cutlines (SVG/DXF) and cut specification generated from the checked film geometry; every cut-spec field matches (E1-E6).
+PASS: Cross-layer convergence: 79 PASS · 0 FAIL · 9 GATE · 3 INFO (CHECKS/R26_CONVERGENCE_REPORT.md).
+PASS: No volume interference and required clearances: 326 pair evaluations over 287 distinct part pairs whose bounding boxes come within 0.2-0.3 mm (284 at rest, 18 with the flaps and power plunger pressed, 12 DART left, 12 DART right) (F1, G1).
+PASS: All 21 CASE R12 / ACRYLIC R2 solids are valid B-rep. STEP for every sublayer; STL for the CASE aggregate (without route reserves), front shell, rear shell, controls and film.
+PASS: R26 decisions verified on the geometry: lap 0.10 mm radial clearance and 0.10 mm tape seat (L5); module + 0.10 mm tape = ledge = lens underside (L6); 0.15 mm under each trunnion bore (D15); film edge 0.20 mm inside the case outline, vent windows clear every grille slot by 0.1 mm, narrowest cut 4.8 mm, stack = 0.20 mm (E1, E4, E7, E8).
+PASS: Film cutlines (SVG/DXF) and cut specification generated from the checked film geometry; every cut-spec field matches (E6).
 PASS: Regeneration scripts run from the package root with no external paths, in the documented order, with the pinned requirements.txt; no __pycache__ is left behind.
-PASS: Viewer loads PCB, CASE R11 and ACRYLIC R1 with no console errors; sublayers toggle independently; the LAYERS panel is visible; the service-worker precache list resolves.
-PASS: Every path named by the docs, manifest, viewer and service worker exists; SHA256SUMS.txt covers every file except itself and PROJECT_MANIFEST.json.
-PASS: Builder files (CHECKS/build_builder_packs.py): KiCad 7.0.11 DRC on the unchanged R21 board 0 violations / 0 unconnected / 0 footprint errors; stored zone fills match a fresh refill; Gerber/drill contents match a manual export; STEP volumes equal the CAD; meshes closed; cut-line DXF identical to the R1 file; rebuilds byte-identical.
-PASS: Via tenting (I4): the R21 plot settings tent every via and the mask Gerbers have no opening at the two vias under case contacts.
-PASS: Studio 1.1 loads with no console errors: copper pours drawn from the stored fills (per-zone areas equal KiCad's), BOM/sourcing per part, fab status, open gates; the R25 regression checks (picks, LAYERS panel, R3 overlay, offline cache) are unchanged.
+PASS: Builder files (CHECKS/build_builder_packs.py): KiCad 7.0.11 DRC on the unchanged R21 board 0 / 0 / 0, zone fills current, all vias tented in the plotted masks; BOM bound for all 165 parts (14 via CHECKS/BOM_SOURCING_R21.json, each checked on its LCSC/JLCPCB page); six printed-part STLs watertight and STEP volumes equal to the CAD; film DXF identical to the R2 file; tape die-cut areas equal the modelled tape parts; rebuilds byte-identical.
+PASS: Studio 1.1 (package and 7-file deploy bundle) loads with no console errors: CAD picks, LAYERS panel, R3 overlay, copper pours, BOM/sourcing, 15-stop tour, offline cache; bundle meshes decode within 0.005 mm.
+PASS: Every path named by the manifest, viewer and service worker exists; SHA256SUMS.txt covers every file except itself and PROJECT_MANIFEST.json.
 INFO: R24 audited with the same interfaces: 17 FAIL · 1 PASS (CHECKS/R24_BASELINE_AUDIT.md).
-LIMIT: 12 GATE items need samples, supplier drawings or tests (PRODUCTION_GATES.md). No manufacturing release claim.
+LIMIT: 9 GATE items and R21's electrical review need hardware, tests or supplier data (PRODUCTION_GATES.md). Engineering prototype; no production release claim.

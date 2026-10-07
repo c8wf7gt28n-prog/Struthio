@@ -2,7 +2,7 @@
  "board": "LAYERS/01_PCB/SLIM4_R21.kicad_pcb",
  "board_sha256": "daac1da0536f04f493232b1141e38cf9c74efe9c03a60bfd4f9ae5aa5241e5c0",
  "generator": "CHECKS/build_builder_packs.py",
- "status": "prototype only: R21 release gates open (LAYERS/01_PCB/RELEASE_GATES.md)",
+ "status": "engineering prototype (EVT) build per DECISIONS_R26.md; R21 electrical release gates open (LAYERS/01_PCB/RELEASE_GATES.md)",
  "kicad": "7.0.11",
  "drc": {
   "violations": 0,
@@ -60,8 +60,9 @@
  "bom": {
   "lines": 52,
   "placements": 165,
-  "with_lcsc": 151,
-  "by_mpn_only": [
+  "with_lcsc": 165,
+  "by_mpn_only": [],
+  "bound_in_sourcing_file": [
    "C310",
    "J1",
    "J2",
@@ -77,14 +78,23 @@
    "U10",
    "U13"
   ],
-  "unbound": [
-   "C310"
-  ]
+  "unbound": []
  },
  "cpl_placements": 165,
  "sides": {
   "Top": 4,
   "Bottom": 161
+ },
+ "order": {
+  "build": "EVT prototype",
+  "quantity": "5 bare boards, 2 assembled",
+  "assembly": "both sides",
+  "stackup": "board house standard 6-layer 1.2 mm",
+  "copper": "1 oz outer / 0.5 oz inner",
+  "finish": "ENIG",
+  "via_in_pad": "epoxy filled and capped (POFV)",
+  "impedance_control": "not ordered",
+  "mask_silk": "green / white"
  },
  "land_patterns": {
   "vendor": [

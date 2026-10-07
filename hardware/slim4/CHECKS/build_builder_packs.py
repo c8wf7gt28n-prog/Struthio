@@ -3,16 +3,16 @@
 
     python -B CHECKS/build_builder_packs.py <output folder>
 
-Writes <output folder>/STRUTHIO_SLIM4_R25_BUILDER_FILES/ and a zip of it:
+Writes <output folder>/STRUTHIO_SLIM4_R26_BUILDER_FILES/ and a zip of it:
   1_PCB_FABRICATION/   Gerber + drill zip, BOM, placement (CPL), assembly drawings, KiCad source
   2_3D_PRINTING/       one STL and one STEP per printed part, renders
   3_ACRYLIC_STICKER/   face-film die line (PDF with a CutContour spot colour, SVG, DXF),
-                       a 1:1 check drawing, and the optional 0.7 mm lens outline
+                       a 1:1 check drawing, the two tape die-cuts and the cover-glass lens outline
 
 Needs KiCad 7.0.x (kicad-cli on PATH and a python3 that can import pcbnew) and the pinned
 CadQuery environment (requirements.txt). No source in the package is changed: the PCB files are
 plotted from a temporary copy of LAYERS/01_PCB (its SHA-256 is checked before and after), and
-the printed parts and film are rebuilt from LAYERS/02_CASE/build_r11.py. The one file written
+the printed parts and film are rebuilt from LAYERS/02_CASE/build_r12.py. The one file written
 into the package is CHECKS/R21_FAB_SUMMARY.json, a record of the fab outputs (DRC, BOM coverage,
 via tenting) that the studio and the handoff read.
 """
@@ -23,19 +23,21 @@ sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 PCB_DIR = ROOT / 'LAYERS/01_PCB'
 BOARD = 'SLIM4_R21.kicad_pcb'
-TOP = 'STRUTHIO_SLIM4_R25_BUILDER_FILES'
+TOP = 'STRUTHIO_SLIM4_R26_BUILDER_FILES'
+SOURCING = json.loads((ROOT / 'CHECKS/BOM_SOURCING_R21.json').read_text())['by_mpn']
 STAMP = (2026, 10, 7, 0, 0, 0)
 STEP_STAMP = '2026-10-07T00:00:00'
 GERBER_LAYERS = 'F.Cu,In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu,F.Mask,B.Mask,F.Paste,B.Paste,F.SilkS,B.SilkS,Edge.Cuts'
 
 # Printed parts: output name, CAD part name prefix, quantity per device, what to look after.
 PRINTED = [
-    ('01_FRONT_SHELL', 'FRONT SHELL R11', 1,
+    ('01_FRONT_SHELL', 'FRONT SHELL R12', 1,
      'Plate 2.0 mm, only 0.70 mm over the LCD pocket ledge; 0.8 mm grille slots; lens rebate 59.4 x 104.6 (lens 59.2 x 104.4); '
-     'flap holes 17.0; DART opening 50 x 7 with two 2.0 x 1.4 pivot bosses (1.0 mm trunnion, 0.05 mm radial clearance); front clamp posts 2.0.'),
-    ('02_REAR_SHELL', 'REAR SHELL R11', 1,
-     'Floor and walls 2.0 mm; 1.0 mm lap lip; speaker chambers with ledges; board supports 2.4; power-plunger bore 2.8; '
-     'RESET/BOOT pinholes 1.2; USB-C relief.'),
+     'flap holes 17.0; DART opening 50 x 7 with two 2.0 x 1.4 pivot bosses (1.0 mm trunnion, 0.10 mm radial clearance); front clamp posts 2.0; '
+     'lap skirt 0.95 mm, 0.10 mm radial clearance to the rear lip.'),
+    ('02_REAR_SHELL', 'REAR SHELL R12', 1,
+     'Floor and walls 2.0 mm; 0.95 mm lap lip whose top stops 0.10 mm under the plate (tape seat); speaker chambers with ledges; '
+     'board supports 2.4; power-plunger bore 2.8; RESET/BOOT pinholes 1.2; USB-C relief.'),
     ('03_FLAP_CAP_L', '16 MM FLAP CAP L', 1,
      'Cap 16.0 through a 17.0 plate hole; 17.8 x 0.8 retention flange; 1.4 actuator nub; four 1.2 stop legs (may be trimmed after a switch test).'),
     ('04_FLAP_CAP_R', '16 MM FLAP CAP R', 1, 'As the left cap.'),
@@ -48,7 +50,7 @@ PACKAGE = {'ESP32-P4NRW32X': 'QFN-104 0.35 mm pitch + EP', 'W25Q512JVEIQ TR': 'W
            'TPS63070RNMR': 'VQFN-HR-15 (TI RNM0015A)', 'MAX98357AETE+T': 'TQFN-16 3x3 mm', 'TUSB320LAIRWBR': 'X2QFN-12 (TI RWB0012A)',
            'FH12-20S-0.5SH(55)': 'FPC 20P 0.5 mm bottom-contact ZIF', 'USB4105-GF-A-120': 'USB-C receptacle', 'D2LS-11': 'Omron D2LS SMD',
            'D2LS-21(20M)': 'Omron D2LS SMD', 'ASWPA4035S2R2MT': 'Power inductor 4035'}
-RENDERS = ['VIEW_EXPLODED.png', 'VIEW_FRONT_ISO.png', 'VIEW_REAR_ISO.png', 'VIEW_INTERNALS.png']
+RENDERS = ['VIEW_EXPLODED.png', 'VIEW_FRONT_ISO.png', 'VIEW_REAR_ISO.png', 'VIEW_INTERNALS.png', 'SECTION_F_LAP_DISPLAY.png']
 
 
 def sha(p):
@@ -144,8 +146,11 @@ def board_parts(text):
         tags = g(r'\(tags "([^"]*)"\)')
         value = g(r'\(fp_text value "([^"]+)"')
         pkg = PACKAGE.get(value) or re.sub(r'^SLIM4 R\d+ (?:[CR] )?|\s*\d{4}Metric', '', tags)
-        rows.append(dict(ref=g(r'\(fp_text reference "([^"]+)"'), value=value, mpn='' if re.match(r'\d{4} ', value) else value,
-                         layer=g(r'\(layer "([^"]+)"\)'), lcsc=jlc[1] if jlc else '', descr=descr, pkg=pkg))
+        mpn = '' if re.match(r'\d{4} ', value) else value
+        bound = SOURCING.get(mpn, {}).get('lcsc', '') if not jlc else ''      # numbers in the board file win
+        rows.append(dict(ref=g(r'\(fp_text reference "([^"]+)"'), value=value, mpn=mpn,
+                         layer=g(r'\(layer "([^"]+)"\)'), lcsc=jlc[1] if jlc else bound, lcsc_source='board' if jlc else ('sourcing' if bound else ''),
+                         descr=descr, pkg=pkg))
     return rows
 
 
@@ -231,9 +236,9 @@ def build_pcb(dst):
             w.writerow(['Comment', 'Designator', 'Footprint', 'LCSC Part #', 'Manufacturer Part #', 'Quantity', 'Side', 'Note'])
             for (val, mpn, lcsc, pkg, layer), refs in sorted(groups.items(), key=lambda kv: natural(sorted(kv[1], key=natural)[0])):
                 refs = sorted(refs, key=natural)
-                descr = next(p['descr'] for p in parts if p['ref'] == refs[0])
-                note = ('' if lcsc else 'part not bound yet: confirm before ordering' if 'BIND_BEFORE_FAB' in descr
-                        else 'no LCSC number recorded: source by manufacturer part number')
+                first = next(p for p in parts if p['ref'] == refs[0])
+                note = ('LCSC number from CHECKS/BOM_SOURCING_R21.json (verified 2026-10-07)' if first['lcsc_source'] == 'sourcing'
+                        else '' if lcsc else 'no LCSC number: source by manufacturer part number')
                 w.writerow([val, ','.join(refs), pkg, lcsc, mpn, len(refs), 'Top' if layer == 'F.Cu' else 'Bottom', note])
         with open(tmp / 'pos.csv') as f, open(dst / 'SLIM4_R21_CPL.csv', 'w', newline='') as o:
             w = csv.writer(o)
@@ -264,6 +269,7 @@ def build_pcb(dst):
     proxies = sum('package proxy' in p['descr'] for p in parts)
     vendor_land = [p['ref'] for p in sorted(parts, key=lambda p: natural(p['ref'])) if 'package proxy' not in p['descr']]
     no_lcsc = [(p['ref'], p['value']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if not p['lcsc']]
+    bound = [(p['ref'], p['value'], p['lcsc']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if p['lcsc_source'] == 'sourcing']
     sides = {s: sum(1 for p in parts if (p['layer'] == 'F.Cu') == (s == 'Top')) for s in ('Top', 'Bottom')}
     drc_line = ' / '.join(l.strip('* ') for l in drc.splitlines() if l.startswith('** Found'))
     vias = ', '.join(f'{d:g} mm drill / {s:g} mm pad' for s, d in facts['vias'])
@@ -272,15 +278,14 @@ def build_pcb(dst):
     readme = f"""STRUTHIO SLIM4 - PCB R21 - FILES FOR THE BOARD HOUSE / ASSEMBLER
 =================================================================
 
-STATUS: PROTOTYPE / ENGINEERING BUILD ONLY. The R21 board is a routing checkpoint that its
-own release note marks "not for fabrication or assembly" until the gates in
-REFERENCE/RELEASE_GATES_R21.md are closed (schematic/ERC review, power and high-speed
-review, final part selection). These files are complete for quoting and for a prototype
-order; ordering before those gates close is the owner's decision.
+STATUS: ENGINEERING PROTOTYPE (EVT) BUILD - decided in the package's DECISIONS_R26.md.
+R21 is not a production release: its electrical review gates (REFERENCE/RELEASE_GATES_R21.md:
+schematic/ERC, power tree, MIPI/USB signal integrity) are still open, and this prototype is
+built to test them. Order exactly the specification below.
 
 UPLOAD
   SLIM4_R21_GERBER_DRILL.zip   Gerber X2 (13 layers), Excellon drill (PTH and NPTH separate), job file
-  SLIM4_R21_BOM.csv            bill of materials, one line per part type (LCSC numbers where recorded)
+  SLIM4_R21_BOM.csv            bill of materials, one line per part type, every line with an LCSC number
   SLIM4_R21_CPL.csv            placement: designator, centre X/Y (mm), side, rotation
 
 BOARD SPECIFICATION (read from the board file)
@@ -288,35 +293,37 @@ BOARD SPECIFICATION (read from the board file)
   Thickness              {facts['thickness']:g} mm  - REQUIRED: the enclosure is designed around 1.2 mm
   Size                   {facts['outline'][0]:g} x {facts['outline'][1]:g} mm, non-rectangular outline with an internal
                          {window[0]:g} x {window[1]:g} mm battery window (routed cut-out, see Edge_Cuts)
-  Stackup                not defined in the design: use the board house's standard 6-layer 1.2 mm stackup
-  Copper weight          not specified: 1 oz outer / 0.5 oz inner assumed
+  Stackup                the board house's standard 6-layer 1.2 mm stackup (none is defined in the design)
+  Copper weight          1 oz outer / 0.5 oz inner
   Min track / space      {min(facts['track_widths']):g} mm / {facts['min_clearance']:g} mm (track widths used: {', '.join(f'{w:g}' for w in facts['track_widths'])} mm)
   Vias                   {facts['via_count']} through vias, {vias}; no blind or buried vias
   Via covering           all vias TENTED (solder mask over vias). Required: two vias sit under
                          case contact points (SW2 cap stop leg at 35.69, 107.06 and a rear support
                          post at 21.5, 76.0).
-  Vias in pads           {len(facts['vias_in_smd_pads'])}: {', '.join(f'{r} pad {n}' for r, n, _ in facts['vias_in_smd_pads'])} - ask for via-in-pad filled and capped
-                         (resin plugged, plated over), or accept solder wicking on those two pads
+  Vias in pads           {len(facts['vias_in_smd_pads'])}: {', '.join(f'{r} pad {n}' for r, n, _ in facts['vias_in_smd_pads'])} - order via-in-pad: epoxy filled and
+                         capped (POFV) for the board
   Plated slots           {', '.join(f'{r} {a:g} x {b:g} mm' for r, a, b, _ in slots)} (USB-C shell legs)
   Non-plated holes       {', '.join(f'{r} dia {d:g} mm' for r, d in npth)} (switch bosses / USB-C pegs)
-  Surface finish         ENIG recommended (0.35 mm-pitch ESP32-P4, QFN/WSON parts need flat pads)
-  Solder mask / silk     colour free choice; back-side silkscreen carries outlines
-  Impedance control      required for MIPI-DSI (100 ohm differential) and USB 2.0 (90 ohm
-                         differential) in principle, but the traces were not sized to a fab
-                         stackup yet (release gate 3). For a prototype, order without impedance
-                         control or ask the board house to calculate it for their stackup.
+  Surface finish         ENIG (0.35 mm-pitch ESP32-P4 and QFN/WSON parts need flat pads)
+  Solder mask / silk     green mask, white silkscreen
+  Impedance control      not ordered for this prototype. MIPI-DSI (100 ohm differential) and
+                         USB 2.0 (90 ohm differential) were not sized to a stackup (release gate
+                         3); the prototype is how that risk is measured.
+  Quantity               5 bare boards; 2 assembled
 
 ASSEMBLY
   Parts                  {len(parts)} placements: {sides['Bottom']} on the BACK (B.Cu) and {sides['Top']} on the FRONT (F.Cu: the four
                          Omron D2LS switches SW1-SW4, which the case controls press)
-                         Two-sided assembly. The four D2LS switches can also be hand-soldered.
+                         Two-sided assembly by the assembler (the D2LS position sets the
+                         button travel, so they are not hand-placed).
   CPL                    {cpl_count} lines. Rotations are KiCad's; check every IC, diode,
                          connector and polarised part in the assembler's placement preview and
                          correct rotations there (assembler footprint libraries use different
                          zero orientations).
-  Parts without an LCSC number ({len(no_lcsc)}) - source by manufacturer part number or supply them:
-{chr(10).join(f'    {r:6} {v}' for r, v in no_lcsc)}
-  C310 (CL05B224KO5NNNC) is marked "bind before fab": confirm the 220 nF part before ordering.
+  LCSC numbers           all {len(parts)} parts. {len(bound)} come from CHECKS/BOM_SOURCING_R21.json because the
+                         locked board file has none for them (each checked on its LCSC/JLCPCB page):
+{chr(10).join(f'    {r:6} {v:20} {l}' for r, v, l in bound)}
+{('  STILL WITHOUT AN LCSC NUMBER: ' + ', '.join(r for r, _ in no_lcsc)) if no_lcsc else '  Parts without an LCSC number: none.'}
   Land patterns: {proxies} of the {len(parts)} footprints - every part except {', '.join(vendor_land)}, which
   follow vendor land patterns - are marked in the board as "package proxy; exact land-pattern
   audit remains a fab gate". Ask the assembler's DFM review to check those pads against the
@@ -339,7 +346,7 @@ KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (unchang
     tent = re.search(r'\(viasonmask (true|false)\)', text)
     summary = {
         'board': f'LAYERS/01_PCB/{BOARD}', 'board_sha256': src_sha, 'generator': 'CHECKS/build_builder_packs.py',
-        'status': 'prototype only: R21 release gates open (LAYERS/01_PCB/RELEASE_GATES.md)',
+        'status': 'engineering prototype (EVT) build per DECISIONS_R26.md; R21 electrical release gates open (LAYERS/01_PCB/RELEASE_GATES.md)',
         'kicad': facts['version'], 'drc': {'violations': drc_n['DRC violations'], 'unconnected_pads': drc_n['unconnected pads'],
                                            'footprint_errors': drc_n['Footprint errors']},
         'zone_fills_current': facts['fills_current'],
@@ -349,8 +356,12 @@ KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (unchang
         'vias': {'count': facts['via_count'], 'pad_mm': facts['vias'][0][0], 'drill_mm': facts['vias'][0][1],
                  'tented': bool(tent) and tent[1] == 'false', 'mask_openings_at_vias': [list(v) for v in mask_at_vias], 'in_smd_pads': [{'ref': r, 'pad': n, 'net': net} for r, n, net in facts['vias_in_smd_pads']]},
         'bom': {'lines': len(groups), 'placements': len(parts), 'with_lcsc': sum(1 for p in parts if p['lcsc']),
-                'by_mpn_only': [r for r, _ in no_lcsc], 'unbound': [p['ref'] for p in parts if 'BIND_BEFORE_FAB' in p['descr']]},
+                'by_mpn_only': [r for r, _ in no_lcsc], 'bound_in_sourcing_file': [r for r, _, _ in bound],
+                'unbound': [p['ref'] for p in parts if 'BIND_BEFORE_FAB' in p['descr'] and not p['lcsc']]},
         'cpl_placements': cpl_count, 'sides': sides,
+        'order': {'build': 'EVT prototype', 'quantity': '5 bare boards, 2 assembled', 'assembly': 'both sides', 'stackup': 'board house standard 6-layer 1.2 mm',
+                  'copper': '1 oz outer / 0.5 oz inner', 'finish': 'ENIG', 'via_in_pad': 'epoxy filled and capped (POFV)', 'impedance_control': 'not ordered',
+                  'mask_silk': 'green / white'},
         'land_patterns': {'vendor': vendor_land, 'proxy_count': proxies},
     }
     (ROOT / 'CHECKS/R21_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
@@ -400,18 +411,18 @@ def build_print(dst, B):
     table = '\n'.join(f"  {r['name']:18} {r['qty']}   {r['size'][0]:6.1f} x {r['size'][1]:6.1f} x {r['size'][2]:5.2f}   {r['vol']:6.2f} cm3   "
                       f"{'closed' if r['closed'] else 'OPEN'}" for r in rows)
     notes = '\n'.join(f"  {r['name']}: {r['note']}" for r in rows)
-    readme = f"""STRUTHIO SLIM4 - CASE R11 - FILES FOR THE 3D PRINT SERVICE
+    readme = f"""STRUTHIO SLIM4 - CASE R12 - FILES FOR THE 3D PRINT SERVICE
 ==========================================================
 
-STATUS: first fit prototype of a converged CAD candidate, not a tooling release. Print one
-set, assemble it on a real R21 board, then check fit, button feel and the plain 1.0 mm lap
-joint between the shells (no snap or screw is modelled yet).
+STATUS: engineering prototype (EVT) of a converged CAD design (package R26), not a tooling
+release. Print to the specification below; the set is assembled on a real R21 board to test
+fit, button feel and the taped lap joint.
 
 ORDER (per device)
   Part               Qty  Size X x Y x Z (mm)        Volume       Mesh
 {table}
-  Recommended extras: 2 more of each control (03-06). They are small, and the stop legs and
-  trunnions are tuned on the first print (production gates D5, D11, D12).
+  Order: 1 set (01-06) per device, plus 2 extra sets of the controls (03-06). The stop legs
+  and trunnions are tuned on the first print (production gates D5, D11, D12).
 
 FILES
   STL/    one binary STL per part, 0.01 mm chord tolerance; every mesh checked closed (watertight)
@@ -420,12 +431,11 @@ FILES
   Units are millimetres. Parts are in their assembled position (front of the device = +Z),
   so the six files overlay each other in any viewer; orient them freely for printing.
 
-PROCESS (recommendation - confirm with the service)
-  SLA / resin, a tough or ABS-like engineering resin, 0.05 mm layers or finer, for all parts.
-  The design has features close to the limits of most processes: a 0.70 mm ledge, 0.8 mm
-  grille slots, 1.0 mm trunnion pins, 1.2 mm stop legs and pinholes, 1.4 mm actuator nubs,
-  0.05-0.2 mm running clearances. MJF/SLS nylon is a possible alternative for the two shells
-  if the service confirms the 0.70 mm ledge and 0.8 mm slots. FDM is not suitable.
+PROCESS (specified, DECISIONS_R26.md)
+  SLA, tough ABS-like engineering resin, 0.05 mm layers, black, all six parts; supports
+  removed and sanded, no paint. The design has features close to the limits of most
+  processes: a 0.70 mm ledge, 0.8 mm grille slots, 1.0 mm trunnion pins, 1.2 mm stop legs
+  and pinholes, 1.4 mm actuator nubs, 0.10-0.2 mm running clearances. FDM is not suitable.
   Do not scale or add shrink compensation beyond the service's normal calibration.
   Keep support marks off: the outer side walls and the raised bezel rings and DART surround
   of 01, the outer back and walls of 02, and the top faces of 03-05. The flat front of 01
@@ -435,9 +445,10 @@ FEATURES TO PROTECT
 {notes}
 
 AFTER PRINTING
-  Supplied separately, not printed: LCD module and its 0.7 mm lens (lens outline is in the
-  acrylic pack), battery and 0.2 mm foam pad, two Same Sky CMS-18138A-SP speakers and 0.25 mm
-  gaskets, FPC extension, harnesses. Assembly order: ASSEMBLY/ASSEMBLY_SEQUENCE.md in the
+  Supplied separately, not printed: LCD module and its 0.7 mm cover-glass lens, the two
+  0.10 mm tape die-cuts (lap ring and display frame; both in the sticker pack), battery and
+  0.2 mm foam pad, two Same Sky CMS-18138A-SP speakers and 0.25 mm gaskets, FPC extension,
+  harnesses. Assembly order: ASSEMBLY/ASSEMBLY_SEQUENCE.md in the
   project package.
 """
     (dst / 'README_PRINT_ORDER.txt').write_text(readme)
@@ -522,16 +533,17 @@ def check_drawing(path, B, loops, lens_loop):
         ax.text(x, y, 'dia 18.4', ha='center', va='center', fontsize=6)
     ax.text(0, P['dart_cy'], '52.4 x 9.4  r4.6', ha='center', va='center', fontsize=6)
     for sx, _ in B['SPK_CENTERS']:
-        ax.text(sx, max(B['GRILLE_YS']) + 2.2, '6 slots 12.2 x 1.0', ha='center', va='top', fontsize=5.5)
+        ax.text(sx, max(B['GRILLE_YS']) + 2.2, 'vent %.1f x %.1f' % tuple(B['FILM_VENT_SIZE']), ha='center', va='top', fontsize=5.5)
     ax.annotate('', xy=(-52, -4), xytext=(52, -4), arrowprops=dict(arrowstyle='<->', lw=0.5))
     ax.text(0, -5, '104.0', ha='center', va='bottom', fontsize=7)
     ax.annotate('', xy=(56, 0), xytext=(56, 135.3), arrowprops=dict(arrowstyle='<->', lw=0.5))
     ax.text(57, 67.6, '135.3', rotation=-90, va='center', fontsize=7)
     ax.plot([-50, 0], [150, 150], color='k', lw=1.2)
     ax.text(-25, 152, '50 mm - print at 100 % and measure this bar', ha='center', va='top', fontsize=7)
-    ax.text(-100, -55, 'STRUTHIO SLIM4 - ACRYLIC FACE FILM R1 - 1:1 CHECK DRAWING (not the cut file)\n'
-            'Seen from the FRONT (outer face). Magenta = cut line. Blue dashed = screen active area. Dotted = 0.7 mm lens under the film.\n'
-            'Outline equals the case outline: the film edge meets the case edge with no margin.', fontsize=7, va='top')
+    ax.add_patch(MPoly(list(B['OUTLINE_POLY'].exterior.coords), closed=True, fill=False, lw=0.4, ls='--', ec='#888'))
+    ax.text(-100, -55, 'STRUTHIO SLIM4 - FACE FILM R2 - 1:1 CHECK DRAWING (not the cut file)\n'
+            'Seen from the FRONT (outer face). Magenta = cut line. Grey dashed = case edge. Blue dashed = screen active area. Dotted = lens.\n'
+            'Film edge 0.20 mm inside the case edge. Clear, unprinted: 0.175 mm optical PET + 0.025 mm OCA.', fontsize=7, va='top')
     fig.savefig(path, metadata={'CreationDate': None}); plt.close(fig)
 
 
@@ -540,75 +552,94 @@ def build_sticker(dst, B):
     film = B['FILM_POLY']
     loops = [list(film.exterior.coords)[:-1]] + [list(h.coords)[:-1] for h in film.interiors]
     dst.mkdir(parents=True)
-    w, h = cutline_pdf(loops, dst / 'FACE_FILM_CUTLINE_1to1.pdf', 'STRUTHIO SLIM4 face film R1 - cut line 1:1')
-    svg(loops, dst / 'FACE_FILM_CUTLINE.svg', 'STRUTHIO SLIM4 face film R1 - cut line',
-        'Front view, mm, 1:1. One CutContour path: outline, two flap cut-outs, DART cut-out, six vent slots.')
+    w, h = cutline_pdf(loops, dst / 'FACE_FILM_CUTLINE_1to1.pdf', 'STRUTHIO SLIM4 face film R2 - cut line 1:1')
+    svg(loops, dst / 'FACE_FILM_CUTLINE.svg', 'STRUTHIO SLIM4 face film R2 - cut line',
+        'Front view, mm, 1:1. One CutContour path: outline, two flap cut-outs, DART cut-out, two vent windows.')
     dxf(loops, dst / 'FACE_FILM_CUTLINE.dxf')
     lens = B['rrect'](0, B['ACTIVE_CY'], P['lens'][0], P['lens'][1], P['lens_r'], 16)
     lens_loop = list(lens.exterior.coords)[:-1]
     check_drawing(dst / 'FACE_FILM_CHECK_DRAWING_A4.pdf', B, loops, lens_loop)
-    ld = dst / 'OPTIONAL_LENS_0.7MM'
-    ld.mkdir()
-    cutline_pdf([lens_loop], ld / 'LENS_CUTLINE_1to1.pdf', 'STRUTHIO SLIM4 protective lens - cut line 1:1')
-    svg([lens_loop], ld / 'LENS_CUTLINE.svg', 'STRUTHIO SLIM4 protective lens', '59.2 x 104.4 mm, corner radius 2.5, 0.70 mm clear sheet.')
-    dxf([lens_loop], ld / 'LENS_CUTLINE.dxf')
-    (ld / 'README_LENS.txt').write_text(f"""PROTECTIVE LENS - optional item for a shop that laser-cuts clear sheet
-=====================================================================
-Rigid clear window bonded into the front-shell rebate over the LCD, under the face film.
-  Size        {P['lens'][0]:g} x {P['lens'][1]:g} mm, corner radius {P['lens_r']:g} mm (rebate {P['lens_rebate'][0]:g} x {P['lens_rebate'][1]:g}: 0.1 mm per side)
-  Thickness   {P['lens'][2]:g} mm (the rebate depth; thicker sheet will stand proud of the face)
-  Material    not chosen: clear cast acrylic (PMMA) or polycarbonate, optical grade, both
-              faces masked; or 0.7 mm cover glass from a display supplier
-  Quantity    1 per device
-  Cut outline tolerance +0/-0.1 mm if the shop can hold it.
-If the sticker printer cannot cut rigid sheet, send this folder to a laser-cutting shop.
-""")
-    sp = P
-    readme = f"""STRUTHIO SLIM4 - ACRYLIC FACE FILM R1 - FILES FOR THE STICKER PRINTER
-=====================================================================
 
-STATUS: cut line ready for a test cut; PRINT ARTWORK NOT DESIGNED YET. Order a few blank
-clear die-cut films now to check fit on the printed case. Printed artwork (ink, white
-backing, texture) is added only after the visible design is approved; it must keep the screen
-area clear.
+    # Cover-glass lens (a separate supplier: display cover-glass maker).
+    ld = dst / 'LENS_COVER_GLASS_0.7MM'
+    ld.mkdir()
+    cutline_pdf([lens_loop], ld / 'LENS_CUTLINE_1to1.pdf', 'STRUTHIO SLIM4 cover glass - outline 1:1')
+    svg([lens_loop], ld / 'LENS_CUTLINE.svg', 'STRUTHIO SLIM4 cover glass', '59.2 x 104.4 mm, corner radius 2.5, 0.70 mm glass.')
+    dxf([lens_loop], ld / 'LENS_CUTLINE.dxf')
+    (ld / 'README_LENS.txt').write_text(f"""COVER-GLASS LENS - send to a display cover-glass supplier (not the sticker printer)
+=================================================================================
+Rigid window over the LCD, held by the display tape frame and the face film (DECISIONS_R26.md).
+  Size        {P['lens'][0]:g} x {P['lens'][1]:g} mm, corner radius {P['lens_r']:g} mm (rebate {P['lens_rebate'][0]:g} x {P['lens_rebate'][1]:g}: 0.1 mm per side)
+  Thickness   {P['lens'][2]:.2f} mm (equal to the rebate depth: the top sits flush with the case face)
+  Material    chemically strengthened soda-lime cover glass, clear, both faces polished
+  Edges       CNC cut, edges ground and chamfered 0.1 mm; no AR or AF coating; no print
+  Tolerance   outline +0 / -0.10 mm; thickness 0.70 ±0.05 mm
+  Quantity    1 per device, plus 2 spares
+""")
+
+    # Die-cut double-sided tapes (the sticker printer kiss-cuts these on liner).
+    td = dst / 'TAPE_DIE_CUTS'
+    td.mkdir()
+    lcd_w, lcd_h, _ = P['lcd']
+    lcd_cy = P['lcd_top_y'] + lcd_h / 2
+    ww, wh = B['TAPE_WINDOW']
+    rect = lambda cx, cy, a, b: [(cx - a / 2, cy - b / 2), (cx + a / 2, cy - b / 2), (cx + a / 2, cy + b / 2), (cx - a / 2, cy + b / 2)]
+    frame = [rect(0, lcd_cy, lcd_w, lcd_h), rect(0, B['ACTIVE_CY'], ww, wh)]
+    ring = B['LAP_TAPE']
+    ring_loops = [list(ring.exterior.coords)[:-1]] + [list(i.coords)[:-1] for i in ring.interiors]
+    for name, lp, title in (('DISPLAY_TAPE_FRAME', frame, 'display tape frame'), ('LAP_TAPE_RING', ring_loops, 'lap tape ring')):
+        cutline_pdf(lp, td / f'{name}_1to1.pdf', f'STRUTHIO SLIM4 {title} - cut line 1:1')
+        svg(lp, td / f'{name}.svg', f'STRUTHIO SLIM4 {title}', 'Front view, mm, 1:1, 0.10 mm double-sided tape.')
+        dxf(lp, td / f'{name}.dxf')
+    rw = P['wall'] / 2 - P['lap_clear'] / 2 - 0.1
+    (td / 'README_TAPES.txt').write_text(f"""TAPE DIE-CUTS - kiss-cut on liner, same supplier as the face film
+================================================================
+Material for both: 0.10 mm total double-sided tape, clear PET carrier with permanent acrylic
+adhesive on both faces (no foam), supplied on a liner with a pull tab.
+
+DISPLAY_TAPE_FRAME   outer {lcd_w:g} x {lcd_h:g} mm (the LCD module outline), window {ww:.3f} x {wh:.3f} mm
+                     (the active area + 0.05 mm per side), window offset to the active area.
+                     Laid on the module front: bonds the module to the case ledge and carries the
+                     0.5 mm lens border. 1 per device.
+LAP_TAPE_RING        {rw:.2f} mm wide ring following the shell joint. Laid on the rear-shell lip top:
+                     bonds the two shells (the joint has no screws). 1 per device; it can be peeled
+                     to open the case. Order 3 per device for rework.
+Views are from the FRONT. Tolerance ±0.1 mm.
+""")
+
+    sp = P
+    readme = f"""STRUTHIO SLIM4 - FACE FILM R2 - FILES FOR THE STICKER PRINTER
+=============================================================
+
+STATUS: engineering prototype (EVT), package R26. Clear, UNPRINTED film (decided in
+DECISIONS_R26.md): no ink, no white, no texture. Cut to the R2 line.
 
 WHAT IT IS
   A clear face film that covers the whole front of the device, including the screen.
-  Shape: {B['OUTLINE_POLY'].bounds[2] - B['OUTLINE_POLY'].bounds[0]:.1f} x {B['OUTLINE_POLY'].bounds[3] - B['OUTLINE_POLY'].bounds[1]:.1f} mm, the exact outline of the case front.
+  Shape: {B['FILM_OUTLINE'].bounds[2] - B['FILM_OUTLINE'].bounds[0]:.1f} x {B['FILM_OUTLINE'].bounds[3] - B['FILM_OUTLINE'].bounds[1]:.1f} mm: the case outline set in {sp['film_edge_inset']:.2f} mm all round.
   Cut-outs: two dia {sp['bezel_od'] + 2 * sp['film_clear']:g} mm holes (flap buttons), one {sp['dart_surround'][0] + 2 * sp['film_clear']:g} x {sp['dart_surround'][1] + 2 * sp['film_clear']:g} mm slot r{sp['dart_surround_r'] + sp['film_clear']:g}
-  (DART button), six {sp['grille_slot'][0] + 0.2:.1f} x {sp['grille_slot'][1] + 0.2:.1f} mm vent slots over the speaker grilles. No screen
-  window: the film runs continuously over the screen.
+  (DART button), two {B['FILM_VENT_SIZE'][0]:.1f} x {B['FILM_VENT_SIZE'][1]:.1f} mm vent windows r{sp['film_vent_r']:g} over the speaker grilles.
+  Narrowest cut feature {B['FILM_VENT_SIZE'][1]:.1f} mm. No screen window: the film runs over the screen.
 
 FILES
   FACE_FILM_CUTLINE_1to1.pdf   cut file: one vector path in the spot colour "CutContour",
                                page {w:.1f} x {h:.1f} mm, 1:1 (10 mm margin round the part)
   FACE_FILM_CUTLINE.svg / .dxf the same path (mm, front view; SVG stroke magenta, DXF layer CUTLINE)
-  FACE_FILM_CHECK_DRAWING_A4.pdf  dimensions, screen keep-clear zone and a 50 mm scale bar;
+  FACE_FILM_CHECK_DRAWING_A4.pdf  dimensions, case edge, screen zone and a 50 mm scale bar;
                                print at 100 % and lay it on the printed case to check the outline
-  OPTIONAL_LENS_0.7MM/         the rigid lens under the film (a separate item - see its README)
+  TAPE_DIE_CUTS/               two 0.10 mm double-sided tape parts (see README_TAPES.txt)
+  LENS_COVER_GLASS_0.7MM/      the glass lens - a separate supplier (see README_LENS.txt)
 
-SPECIFICATION (recommendation - confirm with the printer)
-  Material      clear film, {sp['film_t']:g} mm total including adhesive is the design assumption
-                (the case allows for it; production gate E7). Optically clear, low haze, gloss;
-                PET or polycarbonate face film with permanent optically clear adhesive.
-                ("Acrylic" is the project's name for this layer; any clear film that meets
-                the thickness and optics works.)
-  Over the screen  no texture, no ink, no adhesive pattern or bubbles inside the active area.
-  Cut           die-cut or kiss-cut on liner, along the CutContour path, as seen from the FRONT.
-                If the artwork is later reverse-printed on the adhesive side, the printer
-                mirrors the artwork, not the cut line's physical shape.
-  Tolerance     the outline equals the case edge with no margin, so the cut must hold about
-                +/-0.1 mm. If the printer cannot, ask for their tolerance: the outline will be
-                inset by that amount in the next revision (an owner decision; it is not
-                changed here).
-  Small features  the six vent slots are only 1.0 mm wide (12.2 mm long). Many sticker cutters
-                cannot cut slots that narrow cleanly; ask before ordering. Film left over the
-                grille would muffle the speakers, so if the slots cannot be cut the vent
-                cut-outs need redesigning (an owner decision) - do not just leave them out.
-  Quantity      test cut: 3-5 blank films per device built.
+SPECIFICATION (specified)
+  Stack         {' + '.join(f'{t:.3f} mm {n}' for n, t in sp['film_stack'])} = {sp['film_t']:.2f} mm
+                (the thickness the case is designed for). Optically clear, low haze, gloss.
+  Over the screen  no texture and no bubbles inside the active area (laminate bubble-free).
+  Cut           kiss-cut on liner along the CutContour path, as seen from the FRONT.
+  Tolerance     outline ±0.2 mm is acceptable: the edge is set in 0.20 mm from the case edge.
+  Quantity      5 films per device (fit tests and rework).
 
 APPLYING
-  Last step of assembly, after the buttons are checked (ASSEMBLY_SEQUENCE.md step 8). Register
+  Last step of assembly, after the buttons are checked (ASSEMBLY_SEQUENCE.md step 9). Register
   the two round cut-outs and the DART slot on the raised rings of the front shell, then
   lay the film down from the centre outwards.
 """
@@ -626,28 +657,30 @@ def main():
     if top.exists():
         shutil.rmtree(top)
     pcb_facts, parts, no_lcsc = build_pcb(top / '1_PCB_FABRICATION')
-    B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r11.py'))
+    B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r12.py'))
     prints = build_print(top / '2_3D_PRINTING', B)
     build_sticker(top / '3_ACRYLIC_STICKER', B)
-    report = json.loads((ROOT / 'CHECKS/R25_CONVERGENCE_REPORT.json').read_text())
+    report = json.loads((ROOT / 'CHECKS/R26_CONVERGENCE_REPORT.json').read_text())
     c = report['counts']
     conv = f"{c.get('FAIL', 0)} FAIL, {c.get('PASS', 0)} PASS, {c.get('GATE', 0)} GATE"
-    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R25 - FILES FOR THE BUILDERS
-===========================================
+    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R26 - FILES FOR THE BUILDERS (ENGINEERING PROTOTYPE)
+===================================================================
 
 Three folders, one per supplier. Each has a README_..._ORDER.txt to send with the files.
+Every order choice is fixed; the reasons are in the package's DECISIONS_R26.md.
 
-1_PCB_FABRICATION   board house / assembler: PCB R21, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts
-                    PROTOTYPE ONLY: R21 is not released for fabrication (see its README).
+1_PCB_FABRICATION   board house / assembler: PCB R21, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts,
+                    5 bare boards, 2 assembled. Engineering prototype: R21's electrical review
+                    gates are still open and this build tests them.
 2_3D_PRINTING       print service: front shell, rear shell, two flap caps, DART rocker,
-                    power plunger (CASE R11)
-3_ACRYLIC_STICKER   sticker printer: clear face film R1 cut line (no print artwork yet), plus
-                    the optional 0.7 mm lens outline for a laser-cutting shop
+                    power plunger (CASE R12), SLA tough resin, black
+3_ACRYLIC_STICKER   sticker printer: clear unprinted face film R2, and the two 0.10 mm tape
+                    die-cuts; LENS_COVER_GLASS_0.7MM/ goes to a cover-glass supplier
 
 Order of work: board and parts first; print one case set and fit it on the assembled board;
 order the face film last, after the fit check.
 
-Generated from the R25 project package (PCB R21 unchanged, CASE R11, ACRYLIC R1;
+Generated from the R26 project package (PCB R21 unchanged, CASE R12, ACRYLIC R2;
 convergence check {conv}) by CHECKS/build_builder_packs.py. Open items
 that need parts in hand or supplier answers are listed in the package's PRODUCTION_GATES.md
 and repeated in each README where they concern that supplier.

@@ -1,4 +1,8 @@
-"""STRUTHIO SLIM4 CASE R11 + ACRYLIC R1, converged on the locked R21 PCB.
+"""STRUTHIO SLIM4 CASE R12 + ACRYLIC R2 (package R26), converged on the locked R21 PCB.
+
+R12/R2 = R11/R1 plus the R26 decisions (DECISIONS_R26.md): 0.10 mm radial lap clearance with a
+0.10 mm tape seat, a 0.10 mm display tape frame (LCD 0.10 mm further back), 0.10 mm radial DART
+trunnion clearance, and a face film inset 0.20 mm from the case edge with one vent window per speaker.
 
 Shared datum (unchanged from R24): millimetres, R21 PCB XY (X right, Y down from the
 board's top edge region, as in KiCad), board bottom at Z=0, +Z toward the device front.
@@ -7,7 +11,7 @@ Nothing here edits the PCB. The board outline, footprint positions and heights a
 read from LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json and CHECKS/COMPONENT_ENVELOPES_R21.json,
 and every case/acrylic feature is placed against them.
 
-Run:  python LAYERS/02_CASE/build_r11.py      (builds and prints a short summary)
+Run:  python LAYERS/02_CASE/build_r12.py      (builds and prints a short summary)
 The export script and the convergence checker import this file with runpy.
 """
 from pathlib import Path
@@ -23,19 +27,20 @@ PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json').read_text())
 ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R21.json').read_text())
 
 # ---------------------------------------------------------------------------
-# Parameters. Most R11 dimensions live here and the checker reads the same dict.
+# Parameters. Most R12 dimensions live here and the checker reads the same dict.
 # Exceptions, edited further down: the support/clamp post positions, the R10
 # silhouette control points, and the FPC/harness route and ledge geometry.
 # ---------------------------------------------------------------------------
 P = dict(
-    revision_case='R11', revision_acrylic='R1', package='R25',
+    revision_case='R12', revision_acrylic='R2', package='R26',
     pcb_t=PCB['board']['thickness'],                 # 1.2, from the board file (R10 modelled 1.6)
     wall=2.0,                                        # minimum structural wall / plate / floor
     board_to_wall_clearance=0.3,
     # Front stack (R10 values kept where they were consistent)
     plate_z0=5.65, plate_t=2.0, film_t=0.20, relief=0.5, cap_rise=1.5,
     # LCD module (HOTHMI 4.7 in, 540 x 960 at 0.1076 mm): R3 top-inactive assumption retained
-    lcd=(60.3, 111.4, 1.75), lcd_top_y=2.21, lcd_z0=5.2,
+    lcd=(60.3, 111.4, 1.75), lcd_top_y=2.21, lcd_z0=5.10,          # R12: 0.10 further back for the display tape frame
+    lcd_tape=0.10,                                   # one die-cut double-sided frame bonds module to ledge and lens
     active=(58.104, 103.296), active_top_inactive=1.79,
     screen_opening=(58.8, 104.0), screen_r=2.5,
     lens=(59.2, 104.4, 0.7), lens_r=2.5, lens_rebate=(59.4, 104.6), lens_rebate_r=2.6,
@@ -52,12 +57,19 @@ P = dict(
     dart_hole=(50.0, 7.0), dart_hole_r=3.4,
     dart_cap=(49.0, 6.5), dart_cap_r=3.15, dart_surround=(52.0, 9.0), dart_surround_r=4.4,
     dart_nub_d=1.4, dart_leg_x=23.0, dart_leg_d=1.2,
-    dart_pivot_z=5.05, dart_trunnion_d=1.0, dart_boss=(2.0, 1.4), dart_boss_z0=4.45, dart_keel=(2.0, 4.55),
-    # Film (ACRYLIC R1)
+    dart_pivot_z=5.05, dart_trunnion_d=1.0, dart_trunnion_clear=0.10,   # R12: radial running clearance (was 0.05)
+    dart_boss=(2.0, 1.4), dart_boss_z0=4.30,   # R12: 0.15 web under the wider bore (was 4.45)
+    dart_keel=(2.0, 4.55),
+    # Film (ACRYLIC R2)
     film_clear=0.2,                                  # radial clearance around raised bezels
+    film_edge_inset=0.20,                            # R2: film edge 0.20 inside the case edge (die-cut tolerance)
+    film_stack=(('clear optical PET, hard-coat face', 0.175), ('optically clear adhesive', 0.025)),   # R2: sums to film_t
+    film_vent_r=0.3,                                 # R2: one rounded vent window per speaker (r ≤ 0.39 keeps the 0.1 grille margin)
     # Rear shell
     floor_inner_z=-3.7,                              # L2 (3.5 mm) + 0.2 clearance sets the floor
     lap=1.0,                                         # front-skirt / rear-lip lap joint height
+    lap_clear=0.10,                                  # R12: radial clearance between skirt and lip
+    lap_tape=0.10,                                   # R12: tape seat between lip top and plate underside
     # Battery: 703450-class pouch with PCM, in the R21 board window (38 x 56)
     battery=(34.0, 52.0, 7.0), battery_center=(0.0, 45.0), battery_pad=0.2,
     # Speakers: Same Sky CMS-18138A-SP (18 x 13 x 2.5, 500 Hz) front-firing
@@ -250,8 +262,11 @@ DART_SURROUND = rrect(0, P['dart_cy'], *P['dart_surround'], P['dart_surround_r']
 GRILLE = [rrect(sx, gy, *P['grille_slot'], P['grille_slot'][1]/2 - 0.01, 6) for sx, _ in SPK_CENTERS for gy in GRILLE_YS]
 FILM_FLAP_CUTS = [disc(x, y, P['bezel_od'] + 2*P['film_clear'], 64) for x, y in P['flap_centers']]
 FILM_DART_CUT = rrect(0, P['dart_cy'], P['dart_surround'][0] + 2*P['film_clear'], P['dart_surround'][1] + 2*P['film_clear'], P['dart_surround_r'] + P['film_clear'], 12)
-FILM_SLOTS = [rrect(sx, gy, P['grille_slot'][0] + 0.2, P['grille_slot'][1] + 0.2, (P['grille_slot'][1] + 0.2)/2 - 0.01, 6) for sx, _ in SPK_CENTERS for gy in GRILLE_YS]
-FILM_POLY = clean(OUTLINE_POLY.difference(unary_union(FILM_FLAP_CUTS + [FILM_DART_CUT] + FILM_SLOTS)))
+# R2: one vent window per speaker spanning its three grille slots (0.1 margin), instead of six 1.0 mm slots.
+FILM_VENT_SIZE = (P['grille_slot'][0] + 0.2, (GRILLE_YS[-1] - GRILLE_YS[0]) + P['grille_slot'][1] + 0.2)
+FILM_VENTS = [rrect(sx, (GRILLE_YS[0] + GRILLE_YS[-1]) / 2, *FILM_VENT_SIZE, P['film_vent_r'], 6) for sx, _ in SPK_CENTERS]
+FILM_OUTLINE = OUTLINE_POLY.buffer(-P['film_edge_inset'], resolution=16).simplify(0.005)
+FILM_POLY = clean(FILM_OUTLINE.difference(unary_union(FILM_FLAP_CUTS + [FILM_DART_CUT] + FILM_VENTS)))
 
 # Speaker chambers: speaker + clearance + wall, clipped by the outer wall's inner face.
 def chamber_geoms(cx, cy):
@@ -312,8 +327,8 @@ front = front.cut(rbox(0, P['dart_cy'], *P['dart_hole'], zc0, zc1, P['dart_hole_
 for sx, _ in SPK_CENTERS:
     for gy in GRILLE_YS:
         front = front.cut(rbox(sx, gy, *P['grille_slot'], zc0, zc1, P['grille_slot'][1] / 2 - 0.01))
-# Outer skirt of the lap joint.
-front = front.union(prism(OUTLINE_POLY.difference(LIP_POLY), Z_LAP, P['plate_z0'] + 0.01))
+# Outer skirt of the lap joint (R12: half the radial clearance taken from each side of the split line).
+front = front.union(prism(OUTLINE_POLY.difference(LIP_POLY.buffer(P['lap_clear'] / 2, resolution=12)), Z_LAP, P['plate_z0'] + 0.01))
 # DART pivot bosses with trunnion bores.
 bw, bt = P['dart_boss']
 cap_half = P['dart_cap'][1] / 2
@@ -322,18 +337,19 @@ for sgn in (-1, 1):
     y_out = y_in + sgn * bt
     yc = (y_in + y_out) / 2
     boss = rbox(0, yc, bw, bt, P['dart_boss_z0'], P['plate_z0'] + 0.01)
-    bore = (cq.Workplane('XZ').center(0, P['dart_pivot_z']).circle((P['dart_trunnion_d'] + 0.1) / 2)
+    bore = (cq.Workplane('XZ').center(0, P['dart_pivot_z']).circle(P['dart_trunnion_d'] / 2 + P['dart_trunnion_clear'])
             .extrude(bt + 0.2, both=True).translate((0, yc, 0)))
     front = front.union(boss.cut(bore))
 # Front clamp posts.
 for x, y in FRONT_POSTS:
     front = front.union(cyl(x, y, P['post_d_front'], Z_BOARD_TOP, P['plate_z0'] + 0.01))
-add('FRONT SHELL R11 · PLATE, RELIEF, LAP SKIRT, DART PIVOTS', front, 'CASE', 'front_shell', 'shell', '#193c59')
+add('FRONT SHELL R12 · PLATE, RELIEF, LAP SKIRT, DART PIVOTS', front, 'CASE', 'front_shell', 'shell', '#193c59')
 
 # ---- REAR SHELL ----
 rear = prism(OUTLINE_POLY, Z_FLOOR_OUT, P['floor_inner_z'])                       # floor
 rear = rear.union(prism(OUTLINE_POLY.difference(INNER_POLY), P['floor_inner_z'] - 0.01, Z_LAP))  # wall
-rear = rear.union(prism(LIP_POLY.difference(INNER_POLY), Z_LAP - 0.01, P['plate_z0']))            # lap lip
+LIP_RING = LIP_POLY.buffer(-P['lap_clear'] / 2, resolution=12).difference(INNER_POLY)
+rear = rear.union(prism(LIP_RING, Z_LAP - 0.01, P['plate_z0'] - P['lap_tape']))   # lap lip; tape seat above it
 # Speaker chambers (ring walls up to the plate underside) and speaker ledges.
 CHAMBERS = []
 for cx, cy in SPK_CENTERS:
@@ -367,13 +383,20 @@ for (cx, cy), conn in zip(SPK_CENTERS, ('J4', 'J5')):
     fy = cy - SPK_H/2 - P['chamber_clear'] - P['chamber_wall'] / 2
     FEED.append((j['x'], fy))
     rear = rear.cut(rbox(j['x'], fy, 1.2, P['chamber_wall'] + 0.4, -2.2, -1.0))
-add('REAR SHELL R11 · FLOOR, WALLS, CHAMBERS, SUPPORTS', rear, 'CASE', 'rear_shell', 'rear', '#16324b')
+add('REAR SHELL R12 · FLOOR, WALLS, CHAMBERS, SUPPORTS', rear, 'CASE', 'rear_shell', 'rear', '#16324b')
 
 # ---- SCREEN STACK ----
 lcd = rbox(0, LCD_CY, LCD_W, LCD_H, P['lcd_z0'], P['lcd_z0'] + LCD_T)
 add('HOTHMI 4.7" LCD MODULE ENVELOPE · TOP AT Y 2.21', lcd, 'CASE', 'screen', 'display', '#59636b', 'purchased')
 lens = rbox(0, ACTIVE_CY, P['lens'][0], P['lens'][1], Z_PLATE_TOP - P['lens'][2], Z_PLATE_TOP, P['lens_r'])
-add('PROTECTIVE LENS · 59.2 × 104.4 × 0.70', lens, 'CASE', 'screen', 'lens', '#72c8d2', 'purchased')
+add('PROTECTIVE LENS · 59.2 × 104.4 × 0.70 COVER GLASS', lens, 'CASE', 'screen', 'lens', '#72c8d2', 'purchased')
+# R12: one 0.10 mm die-cut double-sided frame on the module front: its outer band bonds the module to
+# the plate ledge, its inner 0.5 mm strip carries the lens border. Window = active area + 0.05 per side.
+TAPE_WINDOW = (P['active'][0] + 0.1, P['active'][1] + 0.1)
+Z_LCD_TOP = P['lcd_z0'] + LCD_T
+tape = rbox(0, LCD_CY, LCD_W, LCD_H, Z_LCD_TOP, Z_LCD_TOP + P['lcd_tape']).cut(
+    rbox(0, ACTIVE_CY, *TAPE_WINDOW, Z_LCD_TOP - 0.05, Z_LCD_TOP + P['lcd_tape'] + 0.05))
+add('DISPLAY TAPE FRAME 0.10 · MODULE TO LEDGE AND LENS', tape, 'CASE', 'screen', 'display', '#c8b98a', 'purchased')
 
 # ---- FLAP CAPS (moving) ----
 def flap_cap(cx, cy):
@@ -419,6 +442,9 @@ battery = rbox(*P['battery_center'], BAT_W, BAT_H, Z_BAT0, Z_BAT1, 1.0)
 add('LIPO 703450-CLASS ENVELOPE · 34 × 52 × 7.0 IN BOARD WINDOW', battery, 'CASE', 'internals', 'battery', '#c9a227', 'purchased')
 pad = rbox(*P['battery_center'], BAT_W, BAT_H, P['floor_inner_z'], Z_BAT0, 1.0)
 add('BATTERY FOAM PAD 0.20', pad, 'CASE', 'internals', 'battery', '#6b5a1e', 'purchased')
+# R12: lap tape ring (0.10 thick, 0.05 narrower than the lip on each side) between lip top and plate underside.
+LAP_TAPE = LIP_POLY.buffer(-P['lap_clear'] / 2 - 0.05, resolution=12).difference(INNER_POLY.buffer(0.05, resolution=12))
+add('LAP TAPE RING 0.10 · REAR LIP TO FRONT PLATE', prism(LAP_TAPE, P['plate_z0'] - P['lap_tape'], P['plate_z0']), 'CASE', 'internals', 'rear', '#c8b98a', 'purchased')
 for (cx, cy), lbl in zip(SPK_CENTERS, ('L', 'R')):
     spk = rbox(cx, cy, SPK_W, SPK_H, Z_SPK_BACK, Z_SPK_FRONT, 1.5)
     add(f'SPEAKER {lbl} · SAME SKY CMS-18138A-SP 18 × 13 × 2.5', spk, 'CASE', 'internals', 'speakers', '#8c9aa6', 'purchased')
@@ -432,9 +458,10 @@ Y_DESCENT = 102.5
 Y_TAB = max(y for x, y in PCB['board']['outer'] if abs(x) <= 26.01)    # 128.0
 j1_mouth_y = J1['y'] + 3.55                                           # insertion side faces +Y
 FPC_SEGMENTS = [
-    ('fold around LCD bottom edge', (-fw/2, lcd_bot, fw/2, lcd_bot + P['lcd_fpc_bend'] - 0.1, 4.75, 6.85)),
-    ('run under LCD module', (-fw/2, Y_DESCENT, fw/2, lcd_bot + P['lcd_fpc_bend'] - 0.1, 4.75, 5.15)),
-    ('S-bend down to board', (-fw/2, Y_DESCENT - 1.6, fw/2, Y_DESCENT + 0.4, 1.25, 5.15)),
+    # R12: the module sits 0.10 further back, so the fold and the run under it drop 0.10 as well.
+    ('fold around LCD bottom edge', (-fw/2, lcd_bot, fw/2, lcd_bot + P['lcd_fpc_bend'] - 0.1, 4.65, 6.75)),
+    ('run under LCD module', (-fw/2, Y_DESCENT, fw/2, lcd_bot + P['lcd_fpc_bend'] - 0.1, 4.65, 5.05)),
+    ('S-bend down to board', (-fw/2, Y_DESCENT - 1.6, fw/2, Y_DESCENT + 0.4, 1.25, 5.05)),
     ('run on board front, between DART switches', (-fw/2, Y_DESCENT - 1.6, fw/2, Y_TAB, 1.25, 1.75)),
     ('wrap around board tab edge', (-fw/2, Y_TAB, fw/2, Y_TAB + 0.95, -1.35, 1.75)),
     ('return on board back', (-fw/2, 117.0, fw/2, Y_TAB + 0.95, -1.35, -0.6)),
@@ -465,16 +492,15 @@ for (cx, cy), conn, (fx, fy) in zip(SPK_CENTERS, ('J4', 'J5'), FEED):
     riser = rbox(fx, fy + 1.1, 1.0, 1.0, -2.1, Z_SPK_BACK)
     add(f'SPEAKER LEAD RESERVE · TO {conn}', run.union(riser), 'CASE', 'internals', 'routes', '#b07a2a', 'reserve')
 
-# ---- ACRYLIC R1 ----
-film = prism(OUTLINE_POLY, Z_PLATE_TOP, Z_FILM_TOP)
+# ---- ACRYLIC R2 ----
+film = prism(FILM_OUTLINE, Z_PLATE_TOP, Z_FILM_TOP)
 fz0, fz1 = Z_PLATE_TOP - 0.05, Z_FILM_TOP + 0.05
 for x, y in P['flap_centers']:
     film = film.cut(cyl(x, y, P['bezel_od'] + 2 * P['film_clear'], fz0, fz1))
 film = film.cut(rbox(0, P['dart_cy'], P['dart_surround'][0] + 2 * P['film_clear'], P['dart_surround'][1] + 2 * P['film_clear'], fz0, fz1, P['dart_surround_r'] + P['film_clear']))
 for sx, _ in SPK_CENTERS:
-    for gy in GRILLE_YS:
-        film = film.cut(rbox(sx, gy, P['grille_slot'][0] + 0.2, P['grille_slot'][1] + 0.2, fz0, fz1, (P['grille_slot'][1] + 0.2) / 2 - 0.01))
-add('CLEAR ACRYLIC FACE FILM R1 · ASSUMED 0.20', film, 'ACRYLIC', 'film', 'acrylic', '#a8e6ef', 'static')
+    film = film.cut(rbox(sx, (GRILLE_YS[0] + GRILLE_YS[-1]) / 2, *FILM_VENT_SIZE, fz0, fz1, P['film_vent_r']))
+add('CLEAR FACE FILM R2 · 0.175 PET + 0.025 OCA', film, 'ACRYLIC', 'film', 'acrylic', '#a8e6ef', 'static')
 
 
 def summary():

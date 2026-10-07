@@ -1,4 +1,4 @@
-# STRUTHIO SLIM4 R25 build/check environment (tested with Python 3.13.16)
+# STRUTHIO SLIM4 R26 build/check environment (tested with Python 3.13.16)
 #   python -m pip install -r requirements.txt
 # Exact pins: section renders embed the matplotlib version and STEP headers the OCCT
 # version, so other versions may not reproduce the shipped files byte-for-byte.

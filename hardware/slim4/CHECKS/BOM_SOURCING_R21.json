@@ -1,0 +1,17 @@
+{
+  "purpose": "LCSC part numbers for R21 parts whose footprint description carries none (or is marked BIND_BEFORE_FAB). The R21 board file is locked, so the binding lives here; CHECKS/build_builder_packs.py and CHECKS/build_pcb_viewer_data.py merge it. Numbers in the board file always win.",
+  "verified": "2026-10-07, each number read from its lcsc.com or jlcpcb.com part page with the exact manufacturer part number shown",
+  "by_mpn": {
+    "CL05B224KO5NNNC": {"lcsc": "C16772", "url": "https://www.lcsc.com/product-detail/C16772.html", "note": "binds C310 (220 nF 16 V X7R 0402, Samsung)"},
+    "ESP32-P4NRW32X": {"lcsc": "C54540373", "url": "https://jlcpcb.com/partdetail/EspressifSystems-ESP32P4NRW32X/C54540373"},
+    "W25Q512JVEIQ TR": {"lcsc": "C7389628", "url": "https://www.lcsc.com/product-detail/nor-flash_winbond-elec-w25q512jveiq-tr_C7389628.html"},
+    "TPS63070RNMR": {"lcsc": "C109322", "url": "https://www.lcsc.com/product-image/C109322.html"},
+    "MAX98357AETE+T": {"lcsc": "C910544", "url": "https://www.lcsc.com/product-detail/C910544.html"},
+    "BQ24074RGTR": {"lcsc": "C54313", "url": "https://www.lcsc.com/product-detail/C54313.html"},
+    "TUSB320LAIRWBR": {"lcsc": "C132554", "url": "https://www.lcsc.com/product-image/C132554.html"},
+    "FH12-20S-0.5SH(55)": {"lcsc": "C596730", "url": "https://www.lcsc.com/product-detail/Pre-ordered-Products_HRS-Hirose_FH12-20S-0-5SH-55_HRS-Hirose-HRS-FH12-20S-0-5SH-55_C596730.html", "note": "exact FH12 (not FH12A, C597998)"},
+    "USB4105-GF-A-120": {"lcsc": "C5184243", "url": "https://www.lcsc.com/product-detail/usb-connectors_global-connector-technology-usb4105-gf-a-120_C5184243.html"},
+    "D2LS-11": {"lcsc": "C719220", "url": "https://jlcpcb.com/partdetail/OmronElectronics-D2LS11/C719220"},
+    "D2LS-21(20M)": {"lcsc": "C19844152", "url": "https://www.lcsc.com/product-detail/C19844152.html"}
+  }
+}

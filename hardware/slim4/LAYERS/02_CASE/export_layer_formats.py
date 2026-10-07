@@ -1,6 +1,6 @@
-"""Write every CASE R11 / ACRYLIC R1 interchange file and the viewer meshes.
+"""Write every CASE R12 / ACRYLIC R2 interchange file and the viewer meshes.
 
-Run after editing build_r11.py:
+Run after editing build_r12.py:
     python LAYERS/02_CASE/export_layer_formats.py
 then re-run the cross-layer checks:
     python CHECKS/convergence_check.py
@@ -17,7 +17,7 @@ ACRYLIC.mkdir(parents=True, exist_ok=True)
 ASSEMBLY.mkdir(parents=True, exist_ok=True)
 
 with contextlib.redirect_stdout(io.StringIO()):
-    B = runpy.run_path(str(CASE / 'build_r11.py'))
+    B = runpy.run_path(str(CASE / 'build_r12.py'))
 P, PARTS = B['P'], B['PARTS']
 
 
@@ -66,18 +66,18 @@ case_parts = [p for p in PARTS if p['layer'] == 'CASE']
 film_parts = [p for p in PARTS if p['layer'] == 'ACRYLIC']
 controls = by('controls')
 
-# ---- CASE R11 ----
-step('STRUTHIO_CASE_R11', case_parts, CASE / 'STRUTHIO_CASE_R11.step')
-stl([p for p in case_parts if p['kind'] != 'reserve'], CASE / 'STRUTHIO_CASE_R11.stl')
-step('CASE_FRONT_SHELL_R11', by('front_shell'), CASE / 'CASE_FRONT_SHELL_R11.step'); stl(by('front_shell'), CASE / 'CASE_FRONT_SHELL_R11.stl')
-step('CASE_REAR_SHELL_R11', by('rear_shell'), CASE / 'CASE_REAR_SHELL_R11.step'); stl(by('rear_shell'), CASE / 'CASE_REAR_SHELL_R11.stl')
-step('CASE_CONTROLS_R11', controls, CASE / 'CASE_CONTROLS_R11.step'); stl(controls, CASE / 'CASE_CONTROLS_R11.stl')
-step('CASE_SCREEN_STACK_R11', by('screen'), CASE / 'CASE_SCREEN_STACK_R11.step')
-step('CASE_INTERNALS_R11', by('internals'), CASE / 'CASE_INTERNALS_R11.step')
+# ---- CASE R12 ----
+step('STRUTHIO_CASE_R12', case_parts, CASE / 'STRUTHIO_CASE_R12.step')
+stl([p for p in case_parts if p['kind'] != 'reserve'], CASE / 'STRUTHIO_CASE_R12.stl')
+step('CASE_FRONT_SHELL_R12', by('front_shell'), CASE / 'CASE_FRONT_SHELL_R12.step'); stl(by('front_shell'), CASE / 'CASE_FRONT_SHELL_R12.stl')
+step('CASE_REAR_SHELL_R12', by('rear_shell'), CASE / 'CASE_REAR_SHELL_R12.step'); stl(by('rear_shell'), CASE / 'CASE_REAR_SHELL_R12.stl')
+step('CASE_CONTROLS_R12', controls, CASE / 'CASE_CONTROLS_R12.step'); stl(controls, CASE / 'CASE_CONTROLS_R12.stl')
+step('CASE_SCREEN_STACK_R12', by('screen'), CASE / 'CASE_SCREEN_STACK_R12.step')
+step('CASE_INTERNALS_R12', by('internals'), CASE / 'CASE_INTERNALS_R12.step')
 
-# ---- ACRYLIC R1 ----
-step('STRUTHIO_ACRYLIC_CLEAR_FACE_FILM_R1', film_parts, ACRYLIC / 'STRUTHIO_ACRYLIC_FACE_FILM_R1.step')
-stl(film_parts, ACRYLIC / 'STRUTHIO_ACRYLIC_FACE_FILM_R1.stl')
+# ---- ACRYLIC R2 ----
+step('STRUTHIO_ACRYLIC_CLEAR_FACE_FILM_R2', film_parts, ACRYLIC / 'STRUTHIO_ACRYLIC_FACE_FILM_R2.step')
+stl(film_parts, ACRYLIC / 'STRUTHIO_ACRYLIC_FACE_FILM_R2.stl')
 
 film = B['FILM_POLY']
 loops = [list(film.exterior.coords)[:-1]] + [list(h.coords)[:-1] for h in film.interiors]
@@ -91,13 +91,13 @@ def pathd(pts):
 svg = '\n'.join([
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<svg xmlns="http://www.w3.org/2000/svg" width="104mm" height="135.3mm" viewBox="-52 0 104 135.3">',
-    '<title>STRUTHIO acrylic face film R1 cutline — planning only</title>',
-    '<desc>Clear 0.20 mm assumed face film, viewed from the front. Coordinates are mm on the shared R21 PCB XY datum (Y down). '
-    'Cut paths: outline, two flap-bezel cutouts, DART relief cutout and six vent slots. The display window stays continuous. '
-    'Supplier must confirm kerf/offset and material compensation.</desc>',
+    '<title>STRUTHIO face film R2 cutline</title>',
+    '<desc>Clear face film, 0.175 mm optical PET + 0.025 mm OCA, unprinted, viewed from the front. Coordinates are mm on the shared R21 PCB XY datum (Y down); '
+    'the canvas is the case outline, the film edge sits 0.20 mm inside it. Cut paths: outline, two flap-bezel cutouts, DART relief cutout and '
+    'one vent window per speaker. The display stays covered. Supplier confirms kerf/offset.</desc>',
     f'<g id="CUTLINE" fill="none" stroke="#d34b56" stroke-width="0.15" fill-rule="evenodd"><path d="{" ".join(pathd(l) for l in loops)}"/></g>',
     '</svg>', ''])
-(ACRYLIC / 'ACRYLIC_FACE_FILM_CUTLINE_R1.svg').write_text(svg)
+(ACRYLIC / 'ACRYLIC_FACE_FILM_CUTLINE_R2.svg').write_text(svg)
 
 
 def dxf_poly(pts):
@@ -109,31 +109,33 @@ def dxf_poly(pts):
 
 
 header = '0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n9\n$INSUNITS\n70\n4\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n'
-(ACRYLIC / 'ACRYLIC_FACE_FILM_CUTLINE_R1.dxf').write_text(header + ''.join(map(dxf_poly, loops)) + '0\nENDSEC\n0\nEOF\n')
+(ACRYLIC / 'ACRYLIC_FACE_FILM_CUTLINE_R2.dxf').write_text(header + ''.join(map(dxf_poly, loops)) + '0\nENDSEC\n0\nEOF\n')
 
 spec = {
-    'layer': 'ACRYLIC', 'revision': 'R1', 'status': 'clear-film cutline study; NOT production artwork',
+    'layer': 'ACRYLIC', 'revision': 'R2', 'status': 'prototype cut file: clear, unprinted film (DECISIONS_R26.md)',
     'units': 'mm', 'shared_xy_datum': 'SLIM4_R21 PCB XY (Y down); film lower face Z=7.65 mm on the front plate',
-    'outer_size_mm': [104.0, 135.3], 'outline_source': 'CASE R11 exterior outline (identical)',
-    'film_thickness_mm_assumed': P['film_t'],
-    'screen_window': 'No screen cutout; clear film continuous across the lens. Print/white/relief not designed.',
+    'outer_size_mm': [round(B['FILM_OUTLINE'].bounds[2] - B['FILM_OUTLINE'].bounds[0], 3), round(B['FILM_OUTLINE'].bounds[3] - B['FILM_OUTLINE'].bounds[1], 3)],
+    'outline_source': 'CASE R12 exterior outline offset inward', 'edge_inset_mm': P['film_edge_inset'],
+    'film_thickness_mm': P['film_t'], 'stack_mm': [{'layer': n, 'thickness': t} for n, t in P['film_stack']],
+    'print': 'none: clear, unprinted prototype film; no ink, white or texture anywhere',
+    'screen_window': 'No screen cutout; the clear film runs continuously over the lens.',
     'cutouts_mm': {
         'flap_centers': [list(c) for c in P['flap_centers']],
         'flap_cut_diameter': P['bezel_od'] + 2 * P['film_clear'],
         'dart_center': [0.0, P['dart_cy']],
         'dart_cut_size': [P['dart_surround'][0] + 2 * P['film_clear'], P['dart_surround'][1] + 2 * P['film_clear']],
         'dart_cut_corner_radius': P['dart_surround_r'] + P['film_clear'],
-        'vent_x': [c[0] for c in B['SPK_CENTERS']], 'vent_y': B['GRILLE_YS'],
-        'vent_slot_size': [P['grille_slot'][0] + 0.2, P['grille_slot'][1] + 0.2],
+        'vent_centers': [[c[0], round((B['GRILLE_YS'][0] + B['GRILLE_YS'][-1]) / 2, 4)] for c in B['SPK_CENTERS']],
+        'vent_window_size': [round(v, 4) for v in B['FILM_VENT_SIZE']], 'vent_window_corner_radius': P['film_vent_r'],
     },
-    'why_changed_from_R0': [
-        'Outline follows CASE R11 (shoulders and finger scallop widened to clear the R21 board; saddle lift 4.0 mm).',
-        'Flap and DART cutouts enlarged to clear the molded relief, which now rises through the film from the shell.',
-        'DART cutout centred on the R11 pill (Y 119.80); vent slots follow the speakers at X ±38.3, Y 123.7-127.5.',
+    'why_changed_from_R1': [
+        'Edge inset 0.20 mm from the case outline so die-cut tolerance cannot leave film overhanging the case edge.',
+        'Six 1.0 mm vent slots replaced by one 12.2 x 4.8 mm window per speaker (minimum cut width 4.8 mm), still clear of every grille slot by 0.1 mm.',
+        'Stack fixed at 0.175 mm optical PET + 0.025 mm OCA = 0.20 mm (the CAD thickness); prototype film is unprinted.',
     ],
-    'release_gate': 'Confirm material, optics, perimeter, adhesive, control and vent clearances, tolerance, and supplier process before cutting.',
+    'supplier_confirms': 'kerf/offset, outline tolerance (design allows ±0.2 mm), OCA bubble-free lamination over the screen.',
 }
-(ACRYLIC / 'ACRYLIC_LAYER_R1_CUT_SPEC.json').write_text(json.dumps(spec, indent=2, ensure_ascii=False) + '\n')
+(ACRYLIC / 'ACRYLIC_LAYER_R2_CUT_SPEC.json').write_text(json.dumps(spec, indent=2, ensure_ascii=False) + '\n')
 
 # ---- Viewer meshes ----
 def mesh(it, tol):
@@ -152,25 +154,25 @@ def mesh(it, tol):
 
 TOL = {'front_shell': 0.35, 'rear_shell': 0.4, 'screen': 0.45, 'controls': 0.25, 'internals': 0.4, 'film': 0.3}
 case_json = {
-    'layer': 'CASE', 'revision': 'R11', 'package': 'R25',
+    'layer': 'CASE', 'revision': 'R12', 'package': 'R26',
     'status': 'complete enclosure candidate converged on R21 (front shell, rear shell, controls, screen stack, internals); not a tooling release',
-    'source': 'LAYERS/02_CASE/build_r11.py via export_layer_formats.py', 'units': 'mm', 'shared_xy_datum': 'SLIM4_R21 PCB XY',
+    'source': 'LAYERS/02_CASE/build_r12.py via export_layer_formats.py', 'units': 'mm', 'shared_xy_datum': 'SLIM4_R21 PCB XY',
     'case_outline_mm': [104.0, 135.3], 'body_thickness_mm': round(B['Z_FILM_TOP'] - B['Z_FLOOR_OUT'], 3),
     'parts': [mesh(it, TOL[it['sub']]) for it in case_parts],
 }
-(CASE / 'CASE_LAYER_R11_MESH.json').write_text(json.dumps(case_json, separators=(',', ':'), ensure_ascii=False) + '\n')
+(CASE / 'CASE_LAYER_R12_MESH.json').write_text(json.dumps(case_json, separators=(',', ':'), ensure_ascii=False) + '\n')
 (ROOT / 'case-layer-data.js').write_text('window.STRUTHIO_CASE_LAYER=' + json.dumps(case_json, separators=(',', ':'), ensure_ascii=False) + ';\n')
 acrylic_json = {
-    'layer': 'ACRYLIC', 'revision': 'R1', 'package': 'R25', 'status': 'clear film only; artwork pending',
+    'layer': 'ACRYLIC', 'revision': 'R2', 'package': 'R26', 'status': 'clear unprinted film, 0.175 PET + 0.025 OCA',
     'source': 'LAYERS/02_CASE/export_layer_formats.py', 'units': 'mm', 'shared_xy_datum': 'SLIM4_R21 PCB XY',
-    'thickness_mm_assumed': P['film_t'], 'parts': [mesh(it, TOL['film']) for it in film_parts],
+    'thickness_mm': P['film_t'], 'parts': [mesh(it, TOL['film']) for it in film_parts],
 }
-(ACRYLIC / 'ACRYLIC_LAYER_R1_MESH.json').write_text(json.dumps(acrylic_json, separators=(',', ':'), ensure_ascii=False) + '\n')
+(ACRYLIC / 'ACRYLIC_LAYER_R2_MESH.json').write_text(json.dumps(acrylic_json, separators=(',', ':'), ensure_ascii=False) + '\n')
 (ROOT / 'acrylic-layer-data.js').write_text('window.STRUTHIO_ACRYLIC_LAYER=' + json.dumps(acrylic_json, separators=(',', ':'), ensure_ascii=False) + ';\n')
 
-# ---- Fit summary (the full cross-layer report is CHECKS/R25_CONVERGENCE_REPORT.*) ----
+# ---- Fit summary (the full cross-layer report is CHECKS/R26_CONVERGENCE_REPORT.*) ----
 fit = {
-    'revision': 'R11', 'status': 'CONVERGED ON R21 IN CAD — PHYSICAL GATES OPEN (see CHECKS/R25_CONVERGENCE_REPORT.md)',
+    'revision': 'R12', 'status': 'CONVERGED ON R21 IN CAD — PHYSICAL GATES OPEN (see CHECKS/R26_CONVERGENCE_REPORT.md)',
     'exterior_outline_mm': [104.0, 135.3], 'r21_pcb_changed': False, 'pcb_thickness_mm': P['pcb_t'],
     'z_stack_mm': {
         'rear_floor_outer': B['Z_FLOOR_OUT'], 'rear_floor_inner': P['floor_inner_z'], 'board': [0.0, P['pcb_t']],
@@ -187,7 +189,7 @@ fit = {
     'board_clamps': B['CLAMP_POSTS'], 'rear_supports': B['REAR_ONLY_POSTS'],
     'parameters': {k: (list(v) if isinstance(v, tuple) else v) for k, v in P.items()},
 }
-(CASE / 'R11_FIT_CHECKS.json').write_text(json.dumps(fit, indent=2, ensure_ascii=False) + '\n')
+(CASE / 'R12_FIT_CHECKS.json').write_text(json.dumps(fit, indent=2, ensure_ascii=False) + '\n')
 
 # ---- Full assembly for review (PCB solids derived from the PCB layer JSON) ----
 sys_path = str(ROOT / 'CHECKS')
@@ -195,11 +197,11 @@ import sys
 sys.path.insert(0, sys_path)
 sys.dont_write_bytecode = True   # keep CHECKS/ free of __pycache__
 from convergence_check import pcb_items  # noqa: E402
-asm = cq.Assembly(name='STRUTHIO_SLIM4_R25_ASSEMBLY')
+asm = cq.Assembly(name='STRUTHIO_SLIM4_R26_ASSEMBLY')
 for it in pcb_items(B):
     asm.add(it['solid'], name=safe(it['name']), color=color('#1f8f4a' if it['kind'] == 'board' else '#30343a'))
 for it in PARTS:
     asm.add(val(it['solid']), name=safe(it['name']), color=color(it['color']))
-asm.export(str(ASSEMBLY / 'STRUTHIO_SLIM4_R25_ASSEMBLY.step'))
-fix_stamp(ASSEMBLY / 'STRUTHIO_SLIM4_R25_ASSEMBLY.step')
-print('CASE R11, ACRYLIC R1, viewer meshes and R25 assembly written.')
+asm.export(str(ASSEMBLY / 'STRUTHIO_SLIM4_R26_ASSEMBLY.step'))
+fix_stamp(ASSEMBLY / 'STRUTHIO_SLIM4_R26_ASSEMBLY.step')
+print('CASE R12, ACRYLIC R2, viewer meshes and R26 assembly written.')

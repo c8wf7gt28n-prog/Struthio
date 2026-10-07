@@ -1,6 +1,6 @@
-# STRUTHIO SLIM4 R25 convergence report (PCB R21 · CASE R11 · ACRYLIC R1)
+# STRUTHIO SLIM4 R26 convergence report (PCB R21 · CASE R12 · ACRYLIC R2)
 
-Result: **CONVERGED** · GATE 12 · INFO 3 · PASS 72
+Result: **CONVERGED** · GATE 9 · INFO 3 · PASS 79
 
 | ID | Interface | Check | Status | Value | Limit |
 |---|---|---|---|---|---|
@@ -10,7 +10,7 @@ Result: **CONVERGED** · GATE 12 · INFO 3 · PASS 72
 | B1 | CASE | Exterior envelope (approved 104.0 × 135.3) | PASS | [104.0, 135.3] | [104.0, 135.3] |
 | B2 | PCB↔CASE | R21 board inside the 2.0 mm wall with ≥0.3 mm clearance | PASS | 0.334 | 0.3 |
 | B3 | CASE | LCD module inside the 2.0 mm wall with ≥0.2 mm clearance | PASS | 0.21 | 0.2 |
-| B4 | CASE | R11 silhouette change versus R10 (max outward move) | INFO | 2.351 |  |
+| B4 | CASE | R12 silhouette change versus R10 (max outward move) | INFO | 2.351 |  |
 | B5 | CASE | Nominal plate, floor and side wall thickness (design parameters) | PASS | [2.0, 2.0, 2.0] | 2.0 |
 | B8 | CASE↔LCD | Plate left over the LCD pocket ledge (localised, below the 2.0 mm rule) | GATE | 0.7 | 2.0 |
 | B6 | CASE | Minimum structural web in the front plate | PASS | 2.0 | 2.0 |
@@ -31,16 +31,18 @@ Result: **CONVERGED** · GATE 12 · INFO 3 · PASS 72
 | D7 | CASE | DART stop leg reaches the board at the stop angle | PASS | 1.202 | 1.2 |
 | D8 | CASE | Opposite DART switch is released while one side is pressed | PASS | 5.45 | 4.7 |
 | D11 | PCB↔CASE | D2LS actuator assumed at the body centre | GATE |  |  |
-| D12 | CASE | DART trunnions snap into closed bosses (0.05 mm radial running clearance) | GATE | 1.0 |  |
+| D12 | CASE | DART trunnions snap into closed bosses (0.10 mm radial running clearance) | GATE | 1.0 |  |
 | D14 | CASE | Controls retained: cap flange overlaps the plate hole; DART trunnions run in closed bosses | PASS | [0.4, 1.39] | [0.3, 0.5] |
+| D15 | CASE | Material under each DART trunnion bore (boss floor) | PASS | 0.15 | 0.15 |
 | D9 | PCB↔CASE | Power plunger on SW5 (PWR_WAKE) and pinholes on SW6 RESET / SW7 BOOT | PASS | ["SW5", "SW6", "SW7"] |  |
-| E1 | ACRYLIC↔CASE | Film outline equals the case outline | PASS | 0.0 | 0.0 |
+| E1 | ACRYLIC↔CASE | Film edge sits 0.20 mm inside the case outline all round | PASS | [0.2, 0.206] | 0.2 |
 | E2 | ACRYLIC↔CASE | Film clears the molded relief (relief rises through the film) | PASS | 0.2 | 0.2 |
 | E3 | ACRYLIC↔CASE | Film continuous over the screen opening and lens (no screen cutout) | PASS |  |  |
-| E4 | ACRYLIC↔CASE | Film vent cuts register over every grille slot | PASS | 6 | 6 |
-| E5 | ACRYLIC | Film edge web beside the flap cutouts | PASS | 1.948 | 1.5 |
-| E6 | ACRYLIC | Cut specification JSON matches the geometry (every cutout field and the thickness) | PASS | 9 | 9 |
-| E7 | ACRYLIC | Film thickness 0.20 mm is a planning assumption | GATE | 0.2 |  |
+| E4 | ACRYLIC↔CASE | Film vent windows uncover every grille slot with ≥0.1 mm margin | PASS | 2 | 6 |
+| E5 | ACRYLIC | Film edge web beside every cutout | PASS | 1.748 | 1.5 |
+| E8 | ACRYLIC | Narrowest cutout is wide enough for a die or plotter cut | PASS | 4.8 | 1.5 |
+| E6 | ACRYLIC | Cut specification JSON matches the geometry (every cutout field and the thickness) | PASS | 10 | 10 |
+| E7 | ACRYLIC | Film stack selected and equal to the CAD film thickness | PASS | 0.2 | 0.2 |
 | H1 | CASE↔PCB | FPC route reserve is one continuous body from the panel to J1 | PASS | 1 | 1 |
 | H2 | CASE↔PCB | BATTERY LEAD RESERVE · TO J3 continuous | PASS | 1 | 1 |
 | H2 | CASE↔PCB | SPEAKER LEAD RESERVE · TO J4 continuous | PASS | 1 | 1 |
@@ -67,28 +69,25 @@ Result: **CONVERGED** · GATE 12 · INFO 3 · PASS 72
 | K2 | PCB↔CASE | Relief reaches the receptacle mating face | PASS | 2.575 |  |
 | K3 | CASE | Material left under the USB relief (localised, below the 2.0 mm rule) | GATE | 0.745 | 0.7 |
 | L1 | ALL | Body thickness (face film to rear floor) | INFO | 13.55 |  |
-| L2 | CASE | Battery envelope fits the board window with swelling allowance | PASS | 1.7 | 0.7 |
+| L2 | CASE | Battery envelope fits the board window with swelling allowance | PASS | 1.6 | 0.7 |
 | L3 | PCB↔CASE | Battery XY clearance to the board window | PASS | 2.0 | 1.0 |
-| L4 | CASE | Cell choice (703450 class, ~1300 mAh) and protected pack with JST SH 3-pin lead | GATE |  |  |
-| L5 | CASE | Enclosure joint: plain 1.0 mm lap, no detent modelled; the board has no mounting holes for screws | GATE |  |  |
-| L6 | CASE↔LCD | LCD retained by adhesive on the pocket ledge (no rear support under the module) | GATE |  |  |
+| L4 | CASE | Cell in hand: 703450-class protected pack, 10 kΩ NTC, JST SH 3-pin lead (spec in DECISIONS_R26.md) | GATE |  |  |
+| L5 | CASE | Enclosure joint: lap running clearance and tape seat (retention by a 0.10 mm tape ring) | PASS | [0.1, 0.1] | [0.1, 0.1] |
+| L6 | CASE↔LCD | Display stack: one 0.10 mm tape frame bonds the module to the ledge and carries the lens | PASS | [6.85, 0.1, 6.95, 0.498] |  |
 
 ## Notes
 
-- **B4 R11 silhouette change versus R10 (max outward move)** — area +102.9 / -0.3 mm²; shoulders and finger scallop pushed out to clear the board; saddle lift 4.5 → 4.0 mm for the FPC wrap
+- **B4 R12 silhouette change versus R10 (max outward move)** — area +102.9 / -0.3 mm²; shoulders and finger scallop pushed out to clear the board; saddle lift 4.5 → 4.0 mm for the FPC wrap
 - **B8 Plate left over the LCD pocket ledge (localised, below the 2.0 mm rule)** — Measured on the front-shell solid at (0, 111.08). The ledge outside the lens rebate is 0.70 mm: a band 60.5 mm wide at Y 107.95–114.21, plus a 1.24 mm top strip and 0.55 mm side strips. The LCD front face bonds to it (L6). Set by the stack (LCD 1.75 + lens 0.70 in a 2.0 mm plate); confirm stiffness on the print.
 - **C4 LCD active-area position relies on the 1.79 mm top border (R3 assumption)** — Confirm against the HOTHMI drawing; the opening, lens and rebate follow ACTIVE_CY automatically (the film has no screen cutout).
 - **D5 Overtravel at the stop across FP/OP ±0.2 (D2LS tolerance)** — A fixed stop cannot cover the full ±0.2 band (low-FP switch would not reach OP). Measure FP on a coupon and trim the stop legs, or use the shim set; see PRODUCTION_GATES.md.
 - **D11 D2LS actuator assumed at the body centre** — The Omron outline does not dimension the plunger position in text form; the Ø1.4 nubs sit on the switch centres. Confirm on a sample before cutting tools.
-- **D12 DART trunnions snap into closed bosses (0.05 mm radial running clearance)** — Print-test the boss flex and wear; add a lead-in slot if the bosses crack on assembly.
-- **E7 Film thickness 0.20 mm is a planning assumption** — Select film/adhesive stock; Z stack above the plate follows this value.
+- **D12 DART trunnions snap into closed bosses (0.10 mm radial running clearance)** — Print-test the boss flex and wear; add a lead-in slot if the bosses crack on assembly.
 - **H4 Panel FPC needs an extension tail (~70 mm, 20 × 0.5 mm, one 45° fold)** — J1 faces the board-tab edge on the back side; with the screen raised for the R10 face the panel tail must run under the module, between the DART switches, around the tab and back to J1. Confirm HOTHMI tail length/exit or order an FH12-20 extension FPC.
 - **J4 Sealed back volume per speaker (cc)** — R3 reserved ~1.94 cc per side (CAD geometric capacity) and, following the R2 research direction, recommended comparing 1.0 / 1.5 / ~2.0 cc; response must be measured
 - **J5 Acoustic response, gasket compression and wire feedthrough seal** — Measure impedance/response/distortion on a printed chamber pair.
 - **K3 Material left under the USB relief (localised, below the 2.0 mm rule)** — Accepted locally because the port sits 3.31 mm deep on the back side; confirm by drop/insertion test.
-- **L1 Body thickness (face film to rear floor)** — with caps 15.05 mm. The rear floor sits 0.2 mm below the tallest back-side part, L2 (Sunlord ASWPA4035, 3.50 mm). Sub-12 mm needs every back-side part ≤ 1.95 mm (over today: L2 3.50, J2 3.31, J5 3.00, J4 3.00, J3 3.00, L3 2.00, L1 2.00, J1 2.00), which is a PCB change, and a cell no thicker than 6.50 mm: the 7.0 mm cell alone holds the body at ≥ 12.55 mm. Replacing only L2 and J2 gives 13.05 mm.
-- **L4 Cell choice (703450 class, ~1300 mAh) and protected pack with JST SH 3-pin lead** — Order a protected cell with NTC, 3-pin to J3 (BAT+, NTC, GND).
-- **L5 Enclosure joint: plain 1.0 mm lap, no detent modelled; the board has no mounting holes for screws** — Print and drop-test the lap; add a detent or snap feature, perimeter clips or adhesive if it opens.
-- **L6 LCD retained by adhesive on the pocket ledge (no rear support under the module)** — Specify the adhesive frame; the 1.7 mm gap behind the module is the battery swelling allowance and must stay empty.
+- **L1 Body thickness (face film to rear floor)** — with caps 15.05 mm. The rear floor sits 0.2 mm below the tallest back-side part, L2 (Sunlord ASWPA4035, 3.50 mm). Sub-12 mm needs every back-side part ≤ 1.95 mm (over today: L2 3.50, J2 3.31, J5 3.00, J4 3.00, J3 3.00, L3 2.00, L1 2.00, J1 2.00), which is a PCB change, and a cell no thicker than 6.41 mm: the 7.0 mm cell alone holds the body at ≥ 12.65 mm. Replacing only L2 and J2 gives 13.05 mm.
+- **L4 Cell in hand: 703450-class protected pack, 10 kΩ NTC, JST SH 3-pin lead (spec in DECISIONS_R26.md)** — Order the specified cell (BAT+, NTC, GND on J3 pins 1-3) and check its size and swelling with the supplier.
 
-Solid validity: 19/19 solids valid.
+Solid validity: 21/21 solids valid.

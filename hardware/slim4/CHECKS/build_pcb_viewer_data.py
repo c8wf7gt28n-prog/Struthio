@@ -11,7 +11,7 @@ kept exactly as it is. This adds, from files in the package:
           read from the footprint descriptions the same way CHECKS/build_builder_packs.py
           writes the BOM
   fab     CHECKS/R21_FAB_SUMMARY.json (written by build_builder_packs.py), if present
-  gates   the GATE rows and counts of CHECKS/R25_CONVERGENCE_REPORT.json
+  gates   the GATE rows and counts of CHECKS/R26_CONVERGENCE_REPORT.json
 Re-running it gives the same file. Needs only Python and shapely (requirements.txt).
 """
 from pathlib import Path
@@ -23,7 +23,8 @@ from shapely.ops import unary_union
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'model-data.js'
 PRE = 'window.STRUTHIO_MODEL = '
-NOTE = 'R25 studio data: '
+NOTE = 'Studio data: '
+PACKAGE = 'R26'
 SIMPLIFY = 0.03
 
 
@@ -74,12 +75,13 @@ def main():
     else:
         model.pop('fab', None)
 
-    rep = json.loads((ROOT / 'CHECKS/R25_CONVERGENCE_REPORT.json').read_text())
-    model['gates'] = {'counts': {k: rep['counts'].get(k, 0) for k in ('PASS', 'FAIL', 'GATE', 'INFO')}, 'source': 'CHECKS/R25_CONVERGENCE_REPORT.md',
+    rep = json.loads((ROOT / 'CHECKS/R26_CONVERGENCE_REPORT.json').read_text())
+    model['gates'] = {'counts': {k: rep['counts'].get(k, 0) for k in ('PASS', 'FAIL', 'GATE', 'INFO')}, 'source': 'CHECKS/R26_CONVERGENCE_REPORT.md',
                       'open': [{'id': c['id'], 'interface': c['interface'], 'title': c['title'], 'detail': c['detail']}
                                for c in rep['checks'] if c['status'] == 'GATE']}
 
-    model['notes'] = [n for n in model['notes'] if not n.startswith(NOTE)] + [
+    model['name'] = f'STRUTHIO SLIM4 {PACKAGE} · R21 PCB'
+    model['notes'] = [n for n in model['notes'] if not n.startswith((NOTE, 'R25 studio data: '))] + [
         NOTE + 'zones are the filled copper pours stored in the R21 board (merged per net and layer, simplified to '
         f'{SIMPLIFY} mm); part mpn/lcsc/package/land come from the footprint descriptions; fab is CHECKS/R21_FAB_SUMMARY.json; '
         'gates are the open GATE rows of the convergence report. Written by CHECKS/build_pcb_viewer_data.py.']

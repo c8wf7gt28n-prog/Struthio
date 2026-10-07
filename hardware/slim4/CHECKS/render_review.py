@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Review images for R25: exact cross-sections and shaded views of PCB R21 + CASE R11 + ACRYLIC R1.
+"""Review images for R26: exact cross-sections and shaded views of PCB R21 + CASE R12 + ACRYLIC R2.
 
 Sections are cut from the B-rep solids (not from meshes), so dimensions read off the
 plots are the CAD dimensions. Shaded views use a small z-buffer rasteriser.
@@ -23,7 +23,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(ROOT / 'CHECKS'))
 sys.dont_write_bytecode = True   # keep CHECKS/ free of __pycache__
 with contextlib.redirect_stdout(io.StringIO()):
-    B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r11.py'))
+    B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r12.py'))
 from convergence_check import pcb_items, pose  # noqa: E402
 
 PCB_COLORS = {'board': '#1f8f4a', 'part': '#3a3f46', 'plunger': '#c84b1e'}
@@ -104,9 +104,7 @@ def raster(fname, yaw, pitch, explode=0.0, size=(1400, 1700), exclude=(), title=
             continue
         vs, ts = s.tessellate(0.15, 0.3)
         V = np.array([[v.x, v.y, v.z] for v in vs])
-        dz = off.get(groups.get(name, ''), 0.0) * explode
-        if name.split(' ')[0].startswith(('J', 'U', 'C', 'R', 'L', 'D', 'Q', 'Y', 'SW')) and 'PCB' not in name and explode:
-            dz = 0.0
+        dz = off.get(groups.get(name, ''), 0.0) * explode     # PCB items have no CASE group and stay at 0
         V[:, 2] += dz
         T = np.array(ts)
         if len(T):
@@ -173,9 +171,11 @@ if __name__ == '__main__':
     section('C · centre section at X = 0 (USB-C, battery, FPC wrap)', 'SECTION_C_CENTRE_X0.png', 'x', 0.0, ('y', 'z'), (-2, 136, -7, 11))
     section('D · speaker chamber section at X = 38.3', 'SECTION_D_SPEAKER.png', 'x', 38.3, ('y', 'z'), (108, 136, -7, 11))
     section('E · shoulder section at Y = 84 (board clamp, wall)', 'SECTION_E_SHOULDER_Y84.png', 'y', 84.0, ('x', 'z'), (-54, 54, -7, 11))
-    raster('VIEW_FRONT_ISO.png', yaw=-0.55, pitch=0.62, title='R25 · PCB R21 + CASE R11 + ACRYLIC R1 · assembled')
-    raster('VIEW_EXPLODED.png', yaw=-0.55, pitch=0.42, explode=9.0, title='R25 · exploded (film, controls, front shell, lens, LCD, routes, PCB, battery, speakers, rear)')
-    raster('VIEW_REAR_ISO.png', yaw=math.pi + 0.5, pitch=0.5, title='R25 · rear: power plunger, RESET / BOOT pinholes, USB-C relief')
-    raster('VIEW_INTERNALS.png', yaw=-0.55, pitch=0.62, exclude=('FRONT SHELL', 'FACE FILM', 'LENS', 'LCD', 'FLAP CAP', 'DART ROCKER'),
-           title='R25 · front shell, film, screen and controls hidden')
+    section('F · lap joint and display stack at X = 20 (top edge, zoom)', 'SECTION_F_LAP_DISPLAY.png', 'x', 20.0, ('y', 'z'), (-1, 9, 3.5, 8.5),
+            notes=[f'lap: {P["lap_clear"]:.2f} mm radial clearance, {P["lap_tape"]:.2f} mm tape seat', f'display tape frame {P["lcd_tape"]:.2f} mm: module to ledge and lens'])
+    raster('VIEW_FRONT_ISO.png', yaw=-0.55, pitch=0.62, title='R26 · PCB R21 + CASE R12 + ACRYLIC R2 · assembled')
+    raster('VIEW_EXPLODED.png', yaw=-0.55, pitch=0.42, explode=9.0, title='R26 · exploded (film, controls, front shell, lens, tape, LCD, routes, PCB, battery, speakers, rear)')
+    raster('VIEW_REAR_ISO.png', yaw=math.pi + 0.5, pitch=0.5, title='R26 · rear: power plunger, RESET / BOOT pinholes, USB-C relief')
+    raster('VIEW_INTERNALS.png', yaw=-0.55, pitch=0.62, exclude=('FRONT SHELL', 'FACE FILM', 'LENS', 'LCD', 'DISPLAY TAPE', 'FLAP CAP', 'DART ROCKER'),
+           title='R26 · front shell, film, screen and controls hidden')
     print('renders written to', OUT)

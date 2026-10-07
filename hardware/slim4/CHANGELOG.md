@@ -1,3 +1,38 @@
+# R26 — decisions made; CASE R12, ACRYLIC R2
+
+PCB R21 unchanged (check A1). Every open item that needed only a decision is decided in `DECISIONS_R26.md`; the rest is listed exactly in `PRODUCTION_GATES.md`. Convergence: **79 PASS · 0 FAIL · 9 GATE · 3 INFO** (326 pair evaluations over 287 distinct pairs).
+
+## Geometry (CASE R11 → R12, ACRYLIC R1 → R2)
+
+| Item | R11 / R1 | R12 / R2 |
+|---|---|---|
+| Lap joint | skirt and lip 1.0 mm each, line-to-line, no retention | 0.95 mm each, 0.10 mm radial clearance; lip top 0.10 mm under the plate; 0.10 mm tape ring (new part) |
+| LCD module Z | 5.20–6.95, touching ledge and lens | 5.10–6.85; 0.10 mm display tape frame (new part) bonds module, ledge and lens; 1.6 mm free behind it |
+| FPC route under the module | Z 4.75–5.15 (fold to 6.85) | Z 4.65–5.05 (fold to 6.75) |
+| DART trunnion bore | Ø1.10 (0.05 radial) | Ø1.20 (0.10 radial) |
+| DART boss floor | Z 4.45 | Z 4.30 (0.15 mm under the bore; the wider bore would otherwise be tangent to the floor) |
+| Lens | 0.70 mm, material open | 0.70 mm chemically strengthened cover glass |
+| Film outline | equal to the case outline | 0.20 mm inside it |
+| Film vents | six 12.2 × 1.0 slots | two 12.2 × 4.8 r0.3 windows |
+| Film stack | 0.20 mm assumed | 0.175 PET + 0.025 OCA = 0.20 mm, unprinted |
+
+Body thickness unchanged: 13.55 mm (15.05 mm over the caps).
+
+## Checks
+
+- Closed: E7 (film stack), L5 (joint: measured clearance and tape seat), L6 (display stack: module + tape = ledge = lens underside). L4 now tracks only the cell in hand (spec decided).
+- New: D15 (material under each trunnion bore ≥ 0.15 mm), E8 (narrowest film cut ≥ 1.5 mm). E1, E4, E5 and E6 rewritten for the inset outline and vent windows; contact rules added for the two tapes.
+- Renderer: new section F (lap joint and display stack). Fixed a bug in the exploded view: its "keep PCB parts in place" test matched any part name starting with R, C, D or L, so the rear shell, film, DART rocker and cell were never exploded.
+
+## Builder files and BOM
+
+- `CHECKS/BOM_SOURCING_R21.json`: LCSC numbers for the 14 parts the locked board file lacks, each checked on its LCSC/JLCPCB page (C310 → C16772). All 165 parts are now bound.
+- PCB, print and film READMEs carry the decided specifications (EVT quantities, stackup, finish, via-in-pad, SLA resin, film stack). The sticker pack adds the display tape frame and lap tape ring die-cuts; the lens folder is now a cover-glass order.
+
+## Studio
+
+Labels read CASE R12 / FILM R2 / R26; the film's print, white and relief layers show "not used" (unprinted prototype film) and the adhesive layer shows the 0.025 mm OCA. Service-worker caches renamed.
+
 # R25 studio 1.1
 
 PCB R21, CASE R11 and ACRYLIC R1 geometry unchanged. The studio is brought up to date with the package:

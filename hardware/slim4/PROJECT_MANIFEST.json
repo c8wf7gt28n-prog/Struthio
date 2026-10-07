@@ -1,9 +1,11 @@
 {
   "project": "STRUTHIO SLIM4",
-  "package_revision": "R25",
-  "package_issue": "R25 clean re-issue: corrections and clean-up of the first R25 zip; CASE R11 / ACRYLIC R1 geometry unchanged (see CHANGELOG.md)",
-  "previous_revision": "R24",
-  "package_status": "cross-platform engineering/debug handoff; layers converged in CAD; not a fabrication release",
+  "package_revision": "R26",
+  "package_issue": "R26: the open owner decisions made (DECISIONS_R26.md); CASE R12 / ACRYLIC R2 implement them, PCB R21 unchanged (see CHANGELOG.md)",
+  "decisions": "DECISIONS_R26.md",
+  "bom_sourcing": "CHECKS/BOM_SOURCING_R21.json",
+  "previous_revision": "R25",
+  "package_status": "engineering prototype (EVT) package; layers converged in CAD; physical gates open; not a production release",
   "units": "mm",
   "coordinate_system": {
     "xy": "SLIM4_R21 PCB datum (Y down, KiCad)",
@@ -12,12 +14,12 @@
   },
   "convergence": {
     "checker": "CHECKS/convergence_check.py",
-    "report": "CHECKS/R25_CONVERGENCE_REPORT.md",
+    "report": "CHECKS/R26_CONVERGENCE_REPORT.md",
     "converged": true,
     "counts": {
-      "PASS": 72,
+      "PASS": 79,
       "INFO": 3,
-      "GATE": 12
+      "GATE": 9
     },
     "baseline_audit": "CHECKS/R24_BASELINE_AUDIT.md"
   },
@@ -39,26 +41,26 @@
     },
     {
       "id": "CASE",
-      "revision": "R11",
+      "revision": "R12",
       "native_source": [
-        "LAYERS/02_CASE/build_r11.py",
+        "LAYERS/02_CASE/build_r12.py",
         "LAYERS/02_CASE/export_layer_formats.py"
       ],
       "interchange": [
-        "LAYERS/02_CASE/STRUTHIO_CASE_R11.step",
-        "LAYERS/02_CASE/STRUTHIO_CASE_R11.stl",
-        "LAYERS/02_CASE/CASE_FRONT_SHELL_R11.step",
-        "LAYERS/02_CASE/CASE_FRONT_SHELL_R11.stl",
-        "LAYERS/02_CASE/CASE_REAR_SHELL_R11.step",
-        "LAYERS/02_CASE/CASE_REAR_SHELL_R11.stl",
-        "LAYERS/02_CASE/CASE_CONTROLS_R11.step",
-        "LAYERS/02_CASE/CASE_CONTROLS_R11.stl",
-        "LAYERS/02_CASE/CASE_SCREEN_STACK_R11.step",
-        "LAYERS/02_CASE/CASE_INTERNALS_R11.step",
-        "LAYERS/02_CASE/CASE_LAYER_R11_MESH.json",
-        "LAYERS/02_CASE/R11_FIT_CHECKS.json"
+        "LAYERS/02_CASE/STRUTHIO_CASE_R12.step",
+        "LAYERS/02_CASE/STRUTHIO_CASE_R12.stl",
+        "LAYERS/02_CASE/CASE_FRONT_SHELL_R12.step",
+        "LAYERS/02_CASE/CASE_FRONT_SHELL_R12.stl",
+        "LAYERS/02_CASE/CASE_REAR_SHELL_R12.step",
+        "LAYERS/02_CASE/CASE_REAR_SHELL_R12.stl",
+        "LAYERS/02_CASE/CASE_CONTROLS_R12.step",
+        "LAYERS/02_CASE/CASE_CONTROLS_R12.stl",
+        "LAYERS/02_CASE/CASE_SCREEN_STACK_R12.step",
+        "LAYERS/02_CASE/CASE_INTERNALS_R12.step",
+        "LAYERS/02_CASE/CASE_LAYER_R12_MESH.json",
+        "LAYERS/02_CASE/R12_FIT_CHECKS.json"
       ],
-      "status": "complete enclosure candidate converged on R21; physical gates open",
+      "status": "complete enclosure converged on R21 with R26 fits and tape joints; physical gates open",
       "envelope_mm": [
         104.0,
         135.3
@@ -69,26 +71,26 @@
     },
     {
       "id": "ACRYLIC",
-      "revision": "R1",
+      "revision": "R2",
       "native_source": [
-        "LAYERS/02_CASE/build_r11.py",
+        "LAYERS/02_CASE/build_r12.py",
         "LAYERS/02_CASE/export_layer_formats.py"
       ],
       "interchange": [
-        "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R1.step",
-        "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R1.stl",
-        "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R1.svg",
-        "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R1.dxf",
-        "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_CUT_SPEC.json",
-        "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_MESH.json"
+        "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R2.step",
+        "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R2.stl",
+        "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R2.svg",
+        "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R2.dxf",
+        "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_CUT_SPEC.json",
+        "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_MESH.json"
       ],
-      "status": "clear film/cutline study only; print artwork pending",
-      "assumed_thickness_mm": 0.2,
+      "status": "clear unprinted prototype film, 0.175 PET + 0.025 OCA, edge inset 0.20",
+      "thickness_mm": 0.2,
       "screen_cutout": false
     }
   ],
   "derived": {
-    "assembly": "ASSEMBLY/STRUTHIO_SLIM4_R25_ASSEMBLY.step",
+    "assembly": "ASSEMBLY/STRUTHIO_SLIM4_R26_ASSEMBLY.step",
     "assembly_sequence": "ASSEMBLY/ASSEMBLY_SEQUENCE.md",
     "component_envelopes": "CHECKS/COMPONENT_ENVELOPES_R21.json",
     "renders": "CHECKS/renders/"
@@ -132,29 +134,29 @@
   ],
   "release_gates": "PRODUCTION_GATES.md",
   "cross_platform_instructions": "AI_HANDOFF.md",
-  "change_report": "AI_CHANGE_REPORT_R25.md",
+  "change_report": "AI_CHANGE_REPORT_R26.md",
   "sha256": {
     "LAYERS/01_PCB/SLIM4_R21.kicad_pcb": "daac1da0536f04f493232b1141e38cf9c74efe9c03a60bfd4f9ae5aa5241e5c0",
     "LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json": "92a31435a101cde7c15bce1106509073e7c92d27b594e5bb4053f0475538cd6e",
-    "LAYERS/02_CASE/STRUTHIO_CASE_R11.step": "c4f5f78419f9fa0511660a654196e571627649a8b309881399e74032833ea446",
-    "LAYERS/02_CASE/STRUTHIO_CASE_R11.stl": "bfb5211872316b0baf8968b3717b9142d1d797e45c5b86b193ae73e919957104",
-    "LAYERS/02_CASE/CASE_FRONT_SHELL_R11.step": "5c3fdcc2ef6f9b25a2099de7b614b69e357061af47fa9637c5d1036ebd63087e",
-    "LAYERS/02_CASE/CASE_FRONT_SHELL_R11.stl": "9947ea83ca8f97e1404c4c2db2082dd72b33ab07359b42aae11e3545f48bb979",
-    "LAYERS/02_CASE/CASE_REAR_SHELL_R11.step": "ac7f289156eee2ae27a44c51ae1ce777374cc0a8ca11a9d3cdadc65720ebd35b",
-    "LAYERS/02_CASE/CASE_REAR_SHELL_R11.stl": "bd123a7cefe81ec438cd62ca1f9831b791eeef8428ebb4f76fa898d8e71dbf74",
-    "LAYERS/02_CASE/CASE_CONTROLS_R11.step": "25a77be0b11bb6fb37441c9e5520e583a43f25056f3467e9037d9807c9726412",
-    "LAYERS/02_CASE/CASE_CONTROLS_R11.stl": "b2be78af21ba3f5a3307282039cf0dd6734329c35e76305839bacfce4d728ae5",
-    "LAYERS/02_CASE/CASE_SCREEN_STACK_R11.step": "71166688779f54c2e059e0a8463156ca2cf20f3945f50eabe06a9c3b8258c7ee",
-    "LAYERS/02_CASE/CASE_INTERNALS_R11.step": "a63b4b67bf935881d2327a50d283147374a08c8d1deb60b6329c94782359b953",
-    "LAYERS/02_CASE/CASE_LAYER_R11_MESH.json": "6db16fcef104dcc14adb8708c5ebd3538cf8e2e1e4a8d40f8f3fc972dcc11228",
-    "LAYERS/02_CASE/R11_FIT_CHECKS.json": "65a99b6bb75f51cc391839951ca114ab4426a943f107b702a509acec027ff614",
-    "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R1.step": "040e9f115125906febcecd3821ff38016084316e82f6a23e99f5e578a77469c5",
-    "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R1.stl": "8cc4acf8d74a22c926ccc931f811eb3218b9fc4b55d230d342fa2dc6938cef97",
-    "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R1.svg": "f08a8dd056d0ac1030d97d0f33a6165a60943cc86c8c530a60498e1ef3cd93cf",
-    "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R1.dxf": "9acae82aa84196369ac0c1b7c02de6315de85877f2f1e9c5744baa6d94a31c7b",
-    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_CUT_SPEC.json": "de3279f1bc6332393d658d46b09dc16831bfe2e6178f45702f73f5e78767bf99",
-    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_MESH.json": "95b2ce35b75e3f79b1cfa045b85260e3153a28531bdc879cffa9fb6ff602fe58",
-    "ASSEMBLY/STRUTHIO_SLIM4_R25_ASSEMBLY.step": "e0d8361f4967cd32258d1220e9da8f65444798a33f330b1571afeea832721803"
+    "LAYERS/02_CASE/STRUTHIO_CASE_R12.step": "11eacdf2d9e0d82524ed3a6340b4b98cf496715464db08b097511b553a0ea2ec",
+    "LAYERS/02_CASE/STRUTHIO_CASE_R12.stl": "767301579b20177d89aa97bf72727ec701ebbb93f634609f35ed982774f4d081",
+    "LAYERS/02_CASE/CASE_FRONT_SHELL_R12.step": "2749e18ccba5c19292801c7b54b657aefd900cec12da68eb48853629cc8c9079",
+    "LAYERS/02_CASE/CASE_FRONT_SHELL_R12.stl": "d8605241c0bc1cbefb5a76341d9e0dc0103b3f19ee4d88f397daa43e8a41f754",
+    "LAYERS/02_CASE/CASE_REAR_SHELL_R12.step": "1c9523409cd86b3e007564e7f434c22cbba61a85ca55df7aa8f95c6a7db276e5",
+    "LAYERS/02_CASE/CASE_REAR_SHELL_R12.stl": "1639d4af1c4c965ca3d2cf34e0a12dcea7aeba37f15f3c0787d6d6bd14ecf69c",
+    "LAYERS/02_CASE/CASE_CONTROLS_R12.step": "6b56563bbb8a6f84af24a3aa2b83738b160ea0fbe139db4ee34915030c1c8571",
+    "LAYERS/02_CASE/CASE_CONTROLS_R12.stl": "b2be78af21ba3f5a3307282039cf0dd6734329c35e76305839bacfce4d728ae5",
+    "LAYERS/02_CASE/CASE_SCREEN_STACK_R12.step": "c642f793f961052b29f9a4085dd4ab23bb1bf4f255ac3ff72110fc85c5b4903e",
+    "LAYERS/02_CASE/CASE_INTERNALS_R12.step": "e15e58163bde13bf1db0f2257d14ba1b523bc689e7c7d5f6bd11c22c75ab9607",
+    "LAYERS/02_CASE/CASE_LAYER_R12_MESH.json": "842d621980ef41106604948a1607f3b3278cc313cc97825349224d1c9c78b193",
+    "LAYERS/02_CASE/R12_FIT_CHECKS.json": "ab3087266122c9247cd2d1850d9f5ac2b132000f154a5111a0c86b7eb88e1bbb",
+    "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R2.step": "f74aea166878570253a00febc549d19ac770450935f7f857a8faa19d602ac19f",
+    "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R2.stl": "a93ad1b7f174184e4814a96b88f4e313680b9cb86b3d6d77228c4b92919b2b42",
+    "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R2.svg": "abd52c29812e9267d9a7f4390971983d4706842bd64a7d1fc7f66d62aaafd3a6",
+    "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R2.dxf": "bb967fdb4c0129aa3e1530d9fb908e4e8f01714510d34afc808e8cd890f25db1",
+    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_CUT_SPEC.json": "e61f6d276d4c58e096a5c7cd7c34fb6147aa7e5e6973c4cd6405d3ead55cc469",
+    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_MESH.json": "a1428d5422bfd872a65cc0036d11034c9d7f8fff5fdf8620b15a8e4bc07ee3a6",
+    "ASSEMBLY/STRUTHIO_SLIM4_R26_ASSEMBLY.step": "52de25eeecb70fa470a1231bb3580997a6deab9684ba29a7087bcffa66005d12"
   },
   "checksums_file": "SHA256SUMS.txt (all package payloads except manifest and checksum file)"
 }

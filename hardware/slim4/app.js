@@ -438,7 +438,7 @@
   }
   function fabSummary(){
     const f=model.fab;if(!f)return'';
-    return `<br><span class="accent">FAB FILES</span> Gerber ×${f.gerber_layers.length} · drill · BOM ${f.bom.lines} lines (${f.bom.with_lcsc}/${f.bom.placements} with LCSC) · CPL ${f.cpl_placements}<br><span class="accent">DRC</span> KiCad ${escapeHTML(f.kicad)} · ${f.drc.violations} violations · ${f.drc.unconnected_pads} unconnected · vias ${f.vias.tented?'tented':'open'} · PROTOTYPE ONLY`;
+    return `<br><span class="accent">FAB FILES</span> Gerber ×${f.gerber_layers.length} · drill · BOM ${f.bom.lines} lines (${f.bom.with_lcsc}/${f.bom.placements} with LCSC) · CPL ${f.cpl_placements}<br><span class="accent">DRC</span> KiCad ${escapeHTML(f.kicad)} · ${f.drc.violations} violations · ${f.drc.unconnected_pads} unconnected · vias ${f.vias.tented?'tented':'open'} · EVT PROTOTYPE`;
   }
   function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
@@ -517,9 +517,9 @@
   function setAuthorityStatus(){
     const pcbName=(model.source||model.name||'PCB').replace(/^.*[\\/]/,'');
     $('#pcbSource').textContent=(state.authority.pcb?`${pcbName} · SOURCE FILE`:'SOURCE MISSING');
-    $('#caseSource').textContent=state.authority.case?'R11 · FULL CAD':(state.referenceMode?'R3 CAD · REFERENCE':'SOURCE MISSING');
-    $('#artSource').textContent=state.authority.art?'CLEAR FILM R1 · 0.20*':'SOURCE MISSING';
-    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R11':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
+    $('#caseSource').textContent=state.authority.case?'R12 · FULL CAD':(state.referenceMode?'R3 CAD · REFERENCE':'SOURCE MISSING');
+    $('#artSource').textContent=state.authority.art?'CLEAR FILM R2 · 0.20':'SOURCE MISSING';
+    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R12':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
     document.querySelectorAll('#stackWheel button').forEach(b=>{const src=b.dataset.source;b.classList.toggle('missing',src==='art'&&!state.authority.art || src==='case'&&!state.authority.case&&!state.referenceMode);b.classList.toggle('reference',src==='case'&&!state.authority.case&&state.referenceMode);});
   }
   function applyStack(key){
@@ -560,8 +560,8 @@
     const pendingArt=meta.source==='art'&&key!=='art.clear';
     const pendingCase=false;
     const partialBuild=meta.source==='build'&&(!state.authority.case||!state.authority.art);
-    $('#stackState').textContent=pendingArt?'ARTWORK LAYER · NOT DESIGNED':pendingCase?'':partialBuild?'PARTIAL · SOURCE INCOMPLETE':key==='build.assembled'?'FRONT STACK + PCB · R11 REAR IN CASE.REAR':meta.label.replace(' · ',' / ');
-    $('#stackReadout').textContent=meta.label+(pendingArt||pendingCase?' · PENDING':partialBuild?' · PARTIAL':'');
+    $('#stackState').textContent=pendingArt?(key==='art.adhesive'?'OCA 0.025 mm · PART OF THE 0.20 mm FILM':'NOT USED · PROTOTYPE FILM IS UNPRINTED'):pendingCase?'':partialBuild?'PARTIAL · SOURCE INCOMPLETE':key==='build.assembled'?'FRONT STACK + PCB · R12 REAR IN CASE.REAR':meta.label.replace(' · ',' / ');
+    $('#stackReadout').textContent=meta.label+(pendingArt?' · NOT USED':pendingCase?' · PENDING':partialBuild?' · PARTIAL':'');
     syncLayerPanel();schedule();
   }
   function initVerticalWheel(id,initial,onChange){
@@ -636,7 +636,7 @@
       else model=parseKicad(text,file.name);
       state.authority.pcb=true;setAuthorityStatus();
       state.selected={type:'board',ref:'BOARD'};$('#selectedReadout').textContent='SEL BOARD';updateBoardStats();
-      $('#partInfo').innerHTML=`Loaded <b>${escapeHTML(file.name)}</b><br>${model.parts.length} footprints · ${(model.segments||[]).length} routed segments · ${(model.vias||[]).length} vias.<br>The bundled R11 case and R1 clear acrylic film remain visible as separate, fixed-datum design layers; compare fit before relying on loaded-board alignment.`;
+      $('#partInfo').innerHTML=`Loaded <b>${escapeHTML(file.name)}</b><br>${model.parts.length} footprints · ${(model.segments||[]).length} routed segments · ${(model.vias||[]).length} vias.<br>The bundled R12 case and R1 clear acrylic film remain visible as separate, fixed-datum design layers; compare fit before relying on loaded-board alignment.`;
       resetView('home');
     }catch(err){$('#partInfo').textContent='Load failed: '+err.message;}
     e.target.value='';

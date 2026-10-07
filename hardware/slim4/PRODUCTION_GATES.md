@@ -1,48 +1,44 @@
-# Production gates — R25
+# Production gates — R26
 
-This is a cross-platform engineering/debug package. It is not a fabrication release.
+R26 is an engineering prototype (EVT) package. The three layers converge in CAD (`CHECKS/R26_CONVERGENCE_REPORT.md`: 0 FAIL), every open owner decision has been made (`DECISIONS_R26.md`), and the builder files are complete (`CHECKS/build_builder_packs.py`). It is not a production release: the items below need hardware, tests or supplier data.
 
-R25 closes the **CAD convergence** gates: every interface between PCB R21, CASE R11 and ACRYLIC R1 is defined and checked (`CHECKS/R25_CONVERGENCE_REPORT.md`, 0 FAIL). What remains needs parts in hand, supplier drawings, or tests (the 12 GATE rows).
+## Closed in CAD
 
-## Closed in CAD by R25
-
-- Board fits the enclosure with 2.0 mm walls and ≥0.3 mm clearance; LCD fits with ≥0.2 mm (checks B2, B3).
+- Board fits the enclosure with 2.0 mm walls and ≥0.3 mm clearance; LCD fits with ≥0.2 mm (B2, B3).
 - Screen opening and lens centred on the LCD active area; film continuous over the lens (C1–C3, E3).
-- Every control reaches its switch when pressed and none at rest (D1–D10). Caps are retained by the Ø17.8 flange under the Ø17.0 plate hole, the rocker by trunnions in closed bosses (D14). Stop legs and support posts land clear of pads (I1, I5).
-- Via tenting (I4): two vias sit under contact points — the SW2 flap cap's stop leg at (35.69, 107.06) on 3V3_SYS and a rear support post at (21.5, 76.0) on RESET_MR. The R21 plot settings tent every via and the generated mask Gerbers leave both covered; the PCB order notes require tenting.
-- Front plate webs ≥ 2.0 mm (B6). Plate nominal 2.0 mm, locally 0.70 mm over the LCD pocket ledge (B8, gate below); floor and walls 2.0 mm (B5).
-- Film follows the case outline and clears the molded relief; vent cuts register on the grille (E1–E6).
-- No interference between any two parts at rest, flaps pressed, or DART pressed either way. Moving parts clear by ≥0.2 mm except designed contacts: the cap-flange up-stop and power-plunger collar (touching), stop legs on the board at the stop, the DART trunnion (0.05 mm radial in its bosses), and the actuator nubs 0.05 mm (flaps) / 0.024 mm (DART) above the switch bodies at the stop (F1, G1).
-- Rear shell, battery bay, speaker chambers, USB-C relief, FPC and harness routes, board clamps and service access exist and fit (H1–H3, I1–I3, J1–J3, K1–K2, L2–L3).
+- Every control reaches its switch when pressed and none at rest (D1–D10). Caps are retained by the Ø17.8 flange under the Ø17.0 plate hole, the rocker by trunnions in closed bosses with 0.15 mm under each bore (D14, D15). Stop legs and support posts land clear of pads (I1, I5).
+- Via tenting (I4): the two vias under case contact points are covered by solder mask in the plotted Gerbers.
+- Enclosure joint (L5): 0.10 mm radial lap clearance, 0.10 mm tape seat; the skirt lands on the rear wall.
+- Display stack (L6): module + 0.10 mm tape frame = ledge underside = lens underside; 1.6 mm free behind the module for cell swelling.
+- Film (E1–E8): edge 0.20 mm inside the case outline, clears the molded relief, vent windows over every grille slot, narrowest cut 4.8 mm, stack equal to the CAD thickness, cut spec matches.
+- No interference between any two parts at rest, flaps pressed, or DART pressed either way; moving parts clear by ≥0.2 mm except designed contacts (F1, G1).
+- Rear shell, battery bay, speaker chambers, USB-C relief, FPC and harness routes, board clamps and service access (H1–H3, I1–I3, J1–J3, K1–K2, L2–L3).
 
-## Open — PCB (unchanged from R24)
+## Open — needs parts, tests or supplier data
 
-- R21 native board is included and preserved unchanged. Complete schematic-to-board reconciliation and electrical intent review.
-- Re-run native KiCad DRC/ERC with the final tool/version and confirm all nets, constraints, clearances, creepage, impedance, and board stackup. (KiCad 7.0.11 DRC re-run on R21 under the design's own 0.1 mm rules: 0 / 0 / 0, zone fills current — `CHECKS/R21_FAB_SUMMARY.json`. ERC still needs the schematic; the board house's DFM rules still need running.)
-- Select exact orderable/assembly parts, approved footprints, alternate parts, BOM/CPL, and assembly-side constraints. Verify JLCPCB capabilities and quoting limits against current files before ordering. (A BOM and CPL are generated from the board: 151 of 165 parts carry an LCSC number, 14 are sourced by part number, C310 is not bound; 152 footprints are package proxies awaiting a land-pattern audit; R403 and C408 have a via in a pad.)
-- Complete power-tree, MIPI, USB, audio, battery/charging, connector, protection, programming, and test-point review.
-- **Decision needed for sub-12 mm:** R25 is 13.55 mm (15.05 mm over the caps). The rear floor sits 0.2 mm below L2 (Sunlord ASWPA4035, 3.50 mm). Sub-12 mm needs every back-side part ≤ 1.95 mm — L2 3.50, J2 3.31, J3/J4/J5 3.00 and J1/L1/L3 2.00 are taller today — which is a PCB change, and a cell no thicker than 6.5 mm (the 7.0 mm cell alone holds the body at ≥ 12.55 mm). Replacing only L2 and J2 gives 13.05 mm (L1).
+PCB R21 (locked; `LAYERS/01_PCB/RELEASE_GATES.md`):
+1. **Schematic and ERC.** No schematic is in the package; the R21 netlist cannot be checked against intent here.
+2. **Electrical design review**: ESP32-P4 power, boot, USB and flash against Espressif references; power tree, current and thermal.
+3. **Signal integrity**: MIPI-DSI and USB 2.0 were not routed to a defined stackup; measure on the EVT boards (no impedance control ordered).
+4. **Land-pattern audit**: 152 footprints are package proxies; the assembler's DFM review checks them against the bound BOM.
+5. **Board house DFM** on the uploaded Gerbers (the KiCad 7.0.11 DRC uses the design's own 0.1 mm rules).
+6. **Firmware** for the R21 GPIO remaps (USB_CURR_OUT1 GPIO43, PGOOD_STATUS GPIO44, BQ_EN2 GPIO46). No firmware is in this repository.
 
-## Open — case, controls and screen
+Case, controls and screen:
+7. **HOTHMI panel drawing (C4, H4)**: confirm the 1.79 mm top border, active area, outline and the FPC tail exit and length; then order or design the 20-pin 0.5 mm extension FPC (about 70 mm, one 45° fold) along the reserved route to J1.
+8. **D2LS lot (D5, D11)**: measure free position on a coupon of the ordered switches and confirm the actuator position; trim the four stop legs per cap (or shim 0.05 mm) to land overtravel.
+9. **Print tests (B8, D12, K3)**: ledge stiffness under the LCD, trunnion snap-in and wear, USB-C insertion and drop over the thin relief floor; print tolerance, finish and grip by hand.
+10. **Drop test of the taped lap joint.**
 
-- **D2LS tolerance (D5):** with FP/OP ±0.2 mm a fixed stop cannot both reach OP on a low-FP switch and limit overtravel on a high-FP one (range −0.05…+0.35 mm past OP). Measure FP on a coupon of the ordered lot and trim the four stop legs per cap (or use 0.05 mm shims) before tooling.
-- Confirm the D2LS actuator position on a sample (D11) and print-test the DART trunnion bosses (D12).
-- **HOTHMI module (C4, H4):** confirm the 1.79 mm top border, active area, outline and FPC exit/length against the supplier drawing. The panel tail must reach J1 by the R25 route (under the module, between the DART switches, around the board tab, back to J1): about 70 mm with one 45° fold — order or design an FH12-20 extension FPC.
-- LCD retention and ledge: the LCD bonds to a 0.70 mm ledge (B8). Specify the adhesive frame and check ledge stiffness on the print; keep the 1.7 mm gap behind the module empty (L6).
-- Enclosure joint: a plain 1.0 mm lap; no detent is modelled. Print and drop-test it; the board has no mounting or screw holes, so add a detent or snap feature, perimeter clips or adhesive if it opens (L5).
-- USB-C: the overmold relief leaves 0.745 mm under it; confirm by insertion/drop test (K3).
-- Print tolerances, surface finish and the R10/R11 grip silhouette still need a hand-test print.
+Power and audio:
+11. **Cell in hand (L4)**: order the cell specified in `DECISIONS_R26.md` #13; confirm size with the PCM and swelling allowance with the supplier.
+12. **Speakers (J5)**: Same Sky CMS-18138A-SP has spring contacts: choose a factory-wired variant or a harness to JST SH 2-pin (J4/J5) once the contact layout is in hand; measure impedance, response and distortion on a printed chamber pair; confirm gasket compression and seal the feedthroughs.
 
-## Open — power and audio
+Film, tapes and lens (supplier confirmation of the specified items):
+13. **Supplier quotes**: film stock and bubble-free lamination over the screen, kiss-cut tolerance on the film and both tapes, cover-glass quote.
 
-- Cell (L4): order a protected 703450-class pouch (≤34 × 52 × 7.0 mm with PCM) with NTC and a JST SH 3-pin lead to J3 (BAT+, NTC, GND). Confirm swelling allowance with the supplier (1.7 mm reserved).
-- Speakers (J4, J5): Same Sky CMS-18138A-SP are spring-contact parts; order a factory-wired variant or harness to JST SH 2-pin (J4/J5). Back volume is 1.56 cc per side. Measure impedance, response and distortion on a printed chamber pair; confirm gasket compression and seal the wire feedthroughs.
+Deferred by decision (not needed for EVT):
+- Printed artwork on the face film (`DECISIONS_R26.md` #9).
+- Sub-12 mm body (`DECISIONS_R26.md` #2; needs a PCB revision).
 
-## Open — acrylic face layer
-
-- 0.20 mm is a planning assumption, not a selected stock thickness. Choose the actual film/adhesive stack and vendor process (E7).
-- Verify perimeter, control/vent cutouts, optical clarity, haze/reflection, screen readability, corner radii, application registration, and tolerance.
-- Create final printed artwork, ink/white-mask separations, relief/texture and adhesive instructions only after the visible design is approved.
-- Obtain a supplier preflight for SVG/DXF layer naming, polarity, kerf/offset, and material compensation.
-
-Release only after these gates are closed and a physical fit/acoustic/optical prototype passes review.
+Release only after these items are closed and the EVT prototype passes fit, acoustic, optical and drop review.
