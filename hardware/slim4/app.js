@@ -422,7 +422,7 @@
     if(item.type==='part'){
       const p=item.data;const pp=(model.pads||[]).filter(x=>x.ref===p.ref);const nets=[...new Set(pp.map(x=>x.netName).filter(Boolean))];const padMap=pp.slice(0,8).map(x=>`${x.num||'?'}:${x.netName||'NC'}`);
       const vip=(model.fab?.vias?.in_smd_pads||[]).filter(v=>v.ref===p.ref).map(v=>`pad ${v.pad} (${v.net})`);
-      const bom=p.mpn!==undefined?`<br><span class="accent">BOM</span> ${escapeHTML(p.mpn||p.value||'')} · ${escapeHTML(p.package||'')}<br><span class="accent">SOURCE</span> ${escapeHTML(p.sourcing||'')} · ${p.land==='vendor'?'VENDOR LAND PATTERN':'PROXY LAND · AUDIT AT DFM'}${vip.length?`<br><span class="accent">VIA IN PAD</span> ${escapeHTML(vip.join(', '))} · fill and cap`:''}`:'';
+      const bom=p.mpn!==undefined?`<br><span class="accent">BOM</span> ${escapeHTML(p.mpn||p.value||'')} · ${escapeHTML(p.package||'')}<br><span class="accent">SOURCE</span> ${escapeHTML(p.sourcing||'')} · ${p.land==='vendor'?'VENDOR LAND PATTERN':p.land==='audited'?'LAND AUDITED IN R22 REVIEW':'PROXY LAND · AUDIT AT DFM'}${vip.length?`<br><span class="accent">VIA IN PAD</span> ${escapeHTML(vip.join(', '))} · fill and cap`:''}`:'';
       $('#partInfo').innerHTML=`<b>${escapeHTML(p.ref)}</b> · ${escapeHTML(p.value||'')}<br><span class="cyan">${escapeHTML((p.category||'part').toUpperCase())}</span> · ${p.side.toUpperCase()} · ROT ${Number(p.rot||0).toFixed(0)}°<br>X ${p.x.toFixed(2)} · Y ${p.y.toFixed(2)} mm · ${p.w.toFixed(2)}×${p.h.toFixed(2)} mm<br>HEIGHT ≈ ${partHeight(p).toFixed(2)} mm · PADS ${p.padCount??pp.length}${nets.length?`<br><span class="accent">NETS</span> ${escapeHTML(nets.slice(0,6).join(' · '))}${nets.length>6?' …':''}`:''}${padMap.length?`<br><span class="accent">PAD MAP</span> ${escapeHTML(padMap.join(' · '))}${pp.length>8?' …':''}`:''}${bom}`;
     }else if(item.ref==='BOARD'){
       const st=model.stats||{};const lc={},ll={};let routeLen=0;for(const q of model.segments||[]){lc[q.layer]=(lc[q.layer]||0)+1;const len=Math.hypot(q.x2-q.x1,q.y2-q.y1);ll[q.layer]=(ll[q.layer]||0)+len;routeLen+=len;}const ls=Object.entries(lc).map(([k,v])=>`${k.replace('.Cu','')} ${v}/${(ll[k]||0).toFixed(1)}mm`).join(' · ');
@@ -519,7 +519,7 @@
     $('#pcbSource').textContent=(state.authority.pcb?`${pcbName} · SOURCE FILE`:'SOURCE MISSING');
     $('#caseSource').textContent=state.authority.case?'R12 · FULL CAD':(state.referenceMode?'R3 CAD · REFERENCE':'SOURCE MISSING');
     $('#artSource').textContent=state.authority.art?'CLEAR FILM R2 · 0.20':'SOURCE MISSING';
-    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R12':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
+    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R12':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R22 · ORDER READY</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
     document.querySelectorAll('#stackWheel button').forEach(b=>{const src=b.dataset.source;b.classList.toggle('missing',src==='art'&&!state.authority.art || src==='case'&&!state.authority.case&&!state.referenceMode);b.classList.toggle('reference',src==='case'&&!state.authority.case&&state.referenceMode);});
   }
   function applyStack(key){

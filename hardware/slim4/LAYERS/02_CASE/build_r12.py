@@ -1,4 +1,4 @@
-"""STRUTHIO SLIM4 CASE R12 + ACRYLIC R2 (package R26), converged on the locked R21 PCB.
+"""STRUTHIO SLIM4 CASE R12 + ACRYLIC R2, on PCB R22 (package R27; the case was converged on R21 in R26).
 
 R12/R2 = R11/R1 plus the R26 decisions (DECISIONS_R26.md): 0.10 mm radial lap clearance with a
 0.10 mm tape seat, a 0.10 mm display tape frame (LCD 0.10 mm further back), 0.10 mm radial DART
@@ -8,8 +8,11 @@ Shared datum (unchanged from R24): millimetres, R21 PCB XY (X right, Y down from
 board's top edge region, as in KiCad), board bottom at Z=0, +Z toward the device front.
 
 Nothing here edits the PCB. The board outline, footprint positions and heights are
-read from LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json and CHECKS/COMPONENT_ENVELOPES_R21.json,
-and every case/acrylic feature is placed against them.
+read from LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json and CHECKS/COMPONENT_ENVELOPES_R22.json,
+and every case/acrylic feature is placed against them. R22 keeps R21's outline, thickness,
+switch, J1 and J2 positions, so the R12 parameters are unchanged; the harness reserves follow
+the R22 J3/J4/J5 positions. The LCD parameters are still the R3/HOTHMI envelope: the case pass
+for the chosen Startek KD047HDFID001 panel is open (CHECKS/R27_CONVERGENCE_REPORT.md, C6).
 
 Run:  python LAYERS/02_CASE/build_r12.py      (builds and prints a short summary)
 The export script and the convergence checker import this file with runpy.
@@ -23,8 +26,8 @@ from shapely import affinity
 
 OUT = Path(__file__).resolve().parent
 ROOT = OUT.parents[1]
-PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json').read_text())
-ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R21.json').read_text())
+PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json').read_text())
+ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R22.json').read_text())
 
 # ---------------------------------------------------------------------------
 # Parameters. Most R12 dimensions live here and the checker reads the same dict.
@@ -32,7 +35,7 @@ ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R21.json').read_text())
 # silhouette control points, and the FPC/harness route and ledge geometry.
 # ---------------------------------------------------------------------------
 P = dict(
-    revision_case='R12', revision_acrylic='R2', package='R26',
+    revision_case='R12', revision_acrylic='R2', package='R27',
     pcb_t=PCB['board']['thickness'],                 # 1.2, from the board file (R10 modelled 1.6)
     wall=2.0,                                        # minimum structural wall / plate / floor
     board_to_wall_clearance=0.3,
@@ -95,7 +98,7 @@ Z_CAP_TOP = Z_FILM_TOP + P['cap_rise']               # 9.35
 Z_FLOOR_OUT = P['floor_inner_z'] - P['wall']         # -5.70
 Z_LAP = P['plate_z0'] - P['lap']                     # 4.65
 
-D2LS = ENV['by_value']['D2LS-21(20M)']
+D2LS = ENV['by_value']['D2LS-21']
 Z_FP = Z_BOARD_TOP + D2LS['free_position_mm']        # 4.70
 Z_OP = Z_BOARD_TOP + D2LS['operating_position_mm']   # 4.40
 Z_SW_BODY_TOP = Z_BOARD_TOP + D2LS['height_mm']      # 4.20

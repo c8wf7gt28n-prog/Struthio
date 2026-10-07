@@ -1,6 +1,6 @@
 # CASE layer — R12
 
-Editable source: `build_r12.py` (CadQuery 2.8 + shapely; pinned versions in `requirements.txt` at the package root). Most dimensions are in the `P` dictionary at the top; the support/clamp post positions, the R10 silhouette control points and the FPC/harness route geometry are constants further down. The same file builds the ACRYLIC film. `export_layer_formats.py` writes (plus the ACRYLIC files in `LAYERS/03_ACRYLIC/` and `ASSEMBLY/STRUTHIO_SLIM4_R26_ASSEMBLY.step`):
+Editable source: `build_r12.py` (CadQuery 2.8 + shapely; pinned versions in `requirements.txt` at the package root). Most dimensions are in the `P` dictionary at the top; the support/clamp post positions, the R10 silhouette control points and the FPC/harness route geometry are constants further down. The same file builds the ACRYLIC film. `export_layer_formats.py` writes (plus the ACRYLIC files in `LAYERS/03_ACRYLIC/` and `ASSEMBLY/STRUTHIO_SLIM4_R27_ASSEMBLY.step`):
 
 | File | Content |
 |---|---|
@@ -13,4 +13,4 @@ Editable source: `build_r12.py` (CadQuery 2.8 + shapely; pinned versions in `req
 | `CASE_LAYER_R12_MESH.json` | viewer mesh (also `case-layer-data.js` at the package root) |
 | `R12_FIT_CHECKS.json` | Z stack, key positions and the full parameter set |
 
-R12 = R11 plus the R26 decisions (`DECISIONS_R26.md` #6–#8). The cross-layer checks live in `CHECKS/`. R12 is a converged CAD design for the EVT prototype, not a tooling release.
+R12 = R11 plus the R26 decisions (`DECISIONS_R26.md` #6–#8). The cross-layer checks live in `CHECKS/`. R12 was converged on PCB R21 for the EVT prototype; on PCB R22 with the chosen Startek panel it needs the case pass listed in `PRODUCTION_GATES.md` (R27 report rows C6, F1, I1). Not a tooling release.

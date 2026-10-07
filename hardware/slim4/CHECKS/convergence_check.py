@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Cross-layer convergence checks for STRUTHIO SLIM4: PCB R21 / CASE R12 / ACRYLIC R2 (package R26).
+"""Cross-layer convergence checks for STRUTHIO SLIM4: PCB R22 / CASE R12 / ACRYLIC R2 / DISPLAY FLEX R1 (package R27).
 
 Every check compares one layer against another (or against a supplier figure) using
-the real geometry: the R21 board outline, pads and part envelopes from the PCB layer
-JSON, and the CadQuery solids from LAYERS/02_CASE/build_r12.py.
+the real geometry: the R22 board outline, pads and part envelopes from the PCB layer
+JSON, the CadQuery solids from LAYERS/02_CASE/build_r12.py, and the display flex
+generator's J1 finger map (LAYERS/04_DISPLAY_FLEX/generate_flex.py).
 
 Status values
   PASS  the interface agrees in CAD
@@ -16,7 +17,7 @@ Usage
   python CHECKS/convergence_check.py --baseline DIR  # also audit an R24 package for comparison
 """
 from pathlib import Path
-import argparse, contextlib, hashlib, io, json, math, re, runpy, sys, time
+import argparse, ast, contextlib, hashlib, io, json, math, re, runpy, sys, time
 
 import cadquery as cq
 from shapely.geometry import Point, Polygon, box, LineString
@@ -25,11 +26,13 @@ from shapely import affinity
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# SHA-256 of the R21 PCB sources as delivered in the R24 package (SHA256SUMS.txt).
-R21_BASELINE = {
-    'LAYERS/01_PCB/SLIM4_R21.kicad_pcb': 'daac1da0536f04f493232b1141e38cf9c74efe9c03a60bfd4f9ae5aa5241e5c0',
-    'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json': '92a31435a101cde7c15bce1106509073e7c92d27b594e5bb4053f0475538cd6e',
+# SHA-256 of the R22 PCB sources as delivered in the R27 package (SHA256SUMS.txt).
+PCB_BASELINE = {
+    'LAYERS/01_PCB/SLIM4_R22.kicad_pcb': '44956c8eef4e7ee5530bfee74a0829e40373da53aebf43ee264fc9062b24d408',
+    'LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json': '2b9f779008b2b92f2e4c7b89ad997479f0b72d942aadcf8e9e9f53533aa81141',
 }
+# The chosen panel (LAYERS/01_PCB/DISPLAY_PORT.md): Startek KD047HDFID001 module outline and active area.
+PANEL = dict(name='Startek KD047HDFID001', module=(61.00, 110.60, 1.80), active=(58.10, 103.30))
 
 
 class Report:
@@ -71,7 +74,7 @@ def poly_solid(poly, z0, z1):
 def pcb_items(B):
     PCB, ENV = B['PCB'], B['ENV']
     t = PCB['board']['thickness']
-    items = [dict(name='PCB R21 BOARD', ref='BOARD', solid=B['prism'](B['BOARD'], 0.0, t).val(), layer='PCB', kind='board')]
+    items = [dict(name='PCB R22 BOARD', ref='BOARD', solid=B['prism'](B['BOARD'], 0.0, t).val(), layer='PCB', kind='board')]
     for p in PCB['parts']:
         env = ENV['by_value'].get(p['value'], {})
         h = B['part_height'](p)
@@ -206,9 +209,9 @@ def run(root, rep, verbose=True):
     tol = 1e-6
 
     # ---- A. Source authority -------------------------------------------------
-    for rel, ref in R21_BASELINE.items():
+    for rel, ref in PCB_BASELINE.items():
         h = sha(root / rel)
-        rep.add('A1', 'PCB', f'{rel} unchanged from R24 delivery', 'PASS' if h == ref else 'FAIL', h[:16], ref[:16])
+        rep.add('A1', 'PCB', f'{rel} unchanged from R27 delivery', 'PASS' if h == ref else 'FAIL', h[:16], ref[:16])
     rep.add('A2', 'PCB↔CASE', 'Board thickness used by the case = board file thickness',
             'PASS' if abs(P['pcb_t'] - PCB['board']['thickness']) < tol else 'FAIL', P['pcb_t'], PCB['board']['thickness'],
             'R10 modelled the datum board as 1.6 mm; the file says 1.2 mm.')
@@ -218,7 +221,7 @@ def run(root, rep, verbose=True):
     rep.add('B1', 'CASE', 'Exterior envelope (approved 104.0 × 135.3)', 'PASS' if abs((bx[2]-bx[0]) - 104.0) < 0.01 and abs((bx[3]-bx[1]) - 135.3) < 0.01 else 'FAIL',
             [r3(bx[2]-bx[0]), r3(bx[3]-bx[1])], [104.0, 135.3])
     d = INNER.exterior.distance(BOARD_OUT) if BOARD_OUT.within(INNER) else -BOARD_OUT.difference(INNER).area
-    rep.add('B2', 'PCB↔CASE', 'R21 board inside the 2.0 mm wall with ≥0.3 mm clearance', 'PASS' if BOARD_OUT.within(INNER) and d >= P['board_to_wall_clearance'] - 1e-3 else 'FAIL',
+    rep.add('B2', 'PCB↔CASE', 'R22 board inside the 2.0 mm wall with ≥0.3 mm clearance', 'PASS' if BOARD_OUT.within(INNER) and d >= P['board_to_wall_clearance'] - 1e-3 else 'FAIL',
             r3(d), P['board_to_wall_clearance'])
     lcd_box = box(-B['LCD_W']/2, P['lcd_top_y'], B['LCD_W']/2, P['lcd_top_y'] + B['LCD_H'])
     d = INNER.exterior.distance(lcd_box) if lcd_box.within(INNER) else -1
@@ -278,11 +281,20 @@ def run(root, rep, verbose=True):
     rep.add('C3', 'CASE', 'Lens covers the opening and fits the rebate', 'PASS' if op.within(lens) and lens.within(B['LENS_REBATE'].buffer(1e-6)) else 'FAIL',
             r3(B['LENS_REBATE'].exterior.distance(lens)), 0.1)
     rep.add('C4', 'CASE↔LCD', 'LCD active-area position relies on the 1.79 mm top border (R3 assumption)', 'GATE', P['active_top_inactive'], None,
-            'Confirm against the HOTHMI drawing; the opening, lens and rebate follow ACTIVE_CY automatically (the film has no screen cutout).')
+            'The case still uses the R3/HOTHMI envelope. In the case pass, set the LCD parameters from the Startek drawing (C6); the opening, lens and rebate follow ACTIVE_CY automatically (the film has no screen cutout).')
     rep.add('C5', 'CASE↔LCD', 'LCD pocket leaves room for the panel FPC bend at the bottom edge', 'PASS' if P['lcd_fpc_bend'] >= 0.5 else 'FAIL', P['lcd_fpc_bend'], 0.5)
+    mw, mh, mt = PANEL['module']
+    pocket_h = P['lcd_top_y'] + B['LCD_H'] + P['lcd_fpc_bend'] - (P['lcd_top_y'] - P['lcd_pocket_top_gap'])
+    fits = mw <= P['lcd_pocket_w'] and mh + P['lcd_fpc_bend'] <= pocket_h + 1e-6 and abs(mt - B['LCD_T']) < 1e-6
+    rep.add('C6', 'CASE↔LCD', f'Chosen panel ({PANEL["name"]}, {mw:.2f} × {mh:.2f} × {mt:.2f}) fits the LCD pocket and stack', 'PASS' if fits else 'FAIL',
+            [mw, mh, mt], [P['lcd_pocket_w'], r3(pocket_h - P['lcd_fpc_bend']), B['LCD_T']],
+            f'CASE R12 was drawn around the R3/HOTHMI envelope {B["LCD_W"]} × {B["LCD_H"]} × {B["LCD_T"]}. The Startek module is {mw - P["lcd_pocket_w"]:+.2f} mm against the '
+            f'{P["lcd_pocket_w"]} mm pocket width, {mh - B["LCD_H"]:+.2f} mm in length and {mt - B["LCD_T"]:+.2f} mm in thickness; its active area '
+            f'({PANEL["active"][0]} × {PANEL["active"][1]}) matches the case opening design ({P["active"][0]} × {P["active"][1]}). Open item for the case pass '
+            '(plastic, deferred by the owner): widen the pocket, move the module 0.05 mm back, and take the active-area offset from the Startek drawing.')
 
     # ---- D. Actuation stacks -------------------------------------------------
-    D2 = ENV['by_value']['D2LS-21(20M)']
+    D2 = ENV['by_value']['D2LS-21']
     PT = D2['free_position_mm'] - D2['operating_position_mm']
     ot = B['STROKE'] - P['pregap'] - PT
     for (cx, cy), ref in zip(P['flap_centers'], ('SW1', 'SW2')):
@@ -454,8 +466,25 @@ def run(root, rep, verbose=True):
     wrap = B['FPC_SEGMENTS'][4][1]
     inner_y_center = min(y for x, y in INNER.exterior.coords if abs(x) < 0.5 and y > 100)
     rep.add('H3', 'CASE↔PCB', 'FPC wrap around the board tab clears the bottom wall', 'PASS' if inner_y_center - wrap[3] >= 0.2 - 1e-3 else 'FAIL', r3(inner_y_center - wrap[3]), 0.2)
-    rep.add('H4', 'CASE↔LCD', 'Panel FPC needs an extension tail (~70 mm, 20 × 0.5 mm, one 45° fold)', 'GATE', None, None,
-            'J1 faces the board-tab edge on the back side; with the screen raised for the R10 face the panel tail must run under the module, between the DART switches, around the tab and back to J1. Confirm HOTHMI tail length/exit or order an FH12-20 extension FPC.')
+    rep.add('H4', 'CASE↔FLEX', 'Display flex R1 (70 mm, 10.5 mm at J1) on the reserved route; panel pin table pending', 'GATE', None, None,
+            'LAYERS/04_DISPLAY_FLEX generates the flex: FH26W-31S at the panel tail, gold fingers into J1. The panel end is wider than the 10.5 mm reserve '
+            '(the FH26 and the fan-out make the head about 22.6 mm wide); it sits behind the module, where the case pass must place it. '
+            'Fill panel_pinmap.csv from the Startek datasheet, print the 1:1 template and fit it on a printed case before ordering.')
+    # ---- N. Display flex ↔ PCB: the flex's J1 finger map against the board's J1 pads and nets ------------------
+    tree = ast.parse((root / 'LAYERS/04_DISPLAY_FLEX/generate_flex.py').read_text())
+    consts = {t.targets[0].id: ast.literal_eval(t.value) for t in tree.body if isinstance(t, ast.Assign) and len(t.targets) == 1
+              and isinstance(t.targets[0], ast.Name) and t.targets[0].id in ('J1', 'NETNAME')}
+    j1 = next(p for p in PCB['parts'] if p['ref'] == 'J1')
+    pads = {p['num']: p for p in PCB['pads'] if p['ref'] == 'J1' and p['num'].isdigit()}
+    bad = []
+    for n, (role, xf) in consts['J1'].items():
+        pd = pads.get(str(n))
+        want_net = consts['NETNAME'].get(role)
+        net_ok = (pd['netName'] == want_net) if want_net else (pd['netName'] == '' or pd['netName'].startswith('NC_'))
+        if pd is None or abs(pd['x'] - (j1['x'] + xf)) > 0.01 or not net_ok:
+            bad.append(f'pin {n}: flex {role} at x {j1["x"] + xf:.2f}, board {pd and pd["netName"]} at x {pd and pd["x"]}')
+    rep.add('N1', 'PCB↔FLEX', 'Display flex J1 fingers: every pin position and net matches the R22 J1 pads', 'PASS' if not bad and len(pads) == 20 else 'FAIL',
+            20 - len(bad), 20, '; '.join(bad))
 
     # ---- I. Supports -----------------------------------------------------------
     def pads_on(side):
@@ -487,16 +516,16 @@ def run(root, rep, verbose=True):
                 if Point(x, y).buffer(r + 0.3).intersects(fpads)]
     rep.add('I5', 'PCB↔CASE', 'Stop legs land clear of pads (no pad within 0.3 mm)', 'PASS' if not pad_hits else 'FAIL', len(pad_hits), 0, json.dumps(pad_hits) if pad_hits else '')
     # Tenting: the board's plot setting (viasonmask false) and the plotted mask Gerbers, as recorded by
-    # CHECKS/build_builder_packs.py in R21_FAB_SUMMARY.json (no mask flash on any via).
-    plot = re.search(r'\(viasonmask (true|false)\)', (root / 'LAYERS/01_PCB/SLIM4_R21.kicad_pcb').read_text())
-    summary = root / 'CHECKS/R21_FAB_SUMMARY.json'
+    # CHECKS/build_builder_packs.py in R22_FAB_SUMMARY.json (no mask flash on any via).
+    plot = re.search(r'\(viasonmask (true|false)\)', (root / 'LAYERS/01_PCB/SLIM4_R22.kicad_pcb').read_text())
+    summary = root / 'CHECKS/R22_FAB_SUMMARY.json'
     fab = json.loads(summary.read_text()) if summary.exists() else None
-    plotted = bool(fab) and fab['board_sha256'] == sha(root / 'LAYERS/01_PCB/SLIM4_R21.kicad_pcb') and fab['vias'].get('mask_openings_at_vias') == []
+    plotted = bool(fab) and fab['board_sha256'] == sha(root / 'LAYERS/01_PCB/SLIM4_R22.kicad_pcb') and fab['vias'].get('mask_openings_at_vias') == []
     tented = bool(plot) and plot[1] == 'false' and plotted
     where = '; '.join(f'{k} at ({x}, {y}) on a {n} via' for k, x, y, n in hits)
     rep.add('I4', 'PCB↔CASE', 'Vias under support posts and stop legs are tented (solder-masked)', 'PASS' if not hits or tented else 'GATE', len(hits), 0,
-            (where + ('. Tented: the R21 plot settings keep vias off the mask (viasonmask false) and the plotted mask Gerbers have no opening '
-                      'on any via (CHECKS/R21_FAB_SUMMARY.json); the PCB order notes require tenting.' if tented else
+            (where + ('. Covered: the R22 plot settings keep vias off the mask (viasonmask false), the plotted mask Gerbers have no opening '
+                      'on any via (CHECKS/R22_FAB_SUMMARY.json), and the order specifies epoxy-filled, capped vias.' if tented else
                       '. Confirm via tenting in the fabrication notes (run CHECKS/build_builder_packs.py to record the plotted masks).')) if hits else '')
 
     # ---- J. Audio ------------------------------------------------------------
@@ -544,8 +573,8 @@ def run(root, rep, verbose=True):
     win = B['WINDOW']
     batt = box(P['battery_center'][0] - P['battery'][0]/2, P['battery_center'][1] - P['battery'][1]/2, P['battery_center'][0] + P['battery'][0]/2, P['battery_center'][1] + P['battery'][1]/2)
     rep.add('L3', 'PCB↔CASE', 'Battery XY clearance to the board window', 'PASS' if batt.within(win) and win.exterior.distance(batt) >= 1.0 else 'FAIL', r3(win.exterior.distance(batt)), 1.0)
-    rep.add('L4', 'CASE', 'Cell in hand: 703450-class protected pack, 10 kΩ NTC, JST SH 3-pin lead (spec in DECISIONS_R26.md)', 'GATE', None, None,
-            'Order the specified cell (BAT+, NTC, GND on J3 pins 1-3) and check its size and swelling with the supplier.')
+    rep.add('L4', 'CASE', 'Cell in hand: any protected 1-cell pack up to 34 × 52 × 7 mm on a JST SH 2-pin lead (R22 J3)', 'GATE', None, None,
+            'J3 pin 1 = BAT+, pin 2 = GND; the board has no reverse-polarity protection, so check the lead before plugging in. Check the cell size and swelling allowance in hand.')
     skirt = OUT.difference(B['LIP_POLY'].buffer(P['lap_clear'] / 2, resolution=12))
     radial = skirt.distance(B['LIP_RING'])
     tape_part = next(it['solid'] for it in B['PARTS'] if it['name'].startswith('LAP TAPE')).val().BoundingBox()
@@ -654,8 +683,8 @@ def main():
     root = Path(a.root)
     rep = Report()
     _, stats = run(root, rep)
-    data = write(rep, root / 'CHECKS/R26_CONVERGENCE_REPORT.json', root / 'CHECKS/R26_CONVERGENCE_REPORT.md',
-                 'STRUTHIO SLIM4 R26 convergence report (PCB R21 · CASE R12 · ACRYLIC R2)', stats)
+    data = write(rep, root / 'CHECKS/R27_CONVERGENCE_REPORT.json', root / 'CHECKS/R27_CONVERGENCE_REPORT.md',
+                 'STRUTHIO SLIM4 R27 convergence report (PCB R22 · CASE R12 · ACRYLIC R2 · DISPLAY FLEX R1)', stats)
     print(json.dumps(data['counts']), 'converged' if data['converged'] else 'NOT converged', f"{stats['pair_evaluations']} pair evaluations ({stats['distinct_pairs']} distinct pairs)")
     for r in rep.rows:
         if r['status'] == 'FAIL':

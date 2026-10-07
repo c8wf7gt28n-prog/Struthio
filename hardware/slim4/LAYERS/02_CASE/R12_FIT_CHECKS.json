@@ -1,11 +1,11 @@
 {
   "revision": "R12",
-  "status": "CONVERGED ON R21 IN CAD — PHYSICAL GATES OPEN (see CHECKS/R26_CONVERGENCE_REPORT.md)",
+  "status": "CHECKED ON PCB R22 IN CAD; CASE PASS FOR THE CHOSEN PANEL AND PHYSICAL GATES OPEN (see CHECKS/R27_CONVERGENCE_REPORT.md)",
   "exterior_outline_mm": [
     104.0,
     135.3
   ],
-  "r21_pcb_changed": false,
+  "pcb_revision": "R22",
   "pcb_thickness_mm": 1.2,
   "z_stack_mm": {
     "rear_floor_outer": -5.7,
@@ -169,7 +169,7 @@
   "parameters": {
     "revision_case": "R12",
     "revision_acrylic": "R2",
-    "package": "R26",
+    "package": "R27",
     "pcb_t": 1.2,
     "wall": 2.0,
     "board_to_wall_clearance": 0.3,

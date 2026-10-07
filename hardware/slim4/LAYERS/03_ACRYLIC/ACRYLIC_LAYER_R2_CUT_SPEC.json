@@ -3,7 +3,7 @@
   "revision": "R2",
   "status": "prototype cut file: clear, unprinted film (DECISIONS_R26.md)",
   "units": "mm",
-  "shared_xy_datum": "SLIM4_R21 PCB XY (Y down); film lower face Z=7.65 mm on the front plate",
+  "shared_xy_datum": "SLIM4 PCB XY (R21/R22 datum) (Y down); film lower face Z=7.65 mm on the front plate",
   "outer_size_mm": [
     103.6,
     134.9

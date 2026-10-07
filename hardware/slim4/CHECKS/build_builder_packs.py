@@ -3,18 +3,20 @@
 
     python -B CHECKS/build_builder_packs.py <output folder>
 
-Writes <output folder>/STRUTHIO_SLIM4_R26_BUILDER_FILES/ and a zip of it:
-  1_PCB_FABRICATION/   Gerber + drill zip, BOM, placement (CPL), assembly drawings, KiCad source
+Writes <output folder>/STRUTHIO_SLIM4_R27_BUILDER_FILES/ and a zip of it:
+  1_PCB_FABRICATION/   JLCPCB order: Gerber + drill zip, BOM, placement (CPL), assembly drawings, KiCad source
   2_3D_PRINTING/       one STL and one STEP per printed part, renders
   3_ACRYLIC_STICKER/   face-film die line (PDF with a CutContour spot colour, SVG, DXF),
                        a 1:1 check drawing, the two tape die-cuts and the cover-glass lens outline
+  4_DISPLAY_FLEX/      the display flex order (when LAYERS/04_DISPLAY_FLEX/panel_pinmap.csv is filled),
+                       otherwise its 1:1 fit template and what is missing
 
 Needs KiCad 7.0.x (kicad-cli on PATH and a python3 that can import pcbnew) and the pinned
 CadQuery environment (requirements.txt). No source in the package is changed: the PCB files are
 plotted from a temporary copy of LAYERS/01_PCB (its SHA-256 is checked before and after), and
-the printed parts and film are rebuilt from LAYERS/02_CASE/build_r12.py. The one file written
-into the package is CHECKS/R21_FAB_SUMMARY.json, a record of the fab outputs (DRC, BOM coverage,
-via tenting) that the studio and the handoff read.
+the printed parts and film are rebuilt from LAYERS/02_CASE/build_r12.py, and the flex is generated
+in a temporary folder. The one file written into the package is CHECKS/R22_FAB_SUMMARY.json, a record
+of the fab outputs (DRC, BOM coverage, via covering) that the studio and the convergence check read.
 """
 from pathlib import Path
 import csv, hashlib, io, json, math, re, runpy, shutil, subprocess, sys, tempfile, zipfile
@@ -22,8 +24,9 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
 PCB_DIR = ROOT / 'LAYERS/01_PCB'
-BOARD = 'SLIM4_R21.kicad_pcb'
-TOP = 'STRUTHIO_SLIM4_R26_BUILDER_FILES'
+BOARD = 'SLIM4_R22.kicad_pcb'
+NAME = 'SLIM4_R22'
+TOP = 'STRUTHIO_SLIM4_R27_BUILDER_FILES'
 SOURCING = json.loads((ROOT / 'CHECKS/BOM_SOURCING_R21.json').read_text())['by_mpn']
 STAMP = (2026, 10, 7, 0, 0, 0)
 STEP_STAMP = '2026-10-07T00:00:00'
@@ -49,7 +52,9 @@ PRINTED = [
 PACKAGE = {'ESP32-P4NRW32X': 'QFN-104 0.35 mm pitch + EP', 'W25Q512JVEIQ TR': 'WSON-8 8x6 mm', 'BQ24074RGTR': 'VQFN-16 (TI RGT0016C)',
            'TPS63070RNMR': 'VQFN-HR-15 (TI RNM0015A)', 'MAX98357AETE+T': 'TQFN-16 3x3 mm', 'TUSB320LAIRWBR': 'X2QFN-12 (TI RWB0012A)',
            'FH12-20S-0.5SH(55)': 'FPC 20P 0.5 mm bottom-contact ZIF', 'USB4105-GF-A-120': 'USB-C receptacle', 'D2LS-11': 'Omron D2LS SMD',
-           'D2LS-21(20M)': 'Omron D2LS SMD', 'ASWPA4035S2R2MT': 'Power inductor 4035'}
+           'D2LS-21(20M)': 'Omron D2LS SMD', 'D2LS-21': 'Omron D2LS SMD', 'ASWPA4035S2R2MT': 'Power inductor 4035', 'TPD2EUSB30DRTR': 'X2SON-3 1x1 mm (TI DRT)',
+           'PESD5V0S1UL,315': 'SOD-882', 'L327S400H11L': 'SMD3225-4P crystal', 'B3U-1000P': 'Omron B3U SMD',
+           'SM03B-SRSS-TB(LF)(SN)': 'JST SH 3P side entry', 'SM02B-SRSS-TB(LF)(SN)': 'JST SH 2P side entry'}
 RENDERS = ['VIEW_EXPLODED.png', 'VIEW_FRONT_ISO.png', 'VIEW_REAR_ISO.png', 'VIEW_INTERNALS.png', 'SECTION_F_LAP_DISPLAY.png']
 
 
@@ -88,16 +93,14 @@ def run(cmd, cwd=None):
 # ---------------------------------------------------------------------------
 # 1  PCB fabrication
 # ---------------------------------------------------------------------------
-PCBNEW_PROBE = r'''
-import json, collections, pcbnew
-b = pcbnew.LoadBoard("SLIM4_R21.kicad_pcb")
+PROBE = r'''
+import json, pcbnew
+b = pcbnew.LoadBoard("BOARD")
 mm = pcbnew.ToMM
 def fills(b):
     return [sum(z.GetFilledPolysList(l).Area() for l in z.GetLayerSet().Seq()) for z in b.Zones()]
-stored = fills(b)
-pcbnew.ZONE_FILLER(b).Fill(b.Zones())
-fresh = fills(b)
-b = pcbnew.LoadBoard("SLIM4_R21.kicad_pcb")
+stored = fills(b); pcbnew.ZONE_FILLER(b).Fill(b.Zones()); fresh = fills(b)
+b = pcbnew.LoadBoard("BOARD")
 pcbnew.WriteDRCReport(b, "DRC.rpt", pcbnew.EDA_UNITS_MILLIMETRES, True)
 tracks = list(b.GetTracks())
 vias = [t for t in tracks if t.Type() == pcbnew.PCB_VIA_T]
@@ -108,23 +111,32 @@ for v in vias:
         for pad in fp.Pads():
             if pad.GetAttribute() == pcbnew.PAD_ATTRIB_SMD and pad.HitTest(v.GetPosition()):
                 inpad.append([fp.GetReference(), pad.GetNumber(), v.GetNetname()])
-slots = sorted({(fp.GetReference(), round(mm(p.GetDrillSize().x), 2), round(mm(p.GetDrillSize().y), 2), p.GetAttribute() == pcbnew.PAD_ATTRIB_PTH)
+holes = sorted({(fp.GetReference(), round(mm(p.GetDrillSize().x), 2), round(mm(p.GetDrillSize().y), 2), p.GetAttribute() == pcbnew.PAD_ATTRIB_PTH)
                 for fp in b.GetFootprints() for p in fp.Pads() if p.GetAttribute() in (pcbnew.PAD_ATTRIB_PTH, pcbnew.PAD_ATTRIB_NPTH)})
-bb = b.GetBoardEdgesBoundingBox()
-ds = b.GetDesignSettings()
+parts = []
+for fp in b.GetFootprints():
+    back = fp.IsFlipped()
+    cy = fp.GetCourtyard(pcbnew.B_CrtYd if back else pcbnew.F_CrtYd)
+    loops = []
+    for i in range(cy.OutlineCount()):
+        o = cy.Outline(i)
+        loops.append([[round(mm(o.CPoint(k).x), 3), round(mm(o.CPoint(k).y), 3)] for k in range(o.PointCount())])
+    parts.append({"ref": fp.GetReference(), "side": "back" if back else "front", "x": mm(fp.GetPosition().x), "y": mm(fp.GetPosition().y), "courtyard": loops})
+outline = []
+for d in b.GetDrawings():
+    if d.GetLayer() == pcbnew.Edge_Cuts:
+        pts = [d.GetStart(), d.GetArcMid(), d.GetEnd()] if d.GetShape() == pcbnew.SHAPE_T_ARC else [d.GetStart(), d.GetEnd()]
+        outline.append([[round(mm(q.x), 3), round(mm(q.y), 3)] for q in pts])
+bb = b.GetBoardEdgesBoundingBox(); ds = b.GetDesignSettings()
 print(json.dumps({
-    "version": pcbnew.Version(),
-    "fills_current": max(abs(a - c) for a, c in zip(stored, fresh)) / 1e12 < 1e-6,
-    "copper_layers": b.GetCopperLayerCount(),
-    "thickness": mm(ds.GetBoardThickness()),
+    "version": pcbnew.Version(), "fills_current": max(abs(a - c) for a, c in zip(stored, fresh)) / 1e12 < 1e-6,
+    "copper_layers": b.GetCopperLayerCount(), "thickness": mm(ds.GetBoardThickness()),
     "outline": [round(mm(bb.GetWidth()), 2), round(mm(bb.GetHeight()), 2)],
-    "track_widths": sorted({round(mm(t.GetWidth()), 3) for t in segs}),
-    "min_clearance": mm(ds.m_MinClearance),
+    "track_widths": sorted({round(mm(t.GetWidth()), 3) for t in segs}), "min_clearance": mm(ds.m_MinClearance),
     "vias": sorted({(round(mm(v.GetWidth()), 3), round(mm(v.GetDrillValue()), 3)) for v in vias}),
-    "via_count": len(vias),
-    "blind_or_micro_vias": sum(v.GetViaType() != pcbnew.VIATYPE_THROUGH for v in vias),
-    "vias_in_smd_pads": inpad,
-    "footprint_holes": slots,
+    "via_xy": [[mm(v.GetPosition().x), mm(v.GetPosition().y)] for v in vias],
+    "via_count": len(vias), "blind_or_micro_vias": sum(v.GetViaType() != pcbnew.VIATYPE_THROUGH for v in vias),
+    "vias_in_smd_pads": inpad, "footprint_holes": holes, "parts": parts, "edges": outline,
     "segments": len(segs), "footprints": len(b.GetFootprints()), "nets": b.GetNetCount(),
 }))
 '''
@@ -159,32 +171,31 @@ def natural(ref):
     return (m[1], int(m[2])) if m else (ref, 0)
 
 
-def assembly_drawing(B_side, path, parts, outline):
+def assembly_drawing(back, path, facts):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Rectangle, Polygon as MPoly
-    from matplotlib.transforms import Affine2D
+    from matplotlib.patches import Polygon as MPoly, Arc
     fig = plt.figure(figsize=(297 / 25.4, 420 / 25.4))           # A3 portrait, board at 2:1
     ax = fig.add_axes([0, 0, 1, 1]); ax.set_xlim(-74.25, 74.25); ax.set_ylim(169, -41)
     ax.set_aspect('equal'); ax.axis('off')
-    sx = -1 if B_side else 1                                       # back side drawn as seen from the back
-    ax.add_patch(MPoly([(sx * x, y) for x, y in outline['outer']], closed=True, fill=False, lw=0.6, ec='k'))
-    for h in outline.get('holes', []):
-        ax.add_patch(MPoly([(sx * x, y) for x, y in h], closed=True, fill=False, lw=0.6, ec='k'))
-    side = 'back' if B_side else 'front'
+    sx = -1 if back else 1                                         # back side drawn as seen from the back
+    for pts in facts['edges']:
+        ax.plot([sx * x for x, _ in pts], [y for _, y in pts], lw=0.6, color='k')
+    side = 'back' if back else 'front'
     n = 0
-    for p in parts:
+    for p in facts['parts']:
         if p['side'] != side:
             continue
         n += 1
-        r = Rectangle((-p['w'] / 2, -p['h'] / 2), p['w'], p['h'], fill=False, lw=0.3, ec='#1f5fa8')
-        r.set_transform(Affine2D().rotate_deg(-sx * p['rot']).translate(sx * p['x'], p['y']) + ax.transData)
-        ax.add_patch(r)
-        fs = max(2.2, min(6.0, 1.6 * min(p['w'], p['h'])))
+        for loop in p['courtyard']:
+            ax.add_patch(MPoly([(sx * x, y) for x, y in loop], closed=True, fill=False, lw=0.3, ec='#1f5fa8'))
+        xs = [x for loop in p['courtyard'] for x, _ in loop] or [p['x']]
+        ys = [y for loop in p['courtyard'] for _, y in loop] or [p['y']]
+        fs = max(2.2, min(6.0, 1.6 * min(max(xs) - min(xs), max(ys) - min(ys))))
         ax.text(sx * p['x'], p['y'], p['ref'], ha='center', va='center', fontsize=fs, color='#b0201a')
-    ax.text(-72, 150, f'STRUTHIO SLIM4 R21 - {side.upper()} SIDE ({n} parts), seen from the {side}. Scale 2:1 on A3. '
-            'Outlines are part envelopes; the CPL file is the placement authority.', fontsize=6.5, va='top')
+    ax.text(-72, 150, f'STRUTHIO SLIM4 R22 - {side.upper()} SIDE ({n} parts), seen from the {side}. Scale 2:1 on A3. '
+            'Outlines are courtyards; the CPL file is the placement authority.', fontsize=6.5, va='top')
     fig.savefig(path, metadata={'CreationDate': None}); plt.close(fig)
 
 
@@ -196,7 +207,7 @@ def build_pcb(dst):
     tmp = Path(tempfile.mkdtemp())
     try:
         work = tmp / 'pcb'
-        shutil.copytree(PCB_DIR, work)
+        shutil.copytree(PCB_DIR, work, ignore=shutil.ignore_patterns('R22_FROM_R21', '*.md', '*_PCB_LAYER.json'))
         g = tmp / 'gerber'
         g.mkdir()
         run(['kicad-cli', 'pcb', 'export', 'gerbers', '--layers', GERBER_LAYERS, '--subtract-soldermask', '--exclude-value',
@@ -205,7 +216,7 @@ def build_pcb(dst):
              '--generate-map', '--map-format', 'pdf', '-o', str(g) + '/', BOARD], cwd=work)
         run(['kicad-cli', 'pcb', 'export', 'pos', '--format', 'csv', '--units', 'mm', '--side', 'both',
              '-o', str(tmp / 'pos.csv'), BOARD], cwd=work)
-        facts = json.loads(run([pcbnew_python(), '-c', PCBNEW_PROBE], cwd=work).strip().splitlines()[-1])
+        facts = json.loads(run([pcbnew_python(), '-c', PROBE.replace('BOARD', BOARD)], cwd=work).strip().splitlines()[-1])
         drc = (work / 'DRC.rpt').read_text()
 
         for f in g.iterdir():
@@ -215,32 +226,31 @@ def build_pcb(dst):
         ref.mkdir()
         for m in sorted(g.glob('*.pdf')):
             shutil.move(str(m), ref / m.name)
-        zip_dir(g, dst / 'SLIM4_R21_GERBER_DRILL.zip')
-        pth, npth = (g / 'SLIM4_R21-PTH.drl').read_text(), (g / 'SLIM4_R21-NPTH.drl').read_text()
+        zip_dir(g, dst / f'{NAME}_GERBER_DRILL.zip')
+        pth, npth = (g / f'{NAME}-PTH.drl').read_text(), (g / f'{NAME}-NPTH.drl').read_text()
         hits = lambda t: len(re.findall(r'(?m)^X-?[\d.]+Y-?[\d.]+$', t))
         drill_counts = {'pth_round_holes': hits(pth), 'plated_slots': pth.count('G85'), 'npth_holes': hits(npth) + npth.count('G85')}
-        # Tenting as plotted: any solder-mask flash centred on a via (Gerber Y = -board Y) would be an opening.
+        # Via covering as plotted: any solder-mask flash centred on a via (Gerber Y = -board Y) would be an opening.
         flashes = [(int(x) / 1e6, -int(y) / 1e6) for side in ('F_Mask.gts', 'B_Mask.gbs')
-                   for x, y in re.findall(r'(?m)^X(-?\d+)Y(-?\d+)D03\*$', (g / f'SLIM4_R21-{side}').read_text())]
-        via_xy = [(v['x'], v['y']) for v in json.loads((work / 'SLIM4_R21_PCB_LAYER.json').read_text())['vias']]
-        mask_at_vias = sorted({(round(vx, 3), round(vy, 3)) for vx, vy in via_xy for fx, fy in flashes if abs(fx - vx) < 0.05 and abs(fy - vy) < 0.05})
-        (ref / 'DRC_REPORT_KICAD7.txt').write_text(re.sub(r'\*\* Created on .*\*\*\n', '', drc))
+                   for x, y in re.findall(r'(?m)^X(-?\d+)Y(-?\d+)D03\*$', (g / f'{NAME}-{side}').read_text())]
+        mask_at_vias = sorted({(round(vx, 3), round(vy, 3)) for vx, vy in facts['via_xy'] for fx, fy in flashes if abs(fx - vx) < 0.05 and abs(fy - vy) < 0.05})
+        (ref / 'DRC_REPORT_KICAD7.txt').write_text(re.sub(r'\*\* Created on .*\*\*\n', '', drc).replace(str(work) + '/', ''))
 
         text = (work / BOARD).read_text()
         parts = board_parts(text)
         groups = {}
         for p in parts:
             groups.setdefault((p['value'], p['mpn'], p['lcsc'], p['pkg'], p['layer']), []).append(p['ref'])
-        with open(dst / 'SLIM4_R21_BOM.csv', 'w', newline='') as f:
+        with open(dst / f'{NAME}_BOM.csv', 'w', newline='') as f:
             w = csv.writer(f)
             w.writerow(['Comment', 'Designator', 'Footprint', 'LCSC Part #', 'Manufacturer Part #', 'Quantity', 'Side', 'Note'])
             for (val, mpn, lcsc, pkg, layer), refs in sorted(groups.items(), key=lambda kv: natural(sorted(kv[1], key=natural)[0])):
                 refs = sorted(refs, key=natural)
                 first = next(p for p in parts if p['ref'] == refs[0])
-                note = ('LCSC number from CHECKS/BOM_SOURCING_R21.json (verified 2026-10-07)' if first['lcsc_source'] == 'sourcing'
+                note = ('LCSC number from CHECKS/BOM_SOURCING_R21.json (checked on its LCSC/JLCPCB page)' if first['lcsc_source'] == 'sourcing'
                         else '' if lcsc else 'no LCSC number: source by manufacturer part number')
                 w.writerow([val, ','.join(refs), pkg, lcsc, mpn, len(refs), 'Top' if layer == 'F.Cu' else 'Bottom', note])
-        with open(tmp / 'pos.csv') as f, open(dst / 'SLIM4_R21_CPL.csv', 'w', newline='') as o:
+        with open(tmp / 'pos.csv') as f, open(dst / f'{NAME}_CPL.csv', 'w', newline='') as o:
             w = csv.writer(o)
             w.writerow(['Designator', 'Mid X', 'Mid Y', 'Layer', 'Rotation'])
             rows = sorted(csv.DictReader(f), key=lambda r: natural(r['Ref']))
@@ -248,26 +258,22 @@ def build_pcb(dst):
                 w.writerow([r['Ref'], f"{float(r['PosX']):.4f}mm", f"{float(r['PosY']):.4f}mm",
                             'Top' if r['Side'] == 'top' else 'Bottom', f"{float(r['Rot']):g}"])
         cpl_count = len(rows)
-
-        layer_json = json.loads((work / 'SLIM4_R21_PCB_LAYER.json').read_text())
-        assembly_drawing(True, ref / 'ASSEMBLY_DRAWING_BACK_SIDE.pdf', layer_json['parts'], layer_json['board'])
-        assembly_drawing(False, ref / 'ASSEMBLY_DRAWING_FRONT_SIDE.pdf', layer_json['parts'], layer_json['board'])
-
+        assembly_drawing(True, ref / 'ASSEMBLY_DRAWING_BACK_SIDE.pdf', facts)
+        assembly_drawing(False, ref / 'ASSEMBLY_DRAWING_FRONT_SIDE.pdf', facts)
+        for pdf in ref.glob('ASSEMBLY*.pdf'):
+            pin_dates(pdf)
+        for doc in ('ELECTRICAL_REVIEW_R22.md', 'DISPLAY_PORT.md', 'FIRMWARE_PINMAP.md'):
+            shutil.copy2(PCB_DIR / doc, ref / doc)
         srcdir = dst / 'KICAD_SOURCE'
         srcdir.mkdir()
-        for f in [BOARD, 'SLIM4_R21.kicad_pro', 'fp-lib-table']:
+        for f in [BOARD, f'{NAME}.kicad_pro', 'fp-lib-table']:
             shutil.copy2(PCB_DIR / f, srcdir / f)
         shutil.copytree(PCB_DIR / 'SLIM4.pretty', srcdir / 'SLIM4.pretty')
-        shutil.copy2(PCB_DIR / 'RELEASE_GATES.md', ref / 'RELEASE_GATES_R21.md')
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     if sha(PCB_DIR / BOARD) != src_sha:
-        sys.exit('the R21 board changed during the build: stop')
+        sys.exit('the R22 board changed during the build: stop')
 
-    win = layer_json['board']['holes'][0]
-    window = (max(x for x, _ in win) - min(x for x, _ in win), max(y for _, y in win) - min(y for _, y in win))
-    proxies = sum('package proxy' in p['descr'] for p in parts)
-    vendor_land = [p['ref'] for p in sorted(parts, key=lambda p: natural(p['ref'])) if 'package proxy' not in p['descr']]
     no_lcsc = [(p['ref'], p['value']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if not p['lcsc']]
     bound = [(p['ref'], p['value'], p['lcsc']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if p['lcsc_source'] == 'sourcing']
     sides = {s: sum(1 for p in parts if (p['layer'] == 'F.Cu') == (s == 'Top')) for s in ('Top', 'Bottom')}
@@ -275,78 +281,77 @@ def build_pcb(dst):
     vias = ', '.join(f'{d:g} mm drill / {s:g} mm pad' for s, d in facts['vias'])
     slots = [h for h in facts['footprint_holes'] if h[1] != h[2]]
     npth = sorted({(h[0][:2] if h[0].startswith('SW') else h[0], h[1]) for h in facts['footprint_holes'] if not h[3]})
-    readme = f"""STRUTHIO SLIM4 - PCB R21 - FILES FOR THE BOARD HOUSE / ASSEMBLER
-=================================================================
+    tent = re.search(r'\(viasonmask (true|false)\)', text)
+    readme = f"""STRUTHIO SLIM4 - PCB R22 - JLCPCB ORDER FILES
+=============================================
 
-STATUS: ENGINEERING PROTOTYPE (EVT) BUILD - decided in the package's DECISIONS_R26.md.
-R21 is not a production release: its electrical review gates (REFERENCE/RELEASE_GATES_R21.md:
-schematic/ERC, power tree, MIPI/USB signal integrity) are still open, and this prototype is
-built to test them. Order exactly the specification below.
+Upload to JLCPCB (PCB + PCBA):
+  {NAME}_GERBER_DRILL.zip   Gerber X2 (13 layers), Excellon drill (PTH and NPTH separate), job file
+  {NAME}_BOM.csv            bill of materials, one line per part type, every line with an LCSC number
+  {NAME}_CPL.csv            placement: designator, centre X/Y (mm), side, rotation
 
-UPLOAD
-  SLIM4_R21_GERBER_DRILL.zip   Gerber X2 (13 layers), Excellon drill (PTH and NPTH separate), job file
-  SLIM4_R21_BOM.csv            bill of materials, one line per part type, every line with an LCSC number
-  SLIM4_R21_CPL.csv            placement: designator, centre X/Y (mm), side, rotation
-
-BOARD SPECIFICATION (read from the board file)
-  Layers                 {facts['copper_layers']} copper: F.Cu, In1 (GND plane), In2 (power planes), In3 (signal), In4 (GND plane), B.Cu
+BOARD OPTIONS
+  Layers                 {facts['copper_layers']}  (F.Cu, In1 GND plane, In2 power planes, In3 signal, In4 GND plane, B.Cu)
   Thickness              {facts['thickness']:g} mm  - REQUIRED: the enclosure is designed around 1.2 mm
-  Size                   {facts['outline'][0]:g} x {facts['outline'][1]:g} mm, non-rectangular outline with an internal
-                         {window[0]:g} x {window[1]:g} mm battery window (routed cut-out, see Edge_Cuts)
-  Stackup                the board house's standard 6-layer 1.2 mm stackup (none is defined in the design)
+  Size                   {facts['outline'][0]:g} x {facts['outline'][1]:g} mm, non-rectangular, with an internal battery window
+  Stackup                JLCPCB standard 6-layer 1.2 mm stackup
   Copper weight          1 oz outer / 0.5 oz inner
-  Min track / space      {min(facts['track_widths']):g} mm / {facts['min_clearance']:g} mm (track widths used: {', '.join(f'{w:g}' for w in facts['track_widths'])} mm)
+  Min track / space      {min(facts['track_widths']):g} mm / {facts['min_clearance']:g} mm
   Vias                   {facts['via_count']} through vias, {vias}; no blind or buried vias
-  Via covering           all vias TENTED (solder mask over vias). Required: two vias sit under
-                         case contact points (SW2 cap stop leg at 35.69, 107.06 and a rear support
-                         post at 21.5, 76.0).
-  Vias in pads           {len(facts['vias_in_smd_pads'])}: {', '.join(f'{r} pad {n}' for r, n, _ in facts['vias_in_smd_pads'])} - order via-in-pad: epoxy filled and
-                         capped (POFV) for the board
-  Plated slots           {', '.join(f'{r} {a:g} x {b:g} mm' for r, a, b, _ in slots)} (USB-C shell legs)
-  Non-plated holes       {', '.join(f'{r} dia {d:g} mm' for r, d in npth)} (switch bosses / USB-C pegs)
-  Surface finish         ENIG (0.35 mm-pitch ESP32-P4 and QFN/WSON parts need flat pads)
-  Solder mask / silk     green mask, white silkscreen
-  Impedance control      not ordered for this prototype. MIPI-DSI (100 ohm differential) and
-                         USB 2.0 (90 ohm differential) were not sized to a stackup (release gate
-                         3); the prototype is how that risk is measured.
-  Quantity               5 bare boards; 2 assembled
+  Via covering           EPOXY FILLED AND CAPPED (via-in-pad, POFV; JLCPCB's default for 6 layers).
+                         Needed: {len(facts['vias_in_smd_pads'])} vias sit in SMD pads ({', '.join(f'{r} pad {n}' for r, n, _ in facts['vias_in_smd_pads'])}),
+                         and every other via must stay covered (no mask openings are plotted; case
+                         support posts and stop legs land on some of them)
+  Plated slots           {', '.join(f'{r} {a:g} x {b:g} mm' for r, a, b, _ in slots) or 'none'} (USB-C shell legs)
+  Non-plated holes       {', '.join(f'{r} dia {d:g} mm' for r, d in npth) or 'none'}
+  Surface finish         ENIG (0.35 mm-pitch ESP32-P4 and QFN/WSON/X2SON parts need flat pads)
+  Mask / silk            green / white
+  Impedance control      not needed: MIPI-DSI runs are 29-40 mm, USB is full speed (12 Mbit/s)
+  Quantity               5 boards, 2 assembled (or as many as you want to assemble)
 
 ASSEMBLY
-  Parts                  {len(parts)} placements: {sides['Bottom']} on the BACK (B.Cu) and {sides['Top']} on the FRONT (F.Cu: the four
-                         Omron D2LS switches SW1-SW4, which the case controls press)
-                         Two-sided assembly by the assembler (the D2LS position sets the
-                         button travel, so they are not hand-placed).
-  CPL                    {cpl_count} lines. Rotations are KiCad's; check every IC, diode,
-                         connector and polarised part in the assembler's placement preview and
-                         correct rotations there (assembler footprint libraries use different
-                         zero orientations).
-  LCSC numbers           all {len(parts)} parts. {len(bound)} come from CHECKS/BOM_SOURCING_R21.json because the
-                         locked board file has none for them (each checked on its LCSC/JLCPCB page):
-{chr(10).join(f'    {r:6} {v:20} {l}' for r, v, l in bound)}
-{('  STILL WITHOUT AN LCSC NUMBER: ' + ', '.join(r for r, _ in no_lcsc)) if no_lcsc else '  Parts without an LCSC number: none.'}
-  Land patterns: {proxies} of the {len(parts)} footprints - every part except {', '.join(vendor_land)}, which
-  follow vendor land patterns - are marked in the board as "package proxy; exact land-pattern
-  audit remains a fab gate". Ask the assembler's DFM review to check those pads against the
-  parts in the BOM.
-  Not on the board, supplied separately: LCD module + FPC, battery, speakers (see the case pack).
+  Sides                  BOTH: {sides['Bottom']} parts on the back (B.Cu) and {sides['Top']} on the front (the four Omron
+                         D2LS switches SW1-SW4, which the case buttons press)
+  Parts                  {len(parts)} placements, {len(groups)} BOM lines; LCSC numbers for all of them
+{chr(10).join(f'                         {r:6} {v:22} {l}  (from CHECKS/BOM_SOURCING_R21.json)' for r, v, l in bound)}
+{('  STILL WITHOUT AN LCSC NUMBER: ' + ', '.join(r for r, _ in no_lcsc)) if no_lcsc else ''}
+  Rotations              KiCad's. In JLCPCB's placement preview check pin 1 / polarity of every
+                         IC, diode, connector and crystal and correct the rotation there if their
+                         library part is drawn at a different zero angle. Pay attention to:
+                         U1 (ESP32-P4, QFN-104), U2, U4, U8-U14, D1, D2, Q1, Y1, J1-J5.
+
+U1 STOCK (check before ordering)
+  On 2026-10-07 JLCPCB had 0 of the ESP32-P4NRW32X (C54540373); every other line was in stock.
+  Pre-order it through JLCPCB Global Sourcing, or consign v3.x chips (ordering code ending in X)
+  bought from an Espressif-authorised source. Do not substitute ESP32-P4NRW32 (no X, revision v1.x).
+
+NOT ON THE BOARD (buy separately)
+  Display     Startek KD047HDFID001: 4.7 in 720 x 1280 IPS, ST7703, 450 nits, 61.0 x 110.6 x 1.8 mm.
+              It plugs into J1 through the custom display flex (folder 4_DISPLAY_FLEX); ask Startek for the
+              full datasheet (FPC pin definition and initialisation code) when ordering.
+  Battery     any 1-cell Li-ion/LiPo with its own protection board, about 34 x 52 x 7 mm max (703450 class),
+              on a JST SH 1.0 mm 2-pin plug: J3 pin 1 = BAT+ (red), pin 2 = BAT- (black). CHECK THE POLARITY
+              before plugging in: cell leads are wired both ways and the board has no reverse protection.
+  Speakers    2 x 18 x 13 mm speakers (Same Sky CMS-18138A-SP fits the case) on JST SH 1.0 mm 2-pin
+              plugs: J4 left, J5 right; pin 1 = +. One cable type for battery and speakers.
 
 CHECKS RUN ON THESE FILES
   KiCad {facts['version']} DRC: {drc_line}  (REFERENCE/DRC_REPORT_KICAD7.txt)
-  Zone fills in the board file are current: {'yes' if facts['fills_current'] else 'NO - refill before plotting'}
+  Zone fills current: {'yes' if facts['fills_current'] else 'NO - refill before plotting'};  solder-mask openings at vias: {len(mask_at_vias)}
   Board: {facts['footprints']} footprints, {facts['nets']} nets, {facts['segments']} track segments, {facts['via_count']} vias
-  DRC uses the design's own rules (0.1 mm); run the board house's DFM check as well.
+  Electrical and land-pattern review: REFERENCE/ELECTRICAL_REVIEW_R22.md
 
-REFERENCE/   assembly drawings (both sides, 2:1 on A3), drill maps, DRC report, R21 release gates
-KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (unchanged R21 source)
+REFERENCE/    assembly drawings (courtyards, both sides, 2:1 on A3), drill maps, DRC report, electrical
+              review, display port and firmware pin map
+KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R22)
 """
     (dst / 'README_PCB_ORDER.txt').write_text(readme)
 
-    # A record of the fab outputs in the package itself (the studio and the handoff read it).
+    # A record of the fab outputs in the package itself (the studio and the convergence check read it).
     drc_n = {k: int(re.search(rf'Found (\d+) {k}', drc)[1]) for k in ('DRC violations', 'unconnected pads', 'Footprint errors')}
-    tent = re.search(r'\(viasonmask (true|false)\)', text)
     summary = {
         'board': f'LAYERS/01_PCB/{BOARD}', 'board_sha256': src_sha, 'generator': 'CHECKS/build_builder_packs.py',
-        'status': 'engineering prototype (EVT) build per DECISIONS_R26.md; R21 electrical release gates open (LAYERS/01_PCB/RELEASE_GATES.md)',
+        'status': 'order files ready (JLCPCB PCB + PCBA); U1 ESP32-P4NRW32X out of stock at JLCPCB on 2026-10-07: pre-order or consign',
         'kicad': facts['version'], 'drc': {'violations': drc_n['DRC violations'], 'unconnected_pads': drc_n['unconnected pads'],
                                            'footprint_errors': drc_n['Footprint errors']},
         'zone_fills_current': facts['fills_current'],
@@ -354,18 +359,57 @@ KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (unchang
         'copper_layers': facts['copper_layers'], 'thickness_mm': facts['thickness'], 'outline_mm': facts['outline'],
         'min_track_mm': min(facts['track_widths']), 'min_clearance_mm': facts['min_clearance'],
         'vias': {'count': facts['via_count'], 'pad_mm': facts['vias'][0][0], 'drill_mm': facts['vias'][0][1],
-                 'tented': bool(tent) and tent[1] == 'false', 'mask_openings_at_vias': [list(v) for v in mask_at_vias], 'in_smd_pads': [{'ref': r, 'pad': n, 'net': net} for r, n, net in facts['vias_in_smd_pads']]},
+                 'tented': bool(tent) and tent[1] == 'false', 'mask_openings_at_vias': [list(v) for v in mask_at_vias],
+                 'in_smd_pads': [{'ref': r, 'pad': n, 'net': net} for r, n, net in facts['vias_in_smd_pads']]},
         'bom': {'lines': len(groups), 'placements': len(parts), 'with_lcsc': sum(1 for p in parts if p['lcsc']),
                 'by_mpn_only': [r for r, _ in no_lcsc], 'bound_in_sourcing_file': [r for r, _, _ in bound],
-                'unbound': [p['ref'] for p in parts if 'BIND_BEFORE_FAB' in p['descr'] and not p['lcsc']]},
+                'unbound': [p['ref'] for p in parts if 'BIND_BEFORE_FAB' in p['descr'] and not p['lcsc']],
+                'out_of_stock': ['U1']},
         'cpl_placements': cpl_count, 'sides': sides,
-        'order': {'build': 'EVT prototype', 'quantity': '5 bare boards, 2 assembled', 'assembly': 'both sides', 'stackup': 'board house standard 6-layer 1.2 mm',
-                  'copper': '1 oz outer / 0.5 oz inner', 'finish': 'ENIG', 'via_in_pad': 'epoxy filled and capped (POFV)', 'impedance_control': 'not ordered',
+        'order': {'build': 'prototype', 'quantity': '5 boards, 2 assembled', 'assembly': 'both sides', 'stackup': 'JLCPCB standard 6-layer 1.2 mm',
+                  'copper': '1 oz outer / 0.5 oz inner', 'finish': 'ENIG', 'via_covering': 'epoxy filled and capped (POFV)', 'impedance_control': 'not needed',
                   'mask_silk': 'green / white'},
-        'land_patterns': {'vendor': vendor_land, 'proxy_count': proxies},
     }
-    (ROOT / 'CHECKS/R21_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
+    (ROOT / 'CHECKS/R22_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
     return facts, parts, no_lcsc
+
+
+def build_flex(dst):
+    """The display flex: the order when the panel pin map is filled, otherwise the fit template of the preview."""
+    fdir = ROOT / 'LAYERS/04_DISPLAY_FLEX'
+    filled = '?' not in [r['role'].strip() for r in csv.DictReader(open(fdir / 'panel_pinmap.csv'))]
+    tmp = Path(tempfile.mkdtemp())
+    try:
+        args = [str(fdir / 'panel_pinmap.csv'), str(tmp)] if filled else [str(fdir / 'panel_pinmap_PREVIEW.csv'), str(tmp), '--preview']
+        run([pcbnew_python(), str(fdir / 'generate_flex.py')] + args, cwd=tmp)
+        res = json.loads(run([pcbnew_python(), str(fdir / 'export_flex.py'), str(tmp)], cwd=tmp).strip().splitlines()[-1])
+        dst.mkdir(parents=True)
+        order = tmp / 'ORDER'
+        if filled:
+            for f in sorted(order.iterdir()):
+                shutil.copy2(f, dst / f.name)
+        else:
+            for f in sorted(order.glob('*FIT_TEMPLATE*.pdf')):
+                pin_dates(f)
+                shutil.copy2(f, dst / f.name)
+            (dst / 'README_DISPLAY_FLEX.txt').write_text(f"""STRUTHIO SLIM4 - DISPLAY FLEX R1 - NOT READY TO ORDER
+=====================================================
+
+The display flex joins the Startek KD047HDFID001 panel tail (31 pins, 0.3 mm, Hirose FH26W-31S on
+the flex) to the board's J1 (20 gold fingers, 0.5 mm). Everything is generated except the panel's
+pin order, which Startek gives only in the full datasheet (request it on their product page).
+
+To make the order files:
+  1. fill LAYERS/04_DISPLAY_FLEX/panel_pinmap.csv in the package (pin, panel_name, role)
+  2. run this builder again: this folder then holds the JLCPCB flex order (Gerbers, BOM, CPL, README)
+
+What is here now: the 1:1 fit template of the PREVIEW flex ({res['size_mm'][0]} x {res['size_mm'][1]} mm, the real shape and
+length, placeholder pin order). Print it at 100 %, cut it out and route it through the printed case
+from the panel tail to J1; change --length in generate_flex.py if it is short or long.
+""")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    return dict(ready=filled, size_mm=res['size_mm'], drc=res['drc'])
 
 
 # ---------------------------------------------------------------------------
@@ -414,9 +458,11 @@ def build_print(dst, B):
     readme = f"""STRUTHIO SLIM4 - CASE R12 - FILES FOR THE 3D PRINT SERVICE
 ==========================================================
 
-STATUS: engineering prototype (EVT) of a converged CAD design (package R26), not a tooling
-release. Print to the specification below; the set is assembled on a real R21 board to test
-fit, button feel and the taped lap joint.
+STATUS: DO NOT PRINT YET. CASE R12 was converged on PCB R21 (package R26). On PCB R22 with the
+chosen Startek KD047HDFID001 panel the package's convergence check (CHECKS/R27_CONVERGENCE_REPORT.md)
+fails three case items - the panel is 0.5 mm wider than the LCD pocket (C6), and the right
+speaker connector J5's real JST body and tab touch the rear support post at (40.75, 108) (F1, I1).
+The case pass (CASE R13) fixes them; these files show the design and its print specification.
 
 ORDER (per device)
   Part               Qty  Size X x Y x Z (mm)        Volume       Mesh
@@ -611,8 +657,9 @@ Views are from the FRONT. Tolerance ±0.1 mm.
     readme = f"""STRUTHIO SLIM4 - FACE FILM R2 - FILES FOR THE STICKER PRINTER
 =============================================================
 
-STATUS: engineering prototype (EVT), package R26. Clear, UNPRINTED film (decided in
-DECISIONS_R26.md): no ink, no white, no texture. Cut to the R2 line.
+STATUS: engineering prototype (EVT), package R27. Clear, UNPRINTED film (decided in
+DECISIONS_R26.md): no ink, no white, no texture. Cut to the R2 line. Order it after the case
+pass (CASE R13) and a fit check on the printed case.
 
 WHAT IT IS
   A clear face film that covers the whole front of the device, including the screen.
@@ -660,27 +707,33 @@ def main():
     B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r12.py'))
     prints = build_print(top / '2_3D_PRINTING', B)
     build_sticker(top / '3_ACRYLIC_STICKER', B)
-    report = json.loads((ROOT / 'CHECKS/R26_CONVERGENCE_REPORT.json').read_text())
+    flex = build_flex(top / '4_DISPLAY_FLEX')
+    report = json.loads((ROOT / 'CHECKS/R27_CONVERGENCE_REPORT.json').read_text())
     c = report['counts']
     conv = f"{c.get('FAIL', 0)} FAIL, {c.get('PASS', 0)} PASS, {c.get('GATE', 0)} GATE"
-    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R26 - FILES FOR THE BUILDERS (ENGINEERING PROTOTYPE)
-===================================================================
+    flex_line = ('JLCPCB flex PCB order, ready' if flex['ready'] else
+                 'NOT READY: fill LAYERS/04_DISPLAY_FLEX/panel_pinmap.csv from the Startek\n'
+                 '                    datasheet and rebuild; a 1:1 fit template of the cable is here meanwhile')
+    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R27 - FILES FOR THE BUILDERS
+===========================================
 
-Three folders, one per supplier. Each has a README_..._ORDER.txt to send with the files.
-Every order choice is fixed; the reasons are in the package's DECISIONS_R26.md.
+Four folders, one per supplier. Each has a README to send with the files.
 
-1_PCB_FABRICATION   board house / assembler: PCB R21, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts,
-                    5 bare boards, 2 assembled. Engineering prototype: R21's electrical review
-                    gates are still open and this build tests them.
-2_3D_PRINTING       print service: front shell, rear shell, two flap caps, DART rocker,
-                    power plunger (CASE R12), SLA tough resin, black
-3_ACRYLIC_STICKER   sticker printer: clear unprinted face film R2, and the two 0.10 mm tape
-                    die-cuts; LENS_COVER_GLASS_0.7MM/ goes to a cover-glass supplier
+1_PCB_FABRICATION   JLCPCB PCB + assembly: PCB R22, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts,
+                    5 boards, 2 assembled. READY, except U1 (ESP32-P4NRW32X): no JLCPCB stock on
+                    2026-10-07 - pre-order or consign it (see its README).
+2_3D_PRINTING       print service: CASE R12. DO NOT PRINT YET - the case pass for the chosen
+                    panel and the R22 connectors comes first (see its README).
+3_ACRYLIC_STICKER   sticker printer: clear unprinted face film R2 and the two 0.10 mm tape
+                    die-cuts; LENS_COVER_GLASS_0.7MM/ goes to a cover-glass supplier. After the case.
+4_DISPLAY_FLEX      the display cable (panel tail to J1), {flex['size_mm'][0]} x {flex['size_mm'][1]} mm:
+                    {flex_line}
 
-Order of work: board and parts first; print one case set and fit it on the assembled board;
-order the face film last, after the fit check.
+Order of work: board and parts first (the display panel, battery and speakers too); the cable
+when the panel's pin table is in; then the case pass, one printed case set fitted on the
+assembled board, and the face film last.
 
-Generated from the R26 project package (PCB R21 unchanged, CASE R12, ACRYLIC R2;
+Generated from the R27 project package (PCB R22, CASE R12, ACRYLIC R2, DISPLAY FLEX R1;
 convergence check {conv}) by CHECKS/build_builder_packs.py. Open items
 that need parts in hand or supplier answers are listed in the package's PRODUCTION_GATES.md
 and repeated in each README where they concern that supplier.

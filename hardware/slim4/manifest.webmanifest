@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "STRUTHIO Hardware Studio R26 Review",
-  "short_name": "STRUTHIO R26",
-  "description": "R26 hardware review viewer: PCB R21, CASE R12, ACRYLIC R2. Engineering prototype build; not a production release.",
+  "name": "STRUTHIO Hardware Studio R27 Review",
+  "short_name": "STRUTHIO R27",
+  "description": "R27 hardware review viewer: PCB R22 (order files ready), CASE R12 (case pass open), ACRYLIC R2, display flex R1.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

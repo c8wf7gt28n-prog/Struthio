@@ -1,5 +1,5 @@
-** Drc report for work_r21/SLIM4_R21.kicad_pcb **
-** Created on 2026-10-05 22:38:12 **
+** Drc report for SLIM4_R22.kicad_pcb **
+** Created by R22_FROM_R21/fill_drc.py (KiCad 7.0.11) **
 
 ** Found 0 DRC violations **
 

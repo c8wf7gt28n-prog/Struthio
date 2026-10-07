@@ -1,3 +1,48 @@
+# R27 — PCB R22 in the package; display flex R1; case checked on R22
+
+PCB R21 → **R22** (the electrical and land-pattern review fixed, 11 scripted edits in `LAYERS/01_PCB/R22_FROM_R21/`, rebuilt copper-identically from R21). The display cable is a new fourth layer, `LAYERS/04_DISPLAY_FLEX`. CASE R12 and ACRYLIC R2 are unchanged and were checked against R22: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (327 pair evaluations over 288 distinct pairs). The 3 FAIL rows are the case pass the owner deferred (`PRODUCTION_GATES.md`). Decisions: `DECISIONS_R27.md`.
+
+## PCB R22 (from R21)
+
+| # | Change |
+|---|---|
+| 1 | USB-C data to the ESP32-P4's USB-Serial-JTAG (GPIO24/25) |
+| 2–4 | KiCad library lands for U11/U12 (1 × 1 mm DRT), J3–J5 (with solder tabs; J4 2.7 mm inboard), D1, Y1, SW5–SW7 |
+| 5–8 | Crystal load 12 pF; backlight 39 mA with a 50 V output capacitor; panel VCI 3.0 V; C603 moved 0.15 mm |
+| 9 | Battery port: JST SH 2-pin (any protected cell), 10 k on the charger's TS pin |
+| 10 | JLCPCB stock substitutions, same value and package; SW1–SW4 all D2LS-21 |
+| 11 | L1–L3 to Sunlord's recommended lands (the proxies were short of or narrower than the terminals); one 3V3_SYS track under L2 moved; audited-land descriptions |
+
+KiCad 7.0.11 DRC 0 / 0 / 0. 166 parts, 50 BOM lines, LCSC numbers for all, in stock at JLCPCB on 2026-10-07 except U1.
+
+## Package
+
+- R21's board, library, layer JSON and gates moved to `REFERENCES/PCB_R21/` (inputs of the R22 rebuild and the exporter).
+- New `CHECKS/export_pcb_layer.py` writes `SLIM4_R22_PCB_LAYER.json` from the board. Validated on R21: its segments, vias and nets reproduce the R21 file exactly. Its pads also fix the R21 file's 80 mirrored pads on rotated back-side parts.
+- `CHECKS/COMPONENT_ENVELOPES_R22.json`: the R22 part values (D2LS-21, Samsung CL21/CL10, 0402CG, 0603WAF); J3 is the 2-pin header.
+- `CHECKS/convergence_check.py`:
+  - A1 locks the R22 board and layer JSON.
+  - New C6 tests the chosen Startek panel against the LCD pocket.
+  - New N1 tests the flex's 20 J1 fingers against the R22 J1 pads, position and net.
+  - H4, I4 and L4 were rewritten for the flex, filled-and-capped vias and the 2-pin cell.
+- `CHECKS/build_builder_packs.py`:
+  - `1_PCB_FABRICATION` is the R22 JLCPCB order (courtyard assembly drawings, review docs in REFERENCE, U1 stock note).
+  - New `4_DISPLAY_FLEX` holds the flex order once the pin map is filled; until then it has the 1:1 fit template.
+  - The print README says not to print until the case pass.
+  - It writes `CHECKS/R22_FAB_SUMMARY.json`.
+- Studio:
+  - `model-data.js` geometry is now written from the R22 layer file by `build_pcb_viewer_data.py`, along with the pours, sourcing, fab status, open FAIL and GATE rows, and the `R22_REAR_BOARD.svg` plot.
+  - The tour computes its counts from the loaded board.
+  - Labels read R22 / R27.
+  - Lands audited in R22 show as such.
+- Case harness reserves follow the R22 J3/J4/J5 positions; the shells, controls and film are unchanged.
+
+## Case pass (open)
+
+The R27 report lists three FAIL rows:
+- **C6:** the Startek module is 61.0 mm wide; the R12 pocket is 60.5 mm.
+- **F1 and I1:** J5's real JST SH body and its solder tab reach the rear support post at (40.75, 108).
+
 # R26 — decisions made; CASE R12, ACRYLIC R2
 
 PCB R21 unchanged (check A1). Every open item that needed only a decision is decided in `DECISIONS_R26.md`; the rest is listed exactly in `PRODUCTION_GATES.md`. Convergence: **79 PASS · 0 FAIL · 9 GATE · 3 INFO** (326 pair evaluations over 287 distinct pairs).
