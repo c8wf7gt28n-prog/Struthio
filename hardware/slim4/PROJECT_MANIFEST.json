@@ -109,7 +109,8 @@
     "acrylic_mesh": "acrylic-layer-data.js",
     "reference_mesh": "case-r3-data.js",
     "pcb_rear_plot": "R21_REAR_BOARD.svg",
-    "offline_service_worker": "sw.js"
+    "offline_service_worker": "sw.js",
+    "deploy_bundle_builder": "CHECKS/build_viewer_bundle.py"
   },
   "reference_only": [
     "REFERENCES/R10_CONTEXT/STRUTHIO_R10_UNSEPARATED_CONTEXT_REFERENCE.step",

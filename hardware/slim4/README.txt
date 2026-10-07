@@ -41,7 +41,8 @@ Package layout:
   LAYERS/03_ACRYLIC  film R1 outputs: STEP, STL, SVG, DXF, cut spec, mesh
   ASSEMBLY/          all three layers in one STEP, and the build order
   CHECKS/            convergence checker and its reports, renderer and renders,
-                     component height table, manifest/checksum generator
+                     component height table, manifest/checksum generator, viewer
+                     deploy-bundle builder
   REFERENCES/        reference only, not authorities: the R10 fit-study STEP and the
                      SLIM4 R3 integration study (each folder has a README)
   root               viewer (index.html, app.js, eye.js, styles.css, eye.css, model-data.js,
@@ -55,6 +56,14 @@ from the package root, in this order:
   python -B CHECKS/convergence_check.py
   python -B CHECKS/render_review.py
   python -B CHECKS/make_manifest.py      (last: rewrites PROJECT_MANIFEST.json and SHA256SUMS.txt)
+
+Deploying the viewer: publish a bundle, not this folder (the package is ~250 files and
+~45 MB; the viewer needs 7 files and ~2.7 MB). From the package root:
+  python -B CHECKS/build_viewer_bundle.py <folder outside the package>
+writes index.html (CSS inlined), studio.js (scripts and meshes, coordinates packed at
+0.01 mm), R21_REAR_BOARD.svg (trimmed), sw.js, manifest and two icons. Upload that folder as
+its own site or at its own path. Nothing in the package changes; rebuild the bundle after
+any viewer or mesh change. Do not serve it under another PWA's service-worker scope.
 
 CHECKS/R24_BASELINE_AUDIT.* is a frozen comparison. To regenerate it, unzip the R24
 package (identity in AI_CHANGE_REPORT_R25.md) and add --baseline <unzipped R24 folder>

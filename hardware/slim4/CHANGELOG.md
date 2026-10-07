@@ -1,3 +1,7 @@
+# R25 viewer deploy bundle
+
+No geometry, check or viewer source changed. New `CHECKS/build_viewer_bundle.py` writes a deployable copy of the viewer: 7 files, about 2.7 MB (about 465 KB zipped), against 30 precached files and 5.3 MB for the viewer inside the package and about 250 files and 45 MB for the whole package. The CSS is inlined; scripts and meshes are joined into `studio.js`; CASE, ACRYLIC and R3 mesh coordinates are packed as Int16 at 0.01 mm (largest decode error 0.005 mm) with Uint16 shades (exact), and unpacked at load, so `app.js` and `eye.js` run unchanged. The SVG is trimmed to 0.001 mm. Its service worker precaches only those files. Headless-browser checks match the package viewer (CAD picks, LAYERS panel, R3 overlay, offline cache, no errors).
+
 # R25 clean re-issue
 
 Replaces the first R25 zip. CASE R11 and ACRYLIC R1 geometry is unchanged (every STL, SVG, DXF, JSON, mesh and render file is byte-identical; in the STEP files OCCT re-orders its colour-style records, but every part keeps the same name, colour, volume and bounding box — checked by an XDE comparison). PCB R21 unchanged (check A1). Four independent audits, each with an adversarial verifier, drove these changes.
