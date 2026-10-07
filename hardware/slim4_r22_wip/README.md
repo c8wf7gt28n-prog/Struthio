@@ -1,8 +1,10 @@
-# PCB R22 — work in progress (not yet orderable)
+# PCB R22 — ready to order
 
-This folder holds the R22 board: R21 plus the fixes from the electrical and land-pattern review in `ELECTRICAL_REVIEW_R22.md`. It sits outside the `slim4` package on purpose: the package (R26) stays checksummed and unchanged until R22 is complete. When R22 is complete it replaces R21 in the package, and the Gerbers, BOM, CPL and studio are regenerated from it.
+This folder holds the R22 board: R21 plus the fixes from the electrical and land-pattern review in `ELECTRICAL_REVIEW_R22.md`. It sits beside the `slim4` package, which stays the checksummed R26 set (case, film, studio on R21) until the case pass. In that pass R22 replaces R21 in the package and the case is refined around the real panel.
 
-**Status: one blocker before ordering — the display.** J1's pinout, the panel supply rails and the backlight current were drawn for a "HOTHMI 4.7 in 540 × 960" panel that has no part number or drawing anywhere in the project. A wrong J1 pinout means a dark screen on the first board. See *Open* in the review.
+**Status: ready to order.** `ORDER/STRUTHIO_SLIM4_R22_PCB_ORDER.zip` holds everything JLCPCB needs (Gerbers + drill, BOM, CPL) and a README with the exact order options.
+
+The display is the Startek KD047HDFID001 (4.7 in 720 × 1280 IPS). J1 is a fixed display port, and a small adapter maps it to the panel's cable. The adapter is designed when Startek's datasheet with the pin definition arrives, so the main board does not depend on that pinout (`DISPLAY_PORT.md`). Firmware pin map: `FIRMWARE_PINMAP.md`.
 
 ## What changed from R21
 
@@ -14,9 +16,13 @@ This folder holds the R22 board: R21 plus the fixes from the electrical and land
 | 4 | D1 (PESD5V0S1UL, SOD-882), Y1 (Lucki 3225 crystal), SW5–SW7 (Omron B3U-1000P): KiCad library land patterns; nearby GND tracks moved clear of the larger pads. | The proxies' pads did not match the parts' terminals (D1 pads 0.2 mm off each end; B3U pads short of the terminals). |
 | 5 | C203, C204: 18 pF → 12 pF C0G (0402CG120J500NT, LCSC C1547, JLC Basic). | Y1's load capacitance is 10 pF: 12 pF in series pairs to 6 pF, plus about 4 pF of pin and trace stray. |
 | 6 | C603 moved 0.15 mm. | Courtyard clear of J3. |
+| 7 | R309 24.9 Ω → 5.1 Ω (0603WAF510KT5E, C25197); C309 1 µF 25 V → 1 µF 50 V (CL10A105KB8NNNC, C15849). | Backlight set to 39 mA for the chosen panel's two 7-LED strings (40 mA rated). The boost's open-LED limit is 38 V, so the output capacitor must survive it when no panel is plugged in. |
+| 8 | U6 TLV75528 → TLV75530 (C507268); net LCD_2V8 → LCD_VCI_3V0. | Panel analog supply 3.0 V: mid-range for ST7703 / ILI9881C / ST7701S panels, closer to the panel's 3.3 V rating. |
 
 KiCad 7.0.11 DRC on R22: **0 violations, 0 unconnected pads, 0 footprint errors** (`board/DRC_R22.rpt`). Board outline, stackup, every other part and the J1/J2 positions are unchanged, so CASE R12 still fits. Exceptions: J4's body now sits 2.7 mm further inboard, and the J3/J4/J5 bodies are the real JST depth (the case pass after the board works will re-run the clearance checks).
 
 ## Rebuild
+
+`scripts/build_r22_order_pack.py <folder>` writes the JLCPCB order files from `board/` (run it with the package's pinned Python environment, which has matplotlib, and KiCad 7.0.x on the machine).
 
 `scripts/build_r22.sh` regenerates the R22 board from the unchanged R21 board, one scripted edit at a time, then refills zones and runs DRC. The result is copper-identical to `board/SLIM4_R22.kicad_pcb`. It needs KiCad 7.0.x with its Python module, and the `kicad-footprints` 7.0.x library in `/usr/share/kicad/footprints`. `scripts/fpcmp.py` is the land-pattern audit: it compares each board footprint with the KiCad library footprint for its package.

@@ -31,13 +31,18 @@ The R21 netlist was checked pin by pin against the datasheets: Espressif ESP32-P
 | Mechanical | J3/J4/J5 JST SH proxies had no tab pads; J4's real body overhung the board edge. | Library footprints with tabs; J4 moved 2.7 mm inboard |
 | Assembly yield | D1, Y1 and SW5–SW7 proxies did not match the parts' terminals. | Library land patterns |
 | Tuning | Crystal load caps 18 pF for a 10 pF crystal (only affects accuracy: the P4 has no radio). | 12 pF C0G |
+| **Would fail at bring-up** | Backlight output capacitor C309 rated 25 V; the TPS61165 open-LED limit is 37–39 V, reached whenever the backlight runs with no panel plugged in. | 1 µF 50 V |
+| Panel match | Backlight sense 24.9 Ω (8 mA) and VCI 2.8 V were guesses. | 5.1 Ω (39 mA, panel rated 40 mA); VCI 3.0 V |
 
 Land-pattern audit of the rest, against KiCad 7 library footprints (worst pad-centre offset / largest pad-size difference): 0402 ×117 and 0603 ×6 ≤ 0.03 / 0.10 mm; 0805 ×9 0.05 / 0.15 mm; SOT-23-5/6 0.05 mm with pads 1.0 mm long (library 1.33; they still cover the leads); SOT-23 0.15 mm; BQ24074 VQFN-16 0.06 mm; MAX98357A TQFN-16 0.01 mm; TUSB320 X2QFN-12 and W25Q WSON-8 exact. U1 (Espressif pattern), U4 (TI RNM0015A), J1, J2, the D2LS switches, the inductors and D2 have no matching KiCad library footprint. They were built from the manufacturers' patterns, as each footprint's description records.
 
-## Open — needed before ordering
+## Display (decided)
 
-1. **Display panel (blocker).** No part number or drawing exists for the panel. J1 (20-pin 0.5 mm FH12, bottom contact), its pin order, the 2.8 V / 1.8 V rails, two MIPI lanes and the 8 mA backlight were all assumed. The panel must be chosen, with its datasheet (FPC pinout, contact side, supply rails, LED string voltage and current, driver IC), and J1 made to match it before the board is ordered.
-2. **Case** (after the board works): re-run the clearance checks for J4's new position and the real JST body depth.
+The panel is the Startek KD047HDFID001: 4.7 in 720 × 1280 IPS, ST7703, 450 nits, 61.0 × 110.6 mm. Its active area is the one the case was designed around. J1 becomes a fixed display port (2-lane DSI, 3.0 V VCI, 1.8 V IOVCC, reset, backlight), and a small adapter maps it to the panel's 31-pin cable (`DISPLAY_PORT.md`). For the panel, R309 is now 5.1 Ω (39 mA), C309 is rated 50 V (open-LED limit 38 V) and U6 is a 3.0 V TLV75530.
+
+Still to do, but not blocking the board order:
+1. Get Startek's datasheet (pin definition, contact side, init code) when ordering the panel, then design the adapter.
+2. The case pass after the board works: new panel envelope (+0.7 mm wide), J4's new position and the real JST body depth.
 
 ## Bring-up with one USB-C cable
 

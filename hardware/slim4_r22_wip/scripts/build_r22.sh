@@ -10,5 +10,5 @@ for e in r22_sw r22_esd r22_y1 r22_conn; do                               # 3-6 
   python3 "$S/run_edit.py" "$B" "$S/$e.py" 2>&1 | grep -v leak || true
 done
 python3 "$S/r22_lib_sync.py" "$B" "$(dirname "$B")/SLIM4.pretty" 2>&1 | grep -v leak || true
-python3 "$S/r22_xtal.py" "$B"                                             # 7 crystal load caps 12 pF
+python3 "$S/r22_values.py" "$B"                                           # 7 crystal caps, backlight R309/C309
 (cd "$(dirname "$B")" && python3 "$S/fill_drc.py" "$B")                   # zone refill + KiCad DRC
