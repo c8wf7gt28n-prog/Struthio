@@ -1,3 +1,15 @@
+# R25 studio 1.1
+
+PCB R21, CASE R11 and ACRYLIC R1 geometry unchanged. The studio is brought up to date with the package:
+
+- **Copper pours.** The six filled zones stored in the R21 board (GND planes on In1 and In4; 3V3_SYS, SYS_RAW, BAT_PLUS and 1V1_HP pours on In2) are drawn under the tracks in COPPER and XRAY modes and in the INNER stack view. Per-zone areas equal KiCad's.
+- **BOM and sourcing per part.** Tapping a part shows its manufacturer part number, package, LCSC number or "by manufacturer part number" / "not bound yet", and whether its land pattern is a vendor pattern or a proxy awaiting audit; R403 and C408 show their via in pad. FIND also searches part numbers and LCSC codes.
+- **Fab status.** The board view shows the builder files (Gerber ×13, drill, BOM, CPL) and the KiCad 7.0.11 DRC result, labelled prototype only.
+- **Tour.** The connector stop was wrong: the pad nets show that J1 is the display link (MIPI-DSI clock and two lanes, LCD power, backlight) and J3 the cell lead (BAT_PLUS, BAT_NTC, GND); it now says so (basis FILE). New stops: PLANES, BUILDER FILES and OPEN GATES, all computed from the data.
+- **Gate I4 closed.** `build_builder_packs.py` now tests the plotted mask Gerbers at every via (no opening at any of the 269; the same test finds an opening at all 587 pads) and records it in `CHECKS/R21_FAB_SUMMARY.json`. I4 passes only when the board's plot setting tents vias and that record, made from the same board hash, shows no opening. Result: 72 PASS · 0 FAIL · 12 GATE · 3 INFO.
+- New `CHECKS/build_pcb_viewer_data.py` adds `zones`, per-part sourcing, `fab` and `gates` to `model-data.js` without changing its board geometry (checked field by field). `CHECKS/build_builder_packs.py` now also writes `CHECKS/R21_FAB_SUMMARY.json`.
+- Studio version 1.1; service-worker caches renamed (package and deploy bundle) so installed copies update.
+
 # R25 builder packs
 
 No geometry, check or source changed. New `CHECKS/build_builder_packs.py` writes the files for the three suppliers, each folder with an order README:

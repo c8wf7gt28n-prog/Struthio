@@ -1,7 +1,8 @@
 /* STRUTHIO Studio · EYE layer ("Shared Sight")
    Additive. Reads the studio through window.STRUDIO and draws callouts on its own canvas.
    It never edits geometry, authority state or loaded files.
-   Facts in STOPS are computed from model-data.js (window.STRUTHIO_MODEL, R21); anything not in the file is tagged INFERRED or GAP. */
+   Facts in STOPS are computed from model-data.js (window.STRUTHIO_MODEL, R21; its zones, fab and gates blocks come from
+   CHECKS/build_pcb_viewer_data.py); anything not in the files is tagged INFERRED or GAP. */
 (() => {
   'use strict';
   const S = window.STRUDIO;
@@ -21,6 +22,17 @@
   const thumbs = [];
   const sig = () => { const m = S.model(); return (m.name || '') + '|' + m.parts.length + '|' + (m.pads || []).length; };
   let SIG0 = '';
+
+  /* ---------- computed facts for the R25 stops (pours, fab files, gates) ---------- */
+  const MD = S.model(), n1 = v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 1 });
+  const ZONES = MD.zones || [], FAB = MD.fab, GATES = MD.gates;
+  const zoneFacts = ZONES.map(z => [z.layer.replace('.Cu', '') + ' · ' + z.net, n1(z.area) + ' mm²']);
+  const inner = ZONES.filter(z => z.layer === 'In2.Cu').sort((a, b) => b.area - a.area);
+  const gnd = ZONES.filter(z => z.net === 'GND').map(z => z.layer.replace('.Cu', ''));
+  const PLANES_TEXT = ZONES.length ? `The board file stores ${ZONES.length} filled copper pours. ${gnd.join(' and ')} are solid GND planes (${n1(ZONES.find(z => z.net === 'GND').area)} mm² each). In2 is split into power pours: ${inner.map(z => `${z.net} ${n1(z.area)} mm²`).join(', ')}. In3 carries the inner signal tracks. Pours are drawn from the stored fills, simplified to 0.03 mm.` : 'This board file has no copper pours.';
+  const vip = FAB ? FAB.vias.in_smd_pads.map(v => v.ref) : [];
+  const FAB_TEXT = FAB ? `CHECKS/build_builder_packs.py plots the unchanged R21 board with KiCad ${FAB.kicad}: ${FAB.gerber_layers.length} Gerber layers, Excellon drill (${FAB.drill.pth_round_holes} vias, ${FAB.drill.plated_slots} plated USB-C slots, ${FAB.drill.npth_holes} non-plated holes), a ${FAB.bom.lines}-line BOM and a ${FAB.cpl_placements}-part placement file. DRC: ${FAB.drc.violations} violations, ${FAB.drc.unconnected_pads} unconnected. All vias are ${FAB.vias.tented ? 'tented' : 'open'}; ${vip.join(' and ')} have a via in a pad (fill and cap). ${FAB.bom.with_lcsc} of ${FAB.bom.placements} parts carry an LCSC number; ${FAB.bom.by_mpn_only.length} are sourced by part number and ${FAB.bom.unbound.join(', ')} is not bound yet. The files are for a prototype: R21's release gates are still open.` : 'No fab summary in this package (CHECKS/R21_FAB_SUMMARY.json).';
+  const gateFacts = GATES ? GATES.open.map(g => [g.id, g.title.length > 64 ? g.title.slice(0, 62) + '…' : g.title]) : [];
 
   /* ---------- authored tour: what Claude sees in the loaded R21 file ---------- */
   const STOPS = [
@@ -45,21 +57,29 @@
     { id: 'audio', name: 'AUDIO', gist: 'Two MAX98357A amps and speaker headers.', basis: 'FILE', side: 'back', net: 'SPK_L_P', refs: ['U8', 'U9', 'J4', 'J5'],
       text: 'U8 and U9 (MAX98357A) sit mirrored at (±29, 112). J4 and J5 (SM02B-SRSS, 2-pin) sit at (±44, 114). Net SPK_L_P is highlighted as a sample of the audio routing.',
       facts: [['U8 / U9', 'MAX98357AETE+T'], ['J4 / J5', 'SM02B-SRSS-TB'], ['NETS', 'SPK_L/R_P/N · I2S_*']] },
-    { id: 'link', name: 'UNLABELED CONNECTORS', gist: 'J1 and J3: the file does not say what they are.', basis: 'INFERRED', side: 'back', refs: ['J1', 'J3'],
-      text: 'J1 is a FH12-20S-0.5SH, a 20-pin 0.5 mm FFC connector at (17, 110.8). It is probably the display link, but the file does not say. J3 is a 3-pin SM03B-SRSS at (−24, 64) with no stated purpose.',
-      facts: [['J1', 'FH12-20S-0.5SH · 17, 110.8'], ['J3', 'SM03B-SRSS-TB · −24, 64'], ['PURPOSE', 'not in file']] },
+    { id: 'link', name: 'CONNECTORS', gist: 'J1 display, J3 battery, J4/J5 speakers: named by their nets.', basis: 'FILE', side: 'back', refs: ['J1', 'J3', 'J4', 'J5'],
+      text: 'The pad nets say what each connector is. J1 (FH12-20S-0.5SH, 20 × 0.5 mm FFC at 17, 110.8) carries the MIPI-DSI clock and two data lanes, LCD_RESX, LCD_1V8 and LCD_2V8 and the backlight LED_A/K: it is the display link. In CASE R11 the panel tail reaches it through an extension FPC (gate H4). J3 (SM03B-SRSS, 3-pin at −24, 64) carries BAT_PLUS, BAT_NTC and GND: the cell lead. J4 and J5 carry SPK_L and SPK_R.',
+      facts: [['J1', 'MIPI-DSI clock + 2 lanes · LCD power · backlight'], ['J3', 'BAT_PLUS · BAT_NTC · GND'], ['J4 / J5', 'SPK_L± / SPK_R±'], ['PANEL TAIL', 'extension FPC · gate H4']] },
     { id: 'rear', name: 'REAR BUTTONS', gist: 'SW5–SW7 on the back at x 25.', basis: 'FILE', side: 'back', refs: ['SW5', 'SW6', 'SW7'],
       text: 'Three B3U-1000P switches are stacked on the back at x 25, y 30, 39 and 48.',
       facts: [['SW5', 'B3U-1000P · 25, 30'], ['SW6', 'B3U-1000P · 25, 39'], ['SW7', 'B3U-1000P · 25, 48']] },
     { id: 'copper', name: 'ROUTING', gist: '2,675 track segments · 269 vias.', basis: 'FILE', side: 'home', mode: 'COPPER',
       text: 'R21 track-segment counts by routed signal layer: B.Cu 1,466, F.Cu 694, In3.Cu 515. There are 269 vias. The board has six copper layers overall; this is a routing count, not an impedance or signal-integrity certification.',
       facts: [['B.Cu', '1,466'], ['F.Cu', '694'], ['In3.Cu', '515'], ['TOTAL SEGMENTS', '2,675'], ['VIAS', '269'], ['FAB STATUS', 'REVIEW HOLD']] },
+    { id: 'planes', name: 'PLANES', gist: 'GND planes on In1 and In4, power pours on In2.', basis: ZONES.length ? 'FILE' : 'GAP', side: 'home', stack: 'pcb.inner', mode: 'COPPER',
+      text: PLANES_TEXT, facts: zoneFacts.length ? zoneFacts : [['POURS', 'none in file']] },
+    { id: 'fab', name: 'BUILDER FILES', gist: FAB ? `Gerbers, drill, BOM, CPL · DRC ${FAB.drc.violations}/${FAB.drc.unconnected_pads} · prototype only.` : 'No fab summary.', basis: FAB ? 'FILE' : 'GAP', side: 'back', refs: FAB ? [...vip, ...FAB.bom.unbound] : [],
+      text: FAB_TEXT,
+      facts: FAB ? [['GERBER', `${FAB.gerber_layers.length} layers · X2`], ['DRILL', `${FAB.drill.pth_round_holes} + ${FAB.drill.plated_slots} slots + ${FAB.drill.npth_holes} NPTH`], ['BOM', `${FAB.bom.lines} lines · ${FAB.bom.with_lcsc}/${FAB.bom.placements} LCSC`], ['DRC', `KiCad ${FAB.kicad} · ${FAB.drc.violations} / ${FAB.drc.unconnected_pads} / ${FAB.drc.footprint_errors}`], ['VIAS', FAB.vias.tented ? 'tented' : 'open'], ['VIA IN PAD', vip.join(', ') || 'none'], ['STATUS', 'PROTOTYPE ONLY']] : [['FAB', 'not generated']] },
     { id: 'plot', kind: 'plot', name: 'KICAD REAR PLOT', gist: 'The R21 rear SVG plot in this package.', basis: 'FILE', side: 'home',
       text: 'This is the R21_REAR_BOARD.svg plot from the package. It is a mirrored rear view, drawn by KiCad. Tap it to enlarge.',
       facts: [['FILE', 'R21_REAR_BOARD.svg'], ['VIEW', 'rear, mirrored']] },
     { id: 'gap', name: 'WHAT I CANNOT SEE', gist: 'CASE R11 and FILM R1 are CAD; physical gates are still open.', basis: 'GAP', side: 'home', stack: 'case.front',
       text: 'CASE R11 (front and rear shell, controls, screen stack, internals) and the clear ACRYLIC R1 film are loaded from case-layer-data.js and acrylic-layer-data.js. The LCD, cell and speakers are envelopes, not supplier models. FPC and harness runs are route reserves. Print, white-ink, relief and adhesive artwork has no geometry yet. SHOW R3 CASE CAD shows the superseded R3 study for reference only. Open items: PRODUCTION_GATES.md.',
-      facts: [['CASE', 'R11 · CAD · gates open'], ['ACRYLIC', 'FILM R1 · artwork pending'], ['PCB', 'R21 · review hold']] }
+      facts: [['CASE', 'R11 · CAD · gates open'], ['ACRYLIC', 'FILM R1 · artwork pending'], ['PCB', 'R21 · review hold']] },
+    { id: 'gates', name: 'OPEN GATES', gist: GATES ? `${GATES.open.length} items need parts, prints or supplier answers.` : 'No gate list.', basis: 'GAP', side: 'home', stack: 'case.front',
+      text: GATES ? `The convergence check reports ${GATES.counts.PASS} PASS, ${GATES.counts.FAIL} FAIL and ${GATES.counts.GATE} GATE. Every GATE is something CAD cannot close: a supplier drawing, a measured part, or a test print. Details: ${GATES.source} and PRODUCTION_GATES.md.` : 'No gate list in this model.',
+      facts: gateFacts.length ? gateFacts : [['GATES', 'none listed']] }
   ];
 
   /* ---------- geometry helpers ---------- */
@@ -276,13 +296,13 @@
     const qu = q.toUpperCase();
     const m = M();
     let parts = m.parts.filter(p => !cat || p.category === cat);
-    if (qu) parts = parts.filter(p => p.ref.toUpperCase().includes(qu) || (p.value || '').toUpperCase().includes(qu));
+    if (qu) parts = parts.filter(p => [p.ref, p.value, p.mpn, p.lcsc, p.package].some(v => (v || '').toUpperCase().includes(qu)));
     else if (!cat) parts = parts.filter(p => ['ic', 'connector', 'switch'].includes(p.category));
     parts.sort((a, b) => (a.ref.toUpperCase() === qu ? -1 : 0) - (b.ref.toUpperCase() === qu ? -1 : 0) || a.ref.localeCompare(b.ref, undefined, { numeric: true }));
     const nets = qu ? allNets().filter(n => n.toUpperCase().includes(qu)).slice(0, 8) : [];
     const rows = [];
     nets.forEach(n => { const g = netGeom(n); rows.push(`<button class="row net" data-net="${esc(n)}"><b>${esc(n)}</b><span>NET · ${g.pads.length} pads · ${g.segs.length} tracks · ${g.vias.length} vias</span></button>`); });
-    parts.slice(0, 40).forEach(p => rows.push(`<button class="row" data-ref="${esc(p.ref)}"><b>${esc(p.ref)}</b><span>${esc(p.value || p.category)} · ${p.side} · ${p.x.toFixed(1)}, ${p.y.toFixed(1)}</span></button>`));
+    parts.slice(0, 40).forEach(p => rows.push(`<button class="row" data-ref="${esc(p.ref)}"><b>${esc(p.ref)}</b><span>${esc(p.value || p.category)}${p.lcsc ? ' · ' + esc(p.lcsc) : ''} · ${p.side} · ${p.x.toFixed(1)}, ${p.y.toFixed(1)}</span></button>`));
     $('#findList').innerHTML = rows.join('') || '<div class="empty">Nothing matches. Try a ref (U1), a part number (ESP32) or a net (3V3_SYS).</div>';
     $('#findCount').textContent = qu || cat ? `${parts.length} parts${nets.length ? ' · ' + nets.length + ' nets' : ''}` : 'ICs, connectors and switches. Type to search all 165.';
     document.querySelectorAll('#findList .row').forEach(r => r.addEventListener('click', () => {

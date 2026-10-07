@@ -223,6 +223,26 @@
     const viewerSide=basis.cam.z>=state.target.z?'front':'back';
     ctx.save();
     ctx.lineCap='round';ctx.lineJoin='round';
+    // Copper pours: the filled zones stored in the board file (model.zones), drawn under the tracks.
+    for(const zn of model.zones||[]){
+      const isFront=zn.layer==='F.Cu',isBack=zn.layer==='B.Cu',isInternal=!isFront&&!isBack;
+      if(state.copperFilter==='F.Cu'&&!isFront)continue;
+      if(state.copperFilter==='B.Cu'&&!isBack)continue;
+      if(state.copperFilter==='internal'&&!isInternal)continue;
+      if(state.copperFilter==='pads')continue;
+      if(state.mode==='SOLID' && ((viewerSide==='front'&&!isFront)||(viewerSide==='back'&&!isBack)))continue;
+      if(state.mode==='WIRE' && isInternal)continue;
+      const z=copperLayerZ(zn.layer); if(z>state.slice)continue;
+      let ok=true;ctx.beginPath();
+      for(const poly of zn.polys)for(const r of poly){
+        for(let i=0;i<r.length;i+=2){const q=project(W(r[i],r[i+1],z),basis,w,h);if(!q){ok=false;break;}if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);}
+        ctx.closePath();
+      }
+      if(!ok)continue;
+      const col=isFront?COLORS.copperF:isBack?COLORS.copperB:COLORS.copperI;
+      ctx.fillStyle=rgba(col,copperMode?.3:xray?.12:.08);ctx.fill('evenodd');
+      ctx.strokeStyle=rgba(col,copperMode?.6:.3);ctx.lineWidth=.6;ctx.stroke();
+    }
     for(const s of segs){
       const isFront=s.layer==='F.Cu',isBack=s.layer==='B.Cu',isInternal=!isFront&&!isBack;
       if(state.copperFilter==='F.Cu'&&!isFront)continue;
@@ -401,10 +421,12 @@
     state.selected={ref:item.ref,type:item.type,data:item.data};$('#selectedReadout').textContent=`SEL: ${item.ref}`;
     if(item.type==='part'){
       const p=item.data;const pp=(model.pads||[]).filter(x=>x.ref===p.ref);const nets=[...new Set(pp.map(x=>x.netName).filter(Boolean))];const padMap=pp.slice(0,8).map(x=>`${x.num||'?'}:${x.netName||'NC'}`);
-      $('#partInfo').innerHTML=`<b>${escapeHTML(p.ref)}</b> · ${escapeHTML(p.value||'')}<br><span class="cyan">${escapeHTML((p.category||'part').toUpperCase())}</span> · ${p.side.toUpperCase()} · ROT ${Number(p.rot||0).toFixed(0)}°<br>X ${p.x.toFixed(2)} · Y ${p.y.toFixed(2)} mm · ${p.w.toFixed(2)}×${p.h.toFixed(2)} mm<br>HEIGHT ≈ ${partHeight(p).toFixed(2)} mm · PADS ${p.padCount??pp.length}${nets.length?`<br><span class="accent">NETS</span> ${escapeHTML(nets.slice(0,6).join(' · '))}${nets.length>6?' …':''}`:''}${padMap.length?`<br><span class="accent">PAD MAP</span> ${escapeHTML(padMap.join(' · '))}${pp.length>8?' …':''}`:''}`;
+      const vip=(model.fab?.vias?.in_smd_pads||[]).filter(v=>v.ref===p.ref).map(v=>`pad ${v.pad} (${v.net})`);
+      const bom=p.mpn!==undefined?`<br><span class="accent">BOM</span> ${escapeHTML(p.mpn||p.value||'')} · ${escapeHTML(p.package||'')}<br><span class="accent">SOURCE</span> ${escapeHTML(p.sourcing||'')} · ${p.land==='vendor'?'VENDOR LAND PATTERN':'PROXY LAND · AUDIT AT DFM'}${vip.length?`<br><span class="accent">VIA IN PAD</span> ${escapeHTML(vip.join(', '))} · fill and cap`:''}`:'';
+      $('#partInfo').innerHTML=`<b>${escapeHTML(p.ref)}</b> · ${escapeHTML(p.value||'')}<br><span class="cyan">${escapeHTML((p.category||'part').toUpperCase())}</span> · ${p.side.toUpperCase()} · ROT ${Number(p.rot||0).toFixed(0)}°<br>X ${p.x.toFixed(2)} · Y ${p.y.toFixed(2)} mm · ${p.w.toFixed(2)}×${p.h.toFixed(2)} mm<br>HEIGHT ≈ ${partHeight(p).toFixed(2)} mm · PADS ${p.padCount??pp.length}${nets.length?`<br><span class="accent">NETS</span> ${escapeHTML(nets.slice(0,6).join(' · '))}${nets.length>6?' …':''}`:''}${padMap.length?`<br><span class="accent">PAD MAP</span> ${escapeHTML(padMap.join(' · '))}${pp.length>8?' …':''}`:''}${bom}`;
     }else if(item.ref==='BOARD'){
       const st=model.stats||{};const lc={},ll={};let routeLen=0;for(const q of model.segments||[]){lc[q.layer]=(lc[q.layer]||0)+1;const len=Math.hypot(q.x2-q.x1,q.y2-q.y1);ll[q.layer]=(ll[q.layer]||0)+len;routeLen+=len;}const ls=Object.entries(lc).map(([k,v])=>`${k.replace('.Cu','')} ${v}/${(ll[k]||0).toFixed(1)}mm`).join(' · ');
-      $('#partInfo').innerHTML=`<b>PCB / ${escapeHTML(model.name||'STRUTHIO')}</b><br>${(st.boardW??(model.board.bbox[2]-model.board.bbox[0])).toFixed(2)} × ${(st.boardH??(model.board.bbox[3]-model.board.bbox[1])).toFixed(2)} × ${(model.board.thickness||0).toFixed(2)} mm<br>${model.parts.length} footprints · ${(model.pads||[]).length} pads · ${(model.segments||[]).length} routed segments · ${(model.vias||[]).length} vias · ${st.nets??Object.keys(model.nets||{}).length} nets<br><span class="accent">ROUTED LENGTH</span> ${routeLen.toFixed(1)} mm${ls?`<br><span class="accent">COPPER</span> ${escapeHTML(ls)}`:''}`;
+      $('#partInfo').innerHTML=`<b>PCB / ${escapeHTML(model.name||'STRUTHIO')}</b><br>${(st.boardW??(model.board.bbox[2]-model.board.bbox[0])).toFixed(2)} × ${(st.boardH??(model.board.bbox[3]-model.board.bbox[1])).toFixed(2)} × ${(model.board.thickness||0).toFixed(2)} mm<br>${model.parts.length} footprints · ${(model.pads||[]).length} pads · ${(model.segments||[]).length} routed segments · ${(model.vias||[]).length} vias · ${st.nets??Object.keys(model.nets||{}).length} nets<br><span class="accent">ROUTED LENGTH</span> ${routeLen.toFixed(1)} mm${ls?`<br><span class="accent">COPPER</span> ${escapeHTML(ls)}`:''}${(model.zones||[]).length?`<br><span class="accent">POURS</span> ${escapeHTML(model.zones.map(z=>`${z.layer.replace('.Cu','')} ${z.net}`).join(' · '))}`:''}${fabSummary()}`;
     }else if(item.type==='trace'){
       const d=item.data;$('#partInfo').innerHTML=`<b>${escapeHTML(d.netName||('NET '+d.net))}</b> · COPPER TRACE<br><span class="cyan">${escapeHTML(d.layer)}</span> · WIDTH ${Number(d.w).toFixed(3)} mm · LENGTH ${Math.hypot(d.x2-d.x1,d.y2-d.y1).toFixed(2)} mm<br>(${d.x1.toFixed(2)}, ${d.y1.toFixed(2)}) → (${d.x2.toFixed(2)}, ${d.y2.toFixed(2)})`;
     }else if(item.type==='via'){
@@ -413,6 +435,10 @@
       const d=item.data||{};$('#partInfo').innerHTML=`<b>${escapeHTML(item.ref)}</b><br>Mechanical visualization envelope${d.confidence?` · ${escapeHTML(d.confidence)}`:''}`;
     }
     schedule();
+  }
+  function fabSummary(){
+    const f=model.fab;if(!f)return'';
+    return `<br><span class="accent">FAB FILES</span> Gerber ×${f.gerber_layers.length} · drill · BOM ${f.bom.lines} lines (${f.bom.with_lcsc}/${f.bom.placements} with LCSC) · CPL ${f.cpl_placements}<br><span class="accent">DRC</span> KiCad ${escapeHTML(f.kicad)} · ${f.drc.violations} violations · ${f.drc.unconnected_pads} unconnected · vias ${f.vias.tented?'tented':'open'} · PROTOTYPE ONLY`;
   }
   function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 

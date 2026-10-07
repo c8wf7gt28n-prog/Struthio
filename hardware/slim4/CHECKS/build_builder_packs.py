@@ -10,9 +10,11 @@ Writes <output folder>/STRUTHIO_SLIM4_R25_BUILDER_FILES/ and a zip of it:
                        a 1:1 check drawing, and the optional 0.7 mm lens outline
 
 Needs KiCad 7.0.x (kicad-cli on PATH and a python3 that can import pcbnew) and the pinned
-CadQuery environment (requirements.txt). Nothing in the package is changed: the PCB files are
+CadQuery environment (requirements.txt). No source in the package is changed: the PCB files are
 plotted from a temporary copy of LAYERS/01_PCB (its SHA-256 is checked before and after), and
-the printed parts and film are rebuilt from LAYERS/02_CASE/build_r11.py.
+the printed parts and film are rebuilt from LAYERS/02_CASE/build_r11.py. The one file written
+into the package is CHECKS/R21_FAB_SUMMARY.json, a record of the fab outputs (DRC, BOM coverage,
+via tenting) that the studio and the handoff read.
 """
 from pathlib import Path
 import csv, hashlib, io, json, math, re, runpy, shutil, subprocess, sys, tempfile, zipfile
@@ -209,6 +211,14 @@ def build_pcb(dst):
         for m in sorted(g.glob('*.pdf')):
             shutil.move(str(m), ref / m.name)
         zip_dir(g, dst / 'SLIM4_R21_GERBER_DRILL.zip')
+        pth, npth = (g / 'SLIM4_R21-PTH.drl').read_text(), (g / 'SLIM4_R21-NPTH.drl').read_text()
+        hits = lambda t: len(re.findall(r'(?m)^X-?[\d.]+Y-?[\d.]+$', t))
+        drill_counts = {'pth_round_holes': hits(pth), 'plated_slots': pth.count('G85'), 'npth_holes': hits(npth) + npth.count('G85')}
+        # Tenting as plotted: any solder-mask flash centred on a via (Gerber Y = -board Y) would be an opening.
+        flashes = [(int(x) / 1e6, -int(y) / 1e6) for side in ('F_Mask.gts', 'B_Mask.gbs')
+                   for x, y in re.findall(r'(?m)^X(-?\d+)Y(-?\d+)D03\*$', (g / f'SLIM4_R21-{side}').read_text())]
+        via_xy = [(v['x'], v['y']) for v in json.loads((work / 'SLIM4_R21_PCB_LAYER.json').read_text())['vias']]
+        mask_at_vias = sorted({(round(vx, 3), round(vy, 3)) for vx, vy in via_xy for fx, fy in flashes if abs(fx - vx) < 0.05 and abs(fy - vy) < 0.05})
         (ref / 'DRC_REPORT_KICAD7.txt').write_text(re.sub(r'\*\* Created on .*\*\*\n', '', drc))
 
         text = (work / BOARD).read_text()
@@ -323,6 +333,27 @@ REFERENCE/   assembly drawings (both sides, 2:1 on A3), drill maps, DRC report, 
 KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (unchanged R21 source)
 """
     (dst / 'README_PCB_ORDER.txt').write_text(readme)
+
+    # A record of the fab outputs in the package itself (the studio and the handoff read it).
+    drc_n = {k: int(re.search(rf'Found (\d+) {k}', drc)[1]) for k in ('DRC violations', 'unconnected pads', 'Footprint errors')}
+    tent = re.search(r'\(viasonmask (true|false)\)', text)
+    summary = {
+        'board': f'LAYERS/01_PCB/{BOARD}', 'board_sha256': src_sha, 'generator': 'CHECKS/build_builder_packs.py',
+        'status': 'prototype only: R21 release gates open (LAYERS/01_PCB/RELEASE_GATES.md)',
+        'kicad': facts['version'], 'drc': {'violations': drc_n['DRC violations'], 'unconnected_pads': drc_n['unconnected pads'],
+                                           'footprint_errors': drc_n['Footprint errors']},
+        'zone_fills_current': facts['fills_current'],
+        'gerber_layers': GERBER_LAYERS.split(','), 'drill': drill_counts,
+        'copper_layers': facts['copper_layers'], 'thickness_mm': facts['thickness'], 'outline_mm': facts['outline'],
+        'min_track_mm': min(facts['track_widths']), 'min_clearance_mm': facts['min_clearance'],
+        'vias': {'count': facts['via_count'], 'pad_mm': facts['vias'][0][0], 'drill_mm': facts['vias'][0][1],
+                 'tented': bool(tent) and tent[1] == 'false', 'mask_openings_at_vias': [list(v) for v in mask_at_vias], 'in_smd_pads': [{'ref': r, 'pad': n, 'net': net} for r, n, net in facts['vias_in_smd_pads']]},
+        'bom': {'lines': len(groups), 'placements': len(parts), 'with_lcsc': sum(1 for p in parts if p['lcsc']),
+                'by_mpn_only': [r for r, _ in no_lcsc], 'unbound': [p['ref'] for p in parts if 'BIND_BEFORE_FAB' in p['descr']]},
+        'cpl_placements': cpl_count, 'sides': sides,
+        'land_patterns': {'vendor': vendor_land, 'proxy_count': proxies},
+    }
+    (ROOT / 'CHECKS/R21_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
     return facts, parts, no_lcsc
 
 

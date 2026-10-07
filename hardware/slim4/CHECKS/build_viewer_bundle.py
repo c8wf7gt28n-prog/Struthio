@@ -19,7 +19,7 @@ import base64, json, re, struct, sys
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = 100            # 0.01 mm per unit
 SHADE = 1000           # shades have 3 decimals
-CACHE = 'struthio-studio-r25-viewer-v1'
+CACHE = 'struthio-studio-r25-viewer-1.1'
 
 
 def load_global(path, name):

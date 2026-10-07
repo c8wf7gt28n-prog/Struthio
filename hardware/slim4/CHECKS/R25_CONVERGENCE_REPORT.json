@@ -1,9 +1,9 @@
 {
   "title": "STRUTHIO SLIM4 R25 convergence report (PCB R21 · CASE R11 · ACRYLIC R1)",
   "counts": {
-    "PASS": 71,
+    "PASS": 72,
     "INFO": 3,
-    "GATE": 13
+    "GATE": 12
   },
   "converged": true,
   "checks": [
@@ -685,11 +685,11 @@
     {
       "id": "I4",
       "interface": "PCB↔CASE",
-      "title": "Vias under support posts and stop legs (must be tented/solder-masked)",
-      "status": "GATE",
+      "title": "Vias under support posts and stop legs are tented (solder-masked)",
+      "status": "PASS",
       "value": 2,
       "limit": 0,
-      "detail": "SW2 cap stop leg at (35.69, 107.06) on a 3V3_SYS via; support post at (21.5, 76.0) on a RESET_MR via. Confirm via tenting in the fabrication notes."
+      "detail": "SW2 cap stop leg at (35.69, 107.06) on a 3V3_SYS via; support post at (21.5, 76.0) on a RESET_MR via. Tented: the R21 plot settings keep vias off the mask (viasonmask false) and the plotted mask Gerbers have no opening on any via (CHECKS/R21_FAB_SUMMARY.json); the PCB order notes require tenting."
     },
     {
       "id": "J1",

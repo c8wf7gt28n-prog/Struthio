@@ -2,13 +2,14 @@
 
 This is a cross-platform engineering/debug package. It is not a fabrication release.
 
-R25 closes the **CAD convergence** gates: every interface between PCB R21, CASE R11 and ACRYLIC R1 is defined and checked (`CHECKS/R25_CONVERGENCE_REPORT.md`, 0 FAIL). What remains needs parts in hand, supplier drawings, or tests (the 13 GATE rows).
+R25 closes the **CAD convergence** gates: every interface between PCB R21, CASE R11 and ACRYLIC R1 is defined and checked (`CHECKS/R25_CONVERGENCE_REPORT.md`, 0 FAIL). What remains needs parts in hand, supplier drawings, or tests (the 12 GATE rows).
 
 ## Closed in CAD by R25
 
 - Board fits the enclosure with 2.0 mm walls and ≥0.3 mm clearance; LCD fits with ≥0.2 mm (checks B2, B3).
 - Screen opening and lens centred on the LCD active area; film continuous over the lens (C1–C3, E3).
 - Every control reaches its switch when pressed and none at rest (D1–D10). Caps are retained by the Ø17.8 flange under the Ø17.0 plate hole, the rocker by trunnions in closed bosses (D14). Stop legs and support posts land clear of pads (I1, I5).
+- Via tenting (I4): two vias sit under contact points — the SW2 flap cap's stop leg at (35.69, 107.06) on 3V3_SYS and a rear support post at (21.5, 76.0) on RESET_MR. The R21 plot settings tent every via and the generated mask Gerbers leave both covered; the PCB order notes require tenting.
 - Front plate webs ≥ 2.0 mm (B6). Plate nominal 2.0 mm, locally 0.70 mm over the LCD pocket ledge (B8, gate below); floor and walls 2.0 mm (B5).
 - Film follows the case outline and clears the molded relief; vent cuts register on the grille (E1–E6).
 - No interference between any two parts at rest, flaps pressed, or DART pressed either way. Moving parts clear by ≥0.2 mm except designed contacts: the cap-flange up-stop and power-plunger collar (touching), stop legs on the board at the stop, the DART trunnion (0.05 mm radial in its bosses), and the actuator nubs 0.05 mm (flaps) / 0.024 mm (DART) above the switch bodies at the stop (F1, G1).
@@ -17,10 +18,9 @@ R25 closes the **CAD convergence** gates: every interface between PCB R21, CASE 
 ## Open — PCB (unchanged from R24)
 
 - R21 native board is included and preserved unchanged. Complete schematic-to-board reconciliation and electrical intent review.
-- Re-run native KiCad DRC/ERC with the final tool/version and confirm all nets, constraints, clearances, creepage, impedance, and board stackup.
-- Select exact orderable/assembly parts, approved footprints, alternate parts, BOM/CPL, and assembly-side constraints. Verify JLCPCB capabilities and quoting limits against current files before ordering.
+- Re-run native KiCad DRC/ERC with the final tool/version and confirm all nets, constraints, clearances, creepage, impedance, and board stackup. (KiCad 7.0.11 DRC re-run on R21 under the design's own 0.1 mm rules: 0 / 0 / 0, zone fills current — `CHECKS/R21_FAB_SUMMARY.json`. ERC still needs the schematic; the board house's DFM rules still need running.)
+- Select exact orderable/assembly parts, approved footprints, alternate parts, BOM/CPL, and assembly-side constraints. Verify JLCPCB capabilities and quoting limits against current files before ordering. (A BOM and CPL are generated from the board: 151 of 165 parts carry an LCSC number, 14 are sourced by part number, C310 is not bound; 152 footprints are package proxies awaiting a land-pattern audit; R403 and C408 have a via in a pad.)
 - Complete power-tree, MIPI, USB, audio, battery/charging, connector, protection, programming, and test-point review.
-- Confirm via tenting in the fabrication notes: two vias sit under contact points — the SW2 flap cap's stop leg at (35.69, 107.06) on 3V3_SYS and the rear support post at (21.5, 76.0) on RESET_MR (I4).
 - **Decision needed for sub-12 mm:** R25 is 13.55 mm (15.05 mm over the caps). The rear floor sits 0.2 mm below L2 (Sunlord ASWPA4035, 3.50 mm). Sub-12 mm needs every back-side part ≤ 1.95 mm — L2 3.50, J2 3.31, J3/J4/J5 3.00 and J1/L1/L3 2.00 are taller today — which is a PCB change, and a cell no thicker than 6.5 mm (the 7.0 mm cell alone holds the body at ≥ 12.55 mm). Replacing only L2 and J2 gives 13.05 mm (L1).
 
 ## Open — case, controls and screen

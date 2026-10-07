@@ -1,0 +1,107 @@
+{
+ "board": "LAYERS/01_PCB/SLIM4_R21.kicad_pcb",
+ "board_sha256": "daac1da0536f04f493232b1141e38cf9c74efe9c03a60bfd4f9ae5aa5241e5c0",
+ "generator": "CHECKS/build_builder_packs.py",
+ "status": "prototype only: R21 release gates open (LAYERS/01_PCB/RELEASE_GATES.md)",
+ "kicad": "7.0.11",
+ "drc": {
+  "violations": 0,
+  "unconnected_pads": 0,
+  "footprint_errors": 0
+ },
+ "zone_fills_current": true,
+ "gerber_layers": [
+  "F.Cu",
+  "In1.Cu",
+  "In2.Cu",
+  "In3.Cu",
+  "In4.Cu",
+  "B.Cu",
+  "F.Mask",
+  "B.Mask",
+  "F.Paste",
+  "B.Paste",
+  "F.SilkS",
+  "B.SilkS",
+  "Edge.Cuts"
+ ],
+ "drill": {
+  "pth_round_holes": 269,
+  "plated_slots": 4,
+  "npth_holes": 10
+ },
+ "copper_layers": 6,
+ "thickness_mm": 1.2,
+ "outline_mm": [
+  99.3,
+  125.1
+ ],
+ "min_track_mm": 0.1,
+ "min_clearance_mm": 0.1,
+ "vias": {
+  "count": 269,
+  "pad_mm": 0.45,
+  "drill_mm": 0.2,
+  "tented": true,
+  "mask_openings_at_vias": [],
+  "in_smd_pads": [
+   {
+    "ref": "R403",
+    "pad": "1",
+    "net": "3V3_SYS"
+   },
+   {
+    "ref": "C408",
+    "pad": "2",
+    "net": "GND"
+   }
+  ]
+ },
+ "bom": {
+  "lines": 52,
+  "placements": 165,
+  "with_lcsc": 151,
+  "by_mpn_only": [
+   "C310",
+   "J1",
+   "J2",
+   "SW1",
+   "SW2",
+   "SW3",
+   "SW4",
+   "U1",
+   "U2",
+   "U4",
+   "U8",
+   "U9",
+   "U10",
+   "U13"
+  ],
+  "unbound": [
+   "C310"
+  ]
+ },
+ "cpl_placements": 165,
+ "sides": {
+  "Top": 4,
+  "Bottom": 161
+ },
+ "land_patterns": {
+  "vendor": [
+   "J1",
+   "J2",
+   "SW1",
+   "SW2",
+   "SW3",
+   "SW4",
+   "U1",
+   "U2",
+   "U4",
+   "U8",
+   "U9",
+   "U10",
+   "U13"
+  ],
+  "proxy_count": 152
+ }
+}

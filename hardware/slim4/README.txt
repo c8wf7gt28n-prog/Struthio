@@ -12,12 +12,12 @@ CHECKS/convergence_check.py tests every interface between the layers (board vs w
 LCD vs shell, caps vs switches, film vs relief, parts vs parts at rest and pressed,
 supports and stop legs vs pads, speakers, USB-C, battery). Result for this package:
 
-  CONVERGED — 71 PASS · 0 FAIL · 13 GATE · 3 INFO   (CHECKS/R25_CONVERGENCE_REPORT.md)
+  CONVERGED — 72 PASS · 0 FAIL · 12 GATE · 3 INFO   (CHECKS/R25_CONVERGENCE_REPORT.md)
   The R24 package, audited on the same interfaces: 17 FAIL · 1 PASS (CHECKS/R24_BASELINE_AUDIT.md).
 
 A GATE is an item the CAD agrees on but that still needs a physical sample, supplier
 drawing or test (switch tolerance coupon, HOTHMI drawing, FPC extension, film stock,
-cell choice, via tenting, thin ledges, acoustic and drop tests). This is an
+cell choice, thin ledges, acoustic and drop tests). This is an
 engineering/debug handoff, not a fabrication release.
 
 Shared CAD datum (unchanged): millimetres, R21 PCB XY (Y down), board bottom at Z=0,
@@ -27,7 +27,8 @@ This clean re-issue replaces the first R25 zip. CASE R11 and ACRYLIC R1 geometry
 unchanged; documents, checks, viewer and references were corrected (CHANGELOG.md).
 
 Start with:
-  index.html                          integrated viewer (LAYERS: CASE, PCB, ACRYLIC sublayers)
+  index.html                          integrated viewer, Studio 1.1 (LAYERS: CASE, PCB, ACRYLIC sublayers;
+                                      copper pours, BOM/sourcing per part, fab status, open gates)
   CHECKS/R25_CONVERGENCE_REPORT.md    what was checked and what is still open
   CHECKS/renders/                     cross-sections and shaded views from the B-rep
   AI_CHANGE_REPORT_R25.md             what changed from R24 and why
@@ -55,6 +56,7 @@ from the package root, in this order:
   python -B LAYERS/02_CASE/export_layer_formats.py
   python -B CHECKS/convergence_check.py
   python -B CHECKS/render_review.py
+  python -B CHECKS/build_pcb_viewer_data.py   (studio PCB data: pours, sourcing, fab status, gates)
   python -B CHECKS/make_manifest.py      (last: rewrites PROJECT_MANIFEST.json and SHA256SUMS.txt)
 
 Deploying the viewer: publish a bundle, not this folder (the package is ~250 files and
@@ -70,8 +72,10 @@ Files for the builders (PCB house, 3D print service, sticker printer): from the 
 writes STRUTHIO_SLIM4_R25_BUILDER_FILES/ (1_PCB_FABRICATION, 2_3D_PRINTING, 3_ACRYLIC_STICKER,
 each with an order README) and its zip. Needs KiCad 7.0.x (kicad-cli, and a python3 that
 imports pcbnew) besides requirements.txt. The R21 board is plotted from a temporary copy and
-its hash is checked before and after; nothing in the package changes. R21 remains an
-engineering-review board: the PCB pack is labelled prototype only.
+its hash is checked before and after. The one package file it writes is CHECKS/R21_FAB_SUMMARY.json
+(DRC, BOM coverage, plotted via tenting, which check I4 reads); after it rerun
+convergence_check.py, build_pcb_viewer_data.py and make_manifest.py.
+R21 remains an engineering-review board: the PCB pack is labelled prototype only.
 
 CHECKS/R24_BASELINE_AUDIT.* is a frozen comparison. To regenerate it, unzip the R24
 package (identity in AI_CHANGE_REPORT_R25.md) and add --baseline <unzipped R24 folder>

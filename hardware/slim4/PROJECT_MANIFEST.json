@@ -15,9 +15,9 @@
     "report": "CHECKS/R25_CONVERGENCE_REPORT.md",
     "converged": true,
     "counts": {
-      "PASS": 71,
+      "PASS": 72,
       "INFO": 3,
-      "GATE": 13
+      "GATE": 12
     },
     "baseline_audit": "CHECKS/R24_BASELINE_AUDIT.md"
   },
@@ -99,6 +99,7 @@
       "LAYERS/02_CASE/export_layer_formats.py",
       "CHECKS/convergence_check.py",
       "CHECKS/render_review.py",
+      "CHECKS/build_pcb_viewer_data.py",
       "CHECKS/make_manifest.py"
     ]
   },
@@ -110,7 +111,10 @@
     "reference_mesh": "case-r3-data.js",
     "pcb_rear_plot": "R21_REAR_BOARD.svg",
     "offline_service_worker": "sw.js",
-    "deploy_bundle_builder": "CHECKS/build_viewer_bundle.py"
+    "deploy_bundle_builder": "CHECKS/build_viewer_bundle.py",
+    "studio_version": "1.1",
+    "pcb_data_builder": "CHECKS/build_pcb_viewer_data.py",
+    "fab_summary": "CHECKS/R21_FAB_SUMMARY.json"
   },
   "builder_packs": {
     "generator": "CHECKS/build_builder_packs.py",

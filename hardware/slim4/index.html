@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="STRUTHIO VIS">
-  <title>STRUTHIO Hardware Visualization Studio 1.0 · Layered Project · R25</title>
+  <title>STRUTHIO Hardware Visualization Studio 1.1 · Layered Project · R25</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="icon" type="image/png" href="icon-192.png">
@@ -18,7 +18,7 @@
 <body>
 <div id="app">
   <header class="studioBar">
-    <div class="brand"><b>STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.0</span></div>
+    <div class="brand"><b>STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.1</span></div>
     <div class="headerTools">
       <button type="button" class="eyeBtn" id="eyeBtn" aria-pressed="true" aria-label="Toggle Eye mode"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg><span>EYE</span></button>
       <div class="sourceStatus" id="sourceStatus" aria-label="Source authority status"><span class="srcCase">CASE R11</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ✓</span></div>
@@ -44,7 +44,7 @@
         <div class="deckBody">
           <div class="pane on" id="paneTour"><div class="stopDetail" id="stopDetail"></div></div>
           <div class="pane" id="paneFind">
-            <input id="findInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="U1 · ESP32 · 3V3_SYS" aria-label="Search parts and nets">
+            <input id="findInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="U1 · ESP32 · 3V3_SYS · C1525" aria-label="Search parts and nets">
             <div class="cats" id="findCats"></div>
             <div class="findCount" id="findCount"></div>
             <div class="findList" id="findList"></div>
@@ -193,13 +193,13 @@
 <div class="portraitGate" id="portraitGate" aria-live="polite">
   <div class="portraitGlyph">▯</div>
   <b>PORTRAIT REQUIRED</b>
-  <span>STRUTHIO Visualization Studio 1.0 is designed as a portrait-only engineering instrument.</span>
+  <span>STRUTHIO Visualization Studio 1.1 is designed as a portrait-only engineering instrument.</span>
   <span class="rotateNote">Rotate the device upright.</span>
 </div>
 
 <div class="aboutSheet" id="aboutSheet" hidden>
   <div class="aboutCard" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
-    <div class="aboutHead"><div><b id="aboutTitle">STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.0</span></div><button type="button" id="aboutClose" aria-label="Close about panel">×</button></div>
+    <div class="aboutHead"><div><b id="aboutTitle">STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.1</span></div><button type="button" id="aboutClose" aria-label="Close about panel">×</button></div>
     <p class="mission">Primary in-house file-authoritative hardware visualization platform for the STRUTHIO Project.</p>
     <p>Created in necessity for <b>R.A. Peddycoart</b> to visualize, inspect, discuss, and iterate STRUTHIO hardware with AI collaborators.</p>
     <div class="aboutGrid">
@@ -208,7 +208,7 @@
       <div><b>PORTRAIT INSTRUMENT</b><span>One-finger orbit, two-finger translation, pinch zoom, movable inspector, and scroll-wheel controls.</span></div>
       <div><b>AUTHORITY RULE</b><span>Loaded fabrication sources are authoritative. Missing sources remain visibly unresolved; the studio does not invent replacement geometry.</span></div>
     </div>
-    <p class="aboutFine">STRUTHIO Project · Visualization Studio 1.0 · R.A. Peddycoart</p>
+    <p class="aboutFine">STRUTHIO Project · Visualization Studio 1.1 · R.A. Peddycoart</p>
   </div>
 </div>
 

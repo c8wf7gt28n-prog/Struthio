@@ -44,7 +44,7 @@
 
 ## Fit/interference checks run and results
 
-`python -B CHECKS/convergence_check.py --baseline <R24>`: **R25 converged — 71 PASS, 0 FAIL, 13 GATE, 3 INFO.** Volume interference and clearance were tested in 308 pair evaluations over 273 distinct part pairs (270 at rest, 16 with the flaps and power plunger pressed, 11 DART left, 11 DART right). R24 baseline on the same interfaces: **17 FAIL, 1 PASS**. The checker was mutation-tested (LCD moved to the edge, a post placed on pads/under the LCD, overtravel cut to 0.02, floor raised 0.15): each injected fault was reported.
+`python -B CHECKS/convergence_check.py --baseline <R24>`: **R25 converged — 71 PASS, 0 FAIL, 13 GATE, 3 INFO** at issue; 72 PASS / 12 GATE since I4 (via tenting) was closed by the builder files. Volume interference and clearance were tested in 308 pair evaluations over 273 distinct part pairs (270 at rest, 16 with the flaps and power plunger pressed, 11 DART left, 11 DART right). R24 baseline on the same interfaces: **17 FAIL, 1 PASS**. The checker was mutation-tested (LCD moved to the edge, a post placed on pads/under the LCD, overtravel cut to 0.02, floor raised 0.15): each injected fault was reported.
 
 ## STEP/STL/vector/DRC validation run and results
 

@@ -1,6 +1,6 @@
 # STRUTHIO SLIM4 R25 convergence report (PCB R21 · CASE R11 · ACRYLIC R1)
 
-Result: **CONVERGED** · GATE 13 · INFO 3 · PASS 71
+Result: **CONVERGED** · GATE 12 · INFO 3 · PASS 72
 
 | ID | Interface | Check | Status | Value | Limit |
 |---|---|---|---|---|---|
@@ -54,7 +54,7 @@ Result: **CONVERGED** · GATE 13 · INFO 3 · PASS 71
 | I2 | PCB↔CASE | Every front switch backed by a rear support within 10 mm | PASS | {"SW1": 6.0, "SW2": 6.0, "SW3": 6.778, "SW4": 8.25} | 10.0 |
 | I3 | CASE | Board clamped front-and-back at matched points | PASS | 6 | 6 |
 | I5 | PCB↔CASE | Stop legs land clear of pads (no pad within 0.3 mm) | PASS | 0 | 0 |
-| I4 | PCB↔CASE | Vias under support posts and stop legs (must be tented/solder-masked) | GATE | 2 | 0 |
+| I4 | PCB↔CASE | Vias under support posts and stop legs are tented (solder-masked) | PASS | 2 | 0 |
 | J1 | CASE | Speaker chamber at (-38.3, 125.6) clear of the board | PASS | 0.5 | 0.3 |
 | J2 | CASE | Speaker inside its chamber with ≥0.2 mm | PASS | 0.2 | 0.2 |
 | J3 | CASE | Grille slots inside the speaker gasket opening | PASS | 3 | 3 |
@@ -83,7 +83,6 @@ Result: **CONVERGED** · GATE 13 · INFO 3 · PASS 71
 - **D12 DART trunnions snap into closed bosses (0.05 mm radial running clearance)** — Print-test the boss flex and wear; add a lead-in slot if the bosses crack on assembly.
 - **E7 Film thickness 0.20 mm is a planning assumption** — Select film/adhesive stock; Z stack above the plate follows this value.
 - **H4 Panel FPC needs an extension tail (~70 mm, 20 × 0.5 mm, one 45° fold)** — J1 faces the board-tab edge on the back side; with the screen raised for the R10 face the panel tail must run under the module, between the DART switches, around the tab and back to J1. Confirm HOTHMI tail length/exit or order an FH12-20 extension FPC.
-- **I4 Vias under support posts and stop legs (must be tented/solder-masked)** — SW2 cap stop leg at (35.69, 107.06) on a 3V3_SYS via; support post at (21.5, 76.0) on a RESET_MR via. Confirm via tenting in the fabrication notes.
 - **J4 Sealed back volume per speaker (cc)** — R3 reserved ~1.94 cc per side (CAD geometric capacity) and, following the R2 research direction, recommended comparing 1.0 / 1.5 / ~2.0 cc; response must be measured
 - **J5 Acoustic response, gasket compression and wire feedthrough seal** — Measure impedance/response/distortion on a printed chamber pair.
 - **K3 Material left under the USB relief (localised, below the 2.0 mm rule)** — Accepted locally because the port sits 3.31 mm deep on the back side; confirm by drop/insertion test.

@@ -467,8 +467,18 @@ def run(root, rep, verbose=True):
     pad_hits = [(kind, round(x, 2), round(y, 2)) for kind, x, y, r in contacts[len(B['REAR_POSTS']) + len(B['FRONT_POSTS']):]
                 if Point(x, y).buffer(r + 0.3).intersects(fpads)]
     rep.add('I5', 'PCB↔CASE', 'Stop legs land clear of pads (no pad within 0.3 mm)', 'PASS' if not pad_hits else 'FAIL', len(pad_hits), 0, json.dumps(pad_hits) if pad_hits else '')
-    rep.add('I4', 'PCB↔CASE', 'Vias under support posts and stop legs (must be tented/solder-masked)', 'GATE' if hits else 'PASS', len(hits), 0,
-            ('; '.join(f'{k} at ({x}, {y}) on a {n} via' for k, x, y, n in hits) + '. Confirm via tenting in the fabrication notes.') if hits else '')
+    # Tenting: the board's plot setting (viasonmask false) and the plotted mask Gerbers, as recorded by
+    # CHECKS/build_builder_packs.py in R21_FAB_SUMMARY.json (no mask flash on any via).
+    plot = re.search(r'\(viasonmask (true|false)\)', (root / 'LAYERS/01_PCB/SLIM4_R21.kicad_pcb').read_text())
+    summary = root / 'CHECKS/R21_FAB_SUMMARY.json'
+    fab = json.loads(summary.read_text()) if summary.exists() else None
+    plotted = bool(fab) and fab['board_sha256'] == sha(root / 'LAYERS/01_PCB/SLIM4_R21.kicad_pcb') and fab['vias'].get('mask_openings_at_vias') == []
+    tented = bool(plot) and plot[1] == 'false' and plotted
+    where = '; '.join(f'{k} at ({x}, {y}) on a {n} via' for k, x, y, n in hits)
+    rep.add('I4', 'PCB↔CASE', 'Vias under support posts and stop legs are tented (solder-masked)', 'PASS' if not hits or tented else 'GATE', len(hits), 0,
+            (where + ('. Tented: the R21 plot settings keep vias off the mask (viasonmask false) and the plotted mask Gerbers have no opening '
+                      'on any via (CHECKS/R21_FAB_SUMMARY.json); the PCB order notes require tenting.' if tented else
+                      '. Confirm via tenting in the fabrication notes (run CHECKS/build_builder_packs.py to record the plotted masks).')) if hits else '')
 
     # ---- J. Audio ------------------------------------------------------------
     vols = []
