@@ -1,11 +1,12 @@
-STRUTHIO R25 CONVERGED HANDOFF — PACKAGE CHECKS
+STRUTHIO R25 CONVERGED HANDOFF — PACKAGE CHECKS (clean re-issue)
 
 PASS: PCB R21 board file and PCB layer JSON byte-identical to the R24 delivery (SHA-256, check A1).
-PASS: Cross-layer convergence: 69 PASS · 0 FAIL · 12 GATE · 3 INFO (CHECKS/R25_CONVERGENCE_REPORT.md).
-PASS: No volume interference and required clearances in four poses across 308 part pairs (F1, G1).
-PASS: All 19 CASE R11 / ACRYLIC R1 solids are valid B-rep; STEP and STL exported per sublayer.
-PASS: Film cutlines (SVG/DXF) and cut specification generated from the checked film geometry (E1-E6).
-PASS: Regeneration scripts run from the package root with no external paths (build, export, checks, renders).
-PASS: Viewer loads PCB, CASE R11 and ACRYLIC R1; sublayers toggle independently; service-worker precache list resolves.
-INFO: R24 audited with the same interfaces: 17 FAIL (CHECKS/R24_BASELINE_AUDIT.md).
-LIMIT: 12 GATE items need samples, supplier drawings or tests (PRODUCTION_GATES.md). No manufacturing release claim.
+PASS: Cross-layer convergence: 71 PASS · 0 FAIL · 13 GATE · 3 INFO (CHECKS/R25_CONVERGENCE_REPORT.md).
+PASS: No volume interference and required clearances: 308 pair evaluations over 273 distinct part pairs whose bounding boxes come within 0.2-0.3 mm (270 at rest, 16 with the flaps and power plunger pressed, 11 DART left, 11 DART right) (F1, G1).
+PASS: All 19 CASE R11 / ACRYLIC R1 solids are valid B-rep. STEP for every sublayer; STL for the CASE aggregate (without route reserves), front shell, rear shell, controls and film.
+PASS: Film cutlines (SVG/DXF) and cut specification generated from the checked film geometry; every cut-spec field matches (E1-E6).
+PASS: Regeneration scripts run from the package root with no external paths, in the documented order, with the pinned requirements.txt; no __pycache__ is left behind.
+PASS: Viewer loads PCB, CASE R11 and ACRYLIC R1 with no console errors; sublayers toggle independently; the LAYERS panel is visible; the service-worker precache list resolves.
+PASS: Every path named by the docs, manifest, viewer and service worker exists; SHA256SUMS.txt covers every file except itself and PROJECT_MANIFEST.json.
+INFO: R24 audited with the same interfaces: 17 FAIL · 1 PASS (CHECKS/R24_BASELINE_AUDIT.md).
+LIMIT: 13 GATE items need samples, supplier drawings or tests (PRODUCTION_GATES.md). No manufacturing release claim.

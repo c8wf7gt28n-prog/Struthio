@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'CHECKS' / 'renders'
 OUT.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(ROOT / 'CHECKS'))
+sys.dont_write_bytecode = True   # keep CHECKS/ free of __pycache__
 with contextlib.redirect_stdout(io.StringIO()):
     B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r11.py'))
 from convergence_check import pcb_items, pose  # noqa: E402

@@ -1,7 +1,7 @@
 /* STRUTHIO Studio · EYE layer ("Shared Sight")
    Additive. Reads the studio through window.STRUDIO and draws callouts on its own canvas.
    It never edits geometry, authority state or loaded files.
-   Facts in STOPS are computed from model.json (R21); anything not in the file is tagged INFERRED or GAP. */
+   Facts in STOPS are computed from model-data.js (window.STRUTHIO_MODEL, R21); anything not in the file is tagged INFERRED or GAP. */
 (() => {
   'use strict';
   const S = window.STRUDIO;
@@ -57,9 +57,9 @@
     { id: 'plot', kind: 'plot', name: 'KICAD REAR PLOT', gist: 'The R21 rear SVG plot in this package.', basis: 'FILE', side: 'home',
       text: 'This is the R21_REAR_BOARD.svg plot from the package. It is a mirrored rear view, drawn by KiCad. Tap it to enlarge.',
       facts: [['FILE', 'R21_REAR_BOARD.svg'], ['VIEW', 'rear, mirrored']] },
-    { id: 'gap', name: 'WHAT I CANNOT SEE', gist: 'R3 mechanism CAD is available; the finished outer case is still missing.', basis: 'GAP', side: 'home', stack: 'case.front',
-      text: 'The Studio now includes triangulated R3 CAD for the structural/acoustic handle cores, rear closures, switch guides/caps, display envelope and battery candidate. Turn on SHOW R3 CASE CAD to inspect it. This is an early packaging study, not a finished full enclosure: the exterior shell blend, final lens seat, fasteners, sealed wire exits, gasket lands, actuator hard stops and verified fit are still missing. Case geometry remains REFERENCE ONLY; acrylic fabrication art is still SOURCE MISSING.',
-      facts: [['CASE', 'SOURCE MISSING'], ['ACRYLIC', 'SOURCE MISSING'], ['PCB', 'R21 · review hold']] }
+    { id: 'gap', name: 'WHAT I CANNOT SEE', gist: 'CASE R11 and FILM R1 are CAD; physical gates are still open.', basis: 'GAP', side: 'home', stack: 'case.front',
+      text: 'CASE R11 (front and rear shell, controls, screen stack, internals) and the clear ACRYLIC R1 film are loaded from case-layer-data.js and acrylic-layer-data.js. The LCD, cell and speakers are envelopes, not supplier models. FPC and harness runs are route reserves. Print, white-ink, relief and adhesive artwork has no geometry yet. SHOW R3 CASE CAD shows the superseded R3 study for reference only. Open items: PRODUCTION_GATES.md.',
+      facts: [['CASE', 'R11 · CAD · gates open'], ['ACRYLIC', 'FILM R1 · artwork pending'], ['PCB', 'R21 · review hold']] }
   ];
 
   /* ---------- geometry helpers ---------- */

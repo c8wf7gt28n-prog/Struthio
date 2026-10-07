@@ -1,6 +1,6 @@
 # CASE layer — R11
 
-Editable source: `build_r11.py` (CadQuery 2.8 + shapely). Every dimension is in the `P` dictionary at the top. `export_layer_formats.py` writes:
+Editable source: `build_r11.py` (CadQuery 2.8 + shapely; pinned versions in `requirements.txt` at the package root). Most dimensions are in the `P` dictionary at the top; the support/clamp post positions, the R10 silhouette control points and the FPC/harness route geometry are constants further down. The same file builds the ACRYLIC film. `export_layer_formats.py` writes (plus the ACRYLIC files in `LAYERS/03_ACRYLIC/` and `ASSEMBLY/STRUTHIO_SLIM4_R25_ASSEMBLY.step`):
 
 | File | Content |
 |---|---|

@@ -1,6 +1,7 @@
 {
   "project": "STRUTHIO SLIM4",
   "package_revision": "R25",
+  "package_issue": "R25 clean re-issue: corrections and clean-up of the first R25 zip; CASE R11 / ACRYLIC R1 geometry unchanged (see CHANGELOG.md)",
   "previous_revision": "R24",
   "package_status": "cross-platform engineering/debug handoff; layers converged in CAD; not a fabrication release",
   "units": "mm",
@@ -14,9 +15,9 @@
     "report": "CHECKS/R25_CONVERGENCE_REPORT.md",
     "converged": true,
     "counts": {
-      "PASS": 69,
+      "PASS": 71,
       "INFO": 3,
-      "GATE": 12
+      "GATE": 13
     },
     "baseline_audit": "CHECKS/R24_BASELINE_AUDIT.md"
   },
@@ -92,16 +93,28 @@
     "component_envelopes": "CHECKS/COMPONENT_ENVELOPES_R21.json",
     "renders": "CHECKS/renders/"
   },
+  "tooling": {
+    "python_requirements": "requirements.txt",
+    "regenerate_in_order": [
+      "LAYERS/02_CASE/export_layer_formats.py",
+      "CHECKS/convergence_check.py",
+      "CHECKS/render_review.py",
+      "CHECKS/make_manifest.py"
+    ]
+  },
   "viewer": {
     "entry": "index.html",
     "pcb_mesh": "model-data.js",
     "case_mesh": "case-layer-data.js",
     "acrylic_mesh": "acrylic-layer-data.js",
+    "reference_mesh": "case-r3-data.js",
+    "pcb_rear_plot": "R21_REAR_BOARD.svg",
     "offline_service_worker": "sw.js"
   },
   "reference_only": [
     "REFERENCES/R10_CONTEXT/STRUTHIO_R10_UNSEPARATED_CONTEXT_REFERENCE.step",
-    "R21_REFERENCE/CAD_REFERENCE/SLIM4_R3/"
+    "REFERENCES/SLIM4_R3_INTEGRATION/",
+    "case-r3-data.js"
   ],
   "release_gates": "PRODUCTION_GATES.md",
   "cross_platform_instructions": "AI_HANDOFF.md",
@@ -109,16 +122,16 @@
   "sha256": {
     "LAYERS/01_PCB/SLIM4_R21.kicad_pcb": "daac1da0536f04f493232b1141e38cf9c74efe9c03a60bfd4f9ae5aa5241e5c0",
     "LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json": "92a31435a101cde7c15bce1106509073e7c92d27b594e5bb4053f0475538cd6e",
-    "LAYERS/02_CASE/STRUTHIO_CASE_R11.step": "e5861af28e390e6182c6e76555b2cb213ff40e37b8ff120892151e023b74f5a3",
+    "LAYERS/02_CASE/STRUTHIO_CASE_R11.step": "c4f5f78419f9fa0511660a654196e571627649a8b309881399e74032833ea446",
     "LAYERS/02_CASE/STRUTHIO_CASE_R11.stl": "bfb5211872316b0baf8968b3717b9142d1d797e45c5b86b193ae73e919957104",
     "LAYERS/02_CASE/CASE_FRONT_SHELL_R11.step": "5c3fdcc2ef6f9b25a2099de7b614b69e357061af47fa9637c5d1036ebd63087e",
     "LAYERS/02_CASE/CASE_FRONT_SHELL_R11.stl": "9947ea83ca8f97e1404c4c2db2082dd72b33ab07359b42aae11e3545f48bb979",
     "LAYERS/02_CASE/CASE_REAR_SHELL_R11.step": "ac7f289156eee2ae27a44c51ae1ce777374cc0a8ca11a9d3cdadc65720ebd35b",
     "LAYERS/02_CASE/CASE_REAR_SHELL_R11.stl": "bd123a7cefe81ec438cd62ca1f9831b791eeef8428ebb4f76fa898d8e71dbf74",
-    "LAYERS/02_CASE/CASE_CONTROLS_R11.step": "fcf3d954c3b589628258a216678b5168c539da6ff523eae4a87c9e99a8a51670",
+    "LAYERS/02_CASE/CASE_CONTROLS_R11.step": "25a77be0b11bb6fb37441c9e5520e583a43f25056f3467e9037d9807c9726412",
     "LAYERS/02_CASE/CASE_CONTROLS_R11.stl": "b2be78af21ba3f5a3307282039cf0dd6734329c35e76305839bacfce4d728ae5",
     "LAYERS/02_CASE/CASE_SCREEN_STACK_R11.step": "71166688779f54c2e059e0a8463156ca2cf20f3945f50eabe06a9c3b8258c7ee",
-    "LAYERS/02_CASE/CASE_INTERNALS_R11.step": "014413164440d646c6590f582f252e2dd28cd314c6df2513e912a2ed2549b5ed",
+    "LAYERS/02_CASE/CASE_INTERNALS_R11.step": "a63b4b67bf935881d2327a50d283147374a08c8d1deb60b6329c94782359b953",
     "LAYERS/02_CASE/CASE_LAYER_R11_MESH.json": "6db16fcef104dcc14adb8708c5ebd3538cf8e2e1e4a8d40f8f3fc972dcc11228",
     "LAYERS/02_CASE/R11_FIT_CHECKS.json": "65a99b6bb75f51cc391839951ca114ab4426a943f107b702a509acec027ff614",
     "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R1.step": "040e9f115125906febcecd3821ff38016084316e82f6a23e99f5e578a77469c5",
@@ -127,7 +140,7 @@
     "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R1.dxf": "9acae82aa84196369ac0c1b7c02de6315de85877f2f1e9c5744baa6d94a31c7b",
     "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_CUT_SPEC.json": "de3279f1bc6332393d658d46b09dc16831bfe2e6178f45702f73f5e78767bf99",
     "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_MESH.json": "95b2ce35b75e3f79b1cfa045b85260e3153a28531bdc879cffa9fb6ff602fe58",
-    "ASSEMBLY/STRUTHIO_SLIM4_R25_ASSEMBLY.step": "8154db360e5baffed397442ce6679721f233d65cbfd90628fdef41450edbbfd2"
+    "ASSEMBLY/STRUTHIO_SLIM4_R25_ASSEMBLY.step": "e0d8361f4967cd32258d1220e9da8f65444798a33f330b1571afeea832721803"
   },
   "checksums_file": "SHA256SUMS.txt (all package payloads except manifest and checksum file)"
 }

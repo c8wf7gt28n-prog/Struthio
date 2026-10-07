@@ -1,7 +1,8 @@
 {
   "title": "STRUTHIO SLIM4 R24 baseline audit (PCB R21 · CASE R10 · ACRYLIC R0)",
   "counts": {
-    "FAIL": 17
+    "FAIL": 17,
+    "PASS": 1
   },
   "converged": false,
   "checks": [
@@ -12,7 +13,7 @@
       "status": "FAIL",
       "value": -1.999,
       "limit": 0.3,
-      "detail": "value = how far the board edge reaches into the 2.0 mm wall: it touches the R10 outer surface at the shoulders (Y≈78-80) and enters the wall zone at Y 70-89 and 103-117"
+      "detail": "value = deepest board vertex inside the 2.0 mm wall (negative). The board breaks through the R10 outer surface by up to 0.03 mm at Y 78.8–79.7 and enters the 2.0 mm wall at Y 72.5–87.9, 109.6–117.4 (Y 3.1–5.7, 70.5–88.8, 102.7–117.4 counting the 0.3 mm clearance)."
     },
     {
       "id": "B3",
@@ -147,10 +148,19 @@
       "id": "S1",
       "interface": "VIEWER",
       "title": "Service worker precache list resolves",
+      "status": "PASS",
+      "value": 0,
+      "limit": 0,
+      "detail": "all 41 precache entries exist (an earlier R25 report wrongly listed this as FAIL)"
+    },
+    {
+      "id": "S3",
+      "interface": "VIEWER",
+      "title": "LAYERS panel can be seen when opened",
       "status": "FAIL",
       "value": null,
       "limit": null,
-      "detail": "sw.js lists R21_REFERENCE/.../SLIM4_R3_integration.step and build.py, which are not in the package; addAll() rejects so offline install fails"
+      "detail": "the panel sits inside nav.buildStack, which has overflow:hidden, and is positioned outside it, so it is clipped and never visible"
     },
     {
       "id": "S2",

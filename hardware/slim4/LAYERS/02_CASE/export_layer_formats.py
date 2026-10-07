@@ -193,6 +193,7 @@ fit = {
 sys_path = str(ROOT / 'CHECKS')
 import sys
 sys.path.insert(0, sys_path)
+sys.dont_write_bytecode = True   # keep CHECKS/ free of __pycache__
 from convergence_check import pcb_items  # noqa: E402
 asm = cq.Assembly(name='STRUTHIO_SLIM4_R25_ASSEMBLY')
 for it in pcb_items(B):

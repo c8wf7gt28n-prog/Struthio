@@ -1,6 +1,6 @@
 // Offline cache for the R25 studio. The viewer shell, meshes and documents are
 // precached; large CAD downloads (STEP/STL, KiCad board) are cached on first use.
-const CACHE='struthio-studio-r25-converged-v1';
+const CACHE='struthio-studio-r25-converged-v2';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./eye.js','./eye.css','./model-data.js','./case-r3-data.js','./case-layer-data.js','./acrylic-layer-data.js','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png','./R21_REAR_BOARD.svg','./README.txt','./QC_REPORT.txt','./AI_HANDOFF.md','./PRODUCTION_GATES.md','./CHANGELOG.md','./PROJECT_MANIFEST.json','./CHECKS/R25_CONVERGENCE_REPORT.md','./CHECKS/R25_CONVERGENCE_REPORT.json','./CHECKS/R24_BASELINE_AUDIT.md','./LAYERS/01_PCB/RELEASE_GATES.md','./LAYERS/01_PCB/README_PCB_LAYER.md','./LAYERS/01_PCB/NATIVE_KICAD_DRC.txt','./LAYERS/02_CASE/R11_FIT_CHECKS.json','./LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R1.svg','./LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R1_CUT_SPEC.json'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('struthio-studio-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

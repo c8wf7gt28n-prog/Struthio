@@ -1,6 +1,6 @@
 # STRUTHIO SLIM4 R24 baseline audit (PCB R21 · CASE R10 · ACRYLIC R0)
 
-Result: **NOT CONVERGED** · FAIL 17
+Result: **NOT CONVERGED** · FAIL 17 · PASS 1
 
 | ID | Interface | Check | Status | Value | Limit |
 |---|---|---|---|---|---|
@@ -19,12 +19,13 @@ Result: **NOT CONVERGED** · FAIL 17
 | X1 | CASE | FPC route present | FAIL |  |  |
 | X1 | CASE | board retention present | FAIL |  |  |
 | X1 | CASE | power/reset/boot access present | FAIL |  |  |
-| S1 | VIEWER | Service worker precache list resolves | FAIL |  |  |
+| S1 | VIEWER | Service worker precache list resolves | PASS | 0 | 0 |
+| S3 | VIEWER | LAYERS panel can be seen when opened | FAIL |  |  |
 | S2 | VIEWER | Lens sublayer toggle | FAIL |  |  |
 
 ## Notes
 
-- **B2 R21 board inside a 2.0 mm wall with ≥0.3 mm** — value = how far the board edge reaches into the 2.0 mm wall: it touches the R10 outer surface at the shoulders (Y≈78-80) and enters the wall zone at Y 70-89 and 103-117
+- **B2 R21 board inside a 2.0 mm wall with ≥0.3 mm** — value = deepest board vertex inside the 2.0 mm wall (negative). The board breaks through the R10 outer surface by up to 0.03 mm at Y 78.8–79.7 and enters the 2.0 mm wall at Y 72.5–87.9, 109.6–117.4 (Y 3.1–5.7, 70.5–88.8, 102.7–117.4 counting the 0.3 mm clearance).
 - **B3 LCD module inside the wall** — LCD top edge at Y=0 is on the exterior surface
 - **D3 Flap caps reach the D2LS plungers** — cap underside 7.85 vs plunger free position 4.70: 3.15 mm air, no stem
 - **D6 DART pill reaches SW3/SW4; pivot and stops defined** — pill floats on the film; no pivot, return or stop
@@ -38,5 +39,5 @@ Result: **NOT CONVERGED** · FAIL 17
 - **X1 FPC route present** — not in R10 CAD
 - **X1 board retention present** — not in R10 CAD
 - **X1 power/reset/boot access present** — not in R10 CAD
-- **S1 Service worker precache list resolves** — sw.js lists R21_REFERENCE/.../SLIM4_R3_integration.step and build.py, which are not in the package; addAll() rejects so offline install fails
+- **S3 LAYERS panel can be seen when opened** — the panel sits inside nav.buildStack, which has overflow:hidden, and is positioned outside it, so it is clipped and never visible
 - **S2 Lens sublayer toggle** — lens mesh exported in group "display", so the Protective lens checkbox has no effect

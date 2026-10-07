@@ -23,7 +23,9 @@ PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R21_PCB_LAYER.json').read_text())
 ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R21.json').read_text())
 
 # ---------------------------------------------------------------------------
-# Parameters. Every R11 dimension lives here; the checker reads the same dict.
+# Parameters. Most R11 dimensions live here and the checker reads the same dict.
+# Exceptions, edited further down: the support/clamp post positions, the R10
+# silhouette control points, and the FPC/harness route and ledge geometry.
 # ---------------------------------------------------------------------------
 P = dict(
     revision_case='R11', revision_acrylic='R1', package='R25',
@@ -260,9 +262,10 @@ def chamber_geoms(cx, cy):
     return inner, ring
 
 # ---------------------------------------------------------------------------
-# Board support / clamp points (chosen by search_support_points in the checker,
-# frozen here so the geometry is deterministic). Each lands on bare board: no pad
-# or courtyard within the post radius + 0.3 mm on the contacted side.
+# Board support / clamp points: fixed positions, frozen so the geometry is
+# deterministic. Check I1 in CHECKS/convergence_check.py verifies that each lands on
+# bare board (no pad within the post radius + 0.3 mm on the contacted side), and I4
+# lists any via under a post or stop leg.
 # ---------------------------------------------------------------------------
 CLAMP_POSTS = [  # front post + rear post at the same XY: the board is clamped here
     (-33.5, 84.0), (33.5, 84.0),        # shoulders
@@ -472,10 +475,6 @@ for sx, _ in SPK_CENTERS:
     for gy in GRILLE_YS:
         film = film.cut(rbox(sx, gy, P['grille_slot'][0] + 0.2, P['grille_slot'][1] + 0.2, fz0, fz1, (P['grille_slot'][1] + 0.2) / 2 - 0.01))
 add('CLEAR ACRYLIC FACE FILM R1 · ASSUMED 0.20', film, 'ACRYLIC', 'film', 'acrylic', '#a8e6ef', 'static')
-
-# Legacy names used by the R24 export script and viewer.
-outline = OUTLINE
-face_sticker = film
 
 
 def summary():

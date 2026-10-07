@@ -171,7 +171,7 @@
     }
     const m=model.mechanical||{};
     const allowMechanical=state.groupVisibility.case&&(state.authority.case||state.referenceMode);
-    const cad=state.groupVisibility.case?(state.referenceMode?(window.STRUTHIO_CASE_R3?.parts||null):(state.authority.case?([...(window.STRUTHIO_CASE_LAYER?.parts||[]),...(window.STRUTHIO_ACRYLIC_LAYER?.parts||[]) ]):null)):null;
+    const cad=cadParts();
     if(cad){
       const enabled={shell:state.shell,display:state.layers.display,lens:state.layers.lens,acrylic:state.authority.art&&state.groupVisibility.acrylic&&state.layers.acrylic,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls,rear:state.layers.rear,routes:state.layers.routes};
       for(const item of cad){if(!enabled[item.group])continue;const off=explodeOffset(item.group);const faces=[];for(const tri of item.triangles){if(!tri.p.every(v=>v[2]<state.slice))continue;const pts=tri.p.map(v=>W(v[0],v[1],v[2]+off));faces.push({pts,shade:tri.s});}addObjectFaces(cmds,{ref:item.name},faces,item.color,item.opacity??1,item.name,'mechanical',item.group);}
@@ -330,11 +330,41 @@
     return W(p.x,p.y,p.z||0);
   }
 
+  // CAD part list on screen, or null when the legacy mechanical envelopes are used instead.
+  function cadParts(){
+    if(!state.groupVisibility.case)return null;
+    if(state.referenceMode)return window.STRUTHIO_CASE_R3?.parts||null;
+    if(!state.authority.case||!window.STRUTHIO_CASE_LAYER)return null;
+    return [...window.STRUTHIO_CASE_LAYER.parts,...(window.STRUTHIO_ACRYLIC_LAYER?.parts||[])];
+  }
+  // Short labels for the discrete CAD parts; shells, film, lens and routes are not pick targets.
+  function cadLabel(item){
+    const n=item.name;
+    if(/LCD MODULE|DISPLAY ENVELOPE/.test(n))return 'DISPLAY';
+    if(/^LIPO|BATTERY CANDIDATE/.test(n))return 'BATTERY';
+    if(/^SPEAKER L ·|LEFT SPEAKER/.test(n))return 'SPK1';
+    if(/^SPEAKER R ·|RIGHT SPEAKER/.test(n))return 'SPK2';
+    if(/FLAP CAP L|LEFT BUTTON CAP/.test(n))return 'LEFT';
+    if(/FLAP CAP R|RIGHT BUTTON CAP/.test(n))return 'RIGHT';
+    if(/DART ROCKER/.test(n))return 'DART';
+    if(/POWER PLUNGER/.test(n))return 'POWER';
+    return null;
+  }
+  function cadCenter(item){
+    if(!item._c){let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];for(const t of item.triangles)for(const v of t.p)for(let i=0;i<3;i++){if(v[i]<mn[i])mn[i]=v[i];if(v[i]>mx[i])mx[i]=v[i];}item._c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];}
+    return item._c;
+  }
   function collectCenters(basis,w,h){
     const arr=[];
     if(state.groupVisibility.pcb&&state.layers.parts){for(const p of model.parts){if(state.partSideFilter!=='all'&&(p.side||'front')!==state.partSideFilter)continue;if((p.side||'front')==='front'&&!state.layers.frontParts||(p.side||'front')==='back'&&!state.layers.backParts)continue;const off=explodeOffset('parts',p.side||'front');const z=(p.side==='back'?-partHeight(p)/2:model.board.thickness+partHeight(p)/2)+off;const q=project(W(p.x,p.y,z),basis,w,h);if(q)arr.push({ref:p.ref,type:'part',data:p,screen:q});}}
     const m=model.mechanical||{};
     const allowMechanical=state.groupVisibility.case&&(state.authority.case||state.referenceMode);
+    const cad=cadParts();
+    if(cad){
+      const on={display:state.layers.display,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls};
+      for(const item of cad){const ref=cadLabel(item);if(!ref||!on[item.group])continue;const c=cadCenter(item);if(c[2]>=state.slice)continue;const q=project(W(c[0],c[1],c[2]+explodeOffset(item.group)),basis,w,h);if(q)arr.push({ref,type:'mechanical',data:{confidence:item.name},screen:q});}
+      state.centers=arr;return;
+    }
     if(allowMechanical && state.layers.display&&m.display){let d=m.display,off=explodeOffset('display'),q=project(W(d.x,d.y,d.z0+d.d/2+off),basis,w,h);if(q)arr.push({ref:'DISPLAY',type:'mechanical',data:d,screen:q});}
     if(allowMechanical&&state.layers.battery&&m.battery){let d=m.battery,off=explodeOffset('battery'),q=project(W(d.x,d.y,d.z0+d.d/2+off),basis,w,h);if(q)arr.push({ref:'BATTERY',type:'mechanical',data:d,screen:q});}
     if(allowMechanical&&state.layers.speakers&&m.speakers)m.speakers.forEach((d,i)=>{let off=explodeOffset('speakers'),q=project(W(d.x,d.y,d.z0+d.d/2+off),basis,w,h);if(q)arr.push({ref:`SPK${i+1}`,type:'mechanical',data:d,screen:q});});
@@ -462,7 +492,7 @@
     const pcbName=(model.source||model.name||'PCB').replace(/^.*[\\/]/,'');
     $('#pcbSource').textContent=(state.authority.pcb?`${pcbName} · SOURCE FILE`:'SOURCE MISSING');
     $('#caseSource').textContent=state.authority.case?'R11 · FULL CAD':(state.referenceMode?'R3 CAD · REFERENCE':'SOURCE MISSING');
-    $('#artSource').textContent=state.authority.art?'CLEAR FILM · 0.20*':'SOURCE MISSING';
+    $('#artSource').textContent=state.authority.art?'CLEAR FILM R1 · 0.20*':'SOURCE MISSING';
     const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R11':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R21 · NOT FAB</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
     document.querySelectorAll('#stackWheel button').forEach(b=>{const src=b.dataset.source;b.classList.toggle('missing',src==='art'&&!state.authority.art || src==='case'&&!state.authority.case&&!state.referenceMode);b.classList.toggle('reference',src==='case'&&!state.authority.case&&state.referenceMode);});
   }
