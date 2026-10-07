@@ -15,7 +15,7 @@ The fully documented alternative is the Crystalfontz CFAF7201280A0-050TN (5 in, 
 
 ## J1 — the display port on the main board
 
-J1 is a Hirose FH12-20S-0.5SH(55): 20 pins, 0.5 mm pitch, bottom contact, on the back of the board. It is a fixed, panel-independent port. The panel connects through a **display adapter** that maps the port to the panel's FPC. Any pin-order mistake therefore lands on a cheap adapter, never on the main board.
+J1 is a Hirose FH12-20S-0.5SH(55): 20 pins, 0.5 mm pitch, bottom contact, on the back of the board. It is a fixed, panel-independent port. The panel connects through a **custom display flex** that maps the port to the panel's FPC. Any pin-order mistake therefore lands on the cheap flex, never on the main board.
 
 | Pin | Net | What it carries |
 |---|---|---|
@@ -33,12 +33,13 @@ J1 is a Hirose FH12-20S-0.5SH(55): 20 pins, 0.5 mm pitch, bottom contact, on the
 
 Electrical limits: backlight 39 mA regulated (both panel strings tied together, about 20 mA each), PWM-dimmed from GPIO9. Lane rate up to 1.5 Gbit/s per lane on the P4; 720 × 1280 at 60 Hz needs about 1 Gbit/s per lane in RGB888 and about 0.7 Gbit/s in RGB565. Board-side DSI runs are 29–40 mm, with at most 5.8 mm of skew within a pair.
 
-## The display adapter (designed when the panel datasheet is in hand)
+## The display flex (designed when the panel datasheet is in hand)
 
-A small flex, or a rigid board with an FFC, that:
-- plugs into the panel's 31-pin FPC on one end and J1 on the other, along the route the case reserves (panel → between the DART switches → around the bottom tab → J1);
-- maps CLK, D0 and D1 and their grounds, leaves D2/D3 open, and ties the panel's two LED cathodes to pin 19;
-- connects VCI to pin 2 (3.0 V) and IOVCC to pin 3 (1.8 V); check both against the panel datasheet's ranges;
-- faces its J1 contacts toward the board (FH12 is bottom contact).
+One custom polyimide flex, about 70 mm long, along the route the case reserves (fold under the panel's bottom edge → under the module → between the DART switches → around the board's bottom tab → J1 on the back). The panel's own 50 mm tail cannot reach J1 by itself.
 
-It is cheap and quick to remake, which is the point: the main board does not depend on it.
+- **Panel end:** a ZIF connector for the panel's 31-pin tail, assembled onto the flex by JLCPCB, with a stiffener under it. The part is chosen from Startek's drawing (pitch and contact side).
+- **J1 end:** exposed gold fingers, 20 × 0.5 mm, with a polyimide stiffener to the 0.30 ± 0.05 mm total thickness the FH12 needs. Fingers face the board when inserted (FH12 is bottom contact).
+- **Wiring:** CLK, D0 and D1 as pairs with ground between them (J1 already alternates); D2/D3 left open; the panel's two LED cathodes tied to pin 19; VCI to pin 2 (3.0 V) and IOVCC to pin 3 (1.8 V), both checked against the panel datasheet.
+- 2 layers is enough: about 70 mm at ≤ 1 Gbit/s per lane. Order 5.
+
+The flex is the only part that depends on the panel's pinout, and it is a separate, cheap order: the main board does not change if the flex has to be redone.

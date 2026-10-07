@@ -287,10 +287,13 @@ ASSEMBLY
 
 NOT ON THE BOARD (buy separately)
   Display     Startek KD047HDFID001: 4.7 in 720 x 1280 IPS, ST7703, 450 nits, 61.0 x 110.6 x 1.8 mm.
-              It plugs into J1 through the display adapter (see DISPLAY_PORT.md); ask Startek for the
+              It plugs into J1 through the custom display flex (see DISPLAY_PORT.md); ask Startek for the
               full datasheet (FPC pin definition and initialisation code) when ordering.
-  Battery     703450-class Li-ion with protection board and 10k NTC, JST SH 3-pin lead (J3: 1 BAT+, 2 NTC, 3 GND)
-  Speakers    2 x Same Sky CMS-18138A-SP with a JST SH 2-pin lead (J4 left, J5 right)
+  Battery     any 1-cell Li-ion/LiPo with its own protection board, about 34 x 52 x 7 mm max (703450 class),
+              on a JST SH 1.0 mm 2-pin plug: J3 pin 1 = BAT+ (red), pin 2 = BAT- (black). CHECK THE POLARITY
+              before plugging in: cell leads are wired both ways and the board has no reverse protection.
+  Speakers    2 x 18 x 13 mm speakers (Same Sky CMS-18138A-SP fits the case) on JST SH 1.0 mm 2-pin
+              plugs: J4 left, J5 right; pin 1 = +. One cable type for battery and speakers.
 
 CHECKS RUN ON THESE FILES
   KiCad {facts['version']} DRC: {drc_line}  (REFERENCE/DRC_REPORT_KICAD7.txt)

@@ -12,7 +12,7 @@ The R21 netlist was checked pin by pin against the datasheets: Espressif ESP32-P
 | Reset | TPS3808G33 (RESET, GND, MR, CT, SENSE, VDD): SENSE on 3V3, 10 k pull-up on CHIP_PU, 1 µF, MR on the RESET button. | OK |
 | Flash | W25Q512JV (3.3 V) on VDDO_FLASH (3.3 V default). Powers up in 3-byte mode, so it boots as 16 MB with no special support. | OK |
 | MIPI / USB PHY | REXT 4.02 k; VDDO_3 → VDD_MIPI_DPHY 2.5 V; VDD_USBPHY from 3V3 through 0 Ω (v3 needs no DP pull-down). | OK |
-| Charger | BQ24074: pin 4 CE to GND (charging enabled); EN1 10 k to 3V3, EN2 10 k to GND → 500 mA USB mode once 3V3 is up, 100 mA before (the TPS63070 starts within that). ILIM 1.5 k ≈ 1.0 A; ISET 3.6 k ≈ 250 mA charge; ITERM 3.3 k; TMR 47 k; CHG/PGOOD 100 k pull-ups to GPIOs. OUT regulates to 4.4 V. | OK |
+| Charger | BQ24074: TS pin to a fixed 10 k (R424, R22) so any 2-wire cell charges; pin 4 CE to GND (charging enabled); EN1 10 k to 3V3, EN2 10 k to GND → 500 mA USB mode once 3V3 is up, 100 mA before (the TPS63070 starts within that). ILIM 1.5 k ≈ 1.0 A; ISET 3.6 k ≈ 250 mA charge; ITERM 3.3 k; TMR 47 k; CHG/PGOOD 100 k pull-ups to GPIOs. OUT regulates to 4.4 V. | OK |
 | 3.3 V | TPS63070: pin 1 PS/SYNC high (power save), EN through 100 k from SYS_RAW (always on), VSEL (15) to GND, FB2 open, VAUX 100 nF. FB 470 k / 150 k with VFB 0.8 V → 3.31 V. | OK |
 | Panel LDOs | TLV75518 / TLV75528 (DBV: IN, GND, EN, NC, OUT), EN tied to IN. | OK (rails depend on the panel, see Open) |
 | Backlight | TPS61165 SOT-23-6 (VIN, CTRL, SW, GND, COMP, FB): CTRL on BACKLIGHT_PWM (100 k pull-down, off at reset); LED string between D2 and FB; R309 24.9 Ω → 8 mA. | Topology OK; current depends on the panel |
@@ -38,10 +38,10 @@ Land-pattern audit of the rest, against KiCad 7 library footprints (worst pad-ce
 
 ## Display (decided)
 
-The panel is the Startek KD047HDFID001: 4.7 in 720 × 1280 IPS, ST7703, 450 nits, 61.0 × 110.6 mm. Its active area is the one the case was designed around. J1 becomes a fixed display port (2-lane DSI, 3.0 V VCI, 1.8 V IOVCC, reset, backlight), and a small adapter maps it to the panel's 31-pin cable (`DISPLAY_PORT.md`). For the panel, R309 is now 5.1 Ω (39 mA), C309 is rated 50 V (open-LED limit 38 V) and U6 is a 3.0 V TLV75530.
+The panel is the Startek KD047HDFID001: 4.7 in 720 × 1280 IPS, ST7703, 450 nits, 61.0 × 110.6 mm. Its active area is the one the case was designed around. J1 becomes a fixed display port (2-lane DSI, 3.0 V VCI, 1.8 V IOVCC, reset, backlight), and one custom flex maps it to the panel's 31-pin cable (`DISPLAY_PORT.md`). For the panel, R309 is now 5.1 Ω (39 mA), C309 is rated 50 V (open-LED limit 38 V) and U6 is a 3.0 V TLV75530.
 
 Still to do, but not blocking the board order:
-1. Get Startek's datasheet (pin definition, contact side, init code) when ordering the panel, then design the adapter.
+1. Get Startek's datasheet (pin definition, contact side, init code) when ordering the panel, then design the display flex.
 2. The case pass after the board works: new panel envelope (+0.7 mm wide), J4's new position and the real JST body depth.
 
 ## Bring-up with one USB-C cable

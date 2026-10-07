@@ -42,6 +42,7 @@ Everything the Struthio firmware needs from the board. Read from the R22 netlist
 
 - 3.3 V is always on while a cell is connected. "Off" is deep sleep, woken by the power button (GPIO0).
 - The core rail (VDD_HP, external TLV62569) is enabled by the chip itself (EN_DCDC) once the app runs.
+- The battery has no temperature sensor on the board (TS is a fixed 10 k): if you want a charge-temperature guard, read the P4's internal temperature sensor and pull BQ_EN1/EN2 to suspend (1/1) when it is too hot.
 - The USB-C port is a sink only (TUSB320 in UFP mode); charge current is 250 mA (ISET 3.6 k).
 - No free test pads: GPIO37/38 (UART0) are unconnected. Use the USB-Serial-JTAG console.
 

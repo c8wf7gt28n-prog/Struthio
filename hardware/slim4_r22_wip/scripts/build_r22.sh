@@ -6,9 +6,10 @@ set -e
 S=$(cd "$(dirname "$0")" && pwd); B=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 python3 "$S/r22_usb.py" "$B" 2>&1 | grep -v leak || true                 # 1 USB-C -> USB-Serial-JTAG (GPIO24/25)
 python3 "$S/r22_fp.py" "$B" 2>&1 | grep -v leak || true                  # 2 land-pattern fixes (library footprints)
-for e in r22_sw r22_esd r22_y1 r22_conn; do                               # 3-6 local re-routes
+for e in r22_sw r22_esd r22_y1 r22_conn r22_battery; do                   # 3-6 local re-routes, 8 battery port
   python3 "$S/run_edit.py" "$B" "$S/$e.py" 2>&1 | grep -v leak || true
 done
 python3 "$S/r22_lib_sync.py" "$B" "$(dirname "$B")/SLIM4.pretty" 2>&1 | grep -v leak || true
+python3 "$S/r22_lib_battery.py" "$B" "$(dirname "$B")/SLIM4.pretty" 2>&1 | grep -v leak || true
 python3 "$S/r22_values.py" "$B"                                           # 7 crystal caps, backlight R309/C309
 (cd "$(dirname "$B")" && python3 "$S/fill_drc.py" "$B")                   # zone refill + KiCad DRC
