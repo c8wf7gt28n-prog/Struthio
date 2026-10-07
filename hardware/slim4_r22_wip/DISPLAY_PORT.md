@@ -20,7 +20,7 @@ J1 is a Hirose FH12-20S-0.5SH(55): 20 pins, 0.5 mm pitch, bottom contact, on the
 | Pin | Net | What it carries |
 |---|---|---|
 | 1 | LCD_RESX | Panel reset, active low. Pulled up to 1.8 V (10 k). A 2N7002 pulls it low while GPIO10 is high (GPIO10 has a pull-up, so the panel is held in reset from power-up until firmware drives GPIO10 low). |
-| 2 | LCD_VCI_3V0 | VCI (panel analog supply), 3.0 V from TLV75530 (500 mA max) |
+| 2 | LCD_VCI_3V0 | VCI (panel analog supply), 3.0 V from ME6211C30 (500 mA max) |
 | 3 | LCD_1V8 | IOVCC (panel logic supply), 1.8 V from TLV75518 (500 mA max) |
 | 4, 5 | — | not connected (data lane 3 is not used) |
 | 6, 9, 12, 15, 18 | GND | ground between the pairs |

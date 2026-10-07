@@ -31,7 +31,7 @@ GERBER_LAYERS = 'F.Cu,In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu,F.Mask,B.Mask,F.Paste,B.P
 PACKAGE = {'ESP32-P4NRW32X': 'QFN-104 0.35 mm pitch + EP', 'W25Q512JVEIQ TR': 'WSON-8 8x6 mm', 'BQ24074RGTR': 'VQFN-16 (TI RGT0016C)',
            'TPS63070RNMR': 'VQFN-HR-15 (TI RNM0015A)', 'MAX98357AETE+T': 'TQFN-16 3x3 mm', 'TUSB320LAIRWBR': 'X2QFN-12 (TI RWB0012A)',
            'FH12-20S-0.5SH(55)': 'FPC 20P 0.5 mm bottom-contact ZIF', 'USB4105-GF-A-120': 'USB-C receptacle', 'D2LS-11': 'Omron D2LS SMD',
-           'D2LS-21(20M)': 'Omron D2LS SMD', 'ASWPA4035S2R2MT': 'Power inductor 4035', 'TPD2EUSB30DRTR': 'X2SON-3 1x1 mm (TI DRT)',
+           'D2LS-21(20M)': 'Omron D2LS SMD', 'D2LS-21': 'Omron D2LS SMD', 'ASWPA4035S2R2MT': 'Power inductor 4035', 'TPD2EUSB30DRTR': 'X2SON-3 1x1 mm (TI DRT)',
            'PESD5V0S1UL,315': 'SOD-882', 'L327S400H11L': 'SMD3225-4P crystal', 'B3U-1000P': 'Omron B3U SMD',
            'SM03B-SRSS-TB(LF)(SN)': 'JST SH 3P side entry', 'SM02B-SRSS-TB(LF)(SN)': 'JST SH 2P side entry'}
 
@@ -284,6 +284,11 @@ ASSEMBLY
                          IC, diode, connector and crystal and correct the rotation there if their
                          library part is drawn at a different zero angle. Pay attention to:
                          U1 (ESP32-P4, QFN-104), U2, U4, U8-U14, D1, D2, Q1, Y1, J1-J5.
+
+U1 STOCK (check before ordering)
+  On 2026-10-07 JLCPCB had 0 of the ESP32-P4NRW32X (C54540373); every other line was in stock.
+  Pre-order it through JLCPCB Global Sourcing, or consign v3.x chips (ordering code ending in X)
+  bought from an Espressif-authorised source. Do not substitute ESP32-P4NRW32 (no X, revision v1.x).
 
 NOT ON THE BOARD (buy separately)
   Display     Startek KD047HDFID001: 4.7 in 720 x 1280 IPS, ST7703, 450 nits, 61.0 x 110.6 x 1.8 mm.
