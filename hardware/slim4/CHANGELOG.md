@@ -1,3 +1,34 @@
+# R28 — PCB R23: four plug-and-play ports; firmware for R23; case set aside
+
+PCB R22 → **R23** (4 scripted edits in `LAYERS/01_PCB/R23_FROM_R22/`, rebuilt copper-identically from R22). The display flex is gone: the panel's own tail plugs into the main board. CASE R12 and ACRYLIC R2 are set aside by the owner and were checked against R23 as they are: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (317 pair evaluations over 278 distinct pairs); the 3 FAIL rows are case items. Decisions: `DECISIONS_R28.md`.
+
+## PCB R23 (from R22)
+
+| # | Change |
+|---|---|
+| 12 | Battery: J3 JST PH 2.0 socket at the window's left edge; Q2 AO3401A reverse-polarity switch (new net BAT_CONN) |
+| 13 | Speakers: J4, J5 Molex PicoBlade 53261-0271, pin 1 + |
+| 14 | R412 1.8 k: charging 494 mA. R309 2.7 Ω: backlight 74 mA (two strings, 37 mA each) |
+| 15 | J1 Hirose FH12A-40S-0.5SH(55), top contact, on the front at (1.9, 76.0), pad k = Crystalfontz panel pin k; battery window bottom edge Y 73 → 70.5 (38 × 53.5 mm); J1 fan-out and routes to the display circuits; BQ_EN2, CHG_STATUS, PGOOD_STATUS, PWR_WAKE, USB_CURR_OUT2 rerouted; DSI P = N within 0.01 mm (CLK 60.25, D0 56.25, D1 54.84 mm) |
+
+KiCad 7.0.11 DRC 0 / 0 / 0. 167 parts, 52 BOM lines, LCSC numbers for all; U1 to source.
+
+## Package
+
+- R22's board, library, layer JSON, DRC report and gates moved to `REFERENCES/PCB_R22/`; the display flex to `REFERENCES/DISPLAY_FLEX_R1/`.
+- `CHECKS/export_pcb_layer.py` takes the board's cut-outs (the moved battery window) from the board.
+- `CHECKS/COMPONENT_ENVELOPES_R23.json`: J1 FH12A (2.0 mm) on the front; JST PH and PicoBlade sockets; AO3401A.
+- `CHECKS/convergence_check.py`: A1 locks the R23 board and layer JSON; N1 checks J1's 40 pads against the Crystalfontz pin table (40/40); H4 describes the folded tail; L4 the 34 × 50 mm cell.
+- `CHECKS/build_builder_packs.py`: R28 builder files; no flex folder; the order README covers the four plug-in parts, the top-contact J1 and the DSI impedance.
+- `LAYERS/02_CASE/build_r12.py`: cell envelope 34 × 50 × 7 in the shorter window; the FPC reserve ends at the board's back face.
+- Studio: R23 board data, J1 on the front in the tour, 74 mA backlight, DSI lengths.
+- Firmware (`firmware/slim4`, R6): ILI9881C driver with the Crystalfontz init sequence, 2 lanes at 1 Gbit/s; builds with ESP-IDF v6.1 with no warnings; `tools/check_pinmap.py` checks every firmware GPIO against the R23 board.
+
+## Case pass (set aside)
+
+- **C6:** the 5 in Crystalfontz module against the R12 pocket.
+- **F1, G1:** the rear shell against the J3, J5 and J4 bodies.
+
 # R27 — PCB R22 in the package; display flex R1; case checked on R22
 
 PCB R21 → **R22** (the electrical and land-pattern review fixed, 11 scripted edits in `LAYERS/01_PCB/R22_FROM_R21/`, rebuilt copper-identically from R21). The display cable is a new fourth layer, `LAYERS/04_DISPLAY_FLEX`. CASE R12 and ACRYLIC R2 are unchanged and were checked against R22: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (327 pair evaluations over 288 distinct pairs). The 3 FAIL rows are the case pass the owner deferred (`PRODUCTION_GATES.md`). Decisions: `DECISIONS_R27.md`.

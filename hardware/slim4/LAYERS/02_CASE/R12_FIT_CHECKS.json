@@ -1,11 +1,11 @@
 {
   "revision": "R12",
-  "status": "CHECKED ON PCB R22 IN CAD; CASE PASS FOR THE CHOSEN PANEL AND PHYSICAL GATES OPEN (see CHECKS/R27_CONVERGENCE_REPORT.md)",
+  "status": "CHECKED ON PCB R23 IN CAD; CASE SET ASIDE FOR R23, CASE PASS AND PHYSICAL GATES OPEN (see CHECKS/R28_CONVERGENCE_REPORT.md)",
   "exterior_outline_mm": [
     104.0,
     135.3
   ],
-  "pcb_revision": "R22",
+  "pcb_revision": "R23",
   "pcb_thickness_mm": 1.2,
   "z_stack_mm": {
     "rear_floor_outer": -5.7,
@@ -70,7 +70,7 @@
   },
   "battery_envelope_mm": [
     34.0,
-    52.0,
+    50.0,
     7.0
   ],
   "speakers": {
@@ -169,7 +169,7 @@
   "parameters": {
     "revision_case": "R12",
     "revision_acrylic": "R2",
-    "package": "R27",
+    "package": "R28",
     "pcb_t": 1.2,
     "wall": 2.0,
     "board_to_wall_clearance": 0.3,
@@ -283,12 +283,12 @@
     "lap_tape": 0.1,
     "battery": [
       34.0,
-      52.0,
+      50.0,
       7.0
     ],
     "battery_center": [
       0.0,
-      45.0
+      43.5
     ],
     "battery_pad": 0.2,
     "speaker": [

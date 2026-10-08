@@ -4,12 +4,12 @@
     python3 CHECKS/export_pcb_layer.py <board.kicad_pcb> <reference layer json> <out.json> <revision> <name> <status>
 
 Example (the package's PCB layer):
-    python3 CHECKS/export_pcb_layer.py LAYERS/01_PCB/SLIM4_R22.kicad_pcb REFERENCES/PCB_R21/SLIM4_R21_PCB_LAYER.json \
-        LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json R22 "STRUTHIO SLIM4 PCB R22" "Order files ready · U1 stock to confirm"
+    python3 CHECKS/export_pcb_layer.py LAYERS/01_PCB/SLIM4_R23.kicad_pcb REFERENCES/PCB_R21/SLIM4_R21_PCB_LAYER.json \
+        LAYERS/01_PCB/SLIM4_R23_PCB_LAYER.json R23 "STRUTHIO SLIM4 PCB R23" "Order files ready · U1 stock to confirm"
 
 Geometry comes from the board (pad positions and rotations as pcbnew places them, so back-side parts at
-90/270 degrees are right; the R21 layer file had 80 such pads mirrored). The board outline and part heights (z) come from the reference layer when
-the outline is unchanged and the part exists there (heights are not in the board file); new parts get
+90/270 degrees are right; the R21 layer file had 80 such pads mirrored), and so do the cut-outs (the battery window). The board's outer
+outline and part heights (z) come from the reference layer when the outline is unchanged and the part exists there (heights are not in the board file); new parts get
 the height of the reference part with the same footprint package, or a per-category default.
 """
 import json, math, sys
@@ -67,6 +67,10 @@ def main():
     bb = b.GetBoardEdgesBoundingBox()
     board = dict(ref['board'])
     assert abs(mm(bb.GetWidth()) - 0.1 - (board['bbox'][2] - board['bbox'][0])) < 0.05, 'board outline changed: export it too'
+    ps = pcbnew.SHAPE_POLY_SET(); b.GetBoardPolygonOutlines(ps)   # cut-outs from the board (R23 moved the battery window)
+    assert ps.OutlineCount() == 1 and ps.Outline(0).PointCount() == len(board['outer']), 'board outline changed: export it too'
+    board['holes'] = [[[round(mm(h.CPoint(k).x), 5), round(mm(h.CPoint(k).y), 5)] for k in range(h.PointCount())]
+                      for h in (ps.Hole(0, i) for i in range(ps.HoleCount(0)))]
     data = {'name': name, 'source': pcb.split('/')[-1], 'units': 'mm', 'board': board, 'parts': parts, 'pads': pads,
             'segments': segs, 'vias': vias, 'nets': nets,
             'stats': {'parts': len(parts), 'pads': len(pads), 'tracks': len(segs), 'vias': len(vias), 'nets': len(nets),

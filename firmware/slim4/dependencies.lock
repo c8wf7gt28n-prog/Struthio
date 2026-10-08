@@ -1,0 +1,23 @@
+dependencies:
+  espressif/esp_lcd_ili9881c:
+    component_hash: 0288df12755c95d406ccea245a427595f314df0b14a61846286d926ea6f3698e
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.3'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32p4
+    version: 1.1.0
+  idf:
+    source:
+      type: idf
+    version: 6.1.0
+direct_dependencies:
+- espressif/esp_lcd_ili9881c
+- idf
+manifest_hash: 5b496d5b10da4b5027e06e87a40bb625cb25aafb73edcdc08be57af25a8b88b7
+target: esp32p4
+version: 3.0.0

@@ -3,7 +3,7 @@
 
     python -B CHECKS/build_viewer_bundle.py <output folder>
 
-Writes 7 files: index.html (CSS inlined), studio.js (all scripts and data), R22_REAR_BOARD.svg
+Writes 7 files: index.html (CSS inlined), studio.js (all scripts and data), R23_REAR_BOARD.svg
 (whitespace and number precision trimmed), sw.js, manifest.webmanifest, icon-192.png, icon-512.png.
 
 Nothing in the package is changed. The CASE, ACRYLIC and R3 viewer meshes are packed as
@@ -19,7 +19,7 @@ import base64, json, re, struct, sys
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = 100            # 0.01 mm per unit
 SHADE = 1000           # shades have 3 decimals
-CACHE = 'struthio-studio-r27-viewer-1.1'
+CACHE = 'struthio-studio-r28-viewer-1.1'
 
 
 def load_global(path, name):
@@ -97,13 +97,13 @@ def main():
     assert 'styles.css' not in html and 'eye.css' not in html and 'model-data.js' not in html
     (out / 'index.html').write_text(html)
 
-    (out / 'R22_REAR_BOARD.svg').write_text(minify_svg((ROOT / 'R22_REAR_BOARD.svg').read_text()))
+    (out / 'R23_REAR_BOARD.svg').write_text(minify_svg((ROOT / 'R23_REAR_BOARD.svg').read_text()))
     for f in ('icon-192.png', 'icon-512.png', 'manifest.webmanifest'):
         (out / f).write_bytes((ROOT / f).read_bytes())
 
-    assets = ['./', './index.html', './studio.js', './R22_REAR_BOARD.svg', './manifest.webmanifest', './icon-192.png', './icon-512.png']
+    assets = ['./', './index.html', './studio.js', './R23_REAR_BOARD.svg', './manifest.webmanifest', './icon-192.png', './icon-512.png']
     (out / 'sw.js').write_text(
-        "// Offline cache for the STRUTHIO R27 studio (deploy bundle built by CHECKS/build_viewer_bundle.py).\n"
+        "// Offline cache for the STRUTHIO R28 studio (deploy bundle built by CHECKS/build_viewer_bundle.py).\n"
         f"const CACHE='{CACHE}';\nconst ASSETS={json.dumps(assets)};\n"
         "self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));\n"
         "self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('struthio-studio-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));\n"

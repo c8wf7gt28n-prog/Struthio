@@ -1,18 +1,18 @@
-STRUTHIO SLIM4 R27 PACKAGE — PACKAGE CHECKS
+STRUTHIO SLIM4 R28 PACKAGE — PACKAGE CHECKS
 
-PASS: The PCB R22 board file and its PCB layer JSON are hash-locked (SHA-256, check A1).
-PASS: R22_FROM_R21/build_r22.sh rebuilds R22 from the unchanged R21 board. Parts, pads, tracks, vias and nets are identical to the package board; library files differ only in random tstamps.
-PASS: KiCad 7.0.11 DRC on R22: 0 violations, 0 unconnected pads, 0 footprint errors. Zone fills are current. The plotted masks have no opening at any via.
-PASS: JLCPCB order (1_PCB_FABRICATION): 13 Gerber layers, PTH and NPTH drill, 50 BOM lines with an LCSC number on all 166 placements, 166 CPL lines, and assembly drawings on both sides.
-PASS: Land patterns. Every footprint was compared with the KiCad 7 library land or the manufacturer's recommended land. The L1–L3 lands were corrected to Sunlord's patterns (R22 edit 11). D2 matches ST's SOD123Flat land.
-PASS: CHECKS/export_pcb_layer.py, re-run on R21, reproduces the R21 layer file's segments, vias and nets exactly. Its pads correct 80 that the R21 file mirrored.
-PASS: Display flex. The generator's 20 J1 fingers match the R22 J1 pads in position and net (N1). Preview flex DRC: 0 / 0 / 0.
-FAIL: Case pass, deferred by the owner (3 rows of CHECKS/R27_CONVERGENCE_REPORT.md):
-      C6     the Startek module is 0.5 mm wider than the R12 LCD pocket;
-      F1, I1 J5's real JST body and tab reach the rear support post at (40.75, 108).
-PASS: All other interfaces: 78 PASS, 9 GATE and 3 INFO over 327 pair evaluations (288 distinct pairs). 21/21 CASE and ACRYLIC solids are valid.
-PASS: Builder files rebuilt. The six printed-part STLs are watertight. The flex folder holds the fit template until the panel pin map is filled.
-PASS: The studio (package and 7-file deploy bundle) loads in Chromium with no console errors. It shows R22: 166 parts, 596 pads, the 15-stop tour, and the open FAIL and GATE rows.
+PASS: The PCB R23 board file and its PCB layer JSON are hash-locked (SHA-256, check A1).
+PASS: R23_FROM_R22/build_r23.sh rebuilds R23 from the unchanged R22 board. Every track and via is identical to the package board (3023 segments, 292 vias); the J1 pin table and the DSI lengths match.
+PASS: KiCad 7.0.11 DRC on R23 with the board's own net-class rules: 0 violations, 0 unconnected pads, 0 footprint errors. Zone fills are current. The plotted masks have no opening at any via.
+PASS: JLCPCB order (1_PCB_FABRICATION): Gerber and drill files, 52 BOM lines with an LCSC number on all 167 placements, CPL, and assembly drawings on both sides (5 front, 162 back).
+PASS: J1 against the Crystalfontz CFAF7201280A0-050TN pin table: 40 of 40 pads in position and net (N1). U1's DSI pads 35-40 reach J1 through R301-R306 with P and N in order (ESP32-P4 pin table).
+PASS: DSI: P = N within 0.01 mm on all three pairs; flight-time skew <= 8 ps in a pair and <= 39 ps clock to data at 1 Gbit/s (1000 ps a bit).
+PASS: Firmware (firmware/slim4, R6): clean ESP-IDF v6.1 build for esp32p4, 0 warnings, app 388 KiB (91 % of its slot free). tools/check_pinmap.py: 19 of 19 firmware GPIOs match the R23 board's U1 pad nets.
+FAIL: Case pass, set aside by the owner (3 rows of CHECKS/R28_CONVERGENCE_REPORT.md):
+      C6     the 5 in Crystalfontz module does not fit the R12 LCD pocket;
+      F1     the rear shell meets the J3 (JST PH) and J5 (PicoBlade) bodies;
+      G1     the rear shell sits 0.08 mm from J4 (0.1 mm required).
+PASS: All other interfaces: 78 PASS, 9 GATE and 3 INFO over 317 pair evaluations (278 distinct pairs). CASE and ACRYLIC solids are valid.
+PASS: Builder files rebuilt (R28). The six printed-part STLs are closed meshes; the builder README covers the four plug-in parts.
+PASS: The studio (package and 7-file deploy bundle) loads in Chromium with no console errors. It shows R23: 167 parts, 619 pads, 3023 track segments, the 15-stop tour with J1 on the front, and the open FAIL and GATE rows.
 LIMIT: U1 (ESP32-P4NRW32X) had no stock at JLCPCB on 2026-10-07: pre-order it or consign it.
-LIMIT: The display flex waits for Startek's pin table.
-LIMIT: Bring-up, the case pass and the R26 physical gates are open (PRODUCTION_GATES.md). This is not a production release.
+LIMIT: Nothing has been built yet: bring-up, the panel image and the case pass are open (PRODUCTION_GATES.md). This is not a production release.

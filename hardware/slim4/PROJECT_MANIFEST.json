@@ -1,23 +1,24 @@
 {
   "project": "STRUTHIO SLIM4",
-  "package_revision": "R27",
-  "package_issue": "R27: PCB R22 replaces R21 (electrical and land-pattern review fixed, JLCPCB order files), display flex R1 added; CASE R12 / ACRYLIC R2 checked on R22, case pass open (see CHANGELOG.md, DECISIONS_R27.md)",
+  "package_revision": "R28",
+  "package_issue": "R28: PCB R23 replaces R22: four plug-and-play ports (Crystalfontz 5 in panel tail straight into a top-contact J1 on the front, JST PH battery behind a reverse-polarity MOSFET, PicoBlade speakers), no adapter flex; case set aside (see CHANGELOG.md, DECISIONS_R28.md)",
   "decisions": [
     "DECISIONS_R26.md",
-    "DECISIONS_R27.md"
+    "DECISIONS_R27.md",
+    "DECISIONS_R28.md"
   ],
   "bom_sourcing": "CHECKS/BOM_SOURCING_R21.json",
-  "previous_revision": "R26",
-  "package_status": "PCB R22 order files ready (U1 stock to confirm); display flex waits for the panel pin table; CASE R12 needs its pass for the chosen panel and the R22 connectors (3 FAIL rows); not a production release",
+  "previous_revision": "R27",
+  "package_status": "PCB R23 order files ready (U1 stock to confirm); firmware for R23 builds (firmware/slim4); CASE R12 set aside by the owner, its pass for the 5 in panel is open (FAIL rows in the convergence report); not a production release",
   "units": "mm",
   "coordinate_system": {
-    "xy": "SLIM4 PCB datum, R21 = R22 (Y down, KiCad)",
+    "xy": "SLIM4 PCB datum, R21 = R22 = R23 (Y down, KiCad)",
     "z_origin": "bottom of PCB is Z=0",
     "positive_z": "toward device front"
   },
   "convergence": {
     "checker": "CHECKS/convergence_check.py",
-    "report": "CHECKS/R27_CONVERGENCE_REPORT.md",
+    "report": "CHECKS/R28_CONVERGENCE_REPORT.md",
     "converged": false,
     "counts": {
       "PASS": 78,
@@ -30,18 +31,24 @@
   "parent_layers": [
     {
       "id": "PCB",
-      "revision": "R22",
-      "authority": "locked for ordering; unchanged from the R27 delivery (check A1)",
+      "revision": "R23",
+      "authority": "locked for ordering; unchanged from the R28 delivery (check A1)",
       "native": [
-        "LAYERS/01_PCB/SLIM4_R22.kicad_pcb",
-        "LAYERS/01_PCB/SLIM4_R22.kicad_pro",
+        "LAYERS/01_PCB/SLIM4_R23.kicad_pcb",
+        "LAYERS/01_PCB/SLIM4_R23.kicad_pro",
         "LAYERS/01_PCB/fp-lib-table",
         "LAYERS/01_PCB/SLIM4.pretty/"
       ],
       "interchange": [
-        "LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json"
+        "LAYERS/01_PCB/SLIM4_R23_PCB_LAYER.json"
       ],
-      "review": "LAYERS/01_PCB/ELECTRICAL_REVIEW_R22.md",
+      "review": [
+        "LAYERS/01_PCB/ELECTRICAL_REVIEW_R22.md",
+        "LAYERS/01_PCB/README_PCB_LAYER.md"
+      ],
+      "rebuild": "LAYERS/01_PCB/R23_FROM_R22/build_r23.sh",
+      "display_port": "LAYERS/01_PCB/DISPLAY_PORT.md",
+      "release_gates": "LAYERS/01_PCB/RELEASE_GATES.md",
       "status": "JLCPCB order files ready; KiCad DRC 0/0/0; U1 ESP32-P4NRW32X out of stock at JLCPCB on 2026-10-07 (pre-order or consign)"
     },
     {
@@ -65,7 +72,7 @@
         "LAYERS/02_CASE/CASE_LAYER_R12_MESH.json",
         "LAYERS/02_CASE/R12_FIT_CHECKS.json"
       ],
-      "status": "complete enclosure converged on R21 in R26; on PCB R22 and the chosen panel three case items fail (C6, F1, I1): case pass open",
+      "status": "complete enclosure converged on R21 in R26; set aside by the owner for PCB R23 and the 5 in panel: case pass open (FAIL rows in the convergence report)",
       "envelope_mm": [
         104.0,
         135.3
@@ -92,36 +99,25 @@
       "status": "clear unprinted prototype film, 0.175 PET + 0.025 OCA, edge inset 0.20",
       "thickness_mm": 0.2,
       "screen_cutout": false
-    },
-    {
-      "id": "DISPLAY_FLEX",
-      "revision": "R1",
-      "native_source": [
-        "LAYERS/04_DISPLAY_FLEX/generate_flex.py",
-        "LAYERS/04_DISPLAY_FLEX/export_flex.py",
-        "LAYERS/04_DISPLAY_FLEX/flex_rules.kicad_pro",
-        "LAYERS/04_DISPLAY_FLEX/panel_pinmap.csv",
-        "LAYERS/04_DISPLAY_FLEX/panel_pinmap_PREVIEW.csv",
-        "LAYERS/04_DISPLAY_FLEX/README.md"
-      ],
-      "preview": "LAYERS/04_DISPLAY_FLEX/PREVIEW_NOT_FOR_ORDER/",
-      "status": "generator complete (KiCad flex, JLCPCB files); the Startek panel pin table is still to be filled in panel_pinmap.csv"
     }
   ],
   "derived": {
-    "assembly": "ASSEMBLY/STRUTHIO_SLIM4_R27_ASSEMBLY.step",
+    "assembly": "ASSEMBLY/STRUTHIO_SLIM4_R28_ASSEMBLY.step",
     "assembly_sequence": "ASSEMBLY/ASSEMBLY_SEQUENCE.md",
-    "component_envelopes": "CHECKS/COMPONENT_ENVELOPES_R22.json",
+    "component_envelopes": "CHECKS/COMPONENT_ENVELOPES_R23.json",
     "pcb_layer_exporter": "CHECKS/export_pcb_layer.py",
     "renders": "CHECKS/renders/"
   },
   "tooling": {
     "python_requirements": "requirements.txt",
     "regenerate_in_order": [
+      "CHECKS/export_pcb_layer.py (after a board edit)",
       "LAYERS/02_CASE/export_layer_formats.py",
+      "CHECKS/build_builder_packs.py",
       "CHECKS/convergence_check.py",
       "CHECKS/render_review.py",
       "CHECKS/build_pcb_viewer_data.py",
+      "CHECKS/build_viewer_bundle.py",
       "CHECKS/make_manifest.py"
     ]
   },
@@ -131,12 +127,12 @@
     "case_mesh": "case-layer-data.js",
     "acrylic_mesh": "acrylic-layer-data.js",
     "reference_mesh": "case-r3-data.js",
-    "pcb_rear_plot": "R22_REAR_BOARD.svg",
+    "pcb_rear_plot": "R23_REAR_BOARD.svg",
     "offline_service_worker": "sw.js",
     "deploy_bundle_builder": "CHECKS/build_viewer_bundle.py",
     "studio_version": "1.1",
     "pcb_data_builder": "CHECKS/build_pcb_viewer_data.py",
-    "fab_summary": "CHECKS/R22_FAB_SUMMARY.json"
+    "fab_summary": "CHECKS/R23_FAB_SUMMARY.json"
   },
   "builder_packs": {
     "generator": "CHECKS/build_builder_packs.py",
@@ -144,47 +140,43 @@
     "folders": [
       "1_PCB_FABRICATION",
       "2_3D_PRINTING",
-      "3_ACRYLIC_STICKER",
-      "4_DISPLAY_FLEX"
+      "3_ACRYLIC_STICKER"
     ]
   },
   "reference_only": [
+    "REFERENCES/PCB_R22/",
     "REFERENCES/PCB_R21/",
+    "REFERENCES/DISPLAY_FLEX_R1/",
     "REFERENCES/R10_CONTEXT/STRUTHIO_R10_UNSEPARATED_CONTEXT_REFERENCE.step",
     "REFERENCES/SLIM4_R3_INTEGRATION/",
     "case-r3-data.js"
   ],
   "release_gates": "PRODUCTION_GATES.md",
   "cross_platform_instructions": "AI_HANDOFF.md",
-  "change_report": "AI_CHANGE_REPORT_R27.md",
+  "change_report": "AI_CHANGE_REPORT_R28.md",
+  "firmware": "../../firmware/slim4 (ESP-IDF project for PCB R23)",
   "sha256": {
-    "LAYERS/01_PCB/SLIM4_R22.kicad_pcb": "44956c8eef4e7ee5530bfee74a0829e40373da53aebf43ee264fc9062b24d408",
-    "LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json": "2b9f779008b2b92f2e4c7b89ad997479f0b72d942aadcf8e9e9f53533aa81141",
-    "LAYERS/02_CASE/STRUTHIO_CASE_R12.step": "ba300def54a6bf2cea9d0347ff1aec969f0352d3b23d371862f29a9acae9a443",
-    "LAYERS/02_CASE/STRUTHIO_CASE_R12.stl": "767301579b20177d89aa97bf72727ec701ebbb93f634609f35ed982774f4d081",
+    "LAYERS/01_PCB/SLIM4_R23.kicad_pcb": "4375dc0aafefc80a3451934e457a81053f1a4fbe0932842e0339c7e826699207",
+    "LAYERS/01_PCB/SLIM4_R23_PCB_LAYER.json": "6d40148de66320a95aab50c30b86ccbba225f052a9d3e9dfb327eeb84f5f2379",
+    "LAYERS/02_CASE/STRUTHIO_CASE_R12.step": "636984e13523b2a9a19e3f29477e5fd41d6e2f71028adb6fe86f283e8581821c",
+    "LAYERS/02_CASE/STRUTHIO_CASE_R12.stl": "c5a16c016ed7adc22cadc4f4f2ac0c2dfc4969a454ca6a7c9ebfe1bed6bd456d",
     "LAYERS/02_CASE/CASE_FRONT_SHELL_R12.step": "2749e18ccba5c19292801c7b54b657aefd900cec12da68eb48853629cc8c9079",
     "LAYERS/02_CASE/CASE_FRONT_SHELL_R12.stl": "d8605241c0bc1cbefb5a76341d9e0dc0103b3f19ee4d88f397daa43e8a41f754",
-    "LAYERS/02_CASE/CASE_REAR_SHELL_R12.step": "1c9523409cd86b3e007564e7f434c22cbba61a85ca55df7aa8f95c6a7db276e5",
-    "LAYERS/02_CASE/CASE_REAR_SHELL_R12.stl": "1639d4af1c4c965ca3d2cf34e0a12dcea7aeba37f15f3c0787d6d6bd14ecf69c",
-    "LAYERS/02_CASE/CASE_CONTROLS_R12.step": "6ff0c84e90214e51bc59c05cdffb0bfd72b579c4b33f186b43b11227d2800f3c",
+    "LAYERS/02_CASE/CASE_REAR_SHELL_R12.step": "69181e22e24f26a4b6bbeb343eac1accc1f8e120814f7bdc817e9149c3b07644",
+    "LAYERS/02_CASE/CASE_REAR_SHELL_R12.stl": "160f582e927c036370a97a93cf6a85fb362b0bebd2d8ea4eb0ed10dad093a656",
+    "LAYERS/02_CASE/CASE_CONTROLS_R12.step": "fe0d94d38c6b708278e5aa400fd2440045f58f1e4a60ca94f76409209b8f14a6",
     "LAYERS/02_CASE/CASE_CONTROLS_R12.stl": "b2be78af21ba3f5a3307282039cf0dd6734329c35e76305839bacfce4d728ae5",
-    "LAYERS/02_CASE/CASE_SCREEN_STACK_R12.step": "688dadee09d64bbe9cab3da3b726996f7e954f49e024976e5019552de1ecd7dc",
-    "LAYERS/02_CASE/CASE_INTERNALS_R12.step": "1cd43c7bc93d928424aa782d3b2c13ae6b0994661923eefc4aa8e3a780246df9",
-    "LAYERS/02_CASE/CASE_LAYER_R12_MESH.json": "778f572235b684d723636ad91ef959980a68916adb5af9d118b355b78f503cd4",
-    "LAYERS/02_CASE/R12_FIT_CHECKS.json": "c52d06cb613aac1a9735b3ae8d601f068b783a3decf51f503578104a6aa5d5ae",
+    "LAYERS/02_CASE/CASE_SCREEN_STACK_R12.step": "593255b65a31fd087b714cd7015af453d3126394672eeef75abba531858e0927",
+    "LAYERS/02_CASE/CASE_INTERNALS_R12.step": "0ea36b9f693516f16bf2697b44df12c8d57ce3dc53123cbb928047e01e3c2b4c",
+    "LAYERS/02_CASE/CASE_LAYER_R12_MESH.json": "7f765c0aeb57107a13ca378de47126122bb5cce5952bae1d70d337f6467ac4be",
+    "LAYERS/02_CASE/R12_FIT_CHECKS.json": "2599db4a0dfa20a588ad8259f088cb63570b1a5730622b45106b5d2551e10cfb",
     "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R2.step": "f74aea166878570253a00febc549d19ac770450935f7f857a8faa19d602ac19f",
     "LAYERS/03_ACRYLIC/STRUTHIO_ACRYLIC_FACE_FILM_R2.stl": "a93ad1b7f174184e4814a96b88f4e313680b9cb86b3d6d77228c4b92919b2b42",
     "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R2.svg": "abd52c29812e9267d9a7f4390971983d4706842bd64a7d1fc7f66d62aaafd3a6",
     "LAYERS/03_ACRYLIC/ACRYLIC_FACE_FILM_CUTLINE_R2.dxf": "bb967fdb4c0129aa3e1530d9fb908e4e8f01714510d34afc808e8cd890f25db1",
-    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_CUT_SPEC.json": "6d55f38f98b587471f9e0f4f42050c125226bee870283afffaf9929849802be7",
-    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_MESH.json": "cc236406d433cc3848ba010322b7e5569ba76a47cb3f3835483aef6ee918d768",
-    "LAYERS/04_DISPLAY_FLEX/generate_flex.py": "90127e0193bceffde7fd46cc142be809c06b0ffa36d7f9ca9e35a29e091d1a33",
-    "LAYERS/04_DISPLAY_FLEX/export_flex.py": "2c24a94d9c58c5a5eacbb3f9f0ce8b711ec168f82171a332ce9226f4caa7e919",
-    "LAYERS/04_DISPLAY_FLEX/flex_rules.kicad_pro": "b3574a9d8d9824bead8f693a964c130d73b420db690b39ae26979258ac23cf1a",
-    "LAYERS/04_DISPLAY_FLEX/panel_pinmap.csv": "07a4a67bb021d4f379073f5e6052d16afc40939270d00d63787f8216a093b195",
-    "LAYERS/04_DISPLAY_FLEX/panel_pinmap_PREVIEW.csv": "2d3d10b9e442fbfe681e32e25b783467251a6c48885b7ea2aa1616d8a1754637",
-    "LAYERS/04_DISPLAY_FLEX/README.md": "47a1fefe3fd4e225705dc48b425b423d62f9a7664320fa2c5ae1c87c7a00d4bc",
-    "ASSEMBLY/STRUTHIO_SLIM4_R27_ASSEMBLY.step": "66660f2360f6e8c4feb090b1466bd5261b9cd4e667894d29614b38528722dee9"
+    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_CUT_SPEC.json": "892ad552117dea240fef23e9c52c794f3b2ac1d190c64dea62c7eaf793dcc871",
+    "LAYERS/03_ACRYLIC/ACRYLIC_LAYER_R2_MESH.json": "fc5d047acdd4147d95945a5af580f60178aa0298c36960646d729b3dc4d9bcb0",
+    "ASSEMBLY/STRUTHIO_SLIM4_R28_ASSEMBLY.step": "4bfd3263a1040b035c08502ac332be370413bbaa4531b771d4883c01a16105d1"
   },
   "checksums_file": "SHA256SUMS.txt (all package payloads except manifest and checksum file)"
 }

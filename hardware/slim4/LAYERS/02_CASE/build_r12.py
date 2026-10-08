@@ -1,4 +1,4 @@
-"""STRUTHIO SLIM4 CASE R12 + ACRYLIC R2, on PCB R22 (package R27; the case was converged on R21 in R26).
+"""STRUTHIO SLIM4 CASE R12 + ACRYLIC R2, on PCB R23 (package R28; the case was converged on R21 in R26).
 
 R12/R2 = R11/R1 plus the R26 decisions (DECISIONS_R26.md): 0.10 mm radial lap clearance with a
 0.10 mm tape seat, a 0.10 mm display tape frame (LCD 0.10 mm further back), 0.10 mm radial DART
@@ -8,11 +8,14 @@ Shared datum (unchanged from R24): millimetres, R21 PCB XY (X right, Y down from
 board's top edge region, as in KiCad), board bottom at Z=0, +Z toward the device front.
 
 Nothing here edits the PCB. The board outline, footprint positions and heights are
-read from LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json and CHECKS/COMPONENT_ENVELOPES_R22.json,
-and every case/acrylic feature is placed against them. R22 keeps R21's outline, thickness,
-switch, J1 and J2 positions, so the R12 parameters are unchanged; the harness reserves follow
-the R22 J3/J4/J5 positions. The LCD parameters are still the R3/HOTHMI envelope: the case pass
-for the chosen Startek KD047HDFID001 panel is open (CHECKS/R27_CONVERGENCE_REPORT.md, C6).
+read from LAYERS/01_PCB/SLIM4_R23_PCB_LAYER.json and CHECKS/COMPONENT_ENVELOPES_R23.json,
+and every case/acrylic feature is placed against them. R23 keeps R21's outline, thickness and
+switch positions, so the R12 parameters are unchanged; the harness reserves follow the R23
+J3/J4/J5 positions. The LCD parameters are still the R3/HOTHMI envelope: the case was set aside
+by the owner for R23 (5 in Crystalfontz panel, its tail folded once behind it into a top-contact J1
+on the board front), and its pass is open (CHECKS/R28_CONVERGENCE_REPORT.md). R23 shortened the
+battery window to 38 x 53.5 mm, so the cell envelope is 34 x 50 x 7 (503450 / 703450), 1.5 mm below
+the window's top edge and 2.0 mm clear of its bottom edge for the leads.
 
 Run:  python LAYERS/02_CASE/build_r12.py      (builds and prints a short summary)
 The export script and the convergence checker import this file with runpy.
@@ -26,8 +29,8 @@ from shapely import affinity
 
 OUT = Path(__file__).resolve().parent
 ROOT = OUT.parents[1]
-PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R22_PCB_LAYER.json').read_text())
-ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R22.json').read_text())
+PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R23_PCB_LAYER.json').read_text())
+ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R23.json').read_text())
 
 # ---------------------------------------------------------------------------
 # Parameters. Most R12 dimensions live here and the checker reads the same dict.
@@ -35,7 +38,7 @@ ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R22.json').read_text())
 # silhouette control points, and the FPC/harness route and ledge geometry.
 # ---------------------------------------------------------------------------
 P = dict(
-    revision_case='R12', revision_acrylic='R2', package='R27',
+    revision_case='R12', revision_acrylic='R2', package='R28',
     pcb_t=PCB['board']['thickness'],                 # 1.2, from the board file (R10 modelled 1.6)
     wall=2.0,                                        # minimum structural wall / plate / floor
     board_to_wall_clearance=0.3,
@@ -74,7 +77,7 @@ P = dict(
     lap_clear=0.10,                                  # R12: radial clearance between skirt and lip
     lap_tape=0.10,                                   # R12: tape seat between lip top and plate underside
     # Battery: 703450-class pouch with PCM, in the R21 board window (38 x 56)
-    battery=(34.0, 52.0, 7.0), battery_center=(0.0, 45.0), battery_pad=0.2,
+    battery=(34.0, 50.0, 7.0), battery_center=(0.0, 43.5), battery_pad=0.2,
     # Speakers: Same Sky CMS-18138A-SP (18 x 13 x 2.5, 500 Hz) front-firing
     speaker=(18.0, 13.0, 2.5), speaker_center_x=38.3, speaker_center_y=125.6,
     speaker_gasket=0.25, chamber_wall=1.0, chamber_clear=0.2,
@@ -84,7 +87,8 @@ P = dict(
     # Rear service access
     power_pin_d=2.4, power_hole_d=2.8, power_collar_d=4.0, power_gap=0.10, power_proud=0.30,
     pinhole_d=1.2,
-    # FPC extension route (HOTHMI panel to J1 FH12-20, 0.5 mm pitch, 10.5 mm wide tail)
+    # FPC route reserve as R12 drew it for an extension FPC (on R23 the panel tail folds behind the panel into J1 on the
+    # board front, so the reserve now ends at the board's back face; the case pass replaces it)
     fpc_w=10.5, fpc_clear=0.5,
     # Saddle at the bottom centre: lift reduced 4.5 -> 4.0 mm so the FPC can wrap the board tab
     saddle_center_y=131.3,
@@ -141,7 +145,7 @@ def clean(g):
 BOARD_OUTER = Polygon(PCB['board']['outer'])
 BOARD_HOLES = [Polygon(h) for h in PCB['board'].get('holes', [])]
 BOARD = Polygon(PCB['board']['outer'], [h for h in PCB['board'].get('holes', [])])
-WINDOW = BOARD_HOLES[0]                              # battery window, x +-19, y 17..73
+WINDOW = BOARD_HOLES[0]                              # battery window, x +-19, y 17..70.5 (R23)
 
 def part_height(p):
     e = ENV['by_value'].get(p['value'])
@@ -442,7 +446,7 @@ add('POWER PLUNGER · ACTUATES SW5 PWR_WAKE', plunger, 'CASE', 'controls', 'cont
 
 # ---- INTERNALS: purchased envelopes and reserves ----
 battery = rbox(*P['battery_center'], BAT_W, BAT_H, Z_BAT0, Z_BAT1, 1.0)
-add('LIPO 703450-CLASS ENVELOPE · 34 × 52 × 7.0 IN BOARD WINDOW', battery, 'CASE', 'internals', 'battery', '#c9a227', 'purchased')
+add('LIPO 703450-CLASS ENVELOPE · 34 × 50 × 7.0 IN BOARD WINDOW', battery, 'CASE', 'internals', 'battery', '#c9a227', 'purchased')
 pad = rbox(*P['battery_center'], BAT_W, BAT_H, P['floor_inner_z'], Z_BAT0, 1.0)
 add('BATTERY FOAM PAD 0.20', pad, 'CASE', 'internals', 'battery', '#6b5a1e', 'purchased')
 # R12: lap tape ring (0.10 thick, 0.05 narrower than the lip on each side) between lip top and plate underside.
@@ -459,7 +463,6 @@ fw = P['fpc_w'] + 2 * P['fpc_clear']
 lcd_bot = P['lcd_top_y'] + LCD_H
 Y_DESCENT = 102.5
 Y_TAB = max(y for x, y in PCB['board']['outer'] if abs(x) <= 26.01)    # 128.0
-j1_mouth_y = J1['y'] + 3.55                                           # insertion side faces +Y
 FPC_SEGMENTS = [
     # R12: the module sits 0.10 further back, so the fold and the run under it drop 0.10 as well.
     ('fold around LCD bottom edge', (-fw/2, lcd_bot, fw/2, lcd_bot + P['lcd_fpc_bend'] - 0.1, 4.65, 6.75)),
@@ -468,8 +471,6 @@ FPC_SEGMENTS = [
     ('run on board front, between DART switches', (-fw/2, Y_DESCENT - 1.6, fw/2, Y_TAB, 1.25, 1.75)),
     ('wrap around board tab edge', (-fw/2, Y_TAB, fw/2, Y_TAB + 0.95, -1.35, 1.75)),
     ('return on board back', (-fw/2, 117.0, fw/2, Y_TAB + 0.95, -1.35, -0.6)),
-    ('45-degree fold, lateral run to J1', (-fw/2, 117.0, J1['x'] + fw/2, 117.0 + fw, -1.35, -0.6)),
-    ('entry into J1 (FH12-20, bottom contact)', (J1['x'] - fw/2, j1_mouth_y, J1['x'] + fw/2, 117.0, -1.35, -0.6)),
 ]
 fpc = None
 for _, (x0, y0, x1, y1, z0, z1) in FPC_SEGMENTS:

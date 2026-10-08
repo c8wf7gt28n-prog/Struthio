@@ -1,5 +1,7 @@
 # Electrical and land-pattern review of PCB R21 → R22
 
+> **R23:** this review still covers every part R23 kept. Where it describes the panel (Startek KD047HDFID001), J1 (FH12-20S), J3–J5 (JST SH), R309 (5.1 Ω) or R412 (3.6 k), R23 replaced them: see `README_PCB_LAYER.md` (edits 12–15) and `RELEASE_GATES.md`.
+
 The R21 netlist was checked pin by pin against the datasheets: Espressif ESP32-P4 datasheet v0.7, the ESP32-P4 hardware design guidelines, the ESP32-P4-Function-EV-Board schematic v1.52, and the TI, Analog Devices and Winbond part datasheets. There is no schematic, so the review works from the board's own netlist. Every footprint was then compared with the KiCad 7 library footprint for its package (`R22_FROM_R21/fpcmp.py`).
 
 ## Verified correct (no change)

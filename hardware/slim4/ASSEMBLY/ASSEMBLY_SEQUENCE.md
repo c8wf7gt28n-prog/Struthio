@@ -1,15 +1,14 @@
-# R27 assembly sequence (CASE R12 on PCB R22)
+# R28 assembly sequence (PCB R23; CASE R12 set aside)
 
-`STRUTHIO_SLIM4_R27_ASSEMBLY.step` holds every part in its rest position. PCB solids in it are envelopes derived from the PCB layer JSON (board outline, part courtyards × heights from `CHECKS/COMPONENT_ENVELOPES_R22.json`); the KiCad file remains the PCB authority.
+`STRUTHIO_SLIM4_R28_ASSEMBLY.step` holds the R23 board envelopes with CASE R12 and ACRYLIC R2 as they are. PCB solids in it are envelopes derived from the PCB layer JSON (board outline, part courtyards × heights from `CHECKS/COMPONENT_ENVELOPES_R23.json`); the KiCad file remains the PCB authority. The case does not fit the 5 in panel yet (`PRODUCTION_GATES.md`), so the sequence below is the bench build of the board and its four plug-in parts.
 
-J1 (display flex), J3 (battery) and J4/J5 (speakers) are on the board's back side and face the rear shell, so they are plugged before the board goes in. Parts and tapes are as specified in `DECISIONS_R26.md` and `DECISIONS_R27.md`. CASE R12 still needs its pass for the Startek panel and J5 (`PRODUCTION_GATES.md`); the steps below are the intended sequence.
+## Bench build (no case)
 
-1. **Rear shell.** Fit the power plunger into the Ø2.8 bore from inside (collar on the floor). Lay the 0.20 mm foam pad in the window area of the floor.
-2. **Speakers.** Seat each CMS-18138A-SP, with its leads (PRODUCTION_GATES.md item 12), on the four ledges of its chamber, face up. Pass the lead through the chamber's feedthrough notch toward J4 (left) / J5 (right).
-3. **Board, upside down on the bench.** Push the display flex's gold-finger end into J1 (insertion from the tab side, +Y; fingers facing the board, silk "1" to pin 1) and close the latch. Plug the speaker leads into J4 and J5 (pin 1 +). Check the cell lead's polarity, then plug it into J3 (pin 1 BAT+, pin 2 GND).
-4. **Board into the rear shell.** Turn the board over and lower it onto the rear supports, letting the cell drop through the board window onto the pad and feeding the FPC around the bottom tab edge. Seal the speaker feedthroughs (RTV).
-5. **Screen into the front shell, shell face down.** Peel one liner of the 0.10 mm display tape frame and lay it on the LCD module front with its window on the active area. Peel the second liner and set the 0.70 mm cover glass on the tape, centred on the active area (0.5 mm of tape under its border). Lower module and glass into the pocket from the back, FPC end toward the DART opening: the glass enters the rebate and the tape's outer band bonds the module to the ledge. Press for 10 s.
-6. **Controls.** Snap the DART rocker trunnions into the pivot bosses (0.10 mm running clearance). Drop the two flap caps into their holes from below (flange under the plate).
-7. **Panel tail.** Insert the panel's 31-pin tail into the flex's FH26 connector, contacts facing the flex, and close the latch; lay the flex under the module, down to the board between the DART switches.
-8. **Close.** Peel the top liner of the 0.10 mm lap tape ring and lay it on the rear-shell lip top. Lower the front shell: the skirt lands on the rear wall (hard stop), the tape bonds the lip to the plate underside, and the six front clamp posts trap the board on the matching rear posts. To open, slide a thin blade along the seam to release the tape and replace the ring.
-9. **Check, then film.** Before applying the film: each flap cap clicks its own switch (SW1, SW2); the rocker clicks SW3 and SW4; the power plunger clicks SW5; RESET (SW6) and BOOT (SW7) are reachable through the pinholes. Then apply the ACRYLIC R2 film, registering the flap and DART cutouts on the raised relief; its edge sits 0.20 mm inside the case edge all round.
+1. **Board on the bench, back side up.** Plug the speakers into J4 (left) and J5 (right), pin 1 +. Check the cell's plug: red lead to pin 1 (BAT+). Plug it into J3 at the battery window's left edge; lay the cell in the window. (A reversed pack leaves the board off: Q2 blocks it.)
+2. **Turn the board front side up.** Put 3–4 mm foam spacers on the board front where the panel will rest, clear of J1 and SW1–SW4.
+3. **Panel.** Fold its tail once behind the module and plug it into J1, contacts up, as `LAYERS/01_PCB/DISPLAY_PORT.md` shows (panel face up, its bottom edge toward the board's bottom edge). Close J1's latch. The panel rests on the spacers, bottom edge at Y 109.8, overhanging the board's top edge by 13.6 mm.
+4. **USB-C.** Connect to a computer and flash `firmware/slim4` (`idf.py -p <port> flash monitor`; first time: hold BOOT, tap RESET). Work through `firmware/slim4/docs/FIRST_BOOT.md`.
+
+## In a case
+
+The R12 sequence (rear shell, speakers in their chambers, board, screen into the front shell, controls, close with the lap tape, then film) still applies to the case design, but the screen and route steps change with the case pass: the panel's tail now folds behind it into J1 on the board front, so the panel is plugged in before the front shell closes over it.

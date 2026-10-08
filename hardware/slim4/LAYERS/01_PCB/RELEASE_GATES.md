@@ -1,23 +1,22 @@
-# STRUTHIO SLIM4 PCB R22 — release gates
+# STRUTHIO SLIM4 PCB R23 — release gates
 
-**Order files ready.** `CHECKS/build_builder_packs.py` writes the JLCPCB order (Gerbers, drill, BOM, CPL, README) into `1_PCB_FABRICATION/`. The R21 review hold (`REFERENCES/PCB_R21/RELEASE_GATES_R21.md`) is closed as below.
+**Order files ready.** `CHECKS/build_builder_packs.py` writes the JLCPCB order (Gerbers, drill, BOM, CPL, README) into `1_PCB_FABRICATION/`. The R22 gates (`REFERENCES/PCB_R22/RELEASE_GATES_R22.md`) stay closed; R23 closes the three it left open about the panel and the battery.
 
 ## Closed
 
-| R21 gate | How R22 closes it |
+| Gate | How R23 closes it |
 |---|---|
-| 1. Schematic and ERC | There is no schematic. The board netlist was reviewed pin by pin against the ESP32-P4 datasheet, the hardware design guidelines, the Function-EV-Board schematic and every IC datasheet (`ELECTRICAL_REVIEW_R22.md`). |
-| 2. ESP32-P4 power, boot, USB, flash; power tree | Same review: v3 DCDC network (499 k / 499 k + 22 pF), strapping pins, flash, crystal load (C203/C204 → 12 pF), supervisor, charger, regulators, backlight (39 mA, 50 V output capacitor). USB moved to USB-Serial-JTAG. |
-| 3. MIPI-DSI and USB signal integrity | DSI runs are 29–40 mm with ≤ 5.8 mm in-pair skew at ≤ 1 Gbit/s per lane; USB is full speed (12 Mbit/s). Impedance control is not needed at these lengths and rates; bring-up confirms it. |
-| 4. Footprints vs orderable parts | Every footprint compared with the KiCad library or manufacturer land (`R22_FROM_R21/fpcmp.py`, the inductor and diode datasheets); 13 lands replaced (U11, U12, J3–J5, D1, Y1, SW5–SW7, L1–L3). All 166 parts have LCSC numbers; all in stock at JLCPCB on 2026-10-07 except U1. |
-| 5. Panel, battery, speakers | Panel chosen (`DISPLAY_PORT.md`); battery on a 2-pin JST SH (any protected cell); speakers on JST SH 2-pin (J4/J5). |
-| 6. Production DRC, Gerbers, BOM, CPL | KiCad 7.0.11 DRC 0 / 0 / 0 (`NATIVE_KICAD_DRC.txt`); plotted masks have no opening at any via; BOM 50 lines / CPL 166 placements. Run JLCPCB's own DFM check on upload. |
-| 7. Firmware GPIO map | `FIRMWARE_PINMAP.md`. |
+| Schematic-level review | R22's pin-by-pin review (`ELECTRICAL_REVIEW_R22.md`) covers every part R23 kept. The R23 changes were checked against their datasheets: AO3401A reverse-polarity switch (body diode, V<sub>GS</sub> ±12 V, 50–85 mΩ at a 3–4.2 V cell), BQ24074 ISET (1.8 k → 494 mA), TPS61165 sense (2.7 Ω → 74 mA, inside the boost's 84 mA worst case at 24 V), ESP32-P4 DSI and GPIO pads (pin table, chip revision v1.3 datasheet section 2.2; pad 54 is VDD_HP_1 on v3). |
+| Panel connection | The Crystalfontz pin table is public. J1's 40 pads carry it pad for pad (convergence check N1, every pin's position and net). No adapter flex. |
+| MIPI-DSI signal integrity | 2 lanes at 1 Gbit/s. P = N within 0.01 mm on every pair; flight-time skew ≤ 8 ps within a pair and ≤ 39 ps clock to data, counting the outer-layer and In3 delays separately. Outer-layer pairs are about 90–108 Ω differential on JLCPCB's 1.2 mm 6-layer stackup (`README_PCB_LAYER.md`, edit 15). |
+| Battery polarity | Q2 blocks a reversed pack. J3 is the JST PH plug used by hobby 1-cell packs. |
+| Footprints vs orderable parts | New footprints come from the KiCad 7 library for the exact parts: Hirose FH12-40S land (common to FH12 and FH12A), JST PH S2B-PH-SM4-TB, Molex PicoBlade 53261-0271, SOT-23. All parts have LCSC numbers. |
+| Production DRC, Gerbers, BOM, CPL | KiCad 7.0.11 DRC 0 / 0 / 0 with the board's own net-class rules (`NATIVE_KICAD_DRC.txt`); zones refilled; the board rebuilds copper-identical from R22 (`R23_FROM_R22/build_r23.sh`). Run JLCPCB's own DFM check on upload. |
+| Firmware GPIO map | `FIRMWARE_PINMAP.md`; `firmware/slim4/tools/check_pinmap.py` checks the firmware's pins against this board. |
 
 ## Open
 
 1. **U1 stock.** ESP32-P4NRW32X had no stock at JLCPCB, LCSC, DigiKey or Mouser on 2026-10-07. See *Sourcing U1* in `README_PCB_LAYER.md`.
-2. **Rotations in JLCPCB's placement preview.** Check pin 1 of every IC, diode, connector and the crystal before confirming assembly.
-3. **Display flex pin table.** The panel's 31-pin order comes from Startek's datasheet; `LAYERS/04_DISPLAY_FLEX` generates the flex when it is filled in.
-4. **Bring-up on the first boards** (no case needed): rails (SYS_RAW, 3V3_SYS, 1V1_HP, LCD 1.8 / 3.0 V, backlight boost) on a current-limited supply; USB-Serial-JTAG enumerates and `idf.py flash monitor` works; flash and PSRAM tests; charger with a cell; audio on both amplifiers; panel init and backlight once the flex is in.
-5. **Battery polarity.** The board has no reverse-polarity protection: check each cell's lead (pin 1 BAT+) before plugging it in.
+2. **Rotations in JLCPCB's placement preview.** Check pin 1 of every IC, diode, connector and the crystal before confirming assembly. J1 is a top-contact socket on the front, mouth toward the board's bottom edge.
+3. **Panel support.** The panel sits over the board's front on its folded tail and overhangs the top edge by 13.6 mm; it needs 2.3 mm over J1 and about 3.3 mm at the fold. Until the case pass, mount it on 3–4 mm foam spacers.
+4. **Bring-up on the first boards** (no case needed): rails (SYS_RAW, 3V3_SYS, 1V1_HP, LCD 1.8 / 3.0 V, backlight boost) on a current-limited supply; USB-Serial-JTAG enumerates and `idf.py flash monitor` works; flash and PSRAM tests; charger with a cell (and a reversed cell: the board must stay off); audio on both amplifiers; panel init and backlight (`firmware/slim4/docs/FIRST_BOOT.md`).
