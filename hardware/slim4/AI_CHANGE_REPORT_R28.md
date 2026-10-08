@@ -31,3 +31,8 @@
 - Board unchanged. Q2's reversed-pack behaviour with USB connected analysed against the BQ24074 datasheet (IBAT(SC) 4–11 mA, VBAT(SC) 1.6–2.0 V) and the AO3401A threshold (0.5–1.3 V): bounded, no part outside its ratings; claims corrected in every document.
 - Firmware R7: console, USB backlight cap, reversed-pack warning, safe charge suspend (see `CHANGELOG.md`).
 - Builder pack: `PROJECT_DOCS/`.
+
+## Update 2026-10-08: the R7 review
+
+- Firmware R8: the three power-policy defects the review reproduced are fixed; `tests/host` (29 cases) runs the unmodified `slim4_power.c` on a host. The review's own harness passes 6 of 7 on R8; the seventh expects switch-off after one reading, which R8 deliberately qualifies over 2 s.
+- Reversed-pack wording: an untested steady-state analysis, not a no-damage promise.

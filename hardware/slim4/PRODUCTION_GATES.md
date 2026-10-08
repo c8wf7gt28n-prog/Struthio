@@ -6,7 +6,7 @@ R28 puts PCB R23 in the package: the main board with four plug-and-play ports. *
 
 1. **PCB R23 + assembly at JLCPCB** (`1_PCB_FABRICATION`). Before ordering, pre-order or consign U1 (ESP32-P4NRW32X, v3). In the placement preview, check the rotations (J1 is a top-contact socket on the front).
 2. **Panel**: Crystalfontz CFAF7201280A0-050TN (5.0 in, 720 × 1280, ILI9881C). It plugs straight into J1; no cable to order.
-3. **Battery**: any protected 1-cell Li-ion/LiPo up to 34 × 50 × 7 mm on a JST PH 2.0 2-pin plug, red = pin 1 = BAT+ (Adafruit / SparkFun packs). Check the polarity: a reversed pack is blocked when the board runs from it, but with USB connected it draws the charger's 4–11 mA test current until unplugged (the screen shows BATTERY REVERSED).
+3. **Battery**: any protected 1-cell Li-ion/LiPo up to 34 × 50 × 7 mm on a JST PH 2.0 2-pin plug, red = pin 1 = BAT+ (Adafruit / SparkFun packs). Check the polarity: a reversed pack is blocked when the board runs from it, but with USB connected it is not disconnected (the design analysis predicts the charger's 4–11 mA test current, not tested; the screen shows BATTERY REVERSED). Verify the pack's polarity before plugging it in.
 4. **Speakers**: 2 × 4–8 Ω, up to 3 W, on Molex PicoBlade 1.25 mm 2-pin plugs (Adafruit 3923 / 4227 class); J4 left, J5 right.
 
 ## Then

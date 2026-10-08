@@ -6,7 +6,8 @@ PASS: KiCad 7.0.11 DRC on R23 with the board's own net-class rules: 0 violations
 PASS: JLCPCB order (1_PCB_FABRICATION): Gerber and drill files, 52 BOM lines with an LCSC number on all 167 placements, CPL, and assembly drawings on both sides (5 front, 162 back).
 PASS: J1 against the Crystalfontz CFAF7201280A0-050TN pin table: 40 of 40 pads in position and net (N1). U1's DSI pads 35-40 reach J1 through R301-R306 with P and N in order (ESP32-P4 pin table).
 PASS: DSI: P = N within 0.01 mm on all three pairs; flight-time skew <= 8 ps in a pair and <= 39 ps clock to data at 1 Gbit/s (1000 ps a bit).
-PASS: Firmware (firmware/slim4, R7): clean ESP-IDF v6.1 build for esp32p4 from sdkconfig.defaults, 0 warnings, app 394 KiB (90 % of its slot free). tools/check_pinmap.py: 19 of 19 firmware GPIOs match the R23 board's U1 pad nets.
+PASS: Firmware (firmware/slim4, R8): clean ESP-IDF v6.1 build for esp32p4 from sdkconfig.defaults, 0 warnings, app 394 KiB (90 % of its slot free). tools/check_pinmap.py: 19 of 19 firmware GPIOs match the R23 board's U1 pad nets. tests/host: 29 of 29 power-policy cases pass on the unmodified slim4_power.c.
+PASS: R7 review answered: low-battery switch-off independent of the button (2 s qualified), thermal suspend only with a qualified cell >= 3.6 V, USB backlight cap lifted only by a qualified cell.
 PASS: R6 simulation audit answered (CHANGELOG.md): emulator silence was the console (app reached nvs_flash_init); Q2 reverse case bounded to the charger's 4-11 mA test current and the claim corrected; USB 500 mA backlight cap 15 %; charge suspend only with a cell charging.
 LIMIT: Not re-run in esp-emu here: its release binary is not reachable from the build machine.
 FAIL: Case pass, set aside by the owner (3 rows of CHECKS/R28_CONVERGENCE_REPORT.md):

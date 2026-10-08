@@ -17,9 +17,10 @@ void slim4_board_prepare_power_off(void);
 
 #define POWER_HOLD_US         (2000 * 1000)   /* hold the power button 2 s to switch off */
 #define BATTERY_EMPTY_MV      3300u           /* power off below this (cell protection trips near 3.0 V) */
+#define BATTERY_LOW_PERIODS   4               /* 2 s below BATTERY_EMPTY_MV, so a load step does not switch off */
 #define CHARGE_HOT_C          75              /* suspend charging above this die temperature */
 #define CHARGE_COOL_C         65              /* resume below this */
-#define SUSPEND_MIN_MV        3600u           /* end a suspend before the cell runs the system down */
+#define SUSPEND_MIN_MV        3600u           /* enter (and stay in) a suspend only above this: the cell carries the system */
 #define POLICY_PERIOD_US      (500 * 1000)
 
 /* Backlight cap on a 500 mA USB source with no charge cycle running (no cell known to supplement).
@@ -27,6 +28,12 @@ void slim4_board_prepare_power_off(void);
  * plus 44 mA panel logic, through the TPS63070 at 90 %: 1.55 W. That leaves 0.43 W; through the TPS61165 at
  * 80 % into a 24.2 V string that is 14 mA, 19 % of the 74 mA full scale. 15 % (11 mA, 0.34 W) keeps 4 % margin. */
 #define BL_CAP_USB500_PERCENT 15u
+/* The cap lifts on 500 mA USB only for a cell that can supplement: charging, no rail fault, a valid reading at or
+ * above CELL_OK_MV for CELL_OK_PERIODS (2 s); it returns below CELL_OK_RELEASE_MV, when charging stops, on a fault
+ * or when the reading fails. CHG low alone is not enough: it is also low in pre-charge (cell below 3.0 V). */
+#define CELL_OK_MV            3500u
+#define CELL_OK_RELEASE_MV    3400u
+#define CELL_OK_PERIODS       4
 #define BATTERY_FAULT_MV      1500u           /* below the charger's 1.8 V short-circuit check: no cell can be there */
 #define BATTERY_FAULT_PERIODS 3               /* 1.5 s */
 
@@ -41,6 +48,13 @@ static bool s_button_armed;
 static int64_t s_next_policy_us;
 static slim4_power_state_t s_state;
 static uint8_t s_fault_count;
+static uint8_t s_low_count;
+static uint8_t s_cell_ok_count;
+static bool s_cell_ok;
+static bool s_adc_valid;              /* the last battery reading succeeded */
+static bool s_adc_warned;
+
+static uint8_t count_up(uint8_t n) { return n < 255 ? n + 1 : 255; }
 
 /* Open-circuit voltage of a LiPo cell at 0, 10, ..., 100 % (mV). Rough under load. */
 static const uint16_t OCV_MV[11] = {3300, 3600, 3690, 3740, 3780, 3820, 3870, 3930, 4000, 4080, 4180};
@@ -60,6 +74,7 @@ static uint8_t percent_from_mv(uint16_t mv)
 
 static uint16_t read_battery_mv(void)
 {
+    s_adc_valid = false;
     if (!s_adc) return 0;
     int sum_mv = 0, n = 0;
     for (int i = 0; i < 8; ++i) {
@@ -74,6 +89,7 @@ static uint16_t read_battery_mv(void)
         ++n;
     }
     if (n == 0) return 0;
+    s_adc_valid = true;
     return (uint16_t)((uint32_t)(sum_mv / n) * SLIM4_BAT_DIVIDER_NUM / SLIM4_BAT_DIVIDER_DEN);
 }
 
@@ -106,38 +122,60 @@ static void update_policy(void)
     s_state.usb_current = read_usb_current();
     float t = 0;
     if (s_tsens && temperature_sensor_get_celsius(s_tsens, &t) == ESP_OK) s_state.chip_temp_c = (int16_t)t;
-    /* The BQ24074's CE pin is tied low, so the only way to stop charging is USB suspend (EN2/EN1 = 1/1), which also
-     * takes the system off USB. Suspend only while a charge cycle is running (a cell is there to carry the system),
-     * and end it when the die has cooled or the cell falls to SUSPEND_MIN_MV. */
-    if (!s_state.charge_suspended && s_state.chip_temp_c > CHARGE_HOT_C && s_state.usb_power && s_state.charging) {
-        s_state.charge_suspended = true;
-        ESP_LOGW(TAG, "die at %d C: charging suspended (system on the cell)", s_state.chip_temp_c);
-    } else if (s_state.charge_suspended &&
-               (s_state.chip_temp_c < CHARGE_COOL_C || (s_state.battery_mv != 0 && s_state.battery_mv < SUSPEND_MIN_MV))) {
-        s_state.charge_suspended = false;
-        ESP_LOGI(TAG, "die at %d C, cell %u mV: charging resumed", s_state.chip_temp_c, s_state.battery_mv);
+    const bool adc = s_adc_valid;
+    const uint16_t mv = s_state.battery_mv;
+    if (!adc && !s_adc_warned) {
+        s_adc_warned = true;
+        ESP_LOGW(TAG, "battery reading failed: no low-battery switch-off (the pack's protection board still cuts off), "
+                      "backlight held to %u %% on 500 mA USB, no charge suspend", (unsigned)BL_CAP_USB500_PERCENT);
     }
-    const bool high = s_state.usb_current == SLIM4_USB_1A5 || s_state.usb_current == SLIM4_USB_3A0;
-    set_charger_mode(s_state.charge_suspended, high);
-    /* Without USB power the reading is the cell under load: below the threshold, switch off. */
-    s_state.battery_low = s_state.battery_mv != 0 && !s_state.usb_power && s_state.battery_mv < BATTERY_EMPTY_MV;
 
     /* A reversed (or shorted) pack on USB holds BAT_PLUS near Q2's threshold (0.5-1.3 V): the charger stays in its
      * short-circuit check (4-11 mA). No cell or a good cell never sits there for 1.5 s. */
-    const bool low_rail = s_state.usb_power && s_state.battery_mv != 0 && s_state.battery_mv < BATTERY_FAULT_MV;
-    s_fault_count = low_rail ? (s_fault_count < 255 ? s_fault_count + 1 : 255) : 0;
+    s_fault_count = (s_state.usb_power && adc && mv < BATTERY_FAULT_MV) ? count_up(s_fault_count) : 0;
     const bool fault = s_fault_count >= BATTERY_FAULT_PERIODS;
     if (fault && !s_state.battery_fault) {
-        ESP_LOGE(TAG, "battery rail %u mV on USB: pack reversed or shorted - unplug it", s_state.battery_mv);
+        ESP_LOGE(TAG, "battery rail %u mV on USB: pack reversed or shorted - unplug it", mv);
     }
     s_state.battery_fault = fault;
 
-    const uint8_t cap = (s_state.usb_power && s_state.input_limit_ma < 1000 && !s_state.charging)
+    /* A cell that can carry the system: see CELL_OK_MV. */
+    const bool cell_now = s_state.charging && !fault && adc;
+    if (cell_now && mv >= CELL_OK_MV) {
+        s_cell_ok_count = count_up(s_cell_ok_count);
+        if (s_cell_ok_count >= CELL_OK_PERIODS) s_cell_ok = true;
+    } else if (!cell_now || mv < CELL_OK_RELEASE_MV) {
+        s_cell_ok_count = 0;
+        s_cell_ok = false;
+    }
+
+    /* The BQ24074's CE pin is tied low, so the only way to stop charging is USB suspend (EN2/EN1 = 1/1), which also
+     * takes the system off USB. Enter it only with a qualified cell above SUSPEND_MIN_MV; leave it when the die has
+     * cooled, the cell falls below SUSPEND_MIN_MV, the reading fails or USB goes away. */
+    if (!s_state.charge_suspended) {
+        if (s_state.chip_temp_c > CHARGE_HOT_C && s_state.usb_power && s_cell_ok && mv >= SUSPEND_MIN_MV) {
+            s_state.charge_suspended = true;
+            ESP_LOGW(TAG, "die at %d C: charging suspended (system on the cell, %u mV)", s_state.chip_temp_c, mv);
+        }
+    } else if (s_state.chip_temp_c < CHARGE_COOL_C || !adc || mv < SUSPEND_MIN_MV || !s_state.usb_power) {
+        s_state.charge_suspended = false;
+        ESP_LOGI(TAG, "die at %d C, cell %u mV: charging resumed", s_state.chip_temp_c, mv);
+    }
+    const bool high = s_state.usb_current == SLIM4_USB_1A5 || s_state.usb_current == SLIM4_USB_3A0;
+    set_charger_mode(s_state.charge_suspended, high);
+
+    /* Without USB power the reading is the cell under load: below the threshold for 2 s, switch off. */
+    s_low_count = (adc && !s_state.usb_power && mv < BATTERY_EMPTY_MV) ? count_up(s_low_count) : 0;
+    s_state.battery_low = s_low_count >= BATTERY_LOW_PERIODS;
+
+    /* On USB below 1 A (500 mA, or suspended) only a qualified cell lifts the cap; during a suspend the cap also
+     * cuts heat. */
+    const uint8_t cap = (s_state.usb_power && s_state.input_limit_ma < 1000 && !(s_cell_ok && !s_state.charge_suspended))
                             ? BL_CAP_USB500_PERCENT : 100;
     if (cap != s_state.backlight_cap_percent) {
         s_state.backlight_cap_percent = cap;
         ESP_LOGI(TAG, "backlight limited to %u %% (%s)", cap,
-                 cap < 100 ? "500 mA USB, no charge cycle" : "battery or 1.5/3 A USB-C");
+                 cap < 100 ? "USB below 1 A, no qualified cell" : "battery, qualified cell or 1.5/3 A USB-C");
         slim4_board_backlight_cap_changed(cap);
     }
 }
@@ -208,6 +246,8 @@ bool slim4_power_poll(void)
         update_policy();
         s_next_policy_us = now + POLICY_PERIOD_US;
     }
+    /* A qualified empty cell switches off whatever the button is doing. */
+    if (s_state.battery_low) return true;
     const bool down = gpio_get_level(SLIM4_GPIO_PWR_WAKE) == 0;
     if (!down) {
         s_button_armed = true;
@@ -216,7 +256,7 @@ bool slim4_power_poll(void)
     }
     if (!s_button_armed) return false;
     if (s_button_down_since == 0) s_button_down_since = now;
-    return now - s_button_down_since >= POWER_HOLD_US || s_state.battery_low;
+    return now - s_button_down_since >= POWER_HOLD_US;
 }
 
 slim4_status_t slim4_power_read(slim4_power_state_t *out)

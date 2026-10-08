@@ -1,3 +1,15 @@
+# R28 update 2 — the R7 review (2026-10-08)
+
+Board files unchanged (check A1). Firmware R7 → **R8** (`firmware/slim4/RELEASE_NOTES_R8.md`).
+
+| R7 review item | Change |
+|---|---|
+| Low-battery switch-off unreachable with the button released | Evaluated before the button logic; 2 s of valid readings below 3.3 V; a failed reading never switches off. |
+| Thermal charge suspend entered below 3.6 V | Entry needs a qualified cell at ≥ 3.6 V; exits on cooling, < 3.6 V, a failed reading or USB removal; backlight capped while suspended. |
+| CHG low alone lifted the USB backlight cap | Lifts only for a qualified cell (charging, no fault, ≥ 3.5 V for 2 s), back below 3.4 V, on a fault, a failed reading or when charging stops. |
+| Scenario evidence | `firmware/slim4/tests/host`: 29 host cases on the unmodified `slim4_power.c`, including failed readings and transient dips. |
+| "No damage" for a reversed pack on USB | Removed: stated as an untested steady-state analysis; the warning does not disconnect the pack; verify pack polarity before assembly. |
+
 # R28 update — answers to the R23 / R6 simulation audit (2026-10-08)
 
 Board files unchanged (check A1). Firmware R6 → **R7**.

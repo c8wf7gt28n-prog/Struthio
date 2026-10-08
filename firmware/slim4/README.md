@@ -1,4 +1,4 @@
-# STRUTHIO SLIM4 platform firmware — R7, for PCB R23
+# STRUTHIO SLIM4 platform firmware — R8, for PCB R23
 
 ESP-IDF project for the SLIM4 R23 main board (`hardware/slim4/LAYERS/01_PCB/`). Its job is to bring the board up and give games a hardware-independent API; it is not a game.
 
@@ -8,10 +8,10 @@ ESP-IDF project for the SLIM4 R23 main board (`hardware/slim4/LAYERS/01_PCB/`). 
 |---|---|
 | ESP32-P4NRW32X, chip revision v3, 32 MiB PSRAM in package; W25Q512JV 64 MiB flash | `sdkconfig.defaults`: minimum revision v3.0, 40 MHz crystal, hex PSRAM at 200 MHz, 64 MiB flash, A/B + recovery partitions (`partitions.csv`) |
 | Display on J1: Crystalfontz CFAF7201280A0-050TN (5 in 720 × 1280 IPS, ILI9881C), 2-lane MIPI-DSI | `slim4_bsp`: P4 LDO channel 3 at 2.5 V for the D-PHY; 2-lane DSI at 1 Gbit/s; `espressif/esp_lcd_ili9881c` with the Crystalfontz init sequence (`slim4_panel_cfaf.c`); 78 MHz pixel clock, 59 Hz, RGB565; reset through the board's Q1 gate (GPIO10 high = reset) |
-| Backlight: TPS61165, 74 mA full scale (R309 2.7 Ω), CTRL on GPIO9 | LEDC PWM at 20 kHz (TI's 6.5–100 kHz range), 12-bit; 45 % after the first frame; off before reset and deep sleep; capped at 15 % on a 500 mA USB source with no charge cycle running (the power budget, `docs/FIRST_BOOT.md`) |
+| Backlight: TPS61165, 74 mA full scale (R309 2.7 Ω), CTRL on GPIO9 | LEDC PWM at 20 kHz (TI's 6.5–100 kHz range), 12-bit; 45 % after the first frame; off before reset and deep sleep; capped at 15 % on USB below 1 A unless a qualified cell can supplement (the power budget, `docs/FIRST_BOOT.md`) |
 | Controls: SW1–SW4 on GPIO1–4 (10 k pull-ups, active low); power button SW5 on GPIO0 | debounced inputs, edge logs, deep-sleep wake on GPIO0 |
 | Audio: two MAX98357A on one I2S stream (GPIO5 BCLK, 6 LRCLK, 7 DOUT), enable on GPIO8; speakers on J4 (left) and J5 (right) | stereo 16-bit Philips I2S, no MCLK; amplifiers enabled only while sound plays |
-| Charger BQ24074 (CHG GPIO11, PGOOD GPIO44, EN1/EN2 GPIO13/46), USB-C TUSB320 (GPIO43/17), battery ADC GPIO16 (× 133/33) | `slim4_power.c`: battery voltage, USB-C advertisement, charger input limit, die-temperature charge suspend (only while a cell is charging), reversed/shorted-pack warning |
+| Charger BQ24074 (CHG GPIO11, PGOOD GPIO44, EN1/EN2 GPIO13/46), USB-C TUSB320 (GPIO43/17), battery ADC GPIO16 (× 133/33) | `slim4_power.c`: battery voltage, USB-C advertisement, charger input limit, low-battery switch-off (2 s below 3.3 V, whatever the button does), die-temperature charge suspend (only with a qualified cell above 3.6 V), reversed/shorted-pack warning |
 | USB-C data to USB-Serial-JTAG (GPIO24/25) | flashing, JTAG and every app log line over the one cable (UART0 primary console, USB-Serial-JTAG secondary output, ESP-IDF's P4 default; UART0's pins reach nothing on the board) |
 
 `tools/check_pinmap.py` checks every `SLIM4_GPIO_*` in `components/slim4_bsp/include/slim4_pins.h` against the net on the matching U1 pad of the R23 board (`SLIM4_R23_PCB_LAYER.json`), through the ESP32-P4 pin table. Run it after any board or pin change.
@@ -30,6 +30,10 @@ idf.py -p <port> flash monitor
 The first flash of a new board: hold BOOT (SW7), tap RESET (SW6), release BOOT, then flash. After that `idf.py flash` resets the chip itself over USB-Serial-JTAG. `dependencies.lock` pins the managed components (`esp_lcd_ili9881c`).
 
 This tree builds cleanly with ESP-IDF v6.1 (0 warnings) from `sdkconfig.defaults` alone. It has not run on hardware yet: the first boards are not built. `docs/FIRST_BOOT.md` lists what the first boot should show and what to check.
+
+### Host test of the power policy
+
+`sh tests/host/run.sh` compiles `components/slim4_bsp/slim4_power.c` unchanged against small stand-ins for the ESP-IDF calls (`tests/host/sdk/`) with any C compiler, and runs 29 cases: the 500 mA USB cap and what may lift it, reversed or shorted pack, low-battery switch-off with the button released or held and with a transient dip, failed battery readings, the over-temperature charge suspend and every way out of it, and the power button. It checks decisions, not analog behaviour.
 
 ### Emulator
 

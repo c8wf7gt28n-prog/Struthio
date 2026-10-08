@@ -339,9 +339,10 @@ PLUG AND PLAY: FOUR PARTS PLUG INTO THE ASSEMBLED BOARD (buy separately, no sold
               Pin map and fold: REFERENCE/DISPLAY_PORT.md.
   J3 Battery  any protected 1-cell Li-ion/LiPo up to 34 x 50 x 7 mm (503450 / 703450), on a
               JST PH 2.0 mm 2-pin plug, red lead = pin 1 = BAT+ (the Adafruit / SparkFun convention).
-              Check the polarity. Q2 (P-MOSFET) blocks a reversed pack while the board runs from it;
-              with USB connected only the charger's 4-11 mA test current flows into it (no damage) and
-              the screen shows BATTERY REVERSED. Unplug it.
+              Check the polarity before plugging a pack in; do not try a reversed pack. Q2 (P-MOSFET)
+              blocks a reversed pack while the board runs from it. With USB connected it does not: the
+              design analysis predicts only the charger's 4-11 mA test current then (not tested), and
+              the screen shows BATTERY REVERSED. Unplug it at once.
               Charge current 0.5 A (R412 1.8 k), suitable for 500 mAh and up.
   J4, J5      2 speakers, 4-8 ohm, up to 3 W, on Molex PicoBlade 1.25 mm 2-pin plugs (the plug
   Speakers    Adafruit uses on its small speakers, e.g. product 3923): J4 left, J5 right; pin 1 = +.
