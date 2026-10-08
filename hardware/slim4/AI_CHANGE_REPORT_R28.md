@@ -25,3 +25,9 @@
   - No schematic exists; reviews work from the netlist.
   - Nothing has been built: the panel image, audio and charging are first-boot checks.
   - The panel init table is GPL-2.0 (from the Linux kernel); replace it with Crystalfontz's sample code if the firmware is ever distributed under a non-GPL licence.
+
+## Update 2026-10-08: the R23 / R6 simulation audit
+
+- Board unchanged. Q2's reversed-pack behaviour with USB connected analysed against the BQ24074 datasheet (IBAT(SC) 4–11 mA, VBAT(SC) 1.6–2.0 V) and the AO3401A threshold (0.5–1.3 V): bounded, no part outside its ratings; claims corrected in every document.
+- Firmware R7: console, USB backlight cap, reversed-pack warning, safe charge suspend (see `CHANGELOG.md`).
+- Builder pack: `PROJECT_DOCS/`.

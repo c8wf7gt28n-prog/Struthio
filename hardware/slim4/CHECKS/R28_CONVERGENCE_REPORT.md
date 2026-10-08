@@ -93,6 +93,6 @@ Result: **NOT CONVERGED** · FAIL 3 · GATE 9 · INFO 3 · PASS 78
 - **J5 Acoustic response, gasket compression and wire feedthrough seal** — Measure impedance/response/distortion on a printed chamber pair.
 - **K3 Material left under the USB relief (localised, below the 2.0 mm rule)** — Accepted locally because the port sits 3.31 mm deep on the back side; confirm by drop/insertion test.
 - **L1 Body thickness (face film to rear floor)** — with caps 15.05 mm. The rear floor sits 0.2 mm below the tallest back-side part, L2 (Sunlord ASWPA4035, 3.50 mm). Sub-12 mm needs every back-side part ≤ 1.95 mm (over today: J3 6.00, L2 3.50, J5 3.40, J4 3.40, J2 3.31, L3 2.00, L1 2.00), which is a PCB change, and a cell no thicker than 6.41 mm: the 7.0 mm cell alone holds the body at ≥ 12.65 mm. Replacing only L2 and J2 gives 16.05 mm.
-- **L4 Cell in hand: any protected 1-cell pack up to 34 × 50 × 7 mm on a JST PH 2.0 plug (R23 J3)** — J3 pin 1 = BAT+, pin 2 = GND (Adafruit/SparkFun convention); Q2 blocks a reversed pack. Check the cell size and swelling allowance in hand.
+- **L4 Cell in hand: any protected 1-cell pack up to 34 × 50 × 7 mm on a JST PH 2.0 plug (R23 J3)** — J3 pin 1 = BAT+, pin 2 = GND (Adafruit/SparkFun convention). Check the pack polarity (Q2 blocks a reversed pack only without USB), the cell size and swelling allowance in hand.
 
 Solid validity: 21/21 solids valid.

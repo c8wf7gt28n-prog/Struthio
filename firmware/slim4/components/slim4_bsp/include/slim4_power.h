@@ -20,6 +20,8 @@ typedef struct {
     uint16_t input_limit_ma;  /* charger input limit the firmware selected */
     int16_t chip_temp_c;      /* ESP32-P4 die temperature */
     bool charge_suspended;    /* firmware suspended charging (die too hot) */
+    uint8_t backlight_cap_percent; /* highest backlight level the power source can carry */
+    bool battery_fault;       /* USB valid but the battery rail stays below 1.5 V: pack reversed or shorted */
 } slim4_power_state_t;
 
 /* Configures the power button, battery ADC, charger and USB-C status pins. */
@@ -28,6 +30,8 @@ slim4_status_t slim4_power_init(void);
  * Returns true once the power button has been held for the power-off time. */
 bool slim4_power_poll(void);
 slim4_status_t slim4_power_read(slim4_power_state_t *out);
+/* Implemented in slim4_board.c: re-applies the backlight with the power policy's cap. */
+void slim4_board_backlight_cap_changed(uint8_t cap_percent);
 /* Turns the display, backlight and amplifiers off and enters deep sleep.
  * The power button (GPIO0, active low) wakes the board, which then boots normally. */
 void slim4_power_off(void);

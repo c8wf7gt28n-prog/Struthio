@@ -10,8 +10,12 @@ CONFIG_PARTITION_TABLE_CUSTOM=y
 CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
 CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
 
-# Console and logs on the USB-C port (USB-Serial-JTAG); UART0 is not wired on the board.
-CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+# Console: UART0 primary (GPIO37/38 reach only U1 pads 69/70 on the board, nothing else) with every log line
+# also sent to the USB-C port (USB-Serial-JTAG secondary output, non-blocking). This is ESP-IDF's default for the
+# ESP32-P4. Logs on the board come over USB-C as before; an emulator that prints UART0 shows the whole boot.
+# The firmware reads no console input.
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+CONFIG_ESP_CONSOLE_SECONDARY_USB_SERIAL_JTAG=y
 
 CONFIG_ESP_SYSTEM_PANIC_PRINT_REBOOT=y
 CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH=y

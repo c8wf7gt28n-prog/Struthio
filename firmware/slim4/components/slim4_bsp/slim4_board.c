@@ -301,8 +301,12 @@ slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t pr
     char line[32];
     slim4_power_state_t power;
     if (slim4_power_read(&power) == SLIM4_OK) {
-        (void)snprintf(line, sizeof(line), "BAT %04u MV %03u PCT", power.battery_mv, power.battery_percent);
-        draw_text_at(line, 56, 900, 3, power.battery_low ? red : (power.battery_percent < 15 ? orange : ivory));
+        if (power.battery_fault) {
+            draw_text_at("BATTERY REVERSED - UNPLUG", 56, 900, 3, red);
+        } else {
+            (void)snprintf(line, sizeof(line), "BAT %04u MV %03u PCT", power.battery_mv, power.battery_percent);
+            draw_text_at(line, 56, 900, 3, power.battery_low ? red : (power.battery_percent < 15 ? orange : ivory));
+        }
         static const char *const usb_names[] = {"NONE", "500MA", "1.5A", "3A"};
         (void)snprintf(line, sizeof(line), "USB %s %s", power.usb_power ? usb_names[power.usb_current] : "OFF",
                        power.charge_suspended ? "HOT" : (power.charging ? "CHARGING" : ""));
@@ -495,13 +499,26 @@ static void audio_worker(void *arg)
     }
 }
 
+static uint32_t s_backlight_request;               /* level asked for, before the power cap */
+static uint8_t s_backlight_cap = 100;             /* set by the power policy (slim4_power.c) */
+static bool s_backlight_ready;
+
 static esp_err_t set_backlight(uint32_t percent)
 {
     if (percent > 100) percent = 100;
+    s_backlight_request = percent;
+    if (!s_backlight_ready) return ESP_OK;
+    if (percent > s_backlight_cap) percent = s_backlight_cap;
     uint32_t duty = (SLIM4_BL_DUTY_MAX * percent) / 100;
     esp_err_t err = ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
     if (err != ESP_OK) return err;
     return ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+}
+
+void slim4_board_backlight_cap_changed(uint8_t cap_percent)
+{
+    s_backlight_cap = cap_percent > 100 ? 100 : cap_percent;
+    if (s_backlight_ready) (void)set_backlight(s_backlight_request);
 }
 
 static esp_err_t init_display(void)
@@ -534,6 +551,7 @@ static esp_err_t init_display(void)
     s_display_stage = "backlight PWM";
     err = init_backlight();
     if (err != ESP_OK) return err;
+    s_backlight_ready = true;
 
     s_display_stage = "two-lane DSI bus";
     esp_lcd_dsi_bus_config_t bus_cfg = ILI9881C_PANEL_BUS_DSI_2CH_CONFIG();

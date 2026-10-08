@@ -2,8 +2,10 @@
 #  J3 becomes a JST PH 2.0 mm right-angle socket (S2B-PH-SM4-TB, LCSC C295747), the plug used by Adafruit/SparkFun-style
 #  1-cell packs: pin 1 BAT+, pin 2 GND. It sits at the board edge left of the battery window, opening toward the window.
 #  Q2 AO3401A (P-MOSFET, LCSC C15127, JLC Basic) sits between the socket and BAT_PLUS: drain to the socket (new net
-#  BAT_CONN), source to BAT_PLUS (tied into the In2 BAT_PLUS pour with vias), gate to GND. A pack plugged in reversed
-#  leaves Q2 off; a correct pack turns it on through its body diode, and the on channel then carries charge current too.
+#  BAT_CONN), source to BAT_PLUS (tied into the In2 BAT_PLUS pour with vias), gate to GND. A correct pack turns it on
+#  through its body diode, and the on channel then carries charge current too. A reversed pack with no USB leaves Q2 off;
+#  with USB the charger holds the source up and Q2 only passes the charger's 4-11 mA short-circuit test current
+#  (README_PCB_LAYER.md, edit 12).
 exec(open(sys.argv[2]).read())
 BP=net('BAT_PLUS'); BC=net('BAT_CONN',create=True)
 OLD=b.FindFootprintByReference('J3')

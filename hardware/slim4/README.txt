@@ -2,7 +2,7 @@ STRUTHIO SLIM4 — R28 PACKAGE
 
 R28 puts the all-in-one main board, PCB R23, into the package. Four parts plug into it with no
 soldering and no adapter cables: the Crystalfontz 5 in panel (its own tail into J1), a 1-cell
-battery (JST PH, reverse-polarity protected), and two speakers (Molex PicoBlade). The firmware for
+battery (JST PH, reverse-polarity switch), and two speakers (Molex PicoBlade). The firmware for
 it is firmware/slim4 in the repository. What R28 decided and why is in DECISIONS_R28.md (R27's and
 R26's decisions still hold where not replaced). The case was set aside by the owner.
 

@@ -899,7 +899,7 @@
       "status": "GATE",
       "value": null,
       "limit": null,
-      "detail": "J3 pin 1 = BAT+, pin 2 = GND (Adafruit/SparkFun convention); Q2 blocks a reversed pack. Check the cell size and swelling allowance in hand."
+      "detail": "J3 pin 1 = BAT+, pin 2 = GND (Adafruit/SparkFun convention). Check the pack polarity (Q2 blocks a reversed pack only without USB), the cell size and swelling allowance in hand."
     },
     {
       "id": "L5",

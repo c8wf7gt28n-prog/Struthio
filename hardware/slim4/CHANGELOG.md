@@ -1,3 +1,16 @@
+# R28 update — answers to the R23 / R6 simulation audit (2026-10-08)
+
+Board files unchanged (check A1). Firmware R6 → **R7**.
+
+| Audit item | Finding | Change |
+|---|---|---|
+| Emulator "stall" after `esp_psram: Reserving pool` | Not a stall. R6's console was USB-Serial-JTAG only, which esp-emu does not print. In the audit's own debug log the app reads the NVS partition (0x9000, 390 reads, `nvs_flash_init`) and both cores then idle in FreeRTOS (addresses resolved in the identical ELF, SHA-256 cc3797e8…). | R7: UART0 primary console with USB-Serial-JTAG secondary output (ESP-IDF's P4 default); USB-C still carries every app log line. |
+| Q2 with USB connected | Correct: with USB the charger holds Q2's source up, so a reversed pack is not hard-blocked. Bounded: Q2 sits at its 0.5–1.3 V threshold, under the BQ24074's 1.6 V short-circuit check, so only its 4–11 mA test current flows (≤ 64 mW in Q2, BAT_PLUS ≥ 0 V). A connector-side gate drive would block it but stop the charger reviving an over-discharged pack, so the circuit stays. | Docs: the blanket "blocks a reversed pack" claim replaced everywhere. Firmware: `BATTERY REVERSED - UNPLUG` when the battery rail stays under 1.5 V on USB. |
+| USB power budget | Correct at the worst-case 380 mA design provision: 1.98 W available (450 mA × 4.4 V) leaves 19 % backlight with no cell. | Firmware: backlight capped at 15 % on 500 mA USB unless a charge cycle is running. Also fixed: the over-temperature charge suspend (USB suspend, CE is tied low) now only happens while a cell is charging. |
+| Firmware evidence missing | The R6 zip held images only. | R7 release zip: images, merged image for esp-emu, ELF, map, sdkconfig, dependencies.lock, source and docs. |
+| Builder pack references | The READMEs cite package documents not in the zip. | New `PROJECT_DOCS/` folder: PRODUCTION_GATES, RELEASE_GATES, ASSEMBLY_SEQUENCE, the convergence report, BOM sourcing. |
+| Two-lane panel set-up | The driver writes page-1 register 0xB7 = 0x03 (2 lanes) before the Crystalfontz table, which never writes 0xB7. | None; the image is a bench check. |
+
 # R28 — PCB R23: four plug-and-play ports; firmware for R23; case set aside
 
 PCB R22 → **R23** (4 scripted edits in `LAYERS/01_PCB/R23_FROM_R22/`, rebuilt copper-identically from R22). The display flex is gone: the panel's own tail plugs into the main board. CASE R12 and ACRYLIC R2 are set aside by the owner and were checked against R23 as they are: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (317 pair evaluations over 278 distinct pairs); the 3 FAIL rows are case items. Decisions: `DECISIONS_R28.md`.

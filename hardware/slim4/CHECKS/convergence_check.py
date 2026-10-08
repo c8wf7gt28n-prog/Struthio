@@ -579,7 +579,7 @@ def run(root, rep, verbose=True):
     batt = box(P['battery_center'][0] - P['battery'][0]/2, P['battery_center'][1] - P['battery'][1]/2, P['battery_center'][0] + P['battery'][0]/2, P['battery_center'][1] + P['battery'][1]/2)
     rep.add('L3', 'PCB↔CASE', 'Battery XY clearance to the board window', 'PASS' if batt.within(win) and win.exterior.distance(batt) >= 1.0 else 'FAIL', r3(win.exterior.distance(batt)), 1.0)
     rep.add('L4', 'CASE', 'Cell in hand: any protected 1-cell pack up to 34 × 50 × 7 mm on a JST PH 2.0 plug (R23 J3)', 'GATE', None, None,
-            'J3 pin 1 = BAT+, pin 2 = GND (Adafruit/SparkFun convention); Q2 blocks a reversed pack. Check the cell size and swelling allowance in hand.')
+            'J3 pin 1 = BAT+, pin 2 = GND (Adafruit/SparkFun convention). Check the pack polarity (Q2 blocks a reversed pack only without USB), the cell size and swelling allowance in hand.')
     skirt = OUT.difference(B['LIP_POLY'].buffer(P['lap_clear'] / 2, resolution=12))
     radial = skirt.distance(B['LIP_RING'])
     tape_part = next(it['solid'] for it in B['PARTS'] if it['name'].startswith('LAP TAPE')).val().BoundingBox()

@@ -4,7 +4,7 @@
 
 ## Bench build (no case)
 
-1. **Board on the bench, back side up.** Plug the speakers into J4 (left) and J5 (right), pin 1 +. Check the cell's plug: red lead to pin 1 (BAT+). Plug it into J3 at the battery window's left edge; lay the cell in the window. (A reversed pack leaves the board off: Q2 blocks it.)
+1. **Board on the bench, back side up.** Plug the speakers into J4 (left) and J5 (right), pin 1 +. Check the cell's plug: red lead to pin 1 (BAT+). Plug it into J3 at the battery window's left edge; lay the cell in the window. (A reversed pack is blocked while the board runs from it; with USB connected it draws a few mA and the screen shows BATTERY REVERSED: unplug it.)
 2. **Turn the board front side up.** Put 3–4 mm foam spacers on the board front where the panel will rest, clear of J1 and SW1–SW4.
 3. **Panel.** Fold its tail once behind the module and plug it into J1, contacts up, as `LAYERS/01_PCB/DISPLAY_PORT.md` shows (panel face up, its bottom edge toward the board's bottom edge). Close J1's latch. The panel rests on the spacers, bottom edge at Y 109.8, overhanging the board's top edge by 13.6 mm.
 4. **USB-C.** Connect to a computer and flash `firmware/slim4` (`idf.py -p <port> flash monitor`; first time: hold BOOT, tap RESET). Work through `firmware/slim4/docs/FIRST_BOOT.md`.

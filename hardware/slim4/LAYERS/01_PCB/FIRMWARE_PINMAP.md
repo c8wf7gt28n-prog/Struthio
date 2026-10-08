@@ -44,7 +44,8 @@ Everything the Struthio firmware needs from the board. Read from the R23 netlist
 - The core rail (VDD_HP, external TLV62569) is enabled by the chip itself (EN_DCDC) once the app runs.
 - The battery has no temperature sensor on the board (TS is a fixed 10 k): if you want a charge-temperature guard, read the P4's internal temperature sensor and pull BQ_EN1/EN2 to suspend (1/1) when it is too hot.
 - The USB-C port is a sink only (TUSB320 in UFP mode); charge current is 494 mA (ISET 1.8 k), within the 500 mA default input limit.
-- The battery plugs into J3 (JST PH 2.0) behind Q2: a reversed pack leaves the board unpowered. BAT_ADC reads the cell after Q2.
+- The battery plugs into J3 (JST PH 2.0) behind Q2. BAT_ADC reads BAT_PLUS (after Q2). On USB, BAT_ADC below 1.5 V for 1.5 s means a reversed or shorted pack (Q2 then sits at its threshold and the charger stays in its short-circuit check): the firmware reports it.
+- On a 500 mA USB source with no charge cycle running, the firmware caps the backlight at 15 % (the BQ24074's 450 mA minimum input limit at 4.4 V cannot carry the worst-case 3.3 V load plus more backlight without a cell to supplement). On the battery, or on USB-C 1.5 A / 3 A (charger input 1.07 A), there is no cap.
 - No free test pads: GPIO37/38 (UART0) are unconnected. Use the USB-Serial-JTAG console.
 
 ## Toolchain

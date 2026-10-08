@@ -339,7 +339,9 @@ PLUG AND PLAY: FOUR PARTS PLUG INTO THE ASSEMBLED BOARD (buy separately, no sold
               Pin map and fold: REFERENCE/DISPLAY_PORT.md.
   J3 Battery  any protected 1-cell Li-ion/LiPo up to 34 x 50 x 7 mm (503450 / 703450), on a
               JST PH 2.0 mm 2-pin plug, red lead = pin 1 = BAT+ (the Adafruit / SparkFun convention).
-              Q2 (P-MOSFET) blocks a reversed pack: the board stays off instead of being damaged.
+              Check the polarity. Q2 (P-MOSFET) blocks a reversed pack while the board runs from it;
+              with USB connected only the charger's 4-11 mA test current flows into it (no damage) and
+              the screen shows BATTERY REVERSED. Unplug it.
               Charge current 0.5 A (R412 1.8 k), suitable for 500 mAh and up.
   J4, J5      2 speakers, 4-8 ohm, up to 3 W, on Molex PicoBlade 1.25 mm 2-pin plugs (the plug
   Speakers    Adafruit uses on its small speakers, e.g. product 3923): J4 left, J5 right; pin 1 = +.
@@ -696,10 +698,19 @@ def main():
 Order of work: the board and the four plug-in parts; flash the firmware (firmware/slim4 in the
 repository) and bring the board up on the bench; then the case pass for the R23 board and panel.
 
+PROJECT_DOCS        the package documents the READMEs refer to: PRODUCTION_GATES.md (what to order,
+                    then, and in the case pass), RELEASE_GATES.md (the board's closed and open gates),
+                    ASSEMBLY_SEQUENCE.md, R28_CONVERGENCE_REPORT.md and BOM_SOURCING_R21.json.
+
 Generated from the R28 project package (PCB R23, CASE R12, ACRYLIC R2; convergence check {conv})
-by CHECKS/build_builder_packs.py. Open items that need parts in hand or supplier answers are
-listed in the package's PRODUCTION_GATES.md and repeated in each README where they concern that supplier.
+by CHECKS/build_builder_packs.py. The generator, the checks and the firmware are in the repository
+(hardware/slim4/CHECKS, firmware/slim4); they are not needed to place the orders.
 """)
+    docs = top / 'PROJECT_DOCS'
+    docs.mkdir()
+    for rel in ('PRODUCTION_GATES.md', 'LAYERS/01_PCB/RELEASE_GATES.md', 'ASSEMBLY/ASSEMBLY_SEQUENCE.md',
+                'CHECKS/R28_CONVERGENCE_REPORT.md', 'CHECKS/BOM_SOURCING_R21.json'):
+        shutil.copy2(ROOT / rel, docs / Path(rel).name)
     zip_dir(top, out / f'{TOP}.zip', prefix=f'{TOP}/')
     files = sorted(p for p in top.rglob('*') if p.is_file())
     print(f'{len(files)} files, {sum(p.stat().st_size for p in files):,} bytes -> {out / (TOP + ".zip")} '
