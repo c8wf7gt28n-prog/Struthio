@@ -1,18 +1,19 @@
-# PCB layer — R24
+# PCB layer — R25
 
 **Status: order files ready. One part to source: JLCPCB had no stock of the ESP32-P4NRW32X (U1) on 2026-10-07 (see *Sourcing U1*).**
 
-Editable source: `SLIM4_R24.kicad_pcb`. Open `SLIM4_R24.kicad_pro` in KiCad 7.0.x with this folder as the project directory; `fp-lib-table` points at the local `SLIM4.pretty` library. `SLIM4_R24_PCB_LAYER.json` is the read-only interchange projection the case checks and the studio read; `CHECKS/export_pcb_layer.py` writes it from the board.
+Editable source: `SLIM4_R25.kicad_pcb`. Open `SLIM4_R25.kicad_pro` in KiCad 7.0.x with this folder as the project directory; `fp-lib-table` points at the local `SLIM4.pretty` library. `SLIM4_R25_PCB_LAYER.json` is the read-only interchange projection the case checks and the studio read; `CHECKS/export_pcb_layer.py` writes it from the board.
 
-R24 is R23 with its power layout redone after the second hardware review (*What changed from R23*): same outline, ports, connector positions and GPIOs. R23 was R22 with four plug-and-play ports: the panel's own tail goes straight into J1 (no adapter flex), the battery plugs into a JST PH socket behind a reverse-polarity MOSFET, and the speakers plug into PicoBlade sockets. Nothing else to solder. R23 is kept unchanged in `REFERENCES/PCB_R23/`, R22 in `REFERENCES/PCB_R22/`, R21 in `REFERENCES/PCB_R21/`.
+R25 is R24 with the DSI routing finished end to end and the In2 planes around the processor corrected after the R24 deep audit (*What changed from R24*); R24 was R23 with its power layout redone after the second hardware review (*What changed from R23*). Same outline, ports, connector positions and GPIOs throughout. R23 was R22 with four plug-and-play ports: the panel's own tail goes straight into J1 (no adapter flex), the battery plugs into a JST PH socket behind a reverse-polarity MOSFET, and the speakers plug into PicoBlade sockets. Nothing else to solder. R24 is kept unchanged in `REFERENCES/PCB_R24/`, R23 in `REFERENCES/PCB_R23/`, R22 in `REFERENCES/PCB_R22/`, R21 in `REFERENCES/PCB_R21/`.
 
 | File | What it is |
 |---|---|
 | `DISPLAY_PORT.md` | the panel (Crystalfontz CFAF7201280A0-050TN), the J1 pinout and how the tail folds into J1 |
 | `FIRMWARE_PINMAP.md` | every ESP32-P4 GPIO and what it drives, for the firmware |
-| `ELECTRICAL_REVIEW_R22.md` | pin-by-pin review of the R21/R22 netlist against the datasheets, and the land-pattern audit (still valid for every part R23 and R24 did not change) |
+| `ELECTRICAL_REVIEW_R22.md` | pin-by-pin review of the R21/R22 netlist against the datasheets, and the land-pattern audit (still valid for every part R23-R25 did not change) |
 | `NATIVE_KICAD_DRC.txt` | KiCad 7.0.11 DRC: 0 violations, 0 unconnected pads, 0 footprint errors |
 | `RELEASE_GATES.md` | what is closed and what is left before and after ordering |
+| `R25_FROM_R24/` | the scripted R24 → R25 edits 25–30: DSI links, matching, return vias and reference; U1 supply planes; metadata (`build_r25.sh`) |
 | `R24_FROM_R23/` | the scripted R23 → R24 power-layout edits 16–24 (`build_r24.sh`) |
 | `R23_FROM_R22/` | the scripted R22 → R23 edits 12–15 (`build_r23.sh`) |
 | `R22_FROM_R21/` | the scripted R21 → R22 edits 1–11 (`build_r22.sh`) and the land-pattern audit (`fpcmp.py`) |
@@ -24,9 +25,36 @@ The JLCPCB order files (Gerbers, drill, BOM, CPL, README with every order option
 | Port | Part (LCSC) | Position (mm, side) | Plugs in |
 |---|---|---|---|
 | J1 display | Hirose FH12A-40S-0.5SH(55), top contact (C506795) | (1.9, 76.0), front, mouth toward +Y | the Crystalfontz CFAF7201280A0-050TN's own 40-pin tail, folded once behind the panel |
-| J3 battery | JST S2B-PH-SM4-TB (C295747) + Q2 AO3401A (C15127) | (−24.8, 67.9), back, mouth toward the battery window | any protected 1-cell Li-ion/LiPo on a JST PH 2.0 plug, pin 1 BAT+ (red), up to 34 × 50 × 7 mm |
+| J3 battery | JST S2B-PH-SM4-TB (C295747) + Q2 AO3401A (C15127) | (−24.8, 67.9), back, mouth toward the battery window | a protected 1-cell Li-ion/LiPo of 1000 mAh or more on a JST PH 2.0 plug, pin 1 BAT+ (red), up to 34 × 50 × 7 mm (see *Battery*) |
 | J4 left speaker | Molex PicoBlade 53261-0271 (C177225) | (−44.0, 113.7), back | 4–8 Ω speaker on a PicoBlade 1.25 plug, pin 1 + |
 | J5 right speaker | Molex PicoBlade 53261-0271 (C177225) | (44.3, 111.6), back | as J4 |
+
+## What changed from R24 (PCB R25: DSI end to end, processor planes)
+
+The R24 deep audit (SLIM4_R24_DEEP_AUDIT) checked the DSI lines from U1's pads to J1 and found the matching this README claimed held only on the connector side: through the 0 Ω links R301–R306 and U1's fan-out the six lines took 377–460 ps (clock P to N 26 ps, clock to data up to 83 ps, D1 P to N 24 ps). Checking R25's own copper then turned up two more things: the In2 1V1_HP area, a 19 × 28 mm rectangle over U1 and U3, cut every 3V3 via inside it off the 3V3 plane (each sat on a 0.15 mm² island), and the In3 DSI runs lay under a patchwork of In2 power pours with gaps between them. R25 fixes these with six scripted edits (`R25_FROM_R24/`, KiCad 7.0.11; rebuilt three times, copper-identical). Parts: R301–R306 removed (164 placements).
+
+| Edit | Change | Why |
+|---|---|---|
+| 25 | **DSI links.** The six 0 Ω links R301–R306 removed; each line joined directly (CLK_P on F.Cu, CLK_N, D0_N, D1_N and D1_P on B.Cu, D0_P on In3), U1's pads 35–40 renamed onto the MIPI_DSI_* nets, the CLK_P F.Cu detour and four vias removed. | Two pads, a stub and up to two vias less on every line; one net per signal from U1 to J1. |
+| 26 | **DSI flight-time matching.** Meanders (0.36 mm pitch) on the outer layers and In3 bring all six lines to 423.9 ps from U1's pad to J1's pad: CLK_P 68.32 mm, CLK_N 67.85, D0_P 65.97, D0_N 65.99, D1_P 68.29, D1_N 70.56 mm. | Matched in time, not length: outer layers run at about 5.9 ps/mm and In3 at 6.9 ps/mm, and the lines split differently between them (D1_P has 13.4 mm more on In3 than D1_N), so equal times need unequal lengths (P to N: CLK 0.47 mm, D0 0.02 mm, D1 2.27 mm). Via barrels are not in the model: the lines change layer 2–7 times, P and N of a pair differ by 1–2 transitions, at most about 16 ps (0.016 UI at 1 Gbit/s). |
+| 27 | **DSI return vias** again after the relink: a ground via beside every DSI via where one fits. | 29 DSI vias: 21 within 1.0 mm of a ground via, 25 within 1.2 mm, the worst 1.68 mm (R24: 32 vias, 24 within 1.2 mm). |
+| 28 | **In2 1V1_HP area reshaped** to what 1V1 needs: a block under U1's core, fingers to the 1V1 vias beside the package, a strip down the west side and along the south edge to L2's output, a leg to the feedback divider. The 3V3 plane fills the rest. 3V3 plane vias added on U1's ring (7) and a 1V1 via on pin 91's branch. | U1's nine 3V3 pins now reach the 3V3 plane in 1.0–7.8 mm of track (R24: 7.8–29.7 mm of 0.114–0.152 mm track, because their nearest vias were islands); 1V1 pin 91 in 2.6 mm (9.5). The 1V1 path from L2 to U1 now runs around the DSI band: about 15–20 mΩ of 0.5 oz plane (R24 about 6 mΩ), some 5–10 mV at 0.5 A, most of it after the feedback point. |
+| 29 | **In2 ground under the In3 DSI runs.** A GND area on In2 covering every In3 DSI segment with 0.6 mm each side (134.9 mm², stitched by the return vias); In3 DSI segments set to 0.135 mm and 0.1 mm necks widened where 0.1 mm clearance allows. | On JLCPCB's JLC06121H-3313 stackup In3 is 0.1164 mm below In2 and 0.35 mm above In4, so In2 is its nearer reference: the In3 runs are now striplines between two grounds (gaps only at via antipads, 0.23–0.35 mm). Widths for 50 Ω single-ended (100 Ω differential, loosely coupled): 0.152 mm on F.Cu/B.Cu (about 50 Ω under solder mask), 0.135 mm on In3 (0.152 would be 46.7 Ω). 5.4 mm of CLK_P stay 0.1 mm (about 60 Ω). |
+| 30 | **Metadata.** Title block R25; the board file now carries JLCPCB's JLC06121H-3313 stackup (dielectrics and permittivities as published) and an ENIG finish. | R24's Gerber job file still said revision R20 and finish "None". |
+
+**Impedance control is now ordered** (DSI nets, per layer as above; `CHECKS/build_builder_packs.py` writes it into the order notes). The estimates are Hammerstad-Jensen (microstrip) and IPC-2141 (asymmetric stripline) on the published stackup; JLCPCB's calculator decides at order time.
+
+**Left as is, with reasons.**
+- Five other 3V3 vias (at (14.5, 114.5), (−9.6, 111.6), (−34.0, 106.5), (20.3, 71.8), (14.9, 14.5)) still sit on small 3V3 islands inside the In2 SYS_RAW pours. They are layer changes of 3V3 tracks crossing those pours (B.Cu ↔ In3), not plane feeds.
+- DSI lane rate stays 1000 Mbit/s a lane: Espressif's ESP32-P4 Function EV board drives its ILI9881C panel on two lanes at the same rate.
+- Espressif's guideline asks for P and N within 0.254 mm in length. D1 is 2.27 mm apart in length because its P line spends more of its run on In3; in time it is matched, which is what the receiver sees.
+- None of this is measured: impedance (coupons, if ordered), eye diagrams and supply ripple are bring-up items (`RELEASE_GATES.md`).
+
+All six edits were checked by KiCad's DRC with the board's rules: 0 violations, 0 unconnected pads, 0 footprint errors. `firmware/slim4/tools/check_pinmap.py` passes on R25 (no GPIO moved).
+
+## Battery
+
+J3 takes a protected 1-cell Li-ion/LiPo of 1000 mAh or more on a 2-pin JST PH plug (pin 1, red, BAT+): 503450 (about 1000 mAh) and 703450 (about 1500 mAh) fit the 34 × 50 × 7 mm window. The BQ24074 charges at 0.49 A nominal and 0.55 A at most (R412 1.8 k: K<sub>ISET</sub> 797–975 AΩ), so 0.55 C on 1000 mAh. With TMR open its safety timer ends a charge after 4–6 h (pre-charge after 24–36 min); a 1500 mAh cell finishes inside it. The board does not sense cell temperature (TS is a fixed 10 k, the datasheet's connection when temperature sensing is not used): the pack's own protection board is the only cell-level protection. Smaller cells (the 500 mAh R24 allowed) would charge at more than 1 C.
 
 ## What changed from R23 (PCB R24: power layout)
 
@@ -47,8 +75,8 @@ The second hardware review (SLIM4_R23_HARDWARE_SECOND_REVIEW) asked to hold the 
 **Measured on the board (R23 → R24).** Track narrower than 0.2 mm: BAT_PLUS 95 → 9 mm, SYS_RAW 247 → 31 mm, USB_VBUS 55 → 14 mm, 1V1_HP 72 → 41 mm, 3V3_SYS 382 → 238 mm. The four switch nodes (U4 SW1/SW2, U3 SW, U7 SW) have no inner-layer section and no track narrower than 0.3 mm. Ground vias 34 → 87.
 
 **Left as is, with reasons.**
-- The 3.3 V fan-out to U1's nine 3V3 pins (about 82 mm of 0.152 mm B.Cu under the In2 1V1 area) is unchanged: about 3.2 mΩ/mm, a few millivolts at the chip's current, inside its 3.0–3.6 V range. Most of the other remaining 3V3 track feeds pull-ups and decoupling capacitors.
-- The DSI pairs are not re-routed: their length and skew matching from R23 stands (P = N within 0.01 mm; ≤ 8 ps in a pair, ≤ 39 ps clock to data). R24 adds the return vias only. The In3 sections still reference In4 ground on one side and In2 power on the other. No impedance control is ordered.
+- The 3.3 V fan-out to U1's nine 3V3 pins (about 82 mm of 0.152 mm B.Cu under the In2 1V1 area) was left unchanged. *Corrected in R25: under that area the 3V3 vias were islands, so the pins reached the 3V3 plane only through 7.8–29.7 mm of track; R25 edit 28 reshapes the area.*
+- The DSI pairs were not re-routed; R24 added the return vias only. *Corrected in R25: the matching below held only from the 0 Ω links to J1, not from U1's pads (see What changed from R24).*
 - L1 stays 1.0 µH (MWSA0402S-1R0MT): the TPS63070's Table 3 lists 1.0 µH with 47 µF and more; 1.5 µH is its typical application.
 - None of this is measured: switching waveforms, ripple and temperatures are bring-up items (`RELEASE_GATES.md`).
 
@@ -68,8 +96,8 @@ All nine edits were checked by KiCad's DRC with the board's rules after each ste
 - **Fan-out (hand-routed, `r23_display_b.py`).** Nine rows in the board strip above J1, one per net (VCI, RESX, IOVCC, CLK, D1, D0), drop straight into the pads; the westmost pad takes the northmost row. East of J1 they turn south into a column right of U2 (X 16.4–18.8), which jogs 1.11 mm east so the backlight pair (LED_K, LED_A), coming in under the pad row from J1's east end, can join it. Below Y 82 the column spreads to a 0.45 mm pitch. LED_A, which reaches 38 V with no panel plugged in, keeps 0.2 mm from everything.
 - **Ground.** Each J1 ground pin or adjacent pair (17–18, 21, 24, 27, 30, 33, 36–37) has a via into the In1/In4 ground planes 0.85 mm from the pad row; there is a ground pin between each pair.
 - **Routes to the sources (`r23_display_c.json`).** The DSI pairs and the backlight pair run on F.Cu, In3 and B.Cu, found with a 0.05 mm grid search (0.12 mm working clearance, 0.22 mm for LED_A), P and N one after the other, in the order that matched the pairs best. VCI, IOVCC, RESX and the status nets were routed with Freerouting 2.5.0 against the locked copper; CHG_STATUS with the grid search. The file records the result, so the build does not depend on either router.
-- **DSI length matching.** Meanders bring each P and N to the same length within 0.01 mm: CLK 60.25 mm, D0 56.25 mm, D1 54.84 mm. Because parts of each line run on the outer layers (about 5.9 ps/mm) and parts on In3 (about 6.9 ps/mm), the flight times were checked per layer too: within a pair P and N differ by at most 8 ps (D1), and clock to data by at most 39 ps. At 1 Gbit/s a lane (1000 ps a bit) that is under 0.01 UI in a pair and 0.04 UI between lanes; MIPI D-PHY leaves about 0.2 UI for the channel.
-- **Impedance.** The DSI traces are 0.152 mm. On the outer layers, over JLCPCB's 0.1 mm 3313 prepreg (ε<sub>r</sub> 4.1) to the In1/In4 ground planes, a single trace is about 54 Ω and a pair 90 Ω (0.108 mm gap, where the column is tightest) to 108 Ω (loosely coupled) differential (Hammerstad / IPC-2141 estimates). D-PHY asks for 100 Ω ± 10 %. On In3 the lines run between the In4 ground plane and the In2 power pours. The board is ordered on JLCPCB's standard 1.2 mm 6-layer stackup without impedance control.
+- **DSI length matching** *(connector side only - superseded by R25 edits 25–26, which match the whole path from U1)*. Meanders bring each P and N to the same length within 0.01 mm: CLK 60.25 mm, D0 56.25 mm, D1 54.84 mm. Because parts of each line run on the outer layers (about 5.9 ps/mm) and parts on In3 (about 6.9 ps/mm), the flight times were checked per layer too: within a pair P and N differ by at most 8 ps (D1), and clock to data by at most 39 ps. At 1 Gbit/s a lane (1000 ps a bit) that is under 0.01 UI in a pair and 0.04 UI between lanes; MIPI D-PHY leaves about 0.2 UI for the channel.
+- **Impedance.** The DSI traces are 0.152 mm. On the outer layers, over JLCPCB's 0.1 mm 3313 prepreg (ε<sub>r</sub> 4.1) to the In1/In4 ground planes, a single trace is about 54 Ω and a pair 90 Ω (0.108 mm gap, where the column is tightest) to 108 Ω (loosely coupled) differential (Hammerstad / IPC-2141 estimates). D-PHY asks for 100 Ω ± 10 %. On In3 the lines run between the In4 ground plane and the In2 power pours. The board was ordered on JLCPCB's standard 1.2 mm 6-layer stackup without impedance control *(R25: impedance control ordered, In2 ground under the In3 runs, 50 Ω widths per layer)*.
 
 All 16 rerouted nets were checked by KiCad's DRC with the board's own rules (FinePitch class: 0.1 mm clearance, 0.152 mm track, 0.45 / 0.2 mm vias; 0.2 mm copper to edge): 0 violations, 0 unconnected pads. The J1 pin table is checked against the panel datasheet by `CHECKS/convergence_check.py` (check N1).
 
@@ -107,6 +135,8 @@ Do not substitute ESP32-P4NRW32 (no X, chip revision v1.x): its core-supply feed
 
 
 ## Rebuild
+
+`R25_FROM_R24/build_r25.sh <copy of REFERENCES/PCB_R24/SLIM4_R24.kicad_pcb renamed SLIM4_R25.kicad_pcb, beside copies of that folder's SLIM4.pretty, fp-lib-table and SLIM4_R24.kicad_pro renamed SLIM4_R25.kicad_pro>` regenerates R25 from the unchanged R24 board: edits 25–29 in their own pcbnew processes, the library sync (removes FP_R301–R306), the metadata (`r25_meta.py`, a text edit), then zone refill and DRC. Three independent rebuilds gave the same copper as `SLIM4_R25.kicad_pcb`: 3300 tracks and vias, 613 pads and 24 zone fills.
 
 `R24_FROM_R23/build_r24.sh <copy of REFERENCES/PCB_R23/SLIM4_R23.kicad_pcb renamed SLIM4_R24.kicad_pcb, beside copies of that folder's SLIM4.pretty, fp-lib-table and SLIM4_R23.kicad_pro renamed SLIM4_R24.kicad_pro>` regenerates R24 from the unchanged R23 board the same way. Three independent rebuilds gave the same copper as `SLIM4_R24.kicad_pcb`: every track, via and pad, and every zone fill (the new copper areas have distinct priorities so the fill does not depend on the order KiCad visits them). Only the new footprints' UUIDs differ between runs.
 

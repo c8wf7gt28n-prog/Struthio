@@ -49,6 +49,8 @@ static bool s_display_ready;
 static bool s_i2s_ready;
 static bool s_i2s_running;
 static uint8_t s_audio_volume = 35;
+static volatile bool s_audio_power_mute;   /* set by the power policy (slim4_power.c): no budget for audio */
+static inline uint8_t audio_volume_now(void) { return s_audio_power_mute ? 0 : s_audio_volume; }
 static uint32_t s_i2s_sample_rate;
 static uint16_t *s_framebuffer;
 static int16_t s_audio_scaled[SLIM4_AUDIO_CHUNK_FRAMES * 2];
@@ -463,7 +465,7 @@ static void audio_worker(void *arg)
     (void)arg;
     for (;;) {
         const uint32_t notifications = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(20));
-        if (s_audio_volume == 0) {
+        if (audio_volume_now() == 0) {
             (void)xQueueReset(s_audio_queue);
             stop_audio_clock();
             continue;
@@ -471,7 +473,7 @@ static void audio_worker(void *arg)
 
         bool processed_chunk = false;
         slim4_audio_chunk_t chunk;
-        while (s_audio_volume != 0 && xQueueReceive(s_audio_queue, &chunk, 0) == pdTRUE) {
+        while (audio_volume_now() != 0 && xQueueReceive(s_audio_queue, &chunk, 0) == pdTRUE) {
             processed_chunk = true;
             esp_err_t err = configure_audio_rate(chunk.sample_rate);
             if (err == ESP_OK) err = start_audio_clock();
@@ -481,7 +483,7 @@ static void audio_worker(void *arg)
                 continue;
             }
 
-            const uint8_t volume = s_audio_volume;
+            const uint8_t volume = audio_volume_now();
             for (size_t i = 0; i < (size_t)chunk.frames * 2; ++i) {
                 s_audio_scaled[i] = (int16_t)((int32_t)chunk.samples[i] * volume / 100);
             }
@@ -759,6 +761,13 @@ slim4_status_t slim4_board_display_present(const slim4_surface_t *surface)
     if (!s_display_ready || surface->pixels_rgb565 != s_framebuffer) return SLIM4_ERR_NOT_READY;
     esp_err_t err = panel_draw_bitmap_wait(s_framebuffer);
     return err == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
+}
+
+void slim4_board_audio_power_mute(bool mute)
+{
+    s_audio_power_mute = mute;
+    /* The worker drops queued audio and puts both amplifiers into shutdown (SD_MODE low) on its next pass. */
+    if (mute && s_audio_task) xTaskNotifyGive(s_audio_task);
 }
 
 slim4_status_t slim4_board_audio_set_volume(uint8_t volume)

@@ -113,7 +113,7 @@ header = '0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n9\n$INSUNITS\n70\n4\n0\
 
 spec = {
     'layer': 'ACRYLIC', 'revision': 'R2', 'status': 'prototype cut file: clear, unprinted film (DECISIONS_R26.md)',
-    'units': 'mm', 'shared_xy_datum': 'SLIM4 PCB XY (R21-R24 datum) (Y down); film lower face Z=7.65 mm on the front plate',
+    'units': 'mm', 'shared_xy_datum': 'SLIM4 PCB XY (R21-R25 datum) (Y down); film lower face Z=7.65 mm on the front plate',
     'outer_size_mm': [round(B['FILM_OUTLINE'].bounds[2] - B['FILM_OUTLINE'].bounds[0], 3), round(B['FILM_OUTLINE'].bounds[3] - B['FILM_OUTLINE'].bounds[1], 3)],
     'outline_source': 'CASE R12 exterior outline offset inward', 'edge_inset_mm': P['film_edge_inset'],
     'film_thickness_mm': P['film_t'], 'stack_mm': [{'layer': n, 'thickness': t} for n, t in P['film_stack']],
@@ -154,26 +154,26 @@ def mesh(it, tol):
 
 TOL = {'front_shell': 0.35, 'rear_shell': 0.4, 'screen': 0.45, 'controls': 0.25, 'internals': 0.4, 'film': 0.3}
 case_json = {
-    'layer': 'CASE', 'revision': 'R12', 'package': 'R29',
-    'status': 'complete enclosure candidate converged on R21 in R26 and checked on PCB R24 in R29 (front shell, rear shell, controls, screen stack, internals); set aside by the owner for R23/R24, case pass open; not a tooling release',
-    'source': 'LAYERS/02_CASE/build_r12.py via export_layer_formats.py', 'units': 'mm', 'shared_xy_datum': 'SLIM4 PCB XY (R21-R24 datum)',
+    'layer': 'CASE', 'revision': 'R12', 'package': 'R30',
+    'status': 'complete enclosure candidate converged on R21 in R26 and checked on PCB R25 in R30 (front shell, rear shell, controls, screen stack, internals); set aside by the owner for R23-R25, case pass open; not a tooling release',
+    'source': 'LAYERS/02_CASE/build_r12.py via export_layer_formats.py', 'units': 'mm', 'shared_xy_datum': 'SLIM4 PCB XY (R21-R25 datum)',
     'case_outline_mm': [104.0, 135.3], 'body_thickness_mm': round(B['Z_FILM_TOP'] - B['Z_FLOOR_OUT'], 3),
     'parts': [mesh(it, TOL[it['sub']]) for it in case_parts],
 }
 (CASE / 'CASE_LAYER_R12_MESH.json').write_text(json.dumps(case_json, separators=(',', ':'), ensure_ascii=False) + '\n')
 (ROOT / 'case-layer-data.js').write_text('window.STRUTHIO_CASE_LAYER=' + json.dumps(case_json, separators=(',', ':'), ensure_ascii=False) + ';\n')
 acrylic_json = {
-    'layer': 'ACRYLIC', 'revision': 'R2', 'package': 'R29', 'status': 'clear unprinted film, 0.175 PET + 0.025 OCA',
-    'source': 'LAYERS/02_CASE/export_layer_formats.py', 'units': 'mm', 'shared_xy_datum': 'SLIM4 PCB XY (R21-R24 datum)',
+    'layer': 'ACRYLIC', 'revision': 'R2', 'package': 'R30', 'status': 'clear unprinted film, 0.175 PET + 0.025 OCA',
+    'source': 'LAYERS/02_CASE/export_layer_formats.py', 'units': 'mm', 'shared_xy_datum': 'SLIM4 PCB XY (R21-R25 datum)',
     'thickness_mm': P['film_t'], 'parts': [mesh(it, TOL['film']) for it in film_parts],
 }
 (ACRYLIC / 'ACRYLIC_LAYER_R2_MESH.json').write_text(json.dumps(acrylic_json, separators=(',', ':'), ensure_ascii=False) + '\n')
 (ROOT / 'acrylic-layer-data.js').write_text('window.STRUTHIO_ACRYLIC_LAYER=' + json.dumps(acrylic_json, separators=(',', ':'), ensure_ascii=False) + ';\n')
 
-# ---- Fit summary (the full cross-layer report is CHECKS/R29_CONVERGENCE_REPORT.*) ----
+# ---- Fit summary (the full cross-layer report is CHECKS/R30_CONVERGENCE_REPORT.*) ----
 fit = {
-    'revision': 'R12', 'status': 'CHECKED ON PCB R24 IN CAD; CASE SET ASIDE FOR R23/R24, CASE PASS AND PHYSICAL GATES OPEN (see CHECKS/R29_CONVERGENCE_REPORT.md)',
-    'exterior_outline_mm': [104.0, 135.3], 'pcb_revision': 'R24', 'pcb_thickness_mm': P['pcb_t'],
+    'revision': 'R12', 'status': 'CHECKED ON PCB R25 IN CAD; CASE SET ASIDE FOR R23-R25, CASE PASS AND PHYSICAL GATES OPEN (see CHECKS/R30_CONVERGENCE_REPORT.md)',
+    'exterior_outline_mm': [104.0, 135.3], 'pcb_revision': 'R25', 'pcb_thickness_mm': P['pcb_t'],
     'z_stack_mm': {
         'rear_floor_outer': B['Z_FLOOR_OUT'], 'rear_floor_inner': P['floor_inner_z'], 'board': [0.0, P['pcb_t']],
         'lcd_module': [P['lcd_z0'], P['lcd_z0'] + B['LCD_T']], 'front_plate': [P['plate_z0'], B['Z_PLATE_TOP']],
@@ -197,11 +197,11 @@ import sys
 sys.path.insert(0, sys_path)
 sys.dont_write_bytecode = True   # keep CHECKS/ free of __pycache__
 from convergence_check import pcb_items  # noqa: E402
-asm = cq.Assembly(name='STRUTHIO_SLIM4_R29_ASSEMBLY')
+asm = cq.Assembly(name='STRUTHIO_SLIM4_R30_ASSEMBLY')
 for it in pcb_items(B):
     asm.add(it['solid'], name=safe(it['name']), color=color('#1f8f4a' if it['kind'] == 'board' else '#30343a'))
 for it in PARTS:
     asm.add(val(it['solid']), name=safe(it['name']), color=color(it['color']))
-asm.export(str(ASSEMBLY / 'STRUTHIO_SLIM4_R29_ASSEMBLY.step'))
-fix_stamp(ASSEMBLY / 'STRUTHIO_SLIM4_R29_ASSEMBLY.step')
-print('CASE R12, ACRYLIC R2, viewer meshes and R29 assembly written.')
+asm.export(str(ASSEMBLY / 'STRUTHIO_SLIM4_R30_ASSEMBLY.step'))
+fix_stamp(ASSEMBLY / 'STRUTHIO_SLIM4_R30_ASSEMBLY.step')
+print('CASE R12, ACRYLIC R2, viewer meshes and R30 assembly written.')

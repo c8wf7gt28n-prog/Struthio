@@ -1,12 +1,12 @@
-# Production gates — R29
+# Production gates — R30
 
-R29 puts PCB R24 in the package: the R23 main board with four plug-and-play ports, its power layout redone after the second hardware review. **The board is ready to order** (`LAYERS/01_PCB/RELEASE_GATES.md`), except for sourcing U1. **The firmware builds** (`firmware/slim4`). **The case is set aside by the owner:** the convergence check (`CHECKS/R29_CONVERGENCE_REPORT.md`) reports 3 FAIL, all case items. It is not a production release.
+R30 puts PCB R25 in the package: the R23 main board with four plug-and-play ports, its power layout redone after the second hardware review (R24), and its DSI lines and processor supply planes finished after the R24 deep audit (R25). **The board is ready to order** (`LAYERS/01_PCB/RELEASE_GATES.md`), except for sourcing U1. **The firmware builds** (`firmware/slim4`, R9). **The case is set aside by the owner:** the convergence check (`CHECKS/R30_CONVERGENCE_REPORT.md`) reports 3 FAIL, all case items. It is not a production release.
 
 ## Order now
 
-1. **PCB R24 + assembly at JLCPCB** (`1_PCB_FABRICATION`). Before ordering, pre-order or consign U1 (ESP32-P4NRW32X, v3). In the placement preview, check the rotations (J1 is a top-contact socket on the front).
+1. **PCB R25 + assembly at JLCPCB** (`1_PCB_FABRICATION`), with impedance control on stackup JLC06121H-3313 and ENIG (the order README lists the widths). Before ordering, pre-order or consign U1 (ESP32-P4NRW32X, v3). In the placement preview, check the rotations (J1 is a top-contact socket on the front).
 2. **Panel**: Crystalfontz CFAF7201280A0-050TN (5.0 in, 720 × 1280, ILI9881C). It plugs straight into J1; no cable to order.
-3. **Battery**: any protected 1-cell Li-ion/LiPo up to 34 × 50 × 7 mm on a JST PH 2.0 2-pin plug, red = pin 1 = BAT+ (Adafruit / SparkFun packs). Check the polarity: a reversed pack is blocked when the board runs from it, but with USB connected it is not disconnected (the design analysis predicts the charger's 4–11 mA test current, not tested; the screen shows BATTERY REVERSED). Verify the pack's polarity before plugging it in.
+3. **Battery**: a protected 1-cell Li-ion/LiPo of 1000 mAh or more, up to 34 × 50 × 7 mm (503450 about 1000 mAh, 703450 about 1500 mAh), on a JST PH 2.0 2-pin plug, red = pin 1 = BAT+ (Adafruit / SparkFun packs). It charges at up to 0.55 A with no cell-temperature sensing, so the pack's own protection board matters. Check the polarity: a reversed pack is blocked when the board runs from it, but with USB connected it is not disconnected (the design analysis predicts the charger's 4–11 mA test current, not tested; the screen shows BATTERY REVERSED). Verify the pack's polarity before plugging it in.
 4. **Speakers**: 2 × 4–8 Ω, up to 3 W, on Molex PicoBlade 1.25 mm 2-pin plugs (Adafruit 3923 / 4227 class); J4 left, J5 right.
 
 ## Then
@@ -15,10 +15,10 @@ R29 puts PCB R24 in the package: the R23 main board with four plug-and-play port
 
 ## Case pass (CASE R13; plastic, set aside by the owner)
 
-Each item is a FAIL or GATE row of the R29 report:
-- **C6**: redraw the LCD pocket, opening, lens and film for the 66.10 × 120.40 × 1.85 mm Crystalfontz module (active area 62.10 × 110.40), placed as R23 and R24 put it: bottom edge at Y 109.8, centre at X 1.2, 13.6 mm past the board's top edge.
+Each item is a FAIL or GATE row of the R30 report:
+- **C6**: redraw the LCD pocket, opening, lens and film for the 66.10 × 120.40 × 1.85 mm Crystalfontz module (active area 62.10 × 110.40), placed as R23-R25 put it: bottom edge at Y 109.8, centre at X 1.2, 13.6 mm past the board's top edge.
 - **H4**: the panel lies 2.3–3.3 mm over the board front (J1 2.0 mm tall; the tail's fold about 3.3 mm). Replace the R12 extension-FPC reserve with the folded tail.
-- **F1, G1**: the rear shell meets J3's JST PH body (R23 moved J3 to the window's left edge; R24 keeps it there) and J5's PicoBlade body, and sits 0.08 mm from J4's. Move or relieve the rear supports and walls there.
+- **F1, G1**: the rear shell meets J3's JST PH body (R23 moved J3 to the window's left edge; R24 and R25 keep it there) and J5's PicoBlade body, and sits 0.08 mm from J4's. Move or relieve the rear supports and walls there.
 - The earlier physical gates are unchanged:
   - **D5, D11**: D2LS lot free position and actuator position. Trim the stop legs or shim them.
   - **B8, D12, K3**: print tests for the ledge, trunnions and USB-C floor.

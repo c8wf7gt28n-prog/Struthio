@@ -1,0 +1,1 @@
+(fp_lib_table (version 7) (lib (name "SLIM4") (type "KiCad") (uri "${KIPRJMOD}/SLIM4.pretty") (options "") (descr "Recovered geometry; manufacturer audit still required")))

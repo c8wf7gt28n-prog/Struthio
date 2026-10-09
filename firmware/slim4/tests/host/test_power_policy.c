@@ -8,6 +8,7 @@
 int host_gpio[64];
 int host_battery_mv;
 bool host_adc_fails;
+bool host_cali_fails;
 float host_die_c = 25;
 int64_t host_now_us = 1000000;
 bool host_quiet = true;
@@ -21,6 +22,8 @@ static int s_cap_calls;
 static uint8_t s_last_cap;
 void slim4_board_prepare_power_off(void) {}
 void slim4_board_backlight_cap_changed(uint8_t cap) { ++s_cap_calls; s_last_cap = cap; }
+static bool s_board_muted;
+void slim4_board_audio_power_mute(bool mute) { s_board_muted = mute; }
 
 #include "../../components/slim4_bsp/slim4_power.c"
 
@@ -39,14 +42,31 @@ static void fresh(enum usb usb, bool chg, int mv, float die)
 {
     memset(&s_state, 0, sizeof s_state);
     s_fault_count = s_low_count = s_cell_ok_count = 0;
-    s_cell_ok = s_adc_warned = s_adc_valid = s_ready = false;
+    s_cell_ok = s_adc_warned = s_approx_warned = s_adc_valid = s_ready = false;
+    s_board_muted = false;
+    s_adc = NULL; s_adc_cali = NULL; s_tsens = NULL;
+    s_button_down_since = 0;
+    host_adc_fails = false;
+    host_cali_fails = false;
+    host_now_us = 1000000;
+    for (int i = 0; i < 64; ++i) host_gpio[i] = 1;
+    board(usb, chg, mv, die);
+    slim4_power_init();                       /* first policy pass */
+}
+static void fresh_uncal(enum usb usb, bool chg, int mv, float die)
+{
+    host_cali_fails = true;                   /* stays set: fresh() clears it only before its init */
+    memset(&s_state, 0, sizeof s_state);
+    s_fault_count = s_low_count = s_cell_ok_count = 0;
+    s_cell_ok = s_adc_warned = s_approx_warned = s_adc_valid = s_ready = false;
+    s_board_muted = false;
     s_adc = NULL; s_adc_cali = NULL; s_tsens = NULL;
     s_button_down_since = 0;
     host_adc_fails = false;
     host_now_us = 1000000;
     for (int i = 0; i < 64; ++i) host_gpio[i] = 1;
     board(usb, chg, mv, die);
-    slim4_power_init();                       /* first policy pass */
+    slim4_power_init();
 }
 /* fresh() makes the first reading; run(n) makes n more, 0.5 s apart.
  * advance n policy periods, polling every 10 ms like app_main; returns true if any poll asked to switch off */
@@ -109,6 +129,36 @@ int main(void)
     fresh(USB500, true, 3900, 80); host_adc_fails = true; run(10);
     check("ADC fails on USB 500 mA, CHG low, die 80 C: cap 15 %, no suspend",
           s_state.backlight_cap_percent == 15 && !s_state.charge_suspended && s_state.input_limit_ma == 500);
+
+    /* uncalibrated ADC (R9): shown, never used for a decision */
+    fresh_uncal(NO_USB, false, 3000, 25);
+    check("uncalibrated ADC on battery: reading shown as approximate", s_state.battery_approx && s_state.battery_mv > 0);
+    check("uncalibrated ADC, battery 3.0 V for 5 s: no switch-off from it", !run(10));
+    fresh_uncal(USB500, true, 3900, 25); run(10);
+    check("uncalibrated ADC, USB 500 mA, charging 3.9 V: cell never qualifies, cap 15 %, audio muted",
+          s_state.backlight_cap_percent == 15 && s_state.audio_muted && s_board_muted);
+    fresh_uncal(USB500, true, 3900, 80); run(10);
+    check("uncalibrated ADC, die 80 C: no charge suspend", !s_state.charge_suspended && s_state.input_limit_ma == 500);
+    fresh_uncal(USB500, true, 800, 25); run(4);
+    check("uncalibrated ADC, rail 0.8 V: no battery-fault decision from it", !s_state.battery_fault);
+    fresh(NO_USB, false, 3900, 25);
+    check("calibrated ADC: reading not marked approximate", !s_state.battery_approx);
+
+    /* audio mute on a source with no budget for it (R9) */
+    fresh(USB500, false, 4200, 25); run(2);
+    check("USB 500 mA, no qualified cell: amplifiers muted", s_state.audio_muted && s_board_muted);
+    fresh(USB500, true, 3800, 25); run(4);
+    check("USB 500 mA, cell qualifies: audio enabled", !s_state.audio_muted && !s_board_muted);
+    board(USB500, true, 3350, 25); run(1);
+    check("qualified cell drops below 3.4 V: audio muted again", s_state.audio_muted && s_board_muted);
+    fresh(USB500, true, 3900, 80); run(4);
+    check("charge suspended for heat: audio muted with the backlight cap", s_state.charge_suspended && s_state.audio_muted);
+    fresh(USB1A5, false, 4200, 25); run(2);
+    check("USB-C 1.5 A: audio enabled", !s_state.audio_muted && !s_board_muted);
+    fresh(NO_USB, false, 3900, 25); run(2);
+    check("battery only: audio enabled", !s_state.audio_muted && !s_board_muted);
+    fresh(USB500, false, 4200, 25); host_adc_fails = true; run(4);
+    check("battery reading fails on USB 500 mA: audio muted", s_state.audio_muted);
 
     /* over-temperature charge suspend (USB suspend: system on the cell) */
     fresh(USB500, true, 3400, 80); run(10);

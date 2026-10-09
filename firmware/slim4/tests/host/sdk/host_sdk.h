@@ -60,6 +60,7 @@ typedef struct { int lo, hi; } temperature_sensor_config_t;
 extern int host_gpio[64];
 extern int host_battery_mv;     /* voltage on BAT_PLUS */
 extern bool host_adc_fails;     /* every ADC read fails */
+extern bool host_cali_fails;    /* no ADC calibration scheme (eFuse not burnt) */
 extern float host_die_c;
 extern int64_t host_now_us;
 extern bool host_quiet;
@@ -71,7 +72,7 @@ static inline esp_err_t gpio_config(const gpio_config_t *c) { (void)c; return ES
 static inline esp_err_t adc_oneshot_io_to_channel(int io, adc_unit_t *u, adc_channel_t *c) { (void)io; *u = 0; *c = 0; return ESP_OK; }
 static inline esp_err_t adc_oneshot_new_unit(const adc_oneshot_unit_init_cfg_t *c, adc_oneshot_unit_handle_t *h) { (void)c; *h = (void *)1; return ESP_OK; }
 static inline esp_err_t adc_oneshot_config_channel(adc_oneshot_unit_handle_t h, adc_channel_t c, const adc_oneshot_chan_cfg_t *x) { (void)h; (void)c; (void)x; return ESP_OK; }
-static inline esp_err_t adc_cali_create_scheme_curve_fitting(const adc_cali_curve_fitting_config_t *c, adc_cali_handle_t *h) { (void)c; *h = (void *)1; return ESP_OK; }
+static inline esp_err_t adc_cali_create_scheme_curve_fitting(const adc_cali_curve_fitting_config_t *c, adc_cali_handle_t *h) { (void)c; if (host_cali_fails) return ESP_FAIL; *h = (void *)1; return ESP_OK; }
 /* raw = pin millivolts: BAT_PLUS x 33 k / 133 k */
 static inline esp_err_t adc_oneshot_read(adc_oneshot_unit_handle_t h, adc_channel_t c, int *raw) { (void)h; (void)c; if (host_adc_fails) return ESP_FAIL; *raw = host_battery_mv * 33 / 133; return ESP_OK; }
 static inline esp_err_t adc_cali_raw_to_voltage(adc_cali_handle_t h, int raw, int *mv) { (void)h; *mv = raw; return ESP_OK; }

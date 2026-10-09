@@ -1,0 +1,26 @@
+# AI change report — R30
+
+- Platform/model: Claude Code (Anthropic), cloud session.
+- Input package revision: R29 (commit 9199e23).
+- Output revision: R30, made of PCB R25, CASE R12 (set aside, unchanged), ACRYLIC R2, and the firmware in `firmware/slim4` (R9).
+- Parent layers edited: PCB (R24 → R25), answering the R24 deep audit. CASE and ACRYLIC are set aside by the owner.
+- Source files changed:
+  - `LAYERS/01_PCB/*`: R25 board, project (renamed, unchanged), library (FP_R301–R306 removed), docs, `R25_FROM_R24/` (new). R24 moved to `REFERENCES/PCB_R24/`.
+  - `CHECKS/`: `convergence_check.py` (R25 paths, A1 hashes, L4 battery text), `build_builder_packs.py` (R25/R30; stackup, impedance control and battery in the order notes), `build_pcb_viewer_data.py`, `build_viewer_bundle.py`, `render_review.py`, `make_manifest.py`, `export_pcb_layer.py` (docstring), `COMPONENT_ENVELOPES_R25.json` (renamed; text).
+  - `LAYERS/02_CASE/build_r12.py`, `export_layer_formats.py`: data paths and labels only.
+  - Studio: `app.js`, `eye.js`, `index.html`, `sw.js`, `manifest.webmanifest` (labels; tour text on DSI and the battery).
+  - Docs: `DECISIONS_R30.md`, `PRODUCTION_GATES.md`, `README.txt`, `QC_REPORT.txt`, `CHANGELOG.md`, `AI_HANDOFF.md`, `ASSEMBLY/ASSEMBLY_SEQUENCE.md`, `REFERENCES/`.
+  - Firmware R9: `slim4_power.c/.h` and `slim4_board.c` (audio mute, calibrated readings only), host tests (42 cases), README, first-boot notes, `RELEASE_NOTES_R9.md`, version 0.9.0, `tools/check_pinmap.py` (R25 board).
+- Dimensions or coordinates changed:
+  - Board outline, thickness, battery window, J1–J5, switches and every GPIO are unchanged. No part moved.
+  - Removed: R301–R306. Copper: DSI links and meanders; vias 341 → 349 (3 DSI vias removed; 3 DSI ground-return, 7 3V3 and 1 1V1 plane vias added); In2 1V1_HP area reshaped; In2 GND area added under the In3 DSI runs, In3 DSI width 0.135 mm.
+- Shared datum and units preserved: yes.
+- PCB edits: 6 scripted edits (25–30). `build_r25.sh` reproduces the board from R24: three independent rebuilds have identical tracks, vias, pads and zone fills. KiCad 7.0.11 DRC: 0 / 0 / 0.
+- Fit and interference checks: 78 PASS, 3 FAIL, 9 GATE, 3 INFO, over 317 pair evaluations; the same 3 case FAIL rows as R29 (C6, F1, G1).
+- Validation: per-line DSI flight time from U1 pad to J1 pad (per-layer model) and lengths; DSI via-to-ground distances; In2 reference under every In3 DSI segment; every 3V3/1V1 via near U1 checked against the filled In2 copper (main plane, not island); U1 pin-to-plane track lengths; Gerber job file (revision, stackup, finish); firmware: ESP-IDF v6.1 build with no warnings, 42/42 host cases (each new case fails with its fix reverted), pin check 19/19 on R25.
+- Production gates closed or still open: `LAYERS/01_PCB/RELEASE_GATES.md` and `PRODUCTION_GATES.md`. Open: U1 stock, bring-up (now including the DSI image at 1 Gbit/s a lane and the 1V1 rail at U1 under load), the case pass.
+- Known limitations:
+  - No schematic exists; reviews work from the netlist.
+  - Impedance and timing are estimates (Hammerstad-Jensen / IPC-2141 on JLCPCB's published stackup; via barrels outside the timing model); nothing is simulated or measured.
+  - 5.4 mm of MIPI_DSI_CLK_P stay 0.1 mm wide (about 60 Ω).
+  - The 1V1 plane path from L2 to U1 is longer than in R24 (some 10 mΩ more).

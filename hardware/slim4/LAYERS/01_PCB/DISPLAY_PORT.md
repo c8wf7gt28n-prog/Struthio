@@ -9,7 +9,7 @@ Why this panel:
 - **Documented.** Public pin table and drawing; the init sequence is in the Linux kernel (`panel-ilitek-ili9881c.c`, Crystalfontz's own submission).
 - **Software.** Espressif's `esp_lcd_ili9881c` component drives the ILI9881C over 2 lanes on the ESP32-P4. The firmware in `firmware/slim4` uses it.
 
-The case was drawn around a 4.7 in panel; it is set aside for R23/R24, and the case pass redraws the pocket, opening, lens and film for this module (convergence check C6).
+The case was drawn around a 4.7 in panel; it is set aside for R23-R25, and the case pass redraws the pocket, opening, lens and film for this module (convergence check C6).
 
 ## J1: the display port on the main board
 
@@ -33,7 +33,7 @@ J1 is a **Hirose FH12A-40S-0.5SH(55)** (LCSC C506795): 40 pins, 0.5 mm pitch, **
 
 `CHECKS/convergence_check.py` check N1 compares every J1 pad's position and net with this table.
 
-Electrical limits: backlight 74 mA regulated (37 mA a string, under the 40 mA rating), PWM-dimmed from GPIO9. Lane rate up to 1.5 Gbit/s on the P4; the firmware runs 1 Gbit/s a lane (720 × 1280 at 59 Hz in RGB565 needs 624 Mbit/s). Board-side DSI runs are 54.8–60.3 mm, P and N matched within 0.01 mm (`README_PCB_LAYER.md`, edit 15).
+Electrical limits: backlight 74 mA regulated (37 mA a string, under the 40 mA rating), PWM-dimmed from GPIO9. Lane rate up to 1.5 Gbit/s on the P4; the firmware runs 1 Gbit/s a lane (720 × 1280 at 59 Hz in RGB565 needs 624 Mbit/s). Board-side DSI runs, U1's pads to J1's, are 65.97–70.56 mm, all six matched to 423.9 ps flight time (R25 edits 25–26, `README_PCB_LAYER.md`), 50 Ω single-ended per layer.
 
 ## Plugging the panel in
 

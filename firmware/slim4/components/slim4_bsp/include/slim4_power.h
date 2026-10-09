@@ -22,6 +22,8 @@ typedef struct {
     bool charge_suspended;    /* firmware suspended charging (die too hot) */
     uint8_t backlight_cap_percent; /* highest backlight level the power source can carry */
     bool battery_fault;       /* USB valid but the battery rail stays below 1.5 V: pack reversed or shorted */
+    bool battery_approx;      /* ADC uncalibrated: battery_mv is approximate and drives no power decision */
+    bool audio_muted;         /* amplifiers held off: USB below 1 A and no qualified cell (no budget for audio) */
 } slim4_power_state_t;
 
 /* Configures the power button, battery ADC, charger and USB-C status pins. */
@@ -32,6 +34,8 @@ bool slim4_power_poll(void);
 slim4_status_t slim4_power_read(slim4_power_state_t *out);
 /* Implemented in slim4_board.c: re-applies the backlight with the power policy's cap. */
 void slim4_board_backlight_cap_changed(uint8_t cap_percent);
+/* Implemented in slim4_board.c: holds the amplifiers in shutdown while the power policy mutes audio. */
+void slim4_board_audio_power_mute(bool mute);
 /* Turns the display, backlight and amplifiers off and enters deep sleep.
  * The power button (GPIO0, active low) wakes the board, which then boots normally. */
 void slim4_power_off(void);

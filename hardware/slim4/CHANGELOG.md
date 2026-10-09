@@ -1,3 +1,22 @@
+# R30 — PCB R25: DSI end to end, processor planes; firmware R9 (2026-10-09)
+
+PCB R24 → **R25** (6 scripted edits in `LAYERS/01_PCB/R25_FROM_R24/`; three independent rebuilds from R24 give the same copper), answering the R24 deep audit (SLIM4_R24_DEEP_AUDIT, which was correct on every point). Same outline, ports, connector positions and GPIOs. R24 moves to `REFERENCES/PCB_R24/`. Firmware R8 → **R9**. CASE R12 and ACRYLIC R2 still set aside: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (317 pair evaluations over 278 distinct pairs), the same 3 case FAIL rows. Decisions: `DECISIONS_R30.md`.
+
+| Audit item | R30 |
+|---|---|
+| DSI matched only from the 0 Ω links to J1 (full paths 377–460 ps; the R24 docs claimed P = N within 0.01 mm, ≤ 8 ps in a pair, ≤ 39 ps clock to data) | The claim was wrong for the whole path and is corrected everywhere. R301–R306 removed, each line joined directly; all six lines 423.9 ps from U1's pad to J1's by the per-layer model (CLK_P 68.32, CLK_N 67.85, D0_P 65.97, D0_N 65.99, D1_P 68.29, D1_N 70.56 mm); via barrels outside the model, at most about 16 ps between P and N |
+| Impedance requirement per routed layer | Ordered: 50 Ω single-ended / 100 Ω differential, 0.152 mm on F.Cu/B.Cu, 0.135 mm on In3, stackup JLC06121H-3313. In2 ground area under every In3 DSI run (In3 had been under power pours with gaps); 5.4 mm of CLK_P stay 0.1 mm |
+| DSI return vias after the change | 29 DSI vias: 21 within 1.0 mm of a ground via, 25 within 1.2 mm, worst 1.68 mm |
+| Long thin supply branches at U1 | The cause was the In2 1V1 rectangle: U1's and U3's 3V3 vias under it were 0.15 mm² islands. 1V1 area reshaped, 7 3V3 and 1 1V1 plane vias added: U1's 3V3 pins reach the 3V3 plane in 1.0–7.8 mm of track (R24 7.8–29.7 mm), 1V1 pin 91 in 2.6 mm (9.5). Three of the new 3V3 vias sit in decoupling-capacitor pads (C114, C124, C131), filled and capped like every via |
+| Title block R20, Gerber finish "None" | Title block R25; JLC06121H-3313 stackup and ENIG in the board file; the job file carries both |
+| Audio unlimited on a 500 mA source without a qualified cell | Firmware R9 mutes the amplifiers (shutdown) whenever the backlight cap applies |
+| Uncalibrated ADC used for power decisions | R9 shows it (`battery_approx`) but treats it as no reading |
+| "Suitable for 500 mAh and up" | Battery spec: protected 1-cell, 1000 mAh or more (503450 / 703450), 0.49 A nominal / 0.55 A max charge (≤ 0.55 C), default 4–6 h timer, no cell-temperature sensing (TS fixed 10 k), stated in the order README and the board docs |
+
+Parts: R301–R306 removed; 164 placements, 52 BOM lines, LCSC numbers for all; U1 still to source. KiCad 7.0.11 DRC 0 / 0 / 0. Firmware R9: ESP-IDF v6.1 build with no warnings, 42 host cases (13 new), pin check 19/19 on R25.
+
+Package: `CHECKS/COMPONENT_ENVELOPES_R25.json`, `CHECKS/R25_FAB_SUMMARY.json`, `CHECKS/R30_CONVERGENCE_REPORT.*`, `ASSEMBLY/STRUTHIO_SLIM4_R30_ASSEMBLY.step`, `R25_REAR_BOARD.svg`, studio, renders and builder files regenerated. Not measured: impedance, the DSI eye and the 1V1 rail at U1 are bring-up items (`LAYERS/01_PCB/RELEASE_GATES.md`).
+
 # R29 — PCB R24: power layout after the second hardware review (2026-10-09)
 
 PCB R23 → **R24** (9 scripted edits in `LAYERS/01_PCB/R24_FROM_R23/`; three independent rebuilds from R23 give the same copper). Same outline, ports, connector positions and GPIOs; firmware unchanged (`check_pinmap.py` passes on R24). R23 moves to `REFERENCES/PCB_R23/`. CASE R12 and ACRYLIC R2 are still set aside and were checked against R24 as they are: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (323 pair evaluations over 284 distinct pairs), the same 3 case FAIL rows as R28; no new interference from the moved or added parts. Decisions: `DECISIONS_R29.md`.

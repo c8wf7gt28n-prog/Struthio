@@ -1,6 +1,6 @@
-# First firmware boot on PCB R24
+# First firmware boot on PCB R25
 
-This image is a board bring-up build for the R24 main board (R23 has the same pins; the log and the boot stamp say R23) with the Crystalfontz CFAF7201280A0-050TN plugged into J1 (`hardware/slim4/LAYERS/01_PCB/DISPLAY_PORT.md` shows how the tail folds in). It has not run on hardware yet.
+This image is a board bring-up build for the R25 main board (R23 and R24 have the same pins; the log and the boot stamp say R23) with the Crystalfontz CFAF7201280A0-050TN plugged into J1 (`hardware/slim4/LAYERS/01_PCB/DISPLAY_PORT.md` shows how the tail folds in). It has not run on hardware yet.
 
 ## Before power
 
@@ -37,6 +37,14 @@ A display error is logged with the stage that failed; the app keeps running so t
 ## Power budget on USB
 
 A 500 mA USB port (a computer, or a USB-A cable) gives the BQ24074 at least 450 mA at 4.4 V, 1.98 W. At Espressif's worst-case 380 mA design provision for the chip, flash and PSRAM, plus the panel logic, that leaves about 19 % backlight with no cell to help. The firmware therefore caps the backlight at 15 % on such a source. The cap lifts only for a cell that can supplement: the charger running a charge cycle, no battery fault, and a valid reading of at least 3.5 V for 2 s (it returns below 3.4 V, when charging stops, on a fault or a failed reading). CHG low alone does not lift it: CHG is also low in pre-charge, when the cell is below 3.0 V. With the battery, or a USB-C charger offering 1.5 A or 3 A, there is no cap. For a first power-up without a battery, the 15 % cap keeps the board inside a 500 mA supply.
+
+Audio does not fit in what is left (about 0.09 W after the 3.3 V rail and the capped backlight: the two MAX98357A idle at about 21 mW between them and, at 12 dB gain, can clip into 4 Ω speakers), so from R9 the amplifiers are held in shutdown whenever the backlight cap is on: no sound on a 500 mA source until a cell qualifies, or on a 1.5 A / 3 A USB-C charger or the battery alone. The log says `audio muted (USB below 1 A, no qualified cell)`.
+
+Only a calibrated battery reading drives these decisions. If the chip has no ADC calibration in eFuse, the log says `battery reading uncalibrated`; the voltage is still shown (`battery_approx`), but the board then behaves as with a failed reading: no low-battery switch-off (the pack's protection board still cuts off), the USB cap and mute stay on, no charge suspend.
+
+## Battery
+
+Use a protected 1-cell Li-ion/LiPo of 1000 mAh or more (503450 about 1000 mAh, 703450 about 1500 mAh; up to 34 × 50 × 7 mm) on a 2-pin JST PH plug, pin 1 (red) = BAT+. The BQ24074 charges at 0.49 A nominal, 0.55 A at most (R412 1.8 k): 0.55 C on 1000 mAh. Its safety timer ends a charge after 4–6 h (TMR open); a 1500 mAh cell finishes inside it. The board does not sense cell temperature (TS is a fixed 10 k): the pack's own protection board is the only cell-level protection.
 
 ## If the display stays dark
 

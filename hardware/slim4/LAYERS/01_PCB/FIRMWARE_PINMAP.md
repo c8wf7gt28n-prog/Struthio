@@ -1,6 +1,6 @@
-# Firmware pin map — PCB R24 (ESP32-P4NRW32X, chip revision v3.x)
+# Firmware pin map — PCB R25 (ESP32-P4NRW32X, chip revision v3.x)
 
-Everything the Struthio firmware needs from the board. Read from the R24 netlist; R24 and R23 use the same GPIOs as R22. `firmware/slim4/tools/check_pinmap.py` checks the firmware's `slim4_pins.h` against the U1 pad nets of `SLIM4_R24_PCB_LAYER.json` and the ESP32-P4 pin table.
+Everything the Struthio firmware needs from the board. Read from the R25 netlist; R25, R24 and R23 use the same GPIOs as R22. `firmware/slim4/tools/check_pinmap.py` checks the firmware's `slim4_pins.h` against the U1 pad nets of `SLIM4_R24_PCB_LAYER.json` and the ESP32-P4 pin table.
 
 ## Inputs
 
@@ -33,7 +33,7 @@ Everything the Struthio firmware needs from the board. Read from the R24 netlist
 | Bus | Pins | Notes |
 |---|---|---|
 | I2S (TX only, 2 amplifiers) | GPIO5 BCLK, GPIO6 LRCLK (WS), GPIO7 DOUT | Philips I2S, 16- or 32-bit stereo; MAX98357A class D, gain 12 dB (GAIN_SLOT to GND), powered from SYS_RAW. |
-| MIPI-DSI | dedicated DSI pins (U1 pads 35–40: D1, CLK, D0), 2 lanes + clock, through 0 Ω R301–R306 to J1 | Crystalfontz CFAF7201280A0-050TN, ILI9881C, 720 × 1280 portrait. ESP-IDF `esp_lcd` MIPI-DSI bus + the `esp_lcd_ili9881c` component, 2 lanes at 1 Gbit/s, RGB565, 78 MHz pixel clock (59 Hz). The init sequence is Crystalfontz's (Linux `panel-ilitek-ili9881c.c`). |
+| MIPI-DSI | dedicated DSI pins (U1 pads 35–40: D1, CLK, D0), 2 lanes + clock, straight to J1 (R25 removed the 0 Ω links R301–R306) | Crystalfontz CFAF7201280A0-050TN, ILI9881C, 720 × 1280 portrait. ESP-IDF `esp_lcd` MIPI-DSI bus + the `esp_lcd_ili9881c` component, 2 lanes at 1 Gbit/s, RGB565, 78 MHz pixel clock (59 Hz). The init sequence is Crystalfontz's (Linux `panel-ilitek-ili9881c.c`). |
 | USB (USB-Serial-JTAG) | GPIO24 D−, GPIO25 D+ | console, flashing and JTAG over the USB-C port. Leave these pins alone in the app, or auto-download stops working. |
 | Flash | dedicated SPI flash pins | W25Q512JV, 3.3 V. Boots as 16 MB (3-byte mode). |
 | PSRAM | in package | 32 MB, 1.9 V from VDDO_PSRAM (set by the 2nd-stage bootloader) |

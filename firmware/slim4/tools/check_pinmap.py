@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Check the firmware's GPIO assignments against the PCB R24 board itself (pins unchanged from R23).
+"""Check the firmware's GPIO assignments against the PCB R25 board itself (pins unchanged from R23).
 
 Every SLIM4_GPIO_* in components/slim4_bsp/include/slim4_pins.h is looked up in the ESP32-P4 QFN-104 pin table
 (GPIO -> package pad, datasheet section 2.2 / chip revision v3) and the board net on that U1 pad is read from
-hardware/slim4/LAYERS/01_PCB/SLIM4_R24_PCB_LAYER.json (exported from SLIM4_R24.kicad_pcb). The net must be the
+hardware/slim4/LAYERS/01_PCB/SLIM4_R25_PCB_LAYER.json (exported from SLIM4_R25.kicad_pcb). The net must be the
 one the define is named for. The display, I2S and active-low control code paths are checked to use the defines.
 """
 import json, re, sys
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-board = root.parents[1] / 'hardware/slim4/LAYERS/01_PCB/SLIM4_R24_PCB_LAYER.json'
+board = root.parents[1] / 'hardware/slim4/LAYERS/01_PCB/SLIM4_R25_PCB_LAYER.json'
 
 # ESP32-P4 QFN-104: GPIO -> package pad, for the GPIOs this board uses (pin 9 is VDD_LP, so GPIO9.. sit one pad up;
 # GPIO0 is pad 104, beside CHIP_PU on 103).
@@ -46,4 +46,4 @@ for token in ['SLIM4_GPIO_BTN_LEFT', 'SLIM4_GPIO_BTN_RIGHT', 'SLIM4_GPIO_DART_LE
 if bad:
     print('FAIL:\n  ' + '\n  '.join(bad))
     sys.exit(1)
-print(f'PASS: {len(pins)} firmware GPIO assignments match the R24 board nets on U1 ({board.name}); USB-Serial-JTAG pair intact')
+print(f'PASS: {len(pins)} firmware GPIO assignments match the R25 board nets on U1 ({board.name}); USB-Serial-JTAG pair intact')

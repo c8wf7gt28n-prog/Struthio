@@ -1,20 +1,24 @@
-STRUTHIO SLIM4 R29 PACKAGE — PACKAGE CHECKS
+STRUTHIO SLIM4 R30 PACKAGE — PACKAGE CHECKS
 
-PASS: The PCB R24 board file and its PCB layer JSON are hash-locked (SHA-256, check A1).
-PASS: R24_FROM_R23/build_r24.sh rebuilds R24 from the unchanged R23 board (REFERENCES/PCB_R23). Three independent rebuilds are identical to the package board in every track, via, pad and zone fill (2907 segments, 341 vias, 625 pads, 23 zones).
-PASS: KiCad 7.0.11 DRC on R24 with the board's own net-class rules: 0 violations, 0 unconnected pads, 0 footprint errors. Zone fills are current. The plotted masks have no opening at any via outside an SMD pad (the 9 vias in pads, 4 of them U10's thermal vias, are filled and capped).
-PASS: Second hardware review: battery and system rails in In2 planes (thin track BAT_PLUS 95 -> 9 mm, SYS_RAW 247 -> 31 mm); U4, U3 and U7 switch nodes as B.Cu copper areas with no inner-layer section, inductors 1-1.6 mm from their SW pins; TPS63070 PS/SYNC behind R423 100 k; a ground via within 1.75 mm of every DSI layer change (R23: 3-10 mm).
-PASS: JLCPCB order (1_PCB_FABRICATION): Gerber and drill files, 54 BOM lines with an LCSC number on all 170 placements, CPL, and assembly drawings on both sides (5 front, 165 back).
-PASS: J1 against the Crystalfontz CFAF7201280A0-050TN pin table: 40 of 40 pads in position and net (N1). DSI routing as R23: P = N within 0.01 mm; flight-time skew <= 8 ps in a pair and <= 39 ps clock to data.
-PASS: Firmware (firmware/slim4, R8) unchanged: tools/check_pinmap.py finds 19 of 19 firmware GPIOs on the R24 board's U1 pad nets. R8's clean ESP-IDF v6.1 build and 29 of 29 host power-policy cases stand (no firmware source changed).
-FAIL: Case pass, set aside by the owner (3 rows of CHECKS/R29_CONVERGENCE_REPORT.md, the same as R28):
+PASS: The PCB R25 board file and its PCB layer JSON are hash-locked (SHA-256, check A1).
+PASS: R25_FROM_R24/build_r25.sh rebuilds R25 from the unchanged R24 board (REFERENCES/PCB_R24). Three independent rebuilds are identical to the package board in every track, via, pad and zone fill (2951 segments, 349 vias, 613 pads, 24 zones).
+PASS: KiCad 7.0.11 DRC on R25 with the board's own net-class rules: 0 violations, 0 unconnected pads, 0 footprint errors. Zone fills are current. The plotted masks have no opening at any via outside an SMD pad (the 13 vias in pads - U10's four thermal vias, two in U1's exposed pad, and 3V3/GND vias in seven 0402 capacitor or resistor pads - are filled and capped).
+PASS: R24 deep audit, DSI: R301-R306 removed; all six lines 423.9 ps from U1's pad to J1's pad by the per-layer model (outer 5.9 ps/mm, In3 6.9 ps/mm; via barrels outside the model, at most about 16 ps between P and N); lengths 65.97-70.56 mm. The R24 documents' "P = N within 0.01 mm, <= 8 ps in a pair, <= 39 ps clock to data" held only from the links to J1 and is corrected.
+PASS: DSI reference and return: every In3 DSI segment has In2 ground over it (gaps only at via antipads, 0.23-0.35 mm); 29 DSI vias, 25 within 1.2 mm of a ground via, the worst 1.68 mm.
+PASS: Impedance requirement in the order: 50 ohm single-ended / 100 ohm differential on stackup JLC06121H-3313, 0.152 mm on F.Cu/B.Cu and 0.135 mm on In3 (Hammerstad-Jensen / IPC-2141 estimates); the stackup and ENIG are in the board file and the Gerber job file (revision R25).
+PASS: Processor supply: every 3V3 and 1V1 via near U1 lands on its plane's main fill (in R24 the 3V3 vias under the 1V1 area were 0.15 mm2 islands); U1's 3V3 pins reach the 3V3 plane within 1.0-7.8 mm of track (R24: 7.8-29.7 mm), its 1V1 pins within 1.2-2.6 mm.
+PASS: JLCPCB order (1_PCB_FABRICATION): Gerber and drill files, 52 BOM lines with an LCSC number on all 164 placements, CPL, and assembly drawings on both sides (5 front, 159 back); battery specified as a protected 1-cell pack of 1000 mAh or more, with the charge current and the absence of cell-temperature sensing stated.
+PASS: J1 against the Crystalfontz CFAF7201280A0-050TN pin table: 40 of 40 pads in position and net (N1).
+PASS: Firmware R9 (firmware/slim4): ESP-IDF v6.1 build with no warnings; 42 of 42 host power-policy cases (13 new: audio mute on a 500 mA source without a qualified cell, uncalibrated battery readings; each fails with its fix reverted); tools/check_pinmap.py finds 19 of 19 firmware GPIOs on the R25 board's U1 pad nets.
+FAIL: Case pass, set aside by the owner (3 rows of CHECKS/R30_CONVERGENCE_REPORT.md, the same as R29):
       C6     the 5 in Crystalfontz module does not fit the R12 LCD pocket;
       F1     the rear shell meets the J3 (JST PH) and J5 (PicoBlade) bodies;
       G1     the rear shell sits 0.08 mm from J4 (0.1 mm required).
-PASS: All other interfaces: 78 PASS, 9 GATE and 3 INFO over 323 pair evaluations (284 distinct pairs); the moved and added R24 parts create no interference. CASE and ACRYLIC solids are valid.
-PASS: Builder files rebuilt (R29). The six printed-part STLs are closed meshes.
-PASS: The studio (package and 7-file deploy bundle) loads in Chromium with no console errors, failed requests or page errors. It shows R24: 170 parts, 625 pads, 2907 track segments, 341 vias, 15 copper pours, fab status, and 78 PASS · 3 FAIL · 9 GATE · 3 INFO.
-LIMIT: The R24 layout is checked by DRC and against the datasheets' layout guidance; switching waveforms, ripple and temperatures are measured at bring-up.
-LIMIT: About 82 mm of 0.152 mm 3.3 V fan-out to U1's nine 3V3 pins remains (a few mV); the DSI pairs keep R23's routing, with no impedance control ordered.
+PASS: All other interfaces: 78 PASS, 9 GATE and 3 INFO over 317 pair evaluations (278 distinct pairs). CASE and ACRYLIC solids are valid.
+PASS: Builder files rebuilt (R30). The six printed-part STLs are closed meshes.
+PASS: The studio (package and 7-file deploy bundle) loads in Chromium with no console errors, failed requests or page errors. It shows R25: 164 parts, 613 pads, 2951 track segments, 349 vias, 16 copper pours, fab status, and 78 PASS · 3 FAIL · 9 GATE · 3 INFO.
+LIMIT: Impedance and DSI timing are estimates on JLCPCB's published stackup; 5.4 mm of MIPI_DSI_CLK_P stay 0.1 mm (about 60 ohm). The DSI image at 1 Gbit/s a lane is a bring-up item.
+LIMIT: The 1V1 plane path from L2 to U1 now runs around the DSI band (some 10 mohm more than R24, 5-10 mV at 0.5 A); measure the rail at U1 under load at bring-up.
+LIMIT: The layout is checked by DRC and against the datasheets' layout guidance; switching waveforms, ripple and temperatures are measured at bring-up.
 LIMIT: U1 (ESP32-P4NRW32X) had no stock at JLCPCB on 2026-10-07: pre-order it or consign it.
 LIMIT: Nothing has been built yet: bring-up, the panel image and the case pass are open (PRODUCTION_GATES.md). This is not a production release.

@@ -1,0 +1,220 @@
+{
+ "board": "LAYERS/01_PCB/SLIM4_R25.kicad_pcb",
+ "board_sha256": "6a57a5d66504946161acf8214a5a2384d715072732724920ce20e87d7818e2de",
+ "generator": "CHECKS/build_builder_packs.py",
+ "status": "order files ready (JLCPCB PCB + PCBA); U1 ESP32-P4NRW32X out of stock at JLCPCB on 2026-10-07: pre-order or consign",
+ "kicad": "7.0.11",
+ "drc": {
+  "violations": 0,
+  "unconnected_pads": 0,
+  "footprint_errors": 0
+ },
+ "zone_fills_current": true,
+ "gerber_layers": [
+  "F.Cu",
+  "In1.Cu",
+  "In2.Cu",
+  "In3.Cu",
+  "In4.Cu",
+  "B.Cu",
+  "F.Mask",
+  "B.Mask",
+  "F.Paste",
+  "B.Paste",
+  "F.SilkS",
+  "B.SilkS",
+  "Edge.Cuts"
+ ],
+ "drill": {
+  "pth_round_holes": 349,
+  "plated_slots": 4,
+  "npth_holes": 10
+ },
+ "copper_layers": 6,
+ "thickness_mm": 1.2,
+ "outline_mm": [
+  99.3,
+  125.1
+ ],
+ "min_track_mm": 0.1,
+ "min_clearance_mm": 0.1,
+ "vias": {
+  "count": 349,
+  "pad_mm": 0.45,
+  "drill_mm": 0.2,
+  "tented": true,
+  "mask_openings_at_vias": [],
+  "in_smd_pads": [
+   {
+    "ref": "C131",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     -6.25,
+     78.2
+    ]
+   },
+   {
+    "ref": "C124",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     -8.5,
+     85.6
+    ]
+   },
+   {
+    "ref": "C114",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     -2.275,
+     77.925
+    ]
+   },
+   {
+    "ref": "R403",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     0.7,
+     93.2
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     16.4,
+     8.0
+    ]
+   },
+   {
+    "ref": "C107",
+    "pad": "2",
+    "net": "GND",
+    "xy": [
+     -0.261,
+     91.1
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     17.0,
+     7.4
+    ]
+   },
+   {
+    "ref": "C408",
+    "pad": "2",
+    "net": "GND",
+    "xy": [
+     -6.4,
+     15.9
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     0.255,
+     87.07
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     17.0,
+     8.6
+    ]
+   },
+   {
+    "ref": "C411",
+    "pad": "2",
+    "net": "GND",
+    "xy": [
+     20.0,
+     9.9
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     17.0,
+     8.0
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     0.719,
+     87.069
+    ]
+   }
+  ]
+ },
+ "bom": {
+  "lines": 52,
+  "placements": 164,
+  "with_lcsc": 164,
+  "by_mpn_only": [],
+  "bound_in_sourcing_file": [
+   "C310",
+   "J2",
+   "U1",
+   "U2",
+   "U4",
+   "U8",
+   "U9",
+   "U10",
+   "U13"
+  ],
+  "unbound": [],
+  "out_of_stock": [
+   "U1"
+  ]
+ },
+ "cpl_placements": 164,
+ "sides": {
+  "Top": 5,
+  "Bottom": 159
+ },
+ "order": {
+  "build": "prototype",
+  "quantity": "5 boards, 2 assembled",
+  "assembly": "both sides",
+  "stackup": "JLCPCB JLC06121H-3313 (1.2 mm 6-layer)",
+  "copper": "1 oz outer / 0.5 oz inner",
+  "finish": "ENIG",
+  "via_covering": "epoxy filled and capped (POFV)",
+  "impedance_control": {
+   "ordered": true,
+   "nets": "MIPI_DSI_* (6)",
+   "single_ended_ohm": 50,
+   "differential_ohm": 100,
+   "tolerance": "10%",
+   "width_mm": {
+    "F.Cu": 0.152,
+    "B.Cu": 0.152,
+    "In3.Cu": 0.135
+   },
+   "reference": {
+    "F.Cu": "In1 GND",
+    "B.Cu": "In4 GND",
+    "In3.Cu": "In2 GND area + In4 GND"
+   }
+  },
+  "mask_silk": "green / white"
+ }
+}

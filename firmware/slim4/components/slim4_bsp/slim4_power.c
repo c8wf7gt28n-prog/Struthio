@@ -34,6 +34,9 @@ void slim4_board_prepare_power_off(void);
 #define CELL_OK_MV            3500u
 #define CELL_OK_RELEASE_MV    3400u
 #define CELL_OK_PERIODS       4
+/* Audio on the same source: after the 3.3 V rail and the capped backlight, 1.98 - 1.55 - 0.34 = 0.09 W remain. Two
+ * MAX98357A at 12 dB gain from SYS_RAW draw about 21 mW idle between them and can clip at full scale into 4 ohm, so no
+ * volume setting can be shown to fit: while the backlight cap is on, the amplifiers are held in shutdown (muted). */
 #define BATTERY_FAULT_MV      1500u           /* below the charger's 1.8 V short-circuit check: no cell can be there */
 #define BATTERY_FAULT_PERIODS 3               /* 1.5 s */
 
@@ -53,6 +56,7 @@ static uint8_t s_cell_ok_count;
 static bool s_cell_ok;
 static bool s_adc_valid;              /* the last battery reading succeeded */
 static bool s_adc_warned;
+static bool s_approx_warned;
 
 static uint8_t count_up(uint8_t n) { return n < 255 ? n + 1 : 255; }
 
@@ -83,7 +87,7 @@ static uint16_t read_battery_mv(void)
         if (s_adc_cali) {
             if (adc_cali_raw_to_voltage(s_adc_cali, raw, &mv) != ESP_OK) continue;
         } else {
-            mv = raw * 3300 / 4095;   /* uncalibrated fallback */
+            mv = raw * 3300 / 4095;   /* uncalibrated: for display only (battery_approx), never for a decision */
         }
         sum_mv += mv;
         ++n;
@@ -122,12 +126,19 @@ static void update_policy(void)
     s_state.usb_current = read_usb_current();
     float t = 0;
     if (s_tsens && temperature_sensor_get_celsius(s_tsens, &t) == ESP_OK) s_state.chip_temp_c = (int16_t)t;
-    const bool adc = s_adc_valid;
+    /* Only a calibrated reading drives a decision. Without the eFuse calibration the raw conversion can be off by
+     * more than the margins below (3.3 V switch-off, 3.5/3.6 V cell checks), so it is shown but treated as no reading. */
+    s_state.battery_approx = s_adc_valid && !s_adc_cali;
+    const bool adc = s_adc_valid && s_adc_cali;
     const uint16_t mv = s_state.battery_mv;
+    if (s_state.battery_approx && !s_approx_warned) {
+        s_approx_warned = true;
+        ESP_LOGW(TAG, "battery reading uncalibrated (about %u mV): shown only; treated as no reading for power decisions", mv);
+    }
     if (!adc && !s_adc_warned) {
         s_adc_warned = true;
-        ESP_LOGW(TAG, "battery reading failed: no low-battery switch-off (the pack's protection board still cuts off), "
-                      "backlight held to %u %% on 500 mA USB, no charge suspend", (unsigned)BL_CAP_USB500_PERCENT);
+        ESP_LOGW(TAG, "no usable battery reading: no low-battery switch-off (the pack's protection board still cuts off), "
+                      "backlight held to %u %% and audio muted on 500 mA USB, no charge suspend", (unsigned)BL_CAP_USB500_PERCENT);
     }
 
     /* A reversed (or shorted) pack on USB holds BAT_PLUS near Q2's threshold (0.5-1.3 V): the charger stays in its
@@ -177,6 +188,12 @@ static void update_policy(void)
         ESP_LOGI(TAG, "backlight limited to %u %% (%s)", cap,
                  cap < 100 ? "USB below 1 A, no qualified cell" : "battery, qualified cell or 1.5/3 A USB-C");
         slim4_board_backlight_cap_changed(cap);
+    }
+    const bool mute = cap < 100;
+    if (mute != s_state.audio_muted) {
+        s_state.audio_muted = mute;
+        ESP_LOGI(TAG, "audio %s", mute ? "muted (USB below 1 A, no qualified cell)" : "enabled");
+        slim4_board_audio_power_mute(mute);
     }
 }
 

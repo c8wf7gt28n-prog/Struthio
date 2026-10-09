@@ -1,9 +1,10 @@
 # REFERENCES — reference only
 
-Nothing in this folder is a layer authority. Current geometry lives in `LAYERS/` (PCB R24, CASE R12, ACRYLIC R2) and `ASSEMBLY/`.
+Nothing in this folder is a layer authority. Current geometry lives in `LAYERS/` (PCB R25, CASE R12, ACRYLIC R2) and `ASSEMBLY/`.
 
 | Folder | What it is | Why it is kept |
 |---|---|---|
+| `PCB_R24/` | the R24 board, project, footprint library, layer JSON, DRC report and release gates as delivered in R29 (superseded by PCB R25) | the input of `LAYERS/01_PCB/R25_FROM_R24/build_r25.sh` |
 | `PCB_R23/` | the R23 board, project, footprint library, layer JSON, DRC report and release gates as delivered in R28 (superseded by PCB R24) | the input of `LAYERS/01_PCB/R24_FROM_R23/build_r24.sh` |
 | `PCB_R22/` | the R22 board, project, footprint library, layer JSON, DRC report and release gates as delivered in R27 (superseded by PCB R23) | the input of `LAYERS/01_PCB/R23_FROM_R22/build_r23.sh` |
 | `DISPLAY_FLEX_R1/` | the display adapter flex generator for the R22 J1 port and the Startek panel (superseded: R23 takes the Crystalfontz panel's own tail) | the flex generator and its preview, should an adapter be needed again |

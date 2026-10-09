@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "STRUTHIO Hardware Studio R29 Review",
-  "short_name": "STRUTHIO R29",
-  "description": "R29 hardware review viewer: PCB R24 (order files ready, four plug-and-play ports), CASE R12 and ACRYLIC R2 (on hold).",
+  "name": "STRUTHIO Hardware Studio R30 Review",
+  "short_name": "STRUTHIO R30",
+  "description": "R30 hardware review viewer: PCB R25 (order files ready, four plug-and-play ports), CASE R12 and ACRYLIC R2 (on hold).",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
