@@ -437,6 +437,47 @@ slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep)
     return err == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
 }
 
+slim4_status_t slim4_board_show_pattern(slim4_pattern_t pattern)
+{
+    if (!s_display_ready || !s_framebuffer) return SLIM4_ERR_NOT_READY;
+    static const uint8_t bars[8][3] = {
+        {255, 255, 255}, {255, 255, 0}, {0, 255, 255}, {0, 255, 0},
+        {255, 0, 255}, {255, 0, 0}, {0, 0, 255}, {0, 0, 0},
+    };
+    switch (pattern) {
+    case SLIM4_PATTERN_WHITE: fill_rect(0, 0, SLIM4_LCD_WIDTH, SLIM4_LCD_HEIGHT, rgb565(255, 255, 255)); break;
+    case SLIM4_PATTERN_BLACK: fill_rect(0, 0, SLIM4_LCD_WIDTH, SLIM4_LCD_HEIGHT, 0); break;
+    case SLIM4_PATTERN_RED: fill_rect(0, 0, SLIM4_LCD_WIDTH, SLIM4_LCD_HEIGHT, rgb565(255, 0, 0)); break;
+    case SLIM4_PATTERN_GREEN: fill_rect(0, 0, SLIM4_LCD_WIDTH, SLIM4_LCD_HEIGHT, rgb565(0, 255, 0)); break;
+    case SLIM4_PATTERN_BLUE: fill_rect(0, 0, SLIM4_LCD_WIDTH, SLIM4_LCD_HEIGHT, rgb565(0, 0, 255)); break;
+    case SLIM4_PATTERN_BARS:
+        for (int b = 0; b < 8; ++b) {
+            fill_rect(b * SLIM4_LCD_WIDTH / 8, 0, SLIM4_LCD_WIDTH / 8 + 1, SLIM4_LCD_HEIGHT,
+                      rgb565(bars[b][0], bars[b][1], bars[b][2]));
+        }
+        break;
+    case SLIM4_PATTERN_CHECKER:   /* 1-pixel checkerboard: every pixel toggles every bit against its neighbours */
+        for (int y = 0; y < SLIM4_LCD_HEIGHT; ++y) {
+            uint16_t *row = s_framebuffer + y * SLIM4_LCD_WIDTH;
+            for (int x = 0; x < SLIM4_LCD_WIDTH; ++x) row[x] = ((x ^ y) & 1) ? 0xFFFFu : 0x0000u;
+        }
+        break;
+    case SLIM4_PATTERN_GRADIENT:  /* red, green, blue and grey ramps: every level of each channel */
+        for (int y = 0; y < SLIM4_LCD_HEIGHT; ++y) {
+            const int band = y * 4 / SLIM4_LCD_HEIGHT;
+            uint16_t *row = s_framebuffer + y * SLIM4_LCD_WIDTH;
+            for (int x = 0; x < SLIM4_LCD_WIDTH; ++x) {
+                const uint8_t v = (uint8_t)(x * 255 / (SLIM4_LCD_WIDTH - 1));
+                row[x] = band == 0 ? rgb565(v, 0, 0) : band == 1 ? rgb565(0, v, 0) : band == 2 ? rgb565(0, 0, v)
+                                                                                     : rgb565(v, v, v);
+            }
+        }
+        break;
+    default: return SLIM4_ERR_INVALID_ARG;
+    }
+    return panel_draw_bitmap_wait(s_framebuffer) == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
+}
+
 static esp_err_t init_backlight(void)
 {
     const ledc_timer_config_t timer = {
@@ -584,6 +625,18 @@ static esp_err_t set_backlight(uint32_t percent)
     esp_err_t err = ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
     if (err != ESP_OK) return err;
     return ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+}
+
+slim4_status_t slim4_board_set_backlight(uint8_t percent)
+{
+    if (percent > 100) return SLIM4_ERR_INVALID_ARG;
+    if (!s_backlight_ready) return SLIM4_ERR_NOT_READY;
+    return set_backlight(percent) == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
+}
+
+uint8_t slim4_board_backlight_cap(void)
+{
+    return s_backlight_cap;
 }
 
 void slim4_board_backlight_cap_changed(uint8_t cap_percent)

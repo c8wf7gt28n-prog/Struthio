@@ -10,6 +10,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "slim4_board.h"
+#include "slim4_console.h"
 #include "slim4_pins.h"
 #include "slim4_power.h"
 #include "slim4_selftest.h"
@@ -172,6 +173,7 @@ void app_main(void)
     } else {
         ESP_LOGW(TAG, "speaker test unavailable: audio service status %d", (int)volume_status);
     }
+    slim4_console_start();
     bool boot_was_down = false;
     uint32_t previous_buttons = 0;
     uint32_t press_counts[4] = {0};
@@ -224,7 +226,7 @@ void app_main(void)
             previous_buttons = buttons;
         }
         const bool boot_down = boot_button_down();
-        if (boot_down && !boot_was_down && display_ready) {
+        if (boot_down && !boot_was_down && display_ready && !slim4_console_display_hold()) {
             show_selftest_page();
             (void)slim4_board_read_buttons(&previous_buttons);
             (void)ulTaskNotifyTake(pdTRUE, 0);   /* frame ticks queued while the page was up are not late frames */
@@ -244,7 +246,9 @@ void app_main(void)
         const uint64_t now_before_render_us = slim4_time_us();
         const bool fallback_frame_due = display_ready && !frame_timer &&
                                         now_before_render_us >= fallback_next_frame_us;
-        if (display_ready && (frame_notifications > 0 || fallback_frame_due)) {
+        if (display_ready && slim4_console_display_hold()) {
+            /* a console command holds the screen (test pattern or self-test page): draw nothing */
+        } else if (display_ready && (frame_notifications > 0 || fallback_frame_due)) {
             const uint64_t render_start_us = slim4_time_us();
             const slim4_status_t render_status = slim4_board_render_diagnostic(
                 previous_buttons, press_counts, frame_index, measured_fps, measured_vsync_hz,

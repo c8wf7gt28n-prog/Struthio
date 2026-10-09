@@ -9,6 +9,14 @@ slim4_status_t slim4_board_init(void);
 void slim4_board_show_boot_result(bool software_verified);
 /* The self-test page: one row per check, then colour bars and 1-pixel gratings for the video lanes. */
 slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep);
+/* Bring-up helpers (the serial console). The backlight level is still limited by the power policy's cap. */
+typedef enum {
+    SLIM4_PATTERN_WHITE, SLIM4_PATTERN_BLACK, SLIM4_PATTERN_RED, SLIM4_PATTERN_GREEN, SLIM4_PATTERN_BLUE,
+    SLIM4_PATTERN_BARS, SLIM4_PATTERN_CHECKER, SLIM4_PATTERN_GRADIENT,
+} slim4_pattern_t;
+slim4_status_t slim4_board_show_pattern(slim4_pattern_t pattern);
+slim4_status_t slim4_board_set_backlight(uint8_t percent);
+uint8_t slim4_board_backlight_cap(void);
 /* Result of the bounded panel probe run during the display bring-up. */
 void slim4_board_panel_probe(slim4_panel_probe_t *out);
 slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t press_counts[4],
