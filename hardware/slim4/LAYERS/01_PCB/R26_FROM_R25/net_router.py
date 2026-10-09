@@ -12,6 +12,7 @@ import sys, json, math, heapq
 sys.path.append('/usr/lib/python3/dist-packages')
 import numpy as np
 import pcbnew
+sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
 import dsi_pair_router as R
 
 STEP = 0.05
@@ -120,11 +121,13 @@ def to_geometry(path_step, box):
             run.append(c)
     segs.append((LAYERS[run[0][2]], [P(s) for s in run]))
     out = []
-    for lay, pts in segs:      # keep corners only
+    step_dir = lambda p, q: (round((q[0] - p[0]) / max(abs(q[0] - p[0]), abs(q[1] - p[1]))),
+                             round((q[1] - p[1]) / max(abs(q[0] - p[0]), abs(q[1] - p[1]))))
+    for lay, pts in segs:      # keep corners only (where the grid step changes direction)
         if len(pts) < 2: continue
         k = [pts[0]]
         for p, q, r in zip(pts, pts[1:], pts[2:]):
-            if (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0]) != 0: k.append(q)
+            if step_dir(p, q) != step_dir(q, r): k.append(q)
         k.append(pts[-1]); out.append((lay, k))
     return out, vias
 

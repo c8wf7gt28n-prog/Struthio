@@ -13,6 +13,9 @@
 #  - PGOOD_STATUS's and PWR_WAKE's short hops south of J1 (F.Cu jogs, their vias and the first In3 run east) are lifted:
 #    they sat where CLK enters J1. Edit 34 reconnects them between the anchors left in place.
 #  - The bare ground stitching via at (1.59, 91.25) on the B.Cu strap under the DSI pads goes (D1's In3 lane).
+#  - EN_DCDC (U1 GPIO -> U3 EN, a static level) leaves the F.Cu column at X -0.69 that split the free F.Cu over U1's
+#    west half in two: from its via at (-4.37, 78.47) it now runs down X -3.75/-3.6 between FB_DCDC and the USB_JTAG vias
+#    and joins its old run at Y 97.7 (24.3 mm instead of 22.1 mm). The CLK pair gets that area for its matching.
 exec(open(sys.argv[2]).read())
 dsi=lambda n: n.startswith('MIPI_DSI')
 kill_tracks(lambda t: dsi(t.GetNetname()))
@@ -42,4 +45,6 @@ for seg in ((4.7,78.7,5.763,77.637),(5.763,77.637,5.763,77.155),(4.575,78.825,4.
 remove_via(5.763,77.155,'PWR_WAKE')
 for seg in ((5.763,77.155,5.763,76.089),(5.763,76.089,6.111,75.741),(6.111,75.741,8.603,75.741)):
     remove('In3.Cu',*seg,'PWR_WAKE')
-print('clear: R25 DSI copper and band, In3 1V1 run, USB_CURR_OUT2 and BTN_LEFT F.Cu removed')
+remove('F.Cu',-0.694,82.149,-4.374,78.469,'EN_DCDC'); remove('F.Cu',-0.694,99.0,-0.694,82.149,'EN_DCDC')
+add('F.Cu',[(-4.374,78.469),(-3.75,79.093),(-3.75,89.25),(-4.05,89.55),(-3.6,90.0),(-3.6,94.75),(-0.694,97.656),(-0.694,99.0)],net('EN_DCDC'),0.152)
+print('clear: R25 DSI copper and band, In3 1V1 run, USB_CURR_OUT2 and BTN_LEFT F.Cu removed, EN_DCDC moved west')
