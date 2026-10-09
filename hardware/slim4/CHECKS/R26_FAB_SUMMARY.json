@@ -1,6 +1,6 @@
 {
- "board": "LAYERS/01_PCB/SLIM4_R25.kicad_pcb",
- "board_sha256": "6a57a5d66504946161acf8214a5a2384d715072732724920ce20e87d7818e2de",
+ "board": "LAYERS/01_PCB/SLIM4_R26.kicad_pcb",
+ "board_sha256": "fba1d5e5926e7e295e75b45594851e08311bf4c615a18873778c93a26889fd82",
  "generator": "CHECKS/build_builder_packs.py",
  "status": "order files ready (JLCPCB PCB + PCBA); U1 ESP32-P4NRW32X out of stock at JLCPCB on 2026-10-07: pre-order or consign",
  "kicad": "7.0.11",
@@ -26,7 +26,7 @@
   "Edge.Cuts"
  ],
  "drill": {
-  "pth_round_holes": 349,
+  "pth_round_holes": 339,
   "plated_slots": 4,
   "npth_holes": 10
  },
@@ -39,7 +39,7 @@
  "min_track_mm": 0.1,
  "min_clearance_mm": 0.1,
  "vias": {
-  "count": 349,
+  "count": 339,
   "pad_mm": 0.45,
   "drill_mm": 0.2,
   "tented": true,
@@ -200,18 +200,19 @@
   "via_covering": "epoxy filled and capped (POFV)",
   "impedance_control": {
    "ordered": true,
-   "nets": "MIPI_DSI_* (6)",
-   "single_ended_ohm": 50,
+   "nets": "MIPI_DSI_* (3 pairs)",
    "differential_ohm": 100,
    "tolerance": "10%",
    "width_mm": {
-    "F.Cu": 0.152,
-    "B.Cu": 0.152,
-    "In3.Cu": 0.135
+    "F.Cu": 0.127,
+    "In3.Cu": 0.1
+   },
+   "gap_mm": {
+    "F.Cu": 0.18,
+    "In3.Cu": 0.18
    },
    "reference": {
     "F.Cu": "In1 GND",
-    "B.Cu": "In4 GND",
     "In3.Cu": "In2 GND area + In4 GND"
    }
   },

@@ -1,4 +1,4 @@
-# R24 edit 20: the 1.1 V buck U3 (TLV62569), laid out as its datasheet section 10.1 asks.
+# R24 edit 20: the 1.2 V buck U3 (TLV62569; net 1V1_HP), laid out as its datasheet section 10.1 asks.
 #  - U3 turned 90 degrees so its SW, GND and EN pins face L2; L2 turned so its switch pad is 1 mm from the SW pin
 #    (the switch node ran 7 mm, through In3). SW is one short B.Cu area.
 #  - Input capacitor C126 (10 uF) at the VIN pin in a B.Cu 3V3_SYS area with two vias to the In2 3V3 plane (the

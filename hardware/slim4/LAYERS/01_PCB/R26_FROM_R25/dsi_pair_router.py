@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
-"""R26 DSI pair router (offline tool; its result, r26_dsi_routes.json, is what edit 32 applies, so the board build does
-not depend on this script).
+"""R26 DSI pair router (offline tool: with dsi_geometry.py it writes r26_dsi_routes.json, which edit 32 draws, so the
+board build does not depend on this script).
 
-    python dsi_pair_router.py <board after edit 31> <out.json> [pair order, e.g. D1,D0,CLK]
+    python dsi_pair_router.py <board after edit 31> <out.json> [pair order] [rounds] [topology]
+    (R26: python dsi_pair_router.py cleared.kicad_pcb routes.json D0,D1,CLK 25 pairs_east)
 
-Needs pcbnew (KiCad 7.0.x) with numpy, scipy and matplotlib. It routes the three MIPI-DSI pairs from U1 to J1 as
-coupled pairs, every line taking the same layers and the same number of vias as its partner:
+Needs pcbnew (KiCad 7.0.x) with numpy, scipy and matplotlib. It finds the centreline of each MIPI-DSI pair from its
+breakout via pair at U1 to its entry at J1, as a coupled pair: P and N always on the same layer, through the same
+vias. A pair runs on In3.Cu (stripline, 0.10 mm / 0.18 mm gap) and/or F.Cu (microstrip, 0.127 mm / 0.18 mm gap):
 
-  U1 pads (B.Cu) -> short breakout -> via pair -> In3.Cu (stripline, 0.10 mm / 0.18 mm gap) -> via pair -> F.Cu
-  (microstrip, 0.127 mm / 0.18 mm gap) -> J1 pads.
+  U1 pads (B.Cu) -> fixed breakout stubs -> via pair -> [In3.Cu -> via pair ->] F.Cu -> J1 pads.
 
-The breakouts at U1 are fixed (BREAKOUT): U1 orders the pins D0_N D0_P CLK_P CLK_N D1_N D1_P on a 0.35 mm pitch, too
-tight for three via pairs side by side, so D0's via pair sits just inside the pad row and CLK's and D1's step south.
-All three enter J1 from the south. U1 orders CLK P-N but D0 and D1 N-P, while J1 orders all three P-N; CLK's In3
-section therefore leaves its via pair northward (its B.Cu stubs run south to the vias, In3 turns back), which keeps
-every pair's P on the left of its direction of travel from U1 to J1 with no polarity twist and no extra via.
+The breakouts are fixed (BREAKOUT): U1 orders the pins D0_N D0_P CLK_P CLK_N D1_N D1_P on a 0.35 mm pitch, too tight
+for three via pairs side by side, so D0's via pair sits just inside the pad row and CLK's and D1's step south. From
+each via pair a pair may leave along either normal on In3 or F.Cu (start_options); U1 orders CLK P-N but D0 and D1
+N-P while J1 orders all three P-N, so a start whose P would end on the wrong side needs a hairpin via row (In3 runs
+into the row, F.Cu comes back over it), which swaps the sides without crossing the lines.
 
-Between the breakouts and J1 the pair centreline is found by A* on a 0.1 mm grid over clearance fields built from the
-board's copper; the In3 -> F.Cu via pair is a 1.2 mm straight macro move whose via row (P, N and a ground via each side
-where they fit) must clear every layer. Deterministic.
+A* on a 0.1 mm grid over clearance fields built from the board's copper (0.12 mm; 0.30 mm between pairs); moves are
+straight steps, 45 degree turns, a straight 1.2 mm In3 -> F.Cu via row and the hairpin, with ground vias beside a via
+row where they fit. The pairs are routed together by negotiated congestion (history and present costs) and a pair's
+own path is checked for crossing itself. Two pairs cannot cross on one layer, so each pair's side of U1 is fixed by a
+TOPOLOGY entry (keep-outs): R26 uses 'pairs_east' (D0 and D1 east, CLK straight up). Deterministic.
 """
 import sys, json, math, heapq
 sys.path.append('/usr/lib/python3/dist-packages')
@@ -36,24 +39,20 @@ X0, Y0, X1, Y1 = -12.0, 66.0, 26.0, 104.0
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 N_ = lambda d: (-d[1], d[0])  # left normal in board coordinates (Y down): for d = south (0, 1) it points west
 
-# Fixed breakouts. Each line: list of (layer, [points]) for B.Cu stubs and the In3 taper; vias; then the In3 start state
-# (pair centre, direction) the router continues from. P is on the side 'pside' of the centreline (+1 = along N_(d)).
+# Fixed breakouts: per line, the B.Cu stubs (layer, [points]) from the U1 pad to its via, and the vias.
 BREAKOUT = {
     'D0': dict(P='MIPI_DSI_D0_P', N='MIPI_DSI_D0_N',
                vias={'N': (-0.275, 88.15), 'P': (0.275, 88.15)},
                stubs={'N': [('B.Cu', [(-0.175, 88.875), (-0.275, 88.15)])],
-                      'P': [('B.Cu', [(0.175, 88.875), (0.275, 88.15)])]},
-               start=(0.0, 88.7), sdir=(0, 1)),
+                      'P': [('B.Cu', [(0.175, 88.875), (0.275, 88.15)])]}),
     'CLK': dict(P='MIPI_DSI_CLK_P', N='MIPI_DSI_CLK_N',
                 vias={'P': (0.6, 89.85), 'N': (1.15, 89.85)},
                 stubs={'P': [('B.Cu', [(0.525, 88.875), (0.525, 89.45), (0.6, 89.85)])],
-                       'N': [('B.Cu', [(0.875, 88.875), (0.875, 89.25), (1.15, 89.6), (1.15, 89.85)])]},
-                start=(0.9, 89.3), sdir=(0, -1)),
+                       'N': [('B.Cu', [(0.875, 88.875), (0.875, 89.25), (1.15, 89.6), (1.15, 89.85)])]}),
     'D1': dict(P='MIPI_DSI_D1_P', N='MIPI_DSI_D1_N',
                vias={'N': (1.3, 90.6), 'P': (1.85, 90.6)},
                stubs={'N': [('B.Cu', [(1.225, 88.875), (1.225, 89.2), (1.55, 89.525), (1.55, 90.2), (1.3, 90.6)])],
-                      'P': [('B.Cu', [(1.575, 88.875), (1.575, 89.2), (1.85, 89.475), (1.85, 90.6)])]},
-               start=(1.6, 91.1), sdir=(0, 1)),
+                      'P': [('B.Cu', [(1.575, 88.875), (1.575, 89.2), (1.85, 89.475), (1.85, 90.6)])]}),
 }
 GOAL = {   # pair centre and heading where the J1 entry stub starts; pad pitch 0.5
     'CLK': dict(at=(5.9, 75.9), dir=(0, -1), pads={'P': (5.65, 74.15), 'N': (6.15, 74.15)}),
@@ -64,18 +63,9 @@ GOAL = {   # pair centre and heading where the J1 entry stub starts; pad pitch 0
 # Corridor assignment (keep-outs per pair: layer, x0, y0, x1, y1). The negotiation below settles clearances but cannot
 # untangle a crossing on one layer, so which way round U1 each pair goes is fixed here.
 TOPOLOGY = {
-    'east_d0': {'D0': [('F.Cu', -12, 76.8, 5.2, 104)],
-                'D1': [('F.Cu', 11.0, 66, 26, 104), ('In3.Cu', 11.0, 66, 26, 104)],
-                'CLK': [('F.Cu', 11.0, 66, 26, 104), ('In3.Cu', 11.0, 66, 26, 104)]},
-    'west_all': {n: [('F.Cu', 11.0, 66, 26, 104), ('In3.Cu', 11.0, 66, 26, 104), ('F.Cu', -12, 66, -3.0, 104),
-                     ('In3.Cu', -12, 66, -3.0, 104)] for n in ('D0', 'D1', 'CLK')},
-    'clk_west': {'CLK': [('F.Cu', -0.9, 78.6, 26, 104)]},
-    'three_ways': {'CLK': [('F.Cu', -0.9, 78.6, 26, 104)],
-                   'D0': [('F.Cu', -12, 76.8, 5.2, 104)],
-                   'D1': [('F.Cu', 11.0, 66, 26, 104), ('In3.Cu', 11.0, 66, 26, 104)]},
-    'three_ways2': {'CLK': [('F.Cu', -0.9, 78.6, 26, 104), ('In3.Cu', 1.7, 86.0, 26, 104)],
-                    'D0': [('F.Cu', -12, 76.8, 5.2, 104), ('In3.Cu', -3.0, 88.5, 0.6, 92.0)],
-                    'D1': [('F.Cu', 11.0, 66, 26, 104), ('In3.Cu', 11.0, 66, 26, 104), ('F.Cu', -12, 66, -0.9, 104)]},
+    # D0 and D1 go east of U1 (no F.Cu west of X 5.2 below J1); CLK, left free, goes straight up over U1's west half.
+    # The other arrangements tried either left two pairs crossing on one layer (the negotiation then never settles)
+    # or made one pair far too long to match.
     'pairs_east': {'D0': [('F.Cu', -12, 76.8, 5.2, 104)], 'D1': [('F.Cu', -12, 76.8, 5.2, 104)]},
     'none': {},
 }

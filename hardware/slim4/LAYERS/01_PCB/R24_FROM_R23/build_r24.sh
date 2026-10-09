@@ -10,7 +10,7 @@ edit r24_planes                                                        # 16 In2 
 edit r24_rails                                                         # 17 thin battery/system rails removed
 edit r24_charger                                                       # 18 charger: thermal vias, wider VBUS, TMR open
 edit r24_u4                                                            # 19 3.3 V buck-boost layout
-edit r24_u3                                                            # 20 1.1 V buck layout
+edit r24_u3                                                            # 20 1.2 V buck layout (net 1V1_HP)
 edit r24_u7                                                            # 21 backlight boost rebuilt east
 edit r24_amps                                                          # 22 amplifier bulk capacitors
 edit r24_dsi                                                           # 23 DSI return vias

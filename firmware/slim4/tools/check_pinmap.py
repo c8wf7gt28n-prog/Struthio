@@ -35,9 +35,9 @@ if args[:1] == ['--write-table']:
     print(f'wrote {table.relative_to(root)} from {src.name}')
     sys.exit(0)
 if args[:1] == ['--board']:
-    source = Path(args[1]); pads_by_num = u1_pads(source)
+    board_src = Path(args[1]); pads_by_num = u1_pads(board_src)
 else:
-    t = json.loads(table.read_text()); source = Path(t['board']); pads_by_num = t['u1_pads']
+    t = json.loads(table.read_text()); board_src = Path(t['board']); pads_by_num = t['u1_pads']
     if repo_board.exists() and u1_pads(repo_board) != pads_by_num:
         print(f'FAIL: tools/u1_pad_nets.json ({t["board"]}) differs from {repo_board.name}; '
               f'refresh it with --write-table {repo_board}')
@@ -74,4 +74,4 @@ for token in ['SLIM4_GPIO_BTN_LEFT', 'SLIM4_GPIO_BTN_RIGHT', 'SLIM4_GPIO_DART_LE
 if bad:
     print('FAIL:\n  ' + '\n  '.join(bad))
     sys.exit(1)
-print(f'PASS: {len(pins)} firmware GPIO assignments match the board nets on U1 ({source.name}); USB-Serial-JTAG pair intact')
+print(f'PASS: {len(pins)} firmware GPIO assignments match the board nets on U1 ({board_src.name}); USB-Serial-JTAG pair intact')

@@ -1,14 +1,14 @@
-# STRUTHIO SLIM4 R30 convergence report (PCB R25 · CASE R12 · ACRYLIC R2)
+# STRUTHIO SLIM4 R31 convergence report (PCB R26 · CASE R12 · ACRYLIC R2)
 
 Result: **NOT CONVERGED** · FAIL 3 · GATE 9 · INFO 3 · PASS 78
 
 | ID | Interface | Check | Status | Value | Limit |
 |---|---|---|---|---|---|
-| A1 | PCB | LAYERS/01_PCB/SLIM4_R25.kicad_pcb unchanged from R30 delivery | PASS | "6a57a5d665049461" | "6a57a5d665049461" |
-| A1 | PCB | LAYERS/01_PCB/SLIM4_R25_PCB_LAYER.json unchanged from R30 delivery | PASS | "dbce0442717725da" | "dbce0442717725da" |
+| A1 | PCB | LAYERS/01_PCB/SLIM4_R26.kicad_pcb unchanged from R31 delivery | PASS | "fba1d5e5926e7e29" | "fba1d5e5926e7e29" |
+| A1 | PCB | LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json unchanged from R31 delivery | PASS | "c64add9de8aa1042" | "c64add9de8aa1042" |
 | A2 | PCB↔CASE | Board thickness used by the case = board file thickness | PASS | 1.2 | 1.2 |
 | B1 | CASE | Exterior envelope (approved 104.0 × 135.3) | PASS | [104.0, 135.3] | [104.0, 135.3] |
-| B2 | PCB↔CASE | R25 board inside the 2.0 mm wall with ≥0.3 mm clearance | PASS | 0.334 | 0.3 |
+| B2 | PCB↔CASE | R26 board inside the 2.0 mm wall with ≥0.3 mm clearance | PASS | 0.334 | 0.3 |
 | B3 | CASE | LCD module inside the 2.0 mm wall with ≥0.2 mm clearance | PASS | 0.21 | 0.2 |
 | B4 | CASE | R12 silhouette change versus R10 (max outward move) | INFO | 2.351 |  |
 | B5 | CASE | Nominal plate, floor and side wall thickness (design parameters) | PASS | [2.0, 2.0, 2.0] | 2.0 |
@@ -82,7 +82,7 @@ Result: **NOT CONVERGED** · FAIL 3 · GATE 9 · INFO 3 · PASS 78
 - **B4 R12 silhouette change versus R10 (max outward move)** — area +102.9 / -0.3 mm²; shoulders and finger scallop pushed out to clear the board; saddle lift 4.5 → 4.0 mm for the FPC wrap
 - **B8 Plate left over the LCD pocket ledge (localised, below the 2.0 mm rule)** — Measured on the front-shell solid at (0, 111.08). The ledge outside the lens rebate is 0.70 mm: a band 60.5 mm wide at Y 107.95–114.21, plus a 1.24 mm top strip and 0.55 mm side strips. The LCD front face bonds to it (L6). Set by the stack (LCD 1.75 + lens 0.70 in a 2.0 mm plate); confirm stiffness on the print.
 - **C4 LCD active-area position relies on the 1.79 mm top border (R3 assumption)** — The case still uses the R3/HOTHMI envelope. In the case pass, set the LCD parameters from the Crystalfontz drawing (C6); the opening, lens and rebate follow ACTIVE_CY automatically (the film has no screen cutout).
-- **C6 Chosen panel (Crystalfontz CFAF7201280A0-050TN, 66.10 × 120.40 × 1.85) fits the LCD pocket and stack** — CASE R12 was drawn around the R3/HOTHMI envelope 60.3 × 111.4 × 1.75. The Crystalfontz module is +5.60 mm against the 60.5 mm pocket width, +9.00 mm in length and +0.10 mm in thickness; its active area (62.1 × 110.4) against the case opening design (58.104 × 103.296). The owner set the case aside for PCB R23-R25: the case pass redraws the pocket, opening, lens and film for the 5 in panel.
+- **C6 Chosen panel (Crystalfontz CFAF7201280A0-050TN, 66.10 × 120.40 × 1.85) fits the LCD pocket and stack** — CASE R12 was drawn around the R3/HOTHMI envelope 60.3 × 111.4 × 1.75. The Crystalfontz module is +5.60 mm against the 60.5 mm pocket width, +9.00 mm in length and +0.10 mm in thickness; its active area (62.1 × 110.4) against the case opening design (58.104 × 103.296). The owner set the case aside for PCB R23-R26: the case pass redraws the pocket, opening, lens and film for the 5 in panel.
 - **D5 Overtravel at the stop across FP/OP ±0.2 (D2LS tolerance)** — A fixed stop cannot cover the full ±0.2 band (low-FP switch would not reach OP). Measure FP on a coupon and trim the stop legs, or use the shim set; see PRODUCTION_GATES.md.
 - **D11 D2LS actuator assumed at the body centre** — The Omron outline does not dimension the plunger position in text form; the Ø1.4 nubs sit on the switch centres. Confirm on a sample before cutting tools.
 - **D12 DART trunnions snap into closed bosses (0.10 mm radial running clearance)** — Print-test the boss flex and wear; add a lead-in slot if the bosses crack on assembly.

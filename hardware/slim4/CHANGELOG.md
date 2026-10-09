@@ -1,3 +1,21 @@
+# R31 — PCB R26: DSI coupled pairs; firmware R10 (2026-10-09)
+
+PCB R25 → **R26** (5 scripted edits in `LAYERS/01_PCB/R26_FROM_R25/`; rebuilds from R25 give the same copper), answering the R30/R25 pre-order audit, which held the order for one DSI routing revision. Same outline, ports, connector positions, parts and GPIOs. R25 moves to `REFERENCES/PCB_R25/`. Firmware R9 → **R10** (tools only). CASE R12 and ACRYLIC R2 still set aside: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (317 pair evaluations over 278 distinct pairs), the same 3 case FAIL rows. Decisions: `DECISIONS_R31.md`.
+
+| Audit item | R31 |
+|---|---|
+| DSI lines matched in time but routed singly (own meanders, layer changes and vias; P and N not on the same layers) | Rerouted as coupled pairs from U1's pads to J1's: 100 Ω differential, F.Cu 0.127 / 0.18 mm, In3 0.10 / 0.18 mm, P and N through the same layers and vias (CLK B.Cu → F.Cu; D0, D1 B.Cu → In3 → F.Cu); 10 DSI vias (R25 29) |
+| P to N ≤ 0.254 mm, pair to pair ≤ 0.762 mm | Pairs 44.32–44.54 mm, 0.201 mm apart; P to N at most 0.031 mm (coupled serpentines, then skew teeth) |
+| Symmetric ground stitching at layer changes | A ground via each side where the reference plane changes (D1 in the via row 0.83 / 0.83 mm, D0 0.75 / 1.59 mm), one on the pair's axis for CLK (1.15 mm); B.Cu → In3 changes share In4 |
+| Uninterrupted reference planes | No DSI track over a gap or split in its reference plane (F.Cu → In1, In3 → In2 band + In4, B.Cu → In4); plane antipads 0.15 mm, a pair edge within 0.040 mm of one in 13 places; a 0.4 mm In2 channel keeps U1's south-row 1V1 feed on the plane |
+| Stackup metadata (2116 listed 0.1164 mm) | 0.1088 mm in the board file, the Gerber job file and the order README |
+| "1V1" rail called 1.1 V | 1.2 V (499 k / 499 k on the TLV62569's 0.6 V reference) in every live document; the net keeps its name |
+| Firmware zip not self-contained (`check_pinmap.py` read the board JSON) | `tools/u1_pad_nets.json` ships with it; checked against the board export inside the repository |
+
+Routing: EN_DCDC, USB_CURR_OUT2 (part), BTN_LEFT, PGOOD_STATUS and PWR_WAKE moved round the pairs; CHG_STATUS's diagonal to In3; backlight pair jogged 1.1 mm. Checked on the board by `CHECKS/dsi_pair_check.py` (`CHECKS/R26_DSI_REPORT.md`). KiCad 7.0.11 DRC 0 / 0 / 0. Firmware R10: pin check 19/19 on R26, also from the firmware folder alone; no source change.
+
+Package: `CHECKS/COMPONENT_ENVELOPES_R26.json`, `CHECKS/R26_FAB_SUMMARY.json`, `CHECKS/R31_CONVERGENCE_REPORT.*`, `CHECKS/R26_DSI_REPORT.*`, `ASSEMBLY/STRUTHIO_SLIM4_R31_ASSEMBLY.step`, `R26_REAR_BOARD.svg`, studio, renders and builder files regenerated. Not measured: impedance, the DSI eye and the 1V1_HP rail at U1 are bring-up items (`LAYERS/01_PCB/RELEASE_GATES.md`).
+
 # R30 — PCB R25: DSI end to end, processor planes; firmware R9 (2026-10-09)
 
 PCB R24 → **R25** (6 scripted edits in `LAYERS/01_PCB/R25_FROM_R24/`; three independent rebuilds from R24 give the same copper), answering the R24 deep audit (SLIM4_R24_DEEP_AUDIT, which was correct on every point). Same outline, ports, connector positions and GPIOs. R24 moves to `REFERENCES/PCB_R24/`. Firmware R8 → **R9**. CASE R12 and ACRYLIC R2 still set aside: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (317 pair evaluations over 278 distinct pairs), the same 3 case FAIL rows. Decisions: `DECISIONS_R30.md`.

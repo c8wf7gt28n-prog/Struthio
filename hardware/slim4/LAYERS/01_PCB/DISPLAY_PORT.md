@@ -9,7 +9,7 @@ Why this panel:
 - **Documented.** Public pin table and drawing; the init sequence is in the Linux kernel (`panel-ilitek-ili9881c.c`, Crystalfontz's own submission).
 - **Software.** Espressif's `esp_lcd_ili9881c` component drives the ILI9881C over 2 lanes on the ESP32-P4. The firmware in `firmware/slim4` uses it.
 
-The case was drawn around a 4.7 in panel; it is set aside for R23-R25, and the case pass redraws the pocket, opening, lens and film for this module (convergence check C6).
+The case was drawn around a 4.7 in panel; it is set aside for R23-R26, and the case pass redraws the pocket, opening, lens and film for this module (convergence check C6).
 
 ## J1: the display port on the main board
 

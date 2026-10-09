@@ -51,5 +51,5 @@ Still to do, but not blocking the board order:
 1. Before plugging in the cell: connect USB-C and measure SYS_RAW at C411 (≈ 4.4 V), 3V3 at C414 (3.31 V) and VDDO_FLASH at C202 (3.3 V). All are 0805/0402 capacitors on the back, ground on the other pad.
 2. For the first flash, hold BOOT (SW7), tap RESET (SW6) and release BOOT. The P4 enumerates as "USB JTAG/serial debug unit" (303a:1001), and the ROM log on the port shows `waiting for download`.
 3. `idf.py -p <port> flash monitor`. Use an ESP-IDF release that supports ESP32-P4 chip revision v3.x and select v3 as the chip revision in menuconfig. After the first flash, esptool resets into download mode by itself; the buttons are only needed again if an app disables or reassigns GPIO24/25.
-4. 1V1_HP at C135 rises to about 1.1 V only once firmware runs (EN_DCDC stays low in download mode, by design).
+4. 1V1_HP at C135 rises to about 1.2 V (0.6 V × (1 + 499 k / 499 k); corrected in R31, this review first said 1.1 V) only once firmware runs (EN_DCDC stays low in download mode, by design).
 5. JTAG: `idf.py openocd` over the same cable (GPIO34 strap low selects USB-Serial-JTAG).

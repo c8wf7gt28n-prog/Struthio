@@ -1,5 +1,5 @@
 {
-  "title": "STRUTHIO SLIM4 R30 convergence report (PCB R25 · CASE R12 · ACRYLIC R2)",
+  "title": "STRUTHIO SLIM4 R31 convergence report (PCB R26 · CASE R12 · ACRYLIC R2)",
   "counts": {
     "PASS": 78,
     "INFO": 3,
@@ -11,19 +11,19 @@
     {
       "id": "A1",
       "interface": "PCB",
-      "title": "LAYERS/01_PCB/SLIM4_R25.kicad_pcb unchanged from R30 delivery",
+      "title": "LAYERS/01_PCB/SLIM4_R26.kicad_pcb unchanged from R31 delivery",
       "status": "PASS",
-      "value": "6a57a5d665049461",
-      "limit": "6a57a5d665049461",
+      "value": "fba1d5e5926e7e29",
+      "limit": "fba1d5e5926e7e29",
       "detail": ""
     },
     {
       "id": "A1",
       "interface": "PCB",
-      "title": "LAYERS/01_PCB/SLIM4_R25_PCB_LAYER.json unchanged from R30 delivery",
+      "title": "LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json unchanged from R31 delivery",
       "status": "PASS",
-      "value": "dbce0442717725da",
-      "limit": "dbce0442717725da",
+      "value": "c64add9de8aa1042",
+      "limit": "c64add9de8aa1042",
       "detail": ""
     },
     {
@@ -53,7 +53,7 @@
     {
       "id": "B2",
       "interface": "PCB↔CASE",
-      "title": "R25 board inside the 2.0 mm wall with ≥0.3 mm clearance",
+      "title": "R26 board inside the 2.0 mm wall with ≥0.3 mm clearance",
       "status": "PASS",
       "value": 0.334,
       "limit": 0.3,
@@ -185,7 +185,7 @@
         111.5,
         1.75
       ],
-      "detail": "CASE R12 was drawn around the R3/HOTHMI envelope 60.3 × 111.4 × 1.75. The Crystalfontz module is +5.60 mm against the 60.5 mm pocket width, +9.00 mm in length and +0.10 mm in thickness; its active area (62.1 × 110.4) against the case opening design (58.104 × 103.296). The owner set the case aside for PCB R23-R25: the case pass redraws the pocket, opening, lens and film for the 5 in panel."
+      "detail": "CASE R12 was drawn around the R3/HOTHMI envelope 60.3 × 111.4 × 1.75. The Crystalfontz module is +5.60 mm against the 60.5 mm pocket width, +9.00 mm in length and +0.10 mm in thickness; its active area (62.1 × 110.4) against the case opening design (58.104 × 103.296). The owner set the case aside for PCB R23-R26: the case pass redraws the pocket, opening, lens and film for the 5 in panel."
     },
     {
       "id": "D1",
@@ -755,7 +755,7 @@
       "status": "PASS",
       "value": 2,
       "limit": 0,
-      "detail": "SW2 cap stop leg at (35.69, 107.06) on a 3V3_SYS via; support post at (21.5, 76.0) on a RESET_MR via. Covered: the R25 plot settings keep vias off the mask (viasonmask false), the plotted mask Gerbers have no opening on any via (CHECKS/R25_FAB_SUMMARY.json), and the order specifies epoxy-filled, capped vias."
+      "detail": "SW2 cap stop leg at (35.69, 107.06) on a 3V3_SYS via; support post at (21.5, 76.0) on a RESET_MR via. Covered: the R26 plot settings keep vias off the mask (viasonmask false), the plotted mask Gerbers have no opening on any via (CHECKS/R26_FAB_SUMMARY.json), and the order specifies epoxy-filled, capped vias."
     },
     {
       "id": "J1",

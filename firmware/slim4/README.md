@@ -1,6 +1,6 @@
-# STRUTHIO SLIM4 platform firmware — R9, for PCB R25 (and R23, R24: same pins)
+# STRUTHIO SLIM4 platform firmware — R10, for PCB R26 (and R23-R25: same pins)
 
-ESP-IDF project for the SLIM4 main board (`hardware/slim4/LAYERS/01_PCB/`, PCB R25; R24 changed the power layout and R25 the DSI routing and plane shapes only, so every pin and part the firmware uses is as on R23, and the boot log still names R23). Its job is to bring the board up and give games a hardware-independent API; it is not a game.
+ESP-IDF project for the SLIM4 main board (`hardware/slim4/LAYERS/01_PCB/`, PCB R26; R24 changed the power layout, R25 the DSI routing and plane shapes and R26 the DSI routing again (coupled pairs) only, so every pin and part the firmware uses is as on R23, and the boot log still names R23). Its job is to bring the board up and give games a hardware-independent API; it is not a game.
 
 ## What it drives
 
@@ -14,7 +14,7 @@ ESP-IDF project for the SLIM4 main board (`hardware/slim4/LAYERS/01_PCB/`, PCB R
 | Charger BQ24074 (CHG GPIO11, PGOOD GPIO44, EN1/EN2 GPIO13/46), USB-C TUSB320 (GPIO43/17), battery ADC GPIO16 (× 133/33) | `slim4_power.c`: battery voltage, USB-C advertisement, charger input limit, low-battery switch-off (2 s below 3.3 V, whatever the button does), die-temperature charge suspend (only with a qualified cell above 3.6 V), reversed/shorted-pack warning; only a calibrated battery reading drives a decision (uncalibrated: shown as `battery_approx`, treated as no reading) |
 | USB-C data to USB-Serial-JTAG (GPIO24/25) | flashing, JTAG and every app log line over the one cable (UART0 primary console, USB-Serial-JTAG secondary output, ESP-IDF's P4 default; UART0's pins reach nothing on the board) |
 
-`tools/check_pinmap.py` checks every `SLIM4_GPIO_*` in `components/slim4_bsp/include/slim4_pins.h` against the net on the matching U1 pad of the R25 board (`SLIM4_R25_PCB_LAYER.json`), through the ESP32-P4 pin table. Run it after any board or pin change.
+`tools/check_pinmap.py` checks every `SLIM4_GPIO_*` in `components/slim4_bsp/include/slim4_pins.h` against the net on the matching U1 pad of the R26 board, through the ESP32-P4 pin table. The pad nets ship with the firmware (`tools/u1_pad_nets.json`, taken from `SLIM4_R26_PCB_LAYER.json`), so the check runs from this folder alone; inside the repository it also checks that table against the board export. Run it after any board or pin change: `--board <export.json>` checks against another board export, `--write-table <export.json>` refreshes the table.
 
 ## Build and flash
 
