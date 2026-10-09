@@ -1,9 +1,11 @@
 # SLIM4 64 MiB flash (W25Q512JV). App slots end below 16 MiB (0x1000000); data above it.
+# The factory app is the recovery image: updates never write it (slim4_system_update finds it by subtype). It is
+# not named "recovery", which ESP-IDF v6 reserves as a partition subtype name.
 # Name,       Type, SubType,  Offset,    Size,
 nvs,          data, nvs,      0x9000,    0x6000,
 otadata,      data, ota,      0xf000,    0x2000,
 phy_init,     data, phy,      0x11000,   0x1000,
-recovery,     app,  factory,  0x20000,   0x400000,
+factory,      app,  factory,  0x20000,   0x400000,
 ota_0,        app,  ota_0,    0x420000,  0x5E0000,
 ota_1,        app,  ota_1,    0xA00000,  0x5E0000,
 coredump,     data, coredump, 0xFE0000,  0x20000,

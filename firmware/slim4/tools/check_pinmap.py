@@ -7,6 +7,10 @@ tools/u1_pad_nets.json, which ships with the firmware (U1's pad -> net table, ta
 hardware/slim4/LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json). The net must be the one the define is named for. The display,
 I2S and active-low control code paths are checked to use the defines.
 
+The hardware self-test's table (SLIM4_ST_PINS in components/slim4_bsp/slim4_selftest_logic.c) is checked the same way:
+each GPIO on its pad, each net on that pad (the unused pads it drives must have no net), and, where the board export is
+at hand (inside the repository, or --board), each pull resistor's value and rail and the PWR_WAKE capacitor.
+
     python3 tools/check_pinmap.py                      # the bundled table: works from the firmware folder alone
     python3 tools/check_pinmap.py --board EXPORT.json  # a board export instead (e.g. a newer PCB revision)
     python3 tools/check_pinmap.py --write-table EXPORT.json   # refresh tools/u1_pad_nets.json from an export
@@ -46,7 +50,10 @@ else:
 # ESP32-P4 QFN-104: GPIO -> package pad, for the GPIOs this board uses (pin 9 is VDD_LP, so GPIO9.. sit one pad up;
 # GPIO0 is pad 104, beside CHIP_PU on 103).
 P4_PAD = {0: 104, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 10, 10: 11, 11: 12, 13: 14, 16: 17, 17: 18,
-          24: 52, 25: 53, 35: 66, 43: 84, 44: 86, 46: 88}
+          24: 52, 25: 53, 35: 66, 43: 84, 44: 86, 46: 88,
+          # unused GPIOs the self-test drives, beside tested nets (pads 13-19 run GPIO12-18; 85 is a supply pad,
+          # so GPIO43/44/45/46 are pads 84/86/87/88)
+          12: 13, 14: 15, 15: 16, 18: 19, 45: 87}
 # define name -> board net, where they differ
 NET = {'BOOT_BTN': 'BOOT_STRAP'}
 
@@ -71,7 +78,51 @@ for token in ['SLIM4_GPIO_BTN_LEFT', 'SLIM4_GPIO_BTN_RIGHT', 'SLIM4_GPIO_DART_LE
               'SLIM4_GPIO_AUDIO_SD_CTRL', 'SLIM4_GPIO_BACKLIGHT_PWM', 'SLIM4_GPIO_LCD_RESET_GATE']:
     if token not in source:
         bad.append(f'slim4_board.c does not use {token}')
+
+# the self-test's pin table
+ST = re.compile(r'\{(\d+), (\d+), "(\w+)", SLIM4_PULL_(\w+), SLIM4_ROLE_(\w+), (NULL|"[^"]*"), "([^"]*)", (true|false), (true|false), (true|false)\}')
+st = [m.groups() for m in ST.finditer((root / 'components/slim4_bsp/slim4_selftest_logic.c').read_text())]
+if len(st) < 20:
+    bad.append(f'SLIM4_ST_PINS: only {len(st)} entries parsed')
+export = Path(args[1]) if args[:1] == ['--board'] else (repo_board if repo_board.exists() else None)
+parts = {}
+if export:
+    ex = json.loads(export.read_text())
+    values = {p['ref']: p['value'] for p in ex['parts']}
+    for p in ex['pads']:
+        parts.setdefault(p['ref'], {})[p['num']] = p['netName']
+VALUE = {'10K': '1002', '100K': '1003'}
+for gpio, pad, net, pull, role, pull_part, load, drive_ok, cap, rc in st:
+    gpio, pad = int(gpio), int(pad)
+    want = '' if role == 'UNUSED' else net
+    got = pads.get(pad, 'no pad')
+    if P4_PAD.get(gpio) != pad:
+        bad.append(f'self-test {net}: GPIO{gpio} is pad {P4_PAD.get(gpio)}, table says pad {pad}')
+    if got != want:
+        bad.append(f'self-test {net}: U1 pad {pad} is {got!r}, expected {want!r}')
+    if gpio in pins.values() and NET.get(next(k for k, v in pins.items() if v == gpio), next(k for k, v in pins.items() if v == gpio)) != net:
+        bad.append(f'self-test {net}: GPIO{gpio} is named differently in slim4_pins.h')
+    if export and pull != 'NONE':
+        ref = pull_part.strip('"').split()[0]
+        rail = '3V3_SYS' if pull.startswith('UP') else 'GND'
+        ends = set(parts.get(ref, {}).values())
+        if ends != {net, rail}:
+            bad.append(f'self-test {net}: {ref} joins {sorted(ends)}, expected {net} and {rail}')
+        if VALUE[pull.split('_')[1]] not in values.get(ref, ''):
+            bad.append(f'self-test {net}: {ref} is {values.get(ref)!r}, expected {pull.split("_")[1].lower()}')
+    if export and cap == 'true':
+        caps = [r for r, nets in parts.items() if r.startswith('C') and net in nets.values() and '104' in values.get(r, '')
+                and set(nets.values()) == {net, 'GND'}]
+        if not caps:
+            bad.append(f'self-test {net}: marked with a capacitor, but no 100 nF from it to GND on the board')
+    if export and role != 'UNUSED':
+        on_board = [r for r, nets in parts.items() if r.startswith('C') and net in nets.values()]
+        if on_board and cap != 'true':
+            bad.append(f'self-test {net}: {", ".join(on_board)} on the net, but the table has no capacitor')
+print(f'  self-test table: {len(st)} pins' + (f', pull resistors and capacitors checked in {export.name}' if export else
+                                              ', resistor values not checked (no board export at hand)'))
 if bad:
     print('FAIL:\n  ' + '\n  '.join(bad))
     sys.exit(1)
-print(f'PASS: {len(pins)} firmware GPIO assignments match the board nets on U1 ({board_src.name}); USB-Serial-JTAG pair intact')
+print(f'PASS: {len(pins)} firmware GPIO assignments and {len(st)} self-test pins match the board nets on U1 '
+      f'({board_src.name}); USB-Serial-JTAG pair intact')

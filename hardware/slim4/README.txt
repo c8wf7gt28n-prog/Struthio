@@ -8,8 +8,8 @@ track (CHECKS/R26_DSI_REPORT.md). The stackup's centre prepreg is corrected to 0
 1V1_HP rail is stated as what its divider sets: 1.2 V. Same pins, ports, outline and parts. Four
 parts plug into it with no soldering and no adapter cables: the Crystalfontz 5 in panel (its own
 tail into J1), a protected 1-cell battery of 1000 mAh or more (JST PH, reverse-polarity switch),
-and two speakers (Molex PicoBlade). The firmware for it is firmware/slim4 in the repository (R10:
-the pin check now carries its own U1 pad table). What R31 decided and why is in DECISIONS_R31.md
+and two speakers (Molex PicoBlade). The firmware for it is firmware/slim4 in the repository (R11:
+a hardware self-test at every boot, docs/FIRST_BOOT.md). What R31 decided and why is in DECISIONS_R31.md
 (R30's to R26's decisions still hold where not replaced). The case was set aside by the owner.
 
   01_PCB          R26: the four plug-in ports, a top-contact display socket on the front under the

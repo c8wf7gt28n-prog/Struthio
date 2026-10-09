@@ -1,5 +1,6 @@
 #include "slim4_board.h"
 
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -12,7 +13,9 @@
 #include "esp_heap_caps.h"
 #include "esp_ldo_regulator.h"
 #include "esp_log.h"
+#include "esp_rom_sys.h"
 #include "esp_timer.h"
+#include "hal/mipi_dsi_host_ll.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_mipi_dsi.h"
@@ -26,6 +29,7 @@
 #include "nvs_flash.h"
 #include "slim4_pins.h"
 #include "slim4_power.h"
+#include "slim4_selftest.h"
 
 #define SLIM4_LCD_WIDTH  720
 #define SLIM4_LCD_HEIGHT 1280
@@ -135,6 +139,9 @@ static const uint8_t *glyph(char c)
     static const uint8_t D9[7] = {14,17,17,15,1,1,14};
     static const uint8_t slash[7] = {1,2,2,4,8,8,16};
     static const uint8_t period[7] = {0,0,0,0,0,12,12};
+    static const uint8_t dash[7] = {0,0,0,31,0,0,0};
+    static const uint8_t colon[7] = {0,12,12,0,12,12,0};
+    c = (char)toupper((unsigned char)c);
     switch (c) {
     case 'A': return A; case 'B': return B; case 'C': return C; case 'D': return D;
     case 'E': return E; case 'F': return F; case 'G': return G; case 'H': return H;
@@ -145,7 +152,8 @@ static const uint8_t *glyph(char c)
     case 'Y': return Y; case 'Z': return Z; case '0': return D0; case '1': return D1;
     case '2': return D2; case '3': return D3; case '4': return D4; case '5': return D5;
     case '6': return D6; case '7': return D7; case '8': return D8; case '9': return D9;
-    case '/': return slash; case '.': return period; case ' ': return blank; default: return blank;
+    case '/': return slash; case '.': return period; case '-': return dash; case ':': return colon;
+    case ' ': return blank; default: return blank;
     }
 }
 
@@ -282,8 +290,15 @@ slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t pr
     fill_rect(SLIM4_LCD_WIDTH - 24, 20, 4, SLIM4_LCD_HEIGHT - 40, cyan);
 
     draw_text_centered("STRUTHIO / SLIM4", 90, 2, cyan);
-    draw_text_centered("R23 HARDWARE TEST", 135, 4, ivory);
+    draw_text_centered("R26 HARDWARE TEST", 135, 4, ivory);
     draw_text_centered("PRESS EACH CONTROL / LISTEN", 205, 2, cyan);
+    const slim4_st_report_t *st = slim4_selftest_last();
+    if (st) {
+        char summary[56];
+        (void)snprintf(summary, sizeof(summary), "SELF TEST: %u FAIL %u PASS %u INFO - BOOT: DETAILS",
+                       st->fail, st->pass, st->info);
+        draw_text_centered(summary, 250, 2, st->fail ? red : cyan);
+    }
 
     draw_button_indicator(110, 340, "FLAP LEFT", (buttons & (1u << 0)) != 0,
                           orange, ivory, press_counts[0]);
@@ -346,7 +361,7 @@ static void draw_boot_stamp(void)
     fill_rect(24, 24, 3, SLIM4_LCD_HEIGHT - 48, cyan);
     fill_rect(SLIM4_LCD_WIDTH - 27, 24, 3, SLIM4_LCD_HEIGHT - 48, cyan);
     draw_text_centered("STRUTHIO", 385, 9, gold);
-    draw_text_centered("SLIM4 / R23", 515, 4, ivory);
+    draw_text_centered("SLIM4 / R26", 515, 4, ivory);
     fill_rect(180, 590, SLIM4_LCD_WIDTH - 360, 2, cyan);
     draw_text_centered("SYSTEM BOOT", 640, 4, cyan);
     draw_text_centered("INITIALIZING", 705, 2, ivory);
@@ -366,6 +381,60 @@ void slim4_board_show_boot_result(bool software_verified)
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "boot-result stamp transfer failed: %s", esp_err_to_name(err));
     }
+}
+
+slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep)
+{
+    if (!s_display_ready || !s_framebuffer) return SLIM4_ERR_NOT_READY;
+    if (!rep) return SLIM4_ERR_INVALID_ARG;
+    const uint16_t navy = rgb565(7, 19, 34);
+    const uint16_t ivory = rgb565(240, 244, 245);
+    const uint16_t cyan = rgb565(45, 210, 230);
+    const uint16_t gold = rgb565(255, 188, 57);
+    const uint16_t red = rgb565(255, 72, 74);
+    const uint16_t white = rgb565(255, 255, 255);
+    const uint16_t black = rgb565(0, 0, 0);
+    fill_rect(0, 0, SLIM4_LCD_WIDTH, SLIM4_LCD_HEIGHT, navy);
+    fill_rect(20, 20, SLIM4_LCD_WIDTH - 40, 4, cyan);
+    fill_rect(20, SLIM4_LCD_HEIGHT - 24, SLIM4_LCD_WIDTH - 40, 4, cyan);
+    fill_rect(20, 20, 4, SLIM4_LCD_HEIGHT - 40, cyan);
+    fill_rect(SLIM4_LCD_WIDTH - 24, 20, 4, SLIM4_LCD_HEIGHT - 40, cyan);
+
+    draw_text_centered("SELF TEST", 44, 4, ivory);
+    draw_text_centered("STRUTHIO SLIM4 / PCB R26 / FIRMWARE R11", 90, 2, cyan);
+    char line[48];
+    (void)snprintf(line, sizeof(line), "%u FAIL  %u PASS  %u INFO", rep->fail, rep->pass, rep->info);
+    draw_text_centered(line, 122, 3, rep->fail ? red : cyan);
+
+    /* One row per check: verdict, check name, what was found (at most 35 characters, so it ends inside the frame). */
+    const int top = 170, bottom = 1074;
+    const int pitch = rep->count ? ((bottom - top) / rep->count < 30 ? (bottom - top) / rep->count : 30) : 30;
+    for (uint8_t i = 0; i < rep->count; ++i) {
+        const slim4_st_item_t *it = &rep->items[i];
+        const int y = top + i * pitch;
+        const uint16_t tag = it->verdict == SLIM4_ST_FAIL ? red : (it->verdict == SLIM4_ST_INFO ? gold : cyan);
+        draw_text_at(slim4_st_verdict_name(it->verdict), 32, y, 2, tag);
+        draw_text_at(it->id, 88, y, 2, ivory);
+        draw_text_at(it->brief, 264, y, 2, it->verdict == SLIM4_ST_FAIL ? red : ivory);
+    }
+    draw_text_centered("ANY CONTROL: CONTINUE   BOOT: SHOW AGAIN", 1088, 2, gold);
+
+    /* Video check for CLK and D1, which carry video only: full-saturation bars and 1-pixel gratings toggle every
+     * bit of the RGB565 stream; a marginal lane shows sparkles, shifted rows or wrong colours here first. */
+    static const uint8_t bars[8][3] = {
+        {255, 255, 255}, {255, 255, 0}, {0, 255, 255}, {0, 255, 0},
+        {255, 0, 255}, {255, 0, 0}, {0, 0, 255}, {0, 0, 0},
+    };
+    const int bar_w = (SLIM4_LCD_WIDTH - 72) / 8;
+    for (int b = 0; b < 8; ++b) {
+        fill_rect(36 + b * bar_w, 1112, bar_w, 50, rgb565(bars[b][0], bars[b][1], bars[b][2]));
+    }
+    for (int x = 36; x < 36 + 8 * bar_w; ++x) fill_rect(x, 1166, 1, 28, (x & 1) ? white : black);
+    for (int y = 1198; y < 1226; ++y) fill_rect(36, y, 8 * bar_w, 1, (y & 1) ? white : black);
+    draw_text_centered("BARS AND LINES MUST BE CLEAN", 1232, 2, ivory);
+
+    const esp_err_t err = panel_draw_bitmap_wait(s_framebuffer);
+    return err == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
 }
 
 static esp_err_t init_backlight(void)
@@ -523,6 +592,130 @@ void slim4_board_backlight_cap_changed(uint8_t cap_percent)
     if (s_backlight_ready) (void)set_backlight(s_backlight_request);
 }
 
+/* ---- Panel probe (self-test) ----------------------------------------------------------------------------
+ * Before the ILI9881C driver starts, read the controller's ID over DSI lane 0 with every wait bounded. The driver
+ * reads the same ID itself, but ESP-IDF's DSI read and the acknowledge after each command wait without a time limit
+ * (the host's timeouts are off): a panel that does not answer (FPC not seated, an open D0 line, no panel supply)
+ * would hang the boot in a watchdog reset loop. The probe uses the host's registers directly, exactly as ESP-IDF's
+ * HAL does (mipi_dsi_hal.c: DCS long write, set maximum return size, DCS read), only with time limits. Low-power
+ * mode drives D0_P and D0_N separately, so an answer shows both lines of lane 0 work, in both directions. */
+#define PROBE_TIMEOUT_US 20000
+static slim4_panel_probe_t s_probe = {.stopped_at = "display bring-up not started"};
+
+static bool probe_wait(bool (*done)(void))
+{
+    const int64_t t0 = esp_timer_get_time();
+    while (!done()) {
+        if (esp_timer_get_time() - t0 >= PROBE_TIMEOUT_US) return false;
+        esp_rom_delay_us(5);
+    }
+    return true;
+}
+
+static bool probe_cmd_room(void) { return !mipi_dsi_host_ll_gen_is_cmd_fifo_full(&MIPI_DSI_HOST); }
+static bool probe_pld_room(void) { return !mipi_dsi_host_ll_gen_is_write_fifo_full(&MIPI_DSI_HOST); }
+
+/* Everything sent, no read pending, lane 0 back in stop state and driven by the host (after a bus turnaround the
+ * panel hands lane 0 back only once it has answered). */
+static bool probe_idle(void)
+{
+    return MIPI_DSI_HOST.cmd_pkt_status.gen_cmd_empty && MIPI_DSI_HOST.cmd_pkt_status.gen_pld_w_empty &&
+           MIPI_DSI_HOST.cmd_pkt_status.gen_buff_cmd_empty && !MIPI_DSI_HOST.cmd_pkt_status.gen_rd_cmd_busy &&
+           MIPI_DSI_HOST.phy_status.phy_stopstate0lane && !MIPI_DSI_HOST.phy_status.phy_direction;
+}
+
+/* Idle for 50 us without a break: between a packet's end and the bus turnaround for its acknowledge, lane 0 is in
+ * stop state for a moment, and a single look could take that for the end of the exchange. */
+static bool probe_wait_idle(void)
+{
+    const int64_t t0 = esp_timer_get_time();
+    int stable = 0;
+    while (stable < 10) {
+        stable = probe_idle() ? stable + 1 : 0;
+        if (esp_timer_get_time() - t0 >= PROBE_TIMEOUT_US) return false;
+        esp_rom_delay_us(5);
+    }
+    return true;
+}
+
+static bool probe_answer_ready(void)
+{
+    return !MIPI_DSI_HOST.cmd_pkt_status.gen_rd_cmd_busy && !mipi_dsi_host_ll_gen_is_read_fifo_empty(&MIPI_DSI_HOST);
+}
+
+static void probe_drain_read_fifo(void)
+{
+    for (int i = 0; i < 64 && !mipi_dsi_host_ll_gen_is_read_fifo_empty(&MIPI_DSI_HOST); ++i) {
+        (void)mipi_dsi_host_ll_gen_read_payload_fifo(&MIPI_DSI_HOST);
+    }
+}
+
+/* ILI9881C page select: DCS long write FF 98 81 <page> on virtual channel 0. */
+static bool probe_select_page(uint8_t page)
+{
+    const uint32_t payload = 0xFFu | (0x98u << 8) | (0x81u << 16) | ((uint32_t)page << 24);
+    if (!probe_wait(probe_pld_room)) return false;
+    mipi_dsi_host_ll_gen_write_payload_fifo(&MIPI_DSI_HOST, payload);
+    if (!probe_wait(probe_cmd_room)) return false;
+    mipi_dsi_host_ll_gen_set_packet_header(&MIPI_DSI_HOST, 0, MIPI_DSI_DT_DCS_LONG_WRITE, 0, 4);
+    return probe_wait_idle();
+}
+
+static bool probe_read_register(uint8_t reg, uint8_t *value)
+{
+    if (!probe_wait(probe_cmd_room)) return false;
+    mipi_dsi_host_ll_gen_set_packet_header(&MIPI_DSI_HOST, 0, MIPI_DSI_DT_SET_MAXIMUM_RETURN_PKT, 0, 1);
+    if (!probe_wait_idle()) return false;
+    mipi_dsi_host_ll_enable_bta(&MIPI_DSI_HOST, true);
+    mipi_dsi_host_ll_gen_set_rx_vcid(&MIPI_DSI_HOST, 0);
+    probe_drain_read_fifo();
+    mipi_dsi_host_ll_gen_set_packet_header(&MIPI_DSI_HOST, 0, MIPI_DSI_DT_DCS_READ_0, 0, reg);
+    if (!probe_wait(probe_answer_ready)) return false;
+    *value = (uint8_t)(mipi_dsi_host_ll_gen_read_payload_fifo(&MIPI_DSI_HOST) & 0xFFu);
+    probe_drain_read_fifo();
+    return probe_wait_idle();
+}
+
+/* Two exchanges: the first after reset (page 1, the three ID registers), then a second (ID again, page 0). The
+ * panel clears its error bits once it has reported them, so the second exchange's flags are new errors only; the
+ * first's can include what the panel saw while it powered up. */
+static void probe_panel(void)
+{
+    s_probe.attempted = true;
+    s_probe.answered = false;
+    s_probe.int_st0_before = MIPI_DSI_HOST.int_st0.val;   /* reading clears them */
+    s_probe.int_st1_before = MIPI_DSI_HOST.int_st1.val;
+    uint8_t again = 0;
+    if (!probe_select_page(1)) {
+        s_probe.stopped_at = "page select write (the host could not send on lane 0)";
+    } else if (!probe_read_register(0x00, &s_probe.id[0]) || !probe_read_register(0x01, &s_probe.id[1]) ||
+               !probe_read_register(0x02, &s_probe.id[2])) {
+        s_probe.stopped_at = "ID read (no answer after the bus turnaround on lane 0)";
+    } else {
+        s_probe.int_st0_first = MIPI_DSI_HOST.int_st0.val;
+        s_probe.int_st1_first = MIPI_DSI_HOST.int_st1.val;
+        if (!probe_read_register(0x00, &again)) {
+            s_probe.stopped_at = "second ID read (no answer after the bus turnaround on lane 0)";
+        } else if (!probe_select_page(0)) {
+            s_probe.stopped_at = "page 0 write (no acknowledge on lane 0)";
+        } else {
+            s_probe.answered = true;
+            s_probe.repeat_ok = again == s_probe.id[0];
+            s_probe.stopped_at = NULL;
+        }
+    }
+    s_probe.int_st0 = MIPI_DSI_HOST.int_st0.val;
+    s_probe.int_st1 = MIPI_DSI_HOST.int_st1.val;
+    ESP_LOGI(TAG, "panel probe: %s, ID %02X %02X %02X, host flags %08lX/%08lX",
+             s_probe.answered ? "answered" : s_probe.stopped_at, s_probe.id[0], s_probe.id[1], s_probe.id[2],
+             (unsigned long)s_probe.int_st0, (unsigned long)s_probe.int_st1);
+}
+
+void slim4_board_panel_probe(slim4_panel_probe_t *out)
+{
+    if (out) *out = s_probe;
+}
+
 static esp_err_t init_display(void)
 {
     esp_err_t err;
@@ -608,6 +801,9 @@ static esp_err_t init_display(void)
     err = gpio_set_level(SLIM4_GPIO_LCD_RESET_GATE, 0);
     if (err != ESP_OK) return err;
     vTaskDelay(pdMS_TO_TICKS(120));
+    s_display_stage = "panel probe on DSI lane 0";
+    probe_panel();
+    if (!slim4_st_panel_usable(&s_probe)) return ESP_ERR_NOT_FOUND;
     s_display_stage = "panel initialization commands";
     err = esp_lcd_panel_init(s_panel);
     if (err != ESP_OK) return err;
@@ -710,6 +906,8 @@ slim4_status_t slim4_board_init(void)
 
     err = init_display();
     if (err != ESP_OK) {
+        /* Keep the probe's own reason when the panel did not answer; otherwise record the failed stage. */
+        if (!s_probe.attempted || s_probe.answered) s_probe.stopped_at = s_display_stage;
         ESP_LOGE(TAG, "display failed at %s: %s; continuing with serial diagnostics",
                  s_display_stage, esp_err_to_name(err));
         return SLIM4_OK;

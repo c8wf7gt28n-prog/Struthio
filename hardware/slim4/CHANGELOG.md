@@ -1,3 +1,19 @@
+# R31, firmware R11 — hardware self-test (2026-10-09)
+
+Firmware R10 → **R11** (version 0.10.0); the hardware layers are unchanged, so the package stays R31 (board, builder files and checks as released). The firmware now checks each board for assembly faults at every boot and shows the results on the panel; details in `firmware/slim4/RELEASE_NOTES_R11.md`, how to read them in `firmware/slim4/docs/FIRST_BOOT.md`.
+
+| Fault on a new board | Found by |
+|---|---|
+| U1 pad not soldered, pull resistor missing or open, 100 k fitted for 10 k, net shorted to GND or 3V3, stuck switch (15 nets) | pull checks: U1's own pull with and against the board's, then driven and released |
+| Solder bridge between U1 pads (all 19 neighbouring pairs among the 24 pins tested) or between any two of those nets | short scan: each pin driven high and low at U1's weakest drive while the rest are read, two scans |
+| C601 missing on PWR_WAKE, or extra capacitance on it | rise time through R110, 0.2–3 ms |
+| Wrong or counterfeit U1 / U2 | chip revision v3.x, 32 MiB PSRAM, JEDEC ID EF4020 and 64 MiB |
+| Panel not answering (FPC, J1, D0 pair, panel supply, reset), wrong controller, errors on lane 0 | bounded DSI probe before the panel driver (ID 98 81 0C, error flags); through R10 a silent panel hung the boot in a watchdog loop |
+| CLK or D1 lane faults | the page's colour bars and 1-pixel lines (visual) |
+| VBUS path from J2 to the charger | USB host present but U10 PGOOD high |
+
+`tools/check_pinmap.py` also checks the self-test's pin table against the R26 board (pads, nets, resistor values and rails, the 100 nF capacitors). Not yet run on hardware.
+
 # R31 — PCB R26: DSI coupled pairs; firmware R10 (2026-10-09)
 
 PCB R25 → **R26** (5 scripted edits in `LAYERS/01_PCB/R26_FROM_R25/`; rebuilds from R25 give the same copper), answering the R30/R25 pre-order audit, which held the order for one DSI routing revision. Same outline, ports, connector positions, parts and GPIOs. R25 moves to `REFERENCES/PCB_R25/`. Firmware R9 → **R10** (tools only). CASE R12 and ACRYLIC R2 still set aside: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (317 pair evaluations over 278 distinct pairs), the same 3 case FAIL rows. Decisions: `DECISIONS_R31.md`.

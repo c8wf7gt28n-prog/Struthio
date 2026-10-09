@@ -6,14 +6,20 @@
 #include "esp_ota_ops.h"
 #include "esp_partition.h"
 #include "esp_timer.h"
+#include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "slim4_board.h"
+#include "slim4_pins.h"
 #include "slim4_power.h"
+#include "slim4_selftest.h"
 #include "slim4_game_api.h"
 
 static const char *TAG = "slim4";
 static TaskHandle_t s_diagnostic_task;
+static slim4_st_report_t s_selftest;
+
+#define SLIM4_SELFTEST_PAGE_US 10000000   /* the self-test page stays up 10 s, or until a control is pressed */
 
 #define SLIM4_DIAGNOSTIC_PERIOD_US 16667
 #define SLIM4_DIAGNOSTIC_TONE_FRAMES 2400u
@@ -76,6 +82,34 @@ static bool platform_self_test(bool *display_ready)
     return input_status == SLIM4_OK && valid_surface;
 }
 
+static bool boot_button_down(void)
+{
+    return gpio_get_level(SLIM4_GPIO_BOOT_BTN) == 0;
+}
+
+/* Shows the self-test page until a control is pressed or the time runs out. The page's own check is visual: the
+ * colour bars and 1-pixel lines exercise the CLK and D1 lanes, which carry video only. */
+static void show_selftest_page(void)
+{
+    if (slim4_board_show_selftest(&s_selftest) != SLIM4_OK) return;
+    ESP_LOGI(TAG, "self-test page shown: any control continues, the BOOT button shows it again later");
+    const uint64_t until = slim4_time_us() + SLIM4_SELFTEST_PAGE_US;
+    uint32_t buttons = 0;
+    /* Let go first (BOOT may still be down when the page is reopened), then wait for a new press. */
+    while (slim4_time_us() < until && boot_button_down()) vTaskDelay(pdMS_TO_TICKS(10));
+    while (slim4_time_us() < until) {
+        if (boot_button_down()) break;
+        if (slim4_board_read_buttons(&buttons) == SLIM4_OK && buttons) break;
+        slim4_platform_pump();
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    /* Wait for the release so the press does not also count on the diagnostic screen. */
+    while (slim4_time_us() < until + 2000000u &&
+           (boot_button_down() || (slim4_board_read_buttons(&buttons) == SLIM4_OK && buttons))) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
 static void finish_ota_boot_check(bool platform_init_ok)
 {
     const esp_partition_t *running = esp_ota_get_running_partition();
@@ -99,22 +133,33 @@ void app_main(void)
     const esp_app_desc_t *app = esp_app_get_description();
     ESP_LOGI(TAG, "STRUTHIO SLIM4 platform boot");
     ESP_LOGI(TAG, "firmware=%s version=%s", app->project_name, app->version);
-    ESP_LOGI(TAG, "target=ESP32-P4 board=SLIM4 R23 api=%u.%u", SLIM4_API_VERSION_MAJOR,
+    ESP_LOGI(TAG, "target=ESP32-P4 board=SLIM4 PCB R26 api=%u.%u", SLIM4_API_VERSION_MAJOR,
              SLIM4_API_VERSION_MINOR);
     ESP_LOGI(TAG, "bring-up: ILI9881C 720x1280 two-lane display (Crystalfontz CFAF7201280A0-050TN); four active-low controls; %s",
              slim4_power_woke_by_button() ? "woken by the power button" : "cold start");
 
+    /* Hardware self-test, part 1: the GPIO nets, before any driver claims them. */
+    slim4_st_report_init(&s_selftest);
+    slim4_selftest_pins(&s_selftest);
+
     slim4_status_t status = slim4_platform_init();
     if (status != SLIM4_OK) {
         ESP_LOGE(TAG, "platform init failed: %d", (int)status);
+        slim4_selftest_log(&s_selftest);
         finish_ota_boot_check(false);
         return;
     }
     bool display_ready = false;
     const bool io_verified = platform_self_test(&display_ready);
+    /* Part 2: chip, memory, reset, the panel probe, video, power. */
+    slim4_selftest_after_init(&s_selftest, display_ready);
+    slim4_selftest_log(&s_selftest);
     const slim4_status_t volume_status = slim4_audio_set_master_volume(20);
     const bool software_verified = io_verified && volume_status == SLIM4_OK;
-    if (display_ready) slim4_board_show_boot_result(software_verified);
+    if (display_ready) {
+        slim4_board_show_boot_result(software_verified);
+        show_selftest_page();
+    }
     if (software_verified) {
         ESP_LOGI(TAG, "SYSTEM READY: controls, RGB565 surface, and audio worker passed software checks");
     } else {
@@ -127,6 +172,7 @@ void app_main(void)
     } else {
         ESP_LOGW(TAG, "speaker test unavailable: audio service status %d", (int)volume_status);
     }
+    bool boot_was_down = false;
     uint32_t previous_buttons = 0;
     uint32_t press_counts[4] = {0};
     uint32_t frame_index = 0;
@@ -177,6 +223,13 @@ void app_main(void)
             }
             previous_buttons = buttons;
         }
+        const bool boot_down = boot_button_down();
+        if (boot_down && !boot_was_down && display_ready) {
+            show_selftest_page();
+            (void)slim4_board_read_buttons(&previous_buttons);
+            (void)ulTaskNotifyTake(pdTRUE, 0);   /* frame ticks queued while the page was up are not late frames */
+        }
+        boot_was_down = boot_down;
         slim4_platform_pump();
         if (slim4_power_poll()) {
             if (frame_timer) {

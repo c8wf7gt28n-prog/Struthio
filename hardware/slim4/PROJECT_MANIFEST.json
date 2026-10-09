@@ -1,7 +1,7 @@
 {
   "project": "STRUTHIO SLIM4",
   "package_revision": "R31",
-  "package_issue": "R31: PCB R26 answers the R30/R25 pre-order audit: the three MIPI-DSI pairs routed again as coupled pairs (100 ohm differential: F.Cu 0.127/0.18 mm, In3 0.10/0.18 mm; P and N on the same layers through the same vias), matched within 0.201 mm between pairs and 0.031 mm inside a pair, ground vias at every layer change between differently referenced layers, no DSI track over a gap or split in its reference planes; ground-plane antipads 0.15 mm; stackup 2116 prepreg corrected to 0.1088 mm; the 1V1_HP rail stated as 1.2 V; EN_DCDC and four slow nets rerouted round the pairs; the firmware pin check now ships its own U1 pad table; same pins, ports, outline and parts; case still set aside (see CHANGELOG.md, DECISIONS_R31.md)",
+  "package_issue": "R31: PCB R26 answers the R30/R25 pre-order audit: the three MIPI-DSI pairs routed again as coupled pairs (100 ohm differential: F.Cu 0.127/0.18 mm, In3 0.10/0.18 mm; P and N on the same layers through the same vias), matched within 0.201 mm between pairs and 0.031 mm inside a pair, ground vias at every layer change between differently referenced layers, no DSI track over a gap or split in its reference planes; ground-plane antipads 0.15 mm; stackup 2116 prepreg corrected to 0.1088 mm; the 1V1_HP rail stated as 1.2 V; EN_DCDC and four slow nets rerouted round the pairs; the firmware pin check now ships its own U1 pad table, and firmware R11 checks each board for assembly faults at every boot (hardware self-test); same pins, ports, outline and parts; case still set aside (see CHANGELOG.md, DECISIONS_R31.md)",
   "decisions": [
     "DECISIONS_R26.md",
     "DECISIONS_R27.md",

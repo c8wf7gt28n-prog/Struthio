@@ -24,9 +24,10 @@ rows.sort()
 for a,b in zip(rows,rows[1:]):
     assert a[1]<=b[0], f'overlap: {a[2]} and {b[2]}'
 assert rows[-1][1]==0x4000000, 'layout must end at 64 MiB boundary'
-required={'nvs','otadata','recovery','ota_0','ota_1','assets','games'}
+required={'nvs','otadata','factory','ota_0','ota_1','assets','games'}
 assert required <= names
-assert parts['recovery']==('app','factory'), 'recovery must remain the factory app'
+assert parts['factory']==('app','factory'), 'the factory app (the recovery image) is missing'
+assert 'recovery' not in names, 'ESP-IDF v6 reserves "recovery" as a partition subtype name'
 assert parts['ota_0']==('app','ota_0') and parts['ota_1']==('app','ota_1'), 'system A/B slots missing'
 assert parts['ota_0'][1] != 'factory' and parts['ota_1'][1] != 'factory'
 print(f'PASS: {len(rows)} partitions, 64 KiB app alignment, apps below 16 MiB, factory recovery + A/B slots, no overlaps, end=0x{rows[-1][1]:X}')

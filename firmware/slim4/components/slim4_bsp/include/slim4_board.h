@@ -3,9 +3,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "slim4_types.h"
+#include "slim4_selftest.h"
 
 slim4_status_t slim4_board_init(void);
 void slim4_board_show_boot_result(bool software_verified);
+/* The self-test page: one row per check, then colour bars and 1-pixel gratings for the video lanes. */
+slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep);
+/* Result of the bounded panel probe run during the display bring-up. */
+void slim4_board_panel_probe(slim4_panel_probe_t *out);
 slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t press_counts[4],
                                               uint32_t frame_index,
                                               uint32_t measured_fps, uint32_t measured_vsync_hz,
