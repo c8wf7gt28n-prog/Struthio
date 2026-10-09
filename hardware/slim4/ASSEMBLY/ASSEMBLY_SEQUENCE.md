@@ -1,6 +1,6 @@
-# R28 assembly sequence (PCB R23; CASE R12 set aside)
+# R29 assembly sequence (PCB R24; CASE R12 set aside)
 
-`STRUTHIO_SLIM4_R28_ASSEMBLY.step` holds the R23 board envelopes with CASE R12 and ACRYLIC R2 as they are. PCB solids in it are envelopes derived from the PCB layer JSON (board outline, part courtyards × heights from `CHECKS/COMPONENT_ENVELOPES_R23.json`); the KiCad file remains the PCB authority. The case does not fit the 5 in panel yet (`PRODUCTION_GATES.md`), so the sequence below is the bench build of the board and its four plug-in parts.
+`STRUTHIO_SLIM4_R29_ASSEMBLY.step` holds the R24 board envelopes with CASE R12 and ACRYLIC R2 as they are. PCB solids in it are envelopes derived from the PCB layer JSON (board outline, part courtyards × heights from `CHECKS/COMPONENT_ENVELOPES_R23.json`); the KiCad file remains the PCB authority. The case does not fit the 5 in panel yet (`PRODUCTION_GATES.md`), so the sequence below is the bench build of the board and its four plug-in parts.
 
 ## Bench build (no case)
 

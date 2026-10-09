@@ -1,11 +1,11 @@
 {
   "revision": "R12",
-  "status": "CHECKED ON PCB R23 IN CAD; CASE SET ASIDE FOR R23, CASE PASS AND PHYSICAL GATES OPEN (see CHECKS/R28_CONVERGENCE_REPORT.md)",
+  "status": "CHECKED ON PCB R24 IN CAD; CASE SET ASIDE FOR R23/R24, CASE PASS AND PHYSICAL GATES OPEN (see CHECKS/R29_CONVERGENCE_REPORT.md)",
   "exterior_outline_mm": [
     104.0,
     135.3
   ],
-  "pcb_revision": "R23",
+  "pcb_revision": "R24",
   "pcb_thickness_mm": 1.2,
   "z_stack_mm": {
     "rear_floor_outer": -5.7,
@@ -169,7 +169,7 @@
   "parameters": {
     "revision_case": "R12",
     "revision_acrylic": "R2",
-    "package": "R28",
+    "package": "R29",
     "pcb_t": 1.2,
     "wall": 2.0,
     "board_to_wall_clearance": 0.3,

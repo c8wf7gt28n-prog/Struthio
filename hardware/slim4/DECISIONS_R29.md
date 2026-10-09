@@ -1,0 +1,15 @@
+# R29 decisions
+
+R29 replaces PCB R23 with PCB R24 after the second hardware review (SLIM4_R23_HARDWARE_SECOND_REVIEW), which asked to hold the order until the power layout, the TPS63070's PS/SYNC connection and the DSI return paths were fixed. The owner's standing instruction is to get the board right before ordering. Each decision names the file that carries it. `DECISIONS_R28.md`, `DECISIONS_R27.md` and `DECISIONS_R26.md` still hold for everything not listed here.
+
+| # | Decision | Why | Supersedes | Where it lives |
+|---|---|---|---|---|
+| 1 | **Battery and system rails in In2 planes**, not traces: one BAT_PLUS plane (Q2 → charger) and one SYS_RAW plane (charger → regulators, backlight, amplifiers). | R23 carried both rails in 0.152 mm tracks over 95 and 247 mm (its In3 battery run alone about 0.35 Ω). | R23's In2 strips and F.Cu/In3 rail tracks | R24 edits 16, 17 |
+| 2 | **Each switching regulator laid out to its datasheet's layout section**: inductor at the SW pin, input and output capacitors at their pins, the switch node a B.Cu copper area with no inner-layer section. | Switch nodes ran 5.5–11 mm, partly through In3 vias; input capacitors were up to 5 mm away. | R23 placement of U3, U4, U7 and their parts | R24 edits 19–21 |
+| 3 | **Backlight boost rebuilt in the free area east of it** rather than squeezed in place. | DSI vias and In3 pairs left no room west of U7 to close the SW–D2–C309–GND loop on B.Cu; east of X 24.7 was empty. LCD_VCI_3V0 moves to In3 there to let the LED and CTRL lines cross. | U7 at (17, 97) | R24 edit 21 |
+| 4 | **TPS63070 PS/SYNC on 3V3_ENABLE** (with EN, behind R423 100 k), power-save mode as before. | The datasheet asks for a series resistor when EN, VSEL or PS/SYNC is tied to VIN; one shared resistor is allowed. | PS/SYNC straight to SYS_RAW | R24 edit 19 |
+| 5 | **TPS63070 output 98 µF nominal** (10 µF 0603 at the pins + 4 × 22 µF 0805), input 10 µF 0603 at the pins + 22 µF; L1 stays 1.0 µH. | Table 3 lists 1.0 µH with 47 µF or more after DC-bias derating; R23 had 44 µF nominal, 10 mm away. | C405 100 nF; C402 100 nF | R24 edit 19 |
+| 6 | **10 µF at each amplifier's VDD** (C420, C421). | MAX98357A: 10 µF + 0.1 µF; each had 1 µF + 0.1 µF. | — | R24 edit 22 |
+| 7 | **TMR left open** (R414 removed): the BQ24074's default safety timers, 30 min pre-charge and 5 h fast charge. | Enough for the largest cell the window takes at 0.49 A, and the TMR route blocked the charger's thermal vias. | R414 47 k | R24 edit 18 |
+| 8 | **DSI: return vias, not a re-route.** A ground via beside every DSI layer change; R23's length and skew matching kept; still no impedance control. | The return current had no short path between the In1 and In4 ground planes (3–10 mm). Re-routing matched pairs would discard their verified timing for no measured benefit. | — | R24 edit 23 |
+| 9 | **Remaining thin 3.3 V fan-out to U1 kept.** | About 3.2 mΩ/mm, a few millivolts at the chip's current; widening it would mean re-routing U1's escape. | — | `LAYERS/01_PCB/README_PCB_LAYER.md` |

@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="STRUTHIO VIS">
-  <title>STRUTHIO Hardware Visualization Studio 1.1 · Layered Project · R28</title>
+  <title>STRUTHIO Hardware Visualization Studio 1.1 · Layered Project · R29</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="icon" type="image/png" href="icon-192.png">
@@ -21,7 +21,7 @@
     <div class="brand"><b>STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.1</span></div>
     <div class="headerTools">
       <button type="button" class="eyeBtn" id="eyeBtn" aria-pressed="true" aria-label="Toggle Eye mode"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg><span>EYE</span></button>
-      <div class="sourceStatus" id="sourceStatus" aria-label="Source authority status"><span class="srcCase">CASE R12</span><span class="srcPCB">R23 · ORDER READY</span><span class="srcArt">FILM ✓</span></div>
+      <div class="sourceStatus" id="sourceStatus" aria-label="Source authority status"><span class="srcCase">CASE R12</span><span class="srcPCB">R24 · ORDER READY</span><span class="srcArt">FILM ✓</span></div>
       <button type="button" class="aboutBtn" id="aboutBtn" aria-label="About STRUTHIO Visualization Studio">i</button>
     </div>
   </header>
@@ -95,7 +95,7 @@
           <div class="boardStats" id="boardStats"></div>
           <div class="authorityMap" id="authorityMap" aria-label="Fabrication source map">
             <div><span>CASE</span><b id="caseSource">R12 · FULL CAD</b></div>
-            <div><span>PCB</span><b id="pcbSource">R23 · ORDER READY</b></div>
+            <div><span>PCB</span><b id="pcbSource">R24 · ORDER READY</b></div>
             <div><span>ACRYLIC</span><b id="artSource">CLEAR FILM R2 · 0.20</b></div>
           </div>
           <label class="referenceToggle"><input id="referenceToggle" type="checkbox"><span>SHOW R3 CASE CAD · REFERENCE ONLY</span></label>
@@ -105,7 +105,7 @@
           </div>
           <div class="fileTools">
             <label class="fileControl">LOAD PCB<input id="fileInput" type="file" accept=".kicad_pcb,.json,application/json,text/plain"></label>
-            <button type="button" id="resetModel">R28</button>
+            <button type="button" id="resetModel">R29</button>
             <button type="button" id="snapBtn">PNG</button>
           </div>
         </div>
@@ -153,10 +153,10 @@
             <label class="layerChild"><input type="checkbox" data-layer="battery"> Battery envelope</label>
             <label class="layerChild"><input type="checkbox" data-layer="speakers"> Speakers · gaskets</label>
             <label class="layerChild"><input type="checkbox" data-layer="routes"> FPC and harness routes</label>
-            <div class="layerPending">Purchased-part envelopes and routes are reserves; see CHECKS/R28_CONVERGENCE_REPORT.md</div>
+            <div class="layerPending">Purchased-part envelopes and routes are reserves; see CHECKS/R29_CONVERGENCE_REPORT.md</div>
           </details>
           <details class="layerGroup" open>
-            <summary><label><input type="checkbox" data-parent="pcb" checked><b>PCB</b></label><span>R23</span></summary>
+            <summary><label><input type="checkbox" data-parent="pcb" checked><b>PCB</b></label><span>R24</span></summary>
             <label class="layerChild"><input type="checkbox" data-layer="pcb" checked> Board substrate</label>
             <label class="layerChild"><input type="checkbox" data-layer="frontParts" checked> Front components</label>
             <label class="layerChild"><input type="checkbox" data-layer="backParts" checked> Rear components</label>

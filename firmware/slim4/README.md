@@ -1,6 +1,6 @@
-# STRUTHIO SLIM4 platform firmware — R8, for PCB R23
+# STRUTHIO SLIM4 platform firmware — R8, for PCB R24 (and R23: same pins)
 
-ESP-IDF project for the SLIM4 R23 main board (`hardware/slim4/LAYERS/01_PCB/`). Its job is to bring the board up and give games a hardware-independent API; it is not a game.
+ESP-IDF project for the SLIM4 main board (`hardware/slim4/LAYERS/01_PCB/`, PCB R24; R24 changed the power layout only, so every pin and part the firmware uses is as on R23, and the boot log still names R23). Its job is to bring the board up and give games a hardware-independent API; it is not a game.
 
 ## What it drives
 
@@ -14,7 +14,7 @@ ESP-IDF project for the SLIM4 R23 main board (`hardware/slim4/LAYERS/01_PCB/`). 
 | Charger BQ24074 (CHG GPIO11, PGOOD GPIO44, EN1/EN2 GPIO13/46), USB-C TUSB320 (GPIO43/17), battery ADC GPIO16 (× 133/33) | `slim4_power.c`: battery voltage, USB-C advertisement, charger input limit, low-battery switch-off (2 s below 3.3 V, whatever the button does), die-temperature charge suspend (only with a qualified cell above 3.6 V), reversed/shorted-pack warning |
 | USB-C data to USB-Serial-JTAG (GPIO24/25) | flashing, JTAG and every app log line over the one cable (UART0 primary console, USB-Serial-JTAG secondary output, ESP-IDF's P4 default; UART0's pins reach nothing on the board) |
 
-`tools/check_pinmap.py` checks every `SLIM4_GPIO_*` in `components/slim4_bsp/include/slim4_pins.h` against the net on the matching U1 pad of the R23 board (`SLIM4_R23_PCB_LAYER.json`), through the ESP32-P4 pin table. Run it after any board or pin change.
+`tools/check_pinmap.py` checks every `SLIM4_GPIO_*` in `components/slim4_bsp/include/slim4_pins.h` against the net on the matching U1 pad of the R24 board (`SLIM4_R24_PCB_LAYER.json`), through the ESP32-P4 pin table. Run it after any board or pin change.
 
 ## Build and flash
 

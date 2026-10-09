@@ -3,7 +3,7 @@
 
     python -B CHECKS/build_builder_packs.py <output folder>
 
-Writes <output folder>/STRUTHIO_SLIM4_R28_BUILDER_FILES/ and a zip of it:
+Writes <output folder>/STRUTHIO_SLIM4_R29_BUILDER_FILES/ and a zip of it:
   1_PCB_FABRICATION/   JLCPCB order: Gerber + drill zip, BOM, placement (CPL), assembly drawings, KiCad source
   2_3D_PRINTING/       one STL and one STEP per printed part, renders
   3_ACRYLIC_STICKER/   face-film die line (PDF with a CutContour spot colour, SVG, DXF),
@@ -13,7 +13,7 @@ Needs KiCad 7.0.x (kicad-cli on PATH and a python3 that can import pcbnew) and t
 CadQuery environment (requirements.txt). No source in the package is changed: the PCB files are
 plotted from a temporary copy of LAYERS/01_PCB (its SHA-256 is checked before and after), and
 and the printed parts and film are rebuilt from LAYERS/02_CASE/build_r12.py. The one file written
-into the package is CHECKS/R23_FAB_SUMMARY.json, a record
+into the package is CHECKS/R24_FAB_SUMMARY.json, a record
 of the fab outputs (DRC, BOM coverage, via covering) that the studio and the convergence check read.
 """
 from pathlib import Path
@@ -22,12 +22,12 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
 PCB_DIR = ROOT / 'LAYERS/01_PCB'
-BOARD = 'SLIM4_R23.kicad_pcb'
-NAME = 'SLIM4_R23'
-TOP = 'STRUTHIO_SLIM4_R28_BUILDER_FILES'
+BOARD = 'SLIM4_R24.kicad_pcb'
+NAME = 'SLIM4_R24'
+TOP = 'STRUTHIO_SLIM4_R29_BUILDER_FILES'
 SOURCING = json.loads((ROOT / 'CHECKS/BOM_SOURCING_R21.json').read_text())['by_mpn']
-STAMP = (2026, 10, 7, 0, 0, 0)
-STEP_STAMP = '2026-10-07T00:00:00'
+STAMP = (2026, 10, 8, 0, 0, 0)
+STEP_STAMP = '2026-10-08T00:00:00'
 GERBER_LAYERS = 'F.Cu,In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu,F.Mask,B.Mask,F.Paste,B.Paste,F.SilkS,B.SilkS,Edge.Cuts'
 
 # Printed parts: output name, CAD part name prefix, quantity per device, what to look after.
@@ -109,7 +109,7 @@ for v in vias:
     for fp in b.GetFootprints():
         for pad in fp.Pads():
             if pad.GetAttribute() == pcbnew.PAD_ATTRIB_SMD and pad.HitTest(v.GetPosition()):
-                inpad.append([fp.GetReference(), pad.GetNumber(), v.GetNetname()])
+                inpad.append([fp.GetReference(), pad.GetNumber(), v.GetNetname(), round(mm(v.GetPosition().x), 3), round(mm(v.GetPosition().y), 3)])
 holes = sorted({(fp.GetReference(), round(mm(p.GetDrillSize().x), 2), round(mm(p.GetDrillSize().y), 2), p.GetAttribute() == pcbnew.PAD_ATTRIB_PTH)
                 for fp in b.GetFootprints() for p in fp.Pads() if p.GetAttribute() in (pcbnew.PAD_ATTRIB_PTH, pcbnew.PAD_ATTRIB_NPTH)})
 parts = []
@@ -193,7 +193,7 @@ def assembly_drawing(back, path, facts):
         ys = [y for loop in p['courtyard'] for _, y in loop] or [p['y']]
         fs = max(2.2, min(6.0, 1.6 * min(max(xs) - min(xs), max(ys) - min(ys))))
         ax.text(sx * p['x'], p['y'], p['ref'], ha='center', va='center', fontsize=fs, color='#b0201a')
-    ax.text(-72, 150, f'STRUTHIO SLIM4 R23 - {side.upper()} SIDE ({n} parts), seen from the {side}. Scale 2:1 on A3. '
+    ax.text(-72, 150, f'STRUTHIO SLIM4 R24 - {side.upper()} SIDE ({n} parts), seen from the {side}. Scale 2:1 on A3. '
             'Outlines are courtyards; the CPL file is the placement authority.', fontsize=6.5, va='top')
     fig.savefig(path, metadata={'CreationDate': None}); plt.close(fig)
 
@@ -232,7 +232,10 @@ def build_pcb(dst):
         # Via covering as plotted: any solder-mask flash centred on a via (Gerber Y = -board Y) would be an opening.
         flashes = [(int(x) / 1e6, -int(y) / 1e6) for side in ('F_Mask.gts', 'B_Mask.gbs')
                    for x, y in re.findall(r'(?m)^X(-?\d+)Y(-?\d+)D03\*$', (g / f'{NAME}-{side}').read_text())]
-        mask_at_vias = sorted({(round(vx, 3), round(vy, 3)) for vx, vy in facts['via_xy'] for fx, fy in flashes if abs(fx - vx) < 0.05 and abs(fy - vy) < 0.05})
+        # a via inside an SMD pad sits in that pad's own opening (via-in-pad, filled and capped by POFV): not a via opening
+        in_pad_xy = {(x, y) for _, _, _, x, y in facts['vias_in_smd_pads']}
+        mask_at_vias = sorted({(round(vx, 3), round(vy, 3)) for vx, vy in facts['via_xy'] for fx, fy in flashes
+                               if abs(fx - vx) < 0.05 and abs(fy - vy) < 0.05 and (round(vx, 3), round(vy, 3)) not in in_pad_xy})
         (ref / 'DRC_REPORT_KICAD7.txt').write_text(re.sub(r'\*\* Created on .*\*\*\n', '', drc).replace(str(work) + '/', ''))
 
         text = (work / BOARD).read_text()
@@ -271,7 +274,7 @@ def build_pcb(dst):
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     if sha(PCB_DIR / BOARD) != src_sha:
-        sys.exit('the R23 board changed during the build: stop')
+        sys.exit('the R24 board changed during the build: stop')
 
     no_lcsc = [(p['ref'], p['value']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if not p['lcsc']]
     bound = [(p['ref'], p['value'], p['lcsc']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if p['lcsc_source'] == 'sourcing']
@@ -281,7 +284,7 @@ def build_pcb(dst):
     slots = [h for h in facts['footprint_holes'] if h[1] != h[2]]
     npth = sorted({(h[0][:2] if h[0].startswith('SW') else h[0], h[1]) for h in facts['footprint_holes'] if not h[3]})
     tent = re.search(r'\(viasonmask (true|false)\)', text)
-    readme = f"""STRUTHIO SLIM4 - PCB R23 - JLCPCB ORDER FILES
+    readme = f"""STRUTHIO SLIM4 - PCB R24 - JLCPCB ORDER FILES
 =============================================
 
 Upload to JLCPCB (PCB + PCBA):
@@ -298,7 +301,7 @@ BOARD OPTIONS
   Min track / space      {min(facts['track_widths']):g} mm / {facts['min_clearance']:g} mm
   Vias                   {facts['via_count']} through vias, {vias}; no blind or buried vias
   Via covering           EPOXY FILLED AND CAPPED (via-in-pad, POFV; JLCPCB's default for 6 layers).
-                         Needed: {len(facts['vias_in_smd_pads'])} vias sit in SMD pads ({', '.join(f'{r} pad {n}' for r, n, _ in facts['vias_in_smd_pads'])}),
+                         Needed: {len(facts['vias_in_smd_pads'])} vias sit in SMD pads ({', '.join(f'{r} pad {n}' for r, n, *_ in facts['vias_in_smd_pads'])}),
                          and every other via must stay covered (no mask openings are plotted; case
                          support posts and stop legs land on some of them)
   Plated slots           {', '.join(f'{r} {a:g} x {b:g} mm' for r, a, b, _ in slots) or 'none'} (USB-C shell legs)
@@ -352,11 +355,11 @@ CHECKS RUN ON THESE FILES
   Zone fills current: {'yes' if facts['fills_current'] else 'NO - refill before plotting'};  solder-mask openings at vias: {len(mask_at_vias)}
   Board: {facts['footprints']} footprints, {facts['nets']} nets, {facts['segments']} track segments, {facts['via_count']} vias
   Electrical and land-pattern review: REFERENCE/ELECTRICAL_REVIEW_R22.md (R22 board) and
-  REFERENCE/README_PCB_LAYER.md (the R23 edits 12-15 and their checks)
+  REFERENCE/README_PCB_LAYER.md (the R23 edits 12-15, the R24 power-layout edits 16-24, and their checks)
 
 REFERENCE/    assembly drawings (courtyards, both sides, 2:1 on A3), drill maps, DRC report, electrical
               review, display port and firmware pin map
-KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R23)
+KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R24)
 """
     (dst / 'README_PCB_ORDER.txt').write_text(readme)
 
@@ -373,7 +376,7 @@ KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R23)
         'min_track_mm': min(facts['track_widths']), 'min_clearance_mm': facts['min_clearance'],
         'vias': {'count': facts['via_count'], 'pad_mm': facts['vias'][0][0], 'drill_mm': facts['vias'][0][1],
                  'tented': bool(tent) and tent[1] == 'false', 'mask_openings_at_vias': [list(v) for v in mask_at_vias],
-                 'in_smd_pads': [{'ref': r, 'pad': n, 'net': net} for r, n, net in facts['vias_in_smd_pads']]},
+                 'in_smd_pads': [{'ref': r, 'pad': n, 'net': net, 'xy': [x, y]} for r, n, net, x, y in facts['vias_in_smd_pads']]},
         'bom': {'lines': len(groups), 'placements': len(parts), 'with_lcsc': sum(1 for p in parts if p['lcsc']),
                 'by_mpn_only': [r for r, _ in no_lcsc], 'bound_in_sourcing_file': [r for r, _, _ in bound],
                 'unbound': [p['ref'] for p in parts if 'BIND_BEFORE_FAB' in p['descr'] and not p['lcsc']],
@@ -383,7 +386,7 @@ KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R23)
                   'copper': '1 oz outer / 0.5 oz inner', 'finish': 'ENIG', 'via_covering': 'epoxy filled and capped (POFV)', 'impedance_control': 'not needed',
                   'mask_silk': 'green / white'},
     }
-    (ROOT / 'CHECKS/R23_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
+    (ROOT / 'CHECKS/R24_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
     return facts, parts, no_lcsc
 
 
@@ -433,9 +436,9 @@ def build_print(dst, B):
     readme = f"""STRUTHIO SLIM4 - CASE R12 - FILES FOR THE 3D PRINT SERVICE
 ==========================================================
 
-STATUS: ON HOLD - DO NOT PRINT. The owner set the case aside for PCB R23 (package R28). CASE R12
-was converged on PCB R21 (package R26); it does not fit the R23 board's 5 in Crystalfontz panel or
-its new connectors (CHECKS/R28_CONVERGENCE_REPORT.md lists the failing rows). The case pass
+STATUS: ON HOLD - DO NOT PRINT. The owner set the case aside for PCB R23 (package R28; R24 in R29). CASE R12
+was converged on PCB R21 (package R26); it does not fit the R23/R24 board's 5 in Crystalfontz panel or
+its new connectors (CHECKS/R29_CONVERGENCE_REPORT.md lists the failing rows). The case pass
 (CASE R13) redraws it; these files show the R12 design and its print specification.
 
 ORDER (per device)
@@ -631,9 +634,9 @@ Views are from the FRONT. Tolerance ±0.1 mm.
     readme = f"""STRUTHIO SLIM4 - FACE FILM R2 - FILES FOR THE STICKER PRINTER
 =============================================================
 
-STATUS: ON HOLD with the case (package R28). Clear, UNPRINTED film (decided in DECISIONS_R26.md):
+STATUS: ON HOLD with the case (package R29). Clear, UNPRINTED film (decided in DECISIONS_R26.md):
 no ink, no white, no texture. The R2 line and the lens follow CASE R12, which does not fit the
-R23 board's 5 in panel; the case pass (CASE R13) redraws them. Do not order yet.
+R23/R24 board's 5 in panel; the case pass (CASE R13) redraws them. Do not order yet.
 
 WHAT IT IS
   A clear face film that covers the whole front of the device, including the screen.
@@ -681,36 +684,36 @@ def main():
     B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r12.py'))
     prints = build_print(top / '2_3D_PRINTING', B)
     build_sticker(top / '3_ACRYLIC_STICKER', B)
-    report = json.loads((ROOT / 'CHECKS/R28_CONVERGENCE_REPORT.json').read_text())
+    report = json.loads((ROOT / 'CHECKS/R29_CONVERGENCE_REPORT.json').read_text())
     c = report['counts']
     conv = f"{c.get('FAIL', 0)} FAIL, {c.get('PASS', 0)} PASS, {c.get('GATE', 0)} GATE"
-    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R28 - FILES FOR THE BUILDERS
+    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R29 - FILES FOR THE BUILDERS
 ===========================================
 
-1_PCB_FABRICATION   JLCPCB PCB + assembly: PCB R23, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts,
+1_PCB_FABRICATION   JLCPCB PCB + assembly: PCB R24, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts,
                     5 boards, 2 assembled. READY, except U1 (ESP32-P4NRW32X): no JLCPCB stock on
                     2026-10-07 - pre-order or consign it (see its README).
                     The assembled board takes four plug-in parts, no soldering: the Crystalfontz
                     CFAF7201280A0-050TN display (its own tail into J1), a 1-cell pack on JST PH (J3)
                     and two speakers on Molex PicoBlade (J4, J5). Details in its README.
-2_3D_PRINTING       ON HOLD: CASE R12, set aside by the owner for R23 (it does not fit the 5 in panel).
+2_3D_PRINTING       ON HOLD: CASE R12, set aside by the owner for R23/R24 (it does not fit the 5 in panel).
 3_ACRYLIC_STICKER   ON HOLD with the case: face film R2, tape die-cuts and the cover-glass lens.
 
 Order of work: the board and the four plug-in parts; flash the firmware (firmware/slim4 in the
-repository) and bring the board up on the bench; then the case pass for the R23 board and panel.
+repository) and bring the board up on the bench; then the case pass for the R24 board and panel.
 
 PROJECT_DOCS        the package documents the READMEs refer to: PRODUCTION_GATES.md (what to order,
                     then, and in the case pass), RELEASE_GATES.md (the board's closed and open gates),
-                    ASSEMBLY_SEQUENCE.md, R28_CONVERGENCE_REPORT.md and BOM_SOURCING_R21.json.
+                    ASSEMBLY_SEQUENCE.md, R29_CONVERGENCE_REPORT.md and BOM_SOURCING_R21.json.
 
-Generated from the R28 project package (PCB R23, CASE R12, ACRYLIC R2; convergence check {conv})
+Generated from the R29 project package (PCB R24, CASE R12, ACRYLIC R2; convergence check {conv})
 by CHECKS/build_builder_packs.py. The generator, the checks and the firmware are in the repository
 (hardware/slim4/CHECKS, firmware/slim4); they are not needed to place the orders.
 """)
     docs = top / 'PROJECT_DOCS'
     docs.mkdir()
     for rel in ('PRODUCTION_GATES.md', 'LAYERS/01_PCB/RELEASE_GATES.md', 'ASSEMBLY/ASSEMBLY_SEQUENCE.md',
-                'CHECKS/R28_CONVERGENCE_REPORT.md', 'CHECKS/BOM_SOURCING_R21.json'):
+                'CHECKS/R29_CONVERGENCE_REPORT.md', 'CHECKS/BOM_SOURCING_R21.json'):
         shutil.copy2(ROOT / rel, docs / Path(rel).name)
     zip_dir(top, out / f'{TOP}.zip', prefix=f'{TOP}/')
     files = sorted(p for p in top.rglob('*') if p.is_file())

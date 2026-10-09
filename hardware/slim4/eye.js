@@ -1,7 +1,7 @@
 /* STRUTHIO Studio · EYE layer ("Shared Sight")
    Additive. Reads the studio through window.STRUDIO and draws callouts on its own canvas.
    It never edits geometry, authority state or loaded files.
-   Facts in STOPS are computed from model-data.js (window.STRUTHIO_MODEL, R23; its zones, fab and gates blocks come from
+   Facts in STOPS are computed from model-data.js (window.STRUTHIO_MODEL, R24; its zones, fab and gates blocks come from
    CHECKS/build_pcb_viewer_data.py); anything not in the files is tagged INFERRED or GAP. */
 (() => {
   'use strict';
@@ -11,7 +11,7 @@
   const st = S.state;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  let REAR = (window.STRUDIO_ASSETS && window.STRUDIO_ASSETS.rear) || 'R23_REAR_BOARD.svg';
+  let REAR = (window.STRUDIO_ASSETS && window.STRUDIO_ASSETS.rear) || 'R24_REAR_BOARD.svg';
   if (REAR.startsWith('data:image/svg+xml;base64,')) {
     try { const bin = atob(REAR.split(',')[1]); REAR = URL.createObjectURL(new Blob([Uint8Array.from(bin, c => c.charCodeAt(0))], { type: 'image/svg+xml' })); } catch (_) { /* keep data URI */ }
   }
@@ -40,15 +40,15 @@
   const gnd = ZONES.filter(z => z.net === 'GND').map(z => z.layer.replace('.Cu', ''));
   const PLANES_TEXT = ZONES.length ? `The board file stores ${ZONES.length} filled copper pours. ${gnd.join(' and ')} are solid GND planes (${n1(ZONES.find(z => z.net === 'GND').area)} mm² each). In2 is split into power pours: ${inner.map(z => `${z.net} ${n1(z.area)} mm²`).join(', ')}. In3 carries the inner signal tracks. Pours are drawn from the stored fills, simplified to 0.03 mm.` : 'This board file has no copper pours.';
   const vip = FAB ? FAB.vias.in_smd_pads.map(v => v.ref) : [];
-  const FAB_TEXT = FAB ? `CHECKS/build_builder_packs.py plots the R23 board with KiCad ${FAB.kicad} into the JLCPCB order: ${FAB.gerber_layers.length} Gerber layers, Excellon drill (${FAB.drill.pth_round_holes} vias, ${FAB.drill.plated_slots} plated USB-C slots, ${FAB.drill.npth_holes} non-plated holes), a ${FAB.bom.lines}-line BOM and a ${FAB.cpl_placements}-part placement file. DRC: ${FAB.drc.violations} violations, ${FAB.drc.unconnected_pads} unconnected. Vias are epoxy filled and capped; ${vip.join(' and ')} have a via in a pad. ${FAB.bom.with_lcsc} of ${FAB.bom.placements} parts carry an LCSC number. Every line was in stock at JLCPCB on 2026-10-07 except U1, the ESP32-P4NRW32X: pre-order it through JLCPCB Global Sourcing or consign v3 chips.` : 'No fab summary in this package (CHECKS/R23_FAB_SUMMARY.json).';
+  const FAB_TEXT = FAB ? `CHECKS/build_builder_packs.py plots the R24 board with KiCad ${FAB.kicad} into the JLCPCB order: ${FAB.gerber_layers.length} Gerber layers, Excellon drill (${FAB.drill.pth_round_holes} vias, ${FAB.drill.plated_slots} plated USB-C slots, ${FAB.drill.npth_holes} non-plated holes), a ${FAB.bom.lines}-line BOM and a ${FAB.cpl_placements}-part placement file. DRC: ${FAB.drc.violations} violations, ${FAB.drc.unconnected_pads} unconnected. Vias are epoxy filled and capped; ${vip.join(' and ')} have a via in a pad. ${FAB.bom.with_lcsc} of ${FAB.bom.placements} parts carry an LCSC number. Every line was in stock at JLCPCB on 2026-10-07 except U1, the ESP32-P4NRW32X: pre-order it through JLCPCB Global Sourcing or consign v3 chips.` : 'No fab summary in this package (CHECKS/R24_FAB_SUMMARY.json).';
   const openRows = GATES ? GATES.open : [];
   const fails = openRows.filter(g => g.status === 'FAIL');
   const gateFacts = openRows.map(g => [(g.status === 'FAIL' ? '✕ ' : '') + g.id, g.title.length > 64 ? g.title.slice(0, 62) + '…' : g.title]);
 
-  /* ---------- authored tour: what Claude sees in the loaded R23 file ---------- */
+  /* ---------- authored tour: what Claude sees in the loaded R24 file ---------- */
   const STOPS = [
-    { id: 'board', name: 'WHOLE BOARD', gist: `R23 · ${PARTS.length} footprints · ${PADS.length} pads · order files ready.`, basis: 'FILE', side: 'home',
-      text: `The PCB is 99.2 × 125.0 mm and 1.2 mm thick, six copper layers. The file holds ${PARTS.length} footprints, ${PADS.length} pads, ${n1(SEGS.length)} track segments, ${VIAS.length} vias and ${NETS} nets. R23 is R22 (R21 with the electrical and land-pattern review fixed) with four plug-and-play ports: the display tail straight into J1, a JST PH battery socket behind a polarity-protection MOSFET, and two PicoBlade speaker sockets (LAYERS/01_PCB/README_PCB_LAYER.md).`,
+    { id: 'board', name: 'WHOLE BOARD', gist: `R24 · ${PARTS.length} footprints · ${PADS.length} pads · order files ready.`, basis: 'FILE', side: 'home',
+      text: `The PCB is 99.2 × 125.0 mm and 1.2 mm thick, six copper layers. The file holds ${PARTS.length} footprints, ${PADS.length} pads, ${n1(SEGS.length)} track segments, ${VIAS.length} vias and ${NETS} nets. R24 is R22 (R21 with the electrical and land-pattern review fixed) with four plug-and-play ports: the display tail straight into J1, a JST PH battery socket behind a polarity-protection MOSFET, and two PicoBlade speaker sockets (LAYERS/01_PCB/README_PCB_LAYER.md).`,
       facts: [['SIZE', '99.2 × 125.0 × 1.2 mm'], ['FOOTPRINTS', String(PARTS.length)], ['PADS', String(PADS.length)], ['TRACKS / VIAS', `${n1(SEGS.length)} / ${VIAS.length}`], ['NETS', String(NETS)]] },
     { id: 'front', name: 'FRONT FACE', gist: 'SW1–SW4 and the display socket J1 live on the front.', basis: 'FILE', side: 'front', stack: 'pcb.top', refs: ['SW1', 'SW2', 'SW3', 'SW4', 'J1'],
       text: `Four Omron D2LS-21 switches and the display socket are the only footprints on the front. SW1 and SW2 sit under the flap caps (x ±40.75, y 102); SW3 and SW4 under the DART rocker (x ±16, y 119.3). J1, a top-contact FH12A socket at (${at('J1')}), sits under the panel, just below the battery window, and takes the panel tail folded once behind it.`,
@@ -75,21 +75,21 @@
       text: 'Three B3U-1000P switches are stacked on the back at x 25, y 30, 39 and 48: power/wake, reset and boot.',
       facts: [['SW5', 'B3U-1000P · power / wake'], ['SW6', 'B3U-1000P · reset'], ['SW7', 'B3U-1000P · boot']] },
     { id: 'copper', name: 'ROUTING', gist: `${n1(SEGS.length)} track segments · ${VIAS.length} vias.`, basis: 'FILE', side: 'home', mode: 'COPPER',
-      text: `R23 track-segment counts by routed layer: B.Cu ${n1(segLayer['B.Cu'] || 0)}, F.Cu ${n1(segLayer['F.Cu'] || 0)}, In3.Cu ${n1(segLayer['In3.Cu'] || 0)}${segLayer['In1.Cu'] ? `, In1.Cu ${segLayer['In1.Cu']} (the USB D+ hop)` : ''}. There are ${VIAS.length} vias. This is a routing count, not a signal-integrity certification.`,
+      text: `R24 track-segment counts by routed layer: B.Cu ${n1(segLayer['B.Cu'] || 0)}, F.Cu ${n1(segLayer['F.Cu'] || 0)}, In3.Cu ${n1(segLayer['In3.Cu'] || 0)}${segLayer['In1.Cu'] ? `, In1.Cu ${segLayer['In1.Cu']} (the USB D+ hop)` : ''}. There are ${VIAS.length} vias. This is a routing count, not a signal-integrity certification.`,
       facts: [['B.Cu', n1(segLayer['B.Cu'] || 0)], ['F.Cu', n1(segLayer['F.Cu'] || 0)], ['In3.Cu', n1(segLayer['In3.Cu'] || 0)], ['TOTAL SEGMENTS', n1(SEGS.length)], ['VIAS', String(VIAS.length)], ['FAB STATUS', 'ORDER FILES READY']] },
     { id: 'planes', name: 'PLANES', gist: 'GND planes on In1 and In4, power pours on In2.', basis: ZONES.length ? 'FILE' : 'GAP', side: 'home', stack: 'pcb.inner', mode: 'COPPER',
       text: PLANES_TEXT, facts: zoneFacts.length ? zoneFacts : [['POURS', 'none in file']] },
     { id: 'fab', name: 'ORDER FILES', gist: FAB ? `JLCPCB Gerbers, drill, BOM, CPL · DRC ${FAB.drc.violations}/${FAB.drc.unconnected_pads} · U1 stock open.` : 'No fab summary.', basis: FAB ? 'FILE' : 'GAP', side: 'back', refs: FAB ? [...vip, 'U1'] : [],
       text: FAB_TEXT,
       facts: FAB ? [['GERBER', `${FAB.gerber_layers.length} layers · X2`], ['DRILL', `${FAB.drill.pth_round_holes} + ${FAB.drill.plated_slots} slots + ${FAB.drill.npth_holes} NPTH`], ['BOM', `${FAB.bom.lines} lines · ${FAB.bom.with_lcsc}/${FAB.bom.placements} LCSC`], ['DRC', `KiCad ${FAB.kicad} · ${FAB.drc.violations} / ${FAB.drc.unconnected_pads} / ${FAB.drc.footprint_errors}`], ['VIAS', 'filled + capped'], ['VIA IN PAD', vip.join(', ') || 'none'], ['STOCK', 'U1 to pre-order or consign']] : [['FAB', 'not generated']] },
-    { id: 'plot', kind: 'plot', name: 'KICAD REAR PLOT', gist: 'The R23 rear SVG plot in this package.', basis: 'FILE', side: 'home',
-      text: 'This is the R23_REAR_BOARD.svg plot from the package. It is a mirrored rear view, drawn by KiCad. Tap it to enlarge.',
-      facts: [['FILE', 'R23_REAR_BOARD.svg'], ['VIEW', 'rear, mirrored']] },
+    { id: 'plot', kind: 'plot', name: 'KICAD REAR PLOT', gist: 'The R24 rear SVG plot in this package.', basis: 'FILE', side: 'home',
+      text: 'This is the R24_REAR_BOARD.svg plot from the package. It is a mirrored rear view, drawn by KiCad. Tap it to enlarge.',
+      facts: [['FILE', 'R24_REAR_BOARD.svg'], ['VIEW', 'rear, mirrored']] },
     { id: 'gap', name: 'WHAT I CANNOT SEE', gist: 'CASE R12 is on hold: drawn for an earlier panel.', basis: 'GAP', side: 'home', stack: 'case.front',
-      text: 'CASE R12 (front and rear shell, controls, screen stack with its tape frame, internals) and the clear, unprinted ACRYLIC R2 film are loaded from case-layer-data.js and acrylic-layer-data.js. They were converged on R21 for a HOTHMI-size panel; the owner set the case aside for R23, and the case pass for the 5 in Crystalfontz panel comes after the board is up. The LCD, cell and speakers are envelopes, not supplier models. FPC and harness runs are route reserves. SHOW R3 CASE CAD shows the superseded R3 study for reference only.',
-      facts: [['CASE', 'R12 · on hold'], ['ACRYLIC', 'FILM R2 · on hold'], ['PCB', 'R23 · order files ready']] },
+      text: 'CASE R12 (front and rear shell, controls, screen stack with its tape frame, internals) and the clear, unprinted ACRYLIC R2 film are loaded from case-layer-data.js and acrylic-layer-data.js. They were converged on R21 for a HOTHMI-size panel; the owner set the case aside for R24, and the case pass for the 5 in Crystalfontz panel comes after the board is up. The LCD, cell and speakers are envelopes, not supplier models. FPC and harness runs are route reserves. SHOW R3 CASE CAD shows the superseded R3 study for reference only.',
+      facts: [['CASE', 'R12 · on hold'], ['ACRYLIC', 'FILM R2 · on hold'], ['PCB', 'R24 · order files ready']] },
     { id: 'gates', name: 'OPEN ITEMS', gist: GATES ? `${fails.length} case fixes, ${GATES.counts.GATE} items needing parts or prints.` : 'No gate list.', basis: 'GAP', side: 'home', stack: 'case.front',
-      text: GATES ? `The convergence check reports ${GATES.counts.PASS} PASS, ${GATES.counts.FAIL} FAIL and ${GATES.counts.GATE} GATE. ${fails.length ? `The FAIL rows (${fails.map(g => g.id).join(', ')}) are the case pass, on hold: the plastic was drawn before the 5 in panel and the R23 connectors. ` : ''}Every GATE is something CAD cannot close: a supplier drawing, a measured part, or a test print. Details: ${GATES.source} and PRODUCTION_GATES.md.` : 'No gate list in this model.',
+      text: GATES ? `The convergence check reports ${GATES.counts.PASS} PASS, ${GATES.counts.FAIL} FAIL and ${GATES.counts.GATE} GATE. ${fails.length ? `The FAIL rows (${fails.map(g => g.id).join(', ')}) are the case pass, on hold: the plastic was drawn before the 5 in panel and the R24 connectors. ` : ''}Every GATE is something CAD cannot close: a supplier drawing, a measured part, or a test print. Details: ${GATES.source} and PRODUCTION_GATES.md.` : 'No gate list in this model.',
       facts: gateFacts.length ? gateFacts : [['GATES', 'none listed']] }
   ];
 
@@ -242,9 +242,9 @@
     document.querySelectorAll('#reel .frame').forEach((f, i) => f.classList.toggle('on', i === cur));
     const d = $('#stopDetail');
     d.innerHTML = `<div class="sdHead"><span class="basis b-${sp.basis}">${sp.basis === 'FILE' ? 'FROM FILE' : sp.basis === 'GAP' ? 'NOT VISIBLE' : 'INFERRED'}</span><b>${esc(sp.name)}</b></div>
-      ${sig() !== SIG0 ? '<p class="stale">A different board is loaded. These tour notes describe the bundled R23 only and may not match what you see.</p>' : ''}
+      ${sig() !== SIG0 ? '<p class="stale">A different board is loaded. These tour notes describe the bundled R24 only and may not match what you see.</p>' : ''}
       <p>${esc(sp.text)}</p>
-      ${sp.kind === 'plot' ? `<button class="plotBtn" id="plotOpen"><img src="${REAR}" alt="KiCad rear plot of R23"></button>` : ''}
+      ${sp.kind === 'plot' ? `<button class="plotBtn" id="plotOpen"><img src="${REAR}" alt="KiCad rear plot of R24"></button>` : ''}
       <dl class="facts">${sp.facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
       <div class="sdActs"><button id="lookBtn" class="go">LOOK</button><button id="codeBtn">COPY VIEW CODE</button></div>`;
     $('#lookBtn').onclick = () => { setDeck(false); };
@@ -367,7 +367,7 @@
     const lines = [
       `STRUTHIO VIS · ${S.stackLabel()} · ${st.mode}`,
       `θ ${Math.round(st.yaw * 57.2958)}°  φ ${Math.round(st.pitch * 57.2958)}°  Z ${Math.round(st.dist)}   ${hl.refs.length ? 'REFS ' + hl.refs.join(' ') : ''}${hl.net ? '  NET ' + hl.net : ''}`,
-      `CASE ${a.case ? '✓' : a.reference ? '~ REFERENCE' : '— MISSING'} · PCB ${a.pcb ? ((S.model().name||'').includes('R23') ? 'R23 · ORDER READY' : 'PCB · REVIEW') : '—'} · ART ${a.art ? '✓' : '— MISSING'}`
+      `CASE ${a.case ? '✓' : a.reference ? '~ REFERENCE' : '— MISSING'} · PCB ${a.pcb ? ((S.model().name||'').includes('R24') ? 'R24 · ORDER READY' : 'PCB · REVIEW') : '—'} · ART ${a.art ? '✓' : '— MISSING'}`
     ];
     lines.forEach((l, i) => { t.fillStyle = i === 0 ? '#ffb23e' : i === 2 ? '#7fa8aa' : '#d8e6e6'; t.fillText(l, 10 * k, src.height + (9 + i * 16) * k); });
     const url = c.toDataURL('image/png');

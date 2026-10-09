@@ -1,6 +1,6 @@
-# First firmware boot on PCB R23
+# First firmware boot on PCB R24
 
-This image is a board bring-up build for the R23 main board with the Crystalfontz CFAF7201280A0-050TN plugged into J1 (`hardware/slim4/LAYERS/01_PCB/DISPLAY_PORT.md` shows how the tail folds in). It has not run on hardware yet.
+This image is a board bring-up build for the R24 main board (R23 has the same pins; the log and the boot stamp say R23) with the Crystalfontz CFAF7201280A0-050TN plugged into J1 (`hardware/slim4/LAYERS/01_PCB/DISPLAY_PORT.md` shows how the tail folds in). It has not run on hardware yet.
 
 ## Before power
 

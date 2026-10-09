@@ -1,18 +1,19 @@
-# PCB layer — R23
+# PCB layer — R24
 
 **Status: order files ready. One part to source: JLCPCB had no stock of the ESP32-P4NRW32X (U1) on 2026-10-07 (see *Sourcing U1*).**
 
-Editable source: `SLIM4_R23.kicad_pcb`. Open `SLIM4_R23.kicad_pro` in KiCad 7.0.x with this folder as the project directory; `fp-lib-table` points at the local `SLIM4.pretty` library. `SLIM4_R23_PCB_LAYER.json` is the read-only interchange projection the case checks and the studio read; `CHECKS/export_pcb_layer.py` writes it from the board.
+Editable source: `SLIM4_R24.kicad_pcb`. Open `SLIM4_R24.kicad_pro` in KiCad 7.0.x with this folder as the project directory; `fp-lib-table` points at the local `SLIM4.pretty` library. `SLIM4_R24_PCB_LAYER.json` is the read-only interchange projection the case checks and the studio read; `CHECKS/export_pcb_layer.py` writes it from the board.
 
-R23 is R22 with four plug-and-play ports: the panel's own tail goes straight into J1 (no adapter flex), the battery plugs into a JST PH socket behind a reverse-polarity MOSFET, and the speakers plug into PicoBlade sockets. Nothing else to solder. The R22 board is kept unchanged in `REFERENCES/PCB_R22/`, R21 in `REFERENCES/PCB_R21/`.
+R24 is R23 with its power layout redone after the second hardware review (*What changed from R23*): same outline, ports, connector positions and GPIOs. R23 was R22 with four plug-and-play ports: the panel's own tail goes straight into J1 (no adapter flex), the battery plugs into a JST PH socket behind a reverse-polarity MOSFET, and the speakers plug into PicoBlade sockets. Nothing else to solder. R23 is kept unchanged in `REFERENCES/PCB_R23/`, R22 in `REFERENCES/PCB_R22/`, R21 in `REFERENCES/PCB_R21/`.
 
 | File | What it is |
 |---|---|
 | `DISPLAY_PORT.md` | the panel (Crystalfontz CFAF7201280A0-050TN), the J1 pinout and how the tail folds into J1 |
 | `FIRMWARE_PINMAP.md` | every ESP32-P4 GPIO and what it drives, for the firmware |
-| `ELECTRICAL_REVIEW_R22.md` | pin-by-pin review of the R21/R22 netlist against the datasheets, and the land-pattern audit (still valid for every part R23 did not change) |
+| `ELECTRICAL_REVIEW_R22.md` | pin-by-pin review of the R21/R22 netlist against the datasheets, and the land-pattern audit (still valid for every part R23 and R24 did not change) |
 | `NATIVE_KICAD_DRC.txt` | KiCad 7.0.11 DRC: 0 violations, 0 unconnected pads, 0 footprint errors |
 | `RELEASE_GATES.md` | what is closed and what is left before and after ordering |
+| `R24_FROM_R23/` | the scripted R23 → R24 power-layout edits 16–24 (`build_r24.sh`) |
 | `R23_FROM_R22/` | the scripted R22 → R23 edits 12–15 (`build_r23.sh`) |
 | `R22_FROM_R21/` | the scripted R21 → R22 edits 1–11 (`build_r22.sh`) and the land-pattern audit (`fpcmp.py`) |
 
@@ -27,7 +28,33 @@ The JLCPCB order files (Gerbers, drill, BOM, CPL, README with every order option
 | J4 left speaker | Molex PicoBlade 53261-0271 (C177225) | (−44.0, 113.7), back | 4–8 Ω speaker on a PicoBlade 1.25 plug, pin 1 + |
 | J5 right speaker | Molex PicoBlade 53261-0271 (C177225) | (44.3, 111.6), back | as J4 |
 
-## What changed from R22
+## What changed from R23 (PCB R24: power layout)
+
+The second hardware review (SLIM4_R23_HARDWARE_SECOND_REVIEW) asked to hold the order for three things: power layout (rails and switch nodes in 0.152 mm traces, inductors and capacitors far from their regulators), the TPS63070's PS/SYNC tied straight to VIN, and DSI return paths and symmetry. Checking the R23 copper confirmed it: every power rail was 0.152 mm track (BAT_PLUS 95 mm, SYS_RAW 247 mm, 3V3_SYS 382 mm, USB_VBUS 55 mm), and each regulator's switch node ran 8–11 mm, partly through In3 vias. The review also turned up, on reading the datasheets again, a TPS63070 output capacitance short of its table, amplifiers without their 10 µF, a TLV62569 input capacitor 5 mm away and a charger exposed pad with no thermal vias. R24 fixes these with nine scripted edits (`R24_FROM_R23/`, KiCad 7.0.11). Parts: 3 removed, 6 added, 23 moved; 170 placements.
+
+| # | Edit | Result |
+|---|---|---|
+| 16 | **In2 power planes.** BAT_PLUS gets one plane (charger east side, the top strip, the top-left band and the left arm down to Q2: 721 mm²); SYS_RAW one plane on the charger's west and south side and the whole right arm (998 mm²), joining R23's bottom-right block, bottom band and left column. 3V3_SYS keeps the board-wide pour, 1V1_HP its area. | Battery current Q2 → charger and the system rail charger → regulators run in planes, not in a 0.152 mm track (R23's In3 battery run alone was about 0.35 Ω). |
+| 17 | The thin BAT_PLUS and SYS_RAW tracks on F.Cu and In3 removed; their vias stay, now into the planes. | — |
+| 18 | **Charger U10.** Four thermal vias in the exposed pad; ground vias at C411/C412; USB_VBUS widened to 0.25–0.8 mm (41 of its 55 mm), with a 0.6 mm neck at the 0.24 mm pins. R414 (TMR 47 k) removed: TMR left open selects the datasheet's default safety timers, 30 min pre-charge and 5 h fast charge, enough for a 1500 mAh cell at 0.49 A. | The BQ24074 can dissipate about 1.3 W (5 V in, deep-discharged cell, system load); its pad now reaches In1/In4. |
+| 19 | **3.3 V buck-boost U4 (TPS63070), datasheet section 11.** L1 turned and set beside the L1/L2 pins (1.6 mm; was 4.4 and 8 mm, both switch nodes through In3). SW1/SW2 are B.Cu copper areas, PGND (pin 10) runs between them to three vias under the inductor. VIN: C402 becomes 10 µF 0603 (CL10A106KP8NNNC, C19702) at the VIN pins, C413 22 µF beside it, in one SYS_RAW area with two vias to the plane. VOUT: new C416 10 µF 0603 at the VOUT pins and a row of four 22 µF 0805 (C414 and new C417–C419; 98 µF nominal, about 40 µF at 3.3 V, against Table 3's 47 µF minimum with 1.0 µH), one 3V3_SYS area with three vias to the plane. C405 (100 nF, 3 mm away) removed. **PS/SYNC (pin 1) now joins EN on 3V3_ENABLE**, fed from SYS_RAW through R423 100 k (the datasheet's series resistor for inputs tied to VIN). R423, the divider R410/R411 (3.31 V) and C401 (VAUX) sit at their pins; FB runs away from the switch nodes. U6 (LCD 3.0 V LDO) with C307/C308 moved east onto its In3 feed to make room. | Switch loops of a few mm on B.Cu over the In4 ground plane. |
+| 20 | **1.1 V buck U3 (TLV62569), datasheet section 10.1.** U3 turned 90° so SW, GND and EN face L2; L2 turned so its switch pad is 1 mm from SW (was 7 mm through In3). C126 (10 µF) at VIN in a 3V3 area with two vias to the plane (VIN was fed by a 0.1 mm trace); C135 (22 µF) beside L2's output in a 1V1_HP area with two vias to the 1V1 plane; both capacitor grounds share one B.Cu ground area. The USB PHY supply R403 is fed through In3 from U3's VIN vias instead of along the old switch-node route. | — |
+| 21 | **Backlight boost U7 (TPS61165), datasheet section 11.1**, rebuilt in the free B.Cu area east of it. SW faces L3 (1.1 mm; was 5.5 mm), D2's anode sits on the same switch area, and C309 closes the SW–D2–C309–GND loop on B.Cu beside the GND pin (it closed through the planes, about 8 mm round). C311 (4.7 µF) at VIN with a via to SYS_RAW; C301 (100 nF on an In3-fed SYS_RAW stub) removed. R309 next to FB, C310 next to COMP. LED_A/LED_K and CTRL keep their routes and reach the block on B.Cu; LCD_VCI_3V0's B.Cu run at X 24.52 moves to In3 to let them cross. | The highest-dV/dt loop on the board (up to 24 V) is now about 4 × 4 mm. |
+| 22 | **Amplifiers.** C420 (U8) and C421 (U9), 10 µF 0805 (CL21A106KAYNNNE, C15850), 1.5 mm below the VDD pins, each with its own ground via. | The MAX98357A asks for 10 µF + 0.1 µF at VDD; each had 1 µF + 0.1 µF. |
+| 23 | **DSI return vias.** A ground via beside every DSI layer change (one per pair where the P and N vias sit together): 23 vias. | Every DSI via is now within 1.75 mm of a ground via, 24 of 32 within 1.2 mm; R23 had 3–10 mm. The return current can change between the In1 and In4 ground planes where the signal changes layer. |
+| 24 | A 31.8 mm 0.152 mm BAT_PLUS track duplicating the new plane removed; every remaining power and ground track widened to the widest of 0.2–0.8 mm that keeps 0.12 mm clearance (124 segments), necked at fine-pitch pins. | — |
+
+**Measured on the board (R23 → R24).** Track narrower than 0.2 mm: BAT_PLUS 95 → 9 mm, SYS_RAW 247 → 31 mm, USB_VBUS 55 → 14 mm, 1V1_HP 72 → 41 mm, 3V3_SYS 382 → 238 mm. The four switch nodes (U4 SW1/SW2, U3 SW, U7 SW) have no inner-layer section and no track narrower than 0.3 mm. Ground vias 34 → 87.
+
+**Left as is, with reasons.**
+- The 3.3 V fan-out to U1's nine 3V3 pins (about 82 mm of 0.152 mm B.Cu under the In2 1V1 area) is unchanged: about 3.2 mΩ/mm, a few millivolts at the chip's current, inside its 3.0–3.6 V range. Most of the other remaining 3V3 track feeds pull-ups and decoupling capacitors.
+- The DSI pairs are not re-routed: their length and skew matching from R23 stands (P = N within 0.01 mm; ≤ 8 ps in a pair, ≤ 39 ps clock to data). R24 adds the return vias only. The In3 sections still reference In4 ground on one side and In2 power on the other. No impedance control is ordered.
+- L1 stays 1.0 µH (MWSA0402S-1R0MT): the TPS63070's Table 3 lists 1.0 µH with 47 µF and more; 1.5 µH is its typical application.
+- None of this is measured: switching waveforms, ripple and temperatures are bring-up items (`RELEASE_GATES.md`).
+
+All nine edits were checked by KiCad's DRC with the board's rules after each step and at the end: 0 violations, 0 unconnected pads, 0 footprint errors. `firmware/slim4/tools/check_pinmap.py` passes on R24 (no GPIO moved).
+
+## What changed from R22 (PCB R23)
 
 | # | Change | Why |
 |---|---|---|
@@ -81,6 +108,8 @@ Do not substitute ESP32-P4NRW32 (no X, chip revision v1.x): its core-supply feed
 
 ## Rebuild
 
-`R23_FROM_R22/build_r23.sh <copy of REFERENCES/PCB_R22/SLIM4_R22.kicad_pcb renamed SLIM4_R23.kicad_pcb, beside SLIM4_R23.kicad_pro, fp-lib-table and a copy of REFERENCES/PCB_R22/SLIM4.pretty>` regenerates R23 from the unchanged R22 board, one scripted edit per pcbnew process, writes the library copies of the new footprints, refills the zones and runs DRC. The result is copper-identical to `SLIM4_R23.kicad_pcb` (every track and via). The project file must sit beside the board: its net-class rules are what DRC checks against. It needs KiCad 7.0.x with its Python module and the `kicad-footprints` 7.0.x library in `/usr/share/kicad/footprints`.
+`R24_FROM_R23/build_r24.sh <copy of REFERENCES/PCB_R23/SLIM4_R23.kicad_pcb renamed SLIM4_R24.kicad_pcb, beside copies of that folder's SLIM4.pretty, fp-lib-table and SLIM4_R23.kicad_pro renamed SLIM4_R24.kicad_pro>` regenerates R24 from the unchanged R23 board the same way. Three independent rebuilds gave the same copper as `SLIM4_R24.kicad_pcb`: every track, via and pad, and every zone fill (the new copper areas have distinct priorities so the fill does not depend on the order KiCad visits them). Only the new footprints' UUIDs differ between runs.
+
+`R23_FROM_R22/build_r23.sh <copy of REFERENCES/PCB_R22/SLIM4_R22.kicad_pcb renamed SLIM4_R23.kicad_pcb, beside SLIM4_R23.kicad_pro, fp-lib-table and a copy of REFERENCES/PCB_R22/SLIM4.pretty>` regenerates R23 from the unchanged R22 board, one scripted edit per pcbnew process, writes the library copies of the new footprints, refills the zones and runs DRC. The result is copper-identical to `REFERENCES/PCB_R23/SLIM4_R23.kicad_pcb` (every track and via). The project file must sit beside the board: its net-class rules are what DRC checks against. It needs KiCad 7.0.x with its Python module and the `kicad-footprints` 7.0.x library in `/usr/share/kicad/footprints`.
 
 `R22_FROM_R21/build_r22.sh` does the same for R21 → R22 (see `REFERENCES/PCB_R22/`). `R22_FROM_R21/fpcmp.py <board> REF=PACKAGE ...` compares board footprints with the KiCad library footprint for their package.

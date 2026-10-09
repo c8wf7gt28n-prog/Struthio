@@ -4,8 +4,8 @@
     python3 CHECKS/export_pcb_layer.py <board.kicad_pcb> <reference layer json> <out.json> <revision> <name> <status>
 
 Example (the package's PCB layer):
-    python3 CHECKS/export_pcb_layer.py LAYERS/01_PCB/SLIM4_R23.kicad_pcb REFERENCES/PCB_R21/SLIM4_R21_PCB_LAYER.json \
-        LAYERS/01_PCB/SLIM4_R23_PCB_LAYER.json R23 "STRUTHIO SLIM4 PCB R23" "Order files ready · U1 stock to confirm"
+    python3 CHECKS/export_pcb_layer.py LAYERS/01_PCB/SLIM4_R24.kicad_pcb REFERENCES/PCB_R21/SLIM4_R21_PCB_LAYER.json \
+        LAYERS/01_PCB/SLIM4_R24_PCB_LAYER.json R24 "STRUTHIO SLIM4 PCB R24" "Order files ready · U1 stock to confirm"
 
 Geometry comes from the board (pad positions and rotations as pcbnew places them, so back-side parts at
 90/270 degrees are right; the R21 layer file had 80 such pads mirrored), and so do the cut-outs (the battery window). The board's outer

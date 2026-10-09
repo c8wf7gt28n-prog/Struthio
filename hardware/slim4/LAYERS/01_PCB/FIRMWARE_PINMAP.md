@@ -1,6 +1,6 @@
-# Firmware pin map — PCB R23 (ESP32-P4NRW32X, chip revision v3.x)
+# Firmware pin map — PCB R24 (ESP32-P4NRW32X, chip revision v3.x)
 
-Everything the Struthio firmware needs from the board. Read from the R23 netlist; R23 uses the same GPIOs as R22. `firmware/slim4/tools/check_pinmap.py` checks the firmware's `slim4_pins.h` against the U1 pad nets of `SLIM4_R23_PCB_LAYER.json` and the ESP32-P4 pin table.
+Everything the Struthio firmware needs from the board. Read from the R24 netlist; R24 and R23 use the same GPIOs as R22. `firmware/slim4/tools/check_pinmap.py` checks the firmware's `slim4_pins.h` against the U1 pad nets of `SLIM4_R24_PCB_LAYER.json` and the ESP32-P4 pin table.
 
 ## Inputs
 

@@ -1,3 +1,19 @@
+# R29 — PCB R24: power layout after the second hardware review (2026-10-09)
+
+PCB R23 → **R24** (9 scripted edits in `LAYERS/01_PCB/R24_FROM_R23/`; three independent rebuilds from R23 give the same copper). Same outline, ports, connector positions and GPIOs; firmware unchanged (`check_pinmap.py` passes on R24). R23 moves to `REFERENCES/PCB_R23/`. CASE R12 and ACRYLIC R2 are still set aside and were checked against R24 as they are: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (323 pair evaluations over 284 distinct pairs), the same 3 case FAIL rows as R28; no new interference from the moved or added parts. Decisions: `DECISIONS_R29.md`.
+
+| Review item | R24 |
+|---|---|
+| Power distribution in 0.152 mm traces | In2 BAT_PLUS plane (721 mm²) and SYS_RAW plane (998 mm²); thin track BAT_PLUS 95 → 9 mm, SYS_RAW 247 → 31 mm, USB_VBUS 55 → 14 mm, 1V1_HP 72 → 41 mm, 3V3_SYS 382 → 238 mm (mostly U1's 3.3 V fan-out and pull-ups: a few mV); 124 power/ground segments widened; ground vias 34 → 87 |
+| Switch nodes in thin traces through In3, inductors and capacitors far from their ICs | U4 (TPS63070), U3 (TLV62569) and U7 (TPS61165) re-laid per their datasheets: inductors 1–1.6 mm from the SW pins (were 4.4–8 mm), switch nodes as B.Cu copper areas with no inner-layer section, input and output capacitors at the pins, U7's SW–D2–C309–GND loop closed on B.Cu (about 4 × 4 mm) |
+| TPS63070 PS/SYNC tied to VIN without a resistor | PS/SYNC joins EN on 3V3_ENABLE, behind R423 100 k |
+| DSI return paths | A ground via within 1.75 mm of every DSI layer change (24 of 32 within 1.2 mm; R23: 3–10 mm). Pairs not re-routed: R23's length and skew matching stands |
+| Found while checking | TPS63070 output 98 µF nominal (C416 10 µF 0603 + C414, C417–C419 22 µF); its input 10 µF 0603 C402 at the pins; 10 µF C420/C421 at each MAX98357A; four thermal vias in the BQ24074 pad; R414 removed (TMR open: default 30 min / 5 h timers) |
+
+Parts: C301, C405, R414 removed; C416–C421 added; C402 0.1 µF 0402 → 10 µF 0603; 23 parts moved (U3, U6, U7, L1–L3, D2 and their capacitors and resistors). 170 placements, 54 BOM lines, LCSC numbers for all (new: C19702, C5674, C15850, each read from its LCSC page); U1 still to source. KiCad 7.0.11 DRC 0 / 0 / 0.
+
+Package: `CHECKS/COMPONENT_ENVELOPES_R24.json`, `CHECKS/R24_FAB_SUMMARY.json`, `CHECKS/R29_CONVERGENCE_REPORT.*`, `ASSEMBLY/STRUTHIO_SLIM4_R29_ASSEMBLY.step`, `R24_REAR_BOARD.svg`, studio, renders and builder files regenerated. `build_builder_packs.py` now counts a solder-mask opening only for vias outside SMD pads (the U10 exposed-pad vias sit in the pad's own opening and are filled and capped). Not measured: switching waveforms, ripple and temperatures are bring-up items (`LAYERS/01_PCB/RELEASE_GATES.md`).
+
 # R28 update 2 — the R7 review (2026-10-08)
 
 Board files unchanged (check A1). Firmware R7 → **R8** (`firmware/slim4/RELEASE_NOTES_R8.md`).
