@@ -9,9 +9,14 @@
 #define SLIM4_PANEL_V_RES 1280
 #define SLIM4_PANEL_DSI_LANES 2
 #define SLIM4_PANEL_LANE_MBPS 1000
+#define SLIM4_PANEL_PIXEL_MHZ 78
+/* Safe profile (console `display safe`): RGB565 on 2 lanes at 60 MHz needs 480 Mbit/s per lane; 560 stays inside
+ * the ILI9881C datasheet's 2-lane limit (566 Mbit/s for 16-bit pixels), where 1000 is above it (as Espressif runs). */
+#define SLIM4_PANEL_SAFE_LANE_MBPS 560
+#define SLIM4_PANEL_SAFE_PIXEL_MHZ 60
 #define SLIM4_PANEL_DPI_CONFIG(fmt) {                    \
         .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,     \
-        .dpi_clock_freq_mhz = 78,                        \
+        .dpi_clock_freq_mhz = SLIM4_PANEL_PIXEL_MHZ,     \
         .virtual_channel = 0,                            \
         .in_color_format = (fmt),                        \
         .num_fbs = 1,                                    \

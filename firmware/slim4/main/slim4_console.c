@@ -52,6 +52,7 @@ static void cmd_help(void)
            "  bl <0-100>           backlight percent (still limited by the power policy's cap)\n"
            "  pattern <name>       white black red green blue bars checker gradient (holds the screen)\n"
            "  diag                 back to the diagnostic screen\n"
+           "  display <normal|safe>  DSI profile for the next boot: normal 1000 Mbit/s 59 Hz, safe 560 Mbit/s 45 Hz\n"
            "  tone <left|right|both> [hz] [ms]   test tone, 20..20000 Hz, up to 3000 ms\n"
            "  vol <0-100>          master volume\n"
            "  sleep                power off (deep sleep; the power button wakes it)\n"
@@ -223,6 +224,16 @@ static void run_line(char *line)
     else if (!strcmp(cmd, "diag")) {
         s_display_hold = false;
         printf("diagnostic screen resumed\n");
+    } else if (!strcmp(cmd, "display")) {
+        const char *a = argv[1];
+        if (a && (!strcmp(a, "normal") || !strcmp(a, "safe"))) {
+            const slim4_status_t st = slim4_board_set_display_profile(!strcmp(a, "safe") ? SLIM4_DISPLAY_SAFE
+                                                                                         : SLIM4_DISPLAY_NORMAL);
+            printf("%s\n", st == SLIM4_OK ? "saved: reboot to apply" : "could not save (NVS)");
+        } else {
+            printf("display profile now: %s (display normal|safe)\n",
+                   slim4_board_display_profile() == SLIM4_DISPLAY_SAFE ? "safe" : "normal");
+        }
     } else if (!strcmp(cmd, "tone")) cmd_tone(argv[1], argv[2], argv[3]);
     else if (!strcmp(cmd, "vol")) {
         const int v = argv[1] ? atoi(argv[1]) : -1;
@@ -270,6 +281,7 @@ static void console_task(void *arg)
 void slim4_console_start(void)
 {
     usb_serial_jtag_driver_config_t cfg = USB_SERIAL_JTAG_DRIVER_CONFIG_DEFAULT();
+    cfg.tx_buffer_size = 4096;   /* the self-test report comes out in one burst */
     esp_err_t err = usb_serial_jtag_driver_install(&cfg);
     if (err != ESP_OK) {
         ESP_LOGW(TAG, "USB-Serial-JTAG driver: %s; no console", esp_err_to_name(err));

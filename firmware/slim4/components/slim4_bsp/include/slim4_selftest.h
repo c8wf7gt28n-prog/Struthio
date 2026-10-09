@@ -20,7 +20,7 @@ typedef struct {
     char id[16];                 /* short name of the check, e.g. BTN_LEFT */
     slim4_st_verdict_t verdict;
     char brief[36];              /* screen text, at most 35 characters: upper case, digits, space . / - : only */
-    char detail[200];            /* serial text: what was measured and what to look at */
+    char detail[360];            /* serial text: what was measured and what to look at */
 } slim4_st_item_t;
 
 typedef struct {
@@ -75,6 +75,8 @@ extern const size_t SLIM4_ST_PIN_COUNT;
 int slim4_st_rest_level(const slim4_pin_desc_t *pin);
 /* Pins whose board pull resistor is checked (switches, status lines, passive nets). */
 bool slim4_st_has_pull_check(const slim4_pin_desc_t *pin);
+/* Whether U1's pull may be turned against the board's pull (10 k nets, never toward a charger EN pin's active level). */
+bool slim4_st_opposite_allowed(const slim4_pin_desc_t *pin);
 
 /* Readings of one pull check; -1 where a step did not run. */
 typedef struct {
@@ -152,7 +154,6 @@ typedef struct {
 
 #define SLIM4_ST_PANEL_ID0 0x98
 #define SLIM4_ST_PANEL_ID1 0x81
-#define SLIM4_ST_PANEL_ID2 0x0C
 
 /* Whether the display bring-up may continue (the panel answered): otherwise the ILI9881C driver's own reads, which
  * wait without a time limit, would hang the boot. */
@@ -185,5 +186,7 @@ void slim4_selftest_pins(slim4_st_report_t *rep);
 void slim4_selftest_after_init(slim4_st_report_t *rep, bool display_ready);
 /* Prints every line as "SELFTEST <verdict> <id>: <detail>" and a summary line. */
 void slim4_selftest_log(const slim4_st_report_t *rep);
+/* Prints the lines from index `first` on, without the summary (to log part of the report as soon as it exists). */
+void slim4_selftest_log_lines(const slim4_st_report_t *rep, uint8_t first);
 /* The last report, for the diagnostic screen (NULL before the self-test ran). */
 const slim4_st_report_t *slim4_selftest_last(void);

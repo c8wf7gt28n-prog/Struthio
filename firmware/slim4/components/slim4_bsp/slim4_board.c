@@ -35,10 +35,18 @@
 #define SLIM4_LCD_HEIGHT 1280
 #define SLIM4_LCD_BPP    2
 #define SLIM4_LCD_BYTES  (SLIM4_LCD_WIDTH * SLIM4_LCD_HEIGHT * SLIM4_LCD_BPP)
-#define SLIM4_BL_DUTY_MAX ((1u << 12) - 1u)
+#define SLIM4_BL_FREQ_HZ 20000u
+#define SLIM4_BL_RES_BITS 11u
+#define SLIM4_BL_DUTY_MAX ((1u << SLIM4_BL_RES_BITS) - 1u)
+/* LEDC's divider is 80 MHz x 256 / (freq x 2^bits) and must exceed 255 (ESP-IDF ledc.c LEDC_IS_DIV_INVALID).
+ * 20 kHz at 12 bits gives 250: rejected, and through R11 that failure stopped the whole display bring-up. */
+_Static_assert((80000000ull * 256u) / ((uint64_t)SLIM4_BL_FREQ_HZ << SLIM4_BL_RES_BITS) > 255u,
+               "backlight PWM frequency and resolution exceed the LEDC clock");
 #define SLIM4_AUDIO_CHUNK_FRAMES 256u
 #define SLIM4_AUDIO_QUEUE_LENGTH 16u
 #define SLIM4_AUDIO_MAX_QUEUED_FRAMES (SLIM4_AUDIO_CHUNK_FRAMES * SLIM4_AUDIO_QUEUE_LENGTH)
+#define SLIM4_AUDIO_DMA_DESC 6u
+#define SLIM4_AUDIO_DMA_FRAMES 256u   /* 6 x 256 frames in DMA: 32 ms at 48 kHz still to play after the last write */
 
 typedef struct {
     uint32_t sample_rate;
@@ -56,6 +64,7 @@ static uint8_t s_audio_volume = 35;
 static volatile bool s_audio_power_mute;   /* set by the power policy (slim4_power.c): no budget for audio */
 static inline uint8_t audio_volume_now(void) { return s_audio_power_mute ? 0 : s_audio_volume; }
 static uint32_t s_i2s_sample_rate;
+static int64_t s_audio_last_write_us;   /* when the last chunk went into the DMA buffers */
 static uint16_t *s_framebuffer;
 static int16_t s_audio_scaled[SLIM4_AUDIO_CHUNK_FRAMES * 2];
 static slim4_audio_chunk_t s_audio_enqueue_chunk;
@@ -68,6 +77,12 @@ static esp_lcd_dsi_bus_handle_t s_dsi_bus;
 static esp_lcd_panel_io_handle_t s_dbi_io;
 static esp_lcd_panel_handle_t s_panel;
 static esp_ldo_channel_handle_t s_mipi_ldo;
+static slim4_display_profile_t s_display_profile;
+static SemaphoreHandle_t s_display_lock;   /* one drawer at a time: the main loop or the console */
+#define SLIM4_DISPLAY_INIT_LIMIT_MS 8000   /* normal bring-up takes well under 1 s plus the 120 ms reset wait */
+static SemaphoreHandle_t s_display_done;
+static volatile bool s_display_abandoned;
+static esp_err_t s_display_init_err = ESP_FAIL;
 static const char *s_display_stage = "not started";
 static const char *AUDIO_TAG = "slim4_audio";
 static uint32_t s_button_stable;
@@ -78,6 +93,9 @@ static portMUX_TYPE s_vsync_lock = portMUX_INITIALIZER_UNLOCKED;
 static uint32_t s_panel_vsync_count;
 
 #define SLIM4_BUTTON_DEBOUNCE_US 5000
+
+static bool display_lock(void);
+static void display_unlock(void);
 
 static uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -260,7 +278,7 @@ static void draw_button_indicator(int x, int y, const char *label, bool pressed,
     draw_text_at(count_text, x + (190 - (int)strlen(count_text) * 6) / 2, y + 78, 1, label_color);
 }
 
-slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t press_counts[4],
+static slim4_status_t render_diagnostic_locked(uint32_t buttons, const uint32_t press_counts[4],
                                               uint32_t frame_index,
                                               uint32_t measured_fps, uint32_t measured_vsync_hz,
                                               uint32_t max_render_us,
@@ -349,6 +367,18 @@ slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t pr
     return err == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
 }
 
+slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t press_counts[4],
+                                              uint32_t frame_index,
+                                              uint32_t measured_fps, uint32_t measured_vsync_hz,
+                                              uint32_t max_render_us,
+                                              uint32_t late_frames, uint8_t color_phase)
+{
+    if (!display_lock()) return SLIM4_ERR_NOT_READY;
+    const slim4_status_t st = render_diagnostic_locked(buttons, press_counts, frame_index, measured_fps, measured_vsync_hz, max_render_us, late_frames, color_phase);
+    display_unlock();
+    return st;
+}
+
 static void draw_boot_stamp(void)
 {
     const uint16_t navy = rgb565(7, 19, 34);
@@ -369,7 +399,7 @@ static void draw_boot_stamp(void)
     draw_text_centered("STARTING", 1190, 2, gold);
 }
 
-void slim4_board_show_boot_result(bool software_verified)
+static void show_boot_result_locked(bool software_verified)
 {
     if (!s_display_ready) return;
     fill_rect(24, 1110, SLIM4_LCD_WIDTH - 48, 140, rgb565(7, 19, 34));
@@ -383,7 +413,14 @@ void slim4_board_show_boot_result(bool software_verified)
     }
 }
 
-slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep)
+void slim4_board_show_boot_result(bool software_verified)
+{
+    if (!display_lock()) return;
+    show_boot_result_locked(software_verified);
+    display_unlock();
+}
+
+static slim4_status_t show_selftest_locked(const slim4_st_report_t *rep)
 {
     if (!s_display_ready || !s_framebuffer) return SLIM4_ERR_NOT_READY;
     if (!rep) return SLIM4_ERR_INVALID_ARG;
@@ -437,7 +474,15 @@ slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep)
     return err == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
 }
 
-slim4_status_t slim4_board_show_pattern(slim4_pattern_t pattern)
+slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep)
+{
+    if (!display_lock()) return SLIM4_ERR_NOT_READY;
+    const slim4_status_t st = show_selftest_locked(rep);
+    display_unlock();
+    return st;
+}
+
+static slim4_status_t show_pattern_locked(slim4_pattern_t pattern)
 {
     if (!s_display_ready || !s_framebuffer) return SLIM4_ERR_NOT_READY;
     static const uint8_t bars[8][3] = {
@@ -478,13 +523,21 @@ slim4_status_t slim4_board_show_pattern(slim4_pattern_t pattern)
     return panel_draw_bitmap_wait(s_framebuffer) == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
 }
 
+slim4_status_t slim4_board_show_pattern(slim4_pattern_t pattern)
+{
+    if (!display_lock()) return SLIM4_ERR_NOT_READY;
+    const slim4_status_t st = show_pattern_locked(pattern);
+    display_unlock();
+    return st;
+}
+
 static esp_err_t init_backlight(void)
 {
     const ledc_timer_config_t timer = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
-        .duty_resolution = LEDC_TIMER_12_BIT,
+        .duty_resolution = (ledc_timer_bit_t)SLIM4_BL_RES_BITS,
         .timer_num = LEDC_TIMER_0,
-        .freq_hz = 20000,
+        .freq_hz = SLIM4_BL_FREQ_HZ,
         .clk_cfg = LEDC_AUTO_CLK,
     };
     esp_err_t err = ledc_timer_config(&timer);
@@ -504,8 +557,10 @@ static esp_err_t init_backlight(void)
 static esp_err_t init_audio(uint32_t sample_rate)
 {
     i2s_chan_config_t channel_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_AUTO, I2S_ROLE_MASTER);
-    channel_cfg.dma_desc_num = 6;
-    channel_cfg.dma_frame_num = 256;
+    channel_cfg.dma_desc_num = SLIM4_AUDIO_DMA_DESC;
+    channel_cfg.dma_frame_num = SLIM4_AUDIO_DMA_FRAMES;
+    /* Send silence once the queue runs dry; otherwise the DMA repeats its last buffers (a buzz in every gap). */
+    channel_cfg.auto_clear_after_cb = true;
     esp_err_t err = i2s_new_channel(&channel_cfg, &s_i2s_tx, NULL);
     if (err != ESP_OK) return err;
 
@@ -606,14 +661,22 @@ static void audio_worker(void *arg)
                          (unsigned)bytes_written, (unsigned)bytes_to_write);
                 stop_audio_clock();
             }
+            s_audio_last_write_us = esp_timer_get_time();
         }
-        if (!processed_chunk && notifications == 0) stop_audio_clock();
+        /* Stop the clocks and shut the amplifiers down only after what is already in DMA has played, plus 10 ms:
+         * stopping at once cut the end off every sound (a click). */
+        if (!processed_chunk && notifications == 0 && s_i2s_running && s_i2s_sample_rate) {
+            const int64_t drain_us = (int64_t)SLIM4_AUDIO_DMA_DESC * SLIM4_AUDIO_DMA_FRAMES * 1000000 /
+                                     s_i2s_sample_rate + 10000;
+            if (esp_timer_get_time() - s_audio_last_write_us >= drain_us) stop_audio_clock();
+        }
     }
 }
 
 static uint32_t s_backlight_request;               /* level asked for, before the power cap */
 static uint8_t s_backlight_cap = 100;             /* set by the power policy (slim4_power.c) */
 static bool s_backlight_ready;
+static bool s_backlight_failed;
 
 static esp_err_t set_backlight(uint32_t percent)
 {
@@ -630,7 +693,8 @@ static esp_err_t set_backlight(uint32_t percent)
 slim4_status_t slim4_board_set_backlight(uint8_t percent)
 {
     if (percent > 100) return SLIM4_ERR_INVALID_ARG;
-    if (!s_backlight_ready) return SLIM4_ERR_NOT_READY;
+    /* Only with a panel that answered: with no LED load the boost runs up to its 37-39 V open-LED limit. */
+    if (!s_backlight_ready || !s_display_ready) return SLIM4_ERR_NOT_READY;
     return set_backlight(percent) == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
 }
 
@@ -769,9 +833,51 @@ void slim4_board_panel_probe(slim4_panel_probe_t *out)
     if (out) *out = s_probe;
 }
 
+#define PROFILE_NS "slim4_sys"
+#define PROFILE_KEY "dsi_profile"
+
+slim4_display_profile_t slim4_board_display_profile(void)
+{
+    uint8_t v = SLIM4_DISPLAY_NORMAL;
+    nvs_handle_t h;
+    if (s_nvs_ready && nvs_open(PROFILE_NS, NVS_READONLY, &h) == ESP_OK) {
+        (void)nvs_get_u8(h, PROFILE_KEY, &v);
+        nvs_close(h);
+    }
+    return v == SLIM4_DISPLAY_SAFE ? SLIM4_DISPLAY_SAFE : SLIM4_DISPLAY_NORMAL;
+}
+
+slim4_status_t slim4_board_set_display_profile(slim4_display_profile_t profile)
+{
+    if (profile != SLIM4_DISPLAY_NORMAL && profile != SLIM4_DISPLAY_SAFE) return SLIM4_ERR_INVALID_ARG;
+    if (!s_nvs_ready) return SLIM4_ERR_NOT_READY;
+    nvs_handle_t h;
+    if (nvs_open(PROFILE_NS, NVS_READWRITE, &h) != ESP_OK) return SLIM4_ERR_IO;
+    esp_err_t err = nvs_set_u8(h, PROFILE_KEY, (uint8_t)profile);
+    if (err == ESP_OK) err = nvs_commit(h);
+    nvs_close(h);
+    return err == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
+}
+
+bool slim4_board_backlight_failed(void)
+{
+    return s_backlight_failed;
+}
+
+static bool display_lock(void)
+{
+    return s_display_lock && xSemaphoreTake(s_display_lock, pdMS_TO_TICKS(500)) == pdTRUE;
+}
+
+static void display_unlock(void)
+{
+    xSemaphoreGive(s_display_lock);
+}
+
 static esp_err_t init_display(void)
 {
     esp_err_t err;
+    ESP_LOGI(TAG, "display bring-up: D-PHY rail, reset, backlight PWM, DSI bus, probe, panel init");
     s_display_stage = "MIPI D-PHY 2.5 V rail";
     const esp_ldo_channel_config_t ldo_cfg = {
         .chan_id = 3, /* LDO_VO3 supplies the P4 MIPI D-PHY rail on this design */
@@ -789,23 +895,36 @@ static esp_err_t init_display(void)
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE,
     };
-    err = gpio_config(&reset_gate);
-    if (err != ESP_OK) return err;
-    /* Q1 inverts this gate: high asserts LCD_RESX low, low releases reset. */
+    /* Q1 inverts this gate: high asserts LCD_RESX low, low releases reset. The level goes in before the output is
+     * enabled, so reset is never released for an instant. */
     err = gpio_set_level(SLIM4_GPIO_LCD_RESET_GATE, 1);
+    if (err != ESP_OK) return err;
+    err = gpio_config(&reset_gate);
     if (err != ESP_OK) return err;
     vTaskDelay(pdMS_TO_TICKS(10));
 
     s_display_stage = "backlight PWM";
     err = init_backlight();
-    if (err != ESP_OK) return err;
-    s_backlight_ready = true;
+    if (err == ESP_OK) {
+        s_backlight_ready = true;
+    } else {
+        /* Not fatal: the panel can still be probed and driven; the screen stays dark without its backlight. */
+        s_backlight_failed = true;
+        ESP_LOGE(TAG, "backlight PWM setup failed: %s; continuing with the panel", esp_err_to_name(err));
+    }
 
-    s_display_stage = "two-lane DSI bus";
+    s_display_stage = "two-lane DSI bus (D-PHY PLL lock, lanes to stop state)";
+    ESP_LOGI(TAG, "display: %s", s_display_stage);
+    s_display_profile = slim4_board_display_profile();
     esp_lcd_dsi_bus_config_t bus_cfg = ILI9881C_PANEL_BUS_DSI_2CH_CONFIG();
-    bus_cfg.lane_bit_rate_mbps = SLIM4_PANEL_LANE_MBPS;
+    bus_cfg.lane_bit_rate_mbps = s_display_profile == SLIM4_DISPLAY_SAFE ? SLIM4_PANEL_SAFE_LANE_MBPS
+                                                                         : SLIM4_PANEL_LANE_MBPS;
+    ESP_LOGI(TAG, "display profile %s: %lu Mbit/s per lane, %u MHz pixel clock",
+             s_display_profile == SLIM4_DISPLAY_SAFE ? "safe" : "normal", (unsigned long)bus_cfg.lane_bit_rate_mbps,
+             s_display_profile == SLIM4_DISPLAY_SAFE ? SLIM4_PANEL_SAFE_PIXEL_MHZ : SLIM4_PANEL_PIXEL_MHZ);
     err = esp_lcd_new_dsi_bus(&bus_cfg, &s_dsi_bus);
     if (err != ESP_OK) return err;
+    if (s_display_abandoned) return ESP_ERR_TIMEOUT;   /* the PHY came up after the boot gave up on it */
 
     s_display_stage = "DBI command channel";
     esp_lcd_dbi_io_config_t dbi_cfg = ILI9881C_PANEL_IO_DBI_CONFIG();
@@ -813,7 +932,8 @@ static esp_err_t init_display(void)
     if (err != ESP_OK) return err;
 
     s_display_stage = "ILI9881C panel driver (Crystalfontz CFAF7201280A0-050TN)";
-    const esp_lcd_dpi_panel_config_t dpi_cfg = SLIM4_PANEL_DPI_CONFIG(LCD_COLOR_FMT_RGB565);
+    esp_lcd_dpi_panel_config_t dpi_cfg = SLIM4_PANEL_DPI_CONFIG(LCD_COLOR_FMT_RGB565);
+    if (s_display_profile == SLIM4_DISPLAY_SAFE) dpi_cfg.dpi_clock_freq_mhz = SLIM4_PANEL_SAFE_PIXEL_MHZ;
     uint16_t init_count = 0;
     const ili9881c_lcd_init_cmd_t *init_cmds = slim4_panel_cfaf_init(&init_count);
     ili9881c_vendor_config_t vendor_cfg = {
@@ -836,6 +956,8 @@ static esp_err_t init_display(void)
 
     s_dpi_transfer_done = xSemaphoreCreateBinary();
     if (!s_dpi_transfer_done) return ESP_ERR_NO_MEM;
+    s_display_lock = xSemaphoreCreateMutex();
+    if (!s_display_lock) return ESP_ERR_NO_MEM;
 
     s_display_stage = "DPI VSYNC monitor";
     const esp_lcd_dpi_panel_event_callbacks_t dpi_callbacks = {
@@ -875,8 +997,11 @@ static esp_err_t init_display(void)
     err = set_backlight(45);
     if (err != ESP_OK) return err;
 
+    if (s_display_abandoned) return ESP_ERR_TIMEOUT;   /* too late: the boot went on without the display */
     s_display_ready = true;
-    ESP_LOGI(TAG, "ILI9881C two-lane DSI initialized: 720x1280 RGB565, 78 MHz pixel clock (59 Hz)");
+    ESP_LOGI(TAG, "ILI9881C two-lane DSI initialized: 720x1280 RGB565, %s profile (about %d Hz)",
+             s_display_profile == SLIM4_DISPLAY_SAFE ? "safe" : "normal",
+             s_display_profile == SLIM4_DISPLAY_SAFE ? 45 : 59);
     ESP_LOGI(TAG, "STRUTHIO SLIM4 boot stamp sent to panel");
     return ESP_OK;
 }
@@ -893,6 +1018,15 @@ void slim4_board_prepare_power_off(void)
     (void)gpio_set_level(SLIM4_GPIO_LCD_RESET_GATE, 1);
 }
 
+
+static void display_init_task(void *arg)
+{
+    (void)arg;
+    s_display_init_err = init_display();
+    xSemaphoreGive(s_display_done);
+    vTaskDelete(NULL);
+}
+
 slim4_status_t slim4_board_init(void)
 {
     s_button_stable = 0;
@@ -900,6 +1034,11 @@ slim4_status_t slim4_board_init(void)
     s_button_candidate_since_us = 0;
     s_button_sampler_started = false;
     esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_LOGW(TAG, "NVS %s: erasing the nvs partition", esp_err_to_name(err));
+        err = nvs_flash_erase();
+        if (err == ESP_OK) err = nvs_flash_init();
+    }
     if (err == ESP_OK) {
         s_nvs_ready = true;
         ESP_LOGI(TAG, "save storage: NVS initialized");
@@ -957,13 +1096,27 @@ slim4_status_t slim4_board_init(void)
     s_gpio_ready = true;
     ESP_LOGI(TAG, "gameplay inputs ready on GPIO1..GPIO4 (active low)");
 
-    err = init_display();
-    if (err != ESP_OK) {
+    /* The display comes up in its own task with a time limit: ESP-IDF's DSI bus setup waits without limit for the
+     * D-PHY PLL to lock and the lanes to stop, which never happens with VDDO_MIPI_2V5 missing (U1 pads 41/73). */
+    s_display_done = xSemaphoreCreateBinary();
+    if (!s_display_done ||
+        xTaskCreate(display_init_task, "slim4_disp_init", 8192, NULL, uxTaskPriorityGet(NULL), NULL) != pdPASS) {
+        s_probe.stopped_at = "display init task (no memory)";
+        ESP_LOGE(TAG, "display init task could not start");
+        return SLIM4_OK;
+    }
+    if (xSemaphoreTake(s_display_done, pdMS_TO_TICKS(SLIM4_DISPLAY_INIT_LIMIT_MS)) != pdTRUE) {
+        s_display_abandoned = true;
+        s_probe.stopped_at = s_display_stage;
+        ESP_LOGE(TAG, "display bring-up still at '%s' after %d ms: abandoned; continuing with serial diagnostics",
+                 s_display_stage, SLIM4_DISPLAY_INIT_LIMIT_MS);
+        return SLIM4_OK;
+    }
+    if (s_display_init_err != ESP_OK) {
         /* Keep the probe's own reason when the panel did not answer; otherwise record the failed stage. */
         if (!s_probe.attempted || s_probe.answered) s_probe.stopped_at = s_display_stage;
         ESP_LOGE(TAG, "display failed at %s: %s; continuing with serial diagnostics",
-                 s_display_stage, esp_err_to_name(err));
-        return SLIM4_OK;
+                 s_display_stage, esp_err_to_name(s_display_init_err));
     }
     return SLIM4_OK;
 }
@@ -1006,12 +1159,20 @@ slim4_status_t slim4_board_display_acquire(slim4_surface_t *out)
     return SLIM4_OK;
 }
 
-slim4_status_t slim4_board_display_present(const slim4_surface_t *surface)
+static slim4_status_t display_present_locked(const slim4_surface_t *surface)
 {
     if (!surface || !surface->pixels_rgb565) return SLIM4_ERR_INVALID_ARG;
     if (!s_display_ready || surface->pixels_rgb565 != s_framebuffer) return SLIM4_ERR_NOT_READY;
     esp_err_t err = panel_draw_bitmap_wait(s_framebuffer);
     return err == ESP_OK ? SLIM4_OK : SLIM4_ERR_IO;
+}
+
+slim4_status_t slim4_board_display_present(const slim4_surface_t *surface)
+{
+    if (!display_lock()) return SLIM4_ERR_NOT_READY;
+    const slim4_status_t st = display_present_locked(surface);
+    display_unlock();
+    return st;
 }
 
 void slim4_board_audio_power_mute(bool mute)
@@ -1037,7 +1198,11 @@ slim4_status_t slim4_board_audio_set_volume(uint8_t volume)
 
 slim4_status_t slim4_board_audio_write(const int16_t *stereo, size_t frames, uint32_t rate)
 {
-    if ((!stereo && frames) || rate < 8000 || rate > 96000) return SLIM4_ERR_INVALID_ARG;
+    /* The MAX98357A supports 8, 16, 32, 44.1, 48, 88.2 and 96 kHz only (11.025-24 kHz are not supported). */
+    if ((!stereo && frames) || !(rate == 8000 || rate == 16000 || rate == 32000 || rate == 44100 ||
+                                 rate == 48000 || rate == 88200 || rate == 96000)) {
+        return SLIM4_ERR_INVALID_ARG;
+    }
     if (frames == 0) return SLIM4_OK;
     if (!s_audio_queue || !s_audio_task || !s_audio_enqueue_mutex) return SLIM4_ERR_NOT_READY;
     if (frames > SLIM4_AUDIO_MAX_QUEUED_FRAMES) return SLIM4_ERR_INVALID_ARG;

@@ -88,6 +88,15 @@ int slim4_st_rest_level(const slim4_pin_desc_t *pin)
     }
 }
 
+bool slim4_st_opposite_allowed(const slim4_pin_desc_t *pin)
+{
+    /* U1's pull against a 10 k resistor leaves the net at about 0.6 V or 2.7 V. On a pin the self-test never drives
+     * (the charger's EN pins) a pull-down net is not pulled up: 0.6 V is above the BQ24074's 0.4 V EN low limit, and
+     * EN2 high with EN1 high suspends the USB input. */
+    if (pin->pull != SLIM4_PULL_UP_10K && pin->pull != SLIM4_PULL_DOWN_10K) return false;
+    return pin->drive_ok || slim4_st_rest_level(pin) == 1;
+}
+
 bool slim4_st_has_pull_check(const slim4_pin_desc_t *pin)
 {
     return pin->pull != SLIM4_PULL_NONE &&
@@ -147,8 +156,14 @@ slim4_st_verdict_t slim4_st_report_pull(slim4_st_report_t *rep, const slim4_pin_
         } else {
             snprintf(brief, sizeof(brief), "%s OK", up ? "PULL-UP" : "PULL-DOWN");
         }
-        slim4_st_add(rep, pin->net, SLIM4_ST_PASS, brief, "GPIO%u pad %u: %s and pad joint good, %s on the net (%s)",
-                     pin->gpio, pin->pad, pin->pull_part, pin->load, got);
+        if (r->opposite < 0 && r->released < 0) {
+            slim4_st_add(rep, pin->net, SLIM4_ST_PASS, brief, "GPIO%u pad %u: rests %s as %s sets it; not tested "
+                         "against U1's pull (that could suspend the charger), so an open pad or missing %s would read "
+                         "the same (%s)", pin->gpio, pin->pad, up ? "high" : "low", pin->pull_part, pin->pull_part, got);
+        } else {
+            slim4_st_add(rep, pin->net, SLIM4_ST_PASS, brief, "GPIO%u pad %u: %s and pad joint good, %s on the net (%s)",
+                         pin->gpio, pin->pad, pin->pull_part, pin->load, got);
+        }
         return SLIM4_ST_PASS;
     case SLIM4_PULL_HELD:
         if (pin->role == SLIM4_ROLE_STATUS) {
@@ -299,6 +314,15 @@ void slim4_st_report_shorts(slim4_st_report_t *rep, size_t n, const slim4_short_
         const bool hi_bad = scan1->readback_high[a] == 0 || scan2->readback_high[a] == 0;
         const bool lo_bad = scan1->readback_low[a] == 1 || scan2->readback_low[a] == 1;
         if (!hi_bad && !lo_bad) continue;
+        const bool both = (scan1->readback_high[a] == 0 && scan2->readback_high[a] == 0) ||
+                          (scan1->readback_low[a] == 1 && scan2->readback_low[a] == 1);
+        if (!both && p->role == SLIM4_ROLE_STATUS) {
+            /* A chip's status output switched on while it was driven (CHG toggles while U10 looks for a cell). */
+            slim4_st_add(rep, "DRIVE_ONCE", SLIM4_ST_INFO, "STATUS OUTPUT SWITCHED MID-TEST",
+                         "%s (pad %u) read the other level once of two scans while driven: its chip (%s) switched it. "
+                         "Reboot: a short shows in both scans", p->net, p->pad, p->load);
+            continue;
+        }
         ++drive_faults;
         slim4_st_add(rep, "DRIVE", SLIM4_ST_FAIL, hi_bad ? "NET CANNOT BE DRIVEN HIGH" : "NET CANNOT BE DRIVEN LOW",
                      "%s (GPIO%u, U1 pad %u): driven %s it still read %s: the net is shorted to %s or heavily loaded",
@@ -331,7 +355,8 @@ void slim4_st_report_shorts(slim4_st_report_t *rep, size_t n, const slim4_short_
         if (adj_cov < adj) snprintf(untested, sizeof(untested), " (untested pad pairs: %.110s)", missing);
         char brief[36];
         snprintf(brief, sizeof(brief), "NO SHORTS - %u OF %u PAD PAIRS", adj_cov, adj);
-        slim4_st_add(rep, "SHORTS", SLIM4_ST_PASS, brief,
+        /* PASS only when every neighbouring pad pair was tested; otherwise what was tested is clean, but not all. */
+        slim4_st_add(rep, "SHORTS", adj_cov == adj ? SLIM4_ST_PASS : SLIM4_ST_INFO, brief,
                      "%u nets driven high and low in turn, two scans: no net followed another; %u of %u net pairs and "
                      "%u of %u neighbouring U1 pad pairs could be tested%s", (unsigned)n, pairs_cov, pairs, adj_cov,
                      adj, untested);
@@ -464,13 +489,16 @@ void slim4_st_judge_panel(slim4_st_report_t *rep, const slim4_panel_probe_t *pro
     }
     char brief[36];
     snprintf(brief, sizeof(brief), "ID %02X %02X %02X", probe->id[0], probe->id[1], probe->id[2]);
-    if (probe->id[0] == SLIM4_ST_PANEL_ID0 && probe->id[1] == SLIM4_ST_PANEL_ID1 && probe->id[2] == SLIM4_ST_PANEL_ID2) {
-        snprintf(brief, sizeof(brief), "ILI9881C ANSWERS - ID 98 81 0C");
+    /* ILI9881C: 98 81 then a version byte (the datasheet gives 1C; Espressif's own log shows 5C), so only the
+     * first two are judged and the third is reported. */
+    if (probe->id[0] == SLIM4_ST_PANEL_ID0 && probe->id[1] == SLIM4_ST_PANEL_ID1) {
+        snprintf(brief, sizeof(brief), "ILI9881C ANSWERS - ID 98 81 %02X", probe->id[2]);
         slim4_st_add(rep, "PANEL", SLIM4_ST_PASS, brief, "the panel controller answered over DSI lane 0 (low-power "
-                     "read: D0_P and D0_N both work) with ID 98 81 0C, an ILI9881C");
+                     "read: D0_P and D0_N both work) with ID 98 81 %02X, an ILI9881C (version byte %02X)",
+                     probe->id[2], probe->id[2]);
     } else {
-        slim4_st_add(rep, "PANEL", SLIM4_ST_FAIL, brief, "the panel answered with ID %02X %02X %02X, expected 98 81 0C "
-                     "(ILI9881C): a different panel or controller; its initialisation may not suit it",
+        slim4_st_add(rep, "PANEL", SLIM4_ST_FAIL, brief, "the panel answered with ID %02X %02X %02X, expected 98 81 xx "
+                     "(ILI9881C): a different panel or controller, or garbled low-power data on lane 0",
                      probe->id[0], probe->id[1], probe->id[2]);
     }
 

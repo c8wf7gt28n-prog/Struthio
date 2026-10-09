@@ -66,7 +66,7 @@ static slim4_pull_reading_t sim_pull_check(const sim_t *s, size_t i)
     const int rest = slim4_st_rest_level(p);
     r.same = (int8_t)net_level(s, i, rest);
     if (r.same != rest) return r;
-    if (p->pull == SLIM4_PULL_UP_10K || p->pull == SLIM4_PULL_DOWN_10K) r.opposite = (int8_t)net_level(s, i, !rest);
+    if (slim4_st_opposite_allowed(p)) r.opposite = (int8_t)net_level(s, i, !rest);
     if (p->drive_ok) {
         const int after = net_level(s, i, -1);
         r.released = (int8_t)(after < 0 ? !rest : after);   /* a pin with nothing pulling keeps the driven level */
@@ -291,11 +291,32 @@ int main(void)
     sim_good(&s);
     s.no_resistor[idx("BQ_EN2")] = true;
     run_pins(&s, false);
-    check("R604 missing (BQ_EN2 pull-down): FAIL", verdict_is("BQ_EN2", SLIM4_ST_FAIL));
+    check("R604 missing (BQ_EN2): not testable without risking charger suspend; PASS says so",
+          verdict_is("BQ_EN2", SLIM4_ST_PASS) && strstr(item("BQ_EN2", NULL)->detail, "suspend the charger"));
+    check("BQ_EN2 is never pulled toward its active level; BQ_EN1 still is checked against U1's pull",
+          !slim4_st_opposite_allowed(&SLIM4_ST_PINS[idx("BQ_EN2")]) && slim4_st_opposite_allowed(&SLIM4_ST_PINS[idx("BQ_EN1")]));
     sim_good(&s);
     s.open_pad[idx("USB_CURR_OUT1")] = true;
     run_pins(&s, false);
     check("U1 pad 84 open (TUSB320 OUT1): FAIL", verdict_is("USB_CURR_OUT1", SLIM4_ST_FAIL));
+
+    sim_good(&s);
+    s.open_pad[idx("BQ_EN1")] = true;
+    run_pins(&s, false);
+    check("BQ_EN1 pad open (never driven, not readable): both its pad pairs untested, SHORTS INFO not PASS, BQ_EN1 FAIL",
+          verdict_is("SHORTS", SLIM4_ST_INFO) && item("SHORTS", "17 OF 19") && verdict_is("BQ_EN1", SLIM4_ST_FAIL));
+    slim4_st_report_init(&rep);
+    slim4_st_scan_init(&scans[0]);
+    slim4_st_scan_init(&scans[1]);
+    scans[0].readback_high[idx("CHG_STATUS")] = 0;   /* U10 pulled CHG low during one scan only */
+    scans[1].readback_high[idx("CHG_STATUS")] = 1;
+    slim4_st_report_shorts(&rep, N, &scans[0], &scans[1]);
+    check("CHG read low while driven high in one scan of two: DRIVE_ONCE INFO, no DRIVE FAIL",
+          verdict_is("DRIVE_ONCE", SLIM4_ST_INFO) && item("DRIVE", NULL) == NULL);
+    scans[1].readback_high[idx("CHG_STATUS")] = 0;
+    slim4_st_report_init(&rep);
+    slim4_st_report_shorts(&rep, N, &scans[0], &scans[1]);
+    check("CHG cannot be driven high in both scans: DRIVE FAIL", verdict_is("DRIVE", SLIM4_ST_FAIL));
 
     /* PWR_WAKE: R110 10 k with C601 100 nF */
     sim_good(&s);
@@ -389,10 +410,15 @@ int main(void)
     check("ID 98 81 0C, no flags: PANEL PASS, DSI_LANE0 PASS, usable", verdict_is("PANEL", SLIM4_ST_PASS) &&
           verdict_is("DSI_LANE0", SLIM4_ST_PASS) && slim4_st_panel_usable(&pr));
     slim4_st_report_init(&rep);
-    pr.id[2] = 0x0D;
+    pr.id[2] = 0x1C;
+    slim4_st_judge_panel(&rep, &pr);
+    check("ID 98 81 1C (datasheet) and 98 81 5C (Espressif's log): PANEL PASS, version byte shown",
+          verdict_is("PANEL", SLIM4_ST_PASS) && item("PANEL", "98 81 1C"));
+    slim4_st_report_init(&rep);
+    pr.id[1] = 0x80;
     pr.int_st0 = 1u << 7;                    /* the panel reports contention */
     slim4_st_judge_panel(&rep, &pr);
-    check("ID 98 81 0D and a contention report: PANEL FAIL, DSI_LANE0 FAIL naming contention",
+    check("ID 98 80 1C and a contention report: PANEL FAIL, DSI_LANE0 FAIL naming contention",
           verdict_is("PANEL", SLIM4_ST_FAIL) && verdict_is("DSI_LANE0", SLIM4_ST_FAIL) &&
           strstr(item("DSI_LANE0", NULL)->detail, "contention"));
     slim4_st_report_init(&rep);

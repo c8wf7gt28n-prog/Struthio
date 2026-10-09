@@ -140,7 +140,7 @@ static slim4_pull_reading_t pull_check(const slim4_pin_desc_t *p)
         set_input(g, GPIO_FLOATING);
         return r;   /* held by something on the board: never drive against it */
     }
-    if (p->pull == SLIM4_PULL_UP_10K || p->pull == SLIM4_PULL_DOWN_10K) {
+    if (slim4_st_opposite_allowed(p)) {
         set_input(g, pull_toward(!rest));
         wait_us(settle);
         r.opposite = (int8_t)gpio_get_level(g);
@@ -260,7 +260,8 @@ void slim4_selftest_pins(slim4_st_report_t *rep)
     short_scan(&s_scan[1], n);
     slim4_st_report_shorts(rep, n, &s_scan[0], &s_scan[1]);
     restore_pins();
-    wait_us(CAP_RECOVER_US);   /* the power service's first battery reading follows soon after */
+    wait_us(CAP_RECOVER_US);
+    s_last = rep;   /* the power service's first battery reading follows soon after */
     ESP_LOGI(TAG, "GPIO checks took %lld ms", (long long)((esp_timer_get_time() - t0) / 1000));
 }
 
@@ -302,6 +303,10 @@ void slim4_selftest_after_init(slim4_st_report_t *rep, bool display_ready)
     slim4_panel_probe_t probe;
     slim4_board_panel_probe(&probe);
     slim4_st_judge_panel(rep, &probe);
+    if (slim4_board_backlight_failed()) {
+        slim4_st_add(rep, "BACKLIGHT", SLIM4_ST_FAIL, "BACKLIGHT PWM SETUP FAILED", "the LEDC timer for GPIO9 "
+                     "(U7 TPS61165 CTRL) could not be set up: a firmware fault; the screen stays dark");
+    }
     if (display_ready) {
         const uint32_t c0 = slim4_board_get_vsync_count();
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -328,7 +333,18 @@ void slim4_selftest_after_init(slim4_st_report_t *rep, bool display_ready)
 
 void slim4_selftest_log(const slim4_st_report_t *rep)
 {
-    for (uint8_t i = 0; i < rep->count; ++i) {
+    slim4_selftest_log_lines(rep, 0);
+    if (rep->overflow) ESP_LOGW(TAG, "SELFTEST more results than lines: the counts below include them");
+    if (rep->fail) {
+        ESP_LOGE(TAG, "SELFTEST RESULT: %u FAIL, %u PASS, %u INFO", rep->fail, rep->pass, rep->info);
+    } else {
+        ESP_LOGI(TAG, "SELFTEST RESULT: no FAIL, %u PASS, %u INFO", rep->pass, rep->info);
+    }
+}
+
+void slim4_selftest_log_lines(const slim4_st_report_t *rep, uint8_t first)
+{
+    for (uint8_t i = first; i < rep->count; ++i) {
         const slim4_st_item_t *it = &rep->items[i];
         if (it->verdict == SLIM4_ST_FAIL) {
             ESP_LOGE(TAG, "SELFTEST FAIL %-14s %s: %s", it->id, it->brief, it->detail);
@@ -337,12 +353,6 @@ void slim4_selftest_log(const slim4_st_report_t *rep)
         } else {
             ESP_LOGI(TAG, "SELFTEST PASS %-14s %s: %s", it->id, it->brief, it->detail);
         }
-    }
-    if (rep->overflow) ESP_LOGW(TAG, "SELFTEST more results than lines: the counts below include them");
-    if (rep->fail) {
-        ESP_LOGE(TAG, "SELFTEST RESULT: %u FAIL, %u PASS, %u INFO", rep->fail, rep->pass, rep->info);
-    } else {
-        ESP_LOGI(TAG, "SELFTEST RESULT: no FAIL, %u PASS, %u INFO", rep->pass, rep->info);
     }
 }
 

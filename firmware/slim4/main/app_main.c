@@ -142,6 +142,11 @@ void app_main(void)
     /* Hardware self-test, part 1: the GPIO nets, before any driver claims them. */
     slim4_st_report_init(&s_selftest);
     slim4_selftest_pins(&s_selftest);
+    /* Logged now: if anything later hangs, these lines are already out. */
+    slim4_selftest_log_lines(&s_selftest, 0);
+    const uint8_t pin_lines = s_selftest.count;
+    /* The console first, so the board can be probed even if the platform init stops. */
+    slim4_console_start();
 
     slim4_status_t status = slim4_platform_init();
     if (status != SLIM4_OK) {
@@ -154,26 +159,26 @@ void app_main(void)
     const bool io_verified = platform_self_test(&display_ready);
     /* Part 2: chip, memory, reset, the panel probe, video, power. */
     slim4_selftest_after_init(&s_selftest, display_ready);
-    slim4_selftest_log(&s_selftest);
+    slim4_selftest_log_lines(&s_selftest, pin_lines);
+    slim4_selftest_log(&s_selftest);   /* the whole report again, ending in the summary line */
     const slim4_status_t volume_status = slim4_audio_set_master_volume(20);
     const bool software_verified = io_verified && volume_status == SLIM4_OK;
-    if (display_ready) {
-        slim4_board_show_boot_result(software_verified);
-        show_selftest_page();
-    }
     if (software_verified) {
         ESP_LOGI(TAG, "SYSTEM READY: controls, RGB565 surface, and audio worker passed software checks");
     } else {
         ESP_LOGW(TAG, "SERVICE MODE: controls, display, or audio service check incomplete; serial diagnostics remain active");
     }
-    finish_ota_boot_check(software_verified);
+    finish_ota_boot_check(software_verified);   /* before the 10 s page, so a slow look does not delay it */
+    if (display_ready) {
+        slim4_board_show_boot_result(software_verified);
+        show_selftest_page();
+    }
     ESP_LOGI(TAG, "diagnostic mode: 60 Hz display sweep, four live controls, and per-channel speaker tones");
     if (volume_status == SLIM4_OK) {
         ESP_LOGI(TAG, "speaker test tones capped at 20%% digital volume");
     } else {
         ESP_LOGW(TAG, "speaker test unavailable: audio service status %d", (int)volume_status);
     }
-    slim4_console_start();
     bool boot_was_down = false;
     uint32_t previous_buttons = 0;
     uint32_t press_counts[4] = {0};
@@ -208,6 +213,7 @@ void app_main(void)
         frame_timer = NULL;
     }
     bool diagnostic_render_failed = false;
+    uint32_t consecutive_render_failures = 0;
 
     for (;;) {
         uint32_t buttons = 0;
@@ -259,8 +265,14 @@ void app_main(void)
                 max_render_us = render_duration_us > UINT32_MAX ? UINT32_MAX : (uint32_t)render_duration_us;
             }
             if (render_duration_us > SLIM4_DIAGNOSTIC_PERIOD_US || frame_notifications > 1) ++late_frames;
-            if (render_status != SLIM4_OK && !diagnostic_render_failed) {
-                ESP_LOGE(TAG, "diagnostic display update failed: %d", (int)render_status);
+            /* One failed frame (a DMA2D timeout, the console holding the display) is not the end of the display:
+             * give up only after 60 failures in a row (about a second). */
+            consecutive_render_failures = render_status == SLIM4_OK ? 0 : consecutive_render_failures + 1;
+            if (render_status != SLIM4_OK && consecutive_render_failures == 1) {
+                ESP_LOGW(TAG, "diagnostic display update failed: %d", (int)render_status);
+            }
+            if (consecutive_render_failures >= 60 && !diagnostic_render_failed) {
+                ESP_LOGE(TAG, "diagnostic display failed 60 frames in a row (%d); display stopped", (int)render_status);
                 diagnostic_render_failed = true;
                 display_ready = false;
                 if (frame_timer) {
