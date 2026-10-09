@@ -1,5 +1,5 @@
 {
- "purpose": "Component height envelopes used by the R30 cross-layer convergence checks. Derived data only: the R25 KiCad board is not modified. XY extents come from the R25 courtyard sizes in SLIM4_R25_PCB_LAYER.json; this table only sets heights above (front) or below (back) the board surface.",
+ "purpose": "Component height envelopes used by the R31 cross-layer convergence checks. Derived data only: the R26 KiCad board is not modified. XY extents come from the R26 courtyard sizes in SLIM4_R26_PCB_LAYER.json; this table only sets heights above (front) or below (back) the board surface.",
  "units": "mm",
  "rule": "height_mm overrides the JSON 'z' value where a manufacturer figure is cited; otherwise the JSON value is kept. Where the JSON value was a placeholder that understated a part (L2), the datasheet value is used. by_value_prefix applies to passives by manufacturer series; any part not listed keeps its JSON height.",
  "by_value": {
@@ -29,7 +29,7 @@
   },
   "SM02B-SRSS-TB(LF)(SN)": {
    "height_mm": 3.0,
-   "source": "JST SH side-entry header; not on R23-R25 (kept for the R22 reference)"
+   "source": "JST SH side-entry header; not on R23-R26 (kept for the R22 reference)"
   },
   "USB4105-GF-A-120": {
    "height_mm": 3.31,

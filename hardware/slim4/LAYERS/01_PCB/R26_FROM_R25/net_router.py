@@ -25,7 +25,7 @@ CONNECT = {
     'PGOOD_STATUS': (0.152, [((0.699, 76.951, 'F.Cu'), (10.225, 75.537, 'In3.Cu'))]),
     'PWR_WAKE':     (0.152, [((4.575, 78.825, None), (8.603, 75.741, 'In3.Cu'))]),
     'BTN_LEFT':     (0.152, [((5.46, 79.337, None), (-0.027, 99.719, None))]),
-    'USB_CURR_OUT2': (0.1, [((4.875, 85.575, 'B.Cu'), (-10.5, 10.5, 'B.Cu')), ((-10.5, 10.5, 'B.Cu'), (-8.725, 14.8, 'B.Cu'))]),
+    'USB_CURR_OUT2': (0.1, [((4.125, 85.225, None), (-8.4, 75.3, 'F.Cu'))]),
 }
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 
@@ -36,8 +36,17 @@ def use_region(box, res):
     R.NX, R.NY = int(round((R.X1 - R.X0) / res)) + 1, int(round((R.Y1 - R.Y0) / res)) + 1
 
 
-def fields(b, net, dsi):
+def fields(b, net, dsi, done):
+    """Clearance fields for routing `net`: the board's copper, the DSI pairs grown to the pair clearance, and the
+    connections routed before this one (done: list of (net, width, segments, vias))."""
     F, E = R.base_fields(b, {net})
+    for dn, w, segs, vias in done:
+        if dn == net: continue
+        for lay, pts in segs:
+            if lay in F:
+                for p, q in zip(pts, pts[1:]): F[lay].capsule(tuple(p), tuple(q), w / 2)
+        for v in vias:
+            for l in F: F[l].circle(v[0], v[1], VIA_D / 2)
     # the DSI pairs (now routed) get the pair clearance: grow their copper
     for t in b.GetTracks():
         if t.GetNetname() not in dsi: continue
@@ -136,20 +145,20 @@ def main():
     board, out = sys.argv[1], sys.argv[2]
     b = pcbnew.LoadBoard(board)
     dsi = {p[k] for p in R.BREAKOUT.values() for k in ('P', 'N')}
-    res = {}
+    res = {}; done = []
     for net, (w, conns) in CONNECT.items():
         res[net] = []
         for a, c in conns:
             box = (max(min(a[0], c[0]) - 14, -51), max(min(a[1], c[1]) - 14, 1), min(max(a[0], c[0]) + 14, 51), min(max(a[1], c[1]) + 14, 130))
-            use_region(box, 0.025 if net != 'USB_CURR_OUT2' else 0.05)
-            F, E = fields(b, net, dsi)
+            use_region(box, 0.025)
+            F, E = fields(b, net, dsi, done)
             path, n = route(F, E, w, a, c, box)
             if not path:
                 print(f'{net}: {a} -> {c}: NO ROUTE ({n} states)'); res[net].append(None); continue
             segs, vias = to_geometry(path, box)
             L = sum(math.dist(p, q) for _, pts in segs for p, q in zip(pts, pts[1:]))
             print(f'{net}: {a} -> {c}: {L:.1f} mm, {len(vias)} vias, {n} states', flush=True)
-            res[net].append(dict(width=w, segments=segs, vias=vias))
+            res[net].append(dict(width=w, segments=segs, vias=vias)); done.append((net, w, segs, vias))
     json.dump(res, open(out, 'w'), indent=1)
 
 

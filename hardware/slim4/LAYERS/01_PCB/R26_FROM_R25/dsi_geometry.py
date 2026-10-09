@@ -116,21 +116,25 @@ def extra(amp, ch=C): return 2 * amp - (8 - 4 * math.sqrt(2)) * ch
 
 class Checker:
     def __init__(self, b):
+        """Fields as the router builds them: board copper with VIA_GROW round non-ground vias (F, for tracks) and
+        without (Fv, for via rows); the other pairs' breakouts at the plain clearance, the pair's own breakout vias."""
         dsi = {p[k] for p in R.BREAKOUT.values() for k in ('P', 'N')}
-        self.F0, self.E = R.base_fields(b, dsi)
-        self.F = {}
+        self.F0, self.E = R.base_fields(b, dsi, R.VIA_GROW)
+        Fv0, _ = R.base_fields(b, dsi, 0.0)
+        self.F, self.Fv = {}, {}
         for name in R.BREAKOUT:
-            F = {l: R.Field() for l in self.F0}
-            for l in F: F[l].mask = self.F0[l].mask.copy()
-            for other, bo in R.BREAKOUT.items():
-                tr = [(lay, a, c, GEO[lay][0]) for side in ('P', 'N') for lay, pts in bo['stubs'][side] for a, c in zip(pts, pts[1:])]
-                geo = dict(tracks=tr, vias=list(bo['vias'].values()))
-                if other != name: R.add_pair_obstacles(F, geo, R.CLR_DSI - R.CLR)
-                else:
-                    for v in geo['vias']:
-                        for l in F: F[l].circle(v[0], v[1], R.VIA_D / 2)
-            for l in F: F[l].finish()
-            self.F[name] = F
+            for base, store, vg in ((self.F0, self.F, None), (Fv0, self.Fv, 0.0)):
+                F = {l: R.Field() for l in base}
+                for l in F: F[l].mask = base[l].mask.copy()
+                for other, bo in R.BREAKOUT.items():
+                    tr = [(lay, a, c, GEO[lay][0]) for side in ('P', 'N') for lay, pts in bo['stubs'][side] for a, c in zip(pts, pts[1:])]
+                    geo = dict(tracks=tr, vias=list(bo['vias'].values()))
+                    if other != name: R.add_pair_obstacles(F, geo, 0.0, vg)
+                    else:
+                        for v in geo['vias']:
+                            for l in F: F[l].circle(v[0], v[1], R.VIA_D / 2)
+                for l in F: F[l].finish()
+                store[name] = F
 
     def problems(self, name, r, others):
         """Clearance problems of pair `name` (route r) against the board, the other pairs and itself."""
@@ -143,8 +147,9 @@ class Checker:
                 if math.dist((x, y), tuple(r['via'][:2]) if r['via'] else (1e9, 1e9)) < R.VIA_D / 2 + 0.05: continue
                 if F[lay].d(x, y) < R.HALF[lay] + R.CLR - 1e-3 or self.E.d(x, y) < R.HALF[lay] + R.EDGE:
                     probs.append(('board', lay, round(x, 3), round(y, 3))); break
+        Fv = self.Fv[name]
         for v in row:
-            if any(F[l].d(*v) < R.VIA_D / 2 + R.CLR - 1e-3 for l in F) or self.E.d(*v) < R.VIA_D / 2 + R.EDGE:
+            if any(Fv[l].d(*v) < R.VIA_D / 2 + R.CLR - 1e-3 for l in Fv) or self.E.d(*v) < R.VIA_D / 2 + R.EDGE:
                 probs.append(('board via', round(v[0], 3), round(v[1], 3)))
         for o, ro in others.items():
             otr, orow = R.pair_copper(ro)

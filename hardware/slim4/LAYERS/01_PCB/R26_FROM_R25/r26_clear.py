@@ -4,8 +4,9 @@
 #    the three pairs again and redraw the band under their new In3 sections.
 #  - The In3 1V1_HP run from U1's pin-26 via to the feedback divider is removed: since R25 every via on it lands in the
 #    In2 1V1_HP area, which carries the rail; the run crossed the DSI escape under U1.
-#  - USB_CURR_OUT2 (TUSB320 OUT2, a static level) lost its 203 mm, 300-segment autorouted path, which wound through the
-#    DSI escape; edit 34 routes it again. BTN_LEFT's F.Cu run under U1 goes too (edit 34 reroutes it between its vias).
+#  - USB_CURR_OUT2 (TUSB320 OUT2, a static level): the part of its 300-segment autorouted path between U1's escape
+#    via and the corner at (-8.4, 75.3), which wound through the DSI escape and the area CLK now uses, is lifted;
+#    edit 34 routes that part again. Its run on to the west edge and the TUSB320 stays. BTN_LEFT's F.Cu run under U1 goes too (edit 34 reroutes it between its vias).
 #  - CHG_STATUS's F.Cu diagonal (11.75, 81.7) -> (16.25, 77.2) moves to In3 (same line, via at its south end; the
 #    via at its north end becomes an In3 corner and goes): it walled off J1's south side from the east column.
 #  - The backlight pair (LCD_LED_A/K) jogs 1.1 mm east into the old DSI column between J1 and Y 88-89.5, with its widths
@@ -13,6 +14,9 @@
 #  - PGOOD_STATUS's and PWR_WAKE's short hops south of J1 (F.Cu jogs, their vias and the first In3 run east) are lifted:
 #    they sat where CLK enters J1. Edit 34 reconnects them between the anchors left in place.
 #  - The bare ground stitching via at (1.59, 91.25) on the B.Cu strap under the DSI pads goes (D1's In3 lane).
+#  - The ground planes on In1 and In4 clear other nets by 0.15 mm (the Default netclass clearance) instead of 0.2 mm,
+#    so a via's antipad is 0.375 mm in radius; the DSI pairs keep 0.17 mm from via pads (dsi_pair_router.VIA_GROW) and
+#    so never run over a hole in their reference planes.
 #  - EN_DCDC (U1 GPIO -> U3 EN, a static level) leaves the F.Cu column at X -0.69 that split the free F.Cu over U1's
 #    west half in two: from its via at (-4.37, 78.47) it now runs down X -3.75/-3.6 between FB_DCDC and the USB_JTAG vias
 #    and joins its old run at Y 97.7 (24.3 mm instead of 22.1 mm). The CLK pair gets that area for its matching.
@@ -22,8 +26,17 @@ kill_tracks(lambda t: dsi(t.GetNetname()))
 for z in [z for z in b.Zones() if z.GetZoneName()=='DSI_REF_IN2']: b.Remove(z)
 L3=L['In3.Cu']
 kill_tracks(lambda t: t.GetNetname()=='1V1_HP' and t.Type()!=pcbnew.PCB_VIA_T and t.GetLayer()==L3)
-kill_tracks(lambda t: t.GetNetname()=='USB_CURR_OUT2')
-kill_tracks(lambda t: t.GetNetname()=='BTN_LEFT' and t.Type()!=pcbnew.PCB_VIA_T and t.GetLayer()==L['F.Cu'])
+def _uc2_lift(t):
+    # USB_CURR_OUT2 between U1's escape via (4.125, 85.225) and the corner (-8.4, 75.3) of its run to the west edge
+    if t.GetNetname()!='USB_CURR_OUT2': return False
+    if t.Type()==pcbnew.PCB_VIA_T:
+        x,y=mm(t.GetPosition().x),mm(t.GetPosition().y)
+        return not (abs(x-4.125)<0.01 and abs(y-85.225)<0.01) and x>-8.45 and y>74.9
+    ends=[(mm(t.GetStart().x),mm(t.GetStart().y)),(mm(t.GetEnd().x),mm(t.GetEnd().y))]
+    if t.GetLayer()==L['B.Cu'] and all(4.0<=x<=4.95 and 85.1<=y<=85.65 for x,y in ends): return False   # pad 18 -> via
+    return all(x>-8.45 and y>74.9 for x,y in ends)
+kill_tracks(_uc2_lift)
+kill_tracks(lambda t: t.GetNetname()=='BTN_LEFT' and t.Type()!=pcbnew.PCB_VIA_T and t.GetLayer()==L['F.Cu'] and mm(t.GetStart().x)>-5)  # not SW1's pad stub
 remove_via(1.592,91.251,'GND')   # bare stitching via on the ground strap, in D1's In3 lane
 remove('F.Cu',11.75,81.7,16.25,77.2,'CHG_STATUS')
 remove_via(16.25,77.2,'CHG_STATUS')
@@ -47,4 +60,6 @@ for seg in ((5.763,77.155,5.763,76.089),(5.763,76.089,6.111,75.741),(6.111,75.74
     remove('In3.Cu',*seg,'PWR_WAKE')
 remove('F.Cu',-0.694,82.149,-4.374,78.469,'EN_DCDC'); remove('F.Cu',-0.694,99.0,-0.694,82.149,'EN_DCDC')
 add('F.Cu',[(-4.374,78.469),(-3.75,79.093),(-3.75,89.25),(-4.05,89.55),(-3.6,90.0),(-3.6,94.75),(-0.694,97.656),(-0.694,99.0)],net('EN_DCDC'),0.152)
+for z in [z for z in b.Zones() if z.GetNetname()=='GND' and not z.GetIsRuleArea() and (z.IsOnLayer(L['In1.Cu']) or z.IsOnLayer(L['In4.Cu']))]:
+    assert abs(mm(z.GetLocalClearance())-0.2)<1e-6; z.SetLocalClearance(MM(0.15))
 print('clear: R25 DSI copper and band, In3 1V1 run, USB_CURR_OUT2 and BTN_LEFT F.Cu removed, EN_DCDC moved west')

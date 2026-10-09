@@ -120,7 +120,7 @@ class Field:
         yy, xx = np.mgrid[i0:i1, j0:j1]
         self.mask[i0:i1, j0:j1] |= path.contains_points(np.c_[(X0 + xx * RES).ravel(), (Y0 + yy * RES).ravel()]).reshape(i1 - i0, j1 - j0)
 
-    def finish(self): self.dist = ndimage.distance_transform_edt(~self.mask) * RES - RES / 2
+    def finish(self): self.dist = (ndimage.distance_transform_edt(~self.mask) * RES - RES / 2).astype(np.float32)
 
     def d(self, x, y):
         i, j = fidx(x, y)
@@ -132,13 +132,20 @@ def pts_of(sps, k, hole=None):
     return [(mm(o.CPoint(i).x), mm(o.CPoint(i).y)) for i in range(o.PointCount())]
 
 
-def base_fields(b, skip):
+VIA_GROW = 0.0    # extra pair-to-via clearance (tracks only; via rows use the plain clearance). Kept at 0: the pairs
+                  # keep the board's 0.12 mm. Under U1 the D0 In3 lane is 0.02-0.04 mm too narrow for 0.15 mm (the
+                  # 0.15 mm antipad edge), so a pair edge can overlap a via antipad in its plane by up to 0.03 mm;
+                  # CHECKS/dsi_pair_check.py lists each place. Ground vias have no antipad.
+
+
+def base_fields(b, skip, via_grow=0.0):
     layers = ('F.Cu', 'B.Cu', 'In3.Cu')
     F = {l: Field() for l in layers}; lid = {l: b.GetLayerID(l) for l in layers}
     for t in b.GetTracks():
         if t.GetNetname() in skip: continue
         if t.Type() == pcbnew.PCB_VIA_T:
-            for l in layers: F[l].circle(mm(t.GetPosition().x), mm(t.GetPosition().y), mm(t.GetWidth()) / 2)
+            g = 0.0 if t.GetNetname() == 'GND' else via_grow
+            for l in layers: F[l].circle(mm(t.GetPosition().x), mm(t.GetPosition().y), mm(t.GetWidth()) / 2 + g)
             continue
         for l in layers:
             if t.GetLayer() == lid[l]:
@@ -150,7 +157,9 @@ def base_fields(b, skip):
                 if not p.IsOnLayer(lid[l]): continue
                 sp = p.GetEffectivePolygon()
                 for k in range(sp.OutlineCount()): F[l].poly(pts_of(sp, k))
-                if p.GetDrillSizeX() > 0: F[l].circle(mm(p.GetPosition().x), mm(p.GetPosition().y), mm(p.GetDrillSizeX()) / 2 + 0.15)
+                if p.GetDrillSizeX() > 0: F[l].circle(mm(p.GetPosition().x), mm(p.GetPosition().y),
+                                                      max(mm(p.GetDrillSizeX()) / 2 + 0.15, mm(max(p.GetSize().x, p.GetSize().y)) / 2
+                                                          + (0.0 if p.GetNetname() == 'GND' else via_grow)))
     for f in b.GetFootprints():                      # the DSI pads themselves (U1, J1) block every other route
         for p in f.Pads():
             if p.GetNetname() not in skip: continue
@@ -171,17 +180,20 @@ def base_fields(b, skip):
     return F, E
 
 
-def add_pair_obstacles(F, geo, grow=CLR_DSI - CLR):
+def add_pair_obstacles(F, geo, grow=CLR_DSI - CLR, via_grow=None):
     """Copper of another pair (tracks per layer, vias), grown so the board clearance check becomes the pair-to-pair one
-    (breakouts: grow 0, the plain board clearance)."""
+    (breakouts: grow 0, the plain board clearance; their vias still get VIA_GROW for the antipads)."""
     for lay, a, c, w in geo['tracks']:
         F[lay].capsule(a, c, w / 2 + grow)
     for v in geo['vias']:
-        for l in F: F[l].circle(v[0], v[1], VIA_D / 2 + grow)
+        for l in F: F[l].circle(v[0], v[1], VIA_D / 2 + max(grow, VIA_GROW if via_grow is None else via_grow))
 
 
 class Search:
-    def __init__(self, F, E): self.F, self.E, self.own = F, E, []   # own: copper points of this pair no via row may near
+    def __init__(self, F, E, Fv=None):
+        # F: clearance fields for the pair's tracks; Fv: the same without VIA_GROW, for placing its via rows (via to via
+        # needs only the copper clearance); own: copper points of this pair no via row may near
+        self.F, self.E, self.Fv, self.own = F, E, Fv if Fv is not None else F, []
 
     def ok(self, layer, x, y):
         return self.F[layer].d(x, y) >= HALF[layer] + CLR and self.E.d(x, y) >= HALF[layer] + EDGE
@@ -194,7 +206,7 @@ class Search:
             for lay, (ox, oy) in self.own:
                 if math.hypot(vx - ox, vy - oy) < VIA_D / 2 + HALF[lay] + CLR: return False
             for l in self.F:
-                if self.F[l].d(vx, vy) < VIA_D / 2 + CLR: return False
+                if self.Fv[l].d(vx, vy) < VIA_D / 2 + CLR: return False
         return True
 
     def route(self, starts, goal, gdir, soft=None, hist=None, pres=0.0):
@@ -416,7 +428,8 @@ def main():
     topo = TOPOLOGY[sys.argv[5] if len(sys.argv) > 5 else 'none']
     b = pcbnew.LoadBoard(board)
     dsi = {p[k] for p in BREAKOUT.values() for k in ('P', 'N')}
-    F0, E = base_fields(b, dsi)
+    F0, E = base_fields(b, dsi, VIA_GROW)
+    Fv0, _ = base_fields(b, dsi, 0.0)
     fixed = {}
     for name, bo in BREAKOUT.items():
         tr = [(lay, a, c, GEO[lay][0]) for side in ('P', 'N') for lay, pts in bo['stubs'][side] for a, c in zip(pts, pts[1:])]
@@ -436,8 +449,16 @@ def main():
             F['F.Cu'].capsule((ga[0] - gd[0] * 0.8, ga[1] - gd[1] * 0.8), (ga[0] + gd[0] * 1.2, ga[1] + gd[1] * 1.2), HALF['F.Cu'] + CLR_DSI - CLR)
         for lay, kx0, ky0, kx1, ky1 in topo.get(name, []):
             F[lay].poly([(kx0, ky0), (kx1, ky0), (kx1, ky1), (kx0, ky1)])
+        Fv = {l: Field() for l in Fv0}
+        for l in Fv: Fv[l].mask = Fv0[l].mask.copy()
+        for other, geo in fixed.items():
+            if other != name: add_pair_obstacles(Fv, geo, 0.0, 0.0)
+            else:
+                for v in geo['vias']:
+                    for l in Fv: Fv[l].circle(v[0], v[1], VIA_D / 2)
         for l in F: F[l].finish()
-        searches[name] = Search(F, E)
+        for l in Fv: Fv[l].finish()
+        searches[name] = Search(F, E, Fv)
         starts[name] = start_options(name, F)
         print(name, 'starts', [(o[0], o[1], o[2], ('In3', 'F')[o[3]], o[4]) for o in starts[name][1]], flush=True)
     ny, nx = int(round((Y1 - Y0) / STEP)) + 1, int(round((X1 - X0) / STEP)) + 1

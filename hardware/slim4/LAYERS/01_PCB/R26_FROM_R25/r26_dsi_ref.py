@@ -3,11 +3,12 @@
 # In4 ground plane, so In2 is the nearer reference, and In2 is the power layer. A GND area on In2 covers every In3 DSI
 # segment with 0.6 mm to spare each side (more than 5x the 0.109 mm height), the runs joined into one band, so on In3
 # the pairs are striplines between ground on both sides (0.10 mm lines, 0.18 mm gap: about 98 ohm differential,
-# IPC-2141 asymmetric stripline with the coupled-stripline factor). The band is stitched by the ground vias it covers.
+# IPC-2141 asymmetric stripline with the coupled-stripline factor). The band is stitched by the ground vias it covers
+# and clears other nets by 0.15 mm, like the In1 and In4 planes (edit 31).
 #  Where D0 runs under U1 the band crosses the south strip of the In2 1V1_HP area; the 1V1 via at (6.09, 87.58) that
 #  feeds U1's south-row core pins would be left on an island, so a 0.4 mm 1V1 channel on In2 joins it to the main
-#  1V1 area to the north-west (up X 6.09, west along Y 86.4). The channel stays north of D0: the band keeps 0.31 mm
-#  (about 3 heights) beyond D0's copper on that side for those 2 mm, 0.6 mm everywhere else.
+#  1V1 area to the north-west (up X 6.09, west along Y 86.4). The channel stays north of D0: between D0's copper and
+#  1V1 the band keeps 0.32 mm (about 3 heights) along the channel and 0.22 mm at the feed via, 0.6 mm everywhere else.
 #  Return vias: every DSI layer change between differently referenced layers (B.Cu or In3 to F.Cu: In4/In2 to In1)
 #  needs a ground via on each side of the pair; B.Cu -> In3 (D0, D1 breakouts) shares In4, the plane between the two
 #  layers, and needs none. Where the via row has none (edit 32 puts them beside the second via pair where they fit),
@@ -19,6 +20,7 @@ exec(open(sys.argv[2]).read())
 LIN2=L['In2.Cu']; LIN3=L['In3.Cu']
 band=pcbnew.SHAPE_POLY_SET()
 segs=[t for t in b.GetTracks() if t.Type()!=pcbnew.PCB_VIA_T and t.GetLayer()==LIN3 and t.GetNetname().startswith('MIPI_DSI')]
+segs.sort(key=lambda t: (t.GetNetname(), t.GetStart().x, t.GetStart().y, t.GetEnd().x, t.GetEnd().y))   # same band every build
 def capsule(a, c, r, n=16):
     """Polygon (mm) of all points within r of segment a-c: two half-circles joined."""
     ang=math.atan2(c[1]-a[1], c[0]-a[0]); pts=[]
@@ -85,13 +87,13 @@ print('dsi ref: return vias: '+'; '.join(ret))
 FEED=(6.0945,87.5767)
 assert any(t.Type()==pcbnew.PCB_VIA_T and t.GetNetname()=='1V1_HP' and near(t.GetPosition(),*FEED) for t in b.GetTracks())
 ch=rect_poly([(5.89,86.2,6.29,FEED[1]),(4.2,86.2,6.29,86.6)])
-cut=ch.CloneDropTriangulation(); cut.Inflate(MM(0.2),16)
+cut=ch.CloneDropTriangulation(); cut.Inflate(MM(0.15),16)
 outl.BooleanSubtract(cut, pcbnew.SHAPE_POLY_SET.PM_FAST)
 z1=[zz for zz in b.Zones() if zz.GetNetname()=='1V1_HP' and zz.IsOnLayer(LIN2)]
 assert len(z1)==1
 o1=z1[0].Outline().CloneDropTriangulation(); o1.BooleanAdd(ch, pcbnew.SHAPE_POLY_SET.PM_FAST); o1.Simplify(pcbnew.SHAPE_POLY_SET.PM_FAST)
 z1[0].Outline().RemoveAllContours(); z1[0].Outline().Append(o1)
-z=zone('In2.Cu', [], 'GND', prio=6, clearance=0.2, minw=0.15, conn='solid', name='DSI_REF_IN2')
+z=zone('In2.Cu', [], 'GND', prio=6, clearance=0.15, minw=0.15, conn='solid', name='DSI_REF_IN2')
 z.Outline().RemoveAllContours(); z.Outline().Append(outl)
 ov={}
 for zz in b.Zones():

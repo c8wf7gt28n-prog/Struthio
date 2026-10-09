@@ -1,16 +1,47 @@
 #!/usr/bin/env python3
-"""Check the firmware's GPIO assignments against the PCB R25 board itself (pins unchanged from R23).
+"""Check the firmware's GPIO assignments against the PCB R26 board (pins unchanged from R23).
 
 Every SLIM4_GPIO_* in components/slim4_bsp/include/slim4_pins.h is looked up in the ESP32-P4 QFN-104 pin table
 (GPIO -> package pad, datasheet section 2.2 / chip revision v3) and the board net on that U1 pad is read from
-hardware/slim4/LAYERS/01_PCB/SLIM4_R25_PCB_LAYER.json (exported from SLIM4_R25.kicad_pcb). The net must be the
-one the define is named for. The display, I2S and active-low control code paths are checked to use the defines.
+tools/u1_pad_nets.json, which ships with the firmware (U1's pad -> net table, taken from the board export
+hardware/slim4/LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json). The net must be the one the define is named for. The display,
+I2S and active-low control code paths are checked to use the defines.
+
+    python3 tools/check_pinmap.py                      # the bundled table: works from the firmware folder alone
+    python3 tools/check_pinmap.py --board EXPORT.json  # a board export instead (e.g. a newer PCB revision)
+    python3 tools/check_pinmap.py --write-table EXPORT.json   # refresh tools/u1_pad_nets.json from an export
+
+Inside the full repository the bundled table is also compared with the repository's board export.
 """
 import json, re, sys
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-board = root.parents[1] / 'hardware/slim4/LAYERS/01_PCB/SLIM4_R25_PCB_LAYER.json'
+table = root / 'tools/u1_pad_nets.json'
+repo_board = root.parents[1] / 'hardware/slim4/LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json'
+
+
+def u1_pads(export):
+    """U1 pad number -> net name from a board export (*_PCB_LAYER.json)."""
+    return {p['num']: p['netName'] for p in json.loads(Path(export).read_text())['pads']
+            if p['ref'] == 'U1' and p['num'].isdigit()}
+
+
+args = sys.argv[1:]
+if args[:1] == ['--write-table']:
+    src = Path(args[1])
+    table.write_text(json.dumps({'board': src.name, 'u1_pads': dict(sorted(u1_pads(src).items(), key=lambda kv: int(kv[0])))},
+                                indent=1) + '\n')
+    print(f'wrote {table.relative_to(root)} from {src.name}')
+    sys.exit(0)
+if args[:1] == ['--board']:
+    source = Path(args[1]); pads_by_num = u1_pads(source)
+else:
+    t = json.loads(table.read_text()); source = Path(t['board']); pads_by_num = t['u1_pads']
+    if repo_board.exists() and u1_pads(repo_board) != pads_by_num:
+        print(f'FAIL: tools/u1_pad_nets.json ({t["board"]}) differs from {repo_board.name}; '
+              f'refresh it with --write-table {repo_board}')
+        sys.exit(1)
 
 # ESP32-P4 QFN-104: GPIO -> package pad, for the GPIOs this board uses (pin 9 is VDD_LP, so GPIO9.. sit one pad up;
 # GPIO0 is pad 104, beside CHIP_PU on 103).
@@ -20,10 +51,7 @@ P4_PAD = {0: 104, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 10, 10: 11,
 NET = {'BOOT_BTN': 'BOOT_STRAP'}
 
 pins = {m[1]: int(m[2]) for m in re.finditer(r'#define\s+SLIM4_GPIO_(\w+)\s+GPIO_NUM_(\d+)', (root / 'components/slim4_bsp/include/slim4_pins.h').read_text())}
-pads = {}
-for p in json.loads(board.read_text())['pads']:
-    if p['ref'] == 'U1' and p['num'].isdigit():
-        pads[int(p['num'])] = p['netName']
+pads = {int(k): v for k, v in pads_by_num.items()}
 
 bad = []
 for name, gpio in sorted(pins.items(), key=lambda t: t[1]):
@@ -46,4 +74,4 @@ for token in ['SLIM4_GPIO_BTN_LEFT', 'SLIM4_GPIO_BTN_RIGHT', 'SLIM4_GPIO_DART_LE
 if bad:
     print('FAIL:\n  ' + '\n  '.join(bad))
     sys.exit(1)
-print(f'PASS: {len(pins)} firmware GPIO assignments match the R25 board nets on U1 ({board.name}); USB-Serial-JTAG pair intact')
+print(f'PASS: {len(pins)} firmware GPIO assignments match the board nets on U1 ({source.name}); USB-Serial-JTAG pair intact')
