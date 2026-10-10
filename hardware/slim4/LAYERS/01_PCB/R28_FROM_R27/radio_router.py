@@ -287,12 +287,15 @@ def main():
             if path is None:
                 print(f'{net}: NO ROUTE even alone against the board ({n} states)'); sys.exit(2)
             paths[net] = path; fps[net] = footprint(G, path)
-        total = 0
+        total = 0; where = []
         for net in NETS:
             dT, dV = conflict_fields(G, [fps[o] for o in NETS if o != net])
             bad, badv = conflicts(fps[net], dT, dV)
             nb = sum(int(x.sum()) for x in bad) + int(badv.sum())
             total += nb
+            for l in range(3):
+                for i, j in zip(*np.nonzero(bad[l])): where.append((net, LAYERS[l], *G.xy(i, j)))
+            for i, j in zip(*np.nonzero(badv)): where.append((net, 'via', *G.xy(i, j)))
             for l in range(3): hist_t[l][ndimage.binary_dilation(bad[l], iterations=3)] += 0.3
             hist_v[ndimage.binary_dilation(badv, iterations=6)] += 0.3
         print(f'pass {it}: {total} conflicting cells (present factor {pres:.2f})', flush=True)
@@ -305,6 +308,7 @@ def main():
         a1, a15 = NETS[net]
         print(f'{net}: U1.{a1} -> U15.{a15}: {L:.1f} mm, {len(vias)} vias')
         res[net] = dict(width=W, segments=segs, vias=vias)
+    if total: res['_conflicts'] = where
     json.dump(res, open(out, 'w'), indent=1)
     if total: print(f'UNRESOLVED: {total} conflicting cells'); sys.exit(1)
 
