@@ -45,7 +45,7 @@ STEP = 0.05
 BOX = (-33.0, 70.0, 6.0, 98.0)        # the routing region: U1's north side, the module and the land round it
 if os.environ.get('RR_BOX'): BOX = tuple(float(v) for v in os.environ['RR_BOX'].split(','))
 # net: (U1 pad, U15 pad); pin assignment in r28_radio_parts.py
-NETS = {'RADIO_UART_TX': ('80', '1'), 'RADIO_UART_RX': ('81', '2'), 'RADIO_NRST': ('82', '22'), 'RADIO_BOOT0': ('93', '21')}
+NETS = {'RADIO_UART_TX': ('80', '30'), 'RADIO_UART_RX': ('81', '29'), 'RADIO_NRST': ('82', '44'), 'RADIO_BOOT0': ('93', '43')}
 if os.environ.get('RR_NETS'):                              # experiments: another assignment, "NET:u1pad:u15pad,..."
     NETS = {a: (b_, c_) for a, b_, c_ in (x.split(':') for x in os.environ['RR_NETS'].split(','))}
 for _n in os.environ.get('RR_DROP', '').split(','):       # experiments: leave nets out
@@ -131,6 +131,18 @@ class Board:
                     fl.capsule((mm(t.GetStart().x), mm(t.GetStart().y)), (mm(t.GetEnd().x), mm(t.GetEnd().y)), mm(t.GetWidth()) / 2)
                     km[t.GetLayerName()] |= fl.mask
             self.kept[nn], self.removed[nn] = km, rem            # every radio pad is an obstacle here; a net's own are reopened below
+        for nn in NETS:                           # the radio nets' copper edit 45 already drew (stubs, pull-up / pull-down
+            km = {l: np.zeros((R.NY, R.NX), bool) for l in LAYERS}       # joins): kept, an obstacle for the other nets
+            for t in b.GetTracks():
+                if t.GetNetname() != nn: continue
+                fl = R.Field()
+                if t.Type() == pcbnew.PCB_VIA_T:
+                    fl.circle(mm(t.GetPosition().x), mm(t.GetPosition().y), mm(t.GetWidth()) / 2)
+                    for l in LAYERS: km[l] |= fl.mask
+                elif t.GetLayerName() in km:
+                    fl.capsule((mm(t.GetStart().x), mm(t.GetStart().y)), (mm(t.GetEnd().x), mm(t.GetEnd().y)), mm(t.GetWidth()) / 2)
+                    km[t.GetLayerName()] |= fl.mask
+            self.kept[nn] = km
         lid = {l: b.GetLayerID(l) for l in LAYERS}
         dsi = {p[k] for p in R.BREAKOUT.values() for k in ('P', 'N')}
         for t in b.GetTracks():                   # grown keep-outs: DSI pairs and the quiet nets (outside the neck)

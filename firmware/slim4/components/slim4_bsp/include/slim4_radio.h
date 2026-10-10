@@ -1,5 +1,5 @@
 #pragma once
-/* SLIM4 radio (PCB R28+): U15 RAKwireless RAK3172, an STM32WLE5 (SX126x-class LoRa/FSK radio with its own Cortex-M4)
+/* SLIM4 radio (PCB R28+): U15 RAKwireless RAK3172-SiP, an STM32WLE5 (SX126x-class LoRa/FSK radio with its own Cortex-M4)
  * running RAKwireless's RUI3 firmware, which takes AT commands on its UART2 at 115200 8N1. U1 talks to it on UART1
  * (pins in slim4_pins.h). Peer-to-peer LoRa ("P2P", AT+NWM=0) carries the games; no gateway or network is involved.
  *

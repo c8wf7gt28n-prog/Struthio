@@ -1,4 +1,4 @@
-/* SLIM4 radio driver (PCB R28+): U15 RAK3172 (STM32WLE5 running RAKwireless RUI3) on UART1, pins in slim4_pins.h.
+/* SLIM4 radio driver (PCB R28+): U15 RAK3172-SiP (STM32WLE5 running RAKwireless RUI3) on UART1, pins in slim4_pins.h.
  * The module takes AT commands on its UART2 at 115200 8N1 (RAK3172 datasheet; RUI3 AT command manual: AT, AT+VER=?,
  * AT+NWM=<0 P2P | 1 LoRaWAN>, AT+P2P=<freq>:<sf>:<bw>:<cr>:<preamble>:<dBm>, AT+PSEND=<hex>, AT+PRECV=<ms>, replies
  * OK / AT_*_ERROR and events +EVT:TXP2P DONE, +EVT:RXP2P:<rssi>:<snr>:<hex>, +EVT:RXP2P RECEIVE TIMEOUT).

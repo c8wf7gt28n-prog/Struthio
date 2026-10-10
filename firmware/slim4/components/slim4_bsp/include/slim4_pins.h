@@ -38,11 +38,11 @@
 
 /* USB-Serial-JTAG (GPIO24 D-, GPIO25 D+) carries the console: never reconfigure them. */
 
-/* Radio (PCB R28+): U15 RAKwireless RAK3172 (STM32WLE5, LoRa/FSK 902-928 MHz) on U1 pins that had no net before R28.
- * It runs the radio itself and takes AT commands on its UART2 (115200 8N1); powered from 3V3_SYS through R701
- * (0 ohm). R702 10 k holds BOOT0 low. A board without U15 or R701 leaves these pins open, so the driver checks that
+/* Radio (PCB R28+): U15 RAKwireless RAK3172-SiP (RAK3172-SIP-9-SM-NI: STM32WLE5 in a 12 x 12 mm LGA, LoRa/FSK
+ * 902-928 MHz, antenna on J701 U.FL) on U1 pins that had no net before R28. It runs the radio itself and takes AT
+ * commands on its UART2 (115200 8N1); powered from 3V3_SYS through R701 (0 ohm). R702 10 k holds BOOT0 low. A board without U15 or R701 leaves these pins open, so the driver checks that
  * the module drives its TX line before it relies on it, and otherwise leaves every radio pin an input. */
-#define SLIM4_GPIO_RADIO_UART_TX  GPIO_NUM_39  /* U1 transmits -> U15 pin 1 (UART2_RX) */
-#define SLIM4_GPIO_RADIO_UART_RX  GPIO_NUM_40  /* U1 receives  <- U15 pin 2 (UART2_TX) */
-#define SLIM4_GPIO_RADIO_NRST     GPIO_NUM_41  /* U15 pin 22, active low (pull-up inside the STM32WL) */
-#define SLIM4_GPIO_RADIO_BOOT0    GPIO_NUM_50  /* U15 pin 21, high at reset = STM32 ROM bootloader (R702 pulls low) */
+#define SLIM4_GPIO_RADIO_UART_TX  GPIO_NUM_39  /* U1 transmits -> U15 pin 30 (UART2_RX) */
+#define SLIM4_GPIO_RADIO_UART_RX  GPIO_NUM_40  /* U1 receives  <- U15 pin 29 (UART2_TX) */
+#define SLIM4_GPIO_RADIO_NRST     GPIO_NUM_41  /* U15 pin 44, active low (R703 10 k pull-up, C726 100 nF) */
+#define SLIM4_GPIO_RADIO_BOOT0    GPIO_NUM_50  /* U15 pin 43, high at reset = STM32 ROM bootloader (R702 pulls low) */
