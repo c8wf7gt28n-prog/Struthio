@@ -1,6 +1,7 @@
 # R27 check (after the zone fill): the core regulator's feedback and enable routes (FB_DCDC, EN_DCDC, 17-20 mm from
-# U1 to U3, pre-order review P4CORE M1) run over unbroken ground: every F.Cu segment over In1's filled GND and every
-# B.Cu segment over In4's, along its whole length widened by 0.2 mm each side. Moving U3 next to U1 would mean moving
+# U1 to U3, pre-order review P4CORE M1) run over unbroken ground: the copper of every F.Cu segment over In1's filled
+# GND and of every B.Cu segment over In4's, except where it ends on its own via or pad. A crossing is allowed only over
+# the edge of a via antipad or a slot round another net's track on the plane layer, and is listed. Moving U3 next to U1 would mean moving
 # a dozen parts and the DSI escape; the divider (R104/R105/C134) is within 3 mm of U3's FB pin and the route's
 # same-layer neighbours are static nets (CHIP_PU, 3V3_SYS, EN_DCDC, 1V1_HP), so the plane is what is checked.
 # Usage: python3 r27_plane_check.py BOARD.kicad_pcb

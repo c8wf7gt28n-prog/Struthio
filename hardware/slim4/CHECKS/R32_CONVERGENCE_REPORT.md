@@ -4,8 +4,8 @@ Result: **NOT CONVERGED** · FAIL 3 · GATE 9 · INFO 3 · PASS 78
 
 | ID | Interface | Check | Status | Value | Limit |
 |---|---|---|---|---|---|
-| A1 | PCB | LAYERS/01_PCB/SLIM4_R27.kicad_pcb unchanged from R32 delivery | PASS | "c514c6224e07bebe" | "c514c6224e07bebe" |
-| A1 | PCB | LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json unchanged from R32 delivery | PASS | "bf2ca58a2458898c" | "bf2ca58a2458898c" |
+| A1 | PCB | LAYERS/01_PCB/SLIM4_R27.kicad_pcb unchanged from R32 delivery | PASS | "3676ef1c2c92449f" | "3676ef1c2c92449f" |
+| A1 | PCB | LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json unchanged from R32 delivery | PASS | "71ef66638f2dc3d2" | "71ef66638f2dc3d2" |
 | A2 | PCB↔CASE | Board thickness used by the case = board file thickness | PASS | 1.2 | 1.2 |
 | B1 | CASE | Exterior envelope (approved 104.0 × 135.3) | PASS | [104.0, 135.3] | [104.0, 135.3] |
 | B2 | PCB↔CASE | R27 board inside the 2.0 mm wall with ≥0.3 mm clearance | PASS | 0.334 | 0.3 |

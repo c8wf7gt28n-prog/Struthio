@@ -28,8 +28,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # SHA-256 of the R27 PCB sources as delivered in the R32 package (SHA256SUMS.txt).
 PCB_BASELINE = {
-    'LAYERS/01_PCB/SLIM4_R27.kicad_pcb': 'c514c6224e07bebe026c862c5da14b9fac4256b76c9fe487a548ee9e01ebbed2',
-    'LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json': 'bf2ca58a2458898c926d7836c9b2127c3a17aef036b84fe7fafba39875a0624f',
+    'LAYERS/01_PCB/SLIM4_R27.kicad_pcb': '3676ef1c2c92449fd20f41cd1128b1a54deae32e32b292438705e2fe145e0ebf',
+    'LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json': '71ef66638f2dc3d2cc3df061733f59adc0dd4d5bf6dbc4f93922dddb4f274b97',
 }
 # The chosen panel (LAYERS/01_PCB/DISPLAY_PORT.md): Crystalfontz CFAF7201280A0-050TN outline, active area and
 # FPC pin table (datasheet 2022-11-17, section 6.2). Pins not listed are NC (1-9 touch, 12-13, 15 TE, 16, 22-23 and

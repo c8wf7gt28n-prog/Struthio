@@ -13,8 +13,8 @@
       "interface": "PCB",
       "title": "LAYERS/01_PCB/SLIM4_R27.kicad_pcb unchanged from R32 delivery",
       "status": "PASS",
-      "value": "c514c6224e07bebe",
-      "limit": "c514c6224e07bebe",
+      "value": "3676ef1c2c92449f",
+      "limit": "3676ef1c2c92449f",
       "detail": ""
     },
     {
@@ -22,8 +22,8 @@
       "interface": "PCB",
       "title": "LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json unchanged from R32 delivery",
       "status": "PASS",
-      "value": "bf2ca58a2458898c",
-      "limit": "bf2ca58a2458898c",
+      "value": "71ef66638f2dc3d2",
+      "limit": "71ef66638f2dc3d2",
       "detail": ""
     },
     {

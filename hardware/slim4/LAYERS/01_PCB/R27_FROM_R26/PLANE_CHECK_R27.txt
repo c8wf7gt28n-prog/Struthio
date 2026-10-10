@@ -1,0 +1,6 @@
+plane check: FB_DCDC/EN_DCDC 36 segments, 58.8 mm: no other gap in their ground planes; 5 cross a via antipad edge or another net's slot (largest 0.069 mm2 of track)
+  EN_DCDC F.Cu (-4.05, 89.55)-(-3.60, 90.00): 0.054 mm2 over the edge of a USB_JTAG_DP via antipad and the slot round USB_JTAG_DP on In1.Cu
+  EN_DCDC F.Cu (-3.75, 79.09)-(-3.75, 89.25): 0.007 mm2 over the edge of a USB_JTAG_DP/a VDDO_PSRAM_1V9 via antipad and the slot round USB_JTAG_DP on In1.Cu
+  EN_DCDC F.Cu (-3.75, 89.25)-(-4.05, 89.55): 0.063 mm2 over the edge of a USB_JTAG_DP via antipad and the slot round USB_JTAG_DP on In1.Cu
+  FB_DCDC F.Cu (-4.45, 89.13)-(-4.45, 90.32): 0.069 mm2 over the slot round USB_JTAG_DP on In1.Cu
+  FB_DCDC B.Cu (-4.88, 79.62)-(-5.42, 79.62): 0.025 mm2 over the edge of its own via antipad

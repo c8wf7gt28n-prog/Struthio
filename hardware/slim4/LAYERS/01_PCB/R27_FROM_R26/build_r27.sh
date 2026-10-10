@@ -18,4 +18,5 @@ edit r27_silk                                                          # 43 silk
 python3 "$S/r27_meta.py" "$B" 2026-10-10                               # 44 title block R27
 python3 "$S/r27_export_lib.py" "$B" "$(dirname "$B")/SLIM4.pretty" C138 C139 C140 R424 R401 R402 D2
 (cd "$(dirname "$B")" && python3 "$S/fill_drc.py" "$B")                # zone refill + KiCad DRC
-python3 "$S/r27_plane_check.py" "$B"                                   # ground under FB_DCDC / EN_DCDC (review M1)
+P="$S/PLANE_CHECK_R27.txt"                                             # ground under FB_DCDC / EN_DCDC (review M1)
+python3 "$S/r27_plane_check.py" "$B" > "$P" 2>&1 || { cat "$P"; exit 1; }; cat "$P"
