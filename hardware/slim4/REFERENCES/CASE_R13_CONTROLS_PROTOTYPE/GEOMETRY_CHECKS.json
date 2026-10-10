@@ -1,0 +1,32 @@
+{
+  "L": {
+    "valid_single_solid": true,
+    "volume_mm3": 793.896086791919,
+    "conditional_panel_overlap_mm3": 0.0,
+    "triangles": 3848,
+    "closed_mesh_edges": true
+  },
+  "R": {
+    "valid_single_solid": true,
+    "volume_mm3": 774.8323254729564,
+    "conditional_panel_overlap_mm3": 0.0,
+    "triangles": 3724,
+    "closed_mesh_edges": true
+  },
+  "DART": {
+    "valid_single_solid": true,
+    "volume_mm3": 1232.430760798814,
+    "conditional_panel_overlap_mm3": 0.0,
+    "triangles": 4096,
+    "closed_mesh_edges": true
+  },
+  "visible_cap_mirror_difference_mm3": 0.0,
+  "visible_rocker_mirror_difference_mm3": 0.0,
+  "visible_panel_edge_gap_mm": {
+    "L": 2.5,
+    "R": 2.5
+  },
+  "bezel_width_mm": 2.0,
+  "panel_clearance_mm": 0.2,
+  "button_side_clearance_mm": 0.3
+}

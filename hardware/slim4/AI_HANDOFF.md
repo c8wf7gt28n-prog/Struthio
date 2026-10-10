@@ -22,7 +22,8 @@ Cross-layer authority: `CHECKS/convergence_check.py`. A revision is converged on
    `python -B LAYERS/02_CASE/export_layer_formats.py` (STEP/STL, SVG/DXF, cut spec, fit summary, viewer meshes, full assembly STEP)
    `python -B CHECKS/convergence_check.py` (must end with 0 FAIL; R32 has 3 FAIL rows, the case pass the owner set aside, in `PRODUCTION_GATES.md`)
    `python -B CHECKS/render_review.py` (sections and views for the change report)
-   `python -B CHECKS/build_pcb_viewer_data.py` (studio PCB data)
+   `python -B CHECKS/build_pcb_viewer_data.py` (studio PCB data and the SYSTEMS map; it stops on an unassigned part or net, so add new parts to its tables)
+   `python -B CHECKS/build_bench_data.py` (BENCH steps from `BRINGUP_PROCEDURE.md` and the DOCS texts; after editing either)
    `python -B CHECKS/make_manifest.py` (last: PROJECT_MANIFEST.json and SHA256SUMS.txt).
 4. Component heights the checks use live in `CHECKS/COMPONENT_ENVELOPES_R27.json`, with their sources. Update that table (not the PCB) when a supplier figure changes.
 5. For PCB edits, use KiCad 7.0.x with the bundled project, local footprint library, and project file. Exported JSON is for inspection/interchange, not a replacement for the native board. A PCB edit is a new PCB revision and needs an explicit decision. Script it like `LAYERS/01_PCB/R27_FROM_R26/` (one edit per pcbnew process, then `fill_drc.py` beside the `.kicad_pro`, whose net-class rules DRC needs; give new copper areas distinct priorities so fills are reproducible), then run `CHECKS/export_pcb_layer.py` and `CHECKS/dsi_pair_check.py`, update the A1 hashes in `convergence_check.py`, and rebuild the builder files (which write `CHECKS/R27_FAB_SUMMARY.json`). After a pin change, run `firmware/slim4/tools/check_pinmap.py`.

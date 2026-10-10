@@ -40,7 +40,9 @@ toward the front.
 
 Start with:
   index.html                          the studio: PCB, CASE and ACRYLIC layers; copper pours,
-                                      BOM and sourcing for each part, fab status, open items; a guided tour
+                                      BOM and sourcing for each part, fab status, open items; a guided tour;
+                                      SYSTEMS (the board by function), BENCH (a bring-up record per board,
+                                      step by step, exported as JSON/CSV) and DOCS (these documents, offline)
   PRODUCTION_GATES.md                 what to order now, then, and in the case pass
   LAYERS/01_PCB/README_PCB_LAYER.md   R27, R26, R25, R24 and R23 changes, battery, sourcing U1, rebuild
   LAYERS/01_PCB/BRINGUP_PROCEDURE.md  probing the first boards, phase by phase
@@ -63,9 +65,10 @@ Package layout:
                          component heights, BOM sourcing, fab summary, DSI pair check, pre-order reviews, manifest,
                          viewer-bundle and builder-file generators
   REFERENCES/            reference only: PCB R26, R25, R24, R23, R22 and R21, the R22 display flex, the R10 fit study,
-                         the SLIM4 R3 study
+                         the SLIM4 R3 study, the CASE R13 symmetric-controls prototype and the R1 outline study
   root                   studio (index.html, app.js, eye.js, styles.css, eye.css, model-data.js,
-                         case-layer-data.js, acrylic-layer-data.js, case-r3-data.js,
+                         case-layer-data.js, acrylic-layer-data.js, case-r3-data.js, case-r13-data.js,
+                         bench.js, bench.css, bench-data.js,
                          R27_REAR_BOARD.svg, sw.js, manifest, icons), package docs,
                          requirements.txt, PROJECT_MANIFEST.json, SHA256SUMS.txt
 
@@ -82,7 +85,9 @@ the package root, in this order:
   python -B CHECKS/convergence_check.py
   python -B CHECKS/build_builder_packs.py <folder outside the package>   (again: its README quotes the report)
   python -B CHECKS/render_review.py
-  python -B CHECKS/build_pcb_viewer_data.py
+  python -B CHECKS/build_pcb_viewer_data.py      (also the SYSTEMS map: every part and net assigned, or it stops)
+  python -B CHECKS/build_bench_data.py           (bring-up steps and documents for BENCH and DOCS)
+  python -B CHECKS/build_r13_reference_data.py   (the R13 controls prototype layer)
   python -B CHECKS/make_manifest.py      (last)
 
 Files for the builders:

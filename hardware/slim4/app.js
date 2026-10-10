@@ -23,6 +23,8 @@
     referenceMode: false,
     partSideFilter: 'all',
     copperFilter: 'all',
+    system: 'all',       // SYSTEMS view: 'all' or a key of model.systems (isolate)
+    sysColor: false,     // colour parts and copper by system
     stackKey: 'build.assembled',
     selected: {type:'board', ref:'BOARD'},
     pointers: new Map(),
@@ -137,6 +139,11 @@
   }
 
   function partColor(cat){return COLORS[cat]||COLORS.other;}
+  // SYSTEMS view (data: model.systems, part.system, model.netSystems from CHECKS/build_pcb_viewer_data.py)
+  function sysOn(){return state.sysColor||state.system!=='all';}
+  function sysPart(p){return state.system==='all'||p.system===state.system;}
+  function sysNet(n){const k=(model.netSystems||{})[n];return state.system==='all'||k===state.system;}
+  function sysCopper(n,col){const k=(model.netSystems||{})[n];return sysOn()&&k&&model.systems?.[k]&&(state.system==='all'||k===state.system)?model.systems[k].color:col;}
   function partHeight(p){return p.z||1;}
   function explodeOffset(group,side){
     const e=state.explode;
@@ -162,18 +169,18 @@
     }
     if(state.groupVisibility.pcb && state.layers.parts){
       for(const p of model.parts){
-        const side=p.side||'front'; if(state.partSideFilter!=='all' && side!==state.partSideFilter)continue; if(side==='front'&&!state.layers.frontParts || side==='back'&&!state.layers.backParts)continue; const off=explodeOffset('parts',side);
+        const side=p.side||'front'; if(state.partSideFilter!=='all' && side!==state.partSideFilter)continue; if(!sysPart(p))continue; if(side==='front'&&!state.layers.frontParts || side==='back'&&!state.layers.backParts)continue; const off=explodeOffset('parts',side);
         const h=partHeight(p); let z0,z1;
         if(side==='back'){z1=0+off;z0=-h+off;}else{z0=model.board.thickness+off;z1=z0+h;}
         const o={x:p.x,y:p.y,w:p.w,h:p.h,rot:p.rot||0,z0,z1};
-        addObjectFaces(cmds,p,boxFaces(o),partColor(p.category),.96,p.ref,'part','parts');
+        addObjectFaces(cmds,p,boxFaces(o),sysOn()&&model.systems?.[p.system]?model.systems[p.system].color:partColor(p.category),.96,p.ref,'part','parts');
       }
     }
     const m=model.mechanical||{};
     const allowMechanical=state.groupVisibility.case&&(state.authority.case||state.referenceMode);
     const cad=cadParts();
     if(cad){
-      const enabled={shell:state.shell,display:state.layers.display,lens:state.layers.lens,acrylic:state.authority.art&&state.groupVisibility.acrylic&&state.layers.acrylic,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls,rear:state.layers.rear,routes:state.layers.routes};
+      const enabled={r13:state.layers.r13,shell:state.shell,display:state.layers.display,lens:state.layers.lens,acrylic:state.authority.art&&state.groupVisibility.acrylic&&state.layers.acrylic,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls,rear:state.layers.rear,routes:state.layers.routes};
       for(const item of cad){if(!enabled[item.group])continue;const off=explodeOffset(item.group);const faces=[];for(const tri of item.triangles){if(!tri.p.every(v=>v[2]<state.slice))continue;const pts=tri.p.map(v=>W(v[0],v[1],v[2]+off));faces.push({pts,shade:tri.s});}addObjectFaces(cmds,{ref:item.name},faces,item.color,item.opacity??1,item.name,'mechanical',item.group);}
     }else{
       if(allowMechanical && state.layers.display && m.display){const d=m.display,off=explodeOffset('display');addObjectFaces(cmds,{ref:'DISPLAY'},boxFaces({...d,z0:d.z0+off,z1:d.z0+d.d+off}),COLORS.display,.24,'DISPLAY','mechanical','display');}
@@ -239,9 +246,9 @@
         ctx.closePath();
       }
       if(!ok)continue;
-      const col=isFront?COLORS.copperF:isBack?COLORS.copperB:COLORS.copperI;
-      ctx.fillStyle=rgba(col,copperMode?.3:xray?.12:.08);ctx.fill('evenodd');
-      ctx.strokeStyle=rgba(col,copperMode?.6:.3);ctx.lineWidth=.6;ctx.stroke();
+      const col=sysCopper(zn.net,isFront?COLORS.copperF:isBack?COLORS.copperB:COLORS.copperI),zk=sysNet(zn.net)?1:.2;
+      ctx.fillStyle=rgba(col,(copperMode?.3:xray?.12:.08)*zk);ctx.fill('evenodd');
+      ctx.strokeStyle=rgba(col,(copperMode?.6:.3)*zk);ctx.lineWidth=.6;ctx.stroke();
     }
     for(const s of segs){
       const isFront=s.layer==='F.Cu',isBack=s.layer==='B.Cu',isInternal=!isFront&&!isBack;
@@ -253,9 +260,9 @@
       if(state.mode==='WIRE' && isInternal)continue;
       const z=copperLayerZ(s.layer); if(z>state.slice)continue;
       const p=project(W(s.x1,s.y1,z),basis,w,h),q=project(W(s.x2,s.y2,z),basis,w,h);if(!p||!q)continue;
-      const col=isFront?COLORS.copperF:isBack?COLORS.copperB:COLORS.copperI;
-      const alpha=copperMode?(isInternal?.54:.94):xray?(isInternal?.34:.67):.27;
-      ctx.strokeStyle=rgba(col,alpha);
+      const col=sysCopper(s.netName,isFront?COLORS.copperF:isBack?COLORS.copperB:COLORS.copperI);
+      const alpha=(copperMode?(isInternal?.54:.94):xray?(isInternal?.34:.67):.27)*(sysNet(s.netName)?(state.system!=='all'?1.8:1):.12);
+      ctx.strokeStyle=rgba(col,Math.min(1,alpha));
       ctx.lineWidth=clamp(s.w*(p.scale+q.scale)*.52,.45,copperMode?3.1:1.8);
       ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
     }
@@ -270,14 +277,14 @@
         if(pts.some(v=>!v))continue;
         const selected=state.selected?.type==='part' && pd.ref===state.selected.ref;
         ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();
-        ctx.fillStyle=rgba(selected?COLORS.selected:COLORS.pad,copperMode?.86:.34);ctx.fill();
+        ctx.fillStyle=rgba(selected?COLORS.selected:sysCopper(pd.netName,COLORS.pad),(copperMode?.86:.34)*(sysNet(pd.netName)?1:.15));ctx.fill();
       }
     }
     for(const v of vias){
       if(!['all','pads'].includes(state.copperFilter))continue;
       const z=Math.min(model.board.thickness+.055,state.slice);const p=project(W(v.x,v.y,z),basis,w,h);if(!p)continue;
       const r=clamp(v.size*p.scale*.5,.55,copperMode?4.2:2.4);
-      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=rgba(COLORS.via,copperMode?.96:.47);ctx.fill();
+      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=rgba(sysCopper(v.netName,COLORS.via),(copperMode?.96:.47)*(sysNet(v.netName)?1:.15));ctx.fill();
       const rh=clamp(v.drill*p.scale*.5,.25,2.1);ctx.beginPath();ctx.arc(p.x,p.y,rh,0,Math.PI*2);ctx.fillStyle='rgba(4,11,12,.85)';ctx.fill();
     }
     ctx.restore();
@@ -353,9 +360,10 @@
   // CAD part list on screen, or null when the legacy mechanical envelopes are used instead.
   function cadParts(){
     if(!state.groupVisibility.case)return null;
-    if(state.referenceMode)return window.STRUTHIO_CASE_R3?.parts||null;
-    if(!state.authority.case||!window.STRUTHIO_CASE_LAYER)return null;
-    return [...window.STRUTHIO_CASE_LAYER.parts,...(window.STRUTHIO_ACRYLIC_LAYER?.parts||[])];
+    const r13=state.layers.r13&&window.STRUTHIO_CASE_R13?window.STRUTHIO_CASE_R13.parts:[];   // prototype reference, off by default
+    if(state.referenceMode)return [...(window.STRUTHIO_CASE_R3?.parts||[]),...r13];
+    if(!state.authority.case||!window.STRUTHIO_CASE_LAYER)return r13.length?r13:null;
+    return [...window.STRUTHIO_CASE_LAYER.parts,...(window.STRUTHIO_ACRYLIC_LAYER?.parts||[]),...r13];
   }
   // Short labels for the discrete CAD parts; shells, film, lens and routes are not pick targets.
   function cadLabel(item){
@@ -366,6 +374,9 @@
     if(/^SPEAKER R ·|RIGHT SPEAKER/.test(n))return 'SPK2';
     if(/FLAP CAP L|LEFT BUTTON CAP/.test(n))return 'LEFT';
     if(/FLAP CAP R|RIGHT BUTTON CAP/.test(n))return 'RIGHT';
+    if(/^R13 FLAP CAP L/.test(n))return 'R13 L';
+    if(/^R13 FLAP CAP R/.test(n))return 'R13 R';
+    if(/^R13 DART/.test(n))return 'R13 DART';
     if(/DART ROCKER/.test(n))return 'DART';
     if(/POWER PLUNGER/.test(n))return 'POWER';
     return null;
@@ -376,12 +387,12 @@
   }
   function collectCenters(basis,w,h){
     const arr=[];
-    if(state.groupVisibility.pcb&&state.layers.parts){for(const p of model.parts){if(state.partSideFilter!=='all'&&(p.side||'front')!==state.partSideFilter)continue;if((p.side||'front')==='front'&&!state.layers.frontParts||(p.side||'front')==='back'&&!state.layers.backParts)continue;const off=explodeOffset('parts',p.side||'front');const z=(p.side==='back'?-partHeight(p)/2:model.board.thickness+partHeight(p)/2)+off;const q=project(W(p.x,p.y,z),basis,w,h);if(q)arr.push({ref:p.ref,type:'part',data:p,screen:q});}}
+    if(state.groupVisibility.pcb&&state.layers.parts){for(const p of model.parts){if(state.partSideFilter!=='all'&&(p.side||'front')!==state.partSideFilter)continue;if(!sysPart(p))continue;if((p.side||'front')==='front'&&!state.layers.frontParts||(p.side||'front')==='back'&&!state.layers.backParts)continue;const off=explodeOffset('parts',p.side||'front');const z=(p.side==='back'?-partHeight(p)/2:model.board.thickness+partHeight(p)/2)+off;const q=project(W(p.x,p.y,z),basis,w,h);if(q)arr.push({ref:p.ref,type:'part',data:p,screen:q});}}
     const m=model.mechanical||{};
     const allowMechanical=state.groupVisibility.case&&(state.authority.case||state.referenceMode);
     const cad=cadParts();
     if(cad){
-      const on={display:state.layers.display,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls};
+      const on={r13:state.layers.r13,display:state.layers.display,battery:state.layers.battery,speakers:state.layers.speakers,controls:state.layers.controls};
       for(const item of cad){const ref=cadLabel(item);if(!ref||!on[item.group])continue;const c=cadCenter(item);if(c[2]>=state.slice)continue;const q=project(W(c[0],c[1],c[2]+explodeOffset(item.group)),basis,w,h);if(q)arr.push({ref,type:'mechanical',data:{confidence:item.name},screen:q});}
       state.centers=arr;return;
     }
@@ -727,6 +738,8 @@
     setMode:m=>{modeWheel.choose(m,false,false);state.mode=m;schedule();},
     stackLabel:()=>(STACK_META[state.stackKey]||{}).label||state.stackKey,
     select:item=>selectObject(item),
+    setSystem:k=>{state.system=k&&model.systems?.[k]?k:'all';schedule();},
+    setSystemColor:on=>{state.sysColor=!!on;schedule();},
     authority:()=>({case:state.authority.case||false,reference:state.referenceMode,pcb:state.authority.pcb,art:state.authority.art})
   };
   setAuthorityStatus();applyStack('build.assembled');

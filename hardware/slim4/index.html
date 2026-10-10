@@ -8,17 +8,18 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="STRUTHIO VIS">
-  <title>STRUTHIO Hardware Visualization Studio 1.1 · Layered Project · R32</title>
+  <title>STRUTHIO Hardware Visualization Studio 1.2 · Layered Project · R32</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="eye.css">
+  <link rel="stylesheet" href="bench.css">
 </head>
 <body>
 <div id="app">
   <header class="studioBar">
-    <div class="brand"><b>STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.1</span></div>
+    <div class="brand"><b>STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.2</span></div>
     <div class="headerTools">
       <button type="button" class="eyeBtn" id="eyeBtn" aria-pressed="true" aria-label="Toggle Eye mode"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg><span>EYE</span></button>
       <div class="sourceStatus" id="sourceStatus" aria-label="Source authority status"><span class="srcCase">CASE R12</span><span class="srcPCB">R27 · ORDER READY</span><span class="srcArt">FILM ✓</span></div>
@@ -38,7 +39,7 @@
       </div>
       <section class="eyeSheet" id="eyeDeck" aria-label="Details">
         <div class="deckTabs" role="tablist">
-          <button type="button" data-tab="tour" class="on">DETAILS</button><button type="button" data-tab="find">FIND</button><button type="button" data-tab="send">SEND</button>
+          <button type="button" data-tab="tour" class="on">DETAILS</button><button type="button" data-tab="find">FIND</button><button type="button" data-tab="send">SEND</button><button type="button" data-tab="systems">SYSTEMS</button><button type="button" data-tab="bench">BENCH</button><button type="button" data-tab="docs">DOCS</button>
           <button type="button" id="deckClose" class="close" aria-label="Close details">×</button>
         </div>
         <div class="deckBody">
@@ -58,18 +59,23 @@
             <label class="fld">PASTE A CODE FROM CLAUDE<textarea id="pasteIn" rows="2" spellcheck="false" placeholder="STR|0,-1.2,160,0,-18,0|SOLID|build.assembled|U1,U2||note"></textarea></label>
             <div class="sendRow"><button type="button" id="applyCode" class="go">APPLY</button><span id="pasteMsg" class="hint"></span></div>
           </div>
+          <div class="pane" id="paneSystems"></div>
+          <div class="pane" id="paneBench"></div>
+          <div class="pane" id="paneDocs"></div>
         </div>
       </section>
       <section class="eyeDock" id="eyeBar" data-basis="FILE" aria-label="Views">
         <div class="capRow">
           <button type="button" id="eyeTitle" class="cap" aria-expanded="false"><i class="dot" aria-hidden="true"></i><small id="eyeIdx">01/12</small><b id="eyeName">WHOLE BOARD</b><span id="eyeGist"></span></button>
           <button type="button" id="tabFind" class="ic" aria-label="Find a part or net"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+          <button type="button" id="tabBench" class="ic" aria-label="Bring-up bench record"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 4.5h7M9 3h6v3H9zM6 5h-.5A1.5 1.5 0 0 0 4 6.5v13A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 18.5 5H18M8 12l2 2 4-4M8 17h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <button type="button" id="tabSend" class="ic" aria-label="Send a snapshot to Claude"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h4l1.6-2.5h5.8L16.5 8h4v11h-17Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.2" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
         </div>
         <div class="reel" id="reel"></div>
       </section>
       <div class="plotView" id="plotView" hidden><div class="plotZoom" id="plotZoom"><button type="button" data-w="100" class="on">FIT</button><button type="button" data-w="220">2×</button><button type="button" data-w="450">4×</button></div><button type="button" id="plotClose" aria-label="Close plot">×</button><div class="plotScroll"><img id="plotImg" alt="KiCad rear plot of R21, mirrored"></div></div>
 
+      <button type="button" class="sysChip" id="sysChip" hidden aria-label="Show all systems"></button>
       <div class="telemetry topLeft" id="viewReadout">θ -37° · φ 47° · Z 290</div>
       <div class="telemetry topRight" id="modeReadout">SOLID</div>
       <div class="telemetry bottomLeft" id="selectedReadout">SEL BOARD</div>
@@ -150,6 +156,7 @@
             <label class="layerChild"><input type="checkbox" data-layer="display"> LCD module · tape frame</label>
             <label class="layerChild"><input type="checkbox" data-layer="lens"> Protective lens</label>
             <label class="layerChild"><input type="checkbox" data-layer="controls"> Caps · DART rocker · power plunger</label>
+            <label class="layerChild"><input type="checkbox" data-layer="r13"> R13 symmetric controls · prototype, reference only</label>
             <label class="layerChild"><input type="checkbox" data-layer="battery"> Battery envelope</label>
             <label class="layerChild"><input type="checkbox" data-layer="speakers"> Speakers · gaskets</label>
             <label class="layerChild"><input type="checkbox" data-layer="routes"> FPC and harness routes</label>
@@ -193,22 +200,23 @@
 <div class="portraitGate" id="portraitGate" aria-live="polite">
   <div class="portraitGlyph">▯</div>
   <b>PORTRAIT REQUIRED</b>
-  <span>STRUTHIO Visualization Studio 1.1 is designed as a portrait-only engineering instrument.</span>
+  <span>STRUTHIO Visualization Studio 1.2 is designed as a portrait-only engineering instrument.</span>
   <span class="rotateNote">Rotate the device upright.</span>
 </div>
 
 <div class="aboutSheet" id="aboutSheet" hidden>
   <div class="aboutCard" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
-    <div class="aboutHead"><div><b id="aboutTitle">STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.1</span></div><button type="button" id="aboutClose" aria-label="Close about panel">×</button></div>
+    <div class="aboutHead"><div><b id="aboutTitle">STRUTHIO</b><span>HARDWARE VISUALIZATION STUDIO · 1.2</span></div><button type="button" id="aboutClose" aria-label="Close about panel">×</button></div>
     <p class="mission">Primary in-house file-authoritative hardware visualization platform for the STRUTHIO Project.</p>
     <p>Created in necessity for <b>R.A. Peddycoart</b> to visualize, inspect, discuss, and iterate STRUTHIO hardware with AI collaborators.</p>
     <div class="aboutGrid">
       <div><b>LOCAL-FIRST</b><span>KiCad and CALC-3D files are parsed on-device by the studio.</span></div>
       <div><b>ENGINEERING VIEW</b><span>Inspect the three physical parent layers — Case, PCB, Acrylic — and scrub the complete front-to-back build stack.</span></div>
       <div><b>PORTRAIT INSTRUMENT</b><span>One-finger orbit, two-finger translation, pinch zoom, movable inspector, and scroll-wheel controls.</span></div>
+      <div><b>BENCH</b><span>SYSTEMS colours the board by function; BENCH records each board's bring-up against the procedure; DOCS searches the package documents offline. Records stay in this browser until exported.</span></div>
       <div><b>AUTHORITY RULE</b><span>Loaded fabrication sources are authoritative. Missing sources remain visibly unresolved; the studio does not invent replacement geometry.</span></div>
     </div>
-    <p class="aboutFine">STRUTHIO Project · Visualization Studio 1.1 · R.A. Peddycoart</p>
+    <p class="aboutFine">STRUTHIO Project · Visualization Studio 1.2 · R.A. Peddycoart</p>
   </div>
 </div>
 
@@ -216,7 +224,10 @@
 <script src="case-r3-data.js"></script>
 <script src="case-layer-data.js"></script>
 <script src="acrylic-layer-data.js"></script>
+<script src="case-r13-data.js"></script>
+<script src="bench-data.js"></script>
 <script src="app.js"></script>
 <script src="eye.js"></script>
+<script src="bench.js"></script>
 </body>
 </html>

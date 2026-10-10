@@ -1,3 +1,19 @@
+# R32 update — studio 1.2 from the Stru-dio workspace (2026-10-10)
+
+The owner's Stru-dio 0.6.0 workspace (an offline reference app built on R26 / R31 / firmware R11) was reviewed and its useful parts brought into the studio on the current data. Its own text was not copied: it describes R26 (4 exposed-pad vias, 1 Gbit/s DSI, 102 host cases) and would contradict R27 and R12. Board, case and firmware files are unchanged.
+
+| From Stru-dio | In studio 1.2 |
+|---|---|
+| Colour the PCB by subsystem (net and reference-designator guesses in the browser) | **SYSTEMS** tab: compute, power, display, audio, controls, USB. Assigned at build time in `CHECKS/build_pcb_viewer_data.py` from the netlist, with named overrides for the chips and the two parts that sit on two systems' nets (R416, C135); the build stops if a part or net is left over (167 parts, 104 nets). Colour all, or isolate one: its parts only, its copper bright, the rest dimmed |
+| First-article records (free text) | **BENCH** tab: a record per board against `LAYERS/01_PCB/BRINGUP_PROCEDURE.md` (63 steps in 8 phases, parsed by `CHECKS/build_bench_data.py`): PASS / FAIL / SKIP, the reading and a note for each step; a FAIL shows what the reading means; SEE flies the 3D view to the parts the step names. Stored in this browser, exported and imported as JSON, exported or copied as CSV; the record keeps the procedure's SHA-256 and warns if the procedure changes |
+| Technical reference manual (24 chapters, R26 / R11) and search | **DOCS** tab: the 22 current package documents (gates, QC, decisions, PCB docs, bring-up, the five pre-order reviews, firmware first-boot and R12 notes, the two case references) in `bench-data.js`, searchable and readable offline, each with its path and hash |
+| Offline status and install help | DOCS shows whether the offline cache is ready, and how to add the studio to the iPhone home screen |
+| CASE R13 symmetric controls (CAD) | `REFERENCES/CASE_R13_CONTROLS_PROTOTYPE/` and an optional studio layer (off by default, *prototype, reference only*). Checked here: closed meshes, visible faces symmetric about X = +1.2, switches unmoved in R27 |
+| Retro Streamline R1 outline study | `REFERENCES/CASE_R1_STREAMLINE_STUDY/`, as supplied, marked do-not-manufacture |
+| Not brought in | the game reference, the charter PDF and the LoRa link concept (not hardware of this board); the stale manual |
+
+Also: `BRINGUP_PROCEDURE.md` D3 now asks for firmware R12. Studio and deploy bundle load in Chromium with no errors; the tabs were driven end to end (record, reload, export, search) at phone size.
+
 # R32 — PCB R27: margin edits from the pre-order review; firmware R12 (2026-10-10)
 
 Five independent reviews of PCB R26 and firmware R11 before ordering (`CHECKS/PREORDER_REVIEW_R26/`) found no blocker in the hardware, three firmware faults that would have kept every screen dark (fixed in firmware R12), and a short list of layout margins. The owner chose to answer the margins in one more board revision before ordering. PCB R26 → **R27** (scripted edits 36–44 in `LAYERS/01_PCB/R27_FROM_R26/`; two independent rebuilds from R26 give the same board, item for item and fill for fill). Same outline, ports, connector positions and GPIOs; the DSI pairs are untouched (`CHECKS/R27_DSI_REPORT.md` is identical to R26's). R26 moves to `REFERENCES/PCB_R26/`. CASE R12 and ACRYLIC R2 still set aside: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (320 pair evaluations over 281 distinct pairs), the same 3 case FAIL rows. Decisions: `DECISIONS_R32.md`.

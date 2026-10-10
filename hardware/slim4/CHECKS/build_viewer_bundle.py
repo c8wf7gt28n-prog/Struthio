@@ -3,10 +3,10 @@
 
     python -B CHECKS/build_viewer_bundle.py <output folder>
 
-Writes 7 files: index.html (CSS inlined), studio.js (all scripts and data), R27_REAR_BOARD.svg
+Writes 7 files: index.html (CSS inlined), studio.js (all scripts and data, including the BENCH/DOCS data), R27_REAR_BOARD.svg
 (whitespace and number precision trimmed), sw.js, manifest.webmanifest, icon-192.png, icon-512.png.
 
-Nothing in the package is changed. The CASE, ACRYLIC and R3 viewer meshes are packed as
+Nothing in the package is changed. The CASE, ACRYLIC, R3 and R13-prototype viewer meshes are packed as
 little-endian Int16 coordinates at 0.01 mm (the meshes are tessellated at 0.25-0.45 mm, so the
 packing is far below their own resolution) and Uint16 shades at 0.001 (the shades are written
 with 3 decimals, some above 1, so they come back exactly), and expanded back
@@ -19,7 +19,7 @@ import base64, json, re, struct, sys
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = 100            # 0.01 mm per unit
 SHADE = 1000           # shades have 3 decimals
-CACHE = 'struthio-studio-r28-viewer-1.1'
+CACHE = 'struthio-studio-r32-viewer-1.2'
 
 
 def load_global(path, name):
@@ -80,21 +80,21 @@ def main():
     # studio.js: data first, then the app, in the same order index.html loads them.
     pieces = [DECODER, (ROOT / 'model-data.js').read_text().strip()]
     for path, name in (('case-r3-data.js', 'STRUTHIO_CASE_R3'), ('case-layer-data.js', 'STRUTHIO_CASE_LAYER'),
-                       ('acrylic-layer-data.js', 'STRUTHIO_ACRYLIC_LAYER')):
+                       ('acrylic-layer-data.js', 'STRUTHIO_ACRYLIC_LAYER'), ('case-r13-data.js', 'STRUTHIO_CASE_R13')):
         packed = json.dumps(pack(load_global(path, name)), separators=(',', ':'), ensure_ascii=False)
         pieces.append(f'window.{name}=window.STRUTHIO_UNPACK({packed});')
-    pieces += [(ROOT / 'app.js').read_text().strip(), (ROOT / 'eye.js').read_text().strip()]
+    pieces += [(ROOT / f).read_text().strip() for f in ('bench-data.js', 'app.js', 'eye.js', 'bench.js')]
     (out / 'studio.js').write_text('\n;\n'.join(pieces) + '\n')
 
     html = (ROOT / 'index.html').read_text()
-    css = (ROOT / 'styles.css').read_text() + '\n' + (ROOT / 'eye.css').read_text()
+    css = '\n'.join((ROOT / f).read_text() for f in ('styles.css', 'eye.css', 'bench.css'))
     html = html.replace('<link rel="stylesheet" href="styles.css">\n', '')
-    html = html.replace('  <link rel="stylesheet" href="eye.css">\n', f'  <style>\n{css}\n  </style>\n')
+    html = html.replace('  <link rel="stylesheet" href="eye.css">\n  <link rel="stylesheet" href="bench.css">\n', f'  <style>\n{css}\n  </style>\n')
     html = html.replace('<link rel="apple-touch-icon" href="icon-180.png">', '<link rel="apple-touch-icon" href="icon-192.png">')
     scripts = re.findall(r'<script src="[^"]+"></script>\n', html)
-    assert len(scripts) == 6, scripts
+    assert len(scripts) == 9, scripts
     html = html.replace(''.join(scripts), '<script src="studio.js"></script>\n')
-    assert 'styles.css' not in html and 'eye.css' not in html and 'model-data.js' not in html
+    assert 'styles.css' not in html and 'eye.css' not in html and 'bench.css' not in html and 'model-data.js' not in html
     (out / 'index.html').write_text(html)
 
     (out / 'R27_REAR_BOARD.svg').write_text(minify_svg((ROOT / 'R27_REAR_BOARD.svg').read_text()))

@@ -70,6 +70,71 @@ def rear_plot():
     return 'R27_REAR_BOARD.svg plotted'
 
 
+# Functional systems for the studio's SYSTEMS view. Every net and every part is assigned here, by rule, and the build
+# fails if one is left over, so the colours can be checked against this table rather than guessed in the browser.
+SYSTEMS = {
+    'compute': {'label': 'COMPUTE', 'color': '#68c7ff', 'what': 'ESP32-P4, flash, crystal, reset supervisor, straps and their supplies'},
+    'power': {'label': 'POWER', 'color': '#ffcf58', 'what': 'charger, battery switch, 3.3 V buck-boost, 1.2 V core buck, rails'},
+    'display': {'label': 'DISPLAY', 'color': '#65e6cf', 'what': 'J1, DSI pairs, panel LDOs, reset gate, backlight boost'},
+    'audio': {'label': 'AUDIO', 'color': '#d798ff', 'what': 'two MAX98357A amplifiers, I2S, speaker sockets'},
+    'controls': {'label': 'CONTROLS', 'color': '#ff8e58', 'what': 'flaps, DART, power, reset and BOOT switches and their pull-ups'},
+    'usb': {'label': 'USB / DEBUG', 'color': '#94df75', 'what': 'USB-C data, ESD, CC detection, USB PHY supply'},
+}
+NET_RULES = [   # first match wins; GND and the no-connect nets are not assigned
+    ('display', ('MIPI_DSI_', 'DSI_REXT', 'LCD_', 'BL_', 'BACKLIGHT_PWM', 'VDDO_MIPI_2V5')),
+    ('audio', ('I2S_', 'AUDIO_SD_', 'SPK_')),
+    ('controls', ('BTN_', 'DART_', 'PWR_WAKE', 'RESET_MR', 'BOOT_STRAP')),
+    ('usb', ('USB_DP_CONN', 'USB_DM_CONN', 'USB_JTAG_', 'USB_CC', 'USB_CURR_OUT', 'USB_VBUS_SENSE', 'VDD_USBPHY_LOCAL', 'USB_RECOVERY_', 'UART0_', 'CHASSIS_GND', 'NC_SBU', 'NC_TUSB_')),
+    ('compute', ('FLASH_', 'XTAL_', 'VDDO_FLASH_3V3', 'VDDO_PSRAM_1V9', 'CHIP_PU', 'STRAP_GPIO34', 'DOWNLOAD_STRAP_GPIO36', 'NC_U14_')),
+    ('power', ('1V1_HP', '3V3_SYS', '3V3_ENABLE', 'SYS_RAW', 'BAT_', 'BQ_', 'CHG_STATUS', 'PGOOD_STATUS', 'EN_DCDC', 'FB_DCDC', 'CORE_SW', 'U4_', 'NC_U4_', 'USB_VBUS')),
+]
+RAILS = {'GND', '3V3_SYS', 'SYS_RAW', '1V1_HP'}      # shared: they do not decide a part's system
+PART_RULES = {   # chips, connectors and parts on several systems' nets
+    'compute': ('U1', 'U2', 'U14', 'Y1'), 'power': ('U3', 'U4', 'U10', 'Q2', 'L1', 'L2', 'D1', 'J3', 'C135'),
+    'display': ('U5', 'U6', 'U7', 'Q1', 'L3', 'D2', 'J1'), 'audio': ('U8', 'U9', 'J4', 'J5'),
+    'usb': ('J2', 'U11', 'U12', 'U13', 'R416'), 'controls': ('SW1', 'SW2', 'SW3', 'SW4', 'SW5', 'SW6', 'SW7'),
+}
+SERIES = {'1': 'compute', '2': 'compute', '3': 'display', '4': 'power', '5': 'audio', '6': 'controls'}   # decoupling on a rail
+
+
+def net_system(name):
+    for key, prefixes in NET_RULES:
+        if name.startswith(prefixes):
+            return key
+    return None
+
+
+def classify(model):
+    nets = {}
+    for n in sorted({p['netName'] for p in model['pads'] if p.get('netName')} | {s['netName'] for s in model['segments']}):
+        k = net_system(n)
+        if k:
+            nets[n] = k
+        else:
+            assert n == 'GND' or n.startswith('NC_') or n == 'BQ_TMR', 'net with no system: ' + n
+    fixed = {r: k for k, refs in PART_RULES.items() for r in refs}
+    pad_nets = {}
+    for p in model['pads']:
+        if p.get('netName'):
+            pad_nets.setdefault(p['ref'], set()).add(p['netName'])
+    for p in model['parts']:
+        if p['ref'] in fixed:
+            p['system'] = fixed[p['ref']]
+            continue
+        votes = {}
+        for n in pad_nets.get(p['ref'], ()):
+            if n not in RAILS and n in nets:
+                votes[nets[n]] = votes.get(nets[n], 0) + 1
+        if votes:
+            best = sorted(votes.items(), key=lambda kv: -kv[1])
+            assert len(best) == 1 or best[0][1] > best[1][1], f"{p['ref']} sits on two systems' nets: {votes}"
+            p['system'] = best[0][0]
+        else:
+            series = p['ref'][1] if p['ref'][0] in 'RCL' and p['ref'][1:].isdigit() and len(p['ref']) == 4 else None
+            assert series in SERIES, 'part with no system: ' + p['ref']
+            p['system'] = SERIES[series]
+    return nets
+
 def main():
     src = DATA.read_text()
     assert src.startswith(PRE) and src.endswith(';\n'), 'unexpected model-data.js layout'
@@ -89,6 +154,8 @@ def main():
         p['sourcing'] = ('LCSC ' + b['lcsc']) if b['lcsc'] else ('part not bound yet' if 'BIND_BEFORE_FAB' in b['descr'] else 'by manufacturer part number')
 
     model['zones'] = zones(text)
+    model['systems'] = SYSTEMS
+    model['netSystems'] = classify(model)
 
     fab = ROOT / 'CHECKS/R27_FAB_SUMMARY.json'
     if fab.exists():
@@ -115,6 +182,8 @@ def main():
     DATA.write_text(PRE + json.dumps(model, separators=(',', ':'), ensure_ascii=False) + ';\n')
     print(rear_plot())
     pts = sum(len(r) // 2 for z in model['zones'] for p in z['polys'] for r in p)
+    by = {k: sum(p['system'] == k for p in model['parts']) for k in SYSTEMS}
+    print('systems: ' + ', '.join(f'{k} {v} parts' for k, v in by.items()) + f", {len(model['netSystems'])} nets assigned")
     print(f"model-data.js: {len(model['zones'])} pours ({pts} points), {len(model['parts'])} parts with sourcing, "
           f"fab {'yes' if 'fab' in model else 'missing'}, {len(model['gates']['open'])} open gates, {DATA.stat().st_size:,} bytes")
 

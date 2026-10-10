@@ -50,7 +50,7 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 |---|---|---|---|
 | D1 | Hold SW7, tap SW6, release SW7; ROM log on USB-C | `waiting for download` | Normal boot: GPIO35 not low at reset |
 | D2 | `esptool chip_id` / `flash_id` | ESP32-P4 v3.x (v3.1 preferred); flash EF 40 20, 64 MB | v1.x: wrong part. FF FF FF / 00 00 00: flash wiring or VDDO_FLASH (in download mode VDDO_FLASH may read 0 V until esptool connects) |
-| D3 | Flash firmware R11+ (`prebuilt/` or `idf.py flash`); then monitor | bootloader and app log on USB-C | Silent after the bootloader: watch D4–D6 |
+| D3 | Flash firmware R12+ (`prebuilt/` or `idf.py flash`); then monitor | bootloader and app log on USB-C | Silent after the bootloader: watch D4–D6 |
 | D4 | VDDO_FLASH at C202 / U2.8; VDDO_PSRAM at C113 | 3.18–3.35 V; 1.75–1.85 V | 0 V: U1 not running or a short |
 | D5 | EN_DCDC at U3.1 with the app running | ≥ 1.2 V | Low: the core DC-DC is not enabled |
 | D6 | 1V1_HP at C129 (pad 91) and C103 (pad 26) | 1.20–1.28 V DC (the chip trims about 1.25 V); never above 1.30 V | > 1.30 V: power down; check R104/R105/C134 and FB_DCDC. < 1.15 V: the FB network or plane drop |

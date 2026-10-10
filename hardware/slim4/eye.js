@@ -436,5 +436,18 @@
   // Wait for the studio's first render and the wheels' initial scroll, then build.
   const boot = () => requestAnimationFrame(() => requestAnimationFrame(init));
   if (document.readyState === 'complete') boot(); else window.addEventListener('load', boot);
-  window.STRUDIO_EYE = { go, applyCode, currentCode, stops: STOPS };
+  /* Used by bench.js: fly to a set of parts (a bring-up step's probe points) and label them in the bar. */
+  function focus(sp, name, gist) {
+    const refs = (sp.refs || []).filter(findPart);
+    if (!refs.length && !sp.net) return false;
+    const backs = refs.filter(r => findPart(r).side === 'back').length;
+    cur = -1; hl.refs = []; setEye(true);
+    show({ refs, net: sp.net || '', side: sp.side || (backs * 2 >= refs.length ? 'back' : 'front'), stack: 'build.assembled' }, true);
+    $('#eyeName').textContent = name || refs.join(' '); $('#eyeIdx').textContent = 'BENCH'; $('#eyeGist').textContent = gist || '';
+    bar.dataset.basis = 'FILE';
+    document.querySelectorAll('#reel .frame').forEach(f => f.classList.remove('on'));
+    setDeck(false);
+    return true;
+  }
+  window.STRUDIO_EYE = { go, applyCode, currentCode, focus, openTab, stops: STOPS };
 })();

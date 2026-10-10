@@ -126,6 +126,8 @@
       "CHECKS/convergence_check.py",
       "CHECKS/render_review.py",
       "CHECKS/build_pcb_viewer_data.py",
+      "CHECKS/build_bench_data.py",
+      "CHECKS/build_r13_reference_data.py",
       "CHECKS/build_viewer_bundle.py",
       "CHECKS/make_manifest.py"
     ]
@@ -136,10 +138,13 @@
     "case_mesh": "case-layer-data.js",
     "acrylic_mesh": "acrylic-layer-data.js",
     "reference_mesh": "case-r3-data.js",
+    "r13_controls_prototype_mesh": "case-r13-data.js",
+    "bench_and_docs_data": "bench-data.js",
+    "bench_layer": "bench.js (SYSTEMS, BENCH, DOCS tabs; bench records stay in the browser until exported)",
     "pcb_rear_plot": "R27_REAR_BOARD.svg",
     "offline_service_worker": "sw.js",
     "deploy_bundle_builder": "CHECKS/build_viewer_bundle.py",
-    "studio_version": "1.1",
+    "studio_version": "1.2",
     "pcb_data_builder": "CHECKS/build_pcb_viewer_data.py",
     "fab_summary": "CHECKS/R27_FAB_SUMMARY.json"
   },
