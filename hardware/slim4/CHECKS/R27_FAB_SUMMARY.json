@@ -1,0 +1,410 @@
+{
+ "board": "LAYERS/01_PCB/SLIM4_R27.kicad_pcb",
+ "board_sha256": "3676ef1c2c92449fd20f41cd1128b1a54deae32e32b292438705e2fe145e0ebf",
+ "generator": "CHECKS/build_builder_packs.py",
+ "status": "order files ready (JLCPCB PCB + PCBA); U1 ESP32-P4NRW32X out of stock at JLCPCB on 2026-10-07: pre-order or consign",
+ "kicad": "7.0.11",
+ "drc": {
+  "violations": 0,
+  "unconnected_pads": 0,
+  "footprint_errors": 0
+ },
+ "zone_fills_current": true,
+ "gerber_layers": [
+  "F.Cu",
+  "In1.Cu",
+  "In2.Cu",
+  "In3.Cu",
+  "In4.Cu",
+  "B.Cu",
+  "F.Mask",
+  "B.Mask",
+  "F.Paste",
+  "B.Paste",
+  "F.SilkS",
+  "B.SilkS",
+  "Edge.Cuts"
+ ],
+ "drill": {
+  "pth_round_holes": 368,
+  "plated_slots": 4,
+  "npth_holes": 10
+ },
+ "copper_layers": 6,
+ "thickness_mm": 1.2,
+ "outline_mm": [
+  99.3,
+  125.1
+ ],
+ "min_track_mm": 0.1,
+ "min_clearance_mm": 0.1,
+ "vias": {
+  "count": 368,
+  "pad_mm": 0.45,
+  "drill_mm": 0.2,
+  "tented": true,
+  "mask_openings_at_vias": [],
+  "in_smd_pads": [
+   {
+    "ref": "C131",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     -6.25,
+     78.2
+    ]
+   },
+   {
+    "ref": "C124",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     -8.5,
+     85.6
+    ]
+   },
+   {
+    "ref": "C114",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     -2.275,
+     77.925
+    ]
+   },
+   {
+    "ref": "R403",
+    "pad": "1",
+    "net": "3V3_SYS",
+    "xy": [
+     0.7,
+     93.2
+    ]
+   },
+   {
+    "ref": "R424",
+    "pad": "1",
+    "net": "BQ_TS",
+    "xy": [
+     15.821,
+     10.467
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     3.0,
+     80.6
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     3.3,
+     81.9
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -3.2,
+     84.3
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -0.9,
+     84.3
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     1.8,
+     84.1
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -3.2,
+     86.7
+    ]
+   },
+   {
+    "ref": "R424",
+    "pad": "2",
+    "net": "GND",
+    "xy": [
+     15.42,
+     11.38
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     16.4,
+     8.0
+    ]
+   },
+   {
+    "ref": "C107",
+    "pad": "2",
+    "net": "GND",
+    "xy": [
+     -0.261,
+     91.1
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -0.9,
+     80.6
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     17.0,
+     7.4
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     3.3,
+     84.5
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -0.9,
+     83.6
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     0.8,
+     84.1
+    ]
+   },
+   {
+    "ref": "C408",
+    "pad": "2",
+    "net": "GND",
+    "xy": [
+     -6.4,
+     15.9
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -2.5,
+     80.6
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -3.2,
+     85.0
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     0.255,
+     87.07
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -2.5,
+     87.2
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -2.5,
+     86.5
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     17.0,
+     8.6
+    ]
+   },
+   {
+    "ref": "C411",
+    "pad": "2",
+    "net": "GND",
+    "xy": [
+     20.0,
+     9.9
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     1.7,
+     81.5
+    ]
+   },
+   {
+    "ref": "U10",
+    "pad": "EP",
+    "net": "GND",
+    "xy": [
+     17.0,
+     8.0
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -3.2,
+     85.9
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -3.2,
+     87.4
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     0.719,
+     87.069
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     -3.2,
+     80.6
+    ]
+   },
+   {
+    "ref": "U1",
+    "pad": "105",
+    "net": "GND",
+    "xy": [
+     0.3,
+     83.6
+    ]
+   }
+  ]
+ },
+ "bom": {
+  "lines": 54,
+  "placements": 167,
+  "with_lcsc": 167,
+  "by_mpn_only": [],
+  "bound_in_sourcing_file": [
+   "C310",
+   "J2",
+   "U1",
+   "U2",
+   "U4",
+   "U8",
+   "U9",
+   "U10",
+   "U13"
+  ],
+  "unbound": [],
+  "out_of_stock": [
+   "U1"
+  ]
+ },
+ "cpl_placements": 167,
+ "sides": {
+  "Top": 5,
+  "Bottom": 162
+ },
+ "order": {
+  "build": "prototype",
+  "quantity": "5 boards, 2 assembled",
+  "assembly": "both sides",
+  "stackup": "JLCPCB JLC06121H-3313 (1.2 mm 6-layer)",
+  "copper": "1 oz outer / 0.5 oz inner",
+  "finish": "ENIG",
+  "via_covering": "epoxy filled and capped (POFV)",
+  "impedance_control": {
+   "ordered": true,
+   "nets": "MIPI_DSI_* (3 pairs)",
+   "differential_ohm": 100,
+   "tolerance": "10%",
+   "width_mm": {
+    "F.Cu": 0.127,
+    "In3.Cu": 0.1
+   },
+   "gap_mm": {
+    "F.Cu": 0.18,
+    "In3.Cu": 0.18
+   },
+   "reference": {
+    "F.Cu": "In1 GND",
+    "In3.Cu": "In2 GND area + In4 GND"
+   }
+  },
+  "mask_silk": "green / white"
+ }
+}

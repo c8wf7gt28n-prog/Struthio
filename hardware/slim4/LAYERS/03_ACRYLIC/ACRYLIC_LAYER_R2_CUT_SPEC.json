@@ -1,0 +1,69 @@
+{
+  "layer": "ACRYLIC",
+  "revision": "R2",
+  "status": "prototype cut file: clear, unprinted film (DECISIONS_R26.md)",
+  "units": "mm",
+  "shared_xy_datum": "SLIM4 PCB XY (R21-R28 datum) (Y down); film lower face Z=7.65 mm on the front plate",
+  "outer_size_mm": [
+    103.6,
+    134.9
+  ],
+  "outline_source": "CASE R12 exterior outline offset inward",
+  "edge_inset_mm": 0.2,
+  "film_thickness_mm": 0.2,
+  "stack_mm": [
+    {
+      "layer": "clear optical PET, hard-coat face",
+      "thickness": 0.175
+    },
+    {
+      "layer": "optically clear adhesive",
+      "thickness": 0.025
+    }
+  ],
+  "print": "none: clear, unprinted prototype film; no ink, white or texture anywhere",
+  "screen_window": "No screen cutout; the clear film runs continuously over the lens.",
+  "cutouts_mm": {
+    "flap_centers": [
+      [
+        -40.75,
+        102.0
+      ],
+      [
+        40.75,
+        102.0
+      ]
+    ],
+    "flap_cut_diameter": 18.4,
+    "dart_center": [
+      0.0,
+      119.8
+    ],
+    "dart_cut_size": [
+      52.4,
+      9.4
+    ],
+    "dart_cut_corner_radius": 4.6000000000000005,
+    "vent_centers": [
+      [
+        -38.3,
+        125.6
+      ],
+      [
+        38.3,
+        125.6
+      ]
+    ],
+    "vent_window_size": [
+      12.2,
+      4.8
+    ],
+    "vent_window_corner_radius": 0.3
+  },
+  "why_changed_from_R1": [
+    "Edge inset 0.20 mm from the case outline so die-cut tolerance cannot leave film overhanging the case edge.",
+    "Six 1.0 mm vent slots replaced by one 12.2 x 4.8 mm window per speaker (minimum cut width 4.8 mm), still clear of every grille slot by 0.1 mm.",
+    "Stack fixed at 0.175 mm optical PET + 0.025 mm OCA = 0.20 mm (the CAD thickness); prototype film is unprinted."
+  ],
+  "supplier_confirms": "kerf/offset, outline tolerance (design allows ±0.2 mm), OCA bubble-free lamination over the screen."
+}

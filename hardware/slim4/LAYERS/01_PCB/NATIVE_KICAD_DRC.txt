@@ -1,0 +1,10 @@
+** Drc report for SLIM4_R28.kicad_pcb **
+** Created by R28_FROM_R27/fill_drc.py (KiCad 7.0.11) **
+
+** Found 0 DRC violations **
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **

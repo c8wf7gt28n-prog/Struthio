@@ -1,0 +1,42 @@
+#pragma once
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include "slim4_types.h"
+#include "slim4_selftest.h"
+
+slim4_status_t slim4_board_init(void);
+void slim4_board_show_boot_result(bool software_verified);
+/* The self-test page: one row per check, then colour bars and 1-pixel gratings for the video lanes. */
+slim4_status_t slim4_board_show_selftest(const slim4_st_report_t *rep);
+/* Bring-up helpers (the serial console). The backlight level is still limited by the power policy's cap. */
+typedef enum {
+    SLIM4_PATTERN_WHITE, SLIM4_PATTERN_BLACK, SLIM4_PATTERN_RED, SLIM4_PATTERN_GREEN, SLIM4_PATTERN_BLUE,
+    SLIM4_PATTERN_BARS, SLIM4_PATTERN_CHECKER, SLIM4_PATTERN_GRADIENT,
+} slim4_pattern_t;
+slim4_status_t slim4_board_show_pattern(slim4_pattern_t pattern);
+slim4_status_t slim4_board_set_backlight(uint8_t percent);
+bool slim4_board_backlight_failed(void);
+/* Display profile, kept in NVS: safe (the default) = 560 Mbit/s per lane, 60 MHz pixel clock (about 45 Hz), inside
+ * the ILI9881C's 2-lane limits; fast = 1000 Mbit/s, 78 MHz (59 Hz), Espressif's setting, above those limits, to be
+ * chosen only once a board has shown clean test patterns with it. Takes effect at the next boot. */
+typedef enum { SLIM4_DISPLAY_FAST = 0, SLIM4_DISPLAY_SAFE = 1 } slim4_display_profile_t;
+slim4_display_profile_t slim4_board_display_profile(void);
+slim4_status_t slim4_board_set_display_profile(slim4_display_profile_t profile);
+uint8_t slim4_board_backlight_cap(void);
+/* Result of the bounded panel probe run during the display bring-up. */
+void slim4_board_panel_probe(slim4_panel_probe_t *out);
+slim4_status_t slim4_board_render_diagnostic(uint32_t buttons, const uint32_t press_counts[4],
+                                              uint32_t frame_index,
+                                              uint32_t measured_fps, uint32_t measured_vsync_hz,
+                                              uint32_t max_render_us,
+                                              uint32_t late_frames, uint8_t color_phase);
+uint32_t slim4_board_get_vsync_count(void);
+slim4_status_t slim4_board_read_buttons(uint32_t *buttons);
+slim4_status_t slim4_board_display_acquire(slim4_surface_t *out);
+slim4_status_t slim4_board_display_present(const slim4_surface_t *surface);
+slim4_status_t slim4_board_audio_set_volume(uint8_t volume);
+slim4_status_t slim4_board_audio_write(const int16_t *stereo, size_t frames, uint32_t sample_rate);
+slim4_status_t slim4_board_save_read(const char *name_space, const char *key, void *dst,
+                                     size_t *inout_len);
+slim4_status_t slim4_board_save_write(const char *name_space, const char *key, const void *src, size_t len);

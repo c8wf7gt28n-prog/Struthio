@@ -1,0 +1,253 @@
+{
+ "board": "SLIM4_R28.kicad_pcb",
+ "pairs": {
+  "D0": {
+   "P": {
+    "layers": [
+     "B.Cu",
+     "In3.Cu",
+     "F.Cu"
+    ],
+    "vias": 2,
+    "length": 44.508
+   },
+   "N": {
+    "layers": [
+     "B.Cu",
+     "In3.Cu",
+     "F.Cu"
+    ],
+    "vias": 2,
+    "length": 44.539
+   },
+   "same_layers_and_vias": true,
+   "skew": -0.031,
+   "at_nominal_gap_mm": {
+    "B.Cu": 0.0,
+    "In3.Cu": 15.53,
+    "F.Cu": 19.23
+   },
+   "off_nominal_gap_mm": {
+    "B.Cu": 0.73,
+    "In3.Cu": 5.21,
+    "F.Cu": 3.81
+   },
+   "reference": {
+    "B.Cu->In4.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 0,
+     "uncovered_mm2": 0.0,
+     "uncovered_0p3_mm2": 0.0,
+     "min_margin_mm": 9.837
+    },
+    "In3.Cu->In2.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 4,
+     "uncovered_mm2": 0.2264,
+     "uncovered_0p3_mm2": 1.0818,
+     "min_margin_mm": -0.029
+    },
+    "In3.Cu->In4.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 4,
+     "uncovered_mm2": 0.2264,
+     "uncovered_0p3_mm2": 0.9965,
+     "min_margin_mm": -0.029
+    },
+    "F.Cu->In1.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 0,
+     "uncovered_mm2": 0.0,
+     "uncovered_0p3_mm2": 0.0097,
+     "min_margin_mm": 0.26
+    }
+   },
+   "transitions": [
+    {
+     "at": [
+      0.0,
+      88.15
+     ],
+     "change": "B.Cu->In3.Cu",
+     "gnd_P_side": 1.11,
+     "gnd_N_side": null,
+     "gnd_on_axis": null
+    },
+    {
+     "at": [
+      16.8,
+      86.3
+     ],
+     "change": "In3.Cu->F.Cu",
+     "gnd_P_side": 1.59,
+     "gnd_N_side": 0.75,
+     "gnd_on_axis": null
+    }
+   ]
+  },
+  "D1": {
+   "P": {
+    "layers": [
+     "B.Cu",
+     "In3.Cu",
+     "F.Cu"
+    ],
+    "vias": 2,
+    "length": 44.318
+   },
+   "N": {
+    "layers": [
+     "B.Cu",
+     "In3.Cu",
+     "F.Cu"
+    ],
+    "vias": 2,
+    "length": 44.338
+   },
+   "same_layers_and_vias": true,
+   "skew": -0.02,
+   "at_nominal_gap_mm": {
+    "B.Cu": 0.87,
+    "In3.Cu": 9.27,
+    "F.Cu": 25.05
+   },
+   "off_nominal_gap_mm": {
+    "B.Cu": 0.97,
+    "In3.Cu": 5.51,
+    "F.Cu": 2.65
+   },
+   "reference": {
+    "B.Cu->In4.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 1,
+     "uncovered_mm2": 0.0188,
+     "uncovered_0p3_mm2": 0.0491,
+     "min_margin_mm": -0.04
+    },
+    "In3.Cu->In2.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 0,
+     "uncovered_mm2": 0.0,
+     "uncovered_0p3_mm2": 0.0342,
+     "min_margin_mm": 0.192
+    },
+    "In3.Cu->In4.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 0,
+     "uncovered_mm2": 0.0,
+     "uncovered_0p3_mm2": 0.0342,
+     "min_margin_mm": 0.192
+    },
+    "F.Cu->In1.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 4,
+     "uncovered_mm2": 0.151,
+     "uncovered_0p3_mm2": 0.5943,
+     "min_margin_mm": -0.024
+    }
+   },
+   "transitions": [
+    {
+     "at": [
+      1.575,
+      90.6
+     ],
+     "change": "B.Cu->In3.Cu",
+     "gnd_P_side": null,
+     "gnd_N_side": 0.81,
+     "gnd_on_axis": null
+    },
+    {
+     "at": [
+      11.4,
+      94.3
+     ],
+     "change": "In3.Cu->F.Cu",
+     "gnd_P_side": 0.83,
+     "gnd_N_side": 0.83,
+     "gnd_on_axis": null
+    }
+   ]
+  },
+  "CLK": {
+   "P": {
+    "layers": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "vias": 1,
+    "length": 44.338
+   },
+   "N": {
+    "layers": [
+     "B.Cu",
+     "F.Cu"
+    ],
+    "vias": 1,
+    "length": 44.338
+   },
+   "same_layers_and_vias": true,
+   "skew": 0.0,
+   "at_nominal_gap_mm": {
+    "B.Cu": 0.0,
+    "F.Cu": 38.41
+   },
+   "off_nominal_gap_mm": {
+    "B.Cu": 0.98,
+    "F.Cu": 4.95
+   },
+   "reference": {
+    "B.Cu->In4.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 0,
+     "uncovered_mm2": 0.0,
+     "uncovered_0p3_mm2": 0.0,
+     "min_margin_mm": 9.837
+    },
+    "F.Cu->In1.Cu": {
+     "copper_over_gap_mm2": 0.0,
+     "antipad_edges": 0,
+     "uncovered_mm2": 0.0802,
+     "uncovered_0p3_mm2": 0.6838,
+     "min_margin_mm": 0.021
+    }
+   },
+   "transitions": [
+    {
+     "at": [
+      0.875,
+      89.85
+     ],
+     "change": "B.Cu->F.Cu",
+     "gnd_P_side": 1.69,
+     "gnd_N_side": null,
+     "gnd_on_axis": 1.15
+    }
+   ]
+  }
+ },
+ "widths": {
+  "F.Cu": [
+   0.127
+  ],
+  "B.Cu": [
+   0.127
+  ],
+  "In3.Cu": [
+   0.1
+  ]
+ },
+ "spread": 0.201,
+ "max_skew": 0.031,
+ "checks": {
+  "same layers and vias for P and N": true,
+  "skew <= 0.254 mm": true,
+  "spread <= 0.762 mm": true,
+  "constant width per layer": true,
+  "no DSI track over a gap or split in its reference planes (outside transitions)": true
+ },
+ "antipad_edge_overlaps": {
+  "count": 13,
+  "worst_mm": 0.04
+ }
+}

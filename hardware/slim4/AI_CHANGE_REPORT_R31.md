@@ -1,0 +1,28 @@
+# AI change report — R31
+
+- Platform/model: Claude Code (Anthropic), cloud session.
+- Input package revision: R30 (commit e04150d).
+- Output revision: R31, made of PCB R26, CASE R12 (set aside, unchanged), ACRYLIC R2, and the firmware in `firmware/slim4` (R10).
+- Parent layers edited: PCB (R25 → R26), answering the R30/R25 pre-order audit, which held the PCB order for one DSI routing revision. CASE and ACRYLIC are set aside by the owner; CPU sourcing is the owner's.
+- Source files changed:
+  - `LAYERS/01_PCB/*`: R26 board, project (renamed, unchanged), docs, `R26_FROM_R25/` (new: edits 31–35, the offline pair router, geometry/matching tool and single-net router, their outputs `r26_dsi_routes.json` and `r26_nets.json`, `build_r26.sh`). R25 moved to `REFERENCES/PCB_R25/`. The library is unchanged.
+  - `CHECKS/`: `dsi_pair_check.py` and `R26_DSI_REPORT.*` (new); `convergence_check.py` (R26 paths, A1 hashes), `build_builder_packs.py` (R26/R31; stackup 0.1088 mm; impedance control for the pairs; DSI report in the order's REFERENCE), `build_pcb_viewer_data.py`, `build_viewer_bundle.py`, `render_review.py`, `make_manifest.py`, `export_pcb_layer.py` (docstring), `COMPONENT_ENVELOPES_R26.json` (renamed; text).
+  - `LAYERS/02_CASE/build_r12.py`, `export_layer_formats.py`: data paths and labels only.
+  - Studio: `app.js`, `eye.js` (labels; tour text on the DSI pairs), `index.html`, `sw.js` (cache name, precache list: the missing `R25_BASELINE_AUDIT.md` entry corrected to `R24_BASELINE_AUDIT.md`), `manifest.webmanifest`.
+  - Docs: `DECISIONS_R31.md`, `PRODUCTION_GATES.md`, `README.txt`, `QC_REPORT.txt`, `CHANGELOG.md`, `AI_HANDOFF.md`, `ASSEMBLY/ASSEMBLY_SEQUENCE.md`, `REFERENCES/`; "1.1 V" corrected to 1.2 V in `README_PCB_LAYER.md`, `RELEASE_GATES.md`, `ELECTRICAL_REVIEW_R22.md`, `DECISIONS_R30.md` and two R24 script comments.
+  - Firmware R10: `tools/check_pinmap.py` (bundled U1 pad table, `--board`, `--write-table`), `tools/u1_pad_nets.json` (new), README, first-boot notes, `RELEASE_NOTES_R10.md`. No source change; version 0.9.0; R9's prebuilt images.
+- Dimensions or coordinates changed:
+  - Board outline, thickness, battery window, J1–J5, switches, parts and every GPIO are unchanged. No part moved.
+  - Copper: the three DSI pairs (10 DSI vias, R25 29); EN_DCDC, USB_CURR_OUT2 (part), BTN_LEFT, PGOOD_STATUS and PWR_WAKE rerouted, CHG_STATUS's diagonal on In3, the backlight pair jogged 1.1 mm east beside J1; In2 DSI band redrawn with a 1V1 channel; In1/In4/band clearance 0.2 → 0.15 mm; vias 349 → 339 (ground vias 90 → 94); track segments 2951 → 2796.
+  - Stackup: 2116 prepreg 0.1164 → 0.1088 mm.
+- Shared datum and units preserved: yes.
+- PCB edits: 5 scripted edits (31–35). `build_r26.sh` reproduces the board from R25: three independent rebuilds have identical tracks, vias, pads and footprints and identical zone fills except one SYS_RAW fill on In2, away from the DSI, that differed by 4 × 10⁻⁸ mm² in one rebuild. KiCad 7.0.11 DRC: 0 / 0 / 0.
+- Fit and interference checks: 78 PASS, 3 FAIL, 9 GATE, 3 INFO over 317 pair evaluations; the same 3 case FAIL rows as R30 (C6, F1, G1).
+- Validation: `CHECKS/dsi_pair_check.py` on the board (P/N layers and vias, lengths, skew, spread, widths, gap coverage, reference planes under every DSI track, return vias): all PASS; every 3V3 and 1V1 via near U1 on its In2 plane's main fill; Gerber job file (revision R26, stackup 0.1088 mm, ENIG); firmware pin check 19/19 on R26, from the repository and from the firmware folder alone.
+- Production gates closed or still open: `LAYERS/01_PCB/RELEASE_GATES.md` and `PRODUCTION_GATES.md`. Open: U1 stock (owner), bring-up (the DSI image at 1 Gbit/s a lane on the coupled pairs, the 1V1_HP rail at U1 under load), the case pass.
+- Known limitations:
+  - No schematic exists; reviews work from the netlist.
+  - Impedance is an estimate (Hammerstad-Jensen / IPC-2141 with coupled-line factors on JLCPCB's published stackup); nothing is simulated or measured. JLCPCB's calculator decides at order time.
+  - About 21 % (D0, D1) and 13 % (CLK) of each pair is not at the nominal gap: the B.Cu breakout under U1's 0.35 mm pads, tapers to the 0.55 mm via pairs and the 0.5 mm J1 pads, and the skew teeth.
+  - A pair edge reaches up to 0.040 mm into another net's via antipad in 13 places.
+  - The CLK breakout's return via is on the pair's axis 1.15 mm away (no free place for one each side); the D0 and D1 breakouts rely on the shared In4 plane.

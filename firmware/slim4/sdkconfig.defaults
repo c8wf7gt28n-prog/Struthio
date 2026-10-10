@@ -1,0 +1,29 @@
+CONFIG_IDF_TARGET="esp32p4"
+# ESP32-P4NRW32X: chip revision v3.x (ordering code ending in X). Accept v3.0 and later.
+CONFIG_ESP32P4_REV_MIN_300=y
+CONFIG_XTAL_FREQ_40=y
+
+# W25Q512JV, 64 MiB. Apps stay in the first 16 MiB (code cannot run from beyond 16 MiB without an
+# experimental cache mode); the asset and game partitions above it are read through esp_partition.
+CONFIG_ESPTOOLPY_FLASHSIZE_64MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+
+# Console: the USB-C port (USB-Serial-JTAG) is the primary console, so the second-stage bootloader's lines reach
+# it too (with UART0 primary they went only to U1 pads 69/70, which nothing on the board brings out, and a board
+# that died in the bootloader looked dead). The bring-up console (main/slim4_console.c) reads commands from it.
+# UART0 gets nothing: an emulator that prints only UART0 shows the ROM lines alone.
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+
+CONFIG_ESP_SYSTEM_PANIC_PRINT_REBOOT=y
+CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH=y
+CONFIG_FREERTOS_HZ=1000
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# In-package 32 MiB 1.8 V hex PSRAM
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_USE_MALLOC=y
