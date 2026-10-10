@@ -9,7 +9,7 @@ Why this panel:
 - **Documented.** Public pin table and drawing; the init sequence is in the Linux kernel (`panel-ilitek-ili9881c.c`, Crystalfontz's own submission).
 - **Software.** Espressif's `esp_lcd_ili9881c` component drives the ILI9881C over 2 lanes on the ESP32-P4. The firmware in `firmware/slim4` uses it.
 
-The case was drawn around a 4.7 in panel; it is set aside for R23-R27, and the case pass redraws the pocket, opening, lens and film for this module (convergence check C6).
+The case was drawn around a 4.7 in panel; it is set aside for R23-R28, and the case pass redraws the pocket, opening, lens and film for this module (convergence check C6).
 
 ## J1: the display port on the main board
 
@@ -33,7 +33,7 @@ J1 is a **Hirose FH12A-40S-0.5SH(55)** (LCSC C506795): 40 pins, 0.5 mm pitch, **
 
 `CHECKS/convergence_check.py` check N1 compares every J1 pad's position and net with this table.
 
-Electrical limits: backlight 74 mA regulated (37 mA a string, under the 40 mA rating), PWM-dimmed from GPIO9. Lane rate up to 1.5 Gbit/s on the P4, but the ILI9881C's datasheet limits 2 lanes of RGB565 to 566 Mbit/s: firmware R12 runs 560 Mbit/s a lane with a 60 MHz pixel clock (about 45 Hz) by default, and Espressif's 1000 Mbit/s and 78 MHz (59 Hz) only when chosen with the console's `display fast` after a board has shown clean patterns. Board-side DSI runs, U1's pads to J1's, are three 100 Ω coupled pairs of 44.32–44.54 mm, P to N within 0.031 mm (R26 edits 31–34, `CHECKS/R27_DSI_REPORT.md`).
+Electrical limits: backlight 74 mA regulated (37 mA a string, under the 40 mA rating), PWM-dimmed from GPIO9. Lane rate up to 1.5 Gbit/s on the P4, but the ILI9881C's datasheet limits 2 lanes of RGB565 to 566 Mbit/s: firmware R12 runs 560 Mbit/s a lane with a 60 MHz pixel clock (about 45 Hz) by default, and Espressif's 1000 Mbit/s and 78 MHz (59 Hz) only when chosen with the console's `display fast` after a board has shown clean patterns. Board-side DSI runs, U1's pads to J1's, are three 100 Ω coupled pairs of 44.32–44.54 mm, P to N within 0.031 mm (R26 edits 31–34, `CHECKS/R28_DSI_REPORT.md`).
 
 ## Plugging the panel in
 

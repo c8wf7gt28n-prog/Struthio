@@ -1,7 +1,7 @@
 /* STRUTHIO Studio · EYE layer ("Shared Sight")
    Additive. Reads the studio through window.STRUDIO and draws callouts on its own canvas.
    It never edits geometry, authority state or loaded files.
-   Facts in STOPS are computed from model-data.js (window.STRUTHIO_MODEL, R27; its zones, fab and gates blocks come from
+   Facts in STOPS are computed from model-data.js (window.STRUTHIO_MODEL, R28; its zones, fab and gates blocks come from
    CHECKS/build_pcb_viewer_data.py); anything not in the files is tagged INFERRED or GAP. */
 (() => {
   'use strict';
@@ -11,7 +11,7 @@
   const st = S.state;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  let REAR = (window.STRUDIO_ASSETS && window.STRUDIO_ASSETS.rear) || 'R27_REAR_BOARD.svg';
+  let REAR = (window.STRUDIO_ASSETS && window.STRUDIO_ASSETS.rear) || 'R28_REAR_BOARD.svg';
   if (REAR.startsWith('data:image/svg+xml;base64,')) {
     try { const bin = atob(REAR.split(',')[1]); REAR = URL.createObjectURL(new Blob([Uint8Array.from(bin, c => c.charCodeAt(0))], { type: 'image/svg+xml' })); } catch (_) { /* keep data URI */ }
   }
@@ -40,21 +40,21 @@
   const gnd = ZONES.filter(z => z.net === 'GND').map(z => z.layer.replace('.Cu', ''));
   const PLANES_TEXT = ZONES.length ? `The board file stores ${ZONES.length} filled copper pours. ${gnd.join(' and ')} are solid GND planes (${n1(ZONES.find(z => z.net === 'GND').area)} mm² each). In2 is split into power pours: ${inner.map(z => `${z.net} ${n1(z.area)} mm²`).join(', ')}. In3 carries the inner signal tracks. Pours are drawn from the stored fills, simplified to 0.03 mm.` : 'This board file has no copper pours.';
   const vip = FAB ? FAB.vias.in_smd_pads.map(v => v.ref) : [];
-  const FAB_TEXT = FAB ? `CHECKS/build_builder_packs.py plots the R27 board with KiCad ${FAB.kicad} into the JLCPCB order: ${FAB.gerber_layers.length} Gerber layers, Excellon drill (${FAB.drill.pth_round_holes} vias, ${FAB.drill.plated_slots} plated USB-C slots, ${FAB.drill.npth_holes} non-plated holes), a ${FAB.bom.lines}-line BOM and a ${FAB.cpl_placements}-part placement file. DRC: ${FAB.drc.violations} violations, ${FAB.drc.unconnected_pads} unconnected. Vias are epoxy filled and capped; ${vip.join(' and ')} have a via in a pad. ${FAB.bom.with_lcsc} of ${FAB.bom.placements} parts carry an LCSC number. Every line was in stock at JLCPCB on 2026-10-07 except U1, the ESP32-P4NRW32X: pre-order it through JLCPCB Global Sourcing or consign v3 chips.` : 'No fab summary in this package (CHECKS/R27_FAB_SUMMARY.json).';
+  const FAB_TEXT = FAB ? `CHECKS/build_builder_packs.py plots the R28 board with KiCad ${FAB.kicad} into the JLCPCB order: ${FAB.gerber_layers.length} Gerber layers, Excellon drill (${FAB.drill.pth_round_holes} vias, ${FAB.drill.plated_slots} plated USB-C slots, ${FAB.drill.npth_holes} non-plated holes), a ${FAB.bom.lines}-line BOM and a ${FAB.cpl_placements}-part placement file. DRC: ${FAB.drc.violations} violations, ${FAB.drc.unconnected_pads} unconnected. Vias are epoxy filled and capped; ${vip.join(' and ')} have a via in a pad. ${FAB.bom.with_lcsc} of ${FAB.bom.placements} parts carry an LCSC number. Every line was in stock at JLCPCB on 2026-10-07 except U1, the ESP32-P4NRW32X: pre-order it through JLCPCB Global Sourcing or consign v3 chips.` : 'No fab summary in this package (CHECKS/R27_FAB_SUMMARY.json).';
   const openRows = GATES ? GATES.open : [];
   const fails = openRows.filter(g => g.status === 'FAIL');
   const gateFacts = openRows.map(g => [(g.status === 'FAIL' ? '✕ ' : '') + g.id, g.title.length > 64 ? g.title.slice(0, 62) + '…' : g.title]);
 
-  /* ---------- authored tour: what Claude sees in the loaded R27 file ---------- */
+  /* ---------- authored tour: what Claude sees in the loaded R28 file ---------- */
   const STOPS = [
-    { id: 'board', name: 'WHOLE BOARD', gist: `R27 · ${PARTS.length} footprints · ${PADS.length} pads · order files ready.`, basis: 'FILE', side: 'home',
-      text: `The PCB is 99.2 × 125.0 mm and 1.2 mm thick, six copper layers. The file holds ${PARTS.length} footprints, ${PADS.length} pads, ${n1(SEGS.length)} track segments, ${VIAS.length} vias and ${NETS} nets. R27 is R22 (R21 with the electrical and land-pattern review fixed) with four plug-and-play ports, R24's power layout, R25's processor planes, R26's DSI coupled pairs (matched from U1 to J1 over unbroken ground) and R27's margins from the pre-order review (31 ground vias in U1's exposed pad, 10 µF at its core pins, a 60 V backlight diode and a second boost capacitor, R424 beside the charger, 22 Ω on USB, silkscreen labels): the display tail straight into J1, a JST PH battery socket behind a polarity-protection MOSFET, and two PicoBlade speaker sockets (LAYERS/01_PCB/README_PCB_LAYER.md).`,
+    { id: 'board', name: 'WHOLE BOARD', gist: `R28 · ${PARTS.length} footprints · ${PADS.length} pads · order files ready.`, basis: 'FILE', side: 'home',
+      text: `The PCB is 99.2 × 125.0 mm and 1.2 mm thick, six copper layers. The file holds ${PARTS.length} footprints, ${PADS.length} pads, ${n1(SEGS.length)} track segments, ${VIAS.length} vias and ${NETS} nets. R28 is R22 (R21 with the electrical and land-pattern review fixed) with four plug-and-play ports, R24's power layout, R25's processor planes, R26's DSI coupled pairs (matched from U1 to J1 over unbroken ground), R27's margins from the pre-order review (31 ground vias in U1's exposed pad, 10 µF at its core pins, a 60 V backlight diode and a second boost capacitor, R424 beside the charger, 22 Ω on USB, silkscreen labels) and R28's peer-to-peer radio (U15 RAK3172-SiP and the J701 antenna socket, nothing of R27 moved): the display tail straight into J1, a JST PH battery socket behind a polarity-protection MOSFET, two PicoBlade speaker sockets and a U.FL antenna socket (LAYERS/01_PCB/README_PCB_LAYER.md).`,
       facts: [['SIZE', '99.2 × 125.0 × 1.2 mm'], ['FOOTPRINTS', String(PARTS.length)], ['PADS', String(PADS.length)], ['TRACKS / VIAS', `${n1(SEGS.length)} / ${VIAS.length}`], ['NETS', String(NETS)]] },
     { id: 'front', name: 'FRONT FACE', gist: 'SW1–SW4 and the display socket J1 live on the front.', basis: 'FILE', side: 'front', stack: 'pcb.top', refs: ['SW1', 'SW2', 'SW3', 'SW4', 'J1'],
       text: `Four Omron D2LS-21 switches and the display socket are the only footprints on the front. SW1 and SW2 sit under the flap caps (x ±40.75, y 102); SW3 and SW4 under the DART rocker (x ±16, y 119.3). J1, a top-contact FH12A socket at (${at('J1')}), sits under the panel, just below the battery window, and takes the panel tail folded once behind it.`,
       facts: [['FRONT PARTS', `${front.length} of ${PARTS.length}`], ['SW1 / SW2', `${P_('SW1').value} · flap caps`], ['SW3 / SW4', `${P_('SW3').value} · DART rocker`], ['J1', `${P_('J1').value} · display`]] },
     { id: 'back', name: 'BACK SIDE', gist: `${PARTS.length - front.length} of ${PARTS.length} footprints are on the back.`, basis: 'FILE', side: 'back', stack: 'pcb.bottom',
-      text: `The back carries nearly everything: ${backCat.capacitor} capacitors, ${backCat.resistor} resistors, ${backCat.ic} ICs, ${backCat.connector} connectors, ${backCat.inductor} inductors, ${backCat.switch} switches, ${backCat.diode} diodes, ${backCat.transistor} transistor and 1 crystal.`,
+      text: `The back carries nearly everything: ${backCat.capacitor} capacitors, ${backCat.resistor} resistors, ${backCat.ic} ICs, ${backCat.connector} connectors, ${backCat.inductor} inductors, ${backCat.switch} switches, ${backCat.diode} diodes, ${backCat.transistor} transistor, ${(backCat.other || 1) - 1} ferrite beads and 1 crystal.`,
       facts: [['CAPACITORS', String(backCat.capacitor)], ['RESISTORS', String(backCat.resistor)], ['ICs', String(backCat.ic)], ['CONNECTORS', String(backCat.connector)], ['SWITCHES', String(backCat.switch)], ['L / D / Q / Y', `${backCat.inductor} / ${backCat.diode} / ${backCat.transistor} / 1`]] },
     { id: 'brain', name: 'PROCESSOR + FLASH', gist: 'U1 ESP32-P4 and U2 flash at y 84.', basis: 'FILE', side: 'back', refs: ['U1', 'U2', 'Y1', 'U14'],
       text: `U1 ESP32-P4NRW32X (chip revision v3, 32 MB PSRAM in package) sits at (${at('U1')}). U2 W25Q512JVEIQ 64 MB flash is at (${at('U2')}). Y1, the 40 MHz crystal, is at (${at('Y1')}) with 12 pF load capacitors. U14 TPS3808G33 at (${at('U14')}) holds the chip in reset until 3.3 V is good.`,
@@ -68,28 +68,31 @@
     { id: 'audio', name: 'AUDIO', gist: 'Two MAX98357A amps and speaker sockets.', basis: 'FILE', side: 'back', net: 'SPK_L_P', refs: ['U8', 'U9', 'J4', 'J5'],
       text: `U8 and U9 (MAX98357A) sit mirrored at (±29, 112). J4 (${at('J4')}) and J5 (${at('J5')}) are Molex PicoBlade 2-pin sockets for the left and right speaker (the plug on Adafruit's small speakers), pin 1 positive.`,
       facts: [['U8 / U9', 'MAX98357AETE+T'], ['J4 / J5', '53261-0271 PicoBlade · pin 1 +'], ['NETS', 'SPK_L/R_P/N · I2S_*']] },
-    { id: 'link', name: 'PLUG-IN PORTS', gist: 'J1 display (front), J3 battery, J4/J5 speakers.', basis: 'FILE', side: 'home', refs: ['J1', 'J3', 'J4', 'J5'],
-      text: `Four parts plug in, no adapter cables. J1 (FH12A-40S-0.5SH, top contact, on the front at ${at('J1')}) takes the Crystalfontz CFAF7201280A0-050TN's own 40-pin tail, folded once behind the panel: DSI clock and two lanes, LCD_RESX, 3.0 V and 1.8 V panel supplies and the backlight, every pin matched to the panel's table (check N1). J3 (${at('J3')}) takes a protected 1-cell pack of 1000 mAh or more on a JST PH 2.0 plug, pin 1 BAT+ (charge up to 0.55 A, no cell-temperature sensing); Q2 (AO3401A) blocks a reversed pack when there is no USB; with USB only the charger's few-mA test current flows. J4 and J5 take the speakers on PicoBlade plugs. The three DSI pairs run from U1 to J1 as coupled pairs (100 Ω differential: 0.127 mm lines with a 0.18 mm gap on F.Cu, 0.10 / 0.18 mm on In3 between ground on In2 and In4), P and N on the same layers through the same vias; CLK goes straight up from U1 on F.Cu, D0 and D1 dip to In3 under U1 and come up the east side. They are matched to 44.3-44.5 mm (0.201 mm between pairs, at most 0.031 mm inside a pair; CHECKS/R27_DSI_REPORT.md).`,
-      facts: [['J1', 'Crystalfontz 5 in tail · 40 pins · direct'], ['J3', 'BAT+ · GND (JST PH 2-pin) · Q2 reverse switch'], ['J4 / J5', 'speakers (Molex PicoBlade 2-pin)'], ['CHARGE', '0.5 A (R412 1.8 k)']] },
+    { id: 'radio', name: 'RADIO', gist: 'U15 RAK3172-SiP LoRa radio and the J701 antenna socket.', basis: 'FILE', side: 'back', net: 'RADIO_3V3', refs: ['U15', 'J701', 'L701', 'R701'],
+      text: `U15, a RAKwireless RAK3172-SiP (STM32WLE5: a LoRa / FSK radio, 902–928 MHz, with its own processor running RUI3), sits at (${at('U15')}), west of U1. Boards talk to each other directly, peer to peer, no gateway. U1 drives it over one UART (GPIO39 TX, GPIO40 RX) and its reset (GPIO50), with AT commands. L701 (15 µH) is its internal DC-DC's inductor; beads E701–E703 and C711–C723 feed and decouple its supply pins from RADIO_3V3, a pour on In3 fed from 3V3_SYS through R701 (0 Ω). Its RF output runs 6 mm on B.Cu, 0.18 mm wide over In4's ground (50 Ω), through R704 to J701 (${at('J701')}), a U.FL socket for a 915 MHz antenna on a short cable.`,
+      facts: [['U15', `RAK3172-SIP-9-SM-NI · ${at('U15')}`], ['U1 LINES', 'GPIO39 TX · GPIO40 RX · GPIO50 NRST'], ['RF', '0.18 mm B.Cu · 50 Ω · 6.05 mm'], ['J701', `U.FL · ${at('J701')}`], ['SUPPLY', 'RADIO_3V3 ← 3V3_SYS via R701']] },
+    { id: 'link', name: 'PLUG-IN PORTS', gist: 'J1 display (front), J3 battery, J4/J5 speakers, J701 antenna.', basis: 'FILE', side: 'home', refs: ['J1', 'J3', 'J4', 'J5', 'J701'],
+      text: `Five parts plug in, no adapter cables. J1 (FH12A-40S-0.5SH, top contact, on the front at ${at('J1')}) takes the Crystalfontz CFAF7201280A0-050TN's own 40-pin tail, folded once behind the panel: DSI clock and two lanes, LCD_RESX, 3.0 V and 1.8 V panel supplies and the backlight, every pin matched to the panel's table (check N1). J3 (${at('J3')}) takes a protected 1-cell pack of 1000 mAh or more on a JST PH 2.0 plug, pin 1 BAT+ (charge up to 0.55 A, no cell-temperature sensing); Q2 (AO3401A) blocks a reversed pack when there is no USB; with USB only the charger's few-mA test current flows. J4 and J5 take the speakers on PicoBlade plugs, and J701 (${at('J701')}) a 915 MHz antenna on a U.FL plug. The three DSI pairs run from U1 to J1 as coupled pairs (100 Ω differential: 0.127 mm lines with a 0.18 mm gap on F.Cu, 0.10 / 0.18 mm on In3 between ground on In2 and In4), P and N on the same layers through the same vias; CLK goes straight up from U1 on F.Cu, D0 and D1 dip to In3 under U1 and come up the east side. They are matched to 44.3-44.5 mm (0.201 mm between pairs, at most 0.031 mm inside a pair; CHECKS/R28_DSI_REPORT.md).`,
+      facts: [['J1', 'Crystalfontz 5 in tail · 40 pins · direct'], ['J3', 'BAT+ · GND (JST PH 2-pin) · Q2 reverse switch'], ['J4 / J5', 'speakers (Molex PicoBlade 2-pin)'], ['J701', '915 MHz antenna (U.FL)'], ['CHARGE', '0.5 A (R412 1.8 k)']] },
     { id: 'rear', name: 'REAR BUTTONS', gist: 'SW5–SW7 on the back at x 25.', basis: 'FILE', side: 'back', refs: ['SW5', 'SW6', 'SW7'],
       text: 'Three B3U-1000P switches are stacked on the back at x 25, y 30, 39 and 48: power/wake, reset and boot.',
       facts: [['SW5', 'B3U-1000P · power / wake'], ['SW6', 'B3U-1000P · reset'], ['SW7', 'B3U-1000P · boot']] },
     { id: 'copper', name: 'ROUTING', gist: `${n1(SEGS.length)} track segments · ${VIAS.length} vias.`, basis: 'FILE', side: 'home', mode: 'COPPER',
-      text: `R27 track-segment counts by routed layer: B.Cu ${n1(segLayer['B.Cu'] || 0)}, F.Cu ${n1(segLayer['F.Cu'] || 0)}, In3.Cu ${n1(segLayer['In3.Cu'] || 0)}${segLayer['In1.Cu'] ? `, In1.Cu ${segLayer['In1.Cu']} (the USB D+ hop)` : ''}. There are ${VIAS.length} vias. This is a routing count, not a signal-integrity certification.`,
+      text: `R28 track-segment counts by routed layer: B.Cu ${n1(segLayer['B.Cu'] || 0)}, F.Cu ${n1(segLayer['F.Cu'] || 0)}, In3.Cu ${n1(segLayer['In3.Cu'] || 0)}${segLayer['In1.Cu'] ? `, In1.Cu ${segLayer['In1.Cu']} (the USB D+ hop)` : ''}. There are ${VIAS.length} vias. This is a routing count, not a signal-integrity certification.`,
       facts: [['B.Cu', n1(segLayer['B.Cu'] || 0)], ['F.Cu', n1(segLayer['F.Cu'] || 0)], ['In3.Cu', n1(segLayer['In3.Cu'] || 0)], ['TOTAL SEGMENTS', n1(SEGS.length)], ['VIAS', String(VIAS.length)], ['FAB STATUS', 'ORDER FILES READY']] },
     { id: 'planes', name: 'PLANES', gist: 'GND planes on In1 and In4, power pours on In2.', basis: ZONES.length ? 'FILE' : 'GAP', side: 'home', stack: 'pcb.inner', mode: 'COPPER',
       text: PLANES_TEXT, facts: zoneFacts.length ? zoneFacts : [['POURS', 'none in file']] },
     { id: 'fab', name: 'ORDER FILES', gist: FAB ? `JLCPCB Gerbers, drill, BOM, CPL · DRC ${FAB.drc.violations}/${FAB.drc.unconnected_pads} · U1 stock open.` : 'No fab summary.', basis: FAB ? 'FILE' : 'GAP', side: 'back', refs: FAB ? [...vip, 'U1'] : [],
       text: FAB_TEXT,
       facts: FAB ? [['GERBER', `${FAB.gerber_layers.length} layers · X2`], ['DRILL', `${FAB.drill.pth_round_holes} + ${FAB.drill.plated_slots} slots + ${FAB.drill.npth_holes} NPTH`], ['BOM', `${FAB.bom.lines} lines · ${FAB.bom.with_lcsc}/${FAB.bom.placements} LCSC`], ['DRC', `KiCad ${FAB.kicad} · ${FAB.drc.violations} / ${FAB.drc.unconnected_pads} / ${FAB.drc.footprint_errors}`], ['VIAS', 'filled + capped'], ['VIA IN PAD', vip.join(', ') || 'none'], ['STOCK', 'U1 to pre-order or consign']] : [['FAB', 'not generated']] },
-    { id: 'plot', kind: 'plot', name: 'KICAD REAR PLOT', gist: 'The R27 rear SVG plot in this package.', basis: 'FILE', side: 'home',
-      text: 'This is the R27_REAR_BOARD.svg plot from the package. It is a mirrored rear view, drawn by KiCad. Tap it to enlarge.',
-      facts: [['FILE', 'R27_REAR_BOARD.svg'], ['VIEW', 'rear, mirrored']] },
+    { id: 'plot', kind: 'plot', name: 'KICAD REAR PLOT', gist: 'The R28 rear SVG plot in this package.', basis: 'FILE', side: 'home',
+      text: 'This is the R28_REAR_BOARD.svg plot from the package. It is a mirrored rear view, drawn by KiCad. Tap it to enlarge.',
+      facts: [['FILE', 'R28_REAR_BOARD.svg'], ['VIEW', 'rear, mirrored']] },
     { id: 'gap', name: 'WHAT I CANNOT SEE', gist: 'CASE R12 is on hold: drawn for an earlier panel.', basis: 'GAP', side: 'home', stack: 'case.front',
-      text: 'CASE R12 (front and rear shell, controls, screen stack with its tape frame, internals) and the clear, unprinted ACRYLIC R2 film are loaded from case-layer-data.js and acrylic-layer-data.js. They were converged on R21 for a HOTHMI-size panel; the owner set the case aside for R23-R27, and the case pass for the 5 in Crystalfontz panel comes after the board is up. The LCD, cell and speakers are envelopes, not supplier models. FPC and harness runs are route reserves. SHOW R3 CASE CAD shows the superseded R3 study for reference only.',
-      facts: [['CASE', 'R12 · on hold'], ['ACRYLIC', 'FILM R2 · on hold'], ['PCB', 'R27 · order files ready']] },
+      text: 'CASE R12 (front and rear shell, controls, screen stack with its tape frame, internals) and the clear, unprinted ACRYLIC R2 film are loaded from case-layer-data.js and acrylic-layer-data.js. They were converged on R21 for a HOTHMI-size panel; the owner set the case aside for R23-R28, and the case pass for the 5 in Crystalfontz panel comes after the board is up. The LCD, cell and speakers are envelopes, not supplier models. FPC and harness runs are route reserves. SHOW R3 CASE CAD shows the superseded R3 study for reference only.',
+      facts: [['CASE', 'R12 · on hold'], ['ACRYLIC', 'FILM R2 · on hold'], ['PCB', 'R28 · order files ready']] },
     { id: 'gates', name: 'OPEN ITEMS', gist: GATES ? `${fails.length} case fixes, ${GATES.counts.GATE} items needing parts or prints.` : 'No gate list.', basis: 'GAP', side: 'home', stack: 'case.front',
-      text: GATES ? `The convergence check reports ${GATES.counts.PASS} PASS, ${GATES.counts.FAIL} FAIL and ${GATES.counts.GATE} GATE. ${fails.length ? `The FAIL rows (${fails.map(g => g.id).join(', ')}) are the case pass, on hold: the plastic was drawn before the 5 in panel and the R23-R27 connectors. ` : ''}Every GATE is something CAD cannot close: a supplier drawing, a measured part, or a test print. Details: ${GATES.source} and PRODUCTION_GATES.md.` : 'No gate list in this model.',
+      text: GATES ? `The convergence check reports ${GATES.counts.PASS} PASS, ${GATES.counts.FAIL} FAIL and ${GATES.counts.GATE} GATE. ${fails.length ? `The FAIL rows (${fails.map(g => g.id).join(', ')}) are the case pass, on hold: the plastic was drawn before the 5 in panel and the R23-R28 connectors. ` : ''}Every GATE is something CAD cannot close: a supplier drawing, a measured part, or a test print. Details: ${GATES.source} and PRODUCTION_GATES.md.` : 'No gate list in this model.',
       facts: gateFacts.length ? gateFacts : [['GATES', 'none listed']] }
   ];
 
@@ -242,9 +245,9 @@
     document.querySelectorAll('#reel .frame').forEach((f, i) => f.classList.toggle('on', i === cur));
     const d = $('#stopDetail');
     d.innerHTML = `<div class="sdHead"><span class="basis b-${sp.basis}">${sp.basis === 'FILE' ? 'FROM FILE' : sp.basis === 'GAP' ? 'NOT VISIBLE' : 'INFERRED'}</span><b>${esc(sp.name)}</b></div>
-      ${sig() !== SIG0 ? '<p class="stale">A different board is loaded. These tour notes describe the bundled R27 only and may not match what you see.</p>' : ''}
+      ${sig() !== SIG0 ? '<p class="stale">A different board is loaded. These tour notes describe the bundled R28 only and may not match what you see.</p>' : ''}
       <p>${esc(sp.text)}</p>
-      ${sp.kind === 'plot' ? `<button class="plotBtn" id="plotOpen"><img src="${REAR}" alt="KiCad rear plot of R27"></button>` : ''}
+      ${sp.kind === 'plot' ? `<button class="plotBtn" id="plotOpen"><img src="${REAR}" alt="KiCad rear plot of R28"></button>` : ''}
       <dl class="facts">${sp.facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
       <div class="sdActs"><button id="lookBtn" class="go">LOOK</button><button id="codeBtn">COPY VIEW CODE</button></div>`;
     $('#lookBtn').onclick = () => { setDeck(false); };
@@ -367,7 +370,7 @@
     const lines = [
       `STRUTHIO VIS · ${S.stackLabel()} · ${st.mode}`,
       `θ ${Math.round(st.yaw * 57.2958)}°  φ ${Math.round(st.pitch * 57.2958)}°  Z ${Math.round(st.dist)}   ${hl.refs.length ? 'REFS ' + hl.refs.join(' ') : ''}${hl.net ? '  NET ' + hl.net : ''}`,
-      `CASE ${a.case ? '✓' : a.reference ? '~ REFERENCE' : '— MISSING'} · PCB ${a.pcb ? ((S.model().name||'').includes('R27') ? 'R27 · ORDER READY' : 'PCB · REVIEW') : '—'} · ART ${a.art ? '✓' : '— MISSING'}`
+      `CASE ${a.case ? '✓' : a.reference ? '~ REFERENCE' : '— MISSING'} · PCB ${a.pcb ? ((S.model().name||'').includes('R28') ? 'R28 · ORDER READY' : 'PCB · REVIEW') : '—'} · ART ${a.art ? '✓' : '— MISSING'}`
     ];
     lines.forEach((l, i) => { t.fillStyle = i === 0 ? '#ffb23e' : i === 2 ? '#7fa8aa' : '#d8e6e6'; t.fillText(l, 10 * k, src.height + (9 + i * 16) * k); });
     const url = c.toDataURL('image/png');

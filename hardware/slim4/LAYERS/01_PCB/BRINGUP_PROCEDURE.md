@@ -1,8 +1,8 @@
-# SLIM4 PCB R27 — bring-up procedure
+# SLIM4 PCB R28 — bring-up procedure
 
-The first boards are measured in this order: each phase passes before the next, so a fault is found before power reaches what it could damage. Every step gives the probe point (a part pad), the expected value and what a wrong reading means. Compiled from the five pre-order reviews (power, ESP32-P4 core, display, audio/controls/USB, firmware), checked against the R26 netlist and the parts' datasheets, and updated for R27's added parts (C138, C139, C140, D2 60 V, R424 at U10, R401/R402 22 Ω, silkscreen labels).
+The first boards are measured in this order: each phase passes before the next, so a fault is found before power reaches what it could damage. Every step gives the probe point (a part pad), the expected value and what a wrong reading means. Compiled from the five pre-order reviews (power, ESP32-P4 core, display, audio/controls/USB, firmware), checked against the R26 netlist and the parts' datasheets, updated for R27's added parts (C138, C139, C140, D2 60 V, R424 at U10, R401/R402 22 Ω, silkscreen labels), and for R28's radio (U15 RAK3172-SiP and its parts: rows B8–B9, C14, D13 and phase I, after the stress tests).
 
-Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in cell); oscilloscope (≥ 100 MHz; ≥ 1 GHz differential for the optional DSI step); thermal camera or thermocouple; a PC with ESP-IDF v6.1 or esptool. Firmware R12 or later (`firmware/slim4`), which runs the self-test at every boot, starts the display in the in-spec 560 Mbit/s profile and opens a command console on the USB-C port (`help`).
+Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in cell); oscilloscope (≥ 100 MHz; ≥ 1 GHz differential for the optional DSI step); thermal camera or thermocouple; a PC with ESP-IDF v6.1 or esptool. For phase I: a second R28 board, and a 915 MHz antenna with a U.FL plug for each. Firmware R13 or later (`firmware/slim4`; R12 has no radio driver), which runs the self-test at every boot, starts the display in the in-spec 560 Mbit/s profile and opens a command console on the USB-C port (`help`).
 
 ## Phase A — before ordering (no board needed)
 
@@ -25,6 +25,8 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 | B5 | Each DSI pin of J1 (28, 29, 31, 32, 34, 35) to its neighbouring GND pin | > 100 kΩ | Low: a bridge at J1's 0.5 mm pitch |
 | B6 | CC1 and CC2 to GND at J2 | about 5.1 kΩ each (TUSB320 Rd, present unpowered) | Open: a USB-C to USB-C charger will give no VBUS (U13 missing or unsoldered) |
 | B7 | Diode test J3.1 (+) to BAT_PLUS (C412.1) | 0.6–0.8 V (Q2 body diode) | Q2 rotated or the wrong part |
+| B8 | Visual: U15 (RAK3172-SiP) pin-1 corner as on the silkscreen, no skew on its 0.6 mm pads; R701 and R704 fitted (0 Ω); C724 and C725 empty; J701 square on its pads | As listed | Rotated U15: do not power. C724/C725 fitted: the RF match is detuned (remove them) |
+| B9 | RADIO_3V3 (C701.1) to GND; RADIO_3V3 to 3V3_SYS across R701 | > 50 Ω once charged; < 0.5 Ω | Low: a bridge under U15 or at L701 / the beads. Open R701: the radio is unpowered (the self-test says NOT FITTED) |
 
 ## Phase C — USB power, no cell, no panel (bench 5 V into J2, limit 100 mA, then 500 mA after C3)
 
@@ -43,6 +45,7 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 | C11 | USB_VBUS_SENSE at U13.4; 3V3 at U13.12 | about 0.47 V; 3.3 V | ≈ 0: R416/R417 open, U13 never attaches |
 | C12 | LCD_1V8 at C306.1 / LCD_VCI_3V0 at C308.1 | 1.78–1.82 V / 2.97–3.03 V | U5 / U6 rotated, swapped or missing |
 | C13 | USB-C cable to the PC (data) | enumerates as 303a:1001 "USB JTAG/serial debug unit" in both plug orientations | Not at all: D+/D- route, R401/R402, U11, U1 pads 52/53. One orientation only: a row of J2 not joined |
+| C14 | RADIO_3V3 at C701.1 | = 3V3_SYS ±20 mV | 0 V: R701 open or missing |
 
 ## Phase D — processor, flash and firmware
 
@@ -60,6 +63,7 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 | D10 | Console `info` | chip v3.x, flash EF4020 64 MiB, PSRAM 32 MiB, reset reason | — |
 | D11 | Reset by SW6, by the watchdog and by `reboot` | the app boots every time | Hangs after a reset that is not a power cycle: flash left in 4-byte mode |
 | D12 | 40 MHz crystal: an XTAL-derived output on a counter (not a probe on Y1) | ±30 ppm | > 100 ppm or no start: C203/C204 or Y1 |
+| D13 | The self-test's RADIO line, or console `radio` | `RADIO RAK3172 OK` with the SiP's firmware version (`RUI_…`) and its mode | NOT FITTED: nothing drives U1's RX (GPIO40, pad 81) after a reset: R701, RADIO_3V3, U15 pin 29. NO ANSWER TO AT: GPIO39 / pad 80 to U15 pin 30, BOOT0 (R702) or the SiP's firmware. RESET NOT SEEN: NRST, U1 pad 93 to U15 pin 44 |
 
 ## Phase E — display (power off, plug the panel tail into J1, latch closed)
 
@@ -106,3 +110,17 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 | H3 | 10 minutes at full load (`pattern checker`, `bl 100`, loud tones): U1, U10, U7, U4, U3, Q2, U8/U9, the In3 speaker tracks | ≤ 70 °C on the board at 25 °C ambient | U1 hot: the exposed-pad joint (31 ground vias from R27; voids under the pad) |
 | H4 | No cell, USB-C 3 A charger, `bl 100`, loud audio | no reset | Reset: the input limit is exceeded (audio review M7) |
 | H5 | `sleep`, then SW5 | wakes; sleep current from the cell about 0.3 mA (panel rails stay on) | No wake: GPIO0, C601, R110. About 0.7 mA more: the amplifiers not in shutdown |
+
+## Phase I — radio (two R28 boards, each with a 915 MHz antenna on J701)
+
+Fit the antennas first: the firmware transmits only on `radio ping`, but a radio should not transmit without one.
+
+| # | Action / probe | Expected | Wrong means |
+|---|---|---|---|
+| I1 | Console `radio at AT+VER=?` and `radio at AT+NWM=?` | a `RUI_…` version and `OK`; NWM 0 (peer to peer) after the first `radio ping` or `radio listen` sets it | No reply: phase D13. ERROR replies: the SiP's firmware is not RUI3 (reflash it, see below) |
+| I2 | Board B `radio listen 120`; board A `radio ping 20 14`, 1 m apart | 20 replies; RSSI about −30 to −50 dBm both ways, SNR > 5 dB | No replies on both: frequency or settings differ (same firmware on both). One-way only: that board's antenna, J701, R704 or the RF trace |
+| I3 | Supply current on USB during `radio ping 20 22` (bench supply on J2, or a USB meter) | bursts of roughly 90–120 mA above idle (datasheet: 87 mA typical at 20 dBm; more at 22 dBm; record the value) | Far more: an RF fault or oscillation (check the antenna, C724/C725 empty). Nothing more: the SiP is not transmitting |
+| I4 | 3V3_SYS at C414.1 and RADIO_3V3 at C701.1 during `radio ping 20 22` (scope, 1 ms/div) | dips < 100 mV, no reset | Resets: 3V3 bulk or R701 / C701 |
+| I5 | Range: board B `radio listen 600` outdoors; walk board A away with `radio ping` at 22 dBm, both in hand | replies to 200 yd (183 m) and more, line of sight; record RSSI against distance | Short range: the antennas (type, cable, near the battery or a hand), the RF path, or the SiP's power setting |
+
+Recovery, only if the SiP's firmware is ever lost (it ships with RUI3 loaded): with the board off, solder a wire from R702's BOOT0 pad (towards U15) to R703's RADIO_3V3 pad and power up: the SiP starts the STM32 ROM bootloader on the UART U1 drives (GPIO39 / 40). Writing RUI3 back over it needs a UART pass-through in U1's firmware, which is not written yet (an open item in `RELEASE_GATES.md`). Remove the wire afterwards.

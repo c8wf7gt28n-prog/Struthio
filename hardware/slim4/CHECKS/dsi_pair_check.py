@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""MIPI-DSI pair check on the board itself (PCB R27; the pairs are R26's, unchanged), against the pre-order audit's routing checklist.
+"""MIPI-DSI pair check on the board itself (PCB R28; the pairs are R26's, unchanged), against the pre-order audit's routing checklist.
 
-    python3 CHECKS/dsi_pair_check.py LAYERS/01_PCB/SLIM4_R27.kicad_pcb CHECKS/R27_DSI_REPORT   (writes .json and .md)
+    python3 CHECKS/dsi_pair_check.py LAYERS/01_PCB/SLIM4_R28.kicad_pcb CHECKS/R28_DSI_REPORT   (writes .json and .md)
 
 Needs pcbnew (KiCad 7.0.x) and shapely. For each pair (D0, D1, CLK) it walks P and N from the U1 pad to the J1 pad
 through the copper and reports:

@@ -1,5 +1,5 @@
 {
- "purpose": "Component height envelopes used by the R32 cross-layer convergence checks. Derived data only: the R27 KiCad board is not modified. XY extents come from the R27 courtyard sizes in SLIM4_R27_PCB_LAYER.json; this table only sets heights above (front) or below (back) the board surface.",
+ "purpose": "Component height envelopes used by the R33 cross-layer convergence checks. Derived data only: the R28 KiCad board is not modified. XY extents come from the R28 courtyard sizes in SLIM4_R28_PCB_LAYER.json; this table only sets heights above (front) or below (back) the board surface.",
  "units": "mm",
  "rule": "height_mm overrides the JSON 'z' value where a manufacturer figure is cited; otherwise the JSON value is kept. Where the JSON value was a placeholder that understated a part (L2), the datasheet value is used. by_value_prefix applies to passives by manufacturer series; any part not listed keeps its JSON height.",
  "by_value": {
@@ -81,6 +81,39 @@
   "AO3401A": {
    "height_mm": 1.25,
    "source": "SOT-23, 1.25 mm max"
+  },
+  "RAK3172-SIP-9-SM-NI": {
+   "height_mm": 1.22,
+   "body_mm": [
+    12.0,
+    12.0
+   ],
+   "side": "back",
+   "source": "RAKwireless RAK3172-SiP datasheet: LGA-73, 12 x 12 x 1.22 mm (U15, R28)"
+  },
+  "U.FL-R-SMT-1(10)": {
+   "height_mm": 2.5,
+   "receptacle_height_mm": 1.25,
+   "side": "back",
+   "source": "Hirose U.FL-R-SMT-1 receptacle 1.25 mm; mated with a U.FL-LP cable plug 2.5 mm max (J701, R28; the antenna cable is always fitted)"
+  },
+  "SWPA3012S150MT": {
+   "height_mm": 1.2,
+   "body_mm": [
+    3.0,
+    3.0
+   ],
+   "side": "back",
+   "source": "Sunlord SWPA3012S series: 3.0 x 3.0 x 1.2 mm max (L701, R28)"
+  },
+  "BLM15AG121SN1D": {
+   "height_mm": 0.55,
+   "body_mm": [
+    1.0,
+    0.5
+   ],
+   "side": "back",
+   "source": "Murata BLM15A 0402: 0.5 +- 0.05 mm thick (E701-E703, R28)"
   }
  },
  "front_side_parts_note": "SW1-SW4 and J1 (the display socket, under the panel) are on the front (F.Cu) side. All other 165 parts are on the back (B.Cu) side.",

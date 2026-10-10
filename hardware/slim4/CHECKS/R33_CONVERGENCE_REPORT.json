@@ -1,29 +1,29 @@
 {
-  "title": "STRUTHIO SLIM4 R32 convergence report (PCB R27 · CASE R12 · ACRYLIC R2)",
+  "title": "STRUTHIO SLIM4 R33 convergence report (PCB R28 · CASE R12 · ACRYLIC R2)",
   "counts": {
-    "PASS": 78,
+    "PASS": 76,
     "INFO": 3,
-    "GATE": 9,
-    "FAIL": 3
+    "GATE": 10,
+    "FAIL": 4
   },
   "converged": false,
   "checks": [
     {
       "id": "A1",
       "interface": "PCB",
-      "title": "LAYERS/01_PCB/SLIM4_R27.kicad_pcb unchanged from R32 delivery",
+      "title": "LAYERS/01_PCB/SLIM4_R28.kicad_pcb unchanged from R33 delivery",
       "status": "PASS",
-      "value": "3676ef1c2c92449f",
-      "limit": "3676ef1c2c92449f",
+      "value": "93591db79ee60f7f",
+      "limit": "93591db79ee60f7f",
       "detail": ""
     },
     {
       "id": "A1",
       "interface": "PCB",
-      "title": "LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json unchanged from R32 delivery",
+      "title": "LAYERS/01_PCB/SLIM4_R28_PCB_LAYER.json unchanged from R33 delivery",
       "status": "PASS",
-      "value": "71ef66638f2dc3d2",
-      "limit": "71ef66638f2dc3d2",
+      "value": "d02c9c7122777c98",
+      "limit": "d02c9c7122777c98",
       "detail": ""
     },
     {
@@ -53,7 +53,7 @@
     {
       "id": "B2",
       "interface": "PCB↔CASE",
-      "title": "R27 board inside the 2.0 mm wall with ≥0.3 mm clearance",
+      "title": "R28 board inside the 2.0 mm wall with ≥0.3 mm clearance",
       "status": "PASS",
       "value": 0.334,
       "limit": 0.3,
@@ -185,7 +185,7 @@
         111.5,
         1.75
       ],
-      "detail": "CASE R12 was drawn around the R3/HOTHMI envelope 60.3 × 111.4 × 1.75. The Crystalfontz module is +5.60 mm against the 60.5 mm pocket width, +9.00 mm in length and +0.10 mm in thickness; its active area (62.1 × 110.4) against the case opening design (58.104 × 103.296). The owner set the case aside for PCB R23-R27: the case pass redraws the pocket, opening, lens and film for the 5 in panel."
+      "detail": "CASE R12 was drawn around the R3/HOTHMI envelope 60.3 × 111.4 × 1.75. The Crystalfontz module is +5.60 mm against the 60.5 mm pocket width, +9.00 mm in length and +0.10 mm in thickness; its active area (62.1 × 110.4) against the case opening design (58.104 × 103.296). The owner set the case aside for PCB R23-R28: the case pass redraws the pocket, opening, lens and film for the 5 in panel."
     },
     {
       "id": "D1",
@@ -646,9 +646,9 @@
       "interface": "ALL",
       "title": "No positive-volume interference (rest, flap pressed, DART left/right pressed)",
       "status": "FAIL",
-      "value": 2,
+      "value": 5,
       "limit": 0,
-      "detail": "[{\"pose\": \"rest\", \"a\": \"REAR SHELL R12 \\u00b7 FLOOR, WALLS, CHAMBERS, SUPPORTS\", \"b\": \"J3 S2B-PH-SM4-TB(LF)(SN)\", \"volume_mm3\": 187.68}, {\"pose\": \"rest\", \"a\": \"REAR SHELL R12 \\u00b7 FLOOR, WALLS, CHAMBERS, SUPPORTS\", \"b\": \"J5 53261-0271\", \"volume_mm3\": 6.065}]"
+      "detail": "[{\"pose\": \"rest\", \"a\": \"REAR SHELL R12 \\u00b7 FLOOR, WALLS, CHAMBERS, SUPPORTS\", \"b\": \"C718 CL05A474KA5NNNC\", \"volume_mm3\": 0.002}, {\"pose\": \"rest\", \"a\": \"REAR SHELL R12 \\u00b7 FLOOR, WALLS, CHAMBERS, SUPPORTS\", \"b\": \"C720 CL05B104KO5NNNC\", \"volume_mm3\": 0.082}, {\"pose\": \"rest\", \"a\": \"REAR SHELL R12 \\u00b7 FLOOR, WALLS, CHAMBERS, SUPPORTS\", \"b\": \"J3 S2B-PH-SM4-TB(LF)(SN)\", \"volume_mm3\": 187.68}, {\"pose\": \"rest\", \"a\": \"REAR SHELL R12 \\u00b7 FLOOR, WALLS, CHAMBERS, SUPPORTS\", \"b\": \"J5 53261-0271\", \"volume_mm3\": 6.065}, {\"pose\": \"rest\", \"a\": \"REAR SHELL R12 \\u00b7 FLOOR, WALLS, CHAMBERS, SUPPORTS\", \"b\": \"L701 SWPA3012S150MT\", \"volume_mm3\": 4.098}]"
     },
     {
       "id": "G1",
@@ -711,10 +711,10 @@
       "id": "I1",
       "interface": "PCB↔CASE",
       "title": "Support/clamp posts land on bare board (no pads within 0.3 mm, ≥0.3 mm from edges/window)",
-      "status": "PASS",
-      "value": 0,
+      "status": "FAIL",
+      "value": 1,
       "limit": 0,
-      "detail": "[]"
+      "detail": "[[\"rear\", -21.5, 76.0]]"
     },
     {
       "id": "I2",
@@ -752,10 +752,10 @@
       "id": "I4",
       "interface": "PCB↔CASE",
       "title": "Vias under support posts and stop legs are tented (solder-masked)",
-      "status": "PASS",
+      "status": "GATE",
       "value": 2,
       "limit": 0,
-      "detail": "SW2 cap stop leg at (35.69, 107.06) on a 3V3_SYS via; support post at (21.5, 76.0) on a RESET_MR via. Covered: the R27 plot settings keep vias off the mask (viasonmask false), the plotted mask Gerbers have no opening on any via (CHECKS/R27_FAB_SUMMARY.json), and the order specifies epoxy-filled, capped vias."
+      "detail": "SW2 cap stop leg at (35.69, 107.06) on a 3V3_SYS via; support post at (21.5, 76.0) on a RESET_MR via. Confirm via tenting in the fabrication notes (run CHECKS/build_builder_packs.py to record the plotted masks)."
     },
     {
       "id": "J1",
@@ -872,7 +872,7 @@
       "status": "INFO",
       "value": 13.55,
       "limit": null,
-      "detail": "with caps 15.05 mm. The rear floor sits 0.2 mm below the tallest back-side part, L2 (Sunlord ASWPA4035, 3.50 mm). Sub-12 mm needs every back-side part ≤ 1.95 mm (over today: J3 6.00, L2 3.50, J5 3.40, J4 3.40, J2 3.31, L3 2.00, L1 2.00), which is a PCB change, and a cell no thicker than 6.41 mm: the 7.0 mm cell alone holds the body at ≥ 12.65 mm. Replacing only L2 and J2 gives 16.05 mm."
+      "detail": "with caps 15.05 mm. The rear floor sits 0.2 mm below the tallest back-side part, L2 (Sunlord ASWPA4035, 3.50 mm). Sub-12 mm needs every back-side part ≤ 1.95 mm (over today: J3 6.00, L2 3.50, J5 3.40, J4 3.40, J2 3.31, J701 2.50, L3 2.00, L1 2.00), which is a PCB change, and a cell no thicker than 6.41 mm: the 7.0 mm cell alone holds the body at ≥ 12.65 mm. Replacing only L2 and J2 gives 16.05 mm."
     },
     {
       "id": "L2",
@@ -932,10 +932,10 @@
     }
   ],
   "stats": {
-    "pair_evaluations": 320,
-    "distinct_pairs": 281,
+    "pair_evaluations": 347,
+    "distinct_pairs": 308,
     "evaluations_by_pose": {
-      "rest": 278,
+      "rest": 305,
       "press": 18,
       "press_left": 12,
       "press_right": 12

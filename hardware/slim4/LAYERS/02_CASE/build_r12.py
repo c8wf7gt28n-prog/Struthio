@@ -1,4 +1,4 @@
-"""STRUTHIO SLIM4 CASE R12 + ACRYLIC R2, on PCB R27 (package R32; the case was converged on R21 in R26).
+"""STRUTHIO SLIM4 CASE R12 + ACRYLIC R2, on PCB R28 (package R33; the case was converged on R21 in R26).
 
 R12/R2 = R11/R1 plus the R26 decisions (DECISIONS_R26.md): 0.10 mm radial lap clearance with a
 0.10 mm tape seat, a 0.10 mm display tape frame (LCD 0.10 mm further back), 0.10 mm radial DART
@@ -8,12 +8,12 @@ Shared datum (unchanged from R25): millimetres, R21 PCB XY (X right, Y down from
 board's top edge region, as in KiCad), board bottom at Z=0, +Z toward the device front.
 
 Nothing here edits the PCB. The board outline, footprint positions and heights are
-read from LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json and CHECKS/COMPONENT_ENVELOPES_R27.json,
-and every case/acrylic feature is placed against them. R23 to R27 keep R21's outline, thickness and
-switch positions, so the R12 parameters are unchanged; the harness reserves follow the R23-R27
-J3/J4/J5 positions (R24 to R27 moved no connector). The LCD parameters are still the R3/HOTHMI envelope: the case was set aside
-by the owner for R23-R27 (5 in Crystalfontz panel, its tail folded once behind it into a top-contact J1
-on the board front), and its pass is open (CHECKS/R32_CONVERGENCE_REPORT.md). R23 shortened the
+read from LAYERS/01_PCB/SLIM4_R28_PCB_LAYER.json and CHECKS/COMPONENT_ENVELOPES_R28.json,
+and every case/acrylic feature is placed against them. R23 to R28 keep R21's outline, thickness and
+switch positions, so the R12 parameters are unchanged; the harness reserves follow the R23-R28
+J3/J4/J5 positions (R24 to R28 moved no connector). The LCD parameters are still the R3/HOTHMI envelope: the case was set aside
+by the owner for R23-R28 (5 in Crystalfontz panel, its tail folded once behind it into a top-contact J1
+on the board front), and its pass is open (CHECKS/R33_CONVERGENCE_REPORT.md). R23 shortened the
 battery window to 38 x 53.5 mm, so the cell envelope is 34 x 50 x 7 (503450 / 703450), 1.5 mm below
 the window's top edge and 2.0 mm clear of its bottom edge for the leads.
 
@@ -29,8 +29,8 @@ from shapely import affinity
 
 OUT = Path(__file__).resolve().parent
 ROOT = OUT.parents[1]
-PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json').read_text())
-ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R27.json').read_text())
+PCB = json.loads((ROOT / 'LAYERS/01_PCB/SLIM4_R28_PCB_LAYER.json').read_text())
+ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R28.json').read_text())
 
 # ---------------------------------------------------------------------------
 # Parameters. Most R12 dimensions live here and the checker reads the same dict.
@@ -38,7 +38,7 @@ ENV = json.loads((ROOT / 'CHECKS/COMPONENT_ENVELOPES_R27.json').read_text())
 # silhouette control points, and the FPC/harness route and ledge geometry.
 # ---------------------------------------------------------------------------
 P = dict(
-    revision_case='R12', revision_acrylic='R2', package='R32',
+    revision_case='R12', revision_acrylic='R2', package='R33',
     pcb_t=PCB['board']['thickness'],                 # 1.2, from the board file (R10 modelled 1.6)
     wall=2.0,                                        # minimum structural wall / plate / floor
     board_to_wall_clearance=0.3,
@@ -145,7 +145,7 @@ def clean(g):
 BOARD_OUTER = Polygon(PCB['board']['outer'])
 BOARD_HOLES = [Polygon(h) for h in PCB['board'].get('holes', [])]
 BOARD = Polygon(PCB['board']['outer'], [h for h in PCB['board'].get('holes', [])])
-WINDOW = BOARD_HOLES[0]                              # battery window, x +-19, y 17..70.5 (R23-R27)
+WINDOW = BOARD_HOLES[0]                              # battery window, x +-19, y 17..70.5 (R23-R28)
 
 def part_height(p):
     e = ENV['by_value'].get(p['value'])

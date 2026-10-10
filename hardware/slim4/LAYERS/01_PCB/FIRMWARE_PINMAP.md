@@ -1,6 +1,6 @@
-# Firmware pin map — PCB R27 (ESP32-P4NRW32X, chip revision v3.x)
+# Firmware pin map — PCB R28 (ESP32-P4NRW32X, chip revision v3.x)
 
-Everything the Struthio firmware needs from the board. Read from the R26 netlist; R27, R26, R25, R24 and R23 use the same GPIOs as R22 (R27 changed values on R401/R402 and added capacitors, no GPIO). `firmware/slim4/tools/check_pinmap.py` checks the firmware's `slim4_pins.h` against U1's pad nets and the ESP32-P4 pin table; the pad nets ship with the firmware (`tools/u1_pad_nets.json`, taken from `SLIM4_R27_PCB_LAYER.json`), and inside this repository the script also checks that table against the board export.
+Everything the Struthio firmware needs from the board. Read from the R26 netlist; R27, R26, R25, R24 and R23 use the same GPIOs as R22 (R27 changed values on R401/R402 and added capacitors, no GPIO). R28 keeps all of them and adds the radio on three GPIOs that had no net (*Radio*). `firmware/slim4/tools/check_pinmap.py` checks the firmware's `slim4_pins.h` against U1's pad nets and the ESP32-P4 pin table; the pad nets ship with the firmware (`tools/u1_pad_nets.json`, taken from `SLIM4_R28_PCB_LAYER.json`), and inside this repository the script also checks that table against the board export.
 
 ## Inputs
 
@@ -38,6 +38,21 @@ Everything the Struthio firmware needs from the board. Read from the R26 netlist
 | Flash | dedicated SPI flash pins | W25Q512JV, 3.3 V. Boots as 16 MB (3-byte mode). |
 | PSRAM | in package | 32 MB, 1.9 V from VDDO_PSRAM (set by the 2nd-stage bootloader) |
 
+## Radio (PCB R28+)
+
+U15, a RAKwireless RAK3172-SiP (STM32WLE5 LoRa / FSK radio, 902–928 MHz, running RAKwireless's RUI3 AT firmware). U1 talks to it over UART1 at 115200 8N1 with AT commands (`firmware/slim4/components/slim4_bsp/slim4_radio.c`).
+
+| GPIO | U1 pad | Net | U15 pin | Notes |
+|---|---|---|---|---|
+| 39 | 80 | RADIO_UART_TX | 30 (UART2_RX) | U1 transmits |
+| 40 | 81 | RADIO_UART_RX | 29 (UART2_TX) | U1 receives. Idle high once the SiP runs; with no SiP (or R701 off) nothing drives it, which is how the self-test tells "not fitted" (U1's pull-down) |
+| 50 | 93 | RADIO_NRST | 44 (NRST) | Active low. Drive it open-drain (low only): R703 10 k pulls it up to RADIO_3V3, C726 100 nF filters it |
+
+- BOOT0 (U15 pin 43) is not on U1: R702 holds it low, so the SiP always starts RUI3. RUI3 updates itself over the same UART after `AT+BOOT`; a wire from R702's BOOT0 pad to R703's RADIO_3V3 pad starts the STM32 ROM bootloader instead (recovery).
+- RADIO_3V3 comes from 3V3_SYS through R701 (0 Ω): it is on whenever 3V3 is. The SiP idles in its own low-power state between commands.
+- The antenna socket is J701 (U.FL). The firmware transmits only when asked (`radio ping`); `slim4_radio_tx_cap_dbm()` caps the power from the power state (22 dBm on USB or on a cell at 3.5 V or more, 14 dBm below 3.5 V or when the cell reading is uncertain, off when the battery is flagged low).
+- Default channel 915 MHz, LoRa SF7, 500 kHz (US 902–928 MHz; `slim4_radio_freq_ok()` keeps channels away from harmonics of the 40 MHz and 32 MHz crystals).
+
 ## Power facts the firmware should know
 
 - 3.3 V is always on while a cell is connected. "Off" is deep sleep, woken by the power button (GPIO0).
@@ -46,7 +61,7 @@ Everything the Struthio firmware needs from the board. Read from the R26 netlist
 - The USB-C port is a sink only (TUSB320 in UFP mode); charge current is 494 mA (ISET 1.8 k), within the 500 mA default input limit.
 - The battery plugs into J3 (JST PH 2.0) behind Q2. BAT_ADC reads BAT_PLUS (after Q2). On USB, BAT_ADC below 1.5 V for 1.5 s means a reversed or shorted pack (Q2 then sits at its threshold and the charger stays in its short-circuit check): the firmware reports it.
 - On a 500 mA USB source, unless a qualified cell can supplement (charging, no fault, ≥ 3.5 V for 2 s), the firmware caps the backlight at 15 % (the BQ24074's 450 mA minimum input limit at 4.4 V cannot carry the worst-case 3.3 V load plus more backlight without a cell to supplement). On the battery, or on USB-C 1.5 A / 3 A (charger input 1.07 A), there is no cap.
-- No free test pads: GPIO37/38 (UART0) are unconnected. Use the USB-Serial-JTAG console.
+- No free test pads: GPIO37/38 (UART0) are unconnected. Use the USB-Serial-JTAG console. GPIO41 and GPIO51 (pads 82 and 94) stay unconnected in R28: U1's pad row escapes only the three radio lines.
 
 ## Toolchain
 

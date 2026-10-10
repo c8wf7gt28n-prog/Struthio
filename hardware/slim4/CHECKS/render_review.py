@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Review images for R32: exact cross-sections and shaded views of PCB R27 + CASE R12 + ACRYLIC R2.
+"""Review images for R33: exact cross-sections and shaded views of PCB R28 + CASE R12 + ACRYLIC R2.
 
 Sections are cut from the B-rep solids (not from meshes), so dimensions read off the
 plots are the CAD dimensions. Shaded views use a small z-buffer rasteriser.
@@ -173,9 +173,9 @@ if __name__ == '__main__':
     section('E · shoulder section at Y = 84 (board clamp, wall)', 'SECTION_E_SHOULDER_Y84.png', 'y', 84.0, ('x', 'z'), (-54, 54, -7, 11))
     section('F · lap joint and display stack at X = 20 (top edge, zoom)', 'SECTION_F_LAP_DISPLAY.png', 'x', 20.0, ('y', 'z'), (-1, 9, 3.5, 8.5),
             notes=[f'lap: {P["lap_clear"]:.2f} mm radial clearance, {P["lap_tape"]:.2f} mm tape seat', f'display tape frame {P["lcd_tape"]:.2f} mm: module to ledge and lens'])
-    raster('VIEW_FRONT_ISO.png', yaw=-0.55, pitch=0.62, title='R32 · PCB R27 + CASE R12 + ACRYLIC R2 · assembled')
-    raster('VIEW_EXPLODED.png', yaw=-0.55, pitch=0.42, explode=9.0, title='R32 · exploded (film, controls, front shell, lens, tape, LCD, routes, PCB, battery, speakers, rear)')
-    raster('VIEW_REAR_ISO.png', yaw=math.pi + 0.5, pitch=0.5, title='R32 · rear: power plunger, RESET / BOOT pinholes, USB-C relief')
+    raster('VIEW_FRONT_ISO.png', yaw=-0.55, pitch=0.62, title='R33 · PCB R28 + CASE R12 + ACRYLIC R2 · assembled')
+    raster('VIEW_EXPLODED.png', yaw=-0.55, pitch=0.42, explode=9.0, title='R33 · exploded (film, controls, front shell, lens, tape, LCD, routes, PCB, battery, speakers, rear)')
+    raster('VIEW_REAR_ISO.png', yaw=math.pi + 0.5, pitch=0.5, title='R33 · rear: power plunger, RESET / BOOT pinholes, USB-C relief')
     raster('VIEW_INTERNALS.png', yaw=-0.55, pitch=0.62, exclude=('FRONT SHELL', 'FACE FILM', 'LENS', 'LCD', 'DISPLAY TAPE', 'FLAP CAP', 'DART ROCKER'),
-           title='R32 · front shell, film, screen and controls hidden')
+           title='R33 · front shell, film, screen and controls hidden')
     print('renders written to', OUT)

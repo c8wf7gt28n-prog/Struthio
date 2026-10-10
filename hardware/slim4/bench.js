@@ -94,7 +94,7 @@
     const r = rec();
     const head = `<p class="lead">${esc(PROC.title)}: ${STEPS.length} steps in ${PROC.phases.length} phases. Record what you measure on each board; a FAIL shows what the reading means. Nothing here talks to the board.</p>`;
     const pick = store.records.length ? `<select id="benchPick" aria-label="Board record">${store.records.map(x => `<option value="${esc(x.id)}"${x.id === store.active ? ' selected' : ''}>${esc(x.fields.serial || 'Board without serial')} · ${esc(x.fields.date || '')}</option>`).join('')}</select>` : '';
-    const add = `<div class="benchAdd"><input id="benchSerial" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Serial, e.g. SLIM4-R27-001" aria-label="New board serial"><button type="button" class="go" id="benchNew">NEW BOARD</button></div>`;
+    const add = `<div class="benchAdd"><input id="benchSerial" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Serial, e.g. SLIM4-R28-001" aria-label="New board serial"><button type="button" class="go" id="benchNew">NEW BOARD</button></div>`;
     if (!r) { el.innerHTML = head + add + `<div class="empty">No board recorded yet. Give the first board a serial and start with phase A, which needs no board.</div>` + tools(); wire(el); return; }
     const t = tally(r), done = t.pass + t.fail + t.skip;
     const stale = r.procedure && r.procedure !== PROC.sha256 ? `<div class="benchWarn">The bring-up procedure has changed since this record was started (${esc(r.procedure.slice(0, 8))} → ${esc(PROC.sha256.slice(0, 8))}). Steps may have moved; check before relying on old rows.</div>` : '';
