@@ -3,7 +3,7 @@
 
     python -B CHECKS/build_builder_packs.py <output folder>
 
-Writes <output folder>/STRUTHIO_SLIM4_R31_BUILDER_FILES/ and a zip of it:
+Writes <output folder>/STRUTHIO_SLIM4_R32_BUILDER_FILES/ and a zip of it:
   1_PCB_FABRICATION/   JLCPCB order: Gerber + drill zip, BOM, placement (CPL), assembly drawings, KiCad source
   2_3D_PRINTING/       one STL and one STEP per printed part, renders
   3_ACRYLIC_STICKER/   face-film die line (PDF with a CutContour spot colour, SVG, DXF),
@@ -13,7 +13,7 @@ Needs KiCad 7.0.x (kicad-cli on PATH and a python3 that can import pcbnew) and t
 CadQuery environment (requirements.txt). No source in the package is changed: the PCB files are
 plotted from a temporary copy of LAYERS/01_PCB (its SHA-256 is checked before and after), and
 and the printed parts and film are rebuilt from LAYERS/02_CASE/build_r12.py. The one file written
-into the package is CHECKS/R26_FAB_SUMMARY.json, a record
+into the package is CHECKS/R27_FAB_SUMMARY.json, a record
 of the fab outputs (DRC, BOM coverage, via covering) that the studio and the convergence check read.
 """
 from pathlib import Path
@@ -22,9 +22,9 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
 PCB_DIR = ROOT / 'LAYERS/01_PCB'
-BOARD = 'SLIM4_R26.kicad_pcb'
-NAME = 'SLIM4_R26'
-TOP = 'STRUTHIO_SLIM4_R31_BUILDER_FILES'
+BOARD = 'SLIM4_R27.kicad_pcb'
+NAME = 'SLIM4_R27'
+TOP = 'STRUTHIO_SLIM4_R32_BUILDER_FILES'
 SOURCING = json.loads((ROOT / 'CHECKS/BOM_SOURCING_R21.json').read_text())['by_mpn']
 STAMP = (2026, 10, 8, 0, 0, 0)
 STEP_STAMP = '2026-10-08T00:00:00'
@@ -193,7 +193,7 @@ def assembly_drawing(back, path, facts):
         ys = [y for loop in p['courtyard'] for _, y in loop] or [p['y']]
         fs = max(2.2, min(6.0, 1.6 * min(max(xs) - min(xs), max(ys) - min(ys))))
         ax.text(sx * p['x'], p['y'], p['ref'], ha='center', va='center', fontsize=fs, color='#b0201a')
-    ax.text(-72, 150, f'STRUTHIO SLIM4 R26 - {side.upper()} SIDE ({n} parts), seen from the {side}. Scale 2:1 on A3. '
+    ax.text(-72, 150, f'STRUTHIO SLIM4 R27 - {side.upper()} SIDE ({n} parts), seen from the {side}. Scale 2:1 on A3. '
             'Outlines are courtyards; the CPL file is the placement authority.', fontsize=6.5, va='top')
     fig.savefig(path, metadata={'CreationDate': None}); plt.close(fig)
 
@@ -266,7 +266,7 @@ def build_pcb(dst):
             pin_dates(pdf)
         for doc in ('ELECTRICAL_REVIEW_R22.md', 'DISPLAY_PORT.md', 'FIRMWARE_PINMAP.md', 'README_PCB_LAYER.md'):
             shutil.copy2(PCB_DIR / doc, ref / doc)
-        shutil.copy2(ROOT / 'CHECKS/R26_DSI_REPORT.md', ref / 'R26_DSI_REPORT.md')
+        shutil.copy2(ROOT / 'CHECKS/R27_DSI_REPORT.md', ref / 'R27_DSI_REPORT.md')
         srcdir = dst / 'KICAD_SOURCE'
         srcdir.mkdir()
         for f in [BOARD, f'{NAME}.kicad_pro', 'fp-lib-table']:
@@ -275,7 +275,7 @@ def build_pcb(dst):
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     if sha(PCB_DIR / BOARD) != src_sha:
-        sys.exit('the R26 board changed during the build: stop')
+        sys.exit('the R27 board changed during the build: stop')
 
     no_lcsc = [(p['ref'], p['value']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if not p['lcsc']]
     bound = [(p['ref'], p['value'], p['lcsc']) for p in sorted(parts, key=lambda p: natural(p['ref'])) if p['lcsc_source'] == 'sourcing']
@@ -285,7 +285,7 @@ def build_pcb(dst):
     slots = [h for h in facts['footprint_holes'] if h[1] != h[2]]
     npth = sorted({(h[0][:2] if h[0].startswith('SW') else h[0], h[1]) for h in facts['footprint_holes'] if not h[3]})
     tent = re.search(r'\(viasonmask (true|false)\)', text)
-    readme = f"""STRUTHIO SLIM4 - PCB R26 - JLCPCB ORDER FILES
+    readme = f"""STRUTHIO SLIM4 - PCB R27 - JLCPCB ORDER FILES
 =============================================
 
 Upload to JLCPCB (PCB + PCBA):
@@ -371,11 +371,12 @@ CHECKS RUN ON THESE FILES
   Board: {facts['footprints']} footprints, {facts['nets']} nets, {facts['segments']} track segments, {facts['via_count']} vias
   Electrical and land-pattern review: REFERENCE/ELECTRICAL_REVIEW_R22.md (R22 board) and
   REFERENCE/README_PCB_LAYER.md (the R23 edits 12-15, the R24 power-layout edits 16-24, the R25 DSI and supply edits 25-30,
-              the R26 DSI pair edits 31-35, and their checks; the DSI pair check: REFERENCE/R26_DSI_REPORT.md)
+              the R26 DSI pair edits 31-35, the R27 margin edits 36-44 from the pre-order review, and their
+              checks; the DSI pair check: REFERENCE/R27_DSI_REPORT.md)
 
 REFERENCE/    assembly drawings (courtyards, both sides, 2:1 on A3), drill maps, DRC report, electrical
               review, display port and firmware pin map
-KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R26)
+KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R27)
 """
     (dst / 'README_PCB_ORDER.txt').write_text(readme)
 
@@ -402,7 +403,7 @@ KICAD_SOURCE/ native KiCad 7 board, project and local footprint library (R26)
                   'copper': '1 oz outer / 0.5 oz inner', 'finish': 'ENIG', 'via_covering': 'epoxy filled and capped (POFV)', 'impedance_control': {'ordered': True, 'nets': 'MIPI_DSI_* (3 pairs)', 'differential_ohm': 100, 'tolerance': '10%', 'width_mm': {'F.Cu': 0.127, 'In3.Cu': 0.10}, 'gap_mm': {'F.Cu': 0.18, 'In3.Cu': 0.18}, 'reference': {'F.Cu': 'In1 GND', 'In3.Cu': 'In2 GND area + In4 GND'}},
                   'mask_silk': 'green / white'},
     }
-    (ROOT / 'CHECKS/R26_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
+    (ROOT / 'CHECKS/R27_FAB_SUMMARY.json').write_text(json.dumps(summary, indent=1) + '\n')
     return facts, parts, no_lcsc
 
 
@@ -452,9 +453,9 @@ def build_print(dst, B):
     readme = f"""STRUTHIO SLIM4 - CASE R12 - FILES FOR THE 3D PRINT SERVICE
 ==========================================================
 
-STATUS: ON HOLD - DO NOT PRINT. The owner set the case aside for PCB R23 (package R28; R24 in R29, R25 in R30, R26 in R31). CASE R12
-was converged on PCB R21 (package R26); it does not fit the R23-R26 board's 5 in Crystalfontz panel or
-its new connectors (CHECKS/R31_CONVERGENCE_REPORT.md lists the failing rows). The case pass
+STATUS: ON HOLD - DO NOT PRINT. The owner set the case aside for PCB R23 (package R28; R24 in R29, R25 in R30, R26 in R31, R27 in R32). CASE R12
+was converged on PCB R21 (package R26); it does not fit the R23-R27 board's 5 in Crystalfontz panel or
+its new connectors (CHECKS/R32_CONVERGENCE_REPORT.md lists the failing rows). The case pass
 (CASE R13) redraws it; these files show the R12 design and its print specification.
 
 ORDER (per device)
@@ -650,9 +651,9 @@ Views are from the FRONT. Tolerance ±0.1 mm.
     readme = f"""STRUTHIO SLIM4 - FACE FILM R2 - FILES FOR THE STICKER PRINTER
 =============================================================
 
-STATUS: ON HOLD with the case (package R31). Clear, UNPRINTED film (decided in DECISIONS_R26.md):
+STATUS: ON HOLD with the case (package R32). Clear, UNPRINTED film (decided in DECISIONS_R26.md):
 no ink, no white, no texture. The R2 line and the lens follow CASE R12, which does not fit the
-R23-R26 board's 5 in panel; the case pass (CASE R13) redraws them. Do not order yet.
+R23-R27 board's 5 in panel; the case pass (CASE R13) redraws them. Do not order yet.
 
 WHAT IT IS
   A clear face film that covers the whole front of the device, including the screen.
@@ -700,37 +701,37 @@ def main():
     B = runpy.run_path(str(ROOT / 'LAYERS/02_CASE/build_r12.py'))
     prints = build_print(top / '2_3D_PRINTING', B)
     build_sticker(top / '3_ACRYLIC_STICKER', B)
-    report = json.loads((ROOT / 'CHECKS/R31_CONVERGENCE_REPORT.json').read_text())
+    report = json.loads((ROOT / 'CHECKS/R32_CONVERGENCE_REPORT.json').read_text())
     c = report['counts']
     conv = f"{c.get('FAIL', 0)} FAIL, {c.get('PASS', 0)} PASS, {c.get('GATE', 0)} GATE"
-    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R31 - FILES FOR THE BUILDERS
+    (top / 'README.txt').write_text(f"""STRUTHIO SLIM4 R32 - FILES FOR THE BUILDERS
 ===========================================
 
-1_PCB_FABRICATION   JLCPCB PCB + assembly: PCB R26, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts,
+1_PCB_FABRICATION   JLCPCB PCB + assembly: PCB R27, {pcb_facts['copper_layers']} layers, {pcb_facts['thickness']:g} mm, {len(parts)} parts,
                     5 boards, 2 assembled. READY, except U1 (ESP32-P4NRW32X): no JLCPCB stock on
                     2026-10-07 - pre-order or consign it (see its README).
                     The assembled board takes four plug-in parts, no soldering: the Crystalfontz
                     CFAF7201280A0-050TN display (its own tail into J1), a protected 1-cell pack of
                     1000 mAh or more on JST PH (J3)
                     and two speakers on Molex PicoBlade (J4, J5). Details in its README.
-2_3D_PRINTING       ON HOLD: CASE R12, set aside by the owner for R23-R26 (it does not fit the 5 in panel).
+2_3D_PRINTING       ON HOLD: CASE R12, set aside by the owner for R23-R27 (it does not fit the 5 in panel).
 3_ACRYLIC_STICKER   ON HOLD with the case: face film R2, tape die-cuts and the cover-glass lens.
 
 Order of work: the board and the four plug-in parts; flash the firmware (firmware/slim4 in the
-repository) and bring the board up on the bench; then the case pass for the R26 board and panel.
+repository) and bring the board up on the bench; then the case pass for the R27 board and panel.
 
 PROJECT_DOCS        the package documents the READMEs refer to: PRODUCTION_GATES.md (what to order,
                     then, and in the case pass), RELEASE_GATES.md (the board's closed and open gates),
-                    ASSEMBLY_SEQUENCE.md, R31_CONVERGENCE_REPORT.md and BOM_SOURCING_R21.json.
+                    ASSEMBLY_SEQUENCE.md, R32_CONVERGENCE_REPORT.md and BOM_SOURCING_R21.json.
 
-Generated from the R31 project package (PCB R26, CASE R12, ACRYLIC R2; convergence check {conv})
+Generated from the R32 project package (PCB R27, CASE R12, ACRYLIC R2; convergence check {conv})
 by CHECKS/build_builder_packs.py. The generator, the checks and the firmware are in the repository
 (hardware/slim4/CHECKS, firmware/slim4); they are not needed to place the orders.
 """)
     docs = top / 'PROJECT_DOCS'
     docs.mkdir()
     for rel in ('PRODUCTION_GATES.md', 'LAYERS/01_PCB/RELEASE_GATES.md', 'ASSEMBLY/ASSEMBLY_SEQUENCE.md',
-                'CHECKS/R31_CONVERGENCE_REPORT.md', 'CHECKS/BOM_SOURCING_R21.json'):
+                'CHECKS/R32_CONVERGENCE_REPORT.md', 'CHECKS/BOM_SOURCING_R21.json'):
         shutil.copy2(ROOT / rel, docs / Path(rel).name)
     zip_dir(top, out / f'{TOP}.zip', prefix=f'{TOP}/')
     files = sorted(p for p in top.rglob('*') if p.is_file())

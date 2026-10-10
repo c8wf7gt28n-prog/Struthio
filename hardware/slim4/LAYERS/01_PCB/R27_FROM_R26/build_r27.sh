@@ -1,8 +1,8 @@
 #!/bin/sh
 # Rebuild the R27 board from the R26 board: R26 -> R27 edits, each in its own pcbnew process (KiCad 7.0.x, python3
 # with pcbnew, kicad-footprints 7.0.x installed in /usr/share/kicad/footprints).
-#   sh build_r27.sh <path to a copy of SLIM4_R26.kicad_pcb renamed SLIM4_R27.kicad_pcb, beside copies of SLIM4.pretty,
-#   fp-lib-table and SLIM4_R26.kicad_pro (renamed SLIM4_R27.kicad_pro)>
+#   sh build_r27.sh <path to a copy of REFERENCES/PCB_R26/SLIM4_R26.kicad_pcb renamed SLIM4_R27.kicad_pcb, beside
+#   copies of that folder's SLIM4.pretty, fp-lib-table and SLIM4_R26.kicad_pro (renamed SLIM4_R27.kicad_pro)>
 # The edits answer the pre-order review of R26 (CHECKS/PREORDER_REVIEW_R26). New parts come from KiCad's library
 # (Capacitor_SMD, Resistor_SMD); r27_export_lib.py then writes the board's library copies (SLIM4.pretty beside the
 # board) for the added and changed footprints.

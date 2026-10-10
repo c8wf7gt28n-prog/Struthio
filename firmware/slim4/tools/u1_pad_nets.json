@@ -1,5 +1,5 @@
 {
- "board": "SLIM4_R26_PCB_LAYER.json",
+ "board": "SLIM4_R27_PCB_LAYER.json",
  "u1_pads": {
   "1": "BTN_LEFT",
   "2": "BTN_RIGHT",

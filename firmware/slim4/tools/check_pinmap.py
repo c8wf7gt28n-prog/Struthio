@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Check the firmware's GPIO assignments against the PCB R26 board (pins unchanged from R23).
+"""Check the firmware's GPIO assignments against the PCB R27 board (pins unchanged from R23).
 
 Every SLIM4_GPIO_* in components/slim4_bsp/include/slim4_pins.h is looked up in the ESP32-P4 QFN-104 pin table
 (GPIO -> package pad, datasheet section 2.2 / chip revision v3) and the board net on that U1 pad is read from
 tools/u1_pad_nets.json, which ships with the firmware (U1's pad -> net table, taken from the board export
-hardware/slim4/LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json). The net must be the one the define is named for. The display,
+hardware/slim4/LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json). The net must be the one the define is named for. The display,
 I2S and active-low control code paths are checked to use the defines.
 
 The hardware self-test's table (SLIM4_ST_PINS in components/slim4_bsp/slim4_selftest_logic.c) is checked the same way:
@@ -22,7 +22,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 table = root / 'tools/u1_pad_nets.json'
-repo_board = root.parents[1] / 'hardware/slim4/LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json'
+repo_board = root.parents[1] / 'hardware/slim4/LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json'
 
 
 def u1_pads(export):
