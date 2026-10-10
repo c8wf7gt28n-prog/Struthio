@@ -23,6 +23,7 @@
 #include "freertos/task.h"
 #include "slim4_board.h"
 #include "slim4_power.h"
+#include "slim4_radio.h"
 
 static const char *TAG = "slim4_selftest";
 static const slim4_st_report_t *s_last;
@@ -313,6 +314,10 @@ void slim4_selftest_after_init(slim4_st_report_t *rep, bool display_ready)
         const uint32_t c1 = slim4_board_get_vsync_count();
         slim4_st_judge_vsync(rep, true, (c1 - c0) * 2u);
     }
+
+    slim4_radio_probe_t radio;
+    slim4_radio_probe(&radio);                   /* bounded (under 60 ms); leaves the SX1262 asleep */
+    slim4_st_judge_radio(rep, &radio);
 
     slim4_power_state_t ps;
     slim4_st_power_t p = {0};

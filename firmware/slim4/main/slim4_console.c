@@ -55,6 +55,9 @@ static void cmd_help(void)
            "  display <safe|fast>  DSI profile for the next boot: safe 560 Mbit/s 45 Hz (default), fast 1000 Mbit/s 59 Hz\n"
            "  tone <left|right|both> [hz] [ms]   test tone, 20..20000 Hz, up to 3000 ms\n"
            "  vol <0-100>          master volume\n"
+           "  radio                probe the radio module again and print the result (PCB R28+)\n"
+           "  radio listen [s]     answer pings for s seconds (default 60)\n"
+           "  radio ping [n] [dbm] send n pings (default 10) at up to dbm (default 14; the power policy caps it)\n"
            "  sleep                power off (deep sleep; the power button wakes it)\n"
            "  reboot\n");
 }
@@ -193,6 +196,44 @@ static void cmd_tone(const char *side, const char *hz_s, const char *ms_s)
     printf("tone %s %d Hz %d ms queued\n", side, hz, ms);
 }
 
+static void cmd_radio(const char *sub, const char *a1, const char *a2)
+{
+    if (!sub) {
+        slim4_radio_probe_t p;
+        slim4_radio_probe(&p);
+        slim4_st_report_t rep;
+        slim4_st_report_init(&rep);
+        slim4_st_judge_radio(&rep, &p);
+        slim4_selftest_log(&rep);
+        printf("  busy %s in reset, released after %lu us; status %02X; sync %02X %02X; readback %02X %02X; errors %04X; "
+               "dio1 %s after %lu us (irq %04X), cleared %s\n", p.busy_high_in_reset ? "high" : "low",
+               (unsigned long)p.busy_us, p.status, p.sync[0], p.sync[1], p.readback[0], p.readback[1], p.errors,
+               p.dio1_rose ? "rose" : "did not rise", (unsigned long)p.dio1_us, p.irq, p.dio1_cleared ? "yes" : "no");
+        return;
+    }
+    slim4_power_state_t ps;
+    const int cap = slim4_power_read(&ps) == SLIM4_OK ? slim4_radio_tx_cap_dbm(&ps) : slim4_radio_tx_cap_dbm(NULL);
+    if (cap == SLIM4_RADIO_TX_OFF) {
+        printf("radio: battery at its cut-off and no USB: no transmitting\n");
+        return;
+    }
+    if (!strcmp(sub, "listen")) {
+        const int s = a1 ? atoi(a1) : 60;
+        (void)slim4_radio_listen(s > 0 && s <= 3600 ? (unsigned)s : 60u, SLIM4_RADIO_FREQ_HZ,
+                                 cap < SLIM4_RADIO_TX_LOW_DBM ? cap : SLIM4_RADIO_TX_LOW_DBM);
+    } else if (!strcmp(sub, "ping")) {
+        const int n = a1 ? atoi(a1) : 10;
+        int dbm = a2 ? atoi(a2) : SLIM4_RADIO_TX_LOW_DBM;
+        if (dbm > cap) {
+            printf("radio: %d dBm capped to %d dBm by the power policy\n", dbm, cap);
+            dbm = cap;
+        }
+        (void)slim4_radio_ping(n > 0 && n <= 1000 ? (unsigned)n : 10u, SLIM4_RADIO_FREQ_HZ, dbm);
+    } else {
+        printf("radio | radio listen [s] | radio ping [n] [dbm]\n");
+    }
+}
+
 static void run_line(char *line)
 {
     char *argv[4] = {0};
@@ -214,6 +255,7 @@ static void run_line(char *line)
         printf("%s\n", r && slim4_board_show_selftest(r) == SLIM4_OK ? "page shown (diag to go back)" : "display not ready");
     } else if (!strcmp(cmd, "gpio")) cmd_gpio(argv[1]);
     else if (!strcmp(cmd, "power")) cmd_power();
+    else if (!strcmp(cmd, "radio")) cmd_radio(argv[1], argv[2], argv[3]);
     else if (!strcmp(cmd, "panel")) cmd_panel();
     else if (!strcmp(cmd, "bl")) {
         const int v = argv[1] ? atoi(argv[1]) : -1;

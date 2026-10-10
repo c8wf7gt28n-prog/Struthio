@@ -4,15 +4,17 @@
 # centred on the edges of the 11.6 x 11.0 body; pins 1-8 (RF_SW MISO MOSI SCK NRST NSS GND VCC) on one 11.6 mm edge,
 # 1.27 mm pitch, pin 1 centre 1.33 mm from the left; pins 12-9 (DIO1 BUSY GND ANT) on the other, from 2.60 mm.
 # Pin 9 (ANT) has no net: on the IPEX variant it is not connected.
-# The radio is an add-on that leaves every R27 function as it was: it only uses U1 pins that had no net (GPIO28-33,
-# GPIO39-40; none is a strapping pin) and copper that was empty, and it takes power from 3V3_SYS through R701, a
+# The radio is an add-on that leaves every R27 function as it was: it only uses U1 pins that had no net (GPIO39-41,
+# GPIO49-53; none is a strapping pin) and copper that was empty, and it takes power from 3V3_SYS through R701, a
 # 0 ohm link: with R701 off the module is unpowered and the board is R27. C702 100 nF and C701 10 uF sit at the
 # module's VCC pin. Under the module there is only ground (Seeed's layout rule): a B.Cu GND zone over the body and
 # the strips north and south of it, stitched to the In1/In4 ground planes by vias outside the body.
-# Pin assignment (module pin -> net -> U1 pad/GPIO), chosen so the routes do not cross:
-#   1 RF_SW -> RADIO_RF_SW -> 64 GPIO33     2 MISO -> RADIO_MISO -> 63 GPIO32     3 MOSI -> RADIO_MOSI -> 61 GPIO31
-#   4 SCK   -> RADIO_SCK   -> 60 GPIO30     5 NRST -> RADIO_NRST -> 58 GPIO29     6 NSS  -> RADIO_NSS  -> 57 GPIO28
-#   11 BUSY -> RADIO_BUSY  -> 81 GPIO40    12 DIO1 -> RADIO_DIO1 -> 80 GPIO39
+# Pin assignment (module pin -> net -> U1 pad/GPIO), on U1's north row: the free pads there are the ones whose escapes
+# reach open board (GPIO28-33 on the west side are enclosed by R27's escapes). Pad 98 (GPIO54), beside XTAL_N, stays
+# empty; NRST, which only moves at a radio reset, takes pad 97 next to it.
+#   1 RF_SW -> RADIO_RF_SW -> 80 GPIO39     2 MISO -> RADIO_MISO -> 81 GPIO40     3 MOSI -> RADIO_MOSI -> 82 GPIO41
+#   4 SCK   -> RADIO_SCK   -> 92 GPIO49     6 NSS  -> RADIO_NSS  -> 93 GPIO50    12 DIO1 -> RADIO_DIO1 -> 94 GPIO51
+#   11 BUSY -> RADIO_BUSY  -> 95 GPIO52     5 NRST -> RADIO_NRST -> 97 GPIO53
 # The signal routes are edit 46.
 exec(open(sys.argv[2]).read())
 X, Y, ROT = -20.6, 85.5, 270          # body centre; rotation as KiCad shows the placed part (pins 1-8 face U1, east)
@@ -20,8 +22,8 @@ BW, BH = 11.6, 11.0                   # body, datasheet Figure 9
 PAD = (0.6, 2.2)
 PINS = {'1': 'RADIO_RF_SW', '2': 'RADIO_MISO', '3': 'RADIO_MOSI', '4': 'RADIO_SCK', '5': 'RADIO_NRST', '6': 'RADIO_NSS',
         '7': 'GND', '8': 'RADIO_3V3', '9': None, '10': 'GND', '11': 'RADIO_BUSY', '12': 'RADIO_DIO1'}
-U1PAD = {'64': 'RADIO_RF_SW', '63': 'RADIO_MISO', '61': 'RADIO_MOSI', '60': 'RADIO_SCK', '58': 'RADIO_NRST',
-         '57': 'RADIO_NSS', '81': 'RADIO_BUSY', '80': 'RADIO_DIO1'}
+U1PAD = {'80': 'RADIO_RF_SW', '81': 'RADIO_MISO', '82': 'RADIO_MOSI', '92': 'RADIO_SCK', '93': 'RADIO_NSS',
+         '94': 'RADIO_DIO1', '95': 'RADIO_BUSY', '97': 'RADIO_NRST'}
 for nn in set(v for v in PINS.values() if v and v != 'GND'): net(nn, create=True)
 
 # ---- the footprint (drawn top view, at the origin; then flipped to the back) ------------------------------------

@@ -578,3 +578,94 @@ void slim4_st_judge_power(slim4_st_report_t *rep, const slim4_st_power_t *p)
     snprintf(brief, sizeof(brief), "DIE %d C", p->die_c);
     slim4_st_add(rep, "DIE_TEMP", SLIM4_ST_INFO, brief, "ESP32-P4 die temperature %d C shortly after boot", p->die_c);
 }
+
+/* ---- radio ---------------------------------------------------------------------------------------------------- */
+
+static const char *radio_error_names(uint16_t e, char *buf, size_t len)
+{
+    static const char *const names[] = {"RC64K_CALIB", "RC13M_CALIB", "PLL_CALIB", "ADC_CALIB", "IMG_CALIB",
+                                        "XOSC_START", "PLL_LOCK", "?7", "PA_RAMP"};
+    size_t n = 0;
+    buf[0] = '\0';
+    for (unsigned i = 0; i < 9; ++i) {
+        if (e & (1u << i)) n += (size_t)snprintf(buf + n, n < len ? len - n : 0, "%s%s", n ? " " : "", names[i]);
+        if (n >= len) break;
+    }
+    return buf;
+}
+
+void slim4_st_judge_radio(slim4_st_report_t *rep, const slim4_radio_probe_t *p)
+{
+    const char *pins = "U15 Wio-SX1262: NSS GPIO50 (U1.93), SCK GPIO49 (U1.92), MOSI GPIO41 (U1.82), MISO GPIO40 "
+                       "(U1.81), NRST GPIO53 (U1.97), BUSY GPIO52 (U1.95), DIO1 GPIO51 (U1.94), RF_SW GPIO39 (U1.80)";
+    if (!p->spi_ready) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO SPI SETUP FAILED", "SPI2 could not be set up on the radio "
+                     "pins: a firmware fault");
+        return;
+    }
+    const bool silent = (p->sync[0] == 0x00 && p->sync[1] == 0x00) || (p->sync[0] == 0xFF && p->sync[1] == 0xFF);
+    if (!p->busy_high_in_reset && p->busy_released && silent && (p->status == 0x00 || p->status == 0xFF)) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_INFO, "RADIO NOT FITTED", "nothing answers on the radio pins: BUSY stayed "
+                     "low through a reset and the SX1262 registers read %02X %02X. Right for PCB R27 and older; on R28 "
+                     "check R701 (0 ohm from 3V3_SYS), 3.3 V on U15 pin 8 (VCC), U15 pins 7/10 to GND, then the joints "
+                     "of %s", p->sync[0], p->sync[1], pins);
+        return;
+    }
+    if (!p->busy_released) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO BUSY STUCK HIGH", "BUSY (GPIO52, U15 pin 11) stayed high "
+                     "20 ms after a reset: the SX1262 did not finish starting, or BUSY is shorted high. Check 3.3 V on "
+                     "U15 pin 8 and C701/C702, then U15 pin 11 and U1 pad 95");
+        return;
+    }
+    if (silent) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, p->sync[0] ? "RADIO MISO STUCK HIGH" : "RADIO SPI READS ZERO",
+                     "BUSY answered the reset (%s, low after %lu us) but the SX1262 registers read %02X %02X instead of "
+                     "14 24: look at the SPI joints - MISO U15 pin 2 / U1 pad 81, SCK pin 4 / pad 92, NSS pin 6 / "
+                     "pad 93, MOSI pin 3 / pad 82", p->busy_high_in_reset ? "high in reset" : "never high",
+                     (unsigned long)p->busy_us, p->sync[0], p->sync[1]);
+        return;
+    }
+    if (!(p->sync[0] == 0x14 && p->sync[1] == 0x24)) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO SPI READ WRONG", "registers 0x0740/0x0741 read %02X %02X, "
+                     "expected 14 24 after a reset: an SPI line is open or bridged (MOSI U1 pad 82, MISO pad 81, SCK pad "
+                     "92, NSS pad 93) or the part is not an SX1262", p->sync[0], p->sync[1]);
+        return;
+    }
+    if (!(p->readback[0] == 0x5A && p->readback[1] == 0xA5)) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO SPI WRITE FAILED", "wrote 5A A5 to 0x0740 and read back %02X %02X: "
+                     "reads work, so look at MOSI (GPIO41, U1 pad 82, U15 pin 3)", p->readback[0], p->readback[1]);
+        return;
+    }
+    if (!p->busy_high_in_reset) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO RESET NOT SEEN", "SPI works but BUSY was low 100 us after NRST "
+                     "was pulsed, so the reset did not reach the SX1262 or BUSY does not reach U1: NRST GPIO53 (U1 pad 97, "
+                     "U15 pin 5), BUSY GPIO52 (U1 pad 95, U15 pin 11)");
+        return;
+    }
+    if (!p->init_done) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO CALIBRATION TIMED OUT", "the TCXO / calibration commands did "
+                     "not complete (BUSY stayed high): the module's TCXO (DIO3, 1.8 V) may not start - a module fault");
+        return;
+    }
+    char names[96];
+    if (p->errors) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO CHIP ERROR", "SX1262 device errors 0x%04X (%s) after calibration "
+                     "and a receive: XOSC_START = the TCXO did not start, PLL_LOCK = no lock at 915 MHz; a module fault",
+                     p->errors, radio_error_names(p->errors, names, sizeof(names)));
+        return;
+    }
+    if (!p->dio1_rose) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO DIO1 NO INTERRUPT", "a 1 ms receive timed out inside the SX1262 "
+                     "(IRQ 0x%04X) but DIO1 never went high at U1: DIO1 GPIO51 (U1 pad 94, U15 pin 12)", p->irq);
+        return;
+    }
+    if (!p->dio1_cleared) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO DIO1 STUCK HIGH", "DIO1 stayed high after the interrupt was "
+                     "cleared: GPIO51 (U1 pad 94) shorted high or bridged to a neighbour (pads 93, 95)");
+        return;
+    }
+    slim4_st_add(rep, "RADIO", SLIM4_ST_PASS, "RADIO SX1262 OK", "SX1262 answered: reset/BUSY %lu us, SPI read and "
+                 "write, TCXO and calibration without errors, DIO1 interrupt after %lu us. Not checked here: RF_SW "
+                 "(GPIO39) and the antenna - run 'radio listen' on one board and 'radio ping' on another",
+                 (unsigned long)p->busy_us, (unsigned long)p->dio1_us);
+}

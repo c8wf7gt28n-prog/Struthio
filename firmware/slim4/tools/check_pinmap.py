@@ -53,7 +53,10 @@ P4_PAD = {0: 104, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 10, 10: 11,
           24: 52, 25: 53, 35: 66, 43: 84, 44: 86, 46: 88,
           # unused GPIOs the self-test drives, beside tested nets (pads 13-19 run GPIO12-18; 85 is a supply pad,
           # so GPIO43/44/45/46 are pads 84/86/87/88)
-          12: 13, 14: 15, 15: 16, 18: 19, 45: 87}
+          12: 13, 14: 15, 15: 16, 18: 19, 45: 87,
+          # the radio (PCB R28+): GPIO39-41 are pads 80-82 (pad 79 is EN_DCDC); GPIO49-52 pads 92-95 (91 is VDD_HP_3),
+          # GPIO53 pad 97 (96 is VDD_IO_6)
+          39: 80, 40: 81, 41: 82, 49: 92, 50: 93, 51: 94, 52: 95, 53: 97}
 # define name -> board net, where they differ
 NET = {'BOOT_BTN': 'BOOT_STRAP'}
 
@@ -61,11 +64,15 @@ pins = {m[1]: int(m[2]) for m in re.finditer(r'#define\s+SLIM4_GPIO_(\w+)\s+GPIO
 pads = {int(k): v for k, v in pads_by_num.items()}
 
 bad = []
+# the radio (PCB R28+): on a board export without any RADIO_ net (R27 and older) its pads must be free instead
+radio_board = any(v.startswith('RADIO_') for v in pads.values())
 for name, gpio in sorted(pins.items(), key=lambda t: t[1]):
     want = NET.get(name, name)
     pad = P4_PAD.get(gpio)
     got = pads.get(pad, 'no pad') if pad else 'GPIO not in the pin table'
-    print(f'  GPIO{gpio:<3} pad {pad!s:>4}  {name:16} board net {got}')
+    if name.startswith('RADIO_') and not radio_board:
+        want = ''
+    print(f'  GPIO{gpio:<3} pad {pad!s:>4}  {name:16} board net {got or "(none: no radio on this board)"}')
     if got != want:
         bad.append(f'SLIM4_GPIO_{name} = GPIO{gpio}: board pad {pad} is {got!r}, expected {want!r}')
 # the console pins must stay the USB-Serial-JTAG pair

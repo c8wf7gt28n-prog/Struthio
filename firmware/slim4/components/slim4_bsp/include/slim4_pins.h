@@ -37,3 +37,16 @@
 #define SLIM4_BAT_DIVIDER_DEN     33u
 
 /* USB-Serial-JTAG (GPIO24 D-, GPIO25 D+) carries the console: never reconfigure them. */
+
+/* Radio (PCB R28+): U15 Seeed Wio-SX1262 (Semtech SX1262, 862-930 MHz) on U1's north-row pins, which had no net
+ * before R28. Powered from 3V3_SYS through R701 (0 ohm). A board without U15 or R701 leaves these pins open, so the
+ * driver probes the module (BUSY low after reset, then an SPI register read) before it relies on it, and otherwise
+ * leaves every radio pin an input. The SX1262's DIO2 drives the module's TX/RX switch; RF_SW enables it. */
+#define SLIM4_GPIO_RADIO_RF_SW    GPIO_NUM_39  /* high = module RF switch enabled (needed to receive) */
+#define SLIM4_GPIO_RADIO_MISO     GPIO_NUM_40
+#define SLIM4_GPIO_RADIO_MOSI     GPIO_NUM_41
+#define SLIM4_GPIO_RADIO_SCK      GPIO_NUM_49
+#define SLIM4_GPIO_RADIO_NSS      GPIO_NUM_50  /* SPI chip select, active low */
+#define SLIM4_GPIO_RADIO_DIO1     GPIO_NUM_51  /* SX1262 IRQ, rising edge */
+#define SLIM4_GPIO_RADIO_BUSY     GPIO_NUM_52  /* high = SX1262 busy: wait for low before every command */
+#define SLIM4_GPIO_RADIO_NRST     GPIO_NUM_53  /* reset, active low (pull-up inside the SX1262) */
