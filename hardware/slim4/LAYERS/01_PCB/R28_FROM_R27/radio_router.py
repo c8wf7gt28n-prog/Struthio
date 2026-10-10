@@ -42,6 +42,7 @@ CLR_DSI = 0.30
 PLANE_NETS, PLANE_VIA = ('FB_DCDC', 'EN_DCDC'), 0.25
 LAYERS = ('F.Cu', 'In3.Cu', 'B.Cu')
 STEP = 0.05
+MAX_STATES = int(os.environ.get('RR_MAX_STATES', 12_000_000))   # search budget per net and pass
 HW = float(os.environ.get('RR_HW', 1.5))   # heuristic weight: 1.0 is plain A*, slow on this grid in pure Python
 BOX = (-33.0, 70.0, 6.0, 98.0)        # the routing region: U1's north side, the module and the land round it
 if os.environ.get('RR_BOX'): BOX = tuple(float(v) for v in os.environ['RR_BOX'].split(','))
@@ -239,7 +240,7 @@ def astar(G, ok, vok, a, c, cost_t, cost_v, goal_layers=(2,)):
             path = []; cur = s
             while cur: path.append(cur); cur = came[cur]
             return path[::-1], n
-        if n > 4_000_000: break
+        if n > MAX_STATES: break
         okl, ct = ok[l], cost_t[l]
         for k, (dx, dy) in enumerate(DIRS):
             if d >= 0 and min((k - d) % 8, (d - k) % 8) > 2: continue          # no turn sharper than 90 degrees
@@ -341,7 +342,7 @@ def main():
             t0 = time.time(); path, n = astar(G, ok, vok, *ends[net], cost_t, cost_v, goal_l[net])
             if os.environ.get('RR_VERBOSE'): print(f'  {net}: {n} states, {time.time() - t0:.0f} s', flush=True)
             if path is None:
-                print(f'{net}: NO ROUTE even alone against the board ({n} states)'); sys.exit(2)
+                print(f'{net}: no route within {MAX_STATES} states (board plus congestion costs)'); sys.exit(2)
             paths[net] = path; fps[net] = footprint(G, path)
         total = 0; where = []
         for net in ALL:
@@ -355,6 +356,8 @@ def main():
             for l in range(3): hist_t[l][ndimage.binary_dilation(bad[l], iterations=3)] += 0.3
             hist_v[ndimage.binary_dilation(badv, iterations=6)] += 0.3
         print(f'pass {it}: {total} conflicting cells (present factor {pres:.2f})', flush=True)
+        if os.environ.get('RR_VERBOSE') and where:
+            print('  at ' + ', '.join(f'{w[0][6:]} {w[1]} ({w[2]:.2f}, {w[3]:.2f})' for w in where[:8]), flush=True)
         if total == 0: break
         pres *= 1.5
     res = {}
