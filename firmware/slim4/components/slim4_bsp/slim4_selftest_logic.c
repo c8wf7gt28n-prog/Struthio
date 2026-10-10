@@ -592,18 +592,18 @@ void slim4_st_judge_radio(slim4_st_report_t *rep, const slim4_radio_probe_t *p)
         slim4_st_add(rep, "RADIO", SLIM4_ST_INFO, "RADIO NOT FITTED", "nothing drives the radio's TX line (U1 GPIO40, "
                      "pulled down by U1) after a reset. Right for PCB R27 and older; on R28 check R701 (0 ohm from "
                      "3V3_SYS), 3.3 V on RADIO_3V3 (C701, U15 pins 3 and 55), then U15 pin 29 / U1 pad 81 (RADIO_UART_RX) "
-                     "and U15 pin 44 / U1 pad 82 (RADIO_NRST)");
+                     "and U15 pin 44 / U1 pad 93 (RADIO_NRST)");
         return;
     }
     if (!p->answered) {
         slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO NO ANSWER TO AT", "the SiP drives its TX line but did not "
                      "answer AT within 1.5 s of a reset: look at U1 GPIO39 / pad 80 to U15 pin 30 (RADIO_UART_TX), at "
-                     "BOOT0 (U15 pin 43 must be low: R702, U1 pad 93), or the SiP's firmware");
+                     "BOOT0 (U15 pin 43 must be low: R702, no recovery wire to RADIO_3V3), or the SiP's firmware");
         return;
     }
     if (!p->rx_low_in_reset) {
         slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO RESET NOT SEEN", "the SiP answers AT, but its TX line stayed "
-                     "high while NRST was held low, so the reset does not reach it: RADIO_NRST U1 pad 82 / U15 pin 44");
+                     "high while NRST was held low, so the reset does not reach it: RADIO_NRST U1 pad 93 / U15 pin 44");
         return;
     }
     slim4_st_add(rep, "RADIO", SLIM4_ST_PASS, "RADIO RAK3172 OK", "U15 answered AT %lu ms after a reset; firmware %s; "

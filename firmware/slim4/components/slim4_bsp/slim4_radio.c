@@ -3,8 +3,9 @@
  * AT+NWM=<0 P2P | 1 LoRaWAN>, AT+P2P=<freq>:<sf>:<bw>:<cr>:<preamble>:<dBm>, AT+PSEND=<hex>, AT+PRECV=<ms>, replies
  * OK / AT_*_ERROR and events +EVT:TXP2P DONE, +EVT:RXP2P:<rssi>:<snr>:<hex>, +EVT:RXP2P RECEIVE TIMEOUT).
  *
- * NRST is driven open-drain (low only), so U1 never feeds an unpowered module through it; BOOT0 stays low (R702 also
- * pulls it low) except when the console asks for the STM32 ROM bootloader. Every wait is bounded. A board without the
+ * NRST is driven open-drain (low only), so U1 never feeds an unpowered module through it. BOOT0 is not on U1: R702
+ * holds it low, so the SiP always starts RUI3 (which updates itself over this UART after AT+BOOT); a wire from R702's
+ * BOOT0 pad to R703's RADIO_3V3 pad starts the STM32 ROM bootloader for recovery. Every wait is bounded. A board without the
  * module (its TX line, U1's RX, pulled down by U1 and nothing driving it) reads as "not fitted" and is left alone. */
 #include "slim4_radio.h"
 
@@ -37,9 +38,6 @@ static int64_t now_ms(void) { return esp_timer_get_time() / 1000; }
 
 static void pins_safe(void)
 {
-    (void)gpio_set_level(SLIM4_GPIO_RADIO_BOOT0, 0);
-    const gpio_config_t boot0 = {.pin_bit_mask = 1ULL << SLIM4_GPIO_RADIO_BOOT0, .mode = GPIO_MODE_OUTPUT};
-    (void)gpio_config(&boot0);
     (void)gpio_set_level(SLIM4_GPIO_RADIO_NRST, 1);                    /* open drain: released */
     const gpio_config_t nrst = {.pin_bit_mask = 1ULL << SLIM4_GPIO_RADIO_NRST, .mode = GPIO_MODE_OUTPUT_OD};
     (void)gpio_config(&nrst);

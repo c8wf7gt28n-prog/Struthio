@@ -6,7 +6,7 @@
  * What lives where:
  *   slim4_radio_logic.c  no ESP-IDF: the RF plan, the TX power cap from the power state, AT reply parsing, the P2P
  *                        settings string, the ping packet format. Covered by tests/host/test_radio_logic.c.
- *   slim4_radio.c        the UART, the reset and BOOT0 lines, the probe, ping and listen.
+ *   slim4_radio.c        the UART and the reset line, the probe, ping and listen.
  * The self-test's judgement of a probe is slim4_st_judge_radio() in slim4_selftest_logic.c.
  *
  * Nothing here runs at boot except slim4_radio_probe() from the self-test, which is bounded (under 1.6 s, most of it

@@ -27,7 +27,7 @@ PINS = {'3': 'RADIO_3V3', '4': 'RADIO_3V3', '6': 'RADIO_3V3', '7': 'RADIO_3V3', 
         '10': 'RADIO_VFB', '11': 'RADIO_VDDSMPS', '13': 'RADIO_VLX', '53': 'RADIO_VDDPA', '54': 'RADIO_VDDRF',
         '29': 'RADIO_UART_RX', '30': 'RADIO_UART_TX', '37': 'RADIO_RF', '43': 'RADIO_BOOT0', '44': 'RADIO_NRST'}
 for k in ('12', '28', '35', '36', '38', '39', '46', '47', '52', '56') + tuple(str(k) for k in range(65, 74)): PINS[k] = 'GND'
-U1PAD = {'80': 'RADIO_UART_TX', '81': 'RADIO_UART_RX', '82': 'RADIO_NRST', '93': 'RADIO_BOOT0'}
+U1PAD = {'80': 'RADIO_UART_TX', '81': 'RADIO_UART_RX', '93': 'RADIO_NRST'}   # BOOT0 stays on the SiP side (R702)
 for nn in sorted(set(v for v in PINS.values() if v != 'GND') | {'RADIO_ANT'}): net(nn, create=True)   # sorted: same net codes every build
 
 def land():
@@ -343,6 +343,9 @@ two_pad('C726', *C0402, *N100, 'R28: radio NRST 100 nF (RAK3272-SiP C11)', (e44[
         [('RADIO_NRST', 'pt', ([e44] + copper_points('RADIO_NRST'), 2.2)), GV])
 two_pad('R702', *R0402, '0402WGF1002TCE', 'C25744', 'R28: radio BOOT0 pull-down 10 k (RAK3272-SiP R2)', (e43[0] + 0.6, e43[1] + 1.1), 3.0,
         [('RADIO_BOOT0', 'pt', ([e43], 1.6)), GV])
+# BOOT0 is not on U1 (its free pocket pads carry UART and NRST; RUI3 updates itself over UART after AT+BOOT). Recovery
+# if the SiP's firmware is ever lost: a wire from R702 pad BOOT0 (towards U15) to R703 pad RADIO_3V3, 1.3 mm away,
+# then a reset starts the STM32 ROM bootloader on the same UART.
 
 # ---- supply link from 3V3_SYS and bulk ----------------------------------------------------------------------------
 two_pad('R701', *R0402, '0402WGF0000TCE', 'C17168', 'R28: radio supply link from 3V3_SYS (remove it and the radio is unpowered)',

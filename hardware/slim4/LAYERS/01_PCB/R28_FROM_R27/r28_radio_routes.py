@@ -1,4 +1,4 @@
-# R28 edit 46: the four radio signals (UART TX / RX, NRST, BOOT0), U1 to U15, from r28_radio_routes.json (written
+# R28 edit 46: the three radio signals (UART TX / RX, NRST), U1 to U15, from r28_radio_routes.json (written
 # offline by radio_router.py on the filled board after edit 45: one 0.10 mm track per net on F.Cu, In3.Cu or B.Cu,
 # 0.45/0.2 mm vias between layers, 0.12 mm from other copper (0.10 mm in U1's pad ring), 0.30 mm from the crystal,
 # FB_DCDC, EN_DCDC, CHIP_PU and the DSI pairs, vias 0.25 mm from FB_DCDC and EN_DCDC tracks, no B.Cu under the SiP).

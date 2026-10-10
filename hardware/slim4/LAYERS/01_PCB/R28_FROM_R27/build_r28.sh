@@ -9,9 +9,12 @@
 # after edit 45); the build itself only reads it.
 set -e
 S=$(cd "$(dirname "$0")" && pwd); B=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
-edit() { python3 "$S/run_edit.py" "$B" "$S/$1.py" 2>&1 | grep -v leak || true; }
+edit() {                                                               # stop the build if an edit does not save
+    out=$(python3 "$S/run_edit.py" "$B" "$S/$1.py" 2>&1 | grep -v leak); echo "$out"
+    echo "$out" | grep -qx saved || { echo "build_r28: edit $1 failed" >&2; exit 1; }
+}
 edit r28_radio_parts                                                   # 45 U15 and its 26 parts, ground and RADIO_3V3 zones, nets
-edit r28_radio_routes                                                  # 46 the four radio signals, U1 to U15
+edit r28_radio_routes                                                  # 46 the three radio signals, U1 to U15
 python3 "$S/r28_meta.py" "$B" 2026-10-10                               # 47 title block R28
 python3 "$S/r28_export_lib.py" "$B" "$(dirname "$B")/SLIM4.pretty" U15 L701 E701 E702 E703 J701 \
     R701 R702 R703 R704 C701 C711 C712 C713 C714 C715 C716 C717 C718 C719 C720 C721 C722 C723 C724 C725 C726

@@ -1,28 +1,31 @@
 #!/usr/bin/env python3
 """R28 radio router (offline tool; its result, r28_radio_routes.json, is what edit 46 applies).
 
-    python radio_router.py <board after edit 45> <out.json>
+    python radio_router.py <board after edit 45, zones filled> <out.json>
+    (needs numpy and scipy beside pcbnew; RR_VERBOSE=1 prints per-net search sizes and conflict places)
 
-Routes the eight radio signals from the U1 pads edit 45 gave them to the pads of U15 (the Wio-SX1262 module): one
-0.10 mm track per net on F.Cu, In3.Cu or B.Cu, changing layer through the board's 0.45/0.2 mm vias.
+Routes the three U1 lines of the radio (UART TX / RX on pads 80 / 81, NRST on pad 93) to the pads of U15 (the
+RAK3172-SiP: pins 30, 29, 44): one 0.10 mm track per net on F.Cu, In3.Cu or B.Cu, changing layer through the board's
+0.45/0.2 mm vias.
 
-Why a negotiated router: U1's free pads sit in a 0.35 mm pad row whose escape lane, between the pads and R27's
-decoupling parts, holds only a few vias. Routing the nets one after another lets the first ones take the lane. Here
-all eight are routed together with negotiated congestion (PathFinder, McMurchie and Ebeling 1995): every pass routes
-each net by A* against the board's copper (hard) and the other radio nets (a cost that grows each pass, plus a
-history cost where nets kept colliding), until no two radio nets conflict.
+Why a negotiated router: U1's free pads sit in a 0.35 mm pad row whose escape lanes, between the pads and R27's
+decoupling parts, hold few vias: the west pocket (pads 80-82) takes two, the east (92-95) one. A fourth line (BOOT0)
+did not fit, so BOOT0 stays on the SiP side (R702 pull-down). The nets are routed together with negotiated
+congestion (PathFinder, McMurchie and Ebeling 1995): every pass routes each net by weighted A* against the board's
+copper (hard) and the other radio nets (a cost that grows each pass, plus a history cost where nets kept colliding),
+until no two radio nets conflict.
 
-Rules (all hard, against R27 copper):
+Rules (all hard, against R27 copper and edit 45's parts):
   - 0.12 mm from other copper; 0.10 mm (the board's design rule) inside U1's pad ring and 0.8 mm round it, where the
     pads are 0.35 mm apart;
   - 0.30 mm from the nets a fast edge must not couple into: the 40 MHz crystal (XTAL_*), the core regulator's
     feedback and enable (FB_DCDC, EN_DCDC), CHIP_PU, and the MIPI-DSI pairs (inside U1's pad ring the board rule);
   - vias 0.25 mm (copper to copper) from FB_DCDC and EN_DCDC tracks, so no via antipad (via + 0.15 mm) reaches the
     ground under them (r28_plane_check.py checks the result);
-  - no via on a pad; nothing under the module body on any layer (Seeed's layout rule: only ground under it);
-  - radio nets 0.12 mm apart (track to track, track to via, via to via).
-Each route starts on the outer half of its pads (U1 pads 0.65 mm long, module pads 2.2 mm). Grid 0.05 mm, fields
-0.025 mm; deterministic. Needs pcbnew (KiCad 7.0.x), numpy, scipy, matplotlib.
+  - no via on a pad; no B.Cu under the SiP body (its ground pour; In3 there is the RADIO_3V3 pour, an obstacle too);
+  - radio nets 0.12 mm apart (track to track, track to via, via to via); the radio nets' copper edit 45 drew is an
+    obstacle for the others.
+Each route starts on the outer half of its pads. Grid 0.05 mm, fields 0.025 mm; deterministic.
 """
 import sys, os, json, math, heapq, time
 sys.path.append('/usr/lib/python3/dist-packages')
@@ -47,7 +50,7 @@ HW = float(os.environ.get('RR_HW', 1.5))   # heuristic weight: 1.0 is plain A*, 
 BOX = (-33.0, 70.0, 6.0, 98.0)        # the routing region: U1's north side, the module and the land round it
 if os.environ.get('RR_BOX'): BOX = tuple(float(v) for v in os.environ['RR_BOX'].split(','))
 # net: (U1 pad, U15 pad); pin assignment in r28_radio_parts.py
-NETS = {'RADIO_UART_TX': ('80', '30'), 'RADIO_UART_RX': ('81', '29'), 'RADIO_NRST': ('82', '44'), 'RADIO_BOOT0': ('93', '43')}
+NETS = {'RADIO_UART_TX': ('80', '30'), 'RADIO_UART_RX': ('81', '29'), 'RADIO_NRST': ('93', '44')}   # BOOT0: R702 / TP701 only
 if os.environ.get('RR_NETS'):                              # experiments: another assignment, "NET:u1pad:u15pad,..."
     NETS = {a: (b_, c_) for a, b_, c_ in (x.split(':') for x in os.environ['RR_NETS'].split(','))}
 for _n in os.environ.get('RR_DROP', '').split(','):       # experiments: leave nets out
@@ -56,7 +59,7 @@ for _n in os.environ.get('RR_DROP', '').split(','):       # experiments: leave n
 # end; all three are slow status/control lines whose pull resistors the self-test checks). net: (U1 pad, the point
 # where the kept copper continues, its layer (None: a via, any layer), box: every item of the net touching it is
 # replaced)
-REROUTE = {}                          # R28 moves no R27 copper (the RAK3172 needs only four lines)
+REROUTE = {}                          # R28 moves no R27 copper (the RAK3172-SiP needs three U1 lines)
 REROUTE_STUDY = {'USB_CURR_OUT1': ('84', (-16.65, 74.0), None, (-16.6, 74.1, -2.0, 79.2)),
                  'PGOOD_STATUS': ('86', (4.5, 75.79), None, (-2.5, 75.5, 4.4, 79.2)),
                  'BQ_EN2': ('88', (5.0, 74.7), 'B.Cu', (-1.5, 74.6, 4.95, 79.2))}
