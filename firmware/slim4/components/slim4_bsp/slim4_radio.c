@@ -47,6 +47,12 @@ enum { IRQ_TX_DONE = 1u << 0, IRQ_RX_DONE = 1u << 1, IRQ_HEADER_ERR = 1u << 5, I
 #define REG_IQ_POLARITY   0x0736      /* errata 15.4: bit 2 set for standard IQ */
 #define REG_OCP           0x08E7
 
+/* DIO1 and NRST are optional: a board revision that does not wire them defines the pin as GPIO_NUM_NC. Without DIO1
+ * the interrupt flags are polled over SPI (GetIrqStatus); without NRST the SX1262 starts at power-up (its NRESET has
+ * a pull-up on the board) and a stuck chip is recovered by SetStandby. */
+#define HAS_DIO1 (SLIM4_GPIO_RADIO_DIO1 >= 0)
+#define HAS_NRST (SLIM4_GPIO_RADIO_NRST >= 0)
+
 static spi_device_handle_t s_dev;
 static bool s_bus, s_present, s_asleep;
 static SemaphoreHandle_t s_lock;
@@ -54,13 +60,14 @@ static SemaphoreHandle_t s_lock;
 static void pins_safe(void)
 {
     /* inputs with U1's pull-downs (a missing module then reads 0), RF_SW low, NRST high */
-    const gpio_config_t in = {.pin_bit_mask = (1ULL << SLIM4_GPIO_RADIO_BUSY) | (1ULL << SLIM4_GPIO_RADIO_DIO1),
-                              .mode = GPIO_MODE_INPUT, .pull_down_en = GPIO_PULLDOWN_ENABLE};
+    uint64_t in_mask = 1ULL << SLIM4_GPIO_RADIO_BUSY, out_mask = 1ULL << SLIM4_GPIO_RADIO_RF_SW;
+    if (HAS_DIO1) in_mask |= 1ULL << SLIM4_GPIO_RADIO_DIO1;
+    if (HAS_NRST) out_mask |= 1ULL << SLIM4_GPIO_RADIO_NRST;
+    const gpio_config_t in = {.pin_bit_mask = in_mask, .mode = GPIO_MODE_INPUT, .pull_down_en = GPIO_PULLDOWN_ENABLE};
     (void)gpio_config(&in);
     (void)gpio_set_level(SLIM4_GPIO_RADIO_RF_SW, 0);
-    (void)gpio_set_level(SLIM4_GPIO_RADIO_NRST, 1);
-    const gpio_config_t out = {.pin_bit_mask = (1ULL << SLIM4_GPIO_RADIO_RF_SW) | (1ULL << SLIM4_GPIO_RADIO_NRST),
-                               .mode = GPIO_MODE_OUTPUT};
+    if (HAS_NRST) (void)gpio_set_level(SLIM4_GPIO_RADIO_NRST, 1);
+    const gpio_config_t out = {.pin_bit_mask = out_mask, .mode = GPIO_MODE_OUTPUT};
     (void)gpio_config(&out);
 }
 
@@ -230,13 +237,26 @@ static bool setup_lora(uint32_t freq_hz, int dbm, uint8_t payload_len)
            && cmd(c_dio, NULL, 9) && reg_update(REG_IQ_POLARITY, 0, 0x04) && clear_irq();
 }
 
-static bool wait_dio1(uint32_t limit_us, uint32_t *took)
+static bool get_irq(uint16_t *irq);
+
+/* Wait for an interrupt the DIO1 mask routes (TxDone, RxDone, Timeout, errors): the DIO1 pin where it is wired,
+ * else GetIrqStatus every 0.5 ms. */
+static bool wait_irq(uint32_t limit_us, uint32_t *took)
 {
     const int64_t t0 = now_us();
-    while (!gpio_get_level(SLIM4_GPIO_RADIO_DIO1)) {
+    for (;;) {
+        bool fired;
+        if (HAS_DIO1) {
+            fired = gpio_get_level(SLIM4_GPIO_RADIO_DIO1) != 0;
+        } else {
+            uint16_t irq = 0;
+            fired = get_irq(&irq) && irq != 0;
+        }
+        if (fired) break;
         const int64_t dt = now_us() - t0;
         if (dt > limit_us) return false;
         if (dt > 2000) vTaskDelay(1);
+        else if (!HAS_DIO1) esp_rom_delay_us(500);
     }
     if (took) *took = (uint32_t)(now_us() - t0);
     return true;
@@ -252,12 +272,21 @@ void slim4_radio_probe(slim4_radio_probe_t *out)
     xSemaphoreTake(s_lock, portMAX_DELAY);
     s_present = false;
     /* reset: NRST low 200 us; BUSY is high while the SX1262 starts */
-    (void)gpio_set_level(SLIM4_GPIO_RADIO_NRST, 0);
-    esp_rom_delay_us(200);
-    (void)gpio_set_level(SLIM4_GPIO_RADIO_NRST, 1);
+    out->has_nrst = HAS_NRST;
+    out->has_dio1 = HAS_DIO1;
+    if (HAS_NRST) {
+        (void)gpio_set_level(SLIM4_GPIO_RADIO_NRST, 0);
+        esp_rom_delay_us(200);
+        (void)gpio_set_level(SLIM4_GPIO_RADIO_NRST, 1);
+        esp_rom_delay_us(100);
+        out->busy_high_in_reset = gpio_get_level(SLIM4_GPIO_RADIO_BUSY) != 0;
+    } else if (s_asleep) {
+        uint8_t tx[2] = {OP_GET_STATUS, 0}, rx[2];          /* NSS low wakes it; BUSY is high while it starts */
+        (void)xfer(tx, rx, 2);
+        esp_rom_delay_us(20);
+        out->busy_high_in_reset = gpio_get_level(SLIM4_GPIO_RADIO_BUSY) != 0;
+    }
     s_asleep = false;
-    esp_rom_delay_us(100);
-    out->busy_high_in_reset = gpio_get_level(SLIM4_GPIO_RADIO_BUSY) != 0;
     const int32_t w = wait_busy(BUSY_BOOT_US);
     out->busy_released = w >= 0;
     out->busy_us = w >= 0 ? (uint32_t)w + 100u : 0;
@@ -275,12 +304,13 @@ void slim4_radio_probe(slim4_radio_probe_t *out)
         (void)gpio_set_level(SLIM4_GPIO_RADIO_RF_SW, 1);
         const uint32_t t = timeout_units(1);
         const uint8_t c_rx[4] = {OP_SET_RX, (uint8_t)(t >> 16), (uint8_t)(t >> 8), (uint8_t)t};
-        if (cmd(c_rx, NULL, 4)) out->dio1_rose = wait_dio1(20000, &out->dio1_us);
+        if (cmd(c_rx, NULL, 4)) out->dio1_rose = wait_irq(20000, &out->dio1_us);
         (void)gpio_set_level(SLIM4_GPIO_RADIO_RF_SW, 0);
         (void)get_irq(&out->irq);
         (void)clear_irq();
         esp_rom_delay_us(50);
-        out->dio1_cleared = !gpio_get_level(SLIM4_GPIO_RADIO_DIO1);
+        if (HAS_DIO1) out->dio1_cleared = !gpio_get_level(SLIM4_GPIO_RADIO_DIO1);
+        else { uint16_t after = 0xFFFF; out->dio1_cleared = get_irq(&after) && after == 0; }
     }
     (void)get_errors(&out->errors);
     s_present = out->readback[0] == 0x5A && out->readback[1] == 0xA5 && out->errors == 0 && out->dio1_rose
@@ -309,7 +339,7 @@ static bool send(const uint8_t *buf, uint8_t len, uint32_t freq_hz, int dbm)
     (void)gpio_set_level(SLIM4_GPIO_RADIO_RF_SW, 0);
     const uint32_t t = timeout_units(100);
     const uint8_t c_tx[4] = {OP_SET_TX, (uint8_t)(t >> 16), (uint8_t)(t >> 8), (uint8_t)t};
-    if (!cmd(c_tx, NULL, 4) || !wait_dio1(200000, NULL)) return false;
+    if (!cmd(c_tx, NULL, 4) || !wait_irq(200000, NULL)) return false;
     uint16_t irq = 0;
     (void)get_irq(&irq);
     (void)clear_irq();
@@ -324,7 +354,7 @@ static int receive(uint8_t *buf, uint8_t cap, uint32_t freq_hz, uint32_t ms, int
     const uint32_t t = timeout_units(ms);
     const uint8_t c_rx[4] = {OP_SET_RX, (uint8_t)(t >> 16), (uint8_t)(t >> 8), (uint8_t)t};
     const bool armed = cmd(c_rx, NULL, 4);
-    const bool fired = armed && wait_dio1(ms * 1000u + 50000u, NULL);
+    const bool fired = armed && wait_irq(ms * 1000u + 50000u, NULL);
     (void)gpio_set_level(SLIM4_GPIO_RADIO_RF_SW, 0);
     if (!armed) return -1;
     uint16_t irq = 0;

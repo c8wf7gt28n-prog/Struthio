@@ -13,7 +13,7 @@ static slim4_radio_probe_t good(void)
 {
     slim4_radio_probe_t p;
     memset(&p, 0, sizeof(p));
-    p.spi_ready = true; p.busy_high_in_reset = true; p.busy_released = true; p.busy_us = 3400; p.status = 0x22;
+    p.spi_ready = true; p.has_nrst = true; p.has_dio1 = true; p.busy_high_in_reset = true; p.busy_released = true; p.busy_us = 3400; p.status = 0x22;
     p.sync[0] = 0x14; p.sync[1] = 0x24; p.readback[0] = 0x5A; p.readback[1] = 0xA5; p.init_done = true;
     p.errors = 0; p.dio1_rose = true; p.dio1_us = 1100; p.irq = 0x0200; p.dio1_cleared = true;
     return p;
@@ -113,6 +113,13 @@ int main(void)
     expect(&p, SLIM4_ST_FAIL, "RADIO DIO1 NO INTERRUPT", "DIO1 open");
     p = good(); p.dio1_cleared = false;
     expect(&p, SLIM4_ST_FAIL, "RADIO DIO1 STUCK HIGH", "DIO1 high");
+    /* a board that wires neither NRST nor DIO1 (IRQ flags polled over SPI) */
+    p = good(); p.has_nrst = false; p.has_dio1 = false; p.busy_high_in_reset = false;
+    expect(&p, SLIM4_ST_PASS, "RADIO SX1262 OK", "no NRST, no DIO1: no reset check");
+    p.dio1_rose = false;
+    expect(&p, SLIM4_ST_FAIL, "RADIO RECEIVE TIMEOUT MISSING", "no DIO1: timeout flag never set");
+    p = good(); p.has_dio1 = false; p.dio1_cleared = false;
+    expect(&p, SLIM4_ST_FAIL, "RADIO IRQ DID NOT CLEAR", "no DIO1: flags stay set");
     if (fails) { printf("%d radio checks failed\n", fails); return 1; }
     printf("radio logic: all checks passed\n");
     return 0;

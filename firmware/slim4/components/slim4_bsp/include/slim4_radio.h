@@ -52,7 +52,8 @@ bool slim4_radio_ping_decode(const uint8_t *buf, uint8_t len, slim4_radio_ping_t
 /* ---- probe (self-test) ------------------------------------------------------------------------------------------- */
 typedef struct {
     bool spi_ready;          /* the SPI bus and pins could be set up */
-    bool busy_high_in_reset; /* BUSY read high 100 us after NRST was released (the SX1262 starting up) */
+    bool has_nrst, has_dio1; /* the board wires NRST / DIO1 to U1 (else: pull-up on NRST; IRQ flags polled over SPI) */
+    bool busy_high_in_reset; /* BUSY read high 100 us after NRST was released, or after the wake from sleep */
     bool busy_released;      /* BUSY went low again */
     uint32_t busy_us;        /* NRST release to BUSY low */
     uint8_t status;          /* GetStatus byte after reset */
@@ -60,10 +61,10 @@ typedef struct {
     uint8_t readback[2];     /* the same after writing 0x5A 0xA5 (restored afterwards) */
     bool init_done;          /* TCXO, regulator, calibration commands accepted (BUSY released each time) */
     uint16_t errors;         /* GetDeviceErrors after calibration and the RX test */
-    bool dio1_rose;          /* a 1 ms receive timed out and raised DIO1 */
+    bool dio1_rose;          /* a 1 ms receive timed out and raised DIO1 (or, without DIO1, its IRQ flag) */
     uint32_t dio1_us;
     uint16_t irq;            /* GetIrqStatus then */
-    bool dio1_cleared;       /* DIO1 fell after ClearIrqStatus */
+    bool dio1_cleared;       /* DIO1 fell (or the IRQ flags read 0) after ClearIrqStatus */
 } slim4_radio_probe_t;
 
 /* ---- the driver (slim4_radio.c) ----------------------------------------------------------------------------------- */

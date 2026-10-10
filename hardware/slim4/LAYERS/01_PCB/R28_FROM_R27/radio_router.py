@@ -46,8 +46,15 @@ BOX = (-28.0, 72.0, 6.0, 94.0)        # the routing region: U1's north side, the
 # net: (U1 pad, U15 pad); pin assignment in r28_radio_parts.py
 NETS = {'RADIO_RF_SW': ('80', '1'), 'RADIO_MISO': ('81', '2'), 'RADIO_MOSI': ('82', '3'), 'RADIO_SCK': ('92', '4'),
         'RADIO_NSS': ('93', '6'), 'RADIO_DIO1': ('94', '12'), 'RADIO_BUSY': ('95', '11'), 'RADIO_NRST': ('97', '5')}
+if os.environ.get('RR_NETS'):                              # experiments: another assignment, "NET:u1pad:u15pad,..."
+    NETS = {a: (b_, c_) for a, b_, c_ in (x.split(':') for x in os.environ['RR_NETS'].split(','))}
 for _n in os.environ.get('RR_DROP', '').split(','):       # experiments: leave nets out
     NETS.pop(_n, None)
+# R27 nets whose stretch next to U1 is routed again together with the radio (function unchanged: same pad, same far
+# end). net: (U1 pad, the via where the kept copper continues, box: every item of the net touching it is replaced)
+REROUTE = {'USB_CURR_OUT1': ('84', (-16.65, 74.0), (-16.6, 74.1, -2.0, 79.2))}
+if os.environ.get('RR_REROUTE') is not None:
+    REROUTE = {k: v for k, v in REROUTE.items() if k in os.environ['RR_REROUTE'].split(',')}
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 SEP = W + CLR + 0.02                  # radio track centre to radio track centre (grid margin 0.02)
 SEP_TV = VIA_D / 2 + W / 2 + CLR + 0.02
@@ -94,9 +101,31 @@ class Board:
         self.fi = np.clip(np.round((self.gy - R.Y0) / R.RES).astype(int), 0, R.NY - 1)
         self.fj = np.clip(np.round((self.gx - R.X0) / R.RES).astype(int), 0, R.NX - 1)
         self.neck = (self.gx >= NECK[0]) & (self.gx <= NECK[2]) & (self.gy >= NECK[1]) & (self.gy <= NECK[3])
-        radio = set(NETS)
+        radio = set(NETS) | set(REROUTE)
         soft = {n for n in os.environ.get('RR_SOFT', '').split(',') if n}   # experiments: nets treated as absent
-        F, E = R.base_fields(b, radio | soft)            # every radio pad is an obstacle here; a net's own are reopened below
+        F, E = R.base_fields(b, radio | soft)
+        # the kept copper of the re-routed nets: an obstacle for every other net
+        self.kept, self.removed = {}, {}
+        for nn, (_, cut, rb) in REROUTE.items():
+            km = {l: np.zeros((R.NY, R.NX), bool) for l in LAYERS}
+            rem = []
+            for t in b.GetTracks():
+                if t.GetNetname() != nn: continue
+                pts = [t.GetPosition()] if t.Type() == pcbnew.PCB_VIA_T else [t.GetStart(), t.GetEnd()]
+                inside = any(rb[0] <= mm(p.x) <= rb[2] and rb[1] <= mm(p.y) <= rb[3] for p in pts)
+                if inside:
+                    rem.append(('via', round(mm(t.GetPosition().x), 4), round(mm(t.GetPosition().y), 4)) if t.Type() == pcbnew.PCB_VIA_T
+                               else (t.GetLayerName(), round(mm(t.GetStart().x), 4), round(mm(t.GetStart().y), 4),
+                                     round(mm(t.GetEnd().x), 4), round(mm(t.GetEnd().y), 4)))
+                    continue
+                fl = R.Field()
+                if t.Type() == pcbnew.PCB_VIA_T:
+                    fl.circle(mm(t.GetPosition().x), mm(t.GetPosition().y), mm(t.GetWidth()) / 2)
+                    for l in LAYERS: km[l] |= fl.mask
+                elif t.GetLayerName() in km:
+                    fl.capsule((mm(t.GetStart().x), mm(t.GetStart().y)), (mm(t.GetEnd().x), mm(t.GetEnd().y)), mm(t.GetWidth()) / 2)
+                    km[t.GetLayerName()] |= fl.mask
+            self.kept[nn], self.removed[nn] = km, rem            # every radio pad is an obstacle here; a net's own are reopened below
         lid = {l: b.GetLayerID(l) for l in LAYERS}
         dsi = {p[k] for p in R.BREAKOUT.values() for k in ('P', 'N')}
         for t in b.GetTracks():                   # grown keep-outs: DSI pairs and the quiet nets (outside the neck)
@@ -154,6 +183,8 @@ class Board:
         ok, dist = [], {}
         for l in LAYERS:
             m = self.F[l].mask.copy()
+            for o, km in self.kept.items():
+                if o != net: m |= km[l]
             for q in self.pads[net]:
                 if q.IsOnLayer(self.b.GetLayerID(l)):
                     sp = q.GetEffectivePolygon()
@@ -171,7 +202,7 @@ class Board:
     def xy(self, i, j): return (round(BOX[0] + j * STEP, 3), round(BOX[1] + i * STEP, 3))
 
 
-def astar(G, ok, vok, a, c, cost_t, cost_v):
+def astar(G, ok, vok, a, c, cost_t, cost_v, goal_layers=(2,)):
     """A* over (i, j, layer, heading); start and goal on B.Cu (both pads are back-side pads). cost_t[l] and cost_v
     are the congestion costs of a track cell / via cell (0 where free). Bends cost 0.3 mm, vias 1.5 mm."""
     si, sj = G.cell(a); gi, gj = G.cell(c)
@@ -186,7 +217,7 @@ def astar(G, ok, vok, a, c, cost_t, cost_v):
         f, gc, s = heapq.heappop(openq)
         if gc > g.get(s, 1e18) + 1e-9: continue
         i, j, l, d = s; n += 1
-        if (i, j) == (gi, gj) and l == LB:
+        if (i, j) == (gi, gj) and l in goal_layers:
             path = []; cur = s
             while cur: path.append(cur); cur = came[cur]
             return path[::-1], n
@@ -268,28 +299,33 @@ def main():
     u1, u15 = b.FindFootprintByReference('U1'), b.FindFootprintByReference('U15')
     c1 = (mm(u1.GetPosition().x), mm(u1.GetPosition().y)); c15 = (mm(u15.GetPosition().x), mm(u15.GetPosition().y))
     P1 = {p.GetNumber(): p for p in u1.Pads()}; P15 = {p.GetNumber(): p for p in u15.Pads()}
-    ends, masks = {}, {}
+    ends, masks, goal_l = {}, {}, {}
     for net, (a1, a15) in NETS.items():
         assert P1[a1].GetNetname() == net and P15[a15].GetNetname() == net, net
-        ends[net] = (outer(P1[a1], c1, 0.4), outer(P15[a15], c15, 0.6))
+        ends[net] = (outer(P1[a1], c1, 0.4), outer(P15[a15], c15, 0.6)); goal_l[net] = (2,)
         masks[net] = G.net_masks(net)
+    for net, (a1, cut, _) in REROUTE.items():
+        assert P1[a1].GetNetname() == net, net
+        ends[net] = (outer(P1[a1], c1, 0.4), (round(cut[0] / STEP) * STEP, round(cut[1] / STEP) * STEP)); goal_l[net] = (0, 1, 2)
+        masks[net] = G.net_masks(net)
+    ALL = list(NETS) + list(REROUTE)
     hist_t = [np.zeros((G.ni, G.nj)) for _ in LAYERS]; hist_v = np.zeros((G.ni, G.nj))
     paths, fps = {}, {}
     pres, total = 0.5, None
     for it in range(1, int(os.environ.get('RR_PASSES', 40)) + 1):
-        for net in NETS:
-            dT, dV = conflict_fields(G, [fps[o] for o in NETS if o != net and o in fps])
+        for net in ALL:
+            dT, dV = conflict_fields(G, [fps[o] for o in ALL if o != net and o in fps])
             near_v = np.logical_or.reduce([dT[l] < SEP_TV for l in range(3)])
             cost_t = [hist_t[l] + pres * 20 * ((dT[l] < SEP) | (dV < SEP_TV)) for l in range(3)]
             cost_v = 10 * hist_v + pres * 20 * ((dV < SEP_VV) | near_v)
             ok, vok = masks[net]
-            path, n = astar(G, ok, vok, *ends[net], cost_t, cost_v)
+            path, n = astar(G, ok, vok, *ends[net], cost_t, cost_v, goal_l[net])
             if path is None:
                 print(f'{net}: NO ROUTE even alone against the board ({n} states)'); sys.exit(2)
             paths[net] = path; fps[net] = footprint(G, path)
         total = 0; where = []
-        for net in NETS:
-            dT, dV = conflict_fields(G, [fps[o] for o in NETS if o != net])
+        for net in ALL:
+            dT, dV = conflict_fields(G, [fps[o] for o in ALL if o != net])
             bad, badv = conflicts(fps[net], dT, dV)
             nb = sum(int(x.sum()) for x in bad) + int(badv.sum())
             total += nb
@@ -302,12 +338,16 @@ def main():
         if total == 0: break
         pres *= 1.5
     res = {}
-    for net in NETS:
+    for net in ALL:
         segs, vias = to_geometry(G, paths[net])
         L = sum(math.dist(p, q) for _, pts in segs for p, q in zip(pts, pts[1:]))
-        a1, a15 = NETS[net]
-        print(f'{net}: U1.{a1} -> U15.{a15}: {L:.1f} mm, {len(vias)} vias')
-        res[net] = dict(width=W, segments=segs, vias=vias)
+        if net in NETS:
+            print(f'{net}: U1.{NETS[net][0]} -> U15.{NETS[net][1]}: {L:.1f} mm, {len(vias)} vias')
+            res[net] = dict(width=W, segments=segs, vias=vias)
+        else:
+            print(f'{net} (re-routed): U1.{REROUTE[net][0]} -> via {REROUTE[net][1]}: {L:.1f} mm, {len(vias)} vias, '
+                  f'replaces {len(G.removed[net])} items')
+            res[net] = dict(width=W, segments=segs, vias=vias, remove=G.removed[net])
     if total: res['_conflicts'] = where
     json.dump(res, open(out, 'w'), indent=1)
     if total: print(f'UNRESOLVED: {total} conflicting cells'); sys.exit(1)

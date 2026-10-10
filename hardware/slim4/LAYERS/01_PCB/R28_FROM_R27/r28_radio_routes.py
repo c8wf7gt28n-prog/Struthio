@@ -6,12 +6,17 @@ exec(open(sys.argv[2]).read())
 import json, os
 J = json.load(open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'r28_radio_routes.json')))
 rep = []
+assert '_conflicts' not in J, 'r28_radio_routes.json is from a run that did not converge'
 for nn, c in J.items():
     assert c, nn + ': no route'
     nt = net(nn); L_ = 0.0
+    for r in c.get('remove', []):          # a re-routed R27 net: its old stretch next to U1 goes first
+        if r[0] == 'via': remove_via(r[1], r[2], nn)
+        else: remove(r[0], r[1], r[2], r[3], r[4], nn)
     for lay, pts in c['segments']:
         add(lay, [tuple(p) for p in pts], nt, c['width'])
         L_ += sum(math.dist(p, q) for p, q in zip(pts, pts[1:]))
     for v in c['vias']: add_via(v[0], v[1], nt)
-    rep.append('%s %.1f mm, %d vias' % (nn, L_, len(c['vias'])))
+    rep.append('%s %.1f mm, %d vias%s' % (nn, L_, len(c['vias']), ' (re-routed, %d R27 items replaced)' % len(c['remove'])
+                                          if c.get('remove') else ''))
 print('radio routes: ' + '; '.join(rep))

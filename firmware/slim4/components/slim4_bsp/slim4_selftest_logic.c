@@ -636,7 +636,7 @@ void slim4_st_judge_radio(slim4_st_report_t *rep, const slim4_radio_probe_t *p)
                      "reads work, so look at MOSI (GPIO41, U1 pad 82, U15 pin 3)", p->readback[0], p->readback[1]);
         return;
     }
-    if (!p->busy_high_in_reset) {
+    if (p->has_nrst && !p->busy_high_in_reset) {
         slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO RESET NOT SEEN", "SPI works but BUSY was low 100 us after NRST "
                      "was pulsed, so the reset did not reach the SX1262 or BUSY does not reach U1: NRST GPIO53 (U1 pad 97, "
                      "U15 pin 5), BUSY GPIO52 (U1 pad 95, U15 pin 11)");
@@ -654,9 +654,20 @@ void slim4_st_judge_radio(slim4_st_report_t *rep, const slim4_radio_probe_t *p)
                      p->errors, radio_error_names(p->errors, names, sizeof(names)));
         return;
     }
+    if (!p->dio1_rose && !p->has_dio1) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO RECEIVE TIMEOUT MISSING", "a 1 ms receive did not raise the "
+                     "Timeout interrupt flag within 20 ms (IRQ 0x%04X): the SX1262 did not enter receive - a module "
+                     "fault", p->irq);
+        return;
+    }
     if (!p->dio1_rose) {
         slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO DIO1 NO INTERRUPT", "a 1 ms receive timed out inside the SX1262 "
-                     "(IRQ 0x%04X) but DIO1 never went high at U1: DIO1 GPIO51 (U1 pad 94, U15 pin 12)", p->irq);
+                     "(IRQ 0x%04X) but DIO1 never went high at U1: look at the DIO1 joints (U15 pin 12 and its U1 pad)", p->irq);
+        return;
+    }
+    if (!p->dio1_cleared && !p->has_dio1) {
+        slim4_st_add(rep, "RADIO", SLIM4_ST_FAIL, "RADIO IRQ DID NOT CLEAR", "the interrupt flags stayed set after "
+                     "ClearIrqStatus: SPI writes are not taking effect");
         return;
     }
     if (!p->dio1_cleared) {
