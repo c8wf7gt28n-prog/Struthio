@@ -24,7 +24,7 @@ Rules (all hard, against R27 copper):
 Each route starts on the outer half of its pads (U1 pads 0.65 mm long, module pads 2.2 mm). Grid 0.05 mm, fields
 0.025 mm; deterministic. Needs pcbnew (KiCad 7.0.x), numpy, scipy, matplotlib.
 """
-import sys, os, json, math, heapq
+import sys, os, json, math, heapq, time
 sys.path.append('/usr/lib/python3/dist-packages')
 import numpy as np
 from scipy import ndimage
@@ -42,6 +42,7 @@ CLR_DSI = 0.30
 PLANE_NETS, PLANE_VIA = ('FB_DCDC', 'EN_DCDC'), 0.25
 LAYERS = ('F.Cu', 'In3.Cu', 'B.Cu')
 STEP = 0.05
+HW = float(os.environ.get('RR_HW', 1.5))   # heuristic weight: 1.0 is plain A*, slow on this grid in pure Python
 BOX = (-33.0, 70.0, 6.0, 98.0)        # the routing region: U1's north side, the module and the land round it
 if os.environ.get('RR_BOX'): BOX = tuple(float(v) for v in os.environ['RR_BOX'].split(','))
 # net: (U1 pad, U15 pad); pin assignment in r28_radio_parts.py
@@ -227,7 +228,7 @@ def astar(G, ok, vok, a, c, cost_t, cost_v, goal_layers=(2,)):
     start = (si, sj, LB, -1)
     g = {start: 0.0}; came = {start: None}
     openq = [(0.0, 0.0, start)]
-    h = lambda i, j: math.hypot(i - gi, j - gj) * STEP
+    h = lambda i, j: HW * math.hypot(i - gi, j - gj) * STEP     # HW > 1: weighted A* (paths within HW of the cheapest)
     ni, nj = G.ni, G.nj
     n = 0
     while openq:
@@ -337,7 +338,8 @@ def main():
             cost_t = [hist_t[l] + pres * 20 * ((dT[l] < SEP) | (dV < SEP_TV)) for l in range(3)]
             cost_v = 10 * hist_v + pres * 20 * ((dV < SEP_VV) | near_v)
             ok, vok = masks[net]
-            path, n = astar(G, ok, vok, *ends[net], cost_t, cost_v, goal_l[net])
+            t0 = time.time(); path, n = astar(G, ok, vok, *ends[net], cost_t, cost_v, goal_l[net])
+            if os.environ.get('RR_VERBOSE'): print(f'  {net}: {n} states, {time.time() - t0:.0f} s', flush=True)
             if path is None:
                 print(f'{net}: NO ROUTE even alone against the board ({n} states)'); sys.exit(2)
             paths[net] = path; fps[net] = footprint(G, path)
