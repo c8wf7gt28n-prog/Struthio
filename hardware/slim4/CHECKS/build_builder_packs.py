@@ -159,6 +159,7 @@ def board_parts(text):
         pkg = PACKAGE.get(value) or re.sub(r'^SLIM4 R\d+ (?:[CR] )?|\s*\d{4}Metric', '', tags)
         mpn = '' if re.match(r'\d{4} ', value) else value
         bound = SOURCING.get(mpn, {}).get('lcsc', '') if not jlc else ''      # numbers in the board file win
+        if re.search(r'\(attr [^)]*exclude_from_bom', blk): continue      # DNP (not fitted): no BOM line, no placement
         rows.append(dict(ref=g(r'\(fp_text reference "([^"]+)"'), value=value, mpn=mpn,
                          layer=g(r'\(layer "([^"]+)"\)'), lcsc=jlc[1] if jlc else bound, lcsc_source='board' if jlc else ('sourcing' if bound else ''),
                          descr=descr, pkg=pkg))
