@@ -51,8 +51,12 @@ if os.environ.get('RR_NETS'):                              # experiments: anothe
 for _n in os.environ.get('RR_DROP', '').split(','):       # experiments: leave nets out
     NETS.pop(_n, None)
 # R27 nets whose stretch next to U1 is routed again together with the radio (function unchanged: same pad, same far
-# end). net: (U1 pad, the via where the kept copper continues, box: every item of the net touching it is replaced)
-REROUTE = {'USB_CURR_OUT1': ('84', (-16.65, 74.0), (-16.6, 74.1, -2.0, 79.2))}
+# end; all three are slow status/control lines whose pull resistors the self-test checks). net: (U1 pad, the point
+# where the kept copper continues, its layer (None: a via, any layer), box: every item of the net touching it is
+# replaced)
+REROUTE = {'USB_CURR_OUT1': ('84', (-16.65, 74.0), None, (-16.6, 74.1, -2.0, 79.2)),
+           'PGOOD_STATUS': ('86', (4.5, 75.79), None, (-2.5, 75.5, 4.4, 79.2)),
+           'BQ_EN2': ('88', (5.0, 74.7), 'B.Cu', (-1.5, 74.6, 4.95, 79.2))}
 if os.environ.get('RR_REROUTE') is not None:
     REROUTE = {k: v for k, v in REROUTE.items() if k in os.environ['RR_REROUTE'].split(',')}
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
@@ -106,7 +110,7 @@ class Board:
         F, E = R.base_fields(b, radio | soft)
         # the kept copper of the re-routed nets: an obstacle for every other net
         self.kept, self.removed = {}, {}
-        for nn, (_, cut, rb) in REROUTE.items():
+        for nn, (_, cut, _cl, rb) in REROUTE.items():
             km = {l: np.zeros((R.NY, R.NX), bool) for l in LAYERS}
             rem = []
             for t in b.GetTracks():
@@ -304,9 +308,10 @@ def main():
         assert P1[a1].GetNetname() == net and P15[a15].GetNetname() == net, net
         ends[net] = (outer(P1[a1], c1, 0.4), outer(P15[a15], c15, 0.6)); goal_l[net] = (2,)
         masks[net] = G.net_masks(net)
-    for net, (a1, cut, _) in REROUTE.items():
+    for net, (a1, cut, cl, _) in REROUTE.items():
         assert P1[a1].GetNetname() == net, net
-        ends[net] = (outer(P1[a1], c1, 0.4), (round(cut[0] / STEP) * STEP, round(cut[1] / STEP) * STEP)); goal_l[net] = (0, 1, 2)
+        ends[net] = (outer(P1[a1], c1, 0.4), (round(cut[0] / STEP) * STEP, round(cut[1] / STEP) * STEP))
+        goal_l[net] = (0, 1, 2) if cl is None else (LAYERS.index(cl),)
         masks[net] = G.net_masks(net)
     ALL = list(NETS) + list(REROUTE)
     hist_t = [np.zeros((G.ni, G.nj)) for _ in LAYERS]; hist_v = np.zeros((G.ni, G.nj))
