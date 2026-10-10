@@ -1,6 +1,6 @@
 /* SLIM4 self-test decisions: what a set of readings means for the board. No ESP-IDF dependency, so the host tests
- * (tests/host/test_selftest_logic.c) run every rule. The nets, pads and parts below are PCB R26's (U1 pad table:
- * tools/u1_pad_nets.json; parts: hardware/slim4/LAYERS/01_PCB/SLIM4_R26_PCB_LAYER.json). */
+ * (tests/host/test_selftest_logic.c) run every rule. The nets, pads and parts below are PCB R27's (U1 pad table:
+ * tools/u1_pad_nets.json; parts: hardware/slim4/LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json). */
 #include "slim4_selftest.h"
 
 #include <limits.h>

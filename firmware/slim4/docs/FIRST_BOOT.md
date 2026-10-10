@@ -1,6 +1,6 @@
-# First firmware boot on PCB R26
+# First firmware boot on PCB R27
 
-This image is a board bring-up build for the R26 main board (R23-R25 have the same pins) with the Crystalfontz CFAF7201280A0-050TN plugged into J1 (`hardware/slim4/LAYERS/01_PCB/DISPLAY_PORT.md` shows how the tail folds in). From R11 it checks the board for assembly faults at every boot (*Self-test* below). It has not run on hardware yet.
+This image is a board bring-up build for the R27 main board (R23-R26 have the same pins) with the Crystalfontz CFAF7201280A0-050TN plugged into J1 (`hardware/slim4/LAYERS/01_PCB/DISPLAY_PORT.md` shows how the tail folds in). From R11 it checks the board for assembly faults at every boot (*Self-test* below), and from R12 a console on the USB-C port reads pins, sets the backlight, shows test patterns and plays tones (*Console* below). It has not run on hardware yet.
 
 ## Before power
 
@@ -10,15 +10,15 @@ This image is a board bring-up build for the R26 main board (R23-R25 have the sa
 
 ## Expected behaviour
 
-1. Over the USB-C port (USB-Serial-JTAG), the ROM banner and then every app line: app information with the chip revision, PSRAM, `firmware=slim4_platform version=0.10.0` and `target=ESP32-P4 board=SLIM4 PCB R26`. The second-stage bootloader's own lines (partition table) go to UART0 only, whose pins are not brought out.
-2. The self-test's GPIO checks (under a second; `GPIO checks took … ms`). Their results are printed with the rest after step 5.
-3. The BSP requests 2.5 V from P4 LDO channel 3 for the MIPI D-PHY, holds the panel in reset (GPIO10 high), sets up the backlight PWM (off), opens the 2-lane DSI bus at 1 Gbit/s and installs the ILI9881C driver with the Crystalfontz init sequence.
-4. It releases reset (GPIO10 low), waits 120 ms and probes the panel (`panel probe: answered, ID 98 81 0C, …`). If the panel does not answer, the display bring-up stops here and the boot goes on without it. Otherwise it sends the init sequence (the driver logs the ID again), turns the display on, draws the boot stamp (navy, "SLIM4 / R26"), and only then turns the backlight on at 45 % (about 33 mA), or at 15 % on USB below 1 A until a cell qualifies (`backlight limited to 15 %` in the log).
-5. The log line `ILI9881C two-lane DSI initialized: 720x1280 RGB565, 78 MHz pixel clock (59 Hz)` confirms the controller side. The self-test's other checks follow, then every result as a `SELFTEST PASS|FAIL|INFO <check> …` line and `SELFTEST RESULT: …`.
+1. Over the USB-C port (USB-Serial-JTAG, the primary console from R12), the ROM banner, the second-stage bootloader's lines (partition table) and then every app line: app information with the chip revision, PSRAM, `firmware=slim4_platform version=0.11.0` and `target=ESP32-P4 board=SLIM4 PCB R27`. UART0's pins are not brought out.
+2. The self-test's GPIO checks (under a second; `GPIO checks took … ms`), printed at once as `SELFTEST …` lines. The console starts here, before any driver, so it answers even if a later stage stops.
+3. The BSP requests 2.5 V from P4 LDO channel 3 for the MIPI D-PHY, holds the panel in reset (GPIO10 high), sets up the backlight PWM (off), opens the 2-lane DSI bus and installs the ILI9881C driver with the Crystalfontz init sequence. The DSI runs the safe profile unless `display fast` was chosen: 560 Mbit/s a lane and a 60 MHz pixel clock (about 45 Hz), inside the ILI9881C datasheet's 2-lane limits (566 Mbit/s for RGB565). The fast profile is Espressif's 1000 Mbit/s and 78 MHz (59 Hz), above those limits; choose it only after a board has shown clean patterns with it. The log line `display profile safe: 560 Mbit/s per lane, 60 MHz pixel clock` says which runs. The whole display bring-up has 8 s: ESP-IDF's DSI setup waits without a limit for the D-PHY (no VDDO_MIPI_2V5, for instance), so a stage still running after 8 s is reported (`display bring-up still at '<stage>' after 8000 ms: abandoned`) and the boot goes on.
+4. It releases reset (GPIO10 low), waits 120 ms and probes the panel (`panel probe: answered, ID 98 81 xx, …`: 98 81 is the ILI9881C; the third byte is its version, 1C in the datasheet, 5C in Espressif's logs). If the panel does not answer, the display bring-up stops here and the boot goes on without it. Otherwise it sends the init sequence (the driver logs the ID again), turns the display on, draws the boot stamp (navy, "SLIM4 / R27"), and only then turns the backlight on at 45 % (about 33 mA), or at 15 % on USB below 1 A until a cell qualifies (`backlight limited to 15 %` in the log).
+5. The log line `ILI9881C two-lane DSI initialized: 720x1280 RGB565, safe profile (about 45 Hz)` confirms the controller side. The self-test's other checks follow, then every result as a `SELFTEST PASS|FAIL|INFO <check> …` line and `SELFTEST RESULT: …`.
 6. The stamp's bottom line changes from `STARTING` to `VERIFIED` (or `SERVICE MODE`) once the controls, framebuffer and audio worker pass (or fail) their software checks. That label covers the software only. The self-test page follows: it stays up 10 s, or until a control is pressed.
-7. The diagnostic loop redraws a moving sweep at the panel's 59 Hz, lights a tile and counts presses for each of the four controls, and logs every input edge. Each press plays a short tone at 20 % volume on its side (flaps 880 Hz, DART 660 Hz).
-8. The screen shows the self-test counts in its header (BOOT, SW7, shows the page again), firmware draws per second, DPI VSYNC events per second, the longest render-and-submit time, the frame number and late frames. Readings of 58–62 are cyan, others red, zero gold while starting.
-9. At start, the power log line gives the battery voltage, USB-C current advertisement, charging state, the charger input limit, the backlight cap and the die temperature; the policy then re-reads them every 0.5 s (charger input 1.07 A only when USB-C advertises 1.5 A or 3 A; above 75 °C die temperature charging is suspended, but only with a qualified cell above 3.6 V, since suspend also takes the system off USB). On the battery, 2 s below 3.3 V switches the board off whatever the button does. Holding the power button 2 s switches off (deep sleep); pressing it wakes the board. If the battery reading fails, the log says so: there is then no low-battery switch-off (the pack's own protection still cuts off) and the backlight stays capped on USB below 1 A.
+7. The diagnostic loop redraws a moving sweep at 60 draws a second (the panel refreshes at about 45 Hz in the safe profile, 59 Hz in the fast one), lights a tile and counts presses for each of the four controls, and logs every input edge. Each press plays a short tone at 20 % volume on its side (flaps 880 Hz, DART 660 Hz).
+8. The screen shows the self-test counts in its header (BOOT, SW7, shows the page again), firmware draws per second, DPI VSYNC events per second, the longest render-and-submit time, the frame number and late frames. Draws of 58–62 are cyan, VSYNC of 43–48 (safe) or 58–62 (fast) cyan, others red, zero gold while starting.
+9. At start, the power log line gives the battery voltage, USB-C current advertisement, charging state, the charger input limit, the backlight cap and the die temperature; the policy then re-reads them every 0.5 s (charger input 1.07 A only when USB-C advertises 1.5 A or 3 A; above 75 °C die temperature charging is suspended, but only with a qualified cell above 3.6 V, since suspend also takes the system off USB; see *Battery* for the charge-time limit). On the battery, 2 s below 3.3 V switches the board off whatever the button does. Holding the power button 2 s switches off (deep sleep); pressing it wakes the board. If the battery reading fails, the log says so: there is then no low-battery switch-off (the pack's own protection still cuts off) and the backlight stays capped on USB below 1 A.
 
 A display error is logged with the stage that failed; the app keeps running so the serial diagnostics stay available.
 
@@ -47,6 +47,26 @@ What it does not check: the regulator outputs and ripple (no ADC on the rails: m
 
 Safe for the board: pins are driven only at U1's weakest drive strength, for microseconds (PWR_WAKE a few milliseconds, like a short press of SW5), and never against a net that something holds. The charger's EN1/EN2 pins are never driven: changing them would change the charger's input limit.
 
+## Console
+
+The USB-C port carries a command console from R12. Open any serial terminal on it (`idf.py monitor`, or 115200 8N1 on the USB port), type a command and Enter; `help` lists them. It starts right after the GPIO checks, before the drivers, so it answers even when the display or power bring-up stopped.
+
+| Command | What it does |
+|---|---|
+| `info` | chip, memory, flash, firmware, reset reason, uptime |
+| `report`, `page` | the self-test lines again; the self-test page on the panel |
+| `gpio [n]` | the level of GPIO n, or of every self-test pin with its net |
+| `power` | battery, USB, charger state and input limit, backlight cap, audio mute, die temperature |
+| `panel` | the probe result and the frames per second over 1 s |
+| `bl <0-100>` | backlight level (within the power policy's cap) |
+| `pattern white\|black\|red\|green\|blue\|bars\|checker\|gradient` | a full-screen test pattern, held until `diag` |
+| `diag` | back to the diagnostic screen |
+| `display safe\|fast` | the DSI profile for the next boot (kept in NVS); without an argument, the current one |
+| `tone left\|right\|both [hz] [ms]`, `vol <0-100>` | a tone on one side; the master volume |
+| `sleep`, `reboot` | deep sleep (the power button wakes); restart |
+
+With no terminal attached the console drops its output rather than wait, so a board on a charger or battery never stalls on it.
+
 ## Bench checks
 
 | Press | Screen | Speaker |
@@ -57,7 +77,7 @@ Safe for the board: pins are driven only at U1's weakest drive strength, for mic
 | DART right (SW4) | right DART tile | right, 660 Hz |
 
 - Chip revision v3.x in the boot log; PSRAM 32 MiB found; flash ID of the W25Q512JV (64 MiB).
-- Draws and VSYNC near 59, no late frames; the sweep moves smoothly; the stamp is upright with correct colours.
+- Draws near 60 and VSYNC near 45 (59 with `display fast`), no late frames; the sweep moves smoothly; the stamp is upright with correct colours.
 - Backlight even on both halves of the screen (the panel has two LED strings, both on J1 pins 39–40).
 - Charging: with a cell and USB-C, CHG reads charging; unplug USB and the board runs from the cell.
 
@@ -71,7 +91,9 @@ Only a calibrated battery reading drives these decisions. If the chip has no ADC
 
 ## Battery
 
-Use a protected 1-cell Li-ion/LiPo of 1000 mAh or more (503450 about 1000 mAh, 703450 about 1500 mAh; up to 34 × 50 × 7 mm) on a 2-pin JST PH plug, pin 1 (red) = BAT+. The BQ24074 charges at 0.49 A nominal, 0.55 A at most (R412 1.8 k): 0.55 C on 1000 mAh. Its safety timer ends a charge after 4–6 h (TMR open); a 1500 mAh cell finishes inside it. The board does not sense cell temperature (TS is a fixed 10 k): the pack's own protection board is the only cell-level protection.
+Use a protected 1-cell Li-ion/LiPo of 1000 mAh or more (503450 about 1000 mAh, 703450 about 1500 mAh; up to 34 × 50 × 7 mm) on a 2-pin JST PH plug, pin 1 (red) = BAT+. The BQ24074 charges at 0.49 A nominal, 0.55 A at most (R412 1.8 k): 0.55 C on 1000 mAh. Its safety timer ends a charge after 4–6 h (TMR open); a 1500 mAh cell finishes inside it. The board does not sense cell temperature (TS is a fixed 10 k, R424 beside U10): the pack's own protection board is the only cell-level protection.
+
+Leaving a heat suspend restarts the charger's safety timer (BQ24074 datasheet 9.3.5.6). From R12 the firmware counts charge time over the whole USB session: once a heat suspend has restarted the timer and charging has run 6 h in all, it stops charging (USB suspend, the log says `… min of charging across suspends: charging stopped`, the console's `power` says `stopped: 6 h charge limit`, the screen `CHARGE TIME`). Charging starts again when the cell is down to 3.6 V (a new charge, as the charger's own recharge would start) or after USB is unplugged.
 
 ## If the display stays dark
 

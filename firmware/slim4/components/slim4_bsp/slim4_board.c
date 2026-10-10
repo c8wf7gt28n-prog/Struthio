@@ -308,7 +308,7 @@ static slim4_status_t render_diagnostic_locked(uint32_t buttons, const uint32_t 
     fill_rect(SLIM4_LCD_WIDTH - 24, 20, 4, SLIM4_LCD_HEIGHT - 40, cyan);
 
     draw_text_centered("STRUTHIO / SLIM4", 90, 2, cyan);
-    draw_text_centered("R26 HARDWARE TEST", 135, 4, ivory);
+    draw_text_centered("R27 HARDWARE TEST", 135, 4, ivory);
     draw_text_centered("PRESS EACH CONTROL / LISTEN", 205, 2, cyan);
     const slim4_st_report_t *st = slim4_selftest_last();
     if (st) {
@@ -344,7 +344,7 @@ static slim4_status_t render_diagnostic_locked(uint32_t buttons, const uint32_t 
         }
         static const char *const usb_names[] = {"NONE", "500MA", "1.5A", "3A"};
         (void)snprintf(line, sizeof(line), "USB %s %s", power.usb_power ? usb_names[power.usb_current] : "OFF",
-                       power.charge_suspended ? "HOT" : (power.charging ? "CHARGING" : ""));
+                       power.charge_suspended ? (power.charge_time_limit ? "CHARGE TIME" : "HOT") : (power.charging ? "CHARGING" : ""));
         draw_text_at(line, 360, 1000, 2, power.charging ? cyan : ivory);
     }
     (void)snprintf(line, sizeof(line), "FPS %02lu", (unsigned long)measured_fps);
@@ -352,8 +352,9 @@ static slim4_status_t render_diagnostic_locked(uint32_t buttons, const uint32_t 
         (measured_fps >= 58 && measured_fps <= 62 ? cyan : red);
     draw_text_at(line, 56, 950, 3, frame_rate_color);
     (void)snprintf(line, sizeof(line), "VSYNC %02lu", (unsigned long)measured_vsync_hz);
+    const bool safe = s_display_profile == SLIM4_DISPLAY_SAFE;   /* about 45 Hz; fast about 59 Hz */
     const uint16_t vsync_color = measured_vsync_hz == 0 ? gold :
-        (measured_vsync_hz >= 58 && measured_vsync_hz <= 62 ? cyan : red);
+        (measured_vsync_hz >= (safe ? 43u : 58u) && measured_vsync_hz <= (safe ? 48u : 62u) ? cyan : red);
     draw_text_at(line, 56, 1000, 3, vsync_color);
     (void)snprintf(line, sizeof(line), "FRAME %06lu", (unsigned long)frame_index);
     draw_text_at(line, 56, 1050, 3, ivory);
@@ -391,7 +392,7 @@ static void draw_boot_stamp(void)
     fill_rect(24, 24, 3, SLIM4_LCD_HEIGHT - 48, cyan);
     fill_rect(SLIM4_LCD_WIDTH - 27, 24, 3, SLIM4_LCD_HEIGHT - 48, cyan);
     draw_text_centered("STRUTHIO", 385, 9, gold);
-    draw_text_centered("SLIM4 / R26", 515, 4, ivory);
+    draw_text_centered("SLIM4 / R27", 515, 4, ivory);
     fill_rect(180, 590, SLIM4_LCD_WIDTH - 360, 2, cyan);
     draw_text_centered("SYSTEM BOOT", 640, 4, cyan);
     draw_text_centered("INITIALIZING", 705, 2, ivory);
@@ -438,7 +439,7 @@ static slim4_status_t show_selftest_locked(const slim4_st_report_t *rep)
     fill_rect(SLIM4_LCD_WIDTH - 24, 20, 4, SLIM4_LCD_HEIGHT - 40, cyan);
 
     draw_text_centered("SELF TEST", 44, 4, ivory);
-    draw_text_centered("STRUTHIO SLIM4 / PCB R26 / FIRMWARE R11", 90, 2, cyan);
+    draw_text_centered("STRUTHIO SLIM4 / PCB R27 / FIRMWARE R12", 90, 2, cyan);
     char line[48];
     (void)snprintf(line, sizeof(line), "%u FAIL  %u PASS  %u INFO", rep->fail, rep->pass, rep->info);
     draw_text_centered(line, 122, 3, rep->fail ? red : cyan);
@@ -838,18 +839,18 @@ void slim4_board_panel_probe(slim4_panel_probe_t *out)
 
 slim4_display_profile_t slim4_board_display_profile(void)
 {
-    uint8_t v = SLIM4_DISPLAY_NORMAL;
+    uint8_t v = SLIM4_DISPLAY_SAFE;   /* no stored choice: the profile inside the panel's datasheet limits */
     nvs_handle_t h;
     if (s_nvs_ready && nvs_open(PROFILE_NS, NVS_READONLY, &h) == ESP_OK) {
         (void)nvs_get_u8(h, PROFILE_KEY, &v);
         nvs_close(h);
     }
-    return v == SLIM4_DISPLAY_SAFE ? SLIM4_DISPLAY_SAFE : SLIM4_DISPLAY_NORMAL;
+    return v == SLIM4_DISPLAY_FAST ? SLIM4_DISPLAY_FAST : SLIM4_DISPLAY_SAFE;
 }
 
 slim4_status_t slim4_board_set_display_profile(slim4_display_profile_t profile)
 {
-    if (profile != SLIM4_DISPLAY_NORMAL && profile != SLIM4_DISPLAY_SAFE) return SLIM4_ERR_INVALID_ARG;
+    if (profile != SLIM4_DISPLAY_FAST && profile != SLIM4_DISPLAY_SAFE) return SLIM4_ERR_INVALID_ARG;
     if (!s_nvs_ready) return SLIM4_ERR_NOT_READY;
     nvs_handle_t h;
     if (nvs_open(PROFILE_NS, NVS_READWRITE, &h) != ESP_OK) return SLIM4_ERR_IO;
@@ -920,7 +921,7 @@ static esp_err_t init_display(void)
     bus_cfg.lane_bit_rate_mbps = s_display_profile == SLIM4_DISPLAY_SAFE ? SLIM4_PANEL_SAFE_LANE_MBPS
                                                                          : SLIM4_PANEL_LANE_MBPS;
     ESP_LOGI(TAG, "display profile %s: %lu Mbit/s per lane, %u MHz pixel clock",
-             s_display_profile == SLIM4_DISPLAY_SAFE ? "safe" : "normal", (unsigned long)bus_cfg.lane_bit_rate_mbps,
+             s_display_profile == SLIM4_DISPLAY_SAFE ? "safe" : "fast", (unsigned long)bus_cfg.lane_bit_rate_mbps,
              s_display_profile == SLIM4_DISPLAY_SAFE ? SLIM4_PANEL_SAFE_PIXEL_MHZ : SLIM4_PANEL_PIXEL_MHZ);
     err = esp_lcd_new_dsi_bus(&bus_cfg, &s_dsi_bus);
     if (err != ESP_OK) return err;
@@ -1000,7 +1001,7 @@ static esp_err_t init_display(void)
     if (s_display_abandoned) return ESP_ERR_TIMEOUT;   /* too late: the boot went on without the display */
     s_display_ready = true;
     ESP_LOGI(TAG, "ILI9881C two-lane DSI initialized: 720x1280 RGB565, %s profile (about %d Hz)",
-             s_display_profile == SLIM4_DISPLAY_SAFE ? "safe" : "normal",
+             s_display_profile == SLIM4_DISPLAY_SAFE ? "safe" : "fast",
              s_display_profile == SLIM4_DISPLAY_SAFE ? 45 : 59);
     ESP_LOGI(TAG, "STRUTHIO SLIM4 boot stamp sent to panel");
     return ESP_OK;

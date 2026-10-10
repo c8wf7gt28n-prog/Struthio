@@ -3,9 +3,9 @@
  * patterns, plays tones on one side and repeats the self-test report, so a board can be probed with a meter in one
  * hand without reflashing.
  *
- * Output goes through stdout (UART0 and the USB port). Installing the USB-Serial-JTAG driver routes the USB output
- * through it too; when no host reads, the driver gives up after one short wait and drops output, so a board on a
- * charger or battery never stalls on it. */
+ * USB-Serial-JTAG is the primary console (UART0's pins reach nothing on the board). Installing its driver routes stdout
+ * through it; when no host reads, the driver gives up after one short wait and drops output, so a board on a charger
+ * or battery never stalls on it. */
 #include "slim4_console.h"
 
 #include <ctype.h>
@@ -52,7 +52,7 @@ static void cmd_help(void)
            "  bl <0-100>           backlight percent (still limited by the power policy's cap)\n"
            "  pattern <name>       white black red green blue bars checker gradient (holds the screen)\n"
            "  diag                 back to the diagnostic screen\n"
-           "  display <normal|safe>  DSI profile for the next boot: normal 1000 Mbit/s 59 Hz, safe 560 Mbit/s 45 Hz\n"
+           "  display <safe|fast>  DSI profile for the next boot: safe 560 Mbit/s 45 Hz (default), fast 1000 Mbit/s 59 Hz\n"
            "  tone <left|right|both> [hz] [ms]   test tone, 20..20000 Hz, up to 3000 ms\n"
            "  vol <0-100>          master volume\n"
            "  sleep                power off (deep sleep; the power button wakes it)\n"
@@ -110,7 +110,7 @@ static void cmd_power(void)
            ps.battery_low ? " LOW" : "", ps.battery_fault ? " FAULT (reversed or shorted)" : "");
     printf("USB %s, USB-C %s, %s%s; input limit %u mA\n", ps.usb_power ? "valid (PGOOD low)" : "absent",
            usb[ps.usb_current < 4 ? ps.usb_current : 0], ps.charging ? "charging" : "not charging",
-           ps.charge_suspended ? " (suspended: hot)" : "", ps.input_limit_ma);
+           ps.charge_suspended ? (ps.charge_time_limit ? " (stopped: 6 h charge limit)" : " (suspended: hot)") : "", ps.input_limit_ma);
     printf("backlight cap %u %%, audio %s, die %d C\n", ps.backlight_cap_percent, ps.audio_muted ? "MUTED" : "on",
            ps.chip_temp_c);
 }
@@ -226,13 +226,13 @@ static void run_line(char *line)
         printf("diagnostic screen resumed\n");
     } else if (!strcmp(cmd, "display")) {
         const char *a = argv[1];
-        if (a && (!strcmp(a, "normal") || !strcmp(a, "safe"))) {
+        if (a && (!strcmp(a, "fast") || !strcmp(a, "safe"))) {
             const slim4_status_t st = slim4_board_set_display_profile(!strcmp(a, "safe") ? SLIM4_DISPLAY_SAFE
-                                                                                         : SLIM4_DISPLAY_NORMAL);
+                                                                                         : SLIM4_DISPLAY_FAST);
             printf("%s\n", st == SLIM4_OK ? "saved: reboot to apply" : "could not save (NVS)");
         } else {
-            printf("display profile now: %s (display normal|safe)\n",
-                   slim4_board_display_profile() == SLIM4_DISPLAY_SAFE ? "safe" : "normal");
+            printf("display profile now: %s (display safe|fast)\n",
+                   slim4_board_display_profile() == SLIM4_DISPLAY_SAFE ? "safe" : "fast");
         }
     } else if (!strcmp(cmd, "tone")) cmd_tone(argv[1], argv[2], argv[3]);
     else if (!strcmp(cmd, "vol")) {

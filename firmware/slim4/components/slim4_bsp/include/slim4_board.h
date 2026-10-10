@@ -17,9 +17,10 @@ typedef enum {
 slim4_status_t slim4_board_show_pattern(slim4_pattern_t pattern);
 slim4_status_t slim4_board_set_backlight(uint8_t percent);
 bool slim4_board_backlight_failed(void);
-/* Display profile, kept in NVS: normal = 1000 Mbit/s per lane, 78 MHz pixel clock (59 Hz); safe = 560 Mbit/s,
- * 60 MHz (about 45 Hz), inside the ILI9881C's 2-lane limits. Takes effect at the next boot. */
-typedef enum { SLIM4_DISPLAY_NORMAL = 0, SLIM4_DISPLAY_SAFE = 1 } slim4_display_profile_t;
+/* Display profile, kept in NVS: safe (the default) = 560 Mbit/s per lane, 60 MHz pixel clock (about 45 Hz), inside
+ * the ILI9881C's 2-lane limits; fast = 1000 Mbit/s, 78 MHz (59 Hz), Espressif's setting, above those limits, to be
+ * chosen only once a board has shown clean test patterns with it. Takes effect at the next boot. */
+typedef enum { SLIM4_DISPLAY_FAST = 0, SLIM4_DISPLAY_SAFE = 1 } slim4_display_profile_t;
 slim4_display_profile_t slim4_board_display_profile(void);
 slim4_status_t slim4_board_set_display_profile(slim4_display_profile_t profile);
 uint8_t slim4_board_backlight_cap(void);

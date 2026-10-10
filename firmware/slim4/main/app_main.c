@@ -134,7 +134,7 @@ void app_main(void)
     const esp_app_desc_t *app = esp_app_get_description();
     ESP_LOGI(TAG, "STRUTHIO SLIM4 platform boot");
     ESP_LOGI(TAG, "firmware=%s version=%s", app->project_name, app->version);
-    ESP_LOGI(TAG, "target=ESP32-P4 board=SLIM4 PCB R26 api=%u.%u", SLIM4_API_VERSION_MAJOR,
+    ESP_LOGI(TAG, "target=ESP32-P4 board=SLIM4 PCB R27 api=%u.%u", SLIM4_API_VERSION_MAJOR,
              SLIM4_API_VERSION_MINOR);
     ESP_LOGI(TAG, "bring-up: ILI9881C 720x1280 two-lane display (Crystalfontz CFAF7201280A0-050TN); four active-low controls; %s",
              slim4_power_woke_by_button() ? "woken by the power button" : "cold start");

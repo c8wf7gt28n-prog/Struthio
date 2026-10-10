@@ -22,6 +22,12 @@ void slim4_board_prepare_power_off(void);
 #define CHARGE_COOL_C         65              /* resume below this */
 #define SUSPEND_MIN_MV        3600u           /* enter (and stay in) a suspend only above this: the cell carries the system */
 #define POLICY_PERIOD_US      (500 * 1000)
+/* Leaving a USB suspend restarts the BQ24074's safety timers (datasheet 9.3.5.6), so a device that keeps getting hot
+ * would get a new 4-6 h fast-charge window after every heat suspend. The firmware therefore counts charge time over
+ * the whole USB session; once a suspend has restarted the charger's timer and the count reaches the timer's longest
+ * window, charging stops (USB suspend) until the cell falls to SUSPEND_MIN_MV (a new charge, as the charger's own
+ * recharge would start) or USB is unplugged. */
+#define CHARGE_TOTAL_US       (6LL * 3600 * 1000 * 1000)
 
 /* Backlight cap on a 500 mA USB source with no charge cycle running (no cell known to supplement).
  * BQ24074 USB500 input limit 450 mA min, OUT 4.4 V: 1.98 W. 3.3 V rail at Espressif's 380 mA design provision
@@ -57,6 +63,9 @@ static bool s_cell_ok;
 static bool s_adc_valid;              /* the last battery reading succeeded */
 static bool s_adc_warned;
 static bool s_approx_warned;
+static int64_t s_last_policy_us;      /* 0 before the first pass */
+static int64_t s_charge_us;           /* charge time (CHG low, not suspended) in this USB session */
+static bool s_timer_restarted;        /* a firmware suspend has restarted the charger's safety timer in this session */
 
 static uint8_t count_up(uint8_t n) { return n < 255 ? n + 1 : 255; }
 
@@ -160,16 +169,45 @@ static void update_policy(void)
         s_cell_ok = false;
     }
 
+    /* Charge time in this USB session (CHARGE_TOTAL_US). */
+    const int64_t now = esp_timer_get_time();
+    const int64_t dt = s_last_policy_us ? now - s_last_policy_us : 0;
+    s_last_policy_us = now;
+    if (!s_state.usb_power) {
+        s_charge_us = 0;
+        s_timer_restarted = false;
+    } else if (s_state.charging && !s_state.charge_suspended) {
+        s_charge_us += dt;
+    }
+
     /* The BQ24074's CE pin is tied low, so the only way to stop charging is USB suspend (EN2/EN1 = 1/1), which also
-     * takes the system off USB. Enter it only with a qualified cell above SUSPEND_MIN_MV; leave it when the die has
-     * cooled, the cell falls below SUSPEND_MIN_MV, the reading fails or USB goes away. */
+     * takes the system off USB. Enter it only with a qualified cell above SUSPEND_MIN_MV: for heat, or when the
+     * session's charge time is spent. Leave it when the die has cooled (a heat suspend), the cell falls below
+     * SUSPEND_MIN_MV, the reading fails or USB goes away. */
+    const bool time_spent = s_timer_restarted && s_charge_us >= CHARGE_TOTAL_US;
     if (!s_state.charge_suspended) {
-        if (s_state.chip_temp_c > CHARGE_HOT_C && s_state.usb_power && s_cell_ok && mv >= SUSPEND_MIN_MV) {
+        const bool hot = s_state.chip_temp_c > CHARGE_HOT_C;
+        if ((hot || time_spent) && s_state.usb_power && s_cell_ok && mv >= SUSPEND_MIN_MV) {
             s_state.charge_suspended = true;
-            ESP_LOGW(TAG, "die at %d C: charging suspended (system on the cell, %u mV)", s_state.chip_temp_c, mv);
+            s_state.charge_time_limit = time_spent;
+            if (time_spent) {
+                ESP_LOGW(TAG, "%u min of charging across suspends: charging stopped until the cell is down to %u mV "
+                              "or USB is unplugged (system on the cell, %u mV)",
+                         (unsigned)(s_charge_us / 60000000), (unsigned)SUSPEND_MIN_MV, mv);
+            } else {
+                ESP_LOGW(TAG, "die at %d C: charging suspended (system on the cell, %u mV)", s_state.chip_temp_c, mv);
+            }
         }
-    } else if (s_state.chip_temp_c < CHARGE_COOL_C || !adc || mv < SUSPEND_MIN_MV || !s_state.usb_power) {
+    } else if ((!s_state.charge_time_limit && s_state.chip_temp_c < CHARGE_COOL_C) || !adc || mv < SUSPEND_MIN_MV ||
+               !s_state.usb_power) {
         s_state.charge_suspended = false;
+        if (s_state.charge_time_limit) {
+            s_charge_us = 0;              /* a new charge with a fresh timer of the charger's own */
+            s_timer_restarted = false;
+        } else {
+            s_timer_restarted = s_state.usb_power;
+        }
+        s_state.charge_time_limit = false;
         ESP_LOGI(TAG, "die at %d C, cell %u mV: charging resumed", s_state.chip_temp_c, mv);
     }
     const bool high = s_state.usb_current == SLIM4_USB_1A5 || s_state.usb_current == SLIM4_USB_3A0;

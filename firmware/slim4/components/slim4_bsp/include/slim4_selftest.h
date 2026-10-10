@@ -1,5 +1,5 @@
 #pragma once
-/* SLIM4 hardware self-test (firmware R11): checks a newly assembled board for manufacturing faults at every boot.
+/* SLIM4 hardware self-test (firmware R11, R12): checks a newly assembled board for manufacturing faults at every boot.
  *
  * The decisions (what a set of readings means) live in slim4_selftest_logic.c, which has no ESP-IDF dependency and
  * is covered by the host tests in tests/host. The measurements live in slim4_selftest.c (GPIO, chip identity, power)

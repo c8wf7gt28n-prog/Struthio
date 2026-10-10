@@ -46,6 +46,7 @@ static void fresh(enum usb usb, bool chg, int mv, float die)
     s_board_muted = false;
     s_adc = NULL; s_adc_cali = NULL; s_tsens = NULL;
     s_button_down_since = 0;
+    s_last_policy_us = 0; s_charge_us = 0; s_timer_restarted = false;
     host_adc_fails = false;
     host_cali_fails = false;
     host_now_us = 1000000;
@@ -62,6 +63,7 @@ static void fresh_uncal(enum usb usb, bool chg, int mv, float die)
     s_board_muted = false;
     s_adc = NULL; s_adc_cali = NULL; s_tsens = NULL;
     s_button_down_since = 0;
+    s_last_policy_us = 0; s_charge_us = 0; s_timer_restarted = false;
     host_adc_fails = false;
     host_now_us = 1000000;
     for (int i = 0; i < 64; ++i) host_gpio[i] = 1;
@@ -176,6 +178,36 @@ int main(void)
     check("suspended, USB unplugged: suspend ended", !s_state.charge_suspended);
     fresh(USB500, true, 3900, 80); run(4); host_adc_fails = true; board(USB500, false, 3850, 80); run(1);
     check("suspended, battery reading fails: resumed", !s_state.charge_suspended);
+
+    /* charge time across heat suspends: leaving a USB suspend restarts the BQ24074's safety timer */
+    fresh(USB500, true, 3900, 25); run(7 * 7200);
+    check("charging 7 h with no suspend: no firmware stop (the charger's own timer governs)",
+          !s_state.charge_suspended && s_state.input_limit_ma == 500);
+    fresh(USB500, true, 3900, 25); run(3 * 7200);
+    board(USB500, true, 3900, 80); run(4); board(USB500, true, 3900, 60); run(1);
+    check("3 h charging, heat suspend, cooled: resumed", !s_state.charge_suspended && !s_state.charge_time_limit);
+    run(2 * 7200 + 7080);
+    check("5 h 59 min of charge time across the suspend: still charging", !s_state.charge_suspended);
+    run(200);
+    check("6 h of charge time across the suspend: charging stopped (USB suspend), marked as the time limit",
+          s_state.charge_suspended && s_state.charge_time_limit && s_state.input_limit_ma == 0);
+    board(USB500, true, 3900, 25); run(7200);
+    check("time limit: a cool die does not resume charging", s_state.charge_suspended);
+    board(USB500, true, 3550, 25); run(1);
+    check("time limit, cell down to 3.55 V: charging resumed (a new charge)",
+          !s_state.charge_suspended && !s_state.charge_time_limit && s_charge_us < 1000000);
+    board(USB500, true, 3900, 25); run(7 * 7200);
+    check("after the new charge starts, 7 h with no suspend: no firmware stop", !s_state.charge_suspended);
+    fresh(USB500, true, 3900, 25); run(3 * 7200);
+    board(USB500, true, 3900, 80); run(4); board(USB500, true, 3900, 60); run(1);
+    board(NO_USB, false, 3900, 25); run(2); board(USB500, true, 3900, 25); run(4 * 7200);
+    check("USB unplugged after a heat suspend: count starts again (4 h on the new session, no stop)",
+          !s_state.charge_suspended && !s_timer_restarted);
+    fresh(USB500, true, 3900, 25); run(3 * 7200);
+    board(USB500, true, 3900, 80); run(4); board(USB500, false, 3900, 60); run(1);
+    board(USB500, false, 3900, 25); run(4 * 7200);
+    check("not charging (CHG high) after the suspend: no charge time counted, no stop",
+          !s_state.charge_suspended && s_charge_us < 4LL * 3600 * 1000000);
 
     /* power button */
     fresh(NO_USB, false, 3900, 25); host_gpio[SLIM4_GPIO_PWR_WAKE] = 0;

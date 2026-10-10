@@ -10,8 +10,9 @@
 #define SLIM4_PANEL_DSI_LANES 2
 #define SLIM4_PANEL_LANE_MBPS 1000
 #define SLIM4_PANEL_PIXEL_MHZ 78
-/* Safe profile (console `display safe`): RGB565 on 2 lanes at 60 MHz needs 480 Mbit/s per lane; 560 stays inside
- * the ILI9881C datasheet's 2-lane limit (566 Mbit/s for 16-bit pixels), where 1000 is above it (as Espressif runs). */
+/* Fast profile (above): Espressif's 2-lane setting, above the ILI9881C datasheet's limits; chosen with the console's
+ * `display fast`. Safe profile (the default): RGB565 on 2 lanes at 60 MHz needs 480 Mbit/s per lane; 560 stays inside
+ * the 2-lane limit (566 Mbit/s for 16-bit pixels). */
 #define SLIM4_PANEL_SAFE_LANE_MBPS 560
 #define SLIM4_PANEL_SAFE_PIXEL_MHZ 60
 #define SLIM4_PANEL_DPI_CONFIG(fmt) {                    \

@@ -19,7 +19,8 @@ typedef struct {
     slim4_usb_current_t usb_current;
     uint16_t input_limit_ma;  /* charger input limit the firmware selected */
     int16_t chip_temp_c;      /* ESP32-P4 die temperature */
-    bool charge_suspended;    /* firmware suspended charging (die too hot) */
+    bool charge_suspended;    /* firmware suspended charging (die too hot, or charge_time_limit) */
+    bool charge_time_limit;   /* the suspend is the session's charge-time limit (6 h across heat suspends) */
     uint8_t backlight_cap_percent; /* highest backlight level the power source can carry */
     bool battery_fault;       /* USB valid but the battery rail stays below 1.5 V: pack reversed or shorted */
     bool battery_approx;      /* ADC uncalibrated: battery_mv is approximate and drives no power decision */
