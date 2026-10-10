@@ -21,3 +21,5 @@ python3 "$S/r28_export_lib.py" "$B" "$(dirname "$B")/SLIM4.pretty" U15 L701 E701
 (cd "$(dirname "$B")" && python3 "$S/fill_drc.py" "$B")                # zone refill + KiCad DRC
 P="$S/PLANE_CHECK_R28.txt"                                             # ground under FB_DCDC / EN_DCDC (review M1)
 python3 "$S/r28_plane_check.py" "$B" > "$P" 2>&1 || { cat "$P"; exit 1; }; cat "$P"
+F="$S/RF_CHECK_R28.txt"                                                # the RF path: 50 ohm microstrip over In4 GND
+python3 "$S/r28_rf_check.py" "$B" 2>&1 | grep -v leak > "$F"; grep -q '^rf check: ' "$F" || { cat "$F"; exit 1; }; cat "$F"

@@ -1,5 +1,5 @@
 {
- "board": "SLIM4_R27_PCB_LAYER.json",
+ "board": "SLIM4_R28_PCB_LAYER.json",
  "u1_pads": {
   "1": "BTN_LEFT",
   "2": "BTN_RIGHT",
@@ -80,8 +80,8 @@
   "77": "3V3_SYS",
   "78": "FB_DCDC",
   "79": "EN_DCDC",
-  "80": "",
-  "81": "",
+  "80": "RADIO_UART_TX",
+  "81": "RADIO_UART_RX",
   "82": "",
   "83": "",
   "84": "USB_CURR_OUT1",
@@ -93,7 +93,7 @@
   "90": "",
   "91": "1V1_HP",
   "92": "",
-  "93": "",
+  "93": "RADIO_NRST",
   "94": "",
   "95": "",
   "96": "3V3_SYS",

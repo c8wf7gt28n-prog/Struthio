@@ -4,8 +4,8 @@
     python3 CHECKS/export_pcb_layer.py <board.kicad_pcb> <reference layer json> <out.json> <revision> <name> <status>
 
 Example (the package's PCB layer):
-    python3 CHECKS/export_pcb_layer.py LAYERS/01_PCB/SLIM4_R27.kicad_pcb REFERENCES/PCB_R21/SLIM4_R21_PCB_LAYER.json \
-        LAYERS/01_PCB/SLIM4_R27_PCB_LAYER.json R27 "STRUTHIO SLIM4 PCB R27" "Order files ready · U1 stock to confirm"
+    python3 CHECKS/export_pcb_layer.py LAYERS/01_PCB/SLIM4_R28.kicad_pcb REFERENCES/PCB_R21/SLIM4_R21_PCB_LAYER.json \
+        LAYERS/01_PCB/SLIM4_R28_PCB_LAYER.json R28 "STRUTHIO SLIM4 PCB R28" "Order files ready · U1 and U15 to source"
 
 Geometry comes from the board (pad positions and rotations as pcbnew places them, so back-side parts at
 90/270 degrees are right; the R21 layer file had 80 such pads mirrored), and so do the cut-outs (the battery window). The board's outer
@@ -18,6 +18,11 @@ import pcbnew
 CAT = [('SW', 'switch'), ('U', 'ic'), ('J', 'connector'), ('L', 'inductor'), ('D', 'diode'), ('Q', 'transistor'),
        ('C', 'capacitor'), ('R', 'resistor')]
 DEFAULT_Z = {'resistor': 0.75, 'capacitor': 0.75, 'connector': 3.0, 'switch': 1.6, 'ic': 1.0, 'diode': 0.6, 'inductor': 1.6}
+# heights of parts new in R28, from their datasheets (mm above the board): the RAK3172-SiP's LGA body; J701 with the
+# antenna cable's plug mated (Hirose U.FL-LP: 2.5 mm max; the receptacle alone is 1.25); L701 SWPA3012S; 0402 beads;
+# the 0603 4.7 uF capacitors (0.8 +- 0.1 mm)
+VALUE_Z = {'RAK3172-SIP-9-SM-NI': 1.22, 'U.FL-R-SMT-1(10)': 2.5, 'SWPA3012S150MT': 1.2, 'BLM15AG121SN1D': 0.55,
+           'CL10A475KO8NNNC': 0.9}
 
 
 def r4(v):
@@ -46,7 +51,7 @@ def main():
                 # undo KiCad's rotation (y down, positive angle = counter-clockwise on screen)
                 xs.append(dx * math.cos(a) + dy * math.sin(a)); ys.append(-dx * math.sin(a) + dy * math.cos(a))
         w = round(max(xs) - min(xs), 3) if xs else 0; h = round(max(ys) - min(ys), 3) if ys else 0
-        z = zref.get(refd, zval.get(f.GetValue(), DEFAULT_Z.get(cat, 1.0)))
+        z = zref.get(refd, VALUE_Z.get(f.GetValue(), zval.get(f.GetValue(), DEFAULT_Z.get(cat, 1.0))))
         plist = list(f.Pads())
         parts.append({'ref': refd, 'value': f.GetValue(), 'x': r4(cx), 'y': r4(cyy), 'rot': round(prot, 3), 'side': 'back' if back else 'front',
                       'w': w, 'h': h, 'z': z, 'category': cat, 'padCount': len(plist)})

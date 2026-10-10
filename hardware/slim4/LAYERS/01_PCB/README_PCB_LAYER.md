@@ -1,10 +1,10 @@
-# PCB layer — R27
+# PCB layer — R28
 
-**Status: order files ready. One part to source: JLCPCB had no stock of the ESP32-P4NRW32X (U1) on 2026-10-07 (see *Sourcing U1*).**
+**Status: board R28 installed and checked (DRC 0 / 0 / 0, R27 copper unchanged, rebuilt twice identically); its order files are regenerated in package R33. Two parts to source: the ESP32-P4NRW32X (U1; JLCPCB had none on 2026-10-07, see *Sourcing U1*) and the RAK3172-SiP (U15; no LCSC listing, JLCPCB Global Sourcing).**
 
-Editable source: `SLIM4_R27.kicad_pcb`. Open `SLIM4_R27.kicad_pro` in KiCad 7.0.x with this folder as the project directory; `fp-lib-table` points at the local `SLIM4.pretty` library. `SLIM4_R27_PCB_LAYER.json` is the read-only interchange projection the case checks and the studio read; `CHECKS/export_pcb_layer.py` writes it from the board.
+Editable source: `SLIM4_R28.kicad_pcb`. Open `SLIM4_R28.kicad_pro` in KiCad 7.0.x with this folder as the project directory; `fp-lib-table` points at the local `SLIM4.pretty` library. `SLIM4_R28_PCB_LAYER.json` is the read-only interchange projection the case checks and the studio read; `CHECKS/export_pcb_layer.py` writes it from the board.
 
-R27 is R26 with the margins found by the pre-order review of R26 (*What changed from R26*); R26 was R25 with the three MIPI-DSI pairs routed again as coupled pairs after the R30/R25 pre-order audit (*What changed from R25*); R25 was R24 with the DSI lines matched end to end and the In2 planes around the processor corrected after the R24 deep audit (*What changed from R24*); R24 was R23 with its power layout redone after the second hardware review (*What changed from R23*). Same outline, ports, connector positions and GPIOs throughout. R23 was R22 with four plug-and-play ports: the panel's own tail goes straight into J1 (no adapter flex), the battery plugs into a JST PH socket behind a reverse-polarity MOSFET, and the speakers plug into PicoBlade sockets. Nothing else to solder. R26 is kept unchanged in `REFERENCES/PCB_R26/`, R25 in `REFERENCES/PCB_R25/`, R24 in `REFERENCES/PCB_R24/`, R23 in `REFERENCES/PCB_R23/`, R22 in `REFERENCES/PCB_R22/`, R21 in `REFERENCES/PCB_R21/`.
+R28 is R27 with the peer-to-peer radio added (*What changed from R27*), nothing of R27's copper moved; R27 is R26 with the margins found by the pre-order review of R26 (*What changed from R26*); R26 was R25 with the three MIPI-DSI pairs routed again as coupled pairs after the R30/R25 pre-order audit (*What changed from R25*); R25 was R24 with the DSI lines matched end to end and the In2 planes around the processor corrected after the R24 deep audit (*What changed from R24*); R24 was R23 with its power layout redone after the second hardware review (*What changed from R23*). Same outline, ports, connector positions and GPIOs throughout. R23 was R22 with four plug-and-play ports: the panel's own tail goes straight into J1 (no adapter flex), the battery plugs into a JST PH socket behind a reverse-polarity MOSFET, and the speakers plug into PicoBlade sockets. Nothing else to solder. R27 is kept unchanged in `REFERENCES/PCB_R27/`, R26 in `REFERENCES/PCB_R26/`, R25 in `REFERENCES/PCB_R25/`, R24 in `REFERENCES/PCB_R24/`, R23 in `REFERENCES/PCB_R23/`, R22 in `REFERENCES/PCB_R22/`, R21 in `REFERENCES/PCB_R21/`.
 
 | File | What it is |
 |---|---|
@@ -14,6 +14,7 @@ R27 is R26 with the margins found by the pre-order review of R26 (*What changed 
 | `ELECTRICAL_REVIEW_R22.md` | pin-by-pin review of the R21/R22 netlist against the datasheets, and the land-pattern audit (still valid for every part R23-R25 did not change) |
 | `NATIVE_KICAD_DRC.txt` | KiCad 7.0.11 DRC: 0 violations, 0 unconnected pads, 0 footprint errors |
 | `RELEASE_GATES.md` | what is closed and what is left before and after ordering |
+| `R28_FROM_R27/` | the scripted R27 → R28 edits 45–47: the radio's parts, zones and nets; its three U1 lines (router `radio_router.py`, its output `r28_radio_routes.json`); metadata; the library export, the FB_DCDC / EN_DCDC ground check (`PLANE_CHECK_R28.txt`) and the RF path check (`RF_CHECK_R28.txt`) (`build_r28.sh`) |
 | `R27_FROM_R26/` | the scripted R26 → R27 edits 36–44: exposed-pad ground vias, core bulk capacitors, backlight capacitor and diode, R424, USB resistors, silkscreen, metadata; the library export and the FB_DCDC / EN_DCDC ground check with its output `PLANE_CHECK_R27.txt` (`build_r27.sh`) |
 | `R26_FROM_R25/` | the scripted R25 → R26 edits 31–35: DSI coupled pairs (router, geometry and matching tools, their output `r26_dsi_routes.json`), In2 reference band, return vias, the slow nets moved out of the way, metadata (`build_r26.sh`) |
 | `R25_FROM_R24/` | the scripted R24 → R25 edits 25–30: DSI links, matching, return vias and reference; U1 supply planes; metadata (`build_r25.sh`) |
@@ -31,6 +32,32 @@ The JLCPCB order files (Gerbers, drill, BOM, CPL, README with every order option
 | J3 battery | JST S2B-PH-SM4-TB (C295747) + Q2 AO3401A (C15127) | (−24.8, 67.9), back, mouth toward the battery window | a protected 1-cell Li-ion/LiPo of 1000 mAh or more on a JST PH 2.0 plug, pin 1 BAT+ (red), up to 34 × 50 × 7 mm (see *Battery*) |
 | J4 left speaker | Molex PicoBlade 53261-0271 (C177225) | (−44.0, 113.7), back | 4–8 Ω speaker on a PicoBlade 1.25 plug, pin 1 + |
 | J5 right speaker | Molex PicoBlade 53261-0271 (C177225) | (44.3, 111.6), back | as J4 |
+
+## What changed from R27 (PCB R28: the radio)
+
+**U15, a RAKwireless RAK3172-SiP** (RAK3172-SIP-9-SM-NI: STM32WLE5, LoRa / FSK 902–928 MHz, 12 × 12 × 1.22 mm LGA-73, RUI3 AT firmware) on the back, west of U1 at (−23.0, 85.5), for peer-to-peer play between boards: no gateway, no server. It runs the radio itself; U1 talks to it over one UART. The parts round it follow RAKwireless's RAK3272-SiP reference design:
+
+| Part | Value | Job |
+|---|---|---|
+| L701 | 15 µH SWPA3012S150MT | the SiP's internal DC-DC (VLXSMPS pin 13 → VFBSMPS pin 10) |
+| E701, E702, E703 | 120 Ω beads BLM15AG121SN1D | VDDSMPS, VDDRF, VDDPA feeds |
+| C711–C723 | 100 nF, 470 nF, 1 µF, 4.7 µF | VDD, VBAT, VREF+, VDDA, VFBSMPS, VDDSMPS, VDDRF, VDDPA decoupling |
+| R703, C726 | 10 k, 100 nF | NRST pull-up and filter |
+| R702 | 10 k | BOOT0 pull-down: the SiP always starts its firmware |
+| C724, R704, C725 | DNP, 0 Ω, DNP | RF pi network (0 Ω as fitted; the two shunts are pads for tuning) |
+| J701 | U.FL-R-SMT-1(10) | antenna socket: a U.FL-to-antenna cable and a 915 MHz antenna fit by hand |
+| R701 | 0 Ω | RADIO_3V3 from 3V3_SYS (leave it off and the radio is unpowered) |
+| C701 | 10 µF | RADIO_3V3 bulk |
+
+**Supply and ground.** RADIO_3V3 is a pour on In3 over the SiP's land (it fills round R27's BAT_ADC track); every supply pin reaches it through its decoupling. A B.Cu GND pour under the SiP joins its nine centre ground pads with a via in each (via-in-pad, filled and capped, JLCPCB's 6-layer default).
+
+**U1 lines.** UART TX on pad 80 (GPIO39) to SiP pin 30 (UART2_RX), UART RX on pad 81 (GPIO40) from pin 29 (UART2_TX), NRST on pad 93 (GPIO50) to pin 44: pads that had no net in R27. They are 19.1, 20.1 and 47.2 mm long, 3 vias each, 0.10 mm wide, kept 0.30 mm from the crystal, FB_DCDC / EN_DCDC, CHIP_PU and the DSI pairs. U1's pad row escapes few lines: the west pocket (pads 80–82) takes two vias and the east pocket (92–95) one, so BOOT0 stays on the SiP side. RUI3 updates itself over the UART after `AT+BOOT`; if its firmware is ever lost, a wire from R702's BOOT0 pad to R703's RADIO_3V3 pad (1.3 mm apart) and a reset start the STM32's ROM bootloader on the same UART. A bare SX1262 (about ten U1 lines) was ruled out for the same reason.
+
+**RF path.** SiP pin 37 drops straight onto R704, then runs 0.18 mm wide on B.Cu over In4's ground (50 Ω on this stackup) past C725 to J701: 6.05 mm in all. `R28_FROM_R27/r28_rf_check.py` checks every RF track is B.Cu, 0.18 mm, over unbroken In4 GND with 0.3 mm to spare each side, and at least 0.3 mm from other copper (0.66 mm).
+
+**Checked.** KiCad 7.0.11 DRC 0 / 0 / 0. Every R27 track, via, pad, footprint and zone outline is unchanged; only U1 pads 80, 81 and 93 gained nets. The FB_DCDC / EN_DCDC ground check gives the same result as R27, line for line. Two independent rebuilds gave the same board (4448 items) and byte-identical library files. `firmware/slim4/tools/check_pinmap.py` passes on R28. Footprints 167 → 194 (C724 and C725 not fitted), vias 368 → 417, track segments 2814 → 2911, nets 106 → 118.
+
+**Assembly notes.** The SiP is MSL 3: bake it 12 h at 125 °C if its bag has been open longer than its floor life. JLCPCB has no LCSC listing for it; order it through Global Sourcing by part number. It is on the back, which is reflowed with the rest of the back side.
 
 ## What changed from R26 (PCB R27: margins from the pre-order review)
 
@@ -178,6 +205,8 @@ Do not substitute ESP32-P4NRW32 (no X, chip revision v1.x): its core-supply feed
 
 
 ## Rebuild
+
+`R28_FROM_R27/build_r28.sh <copy of REFERENCES/PCB_R27/SLIM4_R27.kicad_pcb renamed SLIM4_R28.kicad_pcb, beside copies of that folder's SLIM4.pretty, fp-lib-table and SLIM4_R27.kicad_pro renamed SLIM4_R28.kicad_pro>` regenerates R28 from the unchanged R27 board: edit 45 (the radio's parts, zones and nets) and edit 46 (its three signals, drawn from `r28_radio_routes.json`) in their own pcbnew processes (the build stops if an edit fails), the metadata (`r28_meta.py`), the library copies of the 27 added footprints (`r28_export_lib.py`), zone refill and DRC, the ground check under FB_DCDC / EN_DCDC and the RF path check. `r28_radio_routes.json` is written offline by `radio_router.py` on the filled board after edit 45 (it needs numpy and scipy); run so, it reproduces the file exactly. Two independent rebuilds gave the same board: 4448 tracks, vias, pads, footprints, zones and drawings, and byte-identical library files. Only new items' UUIDs differ between runs.
 
 `R27_FROM_R26/build_r27.sh <copy of REFERENCES/PCB_R26/SLIM4_R26.kicad_pcb renamed SLIM4_R27.kicad_pcb, beside copies of that folder's SLIM4.pretty, fp-lib-table and SLIM4_R26.kicad_pro renamed SLIM4_R27.kicad_pro>` regenerates R27 from the unchanged R26 board: edits 36–43 in their own pcbnew processes (new parts come from KiCad's own library, so `kicad-footprints` 7.0.x must be in `/usr/share/kicad/footprints`), the metadata (`r27_meta.py`), the library copies of the added and changed footprints (`r27_export_lib.py`, timestamps stripped), zone refill and DRC, then the ground check under FB_DCDC / EN_DCDC. Two independent rebuilds gave the same board: 4122 tracks, vias, pads, footprints and drawings, the same zone fills, and byte-identical library files. Only new items' UUIDs differ between runs.
 

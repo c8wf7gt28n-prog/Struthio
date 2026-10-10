@@ -1,5 +1,5 @@
-** Drc report for SLIM4_R27.kicad_pcb **
-** Created by R27_FROM_R26/fill_drc.py (KiCad 7.0.11) **
+** Drc report for SLIM4_R28.kicad_pcb **
+** Created by R28_FROM_R27/fill_drc.py (KiCad 7.0.11) **
 
 ** Found 0 DRC violations **
 
