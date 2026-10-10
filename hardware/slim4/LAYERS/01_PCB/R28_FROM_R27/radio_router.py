@@ -95,7 +95,8 @@ class Board:
         self.fj = np.clip(np.round((self.gx - R.X0) / R.RES).astype(int), 0, R.NX - 1)
         self.neck = (self.gx >= NECK[0]) & (self.gx <= NECK[2]) & (self.gy >= NECK[1]) & (self.gy <= NECK[3])
         radio = set(NETS)
-        F, E = R.base_fields(b, radio)            # every radio pad is an obstacle here; a net's own are reopened below
+        soft = {n for n in os.environ.get('RR_SOFT', '').split(',') if n}   # experiments: nets treated as absent
+        F, E = R.base_fields(b, radio | soft)            # every radio pad is an obstacle here; a net's own are reopened below
         lid = {l: b.GetLayerID(l) for l in LAYERS}
         dsi = {p[k] for p in R.BREAKOUT.values() for k in ('P', 'N')}
         for t in b.GetTracks():                   # grown keep-outs: DSI pairs and the quiet nets (outside the neck)
@@ -275,7 +276,7 @@ def main():
     hist_t = [np.zeros((G.ni, G.nj)) for _ in LAYERS]; hist_v = np.zeros((G.ni, G.nj))
     paths, fps = {}, {}
     pres, total = 0.5, None
-    for it in range(1, 41):
+    for it in range(1, int(os.environ.get('RR_PASSES', 40)) + 1):
         for net in NETS:
             dT, dV = conflict_fields(G, [fps[o] for o in NETS if o != net and o in fps])
             near_v = np.logical_or.reduce([dT[l] < SEP_TV for l in range(3)])
