@@ -42,11 +42,10 @@ CLR_DSI = 0.30
 PLANE_NETS, PLANE_VIA = ('FB_DCDC', 'EN_DCDC'), 0.25
 LAYERS = ('F.Cu', 'In3.Cu', 'B.Cu')
 STEP = 0.05
-BOX = (-28.0, 72.0, 6.0, 94.0)        # the routing region: U1's north side, the module and the land between
+BOX = (-33.0, 70.0, 6.0, 98.0)        # the routing region: U1's north side, the module and the land round it
 if os.environ.get('RR_BOX'): BOX = tuple(float(v) for v in os.environ['RR_BOX'].split(','))
 # net: (U1 pad, U15 pad); pin assignment in r28_radio_parts.py
-NETS = {'RADIO_RF_SW': ('80', '1'), 'RADIO_MISO': ('81', '2'), 'RADIO_MOSI': ('82', '3'), 'RADIO_SCK': ('92', '4'),
-        'RADIO_NSS': ('93', '6'), 'RADIO_DIO1': ('94', '12'), 'RADIO_BUSY': ('95', '11'), 'RADIO_NRST': ('97', '5')}
+NETS = {'RADIO_UART_TX': ('80', '1'), 'RADIO_UART_RX': ('81', '2'), 'RADIO_NRST': ('82', '22'), 'RADIO_BOOT0': ('93', '21')}
 if os.environ.get('RR_NETS'):                              # experiments: another assignment, "NET:u1pad:u15pad,..."
     NETS = {a: (b_, c_) for a, b_, c_ in (x.split(':') for x in os.environ['RR_NETS'].split(','))}
 for _n in os.environ.get('RR_DROP', '').split(','):       # experiments: leave nets out
@@ -55,11 +54,12 @@ for _n in os.environ.get('RR_DROP', '').split(','):       # experiments: leave n
 # end; all three are slow status/control lines whose pull resistors the self-test checks). net: (U1 pad, the point
 # where the kept copper continues, its layer (None: a via, any layer), box: every item of the net touching it is
 # replaced)
-REROUTE = {'USB_CURR_OUT1': ('84', (-16.65, 74.0), None, (-16.6, 74.1, -2.0, 79.2)),
-           'PGOOD_STATUS': ('86', (4.5, 75.79), None, (-2.5, 75.5, 4.4, 79.2)),
-           'BQ_EN2': ('88', (5.0, 74.7), 'B.Cu', (-1.5, 74.6, 4.95, 79.2))}
+REROUTE = {}                          # R28 moves no R27 copper (the RAK3172 needs only four lines)
+REROUTE_STUDY = {'USB_CURR_OUT1': ('84', (-16.65, 74.0), None, (-16.6, 74.1, -2.0, 79.2)),
+                 'PGOOD_STATUS': ('86', (4.5, 75.79), None, (-2.5, 75.5, 4.4, 79.2)),
+                 'BQ_EN2': ('88', (5.0, 74.7), 'B.Cu', (-1.5, 74.6, 4.95, 79.2))}
 if os.environ.get('RR_REROUTE') is not None:
-    REROUTE = {k: v for k, v in REROUTE.items() if k in os.environ['RR_REROUTE'].split(',')}
+    REROUTE = {k: v for k, v in REROUTE_STUDY.items() if k in os.environ['RR_REROUTE'].split(',')}
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 SEP = W + CLR + 0.02                  # radio track centre to radio track centre (grid margin 0.02)
 SEP_TV = VIA_D / 2 + W / 2 + CLR + 0.02
@@ -160,7 +160,7 @@ class Board:
             if s.GetLayerName() == 'B.Fab' and s.GetShape() == pcbnew.SHAPE_T_RECT:
                 bb = s.GetBoundingBox()
                 self.body = (mm(bb.GetLeft()), mm(bb.GetTop()), mm(bb.GetRight()), mm(bb.GetBottom()))
-        for l in LAYERS:                          # the module body: closed on every layer
+        for l in ('B.Cu',):                       # the module body: no B.Cu copper but its ground (In4 shields the rest)
             poly_cells(F[l].mask, [(self.body[0], self.body[1]), (self.body[2], self.body[1]), (self.body[2], self.body[3]),
                                    (self.body[0], self.body[3])], True)
         self.F, self.E = F, E

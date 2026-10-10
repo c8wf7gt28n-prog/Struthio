@@ -58,6 +58,7 @@ static void cmd_help(void)
            "  radio                probe the radio module again and print the result (PCB R28+)\n"
            "  radio listen [s]     answer pings for s seconds (default 60)\n"
            "  radio ping [n] [dbm] send n pings (default 10) at up to dbm (default 14; the power policy caps it)\n"
+           "  radio at <command>   one AT command to the module, every reply line for 1 s\n"
            "  sleep                power off (deep sleep; the power button wakes it)\n"
            "  reboot\n");
 }
@@ -205,10 +206,14 @@ static void cmd_radio(const char *sub, const char *a1, const char *a2)
         slim4_st_report_init(&rep);
         slim4_st_judge_radio(&rep, &p);
         slim4_selftest_log(&rep);
-        printf("  busy %s in reset, released after %lu us; status %02X; sync %02X %02X; readback %02X %02X; errors %04X; "
-               "dio1 %s after %lu us (irq %04X), cleared %s\n", p.busy_high_in_reset ? "high" : "low",
-               (unsigned long)p.busy_us, p.status, p.sync[0], p.sync[1], p.readback[0], p.readback[1], p.errors,
-               p.dio1_rose ? "rose" : "did not rise", (unsigned long)p.dio1_us, p.irq, p.dio1_cleared ? "yes" : "no");
+        printf("  tx line low in reset %s, high after %s; AT answered %s after %lu ms; version '%s'; mode %d\n",
+               p.rx_low_in_reset ? "yes" : "no", p.rx_high_after ? "yes" : "no", p.answered ? "yes" : "no",
+               (unsigned long)p.answer_ms, p.version, p.nwm);
+        return;
+    }
+    if (!strcmp(sub, "at")) {
+        if (!a1) { printf("radio at <command>, e.g. radio at AT+VER=?\n"); return; }
+        slim4_radio_at(a1, 1000);
         return;
     }
     slim4_power_state_t ps;
@@ -230,7 +235,7 @@ static void cmd_radio(const char *sub, const char *a1, const char *a2)
         }
         (void)slim4_radio_ping(n > 0 && n <= 1000 ? (unsigned)n : 10u, SLIM4_RADIO_FREQ_HZ, dbm);
     } else {
-        printf("radio | radio listen [s] | radio ping [n] [dbm]\n");
+        printf("radio | radio listen [s] | radio ping [n] [dbm] | radio at <command>\n");
     }
 }
 

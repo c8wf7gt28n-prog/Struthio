@@ -180,8 +180,8 @@ void slim4_st_judge_power(slim4_st_report_t *rep, const slim4_st_power_t *p);
 /* ---- Radio (PCB R28+) ------------------------------------------------------------------------------------ */
 
 #include "slim4_radio.h"
-/* One RADIO line from slim4_radio_probe(): PASS (every joint the probe can see works), FAIL (which line or part to
- * look at), or INFO "NOT FITTED" (nothing answers: a board without U15 or R701). Never blocks the boot. */
+/* One RADIO line from slim4_radio_probe(): PASS (power, reset and both UART lines work), FAIL (which line or part to
+ * look at), or INFO "NOT FITTED" (nothing drives the module's TX line: a board without U15 or R701). */
 void slim4_st_judge_radio(slim4_st_report_t *rep, const slim4_radio_probe_t *p);
 
 /* ---- ESP-IDF side (slim4_selftest.c) -------------------------------------------------------------------- */

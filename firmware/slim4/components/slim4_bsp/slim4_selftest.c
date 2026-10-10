@@ -316,7 +316,7 @@ void slim4_selftest_after_init(slim4_st_report_t *rep, bool display_ready)
     }
 
     slim4_radio_probe_t radio;
-    slim4_radio_probe(&radio);                   /* bounded (under 60 ms); leaves the SX1262 asleep */
+    slim4_radio_probe(&radio);                   /* bounded (under 1.6 s, mostly the module starting up) */
     slim4_st_judge_radio(rep, &radio);
 
     slim4_power_state_t ps;

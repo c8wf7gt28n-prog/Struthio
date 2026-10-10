@@ -54,9 +54,8 @@ P4_PAD = {0: 104, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 10, 10: 11,
           # unused GPIOs the self-test drives, beside tested nets (pads 13-19 run GPIO12-18; 85 is a supply pad,
           # so GPIO43/44/45/46 are pads 84/86/87/88)
           12: 13, 14: 15, 15: 16, 18: 19, 45: 87,
-          # the radio (PCB R28+): GPIO39-41 are pads 80-82 (pad 79 is EN_DCDC); GPIO49-52 pads 92-95 (91 is VDD_HP_3),
-          # GPIO53 pad 97 (96 is VDD_IO_6)
-          39: 80, 40: 81, 41: 82, 49: 92, 50: 93, 51: 94, 52: 95, 53: 97}
+          # the radio (PCB R28+): GPIO39-41 are pads 80-82 (pad 79 is EN_DCDC); GPIO50 is pad 93 (91 is VDD_HP_3)
+          39: 80, 40: 81, 41: 82, 50: 93}
 # define name -> board net, where they differ
 NET = {'BOOT_BTN': 'BOOT_STRAP'}
 
