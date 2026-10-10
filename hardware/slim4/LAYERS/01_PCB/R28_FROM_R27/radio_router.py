@@ -43,6 +43,7 @@ PLANE_NETS, PLANE_VIA = ('FB_DCDC', 'EN_DCDC'), 0.25
 LAYERS = ('F.Cu', 'In3.Cu', 'B.Cu')
 STEP = 0.05
 BOX = (-28.0, 72.0, 6.0, 94.0)        # the routing region: U1's north side, the module and the land between
+if os.environ.get('RR_BOX'): BOX = tuple(float(v) for v in os.environ['RR_BOX'].split(','))
 # net: (U1 pad, U15 pad); pin assignment in r28_radio_parts.py
 NETS = {'RADIO_RF_SW': ('80', '1'), 'RADIO_MISO': ('81', '2'), 'RADIO_MOSI': ('82', '3'), 'RADIO_SCK': ('92', '4'),
         'RADIO_NSS': ('93', '6'), 'RADIO_DIO1': ('94', '12'), 'RADIO_BUSY': ('95', '11'), 'RADIO_NRST': ('97', '5')}
