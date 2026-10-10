@@ -104,7 +104,11 @@ static slim4_at_kind_t command(const char *cmd, char *value, size_t vlen, int li
         if (at.kind == SLIM4_AT_OK || at.kind == SLIM4_AT_ERROR) return at.kind;
         if (at.kind == SLIM4_AT_VALUE && value && vlen && strcmp(line, cmd) != 0) {   /* skip an echo */
             const char *eq = strchr(line, '=');
-            snprintf(value, vlen, "%s", eq && !strncmp(line, "AT+", 3) ? eq + 1 : line);
+            const char *v = eq && !strncmp(line, "AT+", 3) ? eq + 1 : line;
+            size_t n = strlen(v);
+            if (n >= vlen) n = vlen - 1;                      /* a long answer is cut, not an error */
+            memcpy(value, v, n);
+            value[n] = '\0';
         }
     }
     return SLIM4_AT_NONE;
