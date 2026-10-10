@@ -1,3 +1,24 @@
+# R32 — PCB R27: margin edits from the pre-order review; firmware R12 (2026-10-10)
+
+Five independent reviews of PCB R26 and firmware R11 before ordering (`CHECKS/PREORDER_REVIEW_R26/`) found no blocker in the hardware, three firmware faults that would have kept every screen dark (fixed in firmware R12), and a short list of layout margins. The owner chose to answer the margins in one more board revision before ordering. PCB R26 → **R27** (scripted edits 36–44 in `LAYERS/01_PCB/R27_FROM_R26/`; two independent rebuilds from R26 give the same board, item for item and fill for fill). Same outline, ports, connector positions and GPIOs; the DSI pairs are untouched (`CHECKS/R27_DSI_REPORT.md` is identical to R26's). R26 moves to `REFERENCES/PCB_R26/`. CASE R12 and ACRYLIC R2 still set aside: **78 PASS · 3 FAIL · 9 GATE · 3 INFO** (320 pair evaluations over 281 distinct pairs), the same 3 case FAIL rows. Decisions: `DECISIONS_R32.md`.
+
+| Review item | R27 |
+|---|---|
+| U1's exposed pad reaches the ground planes through 4 vias of 0.2 mm (P4CORE M3) | 31 GND vias in the exposed pad: 15 wholly inside its nine 2.1 mm copper squares, 16 at their edges or in the 0.6 mm gaps between them, each of those joined to a square on B.Cu (14 new ones by a 0.25 mm stub under the gap's mask). Every via keeps 0.15 mm from other nets on every layer (the DSI CLK pair crosses the pad on F.Cu, slow nets on In3). Filled and capped like every via (POFV) |
+| No bulk capacitor near the core supply pins (P4CORE M2) | C138 and C139, 10 µF X5R 0402 (CL05A106MQ5NUNC, LCSC C15525) on 1V1_HP: C138 beside C129 1.9 mm from U1 pin 91, C139 3.7 mm from the south-row core pins (nothing closer was free) with its own via into the In2 1V1 plane |
+| Core regulator 12–21 mm from U1, FB_DCDC route long (P4CORE M1) | Not rerouted: the divider (R104/R105/C134) is within 3 mm of U3's FB pin, the route's same-layer neighbours are static nets, and moving U3 would move a dozen parts and the DSI escape. Instead `r27_plane_check.py` checks the ground under FB_DCDC and EN_DCDC: 36 segments, 58.8 mm, no gap; 5 named crossings of a via antipad edge or the slot round USB_JTAG_DP on In1, the largest 0.069 mm² of track |
+| C309 below the TPS61165's 1 µF minimum at 24 V (POWER M5, DISPLAY F10) | C140, a second 1 µF 50 V X5R 0603 (CL10A105KB8NNNC, C15849) beside C309 |
+| D2 40 V against a 37–39 V overvoltage limit (DISPLAY F10) | D2 STPS1L60ZFY, 60 V 1 A Schottky in the same SOD-123Flat (C448649) |
+| BQ_TS routed 88 mm to R424 beside J3 (POWER M4) | R424 beside U10: BQ_TS 5.2 mm |
+| 0 Ω on the USB data lines (P4CORE, AUDIO_IO) | R401/R402 22 Ω (0402WGF220JTCE, C25092); they stay beside J2 |
+| No silkscreen text (AUDIO_IO M5) | B.SilkS labels: + / − and BAT at J3, SPK L at J4, SPK R at J5, PWR, RST, BOOT at SW5–SW7 |
+
+Parts: C138, C139, C140 added; D2, R401, R402 changed; R424 moved. 167 placements, 54 BOM lines, LCSC numbers for all; U1 still to source. Vias 339 → 368, track segments 2796 → 2814. The new through vias cut antipads in In2's 1V1_HP plane under U1: 177.8 → 162.9 mm², still one piece, every 1V1 via near U1 on it. KiCad 7.0.11 DRC 0 / 0 / 0. Title block R27.
+
+Firmware R11 → **R12** (version 0.11.0; `firmware/slim4/RELEASE_NOTES_R12.md`): the backlight PWM setting that ESP-IDF rejects (it stopped the display bring-up), a too-strict panel ID and unbounded DSI waits, all three fixed; the in-spec DSI profile (560 Mbit/s, about 45 Hz) is the default and 1000 Mbit/s is `display fast`; a USB console for bring-up; charge time limited to 6 h across heat suspends (the charger's safety timer restarts after each); USB-Serial-JTAG as the primary console. ESP-IDF v6.1 build with no warnings; 116 host cases; pin check 19/19 on R27.
+
+Package: `LAYERS/01_PCB/BRINGUP_PROCEDURE.md` (probe procedure, phases A–H), `CHECKS/PREORDER_REVIEW_R26/`, `CHECKS/COMPONENT_ENVELOPES_R27.json`, `CHECKS/R27_FAB_SUMMARY.json`, `CHECKS/R32_CONVERGENCE_REPORT.*`, `CHECKS/R27_DSI_REPORT.*`, `ASSEMBLY/STRUTHIO_SLIM4_R32_ASSEMBLY.step`, `R27_REAR_BOARD.svg`, studio, renders and builder files regenerated. Not measured: the 1V1_HP rail at U1, the backlight ripple and the DSI image are bring-up items (`LAYERS/01_PCB/RELEASE_GATES.md`).
+
 # R31, firmware R11 — hardware self-test (2026-10-09)
 
 Firmware R10 → **R11** (version 0.10.0); the hardware layers are unchanged, so the package stays R31 (board, builder files and checks as released). The firmware now checks each board for assembly faults at every boot and shows the results on the panel; details in `firmware/slim4/RELEASE_NOTES_R11.md`, how to read them in `firmware/slim4/docs/FIRST_BOOT.md`.

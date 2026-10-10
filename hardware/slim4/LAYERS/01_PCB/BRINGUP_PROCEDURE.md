@@ -1,8 +1,8 @@
-# SLIM4 PCB R26 — bring-up procedure
+# SLIM4 PCB R27 — bring-up procedure
 
-The first boards are measured in this order: each phase passes before the next, so a fault is found before power reaches what it could damage. Every step gives the probe point (a part pad), the expected value and what a wrong reading means. Compiled from the five pre-order reviews (power, ESP32-P4 core, display, audio/controls/USB, firmware), checked against the R26 netlist and the parts' datasheets.
+The first boards are measured in this order: each phase passes before the next, so a fault is found before power reaches what it could damage. Every step gives the probe point (a part pad), the expected value and what a wrong reading means. Compiled from the five pre-order reviews (power, ESP32-P4 core, display, audio/controls/USB, firmware), checked against the R26 netlist and the parts' datasheets, and updated for R27's added parts (C138, C139, C140, D2 60 V, R424 at U10, R401/R402 22 Ω, silkscreen labels).
 
-Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in cell); oscilloscope (≥ 100 MHz; ≥ 1 GHz differential for the optional DSI step); thermal camera or thermocouple; a PC with ESP-IDF v6.1 or esptool. Firmware R11 or later (`firmware/slim4`), which runs the self-test at every boot and opens a command console on the USB-C port (`help`).
+Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in cell); oscilloscope (≥ 100 MHz; ≥ 1 GHz differential for the optional DSI step); thermal camera or thermocouple; a PC with ESP-IDF v6.1 or esptool. Firmware R12 or later (`firmware/slim4`), which runs the self-test at every boot, starts the display in the in-spec 560 Mbit/s profile and opens a command console on the USB-C port (`help`).
 
 ## Phase A — before ordering (no board needed)
 
@@ -10,16 +10,17 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 |---|---|---|---|
 | A1 | A sample Crystalfontz CFAF7201280A0-050TN tail in a loose Hirose FH12A-40S-0.5SH(55): with the tail folded as in `DISPLAY_PORT.md`, its contacts face the connector's contacts and pin 1 lands on J1's west pad | Matches | A mirrored J1 loses every board: stop and fix the footprint |
 | A2 | Each battery pack to be used, in a loose JST PH S2B socket: which socket pin the red wire lands on | Red on pin 1 (J3.1 = BAT+) | Re-pin the pack's housing (Q2 blocks a reversed pack only without USB) |
-| A3 | JLCPCB placement preview: D1 cathode on USB_VBUS; pin 1 of U1, U2, U8, U9, U10, U13; J1 mouth toward the board's bottom edge; SW1–SW4 (symmetric boss holes allow a 180° error); J2's four shell legs soldered | All as on the board drawings | Correct the rotation in the CPL before paying |
+| A3 | JLCPCB placement preview: D1 cathode on USB_VBUS; D2 cathode on LCD_LED_A; C138, C139 and C140 on the back beside U1 and C309; pin 1 of U1, U2, U8, U9, U10, U13; J1 mouth toward the board's bottom edge; SW1–SW4 (symmetric boss holes allow a 180° error); J2's four shell legs soldered | All as on the board drawings | Correct the rotation in the CPL before paying |
 | A4 | Order notes: no-clean (the B3U and D2LS switches must not be washed); impedance control on the DSI pairs; U1 revision v3.1 preferred (marking ending G or H) | Stated | — |
 
 ## Phase B — unpowered (DMM)
 
 | # | Probe | Expected | Wrong reading means |
 |---|---|---|---|
+| B0 | Visual: the silkscreen + and − at J3 sit level with J3 pin 1 (BAT+) and pin 2; D2 marked as the 60 V part (STPS1L60ZFY); R401/R402 22 Ω (not 0 Ω links); R424 beside U10 | As listed | The wrong part: compare the BOM line with what was placed |
 | B1 | USB_VBUS (C409.1) to GND; diode test with + on VBUS | > 50 kΩ; no diode drop (with probes reversed about 0.6–0.7 V) | Low, or a diode drop with + on VBUS: D1 reversed or a short at U10 pin 13 or C409 |
 | B2 | SYS_RAW (C411.1), 3V3_SYS (C414.1 / C101.1), 1V1_HP (C135.1 / C103.1), BAT_PLUS (C412.1), VDDO_FLASH (C104.1), VDDO_PSRAM (C113.1), VDDO_MIPI (C108.1), CHIP_PU (C136.1) to GND | Each > 50 Ω once the capacitors have charged (1V1_HP reads lowest) | < 5 Ω: a solder bridge (U1's 0.35 mm pads, U3, U4, U10, U7) or a shorted capacitor. Do not power |
-| B3 | LCD_LED_A (C309.1 / J1.38) to GND | > 1 MΩ | C309 or D2 short: fix before power (a 38 V node) |
+| B3 | LCD_LED_A (C309.1 / C140.1 / J1.38) to GND | > 1 MΩ | C309, C140 or D2 short: fix before power (a 38 V node) |
 | B4 | J1.39/40 to GND (R309); J1.14 to J1.19 (R307) | 2.7 Ω; 10 kΩ | Open: R309 or R307 missing, or a J1 joint |
 | B5 | Each DSI pin of J1 (28, 29, 31, 32, 34, 35) to its neighbouring GND pin | > 100 kΩ | Low: a bridge at J1's 0.5 mm pitch |
 | B6 | CC1 and CC2 to GND at J2 | about 5.1 kΩ each (TUSB320 Rd, present unpowered) | Open: a USB-C to USB-C charger will give no VBUS (U13 missing or unsoldered) |
@@ -53,7 +54,7 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 | D4 | VDDO_FLASH at C202 / U2.8; VDDO_PSRAM at C113 | 3.18–3.35 V; 1.75–1.85 V | 0 V: U1 not running or a short |
 | D5 | EN_DCDC at U3.1 with the app running | ≥ 1.2 V | Low: the core DC-DC is not enabled |
 | D6 | 1V1_HP at C129 (pad 91) and C103 (pad 26) | 1.20–1.28 V DC (the chip trims about 1.25 V); never above 1.30 V | > 1.30 V: power down; check R104/R105/C134 and FB_DCDC. < 1.15 V: the FB network or plane drop |
-| D7 | 1V1_HP ripple at C129, 20 MHz bandwidth, CPU + PSRAM busy | ≤ 50 mV p-p, trough ≥ 0.99 V | Larger: local bulk capacitance or the FB_DCDC route (core review M1/M2) |
+| D7 | 1V1_HP ripple at C129 and C139, 20 MHz bandwidth, CPU + PSRAM busy | ≤ 50 mV p-p, trough ≥ 0.99 V | Larger: C138/C139 missing or open, or the FB_DCDC route (core review M1/M2) |
 | D8 | FB_DCDC at R105.1 | about 0.6 V | 0 or 1.2 V: R104/R105 missing, swapped or open |
 | D9 | The self-test lines (`SELFTEST …`, then `SELFTEST RESULT`), or console `report` | No FAIL. INFO lines as described in `firmware/slim4/docs/FIRST_BOOT.md` | Each FAIL line names the pad, the parts and where to look |
 | D10 | Console `info` | chip v3.x, flash EF4020 64 MiB, PSRAM 32 MiB, reset reason | — |
@@ -67,13 +68,13 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 | E1 | Boot; the log line `panel probe: …` and the PANEL line | `answered, ID 98 81 xx` | `NO ANSWER`: tail seating or orientation, D0 pair, LCD_RESX, panel supplies. The boot carries on without the display |
 | E2 | VDDO_MIPI_2V5 at C108 / C109 (pads 41, 73) after the display init | 2.43–2.58 V | 0: LDO channel 3 not enabled, the DSI is dead |
 | E3 | LCD_RESET_GATE at Q1.1 / LCD_RESX at J1.14 | before the release 3.3 V / < 0.05 V; after the release 0 V / 1.80 V | RESX 1.8 V while the gate is high: Q1 open; 0 V after the release: Q1 short, R307 open |
-| E4 | The image, the self-test page's bars and 1-pixel lines; console `pattern checker`, `gradient`, `bars`, `white`, `red`, `green`, `blue` | clean: no sparkles, shifted rows or wrong colours; colours in order | Noise or a rolling image only: console `display safe`, `reboot` (560 Mbit/s, inside the ILI9881C limit). Wrong colours: RGB order. Nothing but the backlight: CLK or D1 |
+| E4 | The image, the self-test page's bars and 1-pixel lines; console `pattern checker`, `gradient`, `bars`, `white`, `red`, `green`, `blue` | clean: no sparkles, shifted rows or wrong colours; colours in order (safe profile, 560 Mbit/s, the default) | Wrong colours: RGB order. Nothing but the backlight: CLK or D1. Then `display fast`, `reboot` and the same patterns (1000 Mbit/s, above the ILI9881C's 2-lane limit): keep it only if they stay clean, otherwise `display safe` |
 | E5 | LCD_LED_A at C309 (backlight on) | 19.8–24.0 V | ≈ SYS_RAW: open-LED protection latched (tail not seated, J1.38–40 joints) |
 | E6 | LCD_LED_K at R309.1 with `bl 100` (allowed by the power cap) | 200 mV ±2 % (74 mA); about 90 mV at 45 % | Other: R309 wrong value |
 | E7 | Current in each LED string (1 Ω in series, breakout) | 30–44 mA each, 74 mA in total | One above 40 mA: string imbalance; R309 3.0 Ω gives 67 mA in total |
-| E8 | BL_SW at U7.3 (scope); C309 ripple | 1.0–1.5 MHz, clean; < 0.2 V ripple | Erratic duty: C309 derated below 1 µF |
+| E8 | BL_SW at U7.3 (scope); ripple on C309 / C140 | 1.0–1.5 MHz, clean; < 0.2 V ripple | Erratic duty: output capacitance too low (C140 missing or open) |
 | E9 | Optional, ≥ 1 GHz differential: DSI at J1 with video | about 200 mV differential HS, LP-11 between bursts | No HS on CLK or D1: open line |
-| E10 | Console `panel` | `answered`, about 59 frames a second (45 in the safe profile) | — |
+| E10 | Console `panel` | `answered`, about 45 frames a second in the safe profile (59 in the fast one) | — |
 
 ## Phase F — controls, audio, USB-C
 
@@ -102,6 +103,6 @@ Tools: DMM; bench supply with current limit (5 V, and a second one as a stand-in
 |---|---|---|---|
 | H1 | 3V3 minimum at U14.5 during the display init and the backlight switching on (scope, 20 µs/div) | stays > 3.15 V (U14 trips at 3.07–3.12 V) | Dips: reset risk; more bulk on 3V3 |
 | H2 | SYS_RAW at C311 as the backlight goes from 0 to 100 % (on the cell) | droop < 150 mV | Resets: input decoupling, power budget |
-| H3 | 10 minutes at full load (`pattern checker`, `bl 100`, loud tones): U1, U10, U7, U4, U3, Q2, U8/U9, the In3 speaker tracks | ≤ 70 °C on the board at 25 °C ambient | U1 hot: its exposed pad has only 4 ground vias (core review M3) |
+| H3 | 10 minutes at full load (`pattern checker`, `bl 100`, loud tones): U1, U10, U7, U4, U3, Q2, U8/U9, the In3 speaker tracks | ≤ 70 °C on the board at 25 °C ambient | U1 hot: the exposed-pad joint (31 ground vias from R27; voids under the pad) |
 | H4 | No cell, USB-C 3 A charger, `bl 100`, loud audio | no reset | Reset: the input limit is exceeded (audio review M7) |
 | H5 | `sleep`, then SW5 | wakes; sleep current from the cell about 0.3 mA (panel rails stay on) | No wake: GPIO0, C601, R110. About 0.7 mA more: the amplifiers not in shutdown |

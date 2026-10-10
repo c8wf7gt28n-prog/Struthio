@@ -13,4 +13,4 @@ Editable source: `build_r12.py` (CadQuery 2.8 + shapely; pinned versions in `req
 | `CASE_LAYER_R12_MESH.json` | viewer mesh (also `case-layer-data.js` at the package root) |
 | `R12_FIT_CHECKS.json` | Z stack, key positions and the full parameter set |
 
-R12 = R11 plus the R26 decisions (`DECISIONS_R26.md` #6–#8). The cross-layer checks live in `CHECKS/`. R12 was converged on PCB R21 for the EVT prototype; on PCB R22 with the chosen Startek panel it needs the case pass listed in `PRODUCTION_GATES.md` (R27 report rows C6, F1, I1). Not a tooling release.
+R12 = R11 plus the R26 decisions (`DECISIONS_R26.md` #6–#8). The cross-layer checks live in `CHECKS/`. R12 was converged on PCB R21 for the EVT prototype; on PCB R27 with the Crystalfontz 5 in panel it needs the case pass listed in `PRODUCTION_GATES.md` (R32 report rows C6, F1, G1). Not a tooling release.

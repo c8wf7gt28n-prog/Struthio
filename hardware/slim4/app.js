@@ -519,7 +519,7 @@
     $('#pcbSource').textContent=(state.authority.pcb?`${pcbName} · SOURCE FILE`:'SOURCE MISSING');
     $('#caseSource').textContent=state.authority.case?'R12 · FULL CAD':(state.referenceMode?'R3 CAD · REFERENCE':'SOURCE MISSING');
     $('#artSource').textContent=state.authority.art?'CLEAR FILM R2 · 0.20':'SOURCE MISSING';
-    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R12':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R26 · ORDER READY</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
+    const ss=$('#sourceStatus');if(ss)ss.innerHTML=`<span class="srcCase">CASE ${state.authority.case?'R12':(state.referenceMode?'R3':'—')}</span><span class="srcPCB">R27 · ORDER READY</span><span class="srcArt">FILM ${state.authority.art?'✓':'—'}</span>`;
     document.querySelectorAll('#stackWheel button').forEach(b=>{const src=b.dataset.source;b.classList.toggle('missing',src==='art'&&!state.authority.art || src==='case'&&!state.authority.case&&!state.referenceMode);b.classList.toggle('reference',src==='case'&&!state.authority.case&&state.referenceMode);});
   }
   function applyStack(key){
