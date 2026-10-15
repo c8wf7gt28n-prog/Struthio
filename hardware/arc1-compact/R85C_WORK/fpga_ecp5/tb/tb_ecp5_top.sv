@@ -11,7 +11,7 @@
 //   P1 controlled power-up: during tPU CE# = VDD (high), CLK low, SIO low
 //   P2 commanded power-off during BIST (EN falls first): job fails, POWER_LOST
 //      sticky, READY withheld until CLEAR, no back-power once EN is low
-//   P3 PG glitch (1 sys clock): treated as a full power loss (fail-safe)
+//   P3 PG glitch (one psram_mclk sampling edge, R8.5-C): treated as a full power loss (fail-safe)
 //   P4 unannounced rail loss with EN still high (load-switch fault): detected via
 //      PG; the back-power window before detection is MEASURED and reported
 // The R07 power-aware APS6404L model is used. RTL SIMULATION ONLY.
@@ -32,30 +32,17 @@ module tb_ecp5_top;
 
     // ---------------- pads ----------------
     reg  sck = 0, ss_n = 1, mosi = 0;
-    // R8.5-C board: F133 SPI0 IO0..IO3 <-> SN74CB3Q3125 bus switch (OE# = BUS_EN_N | FPGA_SS_N_F) <-> ECP5
-    reg        hq_on = 1'b0, host_rel = 1'b0;
-    reg  [3:0] hq_o = 4'h0;
-    // scalar nets: Icarus resolves tran islands on bit-selects of vectors connected to inout ports as X
-    wire h0, h1, h2, h3, f0, f1, f2, f3;
-    wire [3:0] h_io = {h3, h2, h1, h0};
-    wire [3:0] f_io = {f3, f2, f1, f0};
-    assign h0 = host_rel ? 1'bz : (hq_on ? hq_o[0] : mosi);
-    assign h1 = (hq_on && !host_rel) ? hq_o[1] : 1'bz;
-    assign h2 = (hq_on && !host_rel) ? hq_o[2] : 1'bz;
-    assign h3 = (hq_on && !host_rel) ? hq_o[3] : 1'bz;
-    tranif0 sw0 (h0, f0, ss_n);                        // switch closed only while the FPGA is selected
-    tranif0 sw1 (h1, f1, ss_n);
-    tranif0 sw2 (h2, f2, ss_n);
-    tranif0 sw3 (h3, f3, ss_n);
-    pulldown (weak0) pd_h0 (h0);                      // 3.3k BOOT-SEL0 strap (PC4)
-    pulldown (weak0) pd_h1 (h1);                      // 3.3k BOOT-SEL1 strap (PC5)
-    pullup   (weak1) pu_h2 (h2);                      // 10k NOR IO2/WP# pull-up
-    pullup   (weak1) pu_h3 (h3);                      // 10k NOR IO3/HOLD# pull-up
-    pulldown (weak0) pd_f0 (f0);                      // 100k on the FPGA side
-    pulldown (weak0) pd_f1 (f1);
-    wire spi_miso = f1;
-    wire irq_n_pad;
-    wire miso_pad = h1;
+    wire spi_miso, irq_n_pad, miso_pad;
+    pulldown (weak0) pd_fpga_miso (spi_miso);         // ECP5 weak pull-down (unconfigured / tri-stated)
+    assign miso_pad = ss_n ? 1'bz : spi_miso;          // SN74LVC1G125, OE# = FPGA CS
+    pulldown (weak0) pd_miso (miso_pad);              // 3.3k BOOT-SEL1 strap pull-down (strap 00)
+    // RGMII (R8.5-C): F133 EMAC <-> ECP5 bank 0. h_* = F133 (host) side.
+    reg        h_txc = 1'b0;                          // F133 RGMII-TXCK (PG3) -> ECP5 rgmii_rxc
+    reg  [3:0] h_txd = 4'h0;
+    reg        h_txctl = 1'b0;
+    wire       e_txc, e_txctl;
+    wire [3:0] e_txd;
+    always #4 h_txc = ~h_txc;                          // 125 MHz
     pullup (weak1) pu_irq (irq_n_pad);                // 10k board pull-up
     wire       sclk;
     wire       ce_pad;
@@ -74,8 +61,9 @@ module tb_ecp5_top;
 
     arc1_ecp5_top #(.SYS_HZ(80000000), .MCLK_HZ(40000000), .BIST_BLOCKS(64)) dut (
         .clk_25m(clk_25m),
-        .spi_sck(sck), .spi_cs_n(ss_n), .spi_mosi(f0), .spi_miso(f1), .spi_io2(f2), .spi_io3(f3),
-        .irq_n(irq_n_pad),
+        .spi_sck(sck), .spi_cs_n(ss_n), .spi_mosi(mosi), .spi_miso(spi_miso), .irq_n(irq_n_pad),
+        .rgmii_rxc(h_txc), .rgmii_rxd(h_txd), .rgmii_rx_ctl(h_txctl),
+        .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl),
         .psram_ce_n(ce_pad), .psram_sclk(sclk), .psram_sio(sio),
         .psram_pg(pg & pg_glitch_n), .psram_pwr_en(en),
         .led(led), .dbg_tx(dbg_tx), .dbg_rx(1'b1));
@@ -136,7 +124,7 @@ module tb_ecp5_top;
     // MISO must be released whenever SS_N is high (checked 4 sys clocks after)
     always @(posedge ss_n) begin
         repeat (4) @(posedge sys_clk);
-        if (ss_n && |dut.q_oe) fail("FPGA SPI IO driven while SS_N high");
+        if (ss_n && dut.miso_oe) fail("MISO driven while SS_N high");
     end
 
     // ---------------- SPI master (F133 model) ----------------
@@ -173,54 +161,6 @@ module tb_ecp5_top;
             for (i = 3; i < 4 + n; i = i + 1) tx[i] = 8'h00;
             spi(4 + n);
         end
-    endtask
-    // ---- quad SPI (F133 quad mode: cmd/addr/dummy 1-bit on IO0, data on IO[3:0]) ----
-    task automatic q_hdr(input [7:0] c, input [15:0] a);
-        integer b;
-        reg [23:0] h;
-        begin
-            h = {c, a};
-            ss_n = 0; #(2 * hp);
-            for (b = 23; b >= 0; b = b - 1) begin mosi = h[b]; #(hp); sck = 1; #(hp); sck = 0; end
-        end
-    endtask
-    task automatic q_end;
-        begin hq_on = 0; host_rel = 0; mosi = 0; #(2 * hp); ss_n = 1; #(4 * hp); #60; end
-    endtask
-    task automatic write_mem_q(input [15:0] a, input integer n);
-        integer i, k;
-        begin
-            q_hdr(8'h32, a);
-            hq_on = 1;
-            for (i = 0; i < n; i = i + 1)
-                for (k = 1; k >= 0; k = k - 1) begin
-                    hq_o = k ? payload[i][7:4] : payload[i][3:0];
-                    #(hp); sck = 1; #(hp); sck = 0;
-                end
-            q_end;
-        end
-    endtask
-    task automatic read_mem_q(input [15:0] a, input integer n);   // result in rx[4..]
-        integer i, k;
-        begin
-            q_hdr(8'h6B, a);
-            for (i = 0; i < 16; i = i + 1) begin mosi = 0; #(hp); sck = 1; #(hp); sck = 0; end
-            host_rel = 1;
-            for (i = 0; i < n; i = i + 1)
-                for (k = 1; k >= 0; k = k - 1) begin
-                    #(hp); sck = 1;
-                    if (k) rx[4 + i][7:4] = h_io; else rx[4 + i][3:0] = h_io;
-                    #(hp); sck = 0;
-                end
-            q_end;
-        end
-    endtask
-    reg qmode = 0;
-    task automatic put_mem(input [15:0] a, input integer n);
-        begin if (qmode) write_mem_q(a, n); else write_mem(a, n); end
-    endtask
-    task automatic get_mem(input [15:0] a, input integer n);
-        begin if (qmode) read_mem_q(a, n); else read_mem(a, n); end
     endtask
     function [15:0] rx16(input integer o); rx16 = {rx[4 + o + 1], rx[4 + o]}; endfunction
     function [31:0] rx32(input integer o); rx32 = {rx[4 + o + 3], rx[4 + o + 2], rx[4 + o + 1], rx[4 + o]}; endfunction
@@ -279,7 +219,7 @@ module tb_ecp5_top;
             load_case(k);
             ab_n = ajob_qlen(k);
             for (q = 0; q < ab_n; q = q + 1) payload[q] = aq[q];
-            put_mem(16'h2000, ab_n);
+            write_mem(16'h2000, ab_n);
             set_req_len(ab_n[15:0]);
             ctrl(8'h01);
             if (do_abort) begin
@@ -298,7 +238,7 @@ module tb_ecp5_top;
                 $display("INFO ajob abort case=%0d status=%0d resp_len=%0d cycles=%0d", k, rx[9], ab_rl, ab_cyc);
             end else begin
                 if (ab_rl != ajob_rlen(k)) fail("AJOB: RESP_LEN");
-                get_mem(16'h4000, ajob_rlen(k));
+                read_mem(16'h4000, ajob_rlen(k));
                 for (q = 0; q < ajob_rlen(k); q = q + 1) if (rx[4 + q] !== ar[q]) begin
                     $display("TB_ERROR ajob case %0d byte %0d rtl=%02x ref=%02x", k, q, rx[4 + q], ar[q]);
                     fail("AJOB: response differs from C reference"); q = ajob_rlen(k); end
@@ -312,6 +252,210 @@ module tb_ecp5_top;
         end
     endtask
 
+    // ---------------- R8.5-C RGMII host EMAC model ----------------
+    // Host TX: nibbles launched 2 ns after the opposite edge of h_txc (centred, as the F133 ETXDC delay
+    // chain is configured to do). Host RX: samples 2 ns after each edge of the ECP5 forwarded clock
+    // (edge-aligned source; the F133 ERXDC delay chain provides this skew). Frame = 7x55 D5 | dst | src |
+    // 0x88B5 | len16 LE | AJOB bytes | pad | FCS.
+    localparam [47:0] HOST_MAC = 48'h020000F13344, FPGA_MAC = 48'h02A1C1000001;
+    function automatic [31:0] ecrc8(input [31:0] c, input [7:0] d);
+        integer k;
+        reg [31:0] x;
+        begin
+            x = c ^ {24'd0, d};
+            for (k = 0; k < 8; k = k + 1) x = x[0] ? (x >> 1) ^ 32'hEDB88320 : (x >> 1);
+            ecrc8 = x;
+        end
+    endfunction
+    reg [7:0] efb [0:9000];
+    integer   efn;
+    task automatic eth_put(input [7:0] b);
+        begin
+            @(negedge h_txc); #2; h_txd = b[3:0]; h_txctl = 1'b1;
+            @(posedge h_txc); #2; h_txd = b[7:4]; h_txctl = 1'b1;
+        end
+    endtask
+    // frame body from aq[0..n-1]; type_ / bad_fcs for negative tests
+    task automatic eth_build(input integer n, input [15:0] type_);
+        integer q;
+        begin
+            for (q = 0; q < 6; q = q + 1) efb[q] = FPGA_MAC[47 - 8 * q -: 8];
+            for (q = 0; q < 6; q = q + 1) efb[6 + q] = HOST_MAC[47 - 8 * q -: 8];
+            efb[12] = type_[15:8]; efb[13] = type_[7:0]; efb[14] = n[7:0]; efb[15] = n[15:8];
+            for (q = 0; q < n; q = q + 1) efb[16 + q] = aq[q];
+            efn = 16 + n;
+            while (efn < 60) begin efb[efn] = 8'h00; efn = efn + 1; end
+        end
+    endtask
+    task automatic eth_send(input integer bad_fcs);
+        integer q;
+        reg [31:0] c;
+        begin
+            c = 32'hFFFFFFFF;
+            for (q = 0; q < efn; q = q + 1) c = ecrc8(c, efb[q]);
+            c = ~c ^ (bad_fcs ? 32'h00000100 : 32'h0);
+            for (q = 0; q < 7; q = q + 1) eth_put(8'h55);
+            eth_put(8'hD5);
+            for (q = 0; q < efn; q = q + 1) eth_put(efb[q]);
+            for (q = 0; q < 4; q = q + 1) eth_put(c[8 * q +: 8]);
+            @(negedge h_txc); #2; h_txctl = 1'b0; h_txd = 4'h0;
+            repeat (12) @(posedge h_txc);
+        end
+    endtask
+    // receiver: every completed frame is copied to erb[0..ern-1], erx_cnt increments, erx_t = end time
+    reg [7:0] ecur [0:9100];
+    reg [7:0] erb  [0:9100];
+    integer   ecn = 0, ern = 0, erx_cnt = 0;
+    realtime  erx_t = 0;
+    reg [3:0] e_lo;
+    reg       e_lov = 1'b0, e_in = 1'b0;
+    always @(posedge e_txc) begin
+        #2; e_lo = e_txd; e_lov = e_txctl;
+    end
+    always @(negedge e_txc) begin : e_rx
+        integer q;
+        #2;
+        if (e_lov && e_txctl) begin ecur[ecn] = {e_txd, e_lo}; ecn = ecn + 1; e_in = 1'b1; end
+        else if (e_in) begin
+            for (q = 0; q < ecn; q = q + 1) erb[q] = ecur[q];
+            ern = ecn; ecn = 0; e_in = 1'b0; erx_t = $realtime; erx_cnt = erx_cnt + 1;
+        end
+    end
+    task automatic eth_wait(input integer c0, input integer tmo_us, output integer got);
+        integer t;
+        begin
+            t = 0;
+            while (erx_cnt == c0 && t < tmo_us * 10) begin #100; t = t + 1; end
+            got = (erx_cnt != c0);
+        end
+    endtask
+    // check the received frame: header, len16 == rl, payload == exp[0..rl-1] (exp = ar), pad, FCS
+    task automatic eth_check(input integer rl, input [8*48-1:0] what);
+        integer q, bad;
+        reg [31:0] c;
+        begin
+            bad = 0;
+            if (ern != 8 + ((16 + rl < 60) ? 60 : 16 + rl) + 4) begin
+                $display("TB_ERROR %0s: %0d bytes on the wire, len16 exp %0d", what, ern, rl); bad = 1;
+            end else begin
+                for (q = 0; q < 7; q = q + 1) if (erb[q] !== 8'h55) bad = bad + 1;
+                if (erb[7] !== 8'hD5) bad = bad + 1;
+                if ({erb[8], erb[9], erb[10], erb[11], erb[12], erb[13]} !== HOST_MAC) bad = bad + 1;
+                if ({erb[14], erb[15], erb[16], erb[17], erb[18], erb[19]} !== FPGA_MAC) bad = bad + 1;
+                if ({erb[20], erb[21]} !== 16'h88B5 || {erb[23], erb[22]} !== rl[15:0]) bad = bad + 1;
+                for (q = 0; q < rl; q = q + 1) if (erb[24 + q] !== ar[q]) begin
+                    if (bad < 4) $display("TB_ERROR %0s byte %0d rtl=%02x ref=%02x", what, q, erb[24 + q], ar[q]);
+                    bad = bad + 1;
+                end
+                for (q = 24 + rl; q < 68; q = q + 1) if (erb[q] !== 8'h00) bad = bad + 1;
+                c = 32'hFFFFFFFF;
+                for (q = 8; q < ern; q = q + 1) c = ecrc8(c, erb[q]);
+                if (c !== 32'hDEBB20E3) bad = bad + 1;
+            end
+            if (bad) fail("RGMII response frame differs from C reference");
+        end
+    endtask
+    integer eth_got;
+    realtime eth_t0;
+    task automatic run_eth(input integer k);
+        integer c0;
+        begin
+            load_case(k);
+            eth_build(ajob_qlen(k), 16'h88B5);
+            c0 = erx_cnt; eth_t0 = $realtime;
+            eth_send(0);
+            eth_wait(c0, 20000, eth_got);
+            if (!eth_got) fail("RGMII: no response frame");
+            else begin
+                eth_check(ajob_rlen(k), "rgmii ajob");
+                for (c0 = 0; c0 < ajob_rlen(k); c0 = c0 + 1) rx[4 + c0] = erb[24 + c0];
+                dump_case(k, ajob_rlen(k));
+                $display("INFO rgmii case=%0d req=%0d resp=%0d status=%0d round_trip=%0.2f us (first request preamble -> last response FCS)",
+                         k, ajob_qlen(k), ajob_rlen(k), ajob_status(k), (erx_t - eth_t0) / 1000.0);
+            end
+        end
+    endtask
+    task automatic eth_negative;
+        integer c0, ok0, crc0, oth0, drp0;
+        begin
+            ok0 = dut.u_eth.cnt_rx_ok; crc0 = dut.u_eth.cnt_rx_crc; oth0 = dut.u_eth.cnt_rx_other; drp0 = dut.u_eth.cnt_rx_drop;
+            load_case(0);
+            // bad FCS: dropped, no response
+            eth_build(ajob_qlen(0), 16'h88B5); c0 = erx_cnt; eth_send(1); eth_wait(c0, 50, eth_got);
+            if (eth_got) fail("RGMII: response to a bad-FCS frame");
+            // wrong EtherType (IPv4): ignored
+            eth_build(ajob_qlen(0), 16'h0800); c0 = erx_cnt; eth_send(0); eth_wait(c0, 50, eth_got);
+            if (eth_got) fail("RGMII: response to a non-0x88B5 frame");
+            // len16 larger than the frame carries: ignored
+            eth_build(ajob_qlen(0), 16'h88B5); efb[14] = 8'hFF; c0 = erx_cnt; eth_send(0); eth_wait(c0, 50, eth_got);
+            if (eth_got) fail("RGMII: response to a frame with len16 > payload");
+            if (dut.u_eth.cnt_rx_crc != crc0 + 1 || dut.u_eth.cnt_rx_other != oth0 + 2 || dut.u_eth.cnt_rx_ok != ok0)
+                fail("RGMII: RX counters after negative frames");
+            // busy: case 2 (8176 B) then case 0 right behind it -> the second frame is dropped (RX buffer owned)
+            load_case(2); eth_build(ajob_qlen(2), 16'h88B5); c0 = erx_cnt; eth_send(0);
+            load_case(0); eth_build(ajob_qlen(0), 16'h88B5); eth_send(0);
+            load_case(2);
+            eth_wait(c0, 20000, eth_got);
+            if (!eth_got) fail("RGMII: no response to the first back-to-back frame");
+            else eth_check(ajob_rlen(2), "rgmii back-to-back first");
+            c0 = erx_cnt; eth_wait(c0, 200, eth_got);
+            if (eth_got) fail("RGMII: second back-to-back frame should have been dropped");
+            if (dut.u_eth.cnt_rx_drop != drp0 + 1) fail("RGMII: drop counter");
+            $display("INFO rgmii negative: crc=%0d other=%0d drop=%0d ok=%0d", dut.u_eth.cnt_rx_crc - crc0,
+                     dut.u_eth.cnt_rx_other - oth0, dut.u_eth.cnt_rx_drop - drp0, dut.u_eth.cnt_rx_ok - ok0);
+            // host retry succeeds
+            run_eth(0);
+        end
+    endtask
+    // a mailbox job rung while an Ethernet job is in the engine waits and then completes correctly
+    reg [7:0] ar_spi [0:8191];
+    task automatic eth_arbitration;
+        integer q, c0, n0, rl0;
+        begin
+            load_case(0);
+            n0 = ajob_qlen(0); rl0 = ajob_rlen(0);
+            for (q = 0; q < n0; q = q + 1) payload[q] = aq[q];
+            for (q = 0; q < rl0; q = q + 1) ar_spi[q] = ar[q];
+            write_mem(16'h2000, n0);
+            set_req_len(n0[15:0]);
+            load_case(2);
+            eth_build(ajob_qlen(2), 16'h88B5); c0 = erx_cnt;
+            eth_send(0);
+            q = 0; while (dut.u_eng.idle === 1'b1 && q < 1000) begin @(posedge sys_clk); q = q + 1; end
+            if (dut.u_eng.idle !== 1'b0) fail("arbitration: Ethernet job did not start");
+            ctrl(8'h01);                                         // doorbell while the engine runs the Ethernet job
+            if (dut.u_eth.src_eth !== 1'b1 || dut.u_eng.idle !== 1'b0) fail("arbitration: Ethernet job not running at doorbell");
+            eth_wait(c0, 20000, eth_got);
+            if (!eth_got) fail("arbitration: no Ethernet response"); else eth_check(ajob_rlen(2), "arbitration eth");
+            ab_t = 0; while (irq_n_pad !== 1'b0 && ab_t < 4000000) begin #100; ab_t = ab_t + 100; end
+            if (irq_n_pad !== 1'b0) fail("arbitration: no mailbox IRQ");
+            read_mem(16'h0014, 2); if (rx16(0) != rl0) fail("arbitration: mailbox RESP_LEN");
+            read_mem(16'h4000, rl0);
+            for (q = 0; q < rl0; q = q + 1) if (rx[4 + q] !== ar_spi[q]) begin fail("arbitration: mailbox response"); q = rl0; end
+            ctrl(8'h02);
+        end
+    endtask
+    // CONTROL.ABORT during an Ethernet job: an ABORTED (status 5, count 0) frame comes back
+    task automatic eth_abort;
+        integer c0, q;
+        begin
+            load_case(2);
+            eth_build(ajob_qlen(2), 16'h88B5); c0 = erx_cnt;
+            eth_send(0);
+            q = 0; while (dut.u_eng.idle === 1'b1 && q < 1000) begin @(posedge sys_clk); q = q + 1; end
+            repeat (3000) @(posedge sys_clk);
+            ctrl(8'h40);
+            eth_wait(c0, 20000, eth_got);
+            if (!eth_got) fail("RGMII abort: no frame");
+            else begin
+                if ({erb[23], erb[22]} !== 16'd16 || {erb[24], erb[25], erb[26], erb[27]} !== "ARES" ||
+                    erb[29] !== 8'd5 || erb[30] !== 8'd0 || erb[31] !== 8'd0 || erb[32] !== aq[8] || erb[33] !== aq[9])
+                    fail("RGMII abort: expected ARES status 5 count 0 with seq echo");
+                $display("INFO rgmii abort: status=%0d len16=%0d", erb[29], {erb[23], erb[22]});
+            end
+            if (irq_n_pad !== 1'b1) fail("RGMII abort raised the mailbox IRQ");
+        end
+    endtask
     // ---------------- sequence ----------------
     integer i, j, len, t, v_ok, seed = 5;
     reg [7:0] gold [0:8191];
@@ -404,43 +548,39 @@ module tb_ecp5_top;
         $display("TEST doorbell_rules done errors=%0d", errors);
 
         // ---------- R8.5 AJOB cross-simulation (C driver frames vs RTL) ----------
-        // quad buffer integrity at SCK 50 MHz and 100 MHz (random data, full REQ buffer)
-        for (j = 0; j < 2; j = j + 1) begin
-            hp = (j == 0) ? 10.0 : 5.0;
-            for (i = 0; i < 4120; i = i + 1) payload[i] = $random(seed);
-            write_mem_q(16'h2000, 4120);
-            read_mem_q(16'h2000, 4120);
-            for (i = 0; i < 4120; i = i + 1) if (rx[4 + i] !== payload[i]) begin
-                $display("TB_ERROR quad readback @%0d byte %0d got %h exp %h", j, i, rx[4 + i], payload[i]);
-                fail("quad REQ buffer readback"); i = 4120; end
-            $display("INFO quad buffer integrity at SCK %0d MHz done", (j == 0) ? 50 : 100);
-        end
-        hp = 4 * SYS_NS;
-        $display("TEST quad_buffer_integrity done errors=%0d", errors);
+        // SPI mailbox (10 MHz): stateless cases 0..10, then the first resident-FIR cases 11..13
+        // (no IR -> BAD_STATE, SET_IR, first 735-sample block). The remaining FIR cases run over RGMII
+        // below, so the resident FIR state is shared across the two job sources.
         read_mem(16'h0028, 4); pj0 = rx32(0);
         read_mem(16'h002C, 4); pi0 = rx32(0);
-        qmode = 1; hp = 10.0;                               // AJOB data over quad SPI at 50 MHz
-        for (j = 0; j < NAJOB; j = j + 1) begin
+        for (j = 0; j < 14; j = j + 1) begin
             run_ajob(j, 0);
             if (ajob_status(j) >= 0) begin
                 read_mem(16'h0030, 1);
                 if (rx[4] !== ajob_status(j)) fail("LAST_STATUS register");
             end
         end
-        read_mem(16'h0028, 4); if (rx32(0) - pj0 != NAJOB) fail("PERF_JOBS");
-        read_mem(16'h002C, 4); if (rx32(0) - pi0 != 1 + 8 + 170 + 16 + 735 + 735 + 33 + 1024) fail("PERF_ITEMS");
-        $display("TEST ajob_crosssim done errors=%0d", errors);
-        hp = 5.0;                                          // stateless transform cases again at SCK 100 MHz
-        run_ajob(0, 0); run_ajob(1, 0); run_ajob(2, 0); run_ajob(10, 0);
-        $display("TEST ajob_quad_100MHz done errors=%0d", errors);
-        hp = 10.0;
+        read_mem(16'h0028, 4); if (rx32(0) - pj0 != 14) fail("PERF_JOBS");
+        read_mem(16'h002C, 4); if (rx32(0) - pi0 != 1 + 8 + 170 + 16 + 735) fail("PERF_ITEMS");
+        $display("TEST ajob_crosssim_spi done errors=%0d", errors);
         // ABORT in the middle of the 170-job batch
         run_ajob(2, 1);
         $display("TEST ajob_abort done errors=%0d", errors);
         // the engine is usable again after an abort
         run_ajob(0, 0);
         $display("TEST ajob_after_abort done errors=%0d", errors);
-        qmode = 0; hp = 4 * SYS_NS;
+
+        // ---------- R8.5-C RGMII job link (host EMAC model, 125 MHz DDR) ----------
+        for (j = 0; j < 11; j = j + 1) run_eth(j);
+        for (j = 14; j < NAJOB; j = j + 1) run_eth(j);
+        $display("TEST ajob_crosssim_rgmii done errors=%0d", errors);
+        eth_negative;
+        $display("TEST rgmii_negative done errors=%0d", errors);
+        eth_arbitration;
+        $display("TEST rgmii_spi_arbitration done errors=%0d", errors);
+        eth_abort;
+        $display("TEST rgmii_abort done errors=%0d", errors);
+        read_mem(16'h0028, 4); if (rx32(0) - pj0 != 14 + 2 + 17 + 2 + 2 + 1) fail("PERF_JOBS after RGMII");
 
         // PSRAM ready + BIST pass
         t = 0; status;
@@ -515,7 +655,11 @@ module tb_ecp5_top;
         $display("TEST P2_commanded_poweroff done errors=%0d back_power_en_low=%0d", errors, bp_en_low);
 
         // ---------- P3 PG glitch ----------
-        @(posedge sys_clk); pg_glitch_n = 0; @(posedge sys_clk); pg_glitch_n = 1;
+        // R8.5-C: the glitch now spans exactly one psram_mclk (40 MHz) sampling edge. The R08 form (one
+        // 12.5 ns sys clock, unaligned) is caught only when it straddles an mclk edge, which depends on
+        // the simulated timeline (it passed in R8.5 and missed after the R8.5-C cases were added).
+        // Guaranteed detection: PG low across one rising edge of mclk, i.e. >= 25 ns + setup.
+        @(posedge dut.psram_mclk); #2 pg_glitch_n = 0; @(posedge dut.psram_mclk); #2 pg_glitch_n = 1;
         #5000; status;
         if (!st[12]) fail("P3: PG glitch not reported as POWER_LOST");
         t = 0; while (!dut.ram_ready && t < 400) begin #1000; t = t + 1; end
