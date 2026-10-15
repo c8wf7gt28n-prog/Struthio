@@ -26,6 +26,7 @@ module accel_engine (
     input  wire        abort,          // pulse: drop the current job, post ABORTED
     input  wire        job_valid,
     input  wire [15:0] job_len,
+    output wire        idle,           // R8.5-C: engine accepts job_valid only while idle (job-source arbiter)
     output reg  [12:0] req_raddr,
     input  wire [7:0]  req_rdata,      // valid 2 clocks after req_raddr is set; re-registered here (rdq)
     output reg         resp_we,
@@ -118,6 +119,7 @@ module accel_engine (
     integer i;
 
     wire [31:0] magic = {hdr[3], hdr[2], hdr[1], hdr[0]};
+    assign idle = (st == E_IDLE);
 
     always @(posedge clk) begin
         resp_we   <= 1'b0;

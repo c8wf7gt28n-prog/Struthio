@@ -1,4 +1,6 @@
-// ARC-1 Compact R8.5-C -- LFE5U-45F-6BG381C top level (OPTIONAL accelerator FPGA): quad-SPI mailbox + resident FIR.
+// ARC-1 Compact R8.5-C -- LFE5U-45F-6BG381C top level (OPTIONAL accelerator FPGA): single-bit SPI mailbox
+// (configuration/control, unchanged R06 slave) + RGMII raw-frame job link to the F133 EMAC + resident FIR.
+// R8.5-C: second PLL arc1_eth_pll (25 -> 125 MHz) clocks RGMII transmit; RGMII receive runs on the F133 TXCK.
 //
 // Derived from R08_WORK/fpga/rtl/arc1_t35_top_r08.sv. Changes for ECP5 (vendor-neutral where possible):
 //   * real tri-state pads at the top (Yosys/nextpnr-ecp5 map them to TRELLIS_IO); no
@@ -16,14 +18,19 @@ module arc1_ecp5_top #(
     parameter integer BIST_BLOCKS = 64
 ) (
     input  wire       clk_25m,
-    // F133 SPI0 operational link (R8.5-C: quad SPI through the board CB3Q3125 bus switch; IO0 = MOSI, IO1 = MISO)
+    // F133 SPI0 operational link (through the board isolation buffers)
     input  wire       spi_sck,
     input  wire       spi_cs_n,
-    inout  wire       spi_mosi,
+    input  wire       spi_mosi,
     inout  wire       spi_miso,
-    inout  wire       spi_io2,
-    inout  wire       spi_io3,
     inout  wire       irq_n,          // open drain
+    // RGMII to the F133 EMAC (PG0..PG12, function 4): ECP5 RX = F133 TX, ECP5 TX = F133 RX
+    input  wire       rgmii_rxc,
+    input  wire [3:0] rgmii_rxd,
+    input  wire       rgmii_rx_ctl,
+    output wire       rgmii_txc,
+    output wire [3:0] rgmii_txd,
+    output wire       rgmii_tx_ctl,
     // APS6404L PSRAM
     inout  wire       psram_ce_n,
     output wire       psram_sclk,
@@ -37,6 +44,8 @@ module arc1_ecp5_top #(
 );
     wire sys_clk, psram_mclk, pll_locked;
     arc1_ecp5_pll u_pll (.clk_25m(clk_25m), .sys_clk(sys_clk), .psram_mclk(psram_mclk), .locked(pll_locked));
+    wire eth_txclk, eth_locked;
+    arc1_eth_pll u_eth_pll (.clk_25m(clk_25m), .eth_txclk(eth_txclk), .locked(eth_locked));
 
     // ---------------- resets ----------------
     reg [3:0] rst_sys_sr = 4'hF, rst_mem_sr = 4'hF;
@@ -51,17 +60,14 @@ module arc1_ecp5_top #(
     wire [15:0] bus_addr;
     wire        bus_we, bus_re, frame_end;
     wire [7:0]  bus_wdata, bus_rdata;
-    wire [3:0]  q_o, q_oe;
-    wire [3:0]  q_i = {spi_io3, spi_io2, spi_miso, spi_mosi};
-    mbx_qspi_slave u_spi (
-        .clk(sys_clk), .rst(rst_sys), .sck(spi_sck), .cs_n(spi_cs_n),
-        .io_i(q_i), .io_o(q_o), .io_oe(q_oe),
+    wire        miso_o, miso_oe;
+    mbx_spi_slave u_spi (
+        .clk(sys_clk), .rst(rst_sys),
+        .sck_i(spi_sck), .ss_n_i(spi_cs_n), .mosi_i(spi_mosi),
+        .miso_o(miso_o), .miso_oe(miso_oe),
         .bus_addr(bus_addr), .bus_we(bus_we), .bus_wdata(bus_wdata),
         .bus_re(bus_re), .bus_rdata(bus_rdata), .frame_end(frame_end));
-    assign spi_mosi = q_oe[0] ? q_o[0] : 1'bz;
-    assign spi_miso = q_oe[1] ? q_o[1] : 1'bz;
-    assign spi_io2  = q_oe[2] ? q_o[2] : 1'bz;
-    assign spi_io3  = q_oe[3] ? q_o[3] : 1'bz;
+    assign spi_miso = miso_oe ? miso_o : 1'bz;
 
     wire        irq, job_valid, resp_we, resp_post, job_abort;
     wire [15:0] job_len, resp_len;
@@ -76,18 +82,38 @@ module arc1_ecp5_top #(
     mbx_regs_r85 u_regs (
         .clk(sys_clk), .rst(rst_sys),
         .bus_addr(bus_addr), .bus_we(bus_we), .bus_wdata(bus_wdata), .bus_re(bus_re), .bus_rdata(bus_rdata),
-        .irq(irq), .job_valid(job_valid), .job_len(job_len),
-        .req_raddr(req_raddr), .req_rdata(req_rdata),
-        .resp_we(resp_we), .resp_waddr(resp_waddr), .resp_wdata(resp_wdata),
-        .resp_post(resp_post), .resp_len_in(resp_len),
+        .irq(irq), .job_valid(mbx_job_valid), .job_len(mbx_job_len),
+        .req_raddr(req_raddr), .req_rdata(mbx_req_rdata),
+        .resp_we(mbx_resp_we), .resp_waddr(resp_waddr), .resp_wdata(resp_wdata),
+        .resp_post(mbx_resp_post), .resp_len_in(resp_len),
         .psram_ready(ram_ready), .psram_error(ram_error), .psram_err_code(ram_err_code),
         .psram_recover(psram_recover), .bist_start(bist_start),
         .bist_busy(bist_busy), .bist_pass(bist_pass), .bist_fail(bist_fail), .bist_errs(bist_errs),
         .psram_power_on(guard_on_sys), .job_abort(job_abort),
         .perf_last_cycles(perf_last_cycles), .perf_jobs(perf_jobs), .perf_items(perf_items), .last_status(last_status));
 
+    // ---------------- RGMII job link + job-source arbiter ----------------
+    // ABORT_JOB (mailbox CONTROL b6) aborts whichever job is in the engine; an aborted Ethernet job is
+    // answered with an ABORTED frame. eth_txclk domain reset: none needed (toggle handshakes, idle by init).
+    wire        mbx_job_valid, mbx_resp_we, mbx_resp_post, eng_idle;
+    wire [15:0] mbx_job_len;
+    wire [7:0]  mbx_req_rdata;
+    wire [15:0] eth_rx_ok, eth_rx_crc, eth_rx_drop, eth_rx_other, eth_tx;
+    eth_link u_eth (
+        .clk(sys_clk), .rst(rst_sys),
+        .rgmii_rxc(rgmii_rxc), .rgmii_rxd(rgmii_rxd), .rgmii_rx_ctl(rgmii_rx_ctl),
+        .txc(eth_txclk), .rgmii_txc(rgmii_txc), .rgmii_txd(rgmii_txd), .rgmii_tx_ctl(rgmii_tx_ctl),
+        .mbx_job_valid(mbx_job_valid), .mbx_job_len(mbx_job_len), .mbx_req_rdata(mbx_req_rdata),
+        .mbx_resp_we(mbx_resp_we), .mbx_resp_post(mbx_resp_post),
+        .eng_idle(eng_idle), .eng_job_valid(job_valid), .eng_job_len(job_len),
+        .eng_req_raddr(req_raddr), .eng_req_rdata(req_rdata),
+        .eng_resp_we(resp_we), .eng_resp_waddr(resp_waddr), .eng_resp_wdata(resp_wdata),
+        .eng_resp_post(resp_post), .eng_resp_len(resp_len),
+        .cnt_rx_ok(eth_rx_ok), .cnt_rx_crc(eth_rx_crc), .cnt_rx_drop(eth_rx_drop), .cnt_rx_other(eth_rx_other),
+        .cnt_tx(eth_tx));
+
     accel_engine u_eng (
-        .clk(sys_clk), .rst(rst_sys), .abort(job_abort), .job_valid(job_valid), .job_len(job_len),
+        .clk(sys_clk), .rst(rst_sys), .abort(job_abort), .job_valid(job_valid), .job_len(job_len), .idle(eng_idle),
         .req_raddr(req_raddr), .req_rdata(req_rdata),
         .resp_we(resp_we), .resp_waddr(resp_waddr), .resp_wdata(resp_wdata),
         .resp_post(resp_post), .resp_len(resp_len),
@@ -145,5 +171,5 @@ module arc1_ecp5_top #(
     always @(posedge sys_clk) hb <= hb + 26'd1;
     assign led    = ram_ready ? hb[25] : (guard_on ? hb[22] : hb[20]);
     assign dbg_tx = 1'b1;                 // UART not implemented (reserved)
-    wire unused_ok = &{1'b0, dbg_rx, frame_end};
+    wire unused_ok = &{1'b0, dbg_rx, frame_end, eth_locked};
 endmodule

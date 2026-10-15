@@ -19,15 +19,16 @@ FW       ?= ../firmware
 LPF      ?= constraints/arc1_ecp5_r85.lpf
 
 RTL_COMMON = rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv \
-      rtl/mbx_qspi_slave.sv $(R06F)/mailbox/rtl/psram_bist.sv \
+      rtl/eth_link.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv \
+      $(R06F)/mailbox/rtl/mbx_spi_slave.sv $(R06F)/mailbox/rtl/psram_bist.sv \
       $(R06F)/psram/rtl/psram_user_port.sv $(R06F)/psram/rtl/psram_qspi_core.sv
-RTL_SYN = $(RTL_COMMON) rtl/arc1_ecp5_pll.v
-RTL_SIM = $(RTL_COMMON) sim/arc1_ecp5_pll_sim.v
+RTL_SYN = $(RTL_COMMON) rtl/arc1_ecp5_pll.v rtl/arc1_eth_pll.v
+RTL_SIM = $(RTL_COMMON) sim/arc1_ecp5_pll_sim.v sim/arc1_eth_pll_sim.v sim/ecp5_ddr_sim.v
 TB      = tb/tb_ecp5_top.sv $(R07P)/aps6404l_model_r07.sv
 WARN    = -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow
 
-.PHONY: all lint transform fir qspi sim build bit report repro seeds clean
-all: lint transform fir qspi sim bit report repro
+.PHONY: all lint transform fir rgmii sim build bit report repro seeds clean
+all: lint transform fir rgmii sim bit report repro
 
 $(OUT)/golden_frames.svh: $(R06F)/top/tools/golden_to_memh.py $(R05)/protocol/reference/golden_vectors.json
 	mkdir -p $(OUT)
@@ -62,11 +63,12 @@ fir:
 	  test $$rc -eq 0 && grep -q '^FIR_TB_PASS$$' $(OUT)/sim_accel_fir.log
 
 # quad-SPI mailbox slave vs a byte memory (single 10/25 MHz, quad 10/25/50/100 MHz, abort, unknown command)
-qspi:
+# RGMII receive/transmit MACs against a host EMAC model (TB), ECP5 DDR primitives per sim/ecp5_ddr_sim.v
+rgmii:
 	mkdir -p $(OUT)
-	$(IVERILOG) -g2012 -s tb_qspi_slave -o $(OUT)/tb_qspi_slave.vvp tb/tb_qspi_slave.sv rtl/mbx_qspi_slave.sv
-	$(VVP) -n $(OUT)/tb_qspi_slave.vvp > $(OUT)/sim_qspi_slave.log 2>&1; rc=$$?; tail -6 $(OUT)/sim_qspi_slave.log; \
-	  test $$rc -eq 0 && grep -q '^QSPI_TB_PASS$$' $(OUT)/sim_qspi_slave.log
+	$(IVERILOG) -g2012 -s tb_rgmii -o $(OUT)/tb_rgmii.vvp tb/tb_rgmii.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv sim/ecp5_ddr_sim.v
+	$(VVP) -n $(OUT)/tb_rgmii.vvp > $(OUT)/sim_rgmii.log 2>&1; rc=$$?; tail -8 $(OUT)/sim_rgmii.log; \
+	  test $$rc -eq 0 && grep -q '^RGMII_TB_PASS$$' $(OUT)/sim_rgmii.log
 
 sim: $(OUT)/golden_frames.svh $(OUT)/ajob/ajob_cases.svh
 	$(IVERILOG) -g2012 -I $(OUT) -I $(OUT)/ajob -s tb_ecp5_top -o $(OUT)/tb_ecp5_top.vvp \

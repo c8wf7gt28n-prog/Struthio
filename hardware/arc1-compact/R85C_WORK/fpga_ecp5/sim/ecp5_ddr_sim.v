@@ -10,9 +10,9 @@ module IDDRX1F (input D, SCLK, RST, output reg Q0 = 1'b0, output reg Q1 = 1'b0);
     always @(posedge SCLK) begin Q0 <= r; Q1 <= f; r <= D; end
     always @(negedge SCLK) f <= D;
 endmodule
-module ODDRX1F (input SCLK, RST, D0, D1, output reg Q = 1'b0);
+module ODDRX1F (input SCLK, RST, D0, D1, output wire Q);
     parameter GSR = "ENABLED";
-    reg d1h = 1'b0;
-    always @(posedge SCLK) begin Q <= D0; d1h <= D1; end
-    always @(negedge SCLK) Q <= d1h;
+    reg d0h = 1'b0, d1h = 1'b0;                 // both captured on the rising edge
+    always @(posedge SCLK) begin d0h <= D0; d1h <= D1; end
+    assign Q = SCLK ? d0h : d1h;                // high phase D0, low phase D1
 endmodule
