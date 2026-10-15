@@ -39,15 +39,20 @@ module eth_tx_pump (
     reg [4:0]  rptr, rptr_g;            // txc
     reg [4:0]  rg_s1, rg_s2;            // rptr_g -> sys
     reg [4:0]  wg_s1, wg_s2;            // wptr_g -> txc
-    initial begin wptr = 0; wptr_g = 0; rptr = 0; rptr_g = 0; rg_s1 = 0; rg_s2 = 0; wg_s1 = 0; wg_s2 = 0; tx_start_tgl = 1'b0; end
+    initial begin rbin = 0; room = 1'b0; wptr = 0; wptr_g = 0; rptr = 0; rptr_g = 0; rg_s1 = 0; rg_s2 = 0; wg_s1 = 0; wg_s2 = 0; tx_start_tgl = 1'b0; end
 
     // ---------------- pump (sys) ----------------
     reg        act, started, rd_v;
     reg [12:0] ra, words, pushed;
     reg [7:0]  qe, qo;
-    wire [4:0] used = wptr - g2b(rg_s2);
+    // room is registered (timing), one clock stale: committed entries (used + in flight) stay <= 14 of 16
+    reg  [4:0] rbin;
+    reg        room;
+    wire [4:0] used = wptr - rbin;
     always @(posedge clk) begin
-        rg_s1 <= rptr_g; rg_s2 <= rg_s1;
+        rg_s1 <= rptr_g; rg_s2 <= rg_s1; rbin <= g2b(rg_s2);
+        room <= ({1'b0, used} + {5'd0, rd_v}) < 6'd13;
+        qe <= bank_e[ra[11:0]]; qo <= bank_o[ra[11:0]];           // EBR read every clock (no CE path)
         rd_v <= 1'b0;
         if (rst) begin
             act <= 1'b0; started <= 1'b1; rd_v <= 1'b0;
@@ -56,8 +61,8 @@ module eth_tx_pump (
                 act <= 1'b1; started <= 1'b0; ra <= 13'd0; pushed <= 13'd0;
                 words <= len[13:1] + {12'd0, len[0]};                   // ceil(len / 2), len <= 8192
             end else if (act) begin
-                if (ra != words && ({1'b0, used} + {5'd0, rd_v}) < 6'd15) begin
-                    qe <= bank_e[ra[11:0]]; qo <= bank_o[ra[11:0]]; rd_v <= 1'b1; ra <= ra + 13'd1;
+                if (ra != words && room) begin
+                    rd_v <= 1'b1; ra <= ra + 13'd1;
                 end
                 if (rd_v) begin
                     fmem[wptr[3:0]] <= {qo, qe}; wptr <= wptr + 5'd1; wptr_g <= b2g(wptr + 5'd1);

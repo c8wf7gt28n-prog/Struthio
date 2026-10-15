@@ -65,7 +65,7 @@ module accel_fir (
     reg signed [15:0] win [0:31];
     reg signed [31:0] prod [0:31];
     reg signed [43:0] acc  [0:31];
-    reg signed [43:0] osr  [0:31];
+    reg        [15:0] osr  [0:31];   // saturated outputs (R8.5-C timing: sat16 applied when loaded)
     reg [5:0]  ocnt;              // outputs waiting in osr
     integer l;
 
@@ -80,7 +80,7 @@ module accel_fir (
     endfunction
 
     assign out_avail  = ocnt != 6'd0;
-    assign out_sample = sat16(osr[0]);
+    assign out_sample = osr[0];
 
     always @(posedge clk) begin
         // RAM address issue: stream v_k = x[blk_base + 31 - k], tap t = k - 32
@@ -118,7 +118,7 @@ module accel_fir (
             if (drain == 6'd6) begin drain <= 6'd0; st <= F_OUT; end
         end
         F_OUT: if (ocnt == 6'd0) begin                   // previous block fully consumed
-            for (l = 0; l < 32; l = l + 1) osr[l] <= acc[l];
+            for (l = 0; l < 32; l = l + 1) osr[l] <= sat16(acc[l]);
             ocnt <= (left > 11'd32) ? 6'd32 : left[5:0];
             st <= F_NEXT;
         end

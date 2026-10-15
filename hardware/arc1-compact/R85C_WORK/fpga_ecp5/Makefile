@@ -93,7 +93,7 @@ $(OUT)/arc1_ecp5.bit: $(OUT)/arc1_ecp5.config
 # real tool outputs -> BUILD_REPORT.json/.md (fails on timing miss or latch)
 report: $(OUT)/arc1_ecp5.bit
 	sh build_scripts/record_tools.sh $(OUT)/TOOL_VERSIONS.txt > /dev/null
-	$(PYTHON) -I build_scripts/build_report.py $(OUT) $(OUT)/BUILD_REPORT.json $(OUT)/BUILD_REPORT.md
+	LPF=$(LPF) $(PYTHON) -I build_scripts/build_report.py $(OUT) $(OUT)/BUILD_REPORT.json $(OUT)/BUILD_REPORT.md
 
 # reproducibility: independent second synthesis + PnR + pack in a scratch dir must give the same bit file
 repro: $(OUT)/arc1_ecp5.bit

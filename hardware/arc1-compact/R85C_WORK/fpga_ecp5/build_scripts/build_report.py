@@ -28,13 +28,14 @@ for cp in rep.get("critical_paths", []):
 warn = sorted(set(l.strip() for l in log.splitlines() if l.startswith("Warning")))
 out = {
     "target": {"device": "LFE5U-45F", "package": "CABGA381", "speed": 6, "top": "arc1_ecp5_top",
-               "lpf": "fpga_ecp5/constraints/arc1_ecp5_r85.lpf (generated from board/r85_board_plan.json)"},
+               "lpf": "fpga_ecp5/" + os.environ.get("LPF", "constraints/arc1_ecp5_r85.lpf")},
     "synthesis_cells": cells, "latches": latches,
     "utilization": {k: v for k, v in rep["utilization"].items() if v["used"]},
     "fmax": fmax, "critical_paths": crit, "nextpnr_warnings": warn,
-    "multiplier_mapping": "8 x MULT18X18D, all in arc1_transform_ecp5 S1: two 32x32 products per issue cycle split into "
-                          "4 signed 17x17 partial products each (hi17/lo17); no sharing between products, no ALU54B "
-                          "cascades (not used; open-tool DSP inference limits, Trellis README). 64 of 72 MULT18X18D free.",
+    "multiplier_mapping": (f"{cells.get('MULT18X18D')} x MULT18X18D (synthesised count): 8 in arc1_transform_ecp5 S1 (two 32x32 "
+                           "products per issue cycle, each split into 4 signed 17x17 partial products) + 32 in accel_fir "
+                           "(one 16x16 MAC product per tap lane); no ALU54B cascades (open-tool DSP inference limits, "
+                           f"Trellis README). {72 - int(cells.get('MULT18X18D') or 0)} of 72 MULT18X18D free."),
     "bitstream": {"file": "arc1_ecp5.bit", "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
                   "ecppack": "--compress"},
     "evidence": "OPEN_TOOLCHAIN_ROUTED (Yosys/nextpnr-ecp5/Trellis); not programmed into silicon",
