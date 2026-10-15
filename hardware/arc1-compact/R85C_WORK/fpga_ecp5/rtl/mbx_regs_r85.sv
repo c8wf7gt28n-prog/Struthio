@@ -14,7 +14,8 @@
 //
 // Byte map (multi-byte registers are little endian):
 //   0x0000  MAGIC     "AMBX" (41 4D 42 58)                       RO
-//   0x0004  VERSION   u16 = 3;  0x0006 CAPS u16 (bit0 PSRAM fitted, bit1 BIST, bit2 power guard, bit3 AJOB engine)
+//   0x0004  VERSION   u16 = 3;  0x0006 CAPS u16 (bit0 PSRAM fitted, bit1 BIST, bit2 power guard, bit3 AJOB engine,
+//                     bit4 RGMII job link (R8.5-C))
 //   0x0008  STATUS    u16: b0 FPGA_READY, b1 PSRAM_READY, b2 PSRAM_ERROR,
 //                     b3 JOB_PENDING, b4 RESP_READY, b5 DOORBELL_OVERRUN,
 //                     b6 BIST_BUSY, b7 BIST_PASS, b8 BIST_FAIL, b10:9 PSRAM err code,
@@ -28,11 +29,12 @@
 //   0x0020  PSRAM_EPOCH u8 guard power-up count (wraps)            RO
 //   0x0024  PERF_LAST_CYCLES u32 sys clocks of the last job (doorbell -> post)  RO
 //   0x0028  PERF_JOBS u32 completed jobs;  0x002C PERF_ITEMS u32 transform items; 0x0030 LAST_STATUS u8
+//   0x0034..0x003F (R8.5-C) RGMII counters u16: RX_OK, RX_FCS_ERR, RX_DROP_BUSY, RX_OTHER, TX_FRAMES, TX_UNDERRUN
 //   0x2000..0x3FFF REQ  buffer (8 KiB)                            RW (host)
 //   0x4000..0x5FFF RESP buffer (8 KiB)                            RO (host)
 //   other addresses read 0x00, writes ignored
 module mbx_regs_r85 #(
-    parameter [15:0] CAPS = 16'h000F
+    parameter [15:0] CAPS = 16'h001F   // R8.5-C: + b4 RGMII job link
 ) (
     input  wire        clk,
     input  wire        rst,
@@ -68,7 +70,8 @@ module mbx_regs_r85 #(
     input  wire [31:0] perf_last_cycles,
     input  wire [31:0] perf_jobs,
     input  wire [31:0] perf_items,
-    input  wire [7:0]  last_status
+    input  wire [7:0]  last_status,
+    input  wire [95:0] eth_counters    // R8.5-C: {tx_underrun, tx, rx_other, rx_drop, rx_crc, rx_ok}, 16 b each, sys domain
 );
     reg [7:0] req_mem  [0:8191];
     reg [7:0] resp_mem [0:8191];
@@ -121,6 +124,14 @@ module mbx_regs_r85 #(
         16'h002C: reg_q = perf_items[7:0];  16'h002D: reg_q = perf_items[15:8];
         16'h002E: reg_q = perf_items[23:16]; 16'h002F: reg_q = perf_items[31:24];
         16'h0030: reg_q = last_status;
+        // R8.5-C RGMII counters 0x0034..0x003F (u16 LE): RX_OK, RX_FCS_ERR, RX_DROP_BUSY, RX_OTHER, TX_FRAMES, TX_UNDERRUN.
+        // Multi-bit values crossed with 2-FF synchronisers: read until two consecutive reads agree.
+        16'h0034: reg_q = eth_counters[7:0];   16'h0035: reg_q = eth_counters[15:8];
+        16'h0036: reg_q = eth_counters[23:16]; 16'h0037: reg_q = eth_counters[31:24];
+        16'h0038: reg_q = eth_counters[39:32]; 16'h0039: reg_q = eth_counters[47:40];
+        16'h003A: reg_q = eth_counters[55:48]; 16'h003B: reg_q = eth_counters[63:56];
+        16'h003C: reg_q = eth_counters[71:64]; 16'h003D: reg_q = eth_counters[79:72];
+        16'h003E: reg_q = eth_counters[87:80]; 16'h003F: reg_q = eth_counters[95:88];
         default:  reg_q = 8'h00;
         endcase
     end

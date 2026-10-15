@@ -6,6 +6,7 @@ int main(void)
     run_layout_tests();
     run_library_tests();
     run_ecp5_tests();
+    run_eth_tests();
     printf("R8.5 firmware host tests: %d checks, %d failures\n", g_checks, g_fail);
     return g_fail ? 1 : 0;
 }

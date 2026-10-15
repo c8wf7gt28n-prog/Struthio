@@ -42,6 +42,10 @@ typedef struct ecp5_mock {
     long jobs_done;
     int mbx_write;
     ajob_fir_state fir;            /* FPGA-resident FIR state (zero after configuration) */
+    /* R8.5-C RGMII: CAPS b4 unless no_rgmii; counters as the RTL keeps them (0x0034..): rx_ok, rx_fcs, rx_drop,
+     * rx_other, tx_frames, tx_underrun. Filled by tests/emac_mock.c. */
+    int no_rgmii;
+    uint16_t eth_cnt[6];
 } ecp5_mock;
 
 void mock_init(ecp5_mock *m, uint32_t good_bit_crc);

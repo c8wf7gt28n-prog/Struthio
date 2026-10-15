@@ -7,4 +7,5 @@ void run_nor_tests(void);
 void run_layout_tests(void);
 void run_library_tests(void);
 void run_ecp5_tests(void);
+void run_eth_tests(void);
 #endif

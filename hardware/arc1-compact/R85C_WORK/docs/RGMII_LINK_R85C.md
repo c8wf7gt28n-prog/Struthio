@@ -48,12 +48,19 @@ centre of the error-free window; record the window width as PROTOTYPE_MEASURED e
 ## Power-state rules
 - ECP5 bank 0 is a top bank: input leakage ≤ ±1 mA per pin for 0 ≤ VIN ≤ VIH(max) even while unpowered
   (DS Table 3.5, IDK_HS, Tj ≤ 85 °C), so an F133 output into an unpowered bank 0 is within the hot-socket limit.
-  Firmware still keeps PG0–PG12 as GPIO inputs (function 0) until DONE and returns them to inputs before removing
-  FPGA power (C4 rule), so the steady state never relies on the hot-socket limit.
+  Firmware keeps PG0–PG12 at IO Disable (0xF, the reset state, D1-H UM PG_CFG0/1) until DONE + DISCOVER (CAPS b4)
+  + a known-answer job over SPI, and returns them to IO Disable before any FPGA power-down (accel_service.c mux_off;
+  host test mux_violations == 0 in every case; mutant MUTANT_SVC_MUX_EARLY killed), so the steady state never relies
+  on the hot-socket limit.
 - The 100k pull-downs hold both CTL lines low while the other side is unpowered, in reset or not yet muxed: neither
   MAC sees a frame start.
-- The F133 EMAC needs the receive clock (RXCK = ECP5 rgmii_txc) running for some register operations; the ECP5
-  forwards it continuously once configured (ODDRX1F on the PLL clock).
+- Clocking: D1-H UM 9.13.4.1 selects RXCLK as the RGMII clock source (EMAC_EPHY_CLK_REG0 ETCS = 2), i.e. the F133
+  transmit clock (TXCK) is derived from the ECP5-forwarded 125 MHz RXCK. The whole link therefore runs from the ECP5
+  25 MHz oscillator (no frequency offset between directions); the EMAC soft reset needs that clock running, which the
+  ECP5 provides continuously once configured (ODDRX1F on arc1_eth_pll).
+- Delay chains: ETXDC is 3 bits (0..7), ERXDC 5 bits (0..31) (UM 3.4.3.3); the UM's RGMII example uses 7 / 31; the
+  delay per step is not documented. firmware/src/eth_link.c el_calibrate sweeps both (host-tested on a planning eye
+  model, test E09).
 
 ## Open items
 - RK-RGMII-IO-TIMING: bench calibration as above; IBIS check of 22R vs trace impedance.

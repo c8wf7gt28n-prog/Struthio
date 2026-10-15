@@ -33,6 +33,14 @@ enum fl_error {
 #define FL_CAP_BIST       0x0002u
 #define FL_CAP_POWER_GUARD 0x0004u
 #define FL_CAP_AJOB       0x0008u
+#define FL_CAP_RGMII      0x0010u   /* R8.5-C: RGMII job link fitted (eth_link.sv) */
+/* R8.5-C RGMII counters, u16 LE each; crossed with 2-FF synchronisers in the FPGA: read until two reads agree */
+#define FL_REG_ETH_RX_OK     0x0034u
+#define FL_REG_ETH_RX_FCS    0x0036u
+#define FL_REG_ETH_RX_DROP   0x0038u
+#define FL_REG_ETH_RX_OTHER  0x003Au
+#define FL_REG_ETH_TX_FRAMES 0x003Cu
+#define FL_REG_ETH_TX_UNDERRUN 0x003Eu
 #define FL_REQ_BUF       0x2000u
 #define FL_RESP_BUF      0x4000u
 #define FL_BUF_BYTES     8192u

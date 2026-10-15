@@ -39,7 +39,8 @@ module eth_link (
     // status (sys domain; counters are quasi-static, read by software twice for consistency)
     output wire [15:0] cnt_rx_ok, cnt_rx_crc, cnt_rx_drop, cnt_rx_other,
     output reg  [15:0] cnt_tx,
-    output wire [15:0] cnt_tx_underrun
+    output wire [15:0] cnt_tx_underrun,
+    output reg  [95:0] counters_sys      // all six counters in the sys domain (2-FF per bit; read twice)
 );
     // ---------------- receive ----------------
     wire        rx_we, rx_frame_tgl;
@@ -73,6 +74,13 @@ module eth_link (
         .txc(txc), .start_tgl(tx_start_tgl), .tx_len(tx_len), .dst_mac(tx_dst),
         .f_valid(f_valid), .f_data(f_data), .f_pop(f_pop), .cnt_underrun(cnt_tx_underrun), .done_tgl(tx_done_tgl),
         .rgmii_txc(rgmii_txc), .rgmii_txd(rgmii_txd), .rgmii_tx_ctl(rgmii_tx_ctl));
+
+    // ---------------- counters into the sys domain ----------------
+    reg [95:0] cnt_s1;
+    always @(posedge clk) begin
+        cnt_s1       <= {cnt_tx_underrun, cnt_tx, cnt_rx_other, cnt_rx_drop, cnt_rx_crc, cnt_rx_ok};
+        counters_sys <= cnt_s1;
+    end
 
     // ---------------- arbiter ----------------
     reg [2:0]  fr_s, dn_s;

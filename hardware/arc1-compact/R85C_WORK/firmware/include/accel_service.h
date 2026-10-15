@@ -8,12 +8,18 @@
  *  P5 play       AJOB batches; bounded timeout, CRC/sequence checks, ABORT, retry once, CPU fallback always
  *  P6 fault      PSRAM off, bus isolated, FPGA powered down; back to P1 (the game keeps running on the CPU)
  * The service never touches SPI1 (BT820) or the NOR chip select; every entry point returns in bounded time.
- * HOST_TESTED with tests/ecp5_mock.c (behavioural sysCONFIG + AMBX v3 mailbox). Not run on silicon. */
+ * R8.5-C: optional RGMII job transport (eth_link.h). The SPI mailbox stays the configuration/control path and the
+ * fallback transport. PG0..PG12 are switched to RGMII only after DONE + DISCOVER (CAPS b4) and back to GPIO inputs
+ * before any FPGA power-down. Resident FIR (opcodes 2/3) with a host mirror: every block is also appended to the
+ * mirror, so the CPU can take over at any time; after any uncertain FIR exchange the FPGA is re-primed (IR + the
+ * last 1024 mirrored samples) before it is trusted again.
+ * HOST_TESTED with tests/ecp5_mock.c (behavioural sysCONFIG + AMBX v3 mailbox) and tests/emac_mock.c. Not run on silicon. */
 #ifndef ACCEL_SERVICE_H
 #define ACCEL_SERVICE_H
 #include "ecp5_cfg.h"
 #include "fpga_link.h"
 #include "accel_job.h"
+#include "eth_link.h"
 
 typedef enum { SVC_P0_RESET = 0, SVC_P1_LAUNCHER, SVC_P2_SELECT, SVC_P3_CONFIGURE, SVC_P4_HANDSHAKE, SVC_P5_PLAY,
                SVC_P6_FAULT } svc_state;
@@ -24,11 +30,15 @@ typedef enum {
 } svc_err;
 
 typedef enum {                       /* why a batch ran on the CPU */
-    SVC_FB_NONE = 0, SVC_FB_NOT_PLAYING, SVC_FB_LINK, SVC_FB_TIMEOUT, SVC_FB_FRAME, SVC_FB_COUNT_ARG, SVC_FB_N
+    SVC_FB_NONE = 0, SVC_FB_NOT_PLAYING, SVC_FB_LINK, SVC_FB_TIMEOUT, SVC_FB_FRAME, SVC_FB_COUNT_ARG,
+    SVC_FB_NO_IR,                    /* R8.5-C: FIR block before any FIR_SET_IR (outputs are zero) */
+    SVC_FB_N
 } svc_fallback;
 
 #define SVC_TRACE 64
 #define SVC_REQ_CAP (AJOB_HDR + AJOB_MAXCOUNT * AJOB_JOB)
+
+typedef enum { SVC_TR_SPI = 0, SVC_TR_ETH = 1 } svc_transport;
 
 typedef struct accel_service {
     ecp5_cfg cfg;
@@ -49,6 +59,15 @@ typedef struct accel_service {
     uint32_t last_cycles;
     uint8_t req[SVC_REQ_CAP];
     uint8_t resp[AJOB_HDR + AJOB_MAXCOUNT * AJOB_RES];
+    /* R8.5-C RGMII transport */
+    eth_link eth;
+    int eth_attached, mux_on;
+    svc_transport transport;
+    uint64_t eth_kat_failures;
+    /* R8.5-C resident FIR: host mirror + FPGA synchronisation state */
+    ajob_fir_state fir;
+    int fir_sync;                    /* FPGA history and IR known to equal the mirror */
+    uint64_t fir_fpga_blocks, fir_cpu_blocks, fir_resyncs;
 } accel_service;
 
 /* P0 -> P1: drive every FPGA control line to its safe level (FPGA off, buffers off) */
@@ -59,5 +78,11 @@ svc_err svc_load(accel_service *s, const uint8_t *file, size_t len, int run_bist
 svc_fallback svc_transform(accel_service *s, const arc1_transform_job *jobs, uint16_t n, arc1_transform_result *out);
 /* game exit / swap: quiesce, power the FPGA down, P1 */
 void svc_unload(accel_service *s);
+/* R8.5-C: attach the EMAC (before svc_load); PG0..PG12 are set to GPIO inputs at once */
+void svc_attach_eth(accel_service *s, const arc1_eth_hal *eth, const uint8_t host_mac[6], uint32_t timeout_us);
+/* R8.5-C resident FIR: always takes effect in the mirror; returns SVC_FB_NONE if the FPGA also has it */
+svc_fallback svc_fir_set_ir(accel_service *s, const int16_t taps[AJOB_FIR_TAPS]);
+/* always fills out[0..n-1] (n 1..1024), bit-exact with the RTL whichever side computes it */
+svc_fallback svc_fir_block(accel_service *s, const int16_t *in, uint16_t n, int16_t *out);
 const char *svc_state_name(svc_state st);
 #endif

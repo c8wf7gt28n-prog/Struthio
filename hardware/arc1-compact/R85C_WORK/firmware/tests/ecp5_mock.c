@@ -24,6 +24,7 @@ static void unconfigure(ecp5_mock *m)
     m->configured = 0; m->isc_enabled = 0; m->burst = 0; m->done = 0; m->cfg_fail = 0;
     m->resp_ready = 0; m->job_pending = 0; m->psram_ready = 0; m->bist_state = 0;
     ajob_fir_init(&m->fir);
+    memset(m->eth_cnt, 0, sizeof m->eth_cnt);    /* RTL counters restart with the bitstream */
 }
 
 void mock_f133_reset(ecp5_mock *m)
@@ -108,7 +109,8 @@ static uint8_t mbx_rd(ecp5_mock *m, uint32_t a)
     if (a < 4) return id[a];
     if (a == 4) return (uint8_t)m->ambx_version;
     if (a == 5) return 0;
-    if (a == 6) return 0x0F;
+    if (a == 6) return m->no_rgmii ? 0x0F : 0x1F;
+    if (a >= 0x34 && a < 0x40) return (uint8_t)(m->eth_cnt[(a - 0x34) / 2] >> (8 * ((a - 0x34) & 1)));
     if (a == 7) return 0;
     if (a == 8 || a == 9) { st = mbx_status(m); return (uint8_t)(a == 8 ? st : st >> 8); }
     if (a == 0x14 || a == 0x15) return (uint8_t)(a == 0x14 ? m->resp_len : m->resp_len >> 8);

@@ -182,7 +182,7 @@ module tb_ecp5_top;
             if (expect_ok) begin
                 if ({rx[4], rx[5], rx[6], rx[7]} !== "AMBX") fail("MAGIC");
                 if (rx16(4) !== 16'h0003) fail("VERSION");
-                if (rx16(6) !== 16'h000F) fail("CAPS");
+                if (rx16(6) !== 16'h001F) fail("CAPS");            // R8.5-C: b4 RGMII job link
             end else if ({rx[4], rx[5], rx[6], rx[7]} === "AMBX") fail("MAGIC visible while FPGA not ready");
         end
     endtask
@@ -403,6 +403,13 @@ module tb_ecp5_top;
             if (dut.u_eth.cnt_rx_drop != drp0 + 1) fail("RGMII: drop counter");
             $display("INFO rgmii negative: crc=%0d other=%0d drop=%0d ok=%0d", dut.u_eth.cnt_rx_crc - crc0,
                      dut.u_eth.cnt_rx_other - oth0, dut.u_eth.cnt_rx_drop - drp0, dut.u_eth.cnt_rx_ok - ok0);
+            // the six counters are readable through the SPI mailbox (0x0034..0x003F) and equal the RTL counters
+            read_mem(16'h0034, 12);
+            if (rx16(0) != dut.u_eth.cnt_rx_ok || rx16(2) != dut.u_eth.cnt_rx_crc || rx16(4) != dut.u_eth.cnt_rx_drop ||
+                rx16(6) != dut.u_eth.cnt_rx_other || rx16(8) != dut.u_eth.cnt_tx || rx16(10) != 16'd0)
+                fail("RGMII counters via mailbox 0x0034");
+            $display("INFO rgmii counters via mailbox: rx_ok=%0d fcs=%0d drop=%0d other=%0d tx=%0d underrun=%0d",
+                     rx16(0), rx16(2), rx16(4), rx16(6), rx16(8), rx16(10));
             // host retry succeeds
             run_eth(0);
         end

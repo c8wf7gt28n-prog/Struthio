@@ -79,6 +79,7 @@ module arc1_ecp5_top #(
     wire        guard_on, guard_on_sys, guard_core_rst, c_ce_n, c_sclk;
     wire [3:0]  c_dq_o, c_dq_oe;
 
+    wire [95:0] eth_counters;          // R8.5-C RGMII counters (eth_link -> mailbox 0x0034..0x003F)
     mbx_regs_r85 u_regs (
         .clk(sys_clk), .rst(rst_sys),
         .bus_addr(bus_addr), .bus_we(bus_we), .bus_wdata(bus_wdata), .bus_re(bus_re), .bus_rdata(bus_rdata),
@@ -90,7 +91,8 @@ module arc1_ecp5_top #(
         .psram_recover(psram_recover), .bist_start(bist_start),
         .bist_busy(bist_busy), .bist_pass(bist_pass), .bist_fail(bist_fail), .bist_errs(bist_errs),
         .psram_power_on(guard_on_sys), .job_abort(job_abort),
-        .perf_last_cycles(perf_last_cycles), .perf_jobs(perf_jobs), .perf_items(perf_items), .last_status(last_status));
+        .perf_last_cycles(perf_last_cycles), .perf_jobs(perf_jobs), .perf_items(perf_items), .last_status(last_status),
+        .eth_counters(eth_counters));
 
     // ---------------- RGMII job link + job-source arbiter ----------------
     // ABORT_JOB (mailbox CONTROL b6) aborts whichever job is in the engine; an aborted Ethernet job is
@@ -110,7 +112,7 @@ module arc1_ecp5_top #(
         .eng_resp_we(resp_we), .eng_resp_waddr(resp_waddr), .eng_resp_wdata(resp_wdata),
         .eng_resp_post(resp_post), .eng_resp_len(resp_len),
         .cnt_rx_ok(eth_rx_ok), .cnt_rx_crc(eth_rx_crc), .cnt_rx_drop(eth_rx_drop), .cnt_rx_other(eth_rx_other),
-        .cnt_tx(eth_tx), .cnt_tx_underrun(eth_tx_underrun));
+        .cnt_tx(eth_tx), .cnt_tx_underrun(eth_tx_underrun), .counters_sys(eth_counters));
 
     accel_engine u_eng (
         .clk(sys_clk), .rst(rst_sys), .abort(job_abort), .job_valid(job_valid), .job_len(job_len), .idle(eng_idle),
