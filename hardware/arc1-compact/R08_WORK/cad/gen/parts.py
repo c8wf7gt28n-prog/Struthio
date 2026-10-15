@@ -37,13 +37,14 @@ class Part:
         self.value = value or mpn
         self.lcsc = lcsc
         self.datasheet = datasheet
-        self.evidence = evidence
+        self.evidence = "GENERIC (no device-specific claim)" if src == "generic" else evidence
         self.small = small        # 2-pin passive drawing
 
 
 def two_pin(key, prefix, fp, desc, value="", mpn="", mfr="", lcsc="", fp_status="STD_LIB", etype="passive"):
     return Part(key, prefix, [("1", "~", etype, "L"), ("2", "~", etype, "R")], fp, fp_status, mpn, mfr, desc,
-                "generic two-terminal", value=value, lcsc=lcsc, small=True)
+                "generic two-terminal", value=value, lcsc=lcsc, small=True,
+                evidence="GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)")
 
 
 def side_split(pins):
@@ -280,7 +281,7 @@ add(Part("FID", "FID", [], "Fiducial:Fiducial_1mm_Mask2mm", "STD_LIB", "fiducial
 for k, pre, fp in [("R0402", "R", "Resistor_SMD:R_0402_1005Metric"), ("R0603", "R", "Resistor_SMD:R_0603_1608Metric"),
                    ("C0402", "C", "Capacitor_SMD:C_0402_1005Metric"), ("C0603", "C", "Capacitor_SMD:C_0603_1608Metric"),
                    ("C0805", "C", "Capacitor_SMD:C_0805_2012Metric"), ("FB0603", "FB", "Inductor_SMD:L_0603_1608Metric"),
-                   ("F1206", "F", "Fuse:Fuse_1206_3216Metric"), ("L4035", "L", "ARC1_R08:SLIM4_FP_L2_ASWPA4035")]:
+                   ("F1812", "F", "Fuse:Fuse_1812_4532Metric"), ("L4035", "L", "ARC1_R08:SLIM4_FP_L2_ASWPA4035")]:
     add(two_pin(k, pre, fp, "passive " + k, fp_status="SLIM4_CANDIDATE" if "SLIM4" in fp else "STD_LIB"))
 
 add(Part("PWR_FLAG", "#FLG", [("1", "pwr", "power_out", "L")], "", "STD_LIB", "", "", "ERC power flag", "KiCad convention",

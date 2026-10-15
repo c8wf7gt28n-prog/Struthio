@@ -108,8 +108,8 @@ def build():
         note="sink only: no VBUS source, no host power switch (corrective handoff D-04)")
     d.nc("J1", "A8", "SBU unused"); d.nc("J1", "B8", "SBU unused")
     d.flag("VBUS_RAW")
-    d.add("F1", "F1206", "2A hold PTC", {"1": "VBUS_RAW", "2": "VBUS_5V"}, mpn="1206L200SLYR", mfr="Littelfuse",
-          lcsc="", note="CANDIDATE: hold current vs worst-case budget in POWER_TREE_AND_RESET.md")
+    d.add("F1", "F1812", "PTC hold>=2.6A", {"1": "VBUS_RAW", "2": "VBUS_5V"}, mpn="TBD (1812 PTC, hold >= 2.6 A, 6 V)",
+          mfr="TBD", lcsc="", note="hold current from the VBUS budget (analysis/electrical_margins_r08.py); MPN R09")
     d.add("D1", "TVS_SMF", "SMF5.0A", {"1": "VBUS_5V", "2": "GND"})
     d.flag("VBUS_5V")
     d.C("10uF", "VBUS_5V", pkg="C0805"); d.C("100nF", "VBUS_5V")
