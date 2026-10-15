@@ -1,0 +1,212 @@
+{
+ "schema_id": "arc1-r06-device-facts-v1",
+ "note": "Values transcribed from the cited manufacturer documents (MANUFACTURER_DOCUMENTED). PDFs are not redistributed; see ../../docs/SOURCES_R06.json for URLs and SHA-256.",
+ "io_levels": {
+  "F133_GPIO": {
+   "source": "F133 Datasheet v1.4 Table 5-3",
+   "vih_min": "0.7*V",
+   "vil_max": "0.3*V",
+   "voh_min": "V-0.3",
+   "vol_max": 0.2
+  },
+  "T35_LVCMOS33": {
+   "source": "Efinix T35 DS v3.2 Table 66 (3.3 V LVCMOS)",
+   "vih_min": 2.0,
+   "vil_max": 0.8,
+   "voh_min": "V-0.2",
+   "vol_max": 0.2
+  },
+  "BT820_VCCIO33": {
+   "source": "BT820 DS v1.1 Table 21",
+   "vih_min": 2.0,
+   "vil_max": 0.8,
+   "voh_min": "V-0.4",
+   "vol_max": 0.4
+  },
+  "APS6404L": {
+   "source": "APS6404L-3SQR DS Rev 2.7 Table 9",
+   "vih_min": "V-0.4",
+   "vil_max": 0.4,
+   "voh_min": "0.8*V",
+   "vol_max": "0.2*V"
+  },
+  "MN820_MODULE": {
+   "source": "MN820 DS v1.0 Table 3 (module connector levels)",
+   "vih_min": 2.0,
+   "vil_max": 0.8,
+   "voh_min": 2.4,
+   "vol_max": 0.4
+  }
+ },
+ "rails": {
+  "F133_VCC-IO": {
+   "source": "F133 DS Table 5-2",
+   "allowed": [
+    [
+     2.97,
+     3.63
+    ]
+   ]
+  },
+  "F133_VCC-PD": {
+   "source": "F133 DS Table 5-2",
+   "allowed": [
+    [
+     1.62,
+     1.98
+    ],
+    [
+     2.97,
+     3.63
+    ]
+   ]
+  },
+  "F133_VCC-PE": {
+   "source": "F133 DS Table 5-2",
+   "allowed": [
+    [
+     1.62,
+     1.98
+    ],
+    [
+     2.52,
+     3.08
+    ],
+    [
+     2.97,
+     3.63
+    ]
+   ]
+  },
+  "F133_VCC-PG": {
+   "source": "F133 DS Table 5-2",
+   "allowed": [
+    [
+     1.62,
+     1.98
+    ],
+    [
+     2.97,
+     3.63
+    ]
+   ]
+  },
+  "T35_VCCIO_33": {
+   "source": "T35 DS Table 63",
+   "allowed": [
+    [
+     3.14,
+     3.47
+    ]
+   ]
+  },
+  "BT820_VCCIO1": {
+   "source": "BT820 DS 4.5 (1.8/2.5/3.3 V)",
+   "allowed": [
+    [
+     1.71,
+     1.89
+    ],
+    [
+     2.38,
+     2.63
+    ],
+    [
+     3.0,
+     3.6
+    ]
+   ],
+   "note": "exact VCCIO1 tolerance not transcribed; 3.0-3.6 V is the MN820 module input range (MN820 DS 5.1)"
+  },
+  "APS6404L_VDD": {
+   "source": "APS6404L DS Table 9",
+   "allowed": [
+    [
+     2.7,
+     3.6
+    ]
+   ]
+  }
+ },
+ "t35_bga400": {
+  "source": "Efinix T35 DS v3.2 Table 12; T35-PINOUT v1.5 (R05 system/T35F400_package_source_facts.csv)",
+  "banks": [
+   "BANK1A",
+   "BANK1B",
+   "BANK1C",
+   "BANK1D",
+   "BANK1E",
+   "BANK2A",
+   "BANK2B",
+   "BANK2C",
+   "BANK3C",
+   "BANK4A",
+   "BANK4B",
+   "TR",
+   "BR"
+  ],
+  "merged": [
+   [
+    "BANK3C",
+    "TR"
+   ]
+  ],
+  "bank_voltages": [
+   1.8,
+   2.5,
+   3.3
+  ],
+  "vccio_ddr_when_unused": "Floating. Leave unconnected (T35 DS power-pin table, VCCIO_DDR row)",
+  "gpio_during_config": "weak pull-up (T35 DS 'General-Purpose I/O Logic and Buffer')",
+  "creset_n_vil": "CRESET_N is a Schmitt input with internal weak pull-up (Table 69 note); 3.3 V VIL max 0.8 V (Table 66) used as the threshold"
+ },
+ "f133": {
+  "package": "eLQFP128 (F133 DS 2.11)",
+  "spi0": "SPI mode only (F133 DS 2.10.5)",
+  "spi1": "SPI and DBI mode (F133 DS 2.10.5)",
+  "spi_modes": "Standard, Dual-Output/Dual-Input, Dual IO, Quad-Output/Quad-Input (F133 DS 2.10.5). Quad-IO (quad address phase) NOT listed.",
+  "boot_media": "SD card, eMMC, SPI NOR, SPI NAND; GPIO pins and eFuse select boot media (F133 DS 2.2.1). BOOT-SEL[1:0] on PC4/PC5 Function4 (Table 4-3). Encoding NOT in the datasheet.",
+  "internal_pullups_pc3_pc7": "12-18 kOhm (Table 5-3); PC3/PC4/PC5 reset state PU (Table 4-2)",
+  "power_sequence": "VCC-IO before VDD-SYS/VDD-CORE by >= 2 ms; RESET low until rails stable > 64 ms (F133 DS 5.12.1)",
+  "audio": "HPOUTL/R (pins 99/98), HPOUTFB (100), HPVCC 1.8 V; DAC 16/20-bit, 8-192 kHz (F133 DS 2.8.1, Table 4-2)",
+  "boot_select_table": "D1-H User Manual v1.0 sec 3.3.2.1 Tables 3-4/3-5: BOOT_MODE(eFuse)=0 -> GPIO select; 00 SPI NOR->SPI NAND; 01 SMHC0->SPI NOR->other; 10 SMHC0->SPI NAND->other; 11 SMHC0->EMMC2_BOOT->EMMC2_USR->other. Status VER_REG 0x03000024[12:11]."
+ },
+ "bt820": {
+  "host_if": "QSPI slave, SPI mode 0 only, up to 60 MHz (Tsclk >= 16.6 ns), Single/Dual/Quad; default Single (BT820 DS 4.5, Table 28)",
+  "quad_address_phase": "Quad mode transmits address and data on IO3..IO0, MSB on IO3 (BT820 DS 4.5.1)",
+  "read_protocol": "addr MSB=0, 4 address bytes, poll for 0x01 data-valid byte, then data (BT820 DS 4.5.1)",
+  "write_protocol": "addr MSB=1, 4 address bytes, data; 32-bit word units, word-aligned (BT820 DS 4.5.1)",
+  "host_command": "0xFF, cmd, param, 0x00, 0x00; ACTIVE = five 0x00 bytes; Single mode only (BT820 DS 4.5.2.3)",
+  "ss_n_high_min": "2 SCK cycles between transactions (BT820 DS 4.5.1)",
+  "data_pulldowns_required": "bi-directional data ports must have pull-downs (BT820 DS 4.5.1)",
+  "illegal_address_value": "0xDEADABBA (BT820 DS 4.5.2.1)",
+  "rst_n": "connect to MCU GPIO, or 47k pull-up + 1 uF (BT820 DS 3.2)"
+ },
+ "mn820_cn1": {
+  "source": "MN820 DS v1.0 Table 2 (Hirose DF40C-100DP-0.4V(51))",
+  "pins": {
+   "84": "SPIS_MISO",
+   "86": "SPIS_SCLK",
+   "88": "SPIS_SS_N",
+   "90": "SPIS_MOSI",
+   "92": "SPIS_IO3",
+   "94": "SPIS_IO2",
+   "96": "INT_N",
+   "98": "RESET_N"
+  },
+  "power": "single 3.0-3.6 V input (MN820 DS 5.1, Table 3 Icc 245 mA typ). Table 2/3 'output' wording is baseboard-side: VM820C DS v1.1 Fig. 5/7 show the baseboard buck output VCC3V3 on CN6 pins 13/15/17/19."
+ },
+ "aps6404l_sop8": {
+  "source": "APS6404L DS 3.1",
+  "pins": {
+   "1": "CE#",
+   "2": "SO/SIO1",
+   "3": "SIO2",
+   "4": "VSS",
+   "5": "SI/SIO0",
+   "6": "SCLK",
+   "7": "SIO3",
+   "8": "VDD"
+  }
+ }
+}

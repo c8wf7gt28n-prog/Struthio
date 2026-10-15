@@ -1,0 +1,28 @@
+$ (cd /tmp/arc1_r07_vdtg598z/arc1-compact && /usr/bin/python3 R06_WORK/tools/run_r06_checks.py)
+evidence: R06_WORK/evidence/run_20261015T032803Z
+PASS    handoff_integrity: 141 manifest entries verified, 0 changed: []
+PASS    r05_check_package (0.08 s)
+PASS    r05_check_all (4.83 s)
+PASS    board_unit_tests (0.09 s)
+PASS    board_plan_check (0.04 s)
+PASS    psram_lint (0.08 s)
+PASS    psram_sim (71.91 s)
+PASS    psram_synth (6.18 s)
+PASS    psram_synth-efx (2.29 s)
+PASS    psram_mutants (107.21 s)
+PASS    top_lint (0.1 s)
+PASS    top_sim (36.37 s)
+PASS    top_synth-efx (3.78 s)
+PASS    efinity_inputs_generate (0.02 s)
+PASS    efinity_inputs_up_to_date: committed pin CSV / ISF script equal freshly generated output
+NOT_RUN efinity_native_compile: efx_run.py not found: no T35 synthesis, fit, STA or bitstream (see fpga/efinity/README.md)
+PASS    firmware_test (0.63 s)
+PASS    firmware_sanitize (1.22 s)
+PASS    firmware_freestanding (0.24 s)
+NOT_RUN f133_cross_build: no F133 toolchain/BSP in R06: no bootable image (PASS 7 step 1)
+NOT_RUN bt820_silicon: no BT820/MN820 hardware: no display output, no register-level init
+NOT_RUN psram_silicon: no PSRAM/T35 board: controller never ran on hardware
+NOT_RUN electrical_and_pcb: no schematic, PCB, SI/PI, thermal, JLCPCB DFM
+PASS_R06_HOST_RTL_PLANNING_CHECKS: 18 executed, 0 failed, 5 NOT_RUN -> R06_WORK/evidence/run_20261015T032803Z/summary.json
+
+# exit status: 0

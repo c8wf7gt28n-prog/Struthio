@@ -1,0 +1,33 @@
+$ (cd R07_WORK/board && /usr/bin/python3 -m unittest discover -s tests -v)
+test_configuration_pin_used_as_gpio (test_check_board_plan.TestBoardPlan.test_configuration_pin_used_as_gpio) ... ok
+test_emmc_boot_conflicts_with_spi0 (test_check_board_plan.TestBoardPlan.test_emmc_boot_conflicts_with_spi0) ... ok
+test_f133_domain_out_of_range (test_check_board_plan.TestBoardPlan.test_f133_domain_out_of_range) ... ok
+test_illegal_bank_voltage (test_check_board_plan.TestBoardPlan.test_illegal_bank_voltage) ... ok
+test_merged_banks_must_match (test_check_board_plan.TestBoardPlan.test_merged_banks_must_match) ... ok
+test_missing_bt820_data_pulldown (test_check_board_plan.TestBoardPlan.test_missing_bt820_data_pulldown) ... ok
+test_open_drain_without_pullup (test_check_board_plan.TestBoardPlan.test_open_drain_without_pullup) ... ok
+test_psram_on_1v8_bank_level_mismatch (test_check_board_plan.TestBoardPlan.test_psram_on_1v8_bank_level_mismatch) ... ok
+test_psram_pulldown_too_weak (test_check_board_plan.TestBoardPlan.test_psram_pulldown_too_weak) ... ok
+test_psram_shared_outside_t35 (test_check_board_plan.TestBoardPlan.test_psram_shared_outside_t35) ... ok
+test_second_bt820_master_rejected (test_check_board_plan.TestBoardPlan.test_second_bt820_master_rejected) ... ok
+test_shipped_plan_passes (test_check_board_plan.TestBoardPlan.test_shipped_plan_passes) ... ok
+test_source_tables_sane (test_check_board_plan.TestBoardPlan.test_source_tables_sane) ... ok
+test_t35_bank_mismatch (test_check_board_plan.TestBoardPlan.test_t35_bank_mismatch) ... ok
+test_t35_name_mismatch (test_check_board_plan.TestBoardPlan.test_t35_name_mismatch) ... ok
+test_t35_on_bt820_bus_rejected (test_check_board_plan.TestBoardPlan.test_t35_on_bt820_bus_rejected) ... ok
+test_unacknowledged_boot_strap_sharing (test_check_board_plan.TestBoardPlan.test_unacknowledged_boot_strap_sharing) ... ok
+test_unbonded_f133_pin (test_check_board_plan.TestBoardPlan.test_unbonded_f133_pin) ... ok
+test_wrong_mux_function (test_check_board_plan.TestBoardPlan.test_wrong_mux_function) ... ok
+test_both_straps_low_breaks_sd_boot (test_check_board_plan.TestR07Rules.test_both_straps_low_breaks_sd_boot) ... ok
+test_creset_pulldown_too_weak (test_check_board_plan.TestR07Rules.test_creset_pulldown_too_weak) ... ok
+test_missing_strap_pullup (test_check_board_plan.TestR07Rules.test_missing_strap_pullup) ... ok
+test_r06_rail_fails_mn820_module_voh (test_check_board_plan.TestR07Rules.test_r06_rail_fails_mn820_module_voh) ... ok
+test_t35_not_held_in_reset (test_check_board_plan.TestR07Rules.test_t35_not_held_in_reset) ... ok
+test_weak_strap_pulldown (test_check_board_plan.TestR07Rules.test_weak_strap_pulldown) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.034s
+
+OK
+
+# exit status: 0

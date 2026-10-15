@@ -1,0 +1,259 @@
+{
+ "files": [
+  {
+   "path": "R07_WORK/CHANGELOG.md",
+   "bytes": 2624,
+   "sha256": "e77cb239f8e043bf460a5a10a6c7a24b65f3d0f69891e4ad28519897144c0474"
+  },
+  {
+   "path": "R07_WORK/EVIDENCE_LEDGER.json",
+   "bytes": 7776,
+   "sha256": "1aae13ee250afb6c6691435a6d0af2a7fb6baaf7c94d17a18abf0c49c9c396f0"
+  },
+  {
+   "path": "R07_WORK/README.md",
+   "bytes": 1557,
+   "sha256": "dc961064ea3d4c9227f561771c144d356dfb068fbdaa2c1861915f8e10aa59a3"
+  },
+  {
+   "path": "R07_WORK/RISK_REGISTER.md",
+   "bytes": 3671,
+   "sha256": "c0ad6253920e1950120afe34b57f4bf241ba74afb4aafe08de8ee03daf84c81d"
+  },
+  {
+   "path": "R07_WORK/analysis/psram_power_io.py",
+   "bytes": 4542,
+   "sha256": "87073144d0763faf661be0cdfacdbe7a72e2049b8a9084ba85e750ca1957b5b7"
+  },
+  {
+   "path": "R07_WORK/board/PIN_MAP_R07.md",
+   "bytes": 5385,
+   "sha256": "2bbca91b67e885b03ff9c4e3aa107948cfad90a06c892652d30383850dbd0725"
+  },
+  {
+   "path": "R07_WORK/board/check_board_plan.py",
+   "bytes": 18537,
+   "sha256": "3b14ed69d5c2ad7a367a7b3a19970badeef759f08d1300eb5ef3162687ff3242"
+  },
+  {
+   "path": "R07_WORK/board/r07_board_plan.json",
+   "bytes": 16390,
+   "sha256": "884ce94ba7e10ec95b5a0d4eb2688a0f484c841c55be08acf81f7b66b45bb931"
+  },
+  {
+   "path": "R07_WORK/board/sources/device_facts.json",
+   "bytes": 5520,
+   "sha256": "bb22d88cb502019c005d39fed14b7e0ca82a4bcbc11477c1e23b9dc78e7a7405"
+  },
+  {
+   "path": "R07_WORK/board/sources/f133_eLQFP128_gpio_pins.csv",
+   "bytes": 2183,
+   "sha256": "9b29c2725d7d9f21dc9452b9170ff2e9bfdebd14fca78e2303f28044c80fb145"
+  },
+  {
+   "path": "R07_WORK/board/sources/f133_mux_table43_transcribed.csv",
+   "bytes": 859,
+   "sha256": "af615a0d5d0ac99a9e7c2e52738568607bfbf41386dbbfdf16fdfdc01fc6168d"
+  },
+  {
+   "path": "R07_WORK/board/sources/linux_sun20i_d1_pinmux.csv",
+   "bytes": 10301,
+   "sha256": "242e93fb5cabf05b082c9f1b642b146a33a876cb78eacee5800baa7ab5e86bbb"
+  },
+  {
+   "path": "R07_WORK/board/tests/test_check_board_plan.py",
+   "bytes": 7412,
+   "sha256": "449ecb43d7c32f1e9c7f8f349640c3ad1444172512888d1c1e1b3238e6171119"
+  },
+  {
+   "path": "R07_WORK/board/tools/extract_f133_pin_table.py",
+   "bytes": 1995,
+   "sha256": "97b53c9bc7609437efe1c3ff14dbd9441632fc1534b69df3ac8ae271933f22cc"
+  },
+  {
+   "path": "R07_WORK/board/tools/extract_linux_pinmux.py",
+   "bytes": 1586,
+   "sha256": "8ffd879ab149d2768faf9cec7368c2b0b17f3be1f3593455b4f6e6c7c4e27680"
+  },
+  {
+   "path": "R07_WORK/docs/BENCH_BRINGUP_PLAN.md",
+   "bytes": 3855,
+   "sha256": "104f8f6527adc7ab8d4c77fb1e268c6ec289fb720a3896f37c22485d2113506c"
+  },
+  {
+   "path": "R07_WORK/docs/BT820_HOST_PROTOCOL.md",
+   "bytes": 7397,
+   "sha256": "f5f23d96a58036c7abc18a5de135950b95d593b42c474795a0955fb03d526cc8"
+  },
+  {
+   "path": "R07_WORK/docs/F133_BOOT_PIN_POLICY.md",
+   "bytes": 5232,
+   "sha256": "cc60ef94001be17236dd817b8162fc2fa6a1bb16df82e9fe646fe638a8b89b0b"
+  },
+  {
+   "path": "R07_WORK/docs/MN820_POWER_ERRATA.md",
+   "bytes": 3102,
+   "sha256": "bcfc42ce2fbd319ded737c48f12225ea8cbd628674240332f51f91f4122c8194"
+  },
+  {
+   "path": "R07_WORK/docs/PSRAM_POWER_AND_IO.md",
+   "bytes": 4209,
+   "sha256": "27a6e60388ac2304dbb5bc8107fe78ccf6c8ce28024a50e7cb21d6fefbb02699"
+  },
+  {
+   "path": "R07_WORK/docs/SOURCES_R07.json",
+   "bytes": 3028,
+   "sha256": "724f9b1c16b6d7434784a566e9ba82f5eaccbc33877e837246f5c5178f9ce381"
+  },
+  {
+   "path": "R07_WORK/docs/VENDOR_QUESTIONS.md",
+   "bytes": 3194,
+   "sha256": "3d314b71cc92ff3bfe605d78d9ef2a053998bb2df967c0ff8cde7490694c9b1e"
+  },
+  {
+   "path": "R07_WORK/f133_boot/Makefile",
+   "bytes": 1351,
+   "sha256": "477c561ac0b3632271b091ed109bb03189490ee1e33d21aaa25a937f929c4f39"
+  },
+  {
+   "path": "R07_WORK/f133_boot/README.md",
+   "bytes": 1735,
+   "sha256": "736ba9234b646d3e2f376b66f38931ce67bccb9ada092e7d4749e50ef4545597"
+  },
+  {
+   "path": "R07_WORK/f133_boot/egon_check.py",
+   "bytes": 1374,
+   "sha256": "2a750d15be7a5def93f343429b453068b2a5b2064a0b6dac14992a4dcd4f519f"
+  },
+  {
+   "path": "R07_WORK/f133_boot/f133_regs.h",
+   "bytes": 2350,
+   "sha256": "a7b38778817c1a95e162bb2c14e8f62369b451198fc292c3918cae91813b89dd"
+  },
+  {
+   "path": "R07_WORK/f133_boot/link.ld",
+   "bytes": 481,
+   "sha256": "399c423f215d1f3a2c9d4b727203fee137de2b1cc017a3000f4c386fcd1e61be"
+  },
+  {
+   "path": "R07_WORK/f133_boot/main.c",
+   "bytes": 7889,
+   "sha256": "cc785054b75e091b1db4b11a0a5012fb2af4fe2487879382c5d2e8fc2af555eb"
+  },
+  {
+   "path": "R07_WORK/f133_boot/start.S",
+   "bytes": 467,
+   "sha256": "a3cae2ad65edf4b370f1595c680f4aa5a5c9b6537af151b846c49d20d892c5e1"
+  },
+  {
+   "path": "R07_WORK/f133_boot/shim/string.h",
+   "bytes": 261,
+   "sha256": "58a8bdb5643ffb1fcc4eec369dce43bbae505a64848ee0045227014f29adc60c"
+  },
+  {
+   "path": "R07_WORK/firmware/Makefile",
+   "bytes": 2690,
+   "sha256": "a9110afa53d71045dfbffc032d29772b321869fdf79d5584a6d9217a1cd948fd"
+  },
+  {
+   "path": "R07_WORK/firmware/include/accel_dispatch.h",
+   "bytes": 2433,
+   "sha256": "3d33c488abb302e90e52bc2934975ec8eae5999c724afb6b5c0d466e1cadfcf6"
+  },
+  {
+   "path": "R07_WORK/firmware/include/arc1_hal.h",
+   "bytes": 811,
+   "sha256": "c29956e652d779c52d692a76f305e909e7f9d36db42729fa6a9b507baed7e990"
+  },
+  {
+   "path": "R07_WORK/firmware/include/bt820_gfx.h",
+   "bytes": 3476,
+   "sha256": "5a3b333f4ea20439cf7dd9d71530acf41cc0bc17e3f5f3d1b61f103fecae5daf"
+  },
+  {
+   "path": "R07_WORK/firmware/include/bt820_host.h",
+   "bytes": 3671,
+   "sha256": "061bc015438049b9874acf84271e0c5196ef8ad6c1ead544e47cc27acb8e81fe"
+  },
+  {
+   "path": "R07_WORK/firmware/include/bt820_regs.h",
+   "bytes": 5801,
+   "sha256": "4618ce75703c6e1650c7916b826d2f8695ef090e5b7dff91d5ab609691cce0f6"
+  },
+  {
+   "path": "R07_WORK/firmware/include/t35_link.h",
+   "bytes": 1778,
+   "sha256": "148f3778814348595d41e4c5cb6f03deb4d46c8f62c9763eb55d5c871027ee9a"
+  },
+  {
+   "path": "R07_WORK/firmware/src/accel_dispatch.c",
+   "bytes": 7170,
+   "sha256": "22b1954731cd9247eedce7a10085685976ea89e7c203947cd49a33dc909e586d"
+  },
+  {
+   "path": "R07_WORK/firmware/src/bt820_gfx.c",
+   "bytes": 8797,
+   "sha256": "6a901b666afa8fc6c9925aecc45b3133df74806b77b5b0cba43217cf27d255f6"
+  },
+  {
+   "path": "R07_WORK/firmware/src/bt820_host.c",
+   "bytes": 8111,
+   "sha256": "1b842add76439296a09e82eaa8a8404dec7f382c3bb64dde380ce06405f5faf8"
+  },
+  {
+   "path": "R07_WORK/firmware/src/t35_link.c",
+   "bytes": 4179,
+   "sha256": "d3e4eaf9d76c626a72d4ef55d489040f2c5d3f2970d02c3e913d4baad8161028"
+  },
+  {
+   "path": "R07_WORK/firmware/tests/check.h",
+   "bytes": 236,
+   "sha256": "f53e01ebc32dde5fc6531a2176de40708ec70aa70f501e93d1674fa25980575c"
+  },
+  {
+   "path": "R07_WORK/firmware/tests/mocks.c",
+   "bytes": 16254,
+   "sha256": "63923bc190d8e90764d0244460f60330f173c7f6263abb85b72ecead3a2d0860"
+  },
+  {
+   "path": "R07_WORK/firmware/tests/mocks.h",
+   "bytes": 2815,
+   "sha256": "ba4b627f9fb57ecf1f49e3a78f6bbe6013db7cb5455bd1f0f22fb9d9e7b8398a"
+  },
+  {
+   "path": "R07_WORK/firmware/tests/r06_regression_probe.c",
+   "bytes": 843,
+   "sha256": "67f9c09ef167d2277ed1598dd33d47997de43a82be56695ff20c84387ef44c51"
+  },
+  {
+   "path": "R07_WORK/firmware/tests/test_bt820.c",
+   "bytes": 9704,
+   "sha256": "30f08670a88994f38f9cf350c5cfd5e94663cb04f4f84ed1e0bbfb20480c88fc"
+  },
+  {
+   "path": "R07_WORK/firmware/tests/test_firmware.c",
+   "bytes": 10549,
+   "sha256": "7e5a7b40e933a71f1998b1532e61251eac40842de8a55b278009aecb2a1d9ffc"
+  },
+  {
+   "path": "R07_WORK/fpga/psram_r07/Makefile",
+   "bytes": 1744,
+   "sha256": "deac95b109feb8dadc11cb6047f4fce6b8825943282463e364cc96863299d36d"
+  },
+  {
+   "path": "R07_WORK/fpga/psram_r07/aps6404l_model_r07.sv",
+   "bytes": 16422,
+   "sha256": "7ca55c6589f09e93f97d65dc0bdd214acf3c91e04920cb9999e5003e2fa6ccd1"
+  },
+  {
+   "path": "R07_WORK/fpga/psram_r07/tb_psram_r07.sv",
+   "bytes": 7373,
+   "sha256": "75c2a9f80b7b4aa58fac97d88a0785d837c2afdfb86ec766a35147481ca96f31"
+  },
+  {
+   "path": "R07_WORK/tools/run_r07_checks.py",
+   "bytes": 11004,
+   "sha256": "f48b71552448f809820c0e00b2b54e5498d8ab2470be4c6b706329667f96b49f"
+  }
+ ]
+}

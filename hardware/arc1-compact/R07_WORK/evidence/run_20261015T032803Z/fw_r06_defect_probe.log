@@ -1,0 +1,9 @@
+$ (cd R07_WORK/firmware && make r06-probe OUT=/tmp/arc1_r07_vdtg598z/fw)
+cc -O1 -std=c11 -I../../R06_WORK/firmware/include -I../../R06_WORK/firmware/tests -I../../R05_BASELINE/protocol/include -I../../R05_BASELINE/compute \
+  ../../R06_WORK/firmware/src/bt820_host.c ../../R06_WORK/firmware/tests/mocks.c ../../R05_BASELINE/protocol/src/arc1_protocol.c \
+  ../../R05_BASELINE/compute/arc1_transform.c tests/r06_regression_probe.c -o /tmp/arc1_r07_vdtg598z/fw/r06_probe
+R06 bt820_write(0x7F000000) -> 1 (invalid argument (alignment, length or 31-bit range))
+R06_DEFECT_REPRODUCED: write to RAM_CMD refused
+R06 defect reproduced; R07 suite covers it
+
+# exit status: 0

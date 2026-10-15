@@ -1,0 +1,6 @@
+$ (cd R07_WORK/firmware && make freestanding OUT=/tmp/arc1_r07_vdtg598z/fw)
+for f in src/bt820_host.c src/bt820_gfx.c src/t35_link.c src/accel_dispatch.c; do \
+  cc -c -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -ffreestanding -Iinclude -Itests -I../../R05_BASELINE/protocol/include -I../../R05_BASELINE/compute $f -o /tmp/arc1_r07_vdtg598z/fw/$(basename $f .c).o || exit 1; done
+freestanding object compile OK (not a link, not an F133 image)
+
+# exit status: 0

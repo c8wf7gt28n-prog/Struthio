@@ -1,0 +1,621 @@
+{
+  "schema_id": "arc1-r07-board-plan-v1",
+  "revision": "R07-draft-1",
+  "date": "2026-10-15",
+  "status": "SELECTED_UNVERIFIED (draft pin/voltage map; no schematic, no PCB, no electrical test)",
+  "topology": {
+    "bt820_command_master": "F133",
+    "t35_role": "OPTIONAL accelerator; not on the boot, display, or audio path",
+    "memory_pools": [
+      "F133 64 MiB in-package DDR2",
+      "MN820 128 MiB DDR3L (BT820 private)",
+      "T35 8 MiB QSPI PSRAM (T35 private)"
+    ]
+  },
+  "rails": {
+    "3V3": {
+      "nominal": 3.3,
+      "min": 3.2,
+      "max": 3.4,
+      "note": "R07: tightened to 3.3 V +/-3 % (incl. load transients) so that the MN820 module-level VOH 2.4 V (MN820 DS Table 3) still meets F133 VIH = 0.7*VCC-IO; see check level.compatible[BT_IO1:MN820->F133]"
+    },
+    "1V8_AN": {
+      "nominal": 1.8,
+      "min": 1.764,
+      "max": 1.836,
+      "note": "F133 AVCC/HPVCC (Table 5-2); VCC-RTC, VCC-PLL may share if noise budget allows"
+    },
+    "1V2_T35": {
+      "nominal": 1.2,
+      "min": 1.15,
+      "max": 1.25,
+      "note": "T35 VCC and VCCA_PLL (Table 63, Table 59)"
+    },
+    "F133_CORE": {
+      "nominal": null,
+      "note": "VDD-CORE/VDD-SYS/DRAM rails NOT transcribed in R06; take from F133 DS Table 5-2 and a reference design"
+    },
+    "AMP_VIN": {
+      "nominal": null,
+      "note": "speaker amplifier supply: reserved, not selected"
+    }
+  },
+  "power_sequence": [
+    "1V2_T35 (T35 VCC + VCCA_xx) first (T35 DS 'Power Up Sequence' step 1)",
+    "3V3 within 10 ms after 1V2_T35 is stable (T35 step 2; ramp VCCIO/10 V/ms .. 10 V/ms); also F133 VCC-IO/PD/PE/PG, PSRAM VDD, MN820 VIN",
+    "F133 VDD-SYS/VDD-CORE >= 2 ms after VCC-IO (F133 DS 5.12.1); VCC-RTC no later than other F133 rails",
+    "F133 RESET held low until all F133 rails are stable for > 64 ms (F133 DS 5.12.1)",
+    "T35 CRESET_N held low tCRESET_N after all T35 rails are stable, then released (T35 step 4). F133 PE8 can re-trigger configuration later",
+    "PSRAM: VDD on 3V3; tPU 150 us with CLK low, CE# high, SIO low is met by board pull resistors while T35 is unconfigured (see passives) and by the controller's PU counter after user mode"
+  ],
+  "f133": {
+    "package": "eLQFP128",
+    "domain_rails": {
+      "VCC-IO": "3V3",
+      "VCC-PD": "3V3",
+      "VCC-PE": "3V3",
+      "VCC-PG": "3V3"
+    },
+    "boot_medium": "SD_SMHC0",
+    "debug_uart": "UART0 on PE2/PE3 (Function6) so the SD card keeps PF0-PF5",
+    "pins": {
+      "PD10": {
+        "func": 4,
+        "net": "BT_SS_N",
+        "dir": "out"
+      },
+      "PD11": {
+        "func": 4,
+        "net": "BT_SCK",
+        "dir": "out"
+      },
+      "PD12": {
+        "func": 4,
+        "net": "BT_IO0",
+        "dir": "bidir"
+      },
+      "PD13": {
+        "func": 4,
+        "net": "BT_IO1",
+        "dir": "bidir"
+      },
+      "PD15": {
+        "func": 4,
+        "net": "BT_IO2",
+        "dir": "bidir",
+        "assumption": "F133 SPI1-WP carries quad IO2 (common QSPI convention, NOT stated in the F133 datasheet)"
+      },
+      "PD14": {
+        "func": 4,
+        "net": "BT_IO3",
+        "dir": "bidir",
+        "assumption": "F133 SPI1-HOLD carries quad IO3 (common QSPI convention, NOT stated in the F133 datasheet)"
+      },
+      "PD16": {
+        "func": 1,
+        "net": "BT_RST_N",
+        "dir": "out"
+      },
+      "PD17": {
+        "func": 14,
+        "net": "BT_INT_N",
+        "dir": "in"
+      },
+      "PC2": {
+        "func": 2,
+        "net": "T35_SCK",
+        "dir": "out"
+      },
+      "PC3": {
+        "func": 2,
+        "net": "T35_SS_N",
+        "dir": "out"
+      },
+      "PC4": {
+        "func": 2,
+        "net": "T35_MOSI",
+        "dir": "out",
+        "strap": "BOOT-SEL0"
+      },
+      "PC5": {
+        "func": 2,
+        "net": "T35_MISO",
+        "dir": "in",
+        "strap": "BOOT-SEL1"
+      },
+      "PC6": {
+        "func": 14,
+        "net": "T35_IRQ_N",
+        "dir": "in"
+      },
+      "PE8": {
+        "func": 1,
+        "net": "T35_CRESET_N",
+        "dir": "out"
+      },
+      "PE9": {
+        "func": 14,
+        "net": "T35_CDONE",
+        "dir": "in"
+      },
+      "PE2": {
+        "func": 6,
+        "net": "DBG_UART0_TX",
+        "dir": "out"
+      },
+      "PE3": {
+        "func": 6,
+        "net": "DBG_UART0_RX",
+        "dir": "in"
+      },
+      "PE10": {
+        "func": 1,
+        "net": "AMP_SD_N",
+        "dir": "out"
+      },
+      "PF0": {
+        "func": 2,
+        "net": "SD_D1",
+        "dir": "bidir"
+      },
+      "PF1": {
+        "func": 2,
+        "net": "SD_D0",
+        "dir": "bidir"
+      },
+      "PF2": {
+        "func": 2,
+        "net": "SD_CLK",
+        "dir": "out"
+      },
+      "PF3": {
+        "func": 2,
+        "net": "SD_CMD",
+        "dir": "bidir"
+      },
+      "PF4": {
+        "func": 2,
+        "net": "SD_D3",
+        "dir": "bidir"
+      },
+      "PF5": {
+        "func": 2,
+        "net": "SD_D2",
+        "dir": "bidir"
+      }
+    },
+    "reserved": {
+      "PB4": {
+        "func": 3,
+        "use": "I2S2-DOUT0 for optional external I2S DAC/codec (fallback only)"
+      },
+      "PB5": {
+        "func": 3,
+        "use": "I2S2-BCLK (fallback only)"
+      },
+      "PB6": {
+        "func": 3,
+        "use": "I2S2-LRCK (fallback only)"
+      },
+      "PB7": {
+        "func": 3,
+        "use": "I2S2-MCLK (fallback only)"
+      },
+      "PB2": {
+        "func": 4,
+        "use": "TWI0-SDA codec/amp control (fallback only)"
+      },
+      "PB3": {
+        "func": 4,
+        "use": "TWI0-SCK codec/amp control (fallback only)"
+      }
+    },
+    "analog_audio": {
+      "HPOUTL": 99,
+      "HPOUTR": 98,
+      "HPOUTFB": 100,
+      "supply": "HPVCC 1V8_AN",
+      "use": "baseline DAC output -> external stereo speaker amplifier inputs (amplifier NOT selected)"
+    },
+    "boot_policy": {
+      "strap_values": {
+        "PC4": 1,
+        "PC5": 1
+      },
+      "pin_boot_select": "11",
+      "expected_order": "SMHC0 -> EMMC2_BOOT -> EMMC2_USR -> other media (D1-H UM v1.0 Table 3-5; F133 manual not obtained, same BROM family assumed)",
+      "precondition": "eFuse BOOT_MODE = 0 (GPIO select). Read VER_REG 0x03000024 bits[12:11] and SID 0x03006210 bits[27:16] at bring-up.",
+      "t35_cannot_drive_straps": "T35_CRESET_N pulled low (4.7k) until F133 firmware drives PE8 high, so the T35 is unconfigured (weak pull-ups) while the BROM samples PC4/PC5",
+      "recovery": "remove microSD -> no medium -> BROM USB FEL (ASSUMPTION, verify on a D1s-class board); UART0 console on PE2/PE3; USB0 (pins 114/115) reserved for FEL"
+    },
+    "analog_reserved": {
+      "USB0-DM": 114,
+      "USB0-DP": 115,
+      "use": "BROM FEL / firmware recovery (connector or test pads)"
+    }
+  },
+  "t35": {
+    "device": "T35F400C3",
+    "bank_rails": {
+      "BANK1A": "3V3",
+      "BANK1B": "3V3",
+      "BANK1C": "3V3",
+      "BANK1D": "3V3",
+      "BANK1E": "3V3",
+      "BANK2A": "3V3",
+      "BANK2B": "3V3",
+      "BANK2C": "3V3",
+      "BANK3C": "3V3",
+      "TR": "3V3",
+      "BANK4A": "3V3",
+      "BANK4B": "3V3",
+      "BR": "3V3"
+    },
+    "vccio_ddr": "FLOATING (DDR unused; T35 DS Table 59)",
+    "ddr_vref": "GND (T35 DS Table 59)",
+    "pins": {
+      "K19": {
+        "name": "GPIOL_46",
+        "bank": "BANK1C",
+        "net": "PSRAM_CE_N",
+        "dir": "out"
+      },
+      "J18": {
+        "name": "GPIOL_47",
+        "bank": "BANK1C",
+        "net": "PSRAM_SCLK",
+        "dir": "out"
+      },
+      "K20": {
+        "name": "GPIOL_48",
+        "bank": "BANK1C",
+        "net": "PSRAM_SIO0",
+        "dir": "bidir"
+      },
+      "K14": {
+        "name": "GPIOL_49",
+        "bank": "BANK1C",
+        "net": "PSRAM_SIO1",
+        "dir": "bidir"
+      },
+      "J20": {
+        "name": "GPIOL_50",
+        "bank": "BANK1C",
+        "net": "PSRAM_SIO2",
+        "dir": "bidir"
+      },
+      "J16": {
+        "name": "GPIOL_51",
+        "bank": "BANK1C",
+        "net": "PSRAM_SIO3",
+        "dir": "bidir"
+      },
+      "D20": {
+        "name": "GPIOL_66_CLK0",
+        "bank": "BANK1C",
+        "net": "T35_OSC_25M",
+        "dir": "in",
+        "note": "3.3 V CMOS oscillator, frequency SELECTED 25 MHz, part not selected"
+      },
+      "D17": {
+        "name": "GPIOL_79",
+        "bank": "BANK1D",
+        "net": "T35_SCK",
+        "dir": "in"
+      },
+      "H15": {
+        "name": "GPIOL_81",
+        "bank": "BANK1D",
+        "net": "T35_SS_N",
+        "dir": "in"
+      },
+      "F17": {
+        "name": "GPIOL_82",
+        "bank": "BANK1D",
+        "net": "T35_MOSI",
+        "dir": "in"
+      },
+      "H14": {
+        "name": "GPIOL_83",
+        "bank": "BANK1D",
+        "net": "T35_MISO",
+        "dir": "tristate_out"
+      },
+      "C17": {
+        "name": "GPIOL_84",
+        "bank": "BANK1D",
+        "net": "T35_IRQ_N",
+        "dir": "od"
+      },
+      "A19": {
+        "name": "GPIOL_86",
+        "bank": "BANK1D",
+        "net": "T35_DBG_TX",
+        "dir": "out"
+      },
+      "B16": {
+        "name": "GPIOL_87",
+        "bank": "BANK1D",
+        "net": "T35_DBG_RX",
+        "dir": "in"
+      },
+      "A18": {
+        "name": "GPIOL_88",
+        "bank": "BANK1D",
+        "net": "T35_LED0",
+        "dir": "out"
+      },
+      "U19": {
+        "name": "CRESET_N",
+        "bank": "BANK1A",
+        "net": "T35_CRESET_N",
+        "dir": "in",
+        "config_pin": true
+      },
+      "T19": {
+        "name": "CDONE",
+        "bank": "BANK1A",
+        "net": "T35_CDONE",
+        "dir": "od",
+        "config_pin": true
+      },
+      "W18": {
+        "name": "GPIOL_00_SS_N",
+        "bank": "BANK1A",
+        "net": "CFG_FLASH_CS_N",
+        "dir": "out",
+        "config_pin": true,
+        "note": "SPI active x1 per AN 006 (not yet reviewed)"
+      },
+      "W19": {
+        "name": "GPIOL_01_CCK",
+        "bank": "BANK1A",
+        "net": "CFG_FLASH_SCK",
+        "dir": "out",
+        "config_pin": true
+      },
+      "Y17": {
+        "name": "GPIOL_08_CDI0",
+        "bank": "BANK1A",
+        "net": "CFG_FLASH_IO0",
+        "dir": "bidir",
+        "config_pin": true
+      },
+      "Y18": {
+        "name": "GPIOL_09_CDI1",
+        "bank": "BANK1A",
+        "net": "CFG_FLASH_IO1",
+        "dir": "bidir",
+        "config_pin": true
+      }
+    }
+  },
+  "psram": {
+    "part": "AP Memory APS6404L-3SQR-SN (SOP-8)",
+    "vdd_rail": "3V3",
+    "pins": {
+      "1": "PSRAM_CE_N",
+      "2": "PSRAM_SIO1",
+      "3": "PSRAM_SIO2",
+      "5": "PSRAM_SIO0",
+      "6": "PSRAM_SCLK",
+      "7": "PSRAM_SIO3"
+    },
+    "decoupling": "1 uF low-ESR ceramic at VDD pin 8, optional 0.1 uF (DS 16.4)",
+    "max_load_pf": 15
+  },
+  "mn820": {
+    "connector": "CN1 Hirose DF40C-100DP-0.4V(51) (mating receptacle on the main board: NOT selected)",
+    "vin_rail": "3V3",
+    "io_rail": "3V3",
+    "pins": {
+      "86": "BT_SCK",
+      "88": "BT_SS_N",
+      "90": "BT_IO0",
+      "84": "BT_IO1",
+      "94": "BT_IO2",
+      "92": "BT_IO3",
+      "98": "BT_RST_N",
+      "96": "BT_INT_N"
+    }
+  },
+  "passives": [
+    {
+      "net": "PSRAM_CE_N",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "CE# high during tPU and while T35 unconfigured"
+    },
+    {
+      "net": "PSRAM_SCLK",
+      "type": "pulldown",
+      "ohms": 2200,
+      "why": "CLK low during tPU against T35 config-time weak pull-up"
+    },
+    {
+      "net": "PSRAM_SIO0",
+      "type": "pulldown",
+      "ohms": 2200,
+      "why": "SIO low during tPU against T35 config-time weak pull-up"
+    },
+    {
+      "net": "PSRAM_SIO1",
+      "type": "pulldown",
+      "ohms": 2200,
+      "why": "SIO low during tPU"
+    },
+    {
+      "net": "PSRAM_SIO2",
+      "type": "pulldown",
+      "ohms": 2200,
+      "why": "SIO low during tPU"
+    },
+    {
+      "net": "PSRAM_SIO3",
+      "type": "pulldown",
+      "ohms": 2200,
+      "why": "SIO low during tPU"
+    },
+    {
+      "net": "BT_IO0",
+      "type": "pulldown",
+      "ohms": 47000,
+      "why": "BT820 DS 4.5.1: bi-directional data ports must have pull-downs"
+    },
+    {
+      "net": "BT_IO1",
+      "type": "pulldown",
+      "ohms": 47000,
+      "why": "BT820 DS 4.5.1"
+    },
+    {
+      "net": "BT_IO2",
+      "type": "pulldown",
+      "ohms": 47000,
+      "why": "BT820 DS 4.5.1"
+    },
+    {
+      "net": "BT_IO3",
+      "type": "pulldown",
+      "ohms": 47000,
+      "why": "BT820 DS 4.5.1"
+    },
+    {
+      "net": "BT_SS_N",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "deselected while F133 is in reset"
+    },
+    {
+      "net": "BT_SCK",
+      "type": "pulldown",
+      "ohms": 10000,
+      "why": "mode 0 idle low"
+    },
+    {
+      "net": "BT_RST_N",
+      "type": "pulldown",
+      "ohms": 10000,
+      "why": "BT820 held in reset until F133 firmware releases it"
+    },
+    {
+      "net": "BT_INT_N",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "open-drain interrupt"
+    },
+    {
+      "net": "T35_SS_N",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "deselected while F133 is in reset"
+    },
+    {
+      "net": "T35_IRQ_N",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "open-drain interrupt"
+    },
+    {
+      "net": "T35_CDONE",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "CDONE indicator (value per Trion checklist to be confirmed)"
+    },
+    {
+      "net": "AMP_SD_N",
+      "type": "pulldown",
+      "ohms": 100000,
+      "why": "speaker amplifier muted until firmware enables it"
+    },
+    {
+      "net": "T35_CRESET_N",
+      "type": "pulldown",
+      "ohms": 4700,
+      "why": "R07: T35 held unconfigured until F133 releases it; keeps the FPGA off the BOOT-SEL pins during BROM sampling"
+    },
+    {
+      "net": "T35_MOSI",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "R07: BOOT-SEL0 = 1 at reset (F133 PC4)"
+    },
+    {
+      "net": "T35_MISO",
+      "type": "pullup",
+      "ohms": 10000,
+      "rail": "3V3",
+      "why": "R07: BOOT-SEL1 = 1 at reset (F133 PC5)"
+    }
+  ],
+  "acknowledged_risks": [
+    {
+      "id": "BOOTSEL_SHARED_WITH_SPI0",
+      "pins": [
+        "PC4",
+        "PC5"
+      ],
+      "mitigation": "R07: straps defined as 11 (SMHC0 first) by 10k pull-ups; codes 01/10/11 all try SMHC0 first, only 00 does not. T35 is held in CRESET_N by a 4.7k pull-down until F133 firmware runs, so it cannot pull a strap low. Residual: eFuse BOOT_MODE state of the purchased F133-B lot (bench check)."
+    },
+    {
+      "id": "SD_BOOT_REQUIRED",
+      "pins": [
+        "PF0",
+        "PF1",
+        "PF2",
+        "PF3",
+        "PF4",
+        "PF5"
+      ],
+      "mitigation": "eMMC (SMHC2) is impossible because it uses PC2-PC7 = SPI0. SPI-NOR/NAND boot would share SPI0 with T35 through a GPIO chip-select; that is not selected."
+    },
+    {
+      "id": "F133_QUAD_IO_UNCONFIRMED",
+      "pins": [
+        "PD12",
+        "PD13",
+        "PD14",
+        "PD15"
+      ],
+      "mitigation": "F133 DS lists Quad-Output/Quad-Input, not Quad-IO. BT820 Quad mode needs a quad address phase. Baseline uses BT820 SINGLE mode (the default, host commands work only there); Dual/Quad only after register-level confirmation in the F133 user manual and bench test."
+    },
+    {
+      "id": "PSRAM_POWERUP_PULLS",
+      "pins": [
+        "J18",
+        "K20",
+        "K14",
+        "J20",
+        "J16"
+      ],
+      "mitigation": "2.2 kOhm pull-downs add ~1.5 mA per line while driven high; check T35 drive strength and SI at the selected SCLK"
+    },
+    {
+      "id": "MN820_POWER_PIN_WORDING",
+      "pins": [
+        "CN1.13",
+        "CN1.15",
+        "CN1.17",
+        "CN1.19"
+      ],
+      "mitigation": "R07: RESOLVED FROM REFERENCE SCHEMATIC: VM820C DS v1.1 Figure 5 buck 'VSYS -> 3V3' net VCC3V3 drives baseboard receptacle CN6 pins 13/15/17/19 (Figure 7). The baseboard supplies the module; 'output' is baseboard-side wording. Written Bridgetek confirmation still requested (Q1)."
+    },
+    {
+      "id": "MN820_MODULE_VOH_2V4",
+      "pins": [
+        "CN1.84",
+        "CN1.90",
+        "CN1.92",
+        "CN1.94"
+      ],
+      "mitigation": "MN820 DS Table 3 guarantees only VOH >= 2.4 V at module level; F133 VIH = 0.7*VCC-IO needs VCC-IO <= 3.428 V. 3V3 rail tightened to 3.20-3.40 V; margin +0.02 V on the module spec (chip-level BT820 VOH = VCCIO-0.4 would give ~+0.6 V). Measure VOH on the bench."
+    }
+  ]
+}

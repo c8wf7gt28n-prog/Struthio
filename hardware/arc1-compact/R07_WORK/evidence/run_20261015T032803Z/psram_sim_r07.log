@@ -1,0 +1,9 @@
+INFO R1 id_mfid=00 id_kgd=00 err=1
+TEST R1_dead_chip done errors=0
+TEST R2_kgd_fail done errors=0
+MODEL_INFO t=226680000 PSRAM power cycled (contents lost)
+INFO R3 after power loss: status=0 ready=1 mismatching_bytes=255 new_model_violations=592
+TEST R3_power_interruption done errors=0
+SUMMARY tb_psram_r07 errors=0 contention=0 model_violations_total=592 (R3 deliberately provokes some)
+PSRAM_R07_TB_PASS
+tb_psram_r07.sv:136: $finish called at 508100000 (1ps)

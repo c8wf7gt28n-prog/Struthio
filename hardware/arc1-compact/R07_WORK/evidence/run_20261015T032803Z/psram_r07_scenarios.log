@@ -1,0 +1,14 @@
+$ (cd R07_WORK/fpga/psram_r07 && make r07 OUT=/tmp/arc1_r07_vdtg598z/ps)
+mkdir -p /tmp/arc1_r07_vdtg598z/ps
+iverilog -g2012 -s tb_psram_r07 -o /tmp/arc1_r07_vdtg598z/ps/tb_r07.vvp tb_psram_r07.sv aps6404l_model_r07.sv ../../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv
+vvp -n /tmp/arc1_r07_vdtg598z/ps/tb_r07.vvp > /tmp/arc1_r07_vdtg598z/ps/sim_r07.log 2>&1; rc=$?; grep -E '^(TEST|INFO|SUMMARY|TB_ERROR|PSRAM_R07)' /tmp/arc1_r07_vdtg598z/ps/sim_r07.log; \
+  test $rc -eq 0 && grep -q '^PSRAM_R07_TB_PASS$' /tmp/arc1_r07_vdtg598z/ps/sim_r07.log
+INFO R1 id_mfid=00 id_kgd=00 err=1
+TEST R1_dead_chip done errors=0
+TEST R2_kgd_fail done errors=0
+INFO R3 after power loss: status=0 ready=1 mismatching_bytes=255 new_model_violations=592
+TEST R3_power_interruption done errors=0
+SUMMARY tb_psram_r07 errors=0 contention=0 model_violations_total=592 (R3 deliberately provokes some)
+PSRAM_R07_TB_PASS
+
+# exit status: 0

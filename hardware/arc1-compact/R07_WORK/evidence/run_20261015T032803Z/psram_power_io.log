@@ -1,0 +1,17 @@
+$ (cd R07_WORK/analysis && /usr/bin/python3 psram_power_io.py --json /home/user/Struthio/hardware/arc1-compact/R07_WORK/evidence/run_20261015T032803Z/psram_power_io.json)
+PASS powerup_sclk_sio_low                  0.2914 V  limit <= VIL 0.4  Thevenin: T35 27k min pull-up to 3.40 V, 2.2k+5% pull-down, +11 uA leakage
+PASS powerup_ce_tracks_vdd                 0.1155 V  limit <= 0.2  leakage x 10k+5%; T35 weak pull-up in parallel only helps
+PASS t35_drive_current_per_line            1.6268 mA limit << IOH 14.4 mA (DS1)  T35 Table 68 IOH is at TJ 25 C; 4x headroom required
+OPEN psram_voh_spec_condition              1.6268 mA limit datasheet VOH only at 0.2 mA  OPEN: the 2.2k load draws ~7x the VOH test current; vendor question Q6
+PASS psram_voh_estimate_vs_t35_vih         0.4787 V  limit >= 0 V margin  ASSUMPTION: 0.8*VDD at 3.20 V minus I*50 ohm
+PASS t35_to_psram_high@3.2                    0.2 V  limit >= 0  
+PASS t35_to_psram_low@3.2                     0.2 V  limit >= 0  
+PASS psram_to_t35_low@3.2                    0.16 V  limit >= 0  PSRAM VOL 0.2*VDD (at 0.2 mA; pull-down does not load a low output)
+PASS psram_to_t35_high@3.2                   0.56 V  limit >= 0  
+PASS t35_to_psram_high@3.4                    0.2 V  limit >= 0  
+PASS t35_to_psram_low@3.4                     0.2 V  limit >= 0  
+PASS psram_to_t35_low@3.4                    0.12 V  limit >= 0  PSRAM VOL 0.2*VDD (at 0.2 mA; pull-down does not load a low output)
+PASS psram_to_t35_high@3.4                   0.72 V  limit >= 0  
+PASS psram power/IO DC analysis: 13 checks, 0 failing, 1 OPEN vendor question (PLANNING_CALCULATED)
+
+# exit status: 0
