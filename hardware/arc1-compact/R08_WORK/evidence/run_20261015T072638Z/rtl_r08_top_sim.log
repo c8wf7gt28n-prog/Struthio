@@ -1,0 +1,33 @@
+$ make sim
+# cwd: R08_WORK/fpga
+# exit: 0
+
+iverilog -g2012 -I build -s tb_top_r08 -o build/tb_top_r08.vvp -Ptb_top_r08.GOLD_DIR='"build"' tb/tb_top_r08.sv ../../R07_WORK/fpga/psram_r07/aps6404l_model_r07.sv rtl/arc1_t35_top_r08.sv rtl/psram_power_guard.sv rtl/mbx_regs_r08.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_loopback.sv ../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv
+vvp -n build/tb_top_r08.vvp > build/sim_top_r08.log 2>&1; rc=$?; \
+  grep -E '^(TEST|INFO|SUMMARY|TB_ERROR|MODEL_VIOLATION|TOP_R08)' build/sim_top_r08.log; \
+  test $rc -eq 0 && grep -q '^TOP_R08_TB_PASS$' build/sim_top_r08.log
+TEST ident done errors=0
+TEST P0_unpowered_start done errors=0 back_power_en_low=0
+TEST P1_controlled_powerup started (tPU pins checked continuously)
+TEST buffer_integrity done errors=0
+TEST cs_abort done errors=0
+INFO golden frame 0 len=24 passed through unchanged
+INFO golden frame 1 len=25 passed through unchanged
+INFO golden frame 2 len=40 passed through unchanged
+INFO golden frame 3 len=4120 passed through unchanged
+INFO golden frame 4 len=4120 passed through unchanged
+TEST golden_loopback done errors=0
+TEST doorbell_rules done errors=0
+INFO bist pass=1 fail=0 errs=0
+TEST psram_bist_pass done errors=0
+INFO bist-with-fault pass=0 fail=1 errs=1
+TEST psram_bist_detects_fault done errors=0
+TEST psram_recover done errors=0
+TEST fpga_reset done errors=0
+TEST P1_controlled_powerup done errors=0 tpu_pin_viol=0
+TEST P2_commanded_poweroff done errors=0 back_power_en_low=0
+TEST P3_pg_glitch done errors=0
+INFO P4 back-power window before PG detection: 1181 ns total (EN high; residual risk, see PSRAM_POWER_R08.md)
+TEST P4_unannounced_loss done errors=0
+SUMMARY tb_top_r08 errors=0 model_violations_before_P2=0 total=0 tpu_pin_viol=0 back_power_en_low=0
+TOP_R08_TB_PASS

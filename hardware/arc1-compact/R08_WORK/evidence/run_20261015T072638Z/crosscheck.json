@@ -1,0 +1,23 @@
+{
+ "A_netlist_vs_plan": [],
+ "B_symbol_vs_footprint": [],
+ "C_efinity_vs_schematic_vs_rtl": [],
+ "D_firmware_vs_schematic": [],
+ "info": {
+  "netlist_components": 329,
+  "plan_components": 329,
+  "named_nets": 161,
+  "no_connect_pins": 405,
+  "footprints_checked": 36,
+  "footprint_status_count": {
+   "STD_LIB": 318,
+   "GENERATED_DERIVED": 3,
+   "SLIM4_CANDIDATE": 6,
+   "PLACEHOLDER": 2
+  },
+  "efinity_gpio": 17,
+  "rtl_top_ports": 33,
+  "firmware_pins": 53
+ },
+ "result": "PASS"
+}

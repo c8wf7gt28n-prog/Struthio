@@ -1,0 +1,6 @@
+$ make freestanding
+# cwd: R08_WORK/firmware
+# exit: 0
+
+for f in src/spi_nor.c src/flash_layout.c src/game_lib.c src/crc32.c; do cc -c -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -ffreestanding -Iinclude -Itests $f -o build/$(basename $f .c).o || exit 1; done
+freestanding object compile OK (not a link, not an F133 image)

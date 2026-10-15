@@ -1,0 +1,5 @@
+$ kicad-cli version
+# cwd: R08_WORK/cad
+# exit: 0
+
+9.0.9

@@ -1,0 +1,7 @@
+$ make lint
+# cwd: R08_WORK/fpga
+# exit: 0
+
+mkdir -p build
+verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM \
+  --top-module arc1_t35_top_r08 rtl/arc1_t35_top_r08.sv rtl/psram_power_guard.sv rtl/mbx_regs_r08.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_loopback.sv ../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv > build/lint_top_r08.log 2>&1; rc=$?; cat build/lint_top_r08.log; exit $rc

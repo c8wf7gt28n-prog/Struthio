@@ -1,0 +1,9 @@
+$ kicad-cli sch erc --format report --severity-all -o ERC.txt ARC1_R08.kicad_sch && grep -q 'ERC messages: 0  Errors 0  Warnings 0' ERC.txt && tail -3 ERC.txt
+# cwd: R08_WORK/cad
+# exit: 0
+
+Found 0 violations
+Saved ERC Report to ERC.txt
+***** Sheet /controls/
+
+ ** ERC messages: 0  Errors 0  Warnings 0

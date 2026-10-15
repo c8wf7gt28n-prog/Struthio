@@ -1,0 +1,8 @@
+$ make sanitize
+# cwd: R08_WORK/firmware
+# exit: 0
+
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -Itests -fsanitize=address,undefined -fno-sanitize-recover=all \
+  -fno-omit-frame-pointer src/spi_nor.c src/flash_layout.c src/game_lib.c src/crc32.c tests/nor_mock.c tests/test_nor.c tests/test_layout.c tests/test_library.c tests/test_main.c -o build/test_r08_san
+ASAN_OPTIONS=detect_leaks=0 /home/user/Struthio/hardware/arc1-compact/R08_WORK/firmware/build/test_r08_san
+R08 firmware host tests: 757 checks, 0 failures

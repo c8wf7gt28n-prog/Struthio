@@ -1,0 +1,6 @@
+$ kicad-cli sch export pdf -o ARC1_R08_schematic.pdf ARC1_R08.kicad_sch
+# cwd: R08_WORK/cad
+# exit: 0
+
+Plotted to 'ARC1_R08_schematic.pdf'.
+Done.

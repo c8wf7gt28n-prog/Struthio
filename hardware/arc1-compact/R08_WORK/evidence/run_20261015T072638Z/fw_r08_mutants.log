@@ -1,0 +1,8 @@
+$ make mutants
+# cwd: R08_WORK/firmware
+# exit: 0
+
+MUTANT_KILLED MUTANT_NOR_3B_UPPER (12 failing checks)
+MUTANT_KILLED MUTANT_NOR_ENTER_4B (19 failing checks)
+MUTANT_KILLED MUTANT_NOR_NO_WIP_POLL (198 failing checks)
+MUTANT_KILLED MUTANT_NOR_NO_EAR_RESTORE (6 failing checks)

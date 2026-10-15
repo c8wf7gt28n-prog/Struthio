@@ -1,0 +1,6 @@
+$ /usr/bin/python3 tools/gen_reports_r08.py
+# cwd: R08_WORK
+# exit: 0
+
+interconnect rows 65
+BOM lines 96, components 329

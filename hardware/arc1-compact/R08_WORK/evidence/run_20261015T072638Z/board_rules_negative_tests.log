@@ -1,0 +1,25 @@
+$ /usr/bin/python3 -m unittest -v test_check_board_r08
+# cwd: R08_WORK/board
+# exit: 0
+
+test_baseline_passes (test_check_board_r08.Base.test_baseline_passes) ... ok
+test_back_power_pullup (test_check_board_r08.Mutations.test_back_power_pullup) ... ok
+test_ce_pullup_to_unswitched_rail (test_check_board_r08.Mutations.test_ce_pullup_to_unswitched_rail) ... ok
+test_core_buck_not_sequenced (test_check_board_r08.Mutations.test_core_buck_not_sequenced) ... ok
+test_isolation_buffer_enabled_at_reset (test_check_board_r08.Mutations.test_isolation_buffer_enabled_at_reset) ... ok
+test_missing_decoupling (test_check_board_r08.Mutations.test_missing_decoupling) ... ok
+test_mn820_miso_direct (test_check_board_r08.Mutations.test_mn820_miso_direct) ... ok
+test_nor_reset_without_fel_button (test_check_board_r08.Mutations.test_nor_reset_without_fel_button) ... ok
+test_psram_always_powered (test_check_board_r08.Mutations.test_psram_always_powered) ... ok
+test_psram_power_not_gated_by_cdone (test_check_board_r08.Mutations.test_psram_power_not_gated_by_cdone) ... ok
+test_psram_r07_static_2k2_pulldown (test_check_board_r08.Mutations.test_psram_r07_static_2k2_pulldown) ... ok
+test_r07_strap_11_is_rejected (test_check_board_r08.Mutations.test_r07_strap_11_is_rejected) ... ok
+test_t35_directly_on_spi0 (test_check_board_r08.Mutations.test_t35_directly_on_spi0) ... ok
+test_t35_vccio_before_core (test_check_board_r08.Mutations.test_t35_vccio_before_core) ... ok
+test_usb_host_reintroduced (test_check_board_r08.Mutations.test_usb_host_reintroduced) ... ok
+test_weak_strap_pulldown (test_check_board_r08.Mutations.test_weak_strap_pulldown) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.158s
+
+OK

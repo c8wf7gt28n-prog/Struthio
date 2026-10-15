@@ -1,0 +1,5 @@
+$ /usr/bin/python3 firmware/tools/gen_board_pins.py
+# cwd: R08_WORK
+# exit: 0
+
+board_pins_r08.h: 53 pins

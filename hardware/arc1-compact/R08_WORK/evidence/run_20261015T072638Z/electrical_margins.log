@@ -1,0 +1,13 @@
+$ /usr/bin/python3 analysis/electrical_margins_r08.py analysis/electrical_margins_r08.json docs/ELECTRICAL_MARGINS_R08.md
+# cwd: R08_WORK
+# exit: 0
+
+margins: PASS 22 CONDITIONAL 5 OPEN 1 FAIL 2
+  FAIL: supervisor / U4 TPS3808G33 min threshold vs T35 VCCIO min 3.14 V = 3.0239 (limit 3.14)
+  OPEN: boot_strap / NOR DO load from the BOOT-SEL1 pull-down vs VOH test current = 1.041 (limit 0.1)
+  CONDITIONAL: timing / SPI1 read: max SCLK with F133 sampling on the next rising edge = 35.0 (limit 30.0)
+  CONDITIONAL: psram / CDONE -> CDONE_DLY delay vs tUSER = 963.7 (limit 25.0)
+  FAIL: vbus_budget / VBUS current, default USB (500 mA, amps muted) = 0.881 (limit 0.5)
+  CONDITIONAL: vbus_budget / VBUS current, Type-C 1.5 A (0.25 W/ch) = 1.005 (limit 1.5)
+  CONDITIONAL: vbus_budget / VBUS current, Type-C 3.0 A (1.4 W/ch into 8 ohm) = 1.575 (limit 3.0)
+  CONDITIONAL: vbus_budget / PTC hold >= worst budgeted current (3 A class) = 2.6 (limit 1.575)

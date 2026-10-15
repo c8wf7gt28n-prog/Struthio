@@ -1,0 +1,5 @@
+$ /usr/bin/python3 -c "import xml.dom.minidom as m; m.parse('arc1_t35_r08.xml')" && /usr/bin/python3 -m py_compile arc1_t35_r08_isf.py && echo OK
+# cwd: R08_WORK/fpga/efinity
+# exit: 0
+
+OK

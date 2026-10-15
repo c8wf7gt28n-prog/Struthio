@@ -1,0 +1,275 @@
+{
+ "run": "20261015T072638Z",
+ "verdict": "PASS_R08_HOST_RTL_NATIVE_KICAD_CHECKS",
+ "pass": 30,
+ "fail": 0,
+ "not_run": 7,
+ "steps": [
+  {
+   "step": "handoff_integrity",
+   "status": "PASS",
+   "detail": "142 manifest entries (R06_WORK/README.md exempt as in R07), changed: []"
+  },
+  {
+   "step": "frozen_r05_r06_r07_unchanged",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "git diff --quiet 1262c1a -- R05_BASELINE R06_WORK R07_WORK *.md *.json *.txt CLAUDE.md && git diff --quiet 1262c1a -- R05_BASELINE R06_WORK R07_WORK && echo 'no change vs 1262c1a'",
+   "cwd": "."
+  },
+  {
+   "step": "r07_source_zip_digest",
+   "status": "NOT_RUN",
+   "detail": "set R07_ZIP=<ARC1_R07_SOURCE_ORIGINAL.zip> to verify (verified manually 2026-10-15: c152f0ca...a039, tree identical to repo)"
+  },
+  {
+   "step": "r07_regression_full",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 356.1,
+   "cmd": "/usr/bin/python3 R07_WORK/tools/run_r07_checks.py",
+   "cwd": "../../../../../tmp/r08_r07reg_9pm304a0/arc1-compact",
+   "detail": "PASS_R07_HOST_RTL_PLANNING_BUILD_CHECKS: 16 pass, 0 fail, 6 NOT_RUN -> R07_WORK/evidence/run_20261015T072638Z/summary.json"
+  },
+  {
+   "step": "fw_r08_test",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.3,
+   "cmd": "make test",
+   "cwd": "R08_WORK/firmware"
+  },
+  {
+   "step": "fw_r08_sanitize",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 2.1,
+   "cmd": "make sanitize",
+   "cwd": "R08_WORK/firmware"
+  },
+  {
+   "step": "fw_r08_freestanding",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.3,
+   "cmd": "make freestanding",
+   "cwd": "R08_WORK/firmware"
+  },
+  {
+   "step": "fw_r08_mutants",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 3.5,
+   "cmd": "make mutants",
+   "cwd": "R08_WORK/firmware"
+  },
+  {
+   "step": "rtl_r08_lint",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "make lint",
+   "cwd": "R08_WORK/fpga"
+  },
+  {
+   "step": "rtl_r08_top_sim",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 96.4,
+   "cmd": "make sim",
+   "cwd": "R08_WORK/fpga"
+  },
+  {
+   "step": "rtl_r08_synth_estimate",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 5.1,
+   "cmd": "make synth-efx",
+   "cwd": "R08_WORK/fpga"
+  },
+  {
+   "step": "kicad_generate",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "/usr/bin/python3 gen/gen_kicad.py",
+   "cwd": "R08_WORK/cad"
+  },
+  {
+   "step": "kicad_generate_reproducible",
+   "status": "PASS",
+   "detail": "regenerated sources identical to the committed files"
+  },
+  {
+   "step": "kicad_version",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "kicad-cli version",
+   "cwd": "R08_WORK/cad",
+   "detail": "9.0.9"
+  },
+  {
+   "step": "kicad_erc",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.6,
+   "cmd": "kicad-cli sch erc --format report --severity-all -o ERC.txt ARC1_R08.kicad_sch && grep -q 'ERC messages: 0  Errors 0  Warnings 0' ERC.txt && tail -3 ERC.txt",
+   "cwd": "R08_WORK/cad"
+  },
+  {
+   "step": "kicad_erc_json",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.8,
+   "cmd": "kicad-cli sch erc --format json --severity-all -o ERC.json ARC1_R08.kicad_sch",
+   "cwd": "R08_WORK/cad"
+  },
+  {
+   "step": "kicad_netlist",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.7,
+   "cmd": "kicad-cli sch export netlist --format kicadxml -o NETLIST.xml ARC1_R08.kicad_sch",
+   "cwd": "R08_WORK/cad"
+  },
+  {
+   "step": "kicad_pdf",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 1.7,
+   "cmd": "kicad-cli sch export pdf -o ARC1_R08_schematic.pdf ARC1_R08.kicad_sch",
+   "cwd": "R08_WORK/cad"
+  },
+  {
+   "step": "crosscheck_1to1",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "/usr/bin/python3 cad/check/crosscheck_r08.py . /home/user/Struthio/hardware/arc1-compact/R08_WORK/evidence/run_20261015T072638Z/crosscheck.json",
+   "cwd": "R08_WORK"
+  },
+  {
+   "step": "board_rules",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 board/check_board_r08.py",
+   "cwd": "R08_WORK"
+  },
+  {
+   "step": "board_rules_negative_tests",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.2,
+   "cmd": "/usr/bin/python3 -m unittest -v test_check_board_r08",
+   "cwd": "R08_WORK/board"
+  },
+  {
+   "step": "electrical_margins",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 analysis/electrical_margins_r08.py analysis/electrical_margins_r08.json docs/ELECTRICAL_MARGINS_R08.md",
+   "cwd": "R08_WORK",
+   "detail": "margins: PASS 22 CONDITIONAL 5 OPEN 1 FAIL 2"
+  },
+  {
+   "step": "reports_bom_pins",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 tools/gen_reports_r08.py",
+   "cwd": "R08_WORK"
+  },
+  {
+   "step": "firmware_pin_header",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 firmware/tools/gen_board_pins.py",
+   "cwd": "R08_WORK"
+  },
+  {
+   "step": "efinity_inputs_generate",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 gen_efinity_r08.py",
+   "cwd": "R08_WORK/fpga/efinity"
+  },
+  {
+   "step": "efinity_inputs_reproducible",
+   "status": "PASS",
+   "detail": "identical"
+  },
+  {
+   "step": "efinity_inputs_syntax",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "/usr/bin/python3 -c \"import xml.dom.minidom as m; m.parse('arc1_t35_r08.xml')\" && /usr/bin/python3 -m py_compile arc1_t35_r08_isf.py && echo OK",
+   "cwd": "R08_WORK/fpga/efinity"
+  },
+  {
+   "step": "efinity_native",
+   "status": "NOT_RUN",
+   "detail": "efx_run.py not found: NATIVE_EDA_NOT_RUN (no T35 fit/STA/bitstream). See fpga/efinity/RUN_EFINITY_LOCALLY.md"
+  },
+  {
+   "step": "f133_diag_build",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.6,
+   "cmd": "make clean && make",
+   "cwd": "R08_WORK/f133_diag"
+  },
+  {
+   "step": "f133_diag_rebuild",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.7,
+   "cmd": "make clean && make",
+   "cwd": "R08_WORK/f133_diag"
+  },
+  {
+   "step": "f133_diag_reproducible",
+   "status": "PASS",
+   "detail": "sha256 f20eab25c244c759384f9a80e141a1b5334525a1ecce0783332e754371672bce / f20eab25c244c759384f9a80e141a1b5334525a1ecce0783332e754371672bce"
+  },
+  {
+   "step": "evidence_ledger_schema",
+   "status": "PASS",
+   "detail": "28 entries; invalid []; duplicates 0"
+  },
+  {
+   "step": "pcb_layout_drc",
+   "status": "NOT_RUN",
+   "detail": "no PCB layout exists (R09): no DRC, no SI/PI extraction, no Gerbers"
+  },
+  {
+   "step": "si_pi_simulation",
+   "status": "NOT_RUN",
+   "detail": "no IBIS/SPICE/field-solver runs; NOR/PSRAM VOH under load OPEN"
+  },
+  {
+   "step": "hardware_any",
+   "status": "NOT_RUN",
+   "detail": "no board, no silicon: PHYSICAL_NOT_TESTED for F133 boot, NOR, BT820, T35, PSRAM, USB, audio"
+  },
+  {
+   "step": "vendor_answers",
+   "status": "NOT_RUN",
+   "detail": "Bridgetek / AP Memory / Efinix / Allwinner / Winbond questions unanswered (VENDOR_OPEN)"
+  },
+  {
+   "step": "fabrication",
+   "status": "NOT_RUN",
+   "detail": "NOT approved: R08 is HOLD/PARTIAL with open P0 items"
+  }
+ ],
+ "tools": {
+  "python": "3.13.16"
+ }
+}

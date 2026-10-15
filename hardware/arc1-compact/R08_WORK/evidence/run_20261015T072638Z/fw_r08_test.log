@@ -1,0 +1,6 @@
+$ make test
+# cwd: R08_WORK/firmware
+# exit: 0
+
+/home/user/Struthio/hardware/arc1-compact/R08_WORK/firmware/build/test_r08
+R08 firmware host tests: 757 checks, 0 failures

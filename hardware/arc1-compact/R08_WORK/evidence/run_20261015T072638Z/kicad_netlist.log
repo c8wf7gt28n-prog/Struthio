@@ -1,0 +1,4 @@
+$ kicad-cli sch export netlist --format kicadxml -o NETLIST.xml ARC1_R08.kicad_sch
+# cwd: R08_WORK/cad
+# exit: 0
+

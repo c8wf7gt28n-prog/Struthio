@@ -1,0 +1,5 @@
+$ /usr/bin/python3 gen_efinity_r08.py
+# cwd: R08_WORK/fpga/efinity
+# exit: 0
+
+Efinity inputs generated: 17 GPIO instances, 8 RTL files

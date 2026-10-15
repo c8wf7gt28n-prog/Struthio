@@ -1,0 +1,15 @@
+$ make synth-efx
+# cwd: R08_WORK/fpga
+# exit: 0
+
+mkdir -p build
+yosys -q -l build/synth_top_r08_efx.log -p 'read_verilog -sv rtl/arc1_t35_top_r08.sv rtl/psram_power_guard.sv rtl/mbx_regs_r08.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_loopback.sv ../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv; synth_efinix -top arc1_t35_top_r08; stat' > /dev/null
+grep -E 'EFX_|Number of cells' build/synth_top_r08_efx.log | tail -8
+     EFX_LUT4                     1262
+     EFX_RAM_5K                     50
+   Number of cells:               2957
+     EFX_ADD                       785
+     EFX_FF                        858
+     EFX_GBUFCE                      2
+     EFX_LUT4                     1262
+     EFX_RAM_5K                     50

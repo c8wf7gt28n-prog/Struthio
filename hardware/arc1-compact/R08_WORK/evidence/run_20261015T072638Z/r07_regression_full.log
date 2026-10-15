@@ -1,0 +1,28 @@
+$ /usr/bin/python3 R07_WORK/tools/run_r07_checks.py
+# cwd: ../../../../../tmp/r08_r07reg_9pm304a0/arc1-compact
+# exit: 0
+
+evidence: R07_WORK/evidence/run_20261015T072638Z
+PASS    handoff_integrity: 141 manifest entries verified, changed: []
+PASS    r06_regression_full (277.1 s)
+PASS    fw_test (1.0 s)
+PASS    fw_sanitize (2.0 s)
+PASS    fw_freestanding (0.4 s)
+PASS    fw_mutants (2.9 s)
+PASS    fw_r06_defect_probe (0.3 s)
+PASS    board_unit_tests (0.1 s)
+PASS    board_plan_check (0.1 s)
+PASS    psram_power_io (0.0 s)
+PASS    psram_r07_scenarios (25.4 s)
+PASS    psram_extra_clocks (45.9 s)
+PASS    f133_image_build (0.3 s)
+PASS    f133_image_rebuild (0.3 s)
+PASS    f133_image_reproducible: sha256 9467622f754a97acf36c29df51c3d6b6ade9f697a9f58f80ddc4c05cd8532b0b / 9467622f754a97acf36c29df51c3d6b6ade9f697a9f58f80ddc4c05cd8532b0b
+PASS    evidence_ledger_schema: 20 entries; invalid []; duplicate ids []
+NOT_RUN efinity_native: efx_run.py not found: NATIVE_EDA_NOT_RUN (no T35 fit/STA/bitstream)
+NOT_RUN f133_on_silicon: image never executed; no board
+NOT_RUN bt820_on_silicon: no MN820/VM820C attached: REG_ID, FIFO and display unproven
+NOT_RUN psram_on_silicon: no T35/PSRAM board
+NOT_RUN electrical_pcb_jlcpcb: no schematic/PCB/SI/DFM; fabrication NOT approved
+NOT_RUN f133_user_manual: mangopi.org mirror TLS certificate expired; not bypassed; D1-H UM used
+PASS_R07_HOST_RTL_PLANNING_BUILD_CHECKS: 16 pass, 0 fail, 6 NOT_RUN -> R07_WORK/evidence/run_20261015T072638Z/summary.json

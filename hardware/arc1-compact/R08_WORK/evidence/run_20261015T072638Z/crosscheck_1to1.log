@@ -1,0 +1,10 @@
+$ /usr/bin/python3 cad/check/crosscheck_r08.py . /home/user/Struthio/hardware/arc1-compact/R08_WORK/evidence/run_20261015T072638Z/crosscheck.json
+# cwd: R08_WORK
+# exit: 0
+
+A_netlist_vs_plan: 0 mismatch(es)
+B_symbol_vs_footprint: 0 mismatch(es)
+C_efinity_vs_schematic_vs_rtl: 0 mismatch(es)
+D_firmware_vs_schematic: 0 mismatch(es)
+info: {"netlist_components": 329, "plan_components": 329, "named_nets": 161, "no_connect_pins": 405, "footprints_checked": 36, "footprint_status_count": {"STD_LIB": 318, "GENERATED_DERIVED": 3, "SLIM4_CANDIDATE": 6, "PLACEHOLDER": 2}, "efinity_gpio": 17, "rtl_top_ports": 33, "firmware_pins": 53}
+CROSSCHECK PASS
