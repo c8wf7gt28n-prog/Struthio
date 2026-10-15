@@ -84,7 +84,7 @@ repro: $(OUT)/arc1_ecp5.bit
 	rm -rf $(OUT)/repro && mkdir -p $(OUT)/repro
 	$(YOSYS) -q -p 'read_verilog -sv $(RTL_SYN); synth_ecp5 -top arc1_ecp5_top -json $(OUT)/repro/arc1_ecp5.json' > /dev/null
 	$(NEXTPNR) --45k --package CABGA381 --speed 6 --json $(OUT)/repro/arc1_ecp5.json --lpf $(LPF) \
-	  --textcfg $(OUT)/repro/arc1_ecp5.config --seed $(SEED) > /dev/null 2>&1
+	  --textcfg $(OUT)/repro/arc1_ecp5.config --write $(OUT)/repro/routed.json --seed $(SEED) > /dev/null 2>&1
 	$(ECPPACK) --compress --input $(OUT)/repro/arc1_ecp5.config --bit $(OUT)/repro/arc1_ecp5.bit
 	sha256sum $(OUT)/arc1_ecp5.bit $(OUT)/repro/arc1_ecp5.bit | tee $(OUT)/repro.log
 	test "$$(sha256sum < $(OUT)/arc1_ecp5.bit)" = "$$(sha256sum < $(OUT)/repro/arc1_ecp5.bit)" && echo REPRO_IDENTICAL | tee -a $(OUT)/repro.log

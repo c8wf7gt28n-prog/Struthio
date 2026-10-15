@@ -19,6 +19,8 @@ typedef struct ecp5_mock {
     uint64_t t_us, t_pwr_on, t_programn_release;
     double sck_hz;                 /* virtual SPI0 clock for time accounting */
     uint32_t cs_overhead_ns;       /* per-transaction driver/CS overhead */
+    uint32_t engine_hz;            /* if set, doorbell -> RESP_READY takes perf_cycles/engine_hz (RTL-measured cycles) */
+    uint64_t engine_busy_until;
     /* sysCONFIG */
     int configured, isc_enabled, burst, cfg_fail, done, initn_fault;
     uint32_t good_crc, burst_crc, burst_len, idcode;

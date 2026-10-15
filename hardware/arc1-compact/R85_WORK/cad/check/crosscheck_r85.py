@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""ARC-1 Compact R08 -- 1:1 cross-check between independent representations.
+"""ARC-1 Compact R8.5 -- 1:1 cross-check between independent representations.
 
   A  KiCad netlist (kicad-cli export of the native schematic)  <->  board plan JSON (design source)
-  B  every symbol pin number  <->  the pad names of the footprint actually assigned (KiCad 9 library or ARC1_R08.pretty)
-  C  Efinity pin table  <->  schematic U18 balls/nets  <->  RTL top-level ports
-  D  firmware board_pins_r08.h  <->  schematic F133 pin/net assignment
+  B  every symbol pin number  <->  the pad names of the footprint actually assigned (KiCad 9 library or ARC1_R85.pretty)
+  C  LPF (generated)  <->  schematic U18 balls/nets  <->  Lattice pinout CSV  <->  RTL top-level ports
+     <->  nextpnr routed placement (fpga_ecp5/build/repro/routed.json, when present)
+  D  firmware board_pins_r85.h  <->  schematic F133 pin/net assignment
 
 This proves the representations AGREE. It does not prove the design is right:
-the rules encoded in check_board_r08.py are self-authored (handoff rule).
-Usage: crosscheck_r08.py <R08_WORK dir> <report.json>
+the rules encoded in check_board_r85.py are self-authored (handoff rule).
+Usage: crosscheck_r85.py <R85_WORK dir> <report.json>
 """
 import csv
 import json
@@ -17,11 +18,11 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-R08 = os.path.abspath(sys.argv[1])
+R85 = os.path.abspath(sys.argv[1])
 OUT = sys.argv[2]
 STD_FP = os.environ.get("KICAD_FOOTPRINTS", "/usr/share/kicad/footprints")
-plan = json.load(open(os.path.join(R08, "board", "r08_board_plan.json")))
-res = {"A_netlist_vs_plan": [], "B_symbol_vs_footprint": [], "C_efinity_vs_schematic_vs_rtl": [],
+plan = json.load(open(os.path.join(R85, "board", "r85_board_plan.json")))
+res = {"A_netlist_vs_plan": [], "B_symbol_vs_footprint": [], "C_lpf_vs_schematic_vs_rtl": [],
        "D_firmware_vs_schematic": [], "info": {}}
 
 
@@ -30,7 +31,7 @@ def fail(sec, msg):
 
 
 # ------------------------------------------------------------------ A
-root = ET.parse(os.path.join(R08, "cad", "NETLIST.xml")).getroot()
+root = ET.parse(os.path.join(R85, "cad", "NETLIST.xml")).getroot()
 kcomp = {c.get("ref"): c for c in root.find("components")}
 knets = {}
 for n in root.find("nets"):
@@ -73,8 +74,8 @@ res["info"]["no_connect_pins"] = len(nc_net)
 # ------------------------------------------------------------------ B
 def fp_pads(fp):
     lib, name = fp.split(":", 1)
-    if lib == "ARC1_R08":
-        path = os.path.join(R08, "cad", "symbols-and-footprints", "ARC1_R08.pretty", name + ".kicad_mod")
+    if lib == "ARC1_R85":
+        path = os.path.join(R85, "cad", "symbols-and-footprints", "ARC1_R85.pretty", name + ".kicad_mod")
     else:
         path = os.path.join(STD_FP, lib + ".pretty", name + ".kicad_mod")
     if not os.path.exists(path):
@@ -107,47 +108,60 @@ res["info"]["footprints_checked"] = len(fp_cache)
 res["info"]["footprint_status_count"] = fp_status_count
 
 # ------------------------------------------------------------------ C
-efin = list(csv.DictReader(open(os.path.join(R08, "fpga", "efinity", "arc1_t35_r08_pins.csv"))))
+SEC = "C_lpf_vs_schematic_vs_rtl"
+lpf = open(os.path.join(R85, "fpga_ecp5", "constraints", "arc1_ecp5_r85.lpf")).read()
+loc = {m.group(1): m.group(2) for m in re.finditer(r'LOCATE COMP "([^"]+)" SITE "([A-Z]+\d+)"', lpf)}
+iob = {m.group(1): m.group(2) for m in re.finditer(r'IOBUF PORT "([^"]+)" ([^;]+);', lpf)}
 u18 = pcomps["U18"]["pins"]
-balls_csv = {r["ball"]: r for r in csv.DictReader(open(os.path.join(R08, "sources", "efinix", "t35f400_balls_by_rail.csv")))}
-for r in efin:
-    b = r["ball"]
-    if b not in u18:
-        fail("C_efinity_vs_schematic_vs_rtl", f"Efinity {r['instance']} ball {b} not a T35F400 ball")
-        continue
-    if u18[b]["net"] != r["net"]:
-        fail("C_efinity_vs_schematic_vs_rtl", f"{r['instance']}@{b}: schematic net {u18[b]['net']} != Efinity net {r['net']}")
-    if balls_csv[b]["name"] != r["resource"]:
-        fail("C_efinity_vs_schematic_vs_rtl", f"{b}: resource {r['resource']} != pinout {balls_csv[b]['name']}")
-    if balls_csv[b]["bank"] != r["bank"]:
-        fail("C_efinity_vs_schematic_vs_rtl", f"{b}: bank mismatch")
-rtl = open(os.path.join(R08, "fpga", "rtl", "arc1_t35_top_r08.sv")).read()
-hdr = rtl[rtl.index("module arc1_t35_top_r08"):rtl.index(");")]
+pin_csv = {r["ball"]: r for r in csv.DictReader(open(os.path.join(R85, "sources", "lattice", "lfe5u45_cabga381_pinout.csv")))}
+rtl = open(os.path.join(R85, "fpga_ecp5", "rtl", "arc1_ecp5_top.sv")).read()
+hdr = rtl[rtl.index("module arc1_ecp5_top"):]
+hdr = hdr[hdr.index(") (") + 3:hdr.index(");")]
 ports = {}
-for m in re.finditer(r"\b(input|output)\s+wire\s*(\[(\d+):(\d+)\])?\s*(\w+)", hdr):
+for m in re.finditer(r"\b(input|output|inout)\s+wire\s*(\[(\d+):(\d+)\])?\s*(\w+)", hdr):
     d, rng, msb, lsb, name = m.group(1), m.group(2), m.group(3), m.group(4), m.group(5)
     if rng:
         for i in range(int(lsb), int(msb) + 1):
             ports[f"{name}[{i}]"] = d
     else:
         ports[name] = d
-need = set()
-for r in efin:
-    for p in r["rtl_ports"].split():
-        need.add(p)
-        if p not in ports:
-            fail("C_efinity_vs_schematic_vs_rtl", f"Efinity port {p} not in RTL top")
-        else:
-            exp = "input" if p.endswith("_IN") or ("_IN[" in p) or r["mode"] == "input" else "output"
-            if ports[p] != exp:
-                fail("C_efinity_vs_schematic_vs_rtl", f"RTL port {p} is {ports[p]}, Efinity expects {exp}")
-for p in sorted(set(ports) - need - {"sys_clk", "psram_mclk", "pll_locked"}):
-    fail("C_efinity_vs_schematic_vs_rtl", f"RTL top port {p} has no Efinity GPIO / PLL source")
-res["info"]["efinity_gpio"] = len(efin)
+for p in sorted(set(ports) ^ set(loc)):
+    fail(SEC, f"port {p} only in {'RTL' if p in ports else 'LPF'}")
+for p, ball in loc.items():
+    if ball not in pin_csv:
+        fail(SEC, f"{p}: {ball} is not an LFE5U-45F caBGA381 ball")
+        continue
+    if pin_csv[ball]["pin_type"] != "IO":
+        fail(SEC, f"{p}: {ball} is {pin_csv[ball]['pin_type']} {pin_csv[ball]['pin_function']}, not user I/O")
+    if not u18.get(ball, {}).get("net"):
+        fail(SEC, f"{p}: schematic ball {ball} unconnected")
+    if "IO_TYPE=LVCMOS33" not in iob.get(p, ""):
+        fail(SEC, f"{p}: IOBUF not LVCMOS33")
+# every schematic user-I/O ball with a signal net that an RTL port should own
+for ball, d in u18.items():
+    if pin_csv[ball]["pin_type"] == "IO" and d["net"] and d["net"] not in ("GND",) and ball not in loc.values():
+        if d["net"] not in ("FPGA_HOLDN",):
+            fail(SEC, f"schematic ball {ball} ({d['net']}) carries a signal but no RTL port")
+routed = os.path.join(R85, "fpga_ecp5", "build", "repro", "routed.json")
+if os.path.exists(routed):
+    rj = json.load(open(routed))
+    mod = list(rj["modules"].values())[0]
+    placed = {}
+    for n, c in mod["cells"].items():
+        if c["type"] == "TRELLIS_IO":
+            a = {**c.get("attributes", {}), **c.get("parameters", {})}
+            placed[n.split("$tr_io")[0]] = a.get("LOC")
+    for p, ball in loc.items():
+        if placed.get(p) != ball:
+            fail(SEC, f"routed placement {p} @ {placed.get(p)} != LPF {ball}")
+    res["info"]["routed_io_checked"] = len(placed)
+else:
+    res["info"]["routed_io_checked"] = "routed.json absent (run make -C fpga_ecp5 repro)"
+res["info"]["lpf_ports"] = len(loc)
 res["info"]["rtl_top_ports"] = len(ports)
 
 # ------------------------------------------------------------------ D
-h = open(os.path.join(R08, "firmware", "include", "board_pins_r08.h")).read()
+h = open(os.path.join(R85, "firmware", "include", "board_pins_r85.h")).read()
 fwpins = {m.group(1): (m.group(2), int(m.group(3))) for m in
           re.finditer(r"#define\s+PIN_(\w+)\s+ARC1_PIN\(\s*'([A-G])'\s*,\s*(\d+)\s*\)", h)}
 f133 = pcomps["U15"]["pins"]

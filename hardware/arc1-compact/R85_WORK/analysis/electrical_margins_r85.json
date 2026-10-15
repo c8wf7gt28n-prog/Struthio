@@ -1,16 +1,21 @@
 {
- "schema": "arc1-r08-margins-v1",
+ "schema": "arc1-r85-margins-v1",
  "summary": {
-  "PASS": 22,
-  "CONDITIONAL": 5,
-  "OPEN": 1,
-  "FAIL": 2
+  "PASS": 29,
+  "CONDITIONAL": 11,
+  "OPEN": 2,
+  "FAIL": 3
  },
  "info": {
   "3V3 worst-case DC window (R07 asked 3.20-3.40 V only for MN820 VOH; obsolete with the R08 buffer)": [
    3.1989,
    3.4404
-  ]
+  ],
+  "ECP5 rail budget (A)": {
+   "1V1_FPGA (U9 TLV62569P, 2 A)": 0.266,
+   "2V5_FPGA_AUX (U30 TLV75525P, 0.5 A)": 0.04,
+   "3V3_FPGA (U10 TPS22918, 2 A; incl. VCCAUX LDO input, PSRAM, XO)": 0.096
+  }
  },
  "inputs": {
   "v3v3_max": {
@@ -35,11 +40,11 @@
   },
   "lim_3V3 (U3)": {
    "value": [
-    3.14,
-    3.47
+    3.135,
+    3.465
    ],
    "tag": "DOC",
-   "source": "T35 VCCIO 3.14-3.47 (tightest consumer; F133 VCC-IO 2.97-3.63, MN820 3.0-3.6)"
+   "source": "ECP5 VCCIO for LVCMOS33 3.135-3.465 V (DS sysI/O recommended conditions; tightest consumer; F133 VCC-IO 2.97-3.63, MN820 3.0-3.6)"
   },
   "lim_VDD_CORE (U5)": {
    "value": [
@@ -57,13 +62,13 @@
    "tag": "DOC",
    "source": "F133 VCC-DRAM"
   },
-  "lim_1V2_T35 (U9)": {
+  "lim_1V1_FPGA (U9)": {
    "value": [
-    1.15,
-    1.25
+    1.045,
+    1.155
    ],
    "tag": "DOC",
-   "source": "T35 DS VCC 1.15/1.2/1.25"
+   "source": "ECP5 DS-02012 Table 3.2 VCC 1.045/1.10/1.155 V"
   },
   "tps3808_tol": {
    "value": 0.015,
@@ -175,40 +180,205 @@
    "tag": "ASSUMPTION",
    "source": "F133 SPI input setup NOT_FOUND in DS rev 2.3; the SPI sample-delay mode may change it"
   },
-  "t35_weak_pu_min": {
-   "value": 27000.0,
+  "ecp5_ipd_max": {
+   "value": 0.00015,
    "tag": "DOC",
-   "source": "T35 DS v3.2 Table 69 weak pull-up 27/40/65 kOhm at 3.3 V"
+   "source": "ECP5 DS Table 3.7 IPD max 150 uA (weak pull-down, 0 <= VIN <= VCCIO)"
   },
-  "psram_pd_switched": {
-   "value": 1500.0,
-   "tag": "PLAN",
-   "source": "1.5 kOhm to an SN74LVC07A output"
-  },
-  "lvc07_vol": {
-   "value": 0.2,
+  "ecp5_ipd_min": {
+   "value": 3e-05,
    "tag": "DOC",
-   "source": "SN74LVC07A VOL 0.2 V at IOL 100 uA (s.6.5); actual sink ~0.12 mA here"
+   "source": "ECP5 DS Table 3.7 IPD min 30 uA (sustaining low)"
   },
   "psram_pd_static": {
    "value": 100000.0,
    "tag": "PLAN",
-   "source": "static pull-down"
+   "source": "static pull-down on SCLK/SIO"
+  },
+  "ecp5_cfg_pulls": {
+   "value": "pull-down",
+   "tag": "DOC",
+   "source": "ECP5 DS 4.1 / TN-02039 5.2: user I/O tri-stated with weak pull-DOWN during power-up and configuration (T35 had weak pull-UPs -> R08 needed U26)"
   },
   "aps_voh_test": {
    "value": 0.0002,
    "tag": "DOC",
    "source": "APS6404L DS Rev 2.7 Table 9: VOH 0.8*VDD at IOH = -0.2 mA"
   },
-  "t35_tuser": {
-   "value": 2.5e-05,
+  "psram_ce_pu": {
+   "value": 10000.0,
+   "tag": "PLAN",
+   "source": "CE# pull-up to PSRAM_VDD"
+  },
+  "aps_vih_ratio": {
+   "value": 0.8,
    "tag": "DOC",
-   "source": "Efinix: tUSER >= 25 us after CDONE high (AN006 / Software UG)"
+   "source": "APS6404L DS Rev 2.7 Table 9: VIH min 0.8*VDD"
   },
   "lvc1g17_vtplus_min": {
    "value": 1.3,
    "tag": "ASSUMPTION",
    "source": "SN74LVC1G17 VT+ min at 3.3 V not yet transcribed (R09)"
+  },
+  "done_dly_need": {
+   "value": 0.0001,
+   "tag": "PLAN",
+   "source": "DONE_DLY >= 100 us after the DONE pin (wake-up GOE precedes DONE with DONE_EX=OFF; the RTL power guard holds the PSRAM pads until PG, so this delay only orders the load switch after user mode)"
+  },
+  "aps_taclk_max": {
+   "value": 5.5,
+   "tag": "DOC",
+   "source": "APS6404L DS Rev 2.7: tACLK 2-5.5 ns CLK fall -> data (R06 PSRAM_TIMING_TABLE)"
+  },
+  "ecp5_pad_out_ns": {
+   "value": 4.0,
+   "tag": "ASSUMPTION",
+   "source": "ECP5 LVCMOS33 output buffer delay (DS external switching tables not transcribed)"
+  },
+  "ecp5_pad_in_ns": {
+   "value": 2.0,
+   "tag": "ASSUMPTION",
+   "source": "ECP5 LVCMOS33 input buffer + routing to the sampling FF"
+  },
+  "ecp5_ff_setup_ns": {
+   "value": 0.5,
+   "tag": "ASSUMPTION",
+   "source": "fabric FF setup"
+  },
+  "psram_flight_ns": {
+   "value": 0.5,
+   "tag": "ASSUMPTION",
+   "source": "PSRAM <= 25 mm from the FPGA, each direction (layout R09)"
+  },
+  "ecp5_vil": {
+   "value": 0.8,
+   "tag": "DOC",
+   "source": "ECP5 DS sysI/O LVCMOS33 VIL max 0.8 V"
+  },
+  "ecp5_vih": {
+   "value": 2.0,
+   "tag": "DOC",
+   "source": "ECP5 DS sysI/O LVCMOS33 VIH min 2.0 V"
+  },
+  "f133_vol": {
+   "value": 0.2,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-3 VOL 0.2 V (test current per table)"
+  },
+  "programn_series": {
+   "value": 470.0,
+   "tag": "PLAN",
+   "source": "PE8 -> PROGRAMN series resistor"
+  },
+  "cfg_pullup": {
+   "value": 4700.0,
+   "tag": "PLAN",
+   "source": "4.7k to VCCIO8 (TN-02038 Table 6.1)"
+  },
+  "lvc125_vol_4ma": {
+   "value": 0.24,
+   "tag": "ASSUMPTION",
+   "source": "SN74LVC1G125 VOL at IOL ~3.4 mA, 3.3 V (table value at 4 mA to be transcribed)"
+  },
+  "cclk_pullup": {
+   "value": 1000.0,
+   "tag": "PLAN",
+   "source": "CCLK pull-up 1k (TN-02038 Table 6.2: 510R-1k)"
+  },
+  "ecp5_cclk_max": {
+   "value": 60000000.0,
+   "tag": "DOC",
+   "source": "ECP5 DS Table 3.42 SSPI fCCLK max 60 MHz"
+  },
+  "bitstream_bytes": {
+   "value": 288697,
+   "tag": "PLAN",
+   "source": "fpga_ecp5/build/arc1_ecp5.bit (ecppack --compress, this design)"
+  },
+  "cfg_sck_plan": {
+   "value": 25000000.0,
+   "tag": "PLAN",
+   "source": "F133 SPI0 at 25 MHz for configuration (PLL_PERI 600 MHz / 24)"
+  },
+  "fpga_sys_hz": {
+   "value": 80000000.0,
+   "tag": "PLAN",
+   "source": "ECP5 sys_clk (routed fmax 87 MHz, BUILD_REPORT)"
+  },
+  "ecp5_icc_static": {
+   "value": 0.116,
+   "tag": "DOC",
+   "source": "ECP5 DS Table 3.8 ICC typ 116 mA (LFE5U-45, 85 C, 0 Hz)"
+  },
+  "ecp5_icc_dyn": {
+   "value": 0.15,
+   "tag": "ASSUMPTION",
+   "source": "dynamic VCC for ~6k LUT/3.8k FF/8 DSP at 80 MHz; Lattice power calculator NOT_RUN"
+  },
+  "ecp5_iccaux": {
+   "value": 0.017,
+   "tag": "DOC",
+   "source": "ECP5 DS Table 3.8 ICCAUX typ 17 mA"
+  },
+  "ecp5_iccaux_dyn": {
+   "value": 0.023,
+   "tag": "ASSUMPTION",
+   "source": "PLL + config-time VCCAUX increase (not specified)"
+  },
+  "ecp5_iccio_bank": {
+   "value": 0.0005,
+   "tag": "DOC",
+   "source": "ECP5 DS Table 3.8 ICCIO 0.5 mA per bank (static)"
+  },
+  "psram_active": {
+   "value": 0.025,
+   "tag": "ASSUMPTION",
+   "source": "APS6404L active read current at 20 MHz QSPI (DS table to be transcribed)"
+  },
+  "osc_25m": {
+   "value": 0.01,
+   "tag": "ASSUMPTION",
+   "source": "25 MHz XO supply (part TBD)"
+  },
+  "ecp5_io_dyn": {
+   "value": 0.01,
+   "tag": "ASSUMPTION",
+   "source": "PSRAM/SPI pad switching: C*V^2*f for 8 pads, 10 pF, 20 MHz"
+  },
+  "pullups_fpga_rail": {
+   "value": 0.007599999999999999,
+   "tag": "PLAN",
+   "source": "CCLK 1k (when SCK low) + six 4.7k config pull-ups"
+  },
+  "tlv755_dropout": {
+   "value": 0.24,
+   "tag": "DOC",
+   "source": "TLV755P DS: dropout 238 mV max at 500 mA (2.5 V+ options); far less at 40 mA"
+  },
+  "tps22918_ron": {
+   "value": 0.061,
+   "tag": "DOC",
+   "source": "TPS22918 DS: RON 52 mOhm typ, 61 mOhm max at 3.3 V"
+  },
+  "tlv755_acc": {
+   "value": 0.015,
+   "tag": "ASSUMPTION",
+   "source": "TLV75525P output accuracy over temperature +-1.5 % (DS value to be transcribed)"
+  },
+  "fb_dcr": {
+   "value": 0.05,
+   "tag": "ASSUMPTION",
+   "source": "BLM18PG121SN1D DCR 0.05 ohm (candidate ferrite)"
+  },
+  "tps22918_ramp": {
+   "value": 1.7,
+   "tag": "PLAN",
+   "source": "U10 CT 1 nF -> ~1.9 ms 0->3.3 V (TPS22918 DS SR formula)"
+  },
+  "tlv62569_ss": {
+   "value": 1.1,
+   "tag": "ASSUMPTION",
+   "source": "TLV62569 internal soft-start ~1 ms to 1.1 V (DS typ; not a guaranteed max)"
   },
   "p_f133": {
    "value": 1.2,
@@ -226,9 +396,9 @@
    "source": "x1.6 typ->max allowance until Bridgetek answers"
   },
   "p_t35": {
-   "value": 0.6,
+   "value": 0.61,
    "tag": "ASSUMPTION",
-   "source": "Efinity power estimator NOT_RUN"
+   "source": "from the ECP5 rail budget above (Lattice power calculator NOT_RUN)"
   },
   "p_misc": {
    "value": 0.45,
@@ -256,8 +426,8 @@
     3.4404
    ],
    "limit": [
-    3.14,
-    3.47
+    3.135,
+    3.465
    ],
    "unit": "V",
    "status": "PASS",
@@ -315,22 +485,22 @@
   },
   {
    "group": "regulator_setpoint",
-   "check": "1V2_T35 (U9)",
+   "check": "1V1_FPGA (U9)",
    "value": [
-    1.1644,
-    1.2,
-    1.2364
+    1.0635,
+    1.095,
+    1.1271
    ],
    "limit": [
-    1.15,
-    1.25
+    1.045,
+    1.155
    ],
    "unit": "V",
    "status": "PASS",
    "inputs": [
     "vfb_tol",
     "r_tol",
-    "lim_1V2_T35 (U9)"
+    "lim_1V1_FPGA (U9)"
    ],
    "note": "DC setpoint only: load-step and ripple margin need the TI design tool / bench",
    "risk": ""
@@ -389,15 +559,15 @@
   },
   {
    "group": "supervisor",
-   "check": "U4 TPS3808G33 min threshold vs T35 VCCIO min 3.14 V",
+   "check": "U4 TPS3808G33 min threshold vs ECP5 VCCIO (LVCMOS33) min 3.135 V",
    "value": 3.0239,
-   "limit": 3.14,
+   "limit": 3.135,
    "unit": "V",
    "status": "FAIL",
    "inputs": [
     "tps3808_tol"
    ],
-   "note": "3V3 can sag to 3.02-3.14 V without reset -> below T35 VCCIO spec. A threshold window [3.14, 3.199] is not achievable with +-1.5 % parts and a +-2 % regulator: R09 needs a 1 % regulator or accepts it (T35 optional; PSRAM data guarded by its own supervisor)",
+   "note": "3V3 can sag to 3.02-3.135 V without reset -> below the ECP5 LVCMOS33 VCCIO window. Not closable with +-1.5 % parts and a +-2 % regulator: R09 needs a 1 % regulator or accepts it (FPGA optional; PSRAM data guarded by its own supervisor)",
    "risk": "RK-3V3-SUP"
   },
   {
@@ -589,23 +759,21 @@
   },
   {
    "group": "psram",
-   "check": "SCLK/SIO level while T35 unconfigured (PSRAM unpowered by design)",
-   "value": 0.3676,
+   "check": "SCLK/SIO level while the ECP5 is unconfigured (PSRAM unpowered by design)",
+   "value": 0.0,
    "limit": 0.4,
    "unit": "V",
    "status": "PASS",
    "inputs": [
-    "t35_weak_pu_min",
-    "psram_pd_switched",
-    "lvc07_vol",
-    "v3v3_max"
+    "ecp5_cfg_pulls",
+    "psram_pd_static"
    ],
-   "note": "limit 0.4 V = APS6404L VIN max VDD+0.4 at VDD = 0 (no back-power); also <= VIL 0.4",
+   "note": "only pull-downs act on these nets (ECP5 IPD + 100k): 0 V <= VDD+0.4 at VDD = 0 -> no back-power; R08 U26 removed",
    "risk": ""
   },
   {
    "group": "psram",
-   "check": "PSRAM output load in user mode (switched pull-downs released)",
+   "check": "PSRAM output load in user mode (100k static, PULLMODE=NONE)",
    "value": 0.034,
    "limit": 0.2,
    "unit": "mA",
@@ -614,40 +782,274 @@
     "psram_pd_static",
     "aps_voh_test"
    ],
-   "note": "R07 needed 1.63 mA through 2.2 kOhm (outside the 0.2 mA VOH test condition); R08 load is inside it -> RK-PSRAM-VOH closed by design",
+   "note": "inside the 0.2 mA VOH test condition",
    "risk": ""
   },
   {
    "group": "psram",
-   "check": "CE# vs VDD during ramp",
-   "value": 0.0,
-   "limit": 0.2,
+   "check": "CE# idle level if the ECP5 ball kept its default PULLMODE=DOWN (why the LPF sets NONE)",
+   "value": 1.685,
+   "limit": 2.56,
    "unit": "V",
-   "status": "PASS",
+   "status": "OPEN",
    "inputs": [
-    "psram_pd_static"
+    "psram_ce_pu",
+    "ecp5_ipd_max",
+    "aps_vih_ratio"
    ],
-   "note": "CE# pull-up goes to PSRAM_VDD itself and the T35 CE# pad is released (guard OFF): tracks exactly (RTL_SIMULATED P1)",
-   "risk": ""
+   "note": "3.20 V - 10k x 150 uA = 1.7 V < 0.8*VDD: would violate CE# = VDD during tPU. LPF: PULLMODE=NONE on all PSRAM balls (generated by tools/gen_pin_matrix_r85.py, checked in crosscheck); during configuration the PSRAM is unpowered (EN gated by DONE_DLY) so the config-time pull-down is harmless",
+   "risk": "RK-ECP5-PULLMODE"
   },
   {
    "group": "psram",
-   "check": "CDONE -> CDONE_DLY delay vs tUSER",
-   "value": 963.7,
-   "limit": 25.0,
+   "check": "DONE -> DONE_DLY delay",
+   "value": 708.3,
+   "limit": 100.0,
    "unit": "us",
    "status": "CONDITIONAL",
    "inputs": [
-    "t35_tuser",
+    "done_dly_need",
     "lvc1g17_vtplus_min"
    ],
-   "note": "requires >= 4x tUSER; RC = (10k pull-up + 10k) x 100 nF",
+   "note": "RC = (4.7k pull-up + 10k) x 100 nF",
+   "risk": ""
+  },
+  {
+   "group": "psram_timing",
+   "check": "QSPI read sample (half SCLK period after the fall) at SCLK 20 MHz",
+   "value": 13.0,
+   "limit": 25.0,
+   "unit": "ns",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "aps_taclk_max",
+    "ecp5_pad_out_ns",
+    "ecp5_pad_in_ns",
+    "ecp5_ff_setup_ns",
+    "psram_flight_ns"
+   ],
+   "note": "nextpnr-ecp5 does not time pad paths; this hand budget sets the bring-up clock (design: psram_mclk 40 MHz -> SCLK 20 MHz)",
+   "risk": ""
+  },
+  {
+   "group": "psram_timing",
+   "check": "QSPI read sample (half SCLK period after the fall) at SCLK 40 MHz",
+   "value": 13.0,
+   "limit": 12.5,
+   "unit": "ns",
+   "status": "FAIL",
+   "inputs": [
+    "aps_taclk_max",
+    "ecp5_pad_out_ns",
+    "ecp5_pad_in_ns",
+    "ecp5_ff_setup_ns",
+    "psram_flight_ns"
+   ],
+   "note": "nextpnr-ecp5 does not time pad paths; this hand budget sets the bring-up clock (design: psram_mclk 40 MHz -> SCLK 20 MHz)",
+   "risk": "RK-PSRAM-IO-TIMING"
+  },
+  {
+   "group": "sysconfig",
+   "check": "PROGRAMN low level with F133 PE8 driving low through the series R",
+   "value": 0.496,
+   "limit": 0.8,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "f133_vol",
+    "programn_series",
+    "cfg_pullup",
+    "ecp5_vil",
+    "v3v3_max"
+   ],
+   "note": "R8.5 first draft used 1k: 0.78 V vs 0.8 V (18 mV) -> changed to 470R",
+   "risk": ""
+  },
+  {
+   "group": "sysconfig",
+   "check": "FPGA_IRQ_N idle level during configuration (4.7k vs ECP5 config-time pull-down)",
+   "value": 2.488,
+   "limit": 2.38,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "cfg_pullup",
+    "ecp5_ipd_max",
+    "f133_vih_ratio"
+   ],
+   "note": "F133 ignores IRQ before P4 anyway; user mode PULLMODE=NONE",
+   "risk": ""
+  },
+  {
+   "group": "sysconfig",
+   "check": "CCLK low level (buffer sinking the 1k pull-up through 33R)",
+   "value": 0.353,
+   "limit": 0.8,
+   "unit": "V",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "lvc125_vol_4ma",
+    "cclk_pullup",
+    "ecp5_vil"
+   ],
+   "note": "sink current 3.43 mA",
+   "risk": ""
+  },
+  {
+   "group": "sysconfig",
+   "check": "configuration time at the planned 25 MHz (compressed bitstream, wire time only)",
+   "value": 92.4,
+   "limit": 1000.0,
+   "unit": "ms",
+   "status": "PASS",
+   "inputs": [
+    "bitstream_bytes",
+    "cfg_sck_plan"
+   ],
+   "note": "game-swap budget 1 s (PLAN); uncompressed max 9.74 Mb would take 390 ms; host model incl. CS overhead: 99.7 ms",
+   "risk": ""
+  },
+  {
+   "group": "sysconfig",
+   "check": "planned CCLK vs SSPI limit",
+   "value": 25.0,
+   "limit": 60.0,
+   "unit": "MHz",
+   "status": "PASS",
+   "inputs": [
+    "cfg_sck_plan",
+    "ecp5_cclk_max"
+   ],
+   "note": "",
+   "risk": ""
+  },
+  {
+   "group": "mailbox",
+   "check": "operational SPI max SCK = sys_clk/8 (mbx_spi_slave oversampling; RTL_SIMULATED at sys/8 and sys/16)",
+   "value": 10.0,
+   "limit": 10.0,
+   "unit": "MHz",
+   "status": "PASS",
+   "inputs": [
+    "fpga_sys_hz"
+   ],
+   "note": "the mailbox link, not the FPGA datapath, bounds offload throughput: see docs/BENCHMARK_R85.md (HARD STOP analysis)",
+   "risk": ""
+  },
+  {
+   "group": "fpga_rails",
+   "check": "VCC load vs U9 rating",
+   "value": 0.266,
+   "limit": 2.0,
+   "unit": "A",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "ecp5_icc_static",
+    "ecp5_icc_dyn"
+   ],
+   "note": "50 % derating; peak start-up current NOT_FOUND (DS points to the power calculator)",
+   "risk": ""
+  },
+  {
+   "group": "fpga_rails",
+   "check": "VCCAUX load vs U30 rating",
+   "value": 0.04,
+   "limit": 0.5,
+   "unit": "A",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "ecp5_iccaux",
+    "ecp5_iccaux_dyn"
+   ],
+   "note": "",
+   "risk": ""
+  },
+  {
+   "group": "fpga_rails",
+   "check": "3V3_FPGA minimum (3V3 low corner - switch drop) vs LVCMOS33 VCCIO 3.135 V",
+   "value": 3.193,
+   "limit": 3.135,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "tps22918_ron",
+    "vfb_tol",
+    "r_tol"
+   ],
+   "note": "same root cause as RK-3V3-SUP if it fails",
+   "risk": "RK-3V3-SUP"
+  },
+  {
+   "group": "fpga_rails",
+   "check": "VCCAUX LDO headroom (3V3_FPGA min - 2.5 V) vs dropout",
+   "value": 0.693,
+   "limit": 0.24,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "tlv755_dropout",
+    "tps22918_ron"
+   ],
+   "note": "",
+   "risk": ""
+  },
+  {
+   "group": "fpga_rails",
+   "check": "VCCAUX at the balls",
+   "value": [
+    2.4605,
+    2.5375
+   ],
+   "limit": [
+    2.375,
+    2.625
+   ],
+   "unit": "V",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "tlv755_acc",
+    "fb_dcr",
+    "ecp5_iccaux"
+   ],
+   "note": "TN-02038: ferrite ESR x I < 1 % of rail",
+   "risk": ""
+  },
+  {
+   "group": "fpga_rails",
+   "check": "ramp rate VCCIO/VCCAUX (3V3_FPGA, LDO tracks its input)",
+   "value": 1.7,
+   "limit": [
+    0.01,
+    10.0
+   ],
+   "unit": "V/ms",
+   "status": "PASS",
+   "inputs": [
+    "tps22918_ramp"
+   ],
+   "note": "ECP5 DS Table 3.3 tRAMP 0.01..10 V/ms, monotonic",
+   "risk": ""
+  },
+  {
+   "group": "fpga_rails",
+   "check": "ramp rate VCC (1V1_FPGA buck soft-start)",
+   "value": 1.1,
+   "limit": [
+    0.01,
+    10.0
+   ],
+   "unit": "V/ms",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "tlv62569_ss"
+   ],
+   "note": "ECP5 DS Table 3.3 tRAMP 0.01..10 V/ms, monotonic",
    "risk": ""
   },
   {
    "group": "vbus_budget",
    "check": "VBUS current, default USB (500 mA, amps muted)",
-   "value": 0.881,
+   "value": 0.884,
    "limit": 0.5,
    "unit": "A",
    "status": "FAIL",
@@ -666,7 +1068,7 @@
   {
    "group": "vbus_budget",
    "check": "VBUS current, Type-C 1.5 A (0.25 W/ch)",
-   "value": 1.005,
+   "value": 1.008,
    "limit": 1.5,
    "unit": "A",
    "status": "CONDITIONAL",
@@ -685,7 +1087,7 @@
   {
    "group": "vbus_budget",
    "check": "VBUS current, Type-C 3.0 A (1.4 W/ch into 8 ohm)",
-   "value": 1.575,
+   "value": 1.577,
    "limit": 3.0,
    "unit": "A",
    "status": "CONDITIONAL",
@@ -705,7 +1107,7 @@
    "group": "vbus_budget",
    "check": "PTC hold >= worst budgeted current (3 A class)",
    "value": 2.6,
-   "limit": 1.575,
+   "limit": 1.577,
    "unit": "A",
    "status": "CONDITIONAL",
    "inputs": [

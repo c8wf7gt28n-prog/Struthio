@@ -1,32 +1,33 @@
 designators,qty,value,mpn,manufacturer,lcsc,footprint,footprint_status,dnp,evidence,slim4_reuse,sourcing_status
 U25,1,APS6404L-3SQR,APS6404L-3SQR-SN,AP Memory,,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,STD_LIB,,VERIFIED_BY_VENDOR_DOC (ordering suffix -SN to confirm),,TBD - R09 sourcing
-C2 C3 C8 C29 C31 C32 C33 C34 C35 C36 C37 C38 C39 C40 C41 C42 C43 C44 C45 C46 C47 C48 C49 C50 C51 C61 C63 C64 C65 C68 C69 C70 C71 C72 C73 C74 C75 C76 C77 C78 C79 C80 C81 C82 C85 C86 C87 C88 C89 C90 C91 C92 C93 C94 C95 C96 C98 C99 C100 C101 C102 C103 C104 C105 C106 C108 C111 C113 C115,69,100nF,CL05B104KO5NNNC,Samsung,C1525,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-C59 C60,2,12pF,0402CG120J500NT,FH,C1547,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+C2 C3 C8 C31 C33 C34 C35 C36 C37 C38 C39 C40 C41 C42 C43 C44 C45 C46 C47 C48 C49 C50 C51 C52 C53 C63 C65 C66 C67 C69 C70 C71 C72 C73 C74 C75 C76 C77 C78 C79 C80 C81 C82 C83 C84 C85 C86 C87 C88 C92 C93 C94 C95 C97 C98 C99 C100 C101 C102 C103 C104 C105 C106 C107 C108 C109 C110 C111 C112 C113 C114 C122 C123 C124 C125 C126 C127 C128 C129 C133 C135 C137,82,100nF,CL05B104KO5NNNC,Samsung,C1525,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+C61 C62,2,12pF,0402CG120J500NT,FH,C1547,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 C16,1,15nF,generic (value/package),,,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-C20 C23 C26 C30 C109,5,1nF,generic (value/package),,,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-C14 C15 C21 C24 C27 C57 C58 C62 C107,9,1uF,CL05A105KA5NQNC,Samsung,C52923,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+C20 C25 C28 C32 C131,5,1nF,generic (value/package),,,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+C14 C15 C21 C23 C24 C26 C29 C59 C60 C64 C130,11,1uF,CL05A105KA5NQNC,Samsung,C52923,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 C7,1,2.2nF,generic (value/package),,,Capacitor_SMD:C_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-C22 C52 C53 C66 C67 C97 C110,7,10uF,CL10A106KP8NNNC,Samsung,C19702,Capacitor_SMD:C_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-C56,1,2.2uF,generic (value/package),,,Capacitor_SMD:C_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-C28 C54 C55,3,4.7uF,CL10A475KO8NNNC,Samsung,C19666,Capacitor_SMD:C_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-C1 C4 C9 C12 C17 C112 C114,7,10uF,CL21A106KAYNNNE,Samsung,C15850,Capacitor_SMD:C_0805_2012Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-C5 C6 C10 C11 C13 C18 C19 C25 C83 C84,10,22uF,CL21A226MQQNNNE,Samsung,C5674,Capacitor_SMD:C_0805_2012Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-U15,1,F133-B,F133-B,Allwinner,,ARC1_R08:Allwinner_F133_eLQFP128_14x14_P0.4_EP5.72,GENERATED_DERIVED,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
+C22 C54 C55 C68 C89 C90 C91 C96 C115 C116 C117 C118 C119 C120 C121 C132,16,10uF,CL10A106KP8NNNC,Samsung,C19702,Capacitor_SMD:C_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+C58,1,2.2uF,generic (value/package),,,Capacitor_SMD:C_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+C30 C56 C57,3,4.7uF,CL10A475KO8NNNC,Samsung,C19666,Capacitor_SMD:C_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+C1 C4 C9 C12 C17 C134 C136,7,10uF,CL21A106KAYNNNE,Samsung,C15850,Capacitor_SMD:C_0805_2012Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+C5 C6 C10 C11 C13 C18 C19 C27,8,22uF,CL21A226MQQNNNE,Samsung,C5674,Capacitor_SMD:C_0805_2012Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+U18,1,LFE5U-45F-6BG381C,LFE5U-45F-6BG381C,Lattice,,Package_BGA:Lattice_caBGA-381_17x17mm_Layout20x20_P0.8mm,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
+U15,1,F133-B,F133-B,Allwinner,,ARC1_R85:Allwinner_F133_eLQFP128_14x14_P0.4_EP5.72,GENERATED_DERIVED,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 F1,1,PTC hold>=2.6A,"TBD (1812 PTC, hold >= 2.6 A, 6 V)",TBD,,Fuse:Fuse_1812_4532Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-FB1,1,ferrite 600R@100MHz,BLM18PG601SN1D (CANDIDATE),,,Inductor_SMD:L_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+FB2,1,ferrite 120R@100MHz,BLM18PG121SN1D (CANDIDATE),,,Inductor_SMD:L_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 J10,1,F133 UART0,header 1x3 2.54 (DNP-able),generic,,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
-J6,1,T35 UART,header 1x3 2.54 (DNP-able),generic,,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
+J6,1,FPGA UART,header 1x3 2.54 (DNP-able),generic,,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
+J11,1,FPGA power override,header 1x3 2.54 (DNP-able),generic,,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
+J5,1,ECP5 JTAG,header 2x5 1.27 SMD,generic,,Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
 J2,1,LA SPI0,header 2x5 1.27 SMD,generic,,Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD,STD_LIB,DNP,GENERIC (no device-specific claim),,TBD - R09 sourcing
 J4,1,LA SPI1,header 2x5 1.27 SMD,generic,,Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD,STD_LIB,DNP,GENERIC (no device-specific claim),,TBD - R09 sourcing
-J5,1,T35 JTAG,header 2x5 1.27 SMD,generic,,Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
 J8,1,SPK L,S2B-PH-SM4-TB(LF)(SN),JST,C295747,Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 J9,1,SPK R,S2B-PH-SM4-TB(LF)(SN),JST,C295747,Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-L1 L2 L3 L4,4,2.2uH,ASWPA4035S2R2MT,Sunlord,C340207,ARC1_R08:SLIM4_FP_L2_ASWPA4035,SLIM4_CANDIDATE,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+L1 L2 L3 L4,4,2.2uH,ASWPA4035S2R2MT,Sunlord,C340207,ARC1_R85:SLIM4_FP_L2_ASWPA4035,SLIM4_CANDIDATE,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 D6,1,3V3,LED 0603 (MPN TBD),TBD,,LED_SMD:LED_0603_1608Metric,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
 D5,1,ERROR,LED 0603 (MPN TBD),TBD,,LED_SMD:LED_0603_1608Metric,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
+D3,1,FPGA LED,LED 0603 (MPN TBD),TBD,,LED_SMD:LED_0603_1608Metric,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
 D4,1,STATUS,LED 0603 (MPN TBD),TBD,,LED_SMD:LED_0603_1608Metric,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
-D3,1,T35 LED,LED 0603 (MPN TBD),TBD,,LED_SMD:LED_0603_1608Metric,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
-U26,1,SN74LVC07A,SN74LVC07APWR,Texas Instruments,,Package_SO:TSSOP-14_4.4x5mm_P0.65mm,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U13,1,AND,SN74LVC1G08DCKR,Texas Instruments,,Package_TO_SOT_SMD:SOT-353_SC-70-5,STD_LIB,,DERIVED (pinout not yet transcribed from its datasheet),,TBD - R09 sourcing
 U17,1,MISO buffer,SN74LVC1G125DCKR,Texas Instruments,,Package_TO_SOT_SMD:SOT-353_SC-70-5,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U24,1,iso MISO,SN74LVC1G125DCKR,Texas Instruments,,Package_TO_SOT_SMD:SOT-353_SC-70-5,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
@@ -37,26 +38,26 @@ U20,1,Schmitt,SN74LVC1G17DCKR,Texas Instruments,,Package_TO_SOT_SMD:SOT-353_SC-7
 U28,1,MAX98357A L,MAX98357AETE+T,Analog Devices,C910544,Package_DFN_QFN:QFN-16-1EP_3x3mm_P0.5mm_EP1.45x1.45mm,PLACEHOLDER,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 U29,1,MAX98357A R,MAX98357AETE+T,Analog Devices,C910544,Package_DFN_QFN:QFN-16-1EP_3x3mm_P0.5mm_EP1.45x1.45mm,PLACEHOLDER,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 J7,1,microSD,DM3AT-SF-PEJM5,Hirose,,Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5,STD_LIB,,KICAD_LIBRARY (vendor drawing check in R09),,TBD - R09 sourcing
-J3,1,DF40C-100DS-0.4V(51),DF40C-100DS-0.4V(51),Hirose,,ARC1_R08:Hirose_DF40C-100DS-0.4V_51,GENERATED_DERIVED,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
+J3,1,DF40C-100DS-0.4V(51),DF40C-100DS-0.4V(51),Hirose,,ARC1_R85:Hirose_DF40C-100DS-0.4V_51,GENERATED_DERIVED,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 X1,1,25MHz,25 MHz 3.3 V CMOS XO 3225 (MPN TBD),TBD,,Oscillator:Oscillator_SMD_Abracon_ASE-4Pin_3.2x2.5mm,STD_LIB,,CANDIDATE,,TBD - R09 sourcing
-R78 R79 R80 R81 R82 R83,6,1.5k,0402WGF1501TCE,UNI-ROYAL,C25867,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-R9 R10 R12 R15 R18 R19 R21 R22 R24 R25 R26 R27 R28 R29 R63 R67 R68 R69 R73 R74 R75 R76 R77 R84 R93,25,100k,0402WGF1003TCE,UNI-ROYAL,C25741,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-R2 R3 R13 R20 R30 R35 R36 R37 R38 R43 R44 R45 R46 R47 R48 R50 R51 R52 R53 R54 R57 R58 R59 R61 R64 R65 R66 R72 R91,29,10k,0402WGF1002TCE,UNI-ROYAL,C25744,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+R9 R10 R12 R15 R18 R19 R22 R25 R26 R27 R28 R29 R30 R67 R71 R72 R77 R78 R79 R80 R81 R82 R91,23,100k,0402WGF1003TCE,UNI-ROYAL,C25741,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+R2 R3 R13 R20 R31 R36 R37 R38 R39 R44 R45 R46 R47 R48 R49 R57 R65 R69 R70 R76 R89,21,10k,0402WGF1002TCE,UNI-ROYAL,C25744,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 R6,1,150k,0402WGF1503TCE,UNI-ROYAL,C25755,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-R56 R70 R94 R95,4,1k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R24 R52 R58 R73 R74 R92 R93,7,1k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 R7 R17,2,200k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-R92,1,210k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-R32 R71,2,22R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-R31,1,240R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,DNP,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-R96,1,2k,0402WGF2001TCE,UNI-ROYAL,C4109,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-R33 R34,2,3.3k,0402WGF3301TCE,UNI-ROYAL,C25890,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-R39 R40 R41 R42 R60 R85,6,33R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-R55,1,4.7k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R90,1,210k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R33 R75,2,22R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R32,1,240R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,DNP,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R94,1,2k,0402WGF2001TCE,UNI-ROYAL,C4109,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+R34 R35,2,3.3k,0402WGF3301TCE,UNI-ROYAL,C25890,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),yes,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+R40 R41 R42 R43 R64 R68 R83,7,33R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R51 R53 R54 R55 R56 R59 R60 R61 R62 R63,10,4.7k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 R8,1,453k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-R62,1,470R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
-R49 R86 R87 R88 R89 R90,6,47k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R66,1,470R,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R50 R84 R85 R86 R87 R88,6,47k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 R4 R5,2,5.1k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,DNP,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 R14,1,57.6k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
+R21,1,82.5k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 R1,1,910k,generic (value/package),,,Resistor_SMD:R_0402_1005Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 R11 R16 R23,3,0R,generic (value/package),,,Resistor_SMD:R_0603_1608Metric,STD_LIB,,GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM),,TBD - R09 sourcing
 D2,1,BAT54WS,BAT54WS,TBD,,Diode_SMD:D_SOD-323,STD_LIB,,GENERIC (no device-specific claim),,TBD - R09 sourcing
@@ -75,23 +76,22 @@ SW13,1,START,B3U-1000P,Omron,C231329,Button_Switch_SMD:SW_SPST_B3U-1000P,STD_LIB
 SW3,1,UP,B3U-1000P,Omron,C231329,Button_Switch_SMD:SW_SPST_B3U-1000P,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 SW9,1,X,B3U-1000P,Omron,C231329,Button_Switch_SMD:SW_SPST_B3U-1000P,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 SW10,1,Y,B3U-1000P,Omron,C231329,Button_Switch_SMD:SW_SPST_B3U-1000P,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-U18,1,T35F400C3,T35F400C3,Efinix,,ARC1_R08:Efinix_FBGA400_17x17_P0.8_GRID20,GENERATED_DERIVED,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U6,1,1V8_DRAM,TLV62569DBVR,Texas Instruments,C141836,Package_TO_SOT_SMD:SOT-23-5,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 U5,1,VDD_CORE 0.95V,TLV62569DBVR,Texas Instruments,C141836,Package_TO_SOT_SMD:SOT-23-5,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-U9,1,1V2_T35,TLV62569PDDCR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC (DDC is a thin SOT-23-6: confirm land pattern in R09),,TBD - R09 sourcing
+U9,1,1V1_FPGA,TLV62569PDDCR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC (DDC is a thin SOT-23-6: confirm land pattern in R09),,TBD - R09 sourcing
 U3,1,3V3 2A,TLV62569PDDCR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC (DDC is a thin SOT-23-6: confirm land pattern in R09),,TBD - R09 sourcing
 U7,1,1V8_AN,TLV75518PDBVR,Texas Instruments,C2877863,Package_TO_SOT_SMD:SOT-23-5,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
-U2,1,TPD2EUSB30,TPD2EUSB30DRTR,Texas Instruments,C97502,ARC1_R08:SLIM4_FP_U11_TPD2EUSB30_DRT3,SLIM4_CANDIDATE,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+U30,1,2V5_FPGA_AUX,TLV75525PDBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-5,STD_LIB,,CANDIDATE (pinout per TLV755P family DS; 2.5 V option orderable code to be confirmed with TI/LCSC),,TBD - R09 sourcing
+U2,1,TPD2EUSB30,TPD2EUSB30DRTR,Texas Instruments,C97502,ARC1_R85:SLIM4_FP_U11_TPD2EUSB30_DRT3,SLIM4_CANDIDATE,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+U10,1,3V3_FPGA switch,TPS22918DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U11,1,3V3_MN switch,TPS22918DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
-U10,1,3V3_T35 switch,TPS22918DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U12,1,PSRAM_VDD switch,TPS22918DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U27,1,SD power switch,TPS22918DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U8,1,TPS3808G09,TPS3808G09DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U14,1,TPS3808G30,TPS3808G30DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 U4,1,TPS3808G33,TPS3808G33DBVR,Texas Instruments,,Package_TO_SOT_SMD:SOT-23-6,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
-U1,1,TUSB320LAI,TUSB320LAIRWBR,Texas Instruments,C132554,ARC1_R08:SLIM4_FP_U13_TUSB320LAI_RWB_X2QFN12,SLIM4_CANDIDATE,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
+U1,1,TUSB320LAI,TUSB320LAIRWBR,Texas Instruments,C132554,ARC1_R85:SLIM4_FP_U13_TUSB320LAI_RWB_X2QFN12,SLIM4_CANDIDATE,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 D1,1,SMF5.0A,SMF5.0A,Littelfuse,,Diode_SMD:D_SMF,STD_LIB,,CANDIDATE,,TBD - R09 sourcing
 J1,1,USB-C receptacle,USB4105-GF-A,GCT,C5184243,Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,LCSC no. from SLIM4 R26 BOM (2026-10-07 snapshot) - re-check stock
 U16,1,W25Q256JVFIQ,W25Q256JVFIQ,Winbond,,Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
-U19,1,W25Q32JVSSIQ,W25Q32JVSSIQ,Winbond,,Package_SO:SOIC-8_5.3x5.3mm_P1.27mm,STD_LIB,,VERIFIED_BY_VENDOR_DOC,,TBD - R09 sourcing
 Y1,1,24MHz,24 MHz 3225 crystal CL=12 pF +-20 ppm (MPN TBD),TBD,,Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm,STD_LIB,,CANDIDATE,,TBD - R09 sourcing

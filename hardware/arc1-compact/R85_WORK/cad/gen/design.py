@@ -421,8 +421,8 @@ def build():
         d.C("10uF", "3V3_FPGA", pkg="C0603", note="one per VCCIO bank 0/1/2/3/6/7/8")
     # sysCONFIG pull-ups to VCCIO8 (= 3V3_FPGA): TN-02038 Tables 6.1-6.3
     d.R("4.7k", "FPGA_PROGRAMN", "3V3_FPGA", note="TN-02038: 4.7k to VCCIO8")
-    d.R("1k", "FPGA_PROGRAMN_F", "FPGA_PROGRAMN",
-        note="F133 PE8 used open-drain (low or input only): calc 3.3*1k/5.7k = 0.58 V < VIL 0.8 V")
+    d.R("470R", "FPGA_PROGRAMN_F", "FPGA_PROGRAMN",
+        note="F133 PE8 used open-drain (low or input only): worst case 0.50 V < VIL 0.8 V (analysis/electrical_margins_r85.py)")
     d.R("4.7k", "FPGA_INITN", "3V3_FPGA", note="TN-02038: 4.7k; reads 0 at F133 PD0 while the FPGA is off")
     d.R("4.7k", "FPGA_DONE", "3V3_FPGA", note="TN-02038: 4.7k; reads 0 at F133 PE9 while the FPGA is off")
     d.R("4.7k", "FPGA_SS_N", "3V3_FPGA", note="TN-02039 6.2: SN 4.7k pull-up to VCCIO8")

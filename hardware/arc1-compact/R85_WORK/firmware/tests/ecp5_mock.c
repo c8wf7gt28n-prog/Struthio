@@ -93,7 +93,8 @@ static uint16_t mbx_status(ecp5_mock *m)
     if (m->psram_ready && m->psram_req) s |= 0x0002u;
     if (m->psram_ce_stuck && m->psram_req) s |= 0x0004u;
     if (m->job_pending) s |= 0x0008u;
-    if (m->resp_ready) s |= 0x0010u;
+    if (m->resp_ready && m->t_us >= m->engine_busy_until) s |= 0x0010u;
+    if (m->resp_ready && m->t_us < m->engine_busy_until) s |= 0x0008u;
     if (m->bist_state == 1) s |= 0x0080u;
     if (m->bist_state == 2) s |= 0x0100u;
     return s;
@@ -137,8 +138,9 @@ static void doorbell(ecp5_mock *m)
     m->resp_ready = 1;
     m->perf_jobs++;
     m->jobs_done++;
-    /* engine time from tb_ecp5_top (RTL_SIMULATED): ~96 sys clocks per job at 80 MHz */
-    m->perf_cycles = 16u + 96u * (uint32_t)(m->req[6] | (m->req[7] << 8));
+    /* engine time: linear fit to tb_ecp5_top PERF_LAST_CYCLES (RTL_SIMULATED): n=1 135, n=8 771, n=16 1575, n=170 16359 */
+    m->perf_cycles = 39u + 96u * ((uint32_t)m->req[6] | ((uint32_t)m->req[7] << 8));
+    if (m->engine_hz) m->engine_busy_until = m->t_us + (uint64_t)m->perf_cycles * 1000000u / m->engine_hz;
 }
 
 static void mbx_wr(ecp5_mock *m, uint32_t a, uint8_t v)

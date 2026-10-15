@@ -105,7 +105,12 @@ module tb_ecp5_top;
     task automatic fail(input [8*72-1:0] m);
         begin errors = errors + 1; $display("TB_ERROR t=%0t %0s", $realtime, m); end
     endtask
-    always @(sio_oe or psram.doe) if (vdd && |(sio_oe & psram.doe)) fail("PSRAM bus contention");
+    reg     ce_stuck_inj = 1'b0;
+    integer contention_during_inj = 0;
+    always @(sio_oe or psram.doe) if (vdd && |(sio_oe & psram.doe)) begin
+        if (ce_stuck_inj) contention_during_inj = contention_during_inj + 1;   // expected hazard while CE# is shorted
+        else fail("PSRAM bus contention");
+    end
 
     // MISO must be released whenever SS_N is high (checked 4 sys clocks after)
     always @(posedge ss_n) begin
@@ -451,6 +456,28 @@ module tb_ecp5_top;
         t = 0; while (!dut.ram_ready && t < 400) begin #1000; t = t + 1; end
         ctrl(8'h20); status; if (!st[1]) fail("P4: no recovery");
         $display("TEST P4_unannounced_loss done errors=%0d", errors);
+
+        // ---------- F06: QSPI CE# stuck active (external short to GND), RTL view ----------
+        ce_stuck_inj = 1'b1;
+        force ce_pad = 1'b0;
+        ctrl(8'h04);                                        // PSRAM_RECOVER: re-run the init sequence
+        t = 0; status; while (!st[1] && !st[2] && t < 400) begin #1000; t = t + 1; status; end
+        ctrl(8'h08);
+        t = 0; status;
+        while (st[6] || (!st[7] && !st[8] && !st[2])) begin #20000; t = t + 1; status; if (t > 2000) begin fail("F06 BIST hang"); st = 16'h0100; end end
+        read_mem(16'h001C, 4);
+        $display("INFO F06 CE# stuck: STATUS=%h ready=%0d error=%0d bist_pass=%0d bist_fail=%0d bist_errs=%0d contention_events=%0d",
+                 st, st[1], st[2], st[7], st[8], rx32(0), contention_during_inj);
+        if (st[7] && !st[8] && !st[2]) fail("F06: CE# stuck not detected (BIST passed)");
+        release ce_pad;
+        #2000;
+        ce_stuck_inj = 1'b0;
+        ctrl(8'h04);
+        t = 0; status; while (!st[1] && t < 400) begin #1000; t = t + 1; status; end
+        ctrl(8'h08); t = 0; status;
+        while (st[6] || (!st[7] && !st[8])) begin #20000; t = t + 1; status; if (t > 2000) begin fail("BIST hang"); st = 16'h0100; end end
+        if (!st[7] || st[8]) fail("F06: no recovery after the short is removed");
+        $display("TEST F06_ce_stuck done errors=%0d", errors);
 
         if (bp_en_low != 0) fail("back-power while EN low");
         if (tpu_pin_viol != 0) fail("tPU pin-state violations");

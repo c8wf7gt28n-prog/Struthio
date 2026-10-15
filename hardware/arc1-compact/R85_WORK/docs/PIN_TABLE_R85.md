@@ -1,4 +1,4 @@
-# ARC-1 Compact R08 pin table (GENERATED from board/r08_board_plan.json; the KiCad schematic is generated from the same source)
+# ARC-1 Compact R8.5 pin table (GENERATED from board/r85_board_plan.json; the KiCad schematic is generated from the same source)
 
 ## U15 F133-B -- F133-B (all 129 pins incl. EPAD)
 
@@ -41,13 +41,13 @@
 | 35 | PE2 | UART0_TX |  |
 | 36 | PE11 | PSRAM_PG |  |
 | 37 | PE10 | AMP_EN |  |
-| 38 | PE9 | T35_CDONE |  |
-| 39 | PE8 | T35_CRESET_N_F |  |
+| 38 | PE9 | FPGA_DONE |  |
+| 39 | PE8 | FPGA_PROGRAMN_F |  |
 | 40 | PE7 | PSRAM_PWR_REQ |  |
-| 41 | PE6 | T35_BUS_EN_N |  |
-| 42 | PE5 | T35_IRQ_N |  |
-| 43 | PE4 | T35_SS_N_F |  |
-| 44 | PE0 | T35_PWR_EN |  |
+| 41 | PE6 | FPGA_BUS_EN_N |  |
+| 42 | PE5 | FPGA_IRQ_N |  |
+| 43 | PE4 | FPGA_SS_N_F |  |
+| 44 | PE0 | FPGA_PWR_EN_F |  |
 | 45 | PE1 | VBUS_SENSE |  |
 | 46 | VDD-SYS0 | VDD_CORE |  |
 | 47 | NC | F133_PIN47_DZQ |  |
@@ -58,8 +58,8 @@
 | 52 | PD22 |  | spare GPIO |
 | 53 | PD21 | MN_PWR_EN |  |
 | 54 | PD20 | SD_PWR_EN |  |
-| 55 | PD0 |  | spare GPIO |
-| 56 | PD1 |  | spare GPIO |
+| 55 | PD0 | FPGA_INITN |  |
+| 56 | PD1 | FPGA_VCC_PG |  |
 | 57 | PD2 |  | spare GPIO |
 | 58 | PD3 |  | spare GPIO |
 | 59 | PD4 |  | spare GPIO |
@@ -134,39 +134,37 @@
 | 128 | VCC-PG | 3V3 |  |
 | 129 | EPAD | GND |  |
 
-## U18 T35F400C3 -- T35F400C3 (signal balls only; power/ground balls by rail in sources/efinix)
+## U18 LFE5U-45F-6BG381C -- LFE5U-45F-6BG381C (signal/config balls only; all 381 balls in board/ECP5_BALL_MAP_R85.csv)
 
 | Pin | Name | Net | No-connect reason |
 |---|---|---|---|
-| A18 | GPIOL_88 | T35_LED0 |  |
-| A19 | GPIOL_86 | T35_DBG_TX |  |
-| B16 | GPIOL_87 | T35_DBG_RX |  |
-| C17 | GPIOL_84 | T35_IRQ_N |  |
-| D17 | GPIOL_79 | T35_SCK |  |
-| F14 | GPIOL_103_TEST_N | T35_TEST_N |  |
-| F17 | GPIOL_82 | T35_MOSI |  |
-| H14 | GPIOL_83 | T35_MISO |  |
-| H15 | GPIOL_81 | T35_SS_N |  |
-| H20 | GPIOL_53 | PSRAM_EN |  |
-| J16 | GPIOL_51 | PSRAM_SIO3 |  |
-| J17 | GPIOL_52 | PSRAM_PG |  |
-| J18 | GPIOL_47 | PSRAM_SCLK_T |  |
-| J20 | GPIOL_50 | PSRAM_SIO2 |  |
-| K14 | GPIOL_49 | PSRAM_SIO1 |  |
-| K19 | GPIOL_46 | PSRAM_CE_N |  |
-| K20 | GPIOL_48 | PSRAM_SIO0 |  |
-| R16 | GPIOL_15_PLLIN0 | T35_OSC_25M |  |
-| T16 | GPIOL_04_CSI | T35_CSI |  |
-| T19 | CDONE | T35_CDONE |  |
-| U19 | CRESET_N | T35_CRESET_N |  |
-| U20 | TMS | T35_TMS |  |
-| V20 | TDO | T35_TDO |  |
-| W18 | GPIOL_00_SS_N | CFG_SS_N |  |
-| W19 | GPIOL_01_CCK | CFG_CCK |  |
-| W20 | TCK | T35_TCK |  |
-| Y17 | GPIOL_08_CDI0 | CFG_CDI0 |  |
-| Y18 | GPIOL_09_CDI1 | CFG_CDI1 |  |
-| Y19 | TDI | T35_TDI |  |
+| A7 | PT18A | FPGA_LED0 |  |
+| A8 | PT18B | FPGA_DBG_TX |  |
+| B8 | PT15B | FPGA_DBG_RX |  |
+| E6 | PT6A | FPGA_IRQ_N |  |
+| L1 | PL65C | PSRAM_CE_N |  |
+| L2 | PL62D | PSRAM_SCLK_F |  |
+| L3 | PL62C | PSRAM_SIO0 |  |
+| M1 | PL65B | PSRAM_SIO1 |  |
+| M3 | PL62B | PSRAM_SIO2 |  |
+| M4 | PL59A | PSRAM_SIO3 |  |
+| N1 | PL65D | PSRAM_PG |  |
+| N2 | PL65A | PSRAM_EN |  |
+| P3 | PL68C/LLC_GPLL0T_IN | FPGA_OSC_25M |  |
+| R1 | PB4A/D7 | FPGA_SCK |  |
+| R2 | PB15A/HOLDN | FPGA_HOLDN |  |
+| R5 | TDI | FPGA_TDI |  |
+| T2 | PB13A/SN | FPGA_SS_N |  |
+| T5 | TCK | FPGA_TCK |  |
+| U3 | CCLK/MCLK | FPGA_SCK |  |
+| U4 | CFG_0 | FPGA_CFG0 |  |
+| U5 | TMS | FPGA_TMS |  |
+| V2 | PB11A/D1 | FPGA_MISO |  |
+| V3 | INITN | FPGA_INITN |  |
+| V4 | TDO | FPGA_TDO |  |
+| W2 | PB11B/D0 | FPGA_MOSI |  |
+| W3 | PROGRAMN | FPGA_PROGRAMN |  |
+| Y3 | DONE | FPGA_DONE |  |
 
 ## J3 DF40C-100DS-0.4V(51) -- MN820 CN1 mate (all 100 pins)
 
