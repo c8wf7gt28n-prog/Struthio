@@ -1,0 +1,199 @@
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:100 memcmp(r, b + 4096, 4096) == 0
+FAIL tests/test_nor.c:102 memcmp(r + 4096, b, 4096) == 0
+FAIL tests/test_nor.c:107 m.page_wrap == 0 && m.prog_while_busy == 0 && m.prog_without_wel == 0
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:90 nor_write_verified(&d, addrs[i], a, 8192) == NOR_OK
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:100 memcmp(r, b + 4096, 4096) == 0
+FAIL tests/test_nor.c:107 m.page_wrap == 0 && m.prog_while_busy == 0 && m.prog_without_wel == 0
+FAIL tests/test_nor.c:122 nor_read(&d, 0x000100F0u, r, sizeof r) == NOR_OK && memcmp(a, r, sizeof a) == 0
+FAIL tests/test_nor.c:127 nor_erase_sector(&d, 0x00020000u) == NOR_ERR_TIMEOUT
+FAIL tests/test_layout.c:67 nor_write_verified(&d, FL_RECOVERY, i1, n1) == NOR_OK
+FAIL tests/test_layout.c:68 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_RECOVERY
+FAIL tests/test_layout.c:72 fl_install_update(&d, i1, n1) == NOR_OK
+FAIL tests/test_layout.c:74 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_B
+FAIL tests/test_layout.c:75 fl_confirm_running(&d, FL_BOOT_SLOT_B) == NOR_OK
+FAIL tests/test_layout.c:76 fl_journal_load(&d, &j) == NOR_OK && j.active == 1 && j.trial == 0xFF
+FAIL tests/test_layout.c:77 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_B
+FAIL tests/test_layout.c:80 fl_install_update(&d, i2, n2) == NOR_OK
+FAIL tests/test_layout.c:81 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_A
+FAIL tests/test_layout.c:82 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_A
+FAIL tests/test_layout.c:83 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_A
+FAIL tests/test_layout.c:84 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_B
+FAIL tests/test_layout.c:85 fl_journal_load(&d, &j) == NOR_OK && (j.bad_mask & 1u) && j.trial == 0xFF && j.active == 1
+FAIL tests/test_layout.c:86 fl_confirm_running(&d, FL_BOOT_SLOT_A) == NOR_ERR_STATE
+FAIL tests/test_layout.c:89 fl_install_update(&d, i3, n3) == NOR_OK
+FAIL tests/test_layout.c:90 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_A
+FAIL tests/test_layout.c:98 fl_image_check(&d, FL_SLOT_A, FL_SLOT_LEN, 1, NULL) == FL_IMG_BAD_CRC
+FAIL tests/test_layout.c:99 fl_boot_select(&d, &t) == NOR_OK && t == FL_BOOT_SLOT_B
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:114 fl_journal_store(&d, &j) == NOR_OK
+FAIL tests/test_layout.c:116 fl_journal_load(&d, &j) == NOR_OK && j.seq == 300u && j.trials_left == (uint8_t)(299 & 0xFF)
+FAIL tests/test_layout.c:121 fl_journal_load(&d, &j) == NOR_OK && j.seq == 300u
+FAIL tests/test_layout.c:126 nor_write_verified(&d, FL_SLOT_A, im, n) == NOR_OK
+FAIL tests/test_layout.c:127 fl_image_check(&d, FL_SLOT_A, FL_SLOT_LEN, 1, NULL) == FL_IMG_BAD_HDR_CRC
+FAIL tests/test_layout.c:134 nor_write_verified(&d, FL_SLOT_A, im, n) == NOR_OK
+FAIL tests/test_layout.c:135 fl_image_check(&d, FL_SLOT_A, FL_SLOT_LEN, 1, NULL) == FL_IMG_BAD_LEN
+R08 firmware host tests: 757 checks, 198 failures

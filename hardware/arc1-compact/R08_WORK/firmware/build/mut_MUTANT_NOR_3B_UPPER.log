@@ -1,0 +1,13 @@
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:100 memcmp(r, b + 4096, 4096) == 0
+FAIL tests/test_nor.c:102 memcmp(r + 4096, b, 4096) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
+FAIL tests/test_nor.c:100 memcmp(r, b + 4096, 4096) == 0
+FAIL tests/test_nor.c:103 m.upper_half_touched
+FAIL tests/test_nor.c:106 m.n_wrear > 0 && m.ear == 0
+FAIL tests/test_layout.c:73 m.upper_half_touched
+R08 firmware host tests: 757 checks, 12 failures
