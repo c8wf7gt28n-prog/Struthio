@@ -1,0 +1,24 @@
+ERC report (2026-10-15T07:34:22+0000, Encoding UTF8)
+Report includes: Errors, Warnings, Exclusions
+
+***** Sheet /
+
+***** Sheet /usb_power/
+
+***** Sheet /power/
+
+***** Sheet /f133/
+
+***** Sheet /boot_nor/
+
+***** Sheet /mn820/
+
+***** Sheet /t35/
+
+***** Sheet /psram/
+
+***** Sheet /sd_audio/
+
+***** Sheet /controls/
+
+ ** ERC messages: 0  Errors 0  Warnings 0

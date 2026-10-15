@@ -1,0 +1,130 @@
+pin_number,pin_name,type,power_domain,notes
+1,PG6,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 UART1-TX; F3 TWI2-SCK; F4 RGMII-TXD2; F5 PWM1; F14 PG-EINT6
+2,PG7,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 UART1-RX; F3 TWI2-SDA; F4 RGMII-TXD3; F14 PG-EINT7
+3,PG8,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+4,PG9,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+5,PG10,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+6,PG11,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+7,PF0,I/O,VCC-IO,group=GPIOF | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC0-D1; F4 R-JTAG-MS; F5 I2S2-DOUT1; F6 I2S2-DIN0; F14 PF-EINT0
+8,PF1,I/O,VCC-IO,group=GPIOF | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC0-D0; F4 R-JTAG-DI; F5 I2S2-DOUT0; F6 I2S2-DIN1; F14 PF-EINT1
+9,PF2,I/O,VCC-IO,group=GPIOF | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC0-CLK; F3 UART0-TX; F4 TWI0-SCK; F14 PF-EINT2
+10,PF3,I/O,VCC-IO,group=GPIOF | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC0-CMD; F4 R-JTAG-DO; F5 I2S2-BCLK; F14 PF-EINT3
+11,PF4,I/O,VCC-IO,group=GPIOF | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC0-D3; F3 UART0-RX; F4 TWI0-SDA; F5 PWM6; F6 IR-TX; F14 PF-EINT4
+12,PF5,I/O,VCC-IO,group=GPIOF | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC0-D2; F4 R-JTAG-CK; F5 I2S2-LRCK; F14 PF-EINT5
+13,PF6,I/O,VCC-IO,group=GPIOF | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F3 OWA-OUT; F4 IR-RX; F5 I2S2-MCLK; F6 PWM5; F14 PF-EINT6
+14,PC7,I/O,VCC-IO,group=GPIOC | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SPI0-HOLD; F3 SDC2-D3; F4 UART3-RX; F5 TWI3-SDA; F6 TCON-TRIG; F14 PC-EINT7
+15,PC6,I/O,VCC-IO,group=GPIOC | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SPI0-WP; F3 SDC2-D0; F4 UART3-TX; F5 TWI3-SCK; F6 DBG-CLK; F14 PC-EINT6
+16,PC5,I/O,VCC-IO,group=GPIOC | type_raw=I/O | reset_state=PU; pull=PU/PD; default_drive=4mA | mux: F2 SPI0-MISO; F3 SDC2-D1; F4 BOOT-SEL1; F14 PC-EINT5
+17,PC4,I/O,VCC-IO,group=GPIOC | type_raw=I/O | reset_state=PU; pull=PU/PD; default_drive=4mA | mux: F2 SPI0-MOSI; F3 SDC2-D2; F4 BOOT-SEL0; F14 PC-EINT4
+18,PC3,I/O,VCC-IO,group=GPIOC | type_raw=I/O | reset_state=PU; pull=PU/PD; default_drive=4mA | mux: F2 SPI0-CS0; F3 SDC2-CMD; F14 PC-EINT3
+19,PC2,I/O,VCC-IO,group=GPIOC | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SPI0-CLK; F3 SDC2-CLK; F14 PC-EINT2
+20,VCC-PLL,power,VCC-PLL,group=RTC & PLL | type_raw=P
+21,REFCLK-OUT,analog output,VCC-PLL,group=DCXO | type_raw=AO | DCXO 24 MHz clock fanout
+22,DXOUT,analog output,VCC-PLL,group=DCXO | type_raw=AO | 24 MHz crystal output
+23,DXIN,analog input,VCC-PLL,group=DCXO | type_raw=AI | 24 MHz crystal input
+24,X32KOUT,analog output,VCC-RTC,group=RTC & PLL | type_raw=AO | 32.768 kHz crystal output
+25,X32KIN,analog input,VCC-RTC,group=RTC & PLL | type_raw=AI | 32.768 kHz crystal input
+26,VCC-RTC,power,VCC-RTC,group=RTC & PLL | type_raw=P
+27,RESET,input / open-drain,VCC-RTC,"group=System | type_raw=I, OD | Reset Signal (low active), type I,OD per Table 4-4; internal reset generator (Table 5-11: 64 ms timeout)"
+28,LDOA-OUT,power,LDOA-OUT,group=Power | type_raw=P | Internal LDOA output 1.8 V (for analog and IO)
+29,LDO-IN,power,LDO-IN,group=Power | type_raw=P | Internal LDOA/B input 2.4-3.6 V
+30,LDOB-OUT,power,LDOB-OUT,"group=Power | type_raw=P | Internal LDOB output for VCC-DRAM, default 1.35 V; 1.35/1.5/1.8 V selectable"
+31,PE13,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+32,PE12,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+33,PE3,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 NCSI0-MCLK; F3 UART2-RX; F4 TWI0-SDA; F5 CLK-FANOUT1; F6 UART0-RX; F8 RGMII-TXCK/RMII-TXCK; F14 PE-EINT3
+34,VCC-PE,power,VCC-PE,group=GPIOE | type_raw=P
+35,PE2,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 NCSI0-PCLK; F3 UART2-TX; F4 TWI0-SCK; F5 CLK-FANOUT0; F6 UART0-TX; F8 RGMII-RXD1/RMII-RXD1; F14 PE-EINT2
+36,PE11,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+37,PE10,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+38,PE9,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+39,PE8,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+40,PE7,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+41,PE6,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+42,PE5,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+43,PE4,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+44,PE0,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+45,PE1,I/O,VCC-PE,group=GPIOE | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+46,VDD-SYS0,power,VDD-SYS0,group=Power | type_raw=P
+47,NC,NC,,group=NC | type_raw=NA | No connect (Table 4-2)
+48,VCC-DRAM0,power,VCC-DRAM0,group=SDRAM | type_raw=P | DRAM supply
+49,VCC-DRAM1,power,VCC-DRAM1,group=SDRAM | type_raw=P | DRAM supply
+50,VDD18-DRAM,power,VDD18-DRAM,group=SDRAM | type_raw=P | DRAM supply
+51,VDD-SYS1,power,VDD-SYS1,group=Power | type_raw=P
+52,PD22,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 OWA-OUT; F3 IR-RX; F4 UART1-RX; F5 PWM7; F14 PD-EINT22
+53,PD21,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 LCD0-VSYNC; F3 TWI2-SDA; F4 UART1-TX; F5 PWM5; F14 PD-EINT21
+54,PD20,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+55,PD0,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+56,PD1,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+57,PD2,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+58,PD3,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+59,PD4,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+60,PD5,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+61,PD6,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+62,PD7,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+63,PD8,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+64,PD9,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+65,VCC-LVDS,power,VCC-LVDS,group=GPIOD | type_raw=P
+66,VCC-PD,power,VCC-PD,group=GPIOD | type_raw=P
+67,PD10,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+68,PD11,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+69,PD13,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+70,PD12,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+71,PD14,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+72,PD15,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+73,PD16,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+74,PD17,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+75,PD18,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+76,PD19,I/O,VCC-PD,group=GPIOD | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+77,VCC-TVOUT,power,VCC-TVOUT,group=CVBS OUT | type_raw=P
+78,TVOUT0,analog output,VCC-TVOUT,group=CVBS OUT | type_raw=AO
+79,PB7,I/O,VCC-IO,group=GPIOB | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 LCD0-D17; F3 I2S2-MCLK; F4 TWI3-SDA; F5 IR-RX; F6 LCD0-D23; F7 UART3-RX; F8 CPUBIST1; F14 PB-EINT7
+80,PB6,I/O,VCC-IO,group=GPIOB | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 LCD0-D16; F3 I2S2-LRCK; F4 TWI3-SCK; F5 PWM1; F6 LCD0-D22; F7 UART3-TX; F8 CPUBIST0; F14 PB-EINT6
+81,VDD-SYS2,power,VDD-SYS2,group=Power | type_raw=P
+82,PB5,I/O,VCC-IO,group=GPIOB | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 LCD0-D9; F3 I2S2-BCLK; F4 TWI1-SDA; F5 PWM0; F6 LCD0-D21; F7 UART5-RX; F14 PB-EINT5
+83,VCC-IO,power,VCC-IO,group=Power | type_raw=P
+84,PB4,I/O,VCC-IO,group=GPIOB | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 LCD0-D8; F3 I2S2-DOUT0; F4 TWI1-SCK; F5 I2S2-DIN1; F6 LCD0-D20; F7 UART5-TX; F14 PB-EINT4
+85,PB3,I/O,VCC-IO,group=GPIOB | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 LCD0-D1; F3 I2S2-DOUT1; F4 TWI0-SCK; F5 I2S2-DIN0; F6 LCD0-D19; F7 UART4-RX; F14 PB-EINT3
+86,PB2,I/O,VCC-IO,group=GPIOB | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 LCD0-D0; F3 I2S2-DOUT2; F4 TWI0-SDA; F5 I2S2-DIN2; F6 LCD0-D18; F7 UART4-TX; F14 PB-EINT2
+87,MICIN3P,analog input,AVCC,group=Audio Codec | type_raw=AI
+88,MICIN3N,analog input,AVCC,group=Audio Codec | type_raw=AI
+89,AVCC,power,AVCC,group=Audio Codec | type_raw=P
+90,VRA2,analog output,AVCC,group=Audio Codec | type_raw=AO | Internal reference voltage output
+91,AGND,ground,AGND,group=Audio Codec | type_raw=G
+92,VRA1,analog output,AVCC,group=Audio Codec | type_raw=AO | Internal reference voltage output
+93,FMINR,analog input,AVCC,group=Audio Codec | type_raw=AI
+94,FMINL,analog input,AVCC,group=Audio Codec | type_raw=AI
+95,LINEINR,analog input,AVCC,group=Audio Codec | type_raw=AI
+96,LINEINL,analog input,AVCC,group=Audio Codec | type_raw=AI
+97,HPVCC,power,HPVCC,group=Audio Codec | type_raw=P
+98,HPOUTR,analog output,HPVCC,group=Audio Codec | type_raw=AO
+99,HPOUTL,analog output,HPVCC,group=Audio Codec | type_raw=AO
+100,HPOUTFB,analog input,HPVCC,group=Audio Codec | type_raw=AI | Pseudo-differential headphone ground reference
+101,GPADC0,analog input,AVCC,group=GPADC | type_raw=AI
+102,TP-X1,analog input,AVCC,group=TPADC | type_raw=AI
+103,TP-X2,analog input,AVCC,group=TPADC | type_raw=AI
+104,TP-Y1,analog input,AVCC,group=TPADC | type_raw=AI
+105,TP-Y2,analog input,AVCC,group=TPADC | type_raw=AI
+106,NC0,NC,,group=NC | type_raw=NA | No connect (Table 4-2)
+107,VCC-TVIN,power,VCC-TVIN,group=CVBS IN (Only for F133-B) | type_raw=P | F133-B only; NC on F133-A
+108,TVIN0,analog input,VCC-TVIN,group=CVBS IN (Only for F133-B) | type_raw=AI | F133-B only; NC on F133-A (Table 7-1)
+109,TVIN1,analog input,VCC-TVIN,group=CVBS IN (Only for F133-B) | type_raw=AI | F133-B only; NC on F133-A
+110,TVIN-VRP,power (analog reference),VCC-TVIN,group=CVBS IN (Only for F133-B) | type_raw=P | F133-B only; NC on F133-A; ADC positive reference
+111,TVIN-VRN,power (analog reference),VCC-TVIN,group=CVBS IN (Only for F133-B) | type_raw=P | F133-B only; NC on F133-A; ADC negative reference
+112,USB1-DP,analog I/O,VCC-IO,group=USB | type_raw=A I/O | USB2.0 HOST D+
+113,USB1-DM,analog I/O,VCC-IO,group=USB | type_raw=A I/O | USB2.0 HOST D-
+114,USB0-DM,analog I/O,VCC-IO,group=USB | type_raw=A I/O | USB2.0 DRD (OTG) D-
+115,USB0-DP,analog I/O,VCC-IO,group=USB | type_raw=A I/O | USB2.0 DRD (OTG) D+
+116,VDD-CORE0,power,VDD-CORE0,group=Power | type_raw=P
+117,VDD-CORE1,power,VDD-CORE1,group=Power | type_raw=P
+118,PG1,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC1-CMD; F3 UART3-RX; F4 RGMII-RXD0/RMII-RXD0; F5 PWM6; F14 PG-EINT1
+119,PG2,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC1-D0; F3 UART3-RTS; F4 RGMII-RXD1/RMII-RXD1; F5 UART4-TX; F14 PG-EINT2
+120,PG0,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC1-CLK; F3 UART3-TX; F4 RGMII-RXCTRL/RMII-CRS-DV; F5 PWM7; F14 PG-EINT0
+121,PG3,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC1-D1; F3 UART3-CTS; F4 RGMII-TXCK/RMII-TXCK; F5 UART4-RX; F14 PG-EINT3
+122,PG5,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC1-D3; F3 UART5-RX; F4 RGMII-TXD1/RMII-TXD1; F5 PWM4; F14 PG-EINT5
+123,PG4,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA | mux: F2 SDC1-D2; F3 UART5-TX; F4 RGMII-TXD0/RMII-TXD0; F5 PWM5; F14 PG-EINT4
+124,PG12,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+125,PG13,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+126,PG14,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+127,PG15,I/O,VCC-PG,group=GPIOG | type_raw=I/O | reset_state=Z; pull=PU/PD; default_drive=4mA
+128,VCC-PG,power,VCC-PG,group=GPIOG | type_raw=P
+EPAD,EPAD,exposed pad,,"Labeled ""EPAD"" in Figure 7-1 pin map (datasheet p.73); datasheet text does NOT state its electrical function (NOT_FOUND in datasheet). Table 4-1 counts only 1 Ground pin (AGND pin 91). MangoPi MQ D1s schematic v1.5 p.1 connects EPAD (symbol pin 129) to GND. Footprint: use exposed pad D3/E3 = 5.72 mm REF (datasheet 7.2 caution)."

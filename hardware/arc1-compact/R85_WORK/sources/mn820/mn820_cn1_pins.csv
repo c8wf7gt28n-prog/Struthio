@@ -1,0 +1,101 @@
+pin,name,type,description
+1,GND,P,Ground
+2,GND,P,Ground
+3,GND,P,Ground
+4,LVDS_RX0_D0_N,I,LVDS RX odd channel data bit 0 differential N signal
+5,NC,NA,No Connection
+6,LVDS_RX0_D0_P,I,LVDS RX odd channel data bit 0 differential P signal
+7,NC,NA,No Connection
+8,LVDS_RX0_D1_N,I,LVDS RX odd channel data bit 1 differential N signal
+9,NC,NA,No Connection
+10,LVDS_RX0_D1_P,I,LVDS RX odd channel data bit 1 differential P signal
+11,NC,NA,No Connection
+12,LVDS_RX0_D2_N,I,LVDS RX odd channel data bit 2 differential N signal
+13,VCC3V3,P,3.3V output power supply
+14,LVDS_RX0_D2_P,I,LVDS RX odd channel data bit 2 differential P signal
+15,VCC3V3,P,3.3V output power supply
+16,LVDS_RX0_CLK_N,I,LVDS RX odd channel clock differential N signal
+17,VCC3V3,P,3.3V output power supply
+18,LVDS_RX0_CLK_P,I,LVDS RX odd channel clock differential P signal
+19,VCC3V3,P,3.3V output power supply
+20,LVDS_RX0_D3_N,I,LVDS RX odd channel data bit 3 differential N signal
+21,SD_CD,I,SD Card: Card Detect
+22,LVDS_RX0_D3_P,I,LVDS RX odd channel data bit 3 differential P signal
+23,SD_D0,I/O,SD Card: Data bus line 0
+24,GND,P,Ground
+25,SD_D1,I/O,SD Card: Data bus line 1
+26,LVDS_RX1_D0_N,I,LVDS RX even channel data bit 0 differential N signal
+27,SD_D2,I/O,SD Card: Data bus line 2
+28,LVDS_RX1_D0_P,I,LVDS RX even channel data bit 0 differential P signal
+29,SD_D3,I/O,SD Card: Data bus line 3
+30,LVDS_RX1_D1_N,I,LVDS RX even channel data bit 1 differential N signal
+31,SD_CLK,O,SD Card: Serial clock output
+32,LVDS_RX1_D1_P,I,LVDS RX even channel data bit 1 differential P signal
+33,SD_CMD,I/O,SD Card: Command signal
+34,LVDS_RX1_D2_N,I,LVDS RX even channel data bit 2 differential N signal
+35,SPIM_MOSI,I/O,SPI flash MOSI line
+36,LVDS_RX1_D2_P,I,LVDS RX even channel data bit 2 differential P signal
+37,SPIM_MISO,I/O,SPI flash MISO line
+38,LVDS_RX1_CLK_N,I,LVDS RX even channel clock differential N signal
+39,SPIM_IO3,I/O,SPI flash IO3 line
+40,LVDS_RX1_CLK_P,I,LVDS RX even channel clock differential P signal
+41,SPIM_IO2,I/O,SPI flash IO2 line
+42,LVDS_RX1_D3_N,I,LVDS RX even channel data bit 3 differential N signal
+43,SPIM_SS_N,O,SPI flash chips select output line
+44,LVDS_RX1_D3_P,I,LVDS RX even channel data bit 3 differential P signal
+45,SPIM_SCLK,O,SPI flash clock output line
+46,GND,P,Ground
+47,GND,P,Ground
+48,AUDIO_R,O,Audio Sigma-delta right output
+49,GND,P,Ground
+50,GND,P,Ground
+51,GND,P,Ground
+52,AUDIO_L,O,Audio Sigma-delta left output
+53,GND,P,Ground
+54,GND,P,Ground
+55,GND,P,Ground
+56,I2S_LRCLK,I,I2S left/right clock indicator
+57,LVDS_TX0_D0_N,O,LVDS TX odd channel data bit 0 differential N signal
+58,I2S_BCLK,I,I2S bit clock
+59,LVDS_TX0_D0_P,O,LVDS TX odd channel data bit 0 differential P signal
+60,I2S_SDA,O,I2S serial data output
+61,LVDS_TX0_D1_N,O,LVDS TX odd channel data bit 1 differential N signal
+62,DISP,O,LCD Display general purpose control signal
+63,LVDS_TX0_D1_P,O,LVDS TX odd channel data bit 1 differential P signal
+64,BKLIT_PWM,O,LED backlight brightness PWM control signal
+65,LVDS_TX0_D2_N,O,LVDS TX odd channel data bit 2 differential N signal
+66,GND,P,Ground
+67,LVDS_TX0_D2_P,O,LVDS TX odd channel data bit 2 differential P signal
+68,GPIO3,I/O,General purpose IO 3
+69,LVDS_TX0_CLK_N,O,LVDS TX odd channel clock differential N signal
+70,GPIO2,I/O,General purpose IO 2
+71,LVDS_TX0_CLK_P,O,LVDS TX odd channel clock differential P signal
+72,GPIO4,I/O,General purpose IO 4
+73,LVDS_TX0_D3_N,O,LVDS TX odd channel data bit 3 differential N signal
+74,GPIO6,I/O,General purpose IO 6
+75,LVDS_TX0_D3_P,O,LVDS TX odd channel data bit 3 differential P signal
+76,GPIO5,I/O,General purpose IO 5
+77,GND,P,Ground
+78,GPIO7,I/O,General purpose IO 7
+79,LVDS_TX1_D0_N,O,LVDS TX even channel data bit 0 differential N signal
+80,GPIO8,I/O,General purpose IO 8
+81,LVDS_TX1_D0_P,O,LVDS TX even channel data bit 0 differential P signal
+82,GND,P,Ground
+83,LVDS_TX1_D1_N,O,LVDS TX even channel data bit 1 differential N signal
+84,SPIS_MISO,I/O,SPI data line 1
+85,LVDS_TX1_D1_P,O,LVDS TX even channel data bit 1 differential P signal
+86,SPIS_SCLK,I,SPI clock input
+87,LVDS_TX1_D2_N,O,LVDS TX even channel data bit 2 differential N signal
+88,SPIS_SS_N,I,SPI slave select input
+89,LVDS_TX1_D2_P,O,LVDS TX even channel data bit 2 differential P signal
+90,SPIS_MOSI,I/O,SPI data line 0
+91,LVDS_TX1_CLK_N,O,LVDS TX even channel clock differential N signal
+92,SPIS_IO3,I/O,SPI data line 3
+93,LVDS_TX1_CLK_P,O,LVDS TX even channel clock differential P signal
+94,SPIS_IO2,I/O,SPI data line 2
+95,LVDS_TX1_D3_N,O,LVDS TX even channel data bit 3 differential N signal
+96,INT_N,OD/O,"Interrupt to host, active low"
+97,LVDS_TX1_D3_P,O,LVDS TX even channel data bit 3 differential P signal
+98,RESET_N,I,Global reset pin.
+99,GND,P,Ground
+100,GND,P,Ground

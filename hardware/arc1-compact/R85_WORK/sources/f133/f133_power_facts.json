@@ -1,0 +1,430 @@
+{
+ "document_note": "The PDF at https://cdn.semikey.com/upload/pdfs/4c/5e/4c5e315c6bb9cc2f9ecf223359e639c3.pdf (labeled v1.4 by caller) is actually Allwinner F133 Datasheet revision 2.3 (2024-03-05) per its revision history; values below are from that rev unless stated. F133 Datasheet v1.0 (2021-05-24) values differ (e.g., VDD-CORE/SYS typ 0.9 V, many TBD) and are noted where relevant.",
+ "recommended_operating_conditions_table_5_2": {
+  "AVCC": {
+   "min_V": 1.764,
+   "typ_V": 1.8,
+   "max_V": 1.836,
+   "pins": [
+    89
+   ],
+   "description": "Power Supply for Analog Part",
+   "source": "DS Table 5-2 p.42",
+   "notes": [
+    "v1.0: 1.782/1.8/1.818"
+   ]
+  },
+  "HPVCC": {
+   "min_V": 1.764,
+   "typ_V": 1.8,
+   "max_V": 1.836,
+   "pins": [
+    97
+   ],
+   "description": "Headphone Power",
+   "source": "DS Table 5-2 p.42",
+   "notes": [
+    "v1.0: 1.782/1.8/1.818"
+   ]
+  },
+  "VCC-PD": {
+   "options": {
+    "1.8V": [
+     1.62,
+     1.8,
+     1.98
+    ],
+    "3.3V": [
+     2.97,
+     3.3,
+     3.63
+    ]
+   },
+   "pins": [
+    66
+   ],
+   "description": "Digital GPIO D Power",
+   "source": "DS Table 5-2 p.42-43"
+  },
+  "VCC-PE": {
+   "options": {
+    "1.8V": [
+     1.62,
+     1.8,
+     1.98
+    ],
+    "2.8V": [
+     2.52,
+     2.8,
+     3.08
+    ],
+    "3.3V": [
+     2.97,
+     3.3,
+     3.63
+    ]
+   },
+   "pins": [
+    34
+   ],
+   "description": "Digital GPIO E Power",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VCC-PG": {
+   "options": {
+    "1.8V": [
+     1.62,
+     1.8,
+     1.98
+    ],
+    "3.3V": [
+     2.97,
+     3.3,
+     3.63
+    ]
+   },
+   "pins": [
+    128
+   ],
+   "description": "Digital GPIO G Power",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VCC-IO": {
+   "min_V": 2.97,
+   "typ_V": 3.3,
+   "max_V": 3.63,
+   "pins": [
+    83
+   ],
+   "description": "Power Supply for Digital Part (3.3 V only); also IO supply of PB, PC, PF and USB0/USB1 pins per Table 4-2",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VCC-RTC": {
+   "min_V": 1.62,
+   "typ_V": 1.8,
+   "max_V": 1.98,
+   "pins": [
+    26
+   ],
+   "description": "Power Supply for RTC (also RESET pin IO domain per Table 4-2)",
+   "source": "DS Table 5-2 p.43",
+   "notes": [
+    "v1.0: TBD/1.8/TBD"
+   ]
+  },
+  "VCC-PLL": {
+   "min_V": 1.62,
+   "typ_V": 1.8,
+   "max_V": 1.98,
+   "pins": [
+    20
+   ],
+   "description": "Power Supply for System PLL (DCXO pins domain)",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VCC-LVDS": {
+   "min_V": 1.62,
+   "typ_V": 1.8,
+   "max_V": 1.98,
+   "pins": [
+    65
+   ],
+   "description": "Power Supply for LVDS",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VCC-TVOUT": {
+   "min_V": 3.14,
+   "typ_V": 3.3,
+   "max_V": 3.47,
+   "pins": [
+    77
+   ],
+   "description": "Power Supply for TVOUT",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VCC-TVIN": {
+   "min_V": 1.74,
+   "typ_V": 1.8,
+   "max_V": 1.86,
+   "pins": [
+    107
+   ],
+   "description": "Power Supply for TVIN (F133-B only; pin 107 NC on F133-A)",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VCC-DRAM0/VCC-DRAM1": {
+   "min_V": 1.7,
+   "typ_V": 1.8,
+   "max_V": 1.9,
+   "pins": [
+    48,
+    49
+   ],
+   "description": "Power Supply for DRAM IO and DDR2 (in-package 64 MB DDR2)",
+   "source": "DS Table 5-2 p.43"
+  },
+  "VDD18-DRAM": {
+   "min_V": 1.62,
+   "typ_V": 1.8,
+   "max_V": 1.98,
+   "pins": [
+    50
+   ],
+   "description": "Power Supply for DRAM Controller",
+   "source": "DS Table 5-2 p.43",
+   "notes": [
+    "v1.0: 1.7/1.8/1.95"
+   ]
+  },
+  "VDD-CORE0/VDD-CORE1": {
+   "min_V": 0.85,
+   "typ_V": 0.95,
+   "max_V": 0.99,
+   "pins": [
+    116,
+    117
+   ],
+   "description": "Power Supply for CPU and System",
+   "source": "DS Table 5-2 p.43",
+   "notes": [
+    "v1.0 listed TBD/0.9/TBD; MangoPi MQ (D1s) schematic uses 0.9 V"
+   ]
+  },
+  "VDD-SYS0/1/2": {
+   "min_V": 0.85,
+   "typ_V": 0.95,
+   "max_V": 0.99,
+   "pins": [
+    46,
+    51,
+    81
+   ],
+   "description": "Power Supply for System",
+   "source": "DS Table 5-2 p.43",
+   "notes": [
+    "v1.0 listed TBD/0.9/TBD"
+   ]
+  },
+  "LDO-IN": {
+   "min_V": 2.4,
+   "typ_V": 3.3,
+   "max_V": 3.6,
+   "pins": [
+    29
+   ],
+   "description": "Internal LDOA/B Input Voltage",
+   "source": "DS Table 5-2 p.43"
+  },
+  "LDOA-OUT": {
+   "min_V": 1.764,
+   "typ_V": 1.8,
+   "max_V": 1.836,
+   "pins": [
+    28
+   ],
+   "description": "Internal LDOA Output Voltage for Analog Device and IO",
+   "source": "DS Table 5-2 p.43"
+  },
+  "LDOB-OUT": {
+   "options": {
+    "1.35V": [
+     1.31,
+     1.35,
+     1.39
+    ],
+    "1.5V": [
+     1.455,
+     1.5,
+     1.545
+    ],
+    "1.8V": [
+     1.746,
+     1.8,
+     1.854
+    ]
+   },
+   "default_V": 1.35,
+   "pins": [
+    30
+   ],
+   "description": "Internal LDOB Output Voltage for VCC-DRAM",
+   "source": "DS Table 5-2 p.43-44 + note (2)"
+  },
+  "temperature": {
+   "Ta_external_VCC-DRAM_C": [
+    -25,
+    75
+   ],
+   "Ta_internal_LDO_VCC-DRAM_C": [
+    -25,
+    70
+   ],
+   "Tj_C": [
+    -25,
+    110
+   ],
+   "source": "DS Table 5-2 p.42"
+  }
+ },
+ "absolute_maximum_table_5_1": {
+  "AVCC,HPVCC,VCC-RTC,VCC-PLL,VCC-LVDS,VCC-TVIN,VCC-DRAM0/1,VDD18-DRAM,LDOA-OUT,LDOB-OUT": [
+   -0.3,
+   2.16
+  ],
+  "VCC-PD,VCC-PE,VCC-PG,VCC-IO,VCC-TVOUT,LDO-IN": [
+   -0.3,
+   3.96
+  ],
+  "VDD-CORE0/1,VDD-SYS0/1/2": [
+   -0.3,
+   1.3
+  ],
+  "Tstg_C": [
+   -40,
+   150
+  ],
+  "ESD_HBM_V": 2000,
+  "ESD_CDM_V": 250,
+  "source": "DS Table 5-1 p.41"
+ },
+ "internal_regulators": {
+  "LDOA": {
+   "input": "LDO-IN (pin 29), 2.4-3.6 V",
+   "output": "LDOA-OUT (pin 28), 1.8 V",
+   "intended_loads": "IO and analog module",
+   "max_current": "NOT_FOUND in datasheet (MangoPi MQ schematic annotates '1.8V@0.26A')",
+   "source": "DS 2.7.7 p.9, Table 5-2"
+  },
+  "LDOB": {
+   "input": "LDO-IN (pin 29)",
+   "output": "LDOB-OUT (pin 30), 1.35 V default / 1.5 V / 1.8 V",
+   "intended_loads": "SDRAM (VCC-DRAM)",
+   "max_current": "NOT_FOUND in datasheet (MangoPi MQ schematic annotates '1.8V/1.5V/1.35@0.4A')",
+   "note": "For F133 in-package DDR2, VCC-DRAM range is 1.7-1.9 V, so LDOB would need 1.8 V setting; Ta max is 70 C when VCC-DRAM uses internal LDO vs 75 C external (Table 5-2). How LDOB voltage is selected (register/fuse) NOT_FOUND in datasheet.",
+   "source": "DS 2.7.7 p.9, Table 5-2"
+  },
+  "rails_requiring_external_supply": [
+   "VCC-IO (3.3 V)",
+   "VDD-CORE0/1 + VDD-SYS0/1/2 (0.95 V typ, 0.85-0.99)",
+   "LDO-IN (2.4-3.6 V)",
+   "VCC-PD/VCC-PE/VCC-PG (1.8/2.8/3.3 V per bank)",
+   "VCC-TVOUT (3.3 V)",
+   "VCC-RTC, VCC-PLL, VCC-LVDS, VCC-TVIN, VDD18-DRAM, AVCC, HPVCC (1.8 V; can be fed from LDOA-OUT per DS 2.7.7 intent; reference design uses LDOA-OUT for VCC-PLL/VCC-RTC/VDD18-DRAM/VCC-LVDS and a separate XC6206 1.8 V LDO for AVCC/HPVCC/VCC-TVIN)",
+   "VCC-DRAM0/1 (1.8 V; either external DC-DC or internal LDOB-OUT)"
+  ],
+  "no_internal_core_regulator": "Datasheet lists only LDOA/LDOB; no internal core DC-DC described -> 0.95 V core must be external (block diagram Figure 3-2 shows external 'DCDC 0.95 V', 'DCDC 3.3V', 'LDO 1.8 V')."
+ },
+ "decoupling_recommendations": "NOT_FOUND in datasheet (refers to F133_Schematic_Diagram for crystal caps). See reference_design_notes.md for MangoPi MQ values.",
+ "max_current_per_rail": "NOT_FOUND in datasheet (no per-rail current table in rev 2.3). GPIO max drive 6 mA each (Table 4-2 note [6]); default 4 mA.",
+ "power_on_sequence_5_12_1": {
+  "source": "DS 5.12.1 p.69-70, Figure 5-28",
+  "rules": [
+   "Consequent steps should not start before previous step supplies are stabilized within 90-110% of nominal, unless stated otherwise.",
+   "VCC-RTC must be ramped no later than other power rails.",
+   "VCC-IO must be ramped before VDD-SYS and VDD-CORE with a minimum delay of 2 ms (T1 > 2 ms).",
+   "VCC-DRAM needs to be stable before SDRAM driver initialization.",
+   "RESET must be held low during the entire power-on sequence until all other rails (except 24 MHz CLK) are stable for more than 64 ms (T2 > 64 ms).",
+   "24 MHz clock starts oscillating after RESET is released."
+  ],
+  "figure_5_28_groups_in_order": [
+   "VCC-RTC (1.8 V)",
+   "VCC-PLL, VCC-TVIN, VCC-LVDS, VDD18-DRAM (1.8 V)",
+   "VCC-DRAM0/1 (1.8 V/1.5 V)",
+   "VCC-PE, VCC-PG (1.8 V/3.3 V)",
+   "VCC-IO, VCC-PD, VCC-TVOUT, LDO-IN (3.3 V)",
+   "[T1>2 ms] VDD-SYS0/1/2, VDD-CORE0/1 (0.95 V)",
+   "[T2>64 ms] RESET release; 24M CLK"
+  ],
+  "ambiguity": "Figure text extraction groups rails; exact order among the 1.8/3.3 V groups other than the stated rules is figure-only."
+ },
+ "power_off_sequence_5_12_2": [
+  "After RESET goes low, the 24 MHz clock stops oscillating.",
+  "No special restrictions for other power rails."
+ ],
+ "reset": {
+  "pin": 27,
+  "name": "RESET",
+  "type": "I, OD (low active)",
+  "io_domain": "VCC-RTC (Table 4-2)",
+  "internal_reset_table_5_11": {
+   "VDD-SYS power-on threshold that excites reset_V_typ": 0.4,
+   "reset_active_timeout_ms_typ": 64,
+   "open_drain_output_voltage": "-0.3 to 0.3*VCC V, test condition 'pull up 3.3 V'"
+  },
+  "ambiguity": "Table 5-11 test condition says pull-up 3.3 V but Table 4-2 lists RESET's supply as VCC-RTC (1.8 V). MangoPi MQ pulls RESET up with 10K to LDOA-OUT (1.8 V) + 0.1 uF to GND. Safe choice: pull up to 1.8 V (VCC-RTC domain).",
+  "source": "DS Table 4-2 p.25, Table 4-4 p.31, Table 5-11 p.50, 5.12"
+ },
+ "crystal_24MHz": {
+  "pins": {
+   "DXIN": 23,
+   "DXOUT": 22,
+   "REFCLK-OUT": 21
+  },
+  "domain": "VCC-PLL",
+  "frequency_MHz": 24,
+  "tolerance_ppm": "+/-50 at 25 C (20 ppm recommended; follow Wi-Fi chip spec if REFCLK-OUT feeds Wi-Fi)",
+  "mode": "Fundamental",
+  "C0_pF_typ": 6.5,
+  "C0_note": "simulation value; actual from crystal maker",
+  "load_formula": "CL = C1*C2/(C1+C2) + Cshunt",
+  "load_cap_values": "NOT_FOUND in datasheet (refers to F133_Schematic_Diagram). MangoPi MQ: XTAL2520-24M CL=18pF, C8=C9=22pF",
+  "ESR": "NOT_FOUND",
+  "source": "DS 5.8.1 Table 5-8/5-9 p.48"
+ },
+ "rtc_32k768": {
+  "pins": {
+   "X32KIN": 25,
+   "X32KOUT": 24
+  },
+  "domain": "VCC-RTC",
+  "optional": "Yes: internal RC 32.768 kHz oscillator calibrated by DCXO can be used if accuracy not critical (software must enable)",
+  "tolerance": "no requirement; 20 ppm recommended if timing accuracy needed",
+  "mode": "Fundamental",
+  "C0_pF_typ": 1.1,
+  "load_cap_values": "NOT_FOUND in datasheet. MangoPi MQ: 32.768K CL=12.5pF, C43=C45=22pF, R40 680K 1% across crystal",
+  "ESR": "NOT_FOUND",
+  "source": "DS 5.8.2 Table 5-10 p.49"
+ },
+ "usb": {
+  "USB0-DM": 114,
+  "USB0-DP": 115,
+  "USB1-DM": 113,
+  "USB1-DP": 112,
+  "domain": "VCC-IO (Table 4-2)",
+  "USB0": "USB 2.0 DRD (host+device), integrated PHY, device HS/FS",
+  "USB1": "USB 2.0 HOST",
+  "usb_id_vbus_pins": "None on package (no USB0-ID/VBUS-DET pins in Table 4-2)",
+  "fel_usb_boot": "Datasheet 2.2.1: BROM 'Supports mandatory upgrade process through USB and SD card'. FEL is over USB0 (D1-H UM 3.3 BROM, FEL = USB). See f133_boot_usb_facts.json.",
+  "source": "DS Table 4-2 p.25-26, 2.10.1 p.12, 2.2.1 p.4"
+ },
+ "epad": "Labeled EPAD in pin map; function NOT_FOUND in datasheet text; reference schematic ties to GND. PCB exposed pad size D3/E3 5.72 mm REF (DS 7.2).",
+ "thermal_table_6_1": {
+  "theta_JA_C_per_W": 20.36,
+  "theta_JB": 7.43,
+  "theta_JC": 5.52
+ },
+ "dc_gpio_table_5_3": {
+  "VIH_min": "0.7*VCC-IO",
+  "VIL_max": "0.3*VCC-IO",
+  "VOH_min": "VCC-IO-0.3",
+  "VOL_max": 0.2,
+  "pullup_kohm": {
+   "PC3-PC7,PF3,PF6": [
+    12,
+    15,
+    18
+   ],
+   "PG0-PG5": [
+    26,
+    33,
+    40
+   ],
+   "other": [
+    80,
+    100,
+    120
+   ]
+  },
+  "source": "DS Table 5-3 p.44"
+ }
+}

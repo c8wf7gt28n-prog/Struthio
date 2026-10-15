@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "filename": "ARC1_R08.kicad_pro",
+    "version": 1
+  },
+  "sheets": [
+    [
+      "493c9a78-7bcd-5ad8-9af7-e69344718a5f",
+      "Root"
+    ],
+    [
+      "fd840961-4450-5f13-9e6b-92f9451cfdd1",
+      "usb_power"
+    ],
+    [
+      "728a045d-aa60-5fc7-ba1c-368babf950d5",
+      "power"
+    ],
+    [
+      "eec51888-0026-5ebf-b49d-ff13c33d06e6",
+      "f133"
+    ],
+    [
+      "480e4618-0af2-5139-8e42-d45e69b8b59e",
+      "boot_nor"
+    ],
+    [
+      "6cf1d54f-6001-5d54-b3ba-b2b49b6b1f42",
+      "mn820"
+    ],
+    [
+      "5b57a1cf-8643-5562-b0df-7a75d1d3d457",
+      "t35"
+    ],
+    [
+      "76d66a79-6b99-5c9e-80b2-ab381c046ce0",
+      "psram"
+    ],
+    [
+      "78ae3ca9-8d27-55cf-b54e-21b5cec1eb7b",
+      "sd_audio"
+    ],
+    [
+      "ee232a0e-c972-504c-80ce-7f1e16036120",
+      "controls"
+    ]
+  ],
+  "text_variables": {}
+}

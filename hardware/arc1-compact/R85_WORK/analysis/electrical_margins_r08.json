@@ -1,0 +1,720 @@
+{
+ "schema": "arc1-r08-margins-v1",
+ "summary": {
+  "PASS": 22,
+  "CONDITIONAL": 5,
+  "OPEN": 1,
+  "FAIL": 2
+ },
+ "info": {
+  "3V3 worst-case DC window (R07 asked 3.20-3.40 V only for MN820 VOH; obsolete with the R08 buffer)": [
+   3.1989,
+   3.4404
+  ]
+ },
+ "inputs": {
+  "v3v3_max": {
+   "value": 3.4,
+   "tag": "PLAN",
+   "source": "R07/R08 3V3 design window 3.20-3.40 V"
+  },
+  "v3v3_min": {
+   "value": 3.2,
+   "tag": "PLAN",
+   "source": "R07/R08 3V3 design window"
+  },
+  "vfb_tol": {
+   "value": 0.02,
+   "tag": "DOC",
+   "source": "TLV62569 DS s.6.5: VFB 0.588/0.6/0.612 V (25 C only; over-temperature NOT_FOUND)"
+  },
+  "r_tol": {
+   "value": 0.01,
+   "tag": "PLAN",
+   "source": "1 % resistors"
+  },
+  "lim_3V3 (U3)": {
+   "value": [
+    3.14,
+    3.47
+   ],
+   "tag": "DOC",
+   "source": "T35 VCCIO 3.14-3.47 (tightest consumer; F133 VCC-IO 2.97-3.63, MN820 3.0-3.6)"
+  },
+  "lim_VDD_CORE (U5)": {
+   "value": [
+    0.85,
+    0.99
+   ],
+   "tag": "DOC",
+   "source": "F133 DS rev 2.3 Table 5-2 VDD-CORE/SYS"
+  },
+  "lim_1V8_DRAM (U6)": {
+   "value": [
+    1.7,
+    1.9
+   ],
+   "tag": "DOC",
+   "source": "F133 VCC-DRAM"
+  },
+  "lim_1V2_T35 (U9)": {
+   "value": [
+    1.15,
+    1.25
+   ],
+   "tag": "DOC",
+   "source": "T35 DS VCC 1.15/1.2/1.25"
+  },
+  "tps3808_tol": {
+   "value": 0.015,
+   "tag": "DOC",
+   "source": "TPS3808 DS: threshold accuracy +-1.5 % over temperature"
+  },
+  "ct_U4 delay (VCC-IO before core)": {
+   "value": 2.2,
+   "tag": "PLAN",
+   "source": "CT capacitor in design.py"
+  },
+  "ct_U8 delay (RESET after rails)": {
+   "value": 15.0,
+   "tag": "PLAN",
+   "source": "CT capacitor in design.py"
+  },
+  "f133_pc_pullup_min": {
+   "value": 12000.0,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-3: PC3-PC7 internal pull 12/15/18 kOhm"
+  },
+  "strap_pd": {
+   "value": 3300.0,
+   "tag": "PLAN",
+   "source": "R on SPI0_MOSI / SPI0_MISO to GND"
+  },
+  "strap_leak": {
+   "value": 2.1000000000000002e-05,
+   "tag": "DOC",
+   "source": "SN74LVC1G125 IOZ 10 uA (U24 output) + II 5 uA x2 (U21/U22 inputs) -> 10+10 uA; W25Q256 ILO ~1 uA (ASSUMED small)"
+  },
+  "f133_vil_ratio": {
+   "value": 0.3,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-3 VIL max 0.3*VCC-IO"
+  },
+  "nor_voh_test": {
+   "value": 0.0001,
+   "tag": "DOC",
+   "source": "W25Q256JV DS: VOH = VCC-0.2 V at IOH = -100 uA (only spec point)"
+  },
+  "mn820_voh": {
+   "value": 2.4,
+   "tag": "DOC",
+   "source": "MN820 DS v1.0 Table 3 VOH >= 2.4 V (no test current given)"
+  },
+  "mn820_vih": {
+   "value": 2.0,
+   "tag": "DOC",
+   "source": "MN820 DS v1.0 Table 3 VIH 2.0 V"
+  },
+  "mn820_vil": {
+   "value": 0.8,
+   "tag": "DOC",
+   "source": "MN820 DS Table 3 VIL 0.8 V"
+  },
+  "mn820_vol": {
+   "value": 0.4,
+   "tag": "DOC",
+   "source": "MN820 DS Table 3 VOL 0.4 V"
+  },
+  "lvc125_vih": {
+   "value": 2.0,
+   "tag": "DOC",
+   "source": "SN74LVC1G125 s.5.3 VIH 2.0 V (VCC 3.0-3.6 V)"
+  },
+  "lvc125_vil": {
+   "value": 0.8,
+   "tag": "DOC",
+   "source": "SN74LVC1G125 VIL 0.8 V"
+  },
+  "lvc125_voh": {
+   "value": 3.1,
+   "tag": "DOC",
+   "source": "SN74LVC1G125 s.5.5 VOH = VCC-0.1 V at -100 uA"
+  },
+  "lvc125_vol": {
+   "value": 0.1,
+   "tag": "DOC",
+   "source": "SN74LVC1G125 VOL 0.1 V at 100 uA"
+  },
+  "f133_vih_ratio": {
+   "value": 0.7,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-3 VIH 0.7*VCC-IO"
+  },
+  "f133_voh_drop": {
+   "value": 0.3,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-3 VOH = VCC-0.3 (test current per table)"
+  },
+  "bt820_tod": {
+   "value": 5.8,
+   "tag": "DOC",
+   "source": "BT820 DS v1.1 Table 28 Tod max 5.8 ns (SCLK fall -> MISO valid), VCCIO 3.3 V"
+  },
+  "lvc125_tpd": {
+   "value": 4.5,
+   "tag": "DOC",
+   "source": "SN74LVC1G125 tpd max 4.5 ns (CL 50 pF, 3.3 V +-0.3 V, -40..85 C)"
+  },
+  "trace_ns": {
+   "value": 1.0,
+   "tag": "ASSUMPTION",
+   "source": "board flight + 33 ohm RC, both directions, until layout exists"
+  },
+  "f133_spi_tsu": {
+   "value": 3.0,
+   "tag": "ASSUMPTION",
+   "source": "F133 SPI input setup NOT_FOUND in DS rev 2.3; the SPI sample-delay mode may change it"
+  },
+  "t35_weak_pu_min": {
+   "value": 27000.0,
+   "tag": "DOC",
+   "source": "T35 DS v3.2 Table 69 weak pull-up 27/40/65 kOhm at 3.3 V"
+  },
+  "psram_pd_switched": {
+   "value": 1500.0,
+   "tag": "PLAN",
+   "source": "1.5 kOhm to an SN74LVC07A output"
+  },
+  "lvc07_vol": {
+   "value": 0.2,
+   "tag": "DOC",
+   "source": "SN74LVC07A VOL 0.2 V at IOL 100 uA (s.6.5); actual sink ~0.12 mA here"
+  },
+  "psram_pd_static": {
+   "value": 100000.0,
+   "tag": "PLAN",
+   "source": "static pull-down"
+  },
+  "aps_voh_test": {
+   "value": 0.0002,
+   "tag": "DOC",
+   "source": "APS6404L DS Rev 2.7 Table 9: VOH 0.8*VDD at IOH = -0.2 mA"
+  },
+  "t35_tuser": {
+   "value": 2.5e-05,
+   "tag": "DOC",
+   "source": "Efinix: tUSER >= 25 us after CDONE high (AN006 / Software UG)"
+  },
+  "lvc1g17_vtplus_min": {
+   "value": 1.3,
+   "tag": "ASSUMPTION",
+   "source": "SN74LVC1G17 VT+ min at 3.3 V not yet transcribed (R09)"
+  },
+  "p_f133": {
+   "value": 1.2,
+   "tag": "ASSUMPTION",
+   "source": "F133 per-rail currents NOT_FOUND; D1s-class board estimate incl. DDR2"
+  },
+  "p_mn820": {
+   "value": 0.8085,
+   "tag": "DOC",
+   "source": "MN820 DS: 245 mA typ at 3.3 V with test card (max NOT_FOUND)"
+  },
+  "p_mn820_margin": {
+   "value": 0.5,
+   "tag": "ASSUMPTION",
+   "source": "x1.6 typ->max allowance until Bridgetek answers"
+  },
+  "p_t35": {
+   "value": 0.6,
+   "tag": "ASSUMPTION",
+   "source": "Efinity power estimator NOT_RUN"
+  },
+  "p_misc": {
+   "value": 0.45,
+   "tag": "ASSUMPTION",
+   "source": "microSD write up to ~100 mA at 3.3 V + glue"
+  },
+  "eta_buck": {
+   "value": 0.85,
+   "tag": "ASSUMPTION",
+   "source": "TLV62569 efficiency at these loads (datasheet curves, not read)"
+  },
+  "eta_amp": {
+   "value": 0.85,
+   "tag": "ASSUMPTION",
+   "source": "MAX98357A efficiency near full power"
+  }
+ },
+ "results": [
+  {
+   "group": "regulator_setpoint",
+   "check": "3V3 (U3)",
+   "value": [
+    3.1989,
+    3.318,
+    3.4404
+   ],
+   "limit": [
+    3.14,
+    3.47
+   ],
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "vfb_tol",
+    "r_tol",
+    "lim_3V3 (U3)"
+   ],
+   "note": "DC setpoint only: load-step and ripple margin need the TI design tool / bench",
+   "risk": ""
+  },
+  {
+   "group": "regulator_setpoint",
+   "check": "VDD_CORE (U5)",
+   "value": [
+    0.92,
+    0.9456,
+    0.9716
+   ],
+   "limit": [
+    0.85,
+    0.99
+   ],
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "vfb_tol",
+    "r_tol",
+    "lim_VDD_CORE (U5)"
+   ],
+   "note": "DC setpoint only: load-step and ripple margin need the TI design tool / bench",
+   "risk": ""
+  },
+  {
+   "group": "regulator_setpoint",
+   "check": "1V8_DRAM (U6)",
+   "value": [
+    1.7407,
+    1.8,
+    1.8607
+   ],
+   "limit": [
+    1.7,
+    1.9
+   ],
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "vfb_tol",
+    "r_tol",
+    "lim_1V8_DRAM (U6)"
+   ],
+   "note": "DC setpoint only: load-step and ripple margin need the TI design tool / bench",
+   "risk": ""
+  },
+  {
+   "group": "regulator_setpoint",
+   "check": "1V2_T35 (U9)",
+   "value": [
+    1.1644,
+    1.2,
+    1.2364
+   ],
+   "limit": [
+    1.15,
+    1.25
+   ],
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "vfb_tol",
+    "r_tol",
+    "lim_1V2_T35 (U9)"
+   ],
+   "note": "DC setpoint only: load-step and ripple margin need the TI design tool / bench",
+   "risk": ""
+  },
+  {
+   "group": "supervisor",
+   "check": "U4 TPS3808G33 on 3V3: max threshold below rail minimum",
+   "value": 3.116,
+   "limit": 3.1989,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "tps3808_tol"
+   ],
+   "note": "else the supervisor could hold reset with a healthy rail",
+   "risk": ""
+  },
+  {
+   "group": "supervisor",
+   "check": "U8 TPS3808G09 on VDD_CORE: max threshold below rail minimum",
+   "value": 0.8526,
+   "limit": 0.92,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "tps3808_tol"
+   ],
+   "note": "else the supervisor could hold reset with a healthy rail",
+   "risk": ""
+  },
+  {
+   "group": "supervisor",
+   "check": "U14 TPS3808G30 on PSRAM_VDD: max threshold below rail minimum",
+   "value": 2.8318,
+   "limit": 3.0389,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "tps3808_tol"
+   ],
+   "note": "else the supervisor could hold reset with a healthy rail",
+   "risk": ""
+  },
+  {
+   "group": "supervisor",
+   "check": "U14 TPS3808G30 on PSRAM_VDD: min threshold above device minimum",
+   "value": 2.7481,
+   "limit": 2.7,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "tps3808_tol"
+   ],
+   "note": "power loss is flagged before the PSRAM leaves its operating range",
+   "risk": ""
+  },
+  {
+   "group": "supervisor",
+   "check": "U4 TPS3808G33 min threshold vs T35 VCCIO min 3.14 V",
+   "value": 3.0239,
+   "limit": 3.14,
+   "unit": "V",
+   "status": "FAIL",
+   "inputs": [
+    "tps3808_tol"
+   ],
+   "note": "3V3 can sag to 3.02-3.14 V without reset -> below T35 VCCIO spec. A threshold window [3.14, 3.199] is not achievable with +-1.5 % parts and a +-2 % regulator: R09 needs a 1 % regulator or accepts it (T35 optional; PSRAM data guarded by its own supervisor)",
+   "risk": "RK-3V3-SUP"
+  },
+  {
+   "group": "sequencing",
+   "check": "U4 delay (VCC-IO before core)",
+   "value": 13.07,
+   "limit": 2.0,
+   "unit": "ms",
+   "status": "PASS",
+   "inputs": [
+    "ct_U4 delay (VCC-IO before core)"
+   ],
+   "note": "tD[s] = CT[nF]/175 + 0.5 ms (TPS3808 DS); CT tolerance +-10 % not yet applied",
+   "risk": ""
+  },
+  {
+   "group": "sequencing",
+   "check": "U8 delay (RESET after rails)",
+   "value": 86.21,
+   "limit": 64.0,
+   "unit": "ms",
+   "status": "PASS",
+   "inputs": [
+    "ct_U8 delay (RESET after rails)"
+   ],
+   "note": "tD[s] = CT[nF]/175 + 0.5 ms (TPS3808 DS); CT tolerance +-10 % not yet applied",
+   "risk": ""
+  },
+  {
+   "group": "boot_strap",
+   "check": "PC4 BOOT-SEL0 (SPI0_MOSI) level at BROM sampling",
+   "value": 0.7939,
+   "limit": 0.96,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "f133_pc_pullup_min",
+    "strap_pd",
+    "strap_leak",
+    "f133_vil_ratio",
+    "v3v3_max"
+   ],
+   "note": "worst case: max rail, weakest internal pull-up, +1 % R, leakage into the node; VIL at min rail",
+   "risk": ""
+  },
+  {
+   "group": "boot_strap",
+   "check": "PC5 BOOT-SEL1 (SPI0_MISO) level at BROM sampling",
+   "value": 0.7939,
+   "limit": 0.96,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "f133_pc_pullup_min",
+    "strap_pd",
+    "strap_leak",
+    "f133_vil_ratio",
+    "v3v3_max"
+   ],
+   "note": "worst case: max rail, weakest internal pull-up, +1 % R, leakage into the node; VIL at min rail",
+   "risk": ""
+  },
+  {
+   "group": "boot_strap",
+   "check": "NOR DO load from the BOOT-SEL1 pull-down vs VOH test current",
+   "value": 1.041,
+   "limit": 0.1,
+   "unit": "mA",
+   "status": "OPEN",
+   "inputs": [
+    "nor_voh_test",
+    "strap_pd"
+   ],
+   "note": "1.04 mA > 0.1 mA spec point: VOH under this load is UNSPECIFIED -> vendor IBIS / bench (same class as R07 PSRAM VOH)",
+   "risk": "RK-NOR-VOH"
+  },
+  {
+   "group": "level",
+   "check": "MN820 MISO high -> buffer (R07 problem point)",
+   "value": 0.4,
+   "limit": 0.0,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "mn820_voh",
+    "lvc125_vih"
+   ],
+   "note": "R07 direct path margin was +0.02 V; R08 buffer: +0.40 V",
+   "risk": ""
+  },
+  {
+   "group": "level",
+   "check": "MN820 MISO low -> buffer",
+   "value": 0.4,
+   "limit": 0.0,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "mn820_vol",
+    "lvc125_vil"
+   ],
+   "note": "",
+   "risk": ""
+  },
+  {
+   "group": "level",
+   "check": "buffer -> F133 PD13 high",
+   "value": 0.72,
+   "limit": 0.0,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "lvc125_voh",
+    "f133_vih_ratio",
+    "v3v3_max"
+   ],
+   "note": "buffer and F133 on the same 3V3 rail; min VOH vs max VIH",
+   "risk": ""
+  },
+  {
+   "group": "level",
+   "check": "buffer -> F133 PD13 low",
+   "value": 0.86,
+   "limit": 0.0,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "lvc125_vol",
+    "f133_vil_ratio"
+   ],
+   "note": "",
+   "risk": ""
+  },
+  {
+   "group": "level",
+   "check": "F133 -> MN820 SCK/MOSI/SS_N high",
+   "value": 0.9,
+   "limit": 0.0,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "f133_voh_drop",
+    "mn820_vih"
+   ],
+   "note": "33 ohm series, module input current negligible",
+   "risk": ""
+  },
+  {
+   "group": "level",
+   "check": "F133 -> MN820 low",
+   "value": 0.6,
+   "limit": 0.0,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "mn820_vil"
+   ],
+   "note": "F133 VOL 0.2 V (DS)",
+   "risk": ""
+  },
+  {
+   "group": "timing",
+   "check": "SPI1 read: max SCLK with F133 sampling on the next rising edge",
+   "value": 35.0,
+   "limit": 30.0,
+   "unit": "MHz",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "bt820_tod",
+    "lvc125_tpd",
+    "trace_ns",
+    "f133_spi_tsu"
+   ],
+   "note": "half-period budget = Tod + buffer + flight + setup. Bring-up at 20 MHz, target 30 MHz; >30 MHz needs the F133 delayed-sample mode and measurement",
+   "risk": ""
+  },
+  {
+   "group": "timing",
+   "check": "BT820 SCLK limit",
+   "value": 60.0,
+   "limit": 30.0,
+   "unit": "MHz",
+   "status": "PASS",
+   "inputs": [
+    "bt820_tod"
+   ],
+   "note": "BT820 Tsclk min 16.6 ns",
+   "risk": ""
+  },
+  {
+   "group": "psram",
+   "check": "SCLK/SIO level while T35 unconfigured (PSRAM unpowered by design)",
+   "value": 0.3676,
+   "limit": 0.4,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "t35_weak_pu_min",
+    "psram_pd_switched",
+    "lvc07_vol",
+    "v3v3_max"
+   ],
+   "note": "limit 0.4 V = APS6404L VIN max VDD+0.4 at VDD = 0 (no back-power); also <= VIL 0.4",
+   "risk": ""
+  },
+  {
+   "group": "psram",
+   "check": "PSRAM output load in user mode (switched pull-downs released)",
+   "value": 0.034,
+   "limit": 0.2,
+   "unit": "mA",
+   "status": "PASS",
+   "inputs": [
+    "psram_pd_static",
+    "aps_voh_test"
+   ],
+   "note": "R07 needed 1.63 mA through 2.2 kOhm (outside the 0.2 mA VOH test condition); R08 load is inside it -> RK-PSRAM-VOH closed by design",
+   "risk": ""
+  },
+  {
+   "group": "psram",
+   "check": "CE# vs VDD during ramp",
+   "value": 0.0,
+   "limit": 0.2,
+   "unit": "V",
+   "status": "PASS",
+   "inputs": [
+    "psram_pd_static"
+   ],
+   "note": "CE# pull-up goes to PSRAM_VDD itself and the T35 CE# pad is released (guard OFF): tracks exactly (RTL_SIMULATED P1)",
+   "risk": ""
+  },
+  {
+   "group": "psram",
+   "check": "CDONE -> CDONE_DLY delay vs tUSER",
+   "value": 963.7,
+   "limit": 25.0,
+   "unit": "us",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "t35_tuser",
+    "lvc1g17_vtplus_min"
+   ],
+   "note": "requires >= 4x tUSER; RC = (10k pull-up + 10k) x 100 nF",
+   "risk": ""
+  },
+  {
+   "group": "vbus_budget",
+   "check": "VBUS current, default USB (500 mA, amps muted)",
+   "value": 0.881,
+   "limit": 0.5,
+   "unit": "A",
+   "status": "FAIL",
+   "inputs": [
+    "p_f133",
+    "p_mn820",
+    "p_mn820_margin",
+    "p_t35",
+    "p_misc",
+    "eta_buck",
+    "eta_amp"
+   ],
+   "note": "VBUS 4.75 V min; firmware power policy from TUSB320 OUT1/OUT2. Panel backlight (R09) NOT included",
+   "risk": "RK-USB-BUDGET"
+  },
+  {
+   "group": "vbus_budget",
+   "check": "VBUS current, Type-C 1.5 A (0.25 W/ch)",
+   "value": 1.005,
+   "limit": 1.5,
+   "unit": "A",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "p_f133",
+    "p_mn820",
+    "p_mn820_margin",
+    "p_t35",
+    "p_misc",
+    "eta_buck",
+    "eta_amp"
+   ],
+   "note": "VBUS 4.75 V min; firmware power policy from TUSB320 OUT1/OUT2. Panel backlight (R09) NOT included",
+   "risk": ""
+  },
+  {
+   "group": "vbus_budget",
+   "check": "VBUS current, Type-C 3.0 A (1.4 W/ch into 8 ohm)",
+   "value": 1.575,
+   "limit": 3.0,
+   "unit": "A",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "p_f133",
+    "p_mn820",
+    "p_mn820_margin",
+    "p_t35",
+    "p_misc",
+    "eta_buck",
+    "eta_amp"
+   ],
+   "note": "VBUS 4.75 V min; firmware power policy from TUSB320 OUT1/OUT2. Panel backlight (R09) NOT included",
+   "risk": ""
+  },
+  {
+   "group": "vbus_budget",
+   "check": "PTC hold >= worst budgeted current (3 A class)",
+   "value": 2.6,
+   "limit": 1.575,
+   "unit": "A",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "p_f133",
+    "p_t35",
+    "eta_amp"
+   ],
+   "note": "1812 PTC hold >= 2.6 A selected; MPN R09",
+   "risk": ""
+  }
+ ]
+}

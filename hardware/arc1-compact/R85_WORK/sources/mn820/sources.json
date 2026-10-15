@@ -1,0 +1,37 @@
+[
+ {
+  "id": "MN820",
+  "title": "MN820 BT820 Mini Module Datasheet v1.0 (BRT_000442)",
+  "url": "https://brtchip.com/wp-content/uploads/2025/01/DS_MN820-1.pdf",
+  "sha256": "29e0a74ba35375fcdf6c9d34455398707934f292db44394226cda4047191e5bd",
+  "used_for": "CN1 pinout, supply, I/O levels, dimensions, mounting, connector p/n and stack heights"
+ },
+ {
+  "id": "BT820",
+  "title": "BT820 Framebuffer based Embedded Video Engine Datasheet v1.1 (BRT_000427)",
+  "url": "https://brtchip.com/wp-content/uploads/2025/01/DS_BT820-1.pdf",
+  "sha256": "a6d494e034a2147c8bd6528aa07183c1ae08e5b054836227f4e54820e124d367",
+  "used_for": "QSPI timing, DC levels, drive strength, pulls, LVDS spec, reset/sequencing"
+ },
+ {
+  "id": "VM820C",
+  "title": "VM820C BT820 Credit Card Module Datasheet v1.1 (BRT_000441)",
+  "url": "https://docs.rs-online.com/0f15/A700000013303091.pdf",
+  "sha256": "4d54c766d9e09909ab2a3f47504c776c394672b8776d1e2c8cf3d82053d79046",
+  "used_for": "Mating receptacle CN6, 3V3 regulator U3, host pull-ups, touch pull-ups, baseboard mounting holes"
+ },
+ {
+  "id": "DF40",
+  "title": "Hirose DF40 Series catalog (EN)",
+  "url": "https://www.hirose.com/api/v1/series/DF40/documents/product_series_catalog/content?lang=EN",
+  "sha256": "f18dd3703a5a6bce9b47e7f046d3087f30f9248c4fdd63793d523b294c77e5d8",
+  "used_for": "DF40 part numbers, stack heights, land patterns, ratings"
+ },
+ {
+  "id": "AP6320x",
+  "title": "Diodes AP63200/AP63201/AP63203/AP63205 datasheet (Nov 2024)",
+  "url": "https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf",
+  "sha256": "ef99daa3789d835bc025dfcb4c605c5c2e6d3e7223e86d40b33e6b497ea5a722",
+  "used_for": "VM820C 3V3 regulator rating"
+ }
+]

@@ -1,0 +1,517 @@
+{
+ "scope": "Efinix Trion T35F400C3 (BGA400). Facts copied from cited Efinix documents; ball lists from local T35F400_package_source_facts.csv (Efinix T35 Pinout workbook v1.5, sha256 11dc7a00...dd). NOT_FOUND = not stated in any source retrieved.",
+ "speed_grade_note": "C3 uses Table 63 (C3, C4, I4) of DS v3.2; C4L/I4L values (Table 64) do not apply.",
+ "supplies": [
+  {
+   "rail": "VCC",
+   "function": "Core power supply",
+   "min_V": 1.15,
+   "typ_V": 1.2,
+   "max_V": 1.25,
+   "abs_max_V": [
+    -0.5,
+    1.42
+   ],
+   "balls_T35F400": [
+    "H8",
+    "H9",
+    "H10",
+    "H11",
+    "H12",
+    "H13",
+    "K8",
+    "K9",
+    "K10",
+    "K11",
+    "K12",
+    "K13",
+    "M8",
+    "M9",
+    "M10",
+    "M11",
+    "M12",
+    "M13",
+    "P8",
+    "P9",
+    "P10",
+    "P11",
+    "P12",
+    "P13"
+   ],
+   "src": "S_DS Table 63, Table 62; local CSV"
+  },
+  {
+   "rail": "VCCA_PLL (package balls VCCA_BL, VCCA_BR, VCCA_TR)",
+   "function": "PLL analog power supply; VCCA_xx 'xx indicates the location'",
+   "min_V": 1.15,
+   "typ_V": 1.2,
+   "max_V": 1.25,
+   "abs_max_V": [
+    -0.5,
+    1.42
+   ],
+   "unused_connection": "Connect to VCC (1.2 V)",
+   "balls_T35F400": {
+    "VCCA_BL": [
+     "R13"
+    ],
+    "VCCA_BR": [
+     "R8"
+    ],
+    "VCCA_TR": [
+     "F8"
+    ]
+   },
+   "src": "S_DS Table 63, Table 98, Table 59; local CSV"
+  },
+  {
+   "rail": "VCCIOxx (1A,1B,1C,1D,1E,2A,2B,2C,3C_TR,4A,4B,BR)",
+   "function": "I/O bank supply",
+   "allowed": {
+    "1.8V": [
+     1.71,
+     1.8,
+     1.89
+    ],
+    "2.5V": [
+     2.38,
+     2.5,
+     2.63
+    ],
+    "3.3V": [
+     3.14,
+     3.3,
+     3.47
+    ]
+   },
+   "abs_max_V": [
+    -0.5,
+    4.6
+   ],
+   "unused_connection": "Connect to either 1.8 V, 2.5 V, or 3.3 V",
+   "bga400_banks": "1A - 1E, 2A - 2C, 3C, 4A, 4B, TR, BR; voltages 1.8, 2.5, 3.3; DDIO banks 1A - 1E, 3C, TR, BR; merged banks: 3C_TR",
+   "balls_T35F400": {
+    "VCCIO1A": [
+     "R15",
+     "V19"
+    ],
+    "VCCIO1B": [
+     "L16",
+     "L19",
+     "N19"
+    ],
+    "VCCIO1C": [
+     "E19",
+     "H16",
+     "J19"
+    ],
+    "VCCIO1D": [
+     "B17",
+     "C19",
+     "E16"
+    ],
+    "VCCIO1E": [
+     "B12",
+     "B14",
+     "E13"
+    ],
+    "VCCIO2A": [
+     "B7",
+     "B10",
+     "F11"
+    ],
+    "VCCIO2B": [
+     "C2",
+     "C8",
+     "F10"
+    ],
+    "VCCIO2C": [
+     "E5",
+     "F2",
+     "F9"
+    ],
+    "VCCIO3C_TR": [
+     "H5",
+     "J7"
+    ],
+    "VCCIO4A": [
+     "U11",
+     "W7",
+     "W10"
+    ],
+    "VCCIO4B": [
+     "T14",
+     "W12",
+     "W15"
+    ],
+    "VCCIO_BR": [
+     "R9"
+    ]
+   },
+   "src": "S_DS Table 63, Table 12, Table 59; local CSV"
+  },
+  {
+   "rail": "VCCIO_DDR",
+   "function": "DDR power supply",
+   "allowed": {
+    "DDR3": [
+     1.425,
+     1.5,
+     1.575
+    ],
+    "DDR3L": [
+     1.283,
+     1.35,
+     1.45
+    ],
+    "LPDDR3": [
+     1.14,
+     1.2,
+     1.3
+    ],
+    "LPDDR2": [
+     1.14,
+     1.2,
+     1.3
+    ]
+   },
+   "abs_max_V": [
+    -0.5,
+    1.65
+   ],
+   "unused_connection": "VCCIO_DDR: Floating. Leave unconnected. DDR_VREF: Connect to ground.",
+   "balls_T35F400": [
+    "L7",
+    "N7",
+    "P5",
+    "R2",
+    "R7",
+    "W4"
+   ],
+   "DDR_VREF_ball": "V4",
+   "src": "S_DS Table 63, Table 59, Table 102; local CSV"
+  },
+  {
+   "rail": "VCC25A_MIPI*/VCC12A_MIPI*",
+   "note": "BGA400 has no MIPI blocks (DS Table 2: MIPI '-' for BGA400); no MIPI supply balls in the T35F400 CSV.",
+   "src": "S_DS Table 2; local CSV"
+  },
+  {
+   "rail": "VCCAUX",
+   "note": "NOT_FOUND for T35: no VCCAUX in DS v3.2 recommended operating conditions (Table 63) and no VCCAUX ball in T35F400 CSV. AN006 Figure 5 waveform label lists 'VCC, VCCA_XX, VCCAUX, VCCIO' generically for Trion.",
+   "src": "S_DS Table 63; S_AN006 Figure 5; local CSV"
+  },
+  {
+   "rail": "GND",
+   "balls_T35F400": [
+    "A1",
+    "A20",
+    "B4",
+    "D11",
+    "E8",
+    "G8",
+    "G9",
+    "G10",
+    "G11",
+    "G12",
+    "G13",
+    "G19",
+    "J2",
+    "J8",
+    "J9",
+    "J10",
+    "J11",
+    "J12",
+    "J13",
+    "L5",
+    "L8",
+    "L9",
+    "L10",
+    "L11",
+    "L12",
+    "L13",
+    "M2",
+    "M7",
+    "N8",
+    "N9",
+    "N10",
+    "N11",
+    "N12",
+    "N13",
+    "P7",
+    "P17",
+    "R11",
+    "R19",
+    "U5",
+    "U8",
+    "U16",
+    "V2",
+    "W17",
+    "Y1",
+    "Y20"
+   ],
+   "count": 45,
+   "src": "local CSV"
+  },
+  {
+   "rail": "REF_RES_4A (R10), REF_RES_4B (R12)",
+   "requirement": "Connect a 12 kΩ resistor with a tolerance of ±1% to the REF_RES pin with respect to ground. If none of the pins in a bank are used for LVDS, leave this pin floating.",
+   "src": "S_DS Table 98; local CSV"
+  }
+ ],
+ "power_up_sequence": {
+  "steps_verbatim": [
+   "1. Power up VCC and VCCA_xx first.",
+   "2. When VCC and VCCA_xx are stable, power up all VCCIO pins. There is no specific timing delay between the VCCIO pins.",
+   "3. Apply power to VCC12A_MIPI_TX, VCC12A_MIPI_RX, and VCC25A_MIPI at least tMIPI_POWER after VCC is stable. (not applicable: no MIPI on BGA400)",
+   "4. After all power supplies are stable, hold CRESET_N low for a duration of tCRESET_N before asserting CRESET_N from low to high to trigger active SPI programming."
+  ],
+  "figure_27_annotation": "Max 10 ms (shown between VCC/VCCA_xx and All VCCIO in Figure 27; exact referent is graphical, see figure)",
+  "ramp_rate": "tRAMP: VCCIO/10 V/ms (min) to 10 V/ms (max), all supplies (Table 65)",
+  "inrush_VCC_max_mA": 57,
+  "inrush_note": "Inrush current for other power rails are not significant in Trion FPGAs. Measured at room temperature.",
+  "src": "S_DS 'Power Up Sequence' Figure 27, Table 59, Table 60, Table 65 (pp.47-52)"
+ },
+ "decoupling": "NOT_FOUND in retrieved public docs. DS and AN006 refer to 'Trion Hardware Design Checklist and Guidelines', which was not found on the public docs index (efinixinc.com/support/docs.php) or docs-html; likely Support Center (login) only.",
+ "hardware_design_checklist": "NOT_FOUND (not publicly retrievable)",
+ "configuration_pins_T35F400": {
+  "dedicated": {
+   "CDONE": "T19",
+   "CRESET_N": "U19",
+   "TCK": "W20",
+   "TDI": "Y19",
+   "TDO": "V20",
+   "TMS": "U20"
+  },
+  "dual_purpose_BANK1A": {
+   "SS_N": "W18 (GPIOL_00_SS_N)",
+   "CCK": "W19 (GPIOL_01_CCK)",
+   "CSI": "T16 (GPIOL_04_CSI)",
+   "CSO": "T17 (GPIOL_05_CSO)",
+   "CDI0": "Y17 (GPIOL_08_CDI0)",
+   "CDI1": "Y18 (GPIOL_09_CDI1)",
+   "CBUS0": "U18 (GPIOL_11_CBUS0)",
+   "CBUS1": "T18 (GPIOL_12_CBUS1)",
+   "CBUS2": "V18 (GPIOL_13_CBUS2)"
+  },
+  "dual_purpose_BANK1B": {
+   "CDI2": "P15",
+   "CDI3": "R17",
+   "CDI4": "R18",
+   "CDI5": "N15",
+   "CDI6": "P18",
+   "CDI7": "T20"
+  },
+  "dual_purpose_BANK1E": {
+   "NSTATUS": "C14 (GPIOL_102_NSTATUS)",
+   "TEST_N": "F14 (GPIOL_103_TEST_N)",
+   "CBSEL0": "A11 (GPIOL_108_CBSEL0)",
+   "CBSEL1": "A12 (GPIOL_109_CBSEL1)"
+  },
+  "CDI8_31": "BANK4A/4B GPIOB_TX* pins, see t35f400_balls_by_rail.csv",
+  "src": "local CSV"
+ },
+ "pin_requirements": {
+  "all_config_pins": "All the pins are in internal weak pull-up during configuration except for TCK and TDO. All dedicated configuration pins have Schmitt Trigger buffer. These [dedicated] pins cannot be used as general-purpose I/O after configuration.",
+  "CDONE": "open drain output; connect it to an external pull-up resistor to VCCIO. External requirement: Pull up. Drive strength 1. Internal weak pull-up per Table 69.",
+  "CRESET_N": "Active-low FPGA reset and re-configuration trigger. Pulse low for tCRESET_N (min 320 ns). Does not perform a system reset. External requirement: Pull up. AN006: 'Circuitry is required to control the CRESET_N pin to meet the tCRESET_N requirement.'",
+  "TCK_TMS_TDI_TDO": "External requirement column: Pull up (each).",
+  "SS_N": "Sampled when CRESET_N transitions low to high. 0: SPI Passive (external weak pull down); 1: SPI Active (external weak pull up). In active mode, SS_N is the flash chip select.",
+  "CBUS[2:0]": "internal weak pull-up; Efinix recommends external pull-up/pull-down accordingly; optional for x1 mode.",
+  "CSI": "Pull up. Must remain high throughout all configuration modes.",
+  "TEST_N": "Pull up. Set to 1 to disable test mode; rely on the external weak pull-up or drive high.",
+  "CBSEL[1:0]": "Pull up or pull down; not applicable to single-image or remote update.",
+  "CCK_CDIn": "Optional pull-up unless required by external load.",
+  "resistor_value": "Efinix recommends that you use 10 kΩ for all unspecified pull-up and pull-down resistors in configuration circuitries.",
+  "internal_pullup_3V3_kohm": {
+   "min": 27,
+   "typ": 40,
+   "max": 65
+  },
+  "internal_pulldown_3V3_kohm": {
+   "min": 30,
+   "typ": 47,
+   "max": 83
+  },
+  "src": "S_DS Tables 69, 99, 100; S_AN006 Tables 3, 'Resistors in Configuration Circuitry' p.51, p.13"
+ },
+ "mode_select_table_AN006_Table5": {
+  "SPI_active_x1": "CSI=1 TEST_N=1 SS_N=1 CBUS=3'b111",
+  "SPI_active_x2": "CSI=1 TEST_N=1 SS_N=1 CBUS=3'b110",
+  "SPI_active_x4": "CSI=1 TEST_N=1 SS_N=1 CBUS=3'b101",
+  "default": "If you do not make any connections, the default mode is x1 SPI active.",
+  "note": "You must set the configuration mode in the Efinity software; the software includes the mode and other configuration options in the bitstream. Do not toggle the mode pins before the FPGA enters user mode.",
+  "T35_BGA400_support": "Active x1/x2/x4, Passive x1..x32, JTAG x1 (DS Table 61; checkmarks rendered graphically). Footnote 11: BGA324/BGA400 do not support active SPI multi-image configuration in x1 mode.",
+  "src": "S_AN006 Table 5; S_DS Table 61"
+ },
+ "spi_active_flash": {
+  "bitstream_size_T35_bits": 8139168,
+  "bitstream_size_note": "Maximum Supported Configuration Bits (Single Image), all packages; includes optional header (up to 1k bytes).",
+  "min_flash_single_image": "DERIVED (arithmetic, not an Efinix statement): 8,139,168 bits = 1,017,396 bytes < 8 Mbit (8,388,608 bits), so one image fits in an 8 Mbit flash with 249,440 bits spare; any second image/user data requires larger flash (AN006: multiple images = bits x number of images).",
+  "addressing": "Trion FPGAs only support SPI flash memory with 3-byte addressing mode for configuration. The maximum SPI flash address width for configuration is 24 bits. Read starts at address 24'h000000.",
+  "instructions": {
+   "x1": "0BH Fast Read",
+   "x2": "3BH Dual Output Fast Read",
+   "x4": "6BH Quad Output Fast Read"
+  },
+  "sequence": "drive SS_N low; release-from-power-down instruction on CDI0; wait >= 30 us; fast read from 24'h000000; optional deep power-down after configuration",
+  "config_clock": "Internal oscillator: starts at default 10 MHz then switches to user-selected DIV4 (20 MHz) or DIV8 (10 MHz) (AN006 Table 10). DS Table 94 fMAX_M: DIV4 14/20/26 MHz, DIV8 7/10/13 MHz (min/typ/max). Efinity default DIV8.",
+  "flash_selection": "Flash must support a clock frequency higher than the SPI active configuration clock; flash voltage must be the same as the FPGA I/O bank voltage.",
+  "supported_flash_families_AN006_Table26": [
+   "GigaDevice GD25Q, GD25WQ, GD25LQ",
+   "Macronix MX25L, MX25U, MX25V, MX75L, MX75U",
+   "Puya P25Q",
+   "Winbond W25Q",
+   "Micron M25P, MT25Q",
+   "XTX XT25F",
+   "Atmel (Adesto) AT25SF",
+   "ISSI IS25LP128, IS25WP512M"
+  ],
+  "recommendation": "Efinix recommends using SPI NOR flash memories.",
+  "timing": {
+   "tSU_ns_min": 7.5,
+   "tH_ns_min": 1
+  },
+  "src": "S_AN006 Table 1, Table 8, Table 10, Table 26, Timing p.15; S_DS Table 94; S_SWUG Table 39"
+ },
+ "timing_all_modes": {
+  "tCRESET_N_ns_min": 320,
+  "tUSER_us_min": 25,
+  "tUSER_note": "The FPGA may go into user mode before tUSER has elapsed. However, Efinix recommends that you keep the system interface to the FPGA in reset until tUSER has elapsed. Test condition 10 kΩ pull-up, 10 pF on CDONE. Max: single Trion FPGA tUSER = t(A to B) + tUSER_MIN.",
+  "tDMIN_us_min_passive": 1.2,
+  "src": "S_DS Tables 93, 95, 97"
+ },
+ "jtag": {
+  "pins": {
+   "TCK": "W20",
+   "TDI": "Y19",
+   "TDO": "V20",
+   "TMS": "U20"
+  },
+  "fTCK_max_MHz": 25,
+  "tTDISU_ns": 3.5,
+  "tTDIH_ns": 2.5,
+  "tTMSSU_ns": 3,
+  "tTMSH_ns": 2.5,
+  "tTCKTDO_max_ns": 10.5,
+  "notes": [
+   "JTAG interface is always available regardless of pin settings; JTAG configuration overwrites previous configuration.",
+   "CRESET_N must be deasserted before JTAG configuration begins (the low-then-high pulse requirement is listed only for T4, T8, T13, T20 variants).",
+   "You can only use a single configuration channel (SPI or JTAG) at the same time; the SPI bus must be inactive during JTAG configuration."
+  ],
+  "src": "S_DS Table 96; S_AN006 pp.11, 31-32"
+ },
+ "io_state_by_phase": {
+  "unpowered_or_back_drive": {
+   "facts": [
+    "Absolute max VIN -0.5 to 4.6 V (Table 62).",
+    "IIN: Maximum current through any pin in a powered or unpowered bank when forward biasing the clamp diode: 10 mA; should not exceed a total of 120 mA per bank (Table 62 + footnote 13).",
+    "Recommended VIN -0.3 to VCCIO+0.3 V (Table 63)."
+   ],
+   "hot_socket_spec": "NOT_FOUND",
+   "explicit_do_not_drive_unpowered_statement": "NOT_FOUND",
+   "src": "S_DS Tables 62, 63"
+  },
+  "powered_CRESET_N_held_low": {
+   "facts": [
+    "CRESET_N 'does not perform a system reset'.",
+    "Mode (SS_N) is sampled when CRESET_N transitions low to high."
+   ],
+   "explicit_pad_state": "NOT_FOUND (no Efinix statement found that defines GPIO pad state specifically while CRESET_N is held low; nearest statements are the 'during configuration' ones below)",
+   "src": "S_DS Table 99, 100"
+  },
+  "during_configuration": {
+   "facts": [
+    "During configuration, all GPIO pins excluding LVDS as GPIO are configured in weak pull-up mode. The LVDS as GPIO pins are tri-stated without a pull-up or pull-down resistor. (DS 'General-Purpose I/O Logic and Buffer', p.12; also Trion Interfaces UG)",
+    "All the [configuration] pins are in internal weak pull-up during configuration except for TCK and TDO. (DS Table 99)",
+    "During configuration, core signals are held in reset and the I/O pins are tri-stated. These states are released when the FPGA enters user mode. (Efinity SW UG Table 39 'Release Tri-States before Reset')",
+    "efx_pgm --io_weak_pullup on/off: 'Enable IO weak pullup during configuration.' (CLI UG Table 39; project XML param io_weak_pullup, value 'on' in both public example projects)",
+    "If a multi-function config pin is driven by an external device during configuration, that source must be tri-stated before the device enters user mode and user logic drives it; otherwise contention can damage the pin. (AN006 p.5)"
+   ],
+   "weak_pullup_3V3_kohm": "27/40/65 (Table 69)",
+   "src": "S_DS p.12, Tables 69, 99; S_SWUG Table 39; S_CLI Table 39; S_AN006 p.5"
+  },
+  "CDONE_high_to_user_mode": {
+   "facts": [
+    "CDONE = 1: configuration is complete and the FPGA enters user mode.",
+    "tUSER min 25 us: 'Minimum configuration duration after CDONE goes high before entering user mode.' The FPGA may go into user mode before tUSER has elapsed; keep the system interface to the FPGA in reset until tUSER has elapsed.",
+    "Release Tri-States before Reset (default On): I/O pins are released from tri-state before the core is released from reset; Off: core released from reset before I/O released from tri-state. (efx_pgm --release_tri_then_reset)",
+    "--activate_tri_then_reset: Activate tri-state IO pins before the chip resets during exit from user mode."
+   ],
+   "src": "S_DS Table 93, fn 19; S_SWUG Table 39; S_CLI Table 39"
+  },
+  "user_mode": {
+   "facts": [
+    "During user mode, unused GPIO pins are tri-stated and configured in weak pull-up mode. You can change the default mode to weak pull-down in the Interface Designer. No glitches if the GPIO is configured as weak pull-up in user mode.",
+    "Dual-purpose configuration pins can be used as general I/O in user mode."
+   ],
+   "src": "S_DS p.12, Table 100"
+  }
+ },
+ "pll_reference_for_bga400": {
+  "table18": {
+   "PLL_BL0": [
+    "GPIOL_15_PLLIN0",
+    "GPIOL_19_PLLN1"
+   ],
+   "PLL_BR0": [
+    "GPIOR_138_PLLIN0",
+    "GPIOB_TXP09_CLK0 (single-ended)"
+   ],
+   "PLL_BR1": [
+    "GPIOR_139_PLLIN1",
+    "GPIOB_TXP15_CLK1_CDI15"
+   ],
+   "PLL_BR2": [
+    "GPIOR_140_PLLIN2",
+    "GPIOB_TXP19_CLK2"
+   ],
+   "PLL_TR0": [
+    "GPIOR_118_PLLIN0",
+    "GPIOT_RXP08_CLKP0/RXN08_CLKN0"
+   ],
+   "PLL_TR1": [
+    "GPIOR_119_PLLIN1",
+    "GPIOT_RXP17_CLKP1/RXN17_CLKN1"
+   ],
+   "PLL_TR2": [
+    "GPIOR_120_PLLIN2",
+    "GPIOT_RXP25_CLKP2/RXN25_CLKN2"
+   ]
+  },
+  "observation": "GPIOL_66_CLK0 (D20) is NOT listed as an external PLL REFCLK in Table 18. The PLL 'Clock Source' can be 'Core' (reference from core clock tree; FIN from core 10-330 MHz), Table 14/90.",
+  "limits_C3": {
+   "FIN_from_GPIO_MHz": [
+    10,
+    200
+   ],
+   "FIN_from_core_MHz": [
+    10,
+    330
+   ],
+   "FPFD_MHz": [
+    10,
+    100
+   ],
+   "FVCO_internal_fb_MHz": [
+    500,
+    1600
+   ],
+   "FOUT_MHz": [
+    0.24,
+    500
+   ],
+   "M": "1-255",
+   "N": "1-15",
+   "O": "1,2,4,8 (>=2 if more than 1 output enabled)",
+   "C": "1-256"
+  },
+  "PLLIN_balls": {
+   "GPIOL_15_PLLIN0": "R16 BANK1B",
+   "GPIOL_19_PLLIN1": "P16 BANK1B",
+   "GPIOR_138_PLLIN0": "T8 BR",
+   "GPIOR_118_PLLIN0": "F7 TR"
+  },
+  "src": "S_DS Tables 13-15, 18, 90; local CSV"
+ }
+}

@@ -1,0 +1,269 @@
+{
+  "_meta": {
+    "generated": "2026-10-15",
+    "conventions": "Values copied from datasheets; 'src' = sources.json id + section/table. 'derived' = arithmetic from stated values, flagged. NOT_FOUND = not stated in the downloaded document. Conditions VCC 3.0-3.6 V unless noted.",
+    "dropped": ["TPA2012D2 (coordinator: replaced by 2x MAX98357A); PDF downloaded (S9) but not extracted"]
+  },
+  "parts": [
+    {
+      "part": "SN74LVC1G34",
+      "src": "S1 (SCES519O, rev. Oct 2025)",
+      "function": "Single buffer, Y = A (Sec 3)",
+      "pinout": {
+        "DBV_SOT23-5": {"1": "NC", "2": "A", "3": "GND", "4": "Y", "5": "VCC"},
+        "DCK_SC70-5": {"1": "NC", "2": "A", "3": "GND", "4": "Y", "5": "VCC"},
+        "ref": "Table 4-1 Pin Functions (DBV/DCK/DRL share column)"
+      },
+      "vcc_operating": "1.65-5.5 V (data retention 1.5 V) - Sec 5.3",
+      "VIH_min_3V0_3V6": "2 V - Sec 5.3",
+      "VIL_max_3V0_3V6": "0.8 V - Sec 5.3",
+      "inputs_tolerant": "VI 0-5.5 V (Sec 5.3)",
+      "VOH_min": {"IOH=-100uA (1.65-5.5V)": "VCC-0.1 V", "IOH=-16mA @3V": "2.4 V", "IOH=-24mA @3V": "2.3 V", "ref": "Sec 5.5, same for -40..85 and -40..125 C"},
+      "VOL_max": {"IOL=100uA (1.65-5.5V)": "0.1 V", "IOL=16mA @3V": "0.4 V", "IOL=24mA @3V": "0.55 V", "ref": "Sec 5.5"},
+      "IOH_IOL_max_at_3V": "-24 / +24 mA - Sec 5.3",
+      "tpd_A_to_Y_3V3_pm0V3": {
+        "CL=15pF_-40..85C": "1.0 min / 3.5 max ns (Sec 5.6; Fig 6-1: RL 1 MOhm)",
+        "CL=50pF_-40..85C": "1.5 min / 4.1 max ns (Sec 5.7; Fig 6-2 uses 50 pF/500 Ohm at 3.3 V)",
+        "CL=50pF_-40..125C": "1.5 min / 4.7 max ns (Sec 5.8)"
+      },
+      "Ioff": "Supported (Features: 'Ioff supports live insertion, partial power down mode, and back drive protection'); Ioff max +/-10 uA at VCC=0, VI or VO=5.5 V (Sec 5.5)",
+      "II_input_leakage": "+/-1 uA (-40..85C), +/-2 uA (-40..125C), VI=5.5V or GND (Sec 5.5)",
+      "Ci": "3.5 pF typ @3.3V (Sec 5.5)",
+      "ICC": "10 uA max (Sec 5.5)",
+      "temp_range": "-40..125 C (non-DSBGA packages) - Sec 5.3"
+    },
+    {
+      "part": "SN74LVC1G125",
+      "src": "S2 (SCES223U, rev. Aug 2026)",
+      "pinout": {
+        "DBV_SOT23-5": {"1": "OE#", "2": "A", "3": "GND", "4": "Y", "5": "VCC"},
+        "DCK_SC70-5": {"1": "OE#", "2": "A", "3": "GND", "4": "Y", "5": "VCC"},
+        "ref": "Sec 4 Pin Functions table"
+      },
+      "OE_polarity": "Active LOW: OE=L -> Y=A; OE=H -> Y=Hi-Z (Table 7-1 Function Table; Sec 3 'output is disabled when OE is high')",
+      "vcc_operating": "1.65-5.5 V - Sec 5.3",
+      "VIH_min_3V0_3V6": "2 V - Sec 5.3",
+      "VIL_max_3V0_3V6": "0.8 V - Sec 5.3",
+      "VOH_min": {"IOH=-100uA": "VCC-0.1 V", "IOH=-16mA @3V": "2.4 V", "IOH=-24mA @3V": "2.3 V", "ref": "Sec 5.5"},
+      "VOL_max": {"IOL=100uA": "0.1 V", "IOL=16mA @3V": "0.4 V", "IOL=24mA @3V": "0.55 V", "ref": "Sec 5.5"},
+      "tpd_A_to_Y_3V3_pm0V3": {
+        "CL=15pF_-40..85C": "0.6 min / 3.7 max ns (Sec 5.6)",
+        "CL=50pF_-40..85C": "1 min / 4.5 max ns (Sec 5.7; Fig 6-2 50 pF/500 Ohm at 3.3 V)",
+        "CL=50pF_-40..125C": "1 min / 4.7 max ns (Sec 5.8)"
+      },
+      "ten_tdis_3V3_CL50pF": "ten 1/5.3 ns, tdis 1/5 ns (-40..85C, Sec 5.7); ten 1/5.6, tdis 1/5.2 ns (-40..125C, Sec 5.8)",
+      "Ioff": "Supported (Features: Ioff supports live insertion, partial-power-down); Ioff max +/-10 uA at VCC=0 (Sec 5.5)",
+      "II_input_leakage": "+/-5 uA (A or OE inputs, VI=5.5V or GND), both temp ranges (Sec 5.5)",
+      "IOZ": "10 uA max, VO=0..5.5V, VCC=3.6V (Sec 5.5)",
+      "Ci": "4 pF typ (Sec 5.5)",
+      "temp_range": "-40..125 C (Sec 5.3)"
+    },
+    {
+      "part": "SN74LVC07A",
+      "src": "S3 (SCAS595W, rev. Oct 2016)",
+      "function": "Hex buffer, open-drain: A=H -> Y=Hi-Z, A=L -> Y=L (Table 1 Function Table)",
+      "packages": "D SOIC-14, DB SSOP-14, DGV TVSOP-14, NS SO-14, PW TSSOP-14, RGY VQFN-14 (3.5x3.5 mm) - Device Information",
+      "pinout_all_packages": {"1": "1A", "2": "1Y", "3": "2A", "4": "2Y", "5": "3A", "6": "3Y", "7": "GND", "8": "4Y", "9": "4A", "10": "5Y", "11": "5A", "12": "6Y", "13": "6A", "14": "VCC", "ref": "Sec 5 Pin Functions (single numbering column covering D/DB/DGV/NS/PW and RGY)"},
+      "RGY_thermal_pad": "RGY has RthJC(bot) 35.8 C/W listed (Sec 6.4) but pad connection NOT_FOUND in text extraction",
+      "vcc_operating_min": "1.65 V (max 5.5 V) - Sec 6.3",
+      "VIH_min_2V7_3V6": "2 V; VIL_max 0.8 V (Sec 6.3)",
+      "VO_range": "0-5.5 V (outputs accept up to 5.5 V) - Sec 6.3",
+      "IOL_max": {"1.65V": "4 mA", "2.3V": "12 mA", "2.7V": "12 mA", "3V": "24 mA", "4.5V": "24 mA", "ref": "Sec 6.3"},
+      "VOL_max_-40..125C": {"IOL=100uA, VCC 1.65-5.5V": "0.2 V", "IOL=4mA, 1.65V": "0.45 V", "IOL=12mA, 2.3V": "0.7 V", "IOL=12mA, 2.7V": "0.4 V", "IOL=24mA, 3V": "0.55 V", "ref": "Sec 6.5 Electrical Characteristics - DC Limit Changes (only table; TA -40..125C)"},
+      "VOL_at_4mA_3V3": "NOT_FOUND (only 4 mA @1.65 V specified)",
+      "Ioff": "+/-10 uA max, VI or VO=5.5V, VCC=0 (Sec 6.5); 'fully specified for partial-power-down applications using Ioff' (Sec 8.1)",
+      "IOZ_output_off_leakage_powered": "NOT_FOUND (no IOZ/IOH-leakage parameter in table)",
+      "II": "+/-5 uA, VI=5.5V or GND, VCC=3.6V (Sec 6.5)",
+      "Ci": "5.0 pF typ (Sec 6.5)",
+      "Co": "NOT_FOUND",
+      "tpd_3V3_pm0V3": "1 min / 3.6 max ns (-40..85C); 1 / 4.1 ns (-40..125C) (Sec 6.6); test load CL=50 pF, 500 Ohm to 6 V (Sec 7.3)",
+      "behavior_below_min_VCC": "NOT_FOUND (only VCC=0 Ioff behaviour described)",
+      "bypass": "0.1 uF recommended (Sec 10)"
+    },
+    {
+      "part": "TPS22918",
+      "src": "S4 (SLVSD76C, rev. Jul 2017)",
+      "pinout_DBV_SOT23-6": {"1": "VIN", "2": "GND", "3": "ON", "4": "CT", "5": "QOD", "6": "VOUT", "ref": "Sec 5 Pin Functions"},
+      "VIN_range": "1 V to 5.5 V (Features; ROC VIN 0-5.5 V, Sec 6.3)",
+      "IMAX": "2 A continuous at TA=70C; 2.5 A pulsed <300 us 2% duty (Sec 6.1)",
+      "RON_at_VIN_3V3_IOUT_-200mA": "53 typ / 59 max mOhm (25C); 71 max (-40..85C); 80 max (-40..105C) - Sec 6.5",
+      "ON_VIH_VIL": "VIH 1-5.5 V, VIL 0-0.5 V for VIN 1-5.5 V (Sec 6.3); hysteresis 107 mV typ (Sec 6.5); active high, do not float (Sec 8.3.1)",
+      "ION_leakage": "0.1 uA max (Sec 6.5)",
+      "IQ_ISD_at_3V3": "IQ 8.3 typ / 15 max uA; ISD 0.5 typ / 3.5 max uA (Sec 6.5)",
+      "QOD": {
+        "RPD_internal_VIN_3V3": "25 Ohm typ (25C), 35 Ohm max (-40..105C) (Sec 6.5)",
+        "RPD_VIN_5V": "24 typ / 30 max Ohm", "RPD_VIN_1V8": "45 typ / 60 max Ohm",
+        "configs": "QOD tied to VOUT (RPD), via REXT (RQOD=RPD+REXT, Eq 1), or floating = no discharge (Sec 8.3.2, Table 4)",
+        "limit": "with internal RPD only, total CL must not exceed 200 uF (Sec 8.3.2.2)"
+      },
+      "CT_rise_time": {
+        "formula": "SR [us/V] = 0.55 x CT[pF] + 30 ; rise time ~ VIN x SR (10-90%), not valid for CT=0 (Sec 8.3.3, Eq 3)",
+        "table_VIN_3V3_us": {"CT=0": 95, "220pF": 455, "470pF": 850, "1000pF": 1680, "2200pF": 3580, "4700pF": 7980, "10000pF": 17505},
+        "table_ref": "Table 2 (typ, 25C, CL=0.1uF, RL=10 Ohm)",
+        "CT_cap_voltage_rating": "16 V for VIN 1.2-4 V (Table 3)"
+      },
+      "switching_3V3_CT1nF": "tON 1430 us, tR 1680 us, tD 590 us, tOFF 2 us typ (Sec 6.6)",
+      "reverse_current_blocking": "NO. Single N-FET with body diode; if VOUT > VIN current flows VOUT->VIN through body diode; CIN:CL 10:1 recommended (Sec 9.2.2.2). No reverse-blocking feature described.",
+      "CIN_recommended": "1 uF (Sec 6.3)",
+      "temp": "-40..105 C ambient"
+    },
+    {
+      "part": "TPS3808",
+      "src": "S5 (SBVS050N, rev. Aug 2026)",
+      "pinout_DBV_SOT23-6": {"1": "RESET#", "2": "GND", "3": "MR#", "4": "CT", "5": "SENSE", "6": "VDD", "ref": "Table 5-1 / Fig 5-1"},
+      "VDD_range": "1.7-6.5 V (-40..125C); 1.65-6.5 V (0..85C) (Sec 6.5); ROC 1.7-6.5 V (Sec 6.3)",
+      "thresholds_Table_4-1_nominal_VIT": {"G01": "0.405 V (adjustable)", "G09": "0.84 V", "G12": "1.12 V", "G125": "1.16 V", "G15": "1.40 V", "G18": "1.67 V", "G19": "1.77 V", "G25": "2.33 V", "G30": "2.79 V", "G33": "3.07 V", "G50": "4.65 V"},
+      "VIT_accuracy_Sec_6.5": "G01: +/-2% max (+/-1% typ); fixed VIT<=3.3V: +/-1.5% (-40..125C), +/-1.25% (-40..85C); 3.3<VIT<=5V: +/-2% / +/-1.5%",
+      "VIT_min_max_derived_-40..125C": {"G33": "3.024/3.116", "G30": "2.748/2.832", "G25": "2.295/2.365", "G18": "1.645/1.695", "G12": "1.103/1.137", "G09": "0.827/0.853", "G01": "0.397/0.413", "note": "derived = nominal x (1 +/- accuracy); datasheet gives % not absolute V"},
+      "hysteresis": "fixed 1% typ/2.5% max of VIT; G01 1.5%/3%",
+      "CT_delay": {
+        "formula": "tD(s) = CT(nF)/175 + 0.5e-3 ; CT(nF) = (tD(s) - 0.5e-3) x 175 (Sec 7.3.2 Eq 1, Fig 7-2c); CT >= 100 pF; range 1.25 ms-10 s",
+        "CT_open": "20 ms typ (12/28 min/max)", "CT_to_VDD_40k-200k": "300 ms typ (180/420)", "CT=180nF": "1.03 s typ (0.62/1.44)", "ref": "Sec 6.6"
+      },
+      "MR": "active low, internal 90 kOhm pull-up to VDD (70 min); VIL 0.3VDD, VIH 0.7VDD (Sec 6.5, 7.3.3); can be left open",
+      "RESET_output": "open-drain, active low; pull-up 10k-1M, may pull up to <=6.5 V above VDD (Table 5-1, Sec 7.3.4); VOL 0.4 V max @1 mA (VDD>=1.8V); leakage 300 nA max",
+      "VPOR": "0.8 V max (Sec 6.5)",
+      "IDD": "2.4 typ / 5 max uA at 3.3 V (Sec 6.5)"
+    },
+    {
+      "part": "TPS3839",
+      "src": "S6 (SBVS193D, rev. Jul 2015)",
+      "note": "push-pull active-low RESET, no CT pin, fixed ~200 ms delay; DBZ SOT23-3 / DQN X2SON-4",
+      "pinout_DBZ_SOT23-3": {"1": "GND", "2": "RESET#", "3": "VDD", "ref": "Sec 6 Pin Functions"},
+      "VDD_range": "0.9-6.5 V (Sec 7.3)",
+      "VIT-_min_typ_max_V_Sec_7.5": {"A09": "0.874/0.9/0.914", "G12": "1.073/1.1/1.117", "E16": "1.482/1.52/1.543", "G18": "1.628/1.67/1.695", "G25 (TPS3839 only, DBZ only)": "2.267/2.325/2.360", "L30": "2.564/2.63/2.669", "K33": "2.857/2.93/2.974", "G33": "3.003/3.08/3.126", "K50": "4.271/4.38/4.446"},
+      "hysteresis_mV": {"A09": 54, "G12": 11, "E16": 15, "G18": 17, "L30": 26, "G25": 23, "K33": 29, "G33": 31, "K50": 44},
+      "temp": "-40..85 C"
+    },
+    {
+      "part": "TLV62569 / TLV62569P",
+      "src": "S7 (SLVSDG1C, rev. Oct 2017)",
+      "pinout_DBV_SOT23-5_TLV62569DBV": {"1": "EN", "2": "GND", "3": "SW", "4": "VIN", "5": "FB", "ref": "Sec 5 Pin Functions"},
+      "pinout_DDC_SOT23-6_TLV62569PDDC": {"1": "EN", "2": "GND", "3": "SW", "4": "VIN", "5": "PG", "6": "FB"},
+      "power_good": "Only P variants: TLV62569PDDC (SOT23-6) and TLV62569PDRL (SOT563); DBV (SOT23-5) has NO PG. PG open-drain, high-Z above 95% VFB, low below 90%; sink 1 mA; pull-up <=5.5 V (Sec 7.4.2, Table 1, device comparison)",
+      "VIN_range": "2.5-5.5 V (Sec 6.3)",
+      "IOUT": "0-2 A (Sec 6.3); HS current limit 3 A typ DBV/PDDC (Sec 6.5)",
+      "VFB": "0.588 / 0.6 / 0.612 V (min/typ/max) at VIN=5V, TJ=25C only (Sec 6.5) = +/-2% at 25C; over-temperature limit NOT_FOUND",
+      "VOUT_equation": "VOUT = 0.6 V x (1 + R1/R2), R2 <= 200 kOhm (R1 top, R2 bottom) (Sec 8.2.2.2 Eq 2); example 1.8 V: R1=200k, R2=100k, optional feed-forward C3 6.8 pF",
+      "L_C_recommended": "2.2 uH + 10 uF COUT standard (Table 4 '++'); COUT 10-47 uF; CIN 4.7 uF (Sec 8.2.2.5); example L1 XAL4020-222ME, C2 10uF X7R 0805 (Table 3)",
+      "EN_thresholds": "VIH 0.95 typ / 1.2 max V; VIL 0.4 min / 0.85 typ V (2.5<=VIN<=5.5) (Sec 6.5); do not float",
+      "fsw": "1.5 MHz typ", "IQ": "35 uA", "ISD": "0.1 typ / 2 max uA", "UVLO": "2.3 typ / 2.45 max V falling", "tSS": "800 us (DBV), 900 us (PDDC/DRL/PDRL)"
+    },
+    {
+      "part": "TLV755P (TLV75518PDBVR, TLV75533PDBVR)",
+      "src": "S8 (SBVS320D, rev. Sep 2024)",
+      "pinout_DBV_SOT23-5": {"1": "IN", "2": "GND", "3": "EN", "4": "NC", "5": "OUT", "ref": "Table 4-1"},
+      "VIN": "1.45-5.5 V (Sec 5.3)", "IOUT": "0-500 mA (Sec 5.3)",
+      "accuracy": "+/-1% (-40..85C, DBV/DRV, VOUT>=1V); +/-1.5% over -40..125C (VOUT>=1V) (Sec 5.5)",
+      "dropout_IOUT_500mA": {"1.8<=VOUT<2.5 (TLV75518P)": "325 typ / 380 max mV (-40..85C), 400 max (-40..125C)", "3.3<=VOUT<5.0 (TLV75533P)": "150 typ / 215 max mV (-40..85C), 238 max (-40..125C)", "ref": "Sec 5.5"},
+      "EN": "VHI 1 V min, VLO 0.3 V max (Sec 5.5)",
+      "IGND": "25 typ uA (25C, IOUT=0)",
+      "caps": "CIN >= 1 uF, COUT 1-200 uF (Sec 5.3)",
+      "output_discharge": "P = active discharge, RPULLDOWN 120 Ohm (Sec 5.5, Table 8-1)",
+      "current_limit": "ICL 560/720/865 mA, ISC 355 mA (Sec 5.5)",
+      "reverse_current": "no reverse-current protection; body diode, VOUT > VIN+0.3 V exceeds abs max (Sec 7.1.4)",
+      "orderables": "TLV75518PDBVR and TLV75533PDBVR listed Active (Package Option Addendum)"
+    },
+    {
+      "part": "TPD2EUSB30",
+      "src": "S10 (SLVSAC2G, rev. Jun 2021)",
+      "package": "DRT 3-pin SOT (1.0x0.8 mm)",
+      "pinout_DRT": {"1": "D+ (D1+)", "2": "D- (D1-)", "3": "GND", "ref": "Table 5-1"},
+      "VRWM": "5.5 V (TPD2EUSB30); 3.6 V (TPD2EUSB30A)",
+      "C_IO_GND": "0.7 pF typ (DRT), VIO=2.5V f=100kHz; C_IO-IO 0.05 pF (Sec 6.5)",
+      "VBR": "7 V min (TPD2EUSB30), 4.5 V (A)", "IEC61000-4-2": "8 kV contact", "Vclamp": "8 V @1 A"
+    },
+    {
+      "part": "TPD4E05U06",
+      "src": "S11 (SLVSBO7O, rev. Aug 2024)",
+      "package": "DQA USON-10 (2.5x1.0 mm)",
+      "pinout_DQA": {"1": "D1+", "2": "D1-", "3": "GND", "4": "D2+", "5": "D2-", "6": "NC", "7": "NC", "8": "GND", "9": "NC", "10": "NC", "ref": "Table 4-2 (NC used for flow-through routing; float or ground)"},
+      "line_capacitance": "0.5 pF typ (DQA), VIO=2.5V f=1MHz, I/O to GND (Sec 5.4)",
+      "VRWM": "5.5 V", "VBR": "6.5 min / 8.5 max V", "IEC61000-4-2": "+/-12 kV contact, +/-15 kV air", "ILEAK": "10 nA max"
+    },
+    {
+      "part": "USB4105-GF-A",
+      "src": "S12 (GCT drawing, Rev B)",
+      "description": "USB Type-C receptacle for USB 2.0, SMT top mount; GF = gold flash contact plating (standard); stake length blank = 0.95 mm (ordering grid 'USB4105 XX A XXX')",
+      "pinout": {"A1,B12,A12,B1": "GND", "A4,B9,A9,B4": "VBUS", "A5": "CC1", "B5": "CC2", "A6": "Dp1", "A7": "Dn1", "B6": "Dp2", "B7": "Dn2", "A8": "SBU1", "B8": "SBU2", "SHELL": "GND", "mating": "GND/VBUS first, others second"},
+      "ratings": "VBUS 5 A collectively, GND 6.25 A, A5/B5 1.25 A, others 0.25 A/pin; 48 V DC; 20,000 cycles; -40..85 C",
+      "CC_sink_requirement": "Rd pulldown on CC1 and CC2 required for sink. Value reference found only indirectly: TI TUSB320LAI integrated RCC_D = 4.6/5.1/5.6 kOhm and legacy-adapter figure 'Rd (5.1k +/- 10%)' (S18 Sec 6.5, Sec 7.1.1.3). The USB Type-C specification itself was NOT downloaded -> Rd tolerance per spec NOT_FOUND here (commonly cited 5.1 kOhm; verify against USB Type-C spec before signoff)."
+    },
+    {
+      "part": "W25Q32JV",
+      "src": "S13 (Revision G, 2018-03-27)",
+      "pinout_SOIC8_150mil_SN_and_208mil_SS": {"1": "/CS", "2": "DO (IO1)", "3": "/WP (IO2)", "4": "GND", "5": "DI (IO0)", "6": "CLK", "7": "/HOLD or /RESET (IO3)", "8": "VCC", "ref": "Sec 3.1 Fig 1a, Sec 3.3"},
+      "part_numbers": "W25Q32JVSSIQ (SOIC-8 208mil, QE=1 fixed), W25Q32JVSNIQ (SOIC-8 150mil); IM variants W25Q32JVSSIM/SNIM (QE=0 default) - Sec 9/ordering tables",
+      "VCC": "2.7-3.6 V; 133 MHz needs 3.0-3.6 V, 104 MHz for 2.7-3.0 V (Sec 9.2)",
+      "max_clock": "133 MHz (fC1, all instr. except 03h, 3.0-3.6V); 03h Read Data 50 MHz (Sec 9.6)",
+      "JEDEC_ID": "EF 4016h (IQ/JQ), EF 7016h (IM/JM) (Sec 8.1.1)",
+      "DC": "VOL 0.2 V @100uA, VOH VCC-0.2 @-100uA, ILI +/-2 uA (Sec 9.4)", "power_up": "tVSL 20 us min, tPUW 5 ms (Sec 9.3)"
+    },
+    {
+      "part": "W25Q256JV",
+      "src": "S14 (Rev I, 2018-10-23, SparkFun mirror) cross-checked against S15 (Rev G, 2017-08-03, winbond.com)",
+      "ordering_Sec_9.8": "W25Q256JV + package [F=SOIC-16 300mil, E=WSON-8 8x6mm, M=WFLGA-8 6x5mm, B/C=TFBGA-24 8x6mm] + temp [I=-40..85, J=-40..105] + [Q: QE=1 fixed, /HOLD disabled | M: QE=0 programmable, new device ID]",
+      "valid_part_numbers_Sec_9.9": "FIQ/EIQ/MIQ/BIQ/CIQ, FJQ/EJQ/MJQ/BJQ/CJQ, FIM/EIM/MIM/BIM/CIM, FJM/EJM/MJM/BJM/CJM (B and C are special order). Rev G lists only I-grade F/E/B/C (IQ, IM).",
+      "SOIC-8_208mil": "NOT offered (no 'S' package code for W25Q256JV in either revision)",
+      "dedicated_RESET_pin": "Only SOIC-16 (F) and TFBGA (B/C) (Features note 1, Sec 4.6). WSON/WFLGA pin 7 is '/HOLD or /RESET (IO3)'.",
+      "pinout_SOIC16_300mil_F": {"1": "/HOLD or /RESET (IO3)", "2": "VCC", "3": "/RESET", "4": "NC", "5": "NC", "6": "NC", "7": "/CS", "8": "DO (IO1)", "9": "/WP (IO2)", "10": "GND", "11": "NC", "12": "NC", "13": "NC", "14": "NC", "15": "DI (IO0)", "16": "CLK", "ref": "Sec 3.4", "note": "/RESET (pin 3) may be left floating or tied to VCC if unused (note 3)"},
+      "pinout_WSON8_E": {"1": "/CS", "2": "DO (IO1)", "3": "/WP (IO2)", "4": "GND", "5": "DI (IO0)", "6": "CLK", "7": "/HOLD or /RESET (IO3)", "8": "VCC", "ref": "Sec 3.2"},
+      "QE_default": "IQ/JQ: QE=1 factory fixed (Quad IO2/IO3 enabled, /HOLD disabled); IM/JM: QE=0 factory default (/HOLD enabled) (Sec 7.1.4 Quad Enable under Status Register-2 (datasheet reuses 7.1.x numbering), Sec 9.8)",
+      "address_mode": "ADP (SR3 S17, non-volatile) factory default 0 -> powers up in 3-byte mode; ADS (S16) shows current mode; Extended Address Register needed above 128 Mb in 3-byte mode (Sec 6.1.4, 7.1.6)",
+      "extended_address_register": "Volatile; EA0 = A24 selects upper/lower 128 Mb; write C5h, read C8h; cleared to 0 on power-up/reset; ignored in 4-byte mode but 4-byte-address commands overwrite it (Sec 7.2, Table 1)",
+      "enter_exit_4byte": "B7h / E9h (Sec 8.1.2)",
+      "dedicated_4byte_opcodes": {"13h": "Read Data 4B", "0Ch": "Fast Read 4B", "12h": "Page Program 4B", "21h": "Sector Erase 4KB 4B", "DCh": "Block Erase 64KB 4B", "3Ch": "Fast Read Dual Out 4B", "BCh": "Fast Read Dual I/O 4B", "34h": "Quad Page Program 4B", "6Ch": "Fast Read Quad Out 4B", "ECh": "Fast Read Quad I/O 4B", "ref": "Instruction Set Tables 1-4 (Sec 8.1.2-8.1.5)"},
+      "JEDEC_ID_9Fh": "EF 40 19 (IQ/JQ); EF 70 19 (IM/JM); 90h/ABh device ID 18h (Sec 8.1.1)",
+      "SFDP": "Supported, Read SFDP 5Ah (Sec 1, 8.2.42)",
+      "VCC": "2.7-3.6 V; 133 MHz requires 3.0-3.6 V; 104 MHz at 2.7-3.0 V (Sec 9.2)",
+      "max_clock_03h": "50 MHz (fR) (Sec 9.6); other instructions 133 MHz (3.0-3.6V)",
+      "DC_Sec_9.4": {"VIL": "-0.5 to 0.3xVCC", "VIH": "0.7xVCC to VCC+0.4", "VOL": "0.2 V max @ IOL=100 uA", "VOH": "VCC-0.2 V min @ IOH=-100 uA", "ILI": "+/-2 uA", "ILO": "+/-2 uA", "CIN": "6 pF", "COUT": "8 pF", "ICC1_standby": "10 typ/60 max uA", "ICC2_powerdown": "1 typ/20 max uA"},
+      "power_up_Sec_9.3": {"tVSL": "20 us min (VCC min to /CS low)", "tPUW": "5 ms min (before write instructions)", "VWI": "1.0-2.0 V", "note": "/CS must track VCC at power-up/down; pull-up on /CS suggested (Sec 6.2)"},
+      "reset": "Software: 66h then 99h, tRST 30 us (Sec 6.1.5, 9.7). Hardware /RESET low >= 1 us recommended (tRESET; may work at a few hundred ns) (Sec 9.7 note 4)",
+      "status_register_protection": {"SR1": "S7 SRP, S6 TB, S5-S2 BP3-BP0, S1 WEL, S0 BUSY", "SR2": "S15 SUS, S14 CMP, S13-S11 LB3-LB1, S9 QE, S8 SRL", "SR3": "S22-S21 DRV1/DRV0 (default 25%), S18 WPS, S17 ADP, S16 ADS", "defaults": "BP=0 (none protected), TB=0, CMP=0, SRP/SRL=0 (software protection), WPS=0 (BP scheme). When WPS=1 all Individual Block Lock bits power up = 1 (locked)", "ref": "Sec 6.2, 7.1.x, 7.1.10 table"},
+      "timing": "tPP 0.4/3 ms, tSE 50/400 ms, tBE2 150/2000 ms, tCE 80/400 s (typ/max, Sec 9.7)",
+      "product_status_W25Q256JVEIQ_FIQ_FIM": "NOT_FOUND (winbond.com product pages are JS-rendered/unreachable; web search showed only distributor stock for FIQ, no lifecycle data)"
+    },
+    {
+      "part": "MAX98357A",
+      "src": "S16 (19-6779 Rev 7, 2/16; Adafruit mirror of Maxim datasheet)",
+      "packages": "MAX98357AETE+ / +T: 16 TQFN 3x3x0.75 mm; MAX98357AEWL+T: 9 WLP (Ordering Information)",
+      "pinout_TQFN16": {"1": "DIN", "2": "GAIN_SLOT", "3": "GND", "4": "SD_MODE", "5": "NC", "6": "NC", "7": "VDD", "8": "VDD", "9": "OUTP", "10": "OUTN", "11": "GND", "12": "NC", "13": "NC", "14": "LRCLK", "15": "GND", "16": "BCLK", "EP": "not internally connected; connect to GND plane for thermal", "ref": "Pin Description"},
+      "VDD": "2.5-5.5 V; UVLO 1.4/1.8/2.3 V (Electrical Characteristics)",
+      "SD_MODE_trip_points_V": {"B0": "0.08/0.16/0.355", "B1": "0.65/0.77/0.825", "B2": "1.245/1.4/1.5", "ref": "EC 'SD_MODE comparator trip points' (min/typ/max)"},
+      "SD_MODE_function_Table_5": "V>B2: Left; B1<V<B2 (pull-up via RSMALL): Right; B0<V<B1 (via RLARGE): (L+R)/2; V<B0: shutdown",
+      "SD_MODE_internal_pulldown": "100 kOhm (92/108 min/max)",
+      "SD_MODE_resistors": {"equations": "RSMALL(kOhm) = 94.0 x VDDIO - 100 ; RLARGE(kOhm) = 222.2 x VDDIO - 100", "VDDIO=3.3V (Table 6)": "Left: drive directly high; Right: RSMALL 210.2 kOhm; (L+R)/2: RLARGE 634 kOhm; Shutdown: drive low", "VDDIO=1.8V": "RSMALL 69.8 k, RLARGE 300 k", "caution": "left mode direct drive must not exceed abs max (VDD+0.3V); if VDD<3.0V with 3.3V logic add ~2 kOhm series (SD_MODE section)"},
+      "GAIN_SLOT_Table_8": {"GND via 100k": "15 dB", "GND": "12 dB", "unconnected": "9 dB", "VDD": "6 dB", "VDD via 100k": "3 dB", "TDM": "fixed 12 dB"},
+      "I2S_interface": {"MCLK": "not required", "BCLK_range": "0.2432-25.804 MHz; BCLK must be 32, 48 or 64 x LRCLK", "LRCLK": "8,16,32,44.1,48,88.2,96 kHz only (11.025/12/22.05/24 kHz NOT supported)", "resolution": "16/24/32 bit (I2S), 16/32 (TDM)", "tBCLKH/L": "15 ns min", "setup/hold": "10 ns", "VIH/VIL": "1.3 V min / 0.6 V max", "polarity": "data on BCLK rising edge; LRCLK low = left (MAX98357A)", "caution": "do not remove LRCLK while BCLK present; BCLK removal -> standby"},
+      "output_power_VDD_5V_gain12dB": {"4 Ohm+33uH THD+N 10%": "3.2 W", "8 Ohm+68uH THD+N 10%": "1.8 W", "4 Ohm THD+N 1%": "2.5 W", "8 Ohm THD+N 1%": "1.4 W", "8 Ohm @3.7V 10%/1%": "0.93/0.77 W"},
+      "quiescent_current": "2.75 typ / 3.35 max mA (VDD=5V, 25C); 2.4/2.85 mA at 3.7 V; shutdown 0.6/2 uA; standby (no BCLK) 340/400 uA",
+      "other": "fsw 330 kHz filterless; current limit 2.8 A; bypass 0.1 uF + 10 uF on VDD; temp -40..85 C"
+    },
+    {
+      "part": "SN74LVC125A",
+      "src": "S17 (SCAS290T, rev. Sep 2024)",
+      "pinout_PW_TSSOP14_and_D_DB_NS": {"1": "1OE#", "2": "1A", "3": "1Y", "4": "2OE#", "5": "2A", "6": "2Y", "7": "GND", "8": "3Y", "9": "3A", "10": "3OE#", "11": "4Y", "12": "4A", "13": "4OE#", "14": "VCC", "ref": "Table 4-1, Fig 4-1"},
+      "OE_polarity": "Per-channel, active LOW: OE=L -> Y=A; OE=H -> Hi-Z (Table 7-1). Datasheet recommends OE pull-up to VCC for Hi-Z during power-up/down (Sec 3).",
+      "vcc": "1.65-3.6 V (NOT 5 V capable supply); inputs tolerate 5.5 V",
+      "VIH_VIL_2V7_3V6": "2 V min / 0.8 V max (Sec 5.3)",
+      "VOH_min": {"IOH=-100uA": "VCC-0.2 (25C, -40..85), VCC-0.3 (-40..125)", "IOH=-12mA @3V": "2.4 / 2.4 / 2.25 V", "IOH=-24mA @3V": "2.3 / 2.2 / 2.0 V (25C/-40..85/-40..125)", "ref": "Sec 5.5"},
+      "VOL_max_24mA_3V": "0.55 / 0.55 / 0.8 V",
+      "tpd_3V3_pm0V3_CL50pF": "4.6 max (25C), 4.8 max (-40..85), 6 max (-40..125) ns (Sec 5.6); ten 5.4 / tdis 4.6 ns max (-40..85)",
+      "Ioff": "NOT_FOUND - no Ioff parameter or partial-power-down feature in this datasheet (unlike LVC1G125/LVC07A). Do not rely on back-drive protection.",
+      "II": "+/-5 uA (-40..85)", "IOZ": "+/-10 uA (-40..85)", "Ci": "5 pF typ"
+    },
+    {
+      "part": "TUSB320LAI",
+      "src": "S18 (SLLSEQ8D, rev. May 2017)",
+      "package": "RWB X2QFN-12, 1.6x1.6 mm",
+      "pinout_TUSB320LA": {"1": "CC1", "2": "CC2", "3": "PORT", "4": "VBUS_DET", "5": "ADDR", "6": "INT_N/OUT3", "7": "SDA/OUT1", "8": "SCL/OUT2", "9": "ID", "10": "GND", "11": "EN_N (active low, internal 1.1 MOhm pull-up)", "12": "VDD", "ref": "Sec 5 Pin Functions"},
+      "VDD": "2.7-5 V (Sec 6.3); VDD >= 3.5 V needed to advertise 3 A",
+      "mode_select_ADDR": "Tri-level: NC = GPIO mode (I2C disabled); H = I2C addr 0x67; L = I2C addr 0x47 (Pin Functions, Sec 7.2.4)",
+      "port_role_PORT": "Tri-level: H = DFP (source), NC = DRP, L = UFP (sink) - tie to GND for sink (Pin Functions, Sec 7.2.1.2)",
+      "GPIO_current_report_Table_3": {"OUT1=H,OUT2=H": "Default current, unattached", "OUT1=H,OUT2=L": "Default current, attached", "OUT1=L,OUT2=H": "Medium 1.5 A attached", "OUT1=L,OUT2=L": "High 3.0 A attached", "note": "OUT1/OUT2 open-drain, valid in UFP mode; OUT3 low = audio accessory"},
+      "UFP_sink_config": "PORT=L, VBUS via 900 kOhm (887k typ, 855-920k) to VBUS_DET; integrated Rd RCC_D 4.6/5.1/5.6 kOhm, dead-battery Rd 4.1/5.1/6.1 kOhm (Sec 6.5, 7.2.5)",
+      "cautions": "EN_N held low >=50 ms after VDD valid if driven; VDD ramp <=25 ms; when I2C pulled to 3.3 V, VDD must be >=3.0 V or back-powering occurs; I2C VDD_I2C 1.65-3.6 V (Pin Functions notes, Sec 6.5)"
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+ "_src": "BT820 Datasheet v1.1, BRT_000427 (DS_BT820-1.pdf)",
+ "qspi_host_interface": {
+  "spi_mode": "Mode 0 only (data sampled on rising edge of SCK) (4.5)",
+  "sclk_max_MHz": {
+   "single": 60,
+   "dual": 60,
+   "quad": 60,
+   "note": "'operates up to 60MHz' in Single/Dual/Quad (4.5, p.1); Table 28 Tsclk min 16.6 ns (=60.2 MHz) at all VCCIO; no per-mode distinction"
+  },
+  "default_mode": "Single; Dual/Quad via REG_SYS_CFG",
+  "timing_table_28_ns": {
+   "VCCIO_3V3": {
+    "Tsclk_min": 16.6,
+    "Tsclkl_min": 6.6,
+    "Tsclkh_min": 6.6,
+    "Tsac_min": 2.8,
+    "Tisu_min": 1.8,
+    "Tih_min": 0.6,
+    "Tzo_max": 7.1,
+    "Toz_max": 6.4,
+    "Tod_max": 5.8,
+    "Tcsnh_min": 0
+   },
+   "VCCIO_2V5": {
+    "Tsclk_min": 16.6,
+    "Tsclkl_min": 6.6,
+    "Tsclkh_min": 6.6,
+    "Tsac_min": 2.9,
+    "Tisu_min": 1.9,
+    "Tih_min": 0.5,
+    "Tzo_max": 7.9,
+    "Toz_max": 6.9,
+    "Tod_max": 6.8,
+    "Tcsnh_min": 0
+   },
+   "VCCIO_1V8": {
+    "Tsclk_min": 16.6,
+    "Tsclkl_min": 6.6,
+    "Tsclkh_min": 6.6,
+    "Tsac_min": 3.1,
+    "Tisu_min": 1.9,
+    "Tih_min": 0.5,
+    "Tzo_max": 10.2,
+    "Toz_max": 8.6,
+    "Tod_max": 9.3,
+    "Tcsnh_min": 0
+   }
+  },
+  "parameter_meaning_from_Figure35": {
+   "Tsac": "SPI access time = SS_N falling to first SCLK rising (CS setup)",
+   "Tisu/Tih": "MOSI/IO0-IO3 input setup/hold to SCLK rising",
+   "Tod": "output data delay, SCLK falling edge to MISO/IO0-IO3 out valid (tCO/tV equivalent)",
+   "Tzo": "output enable delay from SS_N falling to MISO driven",
+   "Toz": "output disable delay from SS_N rising to MISO hi-Z",
+   "Tcsnh": "CS hold: last SCLK falling to SS_N rising"
+  },
+  "cs_high_min": "minimum of 2 SCK cycles between transactions (4.5.2 text); not in Table 28",
+  "host_pulldowns_required": "data ports must have pull-downs (turnaround polling period) (4.5.2)",
+  "bus_protocol": "31-bit addressing, 32-bit word transfers, word-aligned; reads poll for 0x01 data-valid byte",
+  "IO2_IO3": "shared with GPIO0/GPIO1; default input with pull-up, should be reconfigured when in Quad mode"
+ },
+ "qspi_flash_master_SPIM_table29_ns_VCCIO_3V3": {
+  "Tsclk_m_min": 13.89,
+  "Tsclkl_m_min": 6,
+  "Tsclkh_m_min": 6,
+  "Tisu_m_min": 1.778,
+  "Tih_m_min": 0.911,
+  "Tod_m_max": 3.191
+ },
+ "dc_levels_VCCIO_3V3_table21": {
+  "VOH_min": "VCCIO - 0.4 V",
+  "VOL_max_V": 0.4,
+  "VIH_min_V": 2.0,
+  "VIL_max_V": 0.8,
+  "Vhys_V": [
+   0.26,
+   0.38
+  ],
+  "Iin_uA": [
+   -10,
+   10
+  ],
+  "Ihiz_uA": [
+   -10,
+   10
+  ],
+  "Rpu_typ_kohm": 42.8,
+  "Rpd_typ_kohm": 42.8,
+  "test_currents": "NOT_FOUND (Table 21 states no IOH/IOL test condition; drive strength given separately in Table 17)",
+  "conditions": "VCC33A_REG=3.3V, VCCIO=3.3V, Ta=25C"
+ },
+ "supply_ranges_table20": {
+  "VCCIO1_3V3_range_V": [
+   2.97,
+   3.63
+  ],
+  "VCCIO1_options": "1.8/2.5/3.3 V (host QSPI + touch on VCCIO1)",
+  "VCCIO2": "3.3V fixed (display, I2S, audio)",
+  "VCCIO3": "SPIM flash 1.8/2.5/3.3",
+  "abs_max_VCCIO_V": 4,
+  "abs_max_DC_input_V": 5.5
+ },
+ "drive_strength_table17_mA": {
+  "VCCIO_3V3": {
+   "DSD1": 12.5,
+   "DSD2": 15,
+   "DSD3": 17.5,
+   "DSD4": 20
+  },
+  "VCCIO_2V5": {
+   "DSD1": 10,
+   "DSD2": 12,
+   "DSD3": 14,
+   "DSD4": 16
+  },
+  "VCCIO_1V8": {
+   "DSD1": 6,
+   "DSD2": 7.2,
+   "DSD3": 8.4,
+   "DSD4": 9.6
+  },
+  "slew": "fast/slow selectable",
+  "pull_options": "float, pull-down, pull-up, keep-last (register)"
+ },
+ "spi_pin_default_pulls_table16": {
+  "SCK": "None",
+  "SS_N": "None",
+  "MISO": "None (Float during reset)",
+  "MOSI": "None",
+  "GPIO0/IO2": "Pull-up",
+  "GPIO1/IO3": "Pull-up",
+  "INT_N": "OD",
+  "RST_N": "None",
+  "SPIM_*": "Pull-up"
+ },
+ "lvds_tx": {
+  "channels": 2,
+  "lanes_per_channel": "4 data + 1 clock",
+  "pairs_total": 10,
+  "single_dual": "Dual: LVDSTX0 odd, LVDSTX1 even; Single: only LVDSTX0 operational (4.2)",
+  "pclk_max_MHz": 83.2,
+  "max_resolution": "1920x1200 @ 60fps",
+  "formats": "VESA/Format2 18/24-bit (default VESA 24-bit), JEIDA/Format1 18/24-bit",
+  "Ttxp_ns": [
+   12,
+   28.04
+  ],
+  "electrical_table24": {
+   "VOD_mV": [
+    247,
+    454
+   ],
+   "dVOD_mV": [
+    -50,
+    50
+   ],
+   "VOC_V": [
+    1.125,
+    1.25,
+    1.375
+   ],
+   "dVOC_mV": [
+    -50,
+    50
+   ],
+   "VOC_pp_mV_typ_max": [
+    50,
+    150
+   ],
+   "IOS_single_max_mA": 24,
+   "IOS_diff_max_mA": 12,
+   "CL_max_pF": 3,
+   "tJIT_max_UI": 0.2
+  },
+  "supply": "VCC33A_LVDSTX 3.3V"
+ },
+ "lvds_rx_summary": {
+  "channels": 2,
+  "rclk_max": "144 MHz at 72 MHz system clock (4.3); Trcp 7-100 ns",
+  "VID_mV": [
+   100,
+   500
+  ],
+  "VIC_V": [
+   0.3,
+   1.2,
+   1.6
+  ]
+ },
+ "reset": {
+  "RST_N_low_min_us": 214,
+  "RC_option": "47k pull-up to VCCIO1 + cap (1uF per pin table / 0.1uF per 4.16.3 - inconsistent)",
+  "deassert_after_1V0_rails_min_ms": 5
+ }
+}
