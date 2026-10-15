@@ -1,7 +1,0 @@
-FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
-FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
-FAIL tests/test_nor.c:95 memcmp(r, b, 8192) == 0
-FAIL tests/test_nor.c:100 memcmp(r, b + 4096, 4096) == 0
-FAIL tests/test_nor.c:104 nor_mock_brom_read_ok(&m)
-FAIL tests/test_nor.c:106 m.n_wrear > 0 && m.ear == 0
-R08 firmware host tests: 757 checks, 6 failures
