@@ -20,7 +20,7 @@ LPF      ?= constraints/arc1_ecp5_r85.lpf
 
 RTL_COMMON = rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv \
       rtl/eth_link.sv rtl/eth_tx_pump.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv \
-      $(R06F)/mailbox/rtl/mbx_spi_slave.sv $(R06F)/mailbox/rtl/psram_bist.sv \
+      $(R06F)/mailbox/rtl/mbx_spi_slave.sv rtl/psram_bist.sv \
       $(R06F)/psram/rtl/psram_user_port.sv $(R06F)/psram/rtl/psram_qspi_core.sv
 RTL_SYN = $(RTL_COMMON) rtl/arc1_ecp5_pll.v rtl/arc1_eth_pll.v
 RTL_SIM = $(RTL_COMMON) sim/arc1_ecp5_pll_sim.v sim/arc1_eth_pll_sim.v sim/ecp5_ddr_sim.v
