@@ -26,8 +26,8 @@ RTL_SIM = $(RTL_COMMON) sim/arc1_ecp5_pll_sim.v
 TB      = tb/tb_ecp5_top.sv $(R07P)/aps6404l_model_r07.sv
 WARN    = -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow
 
-.PHONY: all lint transform sim build bit clean
-all: lint transform sim bit
+.PHONY: all lint transform sim build bit report repro seeds clean
+all: lint transform sim bit report repro
 
 $(OUT)/golden_frames.svh: $(R06F)/top/tools/golden_to_memh.py $(R05)/protocol/reference/golden_vectors.json
 	mkdir -p $(OUT)
@@ -73,6 +73,26 @@ $(OUT)/arc1_ecp5.config: $(OUT)/arc1_ecp5.json $(LPF)
 $(OUT)/arc1_ecp5.bit: $(OUT)/arc1_ecp5.config
 	$(ECPPACK) --compress --input $< --bit $@
 	sha256sum $@ > $@.sha256
+
+# real tool outputs -> BUILD_REPORT.json/.md (fails on timing miss or latch)
+report: $(OUT)/arc1_ecp5.bit
+	sh build_scripts/record_tools.sh $(OUT)/TOOL_VERSIONS.txt > /dev/null
+	$(PYTHON) -I build_scripts/build_report.py $(OUT) $(OUT)/BUILD_REPORT.json $(OUT)/BUILD_REPORT.md
+
+# reproducibility: independent second synthesis + PnR + pack in a scratch dir must give the same bit file
+repro: $(OUT)/arc1_ecp5.bit
+	rm -rf $(OUT)/repro && mkdir -p $(OUT)/repro
+	$(YOSYS) -q -p 'read_verilog -sv $(RTL_SYN); synth_ecp5 -top arc1_ecp5_top -json $(OUT)/repro/arc1_ecp5.json' > /dev/null
+	$(NEXTPNR) --45k --package CABGA381 --speed 6 --json $(OUT)/repro/arc1_ecp5.json --lpf $(LPF) \
+	  --textcfg $(OUT)/repro/arc1_ecp5.config --seed $(SEED) > /dev/null 2>&1
+	$(ECPPACK) --compress --input $(OUT)/repro/arc1_ecp5.config --bit $(OUT)/repro/arc1_ecp5.bit
+	sha256sum $(OUT)/arc1_ecp5.bit $(OUT)/repro/arc1_ecp5.bit | tee $(OUT)/repro.log
+	test "$$(sha256sum < $(OUT)/arc1_ecp5.bit)" = "$$(sha256sum < $(OUT)/repro/arc1_ecp5.bit)" && echo REPRO_IDENTICAL | tee -a $(OUT)/repro.log
+
+# timing robustness across placement seeds (informative)
+seeds: $(OUT)/arc1_ecp5.json
+	for s in 1 2 3 4 5; do $(NEXTPNR) --45k --package CABGA381 --speed 6 --json $(OUT)/arc1_ecp5.json --lpf $(LPF) \
+	  --seed $$s --log $(OUT)/seed_$$s.log > /dev/null 2>&1; echo "seed $$s: $$(grep 'Max frequency' $(OUT)/seed_$$s.log | tail -2 | sed 's/Info: Max frequency for clock//' | tr -s ' ' | tr '\n' ' ')"; done | tee $(OUT)/seeds.log
 
 build: $(OUT)/arc1_ecp5.config
 bit: $(OUT)/arc1_ecp5.bit

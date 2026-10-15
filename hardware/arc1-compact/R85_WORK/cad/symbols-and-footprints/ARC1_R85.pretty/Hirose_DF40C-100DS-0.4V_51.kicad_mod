@@ -1,4 +1,4 @@
-(footprint "Hirose_DF40C-100DS-0.4V_51" (version 20240108) (generator "arc1_r08_gen") (generator_version "8.0") (layer "F.Cu")
+(footprint "Hirose_DF40C-100DS-0.4V_51" (version 20240108) (generator "arc1_r85_gen") (generator_version "8.0") (layer "F.Cu")
 (descr "Hirose DF40C-100DS-0.4V(51) receptacle, 1.5 mm stack. GENERATED_DERIVED from DF40 catalog land pattern dims (0.4 pitch, 0.2 pad width, outer 3.78 / inner 2.38 mm -> 0.70 x 0.20 pads, rows 3.08 c-c). Pin numbering: odd row / even row ASSUMED to mirror MN820 CN1 - verify with the Hirose drawing in R09") (tags "Hirose DF40 board-to-board 0.4mm R08") (attr smd)
 (property "Reference" "REF**" (at 0 -1 0) (layer "F.SilkS") (uuid "bca27c05-f5bf-5873-8782-5c862b8dbf67") (effects (font (size 1 1) (thickness 0.15))))
 (property "Value" "Hirose_DF40C-100DS-0.4V_51" (at 0 1 0) (layer "F.Fab") (uuid "b97a6aee-6802-54f8-98e9-898b521f5579") (effects (font (size 1 1) (thickness 0.15))))

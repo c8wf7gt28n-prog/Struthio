@@ -1,11 +1,11 @@
-"""ARC-1 Compact R08 -- part (symbol) definitions for the generated KiCad schematic.
+"""ARC-1 Compact R8.5 (from R08) -- part (symbol) definitions for the generated KiCad schematic.
 
 Every pin list is transcribed from a manufacturer document recorded in
-R08_WORK/sources/*/sources.json (URL + SHA-256), or from the KiCad standard
+R85_WORK/sources/*/sources.json (URL + SHA-256), or from the KiCad standard
 library symbol named in `src`. Pin electrical types drive KiCad ERC.
 
 Footprints: `fp` names either a KiCad 9 standard-library footprint
-(LIB:NAME) or a generated/copied footprint in ARC1_R08.pretty (ARC1_R08:NAME).
+(LIB:NAME) or a generated/copied footprint in ARC1_R85.pretty (ARC1_R85:NAME).
 `fp_status` is one of
   STD_LIB            KiCad library footprint for exactly this package
   GENERATED_DERIVED  generated here from datasheet dimensions (R09 must check vs drawing)
@@ -87,30 +87,33 @@ def f133_pins():
     return [(p[0], p[1], p[2], "L" if int(p[0]) <= 64 else "R") for p in pins]
 
 
-# ---------------------------------------------------------------- T35F400C3
-def t35_pins():
-    rows = list(csv.DictReader(open(os.path.join(SRC, "efinix", "t35f400_balls_by_rail.csv"))))
+# ---------------------------------------------------------------- LFE5U-45F-6BG381C (R8.5)
+ECP5_DEDICATED_ETYPE = {"CCLK": "input", "CFG_0": "input", "CFG_1": "input", "CFG_2": "input", "PROGRAMN": "input",
+                        "INITN": "open_collector", "DONE": "open_collector",
+                        "TCK": "input", "TMS": "input", "TDI": "input", "TDO": "tri_state"}
+
+
+def ecp5_pins():
+    """all 381 balls from the Lattice pinout FPGA-SC-02034 (sources/lattice/lfe5u45_cabga381_pinout.csv)"""
+    rows = list(csv.DictReader(open(os.path.join(SRC, "lattice", "lfe5u45_cabga381_pinout.csv"))))
     pins = []
     for r in rows:
-        ball, name, func = r["ball"], r["name"], r["rail_or_function"]
-        if func.startswith("GND"):
+        ball, fn, typ = r["ball"], r["pin_function"], r["pin_type"]
+        if typ in ("GROUND", "POWER"):
             et = "power_in"
-        elif func.split(";")[0] in ("VCC", "VCCA_BL", "VCCA_BR", "VCCA_TR") or func.startswith("VCCIO"):
-            et = "power_in"
-        elif "VREF" in name or func.startswith("REF_RES"):
-            et = "passive"
-        elif func.startswith("CONFIG_DEDICATED_CDONE"):
-            et = "open_collector"
-        elif func.startswith("CONFIG_DEDICATED_CRESET_N"):
-            et = "input"
+        elif typ == "NC" or fn == "RESERVED":
+            et = "no_connect"          # RESERVED: "do not connect" (DS 4.1); NC: K16/K17
+        elif typ == "DEDICATED":
+            et = ECP5_DEDICATED_ETYPE[fn]
         else:
             et = "bidirectional"
+        name = fn if r["dual_function"] in ("-", "") else f"{fn}/{r['dual_function'].split('/')[0]}"
         pins.append((ball, name, et))
-    assert len(pins) == 400, len(pins)
+    assert len(pins) == 381, len(pins)
 
     def key(p):
         b = p[0]
-        return (b[0], int(b[1:]))
+        return (len(b.rstrip("0123456789")), b.rstrip("0123456789"), int(b[len(b.rstrip("0123456789")):]))
     pins.sort(key=key)
     return side_split(pins)
 
@@ -134,13 +137,13 @@ def add(p):
     return p
 
 
-add(Part("F133", "U", f133_pins(), "ARC1_R08:Allwinner_F133_eLQFP128_14x14_P0.4_EP5.72", "GENERATED_DERIVED",
+add(Part("F133", "U", f133_pins(), "ARC1_R85:Allwinner_F133_eLQFP128_14x14_P0.4_EP5.72", "GENERATED_DERIVED",
          "F133-B", "Allwinner", "RISC-V C906 SoC, 64 MiB DDR2 in package, eLQFP128",
          "F133 Datasheet rev 2.3 Table 4-1/4-2 (sources/f133)"))
-add(Part("T35", "U", t35_pins(), "ARC1_R08:Efinix_FBGA400_17x17_P0.8_GRID20", "GENERATED_DERIVED",
-         "T35F400C3", "Efinix", "Trion T35 FPGA, 400-ball FBGA",
-         "T35 DS v3.2 + T35-PINOUT v1.5 (sources/efinix/t35f400_balls_by_rail.csv)"))
-add(Part("MN820_RCPT", "J", mn820_receptacle_pins(), "ARC1_R08:Hirose_DF40C-100DS-0.4V_51", "GENERATED_DERIVED",
+add(Part("ECP5_45F_BG381", "U", ecp5_pins(), "Package_BGA:Lattice_caBGA-381_17x17mm_Layout20x20_P0.8mm", "STD_LIB",
+         "LFE5U-45F-6BG381C", "Lattice", "ECP5 FPGA, 44K LUT, no SerDes, speed -6, commercial, caBGA381 17x17 mm 0.8 mm",
+         "Lattice FPGA-DS-02012 v3.4 + pinout FPGA-SC-02034 (sources/lattice/lfe5u45_cabga381_pinout.csv)"))
+add(Part("MN820_RCPT", "J", mn820_receptacle_pins(), "ARC1_R85:Hirose_DF40C-100DS-0.4V_51", "GENERATED_DERIVED",
          "DF40C-100DS-0.4V(51)", "Hirose", "100-pin 0.4 mm receptacle mating MN820 CN1 (1.5 mm stack)",
          "MN820 DS v1.0 Table 2; VM820C DS v1.1 CN6; Hirose DF40 catalog (sources/mn820)"))
 add(Part("W25Q256JVFIQ", "U", P(("1", "IO3", "bidirectional"), ("2", "VCC", "power_in"), ("3", "~{RESET}", "input"),
@@ -152,11 +155,6 @@ add(Part("W25Q256JVFIQ", "U", P(("1", "IO3", "bidirectional"), ("2", "VCC", "pow
          "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm", "STD_LIB", "W25Q256JVFIQ", "Winbond",
          "256 Mbit (32 MiB) SPI NOR, SOIC-16 300 mil, dedicated /RESET, QE=1 fixed (IQ)",
          "W25Q256JV DS Rev I s.3.4 (sources/glue)"))
-add(Part("W25Q32JVSSIQ", "U", P(("1", "~{CS}", "input"), ("2", "DO_IO1", "tri_state"), ("3", "IO2", "bidirectional"),
-                                ("4", "GND", "power_in"), ("5", "DI_IO0", "bidirectional"), ("6", "CLK", "input"),
-                                ("7", "IO3", "bidirectional"), ("8", "VCC", "power_in")),
-         "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm", "STD_LIB", "W25Q32JVSSIQ", "Winbond",
-         "32 Mbit SPI NOR, T35 configuration flash (bitstream 8,139,168 bits)", "W25Q32JV DS s.3.1 (sources/glue)"))
 add(Part("APS6404L", "U", P(("1", "~{CE}", "input"), ("2", "SO_SIO1", "bidirectional"), ("3", "SIO2", "bidirectional"),
                             ("4", "VSS", "power_in"), ("5", "SI_SIO0", "bidirectional"), ("6", "SCLK", "input"),
                             ("7", "SIO3", "bidirectional"), ("8", "VDD", "power_in")),
@@ -177,13 +175,6 @@ add(Part("LVC1G17", "U", P(("1", "NC", "no_connect"), ("2", "A", "input"), ("3",
          "Package_TO_SOT_SMD:SOT-353_SC-70-5", "STD_LIB", "SN74LVC1G17DCKR", "Texas Instruments",
          "single Schmitt-trigger buffer, Ioff", "SN74LVC1G17 DS (pinout = TI standard 1G17 DCK; R09 verify)",
          evidence="DERIVED (pinout not yet transcribed from its datasheet)"))
-add(Part("LVC07A", "U", P(("1", "1A", "input"), ("2", "1Y", "open_collector"), ("3", "2A", "input"),
-                          ("4", "2Y", "open_collector"), ("5", "3A", "input"), ("6", "3Y", "open_collector"),
-                          ("7", "GND", "power_in"), ("8", "4Y", "open_collector"), ("9", "4A", "input"),
-                          ("10", "5Y", "open_collector"), ("11", "5A", "input"), ("12", "6Y", "open_collector"),
-                          ("13", "6A", "input"), ("14", "VCC", "power_in")),
-         "Package_SO:TSSOP-14_4.4x5mm_P0.65mm", "STD_LIB", "SN74LVC07APWR", "Texas Instruments",
-         "hex open-drain buffer, Ioff", "SN74LVC07A DS s.5 (sources/glue)"))
 add(Part("TPS22918", "U", P(("1", "VIN", "power_in"), ("2", "GND", "power_in"), ("3", "ON", "input"),
                             ("4", "CT", "passive"), ("5", "QOD", "passive"), ("6", "VOUT", "power_out")),
          "Package_TO_SOT_SMD:SOT-23-6", "STD_LIB", "TPS22918DBVR", "Texas Instruments",
@@ -205,15 +196,20 @@ add(Part("TLV75518P", "U", P(("1", "IN", "power_in"), ("2", "GND", "power_in"), 
                              ("4", "NC", "no_connect"), ("5", "OUT", "power_out")),
          "Package_TO_SOT_SMD:SOT-23-5", "STD_LIB", "TLV75518PDBVR", "Texas Instruments",
          "500 mA LDO 1.8 V", "TLV755P DS Table 4-1 (sources/glue)", lcsc="C2877863"))
+add(Part("TLV75525P", "U", P(("1", "IN", "power_in"), ("2", "GND", "power_in"), ("3", "EN", "input"),
+                             ("4", "NC", "no_connect"), ("5", "OUT", "power_out")),
+         "Package_TO_SOT_SMD:SOT-23-5", "STD_LIB", "TLV75525PDBVR", "Texas Instruments",
+         "500 mA LDO 2.5 V (ECP5 VCCAUX)", "TLV755P DS Table 4-1 (same DBV pinout for all fixed voltages; sources/glue)",
+         evidence="CANDIDATE (pinout per TLV755P family DS; 2.5 V option orderable code to be confirmed with TI/LCSC)"))
 add(Part("TUSB320LAI", "U", P(("1", "CC1", "bidirectional"), ("2", "CC2", "bidirectional"), ("3", "PORT", "input"),
                               ("4", "VBUS_DET", "input"), ("5", "ADDR", "input"), ("6", "INT_N_OUT3", "open_collector"),
                               ("7", "SDA_OUT1", "open_collector"), ("8", "SCL_OUT2", "open_collector"),
                               ("9", "ID", "open_collector"), ("10", "GND", "power_in"), ("11", "~{EN}", "input"),
                               ("12", "VDD", "power_in")),
-         "ARC1_R08:SLIM4_FP_U13_TUSB320LAI_RWB_X2QFN12", "SLIM4_CANDIDATE", "TUSB320LAIRWBR", "Texas Instruments",
+         "ARC1_R85:SLIM4_FP_U13_TUSB320LAI_RWB_X2QFN12", "SLIM4_CANDIDATE", "TUSB320LAIRWBR", "Texas Instruments",
          "USB Type-C CC controller, GPIO mode reports source current", "TUSB320LA DS s.5 (sources/glue)", lcsc="C132554"))
 add(Part("TPD2EUSB30", "U", P(("1", "D+", "passive"), ("2", "D-", "passive"), ("3", "GND", "power_in")),
-         "ARC1_R08:SLIM4_FP_U11_TPD2EUSB30_DRT3", "SLIM4_CANDIDATE", "TPD2EUSB30DRTR", "Texas Instruments",
+         "ARC1_R85:SLIM4_FP_U11_TPD2EUSB30_DRT3", "SLIM4_CANDIDATE", "TPD2EUSB30DRTR", "Texas Instruments",
          "2-channel USB ESD protection", "TPD2EUSB30 DS Table 5-1 (sources/glue)", lcsc="C97502"))
 add(Part("USB_C", "J", P(("A1", "GND", "passive"), ("A4", "VBUS", "passive"), ("A5", "CC1", "bidirectional"),
                          ("A6", "D+", "bidirectional"), ("A7", "D-", "bidirectional"), ("A8", "SBU1", "bidirectional"),
@@ -244,7 +240,7 @@ add(Part("MAX98357A", "U", P(("1", "DIN", "input"), ("2", "GAIN_SLOT", "passive"
          lcsc="C910544"))
 add(Part("OSC_3225", "X", P(("1", "OE", "input"), ("2", "GND", "power_in"), ("3", "OUT", "output"), ("4", "VDD", "power_in")),
          "Oscillator:Oscillator_SMD_Abracon_ASE-4Pin_3.2x2.5mm", "STD_LIB", "25 MHz 3.3 V CMOS XO 3225 (MPN TBD)",
-         "TBD", "25 MHz oscillator for T35 PLLIN0", "generic 4-pin XO pinout; exact part R09", evidence="CANDIDATE"))
+         "TBD", "25 MHz oscillator for the ECP5 PLL input (LLC_GPLL0T_IN, ball P3)", "generic 4-pin XO pinout; exact part R09", evidence="CANDIDATE"))
 add(Part("XTAL_3225", "Y", P(("1", "X1", "passive"), ("2", "GND", "passive"), ("3", "X2", "passive"), ("4", "GND", "passive")),
          "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm", "STD_LIB", "24 MHz 3225 crystal CL=12 pF +-20 ppm (MPN TBD)", "TBD",
          "24 MHz F133 DCXO crystal", "F133 DS: fundamental, +-50 ppm (20 recommended), C0 6.5 pF", evidence="CANDIDATE"))
@@ -281,7 +277,7 @@ add(Part("FID", "FID", [], "Fiducial:Fiducial_1mm_Mask2mm", "STD_LIB", "fiducial
 for k, pre, fp in [("R0402", "R", "Resistor_SMD:R_0402_1005Metric"), ("R0603", "R", "Resistor_SMD:R_0603_1608Metric"),
                    ("C0402", "C", "Capacitor_SMD:C_0402_1005Metric"), ("C0603", "C", "Capacitor_SMD:C_0603_1608Metric"),
                    ("C0805", "C", "Capacitor_SMD:C_0805_2012Metric"), ("FB0603", "FB", "Inductor_SMD:L_0603_1608Metric"),
-                   ("F1812", "F", "Fuse:Fuse_1812_4532Metric"), ("L4035", "L", "ARC1_R08:SLIM4_FP_L2_ASWPA4035")]:
+                   ("F1812", "F", "Fuse:Fuse_1812_4532Metric"), ("L4035", "L", "ARC1_R85:SLIM4_FP_L2_ASWPA4035")]:
     add(two_pin(k, pre, fp, "passive " + k, fp_status="SLIM4_CANDIDATE" if "SLIM4" in fp else "STD_LIB"))
 
 add(Part("PWR_FLAG", "#FLG", [("1", "pwr", "power_out", "L")], "", "STD_LIB", "", "", "ERC power flag", "KiCad convention",

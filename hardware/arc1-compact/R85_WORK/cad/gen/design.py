@@ -1,8 +1,8 @@
-"""ARC-1 Compact R08 -- the board as code: components, values and nets per sheet.
+"""ARC-1 Compact R8.5 (ECP5-45F change order; from R08) -- the board as code: components, values and nets per sheet.
 
 This file is the single electrical source. gen_kicad.py turns it into the
 native KiCad 9 hierarchical schematic; export_plan.py turns it into
-board/r08_board_plan.json for the rule checker and the 1:1 cross-check.
+board/r85_board_plan.json for the rule checker and the 1:1 cross-check.
 
 Status: SELECTED_UNVERIFIED engineering capture. No board exists. Values marked
 'calc:' are derived in docs/POWER_TREE_AND_RESET.md / analysis scripts.
@@ -182,44 +182,59 @@ def build():
     d.R("10k", "F133_RESET_N", "1V8_LDOA", note="RESET is in the VCC-RTC (1.8 V) domain (F133 DS Table 4-2; MangoPi ref)")
     d.add("SW1", "SW_B3U", "RESET", {"1": "RST_BTN_N", "2": "GND"})
     d.tp("F133_RESET_N", note="hold low for external NOR clip programming"); d.tp("PG_3V3")
-    # T35 1V2 core: off until F133 enables; PG sequences 3V3_T35 after it
-    d.add("U9", "TLV62569P", "1V2_T35", {"1": "T35_PWR_EN", "2": "GND", "3": "SW_1V2", "4": "VBUS_5V", "5": "T35_1V2_PG",
-                                         "6": "FB_1V2"}, note="calc: 0.6*(1+100k/100k)=1.20 V (T35 1.15/1.20/1.25)")
+    # ECP5 rails (R8.5). One shared enable FPGA_PWR_EN starts VCC (1.1 V buck), the VCCIO switch (3V3_FPGA) and,
+    # through 3V3_FPGA, the VCCAUX LDO: VCCIO "before or together with" VCC/VCCAUX (TN-02038 s.4); no rail is
+    # sequenced off another FPGA rail's PG. Ramps 0.01..10 V/ms (DS Table 3.3): calc in docs/ECP5_POWER_R85.md.
+    d.add("U9", "TLV62569P", "1V1_FPGA", {"1": "FPGA_PWR_EN", "2": "GND", "3": "SW_1V1", "4": "VBUS_5V", "5": "FPGA_VCC_PG",
+                                         "6": "FB_1V1"},
+          note="calc: 0.6*(1+82.5k/100k)=1.095 V (ECP5 VCC 1.045/1.10/1.155 V, DS Table 3.2); soft-start ~1 ms")
     d.C("10uF", "VBUS_5V", pkg="C0805")
-    d.add("L4", "L4035", "2.2uH", {"1": "SW_1V2", "2": "1V2_T35_REG"})
-    d.R("100k", "1V2_T35_REG", "FB_1V2"); d.R("100k", "FB_1V2", "GND")
-    d.C("22uF", "1V2_T35_REG", pkg="C0805"); d.C("22uF", "1V2_T35_REG", pkg="C0805")
-    d.flag("1V2_T35_REG")
-    d.R("0R", "1V2_T35_REG", "1V2_T35", pkg="R0603", note="staged power-on link / T35 isolation")
-    d.flag("1V2_T35")
-    d.R("100k", "T35_PWR_EN", "GND", note="T35 unpowered until F133 firmware enables it")
-    d.R("100k", "T35_1V2_PG", "3V3")
-    d.tp("1V2_T35"); d.tp("T35_1V2_PG")
-    # 3V3_T35 (all T35 VCCIO, config flash, oscillator) after 1V2 good
-    d.add("U10", "TPS22918", "3V3_T35 switch", {"1": "3V3", "2": "GND", "3": "T35_1V2_PG", "4": "SW_T35_CT", "5": "3V3_T35",
-                                                "6": "3V3_T35"}, note="T35 sequence: VCC first, VCCIO after (T35 DS)")
-    d.C("1nF", "SW_T35_CT", note="calc SR = 0.55*1000+30 us/V -> ~1.9 ms ramp = 1.7 V/ms (T35: 0.33..10 V/ms)")
-    d.C("1uF", "3V3"); d.C("10uF", "3V3_T35", pkg="C0603")
-    d.tp("3V3_T35")
+    d.add("L4", "L4035", "2.2uH", {"1": "SW_1V1", "2": "1V1_FPGA_REG"})
+    d.R("82.5k", "1V1_FPGA_REG", "FB_1V1", note="1 % (E96)"); d.R("100k", "FB_1V1", "GND", note="1 %")
+    d.C("22uF", "1V1_FPGA_REG", pkg="C0805"); d.C("22uF", "1V1_FPGA_REG", pkg="C0805")
+    d.flag("1V1_FPGA_REG")
+    d.R("0R", "1V1_FPGA_REG", "1V1_FPGA", pkg="R0603", note="staged power-on link / ECP5 VCC current measurement")
+    d.flag("1V1_FPGA")
+    d.R("1k", "FPGA_PWR_EN_F", "FPGA_PWR_EN", note="F133 PE0 drive; lets jumper J11 force the FPGA on for JTAG service")
+    d.R("100k", "FPGA_PWR_EN", "GND", note="FPGA unpowered until F133 firmware (or J11) enables it")
+    d.R("100k", "FPGA_VCC_PG", "3V3", note="open-drain PG to F133 PD1 (rail-fault diagnosis)")
+    d.add("J11", "HDR_1x3", "FPGA power override", {"1": "3V3", "2": "FPGA_PWR_EN", "3": "GND"},
+          note="JTAG service without F133 firmware: jumper 1-2 powers all FPGA rails (1k limits PE0 contention)")
+    d.tp("1V1_FPGA"); d.tp("FPGA_VCC_PG"); d.tp("FPGA_PWR_EN")
+    # 3V3_FPGA: all ECP5 VCCIO banks 0,1,2,3,6,7,8 + oscillator + PSRAM switch input
+    d.add("U10", "TPS22918", "3V3_FPGA switch", {"1": "3V3", "2": "GND", "3": "FPGA_PWR_EN", "4": "SW_FPGA_CT", "5": "3V3_FPGA",
+                                                "6": "3V3_FPGA"}, note="same enable as VCC: VCCIO with VCC/VCCAUX (TN-02038 s.4)")
+    d.C("1nF", "SW_FPGA_CT", note="calc SR = 0.55*1000+30 us/V -> ~1.9 ms ramp = 1.7 V/ms (ECP5: 0.01..10 V/ms)")
+    d.C("1uF", "3V3"); d.C("10uF", "3V3_FPGA", pkg="C0603")
+    d.tp("3V3_FPGA")
+    # VCCAUX 2.5 V: LDO fed from 3V3_FPGA so that it ramps with VCCIO (output tracks the 1.7 V/ms input until regulation)
+    d.add("U30", "TLV75525P", "2V5_FPGA_AUX", {"1": "3V3_FPGA", "2": "GND", "3": "3V3_FPGA", "5": "2V5_AUX_REG"},
+          note="ECP5 VCCAUX 2.375-2.625 V; ICCAUX 17 mA typ static (DS Table 3.8); dropout margin calc in ECP5_POWER_R85.md")
+    d.nc("U30", "4", "NC per datasheet")
+    d.C("1uF", "3V3_FPGA"); d.C("1uF", "2V5_AUX_REG")
+    d.add("FB2", "FB0603", "ferrite 120R@100MHz", {"1": "2V5_AUX_REG", "2": "2V5_FPGA_AUX"}, mpn="BLM18PG121SN1D (CANDIDATE)",
+          note="TN-02038 Table 3.1: 120 ohm ferrite on VCCAUX")
+    d.flag("2V5_FPGA_AUX")
+    d.tp("2V5_FPGA_AUX")
     # MN820 supply switch (default ON; F133 may cut it for isolation tests)
     d.add("U11", "TPS22918", "3V3_MN switch", {"1": "3V3", "2": "GND", "3": "MN_PWR_EN", "4": "SW_MN_CT", "5": "3V3_MN",
                                                "6": "3V3_MN"}, note="MN820 module input 3.0-3.6 V, 245 mA typ")
     d.C("1nF", "SW_MN_CT"); d.C("1uF", "3V3"); d.C("22uF", "3V3_MN", pkg="C0805")
     d.R("100k", "MN_PWR_EN", "3V3", note="default ON even while F133 is in reset (graphics independent of FPGA)")
     d.tp("3V3_MN")
-    # PSRAM supply switch, gated by F133 request AND delayed CDONE
-    d.add("U12", "TPS22918", "PSRAM_VDD switch", {"1": "3V3_T35", "2": "GND", "3": "PSRAM_EN", "4": "SW_PS_CT",
+    # PSRAM supply switch, gated by F133 request AND delayed FPGA DONE
+    d.add("U12", "TPS22918", "PSRAM_VDD switch", {"1": "3V3_FPGA", "2": "GND", "3": "PSRAM_EN", "4": "SW_PS_CT",
                                                   "5": "PSRAM_VDD", "6": "PSRAM_VDD"})
-    d.C("1nF", "SW_PS_CT"); d.C("1uF", "3V3_T35"); d.C("4.7uF", "PSRAM_VDD", pkg="C0603")
-    d.add("U13", "LVC1G08", "AND", {"1": "PSRAM_PWR_REQ", "2": "CDONE_DLY", "3": "GND", "4": "PSRAM_EN", "5": "3V3"})
+    d.C("1nF", "SW_PS_CT"); d.C("1uF", "3V3_FPGA"); d.C("4.7uF", "PSRAM_VDD", pkg="C0603")
+    d.add("U13", "LVC1G08", "AND", {"1": "PSRAM_PWR_REQ", "2": "DONE_DLY", "3": "GND", "4": "PSRAM_EN", "5": "3V3"})
     d.decouple("3V3")
     d.R("100k", "PSRAM_PWR_REQ", "GND"); d.R("100k", "PSRAM_EN", "GND")
     d.add("U14", "TPS3808", "TPS3808G30", {"1": "PSRAM_PG", "2": "GND", "3": "PSRAM_SUP_MR_N", "4": "PSRAM_SUP_CT",
-                                           "5": "PSRAM_VDD", "6": "3V3_T35"}, mpn="TPS3808G30DBVR",
+                                           "5": "PSRAM_VDD", "6": "3V3_FPGA"}, mpn="TPS3808G30DBVR",
           note="VIT 2.79 V +-1.5% -> min 2.748 V > APS6404L VDDmin 2.7 V")
-    d.C("1nF", "PSRAM_SUP_CT"); d.R("100k", "PSRAM_SUP_MR_N", "3V3_T35")
-    d.R("10k", "PSRAM_PG", "3V3_T35")
-    d.decouple("3V3_T35")
+    d.C("1nF", "PSRAM_SUP_CT"); d.R("100k", "PSRAM_SUP_MR_N", "3V3_FPGA")
+    d.R("10k", "PSRAM_PG", "3V3_FPGA")
+    d.decouple("3V3_FPGA")
     d.tp("PSRAM_VDD"); d.tp("PSRAM_PG"); d.tp("PSRAM_EN")
     for i in range(4):
         d.tp("GND")
@@ -240,7 +255,7 @@ def build():
         "AVCC": "1V8_AN", "HPVCC": "1V8_AN", "VCC-TVIN": "1V8_AN", "AGND": "GND", "EPAD": "GND",
     }
     gpio = {
-        # SPI0: boot NOR + (buffered) T35 mailbox
+        # SPI0: boot NOR + (buffered) ECP5 configuration (sysCONFIG slave SPI) and, after DONE, the ECP5 mailbox
         "PC2": "SPI0_CLK_F", "PC3": "SPI0_CS0_N", "PC4": "SPI0_MOSI", "PC5": "SPI0_MISO", "PC6": "SPI0_IO2", "PC7": "SPI0_IO3",
         # SPI1: BT820 (single-SPI baseline)
         "PD10": "BT_SS_N", "PD11": "BT_SCK_F", "PD12": "BT_MOSI_F", "PD13": "BT_MISO", "PD16": "BT_RST_N_F", "PD17": "BT_INT_N",
@@ -248,9 +263,9 @@ def build():
         "PF0": "SD_D1", "PF1": "SD_D0", "PF2": "SD_CLK_F", "PF3": "SD_CMD", "PF4": "SD_D3", "PF5": "SD_D2", "PF6": "SD_DET_N",
         # debug UART0
         "PE2": "UART0_TX", "PE3": "UART0_RX",
-        # T35 control
-        "PE4": "T35_SS_N_F", "PE5": "T35_IRQ_N", "PE6": "T35_BUS_EN_N", "PE7": "PSRAM_PWR_REQ", "PE8": "T35_CRESET_N_F",
-        "PE9": "T35_CDONE", "PE11": "PSRAM_PG", "PE0": "T35_PWR_EN",
+        # ECP5 control (R8.5): PE4 SN (config + mailbox CS), PE8 PROGRAMN (open-drain use), PE9 DONE, PD0 INITN
+        "PE4": "FPGA_SS_N_F", "PE5": "FPGA_IRQ_N", "PE6": "FPGA_BUS_EN_N", "PE7": "PSRAM_PWR_REQ", "PE8": "FPGA_PROGRAMN_F",
+        "PE9": "FPGA_DONE", "PE11": "PSRAM_PG", "PE0": "FPGA_PWR_EN_F", "PD0": "FPGA_INITN", "PD1": "FPGA_VCC_PG",
         # audio I2S2 -> 2x MAX98357A
         "PB4": "I2S_DOUT", "PB5": "I2S_BCLK", "PB6": "I2S_LRCK", "PE10": "AMP_EN",
         # power / USB status
@@ -308,7 +323,7 @@ def build():
     d.decouple("3V3"); d.C("1uF", "3V3")
     d.R("22R", "SPI0_CLK_F", "SPI0_CLK", note="source series termination at F133")
     d.R("3.3k", "SPI0_MOSI", "GND", note="BOOT-SEL0 = 0 vs internal PU 12k min: 0.217*VCC < 0.3*VCC")
-    d.R("3.3k", "SPI0_MISO", "GND", note="BOOT-SEL1 = 0; NOR DO hi-Z (CS# high) and T35 buffer hi-Z at sampling")
+    d.R("3.3k", "SPI0_MISO", "GND", note="BOOT-SEL1 = 0; NOR DO hi-Z (CS# high) and FPGA MISO buffer hi-Z at sampling")
     d.R("10k", "SPI0_CS0_N", "3V3", note="NOR deselected while F133 in reset")
     d.R("10k", "SPI0_IO2", "3V3", note="QE=1 (IQ): IO2 must not float; xfel drives only PC2-PC5")
     d.R("10k", "SPI0_IO3", "3V3")
@@ -318,7 +333,7 @@ def build():
     for net in ("SPI0_CLK", "SPI0_MOSI", "SPI0_MISO", "SPI0_CS0_N", "NOR_RESET_N", "SPI0_IO2", "SPI0_IO3"):
         d.tp(net, note="SOIC-16 clip / probe")
     d.add("J2", "HDR_2x5_127", "LA SPI0", {"1": "SPI0_CLK", "2": "GND", "3": "SPI0_MOSI", "4": "GND", "5": "SPI0_MISO",
-                                            "6": "GND", "7": "SPI0_CS0_N", "8": "T35_SS_N_F", "9": "NOR_RESET_N",
+                                            "6": "GND", "7": "SPI0_CS0_N", "8": "FPGA_SS_N_F", "9": "NOR_RESET_N",
                                             "10": "F133_RESET_N"}, dnp=True,
           note="logic-analyser / external programmer header, DNP pads by default (stub)")
 
@@ -357,105 +372,111 @@ def build():
                                             "6": "GND", "7": "BT_SS_N", "8": "BT_INT_N", "9": "BT_RST_N", "10": "GND"},
           dnp=True, note="logic-analyser header, DNP pads by default")
 
-    # ================================================================ T35 + isolation + config
-    d.sheet("t35", "t35.kicad_sch", "T35F400C3 (optional accelerator): rails, config flash, SPI0 isolation, mailbox")
-    t = {}
+    # ================================================================ ECP5 + isolation + sysCONFIG
+    d.sheet("fpga", "fpga_ecp5.kicad_sch", "LFE5U-45F-6BG381C (optional accelerator): rails, sysCONFIG slave SPI, JTAG, SPI0 isolation")
+    # user I/O (all banks LVCMOS33 at 3V3_FPGA); LPF is generated from this table (tools/gen_pin_matrix_r85.py)
     used = {
-        "R16": "T35_OSC_25M",          # GPIOL_15_PLLIN0 (R08: PLL reference pin; R06 used a non-PLLIN pin)
-        "K19": "PSRAM_CE_N", "J18": "PSRAM_SCLK_T", "K20": "PSRAM_SIO0", "K14": "PSRAM_SIO1", "J20": "PSRAM_SIO2",
-        "J16": "PSRAM_SIO3", "J17": "PSRAM_PG", "H20": "PSRAM_EN",
-        "D17": "T35_SCK", "H15": "T35_SS_N", "F17": "T35_MOSI", "H14": "T35_MISO", "C17": "T35_IRQ_N",
-        "A19": "T35_DBG_TX", "B16": "T35_DBG_RX", "A18": "T35_LED0",
-        "U19": "T35_CRESET_N", "T19": "T35_CDONE",
-        "W18": "CFG_SS_N", "W19": "CFG_CCK", "Y17": "CFG_CDI0", "Y18": "CFG_CDI1",
-        "W20": "T35_TCK", "Y19": "T35_TDI", "V20": "T35_TDO", "U20": "T35_TMS",
-        "F14": "T35_TEST_N", "T16": "T35_CSI",
+        # bank 6: clock + PSRAM
+        "P3": "FPGA_OSC_25M",          # LLC_GPLL0T_IN (PLL reference input)
+        "L1": "PSRAM_CE_N", "L2": "PSRAM_SCLK_F", "L3": "PSRAM_SIO0", "M1": "PSRAM_SIO1", "M3": "PSRAM_SIO2",
+        "M4": "PSRAM_SIO3", "N1": "PSRAM_PG", "N2": "PSRAM_EN",
+        # bank 8: sysCONFIG slave SPI; after DONE the same balls are user I/O for the mailbox (SLAVE_SPI_PORT=DISABLE)
+        "U3": "FPGA_SCK", "R1": "FPGA_SCK",      # CCLK (dedicated) + D7 user input: same board net
+        "W2": "FPGA_MOSI", "V2": "FPGA_MISO", "T2": "FPGA_SS_N", "R2": "FPGA_HOLDN",
+        "W3": "FPGA_PROGRAMN", "V3": "FPGA_INITN", "Y3": "FPGA_DONE",
+        "U4": "FPGA_CFG0", "T4": "GND", "R4": "GND",   # CFG[2:0] = 001 slave SPI (TN-02039 Table 4.6)
+        "T5": "FPGA_TCK", "R5": "FPGA_TDI", "V4": "FPGA_TDO", "U5": "FPGA_TMS",
+        # bank 0 (hot-socket tolerant top bank): IRQ + debug
+        "E6": "FPGA_IRQ_N", "A7": "FPGA_LED0", "A8": "FPGA_DBG_TX", "B8": "FPGA_DBG_RX",
     }
-    for ball, name, et, side in PARTS["T35"].pins:
-        func = None
+    t = {}
+    for ball, name, et, side in PARTS["ECP5_45F_BG381"].pins:
+        fn = name.split("/")[0]
         if ball in used:
             t[ball] = used[ball]
-        elif name.startswith("GND"):
+        elif fn == "GND":
             t[ball] = "GND"
-        elif name in ("VCC",):
-            t[ball] = "1V2_T35"
-        elif name.startswith("VCCA"):
-            t[ball] = "1V2_T35_PLL"
-        elif name.startswith("VCCIO") and "DDR" not in name:
-            t[ball] = "3V3_T35"
-        elif "VREF" in name:
-            t[ball] = "GND"
-    d.add("U18", "T35", "T35F400C3", t)
-    for ball, name, et, side in PARTS["T35"].pins:
+        elif fn == "VCC":
+            t[ball] = "1V1_FPGA"
+        elif fn == "VCCAUX":
+            t[ball] = "2V5_FPGA_AUX"
+        elif fn.startswith("VCCIO"):
+            t[ball] = "3V3_FPGA"         # every bank powered, unused ones included (TN-02038 3.6; DS Table 3.2 note 1)
+    d.add("U18", "ECP5_45F_BG381", "LFE5U-45F-6BG381C", t)
+    for ball, name, et, side in PARTS["ECP5_45F_BG381"].pins:
         if ball not in t:
-            why = "VCCIO_DDR floating when DDR unused (T35 DS)" if "VCCIO_DDR" in name else \
-                  "REF_RES float when bank has no LVDS (T35 DS)" if "REF_RES" in name else "unused FPGA I/O"
+            fn = name.split("/")[0]
+            why = "RESERVED: do not connect (ECP5 DS 4.1)" if fn == "RESERVED" else \
+                  "NC ball" if et == "no_connect" else \
+                  "unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)"
             d.nc("U18", ball, why)
-    d.add("FB1", "FB0603", "ferrite 600R@100MHz", {"1": "1V2_T35", "2": "1V2_T35_PLL"}, mpn="BLM18PG601SN1D (CANDIDATE)",
-          note="VCCA_xx PLL supply filter")
-    d.C("10uF", "1V2_T35_PLL", pkg="C0603"); d.decouple("1V2_T35_PLL", 3)
-    d.flag("1V2_T35_PLL")
-    d.decouple("1V2_T35", 12); d.C("22uF", "1V2_T35", pkg="C0805"); d.C("22uF", "1V2_T35", pkg="C0805")
-    d.decouple("3V3_T35", 12); d.C("10uF", "3V3_T35", pkg="C0603")
-    # configuration
-    d.add("U19", "W25Q32JVSSIQ", "W25Q32JVSSIQ", {"1": "CFG_SS_N", "2": "CFG_CDI1", "3": "CFG_IO2", "4": "GND",
-                                                   "5": "CFG_CDI0", "6": "CFG_CCK", "7": "CFG_IO3", "8": "3V3_T35"},
-          note="SPI active x1, 3-byte addressing, bitstream 8,139,168 bits")
-    d.decouple("3V3_T35")
-    d.R("10k", "CFG_SS_N", "3V3_T35", note="SS_N high at power-up selects active mode")
-    d.R("10k", "CFG_IO2", "3V3_T35"); d.R("10k", "CFG_IO3", "3V3_T35")
-    d.R("10k", "T35_TEST_N", "3V3_T35"); d.R("10k", "T35_CSI", "3V3_T35")
-    d.R("4.7k", "T35_CRESET_N", "GND", note="T35 held until F133 releases (R07 policy kept)")
-    d.R("1k", "T35_CRESET_N_F", "T35_CRESET_N", note="limits clamp current into an unpowered T35 (<10 mA abs max)")
-    d.R("10k", "T35_CDONE", "3V3_T35", note="open-drain CDONE pull-up to the T35 rail: reads 0 when T35 off")
-    d.R("10k", "T35_IRQ_N", "3V3_T35")
-    d.R("10k", "T35_TCK", "GND", note="TCK has no internal pull (T35 DS Table 99)")
-    d.add("J5", "HDR_2x5_127", "T35 JTAG", {"1": "3V3_T35", "2": "T35_TMS", "3": "GND", "4": "T35_TCK", "5": "GND",
-                                             "6": "T35_TDO", "7": "T35_CRESET_N", "8": "T35_TDI", "9": "GND", "10": "T35_CDONE"},
-          note="Efinix programmer pin order to be matched in R09 (cable-specific)")
-    d.add("X1", "OSC_3225", "25MHz", {"1": "3V3_T35", "2": "GND", "3": "T35_OSC_25M_X", "4": "3V3_T35"})
-    d.R("33R", "T35_OSC_25M_X", "T35_OSC_25M"); d.decouple("3V3_T35")
-    # CDONE delay (>= tUSER 25 us before PSRAM power / pull-down release)
-    d.R("10k", "T35_CDONE", "CDONE_RC", note="calc: tau = (10k+10k) * 100nF = 2 ms; delay >= 0.5 ms >> tUSER 25 us")
-    d.C("100nF", "CDONE_RC")
-    d.R("470R", "CDONE_RC", "CDONE_DIS")
-    d.add("D2", "SCHOTTKY", "BAT54WS", {"1": "T35_CDONE", "2": "CDONE_DIS"}, note="fast discharge when CDONE falls; 470R limits sink current")
-    d.add("U20", "LVC1G17", "Schmitt", {"2": "CDONE_RC", "3": "GND", "4": "CDONE_DLY", "5": "3V3_T35"})
+    # decoupling per TN-02038 Table 3.1/3.2: VCC 3x10uF + 100nF/ball (20), VCCAUX ferrite + 10uF + 100nF/ball (4),
+    # VCCIO 10uF + 100nF per ball (18 balls, 7 banks)
+    d.decouple("1V1_FPGA", 20)
+    for _ in range(3):
+        d.C("10uF", "1V1_FPGA", pkg="C0603")
+    d.decouple("2V5_FPGA_AUX", 4); d.C("10uF", "2V5_FPGA_AUX", pkg="C0603")
+    d.decouple("3V3_FPGA", 18)
+    for _ in range(7):
+        d.C("10uF", "3V3_FPGA", pkg="C0603", note="one per VCCIO bank 0/1/2/3/6/7/8")
+    # sysCONFIG pull-ups to VCCIO8 (= 3V3_FPGA): TN-02038 Tables 6.1-6.3
+    d.R("4.7k", "FPGA_PROGRAMN", "3V3_FPGA", note="TN-02038: 4.7k to VCCIO8")
+    d.R("1k", "FPGA_PROGRAMN_F", "FPGA_PROGRAMN",
+        note="F133 PE8 used open-drain (low or input only): calc 3.3*1k/5.7k = 0.58 V < VIL 0.8 V")
+    d.R("4.7k", "FPGA_INITN", "3V3_FPGA", note="TN-02038: 4.7k; reads 0 at F133 PD0 while the FPGA is off")
+    d.R("4.7k", "FPGA_DONE", "3V3_FPGA", note="TN-02038: 4.7k; reads 0 at F133 PE9 while the FPGA is off")
+    d.R("4.7k", "FPGA_SS_N", "3V3_FPGA", note="TN-02039 6.2: SN 4.7k pull-up to VCCIO8")
+    d.R("4.7k", "FPGA_CFG0", "3V3_FPGA", note="CFG_0 = 1 (1-10k); CFG_1/CFG_2 tied to GND -> 001 slave SPI")
+    d.R("10k", "FPGA_HOLDN", "3V3_FPGA", note="HOLDN inactive (conservative: TN lists HOLDN as optional SSPI input)")
+    d.R("1k", "FPGA_SCK", "3V3_FPGA", note="TN-02038 Table 6.2: CCLK 510R-1k pull-up")
+    d.R("4.7k", "FPGA_TCK", "GND", note="TCK pull-down 4.7k (no internal pull)")
+    d.R("4.7k", "FPGA_TMS", "3V3_FPGA"); d.R("4.7k", "FPGA_TDI", "3V3_FPGA"); d.R("4.7k", "FPGA_TDO", "3V3_FPGA")
+    d.R("4.7k", "FPGA_IRQ_N", "3V3_FPGA",
+        note="open drain; 4.7k vs ECP5 config-time weak pull-down 150 uA max -> >= 2.6 V; PULLMODE=NONE in user mode")
+    # independent JTAG service header (ARM 10-pin 1.27 mm layout; openFPGALoader with any JTAG adapter)
+    d.add("J5", "HDR_2x5_127", "ECP5 JTAG", {"1": "3V3_FPGA", "2": "FPGA_TMS", "3": "GND", "4": "FPGA_TCK", "5": "GND",
+                                              "6": "FPGA_TDO", "8": "FPGA_TDI", "9": "GND", "10": "FPGA_PROGRAMN"},
+          note="pin 1 = VTref (VCCIO8); pin 10 (nRESET position) = PROGRAMN; pin 7 key/NC; see docs/JTAG_RECOVERY_R85.md")
+    d.nc("J5", "7", "key position (ARM 10-pin layout)")
+    d.add("X1", "OSC_3225", "25MHz", {"1": "3V3_FPGA", "2": "GND", "3": "FPGA_OSC_25M_X", "4": "3V3_FPGA"})
+    d.R("33R", "FPGA_OSC_25M_X", "FPGA_OSC_25M"); d.decouple("3V3_FPGA")
+    # DONE delay (PSRAM power only after wake-up; GOE precedes the DONE pin with DONE_EX=OFF, TN-02039 s.8)
+    d.R("10k", "FPGA_DONE", "DONE_RC", note="calc: tau = (4.7k+10k) * 100nF = 1.5 ms; delay >= 0.5 ms")
+    d.C("100nF", "DONE_RC")
+    d.R("470R", "DONE_RC", "DONE_DIS")
+    d.add("D2", "SCHOTTKY", "BAT54WS", {"1": "FPGA_DONE", "2": "DONE_DIS"}, note="fast discharge when DONE falls (PROGRAMN/reconfigure)")
+    d.add("U20", "LVC1G17", "Schmitt", {"2": "DONE_RC", "3": "GND", "4": "DONE_DLY", "5": "3V3_FPGA"})
     d.nc("U20", "1", "NC")
-    d.decouple("3V3_T35")
-    d.R("100k", "CDONE_DLY", "GND", note="defined low while 3V3_T35 is off")
-    # SPI0 isolation: the T35 can never drive or load the boot-strap pins
-    d.add("U21", "LVC1G125", "iso SCK", {"1": "T35_BUS_EN_N", "2": "SPI0_CLK", "3": "GND", "4": "T35_SCK", "5": "3V3"})
-    d.add("U22", "LVC1G125", "iso MOSI", {"1": "T35_BUS_EN_N", "2": "SPI0_MOSI", "3": "GND", "4": "T35_MOSI", "5": "3V3"})
-    d.add("U23", "LVC1G125", "iso SS", {"1": "T35_BUS_EN_N", "2": "T35_SS_N_F", "3": "GND", "4": "T35_SS_N", "5": "3V3"})
-    d.add("U24", "LVC1G125", "iso MISO", {"1": "T35_SS_N_F", "2": "T35_MISO", "3": "GND", "4": "SPI0_MISO", "5": "3V3"},
-          note="drives PC5 only while F133 selects the T35 (OE# = T35_SS_N_F)")
+    d.decouple("3V3_FPGA")
+    d.R("100k", "DONE_DLY", "GND", note="defined low while 3V3_FPGA is off")
+    # SPI0 isolation (unchanged R08 topology): the FPGA can never drive or load the boot-strap pins
+    d.add("U21", "LVC1G125", "iso SCK", {"1": "FPGA_BUS_EN_N", "2": "SPI0_CLK", "3": "GND", "4": "FPGA_SCK_B", "5": "3V3"})
+    d.R("33R", "FPGA_SCK_B", "FPGA_SCK", note="CCLK series 22-80R near the driver (TN-02038 Table 6.2)")
+    d.add("U22", "LVC1G125", "iso MOSI", {"1": "FPGA_BUS_EN_N", "2": "SPI0_MOSI", "3": "GND", "4": "FPGA_MOSI", "5": "3V3"})
+    d.add("U23", "LVC1G125", "iso SS", {"1": "FPGA_BUS_EN_N", "2": "FPGA_SS_N_F", "3": "GND", "4": "FPGA_SS_N", "5": "3V3"})
+    d.add("U24", "LVC1G125", "iso MISO", {"1": "FPGA_SS_N_F", "2": "FPGA_MISO", "3": "GND", "4": "SPI0_MISO", "5": "3V3"},
+          note="drives PC5 only while F133 selects the FPGA (OE# = FPGA_SS_N_F)")
     d.decouple("3V3", 4)
-    d.R("10k", "T35_BUS_EN_N", "3V3", note="isolation buffers disabled at reset")
-    d.R("10k", "T35_SS_N_F", "3V3", note="T35 deselected and MISO buffer off at reset")
-    d.R("10k", "T35_SS_N", "3V3_T35"); d.R("100k", "T35_SCK", "GND"); d.R("100k", "T35_MOSI", "GND")
-    d.R("100k", "T35_MISO", "GND", note="buffer input defined when T35 is off/unconfigured")
-    d.add("D3", "LED", "T35 LED", {"1": "GND", "2": "T35_LED0_R"}); d.R("1k", "T35_LED0", "T35_LED0_R")
-    d.add("J6", "HDR_1x3", "T35 UART", {"1": "GND", "2": "T35_DBG_TX", "3": "T35_DBG_RX"})
-    d.tp("T35_CDONE"); d.tp("CDONE_DLY"); d.tp("T35_CRESET_N"); d.tp("T35_OSC_25M")
+    d.R("10k", "FPGA_BUS_EN_N", "3V3", note="isolation buffers disabled at reset")
+    d.R("10k", "FPGA_SS_N_F", "3V3", note="FPGA deselected and MISO buffer off at reset")
+    d.R("100k", "FPGA_MOSI", "GND")
+    d.R("100k", "FPGA_MISO", "GND", note="buffer input defined when the FPGA is off/unconfigured (MISO tri-stated)")
+    d.add("D3", "LED", "FPGA LED", {"1": "GND", "2": "FPGA_LED0_R"}); d.R("1k", "FPGA_LED0", "FPGA_LED0_R")
+    d.R("1k", "FPGA_DBG_RX_J", "FPGA_DBG_RX", note="limits injection from an external UART adapter into an unpowered FPGA")
+    d.add("J6", "HDR_1x3", "FPGA UART", {"1": "GND", "2": "FPGA_DBG_TX", "3": "FPGA_DBG_RX_J"})
+    d.tp("FPGA_DONE"); d.tp("DONE_DLY"); d.tp("FPGA_PROGRAMN"); d.tp("FPGA_INITN"); d.tp("FPGA_OSC_25M"); d.tp("FPGA_SCK")
 
     # ================================================================ PSRAM
-    d.sheet("psram", "psram.kicad_sch", "APS6404L 8 MiB PSRAM: switched VDD, switched start-up pull-downs")
+    d.sheet("psram", "psram.kicad_sch", "APS6404L 8 MiB PSRAM: switched VDD (DONE-gated), static pulls")
     d.add("U25", "APS6404L", "APS6404L-3SQR", {"1": "PSRAM_CE_N", "2": "PSRAM_SIO1", "3": "PSRAM_SIO2", "4": "GND",
                                                 "5": "PSRAM_SIO0", "6": "PSRAM_SCLK", "7": "PSRAM_SIO3", "8": "PSRAM_VDD"})
     d.decouple("PSRAM_VDD"); d.C("1uF", "PSRAM_VDD")
-    d.R("22R", "PSRAM_SCLK_T", "PSRAM_SCLK", note="source termination near T35")
-    d.R("10k", "PSRAM_CE_N", "PSRAM_VDD", note="CE# tracks the switched VDD during the ramp")
+    d.R("22R", "PSRAM_SCLK_F", "PSRAM_SCLK", note="source termination near the FPGA")
+    d.R("10k", "PSRAM_CE_N", "PSRAM_VDD", note="CE# tracks the switched VDD during the ramp (PULLMODE=NONE on the FPGA ball)")
     for n in ("PSRAM_SCLK", "PSRAM_SIO0", "PSRAM_SIO1", "PSRAM_SIO2", "PSRAM_SIO3"):
         d.R("100k", n, "GND", note="static: idle level in user mode, load 34 uA << 0.2 mA VOH test load")
-    d.add("U26", "LVC07A", "SN74LVC07A", {"1": "CDONE_DLY", "2": "PD_CE", "3": "CDONE_DLY", "4": "PD_SCLK", "5": "CDONE_DLY",
-                                           "6": "PD_SIO0", "7": "GND", "8": "PD_SIO1", "9": "CDONE_DLY", "10": "PD_SIO2",
-                                           "11": "CDONE_DLY", "12": "PD_SIO3", "13": "CDONE_DLY", "14": "3V3_T35"},
-          note="pull-downs active only while CDONE_DLY low (T35 unconfigured, PSRAM unpowered by design)")
-    d.decouple("3V3_T35")
-    for a, b in (("PD_CE", "PSRAM_CE_N"), ("PD_SCLK", "PSRAM_SCLK"), ("PD_SIO0", "PSRAM_SIO0"), ("PD_SIO1", "PSRAM_SIO1"),
-                 ("PD_SIO2", "PSRAM_SIO2"), ("PD_SIO3", "PSRAM_SIO3")):
-        d.R("1.5k", b, a, note="calc: vs T35 weak PU 27k min @3.40 V -> <= 0.38 V (VOL 0.2 V assumed max)")
+    # R08 U26 (74LVC07 switched 1.5k pull-downs) removed: ECP5 user I/O are tri-stated with weak pull-DOWN during
+    # power-up and configuration (DS 4.1; TN-02039 5.2), whereas the T35 had weak pull-ups that could back-power the PSRAM.
 
     # ================================================================ microSD + audio
     d.sheet("sd_audio", "sd_audio.kicad_sch", "microSD game media (not boot), 2x MAX98357A I2S speakers")

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "filename": "ARC1_R08.kicad_pro",
+    "filename": "ARC1_R85.kicad_pro",
     "version": 1
   },
   "sheets": [
@@ -29,8 +29,8 @@
       "mn820"
     ],
     [
-      "5b57a1cf-8643-5562-b0df-7a75d1d3d457",
-      "t35"
+      "69914ada-66e1-551b-9740-3f2ff0659949",
+      "fpga"
     ],
     [
       "76d66a79-6b99-5c9e-80b2-ab381c046ce0",
