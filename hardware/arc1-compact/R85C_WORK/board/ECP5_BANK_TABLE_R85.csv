@@ -1,0 +1,8 @@
+bank,vccio_net,vccio_V,balls_used,io_standard,hot_socket
+0,3V3_FPGA,3.3,A7 A8 B8 E6,LVCMOS33,tolerant (top/bottom bank)
+1,3V3_FPGA,3.3,,LVCMOS33,tolerant (top/bottom bank)
+2,3V3_FPGA,3.3,,LVCMOS33,NOT hot-socket safe (left/right bank): VCCIO switched with VCC; no external source above VCCIO
+3,3V3_FPGA,3.3,,LVCMOS33,NOT hot-socket safe (left/right bank): VCCIO switched with VCC; no external source above VCCIO
+6,3V3_FPGA,3.3,L1 L2 L3 M1 M3 M4 N1 N2 P3,LVCMOS33,NOT hot-socket safe (left/right bank): VCCIO switched with VCC; no external source above VCCIO
+7,3V3_FPGA,3.3,,LVCMOS33,NOT hot-socket safe (left/right bank): VCCIO switched with VCC; no external source above VCCIO
+8,3V3_FPGA,3.3,R1 R2 T2 V2 W2,LVCMOS33,tolerant (top/bottom bank)

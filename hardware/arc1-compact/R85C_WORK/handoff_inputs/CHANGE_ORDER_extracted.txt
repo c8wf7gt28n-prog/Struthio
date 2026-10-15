@@ -1,0 +1,333 @@
+
+ARC-1 COMPACT
+R8.5 — ECP5-45FDESIGN CHANGE ORDER
+Controlled replacement of the optional FPGA enhancement subsystem
+STATUS  /  OWNER-DIRECTED CANDIDATE — ACCEPTANCE CONDITIONAL
+Decision in one paragraph
+Replace the R08 Efinix Trion T35F400C3 accelerator with a Lattice ECP5-45F candidate to favor an established, reproducible, fully open FPGA RTL-to-bitstream workflow. This change does NOT authorize a schematic-only substitution. R8.5 must prove a legal part/package and pin map, FPGA power/reset/configuration, host communications, 8 MiB QSPI PSRAM access, usable accelerator performance, and independent recovery. Do not begin R09 physical routing until these gates are satisfied.
+PROTECTED BASELINE  Allwinner F133-B + 64 MiB DDR2; direct F133→BT820B/MN820 graphics and 128 MiB graphics RAM; 32 MiB NOR primary boot; microSD game library; USB-C device/recovery; stereo I²S. The FPGA is never in the primary display or boot dependency chain.
+ | 
+Change-control summary
+ID
+ | Field
+ | R8.5 ruling
+ | ECO-01
+ | Release designation
+ | R8.5; sits between R08 electrical release and R09 PCB layout.
+ | ECO-02
+ | Existing FPGA
+ | Efinix T35F400C3: superseded candidate only after R8.5 acceptance.
+ | ECO-03
+ | Target FPGA
+ | Lattice ECP5-45F (LFE5U family), caBGA381 preferred for evaluation.
+ | ECO-04
+ | Open-source objective
+ | Source HDL → synthesis → place/route → bitstream, reproducible without vendor license.
+ | ECO-05
+ | System safety
+ | NOR boot and BT820 graphics must work when FPGA is absent, unconfigured or faulty.
+ | ECO-06
+ | Display/monitor
+ | Specific LCD or external HDMI video adapter chosen during R09; no FPGA video routing.
+ | 
+Document type: engineering change order + Claude implementation handoff. Source basis: manufacturer publications and open-toolchain documentation reviewed 15 Oct 2026. No physical FPGA or ARC-1 hardware was tested in preparing this document.
+
+1  Reason for change and engineering boundaries
+1.1  Why this is not a feature increase
+ARC-1 is a fixed-hardware console intended for a decade of new game engines and optimized FPGA configurations. The owner prefers an ecosystem in which FPGA builds remain possible from archived source using community-maintained tools. ECP5 is proprietary silicon, but Yosys + nextpnr-ecp5 + Project Trellis provide an established open toolchain. Efinity is vendor-controlled; a complete analogous open flow for Trion T35 is not established. [S1–S4]
+1.2  Device comparison — do not divide resource counts
+Resource
+ | T35F400C3
+ | ECP5-45F
+ | Engineering impact
+ | Logic
+ | 31,680 Efinix LEs
+ | 44K Lattice LUT-class logic resources
+ | Vendor accounting differs; do not claim +39% measured capacity.
+ | 18×18 multipliers
+ | 120
+ | 72
+ | ECP5 has 40% fewer; optimize or time-multiplex heavy math.
+ | Embedded RAM
+ | 1,475 Kbit (~180 KiB)
+ | 1,990,656 bits (~243 KiB)
+ | ECP5 has more internal storage; verify utilization.
+ | External RAM
+ | 8 MiB QSPI PSRAM planned
+ | Retain 8 MiB target
+ | Controller, bank voltage and timing must be reimplemented.
+ | Hard memory PHY
+ | T35 has DDR PHY/controller capability
+ | Not a like-for-like DDR PHY replacement
+ | No DDR PHY requirement if the approved design really uses QSPI PSRAM only.
+ | EDA flow
+ | Efinity proprietary
+ | Yosys / nextpnr / Trellis
+ | Full reproducible compilation possible, subject to primitives/features used.
+ | 
+1.3  Decisions that cannot move in R8.5
+F133-B retains CPU, NOR boot, microSD management, USB device recovery, audio and game runtime.
+F133↔BT820/MN820 remains the direct graphics-command path, independent of FPGA status.
+No mandatory T35/ECP5 path to the LCD or external HDMI video adapter.
+Do not add radios or USB thumb-drive mass-storage features in this change. USB1 host gamepad planning remains a separate controller requirement.
+The exact display/monitor interface remains an R09 decision; do not freeze R09 connector or video converter here.
+CORRECTION TO EARLIER COMPARISONS  The 44K and 31,680 figures are not interchangeable LUT counts. Actual RTL mapped into both architectures, with timing closure, is the valid performance comparison.
+ | 
+
+2  Proposed electrical architecture
+
+FIGURE 1. Functional architecture only. Blue = proposed host/data path; orange = NOR boot path. Not a pin-level electrical drawing.
+2.1  Mandatory electrical isolation
+F133 SPI0, PC4/PC5 boot-select straps, NOR flash and the old FPGA mailbox are a known design conflict. Replacing T35 with ECP5 does not resolve that conflict by itself. R8.5 must explicitly show which SPI controller/peripheral, pins, chip selects and direction are used at power-on, during F133 ROM boot, and after the FPGA is configured. [S7]
+2.2  Requirements before schematic approval
+Deliver a single machine-readable F133 pin-mux matrix: NOR, BT820 SPI1, ECP5 operational link, ECP5 configuration, microSD, USB0/USB1, I²S, interrupts and diagnostics.
+Demonstrate F133 NOR boot and USB/FEL service with ECP5 held unconfigured, not merely with cooperative ECP5 firmware.
+Reserve an independent JTAG service connector; define access to PROGRAMN, INITN and DONE.
+No T35 footprint, I/O bank assumptions or configuration circuits may be copied without reassessment.
+
+3  Exact silicon, package, power and pins
+3.1  Proposed first sourcing candidate
+LFE5U-45F-6BG381C — ECP5U (not ECP5UM SERDES variant), speed grade -6, commercial temperature, caBGA381, nominal 17 × 17 mm package. Distributor listing checked: DigiKey 220-1988-ND; price $46.64 single unit and 46 listed as in stock at the time checked. This is a candidate, not a reserved purchase or manufacturing approval. [S5]
+Select the final orderable grade and suffix only after checking legitimate distribution, lead time, JLCPCB assembly handling and the actual toolchain device/package constraint support. Lattice publishes a 45F caBGA381 pinout and separate package migration data. [S1]
+3.2  FPGA supply tree — verify exact datasheet limits
+Domain
+ | Planning voltage
+ | Evidence required
+ | VCC core
+ | 1.1 V nominal
+ | Rated current, transient load and sequencing; voltage tolerance from latest data sheet.
+ | VCCAUX
+ | 2.5 V nominal
+ | Aux rail current, filtering and clock/configuration behavior.
+ | VCCIO banks
+ | Selectable by bank (1.2–3.3 V family range)
+ | Every bank mapped to SPI/PSRAM/GPIO I/O standard; no mixed incompatible voltages.
+ | VCCIO8 / config-JTAG bank
+ | Chosen from supported values
+ | JTAG voltage and configuration-pin pull-ups referenced to correct supply.
+ | PLL, POR, RESET
+ | Device-specific
+ | Lattice checklist, reference clocks, PROGRAMN / INITN / DONE constraints.
+ | 
+3.3  Mandatory proof artifacts
+Complete caBGA381 ball-to-net mapping for every FPGA supply, ground, user I/O, dedicated clock, JTAG and configuration pin.
+Board power-tree diagram with worst-case current estimates, required decoupling placement, ramp/reset behavior and rail-test-point design.
+No floating reserved/configuration pins. Pull-ups, pull-downs, PROGRAMN and boot-mode straps audited from FPGA-TN-02038 and FPGA-TN-02039.
+Confirm the 8 MiB APS6404L PSRAM voltage and QSPI timing meet the specific selected ECP5 bank standards. [S6]
+Compare 45F and 85F caBGA381 mapping only from published migration tables. A shared ball count does NOT establish plug-in upgrade compatibility.
+MANUFACTURING CAVEAT  No real FPGA hardware was electrically tested. The selected package should not be called assembly-ready until a manufacturer-native pin report and the board-house fabrication/assembly constraints agree.
+ | 
+
+4  FPGA configuration and game-change protocol
+4.1  Required operating state machine
+State
+ | F133 action
+ | FPGA guarantee
+ | P0 / Reset
+ | Boot from permanent 32 MiB system NOR
+ | FPGA cannot drive shared boot signals or block BT820.
+ | P1 / Launcher
+ | Run graphics without FPGA; enumerate games from microSD
+ | FPGA may be blank, held reset or in benign diagnostic state.
+ | P2 / Select game
+ | Read per-game configuration file; verify checksum/hash/version
+ | No I/O contention; DDR/PSRAM access quiesced before reconfigure.
+ | P3 / Configure
+ | Assert PROGRAMN; await INITN; stream appropriate bitstream via selected supported mode
+ | DONE timeout and explicit failure result.
+ | P4 / Handshake
+ | Read accelerator protocol/ABI version and capabilities
+ | No game work until FPGA signature and self-test pass.
+ | P5 / Play
+ | Submit jobs; read back results; queue graphics commands directly to BT820
+ | Predictable latency and bounded error handling.
+ | P6 / Fault
+ | Disable accelerator service, reset or retry; return to safe launcher
+ | No impact to NOR boot, USB recovery or base graphics.
+ | 
+ECP5 configuration is SRAM-based: a configuration survives until reset/reconfiguration or power loss. Lattice documents JTAG, slave SPI and additional modes, plus PROGRAMN/INITN/DONE status and refresh behavior. A Linux kernel FPGA manager supports ECP5 slave-SPI full reconfiguration, but its existence does not mean this exact F133-B firmware already supports it. [S2, S8]
+4.2  Distinguish two different SPI interfaces
+CONFIGURATION interface: sends complete ECP5 .bit data to sysCONFIG before the user circuit operates; implement as proven slave-SPI or another expressly selected mode.
+OPERATIONAL interface: sends command and result frames between F133 and the accelerator circuit after DONE is valid; distinct protocol from configuration.
+Neither may interfere with the F133 ROM-accessed 32 MiB NOR flash; dedicated CS alone is not automatically sufficient when BOOT-SEL shares the bus.
+External JTAG must be independently serviceable when F133 firmware fails; do not depend solely on normal boot to configure/recover FPGA.
+If a dedicated FPGA configuration flash is proposed, justify cost, ownership, update policy and why F133 streaming is insufficient. Do not assume the F133 NOR is transparently shareable.
+4.3  Persistent firmware and removable configurations
+Base ARC-1 firmware remains in NOR. Game-specific ECP5 bitstreams may reside with game assets on microSD and be loaded only after F133 boot. With no microSD, ARC-1 must still display its launcher and complete BT820, audio and USB diagnostics. Bad or absent bitstreams must never prevent basic operation.
+
+5  Host protocol, memory and performance
+5.1  Replace the old T35 mailbox correctly
+The operational message protocol is intended to remain stable at the software level even though the hardware interface changes. Claude must separately select pins, voltage levels, maximum clock frequency, direction, interrupt/status line and bus ownership. Avoid describing any host-through-FPGA graphics command path: F133 commands BT820 directly.
+Message class
+ | Example fields
+ | Validation
+ | DISCOVER
+ | magic, protocol major/minor, capability flags
+ | Reject ABI mismatch safely; no crash on blank FPGA.
+ | SUBMIT
+ | sequence, opcode, bytes, payload CRC
+ | Length bounded; no unintended bulk RAM copies.
+ | COMPLETE
+ | sequence, status, result count, CRC
+ | Timeout and retry policy; deterministic error codes.
+ | PERFORMANCE
+ | cycle counter, queue depth, bytes/sec
+ | Host-link speed and end-to-end timing measured or simulated.
+ | RESET/ABORT
+ | command, acknowledgement
+ | No stale FPGA operations after game swap.
+ | 
+5.2  External PSRAM engineering tests
+Bring up APS6404L 8 MiB QSPI controller from power-on, including CE#, CLK, IO[3:0], reset and default bus levels.
+Implement JEDEC/PSRAM command and mode handling from the exact device datasheet; test fixed patterns, walking bits, random addresses, and page/burst crossings.
+Report sustained and worst-case transfer rates, read latency, bank-voltage tolerance and worst-case timing margins.
+Do not conflate 8 MiB FPGA PSRAM with F133 64 MiB DDR2 or BT820 128 MiB DDR3L: none is a unified address space.
+5.3  Reality-based acceleration benchmark
+Provide benchmark jobs representative of ARC-1: 2D vector/matrix transformation, collision batches, particle updates and one deliberately DSP-heavy stress test. Measure or simulate CPU-only compute time, FPGA computation time, host transfer time, dispatch overhead and total frame contribution. Prefer meaningful 60 Hz frame-time wins to impressive logic utilization.
+HARD STOP  A design that fits 45F but cannot meet intended clock/timing or spends more time moving data across SPI than calculating it is not a successful migration. DSP count decreases from 120 to 72: document multiplier mapping and sharing explicitly.
+ | 
+
+6  Open-source build and evidence standard
+6.1  Required reproducible build
+The new accelerator shall build on Linux using license-free tools: Yosys for Verilog synthesis, nextpnr-ecp5 for timing-driven place/route, Project Trellis for device/bitstream generation, and an independent service/programming path such as JTAG/openFPGALoader. Pin the exact source commits and package constraints. [S3, S4]
+Open-tool limitations must be disclosed: Project Trellis documents LUT logic, BRAM, PLLs and other FPGA elements; certain multiplier behaviors require manual MULT18X18D primitive instantiation, and advanced DSP inference/cascades may not be supported in the selected open tool versions. [S3]
+6.2  Build artifacts Claude must produce
+An offline-rebuildable repository/archive with HDL source, testbenches and checksums; no private black-box FPGA IP essential to boot.
+Locked Yosys, nextpnr, Project Trellis, simulation, and programmer versions/commits; license notices and build README.
+Exact -45k, -6 speed-grade, caBGA381 package target and validated LPF pin constraints exported from source pin-matrix.
+Synthesis log with resource counts (LUTs, EBR, DSP, registers, PLLs, I/O) and no accidental latch or unresolved module.
+Place/route report with constraints for every primary and generated clock and maximum host/PSRAM paths.
+Raw binary or .bit FPGA image with size, hash, firmware ABI, reproducibility comparison and programming test procedure.
+Cross-simulation with F133 host driver and error injection: absent FPGA, invalid bitstream, DONE timeout, corrupted SPI frame, stuck BUSY, PSRAM failure.
+Independent external-JTAG recovery instructions, pinout and fixture hookup for first physical PCB.
+6.3  Example build sequence (must be adapted to exact repo)
+yosys -p "read_verilog ...; synth_ecp5 -top arc1_accel -json accel.json"
+nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json accel.json --lpf arc1.lpf --textcfg accel.config --freq &lt;verified_MHz&gt;
+ecppack accel.config accel.bit
+sha256sum accel.bit
+Commands are explanatory examples, not proof that an actual R8.5 build was run. Verify tool CLI versions and device naming against installed software.
+
+7  Electrical / firmware test gates
+Gate
+ | Required evidence
+ | Pass criterion
+ | G1  Part identity
+ | Full MPN, distributor/manufacturer documentation, assembly quote
+ | Exactly one approved orderable ECP5-45F package and speed grade.
+ | G2  Native CAD
+ | KiCad schematic/netlist, ERC, pin CSV, I/O bank table
+ | No unresolved swapped/missing rails, FPGA pins or bus contention.
+ | G3  NOR independence
+ | Reset/boot ownership waveform or formal truth table
+ | F133 boots NOR while ECP5 is blank/unpowered/held inactive.
+ | G4  Configuration
+ | sysCONFIG circuit, JTAG header, timing and faults
+ | F133 can load a per-game image; external JTAG independently available.
+ | G5  FPGA logic
+ | Open-tool bitstream build, utilization, timing logs
+ | Legal routed implementation with all required constraints met.
+ | G6  PSRAM
+ | QSPI controller and stress-test report
+ | Integrity and timing passes under documented limits.
+ | G7  Game link
+ | Host driver + FPGA protocol tests
+ | Versioned command exchange, timeout, CRC/sequence error recovery.
+ | G8  Graceful fail
+ | FPGA absent/incorrect-bitstream simulations
+ | BT820 graphics, NOR boot and USB service remain functional.
+ | G9  Power
+ | Worst-case rail budget, POR/sequence, regulator margins
+ | Device-specific constraints verified; diagnostic test points included.
+ | G10  Release
+ | Redline delta, BOM/CPL, test outputs, risk register
+ | Independent review accepts R8.5 into R09 baseline.
+ | 
+7.1  Failure-injection table required
+At minimum: blank NOR, wrong NOR BOOT straps, FPGA at power-off, ECP5 configuration CRC fault, PROGRAMN held active, QSPI CE# stuck active, PSRAM missing, FPGA-CPU protocol version mismatch, F133 software crash mid-configuration, bad microSD, and ECP5 rail sequencing fault. Every case must have a visible recovery or well-defined diagnostic outcome.
+R8.5 RELEASE LANGUAGE  A simulated configuration or clean ERC is not a hardware demonstration. Grade the exit as “electrical design reviewed and routed-bitstream evidence complete” only when actual native outputs exist. Fabrication readiness remains a separate R09/R10 decision.
+ | 
+
+8  Work sequencing and Claude handoff directive
+8.1  Controlled execution sequence
+1.  Freeze R08 master snapshot and identify every T35 net, RTL primitive, firmware driver and test that R8.5 will change.
+2.  Confirm LFE5U-45F exact suffix and caBGA381 package availability; open Lattice latest data sheet, sysCONFIG and hardware checklist.
+3.  Create a T35→ECP5 functional delta table (power, package pins, clocks, reset, FPGA configuration, host link, 8 MiB PSRAM).
+4.  Update source schematics and pin matrix; redesign F133 SPI0 NOR/FPGA ownership without touching direct BT820 SPI1 path.
+5.  Port HDL to vendor-neutral interfaces and build via Yosys/nextpnr/Trellis; investigate unsupported DSP primitives explicitly.
+6.  Port F133 configuration loader and versioned mailbox; demonstrate no-FPGA launcher and recovery behavior in tests.
+7.  Produce QA bundle, corrected component BOM, power budget, native ERC and evidence-based risk register.
+8.  Ask for an independent R8.5 review before R09 placement/routing.
+8.2  Stop-work / revert conditions
+No legal caBGA381 pinout and power bank allocation can be assigned around the NOR-first boot and BT820 command routes.
+The full open-toolchain cannot create an acceptable routed image for our actual workload and selected device/package.
+The 8 MiB PSRAM or game-to-game FPGA loading lacks a recoverable hardware implementation.
+The new FPGA creates mandatory boot or display dependencies not present in the R08 baseline.
+Sourcing, assembly rules, or power consumption make the selected part materially unsuitable.
+If any stop condition occurs, submit a documented option (fix pin mapping, change package, evaluate a different 45F grade, or revert to T35) instead of silently upgrading to 85F or claiming migration success.
+8.3  Paste-ready instruction to Claude
+INSTRUCTION  Treat “ARC-1 Compact R8.5 — ECP5-45F Design Change Order” as the owner-authorized change request. Branch from the latest R08 master source; preserve all CPU/BT820/NOR/SD/audio/USB work. Substitute T35 only after pin, power, configuration, PSRAM, routed open-toolchain and firmware tests are evidenced. Produce a complete source-and-evidence package plus an unresolved-risk ledger. Do not enter R09 PCB routing or describe the board as ready to manufacture without R8.5 acceptance.
+ | 
+
+9  References and evidence provenance
+The references below are suitable for Claude to use as primary research starting points. Always capture downloaded revision, retrieval date and file hash in the build archive. Where manufacturer documents conflict, prefer the latest explicitly applicable revision and resolve the issue before layout.
+[S1]  Lattice ECP5 product page / FPGA-DS-02012 v3.4 (2025-10-05) / 45F pinout and caBGA381 migration files
+https://www.latticesemi.com/Products/FPGAandCPLD/ECP5
+[S2]  Lattice ECP5 sysCONFIG User Guide FPGA-TN-02039 v2.5 (2026-02-04)
+https://www.latticesemi.com/view_document?document_id=50462
+[S3]  Project Trellis — status, supported devices, open tool flow and multiplier constraints
+https://github.com/YosysHQ/prjtrellis
+[S4]  nextpnr — ECP5 flow, speed grade, package target, and examples
+https://github.com/YosysHQ/nextpnr
+[S5]  DigiKey LFE5U-45F-6BG381C listing; pricing and supply subject to change
+https://www.digikey.com/en/products/detail/lattice-semiconductor-corporation/LFE5U-45F-6BG381C/5250564
+[S6]  AP Memory APS6404L-3SQR PSRAM electrical/timing datasheet
+https://www.mouser.com/datasheet/3/4815/1/APS6404L_3SQR.pdf
+[S7]  Allwinner F133 User Manual v1.0; NOR/eFuse/boot strap selection and peripheral pinmux
+https://www.mangopi.org/_media/f133_user_manual_v1.0.pdf
+[S8]  Linux kernel ECP5 slave-SPI configuration binding — independent reference implementation
+https://mjmwired.net/kernel/Documentation/devicetree/bindings/fpga/lattice,sysconfig.yaml
+[S9]  Efinix T35 data sheet v3.2 — baseline device for comparison
+https://www.efinixinc.com/docs/trion35-ds-v3.2.pdf
+[S10]  Lattice latest ECP5 Hardware Checklist FPGA-TN-02038 v2.1 (2025-11-05)
+https://www.latticesemi.com/Products/FPGAandCPLD/ECP5
+R8.5 acceptance signature (documentary, not physical)
+Reviewer decision:  [ ] ACCEPT INTO R09     [ ] ACCEPT WITH OPEN GATES     [ ] REWORK REQUIRED     [ ] REVERT CANDIDATE
+This handoff supplies research, requirements and gate criteria. It does not claim that the ECP5-45F schematic, KiCad PCB, Verilog implementation, or actual first hardware already exists or has passed testing.
+
+APPENDIX A  /  R08 SOURCE-LEVEL CHANGE MAP
+Authority: uploaded ARC1_R08_ENGINEERING_SOURCE.zip, inspected 15 Oct 2026. Paths below are relative to ARC1_R08_ENGINEERING_SOURCE/R08_WORK/. This appendix is descriptive source inventory, not validation of a new ECP5 design.
+R08 currently reports HOLD / PARTIAL: 9-sheet generated KiCad schematic; 329 components; ERC 0 errors / 0 warnings; RTL simulation and host firmware checks pass; native Efinity, physical hardware, PCB routing, and manufacturer answers remain untested/open. These results are not transferred automatically to R8.5.
+R08 CIRCUIT
+ | SOURCE ANCHOR
+ | R8.5 MANDATED CHANGE
+ | U18  T35 FPGA
+ | cad/t35.kicad_sch; docs/PIN_TABLE_R08.md; board/r08_board_plan.json
+ | Replace with correct LFE5U-45F-6BG381C symbol/381-ball footprint. Reallocate every rail, clock, global/dedicated/configuration pin and I/O bank; do not remap ball numbers by visual analogy.
+ | U19  T35 configuration NOR
+ | cad/t35.kicad_sch; docs/INTERCONNECT_MATRIX_R08.md
+ | Remove/reengineer after choosing ECP5 sysCONFIG ownership; F133-driven configuration, boot default states, and independent JTAG must be documented.
+ | U21–U24  SPI0 isolation
+ | cad/boot_nor.kicad_sch; docs/INTERCONNECT_MATRIX_R08.md
+ | Preserve fail-safe inactive state of buffers at POR, during CPU ROM access, and if ECP5 is unpowered. Logic must not rely on FPGA firmware cooperation.
+ | U9/U10 and FPGA PG/reset
+ | cad/power.kicad_sch; docs/POWER_TREE_AND_RESET.md
+ | Replace 1.2 V T35 core power with correct 1.1 V ECP5 core and requisite auxiliary/bank rails. Redesign sequencing, loads, back-power prevention, supervisors, and controlled enables.
+ | U25  APS6404L PSRAM; U26 clamp
+ | cad/psram.kicad_sch; docs/PSRAM_POWER_R08.md
+ | Retain 8 MiB QSPI target; assign fresh ECP5 bank pins. Revalidate power-gating, IO[3:0], CE#, CLK, high-Z, pull levels and PG timing; no direct reuse of T35 pin/rail assumptions.
+ | T35 SPI mailbox / user RTL
+ | fpga/rtl/arc1_t35_top_r08.sv; mbx_regs_r08.sv; psram_power_guard.sv
+ | Port to ECP5-neutral top-level interfaces, preserve versioned F133 mailbox semantics, implement FPGA-configure / runtime state machine and validate with Yosys+nextpnr-ecp5.
+ | F133 control and boot
+ | docs/PIN_TABLE_R08.md; docs/NOR_BOOT_AND_FLASH.md
+ | Preserve PC2 SPI0_CLK, PC3 CS0, PC4 MOSI/BOOT-SEL0, PC5 MISO/BOOT-SEL1, PC6 IO2 and PC7 IO3. Reassess PE0, PE4–PE9, PE11 control pins for ECP5 reset, enable, IRQ and DONE/INITN.
+ | Direct BT820 route
+ | cad/mn820.kicad_sch; docs/CURRENT_ARCHITECTURE_R08.md
+ | Preserve the F133 SPI1 PD10–PD15 direct BT820/MN820 command interface; ECP5 must not sit in this path or block launcher graphics.
+ | MANDATORY REBASE PROCEDURE
+1. Preserve the original R08 archive and SHA-256 manifest unchanged. Stage R8.5 in a new source tree and record every edited/generated file.
+2. Update the single authoritative board-plan/pin-matrix generator and regenerate KiCad schematic, netlist and test fixtures; do not patch only the PDF or drawing.
+3. Replace the vendor-generated Efinity ISF/SDC/XML flow with ECP5 LPF constraints, pinned tool versions, a reproducible .bit build and readable timing/utilization reports.
+4. Re-run ERC, board cross-check, firmware regression, simulation and fault injection; no inherited PASS shall conceal a changed ECP5 circuit.
+5. Submit the resulting source ZIP and a change table mapping old net/reference → new net/reference → verification evidence before R09.
+Scope guard: USB1 gamepad-host placement, external LVDS-to-HDMI video, display selection, battery/mechanical decisions and full PCB layout remain R09 design issues, not substitutes for closing ECP5 electrical gates. R08 already has GPIO buttons; USB1 is not yet routed.

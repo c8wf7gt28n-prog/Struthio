@@ -1,0 +1,301 @@
+{
+ "schema_id": "arc1-r85-evidence-ledger-v1",
+ "date": "2026-10-15",
+ "labels_allowed": [
+  "VERIFIED_BY_VENDOR_DOC",
+  "DERIVED_WITH_CALC",
+  "TOOL_VERIFIED_NATIVE",
+  "BUILD_ONLY",
+  "HOST_TESTED",
+  "RTL_SIMULATED",
+  "OPEN_TOOLCHAIN_ROUTED",
+  "ISS_COUNTED",
+  "PLANNING_CALCULATED",
+  "VENDOR_OPEN",
+  "FABRICATION_BLOCKER",
+  "PHYSICAL_NOT_TESTED",
+  "ASSUMPTION",
+  "NOT_RUN"
+ ],
+ "entries": [
+  {
+   "id": "R85-PART",
+   "claim": "Target part LFE5U-45F-6BG381C (ECP5U, no SerDes, -6, commercial, caBGA381); pinout, power, sysCONFIG facts from Lattice DS-02012 v3.4, TN-02038 v2.1, TN-02039 v2.5, pinout FPGA-SC-02034 v3.0 (URLs + SHA-256)",
+   "labels": [
+    "VERIFIED_BY_VENDOR_DOC"
+   ],
+   "evidence_paths": [
+    "sources/lattice/sources.json",
+    "sources/lattice/ecp5_power_config_facts.json",
+    "sources/lattice/lfe5u45_cabga381_pinout.csv"
+   ],
+   "note": "G1 not closed: no distributor/assembly quote obtained in this pass (CO price/stock figure is the owner's)"
+  },
+  {
+   "id": "R85-SCH-NATIVE",
+   "claim": "Native KiCad 9 hierarchical schematic regenerated with the ECP5 sheet; kicad-cli 9.0.9 ERC 0 errors / 0 warnings; netlist + PDF exported",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE"
+   ],
+   "evidence_paths": [
+    "cad/ARC1_R85.kicad_sch",
+    "cad/fpga_ecp5.kicad_sch",
+    "cad/ERC.txt",
+    "cad/NETLIST.xml"
+   ],
+   "note": "ERC checks connectivity and pin types only"
+  },
+  {
+   "id": "R85-FOOTPRINT",
+   "claim": "U18 uses the KiCad 9 library footprint Lattice_caBGA-381_17x17mm_Layout20x20_P0.8mm; its 381 pad names equal the Lattice ball list",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE"
+   ],
+   "evidence_paths": [
+    "cad/check/crosscheck_r85.py"
+   ],
+   "note": "land-pattern geometry vs the Lattice package drawing DS-02053 still to be reviewed (R09 #5)"
+  },
+  {
+   "id": "R85-BALLMAP",
+   "claim": "Complete 381-ball map (supplies, grounds, user I/O, clock, JTAG, configuration, RESERVED/NC) generated from the design source; RESERVED W4..W18 and NC K16/K17 unconnected",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE"
+   ],
+   "evidence_paths": [
+    "board/ECP5_BALL_MAP_R85.csv",
+    "board/ECP5_BANK_TABLE_R85.csv",
+    "board/check_board_r85.py"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-PINMUX",
+   "claim": "Single machine-readable F133 pin-mux matrix with interface classes and P0-P6 states, function indices checked against F133 DS Table 4-3 where transcribed",
+   "labels": [
+    "DERIVED_WITH_CALC"
+   ],
+   "evidence_paths": [
+    "board/F133_PINMUX_MATRIX_R85.csv",
+    "board/F133_PINMUX_MATRIX_R85.json",
+    "tools/gen_pin_matrix_r85.py"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-RULES",
+   "claim": "16 self-authored structural rules (incl. 6 ECP5 rules: power sequencing, VCC divider, ball map, sysCONFIG straps/pulls/JTAG/no config flash, decoupling, PSRAM gating) pass; 29 negative tests each catch their hazard",
+   "labels": [
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "board/check_board_r85.py",
+    "board/test_check_board_r85.py"
+   ],
+   "note": "self-authored: shows consistency with the decisions, not independent validation"
+  },
+  {
+   "id": "R85-XCHECK",
+   "claim": "Netlist == board plan, symbol pins == footprint pads, LPF == schematic == Lattice pinout == RTL ports == nextpnr routed placement, firmware header == schematic",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE"
+   ],
+   "evidence_paths": [
+    "cad/check/crosscheck_r85.py"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-POWER",
+   "claim": "ECP5 rails: VCC 1.095 V nominal (worst case inside 1.045-1.155 V), VCCAUX 2.5 V LDO + ferrite, all VCCIO 3V3_FPGA; one shared enable; ramps inside 0.01-10 V/ms; rail budget computed",
+   "labels": [
+    "DERIVED_WITH_CALC",
+    "ASSUMPTION"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r85.py",
+    "docs/ELECTRICAL_MARGINS_R85.md",
+    "docs/ECP5_POWER_R85.md"
+   ],
+   "note": "dynamic currents are ASSUMPTIONS (Lattice power calculator not run)"
+  },
+  {
+   "id": "R85-RTL-TRANSFORM",
+   "claim": "Pipelined ECP5 transform (8 x MULT18X18D) is bit-exact to the R05 contract: unchanged R05 testbench, 1165 oracle comparisons, stalls and reset cases",
+   "labels": [
+    "RTL_SIMULATED"
+   ],
+   "evidence_paths": [
+    "fpga_ecp5/rtl/arc1_transform_ecp5.sv",
+    "fpga_ecp5/Makefile"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-RTL-TOP",
+   "claim": "ECP5 top passes the system testbench: all R08 checks (ident, buffer, CS abort, R05 golden loopback, BIST, recover, FPGA reset, PSRAM P0-P4) + 11 AJOB cases byte-exact vs the C reference + ABORT + CE# stuck injection",
+   "labels": [
+    "RTL_SIMULATED"
+   ],
+   "evidence_paths": [
+    "fpga_ecp5/tb/tb_ecp5_top.sv",
+    "fpga_ecp5/rtl/arc1_ecp5_top.sv",
+    "fpga_ecp5/rtl/accel_engine.sv"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-CROSSSIM",
+   "claim": "Cross-simulation: request frames built by the F133 driver code, expected responses from the R05 C reference, RTL bytes dumped and accepted by the F133 parser",
+   "labels": [
+    "RTL_SIMULATED",
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "firmware/tools/ajob_vectors.c",
+    "firmware/src/accel_job.c"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-BUILD",
+   "claim": "Open toolchain (Yosys 0.33, nextpnr-ecp5 0.6, Trellis 1.4) synthesises, places, routes and packs the design for --45k CABGA381 -6 with the generated LPF; sys_clk and psram_mclk constraints met; 0 latches; bitstream reproducible byte-for-byte",
+   "labels": [
+    "OPEN_TOOLCHAIN_ROUTED"
+   ],
+   "evidence_paths": [
+    "fpga_ecp5/Makefile",
+    "fpga_ecp5/build_scripts/build_report.py",
+    "fpga_ecp5/constraints/arc1_ecp5_r85.lpf"
+   ],
+   "note": "nextpnr does not time I/O pads; not programmed into silicon"
+  },
+  {
+   "id": "R85-LOADER",
+   "claim": "F133 sysCONFIG slave-SPI loader (PROGRAMN/INITN/READ_ID/ISC_ENABLE/ERASE/BURST/status/ISC_DISABLE/DONE), container check (CRC32, IDCODE, ABI), streamed source, probe",
+   "labels": [
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "firmware/src/ecp5_cfg.c",
+    "firmware/include/ecp5_cfg.h",
+    "firmware/tests/test_ecp5.c"
+   ],
+   "note": "behavioural sysCONFIG model; status-register bits from the Linux lattice-sysconfig driver and TN-02039, bench-verify"
+  },
+  {
+   "id": "R85-SERVICE",
+   "claim": "P0-P6 service: DISCOVER/ABI/caps, known-answer self-test, PSRAM power/BIST, AJOB with CRC/sequence/timeout/ABORT/retry, CPU fallback always, fault -> FPGA powered down",
+   "labels": [
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "firmware/src/accel_service.c",
+    "firmware/src/fpga_link.c",
+    "docs/FAILURE_INJECTION_R85.md"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-FIT",
+   "claim": "All 11 change-order failure cases covered (33 firmware FIT rows + RTL sections); 6 loader/service mutants killed",
+   "labels": [
+    "HOST_TESTED",
+    "RTL_SIMULATED"
+   ],
+   "evidence_paths": [
+    "docs/FAILURE_INJECTION_R85.md",
+    "tools/gen_fit_doc_r85.py",
+    "firmware/Makefile"
+   ],
+   "note": "blank NOR and wrong straps are covered by reference (R08 boot dossier, board negative tests)"
+  },
+  {
+   "id": "R85-BENCH",
+   "claim": "HARD STOP: on the 10 MHz SPI mailbox every representative 60 Hz workload is transfer-dominated and slower than the F133 CPU (speed-up 0.007-0.15)",
+   "labels": [
+    "ISS_COUNTED",
+    "HOST_TESTED",
+    "PLANNING_CALCULATED",
+    "ASSUMPTION"
+   ],
+   "evidence_paths": [
+    "docs/BENCHMARK_R85.md",
+    "analysis/benchmark_r85.json",
+    "tools/bench/benchmark_r85.py"
+   ],
+   "note": "CPU = ISS instruction counts x assumed CPI 1-2 at 1.0 GHz; link = driver over the model; FPGA non-transform workloads are estimates"
+  },
+  {
+   "id": "R85-DIAG",
+   "claim": "F133 diagnostic boot0 rebuilt with the ECP5 probe (S4) and AMBX v3 (S5); eGON checked, fits SRAM A1, reproducible",
+   "labels": [
+    "BUILD_ONLY"
+   ],
+   "evidence_paths": [
+    "f133_diag/main.c",
+    "f133_diag/Makefile"
+   ],
+   "note": "never executed"
+  },
+  {
+   "id": "R85-NOR-STREAM",
+   "claim": "A NOR-resident bitstream cannot be streamed during LSC_BITSTREAM_BURST on the shared SPI0 (SN must stay low); images are staged in DRAM (microSD path) and boot0 only probes",
+   "labels": [
+    "DERIVED_WITH_CALC"
+   ],
+   "evidence_paths": [
+    "firmware/include/ecp5_cfg.h",
+    "docs/ECP5_CONFIGURATION_R85.md"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-MIGRATION",
+   "claim": "45F vs 85F on caBGA381 from the Lattice migration table: 0 connected balls change bank/dual function, 9 change pad name only; 85F NOT selected",
+   "labels": [
+    "VERIFIED_BY_VENDOR_DOC"
+   ],
+   "evidence_paths": [
+    "docs/MIGRATION_45F_85F_R85.md",
+    "sources/lattice/ecp5u_cabga381_migration.csv"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-DELTA",
+   "claim": "T35 -> ECP5 delta table generated from the R08 and R8.5 board plans (old ref/net -> new -> evidence)",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE"
+   ],
+   "evidence_paths": [
+    "docs/T35_TO_ECP5_DELTA_R85.md",
+    "tools/gen_delta_r85.py"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-HW",
+   "claim": "No ECP5 board or silicon exists; configuration, mailbox, PSRAM, power and JTAG recovery are physically untested",
+   "labels": [
+    "PHYSICAL_NOT_TESTED"
+   ],
+   "evidence_paths": [
+    "STATUS_R85.md"
+   ],
+   "note": ""
+  },
+  {
+   "id": "R85-FAB",
+   "claim": "Fabrication NOT approved; R09 routing not entered (change order)",
+   "labels": [
+    "FABRICATION_BLOCKER"
+   ],
+   "evidence_paths": [
+    "STATUS_R85.md",
+    "RISK_REGISTER_R85.md"
+   ],
+   "note": ""
+  }
+ ]
+}

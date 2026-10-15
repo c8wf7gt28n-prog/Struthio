@@ -1,0 +1,21 @@
+source_file,old_part,candidate_new_part,action,revalidation_required,outcome
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,CL05B104KO5NNNC (100nF 0402) C1525,same,REUSE_MPN,stock/price recheck at order time,adopted in R08 BOM_CANDIDATES (SLIM4_R26_BOM_LINE)
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,"CL05A105KA5NQNC, CL10A105KB8NNNC, CL10A475KO8NNNC, CL10A106KP8NNNC, CL21A106KAYNNNE, CL21A226MQQNNNE, CL05B103KB5NNNC, CL05B224KO5NNNC, 0402CG120J500NT",same,REUSE_MPN,DC-bias derating of X5R/X7R at 3.3/5 V for every bulk cap position (R09 PI),adopted
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,"UNI-ROYAL 0402WGF 10k/100k/0R/150k/3.3k/1.5k/2k/470k",same,REUSE_MPN,none beyond stock,adopted; other values TBD in R09 sourcing
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv + KICAD_SOURCE/SLIM4.pretty/FP_U3,TLV62569DBVR (U3) C141836,TLV62569DBVR (U5/U6) + TLV62569PDDCR (U3/U9: needs PG),REUSE_PART_NEW_CALC,"FB dividers recalculated (0.95/1.8/1.2/3.3 V); PG variant is a different package (DDC); load-step/ripple with TI tool",adopted with new values; KiCad SOT-23-5/6 footprints used instead of SLIM4 FP_U3
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv + SLIM4.pretty/FP_L2,ASWPA4035S2R2MT C340207,same (L1-L4),REUSE_PART_AND_FOOTPRINT,saturation current vs each rail's peak (core/3V3 up to ~1 A); land pattern vs Sunlord drawing,SLIM4_CANDIDATE footprint copied unchanged
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv + SLIM4.pretty/FP_U13,TUSB320LAIRWBR C132554,same (U1),REUSE_PART_AND_FOOTPRINT,"SLIM4 used I2C/role details unknown; R08 uses GPIO mode (ADDR open, PORT=GND): re-derive from TI DS; dead-battery Rd behaviour OPEN (DNP 5.1k fallback)",SLIM4_CANDIDATE footprint copied unchanged
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv + SLIM4.pretty/FP_U11,TPD2EUSB30DRTR C97502,same (U2),REUSE_PART_AND_FOOTPRINT,capacitance vs USB FS/HS (F133 USB0 is USB2.0 HS capable); land pattern R22 fix,SLIM4_CANDIDATE footprint copied unchanged
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,USB4105-GF-A-120 C5184243,USB4105-GF-A (J1),REUSE_PART,"KiCad 9 library footprint used (SLIM4 FP_J2 was edge-aligned to the SLIM4 outline); CC/sink role re-derived",adopted
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,MAX98357AETE+T x2 C910544,same (U28/U29),REUSE_PART,"SD_MODE L/R selection re-derived (DS Table 6: 210k); 5 V from VBUS (no battery); EP land pattern PLACEHOLDER",adopted
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,S2B-PH-SM4-TB(LF)(SN) C295747,same (J8/J9 speakers),REUSE_PART,"polarity/keying for speakers, not battery",adopted
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,B3U-1000P C231329,same (SW1-SW15),REUSE_PART,"mechanical fit to the ARC-1 enclosure (R09); D2LS case buttons not carried",adopted
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,TPS3808G33DBVR C43698,TPS3808G33/G09/G30 (U4/U8/U14),REUSE_FAMILY_NEW_CALC,"thresholds/CT recalculated; G33 dead band vs T35 VCCIO (RK-3V3-SUP)",adopted
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,TLV75518PDBVR C2877863,same (U7 1V8_AN),REUSE_PART,"dropout from 3V3, AVCC noise",adopted
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,BQ24074RGTR + TPS63070RNMR (battery path),none in R08,DEFER,"battery not adopted (corrective: 'battery if adopted'); candidate for R09 if owner rejects the >=1.5 A USB requirement (RK-USB-BUDGET); TS/thermal safety review required",not used
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,ESP32-P4NRW32X / W25Q512JVEIQ / MIPI-DSI FH12A panel / TPS61165 backlight,none,REJECT,"different architecture (ESP32/MIPI); never carried into ARC-1 electrical authority",rejected
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv,"TPS61165 backlight driver",R09 candidate only,DEFER,"panel/backlight deferred to R09 (D-07)",not used
+1_PCB_FABRICATION/README_PCB_ORDER.txt,"JLC06121H-3313 6-layer 1.2 mm ENIG, POFV via-in-pad, 0.1/0.1 mm, 0.2/0.45 vias",reference for R09 stackup,REFERENCE_ONLY,"T35 0.8 mm BGA + F133 0.4 mm QFP + LVDS 100 ohm need a new impedance calculation and breakout study",see MANUFACTURING_AND_BGA_PLAN.md
+REFERENCE/R26_DSI_REPORT.md,MIPI-DSI pair rules,LVDS pair methodology,REFERENCE_ONLY,"recalculate for LVDS (100 ohm diff) on the R09 stackup",method only
+PROJECT_DOCS/RELEASE_GATES.md + ASSEMBLY_SEQUENCE.md,release-gate / staged assembly structure,FIRST_ARTICLE_DEBUG.md + R09 plan,REFERENCE_ONLY,"gates rewritten for ARC-1 evidence classes A-E",method only
+1_PCB_FABRICATION/SLIM4_R26_BOM.csv + CPL,BOM/CPL export conventions,R09 export format,REFERENCE_ONLY,"rotations per JLC preview",method only

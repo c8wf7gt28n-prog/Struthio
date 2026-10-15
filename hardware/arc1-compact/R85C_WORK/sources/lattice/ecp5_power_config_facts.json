@@ -1,0 +1,129 @@
+{
+  "device": "LFE5U-45F-6BG381C (ECP5, no SerDes, caBGA381 17x17 mm, 0.8 mm pitch)",
+  "conventions": "Each fact cites a source id from sources.json plus a section, table or page. NOT_FOUND means it is not stated in the downloaded Lattice documents.",
+  "recommended_operating_conditions": {
+    "VCC": {"min_V": 1.045, "max_V": 1.155, "nominal_V": 1.1, "src": "DS Table 3.2"},
+    "VCCAUX": {"min_V": 2.375, "max_V": 2.625, "nominal_V": 2.5, "ramp_note": "VCCAUX ramp must not exceed 30 mV/us during power-up when transitioning between 0 V and 3 V", "src": "DS Table 3.2 note 4"},
+    "VCCIO_x": {"min_V": 1.14, "max_V": 3.465, "standards": "1.2/1.5/1.8/2.5/3.3 V (TN-02032 Table 4.1 also lists 1.35 V for VCCIO)", "src": "DS Table 3.2; TN-02032 4.2 and Table 4.1"},
+    "VCCIO8": {"range": "same as VCCIO, 1.2/1.5/1.8/2.5/3.3 V", "role": "Powers the configuration bank (bank 8) and the JTAG pins TCK/TMS/TDI/TDO. Must match the SPI host or flash I/O voltage.", "src": "DS 4.1 VCCIOx; TN-02039 Table 4.9; TN-02038 Table 2.1 and section 7"},
+    "VREF1": {"min_V": 0.5, "max_V": 1.0, "src": "DS Table 3.2"},
+    "VCCA_SERDES": "Not applicable. LFE5U has no SerDes and the caBGA381 LFE5U-45 pinout has no VCCA, VCCAUXA, VCCHRX or VCCHTX balls. Pinout counts: VCC 20, VCCAUX 4, VCCIO 18, GND 113, NC 2, RESERVED 10.",
+    "Tj_commercial_C": [0, 85],
+    "Tj_industrial_C": [-40, 100],
+    "abs_max": {"VCC": [-0.5, 1.32], "VCCAUX": [-0.5, 2.75], "VCCIO": [-0.5, 3.63], "input_transient_V": [-0.5, 3.63], "Tj_max_C": 125, "src": "DS Table 3.1"},
+    "notes": [
+      "All supplies except VREF must be within the valid operating range for correct operation, independent of feature usage (DS Table 3.2 note 1).",
+      "All supplies with the same voltage, except SerDes supplies, should be connected together (DS Table 3.2 note 2).",
+      "Rail tolerance is worst case +/-5% including noise. Regulators are recommended within 3% (TN-02038 2.1, 2.2)."
+    ]
+  },
+  "power_supply_ramp": {"tRAMP_V_per_ms": {"min": 0.01, "max": 10}, "monotonic": true, "src": "DS Table 3.3"},
+  "por": {
+    "monitored_rails": "Ramp-up: VCC, VCCAUX and VCCIO8. Ramp-down: VCC and VCCAUX only. Other VCCIOs are not monitored.",
+    "VPORUP": {"VCC_V": [0.90, 1.00], "VCCAUX_V": [2.00, 2.20], "VCCIO8_V": [0.95, 1.06]},
+    "VPORDN": {"VCC_V": [0.77, 0.87], "VCCAUX_V": [1.80, 2.00], "VCCIO8": "no ramp-down detection, so VCCIO8 must stay within the recommended operating range"},
+    "note": "Trip points are guidance only (DS). TN-02039 5.1 gives VCC 0.9-0.995 V and VCCIO8 0.95-1.05 V. TN-02038 section 2 gives VCC >= 0.9 V, VCCAUX >= 2.0 V and VCCIO8 >= 0.95 V.",
+    "src": "DS Table 3.4; TN-02039 5.1; TN-02038 2"
+  },
+  "power_up_sequencing": {
+    "datasheet": "POR is released when VCC, VCCAUX and VCCIO8 are above VPORUP. The DS rule that VCCIO8 must be above flash VIH before VCC/VCCAUX reach VPORUP (or PROGRAMN/INITN held low) applies to Master SPI only. For slave SPI the DS states no rail order.",
+    "hardware_checklist": "VCCIO supplies should be powered up before or together with VCC and VCCAUX (TN-02038 section 4). The other VCCIOx are not monitored but must be valid before configuration and user mode (TN-02038 section 2).",
+    "tICFG_max_ms": 33,
+    "tICFG_def": "Time from the last of VCC, VCCAUX or VCCIO8 being applied to the INITN rising edge",
+    "PROGRAMN_rule": "PROGRAMN must not be toggled low until all rails are stable, and must not make a falling edge during the initialization state (TN-02039 4.6.2).",
+    "src": "DS 3.5 and Table 3.42; TN-02038 2 and 4; TN-02039 4.6.2"
+  },
+  "hot_socketing": {
+    "top_bottom_banks_0_1_8": "Fully hot-socketable (TN-02032 4.6). IDK_HS is max +/-1 mA for 0 <= VIN <= VIH(max).",
+    "left_right_banks_2_3_6_7": "Generally not hot-socketable. They present a low-impedance path to GND if the input voltage exceeds VCCIO. IDK is max +/-1 mA for 0 <= VIN < VCCIO, typ 18 mA for VCCIO <= VIN <= VCCIO+0.5 V, and max +/-33 mA for 0 < VIN < VIH(max) with VCC < VPORUP. If VCCIO is up before VCC reaches POR, there is a low-impedance path between the A/B or C/D pair pins and the device can be damaged, so limit the current. Clamp is always on for left/right GPIO.",
+    "conditions": "LVCMOS/LVTTL only, Tj <= 85 C, monotonic rails. IDK adds to IPU/IPD/IBH.",
+    "unpowered_input_current_all_rails_off": "NOT_FOUND (no separate figure for a device with all rails at 0 V, beyond the IDK conditions above)",
+    "src": "DS 3.6 and Table 3.5; TN-02032 2, 4.6 and 4.8"
+  },
+  "io_states": {
+    "power_up": "I/O stay tri-stated during power-up and power-down until supplies are high enough (TN-02210 2). The POR circuit holds external I/O high-impedance once active (TN-02039 5.1). GPIO default to tri-stated outputs with weak input pull-down at power-up (TN-02039 5.2).",
+    "during_configuration": "User I/O are tri-stated with the internal pull-down enabled (DS 4.1). D[7:0] have no pull before or during configuration (TN-02039 5.2, 4.7.8). D0..D7 are open drain during configuration (DS 4.1). DOUT/CSON drives high from power-up until the Bypass/Flow-through instruction runs (TN-02039 4.7.2).",
+    "after_configuration": "Pins used in the design take their programmed state. Unused or unbonded pins are tri-stated with pull-down (DS 4.1; TN-02039 5.2). The default PULLMODE attribute is DOWN (TN-02032 5.8).",
+    "wake_up": "A fixed four-phase wake-up sequence runs after the internal DONE bit is set. It controls GOE, GSR, GWDIS and the external DONE pin. With DONE_EX=OFF (the default) the sequence is 21: T1 GOE, T2 GWDIS+GSR, T3 DONE pin. So outputs are enabled before the DONE pin goes high. With DONE_EX=ON the sequence is 4: T0 DONE, T1 GOE, T2 GWDIS+GSR. The exact timing relative to the wake-up clock is not specified. The wake-up clock defaults to internal, or a user START clock up to 100 MHz (TN-02039 8, Table 8.1, Table 7.1).",
+    "GOE_to_DONE_time_ns": "NOT_FOUND (stated as not specified)",
+    "PROGRAMN_low_to_IO_disabled_max_ns": 150,
+    "src": "DS 4.1 and Table 3.42; TN-02039 4.7, 5.1, 5.2, 8; TN-02032 5.8; TN-02210 2"
+  },
+  "dedicated_config_pins": {
+    "PROGRAMN": {"ball": "W3", "bank": 8, "behaviour": "Active-low input with an always-on internal weak pull-up. A low pulse restarts configuration. tPRGM accepted min 110 ns. tPRGMRJ rejected max 50 ns. PROGRAMN low to INITN low max 70 ns. PROGRAMN low to DONE low max 80 ns.", "external": "4.7 kOhm pull-up to VCCIO8"},
+    "INITN": {"ball": "V3", "bank": 8, "behaviour": "Bidirectional open drain with pull-up during configuration. Driven low during initialization (tINITL). Holding it low externally delays configuration. Going low after it has gone high signals a configuration error. CFG pins are sampled on the INITN rising edge.", "external": "4.7 kOhm pull-up to VCCIO8"},
+    "DONE": {"ball": "Y3", "bank": 8, "behaviour": "Bidirectional open drain with weak pull-up (defaults DONE_OD=ON, DONE_PULL=ON). Driven low with INITN at initialization. Goes high in the wake-up phase. Holding it low externally delays wake-up only when DONE_EX is enabled. It is meaningless during JTAG (IEEE 1532) configuration.", "external": "4.7 kOhm pull-up to VCCIO8 (TN-02038 Fig 6.1/6.2). Lattice recommends routing DONE to the CPU for SSPI (TN-02039 Fig 6.5 notes)."},
+    "CFG_2_1_0": {"balls": {"CFG_2": "R4", "CFG_1": "T4", "CFG_0": "U4"}, "bank": 8, "behaviour": "Weak internal pull-ups, sampled on the INITN rising edge.", "external": "1-10 kOhm pull-up to VCCIO8 for 1, GND for 0. TN-02039 recommends <500 Ohm pull-down for 0 and 4.7 kOhm pull-ups. The checklist figures show 0 Ohm to GND."},
+    "CCLK": {"ball": "U3", "bank": 8, "dual": "MCLK/SCK", "behaviour": "Input with weak pull-up in SSPI", "external": "TN-02038 Table 6.2: 510 Ohm-1 kOhm pull-up to VCCIO8 plus a series resistor of 22-80 Ohm near the driver. The SSPI figure 6.2 shows 1k."},
+    "src": "DS 4.1 and Table 3.42; TN-02039 4.6, Table 4.5, Table 7.1; TN-02038 Tables 6.1-6.3"
+  },
+  "cfg_mode_encoding_CFG2_CFG1_CFG0": {
+    "SSPI_slave_SPI": "001",
+    "MSPI_master_SPI_x1_x2_x4_dualboot_multiboot": "010",
+    "SCM_slave_serial": "101",
+    "SPCM_slave_parallel_x8": "111",
+    "JTAG": "xxx (always available)",
+    "other_codes": "NOT_FOUND (000, 011, 100 and 110 are not listed)",
+    "src": "TN-02039 Table 4.6; TN-02038 Table 6.3"
+  },
+  "slave_spi": {
+    "pins": [
+      {"function": "CCLK (SCK in)", "ball": "U3", "pad": "CCLK (dedicated)", "bank": 8},
+      {"function": "MOSI (SI, data into FPGA)", "ball": "W2", "pad": "PB11B", "dual": "D0/MOSI/IO0", "bank": 8},
+      {"function": "MISO (SO, data out of FPGA)", "ball": "V2", "pad": "PB11A", "dual": "D1/MISO/IO1", "bank": 8},
+      {"function": "SN (chip select, active low)", "ball": "T2", "pad": "PB13A", "dual": "SN/CSN", "bank": 8},
+      {"function": "HOLDN (optional)", "ball": "R2", "pad": "PB15A", "dual": "HOLDN/DI/BUSY/CSSPIN/CEN", "bank": 8}
+    ],
+    "supply": "VCCIO8. VCCIO8 balls are P9 and P10.",
+    "pullups": "SN needs an external 4.7 kOhm pull-up to VCCIO8. MISO is tri-stated with an internal pull-up except during read commands.",
+    "protocol": "Mode: data in on MOSI on the CCLK rising edge, data out on MISO on the falling edge, MSB first, byte bounded, 8-bit opcode plus 24-bit operand. Key opcodes: READ_ID E0, LSC_READ_STATUS 3C, LSC_CHECK_BUSY F0, LSC_REFRESH 79, ISC_ENABLE C6, ISC_ERASE 0E, LSC_INIT_ADDRESS 46, LSC_BITSTREAM_BURST 7A, ISC_PROGRAM_DONE 5E, ISC_DISABLE 26, ISC_NOOP FF.",
+    "persistence": "SLAVE_SPI_PORT defaults to DISABLE, so the SSPI pins become GPIO after configuration. Enabling it gives a read-back-only port in user mode. Reconfiguring after user mode needs PROGRAMN or LSC_REFRESH.",
+    "timing": {"fCCLK_max_MHz": 60, "tCCLKH_min_ns": 6, "tCCLKL_min_ns": 6, "tSTSU_setup_min_ns": 1, "tSTH_hold_min_ns": 1, "tSTCO_clk_fall_to_out_max_ns": 10, "tSTOZ_max_ns": 10, "tSTOV_max_ns": 10, "tSCS_CS_high_min_ns": 25, "tSCSS_CS_setup_min_ns": 3, "tSCSH_CS_hold_min_ns": 3},
+    "src": "pinout CSV (FPGA-SC-02034); DS Table 3.42; TN-02039 6.2, Tables 6.3-6.5, 7"
+  },
+  "config_pin_drive": "Configuration outputs use LVCMOS at VCCIO8 with slow slew. Drive is 8 mA at 3.3/2.5/1.8 V and 4 mA at 1.5/1.2 V. The CONFIG_IOVOLTAGE default is 2.5 V (TN-02039 Table 4.10, Table 7.1).",
+  "bitstream_size_LFE5U_45": {"uncompressed_no_EBR_Mb": 7.86, "uncompressed_max_EBR_Mb": 9.74, "recommended_SPI_flash_Mb": "8 (no EBR) or 16 (max EBR); dual boot 16 or 32", "compression": "Supported. TN-02039 Table 7.1 gives the COMPRESS_CONFIG default as OFF, but text 7.4 says ON (internal inconsistency).", "src": "TN-02039 Table 4.1"},
+  "supply_current_static_typ": {"ICC_mA": 116, "ICCAUX_mA": 17, "ICCIO_per_bank_mA": 0.5, "conditions": "Tj 85 C, nominal supplies, 0 Hz, outputs tri-stated", "dynamic_and_peak_startup": "NOT_FOUND (Lattice points to the Diamond Power Calculator)", "src": "DS Table 3.8"},
+  "jtag": {
+    "pins": {"TCK": "T5", "TMS": "U5", "TDI": "R5", "TDO": "V4"},
+    "bank_in_pinout_file": "40 (JTAG bank code in the Lattice CSV)",
+    "supply": "VCCIO8",
+    "internal": "TMS, TDI and TDO have weak pull-ups to VCCIO8. TCK has no pull-up.",
+    "external": "TDI, TMS and TDO 4.7 kOhm pull-up to VCCIO8. TCK 4.7 kOhm pull-down to GND.",
+    "fTCK_max_MHz": 25,
+    "src": "DS 4.1 and Table 3.43; TN-02039 Table 4.9; TN-02038 Table 6.1"
+  },
+  "decoupling_TN02038": {
+    "VCC": "3 x 10 uF + 100 nF per pin",
+    "VCCAUX": "120 Ohm ferrite bead + 10 uF + 100 nF per pin",
+    "VCCIO": "10 uF + 100 nF per pin. Unused banks may use 1.0 uF instead of 10 uF. Use 22 uF (or an extra 10 uF) for heavy output or capacitive load.",
+    "capacitors": "X5R/X7R. Voltage rating at least 80% above the rail. Preferred sizes: 0.1 uF 0201, 1-2.2 uF 0402, 4.7 uF 0603, 10 uF 0603, 22 uF 0805.",
+    "ferrite": "120-240 Ohm at 100 MHz. ESR x I must be < 1% of the rail (<0.25% for sensitive rails).",
+    "ground": "Connect all GND balls to the ground plane.",
+    "src": "TN-02038 Tables 3.1, 3.2 and sections 3.2-3.5, 15"
+  },
+  "unused_pins_and_banks": {
+    "unused_GPIO": "Tri-stated with weak pull-down after configuration, so no board action is required (DS 4.1).",
+    "unused_config_ports": "Leave open (TN-02038 Table 6.3 note 1).",
+    "RESERVED_balls": "W4, W5, W8, W9, W10, W11, W13, W14, W17, W18. Do not connect them to anything (DS 4.1).",
+    "NC_balls": "K16 and K17",
+    "unused_VCCIO_bank": "CONFLICT between sources. TN-02038 3.6 says to connect unused VCCIO pins to a power rail and not leave them open. TN-02032 4.2 recommends setting VCCIO to 0 V for unused banks. DS Table 3.2 note 1 says all supplies must be in range. Following the checklist plus DS (powered) is the conservative choice.",
+    "LFE5U_SerDes_power_pins": "Not present on LFE5U-45 caBGA381 (TN-02038 14 discusses LFE5U-to-UM migration)."
+  },
+  "internal_weak_pulls": {
+    "IPU_uA": "-30 min (sustaining high, 0.7VCCIO <= VIN <= VCCIO), -150 max (0 <= VIN <= 0.7VCCIO)",
+    "IPD_uA": "30 min (sustaining low, 0 <= VIN <= VIL max), 150 max (0 <= VIN <= VCCIO)",
+    "resistance_kOhm": "NOT_FOUND (specified as current sources only)",
+    "leakage": "IIL/IIH max 10 uA. IIH max 100 uA for VCCIO < VIN <= VIH(max) on top/bottom banks.",
+    "src": "DS Table 3.7; TN-02038 Table 9.1"
+  },
+  "clock_inputs_cabga381": {
+    "GPLL_ref": {"ULC_GPLL0T/C_IN": ["A4", "A5"], "ULC_GPLL1T/C_IN": ["A6", "B6"], "URC_GPLL0T/C_IN": ["C18", "D17"], "URC_GPLL1T/C_IN": ["A19", "B20"], "LLC_GPLL0T/C_IN": ["P3", "P4"], "LRC_GPLL0T/C_IN": ["U16", "T17"]},
+    "PCLK": {"PCLKT0_0/C0_0": ["B11", "C11"], "PCLKT0_1/C0_1": ["A10", "A11"], "PCLKT1_0/C1_0": ["B12", "C12"], "PCLKT1_1/C1_1": ["D11", "E11"], "PCLKT2_0/C2_0": ["J20", "K20"], "PCLKT2_1/C2_1": ["J19", "K19"], "PCLKT3_0/C3_0": ["L19", "M19"], "PCLKT3_1/C3_1": ["L20", "M20"], "PCLKT6_0/C6_0": ["H2", "G1"], "PCLKT6_1/C6_1": ["G2", "F1"], "PCLKT7_0/C7_0": ["F2", "E2"], "PCLKT7_1/C7_1": ["G3", "F3"]},
+    "GR_PCLK": {"GR_PCLK0_0": "B10", "GR_PCLK0_1": "A9", "GR_PCLK1_0": "D12", "GR_PCLK1_1": "E12", "GR_PCLK2_0": "J18", "GR_PCLK2_1": "G19", "GR_PCLK3_0": "L16", "GR_PCLK3_1": "L18", "GR_PCLK6_0": "J4", "GR_PCLK6_1": "J3", "GR_PCLK7_0": "H5", "GR_PCLK7_1": "H4"},
+    "notes": "For single-ended clocks use only PCLKT pins. PLLs: 4 GPLL and 4 DDRDLL on LFE5-45. Top corner PLLs have two dedicated input pairs, bottom PLLs have one.",
+    "src": "pinout CSV; DS 4.1; TN-02200 Table 1.1 and 7.1; TN-02038 10"
+  },
+  "resources_LFE5U_45": {"LUTs_k": 44, "EBR_18kb_blocks": 108, "embedded_memory_kb": 1944, "distributed_RAM_kb": 351, "MULT18X18": 72, "PLLs": 4, "DLLs": 4, "user_IO_cabga381": 203, "src": "DS Table 1.1 and 4.3.2"},
+  "mclk_frequencies_MHz": [2.4, 4.8, 9.7, 19.4, 38.8, 62]
+}

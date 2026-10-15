@@ -1,0 +1,118 @@
+kind,R08 (old ref/net),R8.5 (new ref/net),reason,verification evidence
+F133 pin,U15 PD0: (unused),U15 PD0: FPGA_INITN,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+F133 pin,U15 PD1: (unused),U15 PD1: FPGA_VCC_PG,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+F133 pin,U15 PE0: T35_PWR_EN,U15 PE0: FPGA_PWR_EN_F,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+F133 pin,U15 PE4: T35_SS_N_F,U15 PE4: FPGA_SS_N_F,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+F133 pin,U15 PE5: T35_IRQ_N,U15 PE5: FPGA_IRQ_N,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+F133 pin,U15 PE6: T35_BUS_EN_N,U15 PE6: FPGA_BUS_EN_N,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+F133 pin,U15 PE8: T35_CRESET_N_F,U15 PE8: FPGA_PROGRAMN_F,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+F133 pin,U15 PE9: T35_CDONE,U15 PE9: FPGA_DONE,re-assessed for ECP5 sysCONFIG/control (CO App. A row 'F133 control and boot'),board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+net/rail,1V2_T35,1V1_FPGA,ECP5 VCC 1.1 V (DS Table 3.2); U9 FB 100k/100k -> 82.5k/100k,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+net/rail,1V2_T35_PLL,(removed),no ECP5 PLL supply ball; VCCAUX 2.5 V instead,ERC 0; crosscheck A/B
+net/rail,(none),2V5_FPGA_AUX,new VCCAUX rail: U30 TLV75525P + FB2 ferrite,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+net/rail,3V3_T35,3V3_FPGA,all VCCIO banks 0/1/2/3/6/7/8; U10 ON = FPGA_PWR_EN (was 1V2 PG),board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+net/rail,T35_PWR_EN,FPGA_PWR_EN (+FPGA_PWR_EN_F via 1k),single shared enable; J11 service override,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+net/rail,T35_1V2_PG,FPGA_VCC_PG,no longer sequences VCCIO; read by F133 PD1 for rail diagnosis,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+net/rail,CDONE_DLY / CDONE_RC,DONE_DLY / DONE_RC,"same RC+Schmitt delay, from ECP5 DONE",board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+net/rail,T35_CDONE,FPGA_DONE,"open-drain DONE, 4.7k to VCCIO8",board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+net/rail,T35_CRESET_N / _F,FPGA_PROGRAMN / _F,"PROGRAMN, 4.7k pull-up (T35: 4.7k pull-down hold), 470R series",board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+net/rail,(none),FPGA_INITN,new: INITN to F133 PD0,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+net/rail,CFG_SS_N/CFG_CCK/CFG_CDI0/CFG_CDI1/CFG_IO2/CFG_IO3,(removed),U19 config flash removed: F133 streams over SSPI,ERC 0; crosscheck A/B
+net/rail,T35_SCK / T35_MOSI / T35_MISO / T35_SS_N,FPGA_SCK(+_B) / FPGA_MOSI / FPGA_MISO / FPGA_SS_N,"now also the sysCONFIG SSPI pins (CCLK U3 + D7 R1, D0 W2, D1 V2, SN T2)",board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+net/rail,T35_IRQ_N,FPGA_IRQ_N,"bank 0 E6 (hot-socket tolerant), 4.7k pull-up",board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+net/rail,T35_OSC_25M,FPGA_OSC_25M,P3 LLC_GPLL0T_IN,crosscheck C (P3 = LLC_GPLL0T_IN); routed build FREQUENCY constraint
+net/rail,PSRAM_SCLK_T,PSRAM_SCLK_F,bank 6 L2,board rule psram_power_architecture; tb_ecp5_top P0-P4/F06; margins psram
+net/rail,PD_CE/PD_SCLK/PD_SIO0..3,(removed),U26 + 6x1.5k removed: ECP5 pulls DOWN during configuration,ERC 0; crosscheck A/B
+net/rail,T35_TEST_N / T35_CSI,(removed),no ECP5 equivalent,ERC 0; crosscheck A/B
+net/rail,T35_TCK/TMS/TDI/TDO,FPGA_TCK/TMS/TDI/TDO,"JTAG on VCCIO8; J5 ARM-10 layout, pin 10 = PROGRAMN",board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+net/rail,T35_LED0 / T35_DBG_TX / T35_DBG_RX,FPGA_LED0 / FPGA_DBG_TX / FPGA_DBG_RX(_J),bank 0 A7/A8/B8; 1k series on RX,ERC 0; crosscheck A/B
+passive added,-,8 x C0402 100nF on 1V1_FPGA/GND (C69 C70 C71 C72 C73 C74),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,3 x C0402 100nF on 1V2_T35_PLL/GND,-,,ERC 0; crosscheck A/B
+passive added,-,4 x C0402 100nF on 2V5_FPGA_AUX/GND (C92 C93 C94 C95),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,4 x C0402 100nF on 3V3_FPGA/GND (C33 C97 C98 C99 C100 C101),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x C0402 1uF on 2V5_AUX_REG/GND (C24),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x C0402 1uF on 3V3_FPGA/GND (C23 C29),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,3 x C0603 10uF on 1V1_FPGA/GND (C89 C90 C91),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x C0603 10uF on 1V2_T35_PLL/GND,-,,ERC 0; crosscheck A/B
+passive added,-,1 x C0603 10uF on 2V5_FPGA_AUX/GND (C96),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,6 x C0603 10uF on 3V3_FPGA/GND (C22 C115 C116 C117 C118 C119),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,2 x C0805 22uF on 1V1_FPGA/GND,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x FB0603 ferrite 120R@100MHz on 2V5_AUX_REG/2V5_FPGA_AUX (FB2),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x FB0603 ferrite 600R@100MHz on 1V1_FPGA/1V2_T35_PLL,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x R0402 1.5k on PD_CE/PSRAM_CE_N,-,,board rule psram_power_architecture; tb_ecp5_top P0-P4/F06; margins psram
+passive removed,1 x R0402 1.5k on PD_SCLK/PSRAM_SCLK,-,,board rule psram_power_architecture; tb_ecp5_top P0-P4/F06; margins psram
+passive removed,1 x R0402 1.5k on PD_SIO0/PSRAM_SIO0,-,,board rule psram_power_architecture; tb_ecp5_top P0-P4/F06; margins psram
+passive removed,1 x R0402 1.5k on PD_SIO1/PSRAM_SIO1,-,,board rule psram_power_architecture; tb_ecp5_top P0-P4/F06; margins psram
+passive removed,1 x R0402 1.5k on PD_SIO2/PSRAM_SIO2,-,,board rule psram_power_architecture; tb_ecp5_top P0-P4/F06; margins psram
+passive removed,1 x R0402 1.5k on PD_SIO3/PSRAM_SIO3,-,,board rule psram_power_architecture; tb_ecp5_top P0-P4/F06; margins psram
+passive removed,1 x R0402 100k on 1V1_FPGA_REG/FB_1V1,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x R0402 100k on FPGA_SCK/GND,-,,board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+passive removed,1 x R0402 10k on 3V3_FPGA/CFG_IO2,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive removed,1 x R0402 10k on 3V3_FPGA/CFG_IO3,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive removed,1 x R0402 10k on 3V3_FPGA/CFG_SS_N,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive removed,1 x R0402 10k on 3V3_FPGA/FPGA_CSI,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x R0402 10k on 3V3_FPGA/FPGA_DONE,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 10k on 3V3_FPGA/FPGA_HOLDN (R57),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive removed,1 x R0402 10k on 3V3_FPGA/FPGA_IRQ_N,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x R0402 10k on 3V3_FPGA/FPGA_SS_N,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x R0402 10k on 3V3_FPGA/FPGA_TEST_N,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x R0402 10k on FPGA_TCK/GND,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 1k on 3V3_FPGA/FPGA_SCK (R58),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x R0402 1k on FPGA_DBG_RX/FPGA_DBG_RX_J (R74),,ERC 0; crosscheck A/B
+passive removed,1 x R0402 1k on FPGA_PROGRAMN/FPGA_PROGRAMN_F,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 1k on FPGA_PWR_EN/FPGA_PWR_EN_F (R24),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x R0402 33R on FPGA_SCK/FPGA_SCK_B (R68),,board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_CFG0 (R56),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_DONE (R54),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_INITN (R53),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_IRQ_N (R63),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_PROGRAMN (R51),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_SS_N (R55),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_TDI (R61),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_TDO (R62),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_TMS (R60),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive removed,1 x R0402 4.7k on FPGA_PROGRAMN/GND,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 4.7k on FPGA_TCK/GND (R59),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 470R on FPGA_PROGRAMN/FPGA_PROGRAMN_F (R52),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 82.5k on 1V1_FPGA_REG/FB_1V1 (R21),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x TP 1V1_FPGA on 1V1_FPGA (TP12),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x TP 1V2_T35 on 1V1_FPGA,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x TP 2V5_FPGA_AUX on 2V5_FPGA_AUX (TP16),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x TP 3V3_FPGA on 3V3_FPGA (TP15),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x TP 3V3_T35 on 3V3_FPGA,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x TP CDONE_DLY on DONE_DLY,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x TP DONE_DLY on DONE_DLY (TP39),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x TP FPGA_DONE on FPGA_DONE (TP38),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x TP FPGA_INITN on FPGA_INITN (TP41),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x TP FPGA_OSC_25M on FPGA_OSC_25M (TP42),,crosscheck C (P3 = LLC_GPLL0T_IN); routed build FREQUENCY constraint
+passive added,-,1 x TP FPGA_PROGRAMN on FPGA_PROGRAMN (TP40),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x TP FPGA_PWR_EN on FPGA_PWR_EN (TP14),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive added,-,1 x TP FPGA_SCK on FPGA_SCK (TP43),,board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+passive added,-,1 x TP FPGA_VCC_PG on FPGA_VCC_PG (TP13),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x TP T35_1V2_PG on FPGA_VCC_PG,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x TP T35_CDONE on FPGA_DONE,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive removed,1 x TP T35_CRESET_N on FPGA_PROGRAMN,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive removed,1 x TP T35_OSC_25M on FPGA_OSC_25M,-,,crosscheck C (P3 = LLC_GPLL0T_IN); routed build FREQUENCY constraint
+passive added,-,1 x TPS22918 3V3_FPGA switch on 3V3/3V3_FPGA/3V3_FPGA/FPGA_PWR_EN/GND/SW_FPGA_CT (U10),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+passive removed,1 x TPS22918 3V3_T35 switch on 3V3/3V3_FPGA/3V3_FPGA/FPGA_VCC_PG/GND/SW_FPGA_CT,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+component changed,D3 LED T35 LED,D3 LED FPGA LED,nets re-wired,ERC 0; crosscheck A/B
+component changed,J5 HDR_2x5_127 T35 JTAG,J5 HDR_2x5_127 ECP5 JTAG,pin 1 = VTref (VCCIO8); pin 10 (nRESET position) = PROGRAMN; pin 7 key/NC; see docs/JTAG_R,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+component changed,J6 HDR_1x3 T35 UART,J6 HDR_1x3 FPGA UART,nets re-wired,ERC 0; crosscheck A/B
+component added,-,J11 HDR_1x3 FPGA power override,JTAG service without F133 firmware: jumper 1-2 powers all FPGA rails (1k limits PE0 conten,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+component changed,U9 TLV62569P 1V2_T35,U9 TLV62569P 1V1_FPGA,"calc: 0.6*(1+82.5k/100k)=1.095 V (ECP5 VCC 1.045/1.10/1.155 V, DS Table 3.2); soft-start ~",board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+component changed,U15 F133 F133-B,U15 F133 F133-B,nets re-wired,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+component changed,U18 T35 T35F400C3,U18 ECP5_45F_BG381 LFE5U-45F-6BG381C,nets re-wired,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+component removed,U19 W25Q32JVSSIQ W25Q32JVSSIQ,-,"SPI active x1, 3-byte addressing, bitstream 8,139,168 bits",ERC 0; board rules
+component changed,U21 LVC1G125 iso SCK,U21 LVC1G125 iso SCK,nets re-wired,board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
+component removed,U26 LVC07A SN74LVC07A,-,"pull-downs active only while CDONE_DLY low (T35 unconfigured, PSRAM unpowered by design)",ERC 0; board rules
+component added,-,U30 TLV75525P 2V5_FPGA_AUX,ECP5 VCCAUX 2.375-2.625 V; ICCAUX 17 mA typ static (DS Table 3.8); dropout margin calc in ,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
+source,fpga/rtl/arc1_t35_top_r08.sv (Efinity pad split),"fpga_ecp5/rtl/arc1_ecp5_top.sv (real tri-states, ecppll PLL)",,tb_ecp5_top PASS; lint; routed build
+source,R06 mbx_loopback.sv,fpga_ecp5/rtl/accel_engine.sv (AJOB v1 + legacy loopback),,tb_ecp5_top golden + 11 AJOB cases + abort; C cross-sim
+source,"R05 arc1_transform.sv (single cycle, 21 MHz on ECP5)",fpga_ecp5/rtl/arc1_transform_ecp5.sv (8 x MULT18X18D pipeline),,unchanged R05 testbench 1165 oracle vectors PASS
+source,fpga/rtl/mbx_regs_r08.sv (AMBX v2),"fpga_ecp5/rtl/mbx_regs_r85.sv (AMBX v3: perf, ABORT, CAPS bit3)",,tb_ecp5_top ident/perf checks
+source,fpga/efinity/* (ISF/SDC/XML generator; NATIVE_EDA_NOT_RUN),fpga_ecp5/constraints/arc1_ecp5_r85.lpf generated by tools/gen_pin_matrix_r85.py,,crosscheck C; BUILD_REPORT (Yosys/nextpnr/ecppack)
+source,(none),"fpga_ecp5/Makefile + build_scripts (pinned tools, report, repro)",,REPRO_IDENTICAL; TOOL_VERSIONS.txt
+source,firmware: no T35 loader (T35 self-configured from U19),"firmware/src/ecp5_cfg.c, fpga_link.c, accel_job.c, accel_service.c",,"799 host checks, 33 FIT cases, 10 mutants killed"
+source,f133_diag S4 CRESET/CDONE,f133_diag S4 ecp5_probe (READ_ID) / S5 AMBX v3,,"BUILD_ONLY, eGON checked, fits SRAM A1"
+source,board/check_board_r08.py,board/check_board_r85.py (+6 ECP5 rules),,"16/16 rules, 29 negative tests"
+source,cad/check/crosscheck_r08.py (Efinity table),cad/check/crosscheck_r85.py (LPF/pinout/RTL/routed),,CROSSCHECK PASS
