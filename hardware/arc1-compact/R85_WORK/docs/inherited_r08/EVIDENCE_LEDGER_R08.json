@@ -1,0 +1,361 @@
+{
+ "schema_id": "arc1-r08-evidence-ledger-v1",
+ "date": "2026-10-15",
+ "labels_allowed": [
+  "VERIFIED_BY_VENDOR_DOC",
+  "DERIVED_WITH_CALC",
+  "TOOL_VERIFIED_NATIVE",
+  "BUILD_ONLY",
+  "HOST_TESTED",
+  "RTL_SIMULATED",
+  "VENDOR_OPEN",
+  "FABRICATION_BLOCKER",
+  "PHYSICAL_NOT_TESTED",
+  "ASSUMPTION",
+  "NOT_RUN"
+ ],
+ "entries": [
+  {
+   "id": "R08-SCH-NATIVE",
+   "claim": "Native KiCad 9 hierarchical schematic (9 sheets, 329 components, 161 nets) exists and passes kicad-cli 9.0.9 ERC with 0 errors / 0 warnings",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE"
+   ],
+   "evidence_paths": [
+    "cad/ARC1_R08.kicad_sch",
+    "cad/ERC.txt",
+    "cad/ERC.json",
+    "cad/NETLIST.xml"
+   ],
+   "note": "ERC checks connectivity/pin types, not part values or footprint geometry"
+  },
+  {
+   "id": "R08-XCHK",
+   "claim": "Netlist, plan, footprint pads, Efinity pins, RTL ports and firmware pin header agree 1:1",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE",
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "cad/check/crosscheck_r08.py",
+    "evidence/LATEST.txt"
+   ],
+   "note": "representations share one source; agreement != correctness"
+  },
+  {
+   "id": "R08-RULES",
+   "claim": "Board rules (boot straps 00, SPI0 isolation, NOR, MN820 buffer, domains, PSRAM power, sequencing, USB device-only, SD not boot, decoupling, traceability) pass; 15 hazard mutations each caught",
+   "labels": [
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "board/check_board_r08.py",
+    "board/test_check_board_r08.py"
+   ],
+   "note": "self-authored rules: not independent device validation"
+  },
+  {
+   "id": "R08-BOOT-STRAP",
+   "claim": "BOOT-SEL pins read 0 at sampling: 0.794 V worst case vs 0.96 V",
+   "labels": [
+    "DERIVED_WITH_CALC",
+    "VERIFIED_BY_VENDOR_DOC"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.py",
+    "docs/BOOT_TRACE_DOSSIER.md"
+   ],
+   "note": "internal pull-up 12k from F133 DS Table 5-3"
+  },
+  {
+   "id": "R08-BOOT-ORDER",
+   "claim": "BOOT-SEL 00 = SPI NOR -> SPI NAND",
+   "labels": [
+    "VERIFIED_BY_VENDOR_DOC",
+    "ASSUMPTION"
+   ],
+   "evidence_paths": [
+    "sources/f133/f133_boot_usb_facts.json"
+   ],
+   "note": "D1-H UM table assumed valid for F133-B; eFuse BOOT_MODE of lot unknown"
+  },
+  {
+   "id": "R08-BOOT-FEL",
+   "claim": "With NOR unreadable the BROM falls through to USB FEL",
+   "labels": [
+    "ASSUMPTION",
+    "VENDOR_OPEN",
+    "PHYSICAL_NOT_TESTED"
+   ],
+   "evidence_paths": [
+    "docs/RECOVERY_DOSSIER.md"
+   ],
+   "note": "undocumented; clip path is the guaranteed alternative"
+  },
+  {
+   "id": "R08-NOR-DRIVER",
+   "claim": "NOR driver reaches all 32 MiB without leaving the device in 4-byte mode; repairs 4B/EAR state; refuses unknown/inconsistent parts",
+   "labels": [
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "firmware/src/spi_nor.c",
+    "firmware/tests/test_nor.c"
+   ],
+   "note": "757 checks total suite, 4 mutants killed; mock encodes W25Q256JV datasheet rules"
+  },
+  {
+   "id": "R08-NOR-VOH",
+   "claim": "NOR DO VOH with the 3.3k strap load",
+   "labels": [
+    "VENDOR_OPEN"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.json"
+   ],
+   "note": "1.04 mA vs 0.1 mA test point (RK-NOR-VOH)"
+  },
+  {
+   "id": "R08-FLASH-LAYOUT",
+   "claim": "32 MiB partition map is complete/aligned; slot B starts at 16 MiB; A/B trial/rollback and torn-journal recovery work",
+   "labels": [
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "firmware/src/flash_layout.c",
+    "firmware/tests/test_layout.c",
+    "docs/NOR_BOOT_AND_FLASH.md"
+   ],
+   "note": "image sizes beyond boot0 NOT measured (not written)"
+  },
+  {
+   "id": "R08-SD-LIB",
+   "claim": "Game packages validated (header CRC, fields, length, payload CRC, FW version); absent/unsupported/IO card states distinct; saves survive card removal mid-write",
+   "labels": [
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "firmware/src/game_lib.c",
+    "firmware/tests/test_library.c"
+   ],
+   "note": "filesystem driver out of scope"
+  },
+  {
+   "id": "R08-MN-VOH",
+   "claim": "MN820 MISO reaches the F133 with +0.40 V (buffer input) / +0.72 V (F133 input) high margin",
+   "labels": [
+    "DERIVED_WITH_CALC",
+    "VERIFIED_BY_VENDOR_DOC"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.json"
+   ],
+   "note": "replaces R07 +0.02 V"
+  },
+  {
+   "id": "R08-SPI1-TIMING",
+   "claim": "SPI1 read path supports 30 MHz",
+   "labels": [
+    "DERIVED_WITH_CALC",
+    "ASSUMPTION"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.json"
+   ],
+   "note": "F133 SPI setup time assumed 3 ns; trace 1 ns assumed"
+  },
+  {
+   "id": "R08-PSRAM-LEVELS",
+   "claim": "PSRAM pins <= 0.368 V while unpowered/T35 unconfigured; 34 uA load in user mode",
+   "labels": [
+    "DERIVED_WITH_CALC",
+    "VERIFIED_BY_VENDOR_DOC"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.json",
+    "docs/PSRAM_POWER_R08.md"
+   ],
+   "note": "LVC07 VOL at 0.12 mA taken from the 100 uA spec"
+  },
+  {
+   "id": "R08-PSRAM-GUARD",
+   "claim": "PSRAM power guard: tPU pin states correct, no back-power with EN low, power loss reported sticky, READY gated, BIST cannot pass across a loss",
+   "labels": [
+    "RTL_SIMULATED"
+   ],
+   "evidence_paths": [
+    "fpga/rtl/psram_power_guard.sv",
+    "fpga/tb/tb_top_r08.sv"
+   ],
+   "note": "Icarus; 0 model violations before deliberate power cuts"
+  },
+  {
+   "id": "R08-PSRAM-FAULT-BP",
+   "claim": "Load-switch fault with EN high back-powers PSRAM ~1.2 us before PG detection",
+   "labels": [
+    "RTL_SIMULATED",
+    "ASSUMPTION"
+   ],
+   "evidence_paths": [
+    "fpga/tb/tb_top_r08.sv"
+   ],
+   "note": "2 us supervisor response assumed"
+  },
+  {
+   "id": "R08-T35-SYNTH",
+   "claim": "T35 R08 top maps to 1312 LUT4 / 858 FF / 50 RAM_5K (open-source Yosys synth_efinix)",
+   "labels": [
+    "BUILD_ONLY"
+   ],
+   "evidence_paths": [
+    "fpga/Makefile"
+   ],
+   "note": "estimate, not Efinity"
+  },
+  {
+   "id": "R08-T35-EFINITY",
+   "claim": "Native Efinity fit/timing/bitstream",
+   "labels": [
+    "NOT_RUN"
+   ],
+   "evidence_paths": [
+    "fpga/efinity/NATIVE_FIT_TIMING_REPORTS_OR_NOT_RUN.md",
+    "fpga/efinity/RUN_EFINITY_LOCALLY.md"
+   ],
+   "note": "importable sources generated; syntax-checked only"
+  },
+  {
+   "id": "R08-T35-PLLIN",
+   "claim": "25 MHz reference moved to GPIOL_15_PLLIN0 (R16), a PLL_BL0 reference pin",
+   "labels": [
+    "VERIFIED_BY_VENDOR_DOC"
+   ],
+   "evidence_paths": [
+    "sources/efinix/efinity_project_format.md",
+    "fpga/efinity/arc1_t35_r08_pins.csv"
+   ],
+   "note": "T35 DS Table 18"
+  },
+  {
+   "id": "R08-T35-SEQ",
+   "claim": "T35 VCC (1V2) before VCCIO (3V3_T35) by hardware PG chaining",
+   "labels": [
+    "DERIVED_WITH_CALC"
+   ],
+   "evidence_paths": [
+    "docs/POWER_TREE_AND_RESET.md",
+    "board/check_board_r08.py"
+   ],
+   "note": "structural rule power_sequencing"
+  },
+  {
+   "id": "R08-REG-SETPOINTS",
+   "claim": "Regulator DC setpoints inside consumer limits (3V3, core, DRAM, 1V2)",
+   "labels": [
+    "DERIVED_WITH_CALC"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.json"
+   ],
+   "note": "VFB tolerance specified at 25 C only; ripple/transient not analysed"
+  },
+  {
+   "id": "R08-3V3-SUP",
+   "claim": "3V3 supervisor dead band below T35 VCCIO min",
+   "labels": [
+    "DERIVED_WITH_CALC",
+    "FABRICATION_BLOCKER"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.json"
+   ],
+   "note": "RK-3V3-SUP; R09 decision"
+  },
+  {
+   "id": "R08-USB-BUDGET",
+   "claim": "Board does not fit a 500 mA default USB source; needs >= 1.5 A Type-C or battery",
+   "labels": [
+    "DERIVED_WITH_CALC",
+    "ASSUMPTION",
+    "FABRICATION_BLOCKER"
+   ],
+   "evidence_paths": [
+    "analysis/electrical_margins_r08.json",
+    "docs/POWER_TREE_AND_RESET.md"
+   ],
+   "note": "loads partly assumed; owner decision"
+  },
+  {
+   "id": "R08-AUDIO",
+   "claim": "2x MAX98357A on I2S2, L/R via SD_MODE resistor",
+   "labels": [
+    "VERIFIED_BY_VENDOR_DOC",
+    "DERIVED_WITH_CALC"
+   ],
+   "evidence_paths": [
+    "docs/POWER_TREE_AND_RESET.md"
+   ],
+   "note": "F133 I2S2 register setup not exercised"
+  },
+  {
+   "id": "R08-DIAG-IMAGE",
+   "claim": "F133 diagnostic boot0 image builds reproducibly and its eGON header verifies (16384 bytes, 13268 used of 32 KiB)",
+   "labels": [
+    "BUILD_ONLY"
+   ],
+   "evidence_paths": [
+    "f133_diag/",
+    "evidence/LATEST.txt"
+   ],
+   "note": "never executed"
+  },
+  {
+   "id": "R08-USB-DEVICE",
+   "claim": "USB host removed; USB0 device/FEL with ESD; Type-C sink",
+   "labels": [
+    "TOOL_VERIFIED_NATIVE",
+    "HOST_TESTED"
+   ],
+   "evidence_paths": [
+    "cad/usb_power.kicad_sch",
+    "board/check_board_r08.py"
+   ],
+   "note": "rule usb_device_only"
+  },
+  {
+   "id": "R08-FOOTPRINTS",
+   "claim": "Footprint land patterns verified against vendor drawings",
+   "labels": [
+    "NOT_RUN",
+    "FABRICATION_BLOCKER"
+   ],
+   "evidence_paths": [
+    "docs/SCHEMATIC_CROSSCHECK.md"
+   ],
+   "note": "only pad-name agreement checked"
+  },
+  {
+   "id": "R08-HW",
+   "claim": "Any physical behaviour of the ARC-1 board",
+   "labels": [
+    "PHYSICAL_NOT_TESTED"
+   ],
+   "evidence_paths": [
+    "docs/FIRST_ARTICLE_DEBUG.md"
+   ],
+   "note": "no board exists"
+  },
+  {
+   "id": "R08-FROZEN",
+   "claim": "R05/R06/R07 sources and evidence unchanged; R07+R06 regression passes in a scratch copy",
+   "labels": [
+    "HOST_TESTED",
+    "RTL_SIMULATED"
+   ],
+   "evidence_paths": [
+    "evidence/LATEST.txt"
+   ],
+   "note": "git diff vs 1262c1a + root manifest"
+  }
+ ]
+}

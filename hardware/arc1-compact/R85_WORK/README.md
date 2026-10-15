@@ -1,27 +1,26 @@
-# ARC-1 Compact: R08 work area (PASS 8)
+# ARC-1 Compact: R8.5 work area – ECP5-45F design change order
 
-Start with `STATUS_R08.md`. R05, R06 and R07 remain frozen; R08 reruns R07 (which reruns R06) as regression.
+Start with `STATUS_R85.md`. R05/R06/R07/**R08 stay frozen**. R8.5 re-runs the R08 suite (which nests R07 and R06) as
+regression in a scratch copy.
 
 ```
-python3 R08_WORK/tools/run_r08_checks.py              # everything, ~8 min (from hardware/arc1-compact/)
-python3 R08_WORK/tools/run_r08_checks.py --skip-r07   # R08 steps only, ~2 min
+python3 R85_WORK/tools/run_r85_checks.py              # everything (from hardware/arc1-compact/)
+python3 R85_WORK/tools/run_r85_checks.py --skip-r08   # R8.5 steps only
 ```
-Extra tools beyond R07: **KiCad 9 (`kicad-cli`, ERC needs ≥ 8)**. Optional: Efinity (owner PC).
+Tools beyond R08: Yosys 0.33, nextpnr-ecp5 0.6, Project Trellis 1.4 (ecppack/ecppll), openFPGALoader 0.12 (JTAG,
+optional); exact versions and hashes are in each run's `TOOL_VERSIONS.txt`.
 
 | Path | Content | Evidence |
 |---|---|---|
-| `STATUS_R08.md`, `RISK_REGISTER_R08.md`, `CHANGELOG.md`, `EVIDENCE_LEDGER.json` | outcome, gates, risks, changes, per-claim evidence | — |
-| `cad/` | **native KiCad 9 project**: `ARC1_R08.kicad_pro`, root + 9 sheets, `symbols-and-footprints/`, `ERC.txt`/`ERC.json`, `NETLIST.xml`, `ARC1_R08_schematic.pdf`; `gen/` is the design source (`design.py`, `parts.py`, `gen_kicad.py`); `check/crosscheck_r08.py` | TOOL_VERIFIED_NATIVE (ERC/netlist) |
-| `board/` | `r08_board_plan.json` (exported), `check_board_r08.py` + negative tests | HOST_TESTED (self-authored rules) |
-| `analysis/` | `electrical_margins_r08.py` (+ JSON): DC levels, timing, regulators, supervisors, VBUS budget | DERIVED_WITH_CALC |
-| `fpga/` | `rtl/` (power guard, AMBX v2 regs, R08 top), `tb/tb_top_r08.sv`, `efinity/` (generator, project, ISF, SDC, pins, local-run instructions, NOT_RUN note) | RTL_SIMULATED / NATIVE_EDA_NOT_RUN |
-| `firmware/` | NOR driver, flash layout + A/B journal, microSD game library + saves, CRC32, generated `board_pins_r08.h`; mock + tests + mutants | HOST_TESTED |
-| `f133_diag/` | F133 diagnostic boot0 image (S0–S5) | BUILD_ONLY |
-| `docs/` | boot-trace, flash-image and recovery dossiers; power/reset/audio; PSRAM power; architecture; engineering change; schematic cross-check; interconnect matrix; pin table; margins; manufacturing/BGA; SLIM4 reuse decisions; first-article debug; vendor-open items; panel interface (R09); R09 plan | — |
-| `sourcing/BOM_CANDIDATES.csv` | grouped BOM with MPN/LCSC status | candidates |
-| `sources/` | manufacturer facts (URL + SHA-256 per document, no PDFs redistributed) | VERIFIED_BY_VENDOR_DOC |
-| `handoff_inputs/` | the corrective handoff v1.0 (.docx + extracted text) | input |
-| `evidence/` | runner logs per step, `summary.json`, manifests; `r07_baseline_prechange/` | — |
-
-Regenerating the 3 SLIM4-copied footprints needs `SLIM4_PRETTY=<SLIM4 R26 SLIM4.pretty>`. Without it the committed
-copies are kept, so the runner works either way.
+| `STATUS_R85.md`, `RISK_REGISTER_R85.md`, `CHANGELOG.md`, `EVIDENCE_LEDGER.json` | outcome, gates G1–G10, HARD STOP options, risks, per-claim evidence | — |
+| `cad/` | native KiCad 9 project `ARC1_R85` (9 sheets incl. `fpga_ecp5.kicad_sch`), ERC, netlist, PDF; `gen/` = design source; `check/crosscheck_r85.py` | TOOL_VERIFIED_NATIVE |
+| `board/` | `r85_board_plan.json`, **`F133_PINMUX_MATRIX_R85.csv/.json`**, **`ECP5_BALL_MAP_R85.csv`** (all 381 balls), `ECP5_BANK_TABLE_R85.csv`, rule checker + negative tests | HOST_TESTED (self-authored) |
+| `fpga_ecp5/` | RTL, testbench, generated LPF, open-toolchain Makefile, build scripts (see its README) | RTL_SIMULATED, OPEN_TOOLCHAIN_ROUTED |
+| `firmware/` | R08 NOR/layout/library + R8.5 ECP5 loader, AMBX v3 link, AJOB, P0–P6 service, board model, FIT tests, mutants, `tools/ajob_vectors.c`, `tools/bench_link.c` | HOST_TESTED |
+| `f133_diag/` | F133 boot0 diagnostic image with ECP5 probe | BUILD_ONLY |
+| `analysis/` | margins (`electrical_margins_r85.py`), benchmark result JSON | DERIVED_WITH_CALC / ISS_COUNTED |
+| `tools/` | runner, pin matrix + LPF generator, reports, delta table, failure-injection table, 45F/85F migration, `bench/` (RV64IM ISS + kernels + benchmark) | — |
+| `docs/` | ECP5 power, configuration/protocol/state machine, JTAG recovery, PSRAM, benchmark, failure injection, delta table, margins, pin table, interconnect, migration; `inherited_r08/` | — |
+| `sources/lattice/` | Lattice document list with URLs + SHA-256, extracted facts, pinout and migration CSVs (no PDFs redistributed) | VERIFIED_BY_VENDOR_DOC |
+| `handoff_inputs/` | the change order (.docx + extracted text) | input |
+| `evidence/` | runner output per run (`LATEST.txt`) | — |

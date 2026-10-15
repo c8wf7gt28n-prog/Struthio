@@ -1,3 +1,37 @@
+# R8.5 changelog (ECP5-45F change order; relative to R08 commit 66bed02)
+
+R05_BASELINE, R06_WORK, R07_WORK, R08_WORK and the root handoff files are byte-for-byte unchanged (runner step
+`frozen_r05_r06_r07_r08_unchanged`). The R08 regression (which nests R07 and R06) runs in a scratch copy.
+
+## Hardware (cad/gen/design.py → regenerated KiCad, ERC 0/0)
+- U18 T35F400C3 → **LFE5U-45F-6BG381C** (symbol from the Lattice pinout CSV, 381 balls; KiCad library footprint).
+- Power: U9 retuned to **1.095 V** (82.5k/100k); new **U30 TLV75525P** VCCAUX 2.5 V + FB2 ferrite; U10 → 3V3_FPGA for all
+  VCCIO; **one shared enable** (VCC, VCCIO, VCCAUX together); FPGA_VCC_PG → F133 PD1; **J11** power override for JTAG service;
+  PE0 drives the enable through 1 kΩ.
+- sysCONFIG slave SPI: CFG = 001, 4.7 kΩ on PROGRAMN/INITN/DONE/SN/JTAG, 1 kΩ CCLK pull-up + 33 Ω series, HOLDN pull-up,
+  PROGRAMN via 470 Ω from PE8 (open-drain use), INITN → PD0, DONE → PE9; J5 JTAG (ARM-10 layout, pin 10 = PROGRAMN).
+- **Removed:** U19 W25Q32 configuration flash, U26 74LVC07 + 6 × 1.5 kΩ switched pull-downs, T35 PLL rail, TEST_N/CSI pulls.
+- IRQ, LED, UART moved to bank 0 (hot-socket tolerant); UART RX 1 kΩ series.
+- Net renames T35_* → FPGA_*, CDONE → DONE, CRESET → PROGRAMN (full table: docs/T35_TO_ECP5_DELTA_R85.md).
+
+## FPGA (fpga_ecp5/, replaces fpga/ + Efinity flow)
+- Vendor-neutral top with real tri-states and an ecppll PLL; AJOB v1 job engine (TRANSFORM_BATCH) replacing the loopback;
+  pipelined bit-exact transform on 8 × MULT18X18D; AMBX v3 (perf counters, ABORT).
+- LPF **generated** from the board plan; Yosys/nextpnr-ecp5/ecppack build with report, pinned tool versions and a byte-identical
+  reproducibility check.
+- tb_ecp5_top: R08 suite + 11 AJOB cross-simulation cases + ABORT + CE# stuck injection.
+
+## Firmware
+- New: ecp5_cfg (sysCONFIG loader, container, streaming, probe), fpga_link (AMBX v3), accel_job (AJOB framing),
+  accel_service (P0–P6), board model + 33 failure-injection cases + 6 mutants; diag image S4/S5 ported.
+
+## Analysis / docs
+- Pin matrices (F133 mux, 381-ball map, bank table), margins incl. ECP5 rail budget and PSRAM pad timing, benchmark
+  (ISS + link model) with the HARD STOP finding, delta table, failure-injection table, 45F/85F migration, power,
+  configuration, JTAG and PSRAM dossiers. R08 documents moved to docs/inherited_r08/ (valid except FPGA content).
+
+---
+
 # R08 changelog (relative to R07-draft-1)
 
 R05_BASELINE, R06_WORK, R07_WORK and the root handoff files are byte-for-byte unchanged. The runner verifies this
