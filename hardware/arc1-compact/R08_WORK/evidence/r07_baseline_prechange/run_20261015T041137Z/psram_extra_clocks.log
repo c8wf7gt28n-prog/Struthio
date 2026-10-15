@@ -1,0 +1,18 @@
+$ (cd R07_WORK/fpga/psram_r07 && make extra-clocks OUT=/tmp/arc1_r07_zm1sfbf9/ps)
+iverilog -g2012 -s tb_psram -o /tmp/arc1_r07_zm1sfbf9/ps/c4.vvp -Ptb_psram.MCLK_HZ=66666667 -Ptb_psram.CLK_DIV=1 \
+  -Ptb_psram.UCLK_PS=37037 -Ptb_psram.SEED=23 -Ptb_psram.N_RANDOM=120 -Ptb_psram.CFG='"C4"' \
+  ../../../R06_WORK/fpga/psram/tb/tb_psram.sv ../../../R06_WORK/fpga/psram/tb/aps6404l_model.sv ../../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv
+iverilog -g2012 -s tb_psram -o /tmp/arc1_r07_zm1sfbf9/ps/c5.vvp -Ptb_psram.MCLK_HZ=100000000 -Ptb_psram.CLK_DIV=3 \
+  -Ptb_psram.UCLK_PS=13333 -Ptb_psram.SEED=29 -Ptb_psram.N_RANDOM=120 -Ptb_psram.CFG='"C5"' \
+  ../../../R06_WORK/fpga/psram/tb/tb_psram.sv ../../../R06_WORK/fpga/psram/tb/aps6404l_model.sv ../../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv
+vvp -n /tmp/arc1_r07_zm1sfbf9/ps/c4.vvp > /tmp/arc1_r07_zm1sfbf9/ps/sim_C4.log 2>&1; vvp -n /tmp/arc1_r07_zm1sfbf9/ps/c5.vvp > /tmp/arc1_r07_zm1sfbf9/ps/sim_C5.log 2>&1; \
+  grep -h -E '^(SUMMARY|PSRAM_TB|TB_ERROR|MODEL_VIOLATION|psram_qspi_core)' /tmp/arc1_r07_zm1sfbf9/ps/sim_C4.log /tmp/arc1_r07_zm1sfbf9/ps/sim_C5.log; \
+  grep -q '^PSRAM_TB_PASS cfg=C4$' /tmp/arc1_r07_zm1sfbf9/ps/sim_C4.log && grep -q '^PSRAM_TB_PASS cfg=C5$' /tmp/arc1_r07_zm1sfbf9/ps/sim_C5.log
+SUMMARY cfg=C4 ops=325 compared_bytes=12309 errors=0 model_violations=0 contention=0 xdata=0
+SUMMARY_MODEL ce=649 data_cmds=618 writes=308 reads=310 bytes_w=18040 bytes_r=17913 resets=8 incomplete_cmds=4 page_cross=0 partial_writes=0 max_ce_low_ns=6990.0 min_sclk_period_ns=30.00
+PSRAM_TB_PASS cfg=C4
+SUMMARY cfg=C5 ops=325 compared_bytes=13645 errors=0 model_violations=0 contention=0 xdata=0
+SUMMARY_MODEL ce=1189 data_cmds=1158 writes=593 reads=565 bytes_w=19173 bytes_r=18676 resets=8 incomplete_cmds=5 page_cross=0 partial_writes=0 max_ce_low_ns=7010.0 min_sclk_period_ns=40.00
+PSRAM_TB_PASS cfg=C5
+
+# exit status: 0

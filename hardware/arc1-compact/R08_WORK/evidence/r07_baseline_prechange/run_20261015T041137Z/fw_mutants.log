@@ -1,0 +1,7 @@
+$ (cd R07_WORK/firmware && make mutants OUT=/tmp/arc1_r07_zm1sfbf9/fw)
+MUTANT_KILLED MUTANT_NO_MAP_CHECK (10 failing checks)
+MUTANT_KILLED MUTANT_BIG_ENDIAN (63 failing checks)
+MUTANT_KILLED MUTANT_CFG_WHILE_ACTIVE (3 failing checks)
+MUTANT_KILLED MUTANT_NO_WRAP (4 failing checks)
+
+# exit status: 0

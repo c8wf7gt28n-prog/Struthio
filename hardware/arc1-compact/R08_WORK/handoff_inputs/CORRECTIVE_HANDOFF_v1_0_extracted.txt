@@ -1,0 +1,512 @@
+NOR-FIRST BOOT | SD GAME LIBRARY | USB DEVICE-ONLY | FPGA BUS ISOLATION
+
+Document control: v1.0 • Prepared 15 October 2026 • Audience: Claude
+(R08 electrical / firmware engineer) and R09 PCB integrator
+
+  -----------------------------------------------------------------------
+  OWNER ORDER Modify the R08 work already underway. Do not restart it. Do
+  not silently substitute SD boot for NOR boot. The exact LCD is a
+  separate R09 decision. This document supersedes conflicting older
+  R07/R08 notes on storage, boot priority, USB-host support and display
+  selection.
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+
+[ARC-1 functional architecture: 32 MiB SPI NOR boots the F133 CPU;
+removable microSD supplies games; F133 communicates directly with MN820
+graphics, optional T35 FPGA with 8 MiB PSRAM, and USB0 device/FEL
+recovery.]
+
+Figure 1. Required ownership of boot, games, graphics and diagnostics.
+Functional diagram—not a verified pin-level schematic.
+
+Decision register
+
+  -----------------------------------------------------------------------
+  ID     Owner decision       Engineering meaning
+  ------ -------------------- -------------------------------------------
+  D-01   Onboard 32 MiB (256  Required for the first PCB; exact
+         Mbit) NOR            manufacturer/package pending validation.
+
+  D-02   Boot with no SD      Load startup, graphics drivers and launcher
+         inserted             wholly from NOR.
+
+  D-03   microSD is game      Games, art/music, game configuration and
+         media                saves; absent card is normal.
+
+  D-04   No USB thumb-drive   Retain USB-C power, USB0 device diagnostics
+         host                 and ROM/FEL access.
+
+  D-05   F133 → MN820 direct  Graphics remain operational without an FPGA
+                              bitstream.
+
+  D-06   T35 optional         Retain T35/8 MiB PSRAM, preserve native
+         accelerator          FPGA verification.
+
+  D-07   Exact screen in R09  No premature LCD, FFC footprint or LED
+                              driver freeze.
+  -----------------------------------------------------------------------
+
+1 Why R08 must be interrupted
+
+Adding permanent NOR changes startup pin states, board-level boot
+selection, SPI0 ownership, manufacturing programming and fault recovery.
+These are schematic-level choices; attempting them after R09 routing
+would create avoidable rework. Conversely, selecting an LCD now is
+unnecessary. R08 shall finish the common LVDS/graphics architecture but
+explicitly carry panel-dependent circuitry as an R09 dependency.
+
+2 Verified technical anchors versus open questions
+
+  -----------------------------------------------------------------------
+  Evidence     Supported finding           What is NOT yet proven
+  type                                     
+  ------------ --------------------------- ------------------------------
+  F133 manual  GPIO selection 00 chooses   Whether selected F133-B
+  [S1]         SPI NOR before SPI NAND     samples GPIO or eFuse in its
+               when BOOT_MODE selects      delivered state; board reset
+               GPIO.                       strap design.
+
+  F133 pin mux PC2=SPI0_CLK; PC3=SPI0_CS0; No contention across NOR,
+  [S2]         PC4=SPI0_MOSI/BOOT-SEL0;    FPGA, reset, flash power state
+               PC5=SPI0_MISO/BOOT-SEL1;    and strap sampling.
+               PC6/7=SPI0_WP/HOLD.         
+
+  Winbond      W25Q256JV family: 256 Mbit, Boot-ROM support of chosen
+  [S3,S4]      3.3 V class, 3/4-byte       exact part, 4-byte access by
+               addressing.                 loaded software,
+                                           stock/lifecycle.
+
+  Allwinner    USB FEL is a boot-ROM       Exact accessible forced-FEL
+  FEL [S1,S5]  concept; USB0 is the F133   condition, recovery tool flow
+               dual-role physical          and blank-board programming.
+               interface.                  
+
+  Bridgetek    MN820 integrates BT820B and Any panel-specific connection
+  [S6]         1 Gbit (128 MiB) DDR3L, 3.3 or final backlight design.
+               V module input.             
+
+  Efinix [S7]  T35 needs validated         Completed native
+               supplies, reset, pin        placement/timing/bitstream and
+               constraints, FPGA           proven no-drive power-up
+               configuration.              behavior.
+  -----------------------------------------------------------------------
+
+3 Non-negotiable power-on behavior
+
+1.  Normal, SD absent: Cold power-on reads NOR, initializes system RAM,
+    talks directly to MN820, and reaches an empty-library launcher. No
+    FPGA configuration is necessary.
+
+2.  Normal, SD present: The same NOR system starts first; subsequent
+    card detection/mount reads available game packages. A game card
+    shall not replace system firmware.
+
+3.  NOR blank or corrupt: A user-accessible independent ROM/FEL
+    programming route allows diagnosis and reprogramming without
+    executing NOR-resident code.
+
+4.  T35 failed or unconfigured: Boot, graphics and USB recovery remain
+    possible, provided the defective FPGA is non-driving on any shared
+    bus.
+
+5.  SD removed during gameplay: Stop new card I/O and return to the
+    launcher safely where possible; reject incomplete saves rather than
+    corrupting data silently.
+
+4 F133 boot ROM, SPI0 and boot straps — blocking design issue
+
+The F133 manual describes both GPIO and eFuse boot-source selection.
+Under GPIO selection, BOOT-SEL[1:0]=00 prioritizes SPI NOR. The previous
+11 strap concept targeted SD/eMMC and must not remain unquestioned.
+PC4/PC5 are shared between boot selection and SPI0 data; the strap
+network must reliably establish boot priority at reset while permitting
+subsequent SPI signaling. [S1,S2]
+
+  ------------------------------------------------------------------------
+  Pin   Multiplexed        R08 mandatory review
+        function           
+  ----- ------------------ -----------------------------------------------
+  PC2   SPI0 clock         F133-to-NOR wiring, signal integrity, FPGA
+                           clock input isolation.
+
+  PC3   SPI0 chip select 0 NOR CS# selection during BROM; no second slave
+                           active at reset.
+
+  PC4   SPI0 MOSI /        Correct low strap at sampling; inspect
+        BOOT-SEL0          flash/FPGA leakage and pull conflicts.
+
+  PC5   SPI0 MISO /        Correct low strap at sampling; ensure NOR and
+        BOOT-SEL1          T35 cannot drive at sample time.
+
+  PC6   SPI0 WP#/IO2       Check quad-mode requirements and reset pull; no
+                           unintended output.
+
+  PC7   SPI0 HOLD#/IO3     Check quad-mode requirements and reset pull; no
+                           unintended output.
+  ------------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  HARD GATE Do not declare NOR boot valid from a GPIO table alone.
+  Provide the verified CPU boot-source selection method, logic
+  levels/timing, resistor values, exact SPI net ownership and a boot-time
+  state table. If FPGA communication must move or require hardware
+  isolation, correct it in R08.
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+
+4.1 Bus-ownership state matrix
+
+  --------------------------------------------------------------------------
+  Phase         F133 SPI0        NOR              T35 / other shared nodes
+  ------------- ---------------- ---------------- --------------------------
+  Power ramp    Reset /          CS# held         Held in reset; verify safe
+                uncontrolled     inactive; supply I/O, no back-power.
+                until POR        stable           
+
+  Strap         PC4/PC5 sampled  MISO must not    No active driver or
+  sampling      for boot         overpower strap  opposing pull on sampled
+                                                  pins.
+
+  BROM read     Only intended    Selected and     CS deasserted and I/O
+                master           readable; safe   inputs; no bus contention.
+                                 opcode/address   
+
+  Application   NOR flash access Valid            May communicate on
+                as needed        nonvolatile      qualified CS, with
+                                 image            reset/enable sequencing.
+
+  USB FEL       Host recovery    May be           Must stay disabled or
+                independent of   blank/corrupt    electrically
+                firmware                          noninterfering.
+  --------------------------------------------------------------------------
+
+The T35 reset assertion alone is not accepted as proof of all pad
+states. Check the exact T35F400C3 package, I/O bank supplies and Efinix
+pin-state tables under reset, unconfigured and configured states.
+Consider explicit output-enable gating when required. The same applies
+to unpowered FPGA back-feed through SPI signals. [S7]
+
+5 Mandatory 32 MiB NOR: capacity, addressing, component qualification
+
+Owner storage target = 32 MiB = 256 Mbit = 33,554,432 bytes. W25Q256JV
+is a reference family, not a frozen BOM line. A particular Winbond
+variant can be marked “not recommended for new designs”; select by an
+exact orderable suffix, not the generic W25Q256JV label. Winbond parts
+at this density may power up in 3-byte address mode and need
+extended-address handling above the first 16 MiB. [S3,S4]
+
+-   Boot0 / boot-ROM prefix — Show exact offset, ROM-recognized
+    image/header, read opcode, address width, size bound, power-up
+    address mode and valid first-stage load path. Keep ROM-required
+    startup data in the reachable low-address region.
+
+-   Full device addressing — Prove how the loaded driver addresses the
+    second 16 MiB (0x01000000 and above). Include JEDEC/SFDP detection,
+    4-byte instructions or bank-register strategy and reset-mode safety.
+
+-   Image-size ledger — Measure the actual boot, system, graphics/audio
+    drivers, launcher, FPGA diagnostic resources, recovery and update
+    images. Do not silently assume Linux fits in 32 MiB or 64 MiB system
+    RAM.
+
+-   Programming and lifecycle — Provide first-assembly programming (FEL
+    or external programming fixture), update/rollback or recoverable
+    update strategy, verify/readback, write-protect and status-bit
+    configuration.
+
+-   Parts and footprint — Choose exact P/N, package, vendor status,
+    voltage, JEDEC ID, QE/reset options, sourcing and JLCPCB assembly
+    feasibility. SOIC16 vs WSON8 vs BGA has different diagnostic
+    tradeoffs.
+
+5.1 Illustrative flash budget — allocate after measuring real binaries
+
+  ---------------------------------------------------------------------------
+  Partition concept           Illustrative   Engineering restriction
+                              MiB            
+  --------------------------- -------------- --------------------------------
+  Boot image + redundant      2              Boot-ROM layout dictates actual
+  metadata                                   placement; avoid single point of
+                                             power-fail corruption.
+
+  Primary system image        9              Measured binary + manifest;
+                                             launcher and drivers remain
+                                             self-contained.
+
+  Secondary update slot       9              Use only if measured images fit;
+                                             otherwise document alternative.
+
+  Minimal recovery image      4              Recovery must not be required to
+                                             enter USB ROM/FEL.
+
+  Built-in assets / FPGA      4              Only boot-critical assets. Game
+  fallback                                   data stays on microSD.
+
+  Settings, integrity journal 1              Wear leveling / redundant
+                                             sectors, power-failure-safe
+                                             metadata.
+
+  Spare / growth              3              Subject to approved flash layout
+                                             and erase-block geometry.
+
+  TOTAL                       32             Example arithmetic only; NOT a
+                                             mandated partition map.
+  ---------------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  ADDRESSING TRAP 24-bit addresses cover only 16 MiB. A 32 MiB device
+  requires explicit planning for how later firmware reaches the upper
+  half. A successful first boot from offset zero does not validate the
+  whole flash device.
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+
+6 USB-C: power sink and diagnostic device, not thumb-drive host
+
+Remove USB mass-storage HOST requirements, USB VBUS sourcing to
+accessories and host-only protection/power-switch paths. Do not remove
+the CPU’s USB0 device data connection or the ability to enter ROM/FEL.
+The F133 documentation distinguishes USB0 dual-role from USB1 host.
+[S1,S2]
+
+  -----------------------------------------------------------------------
+  Preserve                           Remove or defer
+  ---------------------------------- ------------------------------------
+  USB-C 5 V sink path, CC1/CC2 sink  USB-A receptacles and flash-drive
+  termination / safe current budget  enumeration
+
+  F133 USB0 D+/D− with ESD, approved USB host VBUS boost/current switch
+  routing and connector              for flash drives
+
+  Unbooted-board FEL entry, reset    USB keyboard, HID host and wired
+  access, PC-side flashing tools     game-networking requirements
+
+  USB debug service when firmware is Any promise of laptop-port full-load
+  running                            power without current analysis
+
+  Optional battery charging only if  Unneeded USB PD / display-alt-mode
+  battery adopted                    complexity
+  -----------------------------------------------------------------------
+
+Require a specific recovery procedure: power from a safe source, hold a
+documented force-FEL action, assert/release reset, observe USB ROM
+enumeration, upload a small SRAM stub and program/verify NOR. Board
+provisions must support this even with NOR erased. USB Type-C CC
+implementation, allowable sink current, backfeed prevention and
+battery/USB power-path arbitration require review. Generic sunxi FEL
+guidance is not a substitute for proving the exact F133 boot entry and
+package signal. [S1,S5]
+
+7 microSD: removable games, not system boot
+
+Use the F133-supported SD host interface with verified mux and signal
+voltage. Card detect, ESD, power switching where needed,
+insertion/removal signaling, filesystem and write-safe saves must be
+documented. An empty card slot is a normal startup condition. A
+malicious/corrupted game package should not prevent the NOR launcher
+from booting.
+
+-   Media interface proof — Map SMHC pins, DAT0–DAT3, CLK, CMD, detect,
+    VDD, pull resistors, I/O levels and power sequence. Avoid reusing
+    conflicting SPI0/boot pins.
+
+-   Runtime behavior — Scan a versioned game manifest; reject invalid
+    packages; distinguish card absence, corruption and unsupported
+    format; journal or atomic-rename saves where suitable.
+
+-   Test matrix — Boot with no card, empty card, valid games, faulty
+    filesystem, insertion during launcher, removal during save, sudden
+    power loss.
+
+8 Preserve graphics, FPGA, PSRAM, audio and power architecture
+
+  -----------------------------------------------------------------------
+  System       Locked direction        R08 validation focus
+  ------------ ----------------------- ----------------------------------
+  F133-B       64 MiB in-package DDR2; Pin mux, NOR boot stages, SDRAM
+               CPU runs game/system    startup, UART log and watchdog.
+               firmware                
+
+  MN820 /      F133-to-BT820 direct    CPU SPI1 connectivity, module 3.3
+  BT820B       SPI path; 128 MiB       V input direction, reset,
+               on-module DDR3L         interrupt, logic thresholds.
+
+  T35F400C3    Optional hardware       Native Efinity project, legal
+               accelerator             banks/pin map, configuration
+                                       delivery, reset/tri-state.
+
+  8 MiB QSPI   T35 local working-data  VDD, boot-time CE#, CLK/IO idle
+  PSRAM        memory                  levels, clock/IO routing and
+                                       timing.
+
+  Two          F133 digital stereo     F133 pin mux, channel-select
+  MAX98357A    through two I²S         straps, 2.5–5.5 V supplies,
+               amplifiers              speaker connector.
+
+  Power        USB-C sink; battery if  Rail sequencing, 3.3 V/1.x V
+               adopted                 domains, reset supervision,
+                                       worst-case demand.
+  -----------------------------------------------------------------------
+
+MN820 integrates BT820B plus its own 1 Gbit DDR3L and accepts 3.3 V
+module input; never presume a module pin is a safe output or input
+without its exact pin table. MAX98357A supports I²S stereo channel
+selection when two parts are used. [S6,S8]
+
+8.1 Scope boundary for display
+
+  -----------------------------------------------------------------------
+  R09-DEPENDENT R08 shall preserve MN820 LVDS differential output
+  mapping, the physical module connector, safe related GPIO/control
+  assignments and a power/backlight allowance. R08 shall NOT freeze panel
+  model, pixel clock, FFC footprint, pinout, bezel, LCD supply or
+  backlight driver. R09 must revise the schematic/ERC after panel
+  selection and BEFORE PCB routing is called finished.
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+
+9 R08 evidence hierarchy and debug gates
+
+  ---------------------------------------------------------------------------
+  Gate            Required evidence                     Failure response
+  --------------- ------------------------------------- ---------------------
+  G0 Owner        Decision log reflects all seven       Stop: rework spec.
+  alignment       decisions and explicit LCD deferral.  
+
+  G1 Boot         Documented boot select/eFuse source,  Stop: NOR/FPGA
+  electrical      straps, reset net, NOR nets, pin mux. conflict unresolved.
+
+  G2 Chip         Exact flash vendor P/N, geometry,     Stop: unsupported
+  qualification   voltage, address-mode strategy,       boot/RAM budget.
+                  sourcing.                             
+
+  G3 Recovery     Hardware path for USB0/FEL plus       Stop: no reliable
+  proof           blank-NOR PC host procedure.          unbooted programming.
+
+  G4 Native CAD   KiCad .kicad_sch and actual           Do not substitute
+                  ERC/netlist; reference/footprint      PDFs/notes.
+                  check.                                
+
+  G5 FPGA native  Efinity constraints,                  Label unverified; do
+                  synth/place-route/timing report or    not claim 100%
+                  explicit blocker.                     success.
+
+  G6 Firmware     Compile/run test harness, manifest,   No physical-boot
+                  negative tests; tests labeled         claims.
+                  simulation.                           
+
+  G7 Power /      Worst-case rail budget, USB sink,     R09 prerequisite /
+  assembly        power sequence, part availability.    blocker as
+                                                        appropriate.
+
+  G8 R09 intake   Open issues with owner, due revision, No
+                  exact next validation.                “fabrication-ready”
+                                                        verdict.
+  ---------------------------------------------------------------------------
+
+Evidence categories must be kept distinct: (A) manufacturer-published
+facts, (B) electrical calculations, (C) native CAD/EDA tool reports, (D)
+software simulation and (E) actual physical hardware observations. R08
+can provide A–D. No one has yet performed E on an ARC-1 production PCB.
+
+10 Required R08 deliverables to hand to R09
+
+6.  Engineering change summary: Exact old-to-new schematic net,
+    component and code changes; preserved work; removed USB host and
+    SD-boot assumptions.
+
+7.  Native schematics: KiCad source, plot PDFs, ERC output, netlist, pin
+    table and all references/footprints with version-control commit.
+
+8.  Boot trace dossier: Cold-start state diagram; BOOT_MODE/eFuse
+    evidence; resistor/CS math; NOR first 16 MiB access; selected flash
+    ID and configuration.
+
+9.  Flash image dossier: Measured firmware image sizes, boot0 offsets,
+    lower/upper half tests, full capacity tests, boot fallback/update
+    scheme.
+
+10. Recovery dossier: F133 USB0 and FEL entry path, connector hardware,
+    PC commands and first-board NOR flashing/readback procedure.
+
+11. FPGA dossier: Verilog, native Efinity version/license, pin-bank
+    constraints, psram controller proof, timing/bitstream or explicit
+    blockers.
+
+12. Power/audio dossier: Named rails, current and sequencing budget, 2x
+    amp I²S proof, USB battery/charging decisions, test points.
+
+13. R09 open-issues manifest: LCD/panel/connector/backlight,
+    enclosure/PCB outline, final SI/power layout, verified purchasing
+    and any unresolved electrical risks.
+
+11 R08 completion is NOT manufacturing approval
+
+R08 completion means the core electrical architecture is internally
+consistent, represented in native engineering sources, and thoroughly
+checked to the extent possible without hardware. It does not mean a
+board has been routed, fabricated, powered or successfully booted. R09
+will select LCD and mechanical constraints and route the PCB; R10 should
+independently audit the final design before a first JLCPCB order.
+
+12 Paste-ready instruction for Claude (owner-authoritative)
+
+  Integrate this attached ARC-1 COMPACT R08 Corrective Engineering
+  Handoff v1.0 into the R08 project already underway. Do not restart
+  completed valid work. Mandatory: soldered 32 MiB SPI NOR and
+  NOR-independent boot (even with SD absent); verify F133 GPIO/eFuse
+  boot selection and SPI0/PC4–PC5 FPGA contention; select an exact
+  supportable flash and handle 24/32-bit addressing; preserve
+  independent USB0/FEL entry and first-assembly reflash; microSD for
+  games/assets/saves only; remove USB thumb-drive HOST support; retain
+  direct F133→MN820 graphics, optional T35 with 8 MiB PSRAM, and stereo
+  I²S amplifiers. The exact LCD, screen connector and backlight circuit
+  are postponed until R09, and must remain explicitly open. Deliver
+  updated native KiCad/firmware/FPGA sources, pin maps, boot-state
+  table, recovery procedure, source-backed electrical evidence and clear
+  unresolved blockers. Never call this a completed or fabrication-ready
+  PCB without native evidence. Stop and ask if any of these requirements
+  are electrically impossible.
+
+13 Source register (primary sources preferred)
+
+[S1] Allwinner F133 User Manual, Rev 1.0, §3.4 BROM, pp. 144–150.
+https://www.mangopi.org/_media/f133_user_manual_v1.0.pdf
+
+[S2] Allwinner F133 Datasheet, pin multiplexing and USB0/USB1
+distinction.
+https://bbs.aw-ol.com/assets/uploads/files/1639798962951-f133_datasheet_v1.0_whycan.pdf
+
+[S3] Winbond W25Q256JV SPI datasheet, 256 Mbit address modes,
+instruction set, JEDEC, power. Manufacturer documentation.
+https://www.winbond.com/hq/support/documentation/?__locale=en&category=%2F.categories%2Fresources%2Fdatasheet%2F&family=%2Fproduct%2Fcode-storage-flash%2Fqspi-nor%2Findex.html&line=%2Fproduct%2Fcode-storage-flash%2Findex.html&pno=W25Q256JV
+
+[S4] Winbond exact-variant product status; W25Q256JVEIQ has N=new-design
+status caution.
+https://www.winbond.com/hq/product/code-storage-flash/qspi-nor/w25q-jv/?__locale=en&partNo=W25Q256JVEIQ
+
+[S5] U-Boot sunxi documentation: USB OTG FEL recovery concepts, PC
+enumeration, tools.
+https://docs.u-boot.org/en/latest/board/allwinner/sunxi.html
+
+[S6] Bridgetek MN820 product page and DS_MN820 Rev 1.0.
+https://brtchip.com/product/mn820/
+
+[S7] Efinix Trion documentation center; T35 Data Sheet v3.6 latest
+listed, pin/configuration reference.
+https://www.efinixinc.com/support/docs.php?p=t
+
+[S8] Analog Devices MAX98357A production I²S class-D amplifier
+specifications.
+https://www.analog.com/en/products/max98357a.html
+
+Sources accessed during the preparation of this handoff on 15 October
+2026. Source-document availability and vendor revisions must be
+reconfirmed before component ordering. This document is a controlled
+engineering instruction, not proof that the referenced PCB has been
+electrically or physically validated.

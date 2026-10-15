@@ -1,0 +1,37 @@
+$ (cd R07_WORK/f133_boot && make OUT=/tmp/arc1_r07_zm1sfbf9/img2)
+mkdir -p /tmp/arc1_r07_zm1sfbf9/img2
+riscv64-unknown-elf-gcc -march=rv64imac_zicsr -mabi=lp64 -mcmodel=medany -Os -ffreestanding -fno-builtin -nostdlib -fno-pic -std=c11 -Wall -Wextra -Werror -Wconversion -I. -Ishim -I../firmware/include -T link.ld -Wl,--gc-sections -Wl,-Map=/tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.map start.S main.c ../firmware/src/bt820_host.c ../firmware/src/bt820_gfx.c -lgcc -o /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf
+/usr/lib/gcc/riscv64-unknown-elf/13.2.0/../../../riscv64-unknown-elf/bin/ld: warning: /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf has a LOAD segment with RWX permissions
+riscv64-unknown-elf-objcopy -O binary /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.bin
+mkimage -T sunxi_egon -A riscv -d /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.bin /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.egon
+Allwinner eGON image, size: 8192 bytes
+	SPL header version 0.1
+riscv64-unknown-elf-size /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf
+   text	   data	    bss	    dec	    hex	filename
+   5836	      0	    112	   5948	   173c	/tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf
+riscv64-unknown-elf-objdump -d /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf | sed -n '1,12p'
+
+/tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf:     file format elf64-littleriscv
+
+
+Disassembly of section .text:
+
+0000000000020060 <_start>:
+   20060:	00008117          	auipc	sp,0x8
+   20064:	fa010113          	addi	sp,sp,-96 # 28000 <__stack_top>
+   20068:	00001297          	auipc	t0,0x1
+   2006c:	6c828293          	addi	t0,t0,1736 # 21730 <g_dev>
+   20070:	00001317          	auipc	t1,0x1
+python3 -I egon_check.py /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.egon
+PASS riscv_jal: word0 0x0600006f -> jal +0x60
+PASS magic: b'eGON.BT0'
+PASS length: header 8192, file 8192
+PASS checksum: stored 0xca5a5f2f
+PASS fits_sram_a1: 5933 bytes used of 32768
+EGON_OK
+sha256sum /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.egon /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf
+9467622f754a97acf36c29df51c3d6b6ade9f697a9f58f80ddc4c05cd8532b0b  /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.egon
+577797804b89a3a070284a39dd2a6d3c3be3eedd005fcfbfeb993535d8a44b61  /tmp/arc1_r07_zm1sfbf9/img2/arc1_r07_f133.elf
+SD card placement: dd if=arc1_r07_f133.egon of=/dev/sdX bs=1024 seek=8  (sector 16, 8 KiB offset)
+
+# exit status: 0

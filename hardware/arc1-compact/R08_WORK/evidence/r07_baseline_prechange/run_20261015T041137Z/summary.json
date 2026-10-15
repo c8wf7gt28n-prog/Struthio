@@ -1,0 +1,265 @@
+{
+ "schema_id": "arc1-r07-check-summary-v1",
+ "utc": "20261015T041137Z",
+ "tool_versions": {
+  "python": "3.13.16",
+  "cc": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "riscv64-unknown-elf-gcc": "riscv64-unknown-elf-gcc (13.2.0-11ubuntu1+12) 13.2.0",
+  "mkimage": "mkimage version 2025.10",
+  "iverilog": "Icarus Verilog version 12.0 (stable) ()",
+  "verilator": "Verilator 5.020 2024-01-01 rev (Debian 5.020-1)",
+  "yosys": "Yosys 0.33 (git sha1 2584903a060)",
+  "make": "GNU Make 4.3",
+  "efx_run": "NOT_FOUND"
+ },
+ "runner_sha256": "f48b71552448f809820c0e00b2b54e5498d8ab2470be4c6b706329667f96b49f",
+ "overall": "PASS_R07_HOST_RTL_PLANNING_BUILD_CHECKS",
+ "failed_steps": [],
+ "not_run": [
+  "r06_regression_full",
+  "efinity_native",
+  "f133_on_silicon",
+  "bt820_on_silicon",
+  "psram_on_silicon",
+  "electrical_pcb_jlcpcb",
+  "f133_user_manual"
+ ],
+ "steps": [
+  {
+   "step": "handoff_integrity",
+   "status": "PASS",
+   "label": "HOST-TESTED",
+   "detail": "141 manifest entries verified, changed: []"
+  },
+  {
+   "step": "r06_regression_full",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "--skip-r06 given"
+  },
+  {
+   "step": "fw_test",
+   "status": "PASS",
+   "label": "HOST-TESTED",
+   "exit": 0,
+   "seconds": 1.5,
+   "command": [
+    "make",
+    "test",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/fw"
+   ],
+   "cwd": "R07_WORK/firmware",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/fw_test.log"
+  },
+  {
+   "step": "fw_sanitize",
+   "status": "PASS",
+   "label": "HOST-TESTED (ASan+UBSan)",
+   "exit": 0,
+   "seconds": 2.2,
+   "command": [
+    "make",
+    "sanitize",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/fw"
+   ],
+   "cwd": "R07_WORK/firmware",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/fw_sanitize.log"
+  },
+  {
+   "step": "fw_freestanding",
+   "status": "PASS",
+   "label": "HOST-TESTED (compile)",
+   "exit": 0,
+   "seconds": 0.3,
+   "command": [
+    "make",
+    "freestanding",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/fw"
+   ],
+   "cwd": "R07_WORK/firmware",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/fw_freestanding.log"
+  },
+  {
+   "step": "fw_mutants",
+   "status": "PASS",
+   "label": "HOST-TESTED (mutation)",
+   "exit": 0,
+   "seconds": 2.7,
+   "command": [
+    "make",
+    "mutants",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/fw"
+   ],
+   "cwd": "R07_WORK/firmware",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/fw_mutants.log"
+  },
+  {
+   "step": "fw_r06_defect_probe",
+   "status": "PASS",
+   "label": "HOST-TESTED (regression probe)",
+   "exit": 0,
+   "seconds": 0.3,
+   "command": [
+    "make",
+    "r06-probe",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/fw"
+   ],
+   "cwd": "R07_WORK/firmware",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/fw_r06_defect_probe.log"
+  },
+  {
+   "step": "board_unit_tests",
+   "status": "PASS",
+   "label": "HOST-TESTED",
+   "exit": 0,
+   "seconds": 0.1,
+   "command": [
+    "/usr/bin/python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-v"
+   ],
+   "cwd": "R07_WORK/board",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/board_unit_tests.log"
+  },
+  {
+   "step": "board_plan_check",
+   "status": "PASS",
+   "label": "PLANNING-CALCULATED",
+   "exit": 0,
+   "seconds": 0.0,
+   "command": [
+    "/usr/bin/python3",
+    "check_board_plan.py",
+    "--report",
+    "/home/user/Struthio/hardware/arc1-compact/R07_WORK/evidence/run_20261015T041137Z/board_check_report.json",
+    "--pinmap",
+    "/home/user/Struthio/hardware/arc1-compact/R07_WORK/board/PIN_MAP_R07.md"
+   ],
+   "cwd": "R07_WORK/board",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/board_plan_check.log"
+  },
+  {
+   "step": "psram_power_io",
+   "status": "PASS",
+   "label": "PLANNING-CALCULATED",
+   "exit": 0,
+   "seconds": 0.0,
+   "command": [
+    "/usr/bin/python3",
+    "psram_power_io.py",
+    "--json",
+    "/home/user/Struthio/hardware/arc1-compact/R07_WORK/evidence/run_20261015T041137Z/psram_power_io.json"
+   ],
+   "cwd": "R07_WORK/analysis",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/psram_power_io.log"
+  },
+  {
+   "step": "psram_r07_scenarios",
+   "status": "PASS",
+   "label": "RTL-SIMULATED",
+   "exit": 0,
+   "seconds": 23.0,
+   "command": [
+    "make",
+    "r07",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/ps"
+   ],
+   "cwd": "R07_WORK/fpga/psram_r07",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/psram_r07_scenarios.log"
+  },
+  {
+   "step": "psram_extra_clocks",
+   "status": "PASS",
+   "label": "RTL-SIMULATED",
+   "exit": 0,
+   "seconds": 40.1,
+   "command": [
+    "make",
+    "extra-clocks",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/ps"
+   ],
+   "cwd": "R07_WORK/fpga/psram_r07",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/psram_extra_clocks.log"
+  },
+  {
+   "step": "f133_image_build",
+   "status": "PASS",
+   "label": "BUILD-ONLY",
+   "exit": 0,
+   "seconds": 7.8,
+   "command": [
+    "make",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/img1"
+   ],
+   "cwd": "R07_WORK/f133_boot",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/f133_image_build.log"
+  },
+  {
+   "step": "f133_image_rebuild",
+   "status": "PASS",
+   "label": "BUILD-ONLY",
+   "exit": 0,
+   "seconds": 0.3,
+   "command": [
+    "make",
+    "OUT=/tmp/arc1_r07_zm1sfbf9/img2"
+   ],
+   "cwd": "R07_WORK/f133_boot",
+   "log": "R07_WORK/evidence/run_20261015T041137Z/f133_image_rebuild.log"
+  },
+  {
+   "step": "f133_image_reproducible",
+   "status": "PASS",
+   "label": "BUILD-ONLY",
+   "detail": "sha256 9467622f754a97acf36c29df51c3d6b6ade9f697a9f58f80ddc4c05cd8532b0b / 9467622f754a97acf36c29df51c3d6b6ade9f697a9f58f80ddc4c05cd8532b0b"
+  },
+  {
+   "step": "evidence_ledger_schema",
+   "status": "PASS",
+   "label": "HOST-TESTED",
+   "detail": "20 entries; invalid []; duplicate ids []"
+  },
+  {
+   "step": "efinity_native",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "efx_run.py not found: NATIVE_EDA_NOT_RUN (no T35 fit/STA/bitstream)"
+  },
+  {
+   "step": "f133_on_silicon",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "image never executed; no board"
+  },
+  {
+   "step": "bt820_on_silicon",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "no MN820/VM820C attached: REG_ID, FIFO and display unproven"
+  },
+  {
+   "step": "psram_on_silicon",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "no T35/PSRAM board"
+  },
+  {
+   "step": "electrical_pcb_jlcpcb",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "no schematic/PCB/SI/DFM; fabrication NOT approved"
+  },
+  {
+   "step": "f133_user_manual",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "mangopi.org mirror TLS certificate expired; not bypassed; D1-H UM used"
+  }
+ ],
+ "source_files": 53,
+ "disclaimer": "No native EDA, no hardware, no electrical measurement. Fabrication is NOT approved."
+}

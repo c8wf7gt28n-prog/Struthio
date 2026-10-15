@@ -1,0 +1,22 @@
+TB_CONFIG cfg=C5 MCLK_HZ=100000000 CLK_DIV=3 SCLK_HZ=16666666 UCLK_NS=13.333 TCEM_NS=8000 BUF=256
+INFO ready_at_ns=154213.6 resets=1 id_reads=1
+TEST T1_reset_readiness done t=154213594 errors=0 violations=0 contention=0
+TEST T2_data_bit_walk done t=170101838 errors=0 violations=0 contention=0
+TEST T3_address_walk done t=280814040 errors=0 violations=0 contention=0
+TEST T5_first_last done t=458089570 errors=0 violations=0 contention=0
+TEST T6_page_boundaries done t=670326848 errors=0 violations=0 contention=0
+INFO seq_write bytes=8192 ns=1245582.3 MBps_sim=6.577
+INFO seq_read bytes=8192 ns=1435525.1 MBps_sim=5.707
+TEST T7_sequential_bursts done t=3351434230 errors=0 violations=0 contention=0
+TEST T8_invalid_requests done t=3351594238 errors=0 violations=0 contention=0
+TEST T14_read_after_write done t=3375088746 errors=0 violations=0 contention=0
+TEST T4_random done t=6149467458 errors=0 violations=0 contention=0
+INFO reset_in_transfer status=4
+TEST T10_reset_in_transfer done t=6454776056 errors=0 violations=0 contention=0
+TEST T11_id_error_recovery done t=6485284248 errors=0 violations=0 contention=0
+TEST T12_watchdog_recovery done t=6594183026 errors=0 violations=0 contention=0
+TEST T13_user_timeout done t=7015297414 errors=0 violations=0 contention=0
+SUMMARY cfg=C5 ops=325 compared_bytes=13645 errors=0 model_violations=0 contention=0 xdata=0
+SUMMARY_MODEL ce=1189 data_cmds=1158 writes=593 reads=565 bytes_w=19173 bytes_r=18676 resets=8 incomplete_cmds=5 page_cross=0 partial_writes=0 max_ce_low_ns=7010.0 min_sclk_period_ns=40.00
+PSRAM_TB_PASS cfg=C5
+../../../R06_WORK/fpga/psram/tb/tb_psram.sv:387: $finish called at 7017297414 (1ps)
