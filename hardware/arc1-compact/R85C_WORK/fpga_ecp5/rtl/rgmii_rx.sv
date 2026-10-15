@@ -39,51 +39,69 @@ module rgmii_rx (
         end
     endfunction
 
+    // 125 MHz structure (R8.5-C timing): small header counter, separate payload counter, flags precomputed
+    // during the frame, end-of-frame verdict one clock after DV falls (state DECIDE).
+    localparam [2:0] IDLE = 3'd0, PRE = 3'd1, DATA = 3'd2, WAITDV = 3'd3, DECIDE = 3'd4;
     reg [2:0]  rel_s;
     reg        own;                   // buffer holds an accepted frame not yet released by sys
     reg        skip;                  // this frame started while the buffer was owned: drop it whole
-    reg [1:0]  st;                    // 0 idle, 1 preamble, 2 frame, 3 wait for DV low
-    reg [15:0] idx;                   // byte index after SFD
+    reg [2:0]  st;
+    reg [4:0]  hcnt;                  // header bytes seen (0..16, saturating)
+    reg [13:0] dcnt;                  // bytes after the 16-byte header (payload + pad + FCS), saturating
     reg [31:0] crc;
-    reg        bad;
-    reg [15:0] type_, len;
+    reg        bad, type_ok, len_ok;
+    reg [15:0] len;
+    reg [14:0] need;                  // len + 4 (payload + FCS must fit in the frame)
     reg [47:0] src;
-    initial begin st = 2'd0; frame_tgl = 1'b0; own = 1'b0; rel_s = 3'b000; cnt_ok = 0; cnt_crc = 0; cnt_drop = 0; cnt_other = 0; buf_we = 1'b0; end
+    reg        e_crc, e_len;
+    initial begin st = IDLE; frame_tgl = 1'b0; own = 1'b0; rel_s = 3'b000; cnt_ok = 0; cnt_crc = 0; cnt_drop = 0; cnt_other = 0; buf_we = 1'b0; end
     always @(posedge rxc) begin
         rel_s <= {rel_s[1:0], release_tgl};
         if (rel_s[2] != rel_s[1]) own <= 1'b0;
         buf_we <= 1'b0;
         case (st)
-        2'd0: if (dv) begin
-                  st <= (b == 8'hD5) ? 2'd2 : 2'd1;
-                  idx <= 16'd0; crc <= 32'hFFFFFFFF; bad <= er; skip <= own;
-              end
-        2'd1: if (!dv) st <= 2'd0;
-              else if (b == 8'hD5) begin st <= 2'd2; idx <= 16'd0; crc <= 32'hFFFFFFFF; bad <= er; skip <= own; end
-              else if (b != 8'h55) st <= 2'd3;
-        2'd2: if (dv) begin
+        IDLE, PRE: begin
+            if (!dv) st <= IDLE;
+            else if (b == 8'hD5) begin
+                st <= DATA; hcnt <= 5'd0; dcnt <= 14'd0; crc <= 32'hFFFFFFFF; bad <= er; skip <= own;
+            end else if (b == 8'h55) st <= PRE;
+            else st <= WAITDV;
+        end
+        DATA: if (dv) begin
                   crc <= crc8(crc, b);
                   if (er) bad <= 1'b1;
-                  if (idx >= 16'd6 && idx < 16'd12) src <= {src[39:0], b};
-                  if (idx == 16'd12) type_[15:8] <= b;
-                  if (idx == 16'd13) type_[7:0] <= b;
-                  if (idx == 16'd14) len[7:0] <= b;
-                  if (idx == 16'd15) len[15:8] <= b;
-                  if (idx >= 16'd16 && idx < 16'd16 + 16'd8192 && !skip) begin
-                      buf_we <= 1'b1; buf_waddr <= idx[12:0] - 13'd16; buf_wdata <= b;
+                  if (!hcnt[4]) begin
+                      hcnt <= hcnt + 5'd1;
+                      case (hcnt[3:0])
+                      4'd6, 4'd7, 4'd8, 4'd9, 4'd10, 4'd11: src <= {src[39:0], b};
+                      4'd12: type_ok <= (b == 8'h88);
+                      4'd13: type_ok <= type_ok & (b == 8'hB5);
+                      4'd14: len[7:0] <= b;
+                      default: len[15:8] <= b;                    // 15
+                      endcase
+                  end else begin
+                      if (dcnt == 14'd0) begin
+                          need   <= {1'b0, len[13:0]} + 15'd4;
+                          len_ok <= (len[15:13] == 3'b000) || (len == 16'h2000);
+                      end
+                      if (!dcnt[13] && !skip) begin buf_we <= 1'b1; buf_waddr <= dcnt[12:0]; buf_wdata <= b; end
+                      if (dcnt != 14'h3FFF) dcnt <= dcnt + 14'd1;
                   end
-                  if (idx != 16'hFFFF) idx <= idx + 16'd1;
-              end else begin                                   // end of frame
-                  st <= 2'd0;
-                  if (crc != 32'hDEBB20E3) cnt_crc <= cnt_crc + 16'd1;
-                  else if (bad || type_ != 16'h88B5 || idx < 16'd20 || len > 16'd8192 || {len + 16'd20} > idx)
-                      cnt_other <= cnt_other + 16'd1;
-                  else if (skip) cnt_drop <= cnt_drop + 16'd1;
-                  else begin
-                      frame_len <= len; src_mac <= src; frame_tgl <= ~frame_tgl; cnt_ok <= cnt_ok + 16'd1; own <= 1'b1;
-                  end
+              end else begin
+                  st <= DECIDE;
+                  e_crc <= (crc == 32'hDEBB20E3);
+                  e_len <= hcnt[4] && (need <= {1'b0, dcnt});
               end
-        default: if (!dv) st <= 2'd0;
+        DECIDE: begin
+            st <= dv ? WAITDV : IDLE;
+            if (!e_crc) cnt_crc <= cnt_crc + 16'd1;
+            else if (bad || !type_ok || !len_ok || !e_len) cnt_other <= cnt_other + 16'd1;
+            else if (skip) cnt_drop <= cnt_drop + 16'd1;
+            else begin
+                frame_len <= len; src_mac <= src; frame_tgl <= ~frame_tgl; cnt_ok <= cnt_ok + 16'd1; own <= 1'b1;
+            end
+        end
+        default: if (!dv) st <= IDLE;                            // WAITDV
         endcase
     end
 endmodule

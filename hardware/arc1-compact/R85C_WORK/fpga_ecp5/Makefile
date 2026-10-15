@@ -16,7 +16,7 @@ R05      ?= ../../R05_BASELINE
 R06F     ?= ../../R06_WORK/fpga
 R07P     ?= ../../R07_WORK/fpga/psram_r07
 FW       ?= ../firmware
-LPF      ?= constraints/arc1_ecp5_r85.lpf
+LPF      ?= constraints/arc1_ecp5_r85c_provisional.lpf
 
 RTL_COMMON = rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv \
       rtl/eth_link.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv \

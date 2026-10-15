@@ -3,7 +3,9 @@
 // clock edge is aligned with the data edge; the F133 receive delay chain (D1-H UM EMAC ERXDC) centres it.
 // Frame: 7x55 D5 | dst(6) src 02:A1:C1:00:00:01 | type 88B5 | len16 LE | len bytes from the TX buffer |
 // zero pad to the 60-byte minimum | FCS | 12-byte inter-frame gap. start_tgl (sys) -> done_tgl (txc).
-// TX buffer read port: buf_raddr is combinational, buf_rdata registered one txc later (EBR).
+// TX buffer read port: buf_raddr registered here, buf_rdata registered one txc later (EBR).
+// 125 MHz structure (R8.5-C timing): phase state machine with small counters, header shift register,
+// CRC over the registered output byte, first FCS byte from crc8(crc, last byte).
 // Evidence: RTL_SIMULATED; ECP5 primitive semantics per sim/ecp5_ddr_sim.v.
 `default_nettype none
 module rgmii_tx (
@@ -11,7 +13,7 @@ module rgmii_tx (
     input  wire        start_tgl,       // sys toggles after tx_len/dst_mac are stable and the buffer is written
     input  wire [15:0] tx_len,
     input  wire [47:0] dst_mac,
-    output wire [12:0] buf_raddr,
+    output reg  [12:0] buf_raddr,
     input  wire [7:0]  buf_rdata,
     output reg         done_tgl,
     output wire        rgmii_txc,
@@ -29,58 +31,64 @@ module rgmii_tx (
         end
     endfunction
 
-    reg  [2:0]  st_s;                  // start_tgl synchroniser
-    reg         act;
-    reg  [15:0] pos, len, data_end;     // data_end = first FCS position
-    reg  [47:0] dst;
-    reg  [31:0] crc;
-    reg  [7:0]  ob;                    // byte presented to the ODDRs this cycle
-    reg         oen;
-    initial begin st_s = 3'b000; act = 1'b0; done_tgl = 1'b0; oen = 1'b0; ob = 8'h00; pos = 16'd0; end
-
-    assign buf_raddr = pos[12:0] - 13'd23;             // data for position pos+1 (payload starts at 24)
-
-    reg [7:0] cur;
-    always @* begin
-        cur = 8'h00;
-        if (pos < 16'd7) cur = 8'h55;
-        else if (pos == 16'd7) cur = 8'hD5;
-        else if (pos < 16'd14) cur = dst[16'd47 - (pos - 16'd8) * 16'd8 -: 8];
-        else if (pos < 16'd20) cur = SRC_MAC[16'd47 - (pos - 16'd14) * 16'd8 -: 8];
-        else if (pos == 16'd20) cur = 8'h88;
-        else if (pos == 16'd21) cur = 8'hB5;
-        else if (pos == 16'd22) cur = len[7:0];
-        else if (pos == 16'd23) cur = len[15:8];
-        else if (pos < 16'd24 + len) cur = buf_rdata;
-    end
+    localparam [2:0] IDLE = 3'd0, PRE = 3'd1, HDR = 3'd2, PAY = 3'd3, PAD = 3'd4, FCS = 3'd5, IFG = 3'd6;
+    reg  [2:0]   st_s;                 // start_tgl synchroniser
+    reg  [2:0]   ph;
+    reg  [3:0]   cnt;                  // preamble / header / FCS / IFG byte counter
+    reg  [13:0]  rem;                  // payload bytes still to send
+    reg  [5:0]   pad;                  // pad bytes after the payload (60-byte minimum frame)
+    reg  [127:0] hsr;                  // dst | src | type | len16 LE, MSB first
+    reg  [31:0]  crc;
+    reg  [23:0]  fsr;                  // remaining FCS bytes
+    reg  [7:0]   ob;                   // byte presented to the ODDRs
+    reg          oen, incrc;
+    wire [31:0]  crc_n = crc8(crc, ob);
+    initial begin st_s = 3'b000; ph = IDLE; done_tgl = 1'b0; oen = 1'b0; incrc = 1'b0; ob = 8'h00; buf_raddr = 13'd0; end
 
     always @(posedge txc) begin
         st_s <= {st_s[1:0], start_tgl};
-        if (!act) begin
-            oen <= 1'b0; ob <= 8'h00;
+        if (incrc) crc <= crc_n;
+        buf_raddr <= buf_raddr + 13'd1;
+        case (ph)
+        IDLE: begin
+            oen <= 1'b0; ob <= 8'h00; incrc <= 1'b0; crc <= 32'hFFFFFFFF;
             if (st_s[2] != st_s[1]) begin
-                act <= 1'b1; pos <= 16'd0; len <= tx_len; dst <= dst_mac;
-                data_end <= (tx_len + 16'd24 < 16'd68) ? 16'd68 : tx_len + 16'd24;
-                crc <= 32'hFFFFFFFF;
-            end
-        end else begin
-            pos <= pos + 16'd1;
-            if (pos < data_end) begin
-                oen <= 1'b1; ob <= cur;
-                if (pos >= 16'd8) crc <= crc8(crc, cur);
-            end else if (pos < data_end + 16'd4) begin
-                oen <= 1'b1;
-                case (pos - data_end)
-                16'd0:   ob <= ~crc[7:0];
-                16'd1:   ob <= ~crc[15:8];
-                16'd2:   ob <= ~crc[23:16];
-                default: ob <= ~crc[31:24];
-                endcase
-            end else begin
-                oen <= 1'b0; ob <= 8'h00;
-                if (pos == data_end + 16'd4 + 16'd12) begin act <= 1'b0; done_tgl <= ~done_tgl; end
+                ph <= PRE; cnt <= 4'd0;
+                hsr <= {dst_mac, SRC_MAC, 16'h88B5, tx_len[7:0], tx_len[15:8]};
+                rem <= tx_len[13:0];
+                pad <= (tx_len < 16'd44) ? 6'd44 - tx_len[5:0] : 6'd0;
             end
         end
+        PRE: begin
+            oen <= 1'b1; ob <= (cnt == 4'd7) ? 8'hD5 : 8'h55; cnt <= cnt + 4'd1;
+            if (cnt == 4'd7) begin ph <= HDR; cnt <= 4'd0; end
+        end
+        HDR: begin
+            ob <= hsr[127:120]; hsr <= {hsr[119:0], 8'h00}; incrc <= 1'b1; cnt <= cnt + 4'd1;
+            if (cnt == 4'd14) buf_raddr <= 13'd0;                 // payload byte 0 is needed two clocks later
+            if (cnt == 4'd15) ph <= (rem != 14'd0) ? PAY : ((pad != 6'd0) ? PAD : FCS);
+        end
+        PAY: begin
+            ob <= buf_rdata; rem <= rem - 14'd1;
+            if (rem == 14'd1) ph <= (pad != 6'd0) ? PAD : FCS;
+        end
+        PAD: begin
+            ob <= 8'h00; pad <= pad - 6'd1;
+            if (pad == 6'd1) ph <= FCS;
+            cnt <= 4'd0;
+        end
+        FCS: begin
+            cnt <= cnt + 4'd1; incrc <= 1'b0;
+            if (cnt == 4'd0) begin ob <= ~crc_n[7:0]; fsr <= ~crc_n[31:8]; end
+            else begin ob <= fsr[7:0]; fsr <= {8'h00, fsr[23:8]}; end
+            if (cnt == 4'd3) begin ph <= IFG; cnt <= 4'd0; end
+        end
+        IFG: begin
+            oen <= 1'b0; ob <= 8'h00; cnt <= cnt + 4'd1;
+            if (cnt == 4'd11) begin ph <= IDLE; done_tgl <= ~done_tgl; end
+        end
+        default: ph <= IDLE;
+        endcase
     end
 
     genvar i;

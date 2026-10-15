@@ -193,6 +193,7 @@ module tb_rgmii;
         join
         expect_rx(4, 1, 2, 4, "rx release mid-frame -> whole frame dropped"); check_buf(1500, 10, "buffer intact after mid-frame release");
         build(16'h88B5, 16'd400, 400, 12); host_send(-1, 0); expect_rx(5, 1, 2, 4, "rx next frame accepted"); check_buf(400, 12, "rx next");
+        build(16'h88B5, 16'd101, 100, 13); host_send(-1, 0); expect_rx(5, 1, 2, 5, "rx len16 = payload + 1 (boundary)");
         // --- transmit ---
         tx_send(16, 1, "tx 16 (padded)");
         tx_send(0, 2, "tx 0 (padded)");
