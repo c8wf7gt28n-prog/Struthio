@@ -285,6 +285,39 @@ result("vbus_budget", "PTC hold >= worst budgeted current (3 A class)", 2.6,
        ["p_f133", "p_t35", "eta_amp"], "1812 PTC hold >= 2.6 A selected; MPN R09")
 
 
+# ---------------------------------------------------------------- R8.5-C RGMII job link (F133 EMAC <-> ECP5 bank 0)
+TCYC_F = inp("rgmii_tcyc_min", 7.2, "DOC", "F133 DS rev 2.3 Table 5-21 Tcyc 7.2/8/8.8 ns (F133 transmit clock)")
+TSUT = inp("f133_tsetupT_min", 1.2, "DOC", "F133 DS Table 5-21 TsetupT min (data to clock output, transmitter integrated delay)")
+THDT = inp("f133_tholdT_min", 1.2, "DOC", "F133 DS Table 5-21 TholdT min (transmitter integrated delay)")
+TSUR = inp("f133_tsetupR_min", 1.0, "DOC", "F133 DS Table 5-21 TsetupR min (receiver integrated delay)")
+THDR = inp("f133_tholdR_min", 1.0, "DOC", "F133 DS Table 5-21 TholdR min (receiver integrated delay)")
+E_SU = inp("ecp5_tsu_gddrx1_centered", 0.52, "DOC", "ECP5 DS-02012 3.4 Table 3.22 GDDRX1_RX.SCLK.Centered, PCLK input, -6")
+E_HD = inp("ecp5_thd_gddrx1_centered", 0.52, "DOC", "ECP5 DS-02012 3.4 Table 3.22 GDDRX1_RX.SCLK.Centered, -6")
+E_DI = inp("ecp5_tdi_gddrx1_aligned", 0.30, "DOC", "ECP5 DS-02012 3.4 Table 3.22 GDDRX1_TX.SCLK.Aligned tDIB -0.3 / tDIA 0.3 ns")
+T_PLL = inp("ecp5_txclk_period", 8.0, "PLAN", "arc1_eth_pll 25 MHz x5 = 125 MHz (EHXPLLL); PLL jitter not budgeted")
+SKEW = inp("rgmii_board_skew", 0.15, "ASSUMPTION", "clock-to-data skew from routing (group length-matched to +-10 mm "
+           "~ +-65 ps) + 22R/load differences; no layout yet")
+CENT = inp("f133_rx_delay_centering", 0.30, "ASSUMPTION", "residual error after the ERXDC delay-chain calibration sweep; "
+           "the step size is not stated in the D1-H UM or F133 DS")
+# A: F133 transmits with its integrated delay (clock centred at the F133 pins) -> ECP5 GDDRX1 centred input on PCLK
+result("rgmii_timing", "F133->ECP5 setup margin (per edge)", TSUT - E_SU - SKEW, "> 0", TSUT - E_SU - SKEW > 0, "ns",
+       ["f133_tsetupT_min", "ecp5_tsu_gddrx1_centered", "rgmii_board_skew"],
+       note="ECP5 figure is Lattice's characterised GDDRX1_RX.SCLK.Centered path; the open-toolchain clock insertion is "
+            "not timed by nextpnr at the pads", risk="RK-RGMII-IO-TIMING")
+result("rgmii_timing", "F133->ECP5 hold margin (per edge)", THDT - E_HD - SKEW, "> 0", THDT - E_HD - SKEW > 0, "ns",
+       ["f133_tholdT_min", "ecp5_thd_gddrx1_centered", "rgmii_board_skew"], risk="RK-RGMII-IO-TIMING")
+# B: ECP5 transmits clock and data edge-aligned (ODDRX1F on all) -> F133 receive integrated delay centres the clock
+win = T_PLL / 2 - 2 * E_DI
+need = TSUR + THDR + 2 * SKEW + 2 * CENT
+result("rgmii_timing", "ECP5->F133 data-valid window vs F133 requirement", win - need, "> 0", win - need > 0, "ns",
+       ["ecp5_txclk_period", "ecp5_tdi_gddrx1_aligned", "f133_tsetupR_min", "f133_tholdR_min", "rgmii_board_skew",
+        "f133_rx_delay_centering"],
+       note=f"window {win:.2f} ns per half cycle; required {need:.2f} ns incl. skew and centring; ERXDC is calibrated "
+            "per board (bench sweep with loopback frames)", risk="RK-RGMII-IO-TIMING")
+result("rgmii_timing", "F133 TX clock half period (min) vs ECP5 GDDRX1 fMAX", TCYC_F / 2, ">= 2.0 (250 MHz SCLK)",
+       TCYC_F / 2 >= 2.0, "ns", ["rgmii_tcyc_min"])
+
+
 def main(out_json, out_md):
     n = {s: sum(1 for r in R if r["status"] == s) for s in ("PASS", "CONDITIONAL", "OPEN", "FAIL")}
     json.dump({"schema": "arc1-r85-margins-v1", "summary": n, "info": INFO, "inputs": INPUTS, "results": R},

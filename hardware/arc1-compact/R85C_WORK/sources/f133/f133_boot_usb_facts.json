@@ -135,7 +135,194 @@
    "USB1-DM": 113,
    "USB1-DP": 112
   },
-  "source": "DS (rev 2.3) Table 4-2 p.22-27, Table 4-3 p.28-30"
+  "source": "DS (rev 2.3) Table 4-2 p.22-27, Table 4-3 p.28-30",
+  "PG0": {
+   "pin": 120,
+   "F2": "SDC1-CLK",
+   "F3": "UART3-TX",
+   "F4": "RGMII-RXCTRL/RMII-CRS-DV",
+   "F5": "PWM7",
+   "F14": "PG-EINT0"
+  },
+  "PG1": {
+   "pin": 118,
+   "F2": "SDC1-CMD",
+   "F3": "UART3-RX",
+   "F4": "RGMII-RXD0/RMII-RXD0",
+   "F5": "PWM6",
+   "F14": "PG-EINT1"
+  },
+  "PG2": {
+   "pin": 119,
+   "F2": "SDC1-D0",
+   "F3": "UART3-RTS",
+   "F4": "RGMII-RXD1/RMII-RXD1",
+   "F5": "UART4-TX",
+   "F14": "PG-EINT2"
+  },
+  "PG3": {
+   "pin": 121,
+   "F2": "SDC1-D1",
+   "F3": "UART3-CTS",
+   "F4": "RGMII-TXCK/RMII-TXCK",
+   "F5": "UART4-RX",
+   "F14": "PG-EINT3"
+  },
+  "PG4": {
+   "pin": 123,
+   "F2": "SDC1-D2",
+   "F3": "UART5-TX",
+   "F4": "RGMII-TXD0/RMII-TXD0",
+   "F5": "PWM5",
+   "F14": "PG-EINT4"
+  },
+  "PG5": {
+   "pin": 122,
+   "F2": "SDC1-D3",
+   "F3": "UART5-RX",
+   "F4": "RGMII-TXD1/RMII-TXD1",
+   "F5": "PWM4",
+   "F14": "PG-EINT5"
+  },
+  "PG6": {
+   "pin": 1,
+   "F2": "UART1-TX",
+   "F3": "TWI2-SCK",
+   "F4": "RGMII-TXD2",
+   "F5": "PWM1",
+   "F14": "PG-EINT6"
+  },
+  "PG7": {
+   "pin": 2,
+   "F2": "UART1-RX",
+   "F3": "TWI2-SDA",
+   "F4": "RGMII-TXD3",
+   "F14": "PG-EINT7"
+  },
+  "PG8": {
+   "pin": 3,
+   "F2": "UART1-RTS",
+   "F3": "TWI1-SCK",
+   "F4": "RGMII-RXD2",
+   "F5": "UART3-TX",
+   "F14": "PG-EINT8"
+  },
+  "PG9": {
+   "pin": 4,
+   "F2": "UART1-CTS",
+   "F3": "TWI1-SDA",
+   "F4": "RGMII-RXD3",
+   "F5": "UART3-RX",
+   "F14": "PG-EINT9"
+  },
+  "PG10": {
+   "pin": 5,
+   "F2": "PWM3",
+   "F3": "TWI3-SCK",
+   "F4": "RGMII-RXCK",
+   "F5": "CLK-FANOUT0",
+   "F6": "IR-RX",
+   "F14": "PG-EINT10"
+  },
+  "PG11": {
+   "pin": 6,
+   "F2": "I2S1-MCLK",
+   "F3": "TWI3-SDA",
+   "F4": "EPHY-25M",
+   "F5": "CLK-FANOUT1",
+   "F6": "TCON-TRIG",
+   "F14": "PG-EINT11"
+  },
+  "PG12": {
+   "pin": 124,
+   "F2": "I2S1-LRCK",
+   "F3": "TWI0-SCK",
+   "F4": "RGMII-TXCTRL/RMII-TXEN",
+   "F5": "CLK-FANOUT2",
+   "F6": "PWM0",
+   "F7": "UART1-TX",
+   "F14": "PG-EINT12"
+  },
+  "PD2": {
+   "pin": 57,
+   "F2": "LCD0-D4",
+   "F3": "LVDS0-V1P",
+   "F4": "DSI-D1P",
+   "F5": "UART2-RX",
+   "F14": "PD-EINT2"
+  },
+  "PD3": {
+   "pin": 58,
+   "F2": "LCD0-D5",
+   "F3": "LVDS0-V1N",
+   "F4": "DSI-D1N",
+   "F5": "UART2-RTS",
+   "F14": "PD-EINT3"
+  },
+  "PD4": {
+   "pin": 59,
+   "F2": "LCD0-D6",
+   "F3": "LVDS0-V2P",
+   "F4": "DSI-CKP",
+   "F5": "UART2-CTS",
+   "F14": "PD-EINT4"
+  },
+  "PD5": {
+   "pin": 60,
+   "F2": "LCD0-D7",
+   "F3": "LVDS0-V2N",
+   "F4": "DSI-CKN",
+   "F5": "UART5-TX",
+   "F14": "PD-EINT5"
+  },
+  "PD6": {
+   "pin": 61,
+   "F2": "LCD0-D10",
+   "F3": "LVDS0-CKP",
+   "F4": "DSI-D2P",
+   "F5": "UART5-RX",
+   "F14": "PD-EINT6"
+  },
+  "PD7": {
+   "pin": 62,
+   "F2": "LCD0-D11",
+   "F3": "LVDS0-CKN",
+   "F4": "DSI-D2N",
+   "F5": "UART4-TX",
+   "F14": "PD-EINT7"
+  },
+  "PD8": {
+   "pin": 63,
+   "F2": "LCD0-D12",
+   "F3": "LVDS0-V3P",
+   "F4": "DSI-D3P",
+   "F5": "UART4-RX",
+   "F14": "PD-EINT8"
+  },
+  "PD9": {
+   "pin": 64,
+   "F2": "LCD0-D13",
+   "F3": "LVDS0-V3N",
+   "F4": "DSI-D3N",
+   "F5": "PWM6",
+   "F14": "PD-EINT9"
+  },
+  "PD14": {
+   "pin": 71,
+   "F2": "LCD0-D20",
+   "F3": "LVDS1-V2P",
+   "F4": "SPI1-HOLD/DBI-DCX",
+   "F5": "UART3-CTS",
+   "F14": "PD-EINT14"
+  },
+  "PD15": {
+   "pin": 72,
+   "F2": "LCD0-D21",
+   "F3": "LVDS1-V2N",
+   "F4": "SPI1-WP/DBI-TE",
+   "F5": "IR-RX",
+   "F14": "PD-EINT15"
+  }
  },
  "boot": {
   "boot_media_supported": "SD card, eMMC, SPI NOR, SPI NAND (DS 2.2.1 p.4; D1-H UM 3.3.2.1)",
@@ -183,5 +370,8 @@
    "supports": "soc_info.c: soc_id 0x1859 'Allwinner D1/D1s/R528/T113-S3' (name R528) -> basic FEL supported",
    "spiflash": "fel-spiflash.c spi0_init() has no case for 0x1859 -> prints 'SPI support not implemented yet' -> spiflash-info/read/write NOT supported for D1/F133 at this commit"
   }
- }
+ },
+ "transcription_notes": [
+  "R8.5-C: PG0-PG12, PD2-PD9, PD14, PD15 rows added from F133 DS rev 2.3 (sha256 59d743fa3d3a50a1f4e9a7a69413ce97f91a0185c08245da41cf3e690b8b69b2) Table 4-3 pp. 28-30."
+ ]
 }

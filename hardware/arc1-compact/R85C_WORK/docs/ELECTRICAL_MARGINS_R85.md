@@ -2,7 +2,7 @@
 
 Evidence: **DERIVED_WITH_CALC** from datasheet limits. `CONDITIONAL` = passes only under a tagged ASSUMPTION. No SPICE/IBIS/SI simulation, no measurement.
 
-Summary: PASS 29, CONDITIONAL 11, OPEN 2, FAIL 3. Every FAIL/OPEN carries a risk ID in RISK_REGISTER_R85.md.
+Summary: PASS 30, CONDITIONAL 14, OPEN 2, FAIL 3. Every FAIL/OPEN carries a risk ID in RISK_REGISTER_R85.md.
 
 | Group | Check | Value | Limit | Unit | Status | Risk | Note |
 |---|---|---|---|---|---|---|---|
@@ -51,6 +51,10 @@ Summary: PASS 29, CONDITIONAL 11, OPEN 2, FAIL 3. Every FAIL/OPEN carries a risk
 | vbus_budget | VBUS current, Type-C 1.5 A (0.25 W/ch) | 1.008 | 1.5 | A | **CONDITIONAL** |  | VBUS 4.75 V min; firmware power policy from TUSB320 OUT1/OUT2. Panel backlight (R09) NOT included |
 | vbus_budget | VBUS current, Type-C 3.0 A (1.4 W/ch into 8 ohm) | 1.577 | 3.0 | A | **CONDITIONAL** |  | VBUS 4.75 V min; firmware power policy from TUSB320 OUT1/OUT2. Panel backlight (R09) NOT included |
 | vbus_budget | PTC hold >= worst budgeted current (3 A class) | 2.6 | 1.577 | A | **CONDITIONAL** |  | 1812 PTC hold >= 2.6 A selected; MPN R09 |
+| rgmii_timing | F133->ECP5 setup margin (per edge) | 0.53 | > 0 | ns | **CONDITIONAL** | RK-RGMII-IO-TIMING | ECP5 figure is Lattice's characterised GDDRX1_RX.SCLK.Centered path; the open-toolchain clock insertion is not timed by nextpnr at the pads |
+| rgmii_timing | F133->ECP5 hold margin (per edge) | 0.53 | > 0 | ns | **CONDITIONAL** | RK-RGMII-IO-TIMING |  |
+| rgmii_timing | ECP5->F133 data-valid window vs F133 requirement | 0.5 | > 0 | ns | **CONDITIONAL** | RK-RGMII-IO-TIMING | window 3.40 ns per half cycle; required 2.90 ns incl. skew and centring; ERXDC is calibrated per board (bench sweep with loopback frames) |
+| rgmii_timing | F133 TX clock half period (min) vs ECP5 GDDRX1 fMAX | 3.6 | >= 2.0 (250 MHz SCLK) | ns | **PASS** |  |  |
 
 Info: 3V3 worst-case DC window (R07 asked 3.20-3.40 V only for MN820 VOH; obsolete with the R08 buffer): [3.1989, 3.4404]; ECP5 rail budget (A): {'1V1_FPGA (U9 TLV62569P, 2 A)': 0.266, '2V5_FPGA_AUX (U30 TLV75525P, 0.5 A)': 0.04, '3V3_FPGA (U10 TPS22918, 2 A; incl. VCCAUX LDO input, PSRAM, XO)': 0.096}
 
@@ -135,3 +139,14 @@ Info: 3V3 worst-case DC window (R07 asked 3.20-3.40 V only for MN820 VOH; obsole
 | p_misc | 0.45 | ASSUMPTION | microSD write up to ~100 mA at 3.3 V + glue |
 | eta_buck | 0.85 | ASSUMPTION | TLV62569 efficiency at these loads (datasheet curves, not read) |
 | eta_amp | 0.85 | ASSUMPTION | MAX98357A efficiency near full power |
+| rgmii_tcyc_min | 7.2 | DOC | F133 DS rev 2.3 Table 5-21 Tcyc 7.2/8/8.8 ns (F133 transmit clock) |
+| f133_tsetupT_min | 1.2 | DOC | F133 DS Table 5-21 TsetupT min (data to clock output, transmitter integrated delay) |
+| f133_tholdT_min | 1.2 | DOC | F133 DS Table 5-21 TholdT min (transmitter integrated delay) |
+| f133_tsetupR_min | 1.0 | DOC | F133 DS Table 5-21 TsetupR min (receiver integrated delay) |
+| f133_tholdR_min | 1.0 | DOC | F133 DS Table 5-21 TholdR min (receiver integrated delay) |
+| ecp5_tsu_gddrx1_centered | 0.52 | DOC | ECP5 DS-02012 3.4 Table 3.22 GDDRX1_RX.SCLK.Centered, PCLK input, -6 |
+| ecp5_thd_gddrx1_centered | 0.52 | DOC | ECP5 DS-02012 3.4 Table 3.22 GDDRX1_RX.SCLK.Centered, -6 |
+| ecp5_tdi_gddrx1_aligned | 0.3 | DOC | ECP5 DS-02012 3.4 Table 3.22 GDDRX1_TX.SCLK.Aligned tDIB -0.3 / tDIA 0.3 ns |
+| ecp5_txclk_period | 8.0 | PLAN | arc1_eth_pll 25 MHz x5 = 125 MHz (EHXPLLL); PLL jitter not budgeted |
+| rgmii_board_skew | 0.15 | ASSUMPTION | clock-to-data skew from routing (group length-matched to +-10 mm ~ +-65 ps) + 22R/load differences; no layout yet |
+| f133_rx_delay_centering | 0.3 | ASSUMPTION | residual error after the ERXDC delay-chain calibration sweep; the step size is not stated in the D1-H UM or F133 DS |

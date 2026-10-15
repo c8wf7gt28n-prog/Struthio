@@ -1,8 +1,8 @@
 {
  "schema": "arc1-r85-margins-v1",
  "summary": {
-  "PASS": 29,
-  "CONDITIONAL": 11,
+  "PASS": 30,
+  "CONDITIONAL": 14,
   "OPEN": 2,
   "FAIL": 3
  },
@@ -414,6 +414,61 @@
    "value": 0.85,
    "tag": "ASSUMPTION",
    "source": "MAX98357A efficiency near full power"
+  },
+  "rgmii_tcyc_min": {
+   "value": 7.2,
+   "tag": "DOC",
+   "source": "F133 DS rev 2.3 Table 5-21 Tcyc 7.2/8/8.8 ns (F133 transmit clock)"
+  },
+  "f133_tsetupT_min": {
+   "value": 1.2,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-21 TsetupT min (data to clock output, transmitter integrated delay)"
+  },
+  "f133_tholdT_min": {
+   "value": 1.2,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-21 TholdT min (transmitter integrated delay)"
+  },
+  "f133_tsetupR_min": {
+   "value": 1.0,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-21 TsetupR min (receiver integrated delay)"
+  },
+  "f133_tholdR_min": {
+   "value": 1.0,
+   "tag": "DOC",
+   "source": "F133 DS Table 5-21 TholdR min (receiver integrated delay)"
+  },
+  "ecp5_tsu_gddrx1_centered": {
+   "value": 0.52,
+   "tag": "DOC",
+   "source": "ECP5 DS-02012 3.4 Table 3.22 GDDRX1_RX.SCLK.Centered, PCLK input, -6"
+  },
+  "ecp5_thd_gddrx1_centered": {
+   "value": 0.52,
+   "tag": "DOC",
+   "source": "ECP5 DS-02012 3.4 Table 3.22 GDDRX1_RX.SCLK.Centered, -6"
+  },
+  "ecp5_tdi_gddrx1_aligned": {
+   "value": 0.3,
+   "tag": "DOC",
+   "source": "ECP5 DS-02012 3.4 Table 3.22 GDDRX1_TX.SCLK.Aligned tDIB -0.3 / tDIA 0.3 ns"
+  },
+  "ecp5_txclk_period": {
+   "value": 8.0,
+   "tag": "PLAN",
+   "source": "arc1_eth_pll 25 MHz x5 = 125 MHz (EHXPLLL); PLL jitter not budgeted"
+  },
+  "rgmii_board_skew": {
+   "value": 0.15,
+   "tag": "ASSUMPTION",
+   "source": "clock-to-data skew from routing (group length-matched to +-10 mm ~ +-65 ps) + 22R/load differences; no layout yet"
+  },
+  "f133_rx_delay_centering": {
+   "value": 0.3,
+   "tag": "ASSUMPTION",
+   "source": "residual error after the ERXDC delay-chain calibration sweep; the step size is not stated in the D1-H UM or F133 DS"
   }
  },
  "results": [
@@ -1116,6 +1171,67 @@
     "eta_amp"
    ],
    "note": "1812 PTC hold >= 2.6 A selected; MPN R09",
+   "risk": ""
+  },
+  {
+   "group": "rgmii_timing",
+   "check": "F133->ECP5 setup margin (per edge)",
+   "value": 0.53,
+   "limit": "> 0",
+   "unit": "ns",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "f133_tsetupT_min",
+    "ecp5_tsu_gddrx1_centered",
+    "rgmii_board_skew"
+   ],
+   "note": "ECP5 figure is Lattice's characterised GDDRX1_RX.SCLK.Centered path; the open-toolchain clock insertion is not timed by nextpnr at the pads",
+   "risk": "RK-RGMII-IO-TIMING"
+  },
+  {
+   "group": "rgmii_timing",
+   "check": "F133->ECP5 hold margin (per edge)",
+   "value": 0.53,
+   "limit": "> 0",
+   "unit": "ns",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "f133_tholdT_min",
+    "ecp5_thd_gddrx1_centered",
+    "rgmii_board_skew"
+   ],
+   "note": "",
+   "risk": "RK-RGMII-IO-TIMING"
+  },
+  {
+   "group": "rgmii_timing",
+   "check": "ECP5->F133 data-valid window vs F133 requirement",
+   "value": 0.5,
+   "limit": "> 0",
+   "unit": "ns",
+   "status": "CONDITIONAL",
+   "inputs": [
+    "ecp5_txclk_period",
+    "ecp5_tdi_gddrx1_aligned",
+    "f133_tsetupR_min",
+    "f133_tholdR_min",
+    "rgmii_board_skew",
+    "f133_rx_delay_centering"
+   ],
+   "note": "window 3.40 ns per half cycle; required 2.90 ns incl. skew and centring; ERXDC is calibrated per board (bench sweep with loopback frames)",
+   "risk": "RK-RGMII-IO-TIMING"
+  },
+  {
+   "group": "rgmii_timing",
+   "check": "F133 TX clock half period (min) vs ECP5 GDDRX1 fMAX",
+   "value": 3.6,
+   "limit": ">= 2.0 (250 MHz SCLK)",
+   "unit": "ns",
+   "status": "PASS",
+   "inputs": [
+    "rgmii_tcyc_min"
+   ],
+   "note": "",
    "risk": ""
   }
  ]

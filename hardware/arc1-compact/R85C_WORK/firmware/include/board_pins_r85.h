@@ -3,6 +3,8 @@
 #ifndef BOARD_PINS_R85_H
 #define BOARD_PINS_R85_H
 #define ARC1_PIN(port, idx) ((unsigned)(((port) - 'A') * 32 + (idx)))
+#define PIN_BTN_SELECT       ARC1_PIN('B',  2)   /* pin 86 */
+#define PIN_BTN_HOME         ARC1_PIN('B',  3)   /* pin 85 */
 #define PIN_I2S_DOUT         ARC1_PIN('B',  4)   /* pin 84 */
 #define PIN_I2S_BCLK         ARC1_PIN('B',  5)   /* pin 82 */
 #define PIN_I2S_LRCK         ARC1_PIN('B',  6)   /* pin 80 */
@@ -14,16 +16,27 @@
 #define PIN_SPI0_IO3         ARC1_PIN('C',  7)   /* pin 14 */
 #define PIN_FPGA_INITN       ARC1_PIN('D',  0)   /* pin 55 */
 #define PIN_FPGA_VCC_PG      ARC1_PIN('D',  1)   /* pin 56 */
+#define PIN_BTN_UP           ARC1_PIN('D',  2)   /* pin 57 */
+#define PIN_BTN_DOWN         ARC1_PIN('D',  3)   /* pin 58 */
+#define PIN_BTN_LEFT         ARC1_PIN('D',  4)   /* pin 59 */
+#define PIN_BTN_RIGHT        ARC1_PIN('D',  5)   /* pin 60 */
+#define PIN_BTN_A            ARC1_PIN('D',  6)   /* pin 61 */
+#define PIN_BTN_B            ARC1_PIN('D',  7)   /* pin 62 */
+#define PIN_BTN_X            ARC1_PIN('D',  8)   /* pin 63 */
+#define PIN_BTN_Y            ARC1_PIN('D',  9)   /* pin 64 */
 #define PIN_BT_SS_N          ARC1_PIN('D', 10)   /* pin 67 */
 #define PIN_BT_SCK_F         ARC1_PIN('D', 11)   /* pin 68 */
 #define PIN_BT_MOSI_F        ARC1_PIN('D', 12)   /* pin 70 */
 #define PIN_BT_MISO          ARC1_PIN('D', 13)   /* pin 69 */
+#define PIN_BTN_L            ARC1_PIN('D', 14)   /* pin 71 */
+#define PIN_BTN_R            ARC1_PIN('D', 15)   /* pin 72 */
 #define PIN_BT_RST_N_F       ARC1_PIN('D', 16)   /* pin 73 */
 #define PIN_BT_INT_N         ARC1_PIN('D', 17)   /* pin 74 */
 #define PIN_LED_STATUS       ARC1_PIN('D', 18)   /* pin 75 */
 #define PIN_LED_ERROR        ARC1_PIN('D', 19)   /* pin 76 */
 #define PIN_SD_PWR_EN        ARC1_PIN('D', 20)   /* pin 54 */
 #define PIN_MN_PWR_EN        ARC1_PIN('D', 21)   /* pin 53 */
+#define PIN_BTN_START        ARC1_PIN('D', 22)   /* pin 52 */
 #define PIN_FPGA_PWR_EN_F    ARC1_PIN('E',  0)   /* pin 44 */
 #define PIN_VBUS_SENSE       ARC1_PIN('E',  1)   /* pin 45 */
 #define PIN_UART0_TX         ARC1_PIN('E',  2)   /* pin 35 */
@@ -45,17 +58,16 @@
 #define PIN_SD_D3            ARC1_PIN('F',  4)   /* pin 11 */
 #define PIN_SD_D2            ARC1_PIN('F',  5)   /* pin 12 */
 #define PIN_SD_DET_N         ARC1_PIN('F',  6)   /* pin 13 */
-#define PIN_BTN_UP           ARC1_PIN('G',  0)   /* pin 120 */
-#define PIN_BTN_DOWN         ARC1_PIN('G',  1)   /* pin 118 */
-#define PIN_BTN_LEFT         ARC1_PIN('G',  2)   /* pin 119 */
-#define PIN_BTN_RIGHT        ARC1_PIN('G',  3)   /* pin 121 */
-#define PIN_BTN_A            ARC1_PIN('G',  4)   /* pin 123 */
-#define PIN_BTN_B            ARC1_PIN('G',  5)   /* pin 122 */
-#define PIN_BTN_X            ARC1_PIN('G',  6)   /* pin 1 */
-#define PIN_BTN_Y            ARC1_PIN('G',  7)   /* pin 2 */
-#define PIN_BTN_L            ARC1_PIN('G',  8)   /* pin 3 */
-#define PIN_BTN_R            ARC1_PIN('G',  9)   /* pin 4 */
-#define PIN_BTN_START        ARC1_PIN('G', 10)   /* pin 5 */
-#define PIN_BTN_SELECT       ARC1_PIN('G', 11)   /* pin 6 */
-#define PIN_BTN_HOME         ARC1_PIN('G', 12)   /* pin 124 */
+#define PIN_ETH_RXCTL        ARC1_PIN('G',  0)   /* pin 120 */
+#define PIN_ETH_RXD0         ARC1_PIN('G',  1)   /* pin 118 */
+#define PIN_ETH_RXD1         ARC1_PIN('G',  2)   /* pin 119 */
+#define PIN_ETH_TXCK_F       ARC1_PIN('G',  3)   /* pin 121 */
+#define PIN_ETH_TXD0_F       ARC1_PIN('G',  4)   /* pin 123 */
+#define PIN_ETH_TXD1_F       ARC1_PIN('G',  5)   /* pin 122 */
+#define PIN_ETH_TXD2_F       ARC1_PIN('G',  6)   /* pin 1 */
+#define PIN_ETH_TXD3_F       ARC1_PIN('G',  7)   /* pin 2 */
+#define PIN_ETH_RXD2         ARC1_PIN('G',  8)   /* pin 3 */
+#define PIN_ETH_RXD3         ARC1_PIN('G',  9)   /* pin 4 */
+#define PIN_ETH_RXCK         ARC1_PIN('G', 10)   /* pin 5 */
+#define PIN_ETH_TXCTL_F      ARC1_PIN('G', 12)   /* pin 124 */
 #endif

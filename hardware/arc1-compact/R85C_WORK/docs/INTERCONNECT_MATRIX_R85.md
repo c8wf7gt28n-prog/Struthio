@@ -15,6 +15,18 @@ Devices: U15 F133, U16 boot NOR, U17 MN820 MISO buffer, U18 LFE5U-45F, U21-U24 S
 | BT_SCK / BT_SCK_F | J3.86 SPIS_SCLK [3V3_MN (module)]<br>U15.68 PD11 [3V3 (F133 VCC-IO/PD/PE/PG banks)] | - | driven only (no pull) |
 | BT_SS_N / BT_SS_N_M | U15.67 PD10 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U17.1 ~{OE} [3V3]<br>J3.88 SPIS_SS_N [3V3_MN (module)] | 10k to 3V3_MN | HIGH (pull-up to 3V3_MN) |
 | DONE_DLY | U13.2 B [3V3]<br>U20.4 Y [3V3_FPGA] | 100k to GND | LOW (pull-down) |
+| ETH_RXCK / ETH_RXCK_E | U15.5 PG10 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U18.C8 PT15A [3V3_FPGA (ECP5 VCCIO, switched)] | - | driven only (no pull) |
+| ETH_RXCTL / ETH_RXCTL_E | U15.120 PG0 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U18.C7 PT11B [3V3_FPGA (ECP5 VCCIO, switched)] | 100k to GND | LOW (pull-down) |
+| ETH_RXD0 / ETH_RXD0_E | U15.118 PG1 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U18.D9 PT20A [3V3_FPGA (ECP5 VCCIO, switched)] | - | driven only (no pull) |
+| ETH_RXD1 / ETH_RXD1_E | U15.119 PG2 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U18.E9 PT20B [3V3_FPGA (ECP5 VCCIO, switched)] | - | driven only (no pull) |
+| ETH_RXD2 / ETH_RXD2_E | U15.3 PG8 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U18.D8 PT13B [3V3_FPGA (ECP5 VCCIO, switched)] | - | driven only (no pull) |
+| ETH_RXD3 / ETH_RXD3_E | U15.4 PG9 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U18.E8 PT13A [3V3_FPGA (ECP5 VCCIO, switched)] | - | driven only (no pull) |
+| ETH_TXCK / ETH_TXCK_F | U18.B11 PT38A/PCLKT0_0 [3V3_FPGA (ECP5 VCCIO, switched)]<br>U15.121 PG3 [3V3 (F133 VCC-IO/PD/PE/PG banks)] | - | driven only (no pull) |
+| ETH_TXCTL / ETH_TXCTL_F | U18.E10 PT29B [3V3_FPGA (ECP5 VCCIO, switched)]<br>U15.124 PG12 [3V3 (F133 VCC-IO/PD/PE/PG banks)] | 100k to GND | LOW (pull-down) |
+| ETH_TXD0 / ETH_TXD0_F | U18.C10 PT31B [3V3_FPGA (ECP5 VCCIO, switched)]<br>U15.123 PG4 [3V3 (F133 VCC-IO/PD/PE/PG banks)] | - | driven only (no pull) |
+| ETH_TXD1 / ETH_TXD1_F | U18.B9 PT31A [3V3_FPGA (ECP5 VCCIO, switched)]<br>U15.122 PG5 [3V3 (F133 VCC-IO/PD/PE/PG banks)] | - | driven only (no pull) |
+| ETH_TXD2 / ETH_TXD2_F | U18.C9 PT27A [3V3_FPGA (ECP5 VCCIO, switched)]<br>U15.1 PG6 [3V3 (F133 VCC-IO/PD/PE/PG banks)] | - | driven only (no pull) |
+| ETH_TXD3 / ETH_TXD3_F | U18.D10 PT29A [3V3_FPGA (ECP5 VCCIO, switched)]<br>U15.2 PG7 [3V3 (F133 VCC-IO/PD/PE/PG banks)] | - | driven only (no pull) |
 | F133_RESET_N | U8.1 ~{RESET} [3V3]<br>U15.27 RESET [3V3 (F133 VCC-IO/PD/PE/PG banks)] | 10k to 1V8_LDOA | HIGH (pull-up to 1V8_LDOA) |
 | FPGA_BUS_EN_N | U15.41 PE6 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U21.1 ~{OE} [3V3]<br>U22.1 ~{OE} [3V3]<br>U23.1 ~{OE} [3V3] | 10k to 3V3 | HIGH (pull-up to 3V3) |
 | FPGA_DONE | U15.38 PE9 [3V3 (F133 VCC-IO/PD/PE/PG banks)]<br>U18.Y3 DONE [3V3_FPGA (ECP5 VCCIO, switched)] | 4.7k to 3V3_FPGA | HIGH (pull-up to 3V3_FPGA) |

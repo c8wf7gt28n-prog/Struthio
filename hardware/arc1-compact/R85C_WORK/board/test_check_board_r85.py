@@ -208,5 +208,53 @@ class Mutations(unittest.TestCase):
         self.fails(p, "every_ic_decoupled")
 
 
+    # ---- R8.5-C RGMII link
+    def test_rgmii_series_r_missing(self):             # direct connection: no termination at the F133 driver
+        p = copy.deepcopy(BASE)
+        r = find_r(p, "ETH_TXD1_F", "ETH_TXD1")
+        rewire(p, r["ref"], "1" if r["pins"]["1"]["net"] == "ETH_TXD1" else "2", "ETH_TXD1_F")
+        self.fails(p, "rgmii_link")
+
+    def test_rgmii_series_r_wrong_value(self):
+        p = copy.deepcopy(BASE)
+        find_r(p, "ETH_RXD2_E", "ETH_RXD2")["value"] = "100R"
+        self.fails(p, "rgmii_link")
+
+    def test_rgmii_series_r_placed_at_receiver(self):  # layout note sends an ECP5-driven resistor to the F133 end
+        p = copy.deepcopy(BASE)
+        find_r(p, "ETH_RXD0_E", "ETH_RXD0")["note"] = "RGMII series R, place at F133"
+        self.fails(p, "rgmii_link")
+
+    def test_rgmii_load_on_driver_side(self):          # stub between the driver and its series resistor
+        p = copy.deepcopy(BASE)
+        tp = [c for c in p["components"] if c["part"].startswith("TP")][0]
+        rewire(p, tp["ref"], "1", "ETH_TXCK_F")
+        self.fails(p, "rgmii_link")
+
+    def test_rgmii_clock_not_on_pclk(self):
+        p = copy.deepcopy(BASE)
+        rewire(p, "U18", "B11", None)
+        rewire(p, "U18", "A9", "ETH_TXCK")               # GR_PCLK0_1, not a primary PCLK input
+        self.fails(p, "rgmii_link")
+
+    def test_rgmii_on_left_bank(self):                  # bank 6 is not hot-socket tolerant
+        p = copy.deepcopy(BASE)
+        rewire(p, "U18", "C10", None)
+        rewire(p, "U18", "K2", "ETH_TXD0")
+        self.fails(p, "rgmii_link")
+
+    def test_rgmii_ctl_pulldown_missing(self):
+        p = copy.deepcopy(BASE)
+        find_r(p, "ETH_RXCTL", "GND")["dnp"] = True
+        self.fails(p, "rgmii_link")
+
+    def test_button_left_on_pg(self):
+        p = copy.deepcopy(BASE)
+        u = comp(p, "U15")
+        num = [n for n, x in u["pins"].items() if x["name"] == "PG11"][0]
+        rewire(p, "U15", num, "BTN_SELECT")
+        self.fails(p, "rgmii_link")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

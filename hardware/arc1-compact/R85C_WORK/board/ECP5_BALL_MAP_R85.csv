@@ -25,9 +25,9 @@ B5,PL11C,7,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tr
 B6,PT4B,0,ULC_GPLL1C_IN,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 B7,GND,-,-,GROUND,GND,supply,,,,
 B8,PT15B,0,-,IO,FPGA_DBG_RX,user I/O (RTL port),dbg_rx,LVCMOS33,UP,
-B9,PT31A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
+B9,PT31A,0,-,IO,ETH_TXD1,user I/O (RTL port),rgmii_rxd[1],LVCMOS33,NONE,
 B10,PT33B,0,GR_PCLK0_0,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-B11,PT38A,0,PCLKT0_0,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
+B11,PT38A,0,PCLKT0_0,IO,ETH_TXCK,user I/O (RTL port),rgmii_rxc,LVCMOS33,NONE,
 B12,PT44A,1,PCLKT1_0,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 B13,PT51A,1,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 B14,GND,-,-,GROUND,GND,supply,,,,
@@ -43,10 +43,10 @@ C3,PL17C,7,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tr
 C4,PL14A,7,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 C5,PL11D,7,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 C6,PT11A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-C7,PT11B,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-C8,PT15A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-C9,PT27A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-C10,PT31B,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
+C7,PT11B,0,-,IO,ETH_RXCTL_E,user I/O (RTL port),rgmii_tx_ctl,LVCMOS33,NONE,
+C8,PT15A,0,-,IO,ETH_RXCK_E,user I/O (RTL port),rgmii_txc,LVCMOS33,NONE,
+C9,PT27A,0,-,IO,ETH_TXD2,user I/O (RTL port),rgmii_rxd[2],LVCMOS33,NONE,
+C10,PT31B,0,-,IO,ETH_TXD0,user I/O (RTL port),rgmii_rxd[0],LVCMOS33,NONE,
 C11,PT38B,0,PCLKC0_0,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 C12,PT44B,1,PCLKC1_0,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 C13,PT51B,1,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
@@ -64,9 +64,9 @@ D4,GND,-,-,GROUND,GND,supply,,,,
 D5,PL17B,7,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 D6,PT6B,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 D7,PT9B,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-D8,PT13B,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-D9,PT20A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-D10,PT29A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
+D8,PT13B,0,-,IO,ETH_RXD2_E,user I/O (RTL port),rgmii_txd[2],LVCMOS33,NONE,
+D9,PT20A,0,-,IO,ETH_RXD0_E,user I/O (RTL port),rgmii_txd[0],LVCMOS33,NONE,
+D10,PT29A,0,-,IO,ETH_TXD3,user I/O (RTL port),rgmii_rxd[3],LVCMOS33,NONE,
 D11,PT42A,1,PCLKT1_1,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 D12,PT47A,1,GR_PCLK1_0,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 D13,PT53A,1,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
@@ -84,9 +84,9 @@ E4,PL17A,7,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tr
 E5,PL20C,7,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 E6,PT6A,0,-,IO,FPGA_IRQ_N,user I/O (RTL port),irq_n,LVCMOS33,NONE,
 E7,PT9A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-E8,PT13A,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-E9,PT20B,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
-E10,PT29B,0,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
+E8,PT13A,0,-,IO,ETH_RXD3_E,user I/O (RTL port),rgmii_txd[3],LVCMOS33,NONE,
+E9,PT20B,0,-,IO,ETH_RXD1_E,user I/O (RTL port),rgmii_txd[1],LVCMOS33,NONE,
+E10,PT29B,0,-,IO,ETH_TXCTL,user I/O (RTL port),rgmii_rx_ctl,LVCMOS33,DOWN,
 E11,PT42B,1,PCLKC1_1,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 E12,PT47B,1,GR_PCLK1_1,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)
 E13,PT53B,1,-,IO,,"unused I/O (tri-state, weak pull-down)",,,,unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)

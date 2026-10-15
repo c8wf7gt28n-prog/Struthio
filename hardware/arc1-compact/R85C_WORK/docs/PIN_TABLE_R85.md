@@ -4,12 +4,12 @@
 
 | Pin | Name | Net | No-connect reason |
 |---|---|---|---|
-| 1 | PG6 | BTN_X |  |
-| 2 | PG7 | BTN_Y |  |
-| 3 | PG8 | BTN_L |  |
-| 4 | PG9 | BTN_R |  |
-| 5 | PG10 | BTN_START |  |
-| 6 | PG11 | BTN_SELECT |  |
+| 1 | PG6 | ETH_TXD2_F |  |
+| 2 | PG7 | ETH_TXD3_F |  |
+| 3 | PG8 | ETH_RXD2 |  |
+| 4 | PG9 | ETH_RXD3 |  |
+| 5 | PG10 | ETH_RXCK |  |
+| 6 | PG11 |  | spare GPIO |
 | 7 | PF0 | SD_D1 |  |
 | 8 | PF1 | SD_D0 |  |
 | 9 | PF2 | SD_CLK_F |  |
@@ -55,27 +55,27 @@
 | 49 | VCC-DRAM1 | 1V8_DRAM |  |
 | 50 | VDD18-DRAM | 1V8_LDOA |  |
 | 51 | VDD-SYS1 | VDD_CORE |  |
-| 52 | PD22 |  | spare GPIO |
+| 52 | PD22 | BTN_START |  |
 | 53 | PD21 | MN_PWR_EN |  |
 | 54 | PD20 | SD_PWR_EN |  |
 | 55 | PD0 | FPGA_INITN |  |
 | 56 | PD1 | FPGA_VCC_PG |  |
-| 57 | PD2 |  | spare GPIO |
-| 58 | PD3 |  | spare GPIO |
-| 59 | PD4 |  | spare GPIO |
-| 60 | PD5 |  | spare GPIO |
-| 61 | PD6 |  | spare GPIO |
-| 62 | PD7 |  | spare GPIO |
-| 63 | PD8 |  | spare GPIO |
-| 64 | PD9 |  | spare GPIO |
+| 57 | PD2 | BTN_UP |  |
+| 58 | PD3 | BTN_DOWN |  |
+| 59 | PD4 | BTN_LEFT |  |
+| 60 | PD5 | BTN_RIGHT |  |
+| 61 | PD6 | BTN_A |  |
+| 62 | PD7 | BTN_B |  |
+| 63 | PD8 | BTN_X |  |
+| 64 | PD9 | BTN_Y |  |
 | 65 | VCC-LVDS | 1V8_LDOA |  |
 | 66 | VCC-PD | 3V3 |  |
 | 67 | PD10 | BT_SS_N |  |
 | 68 | PD11 | BT_SCK_F |  |
 | 69 | PD13 | BT_MISO |  |
 | 70 | PD12 | BT_MOSI_F |  |
-| 71 | PD14 |  | spare GPIO |
-| 72 | PD15 |  | spare GPIO |
+| 71 | PD14 | BTN_L |  |
+| 72 | PD15 | BTN_R |  |
 | 73 | PD16 | BT_RST_N_F |  |
 | 74 | PD17 | BT_INT_N |  |
 | 75 | PD18 | LED_STATUS |  |
@@ -88,8 +88,8 @@
 | 82 | PB5 | I2S_BCLK |  |
 | 83 | VCC-IO | 3V3 |  |
 | 84 | PB4 | I2S_DOUT |  |
-| 85 | PB3 |  | spare GPIO |
-| 86 | PB2 |  | spare GPIO |
+| 85 | PB3 | BTN_HOME |  |
+| 86 | PB2 | BTN_SELECT |  |
 | 87 | MICIN3P |  | codec input unused (I2S audio) |
 | 88 | MICIN3N |  | codec input unused |
 | 89 | AVCC | 1V8_AN |  |
@@ -121,13 +121,13 @@
 | 115 | USB0-DP | USB0_DP |  |
 | 116 | VDD-CORE0 | VDD_CORE |  |
 | 117 | VDD-CORE1 | VDD_CORE |  |
-| 118 | PG1 | BTN_DOWN |  |
-| 119 | PG2 | BTN_LEFT |  |
-| 120 | PG0 | BTN_UP |  |
-| 121 | PG3 | BTN_RIGHT |  |
-| 122 | PG5 | BTN_B |  |
-| 123 | PG4 | BTN_A |  |
-| 124 | PG12 | BTN_HOME |  |
+| 118 | PG1 | ETH_RXD0 |  |
+| 119 | PG2 | ETH_RXD1 |  |
+| 120 | PG0 | ETH_RXCTL |  |
+| 121 | PG3 | ETH_TXCK_F |  |
+| 122 | PG5 | ETH_TXD1_F |  |
+| 123 | PG4 | ETH_TXD0_F |  |
+| 124 | PG12 | ETH_TXCTL_F |  |
 | 125 | PG13 |  | spare GPIO |
 | 126 | PG14 |  | spare GPIO |
 | 127 | PG15 |  | spare GPIO |
@@ -141,7 +141,19 @@
 | A7 | PT18A | FPGA_LED0 |  |
 | A8 | PT18B | FPGA_DBG_TX |  |
 | B8 | PT15B | FPGA_DBG_RX |  |
+| B9 | PT31A | ETH_TXD1 |  |
+| B11 | PT38A/PCLKT0_0 | ETH_TXCK |  |
+| C7 | PT11B | ETH_RXCTL_E |  |
+| C8 | PT15A | ETH_RXCK_E |  |
+| C9 | PT27A | ETH_TXD2 |  |
+| C10 | PT31B | ETH_TXD0 |  |
+| D8 | PT13B | ETH_RXD2_E |  |
+| D9 | PT20A | ETH_RXD0_E |  |
+| D10 | PT29A | ETH_TXD3 |  |
 | E6 | PT6A | FPGA_IRQ_N |  |
+| E8 | PT13A | ETH_RXD3_E |  |
+| E9 | PT20B | ETH_RXD1_E |  |
+| E10 | PT29B | ETH_TXCTL |  |
 | L1 | PL65C | PSRAM_CE_N |  |
 | L2 | PL62D | PSRAM_SCLK_F |  |
 | L3 | PL62C | PSRAM_SIO0 |  |

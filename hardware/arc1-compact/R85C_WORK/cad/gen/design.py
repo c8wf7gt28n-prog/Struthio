@@ -270,10 +270,16 @@ def build():
         "PB4": "I2S_DOUT", "PB5": "I2S_BCLK", "PB6": "I2S_LRCK", "PE10": "AMP_EN",
         # power / USB status
         "PE1": "VBUS_SENSE", "PE12": "USB_CUR_OUT1", "PE13": "USB_CUR_OUT2", "PD21": "MN_PWR_EN", "PD20": "SD_PWR_EN",
-        # controls
-        "PG0": "BTN_UP", "PG1": "BTN_DOWN", "PG2": "BTN_LEFT", "PG3": "BTN_RIGHT", "PG4": "BTN_A", "PG5": "BTN_B",
-        "PG6": "BTN_X", "PG7": "BTN_Y", "PG8": "BTN_L", "PG9": "BTN_R", "PG10": "BTN_START", "PG11": "BTN_SELECT",
-        "PG12": "BTN_HOME",
+        # R8.5-C: RGMII job link to the ECP5 (EMAC, F133 DS Table 4-3 function 4 on PG0..PG12; no PHY, no MDIO).
+        # F133 transmit (PG3/4/5/6/7/12) -> ECP5 receive; ECP5 transmit -> F133 receive (PG0/1/2/8/9/10).
+        # PG11 (EPHY-25M) unused. Series 22R at each driver (fpga sheet).
+        "PG3": "ETH_TXCK_F", "PG4": "ETH_TXD0_F", "PG5": "ETH_TXD1_F", "PG6": "ETH_TXD2_F", "PG7": "ETH_TXD3_F",
+        "PG12": "ETH_TXCTL_F",
+        "PG10": "ETH_RXCK", "PG1": "ETH_RXD0", "PG2": "ETH_RXD1", "PG8": "ETH_RXD2", "PG9": "ETH_RXD3", "PG0": "ETH_RXCTL",
+        # controls (R8.5-C: moved off PG for RGMII; every pin has an EINT function, DS Table 4-3 F14)
+        "PD2": "BTN_UP", "PD3": "BTN_DOWN", "PD4": "BTN_LEFT", "PD5": "BTN_RIGHT", "PD6": "BTN_A", "PD7": "BTN_B",
+        "PD8": "BTN_X", "PD9": "BTN_Y", "PD14": "BTN_L", "PD15": "BTN_R", "PD22": "BTN_START", "PB2": "BTN_SELECT",
+        "PB3": "BTN_HOME",
         # LEDs
         "PD18": "LED_STATUS", "PD19": "LED_ERROR",
     }
@@ -388,6 +394,10 @@ def build():
         "T5": "FPGA_TCK", "R5": "FPGA_TDI", "V4": "FPGA_TDO", "U5": "FPGA_TMS",
         # bank 0 (hot-socket tolerant top bank): IRQ + debug
         "E6": "FPGA_IRQ_N", "A7": "FPGA_LED0", "A8": "FPGA_DBG_TX", "B8": "FPGA_DBG_RX",
+        # bank 0: RGMII (R8.5-C). ECP5 receive clock on PCLKT0_0 (B11, primary clock input); balls kept within
+        # columns A..E / rows 7..11 for short, matched routes to the F133 PG group.
+        "B11": "ETH_TXCK", "C10": "ETH_TXD0", "B9": "ETH_TXD1", "C9": "ETH_TXD2", "D10": "ETH_TXD3", "E10": "ETH_TXCTL",
+        "C8": "ETH_RXCK_E", "D9": "ETH_RXD0_E", "E9": "ETH_RXD1_E", "D8": "ETH_RXD2_E", "E8": "ETH_RXD3_E", "C7": "ETH_RXCTL_E",
     }
     t = {}
     for ball, name, et, side in PARTS["ECP5_45F_BG381"].pins:
@@ -410,6 +420,17 @@ def build():
                   "NC ball" if et == "no_connect" else \
                   "unused user I/O: tri-stated with weak pull-down after configuration (DS 4.1)"
             d.nc("U18", ball, why)
+    # RGMII (R8.5-C): 22R source-series termination placed at each driver (F133 PG pins for ETH_TX*, ECP5 bank-0 balls
+    # for ETH_RX*); no PCB clock skew: the F133 EMAC delay chains (D1-H UM EMAC ETXDC/ERXDC) set the clock/data phase.
+    # Route as one group, length-matched (docs/RGMII_LINK_R85C.md). CTL pull-downs keep both MACs idle while the
+    # other side is unpowered, unconfigured or not yet muxed.
+    for sig in ("TXCK", "TXD0", "TXD1", "TXD2", "TXD3", "TXCTL"):
+        d.R("22R", f"ETH_{sig}_F", f"ETH_{sig}", note=f"RGMII F133->ECP5 series R, place at F133 ({sig})")
+    for sig in ("RXCK", "RXD0", "RXD1", "RXD2", "RXD3", "RXCTL"):
+        d.R("22R", f"ETH_{sig}_E", f"ETH_{sig}", note=f"RGMII ECP5->F133 series R, place at ECP5 ({sig})")
+    d.R("100k", "ETH_TXCTL", "GND", note="ECP5 RX idle while F133 PG12 is hi-Z (reset, FEL, before EMAC mux)")
+    d.R("100k", "ETH_RXCTL", "GND", note="F133 EMAC RX idle while the ECP5 is unpowered or unconfigured")
+    d.tp("ETH_TXCK"); d.tp("ETH_RXCK")
     # decoupling per TN-02038 Table 3.1/3.2: VCC 3x10uF + 100nF/ball (20), VCCAUX ferrite + 10uF + 100nF/ball (4),
     # VCCIO 10uF + 100nF per ball (18 balls, 7 banks)
     d.decouple("1V1_FPGA", 20)

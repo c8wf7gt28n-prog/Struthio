@@ -334,6 +334,78 @@ def ecp5_ball_map(c):
     return errs
 
 
+# R8.5-C RGMII job link: F133 EMAC pin -> ECP5 ball, (F133 pin name, ECP5 RTL direction); F133 DS Table 4-3 F4
+RGMII_F133_TX = ("PG3", "PG4", "PG5", "PG6", "PG7", "PG12")     # TXCK TXD0..3 TXCTRL: F133 drives
+RGMII_F133_RX = ("PG10", "PG1", "PG2", "PG8", "PG9", "PG0")     # RXCK RXD0..3 RXCTRL: ECP5 drives
+_ECP5_BANK = None
+
+
+def ecp5_bank(ball):
+    global _ECP5_BANK
+    if _ECP5_BANK is None:
+        import csv
+        src = os.path.join(HERE, "..", "sources", "lattice", "lfe5u45_cabga381_pinout.csv")
+        _ECP5_BANK = {r["ball"]: (r["bank"], r["dual_function"]) for r in csv.DictReader(open(src))}
+    return _ECP5_BANK.get(ball, (None, None))
+
+
+@rule
+def rgmii_link(c):
+    """R8.5-C RGMII: each of PG0-PG5, PG6-PG10, PG12 reaches exactly one ECP5 bank-0 ball (hot-socket tolerant top bank)
+    through exactly one 15-47 ohm series resistor on the DRIVER side (the driver's net carries only the driver and the
+    resistor, and the resistor's placement note names the driver); F133 TXCK lands on a PCLK ball; RX/TX CTL nets have a 10k-1M pull-down; no other load on the
+    link; no button left on PG0-PG12"""
+    errs = []
+    u18 = [x["ref"] for x in c.by_part(FPGA)]
+    if len(u18) != 1:
+        return [f"expected one {FPGA}"]
+    u18 = u18[0]
+    for pname in RGMII_F133_TX + RGMII_F133_RX:
+        f133_tx = pname in RGMII_F133_TX
+        fnet = c.f133(pname)
+        if not fnet:
+            errs.append(f"{pname} unconnected"); continue
+        if fnet.startswith("BTN_"):
+            errs.append(f"{pname} still carries {fnet}"); continue
+        rs = [r for r in c.resistors(fnet) if r[1] != "GND"]          # pull-downs are not series elements
+        if len(rs) != 1:
+            errs.append(f"{pname} ({fnet}): expected one series resistor, found {[r[0] for r in rs]}"); continue
+        rref, enet, val, dnp = rs[0]
+        v = ohms(val)
+        if dnp or v is None or not 15 <= v <= 47:
+            errs.append(f"{pname}: series {rref} {val}{' DNP' if dnp else ''} outside 15-47 ohm")
+        note = c.comps[rref].get("note") or ""
+        want = "place at F133" if f133_tx else "place at ECP5"
+        if want not in note:                    # placement is not in a netlist: the note is the layout instruction
+            errs.append(f"{pname}: series {rref} note must say '{want}' (driver side), has '{note}'")
+        balls = [pin for ref, pin in c.on_net(enet) if ref == u18]
+        if len(balls) != 1:
+            errs.append(f"{pname}: {enet} reaches ECP5 balls {balls}, expected exactly one"); continue
+        ball = balls[0]
+        bank, dual = ecp5_bank(ball)
+        if bank != "0":
+            errs.append(f"{pname}: ECP5 ball {ball} in bank {bank}, expected bank 0 (hot-socket tolerant)")
+        if pname == "PG3" and not (dual or "").startswith("PCLK"):
+            errs.append(f"F133 TXCK lands on {ball} ({dual}), not a PCLK clock input")
+        drv_net = fnet if f133_tx else enet
+        others = [ref for ref, _ in c.on_net(drv_net) if ref not in ("U15", u18, rref)]
+        if others:
+            errs.append(f"{pname}: driver-side net {drv_net} also carries {others} (series R must sit at the driver)")
+        far_net = enet if f133_tx else fnet
+        extra = [ref for ref, _ in c.on_net(far_net)
+                 if ref not in ("U15", u18, rref) and not c.part(ref).startswith(("TP", "R0"))]
+        if extra:
+            errs.append(f"{pname}: unexpected load on {far_net}: {extra}")
+        if pname in ("PG12", "PG0"):
+            pd = [r for r in c.resistors(far_net) if r[1] == "GND" and not r[3] and 1e4 <= (ohms(r[2]) or 0) <= 1e6]
+            if not pd:
+                errs.append(f"{pname}: CTL net {far_net} has no 10k-1M pull-down (MAC idle while the far side is off)")
+    for num, p in c.comps["U15"]["pins"].items():
+        if (p["net"] or "").startswith("BTN_") and p["name"].startswith("PG"):
+            errs.append(f"button {p['net']} on {p['name']} (PG is the RGMII group)")
+    return errs
+
+
 @rule
 def ecp5_sysconfig(c):
     """slave SPI: CFG[2:0]=001, 4.7k pull-ups on PROGRAMN/INITN/DONE/SN, CCLK 510R-1k pull-up, TCK pull-down, TMS/TDI/TDO
