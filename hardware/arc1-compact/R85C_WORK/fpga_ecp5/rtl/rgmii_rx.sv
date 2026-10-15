@@ -59,6 +59,9 @@ module rgmii_rx (
     reg [14:0] need;                  // len + 4 (payload + FCS must fit in the frame)
     reg [47:0] src;
     reg        e_crc, e_len;
+    // header fields are written one clock after their byte, from registered strobes (timing: no decode -> 48-FF CE)
+    reg [7:0]  hb;
+    reg        we_src, we_t0, we_t1, we_l0, we_l1;
     initial begin
         s_hunt = 1'b1; s_data = 1'b0; s_wait = 1'b0; s_dec = 1'b0;
         frame_tgl = 1'b0; own = 1'b0; rel_s = 3'b000; buf_we = 1'b0;
@@ -71,6 +74,13 @@ module rgmii_rx (
         if (!s_data) begin                                      // hunting / waiting / deciding
             hcnt <= 5'd0; crc <= 32'hFFFFFFFF; bad <= er; skip <= own;
         end
+        hb <= b;
+        we_src <= 1'b0; we_t0 <= 1'b0; we_t1 <= 1'b0; we_l0 <= 1'b0; we_l1 <= 1'b0;
+        if (we_src) src <= {src[39:0], hb};
+        if (we_t0) type_ok <= (hb == 8'h88);
+        if (we_t1) type_ok <= type_ok & (hb == 8'hB5);
+        if (we_l0) len[7:0] <= hb;
+        if (we_l1) len[15:8] <= hb;
         if (s_hunt) begin
             if (dvr && is_sfd) begin s_hunt <= 1'b0; s_data <= 1'b1; end
             else if (dvr && !is_pre) begin s_hunt <= 1'b0; s_wait <= 1'b1; end
@@ -83,14 +93,15 @@ module rgmii_rx (
                     hcnt <= hcnt + 5'd1;
                     dcnt <= 14'd0;
                     case (hcnt[3:0])
-                    4'd6, 4'd7, 4'd8, 4'd9, 4'd10, 4'd11: src <= {src[39:0], b};
-                    4'd12: type_ok <= (b == 8'h88);
-                    4'd13: type_ok <= type_ok & (b == 8'hB5);
-                    4'd14: len[7:0] <= b;
-                    default: len[15:8] <= b;                    // 15
+                    4'd6, 4'd7, 4'd8, 4'd9, 4'd10, 4'd11: we_src <= 1'b1;
+                    4'd12: we_t0 <= 1'b1;
+                    4'd13: we_t1 <= 1'b1;
+                    4'd14: we_l0 <= 1'b1;
+                    4'd15: we_l1 <= 1'b1;
+                    default: ;
                     endcase
                 end else begin
-                    if (dcnt == 14'd0) begin
+                    if (dcnt == 14'd1) begin                     // len complete one clock after header byte 15
                         need   <= {1'b0, len[13:0]} + 15'd4;
                         len_ok <= (len[15:13] == 3'b000) || (len == 16'h2000);
                     end
