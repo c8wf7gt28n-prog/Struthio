@@ -1,0 +1,9 @@
+$ /usr/bin/python3 -m unittest test_check_board_r85
+# cwd: R85_WORK/board
+# exit: 0
+
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 0.379s
+
+OK

@@ -1,0 +1,5 @@
+$ /usr/bin/python3 -I tools/bench/benchmark_r85.py analysis/benchmark_r85.json docs/BENCHMARK_R85.md
+# cwd: R85_WORK
+# exit: 0
+
+{"verdict": "HARD_STOP_TRANSFER_DOMINATED", "link_fit": {"us_per_byte": 0.79, "batch_overhead_us": 87.7, "bytes_per_transform_job": 72.89}, "instr_per_item": {"transform": 351.36, "collision": 18.22, "particles": 24.02, "fir": 236.05}}

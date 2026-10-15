@@ -1,0 +1,385 @@
+{
+ "run": "20261015T123816Z",
+ "verdict": "PASS_R85_HOST_RTL_OPENFPGA_KICAD_CHECKS",
+ "pass": 41,
+ "fail": 0,
+ "not_run": 7,
+ "steps": [
+  {
+   "step": "frozen_r05_r06_r07_r08_unchanged",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "git diff --quiet 66bed02014f5 -- R05_BASELINE R06_WORK R07_WORK R08_WORK && git diff --quiet 66bed02014f5 -- $(git ls-files -- '*.md' '*.json' '*.txt' | grep -v '/' ) && echo 'R05/R06/R07/R08 + root files identical to 66bed02014f5'",
+   "cwd": "."
+  },
+  {
+   "step": "change_order_input",
+   "status": "PASS",
+   "detail": "change order .docx sha256 2faa469e..."
+  },
+  {
+   "step": "r08_regression_full",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 433.0,
+   "cmd": "/usr/bin/python3 R08_WORK/tools/run_r08_checks.py",
+   "cwd": "../../../../../tmp/r85_r08reg_n7ukjec1/arc1-compact",
+   "detail": "PASS_R08_HOST_RTL_NATIVE_KICAD_CHECKS: 30 pass, 0 fail, 7 NOT_RUN -> R08_WORK/evidence/run_20261015T123817Z/summary.json"
+  },
+  {
+   "step": "fw_r85_test",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.5,
+   "cmd": "make test",
+   "cwd": "R85_WORK/firmware",
+   "detail": "FIT_SUMMARY PASS | R8.5 firmware host tests: 799 checks, 0 failures"
+  },
+  {
+   "step": "fw_r85_sanitize",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 3.5,
+   "cmd": "make sanitize",
+   "cwd": "R85_WORK/firmware",
+   "detail": "R8.5 firmware host tests: 799 checks, 0 failures"
+  },
+  {
+   "step": "fw_r85_freestanding",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.8,
+   "cmd": "make freestanding",
+   "cwd": "R85_WORK/firmware"
+  },
+  {
+   "step": "fw_r85_mutants",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 15.4,
+   "cmd": "make mutants",
+   "cwd": "R85_WORK/firmware",
+   "detail": "all mutants killed"
+  },
+  {
+   "step": "rtl_ecp5_lint",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.2,
+   "cmd": "make lint",
+   "cwd": "R85_WORK/fpga_ecp5"
+  },
+  {
+   "step": "rtl_transform_r05_testbench",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.8,
+   "cmd": "make transform",
+   "cwd": "R85_WORK/fpga_ecp5",
+   "detail": "PASS RTL: 1165 oracle comparisons; busy/held-output reset cancellation; input stalls=22249 output stalls=2672 simultaneous retire/accept=1164 cycles=23464"
+  },
+  {
+   "step": "rtl_ecp5_top_sim_crosssim",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 212.8,
+   "cmd": "make sim",
+   "cwd": "R85_WORK/fpga_ecp5",
+   "detail": "  grep -E '^(TEST|INFO|SUMMARY|TB_ERROR|MODEL_VIOLATION|TOP_ECP5)' build/sim_ecp5_top.log; \\ | SUMMARY tb_ecp5_top errors=0 model_violations_before_P2=0 total=1 tpu_pin_viol=0 back_power_en_low=0 | AJOB_RTL_CHECK_PASS"
+  },
+  {
+   "step": "rtl_psram_controller_r06_regression",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 196.3,
+   "cmd": "make sim mutants OUT=/tmp/tmpkuvn449_",
+   "cwd": "R06_WORK/fpga/psram",
+   "detail": "MUTANT_KILLED MUTANT_NO_TURNAROUND | MUTANT_KILLED MUTANT_SKIP_RESET | MUTANT_KILLED MUTANT_SAMPLE_EARLY"
+  },
+  {
+   "step": "kicad_generate",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "/usr/bin/python3 gen/gen_kicad.py",
+   "cwd": "R85_WORK/cad"
+  },
+  {
+   "step": "pin_matrix_and_lpf",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "/usr/bin/python3 tools/gen_pin_matrix_r85.py",
+   "cwd": "R85_WORK",
+   "detail": "ECP5 balls 381, RTL ports 17 located, banks [('0', 3.3), ('1', 3.3), ('2', 3.3), ('3', 3.3), ('6', 3.3), ('7', 3.3), ('8', 3.3)] | PIN_MATRIX_PASS"
+  },
+  {
+   "step": "lpf_reproducible",
+   "status": "PASS",
+   "detail": "regenerated LPF identical"
+  },
+  {
+   "step": "tool_versions",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "sh build_scripts/record_tools.sh build/TOOL_VERSIONS.txt",
+   "cwd": "R85_WORK/fpga_ecp5"
+  },
+  {
+   "step": "ecp5_build_bitstream",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 55.8,
+   "cmd": "rm -f build/arc1_ecp5.json build/arc1_ecp5.config build/arc1_ecp5.bit && make bit",
+   "cwd": "R85_WORK/fpga_ecp5"
+  },
+  {
+   "step": "ecp5_build_report",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.2,
+   "cmd": "make report",
+   "cwd": "R85_WORK/fpga_ecp5",
+   "detail": "{\"result\": \"PASS\", \"fmax\": {\"psram_mclk\": {\"achieved_MHz\": 96.17, \"constraint_MHz\": 40, \"pass\": true}, \"sys_clk\": {\"achieved_MHz\": 87.02, \"constraint_MHz\": 80, \"pass\": true}}, \"bit_sha256\": \"87ca8d61e1701e95529380fe50fa2917c1f7b45619a0d4ac4a9fc960f7f3e829\"}"
+  },
+  {
+   "step": "ecp5_build_reproducible",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 58.5,
+   "cmd": "make repro",
+   "cwd": "R85_WORK/fpga_ecp5",
+   "detail": "test \"$(sha256sum < build/arc1_ecp5.bit)\" = \"$(sha256sum < build/repro/arc1_ecp5.bit)\" && echo REPRO_IDENTICAL | tee -a build/repro.log | REPRO_IDENTICAL"
+  },
+  {
+   "step": "ecp5_seed_sweep",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 213.3,
+   "cmd": "make seeds",
+   "cwd": "R85_WORK/fpga_ecp5",
+   "detail": "seed 5:  '$glbnet$sys_clk': 88.80 MHz (PASS at 80.00 MHz)  '$glbnet$psram_mclk': 94.05 MHz (PASS at 40.00 MHz) "
+  },
+  {
+   "step": "fw_r85_real_bitstream",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.6,
+   "cmd": "build/test_r85",
+   "cwd": "R85_WORK/firmware",
+   "detail": "INFO using real bitstream /home/user/Struthio/hardware/arc1-compact/R85_WORK/fpga_ecp5/build/arc1_ecp5.bit (288697 bytes) | FIT_SUMMARY PASS"
+  },
+  {
+   "step": "kicad_generate_again",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "/usr/bin/python3 gen/gen_kicad.py",
+   "cwd": "R85_WORK/cad"
+  },
+  {
+   "step": "kicad_generate_reproducible",
+   "status": "PASS",
+   "detail": "regeneration byte-identical"
+  },
+  {
+   "step": "kicad_version",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.1,
+   "cmd": "kicad-cli version",
+   "cwd": "R85_WORK/cad",
+   "detail": "9.0.9"
+  },
+  {
+   "step": "kicad_erc",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.7,
+   "cmd": "kicad-cli sch erc --format report --severity-all -o ERC.txt ARC1_R85.kicad_sch && grep -q 'ERC messages: 0  Errors 0  Warnings 0' ERC.txt && tail -1 ERC.txt",
+   "cwd": "R85_WORK/cad",
+   "detail": " ** ERC messages: 0  Errors 0  Warnings 0"
+  },
+  {
+   "step": "kicad_erc_json",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.7,
+   "cmd": "kicad-cli sch erc --format json --severity-all -o ERC.json ARC1_R85.kicad_sch",
+   "cwd": "R85_WORK/cad"
+  },
+  {
+   "step": "kicad_netlist",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.7,
+   "cmd": "kicad-cli sch export netlist --format kicadxml -o NETLIST.xml ARC1_R85.kicad_sch",
+   "cwd": "R85_WORK/cad"
+  },
+  {
+   "step": "kicad_pdf",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 1.6,
+   "cmd": "kicad-cli sch export pdf -o ARC1_R85_schematic.pdf ARC1_R85.kicad_sch",
+   "cwd": "R85_WORK/cad"
+  },
+  {
+   "step": "crosscheck_1to1",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.4,
+   "cmd": "/usr/bin/python3 cad/check/crosscheck_r85.py . /home/user/Struthio/hardware/arc1-compact/R85_WORK/evidence/run_20261015T123816Z/crosscheck.json",
+   "cwd": "R85_WORK",
+   "detail": "info: {\"netlist_components\": 353, \"plan_components\": 353, \"named_nets\": 154, \"no_connect_pins\": 336, \"footprints_checked\": 34, \"footprint_status_count\": {\"STD_LIB\": 343, \"GENERATED_DERIVED\": 2, \"SLIM4_CANDIDATE\": 6, \"PLACEHOLDER\": 2}, \"routed_io_checked\": 17, \"lpf_ports\": 17, \"rtl_top_ports\": 17, \"firmware_pins\": 55} | CROSSCHECK PASS"
+  },
+  {
+   "step": "board_rules",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 board/check_board_r85.py",
+   "cwd": "R85_WORK",
+   "detail": "R8.5 board rules: 16/16 PASS (self-authored rules, not independent validation)"
+  },
+  {
+   "step": "board_rules_negative_tests",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.5,
+   "cmd": "/usr/bin/python3 -m unittest test_check_board_r85",
+   "cwd": "R85_WORK/board",
+   "detail": "Ran 29 tests in 0.379s | OK"
+  },
+  {
+   "step": "electrical_margins",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 analysis/electrical_margins_r85.py analysis/electrical_margins_r85.json docs/ELECTRICAL_MARGINS_R85.md",
+   "cwd": "R85_WORK",
+   "detail": "margins: PASS 29 CONDITIONAL 11 OPEN 2 FAIL 3"
+  },
+  {
+   "step": "reports_bom_pins_interconnect",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 tools/gen_reports_r85.py",
+   "cwd": "R85_WORK",
+   "detail": "BOM lines 96, components 353"
+  },
+  {
+   "step": "firmware_pin_header",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 firmware/tools/gen_board_pins.py",
+   "cwd": "R85_WORK"
+  },
+  {
+   "step": "delta_table_t35_to_ecp5",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 tools/gen_delta_r85.py",
+   "cwd": "R85_WORK",
+   "detail": "delta rows 117"
+  },
+  {
+   "step": "migration_45f_85f",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.0,
+   "cmd": "/usr/bin/python3 tools/check_migration_r85.py",
+   "cwd": "R85_WORK",
+   "detail": "RESULT: 0 connected balls change bank/dual function on the 85F; 9 change pad name only; 175 identical; 0 not in the migration table"
+  },
+  {
+   "step": "benchmark_hard_stop_analysis",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 1.6,
+   "cmd": "/usr/bin/python3 -I tools/bench/benchmark_r85.py analysis/benchmark_r85.json docs/BENCHMARK_R85.md",
+   "cwd": "R85_WORK",
+   "detail": "{\"verdict\": \"HARD_STOP_TRANSFER_DOMINATED\", \"link_fit\": {\"us_per_byte\": 0.79, \"batch_overhead_us\": 87.7, \"bytes_per_transform_job\": 72.89}, \"instr_per_item\": {\"transform\": 351.36, \"collision\": 18.22, \"particles\": 24.02, \"fir\": 236.05}}"
+  },
+  {
+   "step": "failure_injection_table",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.6,
+   "cmd": "/usr/bin/python3 tools/gen_fit_doc_r85.py",
+   "cwd": "R85_WORK",
+   "detail": "FIT rows 33, RTL tests 18, CO cases 11, missing []"
+  },
+  {
+   "step": "f133_diag_build",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.8,
+   "cmd": "make clean && make",
+   "cwd": "R85_WORK/f133_diag",
+   "detail": "PASS fits_sram_a1: 17972 bytes used of 32768 | EGON_OK"
+  },
+  {
+   "step": "f133_diag_rebuild",
+   "status": "PASS",
+   "exit": 0,
+   "seconds": 0.8,
+   "cmd": "make clean && make",
+   "cwd": "R85_WORK/f133_diag"
+  },
+  {
+   "step": "f133_diag_reproducible",
+   "status": "PASS",
+   "detail": "sha256 5beb0a2d68022f3d3dddff1c545938feaca83c7a279ffae3aa5b853d05b78169"
+  },
+  {
+   "step": "evidence_ledger_schema",
+   "status": "PASS",
+   "detail": "22 entries; invalid/missing paths []; duplicates 0"
+  },
+  {
+   "step": "lattice_vendor_tools",
+   "status": "NOT_RUN",
+   "detail": "Lattice Diamond/Radiant timing sign-off and the Lattice Power Calculator not run (open flow only)"
+  },
+  {
+   "step": "fpga_io_timing_signoff",
+   "status": "NOT_RUN",
+   "detail": "nextpnr-ecp5 does not time pad paths: PSRAM/SPI I/O budgets are hand calculations"
+  },
+  {
+   "step": "pcb_layout_drc",
+   "status": "NOT_RUN",
+   "detail": "no PCB layout (R09 not entered by order): no DRC, no SI/PI, no Gerbers"
+  },
+  {
+   "step": "hardware_any",
+   "status": "NOT_RUN",
+   "detail": "no board, no ECP5 silicon: PHYSICAL_NOT_TESTED for configuration, mailbox, PSRAM, power"
+  },
+  {
+   "step": "part_identity_and_assembly_quote",
+   "status": "NOT_RUN",
+   "detail": "G1: distributor stock/price and a JLCPCB assembly quote for the caBGA381 not obtained"
+  },
+  {
+   "step": "independent_review",
+   "status": "NOT_RUN",
+   "detail": "G10: independent R8.5 review not yet performed"
+  },
+  {
+   "step": "fabrication",
+   "status": "NOT_RUN",
+   "detail": "NOT approved"
+  }
+ ],
+ "base_commit": "66bed02014f5",
+ "tools": {
+  "python": "3.13.16"
+ }
+}

@@ -1,0 +1,7 @@
+$ make lint
+# cwd: R85_WORK/fpga_ecp5
+# exit: 0
+
+mkdir -p build
+verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM -Wno-TIMESCALEMOD --timing \
+  --top-module arc1_ecp5_top rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv ../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv sim/arc1_ecp5_pll_sim.v > build/lint_ecp5.log 2>&1; rc=$?; cat build/lint_ecp5.log; exit $rc

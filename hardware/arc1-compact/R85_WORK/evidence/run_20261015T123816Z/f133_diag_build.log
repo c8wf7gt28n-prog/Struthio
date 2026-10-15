@@ -1,0 +1,26 @@
+$ make clean && make
+# cwd: R85_WORK/f133_diag
+# exit: 0
+
+rm -rf build
+mkdir -p build
+riscv64-unknown-elf-gcc -march=rv64imac_zicsr -mabi=lp64 -mcmodel=medany -Os -ffreestanding -fno-builtin -nostdlib -fno-pic -std=c11 -Wall -Wextra -Werror -Wconversion -I. -Ishim -I../firmware/include -I../../R07_WORK/firmware/include -T link.ld -Wl,--gc-sections -Wl,-Map=build/arc1_r85_diag.map start.S main.c ../../R07_WORK/firmware/src/bt820_host.c ../../R07_WORK/firmware/src/bt820_gfx.c ../firmware/src/spi_nor.c ../firmware/src/flash_layout.c ../firmware/src/crc32.c ../firmware/src/ecp5_cfg.c ../firmware/src/fpga_link.c -lgcc -o build/arc1_r85_diag.elf
+/usr/lib/gcc/riscv64-unknown-elf/13.2.0/../../../riscv64-unknown-elf/bin/ld: warning: build/arc1_r85_diag.elf has a LOAD segment with RWX permissions
+riscv64-unknown-elf-objcopy -O binary build/arc1_r85_diag.elf build/arc1_r85_diag.bin
+mkimage -T sunxi_egon -A riscv -d build/arc1_r85_diag.bin build/arc1_r85_diag.egon
+Allwinner eGON image, size: 24576 bytes
+	SPL header version 0.1
+riscv64-unknown-elf-size build/arc1_r85_diag.elf
+   text	   data	    bss	    dec	    hex	filename
+  17840	     44	    328	  18212	   4724	build/arc1_r85_diag.elf
+python3 -I egon_check.py build/arc1_r85_diag.egon
+PASS riscv_jal: word0 0x0600006f -> jal +0x60
+PASS magic: b'eGON.BT0'
+PASS length: header 24576, file 24576
+PASS checksum: stored 0x9df0e891
+PASS fits_sram_a1: 17972 bytes used of 32768
+EGON_OK
+sha256sum build/arc1_r85_diag.egon build/arc1_r85_diag.elf
+5beb0a2d68022f3d3dddff1c545938feaca83c7a279ffae3aa5b853d05b78169  build/arc1_r85_diag.egon
+19a8fbec08da6cf9c71fb237a928681b58f985a402461621bae104b592d45e56  build/arc1_r85_diag.elf
+Placement: NOR offset 0 (boot0). First-article / FEL procedure: docs/RECOVERY_DOSSIER.md

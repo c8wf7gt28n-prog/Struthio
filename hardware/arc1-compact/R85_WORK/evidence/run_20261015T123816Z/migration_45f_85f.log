@@ -1,0 +1,5 @@
+$ /usr/bin/python3 tools/check_migration_r85.py
+# cwd: R85_WORK
+# exit: 0
+
+RESULT: 0 connected balls change bank/dual function on the 85F; 9 change pad name only; 175 identical; 0 not in the migration table

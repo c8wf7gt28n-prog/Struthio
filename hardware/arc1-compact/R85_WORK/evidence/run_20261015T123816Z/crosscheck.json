@@ -1,0 +1,24 @@
+{
+ "A_netlist_vs_plan": [],
+ "B_symbol_vs_footprint": [],
+ "C_lpf_vs_schematic_vs_rtl": [],
+ "D_firmware_vs_schematic": [],
+ "info": {
+  "netlist_components": 353,
+  "plan_components": 353,
+  "named_nets": 154,
+  "no_connect_pins": 336,
+  "footprints_checked": 34,
+  "footprint_status_count": {
+   "STD_LIB": 343,
+   "GENERATED_DERIVED": 2,
+   "SLIM4_CANDIDATE": 6,
+   "PLACEHOLDER": 2
+  },
+  "routed_io_checked": 17,
+  "lpf_ports": 17,
+  "rtl_top_ports": 17,
+  "firmware_pins": 55
+ },
+ "result": "PASS"
+}

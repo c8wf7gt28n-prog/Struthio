@@ -21,7 +21,7 @@ Runner: `python3 R85_WORK/tools/run_r85_checks.py` (from `hardware/arc1-compact/
 | G2 native CAD | **PASS** | KiCad 9.0.9 ERC **0 errors / 0 warnings**, 9 sheets, 353 parts, 154 nets; 381-ball map; bank table; cross-check A/B/C/D 0 mismatches incl. routed placement of all 17 I/O |
 | G3 NOR independence | **PASS (design + model) / bench open** | FPGA off by default (PE0 pull-down), SPI0 isolation buffers off at reset (rules `boot_straps_00`, `spi0_fpga_isolated` + negative tests); FIT F03a–c, F09a; R08 boot trace. The BROM facts are still R08's open P0 |
 | G4 configuration | **PASS (HOST_TESTED/BUILD_ONLY)** | slave-SPI circuit per TN-02038/39 (rule `ecp5_sysconfig`); loader + P0–P6 service; 33 FIT cases; independent JTAG J5 + J11 power override (`docs/JTAG_RECOVERY_R85.md`). No silicon |
-| G5 FPGA logic | **PASS (OPEN_TOOLCHAIN_ROUTED)** | Yosys 0.33 / nextpnr-ecp5 0.6 / ecppack: sys_clk **87.0 MHz** (80 required), psram_mclk 96.2 MHz (40), seeds 1–5 all pass (worst ≈ 82.6 MHz); 5 975 LUT/3 839 FF/14 DP16KD/8 of 72 MULT18X18D; 0 latches; bitstream 288 697 B sha256 `87ca8d61…e829`, **byte-identical rebuild**. No pad-timing sign-off |
+| G5 FPGA logic | **PASS (OPEN_TOOLCHAIN_ROUTED)** | Yosys 0.33 / nextpnr-ecp5 0.6 / ecppack: sys_clk **87.0 MHz** (80 required), psram_mclk 96.2 MHz (40), seeds 1–5 all pass (sys_clk 84.7–88.8 MHz); 5 975 LUT/3 839 FF/14 DP16KD/8 of 72 MULT18X18D; 0 latches; bitstream 288 697 B sha256 `87ca8d61…e829`, **byte-identical rebuild**. No pad-timing sign-off |
 | G6 PSRAM | **PASS (RTL) / CONDITIONAL timing** | R06 controller bench re-run (walking bits/addresses, random, page/wrap, bursts, recovery, mutants); tb_ecp5_top P0–P4 + CE# stuck; 20 MHz SCLK pad budget 13.0 ns < 25 ns (assumed pad delays) |
 | G7 game link | **PASS (RTL + HOST)** | AJOB/ARES v1 with CRC, sequence, version, length, ABORT; 11 RTL cases byte-exact vs the C reference, RTL bytes re-parsed by the F133 driver; FIT X06–X12 |
 | G8 graceful fail | **PASS (model)** | all 11 CO 7.1 cases covered (`docs/FAILURE_INJECTION_R85.md`); every fault ends in P1 with the FPGA off and isolated; the service never touches SPI1 or NOR CS |
@@ -29,7 +29,7 @@ Runner: `python3 R85_WORK/tools/run_r85_checks.py` (from `hardware/arc1-compact/
 | G10 release | **NOT MET** | delta table (117 rows), BOM, test outputs, risk register exist; **independent review not done; HARD STOP open** |
 | CO 5.3 benchmark | **HARD STOP** | `docs/BENCHMARK_R85.md`: speed-up vs worst-case CPU 0.007–0.15 on the current link |
 
-## 2. Latest run (R85_WORK/evidence/run_20261015T121701Z, then re-run after this file was added)
+## 2. Latest run (R85_WORK/evidence/run_20261015T123816Z: PASS_R85_HOST_RTL_OPENFPGA_KICAD_CHECKS, 41 pass, 0 fail, 7 NOT_RUN)
 
 | Step | Result |
 |---|---|

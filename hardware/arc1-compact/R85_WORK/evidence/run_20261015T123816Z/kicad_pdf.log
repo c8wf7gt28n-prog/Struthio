@@ -1,0 +1,6 @@
+$ kicad-cli sch export pdf -o ARC1_R85_schematic.pdf ARC1_R85.kicad_sch
+# cwd: R85_WORK/cad
+# exit: 0
+
+Plotted to 'ARC1_R85_schematic.pdf'.
+Done.

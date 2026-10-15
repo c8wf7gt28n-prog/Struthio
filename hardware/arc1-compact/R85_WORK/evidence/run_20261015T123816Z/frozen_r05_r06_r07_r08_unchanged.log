@@ -1,0 +1,5 @@
+$ git diff --quiet 66bed02014f5 -- R05_BASELINE R06_WORK R07_WORK R08_WORK && git diff --quiet 66bed02014f5 -- $(git ls-files -- '*.md' '*.json' '*.txt' | grep -v '/' ) && echo 'R05/R06/R07/R08 + root files identical to 66bed02014f5'
+# cwd: .
+# exit: 0
+
+R05/R06/R07/R08 + root files identical to 66bed02014f5

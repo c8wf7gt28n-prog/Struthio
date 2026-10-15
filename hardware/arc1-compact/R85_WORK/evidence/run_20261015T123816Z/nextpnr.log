@@ -1,0 +1,535 @@
+Info: constraining clock net 'clk_25m' to 25.00 MHz
+
+Info: Logic utilisation before packing:
+Info:     Total LUT4s:      5630/43848    12%
+Info:         logic LUTs:   3830/43848     8%
+Info:         carry LUTs:   1800/43848     4%
+Info:           RAM LUTs:      0/ 5481     0%
+Info:          RAMW LUTs:      0/10962     0%
+
+Info:      Total DFFs:      3839/43848     8%
+
+Info: Packing IOs..
+Info: $spi_miso$iobuf_i: spi_miso_$_TBUF__Y.Y
+Info: pin 'spi_miso$tr_io' constrained to Bel 'X11/Y71/PIOA'.
+Info: $psram_sio[3]$iobuf_i: psram_sio_$_TBUF__Y.Y
+Info: pin 'psram_sio[3]$tr_io' constrained to Bel 'X0/Y59/PIOA'.
+Info: $psram_sio[2]$iobuf_i: psram_sio_$_TBUF__Y_1.Y
+Info: pin 'psram_sio[2]$tr_io' constrained to Bel 'X0/Y62/PIOB'.
+Info: $psram_sio[1]$iobuf_i: psram_sio_$_TBUF__Y_2.Y
+Info: pin 'psram_sio[1]$tr_io' constrained to Bel 'X0/Y65/PIOB'.
+Info: $psram_sio[0]$iobuf_i: psram_sio_$_TBUF__Y_3.Y
+Info: pin 'psram_sio[0]$tr_io' constrained to Bel 'X0/Y62/PIOC'.
+Info: $psram_ce_n$iobuf_i: psram_ce_n_$_TBUF__Y.Y
+Info: pin 'psram_ce_n$tr_io' constrained to Bel 'X0/Y65/PIOC'.
+Info: $irq_n$iobuf_i: irq_n_$_TBUF__Y.Y
+Info: pin 'irq_n$tr_io' constrained to Bel 'X6/Y0/PIOA'.
+Info: pin 'spi_sck$tr_io' constrained to Bel 'X4/Y71/PIOA'.
+Info: pin 'spi_mosi$tr_io' constrained to Bel 'X11/Y71/PIOB'.
+Info: pin 'spi_cs_n$tr_io' constrained to Bel 'X13/Y71/PIOA'.
+Info: pin 'psram_sclk$tr_io' constrained to Bel 'X0/Y62/PIOD'.
+Info: pin 'psram_pwr_en$tr_io' constrained to Bel 'X0/Y65/PIOA'.
+Info: pin 'psram_pg$tr_io' constrained to Bel 'X0/Y65/PIOD'.
+Info: pin 'led$tr_io' constrained to Bel 'X18/Y0/PIOA'.
+Info: pin 'dbg_tx$tr_io' constrained to Bel 'X18/Y0/PIOB'.
+Info: pin 'dbg_rx$tr_io' constrained to Bel 'X15/Y0/PIOB'.
+Info: pin 'clk_25m$tr_io' constrained to Bel 'X0/Y68/PIOC'.
+Info: Packing constants..
+Info: Packing carries...
+Info: Packing LUTs...
+Info: Packing LUT5-7s...
+Info: Packing FFs...
+Info:     1683 FFs paired with LUTs.
+Info: Generating derived timing constraints...
+Info:     Input frequency of PLL 'u_pll.pll_i' is constrained to 25.0 MHz
+Info:     Derived frequency constraint of 80.0 MHz for net sys_clk
+Info:     Derived frequency constraint of 40.0 MHz for net psram_mclk
+Info: Promoting globals...
+Info:     promoting clock net sys_clk to global network
+Info:     promoting clock net psram_mclk to global network
+Info: Checksum: 0x9cf97b63
+
+Info: Annotating ports with timing budgets for target frequency 12.00 MHz
+Info: Checksum: 0xc7ef5944
+
+Info: Device utilisation:
+Info: 	          TRELLIS_IO:    17/  245     6%
+Info: 	                DCCA:     2/   56     3%
+Info: 	              DP16KD:    14/  108    12%
+Info: 	          MULT18X18D:     8/   72    11%
+Info: 	              ALU54B:     0/   36     0%
+Info: 	             EHXPLLL:     1/    4    25%
+Info: 	             EXTREFB:     0/    2     0%
+Info: 	                DCUA:     0/    2     0%
+Info: 	           PCSCLKDIV:     0/    2     0%
+Info: 	             IOLOGIC:     0/  160     0%
+Info: 	            SIOLOGIC:     0/   85     0%
+Info: 	                 GSR:     0/    1     0%
+Info: 	               JTAGG:     0/    1     0%
+Info: 	                OSCG:     0/    1     0%
+Info: 	               SEDGA:     0/    1     0%
+Info: 	                 DTR:     0/    1     0%
+Info: 	             USRMCLK:     0/    1     0%
+Info: 	             CLKDIVF:     0/    4     0%
+Info: 	           ECLKSYNCB:     0/   10     0%
+Info: 	             DLLDELD:     0/    8     0%
+Info: 	              DDRDLL:     0/    4     0%
+Info: 	             DQSBUFM:     0/   10     0%
+Info: 	     TRELLIS_ECLKBUF:     0/    8     0%
+Info: 	        ECLKBRIDGECS:     0/    2     0%
+Info: 	                DCSC:     0/    2     0%
+Info: 	          TRELLIS_FF:  3839/43848     8%
+Info: 	        TRELLIS_COMB:  5975/43848    13%
+Info: 	        TRELLIS_RAMW:     0/ 5481     0%
+
+Info: Placed 18 cells based on constraints.
+Info: Creating initial analytic placement for 5080 cells, random placement wirelen = 426797.
+Info:     at initial placer iter 0, wirelen = 2981
+Info:     at initial placer iter 1, wirelen = 3071
+Info:     at initial placer iter 2, wirelen = 3084
+Info:     at initial placer iter 3, wirelen = 3288
+Info: Running main analytical placer, max placement attempts per cell = 12142592.
+Info:     at iteration #1, type ALL: wirelen solved = 3065, spread = 65117, legal = 75033; time = 0.27s
+Info:     at iteration #2, type ALL: wirelen solved = 6165, spread = 49521, legal = 58282; time = 0.25s
+Info:     at iteration #3, type ALL: wirelen solved = 9264, spread = 43752, legal = 51264; time = 0.26s
+Info:     at iteration #4, type ALL: wirelen solved = 10856, spread = 37901, legal = 45740; time = 0.27s
+Info:     at iteration #5, type ALL: wirelen solved = 11957, spread = 35202, legal = 42795; time = 0.24s
+Info:     at iteration #6, type ALL: wirelen solved = 13543, spread = 32526, legal = 39821; time = 0.23s
+Info:     at iteration #7, type ALL: wirelen solved = 14454, spread = 32114, legal = 40050; time = 0.20s
+Info:     at iteration #8, type ALL: wirelen solved = 15317, spread = 32093, legal = 39092; time = 0.25s
+Info:     at iteration #9, type ALL: wirelen solved = 15840, spread = 30478, legal = 39721; time = 0.26s
+Info:     at iteration #10, type ALL: wirelen solved = 16670, spread = 31343, legal = 39158; time = 0.26s
+Info:     at iteration #11, type ALL: wirelen solved = 17703, spread = 31352, legal = 38828; time = 0.22s
+Info:     at iteration #12, type ALL: wirelen solved = 18172, spread = 31313, legal = 38567; time = 0.21s
+Info:     at iteration #13, type ALL: wirelen solved = 18636, spread = 30252, legal = 37422; time = 0.21s
+Info:     at iteration #14, type ALL: wirelen solved = 19122, spread = 36766, legal = 42055; time = 0.19s
+Info:     at iteration #15, type ALL: wirelen solved = 19831, spread = 32054, legal = 38294; time = 0.23s
+Info:     at iteration #16, type ALL: wirelen solved = 20227, spread = 32340, legal = 37654; time = 0.22s
+Info:     at iteration #17, type ALL: wirelen solved = 20772, spread = 40230, legal = 44406; time = 0.21s
+Info:     at iteration #18, type ALL: wirelen solved = 21176, spread = 43325, legal = 46964; time = 0.21s
+Info: HeAP Placer Time: 6.27s
+Info:   of which solving equations: 3.20s
+Info:   of which spreading cells: 0.69s
+Info:   of which strict legalisation: 0.73s
+
+Info: Running simulated annealing placer for refinement.
+Info:   at iteration #1: temp = 0.000000, timing cost = 1449, wirelen = 37422
+Info:   at iteration #5: temp = 0.000000, timing cost = 1439, wirelen = 33229
+Info:   at iteration #10: temp = 0.000000, timing cost = 1126, wirelen = 31867
+Info:   at iteration #15: temp = 0.000000, timing cost = 1174, wirelen = 31117
+Info:   at iteration #20: temp = 0.000000, timing cost = 1123, wirelen = 30903
+Info:   at iteration #23: temp = 0.000000, timing cost = 1098, wirelen = 30871 
+Info: SA placement time 17.84s
+
+Info: Max frequency for clock    '$glbnet$sys_clk': 64.28 MHz (FAIL at 80.00 MHz)
+Info: Max frequency for clock '$glbnet$psram_mclk': 77.05 MHz (PASS at 40.00 MHz)
+
+Info: Max delay <async>                    -> posedge $glbnet$psram_mclk: 6.36 ns
+Info: Max delay <async>                    -> posedge $glbnet$sys_clk   : 3.24 ns
+Info: Max delay posedge $glbnet$psram_mclk -> <async>                   : 13.05 ns
+Info: Max delay posedge $glbnet$psram_mclk -> posedge $glbnet$sys_clk   : 2.92 ns
+Info: Max delay posedge $glbnet$sys_clk    -> <async>                   : 8.94 ns
+Info: Max delay posedge $glbnet$sys_clk    -> posedge $glbnet$psram_mclk: 6.61 ns
+
+Info: Slack histogram:
+Info:  legend: * represents 49 endpoint(s)
+Info:          + represents [1,49) endpoint(s)
+Info: [ -3056,   1130) |*************+
+Info: [  1130,   5316) |************************************************************ 
+Info: [  5316,   9502) |**********************************************+
+Info: [  9502,  13688) |******************************+
+Info: [ 13688,  17874) |********+
+Info: [ 17874,  22060) |******+
+Info: [ 22060,  26246) |***+
+Info: [ 26246,  30432) | 
+Info: [ 30432,  34618) | 
+Info: [ 34618,  38804) | 
+Info: [ 38804,  42990) | 
+Info: [ 42990,  47176) | 
+Info: [ 47176,  51362) | 
+Info: [ 51362,  55548) | 
+Info: [ 55548,  59734) | 
+Info: [ 59734,  63920) | 
+Info: [ 63920,  68106) | 
+Info: [ 68106,  72292) |+
+Info: [ 72292,  76478) |+
+Info: [ 76478,  80664) |+
+Info: Checksum: 0xa2e331e7
+Info: Routing globals...
+Info:     routing clock net $glbnet$psram_mclk using global 0
+Info:     routing clock net $glbnet$sys_clk using global 1
+
+Info: Routing..
+Info: Setting up routing queue.
+Info: Routing 23713 arcs.
+Info:            |   (re-)routed arcs  |   delta    | remaining|       time spent     |
+Info:    IterCnt |  w/ripup   wo/ripup |  w/r  wo/r |      arcs| batch(sec) total(sec)|
+Info:       1000 |      165        834 |  165   834 |     22968|       0.45       0.45|
+Info:       2000 |      398       1601 |  233   767 |     22310|       0.16       0.61|
+Info:       3000 |      648       2351 |  250   750 |     21642|       0.16       0.77|
+Info:       4000 |      833       3166 |  185   815 |     20936|       0.18       0.94|
+Info:       5000 |     1054       3945 |  221   779 |     20284|       0.15       1.10|
+Info:       6000 |     1308       4691 |  254   746 |     19693|       0.14       1.24|
+Info:       7000 |     1612       5387 |  304   696 |     19232|       0.17       1.41|
+Info:       8000 |     1834       6165 |  222   778 |     18585|       0.19       1.60|
+Info:       9000 |     2089       6910 |  255   745 |     17965|       0.20       1.80|
+Info:      10000 |     2467       7532 |  378   622 |     17537|       0.19       1.99|
+Info:      11000 |     2764       8235 |  297   703 |     17089|       0.19       2.18|
+Info:      12000 |     3121       8878 |  357   643 |     16525|       0.20       2.38|
+Info:      13000 |     3515       9484 |  394   606 |     16008|       0.20       2.58|
+Info:      14000 |     3843      10156 |  328   672 |     15494|       0.25       2.83|
+Info:      15000 |     4195      10804 |  352   648 |     14993|       0.23       3.06|
+Info:      16000 |     4510      11461 |  315   657 |     14451|       0.27       3.33|
+Info:      17000 |     4790      12148 |  280   687 |     13841|       0.28       3.61|
+Info:      18000 |     5100      12780 |  310   632 |     13293|       0.29       3.90|
+Info:      19000 |     5415      13381 |  315   601 |     12692|       0.23       4.13|
+Info:      20000 |     5714      14001 |  299   620 |     12065|       0.25       4.38|
+Info:      21000 |     6050      14593 |  336   592 |     11508|       0.27       4.64|
+Info:      22000 |     6337      15220 |  287   627 |     10928|       0.23       4.88|
+Info:      23000 |     6662      15842 |  325   622 |     10427|       0.25       5.13|
+Info:      24000 |     6987      16460 |  325   618 |      9915|       0.30       5.43|
+Info:      25000 |     7303      17088 |  316   628 |      9424|       0.33       5.76|
+Info:      26000 |     7651      17681 |  348   593 |      9002|       0.34       6.11|
+Info:      27000 |     7969      18300 |  318   619 |      8403|       0.20       6.30|
+Info:      28000 |     8310      18906 |  341   606 |      7838|       0.28       6.59|
+Info:      29000 |     8637      19507 |  327   601 |      7276|       0.33       6.92|
+Info:      30000 |     8878      20184 |  241   677 |      6566|       0.30       7.22|
+Info:      31000 |     9134      20845 |  256   661 |      5940|       0.36       7.58|
+Info:      32000 |     9378      21521 |  244   676 |      5238|       0.29       7.88|
+Info:      33000 |     9653      22140 |  275   619 |      4649|       0.33       8.21|
+Info:      34000 |     9969      22796 |  316   656 |      4063|       0.32       8.53|
+Info:      35000 |    10241      23466 |  272   670 |      3465|       0.35       8.88|
+Info:      36000 |    10577      24097 |  336   631 |      3029|       0.28       9.15|
+Info:      37000 |    10901      24757 |  324   660 |      2483|       0.32       9.48|
+Info:      38000 |    11264      25390 |  363   633 |      2007|       0.32       9.80|
+Info:      39000 |    11609      26032 |  345   642 |      1443|       0.26      10.07|
+Info:      40000 |    11754      26619 |  145   587 |       654|       0.16      10.23|
+Info:      40745 |    11828      27082 |   74   463 |         0|       0.11      10.34|
+Info: Routing complete.
+Info: Router1 time 10.34s
+Info: Checksum: 0x300958e2
+
+Info: Critical path report for clock '$glbnet$sys_clk' (posedge -> posedge):
+Info: curr total
+Info:  5.8  5.8  Source u_psram.u_rbuf.mem.0.0.DOB7
+Info:  1.1  6.9    Net p_rd_data[7] budget 0.927000 ns (8,34) -> (8,35)
+Info:                Sink u_regs.bist_start_LUT4_C_Z_LUT4_Z_A_LUT4_Z_D_LUT4_Z.D
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:285.26-285.31
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:272.29-274.57
+Info:  0.2  7.1  Source u_regs.bist_start_LUT4_C_Z_LUT4_Z_A_LUT4_Z_D_LUT4_Z.F
+Info:  1.0  8.2    Net u_regs.bist_start_LUT4_C_Z_LUT4_Z_A_LUT4_Z_D[2] budget 0.927000 ns (8,35) -> (9,32)
+Info:                Sink u_regs.bist_start_LUT4_C_Z_LUT4_Z_A_LUT4_Z.D
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  8.4  Source u_regs.bist_start_LUT4_C_Z_LUT4_Z_A_LUT4_Z.F
+Info:  0.4  8.8    Net u_regs.bist_start_LUT4_C_Z_LUT4_Z_A[1] budget 0.927000 ns (9,32) -> (9,32)
+Info:                Sink u_regs.bist_start_LUT4_C_Z_LUT4_Z.B
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  9.1  Source u_regs.bist_start_LUT4_C_Z_LUT4_Z.F
+Info:  1.3 10.4    Net u_regs.bist_start_LUT4_C_Z[0] budget 0.927000 ns (9,32) -> (16,26)
+Info:                Sink u_regs.bist_start_LUT4_C_Z_LUT4_A.A
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2 10.6  Source u_regs.bist_start_LUT4_C_Z_LUT4_A.F
+Info:  0.0 10.6    Net u_regs.bist_start_LUT4_C_Z_LUT4_A_Z budget 0.927000 ns (16,26) -> (16,26)
+Info:                Sink u_regs.bist_start_LUT4_C_Z_PFUMX_C0_BLUT_LUT4_Z.F1
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:133.22-133.24
+Info:  0.2 10.8  Source u_regs.bist_start_LUT4_C_Z_PFUMX_C0_BLUT_LUT4_Z.OFX
+Info:  0.7 11.5    Net u_regs.bist_start_LUT4_C_Z_PFUMX_C0_Z budget 0.926000 ns (16,26) -> (16,25)
+Info:                Sink u_bist.errs_TRELLIS_FF_Q_20.CE
+Info:  0.0 11.5  Setup u_bist.errs_TRELLIS_FF_Q_20.CE
+Info: 6.9 ns logic, 4.6 ns routing
+
+Info: Critical path report for clock '$glbnet$psram_mclk' (posedge -> posedge):
+Info: curr total
+Info:  0.5  0.5  Source u_psram.u_core.d_bytes_TRELLIS_FF_Q_5.Q
+Info:  0.9  1.4    Net u_psram.u_core.d_bytes[3] budget 0.000000 ns (3,27) -> (3,28)
+Info:                Sink u_psram.u_core.d_serial_rd_LUT4_D_5.C
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:133.21-133.28
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:  0.2  1.7  Source u_psram.u_core.d_serial_rd_LUT4_D_5.F
+Info:  0.9  2.6    Net u_psram.u_core.d_end_CCU2C_S0_B0[3] budget 0.000000 ns (3,28) -> (3,29)
+Info:                Sink u_psram.u_core.d_end_CCU2C_S0_3$CCU2_COMB1.B
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:151.27-152.86
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:32.22-32.23
+Info:  0.4  3.0  Source u_psram.u_core.d_end_CCU2C_S0_3$CCU2_COMB1.FCO
+Info:  0.0  3.0    Net u_psram.u_core.d_end_CCU2C_S0_4_COUT[3] budget 0.000000 ns (3,29) -> (3,29)
+Info:                Sink u_psram.u_core.d_end_CCU2C_S0_2$CCU2_COMB0.FCI
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:151.27-152.86
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:63.22-63.23
+Info:  0.1  3.1  Source u_psram.u_core.d_end_CCU2C_S0_2$CCU2_COMB0.FCO
+Info:  0.0  3.1    Net u_psram.u_core.d_end_CCU2C_S0_2$CCU2_FCI_INT budget 0.000000 ns (3,29) -> (3,29)
+Info:                Sink u_psram.u_core.d_end_CCU2C_S0_2$CCU2_COMB1.FCI
+Info:  0.4  3.5  Source u_psram.u_core.d_end_CCU2C_S0_2$CCU2_COMB1.F
+Info:  1.1  4.6    Net u_psram.u_core.d_end[6] budget 1.290000 ns (3,29) -> (4,31)
+Info:                Sink u_psram.u_core.psram_sclk_PFUMX_C0_Z_LUT4_Z_1_A_LUT4_Z_3.B
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:151.17-151.22
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:  0.2  4.8  Source u_psram.u_core.psram_sclk_PFUMX_C0_Z_LUT4_Z_1_A_LUT4_Z_3.F
+Info:  1.1  5.9    Net u_psram.u_core.psram_sclk_PFUMX_C0_Z_LUT4_Z_1_A[0] budget 1.290000 ns (4,31) -> (2,32)
+Info:                Sink u_psram.u_core.psram_sclk_PFUMX_C0_Z_LUT4_Z_1.A
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  6.2  Source u_psram.u_core.psram_sclk_PFUMX_C0_Z_LUT4_Z_1.F
+Info:  0.9  7.1    Net u_psram.u_core.psram_sclk_PFUMX_C0_Z[0] budget 1.290000 ns (2,32) -> (4,32)
+Info:                Sink u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_ALUT_LUT4_Z.A
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  7.3  Source u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_ALUT_LUT4_Z.F
+Info:  0.0  7.3    Net u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_ALUT budget 1.290000 ns (4,32) -> (4,32)
+Info:                Sink u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_BLUT_LUT4_Z.F1
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:157.46-157.48
+Info:  0.2  7.5  Source u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_BLUT_LUT4_Z.OFX
+Info:  0.0  7.5    Net u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1 budget 0.000000 ns (4,32) -> (4,32)
+Info:                Sink u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_ALUT_LUT4_Z.FXB
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:157.62-157.64
+Info:  0.2  7.7  Source u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_ALUT_LUT4_Z.OFX
+Info:  0.0  7.7    Net u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1 budget 0.000000 ns (4,32) -> (4,32)
+Info:                Sink u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_ALUT_LUT4_Z.FXB
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:157.70-157.72
+Info:  0.2  7.9  Source u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_ALUT_LUT4_Z.OFX
+Info:  1.2  9.1    Net u_psram.u_core.d_write_L6MUX21_SD_Z_LUT4_C_Z[2] budget 8.846000 ns (4,32) -> (4,27)
+Info:                Sink u_psram.u_core.osr_TRELLIS_FF_Q_30_LSR_LUT4_Z.C
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  9.3  Source u_psram.u_core.osr_TRELLIS_FF_Q_30_LSR_LUT4_Z.F
+Info:  0.6 10.0    Net u_psram.u_core.osr_TRELLIS_FF_Q_30_LSR budget 2.948000 ns (4,27) -> (4,25)
+Info:                Sink u_psram.u_core.osr_TRELLIS_FF_Q_30.LSR
+Info:  0.4 10.4  Setup u_psram.u_core.osr_TRELLIS_FF_Q_30.LSR
+Info: 3.7 ns logic, 6.7 ns routing
+
+Info: Critical path report for cross-domain path '<async>' -> 'posedge $glbnet$psram_mclk':
+Info: curr total
+Info:  0.0  0.0  Source psram_sio[1]$tr_io.O
+Info:  3.4  3.4    Net psram_sio[1]$TRELLIS_IO_IN budget 25.000000 ns (0,65) -> (6,32)
+Info:                Sink u_psram.u_core.rd_sr_TRELLIS_FF_Q_6.M
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:73.41-73.51
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:  0.0  3.4  Setup u_psram.u_core.rd_sr_TRELLIS_FF_Q_6.M
+Info: 0.0 ns logic, 3.4 ns routing
+
+Info: Critical path report for cross-domain path '<async>' -> 'posedge $glbnet$sys_clk':
+Info: curr total
+Info:  0.0  0.0  Source spi_sck$tr_io.O
+Info:  1.7  1.7    Net spi_sck$TRELLIS_IO_IN budget 12.500000 ns (4,71) -> (17,68)
+Info:                Sink u_spi.sck_s_TRELLIS_FF_Q_2.M
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:53.19-58.71
+Info:                  ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv:18.24-18.29
+Info:  0.0  1.7  Setup u_spi.sck_s_TRELLIS_FF_Q_2.M
+Info: 0.0 ns logic, 1.7 ns routing
+
+Info: Critical path report for cross-domain path 'posedge $glbnet$psram_mclk' -> '<async>':
+Info: curr total
+Info:  0.5  0.5  Source u_guard.on_TRELLIS_FF_Q.Q
+Info:  3.3  3.9    Net guard_on budget 41.203999 ns (3,63) -> (16,32)
+Info:                Sink led_PFUMX_Z_BLUT_LUT4_Z.D
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.4  4.3  Source led_PFUMX_Z_BLUT_LUT4_Z.OFX
+Info:  2.7  7.0    Net led$TRELLIS_IO_OUT budget 27.438000 ns (16,32) -> (18,0)
+Info:                Sink led$tr_io.I
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:32.23-32.26
+Info: 0.9 ns logic, 6.0 ns routing
+
+Info: Critical path report for cross-domain path 'posedge $glbnet$psram_mclk' -> 'posedge $glbnet$sys_clk':
+Info: curr total
+Info:  0.5  0.5  Source u_guard.on_TRELLIS_FF_Q.Q
+Info:  1.6  2.1    Net guard_on budget 11.975000 ns (3,63) -> (3,51)
+Info:                Sink guard_on_sync_TRELLIS_FF_Q.M
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.0  2.1  Setup guard_on_sync_TRELLIS_FF_Q.M
+Info: 0.5 ns logic, 1.6 ns routing
+
+Info: Critical path report for cross-domain path 'posedge $glbnet$sys_clk' -> '<async>':
+Info: curr total
+Info:  0.5  0.5  Source u_psram.rdy_s_TRELLIS_FF_Q.Q
+Info:  1.1  1.7    Net u_psram.rdy_s[1] budget 1.727000 ns (15,33) -> (14,32)
+Info:                Sink u_psram.rdy_s_LUT4_D.D
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:84.22-84.27
+Info:  0.2  1.9  Source u_psram.rdy_s_LUT4_D.F
+Info:  0.5  2.4    Net u_psram.rdy_s_LUT4_D_Z[5] budget 27.438999 ns (14,32) -> (16,32)
+Info:                Sink led_PFUMX_Z_BLUT_LUT4_Z.M
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.3  2.6  Source led_PFUMX_Z_BLUT_LUT4_Z.OFX
+Info:  2.7  5.3    Net led$TRELLIS_IO_OUT budget 27.438000 ns (16,32) -> (18,0)
+Info:                Sink led$tr_io.I
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:32.23-32.26
+Info: 1.0 ns logic, 4.3 ns routing
+
+Info: Critical path report for cross-domain path 'posedge $glbnet$sys_clk' -> 'posedge $glbnet$psram_mclk':
+Info: curr total
+Info:  0.5  0.5  Source u_psram.u_addr_TRELLIS_FF_Q_12.Q
+Info:  0.9  1.4    Net u_psram.u_addr[10] budget 0.000000 ns (7,27) -> (7,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_3$CCU2_COMB0.B
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.4  1.9  Source u_psram.u_core.cmd_end_CCU2C_S0_3$CCU2_COMB0.FCO
+Info:  0.0  1.9    Net u_psram.u_core.cmd_end_CCU2C_S0_3$CCU2_FCI_INT budget 0.000000 ns (7,27) -> (7,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_3$CCU2_COMB1.FCI
+Info:  0.0  1.9  Source u_psram.u_core.cmd_end_CCU2C_S0_3$CCU2_COMB1.FCO
+Info:  0.0  1.9    Net u_psram.u_core.cmd_end_CCU2C_S0_4_COUT[3] budget 0.000000 ns (7,27) -> (7,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_2$CCU2_COMB0.FCI
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:308.27-308.74
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:63.22-63.23
+Info:  0.1  1.9  Source u_psram.u_core.cmd_end_CCU2C_S0_2$CCU2_COMB0.FCO
+Info:  0.0  1.9    Net u_psram.u_core.cmd_end_CCU2C_S0_2$CCU2_FCI_INT budget 0.000000 ns (7,27) -> (7,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_2$CCU2_COMB1.FCI
+Info:  0.0  1.9  Source u_psram.u_core.cmd_end_CCU2C_S0_2$CCU2_COMB1.FCO
+Info:  0.0  1.9    Net u_psram.u_core.cmd_end_CCU2C_S0_4_COUT[5] budget 0.000000 ns (7,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_1$CCU2_COMB0.FCI
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:308.27-308.74
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:63.22-63.23
+Info:  0.1  2.0  Source u_psram.u_core.cmd_end_CCU2C_S0_1$CCU2_COMB0.FCO
+Info:  0.0  2.0    Net u_psram.u_core.cmd_end_CCU2C_S0_1$CCU2_FCI_INT budget 0.000000 ns (8,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_1$CCU2_COMB1.FCI
+Info:  0.0  2.0  Source u_psram.u_core.cmd_end_CCU2C_S0_1$CCU2_COMB1.FCO
+Info:  0.0  2.0    Net u_psram.u_core.cmd_end_CCU2C_S0_4_COUT[7] budget 0.000000 ns (8,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0$CCU2_COMB0.FCI
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:308.27-308.74
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:63.22-63.23
+Info:  0.1  2.1  Source u_psram.u_core.cmd_end_CCU2C_S0$CCU2_COMB0.FCO
+Info:  0.0  2.1    Net u_psram.u_core.cmd_end_CCU2C_S0$CCU2_FCI_INT budget 0.000000 ns (8,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0$CCU2_COMB1.FCI
+Info:  0.0  2.1  Source u_psram.u_core.cmd_end_CCU2C_S0$CCU2_COMB1.FCO
+Info:  0.0  2.1    Net u_psram.u_core.cmd_end_CCU2C_S0_4_COUT[9] budget 0.000000 ns (8,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_6$CCU2_COMB0.FCI
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:308.27-308.74
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:63.22-63.23
+Info:  0.1  2.2  Source u_psram.u_core.cmd_end_CCU2C_S0_6$CCU2_COMB0.FCO
+Info:  0.0  2.2    Net u_psram.u_core.cmd_end_CCU2C_S0_6$CCU2_FCI_INT budget 0.000000 ns (8,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_6$CCU2_COMB1.FCI
+Info:  0.0  2.2  Source u_psram.u_core.cmd_end_CCU2C_S0_6$CCU2_COMB1.FCO
+Info:  0.0  2.2    Net u_psram.u_core.cmd_end_CCU2C_S0_4_COUT[11] budget 0.000000 ns (8,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_5$CCU2_COMB0.FCI
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:308.27-308.74
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:63.22-63.23
+Info:  0.1  2.2  Source u_psram.u_core.cmd_end_CCU2C_S0_5$CCU2_COMB0.FCO
+Info:  0.0  2.2    Net u_psram.u_core.cmd_end_CCU2C_S0_5$CCU2_FCI_INT budget 0.000000 ns (8,27) -> (8,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_5$CCU2_COMB1.FCI
+Info:  0.0  2.2  Source u_psram.u_core.cmd_end_CCU2C_S0_5$CCU2_COMB1.FCO
+Info:  0.0  2.2    Net u_psram.u_core.cmd_end_CCU2C_S0_4_COUT[13] budget 0.000000 ns (8,27) -> (9,27)
+Info:                Sink u_psram.u_core.cmd_end_CCU2C_S0_4$CCU2_COMB0.FCI
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:308.27-308.74
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:                  /usr/bin/../share/yosys/ecp5/arith_map.v:63.22-63.23
+Info:  0.4  2.7  Source u_psram.u_core.cmd_end_CCU2C_S0_4$CCU2_COMB0.F
+Info:  0.9  3.6    Net u_psram.u_core.cmd_end[22] budget 2.696000 ns (9,27) -> (8,28)
+Info:                Sink u_psram.c_valid_L6MUX21_SD_Z_LUT4_Z.A
+Info:                Defined in:
+Info:                  rtl/arc1_ecp5_top.sv:110.49-120.72
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv:308.17-308.24
+Info:                  ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv:254.7-267.6
+Info:  0.2  3.9  Source u_psram.c_valid_L6MUX21_SD_Z_LUT4_Z.F
+Info:  0.6  4.5    Net u_psram.c_valid_L6MUX21_SD_Z[1] budget 2.696000 ns (8,28) -> (9,28)
+Info:                Sink u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_ALUT_LUT4_Z.B
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  4.7  Source u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_ALUT_LUT4_Z.F
+Info:  0.0  4.7    Net u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_ALUT budget 2.696000 ns (9,28) -> (9,28)
+Info:                Sink u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_BLUT_LUT4_Z.F1
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:157.38-157.40
+Info:  0.2  4.9  Source u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_BLUT_LUT4_Z.OFX
+Info:  0.0  4.9    Net u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0 budget 0.000000 ns (9,28) -> (9,28)
+Info:                Sink u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_ALUT_LUT4_Z.FXA
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:157.58-157.60
+Info:  0.2  5.1  Source u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D1_PFUMX_Z_ALUT_LUT4_Z.OFX
+Info:  0.0  5.1    Net u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1 budget 0.000000 ns (9,28) -> (9,28)
+Info:                Sink u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_ALUT_LUT4_Z.FXB
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:157.70-157.72
+Info:  0.2  5.4  Source u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C_L6MUX21_Z_D1_L6MUX21_Z_D0_PFUMX_Z_ALUT_LUT4_Z.OFX
+Info:  1.1  6.5    Net u_psram.u_core.done_valid_TRELLIS_FF_Q_DI_LUT4_Z_C[2] budget 3.595000 ns (9,28) -> (11,26)
+Info:                Sink u_psram.u_core.done_status_TRELLIS_FF_Q_2_DI_LUT4_Z_C_LUT4_Z.B
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  6.7  Source u_psram.u_core.done_status_TRELLIS_FF_Q_2_DI_LUT4_Z_C_LUT4_Z.F
+Info:  0.6  7.3    Net u_psram.u_core.done_status_TRELLIS_FF_Q_2_DI_LUT4_Z_C[2] budget 3.595000 ns (11,26) -> (11,26)
+Info:                Sink u_psram.u_core.done_status_TRELLIS_FF_Q_2_DI_LUT4_Z.C
+Info:                Defined in:
+Info:                  /usr/bin/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:  0.2  7.6  Source u_psram.u_core.done_status_TRELLIS_FF_Q_2_DI_LUT4_Z.F
+Info:  0.1  7.7    Net u_psram.u_core.done_status_TRELLIS_FF_Q_2_DI budget 3.594000 ns (11,26) -> (11,26)
+Info:                Sink u_psram.u_core.done_status_TRELLIS_FF_Q_2.DI
+Info:  0.0  7.7  Setup u_psram.u_core.done_status_TRELLIS_FF_Q_2.DI
+Info: 3.4 ns logic, 4.4 ns routing
+
+Info: Max frequency for clock    '$glbnet$sys_clk': 87.02 MHz (PASS at 80.00 MHz)
+Info: Max frequency for clock '$glbnet$psram_mclk': 96.17 MHz (PASS at 40.00 MHz)
+
+Info: Max delay <async>                    -> posedge $glbnet$psram_mclk: 3.37 ns
+Info: Max delay <async>                    -> posedge $glbnet$sys_clk   : 1.73 ns
+Info: Max delay posedge $glbnet$psram_mclk -> <async>                   : 6.95 ns
+Info: Max delay posedge $glbnet$psram_mclk -> posedge $glbnet$sys_clk   : 2.14 ns
+Info: Max delay posedge $glbnet$sys_clk    -> <async>                   : 5.32 ns
+Info: Max delay posedge $glbnet$sys_clk    -> posedge $glbnet$psram_mclk: 7.72 ns
+
+Info: Slack histogram:
+Info:  legend: * represents 63 endpoint(s)
+Info:          + represents [1,63) endpoint(s)
+Info: [  1008,   4993) |******************+
+Info: [  4993,   8978) |************************************************************ 
+Info: [  8978,  12963) |**************************************+
+Info: [ 12963,  16948) |**+
+Info: [ 16948,  20933) |********+
+Info: [ 20933,  24918) |****+
+Info: [ 24918,  28903) | 
+Info: [ 28903,  32888) | 
+Info: [ 32888,  36873) | 
+Info: [ 36873,  40858) | 
+Info: [ 40858,  44843) | 
+Info: [ 44843,  48828) | 
+Info: [ 48828,  52813) | 
+Info: [ 52813,  56798) | 
+Info: [ 56798,  60783) | 
+Info: [ 60783,  64768) | 
+Info: [ 64768,  68753) | 
+Info: [ 68753,  72738) | 
+Info: [ 72738,  76723) |+
+Info: [ 76723,  80708) |+
+
+Info: Program finished normally.

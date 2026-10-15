@@ -1,0 +1,11 @@
+$ make seeds
+# cwd: R85_WORK/fpga_ecp5
+# exit: 0
+
+for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/arc1_ecp5.json --lpf constraints/arc1_ecp5_r85.lpf \
+  --seed $s --log build/seed_$s.log > /dev/null 2>&1; echo "seed $s: $(grep 'Max frequency' build/seed_$s.log | tail -2 | sed 's/Info: Max frequency for clock//' | tr -s ' ' | tr '\n' ' ')"; done | tee build/seeds.log
+seed 1:  '$glbnet$sys_clk': 87.02 MHz (PASS at 80.00 MHz)  '$glbnet$psram_mclk': 96.17 MHz (PASS at 40.00 MHz) 
+seed 2:  '$glbnet$sys_clk': 86.37 MHz (PASS at 80.00 MHz)  '$glbnet$psram_mclk': 91.73 MHz (PASS at 40.00 MHz) 
+seed 3:  '$glbnet$sys_clk': 88.69 MHz (PASS at 80.00 MHz)  '$glbnet$psram_mclk': 89.61 MHz (PASS at 40.00 MHz) 
+seed 4:  '$glbnet$sys_clk': 84.73 MHz (PASS at 80.00 MHz)  '$glbnet$psram_mclk': 96.45 MHz (PASS at 40.00 MHz) 
+seed 5:  '$glbnet$sys_clk': 88.80 MHz (PASS at 80.00 MHz)  '$glbnet$psram_mclk': 94.05 MHz (PASS at 40.00 MHz) 

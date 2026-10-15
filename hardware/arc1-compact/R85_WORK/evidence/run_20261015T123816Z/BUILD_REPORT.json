@@ -1,0 +1,123 @@
+{
+ "target": {
+  "device": "LFE5U-45F",
+  "package": "CABGA381",
+  "speed": 6,
+  "top": "arc1_ecp5_top",
+  "lpf": "fpga_ecp5/constraints/arc1_ecp5_r85.lpf (generated from board/r85_board_plan.json)"
+ },
+ "synthesis_cells": {
+  "$_TBUF_": 7,
+  "CCU2C": 900,
+  "DP16KD": 14,
+  "EHXPLLL": 1,
+  "L6MUX21": 249,
+  "LUT4": 3830,
+  "MULT18X18D": 8,
+  "PFUMX": 767,
+  "TRELLIS_FF": 3839
+ },
+ "latches": 0,
+ "utilization": {
+  "DCCA": {
+   "available": 56,
+   "used": 2
+  },
+  "DP16KD": {
+   "available": 108,
+   "used": 14
+  },
+  "EHXPLLL": {
+   "available": 4,
+   "used": 1
+  },
+  "MULT18X18D": {
+   "available": 72,
+   "used": 8
+  },
+  "TRELLIS_COMB": {
+   "available": 43848,
+   "used": 5975
+  },
+  "TRELLIS_FF": {
+   "available": 43848,
+   "used": 3839
+  },
+  "TRELLIS_IO": {
+   "available": 245,
+   "used": 17
+  }
+ },
+ "fmax": {
+  "psram_mclk": {
+   "achieved_MHz": 96.17,
+   "constraint_MHz": 40,
+   "pass": true
+  },
+  "sys_clk": {
+   "achieved_MHz": 87.02,
+   "constraint_MHz": 80,
+   "pass": true
+  }
+ },
+ "critical_paths": [
+  {
+   "from": "posedge sys_clk",
+   "to": "posedge sys_clk",
+   "delay_ns": 11.491,
+   "endpoint": "u_bist.errs_TRELLIS_FF_Q_20"
+  },
+  {
+   "from": "posedge psram_mclk",
+   "to": "posedge psram_mclk",
+   "delay_ns": 10.398,
+   "endpoint": "u_psram.u_core.osr_TRELLIS_FF_Q_30"
+  },
+  {
+   "from": "<async>",
+   "to": "posedge psram_mclk",
+   "delay_ns": 3.371,
+   "endpoint": "u_psram.u_core.rd_sr_TRELLIS_FF_Q_6"
+  },
+  {
+   "from": "<async>",
+   "to": "posedge sys_clk",
+   "delay_ns": 1.734,
+   "endpoint": "u_spi.sck_s_TRELLIS_FF_Q_2"
+  },
+  {
+   "from": "posedge psram_mclk",
+   "to": "<async>",
+   "delay_ns": 6.953,
+   "endpoint": "led$tr_io"
+  },
+  {
+   "from": "posedge psram_mclk",
+   "to": "posedge sys_clk",
+   "delay_ns": 2.142,
+   "endpoint": "guard_on_sync_TRELLIS_FF_Q"
+  },
+  {
+   "from": "posedge sys_clk",
+   "to": "<async>",
+   "delay_ns": 5.317,
+   "endpoint": "led$tr_io"
+  },
+  {
+   "from": "posedge sys_clk",
+   "to": "posedge psram_mclk",
+   "delay_ns": 7.715,
+   "endpoint": "u_psram.u_core.done_status_TRELLIS_FF_Q_2"
+  }
+ ],
+ "nextpnr_warnings": [],
+ "multiplier_mapping": "8 x MULT18X18D, all in arc1_transform_ecp5 S1: two 32x32 products per issue cycle split into 4 signed 17x17 partial products each (hi17/lo17); no sharing between products, no ALU54B cascades (not used; open-tool DSP inference limits, Trellis README). 64 of 72 MULT18X18D free.",
+ "bitstream": {
+  "file": "arc1_ecp5.bit",
+  "bytes": 288697,
+  "sha256": "87ca8d61e1701e95529380fe50fa2917c1f7b45619a0d4ac4a9fc960f7f3e829",
+  "ecppack": "--compress"
+ },
+ "evidence": "OPEN_TOOLCHAIN_ROUTED (Yosys/nextpnr-ecp5/Trellis); not programmed into silicon",
+ "result": "PASS"
+}

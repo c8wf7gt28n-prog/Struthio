@@ -1,0 +1,7 @@
+$ make report
+# cwd: R85_WORK/fpga_ecp5
+# exit: 0
+
+sh build_scripts/record_tools.sh build/TOOL_VERSIONS.txt > /dev/null
+python3 -I build_scripts/build_report.py build build/BUILD_REPORT.json build/BUILD_REPORT.md
+{"result": "PASS", "fmax": {"psram_mclk": {"achieved_MHz": 96.17, "constraint_MHz": 40, "pass": true}, "sys_clk": {"achieved_MHz": 87.02, "constraint_MHz": 80, "pass": true}}, "bit_sha256": "87ca8d61e1701e95529380fe50fa2917c1f7b45619a0d4ac4a9fc960f7f3e829"}

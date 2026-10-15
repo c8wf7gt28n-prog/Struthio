@@ -1,0 +1,43 @@
+$ /usr/bin/python3 R08_WORK/tools/run_r08_checks.py
+# cwd: ../../../../../tmp/r85_r08reg_n7ukjec1/arc1-compact
+# exit: 0
+
+evidence: R08_WORK/evidence/run_20261015T123817Z
+PASS    handoff_integrity: 142 manifest entries (R06_WORK/README.md exempt as in R07), changed: []
+PASS    frozen_r05_r06_r07_unchanged (0.0 s)
+NOT_RUN r07_source_zip_digest: set R07_ZIP=<ARC1_R07_SOURCE_ORIGINAL.zip> to verify (verified manually 2026-10-15: c152f0ca...a039, tree identical to repo)
+PASS    r07_regression_full (324.8 s)
+PASS    fw_r08_test (1.4 s)
+PASS    fw_r08_sanitize (2.5 s)
+PASS    fw_r08_freestanding (0.5 s)
+PASS    fw_r08_mutants (4.1 s)
+PASS    rtl_r08_lint (0.1 s)
+PASS    rtl_r08_top_sim (90.2 s)
+PASS    rtl_r08_synth_estimate (4.3 s)
+PASS    kicad_generate (0.1 s)
+PASS    kicad_generate_reproducible: regenerated sources identical to the committed files
+PASS    kicad_version (0.1 s)
+PASS    kicad_erc (0.6 s)
+PASS    kicad_erc_json (0.6 s)
+PASS    kicad_netlist (0.5 s)
+PASS    kicad_pdf (1.4 s)
+PASS    crosscheck_1to1 (0.1 s)
+PASS    board_rules (0.0 s)
+PASS    board_rules_negative_tests (0.2 s)
+PASS    electrical_margins (0.0 s)
+PASS    reports_bom_pins (0.0 s)
+PASS    firmware_pin_header (0.0 s)
+PASS    efinity_inputs_generate (0.0 s)
+PASS    efinity_inputs_reproducible: identical
+PASS    efinity_inputs_syntax (0.1 s)
+NOT_RUN efinity_native: efx_run.py not found: NATIVE_EDA_NOT_RUN (no T35 fit/STA/bitstream). See fpga/efinity/RUN_EFINITY_LOCALLY.md
+PASS    f133_diag_build (0.6 s)
+PASS    f133_diag_rebuild (0.6 s)
+PASS    f133_diag_reproducible: sha256 f20eab25c244c759384f9a80e141a1b5334525a1ecce0783332e754371672bce / f20eab25c244c759384f9a80e141a1b5334525a1ecce0783332e754371672bce
+PASS    evidence_ledger_schema: 28 entries; invalid []; duplicates 0
+NOT_RUN pcb_layout_drc: no PCB layout exists (R09): no DRC, no SI/PI extraction, no Gerbers
+NOT_RUN si_pi_simulation: no IBIS/SPICE/field-solver runs; NOR/PSRAM VOH under load OPEN
+NOT_RUN hardware_any: no board, no silicon: PHYSICAL_NOT_TESTED for F133 boot, NOR, BT820, T35, PSRAM, USB, audio
+NOT_RUN vendor_answers: Bridgetek / AP Memory / Efinix / Allwinner / Winbond questions unanswered (VENDOR_OPEN)
+NOT_RUN fabrication: NOT approved: R08 is HOLD/PARTIAL with open P0 items
+PASS_R08_HOST_RTL_NATIVE_KICAD_CHECKS: 30 pass, 0 fail, 7 NOT_RUN -> R08_WORK/evidence/run_20261015T123817Z/summary.json

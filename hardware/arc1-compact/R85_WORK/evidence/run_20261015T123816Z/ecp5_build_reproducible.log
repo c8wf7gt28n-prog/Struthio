@@ -1,0 +1,18 @@
+$ make repro
+# cwd: R85_WORK/fpga_ecp5
+# exit: 0
+
+rm -rf build/repro && mkdir -p build/repro
+yosys -q -p 'read_verilog -sv rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv ../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv rtl/arc1_ecp5_pll.v; synth_ecp5 -top arc1_ecp5_top -json build/repro/arc1_ecp5.json' > /dev/null
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:59)
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:91)
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:129)
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:132)
+nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/repro/arc1_ecp5.json --lpf constraints/arc1_ecp5_r85.lpf \
+  --textcfg build/repro/arc1_ecp5.config --write build/repro/routed.json --seed 1 > /dev/null 2>&1
+ecppack --compress --input build/repro/arc1_ecp5.config --bit build/repro/arc1_ecp5.bit
+sha256sum build/arc1_ecp5.bit build/repro/arc1_ecp5.bit | tee build/repro.log
+87ca8d61e1701e95529380fe50fa2917c1f7b45619a0d4ac4a9fc960f7f3e829  build/arc1_ecp5.bit
+87ca8d61e1701e95529380fe50fa2917c1f7b45619a0d4ac4a9fc960f7f3e829  build/repro/arc1_ecp5.bit
+test "$(sha256sum < build/arc1_ecp5.bit)" = "$(sha256sum < build/repro/arc1_ecp5.bit)" && echo REPRO_IDENTICAL | tee -a build/repro.log
+REPRO_IDENTICAL

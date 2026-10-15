@@ -1,0 +1,6 @@
+$ kicad-cli sch erc --format json --severity-all -o ERC.json ARC1_R85.kicad_sch
+# cwd: R85_WORK/cad
+# exit: 0
+
+Found 0 violations
+Saved ERC Report to ERC.json

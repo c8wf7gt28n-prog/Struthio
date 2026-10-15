@@ -1,0 +1,7 @@
+$ /usr/bin/python3 tools/gen_pin_matrix_r85.py
+# cwd: R85_WORK
+# exit: 0
+
+F133 pins 129, interfaces ['BT820_SPI1', 'BUTTONS', 'DIAGNOSTIC', 'ECP5_CONFIG', 'ECP5_OPERATIONAL', 'ECP5_POWER', 'I2S', 'INTERRUPT', 'MICROSD', 'NC', 'NOR_BOOT', 'POWER_CLOCK_RESET', 'SPARE', 'USB0_DEVICE_FEL', 'USB1_HOST_NOT_ROUTED']
+ECP5 balls 381, RTL ports 17 located, banks [('0', 3.3), ('1', 3.3), ('2', 3.3), ('3', 3.3), ('6', 3.3), ('7', 3.3), ('8', 3.3)]
+PIN_MATRIX_PASS

@@ -1,0 +1,6 @@
+$ /usr/bin/python3 tools/gen_reports_r85.py
+# cwd: R85_WORK
+# exit: 0
+
+interconnect rows 62
+BOM lines 96, components 353

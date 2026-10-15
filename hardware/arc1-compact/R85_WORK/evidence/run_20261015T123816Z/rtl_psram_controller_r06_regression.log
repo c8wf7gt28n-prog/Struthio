@@ -1,0 +1,23 @@
+$ make sim mutants OUT=/tmp/tmpkuvn449_
+# cwd: R06_WORK/fpga/psram
+# exit: 0
+
+iverilog -g2012 -DPSRAM_CORE_EXPOSE_PARAMS -s tb_psram -o /tmp/tmpkuvn449_/tb_C1.vvp -Ptb_psram.MCLK_HZ=40000000 -Ptb_psram.CLK_DIV=1 -Ptb_psram.UCLK_PS=20000 -Ptb_psram.TCEM_NS=8000 -Ptb_psram.SEED=1 -Ptb_psram.CFG='"C1"' tb/tb_psram.sv tb/aps6404l_model.sv rtl/psram_user_port.sv rtl/psram_qspi_core.sv
+vvp -n /tmp/tmpkuvn449_/tb_C1.vvp > /tmp/tmpkuvn449_/sim_C1.log 2>&1; rc=$?; tail -3 /tmp/tmpkuvn449_/sim_C1.log; test $rc -eq 0 && grep -q '^PSRAM_TB_PASS cfg=C1$' /tmp/tmpkuvn449_/sim_C1.log && ! grep -q 'TB_ERROR\|MODEL_VIOLATION' /tmp/tmpkuvn449_/sim_C1.log
+SUMMARY_MODEL ce=1195 data_cmds=1164 writes=581 reads=583 bytes_w=23183 bytes_r=24076 resets=8 incomplete_cmds=4 page_cross=0 partial_writes=0 max_ce_low_ns=7025.0 min_sclk_period_ns=50.00
+PSRAM_TB_PASS cfg=C1
+tb/tb_psram.sv:387: $finish called at 8204440000 (1ps)
+iverilog -g2012 -DPSRAM_CORE_EXPOSE_PARAMS -s tb_psram -o /tmp/tmpkuvn449_/tb_C2.vvp -Ptb_psram.MCLK_HZ=80000000 -Ptb_psram.CLK_DIV=1 -Ptb_psram.UCLK_PS=30000 -Ptb_psram.TCEM_NS=8000 -Ptb_psram.SEED=7 -Ptb_psram.CFG='"C2"' tb/tb_psram.sv tb/aps6404l_model.sv rtl/psram_user_port.sv rtl/psram_qspi_core.sv
+vvp -n /tmp/tmpkuvn449_/tb_C2.vvp > /tmp/tmpkuvn449_/sim_C2.log 2>&1; rc=$?; tail -3 /tmp/tmpkuvn449_/sim_C2.log; test $rc -eq 0 && grep -q '^PSRAM_TB_PASS cfg=C2$' /tmp/tmpkuvn449_/sim_C2.log && ! grep -q 'TB_ERROR\|MODEL_VIOLATION' /tmp/tmpkuvn449_/sim_C2.log
+SUMMARY_MODEL ce=784 data_cmds=753 writes=374 reads=379 bytes_w=23538 bytes_r=23878 resets=8 incomplete_cmds=4 page_cross=0 partial_writes=0 max_ce_low_ns=7012.5 min_sclk_period_ns=25.00
+PSRAM_TB_PASS cfg=C2
+tb/tb_psram.sv:387: $finish called at 6405140000 (1ps)
+iverilog -g2012 -DPSRAM_CORE_EXPOSE_PARAMS -s tb_psram -o /tmp/tmpkuvn449_/tb_C3.vvp -Ptb_psram.MCLK_HZ=50000000 -Ptb_psram.CLK_DIV=2 -Ptb_psram.UCLK_PS=10000 -Ptb_psram.TCEM_NS=3000 -Ptb_psram.SEED=11 -Ptb_psram.CFG='"C3"' tb/tb_psram.sv tb/aps6404l_model.sv rtl/psram_user_port.sv rtl/psram_qspi_core.sv
+vvp -n /tmp/tmpkuvn449_/tb_C3.vvp > /tmp/tmpkuvn449_/sim_C3.log 2>&1; rc=$?; tail -3 /tmp/tmpkuvn449_/sim_C3.log; test $rc -eq 0 && grep -q '^PSRAM_TB_PASS cfg=C3$' /tmp/tmpkuvn449_/sim_C3.log && ! grep -q 'TB_ERROR\|MODEL_VIOLATION' /tmp/tmpkuvn449_/sim_C3.log
+SUMMARY_MODEL ce=7919 data_cmds=7888 writes=4240 reads=3648 bytes_w=24745 bytes_r=24838 resets=8 incomplete_cmds=6 page_cross=0 partial_writes=0 max_ce_low_ns=2640.0 min_sclk_period_ns=40.00
+PSRAM_TB_PASS cfg=C3
+tb/tb_psram.sv:387: $finish called at 17675660000 (1ps)
+MUTANT_KILLED MUTANT_NO_PAGE_SPLIT
+MUTANT_KILLED MUTANT_NO_TURNAROUND
+MUTANT_KILLED MUTANT_SKIP_RESET
+MUTANT_KILLED MUTANT_SAMPLE_EARLY

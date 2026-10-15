@@ -1,0 +1,66 @@
+$ make sim
+# cwd: R85_WORK/fpga_ecp5
+# exit: 0
+
+iverilog -g2012 -I build -I build/ajob -s tb_ecp5_top -o build/tb_ecp5_top.vvp \
+  -Ptb_ecp5_top.GOLD_DIR='"build"' -Ptb_ecp5_top.AJOB_DIR='"build/ajob"' tb/tb_ecp5_top.sv ../../R07_WORK/fpga/psram_r07/aps6404l_model_r07.sv rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv ../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv sim/arc1_ecp5_pll_sim.v
+vvp -n build/tb_ecp5_top.vvp > build/sim_ecp5_top.log 2>&1; rc=$?; \
+  grep -E '^(TEST|INFO|SUMMARY|TB_ERROR|MODEL_VIOLATION|TOP_ECP5)' build/sim_ecp5_top.log; \
+  test $rc -eq 0 && grep -q '^TOP_ECP5_TB_PASS$' build/sim_ecp5_top.log
+TEST ident done errors=0
+TEST P0_unpowered_start done errors=0 back_power_en_low=0
+TEST P1_controlled_powerup started (tPU pins checked continuously)
+TEST buffer_integrity done errors=0
+TEST cs_abort done errors=0
+INFO golden frame 0 len=24 passed through unchanged
+INFO golden frame 1 len=25 passed through unchanged
+INFO golden frame 2 len=40 passed through unchanged
+INFO golden frame 3 len=4120 passed through unchanged
+INFO golden frame 4 len=4120 passed through unchanged
+TEST golden_loopback done errors=0
+TEST doorbell_rules done errors=0
+INFO ajob case=0 req=64 resp=40 status=0 cycles=135 (1687 ns at 80 MHz)
+INFO ajob case=1 req=400 resp=208 status=0 cycles=771 (9637 ns at 80 MHz)
+INFO ajob case=2 req=8176 resp=4096 status=0 cycles=16359 (204487 ns at 80 MHz)
+INFO ajob case=3 req=64 resp=16 status=4 cycles=135 (1687 ns at 80 MHz)
+INFO ajob case=4 req=64 resp=16 status=2 cycles=38 (475 ns at 80 MHz)
+INFO ajob case=5 req=64 resp=16 status=3 cycles=38 (475 ns at 80 MHz)
+INFO ajob case=6 req=65 resp=16 status=1 cycles=38 (475 ns at 80 MHz)
+INFO ajob case=7 req=64 resp=16 status=1 cycles=38 (475 ns at 80 MHz)
+INFO ajob case=8 req=64 resp=16 status=1 cycles=38 (475 ns at 80 MHz)
+INFO ajob case=9 req=64 resp=64 status=-1 cycles=90 (1125 ns at 80 MHz)
+INFO ajob case=10 req=784 resp=400 status=0 cycles=1575 (19687 ns at 80 MHz)
+TEST ajob_crosssim done errors=0
+INFO ajob abort case=2 status=5 resp_len=16 cycles=3303
+TEST ajob_abort done errors=0
+INFO ajob case=0 req=64 resp=40 status=0 cycles=135 (1687 ns at 80 MHz)
+TEST ajob_after_abort done errors=0
+INFO bist pass=1 fail=0 errs=0
+TEST psram_bist_pass done errors=0
+INFO bist-with-fault pass=0 fail=1 errs=1
+TEST psram_bist_detects_fault done errors=0
+TEST psram_recover done errors=0
+TEST fpga_reset done errors=0
+TEST P1_controlled_powerup done errors=0 tpu_pin_viol=0
+TEST P2_commanded_poweroff done errors=0 back_power_en_low=0
+TEST P3_pg_glitch done errors=0
+INFO P4 back-power window before PG detection: 1181 ns total (EN high; residual risk, see PSRAM_POWER_R08.md)
+TEST P4_unannounced_loss done errors=0
+INFO F06 CE# stuck: STATUS=0b05 ready=0 error=1 bist_pass=0 bist_fail=1 bist_errs=128 contention_events=0
+MODEL_VIOLATION t=73006506250 tCEM: CE# low longer than allowed
+TEST F06_ce_stuck done errors=0
+SUMMARY tb_ecp5_top errors=0 model_violations_before_P2=0 total=1 tpu_pin_viol=0 back_power_en_low=0
+TOP_ECP5_TB_PASS
+/home/user/Struthio/hardware/arc1-compact/R85_WORK/fpga_ecp5/build/ajob_vectors check build/ajob > build/ajob_rtl_check.log; rc=$?; cat build/ajob_rtl_check.log; exit $rc
+CHECK 0 parser=0 (RTL status byte 0)
+CHECK 1 parser=0 (RTL status byte 0)
+CHECK 2 parser=0 (RTL status byte 0)
+CHECK 3 parser=4 (RTL status byte 4)
+CHECK 4 parser=2 (RTL status byte 2)
+CHECK 5 parser=3 (RTL status byte 3)
+CHECK 6 parser=1 (RTL status byte 1)
+CHECK 7 parser=1 (RTL status byte 1)
+CHECK 8 parser=1 (RTL status byte 1)
+CHECK 9 legacy loopback identical
+CHECK 10 parser=0 (RTL status byte 0)
+AJOB_RTL_CHECK_PASS

@@ -1,0 +1,21 @@
+$ /usr/bin/python3 board/check_board_r85.py
+# cwd: R85_WORK
+# exit: 0
+
+PASS boot_straps_00: BOOT-SEL[1:0] = 00 (SPI NOR first): PC4 and PC5 each have one populated pull-down <= 3.6k to GND and no pull-up
+PASS spi0_fpga_isolated: no FPGA (U18) ball on any F133 SPI0 net; every other driver on PC4/PC5 is the NOR or a 3-state buffer
+PASS nor_boot_device: 32 MiB NOR on SPI0 CS0 with /RESET pulled up + FEL button, IO2/IO3 pulled up, CS# pulled up
+PASS mn820_miso_buffered: F133 PD13 (BT_MISO) is driven by a 3-state buffer from the module, never by the module connector directly
+PASS switched_domain_pullups: pull-ups on nets that touch a switched-domain IC go to that domain's rail (no back-power)
+PASS psram_power_architecture: PSRAM VDD switched by a load switch whose ON = AND(F133 request, delayed FPGA DONE); supervisor PG to the FPGA;
+PASS power_sequencing: F133 core/DRAM bucks enabled by the 3V3 supervisor; F133 RESET by the core supervisor;
+PASS fpga_power_sequencing: ECP5 VCC (1V1), VCCIO (3V3_FPGA) and VCCAUX (2V5 via 3V3_FPGA) share one F133-controlled enable with a
+PASS fpga_vcc_voltage: 1V1_FPGA feedback divider: 0.6 V * (1 + Rtop/Rbot) with 1 % resistors and +-1 % reference inside VCC 1.045-1.155 V
+PASS ecp5_ball_map: every ECP5 ball: VCC->1V1_FPGA, VCCAUX->2V5_FPGA_AUX, VCCIOx->3V3_FPGA, GND->GND, RESERVED/NC unconnected,
+PASS ecp5_sysconfig: slave SPI: CFG[2:0]=001, 4.7k pull-ups on PROGRAMN/INITN/DONE/SN, CCLK 510R-1k pull-up, TCK pull-down, TMS/TDI/TDO
+PASS ecp5_decoupling: TN-02038 Table 3.1: >= 1 x 100 nF per VCC/VCCAUX/VCCIO ball, >= 3 x 10 uF on VCC, ferrite + 10 uF on VCCAUX,
+PASS usb_device_only: corrective D-04: USB1 (host) unconnected; no load switch sources VBUS; USB0 D+/D- reach the connector with ESD
+PASS sd_is_not_boot: microSD on SMHC0 (PF0-PF5) for games; BOOT-SEL 00 never tries SMHC0; card detect present
+PASS every_ic_decoupled: every power_in net of an IC has at least one 100nF capacitor
+PASS components_traceable: every populated part carries an MPN or an explicit TBD, a footprint, and an evidence tag
+R8.5 board rules: 16/16 PASS (self-authored rules, not independent validation)

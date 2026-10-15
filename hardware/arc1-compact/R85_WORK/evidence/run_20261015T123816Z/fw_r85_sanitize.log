@@ -1,0 +1,45 @@
+$ make sanitize
+# cwd: R85_WORK/firmware
+# exit: 0
+
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -Itests -I../../R05_BASELINE/compute -fsanitize=address,undefined -fno-sanitize-recover=all \
+  -fno-omit-frame-pointer src/spi_nor.c src/flash_layout.c src/game_lib.c src/crc32.c src/ecp5_cfg.c src/fpga_link.c src/accel_job.c src/accel_service.c ../../R05_BASELINE/compute/arc1_transform.c tests/nor_mock.c tests/test_nor.c tests/test_layout.c tests/test_library.c tests/ecp5_mock.c tests/test_ecp5.c tests/test_main.c -o build/test_r85_san
+ASAN_OPTIONS=detect_leaks=0 /home/user/Struthio/hardware/arc1-compact/R85_WORK/firmware/build/test_r85_san
+INFO using synthetic bitstream (288697 bytes, ecppack header layout)
+INFO nominal load: state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0, 288927 SPI bytes, 99678 us virtual (SCK 25 MHz, CS overhead 2000 ns)
+INFO 170-job batch: engine 16359 cycles (model), FPGA batches 1
+FIT N0 nominal_P0_to_P5 | P5 PLAY, KAT + BIST pass, 170-job batch bit-exact | P5 reached; results == C reference | PASS
+FIT F01 blank_NOR | BROM finds no eGON header -> USB FEL (documented R08 boot trace); FPGA never powered | not reachable by F133 firmware: covered by R08 BOOT_TRACE_DOSSIER + RECOVERY_DOSSIER (bench item) | PASS
+FIT F02 wrong_NOR_BOOT_straps | board rule boot_straps_00 fails (negative tests R07 strap 11, weak pull-down) | covered by board/test_check_board_r85.py (static) | PASS
+FIT F03a FPGA_rail_fault_VCC_PG | E_POWER -> P6 -> P1, FPGA off, CPU fallback | state=P1_LAUNCHER cfg_err="FPGA VCC power-good missing" svc_err=2 link=0 job=0 | PASS
+FIT F03b FPGA_absent_or_unpowered | READ_ID reads 0 (MISO pull-down) -> E_IDCODE -> P6 -> P1 (DONE pull-up not trusted) | state=P1_LAUNCHER cfg_err="READ_ID mismatch (absent/wrong FPGA)" svc_err=2 link=0 job=0 | PASS
+FIT F03c jobs_without_FPGA | every batch on the CPU, results identical | fallback=NOT_PLAYING, results == reference | PASS
+FIT F04a config_CRC_fault_transient | status FAIL -> one retry -> P5 | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT F04b config_CRC_fault_persistent | FAIL twice -> E_CONFIG_STATUS -> P6 -> P1 | state=P1_LAUNCHER cfg_err="configuration status FAIL/CRC" svc_err=2 link=0 job=0 | PASS
+FIT F04c bitstream_file_corrupt | container CRC32 -> E_IMAGE, FPGA never powered | state=P1_LAUNCHER cfg_err="bitstream CRC32" svc_err=1 link=0 job=0 | PASS
+FIT F05 PROGRAMN_held_active | E_PROGRAMN_HELD -> P6 -> P1 | state=P1_LAUNCHER cfg_err="PROGRAMN held low" svc_err=2 link=0 job=0 | PASS
+FIT F06 QSPI_CE_stuck_active | PSRAM_ERROR/BIST fail -> PSRAM off, degraded P5 (register jobs only); RTL: tb_ecp5_top ce_stuck | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT F07a PSRAM_missing | PSRAM_READY never -> degraded P5 without PSRAM | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT F07b PSRAM_missing_but_required | game image requires PSRAM -> E_PSRAM -> P6 -> P1 | state=P1_LAUNCHER cfg_err="ok" svc_err=7 link=0 job=0 | PASS
+FIT F08a protocol_version_mismatch_AMBX | DISCOVER VERSION 2 != 3 -> E_ABI -> P6 -> P1, no job sent | state=P1_LAUNCHER cfg_err="ok" svc_err=4 link=7 job=0 | PASS
+FIT F08b protocol_version_mismatch_image | container ABI 4 != firmware 3 -> E_IMAGE before configuration | state=P1_LAUNCHER cfg_err="container ABI mismatch" svc_err=1 link=0 job=0 | PASS
+FIT F09a F133_crash_mid_configuration | reset releases PE0 -> rails off, buffers off; next boot reconfigures cleanly | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT F09b F133_crash_mid_config_jumper_fitted | FPGA powered but half configured: PROGRAMN pulse clears it, reconfigure OK | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT F10a bad_microSD_truncated_read | E_IMAGE_TRUNCATED, FPGA untouched, launcher continues | state=P1_LAUNCHER cfg_err="container truncated (microSD read)" svc_err=1 link=0 job=0 | PASS
+FIT F10b no_microSD_or_no_bitstream | absent file -> E_IMAGE, P1, CPU path | state=P1_LAUNCHER cfg_err="bad argument" svc_err=1 link=0 job=0 | PASS
+FIT F10c storage_read_error_mid_stream | E_IO -> FPGA held unconfigured (PROGRAMN low), bus isolated | cfg_err="SPI I/O" done=0 bus_en_n=1 programn_low=1 | PASS
+FIT F11 ECP5_rail_sequencing_fault | VCC up but POR never releases (VCCAUX/VCCIO8) -> E_INITN_TIMEOUT, rails off | state=P1_LAUNCHER cfg_err="INITN timeout" svc_err=2 link=0 job=0 | PASS
+FIT X01 wrong_device_85F_fitted | READ_ID 0x41113043 != 45F -> E_IDCODE (no silent 85F use) | state=P1_LAUNCHER cfg_err="READ_ID mismatch (absent/wrong FPGA)" svc_err=2 link=0 job=0 | PASS
+FIT X02 DONE_timeout | E_DONE_TIMEOUT -> P6 -> P1 | state=P1_LAUNCHER cfg_err="DONE timeout" svc_err=2 link=0 job=0 | PASS
+FIT X03 INITN_error_after_burst | E_INITN_ERROR -> P6 -> P1 | state=P1_LAUNCHER cfg_err="INITN low after configuration" svc_err=2 link=0 job=0 | PASS
+FIT X04 sysCONFIG_BUSY_stuck | E_BUSY_TIMEOUT -> P6 -> P1 | state=P1_LAUNCHER cfg_err="sysCONFIG busy timeout" svc_err=2 link=0 job=0 | PASS
+FIT X05 invalid_bitstream_wrong_VERIFY_ID | bitstream for another device rejected before configuration | state=P1_LAUNCHER cfg_err="bitstream not for LFE5U-45" svc_err=1 link=0 job=0 | PASS
+FIT X06 corrupted_SPI_request_frame | ARES status 4 -> retry once -> FPGA result | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT X07 corrupted_SPI_response_frame | host RESULT_CRC -> retry once -> FPGA result | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT X08 stuck_BUSY_engine | timeout -> ABORT (ARES 5) -> CPU result for this batch, still P5 | state=P5_PLAY cfg_err="ok" svc_err=0 link=3 job=-1, bounded at 20541 us | PASS
+FIT X09 repeated_link_failures | 3 consecutive failures -> P6 -> P1, CPU path, FPGA powered down | state=P1_LAUNCHER cfg_err="ok" svc_err=8 link=3 job=-1 | PASS
+FIT X10 FPGA_lost_mid_game | DONE low / not ready -> P6 -> P1 at once, CPU result | state=P1_LAUNCHER cfg_err="ok" svc_err=8 link=1 job=-1 | PASS
+FIT X11 game_swap_reconfigure | unload (ABORT, PSRAM off, rails off) then reload -> P5, no stale job | state=P5_PLAY cfg_err="ok" svc_err=0 link=0 job=0 | PASS
+FIT X12 engine_wrong_but_well_framed_result | known-answer self-test fails -> E_SELFTEST -> P6 -> P1, no game work | state=P1_LAUNCHER cfg_err="ok" svc_err=6 link=0 job=0 | PASS
+FIT_SUMMARY PASS
+R8.5 firmware host tests: 799 checks, 0 failures

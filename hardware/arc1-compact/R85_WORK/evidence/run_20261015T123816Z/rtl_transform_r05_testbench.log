@@ -1,0 +1,12 @@
+$ make transform
+# cwd: R85_WORK/fpga_ecp5
+# exit: 0
+
+mkdir -p build/r05tb
+python3 -I ../../R05_BASELINE/compute/tests/generate_vectors.py build/r05tb/vectors.hex
+Generated 1165 deterministic oracle vectors (15 hand-checked cases).
+iverilog -g2012 -s transform_tb -o build/r05tb/tb.vvp rtl/arc1_transform_ecp5.sv ../../R05_BASELINE/compute/tests/transform_tb.sv
+vvp -n build/r05tb/tb.vvp +VECTORS=build/r05tb/vectors.hex > build/transform_r05tb.log 2>&1; rc=$?; \
+  tail -3 build/transform_r05tb.log; test $rc -eq 0 && grep -q PASS build/transform_r05tb.log
+PASS RTL: 1165 oracle comparisons; busy/held-output reset cancellation; input stalls=22249 output stalls=2672 simultaneous retire/accept=1164 cycles=23464
+../../R05_BASELINE/compute/tests/transform_tb.sv:175: $finish called at 235066000 (1ps)

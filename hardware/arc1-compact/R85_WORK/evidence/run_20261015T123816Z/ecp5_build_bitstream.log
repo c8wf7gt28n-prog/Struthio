@@ -1,0 +1,16 @@
+$ rm -f build/arc1_ecp5.json build/arc1_ecp5.config build/arc1_ecp5.bit && make bit
+# cwd: R85_WORK/fpga_ecp5
+# exit: 0
+
+mkdir -p build
+yosys -q -l build/yosys.log -p 'read_verilog -sv rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv ../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv ../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv ../../R06_WORK/fpga/psram/rtl/psram_user_port.sv ../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv rtl/arc1_ecp5_pll.v; synth_ecp5 -top arc1_ecp5_top -json build/arc1_ecp5.json; stat' > /dev/null
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:59)
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:91)
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:129)
+Warning: Yosys has only limited support for tri-state logic at the moment. (rtl/arc1_ecp5_top.sv:132)
+nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/arc1_ecp5.json --lpf constraints/arc1_ecp5_r85.lpf --textcfg build/arc1_ecp5.config --seed 1 \
+  --report build/nextpnr_report.json --log build/nextpnr.log > /dev/null 2>&1
+ecppack --compress --input build/arc1_ecp5.config --bit build/arc1_ecp5.bit
+sha256sum build/arc1_ecp5.bit > build/arc1_ecp5.bit.sha256
+cat build/arc1_ecp5.bit.sha256
+87ca8d61e1701e95529380fe50fa2917c1f7b45619a0d4ac4a9fc960f7f3e829  build/arc1_ecp5.bit

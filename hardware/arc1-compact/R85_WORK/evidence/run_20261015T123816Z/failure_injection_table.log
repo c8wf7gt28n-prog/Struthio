@@ -1,0 +1,5 @@
+$ /usr/bin/python3 tools/gen_fit_doc_r85.py
+# cwd: R85_WORK
+# exit: 0
+
+FIT rows 33, RTL tests 18, CO cases 11, missing []

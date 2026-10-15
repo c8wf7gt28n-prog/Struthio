@@ -1,0 +1,10 @@
+$ /usr/bin/python3 cad/check/crosscheck_r85.py . /home/user/Struthio/hardware/arc1-compact/R85_WORK/evidence/run_20261015T123816Z/crosscheck.json
+# cwd: R85_WORK
+# exit: 0
+
+A_netlist_vs_plan: 0 mismatch(es)
+B_symbol_vs_footprint: 0 mismatch(es)
+C_lpf_vs_schematic_vs_rtl: 0 mismatch(es)
+D_firmware_vs_schematic: 0 mismatch(es)
+info: {"netlist_components": 353, "plan_components": 353, "named_nets": 154, "no_connect_pins": 336, "footprints_checked": 34, "footprint_status_count": {"STD_LIB": 343, "GENERATED_DERIVED": 2, "SLIM4_CANDIDATE": 6, "PLACEHOLDER": 2}, "routed_io_checked": 17, "lpf_ports": 17, "rtl_top_ports": 17, "firmware_pins": 55}
+CROSSCHECK PASS

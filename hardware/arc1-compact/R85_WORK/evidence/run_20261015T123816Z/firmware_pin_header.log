@@ -1,0 +1,5 @@
+$ /usr/bin/python3 firmware/tools/gen_board_pins.py
+# cwd: R85_WORK
+# exit: 0
+
+board_pins_r85.h: 55 pins

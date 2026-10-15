@@ -1,0 +1,21 @@
+$ /usr/bin/python3 analysis/electrical_margins_r85.py analysis/electrical_margins_r85.json docs/ELECTRICAL_MARGINS_R85.md
+# cwd: R85_WORK
+# exit: 0
+
+margins: PASS 29 CONDITIONAL 11 OPEN 2 FAIL 3
+  FAIL: supervisor / U4 TPS3808G33 min threshold vs ECP5 VCCIO (LVCMOS33) min 3.135 V = 3.0239 (limit 3.135)
+  OPEN: boot_strap / NOR DO load from the BOOT-SEL1 pull-down vs VOH test current = 1.041 (limit 0.1)
+  CONDITIONAL: timing / SPI1 read: max SCLK with F133 sampling on the next rising edge = 35.0 (limit 30.0)
+  OPEN: psram / CE# idle level if the ECP5 ball kept its default PULLMODE=DOWN (why the LPF sets NONE) = 1.685 (limit 2.56)
+  CONDITIONAL: psram / DONE -> DONE_DLY delay = 708.3 (limit 100.0)
+  CONDITIONAL: psram_timing / QSPI read sample (half SCLK period after the fall) at SCLK 20 MHz = 13.0 (limit 25.0)
+  FAIL: psram_timing / QSPI read sample (half SCLK period after the fall) at SCLK 40 MHz = 13.0 (limit 12.5)
+  CONDITIONAL: sysconfig / CCLK low level (buffer sinking the 1k pull-up through 33R) = 0.353 (limit 0.8)
+  CONDITIONAL: fpga_rails / VCC load vs U9 rating = 0.266 (limit 2.0)
+  CONDITIONAL: fpga_rails / VCCAUX load vs U30 rating = 0.04 (limit 0.5)
+  CONDITIONAL: fpga_rails / VCCAUX at the balls = [2.4605, 2.5375] (limit [2.375, 2.625])
+  CONDITIONAL: fpga_rails / ramp rate VCC (1V1_FPGA buck soft-start) = 1.1 (limit [0.01, 10.0])
+  FAIL: vbus_budget / VBUS current, default USB (500 mA, amps muted) = 0.884 (limit 0.5)
+  CONDITIONAL: vbus_budget / VBUS current, Type-C 1.5 A (0.25 W/ch) = 1.008 (limit 1.5)
+  CONDITIONAL: vbus_budget / VBUS current, Type-C 3.0 A (1.4 W/ch into 8 ohm) = 1.577 (limit 3.0)
+  CONDITIONAL: vbus_budget / PTC hold >= worst budgeted current (3 A class) = 2.6 (limit 1.577)
