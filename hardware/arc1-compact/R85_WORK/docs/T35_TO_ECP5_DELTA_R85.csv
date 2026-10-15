@@ -59,6 +59,7 @@ passive removed,1 x R0402 10k on 3V3_FPGA/FPGA_TEST_N,-,,board rules fpga_power_
 passive removed,1 x R0402 10k on FPGA_TCK/GND,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
 passive added,-,1 x R0402 1k on 3V3_FPGA/FPGA_SCK (R58),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
 passive added,-,1 x R0402 1k on FPGA_DBG_RX/FPGA_DBG_RX_J (R74),,ERC 0; crosscheck A/B
+passive removed,1 x R0402 1k on FPGA_PROGRAMN/FPGA_PROGRAMN_F,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
 passive added,-,1 x R0402 1k on FPGA_PWR_EN/FPGA_PWR_EN_F (R24),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
 passive added,-,1 x R0402 33R on FPGA_SCK/FPGA_SCK_B (R68),,board rule spi0_fpga_isolated; crosscheck C (LPF/RTL/routed); tb_ecp5_top; FIT X06-X10
 passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_CFG0 (R56),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
@@ -72,6 +73,7 @@ passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_TDO (R62),,board rule ecp5_sysco
 passive added,-,1 x R0402 4.7k on 3V3_FPGA/FPGA_TMS (R60),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
 passive removed,1 x R0402 4.7k on FPGA_PROGRAMN/GND,-,,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
 passive added,-,1 x R0402 4.7k on FPGA_TCK/GND (R59),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
+passive added,-,1 x R0402 470R on FPGA_PROGRAMN/FPGA_PROGRAMN_F (R52),,board rule ecp5_sysconfig; ERC; FIT F05/X02/X03; crosscheck A
 passive added,-,1 x R0402 82.5k on 1V1_FPGA_REG/FB_1V1 (R21),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
 passive added,-,1 x TP 1V1_FPGA on 1V1_FPGA (TP12),,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11
 passive removed,1 x TP 1V2_T35 on 1V1_FPGA,-,,board rules fpga_power_sequencing/fpga_vcc_voltage/ecp5_decoupling; margins fpga_rails; FIT F03a/F11

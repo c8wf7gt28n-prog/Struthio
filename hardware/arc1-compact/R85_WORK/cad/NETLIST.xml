@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/home/user/Struthio/hardware/arc1-compact/R85_WORK/cad/ARC1_R85.kicad_sch</source>
-    <date>2026-10-15T11:41:47+0000</date>
+    <date>2026-10-15T12:37:15+0000</date>
     <tool>Eeschema 9.0.9-9.0.9~ubuntu24.04.1</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -8314,7 +8314,7 @@
       <tstamps>7e542f8f-aafd-577b-b17c-ab775d370c78</tstamps>
     </comp>
     <comp ref="R52">
-      <value>1k</value>
+      <value>470R</value>
       <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
       <description>passive R0402</description>
       <fields>
@@ -8323,7 +8323,7 @@
         <field name="LCSC"/>
         <field name="Evidence">GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)</field>
         <field name="Footprint_status">STD_LIB</field>
-        <field name="Note">F133 PE8 used open-drain (low or input only): calc 3.3*1k/5.7k = 0.58 V &lt; VIL 0.8 V</field>
+        <field name="Note">F133 PE8 used open-drain (low or input only): worst case 0.50 V &lt; VIL 0.8 V (analysis/electrical_margins_r85.py)</field>
         <field name="Source">generic two-terminal</field>
         <field name="Reuse"/>
         <field name="Footprint">Resistor_SMD:R_0402_1005Metric</field>
@@ -8336,7 +8336,7 @@
       <property name="LCSC" value=""/>
       <property name="Evidence" value="GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)"/>
       <property name="Footprint_status" value="STD_LIB"/>
-      <property name="Note" value="F133 PE8 used open-drain (low or input only): calc 3.3*1k/5.7k = 0.58 V &lt; VIL 0.8 V"/>
+      <property name="Note" value="F133 PE8 used open-drain (low or input only): worst case 0.50 V &lt; VIL 0.8 V (analysis/electrical_margins_r85.py)"/>
       <property name="Source" value="generic two-terminal"/>
       <property name="Reuse" value=""/>
       <property name="Sheetname" value="fpga"/>
