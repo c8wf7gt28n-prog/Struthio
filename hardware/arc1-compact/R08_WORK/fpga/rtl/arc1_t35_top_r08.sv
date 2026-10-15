@@ -36,11 +36,14 @@ module arc1_t35_top_r08 #(
     input  wire       t35_mosi_IN,
     output wire       t35_miso_OUT,
     output wire       t35_miso_OE,
+    input  wire       t35_miso_IN,       // unused (inout naming)
     output wire       t35_irq_n_OUT,     // drive 0 ...
     output wire       t35_irq_n_OE,      // ... only when asserted (open drain)
+    input  wire       t35_irq_n_IN,      // unused (inout naming)
     // PSRAM (BANK1C)
-    output wire       psram_ce_n,
+    output wire       psram_ce_n_OUT,
     output wire       psram_ce_n_OE,
+    input  wire       psram_ce_n_IN,     // inout GPIO input side (unused; Efinity inout naming)
     input  wire       psram_pg_IN,       // PSRAM_VDD supervisor, open drain, low = power bad
     input  wire       psram_pwr_en_IN,   // load-switch EN (F133 PSRAM_PWR_REQ & CDONE): low = power going away
     output wire       psram_sclk,
@@ -49,7 +52,8 @@ module arc1_t35_top_r08 #(
     output wire [3:0] psram_sio_OE,
     // debug
     output wire       t35_led0,
-    output wire       t35_dbg_tx
+    output wire       t35_dbg_tx,
+    input  wire       t35_dbg_rx         // reserved (UART not implemented)
 );
     // ---------------- resets ----------------
     // Held until the PLL locks, then released synchronously in each domain.
@@ -138,7 +142,7 @@ module arc1_t35_top_r08 #(
         .mclk(psram_mclk), .rst(rst_mem), .pg_raw(psram_pg_IN & psram_pwr_en_IN),
         .on(guard_on), .core_rst(guard_core_rst),
         .c_ce_n(c_ce_n), .c_sclk(c_sclk), .c_dq_o(c_dq_o), .c_dq_oe(c_dq_oe),
-        .p_ce_n_o(psram_ce_n), .p_ce_n_oe(psram_ce_n_OE), .p_sclk_o(psram_sclk),
+        .p_ce_n_o(psram_ce_n_OUT), .p_ce_n_oe(psram_ce_n_OE), .p_sclk_o(psram_sclk),
         .p_dq_o(psram_sio_OUT), .p_dq_oe(psram_sio_OE));
     reg [1:0] guard_on_sync = 2'b00;
     always @(posedge sys_clk) guard_on_sync <= {guard_on_sync[0], guard_on};

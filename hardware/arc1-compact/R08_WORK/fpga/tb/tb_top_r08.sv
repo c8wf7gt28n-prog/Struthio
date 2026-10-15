@@ -49,7 +49,7 @@ module tb_top_r08;
         .t35_sck_IN(sck), .t35_ss_n_IN(ss_n), .t35_mosi_IN(mosi),
         .t35_miso_OUT(miso_out), .t35_miso_OE(miso_oe),
         .t35_irq_n_OUT(irq_out), .t35_irq_n_OE(irq_oe),
-        .psram_ce_n(ce_o), .psram_ce_n_OE(ce_oe), .psram_pg_IN(pg & pg_glitch_n), .psram_pwr_en_IN(en),
+        .psram_ce_n_OUT(ce_o), .psram_ce_n_OE(ce_oe), .psram_ce_n_IN(ce_pad), .t35_miso_IN(miso_pad), .t35_irq_n_IN(irq_n_pad), .t35_dbg_rx(1'b1), .psram_pg_IN(pg & pg_glitch_n), .psram_pwr_en_IN(en),
         .psram_sclk(sclk),
         .psram_sio_IN(sio), .psram_sio_OUT(sio_out), .psram_sio_OE(sio_oe),
         .t35_led0(led), .t35_dbg_tx(dbg_tx));

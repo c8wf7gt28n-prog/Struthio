@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""ARC-1 Compact R08 -- generate an importable Efinity project for the T35F400C3.
+
+Inputs : ../../board/r08_board_plan.json (U18 ball -> net, from the KiCad source)
+         ../../sources/efinix/t35f400_balls_by_rail.csv (ball -> GPIO resource / bank)
+Outputs: arc1_t35_r08.xml          Efinity project (efx:project, structure from a public T35F400 project)
+         arc1_t35_r08_isf.py       Interface Designer script (DesignAPI); run inside Efinity's Python
+         arc1_t35_r08.isf          the same calls as a plain .isf (GUI: Import GPIO)
+         arc1_t35_r08.sdc          timing constraints
+         arc1_t35_r08_pins.csv     port / ball / resource / bank / net table (cross-checked by the R08 runner)
+
+NOTHING here has been run in Efinity (NATIVE_EDA_NOT_RUN): file formats follow
+sources/efinix/efinity_project_format.md, which quotes public examples and the
+Efinity Python API UG v8.7. Expect the GUI to rewrite the files on first save.
+"""
+import csv
+import json
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+R08 = os.path.normpath(os.path.join(HERE, "..", ".."))
+PLAN = json.load(open(os.path.join(R08, "board", "r08_board_plan.json")))
+BALLS = {r["ball"]: r for r in csv.DictReader(open(os.path.join(R08, "sources", "efinix", "t35f400_balls_by_rail.csv")))}
+
+# net -> (gpio instance name, mode, pull, drive, rtl ports)
+# mode: input | output | inout | pll_clkin
+PORTS = {
+    "T35_OSC_25M": ("osc_25m", "pll_clkin", "NONE", None, []),
+    "PSRAM_CE_N":  ("psram_ce_n", "inout", "NONE", "2", ["psram_ce_n_IN", "psram_ce_n_OUT", "psram_ce_n_OE"]),
+    "PSRAM_SCLK_T": ("psram_sclk", "output", "NONE", "2", ["psram_sclk"]),
+    "PSRAM_SIO0": ("psram_sio[0]", "inout", "NONE", "2", ["psram_sio_IN[0]", "psram_sio_OUT[0]", "psram_sio_OE[0]"]),
+    "PSRAM_SIO1": ("psram_sio[1]", "inout", "NONE", "2", ["psram_sio_IN[1]", "psram_sio_OUT[1]", "psram_sio_OE[1]"]),
+    "PSRAM_SIO2": ("psram_sio[2]", "inout", "NONE", "2", ["psram_sio_IN[2]", "psram_sio_OUT[2]", "psram_sio_OE[2]"]),
+    "PSRAM_SIO3": ("psram_sio[3]", "inout", "NONE", "2", ["psram_sio_IN[3]", "psram_sio_OUT[3]", "psram_sio_OE[3]"]),
+    "PSRAM_PG":   ("psram_pg_IN", "input", "NONE", None, ["psram_pg_IN"]),
+    "PSRAM_EN":   ("psram_pwr_en_IN", "input", "NONE", None, ["psram_pwr_en_IN"]),
+    "T35_SCK":    ("t35_sck_IN", "input", "NONE", None, ["t35_sck_IN"]),
+    "T35_SS_N":   ("t35_ss_n_IN", "input", "WEAK_PULLUP", None, ["t35_ss_n_IN"]),
+    "T35_MOSI":   ("t35_mosi_IN", "input", "NONE", None, ["t35_mosi_IN"]),
+    "T35_MISO":   ("t35_miso", "inout", "NONE", "1", ["t35_miso_IN", "t35_miso_OUT", "t35_miso_OE"]),
+    "T35_IRQ_N":  ("t35_irq_n", "inout", "NONE", "1", ["t35_irq_n_IN", "t35_irq_n_OUT", "t35_irq_n_OE"]),
+    "T35_DBG_TX": ("t35_dbg_tx", "output", "NONE", "1", ["t35_dbg_tx"]),
+    "T35_DBG_RX": ("t35_dbg_rx", "input", "WEAK_PULLUP", None, ["t35_dbg_rx"]),
+    "T35_LED0":   ("t35_led0", "output", "NONE", "1", ["t35_led0"]),
+}
+DEDICATED = {"T35_CRESET_N", "T35_CDONE", "CFG_SS_N", "CFG_CCK", "CFG_CDI0", "CFG_CDI1", "T35_TCK", "T35_TDI",
+             "T35_TDO", "T35_TMS", "T35_TEST_N", "T35_CSI"}
+RTL = ["../rtl/arc1_t35_top_r08.sv", "../rtl/psram_power_guard.sv", "../rtl/mbx_regs_r08.sv",
+       "../../../R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv", "../../../R06_WORK/fpga/mailbox/rtl/mbx_loopback.sv",
+       "../../../R06_WORK/fpga/mailbox/rtl/psram_bist.sv", "../../../R06_WORK/fpga/psram/rtl/psram_user_port.sv",
+       "../../../R06_WORK/fpga/psram/rtl/psram_qspi_core.sv"]
+BANKS = ["1A", "1B", "1C", "1D", "1E", "2A", "2B", "2C", "3C_TR", "4A", "4B", "BR"]
+
+
+def t35_pins():
+    u = [c for c in PLAN["components"] if c["ref"] == "U18"][0]
+    return {ball: p["net"] for ball, p in u["pins"].items() if p["net"]}
+
+
+def main():
+    pins = t35_pins()
+    rows = []
+    for ball, net in sorted(pins.items()):
+        if net in PORTS:
+            inst, mode, pull, drive, ports = PORTS[net]
+            b = BALLS[ball]
+            rows.append({"instance": inst, "mode": mode, "ball": ball, "resource": b["name"], "bank": b["bank"],
+                         "io_standard": "3.3_V_LVTTL_/_LVCMOS", "pull": pull, "drive": drive or "", "net": net,
+                         "rtl_ports": " ".join(ports)})
+        elif net not in DEDICATED and net not in ("GND", "1V2_T35", "1V2_T35_PLL", "3V3_T35"):
+            raise SystemExit(f"U18 {ball} net {net}: no Efinity port mapping")
+    missing = set(PORTS) - {r["net"] for r in rows}
+    if missing:
+        raise SystemExit(f"Efinity ports without a schematic ball: {missing}")
+    with open(os.path.join(HERE, "arc1_t35_r08_pins.csv"), "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
+        w.writeheader()
+        w.writerows(rows)
+
+    # ---------------- ISF (plain) + DesignAPI wrapper ----------------
+    isf = ["# Device: T35F400", "# Package: 400-ball FBGA", "# Configuration mode: active (x1)",
+           "# ARC-1 Compact R08: GENERATED by gen_efinity_r08.py from the R08 board plan. NOT validated in Efinity."]
+    for bk in BANKS:
+        isf.append(f'design.set_device_property("{bk}","VOLTAGE","3.3","IOBANK")')
+    for r in rows:
+        n = r["instance"]
+        if r["mode"] == "pll_clkin":
+            isf.append(f'design.create_pll_input_clock_gpio("{n}")')
+        elif r["mode"] == "input":
+            isf.append(f'design.create_input_gpio("{n}")')
+        elif r["mode"] == "output":
+            isf.append(f'design.create_output_gpio("{n}")')
+        else:
+            isf.append(f'design.create_inout_gpio("{n}")')
+            base = n.split("[")[0]
+            idx = n[len(base):]
+            isf.append(f'design.set_property("{n}","IN_PIN","{base}_IN{idx}")')
+            isf.append(f'design.set_property("{n}","OUT_PIN","{base}_OUT{idx}")')
+            isf.append(f'design.set_property("{n}","OE_PIN","{base}_OE{idx}")')
+        isf.append(f'design.set_property("{n}","IO_STANDARD","3.3_V_LVTTL_/_LVCMOS")')
+        if r["mode"] in ("input", "inout") and r["pull"] != "NONE":
+            isf.append(f'design.set_property("{n}","PULL_OPTION","{r["pull"]}")')
+        if r["drive"]:
+            isf.append(f'design.set_property("{n}","DRIVE_STRENGTH","{r["drive"]}")')
+        isf.append(f'design.assign_pkg_pin("{n}","{r["ball"]}")')
+    # PLL: 25 MHz on GPIOL_15_PLLIN0 (R16) -> PLL_BL0 (T35 DS Table 18); outputs sys_clk 80 MHz, psram_mclk 40 MHz
+    isf += ['design.create_block("pll_main","PLL")',
+            'design.set_property("pll_main","REFCLK_SOURCE","EXTERNAL","PLL")',
+            'design.set_property("pll_main","EXT_CLK","EXT_CLK0","PLL")',
+            'design.set_property("pll_main","REFCLK_FREQ","25.0","PLL")',
+            'design.set_property("pll_main","CLKOUT0_EN","1","PLL")',
+            'design.set_property("pll_main","CLKOUT0_PIN","sys_clk","PLL")',
+            'design.set_property("pll_main","CLKOUT1_EN","1","PLL")',
+            'design.set_property("pll_main","CLKOUT1_PIN","psram_mclk","PLL")',
+            'design.set_property("pll_main","LOCKED_PIN","pll_locked","PLL")',
+            'design.set_property("pll_main","RSTN_PIN","","PLL")',
+            'design.set_property("pll_main","FEEDBACK_MODE","INTERNAL","PLL")',
+            'design.assign_resource("pll_main","PLL_BL0","PLL")',
+            'design.auto_calc_pll_clock("pll_main", {"CLKOUT0_FREQ": "80.0", "CLKOUT1_FREQ": "40.0"})']
+    open(os.path.join(HERE, "arc1_t35_r08.isf"), "w").write("\n".join(isf) + "\n")
+    py = ['"""ARC-1 Compact R08 Interface Designer script (GENERATED; run inside the Efinity environment).',
+          "Linux: source <efinity>/bin/setup.sh ; python3 arc1_t35_r08_isf.py",
+          'Windows: efx_run_pt_script.bat arc1_t35_r08_isf.py   (Efinity Python API UG v8.7 p.12-13)"""',
+          "import os, sys", "sys.path.append(os.environ['EFXPT_HOME'] + '/bin')",
+          "from api_service.design import DesignAPI",
+          "design = DesignAPI(True)",
+          "design.create('arc1_t35_r08', 'T35F400', os.path.dirname(os.path.abspath(__file__)))"]
+    py += [line for line in isf if not line.startswith("#")]
+    py += ["ok = design.check_design()", "print('check_design:', ok)", "design.generate(enable_bitstream=False)",
+           "design.save()"]
+    open(os.path.join(HERE, "arc1_t35_r08_isf.py"), "w").write("\n".join(py) + "\n")
+
+    # ---------------- SDC ----------------
+    sdc = """# ARC-1 Compact R08 -- T35F400C3 timing constraints (GENERATED, NATIVE_EDA_NOT_RUN).
+# PLL output clocks are named without get_ports, as the Interface Designer writes them
+# (sources/efinix/efinity_project_format.md s.3.5 item 7). Board delays are PLACEHOLDER budgets.
+create_clock -period 40.000 -name osc_25m [get_ports {osc_25m}]
+create_clock -period 12.500 sys_clk
+create_clock -period 25.000 psram_mclk
+# Crossings go only through 2-FF toggle/level synchronisers (psram_user_port, guard_on sync).
+set_clock_groups -asynchronous -group {sys_clk} -group {psram_mclk}
+
+# PSRAM (BANK1C): launched/captured by psram_mclk; SCLK 20 MHz (CLK_DIV=1). Board 1.0 ns each way (PLACEHOLDER).
+set_output_delay -clock psram_mclk -max  3.0 [get_ports {psram_sio_OUT[*] psram_sio_OE[*] psram_ce_n_OUT psram_ce_n_OE psram_sclk}]
+set_output_delay -clock psram_mclk -min -2.0 [get_ports {psram_sio_OUT[*] psram_sio_OE[*] psram_ce_n_OUT psram_ce_n_OE psram_sclk}]
+set_input_delay  -clock psram_mclk -max  7.5 [get_ports {psram_sio_IN[*]}]
+set_input_delay  -clock psram_mclk -min  3.5 [get_ports {psram_sio_IN[*]}]
+# PG / EN are asynchronous and synchronised in psram_power_guard.
+set_false_path -from [get_ports {psram_pg_IN psram_pwr_en_IN psram_ce_n_IN}]
+
+# F133 SPI0 mailbox (BANK1D) through the R08 isolation buffers: oversampled by sys_clk.
+set_false_path -from [get_ports {t35_sck_IN t35_ss_n_IN t35_mosi_IN t35_miso_IN t35_irq_n_IN t35_dbg_rx}]
+set_false_path -to   [get_ports {t35_miso_OUT t35_miso_OE t35_irq_n_OUT t35_irq_n_OE t35_led0 t35_dbg_tx}]
+"""
+    open(os.path.join(HERE, "arc1_t35_r08.sdc"), "w").write(sdc)
+
+    # ---------------- project XML ----------------
+    files = "\n".join(f'        <efx:design_file name="{f}" version="default" library="default"/>' for f in RTL)
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARC-1 Compact R08 (GENERATED by gen_efinity_r08.py). Structure copied from a public T35F400 Efinity
+     project (sources/efinix/efinity_project_format.md s.1.1). NOT opened in Efinity yet: NATIVE_EDA_NOT_RUN. -->
+<efx:project name="arc1_t35_r08" description="ARC-1 Compact optional T35 accelerator, R08" sw_version="2024.1.163.1.8"
+    xmlns:efx="http://www.efinixinc.com/enf_proj"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+    <efx:device_info>
+        <efx:family name="Trion"/>
+        <efx:device name="T35F400"/>
+        <efx:timing_model name="C3"/>
+    </efx:device_info>
+    <efx:design_info def_veri_version="sv_09" def_vhdl_version="vhdl_2008">
+        <efx:top_module name="arc1_t35_top_r08"/>
+{files}
+        <efx:top_vhdl_arch name=""/>
+    </efx:design_info>
+    <efx:constraint_info>
+        <efx:sdc_file name="arc1_t35_r08.sdc"/>
+        <efx:inter_file name=""/>
+    </efx:constraint_info>
+    <efx:sim_info/>
+    <efx:misc_info/>
+    <efx:ip_info/>
+    <efx:synthesis tool_name="efx_map">
+        <efx:param name="work_dir" value="work_syn" value_type="e_string"/>
+        <efx:param name="write_efx_verilog" value="on" value_type="e_bool"/>
+        <efx:param name="mode" value="speed" value_type="e_option"/>
+        <efx:param name="max_ram" value="-1" value_type="e_integer"/>
+        <efx:param name="max_mult" value="-1" value_type="e_integer"/>
+        <efx:param name="infer-clk-enable" value="3" value_type="e_option"/>
+        <efx:param name="infer-sync-set-reset" value="1" value_type="e_option"/>
+        <efx:param name="fanout-limit" value="0" value_type="e_integer"/>
+    </efx:synthesis>
+    <efx:place_and_route tool_name="efx_pnr">
+        <efx:param name="work_dir" value="work_pnr" value_type="e_string"/>
+        <efx:param name="verbose" value="off" value_type="e_bool"/>
+        <efx:param name="load_delaym" value="on" value_type="e_bool"/>
+        <efx:param name="optimization_level" value="NULL" value_type="e_option"/>
+        <efx:param name="seed" value="1" value_type="e_integer"/>
+    </efx:place_and_route>
+    <efx:bitstream_generation tool_name="efx_pgm">
+        <efx:param name="mode" value="active" value_type="e_option"/>
+        <efx:param name="width" value="1" value_type="e_option"/>
+        <efx:param name="enable_roms" value="smart" value_type="e_option"/>
+        <efx:param name="spi_low_power_mode" value="off" value_type="e_bool"/>
+        <efx:param name="io_weak_pullup" value="on" value_type="e_bool"/>
+        <efx:param name="oscillator_clock_divider" value="DIV8" value_type="e_option"/>
+        <efx:param name="jtag_usercode" value="0xA1080008" value_type="e_string"/>
+        <efx:param name="release_tri_then_reset" value="on" value_type="e_bool"/>
+        <efx:param name="four_byte_addressing" value="off" value_type="e_bool"/>
+        <efx:param name="generate_bit" value="on" value_type="e_bool"/>
+        <efx:param name="generate_hex" value="on" value_type="e_bool"/>
+        <efx:param name="cold_boot" value="off" value_type="e_bool"/>
+        <efx:param name="cascade" value="off" value_type="e_option"/>
+    </efx:bitstream_generation>
+    <efx:debugger>
+        <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
+        <efx:param name="auto_instantiation" value="off" value_type="e_bool"/>
+        <efx:param name="profile" value="NONE" value_type="e_string"/>
+    </efx:debugger>
+</efx:project>
+"""
+    open(os.path.join(HERE, "arc1_t35_r08.xml"), "w").write(xml)
+    print(f"Efinity inputs generated: {len(rows)} GPIO instances, {len(RTL)} RTL files")
+
+
+if __name__ == "__main__":
+    main()
