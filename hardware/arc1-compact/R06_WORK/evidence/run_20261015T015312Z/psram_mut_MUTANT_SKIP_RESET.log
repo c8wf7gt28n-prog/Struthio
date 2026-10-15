@@ -1,0 +1,6 @@
+MODEL_VIOLATION t=150712500 array/ID access before power-up global reset
+TB_ERROR t=153520000 init sequence counts
+MODEL_VIOLATION t=154262500 array/ID access before power-up global reset
+MODEL_VIOLATION t=156812500 array/ID access before power-up global reset
+MODEL_VIOLATION t=161087500 array/ID access before power-up global reset
+MODEL_VIOLATION t=163637500 array/ID access before power-up global reset

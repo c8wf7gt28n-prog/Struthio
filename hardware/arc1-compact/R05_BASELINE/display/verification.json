@@ -1,0 +1,44 @@
+{
+  "schema": "arc1-planning-executed-checks-v2",
+  "executed_utc": "2026-10-14T22:36:38.573296+00:00",
+  "run_id": "run_20261014T223634_233654Z",
+  "final_run_summary": "verification/last_run/summary.json",
+  "checks": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "display/tests",
+        "-p",
+        "test_validate_display.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "tests_run": 14,
+      "log": "verification/last_run/run_20261014T223634_233654Z/display_tests.log"
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "display/validate_display.py",
+        "display/compact_display.json",
+        "--output",
+        "/workspace/ARC1_COMPACT_DEVELOPMENT_R05_2026-10-14/verification/last_run/run_20261014T223634_233654Z/display_planning.json"
+      ],
+      "exit_code": 0,
+      "valid": true,
+      "hardware_verified": false,
+      "report": "verification/last_run/run_20261014T223634_233654Z/display_planning.json",
+      "log": "verification/last_run/run_20261014T223634_233654Z/display_planning.log"
+    }
+  ],
+  "all_checks_passed": true,
+  "hardware_experiments_run": false,
+  "input_sha256": "6d4c4e2566bfde82ddfbe15309ac7739e49ab6b56319ec36c38c4d0199a76f02",
+  "validator_sha256": "12e46bbfafc0ff05cee522b0069379969d83bcfcc4b7d085b01506cde209fd9c",
+  "initial_component_record": "verification_initial.json",
+  "note": "Fresh consolidated-run evidence; initial component record preserved separately, not relabeled."
+}

@@ -1,0 +1,205 @@
+{
+  "evidence": "ARITHMETIC_ONLY_NOT_HARDWARE_VERIFICATION",
+  "documented_clock_settings": [
+    {
+      "multiplier": 13,
+      "divider_plus_one": 1,
+      "link_mhz": 249.6,
+      "within_83_2_mhz_tx_limit": false
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 2,
+      "link_mhz": 124.8,
+      "within_83_2_mhz_tx_limit": false
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 3,
+      "link_mhz": 83.2,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 4,
+      "link_mhz": 62.4,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 5,
+      "link_mhz": 49.92,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 6,
+      "link_mhz": 41.6,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 7,
+      "link_mhz": 35.65714285714286,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 8,
+      "link_mhz": 31.2,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 9,
+      "link_mhz": 27.733333333333334,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 10,
+      "link_mhz": 24.96,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 11,
+      "link_mhz": 22.69090909090909,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 12,
+      "link_mhz": 20.8,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 13,
+      "link_mhz": 19.2,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 14,
+      "link_mhz": 17.82857142857143,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 15,
+      "link_mhz": 16.64,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 13,
+      "divider_plus_one": 16,
+      "link_mhz": 15.6,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 1,
+      "link_mhz": 288.0,
+      "within_83_2_mhz_tx_limit": false
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 2,
+      "link_mhz": 144.0,
+      "within_83_2_mhz_tx_limit": false
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 3,
+      "link_mhz": 96.0,
+      "within_83_2_mhz_tx_limit": false
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 4,
+      "link_mhz": 72.0,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 5,
+      "link_mhz": 57.6,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 6,
+      "link_mhz": 48.0,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 7,
+      "link_mhz": 41.142857142857146,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 8,
+      "link_mhz": 36.0,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 9,
+      "link_mhz": 32.0,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 10,
+      "link_mhz": 28.8,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 11,
+      "link_mhz": 26.181818181818183,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 12,
+      "link_mhz": 24.0,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 13,
+      "link_mhz": 22.153846153846153,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 14,
+      "link_mhz": 20.571428571428573,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 15,
+      "link_mhz": 19.2,
+      "within_83_2_mhz_tx_limit": true
+    },
+    {
+      "multiplier": 15,
+      "divider_plus_one": 16,
+      "link_mhz": 18.0,
+      "within_83_2_mhz_tx_limit": true
+    }
+  ],
+  "standard_74_25_mhz_present": false,
+  "standard_blanking_at_72_mhz_hz": 58.18181818181818,
+  "alternate_720_totals_conditional_hz": 60.810810810810814,
+  "alternate_1080_totals_conditional_hz": 60.73079388643342,
+  "selected_total_mib": 384,
+  "named_parts_total_mib": 448,
+  "four_pass_rgb888_model_mb_s": 1492.992,
+  "x16_800_mt_s_raw_mb_s": 1600.0
+}

@@ -1,0 +1,210 @@
+{
+  "schema_id": "arc1-compact-handoff-v1",
+  "revision": "0.4",
+  "date": "2026-10-14",
+  "project": "ARC-1 Compact",
+  "purpose": "Claude independent confirmation and continuation within owner-selected Compact baseline",
+  "native_vendor_format": false,
+  "authority": {
+    "selection_file": "OWNER_SELECTION.md",
+    "instructions_file": "CLAUDE.md",
+    "separate_project": "ARC-1 Tabletop R23 remains unchanged history",
+    "fabrication_ready": false
+  },
+  "core": [
+    {
+      "id": "CPU",
+      "part": "F133-B",
+      "selection_status": "OWNER_SELECTED_WORKING_CORE",
+      "memory": {
+        "installed_mib": 64,
+        "type": "in-package DDR2",
+        "owner": "CPU",
+        "shared": false,
+        "capacity_basis": "SELECTED_TARGET_OR_DOCUMENTED_COMPONENT_CAPACITY; NOT_OBSERVED_ASSEMBLED_COMPACT",
+        "observed_installed_mib": null
+      },
+      "role": "Game/platform authority",
+      "source_ids": [
+        "S01",
+        "S02"
+      ]
+    },
+    {
+      "id": "FPGA",
+      "part": "T35F400C3",
+      "selection_status": "OWNER_SELECTED_WORKING_CORE",
+      "memory": {
+        "installed_mib": 128,
+        "density_bits": 1073741824,
+        "type": "DDR3L",
+        "organization": "64M x16",
+        "owner": "FPGA",
+        "shared": false,
+        "exact_sku": null,
+        "implementation_status": "UNVERIFIED",
+        "capacity_basis": "SELECTED_TARGET_OR_DOCUMENTED_COMPONENT_CAPACITY; NOT_OBSERVED_ASSEMBLED_COMPACT",
+        "observed_installed_mib": null
+      },
+      "role": "Transform/culling kernel, command construction/scheduling, timed input, future custom rendering",
+      "source_ids": [
+        "S03",
+        "S04",
+        "S17"
+      ]
+    },
+    {
+      "id": "GRAPHICS",
+      "part": "BT820B",
+      "selection_status": "OWNER_SELECTED_WORKING_CORE",
+      "memory": {
+        "installed_mib": 128,
+        "density_bits": 1073741824,
+        "type": "DDR3L",
+        "owner": "BT820",
+        "shared": false,
+        "prototype_module": "MN820",
+        "bare_dram_sku": null,
+        "reserved_upper_mib": 2.5,
+        "capacity_basis": "SELECTED_TARGET_OR_DOCUMENTED_COMPONENT_CAPACITY; NOT_OBSERVED_ASSEMBLED_COMPACT",
+        "observed_installed_mib": null
+      },
+      "role": "Distinct hardware bitmap accelerator, affine transforms, composition and presentation",
+      "source_ids": [
+        "S05",
+        "S06",
+        "S12"
+      ]
+    }
+  ],
+  "memory": {
+    "installed_total_mib": 320,
+    "pools_physically_independent": true,
+    "unified_address_space": false,
+    "user_available_total_mib": null,
+    "capacity_basis": "OWNER_SELECTED_INSTALLED_CAPACITY_TARGET_NOT_OBSERVED_HARDWARE",
+    "observed_installed_total_mib": null
+  },
+  "screen": {
+    "part": "NHD-7.0-1024600AF-LSXP",
+    "revision_to_confirm": "Rev2C",
+    "selection_status": "ACCEPTED_WORKING_QUALIFICATION_CANDIDATE",
+    "diagonal_inches": 7,
+    "resolution": [
+      1024,
+      600
+    ],
+    "interface": "single-channel LVDS, four data pairs plus clock",
+    "panel_logic_v": 3.3,
+    "backlight": {
+      "type": "constant-current",
+      "nominal_current_ma": 150,
+      "nominal_led_voltage_v": 19.2
+    },
+    "orientation": null,
+    "response_time_tr_plus_tf_ms": {
+      "typical": 30,
+      "maximum": 40
+    },
+    "measured_refresh_hz": null,
+    "source_ids": [
+      "S11",
+      "S13"
+    ]
+  },
+  "display_timing": {
+    "status": "CALCULATED_PROPOSAL_NOT_MEASURED",
+    "reference_hz": 38400000,
+    "syspll_ns": 15,
+    "txclkdiv": 5,
+    "nominal_link_clock_hz": 48000000,
+    "h_active": 1024,
+    "v_active": 600,
+    "h_total": 1280,
+    "v_total": 625,
+    "calculated_nominal_refresh_hz": 60,
+    "proposed_h_sync_back_front": [
+      16,
+      160,
+      80
+    ],
+    "proposed_v_sync_back_front": [
+      1,
+      23,
+      1
+    ],
+    "porch_definition_and_register_encoding_confirmed": false,
+    "lane_mapping": "VESA24/SPWG starting inference; verify exact slots",
+    "physical_measurement": null,
+    "source_ids": [
+      "S11",
+      "S12",
+      "S13"
+    ]
+  },
+  "links": [
+    {
+      "id": "L1",
+      "from": "CPU",
+      "to": "FPGA",
+      "role": "Scene mailbox",
+      "status": "PROPOSED_IMPLEMENTATION",
+      "physical": "SPI0 candidate; single-bit initially, quad separately qualified",
+      "master": "CPU",
+      "assigned_pins": null,
+      "measured_payload_mb_s": null,
+      "boot_constraints": "PC4/PC5 boot-select sharing; preserve straps/high impedance; SPI0 overlaps SD/MMC2"
+    },
+    {
+      "id": "L2",
+      "from": "FPGA",
+      "to": "GRAPHICS",
+      "role": "BT command/asset control",
+      "status": "PROPOSED_IMPLEMENTATION",
+      "physical": "QSPI",
+      "master": "FPGA sole master",
+      "documented_max_clock_hz": 60000000,
+      "measured_payload_mb_s": null,
+      "assigned_pins": null
+    },
+    {
+      "id": "L3",
+      "from": "GRAPHICS",
+      "to": "SCREEN",
+      "role": "Initial scanout",
+      "status": "PROPOSED_IMPLEMENTATION",
+      "physical": "single-channel LVDS",
+      "assigned_pins": null,
+      "measured_latency_ms": null
+    },
+    {
+      "id": "L4",
+      "from": "FPGA",
+      "to": "GRAPHICS",
+      "role": "Optional future opaque video/effects background",
+      "status": "OPTIONAL_FUTURE_PROPOSAL",
+      "physical": "LVDS input",
+      "required_for_first_prototype": false,
+      "assigned_pins": null,
+      "measured_latency_ms": null,
+      "physical_reservation_decision": null,
+      "reservation_required_before_pcb_freeze": true
+    }
+  ],
+  "storage": {
+    "final_boot_medium": null,
+    "game_medium": null,
+    "fpga_config_flash_sku": null,
+    "prototype_cpu_boot": "SD0 proposed",
+    "constraints": "Do not inherit Tabletop three-NOR/NAND/eMMC rules; qualify exact storage and recovery."
+  },
+  "missing_artifacts": [
+    "Authoritative STRUTHIO source/render trace",
+    "Native exact-device T35 Efinity project and timing reports",
+    "Actual Compact firmware/RTL/images",
+    "Compact CAD/netlist/power/BOM",
+    "Physical memory/display/scene/latency measurements"
+  ],
+  "hardware_status": "SELECTED_AND_DOCUMENTED_DIRECTION; IMPLEMENTATION_AND_MEASUREMENT_PENDING",
+  "measured_scene_fps": null
+}

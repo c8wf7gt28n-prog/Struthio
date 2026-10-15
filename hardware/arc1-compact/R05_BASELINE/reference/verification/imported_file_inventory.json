@@ -1,0 +1,906 @@
+{
+  "file_count": 180,
+  "unique_content_count": 122,
+  "files": [
+    {
+      "path": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE/ARC1_R19_PIN_AUDIT_README.md",
+      "bytes": 8103,
+      "sha256": "92cb6a07df6c4b91fa6ae7f0562b5c6f3c826741045c7019ab89c38c5bedb6c4"
+    },
+    {
+      "path": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE/ARC1_R19_VERIFIED_BALLS_PROVISIONAL_BANKPLAN.xlsx",
+      "bytes": 53452,
+      "sha256": "f301336c0726b9aa570d6eb3540321a0ba63269b96c97917abeea623221ed516"
+    },
+    {
+      "path": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE/ARC1_T120_physical_pin_inventory.csv",
+      "bytes": 30579,
+      "sha256": "15b87c807a9e5c925c4c81f76da0f5d9845b7f154e46fb5b1890805f4a629c2f"
+    },
+    {
+      "path": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE/ARC1_T20_physical_pin_inventory.csv",
+      "bytes": 16500,
+      "sha256": "a4cd615f8d00bfdd262392aa7ef770f33bb2969e3cb06671a7cc8f978f390350"
+    },
+    {
+      "path": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE/ARC1_provisional_signal_mapping.csv",
+      "bytes": 17462,
+      "sha256": "f2006cdd3cfb25d88a949bd7cd5721dc316c2bab476d71e9ed7083d74e2c680b"
+    },
+    {
+      "path": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE/t120_pinout-v1.4.xlsx",
+      "bytes": 159288,
+      "sha256": "8a6ecd5700c5895cfe306dfe3c37bac2d40feebe2b7ea4e8c43291eab831bc6d"
+    },
+    {
+      "path": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE/t20_pinout-v3.5.xlsx",
+      "bytes": 160341,
+      "sha256": "bfbdc850656904043631e562ca1d26073ffa0ff3d191b7b1f21c0fd174b6db93"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/CLAUDE.md",
+      "bytes": 5265,
+      "sha256": "f4b39ef1aaba8297e68218cd8cc1b6201f511fe367b36480fd76b73bcefa08e3"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/README_FIRST.md",
+      "bytes": 2447,
+      "sha256": "6eb460ea5a1e2c1103072365fead1f8a7573f29bc003024a0ac5589bf2ab58ed"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/SOURCE_HASHES.sha256",
+      "bytes": 2664,
+      "sha256": "68b0c673713e72b437b5ca45a92ccee45ce7ec7e6d076c4205eda19e0817429f"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/VERIFICATION_PASS05.md",
+      "bytes": 1262,
+      "sha256": "199cd45cca0279b4ffdcfabebb7a3034e64afcd9cdb1095555632f420c0148aa"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/WORKING_SOURCE_HASHES.sha256",
+      "bytes": 9283,
+      "sha256": "2449f2f869a27bb477fffd77f072a9c4c051751d83f14bcf8468d1b792e47313"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/arc1-banner.png",
+      "bytes": 1526251,
+      "sha256": "edcc591ec231c3cd6d4ba6fb09657df952425561a218b12c11ac632b7b6acf99"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/arc1-mark.png",
+      "bytes": 1717265,
+      "sha256": "21b2a6040b78ac1c5617e8f38783beba701b5bcea24a484ef7baa7c4014a35ce"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/architecture-ui.js",
+      "bytes": 21535,
+      "sha256": "403ba7bd21b92994cc8d78afa9641af2a05ee2c83723c2bbbdfc408732e65bdb"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/architecture.js",
+      "bytes": 13146,
+      "sha256": "0f7ddca7f192206e40494e2bece757d224b1a0f964a436d1ed73f74057cf704c"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/ARC1_EVIDENCE_SCHEMA.json",
+      "bytes": 7310,
+      "sha256": "e80f06465d79af2423544b86cd3101b5f24c7a7ca1b54395f9eba5a2c9a474d4"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/ARC1_EVIDENCE_TEMPLATE.csv",
+      "bytes": 286,
+      "sha256": "e7881f72a081c01b38cdba9e2ce6a5a83e7b92767d36512121f70f72b860c402"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/ARC1_EVIDENCE_TEMPLATE.json",
+      "bytes": 296,
+      "sha256": "c896ddc8985ccb26f49b15b143924d48adad694b0815c1b5badfa2f90619c67b"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_CLAUDE_CODE_HANDOFF.md",
+      "bytes": 3899,
+      "sha256": "c2819e9859d80cfa74ddd0611eb5166e3e3d96cc9e3c9571a172dcd6e4949421"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_DEV002_BROWSER_REPORT.json",
+      "bytes": 4422,
+      "sha256": "951ccb98d7ed2d01d59d38e60174765ead20719961013b37ecf9ef1dbe8ea579"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_DEV002_CHANGELOG.md",
+      "bytes": 5077,
+      "sha256": "566c34920e01dc0f3efa535e27afab7ebc83987b837ef1d382569207393969e4"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_DEV002_NPM_TEST.log",
+      "bytes": 6770,
+      "sha256": "d1c8769a254051ec29edbcac042ed2f398a817a677a4c4bd99ab362801f9de96"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_DEV002_SOURCE_AUDIT.md",
+      "bytes": 8259,
+      "sha256": "dd2020e6f9fd99f0eb801088dc55f646fc5c2497366cb2527bcfae014ab15231"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_DEV002_TEST_REPORT.md",
+      "bytes": 5042,
+      "sha256": "9e3d05b8a5ff332b27cfe1e2eb490f73e32de550ed129b00a697041e4f26a86e"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_DEVELOPER_TASKS.json",
+      "bytes": 11642,
+      "sha256": "1e0ea93aab44b20d8df33ce58fce6e5d689e1ce6b437d093cf69a788c3851c71"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_EFINITY_FIRST_SESSION.md",
+      "bytes": 1467,
+      "sha256": "0603b9afb5d2dfd4e596bb98f7cbce9da74fd68dbbabe35d96599a6ef937dd38"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_EVIDENCE_INTAKE.md",
+      "bytes": 8103,
+      "sha256": "c38a8f7e5f5b9826bcec5c95caa48d289bdef629db575ff3f3a6b4ea97944996"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_EVIDENCE_POLICY.md",
+      "bytes": 2121,
+      "sha256": "4ab13c8a5cd4462c21fa9ce39767313b7b4c57756e3a2188f5b66eb5895e6acf"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_PIN_STATUS.md",
+      "bytes": 539,
+      "sha256": "ce1c7140965bcf5ffef37d362e906f0ff48c1f431e7a9e928e87583b3bf63229"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_PROJECT_HOUSE_P05_CHANGELOG.md",
+      "bytes": 859,
+      "sha256": "dec6302d96c2f2f79a5d951ac4c91cedff3b1fcabf6fe4f5a02b4952415394c3"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_T120_PACKAGE_BALLS_UNASSIGNED.csv",
+      "bytes": 82007,
+      "sha256": "a8b46b52e97f64a6dcb11f4a7ee9843c49643d6613b2c6705a3e009a12fa7cb5"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_TABLETOP_SYSTEM_WORK_ORDER.md",
+      "bytes": 10432,
+      "sha256": "a3c9de98d886e574eb3b22af62ce4d1698f9ddfd10097a499eea60d97cc0602e"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/R22_VENDOR_REFERENCE_LINKS.md",
+      "bytes": 803,
+      "sha256": "10be129df0d9e5bc4e42ce39e571fd343af67f1c382b9520f3c1ad92ec58128c"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/T120_pinout_v1.4.xlsx",
+      "bytes": 159288,
+      "sha256": "8a6ecd5700c5895cfe306dfe3c37bac2d40feebe2b7ea4e8c43291eab831bc6d"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/ARCHITECTURE_CHANGELOG.md",
+      "bytes": 4654,
+      "sha256": "d50ef79d5b9f0c4ea514dc5ddb59d46f0238edf444a13967077bb6519acd2725"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/ARCHITECTURE_DECISION_RECORD.md",
+      "bytes": 11513,
+      "sha256": "d15dab0fa03702d400575b8afb898938d8e0fc9e5d3d006eb7581fdf7c8d8c21"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/ARCHITECTURE_TEST_REPORT.md",
+      "bytes": 3119,
+      "sha256": "b1047322f21591f2a4def63fa8983967ca6afdb9697bcab5151204698fd0e84e"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/DISPLAY_LINK_REVIEW.md",
+      "bytes": 13826,
+      "sha256": "b472b30a79d6a3f54d517f46335a982276476ce406073e4ed0cb2209ea62e24e"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/HOST_LINK_REVIEW.md",
+      "bytes": 15723,
+      "sha256": "87caf283b4d95868da9ae2a599db53d1eb3b6849b5f5f51d1b0362a7dcfd0855"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/MEMORY_REVIEW.md",
+      "bytes": 8942,
+      "sha256": "9d7955044c353e27325180cf4358dc09c1b3c76166ba13827f33589ff4a4c639"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/RECOVERY_POWER_REVIEW.md",
+      "bytes": 16245,
+      "sha256": "009b9d3b114e6eb5e269076f0c0604afdef07201d6edd919e7e48a4395c30455"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/architecture.json",
+      "bytes": 38184,
+      "sha256": "7e9e1f7bd41ad258e9db4bde2a375aa8d097f5971df1c2f5ef10f40ee8e76106"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/display_sources.json",
+      "bytes": 3117,
+      "sha256": "a2ac3dd87288ec4e8945585a290bdc860166d52ac83a57a1203b1d218ea75f66"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/host_sources.json",
+      "bytes": 14007,
+      "sha256": "65204480e53677c66285e0938b8706d047afcf6588fe76a3711fa5b459521490"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/memory_sources.json",
+      "bytes": 3946,
+      "sha256": "4c465c4fe3880c3e5c41a393eee5fd0873fdb041d0c78b424ef389fa539ffd60"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/recovery_sources.json",
+      "bytes": 5427,
+      "sha256": "83bac8e480c2d8c04603a5bc375c8f79ab30657e6e54bb7b942ae24f75b9c690"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/architecture/spreadsheetfacts.json",
+      "bytes": 103256,
+      "sha256": "e33c53f31cd695051ab2f43926b326bb7226e2d7dc0867fc036cd738f0ebbedb"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/history/r22/CLAUDE.md",
+      "bytes": 4168,
+      "sha256": "4bb5e44429e8b881fd1aad77ddd1607e74ea920fa4d397d5389afb166568c42d"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/history/r22/README_FIRST.md",
+      "bytes": 3436,
+      "sha256": "777878d2f736ec345920fdb9f10f6886a9226ee7408621cdb627e59e978b843b"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/history/r22/roadmap.json",
+      "bytes": 11642,
+      "sha256": "1e0ea93aab44b20d8df33ce58fce6e5d689e1ce6b437d093cf69a788c3851c71"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/ARC1_R23_Handoff.docx",
+      "bytes": 180071,
+      "sha256": "007186705ecdde8a22860b0c287a3baaeb622cf526f9c1b7b22f9ca66a9e0d2a"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/BT820_MEMORY_VIDEO_REVIEW.md",
+      "bytes": 12806,
+      "sha256": "b4aa9fc014f18039a6a9d877d729133c3a1289f011e2d1d938cdc7e21a53245a"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_ARCHITECTURE_DECISION_RECORD.md",
+      "bytes": 17315,
+      "sha256": "6bff3b76e3ff9cec4a221fae3b525ce81d38546276ef6984a58f79ff510eae20"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_CHANGED_FILES.json",
+      "bytes": 2350,
+      "sha256": "14b655d4bc65a45afda508002d5dcf5bb9a7214a43191422d43b100e211faa41"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_CHANGELOG.md",
+      "bytes": 5623,
+      "sha256": "2e0d460d2ad33382c5de12169beb13478746ceb877d21103507de22631242783"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_DEVELOPER_TASKS.json",
+      "bytes": 18194,
+      "sha256": "23860f94a010534ab4b8934955bd93c346ad7853b33349f39bc45887e1e4bde1"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_MIGRATION_RECORD.md",
+      "bytes": 11485,
+      "sha256": "65937c6063f8a61df3d8c1946562aaf61efed6883dd7e3b8905a60c961e6b87f"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_OWNER_ARCHITECTURE_DIAGRAM.png",
+      "bytes": 133795,
+      "sha256": "06aca769ddd03fc95bb828262873e8a43756542c397db13cd185d0c041a701c4"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_OWNER_HANDOFF_TEXT.md",
+      "bytes": 30720,
+      "sha256": "48b0428805a62d09682e43ffb8f846063759d530b9daf672ac7b654ff95af62f"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_SYSTEM_EVIDENCE_INTAKE.md",
+      "bytes": 8486,
+      "sha256": "c3c450f8bff892ff999d3081f8c7f47bc44be2a592f229d29854d63aeb35d271"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_SYSTEM_EVIDENCE_SCHEMA.json",
+      "bytes": 8870,
+      "sha256": "e547ebe180e6ee7a1cb9074d9f0748f4be9b88901af320aa86537759f40f8819"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_SYSTEM_EVIDENCE_TEMPLATE.json",
+      "bytes": 1684,
+      "sha256": "ba3f3aaaf4ce89bbb189f9f4a3c0fb75f1eb9b4bb1e1164acee3481a9478bf6b"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_TEST_REPORT.md",
+      "bytes": 5485,
+      "sha256": "1daa643f824835a22caa7baede86105c6c14e1232003b138f2a3d493f3f0ca9b"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/R23_VENDOR_QUESTIONS.md",
+      "bytes": 13660,
+      "sha256": "bd5ae4398a54a0d842f14ebd1e720f30996a9a716ff11613a6c1c9833ea5179d"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/THREE_NOR_NAND_REVIEW.md",
+      "bytes": 16278,
+      "sha256": "c98d2c901beca57ff907e1fefaf97e03d6bd3fc285b73d8c660ec0c82fe8de7c"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/VIDEO_CHAIN_REVIEW.md",
+      "bytes": 14214,
+      "sha256": "ba611ff7d836553472610b395b6d6ff090d66cb89843823bafe62930e6fda1de"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/architecture.json",
+      "bytes": 44415,
+      "sha256": "593caf26f7da8c009e3be3f17d350544e75293cf4c4579a0f8ae9b3ce4bdab67"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/bt820_sources.json",
+      "bytes": 5291,
+      "sha256": "9e7fd99c81461556c86884e7bc5ec62207f6951d38e2ecb641618c623c9d942b"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/logs/R22_BEFORE_R23_BASELINE.log",
+      "bytes": 9333,
+      "sha256": "e76b953184b2ae063b6686df8bdb5f17857292ad3f6cf01850846b313af90dce"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/logs/R23_ARCHITECTURE_CHECK.json",
+      "bytes": 21269,
+      "sha256": "1c671fd1a892d4007c2c644ff53894ebfad158b7461523be68640b6aa16c5ef5"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/logs/R23_NPM_TEST.log",
+      "bytes": 12046,
+      "sha256": "fdbd5f06fa166d42b6c80f9346cb78739e6ce60034beea7e405a15c04fd39000"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/logs/R23_PACKAGE_FACTS.log",
+      "bytes": 99,
+      "sha256": "566930a6a5777978a5ecbf8ea1afa3f2cd64fa28fbc76255cb793249e0b8f573"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/storage_sources.json",
+      "bytes": 9111,
+      "sha256": "ed3bd2919b89b8936067a97734c8620a6493d6d642346188ea5d312f96ddca7e"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/engineering/r23/video_sources.json",
+      "bytes": 6963,
+      "sha256": "c8f7eafa4d4306d8cd989994bf7e526823c39dc1151a0ffaaae7b56a1fcebd42"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/evidence-ui.js",
+      "bytes": 20466,
+      "sha256": "0d7a56cccbf7b9c47bb6ae58fa9bfbf2a1eef5bb44b66d8df10ca0bc6297ebd4"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/evidence.js",
+      "bytes": 21564,
+      "sha256": "3f7480d17a8cac8c441774ce46d43c47480be725cf155f2a97a4ac5124f396d2"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/house.css",
+      "bytes": 15798,
+      "sha256": "e376b78f064c91e170344f4c4e7a1a6d25f213c3e6b5cefab41c143dc7b34250"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/house.js",
+      "bytes": 56730,
+      "sha256": "2676fab32a5288fdbdc6836b725d96e817a822c6cee5979e2b8f156a4b2d3394"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/icon-192.png",
+      "bytes": 2820,
+      "sha256": "c89eb8a8d7cb41063c297ed1c8faa2b759ea544a74d55b0834527c6bd76ce5ae"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/icon-512.png",
+      "bytes": 7899,
+      "sha256": "f2a2cae67d4f1a59085ac4681cc9060bc9e37e9b2c5b4ef804c4b354e85ca5e8"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/index.html",
+      "bytes": 3186,
+      "sha256": "3fbc09b8d65d7291a343c57ed8787d845594934562b6852d18373d3a8e99a8de"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/manifest.webmanifest",
+      "bytes": 740,
+      "sha256": "16e756968aafe1a25bba4e7e2f1ac0cb33509bbc543ec495222bd13419da0753"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/package.json",
+      "bytes": 605,
+      "sha256": "647a721573b747d293308296825e5c94dd4e3f8e60c8f5f1209fe8d059e79457"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/pins.json",
+      "bytes": 145815,
+      "sha256": "2fd34c6e8d8448198369f7a4c1c7faf676a3dffb46fd3b7b67ae14d24897415b"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/r23-architecture.js",
+      "bytes": 13571,
+      "sha256": "58a10710ff88bb812e582b3bc9e02848bc57e80590b4e1ead644b5c905208fc3"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/r23-evidence.js",
+      "bytes": 23836,
+      "sha256": "7edffbc057bdf0d17c5ba3df451780ea01622a6b4e1fbc5861497bae44e478ec"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/scripts/check-architecture.mjs",
+      "bytes": 873,
+      "sha256": "7fad6b809645cbf4fa665d33a106b5d054187dc62cffb58473f8d9534a3b1bc7"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/scripts/serve.mjs",
+      "bytes": 1556,
+      "sha256": "0b45b78b99118caf53d44312f3ee96fa836819968f5fa609a48193d9cb583d8c"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/scripts/verify-package-facts.py",
+      "bytes": 2699,
+      "sha256": "8e7887001ad9d80f00d56af0ef6c8aa6a9981cc516eba5267241de526936f95e"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/scripts/verify.mjs",
+      "bytes": 9829,
+      "sha256": "420a5849fe7ed27fe97ee300dbc6bc0f307e739bea92fab6af79e986d8d8b4c4"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/sw.js",
+      "bytes": 3809,
+      "sha256": "2223bea36ab35962e4ac922f2f99316797993119829279bc25668ec3de7712da"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tasks/roadmap.json",
+      "bytes": 18194,
+      "sha256": "23860f94a010534ab4b8934955bd93c346ad7853b33349f39bc45887e1e4bde1"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tests/architecture_node.cjs",
+      "bytes": 20857,
+      "sha256": "b8eba1a40e0e752ab4ea270e2c3a76e78c3a44141220991445e748e92ad581e7"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tests/browser_smoke.py",
+      "bytes": 14761,
+      "sha256": "bedb56663237fec018acf27315bb19bbbbdb75acf9fcf6bc6eac98c5120bc44c"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tests/evidence_node.cjs",
+      "bytes": 26801,
+      "sha256": "2e1cebab4060c1a78ff4222de22014a45acab3ddcce694fb8525239d39ddf559"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tests/intake_ui_node.cjs",
+      "bytes": 8381,
+      "sha256": "c14831381d5f3eb7451b14e367155b80aded085099d90eec92d9ffe339944a39"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tests/offline_node.cjs",
+      "bytes": 8585,
+      "sha256": "9dced49d9b8fb457f1127d5398c834e0c75dd6dd1d4a6d77143b945050b83559"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tests/r23_node.cjs",
+      "bytes": 19260,
+      "sha256": "19001ab37cc5ccb19a172b3db6ae47d8886e25476c93e560014e0186ba399dac"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/tests/smoke_node.cjs",
+      "bytes": 3995,
+      "sha256": "be6a488c881d4299d635a537cbbe71c85b1f512d5965291f73a9913e02d168c3"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/viewer.css",
+      "bytes": 4589,
+      "sha256": "5aa930a0aa8a3970318936e523c44e8d90baa31dd3d19727fafe079aff459a8f"
+    },
+    {
+      "path": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING/viewer.js",
+      "bytes": 9082,
+      "sha256": "0520ca57e763a034f03af898bdb9ab1e3ab5c014fd9ba04494937df55384fb27"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/CLAUDE.md",
+      "bytes": 4168,
+      "sha256": "4bb5e44429e8b881fd1aad77ddd1607e74ea920fa4d397d5389afb166568c42d"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/README_FIRST.md",
+      "bytes": 1989,
+      "sha256": "c8271632f7b58aa386e9aac77e3f6260a890ddc4c366a4638d037356218390c1"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/SOURCE_HASHES.sha256",
+      "bytes": 2664,
+      "sha256": "68b0c673713e72b437b5ca45a92ccee45ce7ec7e6d076c4205eda19e0817429f"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/VERIFICATION_PASS05.md",
+      "bytes": 1262,
+      "sha256": "199cd45cca0279b4ffdcfabebb7a3034e64afcd9cdb1095555632f420c0148aa"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/arc1-banner.png",
+      "bytes": 1526251,
+      "sha256": "edcc591ec231c3cd6d4ba6fb09657df952425561a218b12c11ac632b7b6acf99"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/arc1-mark.png",
+      "bytes": 1717265,
+      "sha256": "21b2a6040b78ac1c5617e8f38783beba701b5bcea24a484ef7baa7c4014a35ce"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_CLAUDE_CODE_HANDOFF.md",
+      "bytes": 3899,
+      "sha256": "c2819e9859d80cfa74ddd0611eb5166e3e3d96cc9e3c9571a172dcd6e4949421"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_DEVELOPER_TASKS.json",
+      "bytes": 7633,
+      "sha256": "3485ab3d4cbeff321eb765646c1405bf1ffbd04027af1897a93ebb6df604620e"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_EFINITY_FIRST_SESSION.md",
+      "bytes": 1467,
+      "sha256": "0603b9afb5d2dfd4e596bb98f7cbce9da74fd68dbbabe35d96599a6ef937dd38"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_EVIDENCE_POLICY.md",
+      "bytes": 2121,
+      "sha256": "4ab13c8a5cd4462c21fa9ce39767313b7b4c57756e3a2188f5b66eb5895e6acf"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_PIN_STATUS.md",
+      "bytes": 539,
+      "sha256": "ce1c7140965bcf5ffef37d362e906f0ff48c1f431e7a9e928e87583b3bf63229"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_PROJECT_HOUSE_P05_CHANGELOG.md",
+      "bytes": 859,
+      "sha256": "dec6302d96c2f2f79a5d951ac4c91cedff3b1fcabf6fe4f5a02b4952415394c3"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_T120_PACKAGE_BALLS_UNASSIGNED.csv",
+      "bytes": 82007,
+      "sha256": "a8b46b52e97f64a6dcb11f4a7ee9843c49643d6613b2c6705a3e009a12fa7cb5"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_TABLETOP_SYSTEM_WORK_ORDER.md",
+      "bytes": 10432,
+      "sha256": "a3c9de98d886e574eb3b22af62ce4d1698f9ddfd10097a499eea60d97cc0602e"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/R22_VENDOR_REFERENCE_LINKS.md",
+      "bytes": 803,
+      "sha256": "10be129df0d9e5bc4e42ce39e571fd343af67f1c382b9520f3c1ad92ec58128c"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/engineering/T120_pinout_v1.4.xlsx",
+      "bytes": 159288,
+      "sha256": "8a6ecd5700c5895cfe306dfe3c37bac2d40feebe2b7ea4e8c43291eab831bc6d"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/house.css",
+      "bytes": 13304,
+      "sha256": "ba695ba5d485749478a67c015770d3905faa9f4e88eded833e0921e3d312663f"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/house.js",
+      "bytes": 42520,
+      "sha256": "2ef5472e3208f806d55be8f50880bb3c63dcc187031f336498de7058716d1355"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/icon-192.png",
+      "bytes": 2820,
+      "sha256": "c89eb8a8d7cb41063c297ed1c8faa2b759ea544a74d55b0834527c6bd76ce5ae"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/icon-512.png",
+      "bytes": 7899,
+      "sha256": "f2a2cae67d4f1a59085ac4681cc9060bc9e37e9b2c5b4ef804c4b354e85ca5e8"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/index.html",
+      "bytes": 2944,
+      "sha256": "37272bdfe5d765a60680151cf515552455757fc81757de521da08a033e9bf90c"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/manifest.webmanifest",
+      "bytes": 740,
+      "sha256": "16e756968aafe1a25bba4e7e2f1ac0cb33509bbc543ec495222bd13419da0753"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/package.json",
+      "bytes": 322,
+      "sha256": "3d63e7fa3f3353699584a3ec6e42f4470c681944061651e1b518fbce2f92342c"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/pins.json",
+      "bytes": 145815,
+      "sha256": "2fd34c6e8d8448198369f7a4c1c7faf676a3dffb46fd3b7b67ae14d24897415b"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/scripts/serve.mjs",
+      "bytes": 1556,
+      "sha256": "0b45b78b99118caf53d44312f3ee96fa836819968f5fa609a48193d9cb583d8c"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/scripts/verify.mjs",
+      "bytes": 4626,
+      "sha256": "0b03c1d404881f6006673469779a19176eaf954c5fc1a177f4c90cc6893975b5"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/sw.js",
+      "bytes": 1498,
+      "sha256": "5257bf5c29329a5d1e339671884950881bf27ef62e6999782c3cb9645e58c42a"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/tasks/roadmap.json",
+      "bytes": 7633,
+      "sha256": "3485ab3d4cbeff321eb765646c1405bf1ffbd04027af1897a93ebb6df604620e"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/tests/smoke_node.cjs",
+      "bytes": 3969,
+      "sha256": "f3635a24c4f31a552672e7080c5077721126e765b347460bc6abb061af74947d"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/viewer.css",
+      "bytes": 4589,
+      "sha256": "5aa930a0aa8a3970318936e523c44e8d90baa31dd3d19727fafe079aff459a8f"
+    },
+    {
+      "path": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF/viewer.js",
+      "bytes": 8195,
+      "sha256": "08b4bc27c8f71ca4c4ececb0bc69d0bcf4f5694c7f26dcbcc5f8922e8c0c04a8"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/CLAUDE.md",
+      "bytes": 4168,
+      "sha256": "4bb5e44429e8b881fd1aad77ddd1607e74ea920fa4d397d5389afb166568c42d"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/README_FIRST.md",
+      "bytes": 2575,
+      "sha256": "524918e6f3de910594b471228c6b5732f4a08dd3c19c590d1927688ce4395f66"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/SOURCE_HASHES.sha256",
+      "bytes": 2664,
+      "sha256": "68b0c673713e72b437b5ca45a92ccee45ce7ec7e6d076c4205eda19e0817429f"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/VERIFICATION_PASS05.md",
+      "bytes": 1262,
+      "sha256": "199cd45cca0279b4ffdcfabebb7a3034e64afcd9cdb1095555632f420c0148aa"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/WORKING_SOURCE_HASHES.sha256",
+      "bytes": 4207,
+      "sha256": "1ad5a71823b2ed1de1d38f69f59f0c242281a586bb910f742d768418834c8ce8"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/arc1-banner.png",
+      "bytes": 1526251,
+      "sha256": "edcc591ec231c3cd6d4ba6fb09657df952425561a218b12c11ac632b7b6acf99"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/arc1-mark.png",
+      "bytes": 1717265,
+      "sha256": "21b2a6040b78ac1c5617e8f38783beba701b5bcea24a484ef7baa7c4014a35ce"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/ARC1_EVIDENCE_SCHEMA.json",
+      "bytes": 7310,
+      "sha256": "e80f06465d79af2423544b86cd3101b5f24c7a7ca1b54395f9eba5a2c9a474d4"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/ARC1_EVIDENCE_TEMPLATE.csv",
+      "bytes": 286,
+      "sha256": "e7881f72a081c01b38cdba9e2ce6a5a83e7b92767d36512121f70f72b860c402"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/ARC1_EVIDENCE_TEMPLATE.json",
+      "bytes": 296,
+      "sha256": "c896ddc8985ccb26f49b15b143924d48adad694b0815c1b5badfa2f90619c67b"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_CLAUDE_CODE_HANDOFF.md",
+      "bytes": 3899,
+      "sha256": "c2819e9859d80cfa74ddd0611eb5166e3e3d96cc9e3c9571a172dcd6e4949421"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_DEV002_BROWSER_REPORT.json",
+      "bytes": 4422,
+      "sha256": "951ccb98d7ed2d01d59d38e60174765ead20719961013b37ecf9ef1dbe8ea579"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_DEV002_CHANGELOG.md",
+      "bytes": 5077,
+      "sha256": "566c34920e01dc0f3efa535e27afab7ebc83987b837ef1d382569207393969e4"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_DEV002_NPM_TEST.log",
+      "bytes": 6770,
+      "sha256": "d1c8769a254051ec29edbcac042ed2f398a817a677a4c4bd99ab362801f9de96"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_DEV002_SOURCE_AUDIT.md",
+      "bytes": 8259,
+      "sha256": "dd2020e6f9fd99f0eb801088dc55f646fc5c2497366cb2527bcfae014ab15231"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_DEV002_TEST_REPORT.md",
+      "bytes": 5042,
+      "sha256": "9e3d05b8a5ff332b27cfe1e2eb490f73e32de550ed129b00a697041e4f26a86e"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_DEVELOPER_TASKS.json",
+      "bytes": 9317,
+      "sha256": "5eeef5a0476a88d4598da8126cdd4fd4ed36f27e84d2c0f65a61cd04a999829a"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_EFINITY_FIRST_SESSION.md",
+      "bytes": 1467,
+      "sha256": "0603b9afb5d2dfd4e596bb98f7cbce9da74fd68dbbabe35d96599a6ef937dd38"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_EVIDENCE_INTAKE.md",
+      "bytes": 8103,
+      "sha256": "c38a8f7e5f5b9826bcec5c95caa48d289bdef629db575ff3f3a6b4ea97944996"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_EVIDENCE_POLICY.md",
+      "bytes": 2121,
+      "sha256": "4ab13c8a5cd4462c21fa9ce39767313b7b4c57756e3a2188f5b66eb5895e6acf"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_PIN_STATUS.md",
+      "bytes": 539,
+      "sha256": "ce1c7140965bcf5ffef37d362e906f0ff48c1f431e7a9e928e87583b3bf63229"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_PROJECT_HOUSE_P05_CHANGELOG.md",
+      "bytes": 859,
+      "sha256": "dec6302d96c2f2f79a5d951ac4c91cedff3b1fcabf6fe4f5a02b4952415394c3"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_T120_PACKAGE_BALLS_UNASSIGNED.csv",
+      "bytes": 82007,
+      "sha256": "a8b46b52e97f64a6dcb11f4a7ee9843c49643d6613b2c6705a3e009a12fa7cb5"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_TABLETOP_SYSTEM_WORK_ORDER.md",
+      "bytes": 10432,
+      "sha256": "a3c9de98d886e574eb3b22af62ce4d1698f9ddfd10097a499eea60d97cc0602e"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/R22_VENDOR_REFERENCE_LINKS.md",
+      "bytes": 803,
+      "sha256": "10be129df0d9e5bc4e42ce39e571fd343af67f1c382b9520f3c1ad92ec58128c"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/engineering/T120_pinout_v1.4.xlsx",
+      "bytes": 159288,
+      "sha256": "8a6ecd5700c5895cfe306dfe3c37bac2d40feebe2b7ea4e8c43291eab831bc6d"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/evidence-ui.js",
+      "bytes": 15461,
+      "sha256": "324340bbc032d288c72835e692c5b83d4c29ca19bcd9b8074f1ab976cc344080"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/evidence.js",
+      "bytes": 21564,
+      "sha256": "3f7480d17a8cac8c441774ce46d43c47480be725cf155f2a97a4ac5124f396d2"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/house.css",
+      "bytes": 14762,
+      "sha256": "2b5ea111045ce98a5d1f2ec58a219b7f83b0f7ad4f014ae0e0a513a67613e9fd"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/house.js",
+      "bytes": 43345,
+      "sha256": "0c112bce169445fee22db31bb4514a8049228804943783b7e0ed58a4e29ed915"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/icon-192.png",
+      "bytes": 2820,
+      "sha256": "c89eb8a8d7cb41063c297ed1c8faa2b759ea544a74d55b0834527c6bd76ce5ae"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/icon-512.png",
+      "bytes": 7899,
+      "sha256": "f2a2cae67d4f1a59085ac4681cc9060bc9e37e9b2c5b4ef804c4b354e85ca5e8"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/index.html",
+      "bytes": 3019,
+      "sha256": "69d20e588084bdd574ebb7f998010849a9d2fd142ee933d7df094ce841e63461"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/manifest.webmanifest",
+      "bytes": 740,
+      "sha256": "16e756968aafe1a25bba4e7e2f1ac0cb33509bbc543ec495222bd13419da0753"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/package.json",
+      "bytes": 471,
+      "sha256": "e05302179424e761c715f4b3d64fde9290560f5d76861a71adc7b58d621732d8"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/pins.json",
+      "bytes": 145815,
+      "sha256": "2fd34c6e8d8448198369f7a4c1c7faf676a3dffb46fd3b7b67ae14d24897415b"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/scripts/serve.mjs",
+      "bytes": 1556,
+      "sha256": "0b45b78b99118caf53d44312f3ee96fa836819968f5fa609a48193d9cb583d8c"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/scripts/verify.mjs",
+      "bytes": 6084,
+      "sha256": "e113bec7f21fb1b5e7d3160b62d3d34dd0fc98a09eed5a7dd3cbb319cd732b5f"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/sw.js",
+      "bytes": 1833,
+      "sha256": "44a8eebd82413c701019efc285589cdd7932ab5b4505c5c1251daa2e5b895a00"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/tasks/roadmap.json",
+      "bytes": 9317,
+      "sha256": "5eeef5a0476a88d4598da8126cdd4fd4ed36f27e84d2c0f65a61cd04a999829a"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/tests/browser_smoke.py",
+      "bytes": 13558,
+      "sha256": "7c28d37b27ff0d8042c82c9717acdb189b4f4c58154801bc5284722674cceb40"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/tests/evidence_node.cjs",
+      "bytes": 26801,
+      "sha256": "2e1cebab4060c1a78ff4222de22014a45acab3ddcce694fb8525239d39ddf559"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/tests/intake_ui_node.cjs",
+      "bytes": 8108,
+      "sha256": "647d5455b7bcbd15a38170093d454d857a9ef453c168bd8a5239fa0b457ebc16"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/tests/offline_node.cjs",
+      "bytes": 8136,
+      "sha256": "4e0f09027b0f754dbc0c9b2643310355d04ac66c4a31f0b312d327b9e4e8963b"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/tests/smoke_node.cjs",
+      "bytes": 3969,
+      "sha256": "f3635a24c4f31a552672e7080c5077721126e765b347460bc6abb061af74947d"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/viewer.css",
+      "bytes": 4589,
+      "sha256": "5aa930a0aa8a3970318936e523c44e8d90baa31dd3d19727fafe079aff459a8f"
+    },
+    {
+      "path": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002/viewer.js",
+      "bytes": 8195,
+      "sha256": "08b4bc27c8f71ca4c4ececb0bc69d0bcf4f5694c7f26dcbcc5f8922e8c0c04a8"
+    }
+  ]
+}

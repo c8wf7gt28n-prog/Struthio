@@ -1,0 +1,17 @@
+$ (cd R06_WORK/firmware && make sanitize OUT=/tmp/arc1_r06_build_91krhpb0/fw)
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -Itests -I../../R05_BASELINE/protocol/include -I../../R05_BASELINE/compute -fsanitize=address,undefined -fno-sanitize-recover=all \
+  -fno-omit-frame-pointer src/bt820_host.c src/t35_link.c src/accel_dispatch.c ../../R05_BASELINE/protocol/src/arc1_protocol.c ../../R05_BASELINE/compute/arc1_transform.c tests/mocks.c tests/test_firmware.c -o /tmp/arc1_r06_build_91krhpb0/fw/test_firmware_san
+ASAN_OPTIONS=detect_leaks=0 /tmp/arc1_r06_build_91krhpb0/fw/test_firmware_san
+INFO cpu_only bt820_trace=9639d9fa writes=415
+INFO sw_accel fpga_batches=12 bt820_trace=9639d9fa
+INFO fault=transport loopback (R06 RTL engine)      fallback=session x12 bt820_trace=9639d9fa
+INFO fault=never answers                            fallback=timeout x1 bt820_trace=9639d9fa
+INFO fault=late answer                              fallback=timeout x1 bt820_trace=9639d9fa
+INFO fault=corrupted RESULT CRC                     fallback=frame x12 bt820_trace=9639d9fa
+INFO fault=wrong tag                                fallback=result x12 bt820_trace=9639d9fa
+INFO fault=application error status                 fallback=result x12 bt820_trace=9639d9fa
+INFO fault=FPGA reset mid-job                       fallback=not_ready x12 bt820_trace=9639d9fa
+INFO fault=missing DONE status                      fallback=session x12 bt820_trace=9639d9fa
+PASS firmware host tests: 231 checks, 0 failures (HOST_TESTED with mocks; no silicon)
+
+# exit status: 0

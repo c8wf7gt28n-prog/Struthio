@@ -1,0 +1,27 @@
+{
+  "evidence": "PLANNING_ARITHMETIC_ONLY",
+  "nominal_clock_hz": 48000000,
+  "nominal_refresh_hz": 60,
+  "installed_ram_mib": 320,
+  "ram_pool_mib": [
+    64,
+    128,
+    128
+  ],
+  "ddr_density_bits_per_128mib_chip": 1073741824,
+  "raw_fpga_ddr_x16_800_mt_s_mb_s": 1600,
+  "bt_qspi_60mhz_quad_raw_mb_s": 30,
+  "display_list_words_16kib": 4096,
+  "display_list_payload_16kib_times_60_mb_s": 0.98304,
+  "illustrative_spi24mhz_single_16kib_time_ms": 5.461333333333334,
+  "rgb565_1024x600_frame_bytes": 1228800,
+  "rgb565_1024x600_at60_mb_s": 73.728,
+  "rgb888_1024x600_frame_bytes": 1843200,
+  "conditions": [
+    "DecimalMB/s; binaryMiB for RAM",
+    "Interface peaks precede protocol/arbitration/refresh overhead",
+    "Raster totals and porches require register/panel interpretation and physical qualification",
+    "Clock tolerance and actual presentation have not been measured",
+    "Measured game performance is null"
+  ]
+}

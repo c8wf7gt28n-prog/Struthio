@@ -1,0 +1,12 @@
+$ make sanitize
+cc -Iinclude -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -fsanitize=address,undefined -fno-omit-frame-pointer src/arc1_protocol.c tests/test_protocol.c -o build/test_protocol_sanitize
+ASAN_OPTIONS="detect_leaks=0" ./build/test_protocol_sanitize
+PASS codec: CRC check, max/overflow/truncation/capacity, every single-bit corruption, overlap
+PASS stream: every split, embedded magic, noise/CRC resync, explicit truncated-transaction boundary
+PASS session: epoch/reset, exact duplicates/conflicts, sequence gaps, credits, out-of-order completion, eviction, wrap boundary, 10000 reuse cycles
+PASS typed status: valid roundtrip, unknown code and excessive credit rejection
+PASS full eight-slot window, reverse completion, invalid API input without sequence/credit mutation
+PASS deterministic malformed fuzz: 20000 bounded buffers through decoder and incremental parser
+ALL PORTABLE PROTOCOL CHECKS PASSED; no SPI or physical hardware exercised
+
+exit=0

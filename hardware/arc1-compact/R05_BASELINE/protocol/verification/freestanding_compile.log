@@ -1,0 +1,3 @@
+$ cc -Iinclude -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -ffreestanding -c src/arc1_protocol.c -o build/arc1_protocol_freestanding.o
+
+exit=0

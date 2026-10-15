@@ -1,0 +1,31 @@
+$ (cd ../../../../../tmp/arc1_r06_build_91krhpb0/R05_BASELINE && /usr/bin/python3 tools/check_all.py)
+RUN  python_version
+PASS python_version
+RUN  compiler_version
+PASS compiler_version
+RUN  make_version
+PASS make_version
+RUN  display_tests
+PASS display_tests
+RUN  display_planning
+PASS display_planning
+RUN  memory_tests
+PASS memory_tests
+RUN  memory_planning
+PASS memory_planning
+RUN  protocol_tests
+PASS protocol_tests
+RUN  protocol_sanitizers
+PASS protocol_sanitizers
+RUN  protocol_freestanding
+PASS protocol_freestanding
+RUN  compute_host_and_hdl
+PASS compute_host_and_hdl
+RUN  integration_tests
+PASS integration_tests
+RUN  integration_demo
+PASS integration_demo
+PASS_HOST_AND_RTL_SIMULATION
+Summary: verification/last_run/summary.json
+
+# exit status: 0

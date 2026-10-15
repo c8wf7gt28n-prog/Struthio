@@ -1,0 +1,18 @@
+test_application_errors_complete_without_leaking_credit (test_pipeline.PipelineTests.test_application_errors_complete_without_leaking_credit) ... ok
+test_cache_loss_is_explicit_and_not_reexecution (test_pipeline.PipelineTests.test_cache_loss_is_explicit_and_not_reexecution) ... ok
+test_corrupt_frame_does_not_consume_sequence (test_pipeline.PipelineTests.test_corrupt_frame_does_not_consume_sequence) ... ok
+test_duplicate_replays_identical_result (test_pipeline.PipelineTests.test_duplicate_replays_identical_result) ... ok
+test_empty_job_is_rejected_by_transport_before_application (test_pipeline.PipelineTests.test_empty_job_is_rejected_by_transport_before_application) ... ok
+test_job_count_limits_and_result_shape (test_pipeline.PipelineTests.test_job_count_limits_and_result_shape) ... ok
+test_known_scene_and_budget (test_pipeline.PipelineTests.test_known_scene_and_budget) ... ok
+test_new_epoch_clears_cache_and_old_job_rejected (test_pipeline.PipelineTests.test_new_epoch_clears_cache_and_old_job_rejected) ... ok
+test_python_wire_fields_never_silently_wrap (test_pipeline.PipelineTests.test_python_wire_fields_never_silently_wrap) ... ok
+test_result_success_count_and_flag_contract (test_pipeline.PipelineTests.test_result_success_count_and_flag_contract) ... ok
+test_same_epoch_hello_preserves_result (test_pipeline.PipelineTests.test_same_epoch_hello_preserves_result) ... ok
+test_signed_fields_and_invalid_rectangle (test_pipeline.PipelineTests.test_signed_fields_and_invalid_rectangle) ... ok
+test_wrong_duplicate_payload_never_dispatches (test_pipeline.PipelineTests.test_wrong_duplicate_payload_never_dispatches) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.006s
+
+OK

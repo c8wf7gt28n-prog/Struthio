@@ -1,0 +1,15 @@
+{
+  "schema": "arc1-bt820-memory-source-review-v1",
+  "review_date": "2026-10-14",
+  "sources": [
+    {"id":"S06","url":"https://brtchip.com/product/mn820/","additional_url":"https://brtchip.com/wp-content/uploads/2025/01/DS_MN820-1.pdf","supports":"MN820 physical1Gbit DDR3L =128MiB; module owns its DRAM","original_sha256":null},
+    {"id":"S12","url":"https://brtchip.com/wp-content/uploads/2026/09/BRT_AN_086_BT82X-Series-Programming-Guide-1.pdf","revision":"v1.4,2026-09-07","locators":["2.1: upper2621440bytes reserved","2.14:2–4buffer swapchains","scanout RGB8 selected format"],"original_sha256":null}
+  ],
+  "source_evidence": "R04 source register and previously inspected manufacturer text; original raw vendor PDFs are not bundled",
+  "budget_evidence": "Executable half-open interval arithmetic on declared allowances",
+  "planning_policies_not_vendor_qualification": ["4096-byte allocation address alignment","64-byte row alignment","illustrative32MiB atlas8MiB scratch4MiB staging1MiB saved-list allowances"],
+  "actual_struthio_asset_inventory_available": false,
+  "controller_initialized": false,
+  "hardware_tested": false,
+  "register_writes_generated": false
+}

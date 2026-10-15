@@ -1,0 +1,4 @@
+$ (cd R06_WORK/board && /usr/bin/python3 check_board_plan.py --report /home/user/Struthio/hardware/arc1-compact/R06_WORK/evidence/run_20261015T015312Z/board_check_report.json --pinmap /home/user/Struthio/hardware/arc1-compact/R06_WORK/board/PIN_MAP_R06.md)
+PASS board plan: 391 rules, 0 failures (PLANNING_CALCULATED; not an electrical verification)
+
+# exit status: 0

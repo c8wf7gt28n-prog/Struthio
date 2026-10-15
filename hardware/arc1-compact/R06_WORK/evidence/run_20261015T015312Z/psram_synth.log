@@ -1,0 +1,65 @@
+$ (cd R06_WORK/fpga/psram && make synth OUT=/tmp/arc1_r06_build_91krhpb0/psram)
+yosys -q -l /tmp/arc1_r06_build_91krhpb0/psram/synth.log -p 'read_verilog -sv rtl/psram_user_port.sv rtl/psram_qspi_core.sv; chparam -set MCLK_HZ 40000000 -set CLK_DIV 1 psram_user_port; synth -top psram_user_port -flatten; stat' > /dev/null
+grep -A40 'Printing statistics' /tmp/arc1_r06_build_91krhpb0/psram/synth.log | head -60
+4.26. Printing statistics.
+
+=== psram_user_port ===
+
+   Number of wires:               8538
+   Number of wire bits:          13143
+   Number of public wires:         667
+   Number of public wire bits:    5101
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              12561
+     $_ANDNOT_                    1297
+     $_AND_                        150
+     $_DFFE_PN_                     43
+     $_DFFE_PP_                   4214
+     $_DFF_P_                       56
+     $_MUX_                       4427
+     $_NAND_                       218
+     $_NOR_                        163
+     $_NOT_                         91
+     $_ORNOT_                      131
+     $_OR_                        1072
+     $_SDFFCE_PN0P_                  1
+     $_SDFFCE_PP0P_                  1
+     $_SDFFE_PN0P_                  55
+     $_SDFFE_PN1P_                   1
+     $_SDFFE_PP0N_                   2
+     $_SDFFE_PP0P_                 163
+     $_SDFFE_PP1P_                   1
+     $_SDFF_PP0_                    44
+     $_XNOR_                       112
+     $_XOR_                        319
+
+4.27. Executing CHECK pass (checking for obvious problems).
+Checking module psram_user_port...
+Found and reported 0 problems.
+
+5. Printing statistics.
+
+=== psram_user_port ===
+
+   Number of wires:               8538
+   Number of wire bits:          13143
+   Number of public wires:         667
+   Number of public wire bits:    5101
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              12561
+     $_ANDNOT_                    1297
+     $_AND_                        150
+     $_DFFE_PN_                     43
+     $_DFFE_PP_                   4214
+     $_DFF_P_                       56
+     $_MUX_                       4427
+     $_NAND_                       218
+     $_NOR_                        163
+     $_NOT_                         91
+     $_ORNOT_                      131
+
+# exit status: 0

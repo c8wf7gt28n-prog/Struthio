@@ -1,0 +1,39 @@
+{
+  "scope": "MANUFACTURER_PACKAGE_FACTS_NOT_PCB_ASSIGNMENTS",
+  "source_url": "https://www.efinixinc.com/support/docsdl.php?pn=T35-PINOUT&s=ef",
+  "source_version_from_index": "v1.5 March2025",
+  "source_workbook_sha256": "11dc7a00d71cc378cfc02f6a16159228b533f7f9bb3438f13dc3f23730af00dd",
+  "sheet": "T35F400",
+  "source_columns": "A-H",
+  "records": 400,
+  "unique_balls": 400,
+  "assigned_board_nets": 0,
+  "gpio_named_entries": 230,
+  "ddr_interface_annotated_entries": 54,
+  "lvds_annotated_entries": 92,
+  "ddio_yes_entries": 138,
+  "bank_counts": {
+    "-": 110,
+    "BANK1A": 20,
+    "BANK1B": 32,
+    "BANK1C": 22,
+    "BANK1D": 22,
+    "BANK1E": 24,
+    "BANK2A": 18,
+    "BANK2B": 18,
+    "BANK2C": 16,
+    "BANK3C": 16,
+    "BANK3D": 52,
+    "BANK4A": 21,
+    "BANK4B": 21,
+    "BR": 4,
+    "TR": 4
+  },
+  "native_efinity_verified": false,
+  "physical_board_verified": false,
+  "raw_workbook_bundled": false,
+  "notes": [
+    "Counts are source facts; annotations may overlap and are not free-pin counts.",
+    "No clocks, bank voltages, DDR lane assignments or user nets were allocated."
+  ]
+}

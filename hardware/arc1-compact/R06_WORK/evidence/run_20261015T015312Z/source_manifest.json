@@ -1,0 +1,254 @@
+{
+ "files": [
+  {
+   "path": "R06_WORK/README.md",
+   "bytes": 1829,
+   "sha256": "5c7d3ad43f49dfd9c6e61d1b75e827bbe60fe42f7d2536de5d1b066683f145b7"
+  },
+  {
+   "path": "R06_WORK/REVISION_LEDGER.md",
+   "bytes": 1749,
+   "sha256": "2a6f791dce6595dd3c964347d09ccfb3c250cde24e0b1a7de2bdcf84bd76557c"
+  },
+  {
+   "path": "R06_WORK/board/PIN_MAP_R06.md",
+   "bytes": 4987,
+   "sha256": "b57e8d35474b41800c49fe894633cea527b39001fae41527b337ddbaed608581"
+  },
+  {
+   "path": "R06_WORK/board/check_board_plan.py",
+   "bytes": 15857,
+   "sha256": "a8c81549bc7694662cb7036adac0cb6969ae8207b62ada818f96b35314ae8dd9"
+  },
+  {
+   "path": "R06_WORK/board/r06_board_plan.json",
+   "bytes": 11473,
+   "sha256": "20ba96f6dd5bc3da825a3acdcada27a1aa9e9a326d2b02261c691d024a404466"
+  },
+  {
+   "path": "R06_WORK/board/sources/device_facts.json",
+   "bytes": 4443,
+   "sha256": "ec3a94747f55a54f91dc5e5a952642b0c12ab17374d4719af146cd37874c5bd1"
+  },
+  {
+   "path": "R06_WORK/board/sources/f133_eLQFP128_gpio_pins.csv",
+   "bytes": 2183,
+   "sha256": "9b29c2725d7d9f21dc9452b9170ff2e9bfdebd14fca78e2303f28044c80fb145"
+  },
+  {
+   "path": "R06_WORK/board/sources/f133_mux_table43_transcribed.csv",
+   "bytes": 859,
+   "sha256": "af615a0d5d0ac99a9e7c2e52738568607bfbf41386dbbfdf16fdfdc01fc6168d"
+  },
+  {
+   "path": "R06_WORK/board/sources/linux_sun20i_d1_pinmux.csv",
+   "bytes": 10301,
+   "sha256": "242e93fb5cabf05b082c9f1b642b146a33a876cb78eacee5800baa7ab5e86bbb"
+  },
+  {
+   "path": "R06_WORK/board/tests/test_check_board_plan.py",
+   "bytes": 5532,
+   "sha256": "2e4a274e38bed886f21808cba752851a79d5cbea05418cd11c6379b98f5ac379"
+  },
+  {
+   "path": "R06_WORK/board/tools/extract_f133_pin_table.py",
+   "bytes": 1995,
+   "sha256": "97b53c9bc7609437efe1c3ff14dbd9441632fc1534b69df3ac8ae271933f22cc"
+  },
+  {
+   "path": "R06_WORK/board/tools/extract_linux_pinmux.py",
+   "bytes": 1586,
+   "sha256": "8ffd879ab149d2768faf9cec7368c2b0b17f3be1f3593455b4f6e6c7c4e27680"
+  },
+  {
+   "path": "R06_WORK/docs/ARCHITECTURE_R06.md",
+   "bytes": 8421,
+   "sha256": "989f3d48dbe14f517d20fca23a4e4502949507eef9a064e8b1d2f3fe24ff6c0b"
+  },
+  {
+   "path": "R06_WORK/docs/AUDIO_R06.md",
+   "bytes": 2107,
+   "sha256": "5df9a687bcdcf57238625c636a161447adfb7395c65962070d2258e6845a82dc"
+  },
+  {
+   "path": "R06_WORK/docs/PASS7_PLAN.md",
+   "bytes": 4413,
+   "sha256": "e3efbfc36516bd4c4408b923a17e95fa2646805b4bdb7e1326e214e459128b1b"
+  },
+  {
+   "path": "R06_WORK/docs/SOURCES_R06.json",
+   "bytes": 6316,
+   "sha256": "907a45e6b1b5bab169b1a9cc03e113fda22f8b50ed8990a5fc7f061bc3e839e9"
+  },
+  {
+   "path": "R06_WORK/firmware/Makefile",
+   "bytes": 1540,
+   "sha256": "9ea2ec1e45e45444c55f612917dd2821ad7ce65e7c5a6c1b788adb408ea33109"
+  },
+  {
+   "path": "R06_WORK/firmware/README.md",
+   "bytes": 2977,
+   "sha256": "17792c0895b04607b53e302039d58a294d675d92c42b0596a1ee81e69f817591"
+  },
+  {
+   "path": "R06_WORK/firmware/include/accel_dispatch.h",
+   "bytes": 2433,
+   "sha256": "3d33c488abb302e90e52bc2934975ec8eae5999c724afb6b5c0d466e1cadfcf6"
+  },
+  {
+   "path": "R06_WORK/firmware/include/arc1_hal.h",
+   "bytes": 811,
+   "sha256": "c29956e652d779c52d692a76f305e909e7f9d36db42729fa6a9b507baed7e990"
+  },
+  {
+   "path": "R06_WORK/firmware/include/bt820_host.h",
+   "bytes": 2366,
+   "sha256": "dbe8f1a2cef5768f0c4b3b7e6dfc527fa49000e11df4b3097d046a62569cea77"
+  },
+  {
+   "path": "R06_WORK/firmware/include/t35_link.h",
+   "bytes": 1778,
+   "sha256": "148f3778814348595d41e4c5cb6f03deb4d46c8f62c9763eb55d5c871027ee9a"
+  },
+  {
+   "path": "R06_WORK/firmware/src/accel_dispatch.c",
+   "bytes": 7170,
+   "sha256": "22b1954731cd9247eedce7a10085685976ea89e7c203947cd49a33dc909e586d"
+  },
+  {
+   "path": "R06_WORK/firmware/src/bt820_host.c",
+   "bytes": 5512,
+   "sha256": "adb799c9ab69f2d84b747c24ff23eedcb7b16296a52d7a85924d57c44543499d"
+  },
+  {
+   "path": "R06_WORK/firmware/src/t35_link.c",
+   "bytes": 4179,
+   "sha256": "d3e4eaf9d76c626a72d4ef55d489040f2c5d3f2970d02c3e913d4baad8161028"
+  },
+  {
+   "path": "R06_WORK/firmware/tests/mocks.c",
+   "bytes": 11352,
+   "sha256": "b926dbb96ea206a6435a1b7dc777b77136422b68c3ecbbe025ee5576db26264c"
+  },
+  {
+   "path": "R06_WORK/firmware/tests/mocks.h",
+   "bytes": 1960,
+   "sha256": "32135176636f331d9bbf61169d6b28ee757d035b470be78c70c4c9d227cde2fb"
+  },
+  {
+   "path": "R06_WORK/firmware/tests/test_firmware.c",
+   "bytes": 12475,
+   "sha256": "6fd9284e3ad411b5203faea7b5c01f10d171a9935aac97c006d5961463390f93"
+  },
+  {
+   "path": "R06_WORK/fpga/efinity/README.md",
+   "bytes": 2852,
+   "sha256": "ec8f7a8f7cb2cc233836a26c2bf4f3f5de25ecd834766d48b5c1096f238e5cd2"
+  },
+  {
+   "path": "R06_WORK/fpga/efinity/arc1_t35_r06.sdc",
+   "bytes": 1921,
+   "sha256": "ffae8d795f23dc599cc1e7f5ce8dc3311db09e42761cc1b62a4b2f073509f015"
+  },
+  {
+   "path": "R06_WORK/fpga/efinity/arc1_t35_r06_isf.py",
+   "bytes": 2520,
+   "sha256": "63b42a70167967d6eeadcafa75d75e23a041e9b7727d26e1a814e908e02af6cc"
+  },
+  {
+   "path": "R06_WORK/fpga/efinity/arc1_t35_r06_pins.csv",
+   "bytes": 1108,
+   "sha256": "05ed279cf53cddf7be7bd6621ded7594874da4a0e8363594c9783b59eb17c5c3"
+  },
+  {
+   "path": "R06_WORK/fpga/efinity/gen_efinity_inputs.py",
+   "bytes": 4056,
+   "sha256": "115ab63334f30208efc34771b8f2aaf4f81c3cb59e3bc3d7258ca26526888467"
+  },
+  {
+   "path": "R06_WORK/fpga/mailbox/README.md",
+   "bytes": 2700,
+   "sha256": "6fcdebecda641d911ed3d7f7dbac416e09a53a0017217e83b48b921a7e93f5c8"
+  },
+  {
+   "path": "R06_WORK/fpga/mailbox/rtl/mbx_loopback.sv",
+   "bytes": 1800,
+   "sha256": "4522245a38e3dbac25ea335ed8cf60e456dd5fd71dd02cb3bfd7220a4fd256f6"
+  },
+  {
+   "path": "R06_WORK/fpga/mailbox/rtl/mbx_regs.sv",
+   "bytes": 6553,
+   "sha256": "be9363a907da1f884ab94da5a42041dc8834601b81831dc70fb72828545ad67f"
+  },
+  {
+   "path": "R06_WORK/fpga/mailbox/rtl/mbx_spi_slave.sv",
+   "bytes": 4810,
+   "sha256": "b11f8e58fb336721e619fd1e9e89cd10019945ff4925541ed78f4924e8c75b98"
+  },
+  {
+   "path": "R06_WORK/fpga/mailbox/rtl/psram_bist.sv",
+   "bytes": 4398,
+   "sha256": "13169b7fd2001d31d4d2ebb2558810a0e481569726d450bfb23ee498c80b2e15"
+  },
+  {
+   "path": "R06_WORK/fpga/psram/Makefile",
+   "bytes": 3276,
+   "sha256": "d82f1cace58847affaf59d992cc6e7ab08e4a59ac1087661fe9bb8145717495f"
+  },
+  {
+   "path": "R06_WORK/fpga/psram/PSRAM_TIMING_TABLE.md",
+   "bytes": 6913,
+   "sha256": "31c27563017d5dac73dc9d65db26397bb1ad2b2c8dbb35ae388eaec6b3a5ed2c"
+  },
+  {
+   "path": "R06_WORK/fpga/psram/README.md",
+   "bytes": 4239,
+   "sha256": "25c1977108980656c8afb8d2b7d6cfd73e08ff6bc22abdf4d811745ffa7864d6"
+  },
+  {
+   "path": "R06_WORK/fpga/psram/rtl/psram_qspi_core.sv",
+   "bytes": 22234,
+   "sha256": "3a5df3ff7a645d92872c9079ab8acde9c207185c26e30d6362eb4fa1ae417c0d"
+  },
+  {
+   "path": "R06_WORK/fpga/psram/rtl/psram_user_port.sv",
+   "bytes": 12045,
+   "sha256": "afbb5a8f1a19392d79525f9f9964d901dfc3307a3bdefb1ccba675f31492890d"
+  },
+  {
+   "path": "R06_WORK/fpga/psram/tb/aps6404l_model.sv",
+   "bytes": 15651,
+   "sha256": "1c56c6ada57a745df199ad09887b1d8d3fb9ddaf947931ae779cf8c96e39daa2"
+  },
+  {
+   "path": "R06_WORK/fpga/psram/tb/tb_psram.sv",
+   "bytes": 18115,
+   "sha256": "68370f60c2794b17adb870e732c964a2f1bdf9d7c665d73c33f94839e1f59ae9"
+  },
+  {
+   "path": "R06_WORK/fpga/top/Makefile",
+   "bytes": 1648,
+   "sha256": "cdf7e85e650531b151bb1ec3ad1849c85a5e105857f96dfc3aff2b972ccf2a9a"
+  },
+  {
+   "path": "R06_WORK/fpga/top/arc1_t35_top.sv",
+   "bytes": 6220,
+   "sha256": "d97ebadfe0a4db0d5de5a590580de603b0bdbc51bf2ada9724b47ad8562035f0"
+  },
+  {
+   "path": "R06_WORK/fpga/top/tb/tb_top.sv",
+   "bytes": 11369,
+   "sha256": "f6093eea076e0f1566569ba2bd2bfa862d35c884b0f32315b32330fc949e7820"
+  },
+  {
+   "path": "R06_WORK/fpga/top/tools/golden_to_memh.py",
+   "bytes": 1543,
+   "sha256": "fc5bdbf7d82763918c89cf8aae997b6690977706b68b1cf5299b12fb0e328957"
+  },
+  {
+   "path": "R06_WORK/tools/run_r06_checks.py",
+   "bytes": 12474,
+   "sha256": "00ee7c09ef8d79cd1e64eed9520e61a06f3e4e48548dfc78415f7a5e01e0c0d5"
+  }
+ ]
+}

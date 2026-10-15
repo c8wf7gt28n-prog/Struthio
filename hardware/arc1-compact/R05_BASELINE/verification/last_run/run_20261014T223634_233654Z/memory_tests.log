@@ -1,0 +1,23 @@
+test_address_alignment_enforced (test_validate_memory.MemoryPlanTests.test_address_alignment_enforced) ... ok
+test_adjacent_half_open_intervals_are_legal (test_validate_memory.MemoryPlanTests.test_adjacent_half_open_intervals_are_legal) ... ok
+test_beyond_physical_end_rejected (test_validate_memory.MemoryPlanTests.test_beyond_physical_end_rejected) ... ok
+test_caller_measurement_claim_does_not_certify_hardware (test_validate_memory.MemoryPlanTests.test_caller_measurement_claim_does_not_certify_hardware) ... ok
+test_cli_reports_malformed_input_without_traceback (test_validate_memory.MemoryPlanTests.test_cli_reports_malformed_input_without_traceback) ... ok
+test_duplicate_names_or_cross_device_owner_rejected (test_validate_memory.MemoryPlanTests.test_duplicate_names_or_cross_device_owner_rejected) ... ok
+test_framebuffer_must_contain_full_stride_times_height (test_validate_memory.MemoryPlanTests.test_framebuffer_must_contain_full_stride_times_height) ... ok
+test_invalid_optional_capture_allowance_is_not_a_free_zero_cost_feature (test_validate_memory.MemoryPlanTests.test_invalid_optional_capture_allowance_is_not_a_free_zero_cost_feature) ... ok
+test_invalid_stride_and_unqualified_scanout_format_rejected (test_validate_memory.MemoryPlanTests.test_invalid_stride_and_unqualified_scanout_format_rejected) ... ok
+test_last_user_page_can_end_exactly_at_reserved_boundary (test_validate_memory.MemoryPlanTests.test_last_user_page_can_end_exactly_at_reserved_boundary) ... ok
+test_nested_overlap_detected (test_validate_memory.MemoryPlanTests.test_nested_overlap_detected) ... ok
+test_optional_capture_cannot_be_enabled_without_allocations (test_validate_memory.MemoryPlanTests.test_optional_capture_cannot_be_enabled_without_allocations) ... ok
+test_reserved_region_entry_rejected (test_validate_memory.MemoryPlanTests.test_reserved_region_entry_rejected) ... ok
+test_selected_plan_conserves_capacity_with_private_reserved_region (test_validate_memory.MemoryPlanTests.test_selected_plan_conserves_capacity_with_private_reserved_region) ... ok
+test_smaller_render_target_cannot_masquerade_as_full_scanout_buffers (test_validate_memory.MemoryPlanTests.test_smaller_render_target_cannot_masquerade_as_full_scanout_buffers) ... ok
+test_swapchain_slot_collision_or_mismatched_frames_rejected (test_validate_memory.MemoryPlanTests.test_swapchain_slot_collision_or_mismatched_frames_rejected) ... ok
+test_unilateral_capacity_or_reservation_change_rejected (test_validate_memory.MemoryPlanTests.test_unilateral_capacity_or_reservation_change_rejected) ... ok
+test_zero_negative_fractional_and_boolean_sizes_rejected (test_validate_memory.MemoryPlanTests.test_zero_negative_fractional_and_boolean_sizes_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.036s
+
+OK

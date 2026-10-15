@@ -1,0 +1,24 @@
+{
+  "scope": "HOST_ONLY_C_CODEC_SESSION_AND_C_COMPUTE_REFERENCE",
+  "objects": 256,
+  "transformed_objects": 64,
+  "visible": 218,
+  "culled": 38,
+  "job_batches": 4,
+  "duplicate_reexecutions": 0,
+  "request_bytes_per_frame": 12416,
+  "response_bytes_per_frame": 6528,
+  "total_bytes_per_frame": 18944,
+  "calculated_60hz_protocol_mb_s": 1.13664,
+  "calculated_24mhz_single_bit_serial_wire_time_ms": 6.314666666666667,
+  "measured_spi_throughput": null,
+  "measured_game_fps": null,
+  "bt820_renderer_implemented": false,
+  "hardware_verified": false,
+  "notes": [
+    "HELLO and retries excluded from steady per-frame byte budget.",
+    "Responses include ACCEPTED and DONE STATUS plus RESULT for each batch.",
+    "Calculation excludes transaction gaps, HAL, DMA, asset uploads and scheduling.",
+    "This scene exercises transforms/culling only; it does not draw parallax or pixels."
+  ]
+}

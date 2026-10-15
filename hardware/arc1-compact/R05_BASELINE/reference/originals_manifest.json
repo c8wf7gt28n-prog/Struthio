@@ -1,0 +1,40 @@
+{
+  "original_count": 5,
+  "originals": [
+    {
+      "uploaded_filename": "1-ARC1_Handoff.docx",
+      "package_path": "reference/originals/ARC1_Handoff_R02.docx",
+      "bytes": 49365,
+      "sha256": "2fd671710949185b4f28948e444479d6e29c06444a71a905ebc25139894c4553",
+      "content_modified": false
+    },
+    {
+      "uploaded_filename": "1-ARC1_R19_FPGA_PIN_AUDIT_PACKAGE.zip",
+      "package_path": "reference/originals/ARC1_R19_FPGA_PIN_AUDIT_PACKAGE.zip",
+      "bytes": 343085,
+      "sha256": "a0965d7c91fbe6b28b6d6e933a3f2373682e7f9f3a884fcf1b733b41d18a34f5",
+      "content_modified": false
+    },
+    {
+      "uploaded_filename": "2-ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING.zip",
+      "package_path": "reference/originals/ARC1_PROJECT_HOUSE_P5_R23_ENGINEERING.zip",
+      "bytes": 3571859,
+      "sha256": "977a151a2d75eca88b4a02f88ee36af8bea03208b13912cd8ae67c883b8daf92",
+      "content_modified": false
+    },
+    {
+      "uploaded_filename": "3-ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF.zip",
+      "package_path": "reference/originals/ARC1_PROJECT_HOUSE_P5_R22_CLAUDE_HANDOFF.zip",
+      "bytes": 2991886,
+      "sha256": "c3bff790a1a6f6535d3ab2afb80073291b57b0f88d70df5d64ebddc6648d3fc6",
+      "content_modified": false
+    },
+    {
+      "uploaded_filename": "4-ARC1_PROJECT_HOUSE_P5_R22_DEV002.zip",
+      "package_path": "reference/originals/ARC1_PROJECT_HOUSE_P5_R22_DEV002.zip",
+      "bytes": 3046386,
+      "sha256": "2f4dd325688037c6b8d62014090c77faf454f426b032576fd990bc3573a26809",
+      "content_modified": false
+    }
+  ]
+}

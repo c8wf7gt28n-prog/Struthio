@@ -1,0 +1,301 @@
+{
+  "schema_id": "arc1-compact-sources-v1",
+  "review_date": "2026-10-14",
+  "sources": [
+    {
+      "id": "S01",
+      "publisher": "Allwinner",
+      "title": "F133 official product brief and product page",
+      "revision": "Brief January 2021; product page current at review",
+      "url": "https://www.allwinnertech.com/uploads/pdf/20211016141154e7.pdf",
+      "additional_urls": [
+        "https://www.allwinnertech.com/index.php?c=product&id=101"
+      ],
+      "supports": [
+        "F133 CPU role and embedded 64 MB DDR2",
+        "Peripheral classes"
+      ],
+      "conditions": "Product features do not establish exact board pinmux or runtime performance.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S02",
+      "publisher": "Allwinner; hosted by distributor mirror",
+      "title": "F133 Datasheet",
+      "revision": "v2.3, March 2024",
+      "url": "https://cdn.semikey.com/upload/pdfs/4c/5e/4c5e315c6bb9cc2f9ecf223359e639c3.pdf",
+      "sections": [
+        "Package/pinmux tables",
+        "SPI0 PC2–PC7 and boot-select functions"
+      ],
+      "supports": [
+        "Exact CPU pin/boot review starting point"
+      ],
+      "conditions": "Obtain applicable authorized current implementation documentation before pin release.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S03",
+      "publisher": "Efinix",
+      "title": "Trion T35 product/package selector",
+      "revision": "Current page at review",
+      "url": "https://www.efinixinc.com/shop/t35.php",
+      "supports": [
+        "T35F400C3 ordering package",
+        "Hardened x8/x16 DDR",
+        "FPGA resource counts"
+      ],
+      "conditions": "Family capability is not exact design timing closure.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S04",
+      "publisher": "Efinix",
+      "title": "T35 Data Sheet",
+      "revision": "v3.6 as reviewed; download endpoint may update",
+      "url": "https://www.efinixinc.com/support/docsdl.php?pn=DST35&s=ef",
+      "supports": [
+        "DDR3L voltage/type/geometry and reference-clock constraints",
+        "Exact-package controller feasibility inputs"
+      ],
+      "conditions": "Recheck version; archive native generated controller/constraints and actual timing evidence.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S05",
+      "publisher": "Bridgetek",
+      "title": "BT820 Framebuffer-based Embedded Video Engine Datasheet",
+      "revision": "v1.1, 15 January 2025",
+      "url": "https://brtchip.com/wp-content/uploads/2025/01/DS_BT820-1.pdf",
+      "supports": [
+        "QSPI host limit",
+        "LVDS input/output",
+        "Framebuffer/DDR architecture"
+      ],
+      "conditions": "Current programming guide/firmware must be checked; older LPDDR2 capability text is not the Compact DDR3L initialization recipe.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S06",
+      "publisher": "Bridgetek",
+      "title": "MN820 module product and datasheet",
+      "revision": "Datasheet v1.0, January 2025",
+      "url": "https://brtchip.com/wp-content/uploads/2025/01/DS_MN820-1.pdf",
+      "additional_urls": [
+        "https://brtchip.com/product/mn820/"
+      ],
+      "supports": [
+        "BT820B plus 1-Gbit DDR3L = 128 MiB",
+        "Module memory power and exposed interfaces"
+      ],
+      "conditions": "Module proof does not qualify a replacement bare-DRAM layout.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S07",
+      "publisher": "Linux kernel project",
+      "title": "D1s family device tree",
+      "revision": "Unpinned upstream source at review; pin commit actually used",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/master/arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi",
+      "supports": [
+        "CPU peripheral implementation starting point"
+      ],
+      "conditions": "Generic family nodes are not proof of bonded pins or a working F133 board.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S08",
+      "publisher": "Linux kernel project",
+      "title": "sun6i SPI driver",
+      "revision": "Unpinned upstream source at review; pin commit actually used",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/master/drivers/spi/spi-sun6i.c",
+      "supports": [
+        "SPI/DMA and dual/quad software starting points"
+      ],
+      "conditions": "Controller maximum and flags do not establish measured link payload rate.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S09",
+      "publisher": "Xboot project",
+      "title": "F133 machine target",
+      "revision": "Unpinned upstream source at review",
+      "url": "https://github.com/xboot/xboot/blob/main/src/arch/riscv64/mach-f133/README.md",
+      "supports": [
+        "Bare-metal port/loading starting point"
+      ],
+      "conditions": "Check license, exact revision and actual board behavior.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S10",
+      "publisher": "Efinix",
+      "title": "Efinity software and license process",
+      "revision": "Current page at review",
+      "url": "https://www.efinixinc.com/products-efinity.html",
+      "additional_urls": [
+        "https://www.efinixinc.com/support/sw-maintenance.php"
+      ],
+      "supports": [
+        "Tool acquisition and license/archive process"
+      ],
+      "conditions": "No license, install, synthesis or STA run was performed by this handoff.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S11",
+      "publisher": "Newhaven Display",
+      "title": "NHD-7.0-1024600AF-LSXP Product Specification",
+      "revision": "Drawing Rev2C; document history through 9 April 2024",
+      "url": "https://newhavendisplay.com/content/specs/NHD-7.0-1024600AF-LSXP.pdf",
+      "sections": [
+        "Electrical/backlight/optical characteristics",
+        "Timing characteristics, printed page 7"
+      ],
+      "supports": [
+        "Named 1024x600 IPS LVDS panel",
+        "Clock/total/porch ranges",
+        "Power and response-time constraints"
+      ],
+      "conditions": "60-Hz combination is calculated; lane/cable/porch/register and motion acceptance require qualification.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S12",
+      "publisher": "Bridgetek",
+      "title": "BT82X Series Programming Guide",
+      "revision": "v1.4, 7 September 2026",
+      "url": "https://brtchip.com/wp-content/uploads/2026/09/BRT_AN_086_BT82X-Series-Programming-Guide-1.pdf",
+      "sections": [
+        "Section2.1 DDR reservation",
+        "Clock and scanout definitions",
+        "Display list/FIFO and bitmap transforms"
+      ],
+      "supports": [
+        "Clock planning expression and register definitions",
+        "Upper 2.5-MiB DDR reservation",
+        "Affine/render command model"
+      ],
+      "conditions": "Web extraction available; original PDF bytes/hash not archived. Confirm applicable silicon/firmware and actual register units.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S13",
+      "publisher": "Himax; linked by Newhaven",
+      "title": "HX8282-A11 driver reference",
+      "revision": "Linked vendor reference; inspect revision on retrieval",
+      "url": "https://support.newhavendisplay.com/hc/en-us/article_attachments/4414530591127",
+      "sections": [
+        "Printed page39 LVDS lane mapping"
+      ],
+      "supports": [
+        "Input mapping interpretation"
+      ],
+      "conditions": "VESA24/SPWG correspondence is an inference to verify using exact panel figure and color-bit tests.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S14",
+      "publisher": "Bridgetek",
+      "title": "EveApps-BT82X official sample sources",
+      "revision": "Unpinned repository; pin actual code commit",
+      "url": "https://github.com/Bridgetek/EveApps-BT82X",
+      "supports": [
+        "BT820 sample/HAL development starting point"
+      ],
+      "conditions": "Review license and target-specific build instructions; no renderer has been built here.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S15",
+      "publisher": "Bridgetek",
+      "title": "Eve-MCU-Dev library",
+      "revision": "Unpinned repository; pin actual code commit",
+      "url": "https://github.com/Bridgetek/Eve-MCU-Dev",
+      "supports": [
+        "Cross-platform BT820/API5 driver starting point"
+      ],
+      "conditions": "Hardware abstraction must be ported and qualified on actual host/link.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S16",
+      "publisher": "Bridgetek",
+      "title": "VM820C development assembly",
+      "revision": "Current product page",
+      "url": "https://brtchip.com/product/vm820c/",
+      "supports": [
+        "MN820 included",
+        "USB-QSPI computer-driven evaluation path"
+      ],
+      "conditions": "Screen not included; a host demo does not establish embedded chain performance.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    },
+    {
+      "id": "S17",
+      "publisher": "Alliance Memory",
+      "title": "1-Gbit x16 DDR3L catalog and D-die datasheet",
+      "revision": "D-die datasheet March2026; catalog current at review",
+      "url": "https://www.alliancememory.com/as4c64m16d3l/",
+      "additional_urls": [
+        "https://www.alliancememory.com/wp-content/uploads/AllianceMemory_1Gb_x16_DDR3L_RevD_AS4C64M16D3LD_Datasheet-rev1.0_March2026.pdf"
+      ],
+      "supports": [
+        "Candidate density/organization/voltage class"
+      ],
+      "conditions": "No exact FPGA DRAM SKU selected. Confirm timing/footprint/procurement together; old C-die geometry is not a purchase recommendation.",
+      "checked_date": "2026-10-14",
+      "review_evidence": "PRIMARY_DOCUMENTATION_OR_AUTHOR_PROJECT_REVIEW",
+      "original_sha256": null,
+      "hardware_validated": false
+    }
+  ]
+}

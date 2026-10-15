@@ -1,0 +1,317 @@
+{
+ "schema_id": "arc1-r06-check-summary-v1",
+ "utc": "20261015T015312Z",
+ "runner_sha256": "00ee7c09ef8d79cd1e64eed9520e61a06f3e4e48548dfc78415f7a5e01e0c0d5",
+ "tool_versions": {
+  "python": "3.13.16",
+  "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+  "cc": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "make": "GNU Make 4.3",
+  "iverilog": "Icarus Verilog version 12.0 (stable) ()",
+  "verilator": "Verilator 5.020 2024-01-01 rev (Debian 5.020-1)",
+  "yosys": "Yosys 0.33 (git sha1 2584903a060)",
+  "git": "git version 2.43.0",
+  "efinity_efx_run": "NOT_FOUND"
+ },
+ "quick_mode": false,
+ "overall": "PASS_R06_HOST_RTL_PLANNING_CHECKS",
+ "failed_steps": [],
+ "not_run": [
+  "efinity_native_compile",
+  "f133_cross_build",
+  "bt820_silicon",
+  "psram_silicon",
+  "electrical_and_pcb"
+ ],
+ "steps": [
+  {
+   "step": "handoff_integrity",
+   "status": "PASS",
+   "label": "HOST_TESTED",
+   "detail": "141 manifest entries verified, 0 changed: []"
+  },
+  {
+   "step": "r05_check_package",
+   "status": "PASS",
+   "label": "HOST_TESTED",
+   "exit": 0,
+   "seconds": 0.09,
+   "cwd": "../../../../../tmp/arc1_r06_build_91krhpb0/R05_BASELINE",
+   "command": [
+    "/usr/bin/python3",
+    "tools/check_package.py"
+   ],
+   "marker": "PASS manifest",
+   "log": "R06_WORK/evidence/run_20261015T015312Z/r05_check_package.log"
+  },
+  {
+   "step": "r05_check_all",
+   "status": "PASS",
+   "label": "HOST_TESTED+RTL_SIMULATED (R05 rerun)",
+   "exit": 0,
+   "seconds": 5.19,
+   "cwd": "../../../../../tmp/arc1_r06_build_91krhpb0/R05_BASELINE",
+   "command": [
+    "/usr/bin/python3",
+    "tools/check_all.py"
+   ],
+   "marker": "PASS_HOST_AND_RTL_SIMULATION",
+   "log": "R06_WORK/evidence/run_20261015T015312Z/r05_check_all.log"
+  },
+  {
+   "step": "board_unit_tests",
+   "status": "PASS",
+   "label": "HOST_TESTED",
+   "exit": 0,
+   "seconds": 0.08,
+   "cwd": "R06_WORK/board",
+   "command": [
+    "/usr/bin/python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-v"
+   ],
+   "marker": "OK",
+   "log": "R06_WORK/evidence/run_20261015T015312Z/board_unit_tests.log"
+  },
+  {
+   "step": "board_plan_check",
+   "status": "PASS",
+   "label": "PLANNING_CALCULATED",
+   "exit": 0,
+   "seconds": 0.05,
+   "cwd": "R06_WORK/board",
+   "command": [
+    "/usr/bin/python3",
+    "check_board_plan.py",
+    "--report",
+    "/home/user/Struthio/hardware/arc1-compact/R06_WORK/evidence/run_20261015T015312Z/board_check_report.json",
+    "--pinmap",
+    "/home/user/Struthio/hardware/arc1-compact/R06_WORK/board/PIN_MAP_R06.md"
+   ],
+   "marker": "PASS board plan",
+   "log": "R06_WORK/evidence/run_20261015T015312Z/board_plan_check.log"
+  },
+  {
+   "step": "psram_lint",
+   "status": "PASS",
+   "label": "HOST_TESTED (lint)",
+   "exit": 0,
+   "seconds": 0.07,
+   "cwd": "R06_WORK/fpga/psram",
+   "command": [
+    "make",
+    "lint",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/psram"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/psram_lint.log"
+  },
+  {
+   "step": "psram_sim",
+   "status": "PASS",
+   "label": "RTL_SIMULATED",
+   "exit": 0,
+   "seconds": 72.92,
+   "cwd": "R06_WORK/fpga/psram",
+   "command": [
+    "make",
+    "sim",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/psram"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/psram_sim.log"
+  },
+  {
+   "step": "psram_synth",
+   "status": "PASS",
+   "label": "OPEN_SOURCE_SYNTH_ESTIMATE",
+   "exit": 0,
+   "seconds": 6.28,
+   "cwd": "R06_WORK/fpga/psram",
+   "command": [
+    "make",
+    "synth",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/psram"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/psram_synth.log"
+  },
+  {
+   "step": "psram_synth-efx",
+   "status": "PASS",
+   "label": "OPEN_SOURCE_SYNTH_ESTIMATE",
+   "exit": 0,
+   "seconds": 2.48,
+   "cwd": "R06_WORK/fpga/psram",
+   "command": [
+    "make",
+    "synth-efx",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/psram"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/psram_synth-efx.log"
+  },
+  {
+   "step": "psram_mutants",
+   "status": "PASS",
+   "label": "RTL_SIMULATED (mutation)",
+   "exit": 0,
+   "seconds": 110.53,
+   "cwd": "R06_WORK/fpga/psram",
+   "command": [
+    "make",
+    "mutants",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/psram"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/psram_mutants.log"
+  },
+  {
+   "step": "top_lint",
+   "status": "PASS",
+   "label": "HOST_TESTED (lint)",
+   "exit": 0,
+   "seconds": 0.1,
+   "cwd": "R06_WORK/fpga/top",
+   "command": [
+    "make",
+    "lint",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/top"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/top_lint.log"
+  },
+  {
+   "step": "top_sim",
+   "status": "PASS",
+   "label": "RTL_SIMULATED",
+   "exit": 0,
+   "seconds": 37.11,
+   "cwd": "R06_WORK/fpga/top",
+   "command": [
+    "make",
+    "sim",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/top"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/top_sim.log"
+  },
+  {
+   "step": "top_synth-efx",
+   "status": "PASS",
+   "label": "OPEN_SOURCE_SYNTH_ESTIMATE",
+   "exit": 0,
+   "seconds": 4.0,
+   "cwd": "R06_WORK/fpga/top",
+   "command": [
+    "make",
+    "synth-efx",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/top"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/top_synth-efx.log"
+  },
+  {
+   "step": "efinity_inputs_generate",
+   "status": "PASS",
+   "label": "HOST_TESTED",
+   "exit": 0,
+   "seconds": 0.03,
+   "cwd": "R06_WORK/fpga/efinity",
+   "command": [
+    "/usr/bin/python3",
+    "gen_efinity_inputs.py",
+    "/tmp/arc1_r06_build_91krhpb0/efinity_gen"
+   ],
+   "marker": null,
+   "log": "R06_WORK/evidence/run_20261015T015312Z/efinity_inputs_generate.log"
+  },
+  {
+   "step": "efinity_inputs_up_to_date",
+   "status": "PASS",
+   "label": "HOST_TESTED",
+   "detail": "committed pin CSV / ISF script equal freshly generated output"
+  },
+  {
+   "step": "efinity_native_compile",
+   "status": "NOT_RUN",
+   "label": "NATIVE_EDA_NOT_RUN",
+   "detail": "efx_run.py not found: no T35 synthesis, fit, STA or bitstream (see fpga/efinity/README.md)"
+  },
+  {
+   "step": "firmware_test",
+   "status": "PASS",
+   "label": "HOST_TESTED",
+   "exit": 0,
+   "seconds": 0.72,
+   "cwd": "R06_WORK/firmware",
+   "command": [
+    "make",
+    "test",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/fw"
+   ],
+   "marker": "PASS firmware host tests",
+   "log": "R06_WORK/evidence/run_20261015T015312Z/firmware_test.log"
+  },
+  {
+   "step": "firmware_sanitize",
+   "status": "PASS",
+   "label": "HOST_TESTED (ASan+UBSan, leaks off)",
+   "exit": 0,
+   "seconds": 1.3,
+   "cwd": "R06_WORK/firmware",
+   "command": [
+    "make",
+    "sanitize",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/fw"
+   ],
+   "marker": "PASS firmware host tests",
+   "log": "R06_WORK/evidence/run_20261015T015312Z/firmware_sanitize.log"
+  },
+  {
+   "step": "firmware_freestanding",
+   "status": "PASS",
+   "label": "HOST_TESTED (compile only)",
+   "exit": 0,
+   "seconds": 0.22,
+   "cwd": "R06_WORK/firmware",
+   "command": [
+    "make",
+    "freestanding",
+    "OUT=/tmp/arc1_r06_build_91krhpb0/fw"
+   ],
+   "marker": "freestanding object compile OK",
+   "log": "R06_WORK/evidence/run_20261015T015312Z/firmware_freestanding.log"
+  },
+  {
+   "step": "f133_cross_build",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "no F133 toolchain/BSP in R06: no bootable image (PASS 7 step 1)"
+  },
+  {
+   "step": "bt820_silicon",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "no BT820/MN820 hardware: no display output, no register-level init"
+  },
+  {
+   "step": "psram_silicon",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "no PSRAM/T35 board: controller never ran on hardware"
+  },
+  {
+   "step": "electrical_and_pcb",
+   "status": "NOT_RUN",
+   "label": "NOT_RUN",
+   "detail": "no schematic, PCB, SI/PI, thermal, JLCPCB DFM"
+  }
+ ],
+ "source_files": 50,
+ "disclaimer": "Host tests, RTL simulation, planning checks and open-source synthesis estimates only. No native Efinity result, no hardware, no measured performance."
+}

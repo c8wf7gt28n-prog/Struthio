@@ -1,0 +1,4 @@
+$ (cd R06_WORK/fpga/efinity && /usr/bin/python3 gen_efinity_inputs.py /tmp/arc1_r06_build_91krhpb0/efinity_gen)
+wrote 14 pins
+
+# exit status: 0

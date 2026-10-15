@@ -1,0 +1,11 @@
+$ (cd R06_WORK/fpga/psram && make synth-efx OUT=/tmp/arc1_r06_build_91krhpb0/psram)
+yosys -q -l /tmp/arc1_r06_build_91krhpb0/psram/synth_efx.log -p 'read_verilog -sv rtl/psram_user_port.sv rtl/psram_qspi_core.sv; chparam -set MCLK_HZ 40000000 -set CLK_DIV 1 psram_user_port; synth_efinix -top psram_user_port; stat' > /dev/null
+grep -E 'EFX_|Number of cells' /tmp/arc1_r06_build_91krhpb0/psram/synth_efx.log | tail -6
+   Number of cells:               1913
+     EFX_ADD                       588
+     EFX_FF                        470
+     EFX_GBUFCE                      2
+     EFX_LUT4                      851
+     EFX_RAM_5K                      2
+
+# exit status: 0

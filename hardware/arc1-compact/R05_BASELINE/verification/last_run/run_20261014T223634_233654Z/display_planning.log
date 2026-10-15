@@ -1,0 +1,123 @@
+{
+  "schema": "arc1-display-report-v1",
+  "valid": true,
+  "status": "VALID_PLANNING_DATA",
+  "evidence_level": "PLANNING_ARITHMETIC_ONLY",
+  "hardware_verified": false,
+  "errors": [],
+  "warnings": [
+    "OPEN: panel_porch_definition_confirmed.",
+    "OPEN: bt_register_encoding_confirmed.",
+    "OPEN: lvds_bit_mapping_confirmed.",
+    "OPEN: lvds_electrical_and_termination_confirmed.",
+    "OPEN: power_sequence_backlight_confirmed.",
+    "OPEN: motion_quality_accepted.",
+    "OPEN: hardware_measured.",
+    "Nominal arithmetic excludes oscillator tolerance and does not prove distinct frame cadence."
+  ],
+  "checks": [
+    {
+      "constraint": "horizontal.active",
+      "value": 1024,
+      "minimum": 1024,
+      "maximum": 1024,
+      "pass": true
+    },
+    {
+      "constraint": "horizontal.total",
+      "value": 1280,
+      "minimum": 1200,
+      "maximum": 1400,
+      "pass": true
+    },
+    {
+      "constraint": "horizontal.sync",
+      "value": 16,
+      "minimum": 1,
+      "maximum": 140,
+      "pass": true
+    },
+    {
+      "constraint": "horizontal.back_porch",
+      "value": 160,
+      "minimum": 160,
+      "maximum": 160,
+      "pass": true
+    },
+    {
+      "constraint": "horizontal.front_porch",
+      "value": 96,
+      "minimum": 16,
+      "maximum": 216,
+      "pass": true
+    },
+    {
+      "constraint": "vertical.active",
+      "value": 600,
+      "minimum": 600,
+      "maximum": 600,
+      "pass": true
+    },
+    {
+      "constraint": "vertical.total",
+      "value": 625,
+      "minimum": 624,
+      "maximum": 750,
+      "pass": true
+    },
+    {
+      "constraint": "vertical.sync",
+      "value": 1,
+      "minimum": 1,
+      "maximum": 20,
+      "pass": true
+    },
+    {
+      "constraint": "vertical.back_porch",
+      "value": 23,
+      "minimum": 23,
+      "maximum": 23,
+      "pass": true
+    },
+    {
+      "constraint": "vertical.front_porch",
+      "value": 2,
+      "minimum": 1,
+      "maximum": 127,
+      "pass": true
+    },
+    {
+      "constraint": "pixel_clock_hz",
+      "value": 48000000.0,
+      "minimum": 44900000,
+      "maximum": 63000000,
+      "pass": true
+    }
+  ],
+  "calculated": {
+    "horizontal_total_from_intervals": 1280,
+    "horizontal_post_sync_back_porch": 144,
+    "vertical_total_from_intervals": 625,
+    "vertical_post_sync_back_porch": 22,
+    "pixel_clock_hz": 48000000.0,
+    "nominal_refresh_hz": 60.0,
+    "frame_period_ms": 16.666666666666668,
+    "nominal_refresh_error_ppm": 0.0
+  },
+  "bt_register_model": {
+    "status": "CONDITIONAL_MODEL_NOT_AN_INITIALIZATION_SEQUENCE",
+    "origin_assumption": "AN097 front-porch-first origin; panel BP includes its pulse.",
+    "REG_HSIZE": 1024,
+    "REG_HCYCLE": 1280,
+    "REG_HSYNC0": 96,
+    "REG_HSYNC1": 112,
+    "REG_HOFFSET": 256,
+    "REG_VSIZE": 600,
+    "REG_VCYCLE": 625,
+    "REG_VSYNC0": 2,
+    "REG_VSYNC1": 3,
+    "REG_VOFFSET": 25,
+    "REG_SO_MODE_candidate": 0
+  },
+  "register_writes": null
+}

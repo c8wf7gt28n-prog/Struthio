@@ -1,0 +1,16 @@
+digraph compact {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.6", ranksep="0.7", splines=polyline, fontname="DejaVu Sans", label="ARC-1 Compact · selected working core\n320 MiB in three private pools · interfaces and timing proposed\nFunctional diagram; not a schematic or netlist.", labelloc=t, fontsize=16];
+  node [shape=box, style="rounded,filled", fillcolor="#eef4f8", color="#4d7089", penwidth=1.5, fontname="DejaVu Sans", fontsize=13, margin="0.16,0.12"];
+  edge [color="#32759a", penwidth=1.6, fontname="DejaVu Sans", fontsize=10];
+  cpu [label="F133-B\nGame / platform CPU\n64 MiB internal DDR2"];
+  fpga [label="T35F400C3\nTransforms / commands / inputs\n128 MiB private x16 DDR3L"];
+  bt [label="BT820B / MN820 prototype\nBitmap drawing / composition\n128 MiB private DDR3L",fillcolor="#eaf5ef",color="#4d8873"];
+  lcd [label="Screen candidate\nNHD-7.0-1024600AF-LSXP\n7-inch IPS · 1024 × 600",fillcolor="#fff5e9",color="#a17d4f"];
+  {rank=same; cpu; fpga;}
+  {rank=same; lcd; bt;}
+  cpu -> fpga [label="SPI scene mailbox\nsingle-bit first",constraint=false];
+  fpga -> bt [label="QSPI command host\nFPGA sole master"];
+  bt -> lcd [label="Direct LVDS\n48 MHz / 60 Hz candidate",constraint=false];
+  fpga -> bt [label="Optional future LVDS pixels\nseparate latency qualification",style=dashed,color="#87939b",constraint=false];
+  cpu -> lcd [style=invis,weight=5];
+}

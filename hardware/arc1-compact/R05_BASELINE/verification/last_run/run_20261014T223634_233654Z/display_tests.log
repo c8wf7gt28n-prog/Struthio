@@ -1,0 +1,19 @@
+test_bt_legal_clock_can_still_be_outside_panel_range (test_validate_display.DisplayPlanTests.test_bt_legal_clock_can_still_be_outside_panel_range) ... ok
+test_caller_confirmation_never_creates_hardware_evidence (test_validate_display.DisplayPlanTests.test_caller_confirmation_never_creates_hardware_evidence) ... ok
+test_cli_reports_invalid_input_with_nonzero_exit (test_validate_display.DisplayPlanTests.test_cli_reports_invalid_input_with_nonzero_exit) ... ok
+test_declared_clock_cannot_disagree_with_derived_clock (test_validate_display.DisplayPlanTests.test_declared_clock_cannot_disagree_with_derived_clock) ... ok
+test_dual_channel_change_requires_new_model (test_validate_display.DisplayPlanTests.test_dual_channel_change_requires_new_model) ... ok
+test_illegal_sync_width_is_not_hidden_by_unchanged_totals (test_validate_display.DisplayPlanTests.test_illegal_sync_width_is_not_hidden_by_unchanged_totals) ... ok
+test_invalid_front_porch_and_fixed_back_interval_are_rejected (test_validate_display.DisplayPlanTests.test_invalid_front_porch_and_fixed_back_interval_are_rejected) ... ok
+test_r04_porch_assumption_cannot_be_silently_promoted (test_validate_display.DisplayPlanTests.test_r04_porch_assumption_cannot_be_silently_promoted) ... ok
+test_selected_clock_and_intervals_close_at_nominal_sixty (test_validate_display.DisplayPlanTests.test_selected_clock_and_intervals_close_at_nominal_sixty) ... ok
+test_source_interval_conversion_yields_conditional_bt_positions (test_validate_display.DisplayPlanTests.test_source_interval_conversion_yields_conditional_bt_positions) ... ok
+test_typical_panel_totals_with_changed_clock_miss_refresh_target (test_validate_display.DisplayPlanTests.test_typical_panel_totals_with_changed_clock_miss_refresh_target) ... ok
+test_unbounded_numeric_input_returns_errors_without_float_overflow (test_validate_display.DisplayPlanTests.test_unbounded_numeric_input_returns_errors_without_float_overflow) ... ok
+test_unknown_or_exclusive_porch_semantics_require_review (test_validate_display.DisplayPlanTests.test_unknown_or_exclusive_porch_semantics_require_review) ... ok
+test_unsupported_pll_reference_and_fractional_or_boolean_fields_reject (test_validate_display.DisplayPlanTests.test_unsupported_pll_reference_and_fractional_or_boolean_fields_reject) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.041s
+
+OK

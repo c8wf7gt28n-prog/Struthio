@@ -1,0 +1,57 @@
+{
+  "schema": "arc1-compact-display-plan-v1",
+  "project": "ARC-1 Compact",
+  "panel": "NHD-7.0-1024600AF-LSXP",
+  "panel_revision": "Rev2C candidate",
+  "clock": {
+    "reference_hz": 38400000,
+    "syspll_ns": 15,
+    "txclkdiv": 5,
+    "declared_pixel_clock_hz": 48000000
+  },
+  "raster": {
+    "horizontal": {
+      "active": 1024,
+      "total": 1280,
+      "sync": 16,
+      "back_porch": 160,
+      "front_porch": 96
+    },
+    "vertical": {
+      "active": 600,
+      "total": 625,
+      "sync": 1,
+      "back_porch": 23,
+      "front_porch": 2
+    },
+    "panel_back_porch_definition": "includes_sync",
+    "interpretation_status": "TABLE_ARITHMETIC_INFERENCE_REQUIRES_PANEL_CONFIRMATION"
+  },
+  "target": {
+    "nominal_refresh_hz": 60,
+    "allowed_nominal_error_ppm": 0
+  },
+  "scanout": {
+    "channels": 1,
+    "pixels_per_link_clock": 1,
+    "format": "RGB8",
+    "lane_mapping": "VESA24_SPWG_INFERENCE",
+    "bt_so_mode_candidate": 0
+  },
+  "confirmations": {
+    "panel_porch_definition_confirmed": false,
+    "bt_register_encoding_confirmed": false,
+    "lvds_bit_mapping_confirmed": false,
+    "lvds_electrical_and_termination_confirmed": false,
+    "power_sequence_backlight_confirmed": false,
+    "motion_quality_accepted": false,
+    "hardware_measured": false
+  },
+  "sources": ["S11", "S12", "S13", "S18"],
+  "notes": [
+    "Planning data only. The BT register model is not an initialization sequence.",
+    "Panel typical totals imply that its printed back-porch interval includes sync: 1344=1024+160+160 and 635=600+23+12.",
+    "R04 additive porch values are retained separately as a deliberately invalid regression case under this convention.",
+    "Actual refresh depends on oscillator tolerance; unique-frame cadence and motion response require measurement."
+  ]
+}

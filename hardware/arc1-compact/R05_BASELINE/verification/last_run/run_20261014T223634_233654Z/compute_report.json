@@ -1,0 +1,46 @@
+{
+  "schema_id": "arc1-compute-verification-v1",
+  "recorded_at_utc": "2026-10-14T22:36:38.383080+00:00",
+  "status": "PASS_HOST_AND_RTL_SIMULATION",
+  "command": [
+    "make",
+    "-B",
+    "check",
+    "IVERILOG=/workspace/.tools/iverilog/bin/iverilog",
+    "VVP=/workspace/.tools/iverilog/bin/vvp"
+  ],
+  "exit_code": 0,
+  "requires_explicit_pass_markers": true,
+  "error_diagnostic_present": false,
+  "c_ubsan_oracle_cases": 1165,
+  "c_batch_oracle_cases": 1165,
+  "c_scalar_oracle_cases": 1165,
+  "rtl_oracle_cases": 1165,
+  "rtl_input_stall_cycles": 12261,
+  "rtl_output_stall_cycles": 3563,
+  "rtl_simultaneous_retire_accept": 1164,
+  "rtl_simulation_cycles": 13465,
+  "reset_during_compute_and_held_result_checked": true,
+  "efinity_run": false,
+  "synthesis_run": false,
+  "static_timing_run": false,
+  "physical_fpga_test": false,
+  "acceleration_measured": false,
+  "source_sha256": {
+    "arc1_transform.c": "76509a66dcce79ec5602a3d993acdd2ab6f74ece3acf41c5a33753a1ee8a3ad9",
+    "arc1_transform.h": "d8e4893cd3a0f6a455bae3c3f05885a28451222a61bfaa34f02f44b51fd252eb",
+    "rtl/arc1_transform.sv": "4013ef2b6fed2f032a0bb13e95de04873fd632959a6008586f72df8933be6b5e",
+    "tests/generate_vectors.py": "0323db992965e851a12731969e4a1d88270fd7e9ccd6ca545c45f1d06a48cfe1",
+    "tests/test_reference.py": "f8444f92bfdab895146fc06c10eb803b2405f1d7b9a201fd6a567d6de1daf6ba",
+    "tests/vector_check.c": "5abb4d3e664d99f8299119fa9aba4e742464a808fe52811d24b2dc5977bc8b51",
+    "tests/transform_tb.sv": "cd78434bbab4be79b454ef957f6d82b46ef2230497ca4ce317f455a7e57f1e2d",
+    "tests/run_verification.py": "e57243156f909c9477905c31a7b39e2a369d19d9e6ca96dd3fc984d2a5eb5111",
+    "Makefile": "020086649ba941331c11f190eee2a8f4d82f1f4d95814102cd46477cf60916fa",
+    "CONTRACT.md": "fdb457197dc2bcbc63cbdfbd772e8abd48dc7c0b0d44ce739c1908927c0ec9e7"
+  },
+  "vectors_sha256": "5074de1bb241b06e59862fb38438c652c544d39e020cf0dc6813d22e34c9652a",
+  "logs": [
+    "verification_logs/tool_versions.log",
+    "verification_logs/complete_verification.log"
+  ]
+}

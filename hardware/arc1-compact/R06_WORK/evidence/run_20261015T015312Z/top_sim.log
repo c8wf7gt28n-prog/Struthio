@@ -1,0 +1,27 @@
+$ (cd R06_WORK/fpga/top && make sim OUT=/tmp/arc1_r06_build_91krhpb0/top)
+mkdir -p /tmp/arc1_r06_build_91krhpb0/top
+python3 -I tools/golden_to_memh.py ../../../R05_BASELINE/protocol/reference/golden_vectors.json /tmp/arc1_r06_build_91krhpb0/top
+wrote 5 golden frames: [24, 25, 40, 4120, 4120]
+iverilog -g2012 -I /tmp/arc1_r06_build_91krhpb0/top -s tb_top -o /tmp/arc1_r06_build_91krhpb0/top/tb_top.vvp -Ptb_top.GOLD_DIR='"/tmp/arc1_r06_build_91krhpb0/top"' tb/tb_top.sv ../psram/tb/aps6404l_model.sv arc1_t35_top.sv ../mailbox/rtl/mbx_spi_slave.sv ../mailbox/rtl/mbx_regs.sv ../mailbox/rtl/mbx_loopback.sv ../mailbox/rtl/psram_bist.sv ../psram/rtl/psram_user_port.sv ../psram/rtl/psram_qspi_core.sv
+vvp -n /tmp/arc1_r06_build_91krhpb0/top/tb_top.vvp > /tmp/arc1_r06_build_91krhpb0/top/sim_top.log 2>&1; rc=$?; grep -E '^(TEST|INFO|SUMMARY|TB_ERROR|MODEL_VIOLATION|TOP_TB)' /tmp/arc1_r06_build_91krhpb0/top/sim_top.log; \
+  test $rc -eq 0 && grep -q '^TOP_TB_PASS$' /tmp/arc1_r06_build_91krhpb0/top/sim_top.log
+TEST ident done errors=0
+TEST buffer_integrity done errors=0
+TEST cs_abort done errors=0
+INFO golden frame 0 len=24 passed through unchanged
+INFO golden frame 1 len=25 passed through unchanged
+INFO golden frame 2 len=40 passed through unchanged
+INFO golden frame 3 len=4120 passed through unchanged
+INFO golden frame 4 len=4120 passed through unchanged
+TEST golden_loopback done errors=0
+TEST doorbell_rules done errors=0
+INFO bist pass=1 fail=0 errs=0
+TEST psram_bist_pass done errors=0
+INFO bist-with-fault pass=0 fail=1 errs=1
+TEST psram_bist_detects_fault done errors=0
+TEST psram_recover done errors=0
+TEST fpga_reset done errors=0
+SUMMARY tb_top errors=0 model_violations=0
+TOP_TB_PASS
+
+# exit status: 0

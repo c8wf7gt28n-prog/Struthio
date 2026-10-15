@@ -1,0 +1,111 @@
+{
+  "schema_id": "arc1-r06-sources-v1",
+  "retrieved_utc_date": "2026-10-15",
+  "policy": "Manufacturer PDFs are NOT redistributed in this repository. Each entry gives the URL used, the SHA-256 of the exact bytes read, and what R06 took from it. Re-download and compare hashes; if a hash differs, recheck every value taken from that document.",
+  "sources": [
+    {
+      "id": "APS6404L_DS_2V7",
+      "title": "APM SPI 3V PSRAM Datasheet, APS6404L-3SQR, Rev. 2.7 (2024-01-05)",
+      "url": "https://www.apmemory.com/cn/downloadFiles/032411212009597427",
+      "sha256": "8defcc47238ab297a8780220fed57c8a8d39e265b8d7e50661bfbfc5be0e3bb4",
+      "used_for": "commands, Read ID (MF 0x0D / KGD 0x5D, read from figure 13), power-up, page and wrap rules, AC table 10, DC table 9, pinout, decoupling",
+      "label": "MANUFACTURER_DOCUMENTED"
+    },
+    {
+      "id": "APS6404L_DS_2V3_MIRROR",
+      "title": "APS6404L-3SQR datasheet Rev. 2.3 (PJRC mirror), cross-check only",
+      "url": "https://www.pjrc.com/store/APS6404L_3SQR.pdf",
+      "sha256": "3ab2622938f523db159480bede7f64276ad06914fe6cd2f28a141134f7a0df45",
+      "used_for": "cross-check of command table / KGD values",
+      "label": "MANUFACTURER_DOCUMENTED (older revision)"
+    },
+    {
+      "id": "HANDOFF_MOUSER_APS6404L_URL",
+      "title": "Handoff-cited Mouser datasheet URL",
+      "url": "https://www.mouser.com/datasheet/3/4815/1/APS6404L_3SQR.pdf",
+      "sha256": null,
+      "used_for": "nothing: the request returned a bot-check page (13,893 bytes of JavaScript), not the PDF",
+      "label": "NOT_RETRIEVED"
+    },
+    {
+      "id": "T35_DS_3V2",
+      "title": "Efinix T35 Data Sheet DST35-v3.2 (March 2024)",
+      "url": "https://www.efinixinc.com/docs/trion35-ds-v3.2.pdf",
+      "sha256": "d61f45f4f2da6093898143ec3703165a48274f519a67b9c489d609978769c6e8",
+      "used_for": "I/O standards and banks (Table 12), operating conditions (Table 63), DC levels (Table 66), weak pull-ups (Table 69), unused-resource connections (Table 59), power-up sequence, configuration modes (Table 61), GPIO weak pull-up during configuration",
+      "label": "MANUFACTURER_DOCUMENTED"
+    },
+    {
+      "id": "T35_PINOUT_WORKBOOK",
+      "title": "Efinix T35 pinout workbook v1.5 (as audited in R05)",
+      "url": "https://www.efinixinc.com/support/docsdl.php?pn=T35-PINOUT&s=ef",
+      "sha256": "11dc7a00d71cc378cfc02f6a16159228b533f7f9bb3438f13dc3f23730af00dd",
+      "used_for": "ball / bank / configuration-function facts via R05_BASELINE/system/T35F400_package_source_facts.csv (unchanged)",
+      "label": "MANUFACTURER_DOCUMENTED (R05 extraction, independently audited in R05)"
+    },
+    {
+      "id": "F133_DS",
+      "title": "Allwinner F133 Datasheet (revision history to v1.4, 2021-12-09)",
+      "url": "https://cdn.semikey.com/upload/pdfs/4c/5e/4c5e315c6bb9cc2f9ecf223359e639c3.pdf",
+      "sha256": "59d743fa3d3a50a1f4e9a7a69413ce97f91a0185c08245da41cf3e690b8b69b2",
+      "used_for": "eLQFP128 bonded GPIO and power domains (Table 4-2, machine-extracted), multiplex functions (Table 4-3, transcribed), GPIO DC levels and pull-ups (Table 5-3), rail ranges (Table 5-2), power-on sequence (5.12.1), SPI features (2.10.5), boot media (2.2.1), audio codec (2.8.1)",
+      "label": "MANUFACTURER_DOCUMENTED (third-party distributor host)"
+    },
+    {
+      "id": "LINUX_PINCTRL_SUN20I_D1",
+      "title": "Linux drivers/pinctrl/sunxi/pinctrl-sun20i-d1.c (master, retrieved 2026-10-15; GPL-2.0, facts extracted only)",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/master/drivers/pinctrl/sunxi/pinctrl-sun20i-d1.c",
+      "sha256": "82ad7cc293ccc3ff3dded5b05932575fc57adeafbe783e805fc4b417c6e060a2",
+      "used_for": "independent cross-check of every non-GPIO mux function used in the board plan",
+      "label": "SECONDARY_SOURCE"
+    },
+    {
+      "id": "LINUX_DTSI_D1S_T113",
+      "title": "Linux arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi (master, retrieved 2026-10-15)",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/master/arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi",
+      "sha256": "e3f53bb8e2a171f0758065a93f5225f573d22326425265d2e3a2d4a6b0a8de4c",
+      "used_for": "spi0/spi1 pin groups, SPI1 is the DBI-capable controller",
+      "label": "SECONDARY_SOURCE"
+    },
+    {
+      "id": "BT820_DS_1V1",
+      "title": "Bridgetek BT820 Framebuffer-based Embedded Video Engine Datasheet v1.1 (BRT_000427)",
+      "url": "https://brtchip.com/wp-content/uploads/2025/01/DS_BT820-1.pdf",
+      "sha256": "a6d494e034a2147c8bd6528aa07183c1ae08e5b054836227f4e54820e124d367",
+      "used_for": "QSPI host interface protocol (4.5), timing (Table 28), DC levels (Table 21), pins (3.2)",
+      "label": "MANUFACTURER_DOCUMENTED"
+    },
+    {
+      "id": "MN820_DS_1V0",
+      "title": "Bridgetek MN820 BT820 Mini Module Datasheet v1.0 (BRT_000442)",
+      "url": "https://brtchip.com/wp-content/uploads/2025/01/DS_MN820-1.pdf",
+      "sha256": "29e0a74ba35375fcdf6c9d34455398707934f292db44394226cda4047191e5bd",
+      "used_for": "CN1 connector pinout (Table 2), single 3.0-3.6 V input (5.1), 1 Gbit DDR3L",
+      "label": "MANUFACTURER_DOCUMENTED"
+    },
+    {
+      "id": "BRT_AN_086",
+      "title": "BT82X Series Programming Guide",
+      "url": null,
+      "sha256": null,
+      "used_for": "NOT READ IN R06. Needed for register map, host-command codes, REG_SYS_CFG (dual/quad), display init, data byte order",
+      "label": "BLOCKED_FOR_R07"
+    },
+    {
+      "id": "F133_USER_MANUAL",
+      "title": "Allwinner F133/D1s user manual (SPI register level, BROM boot-select table)",
+      "url": null,
+      "sha256": null,
+      "used_for": "NOT OBTAINED. Needed for BOOT-SEL[1:0] encoding and SPI quad-IO capability",
+      "label": "BLOCKED"
+    }
+  ],
+  "procurement_candidates": [
+    {
+      "part": "AP Memory APS6404L-3SQR-SN (SOP-8, Tc -40..85 C, 84 MHz linear burst)",
+      "distributor_reference": "Mouser 878-APS6404L-3SQR-SN, https://www.mouser.com/ProductDetail/AP-Memory/APS6404L-3SQR-SN",
+      "stock_price_lifecycle_checked": false,
+      "note": "Candidate only. R06 did not check stock, price, lifecycle or JLCPCB library availability; recheck at ordering time. Extended-temperature APS6404L-3SQRX-SN has tCEM <= 3 us (controller config C3 covers it)."
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+
+> arc1-project-house@0.22.5 test
+> node tests/smoke_node.cjs && node tests/evidence_node.cjs && node tests/intake_ui_node.cjs && node tests/offline_node.cjs && node scripts/verify.mjs
+
+PASS: 6 viewer tabs; solo/all/none; nav; developer handoff; 10 task records; 968 package balls; prohibited symbol
+✔ real source dictionary and workbook hashes match archived intake identities (2.059945ms)
+✔ valid explicit JSON preserves reported provenance and remains UNKNOWN with every gate OPEN (4.310298ms)
+✔ semantic conflicts stay separate from JSON parser/schema errors (1.776097ms)
+✔ strict JSON root requires schema (0.202115ms)
+✔ strict JSON root requires device (0.210237ms)
+✔ strict JSON root requires source (0.134152ms)
+✔ strict JSON root requires assignments (0.144749ms)
+✔ strict JSON root requires bankRails (0.140452ms)
+✔ strict JSON root requires signoffs (0.185259ms)
+✔ nullable values are explicit, and missing fields are never silently inferred (1.462955ms)
+✔ undeclared fields, wrong types, invalid voltages and timestamps are rejected as schema errors (0.603409ms)
+✔ reported timestamps reject impossible calendar dates without normalizing provenance (0.322667ms)
+✔ string limits count Unicode code points and reject empty or whitespace-only identifiers (0.289006ms)
+✔ unsupported formats and native-looking vendor CSV fail parsing without invented hardware conflicts (5.743728ms)
+✔ declared RFC4180 CSV handles BOM, CRLF, quotes, commas, Unicode and embedded newlines (0.877403ms)
+✔ CSV metadata and header are exact and malformed records remain parser errors (0.538842ms)
+✔ source identity conflict: device part (0.7896ms)
+✔ source identity conflict: instance (0.473895ms)
+✔ source identity conflict: unknown ball (0.967598ms)
+✔ source identity conflict: case-mismatched ball (0.652303ms)
+✔ source identity conflict: bank mismatch (0.503209ms)
+✔ source identity conflict: function mismatch (0.558542ms)
+✔ source identity conflict: unknown rail bank (1.037704ms)
+✔ source identity conflict: power bank sentinel (0.645663ms)
+✔ source identity conflict: rail instance (0.664111ms)
+✔ duplicate ball reuse and logical net assignments conflict within a chip only (2.208029ms)
+✔ source shared supply conflict: BANK1B / BANK1C (0.858575ms)
+✔ source shared supply conflict: BANK1D / BANK1E (0.470048ms)
+✔ source shared supply conflict: BANK1F / BANK1G (0.642358ms)
+✔ source shared supply conflict: BANK3D / TR (0.621847ms)
+✔ source shared supply conflict: BANK3D / BR (0.832675ms)
+✔ source shared supply conflict: TR / BR (0.523449ms)
+✔ assignment requirements, duplicate bank declarations and explicit same-bank voltage disagreement are checked (1.963389ms)
+✔ distinct source rails and independent FPGA supplies do not create false voltage collisions (1.652822ms)
+✔ null bank voltage and missing declaration stay UNKNOWN without inferred legal voltage (0.557331ms)
+✔ all 74 dedicated DDR source balls reject GPIO use and accept only documented DDR resources (74.752113ms)
+✔ both GPIO DDR PHY reference candidates remain UNKNOWN for ordinary GPIO use (1.646903ms)
+✔ dedicated configuration and JTAG pins allow their documented purpose and reject general or cross-purpose use (6.917779ms)
+✔ all real multiplexed configuration token suffixes remain unresolved for GPIO and accept exact declared capability (92.388719ms)
+✔ all supply and six reference-resistor balls are prohibited as user signal assignments (42.35735ms)
+✔ LVDS and CLOCK declarations stay UNKNOWN because inventory lacks pair, clock and timing legality (1.020679ms)
+✔ actual attachment byte hashes distinguish match, mismatch, absent, undeclared hash and undeclared attachment (17.510146ms)
+✔ artifact path duplication is a conflict; duplicate attachment names are ambiguous input errors (3.629741ms)
+✔ unsafe or undeclared artifact path forms never receive filesystem interpretation (0.485161ms)
+✔ unsafe attachment path names are rejected even when absent from the report (30.943374ms)
+✔ raw report bytes, including BOM and line endings, and actual inventory bytes are hashed exactly (2.810216ms)
+✔ inventory hash checks detect altered bytes and divergence between parsed inventory and source bytes (6.311063ms)
+✔ missing, short, duplicate or malformed manufacturer inventory is a parser error (5.139777ms)
+✔ claimed signoffs and even matching attached artifacts cannot close any of G01–G11 (3.956324ms)
+✔ read-only validation and intake leave reports, manufacturer dictionaries and source bytes immutable (6.487239ms)
+✔ report limits apply to UTF-8 byte count and schema row counts (4.749098ms)
+✔ attachment count, type, per-file and aggregate byte limits reject ambiguous or oversized intake (98.011555ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 448.775925
+✔ UI uses real module/dictionary, escapes reported strings and exports original hashed report with OPEN gates (17.049321ms)
+✔ UI separates malformed JSON, source conflicts and no-conflict UNKNOWN results (11.98107ms)
+✔ explicit artifact path mapping hashes original bytes without modifying report (13.620702ms)
+✔ declared CSV template loads through actual UI with the selected parser (9.852702ms)
+✔ navigation retains selected files/results and pending reads safely finish away from Lab (6.182089ms)
+✔ clearing during file reads prevents a stale operation from restoring results (20.890741ms)
+✔ file read and inventory failures are visible; inventory loading can be retried (17.147809ms)
+✔ oversized and invalid UTF-8 reports fail without a false validation result (5.719001ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 108.197309
+✔ actual sw.js install precaches all 30 existing assets using their real file bytes (48.317796ms)
+✔ actual activation cleans older ARC-1 House caches and preserves current and unrelated caches (0.858614ms)
+✔ offline evidence modules, inventory, schema, both templates and roadmap resolve from installed cache (6.603925ms)
+✔ offline navigation falls back to the real application shell for uncached scoped routes (7.638464ms)
+✔ offline uncached data requests produce network errors rather than application HTML (2.992762ms)
+✔ uncached same-origin GET falls back to the network and preserves real bytes (4.117907ms)
+✔ fetch handler excludes POST, foreign origins and paths outside its registration scope (3.235037ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 79.854145
+PASS: 968 unassigned A/B package balls; 10 developer tasks; 30 offline assets; required source and identity checks.

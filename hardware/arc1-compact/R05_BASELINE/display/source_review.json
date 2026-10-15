@@ -1,0 +1,51 @@
+{
+  "schema": "arc1-compact-display-source-review-v1",
+  "review_date": "2026-10-14",
+  "evidence_level": "PRIMARY_EXTRACTED_TEXT_AND_PLANNING_ARITHMETIC",
+  "original_vendor_pdfs_redistributed": false,
+  "hardware_experiments_performed": false,
+  "sources": [
+    {
+      "id": "S11",
+      "url": "https://newhavendisplay.com/content/specs/NHD-7.0-1024600AF-LSXP.pdf",
+      "revision": "Drawing Rev2C; history through2024-04-09",
+      "locators": ["printed p7 clock/total/sync/BP/FP table", "printed pp4–6 electrical, optical and lane declarations"],
+      "inspection": "Primary PDF text independently opened and checked; screenshot response provided text markers without image payload",
+      "original_sha256": null
+    },
+    {
+      "id": "S13",
+      "url": "https://support.newhavendisplay.com/hc/en-us/article_attachments/4414530591127",
+      "revision": "HX8282-A11 preliminary version01, November2013",
+      "locators": ["10.2–10.3, printed pp38–40"],
+      "inspection": "Newhaven-linked primary driver reference text/diagram labels inspected; raw PDF is not bundled",
+      "original_sha256": null
+    },
+    {
+      "id": "S12",
+      "url": "https://brtchip.com/wp-content/uploads/2026/09/BRT_AN_086_BT82X-Series-Programming-Guide-1.pdf",
+      "revision": "v1.4,2026-09-07",
+      "locators": ["clock settings,Table21", "scanout definitions and constraints,printed pp56–59", "DDR reservation2.1 and swapchains2.14"],
+      "inspection": "Fresh URL open failed; independently assigned companion review checked available primary extracted definitions; original bytes unavailable",
+      "original_sha256": null
+    },
+    {
+      "id": "S18",
+      "url": "https://brtchip.com/wp-content/uploads/2025/08/BRT_AN_097_Selection-and-Integration-of-LVDS-LCD-Panels-with-VM820C.pdf",
+      "revision": "v1.0,2025-08-19",
+      "locators": ["4.3–4.4,printed pp21–22"],
+      "inspection": "Companion primary extracted-text review of conventional porch conversion, front-first register origin and scanout mode",
+      "original_sha256": null
+    }
+  ],
+  "porch_reconciliation": {
+    "source_fact_horizontal_typical": "1344=1024+160+160",
+    "source_fact_vertical_typical": "635=600+23+12",
+    "inference": "Panel printed back interval includes sync; endpoint confirmation remains open",
+    "r04_raw_fields_if_used_with_this_convention": {"h_total": 1264, "v_total": 624},
+    "r05_corrected_panel_native_fields": {"h_sync":16,"h_back_including_sync":160,"h_front":96,"v_sync":1,"v_back_including_sync":23,"v_front":2},
+    "selected_clock_and_totals_unchanged": true,
+    "visual_endpoint_confirmation": false,
+    "register_initialization_written_or_executed": false
+  }
+}

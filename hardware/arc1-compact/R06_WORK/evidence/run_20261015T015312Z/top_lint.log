@@ -1,0 +1,6 @@
+$ (cd R06_WORK/fpga/top && make lint OUT=/tmp/arc1_r06_build_91krhpb0/top)
+mkdir -p /tmp/arc1_r06_build_91krhpb0/top
+verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM \
+  --top-module arc1_t35_top arc1_t35_top.sv ../mailbox/rtl/mbx_spi_slave.sv ../mailbox/rtl/mbx_regs.sv ../mailbox/rtl/mbx_loopback.sv ../mailbox/rtl/psram_bist.sv ../psram/rtl/psram_user_port.sv ../psram/rtl/psram_qspi_core.sv > /tmp/arc1_r06_build_91krhpb0/top/lint_top.log 2>&1; rc=$?; cat /tmp/arc1_r06_build_91krhpb0/top/lint_top.log; exit $rc
+
+# exit status: 0

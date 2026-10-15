@@ -1,0 +1,314 @@
+{
+  "schema_id": "arc1-compact-check-all-v1",
+  "run_id": "run_20261015T015313_225630Z",
+  "started_at_utc": "2026-10-15T01:53:13.225838+00:00",
+  "finished_at_utc": "2026-10-15T01:53:18.366398+00:00",
+  "status": "PASS_HOST_AND_RTL_SIMULATION",
+  "evidence_scope": "HOST_SOFTWARE_PLANNING_AND_OPTIONAL_RTL_SIMULATION",
+  "hardware_verified": false,
+  "efinity_run": false,
+  "synthesis_run": false,
+  "static_timing_run": false,
+  "measured_spi_throughput": null,
+  "hdl_required": true,
+  "hdl_status": "PASS_RTL_SIMULATION_ONLY",
+  "partial_run": false,
+  "all_required_steps_completed": true,
+  "runner_sha256": "8be422b5f4027ec0b2f0d756ad983ed55e0f33d2e05ccff57a8fc38860f1cb88",
+  "steps": [
+    {
+      "name": "python_version",
+      "command": [
+        "/usr/bin/python3",
+        "--version"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:13.231243+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/python_version.log",
+      "elapsed_seconds": 0.004191,
+      "finished_at_utc": "2026-10-15T01:53:13.236755+00:00",
+      "log_sha256": "8a078b480fefb612930032cc46f81bc6d76b152bac4903485d0c5771f32219ad"
+    },
+    {
+      "name": "compiler_version",
+      "command": [
+        "/usr/bin/x86_64-linux-gnu-gcc-13",
+        "--version"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:13.238049+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/compiler_version.log",
+      "elapsed_seconds": 0.004015,
+      "finished_at_utc": "2026-10-15T01:53:13.243174+00:00",
+      "log_sha256": "ae487f55927d605284a32711e4ecf6bc3be2bcd5a9de414ace0936264b741f85"
+    },
+    {
+      "name": "make_version",
+      "command": [
+        "/usr/bin/make",
+        "--version"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:13.244837+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/make_version.log",
+      "elapsed_seconds": 0.004066,
+      "finished_at_utc": "2026-10-15T01:53:13.250095+00:00",
+      "log_sha256": "8ee498ee2fc27e8dcdf99191b454077df95e3840d841ec94321748b6d7f36819"
+    },
+    {
+      "name": "display_tests",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "display/tests",
+        "-p",
+        "test_validate_display.py",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:13.251518+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/display_tests.log",
+      "details": {
+        "tests_run": 14,
+        "skipped_tests_accepted": false
+      },
+      "elapsed_seconds": 0.165319,
+      "finished_at_utc": "2026-10-15T01:53:13.417847+00:00",
+      "log_sha256": "db16027fd1651df4a0950cb67b3774d27eb44af56d423f67e815c1587db919c0"
+    },
+    {
+      "name": "display_planning",
+      "command": [
+        "/usr/bin/python3",
+        "display/validate_display.py",
+        "display/compact_display.json",
+        "--output",
+        "/tmp/arc1_r06_build_91krhpb0/R05_BASELINE/verification/last_run/run_20261015T015313_225630Z/display_planning.json"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:13.419570+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/display_planning.log",
+      "details": {
+        "report": "verification/last_run/run_20261015T015313_225630Z/display_planning.json",
+        "report_sha256": "3bed56103b487c71774595695deb450c7d4b4a1f12b45bb31a1df07a630c8130",
+        "evidence_level": "PLANNING_ARITHMETIC_ONLY"
+      },
+      "elapsed_seconds": 0.064957,
+      "finished_at_utc": "2026-10-15T01:53:13.485637+00:00",
+      "log_sha256": "3bed56103b487c71774595695deb450c7d4b4a1f12b45bb31a1df07a630c8130"
+    },
+    {
+      "name": "memory_tests",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "memory/tests",
+        "-p",
+        "test_validate_memory.py",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:13.487691+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/memory_tests.log",
+      "details": {
+        "tests_run": 18,
+        "skipped_tests_accepted": false
+      },
+      "elapsed_seconds": 0.115292,
+      "finished_at_utc": "2026-10-15T01:53:13.604731+00:00",
+      "log_sha256": "f3ed77768c70991e52fd803fb6ec6704ec53b8997ebbeb383f911f671fafdfc3"
+    },
+    {
+      "name": "memory_planning",
+      "command": [
+        "/usr/bin/python3",
+        "memory/validate_memory.py",
+        "memory/bt820_memory.json",
+        "--output",
+        "/tmp/arc1_r06_build_91krhpb0/R05_BASELINE/verification/last_run/run_20261015T015313_225630Z/memory_planning.json"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:13.606484+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/memory_planning.log",
+      "details": {
+        "report": "verification/last_run/run_20261015T015313_225630Z/memory_planning.json",
+        "report_sha256": "6edc52ef1d169d2e9c4aedf9000de906cc2b1be0c1f905b353621d5c0870dc1e",
+        "evidence_level": "DECLARED_ALLOCATION_ARITHMETIC_ONLY"
+      },
+      "elapsed_seconds": 0.065493,
+      "finished_at_utc": "2026-10-15T01:53:13.673187+00:00",
+      "log_sha256": "6edc52ef1d169d2e9c4aedf9000de906cc2b1be0c1f905b353621d5c0870dc1e"
+    },
+    {
+      "name": "protocol_tests",
+      "command": [
+        "/usr/bin/make",
+        "-B",
+        "test"
+      ],
+      "cwd": "protocol",
+      "started_at_utc": "2026-10-15T01:53:13.675016+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/protocol_tests.log",
+      "details": {
+        "tests_run": 14,
+        "skipped_tests_accepted": false
+      },
+      "elapsed_seconds": 1.571719,
+      "finished_at_utc": "2026-10-15T01:53:15.247915+00:00",
+      "log_sha256": "666b2588f08210452da2b0433635211410eb6f7e8d8e4c6741c4b9dbac76fc8f"
+    },
+    {
+      "name": "protocol_sanitizers",
+      "command": [
+        "/usr/bin/make",
+        "sanitize",
+        "SANITIZER_OPTIONS=detect_leaks=0"
+      ],
+      "cwd": "protocol",
+      "started_at_utc": "2026-10-15T01:53:15.250307+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/protocol_sanitizers.log",
+      "details": null,
+      "elapsed_seconds": 1.97462,
+      "finished_at_utc": "2026-10-15T01:53:17.226903+00:00",
+      "log_sha256": "d5f962809df378d23455fdd08a0f793e333984ed397edb3576f11362d57b6b7b"
+    },
+    {
+      "name": "protocol_freestanding",
+      "command": [
+        "/usr/bin/x86_64-linux-gnu-gcc-13",
+        "-Iinclude",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wshadow",
+        "-ffreestanding",
+        "-c",
+        "src/arc1_protocol.c",
+        "-o",
+        "build/arc1_protocol_freestanding.o"
+      ],
+      "cwd": "protocol",
+      "started_at_utc": "2026-10-15T01:53:17.229121+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/protocol_freestanding.log",
+      "elapsed_seconds": 0.065268,
+      "finished_at_utc": "2026-10-15T01:53:17.296087+00:00",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "compute_host_and_hdl",
+      "command": [
+        "/usr/bin/python3",
+        "compute/tests/run_verification.py",
+        "--iverilog",
+        "/usr/bin/iverilog",
+        "--vvp",
+        "/usr/bin/vvp"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:17.298159+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/compute_host_and_hdl.log",
+      "details": {
+        "report": "verification/last_run/run_20261015T015313_225630Z/compute_report.json",
+        "report_sha256": "751097f2c086646eab315f09368be32823200c745a41fde2270f6b46848681d7",
+        "status": "PASS_HOST_AND_RTL_SIMULATION",
+        "rtl_oracle_cases": 1165
+      },
+      "elapsed_seconds": 0.869098,
+      "finished_at_utc": "2026-10-15T01:53:18.168733+00:00",
+      "log_sha256": "e55bd3fbfee7d1f70808c62387ebd0ae627499915e6b808685d855f3ed37a292"
+    },
+    {
+      "name": "integration_tests",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration",
+        "-p",
+        "test_pipeline.py",
+        "-v"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:18.172056+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/integration_tests.log",
+      "details": {
+        "tests_run": 13,
+        "skipped_tests_accepted": false
+      },
+      "elapsed_seconds": 0.115603,
+      "finished_at_utc": "2026-10-15T01:53:18.289035+00:00",
+      "log_sha256": "d71c4f4b41a3967ded7a2c1b95fc24b27ace3e11bb35332e9fa866f0ac4534b1"
+    },
+    {
+      "name": "integration_demo",
+      "command": [
+        "/usr/bin/python3",
+        "integration/pipeline.py"
+      ],
+      "cwd": ".",
+      "started_at_utc": "2026-10-15T01:53:18.291437+00:00",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "verification/last_run/run_20261015T015313_225630Z/integration_demo.log",
+      "details": {
+        "report": "integration/demo_report.json",
+        "objects": 256,
+        "scope": "HOST_ONLY_C_CODEC_SESSION_AND_C_COMPUTE_REFERENCE"
+      },
+      "elapsed_seconds": 0.067157,
+      "finished_at_utc": "2026-10-15T01:53:18.360238+00:00",
+      "log_sha256": "bb41873fd351f2a45da65bc36449d08288f797c43c351ce5518ec9d3b76500a8"
+    }
+  ],
+  "tools": {
+    "python": "/usr/bin/python3",
+    "cc": "/usr/bin/x86_64-linux-gnu-gcc-13",
+    "make": "/usr/bin/make",
+    "iverilog": "/usr/bin/iverilog",
+    "vvp": "/usr/bin/vvp"
+  },
+  "failure": null,
+  "notes": [
+    "Planning and simulation success does not qualify Compact hardware.",
+    "Protocol ASan/UBSan uses detect_leaks=0: LeakSanitizer is not verified.",
+    "A host-only skip is never reported as an HDL pass."
+  ],
+  "source_manifest": "verification/last_run/run_20261015T015313_225630Z/source_manifest.json",
+  "source_manifest_sha256": "74a752da1e5d3b6862e4963158b3c224c2511af3fa6a34e2853117cb1ec02cc5",
+  "sources_unchanged_during_run": true
+}

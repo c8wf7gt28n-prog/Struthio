@@ -1,0 +1,19 @@
+Initial simulator attempt, 14 October 2026, before the testbench portability correction.
+The following is the complete captured command output. The process returned zero
+despite simulator diagnostics; this attempt is FAILED, not counted as HDL proof.
+
+$ make check-hdl IVERILOG=/workspace/.tools/iverilog/bin/iverilog VVP=/workspace/.tools/iverilog/bin/vvp
+/workspace/.tools/iverilog/bin/iverilog -g2012 -Wall -s transform_tb -o build/transform_tb rtl/arc1_transform.sv tests/transform_tb.sv
+warning: Some design elements have no explicit time unit and/or
+       : time precision. This may cause confusing timing results.
+       : Affected design elements are:
+       :   -- module arc1_transform declared here: rtl/arc1_transform.sv:2
+/workspace/.tools/iverilog/bin/vvp build/transform_tb +VECTORS=build/vectors.hex
+ERROR: tests/transform_tb.sv:110: $fscanf argument 3 (a vpiConstant) is not assignable.
+ERROR: tests/transform_tb.sv:114: $fscanf argument 3 (a vpiConstant) is not assignable.
+
+exit_code=0
+
+Correction: scan each word into a scalar temporary, then assign its indexed memory
+element. Add an explicit RTL timescale. No transform arithmetic or ready/valid
+behavior changed. The subsequent full verification log records the passing run.

@@ -1,0 +1,6 @@
+TB_ERROR t=153742500 bus contention ctrl_oe=1111 model_oe=0010
+TB_ERROR t=405320000 ram_ready timeout
+TB_ERROR t=405320000 ID registers
+TB_ERROR t=405320000 device not in QPI after init
+TB_ERROR t=405360000 unexpected status
+TB_ERROR t=405480000 unexpected status

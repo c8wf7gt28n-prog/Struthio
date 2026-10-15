@@ -1,0 +1,21 @@
+{
+  "recorded_date": "2026-10-14",
+  "purpose": "Actual isolated kernel RTL simulation in author environment",
+  "tool": "Icarus Verilog 11.0 (stable)",
+  "debian_package": "iverilog_11.0-1.1+b1_amd64.deb",
+  "source_url": "https://deb.debian.org/debian/pool/main/i/iverilog/iverilog_11.0-1.1+b1_amd64.deb",
+  "download_sha256": "14d9d14dc8256fd89667fb68c3bd93f1c57310b9c95b33fb0d4b7719c887ae2f",
+  "download_bytes": 2023324,
+  "installation": "Locally extracted with dpkg-deb -x; wrapper set backend (-B) and vvp module (-M) paths. Not a system install.",
+  "tool_binaries_bundled": false,
+  "proprietary_eda_bundled": false,
+  "native_efinity_run": false,
+  "riscv_cross_compiler_run": false,
+  "reproduction": "Install a supported Icarus 11+ providing iverilog/vvp, or pass explicit executable paths to tools/check_all.py.",
+  "host_tools": [
+    "GCC14.2.0",
+    "GNU make4.4.1",
+    "Python3.12.14"
+  ],
+  "limits": "Host C compiled for author host, not RISC-V. No silicon synthesis, timing, loadable FPGA image or hardware test."
+}

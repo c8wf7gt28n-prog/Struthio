@@ -1,0 +1,5 @@
+flowchart LR
+  CPU["F133-B · 64 MiB internal DDR2"] -->|"Proposed SPI scene mailbox"| FPGA["T35F400C3 · 128 MiB private x16 DDR3L"]
+  FPGA -->|"Proposed QSPI · sole BT host master"| BT["BT820B / MN820 · 128 MiB private DDR3L"]
+  BT -->|"Direct LVDS · 48 MHz / 60 Hz planning candidate"| LCD["Newhaven 7-inch IPS · 1024×600"]
+  FPGA -.->|"Optional future LVDS pixels · qualify separately"| BT

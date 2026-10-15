@@ -1,0 +1,36 @@
+{
+  "schema": "arc1-bt820-memory-plan-v1",
+  "project": "ARC-1 Compact",
+  "device": "BT820B",
+  "prototype_module": "MN820",
+  "capacity_bytes": 134217728,
+  "reserved_upper_bytes": 2621440,
+  "planning_alignment_bytes": 4096,
+  "nominal_refresh_hz": 60,
+  "allocations": [
+    {"name": "render_scanout_0", "owner": "BT820", "role": "render_scanout", "swapchain": 0, "slot": 0, "start": 0, "size": 1843200, "format": "RGB8", "width": 1024, "height": 600, "stride_bytes": 3072},
+    {"name": "render_scanout_1", "owner": "BT820", "role": "render_scanout", "swapchain": 0, "slot": 1, "start": 2097152, "size": 1843200, "format": "RGB8", "width": 1024, "height": 600, "stride_bytes": 3072},
+    {"name": "illustrative_resident_atlases", "owner": "BT820", "role": "asset_budget", "start": 4194304, "size": 33554432},
+    {"name": "illustrative_scratch_render_targets", "owner": "BT820", "role": "scratch_budget", "start": 37748736, "size": 8388608},
+    {"name": "illustrative_asset_staging", "owner": "BT820", "role": "staging_budget", "start": 46137344, "size": 4194304},
+    {"name": "illustrative_saved_command_lists", "owner": "BT820", "role": "saved_lists_budget", "start": 50331648, "size": 1048576}
+  ],
+  "optional_capture": {
+    "allocated": false,
+    "format": "RGB8",
+    "width": 1024,
+    "height": 600,
+    "buffers": 2,
+    "note": "A future Swapchain2 capture path needs a new nonoverlapping allocation and latency proof; none is implied by this budget."
+  },
+  "workload_size_verified": false,
+  "hardware_measured": false,
+  "sources": ["S06", "S12"],
+  "notes": [
+    "All addresses are BT-private DDR byte offsets and intervals are half-open [start,end).",
+    "Atlas/scratch/staging/list sizes are declared engineering allowances, not measured STRUTHIO requirements.",
+    "4096-byte address alignment is a planning policy, not a verified complete BT alignment contract.",
+    "Native 16KiB RAM_DL and 16KiB RAM_CMD are separate BT regions and are not charged again here.",
+    "No register writes, hardware allocation, external shared RAM or cross-device DMA are performed."
+  ]
+}

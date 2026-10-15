@@ -1,0 +1,15 @@
+port,mode,ball,pin_name,bank,io_standard,pull,net
+psram_ce_n,output,K19,GPIOL_46,BANK1C,3.3_V_LVTTL_/_LVCMOS,none,PSRAM_CE_N
+psram_sclk,output,J18,GPIOL_47,BANK1C,3.3_V_LVTTL_/_LVCMOS,none,PSRAM_SCLK
+psram_sio[0],inout,K20,GPIOL_48,BANK1C,3.3_V_LVTTL_/_LVCMOS,none,PSRAM_SIO0
+psram_sio[1],inout,K14,GPIOL_49,BANK1C,3.3_V_LVTTL_/_LVCMOS,none,PSRAM_SIO1
+psram_sio[2],inout,J20,GPIOL_50,BANK1C,3.3_V_LVTTL_/_LVCMOS,none,PSRAM_SIO2
+psram_sio[3],inout,J16,GPIOL_51,BANK1C,3.3_V_LVTTL_/_LVCMOS,none,PSRAM_SIO3
+t35_dbg_tx,output,A19,GPIOL_86,BANK1D,3.3_V_LVTTL_/_LVCMOS,none,T35_DBG_TX
+t35_irq_n,output_oe,C17,GPIOL_84,BANK1D,3.3_V_LVTTL_/_LVCMOS,none,T35_IRQ_N
+t35_led0,output,A18,GPIOL_88,BANK1D,3.3_V_LVTTL_/_LVCMOS,none,T35_LED0
+t35_miso,output_oe,H14,GPIOL_83,BANK1D,3.3_V_LVTTL_/_LVCMOS,none,T35_MISO
+t35_mosi,input,F17,GPIOL_82,BANK1D,3.3_V_LVTTL_/_LVCMOS,none,T35_MOSI
+osc_25m,clkin,D20,GPIOL_66_CLK0,BANK1C,3.3_V_LVTTL_/_LVCMOS,none,T35_OSC_25M
+t35_sck,input,D17,GPIOL_79,BANK1D,3.3_V_LVTTL_/_LVCMOS,none,T35_SCK
+t35_ss_n,input,H15,GPIOL_81,BANK1D,3.3_V_LVTTL_/_LVCMOS,weak pull-up,T35_SS_N

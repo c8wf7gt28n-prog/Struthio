@@ -1,0 +1,56 @@
+{
+  "scope": "INDEPENDENT_MANUFACTURER_PACKAGE_SOURCE_COMPARISON",
+  "recorded_utc": "2026-10-14T22:31:36Z",
+  "status": "PASS",
+  "source": {
+    "url": "https://www.efinixinc.com/support/docsdl.php?pn=T35-PINOUT&s=ef",
+    "local_workbook_used": "/workspace/.tools/t35_pinout_source.xlsx",
+    "sha256": "11dc7a00d71cc378cfc02f6a16159228b533f7f9bb3438f13dc3f23730af00dd",
+    "sheet": "T35F400",
+    "columns": "A-H",
+    "raw_workbook_bundled": false
+  },
+  "artifacts_checked": {
+    "T35F400_package_source_facts.csv": {
+      "sha256": "74803a513d16d67e9bda9426101f86ae3101d34fe5392c06707c116723a21b18",
+      "all_source_fields_and_row_numbers_match": true,
+      "matching_rows": 400,
+      "matching_A_to_H_fields": 3200,
+      "assigned_board_nets": 0
+    },
+    "package_source_report.json": {
+      "sha256": "e5f03448e77ed1e8ff4bc32fa4c155f6d656837880bc994d5c33ae44cc8d43ff",
+      "all_recomputed_counts_bank_counts_and_source_sha256_match": true
+    }
+  },
+  "method": {
+    "independent_reader": "openpyxl 3.1.5",
+    "workbook_options": {
+      "read_only": true,
+      "data_only": true
+    },
+    "steps": [
+      "Loaded T35F400 directly with openpyxl, independently of extract_t35_package.py's ZIP/XML implementation.",
+      "Enumerated A-H with worksheet row numbers; normalized None to an empty string and other values with str().",
+      "Selected rows whose H cell fully matches [A-Z]{1,2}[0-9]{1,2}; mapped A-H to the eight documented source columns.",
+      "Compared all 400 ordered records and source_row values to csv.DictReader output; checked every board_net is blank.",
+      "Independently recomputed unique balls, GPIO-name, DDR-annotation, DDIO-Yes, LVDS-annotation and per-bank counts and compared them with the report.",
+      "Recomputed the source workbook SHA256 and compared it with the report. Recorded current CSV and report SHA256 values without regenerating either artifact."
+    ]
+  },
+  "verified_source_counts": {
+    "records": 400,
+    "unique_balls": 400,
+    "gpio_named_entries": 230,
+    "ddr_interface_annotated_entries": 54,
+    "ddio_yes_entries": 138,
+    "lvds_annotated_entries": 92,
+    "assigned_board_nets": 0
+  },
+  "limitations": [
+    "These are raw manufacturer source counts. Annotations overlap and must not be added together or treated as an available-pin budget.",
+    "Blank board_net fields mean this inventory contains no board net assignments; they are not a claim about a completed PCB.",
+    "This comparison does not verify clocks, bank voltages, DDR lane assignments, electrical compatibility, Efinity acceptance, synthesis, placement, routing, timing closure or physical hardware."
+  ],
+  "broad_tests_rerun_for_this_record": false
+}

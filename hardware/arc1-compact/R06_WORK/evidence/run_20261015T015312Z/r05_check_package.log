@@ -1,0 +1,5 @@
+$ (cd ../../../../../tmp/arc1_r06_build_91krhpb0/R05_BASELINE && /usr/bin/python3 tools/check_package.py)
+PASS manifest: 131 files; 5 unchanged originals; JSON/Word structure valid.
+Source/archive checks only; not hardware qualification.
+
+# exit status: 0

@@ -1,0 +1,158 @@
+
+> arc1-project-house@0.23.5 test
+> node tests/smoke_node.cjs && node tests/evidence_node.cjs && node tests/intake_ui_node.cjs && node tests/architecture_node.cjs && node tests/r23_node.cjs && node tests/offline_node.cjs && node scripts/verify.mjs
+
+PASS: 6 viewer tabs; solo/all/none; nav; developer handoff; 14 task records; 968 package balls; prohibited symbol
+✔ real source dictionary and workbook hashes match archived intake identities (2.097582ms)
+✔ valid explicit JSON preserves reported provenance and remains UNKNOWN with every gate OPEN (3.565304ms)
+✔ semantic conflicts stay separate from JSON parser/schema errors (1.720684ms)
+✔ strict JSON root requires schema (0.2185ms)
+✔ strict JSON root requires device (0.174323ms)
+✔ strict JSON root requires source (0.234594ms)
+✔ strict JSON root requires assignments (0.13951ms)
+✔ strict JSON root requires bankRails (0.207763ms)
+✔ strict JSON root requires signoffs (0.177768ms)
+✔ nullable values are explicit, and missing fields are never silently inferred (2.873932ms)
+✔ undeclared fields, wrong types, invalid voltages and timestamps are rejected as schema errors (0.721528ms)
+✔ reported timestamps reject impossible calendar dates without normalizing provenance (0.29849ms)
+✔ string limits count Unicode code points and reject empty or whitespace-only identifiers (0.294284ms)
+✔ unsupported formats and native-looking vendor CSV fail parsing without invented hardware conflicts (5.501674ms)
+✔ declared RFC4180 CSV handles BOM, CRLF, quotes, commas, Unicode and embedded newlines (0.764532ms)
+✔ CSV metadata and header are exact and malformed records remain parser errors (0.522838ms)
+✔ source identity conflict: device part (0.513724ms)
+✔ source identity conflict: instance (0.463018ms)
+✔ source identity conflict: unknown ball (1.278357ms)
+✔ source identity conflict: case-mismatched ball (0.502888ms)
+✔ source identity conflict: bank mismatch (0.557941ms)
+✔ source identity conflict: function mismatch (0.613385ms)
+✔ source identity conflict: unknown rail bank (0.793226ms)
+✔ source identity conflict: power bank sentinel (0.480385ms)
+✔ source identity conflict: rail instance (0.522318ms)
+✔ duplicate ball reuse and logical net assignments conflict within a chip only (2.816625ms)
+✔ source shared supply conflict: BANK1B / BANK1C (1.111786ms)
+✔ source shared supply conflict: BANK1D / BANK1E (0.533585ms)
+✔ source shared supply conflict: BANK1F / BANK1G (0.500905ms)
+✔ source shared supply conflict: BANK3D / TR (0.605904ms)
+✔ source shared supply conflict: BANK3D / BR (0.605924ms)
+✔ source shared supply conflict: TR / BR (0.824042ms)
+✔ assignment requirements, duplicate bank declarations and explicit same-bank voltage disagreement are checked (1.627092ms)
+✔ distinct source rails and independent FPGA supplies do not create false voltage collisions (1.603958ms)
+✔ null bank voltage and missing declaration stay UNKNOWN without inferred legal voltage (0.518471ms)
+✔ all 74 dedicated DDR source balls reject GPIO use and accept only documented DDR resources (70.063836ms)
+✔ both GPIO DDR PHY reference candidates remain UNKNOWN for ordinary GPIO use (1.766954ms)
+✔ dedicated configuration and JTAG pins allow their documented purpose and reject general or cross-purpose use (6.311294ms)
+✔ all real multiplexed configuration token suffixes remain unresolved for GPIO and accept exact declared capability (91.66033ms)
+✔ all supply and six reference-resistor balls are prohibited as user signal assignments (39.214523ms)
+✔ LVDS and CLOCK declarations stay UNKNOWN because inventory lacks pair, clock and timing legality (0.671762ms)
+✔ actual attachment byte hashes distinguish match, mismatch, absent, undeclared hash and undeclared attachment (12.804897ms)
+✔ artifact path duplication is a conflict; duplicate attachment names are ambiguous input errors (3.338883ms)
+✔ unsafe or undeclared artifact path forms never receive filesystem interpretation (0.358901ms)
+✔ unsafe attachment path names are rejected even when absent from the report (29.290733ms)
+✔ raw report bytes, including BOM and line endings, and actual inventory bytes are hashed exactly (2.545317ms)
+✔ inventory hash checks detect altered bytes and divergence between parsed inventory and source bytes (7.295418ms)
+✔ missing, short, duplicate or malformed manufacturer inventory is a parser error (5.600402ms)
+✔ claimed signoffs and even matching attached artifacts cannot close any of G01–G11 (3.302228ms)
+✔ read-only validation and intake leave reports, manufacturer dictionaries and source bytes immutable (5.853304ms)
+✔ report limits apply to UTF-8 byte count and schema row counts (4.857302ms)
+✔ attachment count, type, per-file and aggregate byte limits reject ambiguous or oversized intake (88.751021ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 423.083345
+✔ UI uses real module/dictionary, escapes reported strings and exports original hashed report with OPEN gates (16.170025ms)
+✔ UI separates malformed JSON, source conflicts and no-conflict UNKNOWN results (12.409747ms)
+✔ explicit artifact path mapping hashes original bytes without modifying report (12.02068ms)
+✔ declared CSV template loads through actual UI with the selected parser (6.140567ms)
+✔ navigation retains selected files/results and pending reads safely finish away from Lab (8.726575ms)
+✔ clearing during file reads prevents a stale operation from restoring results (21.172515ms)
+✔ file read and inventory failures are visible; inventory loading can be retried (18.149108ms)
+✔ oversized and invalid UTF-8 reports fail without a false validation result (6.20888ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 106.88474
+✔ source facts bind the actual original F484 workbook and all 484 package definitions (10.245875ms)
+✔ real DDIO, configuration overlap, PHY reference and native LVDS counts remain distinct (2.38832ms)
+✔ host and display arithmetic distinguishes active framebuffer traffic from LVDS serialization (1.705871ms)
+✔ parallel DDIO studies account for both directions without locking clocks or achieved throughput (1.295333ms)
+✔ native LVDS lane candidates state source ceilings while keeping operating rates and extra clock resources unknown (0.898404ms)
+✔ both 128 MiB candidate memories remain independent, with theoretical bandwidth separate from measurements (0.972256ms)
+✔ documented exact-part supply, clock, lifetime and display constraints remain separate from implementation proof (4.692684ms)
+✔ documented constraints reject fabricated measurements, EDA approval and missing source or gate links (2.495612ms)
+✔ successful source review retains NO-GO and every hardware gate OPEN (1.150224ms)
+✔ unsupported architecture stage, fabrication release, gate completion and duplicate gates are rejected (1.171156ms)
+✔ decisions require legitimate source and gate references with distinct IDs and conditional states (2.028748ms)
+✔ experiments cannot be completed by source arithmetic and require artifact, acceptance and stop contracts (1.205267ms)
+✔ wrong workbook hash, package sheet, incomplete rows and duplicate balls are rejected (3.193964ms)
+✔ source annotations cannot contain fake electrical nets or inferred DDIO capability (3.374968ms)
+✔ display arithmetic rejects nonfinite inputs, invalid totals and absent source references (9.710028ms)
+✔ unmeasured interface rates, undocumented width/lane assumptions and changed memory goals are rejected (5.020267ms)
+✔ frozen source records and resource facts remain immutable after analysis (3.381888ms)
+✔ actual architecture UI module renders calculated values, conditional decisions, sources and all OPEN gates (41.492701ms)
+✔ architecture UI escapes source text and excludes unsafe external link protocols (8.787917ms)
+✔ architecture UI reports missing bundled source data without displaying an approved review (0.885615ms)
+✔ architecture UI rejects an analyzer response that claims a closed hardware gate (1.925092ms)
+✔ actual House navigation mounts the review in Systems and Lab while retaining six departments (22.704035ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138.99589
+✔ current R23 authority preserves the actual full owner DOCX and its source hash (5.371357ms)
+✔ R23 selected installed memory and named physical candidate discrepancy are both preserved (2.839631ms)
+✔ R23 architecture retains three individually bounded NOR targets with actual image sizes unknown (5.281682ms)
+✔ R23 BT video clock study exposes the unresolved 74.25 MHz synthesis constraint (2.967534ms)
+✔ global architecture dispatcher preserves historical R22 source review and routes current R23 authority (2.477014ms)
+✔ R23 architecture cannot release hardware, close any gate or invent achieved performance (1.846724ms)
+✔ current R23 documented constraints retain source/gate links and cannot claim measured or EDA proof (2.064853ms)
+✔ R23 architecture rejects nonfinite and overflowing or underflowing display arithmetic (5.838581ms)
+✔ new R23 JSON schema remains separate from immutable legacy FPGA-pin intake (1.095081ms)
+✔ R23 parser rejects missing and undeclared fields instead of inventing component evidence (0.593966ms)
+✔ selected 64 MiB BT pool versus 1 Gbit x16 candidate is a conflict, never silently reclassified (0.958074ms)
+✔ unknown physical candidate and measurement values remain unknown without changing selected pools (0.354394ms)
+✔ known part organization cannot be disguised by omitted density, a false 512 Mbit claim or the wrong controller width (0.504701ms)
+✔ wrong owner capacities and duplicate component declarations are semantic conflicts (0.849421ms)
+✔ missing NOR geometry and genuine payload lengths do not become a fit or rollback guarantee (0.277929ms)
+✔ synthetic NOR rounding is only a declared lower bound and attached text size is not loadability proof (4.203416ms)
+✔ per-device NOR arithmetic rejects overflow rather than borrowing another flash device capacity (0.207052ms)
+✔ malformed negative, fractional and unsafe-integer capacity/length declarations are parser errors (0.373443ms)
+✔ reported measurements and signoff claims never close the fourteen active gates (0.353843ms)
+✔ R23 attachment hashing distinguishes byte identity, mismatch and missing evidence while preserving open gates (1.657088ms)
+✔ R23 hashes preserve exact imported bytes and detect disagreement between bytes and supplied text (0.569538ms)
+✔ R23 software validation does not mutate selected authority, immutable source inventory or report declarations (2.033996ms)
+✔ actual intake UI defaults to R23 JSON, exports all fourteen OPEN gates and does not fetch or mutate FPGA pins (17.232046ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68.252876
+✔ actual sw.js install precaches every declared asset using its real file bytes (62.645568ms)
+✔ actual activation cleans older ARC-1 House caches and preserves current and unrelated caches (1.168211ms)
+✔ offline evidence modules, inventory, schema, both templates and roadmap resolve from installed cache (18.131322ms)
+✔ offline navigation falls back to the real application shell for uncached scoped routes (7.680458ms)
+✔ offline uncached data requests produce network errors rather than application HTML (9.49967ms)
+✔ uncached same-origin GET falls back to the network and preserves real bytes (7.270821ms)
+✔ fetch handler excludes POST, foreign origins and paths outside its registration scope (9.815505ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 124.333168
+PASS: 968 unassigned A/B package balls; 14 developer tasks; 74 offline assets; required source and identity checks.

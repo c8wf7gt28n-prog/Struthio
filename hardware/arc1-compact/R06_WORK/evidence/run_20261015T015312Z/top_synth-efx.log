@@ -1,0 +1,14 @@
+$ (cd R06_WORK/fpga/top && make synth-efx OUT=/tmp/arc1_r06_build_91krhpb0/top)
+mkdir -p /tmp/arc1_r06_build_91krhpb0/top
+yosys -q -l /tmp/arc1_r06_build_91krhpb0/top/synth_top_efx.log -p 'read_verilog -sv arc1_t35_top.sv ../mailbox/rtl/mbx_spi_slave.sv ../mailbox/rtl/mbx_regs.sv ../mailbox/rtl/mbx_loopback.sv ../mailbox/rtl/psram_bist.sv ../psram/rtl/psram_user_port.sv ../psram/rtl/psram_qspi_core.sv; synth_efinix -top arc1_t35_top; stat' > /dev/null
+grep -E 'EFX_|Number of cells' /tmp/arc1_r06_build_91krhpb0/top/synth_top_efx.log | tail -8
+     EFX_LUT4                     1272
+     EFX_RAM_5K                     50
+   Number of cells:               2928
+     EFX_ADD                       768
+     EFX_FF                        836
+     EFX_GBUFCE                      2
+     EFX_LUT4                     1272
+     EFX_RAM_5K                     50
+
+# exit status: 0

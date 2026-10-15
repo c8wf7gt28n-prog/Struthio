@@ -1,0 +1,37 @@
+{
+  "schema": "arc1-planning-executed-checks-v1",
+  "executed_utc": "2026-10-14T22:16:18.874643+00:00",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "checks": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "display/tests",
+        "-v"
+      ],
+      "exit_code": 0,
+      "tests_run": 14
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "display/validate_display.py",
+        "--output",
+        "display/planning_report.json"
+      ],
+      "exit_code": 0,
+      "valid": true,
+      "hardware_verified": false
+    }
+  ],
+  "all_checks_passed": true,
+  "hardware_experiments_run": false,
+  "input_sha256": "d6bba81a18a60f9bc7d827e04b47953673532433ee13315749abfa3cff663fff",
+  "validator_sha256": "12e46bbfafc0ff05cee522b0069379969d83bcfcc4b7d085b01506cde209fd9c"
+}

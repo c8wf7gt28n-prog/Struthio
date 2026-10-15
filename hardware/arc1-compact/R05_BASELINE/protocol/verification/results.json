@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-14",
+  "evidence": "HOST_SOFTWARE_ONLY",
+  "versions": {
+    "compiler": "cc (Debian 14.2.0-19) 14.2.0",
+    "python": "Python 3.12.14",
+    "make": "GNU Make 4.4.1"
+  },
+  "commands": [
+    {
+      "command": [
+        "make",
+        "test"
+      ],
+      "exit_code": 0,
+      "log": "verification/test.log"
+    },
+    {
+      "command": [
+        "make",
+        "sanitize"
+      ],
+      "exit_code": 0,
+      "log": "verification/sanitize.log"
+    },
+    {
+      "command": [
+        "cc",
+        "-Iinclude",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wshadow",
+        "-ffreestanding",
+        "-c",
+        "src/arc1_protocol.c",
+        "-o",
+        "build/arc1_protocol_freestanding.o"
+      ],
+      "exit_code": 0,
+      "log": "verification/freestanding_compile.log"
+    }
+  ],
+  "physical_transport": false,
+  "native_fpga_endpoint": false,
+  "leak_sanitizer": "Initial detect_leaks=1 blocked by environment ptrace. Final ASan/UBSan run uses detect_leaks=0; no leak-scan pass claimed."
+}

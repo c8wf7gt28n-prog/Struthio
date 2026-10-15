@@ -1,0 +1,144 @@
+{
+  "schema_id": "arc1-check-all-source-manifest-v1",
+  "run_id": "run_20261014T223634_233654Z",
+  "recorded_at_utc": "2026-10-14T22:36:34.237984+00:00",
+  "meaning": "Current local source/input byte identity, not vendor authentication or hardware proof.",
+  "files": {
+    "VERIFY.md": {
+      "sha256": "68a770af2360be9439c169d3d94a4937d5ca29e8b71dc9cb76572e30eb87777e",
+      "bytes": 5316
+    },
+    "compute/CONTRACT.md": {
+      "sha256": "fdb457197dc2bcbc63cbdfbd772e8abd48dc7c0b0d44ce739c1908927c0ec9e7",
+      "bytes": 5413
+    },
+    "compute/Makefile": {
+      "sha256": "020086649ba941331c11f190eee2a8f4d82f1f4d95814102cd46477cf60916fa",
+      "bytes": 1112
+    },
+    "compute/arc1_transform.c": {
+      "sha256": "76509a66dcce79ec5602a3d993acdd2ab6f74ece3acf41c5a33753a1ee8a3ad9",
+      "bytes": 3649
+    },
+    "compute/arc1_transform.h": {
+      "sha256": "d8e4893cd3a0f6a455bae3c3f05885a28451222a61bfaa34f02f44b51fd252eb",
+      "bytes": 1085
+    },
+    "compute/rtl/arc1_transform.sv": {
+      "sha256": "4013ef2b6fed2f032a0bb13e95de04873fd632959a6008586f72df8933be6b5e",
+      "bytes": 5501
+    },
+    "compute/tests/generate_vectors.py": {
+      "sha256": "0323db992965e851a12731969e4a1d88270fd7e9ccd6ca545c45f1d06a48cfe1",
+      "bytes": 4257
+    },
+    "compute/tests/run_verification.py": {
+      "sha256": "e57243156f909c9477905c31a7b39e2a369d19d9e6ca96dd3fc984d2a5eb5111",
+      "bytes": 4421
+    },
+    "compute/tests/test_reference.py": {
+      "sha256": "f8444f92bfdab895146fc06c10eb803b2405f1d7b9a201fd6a567d6de1daf6ba",
+      "bytes": 1917
+    },
+    "compute/tests/transform_tb.sv": {
+      "sha256": "cd78434bbab4be79b454ef957f6d82b46ef2230497ca4ce317f455a7e57f1e2d",
+      "bytes": 7820
+    },
+    "compute/tests/vector_check.c": {
+      "sha256": "5abb4d3e664d99f8299119fa9aba4e742464a808fe52811d24b2dc5977bc8b51",
+      "bytes": 1583
+    },
+    "display/compact_display.json": {
+      "sha256": "6d4c4e2566bfde82ddfbe15309ac7739e49ab6b56319ec36c38c4d0199a76f02",
+      "bytes": 1796
+    },
+    "display/r04_porch_assumption.json": {
+      "sha256": "d5802a7ad8d7990cf9ea275c1fce07efcbcd3b9a12f1259effd351cf2863d323",
+      "bytes": 477
+    },
+    "display/tests/test_validate_display.py": {
+      "sha256": "ea3699b7afdf11ce67af03724eead5718f4562910d647d00a19a9557081cda8b",
+      "bytes": 6261
+    },
+    "display/validate_display.py": {
+      "sha256": "12e46bbfafc0ff05cee522b0069379969d83bcfcc4b7d085b01506cde209fd9c",
+      "bytes": 9649
+    },
+    "engineering/architecture.json": {
+      "sha256": "40b6ea66ef180173502beeb3abbdceca24aa341282373f8d0b640ffd0961d56e",
+      "bytes": 7867
+    },
+    "engineering/calculations.json": {
+      "sha256": "ac2aedc36eec6308a9cef91ff392a54e16eb8aafa837cff7f5a443b70e56d643",
+      "bytes": 1879
+    },
+    "engineering/sources.json": {
+      "sha256": "c0092d9890243086eb105dea13b1b68cac005de267917134eeda1a256e7fae88",
+      "bytes": 13863
+    },
+    "engineering/tasks.json": {
+      "sha256": "18b519076e5f41ee8d60f965df476062d2f75604eeab5d28a93d68b245f12436",
+      "bytes": 13419
+    },
+    "integration/SCENE_PAYLOAD_V1.md": {
+      "sha256": "4daff2a77370bdf5277f5a0d0a83c7cdfb3fcdbfea9fed5d857290bbd1e91474",
+      "bytes": 2648
+    },
+    "integration/pipeline.py": {
+      "sha256": "d32264c56c7716ad7dee6c359b7f4a98c399878e71a3b3ce1e2cfa8ed4ebf3fc",
+      "bytes": 11818
+    },
+    "integration/test_pipeline.py": {
+      "sha256": "b8866fb0ef4bd2ec40b92b3d5a73dd7f698e398543adab0b8f89da7f9061d2e8",
+      "bytes": 5408
+    },
+    "memory/bt820_memory.json": {
+      "sha256": "3a25bc90b8eadd65c42274dc18b44e75aa9681a2b01b386002b637e55d0f3bca",
+      "bytes": 2103
+    },
+    "memory/tests/test_validate_memory.py": {
+      "sha256": "fbeede4150336ead8511a9679bf81d549343f542e61439115eeb3ed2edec77ed",
+      "bytes": 6386
+    },
+    "memory/validate_memory.py": {
+      "sha256": "809b7aa99ba358116e5944ddf241287e0fce6551ffc79f640017f39e6cc2fedf",
+      "bytes": 10022
+    },
+    "protocol/Makefile": {
+      "sha256": "d62efb367a78566638b32f6abfbf93c8b10909465cec61a229e9440f3b529b4d",
+      "bytes": 967
+    },
+    "protocol/include/arc1_protocol.h": {
+      "sha256": "5c5fbab64e433034f4117dd64b14e9010ead36f3a31ef1f106f770036788ff20",
+      "bytes": 4243
+    },
+    "protocol/reference/codec.py": {
+      "sha256": "6ae826f673d3879ad8866fac07541a658b975b39f9369f0e0096420b656d2913",
+      "bytes": 3782
+    },
+    "protocol/reference/generate_vectors.py": {
+      "sha256": "e085c7958d0e0d6b7361dfff049844d461843227b932b73da728e433571b44db",
+      "bytes": 4648
+    },
+    "protocol/reference/golden_vectors.json": {
+      "sha256": "6577c398604d8a1ed0bf290a5d46bd20300167c18c0ee715aff63ebff8f2add2",
+      "bytes": 48467
+    },
+    "protocol/src/arc1_protocol.c": {
+      "sha256": "520fd048a01f96d884b910b9d2d2efa3a20cf530a4bbfe71acdf0240abcf12c3",
+      "bytes": 12771
+    },
+    "protocol/tests/test_protocol.c": {
+      "sha256": "4cb53212d68c7e0088e948d2a2a6fb557930bee3bd81d426a3080a39493c5050",
+      "bytes": 13514
+    },
+    "protocol/tests/test_reference.py": {
+      "sha256": "37fd020c0c633adbf7c6d9dc4824d69fcc53900e61f6c04639d93a755ccacbf1",
+      "bytes": 10857
+    },
+    "tools/check_all.py": {
+      "sha256": "8be422b5f4027ec0b2f0d756ad983ed55e0f33d2e05ccff57a8fc38860f1cb88",
+      "bytes": 18496
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "description": "R04 sync/back/front values interpreted in the panel-native inclusive-back convention. This regression fixture must fail total consistency.",
+  "horizontal": {"active": 1024, "total": 1280, "sync": 16, "back_porch": 160, "front_porch": 80},
+  "vertical": {"active": 600, "total": 625, "sync": 1, "back_porch": 23, "front_porch": 1},
+  "panel_back_porch_definition": "includes_sync",
+  "expected_panel_native_totals": [1264, 624],
+  "expected_valid": false
+}

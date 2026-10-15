@@ -1,0 +1,21 @@
+Continue ARC-1 Compact from this R05 development handoff. Read root CLAUDE.md,
+OWNER_SELECTION.md, ARC1_Compact_Claude_Handoff_R05.md, engineering/tasks.json and
+VERIFY.md. Preserve the selected F133-B + T35F400C3 + BT820B/MN820 core and
+64+128+128 MiB private RAM target. Confirm the named Newhaven LVDS panel.
+
+R05 supplies C protocol/session code, a fixed-point C reference and transform RTL
+with actual 1165-case HDL simulation, a host integration demo, display/memory
+validators and a 400-ball manufacturer source inventory. Reproduce the checks
+before changing contracts. R05 corrects R04 porch interpretation; the conditional
+register model is not BT initialization. The synthetic scene transforms bounds
+only and does not render the game.
+
+Advance the actual F133 SPI HAL/boot path, FPGA SPI/QSPI integration, exact DDR
+part/full-interface Efinity project and BT820 renderer. Choose work possible in
+your environment and continue autonomously. Report genuine conflicts precisely;
+do not reopen the selected core without evidence. Keep native EDA and physical
+performance unverified until actually run. Original Tabletop archives and earlier
+handoffs are history, not current Compact requirements.
+
+Return changed artifacts, actual verification, unresolved issues and an updated
+handoff. Do not claim hardware success from host tests or simulation.

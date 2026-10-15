@@ -1,0 +1,44 @@
+{
+  "schema": "arc1-planning-executed-checks-v2",
+  "executed_utc": "2026-10-14T22:36:38.573296+00:00",
+  "run_id": "run_20261014T223634_233654Z",
+  "final_run_summary": "verification/last_run/summary.json",
+  "checks": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "memory/tests",
+        "-p",
+        "test_validate_memory.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "tests_run": 18,
+      "log": "verification/last_run/run_20261014T223634_233654Z/memory_tests.log"
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "memory/validate_memory.py",
+        "memory/bt820_memory.json",
+        "--output",
+        "/workspace/ARC1_COMPACT_DEVELOPMENT_R05_2026-10-14/verification/last_run/run_20261014T223634_233654Z/memory_planning.json"
+      ],
+      "exit_code": 0,
+      "valid": true,
+      "hardware_verified": false,
+      "report": "verification/last_run/run_20261014T223634_233654Z/memory_planning.json",
+      "log": "verification/last_run/run_20261014T223634_233654Z/memory_planning.log"
+    }
+  ],
+  "all_checks_passed": true,
+  "hardware_experiments_run": false,
+  "input_sha256": "3a25bc90b8eadd65c42274dc18b44e75aa9681a2b01b386002b637e55d0f3bca",
+  "validator_sha256": "809b7aa99ba358116e5944ddf241287e0fce6551ffc79f640017f39e6cc2fedf",
+  "initial_component_record": "verification_initial.json",
+  "note": "Fresh consolidated-run evidence; initial component record preserved separately, not relabeled."
+}

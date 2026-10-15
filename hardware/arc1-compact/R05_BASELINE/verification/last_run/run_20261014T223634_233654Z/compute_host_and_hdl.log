@@ -1,0 +1,13 @@
+mkdir -p build
+cc -std=c11 -O2 -Wall -Wextra -Werror -Wconversion -Wshadow -pedantic -fPIC -shared -I. arc1_transform.c -o build/libarc1_transform.so
+cc -std=c11 -O2 -Wall -Wextra -Werror -Wconversion -Wshadow -pedantic -fsanitize=undefined -fno-sanitize-recover=all -I. arc1_transform.c tests/vector_check.c -o build/vector_check
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 tests/generate_vectors.py build/vectors.hex
+Generated 1165 deterministic oracle vectors (15 hand-checked cases).
+./build/vector_check build/vectors.hex
+PASS C vector runner: 1165 cases
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 tests/test_reference.py build/libarc1_transform.so
+PASS C ABI: 1165 batch and 1165 scalar oracle comparisons; zero-count/null batch.
+/workspace/.tools/iverilog/bin/iverilog -g2012 -Wall -s transform_tb -o build/transform_tb rtl/arc1_transform.sv tests/transform_tb.sv
+/workspace/.tools/iverilog/bin/vvp build/transform_tb +VECTORS=build/vectors.hex
+PASS RTL: 1165 oracle comparisons; busy/held-output reset cancellation; input stalls=12261 output stalls=3563 simultaneous retire/accept=1164 cycles=13465
+PASS: retained complete logs and verification_results.json; host/RTL simulation only.

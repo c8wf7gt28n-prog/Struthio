@@ -1,0 +1,23 @@
+psram_qspi_core: PU_CYC=7502 GAP_CYC=4 TCEM_CYC=150 BUDGET=112 WDOG=131 CHUNK=6 INIT_DIV=1
+TB_CONFIG cfg=C3 MCLK_HZ=50000000 CLK_DIV=2 SCLK_HZ=12500000 UCLK_NS=10.000 TCEM_NS=3000 BUF=256
+INFO ready_at_ns=154460.0 resets=1 id_reads=1
+TEST T1_reset_readiness done t=154460000 errors=0 violations=0 contention=0
+TEST T2_data_bit_walk done t=187840000 errors=0 violations=0 contention=0
+TEST T3_address_walk done t=336110000 errors=0 violations=0 contention=0
+TEST T5_first_last done t=721400000 errors=0 violations=0 contention=0
+TEST T6_page_boundaries done t=1175760000 errors=0 violations=0 contention=0
+INFO seq_write bytes=8192 ns=2638720.0 MBps_sim=3.105
+INFO seq_read bytes=8192 ns=3381120.0 MBps_sim=2.423
+TEST T7_sequential_bursts done t=7195600000 errors=0 violations=0 contention=0
+TEST T8_invalid_requests done t=7195730000 errors=0 violations=0 contention=0
+TEST T14_read_after_write done t=7244330000 errors=0 violations=0 contention=0
+TEST T4_random done t=16445740000 errors=0 violations=0 contention=0
+INFO reset_in_transfer status=4
+TEST T10_reset_in_transfer done t=16918700000 errors=0 violations=0 contention=0
+TEST T11_id_error_recovery done t=16975780000 errors=0 violations=0 contention=0
+TEST T12_watchdog_recovery done t=17179270000 errors=0 violations=0 contention=0
+TEST T13_user_timeout done t=17673660000 errors=0 violations=0 contention=0
+SUMMARY cfg=C3 ops=405 compared_bytes=14225 errors=0 model_violations=0 contention=0 xdata=0
+SUMMARY_MODEL ce=7919 data_cmds=7888 writes=4240 reads=3648 bytes_w=24745 bytes_r=24838 resets=8 incomplete_cmds=6 page_cross=0 partial_writes=0 max_ce_low_ns=2640.0 min_sclk_period_ns=40.00
+PSRAM_TB_PASS cfg=C3
+tb/tb_psram.sv:387: $finish called at 17675660000 (1ps)

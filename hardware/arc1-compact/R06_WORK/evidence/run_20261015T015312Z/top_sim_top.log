@@ -1,0 +1,19 @@
+TEST ident done errors=0
+TEST buffer_integrity done errors=0
+TEST cs_abort done errors=0
+INFO golden frame 0 len=24 passed through unchanged
+INFO golden frame 1 len=25 passed through unchanged
+INFO golden frame 2 len=40 passed through unchanged
+INFO golden frame 3 len=4120 passed through unchanged
+INFO golden frame 4 len=4120 passed through unchanged
+TEST golden_loopback done errors=0
+TEST doorbell_rules done errors=0
+INFO bist pass=1 fail=0 errs=0
+TEST psram_bist_pass done errors=0
+INFO bist-with-fault pass=0 fail=1 errs=1
+TEST psram_bist_detects_fault done errors=0
+TEST psram_recover done errors=0
+TEST fpga_reset done errors=0
+SUMMARY tb_top errors=0 model_violations=0
+TOP_TB_PASS
+tb/tb_top.sv:247: $finish called at 42446143750 (1ps)

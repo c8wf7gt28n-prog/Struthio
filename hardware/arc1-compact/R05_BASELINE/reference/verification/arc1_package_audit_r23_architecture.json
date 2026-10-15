@@ -1,0 +1,794 @@
+{
+  "status": "SOURCE_REVIEW_ONLY",
+  "fabrication": "NO-GO",
+  "gates": [
+    {
+      "id": "G01",
+      "state": "OPEN"
+    },
+    {
+      "id": "G02",
+      "state": "OPEN"
+    },
+    {
+      "id": "G03",
+      "state": "OPEN"
+    },
+    {
+      "id": "G04",
+      "state": "OPEN"
+    },
+    {
+      "id": "G05",
+      "state": "OPEN"
+    },
+    {
+      "id": "G06",
+      "state": "OPEN"
+    },
+    {
+      "id": "G07",
+      "state": "OPEN"
+    },
+    {
+      "id": "G08",
+      "state": "OPEN"
+    },
+    {
+      "id": "G09",
+      "state": "OPEN"
+    },
+    {
+      "id": "G10",
+      "state": "OPEN"
+    },
+    {
+      "id": "G11",
+      "state": "OPEN"
+    },
+    {
+      "id": "G12",
+      "state": "OPEN"
+    },
+    {
+      "id": "G13",
+      "state": "OPEN"
+    },
+    {
+      "id": "G14",
+      "state": "OPEN"
+    }
+  ],
+  "calculations": {
+    "hostRawBytesPerSecond": 125000000,
+    "modes": [
+      {
+        "id": "720p60",
+        "width": 1280,
+        "height": 720,
+        "totalWidth": 1650,
+        "totalHeight": 750,
+        "fps": 60,
+        "framebufferBytesPerPixel": 4,
+        "sourceIds": [
+          "LINUX-MODES"
+        ],
+        "frameBytes": 3686400,
+        "scanoutBytesPerSecond": 221184000,
+        "pixelClockMHz": 74.25,
+        "singleLinkMbps": 519.75,
+        "dualLinkMbps": 259.875,
+        "hostRawCeilingExceeded": true,
+        "hostRawFrameRateCeiling": 33.908420138888886,
+        "singleLinkExceedsLvdsLimit": false,
+        "dualLinkExceedsLvdsLimit": false,
+        "measuredScanoutBytesPerSecond": null
+      },
+      {
+        "id": "1080p60",
+        "width": 1920,
+        "height": 1080,
+        "totalWidth": 2200,
+        "totalHeight": 1125,
+        "fps": 60,
+        "framebufferBytesPerPixel": 4,
+        "sourceIds": [
+          "LINUX-MODES"
+        ],
+        "frameBytes": 8294400,
+        "scanoutBytesPerSecond": 497664000,
+        "pixelClockMHz": 148.5,
+        "singleLinkMbps": 1039.5,
+        "dualLinkMbps": 519.75,
+        "hostRawCeilingExceeded": true,
+        "hostRawFrameRateCeiling": 15.070408950617283,
+        "singleLinkExceedsLvdsLimit": true,
+        "dualLinkExceedsLvdsLimit": false,
+        "measuredScanoutBytesPerSecond": null
+      },
+      {
+        "id": "720p60 RGB888",
+        "width": 1280,
+        "height": 720,
+        "totalWidth": 1650,
+        "totalHeight": 750,
+        "fps": 60,
+        "framebufferBytesPerPixel": 3,
+        "sourceIds": [
+          "LINUX-MODES"
+        ],
+        "frameBytes": 2764800,
+        "scanoutBytesPerSecond": 165888000,
+        "pixelClockMHz": 74.25,
+        "singleLinkMbps": 519.75,
+        "dualLinkMbps": 259.875,
+        "hostRawCeilingExceeded": true,
+        "hostRawFrameRateCeiling": 45.211226851851855,
+        "singleLinkExceedsLvdsLimit": false,
+        "dualLinkExceedsLvdsLimit": false,
+        "measuredScanoutBytesPerSecond": null
+      },
+      {
+        "id": "1080p60 RGB888",
+        "width": 1920,
+        "height": 1080,
+        "totalWidth": 2200,
+        "totalHeight": 1125,
+        "fps": 60,
+        "framebufferBytesPerPixel": 3,
+        "sourceIds": [
+          "LINUX-MODES"
+        ],
+        "frameBytes": 6220800,
+        "scanoutBytesPerSecond": 373248000,
+        "pixelClockMHz": 148.5,
+        "singleLinkMbps": 1039.5,
+        "dualLinkMbps": 519.75,
+        "hostRawCeilingExceeded": true,
+        "hostRawFrameRateCeiling": 20.093878600823047,
+        "singleLinkExceedsLvdsLimit": true,
+        "dualLinkExceedsLvdsLimit": false,
+        "measuredScanoutBytesPerSecond": null
+      }
+    ],
+    "resourceBudget": {
+      "gpioPerChip": 256,
+      "ddioPerChip": 96,
+      "configDdioPins": 19,
+      "ddrReferenceDdioPins": 1,
+      "conservativeUnannotatedDdioPins": 76,
+      "lvdsTxPairs": 40,
+      "lvdsRxPairs": 40,
+      "hardDdrControllersPerChip": 1,
+      "bankCounts": {
+        "BANK1A": {
+          "gpio": 9,
+          "ddio": 9,
+          "configurationCandidates": 9
+        },
+        "BANK1B": {
+          "gpio": 12,
+          "ddio": 12,
+          "configurationCandidates": 6
+        },
+        "BANK1C": {
+          "gpio": 16,
+          "ddio": 16,
+          "configurationCandidates": 0
+        },
+        "BANK1D": {
+          "gpio": 15,
+          "ddio": 15,
+          "configurationCandidates": 0
+        },
+        "BANK1E": {
+          "gpio": 3,
+          "ddio": 3,
+          "configurationCandidates": 0
+        },
+        "BANK1F": {
+          "gpio": 11,
+          "ddio": 11,
+          "configurationCandidates": 0
+        },
+        "BANK1G": {
+          "gpio": 7,
+          "ddio": 7,
+          "configurationCandidates": 4
+        },
+        "BANK2A": {
+          "gpio": 14,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK2B": {
+          "gpio": 16,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK2C": {
+          "gpio": 14,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK2D": {
+          "gpio": 12,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK2E": {
+          "gpio": 16,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK2F": {
+          "gpio": 16,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK3D": {
+          "gpio": 16,
+          "ddio": 16,
+          "configurationCandidates": 0
+        },
+        "BANK4A": {
+          "gpio": 8,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK4B": {
+          "gpio": 14,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK4C": {
+          "gpio": 14,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK4D": {
+          "gpio": 10,
+          "ddio": 0,
+          "configurationCandidates": 0
+        },
+        "BANK4E": {
+          "gpio": 14,
+          "ddio": 0,
+          "configurationCandidates": 12
+        },
+        "BANK4F": {
+          "gpio": 12,
+          "ddio": 0,
+          "configurationCandidates": 12
+        },
+        "BR": {
+          "gpio": 3,
+          "ddio": 3,
+          "configurationCandidates": 0
+        },
+        "TR": {
+          "gpio": 4,
+          "ddio": 4,
+          "configurationCandidates": 0
+        }
+      }
+    },
+    "linkCandidates": [
+      {
+        "widthPerDirection": 16,
+        "ddioDataPinsPerChip": 32,
+        "bytesPerClockPerDirection": 4,
+        "clockMHz": null,
+        "rawBytesPerSecond": null,
+        "remainingConservativeDdioAfterData": 44,
+        "rgmiiPhysicalPinsBudget": 12,
+        "remainingConservativeDdioAfterDataAndRgmii": 32
+      },
+      {
+        "widthPerDirection": 32,
+        "ddioDataPinsPerChip": 64,
+        "bytesPerClockPerDirection": 8,
+        "clockMHz": null,
+        "rawBytesPerSecond": null,
+        "remainingConservativeDdioAfterData": 12,
+        "rgmiiPhysicalPinsBudget": 12,
+        "remainingConservativeDdioAfterDataAndRgmii": 0
+      }
+    ],
+    "serializedLinkCandidates": [
+      {
+        "lanesPerDirection": 4,
+        "lvdsTxPairsForData": 4,
+        "lvdsRxPairsForData": 4,
+        "sourceLaneCeilingMbps": 800,
+        "theoreticalRawBytesPerSecond": 400000000,
+        "achievedLaneMbps": null,
+        "achievedBytesPerSecond": null,
+        "clockPairs": null
+      },
+      {
+        "lanesPerDirection": 8,
+        "lvdsTxPairsForData": 8,
+        "lvdsRxPairsForData": 8,
+        "sourceLaneCeilingMbps": 800,
+        "theoreticalRawBytesPerSecond": 800000000,
+        "achievedLaneMbps": null,
+        "achievedBytesPerSecond": null,
+        "clockPairs": null
+      },
+      {
+        "lanesPerDirection": 16,
+        "lvdsTxPairsForData": 16,
+        "lvdsRxPairsForData": 16,
+        "sourceLaneCeilingMbps": 800,
+        "theoreticalRawBytesPerSecond": 1600000000,
+        "achievedLaneMbps": null,
+        "achievedBytesPerSecond": null,
+        "clockPairs": null
+      }
+    ],
+    "memoryPools": {
+      "pools": [
+        {
+          "device": "F133-B",
+          "targetMiB": 64,
+          "physicalCandidateBits": 536870912,
+          "part": "F133-B internal DDR2",
+          "dqBits": null,
+          "targetMtps": null,
+          "independent": true,
+          "measuredMiB": null,
+          "candidateMiB": 64,
+          "capacityConflict": false
+        },
+        {
+          "device": "T120-A",
+          "targetMiB": 128,
+          "physicalCandidateBits": 1073741824,
+          "part": "AS4C32M32MD2A-25BIN",
+          "dqBits": 32,
+          "targetMtps": 800,
+          "independent": true,
+          "measuredMiB": null,
+          "candidateMiB": 128,
+          "capacityConflict": false
+        },
+        {
+          "device": "T120-B",
+          "targetMiB": 128,
+          "physicalCandidateBits": 1073741824,
+          "part": "AS4C32M32MD2A-25BIN",
+          "dqBits": 32,
+          "targetMtps": 800,
+          "independent": true,
+          "measuredMiB": null,
+          "candidateMiB": 128,
+          "capacityConflict": false
+        },
+        {
+          "device": "BT820B",
+          "targetMiB": 64,
+          "physicalCandidateBits": 1073741824,
+          "part": "AS4C64M16MD2A-25BIN",
+          "dqBits": 16,
+          "targetMtps": 800,
+          "independent": true,
+          "measuredMiB": null,
+          "candidateMiB": 128,
+          "capacityConflict": true
+        }
+      ],
+      "targetInstalledMiB": 384,
+      "candidateInstalledMiB": 448,
+      "sharedAddressSpace": false,
+      "measuredInstalledMiB": null
+    },
+    "norDevices": [
+      {
+        "id": "NOR-F133",
+        "owner": "F133-B",
+        "targetBytes": 16777216,
+        "part": null,
+        "eraseBlockBytes": null,
+        "actualImageBytes": null,
+        "fit": "UNKNOWN",
+        "measuredEnduranceCycles": null
+      },
+      {
+        "id": "NOR-T120-A",
+        "owner": "T120-A",
+        "targetBytes": 16777216,
+        "part": null,
+        "eraseBlockBytes": null,
+        "actualImageBytes": null,
+        "fit": "UNKNOWN",
+        "measuredEnduranceCycles": null
+      },
+      {
+        "id": "NOR-T120-B",
+        "owner": "T120-B",
+        "targetBytes": 16777216,
+        "part": null,
+        "eraseBlockBytes": null,
+        "actualImageBytes": null,
+        "fit": "UNKNOWN",
+        "measuredEnduranceCycles": null
+      }
+    ],
+    "videoClockStudy": {
+      "requiredLinkMHz": 74.25,
+      "oscillatorMHz": 38.4,
+      "documentedMultipliers": [
+        13,
+        15
+      ],
+      "dividerRange": [
+        1,
+        16
+      ],
+      "txPclkCeilingMHz": 83.2,
+      "formula": "38.4 * SYSPLL_NS / (2 * (TXCLKDIV + 1))",
+      "configurations": [
+        {
+          "multiplier": 13,
+          "divider": 1,
+          "clockMHz": 249.6,
+          "withinTxPclkLimit": false
+        },
+        {
+          "multiplier": 13,
+          "divider": 2,
+          "clockMHz": 124.8,
+          "withinTxPclkLimit": false
+        },
+        {
+          "multiplier": 13,
+          "divider": 3,
+          "clockMHz": 83.2,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 4,
+          "clockMHz": 62.4,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 5,
+          "clockMHz": 49.92,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 6,
+          "clockMHz": 41.6,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 7,
+          "clockMHz": 35.65714285714286,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 8,
+          "clockMHz": 31.2,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 9,
+          "clockMHz": 27.733333333333334,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 10,
+          "clockMHz": 24.96,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 11,
+          "clockMHz": 22.69090909090909,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 12,
+          "clockMHz": 20.8,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 13,
+          "clockMHz": 19.2,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 14,
+          "clockMHz": 17.82857142857143,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 15,
+          "clockMHz": 16.64,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 13,
+          "divider": 16,
+          "clockMHz": 15.6,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 1,
+          "clockMHz": 288,
+          "withinTxPclkLimit": false
+        },
+        {
+          "multiplier": 15,
+          "divider": 2,
+          "clockMHz": 144,
+          "withinTxPclkLimit": false
+        },
+        {
+          "multiplier": 15,
+          "divider": 3,
+          "clockMHz": 96,
+          "withinTxPclkLimit": false
+        },
+        {
+          "multiplier": 15,
+          "divider": 4,
+          "clockMHz": 72,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 5,
+          "clockMHz": 57.6,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 6,
+          "clockMHz": 48,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 7,
+          "clockMHz": 41.142857142857146,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 8,
+          "clockMHz": 36,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 9,
+          "clockMHz": 32,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 10,
+          "clockMHz": 28.8,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 11,
+          "clockMHz": 26.181818181818183,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 12,
+          "clockMHz": 24,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 13,
+          "clockMHz": 22.153846153846153,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 14,
+          "clockMHz": 20.571428571428573,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 15,
+          "clockMHz": 19.2,
+          "withinTxPclkLimit": true
+        },
+        {
+          "multiplier": 15,
+          "divider": 16,
+          "clockMHz": 18,
+          "withinTxPclkLimit": true
+        }
+      ],
+      "documentedReachable": false,
+      "nearestDocumentedMHz": 72,
+      "vendorApprovedAlternative": null,
+      "measuredClockMHz": null,
+      "note": "Documented configuration gap; do not infer all vendor strategies are impossible or silently change the 60 Hz target."
+    },
+    "btMemoryTrafficStudy": {
+      "hypotheticalRgb888Passes": 4,
+      "rawBytesPerSecond": 1600000000,
+      "hypotheticalActiveBytesPerSecond": 1492992000,
+      "actualPassCount": null,
+      "measuredBytesPerSecond": null
+    },
+    "aToBtDualRgb24PairBudget": {
+      "dataPairs": 8,
+      "clockPairs": 2,
+      "totalPairs": 10,
+      "assignedPairs": null
+    }
+  },
+  "findings": [
+    {
+      "id": "R23-AF01",
+      "title": "Resolve the BT memory candidate discrepancy",
+      "message": "Selected independent pools total 384 MiB. AS4C64M16MD2A-25BIN is 1 Gbit = 128 MiB, making the named candidate installation 448 MiB. Keep the 64 MiB BT target; choose and qualify its exact part or obtain an explicit owner decision.",
+      "sourceIds": [
+        "R23-AUTHORITY",
+        "ALLIANCE-DDR",
+        "BT-DS"
+      ],
+      "gateIds": [
+        "G12",
+        "G07"
+      ]
+    },
+    {
+      "id": "R23-AF02",
+      "title": "74.25 MHz clock strategy remains OPEN",
+      "message": "AN086 v1.4 documents 38.4 MHz × {13,15} / (2 × divider), divider 1–16. No documented setting produces 74.25 MHz. Nearest is 72 MHz, which would change the standard timing/frame rate. Obtain a vendor-approved 60 Hz strategy without bypassing BT820B.",
+      "sourceIds": [
+        "BT-PROGRAM",
+        "BT-DS",
+        "LINUX-MODES"
+      ],
+      "gateIds": [
+        "G02",
+        "G12"
+      ]
+    },
+    {
+      "id": "R23-AF03",
+      "title": "Budget both LVDS boundaries",
+      "message": "For RGB24 dual-pixel input, conservatively budget eight T120-A TX data pairs plus two clock pairs. BT outputs also expose two clock pairs; the ITE reference uses a common clock. Pair allocation, odd/even alignment and clock connection need exact-source proof; never tie active clock outputs.",
+      "sourceIds": [
+        "BT-HARDWARE",
+        "T120-PINOUT",
+        "ITE-6263"
+      ],
+      "gateIds": [
+        "G02",
+        "G08",
+        "G12"
+      ]
+    },
+    {
+      "id": "R23-AF04",
+      "title": "Render locally and measure BT traffic",
+      "message": "1080p60 active RGB888 is 373.248 MB/s and RGBA32 is 497.664 MB/s, above the raw 125 MB/s host ceiling. Four hypothetical RGB888 DRAM passes would consume 1492.992 MB/s of the BT x16-800 raw 1600 MB/s; actual pass count, overlays, arbitration and latency remain unmeasured.",
+      "sourceIds": [
+        "LINUX-MODES",
+        "BT-DS",
+        "R23-AUTHORITY"
+      ],
+      "gateIds": [
+        "G01",
+        "G04",
+        "G12"
+      ]
+    },
+    {
+      "id": "R23-AF05",
+      "title": "Prove capacity separately in each NOR",
+      "message": "Each CPU/FPGA has exactly 16 MiB selected NOR capacity. Generated loadable bytes, erase-rounded metadata, boot/rollback layout and part endurance are unknown. The 48 MiB aggregate cannot cover overflow in another device.",
+      "sourceIds": [
+        "R23-AUTHORITY",
+        "STORAGE-REVIEW"
+      ],
+      "gateIds": [
+        "G05",
+        "G13"
+      ]
+    },
+    {
+      "id": "R23-AF06",
+      "title": "Separate cold boot from game personality loading",
+      "message": "A and B cold-boot from their own NORs. Study passive/RAM-staged B game loading with exclusive programming ownership, NOR isolation, CRC/fences and independent JTAG recovery. Per-launch NOR rewriting is not the default.",
+      "sourceIds": [
+        "R23-AUTHORITY",
+        "T120-DS",
+        "STORAGE-REVIEW"
+      ],
+      "gateIds": [
+        "G03",
+        "G05",
+        "G13"
+      ]
+    },
+    {
+      "id": "R23-AF07",
+      "title": "Keep power and lifetime qualification blocking",
+      "message": "Regular I4 FPGA core/PLL is nominal 1.2 V. Alliance LPDDR2 needs near-1.8 V VDD1 and near-1.2 V VDD2/CA/Q classes. The preliminary part limits uncontrolled power-offs to 400 over life; current vendor confirmation and controlled shutdown/power-loss qualification remain required.",
+      "sourceIds": [
+        "T120-DS",
+        "ALLIANCE-DDR"
+      ],
+      "gateIds": [
+        "G01",
+        "G07",
+        "G09",
+        "G11",
+        "G12"
+      ]
+    },
+    {
+      "id": "R23-AF08",
+      "title": "Complete the paired resource and host study",
+      "message": "The workbook has 96 DDIO and 40 TX/40 RX pairs per F484. Quarantining configuration/DDR-reference candidates leaves 76 DDIO; this is not a net allocation. DDR startup PLL/ref, RGMII pinmux/fixed-link driver integration, SPI rescue and native-LVDS A/B alternatives need whole-system Efinity and bench evidence.",
+      "sourceIds": [
+        "T120-PINOUT",
+        "T120-DS",
+        "HOST-S02",
+        "HOST-S03"
+      ],
+      "gateIds": [
+        "G01",
+        "G03",
+        "G04",
+        "G08"
+      ]
+    },
+    {
+      "id": "R23-AF09",
+      "title": "Assign control, assets and audio explicitly",
+      "message": "BT SPI/QSPI control master is OPEN; its raw QSPI ceiling is 30 MB/s and is not automatic access to FPGA RAM. BT I²S is transmit-slave and requires an external BCLK/LRCLK master. SDK, asset transfers, sound source, EDID/HPD/DDC and bridge control need explicit ownership.",
+      "sourceIds": [
+        "BT-DS",
+        "BT-PROGRAM",
+        "R23-AUTHORITY"
+      ],
+      "gateIds": [
+        "G02",
+        "G10",
+        "G12"
+      ]
+    },
+    {
+      "id": "R23-AF10",
+      "title": "Qualify the separate SPI NAND game library",
+      "message": "NAND model/capacity, ECC/OOB/bad-block handling, wear leveling, power-loss-safe updates and exact F133 BSP/controller support are OPEN. Generic Linux support is a candidate path, not a tested console driver. No eMMC substitution.",
+      "sourceIds": [
+        "R23-AUTHORITY",
+        "STORAGE-REVIEW"
+      ],
+      "gateIds": [
+        "G05",
+        "G14"
+      ]
+    }
+  ]
+}

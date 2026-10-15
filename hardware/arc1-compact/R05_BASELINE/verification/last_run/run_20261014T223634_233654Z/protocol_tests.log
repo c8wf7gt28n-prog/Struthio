@@ -1,0 +1,31 @@
+mkdir -p build
+cc -Iinclude -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -fPIC -shared src/arc1_protocol.c -o build/libarc1_protocol.so
+cc -Iinclude -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow src/arc1_protocol.c tests/test_protocol.c -o build/test_protocol
+./build/test_protocol
+PASS codec: CRC check, max/overflow/truncation/capacity, every single-bit corruption, overlap
+PASS stream: every split, embedded magic, noise/CRC resync, explicit truncated-transaction boundary
+PASS session: epoch/reset, exact duplicates/conflicts, sequence gaps, credits, out-of-order completion, eviction, wrap boundary, 10000 reuse cycles
+PASS typed status: valid roundtrip, unknown code and excessive credit rejection
+PASS full eight-slot window, reverse completion, invalid API input without sequence/credit mutation
+PASS deterministic malformed fuzz: 20000 bounded buffers through decoder and incremental parser
+ALL PORTABLE PROTOCOL CHECKS PASSED; no SPI or physical hardware exercised
+python3 -m unittest discover -s tests -p 'test_reference.py' -v
+test_c_capacity_boundaries (test_reference.CReferenceTests.test_c_capacity_boundaries) ... ok
+test_c_deterministic_random_roundtrip (test_reference.CReferenceTests.test_c_deterministic_random_roundtrip) ... ok
+test_c_every_max_frame_truncation (test_reference.CReferenceTests.test_c_every_max_frame_truncation) ... ok
+test_c_golden_vectors (test_reference.CReferenceTests.test_c_golden_vectors) ... ok
+test_c_mutations_and_trailing_bytes (test_reference.CReferenceTests.test_c_mutations_and_trailing_bytes) ... ok
+test_c_reserved_header_fields_with_valid_crc (test_reference.CReferenceTests.test_c_reserved_header_fields_with_valid_crc) ... ok
+test_c_semantic_encode_rejections (test_reference.CReferenceTests.test_c_semantic_encode_rejections) ... ok
+test_all_max_frame_prefixes_rejected (test_reference.ReferenceTests.test_all_max_frame_prefixes_rejected) ... ok
+test_crc_standard_check (test_reference.ReferenceTests.test_crc_standard_check) ... ok
+test_deterministic_random_roundtrip (test_reference.ReferenceTests.test_deterministic_random_roundtrip) ... ok
+test_encoder_semantic_rejections (test_reference.ReferenceTests.test_encoder_semantic_rejections) ... ok
+test_golden_vectors (test_reference.ReferenceTests.test_golden_vectors) ... ok
+test_golden_vectors_are_reproducible (test_reference.ReferenceTests.test_golden_vectors_are_reproducible) ... ok
+test_header_layout (test_reference.ReferenceTests.test_header_layout) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.556s
+
+OK

@@ -1,0 +1,141 @@
+{
+  "schema_id": "arc1-compact-unified-r06-directive-v1",
+  "date": "2026-10-14",
+  "revision": "R06 PLANNED",
+  "hardware_implemented": false,
+  "fabrication_ready": false,
+  "source_baseline": "R05_BASELINE/",
+  "r05_sources_modified": false,
+  "ownership": {
+    "authority_files": [
+      "CLAUDE.md",
+      "START_HERE.md",
+      "ENGINEERING_CHANGE_R06.md",
+      "PASS_6_AND_7.md",
+      "PRODUCT_VISION_2D_FPGA_AUDIO.md"
+    ],
+    "r05_reference_only": [
+      "R05_BASELINE/CLAUDE.md",
+      "R05_BASELINE/OWNER_SELECTION.md",
+      "R05_BASELINE/engineering/architecture.json"
+    ]
+  },
+  "processors": [
+    {
+      "name": "Allwinner F133-B",
+      "role": "sole baseline GPU command master and game CPU",
+      "ram_private_mib": 64,
+      "ram_kind": "in-package DDR2"
+    },
+    {
+      "name": "Bridgetek BT820B on MN820",
+      "role": "graphics composition plus scanout",
+      "ram_private_mib": 128,
+      "ram_kind": "MN820 integrated DDR3L"
+    },
+    {
+      "name": "Efinix Trion T35F400C3",
+      "role": "OPTIONAL accelerator; not boot/display dependency",
+      "ram_private_mib": 8,
+      "ram_kind": "candidate external QSPI PSRAM + internal block SRAM",
+      "ram_candidate_part": "AP Memory APS6404L-3SQR-SN",
+      "ram_electrically_qualified": false
+    }
+  ],
+  "links": [
+    {
+      "from": "F133-B",
+      "to": "BT820B",
+      "protocol": "dedicated SPI/QSPI",
+      "purpose": "direct graphics commands",
+      "master": "F133-B",
+      "status": "SELECTED UNVERIFIED"
+    },
+    {
+      "from": "F133-B",
+      "to": "T35F400C3",
+      "protocol": "separate SPI + mailbox",
+      "purpose": "optional compute jobs",
+      "master": "F133-B",
+      "status": "SELECTED UNVERIFIED"
+    },
+    {
+      "from": "T35F400C3",
+      "to": "APS6404L-3SQR-SN",
+      "protocol": "Quad-SPI",
+      "purpose": "private FPGA working memory",
+      "master": "T35F400C3",
+      "status": "SELECTED CANDIDATE UNVERIFIED"
+    },
+    {
+      "from": "BT820B",
+      "to": "LCD",
+      "protocol": "LVDS",
+      "purpose": "pixel output",
+      "status": "EVALUATION PANEL UNVERIFIED"
+    }
+  ],
+  "display": {
+    "candidate": "Newhaven NHD-7.0-1024600AF-LSXP Rev2C",
+    "candidate_inches": 7,
+    "candidate_resolution": [
+      1024,
+      600
+    ],
+    "orientation_frozen": false,
+    "measured_operating": false
+  },
+  "memory_mib_private_sum": 200,
+  "unified_memory": false,
+  "t35_previous_128_mib_ddr3l_status": "DEFERRED NOT BASELINE",
+  "tests": {
+    "r05_host_results": "ARCHIVED EVIDENCE",
+    "r06_fpga_native_eda": "NOT RUN",
+    "r06_electrical": "NOT RUN",
+    "r06_physical_prototype": "NOT RUN"
+  },
+  "major_open_items": [
+    "F133 pinmux for two host SPI links",
+    "exact PSRAM timings+FPGA bank voltage",
+    "T35 Efinity pin-fit and STA",
+    "BT820 driver+display init",
+    "power reset sequencing",
+    "firmware/boot assets",
+    "PCB CAD and JLCPCB DFM"
+  ],
+  "product_direction": {
+    "priority": "Premium richly animated 2D arcade console",
+    "owner_metaphor": "128-bit Super Nintendo: visual aspiration only; no literal 128-bit bus or CPU",
+    "graphics_frames_per_second_target": 60,
+    "frames_per_second_measured": false,
+    "2d_effect_goals": [
+      "detailed character and boss animation",
+      "parallax planes",
+      "sprite scaling and rotation",
+      "transparency/masking",
+      "sprites and particles"
+    ],
+    "3d_priority": "non-core, limited 2.5D optional",
+    "display_size_and_orientation": "UNFROZEN"
+  },
+  "fpga_enhancement_philosophy": {
+    "analogy": "Programmable Super FX-style enhancement chip; MMC3-inspired asset-management ideas, not a clone",
+    "reconfigurable_per_game_future_option": true,
+    "required_to_boot_or_render": false,
+    "private_psram_mib_candidate": 8,
+    "performance_measured": false
+  },
+  "audio": {
+    "owner": "Allwinner F133-B",
+    "mixing": "software; audio DMA playback; confirm drivers/package-specific implementation",
+    "sample_target_hz": 48000,
+    "channels": 2,
+    "sample_resolution_bits_target": 16,
+    "simultaneous_mixed_voice_target": 32,
+    "voice_count_measured": false,
+    "speaker_output": "external suitable stereo amplifier; selection not yet validated",
+    "external_i2s_codec": "optional fallback based on actual noise/quality test",
+    "standalone_audio_processor": false,
+    "audio_hw_tested": false
+  }
+}

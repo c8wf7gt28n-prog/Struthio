@@ -1,0 +1,247 @@
+{
+  "schema_id": "arc1-compact-task-queue-v1",
+  "tasks": [
+    {
+      "id": "C01",
+      "priority": "P0",
+      "title": "Independently confirm selected core and source revisions",
+      "depends_on": [],
+      "deliverables": [
+        "confirmation/compatibility_matrix.md",
+        "confirmation/vendor_questions.md if needed"
+      ],
+      "acceptance": [
+        "Exact F133/T35F400C3/BT820/module and panel source revisions recorded",
+        "Capabilities distinguished from implemented/measured results",
+        "Specific conflicts and minimal remedies identified without reopening unrelated choices"
+      ],
+      "hardware_needed": false,
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C02",
+      "priority": "P0",
+      "title": "Complete screen clock, raster, mapping and power worksheet",
+      "depends_on": [
+        "C01"
+      ],
+      "deliverables": [
+        "display/timing_model.json",
+        "display/panel_mapping.md",
+        "display/backlight_reset_plan.md"
+      ],
+      "acceptance": [
+        "48 MHz / 1280 x625 calculation independently verified",
+        "Porch definitions, polarity, clock/scanout registers and lane slots explicitly checked",
+        "Connector, logic supply, current-driven backlight and response-time acceptance defined",
+        "LVDS differential/common-mode/termination/polarity/contact orientation checked separately from panel supply"
+      ],
+      "hardware_needed": "For physical confirmation only",
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C03",
+      "priority": "P0",
+      "title": "Qualify exact FPGA DDR3L part and controller settings",
+      "depends_on": [
+        "C01"
+      ],
+      "deliverables": [
+        "memory/part_comparison.csv",
+        "memory/selected_timing_geometry.md",
+        "memory/vendor_controller_configuration when generated"
+      ],
+      "acceptance": [
+        "1 Gbit x16 equals 128 MiB with exact timing/rail/refresh/termination requirements",
+        "Procurement and lifecycle documented with checked price/quantity/date",
+        "No guessed x32 mapping or unqualified old DDR SKU"
+      ],
+      "hardware_needed": "For channel/full-address confirmation",
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C04",
+      "priority": "P0",
+      "title": "Recover game authority and workload inventory",
+      "depends_on": [],
+      "deliverables": [
+        "game/authority_record.md",
+        "game/scene_inventory.json"
+      ],
+      "acceptance": [
+        "Exact authoritative build identified or missing explicitly recorded",
+        "Viewport/camera/simulation/pose/atlas/object counts extracted from actual source where available",
+        "Synthetic workloads clearly distinguished from game fidelity"
+      ],
+      "hardware_needed": false,
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C05",
+      "priority": "P0",
+      "title": "Build representative BT820 renderer and telemetry",
+      "depends_on": [
+        "C01"
+      ],
+      "deliverables": [
+        "renderer/source and deterministic assets/config",
+        "renderer/build_manifest.json",
+        "renderer/benchmark_procedure.md"
+      ],
+      "acceptance": [
+        "Official BT code revision/license and HAL boundary pinned",
+        "Animated scene/parallax/transparency/transforms and perspective approach demonstrated or implementation status reported",
+        "Unique-frame IDs, timing/list/FIFO/asset metrics implemented",
+        "Challenge scales toward 256 instances/four planes/64 transforms without capacity guarantee"
+      ],
+      "hardware_needed": "BT module/panel for physical execution; source/model work can proceed",
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C06",
+      "priority": "P0",
+      "title": "Specify and implement mailbox, graphics ownership and useful FPGA kernel",
+      "depends_on": [
+        "C01"
+      ],
+      "deliverables": [
+        "protocol/specification.md",
+        "protocol/host_reference and meaningful tests",
+        "rtl/transform_culling_kernel and protocol testbench",
+        "firmware/actual F133 SPI-HAL implementation with pinned sources and toolchain"
+      ],
+      "acceptance": [
+        "Lengths/version/sequence/epoch/CRC/credits/persistentIRQ acknowledgment/timeouts/reset specified",
+        "Single-bit SPI works before quad claim",
+        "Golden numeric/culling boundary tests and whole-path CPU comparison prepared",
+        "FPGA is sole BT QSPI host",
+        "Build and execute actual host transport where hardware is available; retain raw evidence, otherwise explicitly unexecuted"
+      ],
+      "hardware_needed": "For measured transport and acceleration value",
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C07",
+      "priority": "P0",
+      "title": "Generate exact T35 full-interface Efinity design",
+      "depends_on": [
+        "C03",
+        "C06"
+      ],
+      "deliverables": [
+        "eda/native_project",
+        "eda/generated pin-bank-clock-resource-warning-STA reports",
+        "eda/loadable_image and actual length"
+      ],
+      "acceptance": [
+        "Actual T35F400C3 and selected DDR configured",
+        "DDR/mailbox/kernel/QSPI/configuration/recovery/debug/clocks compiled together",
+        "Tool/IP versions, full constraints and genuine warnings/timing preserved",
+        "If tool unavailable, no synthetic report presented as native output",
+        "Decide optional LVDS physical reservation before PCB freeze and include any retained resources in package feasibility"
+      ],
+      "hardware_needed": "Efinity tool/license; board for physical proof",
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C08",
+      "priority": "P0",
+      "title": "Complete boot/storage/recovery and system support plan",
+      "depends_on": [
+        "C01"
+      ],
+      "deliverables": [
+        "system/controller_pinmux_ownership_matrix.csv",
+        "system/boot_recovery_state_machine.md",
+        "system/power_clock_audio_input_bom.md",
+        "firmware/bootable F133 image and reproducible build manifest",
+        "firmware/UART boot evidence and runtime RAM budget when executed"
+      ],
+      "acceptance": [
+        "SD0/SPI0 proposal and boot-select pins validated for exactCPU",
+        "Recovery remains reachable when FPGA user logic is invalid",
+        "Exact images and storage geometry measured before partition promises",
+        "Power/backlight/audio/input/support costs and pending choices documented",
+        "Actual CPU BSP/firmware/HAL/toolchain revisions and build recorded; runtime budget fits 64 MiB; UART boot verified only when run"
+      ],
+      "hardware_needed": "For fault, power and boot tests",
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C09",
+      "priority": "P0",
+      "title": "Run physical display, DDR, scene and concurrent-load qualification",
+      "depends_on": [
+        "C02",
+        "C03",
+        "C05",
+        "C07",
+        "C08"
+      ],
+      "deliverables": [
+        "bench/conditions_and_hardware_versions.md",
+        "bench/raw_logs_and_frame_latency_traces",
+        "bench/results.md"
+      ],
+      "acceptance": [
+        "Full-address memory, reset and recovery tests executed",
+        "Actual clocks, unique presentation, motion artifacts and input-to-photon latency measured",
+        "30-minute representative 60 Hz challenge recorded with deadline/list/transfer/load metrics",
+        "No PASS from refresh counters, code tests or source arithmetic alone"
+      ],
+      "hardware_needed": true,
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    },
+    {
+      "id": "C10",
+      "priority": "P1",
+      "title": "Update Compact handoff, decision registry and reproducible archive",
+      "depends_on": [
+        "C01"
+      ],
+      "deliverables": [
+        "updated architecture/tasks/source registers",
+        "return/change_and_verification_report.md",
+        "updated manifest"
+      ],
+      "acceptance": [
+        "Exact changed files and actual commands/tool versions recorded",
+        "Unresolved checks separated from failed checks",
+        "Selected/documented/proposed/generated/measured evidence remains distinct",
+        "No Tabletop source or original attachment rewritten"
+      ],
+      "hardware_needed": false,
+      "status": "NOT_STARTED_IN_THIS_HANDOFF",
+      "initial_evidence": "TASK_CONTRACT_ONLY",
+      "generated_artifacts": [],
+      "measured_results": null
+    }
+  ]
+}

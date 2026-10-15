@@ -1,0 +1,1962 @@
+{
+ "schema_id": "arc1-r06-board-check-v1",
+ "pass": true,
+ "rules": [
+  {
+   "rule": "t35.all_banks_powered",
+   "pass": true,
+   "detail": "missing VCCIO assignment: []"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK1A]",
+   "pass": true,
+   "detail": "BANK1A on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK1B]",
+   "pass": true,
+   "detail": "BANK1B on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK1C]",
+   "pass": true,
+   "detail": "BANK1C on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK1D]",
+   "pass": true,
+   "detail": "BANK1D on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK1E]",
+   "pass": true,
+   "detail": "BANK1E on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK2A]",
+   "pass": true,
+   "detail": "BANK2A on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK2B]",
+   "pass": true,
+   "detail": "BANK2B on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK2C]",
+   "pass": true,
+   "detail": "BANK2C on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK3C]",
+   "pass": true,
+   "detail": "BANK3C on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[TR]",
+   "pass": true,
+   "detail": "TR on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK4A]",
+   "pass": true,
+   "detail": "BANK4A on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BANK4B]",
+   "pass": true,
+   "detail": "BANK4B on 3V3"
+  },
+  {
+   "rule": "t35.bank_voltage_legal[BR]",
+   "pass": true,
+   "detail": "BR on 3V3"
+  },
+  {
+   "rule": "t35.merged_banks_same_rail[BANK3C_TR]",
+   "pass": true,
+   "detail": "{'3V3'}"
+  },
+  {
+   "rule": "t35.ball_exists[K19]",
+   "pass": true,
+   "detail": "K19"
+  },
+  {
+   "rule": "t35.name_matches[K19]",
+   "pass": true,
+   "detail": "plan GPIOL_46 vs source GPIOL_46"
+  },
+  {
+   "rule": "t35.bank_matches[K19]",
+   "pass": true,
+   "detail": "plan BANK1C vs source BANK1C"
+  },
+  {
+   "rule": "t35.config_pin_policy[K19]",
+   "pass": true,
+   "detail": "GPIOL_46 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[K19]",
+   "pass": true,
+   "detail": "K19"
+  },
+  {
+   "rule": "t35.ball_exists[J18]",
+   "pass": true,
+   "detail": "J18"
+  },
+  {
+   "rule": "t35.name_matches[J18]",
+   "pass": true,
+   "detail": "plan GPIOL_47 vs source GPIOL_47"
+  },
+  {
+   "rule": "t35.bank_matches[J18]",
+   "pass": true,
+   "detail": "plan BANK1C vs source BANK1C"
+  },
+  {
+   "rule": "t35.config_pin_policy[J18]",
+   "pass": true,
+   "detail": "GPIOL_47 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[J18]",
+   "pass": true,
+   "detail": "J18"
+  },
+  {
+   "rule": "t35.ball_exists[K20]",
+   "pass": true,
+   "detail": "K20"
+  },
+  {
+   "rule": "t35.name_matches[K20]",
+   "pass": true,
+   "detail": "plan GPIOL_48 vs source GPIOL_48"
+  },
+  {
+   "rule": "t35.bank_matches[K20]",
+   "pass": true,
+   "detail": "plan BANK1C vs source BANK1C"
+  },
+  {
+   "rule": "t35.config_pin_policy[K20]",
+   "pass": true,
+   "detail": "GPIOL_48 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[K20]",
+   "pass": true,
+   "detail": "K20"
+  },
+  {
+   "rule": "t35.ball_exists[K14]",
+   "pass": true,
+   "detail": "K14"
+  },
+  {
+   "rule": "t35.name_matches[K14]",
+   "pass": true,
+   "detail": "plan GPIOL_49 vs source GPIOL_49"
+  },
+  {
+   "rule": "t35.bank_matches[K14]",
+   "pass": true,
+   "detail": "plan BANK1C vs source BANK1C"
+  },
+  {
+   "rule": "t35.config_pin_policy[K14]",
+   "pass": true,
+   "detail": "GPIOL_49 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[K14]",
+   "pass": true,
+   "detail": "K14"
+  },
+  {
+   "rule": "t35.ball_exists[J20]",
+   "pass": true,
+   "detail": "J20"
+  },
+  {
+   "rule": "t35.name_matches[J20]",
+   "pass": true,
+   "detail": "plan GPIOL_50 vs source GPIOL_50"
+  },
+  {
+   "rule": "t35.bank_matches[J20]",
+   "pass": true,
+   "detail": "plan BANK1C vs source BANK1C"
+  },
+  {
+   "rule": "t35.config_pin_policy[J20]",
+   "pass": true,
+   "detail": "GPIOL_50 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[J20]",
+   "pass": true,
+   "detail": "J20"
+  },
+  {
+   "rule": "t35.ball_exists[J16]",
+   "pass": true,
+   "detail": "J16"
+  },
+  {
+   "rule": "t35.name_matches[J16]",
+   "pass": true,
+   "detail": "plan GPIOL_51 vs source GPIOL_51"
+  },
+  {
+   "rule": "t35.bank_matches[J16]",
+   "pass": true,
+   "detail": "plan BANK1C vs source BANK1C"
+  },
+  {
+   "rule": "t35.config_pin_policy[J16]",
+   "pass": true,
+   "detail": "GPIOL_51 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[J16]",
+   "pass": true,
+   "detail": "J16"
+  },
+  {
+   "rule": "t35.ball_exists[D20]",
+   "pass": true,
+   "detail": "D20"
+  },
+  {
+   "rule": "t35.name_matches[D20]",
+   "pass": true,
+   "detail": "plan GPIOL_66_CLK0 vs source GPIOL_66_CLK0"
+  },
+  {
+   "rule": "t35.bank_matches[D20]",
+   "pass": true,
+   "detail": "plan BANK1C vs source BANK1C"
+  },
+  {
+   "rule": "t35.config_pin_policy[D20]",
+   "pass": true,
+   "detail": "GPIOL_66_CLK0 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[D20]",
+   "pass": true,
+   "detail": "D20"
+  },
+  {
+   "rule": "t35.ball_exists[D17]",
+   "pass": true,
+   "detail": "D17"
+  },
+  {
+   "rule": "t35.name_matches[D17]",
+   "pass": true,
+   "detail": "plan GPIOL_79 vs source GPIOL_79"
+  },
+  {
+   "rule": "t35.bank_matches[D17]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[D17]",
+   "pass": true,
+   "detail": "GPIOL_79 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[D17]",
+   "pass": true,
+   "detail": "D17"
+  },
+  {
+   "rule": "t35.ball_exists[H15]",
+   "pass": true,
+   "detail": "H15"
+  },
+  {
+   "rule": "t35.name_matches[H15]",
+   "pass": true,
+   "detail": "plan GPIOL_81 vs source GPIOL_81"
+  },
+  {
+   "rule": "t35.bank_matches[H15]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[H15]",
+   "pass": true,
+   "detail": "GPIOL_81 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[H15]",
+   "pass": true,
+   "detail": "H15"
+  },
+  {
+   "rule": "t35.ball_exists[F17]",
+   "pass": true,
+   "detail": "F17"
+  },
+  {
+   "rule": "t35.name_matches[F17]",
+   "pass": true,
+   "detail": "plan GPIOL_82 vs source GPIOL_82"
+  },
+  {
+   "rule": "t35.bank_matches[F17]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[F17]",
+   "pass": true,
+   "detail": "GPIOL_82 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[F17]",
+   "pass": true,
+   "detail": "F17"
+  },
+  {
+   "rule": "t35.ball_exists[H14]",
+   "pass": true,
+   "detail": "H14"
+  },
+  {
+   "rule": "t35.name_matches[H14]",
+   "pass": true,
+   "detail": "plan GPIOL_83 vs source GPIOL_83"
+  },
+  {
+   "rule": "t35.bank_matches[H14]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[H14]",
+   "pass": true,
+   "detail": "GPIOL_83 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[H14]",
+   "pass": true,
+   "detail": "H14"
+  },
+  {
+   "rule": "t35.ball_exists[C17]",
+   "pass": true,
+   "detail": "C17"
+  },
+  {
+   "rule": "t35.name_matches[C17]",
+   "pass": true,
+   "detail": "plan GPIOL_84 vs source GPIOL_84"
+  },
+  {
+   "rule": "t35.bank_matches[C17]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[C17]",
+   "pass": true,
+   "detail": "GPIOL_84 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[C17]",
+   "pass": true,
+   "detail": "C17"
+  },
+  {
+   "rule": "t35.ball_exists[A19]",
+   "pass": true,
+   "detail": "A19"
+  },
+  {
+   "rule": "t35.name_matches[A19]",
+   "pass": true,
+   "detail": "plan GPIOL_86 vs source GPIOL_86"
+  },
+  {
+   "rule": "t35.bank_matches[A19]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[A19]",
+   "pass": true,
+   "detail": "GPIOL_86 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[A19]",
+   "pass": true,
+   "detail": "A19"
+  },
+  {
+   "rule": "t35.ball_exists[B16]",
+   "pass": true,
+   "detail": "B16"
+  },
+  {
+   "rule": "t35.name_matches[B16]",
+   "pass": true,
+   "detail": "plan GPIOL_87 vs source GPIOL_87"
+  },
+  {
+   "rule": "t35.bank_matches[B16]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[B16]",
+   "pass": true,
+   "detail": "GPIOL_87 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[B16]",
+   "pass": true,
+   "detail": "B16"
+  },
+  {
+   "rule": "t35.ball_exists[A18]",
+   "pass": true,
+   "detail": "A18"
+  },
+  {
+   "rule": "t35.name_matches[A18]",
+   "pass": true,
+   "detail": "plan GPIOL_88 vs source GPIOL_88"
+  },
+  {
+   "rule": "t35.bank_matches[A18]",
+   "pass": true,
+   "detail": "plan BANK1D vs source BANK1D"
+  },
+  {
+   "rule": "t35.config_pin_policy[A18]",
+   "pass": true,
+   "detail": "GPIOL_88 has configuration function ''"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[A18]",
+   "pass": true,
+   "detail": "A18"
+  },
+  {
+   "rule": "t35.ball_exists[U19]",
+   "pass": true,
+   "detail": "U19"
+  },
+  {
+   "rule": "t35.name_matches[U19]",
+   "pass": true,
+   "detail": "plan CRESET_N vs source CRESET_N"
+  },
+  {
+   "rule": "t35.bank_matches[U19]",
+   "pass": true,
+   "detail": "plan BANK1A vs source BANK1A"
+  },
+  {
+   "rule": "t35.config_pin_policy[U19]",
+   "pass": true,
+   "detail": "CRESET_N has configuration function 'CRESET_N'"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[U19]",
+   "pass": true,
+   "detail": "U19"
+  },
+  {
+   "rule": "t35.ball_exists[T19]",
+   "pass": true,
+   "detail": "T19"
+  },
+  {
+   "rule": "t35.name_matches[T19]",
+   "pass": true,
+   "detail": "plan CDONE vs source CDONE"
+  },
+  {
+   "rule": "t35.bank_matches[T19]",
+   "pass": true,
+   "detail": "plan BANK1A vs source BANK1A"
+  },
+  {
+   "rule": "t35.config_pin_policy[T19]",
+   "pass": true,
+   "detail": "CDONE has configuration function 'CDONE'"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[T19]",
+   "pass": true,
+   "detail": "T19"
+  },
+  {
+   "rule": "t35.ball_exists[W18]",
+   "pass": true,
+   "detail": "W18"
+  },
+  {
+   "rule": "t35.name_matches[W18]",
+   "pass": true,
+   "detail": "plan GPIOL_00_SS_N vs source GPIOL_00_SS_N"
+  },
+  {
+   "rule": "t35.bank_matches[W18]",
+   "pass": true,
+   "detail": "plan BANK1A vs source BANK1A"
+  },
+  {
+   "rule": "t35.config_pin_policy[W18]",
+   "pass": true,
+   "detail": "GPIOL_00_SS_N has configuration function 'SS_N'"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[W18]",
+   "pass": true,
+   "detail": "W18"
+  },
+  {
+   "rule": "t35.ball_exists[W19]",
+   "pass": true,
+   "detail": "W19"
+  },
+  {
+   "rule": "t35.name_matches[W19]",
+   "pass": true,
+   "detail": "plan GPIOL_01_CCK vs source GPIOL_01_CCK"
+  },
+  {
+   "rule": "t35.bank_matches[W19]",
+   "pass": true,
+   "detail": "plan BANK1A vs source BANK1A"
+  },
+  {
+   "rule": "t35.config_pin_policy[W19]",
+   "pass": true,
+   "detail": "GPIOL_01_CCK has configuration function 'CCK'"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[W19]",
+   "pass": true,
+   "detail": "W19"
+  },
+  {
+   "rule": "t35.ball_exists[Y17]",
+   "pass": true,
+   "detail": "Y17"
+  },
+  {
+   "rule": "t35.name_matches[Y17]",
+   "pass": true,
+   "detail": "plan GPIOL_08_CDI0 vs source GPIOL_08_CDI0"
+  },
+  {
+   "rule": "t35.bank_matches[Y17]",
+   "pass": true,
+   "detail": "plan BANK1A vs source BANK1A"
+  },
+  {
+   "rule": "t35.config_pin_policy[Y17]",
+   "pass": true,
+   "detail": "GPIOL_08_CDI0 has configuration function 'CDI0'"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[Y17]",
+   "pass": true,
+   "detail": "Y17"
+  },
+  {
+   "rule": "t35.ball_exists[Y18]",
+   "pass": true,
+   "detail": "Y18"
+  },
+  {
+   "rule": "t35.name_matches[Y18]",
+   "pass": true,
+   "detail": "plan GPIOL_09_CDI1 vs source GPIOL_09_CDI1"
+  },
+  {
+   "rule": "t35.bank_matches[Y18]",
+   "pass": true,
+   "detail": "plan BANK1A vs source BANK1A"
+  },
+  {
+   "rule": "t35.config_pin_policy[Y18]",
+   "pass": true,
+   "detail": "GPIOL_09_CDI1 has configuration function 'CDI1'"
+  },
+  {
+   "rule": "t35.no_duplicate_ball[Y18]",
+   "pass": true,
+   "detail": "Y18"
+  },
+  {
+   "rule": "f133.domain_voltage_legal[VCC-IO]",
+   "pass": true,
+   "detail": "VCC-IO on 3V3 allowed [[2.97, 3.63]]"
+  },
+  {
+   "rule": "f133.domain_voltage_legal[VCC-PD]",
+   "pass": true,
+   "detail": "VCC-PD on 3V3 allowed [[1.62, 1.98], [2.97, 3.63]]"
+  },
+  {
+   "rule": "f133.domain_voltage_legal[VCC-PE]",
+   "pass": true,
+   "detail": "VCC-PE on 3V3 allowed [[1.62, 1.98], [2.52, 3.08], [2.97, 3.63]]"
+  },
+  {
+   "rule": "f133.domain_voltage_legal[VCC-PG]",
+   "pass": true,
+   "detail": "VCC-PG on 3V3 allowed [[1.62, 1.98], [2.97, 3.63]]"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD10]",
+   "pass": true,
+   "detail": "PD10"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD10]",
+   "pass": true,
+   "detail": "PD10"
+  },
+  {
+   "rule": "f133.mux_in_table43[PD10]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PD10]",
+   "pass": true,
+   "detail": "datasheet SPI1-CS/DBI-CSX / linux spi1"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD11]",
+   "pass": true,
+   "detail": "PD11"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD11]",
+   "pass": true,
+   "detail": "PD11"
+  },
+  {
+   "rule": "f133.mux_in_table43[PD11]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PD11]",
+   "pass": true,
+   "detail": "datasheet SPI1-CLK/DBI-SCLK / linux spi1"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD12]",
+   "pass": true,
+   "detail": "PD12"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD12]",
+   "pass": true,
+   "detail": "PD12"
+  },
+  {
+   "rule": "f133.mux_in_table43[PD12]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PD12]",
+   "pass": true,
+   "detail": "datasheet SPI1-MOSI/DBI-SDO / linux spi1"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD13]",
+   "pass": true,
+   "detail": "PD13"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD13]",
+   "pass": true,
+   "detail": "PD13"
+  },
+  {
+   "rule": "f133.mux_in_table43[PD13]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PD13]",
+   "pass": true,
+   "detail": "datasheet SPI1-MISO/DBI-SDI/DBI-TE/DBI-DCX / linux spi1"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD15]",
+   "pass": true,
+   "detail": "PD15"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD15]",
+   "pass": true,
+   "detail": "PD15"
+  },
+  {
+   "rule": "f133.mux_in_table43[PD15]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PD15]",
+   "pass": true,
+   "detail": "datasheet SPI1-WP/DBI-TE / linux spi1"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD14]",
+   "pass": true,
+   "detail": "PD14"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD14]",
+   "pass": true,
+   "detail": "PD14"
+  },
+  {
+   "rule": "f133.mux_in_table43[PD14]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PD14]",
+   "pass": true,
+   "detail": "datasheet SPI1-HOLD/DBI-DCX/DBI-WRX / linux spi1"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD16]",
+   "pass": true,
+   "detail": "PD16"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD16]",
+   "pass": true,
+   "detail": "PD16"
+  },
+  {
+   "rule": "f133.mux_gpio[PD16]",
+   "pass": true,
+   "detail": "plain GPIO"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PD17]",
+   "pass": true,
+   "detail": "PD17"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PD17]",
+   "pass": true,
+   "detail": "PD17"
+  },
+  {
+   "rule": "f133.mux_eint[PD17]",
+   "pass": true,
+   "detail": "EINT (Function14 for every GPIO, Table 4-3 header)"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PC2]",
+   "pass": true,
+   "detail": "PC2"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PC2]",
+   "pass": true,
+   "detail": "PC2"
+  },
+  {
+   "rule": "f133.mux_in_table43[PC2]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PC2]",
+   "pass": true,
+   "detail": "datasheet SPI0-CLK / linux spi0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PC3]",
+   "pass": true,
+   "detail": "PC3"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PC3]",
+   "pass": true,
+   "detail": "PC3"
+  },
+  {
+   "rule": "f133.mux_in_table43[PC3]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PC3]",
+   "pass": true,
+   "detail": "datasheet SPI0-CS0 / linux spi0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PC4]",
+   "pass": true,
+   "detail": "PC4"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PC4]",
+   "pass": true,
+   "detail": "PC4"
+  },
+  {
+   "rule": "f133.mux_in_table43[PC4]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PC4]",
+   "pass": true,
+   "detail": "datasheet SPI0-MOSI / linux spi0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PC5]",
+   "pass": true,
+   "detail": "PC5"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PC5]",
+   "pass": true,
+   "detail": "PC5"
+  },
+  {
+   "rule": "f133.mux_in_table43[PC5]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PC5]",
+   "pass": true,
+   "detail": "datasheet SPI0-MISO / linux spi0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PC6]",
+   "pass": true,
+   "detail": "PC6"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PC6]",
+   "pass": true,
+   "detail": "PC6"
+  },
+  {
+   "rule": "f133.mux_eint[PC6]",
+   "pass": true,
+   "detail": "EINT (Function14 for every GPIO, Table 4-3 header)"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PE8]",
+   "pass": true,
+   "detail": "PE8"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PE8]",
+   "pass": true,
+   "detail": "PE8"
+  },
+  {
+   "rule": "f133.mux_gpio[PE8]",
+   "pass": true,
+   "detail": "plain GPIO"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PE9]",
+   "pass": true,
+   "detail": "PE9"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PE9]",
+   "pass": true,
+   "detail": "PE9"
+  },
+  {
+   "rule": "f133.mux_eint[PE9]",
+   "pass": true,
+   "detail": "EINT (Function14 for every GPIO, Table 4-3 header)"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PE2]",
+   "pass": true,
+   "detail": "PE2"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PE2]",
+   "pass": true,
+   "detail": "PE2"
+  },
+  {
+   "rule": "f133.mux_in_table43[PE2]",
+   "pass": true,
+   "detail": "Function6"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PE2]",
+   "pass": true,
+   "detail": "datasheet UART0-TX / linux uart0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PE3]",
+   "pass": true,
+   "detail": "PE3"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PE3]",
+   "pass": true,
+   "detail": "PE3"
+  },
+  {
+   "rule": "f133.mux_in_table43[PE3]",
+   "pass": true,
+   "detail": "Function6"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PE3]",
+   "pass": true,
+   "detail": "datasheet UART0-RX / linux uart0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PE10]",
+   "pass": true,
+   "detail": "PE10"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PE10]",
+   "pass": true,
+   "detail": "PE10"
+  },
+  {
+   "rule": "f133.mux_gpio[PE10]",
+   "pass": true,
+   "detail": "plain GPIO"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PF0]",
+   "pass": true,
+   "detail": "PF0"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PF0]",
+   "pass": true,
+   "detail": "PF0"
+  },
+  {
+   "rule": "f133.mux_in_table43[PF0]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PF0]",
+   "pass": true,
+   "detail": "datasheet SDC0-D1 / linux mmc0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PF1]",
+   "pass": true,
+   "detail": "PF1"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PF1]",
+   "pass": true,
+   "detail": "PF1"
+  },
+  {
+   "rule": "f133.mux_in_table43[PF1]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PF1]",
+   "pass": true,
+   "detail": "datasheet SDC0-D0 / linux mmc0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PF2]",
+   "pass": true,
+   "detail": "PF2"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PF2]",
+   "pass": true,
+   "detail": "PF2"
+  },
+  {
+   "rule": "f133.mux_in_table43[PF2]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PF2]",
+   "pass": true,
+   "detail": "datasheet SDC0-CLK / linux mmc0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PF3]",
+   "pass": true,
+   "detail": "PF3"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PF3]",
+   "pass": true,
+   "detail": "PF3"
+  },
+  {
+   "rule": "f133.mux_in_table43[PF3]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PF3]",
+   "pass": true,
+   "detail": "datasheet SDC0-CMD / linux mmc0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PF4]",
+   "pass": true,
+   "detail": "PF4"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PF4]",
+   "pass": true,
+   "detail": "PF4"
+  },
+  {
+   "rule": "f133.mux_in_table43[PF4]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PF4]",
+   "pass": true,
+   "detail": "datasheet SDC0-D3 / linux mmc0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PF5]",
+   "pass": true,
+   "detail": "PF5"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PF5]",
+   "pass": true,
+   "detail": "PF5"
+  },
+  {
+   "rule": "f133.mux_in_table43[PF5]",
+   "pass": true,
+   "detail": "Function2"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PF5]",
+   "pass": true,
+   "detail": "datasheet SDC0-D2 / linux mmc0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PB4]",
+   "pass": true,
+   "detail": "PB4"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PB4]",
+   "pass": true,
+   "detail": "PB4"
+  },
+  {
+   "rule": "f133.mux_in_table43[PB4]",
+   "pass": true,
+   "detail": "Function3"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PB4]",
+   "pass": true,
+   "detail": "datasheet I2S2-DOUT0 / linux i2s2_dout"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PB5]",
+   "pass": true,
+   "detail": "PB5"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PB5]",
+   "pass": true,
+   "detail": "PB5"
+  },
+  {
+   "rule": "f133.mux_in_table43[PB5]",
+   "pass": true,
+   "detail": "Function3"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PB5]",
+   "pass": true,
+   "detail": "datasheet I2S2-BCLK / linux i2s2"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PB6]",
+   "pass": true,
+   "detail": "PB6"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PB6]",
+   "pass": true,
+   "detail": "PB6"
+  },
+  {
+   "rule": "f133.mux_in_table43[PB6]",
+   "pass": true,
+   "detail": "Function3"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PB6]",
+   "pass": true,
+   "detail": "datasheet I2S2-LRCK / linux i2s2"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PB7]",
+   "pass": true,
+   "detail": "PB7"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PB7]",
+   "pass": true,
+   "detail": "PB7"
+  },
+  {
+   "rule": "f133.mux_in_table43[PB7]",
+   "pass": true,
+   "detail": "Function3"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PB7]",
+   "pass": true,
+   "detail": "datasheet I2S2-MCLK / linux i2s2"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PB2]",
+   "pass": true,
+   "detail": "PB2"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PB2]",
+   "pass": true,
+   "detail": "PB2"
+  },
+  {
+   "rule": "f133.mux_in_table43[PB2]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PB2]",
+   "pass": true,
+   "detail": "datasheet TWI0-SDA / linux i2c0"
+  },
+  {
+   "rule": "f133.pin_bonded_on_eLQFP128[PB3]",
+   "pass": true,
+   "detail": "PB3"
+  },
+  {
+   "rule": "f133.no_duplicate_pin[PB3]",
+   "pass": true,
+   "detail": "PB3"
+  },
+  {
+   "rule": "f133.mux_in_table43[PB3]",
+   "pass": true,
+   "detail": "Function4"
+  },
+  {
+   "rule": "f133.mux_cross_checked_with_linux[PB3]",
+   "pass": true,
+   "detail": "datasheet TWI0-SCK / linux i2c0"
+  },
+  {
+   "rule": "f133.boot_medium_not_emmc_when_spi0_used",
+   "pass": true,
+   "detail": "SD_SMHC0"
+  },
+  {
+   "rule": "f133.boot_strap_sharing_acknowledged",
+   "pass": true,
+   "detail": "strap pins used as SPI: ['PC4', 'PC5']"
+  },
+  {
+   "rule": "f133.quad_io_risk_acknowledged",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "psram.pin_exists[1]",
+   "pass": true,
+   "detail": "1=CE#"
+  },
+  {
+   "rule": "psram.pin_exists[2]",
+   "pass": true,
+   "detail": "2=SO/SIO1"
+  },
+  {
+   "rule": "psram.pin_exists[3]",
+   "pass": true,
+   "detail": "3=SIO2"
+  },
+  {
+   "rule": "psram.pin_exists[5]",
+   "pass": true,
+   "detail": "5=SI/SIO0"
+  },
+  {
+   "rule": "psram.pin_exists[6]",
+   "pass": true,
+   "detail": "6=SCLK"
+  },
+  {
+   "rule": "psram.pin_exists[7]",
+   "pass": true,
+   "detail": "7=SIO3"
+  },
+  {
+   "rule": "psram.vdd_in_range",
+   "pass": true,
+   "detail": "3V3"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[86]",
+   "pass": true,
+   "detail": "CN1.86=SPIS_SCLK"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[88]",
+   "pass": true,
+   "detail": "CN1.88=SPIS_SS_N"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[90]",
+   "pass": true,
+   "detail": "CN1.90=SPIS_MOSI"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[84]",
+   "pass": true,
+   "detail": "CN1.84=SPIS_MISO"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[94]",
+   "pass": true,
+   "detail": "CN1.94=SPIS_IO2"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[92]",
+   "pass": true,
+   "detail": "CN1.92=SPIS_IO3"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[98]",
+   "pass": true,
+   "detail": "CN1.98=RESET_N"
+  },
+  {
+   "rule": "mn820.cn1_pin_matches[96]",
+   "pass": true,
+   "detail": "CN1.96=INT_N"
+  },
+  {
+   "rule": "mn820.vin_in_range",
+   "pass": true,
+   "detail": "3V3"
+  },
+  {
+   "rule": "net.has_two_ends[AMP_SD_N]",
+   "pass": true,
+   "detail": "[('F133', 'PE10', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[AMP_SD_N]",
+   "pass": true,
+   "detail": "[('F133', 'PE10', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.has_two_ends[BT_INT_N]",
+   "pass": true,
+   "detail": "[('F133', 'PD17', 'in', 'F133_GPIO', '3V3'), ('MN820', 'CN1.96/INT_N', 'od', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_INT_N]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[BT_INT_N:MN820->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin n/a (open drain), VIL-VOL margin +0.542 V"
+  },
+  {
+   "rule": "net.has_two_ends[BT_IO0]",
+   "pass": true,
+   "detail": "[('F133', 'PD12', 'bidir', 'F133_GPIO', '3V3'), ('MN820', 'CN1.90/SPIS_MOSI', 'bidir', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_IO0]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[BT_IO0:F133->MN820]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "level.compatible[BT_IO0:MN820->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.542 V, VIL-VOL margin +0.542 V"
+  },
+  {
+   "rule": "net.has_two_ends[BT_IO1]",
+   "pass": true,
+   "detail": "[('F133', 'PD13', 'bidir', 'F133_GPIO', '3V3'), ('MN820', 'CN1.84/SPIS_MISO', 'bidir', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_IO1]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[BT_IO1:F133->MN820]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "level.compatible[BT_IO1:MN820->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.542 V, VIL-VOL margin +0.542 V"
+  },
+  {
+   "rule": "net.has_two_ends[BT_IO2]",
+   "pass": true,
+   "detail": "[('F133', 'PD15', 'bidir', 'F133_GPIO', '3V3'), ('MN820', 'CN1.94/SPIS_IO2', 'bidir', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_IO2]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[BT_IO2:F133->MN820]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "level.compatible[BT_IO2:MN820->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.542 V, VIL-VOL margin +0.542 V"
+  },
+  {
+   "rule": "net.has_two_ends[BT_IO3]",
+   "pass": true,
+   "detail": "[('F133', 'PD14', 'bidir', 'F133_GPIO', '3V3'), ('MN820', 'CN1.92/SPIS_IO3', 'bidir', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_IO3]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[BT_IO3:F133->MN820]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "level.compatible[BT_IO3:MN820->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.542 V, VIL-VOL margin +0.542 V"
+  },
+  {
+   "rule": "net.has_two_ends[BT_RST_N]",
+   "pass": true,
+   "detail": "[('F133', 'PD16', 'out', 'F133_GPIO', '3V3'), ('MN820', 'CN1.98/RESET_N', 'in', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_RST_N]",
+   "pass": true,
+   "detail": "[('F133', 'PD16', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[BT_RST_N:F133->MN820]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "net.has_two_ends[BT_SCK]",
+   "pass": true,
+   "detail": "[('F133', 'PD11', 'out', 'F133_GPIO', '3V3'), ('MN820', 'CN1.86/SPIS_SCLK', 'in', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_SCK]",
+   "pass": true,
+   "detail": "[('F133', 'PD11', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[BT_SCK:F133->MN820]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "net.has_two_ends[BT_SS_N]",
+   "pass": true,
+   "detail": "[('F133', 'PD10', 'out', 'F133_GPIO', '3V3'), ('MN820', 'CN1.88/SPIS_SS_N', 'in', 'BT820_VCCIO33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[BT_SS_N]",
+   "pass": true,
+   "detail": "[('F133', 'PD10', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[BT_SS_N:F133->MN820]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "net.has_two_ends[CFG_FLASH_CS_N]",
+   "pass": true,
+   "detail": "[('T35', 'W18/GPIOL_00_SS_N', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[CFG_FLASH_CS_N]",
+   "pass": true,
+   "detail": "[('T35', 'W18/GPIOL_00_SS_N', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.has_two_ends[CFG_FLASH_IO0]",
+   "pass": true,
+   "detail": "[('T35', 'Y17/GPIOL_08_CDI0', 'bidir', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[CFG_FLASH_IO0]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[CFG_FLASH_IO1]",
+   "pass": true,
+   "detail": "[('T35', 'Y18/GPIOL_09_CDI1', 'bidir', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[CFG_FLASH_IO1]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[CFG_FLASH_SCK]",
+   "pass": true,
+   "detail": "[('T35', 'W19/GPIOL_01_CCK', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[CFG_FLASH_SCK]",
+   "pass": true,
+   "detail": "[('T35', 'W19/GPIOL_01_CCK', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.has_two_ends[DBG_UART0_RX]",
+   "pass": true,
+   "detail": "[('F133', 'PE3', 'in', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[DBG_UART0_RX]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[DBG_UART0_TX]",
+   "pass": true,
+   "detail": "[('F133', 'PE2', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[DBG_UART0_TX]",
+   "pass": true,
+   "detail": "[('F133', 'PE2', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.has_two_ends[PSRAM_CE_N]",
+   "pass": true,
+   "detail": "[('T35', 'K19/GPIOL_46', 'out', 'T35_LVCMOS33', '3V3'), ('PSRAM', '1/CE#', 'in', 'APS6404L', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[PSRAM_CE_N]",
+   "pass": true,
+   "detail": "[('T35', 'K19/GPIOL_46', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[PSRAM_CE_N:T35->PSRAM]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.200 V, VIL-VOL margin +0.200 V"
+  },
+  {
+   "rule": "net.has_two_ends[PSRAM_SCLK]",
+   "pass": true,
+   "detail": "[('T35', 'J18/GPIOL_47', 'out', 'T35_LVCMOS33', '3V3'), ('PSRAM', '6/SCLK', 'in', 'APS6404L', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[PSRAM_SCLK]",
+   "pass": true,
+   "detail": "[('T35', 'J18/GPIOL_47', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SCLK:T35->PSRAM]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.200 V, VIL-VOL margin +0.200 V"
+  },
+  {
+   "rule": "net.has_two_ends[PSRAM_SIO0]",
+   "pass": true,
+   "detail": "[('T35', 'K20/GPIOL_48', 'bidir', 'T35_LVCMOS33', '3V3'), ('PSRAM', '5/SI/SIO0', 'bidir', 'APS6404L', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[PSRAM_SIO0]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO0:T35->PSRAM]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.200 V, VIL-VOL margin +0.200 V"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO0:PSRAM->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.512 V, VIL-VOL margin +0.106 V"
+  },
+  {
+   "rule": "net.has_two_ends[PSRAM_SIO1]",
+   "pass": true,
+   "detail": "[('T35', 'K14/GPIOL_49', 'bidir', 'T35_LVCMOS33', '3V3'), ('PSRAM', '2/SO/SIO1', 'bidir', 'APS6404L', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[PSRAM_SIO1]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO1:T35->PSRAM]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.200 V, VIL-VOL margin +0.200 V"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO1:PSRAM->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.512 V, VIL-VOL margin +0.106 V"
+  },
+  {
+   "rule": "net.has_two_ends[PSRAM_SIO2]",
+   "pass": true,
+   "detail": "[('T35', 'J20/GPIOL_50', 'bidir', 'T35_LVCMOS33', '3V3'), ('PSRAM', '3/SIO2', 'bidir', 'APS6404L', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[PSRAM_SIO2]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO2:T35->PSRAM]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.200 V, VIL-VOL margin +0.200 V"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO2:PSRAM->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.512 V, VIL-VOL margin +0.106 V"
+  },
+  {
+   "rule": "net.has_two_ends[PSRAM_SIO3]",
+   "pass": true,
+   "detail": "[('T35', 'J16/GPIOL_51', 'bidir', 'T35_LVCMOS33', '3V3'), ('PSRAM', '7/SIO3', 'bidir', 'APS6404L', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[PSRAM_SIO3]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO3:T35->PSRAM]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.200 V, VIL-VOL margin +0.200 V"
+  },
+  {
+   "rule": "level.compatible[PSRAM_SIO3:PSRAM->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.512 V, VIL-VOL margin +0.106 V"
+  },
+  {
+   "rule": "net.has_two_ends[SD_CLK]",
+   "pass": true,
+   "detail": "[('F133', 'PF2', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[SD_CLK]",
+   "pass": true,
+   "detail": "[('F133', 'PF2', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.has_two_ends[SD_CMD]",
+   "pass": true,
+   "detail": "[('F133', 'PF3', 'bidir', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[SD_CMD]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[SD_D0]",
+   "pass": true,
+   "detail": "[('F133', 'PF1', 'bidir', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[SD_D0]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[SD_D1]",
+   "pass": true,
+   "detail": "[('F133', 'PF0', 'bidir', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[SD_D1]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[SD_D2]",
+   "pass": true,
+   "detail": "[('F133', 'PF5', 'bidir', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[SD_D2]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[SD_D3]",
+   "pass": true,
+   "detail": "[('F133', 'PF4', 'bidir', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[SD_D3]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[T35_CDONE]",
+   "pass": true,
+   "detail": "[('T35', 'T19/CDONE', 'od', 'T35_LVCMOS33', '3V3'), ('F133', 'PE9', 'in', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_CDONE]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[T35_CDONE:T35->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin n/a (open drain), VIL-VOL margin +0.742 V"
+  },
+  {
+   "rule": "net.has_two_ends[T35_CRESET_N]",
+   "pass": true,
+   "detail": "[('T35', 'U19/CRESET_N', 'in', 'T35_LVCMOS33', '3V3'), ('F133', 'PE8', 'od', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_CRESET_N]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[T35_CRESET_N:F133->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin n/a (open drain), VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "net.has_two_ends[T35_DBG_RX]",
+   "pass": true,
+   "detail": "[('T35', 'B16/GPIOL_87', 'in', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_DBG_RX]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[T35_DBG_TX]",
+   "pass": true,
+   "detail": "[('T35', 'A19/GPIOL_86', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_DBG_TX]",
+   "pass": true,
+   "detail": "[('T35', 'A19/GPIOL_86', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.has_two_ends[T35_IRQ_N]",
+   "pass": true,
+   "detail": "[('T35', 'C17/GPIOL_84', 'od', 'T35_LVCMOS33', '3V3'), ('F133', 'PC6', 'in', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_IRQ_N]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[T35_IRQ_N:T35->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin n/a (open drain), VIL-VOL margin +0.742 V"
+  },
+  {
+   "rule": "net.has_two_ends[T35_LED0]",
+   "pass": true,
+   "detail": "[('T35', 'A18/GPIOL_88', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_LED0]",
+   "pass": true,
+   "detail": "[('T35', 'A18/GPIOL_88', 'out', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.has_two_ends[T35_MISO]",
+   "pass": true,
+   "detail": "[('T35', 'H14/GPIOL_83', 'tristate_out', 'T35_LVCMOS33', '3V3'), ('F133', 'PC5', 'in', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_MISO]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "level.compatible[T35_MISO:T35->F133]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.742 V, VIL-VOL margin +0.742 V"
+  },
+  {
+   "rule": "net.has_two_ends[T35_MOSI]",
+   "pass": true,
+   "detail": "[('T35', 'F17/GPIOL_82', 'in', 'T35_LVCMOS33', '3V3'), ('F133', 'PC4', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_MOSI]",
+   "pass": true,
+   "detail": "[('F133', 'PC4', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[T35_MOSI:F133->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "net.has_two_ends[T35_OSC_25M]",
+   "pass": true,
+   "detail": "[('T35', 'D20/GPIOL_66_CLK0', 'in', 'T35_LVCMOS33', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_OSC_25M]",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "rule": "net.has_two_ends[T35_SCK]",
+   "pass": true,
+   "detail": "[('T35', 'D17/GPIOL_79', 'in', 'T35_LVCMOS33', '3V3'), ('F133', 'PC2', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_SCK]",
+   "pass": true,
+   "detail": "[('F133', 'PC2', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[T35_SCK:F133->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "net.has_two_ends[T35_SS_N]",
+   "pass": true,
+   "detail": "[('T35', 'H15/GPIOL_81', 'in', 'T35_LVCMOS33', '3V3'), ('F133', 'PC3', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "net.single_push_pull_driver[T35_SS_N]",
+   "pass": true,
+   "detail": "[('F133', 'PC3', 'out', 'F133_GPIO', '3V3')]"
+  },
+  {
+   "rule": "level.compatible[T35_SS_N:F133->T35]",
+   "pass": true,
+   "detail": "VOH-VIH margin +0.840 V, VIL-VOL margin +0.600 V"
+  },
+  {
+   "rule": "psram.powerup_low_during_t35_config[PSRAM_SCLK]",
+   "pass": true,
+   "detail": "2200 ohm vs T35 weak pull-up 27000: 0.261 V <= VIL 0.40 V"
+  },
+  {
+   "rule": "psram.powerup_low_during_t35_config[PSRAM_SIO0]",
+   "pass": true,
+   "detail": "2200 ohm vs T35 weak pull-up 27000: 0.261 V <= VIL 0.40 V"
+  },
+  {
+   "rule": "psram.powerup_low_during_t35_config[PSRAM_SIO1]",
+   "pass": true,
+   "detail": "2200 ohm vs T35 weak pull-up 27000: 0.261 V <= VIL 0.40 V"
+  },
+  {
+   "rule": "psram.powerup_low_during_t35_config[PSRAM_SIO2]",
+   "pass": true,
+   "detail": "2200 ohm vs T35 weak pull-up 27000: 0.261 V <= VIL 0.40 V"
+  },
+  {
+   "rule": "psram.powerup_low_during_t35_config[PSRAM_SIO3]",
+   "pass": true,
+   "detail": "2200 ohm vs T35 weak pull-up 27000: 0.261 V <= VIL 0.40 V"
+  },
+  {
+   "rule": "psram.ce_pullup",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "bt820.data_pulldown[BT_IO0]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "bt820.data_pulldown[BT_IO1]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "bt820.data_pulldown[BT_IO2]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "bt820.data_pulldown[BT_IO3]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "net.open_drain_pullup[T35_IRQ_N]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "net.open_drain_pullup[T35_CRESET_N]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "net.open_drain_pullup[T35_CDONE]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "net.open_drain_pullup[BT_INT_N]",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_INT_N]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_IO0]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_IO1]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_IO2]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_IO3]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_RST_N]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_SCK]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_independent_of_t35[BT_SS_N]",
+   "pass": true,
+   "detail": "['F133', 'MN820']"
+  },
+  {
+   "rule": "topology.bt820_single_command_master",
+   "pass": true,
+   "detail": "['F133']"
+  },
+  {
+   "rule": "topology.psram_private_to_t35[PSRAM_CE_N]",
+   "pass": true,
+   "detail": "['PSRAM', 'T35']"
+  },
+  {
+   "rule": "topology.psram_private_to_t35[PSRAM_SCLK]",
+   "pass": true,
+   "detail": "['PSRAM', 'T35']"
+  },
+  {
+   "rule": "topology.psram_private_to_t35[PSRAM_SIO0]",
+   "pass": true,
+   "detail": "['PSRAM', 'T35']"
+  },
+  {
+   "rule": "topology.psram_private_to_t35[PSRAM_SIO1]",
+   "pass": true,
+   "detail": "['PSRAM', 'T35']"
+  },
+  {
+   "rule": "topology.psram_private_to_t35[PSRAM_SIO2]",
+   "pass": true,
+   "detail": "['PSRAM', 'T35']"
+  },
+  {
+   "rule": "topology.psram_private_to_t35[PSRAM_SIO3]",
+   "pass": true,
+   "detail": "['PSRAM', 'T35']"
+  }
+ ],
+ "label": "PLANNING_CALCULATED"
+}
