@@ -1,5 +1,6 @@
 // ARC-1 Compact R8.5-C -- RGMII job link glue + job-source arbiter (sys clock domain).
-// * RX buffer (8 KiB, write rxc / read sys) and TX buffer (8 KiB, write sys / read txc), EBR.
+// * RX buffer (8 KiB, write rxc / read sys, EBR); TX buffer in eth_tx_pump (sys domain, EBR) feeding
+//   rgmii_tx through a 16-entry async FIFO (no EBR in the 125 MHz domain).
 // * Two job sources share accel_engine: the SPI mailbox (mbx_regs_r85 doorbell pulse, latched here) and
 //   accepted Ethernet frames. Grant only while the engine is idle; mailbox first on a tie.
 // * Ethernet job: the engine reads the RX buffer; its response bytes go to the TX buffer and the response
@@ -37,7 +38,8 @@ module eth_link (
     input  wire [15:0] eng_resp_len,
     // status (sys domain; counters are quasi-static, read by software twice for consistency)
     output wire [15:0] cnt_rx_ok, cnt_rx_crc, cnt_rx_drop, cnt_rx_other,
-    output reg  [15:0] cnt_tx
+    output reg  [15:0] cnt_tx,
+    output wire [15:0] cnt_tx_underrun
 );
     // ---------------- receive ----------------
     wire        rx_we, rx_frame_tgl;
@@ -57,24 +59,25 @@ module eth_link (
     always @(posedge clk) rx_q <= rxbuf[eng_req_raddr];
 
     // ---------------- transmit ----------------
-    reg         tx_start_tgl;
+    reg         tx_go;
     reg  [15:0] tx_len;
     reg  [47:0] tx_dst;
-    wire [12:0] tx_raddr;
-    reg  [7:0]  tx_q;
-    wire        tx_done_tgl;
-    reg  [7:0]  txbuf [0:8191];
+    wire        tx_start_tgl, tx_done_tgl, f_valid, f_pop;
+    wire [15:0] f_data;
+    reg         src_eth;
+    eth_tx_pump u_pump (
+        .clk(clk), .rst(rst), .we(eng_resp_we & src_eth), .waddr(eng_resp_waddr), .wdata(eng_resp_wdata),
+        .start(tx_go), .len(tx_len), .tx_start_tgl(tx_start_tgl),
+        .txc(txc), .f_valid(f_valid), .f_data(f_data), .f_pop(f_pop));
     rgmii_tx u_tx (
         .txc(txc), .start_tgl(tx_start_tgl), .tx_len(tx_len), .dst_mac(tx_dst),
-        .buf_raddr(tx_raddr), .buf_rdata(tx_q), .done_tgl(tx_done_tgl),
+        .f_valid(f_valid), .f_data(f_data), .f_pop(f_pop), .cnt_underrun(cnt_tx_underrun), .done_tgl(tx_done_tgl),
         .rgmii_txc(rgmii_txc), .rgmii_txd(rgmii_txd), .rgmii_tx_ctl(rgmii_tx_ctl));
-    always @(posedge txc) tx_q <= txbuf[tx_raddr];
 
     // ---------------- arbiter ----------------
     reg [2:0]  fr_s, dn_s;
-    reg        mbx_pend, eth_pend, src_eth, active, tx_busy;
+    reg        mbx_pend, eth_pend, active, tx_busy;
     reg [15:0] mbx_len_q;
-    always @(posedge clk) if (eng_resp_we && src_eth) txbuf[eng_resp_waddr] <= eng_resp_wdata;
     assign eng_req_rdata = src_eth ? rx_q : mbx_req_rdata;
     assign mbx_resp_we   = eng_resp_we   & ~src_eth;
     assign mbx_resp_post = eng_resp_post & ~src_eth;
@@ -83,9 +86,10 @@ module eth_link (
         fr_s <= {fr_s[1:0], rx_frame_tgl};
         dn_s <= {dn_s[1:0], tx_done_tgl};
         eng_job_valid <= 1'b0;
+        tx_go <= 1'b0;
         if (rst) begin
             mbx_pend <= 1'b0; eth_pend <= 1'b0; src_eth <= 1'b0; active <= 1'b0; tx_busy <= 1'b0;
-            release_tgl <= 1'b0; tx_start_tgl <= 1'b0; cnt_tx <= 16'd0;
+            release_tgl <= 1'b0; cnt_tx <= 16'd0;
             fr_s <= 3'b000; dn_s <= 3'b000;
         end else begin
             if (mbx_job_valid) begin mbx_pend <= 1'b1; mbx_len_q <= mbx_job_len; end
@@ -104,7 +108,7 @@ module eth_link (
                 active <= 1'b0;
                 if (src_eth) begin
                     tx_len <= eng_resp_len; tx_dst <= rx_src;
-                    tx_start_tgl <= ~tx_start_tgl; tx_busy <= 1'b1;
+                    tx_go <= 1'b1; tx_busy <= 1'b1;
                     release_tgl <= ~release_tgl;
                 end
             end

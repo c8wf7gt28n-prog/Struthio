@@ -32,6 +32,10 @@ module arc1_transform (
     localparam integer NST = 8;               // pipeline register stages S1..S8
     reg busy;
     reg [3:0] issue;                          // 0..8 operations issued
+    // R8.5-C timing: the invalid-input check runs on the registered inputs over two cycles after accept
+    // (chk1: compare -> inv, chk2: act); no operation is issued until it has passed. Invalid inputs now
+    // answer 3 cycles after accept instead of 1 (cycle-level only; same outputs).
+    reg       chk1, chk2, inv;
     reg [3:0] got;                            // results collected
     reg signed [31:0] xmin, ymin, xmax, ymax, m00, m01, m02, m10, m11, m12;
     reg [15:0] vw, vh;
@@ -44,7 +48,7 @@ module arc1_transform (
     reg signed [31:0] a0, b0, t0, x0, y0;
     always @(posedge clk) begin
         v0 <= 1'b0;
-        if (!reset && busy && issue < 4'd8) begin
+        if (!reset && busy && !chk1 && !chk2 && issue < 4'd8) begin
             v0  <= 1'b1;
             ax0 <= axis;
             a0  <= axis ? m10 : m00;
@@ -138,7 +142,7 @@ module arc1_transform (
 
     always @(posedge clk) begin
         if (reset) begin
-            busy <= 1'b0; issue <= 4'd0; got <= 4'd0; out_valid <= 1'b0; finish <= 1'b0;
+            busy <= 1'b0; issue <= 4'd0; got <= 4'd0; out_valid <= 1'b0; finish <= 1'b0; chk1 <= 1'b0; chk2 <= 1'b0; inv <= 1'b0;
             out_minx <= 0; out_miny <= 0; out_maxx <= 0; out_maxy <= 0; out_flags <= 0; out_tag <= 0;
             xmin <= 0; ymin <= 0; xmax <= 0; ymax <= 0;
             m00 <= 0; m01 <= 0; m02 <= 0; m10 <= 0; m11 <= 0; m12 <= 0;
@@ -151,14 +155,18 @@ module arc1_transform (
                 m00 <= in_m00; m01 <= in_m01; m02 <= in_m02; m10 <= in_m10; m11 <= in_m11; m12 <= in_m12;
                 vw <= in_viewport_width; vh <= in_viewport_height; tag <= in_tag;
                 issue <= 4'd0; got <= 4'd0; firstx <= 1'b1; firsty <= 1'b1; saturated <= 1'b0;
-                if (in_xmin > in_xmax || in_ymin > in_ymax || in_viewport_width == 0 || in_viewport_height == 0) begin
+                busy <= 1'b1; chk1 <= 1'b1;
+            end else if (busy && chk1) begin
+                chk1 <= 1'b0; chk2 <= 1'b1;
+                inv  <= xmin > xmax || ymin > ymax || vw == 0 || vh == 0;
+            end else if (busy && chk2) begin
+                chk2 <= 1'b0;
+                if (inv) begin
                     busy <= 1'b0;
                     out_valid <= 1'b1;
-                    out_tag <= in_tag;
+                    out_tag <= tag;
                     out_minx <= 0; out_miny <= 0; out_maxx <= 0; out_maxy <= 0;
                     out_flags <= 3'b100;
-                end else begin
-                    busy <= 1'b1;
                 end
             end else if (busy) begin
                 if (issue < 4'd8) issue <= issue + 4'd1;

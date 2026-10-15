@@ -26,17 +26,23 @@ module tb_rgmii;
     // ---------------- DUT: transmit ----------------
     reg        txc = 1'b0;
     always #4.0 txc = ~txc;
-    reg        start_tgl = 1'b0;
+    // sys side of the TX path at 80 MHz, unrelated to txc (12.5 ns vs 8 ns; phase drifts every cycle)
+    reg        sclk = 1'b0;
+    always #6.25 sclk = ~sclk;
+    reg        s_we = 1'b0, s_start = 1'b0;
+    reg [12:0] s_waddr = 13'd0;
+    reg [7:0]  s_wdata = 8'd0;
     reg [15:0] tx_len = 16'd0;
     reg [47:0] dst_mac = 48'h0;
-    wire [12:0] tx_raddr;
-    reg  [7:0] tbuf [0:8191];
-    reg  [7:0] tx_q;
+    wire       start_tgl, f_valid, f_pop;
+    wire [15:0] f_data, cnt_under;
     wire       done_tgl, o_txc, o_ctl;
     wire [3:0] o_txd;
-    always @(posedge txc) tx_q <= tbuf[tx_raddr];
+    eth_tx_pump u_pump (.clk(sclk), .rst(1'b0), .we(s_we), .waddr(s_waddr), .wdata(s_wdata),
+        .start(s_start), .len(tx_len), .tx_start_tgl(start_tgl),
+        .txc(txc), .f_valid(f_valid), .f_data(f_data), .f_pop(f_pop));
     rgmii_tx u_tx (.txc(txc), .start_tgl(start_tgl), .tx_len(tx_len), .dst_mac(dst_mac),
-        .buf_raddr(tx_raddr), .buf_rdata(tx_q), .done_tgl(done_tgl),
+        .f_valid(f_valid), .f_data(f_data), .f_pop(f_pop), .cnt_underrun(cnt_under), .done_tgl(done_tgl),
         .rgmii_txc(o_txc), .rgmii_txd(o_txd), .rgmii_tx_ctl(o_ctl));
 
     // ---------------- CRC ----------------
@@ -157,10 +163,13 @@ module tb_rgmii;
         integer k;
         reg d0;
         begin
-            for (k = 0; k < len; k = k + 1) tbuf[k] = (k * 5 + seed) & 8'hFF;
+            for (k = 0; k < len; k = k + 1) begin
+                @(posedge sclk); #1 s_we = 1'b1; s_waddr = k[12:0]; s_wdata = (k * 5 + seed) & 8'hFF;
+            end
+            @(posedge sclk); #1 s_we = 1'b0;
             hn = 0; tx_len = len[15:0]; dst_mac = {8'h02, 8'h00, 8'h00, 8'hF1, 8'h33, seed[7:0]};
             d0 = done_tgl;
-            #20 start_tgl = ~start_tgl;
+            @(posedge sclk); #1 s_start = 1'b1; @(posedge sclk); #1 s_start = 1'b0;
             fork : wt
                 begin wait (done_tgl != d0); disable wt; end
                 begin #200000; $display("ERROR %0s: done timeout", what); errors = errors + 1; disable wt; end
@@ -203,6 +212,10 @@ module tb_rgmii;
         tx_send(8192, 6, "tx 8192");
         t0 = $time; tx_send(1486, 7, "tx back-to-back");
         $display("tx 1486-byte payload frame + IFG: %0d ns", $time - t0);
+        tx_send(1, 8, "tx 1 (odd, single byte)");
+        tx_send(4093, 9, "tx 4093 (odd)");
+        if (cnt_under !== 16'd0) begin $display("ERROR tx FIFO underruns: %0d", cnt_under); errors = errors + 1; end
+        else $display("ok  tx FIFO underruns: 0");
         if (errors == 0) $display("RGMII_TB_PASS"); else $display("RGMII_TB_FAIL errors=%0d", errors);
         $finish;
     end

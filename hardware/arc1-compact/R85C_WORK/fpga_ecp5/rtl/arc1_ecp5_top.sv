@@ -98,7 +98,7 @@ module arc1_ecp5_top #(
     wire        mbx_job_valid, mbx_resp_we, mbx_resp_post, eng_idle;
     wire [15:0] mbx_job_len;
     wire [7:0]  mbx_req_rdata;
-    wire [15:0] eth_rx_ok, eth_rx_crc, eth_rx_drop, eth_rx_other, eth_tx;
+    wire [15:0] eth_rx_ok, eth_rx_crc, eth_rx_drop, eth_rx_other, eth_tx, eth_tx_underrun;
     eth_link u_eth (
         .clk(sys_clk), .rst(rst_sys),
         .rgmii_rxc(rgmii_rxc), .rgmii_rxd(rgmii_rxd), .rgmii_rx_ctl(rgmii_rx_ctl),
@@ -110,7 +110,7 @@ module arc1_ecp5_top #(
         .eng_resp_we(resp_we), .eng_resp_waddr(resp_waddr), .eng_resp_wdata(resp_wdata),
         .eng_resp_post(resp_post), .eng_resp_len(resp_len),
         .cnt_rx_ok(eth_rx_ok), .cnt_rx_crc(eth_rx_crc), .cnt_rx_drop(eth_rx_drop), .cnt_rx_other(eth_rx_other),
-        .cnt_tx(eth_tx));
+        .cnt_tx(eth_tx), .cnt_tx_underrun(eth_tx_underrun));
 
     accel_engine u_eng (
         .clk(sys_clk), .rst(rst_sys), .abort(job_abort), .job_valid(job_valid), .job_len(job_len), .idle(eng_idle),

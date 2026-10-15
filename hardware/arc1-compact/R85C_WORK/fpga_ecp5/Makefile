@@ -19,7 +19,7 @@ FW       ?= ../firmware
 LPF      ?= constraints/arc1_ecp5_r85c_provisional.lpf
 
 RTL_COMMON = rtl/arc1_ecp5_top.sv rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/mbx_regs_r85.sv rtl/psram_power_guard.sv \
-      rtl/eth_link.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv \
+      rtl/eth_link.sv rtl/eth_tx_pump.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv \
       $(R06F)/mailbox/rtl/mbx_spi_slave.sv $(R06F)/mailbox/rtl/psram_bist.sv \
       $(R06F)/psram/rtl/psram_user_port.sv $(R06F)/psram/rtl/psram_qspi_core.sv
 RTL_SYN = $(RTL_COMMON) rtl/arc1_ecp5_pll.v rtl/arc1_eth_pll.v
@@ -66,7 +66,7 @@ fir:
 # RGMII receive/transmit MACs against a host EMAC model (TB), ECP5 DDR primitives per sim/ecp5_ddr_sim.v
 rgmii:
 	mkdir -p $(OUT)
-	$(IVERILOG) -g2012 -s tb_rgmii -o $(OUT)/tb_rgmii.vvp tb/tb_rgmii.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv sim/ecp5_ddr_sim.v
+	$(IVERILOG) -g2012 -s tb_rgmii -o $(OUT)/tb_rgmii.vvp tb/tb_rgmii.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv rtl/eth_tx_pump.sv sim/ecp5_ddr_sim.v
 	$(VVP) -n $(OUT)/tb_rgmii.vvp > $(OUT)/sim_rgmii.log 2>&1; rc=$$?; tail -8 $(OUT)/sim_rgmii.log; \
 	  test $$rc -eq 0 && grep -q '^RGMII_TB_PASS$$' $(OUT)/sim_rgmii.log
 
