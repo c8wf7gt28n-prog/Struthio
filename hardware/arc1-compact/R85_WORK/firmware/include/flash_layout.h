@@ -8,7 +8,7 @@
  *  0x0100000  JOURNAL   64 KiB  two 4 KiB sectors (ping-pong boot-state records)
  *  0x0110000  SETTINGS  64 KiB  two 4 KiB sectors (ping-pong user settings)
  *  0x0120000  RECOVERY  3.875 MiB  minimal recovery system (USB device service)
- *  0x0500000  ASSETS    4 MiB   boot-critical assets + T35 diagnostic bitstream copy
+ *  0x0500000  ASSETS    4 MiB   boot-critical assets + ECP5 diagnostic bitstream container (ACFG, R8.5) at +0
  *  0x0900000  SLOT_A    7 MiB   system image A (lower half)
  *  0x1000000  SLOT_B    7 MiB   system image B (upper half: starts exactly at 16 MiB)
  *  0x1700000  SPARE     9 MiB   growth; last 64 KiB = factory capacity-test block
@@ -30,6 +30,7 @@
 #define FL_RECOVERY_LEN  0x003E0000u
 #define FL_ASSETS        0x00500000u
 #define FL_ASSETS_LEN    0x00400000u
+#define FL_FPGA_DIAG_ACFG FL_ASSETS     /* R8.5: ACFG container (ecp5_cfg.h); <= 1.25 MiB uncompressed .bit */
 #define FL_SLOT_A        0x00900000u
 #define FL_SLOT_B        0x01000000u
 #define FL_SLOT_LEN      0x00700000u

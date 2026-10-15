@@ -6,4 +6,5 @@ extern int g_fail, g_checks;
 void run_nor_tests(void);
 void run_layout_tests(void);
 void run_library_tests(void);
+void run_ecp5_tests(void);
 #endif

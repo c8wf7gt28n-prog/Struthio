@@ -1,4 +1,5 @@
-/* ARC-1 Compact R08 -- F133 diagnostic boot image (BUILD-ONLY: never executed on silicon).
+/* ARC-1 Compact R8.5 -- F133 diagnostic boot image (BUILD-ONLY: never executed on silicon).
+ * R8.5 changes: S4/S5 target the LFE5U-45F (sysCONFIG slave SPI) instead of the T35.
  *
  * Intended to be the boot0 in the 32 MiB NOR (offset 0, BOOT-SEL 00) or, for the
  * first article, loaded over USB FEL into SRAM. It separates the failure classes
@@ -8,14 +9,20 @@
  *   S2 NOR:      JEDEC/SFDP probe, 3-byte mode check, eGON magic at 0, upper-half
  *                read (16 MiB+), A/B/recovery image headers (READ-ONLY: no journal write)
  *   S3 BT820:    boot + REG_CHIP_ID/REG_ID + scan-out + test frame (R07 host-tested driver)
- *   S4 T35:      power on (1V2 -> PG -> 3V3_T35), release CRESET_N, wait CDONE
- *   S5 mailbox:  enable SPI0 isolation, read MAGIC/VERSION; PSRAM power request,
- *                POWER_ON/READY, BIST; CPU fallback is reported, never fatal
- * Pin numbers come from include/board_pins_r08.h, generated from the schematic. */
+ *   S4 ECP5:     rails on (one enable: 1V1, 3V3_FPGA, 2V5 AUX), VCC_PG, INITN, PROGRAMN pulse, READ_ID
+ *                (expect 0x41112043), LSC_READ_STATUS; then held unconfigured. boot0 has no DRAM, and a NOR-resident
+ *                bitstream cannot be streamed over the shared SPI0 during LSC_BITSTREAM_BURST (SN must stay low),
+ *                so boot0 never configures the FPGA. If DONE is already high (configured over JTAG with J11
+ *                fitted, docs/JTAG_RECOVERY_R85.md) the probe is skipped and S5 runs.
+ *   S5 mailbox:  AMBX v3 DISCOVER (MAGIC/VERSION 3/CAPS); PSRAM power request, POWER_ON/READY, BIST;
+ *                CPU fallback is reported, never fatal
+ * Pin numbers come from include/board_pins_r85.h, generated from the schematic. */
 #include <stddef.h>
 #include <stdint.h>
 
-#include "board_pins_r08.h"
+#include "board_pins_r85.h"
+#include "ecp5_cfg.h"
+#include "fpga_link.h"
 #include "bt820_gfx.h"
 #include "bt820_regs.h"
 #include "f133_regs.h"
@@ -24,6 +31,14 @@
 
 void *memset(void *d, int c, size_t n) { uint8_t *p = d; while (n--) *p++ = (uint8_t)c; return d; }
 void *memcpy(void *d, const void *s, size_t n) { uint8_t *p = d; const uint8_t *q = s; while (n--) *p++ = *q++; return d; }
+void *memmove(void *d, const void *s, size_t n)
+{
+    uint8_t *p = d;
+    const uint8_t *q = s;
+    if (p < q) while (n--) *p++ = *q++;
+    else { p += n; q += n; while (n--) *--p = *--q; }
+    return d;
+}
 int memcmp(const void *a, const void *b, size_t n)
 {
     const uint8_t *x = a, *y = b;
@@ -138,7 +153,7 @@ static int spi_transfer(void *ctx, const uint8_t *tx, uint8_t *rx, size_t n)
 }
 
 static spi_port g_spi0_nor = { SPI0_BASE, 0, 0 };
-static spi_port g_spi0_t35 = { SPI0_BASE, PIN_T35_SS_N_F, 1 };
+static spi_port g_spi0_fpga = { SPI0_BASE, PIN_FPGA_SS_N_F, 1 };
 static spi_port g_spi1_bt = { SPI1_BASE, 0, 0 };
 
 /* ---------------- results ---------------- */
@@ -154,8 +169,8 @@ static int stage_nor(void)
     int rc, ok = 1;
     fl_journal j;
     static const char *const st[] = { "OK", "BLANK", "BAD_MAGIC", "BAD_HDR_CRC", "BAD_LEN", "BAD_CRC", "IO" };
-    gpio_out(PIN_T35_BUS_EN_N, 1);          /* T35 isolation buffers OFF while the NOR is used */
-    gpio_out(PIN_T35_SS_N_F, 1);
+    gpio_out(PIN_FPGA_BUS_EN_N, 1);         /* FPGA isolation buffers OFF while the NOR is used */
+    gpio_out(PIN_FPGA_SS_N_F, 1);
     for (uint32_t p = PIN_SPI0_CLK_F; p <= PIN_SPI0_MISO; p++) gpio_func(p, 2);
     spi_init(SPI0_BASE, CCU_SPI0_CLK, 0);
     memset(&g_nor, 0, sizeof g_nor);
@@ -220,91 +235,92 @@ static int stage_bt820(void)
     return R_OK;
 }
 
-/* S4 */
-static int stage_t35_config(void)
+/* S4: ECP5 control lines through the loader's GPIO HAL (PROGRAMN used open-drain: 0 = drive low, 1 = input) */
+static const uint32_t ecp5_pin_map[ECP5_PIN_COUNT] = {
+    PIN_FPGA_PWR_EN_F, PIN_FPGA_VCC_PG, PIN_FPGA_BUS_EN_N, PIN_FPGA_PROGRAMN_F, PIN_FPGA_INITN, PIN_FPGA_DONE, PIN_PSRAM_PWR_REQ };
+static void e_set(void *ctx, ecp5_pin p, int v)
 {
-    uint32_t t;
-    gpio_out(PIN_PSRAM_PWR_REQ, 0);
-    gpio_out(PIN_T35_CRESET_N_F, 0);
-    gpio_in(PIN_T35_CDONE);
-    gpio_out(PIN_T35_PWR_EN, 1);                       /* 1V2 -> PG -> 3V3_T35 (hardware sequenced) */
-    delay_us(20000);
-    gpio_set(PIN_T35_CRESET_N_F, 1);                   /* active configuration from the T35 SPI flash */
-    for (t = 0; t < 2000 && !gpio_get(PIN_T35_CDONE); t++) delay_us(1000);
-    kv("S4 CDONE after ms      = ", t);
-    if (!gpio_get(PIN_T35_CDONE)) {
-        puts_("   T35 not configured: CPU fallback for all accelerator jobs\n");
-        gpio_set(PIN_T35_CRESET_N_F, 0);
-        gpio_set(PIN_T35_PWR_EN, 0);
-        return R_FAIL;
-    }
-    delay_us(2000);                                     /* > CDONE_DLY RC delay and tUSER */
-    return R_OK;
+    (void)ctx;
+    if (p == ECP5_PIN_PROGRAMN) { if (v) gpio_in(ecp5_pin_map[p]); else gpio_out(ecp5_pin_map[p], 0); return; }
+    gpio_out(ecp5_pin_map[p], v);
+}
+static int e_get(void *ctx, ecp5_pin p) { (void)ctx; return gpio_get(ecp5_pin_map[p]); }
+static void e_delay(void *ctx, uint32_t us) { (void)ctx; delay_us(us); }
+static const ecp5_gpio_hal g_ecp5_io = { 0, e_set, e_get, e_delay };
+static ecp5_cfg g_cfg;
+
+static void fpga_bus_on(void)
+{
+    gpio_out(PIN_SPI0_CS0_N, 1); gpio_func(PIN_SPI0_CS0_N, 1);   /* NOR CS# held high by GPIO while the FPGA is selected */
+    gpio_out(PIN_FPGA_SS_N_F, 1);
 }
 
-/* S5: AMBX mailbox over the isolated SPI0 (read 0x0B a1 a0 dummy ..., write 0x02 a1 a0 ...) */
-static arc1_spi_hal g_t35hal = { &g_spi0_t35, spi_select, spi_transfer, now_us };
-static int mbx_read(uint16_t a, uint8_t *d, size_t n)
+static int stage_ecp5(int *configured)
 {
-    uint8_t h[4] = { 0x0B, (uint8_t)(a >> 8), (uint8_t)a, 0 };
-    int rc;
-    spi_select(&g_spi0_t35, 1);
-    rc = spi_transfer(&g_spi0_t35, h, NULL, 4);
-    if (!rc) rc = spi_transfer(&g_spi0_t35, NULL, d, n);
-    spi_select(&g_spi0_t35, 0);
-    return rc;
+    arc1_spi_hal hal = { &g_spi0_fpga, spi_select, spi_transfer, now_us };
+    uint32_t id = 0, st = 0;
+    ecp5_err e;
+    gpio_in(PIN_FPGA_INITN); gpio_in(PIN_FPGA_DONE); gpio_in(PIN_FPGA_VCC_PG);
+    ecp5_cfg_init(&g_cfg, &g_ecp5_io, &hal);
+    *configured = 0;
+    if (gpio_get(PIN_FPGA_DONE) && gpio_get(PIN_FPGA_INITN) && gpio_get(PIN_FPGA_VCC_PG)) {
+        puts_("S4 DONE already high (JTAG-configured, J11 fitted): probe skipped\n");
+        *configured = 1;
+        return R_OK;
+    }
+    fpga_bus_on();
+    e = ecp5_probe(&g_cfg, &id, &st);
+    kv("S4 ecp5_probe          = ", (uint32_t)e);
+    kv("   READ_ID              = ", id);
+    kv("   LSC_READ_STATUS      = ", st);
+    kv("   VCC_PG/INITN/DONE    = ", ((uint32_t)gpio_get(PIN_FPGA_VCC_PG) << 8) | ((uint32_t)gpio_get(PIN_FPGA_INITN) << 4) |
+                                      (uint32_t)gpio_get(PIN_FPGA_DONE));
+    puts_("   "); puts_(ecp5_err_string(e)); puts_("\n");
+    ecp5_safe(&g_cfg, 1);                                       /* boot0 leaves the FPGA off */
+    gpio_func(PIN_SPI0_CS0_N, 2);
+    return e == ECP5_OK ? R_OK : R_FAIL;
 }
-static int mbx_write(uint16_t a, const uint8_t *d, size_t n)
-{
-    uint8_t h[3] = { 0x02, (uint8_t)(a >> 8), (uint8_t)a };
-    int rc;
-    spi_select(&g_spi0_t35, 1);
-    rc = spi_transfer(&g_spi0_t35, h, NULL, 3);
-    if (!rc) rc = spi_transfer(&g_spi0_t35, d, NULL, n);
-    spi_select(&g_spi0_t35, 0);
-    return rc;
-}
-static uint16_t mbx_status(void) { uint8_t s[2] = { 0, 0 }; (void)mbx_read(0x0008, s, 2); return (uint16_t)(s[0] | (s[1] << 8)); }
+
+/* S5: AMBX v3 over the isolated SPI0 (fpga_link: read 0x0B a1 a0 dummy ..., write 0x02 a1 a0 ...) */
+static fpga_link g_link;
 static int stage_mailbox_psram(int *psram)
 {
-    uint8_t id[8], c;
-    uint16_t st = 0;
-    uint32_t t;
-    (void)g_t35hal;
+    arc1_spi_hal hal = { &g_spi0_fpga, spi_select, spi_transfer, now_us };
+    uint16_t ver = 0, caps = 0, st = 0;
+    uint32_t t, errs = 0;
+    int rc;
     *psram = R_SKIP;
-    gpio_out(PIN_SPI0_CS0_N, 1); gpio_func(PIN_SPI0_CS0_N, 1);   /* NOR CS# held high by GPIO while the T35 is selected */
-    gpio_out(PIN_T35_SS_N_F, 1);
-    gpio_out(PIN_T35_BUS_EN_N, 0);                              /* isolation buffers ON */
-    if (mbx_read(0x0000, id, 8)) return R_FAIL;
-    kv("S5 MAGIC               = ", (uint32_t)id[0] << 24 | (uint32_t)id[1] << 16 | (uint32_t)id[2] << 8 | id[3]);
-    kv("   VERSION/CAPS         = ", (uint32_t)(id[4] | (id[5] << 8)) << 16 | (uint32_t)(id[6] | (id[7] << 8)));
-    if (id[0] != 'A' || id[1] != 'M' || id[2] != 'B' || id[3] != 'X') {
-        gpio_set(PIN_T35_BUS_EN_N, 1);
-        return R_FAIL;
-    }
-    gpio_set(PIN_PSRAM_PWR_REQ, 1);                             /* EN = REQ & CDONE_DLY */
-    for (t = 0; t < 500; t++) { st = mbx_status(); if ((st & (1u << 11)) && (st & 0x6u)) break; delay_us(1000); }
+    fpga_bus_on();
+    gpio_out(PIN_FPGA_BUS_EN_N, 0);                             /* isolation buffers ON */
+    (void)fl_init(&g_link, &hal, 20000);
+    rc = fl_discover(&g_link, &ver, &caps);
+    kv("S5 DISCOVER            = ", (uint32_t)rc);
+    kv("   VERSION/CAPS         = ", ((uint32_t)ver << 16) | caps);
+    if (rc) { gpio_set(PIN_FPGA_BUS_EN_N, 1); gpio_func(PIN_SPI0_CS0_N, 2); return R_FAIL; }
+    gpio_out(PIN_PSRAM_PWR_REQ, 1);                             /* EN = REQ & DONE_DLY */
+    for (t = 0; t < 500; t++) { if (fl_status(&g_link, &st) == FL_OK && (st & FL_ST_POWER_ON) && (st & 0x6u)) break; delay_us(1000); }
     kv("   STATUS after power   = ", st);
     kv("   PSRAM_PG pin         = ", (uint32_t)gpio_get(PIN_PSRAM_PG));
-    if (!(st & (1u << 11))) { puts_("   PSRAM power never good: check U12/U13/U14, CDONE_DLY\n"); *psram = R_FAIL; }
-    else if (st & (1u << 2)) { kv("   PSRAM init error     = ", (st >> 9) & 3u); *psram = R_FAIL; }
+    if (!(st & FL_ST_POWER_ON)) { puts_("   PSRAM power never good: check U12/U13/U14, DONE_DLY\n"); *psram = R_FAIL; }
+    else if (st & FL_ST_PSRAM_ERROR) { kv("   PSRAM init error     = ", (st >> 9) & 3u); *psram = R_FAIL; }
     else {
-        c = 0x08;                                                /* BIST_START */
-        (void)mbx_write(0x000C, &c, 1);
-        for (t = 0; t < 5000; t++) { st = mbx_status(); if (!(st & (1u << 6)) && (st & 0x180u)) break; delay_us(1000); }
-        kv("   BIST STATUS          = ", st);
-        *psram = (st & (1u << 7)) && !(st & (1u << 8)) ? R_OK : R_FAIL;
+        (void)fl_control(&g_link, FL_CTL_BIST_START);
+        for (t = 0; t < 5000; t++) { (void)fl_status(&g_link, &st); if (!(st & FL_ST_BIST_BUSY) && (st & 0x180u)) break; delay_us(1000); }
+        (void)fl_read32(&g_link, FL_REG_BIST_ERRS, &errs);
+        kv("   BIST STATUS/ERRS     = ", ((uint32_t)st << 16) | (errs & 0xFFFFu));
+        *psram = (st & FL_ST_BIST_PASS) && !(st & FL_ST_BIST_FAIL) ? R_OK : R_FAIL;
     }
-    gpio_set(PIN_T35_BUS_EN_N, 1);                              /* back to isolated */
+    gpio_set(PIN_PSRAM_PWR_REQ, 0);
+    gpio_set(PIN_FPGA_BUS_EN_N, 1);                             /* back to isolated */
     gpio_func(PIN_SPI0_CS0_N, 2);
     return R_OK;
 }
 
 int main(void)
 {
-    int r_nor, r_bt, r_cfg = R_SKIP, r_mbx = R_SKIP, r_ps = R_SKIP;
+    int r_nor, r_bt, r_cfg = R_SKIP, r_mbx = R_SKIP, r_ps = R_SKIP, configured = 0;
     uart_init();
-    puts_("\nARC-1 Compact R08 F133 diagnostic image (BUILD-ONLY until run on hardware)\n");
+    puts_("\nARC-1 Compact R8.5 F133 diagnostic image (BUILD-ONLY until run on hardware)\n");
     kv("S0 VER_REG             = ", REG32(SYSCFG_VER));
     kv("   BOOT_SEL_PAD[12:11]  = ", (REG32(SYSCFG_VER) >> 11) & 3u);     /* expect 0 (BOOT-SEL 00) */
     kv("   eFuse boot select    = ", REG32(SID_BOOTSEL));
@@ -314,14 +330,14 @@ int main(void)
                                      (uint32_t)gpio_get(PIN_VBUS_SENSE));
     r_nor = stage_nor();
     r_bt = stage_bt820();
-    r_cfg = stage_t35_config();
-    if (r_cfg == R_OK) r_mbx = stage_mailbox_psram(&r_ps);
+    r_cfg = stage_ecp5(&configured);
+    if (configured) r_mbx = stage_mailbox_psram(&r_ps);
     puts_("DIAG SUMMARY cpu=OK nor="); puts_(rs(r_nor));
     puts_(" bt820="); puts_(rs(r_bt));
-    puts_(" t35cfg="); puts_(rs(r_cfg));
+    puts_(" ecp5probe="); puts_(rs(r_cfg));
     puts_(" mailbox="); puts_(rs(r_mbx));
     puts_(" psram="); puts_(rs(r_ps));
-    puts_("\n(graphics never depends on t35/psram; a lit screen photo is required before any display claim)\n");
+    puts_("\n(graphics never depends on the FPGA/PSRAM; a lit screen photo is required before any display claim)\n");
     gpio_out(PIN_LED_STATUS, r_bt == R_OK);
     gpio_out(PIN_LED_ERROR, r_nor != R_OK || r_bt != R_OK);
     return 0;
