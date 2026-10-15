@@ -23,7 +23,7 @@ module accel_engine (
     input  wire        job_valid,
     input  wire [15:0] job_len,
     output reg  [12:0] req_raddr,
-    input  wire [7:0]  req_rdata,      // valid 2 clocks after req_raddr is set (mbx_regs registers it)
+    input  wire [7:0]  req_rdata,      // valid 2 clocks after req_raddr is set; re-registered here (rdq)
     output reg         resp_we,
     output reg  [12:0] resp_waddr,
     output reg  [7:0]  resp_wdata,
@@ -70,12 +70,19 @@ module accel_engine (
     // ---------------- byte stream reader (2-clock read latency) ----------------
     reg [15:0] rd_next, rd_end;     // next address to issue, exclusive end
     reg        rd_go;
-    reg [1:0]  vpipe;               // valid pipeline matching the 2-clock latency
-    wire       byte_v = vpipe[1];
+    reg [2:0]  vpipe;               // valid pipeline: 2-clock RAM latency + 1 register (timing)
+    wire       byte_v = vpipe[2];
+    reg [7:0]  rdq;                 // registered read byte (breaks BRAM -> mux -> CRC path)
+    always @(posedge clk) rdq <= req_rdata;
 
     // ---------------- control ----------------
     localparam [3:0] E_IDLE = 0, E_HDR = 1, E_CHECK = 2, E_JOB = 3, E_XF = 4, E_RES = 5, E_FIN = 6,
-                     E_HDRW = 7, E_LOOP = 8, E_POST = 9;
+                     E_HDRW = 7, E_LOOP = 8, E_POST = 9, E_CHECK2 = 10;
+    // No multipliers in the control path (R8.5 timing fix): lengths/addresses use shift-adds
+    // and running bases, and the header check is split over two registered states.
+    reg [15:0] len_expect, req_base;
+    reg [12:0] res_base;
+    reg        magic_ok, ver_ok, op_ok, cnt_ok;
     reg [3:0]  st;
     reg [15:0] bidx;                // byte index inside the current unit
     reg [7:0]  hdr [0:15];
@@ -92,7 +99,7 @@ module accel_engine (
         resp_we   <= 1'b0;
         resp_post <= 1'b0;
         t_in_valid <= 1'b0;
-        vpipe <= {vpipe[0], 1'b0};
+        vpipe <= {vpipe[1:0], 1'b0};
         if (rd_go) begin
             if (rd_next < rd_end) begin
                 req_raddr <= rd_next[12:0];
@@ -105,11 +112,11 @@ module accel_engine (
         if (st != E_IDLE) cycles <= cycles + 32'd1;
 
         if (rst) begin
-            st <= E_IDLE; rd_go <= 1'b0; vpipe <= 2'b00; cycles <= 32'd0;
+            st <= E_IDLE; rd_go <= 1'b0; vpipe <= 3'b000; cycles <= 32'd0;
             perf_last_cycles <= 32'd0; perf_jobs <= 32'd0; perf_items <= 32'd0; last_status <= 8'd0;
             resp_len <= 16'd0;
         end else if (abort && st != E_IDLE) begin
-            status <= S_ABORT; count <= 16'd0; rd_go <= 1'b0; vpipe <= 2'b00;
+            status <= S_ABORT; count <= 16'd0; rd_go <= 1'b0; vpipe <= 3'b000;
             bidx <= 16'd0; st <= E_HDRW;
         end else begin
             case (st)
@@ -120,25 +127,32 @@ module accel_engine (
             end
             E_HDR: begin
                 if (byte_v) begin
-                    hdr[bidx[3:0]] <= req_rdata;
+                    hdr[bidx[3:0]] <= rdq;
                     bidx <= bidx + 16'd1;
                 end
-                if (!rd_go && vpipe == 2'b00 && !byte_v) st <= E_CHECK;
+                if (!rd_go && vpipe == 3'b000 && !byte_v) st <= E_CHECK;
             end
             E_CHECK: begin
                 count <= {hdr[7], hdr[6]};
                 seq   <= {hdr[11], hdr[10], hdr[9], hdr[8]};
-                legacy <= (job_len < 16'd16) || (magic != 32'h424F4A41);          // "AJOB"
+                magic_ok <= (job_len >= 16'd16) && (magic == 32'h424F4A41);       // "AJOB"
+                ver_ok <= hdr[4] == 8'd1;
+                op_ok  <= hdr[5] == 8'd1;
+                cnt_ok <= {hdr[7], hdr[6]} != 16'd0 && {hdr[7], hdr[6]} <= MAXCOUNT[15:0];
+                len_expect <= 16'd16 + ({hdr[7], hdr[6]} << 5) + ({hdr[7], hdr[6]} << 4);   // 16 + 48*count
                 crc_in <= 32'hFFFFFFFF; crc_out <= 32'hFFFFFFFF;
-                jidx <= 16'd0; bidx <= 16'd0;
-                if ((job_len < 16'd16) || (magic != 32'h424F4A41)) begin
+                jidx <= 16'd0; bidx <= 16'd0; req_base <= 16'd16; res_base <= 13'd16;
+                st <= E_CHECK2;
+            end
+            E_CHECK2: begin
+                legacy <= !magic_ok;
+                if (!magic_ok) begin
                     rd_next <= 16'd0; rd_end <= job_len; rd_go <= 1'b1; st <= E_LOOP;
-                end else if (hdr[4] != 8'd1) begin
+                end else if (!ver_ok) begin
                     status <= S_BADVER; count <= 16'd0; st <= E_HDRW;
-                end else if (hdr[5] != 8'd1) begin
+                end else if (!op_ok) begin
                     status <= S_BADOP; count <= 16'd0; st <= E_HDRW;
-                end else if ({hdr[7], hdr[6]} == 16'd0 || {hdr[7], hdr[6]} > MAXCOUNT[15:0] ||
-                             job_len != 16'd16 + {hdr[7], hdr[6]} * 16'd48) begin
+                end else if (!cnt_ok || job_len != len_expect) begin
                     status <= S_BADLEN; count <= 16'd0; st <= E_HDRW;
                 end else begin
                     status <= S_OK; st <= E_JOB;
@@ -147,14 +161,14 @@ module accel_engine (
             end
             E_JOB: begin                                         // 48 job bytes -> fields
                 if (byte_v) begin
-                    crc_in <= crc8(crc_in, req_rdata);
-                    if (bidx < 16'd40) f[bidx[5:2]] <= {req_rdata, f[bidx[5:2]][31:8]};
-                    else if (bidx < 16'd42) vw <= {req_rdata, vw[15:8]};
-                    else if (bidx < 16'd44) vh <= {req_rdata, vh[15:8]};
-                    else jtag <= {req_rdata, jtag[31:8]};
+                    crc_in <= crc8(crc_in, rdq);
+                    if (bidx < 16'd40) f[bidx[5:2]] <= {rdq, f[bidx[5:2]][31:8]};
+                    else if (bidx < 16'd42) vw <= {rdq, vw[15:8]};
+                    else if (bidx < 16'd44) vh <= {rdq, vh[15:8]};
+                    else jtag <= {rdq, jtag[31:8]};
                     bidx <= bidx + 16'd1;
                 end
-                if (!rd_go && vpipe == 2'b00 && !byte_v) begin t_in_valid <= 1'b1; st <= E_XF; end
+                if (!rd_go && vpipe == 3'b000 && !byte_v) begin t_in_valid <= 1'b1; st <= E_XF; end
             end
             E_XF: begin
                 if (t_in_valid && !t_in_ready) t_in_valid <= 1'b1;   // hold until accepted
@@ -165,7 +179,7 @@ module accel_engine (
             end
             E_RES: begin                                         // 24 result bytes
                 resp_we <= 1'b1;
-                resp_waddr <= 13'd16 + jidx[12:0] * 13'd24 + bidx[12:0];
+                resp_waddr <= res_base + bidx[12:0];
                 resp_wdata <= res_sr[7:0];
                 crc_out <= crc8(crc_out, res_sr[7:0]);
                 res_sr <= res_sr >> 8;
@@ -173,9 +187,11 @@ module accel_engine (
                 if (bidx == 16'd23) begin
                     jidx <= jidx + 16'd1;
                     bidx <= 16'd0;
+                    res_base <= res_base + 13'd24;
+                    req_base <= req_base + 16'd48;
                     if (jidx + 16'd1 == count) st <= E_FIN;
                     else begin
-                        rd_next <= 16'd16 + (jidx + 16'd1) * 16'd48; rd_end <= 16'd16 + (jidx + 16'd2) * 16'd48;
+                        rd_next <= req_base + 16'd48; rd_end <= req_base + 16'd96;
                         rd_go <= 1'b1; st <= E_JOB;
                     end
                 end
@@ -202,15 +218,15 @@ module accel_engine (
                 endcase
                 bidx <= bidx + 16'd1;
                 if (bidx == 16'd15) begin
-                    resp_len <= 16'd16 + count * 16'd24;
+                    resp_len <= 16'd16 + (count << 4) + (count << 3);           // 16 + 24*count
                     st <= E_POST;
                 end
             end
             E_LOOP: begin                                        // legacy transport loopback
                 if (byte_v) begin
-                    resp_we <= 1'b1; resp_waddr <= bidx[12:0]; resp_wdata <= req_rdata; bidx <= bidx + 16'd1;
+                    resp_we <= 1'b1; resp_waddr <= bidx[12:0]; resp_wdata <= rdq; bidx <= bidx + 16'd1;
                 end
-                if (!rd_go && vpipe == 2'b00 && !byte_v) begin resp_len <= job_len; status <= S_OK; count <= 16'd0; st <= E_POST; end
+                if (!rd_go && vpipe == 3'b000 && !byte_v) begin resp_len <= job_len; status <= S_OK; count <= 16'd0; st <= E_POST; end
             end
             E_POST: begin
                 resp_post <= 1'b1;
