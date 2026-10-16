@@ -76,6 +76,8 @@ def _open_tree(root, record_path, warnings):
     top, err = _git(["rev-parse", "--show-toplevel"], SDK_ROOT)
     if top is None:
         warnings.append("git checks not run: %s" % err)
+        warnings.append("without git history the record is checked against the current files; an earlier pass "
+                        "whose artifacts later passes changed will fail here, so check it from a git clone")
         return Tree(root), None
     top = Path(top.strip()).resolve()
     record = str(Path(record_path).resolve())

@@ -325,7 +325,13 @@ class PassValidatorTests(unittest.TestCase):
         `arc1 pass validate` does; later passes must not break earlier ones."""
         records = sorted((ROOT / "passes").glob("ARC1-PASS-*/pass.json"))
         self.assertTrue(records)
-        use_git = shutil.which("git") is not None
+        use_git = shutil.which("git") is not None and subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"], cwd=ROOT, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL).returncode == 0
+        if not use_git:
+            # Without history (e.g. a source zip) only the newest record can be
+            # checked against the current files; earlier ones need their commit.
+            records = records[-1:]
         for rec in records:
             with self.subTest(record=rec.parent.name):
                 doc = json.loads(rec.read_text())

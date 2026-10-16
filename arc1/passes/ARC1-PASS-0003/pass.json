@@ -1,0 +1,111 @@
+{
+  "schema": "arc1.pass/0.2",
+  "pass_id": "ARC1-PASS-0003",
+  "state": "REVIEW",
+  "owner": "agent:claude-code",
+  "objective": "Make the SDK suite and pass validation behave honestly when run from a source zip without git history",
+  "risk_tier": "LOW",
+  "base_commit": "aa5808b3b52d2b092c3f19e3e368b7a504ae3df5",
+  "inputs": {
+    "sdk_schema": "0.2",
+    "board_revision": "R10-development",
+    "toolchain_lock_sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+  },
+  "effort": {
+    "units": "task_units",
+    "planned_total": 6,
+    "sdk_reserved": 2,
+    "actual_total": null,
+    "actual_sdk": null
+  },
+  "deferral": null,
+  "main_change": {
+    "summary": "Repository-records test scoped to the newest record when no git work tree exists",
+    "paths": [
+      "tests/run_tests.py"
+    ]
+  },
+  "sdk_change": {
+    "summary": "arc1 pass validate explains that historical records need a git clone when history is absent",
+    "paths": [
+      "sdk/cli/arc1cli/passrec.py"
+    ],
+    "reusable": true,
+    "beneficiary": "Anyone validating pass records from a release zip or other non-git copy",
+    "acceptance_tests": [
+      "suite-no-git"
+    ]
+  },
+  "validation": [
+    {
+      "id": "suite-git-clone",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0003/reports/suite-git-clone.log",
+        "sha256": "65398278716bb8ff7de5712f167a6aa235d086547fb450dbeecde2b7003478f9"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "suite-no-git",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py (copy of the tracked tree without .git)",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0003/reports/suite-no-git.log",
+        "sha256": "db6ea7f7435b616a1b6934fe2dffe356d43c92b313e834b55b3d1387f23f30b5"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "independent-reproduction",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "TST-004: no second agent or maintainer has reproduced the suite yet"
+    },
+    {
+      "id": "board",
+      "level": "BOARD_TEST",
+      "command": null,
+      "result": "not_available",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "R10 is on fabrication HOLD; no board exists"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "sdk/cli/arc1cli/passrec.py",
+      "sha256": "77a2dee2d89228f0619045ead268a2e629de668688de5d6520c3a35b8f7a1b73"
+    },
+    {
+      "path": "tests/run_tests.py",
+      "sha256": "e4d88677fd9eab1d9463d1adb50f6d21ce4cdd2ad4f7957c09b6f9d0cd040cd9"
+    }
+  ],
+  "sensitive_changes": [
+    {
+      "path": "tests/run_tests.py",
+      "kind": "modified",
+      "justification": "Without a git work tree the repository-records test now checks only the newest record, because earlier records can only be verified at their own commit. With git, every record is still checked. No assertion was removed."
+    }
+  ],
+  "review": {
+    "sdk_accepted_by": null,
+    "state": "pending",
+    "evidence": null
+  },
+  "blockers": [],
+  "handoff": "passes/ARC1-PASS-0003/HANDOFF.md"
+}
