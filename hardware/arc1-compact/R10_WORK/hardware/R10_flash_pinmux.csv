@@ -1,0 +1,86 @@
+group,signal,chip,pin,function,bank_or_domain,io_voltage,direction,peer_chip,peer_pin,status,note
+NOR,SPI0_CLK,F133-B,19 (PC2),SPI0-CLK,VCC-IO 3V3,3.3 V,out,"W25Q512JV (64 MiB, provisional)",6 CLK,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
+NOR,SPI0_CS0_N,F133-B,18 (PC3),SPI0-CS0,VCC-IO 3V3,3.3 V,out,"W25Q512JV (64 MiB, provisional)",1 /CS,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
+NOR,SPI0_MOSI,F133-B,17 (PC4),SPI0-MOSI,VCC-IO 3V3,3.3 V,out,"W25Q512JV (64 MiB, provisional)",5 DI/IO0,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
+NOR,SPI0_MISO,F133-B,16 (PC5),SPI0-MISO,VCC-IO 3V3,3.3 V,in,"W25Q512JV (64 MiB, provisional)",2 DO/IO1,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
+NOR,SPI0_IO2,F133-B,15 (PC6),SPI0-WP,VCC-IO 3V3,3.3 V,io,"W25Q512JV (64 MiB, provisional)",3 /WP/IO2,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
+NOR,SPI0_IO3,F133-B,14 (PC7),SPI0-HOLD,VCC-IO 3V3,3.3 V,io,"W25Q512JV (64 MiB, provisional)",7 /HOLD/IO3,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
+CFG12,FPGA12_SCK,LFE5U-12F TQFP144,54,CCLK [MCLK/SCK],bank 8,3.3 V,in,F133-B,PC2,"SELECTED (R8.5-C loader, now for the 12F)",via isolation buffer (R8.5-C U21)
+CFG12,FPGA12_MOSI,LFE5U-12F TQFP144,47,PB11B [D0/MOSI/IO0],bank 8,3.3 V,in,F133-B,PC4,"SELECTED (R8.5-C loader, now for the 12F)","D0/MOSI, via buffer (U22) proxy caBGA256 T8"
+CFG12,FPGA12_MISO,LFE5U-12F TQFP144,46,PB11A [D1/MISO/IO1],bank 8,3.3 V,out,F133-B,PC5,"SELECTED (R8.5-C loader, now for the 12F)","D1/MISO, via buffer (U24, enabled by SN low) proxy caBGA256 T7"
+CFG12,FPGA12_SS_N,LFE5U-12F TQFP144,48,PB13A [SN/CSN],bank 8,3.3 V,in,F133-B,PE4,"SELECTED (R8.5-C loader, now for the 12F)","SN/CSN, software chip select proxy caBGA256 R8"
+CFG12,FPGA12_PROGRAMN,LFE5U-12F TQFP144,57,PROGRAMN,bank 8,3.3 V,in,F133-B,PE8,SELECTED,dedicated sysCONFIG pin
+CFG12,FPGA12_INITN,LFE5U-12F TQFP144,55,INITN,bank 8,3.3 V,bidir,F133-B,PD0,SELECTED,dedicated sysCONFIG pin
+CFG12,FPGA12_DONE,LFE5U-12F TQFP144,56,DONE,bank 8,3.3 V,bidir,F133-B,PE9,SELECTED,dedicated sysCONFIG pin
+CFG12,FPGA12_CFG0,LFE5U-12F TQFP144,62,CFG_0,bank 8,3.3 V,in,strap,pull-up 10k,SELECTED,CFG[2:0] = 001 slave SPI (TN-02039)
+CFG12,FPGA12_CFG1,LFE5U-12F TQFP144,59,CFG_1,bank 8,3.3 V,in,strap,GND,SELECTED,CFG[2:0] = 001 slave SPI (TN-02039)
+CFG12,FPGA12_CFG2,LFE5U-12F TQFP144,58,CFG_2,bank 8,3.3 V,in,strap,GND,SELECTED,CFG[2:0] = 001 slave SPI (TN-02039)
+CFG12,FPGA12_BUS_EN_N,F133-B,41 (PE6),GPIO-OUT,VCC-IO 3V3,3.3 V,out,12F power / isolation,-,"SELECTED (R8.5-C function, retargeted to the 12F)",
+CFG12,FPGA12_PWR_EN,F133-B,44 (PE0),GPIO-OUT,VCC-IO 3V3,3.3 V,out,12F power / isolation,-,"SELECTED (R8.5-C function, retargeted to the 12F)",
+CFG12,FPGA12_VCC_PG,F133-B,56 (PD1),GPIO-IN,VCC-IO 3V3,3.3 V,in,12F power / isolation,-,"SELECTED (R8.5-C function, retargeted to the 12F)",
+PSRAM12,psram_ce_n,LFE5U-12F TQFP144,72,PR44C,bank 3,3.3 V,out,"APS3204L-3SQN (4 MiB, candidate)",1 CE#,PROPOSED,"bank 3 (right), away from RGMII banks 0/1 proxy caBGA256 M12"
+PSRAM12,psram_sclk,LFE5U-12F TQFP144,73,PR41D,bank 3,3.3 V,out,"APS3204L-3SQN (4 MiB, candidate)",6 SCLK,PROPOSED,"bank 3 (right), away from RGMII banks 0/1 proxy caBGA256 T14"
+PSRAM12,psram_sio[0],LFE5U-12F TQFP144,74,PR41C,bank 3,3.3 V,io,"APS3204L-3SQN (4 MiB, candidate)",5 SI/SIO0,PROPOSED,"bank 3 (right), away from RGMII banks 0/1 proxy caBGA256 R13"
+PSRAM12,psram_sio[1],LFE5U-12F TQFP144,76,PR41B,bank 3,3.3 V,io,"APS3204L-3SQN (4 MiB, candidate)",2 SO/SIO1,PROPOSED,"bank 3 (right), away from RGMII banks 0/1 proxy caBGA256 R14"
+PSRAM12,psram_sio[2],LFE5U-12F TQFP144,77,PR41A,bank 3,3.3 V,io,"APS3204L-3SQN (4 MiB, candidate)",3 SIO2,PROPOSED,"bank 3 (right), away from RGMII banks 0/1 proxy caBGA256 P13"
+PSRAM12,psram_sio[3],LFE5U-12F TQFP144,78,PR35D,bank 3,3.3 V,io,"APS3204L-3SQN (4 MiB, candidate)",7 SIO3,PROPOSED,"bank 3 (right), away from RGMII banks 0/1 proxy caBGA256 N14"
+CFG45,FPGA45_SCK,D213ECV,51 (PB11),SPI1_CLK,VCC33_IO0,3.3 V,out,LFE5U-45F,U3,PROPOSED,D213 SPI1 (VCC33_IO0); PB0-PB5 stay free for a D213 boot NOR
+CFG45,FPGA45_SCK,LFE5U-45F CABGA381,U3,CCLK [MCLK/SCK],bank 8,3.3 V,in,D213ECV,PB11,PROPOSED,CCLK
+CFG45,FPGA45_MOSI,D213ECV,49 (PB10),SPI1_MOSI,VCC33_IO0,3.3 V,out,LFE5U-45F,W2,PROPOSED,D213 SPI1 (VCC33_IO0); PB0-PB5 stay free for a D213 boot NOR
+CFG45,FPGA45_MOSI,LFE5U-45F CABGA381,W2,PB11B [D0/MOSI/IO0],bank 8,3.3 V,in,D213ECV,PB10,PROPOSED,D0/MOSI
+CFG45,FPGA45_MISO,D213ECV,48 (PB9),SPI1_MISO,VCC33_IO0,3.3 V,in,LFE5U-45F,V2,PROPOSED,D213 SPI1 (VCC33_IO0); PB0-PB5 stay free for a D213 boot NOR
+CFG45,FPGA45_MISO,LFE5U-45F CABGA381,V2,PB11A [D1/MISO/IO1],bank 8,3.3 V,out,D213ECV,PB9,PROPOSED,D1/MISO
+CFG45,FPGA45_SS_N,D213ECV,47 (PB8),SPI1_CS,VCC33_IO0,3.3 V,out,LFE5U-45F,T2,PROPOSED,D213 SPI1 (VCC33_IO0); PB0-PB5 stay free for a D213 boot NOR
+CFG45,FPGA45_SS_N,LFE5U-45F CABGA381,T2,PB13A [SN/CSN],bank 8,3.3 V,in,D213ECV,PB8,PROPOSED,SN/CSN
+CFG45,FPGA45_PROGRAMN,D213ECV,89 (PA4),GPIO,VCC33_IO0,3.3 V,od,LFE5U-45F,W3,PROPOSED,GPIO; PA0/PA1 (UART0) and PA8-PA11 (JTAG alternate) avoided
+CFG45,FPGA45_PROGRAMN,LFE5U-45F CABGA381,W3,PROGRAMN,bank 8,3.3 V,in,D213ECV,PA4,PROPOSED,dedicated sysCONFIG pin
+CFG45,FPGA45_INITN,D213ECV,90 (PA5),GPIO,VCC33_IO0,3.3 V,in,LFE5U-45F,V3,PROPOSED,GPIO; PA0/PA1 (UART0) and PA8-PA11 (JTAG alternate) avoided
+CFG45,FPGA45_INITN,LFE5U-45F CABGA381,V3,INITN,bank 8,3.3 V,bidir,D213ECV,PA5,PROPOSED,dedicated sysCONFIG pin
+CFG45,FPGA45_DONE,D213ECV,91 (PA6),GPIO,VCC33_IO0,3.3 V,in,LFE5U-45F,Y3,PROPOSED,GPIO; PA0/PA1 (UART0) and PA8-PA11 (JTAG alternate) avoided
+CFG45,FPGA45_DONE,LFE5U-45F CABGA381,Y3,DONE,bank 8,3.3 V,bidir,D213ECV,PA6,PROPOSED,dedicated sysCONFIG pin
+CFG45,FPGA45_CFG0,LFE5U-45F CABGA381,U4,CFG_0,bank 8,3.3 V,in,strap,pull-up 10k,SELECTED (R8.5-C),CFG[2:0] = 001 slave SPI
+D213NOR,D213_NOR_HOLD,D213ECV,37 (PB0),SPI0_HOLD,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
+D213NOR,D213_NOR_WP,D213ECV,38 (PB1),SPI0_WP,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
+D213NOR,D213_NOR_CS,D213ECV,39 (PB2),SPI0_CS,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
+D213NOR,D213_NOR_MISO,D213ECV,40 (PB3),SPI0_MISO,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
+D213NOR,D213_NOR_MOSI,D213ECV,42 (PB4),SPI0_MOSI,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
+D213NOR,D213_NOR_CLK,D213ECV,43 (PB5),SPI0_CLK,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
+SDRAM45,sd_dq[0],LFE5U-45F CABGA381,C20,PR23A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[1],LFE5U-45F CABGA381,D18,PR14A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[2],LFE5U-45F CABGA381,D19,PR23B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[3],LFE5U-45F CABGA381,E16,PR11C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[4],LFE5U-45F CABGA381,E17,PR14B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[5],LFE5U-45F CABGA381,E18,PR14C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[6],LFE5U-45F CABGA381,E19,PR23D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[7],LFE5U-45F CABGA381,E20,PR26A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[8],LFE5U-45F CABGA381,F16,PR11D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[9],LFE5U-45F CABGA381,F17,PR17A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[10],LFE5U-45F CABGA381,F18,PR14D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[11],LFE5U-45F CABGA381,F19,PR26B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[12],LFE5U-45F CABGA381,F20,PR26C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[13],LFE5U-45F CABGA381,G16,PR17C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[14],LFE5U-45F CABGA381,G18,PR17B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dq[15],LFE5U-45F CABGA381,G20,PR26D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dqm[0],LFE5U-45F CABGA381,H16,PR17D,bank 2,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_dqm[1],LFE5U-45F CABGA381,H17,PR20B,bank 2,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
+SDRAM45,sd_clk,LFE5U-45F CABGA381,L17,PR38B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_cke,LFE5U-45F CABGA381,M17,PR41B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_cs_n,LFE5U-45F CABGA381,M18,PR38D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_ras_n,LFE5U-45F CABGA381,N16,PR41A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_cas_n,LFE5U-45F CABGA381,N17,PR44A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_we_n,LFE5U-45F CABGA381,N18,PR41C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_ba[0],LFE5U-45F CABGA381,N19,PR59A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_ba[1],LFE5U-45F CABGA381,N20,PR59B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[0],LFE5U-45F CABGA381,P17,PR41D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[1],LFE5U-45F CABGA381,P18,PR59D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[2],LFE5U-45F CABGA381,P19,PR59C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[3],LFE5U-45F CABGA381,P20,PR62A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[4],LFE5U-45F CABGA381,R16,PR44C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[5],LFE5U-45F CABGA381,R17,PR44D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[6],LFE5U-45F CABGA381,R18,PR65B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[7],LFE5U-45F CABGA381,R20,PR62B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[8],LFE5U-45F CABGA381,T16,PR53A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[9],LFE5U-45F CABGA381,T18,PR65D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[10],LFE5U-45F CABGA381,T19,PR65A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[11],LFE5U-45F CABGA381,T20,PR62C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_a[12],LFE5U-45F CABGA381,U17,PR68B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
