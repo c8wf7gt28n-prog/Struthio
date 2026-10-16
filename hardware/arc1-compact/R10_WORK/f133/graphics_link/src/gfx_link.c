@@ -132,6 +132,34 @@ int gl_submit_frame(gl_host *h, uint32_t frame_no, const uint8_t *cmds, size_t l
     return GL_FALLBACK;
 }
 
+int gl_send_fpga(gl_host *h, uint32_t total, gl_read_fn read, void *ctx, uint8_t *status, uint16_t *detail)
+{
+    uint8_t rsp[GL_RSP_LEN];
+    if (!read || !status || !detail || total == 0) return GL_ARG;
+    *status = 0xFF; *detail = 0;
+    if (!h->up && gl_hello(h) != GL_OK) return GL_FALLBACK;
+    for (int pass = 0; pass < 2; pass++) {
+        int restart = 0;
+        for (uint32_t off = 0; off < total && !restart; ) {
+            uint32_t n = total - off < GL_CHUNK ? total - off : GL_CHUNK;
+            wr32(h->pl, off); wr32(h->pl + 4, total);
+            if (read(ctx, off, h->pl + 8, n) != 0) return GL_IO;
+            if (exchange(h, GL_T_FPGA, h->pl, 8u + n, rsp) != GL_OK) { failed(h); return GL_FALLBACK; }
+            h->fails = 0;
+            if (rd32(rsp + 8) != h->boot_id || rsp[0] == GL_S_ORDER) {     /* device restarted / lost the stream */
+                h->resyncs++;
+                if (rd32(rsp + 8) != h->boot_id && gl_hello(h) != GL_OK) return GL_FALLBACK;
+                restart = 1; break;
+            }
+            off += n;
+            if (off < total && rsp[0] != GL_S_OK) { *status = rsp[0]; *detail = (uint16_t)rd16(rsp + 2); return GL_OK; }
+            if (off == total) { *status = rsp[0]; *detail = (uint16_t)rd16(rsp + 2); return GL_OK; }
+        }
+        if (!restart) break;
+    }
+    return GL_FALLBACK;
+}
+
 /* ---------------- device side ---------------- */
 void gl_dev_init(gl_dev *d, uint32_t boot_id, uint32_t caps)
 {
@@ -143,7 +171,7 @@ static size_t respond(gl_dev *d, uint8_t *rsp, size_t cap, uint8_t type, uint32_
 {
     uint8_t p[GL_RSP_LEN];
     memset(p, 0, sizeof p);
-    p[0] = status; p[1] = type;
+    p[0] = status; p[1] = type; p[2] = (uint8_t)d->detail; p[3] = (uint8_t)(d->detail >> 8); d->detail = 0;
     wr32(p + 4, d->last_frame); wr32(p + 8, d->boot_id); wr32(p + 12, type == GL_T_HELLO ? d->caps : 0u);
     return gl_build(rsp, cap, "GRSP", type, seq, p, sizeof p);
 }
@@ -168,6 +196,25 @@ size_t gl_dev_rx(gl_dev *d, const uint8_t *pkt, size_t len, uint8_t *rsp, size_t
     if (ver != GL_VERSION) st = GL_S_BAD_VERSION;
     else if (type == GL_T_HELLO) { d->nchunks = 0; d->next_chunk = 0; d->asm_len = 0; }
     else if (type == GL_T_PING) { }
+    else if (type == GL_T_FPGA) {
+        uint32_t off = n >= 8 ? rd32(p) : 0xFFFFFFFFu, tot = n >= 8 ? rd32(p + 4) : 0;
+        uint32_t m = n >= 8 ? (uint32_t)n - 8u : 0;
+        if (n < 8) st = GL_S_BAD_TYPE;
+        else if (!d->fpga_buf || !d->fpga_load || tot == 0 || tot > d->fpga_cap) st = GL_S_FPGA_NOBUF;
+        else {
+            if (off == 0) { d->fpga_rx = 0; d->fpga_total = tot; }
+            if (off != d->fpga_rx || tot != d->fpga_total || off + m > tot) st = GL_S_ORDER;
+            else {
+                memcpy(d->fpga_buf + off, p + 8, m);
+                d->fpga_rx += m;
+                if (d->fpga_rx == tot) {
+                    d->fpga_loads++;
+                    st = d->fpga_load(d->ctx, d->fpga_buf, tot, &d->detail);
+                    d->fpga_rx = 0; d->fpga_total = 0;
+                }
+            }
+        }
+    }
     else if (type != GL_T_FRAME || n < (long)GL_FRAME_HDR) st = GL_S_BAD_TYPE;
     else {
         uint32_t fno = rd32(p), c = rd16(p + 4), nch = rd16(p + 6);

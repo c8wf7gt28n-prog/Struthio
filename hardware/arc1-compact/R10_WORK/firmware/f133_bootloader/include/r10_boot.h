@@ -42,7 +42,7 @@ size_t ecp5_image_build_id(uint8_t *out, size_t cap, const uint8_t *bit, uint32_
 enum r10_comp { R10C_F133 = 0, R10C_D213 = 1, R10C_C12 = 2, R10C_C45 = 3, R10C_COUNT = 4 };
 enum r10_slot { R10S_0 = 0, R10S_1 = 1, R10S_FALLBACK = 2, R10S_NONE = 3 };   /* 0/1 = A/B or app/golden */
 enum r10_err  { R10_OK = 0, R10_E_NOR = 1, R10_E_ARG = 2, R10_E_LOCKED = 3, R10_E_IMAGE = 4, R10_E_STATE = 5,
-                R10_E_STAGE = 6, R10_E_FPGA = 7, R10_E_NONE = 8 };
+                R10_E_STAGE = 6, R10_E_FPGA = 7, R10_E_NONE = 8, R10_E_LINK = 9 };
 
 typedef struct r10_comp_state {
     uint8_t  active;        /* A/B: confirmed slot; FPGA: unused (app preferred) */
@@ -92,8 +92,17 @@ int  r10_fpga_stage(r10_boot *b, enum r10_comp c, int slot, ecp5_image *img);
 /* 12F bring-up: application, else golden; marks a failing application bad. used = slot configured or R10S_NONE */
 int  r10_boot_fpga12(r10_boot *b, ecp5_cfg *cfg, enum r10_slot *used, ecp5_err *last);
 
+/* total container size (ACFG header + bitstream) of a valid FPGA slot, else 0 */
+uint32_t r10_fpga_size(r10_boot *b, enum r10_comp c, int slot);
+
 /* streamed update into the inactive slot (A/B) or the application slot (FPGA); never a locked partition */
 int  r10_update_begin(r10_boot *b, enum r10_comp c, r10_update *u);
 int  r10_update_write(r10_update *u, const uint8_t *p, uint32_t n);    /* sequential; 4 KiB-aligned erases */
 int  r10_update_commit(r10_update *u, uint32_t version);              /* verify on NOR, then arm (manifest) */
+
+/* 45F bring-up through the D213 (r10_fpga45.c): application, else golden, streamed from the NOR over the USB graphics
+ * link; the D213 configures the 45F. used = slot or R10S_NONE; dev_status and detail = the D213's last answer.
+ * R10_E_LINK: graphics link down (the D213 keeps its 2D path); R10_E_FPGA: neither image configured. */
+struct gl_host;
+int  r10_boot_fpga45(r10_boot *b, struct gl_host *h, enum r10_slot *used, uint8_t *dev_status, uint16_t *detail);
 #endif

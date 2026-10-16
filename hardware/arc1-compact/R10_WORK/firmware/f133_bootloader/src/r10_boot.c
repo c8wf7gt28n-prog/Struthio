@@ -254,6 +254,13 @@ int r10_boot_fpga12(r10_boot *b, ecp5_cfg *cfg, enum r10_slot *used, ecp5_err *l
     return R10_E_FPGA;                                         /* the F133 keeps running without the 12F */
 }
 
+uint32_t r10_fpga_size(r10_boot *b, enum r10_comp c, int slot)
+{
+    uint32_t total = 0;
+    if (!is_fpga(c) || slot < 0 || slot > 1) return 0;
+    return fpga_container_check(b, c, slot, NULL, &total) == R10_OK ? total : 0;
+}
+
 /* ---------------- update ---------------- */
 int r10_update_begin(r10_boot *b, enum r10_comp c, r10_update *u)
 {
