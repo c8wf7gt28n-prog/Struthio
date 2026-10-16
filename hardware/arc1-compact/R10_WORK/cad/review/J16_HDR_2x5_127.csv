@@ -1,11 +1,11 @@
 pin,name,etype,net,nc_reason,net_members
-1,1,passive,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 U38.9 U38.16 U38.36 U38.43 (+39)
-2,2,passive,FPGA12_TMS,,U38.64 R158.1
+1,1,passive,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+73)
+2,2,passive,FPGA45_TMS,,U35.U5 R129.1
 3,3,passive,GND,,(ground)
-4,4,passive,FPGA12_TCK,,U38.63 R157.1
+4,4,passive,FPGA45_TCK,,U35.T5 R128.1
 5,5,passive,GND,,(ground)
-6,6,passive,FPGA12_TDO,,U38.60 R160.1
+6,6,passive,FPGA45_TDO,,U35.V4 R131.1
 7,7,passive,,key,
-8,8,passive,FPGA12_TDI,,U38.61 R159.1
+8,8,passive,FPGA45_TDI,,U35.R5 R130.1
 9,9,passive,GND,,(ground)
-10,10,passive,FPGA12_PROGRAMN,,U38.57 R150.1 R151.2 TP70.1
+10,10,passive,FPGA45_PROGRAMN,,U35.W3 R120.1 R121.2 TP63.1

@@ -1,0 +1,4 @@
+pin,name,etype,net,nc_reason,net_members
+1,D+,passive,USBA3_DP,,U26.7 J14.3
+2,D-,passive,USBA3_DM,,U26.6 J14.2
+3,GND,power_in,GND,,(ground)

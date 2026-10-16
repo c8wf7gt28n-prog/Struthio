@@ -241,7 +241,7 @@ EXPECT = {  # part: {pin name: rail}
     "APS3204L": {"VDD": "3V3_F12", "VSS": "GND"},
     "ADV7513": {"DVDD": "1V8_ADV_D", "AVDD": "1V8_ADV_A", "PVDD": "1V8_ADV_P", "BGVDD": "1V8_ADV_P", "DVDD_3V": "3V3",
                 "EPAD_GND": "GND"},
-    "USB2422": {"VDD33": "3V3", "VSS_EP": "GND"},
+    "USB2514B": {"VDD33": "3V3", "VDDA33": "3V3", "VSS_EP": "GND"},
     "EMMC_KLMAG1JETD": {"VCCQ": "3V3", "VCC": "3V3", "VSS": "GND"},
     "TPS2051C": {"IN": "VBUS_5V", "GND": "GND"},
     "TPD12S016": {"VCCA": "3V3", "VCC5V": "VBUS_5V", "GND": "GND"},
@@ -272,6 +272,7 @@ MULTI_OK = {
     "USBC_DM": "rear USB-C + ESD + USB0 mux", "USBC_DP": "rear USB-C + ESD + USB0 mux",
     "USBA1_DM": "hub + ESD + USB-A", "USBA1_DP": "hub + ESD + USB-A", "USBA2_DM": "hub + ESD + USB-A",
     "USBA2_DP": "hub + ESD + USB-A", "USBA1_VBUS": "switch + TVS + USB-A", "USBA2_VBUS": "switch + TVS + USB-A",
+    "USBA3_DM": "hub + ESD + USB-A", "USBA3_DP": "hub + ESD + USB-A", "USBA3_VBUS": "switch + TVS + USB-A",
     "HDMI_HPD": "TPD12S016 HPD_A -> ADV7513 HPD + D213 PA10",
     **{f"TMDS_{s}": "ADV7513 + pass-through ESD + connector" for s in ("CK_N", "CK_P", "D0_N", "D0_P", "D1_N", "D1_P",
                                                                       "D2_N", "D2_P")},
@@ -287,23 +288,30 @@ for net in MULTI_OK:
         fail("H_multi_ic_nets", f"MULTI_OK lists {net}, which no longer exists")
 
 # ------------------------------------------------------------------ I
-# Owner change order ARC1_R10_Handoff rev 1.1: four exterior connectors, zero exterior controls, HDMI with embedded
-# audio, two concurrent host USB-A ports behind a hub, eMMC on the F133. Exterior = notes start with FRONT/REAR.
+# Owner change order ARC1_R10_Handoff rev 1.1 as amended by D12 (owner, 2026-10-16): rear USB-C + HDMI, two front
+# USB-A controller ports, one TOP USB-A game cartridge (games run from the drive), no eMMC, zero exterior controls,
+# HDMI with embedded audio. Exterior = notes start with FRONT/REAR/TOP.
 SEC = "I_handoff_rev1_1"
-ext = {r: c for r, c in pcomps.items() if c["note"].startswith(("FRONT", "REAR"))}
+ext = {r: c for r, c in pcomps.items() if c["note"].startswith(("FRONT", "REAR", "TOP"))}
 kinds = sorted((c["part"], c["note"].split(".")[0]) for c in ext.values())
-if kinds != sorted([("USB_C", "REAR"), ("HDMI_A", "REAR"), ("USB_A", "FRONT"), ("USB_A", "FRONT")]):
-    fail(SEC, f"exterior connectors {kinds} != USB-C rear, HDMI rear, 2x USB-A front")
+if kinds != sorted([("USB_C", "REAR"), ("HDMI_A", "REAR"), ("USB_A", "FRONT"), ("USB_A", "FRONT"), ("USB_A_V", "TOP")]):
+    fail(SEC, f"exterior connectors {kinds} != USB-C rear, HDMI rear, 2x USB-A front, USB-A top (D12)")
 for r, c in pcomps.items():
-    if c["part"] in ("USB_C", "HDMI_A", "USB_A", "MICROSD", "JST_PH2") and r not in ext:
+    if c["part"] in ("USB_C", "HDMI_A", "USB_A", "USB_A_V", "MICROSD", "JST_PH2") and r not in ext:
         fail(SEC, f"{r} {c['part']} is a connector type that would reach the case but is not declared FRONT/REAR")
     if c["part"].startswith("SW_"):
         fail(SEC, f"{r}: a switch is on the board (no exterior or user switches allowed)")
     if c["part"] in ("PADS_1x2", "PADS_1x4", "HDR_1x3", "HDR_2x5_127") and not c["dnp"] and c["part"] != "HDR_2x5_127":
         fail(SEC, f"{r}: service pads/headers must be DNP fixture features")
-for part in ("ADV7513", "USB2422", "EMMC_KLMAG1JETD"):
+for part in ("ADV7513", "USB2514B"):
     if part not in by_part:
         fail(SEC, f"required part {part} missing")
+for part in ("EMMC_KLMAG1JETD", "USB2422"):
+    if part in by_part:
+        fail(SEC, f"{part} present: removed by D12")
+hubp = {n.split(".")[0] for k in ("USBA1_DP", "USBA2_DP", "USBA3_DP") for n in plan["nets"].get(k, [])}
+if "USB2514B" not in by_part or by_part["USB2514B"][0] not in hubp:
+    fail(SEC, "the three USB-A ports must hang off the hub")
 if "TFP410" in by_part:
     fail(SEC, "TFP410 (DVI only) present")
 adv = pcomps[by_part["ADV7513"][0]]["pins"] if "ADV7513" in by_part else {}
@@ -319,9 +327,6 @@ if not any(pcomps[r]["part"] == "TS3USB221A" for r in usb1):
 usb0 = {pcomps[n.split(".")[0]]["part"] for n in plan["nets"].get("F133_USB0_DP", [])}
 if usb0 != {"F133", "TS3USB221A"}:
     fail(SEC, f"F133 USB0 must go only to the role mux, found {usb0}")
-emmc = {n.split(".")[0] for n in plan["nets"].get("EMMC_CMD", [])}
-if not ({by_part["F133"][0], by_part["EMMC_KLMAG1JETD"][0]} <= emmc):
-    fail(SEC, "eMMC CMD not wired F133 <-> eMMC")
 res["info"]["exterior_connectors"] = {r: c["part"] + " " + c["note"].split(".")[0] for r, c in ext.items()}
 
 total = sum(len(v) for k, v in res.items() if k not in ("info", "cross_rail_signals"))

@@ -16,22 +16,21 @@ initial the last column. Status of this file: generated, **not yet reviewed by a
 | U21 | LVC2G07 | D213 ctl OD | d213 | 6 | 6 | 0 | STD_LIB |  | [U21_LVC2G07.csv](U21_LVC2G07.csv) | |
 | U22 | W25Q512JVFIQ | W25Q512JVFIQ | d213 | 16 | 9 | 7 | STD_LIB |  | [U22_W25Q512JVFIQ.csv](U22_W25Q512JVFIQ.csv) | |
 | Y2 | XTAL_3225 | 24MHz +-20ppm | d213 | 4 | 4 | 0 | STD_LIB |  | [Y2_XTAL_3225.csv](Y2_XTAL_3225.csv) | |
-| J17 | HDR_1x3 | F133 UART0 | debug | 3 | 3 | 0 | STD_LIB | DNP | [J17_HDR_1x3.csv](J17_HDR_1x3.csv) | |
-| U44 | EMMC_KLMAG1JETD | KLMAG1JETD-B041 | emmc | 153 | 28 | 125 | STD_LIB |  | [U44_EMMC_KLMAG1JETD.csv](U44_EMMC_KLMAG1JETD.csv) | |
-| U18 | F133 | F133-B | f133 | 129 | 82 | 47 | GENERATED_DERIVED |  | [U18_F133.csv](U18_F133.csv) | |
+| J18 | HDR_1x3 | F133 UART0 | debug | 3 | 3 | 0 | STD_LIB | DNP | [J18_HDR_1x3.csv](J18_HDR_1x3.csv) | |
+| U18 | F133 | F133-B | f133 | 129 | 75 | 54 | GENERATED_DERIVED |  | [U18_F133.csv](U18_F133.csv) | |
 | Y1 | XTAL_3225 | 24MHz | f133 | 4 | 4 | 0 | STD_LIB |  | [Y1_XTAL_3225.csv](Y1_XTAL_3225.csv) | |
-| J16 | HDR_2x5_127 | 12F JTAG | fpga12 | 10 | 9 | 1 | STD_LIB |  | [J16_HDR_2x5_127.csv](J16_HDR_2x5_127.csv) | |
-| U38 | ECP5_12F_TQ144 | LFE5U-12F-6TG144C | fpga12 | 144 | 68 | 76 | STD_LIB |  | [U38_ECP5_12F_TQ144.csv](U38_ECP5_12F_TQ144.csv) | |
-| U39 | LVC1G125 | iso SCK | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U39_LVC1G125.csv](U39_LVC1G125.csv) | |
-| U40 | LVC1G125 | iso MOSI | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U40_LVC1G125.csv](U40_LVC1G125.csv) | |
-| U41 | LVC1G125 | iso SS | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U41_LVC1G125.csv](U41_LVC1G125.csv) | |
-| U42 | LVC1G125 | iso MISO | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U42_LVC1G125.csv](U42_LVC1G125.csv) | |
+| J17 | HDR_2x5_127 | 12F JTAG | fpga12 | 10 | 9 | 1 | STD_LIB |  | [J17_HDR_2x5_127.csv](J17_HDR_2x5_127.csv) | |
+| U40 | ECP5_12F_TQ144 | LFE5U-12F-6TG144C | fpga12 | 144 | 68 | 76 | STD_LIB |  | [U40_ECP5_12F_TQ144.csv](U40_ECP5_12F_TQ144.csv) | |
+| U41 | LVC1G125 | iso SCK | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U41_LVC1G125.csv](U41_LVC1G125.csv) | |
+| U42 | LVC1G125 | iso MOSI | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U42_LVC1G125.csv](U42_LVC1G125.csv) | |
+| U43 | LVC1G125 | iso SS | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U43_LVC1G125.csv](U43_LVC1G125.csv) | |
+| U44 | LVC1G125 | iso MISO | fpga12 | 5 | 5 | 0 | STD_LIB |  | [U44_LVC1G125.csv](U44_LVC1G125.csv) | |
 | X4 | OSC_3225 | 25MHz | fpga12 | 4 | 4 | 0 | STD_LIB |  | [X4_OSC_3225.csv](X4_OSC_3225.csv) | |
-| J15 | HDR_2x5_127 | 45F JTAG | fpga45 | 10 | 9 | 1 | STD_LIB |  | [J15_HDR_2x5_127.csv](J15_HDR_2x5_127.csv) | |
-| U33 | ECP5_45F_BG381 | LFE5U-45F-6BG381C | fpga45 | 381 | 224 | 157 | STD_LIB |  | [U33_ECP5_45F_BG381.csv](U33_ECP5_45F_BG381.csv) | |
-| U34 | LVC1G125 | iso FPGA45_SCK_B | fpga45 | 5 | 5 | 0 | STD_LIB |  | [U34_LVC1G125.csv](U34_LVC1G125.csv) | |
-| U35 | LVC1G125 | iso FPGA45_MOSI | fpga45 | 5 | 5 | 0 | STD_LIB |  | [U35_LVC1G125.csv](U35_LVC1G125.csv) | |
-| U36 | LVC1G125 | iso FPGA45_SS_N | fpga45 | 5 | 5 | 0 | STD_LIB |  | [U36_LVC1G125.csv](U36_LVC1G125.csv) | |
+| J16 | HDR_2x5_127 | 45F JTAG | fpga45 | 10 | 9 | 1 | STD_LIB |  | [J16_HDR_2x5_127.csv](J16_HDR_2x5_127.csv) | |
+| U35 | ECP5_45F_BG381 | LFE5U-45F-6BG381C | fpga45 | 381 | 224 | 157 | STD_LIB |  | [U35_ECP5_45F_BG381.csv](U35_ECP5_45F_BG381.csv) | |
+| U36 | LVC1G125 | iso FPGA45_SCK_B | fpga45 | 5 | 5 | 0 | STD_LIB |  | [U36_LVC1G125.csv](U36_LVC1G125.csv) | |
+| U37 | LVC1G125 | iso FPGA45_MOSI | fpga45 | 5 | 5 | 0 | STD_LIB |  | [U37_LVC1G125.csv](U37_LVC1G125.csv) | |
+| U38 | LVC1G125 | iso FPGA45_SS_N | fpga45 | 5 | 5 | 0 | STD_LIB |  | [U38_LVC1G125.csv](U38_LVC1G125.csv) | |
 | X2 | OSC_3225 | 125MHz | fpga45 | 4 | 4 | 0 | STD_LIB | DNP | [X2_OSC_3225.csv](X2_OSC_3225.csv) | |
 | X3 | OSC_3225 | 25MHz | fpga45 | 4 | 4 | 0 | STD_LIB |  | [X3_OSC_3225.csv](X3_OSC_3225.csv) | |
 | J2 | PADS_1x2 | F133 RESET pads | power | 2 | 2 | 0 | STD_LIB | DNP | [J2_PADS_1x2.csv](J2_PADS_1x2.csv) | |
@@ -52,16 +51,19 @@ initial the last column. Status of this file: generated, **not yet reviewed by a
 | U7 | TLV75518P | 1V8_AN | power | 5 | 4 | 1 | STD_LIB |  | [U7_TLV75518P.csv](U7_TLV75518P.csv) | |
 | U8 | TPS3808 | TPS3808G09 | power | 6 | 6 | 0 | STD_LIB |  | [U8_TPS3808.csv](U8_TPS3808.csv) | |
 | U9 | TLV62569 | D213_CORE | power | 5 | 5 | 0 | STD_LIB |  | [U9_TLV62569.csv](U9_TLV62569.csv) | |
-| U43 | APS3204L | APS3204L-3SQNA-SN | psram12 | 8 | 8 | 0 | STD_LIB |  | [U43_APS3204L.csv](U43_APS3204L.csv) | |
-| U37 | AS4C16M16SA | AS4C16M16SA-6TIN | sdram45 | 54 | 53 | 1 | STD_LIB |  | [U37_AS4C16M16SA.csv](U37_AS4C16M16SA.csv) | |
+| U45 | APS3204L | APS3204L-3SQNA-SN | psram12 | 8 | 8 | 0 | STD_LIB |  | [U45_APS3204L.csv](U45_APS3204L.csv) | |
+| U39 | AS4C16M16SA | AS4C16M16SA-6TIN | sdram45 | 54 | 53 | 1 | STD_LIB |  | [U39_AS4C16M16SA.csv](U39_AS4C16M16SA.csv) | |
 | J12 | USB_A | USB-A Player 1 | usb_host | 5 | 5 | 0 | STD_LIB |  | [J12_USB_A.csv](J12_USB_A.csv) | |
-| J13 | USB_A | USB-A Player 2 / game load | usb_host | 5 | 5 | 0 | STD_LIB |  | [J13_USB_A.csv](J13_USB_A.csv) | |
+| J13 | USB_A | USB-A Player 2 | usb_host | 5 | 5 | 0 | STD_LIB |  | [J13_USB_A.csv](J13_USB_A.csv) | |
+| J14 | USB_A_V | USB-A game cartridge | usb_host | 5 | 5 | 0 | STD_LIB |  | [J14_USB_A_V.csv](J14_USB_A_V.csv) | |
 | U25 | TS3USB221A | TS3USB221A | usb_host | 10 | 10 | 0 | STD_LIB |  | [U25_TS3USB221A.csv](U25_TS3USB221A.csv) | |
-| U26 | USB2422 | USB2422-I/MJ | usb_host | 25 | 24 | 1 | STD_LIB_CANDIDATE |  | [U26_USB2422.csv](U26_USB2422.csv) | |
+| U26 | USB2514B | USB2514B-I/M2 | usb_host | 37 | 36 | 1 | STD_LIB_CANDIDATE |  | [U26_USB2514B.csv](U26_USB2514B.csv) | |
 | U27 | TPS2051C | USB-A1 power | usb_host | 5 | 5 | 0 | STD_LIB |  | [U27_TPS2051C.csv](U27_TPS2051C.csv) | |
 | U28 | TPD2EUSB30 | TPD2EUSB30 | usb_host | 3 | 3 | 0 | SLIM4_CANDIDATE |  | [U28_TPD2EUSB30.csv](U28_TPD2EUSB30.csv) | |
 | U29 | TPS2051C | USB-A2 power | usb_host | 5 | 5 | 0 | STD_LIB |  | [U29_TPS2051C.csv](U29_TPS2051C.csv) | |
 | U30 | TPD2EUSB30 | TPD2EUSB30 | usb_host | 3 | 3 | 0 | SLIM4_CANDIDATE |  | [U30_TPD2EUSB30.csv](U30_TPD2EUSB30.csv) | |
+| U31 | TPS2051C | USB-A3 power | usb_host | 5 | 5 | 0 | STD_LIB |  | [U31_TPS2051C.csv](U31_TPS2051C.csv) | |
+| U32 | TPD2EUSB30 | TPD2EUSB30 | usb_host | 3 | 3 | 0 | SLIM4_CANDIDATE |  | [U32_TPD2EUSB30.csv](U32_TPD2EUSB30.csv) | |
 | Y3 | XTAL_3225 | 24MHz +-50ppm | usb_host | 4 | 4 | 0 | STD_LIB |  | [Y3_XTAL_3225.csv](Y3_XTAL_3225.csv) | |
 | J10 | HDR_1x3 | D213 USB path select | usb_link | 3 | 3 | 0 | STD_LIB | DNP | [J10_HDR_1x3.csv](J10_HDR_1x3.csv) | |
 | J11 | PADS_1x4 | D213 recovery USB pads | usb_link | 4 | 4 | 0 | STD_LIB | DNP | [J11_PADS_1x4.csv](J11_PADS_1x4.csv) | |
@@ -70,7 +72,7 @@ initial the last column. Status of this file: generated, **not yet reviewed by a
 | J1 | USB_C | USB-C receptacle | usb_power | 17 | 15 | 2 | STD_LIB |  | [J1_USB_C.csv](J1_USB_C.csv) | |
 | U1 | TUSB320LAI | TUSB320LAI | usb_power | 12 | 9 | 3 | SLIM4_CANDIDATE |  | [U1_TUSB320LAI.csv](U1_TUSB320LAI.csv) | |
 | U2 | TPD2EUSB30 | TPD2EUSB30 | usb_power | 3 | 3 | 0 | SLIM4_CANDIDATE |  | [U2_TPD2EUSB30.csv](U2_TPD2EUSB30.csv) | |
-| J14 | HDMI_A | HDMI type-A | video | 20 | 19 | 1 | STD_LIB |  | [J14_HDMI_A.csv](J14_HDMI_A.csv) | |
-| U31 | ADV7513 | ADV7513BSWZ | video | 65 | 65 | 0 | STD_LIB_CANDIDATE |  | [U31_ADV7513.csv](U31_ADV7513.csv) | |
-| U32 | TPD12S016 | TPD12S016 | video | 24 | 24 | 0 | STD_LIB |  | [U32_TPD12S016.csv](U32_TPD12S016.csv) | |
+| J15 | HDMI_A | HDMI type-A | video | 20 | 19 | 1 | STD_LIB |  | [J15_HDMI_A.csv](J15_HDMI_A.csv) | |
+| U33 | ADV7513 | ADV7513BSWZ | video | 65 | 65 | 0 | STD_LIB_CANDIDATE |  | [U33_ADV7513.csv](U33_ADV7513.csv) | |
+| U34 | TPD12S016 | TPD12S016 | video | 24 | 24 | 0 | STD_LIB |  | [U34_TPD12S016.csv](U34_TPD12S016.csv) | |
 | X1 | OSC_3225 | 12MHz | video | 4 | 4 | 0 | STD_LIB | DNP | [X1_OSC_3225.csv](X1_OSC_3225.csv) | |

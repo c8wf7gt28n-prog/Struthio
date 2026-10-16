@@ -1,17 +1,17 @@
 pin,name,etype,net,nc_reason,net_members
 1,IO3,bidirectional,SPI0_IO3,,U18.14 R49.1 TP36.1
-2,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+106)
+2,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+95)
 3,~{RESET},input,NOR_RESET_N,,R50.1 J5.1 TP34.1 J6.9
 4,NC,no_connect,,NC per datasheet,
 5,NC,no_connect,,NC per datasheet,
 6,NC,no_connect,,NC per datasheet,
 7,~{CS},input,SPI0_CS0_N,,U18.18 R47.1 TP33.1 J6.7
-8,DO_IO1,tri_state,SPI0_MISO,,U18.16 R46.1 TP32.1 J6.5 U42.4
+8,DO_IO1,tri_state,SPI0_MISO,,U18.16 R46.1 TP32.1 J6.5 U44.4
 9,IO2,bidirectional,SPI0_IO2,,U18.15 R48.1 TP35.1
 10,GND,power_in,GND,,(ground)
 11,NC,no_connect,,NC per datasheet,
 12,NC,no_connect,,NC per datasheet,
 13,NC,no_connect,,NC per datasheet,
 14,NC,no_connect,,NC per datasheet,
-15,DI_IO0,bidirectional,SPI0_MOSI,,U18.17 R45.1 TP31.1 J6.3 U40.2
-16,CLK,input,SPI0_CLK,,R44.2 TP30.1 J6.1 U39.2
+15,DI_IO0,bidirectional,SPI0_MOSI,,U18.17 R45.1 TP31.1 J6.3 U42.2
+16,CLK,input,SPI0_CLK,,R44.2 TP30.1 J6.1 U41.2

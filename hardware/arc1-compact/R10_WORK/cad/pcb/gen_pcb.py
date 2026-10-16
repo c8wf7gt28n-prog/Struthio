@@ -387,7 +387,8 @@ summary = {"diameter_mm": round(2 * R, 1), "flat_distance_from_centre_mm": round
            "copper_layers": 6, "footprints": len(fps),
            "connectors": {r: {"part": c["part"], "face": c["note"].split(".")[0],
                               "x_mm": round(fps[r][0].GetPosition().x / 1e6 - OX, 2), "y_mm": round(fps[r][0].GetPosition().y / 1e6 - OY, 2),
-                              "rot_deg": fps[r][0].GetOrientationDegrees()} for r, c in EXT.items()},
+                              "rot_deg": fps[r][0].GetOrientationDegrees()} for r, c in
+                          list(EXT.items()) + [(r, c) for r, (fp, c) in fps.items() if c["note"].startswith("TOP")]},
            "blocks": {b["sheet"]: {"x_mm": round(x, 1), "y_mm": round(y, 1), "w_mm": round(b["variants"][vi]["W"], 1),
                                    "h_mm": round(b["variants"][vi]["H"], 1)} for b, (x, y, vi) in placed}}
 os.makedirs(os.path.join(CAD, "pcb"), exist_ok=True)

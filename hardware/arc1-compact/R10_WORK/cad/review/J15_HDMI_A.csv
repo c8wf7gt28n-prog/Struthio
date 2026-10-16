@@ -1,0 +1,21 @@
+pin,name,etype,net,nc_reason,net_members
+1,D2+,passive,TMDS_D2_P,,U33.27 U34.23
+2,D2S,passive,GND,,(ground)
+3,D2-,passive,TMDS_D2_N,,U33.26 U34.22
+4,D1+,passive,TMDS_D1_P,,U33.24 U34.21
+5,D1S,passive,GND,,(ground)
+6,D1-,passive,TMDS_D1_N,,U33.23 U34.20
+7,D0+,passive,TMDS_D0_P,,U33.21 U34.18
+8,D0S,passive,GND,,(ground)
+9,D0-,passive,TMDS_D0_N,,U33.20 U34.17
+10,CK+,passive,TMDS_CK_P,,U33.18 U34.16
+11,CKS,passive,GND,,(ground)
+12,CK-,passive,TMDS_CK_N,,U33.17 U34.15
+13,CEC,passive,HDMI_CEC,,U34.7
+14,UTILITY,passive,,Utility/HEAC+ unused,
+15,SCL,passive,HDMI_SCL_5V,,U34.8
+16,SDA,passive,HDMI_SDA_5V,,U34.9
+17,DDC_GND,passive,GND,,(ground)
+18,+5V,passive,HDMI_5V,,U34.13 C146.1 TP56.1
+19,HPD,passive,HDMI_HPD_5V,,U34.10
+SH,SHIELD,passive,GND,,(ground)

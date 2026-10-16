@@ -12,7 +12,9 @@ older trees as immutable historical/reference evidence; place new architecture w
 - One central 64 MiB NOR with the generated R10 partition map.
 - Change order rev 1.1 (owner handoff, `R10_WORK/spec/ARC1_R10_Handoff_rev1.1.docx`; decisions D8-D11): exactly four
   exterior connectors (rear USB-C power/recovery + HDMI, front 2x USB-A behind a USB2422 hub on F133 USB0), no
-  exterior switches, HDMI with embedded audio (ADV7513, F133 I2S2 audio), 16 GB eMMC on F133 SMHC0 (CONDITIONAL).
+  exterior switches, HDMI with embedded audio (ADV7513, F133 I2S2 audio). Amended by D12: five exterior connectors
+  (rear USB-C + HDMI, front 2x USB-A controllers, top USB-A game cartridge via a USB2514B hub); no eMMC, games run
+  from the cartridge drive.
 
 Exact decisions and reversal costs are in `R10_WORK/DECISIONS.md`. Do not reintroduce R06's BT820/T35 topology or the
 older prohibition on a fourth programmable device. Do not change the transport, device package, or ownership model

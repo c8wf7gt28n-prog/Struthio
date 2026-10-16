@@ -1,6 +1,6 @@
 pin,name,etype,net,nc_reason,net_members
-1,IN,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 C16.1 (+105)
+1,IN,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 C16.1 (+94)
 2,GND,power_in,GND,,(ground)
-3,EN,input,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 C16.1 (+105)
+3,EN,input,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 C16.1 (+94)
 4,NC,no_connect,,NC per datasheet pin table,
 5,OUT,power_out,1V8_AN,,C17.1 TP7.1 U18.89 U18.97 U18.107 C61.1 C62.1 C63.1

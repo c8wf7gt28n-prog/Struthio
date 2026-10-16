@@ -1,6 +1,6 @@
 pin,name,etype,net,nc_reason,net_members
-1,~{OE},input,FPGA12_SS_N_F,,U18.43 J6.8 U41.2 R147.1
-2,A,input,FPGA12_MISO,,U38.46 R149.1
+1,~{OE},input,FPGA12_BUS_EN_N,,U18.41 U41.1 U43.1 R151.1
+2,A,input,SPI0_MOSI,,U18.17 U19.15 R45.1 TP31.1 J6.3
 3,GND,power_in,GND,,(ground)
-4,Y,tri_state,SPI0_MISO,,U18.16 U19.8 R46.1 TP32.1 J6.5
-5,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+106)
+4,Y,tri_state,FPGA12_MOSI,,U40.47 R153.1
+5,VCC,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 U40.9 U40.16 U40.36 U40.43 (+39)

@@ -2,7 +2,7 @@
 
 **Authority:** owner handoff `spec/ARC1_R10_Handoff_rev1.1.docx` (16 Oct 2026, SHA-256 in `spec/SHA256SUMS`).
 
-**Decisions:** D8–D11 in `DECISIONS.md`. D8 supersedes D6.
+**Decisions:** D8–D12 in `DECISIONS.md`. D8 supersedes D6. **D12 (owner, after the handoff) supersedes D10 and the four-connector rule:** a third, top USB-A is the game cartridge and games run directly from it; there is no eMMC. Sections below are updated for D12.
 
 **Status:** schematic updated and machine-checked; nothing here is measured on hardware. Fabrication: **HOLD**.
 
@@ -23,18 +23,19 @@ Evidence labels used below:
 | Rear | USB-C, GCT USB4105 | 5 V input (auto-start); F133 USB0 device/FEL through the USB0 role mux (default position) | `crosscheck_r10` I: PASS |
 | Rear | HDMI type-A, Molex 208658 | ADV7513 video + embedded stereo LPCM | PASS |
 | Front | USB-A, Molex 67643 (through-hole shell) | Player 1: hub port 1, 0.5 A switched VBUS | PASS |
-| Front | USB-A, Molex 67643 (reinforced) | Player 2 / game load: hub port 2, 0.5 A switched VBUS | PASS |
+| Front | USB-A, Molex 67643 | Player 2: hub port 2, 0.5 A switched VBUS | PASS |
+| Top | USB-A vertical, Molex 105057 | **Game cartridge** (D12): hub port 3, 0.5 A switched VBUS; games run from the drive | PASS |
 
 `cad/check/crosscheck_r10.py` section I enforces these rules automatically:
 
-- **Exterior connectors:** exactly these four. A connector counts as exterior when its note starts with FRONT or REAR.
+- **Exterior connectors:** exactly these five (D12). A connector counts as exterior when its note starts with FRONT, REAR or TOP.
 - **Switches:** none on the board.
 - **Service pads and headers:** all DNP fixture features.
 - **HDMI audio:** I2S from the F133 is actually wired to the HDMI transmitter.
 - **USB roles:**
   - F133 USB0 goes only to the role mux.
   - F133 USB1 still reaches the D213.
-- **eMMC:** wired to the F133.
+- **eMMC:** absent; all three USB-A ports hang off the USB2514B hub.
 
 Internal-only items (no case opening): JTAG headers for both FPGAs; DNP fixture pads for F133 reset, FEL (NOR reset), D213 reset and D213 boot (PA0); D213 recovery USB pads; UART headers.
 
@@ -42,7 +43,7 @@ Internal-only items (no case opening): JTAG headers for both FPGAs; DNP fixture 
 
 The F133 USB0 role mux is TS3USB221A U(usb_host):
 - **S = L** (10k pull-down: at every cold boot and whenever the F133 is in reset): F133 USB0 ↔ rear USB-C.
-- **S = H** (F133 PD2): F133 USB0 ↔ USB2422 hub upstream.
+- **S = H** (F133 PD2): F133 USB0 ↔ USB2514B hub upstream (ports 1–2 front controllers, port 3 top cartridge, port 4 disabled by strap).
 
 The hub is held in reset by F133 PD3 (10k pull-down). Its downstream ports drive TPS2051C switches through PRTPWR (active high), and the switches report faults on OCS_N.
 
@@ -54,8 +55,9 @@ The internal F133 USB1 → D213 USB0 link is unchanged. Its own mux (default: F1
 | Boot ROM, NOR invalid/blank | L | reset | off | F133 USB0 | **FEL device** | — | Firmware-independent recovery to a PC on rear USB-C. FEL fall-through: D1-H UM fig. (bench OPEN) |
 | Boot ROM, fixture shorts FEL pads (NOR held in reset) | L | reset | off | F133 USB0 | FEL device | — | Forced recovery with a valid NOR, internal fixture only. OPEN until bench-proven |
 | Loader: recovery request | L | reset | off | F133 USB0 | device (ARC-1 updater) | idle | Request sources: (a) persistent "recovery" flag; (b) the A/B trial counter exhausted (`firmware/f133_bootloader`); (c) rear USB-C partner is a PC data port (TUSB320 reports "default USB" current) — **heuristic, OPEN** |
-| Normal: both controllers | H | running | on, 0.5 A limit each | **disconnected** | host via hub | host → D213 running | Simultaneous enumeration of P1 + P2 (USB2422 2-port, high speed) |
-| Normal: thumb drive in Player 2 | H | running | on | disconnected | host, mass storage on port 2 | running | Player 2 controller absent unless an external hub is used (handoff s3) |
+| Normal: both controllers | H | running | on, 0.5 A limit each | **disconnected** | host via hub | host → D213 running | Simultaneous enumeration of P1 + P2 (+ cartridge on port 3); USB2514B MultiTRAK, high speed |
+| Normal: cartridge in the top port | H | running | on | disconnected | host: 2 controllers + mass storage on port 3 | running | Game data streamed from the drive (USB 2.0 HS, ≈ 30–40 MB/s practical) |
+| Cartridge removed while playing | H | running | port 3 idle | disconnected | host | running | Game pauses with a "re-insert cartridge" screen; unsaved state is lost only if the game had not saved |
 | Port overcurrent | H | port n off (hub OCS) | port n off | disconnected | host sees port-power fault | running | TPS2051C limits at 0.5 A ±20 % |
 | Failed firmware (application) | — | — | — | — | A/B fallback, then golden (`r10_boot`) | — | Never erases the only working image |
 | Restricted source (≤ 900 mA) | per firmware | port power withheld | **off** | — | — | FPGAs off | See section 5: only the processor core set runs |
@@ -86,23 +88,19 @@ Physical mutual exclusion: with S = H, the rear USB-C data pair is open-circuit 
 
 **Action for the owner:** download *ADV7513 Hardware User's Guide* (UG Rev. 0) and *ADV7513 Programming Guide* from analog.com and add them to `sources/adi/`. Those two documents close the three OPEN rows above.
 
-## 4. eMMC and install/recovery plan (handoff s3)
+## 4. Game cartridge, storage and install/recovery plan (D12 replaces handoff s3)
 
-**Part:** Samsung KLMAG1JETD-B041, 16 GB eMMC 5.1, 153-FBGA 11.5 × 13 mm, VCCQ = VCC = 3.3 V. LCSC C499919: 404 pcs (16 Oct 2026).
-
-**Wiring:** F133 SMHC0 4-bit (PF0–PF5), RST_n on PF6. Pull-ups: CMD 10k, DAT0–3 47k. CLK has a 33 Ω series resistor. VDDi has a 1 µF + 100 nF regulator capacitor.
-
-**Interface status: CONDITIONAL (gate).** Allwinner documents SMHC0 for SD memory and SMHC2 for eMMC. SMHC2 shares PC2–PC7 with the SPI0 boot NOR and the BOOT-SEL straps, so using it would put a bus switch into the only boot path; it was rejected.
-
-SMHC0 drives the same 4-bit SDR 3.3 V bus that eMMC uses; only the identification sequence (CMD1) differs, and that is software. First-article test: CMD1/CMD2/CMD3/CMD7 identification, EXT_CSD read, 4-bit bus width, 25/50 MHz, then a 1 GiB write/read/verify.
-
-**Fallback if the test fails:** eMMC cannot then be used on this board revision, and a respin moves it to SMHC2 behind a bus switch. Games would run from the 64 MiB NOR's free space only. This is the one change-order item that a respin could hinge on, which is why it is labelled CONDITIONAL rather than SELECTED.
+**No eMMC.** Games run directly from the USB drive in the top port: a standard USB mass-storage device (FAT32/exFAT), not a proprietary cartridge bus.
 
 | Store | Contents | Written by | Protection |
 |---|---|---|---|
 | 64 MiB SPI NOR (F133, BOOT-SEL 00) | Boot loader, golden F133 image, D213 images, FPGA golden/app bitstreams, manifests (`memory/R10_nor_partition.csv`) | Factory + validated updates | Golden partitions write-protected (block locks); A/B with trial counter; manifest generation counter |
-| eMMC user area | Game library (packages + manifest), saves | Installer, from a front-port thumb drive | Package = manifest + payload + SHA-256. Copy into a staging area, fsync, verify the hash, then flip the library index atomically (two copies, generation counter, as the NOR manifest). An interrupted copy leaves the old index valid; the staging area is erased at next boot |
-| eMMC boot partitions | Unused (BOOT-SEL 00 never reads SMHC0) | — | — |
+| Top USB cartridge | Game packages (manifest + payload + SHA-256), and the game's saves | PC (user copies games); the console writes saves | Manifest + hash checked before a game starts. Saves written as new file + fsync + rename (atomic), two generations kept |
+| NOR save area (optional) | Small settings/save mirror | Console | Reuses the NOR manifest scheme; OPEN: size to reserve |
+
+Firmware consequence: the F133 needs a USB host stack with mass storage and a FAT/exFAT reader. All three USB-A ports need the host stack anyway (controllers are USB HID), so this adds a class driver, not a new interface.
+
+Updates (firmware/FPGA) can be delivered on a cartridge: the package is validated, then written to the inactive A/B NOR slot. The golden image is never erased.
 
 **Buttonless rescue:**
 1. A corrupt NOR makes the ROM fall through to FEL on rear USB-C; recovery is then done with the PC tool (`xfel`).
@@ -110,19 +108,17 @@ SMHC0 drives the same 4-bit SDR 3.3 V bus that eMMC uses; only the identificatio
 3. Forced FEL: internal fixture shorts the FEL pads.
 4. D213: firmware is supplied by the F133 over USB; if needed, the D213 prototype boot NOR plus internal AiBurn pads (D5).
 
-"Safe to remove" is shown over HDMI after the eMMC flush completes. A sudden unplug during a copy is recovered by the staging and index rules above.
-
 ## 5. Power (handoff s2): first-pass envelope, DERIVED, to be closed in analysis/R10_POWER_BUDGET.md
 
 | Load | Estimate at 5 V input | Basis |
 |---|---|---|
-| Two USB-A ports | 2 × 0.5 A = 5.0 W (switch-limited) | TPS2051C limit |
+| Three USB-A ports | 3 × 0.5 A = 7.5 W (switch-limited; controllers ≈ 0.1 A, drives ≈ 0.1–0.3 A typical) | TPS2051C limit |
 | HDMI 5 V | 0.28 W (55 mA) | TPD12S016 |
 | F133 + DDR2 | ~0.5–0.8 W | F133 DS (R8.5-C budget) |
 | D213 | 0.53 W measured by the vendor on a 7-inch dev board | D21x HW guide 2.2.1 |
 | ADV7513 | 0.26 W at 1080p typ (less at 720p) | DS Rev. B |
 | 45F + SDRAM, 12F + PSRAM | **OPEN**: needs the Lattice power calculator with the routed designs | — |
-| Hub, muxes, eMMC (active), NOR, glue | ~0.6 W | datasheets, typical |
+| Hub, muxes, NOR, glue | ~0.5 W | datasheets, typical |
 | Total without FPGAs | ≈ 7.5 W from the 5 V input incl. regulator losses | DERIVED |
 
 Policy:
@@ -140,8 +136,8 @@ The rear port is **not** assumed to deliver 15 W (handoff s2). USB PD is not use
 | ID | Item | Closes with |
 |---|---|---|
 | CO-1 | ADV7513 hardware user guide / programming guide not read (R_EXT confirmation, CEC_CLK, INT type, layout) | Owner downloads the guides (section 3) |
-| CO-2 | eMMC on SMHC0 | First-article test (section 4) |
-| CO-3 | USB2422 and ADV7513 exposed-pad lands use KiCad candidate footprints | Vendor package drawings |
+| CO-2 | ~~eMMC on SMHC0~~ closed by D12 (no eMMC). New: USB mass-storage + FAT/exFAT in F133 firmware; sustained read rate from typical drives | Firmware + first article |
+| CO-3 | USB2514B and ADV7513 exposed-pad lands use KiCad candidate footprints | Vendor package drawings |
 | CO-4 | FEL fall-through when the NOR is held in reset | Bench |
 | CO-5 | Recovery-request heuristic on the rear USB-C (PC versus charger) | Bench + firmware |
 | CO-6 | FPGA power numbers | Lattice power calculator |

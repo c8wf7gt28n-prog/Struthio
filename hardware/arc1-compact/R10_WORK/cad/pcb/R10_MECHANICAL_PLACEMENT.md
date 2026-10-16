@@ -8,10 +8,10 @@ This covers handoff rev 1.1 sections 4 and 5. The project is native KiCad 9: `ca
 
 | Item | Value |
 |---|---|
-| Board outline | Circle **Ø 119.6 mm** with two straight flats at ±54.87 mm from the centre (chord 47.5 mm): rear flat for USB-C + HDMI, front flat for the two USB-A |
+| Board outline | Circle **Ø 119.8 mm** with two straight flats at ±55.0 mm from the centre (chord 47.5 mm): rear flat for USB-C + HDMI, front flat for the two USB-A controller ports |
 | How the diameter was derived | Smallest radius at which all functional blocks fit inside the circle. Each block is one schematic sheet: ICs, inductors, connectors and through-hole parts on top; 0402/0603 passives and test pads on the bottom, kept clear of through-hole pads and thermal-via fields. Placement has 1.5 mm keep-in from the edge and 1.2 mm channels between blocks. The four mounting holes (M2.5, 0.78 R at 45°/135°/225°/315°) and the four edge connectors are placed first as fixed obstacles |
 | Copper layers | 6 (proposed stack: Top signal / GND / signal / power / GND / Bottom signal). The 381-ball 0.8 mm BGA and the 0.35 mm-pitch D213 QFN set this. The fabricator's impedance calculation fixes the final widths |
-| Footprints | 597 placed (DNP fixture pads included) |
+| Footprints | 596 placed (DNP fixture pads included) |
 | KiCad DRC (`DRC_R10.json`) | **0 errors.** 499 unconnected items (expected: unrouted). 402 silkscreen-overlap warnings (reference text; cleaned up in layout). 1 library-mismatch warning (J1, footprint cache) |
 | Schematic ↔ PCB parity | 0 differences |
 
@@ -21,10 +21,11 @@ Coordinates are relative to the board centre; y is positive toward the FRONT.
 
 | Ref | Part | Face | Centre (mm) | Notes |
 |---|---|---|---|---|
-| J14 | HDMI type-A, Molex 208658 | Rear | (−7.9, −46.8) | Mating face 0.5 mm beyond the rear flat |
-| J1 | USB-C, GCT USB4105 | Rear | (11.0, −51.2) | Power + recovery |
-| J12 | USB-A, Molex 67643 | Front | (−17.6, 41.8) | Player 1 |
-| J13 | USB-A, Molex 67643 | Front | (10.6, 41.8) | Player 2 / game load. Through-hole shell; needs a case rib or boss directly behind it for side-load relief (handoff s4) |
+| J15 | HDMI type-A, Molex 208658 | Rear | (−7.9, −46.9) | Mating face 0.5 mm beyond the rear flat |
+| J1 | USB-C, GCT USB4105 | Rear | (11.0, −51.3) | Power + recovery |
+| J12 | USB-A, Molex 67643 | Front | (−17.6, 42.0) | Player 1 |
+| J13 | USB-A, Molex 67643 | Front | (10.6, 42.0) | Player 2 |
+| J14 | USB-A vertical, Molex 105057 | **Top** | (−9.3, 24.2) | **Game cartridge (D12)**: top-shell opening above it. Through-hole shell; case boss/rib around it for frequent insertion and side load. Position is from the first placement and can move to where the case design wants the slot |
 
 - **Front USB-A pitch:** about 28 mm centre to centre, 11 mm between bodies. That leaves room for a 22 mm-wide thumb drive beside a controller plug, plus finger grip.
 - **Rear connectors:** 5 mm apart.
@@ -73,4 +74,4 @@ The handoff's manufacturing package (Gerbers, drill, positions, fabrication draw
 2. **Plane design:** GND on In1/In4; power islands for 3V3, 1V2/1V5 (D213), 1V1 (each FPGA), 1V8 (HDMI, F133 DRAM), with return-path continuity under every high-speed group.
 3. **Stack-up and impedances** from the chosen fabricator; then final net-class widths.
 4. **DRC/ERC clean after routing;** fabricator DFM; assembly quote (handoff s4).
-5. **Footprint verification** of every STD_LIB_CANDIDATE and GENERATED_DERIVED land pattern against the vendor drawing (ADV7513 EP, USB2422 EP, D213 QFN128).
+5. **Footprint verification** of every STD_LIB_CANDIDATE and GENERATED_DERIVED land pattern against the vendor drawing (ADV7513 EP, USB2514B EP, D213 QFN128).

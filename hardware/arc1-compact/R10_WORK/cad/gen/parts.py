@@ -270,3 +270,26 @@ add(Part("PADS_1x2", "J", P(("1", "1", "passive"), ("2", "2", "passive")),
          "TestPoint:TestPoint_2Pads_Pitch2.54mm_Drill0.8mm", "STD_LIB", "internal service pad pair", "generic",
          "internal fixture pad pair (replaces a user-facing switch)", "generic"))
 add(two_pin("C1210", "C", "Capacitor_SMD:C_1210_3225Metric", "passive C1210"))
+
+# ---------------------------------------------------------------- D12: 3 host ports (2 front controllers + top cartridge)
+_U14 = {1: ("USBDM_DN1", "bidirectional"), 2: ("USBDP_DN1", "bidirectional"), 3: ("USBDM_DN2", "bidirectional"),
+        4: ("USBDP_DN2", "bidirectional"), 5: ("VDDA33", "power_in"), 6: ("USBDM_DN3", "bidirectional"),
+        7: ("USBDP_DN3", "bidirectional"), 8: ("USBDM_DN4/PRT_DIS_M4", "bidirectional"),
+        9: ("USBDP_DN4/PRT_DIS_P4", "bidirectional"), 10: ("VDDA33", "power_in"), 11: ("TEST", "input"),
+        12: ("PRTPWR1/BC_EN1", "output"), 13: ("OCS_N1", "input"), 14: ("CRFILT", "passive"), 15: ("VDD33", "power_in"),
+        16: ("PRTPWR2/BC_EN2", "output"), 17: ("OCS_N2", "input"), 18: ("PRTPWR3/BC_EN3", "output"), 19: ("OCS_N3", "input"),
+        20: ("PRTPWR4/BC_EN4", "output"), 21: ("OCS_N4", "input"), 22: ("SDA/NON_REM1", "bidirectional"),
+        23: ("VDD33", "power_in"), 24: ("SCL/CFG_SEL0", "bidirectional"), 25: ("HS_IND/CFG_SEL1", "bidirectional"),
+        26: ("RESET_N", "input"), 27: ("VBUS_DET", "input"), 28: ("SUSP_IND/NON_REM0", "bidirectional"),
+        29: ("VDDA33", "power_in"), 30: ("USBDM_UP", "bidirectional"), 31: ("USBDP_UP", "bidirectional"),
+        32: ("XTALOUT", "output"), 33: ("XTALIN/CLKIN", "input"), 34: ("PLLFILT", "passive"), 35: ("RBIAS", "passive"),
+        36: ("VDDA33", "power_in"), 37: ("VSS_EP", "power_in")}
+add(Part("USB2514B", "U", side_split([(str(k), n, e) for k, (n, e) in sorted(_U14.items())]),
+         "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP3.7x3.7mm_ThermalVias", "STD_LIB_CANDIDATE", "USB2514B-I/M2", "Microchip",
+         "4-port USB 2.0 high-speed hub (MultiTRAK), strap-configured, 3.3 V, SQFN-36 6x6",
+         "Microchip DS00001692C Table 3-1 (USB2514B column) / Table 5-1 (sources/microchip); EP size to confirm with the M2 drawing"))
+add(Part("USB_A_V", "J", P(("1", "VBUS", "passive"), ("2", "D-", "bidirectional"), ("3", "D+", "bidirectional"),
+                           ("4", "GND", "passive"), ("5", "SHIELD", "passive")),
+         "Connector_USB:USB_A_Molex_105057_Vertical", "STD_LIB", "1050570001", "Molex",
+         "USB 2.0 type-A receptacle, vertical (top-entry), through-hole shell",
+         "Molex 105057 drawing (KiCad footprint pads 1-4 + 5 shell)", evidence="CANDIDATE (orderable suffix to confirm)"))

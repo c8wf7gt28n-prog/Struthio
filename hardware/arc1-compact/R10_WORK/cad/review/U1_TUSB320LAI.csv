@@ -10,4 +10,4 @@ pin,name,etype,net,nc_reason,net_members
 9,ID,open_collector,,ID unused (UFP),
 10,GND,power_in,GND,,(ground)
 11,~{EN},input,GND,,(ground)
-12,VDD,power_in,3V3,,C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 U7.3 (+106)
+12,VDD,power_in,3V3,,C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 U7.3 (+95)

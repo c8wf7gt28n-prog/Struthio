@@ -1,0 +1,55 @@
+pin,name,etype,net,nc_reason,net_members
+1,VDD,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+67)
+2,DQ0,bidirectional,SDR_DQ0,,U35.C20
+3,VDDQ,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+67)
+4,DQ1,bidirectional,SDR_DQ1,,U35.D18
+5,DQ2,bidirectional,SDR_DQ2,,U35.D19
+6,VSSQ,power_in,GND,,(ground)
+7,DQ3,bidirectional,SDR_DQ3,,U35.E16
+8,DQ4,bidirectional,SDR_DQ4,,U35.E17
+9,VDDQ,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+67)
+10,DQ5,bidirectional,SDR_DQ5,,U35.E18
+11,DQ6,bidirectional,SDR_DQ6,,U35.E19
+12,VSSQ,power_in,GND,,(ground)
+13,DQ7,bidirectional,SDR_DQ7,,U35.E20
+14,VDD,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+67)
+15,LDQM,input,SDR_DQM0,,U35.H16
+16,~{WE},input,SDR_WE_N,,U35.N18
+17,~{CAS},input,SDR_CAS_N,,U35.N17
+18,~{RAS},input,SDR_RAS_N,,U35.N16
+19,~{CS},input,SDR_CS_N,,U35.M18
+20,BA0,input,SDR_BA0,,U35.N19
+21,BA1,input,SDR_BA1,,U35.N20
+22,A10,input,SDR_A10,,U35.T19
+23,A0,input,SDR_A0,,U35.P17
+24,A1,input,SDR_A1,,U35.P18
+25,A2,input,SDR_A2,,U35.P19
+26,A3,input,SDR_A3,,U35.P20
+27,VDD,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+67)
+28,VSS,power_in,GND,,(ground)
+29,A4,input,SDR_A4,,U35.R16
+30,A5,input,SDR_A5,,U35.R17
+31,A6,input,SDR_A6,,U35.R18
+32,A7,input,SDR_A7,,U35.R20
+33,A8,input,SDR_A8,,U35.T16
+34,A9,input,SDR_A9,,U35.T18
+35,A11,input,SDR_A11,,U35.T20
+36,A12,input,SDR_A12,,U35.U17
+37,CKE,input,SDR_CKE,,U35.M17 R135.1
+38,CLK,input,SDR_CLK,,R134.2 TP67.1
+39,UDQM,input,SDR_DQM1,,U35.H17
+40,NC,no_connect,,NC must remain unconnected,
+41,VSS,power_in,GND,,(ground)
+42,DQ8,bidirectional,SDR_DQ8,,U35.F16
+43,VDDQ,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+67)
+44,DQ9,bidirectional,SDR_DQ9,,U35.F17
+45,DQ10,bidirectional,SDR_DQ10,,U35.F18
+46,VSSQ,power_in,GND,,(ground)
+47,DQ11,bidirectional,SDR_DQ11,,U35.F19
+48,DQ12,bidirectional,SDR_DQ12,,U35.F20
+49,VDDQ,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 U35.F9 U35.F10 U35.F11 U35.F12 (+67)
+50,DQ13,bidirectional,SDR_DQ13,,U35.G16
+51,DQ14,bidirectional,SDR_DQ14,,U35.G18
+52,VSSQ,power_in,GND,,(ground)
+53,DQ15,bidirectional,SDR_DQ15,,U35.G20
+54,VSS,power_in,GND,,(ground)

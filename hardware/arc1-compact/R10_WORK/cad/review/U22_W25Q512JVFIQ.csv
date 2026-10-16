@@ -1,6 +1,6 @@
 pin,name,etype,net,nc_reason,net_members
 1,IO3,bidirectional,D213_NOR_IO3,,U20.37 R59.1
-2,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+106)
+2,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+95)
 3,~{RESET},input,D213_NOR_RESET_N,,R60.1
 4,NC,no_connect,,NC per datasheet,
 5,NC,no_connect,,NC per datasheet,

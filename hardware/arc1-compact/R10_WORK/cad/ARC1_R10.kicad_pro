@@ -540,6 +540,14 @@
       },
       {
         "netclass": "USB_90R_DIFF",
+        "pattern": "USBA3_DM"
+      },
+      {
+        "netclass": "USB_90R_DIFF",
+        "pattern": "USBA3_DP"
+      },
+      {
+        "netclass": "USB_90R_DIFF",
         "pattern": "USBC_DM"
       },
       {

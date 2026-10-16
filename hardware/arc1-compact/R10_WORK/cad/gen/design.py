@@ -253,9 +253,7 @@ def build():
     }
     gpio = {
         "PC2": "SPI0_CLK_F", "PC3": "SPI0_CS0_N", "PC4": "SPI0_MOSI", "PC5": "SPI0_MISO", "PC6": "SPI0_IO2", "PC7": "SPI0_IO3",
-        # eMMC on SMHC0 (4-bit, 3.3 V); BOOT-SEL 00 never tries SMHC0, so the boot path is unchanged (D10)
-        "PF0": "EMMC_D1", "PF1": "EMMC_D0", "PF2": "EMMC_CLK_F", "PF3": "EMMC_CMD", "PF4": "EMMC_D3", "PF5": "EMMC_D2",
-        "PF6": "EMMC_RST_N",
+        # PF0-PF6 (SMHC0) unused: eMMC removed by D12 (games run from the top USB cartridge)
         "PE2": "UART0_TX", "PE3": "UART0_RX",
         # 12F control (R8.5-C ECP5 control pins, now serving the 12F; hardware/R10_flash_pinmux.csv CFG12)
         "PE4": "FPGA12_SS_N_F", "PE5": "FPGA12_IRQ_N", "PE6": "FPGA12_BUS_EN_N", "PE8": "FPGA12_PROGRAMN_F",
@@ -446,7 +444,7 @@ def build():
 
     # ================================================================ USB host: F133 USB0 role mux, hub, two front USB-A ports
     d.sheet("usb_host", "usb_host.kicad_sch",
-            "F133 USB0 role mux: rear USB-C (device/FEL, default) or USB2422 hub -> front USB-A Player 1 / Player 2")
+            "F133 USB0 role mux: rear USB-C (device/FEL, default) or USB2514B hub -> 2x front USB-A + top cartridge USB-A")
     d.U("TS3USB221A", "TS3USB221A", {"1": "USBC_DP", "2": "USBC_DM", "3": "HUB_UP_DP", "4": "HUB_UP_DM", "5": "GND",
                                     "6": "USB0MUX_OE_N", "7": "F133_USB0_DM", "8": "F133_USB0_DP", "9": "USB0_SEL",
                                     "10": "3V3"},
@@ -456,40 +454,49 @@ def build():
     d.decouple("3V3")
     d.R("10k", "USB0_SEL", "GND", note="default = rear USB-C device/recovery path")
     d.R("10k", "USB0MUX_OE_N", "GND", note="mux enabled")
-    hub = {"1": "3V3", "2": "USBA1_DM", "3": "USBA1_DP", "4": "USBA2_DM", "5": "USBA2_DP", "7": "HUB_PRTPWR1",
-           "8": "HUB_OCS1_N", "9": "3V3", "10": "HUB_CRFILT", "11": "HUB_PRTPWR2", "12": "HUB_OCS2_N",
-           "13": "HUB_NON_REM1", "14": "HUB_CFG_SEL", "15": "HUB_RESET_N", "16": "3V3", "17": "HUB_NON_REM0",
-           "18": "3V3", "19": "HUB_UP_DM", "20": "HUB_UP_DP", "21": "HUB_XO", "22": "HUB_XI", "23": "HUB_PLLFILT",
-           "24": "HUB_RBIAS", "25": "GND"}
-    uh = d.U("USB2422", "USB2422-I/MJ", hub,
-             note="strap mode (CFG_SEL=0): self-powered, both ports removable, PRTPWR active high. VBUS_DET tied to 3.3 V "
-                  "(permanently attached host, DS 2.3). Held in reset by the F133 until it selects host mode.")
-    d.nc(uh.ref, "6", "NC: no trace (DS 2.3)")
-    d.C("100nF", "3V3", note="pin 1 (DS 2.3)"); d.C("1uF", "3V3", note="pin 9 (DS 2.3)"); d.C("100nF", "3V3", note="pin 18")
-    d.C("1uF", "HUB_CRFILT", note="core regulator filter, low ESR"); d.C("100nF", "HUB_PLLFILT", note="<= 0.1 uF")
-    d.R("12k", "HUB_RBIAS", "GND", note="12.0k 1 % (DS 2.3)")
-    d.R("10k", "HUB_CFG_SEL", "GND", note="CFG_SEL = 0: default configuration, straps enabled (Table 4.1)")
-    d.R("10k", "HUB_NON_REM1", "GND", note="NON_REM[1:0] = 00: both ports removable")
-    d.R("10k", "HUB_NON_REM0", "GND")
-    d.R("10k", "HUB_RESET_N", "GND", note="hub in reset until F133 PD3 releases it (>= 1 us pulse)")
+    # D12: USB2514B 4-port hub; ports 1-2 front controllers, port 3 top cartridge, port 4 disabled by strap
+    hub = {"1": "USBA1_DM", "2": "USBA1_DP", "3": "USBA2_DM", "4": "USBA2_DP", "5": "3V3", "6": "USBA3_DM",
+           "7": "USBA3_DP", "8": "HUB_DN4_DIS", "9": "HUB_DN4_DIS", "10": "3V3", "11": "GND",
+           "12": "HUB_PRTPWR1", "13": "HUB_OCS1_N", "14": "HUB_CRFILT", "15": "3V3", "16": "HUB_PRTPWR2",
+           "17": "HUB_OCS2_N", "18": "HUB_PRTPWR3", "19": "HUB_OCS3_N", "21": "HUB_OCS4_N",
+           "22": "HUB_NON_REM1", "23": "3V3", "24": "HUB_CFG_SEL0", "25": "HUB_CFG_SEL1", "26": "HUB_RESET_N",
+           "27": "3V3", "28": "HUB_NON_REM0", "29": "3V3", "30": "HUB_UP_DM", "31": "HUB_UP_DP", "32": "HUB_XO",
+           "33": "HUB_XI", "34": "HUB_PLLFILT", "35": "HUB_RBIAS", "36": "3V3", "37": "GND"}
+    uh = d.U("USB2514B", "USB2514B-I/M2", hub,
+             note="D12. Strap mode CFG_SEL[1:0]=00 (Table 5-1): self-powered, individual port power + over-current. "
+                  "Port 4 disabled (PRT_DIS_M4/P4 pulled up). VBUS_DET to 3.3 V (permanently attached host). "
+                  "TEST to ground (DS 3.2). Held in reset by F133 PD3 until host mode is selected.")
+    d.nc(uh.ref, "20", "PRTPWR4: port 4 disabled")
+    d.decouple("3V3", 6); d.C("4.7uF", "3V3", pkg="C0603")
+    d.C("100nF", "HUB_CRFILT", note="<= 0.1 uF low ESR (DS 3.2)"); d.C("100nF", "HUB_PLLFILT", note="<= 0.1 uF")
+    d.R("12k", "HUB_RBIAS", "GND", note="12.0k 1 % (DS 3.2)")
+    d.R("10k", "HUB_CFG_SEL0", "GND", note="CFG_SEL0 = 0")
+    d.R("100k", "HUB_CFG_SEL1", "GND", note="CFG_SEL1 = 0 (HS_IND pin: 47-100k strap, Table 3-3)")
+    d.R("100k", "HUB_NON_REM1", "GND", note="NON_REM[1:0] = 00: all ports removable (47-100k)")
+    d.R("100k", "HUB_NON_REM0", "GND")
+    d.R("10k", "HUB_DN4_DIS", "3V3", note="port 4 disable strap: both DN4 pins pulled up (DS 3.2)")
+    d.R("10k", "HUB_OCS4_N", "3V3", note="unused over-current input held inactive")
+    d.R("10k", "HUB_RESET_N", "GND", note="hub in reset until F133 PD3 releases it")
     d.U("XTAL_3225", "24MHz +-50ppm", {"1": "HUB_XI", "2": "GND", "3": "HUB_XO", "4": "GND"},
-        note="fundamental, parallel resonant, +-350 ppm max (DS 6)")
-    d.C("18pF", "HUB_XI", note="~18 pF each (DS Note 6.2); match to crystal CL"); d.C("18pF", "HUB_XO")
-    d.R("100k", "HUB_PRTPWR1", "GND", note="BC_EN1 strap = 0 (no battery charging) and switch off in reset")
-    d.R("100k", "HUB_PRTPWR2", "GND", note="switch off in reset")
-    for n, side in (("1", "Player 1"), ("2", "Player 2 / game load")):
+        note="24 MHz fundamental; load caps per crystal CL")
+    d.C("18pF", "HUB_XI", note="match to crystal CL"); d.C("18pF", "HUB_XO")
+    for n in ("1", "2", "3"):
+        d.R("100k", f"HUB_PRTPWR{n}", "GND", note="BC_EN strap = 0 and port power off in reset")
+    for n, side, part, face in (("1", "Player 1", "USB_A", "FRONT"), ("2", "Player 2", "USB_A", "FRONT"),
+                                ("3", "game cartridge", "USB_A_V", "TOP")):
         vb = f"USBA{n}_VBUS"
         d.U("TPS2051C", f"USB-A{n} power", {"1": vb, "2": "GND", "3": f"HUB_OCS{n}_N", "4": f"HUB_PRTPWR{n}", "5": "VBUS_5V"},
-            note="0.5 A current limit, fault -> hub OCS (port power budgeted in analysis/R10_POWER_BUDGET.md)")
+            note="0.5 A current limit, fault -> hub OCS")
         d.C("1uF", "VBUS_5V", note="IN cap (>= 0.1 uF, DS)")
-        d.R("10k", f"HUB_OCS{n}_N", "3V3", note="FLT open drain (hub also has an internal pull-up)")
-        d.C("100uF", vb, pkg="C1210", note="downstream VBUS bulk (USB 2.0: >= 120 uF per hub port incl. the 22 uF)")
+        d.R("10k", f"HUB_OCS{n}_N", "3V3", note="FLT open drain")
+        d.C("100uF", vb, pkg="C1210", note="downstream VBUS bulk (USB 2.0: >= 120 uF per port incl. the 22 uF)")
         d.C("22uF", vb); d.C("100nF", vb)
         d.U("TVS_SMF", "SMF5.0A", {"1": vb, "2": "GND"})
         d.U("TPD2EUSB30", "TPD2EUSB30", {"1": f"USBA{n}_DP", "2": f"USBA{n}_DM", "3": "GND"})
-        d.U("USB_A", f"USB-A {side}", {"1": vb, "2": f"USBA{n}_DM", "3": f"USBA{n}_DP", "4": "GND", "5": "GND"},
-            note="FRONT. Through-hole shell" + (" -- reinforced: shell tabs soldered + case boss behind it (handoff s4)"
-                                                 if n == "2" else ""))
+        d.U(part, f"USB-A {side}", {"1": vb, "2": f"USBA{n}_DM", "3": f"USBA{n}_DP", "4": "GND", "5": "GND"},
+            note=f"{face}. " + ("Controller port (handoff s1)" if face == "FRONT" else
+                                "Game cartridge: games run directly from the USB drive (D12). Vertical, through-hole "
+                                "shell; case boss/rib around it for repeated insertion"))
         d.tp(vb)
     d.tp("USB0_SEL"); d.tp("HUB_RESET_N"); d.tp("HUB_UP_DP"); d.tp("HUB_UP_DM")
 
@@ -732,30 +739,6 @@ def build():
     d.R("10k", "PSRAM_CE_N", "3V3_F12", note="CE# tracks VDD during power-up (APS3204L s8)")
     for n in ("PSRAM_SCLK", "PSRAM_SIO0", "PSRAM_SIO1", "PSRAM_SIO2", "PSRAM_SIO3"):
         d.R("100k", n, "GND", note="static idle level")
-
-    # ================================================================ eMMC (handoff s3; replaces microSD)
-    d.sheet("emmc", "emmc.kicad_sch", "16 GB eMMC on F133 SMHC0 (4-bit, 3.3 V): installed games and saves")
-    ec = {"A3": "EMMC_D0", "A4": "EMMC_D1", "A5": "EMMC_D2", "B2": "EMMC_D3", "M5": "EMMC_CMD", "M6": "EMMC_CLK",
-          "K5": "EMMC_RST_N", "C2": "EMMC_VDDI"}
-    for b, n, et, side in PARTS["EMMC_KLMAG1JETD"].pins:
-        if n in ("VCCQ", "VCC"):
-            ec[b] = "3V3"
-        elif n == "VSS":
-            ec[b] = "GND"
-    ue = d.U("EMMC_KLMAG1JETD", "KLMAG1JETD-B041", ec,
-             note="SMHC0 is documented for SD memory; eMMC in 4-bit SDR at 3.3 V uses the same electrical interface with "
-                  "MMC initialisation in software -> CONDITIONAL until bench-proven (D10)")
-    for b in ("B3", "B4", "B5", "B6"):
-        d.nc(ue.ref, b, "DAT4-7 unused in 4-bit mode (internal pull-ups, DS Rint)")
-    d.nc(ue.ref, "H5", "Data Strobe: HS400 only (1.8 V, 8-bit) -- unused")
-    d.decouple("3V3", 4); d.C("10uF", "3V3", pkg="C0603"); d.C("4.7uF", "3V3", pkg="C0603")
-    d.C("1uF", "EMMC_VDDI", note="CReg on VDDi (DS Figure 5; value per JEDEC practice -- confirm)"); d.C("100nF", "EMMC_VDDI")
-    d.R("33R", "EMMC_CLK_F", "EMMC_CLK", note="source series termination at the F133")
-    d.R("10k", "EMMC_CMD", "3V3", note="RCMD 4.7-100k (DS)")
-    for n in ("EMMC_D0", "EMMC_D1", "EMMC_D2", "EMMC_D3"):
-        d.R("47k", n, "3V3", note="RDAT 10-100k (DS)")
-    d.R("10k", "EMMC_RST_N", "3V3", note="RST_n inactive (function disabled by default in EXT_CSD[162])")
-    d.tp("EMMC_CLK"); d.tp("EMMC_CMD"); d.tp("EMMC_D0")
 
     # ================================================================ internal debug + indicators (no exterior controls)
     d.sheet("debug", "debug.kicad_sch", "Internal: status LEDs, F133 UART0 fixture header")

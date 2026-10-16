@@ -2,5 +2,5 @@ pin,name,etype,net,nc_reason,net_members
 1,EN,input,PG_3V3,,U4.1 R13.1 U6.1 TP9.1 U9.1 U10.1 U11.1
 2,GND,power_in,GND,,(ground)
 3,SW,power_out,SW_F133_CORE,,L2.1
-4,VIN,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 C10.1 U6.4 (+17)
+4,VIN,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 C10.1 U6.4 (+19)
 5,FB,input,FB_F133_CORE,,R14.2 R15.1

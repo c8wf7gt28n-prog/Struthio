@@ -1,0 +1,25 @@
+pin,name,etype,net,nc_reason,net_members
+1,CEC_A,bidirectional,HDMI_CEC_A,,U33.30
+2,SCL_A,bidirectional,HDMI_DDC_SCL,,U33.33
+3,SDA_A,bidirectional,HDMI_DDC_SDA,,U33.34
+4,HPD_A,output,HDMI_HPD,,U20.95 U33.16 TP54.1
+5,LS_OE,input,TPD_LS_OE,,R96.1
+6,GND,power_in,GND,,(ground)
+7,CEC_B,bidirectional,HDMI_CEC,,J15.13
+8,SCL_B,bidirectional,HDMI_SCL_5V,,J15.15
+9,SDA_B,bidirectional,HDMI_SDA_5V,,J15.16
+10,HPD_B,input,HDMI_HPD_5V,,J15.19
+11,VCC5V,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 U5.4 C10.1 (+19)
+12,CT_HPD,input,TPD_CT_HPD,,R97.1
+13,5V_OUT,power_out,HDMI_5V,,C146.1 J15.18 TP56.1
+14,GND,power_in,GND,,(ground)
+15,CLK-,bidirectional,TMDS_CK_N,,U33.17 J15.12
+16,CLK+,bidirectional,TMDS_CK_P,,U33.18 J15.10
+17,D0-,bidirectional,TMDS_D0_N,,U33.20 J15.9
+18,D0+,bidirectional,TMDS_D0_P,,U33.21 J15.7
+19,GND,power_in,GND,,(ground)
+20,D1-,bidirectional,TMDS_D1_N,,U33.23 J15.6
+21,D1+,bidirectional,TMDS_D1_P,,U33.24 J15.4
+22,D2-,bidirectional,TMDS_D2_N,,U33.26 J15.3
+23,D2+,bidirectional,TMDS_D2_P,,U33.27 J15.1
+24,VCCA,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+95)

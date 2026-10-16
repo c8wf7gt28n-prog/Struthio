@@ -1,4 +1,4 @@
-ERC report (2026-10-16T07:34:02+0000, Encoding UTF8)
+ERC report (2026-10-16T07:55:52+0000, Encoding UTF8)
 Report includes: Errors, Warnings
 
 ***** Sheet /
@@ -26,8 +26,6 @@ Report includes: Errors, Warnings
 ***** Sheet /fpga12/
 
 ***** Sheet /psram12/
-
-***** Sheet /emmc/
 
 ***** Sheet /debug/
 

@@ -2,6 +2,6 @@ pin,name,etype,net,nc_reason,net_members
 1,EN,input,FPGA12_PWR_EN,,R39.2 R40.1 J4.2 U16.3 TP22.1
 2,GND,power_in,GND,,(ground)
 3,SW,power_out,SW_F12_VCC,,L8.1
-4,VIN,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 U5.4 C10.1 (+17)
+4,VIN,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 U5.4 C10.1 (+19)
 5,PG,open_collector,FPGA12_VCC_PG,,R41.1 TP21.1 U18.56 X4.1
 6,FB,input,FB_F12_VCC,,R36.2 R37.1
