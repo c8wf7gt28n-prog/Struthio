@@ -17,6 +17,12 @@ typedef struct {
     float guard_px;             /* screen coordinates are kept inside [-guard_px, width/height + guard_px] */
 } gpu_view;
 typedef struct { uint16_t *w; long n, cap; } gpu_buf;
+typedef struct {
+    long first_word;           /* offset in gpu_buf.w */
+    long word_count;           /* complete TILE_BEGIN..TILE_END request */
+    uint16_t tile_x, tile_y;
+    uint16_t triangle_count;
+} gpu_job_span;
 
 #define GPU_CLIP_MAX 64         /* clipped fan (<= 8 triangles) after w-ratio splitting (q precision, r10_gpu.c) */
 
@@ -35,4 +41,14 @@ void gpu_emit_palette(gpu_buf *b, const uint16_t pal[256]);
  * all_tris = 1 disables binning (every triangle in every tile: the reference for the binning test). */
 long gpu_emit_frame(gpu_buf *b, const gpu_view *vp, const gpu_stri *t, int n, const gpu_state *states,
                     uint16_t clear_rgb, uint16_t clear_z, int all_tris);
+
+/* Production-oriented frame planner.  It emits one complete transport request per tile and records the request
+ * boundaries in jobs.  Each request is independently replayable: register state is re-established after TILE_BEGIN,
+ * so recovery never depends on a preceding request.  max_job_words = 0 disables the size limit; otherwise an
+ * oversized request rolls the complete frame back and returns GPU_JOBS_TOO_LARGE.  The positive return is job count. */
+#define GPU_JOBS_NO_SPACE  (-1)
+#define GPU_JOBS_TOO_LARGE (-2)
+int gpu_emit_frame_jobs(gpu_buf *b, const gpu_view *vp, const gpu_stri *t, int n, const gpu_state *states,
+                        uint16_t clear_rgb, uint16_t clear_z, int all_tris,
+                        gpu_job_span *jobs, int job_cap, long max_job_words);
 #endif

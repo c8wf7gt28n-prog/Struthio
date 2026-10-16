@@ -1,10 +1,20 @@
 group,signal,chip,pin,function,bank_or_domain,io_voltage,direction,peer_chip,peer_pin,status,note
-NOR,SPI0_CLK,F133-B,19 (PC2),SPI0-CLK,VCC-IO 3V3,3.3 V,out,"W25Q512JV (64 MiB, provisional)",6 CLK,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
-NOR,SPI0_CS0_N,F133-B,18 (PC3),SPI0-CS0,VCC-IO 3V3,3.3 V,out,"W25Q512JV (64 MiB, provisional)",1 /CS,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
-NOR,SPI0_MOSI,F133-B,17 (PC4),SPI0-MOSI,VCC-IO 3V3,3.3 V,out,"W25Q512JV (64 MiB, provisional)",5 DI/IO0,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
-NOR,SPI0_MISO,F133-B,16 (PC5),SPI0-MISO,VCC-IO 3V3,3.3 V,in,"W25Q512JV (64 MiB, provisional)",2 DO/IO1,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
-NOR,SPI0_IO2,F133-B,15 (PC6),SPI0-WP,VCC-IO 3V3,3.3 V,io,"W25Q512JV (64 MiB, provisional)",3 /WP/IO2,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
-NOR,SPI0_IO3,F133-B,14 (PC7),SPI0-HOLD,VCC-IO 3V3,3.3 V,io,"W25Q512JV (64 MiB, provisional)",7 /HOLD/IO3,"SELECTED (R08 NOR pins, boot straps 00)",WSON8/SOIC16 pin numbers differ by package: final at footprint selection
+NOR,SPI0_CLK,F133-B,19 (PC2),SPI0-CLK,VCC-IO 3V3,3.3 V,out,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",16 CLK,SELECTED; boot validation pending,Winbond Rev.B Figure 1b; Q suffix QE defaults to 1; dedicated RESET pin 3
+NOR,SPI0_CS0_N,F133-B,18 (PC3),SPI0-CS0,VCC-IO 3V3,3.3 V,out,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",7 /CS,SELECTED; boot validation pending,Winbond Rev.B Figure 1b; Q suffix QE defaults to 1; dedicated RESET pin 3
+NOR,SPI0_MOSI,F133-B,17 (PC4),SPI0-MOSI,VCC-IO 3V3,3.3 V,out,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",15 DI/IO0,SELECTED; boot validation pending,Winbond Rev.B Figure 1b; Q suffix QE defaults to 1; dedicated RESET pin 3
+NOR,SPI0_MISO,F133-B,16 (PC5),SPI0-MISO,VCC-IO 3V3,3.3 V,in,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",8 DO/IO1,SELECTED; boot validation pending,Winbond Rev.B Figure 1b; Q suffix QE defaults to 1; dedicated RESET pin 3
+NOR,SPI0_IO2,F133-B,15 (PC6),SPI0-WP,VCC-IO 3V3,3.3 V,io,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",9 /WP/IO2,SELECTED; boot validation pending,Winbond Rev.B Figure 1b; Q suffix QE defaults to 1; dedicated RESET pin 3
+NOR,SPI0_IO3,F133-B,14 (PC7),SPI0-HOLD,VCC-IO 3V3,3.3 V,io,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",1 /HOLD/IO3,SELECTED; boot validation pending,Winbond Rev.B Figure 1b; Q suffix QE defaults to 1; dedicated RESET pin 3
+NOR_AUX,VCC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",2,VCC,NOR,3.3 V,power,3V3,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,/RESET,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",3,/RESET,NOR,3.3 V,in,NOR_RESET_N,-,SELECTED; schematic pending,Independent hardware reset; do not use IO3 as reset
+NOR_AUX,GND,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",10,GND,NOR,0 V,power,GND,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,NC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",4,NC,NOR,-,nc,NO_CONNECT,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,NC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",5,NC,NOR,-,nc,NO_CONNECT,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,NC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",6,NC,NOR,-,nc,NO_CONNECT,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,NC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",11,NC,NOR,-,nc,NO_CONNECT,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,NC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",12,NC,NOR,-,nc,NO_CONNECT,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,NC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",13,NC,NOR,-,nc,NO_CONNECT,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
+NOR_AUX,NC,"W25Q512JVFIQ (64 MiB, SOIC16 300 mil)",14,NC,NOR,-,nc,NO_CONNECT,-,SELECTED; schematic pending,Winbond Rev.B Figure 1b
 CFG12,FPGA12_SCK,LFE5U-12F TQFP144,54,CCLK [MCLK/SCK],bank 8,3.3 V,in,F133-B,PC2,"SELECTED (R8.5-C loader, now for the 12F)",via isolation buffer (R8.5-C U21)
 CFG12,FPGA12_MOSI,LFE5U-12F TQFP144,47,PB11B [D0/MOSI/IO0],bank 8,3.3 V,in,F133-B,PC4,"SELECTED (R8.5-C loader, now for the 12F)","D0/MOSI, via buffer (U22) proxy caBGA256 T8"
 CFG12,FPGA12_MISO,LFE5U-12F TQFP144,46,PB11A [D1/MISO/IO1],bank 8,3.3 V,out,F133-B,PC5,"SELECTED (R8.5-C loader, now for the 12F)","D1/MISO, via buffer (U24, enabled by SN low) proxy caBGA256 T7"
@@ -45,42 +55,57 @@ D213NOR,D213_NOR_CS,D213ECV,39 (PB2),SPI0_CS,VCC33_IO0,3.3 V,io,D213 boot NOR (D
 D213NOR,D213_NOR_MISO,D213ECV,40 (PB3),SPI0_MISO,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
 D213NOR,D213_NOR_MOSI,D213ECV,42 (PB4),SPI0_MOSI,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
 D213NOR,D213_NOR_CLK,D213ECV,43 (PB5),SPI0_CLK,VCC33_IO0,3.3 V,io,D213 boot NOR (DNP footprint),-,RESERVED (fallback if flashless boot fails),
-SDRAM45,sd_dq[0],LFE5U-45F CABGA381,C20,PR23A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[1],LFE5U-45F CABGA381,D18,PR14A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[2],LFE5U-45F CABGA381,D19,PR23B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[3],LFE5U-45F CABGA381,E16,PR11C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[4],LFE5U-45F CABGA381,E17,PR14B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[5],LFE5U-45F CABGA381,E18,PR14C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[6],LFE5U-45F CABGA381,E19,PR23D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[7],LFE5U-45F CABGA381,E20,PR26A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[8],LFE5U-45F CABGA381,F16,PR11D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[9],LFE5U-45F CABGA381,F17,PR17A,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[10],LFE5U-45F CABGA381,F18,PR14D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[11],LFE5U-45F CABGA381,F19,PR26B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[12],LFE5U-45F CABGA381,F20,PR26C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[13],LFE5U-45F CABGA381,G16,PR17C,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[14],LFE5U-45F CABGA381,G18,PR17B,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dq[15],LFE5U-45F CABGA381,G20,PR26D,bank 2,3.3 V,io,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dqm[0],LFE5U-45F CABGA381,H16,PR17D,bank 2,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_dqm[1],LFE5U-45F CABGA381,H17,PR20B,bank 2,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,data bank
-SDRAM45,sd_clk,LFE5U-45F CABGA381,L17,PR38B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_cke,LFE5U-45F CABGA381,M17,PR41B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_cs_n,LFE5U-45F CABGA381,M18,PR38D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_ras_n,LFE5U-45F CABGA381,N16,PR41A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_cas_n,LFE5U-45F CABGA381,N17,PR44A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_we_n,LFE5U-45F CABGA381,N18,PR41C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_ba[0],LFE5U-45F CABGA381,N19,PR59A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_ba[1],LFE5U-45F CABGA381,N20,PR59B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[0],LFE5U-45F CABGA381,P17,PR41D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[1],LFE5U-45F CABGA381,P18,PR59D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[2],LFE5U-45F CABGA381,P19,PR59C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[3],LFE5U-45F CABGA381,P20,PR62A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[4],LFE5U-45F CABGA381,R16,PR44C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[5],LFE5U-45F CABGA381,R17,PR44D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[6],LFE5U-45F CABGA381,R18,PR65B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[7],LFE5U-45F CABGA381,R20,PR62B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[8],LFE5U-45F CABGA381,T16,PR53A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[9],LFE5U-45F CABGA381,T18,PR65D,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[10],LFE5U-45F CABGA381,T19,PR65A,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[11],LFE5U-45F CABGA381,T20,PR62C,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
-SDRAM45,sd_a[12],LFE5U-45F CABGA381,U17,PR68B,bank 3,3.3 V,out,"AS4C16M16SA (32 MiB, candidate)",TSOP-II 54,PROPOSED,address/control bank
+SDRAM45,sd_dq[0],LFE5U-45F CABGA381,C20,PR23A,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",2,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[1],LFE5U-45F CABGA381,D18,PR14A,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",4,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[2],LFE5U-45F CABGA381,D19,PR23B,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",5,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[3],LFE5U-45F CABGA381,E16,PR11C,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",7,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[4],LFE5U-45F CABGA381,E17,PR14B,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",8,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[5],LFE5U-45F CABGA381,E18,PR14C,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",10,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[6],LFE5U-45F CABGA381,E19,PR23D,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",11,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[7],LFE5U-45F CABGA381,E20,PR26A,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",13,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[8],LFE5U-45F CABGA381,F16,PR11D,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",42,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[9],LFE5U-45F CABGA381,F17,PR17A,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",44,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[10],LFE5U-45F CABGA381,F18,PR14D,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",45,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[11],LFE5U-45F CABGA381,F19,PR26B,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",47,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[12],LFE5U-45F CABGA381,F20,PR26C,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",48,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[13],LFE5U-45F CABGA381,G16,PR17C,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",50,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[14],LFE5U-45F CABGA381,G18,PR17B,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",51,SELECTED; schematic pending,data bank
+SDRAM45,sd_dq[15],LFE5U-45F CABGA381,G20,PR26D,bank 2,3.3 V,io,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",53,SELECTED; schematic pending,data bank
+SDRAM45,sd_dqm[0],LFE5U-45F CABGA381,H16,PR17D,bank 2,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",15,SELECTED; schematic pending,data bank
+SDRAM45,sd_dqm[1],LFE5U-45F CABGA381,H17,PR20B,bank 2,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",39,SELECTED; schematic pending,data bank
+SDRAM45,sd_clk,LFE5U-45F CABGA381,L17,PR38B,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",38,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_cke,LFE5U-45F CABGA381,M17,PR41B,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",37,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_cs_n,LFE5U-45F CABGA381,M18,PR38D,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",19,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_ras_n,LFE5U-45F CABGA381,N16,PR41A,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",18,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_cas_n,LFE5U-45F CABGA381,N17,PR44A,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",17,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_we_n,LFE5U-45F CABGA381,N18,PR41C,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",16,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_ba[0],LFE5U-45F CABGA381,N19,PR59A,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",20,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_ba[1],LFE5U-45F CABGA381,N20,PR59B,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",21,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[0],LFE5U-45F CABGA381,P17,PR41D,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",23,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[1],LFE5U-45F CABGA381,P18,PR59D,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",24,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[2],LFE5U-45F CABGA381,P19,PR59C,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",25,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[3],LFE5U-45F CABGA381,P20,PR62A,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",26,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[4],LFE5U-45F CABGA381,R16,PR44C,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",29,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[5],LFE5U-45F CABGA381,R17,PR44D,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",30,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[6],LFE5U-45F CABGA381,R18,PR65B,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",31,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[7],LFE5U-45F CABGA381,R20,PR62B,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",32,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[8],LFE5U-45F CABGA381,T16,PR53A,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",33,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[9],LFE5U-45F CABGA381,T18,PR65D,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",34,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[10],LFE5U-45F CABGA381,T19,PR65A,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",22,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[11],LFE5U-45F CABGA381,T20,PR62C,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",35,SELECTED; schematic pending,address/control bank
+SDRAM45,sd_a[12],LFE5U-45F CABGA381,U17,PR68B,bank 3,3.3 V,out,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",36,SELECTED; schematic pending,address/control bank
+SDRAM45_POWER,VDD,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",1,VDD,SDRAM,3.3 V,power,3V3_45_MEM,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VDD,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",14,VDD,SDRAM,3.3 V,power,3V3_45_MEM,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VDD,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",27,VDD,SDRAM,3.3 V,power,3V3_45_MEM,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VDDQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",3,VDDQ,SDRAM,3.3 V,power,3V3_45_MEM,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VDDQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",9,VDDQ,SDRAM,3.3 V,power,3V3_45_MEM,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VDDQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",43,VDDQ,SDRAM,3.3 V,power,3V3_45_MEM,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VDDQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",49,VDDQ,SDRAM,3.3 V,power,3V3_45_MEM,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VSS,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",28,VSS,SDRAM,0 V,power,GND,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VSS,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",41,VSS,SDRAM,0 V,power,GND,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VSS,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",54,VSS,SDRAM,0 V,power,GND,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VSSQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",6,VSSQ,SDRAM,0 V,power,GND,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VSSQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",12,VSSQ,SDRAM,0 V,power,GND,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VSSQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",46,VSSQ,SDRAM,0 V,power,GND,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,VSSQ,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",52,VSSQ,SDRAM,0 V,power,GND,-,SELECTED; schematic pending,See R10_INTERCONNECT_DECISIONS.md for rail sequencing
+SDRAM45_POWER,NC,"AS4C16M16SA-6TIN (32 MiB, TSOP-II 54)",40,NC,SDRAM,-,nc,NO_CONNECT,-,SELECTED; schematic pending,NC must remain unconnected

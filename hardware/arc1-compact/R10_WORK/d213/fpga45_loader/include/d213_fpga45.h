@@ -5,8 +5,11 @@
  * configures the 45F through the R8.5-C sysCONFIG slave-SPI sequence (ecp5_cfg.c, R10 copy).
  * D213 binding (hardware/R10_flash_pinmux.csv, group CFG45): SPI1 PB11 CLK / PB10 MOSI / PB9 MISO / PB8 CS (= SN,
  * SPI1 is dedicated to the 45F, so SN may stay low for the whole burst); PA4 PROGRAMN (open drain), PA5 INITN,
- * PA6 DONE. ECP5_PIN_PWR_EN / VCC_PG / BUS_EN_N / PSRAM_REQ have no D213 pin in R10: the binding ignores PWR_EN,
- * BUS_EN_N and PSRAM_REQ and reports VCC_PG = 1 (45F rails follow the board supply) -- a schematic decision, OPEN.
+ * PA6 DONE. ECP5_PIN_PWR_EN / VCC_PG / BUS_EN_N / PSRAM_REQ have no finalized D213 pin in R10.
+ * Production HAL MUST obtain VCC_PG from a real supervisor/interlock; never return a constant 1.
+ * Until a board binding provides that evidence, configuration must remain unavailable/fail closed.
+ * PWR_EN and BUS_EN_N may be no-ops only with a reviewed hardware-owned sequencing/isolation circuit.
+ * PSRAM_REQ is unused: the 45F has SDRAM. See hardware/R10_INTERCONNECT_DECISIONS.md.
  * No D213 BSP binding exists yet. HOST_TESTED against the R8.5-C ECP5 mock. */
 #ifndef D213_FPGA45_H
 #define D213_FPGA45_H

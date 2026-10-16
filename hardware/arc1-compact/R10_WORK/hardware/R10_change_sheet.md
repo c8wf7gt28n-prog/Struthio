@@ -1,5 +1,9 @@
 # R10 hardware change sheet (R10 §12.1 item 8) — delta from the archived R8.5-C board
 
+**Current override:** `R10_INTERCONNECT_DECISIONS.md` resolves startup/recovery policy,
+SDRAM package and the meaning of D213 independence. Older proposals below are
+historical where they conflict. No R10 schematic or fabrication release is implied.
+
 Revised for ARC1_MEMORY_R10 v0.1 (memory architecture): one 64 MiB F133-owned NOR, FPGAs configured by their
 processors, 32 MiB SDRAM on the 45F, 4 MiB PSRAM on the 12F. Rows changed by it say "Supersedes".
 
@@ -46,14 +50,15 @@ E03 power).
 
 ## 4. Reset and power-up sequence (proposed; each step has a pass check on the bench)
 1. 3V3 good (TPS3808, R8.5-C U4) → F133 reset released (U8).
-2. D213 reset released by its own supervisor at the same time as the F133 — **not** by the F133 — so D213 video
-   comes up with both FPGAs blank and with the F133 halted (R10 §3.1).
+2. D213 reset released by its own supervisor, not by the F133. With flashless boot,
+   F133 must first load D213 firmware; independence with F133 halted is post-boot only.
 3. The F133 boots from the NOR, initialises DDR2, selects its A/B image and configures the 12F (application, else
    golden) over slave SPI (`firmware/f133_bootloader`); then it starts the D213 over USB (flashless start — UNPROVEN,
    `firmware/d213_flashless_proof/PLAN.md`) and the D213 configures the 45F. Each side enables its RGMII pin mux only
    after DONE (IO-disable before, R8.5-C rule `rgmii_link`). *Supersedes "each FPGA loads from its own flash".*
-4. F133 enables USB1 VBUS to the D213 after D213 firmware asserts "ready" (GPIO or USB attach) — sequencing of USB0
-   recovery mode in `f133/graphics_link/README.md`.
+4. After valid rails/reset and selection of the internal USB path, F133 enables the
+   host connection/VBUS, waits for ROM enumeration, downloads firmware and then
+   waits for application-ready. Recovery requires host data/VBUS disconnection.
 
 ## 5. Memory / converter BOM delta
 | Add | Remove |

@@ -1,31 +1,32 @@
-# ARC-1 Compact — CURRENT ROOT ENGINEERING INSTRUCTION, R06
+# ARC-1 Compact — current engineering instruction (R10)
 
-## Product-direction update — supersedes older graphics/audio assumptions (2026-10-14)
+`R10_WORK/` is current and supersedes the earlier R05/R06/R07/R08/R8.5 direction wherever they conflict. Preserve
+older trees as immutable historical/reference evidence; place new architecture work in `R10_WORK/` and test it there.
 
-READ `PRODUCT_VISION_2D_FPGA_AUDIO.md` as an active owner-approved requirement. ARC-1 prioritizes extremely polished 60-fps-target **2D** ('128-bit Super Nintendo' metaphor, NOT literal 128-bit CPU). T35 is optional, reprogrammable Super FX-style enhancement for batched 2D math (MMC3 is only an organizational analogy); no new direct BT820 bus ownership. F133 handles software audio mixing via audio DMA and integrated audio hardware; provide a stereo speaker amplifier, with external I2S codec only as a tested-quality fallback. Do NOT add a fourth programmable processor. Do not allow visual ambition/audio scope to displace pass-6 basic compatibility and tests. All graphics/audio targets remain UNMEASURED.
+## Frozen R10 topology
 
-## Authority / chronological override
-The owner's latest confirmed request is to simplify the *Compact* architecture while keeping three chips: **F133 controls BT820 directly; T35 is optional accelerator; T35 has 8 MiB QSPI PSRAM instead of 128 MiB DDR3L**. This file plus `START_HERE.md`, `ENGINEERING_CHANGE_R06.md`, `PASS_6_AND_7.md`, and `CURRENT_ARCHITECTURE.json` override R05 where they conflict. The entirety of `R05_BASELINE/` is reference material and source; it is not a second active handoff. Do not reintroduce R05 mandatory FPGA->BT QSPI or T35 DDR3L from any old nested file or diagram.
+- F133-B + 64 MiB in-package DDR2: system/game authority and fallback path.
+- D213ECV + 128 MiB DDR3: display/2D engine and 45F command preparation.
+- ECP5-45F + 32 MiB x16 SDR SDRAM: optional tile GPU, linked to D213 GMAC0 by RGMII.
+- ECP5-12F + 4 MiB QSPI PSRAM: optional adaptive coprocessor; it never owns game state.
+- One central 64 MiB NOR with the generated R10 partition map.
 
-This file reflects a design DECISION, not proof that the revised scheme electrically works. A proposed pin/controller/storage assignment remains pending vendor/tool qualification. Stop and present a concrete blocker for impossible electrical assignments.
+Exact decisions and reversal costs are in `R10_WORK/DECISIONS.md`. Do not reintroduce R06's BT820/T35 topology or the
+older prohibition on a fourth programmable device. Do not change the transport, device package, or ownership model
+without a versioned decision and updated tests.
 
-## Retain all usable tested work
-Reuse `R05_BASELINE/protocol/`, `compute/`, `integration/`, `display/`, `memory/`, `system/`, and earlier evidence. Preserve wire ABI, fixed-point numerical contract, test vectors and resets unless changes are explicitly versioned and tested. Prior R05 successful test logs remain historical R05 evidence. Do not edit R05 sources in-place to make untested changes look like validated R05; develop new R06 changes under `R06_WORK/`, copying relevant modules or patching reproducibly and documenting paths.
+## Engineering rules
 
-## Priority technical principles
-1. Independent baseline: CPU->BT820 graphics must operate without any FPGA configuration or even FPGA being present. Prove by tests, later hardware.
-2. GPU always has *one* commanding SPI master at a time, F133 in baseline; no dual-master shared bus without engineered arbitration.
-3. CPU->T35 mailbox optional; CPU handles failed/late jobs and uses CPU fallback.
-4. T35->private 8 MiB QSPI PSRAM on legal IO bank. Verify exact memory voltage and pinouts. Controller synthesis/sim must handle read/write, reset, high-Z turnaround, dummy cycles, chip select timing, address wrap and timeouts. Avoid declaring full bandwidth from wire-rate math.
-5. Confirm F133 simultaneous SPI pin mux vs boot/storage restrictions, IO level matching, BT820 SPI/QSPI electrical + command compatibility and FPGA bitstream configuration independently; avoid assigning pins based solely on family-name similarities.
-6. Keep BT820/MN820 DDR3L as provided by module, without claiming CPU/FPGA shared access. Preserve source and source attribution.
-7. No new game mode, STRUTHIO code or visual asset fidelity claim without authoritative source. A synthetic graphics demo is clearly labeled synthetic.
-8. Treat display orientation/form factor and panel choice as unresolved: previous 7-inch LVDS screen candidate was never frozen or measured.
-9. No automated fabricated milestones, logs, costs, invented procurement or 60-fps claims. Use labels SELECTED, MANUFACTURER_DOCUMENTED, PLANNING_CALCULATED, HOST_TESTED, RTL_SIMULATED, NATIVE_EDA_VERIFIED, PROTOTYPE_MEASURED, BLOCKED, NOT_RUN.
-10. JLCPCB is a potential fabrication/assembly vendor, not a designer or guarantor; require exact netlist, BOM, verified footprint and DFM constraints before order.
+1. F133 game state and D213 display fallback must survive either FPGA being blank or unavailable.
+2. Keep GPU ABI changes versioned. Preserve v0 flat-triangle semantics while extending v1.
+3. Treat the D213 as responsible for transforms, clipping, viewport mapping, tile binning, and request scheduling.
+4. Treat 45F SDRAM contents as private GPU memory, not a shared CPU RAM pool.
+5. 12F jobs must be bounded, optional, timeout-safe, and have an F133 software fallback with identical semantics.
+6. Preserve evidence labels: HOST_TESTED, RTL_SIMULATED, OPEN_TOOLCHAIN_ROUTED, NATIVE_EDA_VERIFIED,
+   PROTOTYPE_MEASURED, BLOCKED, and NOT_RUN. Never promote one label into another.
+7. Lattice TQFP144 pin-locked P&R and all prototype electrical/throughput results remain NOT_RUN until actually run.
+8. Fabrication remains HOLD until the open gates in `R10_WORK/qa/` are closed.
 
-## Required response after EACH engineering pass
-Return a concise status table with completed artifacts, exact commands and exit statuses, evidence paths, failed and unavailable checks, unresolved blockers, assumptions and next tests. Produce source patches/new code rather than a prose-only pass whenever tools permit. If a native Efinix Efinity tool is unavailable, report `NATIVE_EDA_NOT_RUN`; never invent pin-fit/timing reports. Distinguish host/RTL simulation from prototype measurements. Finish R06 before moving to R07 unless the dependencies can proceed concurrently without making a false success claim.
-
-## Build/reference paths
-For baseline scripts, `cd R05_BASELINE` and consult `VERIFY.md`. `R05_BASELINE/CLAUDE.md` describes the *superseded R05 wiring only*, not current root authority. New implementation should be made under `R06_WORK/` with new tests or reproducible changes clearly tracked, plus a fresh revision ledger and source/build manifest.
+After a pass, record changed files, commands, exit status, unavailable tools, and remaining gates. Prefer code plus
+tests over prose-only planning. `R10_WORK/run_host_checks.sh` is the portable host baseline; `run_all.sh` adds RTL and
+P&R and therefore requires the complete FPGA toolchain.

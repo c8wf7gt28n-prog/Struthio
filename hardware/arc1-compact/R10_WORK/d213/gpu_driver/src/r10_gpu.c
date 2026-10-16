@@ -142,14 +142,20 @@ static void bbox(const gpu_stri *t, int *x0, int *y0, int *x1, int *y1)
     *x0 = (mnx - 8 + 15) >> 4; *x1 = (mxx - 8) >> 4; *y0 = (mny - 8 + 15) >> 4; *y1 = (mxy - 8) >> 4;
 }
 
-long gpu_emit_frame(gpu_buf *b, const gpu_view *vp, const gpu_stri *t, int n, const gpu_state *states,
-                    uint16_t clear_rgb, uint16_t clear_z, int all_tris)
+static int emit_frame(gpu_buf *b, const gpu_view *vp, const gpu_stri *t, int n, const gpu_state *states,
+                      uint16_t clear_rgb, uint16_t clear_z, int all_tris, gpu_job_span *jobs,
+                      int job_cap, long max_job_words, int independent)
 {
     uint32_t held[GPU_R_COUNT];
     int held_valid = 0, tx, ty, i, r;
-    long start = b->n;
+    int njobs = 0;
+    long frame_start = b->n;
     for (ty = 0; ty < vp->height; ty += 32)
         for (tx = 0; tx < vp->width; tx += 32) {
+            long job_start = b->n;
+            int ntri = 0;
+            if (jobs && njobs >= job_cap) { b->n = frame_start; return GPU_JOBS_NO_SPACE; }
+            if (independent) held_valid = 0;
             gpu_emit(b, GPU_TILE_BEGIN); gpu_emit(b, (uint16_t)tx); gpu_emit(b, (uint16_t)ty);
             gpu_emit(b, clear_rgb); gpu_emit(b, clear_z);
             for (i = 0; i < n; i++) {
@@ -171,8 +177,38 @@ long gpu_emit_frame(gpu_buf *b, const gpu_view *vp, const gpu_stri *t, int n, co
                     gpu_emit(b, (uint16_t)v->u); gpu_emit(b, (uint16_t)v->v);
                 }
                 gpu_emit(b, t[i].rgb);
+                ntri++;
             }
             gpu_emit(b, GPU_TILE_END);
+            if (max_job_words > 0 && b->n - job_start > max_job_words) {
+                b->n = frame_start;
+                return GPU_JOBS_TOO_LARGE;
+            }
+            if (jobs) {
+                jobs[njobs].first_word = job_start;
+                jobs[njobs].word_count = b->n - job_start;
+                jobs[njobs].tile_x = (uint16_t)tx;
+                jobs[njobs].tile_y = (uint16_t)ty;
+                jobs[njobs].triangle_count = (uint16_t)ntri;
+            }
+            njobs++;
         }
+    return njobs;
+}
+
+long gpu_emit_frame(gpu_buf *b, const gpu_view *vp, const gpu_stri *t, int n, const gpu_state *states,
+                    uint16_t clear_rgb, uint16_t clear_z, int all_tris)
+{
+    long start = b->n;
+    (void)emit_frame(b, vp, t, n, states, clear_rgb, clear_z, all_tris, 0, 0, 0, 0);
     return b->n - start;
+}
+
+int gpu_emit_frame_jobs(gpu_buf *b, const gpu_view *vp, const gpu_stri *t, int n, const gpu_state *states,
+                        uint16_t clear_rgb, uint16_t clear_z, int all_tris,
+                        gpu_job_span *jobs, int job_cap, long max_job_words)
+{
+    if (!jobs || job_cap < 0) return GPU_JOBS_NO_SPACE;
+    return emit_frame(b, vp, t, n, states, clear_rgb, clear_z, all_tris, jobs, job_cap,
+                      max_job_words, 1);
 }

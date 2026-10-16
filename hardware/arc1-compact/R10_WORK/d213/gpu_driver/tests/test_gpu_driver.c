@@ -6,6 +6,7 @@
  *       every pixel away from triangle edges and texel boundaries must match exactly
  *   D06 binning: the binned frame equals the frame with every triangle sent to every tile
  *   D07 per-frame cost figures for the benchmark (words, samples, texel fetches)
+ *   D08 production job plan: one bounded, independently replayable request per tile
  * HOST_TESTED. */
 #include <math.h>
 #include <stdio.h>
@@ -211,6 +212,51 @@ int main(void)
         CHECK(covered > W * H / 3);
         CHECK(interior == 0);
         CHECK(mism * 100 < covered * 5);
+    }
+
+    /* D08: transport-sized tile requests render identically to the compact legacy stream. */
+    {
+        gpu_stri st[16 * GPU_CLIP_MAX];
+        gpu_state states[1];
+        gpu_job_span jobs[80];
+        gpu_buf compact = { 0, 0, 0 }, packetized = { 0, 0, 0 };
+        const uint16_t *out_a, *out_b;
+        long na, nb, max_words = 0;
+        int ns = 0, nj, j;
+        memset(states, 0, sizeof states);
+        states[0].reg[GPU_R_TEX_BASE] = 0x4000; states[0].reg[GPU_R_TEX_CFG] = 6 | 6 << 4;
+        states[0].reg[GPU_R_MODE] = GPU_M_ZTEST | GPU_M_ZWRITE;
+        build_scene(1.1f);
+        for (i = 0; i < nscene; i++) ns += gpu_setup_tri(&vp, scene[i].v, 0, 0, st + ns);
+        gpu_emit_upload(&compact, 0x4000, tex, 64 * 64);
+        gpu_emit_frame(&compact, &vp, st, ns, states, 0x0010, 0xFFFF, 0);
+        gpu_emit_upload(&packetized, 0x4000, tex, 64 * 64);
+        nj = gpu_emit_frame_jobs(&packetized, &vp, st, ns, states, 0x0010, 0xFFFF, 0,
+                                 jobs, 80, 4096);
+        CHECK(nj == 80);
+        for (j = 0; j < nj; j++) {
+            CHECK(packetized.w[jobs[j].first_word] == GPU_TILE_BEGIN);
+            CHECK(packetized.w[jobs[j].first_word + jobs[j].word_count - 1] == GPU_TILE_END);
+            CHECK(jobs[j].word_count <= 4096);
+            if (jobs[j].word_count > max_words) max_words = jobs[j].word_count;
+        }
+        gpu_ref_init(); na = gpu_ref_exec(compact.w, compact.n, &out_a);
+        {
+            uint16_t *copy = malloc((size_t)na * sizeof *copy);
+            CHECK(copy != 0);
+            if (copy) memcpy(copy, out_a, (size_t)na * sizeof *copy);
+            gpu_ref_init(); nb = gpu_ref_exec(packetized.w, packetized.n, &out_b);
+            CHECK(na == nb && copy && memcmp(copy, out_b, (size_t)na * sizeof *copy) == 0);
+            free(copy);
+        }
+        printf("INFO packet plan: %d independent tile jobs, max %ld words (%.1f KB), %.1f %% replay-state overhead\n",
+               nj, max_words, max_words * 2 / 1024.0,
+               100.0 * (packetized.n - compact.n) / (compact.n ? compact.n : 1));
+        CHECK(gpu_emit_frame_jobs(&packetized, &vp, st, ns, states, 0, 0xFFFF, 0,
+                                  jobs, 79, 4096) == GPU_JOBS_NO_SPACE);
+        CHECK(gpu_emit_frame_jobs(&packetized, &vp, st, ns, states, 0, 0xFFFF, 0,
+                                  jobs, 80, 8) == GPU_JOBS_TOO_LARGE);
+        free(compact.w); free(packetized.w);
     }
     printf("TEST gpu_scene done fails=%d\n", g_fail);
     printf("%d checks, %d failed\n", g_checks, g_fail);
