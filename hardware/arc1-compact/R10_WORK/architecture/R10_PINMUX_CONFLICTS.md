@@ -4,9 +4,27 @@ D213ECV pads claimed by more than one proposed function:
 
 | D213 pad | pin | claimed by |
 |---|---|---|
-| PD18 | 127 | D213->video / LVDS0 to HDMI bridge (bridge TBD); D213<->45F / A |
-| PD19 | 126 | D213->video / LVDS0 to HDMI bridge (bridge TBD); D213<->45F / A |
-| PD20 | 125 | D213->video / LVDS0 to HDMI bridge (bridge TBD); D213<->45F / A |
+| PD0 | 18 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD1 | 17 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD2 | 16 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD3 | 15 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD4 | 14 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD5 | 13 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD6 | 12 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD7 | 11 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD8 | 10 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD9 | 9 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD10 | 8 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD11 | 7 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD12 | 6 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD13 | 5 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD14 | 4 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD15 | 3 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD16 | 2 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD17 | 1 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD18 | 127 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD19 | 126 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
+| PD20 | 125 | D213->video / RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6); D213<->45F / A |
 
 Option A (PBUS on PD0-PD20) occupies 21 pads, 21 of which carry display functions (LCD_D*, LVDS0/LVDS1, DSI): PD0, PD1, PD2, PD3, PD4, PD5, PD6, PD7, PD8, PD9, PD10, PD11, PD12, PD13, PD14, PD15, PD16, PD17, PD18, PD19, PD20.
 Consequence: with a full 16-bit PBUS no D213 display output remains: parallel RGB needs PD0-PD27, LVDS1 is PD8-PD17, LVDS0 and DSI are PD18-PD27 (PD18-PD20 taken by NADV/NWE/NOE). The PF group offers only AD0-AD11 (PF11 shared between AD11 and CLK). R10 10.2 hold criterion 1 is therefore MET for option A as written.

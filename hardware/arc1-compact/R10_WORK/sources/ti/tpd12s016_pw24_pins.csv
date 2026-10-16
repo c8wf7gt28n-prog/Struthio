@@ -1,0 +1,25 @@
+pin,name,type,source
+1,CEC_A,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+2,SCL_A,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+3,SDA_A,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+4,HPD_A,output,SLLSE96F Pin Functions (PW column) + PW top-view figure
+5,LS_OE,input,SLLSE96F Pin Functions (PW column) + PW top-view figure
+6,GND,ground,SLLSE96F Pin Functions (PW column) + PW top-view figure
+7,CEC_B,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+8,SCL_B,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+9,SDA_B,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+10,HPD_B,input,SLLSE96F Pin Functions (PW column) + PW top-view figure
+11,VCC5V,power,SLLSE96F Pin Functions (PW column) + PW top-view figure
+12,CT_HPD,input,SLLSE96F Pin Functions (PW column) + PW top-view figure
+13,5V_OUT,power_out,SLLSE96F Pin Functions (PW column) + PW top-view figure
+14,GND,ground,SLLSE96F Pin Functions (PW column) + PW top-view figure
+15,CLK-,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+16,CLK+,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+17,D0-,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+18,D0+,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+19,GND,ground,SLLSE96F Pin Functions (PW column) + PW top-view figure
+20,D1-,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+21,D1+,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+22,D2-,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+23,D2+,bidir,SLLSE96F Pin Functions (PW column) + PW top-view figure
+24,VCCA,power,SLLSE96F Pin Functions (PW column) + PW top-view figure

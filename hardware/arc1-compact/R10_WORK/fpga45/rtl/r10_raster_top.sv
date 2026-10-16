@@ -11,6 +11,7 @@ module r10_raster_top (
     output wire       rgmii_txc,
     output wire [3:0] rgmii_txd,
     output wire       rgmii_tx_ctl,
+    output wire       gmac_refclk,             // D7: 125 MHz MAC reference to D213 GMAC0_CLKIN (PE3)
     output wire       led
 );
     wire sys_clk, unused_mclk, pll_locked, eth_txclk, eth_locked;
@@ -38,6 +39,9 @@ module r10_raster_top (
         .eng_resp_post(resp_post), .eng_resp_len(resp_len),
         .cnt_rx_ok(c_ok), .cnt_rx_crc(c_fcs), .cnt_rx_drop(c_drop), .cnt_rx_other(c_other),
         .cnt_tx(c_tx), .cnt_tx_underrun(c_under), .counters_sys(counters));
+    // D7: the D213 GMAC documents RGMII only with an external 125 MHz MAC clock (D21x UM 12.2.3.4); forward the
+    // RGMII transmit clock through its own ODDR so the D213 TX path and our RX path share one frequency source.
+    ODDRX1F u_refclk (.D0(1'b1), .D1(1'b0), .SCLK(eth_txclk), .RST(1'b0), .Q(gmac_refclk));
     r10_raster_engine u_eng (
         .clk(sys_clk), .rst(rst), .job_valid(job_valid), .job_len(job_len), .idle(eng_idle),
         .req_raddr(req_raddr), .req_rdata(req_rdata),

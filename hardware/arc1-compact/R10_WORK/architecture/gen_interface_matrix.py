@@ -81,26 +81,33 @@ for sig, pad, fn in pbus:
 # option B: GMAC0 RGMII on PE
 gm0 = [("TXCK", "PE6", "GMAC0_TXCK"), ("TXD0", "PE5", "GMAC0_TXD0"), ("TXD1", "PE4", "GMAC0_TXD1"), ("TXD2", "PE15", "GMAC0_TXD2"),
        ("TXD3", "PE14", "GMAC0_TXD3"), ("TXCTL", "PE7", "GMAC0_TXCTL"), ("RXCK", "PE13", "GMAC0_RXCK"), ("RXD0", "PE1", "GMAC0_RXD0"),
-       ("RXD1", "PE0", "GMAC0_RXD1"), ("RXD2", "PE12", "GMAC0_RXD2"), ("RXD3", "PE11", "GMAC0_RXD3"), ("RXCTL", "PE2", "GMAC0_RXCTL")]
+       ("RXD1", "PE0", "GMAC0_RXD1"), ("RXD2", "PE12", "GMAC0_RXD2"), ("RXD3", "PE11", "GMAC0_RXD3"), ("RXCTL", "PE2", "GMAC0_RXCTL"),
+       ("CLKIN", "PE3", "GMAC0_CLKIN")]   # D7: 125 MHz MAC reference (D21x UM 12.2.3.4)
 # 45F side: R8.5-C 45F bank-0 RGMII balls (CABGA381), fpga45/constraints/r10_45f.lpf; rxc on PCLKT0_0 (B11)
 f45 = {"TXCK": ("B11", "rgmii_rxc"), "TXD0": ("C10", "rgmii_rxd[0]"), "TXD1": ("B9", "rgmii_rxd[1]"),
        "TXD2": ("C9", "rgmii_rxd[2]"), "TXD3": ("D10", "rgmii_rxd[3]"), "TXCTL": ("E10", "rgmii_rx_ctl"),
        "RXCK": ("C8", "rgmii_txc"), "RXD0": ("D9", "rgmii_txd[0]"), "RXD1": ("E9", "rgmii_txd[1]"),
-       "RXD2": ("D8", "rgmii_txd[2]"), "RXD3": ("E8", "rgmii_txd[3]"), "RXCTL": ("C7", "rgmii_tx_ctl")}
+       "RXD2": ("D8", "rgmii_txd[2]"), "RXD3": ("E8", "rgmii_txd[3]"), "RXCTL": ("C7", "rgmii_tx_ctl"), "CLKIN": ("B8", "gmac_refclk")}
 for sig, pad, fn in gm0:
     p, pd, dom, lost = d213(pad, fn)
     row("D213<->45F", "B: GMAC0 RGMII on PE (SELECTED, decision D1)", sig, "D213ECV", p, pd, fn, dom, "LFE5U-45F", f45[sig][0] + " (bank 0)",
         f45[sig][1], "rgmii endpoint (R8.5-C eth_link) + r10_raster_engine", "3.3 V", "D213->45F" if sig.startswith("TX") else "45F->D213", "3.3 V LVCMOS",
         "D213: " + lost, "SELECTED D1 (pads DOCUMENTED; D21x DS Table 3-2 GMAC-1000M x2; 45F pins OPEN_TOOLCHAIN_ROUTED)")
 
-# ---- L4 D213 video (one of these; all on PD) ----
-for sig, pad, fn in [("LVDS0_D0N", "PD18", "LVDS0_D0N"), ("LVDS0_D0P", "PD19", "LVDS0_D0P"), ("LVDS0_D1N", "PD20", "LVDS0_D1N"),
-                     ("LVDS0_D1P", "PD21", "LVDS0_D1P"), ("LVDS0_D2N", "PD22", "LVDS0_D2N"), ("LVDS0_D2P", "PD23", "LVDS0_D2P"),
-                     ("LVDS0_CKN", "PD24", "LVDS0_CKN"), ("LVDS0_CKP", "PD25", "LVDS0_CKP"), ("LVDS0_D3N", "PD26", "LVDS0_D3N"),
-                     ("LVDS0_D3P", "PD27", "LVDS0_D3P")]:
+# ---- L4 D213 video: RGB888 (LCD function 2, PD0-PD27) -> TI TFP410 (DVI, strap mode), decision D6 ----
+# TFP410 PAP64 pins: sources/ti/tfp410_pap64_pins.csv (SLDS145D). D213 default RGB order (data-order RGB): LCD_D[23:16] = R,
+# [15:8] = G, [7:0] = B; TFP410 DATA[23:16] -> TX2 (red), [15:8] -> TX1 (green), [7:0] -> TX0 (blue) (SLDS145D 6.3.1).
+tfp = {f"DATA{i}": str(p) for i, p in list(zip(range(23, 11, -1), range(36, 48))) +
+       list(zip([11, 10, 9, 8, 7, 6], [50, 51, 52, 53, 54, 55])) + list(zip([5, 4, 3, 2, 1, 0], [58, 59, 60, 61, 62, 63]))}
+tfp.update({"DE": "2", "HSYNC": "4", "VSYNC": "5", "IDCK+": "57"})
+vid = [(f"LCD_D{i}", f"PD{i}", f"LCD_D{i}", f"DATA{i}") for i in range(24)] + [
+    ("LCD_DCLK", "PD24", "LCD_DCLK", "IDCK+"), ("LCD_HS", "PD25", "LCD_HS", "HSYNC"), ("LCD_VS", "PD26", "LCD_VS", "VSYNC"),
+    ("LCD_DE", "PD27", "LCD_DE", "DE")]
+for sig, pad, fn, tpin in vid:
     p, pd, dom, lost = d213(pad, fn)
-    row("D213->video", "LVDS0 to HDMI bridge (bridge TBD)", sig, "D213ECV", p, pd, fn, dom, "HDMI bridge", "TBD", "TBD", "LVDS in",
-        "TBD", "D213->bridge", "LVDS", "D213: " + lost, "PROPOSED (pads DOCUMENTED)")
+    row("D213->video", "RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6)", sig, "D213ECV", p, pd, fn, dom, "TFP410 PAP64",
+        tfp[tpin], tpin, "24-bit single-edge input (BSEL=1, VREF=DVDD, ISEL=0)", "3.3 V (DVDD)", "D213->TFP410", "3.3 V LVCMOS",
+        "D213: " + lost, "SELECTED D6 (pads DOCUMENTED; TFP410 pins DOCUMENTED SLDS145D)")
 
 # ---- L5 D213 boot SPI NOR (SPI0 on PB0-PB5, function 3) and debug UART0 ----
 for sig, pad, fn in [("HOLD", "PB0", "SPI0_HOLD"), ("WP", "PB1", "SPI0_WP"), ("CS", "PB2", "SPI0_CS"), ("MISO", "PB3", "SPI0_MISO"),

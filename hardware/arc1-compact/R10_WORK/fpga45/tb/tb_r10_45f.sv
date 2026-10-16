@@ -11,7 +11,7 @@ module tb_r10_45f;
     reg        h_txc = 1'b0;
     reg  [3:0] h_txd = 4'h0;
     reg        h_txctl = 1'b0;
-    wire       e_txc, e_txctl, led;
+    wire       e_txc, e_txctl, led, e_refclk;
     wire [3:0] e_txd;
     always #4 h_txc = ~h_txc;
 `ifdef MEMTOP
@@ -21,15 +21,22 @@ module tb_r10_45f;
     wire [12:0] sd_a;
     wire [15:0] sd_dq;
     r10_raster_mem_top dut (.clk_25m(clk_25m), .rgmii_rxc(h_txc), .rgmii_rxd(h_txd), .rgmii_rx_ctl(h_txctl),
-        .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl), .led(led),
+        .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl), .gmac_refclk(e_refclk), .led(led),
         .sd_clk(sd_clk), .sd_cke(sd_cke), .sd_cs_n(sd_cs_n), .sd_ras_n(sd_ras_n), .sd_cas_n(sd_cas_n), .sd_we_n(sd_we_n),
         .sd_ba(sd_ba), .sd_a(sd_a), .sd_dqm(sd_dqm), .sd_dq(sd_dq));
     sdram_model u_sdm (.clk(sd_clk), .cke(sd_cke), .cs_n(sd_cs_n), .ras_n(sd_ras_n), .cas_n(sd_cas_n), .we_n(sd_we_n),
         .ba(sd_ba), .a(sd_a), .dqm(sd_dqm), .dq(sd_dq));
 `else
     r10_raster_top dut (.clk_25m(clk_25m), .rgmii_rxc(h_txc), .rgmii_rxd(h_txd), .rgmii_rx_ctl(h_txctl),
-        .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl), .led(led));
+        .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl), .gmac_refclk(e_refclk), .led(led));
 `endif
+    // D7: gmac_refclk must run at 125 MHz (8 ns) once the Ethernet PLL is up
+    integer rc_edges = 0;
+    realtime rc_last = 0, rc_per = 0;
+    always @(posedge e_refclk) begin
+        if (rc_last > 0) rc_per = $realtime - rc_last;
+        rc_last = $realtime; rc_edges = rc_edges + 1;
+    end
     reg pll_locked = 0;
     initial force dut.u_pll.locked = pll_locked;
     wire sys_clk = dut.sys_clk;
@@ -292,6 +299,8 @@ module tb_r10_45f;
                  u_sdm.violations);
         $display("TEST r10g_sdram done errors=%0d", errors);
 `endif
+        if (rc_edges < 1000 || rc_per < 7.99 || rc_per > 8.01) fail("gmac_refclk not 125 MHz");
+        $display("gmac_refclk edges=%0d period=%0.3f ns", rc_edges, rc_per);
         if (errors == 0) $display("R10_45F_TB_PASS"); else $display("R10_45F_TB_FAIL errors=%0d", errors);
         $finish;
     end

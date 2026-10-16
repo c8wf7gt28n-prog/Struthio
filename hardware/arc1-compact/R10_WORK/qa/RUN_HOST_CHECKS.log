@@ -1,5 +1,5 @@
 == architecture: python3 gen_interface_matrix.py
-65 matrix rows, 3 multiply-claimed D213 pads, 0 errors
+84 matrix rows, 21 multiply-claimed D213 pads, 0 errors
    exit 0
 == memory: python3 gen_nor_partition.py
 F1BT 0x00000000-0x00100000  1 MiB  no image yet
@@ -34,7 +34,7 @@ test_release_is_blocked (test_interconnect.InterconnectTests.test_release_is_blo
 test_swapped_memory_pins_rejected (test_interconnect.InterconnectTests.test_swapped_memory_pins_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.040s
+Ran 7 tests in 0.041s
 
 OK
    exit 0
@@ -60,7 +60,6 @@ MUTANT_KILLED MUTANT_GPU_NO_DITHER (1 self-check failures)
 MUTANT_KILLED MUTANT_GPU_ALPHA_SWAP (2 self-check failures)
    exit 0
 == f133/graphics_link: make all
-mkdir -p build
 cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude src/gfx_link.c tests/test_gfx.c -o build/test_gfx
 /home/user/Struthio/hardware/arc1-compact/R10_WORK/f133/graphics_link/build/test_gfx
 TEST gl_basic done fails=0
@@ -99,7 +98,6 @@ C45A 0x03A00000-0x03D00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURE
 META 0x03D00000-0x04000000  3 MiB  no image yet
 NOR_PARTITION_PASS 11 partitions, 64 MiB, 0 errors
 git diff --exit-code -- include/r10_nor_layout.h ../../memory/R10_nor_partition.csv
-mkdir -p build
 cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../f133/graphics_link/src/gfx_link.c ../../d213/fpga45_loader/src/d213_fpga45.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_boot.c -o build/test_boot
 /home/user/Struthio/hardware/arc1-compact/R10_WORK/firmware/f133_bootloader/build/test_boot
 TEST boot_layout done fails=0

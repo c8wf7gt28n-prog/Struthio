@@ -37,9 +37,12 @@ schematic, a board test, or approval to manufacture. Fabrication remains HOLD.
    discovery/autonegotiation. FPGA forwarded receive clocks must be running before
    CPU MAC enable. Calibrate delays; do not copy an RMII example pinmux.
 9. Keep HDMI as a required output. Do not silently replace it with a panel header.
-   Bridge selection remains an evidence-blocked implementation task, not an owner
-   preference question. Do not invent a pin-compatible bridge or allocate control
-   pins until a usable datasheet and initialization method are available.
+   **Selected 2026-10-16 (DECISIONS.md D6): TI TFP410 from D213 RGB888 (PD0-PD27),
+   strap mode, no initialisation firmware, DVI video through a type-A HDMI receptacle.**
+10. (D5) Prototypes fit the D213 boot SPI NOR; the F133 drives D213 RESETN and PA0
+   open-drain so it can force USB download mode with or without D213 firmware.
+11. (D7) The 45F forwards 125 MHz to D213 GMAC0_CLKIN (PE3); DNP 0R and oscillator
+   alternatives. Found missing while reading D21x UM 12.2.3.4 / HW guide Table 2-8.
 
 ## Electrical interlock requirements
 
@@ -82,7 +85,7 @@ revision confirmation and loopback/calibration before claiming it works.
 | R10 schematic | All supplies, bypass capacitors, reset/boot/JTAG/control and connector nets; ERC | Not created |
 | Power | Regulator sizing, startup/shutdown/brownout interlocks and budget | Not verified |
 | D213 boot | Repeated flashless cold boots and recovery, including failed downloads | Not run |
-| Video | Selected HDMI bridge, documented initialization and standalone display | Not complete |
+| Video | Selected HDMI bridge, documented initialization and standalone display | Bridge selected (TFP410, strap mode); schematic + display NOT_RUN |
 | FPGA timing | Exact TQFP144 implementation; SDRAM/PSRAM/RGMII IO timing | Not complete |
 | Board links | USB/RGMII/memory stress tests, temperature/voltage margins | Not run |
 | PCB release | Stackup, return paths, constraints, DRC, reviewed BOM and procurement | Not complete |
