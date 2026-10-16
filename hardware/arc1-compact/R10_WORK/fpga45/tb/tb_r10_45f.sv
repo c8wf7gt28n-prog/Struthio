@@ -1,4 +1,4 @@
-// ARC-1 R10 -- system testbench for the 45F graphics FPGA (r10_graphics_top) over RGMII (decision D1: D213 GMAC0).
+// ARC-1 R10 -- system testbench for the 45F graphics FPGA (r10_raster_top) over RGMII (decision D1: D213 GMAC0).
 // Host EMAC model copied from R85C_WORK/fpga_ecp5/tb/tb_ecp5_top.sv (0defcfe). Each tile of the C-model job stream
 // (fpga45/tools/raster_ref.c) is sent as one RJOB frame; every RRES word is compared with the C model. Also: STATUS,
 // payload-CRC error (tile buffers untouched: the following tile still matches), bad length/opcode, loopback.
@@ -14,7 +14,7 @@ module tb_r10_45f;
     wire       e_txc, e_txctl, led;
     wire [3:0] e_txd;
     always #4 h_txc = ~h_txc;
-    r10_graphics_top dut (.clk_25m(clk_25m), .rgmii_rxc(h_txc), .rgmii_rxd(h_txd), .rgmii_rx_ctl(h_txctl),
+    r10_raster_top dut (.clk_25m(clk_25m), .rgmii_rxc(h_txc), .rgmii_rxd(h_txd), .rgmii_rx_ctl(h_txctl),
         .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl), .led(led));
     reg pll_locked = 0;
     initial force dut.u_pll.locked = pll_locked;

@@ -3,7 +3,7 @@
 // off. Pins: R8.5-C 45F bank-0 RGMII plan (rxc on PCLKT0_0 B11), constraints/r10_45f.lpf.
 // Evidence: RTL_SIMULATED (tb_r10_45f) + open-toolchain P&R. Not on silicon.
 `default_nettype none
-module r10_graphics_top (
+module r10_raster_top (
     input  wire       clk_25m,
     input  wire       rgmii_rxc,
     input  wire [3:0] rgmii_rxd,

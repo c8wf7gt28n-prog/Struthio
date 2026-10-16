@@ -82,11 +82,16 @@ for sig, pad, fn in pbus:
 gm0 = [("TXCK", "PE6", "GMAC0_TXCK"), ("TXD0", "PE5", "GMAC0_TXD0"), ("TXD1", "PE4", "GMAC0_TXD1"), ("TXD2", "PE15", "GMAC0_TXD2"),
        ("TXD3", "PE14", "GMAC0_TXD3"), ("TXCTL", "PE7", "GMAC0_TXCTL"), ("RXCK", "PE13", "GMAC0_RXCK"), ("RXD0", "PE1", "GMAC0_RXD0"),
        ("RXD1", "PE0", "GMAC0_RXD1"), ("RXD2", "PE12", "GMAC0_RXD2"), ("RXD3", "PE11", "GMAC0_RXD3"), ("RXCTL", "PE2", "GMAC0_RXCTL")]
+# 45F side: R8.5-C 45F bank-0 RGMII balls (CABGA381), fpga45/constraints/r10_45f.lpf; rxc on PCLKT0_0 (B11)
+f45 = {"TXCK": ("B11", "rgmii_rxc"), "TXD0": ("C10", "rgmii_rxd[0]"), "TXD1": ("B9", "rgmii_rxd[1]"),
+       "TXD2": ("C9", "rgmii_rxd[2]"), "TXD3": ("D10", "rgmii_rxd[3]"), "TXCTL": ("E10", "rgmii_rx_ctl"),
+       "RXCK": ("C8", "rgmii_txc"), "RXD0": ("D9", "rgmii_txd[0]"), "RXD1": ("E9", "rgmii_txd[1]"),
+       "RXD2": ("D8", "rgmii_txd[2]"), "RXD3": ("E8", "rgmii_txd[3]"), "RXCTL": ("C7", "rgmii_tx_ctl")}
 for sig, pad, fn in gm0:
     p, pd, dom, lost = d213(pad, fn)
-    row("D213<->45F", "B: GMAC0 RGMII on PE (proposed alternative)", sig, "D213ECV", p, pd, fn, dom, "LFE5U-45F", "TBD (top bank)",
-        "TBD", "rgmii endpoint (R8.5-C eth_link)", "3.3 V", "D213->45F" if sig.startswith("TX") else "45F->D213", "3.3 V LVCMOS",
-        "D213: " + lost, "PROPOSED (pads DOCUMENTED; D21x DS Table 3-2 GMAC-1000M x2)")
+    row("D213<->45F", "B: GMAC0 RGMII on PE (SELECTED, decision D1)", sig, "D213ECV", p, pd, fn, dom, "LFE5U-45F", f45[sig][0] + " (bank 0)",
+        f45[sig][1], "rgmii endpoint (R8.5-C eth_link) + r10_raster_engine", "3.3 V", "D213->45F" if sig.startswith("TX") else "45F->D213", "3.3 V LVCMOS",
+        "D213: " + lost, "SELECTED D1 (pads DOCUMENTED; D21x DS Table 3-2 GMAC-1000M x2; 45F pins OPEN_TOOLCHAIN_ROUTED)")
 
 # ---- L4 D213 video (one of these; all on PD) ----
 for sig, pad, fn in [("LVDS0_D0N", "PD18", "LVDS0_D0N"), ("LVDS0_D0P", "PD19", "LVDS0_D0P"), ("LVDS0_D1N", "PD20", "LVDS0_D1N"),
