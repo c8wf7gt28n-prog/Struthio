@@ -1,0 +1,58 @@
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_0_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_0_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=0 req=64 resp=40 status=0 round_trip=4.20 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_1_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_1_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=1 req=400 resp=208 status=0 round_trip=16.33 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_2_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_2_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=2 req=8176 resp=4096 status=0 round_trip=308.54 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_3_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_3_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=3 req=64 resp=16 status=4 round_trip=4.15 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_4_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_4_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=4 req=64 resp=16 status=2 round_trip=2.92 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_5_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_5_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=5 req=64 resp=16 status=3 round_trip=2.91 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_6_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_6_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=6 req=65 resp=16 status=1 round_trip=2.92 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_7_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_7_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=7 req=64 resp=16 status=1 round_trip=2.91 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_8_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_8_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=8 req=64 resp=16 status=1 round_trip=2.91 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_9_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_9_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=9 req=64 resp=64 status=-1 round_trip=3.76 us (first request preamble -> last response FCS)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_10_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_10_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=10 req=784 resp=400 status=0 round_trip=31.19 us (first request preamble -> last response FCS)
+TEST r10_ajob_rgmii done errors=0
+INFO status: rev=1 caps=001d rx_ok=13 rx_fcs=0 rx_drop=0 rx_other=0 tx=12 underrun=0 jobs=11 items=195 uptime_ms=0
+TEST r10_status done errors=0
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_11_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_11_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO case 11 (FIR opcode 3) -> status 3 (BAD_OPCODE, FIR not built)
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_12_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_12_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO case 12 (FIR opcode 2) -> status 3 (BAD_OPCODE, FIR not built)
+TEST r10_fir_absent done errors=0
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_0_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_0_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO status: rev=1 caps=001d rx_ok=16 rx_fcs=1 rx_drop=0 rx_other=1 tx=15 underrun=0 jobs=14 items=195 uptime_ms=0
+TEST r10_negative done errors=0
+INFO PSRAM ready at 517044000 ns
+INFO BIST pass, errors 0
+INFO 4096-byte write round trip 1727.3 us
+INFO 4096-byte read round trip 625.3 us
+WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_0_req.memh): Not enough words in the file for the requested range [0:8191].
+WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_0_resp.memh): Not enough words in the file for the requested range [0:8191].
+INFO rgmii case=0 req=64 resp=40 status=0 round_trip=4.20 us (first request preamble -> last response FCS)
+INFO psram model violations=0 mem_jobs=14 mem_bytes=8770
+TEST r10_psram done errors=0
+R10_12F_MEM_TB_PASS
+tb/tb_r10_support_mem.sv:339: $finish called at 9061644000 (1ps)

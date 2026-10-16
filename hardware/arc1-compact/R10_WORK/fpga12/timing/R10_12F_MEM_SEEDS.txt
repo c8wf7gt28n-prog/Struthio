@@ -1,0 +1,15 @@
+speed 6 seed 1: sys_clk 87.37 PASS psram_mclk 92.62 PASS eth_txclk 151.47 PASS rgmii_rxc 170.07 PASS 
+speed 6 seed 2: sys_clk 84.65 PASS psram_mclk 94.14 PASS eth_txclk 140.35 PASS rgmii_rxc 170.10 PASS 
+speed 6 seed 3: sys_clk 86.72 PASS psram_mclk 92.58 PASS eth_txclk 132.21 PASS rgmii_rxc 180.12 PASS 
+speed 6 seed 4: sys_clk 81.60 PASS psram_mclk 98.58 PASS eth_txclk 143.25 PASS rgmii_rxc 155.91 PASS 
+speed 6 seed 5: sys_clk 85.29 PASS psram_mclk 98.26 PASS eth_txclk 134.59 PASS rgmii_rxc 156.76 PASS 
+speed 7 seed 1: sys_clk 101.78 PASS psram_mclk 109.79 PASS eth_txclk 147.86 PASS rgmii_rxc 176.58 PASS 
+speed 7 seed 2: sys_clk 97.22 PASS psram_mclk 106.58 PASS eth_txclk 163.80 PASS rgmii_rxc 175.99 PASS 
+speed 7 seed 3: sys_clk 93.04 PASS psram_mclk 112.20 PASS eth_txclk 163.27 PASS rgmii_rxc 160.80 PASS 
+speed 7 seed 4: sys_clk 89.06 PASS psram_mclk 108.64 PASS eth_txclk 146.01 PASS rgmii_rxc 188.11 PASS 
+speed 7 seed 5: sys_clk 94.31 PASS psram_mclk 112.63 PASS eth_txclk 160.18 PASS rgmii_rxc 182.95 PASS 
+Info: 	              DP16KD:    10/   56    17%
+Info: 	          MULT18X18D:     8/   28    28%
+Info: 	             EHXPLLL:     2/    2   100%
+Info: 	          TRELLIS_FF:  5473/24288    22%
+Info: 	        TRELLIS_COMB:  7209/24288    29%

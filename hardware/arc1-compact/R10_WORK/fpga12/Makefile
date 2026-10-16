@@ -9,8 +9,8 @@ RTL  = rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/eth_l
 SIMM = sim/arc1_ecp5_pll_sim.v sim/arc1_eth_pll_sim.v sim/ecp5_ddr_sim.v
 SYNM = rtl/arc1_ecp5_pll.v rtl/arc1_eth_pll.v
 LPF  = timing/r10_12f_proxy256.lpf
-.PHONY: all lint rgmii vectors sim build seeds report clean
-all: lint rgmii sim build seeds report
+.PHONY: all lint rgmii vectors sim build seeds report clean lint_mem sim_mem build_mem seeds_mem
+all: lint rgmii sim build seeds report lint_mem sim_mem seeds_mem
 
 lint:
 	mkdir -p $(OUT)
@@ -53,5 +53,31 @@ seeds: $(OUT)/r10_12f.json
 report:
 	python3 -I timing/r10_12f_report.py $(OUT) timing/R10_12F_FIT_TIMING.md timing/R10_12F_FIT_TIMING.json
 
+# ---- memory variant (ARC1_MEMORY_R10 s2.4): 4 MiB QSPI PSRAM; pins from hardware/gen_flash_pinmux.py ----
+RTLM = $(filter-out rtl/r10_support_top.sv,$(RTL)) rtl/r10_support_mem_top.sv rtl/r10_mem_engine.sv \
+       rtl/psram_user_port.sv rtl/psram_qspi_core.sv rtl/psram_bist.sv
+LPFM = $(OUT)/r10_12f_mem_proxy256.lpf
+lint_mem:
+	mkdir -p $(OUT)
+	verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM -Wno-TIMESCALEMOD --timing \
+	  --top-module r10_support_mem_top $(RTLM) $(SIMM) > $(OUT)/lint_mem.log 2>&1; rc=$$?; cat $(OUT)/lint_mem.log; exit $$rc
+sim_mem: vectors
+	iverilog -g2012 -I $(OUT)/ajob -s tb_r10_support_mem -o $(OUT)/tb_r10_mem.vvp -Ptb_r10_support_mem.AJOB_DIR='"$(OUT)/ajob"' \
+	  tb/tb_r10_support_mem.sv $(RTLM) $(SIMM) sim/aps6404l_model_r07.sv
+	vvp -n $(OUT)/tb_r10_mem.vvp > $(OUT)/sim_r10_mem.log 2>&1; rc=$$?; grep -E '^(TEST|INFO|TB_ERROR|MODEL_VIOLATION|R10_12F)' $(OUT)/sim_r10_mem.log; \
+	  test $$rc -eq 0 && grep -q '^R10_12F_MEM_TB_PASS$$' $(OUT)/sim_r10_mem.log
+$(LPFM): $(LPF) ../hardware/lpf/r10_12f_mem_proxy256.lpf
+	mkdir -p $(OUT)
+	cat $^ > $@
+$(OUT)/r10_12f_mem.json: $(RTLM) $(SYNM)
+	mkdir -p $(OUT)
+	yosys -q -l $(OUT)/yosys_mem.log -p 'read_verilog -sv $(RTLM) $(SYNM); synth_ecp5 -abc9 -top r10_support_mem_top -json $@; stat' > /dev/null
+build_mem: $(OUT)/r10_12f_mem.json $(LPFM)
+seeds_mem: $(OUT)/r10_12f_mem.json $(LPFM)
+	for sp in 6 7; do for s in 1 2 3 4 5; do nextpnr-ecp5 --12k --package CABGA256 --speed $$sp --json $< --lpf $(LPFM) \
+	  --seed $$s --log $(OUT)/mem_seed_s$${sp}_$$s.log > /dev/null 2>&1 || echo "speed $$sp seed $$s: PNR_FAIL"; \
+	  grep -E "Max frequency for clock" $(OUT)/mem_seed_s$${sp}_$$s.log | tail -4 | sed "s/^/speed $$sp seed $$s: /"; done; done | tee $(OUT)/seeds_mem.log
+	grep -E "TRELLIS_COMB|DP16KD|MULT18X18D|EHXPLLL" $(OUT)/mem_seed_s6_1.log | head -4 | tee -a $(OUT)/seeds_mem.log
+	! grep -qE "FAIL" $(OUT)/seeds_mem.log
 clean:
 	rm -rf $(OUT)

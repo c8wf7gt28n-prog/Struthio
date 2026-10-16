@@ -1,0 +1,5 @@
+# R10 memory pass: copied unchanged from R06_WORK/fpga/psram/rtl, R85C_WORK/fpga_ecp5/rtl (psram_bist) and R07_WORK/fpga/psram_r07 (model)
+3a5df3ff7a645d92872c9079ab8acde9c207185c26e30d6362eb4fa1ae417c0d  rtl/psram_qspi_core.sv
+afbb5a8f1a19392d79525f9f9964d901dfc3307a3bdefb1ccba675f31492890d  rtl/psram_user_port.sv
+01ed01d834271f539bf55ae770e82049d3cb3c1ebc4d2b9fcd7bda1952e579c0  rtl/psram_bist.sv
+7ca55c6589f09e93f97d65dc0bdd214acf3c91e04920cb9999e5003e2fa6ccd1  sim/aps6404l_model_r07.sv
