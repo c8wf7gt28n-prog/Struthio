@@ -20,6 +20,13 @@ digests and `arc1 hw inspect` re-checks the ones the manifest cites.
 | ARC1_R10_HANDOFF_PART05.zip | 5e95b210b6a298cd40a4ac64b0d5481d25ff5b652dedee235bf8b5b7f94a1cf6 |
 | ARC1_R10_HANDOFF_PART06.zip | 2f5a183a436ea1c5cc2dd689c90ce4a648e3e6dbc94b7383cebeba68b8f7444c |
 
+Two files come from the **historical R08 tree** (added in ARC1-PASS-0004) and
+are cited only for the PC-side FEL tool: `R08_WORK/docs/RECOVERY_DOSSIER.md`
+(the `xfel` procedure and the D1/F133 chip ID 0x00185900) and
+`R08_WORK/sources/f133/f133_boot_usb_facts.json` (the `xfel` command syntax).
+R10 still names `xfel` as the recovery tool (`R10_CHANGE_ORDER_1_1.md` §4).
+Their R08 board details (32 MiB NOR, SW1/SW2 buttons) do **not** apply to R10.
+
 Paths keep their location relative to the handoff's `arc1-compact/` root. The
 handoff's authority order applies: `R10_WORK/` supersedes the historical R05–R8.5
 trees, and its status is **fabrication HOLD** — nothing here is board evidence.

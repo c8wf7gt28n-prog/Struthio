@@ -1,0 +1,18 @@
+test_bad_input_is_usage_error (__main__.DeviceTests.test_bad_input_is_usage_error) ... ok
+test_detect_with_answering_fel_device (__main__.DeviceTests.test_detect_with_answering_fel_device) ... ok
+test_detect_with_no_device (__main__.DeviceTests.test_detect_with_no_device) ... ok
+test_detect_without_xfel (__main__.DeviceTests.test_detect_without_xfel) ... ok
+test_locked_partitions_refused (__main__.DeviceTests.test_locked_partitions_refused) ... ok
+test_oversized_image_fails (__main__.DeviceTests.test_oversized_image_fails) ... ok
+test_partition_map_covers_nor_exactly (__main__.DeviceTests.test_partition_map_covers_nor_exactly) ... ok
+test_valid_plan_is_never_written (__main__.DeviceTests.test_valid_plan_is_never_written) ... ok
+test_ascii_snapshot_is_pure_ascii (__main__.UiTests.test_ascii_snapshot_is_pure_ascii) ... ok
+test_cli_snapshot_and_errors (__main__.UiTests.test_cli_snapshot_and_errors) ... ok
+test_curses_front_end_starts_and_quits (__main__.UiTests.test_curses_front_end_starts_and_quits) ... ok
+test_every_menu_item_renders (__main__.UiTests.test_every_menu_item_renders) ... ok
+test_flasher_plan_screen_says_write_disabled (__main__.UiTests.test_flasher_plan_screen_says_write_disabled) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 9.496s
+
+OK

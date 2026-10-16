@@ -1,0 +1,187 @@
+{
+ "pin_mux_from_DS_Table_4_3": {
+  "note": "Function0=input, Function1=output, Function9-13 reserved; F14 = EINT (DS 4.3 p.28)",
+  "PC2": {
+   "pin": 19,
+   "F2": "SPI0-CLK",
+   "F3": "SDC2-CLK",
+   "F14": "PC-EINT2",
+   "reset_state": "Z",
+   "pull": "PU/PD"
+  },
+  "PC3": {
+   "pin": 18,
+   "F2": "SPI0-CS0",
+   "F3": "SDC2-CMD",
+   "F14": "PC-EINT3",
+   "reset_state": "PU",
+   "pull": "PU/PD"
+  },
+  "PC4": {
+   "pin": 17,
+   "F2": "SPI0-MOSI",
+   "F3": "SDC2-D2",
+   "F4": "BOOT-SEL0",
+   "F14": "PC-EINT4",
+   "reset_state": "PU",
+   "pull": "PU/PD"
+  },
+  "PC5": {
+   "pin": 16,
+   "F2": "SPI0-MISO",
+   "F3": "SDC2-D1",
+   "F4": "BOOT-SEL1",
+   "F14": "PC-EINT5",
+   "reset_state": "PU",
+   "pull": "PU/PD"
+  },
+  "PC6": {
+   "pin": 15,
+   "F2": "SPI0-WP",
+   "F3": "SDC2-D0",
+   "F4": "UART3-TX",
+   "F5": "TWI3-SCK",
+   "F6": "DBG-CLK",
+   "F14": "PC-EINT6",
+   "reset_state": "Z",
+   "pull": "PU/PD"
+  },
+  "PC7": {
+   "pin": 14,
+   "F2": "SPI0-HOLD",
+   "F3": "SDC2-D3",
+   "F4": "UART3-RX",
+   "F5": "TWI3-SDA",
+   "F6": "TCON-TRIG",
+   "F14": "PC-EINT7",
+   "reset_state": "Z",
+   "pull": "PU/PD"
+  },
+  "PC_pullup_strength": "PC3-PC7 internal pull 12/15/18 kohm min/typ/max (Table 5-3)",
+  "PC_bank_supply": "VCC-IO (3.3 V)",
+  "PB2": {
+   "pin": 86,
+   "F2": "LCD0-D0",
+   "F3": "I2S2-DOUT2",
+   "F4": "TWI0-SDA",
+   "F5": "I2S2-DIN2",
+   "F6": "LCD0-D18",
+   "F7": "UART4-TX",
+   "F14": "PB-EINT2"
+  },
+  "PB3": {
+   "pin": 85,
+   "F2": "LCD0-D1",
+   "F3": "I2S2-DOUT1",
+   "F4": "TWI0-SCK",
+   "F5": "I2S2-DIN0",
+   "F6": "LCD0-D19",
+   "F7": "UART4-RX",
+   "F14": "PB-EINT3"
+  },
+  "PB4": {
+   "pin": 84,
+   "F2": "LCD0-D8",
+   "F3": "I2S2-DOUT0",
+   "F4": "TWI1-SCK",
+   "F5": "I2S2-DIN1",
+   "F6": "LCD0-D20",
+   "F7": "UART5-TX",
+   "F14": "PB-EINT4"
+  },
+  "PB5": {
+   "pin": 82,
+   "F2": "LCD0-D9",
+   "F3": "I2S2-BCLK",
+   "F4": "TWI1-SDA",
+   "F5": "PWM0",
+   "F6": "LCD0-D21",
+   "F7": "UART5-RX",
+   "F14": "PB-EINT5"
+  },
+  "PB6": {
+   "pin": 80,
+   "F2": "LCD0-D16",
+   "F3": "I2S2-LRCK",
+   "F4": "TWI3-SCK",
+   "F5": "PWM1",
+   "F6": "LCD0-D22",
+   "F7": "UART3-TX",
+   "F8": "CPUBIST0",
+   "F14": "PB-EINT6"
+  },
+  "PB7": {
+   "pin": 79,
+   "F2": "LCD0-D17",
+   "F3": "I2S2-MCLK",
+   "F4": "TWI3-SDA",
+   "F5": "IR-RX",
+   "F6": "LCD0-D23",
+   "F7": "UART3-RX",
+   "F8": "CPUBIST1",
+   "F14": "PB-EINT7"
+  },
+  "PB_bank_reset": "all PB2-PB7 reset Z, PU/PD, 4 mA, VCC-IO",
+  "PB0_PB1": "not bonded in eLQFP128 (absent from Table 4-2)",
+  "PD_availability": "PD0-PD22 all bonded (23 pins: 55,56,57,58,59,60,61,62,63,64,67,68,70,69,71,72,73,74,75,76,54,53,52 for PD0..PD22); bank supply VCC-PD; note PD12=pin70, PD13=pin69",
+  "PE_availability": "PE0-PE13 (14 pins), supply VCC-PE",
+  "PF_availability": "PF0-PF6 (7 pins), supply VCC-IO",
+  "PG_availability": "PG0-PG15 all bonded (16 pins: 120,118,119,121,123,122,1,2,3,4,5,6,124,125,126,127), supply VCC-PG",
+  "PC_availability": "PC2-PC7 only (PC0, PC1 not bonded)",
+  "UART0_options": "PF2(F3)=UART0-TX / PF4(F3)=UART0-RX (shared with SDC0 CLK/D3), or PE2(F6)=UART0-TX / PE3(F6)=UART0-RX",
+  "USB_pins": {
+   "USB0-DM": 114,
+   "USB0-DP": 115,
+   "USB1-DM": 113,
+   "USB1-DP": 112
+  },
+  "source": "DS (rev 2.3) Table 4-2 p.22-27, Table 4-3 p.28-30"
+ },
+ "boot": {
+  "boot_media_supported": "SD card, eMMC, SPI NOR, SPI NAND (DS 2.2.1 p.4; D1-H UM 3.3.2.1)",
+  "boot_select_pins": "BOOT-SEL0 = PC4 (pin 17), BOOT-SEL1 = PC5 (pin 16) (DS Table 4-3); these are the SPI0 MOSI/MISO pins. Both reset with internal pull-up (Table 4-2: PC4, PC5 reset state PU).",
+  "GPIO_boot_select_table_D1-H_UM_Table_3-5": {
+   "00": "SPI NOR -> SPI NAND",
+   "01": "SMHC0 -> SPI NOR -> other media",
+   "10": "SMHC0 -> SPI NAND -> other media",
+   "11": "SMHC0 -> EMMC2_BOOT -> EMMC2_USR -> other media",
+   "source": "D1-H User Manual v1.0, 3.3.2.1, p.147 (printed)/PDF p.160",
+   "status_register": "SYS_CFG VER_REG 0x03000024 bit[12:11] BOOT_SEL_PAD_STA; bit[8] FEL_SEL_PAD_STA (0: Run_FEL, 1: Try Media Boot) (UM 3.4.3.2 p.155)"
+  },
+  "applicability_to_F133": "D1-H UM is for D1-H (same BROM family, soc id 0x1859 per sunxi-tools/xfel). No F133-specific BROM chapter found in F133 datasheet v1.0 or rev 2.3. MangoPi MQ (D1s/F133) schematic silkscreen note: 'SEL[1:0] 00: NOR > NAND, 01: SD > NOR > Other, (check)10: SD > NAND > Other, 11 SD0 > EMMC2 > EMMC2_USR > Other' - consistent with UM.",
+  "BOOT_MODE": "BOOT_MODE eFuse bit: 0 = GPIO select, 1 = eFuse select (UM Table 3-4). eFuse Try mode order: SMHC0 -> SPI NOR -> SPI NAND -> SMHC2 (UM 3.3.2.1).",
+  "fast_boot_try_process": "SMHC0->SPI NOR->SPI NAND->EMMC2_USER->EMMC2_BOOT (UM Table 3-8 note)",
+  "order_after_00_then_FEL": "UM Table 3-5 states 00 = 'SPI NOR->SPI NAND' only. What BROM does when all media fail (fall back to USB FEL) is drawn in Figure 3-5 'BROM Process' but the figure's text labels are not extractable (blank in PDF render) -> NOT_FOUND in text. Common community knowledge that BROM falls back to FEL is NOT verified from a manufacturer document here.",
+  "FEL_entry_condition": "UM 3.3.2.2: 'If the FEL pin is detected to pull low, the system will jump to the mandatory upgrade process' -> FEL process (USB: Clock_init, USB_init, wait for USB connection, USB enums - Figure 3-8). FEL pin status = SYS_CFG 0x03000024 bit[8]. Which physical package pin is the 'FEL pin' on F133 eLQFP128: NOT_FOUND (no FEL pin in F133 Table 4-2). MangoPi MQ implements a 'FEL' button S1 that shorts SPI0_MOSI (PC4/BOOT-SEL0) to GND (schematic p.2) - inference: forcing boot failure/selection via BOOT-SEL0, not documented by Allwinner.",
+  "SPI_NOR_boot0_format": {
+   "offset": "NOT_FOUND in Allwinner docs",
+   "eGON_header": "NOT_FOUND in Allwinner docs (sunxi-tools bootinfo.c defines BOOT0_MAGIC 'eGON.BT0' generically - community source, not F133-specific)",
+   "max_size": "NOT_FOUND",
+   "BROM_SPI_clock_opcode": "NOT_FOUND",
+   "addressing_3byte": "NOT_FOUND in Allwinner docs"
+  }
+ },
+ "tools": {
+  "xfel": {
+   "repo": "https://github.com/xboot/xfel",
+   "commit": "445e8aefe6914c85817cc9bd1d201629364b0ec6",
+   "supports": "D1, D1s, F133 (support-list.md: ID 0x00185900, Basic/Reset/Sid/Jtag/DDR/SPI NOR/SPI NAND all supported); chips/d1_f133.c name 'D1/F133', detect id 0x00185900 + BROM word 0x43014281",
+   "commands": {
+    "detect_spinor": "xfel spinor",
+    "erase": "xfel spinor erase <address> <length>",
+    "read": "xfel spinor read <address> <length> <file>",
+    "write": "xfel spinor write <address> <file>",
+    "ddr_init": "xfel ddr f133  (or 'xfel ddr d1')",
+    "spinand": "xfel spinand / spinand erase|read|write|splwrite"
+   },
+   "spi_payload_pins": "payloads/d1_f133/spi/source/sys-spi.c configures PC2,PC3,PC4,PC5 to function 2 (SPI0 CLK/CS0/MOSI/MISO) only; PC6 (WP) and PC7 (HOLD) are NOT configured -> board must pull WP#/HOLD# high externally (MangoPi MQ: 10K pull-ups). SPI0 clock: PLL_PERI0 source, /1, /6, then SPI CCR 0x1000.",
+   "spinor_addressing": "spinor.c supports 3- and 4-byte address_length, read opcode 0x03"
+  },
+  "sunxi-fel": {
+   "repo": "https://github.com/linux-sunxi/sunxi-tools",
+   "commit": "b92f4ed3115a520e3ec406697d268239e3f29488",
+   "supports": "soc_info.c: soc_id 0x1859 'Allwinner D1/D1s/R528/T113-S3' (name R528) -> basic FEL supported",
+   "spiflash": "fel-spiflash.c spi0_init() has no case for 0x1859 -> prints 'SPI support not implemented yet' -> spiflash-info/read/write NOT supported for D1/F133 at this commit"
+  }
+ }
+}

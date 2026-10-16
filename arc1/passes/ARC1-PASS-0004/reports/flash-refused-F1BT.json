@@ -1,0 +1,77 @@
+{
+  "artifacts": [],
+  "board_id": null,
+  "command": "arc1 device flash --partition F1BT --image plan-image-fw.bin",
+  "details": {
+    "plan": {
+      "commands": [
+        "xfel version                         # must report chip ID 0x00185900",
+        "xfel spinor                          # must report the 64 MiB system NOR",
+        "xfel spinor read 0x00000000 1048576 before.bin   # back up the slot first",
+        "xfel spinor write 0x00000000 plan-image-fw.bin",
+        "xfel spinor read 0x00000000 4096 readback.bin",
+        "sha256sum plan-image-fw.bin readback.bin           # both must equal f600eca824e84a43f0691b267bd620e462c50da165c5b80e17aecb7a924f1fa8"
+      ],
+      "fill_percent": 0.4,
+      "fits": true,
+      "gates": [
+        {
+          "gate": "board_identity",
+          "reason": "No identified ARC-1 board: R10 is on fabrication HOLD.",
+          "state": "OPEN"
+        },
+        {
+          "gate": "recovery_verified",
+          "reason": "FEL fall-through recovery on rear USB-C is not bench-proven (R10 change order CO-4).",
+          "state": "OPEN"
+        },
+        {
+          "gate": "owner_approval",
+          "reason": "No recorded owner approval for a board-affecting operation (spec SEC-004).",
+          "state": "OPEN"
+        }
+      ],
+      "image": {
+        "bytes": 4096,
+        "path": "passes/ARC1-PASS-0004/reports/plan-image-fw.bin",
+        "sha256": "f600eca824e84a43f0691b267bd620e462c50da165c5b80e17aecb7a924f1fa8"
+      },
+      "operation": "write plan-image-fw.bin (4096 bytes) to NOR partition F1BT 'F133 boot / selector' at 0x00000000",
+      "partition": {
+        "boot_rom_reads": true,
+        "contents": "boot0 (eGON) at 0 + ARC-1 loader at 0x10000; manifest selector",
+        "id": "F1BT",
+        "name": "F133 boot / selector",
+        "offset": 0,
+        "protection": "locked (individual block lock)",
+        "size": 1048576,
+        "status": "PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)",
+        "written_by": "factory / recovery header only"
+      },
+      "risks": [
+        "A failed write to a boot-path partition can leave the console unable to boot until FEL recovery works.",
+        "The xfel SPI NOR sequence was written for R08 (32 MiB NOR) and is unverified on the R10 64 MiB NOR.",
+        "This partition is read by the F133 boot ROM."
+      ],
+      "rollback": "Not ready: rollback relies on FEL fall-through, which is bench-OPEN (CO-4).",
+      "transport": "F133 FEL over rear USB-C (xfel); command sequence UNVERIFIED on R10",
+      "write_enabled": false
+    }
+  },
+  "evidence_level": "NONE",
+  "failure_reasons": [
+    {
+      "code": "SEC-004",
+      "message": "partition F1BT is locked (individual block lock) and written by 'factory / recovery header only' only; the SDK will not plan a write to it"
+    }
+  ],
+  "input_digest": "a59a7fb9ce95c983db7c63343d52a2d739c7e33cc0d444d2bdec592278785cb6",
+  "invocation_id": "7e35ce1631f2d1adc5a6b1fe0b80e7f5",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "FAIL",
+  "warnings": [
+    "Plan only: nothing was written and no device was contacted"
+  ]
+}

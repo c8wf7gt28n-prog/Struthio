@@ -1,0 +1,84 @@
+== TERM=xterm-256color LANG=C.UTF-8 (pyte 0.8.2 terminal emulator)
+ok     start                  Main Menu
+ok     b'1'                   Verdict  PASS
+ok     b'2'                   Hardware facts: R10-development
+ok     b'\x1b[6~'             OPEN QUESTIONS
+ok     b'3'                   Build examples/hello_arc1
+ok     b'5'                   4 run, 0 failed
+ok     b'6'                   Frame 60
+ok     b']'                   Frame 70
+ok     b'x'                   Main Menu
+ok     b'9'                   Flasher: 64 MiB system NOR
+ok     b'\x1bOB'              ►F1MB
+ok     b'i'                   Image file:
+ok     b'/tmp/claude-0/-hom   Image: fw.bin
+ok     b'\r'                  Plan NOT_AVAILABLE
+ok     b'\x1b[6~'             WRITE DISABLED
+ok     b'\x1b'                Main Menu
+ok     b'7'                   ARC1-PASS-0001
+ok     b'8'                   NOT_AVAILABLE
+ok     b'\x1bOP'              Help
+exit: 0
+== TERM=xterm LANG=C.UTF-8 (pyte 0.8.2 terminal emulator)
+ok     start                  Main Menu
+ok     b'1'                   Verdict  PASS
+ok     b'2'                   Hardware facts: R10-development
+ok     b'\x1b[6~'             OPEN QUESTIONS
+ok     b'3'                   Build examples/hello_arc1
+ok     b'5'                   4 run, 0 failed
+ok     b'6'                   Frame 60
+ok     b']'                   Frame 70
+ok     b'x'                   Main Menu
+ok     b'9'                   Flasher: 64 MiB system NOR
+ok     b'\x1bOB'              ►F1MB
+ok     b'i'                   Image file:
+ok     b'/tmp/claude-0/-hom   Image: fw.bin
+ok     b'\r'                  Plan NOT_AVAILABLE
+ok     b'\x1b[6~'             WRITE DISABLED
+ok     b'\x1b'                Main Menu
+ok     b'7'                   ARC1-PASS-0001
+ok     b'8'                   NOT_AVAILABLE
+ok     b'\x1bOP'              Help
+exit: 0
+== TERM=vt100 LANG=C.UTF-8 (pyte 0.8.2 terminal emulator)
+ok     start                  Main Menu
+ok     b'1'                   Verdict  PASS
+ok     b'2'                   Hardware facts: R10-development
+MISS   b'\x1b[6~'             OPEN QUESTIONS
+ok     b'3'                   Build examples/hello_arc1
+ok     b'5'                   4 run, 0 failed
+ok     b'6'                   Frame 60
+ok     b']'                   Frame 70
+ok     b'x'                   Main Menu
+ok     b'9'                   Flasher: 64 MiB system NOR
+ok     b'\x1bOB'              ►F1MB
+ok     b'i'                   Image file:
+ok     b'/tmp/claude-0/-hom   Image: fw.bin
+ok     b'\r'                  Plan NOT_AVAILABLE
+MISS   b'\x1b[6~'             WRITE DISABLED
+ok     b'\x1b'                Main Menu
+ok     b'7'                   ARC1-PASS-0001
+ok     b'8'                   NOT_AVAILABLE
+ok     b'\x1bOP'              Help
+exit: 0
+== TERM=screen LANG=C (pyte 0.8.2 terminal emulator)
+ok     start                  Main Menu
+ok     b'1'                   Verdict  PASS
+ok     b'2'                   Hardware facts: R10-development
+ok     b'\x1b[6~'             OPEN QUESTIONS
+ok     b'3'                   Build examples/hello_arc1
+ok     b'5'                   4 run, 0 failed
+ok     b'6'                   Frame 60
+ok     b']'                   Frame 70
+ok     b'x'                   Main Menu
+ok     b'9'                   Flasher: 64 MiB system NOR
+ok     b'\x1bOB'              >F1MB
+ok     b'i'                   Image file:
+ok     b'/tmp/claude-0/-hom   Image: fw.bin
+ok     b'\r'                  Plan NOT_AVAILABLE
+ok     b'\x1b[6~'             WRITE DISABLED
+ok     b'\x1b'                Main Menu
+ok     b'7'                   ARC1-PASS-0001
+ok     b'8'                   NOT_AVAILABLE
+ok     b'\x1bOP'              Help
+exit: 0

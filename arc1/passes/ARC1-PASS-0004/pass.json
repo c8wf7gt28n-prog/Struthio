@@ -1,0 +1,178 @@
+{
+  "schema": "arc1.pass/0.2",
+  "pass_id": "ARC1-PASS-0004",
+  "state": "REVIEW",
+  "owner": "agent:claude-code",
+  "objective": "DOS-style text debug console (arc1 ui) over the SDK, with read-only console detection and a plan-only NOR flasher",
+  "risk_tier": "MEDIUM",
+  "base_commit": "e9166a99c131d456921dc4dda1eb6987d1e9ab7a",
+  "inputs": {
+    "sdk_schema": "0.2",
+    "board_revision": "R10-development",
+    "toolchain_lock_sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+  },
+  "effort": {
+    "units": "task_units",
+    "planned_total": 50,
+    "sdk_reserved": 12,
+    "actual_total": null,
+    "actual_sdk": null
+  },
+  "deferral": null,
+  "main_change": {
+    "summary": "arc1 ui: 80x25 DOS-style curses console, frame viewer, snapshot renderer, docs and screenshot",
+    "paths": [
+      "sdk/cli/arc1cli/ui.py",
+      "sdk/cli/arc1cli/main.py",
+      "docs/assets/arc1-ui.png",
+      "README.md",
+      "AGENTS.md",
+      "docs/CLI.md",
+      "docs/TRACEABILITY.md"
+    ]
+  },
+  "sdk_change": {
+    "summary": "arc1 device flash (plan-only NOR write planner with fit, digest, locked-partition refusal and SEC-004 gates) and arc1 device detect (read-only xfel version)",
+    "paths": [
+      "sdk/cli/arc1cli/device.py",
+      "hardware/sources/r10/R08_WORK"
+    ],
+    "reusable": true,
+    "beneficiary": "Board bring-up: write plans are checked for fit, digest and open gates before any board exists, and the UI and CLI share one planner",
+    "acceptance_tests": [
+      "device-and-ui-tests"
+    ]
+  },
+  "validation": [
+    {
+      "id": "device-and-ui-tests",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py DeviceTests UiTests",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0004/reports/device-ui-tests.log",
+        "sha256": "a93dffa72b5cb44d2fc99f60ac4004c2ef6d0c24d4b023c55d470e5909164bf9"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "full-suite",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0004/reports/full-suite.log",
+        "sha256": "e3a447ec4f4d2b64e1cbc68f33f5519f9ec55f33c5a9ede56595866b936475fc"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "interactive-terminal-drive",
+      "level": "HOST_SIM",
+      "command": "python3 passes/ARC1-PASS-0004/tools/drive_terminal.py <image> (TERM xterm-256color, xterm, vt100, screen/C locale)",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0004/reports/interactive-terminal-drive.log",
+        "sha256": "ecbc6b14a91ec6a3ee56ad6101cdb20f5f0d7f87e22e206ed5e971da45f2ee28"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "independent-reproduction",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "TST-004: no second agent or maintainer has reproduced the suite yet"
+    },
+    {
+      "id": "board",
+      "level": "BOARD_TEST",
+      "command": null,
+      "result": "not_available",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "R10 is on fabrication HOLD; no board exists"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "sdk/cli/arc1cli/ui.py",
+      "sha256": "faaec31b599305118fd2b228182f96dd6061e6183f93e3ba7931949fdec01dcc"
+    },
+    {
+      "path": "sdk/cli/arc1cli/device.py",
+      "sha256": "9da633fa3ae729671621e936203889692ae98cdbb2d4c375db85e96dad3d9ea5"
+    },
+    {
+      "path": "sdk/cli/arc1cli/main.py",
+      "sha256": "041b904ba42ed8b874f3a2df9f206e38491c5d4a805ba72feccd0ad1c728553c"
+    },
+    {
+      "path": "docs/assets/arc1-ui.png",
+      "sha256": "215b11575394b5dc9c4aa5298e22c5e4328b2b0870e14a343d1f2bf20b05e620"
+    },
+    {
+      "path": "hardware/sources/r10/SHA256SUMS",
+      "sha256": "63b1c03752f2db199fbb5fb5e67a3ac7c6b969e18e3808597ab145bfb3aaf7c3"
+    },
+    {
+      "path": "passes/ARC1-PASS-0004/reports/flash-plan-F1MA.json",
+      "sha256": "acc59f0a84069e09f9a1f8c920735f8307c2b5a131fd6031c84e0806b7523be6"
+    },
+    {
+      "path": "passes/ARC1-PASS-0004/reports/flash-refused-F1BT.json",
+      "sha256": "6883ce3be7cfd09d64f3d3a4f8dd70e1e9409654fd96fa6c8614daac07a44957"
+    },
+    {
+      "path": "passes/ARC1-PASS-0004/reports/device-detect.json",
+      "sha256": "87fe3082c40e1e841bd17ac3b8bdc2a2e232a39c8c8dde3c11f3e3f9734e613f"
+    },
+    {
+      "path": "passes/ARC1-PASS-0004/reports/plan-image-fw.bin",
+      "sha256": "f600eca824e84a43f0691b267bd620e462c50da165c5b80e17aecb7a924f1fa8"
+    },
+    {
+      "path": "passes/ARC1-PASS-0004/tools/drive_terminal.py",
+      "sha256": "cd03f8ef922e346d85dedfecf6bd3d511848833b1f4ac2cd6066646622c129f4"
+    }
+  ],
+  "sensitive_changes": [
+    {
+      "path": "AGENTS.md",
+      "kind": "modified",
+      "justification": "Documents arc1 ui, device detect and device flash, and adds a rule: the flasher stays plan-only until its three gates close with evidence. Nothing was relaxed."
+    },
+    {
+      "path": "hardware/sources/r10/PROVENANCE.md",
+      "kind": "modified",
+      "justification": "Records the two R08 files vendored for the xfel syntax and the F133 chip ID, and states that their R08 board details do not apply to R10."
+    },
+    {
+      "path": "hardware/sources/r10/SHA256SUMS",
+      "kind": "modified",
+      "justification": "Adds the digests of the two newly vendored R08 files; the 14 existing entries are unchanged. All 16 match the owner's handoff manifest."
+    },
+    {
+      "path": "tests/run_tests.py",
+      "kind": "modified",
+      "justification": "Adds DeviceTests (8) and UiTests (5). The vendored-source count goes from 14 to 16 for the two added files. No existing assertion was removed or loosened."
+    }
+  ],
+  "review": {
+    "sdk_accepted_by": null,
+    "state": "pending",
+    "evidence": null
+  },
+  "blockers": [],
+  "handoff": "passes/ARC1-PASS-0004/HANDOFF.md"
+}

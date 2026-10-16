@@ -44,6 +44,9 @@ emitting it.
 | `arc1 pass validate <dir or pass.json> [--root D] [--no-git]` | STATIC_CHECK | — |
 | `arc1 fpga check` | NONE → NOT_RUN | — |
 | `arc1 device deploy` | NONE → NOT_AVAILABLE | — |
+| `arc1 device detect` | NONE: PASS if a FEL device answers `xfel version`, else NOT_AVAILABLE | — |
+| `arc1 device flash --partition ID --image F` | NONE → NOT_AVAILABLE for a valid plan; FAIL if the image does not fit or the partition is locked | — |
+| `arc1 ui [project] [--snapshot ITEM]` | interactive; exit 0 on Q | build/sim/test outputs like the commands it runs |
 
 `sim` and `test` refuse to run on a missing or stale build (`BUILD_STALE`).
 The build stamp records the digest of the sources, assets, manifest, SDK
@@ -69,6 +72,25 @@ environment (`PATH`, `LC_ALL=C`, `TZ=UTC`, `SOURCE_DATE_EPOCH=0`; no tokens
 or credentials) and a timeout (120 s compile, 60 s sim). On POSIX they also
 get CPU and file-size limits. `ARC1_CC` may select only a compiler listed in
 the lock.
+
+## Debug console and flasher
+
+`arc1 ui` draws an 80×25 DOS-style screen with curses. Every menu item calls
+the same `execute()` path as the command line, so the UI shows exactly the
+verdicts the CLI would give. `--snapshot ITEM` renders one screen as plain text
+without a terminal, for tests and scripts. ITEM is a menu name (`doctor`,
+`hardware`, `build`, `sim`, `test`, `frames`, `passes`, `detect`, `flasher`,
+`about`), `flasher:<partition>:<image>`, or `menu`. Without UTF-8, the screen
+falls back to ASCII. It needs at least 80×25 and asks for a bigger window
+otherwise.
+
+`device flash` reads the vendored R10 NOR map. A plan lists the operation, the
+image size and SHA-256, the fit, the risks, the rollback state, the three open
+gates and the `xfel` commands a write would use: version, spinor, backup read,
+write, readback and compare. That sequence is UNVERIFIED on R10. The command
+always ends NOT_AVAILABLE or FAIL; there is no code path that writes. `device
+detect` runs only `xfel version` (10 s timeout). A device that answers is
+reported with a warning that this does not identify a board.
 
 ## Not yet implemented
 

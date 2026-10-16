@@ -15,13 +15,14 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "sdk" / "cli"))
 
-from arc1cli import assets, hardware, passrec, project  # noqa: E402
+from arc1cli import assets, device, hardware, passrec, project, ui  # noqa: E402
 from arc1cli.core import (SCHEMA_DIR, Result, find_cc, schema_validator,  # noqa: E402
                           sha256_file)
 from arc1cli.jsonschema_lite import SchemaError, Validator  # noqa: E402
@@ -189,7 +190,7 @@ class HardwareManifestTests(unittest.TestCase):
     def test_vendored_r10_sources_unmodified(self):
         base = ROOT / "hardware" / "sources" / "r10"
         lines = (base / "SHA256SUMS").read_text().splitlines()
-        self.assertEqual(len(lines), 14)
+        self.assertEqual(len(lines), 16)
         for line in lines:
             digest, rel = line.split("  ", 1)
             with self.subTest(path=rel):
@@ -545,6 +546,190 @@ class ConformanceTests(unittest.TestCase):
             bad.write_text("5 A\n3 B\n")
             self.assertEqual(subprocess.run([str(exe), "--replay", str(bad)],
                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode, 66)
+
+
+class DeviceTests(unittest.TestCase):
+    """Rear USB-C / FEL path: detection is read-only, flashing is plan-only."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def image(self, size):
+        p = self.dir / "fw.bin"
+        p.write_bytes(bytes(range(256)) * (size // 256) + bytes(size % 256))
+        return p
+
+    def test_valid_plan_is_never_written(self):
+        img = self.image(300000)
+        code, data = arc1_json("device", "flash", "--partition", "F1MA", "--image", img)
+        self.assertEqual((code, data["verdict"], data["evidence_level"]), (3, "NOT_AVAILABLE", "NONE"))
+        plan = data["details"]["plan"]
+        self.assertFalse(plan["write_enabled"])
+        self.assertTrue(plan["fits"])
+        self.assertEqual(plan["image"]["sha256"], sha256_file(img))
+        self.assertIn("xfel spinor write 0x00300000 fw.bin", plan["commands"])
+        self.assertEqual({g["gate"] for g in plan["gates"]}, {"board_identity", "recovery_verified", "owner_approval"})
+        self.assertTrue(all(g["state"] == "OPEN" for g in plan["gates"]))
+        self.assertIn("SEC-004", [f["code"] for f in data["failure_reasons"]])
+
+    def test_oversized_image_fails(self):
+        img = self.image(1024 * 1024 + 1)
+        code, data = arc1_json("device", "flash", "--partition", "F1BT", "--image", img)
+        self.assertEqual(code, 1)
+        codes_ = [f["code"] for f in data["failure_reasons"]]
+        self.assertIn("FLASH-FIT", codes_)
+        self.assertIn("SEC-004", codes_)  # F1BT is locked as well
+
+    def test_locked_partitions_refused(self):
+        img = self.image(1000)
+        locked = [p["id"] for p in device.partitions() if device.locked(p)]
+        self.assertEqual(sorted(locked), ["C12G", "C45G", "F1BT", "F1RC"])
+        for pid in locked:
+            with self.subTest(partition=pid):
+                code, data = arc1_json("device", "flash", "--partition", pid, "--image", img)
+                self.assertEqual((code, data["verdict"]), (1, "FAIL"))
+
+    def test_partition_map_covers_nor_exactly(self):
+        parts = device.partitions()
+        end = 0
+        for p in parts:
+            self.assertEqual(p["offset"], end, p["id"])
+            end = p["offset"] + p["size"]
+        self.assertEqual(end, device.NOR_BYTES)
+
+    def test_bad_input_is_usage_error(self):
+        self.assertEqual(arc1("device", "flash", "--partition", "NOPE", "--image", self.image(10))[0], 2)
+        self.assertEqual(arc1("device", "flash", "--partition", "F1MA", "--image", self.dir / "missing.bin")[0], 2)
+
+    def fake_xfel(self, output, rc=0):
+        bindir = self.dir / "bin"
+        bindir.mkdir(exist_ok=True)
+        x = bindir / "xfel"
+        x.write_text("#!/bin/sh\nprintf '%s\\n' '" + output + "'\nexit " + str(rc) + "\n")
+        x.chmod(0o755)
+        return {"PATH": "%s%s%s" % (bindir, os.pathsep, os.environ.get("PATH", ""))}
+
+    def test_detect_without_xfel(self):
+        env = {"PATH": str(self.dir)}  # nothing on PATH
+        code, out, _ = arc1("device", "detect", "--json", env=env)
+        data = json.loads(out)
+        self.assertEqual((code, data["verdict"]), (3, "NOT_AVAILABLE"))
+        self.assertIsNone(data["details"]["xfel"])
+
+    @unittest.skipIf(os.name != "posix", "fake xfel is a shell script")
+    def test_detect_with_answering_fel_device(self):
+        env = self.fake_xfel("AWUSBFEX ID=0x00185900(D1/F133) dflag=0x44 dlength=0x08")
+        code, data = arc1_json("device", "detect", env=env)
+        self.assertEqual((code, data["verdict"], data["evidence_level"], data["board_id"]), (0, "PASS", "NONE", None))
+        self.assertTrue(data["details"]["f133_chip_id_seen"])
+        self.assertTrue(any("not board identification" in w for w in data["warnings"]))
+
+    @unittest.skipIf(os.name != "posix", "fake xfel is a shell script")
+    def test_detect_with_no_device(self):
+        env = self.fake_xfel("usb bulk send error", rc=1)
+        code, data = arc1_json("device", "detect", env=env)
+        self.assertEqual((code, data["verdict"]), (3, "NOT_AVAILABLE"))
+
+
+class UiTests(unittest.TestCase):
+    """`arc1 ui`: snapshots render every screen; the curses front end starts and quits."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.proj = Path(cls.tmp.name) / "hello_arc1"
+        shutil.copytree(HELLO, cls.proj, ignore=shutil.ignore_patterns("build", "reports"))
+        assert arc1_json("build", cls.proj)[0] == 0
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def snap(self, item):
+        screen = ui.snapshot(str(self.proj), item)
+        text = screen.to_text()
+        rows = text.splitlines()
+        self.assertEqual((len(rows), {len(r) for r in rows}), (25, {80}), item)
+        return text
+
+    def test_every_menu_item_renders(self):
+        expect = {"doctor": "Verdict  PASS", "hardware": "Hardware facts: R10-development", "build": "Verdict  PASS",
+                  "sim": "last frame hash", "test": "4 run, 0 failed", "frames": "Frame 60",
+                  "passes": "ARC1-PASS-0001", "detect": "Detect console", "flasher": "Flasher: 64 MiB system NOR",
+                  "about": "Adaptive RISC-V Console"}
+        for _, _, name in ui.MENU:
+            with self.subTest(item=name):
+                self.assertIn(expect[name], self.snap(name))
+
+    def test_flasher_plan_screen_says_write_disabled(self):
+        img = Path(self.tmp.name) / "fw.bin"
+        img.write_bytes(b"\x00" * 4096)
+        app = ui.App(str(self.proj))
+        ids = [p["id"] for p in device.partitions()]
+        app.mode, app.flash_sel, app.flash_image = "flasher", ids.index("F1MA"), str(img)
+        panel = app.flasher_panel(app.flasher_plan())
+        text = "\n".join("".join(t for t, _, _ in line) for line in panel.lines)
+        self.assertIn("Plan NOT_AVAILABLE", text)
+        self.assertIn("WRITE DISABLED", text)
+        self.assertIn("xfel spinor write 0x00300000 fw.bin", text)
+
+    def test_ascii_snapshot_is_pure_ascii(self):
+        text = ui.snapshot(str(self.proj), "hardware").to_text(ascii_only=True)
+        self.assertTrue(all(ord(ch) < 127 for ch in text))
+        self.assertIn("+====== Main Menu", text)
+
+    def test_cli_snapshot_and_errors(self):
+        code, out, _ = arc1("ui", self.proj, "--snapshot", "about")
+        self.assertEqual(code, 0)
+        self.assertIn("Main Menu", out)
+        self.assertEqual(arc1("ui", self.proj, "--snapshot", "nonsense")[0], 2)
+        code, _, err = arc1("ui", self.proj)  # stdin/stdout are pipes here
+        self.assertEqual(code, 2)
+        self.assertIn("interactive terminal", err)
+
+    @unittest.skipIf(os.name != "posix", "needs a pseudo-terminal")
+    def test_curses_front_end_starts_and_quits(self):
+        import fcntl
+        import pty
+        import select
+        import struct
+        import termios
+        try:
+            import curses  # noqa: F401
+        except ImportError:
+            self.skipTest("no curses")
+        master, slave = pty.openpty()
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 30, 100, 0, 0))
+        env = dict(os.environ, TERM="xterm-256color", LANG="C.UTF-8", LC_ALL="C.UTF-8")
+        p = subprocess.Popen([sys.executable, str(ROOT / "arc1"), "ui", str(self.proj)], stdin=slave, stdout=slave,
+                             stderr=slave, env=env, start_new_session=True)
+        os.close(slave)
+        out = b""
+
+        def pump(seconds):
+            nonlocal out
+            end = time.time() + seconds
+            while time.time() < end:
+                if select.select([master], [], [], 0.05)[0]:
+                    try:
+                        out += os.read(master, 65536)
+                    except OSError:
+                        return
+        try:
+            pump(2)
+            for key in (b"2", b"9", b"\x1bOB", b"\x1b", b"0", b"q"):
+                os.write(master, key)
+                pump(1)
+            self.assertEqual(p.wait(timeout=20), 0, out[-500:])
+        finally:
+            if p.poll() is None:
+                p.kill()
+            os.close(master)
+        self.assertNotIn(b"Traceback", out)
 
 
 if __name__ == "__main__":

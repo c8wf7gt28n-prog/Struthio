@@ -6,7 +6,7 @@ import sys
 import traceback
 
 from . import doctor as doctor_mod
-from . import hardware, passrec, project
+from . import device, hardware, passrec, project
 from .core import (EXIT_CODES, EXIT_INTERNAL, SCHEMA_REVISION, SDK_VERSION, Result, UsageError,
                    display_path, write_report)
 from .jsonschema_lite import SchemaError
@@ -83,6 +83,17 @@ def build_parser():
     dv = sub.add_parser("device", help="physical board operations").add_subparsers(dest="devcmd", metavar="<subcommand>")
     s = dv.add_parser("deploy", parents=[common], epilog=EPILOG, help="deploy to a physical board (not available)")
     s.add_argument("project", nargs="?", default=".")
+    dv.add_parser("detect", parents=[common], epilog=EPILOG,
+                  help="read-only check for an F133 in FEL mode on rear USB-C (runs `xfel version`)")
+    s = dv.add_parser("flash", parents=[common], epilog=EPILOG,
+                      help="plan a NOR partition write and check it; writing is disabled (always NOT_AVAILABLE)")
+    s.add_argument("--partition", required=True, help="NOR partition id, e.g. F1MA (see `arc1 ui` flasher)")
+    s.add_argument("--image", required=True, help="image file to plan")
+
+    s = sub.add_parser("ui", help="DOS-style debug console and flasher (text UI)")
+    s.add_argument("project", nargs="?", default="examples/hello_arc1", help="project for build/sim/test items")
+    s.add_argument("--snapshot", metavar="ITEM",
+                   help="render one menu item to an 80x25 text screen on stdout instead of starting the UI")
     return p
 
 
@@ -100,14 +111,9 @@ def _print_human(data):
         print("  ... %d more artifacts" % (len(data["artifacts"]) - 12))
 
 
-def run(argv):
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    if not args.cmd or (args.cmd == "hw" and not args.hwcmd) or (args.cmd == "pass" and not args.passcmd) \
-            or (args.cmd == "fpga" and not args.fpgacmd) or (args.cmd == "device" and not args.devcmd):
-        parser.print_help()
-        return EXIT_CODES["ERROR"]
-
+def execute(args):
+    """Runs a parsed command and returns (result dict, report file or None).
+    Shared by the command line and the text UI."""
     report_file = None
     if args.cmd == "doctor":
         result = Result("arc1 doctor", "STATIC_CHECK")
@@ -136,6 +142,12 @@ def run(argv):
         result.verdict = "NOT_RUN"
         result.failures.append({"code": "NOT_RUN", "message":
                                 "Phase 2: no RTL is in this repository and no FPGA flow is locked"})
+    elif args.devcmd == "detect":
+        result = Result("arc1 device detect", "NONE")
+        device.detect(result)
+    elif args.devcmd == "flash":
+        result = Result("arc1 device flash", "NONE")
+        device.flash(result, args.partition, args.image)
     else:
         result = Result("arc1 device deploy", "NONE")
         result.verdict = "NOT_AVAILABLE"
@@ -144,6 +156,21 @@ def run(argv):
                                 "nothing was deployed and simulator output cannot substitute"})
 
     data = write_report(result, report_file) if report_file else result.to_dict()
+    return data, report_file
+
+
+def run(argv):
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if not args.cmd or (args.cmd == "hw" and not args.hwcmd) or (args.cmd == "pass" and not args.passcmd) \
+            or (args.cmd == "fpga" and not args.fpgacmd) or (args.cmd == "device" and not args.devcmd):
+        parser.print_help()
+        return EXIT_CODES["ERROR"]
+    if args.cmd == "ui":
+        from . import ui
+        return ui.main(args.project, args.snapshot)
+
+    data, report_file = execute(args)
     if args.json:
         sys.stdout.write(json.dumps(data, indent=2, sort_keys=True) + "\n")
     else:

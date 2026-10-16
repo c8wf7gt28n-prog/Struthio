@@ -1,6 +1,6 @@
 # Traceability: ARC1-SDK-ER-002 v0.2 → this repository
 
-State as of ARC1-PASS-0002 (M0–M1 plus R10 hardware facts). "Enforced" means a check that fails, and
+State as of ARC1-PASS-0004 (M0–M1, R10 hardware facts, debug console). "Enforced" means a check that fails, and
 a negative fixture that proves it fails. Test names refer to
 `tests/run_tests.py`.
 
@@ -29,13 +29,14 @@ a negative fixture that proves it fails. Test names refer to
 | HW-004 | Not started | SystemRDL source not chosen | — |
 | HW-005 | Enforced | `simulation_only` ⇔ `SIM-` revision ⇔ `NOT_APPLICABLE`; positive claims and RELEASED need evidence | `mock-posing-as-board`, `boot-claim-without-evidence`, `sixty-fps-claim`, `released-without-boot`, `not-applicable-on-board` |
 | CLI-001 | Enforced | result schema, missing artifact → FAIL | `test_result_contract_rejects_missing_artifact` |
-| CLI-002 | Enforced | device → NOT_AVAILABLE; board claims need board id | `test_device_deploy_never_simulates_success`, `board-pass-without-board`, `evidence-level-inflated` |
+| CLI-002 | Enforced | device deploy/flash → NOT_AVAILABLE; detect is read-only; board claims need board id | `test_device_deploy_never_simulates_success`, `board-pass-without-board`, `evidence-level-inflated` |
 | CLI-003 | Enforced | bounded paths, timeouts, scrubbed env, rlimits | `path-escape`, `test_replay_path_cannot_escape_project` |
 | API-001 | Host only | capability query; target mapping open | `ConformanceTests`, `accelerator-on-host` |
 | API-002 / API-003 | Declared | header has no FPGA registers, no shared memory | review |
 | PKG-001 | Enforced | package schema, asset digests, pool ceilings | `asset-digest-mismatch`, `undeclared-asset`, `f133-over-capacity` |
 | PKG-002 / PKG-003 | Not started | no signing, no loader | — |
 | SEC-001 | Partly | child processes are sandboxed lightly (env, limits, timeouts); no OS sandbox | — |
+| SEC-004 | Enforced | `device flash` shows operation, target identity (none), risks and rollback readiness, and never writes; locked partitions refused | `DeviceTests`, `test_flasher_plan_screen_says_write_disabled` |
 | SEC-005 | Policy | AGENTS.md | — |
 | TST-001 | Enforced | every validator has negative fixtures; `must_differ` controls in test plans | whole suite |
 | TST-002 | Declared | traces are labelled host-model; no fps claims | — |

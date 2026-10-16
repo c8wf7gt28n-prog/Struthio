@@ -12,6 +12,9 @@ any earlier chat transcript; everything you need is in this repository.
 - **No** ARC-1 board, target cross-compiler, firmware, RTL or device transport.
   `arc1 device deploy` returns `NOT_AVAILABLE`, `arc1 fpga check` returns `NOT_RUN`.
   Never write code, docs or reports that suggest otherwise.
+- A DOS-style text console, `arc1 ui`, over the same commands. Its flasher and
+  `arc1 device flash` build and check a NOR write plan but **never write**;
+  `arc1 device detect` only runs the read-only `xfel version`.
 
 ## Commands (run from this directory)
 
@@ -23,6 +26,9 @@ any earlier chat transcript; everything you need is in this repository.
 | Project tests | `./arc1 test examples/hello_arc1` |
 | Hardware facts | `./arc1 hw inspect [--chip gpu45]` |
 | Check a pass record | `./arc1 pass validate passes/ARC1-PASS-0002` |
+| Debug console (text UI) | `./arc1 ui` (or `./arc1 ui --snapshot hardware` for plain text) |
+| Detect a console in FEL mode | `./arc1 device detect` |
+| Plan a NOR write (never writes) | `./arc1 device flash --partition F1MA --image fw.bin` |
 | Whole SDK suite | `python3 tests/run_tests.py` |
 
 Add `--json` to any command for the machine-readable result
@@ -74,6 +80,11 @@ input error, 3 NOT_AVAILABLE/NOT_RUN, 4 internal error. On Windows, prefix with
   pass record's `sensitive_changes`, and the validator checks this against
   `git diff`. Never weaken a test, loosen a check or re-record a golden
   (`--update-golden`) without disclosing it.
+- **The flasher stays plan-only.** Do not add any code path that writes to a
+  console (xfel `write`/`erase`, flashrom, DFU or anything else) until all three
+  gates in `sdk/cli/arc1cli/device.py` are closed with evidence: an identified
+  board, bench-proven FEL recovery (R10 change order CO-4) and recorded owner
+  approval. Locked partitions (F1BT, F1RC, C12G, C45G) are factory-only.
 - **No self-approval.** You cannot accept your own SDK change or your own
   test-baseline change (COV-003).
 - **Stop and ask the owner** before anything touching board flashing,
@@ -105,5 +116,5 @@ tests/                  SDK self-tests, conformance test, fixtures (positive and
 tools/lock/             toolchain lock
 policy/                 protected paths
 passes/                 pass records, reports, handoffs
-docs/                   API, CLI, migration and traceability reference; logo
+docs/                   API, CLI, migration and traceability reference; logo and UI screenshot
 ```
