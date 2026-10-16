@@ -47,6 +47,22 @@ clean:
 	rm -rf $(OUT)
 
 # ---- 45F SDR SDRAM controller (ARC1_MEMORY_R10 s2.3) ----
+.PHONY: gpu_ref gpu_mutants
+# ---- GPU ABI v1 C reference model (abi/r10_gpu_abi.h): self-checks, vectors, v0 regression ----
+$(OUT)/gpu_ref: tools/gpu_ref.c abi/r10_gpu_abi.h
+	mkdir -p $(OUT)
+	cc -std=c11 -O2 -Wall -Wextra -Werror -o $@ tools/gpu_ref.c -lm
+gpu_ref: $(OUT)/gpu_ref ref
+	mkdir -p $(OUT)/gvec
+	$(abspath $(OUT))/gpu_ref gen $(OUT)/gvec | tee $(OUT)/gpu_ref.log; grep -q '^GPU_REF_PASS$$' $(OUT)/gpu_ref.log
+	$(abspath $(OUT))/gpu_ref run $(OUT)/vec/jobs.memh $(OUT)/gvec/v0_out.memh
+	cmp $(OUT)/gvec/v0_out.memh $(OUT)/vec/expect.memh && echo "v0 regression: identical to raster_ref"
+GPU_MUTANTS = MUTANT_GPU_AFFINE MUTANT_GPU_NO_DITHER MUTANT_GPU_ALPHA_SWAP
+gpu_mutants:
+	mkdir -p $(OUT)/gmut
+	@for m in $(GPU_MUTANTS); do cc -std=c11 -O2 -w -D$$m -o $(OUT)/gmut/$$m tools/gpu_ref.c -lm || exit 1; \
+	  if $(abspath $(OUT))/gmut/$$m gen $(OUT)/gmut > $(OUT)/gmut/$$m.log 2>&1; then echo "MUTANT_SURVIVED $$m"; exit 1; \
+	  else echo "MUTANT_KILLED $$m ($$(grep -c SELFCHECK_FAIL $(OUT)/gmut/$$m.log) self-check failures)"; fi; done
 .PHONY: sdram sdram_mutants sim45_mem seeds45_mem
 MEMRTL := $(subst rtl/r10_raster_top.sv,rtl/r10_raster_mem_top.sv,$(TOPRTL)) rtl/sdram_ctrl.sv rtl/sdram_bist.sv
 sim45_mem: ref
