@@ -305,7 +305,7 @@ def gen_f133(path):
 def gen_d213(path):
     """D213EC QFN128 (D21x DS v1.4 Figure 5-6): D = E = 12.30, e = 0.35 (32 per side, Nd = Ne = 10.85), b = 0.13
     (0.08-0.18), L = 0.40 (0.35-0.45), exposed pad D2 = E2 = 7.00 centred (K = 2.25 REF). Pin 1 top of the left side,
-    counter-clockwise (top view). Land: 0.18 x 0.75 mm (0.15 mm outward toe, 0.20 mm inward heel), pad gap 0.17 mm;
+    counter-clockwise (top view). Land: 0.18 x 0.60 mm (0.15 mm outward toe, 0.05 mm inward heel), pad gap 0.17 mm;
     exposed pad 7.0 mm copper + 3x3 paste windows (~50 %) + 5x5 thermal vias 0.3 mm. GENERATED_DERIVED: check against
     the vendor recommended land pattern (none published) and the fabricator's 0.35 mm-pitch capability."""
     name = "ArtInChip_QFN-128-1EP_12.3x12.3mm_P0.35mm_EP7.0x7.0mm"
@@ -315,8 +315,8 @@ def gen_d213(path):
          f"(property \"Reference\" \"REF**\" (at 0 -7.5 0) (layer \"F.SilkS\") (uuid {q(U('fpr', name))}) (effects (font (size 1 1) (thickness 0.15))))",
          f"(property \"Value\" {q(name)} (at 0 7.5 0) (layer \"F.Fab\") (uuid {q(U('fpv', name))}) (effects (font (size 1 1) (thickness 0.15))))"]
     half, e, n = 6.15, 0.35, 32
-    plen, pw = 0.75, 0.18
-    cx = half + 0.15 - plen / 2            # pad centre: toe 0.15 mm beyond the package edge
+    plen, pw = 0.60, 0.18                  # toe 0.15 mm beyond the edge, heel 0.05 mm inside the 0.40 mm lead (L nom)
+    cx = half + 0.15 - plen / 2            # inner end at 5.70 mm keeps 0.185 mm to the corner pads of the next side
     for i in range(128):
         side, k = divmod(i, n)
         off = (k - (n - 1) / 2) * e

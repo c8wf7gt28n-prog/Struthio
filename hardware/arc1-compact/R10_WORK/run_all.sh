@@ -22,6 +22,8 @@ step cad python3 gen/design.py
 step . python3 cad/check/crosscheck_r10.py . cad/check/CROSSCHECK_R10.json
 step . python3 cad/check/pin_review.py .
 step . python3 cad/check/pin_function_matrix.py .
+step cad python3 gen/gen_kicad.py
+step cad python3 pcb/gen_pcb.py ..
 step . git diff --exit-code -- architecture/R10_interface_matrix.csv architecture/R10_PINMUX_CONFLICTS.md \
   memory/R10_nor_partition.csv firmware/f133_bootloader/include/r10_nor_layout.h hardware/R10_flash_pinmux.csv hardware/lpf
 [ "$fail" -eq 0 ] && echo R10_RUN_ALL_PASS | tee -a "$LOG" || echo R10_RUN_ALL_FAIL | tee -a "$LOG"
