@@ -1,5 +1,5 @@
 == architecture: python3 gen_interface_matrix.py
-84 matrix rows, 21 multiply-claimed D213 pads, 0 errors
+87 matrix rows, 21 multiply-claimed D213 pads, 0 errors
    exit 0
 == memory: python3 gen_nor_partition.py
 F1BT 0x00000000-0x00100000  1 MiB  no image yet
@@ -34,7 +34,7 @@ test_release_is_blocked (test_interconnect.InterconnectTests.test_release_is_blo
 test_swapped_memory_pins_rejected (test_interconnect.InterconnectTests.test_swapped_memory_pins_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.041s
+Ran 7 tests in 0.106s
 
 OK
    exit 0
@@ -182,5 +182,29 @@ cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude -ffreestanding -fno-bui
 mkdir -p build
 cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude -DARC1_MECH_MUTANT_INCLUSIVE src/arc1_mechanics.c tests/test_mechanics.c -o build/mut_inclusive
 MUTANT_KILLED inclusive edges (2 failing checks)
+   exit 0
+== cad: python3 gen/design.py
+620 components on 14 sheets
+   exit 0
+== .: python3 cad/check/crosscheck_r10.py . cad/check/CROSSCHECK_R10.json
+A_netlist_vs_plan: 0 finding(s)
+B_symbol_vs_footprint: 0 finding(s)
+C_45f_lpf_rtl_schematic: 0 finding(s)
+D_12f_lpf_rtl_schematic: 0 finding(s)
+E_connectivity: 0 finding(s)
+F_power_domains: 0 finding(s)
+G_supply_pins: 0 finding(s)
+H_multi_ic_nets: 0 finding(s)
+I_handoff_rev1_1: 0 finding(s)
+info: {"netlist_components": 597, "named_nets": 361, "no_connect_pins": 471, "footprints_checked": 40, "footprint_status_count": {"STD_LIB": 580, "SLIM4_CANDIDATE": 13, "GENERATED_DERIVED": 2, "STD_LIB_CANDIDATE": 2}, "lpf45_ports": 54, "rtl45_ports": 54, "lpf12_ports": 21, "rtl12_ports": 21, "cross_rail_signals": 81, "exterior_connectors": {"J1": "USB_C REAR", "J12": "USB_A FRONT", "J13": "USB_A FRONT", "J14": "HDMI_A REAR"}}
+CROSSCHECK PASS
+   exit 0
+== .: python3 cad/check/pin_review.py .
+68 tables written to cad/review/
+PIN_REVIEW PASS
+   exit 0
+== .: python3 cad/check/pin_function_matrix.py .
+115 processor signal pins checked -> hardware/R10_PIN_FUNCTION_MATRIX.csv
+PIN_FUNCTION PASS
    exit 0
 R10_HOST_CHECKS_PASS
