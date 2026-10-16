@@ -1,0 +1,8 @@
+{
+  "_note": "Image sizes measured in this repo. Bitstreams: yosys/nextpnr-ecp5/ecppack (open toolchain; Lattice Diamond output may differ). Uncompressed size is the worst case for a partition fit. The 12F figure uses the 25F die database (nextpnr --12k), see fpga12/timing/R10_12F_FIT_TIMING.md.",
+  "measured_utc": "2026-10-16",
+  "images": {
+    "C45A": {"what": "45F r10_raster_top (RGMII + raster engine), seed 1", "bytes_uncompressed": 1055505, "bytes_compressed": 299891, "label": "OPEN_TOOLCHAIN_MEASURED"},
+    "C12A": {"what": "12F r10_support_top (RGMII + engine, no external RAM), speed -6", "bytes_uncompressed": 600913, "bytes_compressed": 205363, "label": "OPEN_TOOLCHAIN_MEASURED"}
+  }
+}
