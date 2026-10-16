@@ -10,10 +10,10 @@ Evidence labels: DOCUMENTED (vendor states it), DERIVED (our calculation from do
 |---|---|---|---|
 | R10-A | Freeze parts and topology candidates | **PARTIAL — HOLD condition found** | `architecture/sources/` (Lattice ECP5U-12 pinout FPGA-SC-02032 v2.1; D213ECV pin table from the ArtInChip D21x pin-multiplex page; `sources.json` with URL/revision/sha256 for 54 sources), `architecture/R10_interface_matrix.csv` (65 rows, generated), `architecture/R10_PINMUX_CONFLICTS.md` |
 | R10-B | 12F RGMII isolation and P&R | **PASS on the 12F die (proxy package); TQFP144 pin-locked P&R NOT_RUN** | `fpga12/` — `make lint rgmii sim build seeds report`: lint clean; RGMII unit TB PASS; system TB `R10_12F_TB_PASS`; `timing/R10_12F_FIT_TIMING.md`: LUT 40.8 %, EBR 25 %, MULT 28.6 %, PLL 2/2; 10/10 runs (seeds 1–5 × speed −6/−7) meet 80/125/125 MHz |
-| R10-C | 45F stand-alone triangle + Z RTL | **PARTIAL** (core done; PBUS slave not built — blocked by decision D1) | `fpga45/` — `make ref sim seeds`: C model + coverage check 0 violations; RTL == C on 18 522 words (18 tiles, 62 triangles); 4/4 RTL mutants killed; core P&R 94.4–98.5 MHz (5 seeds, 80 MHz target), 11 % LUT, 16 MULT, 2 EBR |
-| R10-D | D213 standalone bare-metal video | NOT_RUN | needs D213 hardware + Luban-Lite SDK bring-up |
-| R10-E | D213 ↔ 45F throughput | NOT_RUN | needs hardware; transport undecided (D1) |
-| R10-F | F133 ↔ D213 command pipeline | NOT_RUN | needs hardware |
+| R10-C | 45F stand-alone triangle + Z RTL | **PASS in RTL simulation and open-toolchain P&R** (host link = RGMII per D1, not PBUS) | `fpga45/` — `make ref sim seeds sim45 seeds45`: C model + coverage check 0 violations; core RTL == C on 18 522 words (18 tiles, 62 triangles); 4/4 RTL mutants killed; **`r10_raster_top` (RGMII endpoint + RJOB/RRES engine) system TB `R10_45F_TB_PASS`**: all 18 tiles bit-exact over RGMII, CRC'd responses, corrupted payload rejected (status 4) with the next tile still exact, bad opcode/length, STATUS counters, loopback; **pin-locked LFE5U-45F-6 CABGA381 P&R 5/5 seeds**: sys 86.3–93.7 MHz (80), eth TX 152–164 MHz (125), RGMII RX 152–172 MHz (125); 15 % LUT, 10 EBR, 16 MULT, 2/4 PLL |
+| R10-D | D213 standalone bare-metal video | NOT_RUN | plan with pass criteria: `d213/boot_and_display/PLAN.md` |
+| R10-E | D213 ↔ 45F throughput | NOT_RUN on hardware; 45F side simulated | `d213/gmac_link/PLAN.md`: simulated round trip 119.7 µs/tile (one tile in flight) → ≈ 9.0 ms of 16.7 ms for 75 tiles before D213 driver cost; needs D213 GMAC jumbo-frame support (UNVERIFIED) |
+| R10-F | F133 ↔ D213 command pipeline | protocol HOST_TESTED; transport NOT_RUN | `f133/graphics_link/` — `make all`: 45 checks pass, ASan/UBSan clean, freestanding compile, 7/7 mutants killed (lost/corrupt/stale packets, device restart, dead link → fallback + reprobe, D213 watchdog). USB host/device stacks NOT_RUN |
 | R10-G | Integrated 2D + low-res 3D scene | NOT_RUN | — |
 | R10-H | Fabrication release | **HOLD** | §10.2 criteria 1 (pin conflict, option A) and 5 (D213 procurement unconfirmed) are currently met |
 
@@ -41,7 +41,17 @@ Evidence labels: DOCUMENTED (vendor states it), DERIVED (our calculation from do
    no listing found** (DigiKey, findchips; artinchip.com offers a sample-request form). Mouser/Arrow/Octopart/LCSC
    search were blocked to automated access.
 
+## Other R10 §12.1 outputs
+| Item | Path | Status |
+|---|---|---|
+| 5 D213 boot and display | `d213/boot_and_display/PLAN.md` | plan, NOT_RUN |
+| 6 D213 PBUS driver | `d213/pbus_driver/README.md` → `d213/gmac_link/PLAN.md` (D1) | plan, NOT_RUN |
+| 7 F133 graphics link | `f133/graphics_link/` | protocol HOST_TESTED; USB NOT_RUN |
+| 8 Hardware change sheet | `hardware/R10_change_sheet.md` | delta + open items; power budget NOT_RUN |
+
 ## R10-B notes
+- Provenance: `fpga12/PROVENANCE_R85C_0defcfe.sha256` holds the R85C hashes; `sha256sum -c` passes for every copied
+  file except `rtl/accel_engine.sv`, which is intentionally modified (HAS_FIR parameter, STATUS opcode).
 - Built from R8.5-C RTL as reference only (R10 §6.3): RGMII MACs and job link unchanged; SPI mailbox, PSRAM and power
   guard removed; engine with `HAS_FIR = 0` (the 32-lane FIR needs 32 MULT18X18D > 28) and a new STATUS opcode 0x10
   (interface revision, caps, six RGMII counters, jobs/items, uptime; CRC-protected).
@@ -57,7 +67,14 @@ Evidence labels: DOCUMENTED (vendor states it), DERIVED (our calculation from do
 - Step 1 of R10 §7.1 (items 2–3): flat triangles, signed edge functions, top-left fill rule, tile Z (16-bit, strict
   less-than), 32×32 tiles in EBR, CRC'd tile output. Job format and arithmetic: `fpga45/tools/raster_ref.c` (tile
   origin 0..2016 px). Throughput: 1 sample/clock over bbox∩tile; setup ≈ 80 clocks/triangle; clear 1024 clocks;
-  output 4 clocks/word (not optimised). Not yet: PBUS/RGMII slave, textures, perspective, tile queues.
+  output 4 clocks/word (not optimised). Not yet: textures, perspective, tile queues, two tiles in flight.
+- Host transport (decision D1): `rtl/r10_raster_top.sv` = the R8.5-C RGMII endpoint (`fpga12/rtl/eth_link.sv` etc.,
+  byte-identical to R85C 0defcfe) + `rtl/r10_raster_engine.sv` (RJOB/RRES: header + payload CRC checked before
+  anything reaches the rasterizer; STATUS opcode 0x10 "R10G"; non-RJOB frames looped back for delay calibration).
+  Pins = the R8.5-C 45F bank-0 RGMII balls (`constraints/r10_45f.lpf`), rxc on PCLKT0_0 B11.
+- A tile response frame is 2092 bytes (jumbo); the D213 GMAC must accept it or the engine must split tiles
+  (`d213/gmac_link/PLAN.md` item 1).
+- Pad-level RGMII timing CONDITIONAL, as for the 12F; D213 GMAC delay controls UNVERIFIED.
 
 ## Mandatory questions (R10 §14)
 | Q | Answer from this pass |
@@ -67,10 +84,15 @@ Evidence labels: DOCUMENTED (vendor states it), DERIVED (our calculation from do
 | Q3 12F RGMII timing with DDR I/O and margin | Core timing: yes (10/10 runs, proxy package). Pad-level: CONDITIONAL (budget + bench calibration). TQFP144 pin-locked: NOT_RUN. |
 | Q4 Measured D213 PBUS read bandwidth | NOT_RUN (no hardware). Derived ceiling ≈ 20 MB/s at default timing. |
 | Q5 45F graphics-memory interface for textures | Open (step 4 of §7.1 not started; 8 MiB QSPI PSRAM not frozen). |
+| Q4' (D1) D213 GMAC RGMII throughput | NOT_RUN; 45F side ≈ 120 µs/tile simulated, wire 16.9 µs/tile derived. |
 | Q6 D213 video + 2D with both FPGAs blank | Open (R10-D, hardware). Pin plan keeps video independent of both FPGA links. |
 | Q7 Exact tool/SDK revisions | Yosys/nextpnr-ecp5/Trellis as recorded in R85C build TOOL_VERSIONS; Icarus/Verilator as installed; D213 SDK not used. |
 
-## Decisions needed from the owner
+## Decisions (delegated by the owner 2026-10-16, "Do what you think is best")
+Recorded in `DECISIONS.md`: **D1** D213 ↔ 45F over D213 GMAC0 RGMII; **D2** R10 governs over the earlier three-chip
+rules; **D3** 12F −6 grade; **D4** TQFP144 pin-locked P&R waits for Lattice tools. The original option text follows.
+
+### Options as first presented
 - **D1 — D213 ↔ 45F transport.** (a) Keep PBUS: requires a different video path (none left on D213ECV) or a different
   D21x package/part — contradicts R10 §3.1 "D213 boots and shows 2D with both FPGAs blank" only if video moves to an
   FPGA. (b) **Use D213 GMAC0 RGMII (PE) ↔ 45F RGMII endpoint** (recommended for evaluation: pads free of video/boot/USB,
