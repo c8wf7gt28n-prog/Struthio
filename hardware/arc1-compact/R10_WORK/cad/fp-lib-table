@@ -1,0 +1,3 @@
+(fp_lib_table (version 7)
+  (lib (name "ARC1_R10")(type "KiCad")(uri "${KIPRJMOD}/symbols-and-footprints/ARC1_R10.pretty")(options "")(descr "ARC-1 R10 generated / SLIM4-candidate footprints"))
+)

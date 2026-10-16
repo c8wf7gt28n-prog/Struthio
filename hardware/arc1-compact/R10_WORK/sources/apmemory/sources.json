@@ -1,0 +1,11 @@
+[
+ {
+  "id": "apm_aps3204l",
+  "url": "https://www.apmemory.com/cn/downloadFiles/0324112120vb589794",
+  "title": "APS3204L-3SQNA-SN QSPI PSRAM datasheet",
+  "revision": "Rev. 1.1, Jan 05 2024",
+  "retrieved_at": "2026-10-16",
+  "sha256": "fcc3a9976bf73d203a48bb58f79f83a9c8e0f58dc18669566bca27b33e8bcaef",
+  "used_for": "SOP-8L(150) pins (s3.1): 1 /CE, 2 SO/SIO1, 3 SIO2, 4 VSS, 5 SI/SIO0, 6 SCLK, 7 SIO3, 8 VDD; VDD 2.7-3.6 V; 109 MHz max at 3.3 V; power-up 150 us with CE# high tracking VDD (s8)"
+ }
+]

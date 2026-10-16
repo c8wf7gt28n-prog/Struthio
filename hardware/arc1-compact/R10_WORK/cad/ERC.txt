@@ -1,0 +1,32 @@
+ERC report (2026-10-16T06:05:15+0000, Encoding UTF8)
+Report includes: Errors, Warnings
+
+***** Sheet /
+
+***** Sheet /usb_power/
+
+***** Sheet /power/
+
+***** Sheet /f133/
+
+***** Sheet /boot_nor/
+
+***** Sheet /d213/
+
+***** Sheet /usb_link/
+
+***** Sheet /video/
+
+***** Sheet /fpga45/
+
+***** Sheet /sdram45/
+
+***** Sheet /fpga12/
+
+***** Sheet /psram12/
+
+***** Sheet /sd_audio/
+
+***** Sheet /controls/
+
+ ** ERC messages: 0  Errors 0  Warnings 0

@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "filename": "ARC1_R10.kicad_pro",
+    "version": 1
+  },
+  "sheets": [
+    [
+      "08113eda-8d75-5ca0-b1cc-74f429d396dc",
+      "Root"
+    ],
+    [
+      "8987ca2f-492d-5993-a15b-3c75086d0092",
+      "usb_power"
+    ],
+    [
+      "61017635-a238-5b40-b392-47f4c00fb191",
+      "power"
+    ],
+    [
+      "931add69-67d0-501b-9097-066cdc07aa69",
+      "f133"
+    ],
+    [
+      "41b8d989-421a-56fd-b8d5-f71fea44b50a",
+      "boot_nor"
+    ],
+    [
+      "f48b016f-2624-5fce-b44b-f043f1463c07",
+      "d213"
+    ],
+    [
+      "8258cb4e-b69b-5a6f-99cb-bece6b867bce",
+      "usb_link"
+    ],
+    [
+      "1f91c4e9-0be1-5db6-896e-7d7587a6cf01",
+      "video"
+    ],
+    [
+      "34da7679-fadb-51f3-a379-f5fa67f10b45",
+      "fpga45"
+    ],
+    [
+      "3d8f5868-7d69-5389-9439-60e857fb43e2",
+      "sdram45"
+    ],
+    [
+      "ceb10b23-c880-566f-beb7-efeabf5f4705",
+      "fpga12"
+    ],
+    [
+      "da4447b4-4dbe-5ea2-963f-9650c4355fc5",
+      "psram12"
+    ],
+    [
+      "c6dfe125-ce88-54c1-9b49-3f374443eed3",
+      "sd_audio"
+    ],
+    [
+      "e7ea6418-8c83-5441-a705-7bb878ec7773",
+      "controls"
+    ]
+  ],
+  "text_variables": {}
+}

@@ -1,13 +1,56 @@
 [
- {"id": "ti_tfp410", "url": "https://www.ti.com/lit/ds/symlink/tfp410.pdf", "title": "TFP410 TI PanelBus Digital Transmitter",
-  "revision": "SLDS145D, revised February 2024", "retrieved_at": "2026-10-16", "sha256": "3ef87053e728a49bee164987966a73ad5634893f0809f81ec60263aba75eb771",
-  "used_for": "tfp410_pap64_pins.csv (DATA[23:12] order verified by glyph x-coordinates: pin 36 = DATA23, pin 47 = DATA12); strap configuration; RTFADJ 510 ohm 1 %; decoupling 7.3; timing 5.6 (25-165 MHz, tsu 1.2 / th 1.3 ns)"},
- {"id": "ti_tpd12s016", "url": "https://www.ti.com/lit/ds/symlink/tpd12s016.pdf", "title": "TPD12S016 HDMI companion (ESD, DDC/CEC level shift, HPD, 5 V load switch)",
-  "revision": "SLLSE96F, revised October 2015", "retrieved_at": "2026-10-16", "sha256": "10d63c0775c5a8d9893982de205c02fd9611980ad08de889d7c5324c6afdfd58",
-  "used_for": "tpd12s016_pw24_pins.csv (TSSOP-24 PW)"},
- {"id": "ti_tlv62569", "url": "https://www.ti.com/lit/ds/symlink/tlv62569.pdf", "title": "TLV62569 2 A synchronous step-down",
-  "revision": "SLVSDG1C", "retrieved_at": "2026-10-16", "sha256": "1ba6f55dfe678d06d563acd6632f1f950a497d812270806021097b55cd81d3c4",
-  "used_for": "R8.5 regulator family reused for new rails (FB 0.6 V)"},
- {"id": "ti_tps62827", "url": "https://www.ti.com/lit/ds/symlink/tps62827.pdf", "title": "TPS6282x 2/3/4 A step-down", "revision": "SLVSEF9I",
-  "retrieved_at": "2026-10-16", "sha256": "8a309f2a40486a380242d3f178eb4bda3ef4dca3deca647fa82f763d14866f63", "used_for": "candidate only (not selected)"}
+ {
+  "id": "ti_tfp410",
+  "url": "https://www.ti.com/lit/ds/symlink/tfp410.pdf",
+  "title": "TFP410 TI PanelBus Digital Transmitter",
+  "revision": "SLDS145D, revised February 2024",
+  "retrieved_at": "2026-10-16",
+  "sha256": "3ef87053e728a49bee164987966a73ad5634893f0809f81ec60263aba75eb771",
+  "used_for": "tfp410_pap64_pins.csv (DATA[23:12] order verified by glyph x-coordinates: pin 36 = DATA23, pin 47 = DATA12); strap configuration; RTFADJ 510 ohm 1 %; decoupling 7.3; timing 5.6 (25-165 MHz, tsu 1.2 / th 1.3 ns)"
+ },
+ {
+  "id": "ti_tpd12s016",
+  "url": "https://www.ti.com/lit/ds/symlink/tpd12s016.pdf",
+  "title": "TPD12S016 HDMI companion (ESD, DDC/CEC level shift, HPD, 5 V load switch)",
+  "revision": "SLLSE96F, revised October 2015",
+  "retrieved_at": "2026-10-16",
+  "sha256": "10d63c0775c5a8d9893982de205c02fd9611980ad08de889d7c5324c6afdfd58",
+  "used_for": "tpd12s016_pw24_pins.csv (TSSOP-24 PW)"
+ },
+ {
+  "id": "ti_tlv62569",
+  "url": "https://www.ti.com/lit/ds/symlink/tlv62569.pdf",
+  "title": "TLV62569 2 A synchronous step-down",
+  "revision": "SLVSDG1C",
+  "retrieved_at": "2026-10-16",
+  "sha256": "1ba6f55dfe678d06d563acd6632f1f950a497d812270806021097b55cd81d3c4",
+  "used_for": "R8.5 regulator family reused for new rails (FB 0.6 V)"
+ },
+ {
+  "id": "ti_tps62827",
+  "url": "https://www.ti.com/lit/ds/symlink/tps62827.pdf",
+  "title": "TPS6282x 2/3/4 A step-down",
+  "revision": "SLVSEF9I",
+  "retrieved_at": "2026-10-16",
+  "sha256": "8a309f2a40486a380242d3f178eb4bda3ef4dca3deca647fa82f763d14866f63",
+  "used_for": "candidate only (not selected)"
+ },
+ {
+  "id": "ti_ts3usb221a",
+  "url": "https://www.ti.com/lit/ds/symlink/ts3usb221a.pdf",
+  "title": "TS3USB221A high-speed USB 2.0 1:2 mux/demux",
+  "revision": "SCDS277C, revised October 2024",
+  "retrieved_at": "2026-10-16",
+  "sha256": "cccebf8c10df605133d24bd3ab3abeb97a19dbf539d3465b53562fc19f7a242e",
+  "used_for": "RSE UQFN-10 pins (Table 4-1): 1 1D+, 2 1D-, 3 2D+, 4 2D-, 5 GND, 6 OE (active low), 7 D-, 8 D+, 9 S, 10 VCC; truth table 7-1: OE=H disconnect, S=L D=1D, S=H D=2D"
+ },
+ {
+  "id": "ti_sn74lvc2g07",
+  "url": "https://www.ti.com/lit/ds/symlink/sn74lvc2g07.pdf",
+  "title": "SN74LVC2G07 dual buffer, open-drain outputs",
+  "revision": "SCES308L",
+  "retrieved_at": "2026-10-16",
+  "sha256": "71bbb2fc452e2949b332c030b004b094ba679ac8cce27123f806a0a6b1fde660",
+  "used_for": "DBV SOT-23-6 pins: 1 1A, 2 GND, 3 2A, 4 2Y, 5 VCC, 6 1Y; Ioff (partial power down)"
+ }
 ]
