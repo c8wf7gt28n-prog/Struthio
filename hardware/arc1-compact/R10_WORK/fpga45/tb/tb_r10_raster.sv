@@ -14,7 +14,7 @@ module tb_r10_raster;
     wire [15:0] out_data;
     reg         out_ready = 0;
     wire [31:0] c_tris, c_samples, c_written, c_busy, c_bad;
-    r10_raster dut (.clk(clk), .rst(rst), .in_valid(in_valid), .in_data(in_data), .in_ready(in_ready),
+    r10_raster dut (.clk(clk), .rst(rst), .in_valid(in_valid), .abort(1'b0), .in_data(in_data), .in_ready(in_ready),
         .out_valid(out_valid), .out_data(out_data), .out_ready(out_ready), .busy(busy),
         .cnt_tris(c_tris), .cnt_samples(c_samples), .cnt_written(c_written), .cnt_busy_cycles(c_busy), .cnt_bad_cmd(c_bad));
     initial begin

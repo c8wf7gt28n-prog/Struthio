@@ -10,9 +10,9 @@ Evidence labels: DOCUMENTED (vendor states it), DERIVED (our calculation from do
 |---|---|---|---|
 | R10-A | Freeze parts and topology candidates | **PARTIAL — HOLD condition found** | `architecture/sources/` (Lattice ECP5U-12 pinout FPGA-SC-02032 v2.1; D213ECV pin table from the ArtInChip D21x pin-multiplex page; `sources.json` with URL/revision/sha256 for 54 sources), `architecture/R10_interface_matrix.csv` (65 rows, generated), `architecture/R10_PINMUX_CONFLICTS.md` |
 | R10-B | 12F RGMII isolation and P&R | **PASS on the 12F die (proxy package); TQFP144 pin-locked P&R NOT_RUN** | `fpga12/` — `make lint rgmii sim build seeds report`: lint clean; RGMII unit TB PASS; system TB `R10_12F_TB_PASS`; `timing/R10_12F_FIT_TIMING.md`: LUT 40.8 %, EBR 25 %, MULT 28.6 %, PLL 2/2; 10/10 runs (seeds 1–5 × speed −6/−7) meet 80/125/125 MHz |
-| R10-C | 45F stand-alone triangle + Z RTL | **PASS in RTL simulation and open-toolchain P&R** (host link = RGMII per D1, not PBUS) | `fpga45/` — `make ref sim seeds sim45 seeds45`: C model + coverage check 0 violations; core RTL == C on 18 522 words (18 tiles, 62 triangles); 4/4 RTL mutants killed; **`r10_raster_top` (RGMII endpoint + RJOB/RRES engine) system TB `R10_45F_TB_PASS`**: all 18 tiles bit-exact over RGMII, CRC'd responses, corrupted payload rejected (status 4) with the next tile still exact, bad opcode/length, STATUS counters, loopback; **pin-locked LFE5U-45F-6 CABGA381 P&R 5/5 seeds**: sys 86.3–93.7 MHz (80), eth TX 152–164 MHz (125), RGMII RX 152–172 MHz (125); 15 % LUT, 10 EBR, 16 MULT, 2/4 PLL |
+| R10-C | 45F stand-alone triangle + Z RTL | **PASS in RTL simulation and open-toolchain P&R** (host link = RGMII per D1, not PBUS) | `fpga45/` — `make ref sim seeds sim45 seeds45`: C model + coverage check 0 violations; core RTL == C on 18 522 words (18 tiles, 62 triangles); 4/4 RTL mutants killed; **`r10_raster_top` (RGMII endpoint + RJOB/RRES engine) system TB `R10_45F_TB_PASS`**: all 18 tiles bit-exact over RGMII both as whole tiles (2092-byte jumbo frames) and as half tiles (≤ 1066-byte standard frames), CRC'd responses, truncated command → status 5 without wedging the engine, corrupted payload rejected (status 4) with the next tile still exact, bad opcode/length, STATUS counters, loopback; **pin-locked LFE5U-45F-6 CABGA381 P&R 5/5 seeds**: sys 90.8–95.9 MHz (80), eth TX 151–160 MHz (125), RGMII RX 157–176 MHz (125); 16 % LUT, 10 EBR, 16 MULT, 2/4 PLL; core alone 96.5–104.0 MHz |
 | R10-D | D213 standalone bare-metal video | NOT_RUN | plan with pass criteria: `d213/boot_and_display/PLAN.md` |
-| R10-E | D213 ↔ 45F throughput | NOT_RUN on hardware; 45F side simulated | `d213/gmac_link/PLAN.md`: simulated round trip 119.7 µs/tile (one tile in flight) → ≈ 9.0 ms of 16.7 ms for 75 tiles before D213 driver cost; needs D213 GMAC jumbo-frame support (UNVERIFIED) |
+| R10-E | D213 ↔ 45F throughput | NOT_RUN on hardware; 45F side simulated | `d213/gmac_link/PLAN.md`: simulated round trip 119.7 µs/tile with jumbo frames (≈ 9.0 ms of 16.7 ms for 75 tiles) or 173.5 µs/tile with standard frames (≈ 13.0 ms), both before D213 driver cost; D213 GMAC jumbo support UNVERIFIED |
 | R10-F | F133 ↔ D213 command pipeline | protocol HOST_TESTED; transport NOT_RUN | `f133/graphics_link/` — `make all`: 45 checks pass, ASan/UBSan clean, freestanding compile, 7/7 mutants killed (lost/corrupt/stale packets, device restart, dead link → fallback + reprobe, D213 watchdog). USB host/device stacks NOT_RUN |
 | R10-G | Integrated 2D + low-res 3D scene | NOT_RUN | — |
 | R10-H | Fabrication release | **HOLD** | §10.2 criteria 1 (pin conflict, option A) and 5 (D213 procurement unconfirmed) are currently met |
@@ -72,8 +72,11 @@ Evidence labels: DOCUMENTED (vendor states it), DERIVED (our calculation from do
   byte-identical to R85C 0defcfe) + `rtl/r10_raster_engine.sv` (RJOB/RRES: header + payload CRC checked before
   anything reaches the rasterizer; STATUS opcode 0x10 "R10G"; non-RJOB frames looped back for delay calibration).
   Pins = the R8.5-C 45F bank-0 RGMII balls (`constraints/r10_45f.lpf`), rxc on PCLKT0_0 B11.
-- A tile response frame is 2092 bytes (jumbo); the D213 GMAC must accept it or the engine must split tiles
-  (`d213/gmac_link/PLAN.md` item 1).
+- A whole-tile response frame is 2092 bytes (jumbo). Opcodes 2/3 return a tile in two standard frames (≤ 1066 bytes)
+  so the link works without jumbo support (`d213/gmac_link/PLAN.md` item 1).
+- Robustness fix found by the new tests: a job ending inside a command used to leave the rasterizer waiting for
+  arguments forever (the 45F stopped answering). The rasterizer now has an `abort` input (argument phase only) and
+  the engine returns status 5.
 - Pad-level RGMII timing CONDITIONAL, as for the 12F; D213 GMAC delay controls UNVERIFIED.
 
 ## Mandatory questions (R10 §14)

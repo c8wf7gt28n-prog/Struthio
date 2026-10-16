@@ -1,8 +1,8 @@
-seed 1: 94.36 MHz (PASS at 80.00 MHz)
-seed 2: 98.45 MHz (PASS at 80.00 MHz)
-seed 3: 95.20 MHz (PASS at 80.00 MHz)
-seed 4: 97.50 MHz (PASS at 80.00 MHz)
-seed 5: 95.18 MHz (PASS at 80.00 MHz)
+seed 1: 96.47 MHz (PASS at 80.00 MHz)
+seed 2: 98.20 MHz (PASS at 80.00 MHz)
+seed 3: 102.60 MHz (PASS at 80.00 MHz)
+seed 4: 98.57 MHz (PASS at 80.00 MHz)
+seed 5: 103.97 MHz (PASS at 80.00 MHz)
 Info: 	              DP16KD:     2/  108     1%
 Info: 	          MULT18X18D:    16/   72    22%
-Info: 	        TRELLIS_COMB:  5105/43848    11%
+Info: 	        TRELLIS_COMB:  5120/43848    11%

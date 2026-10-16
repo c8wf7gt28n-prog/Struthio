@@ -8,6 +8,7 @@ module r10_raster (
     input  wire        clk,
     input  wire        rst,
     input  wire        in_valid,
+    input  wire        abort,            // in S_ARGS only: drop a partly received command (nothing drawn yet)
     input  wire [15:0] in_data,
     output wire        in_ready,
     output reg         out_valid,
@@ -129,7 +130,8 @@ module r10_raster (
             else if (in_data == 16'd3) begin oi <= 11'd0; ocrc <= 32'hFFFFFFFF; st <= S_OHDR; end
             else cnt_bad_cmd <= cnt_bad_cmd + 32'd1;
         end
-        S_ARGS: if (in_valid) begin
+        S_ARGS: if (abort) begin st <= S_IDLE; cnt_bad_cmd <= cnt_bad_cmd + 32'd1; end
+        else if (in_valid) begin
             arg[ai] <= in_data;
             ai <= ai + 4'd1;
             if (ai == nargs - 4'd1) st <= (cmd == 16'd1) ? S_CLEAR : S_T0;

@@ -166,7 +166,7 @@ module tb_r10_45f;
             else begin st_o = erb[29]; cnt_o = {erb[31], erb[30]}; end
         end
     endtask
-    integer i, a, b, ei, tiles, n, q, bad, us_total;
+    integer i, a, b, ei, tiles, n, q, bad, us_total, h, maxfr;
     reg [31:0] c;
     initial begin
         for (i = 0; i < 65536; i = i + 1) begin jobs[i] = 16'hxxxx; expw[i] = 16'hxxxx; end
@@ -217,6 +217,45 @@ module tb_r10_45f;
         if (ei != ne) fail("expected-word count mismatch");
         $display("INFO %0d tiles over RGMII, %0d us total round trips (sequential, one tile in flight)", tiles, us_total);
         $display("TEST r10g_tiles_rgmii done errors=%0d", errors);
+        // ---- every tile again in two halves (opcodes 2/3), each a standard <= 1518-byte frame ----
+        a = 0; ei = 0; tiles = 0; us_total = 0; maxfr = 0;
+        while (a < nj) begin
+            b = a;
+            while (b < nj && jobs[b] !== 16'd3) b = b + (jobs[b] == 16'd1 ? 5 : jobs[b] == 16'd2 ? 11 : 1);
+            b = b + 1;
+            for (h = 0; h < 2; h = h + 1) begin
+                if (h == 0) make_rjob(a, b, 32'h200 + 2 * tiles, 8'd2, n);
+                else        make_rjob(b - 1, b, 32'h201 + 2 * tiles, 8'd3, n);   // TILE_END alone re-emits the tile
+                xfer(n, 32'h200 + 2 * tiles + h);
+                us_total = us_total + (erx_t - tf0) / 1000.0;
+                if (ern - 8 > maxfr) maxfr = ern - 8;
+                if (st_o !== 0 || cnt_o !== (h ? 514 : 515)) begin
+                    $display("TB_ERROR half tile %0d.%0d: status %0d count %0d", tiles, h, st_o, cnt_o); errors = errors + 1;
+                end else begin
+                    bad = 0; c = 32'hFFFFFFFF;
+                    for (q = 0; q < cnt_o; q = q + 1) begin
+                        if ({erb[41 + 2 * q], erb[40 + 2 * q]} !== expw[ei + (h ? 515 : 0) + q]) bad = bad + 1;
+                        c = ecrc8(ecrc8(c, erb[40 + 2 * q]), erb[41 + 2 * q]);
+                    end
+                    if (bad) begin $display("TB_ERROR half tile %0d.%0d: %0d words differ", tiles, h, bad); errors = errors + 1; end
+                    if (~c !== {erb[39], erb[38], erb[37], erb[36]}) fail("RRES CRC (half)");
+                end
+            end
+            ei = ei + 1029; a = b; tiles = tiles + 1;
+        end
+        if (maxfr > 1518) fail("half-tile frame larger than 1518 bytes");
+        $display("INFO %0d tiles as halves, largest frame %0d bytes incl. FCS, %0d us total round trips", tiles, maxfr, us_total);
+        // a half request whose job does not produce exactly one tile -> status 7
+        make_rjob(0, 5, 32'h7A, 8'd2, n); xfer(n, 32'h7A);                 // TILE_BEGIN only: no tile output
+        if (st_o !== 7 || cnt_o !== 0) fail("half request without a tile not status 7");
+        // a job ending inside a command (TILE_BEGIN cut after 4 of 5 words) -> status 5, engine still serves jobs
+        make_rjob(0, 4, 32'h7B, 8'd1, n); xfer(n, 32'h7B);
+        if (st_o !== 5 || cnt_o !== 0) fail("truncated command not status 5");
+        make_rjob(0, 17, 32'h7C, 8'd1, n); xfer(n, 32'h7C);                // tile 0 again, complete
+        bad = (st_o !== 0 || cnt_o !== 1029);
+        for (q = 0; q < 1029 && !bad; q = q + 1) if ({erb[41 + 2 * q], erb[40 + 2 * q]} !== expw[q]) bad = 1;
+        if (bad) fail("tile after a truncated command not exact");
+        $display("TEST r10g_tiles_halves done errors=%0d", errors);
         // ---- bad opcode / bad length ----
         make_rjob(0, 5, 32'h77, 8'd9, n); xfer(n, 32'h77); if (st_o !== 3) fail("bad opcode not status 3");
         make_rjob(0, 5, 32'h78, 8'd1, n); aq[6] = 8'd6; xfer(n, 32'h78); if (st_o !== 1) fail("bad length not status 1");

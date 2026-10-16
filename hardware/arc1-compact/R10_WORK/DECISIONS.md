@@ -14,5 +14,6 @@ Consequences of D1: R10 §4.2 register map is carried as STATUS/counters inside 
 the 45F needs a top-bank RGMII group (the R8.5-C 45F pin plan, bank 0, rxc on PCLKT0_0 B11, is reused); the D213 side
 needs a bare-metal GMAC driver (Luban-Lite) — NOT_RUN.
 Status after this pass: 45F `r10_raster_top` built and simulated end to end over RGMII (18/18 tiles bit-exact) and
-routed pin-locked (5/5 seeds). New open item caused by D1: tile responses are 2092-byte (jumbo) frames, so D213 GMAC
-jumbo support must be confirmed or the engine must split tiles (`d213/gmac_link/PLAN.md`).
+routed pin-locked (5/5 seeds). Frame size under D1: whole-tile responses are 2092-byte (jumbo) frames; the engine also returns half tiles in
+≤ 1066-byte standard frames, so D1 no longer depends on D213 jumbo support (at a cost: 173.5 vs 119.7 µs/tile
+simulated, `d213/gmac_link/PLAN.md`).

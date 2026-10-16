@@ -6,19 +6,21 @@ hardware). Gate R10-E.
 ## Wire protocol (implemented in `fpga45/rtl/r10_raster_engine.sv`, tested by `fpga45/tb/tb_r10_45f.sv`)
 Raw Ethernet, EtherType 0x88B5, no PHY, no IP — the R8.5-C framing (`R85C_WORK/firmware/include/eth_link.h`):
 `dst | src | 0x88B5 | len16 | payload`. The 45F replies to the requester's MAC.
-- Request `RJOB`: version 1, opcode (1 RASTER, 0x10 STATUS), count (16-bit words), seq, CRC-32 of the payload.
-  RASTER payload = raster job words (`fpga45/tools/raster_ref.c` format); at most one TILE_END per request.
-- Response `RRES`: status (0 OK, 1 BAD_LENGTH, 2 BAD_VERSION, 3 BAD_OPCODE, 4 PAYLOAD_CRC — nothing drawn, 7
-  OUTPUT_OVERFLOW), output word count, seq, CRC-32 of the output. A tile = 1029 words ('TI', x, y, 1024 RGB565,
+- Request `RJOB`: version 1, opcode (1 RASTER, 2/3 RASTER_HALF0/1, 0x10 STATUS), count (16-bit words), seq,
+  CRC-32 of the payload. RASTER payload = raster job words (`fpga45/tools/raster_ref.c` format); at most one
+  TILE_END per request. HALF0 carries the tile's jobs and returns 'TI', x, y + rows 0–15 (515 words); HALF1 carries
+  the single word TILE_END, which re-emits the same tile, and returns rows 16–31 + CRC (514 words).
+- Response `RRES`: status (0 OK, 1 BAD_LENGTH, 2 BAD_VERSION, 3 BAD_OPCODE, 4 PAYLOAD_CRC — nothing drawn,
+  5 TRUNCATED_COMMAND — job ended inside a command, that command dropped, 7 OUTPUT_OVERFLOW / not exactly one tile
+  for opcodes 2/3), output word count, seq, CRC-32 of the output. A tile = 1029 words ('TI', x, y, 1024 RGB565,
   CRC lo/hi).
 - Anything not starting with `RJOB` is looped back unchanged (delay calibration, as `el_calibrate` on the F133).
 
 ## Driver requirements
-1. **Frame size.** A tile response is 16 + 2058 payload bytes → 2092-byte frame with header and FCS, above the
-   1518-byte standard maximum. The D213 GMAC must accept it: jumbo / 2K-frame support is **UNVERIFIED** in the D21x
-   documents read so far — first document check before any hardware. If it cannot, the 45F engine must split a tile
-   into two RRES frames (rows 0–15, 16–31); that is an RTL change to `r10_raster_engine` + `eth_link` (one post per
-   job today), not done.
+1. **Frame size.** A whole-tile response (opcode 1) is a 2092-byte frame, above the 1518-byte standard maximum;
+   D213 GMAC jumbo / 2K-frame support is **UNVERIFIED**. The engine therefore also offers half tiles (opcodes 2/3):
+   largest frame **1066 bytes** including FCS (RTL_SIMULATED, all 18 tiles exact). The driver uses halves unless
+   jumbo support is confirmed.
 2. **DMA descriptors and coherence.** C906 data cache vs GMAC DMA: TX buffers cleaned (write-back) before the
    descriptor is handed to DMA; RX buffers invalidated before the CPU reads them, or both rings placed in an uncached
    window. Whether the D213 interconnect is DMA-coherent is **UNVERIFIED**; assume not.
@@ -51,3 +53,7 @@ Raw Ethernet, EtherType 0x88B5, no PHY, no IP — the R8.5-C framing (`R85C_WORK
   includes clear 12.8 µs and tile output at 4 clocks/word ≈ 51 µs); 75 tiles ≈ **9.0 ms/frame** of the 16.7 ms
   budget **before** D213 driver, cache maintenance and IRQ latency (NOT_RUN). The 45F output path (4 clocks/word)
   is the largest fixed cost and is the first optimisation if G-E07 misses.
+- With half tiles (standard frames): 18 tiles in 3123 µs = **173.5 µs/tile** (RTL_SIMULATED; extra round trip and
+  the tile is emitted twice) → 75 tiles ≈ **13.0 ms/frame** of 16.7 ms before D213 costs. Too tight to count on:
+  if jumbo frames are unavailable, the next RTL step is a tile output path faster than 2 clocks/word and a second
+  tile buffer so the next tile draws while the current one is returned.

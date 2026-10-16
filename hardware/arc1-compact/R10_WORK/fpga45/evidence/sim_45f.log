@@ -4,7 +4,9 @@ TEST r10g_loopback done errors=0
 INFO tile 0: 17 job words, round trip 97.1 us
 INFO 18 tiles over RGMII, 2155 us total round trips (sequential, one tile in flight)
 TEST r10g_tiles_rgmii done errors=0
-INFO status: rev=1 caps=0001 rx_ok=23 tx=22 tris=58 samples=33662 written=11609
+INFO 18 tiles as halves, largest frame 1066 bytes incl. FCS, 3123 us total round trips
+TEST r10g_tiles_halves done errors=0
+INFO status: rev=1 caps=0001 rx_ok=62 tx=61 tris=117 samples=68080 written=23588
 TEST r10g_errors_status done errors=0
 R10_45F_TB_PASS
-tb/tb_r10_45f.sv:232: $finish called at 2174240000 (1ps)
+tb/tb_r10_45f.sv:271: $finish called at 5417296000 (1ps)
