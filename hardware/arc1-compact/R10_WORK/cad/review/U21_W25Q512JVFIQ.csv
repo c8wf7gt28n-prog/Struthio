@@ -1,0 +1,17 @@
+pin,name,etype,net,nc_reason,net_members
+1,IO3,bidirectional,D213_NOR_IO3,,U19.37 R56.1
+2,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+73)
+3,~{RESET},input,D213_NOR_RESET_N,,R57.1
+4,NC,no_connect,,NC per datasheet,
+5,NC,no_connect,,NC per datasheet,
+6,NC,no_connect,,NC per datasheet,
+7,~{CS},input,D213_NOR_CS_N,,U19.39 R54.1 TP39.1
+8,DO_IO1,tri_state,D213_NOR_MISO,,U19.40 TP38.1
+9,IO2,bidirectional,D213_NOR_IO2,,U19.38 R55.1
+10,GND,power_in,GND,,(ground)
+11,NC,no_connect,,NC per datasheet,
+12,NC,no_connect,,NC per datasheet,
+13,NC,no_connect,,NC per datasheet,
+14,NC,no_connect,,NC per datasheet,
+15,DI_IO0,bidirectional,D213_NOR_MOSI,,U19.42 TP37.1
+16,CLK,input,D213_NOR_CLK,,R53.2 TP36.1

@@ -1,0 +1,18 @@
+pin,name,etype,net,nc_reason,net_members
+A1,GND,passive,GND,,(ground)
+A4,VBUS,passive,VBUS_RAW,,F1.1 R1.1
+A5,CC1,bidirectional,USB_CC1,,U1.1 R4.1
+A6,D+,bidirectional,USB0_DP,,U2.1 TP2.1 U17.115
+A7,D-,bidirectional,USB0_DM,,U2.2 TP3.1 U17.114
+A8,SBU1,bidirectional,,SBU unused,
+A9,VBUS,passive,VBUS_RAW,,F1.1 R1.1
+B1,GND,passive,GND,,(ground)
+B4,VBUS,passive,VBUS_RAW,,F1.1 R1.1
+B5,CC2,bidirectional,USB_CC2,,U1.2 R5.1
+B6,D+,bidirectional,USB0_DP,,U2.1 TP2.1 U17.115
+B7,D-,bidirectional,USB0_DM,,U2.2 TP3.1 U17.114
+B8,SBU2,bidirectional,,SBU unused,
+B9,VBUS,passive,VBUS_RAW,,F1.1 R1.1
+S1,SHIELD,passive,GND,,(ground)
+A12,GND,passive,GND,,(ground)
+B12,GND,passive,GND,,(ground)

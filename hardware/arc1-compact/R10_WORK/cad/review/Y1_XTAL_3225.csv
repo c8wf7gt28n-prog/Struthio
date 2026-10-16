@@ -1,0 +1,5 @@
+pin,name,etype,net,nc_reason,net_members
+1,X1,passive,XTAL24_IN,,U17.23 C68.1
+2,GND,passive,GND,,(ground)
+3,X2,passive,XTAL24_OUT,,U17.22 C69.1
+4,GND,passive,GND,,(ground)

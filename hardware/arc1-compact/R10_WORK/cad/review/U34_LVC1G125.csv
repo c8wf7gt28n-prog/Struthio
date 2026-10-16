@@ -1,0 +1,6 @@
+pin,name,etype,net,nc_reason,net_members
+1,~{OE},input,FPGA12_BUS_EN_N,,U17.41 U32.1 U33.1 R140.1
+2,A,input,FPGA12_SS_N_F,,U17.43 J4.8 U35.1 R141.1
+3,GND,power_in,GND,,(ground)
+4,Y,tri_state,FPGA12_SS_N,,U31.48 R148.1
+5,VCC,power_in,3V3_F12,,R38.2 U15.5 U15.6 C38.1 TP18.1 U16.1 U16.3 C39.1 U31.9 U31.16 U31.36 U31.43 (+39)

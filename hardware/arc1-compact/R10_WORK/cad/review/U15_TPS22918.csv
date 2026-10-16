@@ -1,0 +1,7 @@
+pin,name,etype,net,nc_reason,net_members
+1,VIN,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+73)
+2,GND,power_in,GND,,(ground)
+3,ON,input,FPGA12_PWR_EN,,U14.1 R36.2 R37.1 J3.2 TP21.1
+4,CT,passive,SW_F12_CT,,C36.1
+5,QOD,passive,3V3_F12,,R38.2 C38.1 TP18.1 U16.1 U16.3 C39.1 U31.9 U31.16 U31.36 U31.43 U31.70 U31.86 (+38)
+6,VOUT,power_out,3V3_F12,,R38.2 C38.1 TP18.1 U16.1 U16.3 C39.1 U31.9 U31.16 U31.36 U31.43 U31.70 U31.86 (+38)

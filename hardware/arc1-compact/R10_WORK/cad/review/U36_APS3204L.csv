@@ -1,0 +1,9 @@
+pin,name,etype,net,nc_reason,net_members
+1,~{CE},input,PSRAM_CE_N,,U31.72 R159.1
+2,SO_SIO1,bidirectional,PSRAM_SIO1,,U31.76 R162.1
+3,SIO2,bidirectional,PSRAM_SIO2,,U31.77 R163.1
+4,VSS,power_in,GND,,(ground)
+5,SI_SIO0,bidirectional,PSRAM_SIO0,,U31.74 R161.1
+6,SCLK,input,PSRAM_SCLK,,R158.2 R160.1
+7,SIO3,bidirectional,PSRAM_SIO3,,U31.78 R164.1
+8,VDD,power_in,3V3_F12,,R38.2 U15.5 U15.6 C38.1 TP18.1 U16.1 U16.3 C39.1 U31.9 U31.16 U31.36 U31.43 (+39)

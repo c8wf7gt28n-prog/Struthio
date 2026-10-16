@@ -12175,7 +12175,7 @@
     "C20": {
      "name": "PR23A",
      "etype": "bidirectional",
-     "net": "SD_DQ0",
+     "net": "SDR_DQ0",
      "nc_reason": null
     },
     "D1": {
@@ -12283,13 +12283,13 @@
     "D18": {
      "name": "PR14A",
      "etype": "bidirectional",
-     "net": "SD_DQ1",
+     "net": "SDR_DQ1",
      "nc_reason": null
     },
     "D19": {
      "name": "PR23B",
      "etype": "bidirectional",
-     "net": "SD_DQ2",
+     "net": "SDR_DQ2",
      "nc_reason": null
     },
     "D20": {
@@ -12391,31 +12391,31 @@
     "E16": {
      "name": "PR11C",
      "etype": "bidirectional",
-     "net": "SD_DQ3",
+     "net": "SDR_DQ3",
      "nc_reason": null
     },
     "E17": {
      "name": "PR14B",
      "etype": "bidirectional",
-     "net": "SD_DQ4",
+     "net": "SDR_DQ4",
      "nc_reason": null
     },
     "E18": {
      "name": "PR14C",
      "etype": "bidirectional",
-     "net": "SD_DQ5",
+     "net": "SDR_DQ5",
      "nc_reason": null
     },
     "E19": {
      "name": "PR23D",
      "etype": "bidirectional",
-     "net": "SD_DQ6",
+     "net": "SDR_DQ6",
      "nc_reason": null
     },
     "E20": {
      "name": "PR26A",
      "etype": "bidirectional",
-     "net": "SD_DQ7",
+     "net": "SDR_DQ7",
      "nc_reason": null
     },
     "F1": {
@@ -12511,31 +12511,31 @@
     "F16": {
      "name": "PR11D",
      "etype": "bidirectional",
-     "net": "SD_DQ8",
+     "net": "SDR_DQ8",
      "nc_reason": null
     },
     "F17": {
      "name": "PR17A",
      "etype": "bidirectional",
-     "net": "SD_DQ9",
+     "net": "SDR_DQ9",
      "nc_reason": null
     },
     "F18": {
      "name": "PR14D",
      "etype": "bidirectional",
-     "net": "SD_DQ10",
+     "net": "SDR_DQ10",
      "nc_reason": null
     },
     "F19": {
      "name": "PR26B",
      "etype": "bidirectional",
-     "net": "SD_DQ11",
+     "net": "SDR_DQ11",
      "nc_reason": null
     },
     "F20": {
      "name": "PR26C",
      "etype": "bidirectional",
-     "net": "SD_DQ12",
+     "net": "SDR_DQ12",
      "nc_reason": null
     },
     "G1": {
@@ -12631,7 +12631,7 @@
     "G16": {
      "name": "PR17C",
      "etype": "bidirectional",
-     "net": "SD_DQ13",
+     "net": "SDR_DQ13",
      "nc_reason": null
     },
     "G17": {
@@ -12643,7 +12643,7 @@
     "G18": {
      "name": "PR17B",
      "etype": "bidirectional",
-     "net": "SD_DQ14",
+     "net": "SDR_DQ14",
      "nc_reason": null
     },
     "G19": {
@@ -12655,7 +12655,7 @@
     "G20": {
      "name": "PR26D",
      "etype": "bidirectional",
-     "net": "SD_DQ15",
+     "net": "SDR_DQ15",
      "nc_reason": null
     },
     "H1": {
@@ -12751,13 +12751,13 @@
     "H16": {
      "name": "PR17D",
      "etype": "bidirectional",
-     "net": "SD_DQM0",
+     "net": "SDR_DQM0",
      "nc_reason": null
     },
     "H17": {
      "name": "PR20B",
      "etype": "bidirectional",
-     "net": "SD_DQM1",
+     "net": "SDR_DQM1",
      "nc_reason": null
     },
     "H18": {
@@ -13117,7 +13117,7 @@
     "L17": {
      "name": "PR38B",
      "etype": "bidirectional",
-     "net": "SD_CLK_F",
+     "net": "SDR_CLK_F",
      "nc_reason": null
     },
     "L18": {
@@ -13237,13 +13237,13 @@
     "M17": {
      "name": "PR41B",
      "etype": "bidirectional",
-     "net": "SD_CKE",
+     "net": "SDR_CKE",
      "nc_reason": null
     },
     "M18": {
      "name": "PR38D",
      "etype": "bidirectional",
-     "net": "SD_CS_N",
+     "net": "SDR_CS_N",
      "nc_reason": null
     },
     "M19": {
@@ -13351,31 +13351,31 @@
     "N16": {
      "name": "PR41A",
      "etype": "bidirectional",
-     "net": "SD_RAS_N",
+     "net": "SDR_RAS_N",
      "nc_reason": null
     },
     "N17": {
      "name": "PR44A",
      "etype": "bidirectional",
-     "net": "SD_CAS_N",
+     "net": "SDR_CAS_N",
      "nc_reason": null
     },
     "N18": {
      "name": "PR41C",
      "etype": "bidirectional",
-     "net": "SD_WE_N",
+     "net": "SDR_WE_N",
      "nc_reason": null
     },
     "N19": {
      "name": "PR59A",
      "etype": "bidirectional",
-     "net": "SD_BA0",
+     "net": "SDR_BA0",
      "nc_reason": null
     },
     "N20": {
      "name": "PR59B",
      "etype": "bidirectional",
-     "net": "SD_BA1",
+     "net": "SDR_BA1",
      "nc_reason": null
     },
     "P1": {
@@ -13477,25 +13477,25 @@
     "P17": {
      "name": "PR41D",
      "etype": "bidirectional",
-     "net": "SD_A0",
+     "net": "SDR_A0",
      "nc_reason": null
     },
     "P18": {
      "name": "PR59D",
      "etype": "bidirectional",
-     "net": "SD_A1",
+     "net": "SDR_A1",
      "nc_reason": null
     },
     "P19": {
      "name": "PR59C",
      "etype": "bidirectional",
-     "net": "SD_A2",
+     "net": "SDR_A2",
      "nc_reason": null
     },
     "P20": {
      "name": "PR62A",
      "etype": "bidirectional",
-     "net": "SD_A3",
+     "net": "SDR_A3",
      "nc_reason": null
     },
     "R1": {
@@ -13531,19 +13531,19 @@
     "R16": {
      "name": "PR44C",
      "etype": "bidirectional",
-     "net": "SD_A4",
+     "net": "SDR_A4",
      "nc_reason": null
     },
     "R17": {
      "name": "PR44D",
      "etype": "bidirectional",
-     "net": "SD_A5",
+     "net": "SDR_A5",
      "nc_reason": null
     },
     "R18": {
      "name": "PR65B",
      "etype": "bidirectional",
-     "net": "SD_A6",
+     "net": "SDR_A6",
      "nc_reason": null
     },
     "R19": {
@@ -13555,7 +13555,7 @@
     "R20": {
      "name": "PR62B",
      "etype": "bidirectional",
-     "net": "SD_A7",
+     "net": "SDR_A7",
      "nc_reason": null
     },
     "T1": {
@@ -13651,7 +13651,7 @@
     "T16": {
      "name": "PR53A",
      "etype": "bidirectional",
-     "net": "SD_A8",
+     "net": "SDR_A8",
      "nc_reason": null
     },
     "T17": {
@@ -13663,19 +13663,19 @@
     "T18": {
      "name": "PR65D",
      "etype": "bidirectional",
-     "net": "SD_A9",
+     "net": "SDR_A9",
      "nc_reason": null
     },
     "T19": {
      "name": "PR65A",
      "etype": "bidirectional",
-     "net": "SD_A10",
+     "net": "SDR_A10",
      "nc_reason": null
     },
     "T20": {
      "name": "PR62C",
      "etype": "bidirectional",
-     "net": "SD_A11",
+     "net": "SDR_A11",
      "nc_reason": null
     },
     "U1": {
@@ -13777,7 +13777,7 @@
     "U17": {
      "name": "PR68B",
      "etype": "bidirectional",
-     "net": "SD_A12",
+     "net": "SDR_A12",
      "nc_reason": null
     },
     "U18": {
@@ -17352,7 +17352,7 @@
     "2": {
      "name": "DQ0",
      "etype": "bidirectional",
-     "net": "SD_DQ0",
+     "net": "SDR_DQ0",
      "nc_reason": null
     },
     "3": {
@@ -17364,13 +17364,13 @@
     "4": {
      "name": "DQ1",
      "etype": "bidirectional",
-     "net": "SD_DQ1",
+     "net": "SDR_DQ1",
      "nc_reason": null
     },
     "5": {
      "name": "DQ2",
      "etype": "bidirectional",
-     "net": "SD_DQ2",
+     "net": "SDR_DQ2",
      "nc_reason": null
     },
     "6": {
@@ -17382,13 +17382,13 @@
     "7": {
      "name": "DQ3",
      "etype": "bidirectional",
-     "net": "SD_DQ3",
+     "net": "SDR_DQ3",
      "nc_reason": null
     },
     "8": {
      "name": "DQ4",
      "etype": "bidirectional",
-     "net": "SD_DQ4",
+     "net": "SDR_DQ4",
      "nc_reason": null
     },
     "9": {
@@ -17400,13 +17400,13 @@
     "10": {
      "name": "DQ5",
      "etype": "bidirectional",
-     "net": "SD_DQ5",
+     "net": "SDR_DQ5",
      "nc_reason": null
     },
     "11": {
      "name": "DQ6",
      "etype": "bidirectional",
-     "net": "SD_DQ6",
+     "net": "SDR_DQ6",
      "nc_reason": null
     },
     "12": {
@@ -17418,7 +17418,7 @@
     "13": {
      "name": "DQ7",
      "etype": "bidirectional",
-     "net": "SD_DQ7",
+     "net": "SDR_DQ7",
      "nc_reason": null
     },
     "14": {
@@ -17430,73 +17430,73 @@
     "15": {
      "name": "LDQM",
      "etype": "input",
-     "net": "SD_DQM0",
+     "net": "SDR_DQM0",
      "nc_reason": null
     },
     "16": {
      "name": "~{WE}",
      "etype": "input",
-     "net": "SD_WE_N",
+     "net": "SDR_WE_N",
      "nc_reason": null
     },
     "17": {
      "name": "~{CAS}",
      "etype": "input",
-     "net": "SD_CAS_N",
+     "net": "SDR_CAS_N",
      "nc_reason": null
     },
     "18": {
      "name": "~{RAS}",
      "etype": "input",
-     "net": "SD_RAS_N",
+     "net": "SDR_RAS_N",
      "nc_reason": null
     },
     "19": {
      "name": "~{CS}",
      "etype": "input",
-     "net": "SD_CS_N",
+     "net": "SDR_CS_N",
      "nc_reason": null
     },
     "20": {
      "name": "BA0",
      "etype": "input",
-     "net": "SD_BA0",
+     "net": "SDR_BA0",
      "nc_reason": null
     },
     "21": {
      "name": "BA1",
      "etype": "input",
-     "net": "SD_BA1",
+     "net": "SDR_BA1",
      "nc_reason": null
     },
     "22": {
      "name": "A10",
      "etype": "input",
-     "net": "SD_A10",
+     "net": "SDR_A10",
      "nc_reason": null
     },
     "23": {
      "name": "A0",
      "etype": "input",
-     "net": "SD_A0",
+     "net": "SDR_A0",
      "nc_reason": null
     },
     "24": {
      "name": "A1",
      "etype": "input",
-     "net": "SD_A1",
+     "net": "SDR_A1",
      "nc_reason": null
     },
     "25": {
      "name": "A2",
      "etype": "input",
-     "net": "SD_A2",
+     "net": "SDR_A2",
      "nc_reason": null
     },
     "26": {
      "name": "A3",
      "etype": "input",
-     "net": "SD_A3",
+     "net": "SDR_A3",
      "nc_reason": null
     },
     "27": {
@@ -17514,67 +17514,67 @@
     "29": {
      "name": "A4",
      "etype": "input",
-     "net": "SD_A4",
+     "net": "SDR_A4",
      "nc_reason": null
     },
     "30": {
      "name": "A5",
      "etype": "input",
-     "net": "SD_A5",
+     "net": "SDR_A5",
      "nc_reason": null
     },
     "31": {
      "name": "A6",
      "etype": "input",
-     "net": "SD_A6",
+     "net": "SDR_A6",
      "nc_reason": null
     },
     "32": {
      "name": "A7",
      "etype": "input",
-     "net": "SD_A7",
+     "net": "SDR_A7",
      "nc_reason": null
     },
     "33": {
      "name": "A8",
      "etype": "input",
-     "net": "SD_A8",
+     "net": "SDR_A8",
      "nc_reason": null
     },
     "34": {
      "name": "A9",
      "etype": "input",
-     "net": "SD_A9",
+     "net": "SDR_A9",
      "nc_reason": null
     },
     "35": {
      "name": "A11",
      "etype": "input",
-     "net": "SD_A11",
+     "net": "SDR_A11",
      "nc_reason": null
     },
     "36": {
      "name": "A12",
      "etype": "input",
-     "net": "SD_A12",
+     "net": "SDR_A12",
      "nc_reason": null
     },
     "37": {
      "name": "CKE",
      "etype": "input",
-     "net": "SD_CKE",
+     "net": "SDR_CKE",
      "nc_reason": null
     },
     "38": {
      "name": "CLK",
      "etype": "input",
-     "net": "SD_CLK",
+     "net": "SDR_CLK",
      "nc_reason": null
     },
     "39": {
      "name": "UDQM",
      "etype": "input",
-     "net": "SD_DQM1",
+     "net": "SDR_DQM1",
      "nc_reason": null
     },
     "40": {
@@ -17592,7 +17592,7 @@
     "42": {
      "name": "DQ8",
      "etype": "bidirectional",
-     "net": "SD_DQ8",
+     "net": "SDR_DQ8",
      "nc_reason": null
     },
     "43": {
@@ -17604,13 +17604,13 @@
     "44": {
      "name": "DQ9",
      "etype": "bidirectional",
-     "net": "SD_DQ9",
+     "net": "SDR_DQ9",
      "nc_reason": null
     },
     "45": {
      "name": "DQ10",
      "etype": "bidirectional",
-     "net": "SD_DQ10",
+     "net": "SDR_DQ10",
      "nc_reason": null
     },
     "46": {
@@ -17622,13 +17622,13 @@
     "47": {
      "name": "DQ11",
      "etype": "bidirectional",
-     "net": "SD_DQ11",
+     "net": "SDR_DQ11",
      "nc_reason": null
     },
     "48": {
      "name": "DQ12",
      "etype": "bidirectional",
-     "net": "SD_DQ12",
+     "net": "SDR_DQ12",
      "nc_reason": null
     },
     "49": {
@@ -17640,13 +17640,13 @@
     "50": {
      "name": "DQ13",
      "etype": "bidirectional",
-     "net": "SD_DQ13",
+     "net": "SDR_DQ13",
      "nc_reason": null
     },
     "51": {
      "name": "DQ14",
      "etype": "bidirectional",
-     "net": "SD_DQ14",
+     "net": "SDR_DQ14",
      "nc_reason": null
     },
     "52": {
@@ -17658,7 +17658,7 @@
     "53": {
      "name": "DQ15",
      "etype": "bidirectional",
-     "net": "SD_DQ15",
+     "net": "SDR_DQ15",
      "nc_reason": null
     },
     "54": {
@@ -17687,13 +17687,13 @@
     "1": {
      "name": "~",
      "etype": "passive",
-     "net": "SD_CLK_F",
+     "net": "SDR_CLK_F",
      "nc_reason": null
     },
     "2": {
      "name": "~",
      "etype": "passive",
-     "net": "SD_CLK",
+     "net": "SDR_CLK",
      "nc_reason": null
     }
    }
@@ -17716,7 +17716,7 @@
     "1": {
      "name": "~",
      "etype": "passive",
-     "net": "SD_CKE",
+     "net": "SDR_CKE",
      "nc_reason": null
     },
     "2": {
@@ -17991,7 +17991,7 @@
   {
    "ref": "TP58",
    "part": "TP",
-   "value": "SD_CLK",
+   "value": "SDR_CLK",
    "mpn": "",
    "manufacturer": "-",
    "lcsc": "",
@@ -18006,7 +18006,7 @@
     "1": {
      "name": "1",
      "etype": "passive",
-     "net": "SD_CLK",
+     "net": "SDR_CLK",
      "nc_reason": null
     }
    }
@@ -20080,7 +20080,7 @@
    "footprint_status": "STD_LIB",
    "dnp": false,
    "sheet": "fpga12",
-   "note": "",
+   "note": "Ioff: powered with the FPGA it drives",
    "evidence": "VERIFIED_BY_VENDOR_DOC",
    "slim4_reuse": false,
    "pins": {
@@ -20111,7 +20111,101 @@
     "5": {
      "name": "VCC",
      "etype": "power_in",
-     "net": "3V3",
+     "net": "3V3_F12",
+     "nc_reason": null
+    }
+   }
+  },
+  {
+   "ref": "U33",
+   "part": "LVC1G125",
+   "value": "iso MOSI",
+   "mpn": "SN74LVC1G125DCKR",
+   "manufacturer": "Texas Instruments",
+   "lcsc": "",
+   "footprint": "Package_TO_SOT_SMD:SOT-353_SC-70-5",
+   "footprint_status": "STD_LIB",
+   "dnp": false,
+   "sheet": "fpga12",
+   "note": "Ioff: powered with the FPGA it drives",
+   "evidence": "VERIFIED_BY_VENDOR_DOC",
+   "slim4_reuse": false,
+   "pins": {
+    "1": {
+     "name": "~{OE}",
+     "etype": "input",
+     "net": "FPGA12_BUS_EN_N",
+     "nc_reason": null
+    },
+    "2": {
+     "name": "A",
+     "etype": "input",
+     "net": "SPI0_MOSI",
+     "nc_reason": null
+    },
+    "3": {
+     "name": "GND",
+     "etype": "power_in",
+     "net": "GND",
+     "nc_reason": null
+    },
+    "4": {
+     "name": "Y",
+     "etype": "tri_state",
+     "net": "FPGA12_MOSI",
+     "nc_reason": null
+    },
+    "5": {
+     "name": "VCC",
+     "etype": "power_in",
+     "net": "3V3_F12",
+     "nc_reason": null
+    }
+   }
+  },
+  {
+   "ref": "U34",
+   "part": "LVC1G125",
+   "value": "iso SS",
+   "mpn": "SN74LVC1G125DCKR",
+   "manufacturer": "Texas Instruments",
+   "lcsc": "",
+   "footprint": "Package_TO_SOT_SMD:SOT-353_SC-70-5",
+   "footprint_status": "STD_LIB",
+   "dnp": false,
+   "sheet": "fpga12",
+   "note": "Ioff: powered with the FPGA it drives",
+   "evidence": "VERIFIED_BY_VENDOR_DOC",
+   "slim4_reuse": false,
+   "pins": {
+    "1": {
+     "name": "~{OE}",
+     "etype": "input",
+     "net": "FPGA12_BUS_EN_N",
+     "nc_reason": null
+    },
+    "2": {
+     "name": "A",
+     "etype": "input",
+     "net": "FPGA12_SS_N_F",
+     "nc_reason": null
+    },
+    "3": {
+     "name": "GND",
+     "etype": "power_in",
+     "net": "GND",
+     "nc_reason": null
+    },
+    "4": {
+     "name": "Y",
+     "etype": "tri_state",
+     "net": "FPGA12_SS_N",
+     "nc_reason": null
+    },
+    "5": {
+     "name": "VCC",
+     "etype": "power_in",
+     "net": "3V3_F12",
      "nc_reason": null
     }
    }
@@ -20146,95 +20240,88 @@
    }
   },
   {
-   "ref": "U33",
-   "part": "LVC1G125",
-   "value": "iso MOSI",
-   "mpn": "SN74LVC1G125DCKR",
-   "manufacturer": "Texas Instruments",
-   "lcsc": "",
-   "footprint": "Package_TO_SOT_SMD:SOT-353_SC-70-5",
+   "ref": "C208",
+   "part": "C0402",
+   "value": "100nF",
+   "mpn": "CL05B104KO5NNNC",
+   "manufacturer": "Samsung",
+   "lcsc": "C1525",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
    "footprint_status": "STD_LIB",
    "dnp": false,
    "sheet": "fpga12",
    "note": "",
-   "evidence": "VERIFIED_BY_VENDOR_DOC",
-   "slim4_reuse": false,
+   "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
+   "slim4_reuse": true,
    "pins": {
     "1": {
-     "name": "~{OE}",
-     "etype": "input",
-     "net": "FPGA12_BUS_EN_N",
+     "name": "~",
+     "etype": "passive",
+     "net": "3V3_F12",
      "nc_reason": null
     },
     "2": {
-     "name": "A",
-     "etype": "input",
-     "net": "SPI0_MOSI",
-     "nc_reason": null
-    },
-    "3": {
-     "name": "GND",
-     "etype": "power_in",
+     "name": "~",
+     "etype": "passive",
      "net": "GND",
-     "nc_reason": null
-    },
-    "4": {
-     "name": "Y",
-     "etype": "tri_state",
-     "net": "FPGA12_MOSI",
-     "nc_reason": null
-    },
-    "5": {
-     "name": "VCC",
-     "etype": "power_in",
-     "net": "3V3",
      "nc_reason": null
     }
    }
   },
   {
-   "ref": "U34",
-   "part": "LVC1G125",
-   "value": "iso SS",
-   "mpn": "SN74LVC1G125DCKR",
-   "manufacturer": "Texas Instruments",
-   "lcsc": "",
-   "footprint": "Package_TO_SOT_SMD:SOT-353_SC-70-5",
+   "ref": "C209",
+   "part": "C0402",
+   "value": "100nF",
+   "mpn": "CL05B104KO5NNNC",
+   "manufacturer": "Samsung",
+   "lcsc": "C1525",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
    "footprint_status": "STD_LIB",
    "dnp": false,
    "sheet": "fpga12",
    "note": "",
-   "evidence": "VERIFIED_BY_VENDOR_DOC",
-   "slim4_reuse": false,
+   "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
+   "slim4_reuse": true,
    "pins": {
     "1": {
-     "name": "~{OE}",
-     "etype": "input",
-     "net": "FPGA12_BUS_EN_N",
+     "name": "~",
+     "etype": "passive",
+     "net": "3V3_F12",
      "nc_reason": null
     },
     "2": {
-     "name": "A",
-     "etype": "input",
-     "net": "FPGA12_SS_N_F",
-     "nc_reason": null
-    },
-    "3": {
-     "name": "GND",
-     "etype": "power_in",
+     "name": "~",
+     "etype": "passive",
      "net": "GND",
      "nc_reason": null
-    },
-    "4": {
-     "name": "Y",
-     "etype": "tri_state",
-     "net": "FPGA12_SS_N",
+    }
+   }
+  },
+  {
+   "ref": "C210",
+   "part": "C0402",
+   "value": "100nF",
+   "mpn": "CL05B104KO5NNNC",
+   "manufacturer": "Samsung",
+   "lcsc": "C1525",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "footprint_status": "STD_LIB",
+   "dnp": false,
+   "sheet": "fpga12",
+   "note": "",
+   "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
+   "slim4_reuse": true,
+   "pins": {
+    "1": {
+     "name": "~",
+     "etype": "passive",
+     "net": "3V3_F12",
      "nc_reason": null
     },
-    "5": {
-     "name": "VCC",
-     "etype": "power_in",
-     "net": "3V3",
+    "2": {
+     "name": "~",
+     "etype": "passive",
+     "net": "GND",
      "nc_reason": null
     }
    }
@@ -20282,93 +20369,6 @@
      "name": "VCC",
      "etype": "power_in",
      "net": "3V3",
-     "nc_reason": null
-    }
-   }
-  },
-  {
-   "ref": "C208",
-   "part": "C0402",
-   "value": "100nF",
-   "mpn": "CL05B104KO5NNNC",
-   "manufacturer": "Samsung",
-   "lcsc": "C1525",
-   "footprint": "Capacitor_SMD:C_0402_1005Metric",
-   "footprint_status": "STD_LIB",
-   "dnp": false,
-   "sheet": "fpga12",
-   "note": "",
-   "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
-   "slim4_reuse": true,
-   "pins": {
-    "1": {
-     "name": "~",
-     "etype": "passive",
-     "net": "3V3",
-     "nc_reason": null
-    },
-    "2": {
-     "name": "~",
-     "etype": "passive",
-     "net": "GND",
-     "nc_reason": null
-    }
-   }
-  },
-  {
-   "ref": "C209",
-   "part": "C0402",
-   "value": "100nF",
-   "mpn": "CL05B104KO5NNNC",
-   "manufacturer": "Samsung",
-   "lcsc": "C1525",
-   "footprint": "Capacitor_SMD:C_0402_1005Metric",
-   "footprint_status": "STD_LIB",
-   "dnp": false,
-   "sheet": "fpga12",
-   "note": "",
-   "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
-   "slim4_reuse": true,
-   "pins": {
-    "1": {
-     "name": "~",
-     "etype": "passive",
-     "net": "3V3",
-     "nc_reason": null
-    },
-    "2": {
-     "name": "~",
-     "etype": "passive",
-     "net": "GND",
-     "nc_reason": null
-    }
-   }
-  },
-  {
-   "ref": "C210",
-   "part": "C0402",
-   "value": "100nF",
-   "mpn": "CL05B104KO5NNNC",
-   "manufacturer": "Samsung",
-   "lcsc": "C1525",
-   "footprint": "Capacitor_SMD:C_0402_1005Metric",
-   "footprint_status": "STD_LIB",
-   "dnp": false,
-   "sheet": "fpga12",
-   "note": "",
-   "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
-   "slim4_reuse": true,
-   "pins": {
-    "1": {
-     "name": "~",
-     "etype": "passive",
-     "net": "3V3",
-     "nc_reason": null
-    },
-    "2": {
-     "name": "~",
-     "etype": "passive",
-     "net": "GND",
      "nc_reason": null
     }
    }
@@ -23368,13 +23368,7 @@
    "X1.1",
    "X1.4",
    "R105.2",
-   "U32.5",
-   "U33.5",
-   "U34.5",
    "U35.5",
-   "C208.1",
-   "C209.1",
-   "C210.1",
    "C211.1",
    "R140.2",
    "R141.2",
@@ -23412,6 +23406,12 @@
    "C205.1",
    "C206.1",
    "C207.1",
+   "U32.5",
+   "U33.5",
+   "U34.5",
+   "C208.1",
+   "C209.1",
+   "C210.1",
    "R144.2",
    "R146.2",
    "R147.2",
@@ -24643,10 +24643,10 @@
    "U32.3",
    "U33.3",
    "U34.3",
-   "U35.3",
    "C208.2",
    "C209.2",
    "C210.2",
+   "U35.3",
    "C211.2",
    "R142.2",
    "R143.2",
@@ -25110,96 +25110,180 @@
    "R19.1",
    "SW1.1"
   ],
-  "SD_A0": [
+  "SDR_A0": [
    "U26.P17",
    "U30.23"
   ],
-  "SD_A1": [
+  "SDR_A1": [
    "U26.P18",
    "U30.24"
   ],
-  "SD_A10": [
+  "SDR_A10": [
    "U26.T19",
    "U30.22"
   ],
-  "SD_A11": [
+  "SDR_A11": [
    "U26.T20",
    "U30.35"
   ],
-  "SD_A12": [
+  "SDR_A12": [
    "U26.U17",
    "U30.36"
   ],
-  "SD_A2": [
+  "SDR_A2": [
    "U26.P19",
    "U30.25"
   ],
-  "SD_A3": [
+  "SDR_A3": [
    "U26.P20",
    "U30.26"
   ],
-  "SD_A4": [
+  "SDR_A4": [
    "U26.R16",
    "U30.29"
   ],
-  "SD_A5": [
+  "SDR_A5": [
    "U26.R17",
    "U30.30"
   ],
-  "SD_A6": [
+  "SDR_A6": [
    "U26.R18",
    "U30.31"
   ],
-  "SD_A7": [
+  "SDR_A7": [
    "U26.R20",
    "U30.32"
   ],
-  "SD_A8": [
+  "SDR_A8": [
    "U26.T16",
    "U30.33"
   ],
-  "SD_A9": [
+  "SDR_A9": [
    "U26.T18",
    "U30.34"
   ],
-  "SD_BA0": [
+  "SDR_BA0": [
    "U26.N19",
    "U30.20"
   ],
-  "SD_BA1": [
+  "SDR_BA1": [
    "U26.N20",
    "U30.21"
   ],
-  "SD_CAS_N": [
+  "SDR_CAS_N": [
    "U26.N17",
    "U30.17"
   ],
-  "SD_CKE": [
+  "SDR_CKE": [
    "U26.M17",
    "U30.37",
    "R124.1"
   ],
-  "SD_CLK": [
+  "SDR_CLK": [
    "U30.38",
    "R123.2",
-   "TP58.1",
+   "TP58.1"
+  ],
+  "SDR_CLK_F": [
+   "U26.L17",
+   "R123.1"
+  ],
+  "SDR_CS_N": [
+   "U26.M18",
+   "U30.19"
+  ],
+  "SDR_DQ0": [
+   "U26.C20",
+   "U30.2"
+  ],
+  "SDR_DQ1": [
+   "U26.D18",
+   "U30.4"
+  ],
+  "SDR_DQ10": [
+   "U26.F18",
+   "U30.45"
+  ],
+  "SDR_DQ11": [
+   "U26.F19",
+   "U30.47"
+  ],
+  "SDR_DQ12": [
+   "U26.F20",
+   "U30.48"
+  ],
+  "SDR_DQ13": [
+   "U26.G16",
+   "U30.50"
+  ],
+  "SDR_DQ14": [
+   "U26.G18",
+   "U30.51"
+  ],
+  "SDR_DQ15": [
+   "U26.G20",
+   "U30.53"
+  ],
+  "SDR_DQ2": [
+   "U26.D19",
+   "U30.5"
+  ],
+  "SDR_DQ3": [
+   "U26.E16",
+   "U30.7"
+  ],
+  "SDR_DQ4": [
+   "U26.E17",
+   "U30.8"
+  ],
+  "SDR_DQ5": [
+   "U26.E18",
+   "U30.10"
+  ],
+  "SDR_DQ6": [
+   "U26.E19",
+   "U30.11"
+  ],
+  "SDR_DQ7": [
+   "U26.E20",
+   "U30.13"
+  ],
+  "SDR_DQ8": [
+   "U26.F16",
+   "U30.42"
+  ],
+  "SDR_DQ9": [
+   "U26.F17",
+   "U30.44"
+  ],
+  "SDR_DQM0": [
+   "U26.H16",
+   "U30.15"
+  ],
+  "SDR_DQM1": [
+   "U26.H17",
+   "U30.39"
+  ],
+  "SDR_RAS_N": [
+   "U26.N16",
+   "U30.18"
+  ],
+  "SDR_WE_N": [
+   "U26.N18",
+   "U30.16"
+  ],
+  "SD_CLK": [
    "J11.5",
    "R166.2"
   ],
   "SD_CLK_F": [
    "U17.9",
-   "U26.L17",
-   "R123.1",
    "R166.1"
   ],
   "SD_CMD": [
    "U17.10",
    "J11.3",
    "R167.1"
-  ],
-  "SD_CS_N": [
-   "U26.M18",
-   "U30.19"
   ],
   "SD_D0": [
    "U17.8",
@@ -25227,86 +25311,10 @@
    "R172.1",
    "TP66.1"
   ],
-  "SD_DQ0": [
-   "U26.C20",
-   "U30.2"
-  ],
-  "SD_DQ1": [
-   "U26.D18",
-   "U30.4"
-  ],
-  "SD_DQ10": [
-   "U26.F18",
-   "U30.45"
-  ],
-  "SD_DQ11": [
-   "U26.F19",
-   "U30.47"
-  ],
-  "SD_DQ12": [
-   "U26.F20",
-   "U30.48"
-  ],
-  "SD_DQ13": [
-   "U26.G16",
-   "U30.50"
-  ],
-  "SD_DQ14": [
-   "U26.G18",
-   "U30.51"
-  ],
-  "SD_DQ15": [
-   "U26.G20",
-   "U30.53"
-  ],
-  "SD_DQ2": [
-   "U26.D19",
-   "U30.5"
-  ],
-  "SD_DQ3": [
-   "U26.E16",
-   "U30.7"
-  ],
-  "SD_DQ4": [
-   "U26.E17",
-   "U30.8"
-  ],
-  "SD_DQ5": [
-   "U26.E18",
-   "U30.10"
-  ],
-  "SD_DQ6": [
-   "U26.E19",
-   "U30.11"
-  ],
-  "SD_DQ7": [
-   "U26.E20",
-   "U30.13"
-  ],
-  "SD_DQ8": [
-   "U26.F16",
-   "U30.42"
-  ],
-  "SD_DQ9": [
-   "U26.F17",
-   "U30.44"
-  ],
-  "SD_DQM0": [
-   "U26.H16",
-   "U30.15"
-  ],
-  "SD_DQM1": [
-   "U26.H17",
-   "U30.39"
-  ],
   "SD_PWR_EN": [
    "U17.54",
    "U37.3",
    "R165.1"
-  ],
-  "SD_RAS_N": [
-   "U26.N16",
-   "U30.18"
   ],
   "SD_VDD": [
    "J11.4",
@@ -25320,10 +25328,6 @@
    "R170.2",
    "R171.2",
    "TP65.1"
-  ],
-  "SD_WE_N": [
-   "U26.N18",
-   "U30.16"
   ],
   "SPI0_CLK": [
    "U18.16",

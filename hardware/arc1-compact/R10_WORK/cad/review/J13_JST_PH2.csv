@@ -1,0 +1,4 @@
+pin,name,etype,net,nc_reason,net_members
+1,1,passive,SPK_R_P,,U39.9
+2,2,passive,SPK_R_N,,U39.10
+MP,MP,passive,GND,,(ground)

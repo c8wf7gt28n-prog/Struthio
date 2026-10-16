@@ -1,0 +1,7 @@
+pin,name,etype,net,nc_reason,net_members
+1,1A,input,D213_BOOT_REQ_N,,U17.68 R49.1
+2,GND,power_in,GND,,(ground)
+3,2A,input,D213_RESET_REQ_N,,U17.67 R50.1
+4,2Y,open_collector,D213_RESET_N,,U19.76 SW3.1 C99.1 TP40.1
+5,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+73)
+6,1Y,open_collector,D213_UART0_TX,,U19.85 SW4.1 J5.2 R52.1 TP41.1

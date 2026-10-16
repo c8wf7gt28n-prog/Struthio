@@ -1,0 +1,18 @@
+pin,name,etype,net,nc_reason,net_members
+1,DIN,input,I2S_DOUT,,U17.84 U39.1
+2,GAIN_SLOT,passive,,GAIN_SLOT open = default gain,
+3,GND,power_in,GND,,(ground)
+4,SD_MODE,input,AMP_EN,,U17.37 R173.1 R174.1
+5,NC,no_connect,,NC,
+6,NC,no_connect,,NC,
+7,VDD,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 U5.4 C10.1 (+18)
+8,VDD,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 U5.4 C10.1 (+18)
+9,OUTP,output,SPK_L_P,,J12.1
+10,OUTN,output,SPK_L_N,,J12.2
+11,GND,power_in,GND,,(ground)
+12,NC,no_connect,,NC,
+13,NC,no_connect,,NC,
+14,LRCLK,input,I2S_LRCK,,U17.80 U39.14
+15,GND,power_in,GND,,(ground)
+16,BCLK,input,I2S_BCLK,,U17.82 U39.16
+17,EP,passive,GND,,(ground)

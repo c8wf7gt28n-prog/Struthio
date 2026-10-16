@@ -1,0 +1,7 @@
+pin,name,etype,net,nc_reason,net_members
+1,VIN,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+73)
+2,GND,power_in,GND,,(ground)
+3,ON,input,SD_PWR_EN,,U17.54 R165.1
+4,CT,passive,SW_SD_CT,,C215.1
+5,QOD,passive,SD_VDD,,J11.4 C216.1 C217.1 R167.2 R168.2 R169.2 R170.2 R171.2 TP65.1
+6,VOUT,power_out,SD_VDD,,J11.4 C216.1 C217.1 R167.2 R168.2 R169.2 R170.2 R171.2 TP65.1

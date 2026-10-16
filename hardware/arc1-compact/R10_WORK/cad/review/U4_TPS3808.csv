@@ -1,0 +1,7 @@
+pin,name,etype,net,nc_reason,net_members
+1,~{RESET},open_collector,PG_3V3,,R13.1 U5.1 U6.1 TP9.1 U9.1 U10.1
+2,GND,power_in,GND,,(ground)
+3,~{MR},input,SUP33_MR_N,,R12.1
+4,CT,passive,SUP33_CT,,C8.1
+5,SENSE,input,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 R12.2 R13.2 C9.1 U7.1 U7.3 C16.1 (+72)
+6,VDD,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 R12.2 R13.2 C9.1 U7.1 U7.3 C16.1 (+72)

@@ -504,7 +504,7 @@ def build():
     for r in eth45:
         used45[pin_of(r["b_pin"])] = f"G_{r['signal']}" if r["direction_a_to_b"] == "D213->45F" else f"G_{r['signal']}_F"
     for r in pm("SDRAM45"):
-        used45[r["pin"]] = "SD_" + net_of(r["signal"].replace("sd_", "")) + ("_F" if r["signal"] == "sd_clk" else "")
+        used45[r["pin"]] = "SDR_" + net_of(r["signal"].replace("sd_", "")) + ("_F" if r["signal"] == "sd_clk" else "")
     cfg45 = {r["signal"]: r["pin"] for r in pm("CFG45", "LFE5U-45F")}
     used45.update({cfg45["FPGA45_SCK"]: "FPGA45_SCK", cfg45["FPGA45_MOSI"]: "FPGA45_MOSI", cfg45["FPGA45_MISO"]: "FPGA45_MISO",
                    cfg45["FPGA45_SS_N"]: "FPGA45_SS_N", cfg45["FPGA45_PROGRAMN"]: "FPGA45_PROGRAMN",
@@ -585,7 +585,7 @@ def build():
     d.sheet("sdram45", "sdram45.kicad_sch", "AS4C16M16SA 32 MiB x16 SDR SDRAM, private 45F memory, on 3V3_F45")
     sdc = {}
     for r in pm("SDRAM45"):
-        sdc[r["peer_pin"]] = "SD_" + net_of(r["signal"].replace("sd_", ""))
+        sdc[r["peer_pin"]] = "SDR_" + net_of(r["signal"].replace("sd_", ""))
     for r in pm("SDRAM45_POWER"):
         if r["signal"] in ("VDD", "VDDQ"):
             sdc[r["pin"]] = "3V3_F45"
@@ -593,10 +593,10 @@ def build():
             sdc[r["pin"]] = "GND"
     us = d.U("AS4C16M16SA", "AS4C16M16SA-6TIN", sdc, note="powered with the 45F VCCIO (banks 2/3 not hot-socket safe)")
     d.nc(us.ref, "40", "NC must remain unconnected")
-    d.R("22R", "SD_CLK_F", "SD_CLK", note="clock source series R at the 45F; phase calibrated (fpga45/rtl/sdram_cal.sv)")
-    d.R("10k", "SD_CKE", "GND", note="CKE low while the 45F is unconfigured (commands ignored)")
+    d.R("22R", "SDR_CLK_F", "SDR_CLK", note="clock source series R at the 45F; phase calibrated (fpga45/rtl/sdram_cal.sv)")
+    d.R("10k", "SDR_CKE", "GND", note="CKE low while the 45F is unconfigured (commands ignored)")
     d.decouple("3V3_F45", 7); d.C("10uF", "3V3_F45", pkg="C0603"); d.C("10uF", "3V3_F45", pkg="C0603")
-    d.tp("SD_CLK")
+    d.tp("SDR_CLK")
 
     # ================================================================ 12F
     d.sheet("fpga12", "fpga12.kicad_sch", "LFE5U-12F-6TG144C adaptive coprocessor: rails, slave-SPI config from the F133, JTAG, RGMII")
@@ -644,13 +644,18 @@ def build():
     for _ in range(3):
         d.C("10uF", "3V3_F12", pkg="C0603")
     # sysCONFIG from the F133 SPI0 through the R8.5-C isolation buffers (boot-strap pins never loaded by the FPGA)
-    d.U("LVC1G125", "iso SCK", {"1": "FPGA12_BUS_EN_N", "2": "SPI0_CLK", "3": "GND", "4": "FPGA12_SCK_B", "5": "3V3"})
+    # R10 change vs R8.5-C: the three F133->FPGA buffers are powered from 3V3_F12 (Ioff), so an enabled bus can never
+    # back-power the unpowered FPGA rail through the bank-8 pull-ups; with 3V3_F12 off their inputs are hi-Z and never
+    # load the F133 boot-strap pins. The MISO buffer drives an F133 strap pin and therefore stays on 3V3.
+    for src, dst, nm in (("SPI0_CLK", "FPGA12_SCK_B", "iso SCK"), ("SPI0_MOSI", "FPGA12_MOSI", "iso MOSI"),
+                         ("FPGA12_SS_N_F", "FPGA12_SS_N", "iso SS")):
+        d.U("LVC1G125", nm, {"1": "FPGA12_BUS_EN_N", "2": src, "3": "GND", "4": dst, "5": "3V3_F12"},
+            note="Ioff: powered with the FPGA it drives")
     d.R("33R", "FPGA12_SCK_B", "FPGA12_SCK", note="CCLK series R")
-    d.U("LVC1G125", "iso MOSI", {"1": "FPGA12_BUS_EN_N", "2": "SPI0_MOSI", "3": "GND", "4": "FPGA12_MOSI", "5": "3V3"})
-    d.U("LVC1G125", "iso SS", {"1": "FPGA12_BUS_EN_N", "2": "FPGA12_SS_N_F", "3": "GND", "4": "FPGA12_SS_N", "5": "3V3"})
+    d.decouple("3V3_F12", 3)
     d.U("LVC1G125", "iso MISO", {"1": "FPGA12_SS_N_F", "2": "FPGA12_MISO", "3": "GND", "4": "SPI0_MISO", "5": "3V3"},
         note="drives PC5 only while the F133 selects the FPGA")
-    d.decouple("3V3", 4)
+    d.decouple("3V3")
     d.R("10k", "FPGA12_BUS_EN_N", "3V3", note="buffers disabled at reset")
     d.R("10k", "FPGA12_SS_N_F", "3V3", note="FPGA deselected, MISO buffer off at reset")
     d.R("100k", "FPGA12_MOSI", "GND"); d.R("100k", "FPGA12_MISO", "GND")
