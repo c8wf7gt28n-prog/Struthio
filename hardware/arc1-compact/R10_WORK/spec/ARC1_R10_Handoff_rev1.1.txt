@@ -1,0 +1,94 @@
+
+LOCKED USER REQUIREMENTS  /  RELEASE TO ELECTRICAL & MECHANICAL DESIGN
+ARC-1 R10
+Four-port, buttonless tabletop console — engineering handoff
+Issued 16 October 2026   |   Revision 1.1   |   Directed to Claude / PCB implementation
+DESIGN AUTHORITY  This document supersedes the prior three-connector and physical-power-button proposals. The user has selected exactly FOUR exterior connectors and NO exterior buttons or switches. These are requirements, not suggestions.
+1. External form and connector map
+The enclosure shall be a compact, low, rounded circular tabletop console with a smooth upper shell. The outside diameter is NOT fixed: determine the smallest practical envelope from the completed PCB, both front USB-A connector mating/clearance volumes, rear connector geometry, cooling and structural needs. Height, mounting features, inner clearances and PCB geometry are engineering dimensions to validate. Do not force a seven-inch diameter or any other predetermined dimension.
+Connector / role
+Preferred position
+Required function
+USB-C — POWER / DEBUG
+Rear
+Primary external power input; F133 computer-connected USB recovery and diagnostic access.
+USB-A — PLAYER 1
+Front — Player 1
+USB host for a wired controller or supported wireless receiver; hub compatibility where implemented.
+USB-A — PLAYER 2 / GAME LOAD
+Front — Player 2 / game load
+Second controller when playing; alternately reads a USB thumb drive to import games and updates into internal eMMC.
+HDMI — VIDEO + AUDIO
+Rear
+Monitor/TV video AND embedded stereo digital audio over one cable.
+
+Both USB-A connectors are FRONT-facing. The Player 2 socket also provides the removable USB-thumb-drive “game cartridge” experience: a standard USB connection, not a proprietary cartridge bus. There are exactly four exterior connectors, with no top-mounted socket. Both front ports must have adequate plug/grip clearance.
+No exterior controls
+Absolutely no power button, reset button, game-select button, volume button, toggle, slide switch or externally exposed recovery switch. ARC-1 powers up automatically when valid USB-C input power is applied. Disconnect USB-C to turn the hardware fully off. Provide in-software restart and safe-stop/eject functions.
+
+2. System interfaces requiring schematic changes
+USB topology: two USB-A ports plus recovery
+The existing R10 allocation uses F133 USB1 host for the internal F133 to D213 link. Do not reassign it without a verified substitute. The remaining F133 USB0 dual-role connection must provide both USB-C device/recovery and host connectivity to TWO external USB-A connectors. Design and validate the additional hub/mux/control circuitry required; the two external USB-A ports cannot be treated as two independent USB controllers.
+Candidate architecture for verification: F133 USB0  to  USB 2.0 role/data switch  to  (a) USB-C device/recovery path OR (b) internal USB 2.0 hub serving both USB-A receptacles. Verify upstream role, high-speed operation, reset state, VBUS controls and signal integrity.
+In normal host mode, both USB-A receptacles shall function concurrently for Player 1 and Player 2. In USB-C computer-recovery mode, both USB-A host ports may be intentionally disabled. Make that mutual exclusion explicit.
+Recovery should be accessible without a user-facing button: use an electrically deterministic power-up policy, firmware-independent ROM entry method if supported, and internal service pads or a fixture for forced recovery. Do not assume USB ROM behavior without bench evidence.
+Provide USB-A 5 V host supply switches, overcurrent protection, port power budgeting, connector ESD, and recovery-mode isolation. Do not backfeed USB-C or a connected computer.
+HDMI with actual audio
+The previously selected TI TFP410 is a video/DVI transmitter; it cannot embed HDMI audio. Replace it with a verified, sourceable HDMI audio-capable transmitter or equivalent proven solution. Confirm D213 parallel video compatibility, timing, I²S stereo audio input and clocks, DDC/EDID, HPD, 5 V HDMI supply/limits, ESD and initialization software.
+Target baseline: 1280×720 at 60 Hz video, stereo PCM audio (48 kHz baseline). Verify exact source clocking and supported audio sample formats in the selected transmitter datasheet.
+No external audio jack and no separate audio cable. HDMI audio must work with an ordinary TV. Do not mark the schematic complete while the transmitter is only a placeholder.
+Power with no physical button
+Auto-start on valid USB-C power application. The power tree must use deterministic, safe sequencing for the F133, D213, both ECP5s, external memories and HDMI circuitry. If a software Stop/Shutdown command is provided, it may enter a safe idle or standby state; full power-off occurs when USB-C is unplugged. Reconnection must always produce a well-defined cold boot.
+Check total worst-case load, including BOTH USB-A VBUS outputs. Use USB-C current advertisement/detection and/or USB PD according to verified power needs; do not assume a PC data port can supply 15 W.
+Keep the USB-C recovery path electrically safe during restricted-power programming. Protect against abrupt user unplugging during storage updates.
+
+3. Game-cartridge experience and internal eMMC
+The front Player 2 USB-A socket doubles as a controller input and removable game-install source. The thumb drive is an installer/transfer medium; installed games run from ARC-1’s internal nonvolatile eMMC storage after import. This newly requested eMMC is separate from the existing 64 MiB system NOR boot flash and the four distributed working-RAM banks.
+User action
+Expected system behavior
+Insert game USB drive in front Player 2 USB-A
+Detect supported storage and present available games/import packages in the ARC-1 menu.
+Select Install / Import
+Validate package, copy to internal eMMC, verify checksum/hash, commit atomically and add to library.
+Remove thumb drive
+Safely eject after confirmed completion; installed game remains playable from eMMC.
+Connect Player 2 controller
+The front Player 2 USB-A functions as a controller host input; no simultaneous thumb drive without a supported external USB hub.
+Install firmware / FPGA update
+Validate package and update with rollback/recovery safeguards; never erase the only functional rescue image.
+
+IMPORTANT IMPLEMENTATION GATE  eMMC is a NEW board requirement. Verify an available F133 storage interface, pinmux conflicts, voltage and timing compatibility, capacity, footprint and purchasing status. Do not silently substitute the earlier internal microSD design, or assume eMMC wiring exists in the generated schematic. Flag any incompatibility before routing.
+Storage software shall specify a reproducible on-disk package format, game manifest, minimum version checks, finite capacity handling, file integrity, interrupted-copy recovery, write flushing and explicit “safe to remove” feedback over HDMI. The loader must work without a keyboard, touchscreen, or case-mounted buttons: navigation is through USB game controllers.
+4. Case/PCB mechanical constraints
+Plan a compact circular, low-profile shell with a smooth top. Place HDMI and USB-C on the rear face; place BOTH USB-A receptacles on the front face. The circle diameter is to be determined by the verified board, connector, thermal and mounting envelopes—not fixed at seven inches.
+Reinforce the front Player 2/game-load USB-A connector for frequent thumb-drive insertion and side loads. Verify both front connector orientations, grip spacing, user-facing insertion clearance, PCB-to-case height, shielding and connector mating depth.
+Reserve internal space for thermal conduction/air circulation, mounting bosses, appropriate PCB support, internal debug fixture access and any required HDMI shielding. No additional exterior opening is permitted for a service connector. Allow the circular outside diameter to grow or shrink as engineering requires.
+PCB copper-layer count must follow routing/impedance requirements, not the 13 schematic sheets. Obtain an actual fabrication and assembly quote after native KiCad PCB design.
+
+5. Required implementation outputs and release gates
+Claude shall update the in-progress R10 generated schematic and KiCad motherboard project to reflect this change order. A clean ERC does not establish correct USB roles, HDMI audio or eMMC interface compatibility.
+Mandatory output
+Acceptance evidence
+Revised electrical schematic
+Four actual connectors, host hub/mux, HDMI audio transmitter, eMMC storage and no user-facing switches.
+Pin/function matrix
+F133 USB0/USB1 roles, F133 eMMC pins, D213 RGB/audio pins, reset/power rails and no pinmux conflicts.
+USB state table
+Cold boot, both-controller normal mode, front Player 2 thumb drive, USB-C recovery, failed firmware and power removal.
+Audio/video compatibility report
+Verified bridge device and stock, exact pixel clocks, I²S sample clocks, EDID/HPD/DDC design and software initialization.
+Mechanical placement
+Actual mechanically dimensioned outline and keepouts showing both front USB-A receptacles, rear HDMI/USB-C, insertion envelopes, mounting and thermal clearances. Diameter shall be derived from the layout.
+Install/recovery plan
+NOR/boot/eMMC boundaries, safe updates, rollback or golden image, factory pads and buttonless rescue method.
+Manufacturing package
+Native .kicad_sch/.kicad_pcb, final BOM, positions, fab drawings, Gerbers/drills, ERC/DRC and open-issues list.
+
+Non-negotiable go/no-go checks
+The two external USB-A receptacles support simultaneous USB host enumeration in normal operation; internal F133→D213 USB remains functional.
+The USB-C programming pathway has a demonstrable or credibly tested firmware-independent recovery mechanism without a physical button.
+Audio is embedded into the HDMI signal and validated in the transmitter/data-path design; TFP410-only video is not acceptable.
+An exact eMMC part and storage wiring have been verified against the F133 package/pinmux; a software loader alone does not satisfy this requirement.
+The compact circular case has exactly four exterior connectors and zero buttons/switches: USB-C and HDMI at the rear, and both USB-A sockets at the front. Its diameter is engineered, not predetermined.
+Unverified claims and first-article hardware tests are explicitly labeled OPEN. Do not describe the PCB as fabrication-ready merely because host tests pass.
+Directive: Preserve the four-chip ARC-1 architecture. Complete these physical and firmware interface requirements before final routing, then deliver a reviewable native KiCad motherboard—not a narrative status report.

@@ -1,0 +1,3 @@
+pin,name,etype,net,nc_reason,net_members
+1,1,passive,NOR_RESET_N,,U19.3 R50.1 TP34.1 J6.9
+2,2,passive,GND,,(ground)

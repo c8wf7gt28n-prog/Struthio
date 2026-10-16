@@ -94,20 +94,27 @@ for sig, pad, fn in gm0:
         f45[sig][1], "rgmii endpoint (R8.5-C eth_link) + r10_raster_engine", "3.3 V", "D213->45F" if sig.startswith("TX") else "45F->D213", "3.3 V LVCMOS",
         "D213: " + lost, "SELECTED D1 (pads DOCUMENTED; D21x DS Table 3-2 GMAC-1000M x2; 45F pins OPEN_TOOLCHAIN_ROUTED)")
 
-# ---- L4 D213 video: RGB888 (LCD function 2, PD0-PD27) -> TI TFP410 (DVI, strap mode), decision D6 ----
-# TFP410 PAP64 pins: sources/ti/tfp410_pap64_pins.csv (SLDS145D). D213 default RGB order (data-order RGB): LCD_D[23:16] = R,
-# [15:8] = G, [7:0] = B; TFP410 DATA[23:16] -> TX2 (red), [15:8] -> TX1 (green), [7:0] -> TX0 (blue) (SLDS145D 6.3.1).
-tfp = {f"DATA{i}": str(p) for i, p in list(zip(range(23, 11, -1), range(36, 48))) +
-       list(zip([11, 10, 9, 8, 7, 6], [50, 51, 52, 53, 54, 55])) + list(zip([5, 4, 3, 2, 1, 0], [58, 59, 60, 61, 62, 63]))}
-tfp.update({"DE": "2", "HSYNC": "4", "VSYNC": "5", "IDCK+": "57"})
-vid = [(f"LCD_D{i}", f"PD{i}", f"LCD_D{i}", f"DATA{i}") for i in range(24)] + [
-    ("LCD_DCLK", "PD24", "LCD_DCLK", "IDCK+"), ("LCD_HS", "PD25", "LCD_HS", "HSYNC"), ("LCD_VS", "PD26", "LCD_VS", "VSYNC"),
+# ---- L4 D213 video: RGB888 (LCD function 2, PD0-PD27) -> ADI ADV7513 HDMI transmitter with embedded audio ----
+# Change order ARC1_R10_Handoff rev 1.1 s2 (HDMI audio required) supersedes decision D6 (TFP410, DVI only).
+# ADV7513 LQFP-64 pins: ADI DS Rev. B Table 3 / Figure 2 (sources/adi; D[23:0] order verified from glyph coordinates:
+# 37..50 = D23..D10, 52 = D9, 54..62 = D8..D0, 53 = CLK, 63 = DE, 64 = HSYNC, 2 = VSYNC). 24-bit RGB 4:4:4 separate syncs;
+# R/G/B group order and bit order are programmable on both chips (D21x HW guide 2.4.6; ADV751x input style/bus reverse).
+adv = {f"D{d}": str(p) for p, d in zip(list(range(37, 51)) + [52] + list(range(54, 63)), range(23, -1, -1))}
+adv.update({"DE": "63", "HSYNC": "64", "VSYNC": "2", "CLK": "53"})
+vid = [(f"LCD_D{i}", f"PD{i}", f"LCD_D{i}", f"D{i}") for i in range(24)] + [
+    ("LCD_DCLK", "PD24", "LCD_DCLK", "CLK"), ("LCD_HS", "PD25", "LCD_HS", "HSYNC"), ("LCD_VS", "PD26", "LCD_VS", "VSYNC"),
     ("LCD_DE", "PD27", "LCD_DE", "DE")]
-for sig, pad, fn, tpin in vid:
+for sig, pad, fn, apin in vid:
     p, pd, dom, lost = d213(pad, fn)
-    row("D213->video", "RGB888 to TI TFP410 DVI transmitter (SELECTED, decision D6)", sig, "D213ECV", p, pd, fn, dom, "TFP410 PAP64",
-        tfp[tpin], tpin, "24-bit single-edge input (BSEL=1, VREF=DVDD, ISEL=0)", "3.3 V (DVDD)", "D213->TFP410", "3.3 V LVCMOS",
-        "D213: " + lost, "SELECTED D6 (pads DOCUMENTED; TFP410 pins DOCUMENTED SLDS145D)")
+    row("D213->video", "RGB888 to ADI ADV7513 HDMI transmitter (SELECTED, decision D8)", sig, "D213ECV", p, pd, fn, dom,
+        "ADV7513 LQFP64", adv[apin], apin, "24-bit RGB 4:4:4, separate syncs (input ID 0)", "1.8-3.3 V inputs", "D213->ADV7513",
+        "3.3 V LVCMOS", "D213: " + lost, "SELECTED D8 (pads DOCUMENTED; ADV7513 pins DOCUMENTED DS Rev. B)")
+# ---- L4b HDMI audio: F133 I2S2 -> ADV7513 I2S0 (game audio stays with the F133, the game-state authority) ----
+for sig, pad, fn, apin, apn in (("I2S_BCLK", "PB5", "I2S2-BCLK", "9", "SCLK"), ("I2S_LRCK", "PB6", "I2S2-LRCK", "10", "LRCLK"),
+                                ("I2S_DOUT", "PB4", "I2S2-DOUT0", "5", "I2S0")):
+    row("F133->HDMI audio", "I2S2 stereo PCM to ADV7513 (SELECTED, decision D8)", sig, "F133-B", "see F133 matrix", pad, fn,
+        "VCC-IO 3V3", "ADV7513 LQFP64", apin, apn, "I2S input, no MCLK needed (DS Rev. B features)", "1.8-3.3 V inputs",
+        "F133->ADV7513", "3.3 V LVCMOS", "-", "SELECTED D8 (ADV7513 pins DOCUMENTED; F133 I2S2 pads per R8.5-C matrix)")
 
 # ---- L5 D213 boot SPI NOR (SPI0 on PB0-PB5, function 3) and debug UART0 ----
 for sig, pad, fn in [("HOLD", "PB0", "SPI0_HOLD"), ("WP", "PB1", "SPI0_WP"), ("CS", "PB2", "SPI0_CS"), ("MISO", "PB3", "SPI0_MISO"),

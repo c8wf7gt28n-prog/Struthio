@@ -1,6 +1,0 @@
-pin,name,etype,net,nc_reason,net_members
-1,IN,power_in,3V3_F45,,R32.2 U12.5 U12.6 C30.1 TP13.1 C31.1 U26.F9 U26.F10 U26.F11 U26.F12 U26.H6 U26.H7 (+72)
-2,GND,power_in,GND,,(ground)
-3,EN,input,3V3_F45,,R32.2 U12.5 U12.6 C30.1 TP13.1 C31.1 U26.F9 U26.F10 U26.F11 U26.F12 U26.H6 U26.H7 (+72)
-4,NC,no_connect,,NC per datasheet,
-5,OUT,power_out,2V5_F45_REG,,C32.1 FB1.1

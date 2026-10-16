@@ -16,7 +16,10 @@ R10 = os.path.abspath(sys.argv[1])
 plan = json.load(open(os.path.join(R10, "board", "r10_board_plan.json")))
 out = os.path.join(R10, "cad", "review")
 os.makedirs(out, exist_ok=True)
-SMALL = {"R0402", "R0603", "C0402", "C0603", "C0805", "FB0603", "L4035", "F1812", "TP", "MH", "FID", "LED", "TVS_SMF",
+for _f in os.listdir(out):                       # tables are regenerated from scratch (refs can renumber)
+    if _f.endswith(".csv"):
+        os.remove(os.path.join(out, _f))
+SMALL = {"R0402", "R0603", "C0402", "C0603", "C0805", "C1210", "FB0603", "L4035", "F1812", "TP", "MH", "FID", "LED", "TVS_SMF",
          "SCHOTTKY", "SW_B3U", "PWR_FLAG"}
 errors = []
 rows_md = []

@@ -1,0 +1,5 @@
+pin,name,etype,net,nc_reason,net_members
+1,OE,input,FPGA12_VCC_PG,,U15.5 R41.1 TP21.1 U18.56
+2,GND,power_in,GND,,(ground)
+3,OUT,output,F12_OSC_25M_X,,R162.1
+4,VDD,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 U38.9 U38.16 U38.36 U38.43 (+39)

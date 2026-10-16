@@ -1,0 +1,11 @@
+pin,name,etype,net,nc_reason,net_members
+1,1,passive,SPI0_CLK,,U19.16 R44.2 TP30.1 U39.2
+2,2,passive,GND,,(ground)
+3,3,passive,SPI0_MOSI,,U18.17 U19.15 R45.1 TP31.1 U40.2
+4,4,passive,GND,,(ground)
+5,5,passive,SPI0_MISO,,U18.16 U19.8 R46.1 TP32.1 U42.4
+6,6,passive,GND,,(ground)
+7,7,passive,SPI0_CS0_N,,U18.18 U19.7 R47.1 TP33.1
+8,8,passive,FPGA12_SS_N_F,,U18.43 U41.2 U42.1 R147.1
+9,9,passive,NOR_RESET_N,,U19.3 R50.1 J5.1 TP34.1
+10,10,passive,F133_RESET_N,,U8.1 R20.1 TP8.1 U18.27

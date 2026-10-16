@@ -7,40 +7,35 @@
  "F_power_domains": [],
  "G_supply_pins": [],
  "H_multi_ic_nets": [],
+ "I_handoff_rev1_1": [],
  "info": {
-  "netlist_components": 567,
-  "named_nets": 355,
-  "no_connect_pins": 345,
-  "footprints_checked": 38,
+  "netlist_components": 597,
+  "named_nets": 361,
+  "no_connect_pins": 471,
+  "footprints_checked": 40,
   "footprint_status_count": {
-   "STD_LIB": 552,
-   "SLIM4_CANDIDATE": 10,
+   "STD_LIB": 580,
+   "SLIM4_CANDIDATE": 13,
    "GENERATED_DERIVED": 2,
-   "STD_LIB_CANDIDATE": 1,
-   "PLACEHOLDER": 2
+   "STD_LIB_CANDIDATE": 2
   },
   "lpf45_ports": 54,
   "rtl45_ports": 54,
   "lpf12_ports": 21,
   "rtl12_ports": 21,
-  "cross_rail_signals": 67
+  "cross_rail_signals": 81,
+  "exterior_connectors": {
+   "J1": "USB_C REAR",
+   "J12": "USB_A FRONT",
+   "J13": "USB_A FRONT",
+   "J14": "HDMI_A REAR"
+  }
  },
  "cross_rail_signals": [
   {
-   "net": "AMP_EN",
-   "pins": [
-    "U17.37",
-    "U38.4"
-   ],
-   "rails": [
-    "3V3",
-    "VBUS_5V"
-   ]
-  },
-  {
    "net": "D213_XI",
    "pins": [
-    "U19.78",
+    "U20.78",
     "Y2.1"
    ],
    "rails": [
@@ -50,10 +45,10 @@
   {
    "net": "FPGA12_BUS_EN_N",
    "pins": [
-    "U17.41",
-    "U32.1",
-    "U33.1",
-    "U34.1"
+    "U18.41",
+    "U39.1",
+    "U40.1",
+    "U41.1"
    ],
    "rails": [
     "3V3",
@@ -63,8 +58,8 @@
   {
    "net": "FPGA12_DONE",
    "pins": [
-    "U17.38",
-    "U31.56"
+    "U18.38",
+    "U38.56"
    ],
    "rails": [
     "3V3",
@@ -74,8 +69,8 @@
   {
    "net": "FPGA12_INITN",
    "pins": [
-    "U17.55",
-    "U31.55"
+    "U18.55",
+    "U38.55"
    ],
    "rails": [
     "3V3",
@@ -85,8 +80,8 @@
   {
    "net": "FPGA12_IRQ_N",
    "pins": [
-    "U17.42",
-    "U31.124"
+    "U18.42",
+    "U38.124"
    ],
    "rails": [
     "3V3",
@@ -96,8 +91,8 @@
   {
    "net": "FPGA12_MISO",
    "pins": [
-    "U31.46",
-    "U35.2"
+    "U38.46",
+    "U42.2"
    ],
    "rails": [
     "3V3",
@@ -107,8 +102,8 @@
   {
    "net": "FPGA12_PWR_EN",
    "pins": [
-    "U14.1",
-    "U15.3"
+    "U15.1",
+    "U16.3"
    ],
    "rails": [
     "3V3",
@@ -118,9 +113,9 @@
   {
    "net": "FPGA12_SS_N_F",
    "pins": [
-    "U17.43",
-    "U34.2",
-    "U35.1"
+    "U18.43",
+    "U41.2",
+    "U42.1"
    ],
    "rails": [
     "3V3",
@@ -130,9 +125,9 @@
   {
    "net": "FPGA12_VCC_PG",
    "pins": [
-    "U14.5",
-    "U17.56",
-    "X3.1"
+    "U15.5",
+    "U18.56",
+    "X4.1"
    ],
    "rails": [
     "3V3",
@@ -143,8 +138,8 @@
   {
    "net": "FPGA45_DONE",
    "pins": [
-    "U19.91",
-    "U26.Y3"
+    "U20.91",
+    "U33.Y3"
    ],
    "rails": [
     "3V3",
@@ -154,8 +149,8 @@
   {
    "net": "FPGA45_INITN",
    "pins": [
-    "U19.90",
-    "U26.V3"
+    "U20.90",
+    "U33.V3"
    ],
    "rails": [
     "3V3",
@@ -165,8 +160,8 @@
   {
    "net": "FPGA45_MISO",
    "pins": [
-    "U19.48",
-    "U26.V2"
+    "U20.48",
+    "U33.V2"
    ],
    "rails": [
     "3V3",
@@ -176,8 +171,8 @@
   {
    "net": "FPGA45_MOSI_D",
    "pins": [
-    "U19.49",
-    "U28.2"
+    "U20.49",
+    "U35.2"
    ],
    "rails": [
     "3V3",
@@ -187,8 +182,8 @@
   {
    "net": "FPGA45_PWR_EN",
    "pins": [
-    "U11.1",
-    "U12.3"
+    "U12.1",
+    "U13.3"
    ],
    "rails": [
     "3V3",
@@ -198,8 +193,8 @@
   {
    "net": "FPGA45_SCK_D",
    "pins": [
-    "U19.51",
-    "U27.2"
+    "U20.51",
+    "U34.2"
    ],
    "rails": [
     "3V3",
@@ -209,8 +204,8 @@
   {
    "net": "FPGA45_SS_N_D",
    "pins": [
-    "U19.47",
-    "U29.2"
+    "U20.47",
+    "U36.2"
    ],
    "rails": [
     "3V3",
@@ -220,9 +215,9 @@
   {
    "net": "FPGA45_VCC_PG",
    "pins": [
-    "U11.5",
-    "U19.88",
-    "X2.1"
+    "U12.5",
+    "U20.88",
+    "X3.1"
    ],
    "rails": [
     "3V3",
@@ -231,10 +226,100 @@
    ]
   },
   {
+   "net": "HDMI_CEC_A",
+   "pins": [
+    "U31.30",
+    "U32.1"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "VBUS_5V"
+   ]
+  },
+  {
+   "net": "HDMI_DDC_SCL",
+   "pins": [
+    "U31.33",
+    "U32.2"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "VBUS_5V"
+   ]
+  },
+  {
+   "net": "HDMI_DDC_SDA",
+   "pins": [
+    "U31.34",
+    "U32.3"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "VBUS_5V"
+   ]
+  },
+  {
    "net": "HDMI_HPD",
    "pins": [
-    "U19.95",
-    "U25.4"
+    "U20.95",
+    "U31.16",
+    "U32.4"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "3V3",
+    "VBUS_5V"
+   ]
+  },
+  {
+   "net": "HDMI_I2C_SCL",
+   "pins": [
+    "U20.93",
+    "U31.35"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "3V3"
+   ]
+  },
+  {
+   "net": "HDMI_I2C_SDA",
+   "pins": [
+    "U20.94",
+    "U31.36"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "3V3"
+   ]
+  },
+  {
+   "net": "HDMI_INT",
+   "pins": [
+    "U20.92",
+    "U31.28"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "3V3"
+   ]
+  },
+  {
+   "net": "HDMI_PD",
+   "pins": [
+    "U20.96",
+    "U31.22"
+   ],
+   "rails": [
+    "1V8_ADV_D",
+    "3V3"
+   ]
+  },
+  {
+   "net": "HUB_OCS1_N",
+   "pins": [
+    "U26.8",
+    "U27.3"
    ],
    "rails": [
     "3V3",
@@ -242,10 +327,10 @@
    ]
   },
   {
-   "net": "HDMI_SCL",
+   "net": "HUB_OCS2_N",
    "pins": [
-    "U19.93",
-    "U25.2"
+    "U26.12",
+    "U29.3"
    ],
    "rails": [
     "3V3",
@@ -253,320 +338,349 @@
    ]
   },
   {
-   "net": "HDMI_SDA",
+   "net": "HUB_PRTPWR1",
    "pins": [
-    "U19.94",
-    "U25.3"
+    "U26.7",
+    "U27.4"
    ],
    "rails": [
     "3V3",
     "VBUS_5V"
+   ]
+  },
+  {
+   "net": "HUB_PRTPWR2",
+   "pins": [
+    "U26.11",
+    "U29.4"
+   ],
+   "rails": [
+    "3V3",
+    "VBUS_5V"
+   ]
+  },
+  {
+   "net": "HUB_XI",
+   "pins": [
+    "U26.22",
+    "Y3.1"
+   ],
+   "rails": [
+    "3V3"
+   ]
+  },
+  {
+   "net": "HUB_XO",
+   "pins": [
+    "U26.21",
+    "Y3.3"
+   ],
+   "rails": [
+    "3V3"
    ]
   },
   {
    "net": "I2S_BCLK",
    "pins": [
-    "U17.82",
-    "U38.16",
-    "U39.16"
+    "U18.82",
+    "U31.9"
    ],
    "rails": [
-    "3V3",
-    "VBUS_5V"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "I2S_DOUT",
    "pins": [
-    "U17.84",
-    "U38.1",
-    "U39.1"
+    "U18.84",
+    "U31.5"
    ],
    "rails": [
-    "3V3",
-    "VBUS_5V"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "I2S_LRCK",
    "pins": [
-    "U17.80",
-    "U38.14",
-    "U39.14"
+    "U18.80",
+    "U31.10"
    ],
    "rails": [
-    "3V3",
-    "VBUS_5V"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D0",
    "pins": [
-    "U19.18",
-    "U24.63"
+    "U20.18",
+    "U31.62"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D1",
    "pins": [
-    "U19.17",
-    "U24.62"
+    "U20.17",
+    "U31.61"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D10",
    "pins": [
-    "U19.8",
-    "U24.51"
+    "U20.8",
+    "U31.50"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D11",
    "pins": [
-    "U19.7",
-    "U24.50"
+    "U20.7",
+    "U31.49"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D12",
    "pins": [
-    "U19.6",
-    "U24.47"
+    "U20.6",
+    "U31.48"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D13",
    "pins": [
-    "U19.5",
-    "U24.46"
+    "U20.5",
+    "U31.47"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D14",
    "pins": [
-    "U19.4",
-    "U24.45"
+    "U20.4",
+    "U31.46"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D15",
    "pins": [
-    "U19.3",
-    "U24.44"
+    "U20.3",
+    "U31.45"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D16",
    "pins": [
-    "U19.2",
-    "U24.43"
+    "U20.2",
+    "U31.44"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D17",
    "pins": [
-    "U19.1",
-    "U24.42"
+    "U20.1",
+    "U31.43"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D18",
    "pins": [
-    "U19.127",
-    "U24.41"
+    "U20.127",
+    "U31.42"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D19",
    "pins": [
-    "U19.126",
-    "U24.40"
+    "U20.126",
+    "U31.41"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D2",
    "pins": [
-    "U19.16",
-    "U24.61"
+    "U20.16",
+    "U31.60"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D20",
    "pins": [
-    "U19.125",
-    "U24.39"
+    "U20.125",
+    "U31.40"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D21",
    "pins": [
-    "U19.124",
-    "U24.38"
+    "U20.124",
+    "U31.39"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D22",
    "pins": [
-    "U19.123",
-    "U24.37"
+    "U20.123",
+    "U31.38"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D23",
    "pins": [
-    "U19.122",
-    "U24.36"
+    "U20.122",
+    "U31.37"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D3",
    "pins": [
-    "U19.15",
-    "U24.60"
+    "U20.15",
+    "U31.59"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D4",
    "pins": [
-    "U19.14",
-    "U24.59"
+    "U20.14",
+    "U31.58"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D5",
    "pins": [
-    "U19.13",
-    "U24.58"
+    "U20.13",
+    "U31.57"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D6",
    "pins": [
-    "U19.12",
-    "U24.55"
+    "U20.12",
+    "U31.56"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D7",
    "pins": [
-    "U19.11",
-    "U24.54"
+    "U20.11",
+    "U31.55"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D8",
    "pins": [
-    "U19.10",
-    "U24.53"
+    "U20.10",
+    "U31.54"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "LCD_D9",
    "pins": [
-    "U19.9",
-    "U24.52"
+    "U20.9",
+    "U31.52"
    ],
    "rails": [
-    "3V3",
-    "3V3_TFP_D"
+    "1V8_ADV_D",
+    "3V3"
    ]
   },
   {
    "net": "PG_3V3",
    "pins": [
     "U10.1",
+    "U11.1",
     "U4.1",
     "U5.1",
     "U6.1",
@@ -580,8 +694,8 @@
   {
    "net": "REC_USB_DM",
    "pins": [
-    "U22.4",
-    "U23.2"
+    "U23.4",
+    "U24.2"
    ],
    "rails": [
     "3V3"
@@ -590,8 +704,8 @@
   {
    "net": "REC_USB_DP",
    "pins": [
-    "U22.3",
-    "U23.1"
+    "U23.3",
+    "U24.1"
    ],
    "rails": [
     "3V3"
@@ -600,8 +714,8 @@
   {
    "net": "SPI0_CLK",
    "pins": [
-    "U18.16",
-    "U32.2"
+    "U19.16",
+    "U39.2"
    ],
    "rails": [
     "3V3",
@@ -611,9 +725,9 @@
   {
    "net": "SPI0_MOSI",
    "pins": [
-    "U17.17",
-    "U18.15",
-    "U33.2"
+    "U18.17",
+    "U19.15",
+    "U40.2"
    ],
    "rails": [
     "3V3",
@@ -621,130 +735,172 @@
    ]
   },
   {
-   "net": "TFP_MSEN",
-   "pins": [
-    "U19.92",
-    "U24.11"
-   ],
-   "rails": [
-    "3V3",
-    "3V3_TFP_D"
-   ]
-  },
-  {
-   "net": "TFP_PD_N",
-   "pins": [
-    "U19.96",
-    "U24.10"
-   ],
-   "rails": [
-    "3V3",
-    "3V3_TFP_D"
-   ]
-  },
-  {
    "net": "TMDS_CK_N",
    "pins": [
-    "U24.21",
-    "U25.15"
+    "U31.17",
+    "U32.15"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
    "net": "TMDS_CK_P",
    "pins": [
-    "U24.22",
-    "U25.16"
+    "U31.18",
+    "U32.16"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
    "net": "TMDS_D0_N",
    "pins": [
-    "U24.24",
-    "U25.17"
+    "U31.20",
+    "U32.17"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
    "net": "TMDS_D0_P",
    "pins": [
-    "U24.25",
-    "U25.18"
+    "U31.21",
+    "U32.18"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
    "net": "TMDS_D1_N",
    "pins": [
-    "U24.27",
-    "U25.20"
+    "U31.23",
+    "U32.20"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
    "net": "TMDS_D1_P",
    "pins": [
-    "U24.28",
-    "U25.21"
+    "U31.24",
+    "U32.21"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
    "net": "TMDS_D2_N",
    "pins": [
-    "U24.30",
-    "U25.22"
+    "U31.26",
+    "U32.22"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
    "net": "TMDS_D2_P",
    "pins": [
-    "U24.31",
-    "U25.23"
+    "U31.27",
+    "U32.23"
    ],
    "rails": [
-    "3V3_TFP_D",
+    "1V8_ADV_D",
     "VBUS_5V"
    ]
   },
   {
-   "net": "USB0_DM",
+   "net": "USBA1_DM",
    "pins": [
-    "U17.114",
-    "U2.2"
+    "J12.2",
+    "U26.2",
+    "U28.2"
    ],
    "rails": [
     "3V3"
    ]
   },
   {
-   "net": "USB0_DP",
+   "net": "USBA1_DP",
    "pins": [
-    "U17.115",
-    "U2.1"
+    "J12.3",
+    "U26.3",
+    "U28.1"
+   ],
+   "rails": [
+    "3V3"
+   ]
+  },
+  {
+   "net": "USBA1_VBUS",
+   "pins": [
+    "J12.1",
+    "U27.1"
+   ],
+   "rails": [
+    "VBUS_5V"
+   ]
+  },
+  {
+   "net": "USBA2_DM",
+   "pins": [
+    "J13.2",
+    "U26.4",
+    "U30.2"
+   ],
+   "rails": [
+    "3V3"
+   ]
+  },
+  {
+   "net": "USBA2_DP",
+   "pins": [
+    "J13.3",
+    "U26.5",
+    "U30.1"
+   ],
+   "rails": [
+    "3V3"
+   ]
+  },
+  {
+   "net": "USBA2_VBUS",
+   "pins": [
+    "J13.1",
+    "U29.1"
+   ],
+   "rails": [
+    "VBUS_5V"
+   ]
+  },
+  {
+   "net": "USBC_DM",
+   "pins": [
+    "U2.2",
+    "U25.2"
+   ],
+   "rails": [
+    "3V3"
+   ]
+  },
+  {
+   "net": "USBC_DP",
+   "pins": [
+    "U2.1",
+    "U25.1"
    ],
    "rails": [
     "3V3"
@@ -753,7 +909,7 @@
   {
    "net": "XTAL24_IN",
    "pins": [
-    "U17.23",
+    "U18.23",
     "Y1.1"
    ],
    "rails": [
@@ -763,7 +919,7 @@
   {
    "net": "XTAL24_OUT",
    "pins": [
-    "U17.22",
+    "U18.22",
     "Y1.3"
    ],
    "rails": [

@@ -1,0 +1,382 @@
+pin,name,etype,net,nc_reason,net_members
+A2,PL23A,bidirectional,,unused user I/O (weak pull-down after configuration),
+A3,PL14C,bidirectional,,unused user I/O (weak pull-down after configuration),
+A4,PL11A/ULC_GPLL0T_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+A5,PL11B/ULC_GPLL0C_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+A6,PT4A/ULC_GPLL1T_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+A7,PT18A,bidirectional,F45_LED0,,R128.1
+A8,PT18B,bidirectional,,unused user I/O (weak pull-down after configuration),
+A9,PT33A/GR_PCLK0_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+B1,PL23B,bidirectional,,unused user I/O (weak pull-down after configuration),
+B2,PL23C/VREF1_7,bidirectional,,unused user I/O (weak pull-down after configuration),
+B3,PL14D,bidirectional,,unused user I/O (weak pull-down after configuration),
+B4,PL14B,bidirectional,,unused user I/O (weak pull-down after configuration),
+B5,PL11C,bidirectional,,unused user I/O (weak pull-down after configuration),
+B6,PT4B/ULC_GPLL1C_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+B7,GND,power_in,GND,,(ground)
+B8,PT15B,bidirectional,G_CLKIN_F,,R105.1
+B9,PT31A,bidirectional,G_TXD1,,R95.2
+C1,PL26A,bidirectional,,unused user I/O (weak pull-down after configuration),
+C2,PL23D,bidirectional,,unused user I/O (weak pull-down after configuration),
+C3,PL17C,bidirectional,,unused user I/O (weak pull-down after configuration),
+C4,PL14A,bidirectional,,unused user I/O (weak pull-down after configuration),
+C5,PL11D,bidirectional,,unused user I/O (weak pull-down after configuration),
+C6,PT11A,bidirectional,,unused user I/O (weak pull-down after configuration),
+C7,PT11B,bidirectional,G_RXCTL_F,,R104.1
+C8,PT15A,bidirectional,G_RXCK_F,,R99.1
+C9,PT27A,bidirectional,G_TXD2,,R96.2
+D1,PL26B,bidirectional,,unused user I/O (weak pull-down after configuration),
+D2,PL26C,bidirectional,,unused user I/O (weak pull-down after configuration),
+D3,PL17D,bidirectional,,unused user I/O (weak pull-down after configuration),
+D4,GND,power_in,GND,,(ground)
+D5,PL17B,bidirectional,,unused user I/O (weak pull-down after configuration),
+D6,PT6B,bidirectional,,unused user I/O (weak pull-down after configuration),
+D7,PT9B,bidirectional,,unused user I/O (weak pull-down after configuration),
+D8,PT13B,bidirectional,G_RXD2_F,,R102.1
+D9,PT20A,bidirectional,G_RXD0_F,,R100.1
+E1,PL26D,bidirectional,,unused user I/O (weak pull-down after configuration),
+E2,PL32D/PCLKC7_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+E3,PL20B,bidirectional,,unused user I/O (weak pull-down after configuration),
+E4,PL17A,bidirectional,,unused user I/O (weak pull-down after configuration),
+E5,PL20C,bidirectional,,unused user I/O (weak pull-down after configuration),
+E6,PT6A,bidirectional,,unused user I/O (weak pull-down after configuration),
+E7,PT9A,bidirectional,,unused user I/O (weak pull-down after configuration),
+E8,PT13A,bidirectional,G_RXD3_F,,R103.1
+E9,PT20B,bidirectional,G_RXD1_F,,R101.1
+F1,PL35B/PCLKC6_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+F2,PL32C/PCLKT7_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+F3,PL32B/PCLKC7_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+F4,PL20A,bidirectional,,unused user I/O (weak pull-down after configuration),
+F5,PL20D,bidirectional,,unused user I/O (weak pull-down after configuration),
+F6,VCCAUX,power_in,2V5_F45,,FB1.2 TP15.1 C162.1 C163.1 C164.1 C165.1 C166.1
+F7,GND,power_in,GND,,(ground)
+F8,GND,power_in,GND,,(ground)
+F9,VCCIO0,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+G1,PL35D/PCLKC6_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+G2,PL35A/PCLKT6_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+G3,PL32A/PCLKT7_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+G4,GND,power_in,GND,,(ground)
+G5,PL29B,bidirectional,,unused user I/O (weak pull-down after configuration),
+G6,GND,power_in,GND,,(ground)
+G7,GND,power_in,GND,,(ground)
+G8,GND,power_in,GND,,(ground)
+G9,GND,power_in,GND,,(ground)
+H1,PL41C,bidirectional,,unused user I/O (weak pull-down after configuration),
+H2,PL35C/PCLKT6_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+H3,PL29D,bidirectional,,unused user I/O (weak pull-down after configuration),
+H4,PL29A/GR_PCLK7_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+H5,PL29C/GR_PCLK7_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+H6,VCCIO7,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+H7,VCCIO7,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+H8,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+H9,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+J1,PL41B,bidirectional,,unused user I/O (weak pull-down after configuration),
+J2,GND,power_in,GND,,(ground)
+J3,PL38C/GR_PCLK6_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+J4,PL38A/GR_PCLK6_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+J5,PL38B,bidirectional,,unused user I/O (weak pull-down after configuration),
+J6,VCCIO7,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+J7,GND,power_in,GND,,(ground)
+J8,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+J9,GND,power_in,GND,,(ground)
+K1,PL41D,bidirectional,,unused user I/O (weak pull-down after configuration),
+K2,PL41A,bidirectional,,unused user I/O (weak pull-down after configuration),
+K3,PL38D,bidirectional,,unused user I/O (weak pull-down after configuration),
+K4,PL44A,bidirectional,,unused user I/O (weak pull-down after configuration),
+K5,PL44B/VREF1_6,bidirectional,,unused user I/O (weak pull-down after configuration),
+K6,GND,power_in,GND,,(ground)
+K7,GND,power_in,GND,,(ground)
+K8,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+K9,GND,power_in,GND,,(ground)
+L1,PL65C,bidirectional,,unused user I/O (weak pull-down after configuration),
+L2,PL62D,bidirectional,,unused user I/O (weak pull-down after configuration),
+L3,PL62C,bidirectional,,unused user I/O (weak pull-down after configuration),
+L4,PL44C,bidirectional,,unused user I/O (weak pull-down after configuration),
+L5,PL44D,bidirectional,,unused user I/O (weak pull-down after configuration),
+L6,VCCIO6,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+L7,VCCIO6,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+L8,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+L9,GND,power_in,GND,,(ground)
+M1,PL65B,bidirectional,,unused user I/O (weak pull-down after configuration),
+M2,GND,power_in,GND,,(ground)
+M3,PL62B,bidirectional,,unused user I/O (weak pull-down after configuration),
+M4,PL59A,bidirectional,,unused user I/O (weak pull-down after configuration),
+M5,PL53A,bidirectional,,unused user I/O (weak pull-down after configuration),
+M6,VCCIO6,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+M7,GND,power_in,GND,,(ground)
+M8,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+M9,GND,power_in,GND,,(ground)
+N1,PL65D,bidirectional,,unused user I/O (weak pull-down after configuration),
+N2,PL65A,bidirectional,,unused user I/O (weak pull-down after configuration),
+N3,PL62A,bidirectional,,unused user I/O (weak pull-down after configuration),
+N4,PL59C,bidirectional,,unused user I/O (weak pull-down after configuration),
+N5,PL59B,bidirectional,,unused user I/O (weak pull-down after configuration),
+N6,GND,power_in,GND,,(ground)
+N7,GND,power_in,GND,,(ground)
+N8,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+N9,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+P1,PL68A,bidirectional,,unused user I/O (weak pull-down after configuration),
+P2,PL68B,bidirectional,,unused user I/O (weak pull-down after configuration),
+P3,PL68C/LLC_GPLL0T_IN,bidirectional,F45_OSC_25M,,R127.2 TP65.1
+P4,PL68D/LLC_GPLL0C_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+P5,PL59D,bidirectional,,unused user I/O (weak pull-down after configuration),
+P6,VCCAUX,power_in,2V5_F45,,FB1.2 TP15.1 C162.1 C163.1 C164.1 C165.1 C166.1
+P7,GND,power_in,GND,,(ground)
+P8,GND,power_in,GND,,(ground)
+P9,VCCIO8,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+R1,PB4A/D7,bidirectional,,unused user I/O (weak pull-down after configuration),
+R2,PB15A/HOLDN,bidirectional,FPGA45_HOLDN,,R121.1
+R3,PB15B/DOUT,bidirectional,,unused user I/O (weak pull-down after configuration),
+R4,CFG_2,input,GND,,(ground)
+R5,TDI,input,FPGA45_TDI,,R125.1 J15.8
+T1,PB4B/D6,bidirectional,,unused user I/O (weak pull-down after configuration),
+T2,PB13A/SN,bidirectional,FPGA45_SS_N,,U36.4 R119.1
+T3,PB18A/WRITEN,bidirectional,,unused user I/O (weak pull-down after configuration),
+T4,CFG_1,input,GND,,(ground)
+T5,TCK,input,FPGA45_TCK,,R123.1 J15.4
+T6,GND,power_in,GND,,(ground)
+T7,GND,power_in,GND,,(ground)
+T8,GND,power_in,GND,,(ground)
+T9,GND,power_in,GND,,(ground)
+U1,PB6A/D5,bidirectional,,unused user I/O (weak pull-down after configuration),
+U2,PB13B/CS1N,bidirectional,,unused user I/O (weak pull-down after configuration),
+U3,CCLK/MCLK,input,FPGA45_SCK,,R110.2 R122.1 TP64.1
+U4,CFG_0,input,FPGA45_CFG0,,R120.1
+U5,TMS,input,FPGA45_TMS,,R124.1 J15.2
+U6,GND,power_in,GND,,(ground)
+U7,GND,power_in,GND,,(ground)
+U8,GND,power_in,GND,,(ground)
+U9,GND,power_in,GND,,(ground)
+V1,PB6B/D4,bidirectional,,unused user I/O (weak pull-down after configuration),
+V2,PB11A/D1,bidirectional,FPGA45_MISO,,U20.48 R114.1
+V3,INITN,open_collector,FPGA45_INITN,,U20.90 R117.1 TP63.1
+V4,TDO,tri_state,FPGA45_TDO,,R126.1 J15.6
+V5,GND,power_in,GND,,(ground)
+V6,GND,power_in,GND,,(ground)
+V7,GND,power_in,GND,,(ground)
+V8,GND,power_in,GND,,(ground)
+V9,GND,power_in,GND,,(ground)
+W1,PB9A/D3,bidirectional,,unused user I/O (weak pull-down after configuration),
+W2,PB11B/D0,bidirectional,FPGA45_MOSI,,U35.4
+W3,PROGRAMN,input,FPGA45_PROGRAMN,,R115.1 R116.2 J15.10 TP62.1
+W4,RESERVED,no_connect,,RESERVED: do not connect,
+W5,RESERVED,no_connect,,RESERVED: do not connect,
+W6,GND,power_in,GND,,(ground)
+W7,GND,power_in,GND,,(ground)
+W8,RESERVED,no_connect,,RESERVED: do not connect,
+W9,RESERVED,no_connect,,RESERVED: do not connect,
+Y2,PB9B/D2,bidirectional,,unused user I/O (weak pull-down after configuration),
+Y3,DONE,open_collector,FPGA45_DONE,,U20.91 R118.1 TP61.1
+Y5,GND,power_in,GND,,(ground)
+Y6,GND,power_in,GND,,(ground)
+Y7,GND,power_in,GND,,(ground)
+Y8,GND,power_in,GND,,(ground)
+A10,PT36A/PCLKT0_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+A11,PT36B/PCLKC0_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+A12,PT49A,bidirectional,,unused user I/O (weak pull-down after configuration),
+A13,PT49B,bidirectional,,unused user I/O (weak pull-down after configuration),
+A14,PT56A,bidirectional,,unused user I/O (weak pull-down after configuration),
+A15,PT67A,bidirectional,,unused user I/O (weak pull-down after configuration),
+A16,PT74A,bidirectional,,unused user I/O (weak pull-down after configuration),
+A17,PT80A,bidirectional,,unused user I/O (weak pull-down after configuration),
+A18,PT83A,bidirectional,,unused user I/O (weak pull-down after configuration),
+A19,PT85A/URC_GPLL1T_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+B10,PT33B/GR_PCLK0_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+B11,PT38A/PCLKT0_0,bidirectional,G_TXCK,,R93.2 TP58.1
+B12,PT44A/PCLKT1_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+B13,PT51A,bidirectional,,unused user I/O (weak pull-down after configuration),
+B14,GND,power_in,GND,,(ground)
+B15,PT69A,bidirectional,,unused user I/O (weak pull-down after configuration),
+B16,PT74B,bidirectional,,unused user I/O (weak pull-down after configuration),
+B17,PT78A,bidirectional,,unused user I/O (weak pull-down after configuration),
+B18,PT80B,bidirectional,,unused user I/O (weak pull-down after configuration),
+B19,PT83B,bidirectional,,unused user I/O (weak pull-down after configuration),
+B20,PT85B/URC_GPLL1C_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+C10,PT31B,bidirectional,G_TXD0,,R94.2
+C11,PT38B/PCLKC0_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+C12,PT44B/PCLKC1_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+C13,PT51B,bidirectional,,unused user I/O (weak pull-down after configuration),
+C14,PT56B,bidirectional,,unused user I/O (weak pull-down after configuration),
+C15,PT69B,bidirectional,,unused user I/O (weak pull-down after configuration),
+C16,PT76A,bidirectional,,unused user I/O (weak pull-down after configuration),
+C17,PT78B,bidirectional,,unused user I/O (weak pull-down after configuration),
+C18,PR11A/URC_GPLL0T_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+C19,GND,power_in,GND,,(ground)
+C20,PR23A,bidirectional,SDR_DQ0,,U37.2
+D10,PT29A,bidirectional,G_TXD3,,R97.2
+D11,PT42A/PCLKT1_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+D12,PT47A/GR_PCLK1_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+D13,PT53A,bidirectional,,unused user I/O (weak pull-down after configuration),
+D14,PT58A,bidirectional,,unused user I/O (weak pull-down after configuration),
+D15,PT71A,bidirectional,,unused user I/O (weak pull-down after configuration),
+D16,PT76B,bidirectional,,unused user I/O (weak pull-down after configuration),
+D17,PR11B/URC_GPLL0C_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+D18,PR14A,bidirectional,SDR_DQ1,,U37.4
+D19,PR23B,bidirectional,SDR_DQ2,,U37.5
+D20,PR23C/VREF1_2,bidirectional,,unused user I/O (weak pull-down after configuration),
+E10,PT29B,bidirectional,G_TXCTL,,R98.2 R106.1
+E11,PT42B/PCLKC1_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+E12,PT47B/GR_PCLK1_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+E13,PT53B,bidirectional,,unused user I/O (weak pull-down after configuration),
+E14,PT58B,bidirectional,,unused user I/O (weak pull-down after configuration),
+E15,PT71B,bidirectional,,unused user I/O (weak pull-down after configuration),
+E16,PR11C,bidirectional,SDR_DQ3,,U37.7
+E17,PR14B,bidirectional,SDR_DQ4,,U37.8
+E18,PR14C,bidirectional,SDR_DQ5,,U37.10
+E19,PR23D,bidirectional,SDR_DQ6,,U37.11
+E20,PR26A,bidirectional,SDR_DQ7,,U37.13
+F10,VCCIO0,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+F11,VCCIO1,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+F12,VCCIO1,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+F13,GND,power_in,GND,,(ground)
+F14,GND,power_in,GND,,(ground)
+F15,VCCAUX,power_in,2V5_F45,,FB1.2 TP15.1 C162.1 C163.1 C164.1 C165.1 C166.1
+F16,PR11D,bidirectional,SDR_DQ8,,U37.42
+F17,PR17A,bidirectional,SDR_DQ9,,U37.44
+F18,PR14D,bidirectional,SDR_DQ10,,U37.45
+F19,PR26B,bidirectional,SDR_DQ11,,U37.47
+F20,PR26C,bidirectional,SDR_DQ12,,U37.48
+G10,GND,power_in,GND,,(ground)
+G11,GND,power_in,GND,,(ground)
+G12,GND,power_in,GND,,(ground)
+G13,GND,power_in,GND,,(ground)
+G14,GND,power_in,GND,,(ground)
+G15,GND,power_in,GND,,(ground)
+G16,PR17C,bidirectional,SDR_DQ13,,U37.50
+G17,GND,power_in,GND,,(ground)
+G18,PR17B,bidirectional,SDR_DQ14,,U37.51
+G19,PR29A/GR_PCLK2_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+G20,PR26D,bidirectional,SDR_DQ15,,U37.53
+H10,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+H11,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+H12,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+H13,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+H14,VCCIO2,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+H15,VCCIO2,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+H16,PR17D,bidirectional,SDR_DQM0,,U37.15
+H17,PR20B,bidirectional,SDR_DQM1,,U37.39
+H18,PR20A,bidirectional,,unused user I/O (weak pull-down after configuration),
+H19,GND,power_in,GND,,(ground)
+H20,PR29B,bidirectional,,unused user I/O (weak pull-down after configuration),
+J10,GND,power_in,GND,,(ground)
+J11,GND,power_in,GND,,(ground)
+J12,GND,power_in,GND,,(ground)
+J13,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+J14,GND,power_in,GND,,(ground)
+J15,VCCIO2,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+J16,PR20D,bidirectional,,unused user I/O (weak pull-down after configuration),
+J17,PR20C,bidirectional,,unused user I/O (weak pull-down after configuration),
+J18,PR29C/GR_PCLK2_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+J19,PR32A/PCLKT2_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+J20,PR32C/PCLKT2_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+K10,GND,power_in,GND,,(ground)
+K11,GND,power_in,GND,,(ground)
+K12,GND,power_in,GND,,(ground)
+K13,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+K14,GND,power_in,GND,,(ground)
+K15,GND,power_in,GND,,(ground)
+K16,NC,no_connect,,NC ball,
+K17,NC,no_connect,,NC ball,
+K18,PR29D,bidirectional,,unused user I/O (weak pull-down after configuration),
+K19,PR32B/PCLKC2_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+K20,PR32D/PCLKC2_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+L10,GND,power_in,GND,,(ground)
+L11,GND,power_in,GND,,(ground)
+L12,GND,power_in,GND,,(ground)
+L13,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+L14,VCCIO3,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+L15,VCCIO3,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+L16,PR38A/GR_PCLK3_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+L17,PR38B,bidirectional,SDR_CLK_F,,R129.1
+L18,PR38C/GR_PCLK3_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+L19,PR35C/PCLKT3_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+L20,PR35A/PCLKT3_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+M10,GND,power_in,GND,,(ground)
+M11,GND,power_in,GND,,(ground)
+M12,GND,power_in,GND,,(ground)
+M13,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+M14,GND,power_in,GND,,(ground)
+M15,VCCIO3,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+M16,GND,power_in,GND,,(ground)
+M17,PR41B,bidirectional,SDR_CKE,,U37.37 R130.1
+M18,PR38D,bidirectional,SDR_CS_N,,U37.19
+M19,PR35D/PCLKC3_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+M20,PR35B/PCLKC3_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+N10,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+N11,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+N12,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+N13,VCC,power_in,1V1_F45,,R32.2 TP13.1 C139.1 C140.1 C141.1 C142.1 C143.1 C144.1 C145.1 C146.1 C147.1 C148.1 (+13)
+N14,GND,power_in,GND,,(ground)
+N15,GND,power_in,GND,,(ground)
+N16,PR41A,bidirectional,SDR_RAS_N,,U37.18
+N17,PR44A,bidirectional,SDR_CAS_N,,U37.17
+N18,PR41C,bidirectional,SDR_WE_N,,U37.16
+N19,PR59A,bidirectional,SDR_BA0,,U37.20
+N20,PR59B,bidirectional,SDR_BA1,,U37.21
+P10,VCCIO8,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 U14.1 U14.3 C34.1 C167.1 C168.1 C169.1 C170.1 (+56)
+P11,GND,power_in,GND,,(ground)
+P12,GND,power_in,GND,,(ground)
+P13,GND,power_in,GND,,(ground)
+P14,GND,power_in,GND,,(ground)
+P15,VCCAUX,power_in,2V5_F45,,FB1.2 TP15.1 C162.1 C163.1 C164.1 C165.1 C166.1
+P16,PR44B/VREF1_3,bidirectional,,unused user I/O (weak pull-down after configuration),
+P17,PR41D,bidirectional,SDR_A0,,U37.23
+P18,PR59D,bidirectional,SDR_A1,,U37.24
+P19,PR59C,bidirectional,SDR_A2,,U37.25
+P20,PR62A,bidirectional,SDR_A3,,U37.26
+R16,PR44C,bidirectional,SDR_A4,,U37.29
+R17,PR44D,bidirectional,SDR_A5,,U37.30
+R18,PR65B,bidirectional,SDR_A6,,U37.31
+R19,GND,power_in,GND,,(ground)
+R20,PR62B,bidirectional,SDR_A7,,U37.32
+T10,GND,power_in,GND,,(ground)
+T11,GND,power_in,GND,,(ground)
+T12,GND,power_in,GND,,(ground)
+T13,GND,power_in,GND,,(ground)
+T14,GND,power_in,GND,,(ground)
+T15,GND,power_in,GND,,(ground)
+T16,PR53A,bidirectional,SDR_A8,,U37.33
+T17,PR68D/LRC_GPLL0C_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+T18,PR65D,bidirectional,SDR_A9,,U37.34
+T19,PR65A,bidirectional,SDR_A10,,U37.22
+T20,PR62C,bidirectional,SDR_A11,,U37.35
+U10,GND,power_in,GND,,(ground)
+U11,GND,power_in,GND,,(ground)
+U12,GND,power_in,GND,,(ground)
+U13,GND,power_in,GND,,(ground)
+U14,GND,power_in,GND,,(ground)
+U15,GND,power_in,GND,,(ground)
+U16,PR68C/LRC_GPLL0T_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+U17,PR68B,bidirectional,SDR_A12,,U37.36
+U18,PR68A,bidirectional,,unused user I/O (weak pull-down after configuration),
+U19,PR65C,bidirectional,,unused user I/O (weak pull-down after configuration),
+U20,PR62D,bidirectional,,unused user I/O (weak pull-down after configuration),
+V10,GND,power_in,GND,,(ground)
+V11,GND,power_in,GND,,(ground)
+V12,GND,power_in,GND,,(ground)
+V13,GND,power_in,GND,,(ground)
+V14,GND,power_in,GND,,(ground)
+V15,GND,power_in,GND,,(ground)
+V16,GND,power_in,GND,,(ground)
+V17,GND,power_in,GND,,(ground)
+V18,GND,power_in,GND,,(ground)
+V19,GND,power_in,GND,,(ground)
+V20,GND,power_in,GND,,(ground)
+W10,RESERVED,no_connect,,RESERVED: do not connect,
+W11,RESERVED,no_connect,,RESERVED: do not connect,
+W12,GND,power_in,GND,,(ground)
+W13,RESERVED,no_connect,,RESERVED: do not connect,
+W14,RESERVED,no_connect,,RESERVED: do not connect,
+W15,GND,power_in,GND,,(ground)
+W16,GND,power_in,GND,,(ground)
+W17,RESERVED,no_connect,,RESERVED: do not connect,
+W18,RESERVED,no_connect,,RESERVED: do not connect,
+W19,GND,power_in,GND,,(ground)
+W20,GND,power_in,GND,,(ground)
+Y11,GND,power_in,GND,,(ground)
+Y12,GND,power_in,GND,,(ground)
+Y14,GND,power_in,GND,,(ground)
+Y15,GND,power_in,GND,,(ground)
+Y16,GND,power_in,GND,,(ground)
+Y17,GND,power_in,GND,,(ground)
+Y19,GND,power_in,GND,,(ground)

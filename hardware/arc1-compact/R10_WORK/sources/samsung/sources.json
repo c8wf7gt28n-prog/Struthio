@@ -1,0 +1,11 @@
+[
+ {
+  "id": "samsung_klmag1jetd",
+  "url": "https://datasheet.lcsc.com/datasheet/pdf/d4518653d9abcd1b59554b92cea5e788.pdf?productCode=C499919",
+  "title": "KLMxGxJETD-B041 eMMC 5.1 datasheet",
+  "revision": "Rev. 1.0 Nov. 2016",
+  "retrieved_at": "2026-10-16",
+  "sha256": "015be236158087add125892756a7ef7d63eaa7c0c55969c241597755eb784bd0",
+  "used_for": "153-FBGA 11.5x13x0.8 mm ball map (Table 2); VDD(VCCQ) 1.70-1.95 or 2.7-3.6 V, VDDF(VCC) 2.7-3.6 V; CReg on VDDi; RCMD 4.7-100k, RDAT 10-100k pull-ups; DAT1-7 internal pull-ups; LCSC C499919 stock 404 (2026-10-16). Document marked 'SAMSUNG CONFIDENTIAL' by the vendor: not committed."
+ }
+]

@@ -1,6 +1,0 @@
-pin,name,etype,net,nc_reason,net_members
-1,~{OE},input,GND,,(ground)
-2,A,input,FPGA45_SS_N_D,,U19.47 R105.1
-3,GND,power_in,GND,,(ground)
-4,Y,tri_state,FPGA45_SS_N,,U26.T2 R113.1
-5,VCC,power_in,3V3_F45,,R32.2 U12.5 U12.6 C30.1 TP13.1 U13.1 U13.3 C31.1 U26.F9 U26.F10 U26.F11 U26.F12 (+73)

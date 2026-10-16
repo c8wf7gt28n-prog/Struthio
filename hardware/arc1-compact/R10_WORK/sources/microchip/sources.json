@@ -1,0 +1,11 @@
+[
+ {
+  "id": "mchp_usb2422",
+  "url": "https://static.chipdip.ru/lib/112/DOC034112188.pdf (distributor copy of DS00001726A)",
+  "title": "USB2422 2-Port USB 2.0 Hi-Speed Hub Controller",
+  "revision": "DS00001726A (2014)",
+  "retrieved_at": "2026-10-16",
+  "sha256": "d04dbb1ed7c2ed4dc70e9d48a0d8dddb5efa797dfdef398ca8585af66f2d1996",
+  "used_for": "SQFN-24 pins (Table 2.2); CFG_SEL=0 default self-powered with straps (Table 4.1); PRTPWR active high; OCS_N internal pull-up; RBIAS 12.0k 1 %; VDD33 1 uF pin 9 / 0.1 uF pin 1; CRFILT 1 uF; PLLFILT <= 0.1 uF; VBUS_DET to 3.3 V for a permanently attached host; 24 MHz crystal +-350 ppm ~18 pF caps"
+ }
+]

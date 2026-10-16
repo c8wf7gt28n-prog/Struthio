@@ -1,0 +1,3 @@
+pin,name,etype,net,nc_reason,net_members
+1,1,passive,RST_BTN_N,,U8.3 R19.1
+2,2,passive,GND,,(ground)

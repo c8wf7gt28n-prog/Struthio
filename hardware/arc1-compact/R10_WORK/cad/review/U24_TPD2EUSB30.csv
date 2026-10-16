@@ -1,0 +1,4 @@
+pin,name,etype,net,nc_reason,net_members
+1,D+,passive,REC_USB_DP,,U23.3 J11.3
+2,D-,passive,REC_USB_DM,,U23.4 J11.2
+3,GND,power_in,GND,,(ground)

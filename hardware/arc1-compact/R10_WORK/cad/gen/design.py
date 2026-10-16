@@ -130,12 +130,12 @@ def build():
         d.counters[k] = 0
 
     # ================================================================ USB-C sink (unchanged R8.5-C)
-    d.sheet("usb_power", "usb_power.kicad_sch", "USB-C sink, VBUS protection, F133 USB0 device / FEL")
+    d.sheet("usb_power", "usb_power.kicad_sch", "Rear USB-C: power input + F133 USB0 device/recovery path (via the USB0 role mux)")
     j1 = d.U("USB_C", "USB-C receptacle", {
         "A1": "GND", "A12": "GND", "B1": "GND", "B12": "GND", "S1": "GND",
         "A4": "VBUS_RAW", "A9": "VBUS_RAW", "B4": "VBUS_RAW", "B9": "VBUS_RAW",
-        "A5": "USB_CC1", "B5": "USB_CC2", "A6": "USB0_DP", "B6": "USB0_DP", "A7": "USB0_DM", "B7": "USB0_DM"},
-        note="power input + F133 USB0 (console / FEL); sink only")
+        "A5": "USB_CC1", "B5": "USB_CC2", "A6": "USBC_DP", "B6": "USBC_DP", "A7": "USBC_DM", "B7": "USBC_DM"},
+        note="REAR. Power input (auto-start, no switch) + F133 USB0 device/FEL through U(TS3USB221A) port 1; sink only")
     d.nc(j1.ref, "A8", "SBU unused"); d.nc(j1.ref, "B8", "SBU unused")
     d.flag("VBUS_RAW")
     d.U("F1812", "PTC hold>=3A", {"1": "VBUS_RAW", "2": "VBUS_5V"}, mpn="TBD (1812 PTC, hold >= 3 A, 6 V)", mfr="TBD",
@@ -152,9 +152,9 @@ def build():
     d.R("10k", "USB_CUR_OUT1", "3V3"); d.R("10k", "USB_CUR_OUT2", "3V3")
     d.R("5.1k", "USB_CC1", "GND", dnp=True, note="DNP fallback Rd (then TUSB320 DNP)")
     d.R("5.1k", "USB_CC2", "GND", dnp=True, note="DNP fallback Rd")
-    d.U("TPD2EUSB30", "TPD2EUSB30", {"1": "USB0_DP", "2": "USB0_DM", "3": "GND"})
+    d.U("TPD2EUSB30", "TPD2EUSB30", {"1": "USBC_DP", "2": "USBC_DM", "3": "GND"})
     d.R("150k", "VBUS_5V", "VBUS_SENSE"); d.R("200k", "VBUS_SENSE", "GND")
-    d.tp("VBUS_5V"); d.tp("USB0_DP", note="FEL probe"); d.tp("USB0_DM")
+    d.tp("VBUS_5V"); d.tp("USBC_DP", note="FEL probe"); d.tp("USBC_DM")
 
     # ================================================================ power tree
     d.sheet("power", "power.kicad_sch", "Regulators: system 3V3, F133, D213, 45F and 12F rails; supervisors; staged links")
@@ -177,7 +177,7 @@ def build():
             d.flag(out)
         d.tp(out)
 
-    # system 3V3 (F133 IO, D213 IO, TFP410, HDMI companion, NORs, USB mux, glue)
+    # system 3V3 (F133 IO, D213 IO, ADV7513 DVDD_3V, HDMI companion, USB hub + muxes, NORs, eMMC, glue)
     buck("3V3", "VBUS_5V", "453k", "3V3", "calc 0.6*(1+453k/100k)=3.318 V; soft-start sets 3V3 ramp (D21x: 150 us..5 ms)",
          pg="PG_3V3_BUCK", link_net=True)
     d.R("100k", "PG_3V3_BUCK", "3V3_REG")
@@ -197,12 +197,15 @@ def build():
     d.C("15nF", "SUPC_CT", note="tD = 15/175 ms + 0.5 ms = 86 ms")
     d.R("100k", "RST_BTN_N", "3V3")
     d.R("10k", "F133_RESET_N", "1V8_LDOA", note="RESET in the VCC-RTC (1.8 V) domain")
-    d.U("SW_B3U", "F133 RESET", {"1": "RST_BTN_N", "2": "GND"})
+    d.U("PADS_1x2", "F133 RESET pads", {"1": "RST_BTN_N", "2": "GND"}, dnp=True,
+        note="internal fixture pads (handoff: no exterior controls); software restart in normal use")
     d.tp("F133_RESET_N"); d.tp("PG_3V3")
     # D213 core 1.2 V and DRAM 1.5 V (D21x HW guide 2.2.1: >= 500 mA each, external DC-DC, no sequencing requirement)
     buck("D213_CORE", "PG_3V3", "100k", "1V2_D213", "0.6*(1+100k/100k)=1.20 V: CPU 600 MHz / DDR3 672 MHz (HW guide 4.1 item 4); "
          "FB divider top at the D213 decoupling capacitors (4.1 item 3)", link_net=True)
     buck("D213_DRAM", "PG_3V3", "150k", "1V5_D213", "0.6*(1+150k/100k)=1.50 V DDR3 (HW guide 2.2.1)", link_net=True)
+    buck("HDMI_1V8", "PG_3V3", "200k", "1V8_HDMI", "0.6*(1+200k/100k)=1.80 V ADV7513 DVDD/AVDD/PVDD/BGVDD (1.71-1.90 V, 256 mW typ)",
+         link_net=True)
 
     # ECP5 rail set (R8.5-C topology, per FPGA): one enable starts VCC (1.1 V buck with PG), the VCCIO load switch and,
     # through the VCCIO rail, the VCCAUX LDO. The 25 MHz oscillator OE is the VCC power-good (PG pulled up to the
@@ -215,8 +218,8 @@ def build():
         d.R("1k", en_src, en_name, note=f"{note_owner} drive; jumper override below")
         d.R("100k", en_name, "GND", note="FPGA unpowered until its owner enables it")
         d.R("100k", pg_name, io, note="PG pulled to the switched VCCIO rail: high only with VCC and VCCIO up")
-        d.U("HDR_1x3", f"{tag} power override", {"1": "3V3", "2": en_name, "3": "GND"},
-            note="JTAG service without firmware: jumper 1-2 powers the FPGA rails (1k limits contention)")
+        d.U("HDR_1x3", f"{tag} power override", {"1": "3V3", "2": en_name, "3": "GND"}, dnp=True,
+            note="internal fixture: JTAG service without firmware, jumper 1-2 powers the FPGA rails (1k limits contention)")
         d.U("TPS22918", f"{io} switch", {"1": "3V3", "2": "GND", "3": en_name, "4": f"SW_{tag}_CT", "5": io, "6": io},
             note="VCCIO with VCC (TN-02038 s.4); 1 nF CT -> ~1.9 ms ramp")
         d.C("1nF", f"SW_{tag}_CT"); d.C("1uF", "3V3"); d.C("10uF", io, pkg="C0603")
@@ -250,18 +253,21 @@ def build():
     }
     gpio = {
         "PC2": "SPI0_CLK_F", "PC3": "SPI0_CS0_N", "PC4": "SPI0_MOSI", "PC5": "SPI0_MISO", "PC6": "SPI0_IO2", "PC7": "SPI0_IO3",
-        "PF0": "SD_D1", "PF1": "SD_D0", "PF2": "SD_CLK_F", "PF3": "SD_CMD", "PF4": "SD_D3", "PF5": "SD_D2", "PF6": "SD_DET_N",
+        # eMMC on SMHC0 (4-bit, 3.3 V); BOOT-SEL 00 never tries SMHC0, so the boot path is unchanged (D10)
+        "PF0": "EMMC_D1", "PF1": "EMMC_D0", "PF2": "EMMC_CLK_F", "PF3": "EMMC_CMD", "PF4": "EMMC_D3", "PF5": "EMMC_D2",
+        "PF6": "EMMC_RST_N",
         "PE2": "UART0_TX", "PE3": "UART0_RX",
         # 12F control (R8.5-C ECP5 control pins, now serving the 12F; hardware/R10_flash_pinmux.csv CFG12)
         "PE4": "FPGA12_SS_N_F", "PE5": "FPGA12_IRQ_N", "PE6": "FPGA12_BUS_EN_N", "PE8": "FPGA12_PROGRAMN_F",
         "PE9": "FPGA12_DONE", "PE0": "FPGA12_PWR_EN_F", "PD0": "FPGA12_INITN", "PD1": "FPGA12_VCC_PG",
         # D213 control (decision D5): open-drain reset and boot-pin hold through U(LVC2G07); ready from D213 PB6
         "PD10": "D213_RESET_REQ_N", "PD11": "D213_BOOT_REQ_N", "PD12": "D213_RDY",
-        "PB4": "I2S_DOUT", "PB5": "I2S_BCLK", "PB6": "I2S_LRCK", "PE10": "AMP_EN",
-        "PE1": "VBUS_SENSE", "PE12": "USB_CUR_OUT1", "PE13": "USB_CUR_OUT2", "PD20": "SD_PWR_EN",
-        "PD2": "BTN_UP", "PD3": "BTN_DOWN", "PD4": "BTN_LEFT", "PD5": "BTN_RIGHT", "PD6": "BTN_A", "PD7": "BTN_B",
-        "PD8": "BTN_X", "PD9": "BTN_Y", "PD14": "BTN_L", "PD15": "BTN_R", "PD22": "BTN_START", "PB2": "BTN_SELECT",
-        "PB3": "BTN_HOME", "PD18": "LED_STATUS", "PD19": "LED_ERROR",
+        # I2S2 -> ADV7513 (HDMI embedded audio, D8)
+        "PB4": "I2S_DOUT", "PB5": "I2S_BCLK", "PB6": "I2S_LRCK",
+        "PE1": "VBUS_SENSE", "PE12": "USB_CUR_OUT1", "PE13": "USB_CUR_OUT2",
+        # USB0 role mux select + hub reset (D9); no buttons (handoff s1: controllers are USB)
+        "PD2": "USB0_SEL", "PD3": "HUB_RESET_N",
+        "PD18": "LED_STATUS", "PD19": "LED_ERROR",
     }
     # F133 <-> 12F RGMII (architecture/R10_interface_matrix.csv): F133 side net ETH_<sig>_F for its outputs
     eth12 = [r for r in MATRIX if r["link"] == "F133<->12F"]
@@ -269,7 +275,8 @@ def build():
     for r in eth12:
         sig = r["signal"].replace("TXCTRL", "TXCTL").replace("RXCTRL", "RXCTL")
         gpio[r["a_pad"]] = f"ETH_{sig}_F" if r["direction_a_to_b"] == "F133->12F" else f"ETH_{sig}"
-    analog = {"DXIN": "XTAL24_IN", "DXOUT": "XTAL24_OUT", "RESET": "F133_RESET_N", "USB0-DP": "USB0_DP", "USB0-DM": "USB0_DM",
+    analog = {"DXIN": "XTAL24_IN", "DXOUT": "XTAL24_OUT", "RESET": "F133_RESET_N", "USB0-DP": "F133_USB0_DP",
+              "USB0-DM": "F133_USB0_DM",
               "USB1-DP": "F133_USB1_DP", "USB1-DM": "F133_USB1_DM",
               "VRA1": "F133_VRA1", "VRA2": "F133_VRA2", "NC": "F133_PIN47_DZQ"}
     nc_why = {
@@ -322,8 +329,9 @@ def build():
     d.R("3.3k", "SPI0_MISO", "GND", note="BOOT-SEL1 = 0")
     d.R("10k", "SPI0_CS0_N", "3V3"); d.R("10k", "SPI0_IO2", "3V3"); d.R("10k", "SPI0_IO3", "3V3")
     d.R("10k", "NOR_RESET_N", "3V3")
-    d.U("SW_B3U", "FEL (NOR reset)", {"1": "NOR_RESET_N", "2": "GND"},
-        note="hold during F133 reset: NOR unreadable -> BROM falls through to USB FEL (bench)")
+    d.U("PADS_1x2", "FEL pads (NOR reset)", {"1": "NOR_RESET_N", "2": "GND"}, dnp=True,
+        note="internal fixture: short while USB-C power is applied -> NOR unreadable -> BROM falls through to USB FEL on "
+             "the rear USB-C (mux default). Firmware independent; OPEN until bench-proven")
     for net in ("SPI0_CLK", "SPI0_MOSI", "SPI0_MISO", "SPI0_CS0_N", "NOR_RESET_N", "SPI0_IO2", "SPI0_IO3"):
         d.tp(net, note="SOIC-16 clip / probe")
     d.U("HDR_2x5_127", "LA SPI0", {"1": "SPI0_CLK", "2": "GND", "3": "SPI0_MOSI", "4": "GND", "5": "SPI0_MISO", "6": "GND",
@@ -346,7 +354,7 @@ def build():
     dmap = {"LDO1x": "D213_LDO1X", "LDO25": "D213_LDO25", "VCC30_ANA": "D213_VCC30", "RESETN": "D213_RESET_N",
             "PLL_XO": "D213_XO", "PLL_XI": "D213_XI", "PU0": "D213_USB0_DM", "PU1": "D213_USB0_DP",
             "PA0": "D213_UART0_TX", "PA1": "D213_UART0_RX", "PA2": "FPGA45_PWR_EN_D", "PA3": "FPGA45_VCC_PG",
-            "PA7": "TFP_MSEN", "PA8": "HDMI_SCL", "PA9": "HDMI_SDA", "PA10": "HDMI_HPD", "PA11": "TFP_PD_N",
+            "PA7": "HDMI_INT", "PA8": "HDMI_I2C_SCL", "PA9": "HDMI_I2C_SDA", "PA10": "HDMI_HPD", "PA11": "HDMI_PD",
             "PB0": "D213_NOR_IO3", "PB1": "D213_NOR_IO2", "PB2": "D213_NOR_CS_N", "PB3": "D213_NOR_MISO",
             "PB4": "D213_NOR_MOSI", "PB5": "D213_NOR_CLK_D", "PB6": "D213_RDY", "PB7": "D213_LED"}
     # 45F configuration (hardware/R10_flash_pinmux.csv CFG45, D213 side) -> D213-side nets (_D: before the Ioff buffers)
@@ -361,8 +369,8 @@ def build():
     assert len(eth45) == 13, len(eth45)
     for r in eth45:
         dmap[r["a_pad"]] = f"G_{r['signal']}_D" if r["direction_a_to_b"] == "D213->45F" else f"G_{r['signal']}"
-    # RGB888 -> TFP410 (decision D6)
-    vid = [r for r in MATRIX if r["link"] == "D213->video" and "SELECTED D6" in r["status"]]
+    # RGB888 -> ADV7513 (decision D8, supersedes D6)
+    vid = [r for r in MATRIX if r["link"] == "D213->video" and "SELECTED D8" in r["status"]]
     assert len(vid) == 28, len(vid)
     for r in vid:
         dmap[r["a_pad"]] = r["signal"] if re.fullmatch(r"LCD_D\d+", r["signal"]) else r["signal"] + "_D"
@@ -394,11 +402,12 @@ def build():
     d.decouple("3V3")
     d.R("100k", "D213_BOOT_REQ_N", "3V3", note="inactive while F133 PD11 is hi-Z")
     d.R("100k", "D213_RESET_REQ_N", "3V3", note="inactive while F133 PD10 is hi-Z")
-    d.U("SW_B3U", "D213 RESET", {"1": "D213_RESET_N", "2": "GND"}, note="HW guide 2.2.5: reserve a key/jumper")
-    d.U("SW_B3U", "D213 BOOT (PA0)", {"1": "D213_UART0_TX", "2": "GND"},
-        note="hold while pressing D213 RESET -> USB burn mode (HW guide 2.2.4 / 4.6 item 1)")
+    d.U("PADS_1x2", "D213 RESET pads", {"1": "D213_RESET_N", "2": "GND"}, dnp=True, note="internal fixture (HW guide 2.2.5)")
+    d.U("PADS_1x2", "D213 BOOT pads (PA0)", {"1": "D213_UART0_TX", "2": "GND"}, dnp=True,
+        note="internal fixture: short during D213 reset -> USB burn mode (HW guide 2.2.4); normally the F133 does this (D5)")
     d.C("100nF", "D213_RESET_N", dnp=True, note="optional delay cap (<= 4.7 uF allowed)")
-    d.U("HDR_1x3", "D213 UART0", {"1": "GND", "2": "D213_UART0_TX", "3": "D213_UART0_RX_J"}, note="3.3 V TTL console")
+    d.U("HDR_1x3", "D213 UART0", {"1": "GND", "2": "D213_UART0_TX", "3": "D213_UART0_RX_J"}, dnp=True,
+        note="internal fixture: 3.3 V TTL console")
     d.R("100R", "D213_UART0_RX_J", "D213_UART0_RX", note="EOS series R on an exposed pin (HW guide 4.7 item 1)")
     d.R("100k", "D213_UART0_TX", "3V3", note="PA0 idles high: normal boot unless the F133 or the BOOT key holds it low")
     # D213 boot NOR (D5): SPI0 PB0-PB5; CS/WP/HOLD pull-ups mandatory (HW guide 2.3.1)
@@ -418,85 +427,122 @@ def build():
     d.U("LED", "D213 LED", {"1": "GND", "2": "D213_LED_R"}); d.R("1k", "D213_LED", "D213_LED_R")
     d.tp("D213_RESET_N"); d.tp("D213_UART0_TX"); d.tp("D213_XI")
 
-    # ================================================================ USB link F133 USB1 host -> D213 USB0 (+ recovery)
-    d.sheet("usb_link", "usb_link.kicad_sch", "F133 USB1 host -> D213 USB0 device; power-off service mux to recovery USB-C")
+    # ================================================================ internal USB link F133 USB1 host -> D213 USB0
+    d.sheet("usb_link", "usb_link.kicad_sch", "Internal: F133 USB1 host -> D213 USB0 device; service mux to internal D213 recovery pads")
     d.U("TS3USB221A", "TS3USB221A", {"1": "F133_USB1_DP", "2": "F133_USB1_DM", "3": "REC_USB_DP", "4": "REC_USB_DM",
                                     "5": "GND", "6": "USBMUX_OE_N", "7": "D213_USB0_DM", "8": "D213_USB0_DP",
                                     "9": "USBMUX_SEL", "10": "3V3"},
-        note="S=L (default): D213 USB0 <-> F133 USB1 host. S=H (jumper, change only with power off): D213 USB0 <-> "
-             "recovery USB-C. The F133 host is then disconnected on both data lines (decision 6). 90 ohm diff routing.")
+        note="S=L (default): D213 USB0 <-> F133 USB1 host. S=H (internal fixture, power off): D213 USB0 <-> internal "
+             "recovery pads; the F133 host is then disconnected on both data lines. 90 ohm diff routing.")
     d.decouple("3V3")
     d.R("10k", "USBMUX_SEL", "GND", note="default: internal host link")
     d.R("10k", "USBMUX_OE_N", "GND", note="mux enabled")
-    d.U("HDR_1x3", "USB path select", {"1": "3V3", "2": "USBMUX_SEL", "3": "GND"},
-        note="jumper 1-2 = recovery connector (power off first); no jumper / 2-3 = F133 host")
-    jr = d.U("USB_C", "recovery USB-C", {"A1": "GND", "A12": "GND", "B1": "GND", "B12": "GND", "S1": "GND",
-                                         "A4": "REC_VBUS", "A9": "REC_VBUS", "B4": "REC_VBUS", "B9": "REC_VBUS",
-                                         "A5": "REC_CC1", "B5": "REC_CC2", "A6": "REC_USB_DP", "B6": "REC_USB_DP",
-                                         "A7": "REC_USB_DM", "B7": "REC_USB_DM"},
-             note="D213 recovery / AiBurn port (device only). REC_VBUS is NOT connected to the board 5 V (no back-feed); "
-                  "the D213 has no VBUS-sense pin (pin table).")
-    d.nc(jr.ref, "A8", "SBU unused"); d.nc(jr.ref, "B8", "SBU unused")
-    d.R("5.1k", "REC_CC1", "GND", note="Rd: PC host sees a device"); d.R("5.1k", "REC_CC2", "GND")
-    d.R("100k", "REC_VBUS", "GND", note="defined level; VBUS only to a test point")
-    d.U("TVS_SMF", "SMF5.0A", {"1": "REC_VBUS", "2": "GND"})
+    d.U("HDR_1x3", "D213 USB path select", {"1": "3V3", "2": "USBMUX_SEL", "3": "GND"}, dnp=True,
+        note="internal fixture only (not reachable from outside): 1-2 = D213 recovery pads")
+    d.U("PADS_1x4", "D213 recovery USB pads", {"1": "GND", "2": "REC_USB_DM", "3": "REC_USB_DP", "4": "GND"}, dnp=True,
+        note="internal AiBurn fixture (D5). No VBUS pin: the D213 has no VBUS-sense pin; nothing back-feeds the board")
     d.U("TPD2EUSB30", "TPD2EUSB30", {"1": "REC_USB_DP", "2": "REC_USB_DM", "3": "GND"})
-    d.tp("REC_VBUS"); d.tp("D213_USB0_DP"); d.tp("D213_USB0_DM")
+    d.tp("D213_USB0_DP"); d.tp("D213_USB0_DM")
 
-    # ================================================================ video: TFP410 + TPD12S016 + HDMI-A (decision D6)
-    d.sheet("video", "video.kicad_sch", "D213 RGB888 -> TFP410 (DVI, strap mode) -> TPD12S016 -> HDMI type-A")
-    tconn = {"1": "3V3_TFP_D", "12": "3V3_TFP_D", "33": "3V3_TFP_D", "18": "3V3_TFP_P", "23": "3V3_TFP_T", "29": "3V3_TFP_T",
-             "16": "GND", "48": "GND", "64": "GND", "17": "GND", "20": "GND", "26": "GND", "32": "GND", "65": "GND",
-             "3": "3V3_TFP_D",                         # VREF = DVDD: 3.3 V high-swing input (SLDS145D 6.3.2)
-             "13": "TFP_ISEL", "15": "TFP_BSEL", "14": "TFP_DSEL", "9": "TFP_EDGE", "35": "TFP_DKEN",
-             "6": "TFP_DK3", "7": "TFP_DK2", "8": "TFP_DK1", "10": "TFP_PD_N", "11": "TFP_MSEN", "34": "GND",
-             "19": "TFP_TFADJ", "56": "GND",            # IDCK- tied low: single-ended clock
-             "21": "TMDS_CK_N", "22": "TMDS_CK_P", "24": "TMDS_D0_N", "25": "TMDS_D0_P", "27": "TMDS_D1_N",
-             "28": "TMDS_D1_P", "30": "TMDS_D2_N", "31": "TMDS_D2_P"}
+    # ================================================================ USB host: F133 USB0 role mux, hub, two front USB-A ports
+    d.sheet("usb_host", "usb_host.kicad_sch",
+            "F133 USB0 role mux: rear USB-C (device/FEL, default) or USB2422 hub -> front USB-A Player 1 / Player 2")
+    d.U("TS3USB221A", "TS3USB221A", {"1": "USBC_DP", "2": "USBC_DM", "3": "HUB_UP_DP", "4": "HUB_UP_DM", "5": "GND",
+                                    "6": "USB0MUX_OE_N", "7": "F133_USB0_DM", "8": "F133_USB0_DP", "9": "USB0_SEL",
+                                    "10": "3V3"},
+        note="D9. S=L (pull-down, at every cold boot and whenever the F133 is in reset): F133 USB0 <-> rear USB-C, so the "
+             "boot ROM FEL path never depends on firmware. S=H (F133 PD2, after boot): F133 USB0 host <-> hub; the rear "
+             "USB-C data lines are then disconnected (mutual exclusion is physical).")
+    d.decouple("3V3")
+    d.R("10k", "USB0_SEL", "GND", note="default = rear USB-C device/recovery path")
+    d.R("10k", "USB0MUX_OE_N", "GND", note="mux enabled")
+    hub = {"1": "3V3", "2": "USBA1_DM", "3": "USBA1_DP", "4": "USBA2_DM", "5": "USBA2_DP", "7": "HUB_PRTPWR1",
+           "8": "HUB_OCS1_N", "9": "3V3", "10": "HUB_CRFILT", "11": "HUB_PRTPWR2", "12": "HUB_OCS2_N",
+           "13": "HUB_NON_REM1", "14": "HUB_CFG_SEL", "15": "HUB_RESET_N", "16": "3V3", "17": "HUB_NON_REM0",
+           "18": "3V3", "19": "HUB_UP_DM", "20": "HUB_UP_DP", "21": "HUB_XO", "22": "HUB_XI", "23": "HUB_PLLFILT",
+           "24": "HUB_RBIAS", "25": "GND"}
+    uh = d.U("USB2422", "USB2422-I/MJ", hub,
+             note="strap mode (CFG_SEL=0): self-powered, both ports removable, PRTPWR active high. VBUS_DET tied to 3.3 V "
+                  "(permanently attached host, DS 2.3). Held in reset by the F133 until it selects host mode.")
+    d.nc(uh.ref, "6", "NC: no trace (DS 2.3)")
+    d.C("100nF", "3V3", note="pin 1 (DS 2.3)"); d.C("1uF", "3V3", note="pin 9 (DS 2.3)"); d.C("100nF", "3V3", note="pin 18")
+    d.C("1uF", "HUB_CRFILT", note="core regulator filter, low ESR"); d.C("100nF", "HUB_PLLFILT", note="<= 0.1 uF")
+    d.R("12k", "HUB_RBIAS", "GND", note="12.0k 1 % (DS 2.3)")
+    d.R("10k", "HUB_CFG_SEL", "GND", note="CFG_SEL = 0: default configuration, straps enabled (Table 4.1)")
+    d.R("10k", "HUB_NON_REM1", "GND", note="NON_REM[1:0] = 00: both ports removable")
+    d.R("10k", "HUB_NON_REM0", "GND")
+    d.R("10k", "HUB_RESET_N", "GND", note="hub in reset until F133 PD3 releases it (>= 1 us pulse)")
+    d.U("XTAL_3225", "24MHz +-50ppm", {"1": "HUB_XI", "2": "GND", "3": "HUB_XO", "4": "GND"},
+        note="fundamental, parallel resonant, +-350 ppm max (DS 6)")
+    d.C("18pF", "HUB_XI", note="~18 pF each (DS Note 6.2); match to crystal CL"); d.C("18pF", "HUB_XO")
+    d.R("100k", "HUB_PRTPWR1", "GND", note="BC_EN1 strap = 0 (no battery charging) and switch off in reset")
+    d.R("100k", "HUB_PRTPWR2", "GND", note="switch off in reset")
+    for n, side in (("1", "Player 1"), ("2", "Player 2 / game load")):
+        vb = f"USBA{n}_VBUS"
+        d.U("TPS2051C", f"USB-A{n} power", {"1": vb, "2": "GND", "3": f"HUB_OCS{n}_N", "4": f"HUB_PRTPWR{n}", "5": "VBUS_5V"},
+            note="0.5 A current limit, fault -> hub OCS (port power budgeted in analysis/R10_POWER_BUDGET.md)")
+        d.C("1uF", "VBUS_5V", note="IN cap (>= 0.1 uF, DS)")
+        d.R("10k", f"HUB_OCS{n}_N", "3V3", note="FLT open drain (hub also has an internal pull-up)")
+        d.C("100uF", vb, pkg="C1210", note="downstream VBUS bulk (USB 2.0: >= 120 uF per hub port incl. the 22 uF)")
+        d.C("22uF", vb); d.C("100nF", vb)
+        d.U("TVS_SMF", "SMF5.0A", {"1": vb, "2": "GND"})
+        d.U("TPD2EUSB30", "TPD2EUSB30", {"1": f"USBA{n}_DP", "2": f"USBA{n}_DM", "3": "GND"})
+        d.U("USB_A", f"USB-A {side}", {"1": vb, "2": f"USBA{n}_DM", "3": f"USBA{n}_DP", "4": "GND", "5": "GND"},
+            note="FRONT. Through-hole shell" + (" -- reinforced: shell tabs soldered + case boss behind it (handoff s4)"
+                                                 if n == "2" else ""))
+        d.tp(vb)
+    d.tp("USB0_SEL"); d.tp("HUB_RESET_N"); d.tp("HUB_UP_DP"); d.tp("HUB_UP_DM")
+
+    # ================================================================ video + audio: ADV7513 + TPD12S016 + HDMI-A (D8)
+    d.sheet("video", "video.kicad_sch", "D213 RGB888 + F133 I2S -> ADV7513 HDMI transmitter (embedded audio) -> TPD12S016 -> HDMI-A")
+    aconn = {"1": "1V8_ADV_D", "11": "1V8_ADV_D", "31": "1V8_ADV_D", "51": "1V8_ADV_D", "12": "1V8_ADV_P", "13": "1V8_ADV_P",
+             "15": "1V8_ADV_A", "19": "1V8_ADV_A", "25": "1V8_ADV_A", "29": "3V3", "65": "GND",
+             "3": "ADV_SPDIF", "4": "ADV_MCLK", "5": "I2S_DOUT", "6": "ADV_I2S1", "7": "ADV_I2S2", "8": "ADV_I2S3",
+             "9": "I2S_BCLK", "10": "I2S_LRCK", "14": "ADV_REXT", "16": "HDMI_HPD", "22": "HDMI_PD", "28": "HDMI_INT",
+             "30": "HDMI_CEC_A", "32": "ADV_CEC_CLK", "33": "HDMI_DDC_SCL", "34": "HDMI_DDC_SDA", "35": "HDMI_I2C_SCL",
+             "36": "HDMI_I2C_SDA",
+             "17": "TMDS_CK_N", "18": "TMDS_CK_P", "20": "TMDS_D0_N", "21": "TMDS_D0_P", "23": "TMDS_D1_N", "24": "TMDS_D1_P",
+             "26": "TMDS_D2_N", "27": "TMDS_D2_P"}
     for r in vid:
-        tpin = r["b_pin"]
-        tconn[tpin] = r["signal"]
-    tu = d.U("TFP410", "TFP410PAP", tconn, note="24-bit single-edge (BSEL=1), high swing (VREF=DVDD), I2C off (ISEL=0)")
-    d.nc(tu.ref, "49", "NC per datasheet")
+        aconn[r["b_pin"]] = r["signal"]
+    d.U("ADV7513", "ADV7513BSWZ", aconn,
+        note="24-bit RGB 4:4:4 + I2S stereo LPCM (48 kHz baseline, no MCLK needed). Init over I2C from the D213 "
+             "(7-bit 0x39 with PD low at power-up): ADI AN-1270 List 4 + Linux adv7511 fixed registers")
     for s in ("LCD_DCLK", "LCD_HS", "LCD_VS", "LCD_DE"):
         d.R("22R", s + "_D", s, note="series R at the D213 (HW guide 4.7 item 3)")
-    d.C("10pF", "LCD_DCLK", dnp=True, note="DNP RC filter footprint on the pixel clock (HW guide 4.7 item 3)")
-    d.R("10k", "TFP_ISEL", "GND", note="I2C disabled: configuration from pins")
-    d.R("10k", "TFP_BSEL", "3V3_TFP_D", note="24-bit, single edge")
-    d.R("10k", "TFP_DSEL", "GND", note="don't care in high-swing mode")
-    d.R("10k", "TFP_EDGE", "3V3_TFP_D", note="latch on rising IDCK (fitted)")
-    d.R("10k", "TFP_EDGE", "GND", dnp=True, note="alternative: latch on falling edge (fit instead of the pull-up)")
-    d.R("10k", "TFP_DKEN", "GND", note="de-skew off (fitted)")
-    d.R("10k", "TFP_DKEN", "3V3_TFP_D", dnp=True, note="de-skew on: then DK[3:1] select the setup/hold trim")
-    for k in ("TFP_DK3", "TFP_DK2", "TFP_DK1"):
-        d.R("10k", k, "GND", note="DK step 000 (fitted)")
-        d.R("10k", k, "3V3_TFP_D", dnp=True, note="trim option")
-    d.R("10k", "TFP_PD_N", "3V3", note="TFP410 on by default (display works before any GPIO setup); D213 PA11 may power it down")
-    d.R("4.7k", "TFP_MSEN", "3V3_TFP_D", note="SLDS145D: 5k pull-up required on MSEN (open drain); 4.7k E12")
-    d.R("510R", "TFP_TFADJ", "3V3_TFP_T", note="RTFADJ 510 ohm 1 %: DVI-compliant swing (SLDS145D 5.3)")
-    # supplies: ferrite + 22 uF + 10 nF per pin (SLDS145D 7.3), separate DVDD / TVDD / PVDD
-    for rail, n in (("3V3_TFP_D", 3), ("3V3_TFP_T", 2), ("3V3_TFP_P", 3)):
-        d.U("FB0603", "ferrite 120R@100MHz", {"1": "3V3", "2": rail}, mpn="BLM18PG121SN1D (CANDIDATE)")
-        d.C("22uF", rail, note="SLDS145D 7.3: 22 uF (tantalum or ceramic) after the ferrite")
-        d.decouple(rail, n, "10nF")
+    d.C("10pF", "LCD_DCLK", dnp=True, note="DNP RC filter footprint on the pixel clock")
+    d.R("887R", "ADV_REXT", "GND", note="887 ohm 1 % close to pin 14 (ADV7513 HW user guide, quoted; OPEN: read the guide)")
+    for n in ("ADV_SPDIF", "ADV_MCLK", "ADV_I2S1", "ADV_I2S2", "ADV_I2S3"):
+        d.R("10k", n, "GND", note="unused audio input held low")
+    d.R("10k", "ADV_CEC_CLK", "GND", note="CEC unused: clock input held low (OPEN: confirm with the HW user guide)")
+    d.U("OSC_3225", "12MHz", {"1": "3V3", "2": "GND", "3": "ADV_CEC_CLK_X", "4": "3V3"}, dnp=True,
+        note="DNP: CEC clock (3-100 MHz, 12 MHz default) if CEC is ever used")
+    d.R("0R", "ADV_CEC_CLK_X", "ADV_CEC_CLK", dnp=True)
+    d.R("10k", "HDMI_PD", "GND", note="PD low at power-up: device active, I2C main map 0x72/0x39 (DS Table 3; Linux pd-gpios)")
+    d.R("10k", "HDMI_INT", "3V3", note="INT pull-up (OPEN: output type per HW user guide; D213 may poll over I2C instead)")
+    d.R("2.2k", "HDMI_I2C_SCL", "3V3", note="D213 I2C2 -> ADV7513 (5 V tolerant, 400 kHz max)")
+    d.R("2.2k", "HDMI_I2C_SDA", "3V3")
+    for rail, n in (("1V8_ADV_D", 4), ("1V8_ADV_A", 3), ("1V8_ADV_P", 2)):
+        d.U("FB0603", "ferrite 120R@100MHz", {"1": "1V8_HDMI", "2": rail}, mpn="BLM18PG121SN1D (CANDIDATE)",
+            note="separate quiet 1.8 V domains (DS: DVDD 'filtered and as quiet as possible')")
+        d.C("10uF", rail, pkg="C0603"); d.decouple(rail, n)
         d.flag(rail)
-    # HDMI companion: flow-through TMDS ESD, DDC level shift with internal pull-ups, HPD, 5 V load switch (55 mA)
-    d.U("TPD12S016", "TPD12S016", {"1": "TPD_CEC_A", "2": "HDMI_SCL", "3": "HDMI_SDA", "4": "HDMI_HPD", "5": "TPD_LS_OE",
-                                  "6": "GND", "7": "HDMI_CEC", "8": "HDMI_SCL_5V", "9": "HDMI_SDA_5V", "10": "HDMI_HPD_5V",
-                                  "11": "VBUS_5V", "12": "TPD_CT_HPD", "13": "HDMI_5V", "14": "GND",
+    d.decouple("3V3"); d.C("1uF", "3V3", note="DVDD_3V")
+    d.U("TPD12S016", "TPD12S016", {"1": "HDMI_CEC_A", "2": "HDMI_DDC_SCL", "3": "HDMI_DDC_SDA", "4": "HDMI_HPD",
+                                  "5": "TPD_LS_OE", "6": "GND", "7": "HDMI_CEC", "8": "HDMI_SCL_5V", "9": "HDMI_SDA_5V",
+                                  "10": "HDMI_HPD_5V", "11": "VBUS_5V", "12": "TPD_CT_HPD", "13": "HDMI_5V", "14": "GND",
                                   "15": "TMDS_CK_N", "16": "TMDS_CK_P", "17": "TMDS_D0_N", "18": "TMDS_D0_P", "19": "GND",
                                   "20": "TMDS_D1_N", "21": "TMDS_D1_P", "22": "TMDS_D2_N", "23": "TMDS_D2_P", "24": "3V3"},
-        note="no external DDC/CEC/HPD pull-ups needed (SLLSE96F 7.3.15); TMDS pass-through placed at the connector")
+        note="TMDS/DDC/CEC/HPD ESD, internal DDC/CEC/HPD pull-ups (SLLSE96F 7.3.15), 55 mA HDMI 5 V load switch")
     d.R("10k", "TPD_LS_OE", "3V3", note="level shifters on"); d.R("10k", "TPD_CT_HPD", "3V3", note="load switch + HPD on")
-    d.R("10k", "TPD_CEC_A", "3V3", dnp=True, note="CEC unused at the D213; internal 10k pull-up suffices")
     d.decouple("3V3"); d.C("100nF", "VBUS_5V"); d.C("100nF", "HDMI_5V")
     jh = d.U("HDMI_A", "HDMI type-A", {"1": "TMDS_D2_P", "2": "GND", "3": "TMDS_D2_N", "4": "TMDS_D1_P", "5": "GND",
-                                  "6": "TMDS_D1_N", "7": "TMDS_D0_P", "8": "GND", "9": "TMDS_D0_N", "10": "TMDS_CK_P",
-                                  "11": "GND", "12": "TMDS_CK_N", "13": "HDMI_CEC", "15": "HDMI_SCL_5V",
-                                  "16": "HDMI_SDA_5V", "17": "GND", "18": "HDMI_5V", "19": "HDMI_HPD_5V", "SH": "GND"},
-        note="DVI video over HDMI connector (no HDMI audio, D6); TMDS 100 ohm differential")
+                                       "6": "TMDS_D1_N", "7": "TMDS_D0_P", "8": "GND", "9": "TMDS_D0_N", "10": "TMDS_CK_P",
+                                       "11": "GND", "12": "TMDS_CK_N", "13": "HDMI_CEC", "15": "HDMI_SCL_5V",
+                                       "16": "HDMI_SDA_5V", "17": "GND", "18": "HDMI_5V", "19": "HDMI_HPD_5V", "SH": "GND"},
+             note="REAR. HDMI video + embedded stereo audio; TMDS 100 ohm differential")
     d.nc(jh.ref, "14", "Utility/HEAC+ unused")
-    d.tp("LCD_DCLK"); d.tp("HDMI_HPD"); d.tp("TFP_MSEN"); d.tp("HDMI_5V")
+    d.tp("LCD_DCLK"); d.tp("HDMI_HPD"); d.tp("HDMI_INT"); d.tp("HDMI_5V"); d.tp("I2S_BCLK"); d.tp("I2S_LRCK")
 
     # ================================================================ 45F
     d.sheet("fpga45", "fpga45.kicad_sch", "LFE5U-45F-6BG381C tile GPU: rails, slave-SPI config from the D213, JTAG, RGMII")
@@ -687,38 +733,36 @@ def build():
     for n in ("PSRAM_SCLK", "PSRAM_SIO0", "PSRAM_SIO1", "PSRAM_SIO2", "PSRAM_SIO3"):
         d.R("100k", n, "GND", note="static idle level")
 
-    # ================================================================ microSD + audio (unchanged R8.5-C)
-    d.sheet("sd_audio", "sd_audio.kicad_sch", "microSD game media (not boot), 2x MAX98357A I2S speakers")
-    d.U("MICROSD", "microSD", {"1": "SD_D2", "2": "SD_D3", "3": "SD_CMD", "4": "SD_VDD", "5": "SD_CLK", "6": "GND",
-                               "7": "SD_D0", "8": "SD_D1", "9": "SD_DET_N", "10": "GND", "11": "GND"})
-    d.U("TPS22918", "SD power switch", {"1": "3V3", "2": "GND", "3": "SD_PWR_EN", "4": "SW_SD_CT", "5": "SD_VDD", "6": "SD_VDD"})
-    d.C("1nF", "SW_SD_CT"); d.C("10uF", "SD_VDD", pkg="C0603"); d.decouple("SD_VDD")
-    d.R("100k", "SD_PWR_EN", "GND")
-    d.R("33R", "SD_CLK_F", "SD_CLK")
-    for n in ("SD_CMD", "SD_D0", "SD_D1", "SD_D2", "SD_D3"):
-        d.R("47k", n, "SD_VDD")
-    d.R("10k", "SD_DET_N", "3V3")
-    d.tp("SD_VDD"); d.tp("SD_DET_N")
-    for side, sdm in (("L", "AMP_EN"), ("R", "AMP_R_SDMODE")):
-        u = d.U("MAX98357A", f"MAX98357A {side}", {"1": "I2S_DOUT", "3": "GND", "4": sdm, "7": "VBUS_5V", "8": "VBUS_5V",
-                                                   "9": f"SPK_{side}_P", "10": f"SPK_{side}_N", "11": "GND", "14": "I2S_LRCK",
-                                                   "15": "GND", "16": "I2S_BCLK", "17": "GND"})
-        for p in ("5", "6", "12", "13"):
-            d.nc(u.ref, p, "NC")
-        d.nc(u.ref, "2", "GAIN_SLOT open = default gain")
-        d.C("10uF", "VBUS_5V", pkg="C0805"); d.C("100nF", "VBUS_5V")
-        d.U("JST_PH2", f"SPK {side}", {"1": f"SPK_{side}_P", "2": f"SPK_{side}_N", "MP": "GND"})
-    d.R("210k", "AMP_EN", "AMP_R_SDMODE", note="right channel (MAX98357A DS Table 6)")
-    d.R("100k", "AMP_EN", "GND", note="amps off while F133 in reset")
+    # ================================================================ eMMC (handoff s3; replaces microSD)
+    d.sheet("emmc", "emmc.kicad_sch", "16 GB eMMC on F133 SMHC0 (4-bit, 3.3 V): installed games and saves")
+    ec = {"A3": "EMMC_D0", "A4": "EMMC_D1", "A5": "EMMC_D2", "B2": "EMMC_D3", "M5": "EMMC_CMD", "M6": "EMMC_CLK",
+          "K5": "EMMC_RST_N", "C2": "EMMC_VDDI"}
+    for b, n, et, side in PARTS["EMMC_KLMAG1JETD"].pins:
+        if n in ("VCCQ", "VCC"):
+            ec[b] = "3V3"
+        elif n == "VSS":
+            ec[b] = "GND"
+    ue = d.U("EMMC_KLMAG1JETD", "KLMAG1JETD-B041", ec,
+             note="SMHC0 is documented for SD memory; eMMC in 4-bit SDR at 3.3 V uses the same electrical interface with "
+                  "MMC initialisation in software -> CONDITIONAL until bench-proven (D10)")
+    for b in ("B3", "B4", "B5", "B6"):
+        d.nc(ue.ref, b, "DAT4-7 unused in 4-bit mode (internal pull-ups, DS Rint)")
+    d.nc(ue.ref, "H5", "Data Strobe: HS400 only (1.8 V, 8-bit) -- unused")
+    d.decouple("3V3", 4); d.C("10uF", "3V3", pkg="C0603"); d.C("4.7uF", "3V3", pkg="C0603")
+    d.C("1uF", "EMMC_VDDI", note="CReg on VDDi (DS Figure 5; value per JEDEC practice -- confirm)"); d.C("100nF", "EMMC_VDDI")
+    d.R("33R", "EMMC_CLK_F", "EMMC_CLK", note="source series termination at the F133")
+    d.R("10k", "EMMC_CMD", "3V3", note="RCMD 4.7-100k (DS)")
+    for n in ("EMMC_D0", "EMMC_D1", "EMMC_D2", "EMMC_D3"):
+        d.R("47k", n, "3V3", note="RDAT 10-100k (DS)")
+    d.R("10k", "EMMC_RST_N", "3V3", note="RST_n inactive (function disabled by default in EXT_CSD[162])")
+    d.tp("EMMC_CLK"); d.tp("EMMC_CMD"); d.tp("EMMC_D0")
 
-    # ================================================================ controls + debug
-    d.sheet("controls", "controls.kicad_sch", "Game buttons, LEDs, F133 debug UART")
-    for b in ("UP", "DOWN", "LEFT", "RIGHT", "A", "B", "X", "Y", "L", "R", "START", "SELECT", "HOME"):
-        d.U("SW_B3U", b, {"1": f"BTN_{b}", "2": "GND"}, note="F133 internal pull-up")
+    # ================================================================ internal debug + indicators (no exterior controls)
+    d.sheet("debug", "debug.kicad_sch", "Internal: status LEDs, F133 UART0 fixture header")
     d.U("LED", "STATUS", {"1": "GND", "2": "LED_STATUS_R"}); d.R("1k", "LED_STATUS", "LED_STATUS_R")
     d.U("LED", "ERROR", {"1": "GND", "2": "LED_ERROR_R"}); d.R("1k", "LED_ERROR", "LED_ERROR_R")
     d.U("LED", "3V3", {"1": "GND", "2": "LED_3V3_R"}); d.R("2k", "3V3", "LED_3V3_R")
-    d.U("HDR_1x3", "F133 UART0", {"1": "GND", "2": "UART0_TX", "3": "UART0_RX"}, note="3.3 V TTL console")
+    d.U("HDR_1x3", "F133 UART0", {"1": "GND", "2": "UART0_TX", "3": "UART0_RX"}, dnp=True, note="internal fixture: 3.3 V TTL console")
 
     for c in d.comps:
         for num, nm, et, side in PARTS[c.part].pins:

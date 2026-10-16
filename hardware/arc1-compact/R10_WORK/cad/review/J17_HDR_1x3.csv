@@ -1,0 +1,4 @@
+pin,name,etype,net,nc_reason,net_members
+1,1,passive,GND,,(ground)
+2,2,passive,UART0_TX,,U18.35 TP27.1
+3,3,passive,UART0_RX,,U18.33 TP28.1

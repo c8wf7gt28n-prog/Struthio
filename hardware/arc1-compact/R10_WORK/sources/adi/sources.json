@@ -1,0 +1,43 @@
+[
+ {
+  "id": "adi_adv7513_ds",
+  "url": "https://datasheet.lcsc.com/datasheet/pdf/df4a536f68cc74eecf8c84bd1c714a7a.pdf?productCode=C408901 (LCSC copy; analog.com refused connections from this environment)",
+  "title": "ADV7513 165 MHz High Performance HDMI Transmitter data sheet",
+  "revision": "Rev. B (5/14)",
+  "retrieved_at": "2026-10-16",
+  "sha256": "94e6510bbdee8f743f9bdc05ca34ca8529cbc462db08e28b4a7b1b9f6d0f0964",
+  "used_for": "Table 3 pin functions (LQFP-64 EP, SW-64-2); 1.8 V DVDD/AVDD/PVDD/BGVDD 1.71-1.90 V, DVDD_3V 3.15-3.45 V, 256 mW typ at 1080p; video/audio inputs 1.8-3.3 V (VIH 1.35 V); DDC/I2C/HPD 5 V tolerant; 'no audio master clock needed for S/PDIF and I2S'; tVSU 1.8 ns / tVHLD 1.3 ns; 8-ch I2S up to 192 kHz; LCSC stock 87 (C408901, 2026-10-16)"
+ },
+ {
+  "id": "adi_an1270",
+  "url": "https://docs.ampnuts.ru/analog.com.datasheet/adv7513/related_data/AN-1270.pdf (third-party mirror of ADI AN-1270 Rev. 0)",
+  "title": "AN-1270 ADV7511/ADV7511W/ADV7513-Based Video Generators",
+  "revision": "Rev. 0",
+  "retrieved_at": "2026-10-16",
+  "sha256": "ae78682329c664400f48ac1f98c3090e0adfede7a677c013a43adfd941530478",
+  "used_for": "List 4: vendor I2C init script for ADV7511/ADV7511W/ADV7513 (main map 0x72)"
+ },
+ {
+  "id": "linux_adv7511",
+  "url": "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/drivers/gpu/drm/bridge/adv7511/ (v6.12)",
+  "title": "Linux DRM adv7511 bridge driver + DT binding adi,adv7511.yaml",
+  "revision": "v6.12",
+  "retrieved_at": "2026-10-16",
+  "sha256": {
+   "adv7511_drv.c": "5809b65711cac4526334f4f4bff15c01fe5d7620c06176ffee836b8121d595a2",
+   "adv7511_audio.c": "5b10ce11875d5fac813b07dc6af94d930ed9267a6cd54f7da97befa3a32b46d3",
+   "adv7511.h": "42f9d5293f02f9b36d36df1cddd244ab82812c64236667f6dc37f6baa2e9a61f",
+   "binding.yaml": "dff8024553088660681aa96586734c6d212e81ba9032a9f39b2e56f72630affe"
+  },
+  "used_for": "'adi,adv7513' handled with adv7511_chip_info (register compatible); fixed registers; CTS/N for 48 kHz (N = 128*fs/1000 = 6144); CEC clock optional; pd-gpios; 7-bit address 0x39 (PD low)"
+ },
+ {
+  "id": "adi_adv7513_hwug_index",
+  "url": "https://www.analog.com/media/en/technical-documentation/user-guides/adv7513_hardware_user_guide.pdf",
+  "title": "ADV7513 Hardware User's Guide Rev. 0",
+  "revision": "Rev. 0",
+  "retrieved_at": "NOT RETRIEVED (connection reset by analog.com)",
+  "sha256": null,
+  "used_for": "R_EXT = 887 ohm 1 % to ground, close to the pin (quoted by a search-engine index of this document only). OPEN: read the guide itself for CEC_CLK, INT output type, decoupling and layout."
+ }
+]

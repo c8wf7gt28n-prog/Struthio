@@ -182,3 +182,91 @@ add(Part("LVC2G07", "U", P(("1", "1A", "input"), ("2", "GND", "power_in"), ("3",
 add(Part("HDR_1x2", "J", P(("1", "1", "passive"), ("2", "2", "passive")),
          "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical", "STD_LIB", "header 1x2 2.54 + jumper", "generic",
          "jumper", "generic"))
+
+
+# ================================================================ change order: ARC1_R10_Handoff rev 1.1 (2026-10-16)
+# ---------------------------------------------------------------- HDMI with embedded audio (replaces the TFP410, D6 superseded)
+_ADV = {1: "DVDD", 2: "VSYNC", 3: "SPDIF", 4: "MCLK", 5: "I2S0", 6: "I2S1", 7: "I2S2", 8: "I2S3", 9: "SCLK", 10: "LRCLK",
+        11: "DVDD", 12: "PVDD", 13: "BGVDD", 14: "R_EXT", 15: "AVDD", 16: "HPD", 17: "TXC-", 18: "TXC+", 19: "AVDD",
+        20: "TX0-", 21: "TX0+", 22: "PD", 23: "TX1-", 24: "TX1+", 25: "AVDD", 26: "TX2-", 27: "TX2+", 28: "INT",
+        29: "DVDD_3V", 30: "CEC", 31: "DVDD", 32: "CEC_CLK", 33: "DDCSCL", 34: "DDCSDA", 35: "SCL", 36: "SDA", 51: "DVDD",
+        53: "CLK", 63: "DE", 64: "HSYNC", 65: "EPAD_GND"}
+for _p, _d in zip(list(range(37, 51)) + [52] + list(range(54, 63)), range(23, -1, -1)):
+    _ADV[_p] = f"D{_d}"
+assert sorted(_ADV) == list(range(1, 66))
+
+
+def _adv_et(n):
+    if n in ("DVDD", "PVDD", "BGVDD", "AVDD", "DVDD_3V", "EPAD_GND"):
+        return "power_in"
+    if n.startswith("TX"):
+        return "output"
+    if n in ("INT",):
+        return "output"
+    if n in ("CEC", "DDCSCL", "DDCSDA", "SDA", "SCL"):
+        return "bidirectional"
+    return "input"
+
+
+add(Part("ADV7513", "U", [(str(k), v, _adv_et(v), "L" if k <= 32 else "R") for k, v in sorted(_ADV.items())],
+         "Package_QFP:LQFP-64-1EP_10x10mm_P0.5mm_EP5x5mm_ThermalVias", "STD_LIB_CANDIDATE", "ADV7513BSWZ", "Analog Devices",
+         "HDMI 1.4 transmitter, 165 MHz, 24-bit RGB input, I2S/S-PDIF audio embedding, LQFP-64 EP",
+         "ADI ADV7513 DS Rev. B Figure 2 / Table 3 (sources/adi); EP 5.10-5.30 mm vs KiCad 5.0 mm land: confirm with SW-64-2"))
+
+# ---------------------------------------------------------------- USB: hub + port power + front USB-A
+add(Part("USB2422", "U", P(("1", "VDD33", "power_in"), ("2", "USBDM_DN1", "bidirectional"), ("3", "USBDP_DN1", "bidirectional"),
+                           ("4", "USBDM_DN2", "bidirectional"), ("5", "USBDP_DN2", "bidirectional"), ("6", "NC", "no_connect"),
+                           ("7", "PRTPWR1/BC_EN1", "output"), ("8", "OCS1_N", "input"), ("9", "VDD33", "power_in"),
+                           ("10", "CRFILT", "passive"), ("11", "PRTPWR2", "output"), ("12", "OCS2_N", "input"),
+                           ("13", "SMBDATA/NON_REM1", "bidirectional"), ("14", "SMBCLK/CFG_SEL0", "bidirectional"),
+                           ("15", "RESET_N", "input"), ("16", "VBUS_DET", "input"),
+                           ("17", "SUSP_IND/NON_REM0", "bidirectional"), ("18", "VDD33", "power_in"),
+                           ("19", "USBDM_UP", "bidirectional"), ("20", "USBDP_UP", "bidirectional"),
+                           ("21", "XTALOUT", "output"), ("22", "XTALIN", "input"), ("23", "PLLFILT", "passive"),
+                           ("24", "RBIAS", "passive"), ("25", "VSS_EP", "power_in")),
+         "Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm_ThermalVias", "STD_LIB_CANDIDATE", "USB2422-I/MJ", "Microchip",
+         "2-port USB 2.0 high-speed hub, strap-configured, 3.3 V, SQFN-24",
+         "Microchip DS00001726A Figure 2.1 / Table 2.2 (sources/microchip); exposed-pad size to confirm with the MJ package drawing"))
+add(Part("TPS2051C", "U", P(("1", "OUT", "power_out"), ("2", "GND", "power_in"), ("3", "~{FLT}", "open_collector"),
+                            ("4", "EN", "input"), ("5", "IN", "power_in")),
+         "Package_TO_SOT_SMD:SOT-23-5", "STD_LIB", "TPS2051CDBVR", "Texas Instruments",
+         "USB port power switch, 0.5 A current limit, EN active high, fault flag", "TI SLVSAU6I Table 5-2 (sources/ti)"))
+add(Part("USB_A", "J", P(("1", "VBUS", "passive"), ("2", "D-", "bidirectional"), ("3", "D+", "bidirectional"),
+                         ("4", "GND", "passive"), ("5", "SHIELD", "passive")),
+         "Connector_USB:USB_A_Molex_67643_Horizontal", "STD_LIB", "67643-0910", "Molex",
+         "USB 2.0 type-A receptacle, right angle, through-hole shell (front panel)",
+         "USB 2.0 type-A contact assignment; KiCad footprint pads 1-4 + 5 (shell); MPN variant to confirm with the drawing",
+         evidence="CANDIDATE (orderable suffix to confirm)"))
+
+# ---------------------------------------------------------------- eMMC (handoff s3), 153-FBGA 11.5 x 13
+_EMMC_SIG = {"A3": "DAT0", "A4": "DAT1", "A5": "DAT2", "B2": "DAT3", "B3": "DAT4", "B4": "DAT5", "B5": "DAT6", "B6": "DAT7",
+             "K5": "RST_N", "M5": "CMD", "M6": "CLK", "H5": "DS", "C2": "VDDI",
+             **{b: "VCCQ" for b in ("C6", "M4", "N4", "P3", "P5")}, **{b: "VCC" for b in ("E6", "F5", "J10", "K9")},
+             **{b: "VSS" for b in ("J5", "A6", "C4", "E7", "G5", "H10", "K8", "N2", "N5", "P4", "P6")}}
+
+
+def _emmc_pins():
+    fp = "/usr/share/kicad/footprints/Package_BGA.pretty/LFBGA-153_11.5x13mm_Layout14x14_P0.5mm.kicad_mod"
+    import re as _re
+    balls = sorted({m for m in _re.findall(r'\(pad "([A-Z]+\d+)"', open(fp).read())},
+                   key=lambda b: (b.rstrip("0123456789"), int(b[len(b.rstrip("0123456789")):])))
+    assert len(balls) == 153 and set(_EMMC_SIG) <= set(balls), (len(balls), set(_EMMC_SIG) - set(balls))
+    out = []
+    for b in balls:
+        n = _EMMC_SIG.get(b, "NC")
+        et = ("power_in" if n in ("VCCQ", "VCC", "VSS") else "passive" if n == "VDDI" else "no_connect" if n == "NC"
+              else "input" if n in ("CLK", "RST_N") else "output" if n == "DS" else "bidirectional")
+        out.append((b, n, et))
+    return side_split(out)
+
+
+add(Part("EMMC_KLMAG1JETD", "U", _emmc_pins(), "Package_BGA:LFBGA-153_11.5x13mm_Layout14x14_P0.5mm", "STD_LIB",
+         "KLMAG1JETD-B041", "Samsung", "16 GB eMMC 5.1, 153-FBGA 11.5x13x0.8 mm (JEDEC ball map), VCCQ 2.7-3.6 V used",
+         "Samsung KLMxGxJETD-B041 DS Rev 1.0 Table 2 (sources/samsung); NC/RFU balls left unconnected"))
+add(Part("PADS_1x4", "J", P(("1", "1", "passive"), ("2", "2", "passive"), ("3", "3", "passive"), ("4", "4", "passive")),
+         "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical", "STD_LIB", "internal service pads (not populated)",
+         "generic", "internal fixture pads", "generic"))
+add(Part("PADS_1x2", "J", P(("1", "1", "passive"), ("2", "2", "passive")),
+         "TestPoint:TestPoint_2Pads_Pitch2.54mm_Drill0.8mm", "STD_LIB", "internal service pad pair", "generic",
+         "internal fixture pad pair (replaces a user-facing switch)", "generic"))
+add(two_pin("C1210", "C", "Capacitor_SMD:C_1210_3225Metric", "passive C1210"))

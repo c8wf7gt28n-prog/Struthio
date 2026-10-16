@@ -1,0 +1,145 @@
+pin,name,etype,net,nc_reason,net_members
+1,PL5C,bidirectional,,unused user I/O (weak pull-down after configuration),
+2,PL5D,bidirectional,,unused user I/O (weak pull-down after configuration),
+3,PL5B,bidirectional,,unused user I/O (weak pull-down after configuration),
+4,PL8A,bidirectional,,unused user I/O (weak pull-down after configuration),
+5,PL8C,bidirectional,,unused user I/O (weak pull-down after configuration),
+6,PL8B,bidirectional,,unused user I/O (weak pull-down after configuration),
+7,PL8D,bidirectional,,unused user I/O (weak pull-down after configuration),
+8,GND,power_in,GND,,(ground)
+9,VCCIO7,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+10,PL14A,bidirectional,,unused user I/O (weak pull-down after configuration),
+11,PL14C/VREF1_7,bidirectional,,unused user I/O (weak pull-down after configuration),
+12,PL14B,bidirectional,,unused user I/O (weak pull-down after configuration),
+13,PL14D,bidirectional,,unused user I/O (weak pull-down after configuration),
+14,PL23D/PCLKC7_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+15,GND,power_in,GND,,(ground)
+16,VCCIO6,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+17,VCCAUX,power_in,2V5_F12,,FB2.2 TP20.1 C213.1 C214.1 C215.1 C216.1 C217.1
+18,PL32B,bidirectional,,unused user I/O (weak pull-down after configuration),
+19,PL35B/VREF1_6,bidirectional,,unused user I/O (weak pull-down after configuration),
+20,VCC,power_in,1V1_F12,,R38.2 TP18.1 C205.1 C206.1 C207.1 C208.1 C209.1 C210.1 C211.1 C212.1
+21,GND,power_in,GND,,(ground)
+22,PL35C,bidirectional,,unused user I/O (weak pull-down after configuration),
+23,PL35D,bidirectional,,unused user I/O (weak pull-down after configuration),
+24,PL38A,bidirectional,,unused user I/O (weak pull-down after configuration),
+25,PL38B,bidirectional,,unused user I/O (weak pull-down after configuration),
+26,PL41C,bidirectional,,unused user I/O (weak pull-down after configuration),
+27,PL41D,bidirectional,,unused user I/O (weak pull-down after configuration),
+28,PL44A,bidirectional,,unused user I/O (weak pull-down after configuration),
+29,VCC,power_in,1V1_F12,,R38.2 TP18.1 C205.1 C206.1 C207.1 C208.1 C209.1 C210.1 C211.1 C212.1
+30,PL44B,bidirectional,,unused user I/O (weak pull-down after configuration),
+31,PL44C,bidirectional,,unused user I/O (weak pull-down after configuration),
+32,GND,power_in,GND,,(ground)
+33,PL44D,bidirectional,,unused user I/O (weak pull-down after configuration),
+34,PL47A,bidirectional,,unused user I/O (weak pull-down after configuration),
+35,PL47B,bidirectional,,unused user I/O (weak pull-down after configuration),
+36,VCCIO6,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+37,PL47C/LLC_GPLL0T_IN,bidirectional,F12_OSC_25M,,R162.2
+38,VCC,power_in,1V1_F12,,R38.2 TP18.1 C205.1 C206.1 C207.1 C208.1 C209.1 C210.1 C211.1 C212.1
+39,PB6A/D5,bidirectional,,unused user I/O (weak pull-down after configuration),
+40,PB4A/D7,bidirectional,,unused user I/O (weak pull-down after configuration),
+41,PB6B/D4,bidirectional,,unused user I/O (weak pull-down after configuration),
+42,GND,power_in,GND,,(ground)
+43,VCCIO8,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+44,PB4B/D6,bidirectional,,unused user I/O (weak pull-down after configuration),
+45,PB9A/D3,bidirectional,,unused user I/O (weak pull-down after configuration),
+46,PB11A/D1,bidirectional,FPGA12_MISO,,U42.2 R149.1
+47,PB11B/D0,bidirectional,FPGA12_MOSI,,U40.4 R148.1
+48,PB13A/SN,bidirectional,FPGA12_SS_N,,U41.4 R154.1
+49,PB15A/HOLDN,bidirectional,,unused user I/O (weak pull-down after configuration),
+50,PB13B/CS1N,bidirectional,,unused user I/O (weak pull-down after configuration),
+51,PB15B/DOUT,bidirectional,,unused user I/O (weak pull-down after configuration),
+52,PB18A/WRITEN,bidirectional,,unused user I/O (weak pull-down after configuration),
+53,VCCAUX,power_in,2V5_F12,,FB2.2 TP20.1 C213.1 C214.1 C215.1 C216.1 C217.1
+54,CCLK/MCLK,input,FPGA12_SCK,,R145.2 R156.1 TP72.1
+55,INITN,open_collector,FPGA12_INITN,,U18.55 R152.1 TP71.1
+56,DONE,open_collector,FPGA12_DONE,,U18.38 R153.1 TP69.1
+57,PROGRAMN,input,FPGA12_PROGRAMN,,R150.1 R151.2 J16.10 TP70.1
+58,CFG_2,input,GND,,(ground)
+59,CFG_1,input,GND,,(ground)
+60,TDO,tri_state,FPGA12_TDO,,R160.1 J16.6
+61,TDI,input,FPGA12_TDI,,R159.1 J16.8
+62,CFG_0,input,FPGA12_CFG0,,R155.1
+63,TCK,input,FPGA12_TCK,,R157.1 J16.4
+64,TMS,input,FPGA12_TMS,,R158.1 J16.2
+65,GND,power_in,GND,,(ground)
+66,VCC,power_in,1V1_F12,,R38.2 TP18.1 C205.1 C206.1 C207.1 C208.1 C209.1 C210.1 C211.1 C212.1
+67,PR47B,bidirectional,,unused user I/O (weak pull-down after configuration),
+68,PR47D/LRC_GPLL0C_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+69,PR47C/LRC_GPLL0T_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+70,VCCIO3,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+71,PR47A,bidirectional,,unused user I/O (weak pull-down after configuration),
+72,PR44C,bidirectional,PSRAM_CE_N,,U43.1 R165.1
+73,PR41D,bidirectional,PSRAM_SCLK_F,,R164.1
+74,PR41C,bidirectional,PSRAM_SIO0,,U43.5 R167.1
+75,GND,power_in,GND,,(ground)
+76,PR41B,bidirectional,PSRAM_SIO1,,U43.2 R168.1
+77,PR41A,bidirectional,PSRAM_SIO2,,U43.3 R169.1
+78,PR35D,bidirectional,PSRAM_SIO3,,U43.7 R170.1
+79,PR35B/VREF1_3,bidirectional,,unused user I/O (weak pull-down after configuration),
+80,PR35C,bidirectional,,unused user I/O (weak pull-down after configuration),
+81,PR35A,bidirectional,,unused user I/O (weak pull-down after configuration),
+82,PR32D,bidirectional,,unused user I/O (weak pull-down after configuration),
+83,VCC,power_in,1V1_F12,,R38.2 TP18.1 C205.1 C206.1 C207.1 C208.1 C209.1 C210.1 C211.1 C212.1
+84,PR32C,bidirectional,,unused user I/O (weak pull-down after configuration),
+85,GND,power_in,GND,,(ground)
+86,VCCIO3,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+87,GND,power_in,GND,,(ground)
+88,PR23D/PCLKC2_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+89,PR23B/PCLKC2_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+90,PR23C/PCLKT2_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+91,PR23A/PCLKT2_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+92,PR20D,bidirectional,,unused user I/O (weak pull-down after configuration),
+93,PR20B,bidirectional,,unused user I/O (weak pull-down after configuration),
+94,PR20C/GR_PCLK2_0,bidirectional,,unused user I/O (weak pull-down after configuration),
+95,PR20A/GR_PCLK2_1,bidirectional,,unused user I/O (weak pull-down after configuration),
+96,VCCAUX,power_in,2V5_F12,,FB2.2 TP20.1 C213.1 C214.1 C215.1 C216.1 C217.1
+97,PR14B,bidirectional,,unused user I/O (weak pull-down after configuration),
+98,PR14C/VREF1_2,bidirectional,,unused user I/O (weak pull-down after configuration),
+99,PR14A,bidirectional,,unused user I/O (weak pull-down after configuration),
+100,VCCIO2,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+101,GND,power_in,GND,,(ground)
+102,PR8D,bidirectional,,unused user I/O (weak pull-down after configuration),
+103,PR8B,bidirectional,,unused user I/O (weak pull-down after configuration),
+104,PR8C,bidirectional,,unused user I/O (weak pull-down after configuration),
+105,PR8A,bidirectional,,unused user I/O (weak pull-down after configuration),
+106,PR2D,bidirectional,,unused user I/O (weak pull-down after configuration),
+107,PR2C,bidirectional,,unused user I/O (weak pull-down after configuration),
+108,PR2B/S0_IN,bidirectional,,unused user I/O (weak pull-down after configuration),
+109,NC,no_connect,,NC pin,
+110,PT67A,bidirectional,ETH_RXCK_E,,R137.1
+111,PT62B,bidirectional,ETH_RXD0_E,,R138.1
+112,PT62A,bidirectional,ETH_RXD1_E,,R139.1
+113,PT60B,bidirectional,ETH_RXD2_E,,R140.1
+114,PT60A,bidirectional,ETH_RXD3_E,,R141.1
+115,PT58B,bidirectional,ETH_RXCTL_E,,R142.1
+116,PT58A,bidirectional,,unused user I/O (weak pull-down after configuration),
+117,PT56B,bidirectional,,unused user I/O (weak pull-down after configuration),
+118,PT56A,bidirectional,,unused user I/O (weak pull-down after configuration),
+119,PT53B,bidirectional,,unused user I/O (weak pull-down after configuration),
+120,PT53A,bidirectional,,unused user I/O (weak pull-down after configuration),
+121,PT51A,bidirectional,F12_LED0,,R163.1
+122,VCCIO1,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+123,GND,power_in,GND,,(ground)
+124,PT42B,bidirectional,FPGA12_IRQ_N,,U18.42 R161.1
+125,PT42A,bidirectional,,unused user I/O (weak pull-down after configuration),
+126,PT40B,bidirectional,,unused user I/O (weak pull-down after configuration),
+127,PT40A,bidirectional,,unused user I/O (weak pull-down after configuration),
+128,PT29A/PCLKT0_0,bidirectional,ETH_TXCK,,R131.2 TP67.1
+129,GND,power_in,GND,,(ground)
+130,VCC,power_in,1V1_F12,,R38.2 TP18.1 C205.1 C206.1 C207.1 C208.1 C209.1 C210.1 C211.1 C212.1
+131,GND,power_in,GND,,(ground)
+132,VCCAUX,power_in,2V5_F12,,FB2.2 TP20.1 C213.1 C214.1 C215.1 C216.1 C217.1
+133,PT15B,bidirectional,ETH_TXD0,,R132.2
+134,PT15A,bidirectional,ETH_TXD1,,R133.2
+135,PT13B,bidirectional,ETH_TXD2,,R134.2
+136,PT13A,bidirectional,ETH_TXD3,,R135.2
+137,VCCIO0,power_in,3V3_F12,,R41.2 U16.5 U16.6 C41.1 TP19.1 U17.1 U17.3 C42.1 C218.1 C219.1 C220.1 C221.1 (+31)
+138,GND,power_in,GND,,(ground)
+139,PT9B,bidirectional,ETH_TXCTL,,R136.2 R143.1
+140,PT9A,bidirectional,,unused user I/O (weak pull-down after configuration),
+141,PT6B,bidirectional,,unused user I/O (weak pull-down after configuration),
+142,PT4B,bidirectional,,unused user I/O (weak pull-down after configuration),
+143,PT6A,bidirectional,,unused user I/O (weak pull-down after configuration),
+144,NC,no_connect,,NC pin,

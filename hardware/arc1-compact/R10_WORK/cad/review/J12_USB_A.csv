@@ -1,0 +1,6 @@
+pin,name,etype,net,nc_reason,net_members
+1,VBUS,passive,USBA1_VBUS,,U27.1 C114.1 C115.1 C116.1 D3.1 TP46.1
+2,D-,bidirectional,USBA1_DM,,U26.2 U28.2
+3,D+,bidirectional,USBA1_DP,,U26.3 U28.1
+4,GND,passive,GND,,(ground)
+5,SHIELD,passive,GND,,(ground)

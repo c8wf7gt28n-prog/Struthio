@@ -31,3 +31,15 @@ therefore have an on-board fallback, and the first board is a bring-up prototype
 
 D5 refines interconnect decision 4: the prototype second flash is a recovery and bring-up path, not a disguise of the
 cold-boot limit; independence is still defined as continued D213 operation after a successful boot.
+
+## Change order: ARC1_R10_Handoff rev 1.1 (owner, 2026-10-16; spec/ARC1_R10_Handoff_rev1.1.docx)
+
+Owner requirements (locked): exactly four exterior connectors (rear USB-C power/debug, rear HDMI video+audio, front
+USB-A Player 1, front USB-A Player 2 / game load), no exterior buttons or switches, HDMI with embedded audio, new eMMC.
+
+| # | Decision | Reason / evidence | Status |
+|---|---|---|---|
+| D8 | **ADI ADV7513BSWZ** HDMI 1.4 transmitter replaces the TFP410 (**supersedes D6**). D213 RGB888 (PD0-PD27) video, D213 I2C2 (PA8/PA9) configuration, PA7 INT, PA10 HPD, PA11 PD. **Audio = F133 I2S2 (PB4/PB5/PB6) -> ADV7513 I2S0/SCLK/LRCLK**, so game audio stays with the game-state owner. Own 1.8 V buck, three ferrite-filtered domains. TPD12S016 kept for ESD, DDC/HPD and the HDMI 5 V switch. | DS Rev. B: 165 MHz (720p60 = 74.25 MHz), 8-ch I2S up to 192 kHz, no MCLK needed, 1.8-3.3 V inputs, 5 V-tolerant DDC/HPD/I2C; init: ADI AN-1270 List 4 + Linux `adv7511` driver (`adi,adv7513`); LCSC C408901 87 pcs. | SELECTED; R_EXT 887 ohm from the HW user guide (quoted only), CEC_CLK / INT type OPEN until the guide is read |
+| D9 | **F133 USB0 -> TS3USB221A role mux.** Default (pull-down, every cold boot, F133 in reset): rear USB-C device/FEL. F133 PD2 switches to a **USB2422 2-port hub** (strap mode, held in reset by F133 PD3) -> two **TPS2051C** 0.5 A switches -> two front USB-A. F133 USB1 stays the internal D213 link. The D5 D213 recovery USB-C becomes **internal fixture pads**. | Mutual exclusion is physical (one mux); recovery never depends on firmware choosing the port. USB2422 DS00001726A; TPS20xxC SLVSAU6I. | SELECTED; enumeration OPEN (bench) |
+| D10 | **Samsung KLMAG1JETD-B041 16 GB eMMC 5.1 on F133 SMHC0 (PF0-PF5, 4-bit, 3.3 V), RST_n on PF6.** microSD removed. | F133 documents eMMC only on SMHC2, which shares PC2-PC7 with the SPI0 boot NOR and BOOT-SEL straps: rejected (would put a bus switch in the boot path). SMHC0 is an SD3.0 host; eMMC 4-bit SDR at 3.3 V is electrically identical, MMC init is software. BOOT-SEL 00 never tries SMHC0 (D1-H UM Table 3-5), so the boot path is unchanged. LCSC C499919 404 pcs. | **CONDITIONAL** (not documented by Allwinner for SMHC0): first-article test is a gate |
+| D11 | **Buttonless.** All switches become DNP internal fixture pad pairs (F133 reset, FEL/NOR reset, D213 reset/boot). 13 game buttons removed (controllers are USB). **Speakers removed** (MAX98357A x2, no exterior opening; audio = HDMI). | Handoff s1/s2. Auto-start on USB-C power is already the power-tree behaviour (bucks enabled from VBUS / PG_3V3). | SELECTED |

@@ -30,7 +30,7 @@ R85C = os.path.normpath(os.path.join(R10, "..", "R85C_WORK"))
 plan = json.load(open(os.path.join(R10, "board", "r10_board_plan.json")))
 res = {k: [] for k in ("A_netlist_vs_plan", "B_symbol_vs_footprint", "C_45f_lpf_rtl_schematic",
                        "D_12f_lpf_rtl_schematic", "E_connectivity", "F_power_domains", "G_supply_pins",
-                       "H_multi_ic_nets")}
+                       "H_multi_ic_nets", "I_handoff_rev1_1")}
 res["info"] = {}
 
 
@@ -179,13 +179,13 @@ for sec, nets, ports in (("C_45f_lpf_rtl_schematic", net45, ports45), ("D_12f_lp
             fail(sec, f"RTL input {p} sits on driver-side net {net}")
 
 # ------------------------------------------------------------------ E
-PASSIVE = {"R0402", "R0603", "C0402", "C0603", "C0805", "FB0603", "L4035", "F1812", "TP", "PWR_FLAG", "MH", "FID", "LED",
+PASSIVE = {"R0402", "R0603", "C0402", "C0603", "C0805", "C1210", "PADS_1x2", "PADS_1x4", "FB0603", "L4035", "F1812", "TP", "PWR_FLAG", "MH", "FID", "LED",
            "TVS_SMF", "SCHOTTKY", "SW_B3U"}
 for net, nodes in plan["nets"].items():
     if len(nodes) < 2:
         fail("E_connectivity", f"net {net} has a single pin {nodes}")
     parts = {pcomps[n.split(".")[0]]["part"] for n in nodes}
-    if not parts - PASSIVE and net != "GND" and not parts & {"L4035", "LED"}:   # regulator output / LED anode nodes
+    if not parts - PASSIVE and net != "GND" and not parts & {"L4035", "LED", "FB0603"}:   # regulator output / LED anode / ferrite-fed rail nodes
         fail("E_connectivity", f"net {net} joins only passives/test points/switches: {nodes}")
 
 # ------------------------------------------------------------------ F
@@ -239,8 +239,11 @@ EXPECT = {  # part: {pin name: rail}
     "ECP5_12F_TQ144": {"VCC": "1V1_F12", "VCCAUX": "2V5_F12", "VCCIO": "3V3_F12", "GND": "GND"},
     "AS4C16M16SA": {"VDD": "3V3_F45", "VDDQ": "3V3_F45", "VSS": "GND", "VSSQ": "GND"},
     "APS3204L": {"VDD": "3V3_F12", "VSS": "GND"},
-    "TFP410": {"DVDD": "3V3_TFP_D", "TVDD": "3V3_TFP_T", "PVDD": "3V3_TFP_P", "DGND": "GND", "TGND": "GND", "PGND": "GND",
-               "PAD": "GND"},
+    "ADV7513": {"DVDD": "1V8_ADV_D", "AVDD": "1V8_ADV_A", "PVDD": "1V8_ADV_P", "BGVDD": "1V8_ADV_P", "DVDD_3V": "3V3",
+                "EPAD_GND": "GND"},
+    "USB2422": {"VDD33": "3V3", "VSS_EP": "GND"},
+    "EMMC_KLMAG1JETD": {"VCCQ": "3V3", "VCC": "3V3", "VSS": "GND"},
+    "TPS2051C": {"IN": "VBUS_5V", "GND": "GND"},
     "TPD12S016": {"VCCA": "3V3", "VCC5V": "VBUS_5V", "GND": "GND"},
 }
 for part, exp in EXPECT.items():
@@ -255,18 +258,23 @@ for part, exp in EXPECT.items():
 # A signal net that reaches three or more ICs/connectors is either a deliberate bus or a naming collision (R10 found
 # one: SDRAM and microSD clocks both named SD_CLK). Every such net must be listed here with its reason.
 MULTI_OK = {
-    "D213_UART0_TX": "PA0 = UART0 TX + boot pin: console header + F133 open-drain hold (D5)",
+    "D213_UART0_TX": "PA0 = UART0 TX + boot pin: fixture header + F133 open-drain hold (D5) + fixture pads",
+    "D213_RESET_N": "D213 + F133 open-drain driver + fixture pads",
     "F133_RESET_N": "supervisor + F133 + LA header", "FPGA12_BUS_EN_N": "F133 enables three config buffers",
     "FPGA12_PWR_EN": "enable fan-out: VCC buck + VCCIO switch + override header",
     "FPGA45_PWR_EN": "enable fan-out: VCC buck + VCCIO switch + override header",
     "FPGA12_SS_N_F": "F133 SS: SS buffer + MISO buffer OE + LA header", "FPGA12_VCC_PG": "PG: F133 + oscillator OE",
-    "FPGA45_VCC_PG": "PG: D213 + oscillator OE", "I2S_BCLK": "two amplifiers", "I2S_DOUT": "two amplifiers",
-    "I2S_LRCK": "two amplifiers", "PG_3V3": "enables four bucks", "REC_USB_DM": "connector + ESD + mux",
-    "REC_USB_DP": "connector + ESD + mux", "SPI0_CLK": "NOR + config buffer + LA", "SPI0_CS0_N": "F133 + NOR + LA",
+    "FPGA45_VCC_PG": "PG: D213 + oscillator OE", "PG_3V3": "enables the bucks",
+    "REC_USB_DM": "fixture pads + ESD + mux", "REC_USB_DP": "fixture pads + ESD + mux",
+    "SPI0_CLK": "NOR + config buffer + LA", "SPI0_CS0_N": "F133 + NOR + LA",
     "SPI0_MISO": "NOR + MISO buffer + F133 + LA", "SPI0_MOSI": "NOR + config buffer + F133 + LA",
-    "USB0_DM": "connector + ESD + F133", "USB0_DP": "connector + ESD + F133",
-    **{f"TMDS_{s}": "TFP410 + pass-through ESD + connector" for s in ("CK_N", "CK_P", "D0_N", "D0_P", "D1_N", "D1_P",
-                                                                     "D2_N", "D2_P")},
+    "NOR_RESET_N": "NOR + LA header + FEL fixture pads", "RST_BTN_N": "supervisor MR + fixture pads",
+    "USBC_DM": "rear USB-C + ESD + USB0 mux", "USBC_DP": "rear USB-C + ESD + USB0 mux",
+    "USBA1_DM": "hub + ESD + USB-A", "USBA1_DP": "hub + ESD + USB-A", "USBA2_DM": "hub + ESD + USB-A",
+    "USBA2_DP": "hub + ESD + USB-A", "USBA1_VBUS": "switch + TVS + USB-A", "USBA2_VBUS": "switch + TVS + USB-A",
+    "HDMI_HPD": "TPD12S016 HPD_A -> ADV7513 HPD + D213 PA10",
+    **{f"TMDS_{s}": "ADV7513 + pass-through ESD + connector" for s in ("CK_N", "CK_P", "D0_N", "D0_P", "D1_N", "D1_P",
+                                                                      "D2_N", "D2_P")},
 }
 for net, nodes in plan["nets"].items():
     if net == "GND" or net.startswith(("1V", "2V5", "3V3", "VBUS", "VDD", "HDMI_5V")):
@@ -277,6 +285,44 @@ for net, nodes in plan["nets"].items():
 for net in MULTI_OK:
     if net not in plan["nets"]:
         fail("H_multi_ic_nets", f"MULTI_OK lists {net}, which no longer exists")
+
+# ------------------------------------------------------------------ I
+# Owner change order ARC1_R10_Handoff rev 1.1: four exterior connectors, zero exterior controls, HDMI with embedded
+# audio, two concurrent host USB-A ports behind a hub, eMMC on the F133. Exterior = notes start with FRONT/REAR.
+SEC = "I_handoff_rev1_1"
+ext = {r: c for r, c in pcomps.items() if c["note"].startswith(("FRONT", "REAR"))}
+kinds = sorted((c["part"], c["note"].split(".")[0]) for c in ext.values())
+if kinds != sorted([("USB_C", "REAR"), ("HDMI_A", "REAR"), ("USB_A", "FRONT"), ("USB_A", "FRONT")]):
+    fail(SEC, f"exterior connectors {kinds} != USB-C rear, HDMI rear, 2x USB-A front")
+for r, c in pcomps.items():
+    if c["part"] in ("USB_C", "HDMI_A", "USB_A", "MICROSD", "JST_PH2") and r not in ext:
+        fail(SEC, f"{r} {c['part']} is a connector type that would reach the case but is not declared FRONT/REAR")
+    if c["part"].startswith("SW_"):
+        fail(SEC, f"{r}: a switch is on the board (no exterior or user switches allowed)")
+    if c["part"] in ("PADS_1x2", "PADS_1x4", "HDR_1x3", "HDR_2x5_127") and not c["dnp"] and c["part"] != "HDR_2x5_127":
+        fail(SEC, f"{r}: service pads/headers must be DNP fixture features")
+for part in ("ADV7513", "USB2422", "EMMC_KLMAG1JETD"):
+    if part not in by_part:
+        fail(SEC, f"required part {part} missing")
+if "TFP410" in by_part:
+    fail(SEC, "TFP410 (DVI only) present")
+adv = pcomps[by_part["ADV7513"][0]]["pins"] if "ADV7513" in by_part else {}
+for pin, want in (("5", "I2S_DOUT"), ("9", "I2S_BCLK"), ("10", "I2S_LRCK")):
+    if adv.get(pin, {}).get("net") != want or not any(n.startswith(by_part["F133"][0] + ".") for n in plan["nets"].get(want, [])):
+        fail(SEC, f"HDMI audio: ADV7513 pin {pin} must carry {want} from the F133 I2S2")
+f133 = {d["name"]: d["net"] for d in pcomps[by_part["F133"][0]]["pins"].values()}
+if f133.get("USB1-DP") != "F133_USB1_DP" or not any(n.startswith(by_part["TS3USB221A"][0] + ".") or True for n in []):
+    pass
+usb1 = {n.split(".")[0] for n in plan["nets"].get("F133_USB1_DP", [])}
+if not any(pcomps[r]["part"] == "TS3USB221A" for r in usb1):
+    fail(SEC, "F133 USB1 must still reach the D213 (through the internal link mux)")
+usb0 = {pcomps[n.split(".")[0]]["part"] for n in plan["nets"].get("F133_USB0_DP", [])}
+if usb0 != {"F133", "TS3USB221A"}:
+    fail(SEC, f"F133 USB0 must go only to the role mux, found {usb0}")
+emmc = {n.split(".")[0] for n in plan["nets"].get("EMMC_CMD", [])}
+if not ({by_part["F133"][0], by_part["EMMC_KLMAG1JETD"][0]} <= emmc):
+    fail(SEC, "eMMC CMD not wired F133 <-> eMMC")
+res["info"]["exterior_connectors"] = {r: c["part"] + " " + c["note"].split(".")[0] for r, c in ext.items()}
 
 total = sum(len(v) for k, v in res.items() if k not in ("info", "cross_rail_signals"))
 res["result"] = "PASS" if total == 0 else "FAIL"

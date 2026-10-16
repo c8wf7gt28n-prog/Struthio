@@ -33,6 +33,10 @@
       "usb_link"
     ],
     [
+      "485805a3-5203-5248-ac2c-777b34bfff45",
+      "usb_host"
+    ],
+    [
       "1f91c4e9-0be1-5db6-896e-7d7587a6cf01",
       "video"
     ],
@@ -53,12 +57,12 @@
       "psram12"
     ],
     [
-      "c6dfe125-ce88-54c1-9b49-3f374443eed3",
-      "sd_audio"
+      "20be9c62-2934-5ecf-8733-01458ac871db",
+      "emmc"
     ],
     [
-      "e7ea6418-8c83-5441-a705-7bb878ec7773",
-      "controls"
+      "529c2899-71dd-5648-b9f7-6fb2be3cb51d",
+      "debug"
     ]
   ],
   "text_variables": {}

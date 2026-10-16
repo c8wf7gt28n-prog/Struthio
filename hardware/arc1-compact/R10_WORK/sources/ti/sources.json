@@ -52,5 +52,14 @@
   "retrieved_at": "2026-10-16",
   "sha256": "71bbb2fc452e2949b332c030b004b094ba679ac8cce27123f806a0a6b1fde660",
   "used_for": "DBV SOT-23-6 pins: 1 1A, 2 GND, 3 2A, 4 2Y, 5 VCC, 6 1Y; Ioff (partial power down)"
+ },
+ {
+  "id": "ti_tps20xxc",
+  "url": "https://www.ti.com/lit/ds/symlink/tps2051c.pdf",
+  "title": "TPS20xxC current-limited power-distribution switches",
+  "revision": "SLVSAU6I (revised May 2026)",
+  "retrieved_at": "2026-10-16",
+  "sha256": "898c093489ac30dde4c62f1ccaeaf71573239021a93da4182eb8efadf4be3fcd",
+  "used_for": "TPS2051C: 0.5 A, EN active high, output discharge; DBV pins 1 OUT, 2 GND, 3 FLT# (open drain), 4 EN, 5 IN"
  }
 ]

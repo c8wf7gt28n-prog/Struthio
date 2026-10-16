@@ -1,0 +1,6 @@
+pin,name,etype,net,nc_reason,net_members
+1,OUT,power_out,USBA2_VBUS,,C118.1 C119.1 C120.1 D4.1 J13.1 TP47.1
+2,GND,power_in,GND,,(ground)
+3,~{FLT},open_collector,HUB_OCS2_N,,U26.12 R74.1
+4,EN,input,HUB_PRTPWR2,,U26.11 R72.1
+5,IN,power_in,VBUS_5V,,F1.2 D1.1 C1.1 C2.1 C3.1 R6.1 TP1.1 U3.1 U3.4 C5.1 U5.4 C10.1 (+17)

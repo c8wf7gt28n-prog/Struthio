@@ -1,0 +1,6 @@
+pin,name,etype,net,nc_reason,net_members
+1,IN,power_in,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 C34.1 U33.F9 U33.F10 U33.F11 U33.F12 U33.H6 U33.H7 (+72)
+2,GND,power_in,GND,,(ground)
+3,EN,input,3V3_F45,,R35.2 U13.5 U13.6 C33.1 TP14.1 C34.1 U33.F9 U33.F10 U33.F11 U33.F12 U33.H6 U33.H7 (+72)
+4,NC,no_connect,,NC per datasheet,
+5,OUT,power_out,2V5_F45_REG,,C35.1 FB1.1

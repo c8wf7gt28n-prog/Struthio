@@ -1,0 +1,130 @@
+pin,name,etype,net,nc_reason,net_members
+1,PD17,bidirectional,LCD_D17,,U31.43
+2,PD16,bidirectional,LCD_D16,,U31.44
+3,PD15,bidirectional,LCD_D15,,U31.45
+4,PD14,bidirectional,LCD_D14,,U31.46
+5,PD13,bidirectional,LCD_D13,,U31.47
+6,PD12,bidirectional,LCD_D12,,U31.48
+7,PD11,bidirectional,LCD_D11,,U31.49
+8,PD10,bidirectional,LCD_D10,,U31.50
+9,PD9,bidirectional,LCD_D9,,U31.52
+10,PD8,bidirectional,LCD_D8,,U31.54
+11,PD7,bidirectional,LCD_D7,,U31.55
+12,PD6,bidirectional,LCD_D6,,U31.56
+13,PD5,bidirectional,LCD_D5,,U31.57
+14,PD4,bidirectional,LCD_D4,,U31.58
+15,PD3,bidirectional,LCD_D3,,U31.59
+16,PD2,bidirectional,LCD_D2,,U31.60
+17,PD1,bidirectional,LCD_D1,,U31.61
+18,PD0,bidirectional,LCD_D0,,U31.62
+19,PC0,bidirectional,,spare GPIO,
+20,PC1,bidirectional,,spare GPIO,
+21,PC2,bidirectional,,spare GPIO,
+22,PC3,bidirectional,,spare GPIO,
+23,PC4,bidirectional,,spare GPIO,
+24,PC5,bidirectional,,spare GPIO,
+25,PC6,bidirectional,,spare GPIO,
+26,PC7,bidirectional,,spare GPIO,
+27,VCC33_IO1,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+102)
+28,LDO1x,power_out,D213_LDO1X,,C96.1
+29,LDO25,power_out,D213_LDO25,,C97.1
+30,VCC_DRAM,power_in,1V5_D213,,R26.2 TP11.1 C83.1 C84.1 C85.1 C86.1 C87.1 C88.1 C89.1
+31,VDD11_SYS,power_in,1V2_D213,,R23.2 TP10.1 C75.1 C76.1 C77.1 C78.1 C79.1 C80.1 C81.1 C82.1
+32,VCC_DRAM,power_in,1V5_D213,,R26.2 TP11.1 C83.1 C84.1 C85.1 C86.1 C87.1 C88.1 C89.1
+33,VCC_DRAM,power_in,1V5_D213,,R26.2 TP11.1 C83.1 C84.1 C85.1 C86.1 C87.1 C88.1 C89.1
+34,VDD11_SYS,power_in,1V2_D213,,R23.2 TP10.1 C75.1 C76.1 C77.1 C78.1 C79.1 C80.1 C81.1 C82.1
+35,VCC_DRAM,power_in,1V5_D213,,R26.2 TP11.1 C83.1 C84.1 C85.1 C86.1 C87.1 C88.1 C89.1
+36,VCC_DRAM,power_in,1V5_D213,,R26.2 TP11.1 C83.1 C84.1 C85.1 C86.1 C87.1 C88.1 C89.1
+37,PB0,bidirectional,D213_NOR_IO3,,U22.1 R59.1
+38,PB1,bidirectional,D213_NOR_IO2,,U22.9 R58.1
+39,PB2,bidirectional,D213_NOR_CS_N,,U22.7 R57.1 TP40.1
+40,PB3,bidirectional,D213_NOR_MISO,,U22.8 TP39.1
+41,VCC33_IO0,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+102)
+42,PB4,bidirectional,D213_NOR_MOSI,,U22.15 TP38.1
+43,PB5,bidirectional,D213_NOR_CLK_D,,R56.1
+44,VDD11_SYS,power_in,1V2_D213,,R23.2 TP10.1 C75.1 C76.1 C77.1 C78.1 C79.1 C80.1 C81.1 C82.1
+45,PB6,bidirectional,D213_RDY,,U18.70 R43.1 TP29.1
+46,PB7,bidirectional,D213_LED,,R61.1
+47,PB8,bidirectional,FPGA45_SS_N_D,,U36.2 R111.1
+48,PB9,bidirectional,FPGA45_MISO,,U33.V2 R114.1
+49,PB10,bidirectional,FPGA45_MOSI_D,,U35.2 R113.1
+50,NC,no_connect,,"datasheet: floating, connect nothing",
+51,PB11,bidirectional,FPGA45_SCK_D,,U34.2 R112.1
+52,PE0,bidirectional,G_RXD1,,R101.2
+53,PE1,bidirectional,G_RXD0,,R100.2
+54,PE2,bidirectional,G_RXCTL,,R104.2 R107.1
+55,PE3,bidirectional,G_CLKIN,,R105.2 R108.2 R109.2 TP60.1
+56,NC,no_connect,,"datasheet: floating, connect nothing",
+57,VCC33_IO0,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+102)
+58,PE4,bidirectional,G_TXD1_D,,R95.1
+59,PE5,bidirectional,G_TXD0_D,,R94.1
+60,PE6,bidirectional,G_TXCK_D,,R93.1
+61,PE7,bidirectional,G_TXCTL_D,,R98.1
+62,PE8,bidirectional,,GMAC0_MDC unused (no PHY),
+63,PE9,bidirectional,,GMAC0_MDIO unused (no PHY),
+64,PE10,bidirectional,,CLK_OUT unused,
+65,PE11,bidirectional,G_RXD3,,R103.2
+66,PE12,bidirectional,G_RXD2,,R102.2
+67,PE13,bidirectional,G_RXCK,,R99.2 R108.1 TP59.1
+68,PE14,bidirectional,G_TXD3_D,,R97.1
+69,PE15,bidirectional,G_TXD2_D,,R96.1
+70,PE16,bidirectional,,spare GPIO,
+71,PE17,bidirectional,,spare GPIO,
+72,PE18,bidirectional,,spare GPIO,
+73,PE19,bidirectional,,spare GPIO,
+74,VDD11_SYS,power_in,1V2_D213,,R23.2 TP10.1 C75.1 C76.1 C77.1 C78.1 C79.1 C80.1 C81.1 C82.1
+75,VDD11_SYS,power_in,1V2_D213,,R23.2 TP10.1 C75.1 C76.1 C77.1 C78.1 C79.1 C80.1 C81.1 C82.1
+76,RESETN,input,D213_RESET_N,,U21.4 J7.1 C102.1 TP41.1
+77,PLL_XO,output,D213_XO,,R51.1
+78,PLL_XI,input,D213_XI,,Y2.1 C99.1 TP43.1
+79,PU0,bidirectional,D213_USB0_DM,,U23.7 TP45.1
+80,PU1,bidirectional,D213_USB0_DP,,U23.8 TP44.1
+81,PU2,bidirectional,,USB1 unused,
+82,PU3,bidirectional,,USB1 unused,
+83,VCC33_IO0,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+102)
+84,VCC30_ANA,power_out,D213_VCC30,,C98.1
+85,PA0,bidirectional,D213_UART0_TX,,U21.6 J8.1 J9.2 R55.1 TP42.1
+86,PA1,bidirectional,D213_UART0_RX,,R54.2
+87,PA2,bidirectional,FPGA45_PWR_EN_D,,R33.1
+88,PA3,bidirectional,FPGA45_VCC_PG,,U12.5 R35.1 TP16.1 X3.1
+89,PA4,bidirectional,FPGA45_PROGRAMN_D,,R116.1
+90,PA5,bidirectional,FPGA45_INITN,,U33.V3 R117.1 TP63.1
+91,PA6,bidirectional,FPGA45_DONE,,U33.Y3 R118.1 TP61.1
+92,PA7,bidirectional,HDMI_INT,,U31.28 R88.1 TP54.1
+93,PA8,bidirectional,HDMI_I2C_SCL,,U31.35 R89.1
+94,PA9,bidirectional,HDMI_I2C_SDA,,U31.36 R90.1
+95,PA10,bidirectional,HDMI_HPD,,U31.16 U32.4 TP53.1
+96,PA11,bidirectional,HDMI_PD,,U31.22 R87.1
+97,RTC_IO,open_collector,,RTC wake/32k output unused (OD),
+98,RTC_VCOIN,passive,,may float: internal diode from VCC33_IO (HW guide 2.2.3),
+99,RTC_XO,output,,RTC unused: may float (Table 2-5),
+100,RTC_XI,input,,RTC unused: may float (Table 2-5),
+101,PF0,bidirectional,,spare GPIO,
+102,PF1,bidirectional,,spare GPIO,
+103,PF2,bidirectional,,spare GPIO,
+104,PF3,bidirectional,,spare GPIO,
+105,PF4,bidirectional,,spare GPIO,
+106,PF5,bidirectional,,spare GPIO,
+107,PF6,bidirectional,,spare GPIO,
+108,PF7,bidirectional,,spare GPIO,
+109,PF8,bidirectional,,spare GPIO,
+110,PF9,bidirectional,,spare GPIO,
+111,PF10,bidirectional,,spare GPIO,
+112,PF11,bidirectional,,spare GPIO,
+113,PF12,bidirectional,,spare GPIO,
+114,VCC33_IO1,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+102)
+115,PF13,bidirectional,,spare GPIO,
+116,PF14,bidirectional,,spare GPIO,
+117,PF15,bidirectional,,spare GPIO,
+118,PD27,bidirectional,LCD_DE_D,,R78.1
+119,PD26,bidirectional,LCD_VS_D,,R77.1
+120,PD25,bidirectional,LCD_HS_D,,R76.1
+121,PD24,bidirectional,LCD_DCLK_D,,R75.1
+122,PD23,bidirectional,LCD_D23,,U31.37
+123,PD22,bidirectional,LCD_D22,,U31.38
+124,PD21,bidirectional,LCD_D21,,U31.39
+125,PD20,bidirectional,LCD_D20,,U31.40
+126,PD19,bidirectional,LCD_D19,,U31.41
+127,PD18,bidirectional,LCD_D18,,U31.42
+128,VDD11_SYS,power_in,1V2_D213,,R23.2 TP10.1 C75.1 C76.1 C77.1 C78.1 C79.1 C80.1 C81.1 C82.1
+129,GND,power_in,GND,,(ground)

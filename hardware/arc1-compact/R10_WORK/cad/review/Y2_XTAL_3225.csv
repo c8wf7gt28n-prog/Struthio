@@ -1,5 +1,5 @@
 pin,name,etype,net,nc_reason,net_members
-1,X1,passive,D213_XI,,U19.78 C96.1 TP42.1
+1,X1,passive,D213_XI,,U20.78 C99.1 TP43.1
 2,GND,passive,GND,,(ground)
-3,X2,passive,D213_XO_X,,R48.2 C97.1
+3,X2,passive,D213_XO_X,,R51.2 C100.1
 4,GND,passive,GND,,(ground)

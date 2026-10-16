@@ -1,0 +1,11 @@
+pin,name,etype,net,nc_reason,net_members
+1,1D+,bidirectional,USBC_DP,,J1.A6 J1.B6 U2.1 TP2.1
+2,1D-,bidirectional,USBC_DM,,J1.A7 J1.B7 U2.2 TP3.1
+3,2D+,bidirectional,HUB_UP_DP,,U26.20 TP50.1
+4,2D-,bidirectional,HUB_UP_DM,,U26.19 TP51.1
+5,GND,power_in,GND,,(ground)
+6,~{OE},input,USB0MUX_OE_N,,R65.1
+7,D-,bidirectional,F133_USB0_DM,,U18.114
+8,D+,bidirectional,F133_USB0_DP,,U18.115
+9,S,input,USB0_SEL,,U18.57 R64.1 TP48.1
+10,VCC,power_in,3V3,,U1.12 C4.1 R2.2 R3.2 R10.2 TP4.1 U4.5 U4.6 R12.2 R13.2 C9.1 U7.1 (+106)
