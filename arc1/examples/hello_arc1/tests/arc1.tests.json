@@ -1,0 +1,17 @@
+{
+  "schema": "arc1.game-tests/0.2",
+  "tests": [
+    {"id": "idle-golden", "kind": "golden", "frames": 180, "replay": "tests/replays/idle.replay",
+     "golden": "tests/golden/idle.json", "dump": [0, 90, 179],
+     "description": "Unattended run: the ship bounces off the right edge and the sky scrolls."},
+    {"id": "steer-golden", "kind": "golden", "frames": 120, "replay": "tests/replays/steer.replay",
+     "golden": "tests/golden/steer.json", "dump": [0, 45, 60, 119],
+     "description": "Mock controller steers up, toggles the dusk sky with A, then steers down."},
+    {"id": "steer-determinism", "kind": "determinism", "frames": 120, "replay": "tests/replays/steer.replay",
+     "runs": 3, "dump": [119],
+     "description": "Three runs of the same replay must produce identical traces and frames."},
+    {"id": "input-reaches-frames", "kind": "must_differ", "frames": 120, "replay": "tests/replays/idle.replay",
+     "golden": "tests/golden/steer.json",
+     "description": "Negative control: without input the output must NOT match the steered golden, proving the golden detects input changes."}
+  ]
+}

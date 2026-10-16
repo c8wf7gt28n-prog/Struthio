@@ -1,0 +1,25 @@
+{
+  "description": "Variants of hardware/manifests/arc1-r10.hw.json; each negative case must fail with the named code.",
+  "base": "../../../hardware/manifests/arc1-r10.hw.json",
+  "negative": [
+    {"id": "flat-memory-claim", "expect": "HW-002", "ops": [{"op": "set", "path": "/chips/0/memory/0/shared_address_space", "value": true}]},
+    {"id": "memory-owner-mismatch", "expect": "HW-002", "ops": [{"op": "set", "path": "/chips/1/memory/0/owner", "value": "f133"}]},
+    {"id": "duplicate-chip", "expect": "HW-001", "ops": [{"op": "set", "path": "/chips/1/id", "value": "f133"}]},
+    {"id": "unknown-boot-dependency", "expect": "HW-001", "ops": [{"op": "set", "path": "/chips/1/boot_dependencies", "value": ["sd_card"]}]},
+    {"id": "measured-without-evidence", "expect": "HW-003", "ops": [{"op": "set", "path": "/links/0/state", "value": "measured"}]},
+    {"id": "throughput-on-proposed-link", "expect": "HW-003", "ops": [{"op": "set", "path": "/links/0/measured_throughput_Bps", "value": 125000000}]},
+    {"id": "link-to-unknown-chip", "expect": "HW-003", "ops": [{"op": "set", "path": "/links/0/endpoints/1", "value": "gpu99.rgmii_interface"}]},
+    {"id": "boot-claim-without-evidence", "expect": "HW-005", "ops": [{"op": "set", "path": "/claims/physical_boot", "value": "pass"}]},
+    {"id": "sixty-fps-claim", "expect": "HW-005", "ops": [{"op": "set", "path": "/claims/verified_60fps", "value": true}]},
+    {"id": "mock-posing-as-board", "expect": "HW-005", "ops": [{"op": "set", "path": "/simulation_only", "value": true}]},
+    {"id": "required-field-dropped", "expect": "SCHEMA", "ops": [{"op": "remove", "path": "/chips/2/power_domain"}]},
+    {"id": "capacity-zero", "expect": "SCHEMA", "ops": [{"op": "set", "path": "/chips/3/memory/0/capacity_bytes", "value": 0}]}
+  ],
+  "positive": [
+    {"id": "measured-link-with-evidence", "ops": [
+      {"op": "set", "path": "/links/0/state", "value": "measured"},
+      {"op": "set", "path": "/links/0/measured_throughput_Bps", "value": 1000},
+      {"op": "set", "path": "/links/0/evidence", "value": {"board_id": "proto-1", "equipment": "logic analyser", "log": "logs/link.csv",
+        "log_sha256": "0000000000000000000000000000000000000000000000000000000000000000"}}]}
+  ]
+}

@@ -1,0 +1,8 @@
+# frame buttons - state holds until the next line
+0 NONE
+10 UP
+40 NONE
+50 A
+52 NONE
+70 DOWN|RIGHT
+110 NONE

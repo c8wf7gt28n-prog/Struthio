@@ -1,0 +1,19 @@
+{
+  "schema": "arc1.game-package/0.2",
+  "name": "{{name}}",
+  "game_version": "0.1.0",
+  "target": {"board_family": "ARC-1", "hw_revision_min": null},
+  "required": {"runtime_abi": "0.2-proposed", "sdk_version": "0.2"},
+  "resources": {
+    "f133_ram_limit_bytes": 4194304,
+    "d213_ram_limit_bytes": 8388608,
+    "gpu45_sdram_limit_bytes": 0,
+    "fpga12_psram_limit_bytes": 0
+  },
+  "accelerators": [],
+  "assets": [{"path": "assets/ship.sprite", "sha256": "a249174e7a87f68bd29aabd737fe05bb0163aeed3db44766a1cbbb8ecef94cb6"}],
+  "author": "unassigned",
+  "source": "local",
+  "compatibility": "host_only",
+  "verification": {"status": "host_only", "hardware_proof": null}
+}

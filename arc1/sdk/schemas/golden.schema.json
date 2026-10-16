@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc1.golden/0.2",
+  "title": "ARC-1 golden baseline (protected test data, SEC-002)",
+  "type": "object",
+  "required": ["schema", "test_id", "frames", "replay_sha256", "trace", "trace_sha256", "frame_sha256", "palette", "note"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "arc1.golden/0.2"},
+    "test_id": {"type": "string"},
+    "frames": {"type": "integer", "minimum": 1},
+    "replay_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "trace": {"type": "string", "pattern": "^tests/golden/[a-z0-9_-]+\\.trace$"},
+    "trace_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "frame_sha256": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    },
+    "palette": {"const": "arc1-0.2"},
+    "note": {"type": "string"}
+  }
+}

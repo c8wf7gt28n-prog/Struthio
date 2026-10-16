@@ -1,0 +1,50 @@
+{
+  "artifacts": [
+    {
+      "path": "examples/hello_arc1/build/sim/frame_000000.ppm",
+      "sha256": "4fa392fc951213f6e6bc22b53d87c277bec01e5891a950dcdc91f91270a9e18f"
+    },
+    {
+      "path": "examples/hello_arc1/build/sim/frame_000060.ppm",
+      "sha256": "8791881963e0013250ac2e0d496c0c38da682c171840c8c6737e46fc67d3a140"
+    },
+    {
+      "path": "examples/hello_arc1/build/sim/frame_000119.ppm",
+      "sha256": "4d7fac033826d783edccdb240bac14ddef36378e2e68129d344b85ceab93c8f6"
+    },
+    {
+      "path": "examples/hello_arc1/build/sim/sim.log",
+      "sha256": "ca7d38f3b12b1ae7d21fbdcdf92336576bcc3dcba7eb824d7a18cf990947dacf"
+    },
+    {
+      "path": "examples/hello_arc1/build/sim/trace.txt",
+      "sha256": "7684e9e5f9c8e313732afd5f48aedb59254d414e2500bdac065cf80b620f0029"
+    }
+  ],
+  "board_id": null,
+  "command": "arc1 sim examples/hello_arc1",
+  "details": {
+    "frames": 120,
+    "hardware_descriptor": {
+      "path": "hardware/manifests/host-sim.hw.json",
+      "sha256": "afd47bdce441ed5a49247d473545b9e78992396a2ba2e194e80e3ba89b9d0bf9",
+      "simulation_only": true
+    },
+    "last_frame_fnv1a64": "fc638fb0c0fb273d",
+    "replay": "tests/replays/steer.replay",
+    "trace_sha256": "7684e9e5f9c8e313732afd5f48aedb59254d414e2500bdac065cf80b620f0029"
+  },
+  "evidence_level": "HOST_SIM",
+  "failure_reasons": [],
+  "input_digest": "410c6d13044b2000de2d34f385afc9142ed9d3b425341008fb04b8c9af5db93d",
+  "invocation_id": "378c2ba02ae14565ce50ca970e52ed92",
+  "log_sha256": "ca7d38f3b12b1ae7d21fbdcdf92336576bcc3dcba7eb824d7a18cf990947dacf",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "PASS",
+  "warnings": [
+    "Physical ARC-1 was not used",
+    "Host reference model is deterministic but not cycle accurate"
+  ]
+}

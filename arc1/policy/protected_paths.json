@@ -1,0 +1,16 @@
+{
+  "schema": "arc1.policy/0.2",
+  "description": "REP-001 / SEC-002: modifying or deleting these files requires disclosure in the pass record (sensitive_changes) and an independent reviewer. Additions are not baseline reductions. Paths are relative to the arc1/ SDK root; '*' matches across '/'.",
+  "protected": [
+    "AGENTS.md",
+    "policy/*",
+    "sdk/include/*",
+    "sdk/schemas/*",
+    "sdk/runtime/*",
+    "hardware/manifests/*",
+    "tools/lock/*",
+    "tests/*",
+    "examples/*/tests/*",
+    "sdk/templates/*/tests/*"
+  ]
+}

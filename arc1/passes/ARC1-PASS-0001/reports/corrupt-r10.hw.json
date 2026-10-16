@@ -1,0 +1,155 @@
+{
+  "schema": "arc1.hardware/0.2",
+  "revision": "R10-proposed",
+  "board_family": "ARC-1",
+  "simulation_only": false,
+  "$comment": "Illustrative design-level facts transcribed from ARC1-SDK-ER-002 v0.2. Nothing here is measured. Null means unknown, not zero.",
+  "chips": [
+    {
+      "id": "f133",
+      "part": "F133-B",
+      "manufacturer": null,
+      "role": "game_logic_io_boot_coordination",
+      "datasheet_ref": null,
+      "power_domain": null,
+      "clock_sources": null,
+      "boot_dependencies": [],
+      "wiring_source": null,
+      "memory": [
+        {
+          "id": "f133_ddr2",
+          "type": "in_package_ddr2",
+          "capacity_bytes": 67108864,
+          "owner": "f133",
+          "controller": null,
+          "access": null,
+          "shared_address_space": true,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "ARC1-SDK-ER-002 v0.2 section 2.1 (R10 concept) - VERIFY AGAINST PCB"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "Architecture target; end-to-end physical boot unverified"
+    },
+    {
+      "id": "d213",
+      "part": "D213ECV",
+      "manufacturer": null,
+      "role": "2d_graphics_display_composition_45f_interface",
+      "datasheet_ref": null,
+      "power_domain": null,
+      "clock_sources": null,
+      "boot_dependencies": [
+        "f133"
+      ],
+      "wiring_source": null,
+      "memory": [
+        {
+          "id": "d213_ddr3",
+          "type": "in_package_ddr3",
+          "capacity_bytes": 134217728,
+          "owner": "d213",
+          "controller": null,
+          "access": null,
+          "shared_address_space": false,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "ARC1-SDK-ER-002 v0.2 section 2.1 (R10 concept) - VERIFY AGAINST PCB"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "Boot pathway and display/HDMI audio unverified"
+    },
+    {
+      "id": "gpu45",
+      "part": "LFE5U-45F-6BG381C",
+      "manufacturer": null,
+      "role": "tile_rasterizer",
+      "datasheet_ref": null,
+      "power_domain": null,
+      "clock_sources": null,
+      "boot_dependencies": [
+        "d213"
+      ],
+      "wiring_source": null,
+      "memory": [
+        {
+          "id": "gpu45_sdram",
+          "type": "sdr_sdram_x16",
+          "capacity_bytes": 33554432,
+          "owner": "gpu45",
+          "controller": null,
+          "access": null,
+          "shared_address_space": false,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "ARC1-SDK-ER-002 v0.2 section 2.1 (R10 concept) - VERIFY AGAINST PCB"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "RTL/protocol simulation reported elsewhere; board timing not validated"
+    },
+    {
+      "id": "fpga12",
+      "part": "ECP5-12F (exact ordering code unknown)",
+      "manufacturer": null,
+      "role": "optional_math_collision_coprocessor",
+      "datasheet_ref": null,
+      "power_domain": null,
+      "clock_sources": null,
+      "boot_dependencies": [
+        "f133"
+      ],
+      "wiring_source": null,
+      "memory": [
+        {
+          "id": "fpga12_psram",
+          "type": "qspi_psram",
+          "capacity_bytes": 4194304,
+          "owner": "fpga12",
+          "controller": null,
+          "access": null,
+          "shared_address_space": false,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "ARC1-SDK-ER-002 v0.2 section 2.1 (R10 concept) - VERIFY AGAINST PCB"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "Communication RTL partly developed; kernels not finished"
+    }
+  ],
+  "links": [
+    {
+      "id": "d213_to_gpu45",
+      "endpoints": [
+        "d213.gmac0",
+        "gpu45.rgmii_interface"
+      ],
+      "proposed_protocol": "RGMII",
+      "width_bits": null,
+      "direction": null,
+      "pins": null,
+      "reset_dependency": null,
+      "level_shifting": null,
+      "measured_throughput_Bps": null,
+      "state": "proposed_unverified",
+      "evidence": null
+    }
+  ],
+  "claims": {
+    "physical_boot": "not_tested",
+    "verified_60fps": false,
+    "hdmi_audio": "not_tested",
+    "evidence": null
+  },
+  "uncertainties": [
+    "Manufacturer, datasheet reference, power domain, clock sources and wiring source are not yet attached for any chip.",
+    "F133 to D213 boot path and link ownership are unconfirmed (spec 13.2).",
+    "F133 to 12F and F133 to D213 interconnects are not described; only the proposed D213 to 45F RGMII link is recorded.",
+    "HDMI transmitter and stereo HDMI audio support are unconfirmed.",
+    "USB-A/USB-C host port allocation is ambiguous.",
+    "The four memory pools (about 228 MiB total) are independent; there is no unified address space."
+  ]
+}

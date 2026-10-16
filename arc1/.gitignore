@@ -1,0 +1,6 @@
+# Build outputs and per-run reports of example projects are reproducible from
+# source; evidence that must be kept is copied into passes/<id>/reports/.
+examples/*/build/
+examples/*/reports/
+__pycache__/
+*.pyc

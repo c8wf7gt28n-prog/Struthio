@@ -1,0 +1,46 @@
+{
+  "schema": "arc1.hardware/0.2",
+  "revision": "SIM-host-0.2",
+  "board_family": "ARC-1",
+  "simulation_only": true,
+  "$comment": "Mock descriptor for the host reference runtime (HW-005). Never a substitute for a board definition.",
+  "chips": [
+    {
+      "id": "host_f133_model",
+      "part": "host-reference-model",
+      "manufacturer": null,
+      "role": "host_model_of_f133_game_runtime",
+      "datasheet_ref": null,
+      "power_domain": null,
+      "clock_sources": null,
+      "boot_dependencies": [],
+      "wiring_source": null,
+      "memory": [
+        {
+          "id": "host_framebuffer",
+          "type": "host_heap",
+          "capacity_bytes": 57600,
+          "owner": "host_f133_model",
+          "controller": null,
+          "access": "cpu",
+          "shared_address_space": false,
+          "visibility": "Host process memory standing in for one 320x180 8-bit indexed framebuffer.",
+          "provenance": "HOST_SIM",
+          "source": "sdk/runtime/host/arc1_host.c"
+        }
+      ],
+      "provenance": "HOST_SIM",
+      "status": "Deterministic software model; not cycle accurate"
+    }
+  ],
+  "links": [],
+  "claims": {
+    "physical_boot": "not_tested",
+    "verified_60fps": false,
+    "hdmi_audio": "not_tested",
+    "evidence": null
+  },
+  "uncertainties": [
+    "Host model timing has no relation to ARC-1 silicon timing."
+  ]
+}

@@ -1,0 +1,266 @@
+{
+  "schema": "arc1.pass/0.2",
+  "pass_id": "ARC1-PASS-0001",
+  "state": "REVIEW",
+  "owner": "agent:claude-code",
+  "objective": "M0-M1: portable arc1 CLI skeleton, AGENTS.md, JSON Schemas for pass and chip manifests, mock hardware facts, one C hello_arc1 demo and deterministic host tests",
+  "risk_tier": "LOW",
+  "base_commit": "a5b6500994560dd9945fcabc801fd1588dc08b4b",
+  "inputs": {
+    "sdk_schema": "0.2",
+    "board_revision": "R10-proposed",
+    "toolchain_lock_sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+  },
+  "effort": {
+    "units": "task_units",
+    "planned_total": 100,
+    "sdk_reserved": 15,
+    "actual_total": null,
+    "actual_sdk": null
+  },
+  "deferral": null,
+  "main_change": {
+    "summary": "Host demo vertical slice: C API, host runtime, hello_arc1, CLI build/sim/test/new/doctor/hw, docs, lock and CI",
+    "paths": [
+      "sdk/include/arc1/game.h",
+      "sdk/runtime/host/arc1_host.c",
+      "sdk/cli/arc1cli/main.py",
+      "sdk/cli/arc1cli/core.py",
+      "sdk/cli/arc1cli/project.py",
+      "sdk/cli/arc1cli/doctor.py",
+      "sdk/cli/arc1cli/assets.py",
+      "sdk/templates/game",
+      "examples/hello_arc1",
+      "hardware/manifests/arc1-r10.hw.json",
+      "hardware/manifests/host-sim.hw.json",
+      "AGENTS.md",
+      "README.md",
+      "docs",
+      "tools/lock/toolchain.lock.json",
+      "policy/protected_paths.json",
+      "tests/run_tests.py",
+      "tests/conformance/api_conformance.c"
+    ]
+  },
+  "sdk_change": {
+    "summary": "Reusable stdlib JSON Schema subset validator plus covenant/pass and hardware-manifest semantic validators, with positive and negative fixtures",
+    "paths": [
+      "sdk/cli/arc1cli/jsonschema_lite.py",
+      "sdk/cli/arc1cli/passrec.py",
+      "sdk/cli/arc1cli/hardware.py",
+      "sdk/schemas",
+      "tests/fixtures/pass",
+      "tests/fixtures/hardware/cases.json",
+      "tests/fixtures/package/cases.json"
+    ],
+    "reusable": true,
+    "beneficiary": "Every later pass (arc1 pass validate) and every hardware-manifest or game-package author",
+    "acceptance_tests": [
+      "covenant-validator-suite"
+    ]
+  },
+  "validation": [
+    {
+      "id": "doctor",
+      "level": "STATIC_CHECK",
+      "command": "arc1 doctor --json",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0001/reports/doctor.json",
+        "sha256": "32854acf03c5d9f1083a130b169e2c3330ed38886c6ff4f28e457febc52ea072"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "hello-build",
+      "level": "STATIC_CHECK",
+      "command": "arc1 build examples/hello_arc1",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0001/reports/build.json",
+        "sha256": "4e8f4b10784c89f5376e234982277ec67eab9f3ba302d4e56ceb87576c23643b"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "hello-test",
+      "level": "HOST_SIM",
+      "command": "arc1 test examples/hello_arc1",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0001/reports/test.json",
+        "sha256": "bc13c9ce8b2c36a087d890f3d2a220de695313c061bb93fd5272a4eab0df4a22"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "hello-sim",
+      "level": "HOST_SIM",
+      "command": "arc1 sim examples/hello_arc1 --replay tests/replays/steer.replay --dump 0,60,119",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0001/reports/sim.json",
+        "sha256": "c7c97fa5a55003b18eda1c2040f2c2677f5328a315977bfc8ed758aaa2843471"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "covenant-validator-suite",
+      "level": "STATIC_CHECK",
+      "command": "python3 tests/run_tests.py SchemaValidatorTests LockAndPolicyTests HardwareManifestTests PackageManifestTests AssetTests PassValidatorTests.test_complete_fixture_passes PassValidatorTests.test_negative_cases PassValidatorTests.test_positive_cases PassValidatorTests.test_cli_exit_codes PassValidatorTests.test_unknown_base_commit_rejected",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0001/reports/covenant-validators.log",
+        "sha256": "5cf669e74e824bc2d225ce32ab2c96bab8aa6d5275d2ddb644b4f0ffe5a3a6f7"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "host-sdk-suite",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py CliContractTests HostSdkTests NewProjectTests ConformanceTests",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0001/reports/host-sdk-tests.log",
+        "sha256": "4c12395b91f349c8269392cae0649f920499996a00f8938fc020cea331344b1c"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "independent-reproduction",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "TST-004: no second agent or maintainer has reproduced the suite from a clean checkout yet"
+    },
+    {
+      "id": "fpga",
+      "level": "FPGA_PNR",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "No RTL in repository; yosys/nextpnr-ecp5 not installed; arc1 fpga check is Phase 2"
+    },
+    {
+      "id": "board",
+      "level": "BOARD_TEST",
+      "command": null,
+      "result": "not_available",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "No identified ARC-1 prototype board exists"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "sdk/include/arc1/game.h",
+      "sha256": "6cec3a5350a3f83312bfa9332ba8ce8ff3c4fb20b9dffd704fc5c761d819038b"
+    },
+    {
+      "path": "sdk/runtime/host/arc1_host.c",
+      "sha256": "ce12337485f8d14151baaa4a6ecd1d42b43fa98a9cc7db03e02bde9dd829d75f"
+    },
+    {
+      "path": "sdk/cli/arc1cli/jsonschema_lite.py",
+      "sha256": "e5e1420e207e734d5826844c59457e066aa6fbf42905ab78b816c1de8e04fbb3"
+    },
+    {
+      "path": "sdk/cli/arc1cli/passrec.py",
+      "sha256": "21d4f6c0ddb7d5b97fc38619d270fdd8cd79c804b10b856760ce7c3b14ad9030"
+    },
+    {
+      "path": "sdk/cli/arc1cli/hardware.py",
+      "sha256": "fd1d8592e1a13e8a8e60b37f91543e20597082e6118e050a88b9719186afad28"
+    },
+    {
+      "path": "sdk/schemas/pass.schema.json",
+      "sha256": "ef91fcbb25e51ffa4a44327cce9acbdb362aa69ddd3ba13344f450ae815d6c5f"
+    },
+    {
+      "path": "sdk/schemas/hardware.schema.json",
+      "sha256": "d4e4d1b769008a894559f017571c1440087ddc49e37bd550fbaa4a410385e504"
+    },
+    {
+      "path": "sdk/schemas/game-package.schema.json",
+      "sha256": "b85f40c9ef5fab602f0764075fcb6e86fd74284809377d3382c071f3a0ca7764"
+    },
+    {
+      "path": "sdk/schemas/tool-result.schema.json",
+      "sha256": "20284fa2fd3795564304360554e22b5993ec0930d28f991537f46830e2a4bdf0"
+    },
+    {
+      "path": "hardware/manifests/arc1-r10.hw.json",
+      "sha256": "b69fe9382fbffd1fe9b62b8e3c45d87b2deb0da273fa49adb90702a48d6f09e1"
+    },
+    {
+      "path": "tools/lock/toolchain.lock.json",
+      "sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+    },
+    {
+      "path": "examples/hello_arc1/tests/golden/idle.json",
+      "sha256": "2b074bfe8859d659dddc3a95f3ffea784056a3e7ba5489f34c47aaca200911fe"
+    },
+    {
+      "path": "examples/hello_arc1/tests/golden/steer.json",
+      "sha256": "b703f4b31e64eef423e803449d185072f37ac75d4d63342fc5566514bd25b738"
+    },
+    {
+      "path": "passes/ARC1-PASS-0001/reports/corrupt-r10.hw.json",
+      "sha256": "aa1c0db03c72cf68aab95d7668bba8d51c09142cd0a70954ddcc390233ccbe5b"
+    },
+    {
+      "path": "passes/ARC1-PASS-0001/reports/hw-inspect-corrupt.json",
+      "sha256": "ea6c2873cf7e1bc06f4bfc649bbddf637e9885413b52e8ea38d6cba98b36893a"
+    },
+    {
+      "path": "passes/ARC1-PASS-0001/reports/device-deploy.json",
+      "sha256": "241f651cf2d02487197e244f83ef28d87eba07d629b626cd69b02adf4187e5e9"
+    },
+    {
+      "path": "passes/ARC1-PASS-0001/reports/fpga-check.json",
+      "sha256": "a3e3493704d972731075eb50d48a3887a2a047df2297a29d8b84197431e9ce94"
+    }
+  ],
+  "sensitive_changes": [
+    {
+      "path": "examples/hello_arc1/tests/golden/idle.json",
+      "kind": "golden_updated",
+      "justification": "Initial recording with arc1 test --update-golden; no previous baseline existed"
+    },
+    {
+      "path": "examples/hello_arc1/tests/golden/steer.json",
+      "kind": "golden_updated",
+      "justification": "Initial recording with arc1 test --update-golden; no previous baseline existed"
+    },
+    {
+      "path": "sdk/templates/game/tests/golden/boost.json",
+      "kind": "golden_updated",
+      "justification": "Initial recording for the arc1 new template; no previous baseline existed"
+    }
+  ],
+  "review": {
+    "sdk_accepted_by": null,
+    "state": "pending",
+    "evidence": null
+  },
+  "blockers": [],
+  "handoff": "passes/ARC1-PASS-0001/HANDOFF.md"
+}

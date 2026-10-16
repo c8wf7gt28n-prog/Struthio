@@ -1,0 +1,19 @@
+{
+  "artifacts": [],
+  "board_id": null,
+  "command": "arc1 fpga check",
+  "evidence_level": "NONE",
+  "failure_reasons": [
+    {
+      "code": "NOT_RUN",
+      "message": "Phase 2: no RTL is in this repository and no FPGA flow is locked"
+    }
+  ],
+  "input_digest": "5190d9147a673edcc60ccafc0bc73d11eaff5e1cd45e815fc889d09b9e1b3e68",
+  "invocation_id": "80235fe1142ce91890c13b0ebdb7ccf2",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "NOT_RUN",
+  "warnings": []
+}

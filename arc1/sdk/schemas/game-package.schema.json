@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc1.game-package/0.2",
+  "title": "ARC-1 game package manifest (PKG-001, Appendix A.1)",
+  "type": "object",
+  "required": ["schema", "name", "game_version", "target", "required", "resources", "accelerators",
+               "assets", "author", "source", "compatibility", "verification"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "arc1.game-package/0.2"},
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$"},
+    "game_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "target": {
+      "type": "object",
+      "required": ["board_family", "hw_revision_min"],
+      "additionalProperties": false,
+      "properties": {
+        "board_family": {"const": "ARC-1"},
+        "hw_revision_min": {"type": ["string", "null"]}
+      }
+    },
+    "required": {
+      "type": "object",
+      "required": ["runtime_abi", "sdk_version"],
+      "additionalProperties": false,
+      "properties": {
+        "runtime_abi": {"const": "0.2-proposed"},
+        "sdk_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"}
+      }
+    },
+    "resources": {
+      "type": "object",
+      "required": ["f133_ram_limit_bytes", "d213_ram_limit_bytes", "gpu45_sdram_limit_bytes",
+                   "fpga12_psram_limit_bytes"],
+      "additionalProperties": false,
+      "properties": {
+        "f133_ram_limit_bytes": {"type": "integer", "minimum": 0},
+        "d213_ram_limit_bytes": {"type": "integer", "minimum": 0},
+        "gpu45_sdram_limit_bytes": {"type": "integer", "minimum": 0},
+        "fpga12_psram_limit_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "accelerators": {"type": "array", "items": {"enum": ["raster_3d_45f", "coproc_12f"]}, "uniqueItems": true},
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {"type": "string", "pattern": "^assets/[A-Za-z0-9_]+\\.sprite$"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "author": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "compatibility": {"enum": ["experimental", "host_only", "target_candidate"]},
+    "verification": {
+      "type": "object",
+      "required": ["status", "hardware_proof"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"enum": ["host_only", "board_tested"]},
+        "hardware_proof": {"type": ["string", "null"]}
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"verification": {"properties": {"status": {"const": "board_tested"}}}}},
+     "then": {"properties": {"verification": {"properties": {"hardware_proof": {"type": "string", "minLength": 1}}}}},
+     "else": {"properties": {"verification": {"properties": {"hardware_proof": {"type": "null"}}}}}}
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "arc1.pass/0.2",
+  "pass_id": "ARC1-PASS-9001",
+  "state": "COMPLETE",
+  "owner": "agent:fixture-author",
+  "objective": "Fixture: render one additional tile layer in the host demo",
+  "risk_tier": "LOW",
+  "base_commit": "a5b6500994560dd9945fcabc801fd1588dc08b4b",
+  "inputs": {
+    "sdk_schema": "0.2",
+    "board_revision": "R10-proposed",
+    "toolchain_lock_sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+  },
+  "effort": {
+    "units": "task_units",
+    "planned_total": 40,
+    "sdk_reserved": 2,
+    "actual_total": null,
+    "actual_sdk": null
+  },
+  "deferral": null,
+  "main_change": {
+    "summary": "Layer compositing in the demo",
+    "paths": [
+      "src/layer.c"
+    ]
+  },
+  "sdk_change": {
+    "summary": "Reusable frame comparison helper with tolerance",
+    "paths": [
+      "sdk/tools/compare_frames.py"
+    ],
+    "reusable": true,
+    "beneficiary": "Every project with golden-frame tests",
+    "acceptance_tests": [
+      "host-tests"
+    ]
+  },
+  "validation": [
+    {
+      "id": "host-tests",
+      "level": "HOST_SIM",
+      "command": "arc1 test examples/hello_arc1",
+      "result": "pass",
+      "report": {
+        "path": "reports/host-test.json",
+        "sha256": "9558250172593aec54609ffafbc96a996b400798bb663b6eb481d021b554e550"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "board",
+      "level": "BOARD_TEST",
+      "command": null,
+      "result": "not_available",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "No identified ARC-1 prototype exists"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/layer.c",
+      "sha256": "40ee017c2c4d2372513e6f4d4625172ae1004f7914e5723d2e99f2229a30cb65"
+    },
+    {
+      "path": "sdk/tools/compare_frames.py",
+      "sha256": "c5bfe087fc5cfa86069b5780350df138babdacee09d114ba56762e9e0f9f1a88"
+    }
+  ],
+  "sensitive_changes": [],
+  "review": {
+    "sdk_accepted_by": "human:fixture-reviewer",
+    "state": "accepted",
+    "evidence": "Fixture review note: tool reviewed, negative case observed failing"
+  },
+  "blockers": [],
+  "handoff": "HANDOFF.md"
+}

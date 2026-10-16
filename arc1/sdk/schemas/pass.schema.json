@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc1.pass/0.2",
+  "title": "ARC-1 agent pass record (section 4.1)",
+  "type": "object",
+  "required": ["schema", "pass_id", "state", "owner", "objective", "risk_tier", "base_commit",
+               "inputs", "effort", "deferral", "main_change", "sdk_change", "validation",
+               "artifacts", "sensitive_changes", "review", "blockers", "handoff"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "arc1.pass/0.2"},
+    "pass_id": {"type": "string", "pattern": "^ARC1-PASS-[0-9]{4,}$"},
+    "state": {"enum": ["PROPOSED", "PLANNED", "IMPLEMENTING", "VERIFYING", "REVIEW", "COMPLETE", "BLOCKED"]},
+    "owner": {"type": "string", "pattern": "^(agent|human):[^\\s]+$",
+              "description": "PASS-001: exactly one accountable agent or human."},
+    "contributors": {"type": "array", "items": {"type": "string", "pattern": "^(agent|human):[^\\s]+$"}},
+    "objective": {"type": "string", "minLength": 10},
+    "risk_tier": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+    "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$",
+                    "description": "PASS-002: immutable input reference; branch names are not accepted."},
+    "inputs": {
+      "type": "object",
+      "required": ["sdk_schema", "board_revision", "toolchain_lock_sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "sdk_schema": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"},
+        "board_revision": {"type": "string", "minLength": 1},
+        "toolchain_lock_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "effort": {
+      "type": "object",
+      "required": ["units", "planned_total", "sdk_reserved", "actual_total", "actual_sdk"],
+      "additionalProperties": false,
+      "properties": {
+        "units": {"enum": ["task_units", "hours", "agent_budget"]},
+        "planned_total": {"type": "number", "exclusiveMinimum": 0},
+        "sdk_reserved": {"type": "number", "minimum": 0},
+        "actual_total": {"type": ["number", "null"], "minimum": 0},
+        "actual_sdk": {"type": ["number", "null"], "minimum": 0}
+      }
+    },
+    "deferral": {
+      "description": "COV-006: recorded exception when SDK work is deferred for a safety repair or abort.",
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["requirement", "reason", "deferred_units", "remediation", "approved_by"],
+          "additionalProperties": false,
+          "properties": {
+            "requirement": {"const": "COV-006"},
+            "reason": {"type": "string", "minLength": 10},
+            "deferred_units": {"type": "number", "exclusiveMinimum": 0},
+            "remediation": {
+              "type": "object",
+              "required": ["action", "owner", "due"],
+              "additionalProperties": false,
+              "properties": {
+                "action": {"type": "string", "minLength": 5},
+                "owner": {"type": "string", "minLength": 1},
+                "due": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}
+              }
+            },
+            "approved_by": {"type": ["string", "null"]}
+          }
+        }
+      ]
+    },
+    "main_change": {"$ref": "#/$defs/change"},
+    "sdk_change": {
+      "type": "object",
+      "required": ["summary", "paths", "reusable", "beneficiary", "acceptance_tests"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {"type": "string", "minLength": 10},
+        "paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "reusable": {"type": "boolean"},
+        "beneficiary": {"type": "string", "minLength": 5},
+        "acceptance_tests": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "validation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "level", "command", "result", "report", "board_id", "equipment", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "level": {"enum": ["DESIGN", "STATIC_CHECK", "HOST_SIM", "RTL_SIM", "FPGA_PNR", "BOARD_TEST"]},
+          "command": {"type": ["string", "null"]},
+          "result": {"enum": ["pass", "fail", "not_run", "not_available"]},
+          "report": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/artifact"}]},
+          "board_id": {"type": ["string", "null"]},
+          "equipment": {"type": ["string", "null"]},
+          "reason": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "sensitive_changes": {
+      "description": "TST-003: review-sensitive events disclosed by the owner.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind", "justification"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["modified", "deleted", "golden_updated", "test_deleted", "tolerance_loosened",
+                            "assertion_disabled", "warnings_changed", "timing_waived"]},
+          "justification": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "required": ["sdk_accepted_by", "state", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "sdk_accepted_by": {"type": ["string", "null"]},
+        "state": {"enum": ["pending", "accepted", "changes_requested"]},
+        "evidence": {"type": ["string", "null"]}
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description", "recovery_action"],
+        "additionalProperties": false,
+        "properties": {
+          "description": {"type": "string", "minLength": 5},
+          "recovery_action": {"type": "string", "minLength": 5}
+        }
+      }
+    },
+    "handoff": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "additionalProperties": false,
+      "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "change": {
+      "type": "object",
+      "required": ["summary", "paths"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {"type": "string", "minLength": 10},
+        "paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

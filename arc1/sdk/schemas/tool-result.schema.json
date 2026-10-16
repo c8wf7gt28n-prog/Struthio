@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc1.tool-result/0.2",
+  "title": "ARC-1 tool result (CLI-001)",
+  "type": "object",
+  "required": ["schema_version", "sdk_version", "command", "invocation_id", "toolchain_digest",
+               "input_digest", "evidence_level", "verdict", "board_id", "warnings",
+               "failure_reasons", "artifacts"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "arc1.tool-result/0.2"},
+    "sdk_version": {"type": "string", "minLength": 1},
+    "command": {"type": "string", "pattern": "^arc1( |$)"},
+    "invocation_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+    "toolchain_digest": {"$ref": "#/$defs/sha256"},
+    "input_digest": {"$ref": "#/$defs/sha256"},
+    "evidence_level": {"enum": ["NONE", "DESIGN", "STATIC_CHECK", "HOST_SIM", "RTL_SIM", "FPGA_PNR", "BOARD_TEST"]},
+    "verdict": {"enum": ["PASS", "FAIL", "ERROR", "NOT_AVAILABLE", "NOT_RUN"]},
+    "board_id": {"type": ["string", "null"]},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "failure_reasons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "code": {"type": "string", "minLength": 1},
+          "message": {"type": "string"},
+          "path": {"type": "string"}
+        }
+      }
+    },
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "test_count": {"type": "integer", "minimum": 0},
+    "failed_count": {"type": "integer", "minimum": 0},
+    "log_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "details": {"type": "object"}
+  },
+  "allOf": [
+    {"if": {"properties": {"verdict": {"const": "PASS"}}},
+     "then": {"properties": {"failure_reasons": {"maxItems": 0}}}},
+    {"if": {"properties": {"evidence_level": {"const": "BOARD_TEST"}}},
+     "then": {"properties": {"board_id": {"type": "string", "minLength": 1}}},
+     "else": {"properties": {"board_id": {"type": "null"}}}}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "additionalProperties": false,
+      "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}
+    }
+  }
+}

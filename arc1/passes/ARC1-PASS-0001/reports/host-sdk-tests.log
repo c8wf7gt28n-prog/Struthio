@@ -1,0 +1,26 @@
+test_device_deploy_never_simulates_success (__main__.CliContractTests.test_device_deploy_never_simulates_success) ... ok
+test_doctor (__main__.CliContractTests.test_doctor) ... ok
+test_fpga_check_not_run (__main__.CliContractTests.test_fpga_check_not_run) ... ok
+test_help_and_version (__main__.CliContractTests.test_help_and_version) ... ok
+test_json_flag_before_subcommand (__main__.CliContractTests.test_json_flag_before_subcommand) ... ok
+test_result_contract_rejects_missing_artifact (__main__.CliContractTests.test_result_contract_rejects_missing_artifact) ... ok
+test_usage_error_exit_code (__main__.CliContractTests.test_usage_error_exit_code) ... ok
+test_behaviour_change_reports_divergent_frame (__main__.HostSdkTests.test_behaviour_change_reports_divergent_frame) ... ok
+test_changed_replay_without_new_golden_fails (__main__.HostSdkTests.test_changed_replay_without_new_golden_fails) ... ok
+test_compilers_agree (__main__.HostSdkTests.test_compilers_agree)
+Same frames from every available locked compiler (host determinism). ... ok
+test_golden_suite_passes_and_is_reproducible (__main__.HostSdkTests.test_golden_suite_passes_and_is_reproducible) ... ok
+test_negative_control_detects_blind_golden (__main__.HostSdkTests.test_negative_control_detects_blind_golden) ... ok
+test_replay_path_cannot_escape_project (__main__.HostSdkTests.test_replay_path_cannot_escape_project) ... ok
+test_sim_produces_frames (__main__.HostSdkTests.test_sim_produces_frames) ... ok
+test_sim_requires_build (__main__.HostSdkTests.test_sim_requires_build) ... ok
+test_tampered_golden_trace_fails (__main__.HostSdkTests.test_tampered_golden_trace_fails) ... ok
+test_update_golden_is_flagged_sensitive (__main__.HostSdkTests.test_update_golden_is_flagged_sensitive) ... ok
+test_bad_name (__main__.NewProjectTests.test_bad_name) ... ok
+test_new_build_test (__main__.NewProjectTests.test_new_build_test) ... ok
+test_c_api_conformance (__main__.ConformanceTests.test_c_api_conformance) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 7.788s
+
+OK

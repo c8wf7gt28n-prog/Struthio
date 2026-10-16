@@ -1,0 +1,16 @@
+{
+  "frame_sha256": {
+    "0": "4fa392fc951213f6e6bc22b53d87c277bec01e5891a950dcdc91f91270a9e18f",
+    "119": "4d7fac033826d783edccdb240bac14ddef36378e2e68129d344b85ceab93c8f6",
+    "45": "d364d64475dc75a82dc9f5cac0312f07f40ac9e4e6805e1bb9956bdcac2c33fd",
+    "60": "8791881963e0013250ac2e0d496c0c38da682c171840c8c6737e46fc67d3a140"
+  },
+  "frames": 120,
+  "note": "Recorded by `arc1 test --update-golden`. Changing this file is review-sensitive (SEC-002).",
+  "palette": "arc1-0.2",
+  "replay_sha256": "a66e1915dffd2e854e3f94cf28815702b5f5fe7e6cfce5582bde11643717f89a",
+  "schema": "arc1.golden/0.2",
+  "test_id": "steer-golden",
+  "trace": "tests/golden/steer.trace",
+  "trace_sha256": "7684e9e5f9c8e313732afd5f48aedb59254d414e2500bdac065cf80b620f0029"
+}

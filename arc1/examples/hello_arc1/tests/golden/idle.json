@@ -1,0 +1,15 @@
+{
+  "frame_sha256": {
+    "0": "4fa392fc951213f6e6bc22b53d87c277bec01e5891a950dcdc91f91270a9e18f",
+    "179": "417534a67f2fba309d60f77cc4a6dd75559aee9f9051c9223386db0f7a5d74d8",
+    "90": "f3c4e3c053ce12a7c6987ad949c74159a826da6ccac68685d8369d7816e4449e"
+  },
+  "frames": 180,
+  "note": "Recorded by `arc1 test --update-golden`. Changing this file is review-sensitive (SEC-002).",
+  "palette": "arc1-0.2",
+  "replay_sha256": "5093cbf932b4bcc75d1939b9243243ebca2897cdd798f9396efe0c7807b4754a",
+  "schema": "arc1.golden/0.2",
+  "test_id": "idle-golden",
+  "trace": "tests/golden/idle.trace",
+  "trace_sha256": "d4cea6f45219c66bf116ce6c918d9d3b31bcca738b878da401b020f934adba5d"
+}

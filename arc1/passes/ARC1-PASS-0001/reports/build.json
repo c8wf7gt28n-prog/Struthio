@@ -1,0 +1,39 @@
+{
+  "artifacts": [
+    {
+      "path": "examples/hello_arc1/build/gen/arc1_assets.h",
+      "sha256": "c23c4645675763be0edbb3eadf38374ede53cade054ec45d83e4040837dc874b"
+    },
+    {
+      "path": "examples/hello_arc1/build/host/build-stamp.json",
+      "sha256": "bed43238810f79e6e2f32b143f4964fd6dcfabac2b189f840f23ee09414782b3"
+    },
+    {
+      "path": "examples/hello_arc1/build/host/hello_arc1",
+      "sha256": "583245801e5cb020c8cd1eae136f15ff35a6d4596401662b733de10f4f80c626"
+    },
+    {
+      "path": "examples/hello_arc1/build/logs/build.log",
+      "sha256": "7d75794e086e9a5eb59233b09c18f85ca17c55d8aceacedaa326ca6cc20dad24"
+    }
+  ],
+  "board_id": null,
+  "command": "arc1 build examples/hello_arc1",
+  "details": {
+    "abi": "0.2-proposed",
+    "compiler": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "target": "host"
+  },
+  "evidence_level": "STATIC_CHECK",
+  "failure_reasons": [],
+  "input_digest": "410c6d13044b2000de2d34f385afc9142ed9d3b425341008fb04b8c9af5db93d",
+  "invocation_id": "cae9d43e59de60fc563c0bafe90ac87d",
+  "log_sha256": "7d75794e086e9a5eb59233b09c18f85ca17c55d8aceacedaa326ca6cc20dad24",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "PASS",
+  "warnings": [
+    "Host build only; no ARC-1 target toolchain exists yet"
+  ]
+}

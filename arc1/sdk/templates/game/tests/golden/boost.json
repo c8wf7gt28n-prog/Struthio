@@ -1,0 +1,14 @@
+{
+  "frame_sha256": {
+    "0": "f04c7a3f49baf465845e569bc9d5b43323599218892b75fe6648bb7b52270de3",
+    "89": "658b8800c6674600ad4e57d32e90bb03906b80d3395ae91dad2a14bbe8134b6d"
+  },
+  "frames": 90,
+  "note": "Recorded by `arc1 test --update-golden`. Changing this file is review-sensitive (SEC-002).",
+  "palette": "arc1-0.2",
+  "replay_sha256": "b7e0242e1cf1ff6cff473e399dcf2b7abcd935d8530431a675bc14a0e3ec84ff",
+  "schema": "arc1.golden/0.2",
+  "test_id": "boost-golden",
+  "trace": "tests/golden/boost.trace",
+  "trace_sha256": "1856382a2ffbed8deabc935f3c91a2cd9a11970ac8d9b811def6eea486171d4d"
+}

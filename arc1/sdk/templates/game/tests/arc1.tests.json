@@ -1,0 +1,11 @@
+{
+  "schema": "arc1.game-tests/0.2",
+  "tests": [
+    {"id": "boost-golden", "kind": "golden", "frames": 90, "replay": "tests/replays/boost.replay",
+     "golden": "tests/golden/boost.json", "dump": [0, 89]},
+    {"id": "boost-determinism", "kind": "determinism", "frames": 90, "replay": "tests/replays/boost.replay"},
+    {"id": "input-reaches-frames", "kind": "must_differ", "frames": 90, "replay": "tests/replays/idle.replay",
+     "golden": "tests/golden/boost.json",
+     "description": "Negative control: without RIGHT held the output must not match the boost golden."}
+  ]
+}

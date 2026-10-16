@@ -1,0 +1,20 @@
+{
+  "artifacts": [],
+  "board_id": null,
+  "command": "arc1 hw inspect passes/ARC1-PASS-0001/reports/corrupt-r10.hw.json",
+  "evidence_level": "DESIGN",
+  "failure_reasons": [
+    {
+      "code": "HW-002",
+      "message": "/chips/0/memory/0/shared_address_space: ARC-1 memory pools are independent; a shared address space claim is rejected",
+      "path": "passes/ARC1-PASS-0001/reports/corrupt-r10.hw.json"
+    }
+  ],
+  "input_digest": "aa1c0db03c72cf68aab95d7668bba8d51c09142cd0a70954ddcc390233ccbe5b",
+  "invocation_id": "1fc50c7446fbf5e0240b002dac38391b",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "FAIL",
+  "warnings": []
+}

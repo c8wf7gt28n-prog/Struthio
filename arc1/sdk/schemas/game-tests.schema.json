@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc1.game-tests/0.2",
+  "title": "ARC-1 project test plan (tests/arc1.tests.json)",
+  "type": "object",
+  "required": ["schema", "tests"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "arc1.game-tests/0.2"},
+    "tests": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/test"}}
+  },
+  "$defs": {
+    "test": {
+      "type": "object",
+      "required": ["id", "kind", "frames", "replay"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"},
+        "kind": {"enum": ["golden", "determinism", "must_differ"],
+                 "description": "golden: matches recorded trace and frames; determinism: repeated runs agree; must_differ: negative control, output must NOT match the named golden."},
+        "description": {"type": "string"},
+        "frames": {"type": "integer", "minimum": 1, "maximum": 36000},
+        "replay": {"type": ["string", "null"]},
+        "golden": {"type": "string", "pattern": "^tests/golden/[a-z0-9_-]+\\.json$"},
+        "dump": {"type": "array", "maxItems": 16, "items": {"type": "integer", "minimum": 0}, "uniqueItems": true},
+        "runs": {"type": "integer", "minimum": 2, "maximum": 5}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"enum": ["golden", "must_differ"]}}}, "then": {"required": ["golden"]}}
+      ]
+    }
+  }
+}

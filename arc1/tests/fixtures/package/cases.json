@@ -1,0 +1,16 @@
+{
+  "description": "Variants of examples/hello_arc1/arc1.game.json; each negative case must fail with the named code.",
+  "base": "../../../examples/hello_arc1",
+  "negative": [
+    {"id": "asset-digest-mismatch", "expect": "PKG-001", "ops": [{"op": "set", "path": "/assets/0/sha256", "value": "0000000000000000000000000000000000000000000000000000000000000000"}]},
+    {"id": "undeclared-asset", "expect": "PKG-001", "ops": [{"op": "set", "path": "/assets", "value": []}]},
+    {"id": "f133-over-capacity", "expect": "PKG-001", "ops": [{"op": "set", "path": "/resources/f133_ram_limit_bytes", "value": 67108865}]},
+    {"id": "accelerator-on-host", "expect": "API-001", "ops": [{"op": "set", "path": "/accelerators", "value": ["raster_3d_45f"]}]},
+    {"id": "board-tested-claim", "expect": "CLI-002", "ops": [{"op": "set", "path": "/verification", "value": {"status": "board_tested", "hardware_proof": "trust me"}}]},
+    {"id": "board-tested-no-proof", "expect": "SCHEMA", "ops": [{"op": "set", "path": "/verification", "value": {"status": "board_tested", "hardware_proof": null}}]},
+    {"id": "asset-path-escape", "expect": "SCHEMA", "ops": [{"op": "set", "path": "/assets/0/path", "value": "assets/../../secret.sprite"}]},
+    {"id": "wrong-abi", "expect": "SCHEMA", "ops": [{"op": "set", "path": "/required/runtime_abi", "value": "1.0"}]},
+    {"id": "wrong-sdk", "expect": "PKG-001", "ops": [{"op": "set", "path": "/required/sdk_version", "value": "0.1"}]}
+  ],
+  "positive": []
+}

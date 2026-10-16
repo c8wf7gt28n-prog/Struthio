@@ -1,0 +1,29 @@
+{
+  "schema": "arc1.toolchain-lock/0.2",
+  "python": {
+    "min": "3.9",
+    "tested": ["3.13.16"]
+  },
+  "c_compiler": {
+    "standard": "c11",
+    "candidates": ["cc", "gcc", "clang"],
+    "flags": ["-O2", "-Wall", "-Wextra", "-Wpedantic", "-Werror", "-fno-strict-aliasing"],
+    "tested": [
+      "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "Ubuntu clang version 18.1.3 (1ubuntu1)"
+    ]
+  },
+  "python_packages": [],
+  "optional_tools": [
+    {"name": "git", "purpose": "base-commit and protected-path checks in `arc1 pass validate`", "phase": "M0"},
+    {"name": "yosys", "purpose": "RTL synthesis for `arc1 fpga check`", "phase": "Phase 2 (not implemented)"},
+    {"name": "nextpnr-ecp5", "purpose": "ECP5 place and route for `arc1 fpga check`", "phase": "Phase 2 (not implemented)"}
+  ],
+  "notes": [
+    "This lock pins requirements and records the versions the suite was run with. It does not vendor or download tools.",
+    "Platform prerequisites: Python >= 3.9 (standard library only) and a C11 compiler reachable as cc, gcc or clang. ARC1_CC selects one of the candidates.",
+    "A compiler not listed under tested is allowed but reported by `arc1 doctor` as an untested-toolchain warning.",
+    "No ARC-1 target (RISC-V F133) cross-compiler is locked yet; target builds are out of scope for M0-M1."
+  ]
+}

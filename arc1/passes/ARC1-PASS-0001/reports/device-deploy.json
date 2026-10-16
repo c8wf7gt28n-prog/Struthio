@@ -1,0 +1,19 @@
+{
+  "artifacts": [],
+  "board_id": null,
+  "command": "arc1 device deploy",
+  "evidence_level": "NONE",
+  "failure_reasons": [
+    {
+      "code": "CLI-002",
+      "message": "no identified physical ARC-1 board, transport or verified recovery path; nothing was deployed and simulator output cannot substitute"
+    }
+  ],
+  "input_digest": "7a5eb6415c84210e9a558043bd0e3be3b71dc1e1e593b72bc9d6a8a87ef1da6f",
+  "invocation_id": "245490ff8278757e2b5a8d5e953437d5",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "NOT_AVAILABLE",
+  "warnings": []
+}
