@@ -138,8 +138,8 @@ module r10_raster (
                 oi <= 11'd0;
             end
             if (ai == nargs - 4'd1 && cmd == 16'd2) begin
-                x0 <= $signed(arg[0]); y0 <= $signed(arg[1]); x1 <= $signed(arg[2]); y1 <= $signed(arg[3]);
-                x2 <= $signed(arg[4]); y2 <= $signed(arg[5]); z0 <= arg[6]; z1 <= arg[7]; z2 <= arg[8]; rgb <= in_data;
+                x0 <= $signed({{2{arg[0][15]}}, arg[0]}); y0 <= $signed({{2{arg[1][15]}}, arg[1]}); x1 <= $signed({{2{arg[2][15]}}, arg[2]}); y1 <= $signed({{2{arg[3][15]}}, arg[3]});
+                x2 <= $signed({{2{arg[4][15]}}, arg[4]}); y2 <= $signed({{2{arg[5][15]}}, arg[5]}); z0 <= arg[6]; z1 <= arg[7]; z2 <= arg[8]; rgb <= in_data;
             end
         end
         S_CLEAR: begin
