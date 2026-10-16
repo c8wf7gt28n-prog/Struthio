@@ -1,6 +1,24 @@
 == architecture: python3 gen_interface_matrix.py
 65 matrix rows, 3 multiply-claimed D213 pads, 0 errors
    exit 0
+== memory: python3 gen_nor_partition.py
+F1BT 0x00000000-0x00100000  1 MiB  no image yet
+F1RC 0x00100000-0x00300000  2 MiB  no image yet
+F1MA 0x00300000-0x00B00000  8 MiB  no image yet
+F1MB 0x00B00000-0x01300000  8 MiB  no image yet
+D2FA 0x01300000-0x02300000 16 MiB  no image yet
+D2FB 0x02300000-0x03300000 16 MiB  no image yet
+C12G 0x03300000-0x03500000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C12A 0x03500000-0x03700000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45G 0x03700000-0x03A00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45A 0x03A00000-0x03D00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+META 0x03D00000-0x04000000  3 MiB  no image yet
+NOR_PARTITION_PASS 11 partitions, 64 MiB, 0 errors
+   exit 0
+== hardware: python3 gen_flash_pinmux.py
+Counter({'SDRAM45': 39, 'CFG45': 15, 'CFG12': 13, 'NOR': 6, 'PSRAM12': 6, 'D213NOR': 6})
+FLASH_PINMUX_PASS 85 rows, 0 errors
+   exit 0
 == fpga12: make lint rgmii sim build seeds report
 mkdir -p build
 verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM -Wno-TIMESCALEMOD --timing \
@@ -47,6 +65,96 @@ for sp in 6 7; do for s in 1 2 3 4 5; do nextpnr-ecp5 --12k --package CABGA256 -
   --seed $s --log build/seed_s${sp}_$s.log > /dev/null 2>&1; done; done; true
 python3 -I timing/r10_12f_report.py build timing/R10_12F_FIT_TIMING.md timing/R10_12F_FIT_TIMING.json
 {"gate": true, "timing_all": true, "util": {"LUT4 (TRELLIS_COMB after P&R)": {"used": 4900, "limit": 12000, "pct": 40.8}, "DP16KD": {"used": 8, "limit": 32, "pct": 25.0}, "MULT18X18D": {"used": 8, "limit": 28, "pct": 28.6}, "EHXPLLL": {"used": 2, "limit": 2, "pct": 100.0}}}
+   exit 0
+== fpga12: make lint_mem sim_mem seeds_mem
+mkdir -p build
+verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM -Wno-TIMESCALEMOD --timing \
+  --top-module r10_support_mem_top rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/eth_link.sv rtl/eth_tx_pump.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv rtl/r10_support_mem_top.sv rtl/r10_mem_engine.sv rtl/psram_user_port.sv rtl/psram_qspi_core.sv rtl/psram_bist.sv sim/arc1_ecp5_pll_sim.v sim/arc1_eth_pll_sim.v sim/ecp5_ddr_sim.v > build/lint_mem.log 2>&1; rc=$?; cat build/lint_mem.log; exit $rc
+make -C ../../R85C_WORK/fpga_ecp5 build/ajob/ajob_cases.svh > /dev/null
+mkdir -p build/ajob && cp ../../R85C_WORK/fpga_ecp5/build/ajob/ajob_cases.svh ../../R85C_WORK/fpga_ecp5/build/ajob/ajob_*_req.memh \
+  ../../R85C_WORK/fpga_ecp5/build/ajob/ajob_*_resp.memh build/ajob/
+iverilog -g2012 -I build/ajob -s tb_r10_support_mem -o build/tb_r10_mem.vvp -Ptb_r10_support_mem.AJOB_DIR='"build/ajob"' \
+  tb/tb_r10_support_mem.sv rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/eth_link.sv rtl/eth_tx_pump.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv rtl/r10_support_mem_top.sv rtl/r10_mem_engine.sv rtl/psram_user_port.sv rtl/psram_qspi_core.sv rtl/psram_bist.sv sim/arc1_ecp5_pll_sim.v sim/arc1_eth_pll_sim.v sim/ecp5_ddr_sim.v sim/aps6404l_model_r07.sv
+vvp -n build/tb_r10_mem.vvp > build/sim_r10_mem.log 2>&1; rc=$?; grep -E '^(TEST|INFO|TB_ERROR|MODEL_VIOLATION|R10_12F)' build/sim_r10_mem.log; \
+  test $rc -eq 0 && grep -q '^R10_12F_MEM_TB_PASS$' build/sim_r10_mem.log
+INFO rgmii case=0 req=64 resp=40 status=0 round_trip=4.20 us (first request preamble -> last response FCS)
+INFO rgmii case=1 req=400 resp=208 status=0 round_trip=16.33 us (first request preamble -> last response FCS)
+INFO rgmii case=2 req=8176 resp=4096 status=0 round_trip=308.54 us (first request preamble -> last response FCS)
+INFO rgmii case=3 req=64 resp=16 status=4 round_trip=4.15 us (first request preamble -> last response FCS)
+INFO rgmii case=4 req=64 resp=16 status=2 round_trip=2.92 us (first request preamble -> last response FCS)
+INFO rgmii case=5 req=64 resp=16 status=3 round_trip=2.91 us (first request preamble -> last response FCS)
+INFO rgmii case=6 req=65 resp=16 status=1 round_trip=2.92 us (first request preamble -> last response FCS)
+INFO rgmii case=7 req=64 resp=16 status=1 round_trip=2.91 us (first request preamble -> last response FCS)
+INFO rgmii case=8 req=64 resp=16 status=1 round_trip=2.91 us (first request preamble -> last response FCS)
+INFO rgmii case=9 req=64 resp=64 status=-1 round_trip=3.76 us (first request preamble -> last response FCS)
+INFO rgmii case=10 req=784 resp=400 status=0 round_trip=31.19 us (first request preamble -> last response FCS)
+TEST r10_ajob_rgmii done errors=0
+INFO status: rev=1 caps=001d rx_ok=13 rx_fcs=0 rx_drop=0 rx_other=0 tx=12 underrun=0 jobs=11 items=195 uptime_ms=0
+TEST r10_status done errors=0
+INFO case 11 (FIR opcode 3) -> status 3 (BAD_OPCODE, FIR not built)
+INFO case 12 (FIR opcode 2) -> status 3 (BAD_OPCODE, FIR not built)
+TEST r10_fir_absent done errors=0
+INFO status: rev=1 caps=001d rx_ok=16 rx_fcs=1 rx_drop=0 rx_other=1 tx=15 underrun=0 jobs=14 items=195 uptime_ms=0
+TEST r10_negative done errors=0
+INFO PSRAM ready at 517.0 us
+INFO BIST pass, errors 0
+INFO 4096-byte write round trip 1727.3 us
+INFO 4096-byte read round trip 625.3 us
+INFO rgmii case=0 req=64 resp=40 status=0 round_trip=4.20 us (first request preamble -> last response FCS)
+INFO psram model violations=0 mem_jobs=14 mem_bytes=8770
+TEST r10_psram done errors=0
+R10_12F_MEM_TB_PASS
+mkdir -p build
+cat timing/r10_12f_proxy256.lpf ../hardware/lpf/r10_12f_mem_proxy256.lpf > build/r10_12f_mem_proxy256.lpf
+for sp in 6 7; do for s in 1 2 3 4 5; do nextpnr-ecp5 --12k --package CABGA256 --speed $sp --json build/r10_12f_mem.json --lpf build/r10_12f_mem_proxy256.lpf \
+  --seed $s --log build/mem_seed_s${sp}_$s.log > /dev/null 2>&1 || echo "speed $sp seed $s: PNR_FAIL"; \
+  grep -E "Max frequency for clock" build/mem_seed_s${sp}_$s.log | tail -4 | sed "s/^/speed $sp seed $s: /"; done; done | tee build/seeds_mem.log
+speed 6 seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 87.37 MHz (PASS at 80.00 MHz)
+speed 6 seed 1: Info: Max frequency for clock              '$glbnet$psram_mclk': 92.62 MHz (PASS at 40.00 MHz)
+speed 6 seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 151.47 MHz (PASS at 125.00 MHz)
+speed 6 seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 170.07 MHz (PASS at 125.00 MHz)
+speed 6 seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 84.65 MHz (PASS at 80.00 MHz)
+speed 6 seed 2: Info: Max frequency for clock              '$glbnet$psram_mclk': 94.14 MHz (PASS at 40.00 MHz)
+speed 6 seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 140.35 MHz (PASS at 125.00 MHz)
+speed 6 seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 170.10 MHz (PASS at 125.00 MHz)
+speed 6 seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 86.72 MHz (PASS at 80.00 MHz)
+speed 6 seed 3: Info: Max frequency for clock              '$glbnet$psram_mclk': 92.58 MHz (PASS at 40.00 MHz)
+speed 6 seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 132.21 MHz (PASS at 125.00 MHz)
+speed 6 seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 180.12 MHz (PASS at 125.00 MHz)
+speed 6 seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 81.60 MHz (PASS at 80.00 MHz)
+speed 6 seed 4: Info: Max frequency for clock              '$glbnet$psram_mclk': 98.58 MHz (PASS at 40.00 MHz)
+speed 6 seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 143.25 MHz (PASS at 125.00 MHz)
+speed 6 seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 155.91 MHz (PASS at 125.00 MHz)
+speed 6 seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 85.29 MHz (PASS at 80.00 MHz)
+speed 6 seed 5: Info: Max frequency for clock              '$glbnet$psram_mclk': 98.26 MHz (PASS at 40.00 MHz)
+speed 6 seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 134.59 MHz (PASS at 125.00 MHz)
+speed 6 seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 156.76 MHz (PASS at 125.00 MHz)
+speed 7 seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 101.78 MHz (PASS at 80.00 MHz)
+speed 7 seed 1: Info: Max frequency for clock              '$glbnet$psram_mclk': 109.79 MHz (PASS at 40.00 MHz)
+speed 7 seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 147.86 MHz (PASS at 125.00 MHz)
+speed 7 seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 176.58 MHz (PASS at 125.00 MHz)
+speed 7 seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 97.22 MHz (PASS at 80.00 MHz)
+speed 7 seed 2: Info: Max frequency for clock              '$glbnet$psram_mclk': 106.58 MHz (PASS at 40.00 MHz)
+speed 7 seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 163.80 MHz (PASS at 125.00 MHz)
+speed 7 seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 175.99 MHz (PASS at 125.00 MHz)
+speed 7 seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 93.04 MHz (PASS at 80.00 MHz)
+speed 7 seed 3: Info: Max frequency for clock              '$glbnet$psram_mclk': 112.20 MHz (PASS at 40.00 MHz)
+speed 7 seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 163.27 MHz (PASS at 125.00 MHz)
+speed 7 seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 160.80 MHz (PASS at 125.00 MHz)
+speed 7 seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 89.06 MHz (PASS at 80.00 MHz)
+speed 7 seed 4: Info: Max frequency for clock              '$glbnet$psram_mclk': 108.64 MHz (PASS at 40.00 MHz)
+speed 7 seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 146.01 MHz (PASS at 125.00 MHz)
+speed 7 seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 188.11 MHz (PASS at 125.00 MHz)
+speed 7 seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 94.31 MHz (PASS at 80.00 MHz)
+speed 7 seed 5: Info: Max frequency for clock              '$glbnet$psram_mclk': 112.63 MHz (PASS at 40.00 MHz)
+speed 7 seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 160.18 MHz (PASS at 125.00 MHz)
+speed 7 seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 182.95 MHz (PASS at 125.00 MHz)
+grep -E "TRELLIS_COMB|DP16KD|MULT18X18D|EHXPLLL" build/mem_seed_s6_1.log | head -4 | tee -a build/seeds_mem.log
+Info: 	              DP16KD:    10/   56    17%
+Info: 	          MULT18X18D:     8/   28    28%
+Info: 	             EHXPLLL:     2/    2   100%
+Info: 	        TRELLIS_COMB:  7209/24288    29%
+! grep -qE "FAIL" build/seeds_mem.log
    exit 0
 == fpga45: make ref sim seeds sim45 seeds45
 mkdir -p build/vec
@@ -105,27 +213,95 @@ Warning: Replacing memory \eax with list of registers. See rtl/r10_raster.sv:168
 for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/r10_45f.json --lpf constraints/r10_45f.lpf \
   --seed $s --report build/pnr_45f_$s.json --log build/pnr_45f_$s.log > /dev/null 2>&1 || echo "seed $s: PNR_FAIL"; \
   grep -E "Max frequency for clock" build/pnr_45f_$s.log | tail -3 | sed "s/^/seed $s: /"; done | tee build/seeds_45f.log
-seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 95.93 MHz (PASS at 80.00 MHz)
-seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 152.00 MHz (PASS at 125.00 MHz)
-seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 168.66 MHz (PASS at 125.00 MHz)
-seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 95.90 MHz (PASS at 80.00 MHz)
-seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 151.84 MHz (PASS at 125.00 MHz)
-seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 175.87 MHz (PASS at 125.00 MHz)
-seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 91.71 MHz (PASS at 80.00 MHz)
-seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 158.05 MHz (PASS at 125.00 MHz)
-seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 157.88 MHz (PASS at 125.00 MHz)
-seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 91.47 MHz (PASS at 80.00 MHz)
-seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 156.86 MHz (PASS at 125.00 MHz)
-seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 170.42 MHz (PASS at 125.00 MHz)
-seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 90.77 MHz (PASS at 80.00 MHz)
-seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 159.90 MHz (PASS at 125.00 MHz)
-seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 174.89 MHz (PASS at 125.00 MHz)
+seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 92.29 MHz (PASS at 80.00 MHz)
+seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 153.19 MHz (PASS at 125.00 MHz)
+seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 173.37 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 95.84 MHz (PASS at 80.00 MHz)
+seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 140.39 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 165.67 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 96.56 MHz (PASS at 80.00 MHz)
+seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 165.70 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 165.92 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 95.55 MHz (PASS at 80.00 MHz)
+seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 165.54 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 161.11 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 94.73 MHz (PASS at 80.00 MHz)
+seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 156.64 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 156.69 MHz (PASS at 125.00 MHz)
 grep -E "TRELLIS_COMB|DP16KD|MULT18X18D|EHXPLLL" build/pnr_45f_1.log | head -4 | tee -a build/seeds_45f.log
 Info: 	              DP16KD:    10/  108     9%
 Info: 	          MULT18X18D:    16/   72    22%
 Info: 	             EHXPLLL:     2/    4    50%
-Info: 	        TRELLIS_COMB:  7201/43848    16%
+Info: 	        TRELLIS_COMB:  7191/43848    16%
 ! grep -qE "FAIL" build/seeds_45f.log
+   exit 0
+== fpga45: make sdram sdram_mutants sim45_mem seeds45_mem
+mkdir -p build
+iverilog -g2012 -s tb_sdram -o build/tb_sdram.vvp tb/tb_sdram.sv rtl/sdram_ctrl.sv sim/sdram_model.sv
+vvp -n build/tb_sdram.vvp > build/sim_sdram.log 2>&1; rc=$?; grep -E '^(INFO|TEST|TB_ERROR|MODEL_VIOLATION|SDRAM)' build/sim_sdram.log | head -40; \
+  test $rc -eq 0 && grep -q '^SDRAM_TB_PASS$' build/sim_sdram.log
+INFO init done at 200.7 us, 8 init refreshes
+INFO tile write: 32 tiles x 2048 B in 428.0 us = 153.1 MB/s (refresh included)
+INFO tile read:  32 tiles x 2048 B in 429.4 us = 152.6 MB/s (refresh included)
+TEST sdram_tiles done errors=0
+INFO stress: 400 bursts, reads checked against the reference, refreshes so far 188
+TEST sdram_stress done errors=0
+TEST sdram_reject done errors=0
+INFO idle 300 us: 38 refreshes (expected ~38), model max gap 10.05 us
+INFO model: act=660 rd=46409 wr=59779 ref=228 violations=0 max_ref_gap=10.05 us
+TEST sdram_refresh done errors=0
+SDRAM_TB_PASS
+mkdir -p build
+MUTANT_KILLED P_REFI=4000 (104 errors/violations)
+MUTANT_KILLED P_INIT_REF=2 (2 errors/violations)
+MUTANT_KILLED P_RD_LAT=4 (6 errors/violations)
+MUTANT_KILLED P_RD_LAT=6 (6 errors/violations)
+MUTANT_KILLED P_T_INIT=1000 (14447 errors/violations)
+mkdir -p build/vec
+/home/user/Struthio/hardware/arc1-compact/R10_WORK/fpga45/build/raster_ref build/vec | tee build/raster_ref.log; grep -q RASTER_REF_PASS build/raster_ref.log
+coverage check (fans of 3..11 triangles, 200 runs): 0 violations
+18 tiles, 62 triangles, 790 job words, 18522 expected words, 33662 scanned samples
+RASTER_REF_PASS
+iverilog -g2012 -DMEMTOP -s tb_r10_45f -Ptb_r10_45f.VEC='"build/vec"' -o build/tb_45f_mem.vvp tb/tb_r10_45f.sv rtl/r10_raster_mem_top.sv rtl/r10_raster_engine.sv rtl/r10_raster.sv ../fpga12/rtl/eth_link.sv ../fpga12/rtl/eth_tx_pump.sv ../fpga12/rtl/rgmii_rx.sv ../fpga12/rtl/rgmii_tx.sv rtl/sdram_ctrl.sv rtl/sdram_bist.sv \
+  ../fpga12/sim/arc1_ecp5_pll_sim.v ../fpga12/sim/arc1_eth_pll_sim.v ../fpga12/sim/ecp5_ddr_sim.v sim/sdram_model.sv
+vvp -n build/tb_45f_mem.vvp > build/sim_45f_mem.log 2>&1; rc=$?; grep -E '^(INFO|TEST|TB_ERROR|MODEL_VIOLATION|R10_45F)' build/sim_45f_mem.log; \
+  test $rc -eq 0 && grep -q '^R10_45F_TB_PASS$' build/sim_45f_mem.log
+TEST r10g_loopback done errors=0
+INFO tile 0: 17 job words, round trip 97.1 us
+INFO 18 tiles over RGMII, 2155 us total round trips (sequential, one tile in flight)
+TEST r10g_tiles_rgmii done errors=0
+INFO 18 tiles as halves, largest frame 1066 bytes incl. FCS, 3123 us total round trips
+TEST r10g_tiles_halves done errors=0
+INFO status: rev=1 caps=000f rx_ok=62 tx=61 tris=117 samples=68080 written=23588
+TEST r10g_errors_status done errors=0
+INFO SDRAM: self test PASS, errors 0, refreshes 676, model act=32 rd=4096 wr=4096 ref=676 violations=0
+TEST r10g_sdram done errors=0
+R10_45F_TB_PASS
+cat constraints/r10_45f.lpf ../hardware/lpf/r10_45f_sdram.lpf > build/r10_45f_mem.lpf
+for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/r10_45f_mem.json --lpf build/r10_45f_mem.lpf \
+  --seed $s --log build/pnr_45f_mem_$s.log > /dev/null 2>&1 || echo "seed $s: PNR_FAIL"; \
+  grep -E "Max frequency for clock" build/pnr_45f_mem_$s.log | tail -3 | sed "s/^/seed $s: /"; done | tee build/seeds_45f_mem.log
+seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 86.42 MHz (PASS at 80.00 MHz)
+seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 139.26 MHz (PASS at 125.00 MHz)
+seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 160.15 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 86.98 MHz (PASS at 80.00 MHz)
+seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 161.76 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 164.31 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 88.21 MHz (PASS at 80.00 MHz)
+seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 163.21 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 173.31 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 89.60 MHz (PASS at 80.00 MHz)
+seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 153.35 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 176.52 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 85.38 MHz (PASS at 80.00 MHz)
+seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 149.75 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 152.49 MHz (PASS at 125.00 MHz)
+grep -E "TRELLIS_COMB|DP16KD|MULT18X18D|EHXPLLL" build/pnr_45f_mem_1.log | head -4 | tee -a build/seeds_45f_mem.log
+Info: 	              DP16KD:    10/  108     9%
+Info: 	          MULT18X18D:    16/   72    22%
+Info: 	             EHXPLLL:     2/    4    50%
+Info: 	        TRELLIS_COMB:  7691/43848    17%
+! grep -qE "FAIL" build/seeds_45f_mem.log
    exit 0
 == f133/graphics_link: make all
 cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude src/gfx_link.c tests/test_gfx.c -o build/test_gfx
@@ -151,6 +327,48 @@ MUTANT_KILLED MUTANT_GL_NO_ORDER (2 failing checks)
 MUTANT_KILLED MUTANT_GL_NO_WATCHDOG (3 failing checks)
 MUTANT_KILLED MUTANT_GL_NO_REPROBE (1 failing checks)
    exit 0
-== .: git diff --exit-code -- architecture/R10_interface_matrix.csv architecture/R10_PINMUX_CONFLICTS.md
+== firmware/f133_bootloader: make all
+python3 -I ../../memory/gen_nor_partition.py
+F1BT 0x00000000-0x00100000  1 MiB  no image yet
+F1RC 0x00100000-0x00300000  2 MiB  no image yet
+F1MA 0x00300000-0x00B00000  8 MiB  no image yet
+F1MB 0x00B00000-0x01300000  8 MiB  no image yet
+D2FA 0x01300000-0x02300000 16 MiB  no image yet
+D2FB 0x02300000-0x03300000 16 MiB  no image yet
+C12G 0x03300000-0x03500000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C12A 0x03500000-0x03700000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45G 0x03700000-0x03A00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45A 0x03A00000-0x03D00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+META 0x03D00000-0x04000000  3 MiB  no image yet
+NOR_PARTITION_PASS 11 partitions, 64 MiB, 0 errors
+git diff --exit-code -- include/r10_nor_layout.h ../../memory/R10_nor_partition.csv
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute src/r10_boot.c src/spi_nor.c src/ecp5_cfg.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_boot.c -o build/test_boot
+/home/user/Struthio/hardware/arc1-compact/R10_WORK/firmware/f133_bootloader/build/test_boot
+TEST boot_layout done fails=0
+TEST boot_blank done fails=0
+TEST boot_ab done fails=0
+TEST boot_manifest done fails=0
+TEST boot_interrupted done fails=0
+TEST boot_d213 done fails=0
+TEST boot_fpga12 done fails=0
+TEST boot_fpga12_fail done fails=0
+TEST boot_c45 done fails=0
+74 checks, 0 failed
+R10_BOOT_TEST_PASS
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer \
+  src/r10_boot.c src/spi_nor.c src/ecp5_cfg.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_boot.c -o build/test_boot_san
+ASAN_OPTIONS=detect_leaks=0 /home/user/Struthio/hardware/arc1-compact/R10_WORK/firmware/f133_bootloader/build/test_boot_san | tail -2
+74 checks, 0 failed
+R10_BOOT_TEST_PASS
+for f in src/r10_boot.c src/spi_nor.c src/ecp5_cfg.c; do cc -c -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -ffreestanding -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute $f -o build/$(basename $f .c).o || exit 1; done
+freestanding object compile OK (not a link, not an F133 image)
+MUTANT_KILLED MUTANT_BOOT_NO_LOCK (4 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_GEN (15 failing checks)
+MUTANT_KILLED MUTANT_BOOT_SAME_COPY (6 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_TRIAL_CONSUME (3 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_GOLDEN (1 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_DISARM (1 failing checks)
+   exit 0
+== .: git diff --exit-code -- architecture/R10_interface_matrix.csv architecture/R10_PINMUX_CONFLICTS.md memory/R10_nor_partition.csv firmware/f133_bootloader/include/r10_nor_layout.h hardware/R10_flash_pinmux.csv hardware/lpf
    exit 0
 R10_RUN_ALL_PASS
