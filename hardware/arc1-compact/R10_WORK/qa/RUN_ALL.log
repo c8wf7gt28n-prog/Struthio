@@ -1,0 +1,117 @@
+== architecture: python3 gen_interface_matrix.py
+65 matrix rows, 3 multiply-claimed D213 pads, 0 errors
+   exit 0
+== fpga12: make lint rgmii sim build seeds report
+mkdir -p build
+verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM -Wno-TIMESCALEMOD --timing \
+  --top-module r10_support_top rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/eth_link.sv rtl/eth_tx_pump.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv rtl/r10_support_top.sv sim/arc1_ecp5_pll_sim.v sim/arc1_eth_pll_sim.v sim/ecp5_ddr_sim.v > build/lint.log 2>&1; rc=$?; cat build/lint.log; exit $rc
+mkdir -p build
+iverilog -g2012 -s tb_rgmii -o build/tb_rgmii.vvp tb/tb_rgmii.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv rtl/eth_tx_pump.sv sim/ecp5_ddr_sim.v
+vvp -n build/tb_rgmii.vvp > build/sim_rgmii.log 2>&1; rc=$?; tail -2 build/sim_rgmii.log; \
+  test $rc -eq 0 && grep -q '^RGMII_TB_PASS$' build/sim_rgmii.log
+RGMII_TB_PASS
+tb/tb_rgmii.sv:221: $finish called at 482676000 (1ps)
+make -C ../../R85C_WORK/fpga_ecp5 build/ajob/ajob_cases.svh > /dev/null
+mkdir -p build/ajob && cp ../../R85C_WORK/fpga_ecp5/build/ajob/ajob_cases.svh ../../R85C_WORK/fpga_ecp5/build/ajob/ajob_*_req.memh \
+  ../../R85C_WORK/fpga_ecp5/build/ajob/ajob_*_resp.memh build/ajob/
+iverilog -g2012 -I build/ajob -s tb_r10_support -o build/tb_r10.vvp -Ptb_r10_support.AJOB_DIR='"build/ajob"' \
+  tb/tb_r10_support.sv rtl/accel_engine.sv rtl/accel_fir.sv rtl/arc1_transform_ecp5.sv rtl/eth_link.sv rtl/eth_tx_pump.sv rtl/rgmii_rx.sv rtl/rgmii_tx.sv rtl/r10_support_top.sv sim/arc1_ecp5_pll_sim.v sim/arc1_eth_pll_sim.v sim/ecp5_ddr_sim.v
+vvp -n build/tb_r10.vvp > build/sim_r10.log 2>&1; rc=$?; grep -E '^(TEST|INFO|TB_ERROR|R10_12F)' build/sim_r10.log; \
+  test $rc -eq 0 && grep -q '^R10_12F_TB_PASS$' build/sim_r10.log
+INFO rgmii case=0 req=64 resp=40 status=0 round_trip=3.36 us (first request preamble -> last response FCS)
+INFO rgmii case=1 req=400 resp=208 status=0 round_trip=15.50 us (first request preamble -> last response FCS)
+INFO rgmii case=2 req=8176 resp=4096 status=0 round_trip=307.71 us (first request preamble -> last response FCS)
+INFO rgmii case=3 req=64 resp=16 status=4 round_trip=3.33 us (first request preamble -> last response FCS)
+INFO rgmii case=4 req=64 resp=16 status=2 round_trip=2.08 us (first request preamble -> last response FCS)
+INFO rgmii case=5 req=64 resp=16 status=3 round_trip=2.08 us (first request preamble -> last response FCS)
+INFO rgmii case=6 req=65 resp=16 status=1 round_trip=2.09 us (first request preamble -> last response FCS)
+INFO rgmii case=7 req=64 resp=16 status=1 round_trip=2.08 us (first request preamble -> last response FCS)
+INFO rgmii case=8 req=64 resp=16 status=1 round_trip=2.09 us (first request preamble -> last response FCS)
+INFO rgmii case=9 req=64 resp=64 status=-1 round_trip=2.95 us (first request preamble -> last response FCS)
+INFO rgmii case=10 req=784 resp=400 status=0 round_trip=30.36 us (first request preamble -> last response FCS)
+TEST r10_ajob_rgmii done errors=0
+INFO status: rev=1 caps=0005 rx_ok=12 rx_fcs=0 rx_drop=0 rx_other=0 tx=11 underrun=0 jobs=11 items=195 uptime_ms=0
+TEST r10_status done errors=0
+INFO case 11 (FIR opcode 3) -> status 3 (BAD_OPCODE, FIR not built)
+INFO case 12 (FIR opcode 2) -> status 3 (BAD_OPCODE, FIR not built)
+TEST r10_fir_absent done errors=0
+INFO status: rev=1 caps=0005 rx_ok=15 rx_fcs=1 rx_drop=0 rx_other=1 tx=14 underrun=0 jobs=14 items=195 uptime_ms=0
+TEST r10_negative done errors=0
+R10_12F_TB_PASS
+for sp in 6 7; do nextpnr-ecp5 --12k --package CABGA256 --speed $sp --json build/r10_12f.json --lpf timing/r10_12f_proxy256.lpf --seed 1 \
+  --textcfg build/r10_12f_s$sp.config --report build/nextpnr_s$sp.json --log build/nextpnr_s$sp.log > /dev/null 2>&1 \
+  || { echo "P&R FAIL speed $sp"; exit 1; }; done
+ecppack --compress --input build/r10_12f_s7.config --bit build/r10_12f_s7.bit
+sha256sum build/r10_12f_s7.bit > build/r10_12f_s7.bit.sha256
+for sp in 6 7; do for s in 1 2 3 4 5; do nextpnr-ecp5 --12k --package CABGA256 --speed $sp --json build/r10_12f.json --lpf timing/r10_12f_proxy256.lpf \
+  --seed $s --log build/seed_s${sp}_$s.log > /dev/null 2>&1; done; done; true
+python3 -I timing/r10_12f_report.py build timing/R10_12F_FIT_TIMING.md timing/R10_12F_FIT_TIMING.json
+{"gate": true, "timing_all": true, "util": {"LUT4 (TRELLIS_COMB after P&R)": {"used": 4900, "limit": 12000, "pct": 40.8}, "DP16KD": {"used": 8, "limit": 32, "pct": 25.0}, "MULT18X18D": {"used": 8, "limit": 28, "pct": 28.6}, "EHXPLLL": {"used": 2, "limit": 2, "pct": 100.0}}}
+   exit 0
+== fpga45: make ref sim seeds sim45 seeds45
+mkdir -p build/vec
+/home/user/Struthio/hardware/arc1-compact/R10_WORK/fpga45/build/raster_ref build/vec | tee build/raster_ref.log; grep -q RASTER_REF_PASS build/raster_ref.log
+coverage check (fans of 3..11 triangles, 200 runs): 0 violations
+18 tiles, 62 triangles, 790 job words, 18522 expected words, 33662 scanned samples
+RASTER_REF_PASS
+iverilog -g2012 -s tb_r10_raster -Ptb_r10_raster.VEC='"build/vec"' -o build/tb_raster.vvp tb/tb_r10_raster.sv rtl/r10_raster.sv
+vvp -n build/tb_raster.vvp > build/sim_raster.log 2>&1; rc=$?; grep -E '^(INFO|TB_ERROR|R10_RASTER)' build/sim_raster.log; \
+  test $rc -eq 0 && grep -q '^R10_RASTER_TB_PASS$' build/sim_raster.log
+INFO 790 job words, 18522 expected words
+INFO tris=58 samples=33662 written=11609 busy_cycles=133901 bad_cmd=0 elapsed=1675025 ns
+R10_RASTER_TB_PASS
+mkdir -p build
+yosys -q -l build/yosys_raster.log -p 'read_verilog -sv rtl/r10_raster.sv; synth_ecp5 -abc9 -top r10_raster -json build/raster.json; stat' > /dev/null
+Warning: Replacing memory \Erow with list of registers. See rtl/r10_raster.sv:246
+Warning: Replacing memory \E with list of registers. See rtl/r10_raster.sv:246
+Warning: Replacing memory \Ey with list of registers. See rtl/r10_raster.sv:238
+Warning: Replacing memory \Ex with list of registers. See rtl/r10_raster.sv:237
+Warning: Replacing memory \pe1 with list of registers. See rtl/r10_raster.sv:236
+Warning: Replacing memory \pe0 with list of registers. See rtl/r10_raster.sv:235
+Warning: Replacing memory \dsx with list of registers. See rtl/r10_raster.sv:229
+Warning: Replacing memory \dsy with list of registers. See rtl/r10_raster.sv:229
+Warning: Replacing memory \tl with list of registers. See rtl/r10_raster.sv:194
+Warning: Replacing memory \edy with list of registers. See rtl/r10_raster.sv:166
+Warning: Replacing memory \edx with list of registers. See rtl/r10_raster.sv:166
+Warning: Replacing memory \eay with list of registers. See rtl/r10_raster.sv:166
+Warning: Replacing memory \eax with list of registers. See rtl/r10_raster.sv:166
+printf 'FREQUENCY PORT "clk" 80.000000 MHZ ;\n' > build/core_80.lpf
+for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/raster.json --lpf build/core_80.lpf \
+  --lpf-allow-unconstrained --seed $s --log build/pnr_raster_$s.log > /dev/null 2>&1; \
+  echo "seed $s: $(grep 'Max frequency' build/pnr_raster_$s.log | tail -1 | sed 's/.*: //')"; done | tee build/seeds.log
+seed 1: 100.08 MHz (PASS at 80.00 MHz)
+seed 2: 98.97 MHz (PASS at 80.00 MHz)
+seed 3: 101.18 MHz (PASS at 80.00 MHz)
+seed 4: 100.20 MHz (PASS at 80.00 MHz)
+seed 5: 93.74 MHz (PASS at 80.00 MHz)
+grep -E "TRELLIS_COMB|DP16KD|MULT18X18D" build/pnr_raster_1.log | head -3 | tee -a build/seeds.log
+Info: 	              DP16KD:     2/  108     1%
+Info: 	          MULT18X18D:    16/   72    22%
+Info: 	        TRELLIS_COMB:  5099/43848    11%
+! grep -q FAIL build/seeds.log
+iverilog -g2012 -s tb_r10_45f -Ptb_r10_45f.VEC='"build/vec"' -o build/tb_45f.vvp tb/tb_r10_45f.sv rtl/r10_raster_top.sv rtl/r10_raster_engine.sv rtl/r10_raster.sv ../fpga12/rtl/eth_link.sv ../fpga12/rtl/eth_tx_pump.sv ../fpga12/rtl/rgmii_rx.sv ../fpga12/rtl/rgmii_tx.sv \
+  ../fpga12/sim/arc1_ecp5_pll_sim.v ../fpga12/sim/arc1_eth_pll_sim.v ../fpga12/sim/ecp5_ddr_sim.v
+vvp -n build/tb_45f.vvp > build/sim_45f.log 2>&1; rc=$?; grep -E '^(INFO|TEST|TB_ERROR|R10_45F)' build/sim_45f.log; \
+  test $rc -eq 0 && grep -q '^R10_45F_TB_PASS$' build/sim_45f.log
+TEST r10g_loopback done errors=0
+INFO tile 0: 17 job words, round trip 97.1 us
+INFO 18 tiles over RGMII, 2155 us total round trips (sequential, one tile in flight)
+TEST r10g_tiles_rgmii done errors=0
+INFO status: rev=1 caps=0001 rx_ok=23 tx=22 tris=58 samples=33662 written=11609
+TEST r10g_errors_status done errors=0
+R10_45F_TB_PASS
+mkdir -p build
+yosys -q -l build/yosys_45f.log -p 'read_verilog -sv rtl/r10_raster_top.sv rtl/r10_raster_engine.sv rtl/r10_raster.sv ../fpga12/rtl/eth_link.sv ../fpga12/rtl/eth_tx_pump.sv ../fpga12/rtl/rgmii_rx.sv ../fpga12/rtl/rgmii_tx.sv ../fpga12/rtl/arc1_ecp5_pll.v ../fpga12/rtl/arc1_eth_pll.v; synth_ecp5 -abc9 -top r10_raster_top -json build/r10_45f.json; stat' > /dev/null
+Warning: Replacing memory \Erow with list of registers. See rtl/r10_raster.sv:246
+Warning: Replacing memory \E with list of registers. See rtl/r10_raster.sv:246
+Warning: Replacing memory \Ey with list of registers. See rtl/r10_raster.sv:238
+Warning: Replacing memory \Ex with list of registers. See rtl/r10_raster.sv:237
+Warning: Replacing memory \pe1 with list of registers. See rtl/r10_raster.sv:236
+Warning: Replacing memory \pe0 with list of registers. See rtl/r10_raster.sv:235
+Warning: Replacing memory \dsx with list of registers. See rtl/r10_raster.sv:229
+Warning: Replacing memory \dsy with list of registers. See rtl/r10_raster.sv:229
+Warning: Replacing memory \tl with list of registers. See rtl/r10_raster.sv:194
+Warning: Replacing memory \edy with list of registers. See rtl/r10_raster.sv:166
+Warning: Replacing memory \edx with list of registers. See rtl/r10_raster.sv:166
+Warning: Replacing memory \eay with list of registers. See rtl/r10_raster.sv:166
+Warning: Replacing memory \eax with list of registers. See rtl/r10_raster.sv:166
