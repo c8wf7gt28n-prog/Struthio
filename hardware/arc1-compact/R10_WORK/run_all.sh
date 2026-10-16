@@ -13,9 +13,10 @@ step hardware python3 gen_flash_pinmux.py
 step fpga12 make lint rgmii sim build seeds report
 step fpga12 make lint_mem sim_mem seeds_mem
 step fpga45 make ref sim seeds sim45 seeds45
-step fpga45 make sdram sdram_mutants sim45_mem seeds45_mem
+step fpga45 make sdram sdram_mutants sdram_corners sim45_mem seeds45_mem gpu_ref gpu_mutants
 step f133/graphics_link make all
 step firmware/f133_bootloader make all
+step d213/gpu_driver make all
 step . git diff --exit-code -- architecture/R10_interface_matrix.csv architecture/R10_PINMUX_CONFLICTS.md \
   memory/R10_nor_partition.csv firmware/f133_bootloader/include/r10_nor_layout.h hardware/R10_flash_pinmux.csv hardware/lpf
 [ "$fail" -eq 0 ] && echo R10_RUN_ALL_PASS | tee -a "$LOG" || echo R10_RUN_ALL_FAIL | tee -a "$LOG"

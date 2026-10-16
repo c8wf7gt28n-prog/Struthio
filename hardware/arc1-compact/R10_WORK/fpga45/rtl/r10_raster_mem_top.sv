@@ -1,8 +1,10 @@
 // ARC-1 R10 -- 45F graphics FPGA, MEMORY VARIANT (ARC1_MEMORY_R10 v0.1 s2.3): r10_raster_top + 32 MiB x16 SDR SDRAM
 // controller (sdram_ctrl) with a power-on self test (sdram_bist). The rasterizer does not use the SDRAM yet (textures
 // are R10 7.1 step 4): this top proves fit, timing and the pin plan (hardware/lpf/r10_45f_sdram.lpf), and reports the
-// SDRAM state in STATUS caps: b1 SDRAM present, b2 init done, b3 self test passed, b4 self test failed.
-// sd_clk = sys_clk inverted through an ODDRX1F (commands sampled mid-window; see sdram_ctrl.sv "read timing").
+// SDRAM state in STATUS caps: b1 SDRAM present, b2 init done, b3 self test passed, b4 self test failed,
+// b5 interface calibration done, b6 calibration failed, [12:7] calibration window width (phase steps).
+// sd_clk comes from a phase-steppable PLL output (arc1_sd_pll) through an ODDRX1F; sdram_cal picks the phase and the
+// capture latency at power-up (analysis/R10_SDRAM_TIMING.md), then sdram_bist runs.
 // Evidence: RTL_SIMULATED (tb_r10_45f -DMEMTOP with sim/sdram_model.sv) + open-toolchain P&R. Not on silicon.
 `default_nettype none
 module r10_raster_mem_top (
@@ -25,8 +27,8 @@ module r10_raster_mem_top (
     output wire [1:0]  sd_dqm,
     inout  wire [15:0] sd_dq
 );
-    wire sys_clk, unused_mclk, pll_locked, eth_txclk, eth_locked;
-    arc1_ecp5_pll u_pll (.clk_25m(clk_25m), .sys_clk(sys_clk), .psram_mclk(unused_mclk), .locked(pll_locked));
+    wire sys_clk, sd_clk_pll, pll_locked, eth_txclk, eth_locked, cal_step;
+    arc1_sd_pll u_pll (.clk_25m(clk_25m), .phase_step(cal_step), .sys_clk(sys_clk), .sd_clk_pll(sd_clk_pll), .locked(pll_locked));
     arc1_eth_pll u_eth_pll (.clk_25m(clk_25m), .eth_txclk(eth_txclk), .locked(eth_locked));
     reg [3:0] rst_sr = 4'hF;
     always @(posedge sys_clk or negedge pll_locked)
@@ -52,34 +54,44 @@ module r10_raster_mem_top (
         .cnt_tx(c_tx), .cnt_tx_underrun(c_under), .counters_sys(counters));
 
     // ---------------- SDRAM ----------------
-    wire        sd_init, b_busy, b_pass, b_fail, cmd_valid, cmd_ready, cmd_write, cmd_err, wr_ready, rd_valid;
-    wire [15:0] b_errs, wr_data, rd_data;
-    wire [23:0] cmd_addr;
-    wire [9:0]  cmd_len;
+    wire        sd_init, b_busy, b_pass, b_fail, cmd_ready, cmd_err, wr_ready, rd_valid;
+    wire        b_valid, b_write, k_valid, k_write, cal_reinit, cal_extra, cal_busy, cal_done, cal_fail;
+    wire [15:0] b_errs, b_wdata, k_wdata, rd_data;
+    wire [23:0] b_addr, k_addr;
+    wire [9:0]  b_len, k_len;
+    wire [6:0]  cal_w, cal_c;
+    wire        cal_owns = !cal_done;
     wire [31:0] cnt_refresh;
+    sdram_cal #(.PHASES(56)) u_cal (
+        .clk(sys_clk), .rst(rst), .init_done(sd_init), .reinit(cal_reinit), .rd_extra(cal_extra), .phase_step(cal_step),
+        .busy(cal_busy), .done(cal_done), .fail(cal_fail), .win_width(cal_w), .win_center(cal_c),
+        .cmd_valid(k_valid), .cmd_ready(cmd_ready), .cmd_write(k_write), .cmd_addr(k_addr), .cmd_len(k_len),
+        .wr_ready(wr_ready), .wr_data(k_wdata), .rd_valid(rd_valid), .rd_data(rd_data));
     sdram_ctrl #(.CLK_MHZ(80), .CL(3)) u_sd (
-        .clk(sys_clk), .rst(rst), .init_done(sd_init), .cmd_valid(cmd_valid), .cmd_ready(cmd_ready),
-        .cmd_write(cmd_write), .cmd_addr(cmd_addr), .cmd_len(cmd_len), .cmd_err(cmd_err),
-        .wr_valid(1'b1), .wr_ready(wr_ready), .wr_data(wr_data), .rd_valid(rd_valid), .rd_data(rd_data),
+        .clk(sys_clk), .rst(rst), .init_done(sd_init), .reinit(cal_owns & cal_reinit), .rd_extra(cal_extra),
+        .cmd_valid(cal_owns ? k_valid : b_valid), .cmd_ready(cmd_ready),
+        .cmd_write(cal_owns ? k_write : b_write), .cmd_addr(cal_owns ? k_addr : b_addr),
+        .cmd_len(cal_owns ? k_len : b_len), .cmd_err(cmd_err),
+        .wr_valid(1'b1), .wr_ready(wr_ready), .wr_data(cal_owns ? k_wdata : b_wdata), .rd_valid(rd_valid), .rd_data(rd_data),
         .cnt_refresh(cnt_refresh),
         .sd_cke(sd_cke), .sd_cs_n(sd_cs_n), .sd_ras_n(sd_ras_n), .sd_cas_n(sd_cas_n), .sd_we_n(sd_we_n),
         .sd_ba(sd_ba), .sd_a(sd_a), .sd_dqm(sd_dqm), .sd_dq(sd_dq));
     sdram_bist #(.BURSTS(16)) u_bist (
-        .clk(sys_clk), .rst(rst), .init_done(sd_init), .start(1'b0), .busy(b_busy), .pass(b_pass), .fail(b_fail),
-        .errs(b_errs), .cmd_valid(cmd_valid), .cmd_ready(cmd_ready), .cmd_write(cmd_write), .cmd_addr(cmd_addr),
-        .cmd_len(cmd_len), .wr_ready(wr_ready), .wr_data(wr_data), .rd_valid(rd_valid), .rd_data(rd_data));
-    ODDRX1F u_sdclk (.D0(1'b0), .D1(1'b1), .SCLK(sys_clk), .RST(1'b0), .Q(sd_clk));
+        .clk(sys_clk), .rst(rst), .init_done(sd_init & cal_done), .start(1'b0), .busy(b_busy), .pass(b_pass), .fail(b_fail),
+        .errs(b_errs), .cmd_valid(b_valid), .cmd_ready(cmd_ready & !cal_owns), .cmd_write(b_write), .cmd_addr(b_addr),
+        .cmd_len(b_len), .wr_ready(wr_ready & !cal_owns), .wr_data(b_wdata), .rd_valid(rd_valid & !cal_owns), .rd_data(rd_data));
+    ODDRX1F u_sdclk (.D0(1'b1), .D1(1'b0), .SCLK(sd_clk_pll), .RST(1'b0), .Q(sd_clk));   // forwarded, phase from the PLL
 
     r10_raster_engine u_eng (
         .clk(sys_clk), .rst(rst), .job_valid(job_valid), .job_len(job_len), .idle(eng_idle),
         .req_raddr(req_raddr), .req_rdata(req_rdata),
         .resp_we(resp_we), .resp_waddr(resp_waddr), .resp_wdata(resp_wdata),
         .resp_post(resp_post), .resp_len(resp_len), .eth_counters(counters),
-        .ext_caps({11'd0, b_fail, b_pass, sd_init, 1'b1, 1'b0}), .perf_jobs(perf_jobs));
+        .ext_caps({3'd0, cal_w[5:0], cal_fail, cal_done, b_fail, b_pass, sd_init, 1'b1, 1'b0}), .perf_jobs(perf_jobs));
     reg [25:0] hb = 26'd0;
     always @(posedge sys_clk) hb <= hb + 26'd1;
     assign led = (hb[25] & eth_locked) | b_fail;
-    wire unused_ok = &{1'b0, unused_mclk, u_we, u_post, perf_jobs, c_ok, c_fcs, c_drop, c_other, c_tx, c_under,
+    wire unused_ok = &{1'b0, cal_busy, cal_c, cal_w[6], u_we, u_post, perf_jobs, c_ok, c_fcs, c_drop, c_other, c_tx, c_under,
                        b_busy, b_errs, cmd_err, cnt_refresh};
 endmodule
 `default_nettype wire

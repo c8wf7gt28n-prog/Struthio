@@ -1,0 +1,13 @@
+mkdir -p build
+corner 0:0:0: latency +0, window 25 of 56 steps (5.58 ns), centre step 47, done at 421.9 us SDRAM_TB_PASS
+  same corner without calibration (phase 0): SDRAM_TB_PASS
+corner 4.5:4.5:1.0: latency +1, window 32 of 56 steps (7.14 ns), centre step 8, done at 417.5 us SDRAM_TB_PASS
+  same corner without calibration (phase 0): SDRAM_TB_FAIL errors=3
+corner 2.0:2.0:0.5: latency +1, window 19 of 56 steps (4.24 ns), centre step 15, done at 418.3 us SDRAM_TB_PASS
+  same corner without calibration (phase 0): SDRAM_TB_FAIL errors=3
+corner 6.0:6.0:1.5: latency +1, window 41 of 56 steps (9.15 ns), centre step 4, done at 417.0 us SDRAM_TB_PASS
+  same corner without calibration (phase 0): SDRAM_TB_FAIL errors=3
+corner 3.0:5.0:2.5: latency +1, window 41 of 56 steps (9.15 ns), centre step 13, done at 418.0 us SDRAM_TB_PASS
+  same corner without calibration (phase 0): SDRAM_TB_FAIL errors=3
+corner 5.0:3.0:0.5: latency +1, window 23 of 56 steps (5.13 ns), centre step 4, done at 417.0 us SDRAM_TB_PASS
+  same corner without calibration (phase 0): SDRAM_TB_FAIL errors=3

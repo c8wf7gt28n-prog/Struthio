@@ -11,6 +11,10 @@
 module tb_sdram;
     // mutation hooks (Makefile target sdram_mutants): each non-default value must make the TB fail
     parameter integer P_REFI = 624, P_INIT_REF = 8, P_RD_LAT = 6, P_T_INIT = 16000;
+    // board / FPGA I/O delays seen by the SDRAM model (ns); 0 = ideal
+    parameter real P_DCLK = 0.0, P_DCMD = 0.0, P_DRET = 0.0;
+    // P_CAL = 1: sdram_cal sweeps the SDRAM clock phase (PHASES steps per period) and the capture latency first
+    parameter integer P_CAL = 0, P_PHASES = 56, P_PH = -1;   // P_PH >= 0 (with P_CAL = 0): fixed phase step
     reg clk = 0;
     always #6.25 clk = ~clk;                       // 80 MHz
     reg rst = 1;
@@ -26,13 +30,30 @@ module tb_sdram;
     wire [1:0] sd_ba, sd_dqm;
     wire [12:0] sd_a;
     wire [15:0] sd_dq;
+    // calibrator (owns the controller until done) and the phase-steppable SDRAM clock
+    wire cal_reinit, cal_extra, cal_step, cal_busy, cal_done, cal_fail, k_valid, k_write;
+    wire [6:0] cal_w, cal_c;
+    wire [23:0] k_addr;
+    wire [9:0] k_len;
+    wire [15:0] k_wdata;
+    wire cal_owns = (P_CAL != 0) && !cal_done;
+    sdram_cal #(.PHASES(P_PHASES)) u_cal (.clk(clk), .rst(rst | (P_CAL == 0)), .init_done(init_done), .reinit(cal_reinit),
+        .rd_extra(cal_extra), .phase_step(cal_step), .busy(cal_busy), .done(cal_done), .fail(cal_fail),
+        .win_width(cal_w), .win_center(cal_c), .cmd_valid(k_valid), .cmd_ready(cmd_ready), .cmd_write(k_write),
+        .cmd_addr(k_addr), .cmd_len(k_len), .wr_ready(wr_ready), .wr_data(k_wdata), .rd_valid(rd_valid), .rd_data(rd_data));
+    integer ph = (P_PH >= 0) ? P_PH : 0;
+    always @(posedge clk) if (cal_step) ph <= (ph + 1) % P_PHASES;
+    reg sd_clk_ph = 1'b0;
+    always @(clk) sd_clk_ph <= #(ph * 12.5 / P_PHASES) ~clk;       // PLL output: ~clk shifted by ph steps
     sdram_ctrl #(.CLK_MHZ(80), .CL(3), .T_REFI(P_REFI), .INIT_REF(P_INIT_REF), .RD_LAT(P_RD_LAT), .T_INIT(P_T_INIT)) dut (
-        .clk(clk), .rst(rst), .init_done(init_done), .cmd_valid(cmd_valid), .cmd_ready(cmd_ready), .cmd_write(cmd_write),
-        .cmd_addr(cmd_addr), .cmd_len(cmd_len), .cmd_err(cmd_err), .wr_valid(wr_valid), .wr_ready(wr_ready),
-        .wr_data(wr_data), .rd_valid(rd_valid), .rd_data(rd_data), .cnt_refresh(cnt_refresh),
+        .clk(clk), .rst(rst), .init_done(init_done), .reinit(cal_owns & cal_reinit), .rd_extra((P_CAL != 0) & cal_extra),
+        .cmd_valid(cal_owns ? k_valid : cmd_valid), .cmd_ready(cmd_ready),
+        .cmd_write(cal_owns ? k_write : cmd_write), .cmd_addr(cal_owns ? k_addr : cmd_addr),
+        .cmd_len(cal_owns ? k_len : cmd_len), .cmd_err(cmd_err), .wr_valid(cal_owns ? 1'b1 : wr_valid), .wr_ready(wr_ready),
+        .wr_data(cal_owns ? k_wdata : wr_data), .rd_valid(rd_valid), .rd_data(rd_data), .cnt_refresh(cnt_refresh),
         .sd_cke(sd_cke), .sd_cs_n(sd_cs_n), .sd_ras_n(sd_ras_n), .sd_cas_n(sd_cas_n), .sd_we_n(sd_we_n),
         .sd_ba(sd_ba), .sd_a(sd_a), .sd_dqm(sd_dqm), .sd_dq(sd_dq));
-    sdram_model u_m (.clk(~clk), .cke(sd_cke), .cs_n(sd_cs_n), .ras_n(sd_ras_n), .cas_n(sd_cas_n), .we_n(sd_we_n),
+    sdram_model #(.D_CLK(P_DCLK), .D_CMD(P_DCMD), .D_RET(P_DRET)) u_m (.clk((P_CAL != 0 || P_PH >= 0) ? sd_clk_ph : ~clk), .cke(sd_cke), .cs_n(sd_cs_n), .ras_n(sd_ras_n), .cas_n(sd_cas_n), .we_n(sd_we_n),
         .ba(sd_ba), .a(sd_a), .dqm(sd_dqm), .dq(sd_dq));
 
     integer errors = 0;
@@ -47,7 +68,7 @@ module tb_sdram;
     // one burst; writes take data from pat(addr, salt); reads compare with ref_mem
     integer rd_got, rd_bad;
     reg [23:0] rd_base;
-    always @(posedge clk) if (rd_valid) begin
+    always @(posedge clk) if (rd_valid && !cal_owns) begin                 // the calibrator's own reads are not checked here
         if (^ref_mem[rd_base + rd_got] === 1'bx) begin
             if (rd_data !== 16'hDEAD) rd_bad = rd_bad + 1;
         end else if (rd_data !== ref_mem[rd_base + rd_got]) begin
@@ -83,7 +104,7 @@ module tb_sdram;
         end
     endtask
 
-    integer t, k, n, wr, nrej, act0, cyc0, rb;
+    integer t, k, n, wr, nrej, act0, cyc0, rb, v0 = 0, tv0 = 0;
     reg [23:0] a;
     reg [31:0] seed = 32'h1234567;
     realtime t0;
@@ -97,6 +118,13 @@ module tb_sdram;
         join
         @(posedge clk);
         $display("INFO init done at %0.1f us, %0d init refreshes", $realtime / 1000.0, cnt_refresh);
+        if (P_CAL != 0) begin
+            wait (cal_done || cal_fail); @(posedge clk);
+            if (cal_fail) begin fail("calibration found no passing phase"); $display("SDRAM_TB_FAIL"); $finish; end
+            $display("INFO calibration: latency +%0d, window %0d of %0d steps (%0.2f ns), centre step %0d, done at %0.1f us",
+                     cal_extra, cal_w, P_PHASES, cal_w * 12.5 / P_PHASES, cal_c, $realtime / 1000.0);
+            v0 = u_m.violations; tv0 = u_m.tviol;
+        end
         // ---- T1 tile traffic + throughput ----
         t0 = $realtime;
         for (t = 0; t < 32; t = t + 1) for (k = 0; k < 4; k = k + 1) burst(1, {t[1:0], 13'd100 + t[12:0], 9'd0} + k * 256, 256, 16'd1);
@@ -149,8 +177,10 @@ module tb_sdram;
         // ---- final: data still intact after idle (tile 0 read back) ----
         for (k = 0; k < 4; k = k + 1) burst(0, {2'd0, 13'd100, 9'd0} + k * 256, 256, 16'd0);
         if (rd_bad) fail("read-back after idle");
-        if (u_m.violations != 0) fail("SDRAM model protocol violations");
-        if (u_m.n_ref != cnt_refresh) fail("controller and model refresh counts differ");
+        if (u_m.violations != v0) fail("SDRAM model protocol violations (after calibration)");
+        if (u_m.tviol != tv0) fail("SDRAM setup/hold violations (after calibration)");
+        if (P_CAL != 0) $display("INFO during calibration (expected, probing bad phases): %0d protocol and %0d setup/hold violations", v0, tv0);
+        if (P_CAL == 0 && u_m.n_ref != cnt_refresh) fail("controller and model refresh counts differ");
         $display("INFO model: act=%0d rd=%0d wr=%0d ref=%0d violations=%0d max_ref_gap=%0.2f us",
                  u_m.n_act, u_m.n_rd, u_m.n_wr, u_m.n_ref, u_m.violations, u_m.max_gap / 1000.0);
         $display("TEST sdram_refresh done errors=%0d", errors);

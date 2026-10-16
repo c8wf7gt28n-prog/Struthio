@@ -28,12 +28,27 @@ Setup condition: 6.25 + t_ck_out + t_ck_pcb + 5.4 + t_dq_pcb + t_su ≤ 12.5 →
 An ECP5 LVCMOS33 output alone (t_ck_out) takes several ns, so this is not achievable: the read data window is
 roughly [6.25 + t_ck_out + t_pcb + 5.4, 18.75 + t_ck_out + t_pcb + 2.5], about 9.6 ns wide but late.
 
-**Required change (next RTL step):** capture DQ with a second PLL output at the same 80 MHz, phase-shifted into the
-middle of that window (EHXPLLL dynamic phase adjust), and choose the phase at boot with the existing self test
-(sweep, take the centre of the passing range — the same method as the RGMII delay calibration). The 45F has two PLLs
-free. Until then the read path is **CONDITIONAL**; the simulation passes only because the model has no I/O delays.
-Alternative without RTL work: run the SDRAM at 50–60 MHz (the memory spec's bring-up suggestion) — at 60 MHz the
-setup budget becomes 16.7/2 − 5.4 = 2.9 ns for t_ck_out + flights + t_su, still tight; at 50 MHz 4.6 ns.
+**Implemented: phase calibration.** `sd_clk` now comes from a second output of the system PLL with dynamic
+phase adjust (`rtl/arc1_sd_pll.v`, 56 steps of ≈ 223 ps per 12.5 ns — step size UNVERIFIED against the Lattice
+sysCLOCK note), forwarded through an ODDR. At power-up `rtl/sdram_cal.sv` walks the phase once round the full period
+for each of two capture latencies; at every step it re-initialises the SDRAM (so a mis-sampled MRS cannot persist),
+writes 16 words and reads them back; it then moves to the centre of the longest passing run and the normal self test
+runs. Command and read windows move together with the phase, so a pass covers both. The window width is reported in
+STATUS caps [12:7].
+
+Evidence (RTL_SIMULATED, `make sdram_corners`): the SDRAM model now applies clock / command / return delays and
+checks tIS 1.5 / tIH 0.8 ns (a breached command is dropped) and drives garbage between tOH and tAC:
+| Delays clk : cmd : return (ns) | Calibrated result | Same corner, fixed phase, no calibration |
+|---|---|---|
+| 0 : 0 : 0 | window 25 steps (5.6 ns), latency +0 — PASS | PASS |
+| 4.5 : 4.5 : 1.0 | 32 steps (7.1 ns), +1 — PASS | FAIL |
+| 2.0 : 2.0 : 0.5 | 19 steps (4.2 ns), +1 — PASS | FAIL |
+| 6.0 : 6.0 : 1.5 | 41 steps (9.2 ns), +1 — PASS | FAIL |
+| 3.0 : 5.0 : 2.5 | 41 steps (9.2 ns), +1 — PASS | FAIL |
+| 5.0 : 3.0 : 0.5 | 23 steps (5.1 ns), +1 — PASS | FAIL |
+The delay values are PLANNING brackets, not ECP5 datasheet figures; the smallest window (4.2 ns ≈ ±2.1 ns around
+the chosen phase) is the margin left for temperature/voltage drift after calibration. Still CONDITIONAL on silicon:
+PLL phase-step semantics, real I/O delays, and drift over temperature (re-calibration hook: `reinit` + sweep).
 
 ECP5 I/O timing (t_ck_out, t_su for LVCMOS33 SDR registers) must come from the ECP5 datasheet DS-02012 external
 switching tables and the routed design's timing report; not taken here.

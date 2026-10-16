@@ -282,7 +282,10 @@ module tb_r10_45f;
                       {erb[63], erb[62], erb[61], erb[60]}, {erb[67], erb[66], erb[65], erb[64]}, {erb[71], erb[70], erb[69], erb[68]});
         $display("TEST r10g_errors_status done errors=%0d", errors);
 `ifdef MEMTOP
-        if ({erb[47], erb[46]} !== 16'h000F) fail("STATUS caps != 000F (SDRAM present, init done, self test passed)");
+        if (({erb[47], erb[46]} & 16'h007F) !== 16'h002F || {erb[47], erb[46]} >> 7 == 0)
+            fail("STATUS caps: SDRAM present + init + self test pass + calibration done with a window expected");
+        $display("INFO SDRAM calibration: window %0d phase steps, centre %0d, capture latency +%0d",
+                 dut.cal_w, dut.cal_c, dut.cal_extra);
         if (u_sdm.violations != 0) fail("SDRAM model protocol violations");
         $display("INFO SDRAM: self test %0s, errors %0d, refreshes %0d, model act=%0d rd=%0d wr=%0d ref=%0d violations=%0d",
                  dut.b_pass ? "PASS" : "FAIL", dut.b_errs, dut.cnt_refresh, u_sdm.n_act, u_sdm.n_rd, u_sdm.n_wr, u_sdm.n_ref,

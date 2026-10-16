@@ -39,6 +39,8 @@ module sdram_ctrl #(
     input  wire        clk,
     input  wire        rst,
     output reg         init_done,
+    input  wire        reinit,                // pulse while idle: PRE ALL, refreshes, MRS again (no 200 us wait)
+    input  wire        rd_extra,              // capture one clock later (chosen by sdram_cal)
     // burst port
     input  wire        cmd_valid,
     output wire        cmd_ready,
@@ -90,7 +92,8 @@ module sdram_ctrl #(
     always @(posedge clk) begin
         dq_in1 <= sd_dq;
         rd_pipe <= {rd_pipe[RD_LAT-2:0], (st == S_RW) && !b_write};
-        rd_valid <= rd_pipe[RD_LAT-2];
+        // rd_extra moves the capture point one clock later (the pad register is sampled one edge later)
+        rd_valid <= rd_extra ? rd_pipe[RD_LAT-1] : rd_pipe[RD_LAT-2];
         rd_data <= dq_in1;
         if (rst) begin rd_pipe <= {RD_LAT{1'b0}}; rd_valid <= 1'b0; end
     end
@@ -136,7 +139,9 @@ module sdram_ctrl #(
                 end else wait_cnt <= wait_cnt - 16'd1;
         S_IDLE: begin
             sd_dqm <= 2'b00;
-            if (ref_due) begin
+            if (reinit) begin                                  // re-run PRE ALL / refreshes / MRS (calibration)
+                init_done <= 1'b0; iref <= 4'd0; wait_cnt <= T_INIT[15:0]; st <= S_INIT;
+            end else if (ref_due) begin
                 if (ras_cnt >= T_RC[7:0]) begin                // all banks precharged (closed-page policy)
                     issue(C_REF); ref_due <= 1'b0; cnt_refresh <= cnt_refresh + 32'd1;
                     wait_cnt <= T_RFC[15:0] - 16'd1; st <= S_WAIT; st_after <= S_IDLE;

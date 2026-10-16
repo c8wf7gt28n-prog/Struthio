@@ -1,12 +1,12 @@
-INFO init done at 200.7 us, 8 init refreshes
-INFO tile write: 32 tiles x 2048 B in 428.0 us = 153.1 MB/s (refresh included)
-INFO tile read:  32 tiles x 2048 B in 429.4 us = 152.6 MB/s (refresh included)
+INFO init done at 200.8 us, 8 init refreshes
+INFO tile write: 32 tiles x 2048 B in 428.7 us = 152.9 MB/s (refresh included)
+INFO tile read:  32 tiles x 2048 B in 430.0 us = 152.4 MB/s (refresh included)
 TEST sdram_tiles done errors=0
 INFO stress: 400 bursts, reads checked against the reference, refreshes so far 188
 TEST sdram_stress done errors=0
 TEST sdram_reject done errors=0
-INFO idle 300 us: 38 refreshes (expected ~38), model max gap 10.05 us
-INFO model: act=660 rd=46409 wr=59779 ref=228 violations=0 max_ref_gap=10.05 us
+INFO idle 300 us: 39 refreshes (expected ~38), model max gap 10.70 us
+INFO model: act=660 rd=46409 wr=59779 ref=228 violations=0 max_ref_gap=10.70 us
 TEST sdram_refresh done errors=0
 SDRAM_TB_PASS
-tb/tb_sdram.sv:158: $finish called at 1919631250 (1ps)
+tb/tb_sdram.sv:188: $finish called at 1923693750 (1ps)
