@@ -547,6 +547,13 @@ static long read_memh(const char *path, uint16_t **w)
     return n;
 }
 
+/* ---- library API (GPU_REF_LIB): interpret a stream, get the output words ---- */
+void gpu_ref_init(void) { if (!sdram) sdram = calloc(SDRAM_WORDS, 2); reset_state(); }
+long gpu_ref_exec(const uint16_t *w, long n, const uint16_t **out) { out_n = 0; exec_stream(w, n); *out = out_w; return out_n; }
+long long gpu_ref_samples(void) { return st_samples; }
+long long gpu_ref_texels(void) { return st_texels; }
+
+#ifndef GPU_REF_LIB
 int main(int argc, char **argv)
 {
     sdram = calloc(SDRAM_WORDS, 2);
@@ -572,3 +579,4 @@ int main(int argc, char **argv)
     fprintf(stderr, "usage: gpu_ref gen <dir> | gpu_ref run <jobs.memh> <out.memh>\n");
     return 2;
 }
+#endif
