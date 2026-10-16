@@ -82,13 +82,13 @@ revision confirmation and loopback/calibration before claiming it works.
 | Gate | Required evidence | Current result |
 |---|---|---|
 | Exact packages | Memory packages selected; remaining complete board pin maps | Partial |
-| R10 schematic | All supplies, bypass capacitors, reset/boot/JTAG/control and connector nets; ERC | Not created |
+| R10 schematic | All supplies, bypass capacitors, reset/boot/JTAG/control and connector nets; ERC | Generated (cad/), ERC 0/0, crosscheck A-I PASS, every-pin tables generated; human review pending |
 | Power | Regulator sizing, startup/shutdown/brownout interlocks and budget | Not verified |
 | D213 boot | Repeated flashless cold boots and recovery, including failed downloads | Not run |
-| Video | Selected HDMI bridge, documented initialization and standalone display | Bridge selected (TFP410, strap mode); schematic + display NOT_RUN |
+| Video | Selected HDMI bridge, documented initialization and standalone display | ADV7513 selected with embedded audio (D8, supersedes the TFP410); init sequence documented (AN-1270 + Linux driver); display NOT_RUN |
 | FPGA timing | Exact TQFP144 implementation; SDRAM/PSRAM/RGMII IO timing | Not complete |
 | Board links | USB/RGMII/memory stress tests, temperature/voltage margins | Not run |
-| PCB release | Stackup, return paths, constraints, DRC, reviewed BOM and procurement | Not complete |
+| PCB release | Stackup, return paths, constraints, DRC, reviewed BOM and procurement | First placement only (Ø 119.6 mm, DRC 0 errors, unrouted); routing/planes/stack-up/DFM not done |
 
 Host tests and proxy-package P&R do not close these gates. `check_interconnect.py`
 checks the repaired SDRAM map; `--require-release` intentionally returns nonzero
