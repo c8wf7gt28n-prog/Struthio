@@ -1,0 +1,270 @@
+{
+ "synthesis_cells": {
+  "CCU2C": 730,
+  "DP16KD": 8,
+  "EHXPLLL": 2,
+  "LUT4": 3125,
+  "MULT18X18D": 8,
+  "TRELLIS_FF": 4376
+ },
+ "runs": [
+  {
+   "log": "nextpnr_s6.log",
+   "fmax": {
+    "sys_clk": [
+     97.12,
+     "PASS"
+    ],
+    "eth_txclk": [
+     149.88,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     171.03,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "nextpnr_s7.log",
+   "fmax": {
+    "sys_clk": [
+     110.64,
+     "PASS"
+    ],
+    "eth_txclk": [
+     160.03,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     186.99,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s6_1.log",
+   "fmax": {
+    "sys_clk": [
+     97.12,
+     "PASS"
+    ],
+    "eth_txclk": [
+     149.88,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     171.03,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s6_2.log",
+   "fmax": {
+    "sys_clk": [
+     94.06,
+     "PASS"
+    ],
+    "eth_txclk": [
+     135.15,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     171.26,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s6_3.log",
+   "fmax": {
+    "sys_clk": [
+     94.95,
+     "PASS"
+    ],
+    "eth_txclk": [
+     139.59,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     147.54,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s6_4.log",
+   "fmax": {
+    "sys_clk": [
+     96.24,
+     "PASS"
+    ],
+    "eth_txclk": [
+     137.38,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     170.42,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s6_5.log",
+   "fmax": {
+    "sys_clk": [
+     92.64,
+     "PASS"
+    ],
+    "eth_txclk": [
+     129.92,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     162.76,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s7_1.log",
+   "fmax": {
+    "sys_clk": [
+     110.64,
+     "PASS"
+    ],
+    "eth_txclk": [
+     160.03,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     186.99,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s7_2.log",
+   "fmax": {
+    "sys_clk": [
+     108.11,
+     "PASS"
+    ],
+    "eth_txclk": [
+     169.92,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     199.16,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s7_3.log",
+   "fmax": {
+    "sys_clk": [
+     105.27,
+     "PASS"
+    ],
+    "eth_txclk": [
+     151.4,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     175.9,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s7_4.log",
+   "fmax": {
+    "sys_clk": [
+     110.8,
+     "PASS"
+    ],
+    "eth_txclk": [
+     162.76,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     183.62,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  },
+  {
+   "log": "seed_s7_5.log",
+   "fmax": {
+    "sys_clk": [
+     104.6,
+     "PASS"
+    ],
+    "eth_txclk": [
+     166.81,
+     "PASS"
+    ],
+    "rgmii_rxc$TRELLIS_IO_IN": [
+     155.76,
+     "PASS"
+    ]
+   },
+   "comb": 4900,
+   "ok": true
+  }
+ ],
+ "limits_ds_12f": {
+  "LUT4": 12000,
+  "DP16KD": 32,
+  "MULT18X18D": 28,
+  "EHXPLLL": 2
+ },
+ "utilisation": {
+  "LUT4 (TRELLIS_COMB after P&R)": {
+   "used": 4900,
+   "limit": 12000,
+   "pct": 40.8
+  },
+  "DP16KD": {
+   "used": 8,
+   "limit": 32,
+   "pct": 25.0
+  },
+  "MULT18X18D": {
+   "used": 8,
+   "limit": 28,
+   "pct": 28.6
+  },
+  "EHXPLLL": {
+   "used": 2,
+   "limit": 2,
+   "pct": 100.0
+  }
+ },
+ "gate_70pct_lut_ebr": true,
+ "all_runs_timing_pass": true
+}
