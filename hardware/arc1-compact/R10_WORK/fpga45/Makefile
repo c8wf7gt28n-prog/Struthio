@@ -45,3 +45,36 @@ seeds45: $(OUT)/r10_45f.json
 	! grep -qE "FAIL" $(OUT)/seeds_45f.log
 clean:
 	rm -rf $(OUT)
+
+# ---- 45F SDR SDRAM controller (ARC1_MEMORY_R10 s2.3) ----
+.PHONY: sdram sdram_mutants sim45_mem seeds45_mem
+MEMRTL := $(subst rtl/r10_raster_top.sv,rtl/r10_raster_mem_top.sv,$(TOPRTL)) rtl/sdram_ctrl.sv rtl/sdram_bist.sv
+sim45_mem: ref
+	iverilog -g2012 -DMEMTOP -s tb_r10_45f -Ptb_r10_45f.VEC='"$(OUT)/vec"' -o $(OUT)/tb_45f_mem.vvp tb/tb_r10_45f.sv $(MEMRTL) \
+	  $(F12)/sim/arc1_ecp5_pll_sim.v $(F12)/sim/arc1_eth_pll_sim.v $(F12)/sim/ecp5_ddr_sim.v sim/sdram_model.sv
+	vvp -n $(OUT)/tb_45f_mem.vvp > $(OUT)/sim_45f_mem.log 2>&1; rc=$$?; grep -E '^(INFO|TEST|TB_ERROR|MODEL_VIOLATION|R10_45F)' $(OUT)/sim_45f_mem.log; \
+	  test $$rc -eq 0 && grep -q '^R10_45F_TB_PASS$$' $(OUT)/sim_45f_mem.log
+$(OUT)/r10_45f_mem.json: $(MEMRTL)
+	mkdir -p $(OUT)
+	yosys -q -l $(OUT)/yosys_45f_mem.log -p 'read_verilog -sv $(MEMRTL) $(F12)/rtl/arc1_ecp5_pll.v $(F12)/rtl/arc1_eth_pll.v; synth_ecp5 -abc9 -top r10_raster_mem_top -json $@; stat' > /dev/null
+$(OUT)/r10_45f_mem.lpf: constraints/r10_45f.lpf ../hardware/lpf/r10_45f_sdram.lpf
+	cat $^ > $@
+seeds45_mem: $(OUT)/r10_45f_mem.json $(OUT)/r10_45f_mem.lpf
+	for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json $< --lpf $(OUT)/r10_45f_mem.lpf \
+	  --seed $$s --log $(OUT)/pnr_45f_mem_$$s.log > /dev/null 2>&1 || echo "seed $$s: PNR_FAIL"; \
+	  grep -E "Max frequency for clock" $(OUT)/pnr_45f_mem_$$s.log | tail -3 | sed "s/^/seed $$s: /"; done | tee $(OUT)/seeds_45f_mem.log
+	grep -E "TRELLIS_COMB|DP16KD|MULT18X18D|EHXPLLL" $(OUT)/pnr_45f_mem_1.log | head -4 | tee -a $(OUT)/seeds_45f_mem.log
+	! grep -qE "FAIL" $(OUT)/seeds_45f_mem.log
+sdram:
+	mkdir -p $(OUT)
+	iverilog -g2012 -s tb_sdram -o $(OUT)/tb_sdram.vvp tb/tb_sdram.sv rtl/sdram_ctrl.sv sim/sdram_model.sv
+	vvp -n $(OUT)/tb_sdram.vvp > $(OUT)/sim_sdram.log 2>&1; rc=$$?; grep -E '^(INFO|TEST|TB_ERROR|MODEL_VIOLATION|SDRAM)' $(OUT)/sim_sdram.log | head -40; \
+	  test $$rc -eq 0 && grep -q '^SDRAM_TB_PASS$$' $(OUT)/sim_sdram.log
+SDRAM_MUTANTS = P_REFI=4000 P_INIT_REF=2 P_RD_LAT=4 P_RD_LAT=6 P_T_INIT=1000
+sdram_mutants:
+	mkdir -p $(OUT)
+	@for m in $(SDRAM_MUTANTS); do \
+	  iverilog -g2012 -s tb_sdram -Ptb_sdram.$$m -o $(OUT)/mut_sdram.vvp tb/tb_sdram.sv rtl/sdram_ctrl.sv sim/sdram_model.sv || exit 1; \
+	  timeout 300 vvp -n $(OUT)/mut_sdram.vvp > $(OUT)/mut_sdram.log 2>&1; \
+	  if grep -q '^SDRAM_TB_PASS$$' $(OUT)/mut_sdram.log; then echo "MUTANT_SURVIVED $$m"; exit 1; \
+	  else echo "MUTANT_KILLED $$m ($$(grep -cE 'TB_ERROR|MODEL_VIOLATION' $(OUT)/mut_sdram.log) errors/violations)"; fi; done

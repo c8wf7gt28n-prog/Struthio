@@ -14,8 +14,22 @@ module tb_r10_45f;
     wire       e_txc, e_txctl, led;
     wire [3:0] e_txd;
     always #4 h_txc = ~h_txc;
+`ifdef MEMTOP
+    // memory variant: same tests + SDRAM self test reported in STATUS caps, SDRAM model protocol violations = 0
+    wire sd_clk, sd_cke, sd_cs_n, sd_ras_n, sd_cas_n, sd_we_n;
+    wire [1:0] sd_ba, sd_dqm;
+    wire [12:0] sd_a;
+    wire [15:0] sd_dq;
+    r10_raster_mem_top dut (.clk_25m(clk_25m), .rgmii_rxc(h_txc), .rgmii_rxd(h_txd), .rgmii_rx_ctl(h_txctl),
+        .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl), .led(led),
+        .sd_clk(sd_clk), .sd_cke(sd_cke), .sd_cs_n(sd_cs_n), .sd_ras_n(sd_ras_n), .sd_cas_n(sd_cas_n), .sd_we_n(sd_we_n),
+        .sd_ba(sd_ba), .sd_a(sd_a), .sd_dqm(sd_dqm), .sd_dq(sd_dq));
+    sdram_model u_sdm (.clk(sd_clk), .cke(sd_cke), .cs_n(sd_cs_n), .ras_n(sd_ras_n), .cas_n(sd_cas_n), .we_n(sd_we_n),
+        .ba(sd_ba), .a(sd_a), .dqm(sd_dqm), .dq(sd_dq));
+`else
     r10_raster_top dut (.clk_25m(clk_25m), .rgmii_rxc(h_txc), .rgmii_rxd(h_txd), .rgmii_rx_ctl(h_txctl),
         .rgmii_txc(e_txc), .rgmii_txd(e_txd), .rgmii_tx_ctl(e_txctl), .led(led));
+`endif
     reg pll_locked = 0;
     initial force dut.u_pll.locked = pll_locked;
     wire sys_clk = dut.sys_clk;
@@ -267,6 +281,14 @@ module tb_r10_45f;
                       {erb[45], erb[44]}, {erb[47], erb[46]}, {erb[49], erb[48]}, {erb[57], erb[56]},
                       {erb[63], erb[62], erb[61], erb[60]}, {erb[67], erb[66], erb[65], erb[64]}, {erb[71], erb[70], erb[69], erb[68]});
         $display("TEST r10g_errors_status done errors=%0d", errors);
+`ifdef MEMTOP
+        if ({erb[47], erb[46]} !== 16'h000F) fail("STATUS caps != 000F (SDRAM present, init done, self test passed)");
+        if (u_sdm.violations != 0) fail("SDRAM model protocol violations");
+        $display("INFO SDRAM: self test %0s, errors %0d, refreshes %0d, model act=%0d rd=%0d wr=%0d ref=%0d violations=%0d",
+                 dut.b_pass ? "PASS" : "FAIL", dut.b_errs, dut.cnt_refresh, u_sdm.n_act, u_sdm.n_rd, u_sdm.n_wr, u_sdm.n_ref,
+                 u_sdm.violations);
+        $display("TEST r10g_sdram done errors=%0d", errors);
+`endif
         if (errors == 0) $display("R10_45F_TB_PASS"); else $display("R10_45F_TB_FAIL errors=%0d", errors);
         $finish;
     end

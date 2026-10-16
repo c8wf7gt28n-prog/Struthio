@@ -45,7 +45,7 @@ WARNING: tb/tb_r10_support_mem.sv:49: $readmemh(build/ajob/ajob_0_req.memh): Not
 WARNING: tb/tb_r10_support_mem.sv:50: $readmemh(build/ajob/ajob_0_resp.memh): Not enough words in the file for the requested range [0:8191].
 INFO status: rev=1 caps=001d rx_ok=16 rx_fcs=1 rx_drop=0 rx_other=1 tx=15 underrun=0 jobs=14 items=195 uptime_ms=0
 TEST r10_negative done errors=0
-INFO PSRAM ready at 517044000 ns
+INFO PSRAM ready at 517.0 us
 INFO BIST pass, errors 0
 INFO 4096-byte write round trip 1727.3 us
 INFO 4096-byte read round trip 625.3 us

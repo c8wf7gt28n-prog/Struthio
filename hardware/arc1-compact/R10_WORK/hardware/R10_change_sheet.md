@@ -1,5 +1,8 @@
 # R10 hardware change sheet (R10 §12.1 item 8) — delta from the archived R8.5-C board
 
+Revised for ARC1_MEMORY_R10 v0.1 (memory architecture): one 64 MiB F133-owned NOR, FPGAs configured by their
+processors, 32 MiB SDRAM on the 45F, 4 MiB PSRAM on the 12F. Rows changed by it say "Supersedes".
+
 Baseline: `R85C_WORK/cad/gen/design.py` (R8.5-C, commit 0defcfe; frozen). Fabrication: **HOLD**. No schematic has been
 drawn for R10; this sheet lists what the schematic pass must change. Labels: DOCUMENTED / DERIVED / SELECTED /
 OPEN / NOT_RUN.
@@ -11,9 +14,10 @@ OPEN / NOT_RUN.
 | — | **D213ECV (QFN128)** + boot SPI NOR (PB0–PB5) + 24 MHz crystal (frequency per D21x DS — OPEN) + UART0 header + USB0 to F133 USB1 + LVDS0/RGB to HDMI bridge | SELECTED part; procurement OPEN (gate A) |
 | — | **HDMI bridge** (LVDS or RGB input) | OPEN — not selected (R10 §3) |
 | U18 LFE5U-45F-6BG381C: bank-0 RGMII to F133 PG0–PG12 | 45F bank-0 RGMII (same balls B11/C10/B9/C9/D10/E10 in, C8/D9/E9/D8/E8/C7 out) now to **D213 GMAC0 PE0–PE15** | SELECTED (D1); 45F side routed in P&R |
-| U18 configured by the F133 over SPI0 (slave SPI, CFG=001) through U21–U24 isolation buffers | 45F needs its **own configuration flash** (master SPI) + JTAG (R10 §4 "each FPGA config: separate power-on bitstream path"); F133 SPI0 isolation buffers no longer needed for the 45F | SELECTED; flash part OPEN |
-| U25 APS6404L 8 MiB QSPI PSRAM on the 45F | kept as the texture-memory candidate; R10 Q5 open | OPEN |
-| — | **LFE5U-12F-6TG144C** (decision D3) + config flash + JTAG + 25 MHz oscillator; RGMII to **F133 PG0–PG12** (the R8.5-C F133 pin plan; 22 Ω series resistors kept on F133 outputs) | SELECTED; pins in `fpga12/timing/r10_12f_tqfp144.lpf` |
+| U18 configured by the F133 over SPI0 (slave SPI, CFG=001) through U21–U24 isolation buffers | **45F configured by the D213** in slave SPI (D213 SPI1 PB8–PB11 + PA4–PA6), image from the F133 NOR via USB (ARC1_MEMORY_R10 §3.1); no 45F config flash. *Supersedes this sheet's first version (own config flash per FPGA).* | PROPOSED; pins in `hardware/R10_flash_pinmux.csv` |
+| U25 APS6404L 8 MiB QSPI PSRAM on the 45F | **replaced by 32 MiB x16 SDR SDRAM** (AS4C16M16SA family) on 45F banks 2/3 (memory spec §2.3) | PROPOSED; controller RTL_SIMULATED + routed |
+| — | **LFE5U-12F-6TG144C** (decision D3) + JTAG + 25 MHz oscillator + **4 MiB QSPI PSRAM** (APS3204L family, bank 3); configured by the **F133 over SPI0 slave SPI** behind the R8.5-C isolation buffers (U21–U24 now serve the 12F); RGMII to **F133 PG0–PG12** (22 Ω series resistors kept) | SELECTED; pins in `fpga12/timing/r10_12f_tqfp144.lpf` + `hardware/R10_flash_pinmux.csv` |
+| U16 W25Q256JV 32 MiB boot NOR (F133 SPI0) | **single 64 MiB NOR** (W25Q512JV, provisional) — the only persistent system store (memory spec §3); partition map `memory/R10_nor_partition.csv` | CONDITIONAL on D213 flashless start |
 | F133 USB1 DP/DM unused ("removed, D-04") | **F133 USB1 host → D213 USB0 device** (graphics command link) | SELECTED (R10 §5.1) |
 | F133 USB0 device (Type-C J1, TUSB320) | unchanged — console USB / FEL recovery | — |
 | U9/U10/U30 FPGA rails (1V1, switched 3V3, 2V5 aux) for one ECP5 | rails for **two** ECP5s (see §2) | OPEN sizing |
@@ -44,9 +48,10 @@ E03 power).
 1. 3V3 good (TPS3808, R8.5-C U4) → F133 reset released (U8).
 2. D213 reset released by its own supervisor at the same time as the F133 — **not** by the F133 — so D213 video
    comes up with both FPGAs blank and with the F133 halted (R10 §3.1).
-3. Each FPGA loads from its own flash at power-up (configuration time to be measured on the bench).
-   The F133 (12F) and D213 (45F) only enable their RGMII pin mux after reading DONE (IO-disable before, mirrors
-   R8.5-C rule `rgmii_link`).
+3. The F133 boots from the NOR, initialises DDR2, selects its A/B image and configures the 12F (application, else
+   golden) over slave SPI (`firmware/f133_bootloader`); then it starts the D213 over USB (flashless start — UNPROVEN,
+   `firmware/d213_flashless_proof/PLAN.md`) and the D213 configures the 45F. Each side enables its RGMII pin mux only
+   after DONE (IO-disable before, R8.5-C rule `rgmii_link`). *Supersedes "each FPGA loads from its own flash".*
 4. F133 enables USB1 VBUS to the D213 after D213 firmware asserts "ready" (GPIO or USB attach) — sequencing of USB0
    recovery mode in `f133/graphics_link/README.md`.
 
@@ -54,7 +59,8 @@ E03 power).
 | Add | Remove |
 |---|---|
 | D213ECV (128 MiB DDR3 in package) | MN820 module (BT820B + 128 MiB DDR3L) |
-| SPI NOR for D213 boot | — |
-| SPI flash for 45F config, SPI flash for 12F config | F133→45F slave-SPI isolation (U21–U24), if no other use |
+| (SPI NOR for D213 boot only if the flashless proof fails — memory spec §7.2) | — |
+| 32 MiB SDR SDRAM (45F), 4 MiB QSPI PSRAM (12F) | APS6404L 8 MiB PSRAM (45F) |
+| W25Q512JV 64 MiB NOR (replaces W25Q256JV); DNP footprint for a D213 boot NOR (fallback) | — |
 | LFE5U-12F-6TG144C + 25 MHz oscillator | — |
 | HDMI bridge (OPEN) + HDMI connector | LVDS panel connector of R09 (if the panel path is dropped — OPEN) |

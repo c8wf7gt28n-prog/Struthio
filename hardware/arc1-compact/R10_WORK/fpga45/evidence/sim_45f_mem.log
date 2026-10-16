@@ -1,0 +1,14 @@
+WARNING: tb/tb_r10_45f.sv:187: $readmemh(build/vec/jobs.memh): Not enough words in the file for the requested range [0:65535].
+WARNING: tb/tb_r10_45f.sv:188: $readmemh(build/vec/expect.memh): Not enough words in the file for the requested range [0:65535].
+TEST r10g_loopback done errors=0
+INFO tile 0: 17 job words, round trip 97.1 us
+INFO 18 tiles over RGMII, 2155 us total round trips (sequential, one tile in flight)
+TEST r10g_tiles_rgmii done errors=0
+INFO 18 tiles as halves, largest frame 1066 bytes incl. FCS, 3123 us total round trips
+TEST r10g_tiles_halves done errors=0
+INFO status: rev=1 caps=000f rx_ok=62 tx=61 tris=117 samples=68080 written=23588
+TEST r10g_errors_status done errors=0
+INFO SDRAM: self test PASS, errors 0, refreshes 676, model act=32 rd=4096 wr=4096 ref=676 violations=0
+TEST r10g_sdram done errors=0
+R10_45F_TB_PASS
+tb/tb_r10_45f.sv:293: $finish called at 5417296000 (1ps)

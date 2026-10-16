@@ -17,6 +17,13 @@ Evidence labels: DOCUMENTED (vendor states it), DERIVED (our calculation from do
 | R10-G | Integrated 2D + low-res 3D scene | NOT_RUN | — |
 | R10-H | Fabrication release | **HOLD** | §10.2 criteria 1 (pin conflict, option A) and 5 (D213 procurement unconfirmed) are currently met |
 
+## Memory architecture (ARC1_MEMORY_R10 v0.1, received after this report's first version)
+Separate report: `qa/R10_memory_go_no_go.md` — overall **HOLD**. Built in this pass: NOR partition map + generated
+bootloader header, owner map, flash/config/memory pin plan (85 rows, checked), 12F 4 MiB PSRAM variant (TB pass,
+10/10 P&R runs, LUT 59 %), 45F 32 MiB SDRAM controller + self test (TB pass, 5/5 mutants, 153 MB/s tile
+throughput, 5/5 P&R seeds), F133 bootloader core (74 host checks, 6/6 mutants). Open: D213 flashless start (the
+condition for a single NOR), all datasheet confirmations, silicon.
+
 ## R10-A findings
 
 1. **D213ECV PBUS and display share pads (DOCUMENTED pads; DERIVED conflict).** The only full 16-bit PBUS group is

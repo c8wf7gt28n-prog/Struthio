@@ -33,6 +33,7 @@ module r10_raster_engine #(parameter [15:0] IF_REV = 16'h0001) (
     output reg         resp_post,
     output reg  [15:0] resp_len,
     input  wire [95:0] eth_counters,
+    input  wire [15:0] ext_caps,          // OR-ed into STATUS caps (memory variant: SDRAM state bits 1..4)
     output reg  [31:0] perf_jobs
 );
     localparam [7:0] S_OK = 0, S_BADLEN = 1, S_BADVER = 2, S_BADOP = 3, S_CRC = 4, S_TRUNC = 5, S_OVF = 7;
@@ -86,7 +87,7 @@ module r10_raster_engine #(parameter [15:0] IF_REV = 16'h0001) (
     reg [7:0]   lo;
     reg         ovf, trunc;
     reg [255:0] ssr;
-    wire [15:0] caps = 16'h0001;                     // b0 flat-triangle tile rasterizer (R10 7.1 steps 2-3)
+    wire [15:0] caps = 16'h0001 | ext_caps;          // b0 flat-triangle tile rasterizer (R10 7.1 steps 2-3)
     wire [255:0] status_words = {c_written, c_samples, c_tris, eth_counters, caps, IF_REV, 8'h47, 8'h30, 8'h31, 8'h52};
 
     // output words of the rasterizer are written straight into the response buffer

@@ -1,0 +1,5 @@
+MUTANT_KILLED P_REFI=4000 (104 errors/violations)
+MUTANT_KILLED P_INIT_REF=2 (2 errors/violations)
+MUTANT_KILLED P_RD_LAT=4 (6 errors/violations)
+MUTANT_KILLED P_RD_LAT=6 (6 errors/violations)
+MUTANT_KILLED P_T_INIT=1000 (14447 errors/violations)

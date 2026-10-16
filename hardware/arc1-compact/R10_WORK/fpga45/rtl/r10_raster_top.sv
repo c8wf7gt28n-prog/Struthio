@@ -42,7 +42,7 @@ module r10_raster_top (
         .clk(sys_clk), .rst(rst), .job_valid(job_valid), .job_len(job_len), .idle(eng_idle),
         .req_raddr(req_raddr), .req_rdata(req_rdata),
         .resp_we(resp_we), .resp_waddr(resp_waddr), .resp_wdata(resp_wdata),
-        .resp_post(resp_post), .resp_len(resp_len), .eth_counters(counters), .perf_jobs(perf_jobs));
+        .resp_post(resp_post), .resp_len(resp_len), .eth_counters(counters), .ext_caps(16'h0000), .perf_jobs(perf_jobs));
     reg [25:0] hb = 26'd0;
     always @(posedge sys_clk) hb <= hb + 26'd1;
     assign led = hb[25] & eth_locked;
