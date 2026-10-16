@@ -115,3 +115,55 @@ Warning: Replacing memory \edy with list of registers. See rtl/r10_raster.sv:166
 Warning: Replacing memory \edx with list of registers. See rtl/r10_raster.sv:166
 Warning: Replacing memory \eay with list of registers. See rtl/r10_raster.sv:166
 Warning: Replacing memory \eax with list of registers. See rtl/r10_raster.sv:166
+for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/r10_45f.json --lpf constraints/r10_45f.lpf \
+  --seed $s --report build/pnr_45f_$s.json --log build/pnr_45f_$s.log > /dev/null 2>&1 || echo "seed $s: PNR_FAIL"; \
+  grep -E "Max frequency for clock" build/pnr_45f_$s.log | tail -3 | sed "s/^/seed $s: /"; done | tee build/seeds_45f.log
+seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 93.67 MHz (PASS at 80.00 MHz)
+seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 154.92 MHz (PASS at 125.00 MHz)
+seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 152.07 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 87.64 MHz (PASS at 80.00 MHz)
+seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 163.53 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 153.99 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 86.31 MHz (PASS at 80.00 MHz)
+seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 152.65 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 158.35 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 91.08 MHz (PASS at 80.00 MHz)
+seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 152.25 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 171.76 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 88.43 MHz (PASS at 80.00 MHz)
+seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 153.35 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 162.18 MHz (PASS at 125.00 MHz)
+grep -E "TRELLIS_COMB|DP16KD|MULT18X18D|EHXPLLL" build/pnr_45f_1.log | head -4 | tee -a build/seeds_45f.log
+Info: 	              DP16KD:    10/  108     9%
+Info: 	          MULT18X18D:    16/   72    22%
+Info: 	             EHXPLLL:     2/    4    50%
+Info: 	        TRELLIS_COMB:  7009/43848    15%
+! grep -qE "FAIL" build/seeds_45f.log
+   exit 0
+== f133/graphics_link: make all
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude src/gfx_link.c tests/test_gfx.c -o build/test_gfx
+/home/user/Struthio/hardware/arc1-compact/R10_WORK/f133/graphics_link/build/test_gfx
+TEST gl_basic done fails=0
+TEST gl_faults done fails=0
+TEST gl_resync done fails=0
+TEST gl_fallback done fails=0
+TEST gl_device done fails=0
+45 checks, 0 failed
+GFX_LINK_TEST_PASS
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer \
+  src/gfx_link.c tests/test_gfx.c -o build/test_gfx_san
+ASAN_OPTIONS=detect_leaks=0 /home/user/Struthio/hardware/arc1-compact/R10_WORK/f133/graphics_link/build/test_gfx_san | tail -1
+GFX_LINK_TEST_PASS
+cc -c -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -ffreestanding -Iinclude src/gfx_link.c -o build/gfx_link.o
+freestanding object compile OK (not a link, not an F133/D213 image)
+MUTANT_KILLED MUTANT_GL_NO_CRC (5 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_SEQ_MATCH (2 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_DEDUP (2 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_BOOTID (1 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_ORDER (2 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_WATCHDOG (3 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_REPROBE (1 failing checks)
+   exit 0
+== .: git diff --exit-code -- architecture/R10_interface_matrix.csv architecture/R10_PINMUX_CONFLICTS.md
+   exit 0
+R10_RUN_ALL_PASS
