@@ -518,15 +518,15 @@ def build():
     for s in ("LCD_DCLK", "LCD_HS", "LCD_VS", "LCD_DE"):
         d.R("22R", s + "_D", s, note="series R at the D213 (HW guide 4.7 item 3)")
     d.C("10pF", "LCD_DCLK", dnp=True, note="DNP RC filter footprint on the pixel clock")
-    d.R("887R", "ADV_REXT", "GND", note="887 ohm 1 % close to pin 14 (ADV7513 HW user guide, quoted; OPEN: read the guide)")
+    d.R("887R", "ADV_REXT", "GND", note="887 ohm 1 % close to pin 14 (HW user guide, quoted only; DS gives no value; OPEN)")
     for n in ("ADV_SPDIF", "ADV_MCLK", "ADV_I2S1", "ADV_I2S2", "ADV_I2S3"):
         d.R("10k", n, "GND", note="unused audio input held low")
-    d.R("10k", "ADV_CEC_CLK", "GND", note="CEC unused: clock input held low (OPEN: confirm with the HW user guide)")
+    d.R("10k", "ADV_CEC_CLK", "GND", note="CEC unused: clock input held low (IBIS INPUT0, VIL 0.7 V; Linux binding: cec clock optional)")
     d.U("OSC_3225", "12MHz", {"1": "3V3", "2": "GND", "3": "ADV_CEC_CLK_X", "4": "3V3"}, dnp=True,
         note="DNP: CEC clock (3-100 MHz, 12 MHz default) if CEC is ever used")
     d.R("0R", "ADV_CEC_CLK_X", "ADV_CEC_CLK", dnp=True)
     d.R("10k", "HDMI_PD", "GND", note="PD low at power-up: device active, I2C main map 0x72/0x39 (DS Table 3; Linux pd-gpios)")
-    d.R("10k", "HDMI_INT", "3V3", note="INT pull-up (OPEN: output type per HW user guide; D213 may poll over I2C instead)")
+    d.R("10k", "HDMI_INT", "3V3", note="INT pull-up: INT is open drain (ADV7513 IBIS OUTPUT0, no power clamp, characterised to 3.6 V)")
     d.R("2.2k", "HDMI_I2C_SCL", "3V3", note="D213 I2C2 -> ADV7513 (5 V tolerant, 400 kHz max)")
     d.R("2.2k", "HDMI_I2C_SDA", "3V3")
     for rail, n in (("1V8_ADV_D", 4), ("1V8_ADV_A", 3), ("1V8_ADV_P", 2)):

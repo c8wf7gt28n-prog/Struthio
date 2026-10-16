@@ -83,10 +83,18 @@ Physical mutual exclusion: with S = H, the rear USB-C data pair is open-circuit 
 | DDC / EDID | ADV7513 DDC master (on-chip MPU reads the EDID) → TPD12S016 A side (internal pull-ups) → connector. HPD: TPD HPD_A → ADV HPD + D213 PA10 | DOCUMENTED |
 | HDMI 5 V | TPD12S016 load switch 55 mA from VBUS_5V | DOCUMENTED (SLLSE96F) |
 | ESD | TMDS/DDC/CEC/HPD through TPD12S016 | DOCUMENTED |
-| R_EXT | 887 Ω 1 % to ground | **OPEN**: quoted from an index of the ADV7513 Hardware User's Guide; the guide itself was not retrievable here (analog.com refuses this environment) |
-| CEC_CLK / INT output type / layout rules | CEC unused: CEC_CLK held low, 12 MHz oscillator DNP. INT: 10k pull-up | **OPEN**: same guide |
+| R_EXT | 887 Ω 1 % to ground | **OPEN**: quoted from an index of the ADV7513 Hardware User's Guide. The data sheet gives no value and the IBIS model marks the pin NC. The guide is public (no NDA) but analog.com and its CDN refuse this environment |
+| CEC_CLK / INT output type | CEC unused: CEC_CLK held low through 10k, 12 MHz oscillator DNP. INT: 10k pull-up to 3V3 | **DERIVED** from the ADI IBIS model (`adv7513.ibs`, sha `9626…`): INT = OUTPUT0, Open_drain, no power clamp, characterised to 3.6 V; CEC_CLK = INPUT0, VIL 0.7 V, range 1.71-3.6 V. Bench NOT_RUN |
+| Layout rules | TMDS 100 Ω pairs, decoupling at each supply pin, EP via field | **OPEN**: same guide |
 
-**Action for the owner:** download *ADV7513 Hardware User's Guide* (UG Rev. 0) and *ADV7513 Programming Guide* from analog.com and add them to `sources/adi/`. Those two documents close the three OPEN rows above.
+**Action for the owner:** download *ADV7513 Hardware User's Guide* (UG Rev. 0) and *ADV7513 Programming Guide* from analog.com and add them to `sources/adi/`. Those two documents close the remaining OPEN rows above (R_EXT, layout rules).
+
+**Alternatives checked (2026-10-16), none better documented:**
+- Lontium LT8618SX: only a 3-page brief, marked "CONFIDENTIAL AND PROPRIETARY".
+- NXP TDA19988: end of life per NXP support.
+- ITE IT66121: register documentation under NDA.
+
+The ADV7513 is the only candidate whose data sheet, init app note, IBIS model and a mainline Linux driver are all public. Its two guides are also public; they are only unreachable from this environment.
 
 ## 4. Game cartridge, storage and install/recovery plan (D12 replaces handoff s3)
 
@@ -135,7 +143,7 @@ The rear port is **not** assumed to deliver 15 W (handoff s2). USB PD is not use
 
 | ID | Item | Closes with |
 |---|---|---|
-| CO-1 | ADV7513 hardware user guide / programming guide not read (R_EXT confirmation, CEC_CLK, INT type, layout) | Owner downloads the guides (section 3) |
+| CO-1 | ADV7513 hardware user guide / programming guide not read (R_EXT confirmation, layout); CEC_CLK and INT type closed from the IBIS model | Owner downloads the guides (section 3) |
 | CO-2 | ~~eMMC on SMHC0~~ closed by D12 (no eMMC). New: USB mass-storage + FAT/exFAT in F133 firmware; sustained read rate from typical drives | Firmware + first article |
 | CO-3 | USB2514B and ADV7513 exposed-pad lands use KiCad candidate footprints | Vendor package drawings |
 | CO-4 | FEL fall-through when the NOR is held in reset | Bench |

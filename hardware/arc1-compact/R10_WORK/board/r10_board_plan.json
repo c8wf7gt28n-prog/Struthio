@@ -12600,7 +12600,7 @@
    "footprint_status": "STD_LIB",
    "dnp": false,
    "sheet": "video",
-   "note": "887 ohm 1 % close to pin 14 (ADV7513 HW user guide, quoted; OPEN: read the guide)",
+   "note": "887 ohm 1 % close to pin 14 (HW user guide, quoted only; DS gives no value; OPEN)",
    "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
    "slim4_reuse": false,
    "pins": {
@@ -12774,7 +12774,7 @@
    "footprint_status": "STD_LIB",
    "dnp": false,
    "sheet": "video",
-   "note": "CEC unused: clock input held low (OPEN: confirm with the HW user guide)",
+   "note": "CEC unused: clock input held low (IBIS INPUT0, VIL 0.7 V; Linux binding: cec clock optional)",
    "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
    "slim4_reuse": true,
    "pins": {
@@ -12902,7 +12902,7 @@
    "footprint_status": "STD_LIB",
    "dnp": false,
    "sheet": "video",
-   "note": "INT pull-up (OPEN: output type per HW user guide; D213 may poll over I2C instead)",
+   "note": "INT pull-up: INT is open drain (ADV7513 IBIS OUTPUT0, no power clamp, characterised to 3.6 V)",
    "evidence": "GENERIC_PASSIVE (value from design.py / analysis; MPN only where reused from SLIM4 R26 BOM)",
    "slim4_reuse": true,
    "pins": {

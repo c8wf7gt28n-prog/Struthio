@@ -34,7 +34,7 @@ test_release_is_blocked (test_interconnect.InterconnectTests.test_release_is_blo
 test_swapped_memory_pins_rejected (test_interconnect.InterconnectTests.test_swapped_memory_pins_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.053s
+Ran 7 tests in 0.050s
 
 OK
    exit 0

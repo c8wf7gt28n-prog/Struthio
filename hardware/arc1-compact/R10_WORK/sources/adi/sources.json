@@ -32,12 +32,21 @@
   "used_for": "'adi,adv7513' handled with adv7511_chip_info (register compatible); fixed registers; CTS/N for 48 kHz (N = 128*fs/1000 = 6144); CEC clock optional; pd-gpios; 7-bit address 0x39 (PD low)"
  },
  {
+  "id": "adi_adv7513_ibis",
+  "url": "https://docs.ampnuts.ru/analog.com.datasheet/adv7513/related_data/adv7513.ibs (third-party mirror of the ADI IBIS model; analog.com refuses this environment)",
+  "title": "ADV7513 IBIS model",
+  "revision": "IBIS 3.2, File Rev 0, 01/03/2012",
+  "retrieved_at": "2026-10-16",
+  "sha256": "962602c25719261db5c6b84665400f9a63fda7a1b65be4ad5339dabce596487d",
+  "used_for": "[Pin]: 28 INT = OUTPUT0, 32 CEC_CLK = INPUT0, 30 CEC = I2C_IO, 14 R_EXT = NC (no model, no value). [Model] OUTPUT0: Model_type Open_drain, no power clamp, pulldown table characterised to 3.6 V -> INT needs an external pull-up; 3.3 V pull-up is inside the modelled range. [Model] INPUT0: Input, Vinl 0.7 V / Vinh 1.4 V, range 1.71-3.6 V -> CEC_CLK may be held at GND through 10k when CEC is unused (DS: CEC_CLK VIL -0.3..0.7 V; Linux binding: cec clock optional)."
+ },
+ {
   "id": "adi_adv7513_hwug_index",
   "url": "https://www.analog.com/media/en/technical-documentation/user-guides/adv7513_hardware_user_guide.pdf",
   "title": "ADV7513 Hardware User's Guide Rev. 0",
   "revision": "Rev. 0",
   "retrieved_at": "NOT RETRIEVED (connection reset by analog.com)",
   "sha256": null,
-  "used_for": "R_EXT = 887 ohm 1 % to ground, close to the pin (quoted by a search-engine index of this document only). OPEN: read the guide itself for CEC_CLK, INT output type, decoupling and layout."
+  "used_for": "R_EXT = 887 ohm 1 % to ground, close to the pin (quoted by a search-engine index of this document only; the data sheet Table 3 gives no value). OPEN: R_EXT confirmation and layout rules. CEC_CLK and INT electrical type are closed by the IBIS model (adi_adv7513_ibis)."
  }
 ]
