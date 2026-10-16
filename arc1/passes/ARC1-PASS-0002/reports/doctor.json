@@ -1,0 +1,106 @@
+{
+  "artifacts": [],
+  "board_id": null,
+  "command": "arc1 doctor",
+  "details": {
+    "checks": [
+      {
+        "check": "schema game-package.schema.json",
+        "detail": "loads; keywords supported",
+        "status": "ok"
+      },
+      {
+        "check": "schema game-tests.schema.json",
+        "detail": "loads; keywords supported",
+        "status": "ok"
+      },
+      {
+        "check": "schema golden.schema.json",
+        "detail": "loads; keywords supported",
+        "status": "ok"
+      },
+      {
+        "check": "schema hardware.schema.json",
+        "detail": "loads; keywords supported",
+        "status": "ok"
+      },
+      {
+        "check": "schema pass.schema.json",
+        "detail": "loads; keywords supported",
+        "status": "ok"
+      },
+      {
+        "check": "schema tool-result.schema.json",
+        "detail": "loads; keywords supported",
+        "status": "ok"
+      },
+      {
+        "check": "schema toolchain-lock.schema.json",
+        "detail": "loads; keywords supported",
+        "status": "ok"
+      },
+      {
+        "check": "python",
+        "detail": "3.13.16",
+        "status": "ok"
+      },
+      {
+        "check": "c_compiler",
+        "detail": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0 (C11 probe compiled with locked flags)",
+        "status": "ok"
+      },
+      {
+        "check": "manifest arc1-r10.hw.json",
+        "detail": "board design (unverified), revision R10-development",
+        "status": "ok"
+      },
+      {
+        "check": "manifest host-sim.hw.json",
+        "detail": "simulation_only, revision SIM-host-0.2",
+        "status": "ok"
+      },
+      {
+        "check": "example hello_arc1",
+        "detail": "package manifest valid",
+        "status": "ok"
+      },
+      {
+        "check": "optional git",
+        "detail": "base-commit and protected-path checks in `arc1 pass validate`",
+        "status": "found"
+      },
+      {
+        "check": "optional yosys",
+        "detail": "RTL synthesis for `arc1 fpga check`",
+        "status": "absent"
+      },
+      {
+        "check": "optional nextpnr-ecp5",
+        "detail": "ECP5 place and route for `arc1 fpga check`",
+        "status": "absent"
+      },
+      {
+        "check": "physical_board",
+        "detail": "no device transport is implemented; G4 board gates not established",
+        "status": "NOT_AVAILABLE"
+      },
+      {
+        "check": "target_toolchain",
+        "detail": "no F133 RISC-V cross toolchain is locked yet",
+        "status": "NOT_AVAILABLE"
+      }
+    ]
+  },
+  "evidence_level": "STATIC_CHECK",
+  "failure_reasons": [],
+  "input_digest": "731a3391cf42d198955f658ed20febaf923fa2bf5ce2797474b26ed812325fc9",
+  "invocation_id": "f747b4286fa15a1002653e8013684bcc",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "PASS",
+  "warnings": [
+    "No physical ARC-1 board: device commands report NOT_AVAILABLE",
+    "Hardware manifest facts are DESIGN-level; physical boot, HDMI audio and 60 fps are not tested"
+  ]
+}

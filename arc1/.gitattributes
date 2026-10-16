@@ -1,3 +1,7 @@
 # Digests in manifests, goldens and pass records cover exact bytes.
 * text=auto eol=lf
 *.ppm binary
+# Vendored sources and recorded evidence are hashed byte for byte: never
+# normalise their line endings.
+hardware/sources/** -text
+passes/*/reports/** -text

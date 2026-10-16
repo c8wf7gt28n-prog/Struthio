@@ -1,0 +1,62 @@
+{
+  "artifacts": [
+    {
+      "path": "examples/hello_arc1/build/test/test.log",
+      "sha256": "cef6f5f4afb786c078a18631af92cd6079faaf01b7bcaf9e769eefb6a5730c3b"
+    }
+  ],
+  "board_id": null,
+  "command": "arc1 test examples/hello_arc1",
+  "details": {
+    "hardware_descriptor": {
+      "path": "hardware/manifests/host-sim.hw.json",
+      "sha256": "effe5b0f8ca6d6f093c13f8b94e283c0952ac7f0cc00e783c9a258cca1c65602"
+    },
+    "sensitive_events": [],
+    "tests": [
+      {
+        "failures": [],
+        "id": "idle-golden",
+        "kind": "golden",
+        "notes": [],
+        "verdict": "PASS"
+      },
+      {
+        "failures": [],
+        "id": "steer-golden",
+        "kind": "golden",
+        "notes": [],
+        "verdict": "PASS"
+      },
+      {
+        "failures": [],
+        "id": "steer-determinism",
+        "kind": "determinism",
+        "notes": [],
+        "verdict": "PASS"
+      },
+      {
+        "failures": [],
+        "id": "input-reaches-frames",
+        "kind": "must_differ",
+        "notes": [],
+        "verdict": "PASS"
+      }
+    ]
+  },
+  "evidence_level": "HOST_SIM",
+  "failed_count": 0,
+  "failure_reasons": [],
+  "input_digest": "2e06dcdfff61da049a91356386d033c95037436937487600d7aacf31b6e013bb",
+  "invocation_id": "4502f6079f812940bc840d538480e5aa",
+  "log_sha256": "cef6f5f4afb786c078a18631af92cd6079faaf01b7bcaf9e769eefb6a5730c3b",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "test_count": 4,
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "PASS",
+  "warnings": [
+    "Physical ARC-1 was not used",
+    "Host reference model is deterministic but not cycle accurate"
+  ]
+}

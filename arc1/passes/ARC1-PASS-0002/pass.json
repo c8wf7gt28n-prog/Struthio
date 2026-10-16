@@ -1,0 +1,254 @@
+{
+  "schema": "arc1.pass/0.2",
+  "pass_id": "ARC1-PASS-0002",
+  "state": "REVIEW",
+  "owner": "agent:claude-code",
+  "objective": "Ground the SDK hardware manifest in the owner's R10 handoff with cited, hash-checked sources; add the ARC-1 logo to the SDK docs",
+  "risk_tier": "MEDIUM",
+  "base_commit": "8cb940ed711f76c743635f1384bbe09e78b4561b",
+  "inputs": {
+    "sdk_schema": "0.2",
+    "board_revision": "R10-development",
+    "toolchain_lock_sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+  },
+  "effort": {
+    "units": "task_units",
+    "planned_total": 60,
+    "sdk_reserved": 12,
+    "actual_total": null,
+    "actual_sdk": null
+  },
+  "deferral": null,
+  "main_change": {
+    "summary": "R10 hardware manifest (chips, peripherals, links, uncertainties), vendored R10 sources with provenance, logo and docs",
+    "paths": [
+      "hardware/manifests/arc1-r10.hw.json",
+      "hardware/manifests/host-sim.hw.json",
+      "hardware/sources/r10",
+      "docs/assets/arc1-logo.jpg",
+      "README.md",
+      "AGENTS.md",
+      "docs/MIGRATION.md",
+      "docs/TRACEABILITY.md"
+    ]
+  },
+  "sdk_change": {
+    "summary": "Source-traceability validation: hardware schema 0.3 references, digest and anchor checks, pin-list derivation from the interface table, with negative fixtures",
+    "paths": [
+      "sdk/schemas/hardware.schema.json",
+      "sdk/cli/arc1cli/hardware.py",
+      "hardware/tools/r10_links.py",
+      "tests/fixtures/hardware/cases.json",
+      "tests/run_tests.py"
+    ],
+    "reusable": true,
+    "beneficiary": "Every later hardware-manifest edit: a fact that does not cite an unmodified source, or a pin list that drifts from the interface table, now fails",
+    "acceptance_tests": [
+      "hardware-traceability-suite"
+    ]
+  },
+  "validation": [
+    {
+      "id": "doctor",
+      "level": "STATIC_CHECK",
+      "command": "arc1 doctor --json",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0002/reports/doctor.json",
+        "sha256": "4f3ef5b7f18951dd18ff66adeb7ff4158a1e85f6d1abc838713db5fb13379155"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "hw-inspect-r10",
+      "level": "DESIGN",
+      "command": "arc1 hw inspect --json",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0002/reports/hw-inspect-r10.json",
+        "sha256": "248faa666e44459d57cd14f84e0bc15bd38f50dc26b2b8e2bec8f78c835bf0f4"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "hello-test",
+      "level": "HOST_SIM",
+      "command": "arc1 test examples/hello_arc1",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0002/reports/test.json",
+        "sha256": "d8b30db8c22fc9ab857098c765b8f38f0062bd64488a39c263f9ae2041336027"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "hardware-traceability-suite",
+      "level": "STATIC_CHECK",
+      "command": "python3 tests/run_tests.py SchemaValidatorTests LockAndPolicyTests HardwareManifestTests PackageManifestTests",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0002/reports/hardware-traceability.log",
+        "sha256": "8dc0d9596464932d8e1503b4bb55988ba8de0a87e8f2f93e0957e0c79eaa0fdb"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "host-sdk-and-covenant-suite",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py AssetTests CliContractTests HostSdkTests NewProjectTests ConformanceTests PassValidatorTests.test_complete_fixture_passes PassValidatorTests.test_negative_cases PassValidatorTests.test_positive_cases PassValidatorTests.test_cli_exit_codes PassValidatorTests.test_unknown_base_commit_rejected",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0002/reports/host-sdk-and-covenant.log",
+        "sha256": "c5121d30245ffa96aaedbb0a7ed4330b73db40ad9aee574f920641a0f0d084e1"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "r10-host-checks",
+      "level": "HOST_SIM",
+      "command": "sh R10_WORK/run_host_checks.sh (clean copy of the extracted handoff)",
+      "result": "fail",
+      "report": {
+        "path": "passes/ARC1-PASS-0002/reports/r10-run-host-checks.log",
+        "sha256": "f6093b423f52964b8654a5bd4217730d0cf6bcfd8f701ebece5ba17593470bb2"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "r10-rtl-pnr",
+      "level": "FPGA_PNR",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "R10_WORK/run_all.sh needs Icarus, Verilator, Yosys, nextpnr-ecp5 and Trellis; none installed here"
+    },
+    {
+      "id": "independent-reproduction",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "TST-004: no second agent or maintainer has reproduced ARC1-PASS-0001 or -0002 yet"
+    },
+    {
+      "id": "board",
+      "level": "BOARD_TEST",
+      "command": null,
+      "result": "not_available",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "R10 is on fabrication HOLD; no board exists"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "hardware/manifests/arc1-r10.hw.json",
+      "sha256": "add3ebde3fe2c3f62093c407f03f7bd076110a33c8bcf714a2500b91b93fe11e"
+    },
+    {
+      "path": "hardware/manifests/host-sim.hw.json",
+      "sha256": "effe5b0f8ca6d6f093c13f8b94e283c0952ac7f0cc00e783c9a258cca1c65602"
+    },
+    {
+      "path": "sdk/schemas/hardware.schema.json",
+      "sha256": "403e91cfb5b6c0b474dcfa5a29a48d73dd4b6ff93a7bd39ea5a2edc1bf1ee02a"
+    },
+    {
+      "path": "sdk/cli/arc1cli/hardware.py",
+      "sha256": "43e2c97705cf40153d3a688a3f9b0fc1e8aaf3e5b141935c811a25c1217a9f3f"
+    },
+    {
+      "path": "hardware/tools/r10_links.py",
+      "sha256": "2758bfa7731b05ffaa0c8a327837c3f4cb044f924b898ac1e3ec85ea5effc822"
+    },
+    {
+      "path": "hardware/sources/r10/SHA256SUMS",
+      "sha256": "303dbc91159e5ba554e2faa8505cc5a92d948d044aae15ed8de51fa07c82a0fb"
+    },
+    {
+      "path": "hardware/sources/r10/PROVENANCE.md",
+      "sha256": "d4d2d76232cf5dc7bf9478d378d39794679a5fe3d7ac65983625c1cb63091608"
+    },
+    {
+      "path": "docs/assets/arc1-logo.jpg",
+      "sha256": "483063d5d1276e27a6b5e2549527937f152c58aae0dfa3fb156b0ffed893ffa7"
+    },
+    {
+      "path": "tests/fixtures/hardware/cases.json",
+      "sha256": "db13ed3c9efea08749d96c1aa32c7e9ef29637ef433cd3fa1081fba510d684bb"
+    },
+    {
+      "path": "passes/ARC1-PASS-0002/reports/tampered-source-r10.hw.json",
+      "sha256": "15db79b3721b06c3c3ea73eb3c25ed40b6011fa48483b5f690ace62a616e13e5"
+    },
+    {
+      "path": "passes/ARC1-PASS-0002/reports/hw-inspect-tampered.json",
+      "sha256": "a570424537198eeb764751078f944a012276f14b8a71acb493f6c5a3f9435df4"
+    },
+    {
+      "path": "passes/ARC1-PASS-0002/reports/r10-f133-bootloader-in-git.log",
+      "sha256": "781646a49344163f7b561dbcb9148df833fc1067b6fe908f55f08e27bb26fc26"
+    }
+  ],
+  "sensitive_changes": [
+    {
+      "path": "AGENTS.md",
+      "kind": "modified",
+      "justification": "Adds the source-citation rule for hardware facts, the R10 authority note with the evidence-label mapping, and new layout entries. No rule was relaxed."
+    },
+    {
+      "path": "hardware/manifests/arc1-r10.hw.json",
+      "kind": "modified",
+      "justification": "Replaced the ER-002 transcription with R10 handoff facts, each citing a vendored source by SHA-256. Pool ids and capacities are unchanged. No fact was promoted above DESIGN, and all claims stay not_tested."
+    },
+    {
+      "path": "hardware/manifests/host-sim.hw.json",
+      "kind": "modified",
+      "justification": "Migrated to arc1.hardware/0.3: fabrication_status NOT_APPLICABLE, runtime registered as a cited source, empty peripherals. The facts are unchanged."
+    },
+    {
+      "path": "policy/protected_paths.json",
+      "kind": "modified",
+      "justification": "Adds hardware/sources/* and hardware/tools/* to the protected set. Only additions; nothing was unprotected."
+    },
+    {
+      "path": "sdk/schemas/hardware.schema.json",
+      "kind": "modified",
+      "justification": "Schema 0.2 to 0.3 (breaking change allowed under 0.x, documented in docs/MIGRATION.md): adds sources, peripherals, fabrication_status and reference syntax. Every previous constraint is kept."
+    },
+    {
+      "path": "tests/fixtures/hardware/cases.json",
+      "kind": "modified",
+      "justification": "Adds 11 negative cases and 1 positive case for the new checks. All existing cases are unchanged and still pass with the same expected codes."
+    },
+    {
+      "path": "tests/run_tests.py",
+      "kind": "modified",
+      "justification": "One assertion replaced by a stronger one: unknown_safety_critical must now be empty instead of containing f133.power_domain, because R10 supplies that field. Committed pass records are now validated at their recording commit, which is what the CLI does. Adds R10 pin-traceability and vendored-source tests. No test was deleted or loosened."
+    }
+  ],
+  "review": {
+    "sdk_accepted_by": null,
+    "state": "pending",
+    "evidence": null
+  },
+  "blockers": [],
+  "handoff": "passes/ARC1-PASS-0002/HANDOFF.md"
+}

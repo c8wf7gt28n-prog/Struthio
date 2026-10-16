@@ -1,0 +1,514 @@
+{
+  "schema": "arc1.hardware/0.3",
+  "revision": "R10-development",
+  "board_family": "ARC-1",
+  "simulation_only": false,
+  "fabrication_status": "HOLD",
+  "$comment": "Design-level facts from the owner-supplied R10 handoff (hardware/sources/r10). Nothing here is measured. Null means unknown, not zero. Supersedes the ER-002 R10 concept transcription of ARC1-PASS-0001.",
+  "sources": [
+    {
+      "id": "r10_architecture",
+      "path": "hardware/sources/r10/CURRENT_ARCHITECTURE.json",
+      "sha256": "8f1990c4ce5abbeb6d125865b74a5eb19f6ebcde96bdb29a3677160dc084f3b6",
+      "kind": "architecture_summary",
+      "description": "R10 current-architecture summary (devices, links, storage, status)"
+    },
+    {
+      "id": "r10_base",
+      "path": "hardware/sources/r10/R10_WORK/BASE.md",
+      "sha256": "a5b9411b2731239942cc0ba80e86ac96a1658652cec82b9630faa4fbb7a71675",
+      "kind": "owner_spec",
+      "description": "R10 authority and provenance; open owner confirmations"
+    },
+    {
+      "id": "r10_decisions",
+      "path": "hardware/sources/r10/R10_WORK/DECISIONS.md",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "kind": "decision_log",
+      "description": "R10 decisions D1-D12 with reasons and reversal costs"
+    },
+    {
+      "id": "r10_spec",
+      "path": "hardware/sources/r10/R10_WORK/spec/ARC1_R10.txt",
+      "sha256": "68d06ca2281045f168e40b2cd1401646a84e4e14a3ee8842f15daea5728ae159",
+      "kind": "owner_spec",
+      "description": "ARC-1 Architecture Change Control R10 rev 0.1 (text extraction)"
+    },
+    {
+      "id": "r10_memory_spec",
+      "path": "hardware/sources/r10/R10_WORK/spec/ARC1_MEMORY_R10.txt",
+      "sha256": "a8ca79be3e982bc2bb123be0b41a13979d0b64f7ba722c3d5c7c695ae41c3074",
+      "kind": "owner_spec",
+      "description": "ARC1_MEMORY_R10 v0.1 memory architecture (text extraction)"
+    },
+    {
+      "id": "r10_change_order",
+      "path": "hardware/sources/r10/R10_WORK/hardware/R10_CHANGE_ORDER_1_1.md",
+      "sha256": "3fba7d3318cd0dfa462a909a5e9dae5afaa1c8d43114fa711345f6c1df22f8e6",
+      "kind": "decision_log",
+      "description": "Change order rev 1.1 implementation: connectors, HDMI, USB, power"
+    },
+    {
+      "id": "r10_interfaces",
+      "path": "hardware/sources/r10/R10_WORK/architecture/R10_interface_matrix.csv",
+      "sha256": "8c2ea8b731a92ae004eccfb90c2d848945d504bf37bfdd330805dcae0b75aef3",
+      "kind": "interface_table",
+      "description": "Generated R10 inter-chip pin table (65 rows)"
+    },
+    {
+      "id": "r10_nor_map",
+      "path": "hardware/sources/r10/R10_WORK/memory/R10_nor_partition.csv",
+      "sha256": "9cceb30061f021d1d1578c6f35c15305dc2ad3254eb644d9284e28b99ed3cb3c",
+      "kind": "design_source",
+      "description": "Generated 64 MiB central NOR partition map"
+    },
+    {
+      "id": "r10_gates",
+      "path": "hardware/sources/r10/R10_WORK/qa/R10_gate_report.md",
+      "sha256": "63850c14bb2ce4d0317e14b43f49a535ff8d88317588887397aebce3e8a7f01d",
+      "kind": "qa_report",
+      "description": "R10 gate report R10-A..H with evidence labels"
+    },
+    {
+      "id": "r10_memory_gates",
+      "path": "hardware/sources/r10/R10_WORK/qa/R10_memory_go_no_go.md",
+      "sha256": "b0ef06aa615c78f0d8e75a7771fd58044640013d76832e342c4f68df695fd337",
+      "kind": "qa_report",
+      "description": "R10 memory go/no-go report"
+    },
+    {
+      "id": "r10_continuation",
+      "path": "hardware/sources/r10/R10_WORK/qa/R10_CONTINUATION.md",
+      "sha256": "e2d0417ef2e22dc151057db23034b51a26a7141c5f98632fd9007f394ba16f04",
+      "kind": "qa_report",
+      "description": "Latest continuation: FPGA PG finding, ADV7513 guide evidence"
+    },
+    {
+      "id": "r10_design",
+      "path": "hardware/sources/r10/R10_WORK/cad/gen/design.py",
+      "sha256": "f22ee8e472ed8979c33e23f509fdfa9ff96c9542d67e875a61d8fd1b80c92ab4",
+      "kind": "design_source",
+      "description": "Schematic generator: sheets, rails, clocks, nets"
+    },
+    {
+      "id": "r10_parts",
+      "path": "hardware/sources/r10/R10_WORK/cad/gen/parts.py",
+      "sha256": "e68e3920fbcfa6d8c7292055ec57e12e5d4262ef67851ffd0809c47fea310bda",
+      "kind": "design_source",
+      "description": "Part library generator: MPNs, packages, pin sources"
+    },
+    {
+      "id": "r10_vendor_index",
+      "path": "hardware/sources/r10/R10_WORK/architecture/sources/sources.json",
+      "sha256": "4c88e0497fc346280990e1567a8aa53322758daf5ab34834fc8ae5697218531b",
+      "kind": "vendor_index",
+      "description": "Index of 54 vendor documents with URL, revision and SHA-256"
+    }
+  ],
+  "chips": [
+    {
+      "id": "f133",
+      "part": "F133-B",
+      "manufacturer": "Allwinner",
+      "role": "system CPU, game-state authority, boot owner of the central NOR",
+      "datasheet_ref": "r10_vendor_index#lcsc_f133b_ds2",
+      "power_domain": "VDD_CORE 0.946 V (buck F133_CORE) + 1V8_DRAM (buck F133_DRAM) + system 3V3; reset supervisor TPS3808G09",
+      "clock_sources": [
+        "24 MHz crystal XTAL24 (r10_design#f133)"
+      ],
+      "boot_dependencies": [],
+      "wiring_source": "r10_design#f133",
+      "memory": [
+        {
+          "id": "f133_ddr2",
+          "type": "in_package_ddr2",
+          "capacity_bytes": 67108864,
+          "owner": "f133",
+          "controller": null,
+          "access": null,
+          "shared_address_space": false,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "r10_architecture#devices"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "Schematic captured; F133 bootloader core HOST_TESTED with mocks; no silicon boot (fabrication HOLD)"
+    },
+    {
+      "id": "d213",
+      "part": "D213ECV",
+      "manufacturer": "ArtInChip",
+      "role": "graphics computer: display/2D engine, scene setup, 45F scheduling",
+      "datasheet_ref": "r10_vendor_index#aic_D21x_Datasheet_EN",
+      "power_domain": "1V2_D213 core (buck D213_CORE) + 1V5_D213 DDR3 (buck D213_DRAM) + system 3V3",
+      "clock_sources": [
+        "24 MHz +-20 ppm crystal (r10_design#d213)"
+      ],
+      "boot_dependencies": [
+        "f133"
+      ],
+      "wiring_source": "r10_design#d213",
+      "memory": [
+        {
+          "id": "d213_ddr3",
+          "type": "in_package_ddr3",
+          "capacity_bytes": 134217728,
+          "owner": "d213",
+          "controller": null,
+          "access": null,
+          "shared_address_space": false,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "r10_architecture#devices"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "Supplier/lot open (R10 Q1, no distributor listing); bare-metal video R10-D NOT_RUN; GMAC driver NOT_RUN"
+    },
+    {
+      "id": "gpu45",
+      "part": "LFE5U-45F-6BG381C",
+      "manufacturer": "Lattice Semiconductor",
+      "role": "optional tile rasterizer (GPU), configured by the D213",
+      "datasheet_ref": "r10_vendor_index#lattice_ecp5_datasheet",
+      "power_domain": "VCC 1.095 V (TLV62569P buck with PG) + switched VCCIO 3V3_F45 + VCCAUX LDO (r10_design#power)",
+      "clock_sources": [
+        "25 MHz oscillator, OE = FPGA45_VCC_PG (r10_design#fpga45)",
+        "RGMII RX clock from D213 GMAC0"
+      ],
+      "boot_dependencies": [
+        "d213"
+      ],
+      "wiring_source": "r10_design#fpga45",
+      "memory": [
+        {
+          "id": "gpu45_sdram",
+          "type": "sdr_sdram_x16 (Alliance AS4C16M16SA-6TIN)",
+          "capacity_bytes": 33554432,
+          "owner": "gpu45",
+          "controller": null,
+          "access": null,
+          "shared_address_space": false,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "r10_parts#AS4C16M16SA"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "Raster + RGMII endpoint RTL_SIMULATED; pin-locked OPEN_TOOLCHAIN_ROUTED 5/5 seeds; no board (R10-C)"
+    },
+    {
+      "id": "fpga12",
+      "part": "LFE5U-12F-6TG144C",
+      "manufacturer": "Lattice Semiconductor",
+      "role": "optional adaptive coprocessor; never owns game state",
+      "datasheet_ref": "r10_vendor_index#lattice_ecp5_datasheet",
+      "power_domain": "VCC 1.095 V (TLV62569P buck with PG) + switched VCCIO 3V3_F12 + VCCAUX LDO (r10_design#power)",
+      "clock_sources": [
+        "25 MHz oscillator, OE = FPGA12_VCC_PG (r10_design#fpga12)",
+        "RGMII RX clock from F133"
+      ],
+      "boot_dependencies": [
+        "f133"
+      ],
+      "wiring_source": "r10_design#fpga12",
+      "memory": [
+        {
+          "id": "fpga12_psram",
+          "type": "qspi_psram (AP Memory APS3204L-3SQNA-SN)",
+          "capacity_bytes": 4194304,
+          "owner": "fpga12",
+          "controller": null,
+          "access": null,
+          "shared_address_space": false,
+          "visibility": "Private to the owning chip; other chips reach it only through an explicit transfer over a declared link.",
+          "provenance": "DESIGN",
+          "source": "r10_memory_spec#S5"
+        }
+      ],
+      "provenance": "DESIGN",
+      "status": "RGMII + engine RTL_SIMULATED; proxy-package OPEN_TOOLCHAIN_ROUTED 10/10; TQFP144 pin-locked P&R NOT_RUN (D4)"
+    }
+  ],
+  "peripherals": [
+    {
+      "id": "system_nor",
+      "part": "W25Q512JVFIQ",
+      "manufacturer": "Winbond",
+      "role": "64 MiB central NOR on F133 SPI0 (BOOT-SEL 00); partition map r10_nor_map",
+      "attached_to": [
+        "f133"
+      ],
+      "provenance": "DESIGN",
+      "status": "PROPOSED map; bootloader logic HOST_TESTED; D213 flashless start NOT_RUN",
+      "source": "r10_memory_spec#S6"
+    },
+    {
+      "id": "d213_boot_nor",
+      "part": "W25Q512JVFIQ",
+      "manufacturer": "Winbond",
+      "role": "D213 SPI0 boot NOR fitted on prototypes for vendor-standard boot and recovery",
+      "attached_to": [
+        "d213"
+      ],
+      "provenance": "DESIGN",
+      "status": "SELECTED D5 for prototypes; DNP in production once flashless boot is PROTOTYPE_MEASURED",
+      "source": "r10_decisions#D5"
+    },
+    {
+      "id": "hdmi_tx",
+      "part": "ADV7513BSWZ",
+      "manufacturer": "Analog Devices",
+      "role": "HDMI 1.4 transmitter: D213 RGB888 video + F133 I2S2 embedded stereo audio",
+      "attached_to": [
+        "d213",
+        "f133"
+      ],
+      "provenance": "DESIGN",
+      "status": "SELECTED D8; R_EXT 887 ohm confirmed from the HW user guide; filtering/init review OPEN; bench NOT_RUN",
+      "source": "r10_decisions#D8"
+    },
+    {
+      "id": "hdmi_companion",
+      "part": "TPD12S016PWR",
+      "manufacturer": "Texas Instruments",
+      "role": "HDMI ESD, DDC/HPD level shifting, 5 V switch",
+      "attached_to": [
+        "hdmi_tx"
+      ],
+      "provenance": "DESIGN",
+      "status": "SELECTED D8",
+      "source": "r10_parts#TPD12S016"
+    },
+    {
+      "id": "usb_role_mux",
+      "part": "TS3USB221A",
+      "manufacturer": "Texas Instruments",
+      "role": "F133 USB0 role mux: rear USB-C device/FEL by default, hub when F133 PD2 is high",
+      "attached_to": [
+        "f133"
+      ],
+      "provenance": "DESIGN",
+      "status": "SELECTED D9; enumeration OPEN (bench)",
+      "source": "r10_decisions#D9"
+    },
+    {
+      "id": "usb_hub",
+      "part": "USB2514B-I/M2",
+      "manufacturer": "Microchip",
+      "role": "4-port hub: 2 front controller USB-A, top USB-A game cartridge, port 4 disabled",
+      "attached_to": [
+        "usb_role_mux"
+      ],
+      "provenance": "DESIGN",
+      "status": "SELECTED D12; enumeration NOT_RUN",
+      "source": "r10_decisions#D12"
+    },
+    {
+      "id": "fpga_vcc_buck",
+      "part": "TLV62569P",
+      "manufacturer": "Texas Instruments",
+      "role": "1.095 V VCC buck for each ECP5 with power-good",
+      "attached_to": [
+        "gpu45",
+        "fpga12"
+      ],
+      "provenance": "DESIGN",
+      "status": "PG falling threshold (~0.986 V typ) is below ECP5 VCC minimum 1.045 V: not a valid operating-voltage qualifier; hardware review OPEN",
+      "source": "r10_continuation#FPGA rail finding"
+    }
+  ],
+  "links": [
+    {
+      "id": "f133_fpga12_rgmii",
+      "endpoints": [
+        "f133.rgmii",
+        "fpga12.rgmii"
+      ],
+      "proposed_protocol": "RGMII framed job link",
+      "width_bits": 4,
+      "direction": "bidirectional",
+      "pins": [
+        "TXCK F133-B 121/PG3 RGMII-TXCK (F4) -> LFE5U-12F TQFP144 128/PT29A rgmii_rxc (PCLKT0_0)",
+        "TXD0 F133-B 123/PG4 RGMII-TXD0 (F4) -> LFE5U-12F TQFP144 133/PT15B rgmii_rxd[0]",
+        "TXD1 F133-B 122/PG5 RGMII-TXD1 (F4) -> LFE5U-12F TQFP144 134/PT15A rgmii_rxd[1]",
+        "TXD2 F133-B 1/PG6 RGMII-TXD2 (F4) -> LFE5U-12F TQFP144 135/PT13B rgmii_rxd[2]",
+        "TXD3 F133-B 2/PG7 RGMII-TXD3 (F4) -> LFE5U-12F TQFP144 136/PT13A rgmii_rxd[3]",
+        "TXCTRL F133-B 124/PG12 RGMII-TXCTRL (F4) -> LFE5U-12F TQFP144 139/PT9B rgmii_rx_ctl",
+        "RXCK F133-B 5/PG10 RGMII-RXCK (F4) -> LFE5U-12F TQFP144 110/PT67A rgmii_txc",
+        "RXD0 F133-B 118/PG1 RGMII-RXD0 (F4) -> LFE5U-12F TQFP144 111/PT62B rgmii_txd[0]",
+        "RXD1 F133-B 119/PG2 RGMII-RXD1 (F4) -> LFE5U-12F TQFP144 112/PT62A rgmii_txd[1]",
+        "RXD2 F133-B 3/PG8 RGMII-RXD2 (F4) -> LFE5U-12F TQFP144 113/PT60B rgmii_txd[2]",
+        "RXD3 F133-B 4/PG9 RGMII-RXD3 (F4) -> LFE5U-12F TQFP144 114/PT60A rgmii_txd[3]",
+        "RXCTRL F133-B 120/PG0 RGMII-RXCTRL (F4) -> LFE5U-12F TQFP144 115/PT58B rgmii_tx_ctl"
+      ],
+      "reset_dependency": null,
+      "level_shifting": "none: 3.3 V LVCMOS on both sides (r10_interfaces io_voltage)",
+      "measured_throughput_Bps": null,
+      "state": "proposed_unverified",
+      "evidence": null,
+      "sources": [
+        "r10_interfaces",
+        "r10_gates#R10-B"
+      ],
+      "notes": "Interface table status: PROPOSED (pins DOCUMENTED). 12F side RTL_SIMULATED and proxy OPEN_TOOLCHAIN_ROUTED; F133 EMAC side NOT_RUN; pad-level timing CONDITIONAL."
+    },
+    {
+      "id": "d213_gpu45_rgmii",
+      "endpoints": [
+        "d213.gmac0",
+        "gpu45.rgmii_interface"
+      ],
+      "proposed_protocol": "RGMII (D213 GMAC0, decision D1)",
+      "width_bits": 4,
+      "direction": "bidirectional",
+      "pins": [
+        "TXCK D213ECV 60/PE6 GMAC0_TXCK -> LFE5U-45F B11 (bank 0)/rgmii_rxc rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "TXD0 D213ECV 59/PE5 GMAC0_TXD0 -> LFE5U-45F C10 (bank 0)/rgmii_rxd[0] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "TXD1 D213ECV 58/PE4 GMAC0_TXD1 -> LFE5U-45F B9 (bank 0)/rgmii_rxd[1] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "TXD2 D213ECV 69/PE15 GMAC0_TXD2 -> LFE5U-45F C9 (bank 0)/rgmii_rxd[2] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "TXD3 D213ECV 68/PE14 GMAC0_TXD3 -> LFE5U-45F D10 (bank 0)/rgmii_rxd[3] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "TXCTL D213ECV 61/PE7 GMAC0_TXCTL -> LFE5U-45F E10 (bank 0)/rgmii_rx_ctl rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "RXCK D213ECV 67/PE13 GMAC0_RXCK -> LFE5U-45F C8 (bank 0)/rgmii_txc rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "RXD0 D213ECV 53/PE1 GMAC0_RXD0 -> LFE5U-45F D9 (bank 0)/rgmii_txd[0] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "RXD1 D213ECV 52/PE0 GMAC0_RXD1 -> LFE5U-45F E9 (bank 0)/rgmii_txd[1] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "RXD2 D213ECV 66/PE12 GMAC0_RXD2 -> LFE5U-45F D8 (bank 0)/rgmii_txd[2] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "RXD3 D213ECV 65/PE11 GMAC0_RXD3 -> LFE5U-45F E8 (bank 0)/rgmii_txd[3] rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "RXCTL D213ECV 54/PE2 GMAC0_RXCTL -> LFE5U-45F C7 (bank 0)/rgmii_tx_ctl rgmii endpoint (R8.5-C eth_link) + r10_raster_engine",
+        "CLKIN D213ECV 55/PE3 GMAC0_CLKIN -> LFE5U-45F B8 (bank 0)/gmac_refclk rgmii endpoint (R8.5-C eth_link) + r10_raster_engine"
+      ],
+      "reset_dependency": null,
+      "level_shifting": "none: 3.3 V LVCMOS on both sides (r10_interfaces io_voltage)",
+      "measured_throughput_Bps": null,
+      "state": "proposed_unverified",
+      "evidence": null,
+      "sources": [
+        "r10_interfaces",
+        "r10_decisions#D1",
+        "r10_decisions#D7",
+        "r10_gates#R10-E"
+      ],
+      "notes": "Interface table status: SELECTED D1 (pads DOCUMENTED; D21x DS Table 3-2 GMAC-1000M x2; 45F pins OPEN_TOOLCHAIN_ROUTED). Replaces PBUS (pad conflict with all display outputs). 45F forwards the 125 MHz GMAC0_CLKIN (D7). 45F side RTL_SIMULATED (18/18 tiles bit-exact) and pin-locked routed; D213 GMAC driver and jumbo support UNVERIFIED; throughput NOT_RUN."
+    },
+    {
+      "id": "f133_d213_usb",
+      "endpoints": [
+        "f133.usb1",
+        "d213.usb0"
+      ],
+      "proposed_protocol": "USB 2.0 high speed (F133 host, D213 device)",
+      "width_bits": null,
+      "direction": "bidirectional",
+      "pins": [
+        "D+ F133-B 112/USB1-DP USB1 host (EHCI/OHCI) -> D213ECV 80/PU1 USB0_DP (device)",
+        "D- F133-B 113/USB1-DM USB1 host (EHCI/OHCI) -> D213ECV 79/PU0 USB0_DM (device)"
+      ],
+      "reset_dependency": null,
+      "level_shifting": null,
+      "measured_throughput_Bps": null,
+      "state": "proposed_unverified",
+      "evidence": null,
+      "sources": [
+        "r10_interfaces",
+        "r10_gates#R10-F"
+      ],
+      "notes": "Interface table status: PROPOSED (functions DOCUMENTED). Command protocol HOST_TESTED (45 checks, 7/7 mutants); USB host/device stacks NOT_RUN."
+    },
+    {
+      "id": "d213_hdmi_rgb",
+      "endpoints": [
+        "d213.lcd_rgb888",
+        "hdmi_tx.video_in"
+      ],
+      "proposed_protocol": "24-bit parallel RGB 4:4:4, separate syncs",
+      "width_bits": 24,
+      "direction": "a_to_b",
+      "pins": [
+        "LCD_D0 D213ECV 18/PD0 LCD_D0 -> ADV7513 LQFP64 62/D0 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D1 D213ECV 17/PD1 LCD_D1 -> ADV7513 LQFP64 61/D1 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D2 D213ECV 16/PD2 LCD_D2 -> ADV7513 LQFP64 60/D2 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D3 D213ECV 15/PD3 LCD_D3 -> ADV7513 LQFP64 59/D3 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D4 D213ECV 14/PD4 LCD_D4 -> ADV7513 LQFP64 58/D4 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D5 D213ECV 13/PD5 LCD_D5 -> ADV7513 LQFP64 57/D5 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D6 D213ECV 12/PD6 LCD_D6 -> ADV7513 LQFP64 56/D6 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D7 D213ECV 11/PD7 LCD_D7 -> ADV7513 LQFP64 55/D7 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D8 D213ECV 10/PD8 LCD_D8 -> ADV7513 LQFP64 54/D8 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D9 D213ECV 9/PD9 LCD_D9 -> ADV7513 LQFP64 52/D9 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D10 D213ECV 8/PD10 LCD_D10 -> ADV7513 LQFP64 50/D10 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D11 D213ECV 7/PD11 LCD_D11 -> ADV7513 LQFP64 49/D11 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D12 D213ECV 6/PD12 LCD_D12 -> ADV7513 LQFP64 48/D12 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D13 D213ECV 5/PD13 LCD_D13 -> ADV7513 LQFP64 47/D13 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D14 D213ECV 4/PD14 LCD_D14 -> ADV7513 LQFP64 46/D14 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D15 D213ECV 3/PD15 LCD_D15 -> ADV7513 LQFP64 45/D15 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D16 D213ECV 2/PD16 LCD_D16 -> ADV7513 LQFP64 44/D16 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D17 D213ECV 1/PD17 LCD_D17 -> ADV7513 LQFP64 43/D17 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D18 D213ECV 127/PD18 LCD_D18 -> ADV7513 LQFP64 42/D18 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D19 D213ECV 126/PD19 LCD_D19 -> ADV7513 LQFP64 41/D19 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D20 D213ECV 125/PD20 LCD_D20 -> ADV7513 LQFP64 40/D20 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D21 D213ECV 124/PD21 LCD_D21 -> ADV7513 LQFP64 39/D21 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D22 D213ECV 123/PD22 LCD_D22 -> ADV7513 LQFP64 38/D22 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_D23 D213ECV 122/PD23 LCD_D23 -> ADV7513 LQFP64 37/D23 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_DCLK D213ECV 121/PD24 LCD_DCLK -> ADV7513 LQFP64 53/CLK 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_HS D213ECV 120/PD25 LCD_HS -> ADV7513 LQFP64 64/HSYNC 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_VS D213ECV 119/PD26 LCD_VS -> ADV7513 LQFP64 2/VSYNC 24-bit RGB 4:4:4, separate syncs (input ID 0)",
+        "LCD_DE D213ECV 118/PD27 LCD_DE -> ADV7513 LQFP64 63/DE 24-bit RGB 4:4:4, separate syncs (input ID 0)"
+      ],
+      "reset_dependency": null,
+      "level_shifting": "none: 3.3 V LVCMOS on both sides (r10_interfaces io_voltage)",
+      "measured_throughput_Bps": null,
+      "state": "proposed_unverified",
+      "evidence": null,
+      "sources": [
+        "r10_interfaces",
+        "r10_decisions#D8",
+        "r10_change_order"
+      ],
+      "notes": "Interface table status: SELECTED D8 (pads DOCUMENTED; ADV7513 pins DOCUMENTED DS Rev. B). 720p60 pixel clock 74.25 MHz within ADV7513 165 MHz; input timing margin NOT_RUN."
+    },
+    {
+      "id": "f133_hdmi_i2s",
+      "endpoints": [
+        "f133.i2s2",
+        "hdmi_tx.i2s0"
+      ],
+      "proposed_protocol": "I2S stereo LPCM 48 kHz, BCLK 64 fs",
+      "width_bits": 1,
+      "direction": "a_to_b",
+      "pins": [
+        "I2S_BCLK F133-B see F133 matrix/PB5 I2S2-BCLK -> ADV7513 LQFP64 9/SCLK I2S input, no MCLK needed (DS Rev. B features)",
+        "I2S_LRCK F133-B see F133 matrix/PB6 I2S2-LRCK -> ADV7513 LQFP64 10/LRCLK I2S input, no MCLK needed (DS Rev. B features)",
+        "I2S_DOUT F133-B see F133 matrix/PB4 I2S2-DOUT0 -> ADV7513 LQFP64 5/I2S0 I2S input, no MCLK needed (DS Rev. B features)"
+      ],
+      "reset_dependency": null,
+      "level_shifting": "none: 3.3 V LVCMOS on both sides (r10_interfaces io_voltage)",
+      "measured_throughput_Bps": null,
+      "state": "proposed_unverified",
+      "evidence": null,
+      "sources": [
+        "r10_interfaces",
+        "r10_decisions#D8",
+        "r10_change_order"
+      ],
+      "notes": "Interface table status: SELECTED D8 (ADV7513 pins DOCUMENTED; F133 I2S2 pads per R8.5-C matrix). Game audio stays on the game-state owner. HDMI audio NOT_RUN."
+    }
+  ],
+  "claims": {
+    "physical_boot": "not_tested",
+    "verified_60fps": false,
+    "hdmi_audio": "not_tested",
+    "evidence": null
+  },
+  "uncertainties": [
+    "Fabrication HOLD: schematic and first placement exist, PCB not routed (handoff README, r10_gates#R10-H).",
+    "D213ECV supplier and lot unconfirmed; no distributor listing found (R10 Q1).",
+    "D213 flashless start from the central NOR is NOT_RUN; prototypes fit a D213 boot NOR (D5).",
+    "D213 GMAC0 RGMII driver, delay controls and throughput are unverified (D1, R10-E).",
+    "ECP5-12F TQFP144 pin-locked place and route is NOT_RUN until Lattice Diamond/Radiant is available (D4).",
+    "FPGA VCC power-good thresholds do not qualify the ECP5 operating minimum; rail qualification and shutdown behaviour need hardware review (r10_continuation).",
+    "ADV7513 supply filtering, layout and initialisation review open; HDMI video and audio NOT_RUN.",
+    "USB hub and role-mux enumeration NOT_RUN.",
+    "Owner confirmation that R10's four programmable devices supersede earlier three-chip rules is recorded as delegated (D2) but listed OPEN in r10_base.",
+    "The four memory pools (228 MiB total) are independent; there is no unified address space."
+  ]
+}

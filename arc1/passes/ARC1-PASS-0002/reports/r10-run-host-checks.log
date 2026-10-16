@@ -1,0 +1,272 @@
+== architecture: python3 gen_interface_matrix.py
+87 matrix rows, 21 multiply-claimed D213 pads, 0 errors
+   exit 0
+== memory: python3 gen_nor_partition.py
+F1BT 0x00000000-0x00100000  1 MiB  no image yet
+F1RC 0x00100000-0x00300000  2 MiB  no image yet
+F1MA 0x00300000-0x00B00000  8 MiB  no image yet
+F1MB 0x00B00000-0x01300000  8 MiB  no image yet
+D2FA 0x01300000-0x02300000 16 MiB  no image yet
+D2FB 0x02300000-0x03300000 16 MiB  no image yet
+C12G 0x03300000-0x03500000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C12A 0x03500000-0x03700000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45G 0x03700000-0x03A00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45A 0x03A00000-0x03D00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+META 0x03D00000-0x04000000  3 MiB  no image yet
+NOR_PARTITION_PASS 11 partitions, 64 MiB, 0 errors
+   exit 0
+== hardware: python3 gen_flash_pinmux.py
+Counter({'SDRAM45': 39, 'CFG45': 15, 'SDRAM45_POWER': 15, 'CFG12': 13, 'NOR_AUX': 10, 'NOR': 6, 'PSRAM12': 6, 'D213NOR': 6})
+FLASH_PINMUX_PASS 110 rows, 0 errors
+   exit 0
+== hardware: python3 check_interconnect.py
+SDRAM_ENDPOINT_PASS: 54 package pins; 39 distinct FPGA signal endpoints
+NOR_ENDPOINT_PASS: 16 package pins; dedicated RESET pin 3
+BOARD_RELEASE_HOLD: schematic, power, boot, video and hardware validation incomplete
+   exit 0
+== hardware: python3 -m unittest -v test_interconnect.py
+test_duplicate_fpga_pin_rejected (test_interconnect.InterconnectTests.test_duplicate_fpga_pin_rejected) ... ok
+test_generated_map (test_interconnect.InterconnectTests.test_generated_map) ... ok
+test_missing_supply_rejected (test_interconnect.InterconnectTests.test_missing_supply_rejected) ... ok
+test_nc_must_remain_unconnected (test_interconnect.InterconnectTests.test_nc_must_remain_unconnected) ... ok
+test_old_eight_pin_nor_mapping_rejected (test_interconnect.InterconnectTests.test_old_eight_pin_nor_mapping_rejected) ... ok
+test_release_is_blocked (test_interconnect.InterconnectTests.test_release_is_blocked) ... ok
+test_swapped_memory_pins_rejected (test_interconnect.InterconnectTests.test_swapped_memory_pins_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.098s
+
+OK
+   exit 0
+== analysis: python3 power_budget.py
+{
+  "source_nominal_w": 15.0,
+  "analysis_reserve_fraction": 0.1,
+  "usable_scenario_w": 13.5,
+  "non_fpga_estimate_input_w": 10.2338,
+  "remaining_fpga_input_allowance_w": 3.2662,
+  "remaining_fpga_load_allowance_w": 2.7763,
+  "ports_only_simultaneous_fault_w": 15.75,
+  "fpga_load_w": null,
+  "total_estimate_input_w": null,
+  "scenario_fits": null,
+  "release_status": "HOLD: estimates, FPGA qualification, transients and rail sequencing unverified"
+}
+   exit 0
+== analysis: python3 -m unittest -v test_power_budget.py
+test_even_small_scenario_does_not_release_board (test_power_budget.PowerBudgetTests.test_even_small_scenario_does_not_release_board) ... ok
+test_fault_is_not_rated_load (test_power_budget.PowerBudgetTests.test_fault_is_not_rated_load) ... ok
+test_invalid_inputs (test_power_budget.PowerBudgetTests.test_invalid_inputs) ... ok
+test_legacy_sum (test_power_budget.PowerBudgetTests.test_legacy_sum) ... ok
+test_over_budget_scenario (test_power_budget.PowerBudgetTests.test_over_budget_scenario) ... ok
+test_three_ports_exhaust_1p5a_before_board (test_power_budget.PowerBudgetTests.test_three_ports_exhaust_1p5a_before_board) ... ok
+test_unknown_is_not_zero (test_power_budget.PowerBudgetTests.test_unknown_is_not_zero) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK
+   exit 0
+== fpga45: make gpu_ref gpu_mutants
+mkdir -p build
+cc -std=c11 -O2 -Wall -Wextra -Werror -o build/gpu_ref tools/gpu_ref.c -lm
+mkdir -p build
+cc -std=c11 -O2 -Wall -Wextra -Werror -o build/raster_ref tools/raster_ref.c -lm
+mkdir -p build/vec
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/fpga45/build/raster_ref build/vec | tee build/raster_ref.log; grep -q RASTER_REF_PASS build/raster_ref.log
+coverage check (fans of 3..11 triangles, 200 runs): 0 violations
+18 tiles, 62 triangles, 790 job words, 18522 expected words, 33662 scanned samples
+RASTER_REF_PASS
+mkdir -p build/gvec
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/fpga45/build/gpu_ref gen build/gvec | tee build/gpu_ref.log; grep -q '^GPU_REF_PASS$' build/gpu_ref.log
+perspective check: 398 samples, max |error| 0.997/16 texel, mean 0.500/16 texel
+dither check: mean red level 8.250 (ideal 8.25)
+vectors: 24 tiles, 96 triangles, 21529 job words, 24696 expected words, 43697 samples, 6671 texel fetches
+GPU_REF_PASS
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/fpga45/build/gpu_ref run build/vec/jobs.memh build/gvec/v0_out.memh
+interpreted 790 words -> 18522 output words, 62 triangles, 0 bad commands
+cmp build/gvec/v0_out.memh build/vec/expect.memh && echo "v0 regression: identical to raster_ref"
+v0 regression: identical to raster_ref
+mkdir -p build/gmut
+MUTANT_KILLED MUTANT_GPU_AFFINE (1 self-check failures)
+MUTANT_KILLED MUTANT_GPU_NO_DITHER (1 self-check failures)
+MUTANT_KILLED MUTANT_GPU_ALPHA_SWAP (2 self-check failures)
+   exit 0
+== f133/graphics_link: make all
+mkdir -p build
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude src/gfx_link.c tests/test_gfx.c -o build/test_gfx
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/f133/graphics_link/build/test_gfx
+TEST gl_basic done fails=0
+TEST gl_faults done fails=0
+TEST gl_resync done fails=0
+TEST gl_fallback done fails=0
+TEST gl_device done fails=0
+45 checks, 0 failed
+GFX_LINK_TEST_PASS
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer \
+  src/gfx_link.c tests/test_gfx.c -o build/test_gfx_san
+ASAN_OPTIONS=detect_leaks=0 /tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/f133/graphics_link/build/test_gfx_san | tail -1
+GFX_LINK_TEST_PASS
+cc -c -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -ffreestanding -Iinclude src/gfx_link.c -o build/gfx_link.o
+freestanding object compile OK (not a link, not an F133/D213 image)
+MUTANT_KILLED MUTANT_GL_NO_CRC (5 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_SEQ_MATCH (2 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_DEDUP (2 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_BOOTID (1 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_ORDER (2 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_WATCHDOG (3 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_REPROBE (1 failing checks)
+   exit 0
+== firmware/f133_bootloader: make all
+python3 -I ../../memory/gen_nor_partition.py
+F1BT 0x00000000-0x00100000  1 MiB  no image yet
+F1RC 0x00100000-0x00300000  2 MiB  no image yet
+F1MA 0x00300000-0x00B00000  8 MiB  no image yet
+F1MB 0x00B00000-0x01300000  8 MiB  no image yet
+D2FA 0x01300000-0x02300000 16 MiB  no image yet
+D2FB 0x02300000-0x03300000 16 MiB  no image yet
+C12G 0x03300000-0x03500000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C12A 0x03500000-0x03700000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45G 0x03700000-0x03A00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45A 0x03A00000-0x03D00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+META 0x03D00000-0x04000000  3 MiB  no image yet
+NOR_PARTITION_PASS 11 partitions, 64 MiB, 0 errors
+git diff --exit-code -- include/r10_nor_layout.h ../../memory/R10_nor_partition.csv
+diff --git a/include/r10_nor_layout.h b/../../memory/R10_nor_partition.csv
+index 2965d55..e3bdb01 100644
+--- a/include/r10_nor_layout.h
++++ b/../../memory/R10_nor_partition.csv
+@@ -1,21 +1,12 @@
+-/* GENERATED by memory/gen_nor_partition.py from the ARC1_MEMORY_R10 v0.1 partition map -- do not edit. */
+-#ifndef R10_NOR_LAYOUT_H
+-#define R10_NOR_LAYOUT_H
+-#include <stdint.h>
+-#define R10_NOR_SIZE 0x04000000u
+-enum r10_part { R10P_F1BT = 0, R10P_F1RC = 1, R10P_F1MA = 2, R10P_F1MB = 3, R10P_D2FA = 4, R10P_D2FB = 5, R10P_C12G = 6, R10P_C12A = 7, R10P_C45G = 8, R10P_C45A = 9, R10P_META = 10, R10P_COUNT = 11 };
+-typedef struct r10_part_info { uint32_t tag, base, len; uint8_t locked; } r10_part_info;
+-static const r10_part_info r10_parts[R10P_COUNT] = {
+-    { 0x54423146u, 0x00000000u, 0x00100000u, 1 },  /* F1BT F133 boot / selector */
+-    { 0x43523146u, 0x00100000u, 0x00200000u, 1 },  /* F1RC F133 rescue / diagnostics */
+-    { 0x414D3146u, 0x00300000u, 0x00800000u, 0 },  /* F1MA F133 firmware A */
+-    { 0x424D3146u, 0x00B00000u, 0x00800000u, 0 },  /* F1MB F133 firmware B */
+-    { 0x41463244u, 0x01300000u, 0x01000000u, 0 },  /* D2FA D213 firmware A */
+-    { 0x42463244u, 0x02300000u, 0x01000000u, 0 },  /* D2FB D213 firmware B */
+-    { 0x47323143u, 0x03300000u, 0x00200000u, 1 },  /* C12G ECP5-12F golden */
+-    { 0x41323143u, 0x03500000u, 0x00200000u, 0 },  /* C12A ECP5-12F application */
+-    { 0x47353443u, 0x03700000u, 0x00300000u, 1 },  /* C45G ECP5-45F golden */
+-    { 0x41353443u, 0x03A00000u, 0x00300000u, 0 },  /* C45A ECP5-45F application */
+-    { 0x4154454Du, 0x03D00000u, 0x00300000u, 0 },  /* META Metadata / journals / reserve */
+-};
+-#endif
++id,partition,offset,end_exclusive,size_bytes,size_mib,contents,written_by,read_by,protection,boot_rom_reads,measured_image_bytes,fit,status
++F1BT,F133 boot / selector,0x00000000,0x00100000,1048576,1,boot0 (eGON) at 0 + ARC-1 loader at 0x10000; manifest selector,factory / recovery header only,"F133 boot ROM, then loader",locked (individual block lock),yes,,no image yet,"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++F1RC,F133 rescue / diagnostics,0x00100000,0x00300000,2097152,2,"recovery image (USB device service, diagnostics); independent of A/B",factory / recovery header only,F133 loader,locked,yes,,no image yet,"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++F1MA,F133 firmware A,0x00300000,0x00B00000,8388608,8,main F133 firmware,updater (inactive slot only),F133 loader,unlocked,no,,no image yet,"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++F1MB,F133 firmware B,0x00B00000,0x01300000,8388608,8,main F133 firmware,updater (inactive slot only),F133 loader,unlocked,no,,no image yet,"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++D2FA,D213 firmware A,0x01300000,0x02300000,16777216,16,bare-metal graphics firmware,updater (inactive slot only),F133 -> D213 over USB,unlocked,no,,no image yet,"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++D2FB,D213 firmware B,0x02300000,0x03300000,16777216,16,bare-metal graphics firmware,updater (inactive slot only),F133 -> D213 over USB,unlocked,no,,no image yet,"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++C12G,ECP5-12F golden,0x03300000,0x03500000,2097152,2,minimal link-safe 12F configuration,factory,F133 slave-SPI loader,locked,no,600913,FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED),"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++C12A,ECP5-12F application,0x03500000,0x03700000,2097152,2,normal RGMII/compute 12F bitstream,updater,F133 slave-SPI loader,unlocked,no,600913,FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED),"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++C45G,ECP5-45F golden,0x03700000,0x03A00000,3145728,3,known-good diagnostic / 2D-safe 45F configuration,factory,F133 -> D213 -> 45F slave SPI,locked,no,1055505,FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED),"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++C45A,ECP5-45F application,0x03A00000,0x03D00000,3145728,3,normal 3D rasterizer 45F bitstream,updater,F133 -> D213 -> 45F slave SPI,unlocked,no,1055505,FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED),"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
++META,Metadata / journals / reserve,0x03D00000,0x04000000,3145728,3,"two-copy manifests (2 x 64 KiB), settings, health counters, headroom",F133 loader and updater,F133,unlocked,no,,no image yet,"PROPOSED (ARC1_MEMORY_R10 v0.1 s4 map, unchanged)"
+make: *** [Makefile:22: layout] Error 1
+   exit 2
+== d213/gpu_driver: make all
+mkdir -p build
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Wno-unused-function -DGPU_REF_LIB -c ../../fpga45/tools/gpu_ref.c -o build/gpu_ref_lib.o
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude -I../../fpga45/abi src/r10_gpu.c tests/test_gpu_driver.c build/gpu_ref_lib.o -lm -o build/test_gpu_driver
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/d213/gpu_driver/build/test_gpu_driver
+TEST gpu_clip done fails=0
+INFO frame 0: 14 scene tris, 80 tiles, 10320 job words (20.2 KB), 149547 samples, 47138 texel fetches; pixels differing from the float reference 1083 of 40496 covered (2.67 %), interior 0
+INFO frame 1: 14 scene tris, 80 tiles, 10920 job words (21.3 KB), 163208 samples, 54921 texel fetches; pixels differing from the float reference 1185 of 41530 covered (2.85 %), interior 0
+INFO frame 2: 14 scene tris, 80 tiles, 10260 job words (20.0 KB), 169851 samples, 55931 texel fetches; pixels differing from the float reference 1260 of 42416 covered (2.97 %), interior 0
+INFO frame 3: 14 scene tris, 80 tiles, 11240 job words (22.0 KB), 180173 samples, 54968 texel fetches; pixels differing from the float reference 1038 of 41173 covered (2.52 %), interior 0
+INFO packet plan: 80 independent tile jobs, max 322 words (0.6 KB), 18.8 % replay-state overhead
+TEST gpu_scene done fails=0
+269 checks, 0 failed
+GPU_DRIVER_TEST_PASS
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude -I../../fpga45/abi -DGPU_W_RATIO=1e9f src/r10_gpu.c tests/test_gpu_driver.c build/gpu_ref_lib.o -lm -o build/mut_nosplit
+if /tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/d213/gpu_driver/build/mut_nosplit > build/mut_nosplit.log; then echo "MUTANT_SURVIVED no w-ratio split"; exit 1; \
+  else echo "MUTANT_KILLED no w-ratio split ($(grep -c '^FAIL' build/mut_nosplit.log) failing checks)"; fi
+MUTANT_KILLED no w-ratio split (3 failing checks)
+   exit 0
+== fpga12/adaptive: make all
+mkdir -p build
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude src/arc1_mechanics.c tests/test_mechanics.c -o build/test_mechanics
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/fpga12/adaptive/build/test_mechanics
+INFO max batch: 128 bodies, 8128 candidate pairs, 2048-byte collision matrix, 189 overlaps
+32777 checks, 0 failed
+MECHANICS_TEST_PASS
+mkdir -p build
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude -fsanitize=address,undefined src/arc1_mechanics.c tests/test_mechanics.c -o build/test_mechanics_san
+ASAN_OPTIONS=detect_leaks=0 /tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/fpga12/adaptive/build/test_mechanics_san
+INFO max batch: 128 bodies, 8128 candidate pairs, 2048-byte collision matrix, 189 overlaps
+32777 checks, 0 failed
+MECHANICS_TEST_PASS
+mkdir -p build
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude -ffreestanding -fno-builtin -c src/arc1_mechanics.c -o build/arc1_mechanics.o
+mkdir -p build
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wshadow -Iinclude -DARC1_MECH_MUTANT_INCLUSIVE src/arc1_mechanics.c tests/test_mechanics.c -o build/mut_inclusive
+MUTANT_KILLED inclusive edges (2 failing checks)
+   exit 0
+== cad: python3 gen/design.py
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/cad/gen/design.py", line 19, in <module>
+    from parts import PARTS, R10   # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/cad/gen/parts.py", line 263, in <module>
+    add(Part("EMMC_KLMAG1JETD", "U", _emmc_pins(), "Package_BGA:LFBGA-153_11.5x13mm_Layout14x14_P0.5mm", "STD_LIB",
+                                     ~~~~~~~~~~^^
+  File "/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/cad/gen/parts.py", line 251, in _emmc_pins
+    balls = sorted({m for m in _re.findall(r'\(pad "([A-Z]+\d+)"', open(fp).read())},
+                                                                   ~~~~^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/usr/share/kicad/footprints/Package_BGA.pretty/LFBGA-153_11.5x13mm_Layout14x14_P0.5mm.kicad_mod'
+   exit 1
+== .: python3 cad/check/crosscheck_r10.py . cad/check/CROSSCHECK_R10.json
+A_netlist_vs_plan: 0 finding(s)
+B_symbol_vs_footprint: 580 finding(s)
+    C1: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod
+    C10: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod
+    C100: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C101: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C102: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C103: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C104: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C105: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C106: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C107: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C108: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C109: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C11: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod
+    C110: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C111: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C112: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod
+    C113: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C114: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C115: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C116: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C117: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+    C118: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_1210_3225Metric.kicad_mod
+    C119: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod
+    C12: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod
+    C120: footprint file not found /usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod
+C_45f_lpf_rtl_schematic: 0 finding(s)
+D_12f_lpf_rtl_schematic: 0 finding(s)
+E_connectivity: 0 finding(s)
+F_power_domains: 0 finding(s)
+G_supply_pins: 0 finding(s)
+H_multi_ic_nets: 0 finding(s)
+I_handoff_rev1_1: 0 finding(s)
+info: {"netlist_components": 596, "named_nets": 360, "no_connect_pins": 353, "footprints_checked": 40, "footprint_status_count": {"STD_LIB": 578, "SLIM4_CANDIDATE": 14, "GENERATED_DERIVED": 2, "STD_LIB_CANDIDATE": 2}, "lpf45_ports": 54, "rtl45_ports": 54, "lpf12_ports": 21, "rtl12_ports": 21, "cross_rail_signals": 86, "exterior_connectors": {"J1": "USB_C REAR", "J12": "USB_A FRONT", "J13": "USB_A FRONT", "J14": "USB_A_V TOP", "J15": "HDMI_A REAR"}}
+CROSSCHECK FAIL
+   exit 1
+== .: python3 cad/check/pin_review.py .
+70 tables written to cad/review/
+PIN_REVIEW PASS
+   exit 0
+== .: python3 cad/check/pin_function_matrix.py .
+108 processor signal pins checked -> hardware/R10_PIN_FUNCTION_MATRIX.csv
+PIN_FUNCTION PASS
+   exit 0
+R10_HOST_CHECKS_FAIL

@@ -1,0 +1,78 @@
+{
+  "schema_id": "arc1-compact-r10-current-v1",
+  "date": "2026-10-16",
+  "revision": "R10 DEVELOPMENT",
+  "hardware_implemented": false,
+  "fabrication_ready": false,
+  "fabrication_status": "HOLD",
+  "authority": [
+    "CLAUDE.md",
+    "START_HERE.md",
+    "R10_WORK/BASE.md",
+    "R10_WORK/DECISIONS.md",
+    "R10_WORK/spec/ARC1_R10.txt",
+    "R10_WORK/spec/ARC1_MEMORY_R10.txt"
+  ],
+  "historical_reference_roots": [
+    "R05_BASELINE",
+    "R06_WORK",
+    "R07_WORK",
+    "R08_WORK",
+    "R85_WORK",
+    "R85C_WORK"
+  ],
+  "devices": [
+    {
+      "name": "Allwinner F133-B",
+      "role": "system CPU and game-state authority",
+      "private_memory_mib": 64,
+      "memory": "in-package DDR2"
+    },
+    {
+      "name": "ArtInChip D213ECV",
+      "role": "graphics computer, display/GE/DE, scene setup and 45F scheduling",
+      "private_memory_mib": 128,
+      "memory": "DDR3"
+    },
+    {
+      "name": "Lattice LFE5U-45F",
+      "role": "optional tile GPU",
+      "private_memory_mib": 32,
+      "memory": "x16 SDR SDRAM"
+    },
+    {
+      "name": "Lattice LFE5U-12F-6TG144C",
+      "role": "optional adaptive support coprocessor",
+      "private_memory_mib": 4,
+      "memory": "APS3204L QSPI PSRAM"
+    }
+  ],
+  "links": [
+    {
+      "endpoints": ["F133-B", "ECP5-12F"],
+      "transport": "RGMII framed job link",
+      "status": "RTL_SIMULATED / proxy OPEN_TOOLCHAIN_ROUTED; TQFP144 native P&R NOT_RUN"
+    },
+    {
+      "endpoints": ["D213ECV", "ECP5-45F"],
+      "transport": "GMAC0 RGMII",
+      "status": "SELECTED D1; FPGA side RTL_SIMULATED / OPEN_TOOLCHAIN_ROUTED; D213 hardware NOT_RUN"
+    },
+    {
+      "endpoints": ["F133-B", "D213ECV"],
+      "transport": "USB 2.0 high-speed candidate",
+      "status": "protocol HOST_TESTED; controller transport NOT_RUN"
+    }
+  ],
+  "storage": {
+    "central_nor_mib": 64,
+    "partition_map": "R10_WORK/memory/R10_nor_partition.csv",
+    "status": "HOST_TESTED boot logic; D213 flashless silicon boot NOT_RUN"
+  },
+  "evidence": {
+    "latest_delta": "R10_WORK/IMPROVEMENTS_CODEX.md",
+    "host_suite": "R10_WORK/run_host_checks.sh",
+    "full_suite": "R10_WORK/run_all.sh",
+    "gate_report": "R10_WORK/qa/R10_gate_report.md"
+  }
+}

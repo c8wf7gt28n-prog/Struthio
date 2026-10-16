@@ -22,7 +22,7 @@ any earlier chat transcript; everything you need is in this repository.
 | Run it, dump frames | `./arc1 sim examples/hello_arc1 --replay tests/replays/steer.replay --dump 0,60` |
 | Project tests | `./arc1 test examples/hello_arc1` |
 | Hardware facts | `./arc1 hw inspect [--chip gpu45]` |
-| Check a pass record | `./arc1 pass validate passes/ARC1-PASS-0001` |
+| Check a pass record | `./arc1 pass validate passes/ARC1-PASS-0002` |
 | Whole SDK suite | `python3 tests/run_tests.py` |
 
 Add `--json` to any command for the machine-readable result
@@ -55,9 +55,19 @@ input error, 3 NOT_AVAILABLE/NOT_RUN, 4 internal error. On Windows, prefix with
   board gate. A positive hardware claim needs a board ID, equipment and a
   hashed log.
 - **Hardware facts.** `hardware/manifests/` is the only source of hardware
-  facts. Do not invent register addresses, clocks, pin maps, bandwidth or
-  electrical limits. Unknown is `null`. The four memory pools are independent;
-  nothing has a shared address space.
+  facts, and each fact must cite an entry in the manifest's `sources`: a file
+  under `hardware/sources/` with its SHA-256 (`id` or `id#anchor`; the anchor
+  text must occur in the file). To add a fact, vendor its source unmodified
+  and record where it came from. Do not invent register addresses, clocks, pin
+  maps, bandwidth or electrical limits. Unknown is `null`. The four memory
+  pools are independent; nothing has a shared address space.
+- **R10 authority.** The board is the R10 design from the owner's handoff
+  (`hardware/sources/r10/PROVENANCE.md`). It is on fabrication HOLD. R10
+  evidence labels map onto ours: DOCUMENTED/DERIVED → DESIGN,
+  HOST_TESTED → HOST_SIM, RTL_SIMULATED → RTL_SIM,
+  OPEN_TOOLCHAIN_ROUTED → FPGA_PNR, PROTOTYPE_MEASURED → BOARD_TEST. Never
+  promote one into another. Link pin lists must equal
+  `hardware/tools/r10_links.py` output (the tests check this).
 - **Protected files** (`policy/protected_paths.json`): schemas, public
   headers, the runtime, hardware manifests, the toolchain lock, test plans,
   goldens and this file. Modifying or deleting one must be disclosed in the
@@ -87,11 +97,13 @@ sdk/include/arc1/       public C headers (ABI 0.2, proposed)
 sdk/runtime/host/       host reference runtime (HOST_SIM evidence)
 sdk/templates/game/     `arc1 new` template, with goldens
 sdk/schemas/            JSON Schemas: pass, hardware, package, tests, golden, tool result, lock
-hardware/manifests/     R10 design facts (unverified) and the simulation-only descriptor
+hardware/manifests/     R10 design facts (cited, unverified) and the simulation-only descriptor
+hardware/sources/r10/   unmodified R10 handoff files the manifest cites, with SHA256SUMS
+hardware/tools/         pin-list derivation from the R10 interface table
 examples/hello_arc1/    vertical-slice demo
 tests/                  SDK self-tests, conformance test, fixtures (positive and negative)
 tools/lock/             toolchain lock
 policy/                 protected paths
 passes/                 pass records, reports, handoffs
-docs/                   API, CLI and traceability reference
+docs/                   API, CLI, migration and traceability reference; logo
 ```

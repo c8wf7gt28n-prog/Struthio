@@ -1,0 +1,67 @@
+python3 -I ../../memory/gen_nor_partition.py
+F1BT 0x00000000-0x00100000  1 MiB  no image yet
+F1RC 0x00100000-0x00300000  2 MiB  no image yet
+F1MA 0x00300000-0x00B00000  8 MiB  no image yet
+F1MB 0x00B00000-0x01300000  8 MiB  no image yet
+D2FA 0x01300000-0x02300000 16 MiB  no image yet
+D2FB 0x02300000-0x03300000 16 MiB  no image yet
+C12G 0x03300000-0x03500000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C12A 0x03500000-0x03700000  2 MiB  FITS 29% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45G 0x03700000-0x03A00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+C45A 0x03A00000-0x03D00000  3 MiB  FITS 34% uncompressed (OPEN_TOOLCHAIN_MEASURED)
+META 0x03D00000-0x04000000  3 MiB  no image yet
+NOR_PARTITION_PASS 11 partitions, 64 MiB, 0 errors
+git diff --exit-code -- include/r10_nor_layout.h ../../memory/R10_nor_partition.csv
+mkdir -p build
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../f133/graphics_link/src/gfx_link.c ../../d213/fpga45_loader/src/d213_fpga45.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_power_loss.c -o build/test_power_loss
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/firmware/f133_bootloader/build/test_power_loss
+POWER_LOSS_PASS: healthy configuration, mid-read rail loss, safe isolation, zero-chunk rejection
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../f133/graphics_link/src/gfx_link.c ../../d213/fpga45_loader/src/d213_fpga45.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_boot.c -o build/test_boot
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/firmware/f133_bootloader/build/test_boot
+TEST boot_layout done fails=0
+TEST boot_blank done fails=0
+TEST boot_ab done fails=0
+TEST boot_manifest done fails=0
+TEST boot_interrupted done fails=0
+TEST boot_d213 done fails=0
+TEST boot_fpga12 done fails=0
+TEST boot_fpga12_fail done fails=0
+TEST boot_c45 done fails=0
+74 checks, 0 failed
+R10_BOOT_TEST_PASS
+cc -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../f133/graphics_link/src/gfx_link.c ../../d213/fpga45_loader/src/d213_fpga45.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_fpga45_path.c -o build/test_fpga45_path
+/tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/firmware/f133_bootloader/build/test_fpga45_path
+INFO 45F app 1055537 bytes in 66 USB transfers
+TEST p45_app done fails=0
+TEST p45_retry_last done fails=0
+TEST p45_corrupt_nor done fails=0
+TEST p45_cfg_fail done fails=0
+TEST p45_usb_crc done fails=0
+TEST p45_d213_restart done fails=0
+TEST p45_link_dead done fails=0
+TEST p45_wrong_device done fails=0
+34 checks, 0 failed
+R10_FPGA45_PATH_PASS
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include -fsanitize=address,undefined -fno-sanitize-recover=all src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../f133/graphics_link/src/gfx_link.c ../../d213/fpga45_loader/src/d213_fpga45.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_power_loss.c -o build/test_power_loss_san
+ASAN_OPTIONS=detect_leaks=0 /tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/firmware/f133_bootloader/build/test_power_loss_san
+POWER_LOSS_PASS: healthy configuration, mid-read rail loss, safe isolation, zero-chunk rejection
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer \
+  src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../f133/graphics_link/src/gfx_link.c ../../d213/fpga45_loader/src/d213_fpga45.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_boot.c -o build/test_boot_san
+ASAN_OPTIONS=detect_leaks=0 /tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/firmware/f133_bootloader/build/test_boot_san | tail -2
+74 checks, 0 failed
+R10_BOOT_TEST_PASS
+cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer \
+  src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../f133/graphics_link/src/gfx_link.c ../../d213/fpga45_loader/src/d213_fpga45.c ../../../R85C_WORK/firmware/src/crc32.c ../../../R85C_WORK/firmware/src/flash_layout.c ../../../R85C_WORK/firmware/tests/nor_mock.c ../../../R85C_WORK/firmware/tests/ecp5_mock.c ../../../R85C_WORK/firmware/src/accel_job.c ../../../R85C_WORK/firmware/src/fpga_link.c ../../../R05_BASELINE/compute/arc1_transform.c tests/test_fpga45_path.c -o build/test_fpga45_san
+ASAN_OPTIONS=detect_leaks=0 /tmp/claude-0/-home-user-Struthio/c6ad93fa-d260-51c0-a410-b2c960ffe368/scratchpad/r10run/R10_WORK/firmware/f133_bootloader/build/test_fpga45_san | tail -2
+34 checks, 0 failed
+R10_FPGA45_PATH_PASS
+for f in src/r10_boot.c src/r10_fpga45.c src/spi_nor.c src/ecp5_cfg.c ../../d213/fpga45_loader/src/d213_fpga45.c; do cc -c -O2 -std=c11 -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -ffreestanding -Iinclude -I../../../R85C_WORK/firmware/include -I../../../R85C_WORK/firmware/tests -I../../../R05_BASELINE/compute -I../../f133/graphics_link/include -I../../d213/fpga45_loader/include $f -o build/$(basename $f .c).o || exit 1; done
+freestanding object compile OK (not a link, not an F133 image)
+MUTANT_KILLED MUTANT_BOOT_NO_LOCK (4 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_GEN (15 failing checks)
+MUTANT_KILLED MUTANT_BOOT_SAME_COPY (6 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_TRIAL_CONSUME (3 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_GOLDEN (1 failing checks)
+MUTANT_KILLED MUTANT_BOOT_NO_DISARM (1 failing checks)
+MUTANT_KILLED MUTANT_GL_NO_DEDUP (1 failing checks)
+MUTANT_KILLED MUTANT_D213_NO_IDCODE (2 failing checks)

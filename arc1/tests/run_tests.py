@@ -170,7 +170,33 @@ class HardwareManifestTests(unittest.TestCase):
         self.assertEqual(s["memory_total_bytes"], 228 * 1024 * 1024)
         self.assertFalse(s["unified_address_space"])
         self.assertEqual(doc["claims"]["physical_boot"], "not_tested")
-        self.assertIn("f133.power_domain", s["unknown_safety_critical"])
+        self.assertEqual(doc["fabrication_status"], "HOLD")
+        self.assertEqual(s["unknown_safety_critical"], [])  # every chip field cites an R10 source
+
+    def test_r10_link_pins_match_interface_table(self):
+        """Traceability: each link's pin list is exactly what the vendored R10
+        interface table says (hardware/tools/r10_links.py)."""
+        sys.path.insert(0, str(ROOT / "hardware" / "tools"))
+        import r10_links
+        doc = json.loads(hardware.DEFAULT_BOARD.read_text())
+        by_id = {l["id"]: l for l in doc["links"]}
+        self.assertEqual(set(by_id), set(r10_links.SELECTED))
+        for lid in r10_links.SELECTED:
+            with self.subTest(link=lid):
+                self.assertEqual(by_id[lid]["pins"], r10_links.pins_for(lid))
+                self.assertEqual(by_id[lid]["state"], "proposed_unverified")
+
+    def test_vendored_r10_sources_unmodified(self):
+        base = ROOT / "hardware" / "sources" / "r10"
+        lines = (base / "SHA256SUMS").read_text().splitlines()
+        self.assertEqual(len(lines), 14)
+        for line in lines:
+            digest, rel = line.split("  ", 1)
+            with self.subTest(path=rel):
+                self.assertEqual(sha256_file(base / rel), digest)
+        listed = {line.split("  ", 1)[1] for line in lines}
+        on_disk = {p.relative_to(base).as_posix() for p in base.rglob("*") if p.is_file()}
+        self.assertEqual(on_disk - listed, {"SHA256SUMS", "PROVENANCE.md"})
 
     def test_cases(self):
         cases = load_cases("hardware")
@@ -295,12 +321,15 @@ class PassValidatorTests(unittest.TestCase):
             self.assertIn("PASS-002", codes(findings))
 
     def test_repository_pass_records_validate(self):
+        """Committed records are checked at the commit that recorded them, as
+        `arc1 pass validate` does; later passes must not break earlier ones."""
         records = sorted((ROOT / "passes").glob("ARC1-PASS-*/pass.json"))
         self.assertTrue(records)
+        use_git = shutil.which("git") is not None
         for rec in records:
             with self.subTest(record=rec.parent.name):
                 doc = json.loads(rec.read_text())
-                findings, _ = passrec.check_pass(doc, ROOT, rec, git_checks=False)
+                findings, _ = passrec.check_pass(doc, ROOT, rec, git_checks=use_git)
                 self.assertEqual(findings, [])
 
 

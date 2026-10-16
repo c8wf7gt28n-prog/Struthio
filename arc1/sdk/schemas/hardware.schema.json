@@ -1,102 +1,507 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "arc1.hardware/0.2",
+  "$id": "arc1.hardware/0.3",
   "title": "ARC-1 Silicon Federation hardware manifest (section 6)",
-  "description": "Unknown facts stay null. Keys are always present so absence is explicit (HW-005).",
+  "description": "Unknown facts stay null. Keys are always present so absence is explicit (HW-005). Every non-null reference names an entry in `sources`, whose file and SHA-256 are checked (HW-001).",
   "type": "object",
-  "required": ["schema", "revision", "board_family", "simulation_only", "chips", "links", "claims", "uncertainties"],
+  "required": [
+    "schema",
+    "revision",
+    "board_family",
+    "simulation_only",
+    "fabrication_status",
+    "sources",
+    "chips",
+    "peripherals",
+    "links",
+    "claims",
+    "uncertainties"
+  ],
   "additionalProperties": false,
   "properties": {
-    "schema": {"const": "arc1.hardware/0.2"},
-    "revision": {"type": "string", "minLength": 1},
-    "board_family": {"const": "ARC-1"},
-    "simulation_only": {"type": "boolean"},
-    "$comment": {"type": "string"},
-    "chips": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/chip"}},
-    "links": {"type": "array", "items": {"$ref": "#/$defs/link"}},
-    "claims": {
-      "type": "object",
-      "required": ["physical_boot", "verified_60fps", "hdmi_audio", "evidence"],
-      "additionalProperties": false,
-      "properties": {
-        "physical_boot": {"enum": ["not_tested", "fail", "pass"]},
-        "verified_60fps": {"type": "boolean"},
-        "hdmi_audio": {"enum": ["not_tested", "fail", "pass"]},
-        "evidence": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/board_evidence"}]}
+    "schema": {
+      "const": "arc1.hardware/0.3"
+    },
+    "revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "board_family": {
+      "const": "ARC-1"
+    },
+    "simulation_only": {
+      "type": "boolean"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "chips": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/chip"
       }
     },
-    "uncertainties": {"type": "array", "items": {"type": "string", "minLength": 5}}
-  },
-  "$defs": {
-    "provenance": {"enum": ["DESIGN", "STATIC_CHECK", "HOST_SIM", "RTL_SIM", "FPGA_PNR", "BOARD_TEST"]},
-    "nullable_string": {"type": ["string", "null"]},
-    "board_evidence": {
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link"
+      }
+    },
+    "claims": {
       "type": "object",
-      "required": ["board_id", "equipment", "log", "log_sha256"],
+      "required": [
+        "physical_boot",
+        "verified_60fps",
+        "hdmi_audio",
+        "evidence"
+      ],
       "additionalProperties": false,
       "properties": {
-        "board_id": {"type": "string", "minLength": 1},
-        "equipment": {"type": "string", "minLength": 1},
-        "log": {"type": "string", "minLength": 1},
-        "log_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        "physical_boot": {
+          "enum": [
+            "not_tested",
+            "fail",
+            "pass"
+          ]
+        },
+        "verified_60fps": {
+          "type": "boolean"
+        },
+        "hdmi_audio": {
+          "enum": [
+            "not_tested",
+            "fail",
+            "pass"
+          ]
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/board_evidence"
+            }
+          ]
+        }
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 5
+      }
+    },
+    "fabrication_status": {
+      "enum": [
+        "HOLD",
+        "RELEASED",
+        "NOT_APPLICABLE"
+      ],
+      "description": "RELEASED requires board evidence; NOT_APPLICABLE only for simulation_only descriptors."
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "peripherals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/peripheral"
+      }
+    }
+  },
+  "$defs": {
+    "provenance": {
+      "enum": [
+        "DESIGN",
+        "STATIC_CHECK",
+        "HOST_SIM",
+        "RTL_SIM",
+        "FPGA_PNR",
+        "BOARD_TEST"
+      ]
+    },
+    "nullable_string": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "board_evidence": {
+      "type": "object",
+      "required": [
+        "board_id",
+        "equipment",
+        "log",
+        "log_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "board_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "equipment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "log": {
+          "type": "string",
+          "minLength": 1
+        },
+        "log_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
       }
     },
     "memory": {
       "type": "object",
-      "required": ["id", "type", "capacity_bytes", "owner", "controller", "access", "shared_address_space",
-                   "visibility", "provenance", "source"],
+      "required": [
+        "id",
+        "type",
+        "capacity_bytes",
+        "owner",
+        "controller",
+        "access",
+        "shared_address_space",
+        "visibility",
+        "provenance",
+        "source"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-        "type": {"type": "string", "minLength": 1},
-        "capacity_bytes": {"type": "integer", "exclusiveMinimum": 0},
-        "owner": {"type": "string"},
-        "controller": {"$ref": "#/$defs/nullable_string"},
-        "access": {"$ref": "#/$defs/nullable_string"},
-        "shared_address_space": {"type": "boolean"},
-        "visibility": {"type": "string", "minLength": 5},
-        "provenance": {"$ref": "#/$defs/provenance"},
-        "source": {"type": "string", "minLength": 1}
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity_bytes": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "owner": {
+          "type": "string"
+        },
+        "controller": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "access": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "shared_address_space": {
+          "type": "boolean"
+        },
+        "visibility": {
+          "type": "string",
+          "minLength": 5
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "source ref (id[#anchor]) or, for simulation descriptors, an SDK path"
+        }
       }
     },
     "chip": {
       "type": "object",
-      "required": ["id", "part", "manufacturer", "role", "datasheet_ref", "power_domain", "clock_sources",
-                   "boot_dependencies", "wiring_source", "memory", "provenance", "status"],
+      "required": [
+        "id",
+        "part",
+        "manufacturer",
+        "role",
+        "datasheet_ref",
+        "power_domain",
+        "clock_sources",
+        "boot_dependencies",
+        "wiring_source",
+        "memory",
+        "provenance",
+        "status"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-        "part": {"type": "string", "minLength": 1},
-        "manufacturer": {"$ref": "#/$defs/nullable_string"},
-        "role": {"type": "string", "minLength": 1},
-        "datasheet_ref": {"$ref": "#/$defs/nullable_string"},
-        "power_domain": {"$ref": "#/$defs/nullable_string"},
-        "clock_sources": {"anyOf": [{"type": "null"}, {"type": "array", "items": {"type": "string"}}]},
-        "boot_dependencies": {"type": "array", "items": {"type": "string"}},
-        "wiring_source": {"$ref": "#/$defs/nullable_string"},
-        "memory": {"type": "array", "items": {"$ref": "#/$defs/memory"}},
-        "provenance": {"$ref": "#/$defs/provenance"},
-        "status": {"type": "string", "minLength": 5}
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "part": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manufacturer": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "datasheet_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "power_domain": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "clock_sources": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "boot_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "wiring_source": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "memory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memory"
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "status": {
+          "type": "string",
+          "minLength": 5
+        }
       }
     },
     "link": {
       "type": "object",
-      "required": ["id", "endpoints", "proposed_protocol", "width_bits", "direction", "pins", "reset_dependency",
-                   "level_shifting", "measured_throughput_Bps", "state", "evidence"],
+      "required": [
+        "id",
+        "endpoints",
+        "proposed_protocol",
+        "width_bits",
+        "direction",
+        "pins",
+        "reset_dependency",
+        "level_shifting",
+        "measured_throughput_Bps",
+        "state",
+        "evidence",
+        "sources",
+        "notes"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-        "endpoints": {"type": "array", "minItems": 2, "maxItems": 2,
-                      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*\\.[A-Za-z0-9_]+$"}},
-        "proposed_protocol": {"type": "string", "minLength": 1},
-        "width_bits": {"type": ["integer", "null"], "exclusiveMinimum": 0},
-        "direction": {"enum": ["a_to_b", "b_to_a", "bidirectional", null]},
-        "pins": {"anyOf": [{"type": "null"}, {"type": "array", "items": {"type": "string"}}]},
-        "reset_dependency": {"$ref": "#/$defs/nullable_string"},
-        "level_shifting": {"$ref": "#/$defs/nullable_string"},
-        "measured_throughput_Bps": {"type": ["number", "null"], "minimum": 0},
-        "state": {"enum": ["proposed_unverified", "design_reviewed", "simulated", "measured"]},
-        "evidence": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/board_evidence"}]}
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "endpoints": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*\\.[A-Za-z0-9_]+$"
+          }
+        },
+        "proposed_protocol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "width_bits": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "direction": {
+          "enum": [
+            "a_to_b",
+            "b_to_a",
+            "bidirectional",
+            null
+          ]
+        },
+        "pins": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "reset_dependency": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "level_shifting": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "measured_throughput_Bps": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "state": {
+          "enum": [
+            "proposed_unverified",
+            "design_reviewed",
+            "simulated",
+            "measured"
+          ]
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/board_evidence"
+            }
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ref": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+(#[A-Za-z0-9_.:/ -]+)?$",
+      "description": "<source id> or <source id>#<anchor inside that source>"
+    },
+    "nullable_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/ref"
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "path",
+        "sha256",
+        "kind",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "relative to the arc1 SDK root"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "owner_spec",
+            "decision_log",
+            "design_source",
+            "interface_table",
+            "qa_report",
+            "vendor_index",
+            "architecture_summary",
+            "sdk_source"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 5
+        }
+      }
+    },
+    "peripheral": {
+      "type": "object",
+      "required": [
+        "id",
+        "part",
+        "manufacturer",
+        "role",
+        "attached_to",
+        "provenance",
+        "status",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "part": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manufacturer": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 3
+        },
+        "attached_to": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "status": {
+          "type": "string",
+          "minLength": 3
+        },
+        "source": {
+          "$ref": "#/$defs/ref"
+        }
       }
     }
   }

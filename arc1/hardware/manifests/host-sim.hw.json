@@ -1,9 +1,19 @@
 {
-  "schema": "arc1.hardware/0.2",
+  "schema": "arc1.hardware/0.3",
   "revision": "SIM-host-0.2",
   "board_family": "ARC-1",
   "simulation_only": true,
+  "fabrication_status": "NOT_APPLICABLE",
   "$comment": "Mock descriptor for the host reference runtime (HW-005). Never a substitute for a board definition.",
+  "sources": [
+    {
+      "id": "host_runtime",
+      "path": "sdk/runtime/host/arc1_host.c",
+      "sha256": "ce12337485f8d14151baaa4a6ecd1d42b43fa98a9cc7db03e02bde9dd829d75f",
+      "kind": "sdk_source",
+      "description": "Host reference runtime implementing the simulated framebuffer"
+    }
+  ],
   "chips": [
     {
       "id": "host_f133_model",
@@ -26,13 +36,14 @@
           "shared_address_space": false,
           "visibility": "Host process memory standing in for one 320x180 8-bit indexed framebuffer.",
           "provenance": "HOST_SIM",
-          "source": "sdk/runtime/host/arc1_host.c"
+          "source": "host_runtime"
         }
       ],
       "provenance": "HOST_SIM",
       "status": "Deterministic software model; not cycle accurate"
     }
   ],
+  "peripherals": [],
   "links": [],
   "claims": {
     "physical_boot": "not_tested",

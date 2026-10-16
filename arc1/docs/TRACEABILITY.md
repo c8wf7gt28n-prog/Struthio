@@ -1,6 +1,6 @@
 # Traceability: ARC1-SDK-ER-002 v0.2 → this repository
 
-State as of ARC1-PASS-0001 (M0–M1). "Enforced" means a check that fails, and
+State as of ARC1-PASS-0002 (M0–M1 plus R10 hardware facts). "Enforced" means a check that fails, and
 a negative fixture that proves it fails. Test names refer to
 `tests/run_tests.py`.
 
@@ -23,11 +23,11 @@ a negative fixture that proves it fails. Test names refer to
 | REP-001 / SEC-002 / TST-003 | Enforced vs git | `policy/protected_paths.json` + `git diff base` must be disclosed | validator `_git_checks`; GitHub branch protection still needed |
 | REP-002 | N/A yet | no generated register docs | — |
 | REP-003 | Partly | artifact digests, lock, reproduction steps | pass record artifacts |
-| HW-001 | Enforced (schema) | every field present; unknowns null and listed by `hw inspect` | `required-field-dropped`, `duplicate-chip` |
-| HW-002 | Enforced | per-pool owner, no shared address space | `flat-memory-claim`, `memory-owner-mismatch` |
-| HW-003 | Enforced | endpoints known, measured needs evidence | `measured-without-evidence`, `throughput-on-proposed-link`, `link-to-unknown-chip` |
+| HW-001 | Enforced | every field present; every reference resolves to a vendored source whose SHA-256 matches and whose text contains the anchor | `required-field-dropped`, `duplicate-chip`, `source-tampered`, `source-missing`, `source-path-escape`, `dangling-reference`, `dangling-anchor`, `duplicate-peripheral-id` |
+| HW-002 | Enforced | per-pool owner, no shared address space, cited capacity | `flat-memory-claim`, `memory-owner-mismatch`, `memory-fact-uncited` |
+| HW-003 | Enforced | endpoints known, measured needs evidence, board links cite sources, pin lists equal the R10 interface table | `measured-without-evidence`, `throughput-on-proposed-link`, `link-to-unknown-chip`, `link-without-source`, `peripheral-unknown-attachment`, `test_r10_link_pins_match_interface_table` |
 | HW-004 | Not started | SystemRDL source not chosen | — |
-| HW-005 | Enforced | `simulation_only` ⇔ `SIM-` revision; positive claims need evidence | `mock-posing-as-board`, `boot-claim-without-evidence`, `sixty-fps-claim` |
+| HW-005 | Enforced | `simulation_only` ⇔ `SIM-` revision ⇔ `NOT_APPLICABLE`; positive claims and RELEASED need evidence | `mock-posing-as-board`, `boot-claim-without-evidence`, `sixty-fps-claim`, `released-without-boot`, `not-applicable-on-board` |
 | CLI-001 | Enforced | result schema, missing artifact → FAIL | `test_result_contract_rejects_missing_artifact` |
 | CLI-002 | Enforced | device → NOT_AVAILABLE; board claims need board id | `test_device_deploy_never_simulates_success`, `board-pass-without-board`, `evidence-level-inflated` |
 | CLI-003 | Enforced | bounded paths, timeouts, scrubbed env, rlimits | `path-escape`, `test_replay_path_cannot_escape_project` |

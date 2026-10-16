@@ -1,0 +1,285 @@
+{
+  "artifacts": [],
+  "board_id": null,
+  "command": "arc1 hw inspect hardware/manifests/arc1-r10.hw.json",
+  "details": {
+    "facts": {
+      "chips": [
+        {
+          "id": "f133",
+          "part": "F133-B",
+          "provenance": "DESIGN",
+          "role": "system CPU, game-state authority, boot owner of the central NOR",
+          "status": "Schematic captured; F133 bootloader core HOST_TESTED with mocks; no silicon boot (fabrication HOLD)"
+        },
+        {
+          "id": "d213",
+          "part": "D213ECV",
+          "provenance": "DESIGN",
+          "role": "graphics computer: display/2D engine, scene setup, 45F scheduling",
+          "status": "Supplier/lot open (R10 Q1, no distributor listing); bare-metal video R10-D NOT_RUN; GMAC driver NOT_RUN"
+        },
+        {
+          "id": "gpu45",
+          "part": "LFE5U-45F-6BG381C",
+          "provenance": "DESIGN",
+          "role": "optional tile rasterizer (GPU), configured by the D213",
+          "status": "Raster + RGMII endpoint RTL_SIMULATED; pin-locked OPEN_TOOLCHAIN_ROUTED 5/5 seeds; no board (R10-C)"
+        },
+        {
+          "id": "fpga12",
+          "part": "LFE5U-12F-6TG144C",
+          "provenance": "DESIGN",
+          "role": "optional adaptive coprocessor; never owns game state",
+          "status": "RGMII + engine RTL_SIMULATED; proxy-package OPEN_TOOLCHAIN_ROUTED 10/10; TQFP144 pin-locked P&R NOT_RUN (D4)"
+        }
+      ],
+      "claims": {
+        "evidence": null,
+        "hdmi_audio": "not_tested",
+        "physical_boot": "not_tested",
+        "verified_60fps": false
+      },
+      "fabrication_status": "HOLD",
+      "links": [
+        {
+          "endpoints": [
+            "f133.rgmii",
+            "fpga12.rgmii"
+          ],
+          "id": "f133_fpga12_rgmii",
+          "measured_throughput_Bps": null,
+          "state": "proposed_unverified"
+        },
+        {
+          "endpoints": [
+            "d213.gmac0",
+            "gpu45.rgmii_interface"
+          ],
+          "id": "d213_gpu45_rgmii",
+          "measured_throughput_Bps": null,
+          "state": "proposed_unverified"
+        },
+        {
+          "endpoints": [
+            "f133.usb1",
+            "d213.usb0"
+          ],
+          "id": "f133_d213_usb",
+          "measured_throughput_Bps": null,
+          "state": "proposed_unverified"
+        },
+        {
+          "endpoints": [
+            "d213.lcd_rgb888",
+            "hdmi_tx.video_in"
+          ],
+          "id": "d213_hdmi_rgb",
+          "measured_throughput_Bps": null,
+          "state": "proposed_unverified"
+        },
+        {
+          "endpoints": [
+            "f133.i2s2",
+            "hdmi_tx.i2s0"
+          ],
+          "id": "f133_hdmi_i2s",
+          "measured_throughput_Bps": null,
+          "state": "proposed_unverified"
+        }
+      ],
+      "memory_pools": [
+        {
+          "capacity_bytes": 67108864,
+          "id": "f133_ddr2",
+          "owner": "f133",
+          "provenance": "DESIGN",
+          "shared_address_space": false
+        },
+        {
+          "capacity_bytes": 134217728,
+          "id": "d213_ddr3",
+          "owner": "d213",
+          "provenance": "DESIGN",
+          "shared_address_space": false
+        },
+        {
+          "capacity_bytes": 33554432,
+          "id": "gpu45_sdram",
+          "owner": "gpu45",
+          "provenance": "DESIGN",
+          "shared_address_space": false
+        },
+        {
+          "capacity_bytes": 4194304,
+          "id": "fpga12_psram",
+          "owner": "fpga12",
+          "provenance": "DESIGN",
+          "shared_address_space": false
+        }
+      ],
+      "memory_total_bytes": 239075328,
+      "peripherals": [
+        {
+          "attached_to": [
+            "f133"
+          ],
+          "id": "system_nor",
+          "part": "W25Q512JVFIQ",
+          "status": "PROPOSED map; bootloader logic HOST_TESTED; D213 flashless start NOT_RUN"
+        },
+        {
+          "attached_to": [
+            "d213"
+          ],
+          "id": "d213_boot_nor",
+          "part": "W25Q512JVFIQ",
+          "status": "SELECTED D5 for prototypes; DNP in production once flashless boot is PROTOTYPE_MEASURED"
+        },
+        {
+          "attached_to": [
+            "d213",
+            "f133"
+          ],
+          "id": "hdmi_tx",
+          "part": "ADV7513BSWZ",
+          "status": "SELECTED D8; R_EXT 887 ohm confirmed from the HW user guide; filtering/init review OPEN; bench NOT_RUN"
+        },
+        {
+          "attached_to": [
+            "hdmi_tx"
+          ],
+          "id": "hdmi_companion",
+          "part": "TPD12S016PWR",
+          "status": "SELECTED D8"
+        },
+        {
+          "attached_to": [
+            "f133"
+          ],
+          "id": "usb_role_mux",
+          "part": "TS3USB221A",
+          "status": "SELECTED D9; enumeration OPEN (bench)"
+        },
+        {
+          "attached_to": [
+            "usb_role_mux"
+          ],
+          "id": "usb_hub",
+          "part": "USB2514B-I/M2",
+          "status": "SELECTED D12; enumeration NOT_RUN"
+        },
+        {
+          "attached_to": [
+            "gpu45",
+            "fpga12"
+          ],
+          "id": "fpga_vcc_buck",
+          "part": "TLV62569P",
+          "status": "PG falling threshold (~0.986 V typ) is below ECP5 VCC minimum 1.045 V: not a valid operating-voltage qualifier; hardware review OPEN"
+        }
+      ],
+      "revision": "R10-development",
+      "simulation_only": false,
+      "sources": [
+        {
+          "id": "r10_architecture",
+          "kind": "architecture_summary",
+          "path": "hardware/sources/r10/CURRENT_ARCHITECTURE.json"
+        },
+        {
+          "id": "r10_base",
+          "kind": "owner_spec",
+          "path": "hardware/sources/r10/R10_WORK/BASE.md"
+        },
+        {
+          "id": "r10_decisions",
+          "kind": "decision_log",
+          "path": "hardware/sources/r10/R10_WORK/DECISIONS.md"
+        },
+        {
+          "id": "r10_spec",
+          "kind": "owner_spec",
+          "path": "hardware/sources/r10/R10_WORK/spec/ARC1_R10.txt"
+        },
+        {
+          "id": "r10_memory_spec",
+          "kind": "owner_spec",
+          "path": "hardware/sources/r10/R10_WORK/spec/ARC1_MEMORY_R10.txt"
+        },
+        {
+          "id": "r10_change_order",
+          "kind": "decision_log",
+          "path": "hardware/sources/r10/R10_WORK/hardware/R10_CHANGE_ORDER_1_1.md"
+        },
+        {
+          "id": "r10_interfaces",
+          "kind": "interface_table",
+          "path": "hardware/sources/r10/R10_WORK/architecture/R10_interface_matrix.csv"
+        },
+        {
+          "id": "r10_nor_map",
+          "kind": "design_source",
+          "path": "hardware/sources/r10/R10_WORK/memory/R10_nor_partition.csv"
+        },
+        {
+          "id": "r10_gates",
+          "kind": "qa_report",
+          "path": "hardware/sources/r10/R10_WORK/qa/R10_gate_report.md"
+        },
+        {
+          "id": "r10_memory_gates",
+          "kind": "qa_report",
+          "path": "hardware/sources/r10/R10_WORK/qa/R10_memory_go_no_go.md"
+        },
+        {
+          "id": "r10_continuation",
+          "kind": "qa_report",
+          "path": "hardware/sources/r10/R10_WORK/qa/R10_CONTINUATION.md"
+        },
+        {
+          "id": "r10_design",
+          "kind": "design_source",
+          "path": "hardware/sources/r10/R10_WORK/cad/gen/design.py"
+        },
+        {
+          "id": "r10_parts",
+          "kind": "design_source",
+          "path": "hardware/sources/r10/R10_WORK/cad/gen/parts.py"
+        },
+        {
+          "id": "r10_vendor_index",
+          "kind": "vendor_index",
+          "path": "hardware/sources/r10/R10_WORK/architecture/sources/sources.json"
+        }
+      ],
+      "uncertainties": [
+        "Fabrication HOLD: schematic and first placement exist, PCB not routed (handoff README, r10_gates#R10-H).",
+        "D213ECV supplier and lot unconfirmed; no distributor listing found (R10 Q1).",
+        "D213 flashless start from the central NOR is NOT_RUN; prototypes fit a D213 boot NOR (D5).",
+        "D213 GMAC0 RGMII driver, delay controls and throughput are unverified (D1, R10-E).",
+        "ECP5-12F TQFP144 pin-locked place and route is NOT_RUN until Lattice Diamond/Radiant is available (D4).",
+        "FPGA VCC power-good thresholds do not qualify the ECP5 operating minimum; rail qualification and shutdown behaviour need hardware review (r10_continuation).",
+        "ADV7513 supply filtering, layout and initialisation review open; HDMI video and audio NOT_RUN.",
+        "USB hub and role-mux enumeration NOT_RUN.",
+        "Owner confirmation that R10's four programmable devices supersede earlier three-chip rules is recorded as delegated (D2) but listed OPEN in r10_base.",
+        "The four memory pools (228 MiB total) are independent; there is no unified address space."
+      ],
+      "unified_address_space": false,
+      "unknown_safety_critical": []
+    },
+    "manifest": "hardware/manifests/arc1-r10.hw.json"
+  },
+  "evidence_level": "DESIGN",
+  "failure_reasons": [],
+  "input_digest": "cad3b576d936850453e5a5e0a05eaec157a93d5bea0b9f52976da5c1e7869dca",
+  "invocation_id": "e1b8ff5d54decf4986f4a1fab7c1c4a5",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "PASS",
+  "warnings": [
+    "Facts are design-level (DESIGN provenance); none are measured on a board",
+    "Fabrication status: HOLD"
+  ]
+}

@@ -1,0 +1,501 @@
+ARC-1
+
+ARCHITECTURE CHANGE CONTROL
+
+R10 · Engineering Proposal · Revision 0.1
+
+15 October 2026
+
+Proposed four-chip architecture
+
+  ---------------------------------------------------------------------------------------------
+  SYSTEM AUTHORITY                       GRAPHICS DOMAIN
+  -------------------------------------- ------------------------------------------------------
+  Allwinner F133-B | main game CPU       ArtInChip D213ECV | graphics controller
+
+  Lattice ECP5-12F | F133-side support   Lattice ECP5-45F | 3D graphics accelerator
+
+  64 MiB packaged DDR2                   128 MiB packaged DDR3; separate 45F local memory TBD
+  ---------------------------------------------------------------------------------------------
+
+  Two RISC-V CPUs. Two purpose-built FPGAs. One stable ARC-1 platform.
+
+Decision record
+
+  -------------------------------------------------------------------------------------------------
+  CLASS                DESIGN CONTROL
+  -------------------- ----------------------------------------------------------------------------
+  Direction selected   Adopt F133 + D213 + ECP5-45F + ECP5-12F as the R10 architecture candidate.
+
+  Explicit choice      The F133-support FPGA is ECP5-12F, with no external working RAM.
+
+  Explicit choice      The graphics FPGA remains ECP5-45F; no ECP5-55F substitution.
+
+  Unfrozen             Host links, graphics-FPGA memory, exact pinmaps, power and video bridge.
+
+  Fabrication          HOLD until electrical feasibility, procurement and benchmark gates pass.
+  -------------------------------------------------------------------------------------------------
+
+Purpose: provide Claude and future ARC-1 engineers with an implementable, testable change specification—not a declaration that untested interfaces already work.
+
+1. Executive decision and scope
+
+ARC-1 retains its F133-B main CPU and game-authority model while replacing the Bridgetek BT820 graphics subsystem with a D213ECV graphics computer and moving custom polygon acceleration onto the ECP5-45F. A separate ECP5-12F receives the F133’s dedicated support functions. This proposal changes architectural responsibility; it does not authorize fabrication or abandon the archived R8.5/R9 reference design.
+
+1.1 Why change
+
+-   Eliminate external BT820 DDR3L routing by using D213ECV’s 128 MiB in-package DDR3 [S2].
+
+-   Give graphics a separately programmable 600 MHz RISC-V controller and manufacturer-documented 2D engine [S2].
+
+-   Reserve the 45F for a game-specific 3D pipeline rather than splitting it among RGMII and general-purpose host duties.
+
+-   Preserve the F133’s existing RGMII-oriented hardware investment in a smaller, independent 12F—subject to fit and timing proof.
+
+-   Maintain a bare-metal, no-ARM, no-graphics-module finished PCB, designed for long-term software and RTL improvement.
+
+1.2 What stays authoritative
+
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+  PRESERVED                                                                 REPLACED OR REDESIGNED
+  ------------------------------------------------------------------------- -------------------------------------------------------------------------------------
+  F133-B as main CPU; 64 MiB DDR2; game/audio/input ownership.              BT820B/MN820 graphics and display-list code; replaced with D213 graphics firmware.
+
+  R8.5 host tests and RTL as a reference, not proof of 12F compatibility.   45F RGMII endpoint relocated to 12F if timing/resource requirements permit.
+
+  60 fps game objective; optional FPGA services; reproducible toolchain.    Host-to-graphics interconnect; 3D RTL; PBUS slave, graphics memory and compositing.
+
+  Existing baseline held for fallback.                                      Board schematic, PCB stack-up and clock/power architecture.
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+1.3 Evidence classes
+
+DOCUMENTED — a feature expressly stated by a silicon vendor. PROPOSED — a plausible partition/interface not yet validated for simultaneous pinmux, signal integrity or software. MEASURED — observed only on a built prototype or reproducible synthesis/timing report. This document never treats a marketing peak rate as measured throughput.
+
+2. Component lock and ownership
+
+  --------------------------------------------------------------------------------------------------------------------------------------------
+  PART               ROLE / MEMORY                                                                      DECISION
+  ------------------ ---------------------------------------------------------------------------------- --------------------------------------
+  F133-B             Main RISC-V game processor; 64 MiB packaged DDR2.                                  Keep.
+
+  D213ECV            Graphics-side RISC-V controller; GE/DE; 128 MiB packaged DDR3.                     Replace BT820 subsystem.
+
+  LFE5U-45F          Custom fixed-function 3D engine; 44K LUT, 72 multipliers, 108 × 18 Kb EBR [S3].    Keep 45F; repurpose.
+
+  LFE5U-12F          F133 coprocessor; 12K LUT, 28 multipliers, 32 × 18 Kb EBR (~72 KiB) [S3].          Select 12F; no external working RAM.
+
+  45F external RAM   Existing 8 MiB QSPI PSRAM concept; not a locked 3D texture/framebuffer solution.   Benchmark before freezing.
+
+  Video bridge       D213 display output to HDMI; device and timing not selected.                       Open selection.
+  --------------------------------------------------------------------------------------------------------------------------------------------
+
+3. System block and traffic partition
+
+Logical topology (lines are proposed interfaces; arrows imply data flow, not verified electrical compatibility):
+
+  ----------------------------------------------------------------------------------------------
+  ECP5-12F                       ← RGMII →                        F133-B
+  ------------------------------ -------------------------------- ------------------------------
+  CPU assistance                 provisional host MAC endpoint    MAIN SYSTEM CPU
+
+  —                              USB 2.0 HOST → DEVICE            ↓
+
+  ECP5-45F                       ← PBUS 16-bit →                  D213ECV
+
+  3D geometry / raster / tiles   D213-controlled reads / writes   GRAPHICS CPU + GE + DE
+
+  ↑ local 3D working memory                                       ↓ video timing / framebuffer
+
+  Memory interface TBD                                            LVDS / RGB → HDMI bridge
+  ----------------------------------------------------------------------------------------------
+
+3.1 System invariants
+
+-   The F133 always remains the authority for simulation state and input. A graphics failure must not silently become a game-logic failure.
+
+-   The D213 must be able to boot and show diagnostic 2D graphics with BOTH FPGAs blank or absent from the active datapath.
+
+-   The 12F has no external SRAM, DDR, PSRAM or framebuffer. Its ~72 KiB EBR is reserved for control, FIFO and small workspaces.
+
+-   The 45F is not a shared-memory master of D213 DDR. The D213 initiates PBUS memory transfers and owns DDR buffers.
+
+-   No final-chip ARM CPU, Linux dependency, video module or removable GPU module.
+
+3.2 Domain contracts
+
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  OWNER       MAY DO                                                                                  MUST NOT DO
+  ----------- --------------------------------------------------------------------------------------- ---------------------------------------------------------------------
+  F133        Advance game state, audio, input and storage; send scene packets; request 12F jobs.     Assume live access to D213 DDR as its own address space.
+
+  D213        Run graphics runtime; decode assets; command GE; schedule FPGA 3D; present on vblank.   Depend on 12F to boot or scan out a 2D diagnostic.
+
+  45F         Accept raster jobs, render/transfer tiles, report completion and perf counters.         Drive HDMI independently or presume unilateral writes to D213 DDR.
+
+  12F         Receive F133 RGMII requests, execute bounded arithmetic/IO offloads, reply.             Buffer whole scenes or inherit all 45F R8.5 accelerators unchanged.
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. Electrical interfaces — provisional only
+
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  LINK               PROPOSED MODE                                                                     REQUIRED PROOF
+  ------------------ --------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------
+  F133 ↔ 12F         F133 GMAC RGMII to FPGA-built MAC-facing endpoint; Ethernet framing and timing.   F133 pad/pinmux, FPGA I/O registers/DDR constraints, CRC/frame protocol, actual timing.
+
+  F133 ↔ D213        F133 USB1 high-speed host to D213 USB0 device (preferred investigation).          Both USB modes available concurrently with console USB input/recovery; tested bare-metal stack.
+
+  D213 ↔ 45F         D213 PBUS master ↔ FPGA slave, 16-bit multiplexed A/D; FIFO and interrupt.        Pinmux, exact setup/hold, sustained FPGA→DDR data, DMA/cache coherency.
+
+  D213 → video       LVDS or parallel RGB to separately selected HDMI bridge.                          D213 exact pin sharing, bridge timing, 800×600/60 and 720p/60 first light.
+
+  Each FPGA config   Separate, reliable power-on bitstream path and JTAG; host load optional.          Flash/chip select, configuration sequence, recovery and power failure behavior.
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4.1 Critical protocol corrections
+
+-   RGMII is a MAC-to-PHY-style electrical interface, not a shared three-chip Ethernet bus. The 12F must actively implement a compatible endpoint; a direct wire is not enough.
+
+-   D213 PBUS is 16-bit multiplexed, with a 64 KiB external device window and single AHB operations. DMA support is documented, but sustained FPGA→D213 throughput is NOT [S4].
+
+-   The F133 PBUS claims in the previous research report are withdrawn: no verified F133 32-bit PBUS is part of this architecture.
+
+-   The 12F EBR is internal working memory. Bitstream NOR flash, if needed, is NONVOLATILE configuration storage, not prohibited external RAM.
+
+-   Avoid assuming both Ethernet MACs, PBUS, LVDS and boot interfaces can coexist on the D213 package without a per-pin mux audit.
+
+4.2 Candidate control/status register map (design proposal)
+
+  --------------------------------------------------------------------------------------
+  REGISTER        16-BIT OFFSET   BEHAVIOR
+  --------------- --------------- ------------------------------------------------------
+  ID_VERSION      0x0000          RO: magic, interface revision; stable on every boot.
+
+  CAPABILITIES    0x0002          RO: feature bits, FIFO depth, format support.
+
+  CONTROL         0x0004          RW: reset, halt, start, interrupt enable.
+
+  STATUS          0x0006          RO: idle/busy/ready/errors.
+
+  TX_FIFO         0x0010          WO: D213→45F job/data words.
+
+  RX_FIFO         0x0012          RO: 45F→D213 tiles/telemetry words.
+
+  COUNTERS        0x0020+         RO: jobs, stalls, FIFO overflows, render cycles.
+  --------------------------------------------------------------------------------------
+
+These offsets are a straw-man protocol, not D213 silicon register addresses; they will live in the FPGA slave aperture.
+
+5. Memory ownership and graphics data movement
+
+  -------------------------------------------------------------------------------------------------------------------------------------------
+  DOMAIN              CAPACITY                                CONTROLLER / DESIGN RULE
+  ------------------- --------------------------------------- -------------------------------------------------------------------------------
+  F133 DDR2           64 MiB [S1]                             F133 exclusively. Game assets and logic. No coherent sharing.
+
+  D213 DDR3           128 MiB [S2]                            D213 exclusively. Assets, 2D buffers, 3D receive tiles, display buffers.
+
+  ECP5-45F EBR        108 × 18 Kb ≈ 243 KiB [S3]              45F local FIFOs, raster tiles and caches.
+
+  ECP5-12F EBR        32 × 18 Kb ≈ 72 KiB [S3]                12F local FIFOs/job state only. No external working RAM.
+
+  ECP5-45F off-chip   8 MiB QSPI PSRAM proposed, NOT frozen   May be inadequate for random texel and Z-buffer workloads; test alternatives.
+
+  Configuration NOR   Capacity TBD                            Nonvolatile code/bitstream storage; not working RAM.
+  -------------------------------------------------------------------------------------------------------------------------------------------
+
+5.1 3D transport budgets at 60 Hz
+
+For one complete uncompressed RGB565 3D color layer delivered from 45F to D213 on every frame, excluding protocol overhead and depth transfer:
+
+  ------------------------------------------------------------------------
+  RESOLUTION            BYTES / FRAME          RAW PAYLOAD AT 60 FPS
+  --------------------- ---------------------- ---------------------------
+  320 × 240             153,600                9.216 MB/s
+
+  400 × 300             240,000                14.400 MB/s
+
+  640 × 480             614,400                36.864 MB/s
+  ------------------------------------------------------------------------
+
+These are minimum logical payload rates, not PBUS benchmark results. Compression, partial tile updates and reduced frame rates may help; busy scenes, command uploads and FIFO gaps hurt. The D213 must own the receiving buffers and the final display schedule.
+
+5.2 First hardware 3D implementation
+
+  1. D213 CPU transforms and bins triangles into 16×16 or 32×32 tiles; sends jobs over PBUS to 45F.
+
+  2. 45F performs edge tests, depth compare and raster shading using EBR scratch memory.
+
+  3. Start flat-shaded; then textured triangles and perspective-correct interpolation after synthesis proof.
+
+  4. 45F exposes completed RGB565 tile data in read FIFO; D213 copies/DMA-reads tiles into its DDR staging surface.
+
+  5. D213 GE composites 3D surface with sprite layers; DE presents only complete frames at vblank.
+
+A 32×32 tile needs 4 KiB of scratch for RGB565 color plus a 16-bit Z value per pixel. If double-buffering and queues are added, total scratch increases. Full-resolution framebuffers do not fit entirely in 45F EBR.
+
+5.3 Target visual experience
+
+Original high-quality 2D is the main artistic priority: dense animation, layers, rotation and scaling, fine silhouettes, and responsive 60 fps controls. Selective FPGA-produced 3D supplies perspective scenery, textured solid geometry, and mixed 2D/3D bosses; it must not displace 2D polish or reliable frame pacing.
+
+6. F133 support FPGA — LFE5U-12F
+
+  No external working RAM. Narrow, deterministic jobs. RGMII preserved only if proven.
+
+6.1 Exact initial candidate
+
+Family/device: LFE5U-12F. Initial PCB-friendly package candidate: LFE5U-12F-7TG144C (144-pin TQFP). Ordering, clock-grade and temperature finalization remain contingent on distributor stock, verified pin allocation and DDR I/O timing. Vendor resources: 12K LUTs, 28 18×18 multipliers, 32 18-Kb sysMEM blocks [S3].
+
+6.2 Intended functions
+
+-   RGMII Ethernet-frame endpoint, RX/TX packet FIFOs and fixed command/status transport for F133.
+
+-   Small, deterministic game-side arithmetic jobs that benefit from hardware: collision primitive batches, vector math, bounded transforms or event acceleration.
+
+-   A lightweight sequencer/interrupt generator and timestamp/performance counters for system diagnostics.
+
+-   No framebuffer, texture memory, large decompressor dictionary, scene cache or filesystem.
+
+6.3 R8.5 migration rule
+
+The historical 45F design reached 799 host-test PASS results and five FPGA P&R runs around 80.2–85.7 MHz for that earlier target, but those observations DO NOT establish that the migrated RGMII/compute design fits a 12F or meets 125 MHz DDR interface requirements. The 12F work starts by isolating the protocol core, synthesize-only migrating it, then adding one small accelerator at a time.
+
+  ----------------------------------------------------------------------------------------------------------------
+  GATE                  REQUIRED RESULT
+  --------------------- ------------------------------------------------------------------------------------------
+  12F P&R fit           ≤ 70% LUT and EBR design target, with documented DSP use and available routing headroom.
+
+  RGMII DDR interface   Fully constrained TX/RX timing and pin-level DDR simulations; no unconstrained paths.
+
+  Protocol validation   Deterministic packet loopback, CRC/retry/error counters, full-range data patterns.
+
+  No memory chip        All queues, registers and scratch fit in internal EBR / distributed RAM.
+
+  Fallback              F133 must boot and run base gameplay if 12F is blank or reports fault.
+  ----------------------------------------------------------------------------------------------------------------
+
+If the 12F cannot fit RGMII plus meaningful compute with margin, the correct response is to resize/simplify the workload or reconsider the link—not to assume the 45F graphics design can absorb it.
+
+7. Graphics FPGA — ECP5-45F
+
+The 45F is dedicated to the graphics domain: tile rasterization, depth testing, color/texture interpolation and command/result transport. It does not host the F133 RGMII MAC endpoint.
+
+7.1 Incremental feature sequence
+
+  1. Command FIFO / PBUS slave / register readback, with deterministic test patterns.
+
+  2. Flat-color triangle rasterizer with clipping and signed edge functions.
+
+  3. Tile-local Z buffer, overdraw tests and precise top-left fill rules.
+
+  4. Texture sampling and nearest-neighbor filtering; validate memory fetch behavior.
+
+  5. Perspective-correct UV interpolation, palette modes, alpha/mask policy.
+
+  6. Frame/update tiling and measured integration with D213 GE/DE at 60 Hz.
+
+No polygon/s claim is accepted until a reproducible timing-closed FPGA implementation completes a fixed game-scene benchmark.
+
+8. Firmware, boot and failure isolation
+
+  -------------------------------------------------------------------------------------------------------------------
+  BOOT / RUN STATE    REQUIRED BEHAVIOR
+  ------------------- -----------------------------------------------------------------------------------------------
+  Cold power          Rails, clocks and reset sequencing independently specified for F133, D213 and both FPGAs.
+
+  D213 alone          Boot from own nonvolatile storage; initialize packaged DDR; display stable diagnostic output.
+
+  F133 alone          Boot and execute input/audio/self-tests with graphics unavailable.
+
+  12F missing/blank   F133 detects absent FPGA with timeout; bypasses hardware acceleration safely.
+
+  45F missing/blank   D213 presents valid 2D-only frames, logs graphics-accelerator unavailable.
+
+  Transport fault     Sequence/CRC checking; bounded retries, watchdog and resynchronization path.
+
+  Update/recovery     Independent versioned images, rollback path and JTAG/UART accessible on prototypes.
+  -------------------------------------------------------------------------------------------------------------------
+
+8.1 Firmware partitions
+
+-   F133 system firmware: bootloader, game scheduler, audio/input drivers, storage, F133↔D213 host driver, 12F support-driver API.
+
+-   D213 graphics firmware: startup, DDR/cache and DMA configuration, GE/DE drivers, scene processor, tile receiver, frame queue, video mode and diagnostics.
+
+-   12F RTL: RGMII endpoint, compact command decoder, job scheduler, bounded math engines, counters and health register.
+
+-   45F RTL: PBUS slave, packet/FIFO transport, geometry/raster pipeline, tile-cache and memory controller.
+
+8.2 Message ABI (draft, to be versioned)
+
+Use little-endian versioned packets with MAGIC, ABI_VERSION, CHANNEL, OPCODE, SEQUENCE, BYTE_LENGTH and CRC. Define separate channels for control, scene state, asset upload, raster jobs, and diagnostics. All commands must have bounded payloads, unambiguous ownership, explicit completion semantics and a way to discover capabilities.
+
+8.3 No hidden assumptions
+
+USB 2.0 high-speed signaling is a candidate transport—not a guarantee of 60 MB/s application throughput. Confirm F133 USB1 host and D213 USB0 device available on chosen pads, verify bare-metal drivers, and reserve a controller-input/recovery topology. Likewise, RGMII MAC configuration and PBUS DMA behavior must be validated on real devices.
+
+9. Electrical design work packages
+
+  ------------------------------------------------------------------------------------------------------------------------
+  PACKAGE                  RELEASE CONTENT
+  ------------------------ -----------------------------------------------------------------------------------------------
+  E01 — parts              Exact orderable F133, D213, 12F and 45F part/grade/package; procurement and lifecycle checks.
+
+  E02 — pinmux             Per-pad simultaneous F133 RGMII/USB, D213 PBUS/video/USB/boot, FPGA I/O bank allocation.
+
+  E03 — power              Full power tree, decoupling, inrush, reset, clocks and brownout sequencing.
+
+  E04 — signal integrity   RGMII DDR timing, PBUS setup/hold/read-turnaround, USB and LVDS controlled impedance.
+
+  E05 — memory             45F working-memory choice, interface timing, config NOR and separate boot flows.
+
+  E06 — interfaces         Video bridge and mode timing; debug UARTs; JTAG headers/test points; interrupts.
+
+  E07 — PCB                Layer count, routing class/order, placement groups, DFM/DFT and complete netlist audit.
+  ------------------------------------------------------------------------------------------------------------------------
+
+10. Verification roadmap and fabrication gates
+
+  --------------------------------------------------------------------------------------------------------------------------
+  PASS    WORK ITEM                              EVIDENCE TO ARCHIVE
+  ------- -------------------------------------- ---------------------------------------------------------------------------
+  R10-A   Freeze parts and topology candidates   Datasheets, pinmux matrix, sourcing and conflict table.
+
+  R10-B   12F RGMII isolation and P&R            Synth/P&R logs, timing constraints, loopback tests, LUT/EBR/DSP usage.
+
+  R10-C   45F stand-alone triangle + Z RTL       Simulator test vectors, image CRCs, P&R timing, utilization.
+
+  R10-D   D213 standalone bare-metal video       Boot logs, GE commands, stable display and measured frame pacing.
+
+  R10-E   D213 PBUS↔45F throughput               Read and write measurements, timing diagrams, DMA errors, cache policy.
+
+  R10-F   F133↔D213 command pipeline             High-speed transfer tests, error recovery, sequence counters and latency.
+
+  R10-G   Integrated 2D + low-res 3D scene       60 Hz measured over full gameplay, no tearing or memory corruption.
+
+  R10-H   Fabrication release                    ERC/DRC, power and SI review, DFM, reproducible source/package.
+  --------------------------------------------------------------------------------------------------------------------------
+
+10.1 Minimum proof scene
+
+At 60 fps: scrolling multilayer 2D scene, 200 animated 2D objects (scene target, not a promised hardware-sprite capacity), one rotating occluded 3D solid object, and successive textured triangle tiles. Record CPU utilization, DMA/PBUS transfer time, rasterizer stalls, 45F clock utilization, GE completion, frame presentation and tail latency over a sustained run.
+
+10.2 Fabrication hold criteria
+
+-   D213 boot NOR, PBUS, USB and video pins conflict or cannot coexist.
+
+-   12F RGMII RTL does not fit with margin or DDR I/O timing fails.
+
+-   45F-to-D213 effective throughput cannot sustain the minimum 320×240 RGB565 3D target.
+
+-   Graphics firmware cannot boot or present stable 2D without custom 3D FPGA.
+
+-   Chosen D213 or FPGA package not procurable in test quantities with documented assembly support.
+
+-   Video bridge/format cannot produce the required display modes at stable timing.
+
+11. Risk register
+
+  --------------------------------------------------------------------------------------------------------------------
+  RISK                           SEVERITY   RESPONSE
+  ------------------------------ ---------- --------------------------------------------------------------------------
+  D213 procurement / lifecycle   HIGH       Check stock and authorized sourcing before footprint freeze.
+
+  RGMII fit in 12F               HIGH       Isolate exact R8.5 MAC/transport RTL; synthesize/timing-close in 12F.
+
+  PBUS reverse throughput        HIGH       Measure D213 reads from FPGA; never assume write-side peak is symmetric.
+
+  FPGA local texture memory      HIGH       Prove cache misses, bandwidth and random-access texture reads.
+
+  Bare-metal GE/DE driver port   HIGH       Build and boot on D213 early; keep 2D-only fallback.
+
+  Interface/signal contention    HIGH       Complete single package-specific pinmux and voltage-bank tables.
+
+  Power/thermal/power-on         MED        Estimate rails and worst-case loads; instrument engineering samples.
+
+  Toolchain reproducibility      MED        Pin source hash, compiler version, synthesis/P&R seeds, scripts.
+
+  Schedule/budget risk           MED        Milestone-gated progression; no speculative fabrication dates.
+  --------------------------------------------------------------------------------------------------------------------
+
+12. Build instructions for the next engineering pass
+
+Claude / RTL / PCB handoff: treat this file as the R10 change specification. Do not claim PCB readiness until every HOLD condition has explicit evidence. Preserve the BT820 baseline source package and avoid deleting prior tests.
+
+12.1 Required outputs
+
+  1. architecture/R10_interface_matrix.csv — every chip pin/interface, alternate function, voltage, direction, and mutually exclusive signals.
+
+  2. fpga12/r10_support_top.sv — 12F-only synthesis target with RGMII transport, no external memory controller, self-test register and performance counters.
+
+  3. fpga12/timing — exact chosen package constraints, source/destination clock declarations, DDR IO constraints, lint/sim/P&R reports.
+
+  4. fpga45/r10_raster_top.sv — PBUS slave FIFO plus flat triangle tile rasterizer, image CRC testbench and pipeline metrics.
+
+  5. d213/boot_and_display — minimal vendor-compatible bare-metal bring-up for packaged DDR, GE, DE and diagnostic video mode.
+
+  6. d213/pbus_driver — bidirectional DMA/FIFO test plan, coherent memory buffers and IRQ/timeout behavior.
+
+  7. f133/graphics_link — high-speed USB transport feasibility, firmware protocol tests and fallback paths.
+
+  8. hardware/R10_change_sheet — power budget, clocks, reset sequence, memory/converter BOM and netlist delta from archived baseline.
+
+  9. qa/R10_gate_report.md — pass/fail and source evidence for all R10-A through R10-H gates; no subjective confidence score substituted for measurements.
+
+12.2 Immediate engineering order
+
+FIRST — confirm D213 procurement, 12F exact part number and all three links’ pinmux. SECOND — isolate and synthesize the 12F RGMII endpoint; independently simulate and place-and-route the 45F triangle tile. THIRD — build D213 standalone graphics firmware and PBUS transfer measurement. FOURTH — authorize electrical schematic capture only after interfaces pass document review.
+
+12.3 Conditional decisions
+
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  IF…                                            THEN…
+  ---------------------------------------------- --------------------------------------------------------------------------------------------------------------------
+  12F cannot sustain RGMII within margin         Try pared-down endpoint or an alternate narrow host interface; do not force a broken clock domain.
+
+  D213 PBUS read performance misses 320×240@60   Evaluate changed tile resolution, compressed/delta tiles, faster validated memory bridge or architecture rollback.
+
+  45F 8 MiB QSPI PSRAM too slow                  Select faster memory based on utilization, pinout and cache-trace measurements; not only nominal capacity.
+
+  D213 cannot independently scan out 2D          Pause the R10 architecture before custom PCB development.
+
+  All gates pass                                 Proceed with complete R10 schematic, electrical review and then board layout.
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+13. Source authority and traceability
+
+Sources establish device-level capabilities. They do not constitute proof that the proposed ARC-1 PCB or FPGA RTL works.
+
+S1 Allwinner Technology, F133 Product Brief (official): https://www.allwinnertech.com/uploads/pdf/20211016141154e7.pdf
+
+S2 ArtInChip, D21x product selection / D213ECV specification (official): https://www.artinchip.com/en/p/10.html
+
+S3 Lattice Semiconductor, ECP5 and ECP5-5G Family Data Sheet, FPGA-DS-02012-3.4 (official): https://www.latticesemi.com/view_document?document_id=50461
+
+S4 ArtInChip, D21x Parallel Bus module guide (official documentation): https://aicdoc.artinchip.com/topics/ic/pbus/pbus-module-d21x.html
+
+S5 ArtInChip, Luban-Lite SDK (official source distribution): https://github.com/artinchip/luban-lite
+
+S6 ArtInChip, D213ECV demo hardware design guide (official): https://www.artinchip.com/upload/files/article/20240219/17083323197441543.pdf
+
+S7 ArtInChip D213 developer-kit PBUS use guide (community documentation): https://artinchip.100ask.net/docs/D213-DevKit/part3/07-6_PBus-Useguide/
+
+14. Mandatory questions before the schematic
+
+-   Q1. What exact D213ECV supplier and traceable lot are available for two engineering boards?
+
+-   Q2. Which D213 package pins concurrently support boot, USB device, PBUS, and the chosen video path?
+
+-   Q3. Does the 12F RGMII endpoint pass full timing with DDR I/O registers and margin?
+
+-   Q4. What measured D213-initiated PBUS read bandwidth and CPU/DMA cost can be sustained?
+
+-   Q5. Which graphics-memory interface allows the 45F to sample textures and preserve its tile schedule?
+
+-   Q6. Can standalone D213 video and 2D compositing run while both FPGAs remain blank?
+
+-   Q7. What are the exact host firmware, FPGA tool and SDK revisions used to reproduce each result?
+
+Change status
+
+  ARC-1 R10: architecture selected for engineering feasibility. PCB fabrication: HOLD.

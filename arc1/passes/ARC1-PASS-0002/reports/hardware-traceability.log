@@ -1,0 +1,23 @@
+test_agrees_with_reference_implementation (__main__.SchemaValidatorTests.test_agrees_with_reference_implementation)
+Independent cross-check: every fixture document gets the same ... ok
+test_all_schemas_load (__main__.SchemaValidatorTests.test_all_schemas_load) ... ok
+test_keywords (__main__.SchemaValidatorTests.test_keywords) ... ok
+test_unsupported_keyword_fails_closed (__main__.SchemaValidatorTests.test_unsupported_keyword_fails_closed) ... ok
+test_lock_valid (__main__.LockAndPolicyTests.test_lock_valid) ... ok
+test_protected_policy_covers_schemas_and_goldens (__main__.LockAndPolicyTests.test_protected_policy_covers_schemas_and_goldens) ... ok
+test_cases (__main__.HardwareManifestTests.test_cases) ... ok
+test_cli_chip_query (__main__.HardwareManifestTests.test_cli_chip_query) ... ok
+test_cli_rejects_corrupted_manifest (__main__.HardwareManifestTests.test_cli_rejects_corrupted_manifest)
+Required deliverable: corrupt a manifest and show non-zero failing validation. ... ok
+test_memory_pools_independent_and_total (__main__.HardwareManifestTests.test_memory_pools_independent_and_total) ... ok
+test_r10_link_pins_match_interface_table (__main__.HardwareManifestTests.test_r10_link_pins_match_interface_table)
+Traceability: each link's pin list is exactly what the vendored R10 ... ok
+test_shipped_manifests_valid (__main__.HardwareManifestTests.test_shipped_manifests_valid) ... ok
+test_vendored_r10_sources_unmodified (__main__.HardwareManifestTests.test_vendored_r10_sources_unmodified) ... ok
+test_cases (__main__.PackageManifestTests.test_cases) ... ok
+test_shipped_package_valid (__main__.PackageManifestTests.test_shipped_package_valid) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 1.011s
+
+OK

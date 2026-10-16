@@ -8,6 +8,8 @@
     "sdk/schemas/*",
     "sdk/runtime/*",
     "hardware/manifests/*",
+    "hardware/sources/*",
+    "hardware/tools/*",
     "tools/lock/*",
     "tests/*",
     "examples/*/tests/*",

@@ -1,0 +1,321 @@
+ARC-1  /  R10  /  CHANGE CONTROL
+MEMORY ARCHITECTURE
+Working RAM  ·  Shared system storage  ·  Boot and recovery
+Engineering Baseline v0.1   |   Prepared 15 October 2026
+Executive decision
+Lock the capacity target at 228 MiB of distributed working RAM. Pursue a single 64 MiB SPI NOR, owned by the F133, as the persistent system store. This single-NOR architecture is CONDITIONAL: the D213 must first be shown to start reliably without dedicated local boot flash.
+
+Capacity snapshot
+Device
+Working RAM
+Nonvolatile source / responsibility
+F133-B main CPU
+64 MiB in-package DDR2
+F133 boots from shared 64 MiB NOR (proposed)
+D213ECV graphics CPU
+128 MiB in-package DDR3
+F133 loads D213 firmware from shared NOR (unproven)
+ECP5-45F graphics FPGA
+32 MiB external x16 SDR SDRAM
+Configuration streamed by D213 in slave mode (proposed)
+ECP5-12F support FPGA
+4 MiB external QSPI PSRAM
+Configuration streamed by F133 in slave mode (proposed)
+TOTAL
+228 MiB RAM
+1 × 64 MiB NOR targeted; separate SD for games
+
+Architecture decisions
+F133 is the system authority; its NOR owns the boot manifest, images, and update history.
+D213 controls graphics RAM, its own CPU firmware, and 2D/display operation.
+45F owns 32 MiB high-bandwidth local 3D memory; 12F owns 4 MiB lightweight work memory.
+No unified 228 MiB address space is implied: transfers between domains are explicit.
+One NOR is the preferred minimal PCB implementation; two NORs remain the validated fallback if flashless D213 boot cannot be demonstrated.
+Control status: MEMORY CAPACITIES — selected design targets. SINGLE NOR — proposed, not verified. PCB FABRICATION — HOLD until boot and interface gates pass.
+
+1. Memory ownership and terminology
+ARC-1 contains four independent execution domains. Each working-memory device belongs to exactly one domain. No part of the external SDRAM or PSRAM should be treated as globally coherent memory.
+Class
+Capacity
+Volatile?
+Accessible directly by
+Packaged DDR2
+64 MiB
+Yes
+F133-B controller only
+Packaged DDR3
+128 MiB
+Yes
+D213ECV controller, GE, DE and local DMA
+SDR SDRAM
+32 MiB
+Yes
+45F memory controller only
+QSPI PSRAM
+4 MiB
+Yes
+12F memory controller only
+SPI NOR
+64 MiB
+No
+F133 SPI host; others receive copied firmware/bitstreams
+
+What these numbers mean
+228 MiB is distributed working RAM; it is neither one 228 MiB memory bank nor a guarantee of one large contiguous allocation.
+64 MiB NOR equals 512 Mbit. It is persistent firmware storage and cannot substitute for DDR/PSRAM.
+SD storage is for game packages, music, large textures, user data and distribution; it is separate from the system NOR.
+Each FPGA also contains embedded block RAM, but that small on-chip storage is excluded from the 228 MiB headline.
+Logical arrangement
+System / owner
+Memory or flash
+Primary access path
+F133-B
+64 MiB DDR2 + central NOR
+CPU local DDR; primary NOR SPI/QSPI
+F133 → 12F
+4 MiB PSRAM at 12F
+RGMII commands; FPGA maintains PSRAM contents
+F133 → D213
+128 MiB DDR3 at D213
+USB 2.0 host/device candidate; explicit asset transfer
+D213 → 45F
+32 MiB SDR SDRAM at 45F
+16-bit D213 PBUS command/tile FIFOs
+D213 → display
+D213 DDR3 framebuffer
+D213 GE / display engine
+
+Non-negotiable ownership rule
+The D213 cannot assume direct random access to the 45F SDRAM; the 45F cannot assume direct random access to D213 DDR3. PBUS transfers move defined buffers or tiles. Likewise, F133-to-D213 memory exchange requires a transport and driver, not simple pointer sharing.
+
+
+2. Four RAM devices: preliminary electrical basis
+2.1 F133-B — 64 MiB packaged DDR2
+Main game logic, application code, audio state, input handling, collision/game models, F133 USB and system services reside here. DDR2 wiring does not leave the chip package in the proposed board. Bootloader and recovery must be small enough to initialize this memory before loading the main firmware.
+2.2 D213ECV — 128 MiB packaged DDR3
+The D213 runs its independent 600 MHz-class RISC-V graphics service, GE/DE drivers, asset cache and display buffers. The manufacturer lists D213ECV with 128 MB built-in DDR3 [S2]. Frame ownership, cache/DMA synchronization, and memory pressure during video decode require software validation.
+2.3 ECP5-45F — 32 MiB x16 SDR SDRAM
+Candidate: Alliance Memory AS4C16M16SA family (256 Mbit, 16M × 16). This is conventional single-data-rate SDRAM, not DDR3. It provides local texture, color, depth, and geometry storage for a custom rasterizer [S4].
+Property
+R10 target
+Bus
+16 data lines plus SDR SDRAM address/control; complete pin budget required
+Clock
+Conservative bring-up first (illustrative 60 MHz); optimize only after timing tests
+Raw interface ceiling
+120 MB/s at 60 MHz; 200 MB/s at 100 MHz, before overhead
+Board validation
+I/O-bank voltage, controller fit, refresh, burst timing, placement, return path
+
+2.4 ECP5-12F — 4 MiB QSPI PSRAM
+Candidate: AP Memory APS3204L-3SQN family, 32 Mbit / 4 MiB, 3 V QSPI PSRAM [S5]. Intended uses: bounded geometry or collision work queues, lookup tables, and intermediate calculations. This is not a display framebuffer and does not make the 12F a graphics card.
+Previously R10 specified no external working RAM on the 12F. The 4 MiB PSRAM is an explicit later design change and requires synthesis, I/O-bank voltage, package-pin, configuration, and RGMII coexistence checks.
+
+3. Single 64 MiB NOR — physical architecture
+The simplest COMPONENT COUNT is one NOR, but the simplest BOOT ARRANGEMENT may not be. One shared chip requires a controlled firmware distribution process; the four devices should not all directly drive its SPI wires.
+3.1 Preferred wiring model
+Connection
+Responsibility / proposed physical contract
+NOR → F133-B
+One dedicated SPI/QSPI boot bus. F133 is sole NOR bus master.
+F133 → ECP5-12F
+Lattice Slave SPI or other vendor-supported configuration mode; F133 sends image read from NOR.
+F133 → D213ECV
+Internal USB host/device link after F133 boot; transport protocol and flashless start are NOT validated.
+D213 → ECP5-45F
+D213 sends 45F bitstream using vendor-supported configuration pins; source delivered from F133.
+45F ↔ D213
+D213 PBUS carries control, geometry descriptors, and return tile data only after FPGA configuration.
+
+Established vs unproven
+Lattice documents CPU-managed configuration of an ECP5 via Slave SPI with images stored in the CPU SPI flash [S3]. ArtInChip documents USB firmware upgrade for D21x [S2], but that alone does NOT prove a D213ECV can execute full firmware loaded directly into DDR without its own NOR/eMMC. R10 must not depend on this assumption at fabrication.
+
+3.2 Flash device selection
+Provisional reference: Winbond W25Q512JV, 512 Mbit (64 MiB), SPI/Dual/Quad NOR [S6]. Select the exact package and voltage after checking the F133 pad, assembler capability, erase geometry and 3-/4-byte address-command behavior.
+Place the immutable first-stage boot image at low addresses accessible with conservative power-on ROM commands.
+Validate F133 boot ROM behavior with this exact 512-Mbit flash device, including power-up address mode and any Quad-enable state.
+High addresses require supported 4-byte or extended addressing; do not assume boot ROM can read the whole 64 MiB.
+Use flash write protection and a recovery-programming header; make update failure survivable.
+
+4. Illustrative 64 MiB NOR partition map
+The following is a proposed SIZE BUDGET, not the final firmware layout. Partition boundaries are MiB-aligned. Actual binary lengths and write-protect regions must be revised using linker sizes, FPGA configuration-file sizes, erase sectors and ROM boot constraints.
+Partition
+Offset range
+Space
+Contents
+F133 boot / selector
+00–01 MiB
+1 MiB
+Protected first-stage and manifest selector
+F133 rescue / diagnostics
+01–03 MiB
+2 MiB
+Recovery image; independent of A/B slots
+F133 firmware A
+03–0B MiB
+8 MiB
+Current/alternate main firmware
+F133 firmware B
+0B–13 MiB
+8 MiB
+Rollback or update target
+D213 firmware A
+13–23 MiB
+16 MiB
+Bare-metal graphics firmware
+D213 firmware B
+23–33 MiB
+16 MiB
+Rollback/update target
+ECP5-12F golden
+33–35 MiB
+2 MiB
+Minimal link-safe FPGA configuration
+ECP5-12F application
+35–37 MiB
+2 MiB
+Normal RGMII/compute bitstream
+ECP5-45F golden
+37–3A MiB
+3 MiB
+Known-good diagnostic/2D-safe configuration
+ECP5-45F application
+3A–3D MiB
+3 MiB
+Normal 3D rasterizer bitstream
+Metadata / journals / reserve
+3D–40 MiB
+3 MiB
+Two-copy manifests, health flags, counters, headroom
+
+Update protocol rules
+Boot and recovery stay readable even if a power cut interrupts a firmware update.
+Write inactive slot first; stream-verify hash/CRC; atomically switch the manifest; require a successful-boot acknowledgement.
+Keep at least two independently stored manifest records with monotonically increasing generation counters and integrity checks.
+A 3 MiB metadata/reserve area cannot stage a full 16 MiB D213 image; updates must stream directly into its inactive slot.
+Measure final compressed/uncompressed FPGA bitstream sizes. Fit of the actual 45F golden and application images in 3 MiB each is mandatory.
+
+5. Boot, update and failure recovery
+5.1 Proposed normal boot (one NOR)
+Apply regulated power; hold the D213 and both FPGAs in reset / unconfigured states as needed.
+F133 boot ROM reads the low-address first-stage image from the shared NOR.
+F133 validates boot manifests, initializes 64 MiB DDR2, and selects a healthy A/B main firmware slot.
+F133 loads and verifies the ECP5-12F configuration over its dedicated FPGA configuration link. The F133 must remain bootable if the 12F is blank.
+F133 attempts documented D213 startup/download over the selected internal host connection. This step is a hard feasibility gate until boot ROM and code-execution details are proven.
+When D213 is running from its own 128 MiB DDR3, it initializes display hardware and establishes an F133 graphics-service handshake.
+D213 receives and configures the 45F bitstream, verifies status and initializes PBUS FIFOs plus local 32 MiB SDRAM.
+D213 displays a complete frame; F133 enables the game runtime. If 45F fails, retain safe 2D diagnostics.
+5.2 Update and rollback
+Updates are versioned bundles with separate F133, D213 and FPGA payloads. An update never directly overwrites the last known-good image. During validation, the F133 records the selected partition, code version, hardware revision, image length, CRC/hash and last successful boot.
+5.3 Failure modes
+Failure
+Required behavior
+12F blank / corrupt
+F133 still boots, reports link failure, supports firmware recovery
+45F blank / corrupt
+D213 still runs basic 2D and diagnostics
+D213 loading fails
+F133 remains alive with serial/USB diagnostic access
+NOR update interrupted
+Boot selector uses protected recovery or previous A/B slot
+NOR unreadable / erased
+External programmer/JTAG recovery; shared NOR is a single point of failure
+
+
+6. Runtime data movement and bandwidth
+Storage layout must support frame delivery without pretending the buses form shared RAM. The F133 sends scene state, not a complete display image. The D213 manages 2D layers and dispatches only appropriate 3D jobs to the 45F.
+Stage
+Data exchanged
+Memory owner
+Game simulation
+Positions, events, animation states → D213
+F133 DDR2, then D213 DDR3
+Asset preparation
+Sprites, textures, compressed game packages from SD
+D213 DDR3; selected textures copied to 45F SDRAM
+3D rasterization
+Polygon descriptors → 45F; color tile FIFO ← 45F
+45F SDRAM + on-chip tile buffers
+2D composition
+Color tiles / layers rendered into D213 surfaces
+D213 DDR3 + hardware GE
+Video scanout
+Finished display buffers
+D213 DDR3 + hardware DE
+F133 assist jobs
+Small parameter blocks ↔ 12F
+12F EBR and 4 MiB QSPI PSRAM
+
+6.1 3D transfer budget at 60 fps
+3D layer
+RGB565 bytes/frame
+Minimum return traffic
+320 × 240
+153,600 bytes
+9.216 MB/s
+400 × 300
+240,000 bytes
+14.400 MB/s
+640 × 480
+614,400 bytes
+36.864 MB/s
+
+These rates assume one full RGB565 color image each frame, excluding FIFO turnarounds, addressing, packet headers, stalls, geometry uploads and DDR/cache costs. Z buffers should stay local to the 45F tile-renderer wherever feasible. ArtInChip PBUS documentation describes a 16-bit multiplexed external interface; sustained readback throughput is unmeasured [S7].
+6.2 Capacity does not equal speed
+A 32 MiB x16 SDR SDRAM may provide a much more useful random/burst texture path than the earlier 8 MiB QSPI PSRAM design. Its bus and FPGA controller carry real logic/pin/PCB costs. The 12F QSPI PSRAM, by contrast, remains suitable for infrequent large batches rather than high-rate texture fetches.
+60 fps rendering gate
+At 320 × 240 3D and 60 frames/s, the 45F→D213 path must reliably exceed 9.216 MB/s of COLOR payload plus safety margin and protocol overhead. That is a minimum traffic floor, not an acceptance benchmark by itself.
+
+
+7. Schematic gates and handoff instructions
+7.1 FABRICATION HOLD — required demonstrations
+Gate
+Evidence required
+NOR / F133 boot
+Exact 64 MiB flash part bootable by F133 ROM; 3-/4-byte transition works
+D213 flashless boot
+D213 starts validated graphics firmware with no local boot NOR/eMMC
+FPGA configuration
+Both FPGAs load from shared NOR via CPU-controlled vendor-supported modes
+12F RAM + RGMII
+RGMII link, QSPI controller and workload fit exact package with margin
+45F SDRAM + PBUS
+Memory controller synthesis, bank-voltage/pinmux and board timing verified
+D213 memory coherency
+PBUS DMA reads/CPU cache coherency and full frame-pipeline test
+Recovery
+A/B rollback, erased-bad-slot behavior and external programming access tested
+
+7.2 If one NOR fails the boot test
+Fallback: keep one 64 MiB F133-owned NOR, and add the smallest proven D213-local boot NOR necessary. Both FPGA images can still be maintained centrally and configured by their associated processors. That produces TWO flash packages, not four. Reserve unpopulated D213 flash footprint/test pads on the first prototype if board area permits.
+7.3 Deliverables for the implementation pass
+memory/R10_memory_owner_map.md — who owns every RAM range, reset domain and DMA buffer.
+memory/R10_nor_partition.csv — offsets, capacities, image identifiers, access rules and update status.
+hardware/R10_flash_pinmux.csv — NOR, D213 boot alternate, both FPGA config pins and voltage banks.
+firmware/f133_bootloader — NOR low-address boot, manifest parser, bitstream streaming and rollback.
+firmware/d213_flashless_proof — minimal loader and graphics service with actual boot logs.
+rtl/ecp5_12f_mem — memoryless fallback build, plus 4 MiB PSRAM controller and timing report.
+rtl/ecp5_45f_sdram — SDR SDRAM controller, refresh/stress tests and tile-buffer throughput.
+qa/R10_memory_go_no_go.md — evidence, source revision, CRC logs, timing and explicit PASS/HOLD results.
+7.4 Change record
+Supersedes the earlier R10 external-memory assumption of no 12F RAM (now 4 MiB QSPI PSRAM). Supersedes the earlier four-NOR proposal (now one 64 MiB NOR as a CONDITIONAL target). Preserves F133 64 MiB and D213 128 MiB package RAM, plus ECP5-45F 32 MiB SDR SDRAM. Does not supersede the separate architecture feasibility gates.
+
+8. Reference documents and unresolved questions
+Manufacturer documentation is authority for IC-level features, but does not validate the proposed board interfaces or finished firmware.
+S1  Allwinner F133 Product Brief (F133 / D1s family)https://www.allwinnertech.com/uploads/pdf/20211016141154e7.pdf
+S2  ArtInChip D21x Datasheet, D213ECV memory, boot and communicationshttps://aicdoc.artinchip.com/out/downloads/D21x_Datasheet_EN.pdf
+S3  Lattice ECP5 sysCONFIG Usage Guide, CPU-sourced Slave SPI configurationhttps://www.latticesemi.com/~/media/LatticeSemi/Documents/ApplicationNotes/EH/TN1260.pdf
+S4  Alliance Memory AS4C16M16SA 256-Mbit SDR SDRAM datasheethttps://www.alliancememory.com/wp-content/uploads/256M-AS4C16M16SA-Automotive_v2.0_March-2015.pdf
+S5  AP Memory APS3204L-3SQN 32-Mbit QSPI PSRAMhttps://www.apmemory.com/en/product/iotram/SPIQSPI
+S6  Winbond W25Q512JV, 512-Mbit (64 MiB) SPI NORhttps://www.winbond.com/hq/product/code-storage-flash/qspi-nor/w25q-jv/?__locale=en&partNo=W25Q512JVBIQ
+S7  ArtInChip D21x PBUS documentationhttps://aicdoc.artinchip.com/topics/ic/pbus/pbus-module-d21x.html
+S8  Lattice ECP5 FPGA family datasheethttps://www.latticesemi.com/view_document?document_id=50461
+Questions to close before board routing
+Can D213ECV execute bare-metal graphics firmware downloaded over USB after reset, WITHOUT its own boot flash?
+Can the exact 64 MiB NOR chip boot F133 through the factory power-on address mode, while the runtime accesses all 64 MiB?
+Can the chosen 12F package expose RGMII, QSPI PSRAM and configuration pins simultaneously with acceptable timing?
+What pinout, supply rail and SDRAM refresh/timing margin does the 45F require for x16 SDR SDRAM?
+Can we demonstrate a failure-resilient update scheme while NOR remains the only persistent system store?
+Engineering status at handoff
+CAPACITY TARGETS ACCEPTED: 228 MiB working RAM. STORAGE GOAL: one 64 MiB SPI NOR. DEVICE-LEVEL FACTS DOCUMENTED; INTERPROCESSOR BOOT AND BOARD TIMING NOT YET PROVEN. No PCB fabrication authorization in this revision.
+

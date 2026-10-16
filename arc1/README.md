@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/assets/arc1-logo.jpg" alt="ARC-1 Adaptive RISC-V Console" width="640"></p>
+
 # ARC-1 host SDK (M0–M1)
 
 This is the first vertical slice of the agent-native SDK described in
@@ -15,6 +17,16 @@ is no board, no target cross-compiler, no firmware and no RTL here. Results
 are labelled `HOST_SIM` or lower, and device commands answer `NOT_AVAILABLE`.
 
 Coding agents: read [AGENTS.md](AGENTS.md).
+
+## Hardware facts
+
+`./arc1 hw inspect` reports the board as the R10 engineering handoff describes
+it: F133-B, D213ECV, LFE5U-45F and LFE5U-12F with four separate memory pools,
+a 64 MiB central NOR, an ADV7513 HDMI transmitter with F133 I2S audio, and a
+USB2514B hub for two controller ports and the top cartridge port. Every fact
+cites an unmodified R10 file in `hardware/sources/r10/` by SHA-256, and the
+tool fails if a cited file changes. The board is on **fabrication HOLD**:
+schematic and first placement only, not routed, not built, nothing measured.
 
 ## Prerequisites
 
@@ -36,6 +48,7 @@ git clone https://github.com/c8wf7gt28n-prog/Struthio.git && cd Struthio/arc1
 ./arc1 sim examples/hello_arc1 --replay tests/replays/steer.replay --dump 0,60,119
 ./arc1 test examples/hello_arc1
 ./arc1 pass validate passes/ARC1-PASS-0001
+./arc1 pass validate passes/ARC1-PASS-0002
 python3 tests/run_tests.py
 ```
 
@@ -59,5 +72,8 @@ Re-recording a golden is a review-sensitive change.
 - [docs/API.md](docs/API.md): the `arc1/game.h` contract.
 - [docs/CLI.md](docs/CLI.md): commands, exit codes and the result format.
 - [docs/TRACEABILITY.md](docs/TRACEABILITY.md): requirement status.
-- [passes/ARC1-PASS-0001/HANDOFF.md](passes/ARC1-PASS-0001/HANDOFF.md): the
+- [docs/MIGRATION.md](docs/MIGRATION.md): schema changes between versions.
+- [hardware/sources/r10/PROVENANCE.md](hardware/sources/r10/PROVENANCE.md):
+  where the hardware facts come from.
+- [passes/ARC1-PASS-0002/HANDOFF.md](passes/ARC1-PASS-0002/HANDOFF.md): the
   latest handoff.

@@ -1,0 +1,20 @@
+{
+  "artifacts": [],
+  "board_id": null,
+  "command": "arc1 hw inspect passes/ARC1-PASS-0002/reports/tampered-source-r10.hw.json",
+  "evidence_level": "DESIGN",
+  "failure_reasons": [
+    {
+      "code": "HW-001",
+      "message": "/sources/2/sha256: cited source changed: hardware/sources/r10/R10_WORK/DECISIONS.md",
+      "path": "passes/ARC1-PASS-0002/reports/tampered-source-r10.hw.json"
+    }
+  ],
+  "input_digest": "15db79b3721b06c3c3ea73eb3c25ed40b6011fa48483b5f690ace62a616e13e5",
+  "invocation_id": "48eefddce1c7e4139d6ab8080be13ace",
+  "schema_version": "arc1.tool-result/0.2",
+  "sdk_version": "0.2.0-dev",
+  "toolchain_digest": "b9017f98bc1a948abb6ae8987e74c87f621fa7c22e8849914bc565a03b2c1141",
+  "verdict": "FAIL",
+  "warnings": []
+}
