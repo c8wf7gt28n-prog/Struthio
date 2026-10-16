@@ -60,34 +60,19 @@ vvp -n build/tb_raster.vvp > build/sim_raster.log 2>&1; rc=$?; grep -E '^(INFO|T
 INFO 790 job words, 18522 expected words
 INFO tris=58 samples=33662 written=11609 busy_cycles=133901 bad_cmd=0 elapsed=1675025 ns
 R10_RASTER_TB_PASS
-mkdir -p build
-yosys -q -l build/yosys_raster.log -p 'read_verilog -sv rtl/r10_raster.sv; synth_ecp5 -abc9 -top r10_raster -json build/raster.json; stat' > /dev/null
-Warning: Replacing memory \Erow with list of registers. See rtl/r10_raster.sv:246
-Warning: Replacing memory \E with list of registers. See rtl/r10_raster.sv:246
-Warning: Replacing memory \Ey with list of registers. See rtl/r10_raster.sv:238
-Warning: Replacing memory \Ex with list of registers. See rtl/r10_raster.sv:237
-Warning: Replacing memory \pe1 with list of registers. See rtl/r10_raster.sv:236
-Warning: Replacing memory \pe0 with list of registers. See rtl/r10_raster.sv:235
-Warning: Replacing memory \dsx with list of registers. See rtl/r10_raster.sv:229
-Warning: Replacing memory \dsy with list of registers. See rtl/r10_raster.sv:229
-Warning: Replacing memory \tl with list of registers. See rtl/r10_raster.sv:194
-Warning: Replacing memory \edy with list of registers. See rtl/r10_raster.sv:166
-Warning: Replacing memory \edx with list of registers. See rtl/r10_raster.sv:166
-Warning: Replacing memory \eay with list of registers. See rtl/r10_raster.sv:166
-Warning: Replacing memory \eax with list of registers. See rtl/r10_raster.sv:166
 printf 'FREQUENCY PORT "clk" 80.000000 MHZ ;\n' > build/core_80.lpf
 for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/raster.json --lpf build/core_80.lpf \
   --lpf-allow-unconstrained --seed $s --log build/pnr_raster_$s.log > /dev/null 2>&1; \
   echo "seed $s: $(grep 'Max frequency' build/pnr_raster_$s.log | tail -1 | sed 's/.*: //')"; done | tee build/seeds.log
-seed 1: 100.08 MHz (PASS at 80.00 MHz)
-seed 2: 98.97 MHz (PASS at 80.00 MHz)
-seed 3: 101.18 MHz (PASS at 80.00 MHz)
-seed 4: 100.20 MHz (PASS at 80.00 MHz)
-seed 5: 93.74 MHz (PASS at 80.00 MHz)
+seed 1: 96.47 MHz (PASS at 80.00 MHz)
+seed 2: 98.20 MHz (PASS at 80.00 MHz)
+seed 3: 102.60 MHz (PASS at 80.00 MHz)
+seed 4: 98.57 MHz (PASS at 80.00 MHz)
+seed 5: 103.97 MHz (PASS at 80.00 MHz)
 grep -E "TRELLIS_COMB|DP16KD|MULT18X18D" build/pnr_raster_1.log | head -3 | tee -a build/seeds.log
 Info: 	              DP16KD:     2/  108     1%
 Info: 	          MULT18X18D:    16/   72    22%
-Info: 	        TRELLIS_COMB:  5099/43848    11%
+Info: 	        TRELLIS_COMB:  5120/43848    11%
 ! grep -q FAIL build/seeds.log
 iverilog -g2012 -s tb_r10_45f -Ptb_r10_45f.VEC='"build/vec"' -o build/tb_45f.vvp tb/tb_r10_45f.sv rtl/r10_raster_top.sv rtl/r10_raster_engine.sv rtl/r10_raster.sv ../fpga12/rtl/eth_link.sv ../fpga12/rtl/eth_tx_pump.sv ../fpga12/rtl/rgmii_rx.sv ../fpga12/rtl/rgmii_tx.sv \
   ../fpga12/sim/arc1_ecp5_pll_sim.v ../fpga12/sim/arc1_eth_pll_sim.v ../fpga12/sim/ecp5_ddr_sim.v
@@ -97,47 +82,49 @@ TEST r10g_loopback done errors=0
 INFO tile 0: 17 job words, round trip 97.1 us
 INFO 18 tiles over RGMII, 2155 us total round trips (sequential, one tile in flight)
 TEST r10g_tiles_rgmii done errors=0
-INFO status: rev=1 caps=0001 rx_ok=23 tx=22 tris=58 samples=33662 written=11609
+INFO 18 tiles as halves, largest frame 1066 bytes incl. FCS, 3123 us total round trips
+TEST r10g_tiles_halves done errors=0
+INFO status: rev=1 caps=0001 rx_ok=62 tx=61 tris=117 samples=68080 written=23588
 TEST r10g_errors_status done errors=0
 R10_45F_TB_PASS
 mkdir -p build
 yosys -q -l build/yosys_45f.log -p 'read_verilog -sv rtl/r10_raster_top.sv rtl/r10_raster_engine.sv rtl/r10_raster.sv ../fpga12/rtl/eth_link.sv ../fpga12/rtl/eth_tx_pump.sv ../fpga12/rtl/rgmii_rx.sv ../fpga12/rtl/rgmii_tx.sv ../fpga12/rtl/arc1_ecp5_pll.v ../fpga12/rtl/arc1_eth_pll.v; synth_ecp5 -abc9 -top r10_raster_top -json build/r10_45f.json; stat' > /dev/null
-Warning: Replacing memory \Erow with list of registers. See rtl/r10_raster.sv:246
-Warning: Replacing memory \E with list of registers. See rtl/r10_raster.sv:246
-Warning: Replacing memory \Ey with list of registers. See rtl/r10_raster.sv:238
-Warning: Replacing memory \Ex with list of registers. See rtl/r10_raster.sv:237
-Warning: Replacing memory \pe1 with list of registers. See rtl/r10_raster.sv:236
-Warning: Replacing memory \pe0 with list of registers. See rtl/r10_raster.sv:235
-Warning: Replacing memory \dsx with list of registers. See rtl/r10_raster.sv:229
-Warning: Replacing memory \dsy with list of registers. See rtl/r10_raster.sv:229
-Warning: Replacing memory \tl with list of registers. See rtl/r10_raster.sv:194
-Warning: Replacing memory \edy with list of registers. See rtl/r10_raster.sv:166
-Warning: Replacing memory \edx with list of registers. See rtl/r10_raster.sv:166
-Warning: Replacing memory \eay with list of registers. See rtl/r10_raster.sv:166
-Warning: Replacing memory \eax with list of registers. See rtl/r10_raster.sv:166
+Warning: Replacing memory \Erow with list of registers. See rtl/r10_raster.sv:248
+Warning: Replacing memory \E with list of registers. See rtl/r10_raster.sv:248
+Warning: Replacing memory \Ey with list of registers. See rtl/r10_raster.sv:240
+Warning: Replacing memory \Ex with list of registers. See rtl/r10_raster.sv:239
+Warning: Replacing memory \pe1 with list of registers. See rtl/r10_raster.sv:238
+Warning: Replacing memory \pe0 with list of registers. See rtl/r10_raster.sv:237
+Warning: Replacing memory \dsx with list of registers. See rtl/r10_raster.sv:231
+Warning: Replacing memory \dsy with list of registers. See rtl/r10_raster.sv:231
+Warning: Replacing memory \tl with list of registers. See rtl/r10_raster.sv:196
+Warning: Replacing memory \edy with list of registers. See rtl/r10_raster.sv:168
+Warning: Replacing memory \edx with list of registers. See rtl/r10_raster.sv:168
+Warning: Replacing memory \eay with list of registers. See rtl/r10_raster.sv:168
+Warning: Replacing memory \eax with list of registers. See rtl/r10_raster.sv:168
 for s in 1 2 3 4 5; do nextpnr-ecp5 --45k --package CABGA381 --speed 6 --json build/r10_45f.json --lpf constraints/r10_45f.lpf \
   --seed $s --report build/pnr_45f_$s.json --log build/pnr_45f_$s.log > /dev/null 2>&1 || echo "seed $s: PNR_FAIL"; \
   grep -E "Max frequency for clock" build/pnr_45f_$s.log | tail -3 | sed "s/^/seed $s: /"; done | tee build/seeds_45f.log
-seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 93.67 MHz (PASS at 80.00 MHz)
-seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 154.92 MHz (PASS at 125.00 MHz)
-seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 152.07 MHz (PASS at 125.00 MHz)
-seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 87.64 MHz (PASS at 80.00 MHz)
-seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 163.53 MHz (PASS at 125.00 MHz)
-seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 153.99 MHz (PASS at 125.00 MHz)
-seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 86.31 MHz (PASS at 80.00 MHz)
-seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 152.65 MHz (PASS at 125.00 MHz)
-seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 158.35 MHz (PASS at 125.00 MHz)
-seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 91.08 MHz (PASS at 80.00 MHz)
-seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 152.25 MHz (PASS at 125.00 MHz)
-seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 171.76 MHz (PASS at 125.00 MHz)
-seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 88.43 MHz (PASS at 80.00 MHz)
-seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 153.35 MHz (PASS at 125.00 MHz)
-seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 162.18 MHz (PASS at 125.00 MHz)
+seed 1: Info: Max frequency for clock                 '$glbnet$sys_clk': 95.93 MHz (PASS at 80.00 MHz)
+seed 1: Info: Max frequency for clock               '$glbnet$eth_txclk': 152.00 MHz (PASS at 125.00 MHz)
+seed 1: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 168.66 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock                 '$glbnet$sys_clk': 95.90 MHz (PASS at 80.00 MHz)
+seed 2: Info: Max frequency for clock               '$glbnet$eth_txclk': 151.84 MHz (PASS at 125.00 MHz)
+seed 2: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 175.87 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock                 '$glbnet$sys_clk': 91.71 MHz (PASS at 80.00 MHz)
+seed 3: Info: Max frequency for clock               '$glbnet$eth_txclk': 158.05 MHz (PASS at 125.00 MHz)
+seed 3: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 157.88 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock                 '$glbnet$sys_clk': 91.47 MHz (PASS at 80.00 MHz)
+seed 4: Info: Max frequency for clock               '$glbnet$eth_txclk': 156.86 MHz (PASS at 125.00 MHz)
+seed 4: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 170.42 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock                 '$glbnet$sys_clk': 90.77 MHz (PASS at 80.00 MHz)
+seed 5: Info: Max frequency for clock               '$glbnet$eth_txclk': 159.90 MHz (PASS at 125.00 MHz)
+seed 5: Info: Max frequency for clock '$glbnet$rgmii_rxc$TRELLIS_IO_IN': 174.89 MHz (PASS at 125.00 MHz)
 grep -E "TRELLIS_COMB|DP16KD|MULT18X18D|EHXPLLL" build/pnr_45f_1.log | head -4 | tee -a build/seeds_45f.log
 Info: 	              DP16KD:    10/  108     9%
 Info: 	          MULT18X18D:    16/   72    22%
 Info: 	             EHXPLLL:     2/    4    50%
-Info: 	        TRELLIS_COMB:  7009/43848    15%
+Info: 	        TRELLIS_COMB:  7201/43848    16%
 ! grep -qE "FAIL" build/seeds_45f.log
    exit 0
 == f133/graphics_link: make all
