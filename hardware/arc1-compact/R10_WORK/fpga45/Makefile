@@ -86,7 +86,7 @@ sdram:
 	iverilog -g2012 -s tb_sdram -o $(OUT)/tb_sdram.vvp tb/tb_sdram.sv rtl/sdram_ctrl.sv sim/sdram_model.sv
 	vvp -n $(OUT)/tb_sdram.vvp > $(OUT)/sim_sdram.log 2>&1; rc=$$?; grep -E '^(INFO|TEST|TB_ERROR|MODEL_VIOLATION|SDRAM)' $(OUT)/sim_sdram.log | head -40; \
 	  test $$rc -eq 0 && grep -q '^SDRAM_TB_PASS$$' $(OUT)/sim_sdram.log
-SDRAM_MUTANTS = P_REFI=4000 P_INIT_REF=2 P_RD_LAT=4 P_RD_LAT=6 P_T_INIT=1000
+SDRAM_MUTANTS = P_REFI=4000 P_INIT_REF=2 P_RD_LAT=5 P_RD_LAT=7 P_T_INIT=1000
 sdram_mutants:
 	mkdir -p $(OUT)
 	@for m in $(SDRAM_MUTANTS); do \

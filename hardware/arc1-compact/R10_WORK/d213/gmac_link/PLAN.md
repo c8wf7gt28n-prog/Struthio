@@ -17,10 +17,10 @@ Raw Ethernet, EtherType 0x88B5, no PHY, no IP — the R8.5-C framing (`R85C_WORK
 - Anything not starting with `RJOB` is looped back unchanged (delay calibration, as `el_calibrate` on the F133).
 
 ## Driver requirements
-1. **Frame size.** A whole-tile response (opcode 1) is a 2092-byte frame, above the 1518-byte standard maximum;
-   D213 GMAC jumbo / 2K-frame support is **UNVERIFIED**. The engine therefore also offers half tiles (opcodes 2/3):
-   largest frame **1066 bytes** including FCS (RTL_SIMULATED, all 18 tiles exact). The driver uses halves unless
-   jumbo support is confirmed.
+1. **Frame size.** A whole-tile response (opcode 1) is a 2092-byte frame, above the 1518-byte standard maximum.
+   D21x GMAC accepts up to 10 240-byte frames with Jumbo Enable (MAC reg 0x0020 bit 4; DOCUMENTED in the D21x user
+   manual MAC page and Luban-Lite aic_mac_reg.h; the vendor driver default is 1524 B, so the driver must set JE). The engine therefore also offers half tiles (opcodes 2/3):
+   largest frame **1066 bytes** including FCS (RTL_SIMULATED, all 18 tiles exact) — kept as the fallback.
 2. **DMA descriptors and coherence.** C906 data cache vs GMAC DMA: TX buffers cleaned (write-back) before the
    descriptor is handed to DMA; RX buffers invalidated before the CPU reads them, or both rings placed in an uncached
    window. Whether the D213 interconnect is DMA-coherent is **UNVERIFIED**; assume not.
@@ -29,9 +29,10 @@ Raw Ethernet, EtherType 0x88B5, no PHY, no IP — the R8.5-C framing (`R85C_WORK
 4. **IRQ/timeout.** RX-complete IRQ wakes the renderer; per-job timeout 2 ms (≫ 120 µs simulated round trip);
    retry the same seq up to 3×; a stale RRES (old seq) is discarded and counted; after 3 consecutive failed jobs
    the renderer marks 3D down and draws the scene with GE-only 2D (R10 §3.1 fallback).
-5. **RGMII delays.** The 45F transmits clock-aligned (no internal delay); the D213 GMAC must add RX clock delay
-   (or a board delay). D213 GMAC delay-chain registers and step size: **UNVERIFIED** — needed for the pad-level
-   budget (`R85C_WORK/docs/RGMII_LINK_R85C.md` method; 45F GDDRX1 figures DOCUMENTED, DS-02012 Table 3.22).
+5. **RGMII delays.** The 45F transmits clock-aligned (no internal delay); the D213 adds the RX clock delay:
+   SYSCFG GMAC0_CFG (0x1800_0410) RXDLY_SEL [22:18] / TXDLY_SEL [16:12], 32 steps of 170 ps (0–5.3 ns), clock invert
+   bits 17/23 (DOCUMENTED: Luban-Lite hal_syscfg.c + SDK MAC guide). Calibrate by loopback sweep as on the F133 — the
+   pad-level budget (`R85C_WORK/docs/RGMII_LINK_R85C.md` method; 45F GDDRX1 figures DOCUMENTED, DS-02012 Table 3.22).
 6. **Pin mux.** PE0–PE15 to GMAC0 only after the 45F reports DONE; until then IO-disable (mirrors the F133 PG rule).
 
 ## Tests (to run on hardware; the first column mirrors the RTL TB where one exists)

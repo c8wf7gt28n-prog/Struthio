@@ -28,6 +28,6 @@ pass/fail criterion; nothing here is a result.
 6. **Both FPGAs blank.** Repeat steps 3–5 with the 45F and 12F unconfigured (PROGRAMN held). Pass = identical output.
 
 ## SDK risk
-Luban-Lite is ArtInChip's RTOS/bare-metal SDK for D21x. Whether its "bare-metal" configuration includes DE/GE
-drivers without RT-Thread is **UNVERIFIED** — check before committing to "bare-metal"; R10 §12.1 asks for
-"vendor-compatible bare-metal", so an RTOS-hosted build would need an owner decision.
+Luban-Lite (v1.0.3, commit 77fbe30) has bare-metal (`KERNEL_BAREMETAL`) D21x configurations that build the GE and
+DE drivers; the bare-metal helloworld runs LVGL on them (DOCUMENTED in vendor code). DDR3 init is a closed vendor
+binary (PreBootProgram) — usable, not inspectable. CherryUSB (bare-metal OSAL) provides the USB0 device stack.

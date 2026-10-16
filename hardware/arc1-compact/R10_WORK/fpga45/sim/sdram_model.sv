@@ -1,6 +1,5 @@
 // ARC-1 R10 -- behavioural + protocol-checking model of a 4 x 8192 x 512 x 16 SDR SDRAM (AS4C16M16SA-class).
-// SIMULATION ONLY, not vendor IP. Timing limits are the same TYPICAL values the controller assumes (parameters, ns),
-// so a pass shows the controller obeys its own declared limits; the datasheet check is a separate open item.
+// SIMULATION ONLY, not vendor IP. Timing limits: the datasheet worst case of both speed grades (see the parameters).
 // Checks (each breach prints MODEL_VIOLATION and increments `violations`):
 //   init: no command but NOP/INHIBIT before T_INIT_NS; PRECHARGE ALL, >= INIT_REF AUTO REFRESH, MRS before ACTIVE;
 //   ACT: bank idle, tRP after PRE, tRC after ACT (same bank), tRRD after any ACT, tRFC after REF;
@@ -9,9 +8,12 @@
 // Data: full 16M-word array; unwritten words read back as 16'hDEAD. BL = 1 only (as programmed).
 `timescale 1ns/1ps
 module sdram_model #(
+    // DOCUMENTED worst case over the -6 and -7 grades: Alliance AS4C16M16SA-C&I Rev 3.0 (March 2015) Table 16
+    // (tRCD/tRP 21, tRAS 42, tRC 63, tRRD 14, tWR 14, tRFC 63, tMRD 14 ns; tAC 5.4 ns at CL3 -7, tOH 2.5 ns; init
+    // 200 us + >= 2 auto refresh). The controller uses 8 init refreshes, so INIT_REF stays a stricter 8 here.
     parameter real T_INIT_NS = 200000.0, parameter integer INIT_REF = 8,
-    parameter real T_RCD = 18.0, T_RP = 18.0, T_RAS = 42.0, T_RC = 60.0, T_RRD = 12.0, T_WR = 12.0, T_RFC = 60.0,
-    parameter real T_MRD = 12.0, T_AC = 5.4, T_OH = 2.5,
+    parameter real T_RCD = 21.0, T_RP = 21.0, T_RAS = 42.0, T_RC = 63.0, T_RRD = 14.0, T_WR = 14.0, T_RFC = 63.0,
+    parameter real T_MRD = 14.0, T_AC = 5.4, T_OH = 2.5,
     parameter real MAX_REF_GAP_NS = 15600.0       // 2 x tREFI: the controller must never postpone more than one
 ) (
     input  wire        clk, cke, cs_n, ras_n, cas_n, we_n,

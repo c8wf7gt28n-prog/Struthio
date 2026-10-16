@@ -57,7 +57,7 @@ module r10_raster_mem_top (
     wire [23:0] cmd_addr;
     wire [9:0]  cmd_len;
     wire [31:0] cnt_refresh;
-    sdram_ctrl #(.CLK_MHZ(80), .CL(2)) u_sd (
+    sdram_ctrl #(.CLK_MHZ(80), .CL(3)) u_sd (
         .clk(sys_clk), .rst(rst), .init_done(sd_init), .cmd_valid(cmd_valid), .cmd_ready(cmd_ready),
         .cmd_write(cmd_write), .cmd_addr(cmd_addr), .cmd_len(cmd_len), .cmd_err(cmd_err),
         .wr_valid(1'b1), .wr_ready(wr_ready), .wr_data(wr_data), .rd_valid(rd_valid), .rd_data(rd_data),

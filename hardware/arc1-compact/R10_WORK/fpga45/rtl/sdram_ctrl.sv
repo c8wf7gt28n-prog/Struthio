@@ -9,26 +9,28 @@
 //   * Refresh: one AUTO REFRESH per tREFI (7.8 us); a due refresh waits for the current burst only
 //     (MAX_BURST = 256 words = 3.2 us at 80 MHz).
 //   * Init: wait T_INIT, PRECHARGE ALL, INIT_REF x AUTO REFRESH, LOAD MODE REGISTER, then init_done.
-// Timing values are TYPICAL SDR SDRAM figures for a -6/-7 grade (tRCD/tRP 18 ns, tRAS 42 ns, tRC 60 ns, tWR 2 clk,
-// tMRD 2 clk, tRFC 60 ns, 8192 refreshes / 64 ms, 200 us + 8 refreshes init) -- ASSUMPTIONS until checked against the
-// AS4C16M16SA datasheet (memory spec [S4]); every one is a parameter in clocks.
+// Timing: DOCUMENTED worst case of the -6 and -7 grades (Alliance AS4C16M16SA-C&I Rev 3.0, March 2015, Table 16):
+// tRCD/tRP 21, tRAS 42, tRC 63, tWR 14, tMRD 14, tRFC 63 ns; refresh 8192 / 64 ms (tREFI 7.8 us; the automotive grade
+// needs 3.9 us -- not selected); init 200 us + >= 2 refreshes (8 used). Every value is a parameter in clocks.
 // Clocking (top level): sd_clk is clk INVERTED (ODDR 0/1), so the SDRAM samples commands mid-window (setup and hold
 // about half a period each). Read timing: a READ registered at clk edge k is sampled at sd_clk k+0.5; data is valid
-// from k+0.5+CL+tAC and captured by the pad register at clk edge k+CL+1, i.e. needs tAC + board + input delay < half a
-// period (6.25 ns at 80 MHz; tAC 5.4 ns typical for CL3 -6 parts): tight -- CONDITIONAL until the pad budget is done;
-// fallbacks are a lower clock (the memory spec starts at 60 MHz) or a phase-shifted capture clock with RD_LAT + 1. Evidence: RTL_SIMULATED (tb_sdram with the sdram_model protocol checker).
+// from k+0.5+CL+tAC and is captured by the pad register at clk edge k+CL+1. With the documented tAC (5.0 / 5.4 ns at
+// CL3) that leaves under 1.3 ns for FPGA clock-out, both trace flights and input setup: NOT closable as is -- see
+// analysis/R10_SDRAM_TIMING.md (needs a PLL phase-shifted capture clock, calibrated at boot). CONDITIONAL.
+// Evidence: RTL_SIMULATED (tb_sdram with the sdram_model protocol checker).
 `default_nettype none
 module sdram_ctrl #(
     parameter integer CLK_MHZ   = 80,
-    parameter integer CL        = 2,
+    parameter integer CL        = 3,           // CL3: tAC 5.0 (-6) / 5.4 ns (-7) vs 6 ns at CL2; tCK 12.5 >= 7 ns
     parameter integer RD_LAT    = CL + 3,      // READ issue -> rd_valid, see "read timing" below
-    parameter integer T_RCD     = 2,           // clocks (18 ns at 80 MHz = 1.44 -> 2)
-    parameter integer T_RP      = 2,
-    parameter integer T_RAS     = 4,           // 42 ns -> 4
-    parameter integer T_RC      = 5,           // 60 ns -> 5
-    parameter integer T_WR      = 2,
-    parameter integer T_MRD     = 2,
-    parameter integer T_RFC     = 5,
+    // AS4C16M16SA-C&I Rev 3.0 Table 16, worst of -6/-7, rounded up to whole clocks: ceil(ns * MHz / 1000)
+    parameter integer T_RCD     = (21 * CLK_MHZ + 999) / 1000,
+    parameter integer T_RP      = (21 * CLK_MHZ + 999) / 1000,
+    parameter integer T_RAS     = (42 * CLK_MHZ + 999) / 1000,
+    parameter integer T_RC      = (63 * CLK_MHZ + 999) / 1000,
+    parameter integer T_WR      = (14 * CLK_MHZ + 999) / 1000,
+    parameter integer T_MRD     = (14 * CLK_MHZ + 999) / 1000,
+    parameter integer T_RFC     = (63 * CLK_MHZ + 999) / 1000,
     parameter integer T_REFI    = 7800 * CLK_MHZ / 1000,
     parameter integer T_INIT    = 200 * CLK_MHZ,
     parameter integer INIT_REF  = 8,

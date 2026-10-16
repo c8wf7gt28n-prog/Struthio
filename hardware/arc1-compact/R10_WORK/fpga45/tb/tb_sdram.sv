@@ -10,7 +10,7 @@
 `timescale 1ns/1ps
 module tb_sdram;
     // mutation hooks (Makefile target sdram_mutants): each non-default value must make the TB fail
-    parameter integer P_REFI = 624, P_INIT_REF = 8, P_RD_LAT = 5, P_T_INIT = 16000;
+    parameter integer P_REFI = 624, P_INIT_REF = 8, P_RD_LAT = 6, P_T_INIT = 16000;
     reg clk = 0;
     always #6.25 clk = ~clk;                       // 80 MHz
     reg rst = 1;
@@ -26,7 +26,7 @@ module tb_sdram;
     wire [1:0] sd_ba, sd_dqm;
     wire [12:0] sd_a;
     wire [15:0] sd_dq;
-    sdram_ctrl #(.CLK_MHZ(80), .CL(2), .T_REFI(P_REFI), .INIT_REF(P_INIT_REF), .RD_LAT(P_RD_LAT), .T_INIT(P_T_INIT)) dut (
+    sdram_ctrl #(.CLK_MHZ(80), .CL(3), .T_REFI(P_REFI), .INIT_REF(P_INIT_REF), .RD_LAT(P_RD_LAT), .T_INIT(P_T_INIT)) dut (
         .clk(clk), .rst(rst), .init_done(init_done), .cmd_valid(cmd_valid), .cmd_ready(cmd_ready), .cmd_write(cmd_write),
         .cmd_addr(cmd_addr), .cmd_len(cmd_len), .cmd_err(cmd_err), .wr_valid(wr_valid), .wr_ready(wr_ready),
         .wr_data(wr_data), .rd_valid(rd_valid), .rd_data(rd_data), .cnt_refresh(cnt_refresh),

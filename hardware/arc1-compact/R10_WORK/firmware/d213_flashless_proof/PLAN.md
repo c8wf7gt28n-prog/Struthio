@@ -13,6 +13,14 @@ DDR with no local NOR/eMMC is not). Nothing below is a result.
    graphics-link HELLO (`f133/graphics_link`, `gl_dev`).
 4. Repeatability and failure behaviour.
 
+## P1 document result (2026-10-16, `qa/R10_research_findings.md`)
+**DOCUMENTED: the D21x boot-ROM USB upgrade mode downloads to SRAM/DRAM and executes the downloaded component; it does
+not write flash.** USB upgrade is entered with the UPGRADE-BOOT key at power-on or automatically when no boot medium
+is found (no NOR fitted → automatic). Flow used by the vendor tools: load the PreBootProgram (DDR3 init, closed binary)
+to SRAM 0x00103000 and run it, then load the bootloader/app to DRAM (0x42000000) and EXEC. Protocol (open, device
+side): USB bulk CBW/CSW + "UPGC" commands 0x02 WRITE, 0x04 EXEC. Remaining P1 questions: image format/signing for
+EXEC, redistribution terms of the closed DDR-init binary, the UPGRADE-BOOT pin. P2 onwards still need hardware.
+
 ## Steps and pass criteria
 | # | Step | Pass |
 |---|---|---|

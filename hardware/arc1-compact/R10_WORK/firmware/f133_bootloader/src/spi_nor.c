@@ -11,9 +11,9 @@ typedef struct { uint8_t mfr; uint16_t dev; uint32_t size; enum nor_addr_strateg
 static const nor_known k_known[] = {
     { 0xEFu, 0x4019u, 0x02000000u, NOR_ADDR_4B_OPCODES },   /* W25Q256JV (standard SPI ID) */
     { 0xEFu, 0x7019u, 0x02000000u, NOR_ADDR_4B_OPCODES },   /* W25Q256JV (-IM/-JM ID variant) */
-    /* R10 (ARC1_MEMORY_R10 s3.2): W25Q512JV, 512 Mbit. Device ID 0x4020/0x7020 follows the Winbond JV scheme
-     * (capacity byte 0x20 = 512 Mbit) and the same 4-byte opcode set is ASSUMED -- read the W25Q512JV datasheet
-     * before the part is frozen (memory spec [S6]). */
+    /* R10 (ARC1_MEMORY_R10 s3.2): W25Q512JV, 512 Mbit. DOCUMENTED (Winbond W25Q512JV Rev I 2026-05-05 s8.1.1 / s8.1.2,
+     * W25Q512JV-DTR Rev D s8.1.1): JEDEC EF 40 20 (-IQ/-IN), EF 70 20 (-IM); power-up 3-byte mode (ADP = 0 factory);
+     * dedicated 4-byte opcodes 13h/0Ch/12h/21h/DCh; EAR C5h/C8h volatile. tPP <= 3.5 ms, tSE <= 400 ms (s9.6). */
     { 0xEFu, 0x4020u, 0x04000000u, NOR_ADDR_4B_OPCODES },
     { 0xEFu, 0x7020u, 0x04000000u, NOR_ADDR_4B_OPCODES },
 };
