@@ -12,6 +12,13 @@ engineering tools when a task needs them.
 
 ## What is on the screen
 
+**Colours (R10.5):**
+- The whole interface uses the ARC-1 logo's palette: near-black surfaces,
+  brushed-steel text and chrome, and ARC-1 orange for focus, the active tab,
+  selection edges and the toolbar's underline.
+- The palette is defined in `workbench/qt_theme.py`. The classic Tk window
+  uses the same colours.
+
 - **Title bar:** the standard Windows title bar with minimize, maximize and
   close. Workbench does not draw its own.
 - **Menus:** File, Edit, View, Project, Build, Debug, Cartridge, Tools, Help.
@@ -149,44 +156,57 @@ known yet, so the chart does not pretend to show a schedule.
 Agents read the same data with the `inspect.resources` method of
 `python arc1 agent`.
 
-## Clip (chat bubbles)
+## Clip (chat bubbles, answered by Google Gemini)
 
 Click the paperclip at the right end of the toolbar. Clip's chat appears as
 speech bubbles floating over the Workbench window, just under the paperclip:
-yours in blue on the right, replies in grey on the left. There is no
-separate window.
+yours in ARC-1 orange on the right, replies in brushed steel on the left.
+There is no separate window.
 - **Showing and hiding:** click Clip again, or press **Esc** in the message
-  field, to hide the bubbles. A reply that arrives while they are hidden
-  pops them back up.
+  field, to hide the bubbles.
 - **The editor stays usable:** only the bubbles and the message field catch
   the mouse, so you can keep clicking in the editor around them.
 
-![Clip's bubbles over the editor](assets/workbench_r10_7_clip.png)
+**One-time setup** (free, with any Google account):
 
-**Where Clip gets answers** (••• › Settings):
+![First use: Clip asks for a free key](assets/workbench_r10_8_clip_setup.png)
 
-| Choice | Account or key | Leaves this PC? |
-|---|---|---|
-| **Local AI** (default), using Ollama with `qwen2.5-coder:7b` | none, free | no |
-| **Google Gemini** | free key from aistudio.google.com/apikey | yes |
-| **OpenAI API** | paid API key | yes |
-| **ChatGPT website, copy & paste** | your ChatGPT login | yes, and you paste in the browser |
+1. Click **Get a free key**. Google AI Studio opens at
+   aistudio.google.com/apikey.
+2. Sign in, click **Create API key**, then **Copy**.
+3. Paste the key into Clip's message box and press Enter.
 
-**First use of Local AI:**
-1. Clip shows an **Install local AI** button. It installs Ollama with
-   winget; Windows may ask for permission.
-2. Clip downloads the model, about 5 GB once, showing progress in a bubble.
-3. Clip then answers the message you already sent.
+Clip then checks the key with Google straight away. It lists the models the
+key may use and gets one real answer:
+- If the key works, Clip says so and names the model it picked.
+- If not, Clip explains why in plain words: invalid key, key blocked,
+  service not offered in your country, free limit used up, or no connection.
 
-**Limits of Local AI:**
-- It needs about 8 GB of memory.
-- On smaller PCs, set the model to `qwen2.5-coder:3b`.
-- Its answers are weaker than ChatGPT's.
+A question asked before the key was set up is answered as soon as the key
+works.
 
-**What is sent:** the 📎 toggle sends the open file with your message. It
-is off by default. Clip only answers: it changes no files and runs nothing.
-It never drives a browser window. That would break whenever the site changes
-and is against OpenAI's terms.
+**Your key:**
+- It is stored encrypted for your Windows account (DPAPI); on Linux, in a
+  file only you can read.
+- It is never shown in a bubble.
+- The ••• menu has **Test my Google key**, **Change Google key...** and
+  **Forget my key**. The `GEMINI_API_KEY` environment variable also works.
+
+![Clip answering over the editor](assets/workbench_r10_7_clip.png)
+
+**Models:** Google renames Gemini models often, so Clip never hard-codes
+one.
+- It uses `gemini-flash-latest` when the key offers it. Otherwise it uses
+  the newest stable Flash model in the key's own list.
+- If that model is refused or its free limit is used up, Clip moves to the
+  next Flash or Flash-Lite model, which has its own free limit.
+- If Google is briefly busy, Clip retries once.
+
+**What is sent:** your messages, plus the open file when the 📎 toggle is on
+(off by default).
+- On the free tier, Google may use what you send to improve its products.
+  Don't paste passwords or secrets.
+- Clip only answers: it changes no files and runs nothing.
 
 ## Installing
 

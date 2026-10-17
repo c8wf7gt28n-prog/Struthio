@@ -1,3 +1,46 @@
+# R10.5 — ARC-1 colours everywhere; Clip uses Google Gemini (free key)
+
+- **ARC-1 colours** (owner decision): the whole UI now uses the logo's
+  palette, replacing R10's light ivory.
+  - Black surfaces, brushed-steel text and chrome, and ARC-1 orange
+    (`#ff5a1a`) accents.
+  - Covered: the Qt window (`workbench/qt_theme.py`), the editor gutter and
+    highlights, the Resources charts, the Clip bubbles, and the classic Tk
+    window (`workbench/app.py`).
+  - The layout is unchanged.
+- **Clip answers with Google Gemini only**, using a free key from any Google
+  account. Local AI, OpenAI and copy & paste were removed.
+- **Key setup inside the bubbles:** a **Get a free key** button opens
+  aistudio.google.com/apikey; you paste the key into Clip.
+  - **Checked straight away:** Clip lists the key's models and gets one real
+    answer. Failures are explained in plain words: invalid key, blocked key,
+    region, free limit, or no connection.
+  - **Never on screen:** the key is not shown in any bubble and is stored
+    encrypted for your Windows account.
+- **No hard-coded model:** Clip uses `gemini-flash-latest` or the newest
+  stable Flash model from the key's own list.
+  - It falls back to the next Flash or Flash-Lite model when a model is
+    refused or its free limit is used up.
+  - It retries once when Google is busy.
+- **Checked against Google's documentation (October 2026):**
+  - the `x-goog-api-key` header, `generateContent` and `systemInstruction`;
+  - "thought" parts are skipped, and blocked answers are explained.
+- **Checked against the live endpoint:** a request with an invalid key
+  reaches Google, and Google's real `API_KEY_INVALID` answer becomes Clip's
+  plain message. No call with a valid key was made: none is available
+  here. The owner's first paste is that test, and Clip reports the result.
+- **Tests:** `tests/test_r10_clip.py` has 11 tests.
+  - A fake Google that answers in the documented formats, including the
+    real invalid-key body: model choice, fallback on a free-limit error, a
+    retry when Google is busy, plain-word errors, and a full key check.
+  - A real Qt test of first use: get-key button → paste → check → answer
+    the question asked before the key.
+- **Screenshots:** `tests/capture_r10_screens.py` regenerates all R10
+  screenshots in the new colours.
+- **Changed test:** `tests/test_r08_qt_contract.py` now checks the ARC-1
+  palette instead of the R10 ivory. The owner changed the look; the rest of
+  the test is unchanged.
+
 # R10.4 — Clip floats over Workbench and needs no key
 
 - **Chat bubbles instead of a window:** `ClipOverlay` in

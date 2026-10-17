@@ -1,109 +1,115 @@
              VMA              LMA     Size Align Out     In      Symbol
                0                0    20000     1 . = ORIGIN ( STAGE_RAM )
-           20000            20000      344     2 .text
-           20000            20000       2e     1         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/entry.o:(.text.entry)
+           20000            20000      358     2 .text
+           20000            20000       2e     1         /home/user/Struthio/arc1/firmware/build/stage/f133/entry.o:(.text.entry)
            20000            20000        0     1                 .Lpcrel_hi0
-           20000            20000        0     1                 $x
+           20000            20000        0     1                 $x.0
            20000            20000        0     1                 _start
            20008            20008        0     1                 .Lpcrel_hi1
            20010            20010        0     1                 .Lpcrel_hi2
            20018            20018        0     1                 .Ltmp0
            20024            20024        0     1                 .Ltmp1
            20028            20028        0     1                 .Ltmp2
-           2002e            2002e        0     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/entry.o:(.text)
-           2002e            2002e        0     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/main.o:(.text)
-           2002e            2002e       40     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/main.o:(.text.arc1_stage_main)
-           2002e            2002e        0     1                 $x
+           2002e            2002e        0     2         /home/user/Struthio/arc1/firmware/build/stage/f133/entry.o:(.text)
+           2002e            2002e        0     2         /home/user/Struthio/arc1/firmware/build/stage/f133/main.o:(.text)
+           2002e            2002e       40     2         /home/user/Struthio/arc1/firmware/build/stage/f133/main.o:(.text.arc1_stage_main)
+           2002e            2002e        0     1                 $x.0
            2002e            2002e       40     1                 arc1_stage_main
-           20068            20068        0     1                 .L0 
-           2006e            2006e       22     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/main.o:(.text.stage_lcd_rows)
+           20068            20068        0     1                 .LBB0_2
+           2006e            2006e       22     2         /home/user/Struthio/arc1/firmware/build/stage/f133/main.o:(.text.stage_lcd_rows)
            2006e            2006e       22     1                 stage_lcd_rows
-           2006e            2006e        0     1                 $x
-           20072            20072        0     1                 .L0 
-           20090            20090        0     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/lcd_status.o:(.text)
-           20090            20090       d6     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/lcd_status.o:(.text.arc1_lcd_emit)
-           20090            20090        0     1                 $x
+           2006e            2006e        0     1                 $x.1
+           20072            20072        0     1                 .LBB1_1
+           20090            20090        0     2         /home/user/Struthio/arc1/firmware/build/stage/f133/lcd_status.o:(.text)
+           20090            20090       d6     2         /home/user/Struthio/arc1/firmware/build/stage/f133/lcd_status.o:(.text.arc1_lcd_emit)
+           20090            20090        0     1                 $x.0
            20090            20090       d6     1                 arc1_lcd_emit
-           200aa            200aa        0     1                 .L0 
-           200ae            200ae        0     1                 .L0 
-           200d6            200d6        0     1                 .L0 
-           200ec            200ec        0     1                 .L0 
-           20100            20100        0     1                 .L0 
-           2010a            2010a        0     1                 .L0 
-           20116            20116        0     1                 .L0 
-           2012c            2012c        0     1                 .L0 
-           20142            20142        0     1                 .L0 
-           2014c            2014c        0     1                 .L0 
-           20166            20166        0     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/boot_monitor.o:(.text)
-           20166            20166       10     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_init)
-           20166            20166        0     1                 $x
+           200aa            200aa        0     1                 .LBB0_4
+           200ae            200ae        0     1                 .LBB0_5
+           200d6            200d6        0     1                 .LBB0_6
+           200ec            200ec        0     1                 .LBB0_9
+           20100            20100        0     1                 .LBB0_11
+           2010a            2010a        0     1                 .LBB0_12
+           20116            20116        0     1                 .LBB0_13
+           2012c            2012c        0     1                 .LBB0_16
+           20142            20142        0     1                 .LBB0_18
+           2014c            2014c        0     1                 .LBB0_19
+           20166            20166        0     2         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.text)
+           20166            20166       10     2         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_init)
+           20166            20166        0     1                 $x.0
            20166            20166       10     1                 arc1_boot_monitor_init
-           20174            20174        0     1                 .L0 
-           20176            20176       4e     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_mark)
-           20176            20176        0     1                 $x
-           20176            20176       4e     1                 arc1_boot_monitor_mark
-           20180            20180        0     1                 .L0 
-           20184            20184        0     1                 .L0 
-           201c4            201c4       26     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_fault)
-           201c4            201c4        0     1                 $x
-           201c4            201c4       26     1                 arc1_boot_monitor_fault
-           201da            201da        0     1                 .L0 
-           201de            201de        0     1                 .L0 
-           201ea            201ea       86     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_display)
-           201ea            201ea        0     1                 $x
-           201ea            201ea       86     1                 arc1_boot_monitor_display
-           2023a            2023a        0     1                 .L0 
-           20260            20260        0     1                 .L0 
-           20264            20264        0     1                 .L0 
-           20270            20270        0     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/serlcd_i2c.o:(.text)
-           20270            20270       d4     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/serlcd_i2c.o:(.text.arc1_serlcd_write_rows)
-           20270            20270        0     1                 $x
-           20270            20270       d4     1                 arc1_serlcd_write_rows
-           202bc            202bc        0     1                 .L0 
-           202ea            202ea        0     1                 .L0 
-           202ec            202ec        0     1                 .L0 
-           202f8            202f8        0     1                 .L0 
-           20310            20310        0     1                 .L0 
-           20348            20348      26a     8 .rodata
-           20348            20348      144     1         <internal>:(.rodata.str1.1)
-           20490            20490       58     8         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/lcd_status.o:(.rodata..Lswitch.table.arc1_lcd_emit)
-           20490            20490       58     1                 .Lswitch.table.arc1_lcd_emit
-           20490            20490        0     1                 $d
-           204e8            204e8       58     8         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/lcd_status.o:(.rodata..Lswitch.table.arc1_lcd_emit.23)
-           204e8            204e8       58     1                 .Lswitch.table.arc1_lcd_emit.23
-           204e8            204e8        0     1                 $d
-           20540            20540       24     4         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/boot_monitor.o:(.rodata..Lswitch.table.arc1_boot_monitor_mark)
-           20540            20540       24     1                 .Lswitch.table.arc1_boot_monitor_mark
-           20540            20540        0     1                 $d
-           20564            20564       24     4         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/boot_monitor.o:(.rodata..Lswitch.table.arc1_boot_monitor_mark.1)
-           20564            20564       24     1                 .Lswitch.table.arc1_boot_monitor_mark.1
-           20564            20564        0     1                 $d
-           20588            20588       2a     1         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/main.o:(.arc1.stage)
-           20588            20588        0     1                 $d
-           20588            20588       2a     1                 arc1_f133_stage_identity
-           205b8            205b8       20     8 .srodata.cst8
-           205b8            205b8       20     8         <internal>:(.srodata.cst8)
-           205d8            205d8       28     4 .bss
-           205d8            205d8        0     1         . = ALIGN ( 8 )
-           205d8            205d8        0     1         __bss_start = .
-           205d8            205d8        4     4         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/main.o:(.sbss)
-           205d8            205d8        4     1                 stage_progress
-           205d8            205d8        0     1                 $d
-           205dc            205dc       22     1         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/f133/main.o:(.bss.diagnostic_rows)
-           205dc            205dc       22     1                 diagnostic_rows
-           205dc            205dc        0     1                 $d
-           205fe            205fe        2     1         . = ALIGN ( 8 )
-           20600            20600        0     1         __bss_end = .
-           20600            20600        0     1 . = ALIGN ( 16 )
-           20600            20600        0     1 __stack_top = ORIGIN ( STAGE_RAM ) + LENGTH ( STAGE_RAM )
-           20600            20600        0     1 
-               0                0       53     1 .riscv.attributes
-               0                0       53     1         <internal>:(.riscv.attributes)
-               0                0       db     1 .comment
-               0                0       db     1         <internal>:(.comment)
-               0                0      7e0     8 .symtab
-               0                0      7e0     8         <internal>:(.symtab)
-               0                0       57     1 .shstrtab
-               0                0       57     1         <internal>:(.shstrtab)
-               0                0      2ef     1 .strtab
-               0                0      2ef     1         <internal>:(.strtab)
+           20174            20174        0     1                 .LBB0_2
+           20176            20176       50     2         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_mark)
+           20176            20176        0     1                 $x.1
+           20176            20176       50     1                 arc1_boot_monitor_mark
+           20180            20180        0     1                 .LBB1_2
+           20184            20184        0     1                 .LBB1_3
+           201c6            201c6       26     2         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_fault)
+           201c6            201c6        0     1                 $x.2
+           201c6            201c6       26     1                 arc1_boot_monitor_fault
+           201dc            201dc        0     1                 .LBB2_3
+           201e0            201e0        0     1                 .LBB2_4
+           201ec            201ec       86     2         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.text.arc1_boot_monitor_display)
+           201ec            201ec        0     1                 $x.4
+           201ec            201ec       86     1                 arc1_boot_monitor_display
+           2023c            2023c        0     1                 .LBB3_4
+           20262            20262        0     1                 .LBB3_6
+           20266            20266        0     1                 .LBB3_7
+           20272            20272        0     2         /home/user/Struthio/arc1/firmware/build/stage/f133/serlcd_i2c.o:(.text)
+           20272            20272       e6     2         /home/user/Struthio/arc1/firmware/build/stage/f133/serlcd_i2c.o:(.text.arc1_serlcd_write_rows)
+           20272            20272        0     1                 $x.0
+           20272            20272       e6     1                 arc1_serlcd_write_rows
+           202bc            202bc        0     1                 .LBB0_6
+           202f4            202f4        0     1                 .LBB0_10
+           202f8            202f8        0     1                 .LBB0_11
+           20300            20300        0     1                 .LBB0_12
+           20304            20304        0     1                 .LBB0_13
+           20320            20320        0     1                 .LBB0_14
+           20358            20358      26a     8 .rodata
+           20358            20358      144     1         <internal>:(.rodata.str1.1)
+           204a0            204a0       58     8         /home/user/Struthio/arc1/firmware/build/stage/f133/lcd_status.o:(.rodata..Lswitch.table.arc1_lcd_emit)
+           204a0            204a0       58     1                 .Lswitch.table.arc1_lcd_emit
+           204a0            204a0        0     1                 $d.2
+           204f8            204f8       58     8         /home/user/Struthio/arc1/firmware/build/stage/f133/lcd_status.o:(.rodata..Lswitch.table.arc1_lcd_emit.23)
+           204f8            204f8       58     1                 .Lswitch.table.arc1_lcd_emit.23
+           204f8            204f8        0     1                 $d.3
+           20550            20550       24     4         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.rodata..Lswitch.table.arc1_boot_monitor_mark)
+           20550            20550       24     1                 .Lswitch.table.arc1_boot_monitor_mark
+           20550            20550        0     1                 $d.6
+           20574            20574       24     4         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.rodata..Lswitch.table.arc1_boot_monitor_mark.1)
+           20574            20574       24     1                 .Lswitch.table.arc1_boot_monitor_mark.1
+           20574            20574        0     1                 $d.7
+           20598            20598       2a     1         /home/user/Struthio/arc1/firmware/build/stage/f133/main.o:(.arc1.stage)
+           20598            20598        0     1                 $d.2
+           20598            20598       2a     1                 arc1_f133_stage_identity
+           205c8            205c8       20     8 .data
+           205c8            205c8       20     8         /home/user/Struthio/arc1/firmware/build/stage/f133/boot_monitor.o:(.sdata)
+           205c8            205c8        0     1                 .LCPI3_0
+           205c8            205c8        0     1                 $d.3
+           205d0            205d0        0     1                 .LCPI3_1
+           205d8            205d8        0     1                 .LCPI3_2
+           205e0            205e0        0     1                 .LCPI3_3
+           205e8            205e8       28     4 .bss
+           205e8            205e8        0     1         . = ALIGN ( 8 )
+           205e8            205e8        0     1         __bss_start = .
+           205e8            205e8        4     4         /home/user/Struthio/arc1/firmware/build/stage/f133/main.o:(.sbss)
+           205e8            205e8        4     1                 stage_progress
+           205e8            205e8        0     1                 $d.3
+           205ec            205ec       22     1         /home/user/Struthio/arc1/firmware/build/stage/f133/main.o:(.bss.diagnostic_rows)
+           205ec            205ec       22     1                 diagnostic_rows
+           205ec            205ec        0     1                 $d.4
+           2060e            2060e        2     1         . = ALIGN ( 8 )
+           20610            20610        0     1         __bss_end = .
+           20610            20610        0     1 . = ALIGN ( 16 )
+           20610            20610        0     1 __stack_top = ORIGIN ( STAGE_RAM ) + LENGTH ( STAGE_RAM )
+           20610            20610        0     1 
+               0                0       4a     1 .riscv.attributes
+               0                0       4a     1         <internal>:(.riscv.attributes)
+               0                0       42     1 .comment
+               0                0       42     1         <internal>:(.comment)
+               0                0      858     8 .symtab
+               0                0      858     8         <internal>:(.symtab)
+               0                0       4f     1 .shstrtab
+               0                0       4f     1         <internal>:(.shstrtab)
+               0                0      3a9     1 .strtab
+               0                0      3a9     1         <internal>:(.strtab)

@@ -6,7 +6,10 @@ table); agents never drive the GUI. Hardware status text must stay truthful (`en
 and must be reported as NOT RUN. Resource-budget figures (`hardware/budgets/`) must quote their source; a figure
 without a quote is dropped by `workbench/resources.py`. Never add an estimated number to make a chart look complete.
 The installer (`workbench/setup_arc1.py`) must stay standard-library-only and self-contained, and upgrades/uninstalls
-must back up user-changed files. Next: R11 professional editing.
+must back up user-changed files. UI colours follow the ARC-1 logo (`workbench/qt_theme.py`: black, brushed steel,
+orange #ff5a1a); do not reintroduce light themes. Clip (`workbench/clip.py`) talks only to Google Gemini with the
+owner's free key, never hard-codes a model, only answers (no file changes, no commands) and stays out of the CLI,
+C API and schemas (provider neutrality). Next: R11 professional editing.
 
 **R07 handoff:** Read PATCH_NOTES_R07.md, docs/AGENT_INTERFACE_R07.md and the roadmapped product spec. Preserve launcher source verification, real HOST_TEST labels, per-user workspace config, and guarded hardware deployment. R08 is next.
 

@@ -40,14 +40,14 @@ class R08Contract(unittest.TestCase):
         ast.parse((ROOT/'workbench'/'qt_theme.py').read_text(encoding='utf-8'))
         visual=(ROOT/'workbench'/'qt_theme.py').read_text(encoding='utf-8')
         self.assertIn('QDockWidget',visual)
-        # R10 Classic (owner decision): light ivory/gray surfaces with a restrained
-        # orange accent replace R08's dark graphite. Subtle toolbar/button
-        # gradients are now intended ("subtle material depth").
-        from workbench.qt_theme import ORANGE, IVORY, SURFACE
+        # R10.5 (owner decision, "All UI should be ARC-1 coloured"): the ARC-1 logo
+        # palette - black surfaces, brushed-steel text and chrome, ARC-1 orange
+        # accent - replaces R10's light ivory. The active tab keeps its orange edge.
+        from workbench.qt_theme import ORANGE, BLACK, PANEL, TEXT
         self.assertIn('border-top: 2px solid %s' % ORANGE, visual)
-        for colour in (IVORY, SURFACE):
+        for colour in (BLACK, PANEL, TEXT):
             self.assertIn(colour, visual)
-        self.assertNotIn('#22272b', visual)   # R08 dark window background is gone
+        self.assertNotIn('#fbfaf6', visual)   # R10 ivory is gone
 
 
 if __name__=='__main__': unittest.main()

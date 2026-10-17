@@ -1,43 +1,43 @@
              VMA              LMA     Size Align Out     In      Symbol
                0                0    20000     1 . = ORIGIN ( STAGE_RAM )
            20000            20000       42     2 .text
-           20000            20000       2e     1         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/d213/entry.o:(.text.entry)
+           20000            20000       2e     1         /home/user/Struthio/arc1/firmware/build/stage/d213/entry.o:(.text.entry)
            20000            20000        0     1                 .Lpcrel_hi0
-           20000            20000        0     1                 $x
+           20000            20000        0     1                 $x.0
            20000            20000        0     1                 _start
            20008            20008        0     1                 .Lpcrel_hi1
            20010            20010        0     1                 .Lpcrel_hi2
            20018            20018        0     1                 .Ltmp0
            20024            20024        0     1                 .Ltmp1
            20028            20028        0     1                 .Ltmp2
-           2002e            2002e        0     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/d213/entry.o:(.text)
-           2002e            2002e        0     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/d213/main.o:(.text)
-           2002e            2002e       14     2         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/d213/main.o:(.text.arc1_stage_main)
-           2002e            2002e        0     1                 $x
+           2002e            2002e        0     2         /home/user/Struthio/arc1/firmware/build/stage/d213/entry.o:(.text)
+           2002e            2002e        0     2         /home/user/Struthio/arc1/firmware/build/stage/d213/main.o:(.text)
+           2002e            2002e       14     2         /home/user/Struthio/arc1/firmware/build/stage/d213/main.o:(.text.arc1_stage_main)
+           2002e            2002e        0     1                 $x.0
            2002e            2002e       14     1                 arc1_stage_main
-           2003c            2003c        0     1                 .L0 
+           2003c            2003c        0     1                 .LBB0_1
            20042            20042       2a     1 .rodata
-           20042            20042       2a     1         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/d213/main.o:(.arc1.stage)
-           20042            20042        0     1                 $d
+           20042            20042       2a     1         /home/user/Struthio/arc1/firmware/build/stage/d213/main.o:(.arc1.stage)
+           20042            20042        0     1                 $d.1
            20042            20042       2a     1                 arc1_d213_stage_identity
            2006c            2006c        c     4 .bss
            2006c            2006c        4     1         . = ALIGN ( 8 )
            20070            20070        0     1         __bss_start = .
-           20070            20070        4     4         /mnt/data/ARC1_WORKBENCH_R09/firmware/build/stage/d213/main.o:(.sbss)
+           20070            20070        4     4         /home/user/Struthio/arc1/firmware/build/stage/d213/main.o:(.sbss)
            20070            20070        4     1                 stage_progress
-           20070            20070        0     1                 $d
+           20070            20070        0     1                 $d.2
            20074            20074        4     1         . = ALIGN ( 8 )
            20078            20078        0     1         __bss_end = .
            20078            20078        8     1 . = ALIGN ( 16 )
            20080            20080        0     1 __stack_top = ORIGIN ( STAGE_RAM ) + LENGTH ( STAGE_RAM )
            20080            20080        0     1 
-               0                0       53     1 .riscv.attributes
-               0                0       53     1         <internal>:(.riscv.attributes)
-               0                0       db     1 .comment
-               0                0       db     1         <internal>:(.comment)
+               0                0       4a     1 .riscv.attributes
+               0                0       4a     1         <internal>:(.riscv.attributes)
+               0                0       42     1 .comment
+               0                0       42     1         <internal>:(.comment)
                0                0      228     8 .symtab
                0                0      228     8         <internal>:(.symtab)
                0                0       49     1 .shstrtab
                0                0       49     1         <internal>:(.shstrtab)
-               0                0       c2     1 .strtab
-               0                0       c2     1         <internal>:(.strtab)
+               0                0       d3     1 .strtab
+               0                0       d3     1         <internal>:(.strtab)

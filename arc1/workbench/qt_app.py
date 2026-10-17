@@ -22,7 +22,7 @@ import time
 
 from PySide6.QtCore import QDir, QEvent, QPoint, QPropertyAnimation, QProcess, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
-                           QPainter, QPainterPath, QPen, QPixmap, QRegion, QTextDocument, QTextCursor, QTextFormat)
+                           QPainter, QPainterPath, QPalette, QPen, QPixmap, QRegion, QTextDocument, QTextCursor, QTextFormat)
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog,
     QFileSystemModel, QFormLayout, QFrame, QGraphicsDropShadowEffect, QGraphicsOpacityEffect, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
@@ -110,8 +110,8 @@ class CodeEditor(QPlainTextEdit):
 
     def paint_gutter(self, event):
         p = QPainter(self.gutter)
-        p.fillRect(event.rect(), QColor('#f3f1ec'))
-        p.setPen(QColor('#e2ddd5'))
+        p.fillRect(event.rect(), QColor('#0d0e10'))
+        p.setPen(QColor('#2a2d31'))
         p.drawLine(self.gutter.width() - 1, event.rect().top(), self.gutter.width() - 1, event.rect().bottom())
         block = self.firstVisibleBlock()
         n = block.blockNumber()
@@ -121,8 +121,8 @@ class CodeEditor(QPlainTextEdit):
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 if self.problem_line == n + 1:
-                    p.fillRect(0, top, self.gutter.width() - 1, bottom - top, QColor('#f8cfb5'))
-                p.setPen(QColor('#23272b') if n == current else QColor('#9a9c9e'))
+                    p.fillRect(0, top, self.gutter.width() - 1, bottom - top, QColor('#5a2a12'))
+                p.setPen(QColor('#ff7a3c') if n == current else QColor('#5f656c'))
                 p.drawText(0, top, self.gutter.width() - 7, self.fontMetrics().height(), Qt.AlignRight, str(n + 1))
             block = block.next()
             top = bottom
@@ -132,7 +132,7 @@ class CodeEditor(QPlainTextEdit):
     def _highlight(self):
         extra = []
         line = QTextEdit.ExtraSelection()
-        line.format.setBackground(QColor('#fbf3e7'))
+        line.format.setBackground(QColor('#1a1b1e'))
         line.format.setProperty(QTextFormat.FullWidthSelection, True)
         line.cursor = self.textCursor()
         line.cursor.clearSelection()
@@ -141,7 +141,7 @@ class CodeEditor(QPlainTextEdit):
             block = self.document().findBlockByNumber(self.problem_line - 1)
             if block.isValid():
                 mark = QTextEdit.ExtraSelection()
-                mark.format.setBackground(QColor('#fde3d2'))
+                mark.format.setBackground(QColor('#3a1610'))
                 mark.format.setProperty(QTextFormat.FullWidthSelection, True)
                 mark.cursor = QTextCursor(block)
                 extra.append(mark)
@@ -527,8 +527,8 @@ class QuickOpen(QDialog):
 
 # --------------------------------------------------------------------------- resource budgets (Inspector)
 
-CHIP_COLOURS = {'f133': '#cf9157', 'fpga12': '#bda794', 'd213': '#6f8e99', 'gpu45': '#9b8ab7', 'present': '#8daa8f',
-                'link': '#7c8a96', 'need': '#e07a1f'}
+CHIP_COLOURS = {'f133': '#ff7a3c', 'fpga12': '#d0a882', 'd213': '#8fb3c2', 'gpu45': '#b4a3d6', 'present': '#9cc29e',
+                'link': '#a9aeb4', 'need': '#ff5a1a'}
 EVIDENCE_TEXT = {'NONE': 'not measured', 'DESIGN': 'design figure', 'RTL_SIM': 'RTL simulation',
                  'HOST_SIM': 'host simulation', 'FPGA_PNR': 'FPGA place & route', 'BOARD_TEST': 'measured on a board',
                  'STATIC_CHECK': 'static check'}
@@ -567,7 +567,7 @@ class ClipAssistant(QWidget):
         p.scale(self.width() / 34, self.height() / 40)
         if self.hover:
             p.setPen(Qt.NoPen)
-            p.setBrush(QColor(224, 122, 31, 40))
+            p.setBrush(QColor(255, 90, 26, 60))
             p.drawRoundedRect(QRectF(1, 1, 32, 38), 6, 6)
         wire = QPainterPath()                      # an original paperclip, drawn as one wire
         wire.moveTo(13, 31)
@@ -579,9 +579,9 @@ class ClipAssistant(QWidget):
         wire.cubicTo(9, 4, 25, 4, 25, 12)
         wire.lineTo(25, 29)
         p.setBrush(Qt.NoBrush)
-        p.setPen(QPen(QColor('#6f7880'), 2.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        p.setPen(QPen(QColor('#9aa0a7'), 2.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         p.drawPath(wire)
-        p.setPen(QPen(QColor('#c9d0d6'), 0.9, Qt.SolidLine, Qt.RoundCap))
+        p.setPen(QPen(QColor('#f1f2f4'), 0.9, Qt.SolidLine, Qt.RoundCap))
         p.drawPath(wire)                           # highlight along the wire
         for x in (12.5, 21.5):                     # eyes and brows
             p.setPen(QPen(QColor('#3b3b3b'), 0.8))
@@ -599,15 +599,16 @@ class ClipOverlay(QWidget):
     """Clip's chat as speech bubbles floating over the Workbench window, under the paperclip.
 
     Not a window: a transparent child of the main window whose mask covers only the bubbles
-    and the message field, so the editor underneath stays clickable. Your messages are blue on
-    the right, replies grey on the left, as in Messages. The model is reached through
-    workbench/clip.py (local AI by default: free, no key, nothing leaves the PC).
+    and the message field, so the editor underneath stays clickable. Your messages are ARC-1
+    orange on the right, replies brushed steel on the left. Answers come from Google Gemini
+    with the owner's free key (workbench/clip.py); the key is checked with a real request
+    the moment it is pasted.
     """
-    replied = Signal(str, bool)                    # text, is_error  (from the worker thread)
-    progress = Signal(str)
-    setup_needed = Signal(str, str)                # step ('install' | 'model'), text
+    replied = Signal(str, str)                     # text, error kind ('' = answer)  (from the worker thread)
+    key_checked = Signal(bool, str, str)           # ok, key, model or error text
     WIDTH, SHOWN = 360, 7                          # bubbles kept on screen; older ones stay in history
-    BLUE, GREY = '#0a84ff', '#e9e9eb'
+    ORANGE = 'qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ff6a24, stop:1 #e04810)'
+    STEEL = 'qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f1f2f4, stop:0.55 #d3d6da, stop:1 #b9bdc2)'
 
     def __init__(self, window, anchor, open_file=None):
         super().__init__(window)
@@ -617,21 +618,24 @@ class ClipOverlay(QWidget):
         self.settings = clip.Settings.load()
         self.history = []                          # [(role, text actually sent)]
         self.busy = False
-        self.pending = None                        # message waiting for local AI setup
-        self.awaiting_paste = None                 # copy & paste mode: what Clip put on the clipboard
+        self.expect_key = not self.settings.ready()
+        self.pending = None                        # a question asked before the key was set up
         self.status_bubble = None
         self.setStyleSheet("""
-            #ClipPill { background: #ffffff; border: 1px solid #c7c7cc; border-radius: 19px; }
-            #ClipInput { border: none; background: transparent; font-size: 13px; padding: 4px 2px; }
-            #ClipSend { background: #0a84ff; border: none; border-radius: 13px; }
-            #ClipSend:disabled { background: #b7d7ff; }
-            #ClipTool { border: none; background: transparent; color: #8a8a8e; font-size: 13px; padding: 0 3px; }
-            #ClipTool:checked { color: #0a84ff; }
-            #ClipNote { color: #6d6d72; font-size: 11px; background: rgba(255,255,255,0.92);
-                        border-radius: 9px; padding: 3px 8px; }
-            #ClipAction { background: #0a84ff; color: white; border: none; border-radius: 12px; padding: 4px 12px;
+            #ClipPill { background: #1d1f22; border: 1px solid #3a3e44; border-radius: 19px; }
+            #ClipInput { border: none; background: transparent; color: #e4e6e8; font-size: 13px; padding: 4px 2px;
+                         selection-background-color: #ff5a1a; }
+            #ClipSend { background: %s; border: none; border-radius: 13px; }
+            #ClipSend:disabled { background: #5a3a2c; }
+            #ClipTool { border: none; background: transparent; color: #a9aeb4; font-size: 13px; padding: 0 3px; }
+            #ClipTool:checked { color: #ff5a1a; }
+            #ClipTool:hover { color: #ffffff; }
+            #ClipNote { color: #a9aeb4; font-size: 11px; background: rgba(20, 21, 23, 0.94);
+                        border: 1px solid #33373c; border-radius: 9px; padding: 3px 8px; }
+            #ClipAction { background: %s; color: white; border: none; border-radius: 12px; padding: 4px 12px;
                           font-weight: 600; }
-        """)
+            #ClipAction:hover { background: #ff7a3c; }
+        """ % (self.ORANGE, self.ORANGE))
         lay = QVBoxLayout(self)
         lay.setContentsMargins(10, 4, 10, 12)
         lay.setSpacing(6)
@@ -652,6 +656,9 @@ class ClipOverlay(QWidget):
         self.include.toggled.connect(self._remember_include)
         self.input = QLineEdit()
         self.input.setObjectName('ClipInput')
+        pal = self.input.palette()
+        pal.setColor(QPalette.PlaceholderText, QColor('#7d838a'))
+        self.input.setPalette(pal)
         self.input.returnPressed.connect(self.send)
         self.input.installEventFilter(self)
         self.send_btn = QPushButton()
@@ -665,10 +672,10 @@ class ClipOverlay(QWidget):
         more.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(more)
         menu.addAction('New conversation', self.clear)
-        menu.addAction('Settings...', self.edit_settings)
-        self.site_action = menu.addAction('Open ChatGPT in the browser',
-                                          lambda: QDesktopServices.openUrl(QUrl(clip.CHATGPT_URL)))
-        self.paste_action = menu.addAction("Paste ChatGPT's reply", self.paste_reply)
+        menu.addAction('Test my Google key', self.test_key)
+        menu.addAction('Change Google key...', self.change_key)
+        menu.addAction('Get a free key (opens Google AI Studio)', self.open_key_page)
+        menu.addAction('Forget my key', self.forget_key)
         menu.addSeparator()
         menu.addAction('Hide Clip  (Esc)', self.hide)
         more.setMenu(menu)
@@ -678,9 +685,7 @@ class ClipOverlay(QWidget):
         lay.addWidget(self.pill)
 
         self.replied.connect(self._on_reply)
-        self.progress.connect(self._on_progress)
-        self.setup_needed.connect(self._on_setup)
-        QApplication.clipboard().dataChanged.connect(self._clipboard_changed)
+        self.key_checked.connect(self._on_key_checked)
         window.installEventFilter(self)
         self.refresh()
         self.hide()
@@ -734,7 +739,7 @@ class ClipOverlay(QWidget):
         fx = QGraphicsDropShadowEffect(w)
         fx.setBlurRadius(14)
         fx.setOffset(0, 2)
-        fx.setColor(QColor(0, 0, 0, 70))
+        fx.setColor(QColor(0, 0, 0, 170))
         w.setGraphicsEffect(fx)
         w.setProperty('clipShape', True)
 
@@ -767,6 +772,7 @@ class ClipOverlay(QWidget):
         while self.rows.count() > self.SHOWN:      # older bubbles leave the screen, not the conversation
             old = self.rows.takeAt(0).widget()
             if old is not None:
+                old.hide()                         # gone now, not at the next event-loop pass
                 old.deleteLater()
         self._fade_in(widget)
         self.pop_up()
@@ -793,7 +799,7 @@ class ClipOverlay(QWidget):
         doc.setDefaultFont(f)
         doc.setDocumentMargin(0)
         doc.setMarkdown(text) if markdown else doc.setPlainText(text)
-        width = min(limit, int(doc.idealWidth()) + 6)
+        width = min(limit, int(doc.idealWidth()) + (24 if label.objectName() == 'ClipNote' else 6))
         label.setFixedWidth(max(width, 24))
         label.setMinimumHeight(label.heightForWidth(label.width()))
 
@@ -806,9 +812,14 @@ class ClipOverlay(QWidget):
 
     def bubble(self, text, mine, error=False, action=None):
         box = QFrame()
-        colours = (self.BLUE, '#ffffff') if mine else (('#fde2e1', '#8a1c1c') if error else (self.GREY, '#000000'))
-        box.setStyleSheet('QFrame { background: %s; border-radius: 14px; } QLabel { color: %s; background: '
-                          'transparent; font-size: 13px; }' % colours)
+        if mine:
+            look = 'background: %s; border: 1px solid #ff8a4c;' % self.ORANGE, '#ffffff'
+        elif error:
+            look = 'background: #2a1310; border: 1px solid #ff5a1a;', '#ffc2ad'
+        else:
+            look = 'background: %s; border: 1px solid #8e949a;' % self.STEEL, '#111315'
+        box.setStyleSheet('QFrame { %s border-radius: 14px; } QLabel { color: %s; background: transparent; '
+                          'border: none; font-size: 13px; }' % look)
         bl = QVBoxLayout(box)
         bl.setContentsMargins(12, 7, 12, 8)
         label = QLabel()
@@ -841,56 +852,131 @@ class ClipOverlay(QWidget):
 
     # ------------------------------------------------------------------ state
     def refresh(self):
-        s = self.settings
-        self.input.setPlaceholderText('Message Clip · ' + s.describe())
-        self.site_action.setVisible(s.mode == 'manual')
-        self.paste_action.setVisible(s.mode == 'manual')
+        self.input.setPlaceholderText('Paste your free Google key here' if self.expect_key else
+                                      'Message Clip · ' + self.settings.describe())
         self.send_btn.setEnabled(not self.busy)
         self.input.setEnabled(not self.busy)
-        self.anchor.setToolTip('Clip: ' + s.describe())
+        self.anchor.setToolTip('Clip: ' + self.settings.describe())
 
     def _remember_include(self, on):
         self.settings.include_file = on
+        self._save()
+
+    def _save(self):
         try:
             self.settings.save()
-        except OSError:
-            pass
+        except OSError as e:
+            self.note('Could not save Clip settings: %s' % e)
 
     def clear(self):
         self.history.clear()
-        self.awaiting_paste = self.pending = None
+        self.pending = None
         while self.rows.count():
             w = self.rows.takeAt(0).widget()
             if w is not None:
+                w.hide()
                 w.deleteLater()
         self.note('New conversation.')
+
+    def greet(self):
+        if self.expect_key:
+            self.onboarding()
+        else:
+            self.note("Hi, I'm Clip. Ask me about your code, a build error or the ARC-1 design. "
+                      "I only answer; I don't change files.")
+
+    def onboarding(self, reason=None):
+        self.expect_key = True
+        self.refresh()
+        self.bubble((reason + '\n\n' if reason else "Hi, I'm Clip. ") +
+                    'I answer with **Google Gemini**, free with any Google account. One-time setup:\n\n'
+                    '1. Press **Get a free key** (opens Google AI Studio).\n'
+                    '2. Sign in, press **Create API key**, then **Copy**.\n'
+                    '3. Paste it in the box below and press Enter.', False,
+                    action=('Get a free key', self.open_key_page))
+        self.note("Free tier: Google may use what you send to improve its products, so don't paste passwords "
+                  'or secrets. Your key is stored ' + ('encrypted for your Windows account.' if os.name == 'nt'
+                                                       else 'in a file only you can read.'))
+        self.input.setFocus()
+
+    def open_key_page(self):
+        QDesktopServices.openUrl(QUrl(clip.KEY_URL))
+
+    def change_key(self):
+        self.pop_up()
+        self.onboarding('Paste a new key to replace the current one.')
+
+    def forget_key(self):
+        self.settings.key, self.settings.model = '', ''
+        self._save()
+        self.pop_up()
+        self.onboarding('I forgot your key.' + (' (GEMINI_API_KEY is still set on this PC.)'
+                                               if os.environ.get(clip.KEY_ENV) else ''))
+
+    def test_key(self):
+        key = self.settings.api_key()
+        self.pop_up()
+        if not key:
+            self.onboarding()
+            return
+        self._check(key)
+
+    # ------------------------------------------------------------------ key setup
+    def _check(self, key):
+        self.busy = True
+        self.status_bubble = self.bubble('Checking your key with Google...', False)
+        self.refresh()
+
+        def work():
+            try:
+                self.key_checked.emit(True, key, clip.check_key(key))
+            except clip.ClipError as e:
+                self.key_checked.emit(False, key, str(e))
+        threading.Thread(target=work, daemon=True).start()
+
+    def _on_key_checked(self, ok, key, detail):
+        self.busy = False
+        self._drop_status()
+        if not ok:
+            self.refresh()
+            self.bubble(detail, False, error=True, action=('Get a free key', self.open_key_page))
+            return
+        if key != os.environ.get(clip.KEY_ENV) or self.settings.key:
+            self.settings.key = key
+        self.settings.model = detail
+        self.expect_key = False
+        self._save()
+        self.refresh()
+        self.bubble('All set: your key works and I answer with **%s**. Ask me anything.' % detail, False)
+        if self.pending:
+            question, self.pending = self.pending, None
+            self.history.append(('user', question))
+            self._ask()
 
     # ------------------------------------------------------------------ sending
     def send(self):
         text = self.input.text().strip()
         if not text or self.busy:
             return
+        self.input.clear()
+        if self.expect_key:
+            if clip.looks_like_key(text):
+                self.bubble('🔑 Key pasted', True)    # the key itself never appears on screen
+                self._check(text)
+            else:
+                self.bubble(text, True)
+                self.pending = text
+                self.note("I'll answer that as soon as your key is set up: paste it below.")
+            return
         name, body = self.open_file() if self.include.isChecked() else (None, None)
         if self.include.isChecked() and not name:
             self.note('No file is open, so only your message is sent.')
         outgoing = clip.with_file(text, name, body)
-        self.input.clear()
         self.bubble(text + ('\n📎 %s' % name if name else ''), True)
         self.history.append(('user', outgoing))
-        if self.settings.mode == 'manual':
-            self.awaiting_paste = outgoing
-            QApplication.clipboard().setText(outgoing)
-            QDesktopServices.openUrl(QUrl(clip.CHATGPT_URL))
-            self.note("Copied. Paste it in ChatGPT, then press its Copy button and I'll show the answer.")
-            return
-        if not self.settings.ready():
-            self.history.pop()
-            self.bubble('I need an API key for that first.', False, error=True,
-                        action=('Settings', self.edit_settings))
-            return
         self._ask()
 
-    def _ask(self, before=None):
+    def _ask(self):
         self.busy = True
         self.status_bubble = self.bubble('•••', False)
         self.refresh()
@@ -898,166 +984,36 @@ class ClipOverlay(QWidget):
 
         def work():
             try:
-                if before:
-                    before(self.progress.emit)
-                self.replied.emit(clip.ask(settings, history), False)
-            except clip.NeedsSetup as e:
-                self.setup_needed.emit(e.step, str(e))
+                self.replied.emit(clip.ask(settings, history), '')
             except clip.ClipError as e:
-                self.replied.emit(str(e), True)
+                self.replied.emit(str(e), e.kind)
         threading.Thread(target=work, daemon=True).start()
 
     def _drop_status(self):
         if self.status_bubble is not None:
             try:
+                self.status_bubble.parentWidget().hide()
                 self.status_bubble.parentWidget().deleteLater()
             except RuntimeError:
                 pass
             self.status_bubble = None
 
-    def _on_progress(self, text):
-        if self.status_bubble is not None:
-            try:
-                self._fit(self.status_bubble.label, text, 250, markdown=True)
-            except RuntimeError:
-                return
-            self.place()
-
-    def _on_reply(self, text, error):
+    def _on_reply(self, text, kind):
         self.busy = False
         self._drop_status()
-        self.bubble(text, False, error=error)
-        if error:
-            self.history.pop()                     # the owner can simply send it again
+        if kind:
+            question = self.history.pop()[1]       # not answered: the owner can send it again
+            if kind == 'key':
+                self.pending = question
+                self.onboarding(text)
+                return
+            self.bubble(text, False, error=True)
         else:
             self.history.append(('assistant', text))
+            self.bubble(text, False)
+            self._save()                           # remembers the model that answered
         self.refresh()
         self.input.setFocus()
-
-    # ------------------------------------------------------------------ local AI setup
-    def _on_setup(self, step, text):
-        self.busy = False
-        self._drop_status()
-        self.refresh()
-        model = self.settings.models['local']
-        if step == 'install' and clip.can_install_ollama():
-            self.bubble(text + ' It is free, needs no account, and your messages never leave this PC. '
-                        'Ollama plus the %s model is about 5 GB.' % model, False,
-                        action=('Install local AI', lambda: self._setup('install')))
-        elif step == 'install':
-            self.bubble(text + ' Install Ollama from https://ollama.com/download, then send your message again.',
-                        False)
-        else:
-            self.bubble(text + ' It is about 5 GB, downloaded once.', False,
-                        action=('Download %s' % model, lambda: self._setup('model')))
-
-    def _setup(self, step):
-        if self.busy or not self.history or self.history[-1][0] != 'user':
-            return
-        model = self.settings.models['local']
-
-        def prepare(report):
-            if step == 'install':
-                report('Installing Ollama... (Windows may ask for permission)')
-                ok, out = clip.install_ollama()
-                if not ok and not clip.ollama_exe():
-                    raise clip.ClipError('Ollama did not install: %s' % out.strip()[-200:])
-                report('Starting local AI...')
-            names = clip.start_ollama(wait=30)
-            if names is None:
-                raise clip.ClipError('Ollama is installed but did not start. Start "Ollama" from the Start '
-                                     'menu, then send your message again.')
-            if not clip.has_model(names, model):
-                clip.pull_model(model, report)
-            report('Thinking...')
-        self._ask(before=prepare)
-
-    # ------------------------------------------------------------------ copy & paste mode
-    def _clipboard_changed(self):
-        if self.awaiting_paste is None:
-            return
-        text = QApplication.clipboard().text().strip()
-        if text and text != self.awaiting_paste.strip():
-            self.take_reply(text)
-
-    def paste_reply(self):
-        text = QApplication.clipboard().text().strip()
-        if not text or (self.awaiting_paste and text == self.awaiting_paste.strip()):
-            self.note("The clipboard still holds your message. Press Copy under ChatGPT's answer first.")
-            return
-        self.take_reply(text)
-
-    def take_reply(self, text):
-        self.awaiting_paste = None
-        self.bubble(text, False)
-        self.history.append(('assistant', text))
-
-    # ------------------------------------------------------------------ settings
-    def edit_settings(self):
-        d = QDialog(self.window_)
-        d.setWindowTitle('Clip settings')
-        form = QFormLayout(d)
-        mode = QComboBox()
-        for m in clip.MODES:
-            mode.addItem(clip.MODE_NAMES[m], m)
-        mode.setCurrentIndex(max(0, mode.findData(self.settings.mode)))
-        model = QLineEdit()
-        key = QLineEdit()
-        key.setEchoMode(QLineEdit.Password)
-        info = QLabel()
-        info.setWordWrap(True)
-        info.setOpenExternalLinks(True)
-        state = {'mode': self.settings.mode, 'models': dict(self.settings.models), 'keys': dict(self.settings.keys),
-                 'shown': False}
-
-        def show(i):
-            old = state['mode']
-            if state['shown']:                     # keep what was typed for the mode being left
-                state['models'][old] = model.text().strip() or clip.DEFAULT_MODELS[old]
-                if old in clip.KEY_ENV:
-                    state['keys'][old] = key.text().strip()
-            state['shown'] = True
-            m = mode.itemData(i)
-            state['mode'] = m
-            model.setText(state['models'].get(m, ''))
-            model.setEnabled(m != 'manual')
-            key.setText(state['keys'].get(m, ''))
-            key.setEnabled(m in clip.KEY_ENV)
-            key.setPlaceholderText('(or set %s)' % clip.KEY_ENV[m] if m in clip.KEY_ENV else 'not needed')
-            info.setText({
-                'local': 'Runs on this PC with Ollama: free, private, works offline. Needs about 5 GB of disk '
-                         'and 8 GB of memory; smaller PCs can use qwen2.5-coder:3b. Weaker than ChatGPT.',
-                'gemini': 'Free key (Google account): <a href="%s">aistudio.google.com/apikey</a>. On the free '
-                          'tier Google may use your messages to improve its products.' % clip.GEMINI_KEY_URL,
-                'api': 'Paid key from platform.openai.com, billed separately from a ChatGPT subscription.',
-                'manual': 'Clip copies your message and opens chatgpt.com; you paste it there and press '
-                          'Copy on the answer. Nothing is automated.'}[m] +
-                ('' if m not in clip.KEY_ENV else '<br>The key is stored %s.' % (
-                    'encrypted for your Windows account' if os.name == 'nt' else 'in a file only you can read')))
-        state['mode'] = mode.itemData(mode.currentIndex())
-        mode.currentIndexChanged.connect(show)
-        form.addRow('Clip talks to', mode)
-        form.addRow('Model', model)
-        form.addRow('API key', key)
-        form.addRow(info)
-        buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(d.accept)
-        buttons.rejected.connect(d.reject)
-        form.addRow(buttons)
-        show(mode.currentIndex())
-        if d.exec() != QDialog.Accepted:
-            return
-        show(mode.currentIndex())                  # folds the visible fields into state
-        self.settings.mode = state['mode']
-        self.settings.models.update({k: v for k, v in state['models'].items() if v})
-        self.settings.keys = {k: v for k, v in state['keys'].items() if v}
-        try:
-            self.settings.save()
-        except OSError as e:
-            self.note('Settings not saved: %s' % e)
-        self.awaiting_paste = None
-        self.note('Clip now talks to: %s' % self.settings.describe())
-        self.refresh()
 
 
 class BudgetChart(QWidget):
@@ -1084,12 +1040,12 @@ class BudgetChart(QWidget):
     def paintEvent(self, _):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
-        p.fillRect(self.rect(), QColor('#fbfaf6'))
+        p.fillRect(self.rect(), QColor('#141517'))
         f = p.font()
         f.setBold(True)
         f.setPointSizeF(f.pointSizeF() + 1)
         p.setFont(f)
-        p.setPen(QColor('#23272b'))
+        p.setPen(QColor('#e4e6e8'))
         p.drawText(12, 22, self.title)
         f.setBold(False)
         f.setPointSizeF(f.pointSizeF() - 1)
@@ -1097,17 +1053,17 @@ class BudgetChart(QWidget):
         x0, w = self._track()
         for i, r in enumerate(self.rows):
             rect = self._row_rect(i)
-            p.setPen(QColor('#23272b'))
+            p.setPen(QColor('#e4e6e8'))
             label = p.fontMetrics().elidedText(r['label'], Qt.ElideRight, self.LABEL_W - 20)
             p.drawText(12, rect.top(), self.LABEL_W - 20, rect.height(), Qt.AlignVCenter | Qt.AlignLeft, label)
             p.setPen(Qt.NoPen)
-            p.setBrush(QColor('#ebe8e2'))
+            p.setBrush(QColor('#202226'))
             p.drawRoundedRect(rect, 6, 6)
             value = r.get('value')
             if value is None:
-                p.setBrush(QBrush(QColor('#c9c3b9'), Qt.BDiagPattern))
+                p.setBrush(QBrush(QColor('#4a4f56'), Qt.BDiagPattern))
                 p.drawRoundedRect(rect, 6, 6)
-                p.setPen(QColor('#6b6f73'))
+                p.setPen(QColor('#8a9096'))
                 p.drawText(rect.adjusted(10, 0, -10, 0), Qt.AlignVCenter | Qt.AlignLeft, 'not measured')
                 continue
             scale = rect.width() / float(self.maximum)
@@ -1127,25 +1083,35 @@ class BudgetChart(QWidget):
                 p.drawRoundedRect(QRect(rect.left(), rect.top(), max(6, int(min(value, self.maximum) * scale)),
                                         rect.height()), 6, 6)
             text = r.get('text', '')
-            p.setPen(QColor('#23272b'))
+            p.setPen(QColor('#e4e6e8'))
             end = rect.left() + int(min(value, self.maximum) * scale)
             if end + 8 + p.fontMetrics().horizontalAdvance(text) < rect.right():
                 p.drawText(end + 8, rect.top(), rect.right() - end, rect.height(), Qt.AlignVCenter, text)
-            else:
-                p.setPen(QColor('#ffffff'))
-                p.drawText(rect.adjusted(8, 0, -8, 0), Qt.AlignVCenter | Qt.AlignLeft, text)
+            else:                                  # dark on the bar, light where it runs onto the track
+                inner = rect.adjusted(8, 0, -8, 0)
+                for clip_rect, colour_ in ((QRect(rect.left(), rect.top(), end - rect.left(), rect.height()), '#0b0b0c'),
+                                           (QRect(end, rect.top(), rect.right() - end + 1, rect.height()), '#e4e6e8')):
+                    p.save()
+                    p.setClipRect(clip_rect)
+                    p.setPen(QColor(colour_))
+                    p.drawText(inner, Qt.AlignVCenter | Qt.AlignLeft, text)
+                    p.restore()
         if self.marker is not None:
             mx = x0 + int(self.marker[0] / float(self.maximum) * w)
             p.setPen(QPen(QColor(CHIP_COLOURS['need']), 2, Qt.DashLine))
             p.drawLine(mx, 30, mx, 34 + len(self.rows) * self.ROW_H)
         y = 34 + len(self.rows) * self.ROW_H + 18
-        p.setPen(QColor('#6b6f73'))
-        for t in self.ticks:
+        p.setPen(QColor('#8a9096'))
+        taken = []                                 # ends first; a middle label that would overlap is left out
+        for t in sorted(self.ticks, key=lambda v: (v not in (0, self.maximum), v)):
             tx = x0 + int(t / float(self.maximum) * w)
             label = ('%s %s' % (('%.2f' % t).rstrip('0').rstrip('.') if t else '0', self.unit))
-            align = Qt.AlignLeft if t == 0 else (Qt.AlignRight if t == self.maximum else Qt.AlignHCenter)
-            box = QRect(tx - (0 if t == 0 else (120 if t == self.maximum else 60)), y - 12, 120, 18)
-            p.drawText(box, align | Qt.AlignVCenter, label)
+            tw = p.fontMetrics().horizontalAdvance(label)
+            left = tx if t == 0 else (tx - tw if t == self.maximum else tx - tw // 2)
+            if any(left < r + 8 and left + tw + 8 > l for l, r in taken):
+                continue
+            taken.append((left, left + tw))
+            p.drawText(QRect(left, y - 12, tw + 2, 18), Qt.AlignLeft | Qt.AlignVCenter, label)
 
     def mouseMoveEvent(self, event):
         for i, r in enumerate(self.rows):
@@ -1687,8 +1653,7 @@ class WorkbenchWindow(QMainWindow):
             self.clip_overlay = ClipOverlay(self, self.clip, self.clip_file)
         self.clip_overlay.toggle()
         if first:
-            self.clip_overlay.note("Hi, I'm Clip. Ask me about your code, a build error or the ARC-1 design. "
-                                   "I only answer; I don't change files.")
+            self.clip_overlay.greet()
 
     def clip_file(self):
         ed = self.current_editor()

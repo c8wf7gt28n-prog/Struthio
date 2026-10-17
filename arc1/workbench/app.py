@@ -28,8 +28,11 @@ except ImportError:
 from tkinter import filedialog, messagebox, ttk, simpledialog
 
 ROOT=Path(__file__).resolve().parents[1]
-BG='#F1EAE3'; PANEL='#FFFBF6'; HILITE='#FFF0DB'; NAVY='#45342B'
-INK='#27211F'; SUB='#695A51'; ORANGE='#D86916'; GREEN='#256C45'
+# ARC-1 logo palette (shared with the Qt theme): near-black, brushed steel, ARC-1 orange.
+BLACK='#0b0b0c'; PANEL='#141517'; RAISED='#1d1f22'; STEEL_DARK='#2a2d31'; LINE='#33373c'
+STEEL='#a9aeb4'; TEXT='#e4e6e8'; MUTED='#7d838a'; SELECT='#ffffff'
+ORANGE='#ff5a1a'; ORANGE_DEEP='#c8400c'; ORANGE_SOFT='#3a1d10'
+BG=BLACK; HILITE=ORANGE_SOFT; NAVY=RAISED; INK=TEXT; SUB=STEEL; GREEN='#5fd08f'
 ACTION={
  'Build F133 stage':['firmware','image','--target','f133'],
  'Build D213 stage':['firmware','image','--target','d213'],
@@ -65,13 +68,13 @@ class AquaButton(tk.Canvas):
     def _paint(self,event=None):
         self.delete('all')
         w=max(25,self.winfo_width());h=max(25,self.winfo_height())
-        shade='#2E373D' if not self.hover else '#414A50'
-        if self.pressed:shade='#514B43'
-        self.create_rectangle(1,1,w-2,h-2,fill=shade,outline='#636669',width=1)
-        self.create_line(2,2,w-3,2,fill='#777879')
-        if self.primary:self.create_rectangle(2,h-4,w-3,h-2,fill='#D17A36',outline='')
-        if self.focus_get()==self:self.create_rectangle(3,3,w-4,h-4,outline='#DDA06A',dash=(2,2))
-        self.create_text(w/2,h/2,text=self.text,font=self.font,fill='#F5F1EB')
+        shade=STEEL_DARK if not self.hover else LINE
+        if self.pressed:shade=ORANGE_SOFT
+        self.create_rectangle(1,1,w-2,h-2,fill=shade,outline=LINE if not self.hover else MUTED,width=1)
+        self.create_line(2,2,w-3,2,fill='#44494f')          # brushed-steel top edge
+        if self.primary:self.create_rectangle(2,h-4,w-3,h-2,fill=ORANGE,outline='')
+        if self.focus_get()==self:self.create_rectangle(3,3,w-4,h-4,outline=ORANGE,dash=(2,2))
+        self.create_text(w/2,h/2,text=self.text,font=self.font,fill=TEXT)
     def _enter(self,event):self.hover=True;self._paint()
     def _leave(self,event):self.hover=False;self.pressed=False;self._paint()
     def _press(self,event):self.focus_set();self.pressed=True;self._paint()
@@ -102,46 +105,71 @@ class Workbench(DnDBase):
         self.protocol('WM_DELETE_WINDOW',self.on_close)
 
     def _style(self):
+        for name,value in (('*Menu.background',RAISED),('*Menu.foreground',TEXT),
+                           ('*Menu.activeBackground',ORANGE_SOFT),('*Menu.activeForeground',SELECT),
+                           ('*Menu.disabledForeground',MUTED),('*Menu.selectColor',ORANGE),
+                           ('*Menu.relief','flat'),('*Menu.borderWidth',1),
+                           ('*Background',BG),('*Foreground',TEXT),
+                           ('*Entry.background',PANEL),('*Entry.foreground',TEXT),('*Entry.insertBackground',ORANGE),
+                           ('*Entry.selectBackground',ORANGE_SOFT),('*Entry.selectForeground',SELECT),
+                           ('*Listbox.background',PANEL),('*Listbox.foreground',TEXT),
+                           ('*Listbox.selectBackground',ORANGE_SOFT),('*Listbox.selectForeground',SELECT),
+                           ('*Text.background',PANEL),('*Text.foreground',TEXT),('*Text.insertBackground',ORANGE),
+                           ('*Text.selectBackground',ORANGE_SOFT),('*Text.selectForeground',SELECT),
+                           ('*Button.background',STEEL_DARK),('*Button.foreground',TEXT),
+                           ('*Button.activeBackground',LINE),('*Button.activeForeground',SELECT),
+                           ('*Checkbutton.selectColor',PANEL),('*Radiobutton.selectColor',PANEL),
+                           ('*highlightBackground',LINE),('*highlightColor',ORANGE)):
+            self.option_add(name,value)
         style=ttk.Style(self);style.theme_use('clam')
+        style.configure('.',background=BG,foreground=TEXT,fieldbackground=PANEL,bordercolor=LINE,
+                        lightcolor=STEEL_DARK,darkcolor=BLACK,troughcolor=BLACK,
+                        selectbackground=ORANGE_SOFT,selectforeground=SELECT,insertcolor=ORANGE)
         style.configure('Treeview',background=PANEL,fieldbackground=PANEL,foreground=INK,
                         rowheight=29,borderwidth=0,font=('Segoe UI',10))
-        style.configure('Treeview.Heading',background='#F8E3CB',foreground='#50392D',
+        style.configure('Treeview.Heading',background=RAISED,foreground=STEEL,bordercolor=LINE,
+                        lightcolor=RAISED,darkcolor=RAISED,
                         font=('Segoe UI',9,'bold'),relief='flat',padding=(7,7))
-        style.map('Treeview',background=[('selected','#F7C685')],foreground=[('selected',INK)])
+        style.map('Treeview.Heading',background=[('active',STEEL_DARK)],foreground=[('active',TEXT)])
+        style.map('Treeview',background=[('selected',ORANGE_SOFT)],foreground=[('selected',SELECT)])
         style.configure('TPanedwindow',background=BG)
-        style.configure('TNotebook',background=BG,borderwidth=0)
-        style.configure('TNotebook.Tab',background='#F2DED0',foreground=INK,padding=(20,9),
-                        font=('Segoe UI',10))
-        style.map('TNotebook.Tab',background=[('selected','#FFF9F2')],foreground=[('selected',ORANGE)])
-        style.configure('Vertical.TScrollbar',background='#DDC2AB',troughcolor=BG,arrowcolor=ORANGE)
+        style.configure('TNotebook',background=BG,borderwidth=0,bordercolor=LINE,lightcolor=BG,darkcolor=BG)
+        style.configure('TNotebook.Tab',background=RAISED,foreground=STEEL,padding=(20,9),
+                        bordercolor=LINE,lightcolor=RAISED,darkcolor=RAISED,font=('Segoe UI',10))
+        style.map('TNotebook.Tab',background=[('selected',PANEL),('active',STEEL_DARK)],
+                  foreground=[('selected',ORANGE),('active',TEXT)],lightcolor=[('selected',ORANGE)])
+        for bar in ('Vertical.TScrollbar','Horizontal.TScrollbar'):
+            style.configure(bar,background=STEEL_DARK,troughcolor=BLACK,arrowcolor=ORANGE,bordercolor=LINE,
+                            lightcolor=STEEL_DARK,darkcolor=STEEL_DARK)
+            style.map(bar,background=[('active',LINE),('pressed',ORANGE_DEEP)])
     def _button(self,parent,text,callback,primary=False):
         return AquaButton(parent,text,callback,primary=primary)
     def _aqua_header(self):
         # Compact orange Aqua title bar: branding without a 93px billboard.
-        top=tk.Canvas(self,height=51,bg='#201B1B',highlightthickness=0)
+        top=tk.Canvas(self,height=51,bg=BLACK,highlightthickness=0)
         top.pack(side='top',fill='x');top.pack_propagate(False)
         for y in range(0,50,2):
             t=y/50
-            a=(29,25,25);b=(66,42,30)
+            a=(34,36,40);b=(11,11,12)           # brushed steel fading to black
             r,g,bl=[int(a[i]*(1-t)+b[i]*t) for i in range(3)]
             top.create_rectangle(0,y,2300,y+2,fill=f'#{r:02x}{g:02x}{bl:02x}',outline='')
-        top.create_rectangle(0,48,2500,51,fill='#E98122',outline='')
+        top.create_rectangle(0,48,2500,51,fill=ORANGE,outline='')
         try:
             self.brand_image=tk.PhotoImage(file=str(ROOT/'workbench'/'logo_compact.png'))
             top.create_image(9,4,image=self.brand_image,anchor='nw')
         except tk.TclError:
-            top.create_text(14,9,text='ARC-1',anchor='nw',fill='#FCA154',font=('Segoe UI',18,'bold'))
-        top.create_text(169,9,text='Workbench',fill='#FFF6EB',anchor='nw',font=('Segoe UI',18,'bold'))
-        top.create_text(322,19,text='ADAPTIVE RISC-V DEVELOPMENT',fill='#F5BA7B',anchor='nw',font=('Segoe UI',9))
+            top.create_text(14,9,text='ARC-1',anchor='nw',fill=ORANGE,font=('Segoe UI',18,'bold'))
+        top.create_text(169,9,text='Workbench',fill=TEXT,anchor='nw',font=('Segoe UI',18,'bold'))
+        top.create_text(322,19,text='ADAPTIVE RISC-V DEVELOPMENT',fill=STEEL,anchor='nw',font=('Segoe UI',9))
         self.top_status=top.create_text(1404,26,text='R09  /  HOST SIM  /  BOARD OFFLINE',
-                                        anchor='e',fill='#FFCB87',font=('Segoe UI',9,'bold'))
+                                        anchor='e',fill=ORANGE,font=('Segoe UI',9,'bold'))
         def reposition(event):top.coords(self.top_status,max(680,event.width-17),26)
         top.bind('<Configure>',reposition)
         return top
 
     def _layout(self):
         self._aqua_header()
-        self.toolbar=tk.Frame(self,bg='#2C3034',bd=0,highlightthickness=1,highlightbackground='#634C3B');self.toolbar.pack(side='top',fill='x')
+        self.toolbar=tk.Frame(self,bg=RAISED,bd=0,highlightthickness=1,highlightbackground=LINE);self.toolbar.pack(side='top',fill='x')
         for title,call in [('Open',self.choose_file),('Save',self.save_source),('Find',self.find_text),
                            ('F133 Build',lambda:self.run_action('Build F133 stage')),
                            ('D213 Build',lambda:self.run_action('Build D213 stage')),
@@ -152,13 +180,13 @@ class Workbench(DnDBase):
         self.addr=tk.StringVar(value='C:\\ARC-1\\')
         addrrow=tk.Frame(self,bg=BG);addrrow.pack(fill='x',padx=7,pady=(4,4))
         tk.Label(addrrow,text='Directory:',bg=BG,fg=INK).pack(side='left')
-        tk.Entry(addrrow,textvariable=self.addr,state='readonly',font=('Consolas',9),bg='#FFFDF9',fg=INK,relief='flat',highlightthickness=1,highlightbackground='#D8BA9F').pack(side='left',fill='x',expand=True,padx=8)
+        tk.Entry(addrrow,textvariable=self.addr,state='readonly',font=('Consolas',9),bg=PANEL,readonlybackground=PANEL,fg=INK,relief='flat',highlightthickness=1,highlightbackground=LINE,highlightcolor=ORANGE).pack(side='left',fill='x',expand=True,padx=8)
         tk.Label(addrrow,text='F133 + D213 / RV64   •   STAGING ONLY',bg=BG,fg=ORANGE).pack(side='right')
-        main=tk.PanedWindow(self,orient='horizontal',sashwidth=5,bg='#E8D7C5',bd=0,relief='flat')
+        main=tk.PanedWindow(self,orient='horizontal',sashwidth=5,bg=LINE,bd=0,relief='flat')
         self.main_pane=main
         main.pack(fill='both',expand=True,padx=7,pady=(0,4))
         treebox=tk.Frame(main,bg=PANEL);main.add(treebox,minsize=175,width=240,stretch='never')
-        tk.Label(treebox,text='  PROJECT NAVIGATOR',anchor='w',bg=NAVY,fg='white',padx=7,pady=4,font=('Segoe UI',10,'bold')).pack(fill='x')
+        tk.Label(treebox,text='  PROJECT NAVIGATOR',anchor='w',bg=NAVY,fg=TEXT,padx=7,pady=4,font=('Segoe UI',10,'bold')).pack(fill='x')
         self.dir_tree=ttk.Treeview(treebox,show='tree',selectmode='browse')
         tree_y=ttk.Scrollbar(treebox,orient='vertical',command=self.dir_tree.yview)
         self.dir_tree.configure(yscrollcommand=tree_y.set)
@@ -168,10 +196,10 @@ class Workbench(DnDBase):
         if DND_FILES:
             self.dir_tree.drop_target_register(DND_FILES)
             self.dir_tree.dnd_bind('<<Drop>>',self.handle_external_drop)
-        content=tk.PanedWindow(main,orient='vertical',sashwidth=5,bg=BG);main.add(content,minsize=400,stretch='always')
+        content=tk.PanedWindow(main,orient='vertical',sashwidth=5,bg=LINE);main.add(content,minsize=400,stretch='always')
         self.vertical_pane=content
         filesbox=tk.Frame(content,bg=PANEL);content.add(filesbox,minsize=95,height=174);self.files_box=filesbox
-        tk.Label(filesbox,text='  FILES   /   DOUBLE-CLICK TO OPEN',anchor='w',bg=NAVY,fg='white',padx=7,pady=4,font=('Segoe UI',10,'bold')).pack(fill='x')
+        tk.Label(filesbox,text='  FILES   /   DOUBLE-CLICK TO OPEN',anchor='w',bg=NAVY,fg=TEXT,padx=7,pady=4,font=('Segoe UI',10,'bold')).pack(fill='x')
         self.file_tree=ttk.Treeview(filesbox,columns=('type','size'),show='tree headings',selectmode='browse')
         self.file_tree.heading('#0',text='Name',anchor='w');self.file_tree.heading('type',text='Type',anchor='w');self.file_tree.heading('size',text='Size',anchor='e')
         self.file_tree.column('#0',width=380);self.file_tree.column('type',width=140);self.file_tree.column('size',width=100,anchor='e')
@@ -185,15 +213,15 @@ class Workbench(DnDBase):
             self.file_tree.drop_target_register(DND_FILES)
             self.file_tree.dnd_bind('<<Drop>>',self.handle_external_drop)
         editbox=tk.Frame(content,bg=PANEL);content.add(editbox,minsize=160,height=463)
-        pathrow=tk.Frame(editbox,bg='#F7E2D0');pathrow.pack(fill='x')
+        pathrow=tk.Frame(editbox,bg=RAISED);pathrow.pack(fill='x')
         self.file_path=tk.StringVar(value='No file open')
-        tk.Label(pathrow,textvariable=self.file_path,bg=BG,fg=INK,font=('Segoe UI',9,'bold'),anchor='w').pack(side='left',padx=5,fill='x',expand=True)
-        self.dirty=tk.Label(pathrow,text='',bg=BG,fg=ORANGE,font=('Segoe UI',9,'bold'))
+        tk.Label(pathrow,textvariable=self.file_path,bg=RAISED,fg=INK,font=('Segoe UI',9,'bold'),anchor='w').pack(side='left',padx=5,fill='x',expand=True)
+        self.dirty=tk.Label(pathrow,text='',bg=RAISED,fg=ORANGE,font=('Segoe UI',9,'bold'))
         self.dirty.pack(side='right',padx=10)
         self._button(pathrow,'Output F10',self.toggle_output).pack(side='right',padx=(2,7),pady=1)
-        editorframe=tk.Frame(editbox,bg='#FFFDF9');editorframe.pack(fill='both',expand=True)
-        self.editor=tk.Text(editorframe,undo=True,wrap='none',font=('Consolas',11),bg='#FFFDF9',fg=INK,
-                            insertbackground=ORANGE,selectbackground='#F8CE9C',relief='flat',bd=0,padx=12,pady=12)
+        editorframe=tk.Frame(editbox,bg=PANEL);editorframe.pack(fill='both',expand=True)
+        self.editor=tk.Text(editorframe,undo=True,wrap='none',font=('Consolas',11),bg=PANEL,fg=INK,
+                            insertbackground=ORANGE,selectbackground=ORANGE_SOFT,selectforeground=SELECT,relief='flat',bd=0,padx=12,pady=12)
         sy=ttk.Scrollbar(editorframe,orient='vertical',command=self.editor.yview)
         sx=ttk.Scrollbar(editorframe,orient='horizontal',command=self.editor.xview)
         self.editor.configure(yscrollcommand=sy.set,xscrollcommand=sx.set)
@@ -203,12 +231,12 @@ class Workbench(DnDBase):
         outputframe=tk.Frame(content,bg=PANEL);content.add(outputframe,minsize=90,height=140);self.output_box=outputframe
         self.tabs=ttk.Notebook(outputframe);self.tabs.pack(fill='both',expand=True)
         consolebox=tk.Frame(self.tabs,bg=PANEL);self.tabs.add(consolebox,text='Build Console  /  DOS Commands')
-        self.console=tk.Text(consolebox,height=9,state='disabled',bg='#211B19',fg='#F5DDBD',font=('Consolas',9),wrap='word')
+        self.console=tk.Text(consolebox,height=9,state='disabled',bg=BLACK,fg=TEXT,insertbackground=ORANGE,font=('Consolas',9),wrap='word')
         cy=ttk.Scrollbar(consolebox,command=self.console.yview);self.console.configure(yscrollcommand=cy.set)
         cy.pack(side='right',fill='y');self.console.pack(fill='both',expand=True)
         self.write_console('ARC-1 WORKBENCH R09  |  HOST ONLY  |  Use Build menu or Alt+B.\nC:\\ARC-1> ')
         agentframe=tk.Frame(self.tabs,bg=PANEL);self.tabs.add(agentframe,text='Agent API')
-        self.agent_info=tk.Text(agentframe,bg='#FFFAF3',fg=INK,font=('Consolas',9),wrap='word',relief='flat',padx=12,pady=8)
+        self.agent_info=tk.Text(agentframe,bg=PANEL,fg=INK,insertbackground=ORANGE,font=('Consolas',9),wrap='word',relief='flat',padx=12,pady=8)
         self.agent_info.pack(fill='both',expand=True)
         self.agent_info.insert('1.0','ARC-1 Agent Interface v1 — separate headless UI\n\n'
           'Windows Command Prompt:  py -3 arc1 agent\n'
@@ -223,33 +251,33 @@ class Workbench(DnDBase):
         self.agent_info.configure(state='disabled')
         activity=tk.Frame(self.tabs,bg=PANEL)
         self.tabs.add(activity,text='Agent Activity')
-        self.agent_activity=tk.Text(activity,state='disabled',bg='#FFFDF8',fg=INK,font=('Consolas',9))
+        self.agent_activity=tk.Text(activity,state='disabled',bg=PANEL,fg=INK,font=('Consolas',9))
         self.agent_activity.pack(fill='both',expand=True)
         self._set_readonly(self.agent_activity,'No live agent event stream connected.\nThe headless agent API runs independently; event sharing is a future integration.\nNo activity is invented.')
         buildframe=tk.Frame(self.tabs,bg=PANEL)
         self.tabs.insert(1,buildframe,text='Build Output')
-        self.build_log=tk.Text(buildframe,height=7,state='disabled',bg='#211B19',fg='#F5DDBD',font=('Consolas',9))
+        self.build_log=tk.Text(buildframe,height=7,state='disabled',bg=BLACK,fg=TEXT,insertbackground=ORANGE,font=('Consolas',9))
         self.build_log.pack(fill='both',expand=True)
         problemsframe=tk.Frame(self.tabs,bg=PANEL)
         self.tabs.insert(2,problemsframe,text='Problems')
-        self.problem_log=tk.Text(problemsframe,height=7,state='disabled',bg='#FFFDF8',fg=INK,font=('Consolas',9))
+        self.problem_log=tk.Text(problemsframe,height=7,state='disabled',bg=PANEL,fg=INK,font=('Consolas',9))
         self.problem_log.pack(fill='both',expand=True)
         debugframe=tk.Frame(self.tabs,bg=PANEL)
         self.tabs.insert(3,debugframe,text='Debug')
-        self.debug_log=tk.Text(debugframe,height=7,state='disabled',bg='#FFFDF8',fg=INK,font=('Consolas',9))
+        self.debug_log=tk.Text(debugframe,height=7,state='disabled',bg=PANEL,fg=INK,font=('Consolas',9))
         self.debug_log.pack(fill='both',expand=True)
         self._set_readonly(self.problem_log,'No compiler diagnostics yet. Run Build to examine errors.')
         self._set_readonly(self.debug_log,'HOST SIMULATION ONLY. No physical registers, traces or board telemetry.')
         self._set_readonly(self.build_log,'No build has run in this session.')
         info=tk.Frame(main,bg=PANEL,width=234);self.diagnostic_panel=info;self.diagnostics_visible=True
         main.add(info,minsize=228,width=260,stretch='never')
-        tk.Label(info,text='  BOOT DIAGNOSTICS',bg=NAVY,fg='white',anchor='w',padx=7,pady=4,font=('Segoe UI',10,'bold')).pack(fill='x')
+        tk.Label(info,text='  BOOT DIAGNOSTICS',bg=NAVY,fg=TEXT,anchor='w',padx=7,pady=4,font=('Segoe UI',10,'bold')).pack(fill='x')
         tk.Label(info,text='16 × 2  CHARACTER DISPLAY',bg=PANEL,fg=SUB,
                  font=('Segoe UI',9,'bold')).pack(anchor='w',padx=13,pady=(15,6))
-        bezel=tk.Frame(info,bg='#8B5B33',padx=7,pady=7,highlightthickness=2,
-                       highlightbackground='#E9A353');bezel.pack(fill='x',padx=13,pady=(0,8))
+        bezel=tk.Frame(info,bg=STEEL_DARK,padx=7,pady=7,highlightthickness=2,
+                       highlightbackground=ORANGE_DEEP);bezel.pack(fill='x',padx=13,pady=(0,8))
         self.lcd=tk.Label(bezel,text='ARC-1  POWER   \nRAILS CHECK     ',
-                 font=('Courier New',13,'bold'),bg='#F6D48C',fg='#594018',
+                 font=('Courier New',13,'bold'),bg='#120804',fg=ORANGE,
                  justify='center',height=3,width=20)
         self.lcd.pack(fill='x')
         tk.Label(info,text='HOST SIMULATOR  •  NOT DEVICE TELEMETRY',bg=PANEL,
@@ -265,21 +293,21 @@ class Workbench(DnDBase):
                          ('fpga12','12F    CONFIG'),('fpga45','45F    CONFIG')]:
             row=tk.Frame(info,bg=PANEL);row.pack(fill='x',padx=14,pady=3)
             tk.Label(row,text=name,bg=PANEL,fg=INK,font=('Consolas',9)).pack(side='left')
-            val=tk.Label(row,text='UNVERIFIED',bg=PANEL,fg='#976B55',font=('Consolas',8,'bold'))
+            val=tk.Label(row,text='UNVERIFIED',bg=PANEL,fg=MUTED,font=('Consolas',8,'bold'))
             val.pack(side='right');self.proof_labels[bit]=val
-        tk.Frame(info,height=1,bg='#E8CBA9').pack(fill='x',padx=14,pady=13)
+        tk.Frame(info,height=1,bg=LINE).pack(fill='x',padx=14,pady=13)
         tk.Label(info,text='BOARD NOT CONNECTED',bg=PANEL,fg=ORANGE,
                  font=('Segoe UI',10,'bold')).pack(anchor='w',padx=13)
         tk.Label(info,text='Firmware link-stage files are NOT bootable.  '
                  'USB and physical flash writes are not enabled.',bg=PANEL,fg=SUB,
                  font=('Segoe UI',9),justify='left',wraplength=234).pack(anchor='w',padx=13,pady=(8,10))
-        status=tk.Frame(self,bg='#332924',relief='flat',bd=0,height=34)
+        status=tk.Frame(self,bg=RAISED,relief='flat',bd=0,height=34)
         status.pack(fill='x',side='bottom');status.pack_propagate(False)
-        self.edit_status=tk.Label(status,text='Ready',bg='#332924',fg='#FFF6EA',
+        self.edit_status=tk.Label(status,text='Ready',bg=RAISED,fg=TEXT,
                  font=('Segoe UI',9),anchor='w')
         self.edit_status.pack(side='left',fill='x',expand=True,padx=15)
         tk.Label(status,text='AGENT JSON-LINES READY    •    HARDWARE OFFLINE    •    DEPLOY LOCKED',
-                 bg='#332924',fg='#F5AD59',font=('Segoe UI',9,'bold')).pack(side='right',padx=12)
+                 bg=RAISED,fg=ORANGE,font=('Segoe UI',9,'bold')).pack(side='right',padx=12)
         self._refresh_boot()
 
     def _refresh_boot(self):
@@ -289,7 +317,7 @@ class Workbench(DnDBase):
         for k,w in self.proof_labels.items():
             verified=bool(self.boot_model.verified & BITS[k])
             w.configure(text='SIM PASS' if verified else 'UNVERIFIED',
-                        fg=GREEN if verified else '#976B55')
+                        fg=GREEN if verified else MUTED)
 
     def reset_boot(self):
         self.boot_model=BootModel()
@@ -701,9 +729,9 @@ class Workbench(DnDBase):
         """Keyboard-first filterable list shared by quick-open and command palette."""
         win=tk.Toplevel(self);win.title(title);win.geometry('650x470');win.configure(bg=BG)
         win.transient(self)
-        term=tk.StringVar();entry=tk.Entry(win,textvariable=term,font=('Segoe UI',12),bg=PANEL,fg=INK,relief='flat')
+        term=tk.StringVar();entry=tk.Entry(win,textvariable=term,font=('Segoe UI',12),bg=PANEL,fg=INK,insertbackground=ORANGE,relief='flat')
         entry.pack(fill='x',padx=13,pady=12)
-        lb=tk.Listbox(win,font=('Consolas',10),bg=PANEL,fg=INK,selectbackground='#F8CA91',activestyle='none')
+        lb=tk.Listbox(win,font=('Consolas',10),bg=PANEL,fg=INK,selectbackground=ORANGE_SOFT,selectforeground=SELECT,activestyle='none')
         lb.pack(fill='both',expand=True,padx=13,pady=(0,10))
         mapping=[]
         def refresh(*args):
@@ -745,18 +773,18 @@ class Workbench(DnDBase):
         win=tk.Toplevel(self);win.title('ARC-1 Game Shelf — HOST SIMULATION');win.geometry('900x650');win.minsize(680,450)
         win.configure(bg=BG);self.launch_window=win
         banner=tk.Frame(win,bg=NAVY);banner.pack(fill='x')
-        tk.Label(banner,text='ARC-1  /  GAME CARTRIDGES',font=('Segoe UI',14,'bold'),fg='#FFC07B',bg=NAVY,pady=9).pack(side='left',padx=12)
-        tk.Label(banner,text='SIMULATED HOST  •  NOT ON ARC-1 HARDWARE',fg='#F1CCAA',bg=NAVY,font=('Segoe UI',9)).pack(side='right',padx=12)
-        body=tk.PanedWindow(win,orient='horizontal',sashwidth=5,bg=BG);body.pack(fill='both',expand=True,padx=9,pady=8)
+        tk.Label(banner,text='ARC-1  /  GAME CARTRIDGES',font=('Segoe UI',14,'bold'),fg=ORANGE,bg=NAVY,pady=9).pack(side='left',padx=12)
+        tk.Label(banner,text='SIMULATED HOST  •  NOT ON ARC-1 HARDWARE',fg=STEEL,bg=NAVY,font=('Segoe UI',9)).pack(side='right',padx=12)
+        body=tk.PanedWindow(win,orient='horizontal',sashwidth=5,bg=LINE);body.pack(fill='both',expand=True,padx=9,pady=8)
         shelf=tk.Frame(body,bg=PANEL);body.add(shelf,width=285,minsize=210)
         tk.Label(shelf,text='GAME SHELF',font=('Segoe UI',11,'bold'),bg=PANEL,fg=INK,pady=8).pack(fill='x')
-        listbox=tk.Listbox(shelf,font=('Segoe UI',11),bg='#FFF9F1',fg=INK,activestyle='none',selectbackground='#F6BF7D',height=12)
+        listbox=tk.Listbox(shelf,font=('Segoe UI',11),bg=PANEL,fg=INK,activestyle='none',selectbackground=ORANGE_SOFT,selectforeground=SELECT,height=12)
         listbox.pack(fill='both',expand=True,padx=8,pady=8)
         right=tk.Frame(body,bg=PANEL);body.add(right,minsize=350)
         self.launch_summary=tk.StringVar(value='Select a cartridge to inspect.')
         tk.Label(right,textvariable=self.launch_summary,bg=PANEL,fg=SUB,font=('Segoe UI',10),justify='left',anchor='w',wraplength=500).pack(fill='x',padx=12,pady=8)
-        display=tk.Frame(right,bg='#242121',height=365);display.pack(fill='both',expand=True,padx=10,pady=4);display.pack_propagate(False)
-        self.launch_picture=tk.Label(display,text='HOST FRAME PREVIEW\n\nSelect a game, then Run.',bg='#242121',fg='#FFD19E',font=('Consolas',12),justify='center')
+        display=tk.Frame(right,bg=BLACK,height=365);display.pack(fill='both',expand=True,padx=10,pady=4);display.pack_propagate(False)
+        self.launch_picture=tk.Label(display,text='HOST FRAME PREVIEW\n\nSelect a game, then Run.',bg=BLACK,fg=STEEL,font=('Consolas',12),justify='center')
         self.launch_picture.pack(expand=True,fill='both')
         self.launch_message=tk.StringVar(value='Launcher idle · BOARD OFFLINE')
         tk.Label(right,textvariable=self.launch_message,bg=PANEL,fg=ORANGE,font=('Segoe UI',9,'bold')).pack(pady=4)

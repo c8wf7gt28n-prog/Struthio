@@ -1,20 +1,18 @@
-"""Clip: the chat helper between the owner and an AI model (Qt-free).
+"""Clip: the owner's chat helper, answered by Google Gemini with a free key (Qt-free).
 
-Where Clip's messages go (Clip › Settings):
+The owner makes a free key once at aistudio.google.com/apikey (any Google account)
+and pastes it into Clip. Clip checks the key straight away with a real request,
+then picks a free Flash model the key can use. Google renames models often, so
+the model is chosen from the key's own model list (``gemini-flash-latest`` when
+offered) and Clip falls back to the next Flash model if one is refused or busy.
 
-* ``local``  - default. A free AI model running on this PC through Ollama
-               (ollama.com). No account, no key, nothing leaves the PC. Clip
-               offers to install Ollama and download the model the first time.
-* ``gemini`` - Google Gemini with a free API key from aistudio.google.com.
-* ``api``    - OpenAI (ChatGPT's models) with the owner's paid API key.
-* ``manual`` - ChatGPT in the browser by copy & paste (no key, but you leave
-               Workbench to paste).
+Request format, header and error shapes follow ai.google.dev (checked October 2026):
+POST v1beta/models/{model}:generateContent with the key in ``x-goog-api-key``;
+an invalid key answers 400 with reason API_KEY_INVALID.
 
-Clip never types into, reads or scrapes a browser window: that breaks whenever a
-site changes, cannot work on a minimized window, and automated extraction of
-ChatGPT output is against OpenAI's terms. Nothing leaves the PC except the
-messages the owner sends to a cloud choice (plus the open file, only when the
-paperclip toggle is on). Replies are text for the owner to read; Clip runs nothing.
+Privacy: on the free tier Google may use what is sent to improve its products.
+Only the owner's messages (and the open file, when the paperclip toggle is on)
+are sent. Replies are text for the owner to read; Clip changes no files and runs nothing.
 """
 from __future__ import annotations
 
@@ -22,25 +20,20 @@ import base64
 import json
 import os
 from pathlib import Path
-import shutil
-import subprocess
+import re
 import time
 import urllib.error
 import urllib.request
 
 from .session import config_dir
 
-SCHEMA = 'arc1.clip-settings/2'
-MODES = ('local', 'gemini', 'api', 'manual')
-MODE_NAMES = {'local': 'Local AI on this PC (free, no account)', 'gemini': 'Google Gemini (free API key)',
-              'api': 'OpenAI API (paid API key)', 'manual': 'ChatGPT website by copy & paste'}
-DEFAULT_MODELS = {'local': 'qwen2.5-coder:7b', 'gemini': 'gemini-2.5-flash', 'api': 'gpt-5-mini', 'manual': ''}
-KEY_ENV = {'gemini': 'GEMINI_API_KEY', 'api': 'OPENAI_API_KEY'}
-OPENAI_URL = 'https://api.openai.com/v1/chat/completions'
-GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent'
-OLLAMA_URL = os.environ.get('OLLAMA_HOST_URL', 'http://127.0.0.1:11434')
-CHATGPT_URL = 'https://chatgpt.com/'
-GEMINI_KEY_URL = 'https://aistudio.google.com/apikey'
+SCHEMA = 'arc1.clip-settings/3'
+API = 'https://generativelanguage.googleapis.com/v1beta'
+KEY_URL = 'https://aistudio.google.com/apikey'
+KEY_ENV = 'GEMINI_API_KEY'
+PREFERRED_ALIASES = ('gemini-flash-latest', 'gemini-flash-lite-latest')
+NOT_CHAT = ('image', 'tts', 'live', 'audio', 'transcribe', 'embedding', 'computer', 'banana', 'robotics', 'vision',
+            'aqa', 'learnlm', 'gemma')
 MAX_FILE_CHARS = 24000
 MAX_HISTORY = 40
 SYSTEM_PROMPT = (
@@ -51,14 +44,10 @@ SYSTEM_PROMPT = (
 
 
 class ClipError(Exception):
-    pass
-
-
-class NeedsSetup(ClipError):
-    """Local AI is not ready; ``step`` is 'install' (no Ollama) or 'model' (model not downloaded)."""
-    def __init__(self, step, text):
+    """A problem explained in plain words. ``kind``: key, quota, model, network, blocked, other."""
+    def __init__(self, text, kind='other'):
         super().__init__(text)
-        self.step = step
+        self.kind = kind
 
 
 def settings_path():
@@ -79,7 +68,7 @@ def _protect(data: bytes, encrypt: bool) -> bytes:
     src, out = Blob(len(data), ctypes.cast(buf, ctypes.POINTER(ctypes.c_char))), Blob()
     fn = ctypes.windll.crypt32.CryptProtectData if encrypt else ctypes.windll.crypt32.CryptUnprotectData
     if not fn(ctypes.byref(src), None, None, None, None, 0, ctypes.byref(out)):
-        raise ClipError('Windows could not %s the API key' % ('protect' if encrypt else 'read'))
+        raise ClipError('Windows could not %s the key' % ('protect' if encrypt else 'read'))
     try:
         return ctypes.string_at(out.pbData, out.cbData)
     finally:
@@ -105,39 +94,31 @@ def open_key(sealed) -> str:
         return ''
 
 
+def looks_like_key(text):
+    """A pasted key: one token, no spaces, long enough. Google documents no fixed prefix."""
+    t = (text or '').strip()
+    return 30 <= len(t) <= 200 and re.fullmatch(r'[A-Za-z0-9._\-~+/=]+', t) is not None
+
+
 # --------------------------------------------------------------------------- settings
 
 class Settings:
-    def __init__(self, mode='local', models=None, keys=None, include_file=False):
-        self.mode = mode if mode in MODES else 'local'
-        self.models = dict(DEFAULT_MODELS)
-        self.models.update({k: v.strip() for k, v in (models or {}).items() if k in MODES and isinstance(v, str)
-                            and v.strip()})
-        self.keys = {k: v for k, v in (keys or {}).items() if k in KEY_ENV and isinstance(v, str)}
+    def __init__(self, key='', model='', include_file=False):
+        self.key = key or ''
+        self.model = model or ''                   # chosen from the key's model list
         self.include_file = bool(include_file)
 
-    @property
-    def model(self):
-        return self.models.get(self.mode, '')
-
-    def api_key(self, mode=None):
-        """A key typed into Clip wins; otherwise the usual environment variable."""
-        mode = mode or self.mode
-        return self.keys.get(mode) or os.environ.get(KEY_ENV.get(mode, ''), '') if mode in KEY_ENV else ''
+    def api_key(self):
+        """The key pasted into Clip wins; otherwise the GEMINI_API_KEY variable."""
+        return self.key or os.environ.get(KEY_ENV, '')
 
     def ready(self):
-        return self.mode not in KEY_ENV or bool(self.api_key())
-
-    def leaves_pc(self):
-        return self.mode != 'local'
+        return bool(self.api_key())
 
     def describe(self):
-        if self.mode == 'local':
-            return 'Local AI · %s · stays on this PC' % self.model
-        if self.mode == 'manual':
-            return 'ChatGPT · copy & paste'
-        name = 'Gemini' if self.mode == 'gemini' else 'OpenAI'
-        return '%s · %s' % (name, self.model) if self.api_key() else '%s · API key needed' % name
+        if not self.ready():
+            return 'Google Gemini · free key needed'
+        return 'Google Gemini · %s' % (self.model or 'free')
 
     @classmethod
     def load(cls, path=None):
@@ -148,15 +129,13 @@ class Settings:
             return cls()
         if not isinstance(d, dict) or d.get('schema') != SCHEMA:
             return cls()
-        keys = {k: open_key(v) for k, v in (d.get('keys') or {}).items()} if isinstance(d.get('keys'), dict) else {}
-        models = d.get('models') if isinstance(d.get('models'), dict) else {}
-        return cls(d.get('mode'), models, keys, d.get('include_file'))
+        model = d.get('model') if isinstance(d.get('model'), str) else ''
+        return cls(open_key(d.get('key')), model, d.get('include_file'))
 
     def save(self, path=None):
         p = Path(path) if path else settings_path()
         p.parent.mkdir(parents=True, exist_ok=True)
-        data = {'schema': SCHEMA, 'mode': self.mode, 'models': self.models,
-                'keys': {k: seal_key(v) for k, v in self.keys.items() if v}, 'include_file': self.include_file}
+        data = {'schema': SCHEMA, 'key': seal_key(self.key), 'model': self.model, 'include_file': self.include_file}
         tmp = p.with_suffix('.tmp')
         tmp.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
         if os.name != 'nt':
@@ -174,178 +153,164 @@ def with_file(text, file_name=None, file_text=None):
     return '%s\n\nOpen file `%s`:\n```\n%s\n```' % (text, file_name, body)
 
 
-def build_messages(history):
-    """history: [(role, text)] with role 'user' or 'assistant'; newest last."""
-    msgs = [{'role': 'system', 'content': SYSTEM_PROMPT}]
+def contents(history):
+    """history: [(role, text)] with role 'user' or 'assistant'; newest last. Gemini calls the reply 'model'."""
+    out = []
     for role, text in history[-MAX_HISTORY:]:
         if role in ('user', 'assistant') and text:
-            msgs.append({'role': role, 'content': text})
-    return msgs
+            out.append({'role': 'model' if role == 'assistant' else 'user', 'parts': [{'text': text}]})
+    while out and out[0]['role'] != 'user':        # a conversation must start with the user
+        out.pop(0)
+    return out
 
 
-def _post(url, payload, headers, timeout, opener, who):
-    req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), method='POST',
-                                 headers=dict(headers, **{'Content-Type': 'application/json'}))
+# --------------------------------------------------------------------------- HTTP
+
+def _explain(code, body):
+    """Turns a Google error into words the owner can act on."""
+    try:
+        err = json.loads(body).get('error', {})
+    except (ValueError, AttributeError):
+        err = {}
+    status, message = err.get('status', ''), err.get('message', '')
+    reasons = {d.get('reason') for d in err.get('details', []) if isinstance(d, dict)}
+    retry = next((d.get('retryDelay') for d in err.get('details', []) if isinstance(d, dict) and d.get('retryDelay')),
+                 None)
+    if 'API_KEY_INVALID' in reasons or 'API key not valid' in message:
+        return ClipError("Google says this key isn't valid. Copy it again from %s (Create API key, then Copy)."
+                         % KEY_URL, 'key')
+    if code == 403 or status == 'PERMISSION_DENIED':
+        return ClipError("This key isn't allowed to use Gemini (it may be blocked or limited to another API). "
+                         'Create a new key at %s.' % KEY_URL, 'key')
+    if code == 429 or status == 'RESOURCE_EXHAUSTED':
+        wait = (' Try again in %s.' % retry) if retry else ' Try again in a minute; daily limits reset overnight.'
+        return ClipError("Google's free limit is used up for now." + wait, 'quota')
+    if 'location is not supported' in message.lower():
+        return ClipError("Google doesn't offer the free Gemini API in your country yet.", 'key')
+    if code == 404 or status == 'NOT_FOUND':
+        return ClipError('That Gemini model is not available to this key.', 'model')
+    if code >= 500:
+        return ClipError('Google is busy right now (error %d). Try again in a moment.' % code, 'network')
+    return ClipError(('Google refused the request (error %d). %s' % (code, message)).strip(), 'other')
+
+
+def _request(url, key, payload=None, timeout=60, opener=urllib.request.urlopen):
+    headers = {'x-goog-api-key': key}
+    data = None
+    if payload is not None:
+        headers['Content-Type'] = 'application/json'
+        data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(url, data=data, method='POST' if data else 'GET', headers=headers)
     try:
         with opener(req, timeout=timeout) as r:
             return json.loads(r.read().decode('utf-8'))
     except urllib.error.HTTPError as e:
         try:
-            err = json.loads(e.read().decode('utf-8')).get('error', '')
-            detail = err.get('message', '') if isinstance(err, dict) else str(err)
-        except (ValueError, AttributeError, OSError):
-            detail = ''
-        hint = {400: 'The request was refused.', 401: 'The API key was rejected.', 403: 'The API key was rejected.',
-                404: 'Unknown model; change it in Clip settings.',
-                429: 'Too many requests, or no credit left on this key. Wait a minute and try again.'}.get(e.code, '')
-        raise ClipError(('%s error %d. %s %s' % (who, e.code, hint, detail)).strip())
+            body = e.read().decode('utf-8', 'replace')
+        except OSError:
+            body = ''
+        raise _explain(e.code, body)
     except (urllib.error.URLError, TimeoutError, OSError) as e:
-        raise ClipError('Could not reach %s: %s' % (who, getattr(e, 'reason', e)))
+        raise ClipError("Can't reach Google (%s). Check the internet connection." % getattr(e, 'reason', e),
+                        'network')
     except ValueError:
-        raise ClipError('%s sent a reply Clip could not read.' % who)
+        raise ClipError('Google sent a reply Clip could not read.', 'other')
 
 
-def ask_openai(settings, history, timeout=120, opener=urllib.request.urlopen):
-    key = settings.api_key('api')
+# --------------------------------------------------------------------------- models
+
+def list_models(key, opener=urllib.request.urlopen):
+    """Model ids this key can chat with (generateContent)."""
+    ids, token = [], None
+    for _ in range(5):
+        url = API + '/models?pageSize=1000' + ('&pageToken=' + token if token else '')
+        data = _request(url, key, opener=opener)
+        for m in data.get('models', []):
+            if isinstance(m, dict) and 'generateContent' in m.get('supportedGenerationMethods', []):
+                ids.append(m.get('name', '').split('/', 1)[-1])
+        token = data.get('nextPageToken')
+        if not token:
+            break
+    return ids
+
+
+def _version(model_id):
+    m = re.match(r'gemini-(\d+(?:\.\d+)?)-flash(-lite)?(.*)$', model_id)
+    if not m:
+        return None
+    stable = m.group(3) in ('', '-latest') or re.fullmatch(r'-\d{3}', m.group(3)) is not None
+    return (0 if m.group(2) else 1, 1 if stable else 0, float(m.group(1)))
+
+
+def pick_models(ids):
+    """Chat models best first: the Flash alias, then newest stable Flash, then Flash-Lite, previews last."""
+    usable = [i for i in ids if 'flash' in i and not any(word in i for word in NOT_CHAT)]
+    ranked = [a for a in PREFERRED_ALIASES[:1] if a in usable]
+    versions = sorted((v, i) for i in usable if (v := _version(i)) is not None)
+    ranked += [i for v, i in sorted(versions, key=lambda p: (p[0][0], p[0][1], p[0][2]), reverse=True)
+               if i not in ranked]
+    ranked += [a for a in PREFERRED_ALIASES[1:] if a in usable and a not in ranked]
+    return ranked
+
+
+# --------------------------------------------------------------------------- chat
+
+def generate(key, model, history, timeout=120, opener=urllib.request.urlopen):
+    payload = {'systemInstruction': {'parts': [{'text': SYSTEM_PROMPT}]}, 'contents': contents(history)}
+    data = _request('%s/models/%s:generateContent' % (API, model), key, payload, timeout, opener)
+    cands = data.get('candidates') or []
+    if not cands:
+        reason = (data.get('promptFeedback') or {}).get('blockReason')
+        raise ClipError('Google blocked this message%s. Try wording it differently.'
+                        % (' (%s)' % reason if reason else ''), 'blocked')
+    first = cands[0]
+    parts = (first.get('content') or {}).get('parts') or []
+    text = ''.join(p.get('text', '') for p in parts if isinstance(p, dict) and not p.get('thought')).strip()
+    if not text:
+        why = first.get('finishReason', '')
+        if why in ('SAFETY', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'RECITATION', 'SPII'):
+            raise ClipError('Google withheld the answer (%s). Try wording it differently.' % why, 'blocked')
+        raise ClipError('Google sent an empty answer%s.' % (' (%s)' % why if why else ''), 'other')
+    if first.get('finishReason') == 'MAX_TOKENS':
+        text += '\n\n*(Answer cut short by Google.)*'
+    return text
+
+
+def ask(settings, history, opener=urllib.request.urlopen, sleep=time.sleep):
+    """Answers the conversation. May set settings.model (the caller saves settings)."""
+    key = settings.api_key()
     if not key:
-        raise ClipError('No OpenAI API key. Add one in Clip settings, or set OPENAI_API_KEY.')
-    data = _post(OPENAI_URL, {'model': settings.models['api'], 'messages': build_messages(history)},
-                 {'Authorization': 'Bearer ' + key}, timeout, opener, 'OpenAI')
-    try:
-        return (data['choices'][0]['message']['content'] or '').strip() or '(empty reply)'
-    except (KeyError, IndexError, TypeError):
-        raise ClipError('OpenAI sent a reply without text.')
+        raise ClipError('I need your free Google key first.', 'key')
+    tried, candidates = [], [settings.model] if settings.model else []
+    last = None
+    for attempt in range(4):
+        if not candidates:
+            candidates = [m for m in pick_models(list_models(key, opener)) if m not in tried]
+            if not candidates:
+                raise last or ClipError('This key has no Gemini Flash model to chat with.', 'model')
+        model = candidates.pop(0)
+        try:
+            text = generate(key, model, history, opener=opener)
+        except ClipError as e:
+            last = e
+            if e.kind == 'network' and 'busy' in str(e) and attempt == 0:
+                sleep(2)
+                candidates.insert(0, model)        # one quiet retry of the same model
+                continue
+            if e.kind in ('model', 'quota'):       # Flash-Lite has its own free quota
+                tried.append(model)
+                if settings.model == model:
+                    settings.model = ''
+                continue
+            raise
+        settings.model = model
+        return text
+    raise last
 
 
-def ask_gemini(settings, history, timeout=120, opener=urllib.request.urlopen):
-    key = settings.api_key('gemini')
-    if not key:
-        raise ClipError('No Gemini API key. Get a free one at %s and add it in Clip settings.' % GEMINI_KEY_URL)
-    contents = [{'role': 'model' if m['role'] == 'assistant' else 'user', 'parts': [{'text': m['content']}]}
-                for m in build_messages(history)[1:]]
-    data = _post(GEMINI_URL % settings.models['gemini'],
-                 {'systemInstruction': {'parts': [{'text': SYSTEM_PROMPT}]}, 'contents': contents},
-                 {'x-goog-api-key': key}, timeout, opener, 'Gemini')
-    try:
-        parts = data['candidates'][0]['content']['parts']
-        return ''.join(p.get('text', '') for p in parts).strip() or '(empty reply)'
-    except (KeyError, IndexError, TypeError):
-        raise ClipError('Gemini sent no answer (it may have been blocked by its safety filter).')
-
-
-# --------------------------------------------------------------------------- local AI (Ollama)
-
-def ollama_exe():
-    found = shutil.which('ollama')
-    if found:
-        return found
-    if os.name == 'nt':
-        p = Path(os.environ.get('LOCALAPPDATA', '')) / 'Programs' / 'Ollama' / 'ollama.exe'
-        if p.is_file():
-            return str(p)
-    return None
-
-
-def ollama_models(timeout=3, opener=urllib.request.urlopen):
-    """Names of downloaded models, or None when the Ollama service is not running."""
-    try:
-        with opener(urllib.request.Request(OLLAMA_URL + '/api/tags'), timeout=timeout) as r:
-            data = json.loads(r.read().decode('utf-8'))
-    except (urllib.error.URLError, TimeoutError, OSError, ValueError):
-        return None
-    return [m.get('name', '') for m in data.get('models', []) if isinstance(m, dict)]
-
-
-def has_model(names, model):
-    want = model if ':' in model else model + ':latest'
-    return any(n == want or n == model for n in names)
-
-
-def start_ollama(wait=15):
-    """Starts the Ollama service if it is installed but not running. Returns the model list or None."""
-    names = ollama_models()
-    if names is not None:
-        return names
-    exe = ollama_exe()
-    if not exe:
-        return None
-    kw = {'stdin': subprocess.DEVNULL, 'stdout': subprocess.DEVNULL, 'stderr': subprocess.DEVNULL}
-    if os.name == 'nt':
-        kw['creationflags'] = 0x08000000                      # CREATE_NO_WINDOW
-    else:
-        kw['start_new_session'] = True
-    try:
-        subprocess.Popen([exe, 'serve'], **kw)
-    except OSError:
-        return None
-    for _ in range(wait * 2):
-        time.sleep(0.5)
-        names = ollama_models()
-        if names is not None:
-            return names
-    return None
-
-
-def can_install_ollama():
-    return os.name == 'nt' and shutil.which('winget') is not None
-
-
-def install_ollama(timeout=1800):
-    """Installs Ollama for this user with winget (Windows). Returns (ok, output tail)."""
-    try:
-        p = subprocess.run(['winget', 'install', '-e', '--id', 'Ollama.Ollama', '--accept-package-agreements',
-                            '--accept-source-agreements'], capture_output=True, text=True, encoding='utf-8',
-                           errors='replace', timeout=timeout, creationflags=0x08000000 if os.name == 'nt' else 0)
-    except (OSError, subprocess.TimeoutExpired) as e:
-        return False, str(e)
-    return p.returncode == 0, ((p.stdout or '') + (p.stderr or ''))[-300:]
-
-
-def pull_model(model, progress=None, opener=urllib.request.urlopen):
-    """Downloads a model through the running Ollama service; progress(text) gets updates."""
-    req = urllib.request.Request(OLLAMA_URL + '/api/pull', data=json.dumps({'model': model}).encode(),
-                                 method='POST', headers={'Content-Type': 'application/json'})
-    last = 0.0
-    try:
-        with opener(req, timeout=3600) as r:
-            for line in r:
-                try:
-                    d = json.loads(line)
-                except ValueError:
-                    continue
-                if d.get('error'):
-                    raise ClipError('Download failed: %s' % d['error'])
-                total, done = d.get('total'), d.get('completed')
-                if progress and time.time() - last > 0.5:
-                    last = time.time()
-                    if total and done:
-                        progress('Downloading %s: %d%% of %.1f GB' % (model, 100 * done // total, total / 1e9))
-                    else:
-                        progress('Downloading %s: %s' % (model, d.get('status', '...')))
-    except (urllib.error.URLError, TimeoutError, OSError) as e:
-        raise ClipError('Download failed: %s' % getattr(e, 'reason', e))
-
-
-def ask_local(settings, history, timeout=600, opener=urllib.request.urlopen):
-    names = start_ollama()
-    if names is None:
-        raise NeedsSetup('install', 'Local AI is not installed yet.')
-    model = settings.models['local']
-    if not has_model(names, model):
-        raise NeedsSetup('model', 'The model %s is not downloaded yet.' % model)
-    data = _post(OLLAMA_URL + '/api/chat', {'model': model, 'messages': build_messages(history), 'stream': False},
-                 {}, timeout, opener, 'Local AI')
-    try:
-        return (data['message']['content'] or '').strip() or '(empty reply)'
-    except (KeyError, TypeError):
-        raise ClipError('Local AI sent a reply without text.')
-
-
-def ask(settings, history):
-    if settings.mode == 'local':
-        return ask_local(settings, history)
-    if settings.mode == 'gemini':
-        return ask_gemini(settings, history)
-    if settings.mode == 'api':
-        return ask_openai(settings, history)
-    raise ClipError('Copy & paste mode has no automatic reply.')
+def check_key(key, opener=urllib.request.urlopen):
+    """Proves a key works end to end: lists its models and gets a real one-word answer.
+    Returns the model that answered."""
+    s = Settings(key)
+    ask(s, [('user', 'Reply with the single word: ready')], opener=opener)
+    return s.model
