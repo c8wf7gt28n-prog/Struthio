@@ -1,3 +1,10 @@
+**R10 handoff (Workbench Classic):** read PATCH_NOTES_R10.md and docs/WORKBENCH_R10.md. Governing rule: the
+Qt main screen behaves like File Manager/Word; engineering tools appear only when the task needs them. Do not add
+permanent panes to the default screen. GUI, CLI and agent actions must go through `workbench/engine.py` (one command
+table); agents never drive the GUI. Hardware status text must stay truthful (`engine.device_status()`). Run
+`tests/test_r10_workbench.py` with PySide6 installed (QT_QPA_PLATFORM=offscreen); without PySide6 its Qt half skips
+and must be reported as NOT RUN. Next: R11 professional editing.
+
 **R07 handoff:** Read PATCH_NOTES_R07.md, docs/AGENT_INTERFACE_R07.md and the roadmapped product spec. Preserve launcher source verification, real HOST_TEST labels, per-user workspace config, and guarded hardware deployment. R08 is next.
 
 **R05 CURRENT-STATE OVERRIDE (2026-10-16):** The inherited baseline information below is historical. Firmware C modules now exist, four firmware host tests pass, RISC-V link-stage ELF/BIN smoke targets exist for F133 and D213 (not board-bootable), and a HOST_SIM diagnostic LCD/boot model exists. Do not infer actual hardware transport or flash approval. Read `PATCH_NOTES_R05.md`, `docs/BOOT_LCD_PASS3_R05.md`, and `docs/AGENT_INTERFACE_R04.md` before work. Human UI style is orange Aqua with WINFILE/Word 6 navigation; AI interface remains structured JSON-lines.

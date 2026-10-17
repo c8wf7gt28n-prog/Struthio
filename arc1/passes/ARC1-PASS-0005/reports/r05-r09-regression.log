@@ -1,0 +1,11 @@
+PASS R05 Python boot/agent model and gates
+== test_pass4_cartridge
+PASS: deterministic cartridge packaging, integrity, safe paths, latency stalls, agent permissions
+== test_pass7_launcher
+R07 PASS: verified shelf, trusted host binding, actual host execution, stop, security, persisted layouts, agent methods
+== test_r08_qt_contract
+
+OK
+== test_r09_output
+
+OK

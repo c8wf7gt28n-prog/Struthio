@@ -1,0 +1,235 @@
+{
+  "schema": "arc1.pass/0.2",
+  "pass_id": "ARC1-PASS-0005",
+  "state": "REVIEW",
+  "owner": "agent:claude-code",
+  "objective": "Workbench R10: familiar Classic main screen (compact Qt shell, logical file tree, editor, standard Windows commands) over a shared engine",
+  "risk_tier": "MEDIUM",
+  "base_commit": "8e26c4013616a558f69d2f2ca55c5b31684d53e5",
+  "inputs": {
+    "sdk_schema": "0.2",
+    "board_revision": "R10-development",
+    "toolchain_lock_sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+  },
+  "effort": {
+    "units": "task_units",
+    "planned_total": 80,
+    "sdk_reserved": 14,
+    "actual_total": null,
+    "actual_sdk": null
+  },
+  "deferral": null,
+  "main_change": {
+    "summary": "Qt Classic main window, light theme, session memory, File Manager operations, docs and screenshots",
+    "paths": [
+      "workbench/qt_app.py",
+      "workbench/qt_theme.py",
+      "workbench/session.py",
+      "workbench/fileops.py",
+      "docs/WORKBENCH_R10.md",
+      "PATCH_NOTES_R10.md",
+      "R10_VERIFICATION.json",
+      "README.md",
+      "AGENTS.md",
+      "docs/assets/workbench_r10_2_editor.png"
+    ]
+  },
+  "sdk_change": {
+    "summary": "Shared engine for GUI and agent (one command table, relevant-target planner, problem-path resolution) and firmware CLI failures that keep the first compiler error",
+    "paths": [
+      "workbench/engine.py",
+      "workbench/agent.py",
+      "sdk/cli/arc1cli/firmware.py",
+      "tests/test_r10_workbench.py"
+    ],
+    "reusable": true,
+    "beneficiary": "Every front end (Qt, Tk, agent) and anyone reading a firmware build failure",
+    "acceptance_tests": [
+      "r10-workbench-qt"
+    ]
+  },
+  "validation": [
+    {
+      "id": "r10-workbench-qt",
+      "level": "HOST_SIM",
+      "command": "QT_QPA_PLATFORM=offscreen python3 tests/test_r10_workbench.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0005/reports/r10-workbench-qt.log",
+        "sha256": "d07d1ec6c9cc89fe3c74ebc433f533178a2d44dd9eee805f581a96782ac0b361"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "r10-workbench-without-pyside6",
+      "level": "STATIC_CHECK",
+      "command": "python3 tests/test_r10_workbench.py (PySide6 absent)",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0005/reports/r10-workbench-without-pyside6.log",
+        "sha256": "0f82fbd4bb829af0060e80673a646897bda29e2c5856300d9c10ec1eb0240d7f"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "r05-r09-regression",
+      "level": "HOST_SIM",
+      "command": "tests/test_pass3_boot.py, test_pass4_cartridge.py, test_pass7_launcher.py, test_r08_qt_contract.py, test_r09_output.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0005/reports/r05-r09-regression.log",
+        "sha256": "7697da9edf2a01806ea2f17d47d6936b9881bf788ab03e77787a3321e4d3ab54"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "r09-tk-smoke",
+      "level": "HOST_SIM",
+      "command": "xvfb-run python3.12 tests/workbench_r09_smoke.py (copy of the tree)",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0005/reports/r09-tk-smoke-xvfb.log",
+        "sha256": "0938f455153210f7feb43cbb7cee25b35df96c9fb2f8fdb83ad642d5e4dfafb8"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "sdk-suite",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0005/reports/sdk-suite.log",
+        "sha256": "aa490788f58ed521d1b345c3d7e71b5bebf8625d1be788208fbafc6437598b04"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "windows11-native",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "No Windows 11 machine in this environment; R14 qualifies native Windows, scaling and accessibility"
+    },
+    {
+      "id": "human-acceptance-timing",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "Needs the owner at the keyboard; only scripted machine time (2.0 s) was measured"
+    },
+    {
+      "id": "independent-reproduction",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "TST-004: no second agent or maintainer has reproduced this pass yet"
+    },
+    {
+      "id": "board",
+      "level": "BOARD_TEST",
+      "command": null,
+      "result": "not_available",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "R10 hardware is on fabrication HOLD; no board exists"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "workbench/qt_app.py",
+      "sha256": "17582dc9092ec6d8fde54d2c183b8859ec7bee27850938159e0c45f3830065cf"
+    },
+    {
+      "path": "workbench/qt_theme.py",
+      "sha256": "c208e88730796078ce510f678c715ad9ff945f572764e99e6974fe075b73fd29"
+    },
+    {
+      "path": "workbench/engine.py",
+      "sha256": "a760580e82718d1db66d0a923b6d41ee06e6dcd7749c7ffffa3ece59a7e4a3c9"
+    },
+    {
+      "path": "workbench/session.py",
+      "sha256": "77c25ed18bd8e4c1394866146b173866e83ccaba74707ec373b011efdcf09b2f"
+    },
+    {
+      "path": "workbench/fileops.py",
+      "sha256": "67967f00655b81c4a6b4cd36c4c3a4f62204b31bb6b50dc7eeaa15930e74daba"
+    },
+    {
+      "path": "workbench/agent.py",
+      "sha256": "a9f8171bb552eadc238263a0d3710da3df0e7ba13800e74212c1116bdbe7b20c"
+    },
+    {
+      "path": "sdk/cli/arc1cli/firmware.py",
+      "sha256": "29939d7cd7cf0b165964f3822fc4c27f00067889c59ed39cdfe7dce04cc425f1"
+    },
+    {
+      "path": "tests/test_r10_workbench.py",
+      "sha256": "1c2a17e65dc2275a405b3e7954156c1605570a33592a80fdee1652b5282ec4f4"
+    },
+    {
+      "path": "tests/test_r08_qt_contract.py",
+      "sha256": "a79ebf692c613725c6122b9692c37affaf497dd1e138d1d39545d5cb27dc1020"
+    },
+    {
+      "path": "docs/assets/workbench_r10_1_start.png",
+      "sha256": "e7b6e0cedf5cbadcdf6758f0ead0d821f48d1d3746909c9e7f4d37cc9c29fdba"
+    },
+    {
+      "path": "docs/assets/workbench_r10_2_editor.png",
+      "sha256": "0b6555200e3ca5c1b1a3b30b995e659fd02a10a02ef0860fc267ac92c46ecfa5"
+    },
+    {
+      "path": "docs/assets/workbench_r10_3_build_error.png",
+      "sha256": "6321796a0d9416c6cb6f6cd6f1122239cd458b00f286a9c1354e6533757e4a06"
+    },
+    {
+      "path": "docs/assets/workbench_r10_4_browse.png",
+      "sha256": "29acbd0e07d4582de78183e7f4bb1467bbbc9ca7cb3e686529e9122ba2f48a89"
+    },
+    {
+      "path": "docs/assets/workbench_r10_5_run_preview.png",
+      "sha256": "7a2622ee0449fcec2f38a6f2d621a81c52f086f8ae10df36fdb1857dbc190bca"
+    }
+  ],
+  "sensitive_changes": [
+    {
+      "path": "AGENTS.md",
+      "kind": "modified",
+      "justification": "Adds the R10 Workbench rules: the default screen stays simple, every front end goes through workbench/engine.py, hardware status stays truthful, and a Qt run without PySide6 must be reported as NOT run. Nothing was relaxed."
+    },
+    {
+      "path": "tests/test_r08_qt_contract.py",
+      "kind": "modified",
+      "justification": "The theme assertions pinned R08's dark graphite colour #ca7d3b and banned gradients. The owner's R10 decision replaces that look with light ivory surfaces, orange accents and subtle depth, so the assertions now check the R10 palette and that the dark background is gone. The other three tests in the file are unchanged."
+    }
+  ],
+  "review": {
+    "sdk_accepted_by": null,
+    "state": "pending",
+    "evidence": null
+  },
+  "blockers": [],
+  "handoff": "passes/ARC1-PASS-0005/HANDOFF.md"
+}

@@ -1,0 +1,26 @@
+test_1_default_screen_is_simple (__main__.AcceptanceWorkflowTests.test_1_default_screen_is_simple) ... ok
+test_2_acceptance_workflow (__main__.AcceptanceWorkflowTests.test_2_acceptance_workflow) ... ok
+test_3_reopen_remembers_and_reset_restores (__main__.AcceptanceWorkflowTests.test_3_reopen_remembers_and_reset_restores) ... ok
+test_4_firmware_error_navigation (__main__.AcceptanceWorkflowTests.test_4_firmware_error_navigation) ... ok
+test_5_browse_and_read_only_evidence (__main__.AcceptanceWorkflowTests.test_5_browse_and_read_only_evidence) ... ok
+test_agent_and_gui_share_one_command_table (__main__.EngineTests.test_agent_and_gui_share_one_command_table) ... ok
+test_navigator_is_logical_and_truthful (__main__.EngineTests.test_navigator_is_logical_and_truthful) ... ok
+test_problem_paths_resolve_inside_project_only (__main__.EngineTests.test_problem_paths_resolve_inside_project_only) ... ok
+test_quick_open_ranking (__main__.EngineTests.test_quick_open_ranking) ... ok
+test_relevant_target_follows_the_open_file (__main__.EngineTests.test_relevant_target_follows_the_open_file) ... ok
+test_create_never_overwrites_case_insensitively (__main__.FileOpsTests.test_create_never_overwrites_case_insensitively) ... ok
+test_evidence_and_escapes_are_refused (__main__.FileOpsTests.test_evidence_and_escapes_are_refused) ... ok
+test_listing_folders_first (__main__.FileOpsTests.test_listing_folders_first) ... ok
+test_rename_duplicate_delete (__main__.FileOpsTests.test_rename_duplicate_delete) ... ok
+test_windows_naming_rules (__main__.FileOpsTests.test_windows_naming_rules) ... ok
+test_hostile_values_are_ignored (__main__.SessionTests.test_hostile_values_are_ignored) ... ok
+test_old_layout_version_is_not_applied (__main__.SessionTests.test_old_layout_version_is_not_applied) ... ok
+test_other_project_starts_clean_and_reset_keeps_documents (__main__.SessionTests.test_other_project_starts_clean_and_reset_keeps_documents) ... ok
+test_oversized_file_ignored (__main__.SessionTests.test_oversized_file_ignored) ... ok
+test_round_trip (__main__.SessionTests.test_round_trip) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 3.947s
+
+OK
+Acceptance workflow (find, open, edit, save, build, error, navigate, fix, rebuild, run): 2.0 s

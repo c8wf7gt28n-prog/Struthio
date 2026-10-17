@@ -1,0 +1,75 @@
+# R10 — Familiar main screen (Qt "Classic")
+
+Owner decision: Workbench should behave like File Manager and Word, with the
+console-engineering tools appearing when the task needs them. See
+[docs/WORKBENCH_R10.md](docs/WORKBENCH_R10.md).
+
+## Changed
+
+- **New main window** (`workbench/qt_app.py`, rewritten):
+  - Layout: native Windows title bar, menu bar, one compact toolbar (Open,
+    Save, Build ▾, Run, Tests, Target), a ~236 px logical project navigator,
+    document tabs and a status bar.
+  - Hidden until needed: Output/Problems (F10), the Hardware Inspector and the
+    Cartridge Shelf.
+  - Start page, Browse tab (File Manager listing, optional dual pane) and
+    Preview tab for simulator frames.
+- **Light Classic theme** (`workbench/qt_theme.py`): ivory and grey surfaces,
+  restrained orange accents, subtle toolbar and button depth. It replaces
+  R08/R09's dark graphite.
+- **Editor:** line numbers, current-line band and problem-line marker. Undo,
+  Redo, Cut, Copy, Paste, Find, Find Next, Replace (a single undo step) and
+  Go to Line.
+- **Build, Tests and Run follow the work in front of you:**
+  - A file in a game project builds and tests that game.
+  - Otherwise the selected Target is used.
+  - Run (F5) builds the game and then runs the host simulator.
+- **Compiler errors are navigable:**
+  - The Problems list has severity, description, file and line.
+  - Double-click or press F8 / Shift+F8 to jump to the line.
+  - Game builds read the compiler log the CLI writes; firmware builds read
+    the CLI failure text.
+- **Session memory** (`workbench/session.py`): project, documents, cursor
+  positions, active tab, target, recent files, output panel, panel sizes and
+  window layout. **View › Reset Window Layout** restores the factory layout.
+- **File operations** (`workbench/fileops.py`): New File, New Folder, Rename,
+  Duplicate and Delete.
+  - Windows naming rules, case-insensitive clash checks and no overwrites.
+  - Recorded evidence is read-only.
+- **Shared engine** (`workbench/engine.py`): the Qt window and the agent
+  interface (`workbench/agent.py`) now use one command table, so the agent
+  no longer keeps its own copy.
+
+## Fixed (found by the R10 acceptance test)
+
+- **Firmware errors were cut off.** `arc1 firmware build` and `arc1 firmware
+  test` kept only the last 1,200–1,500 characters of compiler output, so the
+  first error, usually the one you caused, was lost. The build then pointed
+  at a knock-on error in another file.
+- They now keep the beginning of the log, and the end too when it is long
+  (`sdk/cli/arc1cli/firmware.py`, `compiler_excerpt`).
+
+## Kept
+
+The R09 backend, launcher, cartridge system, firmware tests, boot-diagnostic
+model, agent protocol and the Tk desktop (`START_ARC1.cmd`) are unchanged.
+The R09 Tk smoke test passes under Xvfb.
+
+## Verified (see R10_VERIFICATION.json)
+
+- **Qt acceptance workflow:** run with the offscreen platform, PySide6 6.8.1
+  on Linux (`tests/test_r10_workbench.py`, 20 tests):
+  - find a file, open it, edit it, save it
+  - build the relevant target and read the compiler error
+  - go back to the source line, fix it, rebuild clean, run the simulator
+  - reopen to check what was remembered, and reset the layout
+- **Earlier tests:** the SDK suite and the R08/R09 regression tests pass.
+
+## Not done
+
+- **Windows 11:** native run, installation, display scaling, and keyboard and
+  accessibility qualification (R14).
+- **Editing:** split editing, project-wide search and crash recovery (R11).
+- **Workspaces:** per-activity saved workspaces (R12).
+- **Agent Activity:** live streaming of agent requests.
+- **Hardware:** everything that needs a board.

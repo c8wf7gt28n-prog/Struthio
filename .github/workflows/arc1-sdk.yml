@@ -25,10 +25,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: sudo apt-get update && sudo apt-get install -y clang
+      - run: sudo apt-get update && sudo apt-get install -y clang libegl1 libxkbcommon0 libfontconfig1
+      - run: python3 -m pip install "PySide6-Essentials==6.8.1"
       - run: ./arc1 doctor
       - run: ./arc1 build examples/hello_arc1
       - run: ./arc1 test examples/hello_arc1
       - run: |
           for p in passes/ARC1-PASS-*/; do ./arc1 pass validate "$p"; done
       - run: python3 tests/run_tests.py
+      - name: Workbench regression tests (R05-R09)
+        run: |
+          PYTHONPATH=. python3 tests/test_pass3_boot.py
+          python3 tests/test_pass4_cartridge.py
+          python3 tests/test_pass7_launcher.py
+          python3 tests/test_r08_qt_contract.py
+          python3 tests/test_r09_output.py
+      - name: Workbench R10 (real Qt window, offscreen)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python3 tests/test_r10_workbench.py

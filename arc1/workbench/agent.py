@@ -22,18 +22,9 @@ def launcher():
     return _LAUNCHER
 READ_SUFFIXES={'.c','.h','.S','.s','.ld','.py','.md','.json','.txt','.yaml','.yml','.csv','.cmd','.sh'}
 EDIT_DIRS=['firmware/f133/src/','firmware/f133/include/','firmware/stage/','sdk/include/','examples/','workbench/']
-ACTIONS={
- 'build.f133': ['firmware','image','--target','f133'],
- 'build.d213':['firmware','image','--target','d213'],
- 'build.both':['firmware','image','--target','all'],
- 'build.lcd':['firmware','build','--target','status-lcd'],
- 'test.firmware':['firmware','test'],
- 'test.game':['test','examples/hello_arc1'],
- 'build.game':['build','examples/hello_arc1'],
- 'inspect.hardware':['hw','inspect'],
- 'inspect.brand':['brand'],
- 'doctor':['doctor'],
-}
+# Named build/test/inspect operations come from the shared engine, the same
+# table the Qt Workbench uses (R10), so GUI and agent cannot drift apart.
+from .engine import AGENT_ACTIONS as ACTIONS
 
 class AgentError(Exception):
     pass

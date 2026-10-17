@@ -24,6 +24,14 @@ def status(result):
     result.artifact(GRAPHICS / "src" / "gfx_link.c")
     result.warn("C objects and host tests are not executable firmware images; no board validation")
 
+def compiler_excerpt(text, head=6000, tail=1500):
+    """Compiler output for a failure report. The first error is the one that
+    matters, so keep the beginning; keep the end too when the log is long."""
+    text = text.strip()
+    if len(text) <= head + tail:
+        return text
+    return text[:head] + "\n[... %d characters omitted ...]\n" % (len(text) - head - tail) + text[-tail:]
+
 def _toolchain(toolchain, result):
     if toolchain == "host":
         cc, description = find_cc()
@@ -55,7 +63,7 @@ def build(result, target, toolchain):
     argv=[cc,*architecture,"-std=c11","-ffreestanding","-Wall","-Wextra","-Werror",*(arg for inc in includes for arg in ("-I",str(inc))),"-c",str(source),"-o",str(obj)]
     code, message=run_tool(argv,SDK_ROOT,120)
     if code != 0:
-        result.fail("FW-BUILD", "compiler returned %s: %s"%(code,message[-1200:]),display_path(source))
+        result.fail("FW-BUILD", "compiler returned %s:\n%s"%(code,compiler_excerpt(message)),display_path(source))
         return
     result.artifact(obj)
     result.extra["details"]={"target":target,"compiler":cc,"toolchain":toolchain,"artifact_kind":"relocatable object, NOT a bootable or flashable firmware image"}
@@ -81,10 +89,10 @@ def test(result):
         cmd=[cc,"-std=c11","-O2","-Wall","-Wextra","-Werror",*(arg for inc in includes for arg in ("-I",str(inc))),*(str(p) for p in sources),"-o",str(binary)]
         code,log=run_tool(cmd,SDK_ROOT,120)
         if code != 0:
-            result.fail("FW-TEST-BUILD", "%s compile failed: %s"%(name,log[-1500:])); continue
+            result.fail("FW-TEST-BUILD", "%s compile failed:\n%s"%(name,compiler_excerpt(log))); continue
         code,log=run_tool([str(binary)],SDK_ROOT,120)
         if code != 0:
-            result.fail("FW-TEST", "%s run failed: %s"%(name,log[-1500:])); continue
+            result.fail("FW-TEST", "%s run failed:\n%s"%(name,compiler_excerpt(log))); continue
         complete += 1
         result.artifact(binary)
     result.extra["test_count"]=len(tests)

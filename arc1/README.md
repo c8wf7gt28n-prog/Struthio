@@ -1,3 +1,23 @@
+# ARC-1 Workbench R10 — Classic main screen
+
+**Start:** `START_ARC1_QT.cmd` on Windows (needs `py -3 -m pip install PySide6`), or `python -m workbench.qt_app`.
+Workbench now looks and behaves like a familiar Windows file manager and editor:
+- **Default screen:** menus, one toolbar (Open, Save, Build ▾, Run, Tests, Target), a project navigator, your
+  documents and a status bar.
+- **Shown only when needed:** Output, Problems, the hardware inspector and the cartridge shelf.
+- **Everyday keys:** F7 builds whatever you're working on, F8 jumps to the next compiler error, F5 runs the
+  game in the host simulator, and Ctrl+P finds a file.
+- **Remembered between sessions:** your documents and layout. View › Reset Window Layout gets the
+  factory layout back.
+
+Guide: [docs/WORKBENCH_R10.md](docs/WORKBENCH_R10.md) · Notes: [PATCH_NOTES_R10.md](PATCH_NOTES_R10.md).
+R10 was tested with Qt on Linux (offscreen); Windows 11 qualification is R14. The Tk desktop (`START_ARC1.cmd`)
+is still available.
+
+<p align="center"><img src="docs/assets/workbench_r10_2_editor.png" alt="ARC-1 Workbench R10 default screen" width="760"></p>
+
+---
+
 # ARC-1 Workbench R09 — Compact Output Panel
 
 **Pass focus:** reclaim editor area. The lower console can now be hidden with **F10**. Compile/test actions show build output when needed; see [R09 output guide](docs/R09_OUTPUT_PANEL.md). The source-backed R09 Qt UI still requires PySide6 and Windows testing. The tested fallback is launched with `START_ARC1.cmd`.

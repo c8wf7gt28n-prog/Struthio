@@ -1,0 +1,27 @@
+{
+  "revision": "R10",
+  "architecture": "Qt Classic main screen over the shared workbench engine; Tk desktop kept as fallback",
+  "qt_runtime_verified": "Linux, Qt 6.8.1 / PySide6 6.8.1, QT_QPA_PLATFORM=offscreen",
+  "windows11_native_verified": false,
+  "physical_arc1_connected": false,
+  "actual_firmware_bootable": false,
+  "physical_flash_writes_enabled": false,
+  "owner_acceptance_workflow": {
+    "steps": ["find a file", "open", "edit", "save", "build the relevant target", "read the compiler error",
+              "navigate to the source line", "fix and rebuild clean", "run the simulator",
+              "reopen: documents, cursor and layout remembered", "reset to factory layout"],
+    "automated_in": "tests/test_r10_workbench.py (AcceptanceWorkflowTests)",
+    "result": "passed",
+    "machine_time_seconds": 2.0,
+    "human_timing": "NOT MEASURED: needs a person on Windows 11"
+  },
+  "test_evidence": {
+    "r10_workbench": "20 passed (15 engine/file/session, 5 real Qt window)",
+    "r10_without_pyside6": "15 passed, 5 skipped and reported as not run",
+    "r05_r09_regression": "boot, cartridge, launcher, Qt contract, output router passed",
+    "r09_tk_gui": "passed under Xvfb (Python 3.12)",
+    "sdk_suite": "passed",
+    "defect_found": "firmware CLI truncated compiler output from the start, losing the first error; fixed and covered by test_4_firmware_error_navigation"
+  },
+  "pass_record": "passes/ARC1-PASS-0005"
+}
