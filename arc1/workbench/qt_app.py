@@ -13,6 +13,7 @@ and never shows a connected device.
 """
 from __future__ import annotations
 
+import math
 import os
 from pathlib import Path
 import sys
@@ -20,7 +21,7 @@ import tempfile
 import threading
 import time
 
-from PySide6.QtCore import QDir, QEvent, QPoint, QPropertyAnimation, QProcess, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import QDir, QEvent, QPoint, QPointF, QPropertyAnimation, QProcess, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
                            QPainter, QPainterPath, QPalette, QPen, QPixmap, QRegion, QTextDocument, QTextCursor, QTextFormat)
 from PySide6.QtWidgets import (
@@ -535,20 +536,31 @@ EVIDENCE_TEXT = {'NONE': 'not measured', 'DESIGN': 'design figure', 'RTL_SIM': '
 
 
 class ClipAssistant(QWidget):
-    """Clip, the paperclip helper in the toolbar's empty right-hand corner.
+    """Clip, the paperclip helper in the toolbar's empty right-hand corner: orange
+    dreadlocks, black sunglasses and a cigarette whose smoke drifts up slowly.
 
     Clicking shows or hides Clip's chat bubbles (ClipOverlay).
     """
     clicked = Signal()
+    GRID = (60, 70)                                # drawing units; scaled to the widget
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, size=(46, 54)):
         super().__init__(parent)
         self.setObjectName('ClipAssistant')
-        self.setFixedSize(28, 32)                  # drawn on a 34 x 40 grid, scaled to toolbar height
+        self.setFixedSize(*size)
         self.setCursor(Qt.PointingHandCursor)
-        self.setToolTip('Clip: chat with ChatGPT about your work')
+        self.setToolTip('Clip: chat about your work')
         self.setAccessibleName('Clip chat')
         self.hover = False
+        self.phase = 0.0
+        self.smoke = QTimer(self)
+        self.smoke.timeout.connect(self._drift)
+        self.smoke.start(110)
+
+    def _drift(self):
+        if self.isVisible():
+            self.phase = (self.phase + 0.035) % 1.0
+            self.update()
 
     def enterEvent(self, event):
         self.hover = True
@@ -561,37 +573,157 @@ class ClipAssistant(QWidget):
     def mousePressEvent(self, event):
         self.clicked.emit()
 
+    def follow(self, slot):
+        """Floats over the main window, centred on a toolbar slot and hanging below the
+        toolbar, so Clip can be bigger than the toolbar is tall. Clicks pass through
+        everywhere except Clip himself (mask)."""
+        self.slot = slot
+        self.queued = False
+        slot.installEventFilter(self)
+        self.parentWidget().installEventFilter(self)   # docks opening later must not cover Clip
+        gw, gh = self.GRID
+        sx, sy = self.width() / gw, self.height() / gh
+        self.setMask(QRegion(QRect(int(9 * sx), int(4 * sy), int(46 * sx), int(66 * sy))))
+        QTimer.singleShot(0, self._place)
+
+    def eventFilter(self, obj, event):
+        if obj is getattr(self, 'slot', None):
+            if event.type() in (QEvent.Move, QEvent.Resize, QEvent.Show):
+                self._queue()
+            elif event.type() == QEvent.Hide:
+                self.hide()
+        elif obj is self.parentWidget() and event.type() in (QEvent.LayoutRequest, QEvent.Resize, QEvent.ChildAdded):
+            self._queue()
+        return super().eventFilter(obj, event)
+
+    def _queue(self):
+        if not self.queued:
+            self.queued = True
+            QTimer.singleShot(0, self._place)
+
+    def _place(self):
+        self.queued = False
+        slot, window = self.slot, self.parentWidget()
+        if not slot.isVisible():
+            self.hide()
+            return
+        corner = slot.mapTo(window, QPoint(0, 0))
+        bar = slot.parentWidget().mapTo(window, QPoint(0, 0))
+        top = bar.y() - int(10 * self.height() / self.GRID[1])  # crown level with the top of the toolbar
+        self.move(corner.x() + (slot.width() - self.width()) // 2, top)
+        self.show()
+        self.raise_()
+
+    @staticmethod
+    def _wire():
+        """The paperclip: one steel wire, two loops."""
+        w = QPainterPath()
+        w.moveTo(26.3, 55.9)
+        w.lineTo(26.3, 34.3)
+        w.cubicTo(26.3, 27.5, 34.0, 27.5, 34.0, 34.3)
+        w.lineTo(34.0, 58.6)
+        w.cubicTo(34.0, 66.7, 21.9, 66.7, 21.9, 58.6)
+        w.lineTo(21.9, 30.2)
+        w.cubicTo(21.9, 19.4, 39.5, 19.4, 39.5, 30.2)
+        w.lineTo(39.5, 53.2)
+        return w
+
+    @staticmethod
+    def _locks():
+        """Dreadlocks: (start, control 1, control 2, end) from the crown down both sides."""
+        return [((23.5, 22.0), (17.0, 26.0), (13.0, 34.0), (13.5, 47.0)),
+                ((25.5, 19.5), (19.0, 26.0), (17.5, 38.0), (17.0, 52.0)),
+                ((28.5, 18.0), (23.0, 24.0), (20.0, 32.0), (19.0, 42.0)),
+                ((33.0, 18.0), (39.0, 24.0), (42.0, 32.0), (43.0, 42.0)),
+                ((36.0, 19.5), (42.5, 26.0), (44.0, 38.0), (45.0, 52.0)),
+                ((38.0, 22.0), (44.5, 26.0), (48.5, 34.0), (48.5, 47.0))]
+
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
-        p.scale(self.width() / 34, self.height() / 40)
+        gw, gh = self.GRID
+        p.scale(self.width() / gw, self.height() / gh)
         if self.hover:
             p.setPen(Qt.NoPen)
-            p.setBrush(QColor(255, 90, 26, 60))
-            p.drawRoundedRect(QRectF(1, 1, 32, 38), 6, 6)
-        wire = QPainterPath()                      # an original paperclip, drawn as one wire
-        wire.moveTo(13, 31)
-        wire.lineTo(13, 15)
-        wire.cubicTo(13, 10, 20, 10, 20, 15)
-        wire.lineTo(20, 33)
-        wire.cubicTo(20, 39, 9, 39, 9, 33)
-        wire.lineTo(9, 12)
-        wire.cubicTo(9, 4, 25, 4, 25, 12)
-        wire.lineTo(25, 29)
+            p.setBrush(QColor(255, 90, 26, 55))
+            p.drawRoundedRect(QRectF(1, 1, gw - 2, gh - 2), 9, 9)
+
+        # Dreadlocks behind the head: orange ropes with darker bands, then the crown.
+        for (s, c1, c2, e) in self._locks():
+            lock = QPainterPath()
+            lock.moveTo(*s)
+            lock.cubicTo(*c1, *c2, *e)
+            p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor('#c8400c'), 4.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            p.drawPath(lock)
+            p.setPen(QPen(QColor('#ff6a24'), 3.4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            p.drawPath(lock)
+            bands = QPen(QColor(120, 36, 6, 170), 3.4, Qt.CustomDashLine, Qt.FlatCap)
+            bands.setDashPattern([0.35, 1.25])
+            p.setPen(bands)
+            p.drawPath(lock)
+        crown = QPainterPath()
+        crown.moveTo(19.5, 27.0)
+        crown.cubicTo(19.0, 12.0, 42.5, 12.0, 42.0, 27.0)
+        crown.cubicTo(37.0, 21.5, 25.0, 21.5, 19.5, 27.0)
+        p.setPen(QPen(QColor('#c8400c'), 1.0))
+        p.setBrush(QColor('#ff5a1a'))
+        p.drawPath(crown)
+        p.setPen(QPen(QColor(255, 200, 160, 150), 1.0, Qt.SolidLine, Qt.RoundCap))
+        p.drawLine(QPointF(25.0, 17.5), QPointF(28.5, 16.2))     # shine on the crown
+
+        # The paperclip itself.
+        wire = self._wire()
         p.setBrush(Qt.NoBrush)
-        p.setPen(QPen(QColor('#9aa0a7'), 2.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        p.setPen(QPen(QColor('#9aa0a7'), 3.0, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         p.drawPath(wire)
-        p.setPen(QPen(QColor('#f1f2f4'), 0.9, Qt.SolidLine, Qt.RoundCap))
-        p.drawPath(wire)                           # highlight along the wire
-        for x in (12.5, 21.5):                     # eyes and brows
-            p.setPen(QPen(QColor('#3b3b3b'), 0.8))
-            p.setBrush(QColor('white'))
-            p.drawEllipse(QRectF(x - 3.6, 14, 7.2, 8.4))
-            p.setPen(Qt.NoPen)
-            p.setBrush(QColor('#1d1d1d'))
-            p.drawEllipse(QRectF(x - 1.2 + (0.8 if self.hover else 0), 17, 2.8, 3.2))
-            p.setPen(QPen(QColor('#3b3b3b'), 1.2, Qt.SolidLine, Qt.RoundCap))
-            p.drawLine(QPoint(int(x - 3), 12 if x < 15 else 11), QPoint(int(x + 3), 11 if x < 15 else 12))
+        p.setPen(QPen(QColor('#f1f2f4'), 1.0, Qt.SolidLine, Qt.RoundCap))
+        p.drawPath(wire)
+
+        # Black sunglasses with a glint.
+        p.setPen(QPen(QColor('#000000'), 1.4, Qt.SolidLine, Qt.RoundCap))
+        p.drawLine(QPointF(29.2, 33.6), QPointF(32.2, 33.6))      # bridge
+        p.drawLine(QPointF(20.0, 33.0), QPointF(16.5, 31.5))      # arms
+        p.drawLine(QPointF(41.4, 33.0), QPointF(45.0, 31.5))
+        for x in (20.4, 32.0):
+            lens = QPainterPath()
+            lens.addRoundedRect(QRectF(x, 31.0, 9.2, 7.0), 2.6, 2.6)
+            p.setPen(QPen(QColor('#000000'), 0.8))
+            p.setBrush(QColor('#0d0d0e'))
+            p.drawPath(lens)
+            p.setPen(QPen(QColor(255, 255, 255, 170), 0.9, Qt.SolidLine, Qt.RoundCap))
+            p.drawLine(QPointF(x + 1.8, 33.0), QPointF(x + 3.6, 32.2))
+
+        # A relaxed half smile and the cigarette.
+        p.setPen(QPen(QColor('#2b2d30'), 1.2, Qt.SolidLine, Qt.RoundCap))
+        p.setBrush(Qt.NoBrush)
+        smile = QPainterPath()
+        smile.moveTo(26.5, 44.0)
+        smile.cubicTo(28.5, 45.6, 31.0, 45.4, 33.0, 43.8)
+        p.drawPath(smile)
+        p.setPen(QPen(QColor('#d9a066'), 2.8, Qt.SolidLine, Qt.FlatCap))           # filter
+        p.drawLine(QPointF(32.2, 44.4), QPointF(35.8, 43.4))
+        p.setPen(QPen(QColor('#f4f1ec'), 2.8, Qt.SolidLine, Qt.FlatCap))           # paper
+        p.drawLine(QPointF(35.8, 43.4), QPointF(46.0, 40.6))
+        glow = 0.75 + 0.25 * math.sin(self.phase * 2 * math.pi * 3)
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor(255, 90, 26, int(110 * glow)))
+        p.drawEllipse(QPointF(46.6, 40.4), 3.0, 3.0)                              # ember glow
+        p.setBrush(QColor('#ff5a1a'))
+        p.drawEllipse(QPointF(46.6, 40.4), 1.6, 1.6)
+        p.setBrush(QColor('#ffd2a6'))
+        p.drawEllipse(QPointF(46.9, 40.2), 0.7, 0.7)
+
+        # Smoke: three curls drifting up and fading.
+        for k in range(3):
+            f = (self.phase + k / 3.0) % 1.0
+            x = 47.0 + 2.2 * math.sin((f + k) * 2 * math.pi)
+            y = 37.0 - f * 30.0
+            curl = QPainterPath()
+            curl.moveTo(x, y)
+            curl.cubicTo(x + 3.0, y - 2.5, x - 3.0, y - 4.5, x + 0.5, y - 7.0)
+            p.setPen(QPen(QColor(205, 208, 212, int(170 * (1.0 - f))), 1.3 + f, Qt.SolidLine, Qt.RoundCap))
+            p.drawPath(curl)
         p.end()
 
 
@@ -1509,9 +1641,15 @@ class WorkbenchWindow(QMainWindow):
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         tb.addWidget(spacer)
-        self.clip = ClipAssistant()
+        slot = QWidget()                           # Clip hangs from this slot, larger than the toolbar
+        slot.setFixedSize(76, 24)
+        tb.addWidget(slot)
+        tail = QWidget()                           # keeps Clip clear of dock title buttons below
+        tail.setFixedWidth(24)
+        tb.addWidget(tail)
+        self.clip = ClipAssistant(self, size=(72, 84))
         self.clip.clicked.connect(self.open_clip)
-        tb.addWidget(self.clip)
+        self.clip.follow(slot)
         self.clip_overlay = None
         self.toolbar = tb
 

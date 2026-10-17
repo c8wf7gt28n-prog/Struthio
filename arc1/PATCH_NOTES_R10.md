@@ -1,3 +1,18 @@
+# R10.6 — Clip's new look
+
+- **Look:** Clip now has orange dreadlocks, black sunglasses and a
+  cigarette. The ember glows and the smoke drifts up slowly (one small
+  repaint every 110 ms, only while Clip is visible).
+  ![Clip](docs/assets/clip_character.png)
+- **Size:** Clip is bigger, 72 × 84 px instead of 28 × 32.
+  - He hangs from the right end of the toolbar, so the toolbar keeps its
+    normal height.
+  - A mask makes only Clip himself catch clicks.
+  - He stays above docks that open later, and clear of their title buttons.
+- **Code:** `ClipAssistant` in `workbench/qt_app.py`, drawn with QPainter;
+  no image files.
+- **Screenshots:** regenerated with `tests/capture_r10_screens.py`.
+
 # R10.5 — ARC-1 colours everywhere; Clip uses Google Gemini (free key)
 
 - **ARC-1 colours** (owner decision): the whole UI now uses the logo's
