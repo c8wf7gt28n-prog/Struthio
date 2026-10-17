@@ -13,7 +13,6 @@ and never shows a connected device.
 """
 from __future__ import annotations
 
-import math
 import os
 from pathlib import Path
 import sys
@@ -23,7 +22,7 @@ import time
 
 from PySide6.QtCore import QDir, QEvent, QPoint, QPointF, QPropertyAnimation, QProcess, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
-                           QPainter, QPainterPath, QPalette, QPen, QPixmap, QRegion, QTextDocument, QTextCursor, QTextFormat)
+                           QLinearGradient, QPainter, QPainterPath, QPalette, QPen, QPixmap, QRegion, QTextDocument, QTextCursor, QTextFormat)
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog,
     QFileSystemModel, QFormLayout, QFrame, QGraphicsDropShadowEffect, QGraphicsOpacityEffect, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
@@ -536,8 +535,8 @@ EVIDENCE_TEXT = {'NONE': 'not measured', 'DESIGN': 'design figure', 'RTL_SIM': '
 
 
 class ClipAssistant(QWidget):
-    """Clip, the paperclip helper in the toolbar's empty right-hand corner: orange
-    dreadlocks, black sunglasses and a cigarette whose smoke drifts up slowly.
+    """Clip, the paperclip helper in the toolbar's empty right-hand corner, with big
+    spiky orange hair.
 
     Clicking shows or hides Clip's chat bubbles (ClipOverlay).
     """
@@ -552,15 +551,6 @@ class ClipAssistant(QWidget):
         self.setToolTip('Clip: chat about your work')
         self.setAccessibleName('Clip chat')
         self.hover = False
-        self.phase = 0.0
-        self.smoke = QTimer(self)
-        self.smoke.timeout.connect(self._drift)
-        self.smoke.start(110)
-
-    def _drift(self):
-        if self.isVisible():
-            self.phase = (self.phase + 0.035) % 1.0
-            self.update()
 
     def enterEvent(self, event):
         self.hover = True
@@ -583,7 +573,7 @@ class ClipAssistant(QWidget):
         self.parentWidget().installEventFilter(self)   # docks opening later must not cover Clip
         gw, gh = self.GRID
         sx, sy = self.width() / gw, self.height() / gh
-        self.setMask(QRegion(QRect(int(9 * sx), int(4 * sy), int(46 * sx), int(66 * sy))))
+        self.setMask(QRegion(QRect(int(4 * sx), 0, int(54 * sx), int(69 * sy))))
         QTimer.singleShot(0, self._place)
 
     def eventFilter(self, obj, event):
@@ -609,7 +599,7 @@ class ClipAssistant(QWidget):
             return
         corner = slot.mapTo(window, QPoint(0, 0))
         bar = slot.parentWidget().mapTo(window, QPoint(0, 0))
-        top = bar.y() - int(10 * self.height() / self.GRID[1])  # crown level with the top of the toolbar
+        top = bar.y() - int(1 * self.height() / self.GRID[1])   # hair tips level with the top of the toolbar
         self.move(corner.x() + (slot.width() - self.width()) // 2, top)
         self.show()
         self.raise_()
@@ -628,15 +618,40 @@ class ClipAssistant(QWidget):
         w.lineTo(39.5, 53.2)
         return w
 
+    # Spiky hair, drawn back to front. Each spike is a curved blade:
+    # (base left, base right, tip, control towards the tip, control back to the base).
+    BACK = [((22, 24), (30, 20), (5, 9), (11, 20), (17, 11)),
+            ((32, 19), (40, 23), (57, 8), (47, 12), (51, 19)),
+            ((25, 20), (33, 18), (16, 0.5), (19, 13), (27, 6))]
+    FRONT = [((27, 20), (37, 20), (40, 0), (29, 8), (41, 11)),
+             ((33, 19), (41, 25), (55, 2.5), (41, 9), (49, 16)),
+             ((20, 28), (28, 21), (3, 21), (9, 25), (14, 18)),
+             ((38, 21), (42, 30), (58.5, 25), (50, 21), (50, 29))]
+    BANGS = [((20.5, 26), (28, 25.5), (18.5, 36.5), (19.5, 31), (25, 31.5)),
+             ((27, 25), (34.5, 25), (30.8, 41.5), (28.2, 33), (33.2, 34)),
+             ((33.5, 25.5), (41.5, 26.5), (43, 36), (36, 30), (42, 30.5))]
+
     @staticmethod
-    def _locks():
-        """Dreadlocks: (start, control 1, control 2, end) from the crown down both sides."""
-        return [((23.5, 22.0), (17.0, 26.0), (13.0, 34.0), (13.5, 47.0)),
-                ((25.5, 19.5), (19.0, 26.0), (17.5, 38.0), (17.0, 52.0)),
-                ((28.5, 18.0), (23.0, 24.0), (20.0, 32.0), (19.0, 42.0)),
-                ((33.0, 18.0), (39.0, 24.0), (42.0, 32.0), (43.0, 42.0)),
-                ((36.0, 19.5), (42.5, 26.0), (44.0, 38.0), (45.0, 52.0)),
-                ((38.0, 22.0), (44.5, 26.0), (48.5, 34.0), (48.5, 47.0))]
+    def _spike(p, spike, light, dark, outline):
+        bl, br, tip, c1, c2 = spike
+        path = QPainterPath()
+        path.moveTo(*bl)
+        path.quadTo(QPointF(*c1), QPointF(*tip))
+        path.quadTo(QPointF(*c2), QPointF(*br))
+        path.closeSubpath()
+        g = QLinearGradient(QPointF((bl[0] + br[0]) / 2, (bl[1] + br[1]) / 2), QPointF(*tip))
+        g.setColorAt(0.0, QColor(dark))
+        g.setColorAt(1.0, QColor(light))
+        p.setBrush(g)
+        p.setPen(QPen(QColor(outline), 1.0, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        p.drawPath(path)
+        shine = QPainterPath()                     # a thin highlight along the leading edge
+        mid = QPointF((bl[0] * 0.35 + c1[0] * 0.65), (bl[1] * 0.35 + c1[1] * 0.65))
+        shine.moveTo(mid)
+        shine.quadTo(QPointF(*c1), QPointF(tip[0] * 0.8 + c1[0] * 0.2, tip[1] * 0.8 + c1[1] * 0.2))
+        p.setBrush(Qt.NoBrush)
+        p.setPen(QPen(QColor(255, 226, 198, 150), 0.9, Qt.SolidLine, Qt.RoundCap))
+        p.drawPath(shine)
 
     def paintEvent(self, event):
         p = QPainter(self)
@@ -646,33 +661,9 @@ class ClipAssistant(QWidget):
         if self.hover:
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(255, 90, 26, 55))
-            p.drawRoundedRect(QRectF(1, 1, gw - 2, gh - 2), 9, 9)
+            p.drawRoundedRect(QRectF(2, 1, 57, 67), 9, 9)
 
-        # Dreadlocks behind the head: orange ropes with darker bands, then the crown.
-        for (s, c1, c2, e) in self._locks():
-            lock = QPainterPath()
-            lock.moveTo(*s)
-            lock.cubicTo(*c1, *c2, *e)
-            p.setBrush(Qt.NoBrush)
-            p.setPen(QPen(QColor('#c8400c'), 4.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-            p.drawPath(lock)
-            p.setPen(QPen(QColor('#ff6a24'), 3.4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-            p.drawPath(lock)
-            bands = QPen(QColor(120, 36, 6, 170), 3.4, Qt.CustomDashLine, Qt.FlatCap)
-            bands.setDashPattern([0.35, 1.25])
-            p.setPen(bands)
-            p.drawPath(lock)
-        crown = QPainterPath()
-        crown.moveTo(19.5, 27.0)
-        crown.cubicTo(19.0, 12.0, 42.5, 12.0, 42.0, 27.0)
-        crown.cubicTo(37.0, 21.5, 25.0, 21.5, 19.5, 27.0)
-        p.setPen(QPen(QColor('#c8400c'), 1.0))
-        p.setBrush(QColor('#ff5a1a'))
-        p.drawPath(crown)
-        p.setPen(QPen(QColor(255, 200, 160, 150), 1.0, Qt.SolidLine, Qt.RoundCap))
-        p.drawLine(QPointF(25.0, 17.5), QPointF(28.5, 16.2))     # shine on the crown
-
-        # The paperclip itself.
+        # The paperclip.
         wire = self._wire()
         p.setBrush(Qt.NoBrush)
         p.setPen(QPen(QColor('#9aa0a7'), 3.0, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
@@ -680,50 +671,35 @@ class ClipAssistant(QWidget):
         p.setPen(QPen(QColor('#f1f2f4'), 1.0, Qt.SolidLine, Qt.RoundCap))
         p.drawPath(wire)
 
-        # Black sunglasses with a glint.
-        p.setPen(QPen(QColor('#000000'), 1.4, Qt.SolidLine, Qt.RoundCap))
-        p.drawLine(QPointF(29.2, 33.6), QPointF(32.2, 33.6))      # bridge
-        p.drawLine(QPointF(20.0, 33.0), QPointF(16.5, 31.5))      # arms
-        p.drawLine(QPointF(41.4, 33.0), QPointF(45.0, 31.5))
-        for x in (20.4, 32.0):
-            lens = QPainterPath()
-            lens.addRoundedRect(QRectF(x, 31.0, 9.2, 7.0), 2.6, 2.6)
-            p.setPen(QPen(QColor('#000000'), 0.8))
-            p.setBrush(QColor('#0d0d0e'))
-            p.drawPath(lens)
-            p.setPen(QPen(QColor(255, 255, 255, 170), 0.9, Qt.SolidLine, Qt.RoundCap))
-            p.drawLine(QPointF(x + 1.8, 33.0), QPointF(x + 3.6, 32.2))
-
-        # A relaxed half smile and the cigarette.
-        p.setPen(QPen(QColor('#2b2d30'), 1.2, Qt.SolidLine, Qt.RoundCap))
-        p.setBrush(Qt.NoBrush)
-        smile = QPainterPath()
-        smile.moveTo(26.5, 44.0)
-        smile.cubicTo(28.5, 45.6, 31.0, 45.4, 33.0, 43.8)
-        p.drawPath(smile)
-        p.setPen(QPen(QColor('#d9a066'), 2.8, Qt.SolidLine, Qt.FlatCap))           # filter
-        p.drawLine(QPointF(32.2, 44.4), QPointF(35.8, 43.4))
-        p.setPen(QPen(QColor('#f4f1ec'), 2.8, Qt.SolidLine, Qt.FlatCap))           # paper
-        p.drawLine(QPointF(35.8, 43.4), QPointF(46.0, 40.6))
-        glow = 0.75 + 0.25 * math.sin(self.phase * 2 * math.pi * 3)
+        # Spiky orange hair: back spikes, the scalp, front spikes, then the bangs.
+        for s in self.BACK:
+            self._spike(p, s, '#ff7a3c', '#a8340a', '#6a1f04')
+        scalp = QPainterPath()
+        scalp.addEllipse(QRectF(19.0, 15.5, 24.0, 15.0))
         p.setPen(Qt.NoPen)
-        p.setBrush(QColor(255, 90, 26, int(110 * glow)))
-        p.drawEllipse(QPointF(46.6, 40.4), 3.0, 3.0)                              # ember glow
-        p.setBrush(QColor('#ff5a1a'))
-        p.drawEllipse(QPointF(46.6, 40.4), 1.6, 1.6)
-        p.setBrush(QColor('#ffd2a6'))
-        p.drawEllipse(QPointF(46.9, 40.2), 0.7, 0.7)
+        p.setBrush(QColor('#d9480f'))
+        p.drawPath(scalp)
+        for s in self.FRONT:
+            self._spike(p, s, '#ffa266', '#d4450d', '#7a2405')
+        for s in self.BANGS:
+            self._spike(p, s, '#ff8a4c', '#e0500f', '#7a2405')
 
-        # Smoke: three curls drifting up and fading.
-        for k in range(3):
-            f = (self.phase + k / 3.0) % 1.0
-            x = 47.0 + 2.2 * math.sin((f + k) * 2 * math.pi)
-            y = 37.0 - f * 30.0
-            curl = QPainterPath()
-            curl.moveTo(x, y)
-            curl.cubicTo(x + 3.0, y - 2.5, x - 3.0, y - 4.5, x + 0.5, y - 7.0)
-            p.setPen(QPen(QColor(205, 208, 212, int(170 * (1.0 - f))), 1.3 + f, Qt.SolidLine, Qt.RoundCap))
-            p.drawPath(curl)
+        # Eyes (they glance at the pointer) and a small grin.
+        for x in (25.4, 36.2):
+            p.setPen(QPen(QColor('#3b3b3b'), 0.9))
+            p.setBrush(QColor('white'))
+            p.drawEllipse(QRectF(x - 3.8, 37.0, 7.6, 9.6))
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor('#1d1d1d'))
+            p.drawEllipse(QRectF(x - 1.4 + (1.0 if self.hover else 0), 40.2, 3.0, 3.6))
+            p.setBrush(QColor('white'))
+            p.drawEllipse(QRectF(x - 0.7 + (1.0 if self.hover else 0), 40.7, 1.0, 1.0))
+        grin = QPainterPath()
+        grin.moveTo(27.0, 50.5)
+        grin.cubicTo(29.0, 53.0, 32.5, 53.0, 34.5, 50.1)
+        p.setPen(QPen(QColor('#2b2d30'), 1.3, Qt.SolidLine, Qt.RoundCap))
+        p.setBrush(Qt.NoBrush)
+        p.drawPath(grin)
         p.end()
 
 
@@ -933,7 +909,8 @@ class ClipOverlay(QWidget):
         doc.setMarkdown(text) if markdown else doc.setPlainText(text)
         width = min(limit, int(doc.idealWidth()) + (24 if label.objectName() == 'ClipNote' else 6))
         label.setFixedWidth(max(width, 24))
-        label.setMinimumHeight(label.heightForWidth(label.width()))
+        doc.setTextWidth(label.width())
+        label.setMinimumHeight(max(label.heightForWidth(label.width()), int(doc.size().height()) + 4))
 
     def _settle(self, w):
         try:

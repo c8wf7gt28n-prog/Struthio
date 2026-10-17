@@ -1,3 +1,29 @@
+# R10.7 — Clip gets spiky orange hair; Gemini proven live
+
+- **New look** (owner request): Clip has big spiky orange hair, like a
+  spiky-haired game hero.
+  - Long curved spikes are swept up and outwards, drawn back to front, with
+    pointed bangs over the forehead.
+  - The sunglasses, cigarette and smoke animation are gone. Clip no longer
+    repaints on a timer.
+  - His eyes glance toward the pointer when you hover over him.
+  - ![Clip](docs/assets/clip_character.png)
+- **Gemini tested live with the owner's free key** (October 2026). All of
+  these passed:
+  - The key check picked `gemini-flash-latest` from the key's list of 46
+    chat models.
+  - Two questions about the open `lcd_status.c` got correct answers (`-1`
+    both times), in 2–4 seconds each.
+  - The real bubble window: paste the key → "All set" → a question with the
+    open file attached → Google's answer in a bubble. The key never
+    appeared on screen.
+  - `tests/test_r10_clip.py` gains a live test that runs only when
+    `GEMINI_API_KEY` is set; it passed. The key is not stored in the
+    repository.
+- **Fix:** bubbles with lists (the setup steps) were measured too short, and
+  the last line was cut off. Markdown bubbles are now sized from the
+  rendered text.
+
 # R10.6 — Clip's new look
 
 - **Look:** Clip now has orange dreadlocks, black sunglasses and a

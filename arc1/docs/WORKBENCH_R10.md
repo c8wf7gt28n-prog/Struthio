@@ -194,6 +194,10 @@ works.
 
 ![Clip answering over the editor](assets/workbench_r10_7_clip.png)
 
+**Tested live (October 2026):** with the owner's own free key, Clip checked
+the key, picked `gemini-flash-latest`, and answered questions about the open
+file correctly in a few seconds. The bubbles were tested the same way.
+
 **Models:** Google renames Gemini models often, so Clip never hard-codes
 one.
 - It uses `gemini-flash-latest` when the key offers it. Otherwise it uses

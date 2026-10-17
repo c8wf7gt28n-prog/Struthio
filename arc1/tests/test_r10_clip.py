@@ -1,8 +1,9 @@
 """Clip (workbench/clip.py and the Qt bubbles): Google Gemini with a free key, without a network.
 
 The fake Google answers in the formats documented at ai.google.dev; the invalid-key
-body is the one the real API returned (October 2026). A live call needs the owner's key:
-    python3 -c "from workbench import clip; print(clip.check_key('YOUR_KEY'))"
+body is the one the real API returned (October 2026). With GEMINI_API_KEY set, a
+live test also calls Google for real (the key is never written to the repository):
+    GEMINI_API_KEY=... python3 tests/test_r10_clip.py
 
     python3 tests/test_r10_clip.py
 """
@@ -169,6 +170,22 @@ class ClipTests(unittest.TestCase):
         big = clip.with_file('look', 'a.c', 'x' * (clip.MAX_FILE_CHARS + 50))
         self.assertIn('`a.c`', big)
         self.assertIn('(trimmed)', big)
+
+
+@unittest.skipUnless(os.environ.get('GEMINI_API_KEY'), 'GEMINI_API_KEY not set: the live Google call was NOT run')
+class LiveGeminiTests(unittest.TestCase):
+    """Real calls to Google with the owner's key (never stored in the repository)."""
+    def test_key_check_and_a_two_turn_conversation(self):
+        key = os.environ['GEMINI_API_KEY']
+        model = clip.check_key(key)
+        self.assertIn('flash', model)
+        s = clip.Settings(key, model)
+        code = 'int f(int x) { if (x < 0) return -7; return x; }'
+        history = [('user', clip.with_file('What does f return for x = -3? Reply with just the number.', 'f.c', code))]
+        first = clip.ask(s, history)
+        self.assertIn('-7', first)
+        history += [('assistant', first), ('user', 'And for x = 5? Just the number.')]
+        self.assertIn('5', clip.ask(s, history))
 
 
 try:
