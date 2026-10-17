@@ -149,6 +149,30 @@ known yet, so the chart does not pretend to show a schedule.
 Agents read the same data with the `inspect.resources` method of
 `python arc1 agent`.
 
+## Clip (chat with ChatGPT)
+
+Click the paperclip at the right end of the toolbar to open a chat window
+in the style of Messages.
+
+![Clip chat](assets/workbench_r10_7_clip.png)
+
+- **Copy & paste** (default, no key):
+  1. Clip copies your message and opens chatgpt.com.
+  2. Press Ctrl+V and Enter there.
+  3. When ChatGPT answers, press its **Copy** button. Clip picks the reply up
+     from the clipboard. **Paste reply** does the same by hand.
+- **OpenAI API** (Settings): Clip sends the conversation with your API key
+  and shows the answer directly. API use is billed separately from a ChatGPT
+  subscription.
+  - **Key storage:** on Windows the key is stored encrypted for your account.
+    `OPENAI_API_KEY` also works.
+- **Include open file:** sends the file in front of you with the message.
+  It is off by default.
+
+Clip only passes messages along: it changes no files and runs nothing. It
+does not drive the browser window, which would break whenever the site
+changes and is against OpenAI's terms.
+
 ## Installing
 
 Double-click **`INSTALL_ARC1.cmd`** in the extracted folder. Press Enter to

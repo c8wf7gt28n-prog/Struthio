@@ -17,20 +17,21 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import threading
 import time
 
-from PySide6.QtCore import QDir, QPoint, QProcess, QRect, QRectF, QSize, Qt, QTimer, Signal
-from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
+from PySide6.QtCore import QDir, QPoint, QProcess, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
+from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
                            QPainter, QPainterPath, QPen, QPixmap, QTextCursor, QTextFormat)
 from PySide6.QtWidgets import (
-    QAbstractItemView, QApplication, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog,
-    QFileSystemModel, QFrame, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
+    QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog,
+    QFileSystemModel, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMainWindow, QMenu, QMessageBox, QPlainTextEdit, QPushButton, QSizePolicy, QSlider,
     QScrollArea, QSplitter, QStyle, QTabWidget, QTextEdit, QToolBar, QToolButton, QToolTip, QTreeView, QTreeWidget,
     QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
-from . import engine, fileops, resources
+from . import clip, engine, fileops, resources
 from .bootlogic import BootModel
 from .cartridge import CartridgeError, inspect_cartridge, package_game, simulate_stream
 from .output_router import OutputRouter
@@ -536,19 +537,17 @@ EVIDENCE_TEXT = {'NONE': 'not measured', 'DESIGN': 'design figure', 'RTL_SIM': '
 class ClipAssistant(QWidget):
     """Clip, the paperclip helper in the toolbar's empty right-hand corner.
 
-    Placeholder for the future liaison between the owner and the AI coder. It is not
-    connected to any agent yet and says so; clicking only shows that message.
+    Clicking opens the Clip chat (ClipChat), the owner's line to ChatGPT.
     """
-    MESSAGE = ('<b>Hi, I\'m Clip.</b><br>One day I\'ll pass your requests to the AI coder and '
-               'explain what it changed.<br><i>Not connected yet: nothing reaches an agent from here.</i>')
+    clicked = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('ClipAssistant')
         self.setFixedSize(28, 32)                  # drawn on a 34 x 40 grid, scaled to toolbar height
         self.setCursor(Qt.PointingHandCursor)
-        self.setToolTip('Clip: your go-between with the AI coder (not connected yet)')
-        self.setAccessibleName('Clip assistant, not connected')
+        self.setToolTip('Clip: chat with ChatGPT about your work')
+        self.setAccessibleName('Clip chat')
         self.hover = False
 
     def enterEvent(self, event):
@@ -560,7 +559,7 @@ class ClipAssistant(QWidget):
         self.update()
 
     def mousePressEvent(self, event):
-        QToolTip.showText(self.mapToGlobal(QPoint(-260, self.height())), self.MESSAGE, self)
+        self.clicked.emit()
 
     def paintEvent(self, event):
         p = QPainter(self)
@@ -594,6 +593,316 @@ class ClipAssistant(QWidget):
             p.setPen(QPen(QColor('#3b3b3b'), 1.2, Qt.SolidLine, Qt.RoundCap))
             p.drawLine(QPoint(int(x - 3), 12 if x < 15 else 11), QPoint(int(x + 3), 11 if x < 15 else 12))
         p.end()
+
+
+class ClipChat(QWidget):
+    """Clip's chat window: the owner's messages on the right in blue bubbles, replies on
+    the left in grey, as in Messages. Talks to ChatGPT through workbench/clip.py."""
+    replied = Signal(str, bool)                    # text, is_error (emitted from the worker thread)
+    BLUE, GREY = '#0a84ff', '#e9e9eb'
+
+    def __init__(self, open_file=None, parent=None):
+        super().__init__(parent, Qt.Tool)
+        self.setObjectName('ClipChat')
+        self.setWindowTitle('Clip')
+        self.resize(380, 560)
+        self.open_file = open_file or (lambda: (None, None))
+        self.settings = clip.Settings.load()
+        self.history = []                          # [(role, text actually sent)]
+        self.busy = False
+        self.awaiting_paste = None                 # manual mode: the text Clip put on the clipboard
+        self.opened_site = False
+        self.typing = None
+        self.setStyleSheet("""
+            #ClipChat { background: #ffffff; }
+            #ClipHeader { background: #f6f6f6; border-bottom: 1px solid #dedede; }
+            #ClipName { font-weight: 600; font-size: 14px; color: #111; }
+            #ClipStatus, #ClipNote { color: #8a8a8e; font-size: 11px; }
+            #ClipInput { border: 1px solid #c7c7cc; border-radius: 16px; padding: 6px 12px; background: #fff;
+                         font-size: 13px; }
+            #ClipSend { background: #0a84ff; color: white; border: none; border-radius: 14px; font-weight: 700;
+                        font-size: 15px; }
+            #ClipSend:disabled { background: #b7d7ff; }
+            #ClipLink { border: none; color: #0a84ff; background: transparent; padding: 2px 4px; }
+            QScrollArea { border: none; background: #ffffff; }
+        """)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        head = QFrame()
+        head.setObjectName('ClipHeader')
+        hl = QHBoxLayout(head)
+        hl.setContentsMargins(10, 6, 6, 6)
+        face = ClipAssistant()
+        face.setCursor(Qt.ArrowCursor)
+        face.setToolTip('')
+        hl.addWidget(face)
+        names = QVBoxLayout()
+        names.setSpacing(0)
+        name = QLabel('Clip')
+        name.setObjectName('ClipName')
+        self.status = QLabel()
+        self.status.setObjectName('ClipStatus')
+        names.addWidget(name)
+        names.addWidget(self.status)
+        hl.addLayout(names, 1)
+        self.site_btn = QToolButton(text='Open ChatGPT')
+        self.site_btn.setObjectName('ClipLink')
+        self.site_btn.clicked.connect(self.open_site)
+        clear = QToolButton(text='Clear')
+        clear.setObjectName('ClipLink')
+        clear.setToolTip('Start a new conversation')
+        clear.clicked.connect(self.clear)
+        gear = QToolButton(text='Settings')
+        gear.setObjectName('ClipLink')
+        gear.clicked.connect(self.edit_settings)
+        for b in (self.site_btn, clear, gear):
+            hl.addWidget(b)
+        outer.addWidget(head)
+
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        body = QWidget()
+        body.setStyleSheet('background: #ffffff;')
+        self.thread_layout = QVBoxLayout(body)
+        self.thread_layout.setContentsMargins(10, 10, 10, 10)
+        self.thread_layout.setSpacing(6)
+        self.thread_layout.addStretch(1)
+        self.scroll.setWidget(body)
+        self.scroll.verticalScrollBar().rangeChanged.connect(
+            lambda _lo, hi: self.scroll.verticalScrollBar().setValue(hi))
+        outer.addWidget(self.scroll, 1)
+
+        foot = QVBoxLayout()
+        foot.setContentsMargins(10, 6, 10, 10)
+        foot.setSpacing(4)
+        row0 = QHBoxLayout()
+        self.include = QCheckBox('Include open file')
+        self.include.setChecked(self.settings.include_file)
+        self.include.setToolTip('Send the file in front of you along with your message')
+        self.include.toggled.connect(self._remember_include)
+        row0.addWidget(self.include)
+        row0.addStretch(1)
+        self.paste_btn = QToolButton(text='Paste reply')
+        self.paste_btn.setObjectName('ClipLink')
+        self.paste_btn.setToolTip("Take ChatGPT's answer from the clipboard")
+        self.paste_btn.clicked.connect(self.paste_reply)
+        row0.addWidget(self.paste_btn)
+        foot.addLayout(row0)
+        row = QHBoxLayout()
+        self.input = QLineEdit()
+        self.input.setObjectName('ClipInput')
+        self.input.setPlaceholderText('Message Clip')
+        self.input.returnPressed.connect(self.send)
+        self.send_btn = QPushButton()
+        self.send_btn.setObjectName('ClipSend')
+        self.send_btn.setIcon(self._arrow_icon())
+        self.send_btn.setAccessibleName('Send')
+        self.send_btn.setFixedSize(28, 28)
+        self.send_btn.setToolTip('Send (Enter)')
+        self.send_btn.clicked.connect(self.send)
+        row.addWidget(self.input, 1)
+        row.addWidget(self.send_btn)
+        foot.addLayout(row)
+        outer.addLayout(foot)
+
+        self.replied.connect(self._on_reply)
+        QApplication.clipboard().dataChanged.connect(self._clipboard_changed)
+        self.refresh_status()
+        self.note("Hi, I'm Clip. Ask about your code, a build error or the ARC-1 design, and I'll pass it "
+                  "to ChatGPT. I only pass messages along; I don't change any files.")
+
+    @staticmethod
+    def _arrow_icon():
+        pm = QPixmap(32, 32)
+        pm.fill(Qt.transparent)
+        p = QPainter(pm)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setPen(QPen(QColor('white'), 3.4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        p.drawLine(16, 25, 16, 8)
+        p.drawLine(9, 14, 16, 7)
+        p.drawLine(23, 14, 16, 7)
+        p.end()
+        return QIcon(pm)
+
+    # ------------------------------------------------------------------ bubbles
+    def _add(self, widget, align):
+        row = QHBoxLayout()
+        row.setContentsMargins(0, 0, 0, 0)
+        if align == 'right':
+            row.addStretch(1)
+        row.addWidget(widget)
+        if align == 'left':
+            row.addStretch(1)
+        holder = QWidget()
+        holder.setLayout(row)
+        self.thread_layout.addWidget(holder)
+        return holder
+
+    def bubble(self, text, mine, error=False):
+        b = QLabel()
+        b.setWordWrap(True)
+        b.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
+        b.setOpenExternalLinks(True)
+        b.setMaximumWidth(int(self.width() * 0.74))
+        if mine:
+            b.setTextFormat(Qt.PlainText)
+            colours = (self.BLUE, '#ffffff')
+        else:
+            b.setTextFormat(Qt.MarkdownText)
+            colours = ('#fde2e1', '#8a1c1c') if error else (self.GREY, '#000000')
+        b.setText(text)
+        b.setStyleSheet('QLabel { background: %s; color: %s; border-radius: 15px; padding: 7px 11px; '
+                        'font-size: 13px; }' % colours)
+        return self._add(b, 'right' if mine else 'left')
+
+    def note(self, text):
+        n = QLabel(text)
+        n.setObjectName('ClipNote')
+        n.setWordWrap(True)
+        n.setAlignment(Qt.AlignCenter)
+        self.thread_layout.addWidget(n)
+        return n
+
+    # ------------------------------------------------------------------ state
+    def refresh_status(self):
+        s = self.settings
+        self.status.setText(s.describe())
+        manual = s.mode == 'manual'
+        self.site_btn.setVisible(manual)
+        self.paste_btn.setVisible(manual and self.awaiting_paste is not None)
+        self.send_btn.setEnabled(not self.busy)
+        self.input.setEnabled(not self.busy)
+
+    def _remember_include(self, on):
+        self.settings.include_file = on
+        self.settings.save()
+
+    def clear(self):
+        self.history.clear()
+        self.awaiting_paste = None
+        while self.thread_layout.count() > 1:
+            item = self.thread_layout.takeAt(1)
+            if item.widget():
+                item.widget().deleteLater()
+        self.note('New conversation.' + (' Start a new chat in ChatGPT too.' if self.settings.mode == 'manual'
+                                         else ''))
+        self.refresh_status()
+
+    def open_site(self):
+        self.opened_site = True
+        QDesktopServices.openUrl(QUrl(clip.CHATGPT_URL))
+
+    # ------------------------------------------------------------------ sending
+    def send(self):
+        text = self.input.text().strip()
+        if not text or self.busy:
+            return
+        name, body = self.open_file() if self.include.isChecked() else (None, None)
+        if self.include.isChecked() and not name:
+            self.note('No file is open, so only your message is sent.')
+        outgoing = clip.with_file(text, name, body)
+        self.input.clear()
+        self.bubble(text + ('\n📎 %s' % name if name else ''), True)
+        self.history.append(('user', outgoing))
+        if self.settings.mode == 'manual':
+            self.awaiting_paste = outgoing
+            QApplication.clipboard().setText(outgoing)
+            if not self.opened_site:
+                self.open_site()
+            self.note('Copied. In ChatGPT press Ctrl+V and Enter. When it answers, press its Copy button '
+                      'and the reply appears here.')
+            self.refresh_status()
+            return
+        if not self.settings.ready():
+            self.bubble('I need an OpenAI API key first: open **Settings**.', False, error=True)
+            return
+        self.busy = True
+        self.typing = self.bubble('•••', False)
+        self.refresh_status()
+        settings, history = self.settings, list(self.history)
+
+        def work():
+            try:
+                self.replied.emit(clip.ask_openai(settings, history), False)
+            except clip.ClipError as e:
+                self.replied.emit(str(e), True)
+        threading.Thread(target=work, daemon=True).start()
+
+    def _on_reply(self, text, error):
+        self.busy = False
+        if getattr(self, 'typing', None) is not None:
+            self.typing.deleteLater()
+            self.typing = None
+        self.bubble(text, False, error=error)
+        if error:
+            self.history.pop()                     # let the owner resend the same message
+        else:
+            self.history.append(('assistant', text))
+        self.refresh_status()
+        self.input.setFocus()
+
+    # ------------------------------------------------------------------ copy & paste mode
+    def _clipboard_changed(self):
+        if self.awaiting_paste is None:
+            return
+        text = QApplication.clipboard().text().strip()
+        if text and text != self.awaiting_paste.strip():
+            self.take_reply(text)
+
+    def paste_reply(self):
+        text = QApplication.clipboard().text().strip()
+        if not text or (self.awaiting_paste and text == self.awaiting_paste.strip()):
+            self.note("The clipboard still holds your message. Press Copy under ChatGPT's answer first.")
+            return
+        self.take_reply(text)
+
+    def take_reply(self, text):
+        self.awaiting_paste = None
+        self.bubble(text, False)
+        self.history.append(('assistant', text))
+        self.refresh_status()
+
+    # ------------------------------------------------------------------ settings
+    def edit_settings(self):
+        d = QDialog(self)
+        d.setWindowTitle('Clip settings')
+        form = QFormLayout(d)
+        mode = QComboBox()
+        mode.addItem('Copy & paste with chatgpt.com (no key)', 'manual')
+        mode.addItem('OpenAI API (your API key)', 'api')
+        mode.setCurrentIndex(max(0, mode.findData(self.settings.mode)))
+        key = QLineEdit(self.settings.key)
+        key.setEchoMode(QLineEdit.Password)
+        key.setPlaceholderText('sk-...   (or set OPENAI_API_KEY)')
+        model = QLineEdit(self.settings.model)
+        form.addRow('Talk to ChatGPT by', mode)
+        form.addRow('API key', key)
+        form.addRow('Model', model)
+        info = QLabel('Copy & paste uses your ChatGPT account in the browser; nothing is automated.\n'
+                      'The API is billed to the key separately from a ChatGPT subscription.\n'
+                      'The key is stored %s.' % ('encrypted for your Windows account' if os.name == 'nt'
+                                                 else 'in a file only you can read'))
+        info.setObjectName('ClipNote')
+        info.setWordWrap(True)
+        form.addRow(info)
+        buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(d.accept)
+        buttons.rejected.connect(d.reject)
+        form.addRow(buttons)
+        if d.exec() != QDialog.Accepted:
+            return
+        self.settings.mode = mode.currentData()
+        self.settings.key = key.text().strip()
+        self.settings.model = model.text().strip() or clip.DEFAULT_MODEL
+        try:
+            self.settings.save()
+        except OSError as e:
+            self.note('Settings not saved: %s' % e)
+        self.awaiting_paste = None
+        self.refresh_status()
 
 
 class BudgetChart(QWidget):
@@ -1080,7 +1389,9 @@ class WorkbenchWindow(QMainWindow):
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         tb.addWidget(spacer)
         self.clip = ClipAssistant()
+        self.clip.clicked.connect(self.open_clip)
         tb.addWidget(self.clip)
+        self.clip_chat = None
         self.toolbar = tb
 
     def _build_status(self):
@@ -1214,6 +1525,28 @@ class WorkbenchWindow(QMainWindow):
         if i >= 0:
             self.tabs.setTabText(i, ('● ' if ed.document().isModified() else '') + ed.path.name)
         self.update_document_info()
+
+    def open_clip(self):
+        if self.clip_chat is None:
+            self.clip_chat = ClipChat(self.clip_file, self)
+        c = self.clip_chat
+        if not c.isVisible():
+            corner = self.clip.mapToGlobal(QPoint(self.clip.width(), self.clip.height() + 4))
+            c.move(max(0, corner.x() - c.width()), corner.y())
+        c.show()
+        c.raise_()
+        c.activateWindow()
+        c.input.setFocus()
+
+    def clip_file(self):
+        ed = self.current_editor()
+        if ed is None:
+            return None, None
+        try:
+            name = ed.path.resolve().relative_to(ROOT).as_posix()
+        except ValueError:
+            name = ed.path.name
+        return name, ed.toPlainText()
 
     def current_editor(self):
         w = self.tabs.currentWidget()

@@ -1,3 +1,30 @@
+# R10.3 — Clip chats with ChatGPT
+
+- **Clip opens a chat window** in the style of Messages: your messages
+  are blue bubbles on the right, replies are grey on the left. Click the
+  paperclip at the right end of the toolbar.
+  - Code: `ClipChat` in `workbench/qt_app.py`; the Qt-free logic is in
+    `workbench/clip.py`.
+- **Two ways to reach ChatGPT** (Clip › Settings):
+  - **Copy & paste** (the default; no key needed): Clip copies your message
+    and opens chatgpt.com. Paste it there with Ctrl+V. When ChatGPT
+    answers, press its Copy button and the reply appears in Clip.
+  - **OpenAI API:** Clip sends the conversation with your API key and shows
+    the answer itself. API use is billed to the key, separately from a
+    ChatGPT subscription.
+    - **Key storage:** the key is stored encrypted for your Windows account
+      (DPAPI), or read from `OPENAI_API_KEY`.
+- **Include open file:** tick it to send the file in front of you with
+  your message. It is off by default; nothing else leaves the PC.
+- **Clip only passes messages along.** It changes no files and runs
+  nothing.
+- **Why Clip doesn't type into the browser window:** that breaks whenever
+  the site changes, can't work while the window is minimized, and
+  automated reading of ChatGPT's output is against OpenAI's terms.
+- **Tests:** `tests/test_r10_clip.py` covers settings, message building and
+  the API call against a fake server. The chat window was exercised
+  offscreen, but not on Windows or against the live API.
+
 # R10.2 — Windows installer second pass, and Clip
 
 - **Clip:** a paperclip helper in the empty right-hand end of the toolbar

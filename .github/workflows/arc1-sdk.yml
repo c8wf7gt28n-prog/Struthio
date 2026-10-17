@@ -46,3 +46,5 @@ jobs:
         run: python3 tests/test_r10_workbench.py
       - name: Installer (Linux install/upgrade/uninstall; Windows layer via fakes)
         run: python3 tests/test_r10_installer.py
+      - name: Clip (settings, messages, OpenAI call against a fake server)
+        run: python3 tests/test_r10_clip.py
