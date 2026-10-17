@@ -20,12 +20,12 @@ import tempfile
 import threading
 import time
 
-from PySide6.QtCore import QDir, QPoint, QProcess, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import QDir, QEvent, QPoint, QPropertyAnimation, QProcess, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
-                           QPainter, QPainterPath, QPen, QPixmap, QTextCursor, QTextFormat)
+                           QPainter, QPainterPath, QPen, QPixmap, QRegion, QTextDocument, QTextCursor, QTextFormat)
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog,
-    QFileSystemModel, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
+    QFileSystemModel, QFormLayout, QFrame, QGraphicsDropShadowEffect, QGraphicsOpacityEffect, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMainWindow, QMenu, QMessageBox, QPlainTextEdit, QPushButton, QSizePolicy, QSlider,
     QScrollArea, QSplitter, QStyle, QTabWidget, QTextEdit, QToolBar, QToolButton, QToolTip, QTreeView, QTreeWidget,
     QTreeWidgetItem, QVBoxLayout, QWidget,
@@ -537,7 +537,7 @@ EVIDENCE_TEXT = {'NONE': 'not measured', 'DESIGN': 'design figure', 'RTL_SIM': '
 class ClipAssistant(QWidget):
     """Clip, the paperclip helper in the toolbar's empty right-hand corner.
 
-    Clicking opens the Clip chat (ClipChat), the owner's line to ChatGPT.
+    Clicking shows or hides Clip's chat bubbles (ClipOverlay).
     """
     clicked = Signal()
 
@@ -595,124 +595,148 @@ class ClipAssistant(QWidget):
         p.end()
 
 
-class ClipChat(QWidget):
-    """Clip's chat window: the owner's messages on the right in blue bubbles, replies on
-    the left in grey, as in Messages. Talks to ChatGPT through workbench/clip.py."""
-    replied = Signal(str, bool)                    # text, is_error (emitted from the worker thread)
+class ClipOverlay(QWidget):
+    """Clip's chat as speech bubbles floating over the Workbench window, under the paperclip.
+
+    Not a window: a transparent child of the main window whose mask covers only the bubbles
+    and the message field, so the editor underneath stays clickable. Your messages are blue on
+    the right, replies grey on the left, as in Messages. The model is reached through
+    workbench/clip.py (local AI by default: free, no key, nothing leaves the PC).
+    """
+    replied = Signal(str, bool)                    # text, is_error  (from the worker thread)
+    progress = Signal(str)
+    setup_needed = Signal(str, str)                # step ('install' | 'model'), text
+    WIDTH, SHOWN = 360, 7                          # bubbles kept on screen; older ones stay in history
     BLUE, GREY = '#0a84ff', '#e9e9eb'
 
-    def __init__(self, open_file=None, parent=None):
-        super().__init__(parent, Qt.Tool)
-        self.setObjectName('ClipChat')
-        self.setWindowTitle('Clip')
-        self.resize(380, 560)
+    def __init__(self, window, anchor, open_file=None):
+        super().__init__(window)
+        self.setObjectName('ClipOverlay')
+        self.window_, self.anchor = window, anchor
         self.open_file = open_file or (lambda: (None, None))
         self.settings = clip.Settings.load()
         self.history = []                          # [(role, text actually sent)]
         self.busy = False
-        self.awaiting_paste = None                 # manual mode: the text Clip put on the clipboard
-        self.opened_site = False
-        self.typing = None
+        self.pending = None                        # message waiting for local AI setup
+        self.awaiting_paste = None                 # copy & paste mode: what Clip put on the clipboard
+        self.status_bubble = None
         self.setStyleSheet("""
-            #ClipChat { background: #ffffff; }
-            #ClipHeader { background: #f6f6f6; border-bottom: 1px solid #dedede; }
-            #ClipName { font-weight: 600; font-size: 14px; color: #111; }
-            #ClipStatus, #ClipNote { color: #8a8a8e; font-size: 11px; }
-            #ClipInput { border: 1px solid #c7c7cc; border-radius: 16px; padding: 6px 12px; background: #fff;
-                         font-size: 13px; }
-            #ClipSend { background: #0a84ff; color: white; border: none; border-radius: 14px; font-weight: 700;
-                        font-size: 15px; }
+            #ClipPill { background: #ffffff; border: 1px solid #c7c7cc; border-radius: 19px; }
+            #ClipInput { border: none; background: transparent; font-size: 13px; padding: 4px 2px; }
+            #ClipSend { background: #0a84ff; border: none; border-radius: 13px; }
             #ClipSend:disabled { background: #b7d7ff; }
-            #ClipLink { border: none; color: #0a84ff; background: transparent; padding: 2px 4px; }
-            QScrollArea { border: none; background: #ffffff; }
+            #ClipTool { border: none; background: transparent; color: #8a8a8e; font-size: 13px; padding: 0 3px; }
+            #ClipTool:checked { color: #0a84ff; }
+            #ClipNote { color: #6d6d72; font-size: 11px; background: rgba(255,255,255,0.92);
+                        border-radius: 9px; padding: 3px 8px; }
+            #ClipAction { background: #0a84ff; color: white; border: none; border-radius: 12px; padding: 4px 12px;
+                          font-weight: 600; }
         """)
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.setSpacing(0)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(10, 4, 10, 12)
+        lay.setSpacing(6)
+        self.rows = QVBoxLayout()
+        self.rows.setSpacing(6)
+        lay.addLayout(self.rows)
 
-        head = QFrame()
-        head.setObjectName('ClipHeader')
-        hl = QHBoxLayout(head)
-        hl.setContentsMargins(10, 6, 6, 6)
-        face = ClipAssistant()
-        face.setCursor(Qt.ArrowCursor)
-        face.setToolTip('')
-        hl.addWidget(face)
-        names = QVBoxLayout()
-        names.setSpacing(0)
-        name = QLabel('Clip')
-        name.setObjectName('ClipName')
-        self.status = QLabel()
-        self.status.setObjectName('ClipStatus')
-        names.addWidget(name)
-        names.addWidget(self.status)
-        hl.addLayout(names, 1)
-        self.site_btn = QToolButton(text='Open ChatGPT')
-        self.site_btn.setObjectName('ClipLink')
-        self.site_btn.clicked.connect(self.open_site)
-        clear = QToolButton(text='Clear')
-        clear.setObjectName('ClipLink')
-        clear.setToolTip('Start a new conversation')
-        clear.clicked.connect(self.clear)
-        gear = QToolButton(text='Settings')
-        gear.setObjectName('ClipLink')
-        gear.clicked.connect(self.edit_settings)
-        for b in (self.site_btn, clear, gear):
-            hl.addWidget(b)
-        outer.addWidget(head)
-
-        self.scroll = QScrollArea()
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        body = QWidget()
-        body.setStyleSheet('background: #ffffff;')
-        self.thread_layout = QVBoxLayout(body)
-        self.thread_layout.setContentsMargins(10, 10, 10, 10)
-        self.thread_layout.setSpacing(6)
-        self.thread_layout.addStretch(1)
-        self.scroll.setWidget(body)
-        self.scroll.verticalScrollBar().rangeChanged.connect(
-            lambda _lo, hi: self.scroll.verticalScrollBar().setValue(hi))
-        outer.addWidget(self.scroll, 1)
-
-        foot = QVBoxLayout()
-        foot.setContentsMargins(10, 6, 10, 10)
-        foot.setSpacing(4)
-        row0 = QHBoxLayout()
-        self.include = QCheckBox('Include open file')
+        self.pill = QFrame()
+        self.pill.setObjectName('ClipPill')
+        pl = QHBoxLayout(self.pill)
+        pl.setContentsMargins(8, 3, 4, 3)
+        pl.setSpacing(2)
+        self.include = QToolButton(text='📎')
+        self.include.setObjectName('ClipTool')
+        self.include.setCheckable(True)
         self.include.setChecked(self.settings.include_file)
-        self.include.setToolTip('Send the file in front of you along with your message')
+        self.include.setToolTip('Send the open file with your message')
         self.include.toggled.connect(self._remember_include)
-        row0.addWidget(self.include)
-        row0.addStretch(1)
-        self.paste_btn = QToolButton(text='Paste reply')
-        self.paste_btn.setObjectName('ClipLink')
-        self.paste_btn.setToolTip("Take ChatGPT's answer from the clipboard")
-        self.paste_btn.clicked.connect(self.paste_reply)
-        row0.addWidget(self.paste_btn)
-        foot.addLayout(row0)
-        row = QHBoxLayout()
         self.input = QLineEdit()
         self.input.setObjectName('ClipInput')
-        self.input.setPlaceholderText('Message Clip')
         self.input.returnPressed.connect(self.send)
+        self.input.installEventFilter(self)
         self.send_btn = QPushButton()
         self.send_btn.setObjectName('ClipSend')
+        self.send_btn.setFixedSize(26, 26)
         self.send_btn.setIcon(self._arrow_icon())
         self.send_btn.setAccessibleName('Send')
-        self.send_btn.setFixedSize(28, 28)
-        self.send_btn.setToolTip('Send (Enter)')
         self.send_btn.clicked.connect(self.send)
-        row.addWidget(self.input, 1)
-        row.addWidget(self.send_btn)
-        foot.addLayout(row)
-        outer.addLayout(foot)
+        more = QToolButton(text='•••')
+        more.setObjectName('ClipTool')
+        more.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(more)
+        menu.addAction('New conversation', self.clear)
+        menu.addAction('Settings...', self.edit_settings)
+        self.site_action = menu.addAction('Open ChatGPT in the browser',
+                                          lambda: QDesktopServices.openUrl(QUrl(clip.CHATGPT_URL)))
+        self.paste_action = menu.addAction("Paste ChatGPT's reply", self.paste_reply)
+        menu.addSeparator()
+        menu.addAction('Hide Clip  (Esc)', self.hide)
+        more.setMenu(menu)
+        for w in (self.include, self.input, self.send_btn, more):
+            pl.addWidget(w, 1 if w is self.input else 0)
+        self._shadow(self.pill)
+        lay.addWidget(self.pill)
 
         self.replied.connect(self._on_reply)
+        self.progress.connect(self._on_progress)
+        self.setup_needed.connect(self._on_setup)
         QApplication.clipboard().dataChanged.connect(self._clipboard_changed)
-        self.refresh_status()
-        self.note("Hi, I'm Clip. Ask about your code, a build error or the ARC-1 design, and I'll pass it "
-                  "to ChatGPT. I only pass messages along; I don't change any files.")
+        window.installEventFilter(self)
+        self.refresh()
+        self.hide()
+
+    # ------------------------------------------------------------------ geometry
+    def place(self):
+        corner = self.anchor.mapTo(self.window_, QPoint(self.anchor.width(), self.anchor.height()))
+        room = max(160, self.window_.height() - corner.y() - 40)
+        lay = self.layout()
+        lay.activate()
+        h = max(lay.heightForWidth(self.WIDTH) if lay.hasHeightForWidth() else 0, lay.sizeHint().height(),
+                lay.minimumSize().height())
+        self.setGeometry(max(0, corner.x() - self.WIDTH), corner.y() + 2, self.WIDTH, min(max(h, 60), room))
+        QTimer.singleShot(0, self._mask)
+
+    def _mask(self):
+        region = QRegion()
+        for w in self.findChildren(QWidget):
+            if w.isVisible() and w.property('clipShape'):
+                r = QRect(w.mapTo(self, QPoint(0, 0)), w.size()).adjusted(-6, -4, 6, 8)    # room for the shadow
+                region = region.united(QRegion(r))
+        self.setMask(region if not region.isEmpty() else QRegion(0, 0, 1, 1))
+
+    def eventFilter(self, obj, event):
+        if obj is self.window_ and event.type() == QEvent.Resize and self.isVisible():
+            self.place()
+        elif obj is self.input and event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
+            self.hide()
+            return True
+        return super().eventFilter(obj, event)
+
+    def toggle(self):
+        if self.isVisible():
+            self.hide()
+            return
+        self.show()
+        self.raise_()
+        self.place()
+        self.input.setFocus()
+
+    def pop_up(self):
+        if not self.isVisible():
+            self.show()
+            self.raise_()
+        self.place()
+        QTimer.singleShot(0, self.place)           # again once the new bubble's layout has settled
+
+    # ------------------------------------------------------------------ bubbles
+    @staticmethod
+    def _shadow(w):
+        fx = QGraphicsDropShadowEffect(w)
+        fx.setBlurRadius(14)
+        fx.setOffset(0, 2)
+        fx.setColor(QColor(0, 0, 0, 70))
+        w.setGraphicsEffect(fx)
+        w.setProperty('clipShape', True)
 
     @staticmethod
     def _arrow_icon():
@@ -727,73 +751,119 @@ class ClipChat(QWidget):
         p.end()
         return QIcon(pm)
 
-    # ------------------------------------------------------------------ bubbles
-    def _add(self, widget, align):
-        row = QHBoxLayout()
-        row.setContentsMargins(0, 0, 0, 0)
+    def _add_row(self, widget, align):
+        row = QWidget()
+        rl = QHBoxLayout(row)
+        rl.setContentsMargins(0, 0, 0, 0)
         if align == 'right':
-            row.addStretch(1)
-        row.addWidget(widget)
-        if align == 'left':
-            row.addStretch(1)
-        holder = QWidget()
-        holder.setLayout(row)
-        self.thread_layout.addWidget(holder)
-        return holder
-
-    def bubble(self, text, mine, error=False):
-        b = QLabel()
-        b.setWordWrap(True)
-        b.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
-        b.setOpenExternalLinks(True)
-        b.setMaximumWidth(int(self.width() * 0.74))
-        if mine:
-            b.setTextFormat(Qt.PlainText)
-            colours = (self.BLUE, '#ffffff')
+            rl.addStretch(1)
+        if align == 'center':
+            rl.addWidget(widget, 0, Qt.AlignCenter)
         else:
-            b.setTextFormat(Qt.MarkdownText)
-            colours = ('#fde2e1', '#8a1c1c') if error else (self.GREY, '#000000')
-        b.setText(text)
-        b.setStyleSheet('QLabel { background: %s; color: %s; border-radius: 15px; padding: 7px 11px; '
-                        'font-size: 13px; }' % colours)
-        return self._add(b, 'right' if mine else 'left')
+            rl.addWidget(widget)
+        if align == 'left':
+            rl.addStretch(1)
+        self.rows.addWidget(row)
+        while self.rows.count() > self.SHOWN:      # older bubbles leave the screen, not the conversation
+            old = self.rows.takeAt(0).widget()
+            if old is not None:
+                old.deleteLater()
+        self._fade_in(widget)
+        self.pop_up()
+        return row
+
+    def _fade_in(self, w):
+        fx = QGraphicsOpacityEffect(w)
+        w.setGraphicsEffect(fx)
+        anim = QPropertyAnimation(fx, b'opacity', w)
+        anim.setDuration(180)
+        anim.setStartValue(0.0)
+        anim.setEndValue(1.0)
+        anim.finished.connect(lambda: QTimer.singleShot(0, lambda: self._settle(w)))
+        anim.start()
+        w.setProperty('clipShape', True)
+
+    @staticmethod
+    def _fit(label, text, limit, markdown=False):
+        """Sizes a word-wrapped label exactly, so the floating column never squeezes a bubble."""
+        label.setText(text)
+        label.ensurePolished()                     # the stylesheets decide the font; measure with it
+        f = label.font()
+        doc = QTextDocument()
+        doc.setDefaultFont(f)
+        doc.setDocumentMargin(0)
+        doc.setMarkdown(text) if markdown else doc.setPlainText(text)
+        width = min(limit, int(doc.idealWidth()) + 6)
+        label.setFixedWidth(max(width, 24))
+        label.setMinimumHeight(label.heightForWidth(label.width()))
+
+    def _settle(self, w):
+        try:
+            self._shadow(w)                        # replaces the finished fade effect
+            self._mask()
+        except RuntimeError:                       # the bubble already scrolled away
+            pass
+
+    def bubble(self, text, mine, error=False, action=None):
+        box = QFrame()
+        colours = (self.BLUE, '#ffffff') if mine else (('#fde2e1', '#8a1c1c') if error else (self.GREY, '#000000'))
+        box.setStyleSheet('QFrame { background: %s; border-radius: 14px; } QLabel { color: %s; background: '
+                          'transparent; font-size: 13px; }' % colours)
+        bl = QVBoxLayout(box)
+        bl.setContentsMargins(12, 7, 12, 8)
+        label = QLabel()
+        label.setWordWrap(True)
+        label.setTextFormat(Qt.PlainText if mine else Qt.MarkdownText)
+        label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
+        label.setOpenExternalLinks(True)
+        bl.addWidget(label)
+        self._fit(label, text, 250, markdown=not mine)
+        if action:
+            caption, slot = action
+            b = QPushButton(caption)
+            b.setObjectName('ClipAction')
+            b.setStyleSheet('')
+            b.clicked.connect(slot)
+            bl.addWidget(b, 0, Qt.AlignLeft)
+        box.label = label
+        self._add_row(box, 'right' if mine else 'left')
+        return box
 
     def note(self, text):
-        n = QLabel(text)
+        n = QLabel()
         n.setObjectName('ClipNote')
         n.setWordWrap(True)
         n.setAlignment(Qt.AlignCenter)
-        self.thread_layout.addWidget(n)
+        n.setStyleSheet(self.styleSheet())
+        self._fit(n, text, self.WIDTH - 60)
+        self._add_row(n, 'center')
         return n
 
     # ------------------------------------------------------------------ state
-    def refresh_status(self):
+    def refresh(self):
         s = self.settings
-        self.status.setText(s.describe())
-        manual = s.mode == 'manual'
-        self.site_btn.setVisible(manual)
-        self.paste_btn.setVisible(manual and self.awaiting_paste is not None)
+        self.input.setPlaceholderText('Message Clip · ' + s.describe())
+        self.site_action.setVisible(s.mode == 'manual')
+        self.paste_action.setVisible(s.mode == 'manual')
         self.send_btn.setEnabled(not self.busy)
         self.input.setEnabled(not self.busy)
+        self.anchor.setToolTip('Clip: ' + s.describe())
 
     def _remember_include(self, on):
         self.settings.include_file = on
-        self.settings.save()
+        try:
+            self.settings.save()
+        except OSError:
+            pass
 
     def clear(self):
         self.history.clear()
-        self.awaiting_paste = None
-        while self.thread_layout.count() > 1:
-            item = self.thread_layout.takeAt(1)
-            if item.widget():
-                item.widget().deleteLater()
-        self.note('New conversation.' + (' Start a new chat in ChatGPT too.' if self.settings.mode == 'manual'
-                                         else ''))
-        self.refresh_status()
-
-    def open_site(self):
-        self.opened_site = True
-        QDesktopServices.openUrl(QUrl(clip.CHATGPT_URL))
+        self.awaiting_paste = self.pending = None
+        while self.rows.count():
+            w = self.rows.takeAt(0).widget()
+            if w is not None:
+                w.deleteLater()
+        self.note('New conversation.')
 
     # ------------------------------------------------------------------ sending
     def send(self):
@@ -810,39 +880,97 @@ class ClipChat(QWidget):
         if self.settings.mode == 'manual':
             self.awaiting_paste = outgoing
             QApplication.clipboard().setText(outgoing)
-            if not self.opened_site:
-                self.open_site()
-            self.note('Copied. In ChatGPT press Ctrl+V and Enter. When it answers, press its Copy button '
-                      'and the reply appears here.')
-            self.refresh_status()
+            QDesktopServices.openUrl(QUrl(clip.CHATGPT_URL))
+            self.note("Copied. Paste it in ChatGPT, then press its Copy button and I'll show the answer.")
             return
         if not self.settings.ready():
-            self.bubble('I need an OpenAI API key first: open **Settings**.', False, error=True)
+            self.history.pop()
+            self.bubble('I need an API key for that first.', False, error=True,
+                        action=('Settings', self.edit_settings))
             return
+        self._ask()
+
+    def _ask(self, before=None):
         self.busy = True
-        self.typing = self.bubble('•••', False)
-        self.refresh_status()
+        self.status_bubble = self.bubble('•••', False)
+        self.refresh()
         settings, history = self.settings, list(self.history)
 
         def work():
             try:
-                self.replied.emit(clip.ask_openai(settings, history), False)
+                if before:
+                    before(self.progress.emit)
+                self.replied.emit(clip.ask(settings, history), False)
+            except clip.NeedsSetup as e:
+                self.setup_needed.emit(e.step, str(e))
             except clip.ClipError as e:
                 self.replied.emit(str(e), True)
         threading.Thread(target=work, daemon=True).start()
 
+    def _drop_status(self):
+        if self.status_bubble is not None:
+            try:
+                self.status_bubble.parentWidget().deleteLater()
+            except RuntimeError:
+                pass
+            self.status_bubble = None
+
+    def _on_progress(self, text):
+        if self.status_bubble is not None:
+            try:
+                self._fit(self.status_bubble.label, text, 250, markdown=True)
+            except RuntimeError:
+                return
+            self.place()
+
     def _on_reply(self, text, error):
         self.busy = False
-        if getattr(self, 'typing', None) is not None:
-            self.typing.deleteLater()
-            self.typing = None
+        self._drop_status()
         self.bubble(text, False, error=error)
         if error:
-            self.history.pop()                     # let the owner resend the same message
+            self.history.pop()                     # the owner can simply send it again
         else:
             self.history.append(('assistant', text))
-        self.refresh_status()
+        self.refresh()
         self.input.setFocus()
+
+    # ------------------------------------------------------------------ local AI setup
+    def _on_setup(self, step, text):
+        self.busy = False
+        self._drop_status()
+        self.refresh()
+        model = self.settings.models['local']
+        if step == 'install' and clip.can_install_ollama():
+            self.bubble(text + ' It is free, needs no account, and your messages never leave this PC. '
+                        'Ollama plus the %s model is about 5 GB.' % model, False,
+                        action=('Install local AI', lambda: self._setup('install')))
+        elif step == 'install':
+            self.bubble(text + ' Install Ollama from https://ollama.com/download, then send your message again.',
+                        False)
+        else:
+            self.bubble(text + ' It is about 5 GB, downloaded once.', False,
+                        action=('Download %s' % model, lambda: self._setup('model')))
+
+    def _setup(self, step):
+        if self.busy or not self.history or self.history[-1][0] != 'user':
+            return
+        model = self.settings.models['local']
+
+        def prepare(report):
+            if step == 'install':
+                report('Installing Ollama... (Windows may ask for permission)')
+                ok, out = clip.install_ollama()
+                if not ok and not clip.ollama_exe():
+                    raise clip.ClipError('Ollama did not install: %s' % out.strip()[-200:])
+                report('Starting local AI...')
+            names = clip.start_ollama(wait=30)
+            if names is None:
+                raise clip.ClipError('Ollama is installed but did not start. Start "Ollama" from the Start '
+                                     'menu, then send your message again.')
+            if not clip.has_model(names, model):
+                clip.pull_model(model, report)
+            report('Thinking...')
+        self._ask(before=prepare)
 
     # ------------------------------------------------------------------ copy & paste mode
     def _clipboard_changed(self):
@@ -863,46 +991,73 @@ class ClipChat(QWidget):
         self.awaiting_paste = None
         self.bubble(text, False)
         self.history.append(('assistant', text))
-        self.refresh_status()
 
     # ------------------------------------------------------------------ settings
     def edit_settings(self):
-        d = QDialog(self)
+        d = QDialog(self.window_)
         d.setWindowTitle('Clip settings')
         form = QFormLayout(d)
         mode = QComboBox()
-        mode.addItem('Copy & paste with chatgpt.com (no key)', 'manual')
-        mode.addItem('OpenAI API (your API key)', 'api')
+        for m in clip.MODES:
+            mode.addItem(clip.MODE_NAMES[m], m)
         mode.setCurrentIndex(max(0, mode.findData(self.settings.mode)))
-        key = QLineEdit(self.settings.key)
+        model = QLineEdit()
+        key = QLineEdit()
         key.setEchoMode(QLineEdit.Password)
-        key.setPlaceholderText('sk-...   (or set OPENAI_API_KEY)')
-        model = QLineEdit(self.settings.model)
-        form.addRow('Talk to ChatGPT by', mode)
-        form.addRow('API key', key)
-        form.addRow('Model', model)
-        info = QLabel('Copy & paste uses your ChatGPT account in the browser; nothing is automated.\n'
-                      'The API is billed to the key separately from a ChatGPT subscription.\n'
-                      'The key is stored %s.' % ('encrypted for your Windows account' if os.name == 'nt'
-                                                 else 'in a file only you can read'))
-        info.setObjectName('ClipNote')
+        info = QLabel()
         info.setWordWrap(True)
+        info.setOpenExternalLinks(True)
+        state = {'mode': self.settings.mode, 'models': dict(self.settings.models), 'keys': dict(self.settings.keys),
+                 'shown': False}
+
+        def show(i):
+            old = state['mode']
+            if state['shown']:                     # keep what was typed for the mode being left
+                state['models'][old] = model.text().strip() or clip.DEFAULT_MODELS[old]
+                if old in clip.KEY_ENV:
+                    state['keys'][old] = key.text().strip()
+            state['shown'] = True
+            m = mode.itemData(i)
+            state['mode'] = m
+            model.setText(state['models'].get(m, ''))
+            model.setEnabled(m != 'manual')
+            key.setText(state['keys'].get(m, ''))
+            key.setEnabled(m in clip.KEY_ENV)
+            key.setPlaceholderText('(or set %s)' % clip.KEY_ENV[m] if m in clip.KEY_ENV else 'not needed')
+            info.setText({
+                'local': 'Runs on this PC with Ollama: free, private, works offline. Needs about 5 GB of disk '
+                         'and 8 GB of memory; smaller PCs can use qwen2.5-coder:3b. Weaker than ChatGPT.',
+                'gemini': 'Free key (Google account): <a href="%s">aistudio.google.com/apikey</a>. On the free '
+                          'tier Google may use your messages to improve its products.' % clip.GEMINI_KEY_URL,
+                'api': 'Paid key from platform.openai.com, billed separately from a ChatGPT subscription.',
+                'manual': 'Clip copies your message and opens chatgpt.com; you paste it there and press '
+                          'Copy on the answer. Nothing is automated.'}[m] +
+                ('' if m not in clip.KEY_ENV else '<br>The key is stored %s.' % (
+                    'encrypted for your Windows account' if os.name == 'nt' else 'in a file only you can read')))
+        state['mode'] = mode.itemData(mode.currentIndex())
+        mode.currentIndexChanged.connect(show)
+        form.addRow('Clip talks to', mode)
+        form.addRow('Model', model)
+        form.addRow('API key', key)
         form.addRow(info)
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.accepted.connect(d.accept)
         buttons.rejected.connect(d.reject)
         form.addRow(buttons)
+        show(mode.currentIndex())
         if d.exec() != QDialog.Accepted:
             return
-        self.settings.mode = mode.currentData()
-        self.settings.key = key.text().strip()
-        self.settings.model = model.text().strip() or clip.DEFAULT_MODEL
+        show(mode.currentIndex())                  # folds the visible fields into state
+        self.settings.mode = state['mode']
+        self.settings.models.update({k: v for k, v in state['models'].items() if v})
+        self.settings.keys = {k: v for k, v in state['keys'].items() if v}
         try:
             self.settings.save()
         except OSError as e:
             self.note('Settings not saved: %s' % e)
         self.awaiting_paste = None
-        self.refresh_status()
+        self.note('Clip now talks to: %s' % self.settings.describe())
+        self.refresh()
 
 
 class BudgetChart(QWidget):
@@ -1391,7 +1546,7 @@ class WorkbenchWindow(QMainWindow):
         self.clip = ClipAssistant()
         self.clip.clicked.connect(self.open_clip)
         tb.addWidget(self.clip)
-        self.clip_chat = None
+        self.clip_overlay = None
         self.toolbar = tb
 
     def _build_status(self):
@@ -1527,16 +1682,13 @@ class WorkbenchWindow(QMainWindow):
         self.update_document_info()
 
     def open_clip(self):
-        if self.clip_chat is None:
-            self.clip_chat = ClipChat(self.clip_file, self)
-        c = self.clip_chat
-        if not c.isVisible():
-            corner = self.clip.mapToGlobal(QPoint(self.clip.width(), self.clip.height() + 4))
-            c.move(max(0, corner.x() - c.width()), corner.y())
-        c.show()
-        c.raise_()
-        c.activateWindow()
-        c.input.setFocus()
+        first = self.clip_overlay is None
+        if first:
+            self.clip_overlay = ClipOverlay(self, self.clip, self.clip_file)
+        self.clip_overlay.toggle()
+        if first:
+            self.clip_overlay.note("Hi, I'm Clip. Ask me about your code, a build error or the ARC-1 design. "
+                                   "I only answer; I don't change files.")
 
     def clip_file(self):
         ed = self.current_editor()

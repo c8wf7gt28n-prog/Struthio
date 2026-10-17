@@ -1,3 +1,29 @@
+# R10.4 — Clip floats over Workbench and needs no key
+
+- **Chat bubbles instead of a window:** `ClipOverlay` in
+  `workbench/qt_app.py` replaces R10.3's `ClipChat`.
+  - The bubbles float over the Workbench window under the paperclip and
+    fade in as they arrive.
+  - Only the bubbles catch the mouse: a mask covers them and the message
+    field, so the editor around them stays clickable.
+  - Esc or another click on Clip hides them; a new reply pops them back up.
+- **Free local AI is the default:** Ollama with `qwen2.5-coder:7b`. It needs
+  no account or key and nothing leaves the PC.
+  - First use: Clip offers to install Ollama (winget), starts it, and
+    downloads the model with progress shown in a bubble. It then answers the
+    message you already sent.
+- **Google Gemini option:** works with a free API key.
+- **Still available:** OpenAI API and ChatGPT copy & paste.
+- **Settings:** schema `arc1.clip-settings/2`. R10.3 settings are ignored,
+  so Clip starts with Local AI.
+- **Tests:** `tests/test_r10_clip.py` has 9 tests.
+  - Settings, keys, all three cloud/local request formats, and setup
+    detection.
+  - Model download progress.
+  - A real Qt test of the bubbles: on the window, masked, setup → answer,
+    toggling.
+  - Not run: on Windows, or against a real Ollama, Gemini or OpenAI.
+
 # R10.3 — Clip chats with ChatGPT
 
 - **Clip opens a chat window** in the style of Messages: your messages

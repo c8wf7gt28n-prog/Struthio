@@ -149,29 +149,44 @@ known yet, so the chart does not pretend to show a schedule.
 Agents read the same data with the `inspect.resources` method of
 `python arc1 agent`.
 
-## Clip (chat with ChatGPT)
+## Clip (chat bubbles)
 
-Click the paperclip at the right end of the toolbar to open a chat window
-in the style of Messages.
+Click the paperclip at the right end of the toolbar. Clip's chat appears as
+speech bubbles floating over the Workbench window, just under the paperclip:
+yours in blue on the right, replies in grey on the left. There is no
+separate window.
+- **Showing and hiding:** click Clip again, or press **Esc** in the message
+  field, to hide the bubbles. A reply that arrives while they are hidden
+  pops them back up.
+- **The editor stays usable:** only the bubbles and the message field catch
+  the mouse, so you can keep clicking in the editor around them.
 
-![Clip chat](assets/workbench_r10_7_clip.png)
+![Clip's bubbles over the editor](assets/workbench_r10_7_clip.png)
 
-- **Copy & paste** (default, no key):
-  1. Clip copies your message and opens chatgpt.com.
-  2. Press Ctrl+V and Enter there.
-  3. When ChatGPT answers, press its **Copy** button. Clip picks the reply up
-     from the clipboard. **Paste reply** does the same by hand.
-- **OpenAI API** (Settings): Clip sends the conversation with your API key
-  and shows the answer directly. API use is billed separately from a ChatGPT
-  subscription.
-  - **Key storage:** on Windows the key is stored encrypted for your account.
-    `OPENAI_API_KEY` also works.
-- **Include open file:** sends the file in front of you with the message.
-  It is off by default.
+**Where Clip gets answers** (••• › Settings):
 
-Clip only passes messages along: it changes no files and runs nothing. It
-does not drive the browser window, which would break whenever the site
-changes and is against OpenAI's terms.
+| Choice | Account or key | Leaves this PC? |
+|---|---|---|
+| **Local AI** (default), using Ollama with `qwen2.5-coder:7b` | none, free | no |
+| **Google Gemini** | free key from aistudio.google.com/apikey | yes |
+| **OpenAI API** | paid API key | yes |
+| **ChatGPT website, copy & paste** | your ChatGPT login | yes, and you paste in the browser |
+
+**First use of Local AI:**
+1. Clip shows an **Install local AI** button. It installs Ollama with
+   winget; Windows may ask for permission.
+2. Clip downloads the model, about 5 GB once, showing progress in a bubble.
+3. Clip then answers the message you already sent.
+
+**Limits of Local AI:**
+- It needs about 8 GB of memory.
+- On smaller PCs, set the model to `qwen2.5-coder:3b`.
+- Its answers are weaker than ChatGPT's.
+
+**What is sent:** the 📎 toggle sends the open file with your message. It
+is off by default. Clip only answers: it changes no files and runs nothing.
+It never drives a browser window. That would break whenever the site changes
+and is against OpenAI's terms.
 
 ## Installing
 
