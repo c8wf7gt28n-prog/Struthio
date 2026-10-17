@@ -5,8 +5,8 @@ import json
 import sys
 import traceback
 
-from . import doctor as doctor_mod
-from . import device, hardware, passrec, project
+from . import branding, doctor as doctor_mod
+from . import device, hardware, passrec, project, firmware
 from .core import (EXIT_CODES, EXIT_INTERNAL, SCHEMA_REVISION, SDK_VERSION, Result, UsageError,
                    display_path, write_report)
 from .jsonschema_lite import SchemaError
@@ -44,6 +44,35 @@ def build_parser():
     p.add_argument("--version", action="version",
                    version="arc1 %s (schema %s)" % (SDK_VERSION, SCHEMA_REVISION))
     sub = p.add_subparsers(dest="cmd", metavar="<command>")
+
+    sub.add_parser("brand", parents=[common], epilog=EPILOG,
+                   help="verify official ARC-1 branding and LCD text contract")
+    sub.add_parser("workbench", help="open the Windows-first ARC-1 Workbench host desktop app")
+    s = sub.add_parser("agent", help="machine-facing stdio JSON lines workbench API")
+    s.add_argument("--allow-writes",action="store_true",help="opt-in guarded agent source edits (SHA-256 CAS)")
+
+    fw = sub.add_parser("firmware", help="firmware workbench: compile and test without flashing").add_subparsers(dest="fwcmd", metavar="<subcommand>")
+    fw.add_parser("status", parents=[common], epilog=EPILOG, help="show editable firmware sources and actual build status")
+    s = fw.add_parser("build", parents=[common], epilog=EPILOG, help="compile standalone firmware objects (NOT images)")
+    s.add_argument("--target", choices=["status-lcd", "graphics-link"], default="status-lcd")
+    s.add_argument("--toolchain", choices=["host", "riscv-clang"], default="host")
+    fw.add_parser("test", parents=[common], epilog=EPILOG, help="run host firmware module tests")
+    s = fw.add_parser("image", parents=[common], epilog=EPILOG, help="build two non-bootable target link-stage ELF/BIN images")
+    s.add_argument("--target",choices=["f133","d213","all"],default="all")
+
+    carts=sub.add_parser("cartridge",help="host-only .arc1cart packages and deterministic streaming").add_subparsers(dest="cartcmd",metavar="<subcommand>")
+    cs=carts.add_parser("package",parents=[common],help="verify and package a host game manifest and its assets")
+    cs.add_argument("project",nargs="?",default="examples/hello_arc1")
+    cs.add_argument("--output",default="cartridges/hello_arc1.arc1cart")
+    cs=carts.add_parser("inspect",parents=[common],help="validate archive entries and hashes")
+    cs.add_argument("file")
+    cs=carts.add_parser("stream",parents=[common],help="deterministic model only, not live USB measurements")
+    cs.add_argument("file")
+    cs.add_argument("--bandwidth",type=float,default=5.0,help="simulated MiB/s")
+    cs.add_argument("--latency",type=float,default=4.0,help="simulated request latency in milliseconds")
+    cs.add_argument("--prefetch",type=int,default=12,help="simulated prefetch frames")
+    cs.add_argument("--frames",type=int,default=120)
+    cs.add_argument("--consume",type=int,default=None,help="bytes used per frame")
 
     sub.add_parser("doctor", parents=[common], epilog=EPILOG,
                    help="check toolchain, schemas, manifests; report absent hardware")
@@ -99,6 +128,9 @@ def build_parser():
 
 def _print_human(data):
     print("%s: %s [%s]" % (data["command"], data["verdict"], data["evidence_level"]))
+    if data["command"] == "arc1 brand" and "details" in data:
+        print("  %s — %s" % (data["details"]["brand"], data["details"]["expanded_name"]))
+        print("  LCD: %d reference states; hardware unverified" % len(data["details"]["lcd_states"]))
     for f in data["failure_reasons"]:
         print("  FAIL %s %s%s" % (f["code"], f["message"], " (%s)" % f["path"] if "path" in f else ""))
     for w in data["warnings"]:
@@ -115,7 +147,44 @@ def execute(args):
     """Runs a parsed command and returns (result dict, report file or None).
     Shared by the command line and the text UI."""
     report_file = None
-    if args.cmd == "doctor":
+    if args.cmd == "brand":
+        result = Result("arc1 brand", "STATIC_CHECK")
+        branding.inspect_brand(result)
+    elif args.cmd == "firmware":
+        result = Result("arc1 firmware " + args.fwcmd, "STATIC_CHECK" if args.fwcmd != "test" else "HOST_SIM")
+        if args.fwcmd == "status": firmware.status(result)
+        elif args.fwcmd == "build": firmware.build(result,args.target,args.toolchain)
+        elif args.fwcmd == "image":
+            try:
+                from workbench.imagebuild import build as image_build
+                manifest=image_build(args.target)
+                result.extra["details"]=manifest
+                for it in manifest["images"]:
+                    result.artifact(__import__("pathlib").Path(firmware.BASE.parent)/it["binary"])
+                    result.artifact(__import__("pathlib").Path(firmware.BASE.parent)/it["elf"])
+                result.warn("These target-linked ELF/BIN are linker smoke-test stages, NOT bootable NOR firmware or deployable images")
+            except (RuntimeError,OSError) as ex:
+                result.fail("FW-LINK",str(ex))
+        else: firmware.test(result)
+    elif args.cmd == "cartridge":
+        from pathlib import Path
+        from workbench.cartridge import package_game,inspect_cartridge,simulate_stream,CartridgeError
+        result=Result('arc1 cartridge '+args.cartcmd,'HOST_SIM' if args.cartcmd=='stream' else 'STATIC_CHECK')
+        try:
+            if args.cartcmd=='package':
+                dest=Path(args.output).resolve()
+                if not dest.is_relative_to(Path(__file__).resolve().parents[3]):
+                    raise CartridgeError('output must be within the ARC-1 Workbench project')
+                details=package_game(Path(args.project),dest)
+                result.artifact(dest)
+            elif args.cartcmd=='inspect':details=inspect_cartridge(Path(args.file))
+            else:
+                details=simulate_stream(Path(args.file),frames=args.frames,bandwidth_mib_s=args.bandwidth,
+                            latency_ms=args.latency,prefetch_frames=args.prefetch,consumption_bytes_per_frame=args.consume)
+            result.extra['details']=details
+            result.warn('Host-only package/model; not evidence of game runtime, real USB host, or 60 fps')
+        except (OSError,CartridgeError,ValueError) as exc:result.fail('CARTRIDGE',str(exc))
+    elif args.cmd == "doctor":
         result = Result("arc1 doctor", "STATIC_CHECK")
         doctor_mod.doctor(result)
     elif args.cmd == "new":
@@ -162,13 +231,19 @@ def execute(args):
 def run(argv):
     parser = build_parser()
     args = parser.parse_args(argv)
-    if not args.cmd or (args.cmd == "hw" and not args.hwcmd) or (args.cmd == "pass" and not args.passcmd) \
-            or (args.cmd == "fpga" and not args.fpgacmd) or (args.cmd == "device" and not args.devcmd):
+    if not args.cmd or (args.cmd == "firmware" and not args.fwcmd) or (args.cmd == "hw" and not args.hwcmd) or (args.cmd == "pass" and not args.passcmd) \
+            or (args.cmd == "fpga" and not args.fpgacmd) or (args.cmd == "device" and not args.devcmd) or (args.cmd == "cartridge" and not args.cartcmd):
         parser.print_help()
         return EXIT_CODES["ERROR"]
     if args.cmd == "ui":
         from . import ui
         return ui.main(args.project, args.snapshot)
+    if args.cmd == "workbench":
+        from workbench.app import main as start_workbench
+        return start_workbench()
+    if args.cmd == "agent":
+        from workbench.agent import serve
+        return serve(args.allow_writes)
 
     data, report_file = execute(args)
     if args.json:

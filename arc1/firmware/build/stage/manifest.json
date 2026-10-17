@@ -1,0 +1,30 @@
+{
+  "images": [
+    {
+      "artifact_class": "LINK_TEST_ONLY",
+      "binary": "firmware/build/stage/f133/f133.bin",
+      "binary_bytes": 1496,
+      "board_bootable": false,
+      "elf": "firmware/build/stage/f133/f133.elf",
+      "flash_approved": false,
+      "map": "firmware/build/stage/f133/f133.map",
+      "sha256": "c9f4b068ace773b74f21881d9b8a32fd6cc66bdaec129a460697603ca7bc5de4",
+      "target": "f133"
+    },
+    {
+      "artifact_class": "LINK_TEST_ONLY",
+      "binary": "firmware/build/stage/d213/d213.bin",
+      "binary_bytes": 108,
+      "board_bootable": false,
+      "elf": "firmware/build/stage/d213/d213.elf",
+      "flash_approved": false,
+      "map": "firmware/build/stage/d213/d213.map",
+      "sha256": "3b88831748bda61c459e6f4923004b2ec833213962ca0ba5850ea9fa32266e77",
+      "target": "d213"
+    }
+  ],
+  "link_base": "0x00020000 PROVISIONAL, NOT BOARD-VALIDATED",
+  "notice": "STAGED LINK TESTS, NOT REAL BOOT FIRMWARE",
+  "schema": "arc1.firmware.linkstage/1",
+  "toolchain": "clang + ld.lld + llvm-objcopy"
+}

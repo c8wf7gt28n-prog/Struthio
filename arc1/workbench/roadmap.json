@@ -1,0 +1,57 @@
+{
+  "project": "ARC-1 Workbench",
+  "tagline": "Adaptive RISC-V Console Development System",
+  "release": "R06 PASS4 COMPACT AQUA / CARTRIDGE HOST FOUNDATION",
+  "work_status": "GUI, staged firmware, cartridge host package/stream tests pass under Linux; Windows 11 and physical USB unqualified",
+  "hardware_status": "NOT CONNECTED / NOT VALIDATED",
+  "passes": [
+    {
+      "id": "P1",
+      "name": "Windows shell and source workbench",
+      "goal": "Native Windows 11 GUI, real source editing, safe build/test commands, truthful host status",
+      "acceptance": "Starts via CMD, source can be edited/saved, build and host tests show real results, no fake connected indicator",
+      "status": "HOST GUI IMPLEMENTED (Windows qualification pending)"
+    },
+    {
+      "id": "P2",
+      "name": "Linked CPU firmware targets",
+      "goal": "Boot stages, linker scripts, BSP/HAL and isolated F133/D213 build outputs",
+      "acceptance": "Reproducible linked ELF and binary, map files, disassembly, size and memory-map checks; not marked bootable until qualified",
+      "status": "PARTIAL: freestanding dual linked-stage artifacts, board-boot image pending"
+    },
+    {
+      "id": "P3",
+      "name": "LCD and boot diagnostics",
+      "goal": "F133 PB3/PB2 I2C driver candidate, simulator event bus, live status codes and power fault indicators",
+      "acceptance": "Boot-sequence unit tests, bus timeout/recovery tests and independently validated pins/voltages before board",
+      "status": "PARTIAL: C boot monitor and SerLCD encoder tested; host event/fault simulation added. Actual F133 I2C HAL and live rails/pin qualification pending."
+    },
+    {
+      "id": "P4",
+      "name": "Game cartridge and streaming",
+      "goal": "USB game package, asynchronous streaming scheduler, RAM budgets and latency/fault injection",
+      "acceptance": "60 fps deterministic tests with delayed/removed/corrupt drives in host simulation",
+      "status": "PARTIAL: checksummed host-only .arc1cart + deterministic transfer model; target executable, filesystem host driver, actual USB streaming, removed-cartridge runtime handling not implemented"
+    },
+    {
+      "id": "P5",
+      "name": "Launcher and graphics pipeline",
+      "goal": "Branded launcher, framebuffer preview, D213/45F reference queue and game runtime integration",
+      "acceptance": "One game package loads in host sim, command queues validate, fallback if FPGA unavailable",
+      "status": "PLANNED"
+    },
+    {
+      "id": "P6",
+      "name": "Hardware lab tools",
+      "goal": "Read-only USB discovery, log capture, FPGA artifact manifest, gated recovery-aware deployment",
+      "acceptance": "Actual test board discovered and recovered before allowing NOR writes; dry-run, checksum, device confirmation",
+      "status": "PLANNED"
+    }
+  ],
+  "non_goals": [
+    "No real NOR writes from this revision",
+    "No claim of silicon-bootable firmware",
+    "No connected board state without verified actual device",
+    "No agent shell execution"
+  ]
+}

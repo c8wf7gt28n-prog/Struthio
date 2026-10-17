@@ -1,0 +1,19 @@
+{
+  "revision": "R09",
+  "architecture": "Qt source prototype + runnable Tk fallback",
+  "qt_runtime_verified": false,
+  "windows11_native_verified": false,
+  "physical_arc1_connected": false,
+  "actual_firmware_bootable": false,
+  "physical_flash_writes_enabled": false,
+  "test_evidence": {
+    "output_router_unit": "4 passed",
+    "qt_source_contract": "4 passed",
+    "R09_tk_gui": "passed under Xvfb, genuine host firmware image test build passed",
+    "firmware_workbench": "4 passed (updated stale 2-test assertion to actual 4-test suite)",
+    "cartridge_regression": "passed",
+    "launcher_regression": "passed",
+    "pass3_boot": "passed"
+  },
+  "manifests_files": 298
+}

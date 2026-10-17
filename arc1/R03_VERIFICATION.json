@@ -1,0 +1,22 @@
+{
+  "version": "ARC-1 Workbench R03",
+  "platform": "native Windows 11 targeted; not yet tested",
+  "tests": {
+    "gui_xvfb_smoke": "PASS",
+    "f133_lcd_host_object": "PASS",
+    "host_firmware_tests": "2/2 PASS",
+    "sample_game_tests": "4/4 PASS",
+    "sample_game_build": "PASS",
+    "branding_hash_check": "PASS"
+  },
+  "physical_board": "NOT PRESENT",
+  "bootable_target_images": "NOT BUILT",
+  "deploy_writes": "NOT AVAILABLE",
+  "file_sha256": {
+    "workbench/app.py": "d5b6b9791dae77802b2b4d982372ec60752dda6501fb325cfc3665ab52834b12",
+    "workbench/roadmap.json": "86bc7b670480f18081b0db47453e0172838800fa1ae2198faaf5fe6937a84822",
+    "workbench/logo.png": "fc4c1ff131f372588a0eb6cf68fac928502aeeb7ab055d18c3d4ad2ad401422f",
+    "START_ARC1.cmd": "ff9662b0de0524530a26536954ecf3b17d6cbde9c972b6a633526626c2d70d8e",
+    "sdk/cli/arc1cli/main.py": "50667536d7d2c4525bd4101258cff5174f728495ed9502d2213d858e43b8bd73"
+  }
+}

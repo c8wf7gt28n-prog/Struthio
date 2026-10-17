@@ -1,0 +1,2 @@
+# Qt preview: required only for START_ARC1_QT.cmd; Tk fallback uses standard library.
+PySide6>=6.8,<7

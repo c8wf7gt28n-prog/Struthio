@@ -1,0 +1,77 @@
+{
+  "schema": "arc1.branding/0.1",
+  "display_name": "ARC-1",
+  "expanded_name": "Adaptive RISC-V Console",
+  "brand_short": "ARC-1",
+  "developer_console_title": "ARC-1 SDK Development Console",
+  "asset_usage": {
+    "official_logo": {
+      "path": "ARC1_ADAPTIVE_RISCV_CONSOLE_OFFICIAL.jpg",
+      "sha256": "4e4a3bb36ef658ad9ad7c2f5a42435a431dee8a30be90ebd5c80c1308889816a",
+      "use": "official full-color graphical identity; preserve original unmodified"
+    },
+    "enclosure_concept": {
+      "path": "ARC1_ENCLOSURE_CONCEPT.jpg",
+      "sha256": "79ce7ea019c7abcc256186f5d5784b5d31db5afa524fa68217fe1bd769a85c6a",
+      "use": "industrial-design reference only; not dimensional CAD or fabricated board evidence"
+    }
+  },
+  "visual_direction": {
+    "graphite": "case/background",
+    "silver": "metal logo",
+    "orange": "logo accents"
+  },
+  "lcd": {
+    "type": "character 16x2",
+    "controller": "F133 only after startup; module can show fixed preprogrammed splash",
+    "preferred_pins": "F133 PB3/PB2 candidate pending hardware approval",
+    "states": {
+      "POWER": [
+        "ARC-1  POWER",
+        "RAILS CHECK"
+      ],
+      "START": [
+        "ARC-1  START",
+        "F133 BOOT"
+      ],
+      "NOR": [
+        "ARC-1  SYSTEM",
+        "NOR VERIFY"
+      ],
+      "D213": [
+        "ARC-1  VIDEO",
+        "D213 INIT"
+      ],
+      "FPGA12": [
+        "ARC-1  FPGA12",
+        "CONFIG TEST"
+      ],
+      "FPGA45": [
+        "ARC-1  FPGA45",
+        "CONFIG TEST"
+      ],
+      "CARTRIDGE": [
+        "ARC-1  STORAGE",
+        "USB GAME SCAN"
+      ],
+      "READY": [
+        "ARC-1   READY",
+        "INSERT GAME"
+      ],
+      "SERVICE": [
+        "ARC-1  SERVICE",
+        "USB-C DATA"
+      ],
+      "RECOVERY": [
+        "ARC-1 RECOVERY",
+        "DIAGNOSTICS"
+      ],
+      "FAULT": [
+        "ARC-1   FAULT",
+        "SEE ERROR CODE"
+      ]
+    },
+    "ready_rule": "READY only after required subsystem checks; never from timer alone"
+  },
+  "hardware_evidence": "DESIGN; no firmware or physical LCD validated"
+}

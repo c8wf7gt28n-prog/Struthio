@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 from . import device
+from .branding import identity
 from .core import SDK_ROOT, SDK_VERSION, UsageError, display_path
 from .jsonschema_lite import SchemaError
 
@@ -395,8 +396,8 @@ class App:
     def draw(self):
         s = Screen()
         s.fill(0, 0, W, 1, CYAN)
-        s.put(1, 0, "ARC-1 ", BLACK, CYAN)
-        s.put(7, 0, "Adaptive RISC-V Console", BLUE, CYAN)
+        s.put(1, 0, identity()["display_name"] + " ", BLACK, CYAN)
+        s.put(7, 0, identity()["expanded_name"], BLUE, CYAN)
         s.put(31, 0, "│ SDK Debug Console %s" % SDK_VERSION, BLACK, CYAN)
         s.put(W - 12, 0, " R10: HOLD ", WHITE, RED)
         s.fill(0, 1, W, H - 2, BLUE, "░", LIGHTBLUE)

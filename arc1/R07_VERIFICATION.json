@@ -1,0 +1,22 @@
+{
+  "release": "ARC-1 Workbench R07",
+  "phase": "HOST DEVELOPMENT",
+  "board_observed": false,
+  "native_windows11_tested": false,
+  "firmware_host_tests": "PASS (4 reported)",
+  "game_tests": "PASS (4 reported)",
+  "r07_launcher_tests": "PASS",
+  "r07_gui_smoke": "PASS (Linux Xvfb)",
+  "r04_r05_r06_gui_regressions": "PASS (Linux Xvfb)",
+  "cartridge_regressions": "PASS",
+  "full_inherited_sdk_suite": "NOT COMPLETED: exceeded 120-second test window; no claim of a full pass",
+  "physical_flash": "UNAVAILABLE",
+  "known_limitations": [
+    "Host cartridge asset package only",
+    "No Windows native QA",
+    "No bootable F133/D213 firmware",
+    "No physical USB stream",
+    "No real-time player-controlled game",
+    "No actual ARC-1 hardware"
+  ]
+}

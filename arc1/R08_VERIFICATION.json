@@ -1,0 +1,25 @@
+{
+  "release": "ARC-1 Workbench R08 Qt source prototype / restrained Aqua",
+  "phase": "HOST DEVELOPMENT / QT RUNTIME UNQUALIFIED",
+  "qt_python_source_syntax": "PASS",
+  "qt_desktop_runtime": "NOT TESTED: PySide6 unavailable; package network not accessible",
+  "native_windows_11": "NOT TESTED",
+  "classic_gui_smoke": "PASS on Linux Xvfb",
+  "r07_launcher_regression": "PASS",
+  "r06_cartridge_regression": "PASS",
+  "qt_contract_unit_tests": "4 passed",
+  "firmware_host_tests": "4 passed",
+  "game_host_tests": "4 passed",
+  "f133_d213_link_stages": "PASS: NOT BOOTABLE",
+  "brand_verification": "PASS",
+  "agent_interface": "UNCHANGED from R07: structured JSON-lines commands, physical flash unavailable",
+  "board_observed": false,
+  "physical_usb_tested": false,
+  "physical_flash_available": false,
+  "known_limits": [
+    "Qt runtime and native Windows must still be qualified",
+    "No board-connected debugger, HAL or deployable firmware",
+    "No physical LCD, USB or GPU proof",
+    "Existing host launcher is an asset-package-associated local binary, not cartridge execution"
+  ]
+}

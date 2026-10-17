@@ -98,3 +98,6 @@ reported with a warning that this does not identify a board.
 - COV-005 aggregation windows.
 - COV-007 impact review.
 - Target builds, FPGA flows and device deploy.
+
+### `arc1 brand [--json]`
+Verifies official image digests and 16x2 LCD text constraints. This is a STATIC_CHECK, not a hardware or Windows-11 compatibility claim.

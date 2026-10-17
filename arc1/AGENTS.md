@@ -1,3 +1,7 @@
+**R07 handoff:** Read PATCH_NOTES_R07.md, docs/AGENT_INTERFACE_R07.md and the roadmapped product spec. Preserve launcher source verification, real HOST_TEST labels, per-user workspace config, and guarded hardware deployment. R08 is next.
+
+**R05 CURRENT-STATE OVERRIDE (2026-10-16):** The inherited baseline information below is historical. Firmware C modules now exist, four firmware host tests pass, RISC-V link-stage ELF/BIN smoke targets exist for F133 and D213 (not board-bootable), and a HOST_SIM diagnostic LCD/boot model exists. Do not infer actual hardware transport or flash approval. Read `PATCH_NOTES_R05.md`, `docs/BOOT_LCD_PASS3_R05.md`, and `docs/AGENT_INTERFACE_R04.md` before work. Human UI style is orange Aqua with WINFILE/Word 6 navigation; AI interface remains structured JSON-lines.
+
 # AGENTS.md — ARC-1 agent-native SDK
 
 You are a coding agent working on the ARC-1 host SDK (milestones M0–M1 of
@@ -118,3 +122,9 @@ policy/                 protected paths
 passes/                 pass records, reports, handoffs
 docs/                   API, CLI, migration and traceability reference; logo and UI screenshot
 ```
+
+## R04 Agent UI
+Use `python arc1 agent` for the JSONL interface; see `docs/AGENT_INTERFACE_R04.md`. Do not claim target link-stage artifacts are flashable. Ask for source-write permission explicitly; require matching SHA-256 and allowed paths. Hardware flashing is prohibited. R04 human UX is classic File Manager/Word 6, not a browser.
+
+## R06 compact UI and cartridges
+The human GUI is compact orange Aqua; preserve classic source editing, menus, F9 diagnostics pane and the structured agent API. Package operations under `workbench/cartridge.py` produce HOST ONLY archives; do not label them native executables. `cartridge.package` requires explicit agent write permission. No hardware flashing or shell-based agent commands are allowed. Maintain asset hashes and reject malicious archives. True Windows external drop handling is optional `tkinterdnd2`.

@@ -1,0 +1,112 @@
+{
+  "schema": "arc1.imported-source/0.1",
+  "upstream_archive": "ARC1_R10_UPDATED_20261016.zip",
+  "upstream_archive_sha256": "7c93f5e56ec5240ac5529b0d3d0fbee866475f2e88db3636133dae538a5214a0",
+  "policy": "immutable snapshot; sources not automatically compiled or validated on hardware; reconcile upstream differences before merging",
+  "files": {
+    "firmware/imports/r10/d213_fpga45_loader/include/d213_fpga45.h": {
+      "source": "arc1-compact/R10_WORK/d213/fpga45_loader/include/d213_fpga45.h",
+      "sha256": "9980cf143e6d0ecfdb1370238f8d61c4c2c353800494a3de4f87b42c0d6e38af"
+    },
+    "firmware/imports/r10/d213_fpga45_loader/src/d213_fpga45.c": {
+      "source": "arc1-compact/R10_WORK/d213/fpga45_loader/src/d213_fpga45.c",
+      "sha256": "803b9bb5704f68c53e18412e0c8506aae02f43eef6fe9fa2fc41075e94cea005"
+    },
+    "firmware/imports/r10/d213_gpu_driver/.gitignore": {
+      "source": "arc1-compact/R10_WORK/d213/gpu_driver/.gitignore",
+      "sha256": "181314065df2f2fdaf920b1a8b5311daa216a2d6489a06ada5b49cc514d89417"
+    },
+    "firmware/imports/r10/d213_gpu_driver/Makefile": {
+      "source": "arc1-compact/R10_WORK/d213/gpu_driver/Makefile",
+      "sha256": "f63f8f2b1242d93b76dbebc96ad8a73e763fc4da5d28c9f56b9fae5fbee496cb"
+    },
+    "firmware/imports/r10/d213_gpu_driver/include/r10_gpu.h": {
+      "source": "arc1-compact/R10_WORK/d213/gpu_driver/include/r10_gpu.h",
+      "sha256": "a3d943dd75b643ea7cec1d95eb186fc20e3f88a76fc90aacafdc56590c266044"
+    },
+    "firmware/imports/r10/d213_gpu_driver/src/r10_gpu.c": {
+      "source": "arc1-compact/R10_WORK/d213/gpu_driver/src/r10_gpu.c",
+      "sha256": "cd7c5e1340606f6d61456d939c00ada5365986dd49e4136bbd758a15b13f4f71"
+    },
+    "firmware/imports/r10/d213_gpu_driver/tests/test_gpu_driver.c": {
+      "source": "arc1-compact/R10_WORK/d213/gpu_driver/tests/test_gpu_driver.c",
+      "sha256": "e82fd80b81a78a491020c843590761f65afd7f6ea043aca099214ac52c9f4ae2"
+    },
+    "firmware/imports/r10/f133_graphics_link/.gitignore": {
+      "source": "arc1-compact/R10_WORK/f133/graphics_link/.gitignore",
+      "sha256": "181314065df2f2fdaf920b1a8b5311daa216a2d6489a06ada5b49cc514d89417"
+    },
+    "firmware/imports/r10/f133_graphics_link/Makefile": {
+      "source": "arc1-compact/R10_WORK/f133/graphics_link/Makefile",
+      "sha256": "f8cb04435dd5a59a5847594541fcd58552f37ce6f197bb84933c19f666996250"
+    },
+    "firmware/imports/r10/f133_graphics_link/README.md": {
+      "source": "arc1-compact/R10_WORK/f133/graphics_link/README.md",
+      "sha256": "4353f54fb2656a4fae589b48dc23e021df7071bff205c30825b4558e4d7b8388"
+    },
+    "firmware/imports/r10/f133_graphics_link/include/gfx_link.h": {
+      "source": "arc1-compact/R10_WORK/f133/graphics_link/include/gfx_link.h",
+      "sha256": "3a95c52da1402df106ff4e2562cce6a4379c52b0194607cc1c34944a6b3bff10"
+    },
+    "firmware/imports/r10/f133_graphics_link/src/gfx_link.c": {
+      "source": "arc1-compact/R10_WORK/f133/graphics_link/src/gfx_link.c",
+      "sha256": "e85886926de227f2d31212e656b443404a43e7587cefc5f7a9baf3b56e25382e"
+    },
+    "firmware/imports/r10/f133_graphics_link/tests/test_gfx.c": {
+      "source": "arc1-compact/R10_WORK/f133/graphics_link/tests/test_gfx.c",
+      "sha256": "cdfcf23772bbab962fbc1e63d1beae3827ee3d0e4c5baf5770ddd8402077e974"
+    },
+    "firmware/imports/r10/d213_flashless_proof/PLAN.md": {
+      "source": "arc1-compact/R10_WORK/firmware/d213_flashless_proof/PLAN.md",
+      "sha256": "d4f6439d7c58aa0e8108aa73d2dd2fb8268e3ad3db225bfd301ffe8ba019f829"
+    },
+    "firmware/imports/r10/f133_bootloader/.gitignore": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/.gitignore",
+      "sha256": "181314065df2f2fdaf920b1a8b5311daa216a2d6489a06ada5b49cc514d89417"
+    },
+    "firmware/imports/r10/f133_bootloader/Makefile": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/Makefile",
+      "sha256": "ae7bc43d1e1d8ded2326f39dddb3cca96287a582c3e1a985a3f6cba103a2d114"
+    },
+    "firmware/imports/r10/f133_bootloader/README.md": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/README.md",
+      "sha256": "535fb121e9dc4c05b2c0d6450a008120b2f6b487a0383f8919c2721d7e5fb05b"
+    },
+    "firmware/imports/r10/f133_bootloader/include/r10_boot.h": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/include/r10_boot.h",
+      "sha256": "1815e4c1166e517d2e32bd59191d8425c9c4a9cdd0fd2414dafa6178ed91013d"
+    },
+    "firmware/imports/r10/f133_bootloader/include/r10_nor_layout.h": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/include/r10_nor_layout.h",
+      "sha256": "1a1783af80e776ef517cbadfc9eb6fabd37d867e0e678fbde9e1c9e168e94350"
+    },
+    "firmware/imports/r10/f133_bootloader/src/ecp5_cfg.c": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/src/ecp5_cfg.c",
+      "sha256": "53f0f8b2f7fe742736246a4da6b67558c1167957e6c8d962b2f5f720873d2fb7"
+    },
+    "firmware/imports/r10/f133_bootloader/src/r10_boot.c": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/src/r10_boot.c",
+      "sha256": "6488362f8bb462715845d5c46e5fe7700032ca8d013d001277fd993218145cbd"
+    },
+    "firmware/imports/r10/f133_bootloader/src/r10_fpga45.c": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/src/r10_fpga45.c",
+      "sha256": "ecd78e73c266ed338552f25a1d93049d7660ae517f1efbbee57b517971937e97"
+    },
+    "firmware/imports/r10/f133_bootloader/src/spi_nor.c": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/src/spi_nor.c",
+      "sha256": "8c7657d1835497eeb558b329a00b8cf6e7f7e75b379ea81821cd88bfdc5ae739"
+    },
+    "firmware/imports/r10/f133_bootloader/tests/test_boot.c": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/tests/test_boot.c",
+      "sha256": "09f1f69f0e6102c0c132e82313b9dd1c14147ae341a300a28017b6032164a7ed"
+    },
+    "firmware/imports/r10/f133_bootloader/tests/test_fpga45_path.c": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/tests/test_fpga45_path.c",
+      "sha256": "4a4c6119fd99046de5bf6f7ee02a33f202c1868720e7ee4106a8f75abdff84e4"
+    },
+    "firmware/imports/r10/f133_bootloader/tests/test_power_loss.c": {
+      "source": "arc1-compact/R10_WORK/firmware/f133_bootloader/tests/test_power_loss.c",
+      "sha256": "aa6964ec5e6aadc969a8ff85e4c7e5ea5b149f0c188bfb4596b38cbbc069c2c0"
+    }
+  }
+}

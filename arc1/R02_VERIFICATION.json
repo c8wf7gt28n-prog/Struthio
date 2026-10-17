@@ -1,0 +1,14 @@
+{
+  "R10 firmware source imports unchanged": 27,
+  "official supplied branding JPEGs unchanged": true,
+  "LCD F133 host tests": "PASS",
+  "F133 graphics-link R10 host tests": "PASS",
+  "firmware workbench CLI tests": "4 / 4 PASS",
+  "branding CLI regression tests": "3 / 3 PASS",
+  "SDK example build": "PASS",
+  "SDK example replay tests": "4 / 4 PASS",
+  "RISC-V clang F133 LCD module object": "ELF64 riscv64 relocatable, compiled; not linked",
+  "Windows 11 native run": "NOT TESTED",
+  "actual F133/D213 BSP boot image": "NOT YET LINKED",
+  "physical hardware flashing": "DISABLED pending first article verification"
+}
