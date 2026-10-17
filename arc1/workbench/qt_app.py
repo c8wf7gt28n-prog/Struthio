@@ -19,9 +19,9 @@ import sys
 import tempfile
 import time
 
-from PySide6.QtCore import QDir, QProcess, QRect, QSize, Qt, QTimer, Signal
+from PySide6.QtCore import QDir, QPoint, QProcess, QRect, QRectF, QSize, Qt, QTimer, Signal
 from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
-                           QPainter, QPen, QPixmap, QTextCursor, QTextFormat)
+                           QPainter, QPainterPath, QPen, QPixmap, QTextCursor, QTextFormat)
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog,
     QFileSystemModel, QFrame, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
@@ -533,6 +533,69 @@ EVIDENCE_TEXT = {'NONE': 'not measured', 'DESIGN': 'design figure', 'RTL_SIM': '
                  'STATIC_CHECK': 'static check'}
 
 
+class ClipAssistant(QWidget):
+    """Clip, the paperclip helper in the toolbar's empty right-hand corner.
+
+    Placeholder for the future liaison between the owner and the AI coder. It is not
+    connected to any agent yet and says so; clicking only shows that message.
+    """
+    MESSAGE = ('<b>Hi, I\'m Clip.</b><br>One day I\'ll pass your requests to the AI coder and '
+               'explain what it changed.<br><i>Not connected yet: nothing reaches an agent from here.</i>')
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('ClipAssistant')
+        self.setFixedSize(28, 32)                  # drawn on a 34 x 40 grid, scaled to toolbar height
+        self.setCursor(Qt.PointingHandCursor)
+        self.setToolTip('Clip: your go-between with the AI coder (not connected yet)')
+        self.setAccessibleName('Clip assistant, not connected')
+        self.hover = False
+
+    def enterEvent(self, event):
+        self.hover = True
+        self.update()
+
+    def leaveEvent(self, event):
+        self.hover = False
+        self.update()
+
+    def mousePressEvent(self, event):
+        QToolTip.showText(self.mapToGlobal(QPoint(-260, self.height())), self.MESSAGE, self)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.scale(self.width() / 34, self.height() / 40)
+        if self.hover:
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(224, 122, 31, 40))
+            p.drawRoundedRect(QRectF(1, 1, 32, 38), 6, 6)
+        wire = QPainterPath()                      # an original paperclip, drawn as one wire
+        wire.moveTo(13, 31)
+        wire.lineTo(13, 15)
+        wire.cubicTo(13, 10, 20, 10, 20, 15)
+        wire.lineTo(20, 33)
+        wire.cubicTo(20, 39, 9, 39, 9, 33)
+        wire.lineTo(9, 12)
+        wire.cubicTo(9, 4, 25, 4, 25, 12)
+        wire.lineTo(25, 29)
+        p.setBrush(Qt.NoBrush)
+        p.setPen(QPen(QColor('#6f7880'), 2.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        p.drawPath(wire)
+        p.setPen(QPen(QColor('#c9d0d6'), 0.9, Qt.SolidLine, Qt.RoundCap))
+        p.drawPath(wire)                           # highlight along the wire
+        for x in (12.5, 21.5):                     # eyes and brows
+            p.setPen(QPen(QColor('#3b3b3b'), 0.8))
+            p.setBrush(QColor('white'))
+            p.drawEllipse(QRectF(x - 3.6, 14, 7.2, 8.4))
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor('#1d1d1d'))
+            p.drawEllipse(QRectF(x - 1.2 + (0.8 if self.hover else 0), 17, 2.8, 3.2))
+            p.setPen(QPen(QColor('#3b3b3b'), 1.2, Qt.SolidLine, Qt.RoundCap))
+            p.drawLine(QPoint(int(x - 3), 12 if x < 15 else 11), QPoint(int(x + 3), 11 if x < 15 else 12))
+        p.end()
+
+
 class BudgetChart(QWidget):
     """Horizontal bars on one scale, like a frame-time budget. Unknown values are
     drawn hatched and labelled "not measured"; nothing is ever estimated here."""
@@ -1013,6 +1076,11 @@ class WorkbenchWindow(QMainWindow):
         self.target_combo.currentIndexChanged.connect(
             lambda i: self.set_target(self.target_combo.itemData(i)))
         tb.addWidget(self.target_combo)
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        tb.addWidget(spacer)
+        self.clip = ClipAssistant()
+        tb.addWidget(self.clip)
         self.toolbar = tb
 
     def _build_status(self):

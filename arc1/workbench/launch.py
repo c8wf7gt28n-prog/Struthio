@@ -53,6 +53,19 @@ def alert(title, text):
     sys.stderr.write('%s: %s\n' % (title, text))
 
 
+def windows_identity(front):
+    """Own taskbar button and icon (not Python's); sharp Tk text on scaled displays."""
+    if os.name != 'nt':
+        return
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('ARC1.Workbench')
+        if front == 'tk':
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    except (AttributeError, OSError):
+        pass
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     os.chdir(APP)
@@ -60,6 +73,7 @@ def main(argv=None):
         sys.path.insert(0, str(APP))
     extend_path(install_info())
     front = choose_frontend()
+    windows_identity(front)
     try:
         if front == 'qt':
             from workbench.qt_app import make_app, WorkbenchWindow

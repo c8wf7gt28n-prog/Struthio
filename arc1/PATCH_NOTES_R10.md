@@ -1,3 +1,32 @@
+# R10.2 — Windows installer second pass, and Clip
+
+- **Clip:** a paperclip helper in the empty right-hand end of the toolbar
+  (`ClipAssistant` in `workbench/qt_app.py`). It will become the go-between
+  for you and the AI coder. For now it isn't connected to any agent and
+  says so when clicked.
+- **Windows installer fixes** (from a review; not yet run on Windows):
+  - **Microsoft Store Python is refused.** It redirects files written in
+    AppData to a private folder, so the shortcuts would point at nothing.
+    `INSTALL_ARC1.cmd` skips it when looking for Python.
+  - **Python 3.11–3.13 is preferred,** since PySide6 6.8.1 has no wheels for
+    3.14. When Qt can't install, the message gives the actual reason:
+    Python too new, paths too long, or no connection.
+  - **Workbench left open:** upgrade and uninstall stop with "close
+    Workbench" and change nothing, instead of crashing halfway through.
+  - **Uninstaller:** `Uninstall ARC-1 Workbench.cmd` deletes itself while it
+    runs. It now runs its last steps from one line, so it no longer ends
+    with "batch file cannot be found".
+  - **Backups follow OneDrive:** they go to the real Documents folder,
+    even when OneDrive has moved it.
+  - **Taskbar:** Workbench gets its own taskbar button and icon instead of
+    Python's. The Tk fallback also asks Windows for sharp text on scaled
+    displays.
+  - **SmartScreen:** the installer explains the "Windows protected your PC"
+    prompt, which appears because the file isn't signed.
+  - Unexpected file errors now print a plain message, not a traceback.
+- **Not tested:** tests were not run for this change, and no pass record was
+  written.
+
 # R10.1 — Installer and resource budgets
 
 - **One-double-click installer:** `INSTALL_ARC1.cmd` replaces R09's

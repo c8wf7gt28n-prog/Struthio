@@ -33,3 +33,8 @@ START_ARC1.cmd (classic Tk window) in the extracted folder.
 No ARC-1 board is needed or used. Builds, tests and the game simulator run on
 this PC; nothing is flashed. This installer has not yet been run on a real
 Windows 11 PC; please report anything that looks wrong.
+
+If Windows says "Windows protected your PC": click "More info", then
+"Run anyway". The installer is not signed.
+Use Python from python.org or winget, not the Microsoft Store version.
+Close ARC-1 Workbench before upgrading or uninstalling.

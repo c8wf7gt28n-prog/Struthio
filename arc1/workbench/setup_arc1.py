@@ -35,6 +35,7 @@ PUBLISHER = 'ARC-1 project'
 VERSION = 'R10'
 QT_REQUIREMENT = 'PySide6-Essentials==6.8.1'
 MIN_PYTHON = (3, 11)
+QT_MAX_PYTHON = (3, 13)          # newest Python the pinned PySide6 publishes wheels for
 SCHEMA = 'arc1.workbench-install/1'
 EXCLUDE_DIRS = {'.git', '__pycache__', 'build', 'reports', '.venv', 'node_modules', '.pytest_cache'}
 EXCLUDE_SUFFIXES = ('.pyc', '.pyo')
@@ -94,10 +95,29 @@ def default_target():
     return Path(os.environ.get('XDG_DATA_HOME') or Path.home() / '.local' / 'share') / 'arc1-workbench'
 
 
+def windows_documents():
+    """The real Documents folder, which OneDrive often moves out of %USERPROFILE%."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+        buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
+        if ctypes.windll.shell32.SHGetFolderPathW(None, 5, None, 0, buf) == 0 and buf.value:   # CSIDL_PERSONAL
+            return Path(buf.value)
+    except (AttributeError, OSError, ValueError):
+        pass
+    return Path(os.environ.get('USERPROFILE') or Path.home()) / 'Documents'
+
+
 def backup_root():
     if os.name == 'nt':
-        return Path(os.environ.get('USERPROFILE') or Path.home()) / 'Documents' / (APP_NAME + ' backups')
+        return windows_documents() / (APP_NAME + ' backups')
     return Path.home() / 'arc1-workbench-backups'
+
+
+def store_python(executable=None):
+    """Microsoft Store Python redirects writes under AppData into a private folder, so the
+    shortcuts would point at files other programs cannot see."""
+    return 'windowsapps' in str(executable or sys.executable).lower()
 
 
 def venv_python(target, windowed=False):
@@ -293,8 +313,9 @@ foreach ($p in $places) {
             'rem Removes ARC-1 Workbench for this user. Files you changed are backed up first.\r\n'
             'copy /y "%~dp0app\\workbench\\setup_arc1.py" "%TEMP%\\arc1_workbench_setup.py" >nul\r\n'
             'cd /d "%TEMP%"\r\n'
-            '"{py}" -I "%TEMP%\\arc1_workbench_setup.py" uninstall --target "%~dp0."\r\n'
-            'pause\r\n').format(py=base_python)
+            'rem One line on purpose: this file is deleted while it runs, and cmd reads batch files line by line.\r\n'
+            '"{py}" -I "%TEMP%\\arc1_workbench_setup.py" uninstall --target "%~dp0." & pause & exit /b\r\n'
+            ).format(py=base_python)
 
     def can_install_compiler(self):
         return shutil.which('winget') is not None
@@ -376,6 +397,10 @@ def install(source, target=None, assume_yes=False, desktop=True, wheels=None, sk
         raise SetupError('Install folder and source folder must be separate: %s' % target)
     if sys.version_info < MIN_PYTHON:
         raise SetupError('Python %d.%d or newer is required (this is %s)' % (*MIN_PYTHON, sys.version.split()[0]))
+    if os.name == 'nt' and store_python():
+        raise SetupError('This is the Microsoft Store Python, which hides files it writes in AppData from other '
+                         'programs, so the shortcuts would not work.\nInstall Python 3.12 from python.org, or run:\n'
+                         '  winget install -e --id Python.Python.3.12 --scope user\nthen run INSTALL_ARC1.cmd again.')
     previous = read_install(target)
     app = target / 'app'
     ui.say('')
@@ -405,7 +430,12 @@ def install(source, target=None, assume_yes=False, desktop=True, wheels=None, sk
             [rel for rel, _ in walk(app)]
         if changed:
             backup = backup_app(app, changed, ui, 'before upgrade to %s' % VERSION)
-        app.rename(old)
+        try:
+            app.rename(old)
+        except OSError:
+            shutil.rmtree(incoming, ignore_errors=True)
+            raise SetupError('ARC-1 Workbench seems to be running (its folder is in use). Close it and run the '
+                             'installer again; nothing was replaced.')
     incoming.rename(app)
     if old.exists():
         shutil.rmtree(old, ignore_errors=True)
@@ -419,7 +449,11 @@ def install(source, target=None, assume_yes=False, desktop=True, wheels=None, sk
         ui.say('      reusing %s' % vpy.parent.parent)
     else:
         if vpy.parent.parent.exists():
-            shutil.rmtree(vpy.parent.parent)
+            try:
+                shutil.rmtree(vpy.parent.parent)
+            except OSError:
+                raise SetupError('The private Python environment is in use. Close ARC-1 Workbench and run the '
+                                 'installer again.')
         code, out = run([base_python, '-m', 'venv', str(vpy.parent.parent)], 600)
         if code != 0:
             raise SetupError('Could not create the Python environment:\n%s' % out[-800:])
@@ -445,6 +479,14 @@ def install(source, target=None, assume_yes=False, desktop=True, wheels=None, sk
             qt_ok = code == 0
             if not qt_ok:
                 ui.say('      FAILED: %s' % out.strip().splitlines()[-1][:200] if out.strip() else '      FAILED')
+                if sys.version_info[:2] > QT_MAX_PYTHON:
+                    ui.say('      %s needs Python 3.11 to %d.%d; this is %s. Install Python 3.12 and re-run setup.'
+                           % (QT_REQUIREMENT, *QT_MAX_PYTHON, sys.version.split()[0]))
+                elif os.name == 'nt' and ('long path' in out.lower() or 'errno 2' in out.lower()):
+                    ui.say('      The file paths may be too long for Windows. Re-run setup with a shorter '
+                           '--target, e.g. C:\\ARC1.')
+                else:
+                    ui.say('      Check the internet connection (or a proxy), or install offline with --wheels.')
                 ui.say('      Workbench will start the classic Tk window instead. Re-run setup to retry.')
             else:
                 ui.say('      installed')
@@ -547,6 +589,10 @@ def uninstall(target=None, assume_yes=False, ui=None, plat=None):
         changed = user_changes(app, info.get('manifest', {}))
         if changed:
             backup_app(app, changed, ui, 'before uninstall')
+        try:                                   # fails on Windows while Workbench has the folder open
+            app.rename(target / 'app.removing')
+        except OSError:
+            raise SetupError('ARC-1 Workbench seems to be running. Close it and uninstall again; nothing was removed.')
     plat.remove_shortcuts(info.get('shortcuts', []))
     plat.unregister()
     shutil.rmtree(target, ignore_errors=True)
@@ -586,6 +632,9 @@ def main(argv=None):
         return 1
     except KeyboardInterrupt:
         print('\nStopped.')
+        return 1
+    except OSError as e:
+        print('\nSetup stopped: %s\nIf ARC-1 Workbench is open, close it and run setup again.' % e)
         return 1
     return 0
 
