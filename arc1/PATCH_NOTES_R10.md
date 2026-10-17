@@ -1,3 +1,30 @@
+# R10.1 — Installer and resource budgets
+
+- **One-double-click installer:** `INSTALL_ARC1.cmd` replaces R09's
+  drag-to-My-Apps installer (`workbench/installer.py`, removed). It finds or
+  installs Python, then copies Workbench into place and installs Qt
+  privately. It finds or installs a C compiler, creates shortcuts with a new
+  ARC-1 icon and an Installed apps entry, runs `arc1 doctor`, and offers to
+  start Workbench.
+  - **Your work is safe:** upgrades and uninstalls back up any file you
+    changed or added.
+  - **Code:** `workbench/setup_arc1.py` (standard library only) and
+    `workbench/launch.py`. The launcher opens the Qt window, falls back to
+    Tk, and reports start-up errors.
+  - **Line endings:** batch files are now stored with CRLF line endings
+    (`.gitattributes`).
+- **Resource budgets in the Hardware Inspector** (View › Resource Budgets),
+  from the owner's frame-budget sketch:
+  - Charts: frame time against 16.67 ms, link bandwidth against the 60 fps
+    need, and memory pools.
+  - Every figure quotes its R10 source. Missing quotes drop the number;
+    unknowns are hatched "not measured".
+  - Code: `workbench/resources.py`, `hardware/budgets/r10_resources.json`.
+  - Agents get the same data with `inspect.resources`.
+- **Not run on Windows:** the installer's Windows layer was checked with
+  stand-ins. On Linux, a real install, launch and uninstall cycle passed:
+  Qt downloaded, `ARC1_LAUNCH_OK qt`, uninstall removed everything.
+
 # R10 — Familiar main screen (Qt "Classic")
 
 Owner decision: Workbench should behave like File Manager and Word, with the

@@ -58,7 +58,7 @@ def handle(request:dict[str,Any],allow_writes:bool=False)->dict[str,Any]:
                 'evidence':'HOST_SIM or STATIC_CHECK only'}
     if method=='capabilities':
         return {'methods':['hello','capabilities','status','files.list','files.read','files.write','build.f133','build.d213',
-                           'build.both','build.lcd','test.firmware','test.game','build.game','inspect.hardware','inspect.brand','doctor','boot.simulate','cartridge.package','cartridge.inspect','cartridge.stream','launcher.list','launcher.launch_sim','launcher.status','launcher.stop_sim'],
+                           'build.both','build.lcd','test.firmware','test.game','build.game','inspect.hardware','inspect.brand','doctor','boot.simulate','cartridge.package','cartridge.inspect','cartridge.stream','launcher.list','launcher.launch_sim','launcher.status','launcher.stop_sim','inspect.resources'],
                 'file_write_requires_sha256':True,'file_write_requires_opt_in':True,'flash_methods':[],
                 'arbitrary_command_execution':False}
     if method=='status':
@@ -66,6 +66,11 @@ def handle(request:dict[str,Any],allow_writes:bool=False)->dict[str,Any]:
         m=json.loads(manifest.read_text(encoding='utf-8')) if manifest.is_file() else None
         return {'firmware_stage':m,'pcb_status':'FABRICATION HOLD',
                 'lcd_status':'HOST_SIM ONLY','windows11_qualified':False,'hardware_deployment':False}
+    if method=='inspect.resources':
+        # Same cited figures the Qt Inspector draws; unknown values stay null.
+        from .resources import load
+        try:return load(ROOT)
+        except (OSError,ValueError,KeyError) as e:raise AgentError('resource budgets unavailable: '+str(e))
     if method=='boot.simulate':
         from .bootlogic import simulate
         try:return simulate(params.get('events', []))

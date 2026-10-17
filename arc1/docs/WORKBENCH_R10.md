@@ -4,9 +4,9 @@
 Manager and document editor you already know, and shows the console
 engineering tools when a task needs them.
 
-Start it with `START_ARC1_QT.cmd` on Windows, or `python -m workbench.qt_app`.
-It needs Python 3.11+ with PySide6 (`py -3 -m pip install PySide6`). The Tk
-desktop (`START_ARC1.cmd`) is unchanged and remains the fallback.
+**Install:** extract the ZIP and double-click **`INSTALL_ARC1.cmd`** (see
+[Installing](#installing)). To run without installing, use
+`START_ARC1_QT.cmd` (needs PySide6) or `START_ARC1.cmd` (classic Tk window).
 
 ![Default screen with two firmware files open](assets/workbench_r10_2_editor.png)
 
@@ -123,10 +123,69 @@ The Qt window and `python arc1 agent` take their build, test and run commands
 from the same table in `workbench/engine.py`. Changing the screen therefore
 cannot change what automation does. Agents never drive the GUI.
 
+## Resource budgets (View › Resource Budgets)
+
+The Hardware Inspector's **Resources** page draws three bar charts on fixed
+scales:
+- **Frame budget:** the 16.67 ms of a 60 Hz frame.
+- **Communication:** MB/s per link, with a dashed line at the 9.216 MB/s
+  that 320×240 at 60 fps needs.
+- **Memory:** the four separate pools, 228 MiB in total.
+
+![Resources page](assets/workbench_r10_6_resources.png)
+
+Every number comes from `hardware/budgets/r10_resources.json` and quotes the
+exact sentence in a vendored R10 document that states it. Hover a bar to see
+the quote and its evidence class (design figure or RTL simulation).
+
+If the quoted sentence is not found in the source, the number is dropped
+and the bar says **CITATION MISSING**. Nothing has been measured on F133
+game logic, the D213 driver, 12F jobs or display output, so those bars are
+hatched **not measured**.
+
+All bars start at zero. How the stages overlap on a real console is not
+known yet, so the chart does not pretend to show a schedule.
+
+Agents read the same data with the `inspect.resources` method of
+`python arc1 agent`.
+
+## Installing
+
+Double-click **`INSTALL_ARC1.cmd`** in the extracted folder. Press Enter to
+accept each suggested answer. No administrator rights are needed, except for
+the optional LLVM step, where Windows asks for permission.
+
+1. **Python:** finds Python 3.11+, or offers to install Python 3.12 for your
+   account with winget.
+2. **Copy:** copies Workbench to `%LOCALAPPDATA%\Programs\ARC-1 Workbench\app`.
+3. **Qt:** installs Qt (PySide6 6.8.1) into a private Python environment
+   (`runtime\venv`). Nothing else on your PC changes.
+4. **Compiler:** finds a C compiler. If there is none, it offers to install
+   LLVM (clang) with winget.
+5. **Shortcuts:** creates Start menu and desktop shortcuts with the ARC-1
+   icon, plus an entry in **Settings › Apps › Installed apps** for
+   uninstalling.
+6. **Check:** runs `arc1 doctor`, then offers to start Workbench.
+
+**Upgrading:** run the new version's installer. Any file you changed or
+added inside the installed Workbench is first backed up to
+`Documents\ARC-1 Workbench backups\<date> (before upgrade to …)`. The
+private Python environment is reused, so upgrades are quick.
+
+**Uninstalling:** use Installed apps, or `Uninstall ARC-1 Workbench.cmd` in
+the install folder. Changed files are backed up the same way first. Your
+settings (window layout and recent files) stay in `%APPDATA%\ARC-1`.
+
+The shortcut starts the Qt window. If Qt is missing, it starts the classic
+Tk window instead. If something fails, a message box explains it and the
+details go to `launch-error.log`.
+
 ## Known limits of R10
 
-- **Windows and display scaling:** Workbench has not run on Windows 11 yet
-  (R14). It was tested with Qt 6.8.1 on Linux with the offscreen platform.
+- **Windows and display scaling:** Workbench and its installer have not run
+  on Windows 11 yet (R14). The installer's Windows-only steps (shortcuts,
+  Installed apps entry, winget, the uninstall `.cmd`) were checked with
+  stand-ins, not on Windows. It was tested with Qt 6.8.1 on Linux with the offscreen platform.
   Display scaling and keyboard and accessibility qualification are not done.
 - **Editor:** one document per tab, with no split view, project-wide search
   or crash recovery. That is R11.

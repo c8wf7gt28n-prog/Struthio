@@ -21,7 +21,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from workbench import agent, engine, fileops  # noqa: E402
+from workbench import agent, engine, fileops, resources  # noqa: E402
 from workbench.session import LAYOUT_VERSION, Session  # noqa: E402
 
 try:
@@ -216,6 +216,45 @@ class SessionTests(unittest.TestCase):
     def test_oversized_file_ignored(self):
         self.path.write_text('{"schema": "arc1.workbench-session/1", "pad": "' + 'x' * 200000 + '"}')
         self.assertEqual(Session(self.path).state['documents'], [])
+
+
+class ResourceBudgetTests(unittest.TestCase):
+    """The Inspector's budget bars: every figure cited, unknowns stay unknown."""
+
+    def test_every_number_quotes_its_source(self):
+        data = resources.load()
+        rows = data['frame_stages'] + data['links']
+        with_value = [r for r in rows if r.get('ms') is not None or r.get('mbps') is not None]
+        self.assertTrue(with_value)
+        for r in with_value:
+            with self.subTest(row=r['id']):
+                self.assertTrue(r['cited'], r)
+                self.assertNotEqual(r['evidence'], 'NONE')
+        unknown = [r['id'] for r in data['frame_stages'] if r['ms'] is None]
+        self.assertEqual(unknown, ['f133_logic', 'fpga12_jobs', 'd213_setup', 'present'])
+        self.assertTrue(all(r['ms'] <= 1000 / 60 for r in data['frame_stages'] if r['ms'] is not None))
+        self.assertEqual(sum(m['mib'] for m in data['memory']), 228)
+        self.assertFalse(any(m['shared'] for m in data['memory']))
+
+    def test_a_number_without_its_quote_is_dropped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / 'hardware', root / 'hardware')
+            p = root / 'hardware' / 'budgets' / 'r10_resources.json'
+            d = json.loads(p.read_text(encoding='utf-8'))
+            d['frame_stages'][3]['quote'] = 'a sentence the gate report never says'
+            d['links'][0]['mbps'] = 999
+            d['links'][0]['quote'] = 'invented'
+            p.write_text(json.dumps(d), encoding='utf-8')
+            data = resources.load(root)
+            self.assertIsNone(data['frame_stages'][3]['ms'])
+            self.assertIn('CITATION MISSING', data['frame_stages'][3]['note'])
+            self.assertIsNone(data['links'][0]['mbps'])
+
+    def test_agent_gets_the_same_figures(self):
+        out = agent.handle({'method': 'inspect.resources'})
+        self.assertEqual(out, resources.load(ROOT))
+        self.assertIn('inspect.resources', agent.handle({'method': 'capabilities'})['methods'])
 
 
 # ============================================================================ part 2: the real Qt window
@@ -426,6 +465,21 @@ class AcceptanceWorkflowTests(unittest.TestCase):
         ed = w.open_document(handoff)
         self.assertTrue(ed.isReadOnly())
         self.assertFalse(w.save_document(ed))
+        w.close()
+
+    def test_6_resource_budgets_in_inspector(self):
+        w = self.window()
+        self.assertFalse(w.inspector_dock.isVisible())
+        w.a_budgets.trigger()
+        self.pump(200)
+        self.assertTrue(w.inspector_dock.isVisible())
+        self.assertEqual(w.inspector_tabs.tabText(w.inspector_tabs.currentIndex()), 'Resources')
+        frame, links, memory = w.budget_charts
+        self.assertEqual(sum(1 for r in frame.rows if r['value'] is None), 4)   # drawn as "not measured"
+        self.assertEqual([r['value'] for r in frame.rows if r['value'] is not None], [9.0, 13.0])
+        self.assertIsNotNone(links.marker)
+        self.assertIn('Source: r10_gates', frame.rows[3]['tip'])
+        self.assertFalse(frame.grab().isNull())
         w.close()
 
 

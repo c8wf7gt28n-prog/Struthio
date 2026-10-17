@@ -1,0 +1,19 @@
+test_install_cmd_is_crlf_and_hands_over_to_setup (__main__.BootstrapAndLauncherTests.test_install_cmd_is_crlf_and_hands_over_to_setup) ... ok
+test_launcher_adds_only_existing_compiler_folders (__main__.BootstrapAndLauncherTests.test_launcher_adds_only_existing_compiler_folders) ... ok
+test_launcher_falls_back_to_tk_without_qt (__main__.BootstrapAndLauncherTests.test_launcher_falls_back_to_tk_without_qt) ... ok
+test_1_fresh_install (__main__.InstallerTests.test_1_fresh_install) ... ok
+test_2_upgrade_without_changes_makes_no_backup (__main__.InstallerTests.test_2_upgrade_without_changes_makes_no_backup) ... ok
+test_3_upgrade_keeps_your_work (__main__.InstallerTests.test_3_upgrade_keeps_your_work) ... ok
+test_4_failed_copy_leaves_installation_untouched (__main__.InstallerTests.test_4_failed_copy_leaves_installation_untouched) ... ok
+test_5_refusals (__main__.InstallerTests.test_5_refusals) ... ok
+test_6_uninstall_backs_up_then_removes (__main__.InstallerTests.test_6_uninstall_backs_up_then_removes) ... ok
+test_apps_and_features_entry (__main__.WindowsLayerTests.test_apps_and_features_entry) ... ok
+test_compiler_found_off_path (__main__.WindowsLayerTests.test_compiler_found_off_path) ... ok
+test_shortcut_failure_is_reported (__main__.WindowsLayerTests.test_shortcut_failure_is_reported) ... ok
+test_shortcuts_pass_paths_as_environment_not_script_text (__main__.WindowsLayerTests.test_shortcuts_pass_paths_as_environment_not_script_text) ... ok
+test_uninstaller_runs_a_temp_copy (__main__.WindowsLayerTests.test_uninstaller_runs_a_temp_copy) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 4.850s
+
+OK

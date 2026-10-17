@@ -1,6 +1,8 @@
 # ARC-1 Workbench R10 — Classic main screen
 
-**Start:** `START_ARC1_QT.cmd` on Windows (needs `py -3 -m pip install PySide6`), or `python -m workbench.qt_app`.
+**Install:** extract the ZIP and double-click `INSTALL_ARC1.cmd`. It sets up Python, Qt and a compiler if needed,
+adds Start menu and desktop shortcuts, and can be removed from Settings › Apps. Without installing:
+`START_ARC1_QT.cmd` (needs PySide6) or `python -m workbench.qt_app`.
 Workbench now looks and behaves like a familiar Windows file manager and editor:
 - **Default screen:** menus, one toolbar (Open, Save, Build ▾, Run, Tests, Target), a project navigator, your
   documents and a status bar.

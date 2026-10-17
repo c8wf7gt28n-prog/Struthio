@@ -1,0 +1,42 @@
+## install (python3 -I workbench/setup_arc1.py install --yes --no-launch; HOME redirected)
+
+ARC-1 Workbench R10 setup
+  Install folder: <TMP>/home/.local/share/arc1-workbench
+  New installation for this user; no administrator rights needed
+Continue? yes
+  [1/6] Copy application files
+      247 files
+  [2/6] Private Python environment
+      created <TMP>/home/.local/share/arc1-workbench/runtime/venv
+  [3/6] Qt for the Workbench window (PySide6-Essentials==6.8.1)
+      downloading and installing (about 100 MB; this takes a few minutes)...
+      installed
+  [4/6] C compiler for Build and Run
+      found /usr/bin/clang
+  [5/6] Shortcuts and uninstaller
+      Put a shortcut on the desktop too? yes
+      <TMP>/home/.local/share/applications/arc1-workbench.desktop
+  [6/6] Self-check
+      arc1 doctor: PASS [STATIC_CHECK]
+
+ARC-1 Workbench is installed.
+Start it from the applications menu or the desktop.
+No ARC-1 board is needed or used: builds, tests and the game simulator run on this PC.
+## launch through the shortcut command (offscreen)
+ARC1_LAUNCH_OK qt
+## shortcut file
+[Desktop Entry]
+Type=Application
+Name=ARC-1 Workbench
+Comment=Adaptive RISC-V Console development
+Exec="<TMP>/home/.local/share/arc1-workbench/runtime/venv/bin/python" -m workbench.launch
+Path=<TMP>/home/.local/share/arc1-workbench/app
+Icon=<TMP>/home/.local/share/arc1-workbench/app/workbench/arc1_icon.png
+Terminal=false
+Categories=Development;
+## uninstall (answering y)
+
+Remove ARC-1 Workbench R10 from <TMP>/home/.local/share/arc1-workbench?
+Uninstall? [y/N] ARC-1 Workbench was removed. Your settings stay in your profile; your changed files (if any) were backed up.
+## after uninstall
+ls: cannot access '<TMP>/home/.local/share/arc1-workbench': No such file or directory

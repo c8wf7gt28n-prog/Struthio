@@ -1,28 +1,35 @@
-ARC-1 WORKBENCH R06 - PORTABLE OR DRAG-TO-INSTALL (WINDOWS 11)
+ARC-1 WORKBENCH - INSTALLING ON WINDOWS 11
 
-Portable, Finder-like workflow:
-  1. In File Explorer, right-click the ZIP and choose Extract All.
-  2. Drag the extracted ARC-1 Workbench folder into Documents, Desktop,
-     or another folder you own. You do NOT need to install into Program Files.
-  3. Double-click START_ARC1.cmd in the extracted folder.
+1. Right-click the ZIP and choose "Extract All...".
+2. In the extracted folder, double-click INSTALL_ARC1.cmd.
+3. Answer the few questions (Enter accepts the suggested answer).
 
-Optional per-user 'My Apps' installer:
-  1. Extract the ZIP first. Do not start the installer inside the ZIP viewer.
-  2. Double-click INSTALL_ARC1.cmd.
-  3. Drag the ARC-1 icon into My Apps, or choose Install to My Apps.
-  4. Confirm copying into %LOCALAPPDATA%\Programs\ARC-1 Workbench.
-  5. The installer creates a Start Menu shortcut; no admin rights required.
+The installer:
+  - finds Python 3.11 or newer, or offers to install Python 3.12 for you (winget);
+  - copies Workbench to %LOCALAPPDATA%\Programs\ARC-1 Workbench (no admin rights);
+  - installs Qt (PySide6) into a private Python environment, so nothing else on
+    your PC is affected;
+  - checks for a C compiler and offers to install LLVM (clang), which Build and
+    Run need (Windows asks for permission for this one step);
+  - creates Start menu and (optionally) desktop shortcuts with the ARC-1 icon,
+    and an entry in Settings > Apps > Installed apps for uninstalling;
+  - runs the SDK's own system check and offers to start Workbench.
 
-Prerequisite: Python 3.11+ with tkinter. C compiler and RISC-V LLVM tools
-are additionally needed for corresponding SDK/firmware builds. Windows 11
-has not been validated on a real host yet. Linux Xvfb test is not proof of it.
+Upgrading: run the new version's INSTALL_ARC1.cmd. If you changed or added files
+inside the installed Workbench, the old copy is first backed up to
+Documents\ARC-1 Workbench backups\<date> (before upgrade to ...).
 
-Drag-and-drop in the file browser:
-  - Drag a file onto an existing folder INSIDE Workbench to copy (not move).
-  - External Explorer .arc1cart drag/drop is available only when optional
-    'tkinterdnd2' / TkDND has been installed in your Python environment.
-  - Without that optional dependency, use Cartridge > Import instead.
-  - Files are verified before import; existing cartridge filenames require approval.
+Uninstalling: Settings > Apps > Installed apps > ARC-1 Workbench > Uninstall,
+or run "Uninstall ARC-1 Workbench.cmd" in the install folder. Changed files are
+backed up the same way first. Your Workbench settings stay in %APPDATA%\ARC-1.
 
-This release does not support hardware flashing, live USB cartridge reads,
-or bootable ARC-1 firmware images.
+Offline install: put the PySide6-Essentials and shiboken6 wheels for your Python
+in a "wheels" folder next to INSTALL_ARC1.cmd; the installer uses them instead
+of downloading.
+
+Without installing: double-click START_ARC1_QT.cmd (needs PySide6) or
+START_ARC1.cmd (classic Tk window) in the extracted folder.
+
+No ARC-1 board is needed or used. Builds, tests and the game simulator run on
+this PC; nothing is flashed. This installer has not yet been run on a real
+Windows 11 PC; please report anything that looks wrong.

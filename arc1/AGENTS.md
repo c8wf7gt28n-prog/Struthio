@@ -3,7 +3,10 @@ Qt main screen behaves like File Manager/Word; engineering tools appear only whe
 permanent panes to the default screen. GUI, CLI and agent actions must go through `workbench/engine.py` (one command
 table); agents never drive the GUI. Hardware status text must stay truthful (`engine.device_status()`). Run
 `tests/test_r10_workbench.py` with PySide6 installed (QT_QPA_PLATFORM=offscreen); without PySide6 its Qt half skips
-and must be reported as NOT RUN. Next: R11 professional editing.
+and must be reported as NOT RUN. Resource-budget figures (`hardware/budgets/`) must quote their source; a figure
+without a quote is dropped by `workbench/resources.py`. Never add an estimated number to make a chart look complete.
+The installer (`workbench/setup_arc1.py`) must stay standard-library-only and self-contained, and upgrades/uninstalls
+must back up user-changed files. Next: R11 professional editing.
 
 **R07 handoff:** Read PATCH_NOTES_R07.md, docs/AGENT_INTERFACE_R07.md and the roadmapped product spec. Preserve launcher source verification, real HOST_TEST labels, per-user workspace config, and guarded hardware deployment. R08 is next.
 

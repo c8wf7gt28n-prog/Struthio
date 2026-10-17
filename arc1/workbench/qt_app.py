@@ -20,17 +20,17 @@ import tempfile
 import time
 
 from PySide6.QtCore import QDir, QProcess, QRect, QSize, Qt, QTimer, Signal
-from PySide6.QtGui import (QAction, QActionGroup, QColor, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
-                           QPainter, QPixmap, QTextCursor, QTextFormat)
+from PySide6.QtGui import (QAction, QActionGroup, QBrush, QColor, QFont, QFontDatabase, QIcon, QImage, QKeySequence,
+                           QPainter, QPen, QPixmap, QTextCursor, QTextFormat)
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog,
     QFileSystemModel, QFrame, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMainWindow, QMenu, QMessageBox, QPlainTextEdit, QPushButton, QSizePolicy, QSlider,
-    QSplitter, QStyle, QTabWidget, QTextEdit, QToolBar, QToolButton, QTreeView, QTreeWidget,
+    QScrollArea, QSplitter, QStyle, QTabWidget, QTextEdit, QToolBar, QToolButton, QToolTip, QTreeView, QTreeWidget,
     QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
-from . import engine, fileops
+from . import engine, fileops, resources
 from .bootlogic import BootModel
 from .cartridge import CartridgeError, inspect_cartridge, package_game, simulate_stream
 from .output_router import OutputRouter
@@ -524,6 +524,149 @@ class QuickOpen(QDialog):
         return item.text() if item else None
 
 
+# --------------------------------------------------------------------------- resource budgets (Inspector)
+
+CHIP_COLOURS = {'f133': '#cf9157', 'fpga12': '#bda794', 'd213': '#6f8e99', 'gpu45': '#9b8ab7', 'present': '#8daa8f',
+                'link': '#7c8a96', 'need': '#e07a1f'}
+EVIDENCE_TEXT = {'NONE': 'not measured', 'DESIGN': 'design figure', 'RTL_SIM': 'RTL simulation',
+                 'HOST_SIM': 'host simulation', 'FPGA_PNR': 'FPGA place & route', 'BOARD_TEST': 'measured on a board',
+                 'STATIC_CHECK': 'static check'}
+
+
+class BudgetChart(QWidget):
+    """Horizontal bars on one scale, like a frame-time budget. Unknown values are
+    drawn hatched and labelled "not measured"; nothing is ever estimated here."""
+    ROW_H = 30
+    LABEL_W = 250
+
+    def __init__(self, title, unit, maximum, ticks, rows, marker=None):
+        super().__init__()
+        self.title, self.unit, self.maximum, self.ticks, self.rows, self.marker = title, unit, maximum, ticks, rows, marker
+        self.setMouseTracking(True)
+        self.setMinimumHeight(34 + self.ROW_H * len(rows) + 34)
+        self.setMinimumWidth(420)
+
+    def _track(self):
+        x0 = self.LABEL_W
+        return x0, max(80, self.width() - x0 - 16)
+
+    def _row_rect(self, i):
+        x0, w = self._track()
+        return QRect(x0, 34 + i * self.ROW_H + 5, w, self.ROW_H - 10)
+
+    def paintEvent(self, _):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.fillRect(self.rect(), QColor('#fbfaf6'))
+        f = p.font()
+        f.setBold(True)
+        f.setPointSizeF(f.pointSizeF() + 1)
+        p.setFont(f)
+        p.setPen(QColor('#23272b'))
+        p.drawText(12, 22, self.title)
+        f.setBold(False)
+        f.setPointSizeF(f.pointSizeF() - 1)
+        p.setFont(f)
+        x0, w = self._track()
+        for i, r in enumerate(self.rows):
+            rect = self._row_rect(i)
+            p.setPen(QColor('#23272b'))
+            label = p.fontMetrics().elidedText(r['label'], Qt.ElideRight, self.LABEL_W - 20)
+            p.drawText(12, rect.top(), self.LABEL_W - 20, rect.height(), Qt.AlignVCenter | Qt.AlignLeft, label)
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor('#ebe8e2'))
+            p.drawRoundedRect(rect, 6, 6)
+            value = r.get('value')
+            if value is None:
+                p.setBrush(QBrush(QColor('#c9c3b9'), Qt.BDiagPattern))
+                p.drawRoundedRect(rect, 6, 6)
+                p.setPen(QColor('#6b6f73'))
+                p.drawText(rect.adjusted(10, 0, -10, 0), Qt.AlignVCenter | Qt.AlignLeft, 'not measured')
+                continue
+            scale = rect.width() / float(self.maximum)
+            lo = r.get('low')
+            colour = QColor(r.get('colour', '#7c8a96'))
+            if lo is not None:
+                light = QColor(colour)
+                light.setAlpha(110)
+                p.setBrush(light)
+                p.drawRoundedRect(QRect(rect.left(), rect.top(), max(6, int(min(value, self.maximum) * scale)),
+                                        rect.height()), 6, 6)
+                p.setBrush(colour)
+                p.drawRoundedRect(QRect(rect.left(), rect.top(), max(6, int(min(lo, self.maximum) * scale)),
+                                        rect.height()), 6, 6)
+            else:
+                p.setBrush(colour)
+                p.drawRoundedRect(QRect(rect.left(), rect.top(), max(6, int(min(value, self.maximum) * scale)),
+                                        rect.height()), 6, 6)
+            text = r.get('text', '')
+            p.setPen(QColor('#23272b'))
+            end = rect.left() + int(min(value, self.maximum) * scale)
+            if end + 8 + p.fontMetrics().horizontalAdvance(text) < rect.right():
+                p.drawText(end + 8, rect.top(), rect.right() - end, rect.height(), Qt.AlignVCenter, text)
+            else:
+                p.setPen(QColor('#ffffff'))
+                p.drawText(rect.adjusted(8, 0, -8, 0), Qt.AlignVCenter | Qt.AlignLeft, text)
+        if self.marker is not None:
+            mx = x0 + int(self.marker[0] / float(self.maximum) * w)
+            p.setPen(QPen(QColor(CHIP_COLOURS['need']), 2, Qt.DashLine))
+            p.drawLine(mx, 30, mx, 34 + len(self.rows) * self.ROW_H)
+        y = 34 + len(self.rows) * self.ROW_H + 18
+        p.setPen(QColor('#6b6f73'))
+        for t in self.ticks:
+            tx = x0 + int(t / float(self.maximum) * w)
+            label = ('%s %s' % (('%.2f' % t).rstrip('0').rstrip('.') if t else '0', self.unit))
+            align = Qt.AlignLeft if t == 0 else (Qt.AlignRight if t == self.maximum else Qt.AlignHCenter)
+            box = QRect(tx - (0 if t == 0 else (120 if t == self.maximum else 60)), y - 12, 120, 18)
+            p.drawText(box, align | Qt.AlignVCenter, label)
+
+    def mouseMoveEvent(self, event):
+        for i, r in enumerate(self.rows):
+            rect = self._row_rect(i).adjusted(-self.LABEL_W, 0, 0, 0)
+            if rect.contains(event.position().toPoint()):
+                QToolTip.showText(event.globalPosition().toPoint(), r.get('tip', ''), self)
+                return
+        QToolTip.hideText()
+
+
+def budget_charts(data):
+    """Builds the three Inspector charts from workbench.resources.load()."""
+    def tip(e, value_text):
+        src = ('Source: %s, “%s”' % (e['source'], e['quote'])) if e.get('cited') else 'No source states a figure.'
+        return '%s\n%s · %s\n%s\n%s' % (e['label'], value_text, EVIDENCE_TEXT.get(e['evidence'], e['evidence']),
+                                        e.get('note', ''), src)
+    frame = data['frame']
+    rate = frame.get('rate_hz') or 60
+    period = 1000.0 / rate
+    rows = []
+    for e in data['frame_stages']:
+        v = e.get('ms')
+        txt = ('%.1f ms · %s' % (v, EVIDENCE_TEXT[e['evidence']])) if v is not None else ''
+        rows.append({'label': e['label'], 'value': v, 'colour': CHIP_COLOURS.get(e['chip'], '#7c8a96'),
+                     'text': txt, 'tip': tip(e, txt or 'not measured')})
+    frame_chart = BudgetChart('Frame budget at %d Hz (%.2f ms per frame)' % (rate, period), 'ms', period,
+                              [0, period / 2, period], rows)
+    lrows, need = [], None
+    for e in data['links']:
+        v, lo = e.get('mbps'), e.get('mbps_low')
+        if e['id'].startswith('needed') and v is not None:
+            need = (v, e['label'])
+        txt = ('%g–%g MB/s' % (lo, v) if lo is not None else '%g MB/s' % v) + ' · ' + EVIDENCE_TEXT[e['evidence']] \
+            if v is not None else ''
+        lrows.append({'label': e['label'], 'value': v, 'low': lo,
+                      'colour': CHIP_COLOURS['need'] if e['id'].startswith('needed') else CHIP_COLOURS['link'],
+                      'text': txt, 'tip': tip(e, txt or 'not measured')})
+    link_chart = BudgetChart('Communication (dashed line: needed for 320×240 at 60 fps)', 'MB/s', 200,
+                             [0, 100, 200], lrows, marker=need)
+    mrows = [{'label': m['label'], 'value': m['mib'], 'colour': CHIP_COLOURS.get(m['chip']),
+              'text': '%g MiB · private' % m['mib'],
+              'tip': '%s\n%g MiB · design figure (hardware manifest)\n%s; no shared address space'
+                     % (m['label'], m['mib'], m['note'])} for m in data['memory']]
+    mem_chart = BudgetChart('Memory pools (separate, %g MiB total)' % sum(m['mib'] for m in data['memory']),
+                            'MiB', 128, [0, 64, 128], mrows)
+    return frame_chart, link_chart, mem_chart
+
+
 # --------------------------------------------------------------------------- main window
 
 class WorkbenchWindow(QMainWindow):
@@ -541,7 +684,7 @@ class WorkbenchWindow(QMainWindow):
         self._then = None
         self.problem_cursor = -1
         self.setWindowTitle('ARC-1 Workbench')
-        logo = self.root / 'workbench' / 'logo_compact.png'
+        logo = self.root / 'workbench' / 'arc1_icon.png'
         if logo.is_file():
             self.setWindowIcon(QIcon(str(logo)))
         self.setMinimumSize(900, 560)
@@ -644,7 +787,37 @@ class WorkbenchWindow(QMainWindow):
             output_tab=self.output_tabs.tabText(self.output_tabs.currentIndex())))
         self.output_dock = self._dock('Output   (F10)', 'OutputDock', self.output_tabs, Qt.BottomDockWidgetArea)
 
-        # Hardware inspector (host boot-diagnostic model) and cartridge shelf: hidden by default.
+        # Hardware Inspector: resource budgets and the host boot-diagnostic model. Hidden by default.
+        self.inspector_tabs = QTabWidget()
+        self.inspector_tabs.setDocumentMode(True)
+        try:
+            self.resource_data = resources.load(self.root)
+            charts = budget_charts(self.resource_data)
+        except (OSError, ValueError, KeyError) as e:
+            self.resource_data, charts = None, ()
+            self.inspector_tabs.addTab(QLabel('Resource budgets unavailable: %s' % e), 'Budgets')
+        if charts:
+            page = QWidget()
+            pv = QVBoxLayout(page)
+            pv.setContentsMargins(0, 0, 0, 0)
+            body = QWidget()
+            bv = QVBoxLayout(body)
+            bv.setContentsMargins(0, 0, 0, 0)
+            bv.setSpacing(4)
+            for chart in charts:
+                bv.addWidget(chart)
+            bv.addStretch(1)
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            scroll.setFrameShape(QFrame.NoFrame)
+            scroll.setWidget(body)
+            pv.addWidget(scroll, 1)
+            note = QLabel(self.resource_data['statement'] + ' Hover a bar for its source.')
+            note.setObjectName('simBanner')
+            note.setWordWrap(True)
+            pv.addWidget(note)
+            self.inspector_tabs.addTab(page, 'Resources')
+        self.budget_charts = charts
         insp = QWidget()
         iv = QVBoxLayout(insp)
         iv.setContentsMargins(8, 8, 8, 8)
@@ -654,7 +827,6 @@ class WorkbenchWindow(QMainWindow):
         self.inspector = QPlainTextEdit()
         self.inspector.setObjectName('inspector')
         self.inspector.setReadOnly(True)
-        self.inspector.setFont(mono_font(9))
         iv.addWidget(QLabel('Boot diagnostic model (host only)'))
         iv.addWidget(self.lcd)
         iv.addWidget(self.inspector, 1)
@@ -664,6 +836,8 @@ class WorkbenchWindow(QMainWindow):
             b.clicked.connect(cb)
             row.addWidget(b)
         iv.addLayout(row)
+        self.inspector_tabs.addTab(insp, 'Boot model')
+        insp = self.inspector_tabs
         self.inspector_dock = self._dock('Hardware Inspector', 'InspectorDock', insp, Qt.RightDockWidgetArea)
         shelf = QWidget()
         sv = QVBoxLayout(shelf)
@@ -725,6 +899,8 @@ class WorkbenchWindow(QMainWindow):
         self.a_inspector.setText('Hardware &Inspector')
         self.a_cartdock = self.cart_dock.toggleViewAction()
         self.a_cartdock.setText('&Cartridge Shelf')
+        self.a_budgets = A('Resource &Budgets', self.show_budgets, None,
+                           'Frame time, link bandwidth and memory, with the source of every figure')
         self.a_dual = A('&Dual-Pane Browse', self.toggle_dual)
         self.a_dual.setCheckable(True)
         self.a_reset = A('&Reset Window Layout', self.reset_layout, None,
@@ -741,7 +917,7 @@ class WorkbenchWindow(QMainWindow):
         self.a_prev = A('&Previous Problem', lambda: self.step_problem(-1), 'Shift+F8')
         self.a_run = A('&Run in Host Simulator', lambda: self.start('run'), 'F5',
                        'Build if needed, then run the game in the host simulator (F5)')
-        self.a_boot = A('Host &Boot Diagnostics', lambda: (self.inspector_dock.show(), self.inspector_dock.raise_()))
+        self.a_boot = A('Host &Boot Diagnostics', lambda: self.show_budgets('Boot model'))
         self.a_pkg = A('&Package Example Cartridge', self.package_example)
         self.a_import = A('&Import Cartridge…', self.import_cartridge_dialog)
         self.a_inspect_cart = A('In&spect Selected Cartridge', self.inspect_cartridge)
@@ -773,7 +949,8 @@ class WorkbenchWindow(QMainWindow):
                        None, self.a_close, None, self.a_exit])
         menu('&Edit', [self.a_undo, self.a_redo, None, self.a_cut, self.a_copy, self.a_paste, self.a_select, None,
                        self.a_find, self.a_find_next, self.a_replace, self.a_goto])
-        menu('&View', [self.a_nav, self.a_output, self.a_problems, None, self.a_inspector, self.a_cartdock, None,
+        menu('&View', [self.a_nav, self.a_output, self.a_problems, None, self.a_inspector, self.a_budgets,
+                       self.a_cartdock, None,
                        self.a_dual, None, self.a_reset])
         menu('&Project', [self.a_browse, self.a_newgame, None, self.a_refresh])
         self.target_menu = QMenu('&Target', self)
@@ -1495,6 +1672,13 @@ class WorkbenchWindow(QMainWindow):
         self.show_output('Problems')
 
     # ---------------------------------------------------------------- inspector and cartridges (R09 functions)
+    def show_budgets(self, tab='Resources'):
+        self.inspector_dock.show()
+        self.inspector_dock.raise_()
+        for i in range(self.inspector_tabs.count()):
+            if self.inspector_tabs.tabText(i) == tab:
+                self.inspector_tabs.setCurrentIndex(i)
+
     def advance_boot(self):
         for stage in ('f133', 'nor', 'd213', 'fpga12', 'fpga45', 'ready'):
             if stage not in self.boot.history:

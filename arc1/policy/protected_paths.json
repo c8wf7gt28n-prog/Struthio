@@ -10,6 +10,7 @@
     "hardware/manifests/*",
     "hardware/sources/*",
     "hardware/tools/*",
+    "hardware/budgets/*",
     "tools/lock/*",
     "tests/*",
     "examples/*/tests/*",

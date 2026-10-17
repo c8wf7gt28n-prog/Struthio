@@ -1,0 +1,160 @@
+{
+  "schema": "arc1.resource-budget/1",
+  "description": "Cited timing and bandwidth figures for the R10 design. Every number must quote text that occurs in its source (hardware/manifests/arc1-r10.hw.json sources); a number whose quote is not found is dropped and shown as CITATION MISSING. null means nobody has measured or derived it.",
+  "frame": {
+    "rate_hz": 60,
+    "period_ms": 16.67,
+    "source": "r10_gates",
+    "quote": "16.7 ms",
+    "note": "60 fps objective (ARC1_R10 spec); budget per frame",
+    "evidence": "DESIGN",
+    "r10_label": "DERIVED"
+  },
+  "frame_stages": [
+    {
+      "id": "f133_logic",
+      "label": "F133 game logic",
+      "chip": "f133",
+      "ms": null,
+      "evidence": "NONE",
+      "r10_label": "NOT_RUN",
+      "note": "No game has run on an F133; no figure exists.",
+      "source": null,
+      "quote": null
+    },
+    {
+      "id": "fpga12_jobs",
+      "label": "12F coprocessor jobs",
+      "chip": "fpga12",
+      "ms": null,
+      "evidence": "NONE",
+      "r10_label": "NOT_RUN",
+      "note": "Job sizes depend on the game; nothing measured.",
+      "source": null,
+      "quote": null
+    },
+    {
+      "id": "d213_setup",
+      "label": "D213 scene setup + GMAC driver",
+      "chip": "d213",
+      "ms": null,
+      "evidence": "NONE",
+      "r10_label": "NOT_RUN",
+      "note": "The D213 driver cost is explicitly excluded from the 45F figures below.",
+      "source": "r10_gates",
+      "quote": "before D213 driver cost"
+    },
+    {
+      "id": "gpu45_tiles_jumbo",
+      "label": "45F tiles over RGMII, jumbo frames",
+      "chip": "gpu45",
+      "ms": 9.0,
+      "evidence": "RTL_SIM",
+      "r10_label": "RTL_SIMULATED",
+      "note": "75 tiles at 119.7 µs/tile round trip, simulated, before D213 driver cost.",
+      "source": "r10_gates",
+      "quote": "≈ 9.0 ms of 16.7 ms for 75 tiles"
+    },
+    {
+      "id": "gpu45_tiles_std",
+      "label": "45F tiles over RGMII, standard frames",
+      "chip": "gpu45",
+      "ms": 13.0,
+      "evidence": "RTL_SIM",
+      "r10_label": "RTL_SIMULATED",
+      "note": "173.5 µs/tile; needed if D213 GMAC jumbo frames do not work.",
+      "source": "r10_gates",
+      "quote": "≈ 13.0 ms"
+    },
+    {
+      "id": "present",
+      "label": "Present (D213 display out)",
+      "chip": "d213",
+      "ms": null,
+      "evidence": "NONE",
+      "r10_label": "NOT_RUN",
+      "note": "Video output has not run (gate R10-D).",
+      "source": null,
+      "quote": null
+    }
+  ],
+  "links": [
+    {
+      "id": "d213_gpu45_rgmii",
+      "label": "D213 ↔ 45F RGMII (raw, per direction)",
+      "mbps": 125,
+      "mbps_low": null,
+      "evidence": "DESIGN",
+      "r10_label": "DERIVED",
+      "note": "Raw link rate with DMA; application throughput NOT_RUN.",
+      "source": "r10_decisions",
+      "quote": "~125 MB/s raw per direction with DMA"
+    },
+    {
+      "id": "needed_320x240",
+      "label": "Needed: 45F → D213 colour at 320×240, 60 fps",
+      "mbps": 9.216,
+      "mbps_low": null,
+      "evidence": "DESIGN",
+      "r10_label": "DERIVED",
+      "note": "Requirement before protocol overhead and margin.",
+      "source": "r10_memory_spec",
+      "quote": "must reliably exceed 9.216 MB/s"
+    },
+    {
+      "id": "gpu45_sdram",
+      "label": "45F SDRAM tile traffic",
+      "mbps": 153,
+      "mbps_low": null,
+      "evidence": "RTL_SIM",
+      "r10_label": "RTL_SIMULATED",
+      "note": "Controller self-test throughput in simulation.",
+      "source": "r10_gates",
+      "quote": "153 MB/s tile"
+    },
+    {
+      "id": "fpga12_psram",
+      "label": "12F QSPI PSRAM (60–100 MHz)",
+      "mbps": 200,
+      "mbps_low": 120,
+      "evidence": "DESIGN",
+      "r10_label": "DOCUMENTED",
+      "note": "Before overhead.",
+      "source": "r10_memory_spec",
+      "quote": "120 MB/s at 60 MHz; 200 MB/s at 100 MHz, before overhead"
+    },
+    {
+      "id": "f133_d213_usb",
+      "label": "F133 → D213 USB 2.0 HS (signalling)",
+      "mbps": 60,
+      "mbps_low": null,
+      "evidence": "DESIGN",
+      "r10_label": "DERIVED",
+      "note": "Signalling ceiling, not a guarantee of application throughput.",
+      "source": "r10_spec",
+      "quote": "not a guarantee of 60 MB/s application throughput"
+    },
+    {
+      "id": "cartridge_usb",
+      "label": "Cartridge drive, USB 2.0 HS (practical)",
+      "mbps": 40,
+      "mbps_low": 30,
+      "evidence": "DESIGN",
+      "r10_label": "DERIVED",
+      "note": "Estimate; nothing measured.",
+      "source": "r10_change_order",
+      "quote": "≈ 30–40 MB/s practical"
+    },
+    {
+      "id": "f133_fpga12_rgmii",
+      "label": "F133 ↔ 12F RGMII",
+      "mbps": null,
+      "mbps_low": null,
+      "evidence": "NONE",
+      "r10_label": "NOT_RUN",
+      "note": "No throughput figure is stated for the F133 side.",
+      "source": null,
+      "quote": null
+    }
+  ]
+}

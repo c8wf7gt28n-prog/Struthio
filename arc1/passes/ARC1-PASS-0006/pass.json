@@ -1,0 +1,203 @@
+{
+  "schema": "arc1.pass/0.2",
+  "pass_id": "ARC1-PASS-0006",
+  "state": "REVIEW",
+  "owner": "agent:claude-code",
+  "objective": "Workbench R10.1: one-double-click per-user installer with upgrade-safe backups, and cited resource budget charts in the Hardware Inspector",
+  "risk_tier": "MEDIUM",
+  "base_commit": "1f2d1a0fe9f870b85d76150336873b593ed5c1be",
+  "inputs": {
+    "sdk_schema": "0.2",
+    "board_revision": "R10-development",
+    "toolchain_lock_sha256": "486bc2cd841cc4e31f42149df6c03afa14bf9b3877195dca25db1285e3b0f4f4"
+  },
+  "effort": {
+    "units": "task_units",
+    "planned_total": 60,
+    "sdk_reserved": 12,
+    "actual_total": null,
+    "actual_sdk": null
+  },
+  "deferral": null,
+  "main_change": {
+    "summary": "Installer bootstrap and setup module, launcher, app icon, docs",
+    "paths": [
+      "INSTALL_ARC1.cmd",
+      "INSTALL_README.txt",
+      "workbench/setup_arc1.py",
+      "workbench/launch.py",
+      "workbench/arc1.ico",
+      "workbench/arc1_icon.png",
+      "tests/test_r10_installer.py",
+      "docs/WORKBENCH_R10.md",
+      "PATCH_NOTES_R10.md",
+      "README.md",
+      "AGENTS.md",
+      ".gitattributes"
+    ]
+  },
+  "sdk_change": {
+    "summary": "Cited resource budgets (frame time, link bandwidth, memory) shared by the Qt Inspector and the agent interface; uncited numbers are dropped",
+    "paths": [
+      "workbench/resources.py",
+      "hardware/budgets/r10_resources.json",
+      "workbench/agent.py"
+    ],
+    "reusable": true,
+    "beneficiary": "Anyone sizing ARC-1 work (people in the Inspector, agents via inspect.resources); future measurements slot into the same table",
+    "acceptance_tests": [
+      "r10-workbench-qt"
+    ]
+  },
+  "validation": [
+    {
+      "id": "installer-tests",
+      "level": "HOST_SIM",
+      "command": "python3 tests/test_r10_installer.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0006/reports/installer-tests.log",
+        "sha256": "100f956ac673745181a9f720aa072bf35e66685942fc00b6fb7be681f3f9bff0"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "linux-install-cycle",
+      "level": "HOST_SIM",
+      "command": "setup_arc1.py install --yes --no-launch; launch --check via shortcut command; Uninstall ARC-1 Workbench.sh",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0006/reports/linux-install-launch-uninstall.log",
+        "sha256": "318bd1fb539f2f66248c6154b7a5d3c1c50d591c7ce30f0298f4c21badc842eb"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "r10-workbench-qt",
+      "level": "HOST_SIM",
+      "command": "QT_QPA_PLATFORM=offscreen python3 tests/test_r10_workbench.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0006/reports/r10-workbench-qt.log",
+        "sha256": "f0436721d81f999f0f98f8ba0b839c9cf82755e6ace6ef1085099addb2d9d424"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "r05-r09-regression",
+      "level": "HOST_SIM",
+      "command": "tests/test_pass3_boot.py, test_pass4_cartridge.py, test_pass7_launcher.py, test_r08_qt_contract.py, test_r09_output.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0006/reports/r05-r09-regression.log",
+        "sha256": "7697da9edf2a01806ea2f17d47d6936b9881bf788ab03e77787a3321e4d3ab54"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "sdk-suite",
+      "level": "HOST_SIM",
+      "command": "python3 tests/run_tests.py",
+      "result": "pass",
+      "report": {
+        "path": "passes/ARC1-PASS-0006/reports/sdk-suite.log",
+        "sha256": "8ecb91b15f3985cba0113092211c7c514398e5a33286c75ce33d4bc65001c3df"
+      },
+      "board_id": null,
+      "equipment": null,
+      "reason": null
+    },
+    {
+      "id": "windows11-installer",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "No Windows 11 machine: INSTALL_ARC1.cmd, winget, PowerShell shortcuts, winreg and the uninstall .cmd were only checked with fakes"
+    },
+    {
+      "id": "independent-reproduction",
+      "level": "HOST_SIM",
+      "command": null,
+      "result": "not_run",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "TST-004: no second agent or maintainer has reproduced this pass yet"
+    },
+    {
+      "id": "board",
+      "level": "BOARD_TEST",
+      "command": null,
+      "result": "not_available",
+      "report": null,
+      "board_id": null,
+      "equipment": null,
+      "reason": "R10 hardware is on fabrication HOLD; no board exists"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "INSTALL_ARC1.cmd",
+      "sha256": "b3df2fc6febc404ca4d383dbecabb107c1c925fd4b10c4d4f61b252d29038b83"
+    },
+    {
+      "path": "workbench/setup_arc1.py",
+      "sha256": "13c28839a18a31f290af99a7982b48a8def30ec2fe39bee0891f58ebcc7fe871"
+    },
+    {
+      "path": "workbench/launch.py",
+      "sha256": "8b03791d2de54ede1204a3ab86929382b0b791e779d88538cb9714c00f10af9f"
+    },
+    {
+      "path": "workbench/resources.py",
+      "sha256": "dbb5b59dc3667ed7043e60c2a2fd4a023cbd4b893087ad5c00e4bb5450c0f5a1"
+    },
+    {
+      "path": "hardware/budgets/r10_resources.json",
+      "sha256": "9464dbdef27cb15fd5bfc2038c88e7d6425d671c8d3de2a1a53dec8ad43d43ff"
+    },
+    {
+      "path": "workbench/arc1.ico",
+      "sha256": "b209a5776f790f90b22bc946249b342ff62a44cf3148079aad0bec16cc1bfd59"
+    },
+    {
+      "path": "docs/assets/workbench_r10_6_resources.png",
+      "sha256": "072c3971dd004afe7e8de1669468803c348199dcee86d269f38e8a5f9537e311"
+    }
+  ],
+  "sensitive_changes": [
+    {
+      "path": "AGENTS.md",
+      "kind": "modified",
+      "justification": "Adds two rules: resource-budget figures must quote their source and are dropped otherwise (no estimated numbers to fill a chart), and the installer must stay standard-library-only and back up user-changed files on upgrade and uninstall. Nothing was relaxed."
+    },
+    {
+      "path": "policy/protected_paths.json",
+      "kind": "modified",
+      "justification": "Adds hardware/budgets/* to the protected paths, so any later change to the cited budget figures must be disclosed like other hardware evidence. This tightens policy; nothing was removed."
+    },
+    {
+      "path": "tests/test_r10_workbench.py",
+      "kind": "modified",
+      "justification": "Adds tests only: ResourceBudgetTests (every number is cited, a tampered quote drops the number, the agent returns the same data) and a Qt test of the Resources inspector. The one removed line is the import, which now also imports resources. No existing assertion was changed or removed."
+    }
+  ],
+  "review": {
+    "sdk_accepted_by": null,
+    "state": "pending",
+    "evidence": null
+  },
+  "blockers": [],
+  "handoff": "passes/ARC1-PASS-0006/HANDOFF.md"
+}

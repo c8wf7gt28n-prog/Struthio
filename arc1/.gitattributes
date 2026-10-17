@@ -5,3 +5,7 @@
 # normalise their line endings.
 hardware/sources/** -text
 passes/*/reports/** -text
+# Windows batch files need CRLF: cmd.exe can mis-handle labels (goto/call) in LF files.
+# Stored byte-for-byte (-text) so a clone, an archive and a recorded digest all see the same CRLF file.
+*.cmd -text
+*.bat -text
