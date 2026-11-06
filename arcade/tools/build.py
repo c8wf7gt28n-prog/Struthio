@@ -35,6 +35,8 @@ for (const name of await caches.keys()) if (name!==CACHE&&name.startsWith('strut
 await self.clients.claim();
 })()));
 self.addEventListener('message',(event)=>{if (event.data?.type==='SKIP_WAITING') self.skipWaiting();});
+// The cached page is looked up without the address's search string, so ?desk
+// (desk mode) opens offline as well.
 const offlinePage=async(cache)=>{const hit=(await cache.match('./'))||(await cache.match('./index.html'));return hit?clean(hit):Response.error();};
 self.addEventListener('fetch',(event)=>{
 if (event.request.method!=='GET'||new URL(event.request.url).origin!==location.origin) return;

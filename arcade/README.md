@@ -33,6 +33,28 @@ Controls:
 
 Gamepads work as well.
 
+## Desk mode
+
+For play at a desk with a keyboard (Graphite opens the game this way), add
+`?desk` (or `?desk=1`) to the address:
+
+    http://localhost:8000/?desk
+
+- **Keyboard only:** the wing controller is not shown and the screen takes no
+  taps or clicks. ← → (A D) flap left / right, ↑ W or Space flap hard, ↓ (S)
+  darts (towards a held arrow, else the way the bird faces), Esc pauses.
+  Gamepads still work.
+- **No title screen:** the loading card shows only its status, then a new run
+  waits on the pause screen at tick 0 with the keys listed. A flap key starts
+  it; Esc pauses again.
+- **Game over** offers NEW RUN only (Space or Enter), again paused at tick 0.
+- **Saves:** desk runs are saved in their own slots
+  (`struthio.arcade.v1.desk.*`), so a run the web game left mid-climb is never
+  touched; the high-score table is shared.
+
+Everything else (rules, physics, rendering, music, the offline install) is the
+same game. Without `?desk` nothing changes.
+
 ## Forgiveness
 
 Small, invisible helps in the player's favour, after Celeste's and Nintendo's
@@ -68,7 +90,7 @@ You start with 11 Joust Marks (lives), the maximum.
     src/render             WebGPU renderer, atlas, scene, tower camera
     src/audio              synth worklet, SFX conductor, music loop
     src/ui, src/input      HUD, touch controller, PWA, keyboard and gamepad
-    src/app                boot, session loop, art loading
+    src/app                boot, session loop, art loading, the desk-mode switch (desk.mjs)
     tests                  sim test suite
     tools/build.py         service worker, checksums, release zip
 
@@ -81,6 +103,7 @@ The suite covers:
 - **tower-rings**: static ring placement rules.
 - **tower-report**: every island and ring is reachable in flight, at four points of the islands' motion cycles.
 - **save**: slots, corruption and restore.
+- **desk**: the `?desk` switch, a desk run paused at tick 0, desk saves kept apart from the web run, the keyboard dart, one version everywhere.
 - **tower-sim**: a 12-round bot soak, with the cap, zone, camera, save and determinism rules checked every tick.
 
 Test hooks (`window.__struthio`, URL flags such as `?seed=7`) exist only on a

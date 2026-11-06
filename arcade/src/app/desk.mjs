@@ -6,12 +6,22 @@
 // before the first paint (tests/desk.mjs checks that the two agree).
 import{SAVE_NAMESPACE,KEYS}from '../save/checkpoint.mjs';
 
-export const deskMode=(search='')=>/^(|1|true|on|yes)$/i.test(new URLSearchParams(search).get('desk')??'x');
+export const deskMode=(search='')=>/^(|1|true|on|yes)$/i.test(new URLSearchParams(search??'').get('desk')??'x');
 // A new run held before its first tick: tick 0, score 0, the opening position.
+// The first flap key (or Esc, or a controller's Start) sets the shell to PLAY.
 export function startPaused(game){const events=game.start();game.state.sim.shell='PAUSE';return events;}
-const own=(k)=>k===KEYS.RECORDS?k:String(k).replace(`${SAVE_NAMESPACE}.`,`${SAVE_NAMESPACE}.desk.`);
+// Storage seen through desk mode: the run slots and the save warning live under
+// `struthio.arcade.v1.desk.*`; the high-score table is the web game's own.
+const RUN_PREFIX=`${SAVE_NAMESPACE}.`,DESK_PREFIX=`${SAVE_NAMESPACE}.desk.`;
+const own=(k)=>k===KEYS.RECORDS||!String(k).startsWith(RUN_PREFIX)?k:DESK_PREFIX+String(k).slice(RUN_PREFIX.length);
 export function deskStorage(storage){
-return{getItem:(k)=>storage.getItem(own(k)),setItem:(k,v)=>storage.setItem(own(k),v),removeItem:(k)=>storage.removeItem(own(k)),keys:()=>storage.keys()};
+return{
+getItem:(k)=>storage.getItem(own(k)),
+setItem:(k,v)=>storage.setItem(own(k),v),
+removeItem:(k)=>storage.removeItem(own(k)),
+// The keys desk mode can see, under the names the game uses.
+keys:()=>storage.keys().flatMap((k)=>k===KEYS.RECORDS?[k]:k.startsWith(DESK_PREFIX)?[RUN_PREFIX+k.slice(DESK_PREFIX.length)]:[]),
+};
 }
 // The canvas's accessible label in desk mode: keys, not taps.
 export const DESK_LABEL='STRUTHIO game arena. Left and Right arrows, or A and D, flap left and right; Up, W or Space flaps hard; Down or S darts; Escape pauses, and a flap key starts or resumes.';
