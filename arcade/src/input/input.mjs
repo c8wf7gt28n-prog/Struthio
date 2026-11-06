@@ -131,6 +131,13 @@ const from=this.pointerOwner.get(pointerId);
 return from||region||null;
 }
 controlDart(pointerId,region){return this.queueDart(pointerId,region);}
+// Keyboard DART (desk mode): towards a held arrow, else towards `region` (the bird's facing).
+keyDart(region){
+if (this.dartQueue.length>=this.queueMax) return false;
+const l=this.keysHeld.has('LEFT_WING'),r=this.keysHeld.has('RIGHT_WING');
+this.dartQueue.push(l&&!r?'LEFT':r&&!l?'RIGHT':region==='LEFT_WING'?'LEFT':'RIGHT');
+return true;
+}
 pointerUp(pointerId){this.pointerOwner.delete(pointerId);this.dartedPointers.delete(pointerId);}
 pointerCancel(pointerId){this.pointerOwner.delete(pointerId);this.dartedPointers.delete(pointerId);}
 lostPointerCapture(pointerId){this.pointerOwner.delete(pointerId);this.dartedPointers.delete(pointerId);}

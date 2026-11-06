@@ -7,8 +7,9 @@ import{installViewportShim}from '../ui/viewport-shim.mjs';
 import{loadArt}from './art.mjs';
 import{createSession}from './session.mjs';
 import{memoryStorage}from '../save/checkpoint.mjs';
+import{deskMode,deskStorage,DESK_LABEL}from './desk.mjs';
 
-export const BUILD_ID='STRUTHIO-ARCADE-1.8.0';
+export const BUILD_ID='STRUTHIO-ARCADE-1.9.0';
 const FATAL_HINT={
 FATAL_SECURE_CONTEXT:'Open the game over https or from localhost.',
 FATAL_WEBGPU_UNAVAILABLE:'This browser does not support WebGPU, which the game needs. Play in a current Chrome or Edge (desktop or Android), or Safari on iPhone, iPad or Mac running version 26 or later.',
@@ -58,11 +59,20 @@ removeItem:(k)=>guard(()=>{localStorage.removeItem(k);},undefined),
 keys:()=>guard(()=>{const out=[];for (let i=0;i<localStorage.length;i++) out.push(localStorage.key(i));return out;},[]),
 };
 }
-export async function boot({base='./',flags={},local=false}={}){
+// Desk mode: keyboard only (no wing controller), and the boot card shows only
+// its loading status (no kicker, no tagline).
+function deskPage(){
+document.body.classList.add('is-desk');
+for (const el of document.querySelectorAll('#boot .boot-kicker,#boot .boot-card small')) el.remove();
+document.getElementById('game')?.setAttribute('aria-label',DESK_LABEL);
+document.getElementById('controls')?.setAttribute('inert','');
+}
+export async function boot({base='./',flags={},local=false,desk=deskMode(globalThis.location?.search)}={}){
 let storage=localStorageAdapter();
 const storageBlocked=!storage;
 if (storageBlocked) storage=memoryStorage();
-const app={fatal:null,flags,local,buildId:BUILD_ID,storageBlocked};
+if (desk){storage=deskStorage(storage);deskPage();}
+const app={fatal:null,flags,local,desk,buildId:BUILD_ID,storageBlocked};
 if (local) window.__struthio=app;
 installViewportShim({});
 try{

@@ -1,6 +1,8 @@
 // STRUTHIO ARCADE · the running game: the fixed-step loop, the title menu,
 // pause and game over, saves and the high-score table, music and sound
-// effects, touch / keyboard / gamepad input, and rendering each frame.
+// effects, touch / keyboard / gamepad input, and rendering each frame. In desk
+// mode (app.desk) there is no title and no touch input: a new run waits paused
+// at tick 0, and game over offers NEW RUN only.
 import{Game}from '../sim/game.mjs';
 import{newState,SHIMMER_TICKS}from '../sim/state.mjs';
 import{payloadOf,EMPTY_INPUT}from '../sim/step.mjs';
@@ -19,12 +21,13 @@ import{installSmartControls}from '../ui/controls.mjs';
 import{createHud,hudModel}from '../ui/hud.mjs';
 import{ART,ARCADE_REAR_HORIZON,MOON_TURN_PER_TICK,MOON_BEAT_SURGE,buildArcadeGlobe}from './art.mjs';
 import{primeAudioContext,freshFeelState,resetFeelState,triggerFeel,sampleFeelState,pulseHaptic}from './feel.mjs';
+import{startPaused}from './desk.mjs';
 
 export const TICK_MS=1000/60;
 const SCORE_POPUP=Object.freeze({EGG:'GOLD',JOUST:'WHITE',RING:'CYAN'});
 const BANNER_TICKS=150;
 const HIDDEN_SAVE_BUDGET_MS=120;
-const GAMEOVER_ITEMS=Object.freeze(['NEW RUN','TITLE']);
+const GAMEOVER_ITEMS=Object.freeze(['NEW RUN','TITLE']),DESK_GAMEOVER_ITEMS=Object.freeze(['NEW RUN']);
 const fmtScore=(n)=>Math.max(0,Math.trunc(n||0)).toLocaleString('en-US');
 
 function canAcceptBufferedFlap(s){
@@ -46,6 +49,7 @@ let cameraOverride=null;
 const popups=[];
 let gameOverInfo=null,gameOverIndex=0;
 const feel=freshFeelState();
+const overItems=app.desk?DESK_GAMEOVER_ITEMS:GAMEOVER_ITEMS;
 
 // ---- records ----------------------------------------------------------------
 function readRecords(){try{const r=JSON.parse(storage.getItem(KEYS.RECORDS)||'{}');return r&&typeof r==='object'?r:{};}catch{return{};}}
@@ -163,7 +167,8 @@ renderer.setArcadeFx(app.flags.arcadeFx==='off'?null:ARCADE_REAR_HORIZON);
 
 // ---- runs -------------------------------------------------------------------
 function beginGame(g){
-holdMusic(false);
+const held=g.state.sim.shell==='PAUSE';
+holdMusic(held);
 game=g;
 camera.reset();
 resetFeelState(feel);
@@ -172,12 +177,13 @@ app.game=game;
 prepareWorld();
 screen='GAME';
 startMusicFromGesture();
-input.setMode('PLAY');
+input.setMode(held?'PAUSE':'PLAY');
+if (held) app.paused='DESK';
 }
 function startNewGame(){
 const seed=(app.flags.seed>>>0)||(crypto.getRandomValues(new Uint32Array(1))[0]>>>0)||1;
 const g=new Game(R,{seed});
-g.start();
+if (app.desk) startPaused(g);else g.start();
 beginGame(g);
 checkpoint('NEW_GAME');
 }
@@ -201,9 +207,9 @@ input.setMode('ATTRACT');
 refreshTitleMenu('');
 syncShellUi();
 }
-function moveGameOver(delta){const n=GAMEOVER_ITEMS.length;gameOverIndex=(gameOverIndex+delta+n)%n;if (controlDeck) controlDeck.sync();}
+function moveGameOver(delta){const n=overItems.length;gameOverIndex=(gameOverIndex+delta+n)%n;if (controlDeck) controlDeck.sync();}
 function confirmGameOver(){
-const choice=GAMEOVER_ITEMS[gameOverIndex];
+const choice=overItems[gameOverIndex];
 gameOverIndex=0;
 if (choice==='TITLE'){toTitle();return 'TITLE';}
 startNewGame();
@@ -349,7 +355,7 @@ const hud=hudRoot?createHud(hudRoot,{toastRoot:document.getElementById('hud-toas
 const controlsRoot=document.getElementById('controls');
 const cabinet=document.getElementById('cabinet');
 const reducedMotion=typeof window.matchMedia==='function'?window.matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
-const view={state:null,prev,prevPlayer,alpha:1,renderTick:0,screen,buildId:app.buildId};
+const view={state:null,prev,prevPlayer,alpha:1,renderTick:0,screen,buildId:app.buildId,desk:!!app.desk};
 const titleState=newState(1,R);
 let moonPhase=0;
 const seededQuality=Number(app.flags.quality);
@@ -358,7 +364,7 @@ const frameTimes=[];let quality=qualityPinned?seededQuality:2,qualityCounter=0;
 function render(alpha){
 renderTick+=1;
 const s=game?game.state:titleState;
-Object.assign(view,{state:s,prev,prevPlayer,alpha,renderTick,screen,banner,saveWarning,popups,gameOverItems:GAMEOVER_ITEMS,gameOverIndex,gameOverInfo,reducedMotion:reducedMotion.matches});
+Object.assign(view,{state:s,prev,prevPlayer,alpha,renderTick,screen,banner,saveWarning,popups,gameOverItems:overItems,gameOverIndex,gameOverInfo,reducedMotion:reducedMotion.matches});
 syncShellUi();
 view.musicDrive=music?music.visualState():null;
 view.content=game?towerContent(s):null;
@@ -440,6 +446,8 @@ function logical(ev){
 const r=canvas.getBoundingClientRect();
 return[Math.floor((ev.clientX-r.left)/r.width*256),Math.floor((ev.clientY-r.top)/r.height*384)];
 }
+// Touch and pointer input (not offered in desk mode: keyboard and gamepad only).
+if (!app.desk){
 canvas.addEventListener('touchstart',(ev)=>{if (ev.cancelable) ev.preventDefault();},{passive:false});
 canvas.addEventListener('touchmove',(ev)=>{if (ev.cancelable) ev.preventDefault();},{passive:false});
 canvas.addEventListener('pointerdown',(ev)=>{
@@ -453,6 +461,7 @@ window.addEventListener('pointercancel',(ev)=>input.pointerCancel(ev.pointerId),
 canvas.addEventListener('pointerup',(ev)=>{ensureAudio();input.pointerUp(ev.pointerId);});
 canvas.addEventListener('pointercancel',(ev)=>{input.pointerCancel(ev.pointerId);});
 canvas.addEventListener('lostpointercapture',(ev)=>{input.lostPointerCapture(ev.pointerId);});
+}
 window.addEventListener('keydown',(ev)=>{
 if ((ev.code==='Enter'||ev.code==='Space')&&ev.target.closest?.('button')&&!ev.target.closest('#title-actions, #controls')) return;
 if (ev.code in{ArrowLeft:1,ArrowRight:1,ArrowDown:1,Space:1,ArrowUp:1,KeyA:1,KeyD:1,KeyW:1,Enter:1,Escape:1}) ev.preventDefault();
@@ -467,6 +476,7 @@ else if (title&&!ev.repeat&&(ev.code==='ArrowRight'||ev.code==='ArrowDown'||ev.c
 else if (!ev.repeat&&isGameOver()&&(ev.code==='ArrowLeft'||ev.code==='KeyA'||ev.code==='ArrowUp'||ev.code==='KeyW')) moveGameOver(-1);
 else if (!ev.repeat&&isGameOver()&&(ev.code==='ArrowRight'||ev.code==='KeyD'||ev.code==='ArrowDown'||ev.code==='KeyS')) moveGameOver(1);
 else if (!ev.repeat&&isGameOver()&&(ev.code==='Space'||ev.code==='Enter')) confirmGameOver();
+else if (app.desk&&!ev.repeat&&(ev.code==='ArrowDown'||ev.code==='KeyS')&&game&&game.state.sim.shell==='PLAY') input.keyDart(game.state.player.facing<0?'LEFT_WING':'RIGHT_WING');
 else if (ev.code==='Escape'&&!ev.repeat&&game&&game.state.sim.shell==='PLAY') pause('KEY');
 else if (!ev.repeat&&isPaused()&&(ev.code==='Escape'||KEY_MAP[ev.code])) resume('KEY');
 else input.keyDown(ev.code,ev.repeat);
@@ -519,7 +529,7 @@ input.gamepad({left:pad.left,right:pad.right,flap:pad.flap||startFlaps});
 }
 const pwa=setupPwa({base,onUpdateReady:()=>{app.updateReady=true;},onOffline:(msg)=>{menu.note=msg;}});
 let controlDeck=null;
-if (controlsRoot) controlDeck=installSmartControls({
+if (controlsRoot&&!app.desk) controlDeck=installSmartControls({
 root:controlsRoot,input,ensureAudio,
 controlEnabled(region){
 return input.regionEnabled(region)||((screen==='TITLE'||isPaused()||isGameOver())&&(region==='LEFT_WING'||region==='RIGHT_WING'));
@@ -535,7 +545,7 @@ syncShellUi();
 labelFor(region){
 if (screen==='TITLE') return 'Start';
 if (isPaused()) return 'Paused: press both wings together to resume';
-if (isGameOver()) return `${region==='RIGHT_WING'?'Next':'Previous'} option; press both wings together to select ${GAMEOVER_ITEMS[gameOverIndex]}`;
+if (isGameOver()) return `${region==='RIGHT_WING'?'Next':'Previous'} option; press both wings together to select ${overItems[gameOverIndex]}`;
 return region==='LEFT_WING'?'Left wing: up-left flap; flick down to DART':'Right wing: up-right flap; flick down to DART';
 },
 });
@@ -561,6 +571,7 @@ start(){
 resizeRenderer();
 input.setMode('ATTRACT');
 refreshTitleMenu('');
+if (app.desk) startNewGame();
 syncShellUi();
 requestAnimationFrame(loop);
 },

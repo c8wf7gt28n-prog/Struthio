@@ -286,3 +286,11 @@ html body #controls .both-pix{display:block;width:clamp(48px,16.5vw,80px);height
 
 /* ---- title art holds still (no slow float) ---------------------------------- */
 html body #title-screen #title-art,html body #title-screen.is-home #title-art{animation:none;transform:none}
+
+/* ---- desk mode (?desk): keyboard only. The wing controller and the title
+   screen are never shown; the boot card is only its loading status, on black. */
+html body.is-desk #controls,html body.is-desk #title-screen{display:none!important;pointer-events:none}
+html body.is-desk::before{content:none}
+html body.is-desk #boot{background:#000!important}
+html body.is-desk #boot .boot-kicker,html body.is-desk #boot .boot-card small{display:none}
+html body.is-desk #boot .boot-card{top:50%;transform:translateY(-50%)}
