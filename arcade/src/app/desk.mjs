@@ -8,7 +8,8 @@ import{SAVE_NAMESPACE,KEYS}from '../save/checkpoint.mjs';
 
 export const deskMode=(search='')=>/^(|1|true|on|yes)$/i.test(new URLSearchParams(search??'').get('desk')??'x');
 // A new run held before its first tick: tick 0, score 0, the opening position.
-// The first flap key (or Esc, or a controller's Start) sets the shell to PLAY.
+// The first flap key (or a controller's Start) sets the shell to PLAY, and that
+// key flaps; Esc does not leave this start pause.
 export function startPaused(game){const events=game.start();game.state.sim.shell='PAUSE';return events;}
 // Storage seen through desk mode: the run slots and the save warning live under
 // `struthio.arcade.v1.desk.*`; the high-score table is the web game's own.

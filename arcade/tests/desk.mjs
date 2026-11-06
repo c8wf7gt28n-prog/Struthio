@@ -1,7 +1,8 @@
 // STRUTHIO ARCADE · desk mode checks: the ?desk switch (and index.html's
 // pre-paint copy of it), a desk run held paused at tick 0 that then plays
-// exactly like a web run, desk saves in their own slots, the keyboard dart,
-// the desk words on the page, and the offline worker serving ?desk.
+// exactly like a web run, desk saves in their own slots, the keyboard dart and
+// the starting key, the desk words on the page, the offline worker serving
+// ?desk, and the one-time reload when an earlier build's worker serves old code.
 import fs from 'node:fs';
 import vm from 'node:vm';
 import R from '../src/data/rules.mjs';
@@ -90,6 +91,16 @@ inp.keyDart('LEFT_WING');
 f = inp.frame();
 check(f.dartEdge && f.dartSide === 'RIGHT', 'Down with Right held darts right');
 check(!KEY_MAP.ArrowDown && !KEY_MAP.KeyS, 'the shared key map is unchanged (Down and S are not flap keys)');
+// the key that starts (or resumes) a desk run: the session resumes first (PAUSE -> PLAY clears every
+// held key), then hands the key to the input, so it is held and flaps on the first tick
+const startKey = new InputNormalizer(R.input);
+startKey.setMode('PAUSE');
+startKey.setMode('PLAY');
+startKey.keyDown('ArrowRight');
+f = startKey.frame();
+check(f.right && f.flapEdge, 'the key that starts a desk run is held and flaps on the first tick');
+check(/if \(resume\('KEY'\)&&app\.desk&&KEY_MAP\[ev\.code\]\) input\.keyDown\(ev\.code\);/.test(read('src/app/session.mjs')), 'session: at the desk the resuming flap key goes to the input after resume()');
+check(/else if \(app\.desk&&ev\.code==='Escape'&&isPaused\(\)&&!game\.state\.sim\.tick\) return;/.test(read('src/app/session.mjs')), 'session: Esc does not leave the desk start pause (tick 0)');
 
 // 5. the words on the page speak of keys, and the web words are unchanged
 const scene = read('src/render/scene.mjs'), session = read('src/app/session.mjs'), css = read('assets/arcade-frame.css');
@@ -107,6 +118,52 @@ check(core.includes('./src/app/desk.mjs') && core.includes('./'), 'sw.js precach
 check(/const offlinePage=async\(cache\)=>\{const hit=\(await cache\.match\('\.\/'\)\)/.test(sw), 'offline, a navigation (?desk included) gets the cached page, matched without its search string');
 const sums = Object.fromEntries(read('SHA256SUMS.txt').trim().split('\n').map((l) => l.split(/\s+/).reverse()));
 check('src/app/desk.mjs' in sums && 'sw.js' in sums, 'SHA256SUMS.txt lists src/app/desk.mjs and sw.js');
+
+// 7. after an update, a desk page whose code came from the earlier build's worker does not boot that
+// code: it waits for the new worker and reloads once (at most once per tab); the web page boots as before
+const mod = /<script type="module">([\s\S]*?)<\/script>/.exec(html)[1];
+const [importLine] = /^import \{[^}]*\} from '\.\/src\/app\/boot\.mjs';$/m.exec(mod) || [''];
+check(/\bBUILD_ID\b/.test(importLine), 'index.html takes BUILD_ID from the code it loaded (src/app/boot.mjs)');
+const pageBuild = /<meta name="build" content="([^"]+)">/.exec(html)[1];
+function runPage({ code = pageBuild, desk = true, controller = true, reloadedFor = null, reg = { installing: null, waiting: null } } = {}) {
+  const out = { booted: 0, reloads: 0, timers: [], listeners: {}, status: 'LOADING', updates: 0, messages: [], store: new Map(reloadedFor ? [['struthio.arcade.reloadedFor', reloadedFor]] : []) };
+  const registration = { ...reg, update: async () => { out.updates++; } };
+  if (reg.waiting) registration.waiting = { postMessage: (m) => out.messages.push(m.type) };
+  const ctx = {
+    BUILD_ID: code, boot: () => { out.booted++; return Promise.resolve({ updateReady: false, game: null }); }, showFatal: () => {},
+    location: { hostname: 'example.org', search: desk ? '?desk' : '', reload: () => { out.reloads++; } }, URLSearchParams,
+    document: {
+      querySelector: (sel) => (sel === 'meta[name="build"]' ? { content: pageBuild } : sel === '[data-boot-status]' ? { set textContent(v) { out.status = v; } } : null),
+      getElementById: () => ({ hidden: true }), body: { classList: { contains: (c) => c === 'is-desk' && desk } },
+    },
+    navigator: { serviceWorker: { controller: controller ? {} : null, addEventListener: (t, f) => { out.listeners[t] = f; }, getRegistration: async () => registration } },
+    sessionStorage: { getItem: (k) => out.store.get(k) ?? null, setItem: (k, v) => out.store.set(k, v) },
+    setTimeout: (f, ms) => out.timers.push(ms), setInterval: () => {}, window: { addEventListener: () => {} },
+  };
+  vm.runInNewContext(mod.replace(importLine, ''), ctx);
+  return out;
+}
+const settle = () => new Promise((r) => setTimeout(r, 0));
+const OLD = 'STRUTHIO-ARCADE-1.8.0';
+let p = runPage();
+check(p.booted === 1 && p.reloads === 0 && !p.listeners.controllerchange, 'code and page agree: the game boots at once');
+p = runPage({ code: OLD, desk: false });
+check(p.booted === 1 && p.reloads === 0, 'web page on the earlier build\'s code: boots at once, exactly as before');
+p = runPage({ code: OLD, controller: false });
+check(p.booted === 1 && p.reloads === 0, 'no worker controls the page: boots at once');
+p = runPage({ code: OLD, reg: { installing: {}, waiting: null } });
+await settle();
+check(p.booted === 0 && p.reloads === 0 && p.status === 'UPDATING' && p.store.get('struthio.arcade.reloadedFor') === pageBuild && p.timers.includes(15000), 'desk page on the earlier build\'s code: does not boot; says UPDATING while the new worker installs');
+p.listeners.controllerchange();
+check(p.reloads === 1 && p.booted === 0, 'the new worker takes over: the page reloads');
+p = runPage({ code: OLD, reg: { installing: null, waiting: {} } });
+await settle();
+check(p.messages.join() === 'SKIP_WAITING' && p.reloads === 0, 'a new worker waiting: it is asked to take over');
+p = runPage({ code: OLD });
+await settle(); await settle();
+check(p.updates === 1 && p.reloads === 1 && p.booted === 0, 'no newer worker on the way (the new one already took over): an update check, then reload at once');
+p = runPage({ code: OLD, reloadedFor: pageBuild });
+check(p.booted === 1 && p.reloads === 0, 'already reloaded once in this tab for this build: boots as is (no loop)');
 
 console.log(failures ? `DESK FAILURES: ${failures}` : 'desk: all checks pass');
 process.exitCode = failures ? 1 : 0;

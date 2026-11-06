@@ -76,15 +76,38 @@ if (/^(|1|true|on|yes)$/i.test(new URLSearchParams(location.search).get('desk')?
 </section>
 <noscript><section role="alert" style="color:#FF6B2D;padding:24px">JavaScript is required.</section></noscript>
 <script type="module">
-import { boot, showFatal } from './src/app/boot.mjs';
+import { boot, showFatal, BUILD_ID } from './src/app/boot.mjs';
 // Test flags (seed, freeze, quality, music, globe) are honoured only on a local
 // development server; a published host accepts none.
 const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 const flags = local ? Object.fromEntries(new URLSearchParams(location.search)) : {};
-boot({ flags, local }).then((session) => {
+const start = () => boot({ flags, local }).then((session) => {
 const upd = document.getElementById('update');
 setInterval(() => { upd.hidden = !(session.updateReady && !session.game); }, 500);
 }).catch(() => {});
+// Desk mode right after an update: this page came from the network, but the worker an
+// earlier build installed still serves that build's code and styles from its cache, and
+// they know nothing of desk mode. In that case wait for the new worker to take over (it
+// does so by itself once installed) and reload once; a second mismatch in this tab boots
+// as is. The web page boots at once, as before.
+const page = document.querySelector('meta[name="build"]').content;
+const sw = navigator.serviceWorker;
+let retry = false;
+if (BUILD_ID !== page && sw && sw.controller && document.body.classList.contains('is-desk')) {
+try { retry = sessionStorage.getItem('struthio.arcade.reloadedFor') !== page; if (retry) sessionStorage.setItem('struthio.arcade.reloadedFor', page); } catch { retry = false; }
+}
+if (retry) {
+const reload = () => location.reload();
+const status = document.querySelector('[data-boot-status]');
+if (status) status.textContent = 'UPDATING';
+sw.addEventListener('controllerchange', reload);
+setTimeout(reload, 15000);
+sw.getRegistration().then(async (r) => {
+if (r && !r.installing && !r.waiting) await r.update().catch(() => {});
+if (r && r.waiting) r.waiting.postMessage({ type: 'SKIP_WAITING' });
+else if (!(r && r.installing)) reload();
+}).catch(reload);
+} else start();
 window.addEventListener('error', (e) => { if (!document.getElementById('fatal').hidden) return; showFatal('FATAL_SCRIPT', e.message); });
 </script>
 </body>

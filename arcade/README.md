@@ -46,8 +46,13 @@ For play at a desk with a keyboard (Graphite opens the game this way), add
   Gamepads still work.
 - **No title screen:** the loading card shows only its status, then a new run
   waits on the pause screen at tick 0 with the keys listed. A flap key starts
-  it; Esc pauses again.
+  it, and that key flaps too (an arrow held down keeps steering); Esc does not
+  leave this start screen. During play Esc pauses, and a flap key (or Esc)
+  resumes.
 - **Game over** offers NEW RUN only (Space or Enter), again paused at tick 0.
+- **After an update:** if a browser still has the previous version installed,
+  the first desk load waits a moment for the new version to take over
+  (UPDATING), then reloads once, so desk mode never runs on the old code.
 - **Saves:** desk runs are saved in their own slots
   (`struthio.arcade.v1.desk.*`), so a run the web game left mid-climb is never
   touched; the high-score table is shared.
@@ -103,7 +108,7 @@ The suite covers:
 - **tower-rings**: static ring placement rules.
 - **tower-report**: every island and ring is reachable in flight, at four points of the islands' motion cycles.
 - **save**: slots, corruption and restore.
-- **desk**: the `?desk` switch, a desk run paused at tick 0, desk saves kept apart from the web run, the keyboard dart, one version everywhere.
+- **desk**: the `?desk` switch, a desk run paused at tick 0, desk saves kept apart from the web run, the keyboard dart and the starting key, one version everywhere, and the one-time reload after an update.
 - **tower-sim**: a 12-round bot soak, with the cap, zone, camera, save and determinism rules checked every tick.
 
 Test hooks (`window.__struthio`, URL flags such as `?seed=7`) exist only on a

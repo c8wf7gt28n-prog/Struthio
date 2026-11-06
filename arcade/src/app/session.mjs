@@ -478,7 +478,11 @@ else if (!ev.repeat&&isGameOver()&&(ev.code==='ArrowRight'||ev.code==='KeyD'||ev
 else if (!ev.repeat&&isGameOver()&&(ev.code==='Space'||ev.code==='Enter')) confirmGameOver();
 else if (app.desk&&!ev.repeat&&(ev.code==='ArrowDown'||ev.code==='KeyS')&&game&&game.state.sim.shell==='PLAY') input.keyDart(game.state.player.facing<0?'LEFT_WING':'RIGHT_WING');
 else if (ev.code==='Escape'&&!ev.repeat&&game&&game.state.sim.shell==='PLAY') pause('KEY');
-else if (!ev.repeat&&isPaused()&&(ev.code==='Escape'||KEY_MAP[ev.code])) resume('KEY');
+// Desk mode's start pause (tick 0) is left only by a flap key, as its words say; Esc stays put.
+else if (app.desk&&ev.code==='Escape'&&isPaused()&&!game.state.sim.tick) return;
+// At the desk the flap key that starts or resumes the run also acts: resume() switches the input
+// mode (which clears every held key) first, then the key is held and flaps.
+else if (!ev.repeat&&isPaused()&&(ev.code==='Escape'||KEY_MAP[ev.code])){if (resume('KEY')&&app.desk&&KEY_MAP[ev.code]) input.keyDown(ev.code);}
 else input.keyDown(ev.code,ev.repeat);
 });
 window.addEventListener('keyup',(ev)=>input.keyUp(ev.code));
