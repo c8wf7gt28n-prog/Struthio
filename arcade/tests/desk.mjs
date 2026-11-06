@@ -94,7 +94,7 @@ check(!KEY_MAP.ArrowDown && !KEY_MAP.KeyS, 'the shared key map is unchanged (Dow
 // 5. the words on the page speak of keys, and the web words are unchanged
 const scene = read('src/render/scene.mjs'), session = read('src/app/session.mjs'), css = read('assets/arcade-frame.css');
 check(!/\btap|wing/i.test(DESK_LABEL) && /Escape pauses/.test(DESK_LABEL), 'the desk canvas label names keys, not taps or wings');
-check(/'BOTH WINGS TO RESUME'/.test(scene) && /'A FLAP KEY STARTS'/.test(scene) && /'A FLAP KEY RESUMES'/.test(scene), 'the pause screen: BOTH WINGS on the web, a flap key at the desk');
+check(/'BOTH WINGS TO RESUME'/.test(scene) && /'A FLAP KEY TO START'/.test(scene) && /'A FLAP KEY TO RESUME'/.test(scene), 'the pause screen: BOTH WINGS on the web, a flap key at the desk');
 check(/GAMEOVER_ITEMS=Object\.freeze\(\['NEW RUN','TITLE'\]\)/.test(session) && /DESK_GAMEOVER_ITEMS=Object\.freeze\(\['NEW RUN'\]\)/.test(session), 'game over: NEW RUN and TITLE on the web, NEW RUN only at the desk');
 check(/body\.is-desk #controls[^{]*\{display:none!important;pointer-events:none\}/.test(css) && /body\.is-desk #title-screen/.test(css), 'desk CSS: the wing controller and the title screen are not displayed');
 

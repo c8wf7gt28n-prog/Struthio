@@ -17,7 +17,7 @@ const Z=Object.freeze({BG:0.95,WORLD:0.9,GEOLOGY:0.84,PLATFORM:0.76,RING:0.68,EG
 const CLASS_ROW=Object.freeze({PLAYER:0,BOUNDER:1,HUNTER:2,SHADOW:3});
 const MODERN_TONE=Object.freeze({WHITE:0,CYAN:1,LAVA:2,GOLD:3,DIM:4});
 // Desk mode's key legend on the pause screen (the 5x7 font has no arrows).
-const DESK_KEYS=Object.freeze([['LEFT RIGHT / A D','FLAP'],['UP / W / SPACE','FLAP HARD'],['DOWN / S','DART'],['ESC','PAUSE']]);
+const DESK_KEYS=Object.freeze([['LEFT / A','FLAP LEFT'],['RIGHT / D','FLAP RIGHT'],['UP / W / SPACE','FLAP HARD'],['DOWN / S','DART'],['ESC','PAUSE']]);
 class Scene{
 constructor(R,atlas){
 this.R=R;
@@ -407,11 +407,12 @@ scene.textCentered('THEN THE GOLD RING AT THE MOON',204,Z.OVERLAY,1,128,'CYAN');
 if (s.sim.shell==='PAUSE'){
 shade(scene);
 scene.textCentered('PAUSED',164,Z.TOP,2,128,'CYAN');
-scene.textCentered(view.desk?(s.sim.tick?'A FLAP KEY RESUMES':'A FLAP KEY STARTS'):'BOTH WINGS TO RESUME',191,Z.TOP,1,128,'WHITE');
+scene.textCentered(view.desk?(s.sim.tick?'A FLAP KEY TO RESUME':'A FLAP KEY TO START'):'BOTH WINGS TO RESUME',191,Z.TOP,1,128,'WHITE');
 scene.textCentered(`SCORE ${fmt(s.sim.score)}`,210,Z.TOP,1,128,'GOLD');
 if (view.desk){
-scene.swatch('cyanDark',64,227,128,1,Z.TOP+.004);
-DESK_KEYS.forEach(([keys,does],i)=>{scene.text(keys,34,236+i*12,Z.TOP,1,'CYAN');scene.text(does,223-does.length*6,236+i*12,Z.TOP,1,'DIM');});
+scene.swatch('shade',28,226,200,66,Z.TOP+.006);
+scene.swatch('cyanDark',28,226,200,1,Z.TOP+.004);scene.swatch('cyanDark',28,291,200,1,Z.TOP+.004);
+DESK_KEYS.forEach(([keys,does],i)=>{scene.text(keys,36,233+i*11,Z.TOP,1,'CYAN');scene.text(does,221-does.length*6,233+i*11,Z.TOP,1,'WHITE');});
 }
 }
 if (s.sim.shell==='GAMEOVER'){

@@ -28,7 +28,7 @@ Controls:
 | --- | --- | --- |
 | Flap left / right | tap that wing | ← / → (A / D) |
 | Strong vertical flap | tap both wings | ↑ / Space / W |
-| DART | flick down on a wing (a diagonal flick picks the side) | ↓ |
+| DART | flick down on a wing (a diagonal flick picks the side) | ↓ / S in desk mode |
 | Pause | — | Esc, or Start on a controller |
 
 Gamepads work as well.
