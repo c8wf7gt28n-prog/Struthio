@@ -49,3 +49,11 @@ answered in 14 to 15 seconds.
   what the Field knows of the wires fills that in. Better reads make every model better.
 - Everything the model says in this path is marked as the model's words, under rows the owner can run again.
 - Not measured: the ThinkPad, the Radeon, a 27B file, a long conversation, and anything that proposes an action.
+
+## Later the same day, with 0.4
+
+The calculation's read was given its values and units (`select symbol,parameter,cell,value,unit,conditions`). The 2B model,
+asked "what went into this?", then said: "The calculation uses a voltage of 12 V from cell B2 and a settled current of
+280 mA from cell B3." A cell of the sheet was changed to 300, the desk was checked and settled from the keyboard (C, 1, G;
+no model takes part in that), and the same question about the calculation that replaced the old one gave: "… a settled
+current of 300 mA from cell B3." 6 to 16 seconds each, with the test suite running beside it.

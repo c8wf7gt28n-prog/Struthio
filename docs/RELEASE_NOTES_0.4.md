@@ -58,4 +58,5 @@ whose source was decided again still has to be reviewed from its page by hand, a
 here. No native program was started: none is installed in the build container, where the go was refused with the
 program's own words. The assignment loop that keeps working while Graphite is closed is not connected to this yet:
 settling runs while you watch. A chain of steps cannot yet be kept under a name and run again on new material. A finding rewritten with a new number stands on nothing until its sources are cited for it again. No model takes
-part in choosing a step; with a model loaded Stacy still only puts reads into words.
+part in choosing a step; with a model loaded Stacy still only puts reads into words (a calculation's read now carries its
+values and units, so she names them: `docs/MODEL_TRIAL_03.md`).
