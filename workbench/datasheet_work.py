@@ -178,7 +178,7 @@ def report_state(kernel, principal, derivation):
     return {'state': 'CURRENT', 'current_revision': saved['revision']}
 
 
-def report(kernel, args, principal, prior=None):
+def report(kernel, args, principal, prior=None, replaces=None):
     from . import documents
     from .office_service import store
     saved = store().get(args['id'])
@@ -249,7 +249,18 @@ def report(kernel, args, principal, prior=None):
     derivation = {'profile': REPORT, 'sheet': saved['id'], 'sheet_revision': saved['revision'],
         'pdf': source, 'inputs': inputs, 'calculation': result,
         'recipe': {key: args[key] for key in ('expression', 'inputs', 'output_unit', 'assumption') if key in args}}
-    document = documents.create(kernel, {'title': saved['document']['title'] + ' · calculation',
+    title = saved['document']['title'] + ' · calculation'
+    if replaces:
+        # A recheck is the same calculation brought up to date, so the new page keeps the owner's name for it; where that
+        # name carried the old result ("07 Settled power · 3.36 W") it carries the new one. The page it replaces is named
+        # in the derivation, so a reader shows the current one and does not leave the old one waiting for ever.
+        derivation['replaces'] = replaces['id'];title = replaces['title'] or title
+        was = ((prior or {}).get('calculation') or {}).get('outputs') or []
+        was = was[0].get('value') if was and isinstance(was[0], dict) else None
+        if isinstance(was, dict) and was.get('decimal') is not None:
+            said = '%s %s' % (was['decimal'], was.get('unit') or '')
+            if said.strip() and said in title:title = title.replace(said, '%s %s' % (value['decimal'], value['unit']))
+    document = documents.create(kernel, {'title': title,
         'text': '\n'.join(lines), 'origin': 'IMPORTED'}, principal, derivation=derivation)
     return {'document': document, 'calculation': result}
 
@@ -271,4 +282,4 @@ def dispatch(kernel, operation, args, principal):
     sheet = store().get(prior['sheet'])
     recipe = {**prior['recipe'], 'inputs': {item['symbol']: item['cell'] for item in prior['inputs']}}
     return report(kernel, {'id': sheet['id'], 'expected_revision': sheet['revision'], **recipe},
-                  principal, prior=prior)
+                  principal, prior=prior, replaces={'id': doc['id'], 'title': doc.get('title') or ''})

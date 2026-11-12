@@ -80,6 +80,8 @@ class Reader:
         self.elsewhere = 0           # sheets of the owner's Office that are not shown here because their home is not this workspace
         self.skip = set(skip)        # ids that could not be read last time: not asked again until the owner looks again
         self.left_out = []
+        self.replaced = set()        # calculations another calculation says it replaces (a recheck makes a new page)
+        self.retired = 0             # how many of those were taken off the Field
 
     def call(self, operation, arguments=None, record=None):
         """One Kernel read. `record` names the single record being read, so a refusal is counted against it and not the kind."""
@@ -200,6 +202,7 @@ class Reader:
             if got is None:
                 self.add(FieldObject(ident, 'document', row.get('title') or row['id'], 'could not be read', NOT_READ, (), '', target, stac=page_code));continue
             derivation = (got.get('document') or {}).get('derivation')
+            if derivation and derivation.get('replaces'):self.replaced.add('document:' + str(derivation['replaces']))
             facts = [];cells = '';where = ''
             if row.get('revision') is not None:facts.append('revision %s' % row['revision'])
             if not derivation:       # a plain page comes from nothing, so it has nothing to agree with: no state
@@ -394,12 +397,19 @@ def read_field(kernel, principal, title='', skip=()):
     reader.material();reader.tables();reader.pages_and_calculations()
     investigations = reader.findings()
     reader.settle_tables();reader.totals();reader.jobs()
+    if reader.replaced:      # a calculation that was brought up to date is a new page; the one it replaced is history, not work
+        gone = {obj.id for obj in reader.objects if obj.id in reader.replaced and obj.kind == 'calculation'}
+        reader.objects = [obj for obj in reader.objects if obj.id not in gone]
+        reader.links = [link for link in reader.links if link.source not in gone and link.target not in gone]
+        reader.retired = len(gone)
     if not title and len(investigations) == 1:
         question, state = investigations[0]
         title = question + ('  ·  ' + words(state) if state else '')
     aside = ''
     if reader.elsewhere:
         aside = '%d sheet%s of your Office %s not shown here' % (reader.elsewhere, '' if reader.elsewhere == 1 else 's', 'is' if reader.elsewhere == 1 else 'are')
+    if reader.retired:
+        aside += ('  ·  ' if aside else '') + '%d earlier calculation%s replaced, kept in Documents' % (reader.retired, '' if reader.retired == 1 else 's')
     return Field(reader.objects, reader.links, title, note=_left_out(reader), aside=aside), reader
 
 

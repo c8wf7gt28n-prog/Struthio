@@ -39,6 +39,10 @@ class FieldPage(QWidget):
         self.view.look_again.connect(lambda: self.refresh(force=True))
         self.view.stac_line.connect(lambda obj: stac_in_line(self.host, obj))
         self.view.stac_run.connect(lambda obj: stac_run(self.host, obj))
+        self.view.do_asked.connect(lambda obj: do(self.host, obj))
+        self.view.step_chosen.connect(lambda obj, n: take(self.host, obj, n))
+        self.view.check_asked.connect(lambda: check_desk(self.host))
+        self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
         self.view.faces = FACES;self.face = self.view.face = 'work'
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
@@ -179,6 +183,77 @@ def thing_of(host, obj):
     return {'title': obj.title, 'stac': obj.stac, 'kind': obj.kind, 'state': obj.state, 'lines': [str(line) for line in obj.lines],
             'fed_by': [say(name[l.source]) for l in field.links if l.target == obj.id and l.source in name],
             'feeds': [say(name[l.target]) for l in field.links if l.source == obj.id and l.target in name]}
+
+
+def _talk(host):
+    """Stacy's pane, brought to the front of the right column; the keyboard stays in the Field."""
+    shell = getattr(host, 'shell2', None)
+    if shell is None:return None
+    face = shell.show_slate_face()
+    page = getattr(host, 'field_page', None)
+    if page is not None and getattr(host, '_field_active', False):page.view.setFocus(Qt.OtherFocusReason)
+    return face
+
+
+def do(host, obj):
+    """D: ask the records what can be done about this sheet. The steps show in the Field, numbered, and Stacy says them in
+    Talk. Nothing runs by being offered."""
+    from .engineering_kernel import operator
+    from .field_do import steps_for
+    page = host.field_page;kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
+    if kernel is None or obj is None:return ()
+    steps = steps_for(kernel, operator(), obj, page.view.field)
+    page.steps = tuple(steps);page.steps_of = obj.id
+    page.view.steps = tuple((step.words, step.kind) for step in steps);page.view.update()
+    face = _talk(host)
+    if face is not None and steps:face.say_steps(obj.title, steps, lambda n, obj=obj:take(host, obj, n))
+    if not steps:host.statusBar().showMessage('Field · the records offer nothing to do about %s' % obj.title, 6000)
+    return page.steps
+
+
+def take(host, obj, n):
+    """Take one of the steps offered for this sheet. A read runs at once and Stacy shows its line and what the records
+    answered. A step that changes something is put in Talk with its exact line and waits for the owner's Run; when it has
+    run, the Field reads the records again."""
+    page = host.field_page
+    if obj is None or page.steps_of != obj.id or not 0 <= n < len(page.steps):return None
+    step = page.steps[n];face = _talk(host)
+    if face is None:return None
+    if step.kind == 'read':
+        card = face.answer_in_stac({'title': obj.title, 'stac': step.line, 'kind': obj.kind}, '%s, for “%s”:' % (step.words, obj.title))
+    else:
+        card = face.stage(obj.title, step, done=lambda ok, result, obj=obj:_after(host, obj, ok, result))
+    page.view.setFocus(Qt.OtherFocusReason)
+    return card
+
+
+def _after(host, obj, ok, result):
+    """A step changed something: the Field reads the records again. A page that took the place of the selected one (a
+    calculation brought up to date) is the one selected now."""
+    if not ok:return
+    page = host.field_page;page.refresh(force=True)
+    made = (result or {}).get('document') if isinstance(result, dict) else None
+    for ident in (('document:' + str(made.get('id'))) if isinstance(made, dict) and made.get('id') else '', obj.id):
+        if ident and page.view.field.get(ident) is not None:
+            page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe();break
+    page.view.update()
+
+
+def check_desk(host):
+    """C: check the desk. Everything is read again; findings are checked against their sources without marking anything;
+    Stacy says what waits and why, each with the step that would settle it, and lists the reads she made."""
+    from .engineering_kernel import operator
+    from .field_do import sweep
+    page = host.field_page;kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
+    if kernel is None or page.face != 'work':return None
+    page.refresh(force=True)
+    waiting, lines = sweep(kernel, operator(), page.view.field)
+    face = _talk(host)
+    if face is None:return None
+    def go(obj):
+        if page.view.field.get(obj.id) is None:return
+        page.view.field.select(obj.id);page.view._reveal_pending = True;page.view._describe();page.view.update();do(host, obj)
+    return face.say_desk(len(page.view.field.objects), waiting, lines, go)
 
 
 def stac_in_line(host, obj):

@@ -47,6 +47,10 @@ class FieldView(QWidget):
     look_again = Signal()              # the owner asked for the records to be read again
     stac_line = Signal(object)         # S: the selected object's staC line goes to the writing strip (nothing runs)
     stac_run = Signal(object)          # Shift+Enter: the selected object's staC line is run; the answer shows in the working area
+    do_asked = Signal(object)          # D: what can be done about the selected object (the page answers by setting .steps)
+    step_chosen = Signal(object, int)  # a digit while the steps show: take that step
+    full_asked = Signal(object)        # F on the shelf: the selected program in its full window
+    check_asked = Signal()             # C: check the desk (everything read again, what waits said with its next step)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -56,6 +60,7 @@ class FieldView(QWidget):
         self.art_mode = 'clean'             # the desk's artwork choice: 'illustrated' (the portrait rail), 'ascii' (a mark), 'clean'
         self.art_folder = None              # branding/boss of the program that serves this workspace; the page sets it
         self.problem = ''                   # what could not be read, in words; shown on the surface, never hidden
+        self.steps = ()                     # what can be done about the selected sheet, while the owner looks at it: (words, kind) pairs
         self._plate = None;self._plate_drawn = (None, None)
         self._face_boxes = []
         self.scroll_x = 0.0;self.scroll_y = 0.0
@@ -81,7 +86,7 @@ class FieldView(QWidget):
         return self.field.get(self.field.selected)
 
     def _describe(self):
-        obj = self.selected()
+        obj = self.selected();self.steps = ()          # the steps belong to the sheet they were asked for: another sheet, or a new reading, closes them
         if obj is None:
             self.setAccessibleDescription(self.problem or 'Nothing is here yet.')
         else:
@@ -214,7 +219,20 @@ class FieldView(QWidget):
             if self.selected() is not None and self.selected().stac:self.stac_line.emit(self.selected())
             return
         elif key == Qt.Key_Escape:
+            if self.steps:                   # the first Esc closes the steps; the next one leaves
+                self.steps = ();self.update();return
             self.left.emit();return
+        elif key == Qt.Key_D and plain:      # D: what can be done about this. The page asks the records and fills .steps
+            if self.selected() is not None:self.do_asked.emit(self.selected())
+            return
+        elif plain and self.steps and Qt.Key_1 <= key <= Qt.Key_9:
+            if key - Qt.Key_1 < len(self.steps):self.step_chosen.emit(self.selected(), key - Qt.Key_1)
+            return
+        elif key == Qt.Key_C and plain:      # C: check the desk
+            self.check_asked.emit();return
+        elif key == Qt.Key_F and plain:      # F on the shelf: this program in its full window
+            if self.selected() is not None and self.selected().kind == 'app':self.full_asked.emit(self.selected())
+            return
         elif key == Qt.Key_R and plain:
             self.look_again.emit();return
         elif plain and any(event.text().lower() == letter for _, letter in self.faces):
@@ -324,7 +342,9 @@ class FieldView(QWidget):
     def _stac(self, p, body):
         """Stacy's rail speaks staC: under her portrait, the pipeline that reads the selected sheet, and the two keys for it."""
         w = self.rail();obj = self.selected()
-        if not w or obj is None or not obj.stac:return
+        if not w or obj is None:return
+        if self.steps:return self._do(p, body, w)
+        if not obj.stac:return
         s = self.scale()
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font());head = QFontMetricsF(self.mono(12, QFont.Medium))
         pad = 12 * s;inner_w = w - 2 * 10 * s - 2 * pad
@@ -353,6 +373,33 @@ class FieldView(QWidget):
         y += 6 * s + head.ascent()
         p.setFont(self.mono(12));p.setPen(QColor(t.QUIET))
         p.drawText(QPointF(x, y), QFontMetricsF(p.font()).elidedText('S  line  ·  Shift+Enter  run', Qt.ElideRight, inner_w))
+
+    def _do(self, p, body, w):
+        """The same place in Stacy's rail, when the owner asked what can be done (D): the steps the records offer for the selected
+        sheet, numbered. A step that changes something says it asks first."""
+        s = self.scale();p.setFont(self.mono(12));fm = QFontMetricsF(p.font());head = QFontMetricsF(self.mono(12, QFont.Medium))
+        pad = 12 * s;inner_w = w - 2 * 10 * s - 2 * pad;asks = 'asks';asks_w = fm.horizontalAdvance(asks) + 8 * s
+        rows = []
+        for n, (words, kind) in enumerate(self.steps[:9]):
+            write = kind == 'write';room = inner_w - (asks_w if write else 0)
+            for at, line in enumerate(self._wrap('%d  %s' % (n + 1, words), fm, room, 2)):
+                rows.append((line if at == 0 else '   ' + line, write and at == 0))
+        tall = pad * 2 + head.height() + 4 * s + len(rows) * fm.height() + 6 * s + head.height()
+        if tall > body.height() - 24 * s:return           # no room under her: the foot still says them
+        box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
+        p.setPen(QPen(ink(t.AMBER_EDGE, 0.8), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.92));p.drawRect(box)
+        x = box.left() + pad;y = box.top() + pad + head.ascent()
+        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(x, y), 'DO')
+        said = 'what can be done';said_w = head.horizontalAdvance(said)
+        if inner_w > head.horizontalAdvance('DO') + said_w + 12 * s:
+            p.setPen(QColor(t.QUIET));p.setFont(self.mono(12));p.drawText(QPointF(box.right() - pad - said_w, y), said)
+        y += 4 * s + head.descent();p.setFont(self.mono(12))
+        for line, write in rows:
+            y += fm.height();p.setPen(QColor(t.TEXT));p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line, Qt.ElideRight, inner_w - (asks_w if write else 0)))
+            if write:
+                p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(box.right() - pad - fm.horizontalAdvance(asks), y - fm.descent()), asks)
+        y += 6 * s + head.ascent();p.setPen(QColor(t.QUIET))
+        p.drawText(QPointF(x, y), fm.elidedText('1-%d  take  ·  Esc  close' % min(9, len(self.steps)) if len(self.steps) > 1 else '1  take  ·  Esc  close', Qt.ElideRight, inner_w))
 
     def _texture(self, p, body):
         """A still scan texture and a darker rim: depth without movement."""
@@ -575,8 +622,8 @@ class FieldView(QWidget):
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, top + 0.5), QPointF(self.width(), top + 0.5))
         obj = self.selected()
         # The keys, in the order they are read; when the line is too narrow they give way one at a time, the least needed first.
-        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'S  staC'), (5, 'Menu  more'), (4, 'A  next waiting'), (6, 'R  look again'), (0, 'Esc  back')]
-        legend = [(7, '%s  %s' % (letter.upper(), name)) for name, letter in self.faces if name != self.face] + legend
+        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'D  do'), (4, 'C  check all'), (5, 'S  staC'), (7, 'Menu  more'), (6, 'A  next waiting'), (8, 'R  look again'), (0, 'Esc  back')]
+        legend = [(9, '%s  %s' % (letter.upper(), name)) for name, letter in self.faces if name != self.face] + legend
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font())
         if obj is None:
             p.setPen(QColor(t.QUIET));p.drawText(QPointF(x, top + h / 2 + fm.ascent() / 2), 'R  look again      Esc  back');return
@@ -605,6 +652,9 @@ class FieldView(QWidget):
         if not said:said = obj.where
         p.setFont(self.mono(12.5));fm3 = QFontMetricsF(p.font());p.setPen(QColor(t.QUIET))
         code = '' if self.rail() or not obj.stac else 'staC  ' + '  '.join(self.stac_lines(obj.stac))      # no rail: the line is said here
+        if self.steps:                       # the owner asked what can be done: the foot says the steps, wherever the rail is
+            said = 'DO      ' + '      '.join('%d  %s%s' % (n + 1, words, ' (asks first)' if kind == 'write' else '') for n, (words, kind) in enumerate(self.steps[:9]))
+            code = '';p.setPen(QColor(t.AMBER_TEXT))
         code_w = min(fm3.horizontalAdvance(code), wide * 0.5) if code else 0.0
         p.drawText(QPointF(x, top + h - 14 * s), fm3.elidedText(said, Qt.ElideRight, wide - (code_w + 28 * s if code else 0)))
         if code:

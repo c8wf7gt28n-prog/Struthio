@@ -1625,7 +1625,8 @@ class SlateFace(QWidget):
         from .engine import engineering
         from .engineering_kernel import operator
         from .office_building_qt import readable_result
-        line = thing['stac'];operation, arguments = route_program(line)
+        from .field_do import call as line_call
+        line = thing['stac'];operation, arguments = line_call(line)
         card = self.say(intro)
         code = QLabel(breakable(line.replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))      # a stage a line, as her rail in the Field shows it
         code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
@@ -1639,6 +1640,8 @@ class SlateFace(QWidget):
         else:
             said = (readable_result(r['result']) if isinstance(r['result'], dict) else str(r['result'])[:2000]) if r.get('ok') \
                 else 'The records did not answer: ' + r['error']['message']
+            if r.get('ok') and said == 'Done.' and isinstance(r['result'], dict):      # a read whose answer is a record, not rows: the record itself, in short
+                said = json.dumps(r['result'], indent=1, ensure_ascii=False, default=str)[:1500]
         answer = QLabel(breakable(said));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
         answer.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);answer.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(answer)
         from .context_menu import inspect_in_line
@@ -1648,6 +1651,74 @@ class SlateFace(QWidget):
         card.box.addWidget(sentence('{line}  ·  {watch}  ·  {keep}' + ('  ·  {save}' if rows else ''), words))
         card.stac = line;card.answered = bool(r.get('ok'));card.said = said
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))      # her answer from its first line, not its last
+        return card
+
+    # ---- doing: the steps the records offer for a thing (workbench/field_do.py), said and carried out here ---------------------
+    def say_steps(self, title, steps, take):
+        """What can be done about a thing: each step a word to choose, numbered as the Field numbers them. `take(n)` takes one."""
+        card = self.say('What can be done about “%s”. A number in the Field takes a step, or choose it here. One that changes something asks first.' % title)
+        for n, step in enumerate(steps[:9]):
+            words = '%d  %s' % (n + 1, step.words) + ('  ·  asks first' if step.kind == 'write' else '')
+            card.box.addWidget(sentence('{go}', {'go': (words, lambda n=n:take(n))}))
+        card.steps = steps
+        QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
+        return card
+
+    def stage(self, title, step, done=None):
+        """A step that changes something waits here for the owner: what it does, what it leaves behind, the exact line, and
+        Run. Run is the owner's go: the line goes through the Kernel with the owner's own authority, once. `done(ok, result)`
+        is told how it went, so the Field can read the records again."""
+        from .context_menu import inspect_in_line
+        card = self.say('For “%s”: %s. This changes something, so it waits for you.' % (title, step.words[:1].lower() + step.words[1:]))
+        if step.why:
+            why = QLabel(breakable(step.why[:1].upper() + step.why[1:] + '.'));why.setWordWrap(True);why.setStyleSheet('color:%s' % QUIET)
+            why.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(why)
+        code = QLabel(breakable(step.line));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))
+        code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + step.line);card.box.addWidget(code)
+        row = QHBoxLayout();run = button('Run', 'stac');run.setObjectName('StagedRun');row.addWidget(run)
+        row.addWidget(sentence('{line}', {'line': ('in the line', lambda:inspect_in_line(self.host, step.line))}));row.addStretch(1);card.box.addLayout(row)
+        card.step = step;card.run = run;card.ran = None
+        run.clicked.connect(lambda:self.run_staged(card, done))
+        QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
+        return card
+
+    def run_staged(self, card, done=None):
+        from .engine import engineering
+        from .engineering_kernel import operator
+        from .field_do import call as line_call
+        if card.ran is not None:return           # one go, one run
+        operation, arguments = line_call(card.step.line)
+        r = engineering(self.host.root).dispatch(operation, arguments, operator())
+        card.ran = bool(r.get('ok'));card.run.setEnabled(False);card.run.setText('Ran' if card.ran else 'Refused')
+        if card.ran:
+            result = r['result'] if isinstance(r['result'], dict) else {}
+            if isinstance(result.get('document'), dict) and result['document'].get('title'):said = 'Done: “%s”.' % result['document']['title']
+            elif isinstance(result.get('words'), str) and result['words']:said = 'Done. ' + result['words']
+            elif isinstance(result.get('changed'), list):said = 'Done: %s.' % ('nothing had changed' if not result['changed'] else '%d changed' % len(result['changed']))
+            elif isinstance(result.get('ran'), list):said = 'Done: %d check%s ran%s.' % (len(result['ran']), '' if len(result['ran']) == 1 else 's', (': ' + ', '.join(str(x.get('outcome')) for x in result['ran'][:6])) if result['ran'] else '')
+            else:said = 'Done.'
+        else:
+            said = 'It was refused, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400]
+        note = QLabel(breakable(said));note.setWordWrap(True);note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(note)
+        if done is not None:done(card.ran, r.get('result') if card.ran else None)
+
+    def say_desk(self, count, waiting, lines, go):
+        """The desk, checked: how many things were read, which wait for the owner and why, and the reads that were made.
+        `go(object)` goes to one of them in the Field and says what can be done about it."""
+        if not waiting:
+            card = self.say('I read the desk: %d thing%s. Nothing waits for you.' % (count, '' if count == 1 else 's'))
+        else:
+            card = self.say('I read the desk: %d thing%s. %d wait%s for you:' % (count, '' if count == 1 else 's', len(waiting), 's' if len(waiting) == 1 else ''))
+            for n, (obj, why, steps) in enumerate(waiting[:12]):
+                card.box.addWidget(sentence('{go}', {'go': ('“%s”' % obj.title, lambda obj=obj:go(obj))}))
+                first = next((step for step in steps if step.kind == 'write'), None)
+                said = QLabel(breakable(why + ((' · next: ' + first.words[:1].lower() + first.words[1:]) if first else '')));said.setWordWrap(True)
+                said.setStyleSheet('color:%s' % QUIET);said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
+            if len(waiting) > 12:card.box.addWidget(QLabel('… and %d more' % (len(waiting) - 12)))
+        if lines:program_detail(card.box, 'The %d reads I made' % len(lines), '\n'.join(lines))
+        card.waiting = waiting
+        QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
 
     def ask(self, text, about=None):

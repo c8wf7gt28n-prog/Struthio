@@ -1237,6 +1237,9 @@ def field_entries(host, t):
     if obj is None:
         other = [name for name, _ in view.faces if name != view.face]
         out.append(Entry('field:again', 'Look again', 'open', view.look_again.emit, icon='explore', caption='R', tip='Read the records again'))
+        if view.face == 'work':
+            out.append(Entry('field:check', 'Check the desk', 'command', view.check_asked.emit, icon='explore', caption='C',
+                             tip='Everything is read again; Stacy says what waits for you and what would settle it'))
         for name in other:
             out.append(Entry('field:face:' + name, 'Show the %s' % name, 'open', lambda name=name:view.face_chosen.emit(name), icon='network' if name == 'network' else 'projects',
                              caption=dict(view.faces)[name].upper()))
@@ -1273,6 +1276,8 @@ def field_entries(host, t):
                          tip='Its staC line in the writing strip; nothing runs until Ctrl+Enter:\n' + obj.stac))
         out.append(Entry('field:run', 'Run its staC', 'command', lambda:field_page.stac_run(host, obj), icon='line', caption='Shift+Enter',
                          operation='language.run', tip='A read; the answer shows in the working area:\n' + obj.stac))
+    out.append(Entry('field:do', 'What can be done', 'command', lambda:view.do_asked.emit(obj), icon='line', caption='D',
+                     tip='The steps the records offer for this. A read runs at once; one that changes something asks first'))
     if not network:
         out.append(Entry('field:ask', 'Ask Stacy about this', 'command', lambda:ask_about_sheet(host, obj),
                          icon='ask', tip='Its name in the line for you to finish. Her answer is in Talk; with no model she answers from the records, in staC'))
