@@ -87,7 +87,8 @@ class FieldView(QWidget):
         else:
             feeds = [self.field.get(l.target).title for l in self.field.feeds(obj.id)]
             fed = [self.field.get(l.source).title for l in self.field.fed_by(obj.id)]
-            said = '%s: %s.' % ((obj.tag or KIND_TAG.get(obj.kind, obj.kind)).capitalize(), str(obj.title).rstrip('. '))
+            said = '%s: %s' % ((obj.tag or KIND_TAG.get(obj.kind, obj.kind)).capitalize(), str(obj.title).rstrip('. '))
+            if not said.endswith(('?', '!')):said += '.'
             if obj.state:said += ' State: %s.' % STATE_WORD.get(obj.state, obj.state)
             if fed:said += ' %s %s.' % (self.field.verbs[0].capitalize(), ', '.join(fed))
             if feeds:said += ' %s %s.' % (self.field.verbs[1].capitalize(), ', '.join(feeds))
@@ -419,7 +420,7 @@ class FieldView(QWidget):
             p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
         elif state == STATE_RECHECK:
             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
-        elif state == STATE_HELD:
+        elif state in (STATE_HELD, 'refuted'):
             p.drawRect(box);p.drawLine(box.topLeft(), box.bottomRight())
         elif state in ('waiting', 'paused'):
             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawEllipse(box.center(), box.width() * 0.18, box.width() * 0.18)
@@ -524,6 +525,8 @@ class FieldView(QWidget):
         if self.scroll_x > 1:said.append('← more')
         if wide - body.width() - self.scroll_x > 1:said.append('more →')
         note = ' · '.join(part for part in (self.field.note, self.problem) if part)
+        if not note and self.field.aside:  # what belongs elsewhere is said quietly, when nothing louder is being said
+            said.insert(0, self.field.aside)
         if said or note:                   # on its own strip of ground, so it is read over whatever sheet lies under it
             p.fillRect(QRectF(body.left(), body.bottom() - 24 * s, body.width(), 24 * s), ink(t.TERMINAL_GROUND, 0.9))
         if said:

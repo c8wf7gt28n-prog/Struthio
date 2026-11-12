@@ -41,7 +41,11 @@ NOT_READ = 'not read'            # the record itself could not be read this time
 # Each record costs one Kernel read on the window's own thread, so a face reads at most this many of a kind (the newest
 # first where the list says when) and the Field says how many it left out. The owner's desk stays quick in a large workspace.
 CEILING = 60
-PAGES_CEILING = 120              # pages are cheap to read and the older ones hold the calculations
+PAGES_CEILING = 300              # pages are cheap to read, and the older ones hold the calculations: they are not the first to go
+ELSEWHERE = 'elsewhere'          # a sheet of the owner's Office whose source lives in another workspace: quiet, not an alarm
+REFUTED = 'refuted'              # a finding the evidence speaks against: settled, and never drawn with the mark of one that stands
+CHECK_WORDS = {'PASSED': 'check passed', 'CHECK_FAILED': 'did not hold', 'FAILED': 'did not hold', 'STALE': 'check is out of date',
+               'NOT_RUN': 'check not run'}
 CLAIMS_CEILING = 40              # per investigation
 PAGE = 100                       # rows a list operation returns at most in one answer
 
@@ -72,6 +76,8 @@ class Reader:
         self.objects = [];self.links = [];self.names = {}
         self.refused = []            # (operation, reason): a whole list that did not answer
         self.unread = []             # ids of single records that could not be read this time
+        self.items_here = set()      # every file ever brought into this workspace's collections, whatever its admission
+        self.elsewhere = 0           # sheets of the owner's Office that are not shown here because their home is not this workspace
         self.skip = set(skip)        # ids that could not be read last time: not asked again until the owner looks again
         self.left_out = []
 
@@ -120,8 +126,9 @@ class Reader:
         not material."""
         spaces = self.call('intake.namespaces') or {}
         for space in spaces.get('namespaces', ()):
-            items = [item for item in self.pages('intake.items', 'items', {'namespace': space['id']})
-                     if str(item.get('admission', '')).upper() not in ('REJECTED', 'REVOKED')]
+            items = self.pages('intake.items', 'items', {'namespace': space['id']})
+            self.items_here |= {'intake:' + str(item['id']) for item in items}
+            items = [item for item in items if str(item.get('admission', '')).upper() not in ('REJECTED', 'REVOKED')]
             for item in self.newest(items, 'sources'):
                 admission = str(item.get('admission', '')).upper()
                 if admission == 'ACCEPTED':state, role = STATE_CURRENT, 'admitted source'
@@ -156,8 +163,11 @@ class Reader:
             if source.get('path'):
                 try:under = Path(source['path']).resolve().is_relative_to(root)
                 except (OSError, ValueError):under = False
-            belongs = office or ident in referred or under or (pdf.get('item') and 'intake:' + str(pdf['item']) in here)
+            pdf_here = bool(pdf.get('item')) and 'intake:' + str(pdf['item']) in self.items_here      # admitted here once, even if since withdrawn
+            foreign = bool(pdf.get('item')) and not pdf_here            # read from a source that another workspace holds
+            belongs = ident in referred or under or pdf_here or office
             if not belongs:
+                self.elsewhere += 1
                 self.links = [link for link in self.links if ident not in (link.source, link.target)];continue
             written = str(row.get('kind', 'table')) == 'document'
             target = {'kind': 'office', 'id': row['id']}
@@ -167,6 +177,10 @@ class Reader:
                                      'WRITING' if written else '', code));continue
             state = source_word((sheet.get('source_state') or {}).get('state'))
             facts = []
+            if foreign:                  # the Office cannot see another workspace's sources: that is not a change, so not an alarm
+                state = ELSEWHERE;facts.append('its source is in another workspace')
+            elif pdf and 'intake:' + str(pdf['item']) not in here and state == STATE_RECHECK:
+                facts.append('its source was withdrawn from the material')
             if pdf:facts.append('reviewed from page %d' % (int(pdf.get('page_index', 0)) + 1))
             elif source.get('path'):facts.append('from ' + Path(str(source['path'])).name)
             if row.get('version') is not None:facts.append('version %s' % row['version'])
@@ -210,23 +224,31 @@ class Reader:
         for row in rows:
             sheet = self.call('investigation.sheet', {'id': row['id']}, record='investigation:' + row['id'])
             titles.append((row.get('question') or '', row.get('state') or ''))
-            if sheet is None:continue
+            if sheet is None:            # its findings cannot be read: said in their place, not left out
+                self.add(FieldObject('investigation:' + row['id'], 'finding', row.get('question') or 'An investigation', 'its findings could not be read',
+                                     NOT_READ, (), '', {'kind': 'investigation', 'id': row['id']}, 'INVESTIGATION',
+                                     'investigation.list | pick investigations | where id=%s | select question,state,reason' % row['id']));continue
             claims = {}
-            for claim in list(sheet.get('unresolved', ())) + list(sheet.get('learned', ())):      # what waits is read first
+            for claim in list(sheet.get('unresolved') or ()) + list(sheet.get('learned') or ()):      # what waits is read first
                 claims.setdefault(claim['id'], claim)
             for claim in self.newest(claims.values(), 'findings', CLAIMS_CEILING):
                 ident = 'claim:' + claim['id'];question = str(claim.get('role', '')).upper() == 'QUESTION'
                 evidence = str(claim.get('evidence_state', '')).upper();review = str(claim.get('review', '')).upper()
-                path = (self.call('investigation.path', {'claim': claim['id']}, record=ident) or {}).get('path', ())
+                answer = self.call('investigation.path', {'claim': claim['id']}, record=ident)
+                path = (answer or {}).get('path') or ()
                 changed = review == 'NEEDS_REVIEW' or any(step.get('counts') is False or source_word(step.get('source_state')) == STATE_RECHECK
                                                           or str(step.get('outcome', '')).upper() == 'STALE' for step in path)
                 if question:state = STATE_OPEN
+                elif answer is None:state = NOT_READ          # what it stands on could not be read: it is not drawn as standing
                 elif changed:state = STATE_RECHECK
                 elif evidence == 'CONFLICT':state = STATE_HELD
-                elif evidence in ('SUPPORTED', 'REFUTED'):state = STATE_CURRENT
+                elif evidence == 'REFUTED':state = REFUTED
+                elif evidence == 'SUPPORTED':state = STATE_CURRENT
                 else:state = STATE_OPEN
-                facts = [w for w in (words(evidence), 'needs your review' if review == 'NEEDS_REVIEW' else '') if w and w != 'unknown']
+                facts = [w for w in (words(evidence) if evidence not in ('REFUTED',) else 'the evidence speaks against it',
+                                     'needs your review' if review == 'NEEDS_REVIEW' else '') if w and w != 'unknown']
                 if not question and evidence == 'UNKNOWN':facts.append('no evidence yet')
+                if answer is None and not question:facts = ['what it stands on could not be read']
                 self.add(FieldObject(ident, 'question' if question else 'finding', claim.get('text') or claim['id'],
                                      'from ' + (row.get('question') or 'an investigation'), state, (' · '.join(facts),) if facts else (),
                                      row.get('question', ''), {'kind': 'investigation', 'id': row['id']},
@@ -239,8 +261,9 @@ class Reader:
                     elif step.get('kind') == 'CHECK':
                         outcome = str(step.get('outcome', '')).upper()
                         addresses = list(step.get('inputs') or ()) or [w[1:] for w in str(step.get('program', '')).split() if w.startswith('@')]
-                        for address in addresses:
-                            self.link(str(address).lstrip('@'), ident, ('check ' + words(outcome)).strip(), outcome == 'STALE')
+                        for address in addresses:      # a check that no longer counts (its sheet changed) is a wire to recheck, whatever it once said
+                            self.link(str(address).lstrip('@'), ident, CHECK_WORDS.get(outcome, words(outcome) or 'check'),
+                                      outcome == 'STALE' or step.get('counts') is False)
         return titles
 
     def totals(self):
@@ -265,8 +288,14 @@ class Reader:
             state = str(row.get('state', ''));word = state.lower()
             if word.startswith('waiting') or word == 'queued':word = 'waiting'
             facts = [state] if state.lower() != word else []
-            if row.get('tool') and row.get('tool') != row.get('goal'):facts.append(str(row['tool']))
-            self.add(FieldObject('job:' + row['id'], 'job', str(row.get('goal') or row.get('tool') or 'A job'), 'work Graphite holds',
+            goal = str(row.get('goal') or '');tool = str(row.get('tool') or '')
+            if ' ' not in goal:          # no sentence of the owner's: say the tool in the Timeline's own words, not its internal name
+                try:
+                    from .tail_words import WORDS as SAID
+                except Exception:  # noqa: BLE001
+                    SAID = {}
+                goal = SAID.get(tool) or SAID.get(tool.rsplit('.', 1)[0]) or (words(tool.replace('.', ' ')).capitalize() if tool else 'A job')
+            self.add(FieldObject('job:' + row['id'], 'job', goal, 'work Graphite holds',
                                  word, tuple(facts), '', {'kind': 'job', 'id': row['id']}, stac='jobs | where id=%s | select tool,state,goal' % row['id']))
 
 
@@ -289,8 +318,9 @@ def problems(reader):
         if name not in whole:whole.append(name)
     parts = []
     if whole:parts.append(', '.join(whole) + ' could not be read')
-    if reader.unread:
-        count = len(set(reader.unread));parts.append('%d record%s could not be read' % (count, '' if count == 1 else 's'))
+    drawn = {obj.id for obj in reader.objects if obj.state == NOT_READ}      # a record of another workspace is not this Field's to report
+    if drawn:
+        parts.append('%d record%s could not be read' % (len(drawn), '' if len(drawn) == 1 else 's'))
     return ' · '.join(parts)
 
 
@@ -367,4 +397,7 @@ def read_field(kernel, principal, title='', skip=()):
     if not title and len(investigations) == 1:
         question, state = investigations[0]
         title = question + ('  ·  ' + words(state) if state else '')
-    return Field(reader.objects, reader.links, title, note=_left_out(reader)), reader
+    aside = ''
+    if reader.elsewhere:
+        aside = '%d sheet%s of your Office %s not shown here' % (reader.elsewhere, '' if reader.elsewhere == 1 else 's', 'is' if reader.elsewhere == 1 else 'are')
+    return Field(reader.objects, reader.links, title, note=_left_out(reader), aside=aside), reader

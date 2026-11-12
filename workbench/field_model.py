@@ -15,12 +15,12 @@ from dataclasses import dataclass, field
 KINDS = ('source', 'sheet', 'calculation', 'document', 'finding', 'question', 'condition', 'method', 'job', 'folder',
          'interface', 'program', 'endpoint')        # the last three are the network face: this computer, what runs, where it reaches
 # Where a kind sits when nothing feeds it and it feeds nothing: left to right, material to conclusion.
-KIND_RANK = {'source': 0, 'folder': 0, 'sheet': 1, 'method': 1, 'calculation': 2, 'job': 2, 'document': 3, 'finding': 3, 'question': 4, 'condition': 4,
+KIND_RANK = {'source': 0, 'folder': 0, 'sheet': 1, 'method': 1, 'calculation': 2, 'job': 5, 'document': 3, 'finding': 3, 'question': 4, 'condition': 4,
              'interface': 0, 'program': 1, 'endpoint': 2}
 KIND_TAG = {'source': 'SOURCE', 'sheet': 'SHEET', 'calculation': 'CALC', 'document': 'PAGE', 'finding': 'FINDING',
             'question': 'OPEN QUESTION', 'condition': 'TOTAL', 'method': 'METHOD', 'job': 'JOB', 'folder': 'FOLDER',
             'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE'}
-RANK_TITLE = ('MATERIAL', 'TABLES', 'CALCULATIONS', 'FINDINGS', 'OPEN')
+RANK_TITLE = ('MATERIAL', 'TABLES', 'CALCULATIONS', 'FINDINGS', 'OPEN', 'WORK')
 # States the view knows how to mark. Anything else is shown as its own word in quiet ink.
 STATE_CURRENT, STATE_RECHECK, STATE_OPEN, STATE_HELD = 'current', 'recheck', 'open', 'held'
 ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed', 'interrupted')
@@ -71,6 +71,7 @@ class Field:
     selected: str = ''
     verbs: tuple = ('from', 'feeds')    # how a link reads from its target's side and from its source's side
     note: str = ''                      # what the reader left out, in words; the view says it so nothing is hidden silently
+    aside: str = ''                     # what is not here because it belongs elsewhere, said quietly
 
     def __post_init__(self):
         seen = set();kept = []

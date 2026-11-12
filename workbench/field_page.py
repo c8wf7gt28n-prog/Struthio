@@ -6,8 +6,9 @@
 
 The Field overlays the workspace as Home does and releases nothing: tabs, unsaved text and the docks stay as they were,
 and Esc gives the keyboard back to whatever had it. It reads the workspace through Kernel.dispatch
-(workbench/field_source.py) and keeps the reading until something changes: the workspace's journal says whether anything
-was recorded since, so coming back with F9 is immediate when nothing was. R reads again whatever the journal says.
+(workbench/field_source.py) every time it is brought to the front: a sheet's state can change because a file changed on
+disk, which no record of Graphite's notices, so a kept reading would lie. F9 while it is already in front reads nothing;
+R reads again and asks once more for the records that could not be read.
 Master specification, section 72: "A simple Open or Back action can accompany the transition."
 """
 from PySide6.QtCore import QSize, Qt
@@ -39,7 +40,6 @@ class FieldPage(QWidget):
         self.view.faces = FACES;self.face = self.view.face = 'work'
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
-        self._read_at = None         # the journal's head when the work face was last read
 
     def minimumSizeHint(self):
         return QSize(0, 0)
@@ -53,18 +53,9 @@ class FieldPage(QWidget):
             self.view.field.selected = ''          # another face holds other objects: start where that face starts
             self.refresh(force=True)
 
-    def _journal_head(self, kernel, principal):
-        """How far the workspace's journal has got. Showing the Field records nothing, so an unchanged head means an unchanged
-        workspace as far as Graphite knows. None when it cannot be asked."""
-        try:
-            answer = kernel.dispatch('ledger.journal.status', {}, principal)
-            return answer['result'].get('head') if answer.get('ok') else None
-        except Exception:  # noqa: BLE001
-            return None
-
     def refresh(self, force=False):
-        """Read the workspace, unless nothing was recorded since the last reading. A reading that could not reach the records
-        says so on the surface and in the status line; it never shows an empty workspace in their place."""
+        """Read the workspace. `force` (R) also asks again for the records that could not be read last time. A reading that
+        could not reach the records says so on the surface and in the status line; it never shows an empty workspace instead."""
         host = self.host
         from .locations import program
         self.view.art_mode = host.session.state.get('desk_art', 'illustrated')     # Arrange ▸ Desk art: Illustrated, ASCII or Clean
@@ -73,24 +64,21 @@ class FieldPage(QWidget):
         kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
         if kernel is None:
             self.problem = self.view.problem = 'Graphite\'s records are not available in this window'
-            self.view.set_field(Field());self._read_at = None
+            self.view.set_field(Field())
             host.statusBar().showMessage('Field · ' + self.problem, 9000);return
         from .engineering_kernel import operator
         principal = operator()
-        if self.face == 'network':                 # the network is read at every look: it is now, not a record
-            field, reader = read_network(kernel, principal);self._read_at = None
+        if self.face == 'network':
+            field, reader = read_network(kernel, principal)
         else:
-            head = self._journal_head(kernel, principal)
-            if not force and head is not None and head == self._read_at and self.view.field.objects:
-                self.view._reveal_pending = True;self.view.update();return
             if force:self.unread = set()
             field, reader = read_field(kernel, principal, title='', skip=self.unread)
             self.unread |= set(reader.unread)
             if not field.title:field.title = host.root.name
-            self._read_at = self._journal_head(kernel, principal)
         self.problem = self.view.problem = problems(reader)
         self.view.set_field(field)
         if self.problem:host.statusBar().showMessage('Field · ' + self.problem + ' · R looks again', 9000)
+        elif host.statusBar().currentMessage().startswith('Field · '):host.statusBar().clearMessage()      # an earlier trouble that is over is no longer said
 
 
 def show_field(host):
