@@ -1,4 +1,4 @@
-# Graphite 0.2a8 · ThinkPad first install
+# Graphite 0.3 · The Field
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
@@ -6,6 +6,7 @@ on. Graphite is the one public name of the workspace and its AI; before November
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
+- **The Field** · press **F9** (or Arrange → Field, or type `field` in the writing strip): the work in this workspace as sheets with the wires that say what feeds what. Arrow keys follow the wires, Enter opens the real page, Esc comes back. Stacy's rail shows the staC line for the selected sheet: **S** puts it in the writing strip, **Shift+Enter** runs it. **N** shows this computer's network the same way; **W** returns to the work. It is the first slice of the objects and instruments desktop (master specification, sections 70 to 72), new in 0.3. Right-click a sheet (or press the Menu key) for what can be done with it. Guide → What's New has the rest.
 - **Visual baseline** · [Visual Pass 1 reference review](docs/BOSS_VISUAL_PASS_01_REVISION.md) compares the five owner references with the revised worksheet, PDF evidence review and research journal.
 - **Halfway release** · [P08–P10](docs/BOSS_HALFWAY_P10.md) covers resident model handling, project collections and reviewed PDF tables that become sheets and reports.
 - **Evidence preparation** · [Intelligent data arrangement P07](docs/INTELLIGENT_DATA_P07.md) covers source preparation, exact calculations and follow-up passages.
@@ -26,12 +27,12 @@ The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **Referen
 
 ## Install
 
-From the release volumes (`Graphite_0.2a6.post1_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.3_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite_0.2a6.post1" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite_0.2a6.post1" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -121,7 +122,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.2a6.post1_full.zip PARTS "Graphite 0.2a6.post1 Visual Pass 1 revision"
+python3 tools/package_release_parts.py OUT/Graphite_0.3_full.zip PARTS "Graphite 0.3"
 ```
 
 Licences of bundled fonts, runtimes and dependencies are in THIRD_PARTY_NOTICES.md and RIGHTS.md; the pinned dependencies

@@ -7456,7 +7456,7 @@
    "scope": "read"
   }
  },
- "release": "Graphite 0.2a13",
+ "release": "Graphite 0.3",
  "schema": "graphite.registry-record/1",
  "schema_digest": "8d16f21c05fd911cadc5547b299e19333e8572963634bc2e0f70b65d9f7512de",
  "settings": {

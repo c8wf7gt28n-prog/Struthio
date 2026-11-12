@@ -36,7 +36,9 @@ EXCLUDED_PARTS = ('.ledger', '.venv', '__pycache__', '.pytest_cache', '.git')
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 0.2a13 After Midnight brings Stacy’s manga art into the native desk and retains '
+NOTE = ('Graphite 0.3 adds the Field on F9: the work and this computer’s network as sheets and the wires '
+        'between them, with the right-click instruments on every sheet; the first slice of the objects and '
+        'instruments desktop. It keeps After Midnight’s desk art, '
         'the offline Debian setup, model-free workshop and staC source-bound workflow. '
         'Read docs/THINKPAD_FIRST_INSTALL.md.')
 

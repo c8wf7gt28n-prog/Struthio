@@ -29,8 +29,8 @@ bash PREPARE_DEBIAN.sh
 Log into your ordinary Debian account. From the same USB directory install the app and its pinned local Python wheels:
 
 ```bash
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.2a13" --offline --system-ready --minimal-session --vulkan --calc
-bash "$HOME/Applications/Graphite-0.2a13/START_MINIMAL_DEBIAN.sh"
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3" --offline --system-ready --minimal-session --vulkan --calc
+bash "$HOME/Applications/Graphite-0.3/START_MINIMAL_DEBIAN.sh"
 ```
 
 Use a new target folder for a first install. The root script checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files. The application phase checks every release part and uses pip with its package index disabled.
@@ -44,6 +44,8 @@ In **References**, admit `Workshop_datasheet.pdf` and choose **Read technical PD
 Change B3 to 280 mA in the working sheet and save. Recheck the report to produce a separate 3.36 W revision. Use **Source page** to inspect the original 250 mA reading. The report is a comparison exercise using fictional data.
 
 ## First work in the desk
+
+- Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the selected sheet's staC line in the writing strip and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
 
 - From a worksheet, open **Full spreadsheet**, save in Calc, then choose **Return to sheet**.
 - In a reviewed PDF sheet, select a row and choose **Open source row** to view the original passage. Pin the sheet first if you want to keep it open beside the PDF. A changed working value can be rechecked in the report.

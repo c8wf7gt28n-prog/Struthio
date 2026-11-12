@@ -3545,7 +3545,7 @@ class WorkbenchWindow(QMainWindow):
         self.session.save()
 
     def _workspace_tab_changed(self, index):
-        if self._home_active:self._close_start()
+        if self._home_active or self._field_active:self._close_start()  # a tab that comes forward is what the owner asked to see
         if not self._initializing:self.set_view_preference(last_surface='workspace')
         self.update_document_info()
         tab=self.tabs.widget(index) if index>=0 else None
@@ -3819,7 +3819,7 @@ class WorkbenchWindow(QMainWindow):
         from .arc_desktop import refresh
         refresh(self)
         if self._field_active:
-            self.setWindowTitle('Field — Graphite');self.context_bar.hide();self.doc_info.hide()
+            self.setWindowTitle('Field — Graphite');self.context_bar.hide();self.doc_info.hide();self.workspace_status.hide()
 
     # ---------------------------------------------------------------- navigator
     def refresh_navigator(self):

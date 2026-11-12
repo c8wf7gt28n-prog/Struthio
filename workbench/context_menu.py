@@ -1215,6 +1215,58 @@ def empty_entries(host, t):
     return root_entries(host) + creation_entries(host) + transfer_entries(host)[:1]
 
 
+def field_entries(host, t):
+    """The Field (workbench/field_page.py): the instruments for the selected sheet, the same ones Enter, the arrow keys and the
+    writing line reach. A sheet of the work face opens its real page, shows what feeds it and what it feeds, goes to the line as
+    its staC address, or becomes the subject of an assignment; a sheet of the network face opens the Log's Network stream on it.
+    An empty place of the Field offers the Field's own commands. Nothing here changes a record."""
+    if t.surface != 'field':return []
+    from . import field_page
+    view = t.owner;page = getattr(host, 'field_page', None);obj = t.data.get('object');out = []
+    def select(ident):
+        view.field.select(ident);view._layout();view._reveal();view._describe();view.update();view.setFocus(Qt.OtherFocusReason)
+    if obj is None:
+        other = [name for name, _ in view.faces if name != view.face]
+        out.append(Entry('field:again', 'Look again', 'open', view.look_again.emit, icon='explore', caption='R', tip='Read the records again'))
+        for name in other:
+            out.append(Entry('field:face:' + name, 'Show the %s' % name, 'open', lambda name=name:view.face_chosen.emit(name), icon='network' if name == 'network' else 'projects',
+                             caption=dict(view.faces)[name].upper()))
+        out.append(Entry('field:back', 'Back', 'open', view.left.emit, icon='explore', caption='Esc'))
+        if view.face == 'network':
+            lines = (('Every connection', 'network.observe | pick connections | select process,remote,rport,state'),
+                     ('What is listening', 'network.observe | pick connections | where state=LISTEN | select process,local,lport'),
+                     ('The interfaces', 'network.observe | pick interfaces | select name,up,rx_bps,tx_bps'))
+        else:
+            lines = (('The pages', 'documents.list | pick documents | select title,revision,words'),
+                     ('The sheets', 'office.list | pick documents | select title,kind,version'),
+                     ('Work that is not finished', 'jobs | where state is not Completed | select tool,state'))
+        out.append(Entry('field:stac', 'This face in staC', 'command', icon='line', tip='Read-only staC lines for what the Field shows; each goes to the writing strip',
+                         submenu=lambda:[Entry('field:stac:%d' % n, label, 'command', lambda code=code:inspect_in_line(host, code), icon='line', tip=code)
+                                         for n, (label, code) in enumerate(lines)]))
+        return out
+    target = obj.target if isinstance(obj.target, dict) else {}
+    network = target.get('kind') == 'network'
+    out.append(Entry('field:open', 'Show in Log' if network else 'Open', 'open', lambda:field_page.open_object(host, obj), icon='network' if network else t.icon,
+                     caption='Enter', tip='The Log\'s Network stream, filtered to this' if network else 'The real page for this, in its own room'))
+    fed = [view.field.get(l.source) for l in view.field.fed_by(obj.id)];feeds = [view.field.get(l.target) for l in view.field.feeds(obj.id)]
+    def rows(objects):
+        return lambda:[Entry('field:go:' + o.id, short(o.title, 54), 'state', lambda o=o:select(o.id), caption=(o.tag or o.kind).lower()) for o in objects]
+    verb_from, verb_to = view.field.verbs
+    out.append(Entry('field:fed', 'What it is %s' % verb_from if verb_from == 'held by' else 'What feeds it', 'state', enabled=bool(fed), reason='Nothing is recorded as feeding this',
+                     submenu=rows(fed), caption='←'))
+    out.append(Entry('field:feeds', 'What it %s' % verb_to, 'state', enabled=bool(feeds), reason='Nothing is recorded as coming from this', submenu=rows(feeds), caption='→'))
+    if obj.stac:      # staC, said Stacy: the line that reads this object. In the line to read or change, or run as it is (a read).
+        out.append(Entry('field:inspect', 'Inspect in the line', 'command', lambda:field_page.stac_in_line(host, obj), icon='line', caption='S',
+                         tip='Its staC line in the writing strip; nothing runs until Ctrl+Enter:\n' + obj.stac))
+        out.append(Entry('field:run', 'Run its staC', 'command', lambda:field_page.stac_run(host, obj), icon='line', caption='Shift+Enter',
+                         operation='language.run', tip='A read; the answer shows in the working area:\n' + obj.stac))
+    if not network:
+        out.append(Entry('field:ask', 'Ask Graphite about this', 'command', lambda:(field_page.leave_field(host), ask_graphite(host, 'About “%s”: ' % obj.title)),
+                         icon='ask', tip='An assignment in the line with this as its subject'))
+    out.append(Entry('field:copy', 'Copy its name', 'edit', lambda:copy_text(host, obj.title), icon='copy'))
+    return out
+
+
 def activity_selection_entries(host, t):
     """Activity's cabinet selection: the record's own words (Open record, Explore) as the Activity words do."""
     if t.surface != 'activity' or t.kind != 'cabinet':return []
@@ -1227,7 +1279,7 @@ PROVIDERS = (('document', document_entries), ('file', file_entries), ('files', f
              ('finder', finder_entries), ('finder-place', finder_place_entries), ('library', library_entries), ('library-place', library_place_entries),
              ('cabinet', cabinet_entries), ('cabinet-tree', cabinet_tree_entries), ('activity', activity_selection_entries), ('machine', machine_entries),
              ('settings', settings_entries), ('job', job_entries), ('queued', queued_entries), ('network', network_entries), ('event', event_entries),
-             ('empty', empty_entries))
+             ('empty', empty_entries), ('field', field_entries))
 
 
 def entries_for(host, target):
@@ -1455,6 +1507,22 @@ def find_jobs(host, w, point):
     return job_target(host, ident, surface='jobs', owner=tab)
 
 
+def find_field(host, w, point):
+    """The Field: the sheet under the pointer (it becomes the selected one, as a click would make it), or an empty place of it."""
+    if w.objectName() != 'GraphiteField' or not hasattr(w, 'field'):return None
+    ident = w._hit(QPointF(point))
+    if ident is None:
+        return Target('empty', 'Field', 'an empty place of the Field', surface='field', owner=w, icon='explore')
+    if ident != w.field.selected:
+        w.field.select(ident);w._describe();w.update()
+    obj = w.field.get(ident)
+    from .field_model import KIND_TAG
+    words = (obj.tag or KIND_TAG.get(obj.kind, obj.kind)).lower()
+    icon = {'source': 'references', 'sheet': 'calculate', 'calculation': 'calculate', 'document': 'documents', 'finding': 'memory', 'question': 'memory',
+            'interface': 'network', 'program': 'tools', 'endpoint': 'network'}.get(obj.kind, 'window')
+    return Target('field-sheet', obj.title, '%s · %s' % (words, obj.state), ident=obj.id, data={'object': obj}, surface='field', owner=w, icon=icon)
+
+
 def find_workspace(host, w, point):
     """An empty place of the workspace (the walk reached the rooms' tabs or the central stack with nothing more particular under
     the pointer): the root of the owner's pipe menu, as on a Fluxbox desktop."""
@@ -1467,7 +1535,7 @@ def find_workspace(host, w, point):
 
 
 FINDERS = (find_document, find_files, find_finder, find_cabinet, find_machine, find_settings, find_library, find_log, find_activity,
-           find_process_list, find_jobs, find_today, find_workspace)
+           find_process_list, find_jobs, find_today, find_field, find_workspace)
 
 
 def owns_menu(w):
@@ -1956,6 +2024,8 @@ def focus_point(widget):
         return widget.viewport(), QPoint(12, 12)
     if isinstance(widget, (QTextEdit, QPlainTextEdit)):
         rect = widget.cursorRect();return widget.viewport(), QPoint(rect.right(), rect.bottom())
+    if widget.objectName() == 'GraphiteField' and hasattr(widget, 'selected_point'):      # the Field: the selected sheet
+        return widget, widget.selected_point()
     return widget, widget.rect().center()
 
 

@@ -10,6 +10,14 @@ November 7, 2026 · Graphite 0.1. Graphite is the one public name of the workspa
 - When the system does not allow one of them, or Graphite is not running in a login session, its row says unavailable; F1, its tooltip and choosing it say why, and Graphite stays open. In the dedicated session nothing can answer the system's own permission prompt, so a Restart or Shut down that would need one is unavailable there: Return to Debian and use `systemctl reboot` or `systemctl poweroff` at the text login. If the system refuses at the very last moment, Graphite has already closed with your work saved and tells you why.
 - Graphite services (the admission of new work) are separate from leaving: System menu → Graphite services → On, Off, Restart cycle Graphite's own services, never the computer, and keep the desktop open.
 
+## The Field (new in 0.3)
+
+Press **F9** for an overview of the work in this workspace: sources, reviewed sheets, calculations, pages, findings and open
+questions as sheets, with wires that show what feeds what. Arrow keys follow the wires, Enter opens the real page, F9 comes
+back to the same sheet, Esc leaves. Stacy's rail at the right shows the staC line for the selected sheet: S puts it in the
+writing strip, Shift+Enter runs it. Right-click a sheet (or press the Menu key) for what can be done with it. N shows this
+computer's network the same way; W returns to the work. `docs/RELEASE_NOTES_0.3.md` has the details.
+
 ## The desk
 
 The window is one symmetrical desk: two graphite bands, the head at the top and the writing line at the bottom, with warm paper between them, a pane at each side and your work in the centre. Both panes are one width (drag either edge and both follow; Settings → Workspace → Left column width sets both), and the desk is mirrored about the window's centre to the pixel. Lettering on the bands is pale, as if erased from the shading; words you can act on are eraser pink; the choice in use has a short yellow mark under it. Words you may skip (a caption, a note, an explanation) are in the script, and what you act on or read first stays in print; Arrange → Pleasantries in script turns the script off everywhere. The desk's measures are in docs/GRAPHITE_DESK.md, and its "Where things went" says where each older control went.

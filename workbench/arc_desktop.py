@@ -544,6 +544,8 @@ def refresh(host):
     strip = getattr(host.concern, 'context_strip', None)
     if strip is not None:strip.setVisible(not host._home_active and bool(getattr(host.concern, 'current_attention', None)))
     host.workspace_status.setVisible(host._home_active or type(tab).__name__ != 'ConcernDossier')
+    if getattr(host, '_field_active', False):  # the Field has the whole centre: no bar of the work under it
+        host.context_bar.hide();host.workspace_status.hide()
     documents = type(tab).__name__ == 'CodeEditor' or host.tabs.count() > 1
     host.tabs.tabBar().setVisible(documents)
     host.tabs.pin_button.setVisible(documents)

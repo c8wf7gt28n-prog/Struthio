@@ -12,15 +12,20 @@ Nothing here opens, edits or runs anything. Opening an object is the host's own 
 """
 from dataclasses import dataclass, field
 
-KINDS = ('source', 'sheet', 'calculation', 'document', 'finding', 'question', 'method', 'job', 'folder')
+KINDS = ('source', 'sheet', 'calculation', 'document', 'finding', 'question', 'condition', 'method', 'job', 'folder',
+         'interface', 'program', 'endpoint')        # the last three are the network face: this computer, what runs, where it reaches
 # Where a kind sits when nothing feeds it and it feeds nothing: left to right, material to conclusion.
-KIND_RANK = {'source': 0, 'folder': 0, 'sheet': 1, 'method': 1, 'calculation': 2, 'job': 2, 'document': 3, 'finding': 3, 'question': 4}
+KIND_RANK = {'source': 0, 'folder': 0, 'sheet': 1, 'method': 1, 'calculation': 2, 'job': 2, 'document': 3, 'finding': 3, 'question': 4, 'condition': 4,
+             'interface': 0, 'program': 1, 'endpoint': 2}
 KIND_TAG = {'source': 'SOURCE', 'sheet': 'SHEET', 'calculation': 'CALC', 'document': 'PAGE', 'finding': 'FINDING',
-            'question': 'OPEN QUESTION', 'method': 'METHOD', 'job': 'JOB', 'folder': 'FOLDER'}
+            'question': 'OPEN QUESTION', 'condition': 'TOTAL', 'method': 'METHOD', 'job': 'JOB', 'folder': 'FOLDER',
+            'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE'}
 RANK_TITLE = ('MATERIAL', 'TABLES', 'CALCULATIONS', 'FINDINGS', 'OPEN')
 # States the view knows how to mark. Anything else is shown as its own word in quiet ink.
 STATE_CURRENT, STATE_RECHECK, STATE_OPEN, STATE_HELD = 'current', 'recheck', 'open', 'held'
-ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD)
+ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed', 'interrupted')
+# States drawn with the small green mark: the record agrees with its source, the line is up, the work is running.
+SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running')
 
 
 @dataclass
@@ -33,6 +38,8 @@ class FieldObject:
     lines: tuple = ()                   # up to three short facts drawn on the sheet (a value, a page, a revision)
     where: str = ''                     # the identity a person can read: a path, a page, a record name
     target: object = None               # whatever the host needs to open it; opaque here
+    tag: str = ''                       # the word above the title when the kind's own word is not the clearest one
+    stac: str = ''                      # the staC line that reads this object: a read-only pipeline, exact, ready for the writing line
 
     def needs_attention(self):
         return self.state in ATTENTION
@@ -62,6 +69,8 @@ class Field:
     links: list = field(default_factory=list)
     title: str = ''
     selected: str = ''
+    verbs: tuple = ('from', 'feeds')    # how a link reads from its target's side and from its source's side
+    note: str = ''                      # what the reader left out, in words; the view says it so nothing is hidden silently
 
     def __post_init__(self):
         seen = set();kept = []
@@ -69,7 +78,16 @@ class Field:
             if obj.id and obj.id not in seen:
                 seen.add(obj.id);kept.append(obj)
         self.objects = kept
-        self.links = [link for link in self.links if link.source in seen and link.target in seen and link.source != link.target]
+        once = {};links = []
+        for link in self.links:          # each wire once: the same source feeding the same target is one wire, stale if any says so
+            if link.source not in seen or link.target not in seen or link.source == link.target:continue
+            key = (link.source, link.target)
+            if key in once:
+                once[key].stale = once[key].stale or link.stale
+                if not once[key].label:once[key].label = link.label
+            else:
+                once[key] = link;links.append(link)
+        self.links = links
         self._by_id = {obj.id: obj for obj in self.objects}
         self._rank = self._ranks()
         self._columns = self._order()
@@ -91,9 +109,25 @@ class Field:
         # Every object starts where its kind belongs (material at the left, conclusions at the right) and is pushed
         # further right only when something that feeds it already sits at or beyond that place.
         rank = {obj.id: KIND_RANK.get(obj.kind, 0) for obj in self.objects}
-        incoming = {obj.id: [] for obj in self.objects}
+        incoming = {obj.id: [] for obj in self.objects};outgoing = {obj.id: [] for obj in self.objects}
         for link in self.links:
-            incoming[link.target].append(link.source)
+            outgoing[link.source].append(link.target)
+        # A wire that closes a loop does not rank anything: without this each pass would push a loop one column further right.
+        state = {}
+        def walk(start):
+            stack = [(start, iter(outgoing[start]))];state[start] = 1
+            while stack:
+                node, following = stack[-1]
+                for target in following:
+                    if state.get(target) == 1:continue                 # a back wire: closes a loop, ranks nothing
+                    incoming[target].append(node)
+                    if target not in state:
+                        state[target] = 1;stack.append((target, iter(outgoing[target])))
+                        break
+                else:
+                    state[node] = 2;stack.pop()
+        for obj in self.objects:
+            if obj.id not in state:walk(obj.id)
         ceiling = len(KIND_RANK) + len(self.objects)
         for _ in range(len(self.objects)):
             changed = False
@@ -134,8 +168,10 @@ class Field:
     def rank_title(self, rank):
         kinds = {self._by_id[i].kind for i in self.column(rank)}
         if len(kinds) == 1:
+            kind = kinds.pop()
             return {'source': 'MATERIAL', 'folder': 'MATERIAL', 'sheet': 'TABLES', 'calculation': 'CALCULATIONS', 'document': 'PAGES',
-                    'finding': 'FINDINGS', 'question': 'OPEN', 'method': 'METHODS', 'job': 'WORK'}[kinds.pop()]
+                    'finding': 'FINDINGS', 'question': 'OPEN', 'condition': 'OPEN', 'method': 'METHODS', 'job': 'WORK',
+                    'interface': 'THIS COMPUTER', 'program': 'PROGRAMS', 'endpoint': 'ELSEWHERE'}.get(kind, str(kind).upper())
         return RANK_TITLE[min(rank, len(RANK_TITLE) - 1)]
 
     # ---- selection -------------------------------------------------------------------------------------------------
@@ -182,18 +218,20 @@ class Field:
             step = -1 if direction == 'up' else 1
             return self.select(ids[max(0, min(len(ids) - 1, row + step))])
         step = -1 if direction == 'left' else 1
-        links = self.fed_by(self.selected) if step < 0 else self.feeds(self.selected)
-        linked = [l.source if step < 0 else l.target for l in links]
-        if linked:
-            def rows_away(ident):
-                column = self.column(self.rank_of(ident))
-                return (abs(self.rank_of(ident) - rank), abs(column.index(ident) - row))
-            return self.select(min(linked, key=rows_away))
         ranks = self.ranks();at = ranks.index(rank) + step
-        if 0 <= at < len(ranks):
-            column = self.column(ranks[at])
-            return self.select(column[min(len(column) - 1, row)])
-        return self.selected
+        if not 0 <= at < len(ranks):
+            return self.selected
+        beside = self.column(ranks[at])
+        links = self.fed_by(self.selected) if step < 0 else self.feeds(self.selected)
+        linked = [ident for ident in (l.source if step < 0 else l.target for l in links) if ident in beside]
+        if linked:      # a wire into the next column is followed; a wire that bridges over columns is not, so every column is reachable
+            return self.select(min(linked, key=lambda ident: abs(beside.index(ident) - row)))
+        return self.select(beside[min(len(beside) - 1, row)])
+
+    def last(self):
+        """End: the last object in reading order."""
+        ranks = self.ranks()
+        return self.column(ranks[-1])[-1] if ranks else ''
 
     def next_attention(self, backwards=False):
         """Tab: the next object that needs the owner, in reading order; stays put when there is none."""
@@ -214,7 +252,8 @@ class Field:
         """What the head says: counts by kind in reading order, then what is waiting."""
         words = {'source': ('source', 'sources'), 'folder': ('folder', 'folders'), 'sheet': ('sheet', 'sheets'),
                  'calculation': ('calculation', 'calculations'), 'document': ('page', 'pages'), 'finding': ('finding', 'findings'),
-                 'question': ('open question', 'open questions'), 'method': ('method', 'methods'), 'job': ('job', 'jobs')}
+                 'question': ('open question', 'open questions'), 'condition': ('total', 'totals'), 'method': ('method', 'methods'), 'job': ('job', 'jobs'),
+                 'interface': ('interface', 'interfaces'), 'program': ('program', 'programs'), 'endpoint': ('place reached', 'places reached')}
         parts = []
         for kind in KINDS:
             count = sum(1 for obj in self.objects if obj.kind == kind)
@@ -225,33 +264,35 @@ class Field:
             parts.append('%d to recheck' % recheck)
         return parts
 
-    def place(self, width, height, scale=1.0):
-        """One Placement per object inside a width by height surface. Sheets shrink before any is dropped; when a column
-        still cannot hold its sheets the surface is taller than `height` and the view scrolls (returned as the second value)."""
+    def place(self, width, height, scale=1.0, sheet_h=None, least_w=None):
+        """One Placement per object, and the size of the surface they need. Sheets are never squeezed below a readable size:
+        `sheet_h` is the height one sheet needs for its words (the view measures it) and `least_w` the narrowest it may be.
+        When the columns or a column's sheets do not fit, the surface is wider or taller than the given room and the view
+        scrolls. Returns (placements, surface_width, surface_height)."""
         ranks = self.ranks()
         if not ranks or width <= 0 or height <= 0:
-            return {}, height
-        margin = 28 * scale;gap_x = max(34 * scale, min(96 * scale, width * 0.045))
-        columns = len(ranks)
+            return {}, width, height
+        margin = 28 * scale;columns = len(ranks)
+        least_w = least_w or 172 * scale;sheet_h = sheet_h or 138 * scale
+        gap_x = max(34 * scale, min(96 * scale, width * 0.045))
         sheet_w = (width - 2 * margin - gap_x * (columns - 1)) / columns
-        if sheet_w < 132 * scale and columns > 1:         # narrow: tighten the wires and the rim first, then the sheets
-            gap_x = 18 * scale;margin = 16 * scale
+        if sheet_w < least_w and columns > 1:             # narrow: tighten the wires and the rim first
+            gap_x = 22 * scale;margin = 16 * scale
             sheet_w = (width - 2 * margin - gap_x * (columns - 1)) / columns
-        sheet_w = max(88 * scale, min(312 * scale, sheet_w))
+        sheet_w = max(least_w, min(312 * scale, sheet_w))
         used = sheet_w * columns + gap_x * (columns - 1)
-        left = max(margin, (width - used) / 2)
+        surface_w = max(width, used + 2 * margin)
+        left = max(margin, (surface_w - used) / 2)
         tallest = max(len(self.column(rank)) for rank in ranks)
-        gap_y = 22 * scale;top = 40 * scale;bottom = 14 * scale
-        room = height - top - bottom
-        sheet_h = max(74 * scale, min(138 * scale, (room - gap_y * (tallest - 1)) / tallest))
+        gap_y = 22 * scale;top = 40 * scale;bottom = 18 * scale
         need = top + bottom + tallest * sheet_h + (tallest - 1) * gap_y
-        surface = max(height, need)
+        surface_h = max(height, need)
         placed = {}
         for at, rank in enumerate(ranks):
             ids = self.column(rank)
             block = len(ids) * sheet_h + (len(ids) - 1) * gap_y
-            y = top + max(0.0, (surface - top - bottom - block) * 0.42)      # a little above the middle: the eye starts there
+            y = top + max(0.0, (surface_h - top - bottom - block) * 0.42)      # a little above the middle: the eye starts there
             x = left + at * (sheet_w + gap_x)
             for row, ident in enumerate(ids):
                 placed[ident] = Placement(rank, row, x, y + row * (sheet_h + gap_y), sheet_w, sheet_h)
-        return placed, surface
+        return placed, surface_w, surface_h

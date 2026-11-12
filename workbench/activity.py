@@ -9,6 +9,7 @@ OBSERVER_OPERATIONS=frozenset({
  'memory.cabinet','ledger.session.read','ledger.cabinet.actions','ledger.cabinet','ledger.cabinet.get','ledger.explore','ledger.operations','ledger.machine',
  'documents.list','documents.get','documents.interpret','documents.render',
  'office.list','office.get',  # reads that refresh views (the Field reads every sheet each time it is shown)
+ 'notebook.get','notebook.resolve','book.contents',  # the reads office.get makes to say whether a sheet still agrees with its notebook or book
  'agent.status','agent.list','conditions.list','conditions.get','helpers.list','helpers.get','ledger.related','ledger.browse',
  'ledger.organizer','intake.package.get','intake.package.list',
  'ledger.trail.list','ledger.trail.inspect','ledger.trail.job','ledger.resources','ledger.resources.observation','ledger.work.status','ledger.object.inspect','ledger.object.current','ledger.object.action',

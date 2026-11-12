@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Graphite'
-VERSION = '0.2.0a13'
-SHORT = '0.2a13'
-LINEAGE = ('0.2a13: After Midnight, with Stacy in original ink-and-screentone desk artwork. '
+VERSION = '0.3.0'
+SHORT = '0.3'
+LINEAGE = ('0.3: the Field on F9, an overview of the work and of this computer\'s network as sheets and the wires between them, with the right-click instruments on every sheet and Stacy\'s rail saying each one in staC; the first slice of the objects and instruments desktop. '
+           '0.2a13: After Midnight, with Stacy in original ink-and-screentone desk artwork. '
            '0.2a12: After Hours first-boot candidate with the Programs shelf, staC plan inspection and resource observations. '
            '0.2a11: four-volley ThinkPad release with offline setup, a first-run workshop, and forecast-based background admission. '
            '0.2a10: optional fast-forward screensaver with fictional traces and a VHS cutaway. '

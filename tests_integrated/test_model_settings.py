@@ -8,6 +8,9 @@ from workbench.engineering_kernel import Kernel,operator,Principal
 from workbench.session import Session
 
 HOST=dict(logical_cpus=8,available_ram_bytes=8*1024**3,total_ram_bytes=16*1024**3,backend='CPU')
+# Fixture process numbers no real process can have: they sit above the kernel's largest. A stop path a test does not hold
+# then finds nothing to signal. With small numbers one test signalled a real process and its children (12 November 2026).
+NOBODY=2**22
 
 
 def fixture_model(ident='a'*64):
@@ -41,7 +44,7 @@ class ModelSettingsTests(unittest.TestCase):
     def selected(self):
         old=dict(model_id='a'*64,config=dict(context=1024,threads=2,memory_mb=2048),owner='owner')
         brain.put(self.k,'selection',old);return old
-    def worker(self,selection,pid=91):
+    def worker(self,selection,pid=NOBODY+91):
         return dict(owner='owner',model_id=selection['model_id'],config=copy.deepcopy(selection['config']),context=selection['config']['context'],
                     pid=pid,start='fixture-start',job_id='c'*32,runtime={},started=1.0,key_file='/private/worker.key',port=12345)
 
@@ -133,12 +136,12 @@ class ModelSettingsTests(unittest.TestCase):
         old=self.selected();worker=self.worker(old);brain.put(self.k,'worker',worker)
         job=self.request();job['state']='Running';job['cancel']=cancel;self.k.save('jobs',job)
         if reply:self.k.save('jobs',dict(id='e'*32,owner='owner',tool='brain.respond',state='Running'))
-        alive={91};calls=[]
+        alive={NOBODY+91};calls=[]
         def terminate(kernel,value,reason):alive.discard(value['pid'])
         def start(kernel,value,config,ident,*args,**kwargs):
             calls.append(value['id'])
             if value['id']=='b'*64 or mode=='fail':raise ValueError('Controlled candidate load failure')
-            restored=self.worker(dict(model_id=value['id'],config=config),pid=92);restored['job_id']=ident;alive.add(92);return restored
+            restored=self.worker(dict(model_id=value['id'],config=config),pid=NOBODY+92);restored['job_id']=ident;alive.add(NOBODY+92);return restored
         with ExitStack() as stack:
             stack.enter_context(patch.object(brain,'worker_live',side_effect=lambda value:bool(value and value.get('pid') in alive)))
             stack.enter_context(patch.object(brain,'terminate',side_effect=terminate))
@@ -151,7 +154,7 @@ class ModelSettingsTests(unittest.TestCase):
 
     def test_failed_activation_retains_original_restore_and_reports_owned_restored_worker(self):
         snap,calls,alive=self.transaction()
-        self.assertEqual(calls,['b'*64,'a'*64]);self.assertIn(92,alive);self.assertEqual(snap['state'],'RESTORED_PREVIOUS')
+        self.assertEqual(calls,['b'*64,'a'*64]);self.assertIn(NOBODY+92,alive);self.assertEqual(snap['state'],'RESTORED_PREVIOUS')
         self.assertEqual(snap['worker_config'],dict(context=1024,threads=2,memory_mb=2048))
         self.assertEqual(snap['last_operation']['state'],'Failed');self.assertTrue(snap['restored_after_job'])
 
@@ -167,7 +170,7 @@ class ModelSettingsTests(unittest.TestCase):
 
     def test_running_reply_refuses_handover_without_stopping_the_original_worker(self):
         snap,calls,alive=self.transaction(reply=True)
-        self.assertEqual(calls,[]);self.assertEqual(alive,{91});self.assertIsNotNone(snap['worker_config'])
+        self.assertEqual(calls,[]);self.assertEqual(alive,{NOBODY+91});self.assertIsNotNone(snap['worker_config'])
         self.assertIsNone(snap['restored_after_job'])
 
     def test_worker_uses_frozen_options_even_after_saved_defaults_change(self):
@@ -177,8 +180,8 @@ class ModelSettingsTests(unittest.TestCase):
         def start(kernel,value,config,ident,*args,**kwargs):
             observed.append(config)
             return dict(owner='owner',model_id=value['id'],context=config['context'],config=config,
-                        pid=93,start='fixture-start',runtime={},load_seconds=.01,job_id=ident)
-        with patch.object(brain,'start_server',side_effect=start),patch.object(brain,'completion',return_value={'text':'ready','usage':{},'memory':{}}),patch.object(brain,'recheck'),patch.object(brain,'worker_live',side_effect=lambda w:bool(w and w.get('pid')==93)):
+                        pid=NOBODY+93,start='fixture-start',runtime={},load_seconds=.01,job_id=ident)
+        with patch.object(brain,'start_server',side_effect=start),patch.object(brain,'completion',return_value={'text':'ready','usage':{},'memory':{}}),patch.object(brain,'recheck'),patch.object(brain,'worker_live',side_effect=lambda w:bool(w and w.get('pid')==NOBODY+93)):
             result=brain.run_model_job(self.k,job);row=self.row('brain.context')
         self.assertEqual(result['status'],'ACTIVATED');self.assertEqual(observed[0]['context'],4096)
         self.assertEqual((row['stored'],row['effective']),(6144,4096));self.assertEqual(observed[0]['threads'],6)

@@ -272,5 +272,8 @@ def choose_art(host, mode):
     host.session.state['desk_art'] = mode;host.session.save()
     for kind in (ArtPanel, PanelInk):
         for panel in host.findChildren(kind):panel.refresh()
+    field = getattr(host, 'field_page', None)      # the Field keeps Stacy's rail (or the ASCII mark, or nothing) in step
+    if field is not None:
+        field.view.art_mode = mode;field.view.texture = mode != 'clean';field.view.update()
     bar = getattr(host, 'type_bar', None)
     if bar is not None:bar.align()
