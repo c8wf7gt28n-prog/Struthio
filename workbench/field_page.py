@@ -43,6 +43,7 @@ class FieldPage(QWidget):
         self.view.step_chosen.connect(lambda obj, n: take(self.host, obj, n))
         self.view.check_asked.connect(lambda: check_desk(self.host))
         self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
+        self.pending = None                     # what the single offered step runs, when it is a step of the desk or the Run of what waits in Talk
         self.view.faces = FACES;self.face = self.view.face = 'work'
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
@@ -195,6 +196,14 @@ def _talk(host):
     return face
 
 
+def _offer(host, words, run, kind='run'):
+    """One step offered from the keyboard that is not a step of a sheet: settling the desk, or the Run of what waits in Talk.
+    It shows where the steps show, as 1; taking it runs `run`. The mouse has the same thing in Talk."""
+    page = host.field_page
+    page.steps = (words,);page.steps_of = '*';page.pending = run
+    page.view.steps = ((words, kind),);page.view.update()      # 'run': taking it is the owner's go itself; 'write': it shows what it would do first
+
+
 def do(host, obj):
     """D: ask the records what can be done about this sheet. The steps show in the Field, numbered, and Stacy says them in
     Talk. Nothing runs by being offered."""
@@ -216,13 +225,21 @@ def take(host, obj, n):
     answered. A step that changes something is put in Talk with its exact line and waits for the owner's Run; when it has
     run, the Field reads the records again."""
     page = host.field_page
+    if page.steps_of == '*':                   # the one step of the desk, or the Run of what waits in Talk
+        run, page.pending = page.pending, None
+        page.steps = ();page.steps_of = '';page.view.steps = ();page.view.update()
+        if n == 0 and run is not None:run()
+        page.view.setFocus(Qt.OtherFocusReason)
+        return None
     if obj is None or page.steps_of != obj.id or not 0 <= n < len(page.steps):return None
     step = page.steps[n];face = _talk(host)
     if face is None:return None
     if step.kind == 'read':
         card = face.answer_in_stac({'title': obj.title, 'stac': step.line, 'kind': obj.kind}, '%s, for “%s”:' % (step.words, obj.title))
     else:
-        card = face.stage(obj.title, step, done=lambda ok, result, obj=obj:_after(host, obj, ok, result))
+        done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
+        card = face.stage(obj.title, step, done=done)
+        _offer(host, 'Run it, as written in Talk', lambda:face.run_staged(card, done))      # the keyboard's Run: 1
     page.view.setFocus(Qt.OtherFocusReason)
     return card
 
@@ -230,8 +247,10 @@ def take(host, obj, n):
 def _after(host, obj, ok, result):
     """A step changed something: the Field reads the records again. A page that took the place of the selected one (a
     calculation brought up to date) is the one selected now."""
-    if not ok:return
-    page = host.field_page;page.refresh(force=True)
+    page = host.field_page;page.steps = ();page.steps_of = '';page.pending = None
+    if not ok:
+        page.view.steps = ();page.view.update();return
+    page.refresh(force=True)
     made = (result or {}).get('document') if isinstance(result, dict) else None
     for ident in (('document:' + str(made.get('id'))) if isinstance(made, dict) and made.get('id') else '', obj.id):
         if ident and page.view.field.get(ident) is not None:
@@ -256,9 +275,14 @@ def check_desk(host):
     plan = settling(waiting)
     def settle():
         # The changes go up together for one Run; when they have run the desk is checked again, and that check is the answer.
-        face.say_plan(plan, done=lambda results:check_desk(host))
+        done = lambda results:check_desk(host)
+        card = face.say_plan(plan, done=done)
+        _offer(host, 'Run all %d, as listed in Talk' % len(plan) if len(plan) > 1 else 'Run it, as listed in Talk', lambda:face.run_plan(card, done))
         page.view.setFocus(Qt.OtherFocusReason)
-    return face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle)
+    card = face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle)
+    page.steps = ();page.steps_of = '';page.pending = None
+    if plan:_offer(host, 'Settle what I can: %d change%s' % (len(plan), '' if len(plan) == 1 else 's'), settle, 'write')
+    return card
 
 
 def stac_in_line(host, obj):

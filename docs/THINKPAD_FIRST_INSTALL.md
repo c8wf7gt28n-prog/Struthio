@@ -29,8 +29,8 @@ bash PREPARE_DEBIAN.sh
 Log into your ordinary Debian account. From the same USB directory install the app and its pinned local Python wheels:
 
 ```bash
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3.1" --offline --system-ready --minimal-session --vulkan --calc
-bash "$HOME/Applications/Graphite-0.3.1/START_MINIMAL_DEBIAN.sh"
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4" --offline --system-ready --minimal-session --vulkan --calc
+bash "$HOME/Applications/Graphite-0.4/START_MINIMAL_DEBIAN.sh"
 ```
 
 Use a new target folder for a first install. The root script checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files. The application phase checks every release part and uses pip with its package index disabled.
@@ -53,6 +53,7 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
 - When a local GGUF is available, open **Brain** to add the model and qualify its effective backend.
 - In the Field press **P** for every program and room as a shelf; **Enter** opens one.
+- In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A step that changes something waits for your go.
 
 ## The first model
 

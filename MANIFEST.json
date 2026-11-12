@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "package_profile": "runtime",
-  "note": "Graphite 0.3.1: Stacy is the assistant\u2019s face and answers in staC, with or without a model; P in the Field shows every program as a shelf; Graphite opens on the Field (F9) when the workspace has work; and it is free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 0.4: the desk does. In the Field, D offers the steps the records have for a sheet (reads run, changes ask once), C checks the desk, and one go settles what needs no decision of the owner\u2019s. Stacy is the assistant\u2019s face and answers in staC; P shows every program as a shelf. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 9736,
-      "sha256": "f6493a75eb72fcfc7cc2ee0bd0cf37d12dc53b154a8198b2b45d4c81f5b9e387"
+      "bytes": 9911,
+      "sha256": "9aaabb290ef97fb60c3e548d4b1d899e9b0dc723007d8d48d951074bb558ddea"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 12890,
-      "sha256": "f5b5b258a9fc7be60e6dc04bfa7e8b4b36a075e25fd64c16610c194dc5f85ac5"
+      "bytes": 14110,
+      "sha256": "26dda75156c36ff569c02bff7f4f1c5469dff8c8cf35199cd039c6087157e43d"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -1098,8 +1098,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 24504,
-      "sha256": "db7810bfbb929eeaba49e5bf4d60cbe877b24213852a550cc473abdc41de6c1c"
+      "bytes": 24896,
+      "sha256": "84224a906e1673e4da972c02ba2a11b2d023835359ea042a3516e255c3c0b9e7"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1158,8 +1158,8 @@
       "sha256": "6b75ae5fd49726f48e90bc11f806f6591ee3ae5d6b4baa88645ac791382b4458"
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
-      "bytes": 277374,
-      "sha256": "77404995f0b7663791bb8a6abc623a89555c9065e607625c844c038fc32cf705"
+      "bytes": 277372,
+      "sha256": "2f5862b420b7a5ab8d3040cb2a214dccfd80f99b035890ae29ad17971858abb0"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12513,
@@ -1481,6 +1481,10 @@
       "bytes": 4922,
       "sha256": "33d64ca7c9629aeceaf7fdd0f44f93447fd2128895edd0226d339ad14df8475a"
     },
+    "docs/RELEASE_NOTES_0.4.md": {
+      "bytes": 3981,
+      "sha256": "a837ee315f26ff25b2d8332d750771e8361e72fd2ea57fcf25556e56c9f4fa21"
+    },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
       "sha256": "03a8d7e31fd4b7cca05b9c16a9f7aab641b727c73bc4ffd82ad0e3d7337ff1c4"
@@ -1590,8 +1594,8 @@
       "sha256": "20ad18f8e9d0b4133c4d6784e94cc9798008be093ea93b3ce147aa294b5907a4"
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
-      "bytes": 7465,
-      "sha256": "8e2b170caa675a4e2c0dea2ba7b89e3d60a35c056e3f006fec37a780bcccfaf1"
+      "bytes": 7614,
+      "sha256": "0bf9df2770739c92007d7e01604505145c41b5c918730196e2b6e61374778e43"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -1998,16 +2002,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1869424,
-      "sha256": "51de598a75c8e5025e03fb350b2202aba60607c892913bf094e8f648f922d77e"
+      "bytes": 1871232,
+      "sha256": "b74a1812f28b2a739003e4dfe396541b2315d1349dcaefcf00adecb4b675bfe1"
     },
     "project/stacy_seed/current/index.sqlite": {
-      "bytes": 4272128,
-      "sha256": "d85aeb1746178525ccbf24303be67f3289c54fd5b5dd27b79b2f089876e6fbc3"
+      "bytes": 4276224,
+      "sha256": "d590b8e87d35296bece128ec4c6a0cfc6e2016ae2253057d7a63287b593e57db"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "928bcd65f68556ec386041ce0e36ccdc56db39d41d17502ed84a4d696913f55a"
+      "sha256": "8c286c651ab035bf81b130a0dc13f0df1d7487a0149d4b02732737bda909b4c5"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2742,8 +2746,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/package_graphite.py": {
-      "bytes": 10475,
-      "sha256": "b192f43238921f512a43bf04e6e0fcd40353fd5b7ca6b9928eabfc9d9e7ae607"
+      "bytes": 10550,
+      "sha256": "ed199c0eacd945b7e752013d51578f43085e641b5c219077ff473ebae1774dee"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -3342,8 +3346,8 @@
       "sha256": "59f2b17000f6890b3bfcd97d05ebb859430648d62a862d82ca89f5f9e88e9225"
     },
     "workbench/field_page.py": {
-      "bytes": 18780,
-      "sha256": "41fcd31036dca2a0f17556fe1cf6039c6a00e0806d7f63f2089e036c18fa8923"
+      "bytes": 20410,
+      "sha256": "021fe0def4ce9c620a9b4626e7a12a9a986c050dd45ae2fb7fe8cdff8498edc8"
     },
     "workbench/field_qt.py": {
       "bytes": 46598,
@@ -4678,8 +4682,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 4520,
-      "sha256": "ef154b2292f862214aaea3fb608808995ed3637fb48b167f222f836af7826134"
+      "bytes": 4823,
+      "sha256": "9cea7d54ccb46b410d0affbb7f77288e02c17d4694d8156f0c3320f87e339f1d"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -4810,5 +4814,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "0.3.1"
+  "graphite_release": "0.4"
 }

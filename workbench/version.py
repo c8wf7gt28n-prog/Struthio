@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Graphite'
-VERSION = '0.3.1'
-SHORT = '0.3.1'
-LINEAGE = ('0.3.1: Stacy is the assistant\'s face and answers in staC, reading first and saying it with a small model when one is loaded; the shelf of every program on P in the Field; Graphite opens on the Field when there is work; free software under the GNU GPL version 2 only. '
+VERSION = '0.4.0'
+SHORT = '0.4'
+LINEAGE = ('0.4: the desk does: D offers the steps the records have for a sheet, reads run and changes ask once; C checks the desk; one go settles what needs no decision, and the desk checks itself afterwards; a recomputed calculation keeps its name and a finding that quotes the old number is noticed. '
+           '0.3.1: Stacy is the assistant\'s face and answers in staC, reading first and saying it with a small model when one is loaded; the shelf of every program on P in the Field; Graphite opens on the Field when there is work; free software under the GNU GPL version 2 only. '
            '0.3: the Field on F9, an overview of the work and of this computer\'s network as sheets and the wires between them, with the right-click instruments on every sheet and Stacy\'s rail saying each one in staC; the first slice of the objects and instruments desktop. '
            '0.2a13: After Midnight, with Stacy in original ink-and-screentone desk artwork. '
            '0.2a12: After Hours first-boot candidate with the Programs shelf, staC plan inspection and resource observations. '

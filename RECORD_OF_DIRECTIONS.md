@@ -82,6 +82,13 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   reachable from the sheet, the right-click menu, the keyboard, a typed staC line and the assistant. The code is
   `workbench/field_model.py` (no Qt), `field_qt.py` (drawing), `field_source.py` (reads through the Kernel) and
   `field_page.py` (the way in and out).
+- **The desk does** (12 November: "I want a do, not a chatbot"; "Build more then I can imagine"). The program, not a
+  model, knows what there is to do: for a sheet it asks the records how the thing stands and offers the steps that fit
+  (`workbench/field_do.py`), each an exact line. A read runs at once. A change is put in Talk with its line and waits for
+  one go. C checks the desk; one go settles what needs no decision of the owner's; then the desk checks itself, and that
+  check is what "done" means. Keys in the Field: D, a digit, C, 1. Every step is an operation the program already had;
+  add steps there, not a second engine. A model's place is to put reads into words and, later, to pick among steps the
+  program offers; it does not plan.
 - **The shelf** (12 November; P in the Field). Every program and room as a sheet, in six columns set by hand that do not
   move (Work, Think, Make, Build, Move, Set up; `field_source.SHELF`). Enter opens the room, which is the basic screen;
   a native program's full window is started from its room. This is the launcher the owner asked for, first slice.
@@ -97,8 +104,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.3.1: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, and the GPL (0.3.1). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), then the desk that does (0.4). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and
@@ -130,12 +137,16 @@ Never yet done, by every document in the tree:
    family's 4.0 release at 27B, 4-bit quantised, once it exists.
 3. **One whole journey with the model live:** datasheet to sheet to calculation to report (the first-run workshop),
    then a question over the prepared evidence.
-4. **Grow the Field and staC together** into the working desk: a key that starts a program in its full window from the
+4. **Connect the doing to the assignment loop** (`workbench/agent_loop.py`, which already records every step and keeps
+   working while Graphite is closed): a job started from a sheet, its checks bound so that done means they pass, the
+   owner's go for a waiting change in the Work block. Then the steps not offered yet: reviewing a sheet again from its
+   page, deciding a held source, citing sources for a rewritten finding.
+5. **Grow the Field and staC together** into the working desk: a key that starts a program in its full window from the
    shelf and brings its files back; what is in use and what was used last, so the desk knows what the owner is doing;
    every object kind (methods, files), staC lines that do
    more than read (the chain of steps that made a result, ready to run again on new material), wires that route around
    sheets, reading off the window's thread, and the way back from a full program.
-5. **Then the plan's abilities, in its order:** full native programs from the desk (pass 11), a changed fact that
+6. **Then the plan's abilities, in its order:** full native programs from the desk (pass 11), a changed fact that
    travels (12), the assistant on any described job (13), getting the tools it lacks (14), web, mail and calendar on
    the owner's terms (15), specialist and creative routes (16), durable self-improvement (17), and the closing
    release (18 to 20). The passes are a map of abilities, not a schedule; measure progress by journeys that work on the
