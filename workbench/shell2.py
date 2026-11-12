@@ -1703,9 +1703,10 @@ class SlateFace(QWidget):
         note = QLabel(breakable(said));note.setWordWrap(True);note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(note)
         if done is not None:done(card.ran, r.get('result') if card.ran else None)
 
-    def say_desk(self, count, waiting, lines, go):
+    def say_desk(self, count, waiting, lines, go, plan=(), settle=None):
         """The desk, checked: how many things were read, which wait for the owner and why, and the reads that were made.
-        `go(object)` goes to one of them in the Field and says what can be done about it."""
+        `go(object)` goes to one of them in the Field and says what can be done about it. `plan` is the changes that would
+        settle what can be settled without a decision of the owner's; `settle()` puts them up for one Run."""
         if not waiting:
             card = self.say('I read the desk: %d thing%s. Nothing waits for you.' % (count, '' if count == 1 else 's'))
         else:
@@ -1716,10 +1717,48 @@ class SlateFace(QWidget):
                 said = QLabel(breakable(why + ((' · next: ' + first.words[:1].lower() + first.words[1:]) if first else '')));said.setWordWrap(True)
                 said.setStyleSheet('color:%s' % QUIET);said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
             if len(waiting) > 12:card.box.addWidget(QLabel('… and %d more' % (len(waiting) - 12)))
+        if plan and settle is not None:
+            card.box.addWidget(sentence('{settle}', {'settle': ('Settle what I can: %d change%s, one Run' % (len(plan), '' if len(plan) == 1 else 's'), settle)}))
         if lines:program_detail(card.box, 'The %d reads I made' % len(lines), '\n'.join(lines))
-        card.waiting = waiting
+        card.waiting = waiting;card.plan = plan
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
+
+    def say_plan(self, plan, done=None):
+        """Several changes put up together: each named, with its exact line, and one Run. Run is the owner's go for the whole
+        list as written. They run in order through the Kernel and stop at the first that is refused; each says how it went.
+        `done(results)` is told, so the desk can be checked again: finished means the check finds nothing waiting."""
+        card = self.say('To settle the desk I would make %d change%s. One Run does them in order, as written here, and stops at the first that is refused.' % (len(plan), '' if len(plan) == 1 else 's'))
+        card.rows = []
+        for n, (obj, step) in enumerate(plan):
+            said = QLabel(breakable('%d  “%s”: %s' % (n + 1, obj.title, step.words[:1].lower() + step.words[1:])));said.setWordWrap(True)
+            said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
+            code = QLabel(breakable(step.line));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(14))
+            code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            card.box.addWidget(code);card.rows.append(said)
+        row = QHBoxLayout();run = button('Run all %d' % len(plan) if len(plan) > 1 else 'Run', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
+        card.plan = plan;card.run = run;card.results = None
+        run.clicked.connect(lambda:self.run_plan(card, done))
+        QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
+        return card
+
+    def run_plan(self, card, done=None):
+        from .engine import engineering
+        from .engineering_kernel import operator
+        from .field_do import call as line_call
+        if card.results is not None:return        # one go, one run
+        card.results = [];card.run.setEnabled(False)
+        for n, (obj, step) in enumerate(card.plan):
+            operation, arguments = line_call(step.line)
+            r = engineering(self.host.root).dispatch(operation, arguments, operator())
+            ok = bool(r.get('ok'));card.results.append((step.line, ok, r.get('result') if ok else (r.get('error') or {}).get('message')))
+            result = r.get('result') if ok and isinstance(r.get('result'), dict) else {}
+            title = (result.get('document') or {}).get('title') if isinstance(result.get('document'), dict) else None
+            card.rows[n].setText(breakable(card.rows[n].text() + ('  ·  done' + (': “%s”' % title if title else '') if ok else '  ·  REFUSED: ' + str((r.get('error') or {}).get('message'))[:200])))
+            if not ok:break
+        went = sum(1 for _, ok, _ in card.results if ok)
+        card.run.setText('Ran %d of %d' % (went, len(card.plan)))
+        if done is not None:done(card.results)
 
     def ask(self, text, about=None):
         thing = self.thing_asked_about(text)

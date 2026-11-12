@@ -243,7 +243,7 @@ def check_desk(host):
     """C: check the desk. Everything is read again; findings are checked against their sources without marking anything;
     Stacy says what waits and why, each with the step that would settle it, and lists the reads she made."""
     from .engineering_kernel import operator
-    from .field_do import sweep
+    from .field_do import settling, sweep
     page = host.field_page;kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
     if kernel is None or page.face != 'work':return None
     page.refresh(force=True)
@@ -253,7 +253,12 @@ def check_desk(host):
     def go(obj):
         if page.view.field.get(obj.id) is None:return
         page.view.field.select(obj.id);page.view._reveal_pending = True;page.view._describe();page.view.update();do(host, obj)
-    return face.say_desk(len(page.view.field.objects), waiting, lines, go)
+    plan = settling(waiting)
+    def settle():
+        # The changes go up together for one Run; when they have run the desk is checked again, and that check is the answer.
+        face.say_plan(plan, done=lambda results:check_desk(host))
+        page.view.setFocus(Qt.OtherFocusReason)
+    return face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle)
 
 
 def stac_in_line(host, obj):

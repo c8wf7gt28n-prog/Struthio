@@ -76,6 +76,7 @@ class Field:
     aside: str = ''                     # what is not here because it belongs elsewhere, said quietly
     heads: tuple = ()                   # the columns' names, for a face that names its own (the programs' shelf)
     compact: bool = False               # a shelf of many small things: a sheet carries its name and state; the foot says the rest
+    moved: tuple = ()                   # results that changed when a calculation was brought up to date: (old words, new words, its title)
 
     def __post_init__(self):
         seen = set();kept = []

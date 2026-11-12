@@ -81,6 +81,8 @@ class Reader:
         self.skip = set(skip)        # ids that could not be read last time: not asked again until the owner looks again
         self.left_out = []
         self.replaced = set()        # calculations another calculation says it replaces (a recheck makes a new page)
+        self.results = {}            # a calculation's result as words ("3.36 W"), by its id
+        self.replaces = {}           # new calculation id -> the id of the one it replaced
         self.retired = 0             # how many of those were taken off the Field
 
     def call(self, operation, arguments=None, record=None):
@@ -202,7 +204,11 @@ class Reader:
             if got is None:
                 self.add(FieldObject(ident, 'document', row.get('title') or row['id'], 'could not be read', NOT_READ, (), '', target, stac=page_code));continue
             derivation = (got.get('document') or {}).get('derivation')
-            if derivation and derivation.get('replaces'):self.replaced.add('document:' + str(derivation['replaces']))
+            if derivation and derivation.get('replaces'):
+                self.replaced.add('document:' + str(derivation['replaces']));self.replaces[ident] = 'document:' + str(derivation['replaces'])
+            value = ((((derivation or {}).get('calculation') or {}).get('outputs') or [{}])[0] or {}).get('value')
+            if isinstance(value, dict) and value.get('decimal') is not None:
+                self.results[ident] = ('%s %s' % (value['decimal'], value.get('unit') or '')).strip()
             facts = [];cells = '';where = ''
             if row.get('revision') is not None:facts.append('revision %s' % row['revision'])
             if not derivation:       # a plain page comes from nothing, so it has nothing to agree with: no state
@@ -402,6 +408,12 @@ def read_field(kernel, principal, title='', skip=()):
         reader.objects = [obj for obj in reader.objects if obj.id not in gone]
         reader.links = [link for link in reader.links if link.source not in gone and link.target not in gone]
         reader.retired = len(gone)
+    moved = _moved(reader)
+    for obj in reader.objects:   # a finding whose words still carry a result that has since been worked again: it waits, and says which
+        if obj.kind != 'finding' or obj.state != STATE_CURRENT:continue
+        for was, now, name in moved:
+            if was in obj.title and now not in obj.title:
+                obj.state = STATE_RECHECK;obj.lines = ('says %s; now %s' % (was, now),) + tuple(obj.lines)[:2];break
     if not title and len(investigations) == 1:
         question, state = investigations[0]
         title = question + ('  ·  ' + words(state) if state else '')
@@ -410,7 +422,20 @@ def read_field(kernel, principal, title='', skip=()):
         aside = '%d sheet%s of your Office %s not shown here' % (reader.elsewhere, '' if reader.elsewhere == 1 else 's', 'is' if reader.elsewhere == 1 else 'are')
     if reader.retired:
         aside += ('  ·  ' if aside else '') + '%d earlier calculation%s replaced, kept in Documents' % (reader.retired, '' if reader.retired == 1 else 's')
-    return Field(reader.objects, reader.links, title, note=_left_out(reader), aside=aside), reader
+    return Field(reader.objects, reader.links, title, note=_left_out(reader), aside=aside, moved=moved), reader
+
+
+def _moved(reader):
+    """Results that changed when a calculation was brought up to date: (old words, new words, the calculation's title), the new
+    words being those of the page that stands now, however many times it was worked again. A match of words, not a recorded
+    link: it is how the desk notices a finding that still quotes the old number."""
+    newer = {old: new for new, old in reader.replaces.items()};out = []
+    for old in newer:
+        last = old;hops = 0
+        while last in newer and hops < 50:last = newer[last];hops += 1
+        was = reader.results.get(old);now = reader.results.get(last)
+        if was and now and was != now and (was, now, reader.names.get(last, '')) not in out:out.append((was, now, reader.names.get(last, '')))
+    return tuple(out)
 
 
 # ---- the programs face: every program and room Graphite can open, as a shelf --------------------------------------------------

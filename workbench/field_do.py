@@ -27,6 +27,7 @@ class Step:
     line: str = ''          # the exact line
     why: str = ''           # why the records offer it, or what it will leave behind
     scope: str = 'read'     # the Kernel's scope for it: read, execute, approve
+    settles: bool = False   # taking it is what brings the thing back to current (so "settle the desk" may include it)
 
 
 def op(operation, **arguments):
@@ -76,7 +77,7 @@ def _calculation(kernel, principal, obj, field):
                             'its sheet was changed after this was worked out'))
         out.append(Step('Bring it up to date', 'write',
                         op('office.datasheet.recheck', id=ident, expected_revision=document.get('revision')),
-                        'the same calculation, worked again from the sheet as it is now; the new page takes its place and this one is kept in Documents', 'approve'))
+                        'the same calculation, worked again from the sheet as it is now; the new page takes its place and this one is kept in Documents', 'approve', True))
     elif state == 'PDF_SOURCE_REVIEW_REQUIRED':
         if sheet:
             out.append(Step('See its sheet’s source', 'read', 'office.get %s | select source_state.state,origin.pdf.name,origin.pdf.page_index' % js(id=sheet),
@@ -126,7 +127,15 @@ def _claim(kernel, principal, obj, field):
     due = [c for c in sheet.get('checked', ()) if c.get('last_outcome') in ('NOT_RUN', 'FAILED', 'STALE')]
     if due or (sheet.get('next') or {}).get('kind') == 'CHECK':
         out.append(Step('Run its due checks (%d)' % len(due) if due else 'Run its due checks', 'write', op('investigation.continue', id=inv),
-                        'each check is a read with an expectation; what passes counts as support', 'execute'))
+                        'each check is a read with an expectation; what passes counts as support', 'execute', True))
+    quoted = next(((was, now, name) for was, now, name in (field.moved if field is not None else ()) if was in obj.title and now not in obj.title), None) if finding else None
+    if quoted:                                # its words carry a result that has since been worked again
+        was, now, name = quoted
+        out.append(Step('Write it again with %s' % now, 'write', op('investigation.claim', id=inv, text=str(obj.title).replace(was, now), role='FINDING'),
+                        'a new finding with the number “%s” gives now; it stands on nothing until its sources are cited for it' % name, 'execute'))
+        if not (path and path.get('review') == 'NEEDS_REVIEW'):
+            out.append(Step('Retire this one', 'write', op('investigation.review', claim=claim, decision='RETIRE'),
+                            'it is taken out of what is known; its words say %s' % was, 'approve'))
     if path and path.get('review') == 'NEEDS_REVIEW':
         out.append(Step('Accept the change', 'write', op('investigation.review', claim=claim, decision='ACCEPT_CHANGE'),
                         'something it stands on changed; this says the finding still holds on the changed source', 'approve'))
@@ -150,7 +159,7 @@ def _condition(kernel, principal, obj, field):
     got = _read(kernel, principal, 'conditions.get', {'id': ident}) or {}
     if (got.get('condition') or {}).get('state') == 'STALE':
         out.append(Step('Bring the total up to date', 'write', op('conditions.recheck', id=ident),
-                        'the page is read again, the numbers added, and the result paragraph rewritten', 'execute'))
+                        'the page is read again, the numbers added, and the result paragraph rewritten', 'execute', True))
     return out
 
 
@@ -187,6 +196,17 @@ def steps_for(kernel, principal, obj, field=None):
     return [step for step in steps if step.line][:9]
 
 
+def settling(waiting):
+    """From a checked desk, the changes that would bring things back to current, one for each thing that has one, in the
+    order the desk lists them: [(object, step)]. What only the owner can decide (a review, an open question) is not here."""
+    plan = [];seen = set()
+    for obj, _, steps in waiting:
+        step = next((step for step in steps if step.kind == 'write' and step.settles), None)
+        if step is not None and step.line not in seen:
+            plan.append((obj, step));seen.add(step.line)
+    return plan
+
+
 def sweep(kernel, principal, field):
     """Check the desk: every object that waits for the owner, with why, and its steps. Findings are checked without writing:
     each source an investigation recorded is read again and its digest compared, which is what investigation.refresh would
@@ -195,7 +215,11 @@ def sweep(kernel, principal, field):
     waiting = [];lines = [];seen = set()
     for obj in field.objects:
         if obj.needs_attention():
-            waiting.append((obj, obj.state, steps_for(kernel, principal, obj, field)));seen.add(obj.id)
+            why = obj.state
+            if obj.kind == 'finding':
+                quoted = next(((was, now, name) for was, now, name in field.moved if was in obj.title and now not in obj.title), None)
+                if quoted:why = 'its words say %s; “%s” now gives %s' % (quoted[0], quoted[2], quoted[1])
+            waiting.append((obj, why, steps_for(kernel, principal, obj, field)));seen.add(obj.id)
     by_inv = {}
     for obj in field.objects:
         if obj.kind in ('finding', 'question') and isinstance(obj.target, dict) and obj.target.get('id'):
