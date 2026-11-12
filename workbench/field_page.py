@@ -40,6 +40,16 @@ class FieldPage(QWidget):
         self.view.faces = FACES;self.face = self.view.face = 'work'
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
+        QApplication.instance().focusChanged.connect(self._keyboard_moved)
+
+    def _keyboard_moved(self, old, now):
+        """While the Field is in front the keyboard is never left nowhere: when the writing strip (or anything else) gives it up
+        without handing it on, it comes back to the Field, so the next arrow moves and Esc goes back."""
+        try:
+            if now is None and getattr(self.host, '_field_active', False) and self.view.isVisible() and self.host.isActiveWindow():
+                self.view.setFocus(Qt.OtherFocusReason)
+        except RuntimeError:         # the window is going away
+            pass
 
     def minimumSizeHint(self):
         return QSize(0, 0)
@@ -97,7 +107,10 @@ def show_field(host):
     host._field_active = True;host._field_from_home = from_home
     host._field_focus = focus if focus is not None and focus is not page.view else None
     host.central_stack.setCurrentWidget(page)
-    host.context_bar.hide();host.doc_info.hide();host.workspace_status.hide()      # the Field has the whole centre
+    # The Field has the whole centre: the bars that belong to the work step aside and come back exactly as they were.
+    bars = [getattr(getattr(host, 'concern', None), 'context_strip', None), host.workspace_status, host.context_bar, host.doc_info]
+    host._field_bars = [(bar, bar.isVisible()) for bar in bars if bar is not None]
+    for bar, _ in host._field_bars:bar.hide()
     page.refresh()
     host.setWindowTitle('Field — Graphite')
     page.view.setFocus(Qt.OtherFocusReason)
@@ -110,6 +123,10 @@ def leave_field(host):
         return
     host._field_active = False
     host.central_stack.setCurrentWidget(host.workspace_split)
+    for bar, shown in getattr(host, '_field_bars', ()):
+        try:bar.setVisible(shown)
+        except RuntimeError:pass
+    host._field_bars = []
     host.update_document_info()
 
 

@@ -285,7 +285,7 @@ class Field:
         surface_w = max(width, used + 2 * margin)
         left = max(margin, (surface_w - used) / 2)
         tallest = max(len(self.column(rank)) for rank in ranks)
-        gap_y = 22 * scale;top = 40 * scale;bottom = 18 * scale
+        gap_y = 22 * scale;top = 40 * scale;bottom = 30 * scale     # the bottom rim clears the strip that says where the surface goes on
         need = top + bottom + tallest * sheet_h + (tallest - 1) * gap_y
         surface_h = max(height, need)
         placed = {}

@@ -7,20 +7,23 @@ work in this workspace: every source, sheet, exact calculation, page, finding an
 show what feeds what. Material is at the left and conclusions at the right. The selected sheet is the brightest, what
 touches it stays near, and the rest steps back. Amber marks what waits for you; a small green square means a record still
 agrees with what it came from. Each state has its own mark as well as its colour: half filled for recheck, hollow for open,
-crossed for held, a dash for what cannot be reached. Work that is not finished (running, waiting, failed) appears there too.
+crossed for held and for a finding the evidence speaks against, a dash for what cannot be read or reached. Work that is not
+finished (running, waiting, failed) appears there too.
 
 **Moving in it.** The arrow keys go from column to column and follow a wire when one leads there. **Enter** opens the real
 page for the selected sheet in its own room. **F9** brings the Field back with the same sheet selected and in view. **A**
-goes to the next thing that waits for you. **R** reads the records again. **Esc** goes back to where you were, with the
-keyboard where it was. Tab leaves the Field as it leaves anything else. A click selects; a double click opens.
+goes to the next thing that waits for you (Shift+A the one before). Home and End go to the first and last sheet. **R** looks
+again, and asks once more for anything that could not be read. **Esc** goes back to where you were, with the keyboard where
+it was and the bars as they were. Tab leaves the Field as it leaves anything else. A click selects; a double click opens.
 
 **Stacy says it in staC.** staC, said Stacy, is Graphite's command language, and in the Field it has a face. In the
 Illustrated desk Stacy's still After Midnight portrait stands in a rail at the right, and under her the rail shows the staC
 line for the selected sheet: the exact read-only pipeline that reads that object. **S** puts that line in the writing strip
 to read or change (Ctrl+Enter there runs it). **Shift+Enter** runs it as it is, and the answer appears in the working area
 under the Field: for a calculation, the inputs it used with their cells and conditions; for a finding, the sources that
-support it; for a sheet, where it came from and whether it still agrees. On a narrow screen, or in the ASCII or Clean desk,
-the rail gives way and the same line is in the foot; the keys work the same.
+support it; for a sheet, where it came from and whether it still agrees. The rail takes only the room the columns leave:
+on a narrow screen, at a large reading size, or in the ASCII or Clean desk it gives way and the same line is in the foot;
+the keys work the same.
 
 **What can be done with a sheet.** Right-click a sheet, or press the Menu key, for the desk's own menu: Open, What feeds it,
 What it feeds, Inspect in the line, Run its staC, Ask Graphite about this, Copy its name. An empty place of the Field offers
@@ -32,11 +35,14 @@ opens Log on its Network stream, filtered to it. **W** returns to the work. Noth
 capture is started.
 
 **Reading comes first.** A sheet is never squeezed below the size its words need. When the sheets do not fit, the Field
-scrolls, both ways, and the selected sheet is always brought into view. Lettering follows your reading size.
+scrolls, both ways, and the selected sheet is always brought wholly into view. Lettering follows your reading size; at a
+large size on a small screen the head and the foot shorten so that a whole sheet still fits between them.
 
-**A large workspace stays quick.** The Field reads the newest records of each kind up to a ceiling and says in amber how
-many it left out. It keeps its reading until something in the workspace is recorded, so coming back to it is immediate.
-Showing it adds nothing to your timeline. A record that cannot be read is drawn as not read, never as current.
+**It shows what is there now.** The Field reads the workspace each time it comes to the front, because a sheet's state can
+change when a file changes on disk, which no record notices. It reads the newest records of each kind up to a ceiling
+(60 of most kinds, 300 pages, 40 findings an investigation) and says in amber how many it left out. Showing it adds nothing
+to your timeline. A record that cannot be read is drawn as not read, never as current, and the status line says so in words.
+A sheet in your Office whose source lives in another workspace is drawn quietly as elsewhere, not as an alarm.
 
 **Under the hood.** No new operation or setting: the Field reads through the same dispatcher as everything else. One test
 (`tests_integrated/test_model_settings.py`) used small made-up process numbers and could signal a real process when run as

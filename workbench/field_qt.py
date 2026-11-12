@@ -107,22 +107,35 @@ class FieldView(QWidget):
         f = QFont('IBM Plex Sans');f.setPixelSize(max(12, round(px * self.scale())));f.setWeight(weight);return f
 
     def head_height(self):
-        return round(58 * self.scale())
+        return round(min(58 * self.scale(), max(44.0, self.height() * 0.16)))
 
     def foot_height(self):
-        return round(96 * self.scale())
+        """Three lines for the selected sheet, or one when the window is too short for a whole sheet above them: at a large
+        reading size on a small screen the sheets come first and the foot keeps only the title."""
+        s = self.scale();full = round(96 * s)
+        if self.height() - self.head_height() - full < self.sheet_height() + 40 * s:return round(44 * s)
+        return full
+
+    def least_width(self):
+        """The narrowest a sheet may be. A little narrower in the Illustrated desk, so that Stacy keeps her rail beside five columns."""
+        return (164 if self.art_mode == 'illustrated' and self.art_folder is not None else 176) * self.scale()
 
     def rail(self):
         """The width of Stacy's rail at the right of the Field: only in the Illustrated desk, only when the plate is there, and
         only when the sheets keep their room. The work comes first; on a narrow screen the rail gives way entirely."""
         if self.art_mode != 'illustrated' or self.art_folder is None:return 0.0
         s = self.scale()
-        if self.width() < 1040 * s or self.height() < 520 * s:return 0.0
+        if self.height() < 520 * s:return 0.0
         if self._plate is None:
             from .boss_qt import midnight_plate
             self._plate = midnight_plate(self.art_folder, 'portrait')
         if self._plate.isNull():return 0.0
-        return float(round(min(340 * s, self.width() * 0.25)))
+        # The columns are counted first, at their narrowest; she takes what they leave, and nothing when that is too little.
+        columns = len(self.field.ranks())
+        needed = columns * self.least_width() + max(0, columns - 1) * 22 * s + 2 * 16 * s if columns else 0.0
+        room = self.width() - needed
+        if room < 200 * s:return 0.0
+        return float(int(min(340 * s, self.width() * 0.25, room)))
 
     def body(self):
         return QRectF(0, self.head_height(), self.width() - self.rail(), max(1, self.height() - self.head_height() - self.foot_height()))
@@ -136,7 +149,7 @@ class FieldView(QWidget):
 
     def _layout(self):
         body = self.body();s = self.scale()
-        self._placed, wide, tall = self.field.place(body.width(), body.height(), s, self.sheet_height(), 176 * s)
+        self._placed, wide, tall = self.field.place(body.width(), body.height(), s, self.sheet_height(), self.least_width())
         self._surface = (wide, tall)
         lefts = sorted({round(place.x, 1) for place in self._placed.values()})
         widths = [place.w for place in self._placed.values()]
@@ -153,16 +166,23 @@ class FieldView(QWidget):
 
     def selected_point(self):
         """Where the keyboard's menu opens: just inside the selected sheet, or the middle of the Field when nothing is selected."""
-        body = self._layout();r = self.sheet_rect(self.field.selected, body)
-        if r is None:return self.rect().center()
-        return r.topLeft().toPoint() + QPoint(round(min(24.0, r.width() / 2)), round(min(24.0, r.height() / 2)))
+        body = self._layout()
+        if self.field.selected not in self._placed:return self.rect().center()
+        self._reveal(body);self._layout();self.update()       # the sheet is brought into view first: the menu is for it, wherever it was
+        seen = self.sheet_rect(self.field.selected, body).intersected(body)
+        if seen.isEmpty():return self.rect().center()
+        return seen.topLeft().toPoint() + QPoint(round(min(24.0, seen.width() / 2)), round(min(24.0, seen.height() / 2)))
 
     def _reveal(self, body=None):
         """Bring the selected sheet into view, both ways, with a little room around it."""
-        body = body or self.body();p = self._placed.get(self.field.selected);room = 14 * self.scale()
+        body = body or self.body();p = self._placed.get(self.field.selected);s = self.scale();room = 14 * s
         if p is None:return
-        if p.y - room < self.scroll_y:self.scroll_y = max(0.0, p.y - room - 26 * self.scale())
-        elif p.y + p.h + room > self.scroll_y + body.height():self.scroll_y = p.y + p.h + room - body.height()
+        # Under the sheet: clear of the strip that says where the surface goes on. Above it: what room is left, a little when there is some.
+        high = body.height();strip = 26 * s
+        low = strip if high >= p.h + strip else max(0.0, min(room, high - p.h))
+        top = max(0.0, min(room, high - p.h - low))
+        if p.y - top < self.scroll_y:self.scroll_y = max(0.0, p.y - top - min(26 * s, max(0.0, high - p.h - top - low)))
+        elif p.y + p.h + low > self.scroll_y + high:self.scroll_y = p.y + p.h + low - high
         if p.x - room < self.scroll_x:self.scroll_x = max(0.0, p.x - room)
         elif p.x + p.w + room > self.scroll_x + body.width():self.scroll_x = p.x + p.w + room - body.width()
 
@@ -199,8 +219,8 @@ class FieldView(QWidget):
             self.face_chosen.emit(next(name for name, letter in self.faces if event.text().lower() == letter));return
         else:
             return super().keyPressEvent(event)
-        if self.field.selected != before:
-            self._layout();self._reveal();self._describe();self.update()
+        self._layout();self._reveal();self.update()        # a selecting key always brings the sheet into view, changed or not
+        if self.field.selected != before:self._describe()
 
     def _hit(self, pos):
         body = self._layout()
@@ -552,17 +572,27 @@ class FieldView(QWidget):
         p.fillRect(QRectF(0, top, self.width(), h), QColor(t.GROUND))
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, top + 0.5), QPointF(self.width(), top + 0.5))
         obj = self.selected()
-        keys = '← ↑ ↓ →  move      Enter  open      S  staC      Menu  more      A  next waiting      R  look again      Esc  back'
-        if self.faces:keys = '      '.join('%s  %s' % (letter.upper(), name) for name, letter in self.faces if name != self.face) + '      ' + keys
-        p.setFont(self.mono(12));fm = QFontMetricsF(p.font());keys_w = fm.horizontalAdvance(keys)
+        # The keys, in the order they are read; when the line is too narrow they give way one at a time, the least needed first.
+        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'S  staC'), (5, 'Menu  more'), (4, 'A  next waiting'), (6, 'R  look again'), (0, 'Esc  back')]
+        legend = [(7, '%s  %s' % (letter.upper(), name)) for name, letter in self.faces if name != self.face] + legend
+        p.setFont(self.mono(12));fm = QFontMetricsF(p.font())
         if obj is None:
             p.setPen(QColor(t.QUIET));p.drawText(QPointF(x, top + h / 2 + fm.ascent() / 2), 'R  look again      Esc  back');return
-        wide = self.width() - 2 * x
+        wide = self.width() - 2 * x;compact = h < 60 * s
         p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT))
         tag = obj.tag or KIND_TAG.get(obj.kind, obj.kind.upper())
         if obj.state:tag += '  ·  ' + STATE_WORD.get(obj.state, obj.state).upper()
+        if compact:                          # a short window at a large reading size: one line, the kind and the title
+            p.drawText(QPointF(x, top + h / 2 + fm.ascent() / 2 - 1), tag)
+            p.setFont(self.sans(15));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT));left = x + fm.horizontalAdvance(tag) + 18 * s
+            p.drawText(QPointF(left, top + h / 2 + fm2.ascent() / 2 - 1), fm2.elidedText(str(obj.title)[:LONGEST], Qt.ElideRight, max(40.0, self.width() - x - left)))
+            return
         p.drawText(QPointF(x, top + 24 * s), tag)
-        if wide > keys_w + fm.horizontalAdvance(tag) + 40 * s:
+        room = wide - fm.horizontalAdvance(tag) - 40 * s
+        while legend and fm.horizontalAdvance('      '.join(word for _, word in legend)) > room:
+            legend.remove(max(legend))
+        if legend:
+            keys = '      '.join(word for _, word in legend);keys_w = fm.horizontalAdvance(keys)
             p.setFont(self.mono(12));p.setPen(QColor(t.QUIET));p.drawText(QPointF(self.width() - x - keys_w, top + 24 * s), keys)
         p.setFont(self.sans(16));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
         p.drawText(QPointF(x, top + 24 * s + fm2.height() + 2 * s), fm2.elidedText(str(obj.title)[:LONGEST], Qt.ElideRight, wide))

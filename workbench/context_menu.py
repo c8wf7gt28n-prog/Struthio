@@ -1520,7 +1520,7 @@ def find_field(host, w, point):
     words = (obj.tag or KIND_TAG.get(obj.kind, obj.kind)).lower()
     icon = {'source': 'references', 'sheet': 'calculate', 'calculation': 'calculate', 'document': 'documents', 'finding': 'memory', 'question': 'memory',
             'interface': 'network', 'program': 'tools', 'endpoint': 'network'}.get(obj.kind, 'window')
-    return Target('field-sheet', obj.title, '%s · %s' % (words, obj.state), ident=obj.id, data={'object': obj}, surface='field', owner=w, icon=icon)
+    return Target('field-sheet', obj.title, '%s · %s' % (words, obj.state) if obj.state else words, ident=obj.id, data={'object': obj}, surface='field', owner=w, icon=icon)
 
 
 def find_workspace(host, w, point):
