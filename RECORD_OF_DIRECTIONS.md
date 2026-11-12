@@ -25,6 +25,9 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 - **Authority.** "I pre approve all your expert opinions, recommendations, and choices." "My goal with you is to build,
   complete, and finish the project." 12 November: "Do everything auto and surprise me." Decide, say what you decided,
   keep moving. Ask only when the answer changes the result or reaches outside the computer.
+- **Simple, for a power user** (12 November: "let's concentrate on simple power user"). Keyboard first. One line to
+  speak in. Few words on the screen and none that explain themselves twice. One rule instead of a setting where a rule
+  will do. No hand-holding, no second way to do a thing unless the second way is the keyboard.
 - **Checking.** Light. Batch related edits, then one launch-and-use check. Dig deeper only for a real failure or a
   worry about the owner's data. No new test suites, no test-count campaigns.
 - **Honesty.** Say plainly what is not done. Nothing counts as accepted on the ThinkPad until it is tried there.
@@ -64,6 +67,9 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   reachable from the sheet, the right-click menu, the keyboard, a typed staC line and the assistant. The code is
   `workbench/field_model.py` (no Qt), `field_qt.py` (drawing), `field_source.py` (reads through the Kernel) and
   `field_page.py` (the way in and out).
+- **It opens on the work** (12 November, the owner left the choice here). At launch the Field is in front when the
+  workspace has anything in it, with what waits selected; Esc goes to where the owner left off. An empty workspace
+  opens on Home. Home's "Start: always Home" still means Home.
 - **Small things that stay.** `poem` as the empty hint. Ingress and Egress. The pinned Trash. Home as a file browser.
   The game behind System (STRUTHIO ARCADE; its source is the STRUTHIO repository's `arcade/`, changed there and
   copied in).
@@ -94,6 +100,8 @@ Never yet done, by every document in the tree:
 
 1. **First boot on the ThinkPad** from the offline kit, with no model. Write down what actually happened.
 2. **One real model** in the Brain room, on the processor and then on the Radeon. Record what the program reads back.
+   The owner's choice for the first (12 November, voice-typed "Quinn 4.0 27B Quant 4 when it's available"): the Qwen
+   family's 4.0 release at 27B, 4-bit quantised, once it exists.
 3. **One whole journey with the model live:** datasheet to sheet to calculation to report (the first-run workshop),
    then a question over the prepared evidence.
 4. **Grow the Field and staC together** into the working desk: every object kind (methods, files), staC lines that do

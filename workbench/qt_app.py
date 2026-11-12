@@ -2411,6 +2411,9 @@ class WorkbenchWindow(QMainWindow):
         self.refresh_navigator()
         if self._home_active or (restore and self.view_preferences.get('startup') == 'home'):
             self.show_start()
+        if restore and self.view_preferences.get('startup') != 'home':
+            from .field_page import open_on_work
+            open_on_work(self)       # Graphite opens on the work: the Field when this workspace has any; "always Home" is still Home
         if self.recovery.entries():
             QTimer.singleShot(0, self.show_recovery)
 

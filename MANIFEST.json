@@ -66,8 +66,8 @@
       "sha256": "96b7fdb88c415bd750f5c69428687f13917510a300387913bb1109fbb43978b9"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 9123,
-      "sha256": "fe86d9045ef512e173be3d169fc85dd00ee16237925bf73079c1b4ab6ca9030c"
+      "bytes": 9928,
+      "sha256": "416cd0f88c996df35d67d42aacd62d7bcb328db1c998b03c0ada5bfaf15e77ce"
     },
     "RIGHTS.md": {
       "bytes": 899,
@@ -1094,8 +1094,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 23715,
-      "sha256": "e103466cb98cdf46b8d78b9e5c70a14048b87e62876538cf1aee526dcb144ec1"
+      "bytes": 23983,
+      "sha256": "1cc5aa5660d672769b1487a4eeab2b161f2c3d487bb5d1868588024cec2382e2"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1986,16 +1986,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1864384,
-      "sha256": "2c89401af9ceb51aa94eb8f57c9dce44931ba9891e8d16553b44928bd4c1bfae"
+      "bytes": 1865474,
+      "sha256": "7941399b30f6e712c34ec6de596f3a97b4648bd880dc14e466e310690a23bc20"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4263936,
-      "sha256": "bbb9acddbba0768c1930a990e0dc01682495c3298fae39ee9117616b4544a4a2"
+      "sha256": "b10b3b3f02ace981cb0abf404161ba357b5adb03e694e8dddcbcf2f6a890ea21"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47110,
-      "sha256": "c723f85b35d91f3f50e70ef4297457a64e5c50f64467ad7b213c627a2379abe2"
+      "sha256": "e8390fa2decad2355c33ac43993696fcbc22a1f495b7dfc3fa4e59b9a6ee285e"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3326,8 +3326,8 @@
       "sha256": "f51941edf397bcc6e7299d8859bbd9bcf885fd55f5c432b5ba41d93224e192ce"
     },
     "workbench/field_page.py": {
-      "bytes": 11814,
-      "sha256": "6cd4f4c274a6394207501527edace719369a175b1662bfff01e580e5d0b50bbf"
+      "bytes": 12991,
+      "sha256": "8ee1eea38871bc236482787c464fd3b5a936abbf8affba65b36ded5df38b7551"
     },
     "workbench/field_qt.py": {
       "bytes": 41979,
@@ -3434,8 +3434,8 @@
       "sha256": "4aa7dc81d054e14e4c9ea1156645e3d89d6c2cee286017a69c20d5c9dfae2928"
     },
     "workbench/home_qt.py": {
-      "bytes": 16032,
-      "sha256": "8494ea382bcc2e1c15967f2579522d004822b5d6763f6199de61f7e7f8d85109"
+      "bytes": 16130,
+      "sha256": "a3787ac409baab3e3c41f538740f8bac5a3f64d65b7d2b28d96860a6730adce8"
     },
     "workbench/host_cli.py": {
       "bytes": 4286,
@@ -4138,8 +4138,8 @@
       "sha256": "c8687508ee906fd6bd5a5ce85d6d54949ca118c29d3373bc8d2689702b657059"
     },
     "workbench/qt_app.py": {
-      "bytes": 271257,
-      "sha256": "18343d088285d9562596bcf9890dfec0fa3fa8575711444c690db531c54130b0"
+      "bytes": 271511,
+      "sha256": "163e8ebbd81e6bc0f85cfe6b95b48f775329c941dfb0f9707efada1418a2a8f7"
     },
     "workbench/qt_contract.py": {
       "bytes": 1686,

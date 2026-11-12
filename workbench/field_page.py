@@ -1,6 +1,7 @@
 """The Field in the window: the overview page of the centre, and the way in and out of it.
 
     show_field(host)     put the Field in front of the workspace (F9, Arrange ▸ Field, or type "field" in the writing line)
+    open_on_work(host)   at launch: the Field first when the workspace has work, unless the owner chose "always Home"
     leave_field(host)    put the workspace back; every room opener reaches this through the window's _close_start()
     open_object(host, obj)   open the real editor for one sheet of the Field, through the room's own opener
 
@@ -63,9 +64,10 @@ class FieldPage(QWidget):
             self.view.field.selected = ''          # another face holds other objects: start where that face starts
             self.refresh(force=True)
 
-    def refresh(self, force=False):
+    def refresh(self, force=False, reading=None):
         """Read the workspace. `force` (R) also asks again for the records that could not be read last time. A reading that
-        could not reach the records says so on the surface and in the status line; it never shows an empty workspace instead."""
+        could not reach the records says so on the surface and in the status line; it never shows an empty workspace instead.
+        `reading` is a (field, reader) pair just read by the caller (the launch), shown instead of reading twice."""
         host = self.host
         from .locations import program
         self.view.art_mode = host.session.state.get('desk_art', 'illustrated')     # Arrange ▸ Desk art: Illustrated, ASCII or Clean
@@ -82,7 +84,7 @@ class FieldPage(QWidget):
             field, reader = read_network(kernel, principal)
         else:
             if force:self.unread = set()
-            field, reader = read_field(kernel, principal, title='', skip=self.unread)
+            field, reader = reading if reading is not None else read_field(kernel, principal, title='', skip=self.unread)
             self.unread |= set(reader.unread)
             if not field.title:field.title = host.root.name
         self.problem = self.view.problem = problems(reader)
@@ -91,7 +93,24 @@ class FieldPage(QWidget):
         elif host.statusBar().currentMessage().startswith('Field · '):host.statusBar().clearMessage()      # an earlier trouble that is over is no longer said
 
 
-def show_field(host):
+def open_on_work(host):
+    """At launch Graphite opens on the work: the Field in front when this workspace has anything to show. An empty workspace,
+    or one whose records cannot be reached, stays where the launch left it (Home, or the page that was open); F9 is still
+    there. Esc from this first Field goes back to that place, so "where I left off" is one key away."""
+    kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
+    if kernel is None or getattr(host, '_field_active', False):
+        return None
+    from .engineering_kernel import operator
+    try:
+        reading = read_field(kernel, operator(), title='')
+    except Exception:  # noqa: BLE001 - a launch never fails because the overview could not be read
+        return None
+    if not reading[0].objects:
+        return None
+    return show_field(host, reading=reading)
+
+
+def show_field(host, reading=None):
     """Bring the Field to the front. Coming from Home, Home is closed first so its folded panels return once. Asked for while
     it is already in front, it only takes the keyboard: nothing is read again and where the owner came from is kept."""
     page = getattr(host, 'field_page', None)
@@ -111,7 +130,7 @@ def show_field(host):
     bars = [getattr(getattr(host, 'concern', None), 'context_strip', None), host.workspace_status, host.context_bar, host.doc_info]
     host._field_bars = [(bar, bar.isVisible()) for bar in bars if bar is not None]
     for bar, _ in host._field_bars:bar.hide()
-    page.refresh()
+    page.refresh(reading=reading)
     host.setWindowTitle('Field — Graphite')
     page.view.setFocus(Qt.OtherFocusReason)
     return page
