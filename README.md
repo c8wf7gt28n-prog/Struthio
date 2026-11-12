@@ -6,6 +6,7 @@ on. Graphite is the public name of the workspace; its assistant's face is Stacy,
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
+- **The shelf** · press **P** in the Field: every program and room in six fixed columns; Enter opens one.
 - **The Field** · press **F9** (or Arrange → Field, or type `field` in the writing strip): the work in this workspace as sheets with the wires that say what feeds what. Arrow keys follow the wires, Enter opens the real page, Esc comes back. Stacy's rail shows the staC line for the selected sheet: **S** puts it in the writing strip, **Shift+Enter** runs it. **N** shows this computer's network the same way; **W** returns to the work. It is the first slice of the objects and instruments desktop (master specification, sections 70 to 72), new in 0.3. Right-click a sheet (or press the Menu key) for what can be done with it. Guide → What's New has the rest.
 - **Visual baseline** · [Visual Pass 1 reference review](docs/BOSS_VISUAL_PASS_01_REVISION.md) compares the five owner references with the revised worksheet, PDF evidence review and research journal.
 - **Halfway release** · [P08–P10](docs/BOSS_HALFWAY_P10.md) covers resident model handling, project collections and reviewed PDF tables that become sheets and reports.

@@ -52,6 +52,23 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 - Find **Night Shift** in the command search. Open the saved checkpoint, inspect the grant and progress, and resume explicitly.
 - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
 - When a local GGUF is available, open **Brain** to add the model and qualify its effective backend.
+- In the Field press **P** for every program and room as a shelf; **Enter** opens one.
+
+## The first model
+
+The owner's choice is the Qwen family's 4.0 release at 27B, 4-bit quantised, once it exists. On 12 November 2026 it did not:
+the publisher's page held no Qwen 4 weights, and files under that name elsewhere were placeholders. Read on that day from
+the publisher's and the runtime's own pages, not tried on this machine:
+
+- To rehearse until then, the same publisher's Qwen3.8-27B at Q4_K_M (about 17 GB, Apache 2.0). The bundled runtime
+  (llama.cpp b11669) is newer than the builds that file was made with.
+- A Qwen 4 file will probably need a newer runtime than the bundled one: check the build its publisher names against
+  b11669 before the first try.
+- Expect a few tokens a second from a 27B on this processor, with or without the Radeon. If loading on the Radeon fails
+  with a device-lost or out-of-memory message, that is a known open fault on this graphics chip; the processor path works.
+- Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
+  this one (`docs/MODEL_TRIAL_03.md`). Stacy reads the records herself and asks the model only for the words, so a small
+  model is useful from the first day.
 - Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in the writing strip. **Ctrl+Enter** runs the local staC read. Prefix it with `explain` to preview the plan.
 
 ## Background job admission

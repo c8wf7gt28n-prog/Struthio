@@ -1,6 +1,7 @@
 """The Field in the window: the overview page of the centre, and the way in and out of it.
 
     show_field(host)     put the Field in front of the workspace (F9, Arrange ▸ Field, or type "field" in the writing line)
+                         its faces: W the work, P the programs (every program and room, as a shelf), N this computer's network
     open_on_work(host)   at launch: the Field first when the workspace has work, unless the owner chose "always Home"
     leave_field(host)    put the workspace back; every room opener reaches this through the window's _close_start()
     open_object(host, obj)   open the real editor for one sheet of the Field, through the room's own opener
@@ -17,9 +18,9 @@ from PySide6.QtWidgets import QApplication, QSizePolicy, QVBoxLayout, QWidget
 
 from .field_model import Field
 from .field_qt import FieldView
-from .field_source import problems, read_field, read_network
+from .field_source import problems, read_field, read_network, read_programs
 
-FACES = (('work', 'w'), ('network', 'n'))     # the faces of the Field and the key that shows each
+FACES = (('work', 'w'), ('programs', 'p'), ('network', 'n'))     # the faces of the Field and the key that shows each
 
 
 class FieldPage(QWidget):
@@ -82,6 +83,8 @@ class FieldPage(QWidget):
         principal = operator()
         if self.face == 'network':
             field, reader = read_network(kernel, principal)
+        elif self.face == 'programs':      # the shelf: every program and room, each marked "in use" when its room is open
+            field, reader = read_programs(kernel, principal, {type(host.tabs.widget(i)).__name__ for i in range(host.tabs.count())})
         else:
             if force:self.unread = set()
             field, reader = reading if reading is not None else read_field(kernel, principal, title='', skip=self.unread)
@@ -167,6 +170,17 @@ def back(host):
         (tab.focusProxy() or tab).setFocus(Qt.OtherFocusReason)
 
 
+def thing_of(host, obj):
+    """One sheet as Stacy is told about it when the owner asks: its staC line, what the Field shows of it, and what its
+    wires say feeds it and what it feeds. All of it is read from the records already; nothing is guessed."""
+    field = host.field_page.view.field
+    name = {o.id: o for o in field.objects}
+    say = lambda o: '%s “%s”%s' % (o.kind, o.title, ' (%s)' % o.state if o.state else '')
+    return {'title': obj.title, 'stac': obj.stac, 'kind': obj.kind, 'state': obj.state, 'lines': [str(line) for line in obj.lines],
+            'fed_by': [say(name[l.source]) for l in field.links if l.target == obj.id and l.source in name],
+            'feeds': [say(name[l.target]) for l in field.links if l.source == obj.id and l.target in name]}
+
+
 def stac_in_line(host, obj):
     """S: the object's staC line in the writing strip, in Assignment, for the owner to read or change. Nothing runs; Ctrl+Enter
     there runs it. The Field stays where it is."""
@@ -227,6 +241,9 @@ def open_object(host, obj):
             opened = open_pdf(host, target['namespace'], target['item'], target.get('sha256'), int(target.get('page_index', 0)))
         elif kind == 'network':
             return open_network(host, target.get('filter', ''))
+        elif kind == 'program':            # the programs list's own opening: the room, through the existing view factories
+            from .explore_qt import open_instrument
+            opened = open_instrument(host, target['entry'])
         elif kind == 'job':
             from .context_menu import show_job
             opened = show_job(host, target['id'])

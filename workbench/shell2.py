@@ -1506,6 +1506,9 @@ class Composer(QPlainTextEdit):
         self.setPlainText(value);self.moveCursor(self.textCursor().MoveOperation.End)
 
 
+POINTING = re.compile(r"\b(this|it|its|it's|that|here|these|those)\b", re.IGNORECASE)      # the words that point at the selected sheet
+
+
 class SlateFace(QWidget):
     """The assistant in the right panel. Her face is Stacy (12 November 2026: "Stacy should be the face of the assistant as
     communicated through the language of Stacy") and her language is staC: ask about the open item, or about the selected
@@ -1541,7 +1544,7 @@ class SlateFace(QWidget):
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.thread = QWidget();self.lines = QVBoxLayout(self.thread);self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10);self.lines.addStretch(1)
         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
-        self.say('Ask about what is open, or about the sheet selected in the Field. What I read, I show in staC, so you can run it yourself.')
+        self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show in staC, so you can run it yourself.')
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
         self.input.returnPressed.connect(self.send);self.input.setAccessibleName('Message Stacy');self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
         hint = role(QLabel('Enter sends · Shift Enter for a new line'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
@@ -1604,12 +1607,15 @@ class SlateFace(QWidget):
 
     def thing_asked_about(self, text):
         """The thing this question is about, when it is known exactly: the sheet the owner chose "Ask Stacy about this" on (its
-        name is in the question), or the sheet selected in the Field while the Field is in front. None otherwise."""
+        name is in the question), or the sheet selected in the Field while the Field is in front and the question points at it
+        (this, it, that, here, these). Anything else typed in the Field goes the ordinary way. None otherwise."""
         thing, self.thing = self.thing, None
         if thing and thing.get('title') and thing['title'] in text:return thing
         view = getattr(getattr(self.host, 'field_page', None), 'view', None)
         chosen = view.selected() if view is not None and getattr(self.host, '_field_active', False) else None
-        if chosen is not None and chosen.stac:return {'title': chosen.title, 'stac': chosen.stac, 'kind': chosen.kind}
+        if chosen is not None and chosen.stac and POINTING.search(text):
+            from .field_page import thing_of
+            return thing_of(self.host, chosen)
         return None
 
     def answer_in_stac(self, thing, intro):
@@ -1626,8 +1632,13 @@ class SlateFace(QWidget):
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('staC: ' + line);card.box.addWidget(code)
         r = engineering(self.host.root).dispatch(operation, arguments, operator())
         rows = (r['result'].get('rows') or []) if r.get('ok') and isinstance(r.get('result'), dict) else []
-        said = (readable_result(r['result']) if isinstance(r['result'], dict) else str(r['result'])[:2000]) if r.get('ok') \
-            else 'The records did not answer: ' + r['error']['message']
+        if r.get('ok') and rows and all(isinstance(row, dict) for row in rows):  # a row a block, a field a line; what is empty is not said
+            said = '\n\n'.join('\n'.join('%s: %s' % (key, value if isinstance(value, str) else json.dumps(value, ensure_ascii=False))[:400]
+                                           for key, value in row.items() if value not in (None, '', [], {})) for row in rows[:50])
+            if len(rows) > 50:said += '\n… %d more rows' % (len(rows) - 50)
+        else:
+            said = (readable_result(r['result']) if isinstance(r['result'], dict) else str(r['result'])[:2000]) if r.get('ok') \
+                else 'The records did not answer: ' + r['error']['message']
         answer = QLabel(breakable(said));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
         answer.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);answer.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(answer)
         from .context_menu import inspect_in_line
@@ -1635,7 +1646,7 @@ class SlateFace(QWidget):
                  'keep': ('add to the Agenda', lambda p=line:self.keep_in_agenda(p))}
         if rows:words['save'] = ('save as a sheet', lambda p=line, rs=rows:self.save_rows(p, rs))
         card.box.addWidget(sentence('{line}  ·  {watch}  ·  {keep}' + ('  ·  {save}' if rows else ''), words))
-        card.stac = line;card.answered = bool(r.get('ok'))
+        card.stac = line;card.answered = bool(r.get('ok'));card.said = said
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))      # her answer from its first line, not its last
         return card
 
@@ -1649,6 +1660,26 @@ class SlateFace(QWidget):
         if direct is not None:self.say(direct);return
         brain = call(self.host, 'brain.status') or {}
         selected = self.selected_file()
+        if brain.get('state') == 'READY' and thing:  # she reads first, exactly, then says it in her own words from what she read
+            card = self.answer_in_stac(thing, 'The records about “%s”, and the staC that reads them:' % thing['title'])
+            if not card.answered:return
+            from .engine import engineering
+            from .engineering_kernel import operator
+            from .local_brain import RECORDS_HINT
+            import uuid
+            rows = card.said if len(card.said) <= 1500 else card.said[:1500].rsplit('\n', 1)[0] + '\n(more rows are not shown here)'
+            question = text if thing['title'] in text else 'About the %s “%s”: %s' % (thing['kind'], thing['title'], text)
+            facts = ['It is a %s named “%s”.' % (thing['kind'], thing['title'])]
+            if thing.get('state'):facts.append('Its state: %s.' % thing['state'])
+            if thing.get('lines'):facts.append('Recorded about it: %s.' % '; '.join(thing['lines'][:4]))
+            if thing.get('fed_by'):facts.append('It comes from: %s.' % '; '.join(thing['fed_by'][:8]))
+            if thing.get('feeds'):facts.append('It feeds: %s.' % '; '.join(thing['feeds'][:8]))
+            r = engineering(self.host.root).dispatch('brain.ask', {'message': question + '\n\n' + RECORDS_HINT + '\n' + '\n'.join(facts) + '\nRows read from it:\n' + rows, 'mode': 'chat',
+                                                                   'request_key': uuid.uuid4().hex}, operator())
+            if not r.get('ok'):self.say('I read it, but I could not put it in words: ' + r['error']['message']);return
+            self.job = r['result']['id'];self.job_epoch = self.host._operation_epoch;self.grounded = True
+            self.pending = self.say('In my words…');self.timer.start()
+            return
         if brain.get('state') != 'READY' and thing:  # no model, but the records can answer about this thing, and she says how she read them
             card = self.answer_in_stac(thing, 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the staC that reads it:' % thing['title'])
             card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
@@ -1695,10 +1726,17 @@ class SlateFace(QWidget):
             return
         ident = self.job;self.job = None;self.timer.stop()
         if job['state'] != 'Completed':
+            self.grounded = False
             self.pending.set_text('I stopped: ' + (job.get('error') or job['state']) + '. This is recorded so I learn from it.');return
         result = (call(self.host, 'brain.result', {'id': ident}) or {}).get('result') or {}
         proposal = result.get('proposal') or {}
         self.pending.set_text(proposal.get('text') or result.get('text') or 'Done.')
+        if getattr(self, 'grounded', False):  # her words about rows she has just shown: nothing is proposed, and the words are the model's
+            self.grounded = False
+            note = QLabel('From the rows above · the words are the model’s and are not checked');note.setWordWrap(True);note.setStyleSheet('color:%s' % FAINT)
+            note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);self.pending.box.addWidget(note)
+            QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
+            return
         actions = proposal.get('actions') or []
         observations = result.get('program_observations') or []
         if observations:

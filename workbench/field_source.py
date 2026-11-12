@@ -401,3 +401,43 @@ def read_field(kernel, principal, title='', skip=()):
     if reader.elsewhere:
         aside = '%d sheet%s of your Office %s not shown here' % (reader.elsewhere, '' if reader.elsewhere == 1 else 's', 'is' if reader.elsewhere == 1 else 'are')
     return Field(reader.objects, reader.links, title, note=_left_out(reader), aside=aside), reader
+
+
+# ---- the programs face: every program and room Graphite can open, as a shelf --------------------------------------------------
+# The columns are set by hand and do not move, so the hands learn where a thing is. A program the shelf does not know yet
+# (a new one) takes the last column. The names are the programs list's own (programs_qt.PLAIN).
+SHELF = (('WORK', ('projects', 'inquiries', 'documents', 'office', 'files', 'investigations', 'agenda')),
+         ('THINK', ('calculate', 'laboratory', 'methods', 'knowledge', 'references', 'memory', 'activity')),
+         ('MAKE', ('blender', 'freecad', 'godot', 'inkscape', 'media', 'print', 'mail')),
+         ('BUILD', ('kicad', 'kibot', 'spice', 'yosys', 'fpga', 'hdl')),
+         ('MOVE', ('transfer', 'delivery', 'cartridge')),
+         ('SET UP', ('brain', 'settings', 'tools')))
+PROGRAMS_READ = 'ledger.explore {"kind":"INSTRUMENT"} | pick instruments'
+
+
+def read_programs(kernel, principal, open_classes=()):
+    """The programs face of the Field: one sheet for each program and room, from the same read the programs list uses
+    (ledger.explore). Opening one is the programs list's own opening; nothing runs by being shown. Returns (Field, reader)."""
+    from .programs_qt import PLAIN
+    reader = Reader(kernel, principal)
+    seen = reader.call('ledger.explore', {'kind': 'INSTRUMENT'}) or {}
+    rows = {row.get('key'): row for row in seen.get('instruments', ()) if row.get('key')}
+    place = {key: (column, at) for column, (_, keys) in enumerate(SHELF) for at, key in enumerate(keys)}
+    last = len(SHELF) - 1
+    for key in sorted(rows, key=lambda k: place.get(k, (last, 99, k))):
+        row = rows[key];name = PLAIN.get(key) or row.get('title') or key
+        running = int(row.get('running_jobs') or 0);waiting = int(row.get('queued_jobs') or 0) + int(row.get('interrupted_jobs') or 0)
+        if not row.get('view_available', True):state = UNAVAILABLE
+        elif running:state = 'running'
+        elif waiting:state = 'waiting'
+        elif row.get('setup_needed'):state = 'needs setup'
+        elif row.get('view_class') in open_classes:state = 'in use'
+        else:state = ''
+        facts = [str(row.get('description') or '').strip()]
+        if row.get('setup_needed'):facts.append('needs: ' + ', '.join(str(x) for x in row['setup_needed'])[:120])
+        if running or waiting:facts.append('%d running, %d waiting' % (running, waiting))
+        reader.add(FieldObject('app:' + key, 'app', name, str(row.get('description') or ''), state, tuple(f for f in facts if f), str(row.get('human_route') or ''),
+                               {'kind': 'program', 'key': key, 'entry': row}, column=place.get(key, (last, 0))[0],
+                               stac=PROGRAMS_READ + ' | where key=%s | select title,description,view_state,tool_status,setup_needed,operations,running_jobs' % key))
+    first = reader.objects[0].id if reader.objects else ''        # the shelf starts at its first program, top left
+    return Field(reader.objects, [], title='Programs', selected=first, heads=tuple(head for head, _ in SHELF), compact=True), reader

@@ -118,6 +118,7 @@ class FieldView(QWidget):
 
     def least_width(self):
         """The narrowest a sheet may be. A little narrower in the Illustrated desk, so that Stacy keeps her rail beside five columns."""
+        if self.field.compact:return 152 * self.scale()
         return (164 if self.art_mode == 'illustrated' and self.art_folder is not None else 176) * self.scale()
 
     def rail(self):
@@ -145,6 +146,7 @@ class FieldView(QWidget):
         s = self.scale()
         tag = QFontMetricsF(self.mono(12, QFont.Medium)).height();title = QFontMetricsF(self.sans(15)).height()
         fact = QFontMetricsF(self.mono(12.5)).height();where = QFontMetricsF(self.mono(12)).height()
+        if self.field.compact:return 2 * 12 * s + tag + 6 * s + TITLE_LINES * title        # a shelf: the name and the state; the foot says the rest
         return 2 * 12 * s + tag + 6 * s + TITLE_LINES * title + 4 * s + FACT_LINES * fact + where + 4 * s
 
     def _layout(self):
@@ -487,10 +489,10 @@ class FieldView(QWidget):
         # Facts, while they fit above the identity line.
         p.setFont(self.mono(12.5));fm = QFontMetricsF(p.font());fm_where = QFontMetricsF(self.mono(12));where_h = fm_where.height() if obj.where else 0
         y += 4 * s
-        for fact in obj.lines[:FACT_LINES]:
+        for fact in (() if self.field.compact else obj.lines[:FACT_LINES]):
             if y + fm.height() > inner.bottom() - where_h + 1:break
             y += fm.height();p.setPen(ink(t.QUIET, keep));p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(str(fact)[:LONGEST], Qt.ElideRight, inner.width()))
-        if obj.where and inner.bottom() - fm_where.descent() > y + 2:
+        if obj.where and not self.field.compact and inner.bottom() - fm_where.descent() > y + 2:
             p.setFont(self.mono(12));p.setPen(ink(t.FAINT if depth <= 1 else t.QUIET, keep))
             p.drawText(QPointF(inner.left(), inner.bottom() - fm_where.descent()), fm_where.elidedText(str(obj.where)[:LONGEST], Qt.ElideMiddle, inner.width()))
 

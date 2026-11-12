@@ -6,6 +6,11 @@ earlier; the previous record is in the 0.2a13 release.
 
 ## Where this is going
 
+On 12 November 2026, once the source was free: "let's develop where it can go." It "is basically going to be my ultimate
+desktop from which I can launch every program from a basic screen and do basic things, or launch the program into its full
+window. But when I am inside of the graphite workbench, I am inside of a nice dark orange and green fantasy computer land
+that is tremendously effective, efficient, smart, and knows what I'm doing because I'm doing it."
+
 In the owner's words (master specification, `docs/briefs/Graphite_Master_Specification_v5_BOSS.pdf`):
 
 - "The destination is a usable computer: I can work directly, delegate an edit or sustained investigation, and return
@@ -77,6 +82,12 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   reachable from the sheet, the right-click menu, the keyboard, a typed staC line and the assistant. The code is
   `workbench/field_model.py` (no Qt), `field_qt.py` (drawing), `field_source.py` (reads through the Kernel) and
   `field_page.py` (the way in and out).
+- **The shelf** (12 November; P in the Field). Every program and room as a sheet, in six columns set by hand that do not
+  move (Work, Think, Make, Build, Move, Set up; `field_source.SHELF`). Enter opens the room, which is the basic screen;
+  a native program's full window is started from its room. This is the launcher the owner asked for, first slice.
+- **With a model, she reads first** (`docs/MODEL_TRIAL_03.md`). The staC read is exact and comes first; the model only puts
+  the rows into words, and its words are marked as its own. A 2B model is enough for that. Improve the reads, not the
+  prompt.
 - **It opens on the work** (12 November, the owner left the choice here). At launch the Field is in front when the
   workspace has anything in it, with what waits selected; Esc goes to where the owner left off. An empty workspace
   opens on Home. Home's "Start: always Home" still means Home.
@@ -104,8 +115,11 @@ Never yet done, by every document in the tree:
 
 - Graphite has not run on the ThinkPad (E16 Gen 2, Ryzen 7 7735HS, Radeon 680M, about 61 GiB shared memory, Debian 13
   at a text console). The offline kit is ready: `docs/THINKPAD_FIRST_INSTALL.md`.
-- No real model has answered inside the redesigned desk, and the Vulkan path has not met the Radeon. No model file
-  ships; the owner chooses one.
+- No model has answered on the ThinkPad, and the Vulkan path has not met the Radeon. (Two small models answered in the
+  build container on 12 November: `docs/MODEL_TRIAL_03.md`.) No model file ships; the owner chooses one.
+- Rust: asked about on 12 November ("I'm thinking rust soon???"). Not a rewrite. When the ThinkPad shows what is slow,
+  new self-contained parts (the staC engine, indexing, evidence preparation) can be written in Rust behind the same
+  dispatcher, the way the Linux kernel took Rust: new parts, one at a time.
 - Twenty focused tests in five modules still fail because they assert the earlier look, layout and version.
 
 ## What comes next
@@ -116,7 +130,9 @@ Never yet done, by every document in the tree:
    family's 4.0 release at 27B, 4-bit quantised, once it exists.
 3. **One whole journey with the model live:** datasheet to sheet to calculation to report (the first-run workshop),
    then a question over the prepared evidence.
-4. **Grow the Field and staC together** into the working desk: every object kind (methods, files), staC lines that do
+4. **Grow the Field and staC together** into the working desk: a key that starts a program in its full window from the
+   shelf and brings its files back; what is in use and what was used last, so the desk knows what the owner is doing;
+   every object kind (methods, files), staC lines that do
    more than read (the chain of steps that made a result, ready to run again on new material), wires that route around
    sheets, reading off the window's thread, and the way back from a full program.
 5. **Then the plan's abilities, in its order:** full native programs from the desk (pass 11), a changed fact that

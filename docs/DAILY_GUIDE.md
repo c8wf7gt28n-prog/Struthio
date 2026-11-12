@@ -17,8 +17,10 @@ Press **F9** for an overview of the work in this workspace: sources, reviewed sh
 questions as sheets, with wires that show what feeds what. Arrow keys follow the wires, Enter opens the real page, F9 comes
 back to the same sheet, Esc leaves. Stacy's rail at the right shows the staC line for the selected sheet: S puts it in the
 writing strip, Shift+Enter runs it. Ask Stacy about a sheet (its menu, or just type a question while it is selected) and she answers in
-Talk: with no model she shows the staC that reads it and what the records say. Right-click a sheet (or press the Menu key) for what can be done with it. N shows this
-computer's network the same way; W returns to the work. `docs/RELEASE_NOTES_0.3.md` has the details.
+Talk: with no model she shows the staC that reads it and what the records say. Right-click a sheet (or press the Menu key) for what can be done with it. **P** shows every program and room as a shelf in six fixed columns
+(Work, Think, Make, Build, Move, Set up): Enter opens one. N shows this computer's network the same way; W returns to the
+work. With a model loaded Stacy reads the sheet first and then says the answer in her own words under the rows; say "this"
+in your question and she takes the selected sheet. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

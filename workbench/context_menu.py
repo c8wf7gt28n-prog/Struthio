@@ -274,7 +274,8 @@ def ask_about_sheet(host, obj):
     """Ask Stacy about one sheet of the Field. Its name goes in the line for the owner to finish, and she is told which sheet
     it is, so she can answer from the records in staC even with no model. The Field stays in front; her answer is in Talk."""
     face = getattr(getattr(host, 'shell2', None), 'face', None)
-    if face is not None:face.thing = {'title': obj.title, 'stac': obj.stac, 'kind': obj.kind}
+    from . import field_page
+    if face is not None:face.thing = field_page.thing_of(host, obj)
     return ask_graphite(host, 'About “%s”: ' % obj.title)
 
 
@@ -1244,6 +1245,10 @@ def field_entries(host, t):
             lines = (('Every connection', 'network.observe | pick connections | select process,remote,rport,state'),
                      ('What is listening', 'network.observe | pick connections | where state=LISTEN | select process,local,lport'),
                      ('The interfaces', 'network.observe | pick interfaces | select name,up,rx_bps,tx_bps'))
+        elif view.face == 'programs':
+            lines = (('Every program', 'ledger.explore {"kind":"INSTRUMENT"} | pick instruments | select title,group,view_state,tool_status'),
+                     ('What needs setting up', 'ledger.explore {"kind":"INSTRUMENT"} | pick instruments | select title,setup_needed,tool_status'),
+                     ('What is running', 'ledger.explore {"kind":"INSTRUMENT"} | pick instruments | select title,running_jobs,queued_jobs'))
         else:
             lines = (('The pages', 'documents.list | pick documents | select title,revision,words'),
                      ('The sheets', 'office.list | pick documents | select title,kind,version'),
@@ -1255,7 +1260,7 @@ def field_entries(host, t):
     target = obj.target if isinstance(obj.target, dict) else {}
     network = target.get('kind') == 'network'
     out.append(Entry('field:open', 'Show in Log' if network else 'Open', 'open', lambda:field_page.open_object(host, obj), icon='network' if network else t.icon,
-                     caption='Enter', tip='The Log\'s Network stream, filtered to this' if network else 'The real page for this, in its own room'))
+                     caption='Enter', tip='The Log\'s Network stream, filtered to this' if network else 'This program\'s room' if target.get('kind') == 'program' else 'The real page for this, in its own room'))
     fed = [view.field.get(l.source) for l in view.field.fed_by(obj.id)];feeds = [view.field.get(l.target) for l in view.field.feeds(obj.id)]
     def rows(objects):
         return lambda:[Entry('field:go:' + o.id, short(o.title, 54), 'state', lambda o=o:select(o.id), caption=(o.tag or o.kind).lower()) for o in objects]
@@ -1527,7 +1532,7 @@ def find_field(host, w, point):
     from .field_model import KIND_TAG
     words = (obj.tag or KIND_TAG.get(obj.kind, obj.kind)).lower()
     icon = {'source': 'references', 'sheet': 'calculate', 'calculation': 'calculate', 'document': 'documents', 'finding': 'memory', 'question': 'memory',
-            'interface': 'network', 'program': 'tools', 'endpoint': 'network'}.get(obj.kind, 'window')
+            'interface': 'network', 'program': 'tools', 'endpoint': 'network', 'app': 'tools'}.get(obj.kind, 'window')
     return Target('field-sheet', obj.title, '%s · %s' % (words, obj.state) if obj.state else words, ident=obj.id, data={'object': obj}, surface='field', owner=w, icon=icon)
 
 

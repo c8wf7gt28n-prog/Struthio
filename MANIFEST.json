@@ -3,7 +3,7 @@
   "product": "Ledger & Slate",
   "version": "0.3.1",
   "package_profile": "runtime",
-  "note": "Graphite 0.3.1: Stacy is the assistant\u2019s face and answers in staC, with or without a model; Graphite opens on the Field (F9) when the workspace has work; and it is free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 0.3.1: Stacy is the assistant\u2019s face and answers in staC, with or without a model; P in the Field shows every program as a shelf; Graphite opens on the Field (F9) when the workspace has work; and it is free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 9629,
-      "sha256": "a6c89fea7948428c4b7a5faaa62794bfeeae8e9aa82bcfea23a4258e8f778eb4"
+      "bytes": 9736,
+      "sha256": "f6493a75eb72fcfc7cc2ee0bd0cf37d12dc53b154a8198b2b45d4c81f5b9e387"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 11253,
-      "sha256": "b8454c02fb68038eefcef8dca1c746828483b363fbfc77b31bcab126ef1efef0"
+      "bytes": 12890,
+      "sha256": "f5b5b258a9fc7be60e6dc04bfa7e8b4b36a075e25fd64c16610c194dc5f85ac5"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -1098,8 +1098,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 24210,
-      "sha256": "f08deba8445b9786e916c189946c23af7cf123bffe80fa9fb8fc0667ef605018"
+      "bytes": 24504,
+      "sha256": "db7810bfbb929eeaba49e5bf4d60cbe877b24213852a550cc473abdc41de6c1c"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1361,6 +1361,10 @@
       "bytes": 7604,
       "sha256": "8904084392a753147f7d35d771cda5e96091d6b7ee886367e00237aa4c3d6220"
     },
+    "docs/MODEL_TRIAL_03.md": {
+      "bytes": 4939,
+      "sha256": "dfc551119e2aefd8d65e25470167ca4a047ed840d63330c40d7aa6cd21f91508"
+    },
     "docs/MODEL_TURN_01.md": {
       "bytes": 14134,
       "sha256": "57698d12cfde8895ac7facb846349736492daa1093add492fb6a96ac5b0f29bd"
@@ -1470,8 +1474,8 @@
       "sha256": "21ad712a63944ba8fe211cb0d50551da0316786471d48fc4442523efd59b2126"
     },
     "docs/RELEASE_NOTES_0.3.1.md": {
-      "bytes": 2669,
-      "sha256": "fa201c1749ac1b4f4b40b0f1ee840fdc3f8c6f009c7709d24412557608f9cf74"
+      "bytes": 4201,
+      "sha256": "e43546c203453a1b54b4d6f3b1a5c68bf42ab77a10c81d34a948d6b407dbaee7"
     },
     "docs/RELEASE_NOTES_0.3.md": {
       "bytes": 4922,
@@ -1586,8 +1590,8 @@
       "sha256": "20ad18f8e9d0b4133c4d6784e94cc9798008be093ea93b3ce147aa294b5907a4"
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
-      "bytes": 6180,
-      "sha256": "6e5f4135a5a3ba103d5e956d69e2f9185778a614076e7be6b15195a6f768168d"
+      "bytes": 7465,
+      "sha256": "8e2b170caa675a4e2c0dea2ba7b89e3d60a35c056e3f006fec37a780bcccfaf1"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -1994,16 +1998,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1867359,
-      "sha256": "2f013df924895400a651adec6c2dc213d750919ca4816decae9c5736806cbebd"
+      "bytes": 1869424,
+      "sha256": "397ef48339864ad9929bee0376d6c717448fc2d94c43e35f9ec24b347c6cf4e1"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4272128,
-      "sha256": "27532d51167f42bd05889bd2df45f8a147d0be79b0ee6fbcee7841994e84f1a5"
+      "sha256": "d85aeb1746178525ccbf24303be67f3289c54fd5b5dd27b79b2f089876e6fbc3"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "54fec8ac121b51057b50f7cd9c2373f355b56f476eec0c25ab368b627939baf9"
+      "sha256": "0483f29cd1a89e878374b93189b393b549435a447094a52418678b95daf5438a"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2738,8 +2742,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/package_graphite.py": {
-      "bytes": 10417,
-      "sha256": "72b87b96b3812b83b4000b4361165832f288bf48c5b7a285ed014e29da03f5f1"
+      "bytes": 10475,
+      "sha256": "b192f43238921f512a43bf04e6e0fcd40353fd5b7ca6b9928eabfc9d9e7ae607"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -3134,8 +3138,8 @@
       "sha256": "6fd3db181b40d5cc3c092fced0c2fbb8805aa774d705d34b7d9d933592a8aa7e"
     },
     "workbench/context_menu.py": {
-      "bytes": 143216,
-      "sha256": "439ded3449acbd79ee4e84bf261ff1db5a9b043d4db97f068fa7d505e5a24002"
+      "bytes": 143767,
+      "sha256": "63e8a8f32de6631eba9605552c431f11515c2a2d41bc68c094cf7686ce8f1276"
     },
     "workbench/continuing_checks.py": {
       "bytes": 11125,
@@ -3330,20 +3334,20 @@
       "sha256": "36345847d33360c98a858ad248baa1d3747afa812591a8ce1a794ad605d25791"
     },
     "workbench/field_model.py": {
-      "bytes": 15932,
-      "sha256": "f51941edf397bcc6e7299d8859bbd9bcf885fd55f5c432b5ba41d93224e192ce"
+      "bytes": 16720,
+      "sha256": "8b35a6631e0f45311ee54127c2923dd212d94735d05cbab4f5db82f803755805"
     },
     "workbench/field_page.py": {
-      "bytes": 12991,
-      "sha256": "8ee1eea38871bc236482787c464fd3b5a936abbf8affba65b36ded5df38b7551"
+      "bytes": 14426,
+      "sha256": "b1e746ea05092b240f81102b6600f71a10d9a315d60ed97afa2ccff2715f4889"
     },
     "workbench/field_qt.py": {
-      "bytes": 41979,
-      "sha256": "23a729badd8831d0c9ddd40ba952e23203b8d9e09d6343fae9c40c2d990f28c5"
+      "bytes": 42243,
+      "sha256": "b8471f333b06a7414348c0b4f964bc5fbec16ab45f3ecca01e19729f90979a49"
     },
     "workbench/field_source.py": {
-      "bytes": 29359,
-      "sha256": "40258deda7b39e937f16c38aa3d10aabea66d4f29f8b9299db841b5b63d6cf35"
+      "bytes": 32474,
+      "sha256": "3139cd6881455598fba4c7512c18c5b625fed92bd7f4a2633bb7ab669471d0d2"
     },
     "workbench/file_delivery.py": {
       "bytes": 1445,
@@ -3614,8 +3618,8 @@
       "sha256": "432d143b33715ddc633c0683325a64cbd71a3a00af2f20a843e9fc9e602aeedb"
     },
     "workbench/local_brain.py": {
-      "bytes": 73528,
-      "sha256": "3a66cd826abb96e6baee826c36d336c7fd1e3187a84defdfdafc76eac20f734c"
+      "bytes": 74512,
+      "sha256": "14c58831102131daf0194093d8ca2c2ef38174854da83a05d86bfdba94fe785b"
     },
     "workbench/locations.py": {
       "bytes": 7522,
@@ -4390,8 +4394,8 @@
       "sha256": "f6c5a6e751e5487be0c352c3e5cd25827c0afc1dbd3567dd5af2b6641edccdc8"
     },
     "workbench/shell2.py": {
-      "bytes": 172467,
-      "sha256": "4023c168610e20c43c0d66c7880ff8c17781066ea0824de55e0153c53e564296"
+      "bytes": 175758,
+      "sha256": "ca1888cded797992ab75adbe9bea110ded707ddbea51d180f06cad05e71ace7b"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,
@@ -4670,8 +4674,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 4432,
-      "sha256": "7267ac5058b4c831421b07f4692c2f83b04b37008e22287e6b1e3c0bf99b4aec"
+      "bytes": 4520,
+      "sha256": "ef154b2292f862214aaea3fb608808995ed3637fb48b167f222f836af7826134"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,

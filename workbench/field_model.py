@@ -13,19 +13,20 @@ Nothing here opens, edits or runs anything. Opening an object is the host's own 
 from dataclasses import dataclass, field
 
 KINDS = ('source', 'sheet', 'calculation', 'document', 'finding', 'question', 'condition', 'method', 'job', 'folder',
-         'interface', 'program', 'endpoint')        # the last three are the network face: this computer, what runs, where it reaches
+         'interface', 'program', 'endpoint',        # these three are the network face: this computer, what runs, where it reaches
+         'app')                                      # the programs face: one program or room Graphite can open
 # Where a kind sits when nothing feeds it and it feeds nothing: left to right, material to conclusion.
 KIND_RANK = {'source': 0, 'folder': 0, 'sheet': 1, 'method': 1, 'calculation': 2, 'job': 5, 'document': 3, 'finding': 3, 'question': 4, 'condition': 4,
-             'interface': 0, 'program': 1, 'endpoint': 2}
+             'interface': 0, 'program': 1, 'endpoint': 2, 'app': 0}
 KIND_TAG = {'source': 'SOURCE', 'sheet': 'SHEET', 'calculation': 'CALC', 'document': 'PAGE', 'finding': 'FINDING',
             'question': 'OPEN QUESTION', 'condition': 'TOTAL', 'method': 'METHOD', 'job': 'JOB', 'folder': 'FOLDER',
-            'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE'}
+            'interface': 'INTERFACE', 'program': 'PROGRAM', 'endpoint': 'ELSEWHERE', 'app': 'PROGRAM'}
 RANK_TITLE = ('MATERIAL', 'TABLES', 'CALCULATIONS', 'FINDINGS', 'OPEN', 'WORK')
 # States the view knows how to mark. Anything else is shown as its own word in quiet ink.
 STATE_CURRENT, STATE_RECHECK, STATE_OPEN, STATE_HELD = 'current', 'recheck', 'open', 'held'
 ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed', 'interrupted')
 # States drawn with the small green mark: the record agrees with its source, the line is up, the work is running.
-SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running')
+SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running', 'in use')
 
 
 @dataclass
@@ -40,6 +41,7 @@ class FieldObject:
     target: object = None               # whatever the host needs to open it; opaque here
     tag: str = ''                       # the word above the title when the kind's own word is not the clearest one
     stac: str = ''                      # the staC line that reads this object: a read-only pipeline, exact, ready for the writing line
+    column: int = -1                    # a fixed column for a face that is a shelf, not a flow (the programs); -1: by kind and by wires
 
     def needs_attention(self):
         return self.state in ATTENTION
@@ -72,6 +74,8 @@ class Field:
     verbs: tuple = ('from', 'feeds')    # how a link reads from its target's side and from its source's side
     note: str = ''                      # what the reader left out, in words; the view says it so nothing is hidden silently
     aside: str = ''                     # what is not here because it belongs elsewhere, said quietly
+    heads: tuple = ()                   # the columns' names, for a face that names its own (the programs' shelf)
+    compact: bool = False               # a shelf of many small things: a sheet carries its name and state; the foot says the rest
 
     def __post_init__(self):
         seen = set();kept = []
@@ -109,7 +113,7 @@ class Field:
         """Longest path from what nothing feeds. A cycle cannot hang this: each object is settled at most len(objects) times."""
         # Every object starts where its kind belongs (material at the left, conclusions at the right) and is pushed
         # further right only when something that feeds it already sits at or beyond that place.
-        rank = {obj.id: KIND_RANK.get(obj.kind, 0) for obj in self.objects}
+        rank = {obj.id: obj.column if obj.column >= 0 else KIND_RANK.get(obj.kind, 0) for obj in self.objects}
         incoming = {obj.id: [] for obj in self.objects};outgoing = {obj.id: [] for obj in self.objects}
         for link in self.links:
             outgoing[link.source].append(link.target)
@@ -167,6 +171,7 @@ class Field:
         return self._rank.get(ident, 0)
 
     def rank_title(self, rank):
+        if self.heads and 0 <= rank < len(self.heads):return self.heads[rank]
         kinds = {self._by_id[i].kind for i in self.column(rank)}
         if len(kinds) == 1:
             kind = kinds.pop()
@@ -254,12 +259,12 @@ class Field:
         words = {'source': ('source', 'sources'), 'folder': ('folder', 'folders'), 'sheet': ('sheet', 'sheets'),
                  'calculation': ('calculation', 'calculations'), 'document': ('page', 'pages'), 'finding': ('finding', 'findings'),
                  'question': ('open question', 'open questions'), 'condition': ('total', 'totals'), 'method': ('method', 'methods'), 'job': ('job', 'jobs'),
-                 'interface': ('interface', 'interfaces'), 'program': ('program', 'programs'), 'endpoint': ('place reached', 'places reached')}
+                 'interface': ('interface', 'interfaces'), 'program': ('program', 'programs'), 'endpoint': ('place reached', 'places reached'), 'app': ('program', 'programs')}
         parts = []
         for kind in KINDS:
             count = sum(1 for obj in self.objects if obj.kind == kind)
             if count:
-                parts.append('%d %s' % (count, words[kind][count != 1]))
+                parts.append('%d %s' % (count, words.get(kind, (kind, kind + 's'))[count != 1]))
         recheck = sum(1 for obj in self.objects if obj.state == STATE_RECHECK)
         if recheck:
             parts.append('%d to recheck' % recheck)
@@ -285,14 +290,14 @@ class Field:
         surface_w = max(width, used + 2 * margin)
         left = max(margin, (surface_w - used) / 2)
         tallest = max(len(self.column(rank)) for rank in ranks)
-        gap_y = 22 * scale;top = 40 * scale;bottom = 30 * scale     # the bottom rim clears the strip that says where the surface goes on
+        gap_y = (14 if self.compact else 22) * scale;top = 40 * scale;bottom = 30 * scale     # the bottom rim clears the strip that says where the surface goes on
         need = top + bottom + tallest * sheet_h + (tallest - 1) * gap_y
         surface_h = max(height, need)
         placed = {}
         for at, rank in enumerate(ranks):
             ids = self.column(rank)
             block = len(ids) * sheet_h + (len(ids) - 1) * gap_y
-            y = top + max(0.0, (surface_h - top - bottom - block) * 0.42)      # a little above the middle: the eye starts there
+            y = top if self.compact else top + max(0.0, (surface_h - top - bottom - block) * 0.42)      # a flow sits a little above the middle, where the eye starts; a shelf starts at the top
             x = left + at * (sheet_w + gap_x)
             for row, ident in enumerate(ids):
                 placed[ident] = Placement(rank, row, x, y + row * (sheet_h + gap_y), sheet_w, sheet_h)
