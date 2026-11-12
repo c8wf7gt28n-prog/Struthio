@@ -13,6 +13,8 @@ disk, which no record of Graphite's notices, so a kept reading would lie. F9 whi
 R reads again and asks once more for the records that could not be read.
 Master specification, section 72: "A simple Open or Back action can accompany the transition."
 """
+import re
+
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import QApplication, QSizePolicy, QVBoxLayout, QWidget
 
@@ -43,6 +45,7 @@ class FieldPage(QWidget):
         self.view.step_chosen.connect(lambda obj, n: take(self.host, obj, n))
         self.view.check_asked.connect(lambda: check_desk(self.host))
         self.view.go_asked.connect(lambda: go(self.host))
+        self.view.trace_asked.connect(lambda obj: trace(self.host, obj))
         self.view.full_asked.connect(lambda obj: full_window(self.host, obj))
         self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
         self.pending = None                     # what G runs: the Run of what waits in Talk for the owner's go
@@ -268,6 +271,36 @@ def _after(host, obj, ok, result):
         if ident and page.view.field.get(ident) is not None:
             page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe();break
     page.view.update()
+
+
+THIS = re.compile(r'^(explain\s+)?this\b\s*(\|.*)?$', re.IGNORECASE | re.DOTALL)
+
+
+def expand_this(host, text):
+    """`this` at the start of a staC line is the sheet selected in the Field. Alone it is that sheet's own line; before a `|`
+    it is the read that line starts with, so `this | pick … | select …` goes on from the same record the rail shows. The line
+    is written out before it runs, so what ran is always visible. Text that does not start with `this` comes back unchanged;
+    when there is nothing `this` could mean, ValueError says so in words."""
+    found = THIS.match(str(text).strip())
+    if not found:return text
+    page = getattr(host, 'field_page', None);obj = page.view.selected() if page is not None else None
+    if obj is None or not obj.stac:
+        raise ValueError('“this” is the sheet selected in the Field (F9), and nothing is selected there')
+    lead = found.group(1) or '';rest = found.group(2)
+    return lead + (obj.stac if rest is None else obj.stac.split(' | ', 1)[0] + ' ' + rest.strip())
+
+
+def trace(host, obj):
+    """T: where this comes from and what rests on it, hop by hop along the wires. Stacy reads it (field.trace, a staC line like
+    any other) and shows the rows; with a model she then tells it in her own words."""
+    from .field_do import js
+    shell = getattr(host, 'shell2', None)
+    if shell is None or obj is None:return None
+    line = 'field.trace %s | pick rows | select way,steps,kind,title,state,by' % js(id=obj.id)
+    shell.face.thing = {**thing_of(host, obj), 'stac': line, 'explicit': True,
+                        'intro': 'Where “%s” comes from, farthest first, then what rests on it:' % obj.title}
+    shell.ask('Where does “%s” come from, and what rests on it?' % obj.title)
+    if getattr(host, '_field_active', False):host.field_page.view.setFocus(Qt.OtherFocusReason)
 
 
 def full_window(host, obj):

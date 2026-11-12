@@ -181,6 +181,9 @@
    "experiments.result": "workbench/lab_service.py#dispatch",
    "experiments.run": "workbench/lab_service.py#dispatch",
    "experiments.status": "workbench/lab_service.py#dispatch",
+   "field.read": "workbench/field_service.py#dispatch",
+   "field.trace": "workbench/field_service.py#dispatch",
+   "field.whatif": "workbench/field_service.py#dispatch",
    "files.cells": "workbench/files_service.py#dispatch",
    "files.compare": "workbench/files_service.py#dispatch",
    "files.copy": "workbench/files_service.py#dispatch",
@@ -962,9 +965,9 @@
   }
  },
  "counts": {
-  "adapters": 760,
+  "adapters": 763,
   "job_tools": 113,
-  "operations": 760,
+  "operations": 763,
   "settings": 49
  },
  "formulas": {
@@ -2832,6 +2835,26 @@
   "experiments.status": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
+   "scope": "read"
+  },
+  "field.read": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "field.trace": {
+   "arguments": "de2f7e460673f2775d580e0722b797db46a8f1f2891a45fd73ddc1cb59891e57",
+   "properties": {
+    "id": "52ba84a4bbf396ba"
+   },
+   "scope": "read"
+  },
+  "field.whatif": {
+   "arguments": "79321876e5422af0a1a7220620b282cd5acd6fdda40d6b5427d02f8887e23c28",
+   "properties": {
+    "id": "52ba84a4bbf396ba",
+    "set": "a2c799262a3ce3c1"
+   },
    "scope": "read"
   },
   "files.cells": {
@@ -7456,9 +7479,9 @@
    "scope": "read"
   }
  },
- "release": "Graphite 0.4",
+ "release": "Graphite 0.4.1",
  "schema": "graphite.registry-record/1",
- "schema_digest": "8d16f21c05fd911cadc5547b299e19333e8572963634bc2e0f70b65d9f7512de",
+ "schema_digest": "cf4dec09cdcda77463185392c559ea3aaeb494ef12e9be3e2854b6287ee21c02",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

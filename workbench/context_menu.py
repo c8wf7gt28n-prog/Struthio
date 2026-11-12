@@ -275,7 +275,7 @@ def ask_about_sheet(host, obj):
     it is, so she can answer from the records in staC even with no model. The Field stays in front; her answer is in Talk."""
     face = getattr(getattr(host, 'shell2', None), 'face', None)
     from . import field_page
-    if face is not None:face.thing = field_page.thing_of(host, obj)
+    if face is not None:face.thing = {**field_page.thing_of(host, obj), 'explicit': True}
     return ask_graphite(host, 'About “%s”: ' % obj.title)
 
 
@@ -1253,7 +1253,10 @@ def field_entries(host, t):
                      ('What needs setting up', 'ledger.explore {"kind":"INSTRUMENT"} | pick instruments | select title,setup_needed,tool_status'),
                      ('What is running', 'ledger.explore {"kind":"INSTRUMENT"} | pick instruments | select title,running_jobs,queued_jobs'))
         else:
-            lines = (('The pages', 'documents.list | pick documents | select title,revision,words'),
+            lines = (('Everything that waits', 'field.read | pick waiting | select kind,title,state'),
+                     ('What changed lately', 'field.read | pick objects | where lately=yes | select kind,title,changed_at'),
+                     ('The wires', 'field.read | pick links | select from,to,label,stale'),
+                     ('The pages', 'documents.list | pick documents | select title,revision,words'),
                      ('The sheets', 'office.list | pick documents | select title,kind,version'),
                      ('Work that is not finished', 'jobs | where state is not Completed | select tool,state'))
         out.append(Entry('field:stac', 'This face in staC', 'command', icon='line', tip='Read-only staC lines for what the Field shows; each goes to the writing strip',
@@ -1276,6 +1279,8 @@ def field_entries(host, t):
                          tip='Its staC line in the writing strip; nothing runs until Ctrl+Enter:\n' + obj.stac))
         out.append(Entry('field:run', 'Run its staC', 'command', lambda:field_page.stac_run(host, obj), icon='line', caption='Shift+Enter',
                          operation='language.run', tip='A read; the answer shows in the working area:\n' + obj.stac))
+    out.append(Entry('field:trace', 'Trace it', 'command', lambda:view.trace_asked.emit(obj), icon='line', caption='T',
+                     tip='Where it comes from and what rests on it, hop by hop along the wires'))
     out.append(Entry('field:do', 'What can be done', 'command', lambda:view.do_asked.emit(obj), icon='line', caption='D',
                      tip='The steps the records offer for this. A read runs at once; one that changes something asks first'))
     if not network:

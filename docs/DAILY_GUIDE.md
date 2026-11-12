@@ -24,7 +24,10 @@ in your question and she takes the selected sheet. **D** asks the records what c
 steps show numbered, a digit takes one, a read runs at once and a change waits for your go (**G**, or Run in Talk; a
 digit never approves). **C** checks the desk and says what waits; **1** then puts up what needs no decision of yours and
 **G** is one go for the listed changes; the desk checks itself again. On the shelf, **F** offers a program's full window on
-one of its files. A turned corner marks what changed in the last twelve hours. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+one of its files. A turned corner marks what changed in the last twelve hours. **T** traces the selected sheet back to its source and on
+to what rests on it. With a calculation selected, ask "what if B3 were 320?": Stacy works it exactly and changes nothing.
+In the writing strip `this` is the selected sheet (`this | count`, Ctrl+Enter), and `field.read` is the whole desk as
+records (`field.read | pick waiting | select kind,title,state`). `docs/RELEASE_NOTES_0.4.1.md` has the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

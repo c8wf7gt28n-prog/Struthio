@@ -28,7 +28,9 @@ OBSERVER_OPERATIONS=frozenset({
  'matrix.status','matrix.list','matrix.patterns','matrix.examples','receiving.status','receiving.deliveries','receiving.cards',
  'receiving.translate','viewer.describe','investigation.list','investigation.sheet','investigation.path','agenda.view','files.list','files.get','files.versions','files.trash_list','files.proposals','files.compare','files.find','copies.list','copies.get','copies.review','files.story','system.supports','pills.identity','pills.open','pills.list','confine.status','language.parse','stac.compile','ledger.address.kinds','intake.read','intake.item','ledger.address.read',
  # HATCH DESK D5: Log's Network stream reads these every second or two while it is open
- 'network.observe','network.capture.read'})
+ 'network.observe','network.capture.read',
+ # Graphite 0.4.1: the desk read as records; showing the desk is not an event
+ 'field.read','field.trace','field.whatif'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""

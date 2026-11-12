@@ -1,0 +1,105 @@
+"""The desk as something staC can read.
+
+staC could read every record of the workspace but not the desk that is made of them: what waits, what feeds what, what
+changed lately. These three operations are reads, so a staC line can start with any of them, and Stacy shows them like any
+other read she makes. They change nothing and are not journaled (showing the desk is not an event).
+
+  field.read    read   {}           the Field of this workspace as records: objects, wires, what waits, counts
+  field.trace   read   {id}         where one thing comes from and what rests on it, hop by hop along the wires
+  field.whatif  read   {id, set}    a calculation worked again with other values for some inputs, changing nothing
+
+Lines that work:
+
+  field.read | pick waiting | select kind,title,state
+  field.read | pick objects | where lately=yes | select kind,title,changed_at
+  field.read | pick links | where stale=yes | select from,to,label
+  field.trace {"id":"document:<id>"} | pick rows | select way,steps,kind,title,state,by
+  field.whatif {"id":"document:<id>","set":{"B3":"320"}} | select says_now,would_be,exact
+
+The reading is the Field's own (workbench/field_source.py), so a line and the picture can never disagree. Yes and no are
+written as the words "yes" and "no", which a staC `where` compares without ceremony.
+"""
+import time
+
+SCHEMA = 'graphite.field/1'
+TEXT = {'type': 'string', 'minLength': 1, 'maxLength': 200}
+FIELDS = {
+    'field.read': ({}, []),
+    'field.trace': ({'id': TEXT}, ['id']),
+    'field.whatif': ({'id': TEXT, 'set': {'type': 'object'}}, ['id', 'set']),
+}
+SCOPES = {operation: 'read' for operation in FIELDS}
+OBSERVERS = tuple(FIELDS)
+REACH = 8                    # how many hops a trace follows in each direction
+
+
+def _yes(value):
+    return 'yes' if value else 'no'
+
+
+def _row(obj, now):
+    return {'id': obj.id, 'kind': obj.kind, 'title': obj.title, 'state': obj.state, 'role': obj.role, 'facts': list(obj.lines), 'where': obj.where,
+            'stac': obj.stac, 'changed_at': time.strftime('%Y-%m-%d %H:%M', time.localtime(obj.touched)) if obj.touched else '',
+            'lately': _yes(obj.lately(now)), 'waits': _yes(obj.needs_attention())}
+
+
+def read(kernel, principal):
+    from .field_source import problems, read_field
+    field, reader = read_field(kernel, principal)
+    now = time.time();name = {obj.id: obj.title for obj in field.objects}
+    objects = [_row(obj, now) for obj in field.objects]
+    links = [{'source': link.source, 'target': link.target, 'from': name.get(link.source, ''), 'to': name.get(link.target, ''),
+              'label': link.label, 'stale': _yes(link.stale)} for link in field.links]
+    return {'schema': SCHEMA, 'title': field.title, 'objects': objects, 'links': links,
+            'waiting': [row for row in objects if row['waits'] == 'yes'], 'counts': field.census(),
+            'moved': [{'was': was, 'now': new, 'calculation': title} for was, new, title in field.moved],
+            'left_out': field.note, 'elsewhere': field.aside, 'could_not_read': problems(reader)}
+
+
+def trace(kernel, principal, ident):
+    """Upstream first, farthest first, then the thing itself, then what rests on it, nearest first. `by` is what the wire says
+    (the cells, the page); `next` is the thing one hop nearer, so each row reads "<title> —by→ <next>"."""
+    from .field_source import read_field
+    field, _ = read_field(kernel, principal)
+    start = field.get(ident)
+    if start is None:
+        raise ValueError('Nothing on the desk has the id %s. field.read lists the ids.' % ident[:80])
+
+    def walk(way):
+        seen = {ident};edge = [(ident, 0)];out = []
+        while edge:
+            current, steps = edge.pop(0)
+            if steps >= REACH:continue
+            for link in (field.fed_by(current) if way == 'from' else field.feeds(current)):
+                other = link.source if way == 'from' else link.target
+                if other in seen or field.get(other) is None:continue
+                seen.add(other);obj = field.get(other)
+                out.append({'way': way, 'steps': steps + 1, 'kind': obj.kind, 'title': obj.title, 'state': obj.state, 'by': link.label,
+                            'stale': _yes(link.stale), 'next': field.get(current).title, 'id': obj.id, 'stac': obj.stac})
+                edge.append((other, steps + 1))
+        return out
+
+    up = walk('from');down = walk('to')
+    this = {'way': 'this', 'steps': 0, 'kind': start.kind, 'title': start.title, 'state': start.state, 'by': '', 'stale': 'no', 'next': '',
+            'id': start.id, 'stac': start.stac}
+    return {'schema': SCHEMA, 'id': start.id, 'title': start.title, 'rows': sorted(up, key=lambda row: -row['steps']) + [this] + down,
+            'comes_from': [row['title'] for row in up if row['kind'] == 'source'], 'rests_on_it': len(down),
+            'stale_on_the_way': [row['title'] for row in up + down if row['stale'] == 'yes']}
+
+
+def whatif(kernel, principal, ident, changes):
+    from . import datasheet_work
+    record = ident.split(':', 1)[1] if ident.startswith('document:') else ident
+    answer = kernel.dispatch('documents.get', {'id': record}, principal)
+    if not answer.get('ok'):
+        raise ValueError('That calculation cannot be read: ' + str((answer.get('error') or {}).get('message'))[:160])
+    if not isinstance(changes, dict) or not changes or len(changes) > 8 or not all(isinstance(k, str) and isinstance(v, str) and 0 < len(v) <= 40 for k, v in changes.items()):
+        raise ValueError('"set" names one to eight inputs, each with a number as text, for example {"B3": "320"}')
+    return {'schema': SCHEMA, 'id': 'document:' + record, **datasheet_work.what_if(answer['result']['document'], changes)}
+
+
+def dispatch(kernel, operation, args, principal):
+    if operation == 'field.read':return read(kernel, principal)
+    if operation == 'field.trace':return trace(kernel, principal, args['id'])
+    if operation == 'field.whatif':return whatif(kernel, principal, args['id'], args['set'])
+    raise ValueError('Unknown field operation')

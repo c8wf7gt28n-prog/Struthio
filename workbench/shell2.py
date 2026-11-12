@@ -1002,6 +1002,11 @@ def preview_rows(host, text, shown=4):
     """What a staC pipeline would answer, as a few quiet lines under the box. It runs through language.run, which only reads."""
     from .engine import engineering
     from .engineering_kernel import operator
+    try:
+        from .field_page import expand_this
+        text = expand_this(host, text)        # `this`: the sheet selected in the Field
+    except ValueError as exc:
+        return [('section', 'PREVIEW', None), ('note', str(exc)[:110], None)]
     try:r = engineering(host.root).dispatch('language.run', {'text': text}, operator())
     except Exception as exc:r = {'ok': False, 'error': {'message': str(exc)}}
     if not r.get('ok'):return [('section', 'PREVIEW', None), ('note', 'Not yet: ' + str((r.get('error') or {}).get('message', ''))[:110], None)]
@@ -1642,7 +1647,14 @@ class SlateFace(QWidget):
                 else 'The records did not answer: ' + r['error']['message']
             if r.get('ok') and said == 'Done.' and isinstance(r['result'], dict):      # a read whose answer is a record, not rows: the record itself, in short
                 said = json.dumps(r['result'], indent=1, ensure_ascii=False, default=str)[:1500]
-        answer = QLabel(breakable(said));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
+        shown = said
+        if r.get('ok') and len(rows) > 1 and all(isinstance(row, dict) and len(row) >= 4 for row in rows):
+            # Several rows of several fields read better as lines than as blocks: the fields once, then a row a line.
+            # (What the model is given stays field by field: card.said.)
+            keys = list(rows[0]);text = lambda value:value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+            shown = ' · '.join(keys) + '\n' + '\n'.join(' · '.join(str(text(row.get(key, '')))[:120] or '—' for key in keys) for row in rows[:50])
+            if len(rows) > 50:shown += '\n… %d more rows' % (len(rows) - 50)
+        answer = QLabel(breakable(shown));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
         answer.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);answer.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(answer)
         from .context_menu import inspect_in_line
         words = {'line': ('in the line', lambda p=line:inspect_in_line(self.host, p)), 'watch': ('watch it', lambda p=line:self.watch(p)),
@@ -1766,18 +1778,54 @@ class SlateFace(QWidget):
         card.run.setText('Ran %d of %d' % (went, len(card.plan)))
         if done is not None:done(card.results)
 
+    def what_if(self, text):
+        """“What if B3 were 320?”, asked while a calculation is selected in the Field: the calculation's own recipe worked with
+        that value, exactly, changing nothing (field.whatif, a read). The inputs are named by their cell, their symbol or
+        their words; several go together with "and". Returns the thing to answer about, a dict with 'refusal' when the
+        question is a what-if but names no input of this calculation, or None when it is not a what-if about a calculation."""
+        asked = re.match(r'^\s*what\s+if\b(.*)$', text, re.IGNORECASE | re.DOTALL)
+        view = getattr(getattr(self.host, 'field_page', None), 'view', None)
+        chosen = view.selected() if asked and view is not None and getattr(self.host, '_field_active', False) else None
+        if chosen is None or chosen.kind != 'calculation' or not isinstance(chosen.target, dict):return None
+        got = call(self.host, 'documents.get', {'id': chosen.target.get('id')}) or {}
+        inputs = ((got.get('document') or {}).get('derivation') or {}).get('inputs') or []
+        if not inputs:return None
+        names = {}
+        for item in inputs:
+            for name in (str(item['cell']), str(item['symbol']), str(item['symbol']).replace('_', ' '), str(item.get('parameter') or '')):
+                if name.strip():names[name.strip().lower()] = item['cell']
+        filler = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'to', 'at', 'of', 'became', 'becomes', 'goes', 'went', 'equals', 'equal', 'cell', 'value', 'in', 'it', 'its'}
+        setting = {}
+        for part in re.split(r'\band\b|[,;]', asked.group(1).replace('=', ' ').replace('?', ' ')):
+            tokens = part.split();at = next((i for i in range(len(tokens) - 1, -1, -1) if re.fullmatch(r'-?\d+(?:\.\d+)?', tokens[i])), None)
+            if at is None:continue
+            name = ' '.join(t for t in tokens[:at] if t.lower() not in filler).lower()
+            cell = names.get(name) or next((c for n, c in names.items() if name and all(word in n.split() for word in name.split())), None)
+            if cell:setting[cell] = tokens[at]
+        said = ', '.join('%s (%s, in %s)' % (i['cell'], i.get('parameter') or i['symbol'], i['unit']) for i in inputs)
+        if not setting:
+            return {'refusal': 'Say which input and its new value, for example “what if %s were” and a number. This calculation reads %s.' % (inputs[-1]['cell'], said)}
+        from .field_do import js
+        from .field_page import thing_of
+        return {**thing_of(self.host, chosen), 'stac': 'field.whatif %s | select says_now,would_be,exact,set,changed' % js(id=chosen.id, set=setting),
+                'explicit': True, 'intro': 'What if, for “%s”. Worked exactly with its own recipe; nothing is changed:' % chosen.title}
+
     def ask(self, text, about=None):
-        thing = self.thing_asked_about(text)
+        thing = self.what_if(text)
+        if thing and thing.get('refusal'):
+            self.thing = None;self.mine(text);self.say(thing['refusal']);return
+        thing = thing or self.thing_asked_about(text)
         if thing and not about:about = '%s “%s”, read with the staC line: %s' % (thing['kind'], thing['title'], thing['stac'])
         about = about or self.current_item()
         self.mine(text)
         if self.job:self.say('I am still answering the last question. Stop it from the Brain room, or wait a moment.');return
-        direct = self.direct_request(text)  # the open page may resolve the request by explicit rule, with no model (documents)
+        # A question whose thing was named exactly (its menu, T, a what-if) is hers to read; any other may be the open page's to do.
+        direct = None if thing and thing.get('explicit') else self.direct_request(text)
         if direct is not None:self.say(direct);return
         brain = call(self.host, 'brain.status') or {}
         selected = self.selected_file()
         if brain.get('state') == 'READY' and thing:  # she reads first, exactly, then says it in her own words from what she read
-            card = self.answer_in_stac(thing, 'The records about “%s”, and the staC that reads them:' % thing['title'])
+            card = self.answer_in_stac(thing, thing.get('intro') or 'The records about “%s”, and the staC that reads them:' % thing['title'])
             if not card.answered:return
             from .engine import engineering
             from .engineering_kernel import operator
@@ -1797,8 +1845,9 @@ class SlateFace(QWidget):
             self.pending = self.say('In my words…');self.timer.start()
             return
         if brain.get('state') != 'READY' and thing:  # no model, but the records can answer about this thing, and she says how she read them
-            card = self.answer_in_stac(thing, 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the staC that reads it:' % thing['title'])
-            card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
+            card = self.answer_in_stac(thing, thing.get('intro') or 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the staC that reads it:' % thing['title'])
+            if not thing.get('intro'):         # a trace or a what-if is whole without a model; an open question about a sheet is not
+                card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
             return
         if brain.get('state') != 'READY':
             if selected:  # no brain, but Ledger can still say what it knows about the file

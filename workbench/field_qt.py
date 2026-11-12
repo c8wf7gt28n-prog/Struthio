@@ -52,6 +52,7 @@ class FieldView(QWidget):
     full_asked = Signal(object)        # F on the shelf: the selected program in its full window
     check_asked = Signal()             # C: check the desk (everything read again, what waits said with its next step)
     go_asked = Signal()                # G: the owner's go for what waits in Talk. Never a digit: digits only choose
+    trace_asked = Signal(object)       # T: where the selected object comes from and what rests on it
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -230,6 +231,9 @@ class FieldView(QWidget):
             return
         elif plain and self.steps and Qt.Key_1 <= key <= Qt.Key_9:
             if key - Qt.Key_1 < len(self.steps):self.step_chosen.emit(self.selected(), key - Qt.Key_1)
+            return
+        elif key == Qt.Key_T and plain:      # T: trace
+            if self.selected() is not None:self.trace_asked.emit(self.selected())
             return
         elif key == Qt.Key_G and plain:      # G: go. Only while something waits in Talk and says so here
             if self.go:self.go_asked.emit()
@@ -641,8 +645,8 @@ class FieldView(QWidget):
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, top + 0.5), QPointF(self.width(), top + 0.5))
         obj = self.selected()
         # The keys, in the order they are read; when the line is too narrow they give way one at a time, the least needed first.
-        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'D  do'), (4, 'C  check all'), (5, 'S  staC'), (7, 'Menu  more'), (6, 'A  next waiting'), (8, 'R  look again'), (0, 'Esc  back')]
-        legend = [(9, '%s  %s' % (letter.upper(), name)) for name, letter in self.faces if name != self.face] + legend
+        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'D  do'), (4, 'C  check all'), (5, 'T  trace'), (6, 'S  staC'), (8, 'Menu  more'), (7, 'A  next waiting'), (9, 'R  look again'), (0, 'Esc  back')]
+        legend = [(10, '%s  %s' % (letter.upper(), name)) for name, letter in self.faces if name != self.face] + legend
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font())
         if obj is None:
             p.setPen(QColor(t.QUIET));p.drawText(QPointF(x, top + h / 2 + fm.ascent() / 2), 'R  look again      Esc  back');return

@@ -91,6 +91,11 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   Kernel. Every step is an operation the program already had;
   add steps there, not a second engine. A model's place is to put reads into words and, later, to pick among steps the
   program offers; it does not plan.
+- **staC reads the desk** (12 November: "Can we make staC and Stacy more powerful in creative ways"). The Field is a staC
+  source: `field.read` (objects, wires, what waits), `field.trace {id}` (where a thing comes from, what rests on it),
+  `field.whatif {id, set}` (a calculation worked with other values, changing nothing). `this` at the start of a line is
+  the selected sheet. Stacy's trace (T) and her "what if" are those reads, shown as lines like everything she reads.
+  When a new power is wanted for Stacy, make it a read staC can run first, then give it a key and words.
 - **The shelf** (12 November; P in the Field). Every program and room as a sheet, in six columns set by hand that do not
   move (Work, Think, Make, Build, Move, Set up; `field_source.SHELF`). Enter opens the room, which is the basic screen;
   a native program's full window is started from its room. This is the launcher the owner asked for, first slice.
@@ -106,8 +111,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), then the desk that does (0.4). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.1: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), and staC reading the desk, with trace and what-if (0.4.1). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

@@ -216,6 +216,8 @@ def steps_for(kernel, principal, obj, field=None):
         steps = []
     if not steps and obj.stac:
         steps = [Step('See what the records say about it', 'read', obj.stac)]
+    if field is not None and steps and (field.fed_by(obj.id) or field.feeds(obj.id)):      # it has wires: they can be followed
+        steps.insert(1, Step('Trace it along the wires', 'read', 'field.trace %s | pick rows | select way,steps,kind,title,state,by' % js(id=obj.id)))
     return [step for step in (_by_scope(step) for step in steps if step.line) if step is not None][:9]
 
 

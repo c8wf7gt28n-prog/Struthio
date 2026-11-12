@@ -286,6 +286,11 @@ class TypeBar(QWidget):
             self.refresh_context();return True
         if self.target != 'slate':return False
         if not text:return True
+        try:                                  # `this` is the sheet selected in the Field: written out here, so what runs is what shows
+            from .field_page import expand_this
+            text = expand_this(self.host, text)
+        except ValueError as exc:
+            self.note(str(exc));return True
         if popup is not None:popup.hide()
         page = self.box.console_page(text)
         page = page if page in ('kernel', 'find', 'shell') else 'stac'
@@ -509,7 +514,12 @@ class TypeBar(QWidget):
         view = getattr(self.host, 'log_view', None)
         if getattr(self, 'target', None) == 'find':kind, words = 'context', 'Search · Enter searches'
         elif getattr(self, 'target', None) == 'slate':
-            kind = stac_hint_kind(self.box.text()) or kind
+            written = self.box.text()
+            try:
+                from .field_page import expand_this
+                written = expand_this(self.host, written)
+            except ValueError:pass
+            kind = stac_hint_kind(written) or kind
             words = {'stac': 'staC on Ctrl+Enter', 'inspect': 'Preview on Ctrl+Enter'}.get(kind)
         elif getattr(self, 'target', None) == 'log' and view is not None:
             filtered = view.filters.get(view.stream, '')

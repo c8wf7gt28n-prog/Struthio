@@ -1,4 +1,4 @@
-# Graphite 0.4 · The desk does
+# Graphite 0.4.1 · The desk does, and staC reads it
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
@@ -6,6 +6,7 @@ on. Graphite is the public name of the workspace; its assistant's face is Stacy,
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
+- **staC reads the desk** · `field.read | pick waiting | select kind,title,state`; `this` is the sheet selected in the Field; **T** traces a thing to its source; ask "what if B3 were 320?" about a calculation and nothing is changed.
 - **Doing** · press **D** on a sheet in the Field for the steps the records offer (a read runs; a change waits for **G**, your go); **C** checks the desk and offers to settle what needs no decision of yours.
 - **The shelf** · press **P** in the Field: every program and room in six fixed columns; Enter opens one.
 - **The Field** · press **F9** (or Arrange → Field, or type `field` in the writing strip): the work in this workspace as sheets with the wires that say what feeds what. Arrow keys follow the wires, Enter opens the real page, Esc comes back. Stacy's rail shows the staC line for the selected sheet: **S** puts it in the writing strip, **Shift+Enter** runs it. **N** shows this computer's network the same way; **W** returns to the work. It is the first slice of the objects and instruments desktop (master specification, sections 70 to 72), new in 0.3. Right-click a sheet (or press the Menu key) for what can be done with it. Guide → What's New has the rest.
@@ -29,12 +30,12 @@ The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **Referen
 
 ## Install
 
-From the release volumes (`Graphite_0.4_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.4.1_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.1" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.1" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -124,7 +125,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.4_full.zip PARTS "Graphite 0.4"
+python3 tools/package_release_parts.py OUT/Graphite_0.4.1_full.zip PARTS "Graphite 0.4.1"
 ```
 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).
