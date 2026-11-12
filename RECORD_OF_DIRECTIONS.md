@@ -25,6 +25,11 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 - **Authority.** "I pre approve all your expert opinions, recommendations, and choices." "My goal with you is to build,
   complete, and finish the project." 12 November: "Do everything auto and surprise me." Decide, say what you decided,
   keep moving. Ask only when the answer changes the result or reaches outside the computer.
+- **Two people to steer by** (12 November: the source is "whatever Linus" Torvalds "would do"; "Also think what would
+  Woz do ... kindness to humanity"). Linus: the source is open under the GPL version 2, the work is done in public, and
+  what counts is whether it runs. Woz: the fewest parts that do the job; a machine one person can understand whole; the
+  schematics come in the box; it is ready the moment it is switched on; it is generous, a little playful, and kind to
+  the person at the keyboard (plain words, no blame, nothing taken from them, useful on a modest machine).
 - **Simple, for a power user** (12 November: "let's concentrate on simple power user"). Keyboard first. One line to
   speak in. Few words on the screen and none that explain themselves twice. One rule instead of a setting where a rule
   will do. No hand-holding, no second way to do a thing unless the second way is the keyboard.

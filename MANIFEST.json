@@ -66,8 +66,8 @@
       "sha256": "96b7fdb88c415bd750f5c69428687f13917510a300387913bb1109fbb43978b9"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 9928,
-      "sha256": "416cd0f88c996df35d67d42aacd62d7bcb328db1c998b03c0ada5bfaf15e77ce"
+      "bytes": 10511,
+      "sha256": "e1e7278030c0758fddce8f7adf6682ac1b172e53f5d385c424a39fef78cb0d61"
     },
     "RIGHTS.md": {
       "bytes": 899,
@@ -1986,16 +1986,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1865474,
-      "sha256": "7941399b30f6e712c34ec6de596f3a97b4648bd880dc14e466e310690a23bc20"
+      "bytes": 1866068,
+      "sha256": "b4ea996a30cadb764f5cd22394ce9f4de6da1ce6b9d24f3d38ce33e988385584"
     },
     "project/stacy_seed/current/index.sqlite": {
-      "bytes": 4263936,
-      "sha256": "b10b3b3f02ace981cb0abf404161ba357b5adb03e694e8dddcbcf2f6a890ea21"
+      "bytes": 4268032,
+      "sha256": "a74cad7a255b37ce3d5780785dccf8b7ab46ab7d9f26865a446346946f50c74a"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47110,
-      "sha256": "e8390fa2decad2355c33ac43993696fcbc22a1f495b7dfc3fa4e59b9a6ee285e"
+      "sha256": "947f260ea2fe73d7e2e7036009810b63469a71b8c81bbe764e497ed8ea5a00ae"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
