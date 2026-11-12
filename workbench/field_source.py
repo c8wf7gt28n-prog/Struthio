@@ -221,7 +221,7 @@ class Reader:
             if state == UNAVAILABLE:facts.append('its sheet cannot be reached')
             where = self.names.get('office:' + str(derivation.get('sheet')), '')
             self.add(FieldObject(ident, 'calculation', row.get('title') or row['id'], 'exact result', state or STATE_CURRENT, tuple(facts), where, target,
-                                 stac='documents.get %s | pick document.derivation.inputs | select symbol,parameter,cell,conditions' % stac_json(id=row['id'])))
+                                 stac='documents.get %s | pick document.derivation.inputs | select symbol,parameter,cell,value,unit,conditions' % stac_json(id=row['id'])))
             if derivation.get('sheet'):
                 self.link('office:' + derivation['sheet'], ident, ('cells ' + cells) if cells else '', state == STATE_RECHECK)
             elif (derivation.get('pdf') or {}).get('item'):
