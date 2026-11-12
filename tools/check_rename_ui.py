@@ -160,10 +160,10 @@ for size,tag in (((1920,1200),'1920'),((1366,768),'1366')):
  # 03 · the right column's face, titled Graphite -------------------------------------------------------------------------------------
  w.shell2.show_slate_face();settle();align();face=w.shell2.face
  tabs=w.console_pages;names=[tabs.tabText(i) for i in range(tabs.count())]
- assert face.isVisible() and face.signature.text()=='Graphite' and 'Graphite' in names and 'Slate' not in names and w.shell2.slate_button.text()=='Conversation' and face.input.accessibleName()=='Message Graphite',(names,face.signature.text())
+ assert face.isVisible() and face.signature.text()=='Stacy' and 'Graphite' in names and 'Slate' not in names and w.shell2.slate_button.text()=='Conversation' and face.input.accessibleName()=='Message Stacy',(names,face.signature.text())
  window_words('face_'+tag);fit('face_'+tag)
- record('03_Face_%s.png'%tag,'%s: the right column\'s face, titled Graphite (signature and page), its message passage named Message Graphite; its tab is Conversation (HATCH DESK D1b).'%size[0],w.grab())
- check('%s 03 The face in the right column is titled Graphite (signature, page “Graphite”, Message Graphite) under the Conversation tab (D1b); no visible word says Slate, Ledger or Hatch'%tag)
+ record('03_Face_%s.png'%tag,'%s: the right column\'s face: the assistant, signed Stacy (the page is still named Graphite), its message passage named Message Stacy; its tab is Conversation (HATCH DESK D1b).'%size[0],w.grab())
+ check('%s 03 The face in the right column is the assistant, signed Stacy (page “Graphite”, Message Stacy) under the Conversation tab (D1b); no visible word says Slate, Ledger or Hatch'%tag)
  w.shell2.show_operations_face();settle()
  # 04 · the settings roots: Workspace and Assistant ------------------------------------------------------------------------------------
  tab=bridge.show_settings(key='stacy.enabled');settle();align();nav=w.settings_navigator

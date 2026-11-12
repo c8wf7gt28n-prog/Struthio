@@ -9785,7 +9785,7 @@
   "sha256": "d580a9d771d294475aeea52bc50964fd90c9cf9b50dbbfe443a2244014c4ec3c"
  },
  "source_authority": "Owner-supplied visual foundation; new additions are ARC project artwork.",
- "rights": "Private project use. Public publication remains subject to owner rights review.",
+ "rights": "Project artwork; not covered by COPYING. Terms follow RIGHTS.md.",
  "meaning": "Artwork is not engineering evidence; retain visible text labels and evidence classes.",
  "runtime_network_required": false,
  "appearance": {

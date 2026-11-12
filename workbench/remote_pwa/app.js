@@ -175,7 +175,7 @@ async function clip(view){
   });
   const chooser=document.createElement('select');chooser.setAttribute('aria-label','Graphite task');
   for(const t of templates.templates){const opt=node('option',t.title);opt.value=t.id;chooser.append(opt);}welcome.append(chooser);
-  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Graphite the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
+  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Stacy the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
   const planButton=button(welcome,'Plan with Graphite',()=>showPlan(chooser.value,goal.value));planButton.classList.add('primary');
   const follow=card(view,'Continue your work',overview.active_jobs.length+' active or paused jobs · '+overview.pending_candidates.length+' candidates awaiting review');
   for(const j of overview.active_jobs.slice(0,4)){const r=card(follow,j.goal||j.tool,j.current_operation);badge(r,j.state);button(r,'Follow job',()=>showJob(j.id));}
@@ -196,7 +196,7 @@ async function showPlan(template,goal){
   for(const path of plan.source_reads)button(v,'Read '+path.split('/').pop(),()=>openSource(path));
   if(template==='hardware-dependency')button(v,'Inspect source-linked hardware findings',inspectProof);
   if(template==='review-candidate')button(v,'Open candidates',async()=>{const rows=await call('candidates.list'),body=modal('Candidates');for(const c of rows){const r=card(body,c.goal,c.state);button(r,'Review source diff',()=>reviewCandidate(c));}if(!rows.length)body.append(node('p','No candidates yet.'));});
-  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Graphite for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
+  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Stacy for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
   availability();
 }
 async function openSource(path){const f=await call('files.read',{path}),v=modal(path);v.append(node('p',f.sha256,'mono'),node('pre',f.content));}

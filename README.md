@@ -1,8 +1,8 @@
-# Graphite 0.3 · The Field
+# Graphite 0.3.1 · The Field, and Stacy
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
-on. Graphite is the one public name of the workspace and its AI; before November 6, 2026 the program was called Ledger &
+on. Graphite is the public name of the workspace; its assistant's face is Stacy, and she speaks staC; before November 6, 2026 the program was called Ledger &
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
@@ -23,16 +23,16 @@ The supplied Graphite 0.1 baseline has historical mechanical and offscreen evide
 where the docs say so. The owner's ThinkPad, its display and inputs, and the owner's model file have not been tried yet;
 nothing here claims they are accepted.
 
-The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **References → Read technical PDF → Review table** to make a sheet from a reviewed source. Open **Project Desk → Ask Graphite → Prepare evidence** to see matching project passages and exact results before a model turn. Live model and owner-host Vulkan qualification remain pending. P11 covers full native programs.
+The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **References → Read technical PDF → Review table** to make a sheet from a reviewed source. Open **Project Desk → Ask Stacy → Prepare evidence** to see matching project passages and exact results before a model turn. Live model and owner-host Vulkan qualification remain pending. P11 covers full native programs.
 
 ## Install
 
-From the release volumes (`Graphite_0.3_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.3.1_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3.1" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.3.1" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -122,8 +122,9 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.3_full.zip PARTS "Graphite 0.3"
+python3 tools/package_release_parts.py OUT/Graphite_0.3.1_full.zip PARTS "Graphite 0.3.1"
 ```
 
-Licences of bundled fonts, runtimes and dependencies are in THIRD_PARTY_NOTICES.md and RIGHTS.md; the pinned dependencies
-are the requirements-*.txt files.
+Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).
+Stacy's artwork, the other project art, the names and the game copy are kept back (RIGHTS.md). Licences of bundled fonts,
+runtimes and dependencies are in THIRD_PARTY_NOTICES.md; the pinned dependencies are the requirements-*.txt files.

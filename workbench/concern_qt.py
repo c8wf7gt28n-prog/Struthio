@@ -64,7 +64,7 @@ class ConcernController(QObject):
         row.addWidget(self.context_label, 1)
         area = QPushButton('Working area'); area.clicked.connect(lambda: self.open(
             self.current_attention['object_id'] if self.current_attention else 'concern'))
-        ask = QPushButton('Ask Graphite'); ask.clicked.connect(self.ask_slate)
+        ask = QPushButton('Ask Stacy'); ask.clicked.connect(self.ask_slate)
         row.addWidget(area); row.addWidget(ask)
         self.host.center_layout.insertWidget(1, self.context_strip)
         self.changed.connect(self.track_current); self.track_current()

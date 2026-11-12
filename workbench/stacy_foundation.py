@@ -583,7 +583,7 @@ def build_seed(root, export=None):
         manifest = {'schema': SCHEMA, 'seed_id': seed_id, 'records': len(records), 'inputs': inputs,
                     'files': {name: sha((temp / name).read_bytes()) for name in ('catalog.json', 'index.sqlite')},
                     'builder': 'workbench.stacy_foundation', 'qualification': 'SOURCE_BINDINGS_ONLY',
-                    'rights': 'Private project seed. Source licences and owner permissions remain applicable.'}
+                    'rights': 'Graphite seed. Project code and documents are GPL-2.0-only (COPYING); artwork, names and third-party parts keep their own terms (RIGHTS.md, THIRD_PARTY_NOTICES.md).'}
         (temp / 'manifest.json').write_bytes(canonical(manifest))
         target = _seed_paths(root)
         if target.is_symlink(): raise ValueError('Linked seed output')

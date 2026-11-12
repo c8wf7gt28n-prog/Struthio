@@ -8,7 +8,7 @@ stays in the dedicated application. Each module handles one family of files and 
   pages(tab, view)     -> [(title, build)] extra pages in the universal viewer
   thumbnail(path, kind, size) -> a QImage for Files, or None
 
-Modules use the Python standard library and Qt only: nothing new to install, nothing with a copyleft licence bundled.
+Modules use the Python standard library and Qt only: nothing new to install, no third-party code bundled.
 """
 from __future__ import annotations
 from importlib import import_module

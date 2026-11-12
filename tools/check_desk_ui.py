@@ -39,7 +39,7 @@ word drawn as designed in Line and the working area's words whole in Half and Ta
 line in Search; step 08 Half shows the mode's page; step 12 the modes' behaviour (Enter gives Assignment's words to Graphite and
 never runs staC, Ctrl+Enter runs typed staC through the staC path, Commands ▸ Run an operation…, Search's results, Log's Events
 following the journal with nothing to write, Log's Network on the check's fake capability, labelled TEST DATA: only D5's four
-operations, the filter, the confirmation before the first capture, the pin held while packets arrive, Ask Graphite about this,
+operations, the filter, the confirmation before the first capture, the pin held while packets arrive, Ask Stacy about this,
 D4's entry_at and focus, Stop, the unavailable reason) and the owner's captures Graphite_Desk_D3_01 to 05. D3-fix (the review of
 D3): the poem placeholder's drawn ink at least 4.5:1 on the line's paper; Up on Assignment's empty line recalls the typed staC
 that ran (the staC target's history); the search answer's end in sight after Enter, and the whole answer in the owner's capture;
@@ -999,7 +999,7 @@ assert entry['stream']=='network' and entry['kind']=='connection' and entry['rem
 assert not ui_fit.whole_words(view) and not symmetry.worst(desk_pairs()),ui_fit.describe(ui_fit.whole_words(view))
 grab=w.grab().toImage();p=QPainter(grab);font=QFont('IBM Plex Sans');font.setPixelSize(15);font.setWeight(QFont.DemiBold);p.setFont(font)
 banner=QRectF(symmetry.box(view,w)[0]+symmetry.box(view,w)[2]-560,symmetry.box(view,w)[1]-30,560,26);p.fillRect(banner,QColor(shell2.ERASER));p.setPen(QColor(pane_qt.TEXT));p.drawText(banner,Qt.AlignCenter,TEST_DATA);p.end()
-record('Graphite_Desk_D3_05_Log_Network_Half_TEST_DATA_1920x1200.png','Log at Half on Network, 1920 by 1200, on TEST DATA (the check\'s fake capability answering D5\'s four operations with documentation addresses; labelled on the image): the interfaces with their receive and send rates, the connections filtered by port 443 (typed in the line, Enter), and the packet stream of a capture started with Ctrl+Enter after the confirmation (headers only, this computer\'s interfaces, not promiscuous, %d seconds or %d packets, nothing leaves the computer), newest at the bottom; a packet is pinned at the top with its details and Ask Graphite about this, and stays while 27 more arrive.'%(log_qt.CAPTURE_SECONDS,log_qt.CAPTURE_PACKETS),
+record('Graphite_Desk_D3_05_Log_Network_Half_TEST_DATA_1920x1200.png','Log at Half on Network, 1920 by 1200, on TEST DATA (the check\'s fake capability answering D5\'s four operations with documentation addresses; labelled on the image): the interfaces with their receive and send rates, the connections filtered by port 443 (typed in the line, Enter), and the packet stream of a capture started with Ctrl+Enter after the confirmation (headers only, this computer\'s interfaces, not promiscuous, %d seconds or %d packets, nothing leaves the computer), newest at the bottom; a packet is pinned at the top with its details and Ask Stacy about this, and stays while 27 more arrive.'%(log_qt.CAPTURE_SECONDS,log_qt.CAPTURE_PACKETS),
  grab,'ACTUAL_QT_WINDOW_GRAB_ON_TEST_DATA_LABELLED')
 # D3-fix: a capture that ends on its own bound between two reads: what it wrote last is read once it is seen ended (the review's
 # probe lost the last packets)
@@ -1008,7 +1008,7 @@ view.ticks+=log_qt.OBSERVE_EVERY-1-view.ticks%log_qt.OBSERVE_EVERY  # the next t
 for _ in range(3):view.refresh();settle(1)
 assert view.packets.count()==shown+2 and not view.following,(view.packets.count(),shown)
 fake.capture=dict(state='RUNNING',tool='dumpcap (test data)',started=time.time()-20,packets=len(fake.packets),filter='port 443')
-# Ask Graphite about this; D4's focus(); Stop capture; the unavailable reason
+# Ask Stacy about this; D4's focus(); Stop capture; the unavailable reason
 view.ask();settle();assert bar.target=='slate' and box.text().startswith('About this packet (') and '198.51.100.7:443' in box.text(),box.text()
 box.clear();log_qt.focus(w,entry);settle()
 assert bar.target=='log' and view.stream=='network' and view.pinned['remote']=='198.51.100.7' and view.filters['network']=='host 198.51.100.7 port 443' and box.text()=='host 198.51.100.7 port 443'

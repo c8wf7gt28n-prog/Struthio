@@ -26,7 +26,7 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   complete, and finish the project." 12 November: "Do everything auto and surprise me." Decide, say what you decided,
   keep moving. Ask only when the answer changes the result or reaches outside the computer.
 - **Two people to steer by** (12 November: the source is "whatever Linus" Torvalds "would do"; "Also think what would
-  Woz do ... kindness to humanity"). Linus: the source is open under the GPL version 2, the work is done in public, and
+  Woz do ... kindness to humanity"). Linus: the source is open under the GPL version 2 only, the work is done in public, and
   what counts is whether it runs. Woz: the fewest parts that do the job; a machine one person can understand whole; the
   schematics come in the box; it is ready the moment it is switched on; it is generous, a little playful, and kind to
   the person at the keyboard (plain words, no blame, nothing taken from them, useful on a modest machine).
@@ -44,9 +44,11 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   free upgrade.
 - **Use mature programs.** Open the real spreadsheet, the real editor; hand files over and take them back. Do not
   rewrite what exists. Keep every capability when the look changes.
-- **One name.** Graphite is the workspace and its assistant. staC is the command language, said "Stacy". Stacy on the
-  desk is a still portrait, and the place where staC is said. Folders, settings keys and scripts keep their older names (Ledger, Slate, Hatch, LS, arc1)
-  on purpose; do not rename them.
+- **Two names, one for each thing** (12 November: "to simplify things, Stacy should be the face of the assistant as
+  communicated through the language of Stacy. S-T-A-C."). Graphite is the workspace. Stacy is the assistant: one
+  assistant, and hers is its face. staC, said "Stacy", is how she speaks: what she reads, she shows as a staC line the
+  owner can run. Her portrait is still, in its own places. Folders, settings keys and scripts keep their older names
+  (Ledger, Slate, Hatch, LS, arc1) on purpose; do not rename them.
 
 ## The desk
 
@@ -67,7 +69,10 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   Let's use the hell out of it!!!"). Every object in the Field carries the staC line that reads it. Her rail at the right
   of the Field shows that line for the selected sheet; S puts it in the writing strip and Shift+Enter runs it, with the
   answer in the working area. Wherever Graphite shows a thing, it should be able to say that thing in staC, and Stacy is
-  where it is said.
+  where it is said. In Talk she is the assistant: asked about a sheet (its menu, or a question typed while it is
+  selected) she answers with the staC line that reads it and what the records say, model or no model
+  (`workbench/shell2.py`, SlateFace.answer_in_stac). A model, when there is one, adds her own words to that; it does not
+  replace it.
   This is the desktop model to grow: every kind of work should be findable there, and the same action should be
   reachable from the sheet, the right-click menu, the keyboard, a typed staC line and the assistant. The code is
   `workbench/field_model.py` (no Qt), `field_qt.py` (drawing), `field_source.py` (reads through the Kernel) and
@@ -81,7 +86,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.3: 0.2a13 "After Midnight" plus the Field. Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.3.1: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, and the GPL (0.3.1). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and
@@ -91,7 +97,8 @@ Shift, Method Press). `workbench/version.py` has one line per release.
 Checked on 12 November 2026 in a cloud container, not on the ThinkPad: the nine release parts restore with
 `INSTALL_LS.py`; `tools/check_release.py` passes; the window opens offscreen with no model; the Field draws a restored
 worked case (After Hours 07) from its real records and opens its pages. The source is public in the STRUTHIO
-repository on its own branch; no licence is assigned (`RIGHTS.md`).
+repository on its own branch under the GNU GPL, version 2 only (`COPYING`); Stacy's artwork, the names and the game
+copy are kept back (`RIGHTS.md`).
 
 Never yet done, by every document in the tree:
 

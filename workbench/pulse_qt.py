@@ -160,7 +160,7 @@ class Pulse(QWidget):
         m.addAction(self.slate_words()).setEnabled(False)
         if self.slate_state() == 'none':
             m.addAction('Choose a model…', lambda:open_destination(self.host, 'slate').pick_model())
-        m.addAction('Talk to Graphite', lambda:self.host.shell2.show_slate_face())
+        m.addAction('Talk to Stacy', lambda:self.host.shell2.show_slate_face())
         m.addAction('Brain room', lambda:open_destination(self.host, 'slate'))
         if self.brain.get('state') == 'READY':m.addAction('Stop the brain', lambda:(call_write(self.host, 'brain.stop', {}), self.refresh()))
         heading(m, 'Running and next')

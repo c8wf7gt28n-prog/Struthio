@@ -335,7 +335,7 @@ Packaging should use an atomic temporary archive and verify it before replacemen
 
 An update should preserve user work outside the replaceable program. It needs a versioned installation, an explicit migration or reconciliation path when stores change, and a way to return to the previous usable program where supported. An installer should not attempt an unreviewed in-place migration of working records merely because a newer ZIP exists.
 
-Public distribution must carry the selected software licences, third-party notices and required source or redistribution information for the actual bundled versions. The owner's noncommercial source-available and retained-commercial-rights direction needs to be reflected in the final product licensing decisions. That intent does not replace the obligations of separately selected dependencies.
+Public distribution must carry the selected software licences, third-party notices and required source or redistribution information for the actual bundled versions. On 12 November 2026 the owner chose the GNU General Public License, version 2 only, for Graphite's own code and documents (COPYING); project artwork, the names and the game copy are kept back (RIGHTS.md). That intent does not replace the obligations of separately selected dependencies.
 
 ## 29 Representative complete workflows
 

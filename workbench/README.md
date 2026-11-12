@@ -16,7 +16,7 @@ Current product: [Arc Ledger guide](../docs/WORKSHOP.md). Hardware P1–P11 is i
 
 # ARC-1 Workbench R10.12
 
-The proprietary in-house project workspace for developing ARC-1 firmware, FPGA and game software and reviewing console engineering information. The hardware navigator, central workspace and right system dashboard are preserved.
+The in-house project workspace for developing ARC-1 firmware, FPGA and game software and reviewing console engineering information. The hardware navigator, central workspace and right system dashboard are preserved.
 
 Open File → Project Desk for goals, current work and the repeatable host workflow. Edit → Search Project opens saved-file search. View → Split Editor opens another view of the current document. File → Recover Unsaved Work restores recovery buffers.
 

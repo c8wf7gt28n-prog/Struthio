@@ -198,7 +198,7 @@ class NetworkTalk(base.Profile):
             return 'Capture: %s from the latest capture%s.' % (plural(count, 'packet header'), (' (filter: %s)' % said) if said else '')
         if capture.get('state') == 'UNAVAILABLE': return 'Capture: not available on this computer. ' + str(capture.get('reason') or '')
         if context.get('proposed'): return 'Capture: Graphite proposed one; none was taken.'
-        return 'Capture: none was taken. Ask Graphite to capture, or start one yourself in Log, Network.'
+        return 'Capture: none was taken. Ask Stacy to capture, or start one yourself in Log, Network.'
 
     # -- reading the results --------------------------------------------------------------------------------------------------
     def interpret(self, step, result, state, kernel, principal):

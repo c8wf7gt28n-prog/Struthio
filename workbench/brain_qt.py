@@ -18,7 +18,7 @@ class BrainTab(ServiceTab):
         self.list=QComboBox();self.list.setAccessibleName('Registered local models');self.list.currentIndexChanged.connect(self.selected);self.outer.addWidget(self.list)
         # V-19: the actions are words in two rows at their natural width (theme2.as_words), not a slab of full-width bars.
         words=[('Add file',self.add_file),('Add folder',self.add_folder),('Inspect',self.inspect),('Locate',self.locate),('Qualify',self.qualify),
-               ('Use model',self.use),('Restore previous',self.restore),('Stop brain',self.stop),('Ask Graphite',host.open_clip)]
+               ('Use model',self.use),('Restore previous',self.restore),('Stop brain',self.stop),('Ask Stacy',host.open_clip)]
         self.action_rows=[]
         for group in (words[:5],words[5:]):
             row=QHBoxLayout();row.setSpacing(18)

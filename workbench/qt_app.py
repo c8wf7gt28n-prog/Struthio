@@ -1441,7 +1441,7 @@ class ClipAssistant(QWidget):
 
     def contextMenuEvent(self, event):
         window = self.parentWidget();menu = QMenu(self)
-        menu.addAction('Ask Graphite…', self.clicked.emit)
+        menu.addAction('Ask Stacy…', self.clicked.emit)
         menu.addAction('Graphite workshop', window.show_clip_workspace)
         menu.addAction('Jobs && evidence', window.show_engineering)
         menu.addSeparator()
@@ -1772,7 +1772,7 @@ class ClipOverlay(QWidget):
         from . import ledger_control
         local=hasattr(self.window_,'ledger_bridge') and ledger_control.value(self.window_.ledger_bridge.kernel,'stacy.provider')=='local'
         writing_prompt(self.input, 'Ask local Graphite or type /commands' if local else 'Local commands or a Gemini key' if self.expect_key else
-                                      'Message Graphite · ' + self.settings.describe())
+                                      'Message Stacy · ' + self.settings.describe())
         self.send_btn.setEnabled(not self.busy)
         self.input.setEnabled(not self.busy)
         self.anchor.setToolTip('Graphite: ' + self.settings.describe())
@@ -5230,7 +5230,9 @@ class WorkbenchWindow(QMainWindow):
     def show_about(self):
         from .editorial_art import about_dialog
         about_dialog(self,
-                     'Graphite %s (Qt %s).\n\nHost tools only: builds, tests and the game simulator run on this '
+                     'Graphite %s (Qt %s).\n\nFree software under the GNU General Public License, version 2 only (COPYING), with no '
+                     'warranty. Stacy\'s artwork, the names and the game are kept back (RIGHTS.md).\n\n'
+                     'Host tools only: builds, tests and the game simulator run on this '
                      'PC. No ARC-1 board exists yet; nothing is flashed or deployed, and firmware stage images are '
                      'NOT BOOTABLE. Fabrication is on HOLD.\n\nAgents use the same engine through '
                      '"python arc1 agent".' % (VERSION, qt_version())).exec()

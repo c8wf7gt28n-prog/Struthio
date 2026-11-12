@@ -20,7 +20,7 @@ promiscuous, for how long, how many packets, the capture filter the tool receive
 Stop capture ends it (network.capture.stop; Master Stop also ends it, D5's tracked command). When capture is unavailable the
 stream says why and how the owner can enable it, in D5's words; Graphite never offers sudo. When the capability refuses a
 capture (its words, a filter it will not use), the refusal stays in the stream until the next capture or filter. Choosing an
-entry in either stream pins it at the top with its details (it stays while the stream scrolls and refreshes); "Ask Graphite
+entry in either stream pins it at the top with its details (it stays while the stream scrolls and refreshes); "Ask Stacy
 about this" puts an assignment in the line with that entry as its context.
 
 The Network filter grammar is D5's own (workbench/network_watch.py: parse_filter, matches, bpf), one grammar for the view and
@@ -196,7 +196,7 @@ def details(entry):
 
 
 def assignment_text(entry):
-    """The words "Ask Graphite about this" puts in the line: the entry as the assignment's context, then room for the question."""
+    """The words "Ask Stacy about this" puts in the line: the entry as the assignment's context, then room for the question."""
     kind = entry.get('kind')
     if kind == 'event':
         e = entry.get('event') or {}
@@ -342,7 +342,7 @@ class LogView(QWidget):
         self.pin_frame = QFrame();self.pin_frame.setObjectName('LogPinned');pin = QVBoxLayout(self.pin_frame);pin.setContentsMargins(10, 6, 10, 6);pin.setSpacing(2)
         self.pin_title = QLabel('');self.pin_title.setObjectName('LogPinnedLine');self.pin_title.setTextFormat(Qt.PlainText);self.pin_title.setWordWrap(True)
         self.pin_details = QLabel('');self.pin_details.setObjectName('LogPinnedDetails');self.pin_details.setTextFormat(Qt.PlainText);self.pin_details.setWordWrap(True)
-        self.pin_actions = sentence('{ask}  ·  {unpin}', {'ask': ('Ask Graphite about this', lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())})
+        self.pin_actions = sentence('{ask}  ·  {unpin}', {'ask': ('Ask Stacy about this', lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())})
         self.pin_actions.setObjectName('LogPinnedActions')
         for w in (self.pin_title, self.pin_details, self.pin_actions):pin.addWidget(w)
         self.pin_frame.hide();column.addWidget(self.pin_frame)
@@ -678,7 +678,7 @@ class LogView(QWidget):
         self.pinned = dict(entry)
         self.pin_title.setText(entry.get('line') or (event_line(entry['event']) if entry.get('kind') == 'event' else connection_line(entry) if entry.get('kind') == 'connection' else packet_line(entry)))
         rows = details(entry);self.pin_details.setText('   '.join('%s %s' % kv for kv in rows))
-        follow = {'ask': ('Ask Graphite about this', lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())}
+        follow = {'ask': ('Ask Stacy about this', lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())}
         if entry.get('stream') == 'network' and conversation(entry):
             follow['follow'] = ('Follow this conversation', lambda e=dict(entry):self.follow_conversation(e))
             from .shell2 import sentence
@@ -800,7 +800,7 @@ def focus(host, entry):
 
 
 def ask_about(host, entry):
-    """"Ask Graphite about this": the line in Assignment mode with the entry as the assignment's context, the cursor after it."""
+    """"Ask Stacy about this": the line in Assignment mode with the entry as the assignment's context, the cursor after it."""
     bar = getattr(host, 'type_bar', None)
     if bar is None or not entry:return None
     bar.set_target('slate', focus=False);bar.box.setText(assignment_text(entry));bar.box.setFocus();bar.box.end(False)

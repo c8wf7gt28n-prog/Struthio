@@ -375,7 +375,7 @@ def ask_slate(kernel, db, row, principal, clock):
     brain = kernel.dispatch('brain.status', {}, principal)
     if not brain.get('ok') or (brain.get('result') or {}).get('state') != 'READY':
         db.execute("UPDATE agenda_items SET due=?, reason=?, updated=? WHERE id=?",
-                   (clock + RETRY_AFTER, "Waiting for Graphite's brain: choose a model in Brain, and it will take it up.", clock, row['id']))
+                   (clock + RETRY_AFTER, "Waiting for Stacy's brain: choose a model in Brain, and she will take it up.", clock, row['id']))
         return {'ran': None, 'reason': 'Graphite has no brain running for a question in words.'}
     asked = kernel.dispatch('brain.ask', {'message': row['title'], 'mode': 'plan'},
                             Principal(principal.identity, frozenset({'read', 'execute'}), principal.paths, principal.tools, principal.mode))
@@ -397,7 +397,7 @@ def work_on_copy(kernel, db, row, principal, clock):
     brain = kernel.dispatch('brain.status', {}, principal)
     if not brain.get('ok') or (brain.get('result') or {}).get('state') != 'READY':
         db.execute("UPDATE agenda_items SET due=?, reason=?, updated=? WHERE id=?",
-                   (clock + RETRY_AFTER, "Waiting for Graphite's brain: choose a model in Brain, and it will take it up.", clock, row['id']))
+                   (clock + RETRY_AFTER, "Waiting for Stacy's brain: choose a model in Brain, and she will take it up.", clock, row['id']))
         return {'ran': None, 'reason': 'Graphite has no brain running to work on the copy.'}
     with working_copies.opened(kernel) as cdb:c = working_copies.the_copy(cdb, row['copy'])
     data = (files_service.root(kernel) / c['work']).read_bytes()

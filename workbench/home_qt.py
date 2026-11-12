@@ -38,7 +38,7 @@ class HomeArtwork(QWidget):
         self.bird=BirdView(root);row.addWidget(self.bird,1)
         grid=QGridLayout();grid.setSpacing(10)
         for i,(key,title) in enumerate([('console','Console'),('rom','References'),
-                ('book','Orange Book'),('ledger','Graphite'),('struthio','STRUTHIO'),('stacy','Ask Graphite')]):
+                ('book','Orange Book'),('ledger','Graphite'),('struthio','STRUTHIO'),('stacy','Ask Stacy')]):
             button=QPushButton(title);button.setMinimumHeight(45)
             button.setAccessibleName(title+' workshop entrance')
             button.clicked.connect(lambda checked=False,k=key:self.activated.emit(k))
@@ -126,7 +126,7 @@ class WorkshopHome(QWidget):
         title = QLabel("Graphite's Control Center")
         title.setObjectName('homeTitle')
         words.addWidget(title)
-        subtitle = QLabel('Your engineering headquarters. Choose a workspace, or ask Graphite.')
+        subtitle = QLabel('Your engineering headquarters. Choose a workspace, or ask Stacy.')
         subtitle.setWordWrap(True)
         subtitle.setProperty('arcRole', 'metadata')
         words.addWidget(subtitle)

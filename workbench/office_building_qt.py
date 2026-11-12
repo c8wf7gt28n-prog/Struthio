@@ -186,7 +186,7 @@ class OfficeBuildingTab(ServiceTab):
         self.request = QLineEdit();writing_prompt(self.request, 'For example: show the text of the memo I received');self.request.setAccessibleName('Request for Graphite')
         self.request.returnPressed.connect(self.ask_plan);box.addWidget(self.request)
         arow = QHBoxLayout()
-        plan = QPushButton('Ask Graphite to plan');plan.clicked.connect(self.ask_plan);arow.addWidget(plan)
+        plan = QPushButton('Ask Stacy to plan');plan.clicked.connect(self.ask_plan);arow.addWidget(plan)
         self.run_plan_button = QPushButton('Run proposal');self.run_plan_button.setEnabled(False);self.run_plan_button.clicked.connect(self.run_proposal);arow.addWidget(self.run_plan_button)
         box.addLayout(arow)
         self.plan_view = QPlainTextEdit();self.plan_view.setReadOnly(True);self.plan_view.setAccessibleName('Graphite proposal');box.addWidget(self.plan_view, 1)

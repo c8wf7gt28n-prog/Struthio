@@ -216,7 +216,7 @@ class Lifecycle(Fixture):
         page=self.call('documents.get',{'id':doc['id']})['document'];without=page['blocks'][:4]
         saved=self.call('documents.save',{'id':doc['id'],'expected_revision':2,'blocks':without});self.assertEqual(saved['conditions_stale'],[card_id])
         card=self.call('conditions.get',{'id':card_id})['condition'];self.assertEqual((card['state'],card['reason']),('BROKEN','The result paragraph is no longer on the page.'))
-        rechecked=self.call('conditions.recheck',{'id':card_id});self.assertEqual(rechecked['condition']['state'],'BROKEN');self.assertIn('ask Graphite for the total again',rechecked['words'])
+        rechecked=self.call('conditions.recheck',{'id':card_id});self.assertEqual(rechecked['condition']['state'],'BROKEN');self.assertIn('ask Stacy for the total again',rechecked['words'])
         self.assertEqual(self.call('documents.get',{'id':doc['id']})['document']['revision'],3)     # a broken card never writes the page
         undone=self.call('documents.save',{'id':doc['id'],'expected_revision':3,'blocks':page['blocks']});self.assertEqual(undone['conditions_stale'],[])
         self.assertEqual(self.call('conditions.get',{'id':card_id})['condition']['state'],'CURRENT')   # the paragraph came back with its id: current again

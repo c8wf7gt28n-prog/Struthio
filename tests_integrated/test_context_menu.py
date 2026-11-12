@@ -416,7 +416,7 @@ class Window(unittest.TestCase):
         view.show_connections([dict(proto='tcp',local='192.168.1.5',lport=51544,remote='93.184.216.34',rport=443,state='ESTABLISHED',process='firefox',pid=4242)])
         view.add_packets([dict(at=time.time(),iface='wlan0',proto='tcp',src='192.168.1.5',sport=51544,dst='93.184.216.34',dport=443,length=60,flags='S',seq=1)]);settle()
         r=view.connections.visualItemRect(view.connections.item(0));menu=right_click(view.connections.viewport(),r.center())
-        self.assertEqual(menu.target.kind,'connection');self.assertEqual(menu.words(),['Ask Graphite about this','Follow this conversation','Show the process','—','Copy address'])
+        self.assertEqual(menu.target.kind,'connection');self.assertEqual(menu.words(),['Ask Stacy about this','Follow this conversation','Show the process','—','Copy address'])
         self.assertEqual(menu.row('copy:address').caption,'93.184.216.34:443')
         self.assertEqual((menu.heading.label,menu.heading.noun),('firefox → 93.184.216.34:443','network connection · tcp · established'),'who talks to whom')
         menu.row('follow').click();settle();self.assertEqual(self.w.type_bar.box.text(),'host 93.184.216.34 port 443');self.assertIsNotNone(view.pinned)

@@ -186,7 +186,7 @@ class DocumentPage(QTextEdit):
 
     def contextMenuEvent(self, event):
         """HATCH DESK D4: the right-click menu (workbench/context_menu.py) for the passage under the pointer (Bold and the other page
-        edits through documents.edit with this page's revision, Move to notes, the equivalent command to inspect, Ask Graphite) or
+        edits through documents.edit with this page's revision, Move to notes, the equivalent command to inspect, Ask Stacy) or
         the page at the caret; the text edits this page's own menu had are in it too."""
         from .context_menu import open_at
         if open_at(self.tab.host, self.viewport(), event.pos(), keyboard=event.reason() == event.Reason.Keyboard) is None:super().contextMenuEvent(event)
@@ -202,7 +202,7 @@ class DocumentsTab(QWidget):
         self.setObjectName('LibraryTab'); self.setProperty('ledgerRoom', True); self.setStyleSheet(PAGE_STYLE)
         outer = QVBoxLayout(self); outer.setContentsMargins(28, 18, 28, 12); outer.setSpacing(8)
         head = QHBoxLayout(); head.addWidget(role(QLabel('Documents'), 'title'), 1); outer.addLayout(head)
-        self.lead = QLabel('Write here. Select words and ask Graphite in the strip below: “make these words bold”. Saving is automatic; Ctrl Z takes any change back, Graphite’s too.')
+        self.lead = QLabel('Write here. Select words and ask Stacy in the strip below: “make these words bold”. Saving is automatic; Ctrl Z takes any change back, hers too.')
         self.lead.setWordWrap(True); self.lead.setStyleSheet('color:%s' % QUIET); outer.addWidget(self.lead)
         split = QSplitter(Qt.Horizontal); split.setChildrenCollapsible(False); outer.addWidget(split, 1)
         left = QWidget(); left_box = QVBoxLayout(left); left_box.setContentsMargins(0, 0, 12, 0); left_box.setSpacing(6)

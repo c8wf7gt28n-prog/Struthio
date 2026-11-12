@@ -154,7 +154,7 @@ def passage_menu():
  r=doc.page.cursorRect(c);return right_click(doc.page.viewport(),QPoint(r.center().x()-40,r.bottom()-1))  # on the selected words, near their foot
 for wd,ht in SIZES:
  size(wd,ht);menu=passage_menu();assert menu.target.kind=='passage'
- record('Graphite_Review_04_Right_Click_Selected_Passage_%dx%d.png'%(wd,ht),'Right-click on a selected passage in a document, %d by %d: the passage named at the top with its page and revision ("within a hair" · passage · Bench notes · revision %s); the changes first (Bold, Italic, Underline, Plain, Paragraph style, Move to notes); Inspect in the line (the equivalent staC command); Ask Graphite about this and Search; the text edits last.'%(wd,ht,menu.target.revision),grab(menu),menu)
+ record('Graphite_Review_04_Right_Click_Selected_Passage_%dx%d.png'%(wd,ht),'Right-click on a selected passage in a document, %d by %d: the passage named at the top with its page and revision ("within a hair" · passage · Bench notes · revision %s); the changes first (Bold, Italic, Underline, Plain, Paragraph style, Move to notes); Inspect in the line (the equivalent staC command); Ask Stacy about this and Search; the text edits last.'%(wd,ht,menu.target.revision),grab(menu),menu)
  menu.close_menu(restore=False);settle()
 
 # 05 two revisions of one file in Files: a different kind of object --------------------------------------------------------------
@@ -233,7 +233,7 @@ assert log.packets.count()>=len(packets)-1,log.packets.count()
 log.chose(log.packets.item(2));settle()
 FIXTURE='TEST DATA: the network capability\'s test fixture (tests_integrated/test_network_watch.py), not this computer'
 image=grab();vx,vy=log.mapTo(w,QPoint(0,0)).x(),log.mapTo(w,QPoint(0,0)).y()
-record('Graphite_Review_08b_Log_Network_Packets_TEST_DATA_1920x1200.png','TEST DATA, labelled on the image: the packet stream as Log shows it while a capture runs, from the network capability\'s test fixture only (its small computer\'s /proc, /sys and /etc read by network_watch.observe, and its frames decoded by network_watch.decode: headers only, never what a packet carries); one packet pinned at the top with Ask Graphite about this. This computer has no capture tool, so no real packet stream exists here.',
+record('Graphite_Review_08b_Log_Network_Packets_TEST_DATA_1920x1200.png','TEST DATA, labelled on the image: the packet stream as Log shows it while a capture runs, from the network capability\'s test fixture only (its small computer\'s /proc, /sys and /etc read by network_watch.observe, and its frames decoded by network_watch.decode: headers only, never what a packet carries); one packet pinned at the top with Ask Stacy about this. This computer has no capture tool, so no real packet stream exists here.',
        label(image,FIXTURE,vx+log.width(),vy-30),data='TEST DATA (the network capability\'s test fixture)')
 log.unpin();log.dispatch=real_dispatch;bar.set_target('slate',focus=False);w.console.set_size(0);settle()
 

@@ -10,6 +10,8 @@ ART_MODES = ('illustrated', 'ascii', 'clean')
 WORKSHOP_PLATE = 'Workshop in the rain.png'
 CHARCOAL_PLATE = 'Workshop in charcoal.webp'
 MIDNIGHT_PORTRAIT = 'Stacy after midnight.webp'
+FACE_MARK = ('+------+', '| staC |', '+------+')
+FACE = (0.262, 0.086, 0.488, 0.366)       # her face in that plate: left, top, width, height, as parts of the plate
 MIDNIGHT_WORKSHOP = 'Workshop after midnight.webp'
 ART_PLATES = (WORKSHOP_PLATE, 'RISC is good.png', 'Struthio rider.png',
               'Brain on Disk.png', 'City after dark.png')
@@ -145,9 +147,9 @@ class PanelInk(QWidget):
         self.kind = kind
         self.available = False
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Fixed if kind == 'face' else QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.setAccessibleName({'portrait': 'Stacy in the worksheet evidence rail', 'bracket': 'ASCII bracket illustration',
-                                'journal': 'Stacy in the research journal'}[kind])
+                                'journal': 'Stacy in the research journal', 'face': 'Stacy, the assistant'}[kind])
         self.refresh()
 
     def set_available(self, available):
@@ -158,6 +160,9 @@ class PanelInk(QWidget):
     def refresh(self):
         self.mode = self.host.session.state.get('desk_art', 'illustrated')
         visible = self.available and self.mode != 'clean'
+        if self.kind == 'face':              # the assistant's face in Talk: a small still square beside her name, or nothing
+            visible = visible and not midnight_plate(self.art_folder).isNull()
+            self.setFixedWidth(self.plate_height() if visible else 0)
         self.setFixedHeight(self.plate_height() if visible else 0)
         self.setVisible(visible)
         self.update()
@@ -165,6 +170,8 @@ class PanelInk(QWidget):
     def plate_height(self):
         if self.kind == 'portrait':
             return min(self.width(), max(130, self.host.height() - 500))
+        if self.kind == 'face':              # follows the reading size, as the name beside it does
+            return round(84 * float((getattr(self.host, 'reading_profile', None) or {}).get('ui_pt', 14.0)) / 14.0)
         return 116 if self.kind == 'journal' else 146
 
     def resizeEvent(self, event):
@@ -173,8 +180,15 @@ class PanelInk(QWidget):
             if self.height() != height:self.setFixedHeight(height)
         super().resizeEvent(event)
 
+    def face_region(self):
+        image = midnight_plate(self.art_folder)
+        return QRectF(image.width() * FACE[0], image.height() * FACE[1], image.width() * FACE[2], image.height() * FACE[3])
+
     def portrait(self):
         image = midnight_plate(self.art_folder)
+        if self.kind == 'face':
+            if not hasattr(self, '_face'):self._face = image.copy(self.face_region().toRect())
+            return self._face
         if not image.isNull():
             return image
         if self.mode == 'illustrated':
@@ -204,16 +218,22 @@ class PanelInk(QWidget):
                 fade = QLinearGradient(target.left(), 0, target.left() + fade_width, 0)
                 fade.setColorAt(0, shade);fade.setColorAt(1, clear)
                 painter.fillRect(QRectF(target.left(), 0, fade_width, target.height()), fade)
+            elif self.kind == 'face':
+                draw_plate(painter, target, self.portrait(), 0.5)
+                painter.setPen(QPen(QColor(t.LINE_STRONG), 1));painter.setBrush(Qt.NoBrush)
+                painter.drawRect(target.adjusted(0.5, 0.5, -0.5, -0.5))
             else:
                 draw_plate(painter, target, self.portrait(), 0.24)
             painter.end()
             return
         font = QFont('IBM Plex Mono')
-        font.setPixelSize(15 if self.kind == 'bracket' else 12 if self.kind == 'journal' else 8)
+        font.setPixelSize(max(12, self.height() // 6) if self.kind == 'face' else 15 if self.kind == 'bracket' else 12 if self.kind == 'journal' else 8)
         painter.setFont(font)
-        painter.setPen(QColor(t.TEXT if self.kind == 'bracket' else t.QUIET))
+        painter.setPen(QColor(t.TEXT if self.kind in ('bracket', 'face') else t.QUIET))
         metrics = QFontMetrics(font)
-        if self.kind == 'bracket':
+        if self.kind == 'face':              # the ASCII desk: her mark in plain characters, readable, not a picture squeezed into cells
+            lines = FACE_MARK
+        elif self.kind == 'bracket':
             lines = BRACKET
         elif self.kind == 'journal':
             if not hasattr(self, '_antenna'):
@@ -236,8 +256,9 @@ class PanelInk(QWidget):
             lines = self._characters
         width = metrics.horizontalAdvance(max(lines, key=len, default=''))
         x = max(0, self.width() - width - 20 if self.kind == 'journal' else (self.width() - width) // 2)
+        top = max(0, (self.height() - len(lines) * metrics.height()) // 2) if self.kind == 'face' else 0
         for row, line in enumerate(lines):
-            painter.drawText(x, metrics.ascent() + row * metrics.height(), line)
+            painter.drawText(x, top + metrics.ascent() + row * metrics.height(), line)
         painter.end()
 
 

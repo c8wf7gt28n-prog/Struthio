@@ -854,7 +854,7 @@ class FinderPage(QWidget):
         if files is not None and inside(path, files) and Path(path).resolve() != Path(files).resolve():
             menu.addAction('Show in Files').triggered.connect(lambda:self.show_in_files(path))
         menu.addAction('Copy path').triggered.connect(lambda:self.copy_path(path))
-        menu.addAction('Ask Graphite about this ' + ('folder' if entry['kind'] == 'folder' else 'file')).triggered.connect(lambda:self.ask_slate(path))
+        menu.addAction('Ask Stacy about this ' + ('folder' if entry['kind'] == 'folder' else 'file')).triggered.connect(lambda:self.ask_slate(path))
         menu.addSeparator()
         if files is not None and inside(path, files):
             menu.addAction('Change it in Files').triggered.connect(lambda:self.show_in_files(path))

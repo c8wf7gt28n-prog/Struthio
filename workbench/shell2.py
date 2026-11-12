@@ -686,7 +686,7 @@ class TopBar(QWidget):
         ready = brain.get('state') == 'READY'
         self.brain.setText(('●  ' + model) if ready else ('○  Graphite · ' + words))
         self.brain.setStyleSheet('QPushButton#BrainChip {color:%s;}' % (TEXT if ready else QUIET))
-        self.brain.setToolTip('Graphite\'s brain runs on this computer · click to talk to Graphite');self.host._status_brain = status_words
+        self.brain.setToolTip('Stacy\'s brain, the model, runs on this computer · click to talk to her');self.host._status_brain = status_words
         jobs = call(self.host, 'jobs.list') or []
         active = [j for j in jobs if j.get('state') in ('Queued', 'Running')] if isinstance(jobs, list) else []
         self.running.setText(('◐  %d running' % len(active)) if active else '');self.running.setVisible(False)  # the pulse shows it, on its own 2 s sample
@@ -896,7 +896,7 @@ class OneBox(QLineEdit):
         self.setText(program);self.setFocus();self.end(False);self.popup.hide()
 
     def results(self, text, preview=False):
-        """What the line offers under it, by mode (HATCH DESK D3). Assignment: ask Graphite (Enter), keep it as a note, staC that
+        """What the line offers under it, by mode (HATCH DESK D3). Assignment: ask Stacy (Enter), keep it as a note, staC that
         worked before (into the line for Ctrl+Enter), files and commands by name; a line that parses as staC says that
         Ctrl+Enter runs it, and Enter still gives it to Graphite. Search: search the workspace (Enter), then files, cabinet
         records, settings and commands by name, each opening where it belongs. Shell: the line for the shell. / lines: the
@@ -972,7 +972,7 @@ class OneBox(QLineEdit):
 
     def commands(self, query):
         needle = query.casefold();found = [];seen = set()
-        places = (('Jot it down', 'capture'), ('Go to Today', 'home'), ('Go to the Office', 'office'), ('Talk to Graphite', 'slate'), ('Open the Library', 'library:all'),
+        places = (('Jot it down', 'capture'), ('Go to Today', 'home'), ('Go to the Office', 'office'), ('Talk to Stacy', 'slate'), ('Open the Library', 'library:all'),
                   ('Project Desk', 'project_desk'), ('Changes', 'changes'), ('Continuing work', 'continuing'), ('Exchange & deployment', 'deployment'), ('Investigations', 'investigations'), ('New investigation', 'investigations'), ("Graphite's Agenda", 'agenda'), ('Files', 'files'), ('Trash', 'trash'), ('Egress', 'files:Egress'),
                   ('Night Shift', 'continuing'), ('Work on a copy of a file', 'work_copy'), ('Working copies', 'files:Working copies'),
                   ('Settings', 'settings'), ('All commands', 'commands'), ('Organizer', 'organizer'), ('Memory & staC', 'memory'))
@@ -1395,7 +1395,7 @@ class LibraryTab(QWidget):
     def title(self):return 'Library'
 
     def menu(self, point):
-        """HATCH DESK D4: the right-click menu (workbench/context_menu.py): Open and Keep a copy in Files as before, Ask Graphite,
+        """HATCH DESK D4: the right-click menu (workbench/context_menu.py): Open and Keep a copy in Files as before, Ask Stacy,
         Copy the name; on the empty place, Receive files (where material enters)."""
         from .context_menu import open_at
         return open_at(self.host, self.table.viewport(), point)
@@ -1507,16 +1507,26 @@ class Composer(QPlainTextEdit):
 
 
 class SlateFace(QWidget):
-    """Slate in the right panel: ask about the open item; proposals arrive as staC you run; your marks teach it."""
+    """The assistant in the right panel. Her face is Stacy (12 November 2026: "Stacy should be the face of the assistant as
+    communicated through the language of Stacy") and her language is staC: ask about the open item, or about the selected
+    sheet of the Field; what she reads she shows as a staC line you can run, change or keep; proposals arrive as staC you run;
+    your marks teach her. With no model she still answers what the records can answer."""
 
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('SlateFace');self.job = None;self.pending = None;self.about = None
         outer = QVBoxLayout(self);outer.setContentsMargins(14, 10, 14, 12);outer.setSpacing(10)
-        self.signature = pleasantry(QLabel('Graphite'), host, 26);outer.addWidget(self.signature)  # its name, signed
-        self.model = QLabel('Graphite');self.model.setWordWrap(True);self.model.setStyleSheet('color:%s' % QUIET);outer.addWidget(self.model)
+        # Her face, still, in its own place (Illustrated: the portrait; ASCII: the same in characters; Clean: none), and her name, signed.
+        from .boss_qt import PanelInk
+        top = QHBoxLayout();top.setSpacing(12);names = QVBoxLayout();names.setSpacing(4)
+        self.portrait = PanelInk(host, 'face');self.portrait.setParent(self);top.addWidget(self.portrait, 0, Qt.AlignTop)
+        self.signature = pleasantry(QLabel('Stacy'), host, 26);names.addWidget(self.signature)
+        self.model = QLabel('Stacy');self.model.setWordWrap(True);self.model.setStyleSheet('color:%s' % QUIET);names.addWidget(self.model)
+        names.addStretch(1);top.addLayout(names, 1);outer.addLayout(top)
+        self.portrait.set_available(True)      # only once it is inside this pane: shown before that, it would be a window of its own
+        self.thing = None      # the thing a question is about, when the asker knows it: {'title', 'stac', 'kind'} (a sheet of the Field)
         head = QHBoxLayout();head.setSpacing(14)
-        change = QPushButton('Brain room');change.setProperty('arcButton', 'link');change.setToolTip('Choose, swap or stop Graphite\'s brain');change.clicked.connect(lambda:open_destination(host, 'slate'));head.addWidget(change)
-        full = QPushButton('Full chat');full.setProperty('arcButton', 'link');full.setToolTip('The full Graphite conversation, with /commands and providers');full.clicked.connect(host.open_clip);head.addWidget(full)
+        change = QPushButton('Brain room');change.setProperty('arcButton', 'link');change.setToolTip('Choose, swap or stop Stacy\'s brain: the model, on this computer');change.clicked.connect(lambda:open_destination(host, 'slate'));head.addWidget(change)
+        full = QPushButton('Full chat');full.setProperty('arcButton', 'link');full.setToolTip('The full conversation with Stacy, with /commands and providers');full.clicked.connect(host.open_clip);head.addWidget(full)
         head.addStretch(1);outer.addLayout(head)
         # His Agenda in one line: what he is doing now and what needs you; the words open it.
         self.agenda = role(QLabel(), 'quiet');self.agenda.setWordWrap(True);outer.addWidget(self.agenda)
@@ -1531,9 +1541,9 @@ class SlateFace(QWidget):
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.thread = QWidget();self.lines = QVBoxLayout(self.thread);self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10);self.lines.addStretch(1)
         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
-        self.say('Ask about what is open. I can check selected Programs files and bring you an action to review.')
+        self.say('Ask about what is open, or about the sheet selected in the Field. What I read, I show in staC, so you can run it yourself.')
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
-        self.input.returnPressed.connect(self.send);self.input.setAccessibleName('Message Graphite');self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
+        self.input.returnPressed.connect(self.send);self.input.setAccessibleName('Message Stacy');self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
         hint = role(QLabel('Enter sends · Shift Enter for a new line'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
         quiet_script(hint)  # a note you may skip: the Paper script (the quiet-script rule)
         self.input_hint = hint  # with the typing bar, both are hidden: you write to Slate at the foot of the window
@@ -1592,7 +1602,46 @@ class SlateFace(QWidget):
         text = self.input.text().replace('\u200b', '').strip()
         if text:self.input.clear();self.ask(text)
 
+    def thing_asked_about(self, text):
+        """The thing this question is about, when it is known exactly: the sheet the owner chose "Ask Stacy about this" on (its
+        name is in the question), or the sheet selected in the Field while the Field is in front. None otherwise."""
+        thing, self.thing = self.thing, None
+        if thing and thing.get('title') and thing['title'] in text:return thing
+        view = getattr(getattr(self.host, 'field_page', None), 'view', None)
+        chosen = view.selected() if view is not None and getattr(self.host, '_field_active', False) else None
+        if chosen is not None and chosen.stac:return {'title': chosen.title, 'stac': chosen.stac, 'kind': chosen.kind}
+        return None
+
+    def answer_in_stac(self, thing, intro):
+        """Stacy's own way of answering: the staC line that reads the thing, said, then run, with what the records answered.
+        It is a read through the Kernel like any other; a refusal is said as one. The line can go to the writing strip, be
+        watched or kept, and a table of rows can be saved as a sheet."""
+        from .engine import engineering
+        from .engineering_kernel import operator
+        from .office_building_qt import readable_result
+        line = thing['stac'];operation, arguments = route_program(line)
+        card = self.say(intro)
+        code = QLabel(breakable(line.replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))      # a stage a line, as her rail in the Field shows it
+        code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('staC: ' + line);card.box.addWidget(code)
+        r = engineering(self.host.root).dispatch(operation, arguments, operator())
+        rows = (r['result'].get('rows') or []) if r.get('ok') and isinstance(r.get('result'), dict) else []
+        said = (readable_result(r['result']) if isinstance(r['result'], dict) else str(r['result'])[:2000]) if r.get('ok') \
+            else 'The records did not answer: ' + r['error']['message']
+        answer = QLabel(breakable(said));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
+        answer.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);answer.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(answer)
+        from .context_menu import inspect_in_line
+        words = {'line': ('in the line', lambda p=line:inspect_in_line(self.host, p)), 'watch': ('watch it', lambda p=line:self.watch(p)),
+                 'keep': ('add to the Agenda', lambda p=line:self.keep_in_agenda(p))}
+        if rows:words['save'] = ('save as a sheet', lambda p=line, rs=rows:self.save_rows(p, rs))
+        card.box.addWidget(sentence('{line}  ·  {watch}  ·  {keep}' + ('  ·  {save}' if rows else ''), words))
+        card.stac = line;card.answered = bool(r.get('ok'))
+        QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))      # her answer from its first line, not its last
+        return card
+
     def ask(self, text, about=None):
+        thing = self.thing_asked_about(text)
+        if thing and not about:about = '%s “%s”, read with the staC line: %s' % (thing['kind'], thing['title'], thing['stac'])
         about = about or self.current_item()
         self.mine(text)
         if self.job:self.say('I am still answering the last question. Stop it from the Brain room, or wait a moment.');return
@@ -1600,6 +1649,10 @@ class SlateFace(QWidget):
         if direct is not None:self.say(direct);return
         brain = call(self.host, 'brain.status') or {}
         selected = self.selected_file()
+        if brain.get('state') != 'READY' and thing:  # no model, but the records can answer about this thing, and she says how she read them
+            card = self.answer_in_stac(thing, 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the staC that reads it:' % thing['title'])
+            card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
+            return
         if brain.get('state') != 'READY':
             if selected:  # no brain, but Ledger can still say what it knows about the file
                 self.explain_file(selected, 'I have no brain running yet, so this is what Graphite itself knows about it.')
@@ -1896,7 +1949,8 @@ class SlateFace(QWidget):
         name = self.host.shell2.model_name(brain)
         counts = (call(self.host, 'matrix.status') or {}).get('counts', {})
         learned = sum(v for k, v in counts.items() if k != 'PROPOSED')
-        self.model.setText(((name or 'Graphite') + ' · ' if brain.get('state') == 'READY' else 'No brain yet · ') + 'learning from %d outcomes' % learned)
+        self.model.setText('speaks staC · ' + ((name or 'a model') if brain.get('state') == 'READY' else 'no model yet'))
+        self.model.setToolTip('Learning from %d outcomes you marked or ran' % learned)
         for block in (getattr(self, 'work', None), getattr(self, 'related', None)):
             if block is not None:block.refresh()
 

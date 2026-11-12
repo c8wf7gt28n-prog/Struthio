@@ -643,7 +643,8 @@ def organize_navigator(host):
             if child.data(0,Qt.UserRole+4) == 'show_genesis':
                 legal.addChild(ledger.takeChild(i))
                 child.setText(0,'Genesis · founding charter')
-    for title, path, tip in (('Rights & publication terms','RIGHTS.md','Owner rights and publication decisions'),
+    for title, path, tip in (('Licence & rights','RIGHTS.md','GPL version 2 only for the code and documents; artwork, names and the game kept back'),
+                             ('GNU GPL version 2','COPYING','The owner\'s note and the full licence text'),
                              ('Third-party notices','THIRD_PARTY_NOTICES.md','Upstream licences and notices'),
                              ('Genesis guide','docs/GENESIS.md','What the Genesis record proves and does not prove')):
         child = host._add_nav_special(legal, title, host.root / path, 'nav_file', tip)

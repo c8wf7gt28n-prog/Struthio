@@ -5,7 +5,7 @@ running against the selected object." Every menu here is opened by a real Contex
 the window system sends on a right-click), so the router, the finders and the providers of workbench/context_menu.py all run:
 
   01  a selected passage in a document: the passage named at the top with its page and revision; Bold, the other page edits and
-      Move to notes first; the equivalent command to inspect in the line; Ask Graphite; the text edits last.
+      Move to notes first; the equivalent command to inspect in the line; Ask Stacy; the text edits last.
   02  Bold chosen: documents.edit through Kernel.dispatch with the page's id and the revision seen at the right-click; the page
       shows the bold words and its foot the new revision (the result where it belongs); Ctrl Z takes it back.
   03  two revisions of one file selected in Files: Compare revisions first (the two actual files passed to files.compare).
@@ -16,7 +16,7 @@ the window system sends on a right-click), so the router, the finders and the pr
   06  the cabinet tree's empty place: Refresh, View as (its submenu open, the current view marked yellow), New Idea, New Project,
       Import, Export.
   07  a real network connection in Log's Network stream, read by D5's network.observe from this computer's connection table: the
-      check's own loopback connection, the stream filtered to its port: Ask Graphite about this, Follow this conversation, Show
+      check's own loopback connection, the stream filtered to its port: Ask Stacy about this, Follow this conversation, Show
       the process, Copy address (TEST DATA, so named and labelled, only where the table cannot be read).
   08  the passage's menu at 1366 by 768: whole, inside the window.
 Measured at 14, 18 and 20 pt: the menu's row height, icon column and margin are the programs list's and the System menu's
@@ -153,7 +153,7 @@ assert (menu.heading.label,menu.heading.noun)==('“within a hair”','passage �
 assert menu.words()[:6]==['Bold','Italic','Underline','Plain','Paragraph style','Move to notes'],menu.words()
 for key in ('inspect','ask','search','edit:copy','edit:all'):assert key in menu.keys(),key
 measured['passage_1920']=menu_rules(menu,'passage 1920');measured['passage_words']=menu.words()
-record('Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png','Right-click on a selected passage ("within a hair") in a document at 1920 by 1200: the passage named at the top with its page and revision; Bold, Italic, Underline, Plain, Paragraph style and Move to notes first; Inspect in the line (the equivalent documents.edit command); Ask Graphite about this and Search; New document and Export; the text edits last. The caption at the foot is in the script.',with_popups(menu))
+record('Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png','Right-click on a selected passage ("within a hair") in a document at 1920 by 1200: the passage named at the top with its page and revision; Bold, Italic, Underline, Plain, Paragraph style and Move to notes first; Inspect in the line (the equivalent documents.edit command); Ask Stacy about this and Search; New document and Export; the text edits last. The caption at the foot is in the script.',with_popups(menu))
 check('01 a selected passage: the menu names "within a hair" (passage · Bench notes · revision %d) and offers %d entries, modifications first; the desk\'s menu numbers (row %d px, icon column %d px)'%(seen,len(menu.entries),measured['passage_1920']['row'],measured['passage_1920']['icon_col']))
 
 # 02 Bold, through Kernel.dispatch with the page's id and revision --------------------------------------------------------------
@@ -280,18 +280,18 @@ else:
  name='Graphite_Desk_D4_07_Network_Connection_Right_Click_TEST_DATA_1920x1200.png';other='Graphite_Desk_D4_07_Network_Connection_Right_Click_1920x1200.png'
  far='198.51.100.7:443';program='test-browser'
 menu=right_click(log.connections.viewport(),log.connections.visualItemRect(mine).center());assert menu is not None
-assert menu.target.kind=='connection' and menu.words()==['Ask Graphite about this','Follow this conversation','Show the process','—','Copy address'],menu.words()
+assert menu.target.kind=='connection' and menu.words()==['Ask Stacy about this','Follow this conversation','Show the process','—','Copy address'],menu.words()
 assert menu.target.label=='%s → %s'%(program,far) and menu.row('process').isEnabled() and menu.row('copy:address').caption==far,(menu.target,menu.row('copy:address').caption)
 measured['connection']=dict(real=real,words=menu.words(),label=menu.target.label,noun=menu.target.noun,process=program,rules=menu_rules(menu,'connection'))
 if real:
- record(name,'A real connection, read by D5\'s network.observe from this computer\'s connection table: the check\'s own loopback connection (127.0.0.1, port %d; nothing leaves the computer), the stream filtered to its port in the line (port %d, Enter). Right-click on it: named by who talks to whom ("%s"); Ask Graphite about this (an assignment with the connection as its context), Follow this conversation (the stream filtered to the far host and port, the entry pinned), Show the process (%s, pid %d: this check), Copy address (%s). No notes: the owner replaced them with the network.'%(port,port,menu.target.label,program,os.getpid(),far),
+ record(name,'A real connection, read by D5\'s network.observe from this computer\'s connection table: the check\'s own loopback connection (127.0.0.1, port %d; nothing leaves the computer), the stream filtered to its port in the line (port %d, Enter). Right-click on it: named by who talks to whom ("%s"); Ask Stacy about this (an assignment with the connection as its context), Follow this conversation (the stream filtered to the far host and port, the entry pinned), Show the process (%s, pid %d: this check), Copy address (%s). No notes: the owner replaced them with the network.'%(port,port,menu.target.label,program,os.getpid(),far),
         with_popups(menu))
 else:
- record(name,'TEST DATA (this computer\'s connection table could not be read here, so the check shows its own entry, labelled on the image): right-click on a network connection in Log\'s Network stream: Ask Graphite about this, Follow this conversation, Show the process, Copy address.',
+ record(name,'TEST DATA (this computer\'s connection table could not be read here, so the check shows its own entry, labelled on the image): right-click on a network connection in Log\'s Network stream: Ask Stacy about this, Follow this conversation, Show the process, Copy address.',
         labelled(with_popups(menu),'TEST DATA: the check\'s own entry (the connection table could not be read here)'),'ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS_ON_TEST_DATA_LABELLED')
 supersede(other)
 menu.row('follow').click();settle();assert bar.box.text()=='host %s port %s'%tuple(far.rsplit(':',1)) and log.pinned is not None,bar.box.text()
-check('07 a %s network connection (%s): Ask Graphite about this, Follow this conversation (the filter in the line, the entry pinned), Show the process (%s), Copy address'
+check('07 a %s network connection (%s): Ask Stacy about this, Follow this conversation (the filter in the line, the entry pinned), Show the process (%s), Copy address'
       %('real' if real else 'TEST DATA',menu.target.label,program))
 bar.box.clear();log.unpin();log.apply_filter('');log.choose('events',remember=False,read=False);bar.set_target('slate',focus=False);w.console.set_size(0);w.statusBar().clearMessage();settle()
 for s in (client,accepted,server):s.close()

@@ -2,21 +2,20 @@
 
 Preserve the licence and provenance files beside bundled upstream source.
 
-- FreeRTOS: software/arcos/upstream/freertos/LICENSE.md (MIT).
-- RT-Thread: software/arcos/upstream/rtthread/LICENSE (Apache 2.0).
-- U-Boot source excerpts: software/boot/upstream/u-boot/COPYING and software/boot/first_stage/reference/u-boot/COPYING (GPL 2.0).
-- Linux-derived references: hardware/sources/f133_ehci29/upstream/COPYING and LICENSES_* files; individual source headers identify applicable terms.
-- FatFs: hardware/compact-arc1/R10_WORK/firmware/usb_media/fatfs/LICENSE.txt.
 - OpenDyslexic: branding/ux17/fonts/OFL.txt.
 - IBM Plex Sans and IBM Plex Mono (interface fonts, SIL Open Font License 1.1, © IBM Corp.): branding/fonts/plex/LICENSE.txt and NOTICE.md.
 - Parisienne (the script for short greetings and pleasantries, SIL Open Font License 1.1, © 2012 Brian J. Bonislawsky DBA Astigmatic): branding/fonts/script/OFL-Parisienne.txt.
 
-PySide6 and other installed tools are dependencies, not bundled binaries. Retain their upstream notices when distributing an installed environment.
+- CPython WASI build (the sandboxed Python guest, Python Software Foundation licence): runtimes/python-wasi/LICENSE and runtime.json.
+
+Graphite's own code and documents are under the GNU GPL, version 2 only (COPYING). The parts on this page are not Graphite's own and keep the terms named here.
+
+PySide6 and other installed tools are dependencies, not bundled binaries. Retain their upstream notices when distributing an installed environment. The libraries Graphite loads, as their own distributions declare them: Qt and Qt for Python (PySide6, shiboken6: LGPL 3.0 or GPL 2.0 or GPL 3.0; Graphite uses the GPL 2.0 option); pypdf (BSD); cryptography (BSD or Apache 2.0), which contains OpenSSL (Apache 2.0), with cffi (MIT) and pycparser (BSD); python-docx (MIT) with lxml (BSD); wasmtime (Apache 2.0 with the LLVM exception). COPYING, note 4, gives the permission that combining with the Apache-licensed ones needs.
 
 
 ## Local inference worker — Pass 3
 
-llama.cpp b11669 / commit 620d2225cc436ab0b001e3200e590e3b286ef9ab is redistributed as unchanged official Linux x64 and Windows x64 CPU archives under runtimes/llama.cpp/b11669. Its MIT LICENSE is included there. The Windows archive also includes LICENSE-LLVM-OpenMP for its bundled libomp.dll. Original archive licenses and provenance are preserved. Model weights are external and are not redistributed in this program ZIP. The independent GGUF inspector follows the public GGUF specification; the upstream PySide6 editor is a design reference, with no write/edit facilities exposed.
+llama.cpp b11669 / commit 620d2225cc436ab0b001e3200e590e3b286ef9ab is redistributed as two unchanged official Linux x64 archives, the CPU build and the Vulkan build, under runtimes/llama.cpp/b11669. Its MIT LICENSE is included there. Original archive licenses and provenance are preserved. Model weights are external and are not redistributed in this program ZIP. The independent GGUF inspector follows the public GGUF specification; the upstream PySide6 editor is a design reference, with no write/edit facilities exposed.
 
 ## I02 mathematical tools and Office bridge
 

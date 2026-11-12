@@ -46,7 +46,7 @@ class ProjectDeskTab(QWidget):
         self.tabs = QTabWidget(); split.addWidget(self.tabs); split.setStretchFactor(1, 1); split.setSizes([250, 800])
         self.build_ideas(); self.build_assignments(); self.build_links()
         from .slate_reasoning_qt import ReasoningPane
-        self.reasoning = ReasoningPane(self); self.tabs.addTab(self.reasoning, 'Ask Graphite')
+        self.reasoning = ReasoningPane(self); self.tabs.addTab(self.reasoning, 'Ask Stacy')
         from .problem_qt import ProblemPane
         self.problem_pane = ProblemPane(self); self.tabs.addTab(self.problem_pane, 'Problem sheet'); self.reload()
 

@@ -319,7 +319,7 @@ class FilesTab(QWidget):
             if self.table.topLevelItem(i).data(0, Qt.UserRole)['path'] == rel:self.table.setCurrentItem(self.table.topLevelItem(i));break
 
     def slate_on_copy(self, c):
-        what, ok = QInputDialog.getText(self, 'Ask Graphite to work on ' + c['name'], 'What should it do? (It works on the copy; you review its revision.)')
+        what, ok = QInputDialog.getText(self, 'Ask Stacy to work on ' + c['name'], 'What should it do? (It works on the copy; you review its revision.)')
         if ok and what.strip():self.act('agenda.add', {'title': what.strip()[:400], 'copy': c['id']}, "In Graphite's Agenda. Its revision will wait for your review.")
 
     def review_copy(self, c):
@@ -399,7 +399,7 @@ class FilesTab(QWidget):
         self.host.shell2.show_slate_face();self.host.shell2.face.explain_file(e['path'])
 
     def ask(self, e):
-        question, ok = QInputDialog.getText(self, 'Ask Graphite', 'About ' + e['name'] + ':', text='What should I check in ' + e['name'] + '?')
+        question, ok = QInputDialog.getText(self, 'Ask Stacy', 'About ' + e['name'] + ':', text='What should I check in ' + e['name'] + '?')
         if ok and question.strip():self.host.shell2.ask(question.strip(), e['name'] + ' (@files:' + e['path'] + ')')
 
     def investigate(self, e):
@@ -438,13 +438,13 @@ class FilesTab(QWidget):
             if e['kind'] not in ('folder', 'smart'):  # the file's own words gather in one submenu; the menu itself is a chain (Pass A)
                 chain_menu = menu;menu = QMenu(e['name'], chain_menu)
                 menu.addAction('Explain this file', lambda:self.explain(e))
-                menu.addAction('Ask Graphite about this…', lambda:self.ask(e))
+                menu.addAction('Ask Stacy about this…', lambda:self.ask(e))
                 menu.addAction('Investigate…', lambda:self.investigate(e))
                 menu.addAction('Add to the Agenda…', lambda:self.add_to_agenda(e))
                 menu.addSeparator()
                 c = self.copy_for(e['path'])
                 if c:
-                    if c['for_slate'] and c.get('kind', 'file') == 'file':menu.addAction('Ask Graphite to work on this…', lambda:self.slate_on_copy(c))
+                    if c['for_slate'] and c.get('kind', 'file') == 'file':menu.addAction('Ask Stacy to work on this…', lambda:self.slate_on_copy(c))
                     menu.addAction('Review changes to the original…', lambda:self.review_copy(c))
                     menu.addAction('Show the original', lambda:self.show_original(c))
                     menu.addAction('Discard this draft…', lambda:self.discard_copy(c))

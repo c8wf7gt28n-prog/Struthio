@@ -191,15 +191,15 @@ page.limit=500
 # 08 · the context menu's words: nothing that changes a file
 page.go(str(DEMO));settle();notes=next(e for e in page.entries if e['name']=='notes.txt');menu=page.menu_for(notes)
 words=[a.text() for a in menu.actions() if not a.isSeparator()]
-assert words==['Open','Open in viewer','Copy path','Ask Graphite about this file','Nothing changes here · Files keeps its own changes'],words
+assert words==['Open','Open in viewer','Copy path','Ask Stacy about this file','Nothing changes here · Files keeps its own changes'],words
 forbidden=('New','Rename','Delete','Move','Trash','Duplicate','Paste','Cut')
 assert not any(any(word.startswith(f) for f in forbidden) for word in words)
 folder_words=[a.text() for a in page.menu_for(next(e for e in page.entries if e['name']=='drawings')).actions() if not a.isSeparator()]
-assert folder_words[:1]==['Open'] and 'Open in viewer' not in folder_words and 'Ask Graphite about this folder' in folder_words
+assert folder_words[:1]==['Open'] and 'Open in viewer' not in folder_words and 'Ask Stacy about this folder' in folder_words
 page.go(str(FILES));settle();kept=next(e for e in page.entries if e['name']=='kept.txt');files_words=[a.text() for a in page.menu_for(kept).actions() if not a.isSeparator()]
-assert files_words==['Open','Open in viewer','Show in Files','Copy path','Ask Graphite about this file','Change it in Files'],files_words
+assert files_words==['Open','Open in viewer','Show in Files','Copy path','Ask Stacy about this file','Change it in Files'],files_words
 page.copy_path(str(DEMO/'notes.txt'));from PySide6.QtGui import QGuiApplication;assert QGuiApplication.clipboard().text()==str(DEMO/'notes.txt')
-check('08 The context menu reads Open · Open in viewer · Copy path · Ask Graphite about this file (and Show in Files · Change it in Files inside Files); none of its words creates, renames, moves or deletes')
+check('08 The context menu reads Open · Open in viewer · Copy path · Ask Stacy about this file (and Show in Files · Change it in Files inside Files); none of its words creates, renames, moves or deletes')
 # 09 · Enter on a text file opens it in the editor tab; Home closes
 page.go(str(DEMO));settle();assert page.select_name('notes.txt');page.list.setFocus();settle()
 QTest.keyClick(page.list,Qt.Key_Return);settle()
