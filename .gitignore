@@ -3,3 +3,4 @@ __pycache__/
 .ledger/
 .venv/
 .pytest_cache/
+build/release_check_ui/
