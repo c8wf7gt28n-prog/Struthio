@@ -2307,6 +2307,8 @@ class WorkbenchWindow(QMainWindow):
         self._initializing = True
         self._home_active = False
         self.home_page = None
+        self._field_active = False  # the Field (workbench/field_page.py) overlays the workspace as Home does
+        self.field_page = None
         self._home_dock_state = None
         self._engineering_dock_state = None
         self.selection_context = self.session.state.get('selection_context')
@@ -3495,7 +3497,15 @@ class WorkbenchWindow(QMainWindow):
             self.show_start()
         return True
 
+    def show_field(self):
+        """The Field: this workspace's work objects and what feeds what (specification, sections 70 to 72)."""
+        from .field_page import show_field
+        return show_field(self)
+
     def show_start(self):
+        if self._field_active:
+            from .field_page import leave_field
+            leave_field(self)
         from .project_context import detached
         if detached(self.root):
             from .empty_workspace_qt import show_home
@@ -3625,6 +3635,9 @@ class WorkbenchWindow(QMainWindow):
         return tab
 
     def _close_start(self):
+        if self._field_active:  # every room opener calls this first, so opening anything leaves the Field
+            from .field_page import leave_field
+            leave_field(self)
         if not self._home_active:return
         self._home_active=False
         self.central_stack.setCurrentWidget(self.workspace_split)
@@ -3805,6 +3818,8 @@ class WorkbenchWindow(QMainWindow):
         if self._home_active:self.setWindowTitle('Home — Graphite')
         from .arc_desktop import refresh
         refresh(self)
+        if self._field_active:
+            self.setWindowTitle('Field — Graphite');self.context_bar.hide();self.doc_info.hide()
 
     # ---------------------------------------------------------------- navigator
     def refresh_navigator(self):

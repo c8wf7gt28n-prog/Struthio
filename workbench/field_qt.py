@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QSizePolicy, QWidget
 from . import boss_theme as t
 from .field_model import ATTENTION, KIND_TAG, STATE_CURRENT, STATE_HELD, STATE_OPEN, STATE_RECHECK, Field
 
-DEPTH_INK = (1.0, 0.9, 0.56, 0.36)          # how much of its ink a sheet keeps at each step from the selection
+DEPTH_INK = (1.0, 0.9, 0.64, 0.46)          # how much of its ink a sheet keeps at each step from the selection
 STATE_WORD = {STATE_CURRENT: 'current', STATE_RECHECK: 'recheck', STATE_OPEN: 'open', STATE_HELD: 'held'}
 
 
@@ -36,7 +36,6 @@ class FieldView(QWidget):
         self._placed = {};self._surface = 0.0;self._gap = 34.0;self._labels = []
         self.setFocusPolicy(Qt.StrongFocus)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setMinimumSize(420, 300)
         self.setAccessibleName('Field: the work in this workspace and what feeds what')
         self.setObjectName('GraphiteField')
 
@@ -263,16 +262,20 @@ class FieldView(QWidget):
         state = STATE_WORD.get(obj.state, obj.state or '')
         state_colour = t.READY if obj.state == STATE_CURRENT else (t.AMBER_EDGE if obj.state in ATTENTION else t.QUIET)
         mark = 7 * s;state_w = fm.horizontalAdvance(state.upper()) + mark + 6 * s
-        tag = fm.elidedText(KIND_TAG.get(obj.kind, obj.kind.upper()), Qt.ElideRight, max(10.0, inner.width() - state_w - 8 * s))
+        full = KIND_TAG.get(obj.kind, obj.kind.upper())
+        worded = inner.width() >= fm.horizontalAdvance(full) + state_w + 8 * s      # a narrow sheet keeps its kind and the mark; the word gives way
+        if not worded:state_w = mark
+        tag = fm.elidedText(full, Qt.ElideRight, max(10.0, inner.width() - state_w - 8 * s))
         p.setPen(ink(t.AMBER_TEXT if obj.kind == 'question' else t.QUIET, keep));p.drawText(QPointF(inner.left(), y), tag)
-        if state and inner.width() > state_w + fm.horizontalAdvance(tag) + 6 * s:
+        if state:
             sx = inner.right() - state_w;box = QRectF(sx, y - fm.ascent() / 2 - mark / 2 + 1, mark, mark)
             if obj.state == STATE_CURRENT:
                 p.setPen(Qt.NoPen);p.setBrush(ink(state_colour, keep));p.drawRect(box)
             else:
                 p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(state_colour, max(keep, 0.75)), 1.5));p.drawRect(box)
-            p.setPen(ink(state_colour, max(keep, 0.75) if obj.state in ATTENTION else keep))
-            p.drawText(QPointF(sx + mark + 6 * s, y), state.upper())
+            if worded:
+                p.setPen(ink(state_colour, max(keep, 0.75) if obj.state in ATTENTION else keep))
+                p.drawText(QPointF(sx + mark + 6 * s, y), state.upper())
         y += 7 * s
         # Title, up to two lines.
         p.setFont(self.sans(14.5));fm = QFontMetricsF(p.font());p.setPen(ink(t.TEXT, keep))
@@ -292,7 +295,9 @@ class FieldView(QWidget):
     def _wire_words(self, p):
         s = self.scale();p.setFont(self.mono(10));fm = QFontMetricsF(p.font())
         for point, word, stale, strength in self._labels:
-            w = fm.horizontalAdvance(word) + 10 * s;box = QRectF(point.x() - w / 2, point.y() - fm.height() / 2 - 1, w, fm.height() + 2)
+            w = fm.horizontalAdvance(word) + 10 * s
+            if w > self._gap - 6 * s:continue          # no room between the columns: the foot still names the link in words
+            box = QRectF(point.x() - w / 2, point.y() - fm.height() / 2 - 1, w, fm.height() + 2)
             p.setPen(Qt.NoPen);p.setBrush(QColor(t.TERMINAL_GROUND));p.drawRect(box)
             p.setPen(ink(t.AMBER_TEXT if stale else t.QUIET, strength));p.drawText(box, Qt.AlignCenter, word)
 
@@ -306,7 +311,12 @@ class FieldView(QWidget):
 
     @staticmethod
     def _wrap(text, fm, width, limit):
-        words = str(text).split();lines = [];line = '';used = 0
+        words = [];lines = [];line = '';used = 0
+        for word in str(text).split():           # a word wider than the sheet (a file name) is cut where it stops fitting
+            while fm.horizontalAdvance(word) > width and len(word) > 4:
+                cut = next((n for n in range(len(word) - 1, 3, -1) if fm.horizontalAdvance(word[:n]) <= width), 4)
+                words.append(word[:cut]);word = word[cut:]
+            words.append(word)
         for word in words:
             trial = (line + ' ' + word).strip()
             if fm.horizontalAdvance(trial) <= width or not line:line = trial;used += 1

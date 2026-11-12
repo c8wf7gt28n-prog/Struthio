@@ -20,7 +20,7 @@ DISPLAY_TITLES={'File':'Work','Edit':'Revise','Tools':'Tools','Options':'Arrange
 # Tools: who you type to, the chain menu, and Ledger's own tools. Help: how to begin, and what is new.
 FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery']
 EDIT = ['undo', 'redo', None, 'cut', 'copy', 'paste', 'select', None, 'find', 'find_next', 'replace', 'goto']
-VIEW = ['home', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda', '@slate_panel', None, '@console_sizes', '@cabinet', '@machine_refresh', None,
+VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda', '@slate_panel', None, '@console_sizes', '@cabinet', '@machine_refresh', None,
         'fullscreen', 'reading', 'prose_more', 'prose_less', '@desk_art', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']
 TOOLS = ['discovery','algorithms','atlas', '@type_to', '@chain', 'ledger_commands', None,
          'ledger_settings', 'doctor', '@computer', '@pills', None, 'master_stop', None, '@engineering', '@service']
@@ -180,6 +180,13 @@ def rebuild(host):
         host.a_new_idea.setToolTip('Jot an idea into Notes, exactly as written (Ctrl+Shift+N)');host.a_new_idea.setStatusTip(host.a_new_idea.toolTip())
         host.a_new_project = QAction('New Project…', host);host.a_new_project.triggered.connect(lambda checked=False:new_project())
         host.a_new_project.setToolTip('Open the Project Desk with a new title ready to type');host.a_new_project.setStatusTip(host.a_new_project.toolTip())
+    if not hasattr(host, 'a_field'):
+        # The Field (12 November): the overview of the work and what feeds what. One action, made once: the menu row, F9, and
+        # the writing line's command search all reach the same thing. Plain text and a real shortcut so typing "field" finds it.
+        host.a_field = QAction('Field', host);host.a_field.setShortcut('F9')
+        host.a_field.triggered.connect(lambda checked=False:host.show_field() if hasattr(host, 'show_field') else None)
+        host.a_field.setToolTip('The work in this workspace as sheets, with what feeds what; Enter opens one, Esc comes back (F9)')
+        host.a_field.setStatusTip(host.a_field.toolTip());host.addAction(host.a_field)
     service = next((a for a in before if a.text().replace('&', '').startswith('Background service')), None)
     extras = {'@receive': host.a_receive, '@files': host.a_files, '@agenda': host.a_agenda, '@project_desk': host.a_project_desk, '@changes': host.a_changes, '@continuing':host.a_continuing, '@deployment':host.a_deployment, '@slate_panel': host.a_slate_panel,
               '@getting_started': host.a_getting_started, '@whats_new': host.a_whats_new,
@@ -188,7 +195,7 @@ def rebuild(host):
               '@computer': host.a_computer, '@pills': host.a_pills, '@work_copy': host.a_work_copy, '@console': host.a_console, '@library': host.a_library, '@chain': host.a_chain,
               '@explore':host.a_explore,'@pleasantries': getattr(getattr(host, 'shell2', None), 'script_action', None), '@service': service,
               '@import': host.a_import, '@export': host.a_export, '@machine_refresh': host.a_machine_refresh,
-              '@new_idea': host.a_new_idea, '@new_project': host.a_new_project}
+              '@new_idea': host.a_new_idea, '@new_project': host.a_new_project, '@field': host.a_field}
     placed = {service} if service is not None else set()
 
     def add(menu, key):

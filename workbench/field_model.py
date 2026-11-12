@@ -88,25 +88,21 @@ class Field:
 
     def _ranks(self):
         """Longest path from what nothing feeds. A cycle cannot hang this: each object is settled at most len(objects) times."""
-        rank = {obj.id: 0 for obj in self.objects}
+        # Every object starts where its kind belongs (material at the left, conclusions at the right) and is pushed
+        # further right only when something that feeds it already sits at or beyond that place.
+        rank = {obj.id: KIND_RANK.get(obj.kind, 0) for obj in self.objects}
         incoming = {obj.id: [] for obj in self.objects}
         for link in self.links:
             incoming[link.target].append(link.source)
-        linked = {link.source for link in self.links} | {link.target for link in self.links}
+        ceiling = len(KIND_RANK) + len(self.objects)
         for _ in range(len(self.objects)):
             changed = False
             for obj in self.objects:
                 want = max([rank[s] + 1 for s in incoming[obj.id]], default=0)
-                if want > rank[obj.id] and want < len(self.objects) + 1:
+                if rank[obj.id] < want <= ceiling:
                     rank[obj.id] = want;changed = True
             if not changed:
                 break
-        for obj in self.objects:        # an object nothing feeds and that feeds nothing sits where its kind belongs
-            if obj.id not in linked:
-                rank[obj.id] = KIND_RANK.get(obj.kind, 0)
-            elif not incoming[obj.id]:  # a root keeps its kind's place when that is further right (a method that feeds a finding)
-                rank[obj.id] = min(KIND_RANK.get(obj.kind, 0), min([rank[l.target] for l in self.feeds(obj.id)], default=0) - 1)
-                rank[obj.id] = max(0, rank[obj.id])
         return rank
 
     def _order(self):
@@ -166,6 +162,8 @@ class Field:
         touching = {}
         for link in self.links:
             touching.setdefault(link.source, []).append(link.target);touching.setdefault(link.target, []).append(link.source)
+        if self.selected not in touching:        # nothing is wired to the selected object: the rest stays readable, one step back
+            return {ident: (0 if ident == self.selected else 2) for ident in near}
         for step in (1, 2):
             following = []
             for ident in edge:
@@ -236,10 +234,11 @@ class Field:
         margin = 28 * scale;gap_x = max(34 * scale, min(96 * scale, width * 0.045))
         columns = len(ranks)
         sheet_w = (width - 2 * margin - gap_x * (columns - 1)) / columns
-        sheet_w = max(132 * scale, min(312 * scale, sheet_w))
+        if sheet_w < 132 * scale and columns > 1:         # narrow: tighten the wires and the rim first, then the sheets
+            gap_x = 18 * scale;margin = 16 * scale
+            sheet_w = (width - 2 * margin - gap_x * (columns - 1)) / columns
+        sheet_w = max(88 * scale, min(312 * scale, sheet_w))
         used = sheet_w * columns + gap_x * (columns - 1)
-        if used > width - 2 * margin and columns > 1:     # narrow: keep the sheets readable and tighten the wires instead
-            gap_x = max(18 * scale, (width - 2 * margin - sheet_w * columns) / (columns - 1));used = sheet_w * columns + gap_x * (columns - 1)
         left = max(margin, (width - used) / 2)
         tallest = max(len(self.column(rank)) for rank in ranks)
         gap_y = 22 * scale;top = 40 * scale;bottom = 14 * scale
