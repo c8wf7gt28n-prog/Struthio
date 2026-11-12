@@ -1,0 +1,335 @@
+{
+  "schema": "arc.graphite01-rename-ui/1",
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "acceptance_claimed": false,
+  "checks": [
+    "1920 01 Today at 1920 by 1200: title “Home — Graphite”, the head and the strip say Graphite (the AI switch reads AI ON), 217 visible words read, none Slate, Ledger or Hatch; every head, centre and strip word whole",
+    "1920 02 One click on the cat opened the menu (accessible name Menu): Work · Reason · Instruments · Programs · Knowledge · Configuration · Explore the workshop… · New Idea · New Project · Services · New work enabled · Graphite services · Exit Graphite · Log Out · Restart · Shut Down — not in this edition; no row, title or tooltip says Slate, Ledger or Hatch",
+    "1920 03 The face in the right column is titled Graphite (signature, tab “Graphite”, switch word, Message Graphite); no visible word says Slate, Ledger or Hatch",
+    "1920 04 Settings: the roots read Workspace and Assistant; stacy.enabled reads “Allow new Graphite AI activity” under SETTINGS / ASSISTANT / BEHAVIOR; no visible word says Slate, Ledger or Hatch",
+    "1920 05 The left column: the cabinet's drawers read Graphite and Graphite memory (stored title still Ledger); Existing views read Today · ARRIVE · Ingress · Deliveries · FILES · Files; the dossiers of 'ledger' and 'operations' read Graphite and “Graphite maintenance, installation and recovery.”; no visible row, tooltip or word says Slate, Ledger or Hatch",
+    "1366 01 Today at 1366 by 768: title “Home — Graphite”, the head and the strip say Graphite (the AI switch reads AI ON), 273 visible words read, none Slate, Ledger or Hatch; every head, centre and strip word whole",
+    "1366 02 One click on the cat opened the menu (accessible name Menu): Work · Reason · Instruments · Programs · Knowledge · Configuration · Explore the workshop… · New Idea · New Project · Services · New work enabled · Graphite services · Exit Graphite · Log Out · Restart · Shut Down — not in this edition; no row, title or tooltip says Slate, Ledger or Hatch",
+    "1366 03 The face in the right column is titled Graphite (signature, tab “Graphite”, switch word, Message Graphite); no visible word says Slate, Ledger or Hatch",
+    "1366 04 Settings: the roots read Workspace and Assistant; stacy.enabled reads “Allow new Graphite AI activity” under SETTINGS / ASSISTANT / BEHAVIOR; no visible word says Slate, Ledger or Hatch",
+    "1366 05 The left column: the cabinet's drawers read Graphite and Graphite memory (stored title still Ledger); Existing views read Today · ARRIVE · Ingress · Deliveries · FILES · Files; the dossiers of 'ledger' and 'operations' read Graphite and “Graphite maintenance, installation and recovery.”; no visible row, tooltip or word says Slate, Ledger or Hatch",
+    "No job, worker, model, provider request, process, shell command or detached program"
+  ],
+  "captures": [
+    {
+      "file": "Graphite_01_Rename_01_Today_1920.png",
+      "note": "1920: Today with the head (the point named Graphite, the AI switch, the Nice menu) and the strip (the cat, Explore, Graphite · staC · Console); the title says Graphite; no visible word says Slate, Ledger or Hatch.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "b6bade1f1d087e2b5c5c7f92c5ddc244c1bd029160dbeb3a90f82f4fa29b2a01",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_02_Menu_1920.png",
+      "note": "1920: the menu opened by one click on the cat: the tool groups, Explore the workshop, New Idea, New Project, Services, Graphite services and Exit Graphite; accessible name Menu.",
+      "mode": "ACTUAL_QT_WINDOW_AND_VISIBLE_POPUP_GRABS",
+      "sha256": "aa3556a5c582f39de8efc01eb4a12d301f31a949771c4c7c7023431bfe542e3e",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_03_Face_1920.png",
+      "note": "1920: the right column's face, titled Graphite (signature, tab and switch word), its message passage named Message Graphite.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "1ab085d412061adb3be022f9978bee77831a756bbf51cb52711463b1b540d1af",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_04_Settings_1920.png",
+      "note": "1920: the settings roots read Workspace and Assistant (root keys Ledger and Slate unchanged); stacy.enabled shows as Allow new Graphite AI activity over its unchanged definition.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "b6cc6a86a339a2b4611943c46ad48bcd60746cff4eeb673f0e89da8bb64ab922",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_05_Dossier_1920.png",
+      "note": "1920: the concern dossier of the seed item 'ledger' in a profile made before the rename: its stored title Ledger is shown as Graphite (heading and tab); the left column's cabinet shows the Graphite drawer and Graphite memory.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "5f7358d96990a5549eadd4e476b1b59a236fac9a690985197ca330a72d7a140d",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_01_Today_1366.png",
+      "note": "1366: Today with the head (the point named Graphite, the AI switch, the Nice menu) and the strip (the cat, Explore, Graphite · staC · Console); the title says Graphite; no visible word says Slate, Ledger or Hatch.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "911879d3517dc4c569bba69178f9bf9f3e948e2988501894e58e14c45832103c",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_02_Menu_1366.png",
+      "note": "1366: the menu opened by one click on the cat: the tool groups, Explore the workshop, New Idea, New Project, Services, Graphite services and Exit Graphite; accessible name Menu.",
+      "mode": "ACTUAL_QT_WINDOW_AND_VISIBLE_POPUP_GRABS",
+      "sha256": "f2563cb5cc3968b0bdb4559dadd070ed248f17ccfbda4211a88a8cdf2ea5c79c",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_03_Face_1366.png",
+      "note": "1366: the right column's face, titled Graphite (signature, tab and switch word), its message passage named Message Graphite.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "c301e7c7f6c4f1669bab1b1bf981e5701646fe00cfa97c9b4ec7662bf9a7e5c8",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_04_Settings_1366.png",
+      "note": "1366: the settings roots read Workspace and Assistant (root keys Ledger and Slate unchanged); stacy.enabled shows as Allow new Graphite AI activity over its unchanged definition.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "f69f6521821706c8d41cc02a487f75909dce0a1932b8f45b5e89f5a63eaa1db8",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Graphite_01_Rename_05_Dossier_1366.png",
+      "note": "1366: the concern dossier of the seed item 'ledger' in a profile made before the rename: its stored title Ledger is shown as Graphite (heading and tab); the left column's cabinet shows the Graphite drawer and Graphite memory.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "32d70fbd5787f18508dd68a352c6cda4403a0a18c79a04d849fac3a42fa7116f",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "observations": {
+    "cabinet": {
+      "drawers": {
+        "catalog:ledger": "Graphite",
+        "memory:root": "Graphite memory"
+      },
+      "stored_title": "Ledger (a profile made before the rename; the row is not migrated)"
+    },
+    "old_words": {
+      "today_1920": [],
+      "face_1920": [],
+      "settings_1920": [],
+      "cabinet_1920": [],
+      "existing_views_1920": [],
+      "dossier_ledger_1920": [],
+      "dossier_operations_1920": [],
+      "today_1366": [],
+      "face_1366": [],
+      "settings_1366": [],
+      "cabinet_1366": [],
+      "existing_views_1366": [],
+      "dossier_ledger_1366": [],
+      "dossier_operations_1366": []
+    },
+    "fit": {
+      "today_1920": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "face_1920": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "settings_1920": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "cabinet_1920": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "existing_views_1920": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "dossier_ledger_1920": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "dossier_operations_1920": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "today_1366": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "face_1366": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "settings_1366": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "cabinet_1366": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "existing_views_1366": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "dossier_ledger_1366": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      },
+      "dossier_operations_1366": {
+        "head_and_centre": "whole",
+        "strip": "whole",
+        "elsewhere": "whole"
+      }
+    },
+    "head_1920": {
+      "title": "Home — Graphite",
+      "mark": "Graphite",
+      "wordmark": [
+        "Graphite",
+        true
+      ],
+      "ai_switch": "AI ON",
+      "brain": "○  Graphite · no brain yet",
+      "strip": [
+        "Graphite",
+        "staC",
+        "Console",
+        "Find",
+        "Kernel"
+      ]
+    },
+    "menu_1920": [
+      "Work",
+      "Reason",
+      "Instruments",
+      "Programs",
+      "Knowledge",
+      "Configuration",
+      "Explore the workshop…",
+      "New Idea",
+      "New Project",
+      "Services · New work enabled",
+      "Graphite services",
+      "Exit Graphite",
+      "Log Out · Restart · Shut Down — not in this edition"
+    ],
+    "settings_1920": {
+      "roots": [
+        "Workspace",
+        "Assistant"
+      ],
+      "heading": "Allow new Graphite AI activity",
+      "breadcrumb": "SETTINGS / ASSISTANT / BEHAVIOR"
+    },
+    "existing_views_1920": {
+      "rows": [
+        "Today",
+        "ARRIVE",
+        "Ingress",
+        "Deliveries",
+        "FILES",
+        "Files",
+        "Graphite's area",
+        "Working copies",
+        "Egress",
+        "LIBRARY",
+        "Documents",
+        "Code"
+      ],
+      "dossier_heading": "Graphite",
+      "operations_summary": "Graphite maintenance, installation and recovery."
+    },
+    "head_1366": {
+      "title": "Home — Graphite",
+      "mark": "Graphite",
+      "wordmark": [
+        "Graphite",
+        true
+      ],
+      "ai_switch": "AI ON",
+      "brain": "○  Graphite · no brain yet",
+      "strip": [
+        "Graphite",
+        "staC",
+        "Console",
+        "Find",
+        "Kernel"
+      ]
+    },
+    "menu_1366": [
+      "Work",
+      "Reason",
+      "Instruments",
+      "Programs",
+      "Knowledge",
+      "Configuration",
+      "Explore the workshop…",
+      "New Idea",
+      "New Project",
+      "Services · New work enabled",
+      "Graphite services",
+      "Exit Graphite",
+      "Log Out · Restart · Shut Down — not in this edition"
+    ],
+    "settings_1366": {
+      "roots": [
+        "Workspace",
+        "Assistant"
+      ],
+      "heading": "Allow new Graphite AI activity",
+      "breadcrumb": "SETTINGS / ASSISTANT / BEHAVIOR"
+    },
+    "existing_views_1366": {
+      "rows": [
+        "Today",
+        "ARRIVE",
+        "Ingress",
+        "Deliveries",
+        "FILES",
+        "Files",
+        "Graphite's area",
+        "Working copies",
+        "Egress",
+        "LIBRARY",
+        "Documents",
+        "Code"
+      ],
+      "dossier_heading": "Graphite",
+      "operations_summary": "Graphite maintenance, installation and recovery."
+    }
+  },
+  "kept_words": "The Files/Slate folder keeps its name on disk; settings keys and their root keys keep their names (the page shows the roots as Workspace and Assistant); a catalog made before the rename keeps its stored seed words (shown through concern_catalog.shown)."
+}

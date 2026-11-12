@@ -1,0 +1,53 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Explore opens as a Room and preserves an edited Preview and original file",
+    "Selected idea produces explained deterministic suggestions with poem as the writing invitation",
+    "Calculate opens the genuine existing calculator pane without replacing the edited Preview",
+    "Repeated capability opening reuses the inquiry workspace and preserves its unsaved writing",
+    "Reference methods are inspection-only and a later method request preserves an edited method scratch",
+    "Inspecting an effectful operation opens its existing passport and never dispatches that operation",
+    "Bottom-left launcher freezes one capability snapshot while its menu is open",
+    "Existing five-command Hatch menu and its lifecycle routes are preserved",
+    "Proposed Work, Revise, Arrange, Rules and Guide labels retain menu objects, all original actions and keyboard shortcuts",
+    "Top Tools entry reuses Explore while preserving the cabinet selection",
+    "Retained navigation is scoped; the original Preview and five-pin policy remain intact",
+    "A plain-word idea request finds existing inquiry controls without a model call",
+    "Explore and fixed Trash remain usable at 1366 by 768",
+    "Search, suggestions, inspections and workspace navigation create no tool jobs or replacement idea records",
+    "Clean close removes the desktop lease without any provider request"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Explore_01_Workshop.png",
+      "sha256": "5d65cce69fcb5c5c27ca8e22878402dd51ef05ebbc01cd341508e6589d681460",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Explore_01_Methods.png",
+      "sha256": "9765dc5c3148a89e76b2fbbf63147b29bb2bcdcefd2a91b6397b451bcc196874",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Explore_01_Compact.png",
+      "sha256": "38200c1f814104db149e7e095354d4be4798f6781e8045fcbc339f65fb955e76",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "model_calls": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "jobs_submitted": 0,
+  "owner_ui_review": "DEFERRED_UNTIL_COHESIVE_UI",
+  "native_acceptance": false
+}

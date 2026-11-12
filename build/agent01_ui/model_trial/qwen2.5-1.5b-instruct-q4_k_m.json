@@ -1,0 +1,267 @@
+{
+  "schema": "ledger.live-model-trial/1",
+  "checkpoint": "HATCH AGENT-01",
+  "where": "build container (4 logical CPUs, Intel Xeon 2.30 GHz, 15.7 GiB RAM), not the owner host",
+  "model": {
+    "source": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+    "file": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+    "bytes": 1117320736,
+    "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+    "licence": "apache-2.0",
+    "model_id": "bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae"
+  },
+  "runtime": {
+    "schema": "arc.brain-runtime/1",
+    "state": "PINNED_CPU_AVAILABLE",
+    "build": "b11669",
+    "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+    "platform": "linux-x64",
+    "backend": "CPU",
+    "vulkan": "NOT_QUALIFIED"
+  },
+  "host": {
+    "schema": "arc.brain-host/1",
+    "os": "Linux",
+    "release": "6.18.44-fc-v236",
+    "architecture": "x86_64",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.30GHz",
+    "logical_cpus": 4,
+    "total_ram_bytes": 16867418112,
+    "available_ram_bytes": 16183410688,
+    "gpu": "NOT_QUALIFIED",
+    "backend": "CPU",
+    "measured_on": "CURRENT_EXECUTION_HOST"
+  },
+  "steps": [
+    {
+      "label": "register (brain.inspect)",
+      "job": "27bca60cc7e342c58cf498405bbe6889",
+      "state": "Completed",
+      "seconds": 3.0,
+      "error": ""
+    },
+    {
+      "label": "activate (brain.activate)",
+      "job": "0f515b2b7970481d87971d68599b7fd9",
+      "state": "Completed",
+      "seconds": 6.0,
+      "error": ""
+    },
+    {
+      "label": "chat: one sentence",
+      "job": "52adef20980e472f826a303dc155289f",
+      "state": "Completed",
+      "seconds": 6.0,
+      "error": ""
+    },
+    {
+      "label": "plan: document bold",
+      "job": "b62860d1af424f00ad96371812fbfcae",
+      "state": "Completed",
+      "seconds": 18.0,
+      "error": ""
+    },
+    {
+      "label": "choice among four",
+      "job": "5f669590343748f9982f13e8fb3db070",
+      "state": "Completed",
+      "seconds": 6.0,
+      "error": ""
+    },
+    {
+      "label": "choice mode 1",
+      "job": "241c8806dcf84263bda106015fb0e535",
+      "state": "Completed",
+      "seconds": 3.0,
+      "error": ""
+    },
+    {
+      "label": "choice mode 2",
+      "job": "b5743f00039e4b16a4d888a85f3ec130",
+      "state": "Completed",
+      "seconds": 3.0,
+      "error": ""
+    },
+    {
+      "label": "choice mode 3",
+      "job": "15f24459ec484b018805e28beff5755a",
+      "state": "Completed",
+      "seconds": 3.0,
+      "error": ""
+    },
+    {
+      "label": "choice mode units differ",
+      "job": "3906cb2b14b84af9a9a9c34d80354a8c",
+      "state": "Completed",
+      "seconds": 3.0,
+      "error": ""
+    }
+  ],
+  "activation": {
+    "status": "ACTIVATED",
+    "qualification": {
+      "state": "CPU_CHAT_QUALIFIED",
+      "at": 1793884796.4188182,
+      "file_set_id": "bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae",
+      "runtime": {
+        "build": "b11669",
+        "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+        "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+        "platform": "linux-x64",
+        "backend": "CPU"
+      },
+      "config": {
+        "context": 4096,
+        "threads": 4,
+        "weight_loading": "RESIDENT_COPY",
+        "memory_mb": 10031,
+        "estimated_peak_bytes": 1972610652,
+        "estimated_kv_bytes": 117440512,
+        "backend": "CPU",
+        "host": {
+          "schema": "arc.brain-host/1",
+          "os": "Linux",
+          "release": "6.18.44-fc-v236",
+          "architecture": "x86_64",
+          "cpu": "Intel(R) Xeon(R) Processor @ 2.30GHz",
+          "logical_cpus": 4,
+          "total_ram_bytes": 16867418112,
+          "available_ram_bytes": 16141512704,
+          "gpu": "NOT_QUALIFIED",
+          "backend": "CPU",
+          "measured_on": "CURRENT_EXECUTION_HOST"
+        }
+      },
+      "load_seconds": 1.0687407000000348,
+      "sample_usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 35,
+        "total_tokens": 38,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "memory": {
+        "rss_bytes": 1330139136,
+        "peak_rss_bytes": 1330139136
+      },
+      "template_sha256": "d5495a1e5db0611132a97e46a65dbb64a642a499421228b9c8b93229097fa9a4",
+      "limits": "Load, tokenizer/template and text generation qualification; engineering-answer accuracy is not inferred."
+    }
+  },
+  "status_after_use": {
+    "state": "READY",
+    "worker": {
+      "model_id": "bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae",
+      "pid": 936,
+      "started": 1793884794.2322936,
+      "context": 4096,
+      "backend": "CPU",
+      "runtime": {
+        "build": "b11669",
+        "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+        "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+        "platform": "linux-x64",
+        "backend": "CPU"
+      }
+    }
+  },
+  "asks": [
+    {
+      "label": "chat: one sentence",
+      "mode": "chat",
+      "state": "Completed",
+      "seconds": 6.0,
+      "text": "A ledger is a system used for recording financial transactions and managing financial information.",
+      "proposal": null
+    },
+    {
+      "label": "plan: document bold",
+      "mode": "plan",
+      "state": "Completed",
+      "seconds": 18.1,
+      "text": "{\n  \"text\": \"quick brown\",\n  \"actions\": [\n    {\n      \"operation\": \"documents.edit\",\n      \"arguments\": {\n        \"id\": \"0123456789abcdef0123456789abcdef\",\n        \"expected_revision\": 2,\n        \"selection\": {\n          \"block\": 4,\n          \"start\": 4,\n          \"end\": 15,\n          \"text\": \"quick brown\"\n        },\n        \"change\": {\n          \"bold\": true\n        },\n        \"origin\": \"HUMAN\"\n      }\n    }\n  ]\n}",
+      "proposal": {
+        "text": "quick brown",
+        "actions": [
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "0123456789abcdef0123456789abcdef",
+              "expected_revision": 2,
+              "selection": {
+                "block": 4,
+                "start": 4,
+                "end": 15,
+                "text": "quick brown"
+              },
+              "change": {
+                "bold": true
+              },
+              "origin": "HUMAN"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "choice among four",
+      "mode": "chat",
+      "state": "Completed",
+      "seconds": 6.1,
+      "text": "1",
+      "proposal": null
+    },
+    {
+      "label": "choice mode 1",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 3.0,
+      "text": "Option 1",
+      "proposal": {
+        "choice": 1,
+        "options": 4
+      }
+    },
+    {
+      "label": "choice mode 2",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 3.0,
+      "text": "Option 1",
+      "proposal": {
+        "choice": 1,
+        "options": 4
+      }
+    },
+    {
+      "label": "choice mode 3",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 3.0,
+      "text": "Option 1",
+      "proposal": {
+        "choice": 1,
+        "options": 4
+      }
+    },
+    {
+      "label": "choice mode units differ",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 3.0,
+      "text": "Option 1",
+      "proposal": {
+        "choice": 1,
+        "options": 4
+      }
+    }
+  ],
+  "findings": [
+    "Registered, activated (CPU_CHAT_QUALIFIED) and READY through the same operations; chat answers in 3 to 6 s on four CPU threads.",
+    "Plan mode proposed documents.edit with the document id, expected revision 2, the selected offsets 4 to 15, the quoted words and a bold change: the right operation and arguments except the paragraph index (4 instead of 0); the store would refuse that selection as SELECTION_CHANGED rather than apply it to the wrong words.",
+    "Choice mode picked option 1 (sum) deterministically in the plain case, which is right, and still option 1 when the units differed, where asking the owner (2) was right. Rules stay primary; the model pick is advisory and recorded.",
+    "Recommendation for the ThinkPad: qualify Qwen2.5-1.5B-Instruct Q4_K_M (1.1 GB) as the default and keep 0.5B as the minimum that the program must remain useful with."
+  ],
+  "not_claimed": "Owner-host qualification, the ThinkPad display and the owner's chosen model file remain pending."
+}

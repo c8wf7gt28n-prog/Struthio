@@ -1,0 +1,71 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "The left cabinet files existing owner directions, task memory and procedures under stable typed identities",
+    "Direction editing shows origin and context, uses poem passages, and requires a reason for the correction",
+    "Keep appends an owner correction through the original feedback logic and the existing local preference path; the imported original is unchanged",
+    "Earlier words remain readable as inactive history and cannot be silently edited in place",
+    "Unfinished corrections survive record switches and use the existing return-copy draft format",
+    "Reopening a correction draft requires explicit review of the shown history before keeping",
+    "A competing history change blocks the stale correction while retaining the proposed words",
+    "Explicit review of refreshed history permits the correction and retains all previous events",
+    "Procedure text is withheld during browsing and read only through the existing explicit source-checked command",
+    "Task filing keeps the original checkpoint identity and independently verified readback route",
+    "Memory records link to the existing Memory and Settings workspaces without changing settings or execution controls",
+    "A fresh desktop recovers correction writing and requires history review instead of silently rebasing it",
+    "Laptop layout retains typed memory filing, the correction passage, fixed Trash, Stop, host monitors and the return footer",
+    "Clean close preserves the original profile and creates no tool job, provider request or model run"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Memory_01_Direction.png",
+      "sha256": "43a4902e4340820bf922a16c79ae8b7c270464ea4e505ed036a068dc3711e342",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Memory_01_History.png",
+      "sha256": "398db6a724e5481e77502ecf88c14344709e40b7db85d855e9652cefee880900",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Memory_01_Conflict.png",
+      "sha256": "045da58466145d028ded2da371698c2d4570483bcf49b07e79449cc0b4ea7856",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Memory_01_Procedure.png",
+      "sha256": "82a4721a1c2c4eb030dae3e497a310a65418d629d7ab0d5e28775c9a387d2377",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Memory_01_Compact.png",
+      "sha256": "8f845d04aeffc636ad8297c01aad5edcb754bef911e4fe1cdd519981dabc43aa",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "jobs_submitted": 0,
+  "model_calls": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "native_acceptance": false,
+  "source_check_fixture": "OWNER_PROPOSED_PROCEDURE_WITH_EMPTY_REFERENCE_LIST",
+  "competing_history_case": "REAL_SHARED_FEEDBACK_COMMAND",
+  "restored_corrections_require_explicit_history_review": true,
+  "clean_close": true
+}

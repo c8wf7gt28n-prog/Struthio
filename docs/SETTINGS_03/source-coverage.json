@@ -1,0 +1,62 @@
+{
+  "state": "PASSED",
+  "baseline": "MEMORY-01",
+  "changed_existing_sources": [
+    {
+      "file": "workbench/ledger_control.py",
+      "baseline_sha256": "e7218a3cdb9145560aa5f2e11ed2b33893c588fbd07acbb105fd71add8ec00e9",
+      "sha256": "ec241ce4d8341285e59b5d2fa7b05cb1dce9c9b44dd214d1778c60d1702359cf"
+    },
+    {
+      "file": "workbench/memory_service.py",
+      "baseline_sha256": "9b4711406d7057f63c9a51c44b4de4ab2893f16cad16c1218cef1297bd279b85",
+      "sha256": "4f93f1a791b04e90b3955be207c003984b1b5abc5dba5cbb78355ad809ef4f54"
+    },
+    {
+      "file": "workbench/settings_qt.py",
+      "baseline_sha256": "b28238d0e4062c4586ebe69adf4bd91d781b8dafd20dea22151220bbaa121d35",
+      "sha256": "0a489d9353f0d6f33ebc8201f1de1fb40f7b51e85f12df7f290e3bc13c579f7c"
+    },
+    {
+      "file": "workbench/settings_registry.py",
+      "baseline_sha256": "e0354655602d8570548333ebeaa189f5a8a7d62680a228297b17d0b43f67aed0",
+      "sha256": "cfc05a27956b1d069bbf3fc408525a21abd92d4ed557e03519fe116406dbf77d"
+    },
+    {
+      "file": "workbench/stacy_control.py",
+      "baseline_sha256": "5dbca69751f9b4c85a207a0d802c858c74645d31de7bbceba6dffb9171affc7b",
+      "sha256": "4563be012e1da31df78d048b8c9c239223a30ab3858b1352e8faa44c9f9f0ad6"
+    },
+    {
+      "file": "workbench/stacy_foundation.py",
+      "baseline_sha256": "96790d61b9d8250f30769edd568a06cf2db911846c8d9737969463c10f7dec1e",
+      "sha256": "fcd9a2ae48aecc1e9164aecddb4ecda5dab34c4a84e76cf6b6aad40aae9f39ed"
+    }
+  ],
+  "new_sources": [
+    {
+      "file": "workbench/memory_settings.py",
+      "sha256": "1ae36ab74d1aca75e1895707812947ffbd7aeb0fd0c16416d6cdc1cc7fff69c4"
+    },
+    {
+      "file": "tests_integrated/test_memory_settings.py",
+      "sha256": "3fdfe9bfe98bb4d83bc34eeb5c6f44d30085720969600b73425426ca8ef1f222"
+    },
+    {
+      "file": "tools/check_memory_settings_ui.py",
+      "sha256": "3c61c784ece2355d62671a8b8d3a8a476512700573e0a109ca53816888c93e88"
+    },
+    {
+      "file": "tools/package_hatch_settings_03.py",
+      "sha256": "9439bf8a1cfc871782e0ab36386e0912aaf5ed788af929165292d2db07855b8c"
+    }
+  ],
+  "original_profile_commit_body_ast_unchanged": true,
+  "rest_of_memory_service_ast_unchanged_except_helper_extraction": true,
+  "operation_schemas_and_scopes_unchanged": true,
+  "job_tool_targets_unchanged": true,
+  "old_setting_definitions_unchanged": true,
+  "historical_evidence_preserved": "Required by subsequent complete-archive comparison",
+  "source_bindings": "Rebuilt by package_hatch_settings_03 before archive creation",
+  "no_new_runtime_value_store": true
+}

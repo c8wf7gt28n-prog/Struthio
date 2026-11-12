@@ -1,0 +1,73 @@
+{
+  "state": "PASSED",
+  "seconds": 10.88721906399951,
+  "checks": {
+    "real_document_published": true,
+    "non_file_workspace_clears_active_file": true,
+    "picker_preserved": true,
+    "legacy_source_target_str": true,
+    "legacy_source_target_path": true,
+    "path_picker_target_ignored": true,
+    "invalid_path_values_ignored": true,
+    "pathlike_and_string_preserved": true,
+    "zero_jobs": true
+  },
+  "errors": [],
+  "stages": [
+    {
+      "name": "document_info",
+      "state": "RETURNED"
+    },
+    {
+      "name": "inspector",
+      "state": "RETURNED"
+    },
+    {
+      "name": "desktop_publish",
+      "state": "RETURNED"
+    },
+    {
+      "name": "publish_after_document",
+      "state": "RETURNED"
+    },
+    {
+      "name": "refresh_work_context",
+      "state": "RETURNED"
+    },
+    {
+      "name": "refresh_work_context",
+      "state": "RETURNED"
+    },
+    {
+      "name": "refresh_work_context",
+      "state": "RETURNED"
+    },
+    {
+      "name": "path_picker_target",
+      "state": "RETURNED"
+    }
+  ],
+  "file_context": {
+    "surface": "workspace",
+    "workspace": "CodeEditor",
+    "selection": null,
+    "stacy_view": null,
+    "active_file": "context-example.txt"
+  },
+  "work_context": {
+    "surface": "workspace",
+    "workspace": "WorkTab",
+    "selection": null,
+    "stacy_view": null
+  },
+  "capture_mode": "ACTUAL_QT_OFFSCREEN",
+  "model_generations": 0,
+  "jobs": {
+    "schema": "arc-ledger.kernel/1",
+    "ok": true,
+    "result": [],
+    "journal_state": "CURRENT",
+    "correlation_id": "bb4d34811fd34d9b9d2992077111b984"
+  },
+  "scope": "Document context and real path-picker boundary only; no native application or scheduler acceptance."
+}

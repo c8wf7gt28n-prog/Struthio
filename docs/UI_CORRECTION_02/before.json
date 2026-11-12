@@ -1,0 +1,117 @@
+{
+  "state": "FAILED",
+  "seconds": 9.657618658999127,
+  "checks": {
+    "real_document_published": true,
+    "non_file_workspace_clears_active_file": false,
+    "picker_preserved": true,
+    "legacy_source_target_str": true,
+    "legacy_source_target_path": true,
+    "zero_jobs": true
+  },
+  "errors": [
+    {
+      "where": "Qt event",
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'QComboBox'"
+    },
+    {
+      "where": "Qt event",
+      "type": "AttributeError",
+      "message": "'PySide6.QtWidgets.QComboBox' object has no attribute 'relative_to'"
+    },
+    {
+      "where": "Qt event",
+      "type": "AttributeError",
+      "message": "'PySide6.QtWidgets.QComboBox' object has no attribute 'relative_to'"
+    },
+    {
+      "where": "document_info",
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'QComboBox'"
+    },
+    {
+      "where": "inspector",
+      "type": "AttributeError",
+      "message": "'PySide6.QtWidgets.QComboBox' object has no attribute 'relative_to'"
+    },
+    {
+      "where": "desktop_publish",
+      "type": "AttributeError",
+      "message": "'PySide6.QtWidgets.QComboBox' object has no attribute 'relative_to'"
+    },
+    {
+      "where": "Qt event",
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'QComboBox'"
+    },
+    {
+      "where": "publish_after_document",
+      "type": "AttributeError",
+      "message": "'PySide6.QtWidgets.QComboBox' object has no attribute 'relative_to'"
+    },
+    {
+      "where": "Qt event",
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'QComboBox'"
+    },
+    {
+      "where": "Qt event",
+      "type": "AttributeError",
+      "message": "'PySide6.QtWidgets.QComboBox' object has no attribute 'relative_to'"
+    },
+    {
+      "where": "Qt event",
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'QComboBox'"
+    },
+    {
+      "where": "Qt event",
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'QComboBox'"
+    },
+    {
+      "where": "path_picker_target",
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'QComboBox'"
+    }
+  ],
+  "stages": [
+    {
+      "name": "refresh_work_context",
+      "state": "RETURNED"
+    },
+    {
+      "name": "refresh_work_context",
+      "state": "RETURNED"
+    },
+    {
+      "name": "refresh_work_context",
+      "state": "RETURNED"
+    }
+  ],
+  "file_context": {
+    "surface": "workspace",
+    "workspace": "CodeEditor",
+    "selection": null,
+    "stacy_view": null,
+    "active_file": "context-example.txt"
+  },
+  "work_context": {
+    "surface": "workspace",
+    "workspace": "CodeEditor",
+    "selection": null,
+    "stacy_view": null,
+    "active_file": "context-example.txt"
+  },
+  "capture_mode": "ACTUAL_QT_OFFSCREEN",
+  "model_generations": 0,
+  "jobs": {
+    "schema": "arc-ledger.kernel/1",
+    "ok": true,
+    "result": [],
+    "journal_state": "CURRENT",
+    "correlation_id": "7f0973496c4c4ae7ae171e4be85d8eea"
+  },
+  "scope": "Document context and real path-picker boundary only; no native application or scheduler acceptance."
+}

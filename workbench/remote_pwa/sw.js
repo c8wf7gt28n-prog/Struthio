@@ -1,0 +1,5 @@
+const CACHE='arc-ledger-shell-poem-v1',FILES=['/','/style.css','/app.js','/deck.js','/slate-icon-192.png','/slate-icon-512.png','/slate-sheet.png','/manifest.webmanifest','/icon.svg','/icon-192.png','/icon-512.png','/apple-touch-icon.png','/clip.png','/stacy.png','/stacy-avatar.png','/nav-clip.svg','/nav-workspace.svg','/nav-game.svg','/nav-jobs.svg','/nav-evidence.svg'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('arc-ledger-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+// Cache interface only. API records, code, credentials and frames never enter Cache Storage.
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(u.origin===self.location.origin&&FILES.includes(u.pathname)&&e.request.method==='GET')e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});

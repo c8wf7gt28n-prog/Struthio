@@ -1,0 +1,5 @@
+Allocation,Size,Unit,Start,End,Lifetime_state
+Buffer A,6,MiB,,,UNKNOWN
+Buffer B,6,MiB,,,UNKNOWN
+Workspace,5,MiB,,,UNKNOWN
+Limit,16,MiB,,,NOT_APPLICABLE

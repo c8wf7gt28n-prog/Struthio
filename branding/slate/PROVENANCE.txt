@@ -1,0 +1,1 @@
+N1 uses unchanged slate_keyposes.png and assets.json from the owner-supplied Slate Living Library v0.3 pack. Nine generated pose keys; N1 draws only the resting key. No personality seed, literary corpus, model weights, or notebook is distributed here. Historical character assets remain byte-preserved. Dynamic bird/event and sprint integration belongs to N2.

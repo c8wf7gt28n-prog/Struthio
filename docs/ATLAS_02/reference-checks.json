@@ -1,0 +1,42 @@
+{
+  "consulted_owner_date": "2026-11-02",
+  "sources": [
+    {
+      "edition_or_scope": "NIST SP 330, 2019",
+      "url": "https://www.nist.gov/publications/international-system-units-si-2019-edition"
+    },
+    {
+      "edition_or_scope": "SymPy 1.14.0 linsolve",
+      "url": "https://docs.sympy.org/latest/modules/solvers/solveset.html"
+    },
+    {
+      "edition_or_scope": "SymPy 1.14.0 cancel",
+      "url": "https://docs.sympy.org/latest/modules/polys/reference.html#sympy.polys.polytools.cancel"
+    },
+    {
+      "edition_or_scope": "Microsoft Z3 Guide, live conceptual reference; local executable separately pinned",
+      "url": "https://microsoft.github.io/z3guide/docs/theories/Arithmetic/"
+    },
+    {
+      "edition_or_scope": "Microsoft Z3 optimization guide, reference-only entry",
+      "url": "https://microsoft.github.io/z3guide/docs/optimization/arithmeticaloptimization/"
+    },
+    {
+      "edition_or_scope": "MIT 6.006 Spring 2020 Lecture 13",
+      "url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-13-dijkstra/"
+    },
+    {
+      "edition_or_scope": "NIST/SEMATECH e-Handbook section 4.4.3.1",
+      "url": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+    },
+    {
+      "edition_or_scope": "SciPy 1.18.0 brentq, reference only",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brentq.html"
+    },
+    {
+      "edition_or_scope": "NIST/SEMATECH e-Handbook section 5.3",
+      "url": "https://www.itl.nist.gov/div898/handbook/pri/section3/pri3.htm"
+    }
+  ],
+  "rights": "Only concise authored descriptions and reference metadata are bundled; upstream full texts not redistributed. Online guides are not local runtime qualification."
+}

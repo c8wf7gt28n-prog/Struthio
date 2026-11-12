@@ -1,0 +1,31 @@
+{
+  "project": "OpenDyslexic",
+  "publisher": "https://opendyslexic.org",
+  "source_repository": "https://github.com/antijingoist/opendyslexic",
+  "compiled_tree_sha1": "c0b8d21f5eeffcb90696d21d9b4d8459de0d8f43",
+  "files": [
+    {
+      "path": "branding/ux17/fonts/OpenDyslexic-Bold.otf",
+      "sha256": "5d690ea4c87ccb0d5d5d81487826a395e9b20a6c1d606f1f262c060d2bef4f03",
+      "git_blob_sha1": "a3bd88c4aed10226bed040c961c4549b25448afd",
+      "source": "https://api.github.com/repos/antijingoist/opendyslexic/git/blobs/a3bd88c4aed10226bed040c961c4549b25448afd",
+      "bytes": 184472
+    },
+    {
+      "path": "branding/ux17/fonts/OpenDyslexic-Regular.otf",
+      "sha256": "32f5840fb2bf844bdabafe372591ddfb9286e98117f5b21950aaf54ea856919a",
+      "git_blob_sha1": "f0f51d6702cac75e478f1e612541013410795f44",
+      "source": "https://api.github.com/repos/antijingoist/opendyslexic/git/blobs/f0f51d6702cac75e478f1e612541013410795f44",
+      "bytes": 175872
+    },
+    {
+      "path": "branding/ux17/fonts/OFL.txt",
+      "sha256": "caafcccfb70fc72458fcbda812ec8f0a06cb300cbabb87eabbb30b946124394b",
+      "git_blob_sha1": "bb867823f2408fb8d2b3af5cb118b4bc0cd61972",
+      "source": "https://api.github.com/repos/antijingoist/opendyslexic/contents/OFL.txt?ref=main",
+      "bytes": 4453
+    }
+  ],
+  "license": "Unmodified upstream OFL.txt retained",
+  "retrieved_date": "2026-10-24"
+}

@@ -1,0 +1,23 @@
+{
+  "state": "PASSED",
+  "baseline": "READINESS-01",
+  "old_operations": 660,
+  "new_operations": 666,
+  "added_operations": [
+    "atlas.invocation",
+    "atlas.lookup",
+    "atlas.operation_schema",
+    "atlas.passport.get",
+    "atlas.passport.save",
+    "atlas.passports.list"
+  ],
+  "job_tools": 112,
+  "job_targets": "IDENTICAL",
+  "old_scope_assignments": "IDENTICAL",
+  "unchanged_operation_schemas": 659,
+  "extended_operation_schemas": {
+    "ledger.navigate": "Only adds atlas to the destination enum; all old values remain"
+  },
+  "legacy_dispatch_routes": "UNMODIFIED; six Atlas routes added through the same Kernel",
+  "scope": "Structural compatibility; not execution of every legacy operation"
+}

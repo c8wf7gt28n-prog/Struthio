@@ -1,0 +1,9 @@
+{
+  "schema": "arc.pinned-office-uno/1",
+  "version": "25.2.0",
+  "jar": "libreoffice-25.2.0.jar",
+  "sha256": "3fffba67cef8ed5b18f853d05190ffbaa97a63202e4705a4b0fe278c17326766",
+  "source": "https://repo.maven.apache.org/maven2/org/libreoffice/libreoffice/25.2.0/libreoffice-25.2.0.jar",
+  "licence": "MPL-2.0",
+  "java_minimum": 17
+}

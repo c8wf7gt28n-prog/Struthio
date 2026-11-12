@@ -1,0 +1,229 @@
+{
+ "state": "WRITTEN",
+ "folder": "build/graphite_desk/review",
+ "captures": [
+  {
+   "file": "Graphite_Review_01_Desk_Menus_Closed_1920x1200.png",
+   "shows": "The desk with both launch menus closed, 1920 by 1200, 14 pt: the two graphite bands; Graphite in the script at the upper left and the erased Graphite symbol at the far right (the System menu); the eight menus across the workspace; CPU · GPU · RAM · TXT; the left pane (Machine · Cabinet · Settings, the active tree with its branch lines, Trash at its lower right) and the right pane (Conversation · Activity · Context), 360 px each; the workspace (Today, the Finder) centred; the lower band: the cat, Line · Half · Tall, the writing line with its poem placeholder, and the four modes Assignment · Bash · Search · Log, Assignment marked.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "cb7fd505f0963347238fc8f589fd4ef4ad2388b290b5d05afcf8a906544a1b77",
+   "bytes": 214666
+  },
+  {
+   "file": "Graphite_Review_07_Symmetry_Overlay_1920x1200.png",
+   "shows": "The same desk with the axis (pink) and the mirrored guides (dashed yellow): the bands' insets, the pane edges, the workspace column's inset that the menus' ink and the writing line share, and the band edges. tools/check_desk_ui.py measures every pair at 0 px at nine sizes and fonts.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "af475c7fc4a6ec1f84c8e3b677afbed6734cbb247b0b1019b8a32a5ffa3de0f1",
+   "bytes": 236010
+  },
+  {
+   "file": "Graphite_Review_02_Cat_Programs_List_1920x1200.png",
+   "shows": "The cat's programs list, 1920 by 1200, opened with Return from the cat (one click opens it too): 23 programs and capabilities, one plain name and one small graphite icon each, A to Z, then Explore the workshop; its small caption in the script at the top; the cat's paw raised and its eyes yellow while the list is open. It opens upward from the lower left, the System menu's point-mirror image.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "53409e2170e4fc50b8d0762bbb634e22d5a952f2a0c49ae04d86e74e901bbc69",
+   "bytes": 271423
+  },
+  {
+   "file": "Graphite_Review_01_Desk_Menus_Closed_1366x768.png",
+   "shows": "The desk with both launch menus closed, 1366 by 768, 14 pt: the two graphite bands; Graphite in the script at the upper left and the erased Graphite symbol at the far right (the System menu); the eight menus across the workspace; CPU · GPU · RAM · TXT; the left pane (Machine · Cabinet · Settings, the active tree with its branch lines, Trash at its lower right) and the right pane (Conversation · Activity · Context), 360 px each; the workspace (Today, the Finder) centred; the lower band: the cat, Line · Half · Tall, the writing line with its poem placeholder, and the four modes Assignment · Bash · Search · Log, Assignment marked.",
+   "data": "real",
+   "resolution": [
+    1366,
+    768
+   ],
+   "sha256": "17dfa72e9974b6b99d67aab56a5d76e8e25b7d3ddc49f1d9fecab94ac89fe2c7",
+   "bytes": 179997
+  },
+  {
+   "file": "Graphite_Review_07_Symmetry_Overlay_1366x768.png",
+   "shows": "The same desk with the axis (pink) and the mirrored guides (dashed yellow): the bands' insets, the pane edges, the workspace column's inset that the menus' ink and the writing line share, and the band edges. tools/check_desk_ui.py measures every pair at 0 px at nine sizes and fonts.",
+   "data": "real",
+   "resolution": [
+    1366,
+    768
+   ],
+   "sha256": "b85f81472a1d1264136b1383eb2388109df6e2df969c8403dd46e0611050e29c",
+   "bytes": 194133
+  },
+  {
+   "file": "Graphite_Review_02_Cat_Programs_List_1366x768.png",
+   "shows": "The cat's programs list, 1366 by 768, opened with Return from the cat (one click opens it too): 23 programs and capabilities, one plain name and one small graphite icon each, A to Z, then Explore the workshop; its small caption in the script at the top; the cat's paw raised and its eyes yellow while the list is open. It opens upward from the lower left, the System menu's point-mirror image.",
+   "data": "real",
+   "resolution": [
+    1366,
+    768
+   ],
+   "sha256": "5e40a027c2ebee8437ee6b5c5338c84d4e835706a819cccc34c384c12b30f2a6",
+   "bytes": 217892
+  },
+  {
+   "file": "Graphite_Review_03_System_Menu_1920x1200.png",
+   "shows": "The System menu, 1920 by 1200, opened with Return from the Graphite symbol: Game (STRUTHIO, paused at tick zero) first; Stop all jobs directly beneath (scoped in words to the work Graphite manages); the process list: the queue's two Agenda items, each with its place number at the left (the order: drag, Earlier, Later) and its niceness slider under its title; Graphite services On · Off · Restart; then, set apart, Log out (this login session), Exit Graphite (this Graphite session), Restart and Shut down (this computer). Here there is no login session, so those three say unavailable in quiet ink (their reason is the tooltip and F1); on your computer logind decides.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "e3eacb404029d86154a7d81635fb58f27bf6317c375132d6a19dc59a97a7e016",
+   "bytes": 230725
+  },
+  {
+   "file": "Graphite_Review_03_System_Menu_1366x768.png",
+   "shows": "The System menu, 1366 by 768, opened with Return from the Graphite symbol: Game (STRUTHIO, paused at tick zero) first; Stop all jobs directly beneath (scoped in words to the work Graphite manages); the process list: the queue's two Agenda items, each with its place number at the left (the order: drag, Earlier, Later) and its niceness slider under its title; Graphite services On · Off · Restart; then, set apart, Log out (this login session), Exit Graphite (this Graphite session), Restart and Shut down (this computer). Here there is no login session, so those three say unavailable in quiet ink (their reason is the tooltip and F1); on your computer logind decides. At this height the menu scrolls.",
+   "data": "real",
+   "resolution": [
+    1366,
+    768
+   ],
+   "sha256": "88cce5ffc289484cca66d6b528aeef757407d6575d038eb4652044df692b4f5f",
+   "bytes": 192038
+  },
+  {
+   "file": "Graphite_Review_04_Right_Click_Selected_Passage_1920x1200.png",
+   "shows": "Right-click on a selected passage in a document, 1920 by 1200: the passage named at the top with its page and revision (\"within a hair\" · passage · Bench notes · revision 2); the changes first (Bold, Italic, Underline, Plain, Paragraph style, Move to notes); Inspect in the line (the equivalent staC command); Ask Graphite about this and Search; the text edits last.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "7d5e7207a0534080a974fa0c473d6fb69486386a783b80c0d8c44aef23a9f0e2",
+   "bytes": 241540
+  },
+  {
+   "file": "Graphite_Review_04_Right_Click_Selected_Passage_1366x768.png",
+   "shows": "Right-click on a selected passage in a document, 1366 by 768: the passage named at the top with its page and revision (\"within a hair\" · passage · Bench notes · revision 2); the changes first (Bold, Italic, Underline, Plain, Paragraph style, Move to notes); Inspect in the line (the equivalent staC command); Ask Graphite about this and Search; the text edits last.",
+   "data": "real",
+   "resolution": [
+    1366,
+    768
+   ],
+   "sha256": "820f7028d74ac605f634ce77c4a0248afc870515a23e559a572591b76202fe49",
+   "bytes": 198118
+  },
+  {
+   "file": "Graphite_Review_05_Right_Click_Two_File_Revisions_1920x1200.png",
+   "shows": "Right-click on two revisions of one file selected in Files, 1920 by 1200: both named at the top; Compare revisions first (the two actual files go to files.compare), then Copy to, Move to, Copy paths and, last, Move to Trash.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "920d34bd67c9f578f58c8381f48447e1b0f3366b4041cb9a8a3c760c5569fc78",
+   "bytes": 231535
+  },
+  {
+   "file": "Graphite_Review_05_Right_Click_Two_File_Revisions_1366x768.png",
+   "shows": "Right-click on two revisions of one file selected in Files, 1366 by 768: both named at the top; Compare revisions first (the two actual files go to files.compare), then Copy to, Move to, Copy paths and, last, Move to Trash.",
+   "data": "real",
+   "resolution": [
+    1366,
+    768
+   ],
+   "sha256": "69930fef91490767fdf4aebac696402c32186fd1fc06cf5d7fcdc8544379ae98",
+   "bytes": 223063
+  },
+  {
+   "file": "Graphite_Review_06a_Bold_Before_1920x1200.png",
+   "shows": "Before: the passage \"within a hair\" selected on revision 2 of Bench notes, its right-click menu open with Bold under the keyboard's focus.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "71db69f39126a6fbcfcfcce252c8bc024bccb1a11c2414360da89873ca3b1ba8",
+   "bytes": 248164
+  },
+  {
+   "file": "Graphite_Review_06b_Bold_After_1920x1200.png",
+   "shows": "After: Bold ran documents.edit through Kernel.dispatch with the page's id and the revision seen at the right-click (2), the same checks as anywhere else; the page shows \"within a hair\" in bold where it was, its foot says revision 3, and the status line says what was done. Ctrl Z takes it back.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "98b294ab962bfe3ecfd885109d7486ba7c74e68aa5845ee00900a1b7a668d642",
+   "bytes": 214752
+  },
+  {
+   "file": "Graphite_Review_08_Log_Network_Half_This_Computer_1920x1200.png",
+   "shows": "Log at Half on its Network stream, 1920 by 1200: this computer's real interfaces (lo, ifb0, ifb1, eth0) with their receive and send rates and its 15 open connections with their processes, as network.observe read them here through Kernel.dispatch (one is the review set's own loopback connection on port 45349); the capture's state as the capability gives it here: unavailable — \"No capture tool is installed (Graphite captures through dumpcap or tcpdump). To enable capture on Debian: as the administrator, apt install wireshark-common, and answer Yes when it asks whether non-superusers should be able to capture packets; then as the administrator, usermod -aG wireshark root; then log out and in again, so the session carries the wireshark group. Graphite only explains: it never runs these commands, never asks for the administrator’s password and never changes the system’s permissions.\". Nothing was captured.",
+   "data": "real",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "e9ab551964dbed090610e1629d1b21fa7adaef092eea2d845c8e642ba1113b63",
+   "bytes": 356429
+  },
+  {
+   "file": "Graphite_Review_08_Log_Network_Half_This_Computer_1366x768.png",
+   "shows": "Log at Half on its Network stream, 1366 by 768: this computer's real interfaces (lo, ifb0, ifb1, eth0) with their receive and send rates and its 15 open connections with their processes, as network.observe read them here through Kernel.dispatch (one is the review set's own loopback connection on port 45349); the capture's state as the capability gives it here: unavailable — \"No capture tool is installed (Graphite captures through dumpcap or tcpdump). To enable capture on Debian: as the administrator, apt install wireshark-common, and answer Yes when it asks whether non-superusers should be able to capture packets; then as the administrator, usermod -aG wireshark root; then log out and in again, so the session carries the wireshark group. Graphite only explains: it never runs these commands, never asks for the administrator’s password and never changes the system’s permissions.\". Nothing was captured.",
+   "data": "real",
+   "resolution": [
+    1366,
+    768
+   ],
+   "sha256": "4710a809079ae53bff3f377a57fe8d87a7509b2248e74dd91dd5390656cf29c5",
+   "bytes": 234289
+  },
+  {
+   "file": "Graphite_Review_08b_Log_Network_Packets_TEST_DATA_1920x1200.png",
+   "shows": "TEST DATA, labelled on the image: the packet stream as Log shows it while a capture runs, from the network capability's test fixture only (its small computer's /proc, /sys and /etc read by network_watch.observe, and its frames decoded by network_watch.decode: headers only, never what a packet carries); one packet pinned at the top with Ask Graphite about this. This computer has no capture tool, so no real packet stream exists here.",
+   "data": "TEST DATA (the network capability's test fixture)",
+   "resolution": [
+    1920,
+    1200
+   ],
+   "sha256": "56e6380cb4a84e4078a0f50a2336147d047eedfe025f8eedbb74744791661641",
+   "bytes": 340193
+  }
+ ],
+ "network_here": [
+  {
+   "size": "1920x1200",
+   "capture": "UNAVAILABLE",
+   "reason": "No capture tool is installed (Graphite captures through dumpcap or tcpdump). To enable capture on Debian: as the administrator, apt install wireshark-common, and answer Yes when it asks whether non-superusers should be able to capture packets; then as the administrator, usermod -aG wireshark root; then log out and in again, so the session carries the wireshark group. Graphite only explains: it never runs these commands, never asks for the administrator’s password and never changes the system’s permissions.",
+   "connections": 15,
+   "interfaces": [
+    "lo",
+    "ifb0",
+    "ifb1",
+    "eth0"
+   ]
+  },
+  {
+   "size": "1366x768",
+   "capture": "UNAVAILABLE",
+   "reason": "No capture tool is installed (Graphite captures through dumpcap or tcpdump). To enable capture on Debian: as the administrator, apt install wireshark-common, and answer Yes when it asks whether non-superusers should be able to capture packets; then as the administrator, usermod -aG wireshark root; then log out and in again, so the session carries the wireshark group. Graphite only explains: it never runs these commands, never asks for the administrator’s password and never changes the system’s permissions.",
+   "connections": 15,
+   "interfaces": [
+    "lo",
+    "ifb0",
+    "ifb1",
+    "eth0"
+   ]
+  }
+ ],
+ "fixture_calls": [
+  "network.capture.read",
+  "network.observe"
+ ],
+ "jobs_submitted": 0,
+ "worker_processes_started": 0,
+ "provider_requests": 0,
+ "session_or_power_commands": 0,
+ "captures_started": 0,
+ "owner_host_acceptance": false
+}

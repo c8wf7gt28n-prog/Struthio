@@ -1,0 +1,321 @@
+{
+  "schema": "graphite01-brand-ui/1",
+  "checkpoint": "HATCH GRAPHITE-01",
+  "work_item": "G-A",
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "01 The startup screen shows before the window is built (graphite 83%, paper 14% of its pixels), frameless and centred, stays while the window is built and closes when the window is shown",
+    "02 The head's mark is the sharpened point on a graphite tile (1524 graphite, 239 paper pixels) named Graphite; one click on it opens the STRUTHIO game (struthio_qt.show called once with the window, patched)",
+    "03 The cat stands at the lower-left of the strip with no word beside it; tooltip and accessible name Open menu (the accessible description keeps the service summary, the menu's choices and the F1 note after a lifecycle render); 85 by 44 px at 14 pt",
+    "04 Pointer events: away from the cat it rests; on it the cat gives the side-eye with the tail's question-mark curl, paws down",
+    "05 One click opens the existing menu at once in the open pose; the open pose holds with the pointer on the menu and back on the cat (precedence over hover); on close the pointer over the cat gives hover, away gives rest",
+    "06 With the menu closed and no input for the (patched) 0.5 s the cat is sleepy; a key typed elsewhere keeps it asleep and restarts the timer; hover wakes it into the side-eye; from sleep one click opens the menu in the open pose",
+    "07 Space and Enter on the focused cat open the menu with its first row (Work) active, in the open pose; Escape closes it, focus returns to the cat, and with the pointer away it rests; keyboard focus turns the edge eraser pink (180 px)",
+    "08 A pose change moves the numbers in one short animation (150 ms; the tail rose through 7 sampled steps); under reading.reduce_motion the pose switches directly with no animation",
+    "09 The four poses drawn large by the button's own painter, beside the reference layout",
+    "10 At 1366 by 768 the cat rests at the lower left, hovers and opens the menu with one click, every strip word whole (tools/ui_fit); at 20 pt it is 62 px high (the 1.4 cap)",
+    "11 No job, worker, model, provider request, process, shell command or detached program; clean close removed the lease"
+  ],
+  "captures": [
+    {
+      "file": "Graphite_01_Brand_01_Startup_Screen.png",
+      "note": "The startup screen launch.main shows before the window is built: graphite ground, the sharpened point in paper, GRAPHITE in spaced capitals below; frameless and centred; no fade.",
+      "mode": "ACTUAL_QT_WIDGET_GRAB",
+      "sha256": "7d6142a90c1ac8876a59babcdd1fca0eae4eab3217c8bfe141e3cfdd11ea643e",
+      "resolution": [
+        360,
+        320
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_02_Head_Mark.png",
+      "note": "The head at 1920 by 1200, left end, enlarged 2x: the sharpened point on a small graphite tile in place of the bird (tooltip and accessible name Graphite). The wordmark beside it is the rename item's.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED",
+      "sha256": "78a55d6367dbccc30b70dec9dc07fb6d1bca77924d02f40213ba7b80e866e986",
+      "resolution": [
+        760,
+        142
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_02b_Mark_Small_Sizes_6x.png",
+      "note": "The tile at 16, 24 and 32 px (the window icon's small entries) and 44 px (the head), each pixel enlarged 6x: the gap between the wedges reads and the stroke is solid; at 16 px the stroke is left out rather than drawn as a smudge.",
+      "mode": "PAINTED_BY_GRAPHITE_BRAND_MARK_TILE_ENLARGED_6X",
+      "sha256": "28d9667180506e5d9dabbfe3f96bba3df7813b47a92250f882ced903537422ea",
+      "resolution": [
+        756,
+        288
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_03_Cat_Rest_crop.png",
+      "note": "REST: eyes forward, both paws on the edge, tail tucked away (window crop, 4x).",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED_4X",
+      "sha256": "f5b4b3becc3e427c789b05508998b87b0118fdb45d82746abcec02b355755a19",
+      "resolution": [
+        472,
+        284
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_04_Cat_Rest_1920.png",
+      "note": "1920 by 1200: the cat at rest at the lower-left of the typing strip, unlabeled.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "bb98ee0a2635cf2f27358ce0884ebed301eccea97b25910aa08b3450e86bfc69",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_05_Cat_Hover_crop.png",
+      "note": "HOVER: a quick side-eye; the tail rises in a question-mark curl that is part of the tail (no separate dot); both paws down.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED_4X",
+      "sha256": "acf573360d8e2fc0e18f03078093d1823ab7b6e63d3741e732678536d7590314",
+      "resolution": [
+        472,
+        284
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_06_Cat_Menu_Open_crop.png",
+      "note": "MENU OPEN: the tail out of sight, the right paw lifted as if bringing the menu up, the eyes toward it.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED_4X",
+      "sha256": "81f68f96c23446112587d1ccd35e5881367b9925a743cb2838476fd51bc36f2c",
+      "resolution": [
+        472,
+        284
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_07_Menu_Open_1920.png",
+      "note": "1920 by 1200: one click on the cat opened the existing menu at once; the cat holds the open pose.",
+      "mode": "ACTUAL_QT_WINDOW_AND_VISIBLE_POPUP_GRABS",
+      "sha256": "2986ccdc2c3ec002cad9974007d0d89b8680c343283ab0e5a6602671d4350508",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_08_Cat_Sleepy_crop.png",
+      "note": "SLEEPY: after a stretch without input (shortened to 0.5 s for the check), the head a little lower and the eyes closed.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED_4X",
+      "sha256": "e348353a7d559acda89eb53508865f6a089f25463e55f0d882ccdb39b9fafd39",
+      "resolution": [
+        472,
+        284
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_09_Cat_Sleepy_1920.png",
+      "note": "1920 by 1200 with the cat asleep at the lower left.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "242fd6179323eebb0201425d36cccc7e4f0474a1fa0ec3c1bf9719ab1bef4707",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_10_Cat_Keyboard_Focus_crop.png",
+      "note": "Keyboard focus on the cat: the edge it peeks over turns eraser pink.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED_4X",
+      "sha256": "448b436fc14ffefee19a1bd9de87b236337c8054716d2fceadf849ef131d3d64",
+      "resolution": [
+        472,
+        284
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_11_Cat_Four_Poses_large.png",
+      "note": "The four poses at 220 px, drawn by graphite_brand.paint_cat, the painter the button uses; laid out like the owner's reference sheet (branding/graphite/reference/).",
+      "mode": "PAINTED_BY_THE_BUTTONS_OWN_PAINTER",
+      "sha256": "cc74cf70f64f5e4b999f34300a6f8bda07b1487863c1ef51297a9b2ccc8d3a27",
+      "resolution": [
+        968,
+        620
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_12_Cat_Rest_1366.png",
+      "note": "1366 by 768: the cat at rest at the lower left; the strip's words beside it.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "758d80683d5ad135fbd8bbe92c8e073e38cceb979e629a694fe40a7b0bc3fced",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_13_Cat_Hover_1366_crop.png",
+      "note": "1366 by 768: hover.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED_4X",
+      "sha256": "acf573360d8e2fc0e18f03078093d1823ab7b6e63d3741e732678536d7590314",
+      "resolution": [
+        472,
+        284
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_14_Menu_Open_1366.png",
+      "note": "1366 by 768: the menu opened by one click on the cat, which holds the open pose.",
+      "mode": "ACTUAL_QT_WINDOW_AND_VISIBLE_POPUP_GRABS",
+      "sha256": "e8b270de060cf7450633f9c8dbd83a97923d7d37cfd1827389104264d4067858",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Graphite_01_Brand_15_Cat_Rest_20pt_crop.png",
+      "note": "At 20 pt interface text the cat is 62 px high (the 1.4 cap), enlarged 2x.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB_CROP_ENLARGED_2X",
+      "sha256": "6a61478cd7dde8386708572cef980476625a7bca6d69b3d4a4327a74ff3aee03",
+      "resolution": [
+        304,
+        178
+      ]
+    }
+  ],
+  "observations": {
+    "startup": {
+      "size": [
+        360,
+        320
+      ],
+      "centre_offset": [
+        0,
+        0
+      ],
+      "graphite_share": 0.84,
+      "paper_share": 0.146,
+      "visible_while_building": true,
+      "closed_when_window_shown": true
+    },
+    "mark": {
+      "button": [
+        54,
+        54
+      ],
+      "icon": [
+        44,
+        44
+      ],
+      "graphite_pixels": 1524,
+      "paper_pixels": 239
+    },
+    "names": {
+      "text": "",
+      "tooltip": "Open menu",
+      "accessible_name": "Open menu",
+      "accessible_description": "New work enabled · Tools by group · Explore the workshop · New Idea · New Project · Graphite services On / Off / Reboot · leave Graphite · F1 reads the highlighted row into the typing-bar note.",
+      "tile": [
+        85,
+        44
+      ],
+      "button": [
+        94,
+        51
+      ]
+    },
+    "click": {
+      "error": null,
+      "visible": true,
+      "pose": "open",
+      "first_active": null,
+      "settled": true,
+      "pointer_on_menu": "open",
+      "pointer_back": "open",
+      "after": "hover",
+      "closed": true
+    },
+    "sleep": {
+      "idle_ms_patched": 500,
+      "default_idle_ms": 90000,
+      "one_click_from_sleep": {
+        "error": null,
+        "visible": true,
+        "pose": "open",
+        "first_active": null,
+        "after": "rest",
+        "closed": true
+      }
+    },
+    "keyboard": {
+      "space": {
+        "error": null,
+        "visible": true,
+        "pose": "open",
+        "first_active": "Work",
+        "after": "rest",
+        "closed": true,
+        "focus_after": true,
+        "app_focus_after": true
+      },
+      "enter": {
+        "error": null,
+        "visible": true,
+        "pose": "open",
+        "first_active": "Work",
+        "after": "rest",
+        "closed": true,
+        "focus_after": true,
+        "app_focus_after": true
+      },
+      "focus_edge_pink_pixels": 180
+    },
+    "motion": {
+      "move_ms": 150,
+      "tail_samples_every_20ms": [
+        0.0,
+        0.0,
+        0.35,
+        0.71,
+        0.85,
+        0.91,
+        0.99,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "reduce_motion_direct": true
+    },
+    "compact": {
+      "window": [
+        1366,
+        768
+      ],
+      "strip_words_whole": true,
+      "tile_at_20pt": [
+        119,
+        62
+      ]
+    }
+  },
+  "decisions": {
+    "poses": "pure CatPoses: open > sleepy > hover > rest; hover and the menu wake; input elsewhere restarts the inactivity timer without waking (movement tied to interaction)",
+    "motion": "one QVariantAnimation of MOVE_MS over six pose numbers; Reduce motion sets the numbers at once",
+    "startup": "QSplashScreen from launch.main before qt_app is imported; closed by the first other window shown; no fade"
+  },
+  "jobs_submitted": 0,
+  "worker_processes_started": 0,
+  "model_generations": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "processes_started": 0,
+  "owner_host_acceptance": false,
+  "acceptance_claimed": false,
+  "clean_close": true
+}

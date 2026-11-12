@@ -1,0 +1,310 @@
+{
+  "schema": "ledger.decision-register/1",
+  "specification": "Ledger and Slate Program Specification for Claude v1.0 (2026-11-04)",
+  "owner_decisions": [
+    {
+      "topic": "Hatch",
+      "current": "Primary graphical doorway to usable tools and workspaces.",
+      "superseded": "The minimal five-choice Hatch rule and its required first-item order."
+    },
+    {
+      "topic": "Left column",
+      "current": "Machine and work overview, using understandable logical organization and inspectable physical locations.",
+      "superseded": "An exclusively office-cabinet view or an exclusively raw filesystem tree."
+    },
+    {
+      "topic": "Permanent frame",
+      "current": "Machine overview and Slate activity stay visible beside maximized center work.",
+      "superseded": "Home or focus layouts that automatically hide the right column."
+    },
+    {
+      "topic": "Deployment",
+      "current": "One minimal Debian computer runs Ledger and Slate; the phone is optional access.",
+      "superseded": "Mandatory separate general desktop, exchange-only architecture, or universal direct-display assumptions."
+    },
+    {
+      "topic": "Visual language",
+      "current": "Paper surface with graphite, highlight yellow, and eraser pink.",
+      "superseded": "Orange action styling, raised default buttons, or browser-link interaction as the Ledger visual language."
+    },
+    {
+      "topic": "Slate identity",
+      "current": "Slate is the assistant; staC remains the language pronounced Stacy.",
+      "superseded": "A second assistant named Stacy or restoration of the retired girl or fairy persona."
+    },
+    {
+      "topic": "Completeness",
+      "current": "Preserve capabilities and records while revising their presentation.",
+      "superseded": "A requirement to keep every old widget, duplicate navigation entrance, or historical default visible."
+    }
+  ],
+  "implementation_choices": [
+    {
+      "id": "D01",
+      "pass": "DESKTOP-01",
+      "requirement": "HT01",
+      "choice": "Hatch order: the six capability groups first, then Explore the workshop…; then New Idea and New Project; then the Services line and a Ledger services submenu holding the existing On, Off and Reboot actions; then the live exit item and one disabled row for Log Out, Restart and Shut Down.",
+      "reversible": true,
+      "review": "Owner may reorder; action identities and routes are unchanged."
+    },
+    {
+      "id": "D02",
+      "pass": "DESKTOP-01",
+      "requirement": "HT02",
+      "choice": "Adapters carry a presentation kind (workspace, checks, operations) and truthful titles: the native-tool rows read KiCad checks, KiBot outputs, ngspice profiles, Yosys synthesis, nextpnr & Trellis, HDL simulation checks. Needs setup appears in the row text when passive detection finds no executable.",
+      "reversible": true
+    },
+    {
+      "id": "D03",
+      "pass": "DESKTOP-01",
+      "requirement": "VS02",
+      "choice": "The Explore word keeps the record suggestions, Explore the workshop… and Find saved work…; the six groups are listed in Hatch only.",
+      "reversible": true
+    },
+    {
+      "id": "D04",
+      "pass": "DESKTOP-01",
+      "requirement": "LP01",
+      "choice": "The two side columns are sized independently with two-way minimums derived from their own row of words; both widths are remembered (layout.navigator_width, layout.simulator_width).",
+      "reversible": true
+    },
+    {
+      "id": "D05",
+      "pass": "DESKTOP-01",
+      "requirement": "UI01",
+      "choice": "Home keeps the right column visible; Today sits in the centre.",
+      "reversible": true
+    },
+    {
+      "id": "D06",
+      "pass": "DESKTOP-01",
+      "requirement": "NV01",
+      "choice": "The left column switch reads Cabinet · Machine · Settings; a one-line machine strip stays visible above it; Machine groups are Processor, Memory, Storage, Connections, Devices, Installed tools, alphabetised siblings within a group by title; the ARC project hardware navigator stays under the project.",
+      "reversible": true
+    },
+    {
+      "id": "D07",
+      "pass": "DESKTOP-01",
+      "requirement": "CM01",
+      "choice": "Typing-strip words Slate · staC · Console (the shell target's word; key, prefix and history unchanged) with Find and Kernel as quieter advanced words; a context word shows the active work context.",
+      "reversible": true
+    },
+    {
+      "id": "D08",
+      "pass": "DESKTOP-01",
+      "requirement": "VS03",
+      "choice": "The X writing marker is a graphite mark in the page margin on the caret line of the yellow writing passages, blinking with a two-second period, static under reading.reduce_motion, governed by the added setting appearance.writing_marker (default on).",
+      "reversible": true,
+      "review": "Owner reviews the mark in real typing; the setting turns it off."
+    },
+    {
+      "id": "D09",
+      "pass": "DESKTOP-01",
+      "requirement": "VS01",
+      "choice": "Writable passages (New Idea sheet, Home jot, New Project title, Slate composer) become yellow passages without borders; owner prose uses the prose font; selection colour on yellow is eraser pink.",
+      "reversible": true
+    },
+    {
+      "id": "D10",
+      "pass": "DESKTOP-01",
+      "requirement": "PD04",
+      "choice": "Menu words Work/Revise/Tools/Arrange/Commands/Rules/Properties/Guide and palette values stay as provisional candidates; no change in this pass.",
+      "reversible": true
+    },
+    {
+      "id": "D11",
+      "pass": "DESKTOP-01",
+      "requirement": "BL02",
+      "choice": "The derived restoration manifest from the handoff is used for baseline restoration; the producer's own INTEGRATION-01 manifest restores the same payload and is kept with the delivery record.",
+      "reversible": false
+    },
+    {
+      "id": "D12",
+      "pass": "WORKSHOP-01",
+      "requirement": "Commission v2.1",
+      "choice": "The Gate-one work items and the first shared document route ship together as one checkpoint named HATCH WORKSHOP-01 (the checkpoint the commission calls a usable installation); Gate-one evidence keeps its build/desktop01_ui folders.",
+      "reversible": true
+    },
+    {
+      "id": "D13",
+      "pass": "WORKSHOP-01",
+      "requirement": "WS02, AC03",
+      "choice": "The shared page is a Ledger-native document (Project Desk record kind document, schema ledger.document/1: title, paragraphs with a style and inline bold/italic/underline marks) edited in a QTextEdit, rather than a LibreOffice session: it needs no external program, keeps one undo stack for both actors and stores every change as a revision in the existing desk store. Export to Markdown, HTML and plain text is a file action; a DOCX export can reuse the existing office profile later.",
+      "reversible": true,
+      "review": "Owner may prefer a native Writer route for rich documents; the record and its revisions would be migrated, not lost."
+    },
+    {
+      "id": "D14",
+      "pass": "WORKSHOP-01",
+      "requirement": "WS01, CM03",
+      "choice": "A selection is bound as block index, start, end and the quoted words against the saved revision; the page saves itself a moment after typing stops and before any Slate request, so the revision Slate edits is the one the owner sees. A stale revision or changed words is refused and the page reloads the saved revision instead of merging.",
+      "reversible": true
+    },
+    {
+      "id": "D15",
+      "pass": "WORKSHOP-01",
+      "requirement": "AI03, CM02",
+      "choice": "Formatting requests typed to Slate (bold, italic, underline, heading levels, body, code, plain, replace x with y, undo, redo) are resolved by explicit rules with no model and reported as direct edits; recognition is conservative (every word must belong to the formatting vocabulary) so anything else goes to the model path with the document and selection as context. With no model selected Slate says so and names the direct edits it can still make.",
+      "reversible": true
+    },
+    {
+      "id": "D16",
+      "pass": "WORKSHOP-01",
+      "requirement": "HT01, NV02",
+      "choice": "Documents is a Work-group row in Hatch and Explore (instrument:documents, presentation kind workspace), a ledger.navigate destination (recorded enum extension) and a cabinet record kind filed under Documents inside its project or Unassigned; opening a document from the cabinet's action shelf opens that page.",
+      "reversible": true
+    },
+    {
+      "id": "D17",
+      "pass": "WORKSHOP-01",
+      "requirement": "ST01",
+      "choice": "documents.* are private to this computer for cloud proposals (stacy_control.CLOUD_PRIVATE); the read operations are journal observers; documents.create, save and edit are journalled requests, so the right column's activity shows Slate's edits.",
+      "reversible": true
+    },
+    {
+      "id": "D18",
+      "pass": "WORKSHOP-01",
+      "requirement": "Commission v2.1 (Tool Atlas, small relevant tool set)",
+      "choice": "The local model's plan path keeps its fixed direct set and adds up to six operations chosen for the request's words by explicit matching over operation names, capability families (the Hatch adapters' titles, descriptions and keywords, plus a few families without an adapter) and argument names (workbench/tool_selection.py), each with a one-line reason the model reads. Only read and execute operations are offered; the owner still reviews every proposal. The matching is a first, inspectable version: no model chooses the tools, and the words lists are meant to grow from real requests.",
+      "reversible": true,
+      "review": "Untested with a live model in this environment; the mechanical tests cover the selection and the schema."
+    },
+    {
+      "id": "D19",
+      "pass": "AGENT-01",
+      "requirement": "Commission v2.1 (What I mean by Slate; Work that continues while I am away)",
+      "choice": "Owner decisions taken in short questions on 2026-11-05: build the agent loop first; Slate acts freely inside an assignment's working area and asks only for originals, network and outside effects; closing Ledger pauses a running assignment and the next start offers to resume (background work with Ledger closed is the pass after); a model-proposed document edit inside an assignment applies at once, visibly and undoable; design for the smallest model (the model picks among at most four proposed next steps; most steps are local computation); the X marker stays on; quiet connections appear in the right column, dismissable; the first end-to-end task is the numbers on a page; helpers Slate uses are kept with their record of use so effective ones are reused and improved; the external provider stays off unless turned on; Hatch order and menu words unchanged.",
+      "reversible": true,
+      "owner_decision": true
+    },
+    {
+      "id": "D20",
+      "pass": "AGENT-01",
+      "requirement": "Work that continues while I am away; Remember enough to ask a better question",
+      "choice": "An assignment is the existing investigation record (question, claims as findings and open questions, every step with its input digests, checks, stop and refresh) plus one agent_assignments row (profile, context, plan, cursor, state) in the same Kernel database; no new store, scheduler or dispatcher. The desktop driver is a timer that calls agent.step while an assignment is RUNNING and yields between steps.",
+      "reversible": true
+    },
+    {
+      "id": "D21",
+      "pass": "AGENT-01",
+      "requirement": "Use existing tools before rebuilding them; How local intelligence should assist the LLM",
+      "choice": "A profile is explicit Python: it plans a short sequence of registered operations, interprets each actual result into claims, and offers at most four candidate next steps where a choice exists; choose_next asks the local model only when a worker is READY and otherwise takes the default. Measured in the build container (build/agent01_ui/model_trial): Qwen2.5-0.5B-Instruct Q4_K_M answers but decides poorly (option 3 every time); Qwen2.5-1.5B-Instruct Q4_K_M proposes the right document edit and the right plain next step but misses the units-differ nuance. So the rule default stays primary, the model pick is advisory and recorded, the ThinkPad qualification target is the 1.5B file (1.1 GB, Apache-2.0) and the 0.5B file is the minimum the program must stay useful with.",
+      "reversible": true
+    },
+    {
+      "id": "D22",
+      "pass": "AGENT-01",
+      "requirement": "Slate should stay with the moment (calculations that follow changed conditions)",
+      "choice": "A condition card is a Project Desk record binding a result to the exact block ids, offsets and words it was computed from; every document write marks affected cards STALE (or BROKEN when the result paragraph is gone) and one word rechecks through the same operations; old revisions stay in history.",
+      "reversible": true
+    },
+    {
+      "id": "D23",
+      "pass": "AGENT-01",
+      "requirement": "Slate should stay with the moment (quiet connections)",
+      "choice": "ledger.related finds the owner's own records that share the page's words by word match (no model, no network), shown as a dismissable Related list in the right column.",
+      "reversible": true
+    },
+    {
+      "id": "D24",
+      "pass": "AGENT-01",
+      "requirement": "Hatch as the doorway",
+      "choice": "Investigations & assignments is a Work-group row in Hatch and Explore (the existing investigation room), a ledger.navigate destination (recorded enum extension) and the Inspect route of the right column's Work lines.",
+      "reversible": true
+    },
+    {
+      "id": "D25",
+      "pass": "AGENT-01",
+      "requirement": "Build first and check in proportion (real model trials where they answer a meaningful question)",
+      "choice": "One live model trial per model in the build container through the real operations (brain.model.add, brain.model.use, brain.ask in chat, plan and choice modes), recorded as shipped evidence and labelled as not owner-host. The first live reply exposed two defects fixed in this pass: an undefined name in the reply path and a plan prompt larger than a 2,048-token context; the plan prompt now carries a core set of eight operations plus the tools chosen for the request. brain.ask gained a schema-constrained choice mode (one option number, temperature 0) for the loop.",
+      "reversible": true
+    },
+    {
+      "id": "D26",
+      "pass": "AGENT-01",
+      "requirement": "Owner request of 2026-11-05 (the Ledger Head)",
+      "choice": "By the owner's words: the CPU, GPU, RAM and TXT monitors sit in the Ledger Head beside one Nice menu; the separate Stop in the head is gone; the Nice menu's first row is the kill switch (the existing Master Stop controller, the ultimate stop for everything running), and every active or queued row below it carries a niceness slider (left more urgent, right nicer, through the existing jobs.nice and agenda.nice operations) with drag or Earlier/Later reorder for the queue. Hatch is an unnecessarily large, standout tile with the owner's egg (branding/hatch/hatch_egg_*.png), like the unnecessarily large Trash at the bottom right of the left column. Owner-visible presentation; reversible.",
+      "reversible": true,
+      "owner_decision": true,
+      "implementation": "Built: the kill switch is the first row of Nice, full width, eraser pink, '■ Stop everything', wired to the same Master Stop action, confirm dialog, thread and Ctrl+Shift+F12; active jobs carry a slider over Linux CPU nice 0…19 (jobs.nice) said in words (normal, a little nicer, nicer, much nicer, nicest); queued items carry a slider over the agenda tiers now, normal, background (agenda.nice); a disabled slider carries its reason; active jobs are not reorderable because no operation exists and the note says so; the egg is 44 px high at 14 pt, scaled with the interface up to 1.4, from the 128 px asset (256 px above device pixel ratio 1), with a pencil-yellow wash on hover and press; the strip follows its tallest item and the left column floor keeps its own arithmetic. Evidence: tools/check_head_ui.py (7 checks, 5 captures) and the rerun frame, operations, service-lifecycle, integration and hatch checks."
+    },
+    {
+      "id": "D27",
+      "pass": "AGENT-01",
+      "requirement": "Owner, 2026-11-05: the empty workspace is the Finder or Explorer of the files on the computer, in the Macintosh shape; the workspace always carries information, and the centre shows the files selected in the left-hand column navigation tree. Be creative.",
+      "choice": "Home becomes a Finder window inside the unchanged five-part frame. The left column is its sidebar: choosing Today shows the Today page (unchanged, with its resume rows); choosing a Machine storage row or mount, the Files row or a project folder fills the centre with that folder, in List, Icons or Columns view with a preview pane, a Mac-style path bar at the bottom and a status line (items, free space, observed on this computer). The listing is one new read operation, ledger.browse (bounded to 500 entries, 2000 on request; hidden files on request; symlinks never followed; private to this computer for cloud proposals). The Finder is read-only by design: open, look, ask Slate; creating, renaming, moving and deleting stay the Files room's own operations.",
+      "reversible": true,
+      "review": "Built and checked: tools/check_finder_ui.py (12 checks, 7 captures); the left-column hooks are gated on Home being active so the Finder never takes the centre from open work; the integrator made the Finder the Home of an attached project too (qt_app.show_start), the earlier StartPage staying for a host without the shell.",
+      "implementation": "workbench/finder_qt.py FinderPage: toolbar (back, forward, up, place name, Icons · List · Columns, Hidden, Preview, Places ▾), one listing from ledger.browse for the three views, PreviewPane (kind glyph or bounded image, name, kind, size, dates, first lines of a text under 64 KB), ColumnsView rooted at the nearest named place, a clickable path bar and a status line; Enter opens, Backspace or Alt Up goes up, Space toggles the preview, Alt Left/Right history, typing selects; the context menu offers Open, Open in viewer, Copy path, Ask Slate, and inside Files also Show in Files and Change it in Files. The last place, view, preview and hidden choice are kept in session.state['finder']."
+    },
+    {
+      "id": "D28",
+      "pass": "AGENT-01",
+      "requirement": "Owner, 2026-11-05: \"for incoming and outgoing files, we could use the terms ingress and egress. That way we don't have to use inbox outbooks or stupid already used terms. We're going future, baby.\"",
+      "choice": "Ingress and Egress are the names on the screen and on disk. Ingress is the folder files come in through (the Office's Arrived, earlier Inbox); Egress is the folder files leave from (Files/Exports). Existing Arrived, Inbox and Exports folders are moved to the new names once, by the same once-only move 4.2 used, without overwriting (a name already present stays in the old folder until it is empty). The Library rows, the Office page, Today's card, the Finder's places, the output-copy and export dialogs and the Pills folder follow the new names; operation names (receiving.*, files.export, office.output.copy, pills.*), record identities and the Library's shortcut counter keys do not change, because they are the recorded registry and contracts the owner never types.",
+      "reversible": true,
+      "owner_decision": true,
+      "review": "Mechanical tests in tests_integrated/test_vocabulary.py; the words on the Qt surfaces are read by the rerun offscreen checks."
+    },
+    {
+      "id": "D29",
+      "pass": "AGENT-02",
+      "reversible": true,
+      "requirement": "Work that continues with Ledger closed, on the same record (commission; the next item named at the end of AGENT-01; owner: next pass approved).",
+      "choice": "The resident Ledger service steps a running assignment when no desktop drives it: the same agent_assignments row and investigation, the same agent.step, from the service's existing 5 s tick (agent_loop.pump); no new scheduler, store or process. The desktop has priority: its step always proceeds and takes a 20 s lease; the service steps only an assignment with no live desktop lease, under the Coordinator's dispatch lock, rechecking the work hold, the setting and the service's closing before every step, with the authority recorded on the assignment (never approve). Closing Ledger releases a running assignment (agent.release) when the service is live and the setting agent.continue_when_closed (default on) is on; otherwise closing pauses it as AGENT-01 did. Master Stop on either side pauses every assignment; Off or Reboot of the service pauses them with that reason. Reopening Ledger takes the work back (it looks again when a crashed window's lease runs out). Today reports what the service did while Ledger was closed.",
+      "review": "tests_integrated/test_agent_loop.py (24 cases), tools/check_continue_ui.py, and tools/check_continue_service.py, which starts the real resident service in a disposable profile in the build container and watches it finish a numbers assignment on its own ticks; independent adversarial review found four defects (authority, per-step recheck, crashed-window adopt, the pause reason on Today), all fixed."
+    },
+    {
+      "id": "D30",
+      "pass": "AGENT-02",
+      "reversible": true,
+      "requirement": "Owner D19: a model-proposed document edit applies at once, visibly, undoable.",
+      "choice": "Only a documents.edit the model proposes for the open page applies by itself (workbench/model_turn.decide: same document, same revision, a change documents.edit accepts; a place that cannot hold the quoted words is replaced by the owner's selection and the sentence says so). It goes through the Kernel with origin SLATE_MODEL (documents.edit alone accepts it; it reads back model_used true) and through the page's one undo stack as one step; the changed words glow pencil-yellow and fade (an ExtraSelection, never saved); the face shows APPLIED ON THE PAGE with undo and Right/Wrong; the instruction matrix records the outcome against the proposal. Every other proposed operation keeps the Run/Edit words; a stale revision is not applied and the card says why; a later edit of the same proposal follows only edits that keep places. After the live trial: the model is offered one kind of change per proposal and no empty replacement; what rides along is set aside; one kind and one mark at a time; only the owner's own selected words are replaced or deleted by themselves; a paragraph change only on the owner's paragraph; a page request carries only the page's operations, two small chosen tools and 800 characters of learned examples, so it fits the default 2,048-token context.",
+      "review": "tests_integrated/test_model_turn.py, tools/check_model_turn_ui.py (canned proposal), the live page trial with Qwen2.5 1.5B and 0.5B in the build container (build/agent02_ui/model_trial); independent adversarial review found four defects (a chained second edit on the wrong paragraph, the owner's selection overriding a right place, two undo steps, the origin), all fixed.",
+      "live_trial": "The live page trial (docs/MODEL_TRIAL_02.md) ran Qwen2.5 1.5B and 0.5B through the real operations in the build container, and it found what the canned check could not. Under schema-constrained decoding both models filled every optional key of the change, so a \"make it bold\" proposal also replaced the words with nothing and added an empty paragraph, and the page applied it. The fix works at both ends. The model is offered one kind of change per proposal (one mark, a style, replace, append or clear, never an empty replacement). `decide` sets aside what rides along and applies one kind and one mark at a time. It replaces or deletes only the owner's own selected words, and a paragraph change applies only on the owner's paragraph; everything else waits for Run. An independent review measured the first version of the fix live and found four more holes, all closed. Page requests now also fit the owner's default 2,048-token context, which before failed every time. In the final run at that context, the 1.5B model applied bold, remove-bold and \"replace lazy with sleepy\" correctly, sent the heading request to Run, and changed no other word. The 0.5B model answers \"bold\" to almost everything, visibly and undoably. The rules still handle the common edits without any model."
+    },
+    {
+      "id": "D31",
+      "pass": "AGENT-02",
+      "reversible": true,
+      "requirement": "More assignments (commission): the second explicit procedure.",
+      "choice": "files_about: explicit words (find, look for, what files … about <topic>) choose it, never a model, and requests that point at the open page or are everyday questions do not; it reads only through receiving.status, files.find, ledger.browse (Ingress by name only) and at most four files.get; it writes one findings page through documents.create and append; the model, when one is ready, only advises between reading more and writing; a request typed with no page open becomes an assignment. The Work block's Found line shows the latest finding and a count when there are more than three.",
+      "review": "tests_integrated/test_profile_files.py (16 cases), tools/check_files_about_ui.py; independent adversarial review found four defects (over-eager words, stemming, a stale question, a test hold), all fixed."
+    },
+    {
+      "id": "D32",
+      "pass": "UI-06 (next UI pass, after AGENT-02)",
+      "owner_decision": true,
+      "reversible": true,
+      "requirement": "Owner design update, 2026-11-06: Graphite is the new name for Ledger & Slate, the single public name for the workspace and its AI; GRAPHITE on the startup screen and Graphite in ordinary UI text; the sharpened graphite point replaces the Struthio branding mark; a public rename that retains internal identifiers, settings keys and project paths. The unlabeled peeking cat replaces the Hatch egg at the lower left, opens the existing menu, tooltip and accessible name Open menu, with four poses (rest, hover side-eye with a question-mark tail curl, menu open with the right paw raised, sleepy after inactivity), open taking precedence over hover, brief movement, direct pose switches under reduced motion.",
+      "choice": "Recorded during the AGENT-02 integration, as the owner asked, and taken up as the next UI pass right after AGENT-02 is delivered. The owner's words, the two reference mockups and the first reading of the work are kept with the pass plan.",
+      "implementation": "GRAPHITE-01 (docs/GRAPHITE_01.md: workbench/graphite_brand.py, the cat in hatch_qt, the rename across the window), finished in Graphite 0.1: the centre at 1366 by 768, bold room, the installers' names and icon, the catalog seed, START_MINIMAL_DEBIAN.sh's words, the settings definitions in Graphite words."
+    },
+    {
+      "id": "D33",
+      "pass": "AGENT-02",
+      "owner_decision": true,
+      "reversible": true,
+      "requirement": "Owner, 2026-11-06: \"The slimmer the easier it is to parse and move around.\"",
+      "choice": "Removed from the tree only what nothing pins: the 66 PNG captures of INTEGRATION-01's regression rerun (17,550,358 bytes), copies of captures earlier checkpoints already ship; their JSON reports stay, with a note saying where the images still live (the INTEGRATION-01 volumes, git commit fea2b5a). Kept, with the reason: the STRUTHIO · ARCADE game (the owner's Easter egg behind the logo, workbench/struthio_qt.py, and part of the recorded I05 file baseline); the phone app's three image copies (identical to branding/, unused by the server, but pinned by the I05 baseline the release check verifies); the runtimes (the model runtime, the Python sandbox, the office bridge); clock_lab (used by the checks and labs); each pass's primary captures and docs. Python caches were never shipped.",
+      "review": "The release check and the restore comparison run after the removal."
+    },
+    {
+      "id": "D34",
+      "pass": "Graphite 0.1",
+      "owner_decision": true,
+      "reversible": true,
+      "requirement": "Owner, 2026-11-06: \"You only need make one new: Graphite v 0.1 I have back ups… we're trying to evolve\"",
+      "choice": "The next and only delivery is Graphite 0.1: the work in flight (the mark, the startup screen, the cat, the compact-layout fixes, the public rename, the game's desk mode) without the history. What only records that something happened leaves the tree (see D35); the owner keeps backups and the project's git history keeps every earlier commit. The release check is re-based on a recorded 0.1 registry. Internal identifiers, settings keys and project paths stay for compatibility, as the owner asked for the rename.",
+      "implementation": "Graphite 0.1 (November 6, 2026): workbench/version.py names Graphite 0.1 (VERSION 0.1.0); tools/package_graphite.py packages it (MANIFEST graphite_release 0.1, Graphite_0.1_full.zip, volumes Graphite_0.1_part_NN.zip); the release check verifies the recorded registry docs/GRAPHITE_0.1_REGISTRY.json; the tree keeps what teaches and RECORD_OF_DIRECTIONS.md is read first (D35)."
+    },
+    {
+      "id": "D35",
+      "pass": "Graphite 0.1",
+      "owner_decision": true,
+      "reversible": true,
+      "requirement": "Owner, 2026-11-06: \"No ur deleting too much good stuff\" … \"Make the best decision. I just wanted to make it easier for you to advance the project without old stuff clogging your mind.\"",
+      "choice": "The rule for the tree: keep what teaches how the program works now, why it is that way, or what was learned; remove only what merely records that something happened, once a scan finds nothing that reads it; when unsure, keep. Kept: the how-it-works docs, this register, the implementation ledger and map, the specification, the model-trial findings, the current settings inventory, the daily guide, the install note, the docs the program reads. Removed: earlier passes' screenshots, the result chain, the continue notes, earlier delivery notes, per-pass packaging scripts, superseded settings inventories, pass write-ups whose content lives in a kept doc, and the phone app's duplicate images. RECORD_OF_DIRECTIONS.md is added as the first thing a session reads."
+    }
+  ]
+}

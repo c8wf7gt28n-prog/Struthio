@@ -1,0 +1,21 @@
+{
+  "state": "PASSED",
+  "scope": "ONE_SHORT_NATIVE_QT_OFFSCREEN_WALKTHROUGH",
+  "observations": [
+    "Six launch defaults are reachable and retain local overrides until deliberately reset.",
+    "The asynchronous pinned device probe finishes and reports the actual cloud device state.",
+    "No model is registered or running; status does not invent an effective backend.",
+    "Hardware page remains reachable at 1600x1000 and 1366x768; desktop closes cleanly."
+  ],
+  "captures": [
+    "Graphite_P05_Hardware.png",
+    "Graphite_P05_Compact.png"
+  ],
+  "model_generations": 0,
+  "provider_requests": 0,
+  "owner_display_qualification": "PENDING",
+  "defects_corrected": [
+    "First-use tar library alias reads re-inflated gzip repeatedly; the verified archive now inflates once with an expanded-size limit.",
+    "Compact hardware report was cramped; launch controls moved into a scrollable tab and hardware report has its own page."
+  ]
+}

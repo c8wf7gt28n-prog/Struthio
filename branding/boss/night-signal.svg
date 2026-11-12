@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="150" viewBox="0 0 960 150">
+ <defs>
+  <pattern id="tone" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".7" fill="#68716d"/></pattern>
+  <pattern id="ink" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M-2 8L8-2M6 10L10 6" stroke="#818c85" stroke-width=".6"/></pattern>
+ </defs>
+ <path d="M0 123L38 123 38 84 70 84 70 110 113 110 113 62 140 62 140 117 188 117 188 88 215 88 215 130 260 130 260 99 294 99 294 141 0 141Z" fill="#30393c"/>
+ <path d="M0 131L303 131M304 20L276 143M312 20L284 143" fill="none" stroke="#dd854b" stroke-width="1"/>
+ <path d="M331 7L940 7 890 141 300 141Z" fill="url(#tone)" opacity=".35"/>
+ <path d="M710 0L757 15 801 2 826 17 872 2 888 42 942 80 930 143 670 143 648 112 663 60Z" fill="#111618"/>
+ <path d="M697 17L753 27 795 18 827 32 870 17 866 45 893 83 872 126 756 141 700 119 684 90Z" fill="url(#ink)"/>
+ <path d="M701 76Q730 54 759 78L747 92 715 91Z M791 77Q824 54 852 75L838 90 807 93Z" fill="#eee9dd"/>
+ <path d="M728 68L735 69 739 88 731 93 724 85Z M815 67L823 68 826 86 818 92 811 83Z" fill="#111618"/>
+ <path d="M692 76L714 64 740 63 765 77M786 76L808 62 834 61 859 72" fill="none" stroke="#eee9dd" stroke-width="3"/>
+ <path d="M757 30L728 54 695 82 722 25M805 21L784 53 765 64 780 22M867 22L841 52 822 60" fill="#111618"/>
+ <path d="M762 118L786 114 813 117M775 123L799 123" fill="none" stroke="#a8b2ac" stroke-width="1"/>
+ <path d="M893 21L948 21M900 28L936 28M902 35L928 35M332 120L487 120M332 125L415 125" stroke="#b9dd8b" stroke-width="1"/>
+ <text x="338" y="61" fill="#eee9dd" font-family="monospace" font-size="24" letter-spacing="4">WORK THE IMPOSSIBLE.</text>
+ <text x="339" y="86" fill="#b0bcb9" font-family="monospace" font-size="12" letter-spacing="2">EVIDENCE / TOOLS / MEMORY / YOU</text>
+ <text x="4" y="24" fill="#dd854b" font-family="monospace" font-size="12" letter-spacing="3">GRAPHITE  //  BOSS</text>
+ <text x="4" y="47" fill="#b0bcb9" font-family="monospace" font-size="10">LOCAL WORK. LASTING METHODS.</text>
+</svg>

@@ -1,0 +1,219 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Opening a record follows its exact placement and shows its filing path without changing the typed identity",
+    "Settings opens as a retained Room beside an edited Preview without a Save/Pin prompt or consuming one of five pins",
+    "Explicit Settings navigation clears an excluding filter, expands the destination path and leaves unrelated folds intact",
+    "A matching Settings filter is retained and the existing Apply route still updates the original owner profile",
+    "Focusing retained Cabinet and Settings tabs follows the correct tree while preserving both drafts and the original Settings revision",
+    "The Cabinet word returns to the retained record room instead of leaving the Settings editor active",
+    "Show in cabinet reveals a filtered placement without reopening its form or overwriting writing",
+    "A second-project reference keeps its exact placement, canonical identity and original project instead of jumping to the owning home",
+    "An unavailable placement clears a misleading highlight and reports the bounded-view limit without substituting another record",
+    "Navigation retains the original memory revision guard; a later legacy edit still refuses stale Apply and preserves writing",
+    "Hatch, Work, Arrange, Rules and the checked record-action menu render as actual Qt popups without triggering their commands",
+    "Explore carries the checked reference placement into the left cabinet without changing the record or replacing the source Preview",
+    "Method inspection opens the original Atlas and preserves the edited source Preview",
+    "Operations and Context retain the cabinet identity and show real pending Agenda metadata without a job submission",
+    "The existing return-copy route retains the cabinet draft and source recovery while navigation leaves the source file unchanged",
+    "Resizing the left column keeps its expanded selected row in view without reopening the record or expanding a deliberately folded branch",
+    "The compact desktop retains the filing control, unfinished project writing and fixed Trash, Stop, monitors and return footer",
+    "Original source bytes/mode, imported reference, idea ownership, five-pin policy and Hatch commands survive all transitions",
+    "Repeated menu rebuild preserves original menu objects, QAction identities and keyboard shortcuts",
+    "Clean close removes the desktop lease; guarded provider, job submission and OS-priority routes were never called"
+  ],
+  "captures": [
+    {
+      "number": 1,
+      "file": "Ledger_Slate_HATCH_Navigation_01_01_Cabinet.png",
+      "title": "The cabinet and its current project",
+      "note": "A real project, one unassigned idea and a second project. The yellow passage is unfinished writing.",
+      "sha256": "8c5dee593eed704afcc431e258d328f83f8347a8a4849a4c0f409d161547bb61",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 2,
+      "file": "Ledger_Slate_HATCH_Navigation_01_02_Reference.png",
+      "title": "One idea, a second filing reference",
+      "note": "The highlighted placement belongs to Interface review; the reference still resolves the same original idea in Ledger & Slate workshop.",
+      "sha256": "95b641ca561930f046d2f0bee5b3c50712ae7c6f56390955f6dd7b5b2c5d4b6c",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 3,
+      "file": "Ledger_Slate_HATCH_Navigation_01_03_Settings.png",
+      "title": "Memory settings in the shared tree",
+      "note": "Owner-scoped saved values, effects and history. Settings stays open alongside source writing.",
+      "sha256": "35a38dae23b395cc8f0c01e0cfca3e714021befd9fbbacbf09cbb9ae84a66664",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 4,
+      "file": "Ledger_Slate_HATCH_Navigation_01_04_Conflict.png",
+      "title": "A newer profile preserves the draft",
+      "note": "A direct legacy profile edit intervened. Apply refuses the stale revision and leaves the writing in place.",
+      "sha256": "f349da6e69d7b3d085a97ba5c1ffa22845c6da847fffc7611c85ad0cec351a9d",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 5,
+      "file": "Ledger_Slate_HATCH_Navigation_01_05_Hatch.png",
+      "title": "Hatch: new work and Ledger services",
+      "note": "Five existing choices. On, Off and Reboot refer to Ledger services; no host power action is invoked.",
+      "sha256": "b406163125e1b5d1bdf8205532e490581aa27725d1973d4c64cc80b906d3823b",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_AND_LIVE_POPUP_GRABS"
+    },
+    {
+      "number": 6,
+      "file": "Ledger_Slate_HATCH_Navigation_01_06_Work_Menu.png",
+      "title": "Work menu",
+      "note": "Existing file, receiving, copy and recovery routes under the proposed Work heading.",
+      "sha256": "53348d72be788829a2250e8a92a68ac7be09763c2f4d4dd904ea5aaed6749f31",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_AND_LIVE_POPUP_GRABS"
+    },
+    {
+      "number": 7,
+      "file": "Ledger_Slate_HATCH_Navigation_01_07_Arrange_Menu.png",
+      "title": "Arrange menu",
+      "note": "Existing workspace, presentation and console choices under Arrange.",
+      "sha256": "290b80f3be0a8096cc4ec2220c00307b2389fd78b55ca895574591b2ac617ca4",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_AND_LIVE_POPUP_GRABS"
+    },
+    {
+      "number": 8,
+      "file": "Ledger_Slate_HATCH_Navigation_01_08_Rules_Menu.png",
+      "title": "Rules menu",
+      "note": "Shared Settings and retained configuration routes under Rules. The wording is ready for owner review.",
+      "sha256": "f1bdf7a8d37f031c85234602ecfb161aa84c3f7f2051e2330e8f1b181408afd2",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_AND_LIVE_POPUP_GRABS"
+    },
+    {
+      "number": 9,
+      "file": "Ledger_Slate_HATCH_Navigation_01_09_Record_Actions.png",
+      "title": "With this record",
+      "note": "The live contextual menu uses the checked record captured when it opens. It does not execute an action during capture.",
+      "sha256": "13eb87bce63779b6703bfd4a2fae3a0f3800a829b8cd6798c7f9095edb0eaa85",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_AND_LIVE_POPUP_GRABS"
+    },
+    {
+      "number": 10,
+      "file": "Ledger_Slate_HATCH_Navigation_01_10_Explore.png",
+      "title": "Choose an instrument for the work",
+      "note": "Existing workspaces and explained suggestions. Opening a view leaves execution to its own controls.",
+      "sha256": "83f572ce2a48a551f27eb5a2601e255df35f34d7a492a359f6edce9d6af2a6f7",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 11,
+      "file": "Ledger_Slate_HATCH_Navigation_01_11_Methods.png",
+      "title": "Inspect a method",
+      "note": "The existing Algorithm & Theory Atlas opens a reference-only shortest-path method. No solver or job is run.",
+      "sha256": "4ddc85b618dfc591567c2cb68f13bafbf67ecffa6fd1c1047a221b79d6cb67e8",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 12,
+      "file": "Ledger_Slate_HATCH_Navigation_01_12_Operations.png",
+      "title": "Operations and the pending queue",
+      "note": "Three disposable saved Agenda items show ordering, dependency and idle waits. No tool job or live worker has started.",
+      "sha256": "95e8103de8cfda500a7d85d0bdcb95c92acc28069af24f2fb613d416ac2a308c",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 13,
+      "file": "Ledger_Slate_HATCH_Navigation_01_13_Context.png",
+      "title": "The selected record in Context",
+      "note": "Context follows the current cabinet identity. Selection is distinct from source or engineering qualification.",
+      "sha256": "c084961274997c20bc935ae0db3f390414af143c45d46032b55a221c7e9274e2",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 14,
+      "file": "Ledger_Slate_HATCH_Navigation_01_14_Return_Thread.png",
+      "title": "Leave a thread for the next session",
+      "note": "The existing return copy keeps cabinet writing and code recovery. Unfinished Settings writing still uses its own desktop-local drafts.",
+      "sha256": "7bd75c24b629a7c5935c0cc88f9b2340d67bb46296465a121524987ad278effa",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    },
+    {
+      "number": 15,
+      "file": "Ledger_Slate_HATCH_Navigation_01_15_Compact.png",
+      "title": "The compact writing desk",
+      "note": "The same current project at 1366 by 768, scrolled to its unfinished writing. Fixed Trash, Stop, monitors and the return thread stay reachable.",
+      "sha256": "c066abe3da7b539bae36853fe6442104ed8625df4127fe98914638c80d734ab4",
+      "resolution": [
+        1366,
+        768
+      ],
+      "capture_mode": "WINDOW_GRAB"
+    }
+  ],
+  "source_fixture": "DISPOSABLE_SOURCE_AND_OWNER_REFERENCE",
+  "agenda_fixture_items": 3,
+  "jobs_submitted": 0,
+  "model_calls": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "os_priority_changes": 0,
+  "popup_capture": "Window and visible live Qt popup grabs composited at their actual window positions; no mock UI",
+  "owner_ui_review": "READY_FOR_COHESIVE_REVIEW",
+  "native_acceptance": false,
+  "clean_close": true
+}

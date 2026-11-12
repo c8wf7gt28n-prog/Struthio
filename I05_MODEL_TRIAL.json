@@ -1,0 +1,59 @@
+{
+  "schema": "ledger.i05-model-trial-summary/1",
+  "state": "FAILED",
+  "accepted_reference_family": false,
+  "model": {
+    "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+    "config": {
+      "context": 6144,
+      "threads": 4,
+      "memory_mb": 4480,
+      "backend": "CPU",
+      "weight_loading": "RESIDENT_COPY"
+    },
+    "runtime": {
+      "build": "b11669",
+      "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+      "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+      "platform": "linux-x64",
+      "backend": "CPU"
+    },
+    "template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+    "files": {
+      "/tmp/ledger-i04-model/Qwen3.5-4B-Q4_K_M.gguf": {
+        "bytes": 2740937888,
+        "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+        "stat": [
+          2740937888,
+          1793570462198783431,
+          1793570462198783431,
+          3678853
+        ]
+      }
+    },
+    "thinking_enabled": false,
+    "temperature": 0,
+    "profile": "ledger.adaptive-investigation/1"
+  },
+  "executor_digest": "b9fe160921ac2f7e6b045ae8c217f15d5dc5e8e58e9fd3dbb3549ee4fd89595b",
+  "expected_cases": 3,
+  "completed_cases": 1,
+  "validated_generations": 4,
+  "cloud_calls": 0,
+  "cases": [
+    {
+      "name": "Current_A",
+      "state": "FAILED",
+      "failures": [
+        "No completed proposed finding: DUPLICATE_ACTION_ON_UNCHANGED_INPUTS",
+        "No actual model-selected method execution",
+        "No actual model-selected joined application chain"
+      ],
+      "finding": null
+    }
+  ],
+  "report": "examples/clock_lab/observed_i05/acceptance/model-family.json",
+  "review": "examples/clock_lab/observed_i05/acceptance/semantic-review.json",
+  "native_visible_takeover": "OPEN",
+  "notice": "Scripted setup qualifies the method; the model selects actions and arguments. No baseline intelligence comparison or owner-host claim."
+}

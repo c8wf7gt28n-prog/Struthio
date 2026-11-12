@@ -1,0 +1,14 @@
+{
+  "schema": "arc.clock-lab-evaluator/1",
+  "initial_memory_verdict": "INSUFFICIENT_LIFETIME_INFORMATION",
+  "limit_bytes": 16777216,
+  "simultaneous_bytes": 17825792,
+  "simultaneous_fits": false,
+  "explicit_variant": "A and B live [0,10); workspace lives [10,20) seconds",
+  "explicit_nonoverlap_peak_bytes": 12582912,
+  "explicit_nonoverlap_fits": true,
+  "assumed_typical_watts": "1.25",
+  "declared_limit_watts": "1.500",
+  "power_limit_guaranteed_from_typical": false,
+  "notice": "Evaluator-only expected values. Not copied into the exercise or supplied to Slate. No hardware claim."
+}

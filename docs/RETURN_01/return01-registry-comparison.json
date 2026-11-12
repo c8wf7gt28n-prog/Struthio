@@ -1,0 +1,15 @@
+{
+  "state": "PASSED",
+  "baseline_operations": 686,
+  "operations": 688,
+  "added": [
+    "ledger.session.keep",
+    "ledger.session.read"
+  ],
+  "removed": [],
+  "changed_existing_schemas": [],
+  "changed_existing_scopes": [],
+  "tools_unchanged": true,
+  "tool_count": 112,
+  "schema_digest": "e0326a53a8da5c134b63dd899f85f52468ced3d44a11049110cc16e8a6ed42cb"
+}

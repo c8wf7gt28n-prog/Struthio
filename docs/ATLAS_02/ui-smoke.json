@@ -1,0 +1,39 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "native_acceptance": false,
+  "checks": [
+    "Tools menu opens Algorithm Atlas",
+    "12 entry list",
+    "Source-linked resource method overview",
+    "Invalid unit example rejected via actual button",
+    "Planned method refuses execution claim",
+    "Search filter",
+    "Root chain-menu link",
+    "Kernel navigation request",
+    "Earlier Tool Atlas opens and discovers all three algo operations",
+    "Pinned Algorithm Atlas stays open across workspace switches"
+  ],
+  "jobs": 0,
+  "desk_records_created": 0,
+  "model_generations": 0,
+  "solver_calls": 0,
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Atlas_02.png",
+      "sha256": "dd6d3450be87336cf69474b9aa8b4584a38a43d5a4dd9ae921dbb0d9d0b03584",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Atlas_02_Admission.png",
+      "sha256": "fba41e4272ebebad5755c9d0bae8130d93af341b9187bdfb7d92323656ab1eb3",
+      "resolution": [
+        1920,
+        1200
+      ]
+    }
+  ]
+}

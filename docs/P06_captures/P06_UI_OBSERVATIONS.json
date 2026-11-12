@@ -1,0 +1,18 @@
+{
+  "state": "PASSED",
+  "scope": "ONE_SHORT_NATIVE_QT_OFFSCREEN_WALKTHROUGH",
+  "observations": [
+    "Work trail shows actual host headroom and a disposable held queued record with its foreground wait reason.",
+    "System queued title exposes the scheduling menu; promotion changes admission priority while CPU nice is untouched.",
+    "Compact resource readback stays reachable and the desktop closes cleanly."
+  ],
+  "captures": [
+    "Graphite_P06_Traffic.png",
+    "Graphite_P06_System.png",
+    "Graphite_P06_Compact.png"
+  ],
+  "queued_record": "DISPOSABLE_UI_FIXTURE_LAUNCHER_HELD",
+  "native_tool_launches": 0,
+  "model_generations": 0,
+  "owner_host_qualification": "PENDING"
+}

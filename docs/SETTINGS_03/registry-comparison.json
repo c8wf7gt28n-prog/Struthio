@@ -1,0 +1,22 @@
+{
+  "state": "PASSED",
+  "baseline_operations": 690,
+  "operations": 690,
+  "added": [],
+  "removed": [],
+  "changed_existing_schemas": [],
+  "changed_existing_scopes": [],
+  "tools_unchanged": true,
+  "tool_count": 112,
+  "schema_digest": "9b28255cf4cd31117ece3edada8a737b569e9de996cbb32836e3b1040f92e1a1",
+  "baseline_settings": 26,
+  "settings": 31,
+  "added_settings": [
+    "memory.profile.enabled",
+    "memory.soft_half_life_days",
+    "memory.weight.owner_confirmed_choice",
+    "memory.weight.owner_correction",
+    "memory.weight.owner_statement"
+  ],
+  "changed_existing_setting_definitions": []
+}

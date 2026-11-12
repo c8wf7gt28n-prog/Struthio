@@ -1,0 +1,9 @@
+{
+  "state": "PASSED",
+  "tests_run": 14,
+  "failures": 0,
+  "errors": 0,
+  "elapsed_seconds": 3.304,
+  "scope": "Settings store, authority, revision, recovery and consumer-readback boundaries; no model or solver",
+  "model_generations": 0
+}

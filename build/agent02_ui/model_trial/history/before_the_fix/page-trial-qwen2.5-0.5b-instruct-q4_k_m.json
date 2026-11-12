@@ -1,0 +1,296 @@
+{
+  "model_file": "models/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+  "bytes": 491400032,
+  "steps": [
+    {
+      "label": "register",
+      "job": "032630cf63ec40f6a5335759c55b2f59",
+      "state": "Completed",
+      "seconds": 1.5,
+      "error": ""
+    },
+    {
+      "label": "activate",
+      "job": "5152cfb110a349a4a2279b95eda07e83",
+      "state": "Completed",
+      "seconds": 4.5,
+      "error": ""
+    },
+    {
+      "label": "bold selected words",
+      "job": "2897bc81f42542e2af1397f3d5795bde",
+      "state": "Completed",
+      "seconds": 13.5,
+      "error": ""
+    },
+    {
+      "label": "heading on the caret paragraph",
+      "job": "9dce582fee504f0b9e6cc1f5293a2244",
+      "state": "Completed",
+      "seconds": 12.0,
+      "error": ""
+    },
+    {
+      "label": "replace a word",
+      "job": "bba4c129d6814180a1af8a68c2ca44a3",
+      "state": "Completed",
+      "seconds": 12.0,
+      "error": ""
+    }
+  ],
+  "started": 1793951151.0785036,
+  "where": "build container, CPU runtime, not the owner host",
+  "model_turn_module": true,
+  "model_id": "f78a6286d95e39db05e6cec09c105604543d1d27df8a3840c92b53a4eebc78aa",
+  "status_after_use": "READY",
+  "document": "b388da78e942453b9eec05eaff32138d",
+  "blocks_before": [
+    {
+      "id": "bc225b0f2c7e45b5ae03e6f31187a255",
+      "style": "Normal",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "marks": []
+    },
+    {
+      "id": "ac2f4a0c18324a52aa3bd8e3ccff7a57",
+      "style": "Normal",
+      "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg.",
+      "marks": []
+    },
+    {
+      "id": "cdb2af8ad9d941a29f17198a6819a3e9",
+      "style": "Normal",
+      "text": "Third paragraph, plain words.",
+      "marks": []
+    }
+  ],
+  "trials": [
+    {
+      "label": "bold selected words",
+      "request": "Make the words \"quick brown\" bold.",
+      "about": "document \u201cFox page\u201d (id b388da78e942453b9eec05eaff32138d, revision 1) \u00b7 selected words 4\u201315 of paragraph 1 (block index 0): \u201cquick brown\u201d\nTo change this page use documents.edit with id b388da78e942453b9eec05eaff32138d, expected_revision 1, selection {block, start, end, text} and change {bold|italic|underline|style|replace|append}.",
+      "state": "Completed",
+      "seconds": 13.6,
+      "text": "{\n  \"text\": \"quick brown\",\n  \"actions\": [\n    {\n      \"operation\": \"knowledge.page\",\n      \"arguments\": {\n        \"id\": \"b388da78e942453b9eec05eaff32138d\",\n        \"record_id\": \"0\",\n        \"page_index\": 4,\n        \"render\": false,\n        \"request_key\": \"normal\"\n      }\n    },\n    {\n      \"operation\": \"knowledge.page\",\n      \"arguments\": {\n        \"id\": \"b388da78e942453b9eec05eaff32138d\",\n        \"record_id\": \"0\",\n        \"page_index\": 15,\n        \"render\": false,\n        \"request_key\": \"normal\"\n      }\n    },\n    {\n      \"operation\": \"knowledge.page\",\n      \"arguments\": {\n        \"id\": \"b388da78e942453b9eec05eaff32138d\",\n        \"record_id\": \"0\",\n        \"page_index\": 0,\n        \"render\": false,\n        \"request_key\": \"normal\"\n      }\n    }\n  ]\n}",
+      "proposal": {
+        "text": "quick brown",
+        "actions": [
+          {
+            "operation": "knowledge.page",
+            "arguments": {
+              "id": "b388da78e942453b9eec05eaff32138d",
+              "record_id": "0",
+              "page_index": 4,
+              "render": false,
+              "request_key": "normal"
+            }
+          },
+          {
+            "operation": "knowledge.page",
+            "arguments": {
+              "id": "b388da78e942453b9eec05eaff32138d",
+              "record_id": "0",
+              "page_index": 15,
+              "render": false,
+              "request_key": "normal"
+            }
+          },
+          {
+            "operation": "knowledge.page",
+            "arguments": {
+              "id": "b388da78e942453b9eec05eaff32138d",
+              "record_id": "0",
+              "page_index": 0,
+              "render": false,
+              "request_key": "normal"
+            }
+          }
+        ]
+      },
+      "applied": null,
+      "decision": {
+        "apply": false,
+        "arguments": null,
+        "reason": "only an edit of the open page (documents.edit) applies by itself; knowledge.page waits for Run",
+        "notes": [],
+        "corrections": []
+      },
+      "blocks_after": [
+        {
+          "id": "bc225b0f2c7e45b5ae03e6f31187a255",
+          "marks": [],
+          "style": "Normal",
+          "text": "The quick brown fox jumps over the lazy dog."
+        },
+        {
+          "id": "ac2f4a0c18324a52aa3bd8e3ccff7a57",
+          "marks": [],
+          "style": "Normal",
+          "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg."
+        },
+        {
+          "id": "cdb2af8ad9d941a29f17198a6819a3e9",
+          "marks": [],
+          "style": "Normal",
+          "text": "Third paragraph, plain words."
+        }
+      ]
+    },
+    {
+      "label": "heading on the caret paragraph",
+      "request": "Make this paragraph a heading.",
+      "about": "document \u201cFox page\u201d (id b388da78e942453b9eec05eaff32138d, revision 1) \u00b7 no words selected \u00b7 caret in paragraph 3 (block index 2)\nTo change this page use documents.edit with id b388da78e942453b9eec05eaff32138d, expected_revision 1, selection {block, start, end, text} and change {bold|italic|underline|style|replace|append}.",
+      "state": "Completed",
+      "seconds": 12.1,
+      "text": "{ \"text\": \"To change this page use documents.edit with id b388da78e942453b9eec05eaff32138d, expected_revision 1, selection {block, start, end, text}\", \"actions\": [{\"operation\": \"documents.edit\", \"arguments\": {\"id\": \"b388da78e942453b9eec05eaff32138d\", \"expected_revision\": 1, \"selection\": { \"block\": 2, \"start\": 2, \"end\": 2, \"text\": \"block index 2\" },\"change\": { \"bold\": true, \"italic\": true, \"underline\": true, \"style\": \"Normal\", \"replace\": \"Normal\", \"append\": \"Normal\" }}}] }",
+      "proposal": {
+        "text": "To change this page use documents.edit with id b388da78e942453b9eec05eaff32138d, expected_revision 1, selection {block, start, end, text}",
+        "actions": [
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "b388da78e942453b9eec05eaff32138d",
+              "expected_revision": 1,
+              "selection": {
+                "block": 2,
+                "start": 2,
+                "end": 2,
+                "text": "block index 2"
+              },
+              "change": {
+                "bold": true,
+                "italic": true,
+                "underline": true,
+                "style": "Normal",
+                "replace": "Normal",
+                "append": "Normal"
+              }
+            }
+          }
+        ]
+      },
+      "applied": null,
+      "decision": {
+        "apply": false,
+        "arguments": null,
+        "reason": "it changes words but its selection holds none; select the words first",
+        "notes": [],
+        "corrections": []
+      },
+      "blocks_after": [
+        {
+          "id": "bc225b0f2c7e45b5ae03e6f31187a255",
+          "marks": [],
+          "style": "Normal",
+          "text": "The quick brown fox jumps over the lazy dog."
+        },
+        {
+          "id": "ac2f4a0c18324a52aa3bd8e3ccff7a57",
+          "marks": [],
+          "style": "Normal",
+          "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg."
+        },
+        {
+          "id": "cdb2af8ad9d941a29f17198a6819a3e9",
+          "marks": [],
+          "style": "Normal",
+          "text": "Third paragraph, plain words."
+        }
+      ]
+    },
+    {
+      "label": "replace a word",
+      "request": "Replace the word lazy with sleepy in this paragraph.",
+      "about": "document \u201cFox page\u201d (id b388da78e942453b9eec05eaff32138d, revision 1) \u00b7 selected words 35\u201339 of paragraph 1 (block index 0): \u201clazy\u201d\nTo change this page use documents.edit with id b388da78e942453b9eec05eaff32138d, expected_revision 1, selection {block, start, end, text} and change {bold|italic|underline|style|replace|append}.",
+      "state": "Completed",
+      "seconds": 12.0,
+      "text": "{\n  \"text\": \"lazy\",\n  \"actions\": [\n    {\n      \"operation\": \"documents.edit\",\n      \"arguments\": {\n        \"id\": \"b388da78e942453b9eec05eaff32138d\",\n        \"expected_revision\": 1,\n        \"selection\": {\n          \"block\": 35,\n          \"start\": 35,\n          \"end\": 39,\n          \"text\": \"lazy\"\n        },\n        \"change\": {\n          \"bold\": true,\n          \"italic\": true,\n          \"underline\": true,\n          \"style\": \"Normal\",\n          \"replace\": \"Normal\",\n          \"append\": \"Normal\"\n        }\n      }\n    }\n  ]\n}",
+      "proposal": {
+        "text": "lazy",
+        "actions": [
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "b388da78e942453b9eec05eaff32138d",
+              "expected_revision": 1,
+              "selection": {
+                "block": 35,
+                "start": 35,
+                "end": 39,
+                "text": "lazy"
+              },
+              "change": {
+                "bold": true,
+                "italic": true,
+                "underline": true,
+                "style": "Normal",
+                "replace": "Normal",
+                "append": "Normal"
+              }
+            }
+          }
+        ]
+      },
+      "applied": true,
+      "decision": {
+        "apply": true,
+        "arguments": {
+          "id": "b388da78e942453b9eec05eaff32138d",
+          "expected_revision": 1,
+          "selection": {
+            "block": 0,
+            "start": 35,
+            "end": 39,
+            "text": "lazy"
+          },
+          "change": {
+            "bold": true,
+            "italic": true,
+            "underline": true,
+            "style": "Normal",
+            "replace": "Normal",
+            "append": "Normal"
+          },
+          "origin": "SLATE_MODEL"
+        },
+        "reason": "it edits the open page at its current revision",
+        "notes": [
+          "the model named paragraph 36, words 35\u201339, which do not hold \u201clazy\u201d; your selection in paragraph 1 is used"
+        ],
+        "corrections": [
+          "the model named paragraph 36, words 35\u201339, which do not hold \u201clazy\u201d; your selection in paragraph 1 is used"
+        ]
+      },
+      "blocks_after": [
+        {
+          "id": "bc225b0f2c7e45b5ae03e6f31187a255",
+          "marks": [],
+          "style": "Normal",
+          "text": "The quick brown fox jumps over the Normal dog."
+        },
+        {
+          "id": "0cf6f1c091414ad6aa641bce5ebced76",
+          "marks": [],
+          "style": "Normal",
+          "text": "Normal"
+        },
+        {
+          "id": "ac2f4a0c18324a52aa3bd8e3ccff7a57",
+          "marks": [],
+          "style": "Normal",
+          "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg."
+        },
+        {
+          "id": "cdb2af8ad9d941a29f17198a6819a3e9",
+          "marks": [],
+          "style": "Normal",
+          "text": "Third paragraph, plain words."
+        }
+      ],
+      "edit_error": null,
+      "applied_words": "made \u201clazy\u201d bold and made \u201clazy\u201d italic and made \u201clazy\u201d underline and made the paragraph body text and replaced \u201clazy\u201d with \u201cNormal\u201d and added the paragraph \u201cNormal\u201d after paragraph 1"
+    }
+  ],
+  "status_end": "READY",
+  "finished": 1793951194.9006162
+}

@@ -1,0 +1,313 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Human keyboard entry and Apply reach the existing reading store and actual desktop profile",
+    "Existing code editor font reads back the changed point size",
+    "Deterministic Slate typed request uses the same command, value, revision and history; no model inference",
+    "Human Undo reverses the Slate typed edit as a new journal revision",
+    "Unsaved settings draft survives key switching and preview replacement",
+    "Concurrent command edit is visible; Apply refuses the stale revision and retains the draft",
+    "Explicit reload, shared Default and Undo use current revisions",
+    "Native highlighted text selection and keyboard Undo remain available",
+    "Startup saved as home remains pending with last as the consumed launch policy",
+    "Settings search reveals matching groups and restores the owner\u2019s expansion choices",
+    "Cabinet widget and selection survive switching; settings key and expansion reload; Trash stays outside tree scrolling",
+    "Legacy Tools destination still opens genuine inventory, separate from settings values",
+    "Affected layout resizes to 1366 \u00d7 768 with scrollable settings content",
+    "A closed desktop receipt is not reported as live even while its process remains alive"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Settings_01_Shared.png",
+      "sha256": "f587a7b368e1bd2decbbeb920f603a902d60b9a61a5f3691c279ff90247393dd",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_01_Conflict.png",
+      "sha256": "26dddd06bd9fbefddb417e7cc766db6365f07e0d26a223b644a099d58d7b8741",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_01_Pending.png",
+      "sha256": "ef36f5504445f50cc5363e5d328a299e58514571be9e8114a4a1ab5c6885dfcb",
+      "resolution": [
+        1920,
+        1200
+      ]
+    }
+  ],
+  "jobs": 0,
+  "model_generations": 0,
+  "natural_language_setting_selection": "NOT_TESTED_NO_REAL_MODEL",
+  "native_acceptance": false,
+  "coverage_keys": [
+    "reading.family",
+    "reading.prose_family",
+    "reading.code_family",
+    "reading.ui_pt",
+    "reading.navigation_pt",
+    "reading.code_pt",
+    "reading.prose_pt",
+    "reading.line_height",
+    "reading.reduce_motion",
+    "stacy.reactions",
+    "stacy.enabled",
+    "stacy.provider",
+    "stacy.actions",
+    "stacy.share_activity",
+    "workspace.startup",
+    "workspace.mode",
+    "operations.priority",
+    "operations.services_enabled"
+  ],
+  "typed_nodes": [
+    {
+      "id": "settings:ledger",
+      "parent": null,
+      "role": "settings_root",
+      "label": "Ledger",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:ledger:appearance",
+      "parent": "settings:ledger",
+      "role": "settings_group",
+      "label": "Appearance",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.code_family",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Code font",
+      "target": "reading.code_family",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.code_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Code text (pt)",
+      "target": "reading.code_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.line_height",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Document line spacing",
+      "target": "reading.line_height",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.family",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Interface font",
+      "target": "reading.family",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.ui_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Interface text (pt)",
+      "target": "reading.ui_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.prose_family",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Prose font",
+      "target": "reading.prose_family",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.prose_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Prose text (pt)",
+      "target": "reading.prose_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.reduce_motion",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Reduce motion",
+      "target": "reading.reduce_motion",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.navigation_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Tree text (pt)",
+      "target": "reading.navigation_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:ledger:operations",
+      "parent": "settings:ledger",
+      "role": "settings_group",
+      "label": "Operations",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:operations.services_enabled",
+      "parent": "settings:ledger:operations",
+      "role": "setting",
+      "label": "Ledger services admission",
+      "target": "operations.services_enabled",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:operations.priority",
+      "parent": "settings:ledger:operations",
+      "role": "setting",
+      "label": "Work CPU priority",
+      "target": "operations.priority",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:ledger:workspace",
+      "parent": "settings:ledger",
+      "role": "settings_group",
+      "label": "Workspace",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:workspace.startup",
+      "parent": "settings:ledger:workspace",
+      "role": "setting",
+      "label": "Startup",
+      "target": "workspace.startup",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:workspace.mode",
+      "parent": "settings:ledger:workspace",
+      "role": "setting",
+      "label": "Workspace arrangement",
+      "target": "workspace.mode",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate",
+      "parent": null,
+      "role": "settings_root",
+      "label": "Slate",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate:behavior",
+      "parent": "settings:slate",
+      "role": "settings_group",
+      "label": "Behavior",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.enabled",
+      "parent": "settings:slate:behavior",
+      "role": "setting",
+      "label": "Allow new Slate AI activity",
+      "target": "stacy.enabled",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.reactions",
+      "parent": "settings:slate:behavior",
+      "role": "setting",
+      "label": "Slate reactions",
+      "target": "stacy.reactions",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate:providers",
+      "parent": "settings:slate",
+      "role": "settings_group",
+      "label": "Providers",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.provider",
+      "parent": "settings:slate:providers",
+      "role": "setting",
+      "label": "Slate chat provider",
+      "target": "stacy.provider",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate:tools",
+      "parent": "settings:slate",
+      "role": "settings_group",
+      "label": "Tools",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.actions",
+      "parent": "settings:slate:tools",
+      "role": "setting",
+      "label": "Enable Slate action proposals",
+      "target": "stacy.actions",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.share_activity",
+      "parent": "settings:slate:tools",
+      "role": "setting",
+      "label": "Share activity context",
+      "target": "stacy.share_activity",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    }
+  ],
+  "pending_example": {
+    "key": "workspace.startup",
+    "stored": "home",
+    "effective": "last",
+    "application_state": "PENDING_NEXT_LAUNCH",
+    "revision": "bb6265adbc2bf822cb16e21382baa688c30ec7de90447965138ff0d9eb36e0d3"
+  }
+}

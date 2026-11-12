@@ -1,0 +1,10 @@
+{
+  "python": "3.13.17",
+  "sdk": 24,
+  "wasmtime": "50.0.1",
+  "archive": "python-wasi.zip",
+  "sha256": "ceec2512d4bf2d2377a4791603e9879329c9b6aa0e7514a19ef827cdefe3b274",
+  "source": "https://github.com/brettcannon/cpython-wasi-build/releases/tag/v3.13.17",
+  "builder": "Brett Cannon unofficial CPython WASI distribution",
+  "license": "PSF-2.0; complete LICENSE included in archive"
+}

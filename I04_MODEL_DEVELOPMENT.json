@@ -1,0 +1,227 @@
+{
+  "schema": "ledger.i04-development/1",
+  "state": "HISTORICAL_DEVELOPMENT_NOT_ACCEPTANCE",
+  "attempts": [
+    {
+      "label": "Earlier Q3 protocol",
+      "state": "FAILED",
+      "model_id": "3f5ee3832fb95b32018ce238064c319568d7c8c1c0bd889b7c02dfe5bd5f6ce7",
+      "cases": [
+        {
+          "name": "Nonoverlap",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: DUPLICATE_ACTION_ON_UNCHANGED_INPUTS",
+            "No discriminating missing-lifetime question",
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement"
+          ],
+          "recorded_stop": "DUPLICATE_ACTION_ON_UNCHANGED_INPUTS",
+          "observations": [
+            {
+              "operation": "math.concurrent",
+              "outcome": "ADVERSE",
+              "state": "INFEASIBLE",
+              "peak": null
+            }
+          ]
+        },
+        {
+          "name": "Unseen_overlap",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: OWNER_PAUSED",
+            "No discriminating missing-lifetime question",
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement"
+          ],
+          "recorded_stop": "OWNER_PAUSED",
+          "observations": [
+            {
+              "operation": "math.concurrent",
+              "outcome": "ADVERSE",
+              "state": "INFEASIBLE",
+              "peak": null
+            }
+          ]
+        },
+        {
+          "name": "Direct_title",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: Stop the failed development trial before rerunning the revised profile.",
+            "Direct-response trial performed unnecessary investigation"
+          ],
+          "recorded_stop": "Stop the failed development trial before rerunning the revised profile.",
+          "observations": [
+            {
+              "operation": "math.concurrent",
+              "outcome": "FAILURE",
+              "state": null,
+              "peak": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Resident-loading development run, explicitly stopped",
+      "state": "FAILED",
+      "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+      "cases": [
+        {
+          "name": "Nonoverlap",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: End preliminary development trial before final frozen validation",
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement"
+          ],
+          "recorded_stop": "End preliminary development trial before final frozen validation",
+          "observations": [
+            {
+              "operation": "math.concurrent",
+              "outcome": "ADVERSE",
+              "state": "INFEASIBLE",
+              "peak": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Typed-reference protocol before explicit completion choice",
+      "state": "FAILED",
+      "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: DUPLICATE_ACTION_ON_UNCHANGED_INPUTS"
+          ],
+          "recorded_stop": "DUPLICATE_ACTION_ON_UNCHANGED_INPUTS",
+          "observations": [
+            {
+              "operation": "math.concurrent",
+              "outcome": "ADVERSE",
+              "state": "INFEASIBLE",
+              "peak": null
+            },
+            {
+              "operation": "math.schedule",
+              "outcome": "OBSERVED",
+              "state": "FEASIBLE",
+              "peak": {
+                "decimal": "12",
+                "decimal_exact": true,
+                "dimension": {
+                  "memory": 1
+                },
+                "rational": "12",
+                "unit": "MiB"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "additional_findings": [
+    "An initial 2B reference produced malformed frontier choices and an untooled early finding; it was not accepted.",
+    "The host memory guard refused an overlarge startup budget. A prototype loading flag was unsupported by the pinned runtime; the final worker uses its documented --load-mode none.",
+    "The pre-enumeration Q4 run supplied numeric values where source variable names were required, repeated its failed call, and stopped at the duplicate guard. Its old grading path then raised a missing-snapshot error; it established no accepted schedule finding.",
+    "The typed-reference run produced the real 17-versus-16 adverse result, a cited branch rejection, an owner question and the real 12 MiB schedule, then repeated a completed call instead of finishing. It failed completion acceptance."
+  ],
+  "interpretation": "These are failed or deliberately interrupted development trials. Their observations do not replace the separately frozen final case family.",
+  "additional_reports": [
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-bound.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No model-recorded rejection/refinement"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-completion.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: Stop development trial to complete operation-schema binding audit",
+            "Supplied lifetime variant not checked correctly"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-qwen3.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: End failed-order trial before correcting original-request projection",
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement",
+            "Asked before observing the requested concurrent check"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-request.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: Stop synthetic trial to save the owner-requested implementation checkpoint; acceptance remains open",
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement",
+            "Asked before observing the requested concurrent check"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-strict.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement",
+            "Asked before observing the requested concurrent check"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-typed.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: DUPLICATE_ACTION_ON_UNCHANGED_INPUTS"
+          ]
+        }
+      ]
+    }
+  ],
+  "model_quality_comparison": "NOT_CONTROLLED: protocol versions differ"
+}

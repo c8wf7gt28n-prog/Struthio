@@ -1,0 +1,76 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "The return thread is reachable from the persistent activity footer",
+    "The footer counts unfinished cabinet writing without saving an idea",
+    "Keep writes separate cabinet/return copies and the existing code recovery store without changing originals or creating an idea",
+    "Activity is labelled as caller-visible recorded states rather than a verified process census",
+    "Unavailable cabinet records retain reviewable recovery writing without reassignment",
+    "Open-work navigation returns to the same edited buffer",
+    "Compact layout retains the thread footer, poem writing, fixed Trash, monitors and Stop",
+    "Exit review defaults to continuing work; cancelling leaves return writing and shutdown state untouched",
+    "A newer stored copy blocks replacement; inspecting it does not replace local writing or the retained revision",
+    "Even an explicit replacement cannot overwrite a copy changed after inspection",
+    "Explicitly replacing the inspected revision resolves a conflict through the same guarded keep command",
+    "An existing file-save cancellation stops exit before the return checkpoint or shutdown",
+    "A return-copy conflict blocks normal close while the edited source and window remain intact",
+    "Recovery write failure stops exit before shutdown controllers",
+    "Explicit skip preserves the newer stored thread and dirty-file recovery while closing only the desktop",
+    "A fresh desktop restores cabinet writing and the stored thread, and offers the original code recovery copy",
+    "Normal close keeps the current thread before shutdown and removes the desktop lease"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Return_01_Thread.png",
+      "sha256": "43abdc074c0fd07138109516b65c5a6facfc56fc548b7a852cf3448a0af10599",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Return_01_Compact.png",
+      "sha256": "d5cb37a2a55e7b3c6879f42a072eaab796e63a576e07df8a352c4f6eb0dd7ff5",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Return_01_Leaving.png",
+      "sha256": "5eaccf9054a658b9286f901b488894d1d5788c44bcce79921bee7bcb996e7427",
+      "resolution": [
+        660,
+        460
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Return_01_Conflict.png",
+      "sha256": "b264c42fdaeec8c37e91454d53e41f4d42ba1dcff762444d08700f1af53fb012",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Return_01_Returned.png",
+      "sha256": "2711cd943f007feea5144e682e7395b47a7732e51adbc4468e88a3d87eca7545",
+      "resolution": [
+        1920,
+        1200
+      ]
+    }
+  ],
+  "fixture_job_records": 2,
+  "jobs_submitted": 0,
+  "model_calls": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "os_priority_changes": 0,
+  "native_acceptance": false,
+  "unavailable_record_case": "DISPOSABLE_MISSING_ID",
+  "recovery_failure_case": "CONTROLLED_WRITE_REFUSAL",
+  "recovery_startup_dialog": "OFFER_OBSERVED_NO_MODAL_INTERACTION",
+  "clean_close": true
+}

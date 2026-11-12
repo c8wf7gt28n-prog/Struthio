@@ -1,0 +1,14 @@
+test_already_attempted_preparation_does_not_offer_duplicate_but_other_mapping_remains (tests_integrated.test_i05.CheckedMappingReplayTests.test_already_attempted_preparation_does_not_offer_duplicate_but_other_mapping_remains) ... ok
+test_saved_repeated_preview_has_exact_checked_preparation_continuation (tests_integrated.test_i05.CheckedMappingReplayTests.test_saved_repeated_preview_has_exact_checked_preparation_continuation) ... ok
+test_stale_unsupported_unaccepted_and_unavailable_mappings_are_not_continuations (tests_integrated.test_i05.CheckedMappingReplayTests.test_stale_unsupported_unaccepted_and_unavailable_mappings_are_not_continuations) ... ok
+test_completion_requires_current_checked_outputs_or_verified_precondition (tests_integrated.test_i05.JoinedAuthorityTests.test_completion_requires_current_checked_outputs_or_verified_precondition) ... ok
+test_method_summary_can_continue_only_with_its_actual_producer (tests_integrated.test_i05.JoinedAuthorityTests.test_method_summary_can_continue_only_with_its_actual_producer) ... ok
+test_new_result_readers_cannot_select_another_owned_job (tests_integrated.test_i05.JoinedAuthorityTests.test_new_result_readers_cannot_select_another_owned_job) ... ok
+test_readiness_requires_actual_preparation_and_schedule_producers (tests_integrated.test_i05.JoinedAuthorityTests.test_readiness_requires_actual_preparation_and_schedule_producers) ... ok
+test_recovery_lookup_uses_the_submission_namespace (tests_integrated.test_i05.JoinedAuthorityTests.test_recovery_lookup_uses_the_submission_namespace) ... ok
+test_stale_preview_remains_unsupported_without_proving_a_precondition (tests_integrated.test_i05.JoinedAuthorityTests.test_stale_preview_remains_unsupported_without_proving_a_precondition) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.686s
+
+OK

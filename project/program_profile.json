@@ -1,0 +1,7 @@
+{
+  "schema": "arc.program-profile/1",
+  "kind": "PROGRAM_ONLY",
+  "project_state": "PROJECT_NOT_ATTACHED",
+  "archive_intake": "PASS_4_REVIEW_REQUIRED",
+  "physical_hardware": false
+}

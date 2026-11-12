@@ -1,0 +1,15 @@
+{
+  "state": "PASSED",
+  "baseline_operations": 688,
+  "operations": 690,
+  "added": [
+    "memory.cabinet",
+    "memory.direction.revise"
+  ],
+  "removed": [],
+  "changed_existing_schemas": [],
+  "changed_existing_scopes": [],
+  "tools_unchanged": true,
+  "tool_count": 112,
+  "schema_digest": "9b28255cf4cd31117ece3edada8a737b569e9de996cbb32836e3b1040f92e1a1"
+}

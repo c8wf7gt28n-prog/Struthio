@@ -1,0 +1,86 @@
+{
+  "state": "PASSED",
+  "baseline": "NAVIGATION-01",
+  "changed_existing_sources": [
+    {
+      "file": "workbench/brain_qt.py",
+      "baseline_sha256": "fa7d5873936113e52b58816a8ea6ae54ef9512776ab8aceeaea2d3266734ab14",
+      "sha256": "eaccb05496b6d8264c09e9e5bf971a6a586b0c6c0e17c540332e7c66e1621f46"
+    },
+    {
+      "file": "workbench/engineering_kernel.py",
+      "baseline_sha256": "ed1f88e35eda57f4ef8e68e5162dfb58bd5cb30d9bf3bdd9a07af65135e0522e",
+      "sha256": "47ca15c01fc811d657aa3ce22a8ccd5990233b9499b2688653d95eedac2968e5"
+    },
+    {
+      "file": "workbench/ledger_control.py",
+      "baseline_sha256": "ec241ce4d8341285e59b5d2fa7b05cb1dce9c9b44dd214d1778c60d1702359cf",
+      "sha256": "5f3bd2a610f3d6f026748f57d529286b4ae4a0157e740238398792ac8d4e5846"
+    },
+    {
+      "file": "workbench/local_brain.py",
+      "baseline_sha256": "9a39030b52ce56d706eb9466c2ad165a045805584c01a1dc4c6a8a9c1bfc7708",
+      "sha256": "309f3f4a2b6bda91aa5abdf868a99ed466df2226f5bd99b9a523c0142514f58d"
+    },
+    {
+      "file": "workbench/settings_qt.py",
+      "baseline_sha256": "406910b942847caff7d5ba2f6f1779d6e3cccff48f56c1034ac0dfd1514fc4af",
+      "sha256": "9f50c7cee0e20d1a493ac61cef1419ea7fe7e10b03bdddd9b44a72c1d0b8cd9a"
+    },
+    {
+      "file": "workbench/settings_registry.py",
+      "baseline_sha256": "cfc05a27956b1d069bbf3fc408525a21abd92d4ed557e03519fe116406dbf77d",
+      "sha256": "483a7d4a4104601d1cf7175b14eb1b936a654fb4053c13add52b1dc03d61222e"
+    },
+    {
+      "file": "workbench/stacy_control.py",
+      "baseline_sha256": "4563be012e1da31df78d048b8c9c239223a30ab3858b1352e8faa44c9f9f0ad6",
+      "sha256": "69affd960a50392177a21ec7c05db48fb2600e619d74a0fce83e9166039393db"
+    },
+    {
+      "file": "workbench/stacy_foundation.py",
+      "baseline_sha256": "2d8bc07918e0357257419e1f32873a40bc52c185846023c90f9c8761e32af94e",
+      "sha256": "25c5cc28f502a6c311624105b6cd16bc472acf9693db8e75c80e930de6bd1732"
+    },
+    {
+      "file": "workbench/tail_words.py",
+      "baseline_sha256": "76be2d9b701ed1235be5066c04186141d04ac1ce9aeff986ac78a6978c997d5e",
+      "sha256": "bce088729c28d3c4aa089d477125eb5d4888e1f469265a0532fb4424dfb813be"
+    }
+  ],
+  "new_sources": [
+    {
+      "file": "workbench/model_settings.py",
+      "sha256": "48bd495441cd5a5885a31f7f3bdc8bd2874a33dd61a9522b62893ef5762a05f3"
+    },
+    {
+      "file": "workbench/model_settings_qt.py",
+      "sha256": "5acb88b0ab1940284fb5a6759f7b24a955e79d8fd9d69a2579c98ac4ff555dc3"
+    },
+    {
+      "file": "tests_integrated/test_model_settings.py",
+      "sha256": "d4a143a943b6f29655192424dcfad36bf23b5a204774c1f2374ef6916d36d571"
+    },
+    {
+      "file": "tools/check_model_settings_ui.py",
+      "sha256": "9099f0fe5bfd5809a06881b7b50c8e4e1524c90c2e89425de0ca98c81ae75cc3"
+    },
+    {
+      "file": "tools/package_hatch_model_01.py",
+      "sha256": "2237dafe2255fb8b6c5cb4780b19f01520f680e9a0ad9e3ebe38d31d6a898878"
+    }
+  ],
+  "all_operation_contracts_and_job_targets_unchanged": true,
+  "all_31_prior_setting_definitions_unchanged": true,
+  "core_guard_comparison": {
+    "state": "PASSED",
+    "kernel_unchanged_except_atomic_model_launch_freeze_and_validation_relocation": true,
+    "model_worker_unchanged_except_frozen_option_reader_and_restoration_receipt": true,
+    "original_request_spec_idempotency_comparison_unchanged": true,
+    "original_owner_admission_cancellation_reply_handover_and_restore_guards_retained": true,
+    "actual_behavior_boundaries": "Covered by 13 focused model tests; AST equivalence does not establish native/model acceptance"
+  },
+  "value_store": "Three genuine launch defaults in the existing Kernel settings table, with existing shared journal",
+  "historical_evidence": "Required unchanged by full archive comparison",
+  "source_bindings": "Rebuilt during packaging"
+}

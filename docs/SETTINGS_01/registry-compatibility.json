@@ -1,0 +1,17 @@
+{
+  "state": "PASSED",
+  "old_operations": 677,
+  "new_operations": 680,
+  "added_operations": [
+    "ledger.settings.effective",
+    "ledger.settings.history",
+    "ledger.settings.restore"
+  ],
+  "old_scopes_preserved": true,
+  "old_job_tools_preserved": true,
+  "job_tools": 112,
+  "schema_changes": {
+    "ledger.settings.set": "Optional expected_revision added; all old fields and required arguments preserved"
+  },
+  "no_operations_removed": true
+}

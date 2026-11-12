@@ -1,0 +1,33 @@
+{
+  "checkpoint": "Graphite 0.2a1 BOSS M1",
+  "source": "supplied native Graphite 0.1",
+  "implemented": [
+    "P01",
+    "P02",
+    "P03",
+    "P04"
+  ],
+  "next": "P05",
+  "verification": "Short native Qt offscreen use; no automated suites or LLM/GPU trials",
+  "observations": [
+    "Desk opens in BOSS palette with full editable path and Work/Programs/System",
+    "Path containing spaces opens a real file; Escape restores the active address",
+    "Program secondary click exposes contextual operations without launching the capability",
+    "Dropdown command secondary menu exposes its original action and captured work",
+    "Three stock-shortage rows calculated as 48, 50 and 22",
+    "Actual CSV and JSON source receipt written through Files operations",
+    "Changed source invalidates an existing preview",
+    "Selected document formatting preserves every page word",
+    "Deferred command refuses a changed selection",
+    "1366 by 768 desk opens; Illustrated ASCII and Clean ornament choices work",
+    "2001-row input filtered to one row still blocks sheet export because source preview is bounded",
+    "System menu opens with its existing owned controls; no power action invoked"
+  ],
+  "not_qualified": [
+    "Owner ThinkPad display, pointer and keyboard",
+    "Chosen Qwen model",
+    "Vulkan acceleration and shared-memory routing",
+    "Full application handoffs and general agent scope from later passes"
+  ],
+  "historical_evidence": "Earlier shipped test logs describe the baseline, not acceptance of this UI."
+}

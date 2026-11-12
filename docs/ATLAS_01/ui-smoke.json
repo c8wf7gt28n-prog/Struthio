@@ -1,0 +1,23 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "resolution": [
+    1920,
+    1200
+  ],
+  "checks": [
+    "Tools menu action opens Atlas",
+    "Python job-tool search",
+    "lab.python selection",
+    "passport button writes private snapshot",
+    "saved snapshot recheck",
+    "chain-menu Atlas link",
+    "Kernel navigation request resolves Atlas",
+    "no engineering jobs"
+  ],
+  "jobs": 0,
+  "model_generations": 0,
+  "native_acceptance": false,
+  "screenshot": "Ledger_Slate_HATCH_Atlas_01.png",
+  "screenshot_sha256": "7df3d12897756792ca03e5ad91755b6cba606e71e19782d0be4ce54e86c0e619"
+}

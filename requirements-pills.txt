@@ -1,0 +1,2 @@
+# The workstation side of pills needs only this (Debian: sudo apt install python3-cryptography).
+cryptography>=41

@@ -1,0 +1,1822 @@
+{
+  "schema": "graphite.implementation-campaign/1",
+  "title": "Graphite Implementation Campaign",
+  "revision": 4,
+  "owner": "Ryan Peddycoart",
+  "date": "8 November 2026",
+  "timezone": "America/Phoenix",
+  "pass_count": 20,
+  "milestone_count": 5,
+  "master": "Graphite_Master_Specification_v5_BOSS.pdf",
+  "master_sha256": "8e067e97e4b540aeda31ef72edbc7ea458075e02a717e6d418d645a94127683a",
+  "baseline": {
+    "product": "Graphite",
+    "version": "0.1.0",
+    "manifest_entries": 1101,
+    "source_directory": "Graphite_0.1 (supplied baseline)",
+    "working_directory": ".",
+    "authority": "Latest native build supplied in this workspace; no claim about unseen newer work elsewhere",
+    "status": "SOURCE_INSPECTION_ONLY",
+    "observations": [
+      {
+        "area": "Release identity",
+        "finding": "MANIFEST.json and workbench/version.py identify the supplied native build as Graphite 0.1.0. The manifest lists 1,101 payload entries. This planning step did not rerun the release verification."
+      },
+      {
+        "area": "Real foundations",
+        "finding": "The source contains the Kernel dispatcher, typed artifacts, condition tracking, investigations, document editing, working copies, resident-service controls, a Tool Atlas, and a staC chain builder. Their presence is source evidence, not a claim of complete new-spec behavior."
+      },
+      {
+        "area": "Header gap",
+        "finding": "shell2.py constructs PathBar and explicitly hides it. The old head uses the wordmark, eight menus, monitors, and a System symbol. The borderless active-path design has not landed in this build."
+      },
+      {
+        "area": "Menu gap",
+        "finding": "context_menu.py already has Target, Entry, finders, providers, revision-aware document actions, and nested menus. Router currently suppresses another context menu inside ContextMenu; Programs rows and dropdown commands need deliberate extension."
+      },
+      {
+        "area": "Inference gap",
+        "finding": "brain_runtime.py describes a pinned CPU worker. local_brain.py reports backend CPU, launches with -ngl 0, and disables several cache facilities. Vulkan and the traffic cop are implementation work, not already enabled acceleration."
+      },
+      {
+        "area": "Agent and method gap",
+        "finding": "agent_profiles.py registers narrow built-in assignment profiles. helpers.py describes shipped module helpers and a future sandboxed-Python source kind. A general computer operator and the full self-improvement cycle are not established by those foundations."
+      }
+    ],
+    "functional_changes_landed_in_this_planning_step": false
+  },
+  "latest_owner_decisions": [
+    "The head shows the full active workspace path as directly editable text, without a surrounding box.",
+    "Programs entries and dropdown menu commands participate in contextual cascading actions, alongside work objects.",
+    "Use twenty substantial implementation passes for the entire master specification.",
+    "No automatic test run after each pass; batch related work and use a quick launch-and-use check. Extra testing requires a concrete failure or data-integrity concern. No new test suites by default."
+  ],
+  "milestones": [
+    {
+      "number": 1,
+      "title": "The native BOSS desk",
+      "passes": "P01 to P04",
+      "result": "A usable native desktop with the new visual language, borderless active path, contextual menus, and commands that actually run."
+    },
+    {
+      "number": 2,
+      "title": "Ryzen Radeon and intelligent preparation",
+      "passes": "P05 to P08",
+      "result": "A compatible Vulkan inference path coordinated with CPU preparation and the shared system memory pool."
+    },
+    {
+      "number": 3,
+      "title": "Real artifacts and full applications",
+      "passes": "P09 to P12",
+      "result": "Sources, documents, sheets, native applications, and change records cooperate on current work."
+    },
+    {
+      "number": 4,
+      "title": "An assistant that carries work through",
+      "passes": "P13 to P16",
+      "result": "General assignments, missing capabilities, connected everyday work, and demanding specialist tasks use the same machinery."
+    },
+    {
+      "number": 5,
+      "title": "Growth and complete delivery",
+      "passes": "P17 to P20",
+      "result": "Useful improvements remain recoverable, the journeys converge, and the maintained Debian desktop is packaged and qualified."
+    }
+  ],
+  "passes": [
+    {
+      "id": "P01",
+      "number": 1,
+      "milestone": 1,
+      "title": "Build the native BOSS shell",
+      "depends_on": [],
+      "master_sections": [
+        11,
+        13,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        37,
+        38,
+        39,
+        54
+      ],
+      "outcome": "Unify the current shell styling around charcoal, copper-orange, readable terminal lettering, restrained green signals, and intentional manga or ASCII spaces. Retire default cursive and reserved logo or corner-cat space. Provide Illustrated, ASCII, and Clean appearance choices without changing capabilities. Preserve reading scale, keyboard focus, reduced motion, and the owner's saved preferences.",
+      "reuse": "shell2.py; reading_preferences.py; reading_profile.py; desk_qt.py; pane_qt.py; programs_qt.py",
+      "completion": "The actual Qt application opens in the new visual direction. Decoration can be reduced or removed, and working text, menus, files, and exports remain usable. Ship real widgets and separate artwork assets rather than a screenshot as the interface.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [],
+      "owner_host_evidence": [],
+      "implementation_note": "Native charcoal/copper/green Qt chrome; optional Illustrated/ASCII/Clean ornament; named Work/Programs/System head, three writing modes, mirrored file/instrument panes. Stored legacy keys and reading preferences retained.",
+      "qualification": "Short Qt offscreen use observed; owner-host acceptance remains pending."
+    },
+    {
+      "id": "P02",
+      "number": 2,
+      "milestone": 1,
+      "title": "Make location and working objects coherent",
+      "depends_on": [
+        "P01"
+      ],
+      "master_sections": [
+        11,
+        12,
+        37,
+        45,
+        46,
+        47,
+        48,
+        52,
+        70,
+        71,
+        72
+      ],
+      "outcome": "Replace the old header title cluster with one borderless editable full path for the active workspace item. Support Ctrl+L, copying, Enter to navigate, and Escape to restore. Keep the complete address available without substituting an ellipsis. Extend current artifact bindings so selection, revision, location, and source identity stay consistent when switching work. Treat a database record or unsaved item truthfully instead of inventing a file path.",
+      "reuse": "shell2.py TopBar and PathBar; qt_app.py active_path; finder_qt.py; universal_viewer_qt.py; documents.py; object_context.py",
+      "completion": "Opening a file, changing tabs, navigating to a folder, and cancelling path editing preserve the right location and work. Programs and System remain reachable. Related artifacts can share a working surface without losing their individual identities.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [],
+      "owner_host_evidence": [],
+      "implementation_note": "Full borderless path with Ctrl+L, Enter navigation and Escape restore; real file/folder paths and stable internal addresses for records and open unsaved work. Deferred command routes bind working identity, selection and revision.",
+      "qualification": "Short Qt offscreen use observed; owner-host acceptance remains pending."
+    },
+    {
+      "id": "P03",
+      "number": 3,
+      "milestone": 1,
+      "title": "Extend cascades to programs and menu commands",
+      "depends_on": [
+        "P02"
+      ],
+      "master_sections": [
+        5,
+        14,
+        40,
+        41,
+        42,
+        44,
+        50,
+        51,
+        71
+      ],
+      "outcome": "Give Programs entries and dropdown menu commands their own contextual actions. Ordinary clicks keep their familiar action; right-click and a keyboard or touch-accessible equivalent reveal relevant capabilities, parameters, source inspection, or a route into a chain. Bind those actions to the current artifact and supported operation. Extend Graphite's menus first and use actual application interfaces for native-program integration.",
+      "reuse": "context_menu.py Target Entry providers and Router; programs_qt.py; menus2.py; hatch_qt.py; engineering_kernel.py; explore.py",
+      "completion": "A program entry, a dropdown command, and a selected object each expose useful contextual actions. The same operation carries the same target and revision checks through every route. Menus remain within the display and have predictable Escape, focus, and continuation behavior.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [],
+      "owner_host_evidence": [],
+      "implementation_note": "The contextual router handles program entries, native QMenu commands and contextual menu rows. Original QActions stay the ordinary click route. Secondary presses cannot activate an underlying menu action. Existing providers expose captured-work modifications.",
+      "qualification": "Short Qt offscreen use observed; owner-host acceptance remains pending."
+    },
+    {
+      "id": "P04",
+      "number": 4,
+      "milestone": 1,
+      "title": "Connect chains previews and the shared writing strip",
+      "depends_on": [
+        "P03"
+      ],
+      "master_sections": [
+        14,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        49,
+        53,
+        73,
+        74
+      ],
+      "outcome": "Build on the existing staC chain builder to retain an editable sequence across menu openings, bind its inputs, preview its effects, run supported steps, and inspect the actual output. Consolidate Assistant, Terminal, and Log around the existing writing line; retain search through commands and keyboard access. Keep natural language and supported staC available through Assistant. Preserve real pause, stop, and process controls.",
+      "reuse": "chain_menu.py; stac/; context_menu.py; typebar_qt.py; console_qt.py; log_qt.py; qt_master_stop.py; system_menu_qt.py",
+      "completion": "The new desk can complete a real small chain and open its resulting artifact. A preview remains distinct from execution. Useful procedures can be retained through existing method records, and ordinary computer use still works with no model loaded.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [],
+      "owner_host_evidence": [],
+      "implementation_note": "Retained chain tray, clickable stage prefixes, original cascade builder, read-only Kernel previews, source fingerprints, shared-strip editing, actual CSV and receipt saving, and existing kept-method menu. Changed sources refuse reuse; capped 200-row results cannot be exported as an apparently complete sheet.",
+      "qualification": "Short Qt offscreen use observed; owner-host acceptance remains pending."
+    },
+    {
+      "id": "P05",
+      "number": 5,
+      "milestone": 2,
+      "title": "Deliver the ThinkPad profile and Vulkan worker",
+      "depends_on": [
+        "P02"
+      ],
+      "master_sections": [
+        21,
+        22,
+        27,
+        28,
+        29,
+        30,
+        31,
+        61
+      ],
+      "outcome": "Extend the existing model manager rather than add a competing inference system. Detect CPU, Radeon, usable memory, driver, Mesa, Vulkan, and runtime capabilities. Deliver or reproducibly build a pinned compatible Vulkan worker and its dependency route. Keep GGUF registration and a compatible CPU fallback. Show the effective backend and offload state from actual worker information.",
+      "reuse": "brain_runtime.py; local_brain.py; brain_worker.py; model_settings.py; model_settings_qt.py; hardware_settings_qt.py; runtime manifests",
+      "completion": "Graphite can configure and launch the supported Vulkan path on compatible hardware, preserve the current CPU route, and explain unavailable acceleration. Driver and firmware delivery uses maintained packages and retained notices.",
+      "host_dependency": "Radeon operation and the exact ThinkPad identifiers need the owner machine or another explicitly identified compatible GPU host; cloud checks do not establish that result.",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [
+        "docs/THINKPAD_VULKAN_P05.md",
+        "docs/P05_captures/P05_OBSERVATIONS.json",
+        "docs/P05_captures/P05_UI_OBSERVATIONS.json",
+        "workbench/inference_hardware.py",
+        "workbench/brain_runtime.py",
+        "workbench/brain_worker.py",
+        "workbench/local_brain.py",
+        "workbench/brain_qt.py",
+        "runtimes/llama.cpp/b11669/runtime.json"
+      ],
+      "owner_host_evidence": [],
+      "implementation_note": "Pinned Vulkan and CPU distributions at the same revision; actual host inventory; frozen backend/layer/fallback preferences; actual GPU load-log offload readback; bounded CPU fallback; Linux resident/headroom guard; asynchronous hardware page and maintained Debian dependency option.",
+      "qualification": "Cloud device discovery reports no physical Vulkan device. No model generation, Radeon throughput or owner-host qualification in this checkpoint."
+    },
+    {
+      "id": "P06",
+      "number": 6,
+      "milestone": 2,
+      "title": "Coordinate shared memory and foreground work",
+      "depends_on": [
+        "P05"
+      ],
+      "master_sections": [
+        21,
+        22,
+        23,
+        28,
+        31,
+        51,
+        61
+      ],
+      "outcome": "Implement the traffic cop through existing work ownership, agenda, worker controls, and model lifecycle. Account for weights, attention state, temporary allocations, CPU evidence, tools, and graphics in the one system memory pool. Prefer useful supported GPU inference while CPU preparation remains responsive. Keep priority, queue ordering, CPU niceness, and actual preemption limits distinct. Adapt resource containment to GPU virtual-address behavior.",
+      "reuse": "agenda.py; agent_loop.py; local_brain.py; brain_worker.py; worker_boundary.py; job_priority.py; operations.py; host_service.py",
+      "completion": "Foreground interaction can take priority at supported boundaries. Memory pressure, cancellation, failure, and fallback retain findings and correct worker ownership. The installed 64 GB is never presented as 64 GB of guaranteed GPU allocation.",
+      "host_dependency": "Shared-bandwidth behavior, temperatures, power, and sustained responsiveness are qualified on the owner host when available.",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [
+        "docs/TRAFFIC_COP_P06.md",
+        "docs/P06_captures/P06_OBSERVATIONS.json",
+        "docs/P06_captures/P06_UI_OBSERVATIONS.json",
+        "workbench/resource_control.py",
+        "workbench/engineering_kernel.py",
+        "workbench/brain_worker.py",
+        "workbench/work_trail_qt.py",
+        "workbench/job_priority.py"
+      ],
+      "owner_host_evidence": [],
+      "implementation_note": "Advisory shared-memory admission in existing owned queued workers, foreground leases, one inference lane, bounded CPU slots, background nice/thread hints, separate owner queue priority and real readback. Linux CPU and Vulkan worker memory guards retain Stop and explicit recovery.",
+      "qualification": "Focused resource boundaries and one native offscreen walkthrough observed. No model generation, real GPU bandwidth, thermals or owner-host acceptance claimed."
+    },
+    {
+      "id": "P07",
+      "number": 7,
+      "milestone": 2,
+      "title": "Prepare useful evidence on the CPU",
+      "depends_on": [
+        "P02",
+        "P06"
+      ],
+      "master_sections": [
+        3,
+        4,
+        22,
+        23,
+        24,
+        25,
+        26,
+        33,
+        56,
+        61,
+        72,
+        74
+      ],
+      "outcome": "Join retrieval, indexing, typed extraction, exact arithmetic, units, dependency relationships, and relevant tool selection into intelligent data arrangement. Build a compact current evidence packet before a useful model turn, while letting model interpretation identify additional material or calculations. Preserve source conditions and unresolved meanings. Keep deterministic correctness separate from interpretation and engineering applicability.",
+      "reuse": "knowledge_service.py; reference_service.py; math_service.py; math_backend.py; reason_graph.py; typed_artifacts.py; tool_selection.py; conditions.py",
+      "completion": "A model question can use observed calculations and current source references, retrieve omitted prose when needed, and identify the next consequential question. Changed inputs invalidate the affected preparation instead of quietly reusing a stale answer.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [
+        "docs/INTELLIGENT_DATA_P07.md",
+        "docs/P07_captures/P07_OBSERVATIONS.json",
+        "workbench/intelligent_data.py",
+        "workbench/slate_context.py",
+        "workbench/slate_reasoning.py",
+        "workbench/slate_reasoning_qt.py"
+      ],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P08",
+      "number": 8,
+      "milestone": 2,
+      "title": "Complete context cache and model lifecycle",
+      "depends_on": [
+        "P05",
+        "P06",
+        "P07"
+      ],
+      "master_sections": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        61
+      ],
+      "outcome": "Manage effective token budgets, prepared prefixes, eviction, streaming, worker identity, replacement, and rollback coherently. Verify model identity at appropriate lifecycle boundaries without needlessly hashing all weights every turn. Reuse established inference methods only where the selected model, backend, and pinned runtime support them: suitable precision, microbatching, attention, prefix reuse, speculation, or expert placement. Treat each as a compatible candidate rather than an obligatory imported engine.",
+      "reuse": "local_brain.py; brain_runtime.py; brain_worker.py; model_turn.py; model_settings.py; tool_selection.py; current runtime interfaces",
+      "completion": "Model replacement preserves knowledge, temporary state is correctly invalidated or reconstructed, and stopped work stays stopped. Effective settings and the reason for fallback are inspectable. Actual usefulness and resource observations guide configuration; no promised speed multiplier or parameter-count guarantee is inserted.",
+      "host_dependency": "Live model and GPU performance claims require the identified runtime, model, and host. Avoid automatic model or parameter sweeps.",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [
+        "docs/BOSS_HALFWAY_P10.md",
+        "docs/P10_captures/P08_P10_OBSERVATIONS.json",
+        "workbench/local_brain.py",
+        "workbench/slate_stream.py",
+        "workbench/engineering_kernel.py"
+      ],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P09",
+      "number": 9,
+      "milestone": 3,
+      "title": "Make the material collection useful and portable",
+      "depends_on": [
+        "P02",
+        "P04",
+        "P07"
+      ],
+      "master_sections": [
+        3,
+        8,
+        12,
+        35,
+        46,
+        48,
+        52,
+        56,
+        63
+      ],
+      "outcome": "Complete the file and collection experience around real locations, project associations, incoming material, source identities, local search, and readable exports. Preserve originals, revisions, Ingress, Egress, Trash, and established working-copy behavior. Index permitted project material without loading the whole collection into each model turn. Keep files, machine resources, and settings directly usable by the owner and assistant.",
+      "reuse": "files_service.py; files_qt.py; browse.py; finder_qt.py; receiving.py; working_copies.py; cabinet.py; knowledge_service.py",
+      "completion": "A supplied collection can be brought in, found, opened, inspected, and exported with its relationships. Missing private project files remain a named input requirement. Records and source material remain useful without the conversation or a model.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [
+        "docs/BOSS_HALFWAY_P10.md",
+        "docs/P10_captures/P08_P10_OBSERVATIONS.json",
+        "workbench/reference_service.py",
+        "workbench/project_desk_qt.py",
+        "workbench/slate_context.py"
+      ],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P10",
+      "number": 10,
+      "milestone": 3,
+      "title": "Complete documents sheets and PDF work",
+      "depends_on": [
+        "P04",
+        "P07",
+        "P09"
+      ],
+      "master_sections": [
+        3,
+        4,
+        9,
+        11,
+        33,
+        34,
+        43,
+        47,
+        53,
+        69,
+        73,
+        74,
+        77
+      ],
+      "outcome": "Finish the everyday artifact chain: read or OCR a PDF where needed, extract tables with units and conditions, build an editable sheet, calculate through suitable local tools, and produce an editable document or printable output. Preserve selected text during edits, formatting and undo where supported, numerical meaning, source pages, and unresolved extraction questions. Use mature document and spreadsheet engines.",
+      "reuse": "documents.py; document_qt.py; pdf_service.py; reference_service.py; office_service.py; office_runtime.py; math_office.py; office_math_runtime.py",
+      "completion": "Datasheet to sheet to calculation to report is a real route through saved artifacts. Owner and assistant can alternate edits. A changed extracted value leads to the appropriate recheck; a scanned table or missing unit receives explicit handling rather than a fabricated value.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "IMPLEMENTED",
+      "implementation_evidence": [
+        "docs/BOSS_HALFWAY_P10.md",
+        "docs/P10_captures/P08_P10_OBSERVATIONS.json",
+        "workbench/datasheet_work.py",
+        "workbench/datasheet_qt.py",
+        "workbench/document_qt.py",
+        "docs/P10_captures/Graphite_P10_PDF_Table.png",
+        "docs/P10_captures/Graphite_P10_Report.png"
+      ],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P11",
+      "number": 11,
+      "milestone": 3,
+      "title": "Make full native programs part of the desk",
+      "depends_on": [
+        "P02",
+        "P09"
+      ],
+      "master_sections": [
+        5,
+        6,
+        11,
+        21,
+        34,
+        47,
+        50,
+        52,
+        54,
+        70,
+        71,
+        72,
+        75
+      ],
+      "outcome": "Provide dependable native application launching, focus, ordinary windows, clipboard, file dialogs, and return to Graphite within a maintained Linux session. Connect compact work views through supported APIs, scripts, or explicit file handoffs. Keep full Blender, browsers, mail, office, and other installed applications reachable even where specialized automation is incomplete. Preserve manual use with the assistant off.",
+      "reuse": "native_sessions.py; desktop_services.py; workspace_services.py; universal_viewer_qt.py; explore.py; launcher.py; LS_XSESSION.sh",
+      "completion": "The owner can operate a full application, return to the same task, and retain the actual saved or shared state. An explicit handoff reports its continuity guarantees. Installation is distinguishable from assistant-callable capability; universal foreign-window embedding is not required.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P12",
+      "number": 12,
+      "milestone": 3,
+      "title": "Follow edits across artifacts and applications",
+      "depends_on": [
+        "P10",
+        "P11"
+      ],
+      "master_sections": [
+        4,
+        11,
+        26,
+        33,
+        47,
+        53,
+        54,
+        56,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        76,
+        77
+      ],
+      "outcome": "Unify revision and selection bindings across source excerpts, documents, tables, scenes, reports, and investigations. Connect source-to-result inspection, before and after, supported undo, staleness, and recovery. Refresh actual state after native application work. A preview, proposal, completed edit, and saved export retain separate meanings. Let related objects share the surface without freezing every task into equal columns.",
+      "reuse": "typed_artifacts.py; reason_graph.py; object_context.py; change_sets.py; conditions.py; working_copies.py; investigation_service.py; context_menu.py",
+      "completion": "A manual correction reaches affected dependent work, an assistant change is inspectable, and returning from a native program reconciles the current artifact. A compatible retained method can be rebound to new material without borrowing old input values or execution claims.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P13",
+      "number": 13,
+      "milestone": 4,
+      "title": "Generalize the resident assignment loop",
+      "depends_on": [
+        "P07",
+        "P08",
+        "P12"
+      ],
+      "master_sections": [
+        1,
+        2,
+        23,
+        24,
+        32,
+        33,
+        34,
+        49,
+        53,
+        55,
+        62,
+        64,
+        74
+      ],
+      "outcome": "Extend the existing durable loop beyond its narrow built-in profiles. Carry an arbitrary supported assignment through relevant tool selection, incremental planning, actual execution, observation, revised interpretation, and a useful next action. Preserve goals, findings, attempted approaches, unresolved conditions, and budgets outside the context window. Continue permitted long work when the presentation window closes and resume coherently after restart.",
+      "reuse": "agent_loop.py; agent_profiles.py; investigations.py; investigation_service.py; continuing_work.py; host_service.py; tool_selection.py; model_turn.py",
+      "completion": "A supplied unfamiliar assignment can use supported tools and leave real work, an appropriate specific question, or a precise condition preventing progress. Pause, Stop, failure recovery, and completion reflect the actual worker. A completed calculation is not automatically a completed assignment.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P14",
+      "number": 14,
+      "milestone": 4,
+      "title": "Obtain missing abilities and retain useful tools",
+      "depends_on": [
+        "P11",
+        "P13"
+      ],
+      "master_sections": [
+        5,
+        6,
+        7,
+        32,
+        34,
+        44,
+        50,
+        55,
+        57,
+        63,
+        73
+      ],
+      "outcome": "Discover installed software and existing supported operations before inventing a helper. When an assignment lacks an ability, establish an authorized acquisition or integration route, use mature software as a base, and return to the original task. Add dynamic helper development with inspectable inputs, outputs, dependencies, limits, and execution records. Consider retaining or promoting a recurring useful tool when the need appears again.",
+      "reuse": "tool_atlas.py; tool_inventory.py; tool_selection.py; helpers.py; checked_methods.py; worker_tasks.py; package_service.py; integration_tools.py",
+      "completion": "A genuine capability gap can become a usable installed tool, adapter, or helper within the assignment's authority. Repeated need reuses or improves that work. Programs and menus expose substantial capabilities without flooding the launcher with every internal helper.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P15",
+      "number": 15,
+      "milestone": 4,
+      "title": "Connect web correspondence and scheduling",
+      "depends_on": [
+        "P09",
+        "P10",
+        "P13",
+        "P14"
+      ],
+      "master_sections": [
+        6,
+        8,
+        9,
+        10,
+        34,
+        35,
+        49,
+        53,
+        68,
+        69
+      ],
+      "outcome": "Add useful web research, authenticated browsing, email understanding, mailbox operations, evidence-based correspondence, calendars, and commitment-aware scheduling through maintained integrations. Preserve thread identities, dates, accounts, sources, relevant permissions, and external acknowledgements. Include prepared online forms, record reconciliation, and clean paper letters where the task needs them. Keep imported material and local preparation usable offline; connect selected services for actual external work.",
+      "reuse": "research_service.py; knowledge_service.py; reference_service.py; office_service.py; documents.py; agenda.py; existing browser routes and new supported service adapters",
+      "completion": "Graphite can complete an authorized research or secretary chain with real artifacts and clear external state. Drafting, sending, acknowledgement, and delivery remain distinct. Reconcile an uncertain response before retrying. Obtain missing intent or access only when it is genuinely missing; a webpage or email does not grant new authority.",
+      "host_dependency": "Live account operations need owner-provided account access and applicable authority. Local fixtures or imported mail do not prove live service completion.",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P16",
+      "number": 16,
+      "milestone": 4,
+      "title": "Complete specialist and creative work routes",
+      "depends_on": [
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P15"
+      ],
+      "master_sections": [
+        5,
+        6,
+        7,
+        33,
+        34,
+        53,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74
+      ],
+      "outcome": "Extend the common interfaces and useful specialized adapters for engineering, CAD and Blender, compilers and software repair, images, audio and video, network investigation, translation, and demanding records work. Preserve native project formats and let one program produce inputs to another. Build task-relevant helpers when needed. Deliver roughly thirty programs' worth of useful ability through mature applications and supported operations rather than thirty rewritten applications.",
+      "reuse": "Existing engineering and office adapters; kicad_tools.py; spice_tools.py; hdl_tools.py; first_stage_tools.py; network_watch.py; native_sessions.py; new task-driven adapters",
+      "completion": "Representative complex assignments leave editable deliverables and source-linked results across installed tools. Geometry, electrical assumptions, calculations, and external project facts are assessed through their actual sources and tools. An engineering uncertainty or missing private dataset is retained explicitly rather than converted to an unsupported confidence percentage.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P17",
+      "number": 17,
+      "milestone": 5,
+      "title": "Make improvement durable and recoverable",
+      "depends_on": [
+        "P06",
+        "P08",
+        "P13",
+        "P14",
+        "P16"
+      ],
+      "master_sections": [
+        32,
+        36,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65
+      ],
+      "outcome": "Connect observed friction and recurring work to a useful improvement process. Distinct observer, builder, and reviewer responsibilities can share one inference service and durable store. Retain candidates, compare actual artifacts or behavior where necessary, curate preferred methods, activate suitable changes within standing authority, and recover code and data together. Preserve failed attempts with their conditions and learn useful host configuration from ordinary work.",
+      "reuse": "helpers.py; checked_methods.py; study_service.py; experiment_runtime.py; reason_graph.py; update_service.py; existing worker and evidence stores",
+      "completion": "A recurring limitation can lead to a retained method or software improvement with a clear basis, previous working path, and recovery behavior. An adopted change does not erase useful records or expand its own authority. Model replacement preserves the accumulated knowledge. Three cooperative roles do not require three resident LLMs.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P18",
+      "number": 18,
+      "milestone": 5,
+      "title": "Converge the full journeys and capability coverage",
+      "depends_on": [
+        "P12",
+        "P15",
+        "P16",
+        "P17"
+      ],
+      "master_sections": [
+        33,
+        34,
+        36,
+        53,
+        54,
+        64,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77
+      ],
+      "outcome": "Use the thirty-five assignment cases as a coverage and integration ledger, including all five four-application chains. Reuse observations accumulated while implementing the capabilities. Close missing handoffs, recovery, changed-input behavior, and ordinary manual operation across the same desk. Separate software completion, supported uncertainty, a missing input, and hardware or service qualification. Finish portable partial and whole-collection exports.",
+      "reuse": "All implemented artifact, application, assignment, method, and evidence boundaries; the case coverage ledger in this campaign",
+      "completion": "Each case has an implementation owner and a stated capability route; delivered journeys point to real outputs or the precise remaining input or qualification. There is no automatic rerun of all thirty-five scenarios. New activity is limited to resolving an actual unestablished boundary or observed defect.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P19",
+      "number": 19,
+      "milestone": 5,
+      "title": "Build the maintained Debian delivery",
+      "depends_on": [
+        "P05",
+        "P11",
+        "P13",
+        "P15",
+        "P18"
+      ],
+      "master_sections": [
+        21,
+        29,
+        35,
+        36,
+        52,
+        54
+      ],
+      "outcome": "Finish the minimal maintained Debian desktop profile, Graphite session, full native application access, bootable USB image, supported installation, persistence, and recovery. Include the compatible driver, firmware, runtime, application, and offline dependency route. Keep model acquisition and any separately licensed components explicit. Preserve the ordinary application upgrade route while delivering the complete system.",
+      "reuse": "INSTALL_LS.py; INSTALL_DEBIAN.sh; START_MINIMAL_DEBIAN.sh; LS_XSESSION.sh; package_service.py; deployment and release tools",
+      "completion": "A reproducible image or supported build recipe, installer, offline cache layout, dependency identities, notices, and recovery instructions are available. The system uses maintained Debian components; the project is not required to fork the Linux kernel. User data and supported native formats survive upgrades.",
+      "host_dependency": "No dedicated owner-host requirement for source implementation",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    },
+    {
+      "id": "P20",
+      "number": 20,
+      "milestone": 5,
+      "title": "Qualify the ThinkPad and ship the complete release",
+      "depends_on": [
+        "P08",
+        "P17",
+        "P18",
+        "P19"
+      ],
+      "master_sections": [
+        21,
+        22,
+        29,
+        35,
+        36,
+        54,
+        64,
+        66,
+        67,
+        68,
+        69,
+        75
+      ],
+      "outcome": "Collect the missing owner-host observations through normal use: install and session startup, display and input, full applications, actual Radeon backend and model, useful memory headroom, responsiveness, stopping, and continuation. Complete recovery and upgrade readback, reconcile the requirement and case ledgers, and ship the usable release, source, guides, and installer volumes at or below 15,000,000 bytes each.",
+      "reuse": "Current release registry and manifests; package_graphite.py; package_release_parts.py; existing install, backup, runtime, and readiness entry points",
+      "completion": "The final handoff states what is implemented, actually observed, and still blocked. Preserve the free-of-charge local core and existing rights and upstream notices. Owner-host acceptance is closed only by the actual machine observations. A missing laptop can leave that qualification pending while independent packaging continues.",
+      "host_dependency": "Owner-host acceptance requires the actual ThinkPad, display, input devices, chosen model, and relevant application or account access. Cloud results cannot substitute for it.",
+      "status": "PLANNED",
+      "implementation_evidence": [],
+      "owner_host_evidence": []
+    }
+  ],
+  "subject_coverage": [
+    {
+      "section": 1,
+      "title": "The computer we are building",
+      "lead": "P13",
+      "supporting": []
+    },
+    {
+      "section": 2,
+      "title": "Understand and carry an assignment",
+      "lead": "P13",
+      "supporting": []
+    },
+    {
+      "section": 3,
+      "title": "Make project material usable",
+      "lead": "P09",
+      "supporting": [
+        "P07",
+        "P10"
+      ]
+    },
+    {
+      "section": 4,
+      "title": "Follow a changed fact through the work",
+      "lead": "P12",
+      "supporting": [
+        "P07",
+        "P10"
+      ]
+    },
+    {
+      "section": 5,
+      "title": "A substantial and discoverable toolbox",
+      "lead": "P14",
+      "supporting": [
+        "P03",
+        "P11",
+        "P16"
+      ]
+    },
+    {
+      "section": 6,
+      "title": "Creative authority to add capabilities",
+      "lead": "P14",
+      "supporting": [
+        "P11",
+        "P15",
+        "P16"
+      ]
+    },
+    {
+      "section": 7,
+      "title": "Dynamic tool development",
+      "lead": "P14",
+      "supporting": [
+        "P16"
+      ]
+    },
+    {
+      "section": 8,
+      "title": "Web research that becomes local knowledge",
+      "lead": "P15",
+      "supporting": [
+        "P09"
+      ]
+    },
+    {
+      "section": 9,
+      "title": "Email understanding and correspondence",
+      "lead": "P15",
+      "supporting": [
+        "P10"
+      ]
+    },
+    {
+      "section": 10,
+      "title": "Scheduling with an understanding of the work",
+      "lead": "P15",
+      "supporting": []
+    },
+    {
+      "section": 11,
+      "title": "The shared human and assistant workspace",
+      "lead": "P02",
+      "supporting": [
+        "P01",
+        "P10",
+        "P11",
+        "P12"
+      ]
+    },
+    {
+      "section": 12,
+      "title": "Today Work and Library",
+      "lead": "P09",
+      "supporting": [
+        "P02"
+      ]
+    },
+    {
+      "section": 13,
+      "title": "Color typography and attention",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 14,
+      "title": "Menus and contextual commands",
+      "lead": "P03",
+      "supporting": [
+        "P04"
+      ]
+    },
+    {
+      "section": 15,
+      "title": "Optional Graphite identity artwork",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 16,
+      "title": "Optional cat cues with clear meanings",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 17,
+      "title": "Work cues and optional character interaction",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 18,
+      "title": "Optional pose reference for native artwork",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 19,
+      "title": "Archived placement reference",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 20,
+      "title": "Optional native artwork and layout behavior",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 21,
+      "title": "Desktop delivery and the ThinkPad profile",
+      "lead": "P19",
+      "supporting": [
+        "P05",
+        "P06",
+        "P11",
+        "P20"
+      ]
+    },
+    {
+      "section": 22,
+      "title": "Ryzen Radeon and shared memory",
+      "lead": "P06",
+      "supporting": [
+        "P05",
+        "P07",
+        "P20"
+      ]
+    },
+    {
+      "section": 23,
+      "title": "Traffic cop coordination",
+      "lead": "P06",
+      "supporting": [
+        "P07",
+        "P13"
+      ]
+    },
+    {
+      "section": 24,
+      "title": "Intelligent data arrangement before a model turn",
+      "lead": "P07",
+      "supporting": [
+        "P13"
+      ]
+    },
+    {
+      "section": 25,
+      "title": "A workspace that comes prepared",
+      "lead": "P08",
+      "supporting": [
+        "P07"
+      ]
+    },
+    {
+      "section": 26,
+      "title": "Identity revision and cache validity",
+      "lead": "P08",
+      "supporting": [
+        "P07",
+        "P12"
+      ]
+    },
+    {
+      "section": 27,
+      "title": "Reuse mature inference methods",
+      "lead": "P08",
+      "supporting": [
+        "P05"
+      ]
+    },
+    {
+      "section": 28,
+      "title": "Choose the model around the work",
+      "lead": "P08",
+      "supporting": [
+        "P05",
+        "P06"
+      ]
+    },
+    {
+      "section": 29,
+      "title": "Vulkan runtime and dependency delivery",
+      "lead": "P05",
+      "supporting": [
+        "P08",
+        "P19",
+        "P20"
+      ]
+    },
+    {
+      "section": 30,
+      "title": "The reviewed inference starting point",
+      "lead": "P05",
+      "supporting": [
+        "P08"
+      ]
+    },
+    {
+      "section": 31,
+      "title": "Existing records and presentation integration",
+      "lead": "P05",
+      "supporting": [
+        "P06",
+        "P08"
+      ]
+    },
+    {
+      "section": 32,
+      "title": "Lasting methods and extended work",
+      "lead": "P17",
+      "supporting": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "section": 33,
+      "title": "A complete engineering investigation",
+      "lead": "P16",
+      "supporting": [
+        "P07",
+        "P10",
+        "P12",
+        "P13",
+        "P18"
+      ]
+    },
+    {
+      "section": 34,
+      "title": "The same depth for other assignments",
+      "lead": "P16",
+      "supporting": [
+        "P10",
+        "P11",
+        "P13",
+        "P14",
+        "P15",
+        "P18"
+      ]
+    },
+    {
+      "section": 35,
+      "title": "Local ownership and connected capabilities",
+      "lead": "P15",
+      "supporting": [
+        "P09",
+        "P19",
+        "P20"
+      ]
+    },
+    {
+      "section": 36,
+      "title": "Develop toward useful completed work",
+      "lead": "P20",
+      "supporting": [
+        "P17",
+        "P18",
+        "P19"
+      ]
+    },
+    {
+      "section": 37,
+      "title": "The desk as a working composition",
+      "lead": "P01",
+      "supporting": [
+        "P02"
+      ]
+    },
+    {
+      "section": 38,
+      "title": "Terminal lettering and readable work",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 39,
+      "title": "Color meanings across changing states",
+      "lead": "P01",
+      "supporting": []
+    },
+    {
+      "section": 40,
+      "title": "Command families and contextual access",
+      "lead": "P03",
+      "supporting": [
+        "P04"
+      ]
+    },
+    {
+      "section": 41,
+      "title": "Right click begins with the selected thing",
+      "lead": "P03",
+      "supporting": [
+        "P04"
+      ]
+    },
+    {
+      "section": 42,
+      "title": "Cascades that construct a staC chain",
+      "lead": "P04",
+      "supporting": [
+        "P03"
+      ]
+    },
+    {
+      "section": 43,
+      "title": "From a preview to completed work",
+      "lead": "P04",
+      "supporting": [
+        "P10"
+      ]
+    },
+    {
+      "section": 44,
+      "title": "Keep useful chains and grow capabilities",
+      "lead": "P14",
+      "supporting": [
+        "P03",
+        "P04"
+      ]
+    },
+    {
+      "section": 45,
+      "title": "One writing strip with clear destinations",
+      "lead": "P04",
+      "supporting": [
+        "P02"
+      ]
+    },
+    {
+      "section": 46,
+      "title": "Today as a calm point of return",
+      "lead": "P09",
+      "supporting": [
+        "P02"
+      ]
+    },
+    {
+      "section": 47,
+      "title": "Work as a shared artifact surface",
+      "lead": "P12",
+      "supporting": [
+        "P02",
+        "P10",
+        "P11"
+      ]
+    },
+    {
+      "section": 48,
+      "title": "Library as a usable collection of material",
+      "lead": "P09",
+      "supporting": [
+        "P02"
+      ]
+    },
+    {
+      "section": 49,
+      "title": "Conversation activity and working context",
+      "lead": "P13",
+      "supporting": [
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "section": 50,
+      "title": "Programs as a useful toolbox",
+      "lead": "P03",
+      "supporting": [
+        "P11",
+        "P14"
+      ]
+    },
+    {
+      "section": 51,
+      "title": "System as a clear view of owned work",
+      "lead": "P04",
+      "supporting": [
+        "P03",
+        "P06"
+      ]
+    },
+    {
+      "section": 52,
+      "title": "Files machine and settings",
+      "lead": "P09",
+      "supporting": [
+        "P02",
+        "P11",
+        "P19"
+      ]
+    },
+    {
+      "section": 53,
+      "title": "Complete journeys through the same desk",
+      "lead": "P18",
+      "supporting": [
+        "P04",
+        "P10",
+        "P12",
+        "P13",
+        "P15",
+        "P16"
+      ]
+    },
+    {
+      "section": 54,
+      "title": "Continuity and a convincing finished experience",
+      "lead": "P18",
+      "supporting": [
+        "P01",
+        "P11",
+        "P12",
+        "P19",
+        "P20"
+      ]
+    },
+    {
+      "section": 55,
+      "title": "Self directed advancement as part of useful work",
+      "lead": "P17",
+      "supporting": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "section": 56,
+      "title": "Knowledge and corrections that remain useful",
+      "lead": "P17",
+      "supporting": [
+        "P07",
+        "P09",
+        "P12"
+      ]
+    },
+    {
+      "section": 57,
+      "title": "From experience to tools and capabilities",
+      "lead": "P14",
+      "supporting": [
+        "P17"
+      ]
+    },
+    {
+      "section": 58,
+      "title": "Choosing worthwhile improvements",
+      "lead": "P17",
+      "supporting": []
+    },
+    {
+      "section": 59,
+      "title": "Building and comparing a candidate",
+      "lead": "P17",
+      "supporting": []
+    },
+    {
+      "section": 60,
+      "title": "Changing software with recoverable activation",
+      "lead": "P17",
+      "supporting": []
+    },
+    {
+      "section": 61,
+      "title": "Better preparation for Ryzen and Radeon",
+      "lead": "P07",
+      "supporting": [
+        "P05",
+        "P06",
+        "P08",
+        "P17"
+      ]
+    },
+    {
+      "section": 62,
+      "title": "Cooperating roles and useful reflection",
+      "lead": "P17",
+      "supporting": [
+        "P13"
+      ]
+    },
+    {
+      "section": 63,
+      "title": "Keeping the method library dependable",
+      "lead": "P17",
+      "supporting": [
+        "P09",
+        "P14"
+      ]
+    },
+    {
+      "section": 64,
+      "title": "Evidence of progress across real assignments",
+      "lead": "P18",
+      "supporting": [
+        "P13",
+        "P17",
+        "P20"
+      ]
+    },
+    {
+      "section": 65,
+      "title": "Research basis and current implementation",
+      "lead": "P17",
+      "supporting": []
+    },
+    {
+      "section": 66,
+      "title": "Sources and decision precedence",
+      "lead": "P20",
+      "supporting": []
+    },
+    {
+      "section": 67,
+      "title": "Primary technical references",
+      "lead": "P20",
+      "supporting": []
+    },
+    {
+      "section": 68,
+      "title": "Thirty demanding assignments and expected behavior",
+      "lead": "P18",
+      "supporting": [
+        "P15",
+        "P16",
+        "P20"
+      ]
+    },
+    {
+      "section": 69,
+      "title": "Work across four installed applications",
+      "lead": "P18",
+      "supporting": [
+        "P10",
+        "P12",
+        "P15",
+        "P16",
+        "P20"
+      ]
+    },
+    {
+      "section": 70,
+      "title": "The objects and instruments desktop",
+      "lead": "P12",
+      "supporting": [
+        "P02",
+        "P11",
+        "P16",
+        "P18"
+      ]
+    },
+    {
+      "section": 71,
+      "title": "Work objects with shared controls",
+      "lead": "P03",
+      "supporting": [
+        "P02",
+        "P11",
+        "P12",
+        "P16",
+        "P18"
+      ]
+    },
+    {
+      "section": 72,
+      "title": "Overview and detail without losing place",
+      "lead": "P12",
+      "supporting": [
+        "P02",
+        "P07",
+        "P11",
+        "P16",
+        "P18"
+      ]
+    },
+    {
+      "section": 73,
+      "title": "Retained methods as usable instruments",
+      "lead": "P04",
+      "supporting": [
+        "P10",
+        "P12",
+        "P14",
+        "P16",
+        "P18"
+      ]
+    },
+    {
+      "section": 74,
+      "title": "Cooperation that shows actual work",
+      "lead": "P12",
+      "supporting": [
+        "P04",
+        "P07",
+        "P10",
+        "P13",
+        "P16",
+        "P18"
+      ]
+    },
+    {
+      "section": 75,
+      "title": "Construction freedom and research basis",
+      "lead": "P18",
+      "supporting": [
+        "P11",
+        "P20"
+      ]
+    },
+    {
+      "section": 76,
+      "title": "Historical working surface reference",
+      "lead": "P12",
+      "supporting": [
+        "P18"
+      ]
+    },
+    {
+      "section": 77,
+      "title": "A retained method applied to new material",
+      "lead": "P12",
+      "supporting": [
+        "P10",
+        "P18"
+      ]
+    }
+  ],
+  "case_coverage": [
+    {
+      "case": 1,
+      "title": "Investigate whether a complex engineering design can work",
+      "lead": "P16",
+      "supporting": [
+        "P07",
+        "P10",
+        "P12",
+        "P13"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 2,
+      "title": "Turn foreign language datasheets into usable engineering data",
+      "lead": "P10",
+      "supporting": [
+        "P07",
+        "P09",
+        "P16"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 3,
+      "title": "Build an editable Blender model from an incomplete sketch",
+      "lead": "P16",
+      "supporting": [
+        "P11",
+        "P12"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 4,
+      "title": "Prepare a printable letter from correspondence and policy",
+      "lead": "P15",
+      "supporting": [
+        "P10",
+        "P12"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 5,
+      "title": "Organize a chaotic mailbox around actual commitments",
+      "lead": "P15",
+      "supporting": [
+        "P09",
+        "P13"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 6,
+      "title": "Investigate unexplained network activity on the owner computer",
+      "lead": "P16",
+      "supporting": [
+        "P13",
+        "P14"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 7,
+      "title": "Repair a spreadsheet whose meaning has drifted",
+      "lead": "P10",
+      "supporting": [
+        "P07",
+        "P12"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 8,
+      "title": "Reconcile a missing payment or promised refund",
+      "lead": "P15",
+      "supporting": [
+        "P07",
+        "P10"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 9,
+      "title": "Find photographs by content and assemble an evidence collection",
+      "lead": "P16",
+      "supporting": [
+        "P09",
+        "P12"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 10,
+      "title": "Produce a coherent video from disordered source material",
+      "lead": "P16",
+      "supporting": [
+        "P11",
+        "P12"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 11,
+      "title": "Fix an unfamiliar application without losing imported data",
+      "lead": "P16",
+      "supporting": [
+        "P11",
+        "P14"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 12,
+      "title": "Arrange a meeting around prerequisites travel and time zones",
+      "lead": "P15",
+      "supporting": [
+        "P07",
+        "P13"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 13,
+      "title": "Prepare complicated tax records for informed review",
+      "lead": "P15",
+      "supporting": [
+        "P07",
+        "P09",
+        "P10"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 14,
+      "title": "Prepare a complex online application with a clear handoff",
+      "lead": "P15",
+      "supporting": [
+        "P11",
+        "P13"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 15,
+      "title": "Learn a recurring task from real corrections",
+      "lead": "P17",
+      "supporting": [
+        "P13",
+        "P14"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 16,
+      "title": "Redesign a product after several constraints change",
+      "lead": "P16",
+      "supporting": [
+        "P07",
+        "P12"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 17,
+      "title": "Reconstruct a lost project from contradictory backups",
+      "lead": "P18",
+      "supporting": [
+        "P09",
+        "P12",
+        "P19"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 18,
+      "title": "Explain why a prototype fails when its simulation passes",
+      "lead": "P16",
+      "supporting": [
+        "P07",
+        "P10"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 19,
+      "title": "Move a project between applications with incompatible formats",
+      "lead": "P12",
+      "supporting": [
+        "P10",
+        "P11"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 20,
+      "title": "Operate an unfamiliar graphical application alongside the owner",
+      "lead": "P11",
+      "supporting": [
+        "P02",
+        "P03",
+        "P13"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 21,
+      "title": "Reproduce a research result from an aging software environment",
+      "lead": "P16",
+      "supporting": [
+        "P14",
+        "P17"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 22,
+      "title": "Spend an overnight assignment trying to disprove a favored idea",
+      "lead": "P13",
+      "supporting": [
+        "P06",
+        "P07",
+        "P17"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 23,
+      "title": "Explain a doubled energy bill using conflicting household records",
+      "lead": "P15",
+      "supporting": [
+        "P07",
+        "P09",
+        "P10"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 24,
+      "title": "Reschedule a small workshop when several constraints collide",
+      "lead": "P15",
+      "supporting": [
+        "P07",
+        "P13"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 25,
+      "title": "Share a defensible part of a private knowledge collection",
+      "lead": "P18",
+      "supporting": [
+        "P09",
+        "P12"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 26,
+      "title": "Complete useful work when source material contains hostile instructions",
+      "lead": "P15",
+      "supporting": [
+        "P13",
+        "P14"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 27,
+      "title": "Resume a consequential workflow after a crash and an uncertain response",
+      "lead": "P13",
+      "supporting": [
+        "P12",
+        "P15"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 28,
+      "title": "Finish a demanding project while keeping the ThinkPad usable",
+      "lead": "P06",
+      "supporting": [
+        "P05",
+        "P08",
+        "P20"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 29,
+      "title": "Localize a technical product across languages and formats",
+      "lead": "P16",
+      "supporting": [
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 30,
+      "title": "Create a useful application because the assignment needs one",
+      "lead": "P14",
+      "supporting": [
+        "P11",
+        "P16",
+        "P17"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 31,
+      "title": "Carry a hardware revision into a fabrication package",
+      "lead": "P18",
+      "supporting": [
+        "P10",
+        "P12",
+        "P16"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 32,
+      "title": "Produce an interview film and a matching printed companion",
+      "lead": "P18",
+      "supporting": [
+        "P10",
+        "P15",
+        "P16"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 33,
+      "title": "Build a documented purchasing comparison from web evidence",
+      "lead": "P18",
+      "supporting": [
+        "P10",
+        "P12",
+        "P15"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 34,
+      "title": "Turn a mechanical design into an accurate animated explanation",
+      "lead": "P18",
+      "supporting": [
+        "P11",
+        "P12",
+        "P16"
+      ],
+      "state": "PLANNED"
+    },
+    {
+      "case": 35,
+      "title": "Assemble a reimbursement request from messages money and photographs",
+      "lead": "P18",
+      "supporting": [
+        "P10",
+        "P12",
+        "P15",
+        "P16"
+      ],
+      "state": "PLANNED"
+    }
+  ],
+  "completion_policy": "A pass closes on delivered usable implementation and the relevant observed boundary, not a plan, screenshot, test count, or model assertion. Record live-model, native-application, account, and owner-host qualification separately. P20 owner-host acceptance remains open without the actual machine.",
+  "verification_policy": "No automatic tests per pass. Batch related changes and perform one quick launch-and-use check. Skip new tests for cosmetic changes. Reuse a small existing check only when an actual failure or specific data-integrity concern warrants it. No routine full suites, all-case reruns, model sweeps, or assertion-count targets.",
+  "execution": {
+    "checkpoint": "Graphite 0.2a6.post1 BOSS P10 Visual Pass 1 revision",
+    "implemented_passes": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10"
+    ],
+    "next_pass": "P11",
+    "owner_host": "PENDING",
+    "model_qualification": "NOT_RUN_THIS_CHECKPOINT",
+    "gpu_qualification": "PENDING",
+    "verification_policy": "Focused Qt walkthrough of workbook selection and save, PDF evidence review and the research journal. Live GGUF and owner-host GPU qualification remain pending."
+  }
+}

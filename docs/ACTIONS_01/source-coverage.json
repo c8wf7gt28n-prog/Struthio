@@ -1,0 +1,12 @@
+{
+  "state": "PASSED",
+  "baseline_entries_preserved": 1203,
+  "modified_existing": [
+    "workbench/activity.py",
+    "workbench/cabinet_qt.py",
+    "workbench/ledger_control.py",
+    "workbench/stacy_foundation.py"
+  ],
+  "historical_evidence_unchanged": true,
+  "discovery_protocol_files_unchanged": true
+}

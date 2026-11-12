@@ -1,0 +1,56 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Populated tree uses natural sibling order and original Project Desk, catalogue, inquiry, investigation and copy identities",
+    "Opening the cabinet room preserves an existing edited Preview and leaves its file untouched",
+    "Unsaved cabinet writing survives record changes and background tree refresh within the desktop",
+    "Keep creates a genuine project idea through the existing shared command",
+    "A second-project reference reads the same original idea and never changes its declared project",
+    "Explicit inquiry check reports a changed source as stale; passive tree reads do not claim freshness",
+    "Working copy keeps its identity and original bytes and mode unchanged",
+    "An existing catalogue project keeps its own provider schema and summary",
+    "Filtering reveals matching descendants; clearing it restores the saved expanded branches",
+    "Real Settings control changes sibling order while preserving selected record identity",
+    "Existing catalogue and workspace views remain available and rebuild without duplicate roots",
+    "Project Desk, Discovery and Slate conversation use poem with their semantic field names preserved",
+    "Changing among all five typing targets keeps poem without inserting or submitting text",
+    "Status feedback stays visible in the console while poem remains the writing placeholder",
+    "Import and Export open the existing receiving and outgoing-file controls without performing a transfer",
+    "Every instantiated editable field with a placeholder says exactly poem",
+    "Affected UI resizes to 1366 by 768 with Trash fixed outside the scrolling cabinet",
+    "Close persists cabinet selection and expansion, removes the desktop lease, and creates no job or provider request"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Cabinet_01_Poem_Project.png",
+      "sha256": "1f7e66d5ff9bbbb3d1a14ac954ed8e3e1d20e02239f6b8fc489cab58b5131ec4",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Cabinet_01_Poem_Desktop.png",
+      "sha256": "563e53de4e66da6fd24ff650fe66dcd1c84ac6fb6ba59a81691041b4dc3c19fc",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Cabinet_01_Poem_Compact.png",
+      "sha256": "3ceea5f3543ca75cc9be613ea52165f0445bb34c926b70b98723311e652feaa9",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "jobs": 0,
+  "provider_requests": 0,
+  "model_generations": 0,
+  "engineering_solver_calls": 0,
+  "native_acceptance": false,
+  "owner_ui_review": "DEFERRED_UNTIL_COHESIVE_UI"
+}

@@ -1,0 +1,279 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "native_acceptance": false,
+  "model_generations": 0,
+  "solver_calls": 0,
+  "jobs": 0,
+  "checks": [
+    "KEEP shortcut opens Inquiries",
+    "Tools and chain-menu links",
+    "Save via UI",
+    "Attach two actual exact predicates via UI",
+    "Source A invalidates only branch A",
+    "Refresh preserves unsaved buffer",
+    "Attach refuses unsaved structure",
+    "Concurrent revision prevents overwrite",
+    "Stable navigator metadata matches portable catalog",
+    "Two navigator rebuilds retain same shortcut IDs and routes",
+    "Shared Kernel navigation"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Discovery_01.png",
+      "sha256": "4b3f1d92e1a8a774572af5c53cd3bba1c35ea624ca3781421a7c8e5210152062",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Discovery_01_Stale.png",
+      "sha256": "62f1f7d8722fd505ca6e7a99499e576e47880c3d88c28051716144c3bb1d9db8",
+      "resolution": [
+        1920,
+        1200
+      ]
+    }
+  ],
+  "navigator": {
+    "schema": "ledger.navigator-shortcuts/1",
+    "rows": [
+      {
+        "id": "arrive:inbox",
+        "section": "ARRIVE",
+        "label": "Arrived",
+        "destination": "office",
+        "role": "ARRIVAL_VIEW",
+        "count_key": "inbox",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "arrive:deliveries",
+        "section": "ARRIVE",
+        "label": "Deliveries",
+        "destination": "office",
+        "role": "ARRIVAL_VIEW",
+        "count_key": "deliveries",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "files:files",
+        "section": "FILES",
+        "label": "Files",
+        "destination": "files",
+        "role": "LOCATION_SHORTCUT",
+        "count_key": "files",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "files:slate_area",
+        "section": "FILES",
+        "label": "Slate's area",
+        "destination": "files:Slate",
+        "role": "LOCATION_SHORTCUT",
+        "count_key": "slate_area",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "files:working",
+        "section": "FILES",
+        "label": "Working copies",
+        "destination": "files:Working copies",
+        "role": "LOCATION_SHORTCUT",
+        "count_key": "working",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "files:exports",
+        "section": "FILES",
+        "label": "Exports",
+        "destination": "files:Exports",
+        "role": "LOCATION_SHORTCUT",
+        "count_key": "exports",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "library:documents",
+        "section": "LIBRARY",
+        "label": "Documents",
+        "destination": "library:documents",
+        "role": "TYPE_FILTER_VIEW",
+        "count_key": "documents",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "library:code",
+        "section": "LIBRARY",
+        "label": "Code",
+        "destination": "library:code",
+        "role": "TYPE_FILTER_VIEW",
+        "count_key": "code",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "library:boards",
+        "section": "LIBRARY",
+        "label": "Boards & CAD",
+        "destination": "library:boards",
+        "role": "TYPE_FILTER_VIEW",
+        "count_key": "boards",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "library:images",
+        "section": "LIBRARY",
+        "label": "Images",
+        "destination": "library:images",
+        "role": "TYPE_FILTER_VIEW",
+        "count_key": "images",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "library:containers",
+        "section": "LIBRARY",
+        "label": "Archives & disk images",
+        "destination": "library:containers",
+        "role": "TYPE_FILTER_VIEW",
+        "count_key": "containers",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "library:all",
+        "section": "LIBRARY",
+        "label": "Everything",
+        "destination": "library:all",
+        "role": "TYPE_FILTER_VIEW",
+        "count_key": "all",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "keep:inquiries",
+        "section": "KEEP",
+        "label": "Inquiries",
+        "destination": "discovery",
+        "role": "SAVED_WORK_VIEW",
+        "count_key": "inquiries",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "keep:investigations",
+        "section": "KEEP",
+        "label": "Investigations",
+        "destination": "investigations",
+        "role": "SAVED_WORK_VIEW",
+        "count_key": "investigations",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "keep:organizer",
+        "section": "KEEP",
+        "label": "Notes & notebooks",
+        "destination": "organizer",
+        "role": "SAVED_WORK_VIEW",
+        "count_key": null,
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "keep:lessons",
+        "section": "KEEP",
+        "label": "Lessons",
+        "destination": "memory",
+        "role": "SAVED_WORK_VIEW",
+        "count_key": "lessons",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "slate:agenda",
+        "section": "SLATE",
+        "label": "Agenda",
+        "destination": "agenda",
+        "role": "OPERATIONAL_VIEW",
+        "count_key": "agenda",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "slate:brain",
+        "section": "SLATE",
+        "label": "Brain",
+        "destination": "slate",
+        "role": "OPERATIONAL_VIEW",
+        "count_key": "brain",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "slate:matrix",
+        "section": "SLATE",
+        "label": "Instruction matrix",
+        "destination": "matrix",
+        "role": "OPERATIONAL_VIEW",
+        "count_key": "matrix",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "projects:project_desk",
+        "section": "PROJECTS",
+        "label": "Project Desk",
+        "destination": "project_desk",
+        "role": "PROJECT_WORK_VIEW",
+        "count_key": "project_desk",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "projects:changes",
+        "section": "PROJECTS",
+        "label": "Changes",
+        "destination": "changes",
+        "role": "PROJECT_WORK_VIEW",
+        "count_key": "changes",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "projects:continuing",
+        "section": "PROJECTS",
+        "label": "Continuing work",
+        "destination": "continuing",
+        "role": "PROJECT_WORK_VIEW",
+        "count_key": "continuing",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "projects:deployment",
+        "section": "PROJECTS",
+        "label": "Exchange & deployment",
+        "destination": "deployment",
+        "role": "PROJECT_WORK_VIEW",
+        "count_key": "deployment",
+        "authority": "NAVIGATION_ONLY"
+      },
+      {
+        "id": "projects:project",
+        "section": "PROJECTS",
+        "label": "No project attached",
+        "destination": "project",
+        "role": "PROJECT_WORK_VIEW",
+        "count_key": "project",
+        "authority": "NAVIGATION_ONLY"
+      }
+    ],
+    "domain_tree": "Existing sdk.cli.arc1cli.concern_catalog; separate provider, not copied into shortcuts",
+    "footer": [
+      "Settings",
+      "Trash"
+    ],
+    "placement_policy": {
+      "discovery": "KEEP",
+      "algorithms": "TOOLS_MENU",
+      "atlas": "TOOLS_MENU"
+    },
+    "auto_fold_order": [
+      "CONCERN",
+      "PROJECTS",
+      "KEEP",
+      "SLATE",
+      "LIBRARY",
+      "ARRIVE"
+    ],
+    "notice": "Shortcut grouping is not object ancestry, a file move, a permission grant or a second execution registry."
+  }
+}

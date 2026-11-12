@@ -1,0 +1,296 @@
+/* STRUTHIO ARCADE · side rails, HUD skin, wing-button trim and the START title.
+   One palette for the whole display: the controller's machined gold, its glyph
+   blue, and the in-game GAME OVER red. The page is inset by the rail width so
+   the rails never hide the game. */
+:root{
+  --fr:clamp(7px,2.4vw,13px);             /* side rail width */
+  --fr-col:min(100vw,620px);              /* the cabinet column on wide screens */
+  --fr-side:calc((100vw - var(--fr-col)) / 2);
+  --fr-gold:#f7b43a;
+  --fr-gold-hi:#fff2c2;
+  --fr-gold-mid:#e38a16;
+  --fr-gold-lo:#8a4306;
+  --fr-blue:#5fb0ff;                      /* = the wing glyphs (--ctl-glyph) */
+  --fr-blue-deep:#2f6fd8;
+  --fr-red:#e8704a;                       /* = the GAME OVER lettering */
+  --fr-bone:#f7eedd;
+  --hud-font:"DIN Alternate","Bahnschrift","DIN Condensed","Arial Narrow",Arial,Helvetica,sans-serif;
+}
+html,body{background:#020306}
+
+/* ---- the page sits between the rails ---------------------------------------- */
+main{
+  left:var(--fr-side);right:var(--fr-side);
+  padding-top:calc(env(safe-area-inset-top) + var(--fr));
+  padding-left:calc(env(safe-area-inset-left) + var(--fr));
+  padding-right:calc(env(safe-area-inset-right) + var(--fr));
+  background:#020306;
+}
+#title-screen{
+  top:calc(env(safe-area-inset-top) + var(--fr));
+  left:calc(var(--fr-side) + env(safe-area-inset-left) + var(--fr));
+  right:calc(var(--fr-side) + env(safe-area-inset-right) + var(--fr));
+}
+#update{z-index:7}
+
+/* ---- frame: dark bezels down both sides and across the top. A gold edge and a
+   blue line (red pips at the sides and top) run up beside the game, over the
+   HUD and across; they stop at the bottom of the game picture
+   (--game-top/--game-h come from the page). ---- */
+#frame{position:fixed;inset:0;left:var(--fr-side);right:var(--fr-side);z-index:6;pointer-events:none;
+  --fr-y0:env(safe-area-inset-top);                          /* top of the top bezel */
+  --fr-bot:calc(var(--game-top,0px) + var(--game-h,100vh));  /* bottom of the game */
+}
+.fr-side{
+  position:absolute;top:0;bottom:0;width:var(--fr);display:block;
+  background:linear-gradient(90deg,#05070c,#0d111a 55%,#05070c);
+}
+.fr-l{left:env(safe-area-inset-left)}
+.fr-r{right:env(safe-area-inset-right)}
+.fr-top{
+  position:absolute;display:block;left:0;right:0;top:0;height:calc(var(--fr-y0) + var(--fr));
+  background:linear-gradient(180deg,#05070c,#0d111a 55%,#05070c) bottom/100% var(--fr) no-repeat,#05070c;
+}
+.fr-line{position:absolute;display:block;box-sizing:border-box;border-bottom:0}
+/* gold edge against the picture and the HUD */
+.fr-gold-line{
+  top:calc(var(--fr-y0) + var(--fr) - 1.5px);
+  left:calc(env(safe-area-inset-left) + var(--fr) - 1.5px);
+  right:calc(env(safe-area-inset-right) + var(--fr) - 1.5px);
+  height:calc(var(--fr-bot) - var(--fr-y0) - var(--fr) + 1.5px);
+  border:1.5px solid var(--fr-gold);border-bottom:0;border-radius:6px 6px 0 0;
+  box-shadow:0 0 4px rgba(247,200,58,.45),inset 0 0 4px rgba(247,200,58,.25);
+}
+/* blue line through the middle of the bezel */
+.fr-blue-line{
+  top:calc(var(--fr-y0) + var(--fr) * .38);
+  left:calc(env(safe-area-inset-left) + var(--fr) * .38);
+  right:calc(env(safe-area-inset-right) + var(--fr) * .38);
+  height:calc(var(--fr-bot) - var(--fr-y0) - var(--fr) * .38);
+  border:2px solid var(--fr-blue-deep);border-bottom:0;border-radius:9px 9px 0 0;
+  box-shadow:0 0 3px rgba(95,176,255,.35);
+}
+/* red pips on the blue line: mid-height of each side and the top centre */
+.fr-pip{position:absolute;display:block;background:var(--fr-red);border-radius:1px;box-shadow:0 0 4px rgba(232,112,74,.55)}
+.fr-pip-l,.fr-pip-r{width:2px;top:calc(var(--game-top,0px) + var(--game-h,100vh) * .47);height:calc(var(--game-h,100vh) * .06)}
+.fr-pip-l{left:calc(env(safe-area-inset-left) + var(--fr) * .38)}
+.fr-pip-r{right:calc(env(safe-area-inset-right) + var(--fr) * .38)}
+.fr-pip-t{height:2px;top:calc(var(--fr-y0) + var(--fr) * .38);left:47%;width:6%}
+
+/* ---- HUD: a machined-gold bar to match the wing controller -------------------- */
+#top-hud{
+  width:100%;max-width:580px;
+  height:calc(clamp(36px,5.2dvh,48px) * var(--hud-scale));
+  margin:3px 0 4px;
+  padding:0 clamp(8px,2.6vw,16px);
+  background:none;
+  color:var(--fr-bone);
+  font:700 calc(clamp(12px,3.4vw,17px) * var(--hud-scale))/1 var(--hud-font);
+  letter-spacing:.02em;
+}
+/* gold dividers */
+#top-hud>span{
+  height:62%;
+  padding:0 clamp(5px,1.8vw,12px);
+  border-left:0;
+  background:
+    linear-gradient(180deg,var(--fr-gold-hi),var(--fr-gold) 40%,var(--fr-gold-mid)) left center/2px 100% no-repeat;
+}
+#top-hud>span:first-child{background:none;padding-left:2px}
+#hud-score{
+  color:var(--fr-bone);font-size:1.6em;letter-spacing:.03em;
+  text-shadow:0 0 10px rgba(255,236,200,.25),0 1px 0 rgba(0,0,0,.9);
+}
+#top-hud>#hud-position{color:var(--fr-blue);font-size:1.05em;text-shadow:0 0 6px rgba(95,176,255,.45)}
+#hud-ring,#hud-rival{color:var(--fr-bone);font-size:1.05em}
+.hud-obj{gap:.45em}
+/* gold ring */
+#hud-ring i{
+  width:1.05em;height:1.05em;border:.2em solid var(--fr-gold);opacity:1;
+  box-shadow:0 0 6px rgba(255,160,40,.9),inset 0 0 3px rgba(255,160,40,.7);
+}
+.hud-obj.is-due{color:var(--fr-gold-hi)}
+.hud-obj.is-due i{border-color:var(--fr-gold-hi);box-shadow:0 0 10px #ffc24a,0 0 18px rgba(255,160,40,.8),inset 0 0 4px #ffc24a}
+.hud-obj.is-due::after{background:var(--fr-gold)}
+/* gold crossed swords */
+#hud-rival svg{color:var(--fr-gold);width:1.15em;height:1.15em;filter:drop-shadow(0 0 3px rgba(255,160,40,.8))}
+/* JOUST label, count, and the lives bar in a gold-edged track */
+#top-hud>#hud-joust{gap:.34em;justify-content:center;padding-right:2px}
+#hud-joust small{font-size:.72em;letter-spacing:.16em;color:var(--fr-bone)}
+#hud-joust b{font-size:1.05em;color:var(--fr-bone);letter-spacing:.02em}
+#top-hud.is-low #hud-joust b{color:var(--fr-red);text-shadow:0 0 6px rgba(232,112,74,.5)}
+#hud-joust i{
+  height:6px;width:100%;box-sizing:border-box;border-radius:4px;
+  border:1px solid var(--fr-gold);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.45),transparent 60%) 0 0/calc(var(--joust) * 100%) 100% no-repeat,
+    linear-gradient(90deg,var(--fr-blue-deep),var(--fr-blue)) 0 0/calc(var(--joust) * 100%) 100% no-repeat,
+    #060b16;
+  box-shadow:0 0 5px rgba(255,150,30,.45),0 0 8px rgba(61,141,255,.3);
+}
+/* toast sits under the bar in the same trim */
+#hud-toast{
+  top:calc(100% + 6px);
+  border:1px solid var(--fr-gold);border-radius:3px;
+  background:rgba(6,9,16,.94);color:var(--fr-gold-hi);
+  font:700 11px/1.2 var(--hud-font);letter-spacing:.12em;
+  box-shadow:0 0 8px rgba(255,150,30,.35);
+}
+#hud-toast[data-kind="warning"]{color:var(--fr-red);border-color:var(--fr-red)}
+#hud-toast[data-kind="pause"]{color:var(--fr-bone);border-color:var(--fr-gold)}
+
+@media (max-width:359px){
+  #top-hud>span{padding:0 4px}
+  #hud-score{font-size:1.4em}
+}
+@media (prefers-contrast:more){
+  .fr-side{background:#000}
+  .fr-side::after{display:none}
+}
+@media (prefers-reduced-transparency:reduce){#hud-toast{background:#060910}}
+
+/* ---- UI cyan reads blue, to match the game ----------------------------------- */
+:root,#fatal,#rotate{--ui-cyan:#5fb0ff;--arc-cyan:#5fb0ff;--ui-cyan-rule:rgba(95,176,255,.5)}
+
+/* ---- title: no buttons, a flashing START in the centre, arcade style --------- */
+html body #title-screen{cursor:pointer}
+html body #title-screen #title-menu,html body #title-screen.is-home #title-menu{
+  position:absolute;inset:0;top:0;bottom:0;left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  margin:0;padding:0;max-height:none;overflow:visible;
+  background:none;box-shadow:none;clip-path:none;border:0;pointer-events:none;
+}
+html body #title-screen #title-actions{display:block;pointer-events:auto}
+html body #title-screen #title-actions button,
+html body #title-screen #title-actions button.is-primary,
+html body #title-screen #title-actions button[aria-current="true"]{
+  height:auto;min-height:0;padding:.25em .5em;margin:0;
+  border:0;border-radius:0;outline:none;clip-path:none;box-shadow:none;background:none;
+  font:900 clamp(34px,11vw,58px)/1 "Arial Black","Helvetica Neue",Impact,Arial,Helvetica,sans-serif;
+  letter-spacing:.14em;
+  color:#ffc93c;-webkit-text-fill-color:#ffc93c;background:none;
+  font-weight:900;
+  text-shadow:
+    2px 0 0 #7a2a04,-2px 0 0 #7a2a04,0 2px 0 #7a2a04,0 -2px 0 #7a2a04,
+    2px 2px 0 #7a2a04,-2px 2px 0 #7a2a04,2px -2px 0 #7a2a04,-2px -2px 0 #7a2a04,
+    0 5px 0 #3a0c03,0 0 16px rgba(0,0,0,.9),0 0 26px rgba(255,150,30,.5);
+  animation:arcade-start-blink 1.1s steps(1,end) infinite;
+  cursor:pointer;
+}
+html body #title-screen #title-actions button::before,
+html body #title-screen #title-actions button::after{content:none;display:none}
+html body #title-screen #title-actions button:focus-visible{outline:2px solid var(--fr-blue);outline-offset:6px}
+@keyframes arcade-start-blink{0%{opacity:1}62%{opacity:0}}
+html body #title-screen #title-note{
+  margin:.7em 0 0;min-height:1.2em;
+  color:#ffe2a0;font:800 clamp(11px,3.2vw,14px)/1.2 "Arial Narrow",Arial,sans-serif;letter-spacing:.2em;
+  text-shadow:0 1px 2px #000,0 0 10px #000,0 0 18px #000;
+}
+@media (prefers-reduced-motion:reduce){
+  html body #title-screen #title-actions button{animation:arcade-start-pulse 2.4s ease-in-out infinite alternate}
+  @keyframes arcade-start-pulse{from{opacity:1}to{opacity:.55}}
+}
+
+/* ---- wing buttons: two circles. A thin gold outer bezel, and inside it a
+   slightly thicker GAME OVER red ring that is the flap-reserve meter.
+   Radii are fractions of the button radius:
+   well 0-71.5% | red meter ring 71.5-84% | dark gap 84-89.6% | gold bezel 90-100% */
+html body #controls button[data-control$="_WING"]{
+  background:
+    /* soft red glow just inside the ring */
+    radial-gradient(closest-side,transparent 62%,rgba(232,112,74,.30) 71.4%,transparent 71.5%),
+    /* navy well */
+    radial-gradient(closest-side,#0b2044 0%,#07162f 44%,#030a1a 64%,#01040b 71%,transparent 71.5%),
+    /* red meter ring */
+    radial-gradient(closest-side,transparent 71.3%,var(--fr-red) 71.7% 83.7%,transparent 84.1%),
+    /* dark gap between the ring and the bezel */
+    radial-gradient(closest-side,transparent 83.9%,var(--ctl-channel) 84.3% 89.6%,transparent 90%),
+    radial-gradient(ellipse 70% 55% at 38% 18%,rgba(255,255,255,.34),transparent 70%),
+    conic-gradient(from -24deg,var(--ctl-gold-hi),var(--ctl-gold) 11%,var(--ctl-gold-lo) 23%,var(--ctl-gold) 35%,var(--ctl-gold-hi) 48%,var(--ctl-gold-mid) 61%,var(--ctl-gold-lo) 74%,var(--ctl-gold) 87%,var(--ctl-gold-hi));
+}
+/* flap reserve: the spent part of the red ring goes dark */
+html body #controls button[data-control$="_WING"]::before{
+  inset:8%;
+  -webkit-mask:radial-gradient(farthest-side,transparent 84.9%,#000 85.4%);
+  mask:radial-gradient(farthest-side,transparent 84.9%,#000 85.4%);
+}
+/* low reserve: the meter stays readable and its spent part flashes */
+html body #controls[data-wing-low="true"] button[data-control$="_WING"]::before{
+  background:conic-gradient(transparent calc(var(--wing-level,1) * 1turn),rgba(6,2,0,.85) 0);
+}
+html body #controls[data-wing-low="true"] button[data-control="LEFT_WING"]::before{
+  background:conic-gradient(rgba(6,2,0,.85) calc((1 - var(--wing-level,1)) * 1turn),transparent 0);
+}
+/* wing buttons a little bigger (were clamp(82px,23vw,112px)) */
+:root{--wing-d:clamp(92px,26vw,126px)}
+
+/* ---- one gold: halfway between the island caps (lemon) and the old controller
+   gold (amber), hue ~44.5. Shared by the controller, HUD, rails and START. */
+/* the controller declares its golds on #controls, so they are set there too */
+html body #controls{--ctl-gold-hi:#fff9c2;--ctl-gold:#f7c83a;--ctl-gold-mid:#e3a716;--ctl-gold-lo:#8a6006}
+:root{
+  --fr-gold-hi:#fff9c2;--fr-gold:#f7c83a;--fr-gold-mid:#e3a716;--fr-gold-lo:#8a6006;
+}
+html body #controls .chord-cue{color:#ffd64a;background:linear-gradient(180deg,#fff8b8 0%,#ffd64a 46%,#f0aa1a 100%);-webkit-background-clip:text;background-clip:text}
+html body #title-screen #title-actions button,
+html body #title-screen #title-actions button.is-primary,
+html body #title-screen #title-actions button[aria-current="true"]{color:#ffcd3e;-webkit-text-fill-color:#ffcd3e}
+html body #controls button[data-control$="_WING"]{
+  box-shadow:
+    0 0 0 1px rgba(255,236,150,.55),
+    0 0 14px 1px rgba(255,190,50,.5),
+    0 0 34px 4px rgba(255,160,20,.24),
+    inset 0 0 0 1px rgba(255,248,200,.5),
+    inset 0 -3px 6px rgba(60,32,0,.45);
+}
+
+/* ---- wing buttons: a pixel-art targeting reticle (41x41 sprite as crisp SVG
+   rects): thin gold rings, crosshair ticks, a dashed blue outer arc that is the
+   flap reserve, digital rain in the navy well and a three-feather blue wing
+   (mirrored right). The ticks reach past the ring, so the button is square. ---- */
+:root{--wing-d:clamp(92px,29vw,142px)}
+html body #controls button[data-control$="_WING"]{
+  background:transparent;border-radius:0;overflow:visible;box-shadow:none;
+}
+html body #controls button[data-control$="_WING"]:active,
+html body #controls button[data-control$="_WING"].is-held{
+  transform:translateY(1px) scale(.97);filter:brightness(1.2);box-shadow:none;
+}
+html body #controls .wing.pix-btn{
+  position:absolute;inset:0;width:100%;height:100%;z-index:0;
+  fill:initial;stroke:none;image-rendering:pixelated;
+  filter:drop-shadow(0 0 3px rgba(95,176,255,.45)) drop-shadow(0 0 6px rgba(247,200,58,.25));
+}
+/* flap reserve: the spent share of the blue arc's dashes goes dark */
+html body #controls button[data-control$="_WING"]::before{
+  inset:0;z-index:1;border-radius:0;
+  -webkit-mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 41 41' shape-rendering='crispEdges'><rect x='23' y='2' width='1' height='1'/><rect x='15' y='3' width='2' height='1'/><rect x='24' y='3' width='1' height='1'/><rect x='26' y='3' width='1' height='1'/><rect x='12' y='4' width='2' height='1'/><rect x='27' y='4' width='1' height='1'/><rect x='10' y='5' width='1' height='1'/><rect x='29' y='5' width='2' height='1'/><rect x='9' y='6' width='1' height='1'/><rect x='31' y='6' width='1' height='1'/><rect x='32' y='7' width='1' height='1'/><rect x='7' y='8' width='1' height='1'/><rect x='33' y='8' width='1' height='1'/><rect x='6' y='9' width='1' height='1'/><rect x='35' y='10' width='1' height='1'/><rect x='5' y='11' width='1' height='1'/><rect x='35' y='11' width='1' height='1'/><rect x='4' y='12' width='1' height='1'/><rect x='36' y='13' width='1' height='1'/><rect x='3' y='14' width='1' height='1'/><rect x='37' y='14' width='1' height='1'/><rect x='3' y='15' width='1' height='1'/><rect x='37' y='15' width='1' height='1'/><rect x='3' y='16' width='1' height='1'/><rect x='38' y='17' width='1' height='1'/><rect x='2' y='23' width='1' height='1'/><rect x='37' y='24' width='1' height='1'/><rect x='3' y='25' width='1' height='1'/><rect x='37' y='25' width='1' height='1'/><rect x='3' y='26' width='1' height='1'/><rect x='37' y='26' width='1' height='1'/><rect x='4' y='27' width='1' height='1'/><rect x='36' y='28' width='1' height='1'/><rect x='5' y='29' width='1' height='1'/><rect x='35' y='29' width='1' height='1'/><rect x='5' y='30' width='1' height='1'/><rect x='34' y='31' width='1' height='1'/><rect x='7' y='32' width='1' height='1'/><rect x='33' y='32' width='1' height='1'/><rect x='8' y='33' width='1' height='1'/><rect x='9' y='34' width='1' height='1'/><rect x='31' y='34' width='1' height='1'/><rect x='10' y='35' width='2' height='1'/><rect x='30' y='35' width='1' height='1'/><rect x='13' y='36' width='1' height='1'/><rect x='27' y='36' width='2' height='1'/><rect x='14' y='37' width='1' height='1'/><rect x='16' y='37' width='1' height='1'/><rect x='24' y='37' width='2' height='1'/><rect x='17' y='38' width='1' height='1'/></svg>") center/100% 100% no-repeat;
+  mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 41 41' shape-rendering='crispEdges'><rect x='23' y='2' width='1' height='1'/><rect x='15' y='3' width='2' height='1'/><rect x='24' y='3' width='1' height='1'/><rect x='26' y='3' width='1' height='1'/><rect x='12' y='4' width='2' height='1'/><rect x='27' y='4' width='1' height='1'/><rect x='10' y='5' width='1' height='1'/><rect x='29' y='5' width='2' height='1'/><rect x='9' y='6' width='1' height='1'/><rect x='31' y='6' width='1' height='1'/><rect x='32' y='7' width='1' height='1'/><rect x='7' y='8' width='1' height='1'/><rect x='33' y='8' width='1' height='1'/><rect x='6' y='9' width='1' height='1'/><rect x='35' y='10' width='1' height='1'/><rect x='5' y='11' width='1' height='1'/><rect x='35' y='11' width='1' height='1'/><rect x='4' y='12' width='1' height='1'/><rect x='36' y='13' width='1' height='1'/><rect x='3' y='14' width='1' height='1'/><rect x='37' y='14' width='1' height='1'/><rect x='3' y='15' width='1' height='1'/><rect x='37' y='15' width='1' height='1'/><rect x='3' y='16' width='1' height='1'/><rect x='38' y='17' width='1' height='1'/><rect x='2' y='23' width='1' height='1'/><rect x='37' y='24' width='1' height='1'/><rect x='3' y='25' width='1' height='1'/><rect x='37' y='25' width='1' height='1'/><rect x='3' y='26' width='1' height='1'/><rect x='37' y='26' width='1' height='1'/><rect x='4' y='27' width='1' height='1'/><rect x='36' y='28' width='1' height='1'/><rect x='5' y='29' width='1' height='1'/><rect x='35' y='29' width='1' height='1'/><rect x='5' y='30' width='1' height='1'/><rect x='34' y='31' width='1' height='1'/><rect x='7' y='32' width='1' height='1'/><rect x='33' y='32' width='1' height='1'/><rect x='8' y='33' width='1' height='1'/><rect x='9' y='34' width='1' height='1'/><rect x='31' y='34' width='1' height='1'/><rect x='10' y='35' width='2' height='1'/><rect x='30' y='35' width='1' height='1'/><rect x='13' y='36' width='1' height='1'/><rect x='27' y='36' width='2' height='1'/><rect x='14' y='37' width='1' height='1'/><rect x='16' y='37' width='1' height='1'/><rect x='24' y='37' width='2' height='1'/><rect x='17' y='38' width='1' height='1'/></svg>") center/100% 100% no-repeat;
+}
+html body #controls button[data-control="RIGHT_WING"]::before{
+  -webkit-mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 41 41' shape-rendering='crispEdges'><rect x='17' y='2' width='1' height='1'/><rect x='14' y='3' width='1' height='1'/><rect x='16' y='3' width='1' height='1'/><rect x='24' y='3' width='2' height='1'/><rect x='13' y='4' width='1' height='1'/><rect x='27' y='4' width='2' height='1'/><rect x='10' y='5' width='2' height='1'/><rect x='30' y='5' width='1' height='1'/><rect x='9' y='6' width='1' height='1'/><rect x='31' y='6' width='1' height='1'/><rect x='8' y='7' width='1' height='1'/><rect x='7' y='8' width='1' height='1'/><rect x='33' y='8' width='1' height='1'/><rect x='34' y='9' width='1' height='1'/><rect x='5' y='10' width='1' height='1'/><rect x='5' y='11' width='1' height='1'/><rect x='35' y='11' width='1' height='1'/><rect x='36' y='12' width='1' height='1'/><rect x='4' y='13' width='1' height='1'/><rect x='3' y='14' width='1' height='1'/><rect x='37' y='14' width='1' height='1'/><rect x='3' y='15' width='1' height='1'/><rect x='37' y='15' width='1' height='1'/><rect x='37' y='16' width='1' height='1'/><rect x='2' y='17' width='1' height='1'/><rect x='38' y='23' width='1' height='1'/><rect x='3' y='24' width='1' height='1'/><rect x='3' y='25' width='1' height='1'/><rect x='37' y='25' width='1' height='1'/><rect x='3' y='26' width='1' height='1'/><rect x='37' y='26' width='1' height='1'/><rect x='36' y='27' width='1' height='1'/><rect x='4' y='28' width='1' height='1'/><rect x='5' y='29' width='1' height='1'/><rect x='35' y='29' width='1' height='1'/><rect x='35' y='30' width='1' height='1'/><rect x='6' y='31' width='1' height='1'/><rect x='7' y='32' width='1' height='1'/><rect x='33' y='32' width='1' height='1'/><rect x='32' y='33' width='1' height='1'/><rect x='9' y='34' width='1' height='1'/><rect x='31' y='34' width='1' height='1'/><rect x='10' y='35' width='1' height='1'/><rect x='29' y='35' width='2' height='1'/><rect x='12' y='36' width='2' height='1'/><rect x='27' y='36' width='1' height='1'/><rect x='15' y='37' width='2' height='1'/><rect x='24' y='37' width='1' height='1'/><rect x='26' y='37' width='1' height='1'/><rect x='23' y='38' width='1' height='1'/></svg>") center/100% 100% no-repeat;
+  mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 41 41' shape-rendering='crispEdges'><rect x='17' y='2' width='1' height='1'/><rect x='14' y='3' width='1' height='1'/><rect x='16' y='3' width='1' height='1'/><rect x='24' y='3' width='2' height='1'/><rect x='13' y='4' width='1' height='1'/><rect x='27' y='4' width='2' height='1'/><rect x='10' y='5' width='2' height='1'/><rect x='30' y='5' width='1' height='1'/><rect x='9' y='6' width='1' height='1'/><rect x='31' y='6' width='1' height='1'/><rect x='8' y='7' width='1' height='1'/><rect x='7' y='8' width='1' height='1'/><rect x='33' y='8' width='1' height='1'/><rect x='34' y='9' width='1' height='1'/><rect x='5' y='10' width='1' height='1'/><rect x='5' y='11' width='1' height='1'/><rect x='35' y='11' width='1' height='1'/><rect x='36' y='12' width='1' height='1'/><rect x='4' y='13' width='1' height='1'/><rect x='3' y='14' width='1' height='1'/><rect x='37' y='14' width='1' height='1'/><rect x='3' y='15' width='1' height='1'/><rect x='37' y='15' width='1' height='1'/><rect x='37' y='16' width='1' height='1'/><rect x='2' y='17' width='1' height='1'/><rect x='38' y='23' width='1' height='1'/><rect x='3' y='24' width='1' height='1'/><rect x='3' y='25' width='1' height='1'/><rect x='37' y='25' width='1' height='1'/><rect x='3' y='26' width='1' height='1'/><rect x='37' y='26' width='1' height='1'/><rect x='36' y='27' width='1' height='1'/><rect x='4' y='28' width='1' height='1'/><rect x='5' y='29' width='1' height='1'/><rect x='35' y='29' width='1' height='1'/><rect x='35' y='30' width='1' height='1'/><rect x='6' y='31' width='1' height='1'/><rect x='7' y='32' width='1' height='1'/><rect x='33' y='32' width='1' height='1'/><rect x='32' y='33' width='1' height='1'/><rect x='9' y='34' width='1' height='1'/><rect x='31' y='34' width='1' height='1'/><rect x='10' y='35' width='1' height='1'/><rect x='29' y='35' width='2' height='1'/><rect x='12' y='36' width='2' height='1'/><rect x='27' y='36' width='1' height='1'/><rect x='15' y='37' width='2' height='1'/><rect x='24' y='37' width='1' height='1'/><rect x='26' y='37' width='1' height='1'/><rect x='23' y='38' width='1' height='1'/></svg>") center/100% 100% no-repeat;
+}
+/* the touch light sits in the well, above the art */
+html body #controls button[data-control$="_WING"]::after{z-index:2;inset:30%}
+html body #controls button[data-control$="_WING"].is-held .wing.pix-btn{filter:drop-shadow(0 0 5px rgba(95,176,255,.85)) drop-shadow(0 0 10px rgba(247,200,58,.35))}
+html body #controls.is-darting button.is-held .wing.pix-btn{filter:drop-shadow(0 0 6px rgba(255,90,40,.8))}
+html body #controls.is-title button[data-control$="_WING"] .wing.pix-btn{opacity:.75}
+/* BOTH: pixel arrow with light streaks, cream-gold lettering, dashed underline */
+html body #controls .chord-cue.is-pix{
+  font-size:0;line-height:0;background:none;-webkit-text-fill-color:initial;
+  filter:drop-shadow(0 0 4px rgba(95,176,255,.5)) drop-shadow(0 0 5px rgba(247,190,40,.35));
+}
+html body #controls .chord-cue.is-pix::before{content:none;display:none}
+html body #controls .both-pix{display:block;width:clamp(48px,16.5vw,80px);height:auto;image-rendering:pixelated}
+
+/* ---- title art holds still (no slow float) ---------------------------------- */
+html body #title-screen #title-art,html body #title-screen.is-home #title-art{animation:none;transform:none}
+
+/* ---- desk mode (?desk): keyboard only. The wing controller and the title
+   screen are never shown; the boot card is only its loading status, on black. */
+html body.is-desk #controls,html body.is-desk #title-screen{display:none!important;pointer-events:none}
+html body.is-desk::before{content:none}
+html body.is-desk #boot{background:#000!important}
+html body.is-desk #boot .boot-kicker,html body.is-desk #boot .boot-card small{display:none}
+html body.is-desk #boot .boot-card{top:50%;transform:translateY(-50%)}

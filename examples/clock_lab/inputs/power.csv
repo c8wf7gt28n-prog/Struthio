@@ -1,0 +1,4 @@
+Load,Typical_current,Unit,Basis
+Controller,120,mA,Assumption
+Display,100,mA,Assumption
+Sensor,30,mA,Assumption

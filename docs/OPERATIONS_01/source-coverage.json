@@ -1,0 +1,30 @@
+{
+  "baseline_entries": 1186,
+  "missing": [],
+  "mode_changes": [],
+  "modified_existing": [
+    "workbench/agenda.py",
+    "workbench/activity.py",
+    "workbench/stacy_control.py",
+    "workbench/job_priority.py",
+    "workbench/desktop_header_qt.py",
+    "workbench/stacy_foundation.py",
+    "workbench/shell2.py",
+    "workbench/arc_desktop.py",
+    "workbench/ledger_control.py"
+  ],
+  "historical_evidence_unchanged": true,
+  "discovery_protocol_sources_unchanged": [
+    "discovery_ir.py",
+    "discovery_service.py",
+    "project_desk.py",
+    "math_service.py",
+    "schedule_math.py"
+  ],
+  "expected_packaging_changes": [
+    "MANIFEST.json",
+    "project/stacy_seed/current/manifest.json",
+    "project/stacy_seed/current/catalog.json",
+    "project/stacy_seed/current/index.sqlite"
+  ]
+}

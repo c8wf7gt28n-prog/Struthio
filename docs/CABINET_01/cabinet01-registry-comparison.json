@@ -1,0 +1,14 @@
+{
+  "baseline_operations": 681,
+  "operations": 683,
+  "added": [
+    "ledger.cabinet",
+    "ledger.cabinet.get"
+  ],
+  "removed": [],
+  "changed_existing_schemas": [],
+  "changed_existing_scopes": [],
+  "tools_unchanged": true,
+  "tool_count": 112,
+  "schema_digest": "808aec4493ae7447738f2c304be531cb1cbef6f5a819072a85b7c03c3319680e"
+}

@@ -1,0 +1,74 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Three genuine launch defaults appear under Slate / Local model; missing model state is not fabricated",
+    "Apply and Undo change only saved defaults through the shared journal and submit no model job",
+    "A manual memory cap below 512 MiB is refused while the highlighted draft is retained",
+    "A recorded configuration is shown separately from saved defaults and never supplies a running value",
+    "Settings retains the edited source Preview and refuses an intervening saved-default revision without losing the draft",
+    "Reload uses the original Brain control and queues one owned request; the native worker launcher is held",
+    "A later default edit leaves the waiting request unchanged; requested, stored and unobserved running values stay distinct",
+    "Legacy model controls follow unchanged fields from shared defaults while preserving local request overrides and edited source",
+    "Use saved launch defaults deliberately clears local overrides; Edit defaults returns to the exact shared Settings key",
+    "Compact Settings keeps the model readback, selected key, fixed Trash, Stop, monitors and return thread reachable",
+    "Clean close preserves original source bytes/mode, removes the desktop lease and makes no provider or native-model call"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Model_01_Defaults.png",
+      "note": "Actual Settings with no model selected. Auto is a saved launch preference; no worker is observed.",
+      "sha256": "d25280d10a45b70cbe1f04fefe156bdcb9da377a720618820b29c52957e6c548",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Model_01_Stopped.png",
+      "note": "A disposable stored selection fixture has a different prior configuration. No worker is running, so effective remains unobserved.",
+      "sha256": "d2a7a7303924fce01482f69c802f8ae64fa41c448099f64a1addd175c271ff9a",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Model_01_Pending.png",
+      "note": "One genuine queued model request has frozen options. Its native launch is held; later default edits do not rewrite it.",
+      "sha256": "a1e59f6980b2879e4c158f01c850f615094acbf4d5abb996eb9a3870c2874a69",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Model_01_Model_Controls.png",
+      "note": "The existing model controls retain a local thread override while the saved default changes. The fixture model is unqualified; no GGUF is loaded.",
+      "sha256": "52512203ed913133a46e96f6b9813847623be1aba866fcfed7176afe63079428",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Model_01_Compact.png",
+      "note": "Actual compact Settings view. The queued fixture request is cancelled and no running worker is claimed.",
+      "sha256": "23f6eaff0de103631d86936f353cb8b05394c22f1a0d4e49846beea16314adb1",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "model_metadata_fixture": "DISPOSABLE_UNQUALIFIED_CONFIGURATION_RECORD",
+  "queued_job_submissions": 1,
+  "worker_launcher_held": true,
+  "worker_processes_started": 0,
+  "model_generations": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "automatic_rollback_ui_qualification": false,
+  "real_model_and_owner_host_acceptance": false,
+  "clean_close": true
+}

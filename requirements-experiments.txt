@@ -1,0 +1,2 @@
+# Optional bounded CPython WASI experiment embedding
+wasmtime==50.0.1

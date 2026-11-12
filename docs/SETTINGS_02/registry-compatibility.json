@@ -1,0 +1,23 @@
+{
+  "state": "PASSED",
+  "old_operations": 680,
+  "new_operations": 681,
+  "added_operations": [
+    "ledger.settings.apply"
+  ],
+  "all_old_schemas_and_scopes_unchanged": true,
+  "job_tools": 112,
+  "all_old_job_targets_preserved": true,
+  "old_setting_ids_types_defaults_and_ranges_preserved": true,
+  "old_settings": 18,
+  "new_settings": 25,
+  "added_settings": [
+    "appearance.cursive",
+    "gemini.include_file",
+    "gemini.model",
+    "layout.navigator_width",
+    "layout.output_height",
+    "layout.output_tab",
+    "layout.output_visible"
+  ]
+}

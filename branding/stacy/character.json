@@ -1,0 +1,66 @@
+{
+  "schema": "arc-ledger.character/1",
+  "name": "Slate",
+  "date": "2026-10-26",
+  "design_authority": "../arcfairy/ART_DIRECTION.md",
+  "master": "stacy.png",
+  "avatar": "stacy-avatar.png",
+  "source_library_file_id": "libfile_e9fc3272f2248191af9701735cb42859",
+  "artwork": "Owner-directed ARC fairy variation of the existing Stacy identity, generated with built-in image generation. Original generated PNG alpha preserved.",
+  "invariants": [
+    "Orange-red faceted hair",
+    "Gray eyes and freckles",
+    "Black and orange cap with circuit-chip emblem",
+    "Sleeveless black and orange outfit",
+    "Circuit arm tattoo",
+    "No earrings",
+    "Four amber circuit-glass wings with silver traces and pale cyan edges"
+  ],
+  "display": "Working desktop: state-aware ARC fairy in the existing companion dock. The separate flight rehearsal demonstrates possible movement and guidance. Home Control Center composition is retained.",
+  "compatibility": "Internal clip module names, API operations, saved profiles, page IDs and draft keys are retained.",
+  "files": {
+    "stacy-avatar.png": {
+      "bytes": 1814323,
+      "sha256": "f23f63d436f7d2df3e6ba9bdfad6e7db4181d66da1acf447278897352190a744"
+    },
+    "stacy-reference.jpeg": {
+      "bytes": 354482,
+      "sha256": "73c09c2f30ed9c5f28ac0df24e4f0fa1bd150a6bf67df23bd14e65d82f75c2f4"
+    },
+    "stacy.png": {
+      "bytes": 1299316,
+      "sha256": "eee0dc80a61958d4538facff66e5b3eb7e6050602fa572d36f4cbadeaadeb30e"
+    },
+    "control-center.png": {
+      "bytes": 2170047,
+      "sha256": "deb182438d426d075323776d4391fc7d2d4582b326f67a64b0205f0926066f94"
+    }
+  },
+  "control_center": {
+    "file": "control-center.png",
+    "use": "Home \u00b7 Stacy's Control Center centrepiece",
+    "source": "Owner-supplied unboxing artwork, 25 October 2026 (Stacy with the ARC-1 console, user manual, Database CD-ROM, STRUTHIO card and Ledger disks)",
+    "form": "1536x1024 RGBA cutout; transparent background so the Home code rain shows behind it",
+    "rights": "Owner-supplied; publication terms follow RIGHTS.md"
+  },
+  "presence": {
+    "edition": "ARC Fairy 1",
+    "portrait": "128 rig-rendered game frames in eight actions; original interaction and job badges retained.",
+    "movement": [
+      "Existing dock hover and reactions",
+      "Separate local flight rehearsal"
+    ],
+    "reactions": "Fresh visible job transitions and actual CLI completion; no provider is called.",
+    "manual_replay": "Right-click Stacy > Whoopsie! \u00b7 Play Stacy\u2019s cameo",
+    "duration_seconds": 2.8,
+    "automatic_cooldown_seconds": 20,
+    "audio": "Silent",
+    "quiet_preference": "Character reactions in the context menu",
+    "reduce_motion": "Static portrait and static reaction bubble",
+    "collapsed": "Amber wisp at the existing collapsed size",
+    "runtime_roaming": "Not connected by this patch",
+    "prediction": "Not implemented; guidance demonstration is explicitly labelled."
+  },
+  "edition": "staC the ARC fairy 1 / 128 frames",
+  "former_name": "Stacy"
+}

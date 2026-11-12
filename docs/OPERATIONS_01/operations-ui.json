@@ -1,0 +1,55 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Operations is a persistent right-column view with moved original monitors and visible original Stop",
+    "Right-column selection follows the original cabinet identity",
+    "Queue rows show actual dependency and idle waits without running work",
+    "Queued CPU priority is a next-start request; an unverified running process has no claimed live value",
+    "Keyboard CPU slider persists the next-start request through jobs.nice without changing a process",
+    "Accessible Earlier commits queue order while the dependency keeps the moved row from passing checks",
+    "Agenda tier slider changes scheduling eligibility independently of CPU nice",
+    "CPU requires valid increasing samples and clears on failure; TXT never substitutes declared capacity for occupancy",
+    "Context shows the selected saved record rather than a previous Object Glass file",
+    "Operations, Context and Slate remain reachable while host monitors stay visible",
+    "Operation refresh and face switching preserve an edited document and its original bytes",
+    "Original master Stop action, controller and shortcut remain connected; no stop was invoked",
+    "Compact layout retains fixed Trash, host monitors, Stop and a scrollable operations workspace",
+    "Poem and original record content remain intact",
+    "Clean close removes the lease; fixture records created no native process, provider request or tool job"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Operations_01_Queue.png",
+      "sha256": "f7ee82619f47414c40a9312241c3241b458f8be6d04dec83b863ceee0b583d88",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Operations_01_Context.png",
+      "sha256": "2d8abfded59abbaf9aa95619cdf64281e002731d20b487bcf541523975a411ab",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Operations_01_Compact.png",
+      "sha256": "7b46ddb380f1a40b1c493b1e1317404ddbca270d4e2ce032dc558daa620dc98a",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "fixture_job_records": 2,
+  "jobs_submitted": 0,
+  "native_invocations": 0,
+  "model_calls": 0,
+  "provider_requests": 0,
+  "os_priority_changes": 0,
+  "native_acceptance": false,
+  "owner_ui_review": "DEFERRED_UNTIL_COHESIVE_UI"
+}

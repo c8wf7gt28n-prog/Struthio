@@ -1,0 +1,11 @@
+{
+  "state": "PASSED",
+  "baseline": "SETTINGS-03",
+  "operations": 690,
+  "all_operation_schemas_and_scopes_unchanged": true,
+  "job_tool_targets": 112,
+  "all_job_tool_targets_unchanged": true,
+  "settings": 31,
+  "all_setting_definitions_unchanged": true,
+  "schema_digest": "9b28255cf4cd31117ece3edada8a737b569e9de996cbb32836e3b1040f92e1a1"
+}

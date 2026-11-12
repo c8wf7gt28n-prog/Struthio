@@ -1,0 +1,1074 @@
+{
+  "schema": "ledger.algorithm-atlas/1",
+  "version": "1.0.0",
+  "entries": [
+    {
+      "id": "dimensional_arithmetic",
+      "title": "Exact dimensional arithmetic",
+      "task": "EVALUATE",
+      "signature": "Typed quantity expression -> exact rational quantity or Boolean",
+      "domain": "Supported scalar time, frequency, voltage, current, power and byte-based memory dimensions; bounded compound units.",
+      "preconditions": [
+        "A valid ordered typed model with compatible dimensions.",
+        "Every referenced scalar needed for numerical evaluation has a value.",
+        "Denominators are nonzero; integer domains and declared bounds hold."
+      ],
+      "guarantee": "The existing evaluator uses rational arithmetic for the declared inputs. Decimal rendering may be approximate.",
+      "non_guarantees": [
+        "A model value is not an independently measured fact.",
+        "Only the shipped unit vocabulary is supported; this is not a complete SI implementation."
+      ],
+      "cost": "At most 16 variables, 128 nodes, depth 24; arithmetic size bounded at 2048 bits.",
+      "counterexample": "Adding a voltage to a current is invalid even when both numbers are known.",
+      "references": [
+        "NIST SP 330 (2019), 9th-edition SI reference: https://www.nist.gov/publications/international-system-units-si-2019-edition",
+        "Local implementation: workbench/math_model.py; workbench/math_units.py"
+      ],
+      "examples": [
+        {
+          "label": "Valid: 5 V times 250 mA",
+          "context": {
+            "task": "EVALUATE",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "v": {
+                  "unit": "V",
+                  "value": "5",
+                  "domain": "real"
+                },
+                "i": {
+                  "unit": "mA",
+                  "value": "250",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "v"
+                },
+                {
+                  "id": "n1",
+                  "op": "variable",
+                  "name": "i"
+                },
+                {
+                  "id": "n2",
+                  "op": "mul",
+                  "left": "n0",
+                  "right": "n1"
+                }
+              ],
+              "outputs": [
+                "n2"
+              ],
+              "constraints": [],
+              "assumptions": []
+            }
+          },
+          "expected_state": "MATCH_DECLARED_PROFILE"
+        },
+        {
+          "label": "Invalid: add voltage and current",
+          "context": {
+            "task": "EVALUATE",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "v": {
+                  "unit": "V",
+                  "value": "5",
+                  "domain": "real"
+                },
+                "i": {
+                  "unit": "mA",
+                  "value": "250",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "v"
+                },
+                {
+                  "id": "n1",
+                  "op": "variable",
+                  "name": "i"
+                },
+                {
+                  "id": "n2",
+                  "op": "add",
+                  "left": "n0",
+                  "right": "n1"
+                }
+              ],
+              "outputs": [
+                "n2"
+              ],
+              "constraints": [],
+              "assumptions": []
+            }
+          },
+          "expected_state": "REJECTED_INPUT"
+        }
+      ],
+      "licence": "Ledger adapter: existing project source licences. Dependency licences are not independently reviewed by this Atlas; retained distribution notices remain authoritative."
+    },
+    {
+      "id": "interval_capacity",
+      "title": "Additive interval capacity",
+      "task": "RESOURCE_PEAK",
+      "signature": "Capacity<Q>, allocations<(Q, half-open Time interval)> -> peak demand",
+      "domain": "A constant nonnegative additive resource capacity and explicit lifetimes.",
+      "preconditions": [
+        "Quantities use compatible dimensions and are nonnegative.",
+        "Every interval has known nonnegative times, start < stop, and time units.",
+        "Owner explicitly declares additive consumption, fixed capacity and half-open intervals.",
+        "No unmodeled overhead, fragmentation or indivisibility."
+      ],
+      "guarantee": "The existing exact event sweep compares the peak of the declared additive model with its fixed capacity.",
+      "non_guarantees": [
+        "No allocator fragmentation, power-rail dynamics or thermal dynamics proof.",
+        "A learned method still needs its accepted version and current qualifying evidence at methods.preview."
+      ],
+      "cost": "At most 32 allocations. Event ordering costs O(n log n); emitted active sets can require O(n squared) output.",
+      "counterexample": "Adjacent half-open intervals need not overlap; closed intervals or allocator overhead need a different profile.",
+      "references": [
+        "Local authority: workbench/schedule_math.py:evaluate; workbench/checked_methods.py:EXPECTED and mapping",
+        "NIST SP 330 (2019), 9th-edition SI reference: https://www.nist.gov/publications/international-system-units-si-2019-edition"
+      ],
+      "examples": [
+        {
+          "label": "Needs a saved problem revision and explicit declarations",
+          "context": {
+            "task": "RESOURCE_PEAK"
+          },
+          "expected_state": "NEEDS_INPUT"
+        }
+      ],
+      "licence": "Ledger adapter: existing project source licences. Dependency licences are not independently reviewed by this Atlas; retained distribution notices remain authoritative."
+    },
+    {
+      "id": "linear_equalities",
+      "title": "Linear equality solving",
+      "task": "SOLVE_EQUALITIES",
+      "signature": "Affine equalities over declared real/integer scalars -> checked assignments or unresolved result",
+      "domain": "Bounded linear equations with exact rational coefficients.",
+      "preconditions": [
+        "Typed dimensional IR is valid and affine.",
+        "At least one equality; inequalities use the feasibility profile.",
+        "Pinned SymPy 1.14.0 and mpmath 1.3.0 are required for execution."
+      ],
+      "guarantee": "The existing adapter asks linsolve for a solution and rechecks rational assignments against the original model.",
+      "non_guarantees": [
+        "Admission does not prove consistency, uniqueness or existence.",
+        "Underdetermined results remain UNKNOWN in this adapter; resource limits may prevent a result."
+      ],
+      "cost": "At most 16 variables and 32 constraints. Worker limits: 3 CPU seconds, 512 MiB, up to 5 seconds wall time.",
+      "counterexample": "x + y = 1 does not determine a unique pair; an inequality is not an equality.",
+      "references": [
+        "SymPy 1.14.0, linsolve: https://docs.sympy.org/latest/modules/solvers/solveset.html#sympy.solvers.solveset.linsolve",
+        "Local scope: workbench/math_backend.py:sympy_solve"
+      ],
+      "examples": [
+        {
+          "label": "Valid affine equality",
+          "context": {
+            "task": "SOLVE_EQUALITIES",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "x": {
+                  "unit": "1",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n1",
+                  "op": "quantity",
+                  "value": "2",
+                  "unit": "1"
+                },
+                {
+                  "id": "n2",
+                  "op": "add",
+                  "left": "n0",
+                  "right": "n1"
+                },
+                {
+                  "id": "n3",
+                  "op": "quantity",
+                  "value": "5",
+                  "unit": "1"
+                },
+                {
+                  "id": "n4",
+                  "op": "eq",
+                  "left": "n2",
+                  "right": "n3"
+                }
+              ],
+              "outputs": [
+                "n4"
+              ],
+              "constraints": [
+                "n4"
+              ],
+              "assumptions": []
+            }
+          },
+          "expected_state": "MATCH_WITH_OBLIGATIONS"
+        },
+        {
+          "label": "Invalid equality profile: inequality",
+          "context": {
+            "task": "SOLVE_EQUALITIES",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "x": {
+                  "unit": "1",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n1",
+                  "op": "quantity",
+                  "value": "1",
+                  "unit": "1"
+                },
+                {
+                  "id": "n2",
+                  "op": "gt",
+                  "left": "n0",
+                  "right": "n1"
+                }
+              ],
+              "outputs": [
+                "n2"
+              ],
+              "constraints": [
+                "n2"
+              ],
+              "assumptions": []
+            }
+          },
+          "expected_state": "REJECTED_INPUT"
+        }
+      ],
+      "licence": "Ledger adapter: existing project source licences. Dependency licences are not independently reviewed by this Atlas; retained distribution notices remain authoritative."
+    },
+    {
+      "id": "linear_feasibility",
+      "title": "Linear real and integer feasibility",
+      "task": "FEASIBILITY",
+      "signature": "Affine constraints with real/integer domains -> one witness, infeasible or unknown",
+      "domain": "The local QF_LIRA-style adapter; not the full capabilities of upstream Z3.",
+      "preconditions": [
+        "Valid typed IR with affine arithmetic and constant nonzero denominators.",
+        "Only the local real/integer domains and supported relation nodes.",
+        "Pinned z3-solver 4.15.4.0 is required for execution."
+      ],
+      "guarantee": "A returned feasible witness is independently rechecked by the exact IR evaluator.",
+      "non_guarantees": [
+        "A witness is not an optimum or a universal guarantee.",
+        "Nonlinear products are refused by this adapter even if upstream Z3 can handle other fragments."
+      ],
+      "cost": "At most 16 variables and 32 constraints; mixed integer solving can be costly. Fixed worker limits, timeout and UNKNOWN are preserved.",
+      "counterexample": "x*x > 1 is nonlinear; a feasible low-cost candidate does not prove minimum cost.",
+      "references": [
+        "Microsoft Z3 Guide, Arithmetic (live guide consulted 2026-11-02; executable pin is separately 4.15.4.0): https://microsoft.github.io/z3guide/docs/theories/Arithmetic/",
+        "Local scope: workbench/math_model.py:affine; workbench/math_backend.py:z3_solve"
+      ],
+      "examples": [
+        {
+          "label": "Affine inequality",
+          "context": {
+            "task": "FEASIBILITY",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "x": {
+                  "unit": "1",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n1",
+                  "op": "quantity",
+                  "value": "1",
+                  "unit": "1"
+                },
+                {
+                  "id": "n2",
+                  "op": "gt",
+                  "left": "n0",
+                  "right": "n1"
+                }
+              ],
+              "outputs": [
+                "n2"
+              ],
+              "constraints": [
+                "n2"
+              ],
+              "assumptions": []
+            }
+          },
+          "expected_state": "MATCH_WITH_OBLIGATIONS"
+        },
+        {
+          "label": "Refuse variable product",
+          "context": {
+            "task": "FEASIBILITY",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "x": {
+                  "unit": "1",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n1",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n2",
+                  "op": "mul",
+                  "left": "n0",
+                  "right": "n1"
+                },
+                {
+                  "id": "n3",
+                  "op": "quantity",
+                  "value": "1",
+                  "unit": "1"
+                },
+                {
+                  "id": "n4",
+                  "op": "gt",
+                  "left": "n2",
+                  "right": "n3"
+                }
+              ],
+              "outputs": [
+                "n4"
+              ],
+              "constraints": [
+                "n4"
+              ],
+              "assumptions": []
+            }
+          },
+          "expected_state": "REJECTED_INPUT"
+        }
+      ],
+      "licence": "Ledger adapter: existing project source licences. Dependency licences are not independently reviewed by this Atlas; retained distribution notices remain authoritative."
+    },
+    {
+      "id": "rational_normalization",
+      "title": "Rational expression normalization",
+      "task": "SIMPLIFY",
+      "signature": "Supported rational quantity expression -> symbolic form with original domain guards",
+      "domain": "The bounded rational expression vocabulary of the local SymPy adapter.",
+      "preconditions": [
+        "A valid typed quantity expression, with no constraints selected.",
+        "Original denominator restrictions remain attached after cancellation.",
+        "Pinned SymPy 1.14.0 and mpmath 1.3.0 are required for execution."
+      ],
+      "guarantee": "The adapter normalizes quantity outputs using cancel and retains original domain conditions.",
+      "non_guarantees": [
+        "x/x becoming 1 does not make x=0 admissible.",
+        "Free quantities can leave the numerical state UNKNOWN even when a symbolic form is returned."
+      ],
+      "cost": "Typed model limits apply; fixed 3 CPU seconds / 512 MiB worker budget.",
+      "counterexample": "Cancelling x/x must not erase the original x != 0 requirement.",
+      "references": [
+        "SymPy 1.14.0, cancel: https://docs.sympy.org/latest/modules/polys/reference.html#sympy.polys.polytools.cancel",
+        "Local scope: workbench/math_backend.py:sympy_solve; workbench/math_model.py:domain_conditions"
+      ],
+      "examples": [
+        {
+          "label": "Symbolic ratio retains its obligation",
+          "context": {
+            "task": "SIMPLIFY",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "x": {
+                  "unit": "1",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n1",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n2",
+                  "op": "div",
+                  "left": "n0",
+                  "right": "n1"
+                }
+              ],
+              "outputs": [
+                "n2"
+              ],
+              "constraints": [],
+              "assumptions": []
+            }
+          },
+          "expected_state": "MATCH_WITH_OBLIGATIONS"
+        },
+        {
+          "label": "Known zero denominator",
+          "context": {
+            "task": "SIMPLIFY",
+            "model": {
+              "schema": "arc.math-model/1",
+              "variables": {
+                "x": {
+                  "unit": "1",
+                  "value": "0",
+                  "domain": "real"
+                }
+              },
+              "nodes": [
+                {
+                  "id": "n0",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n1",
+                  "op": "variable",
+                  "name": "x"
+                },
+                {
+                  "id": "n2",
+                  "op": "div",
+                  "left": "n0",
+                  "right": "n1"
+                }
+              ],
+              "outputs": [
+                "n2"
+              ],
+              "constraints": [],
+              "assumptions": []
+            }
+          },
+          "expected_state": "REJECTED_INPUT"
+        }
+      ],
+      "licence": "Ledger adapter: existing project source licences. Dependency licences are not independently reviewed by this Atlas; retained distribution notices remain authoritative."
+    },
+    {
+      "id": "dependency_impact",
+      "title": "Declared dependency impact",
+      "task": "DEPENDENCY_IMPACT",
+      "signature": "Finite acyclic reason graph and node -> tracked affected nodes",
+      "domain": "Explicit proposed dependencies inside a bounded graph.",
+      "preconditions": [
+        "Unique declared nodes and valid edges.",
+        "Acyclic dependency structure and a declared starting node.",
+        "Coverage outside the supplied graph stays unknown."
+      ],
+      "guarantee": "The existing reasons.impact operation follows tracked dependencies of a saved owned graph.",
+      "non_guarantees": [
+        "A missing edge cannot establish no impact.",
+        "Dependencies do not establish causal truth or rule correctness."
+      ],
+      "cost": "Local graph bounds: 64 nodes, 128 rules, 8 premises per rule; topological traversal with bounded sorting.",
+      "counterexample": "An untracked component can still affect the real project; a cycle is outside this DAG profile.",
+      "references": [
+        "Local authority: workbench/reason_graph.py:validate; workbench/reason_service.py:reasons.impact"
+      ],
+      "examples": [
+        {
+          "label": "Declared node in a DAG",
+          "context": {
+            "task": "DEPENDENCY_IMPACT",
+            "graph": {
+              "nodes": [
+                {
+                  "id": "exact",
+                  "kind": "ATOM",
+                  "label": "Exact concurrent memory comparison is false",
+                  "source": "MATH",
+                  "receipt": "11111111111111111111111111111111",
+                  "index": 0,
+                  "expected": false
+                },
+                {
+                  "id": "experiment",
+                  "kind": "ATOM",
+                  "label": "Executed memory comparison is false",
+                  "source": "EXPERIMENT",
+                  "receipt": "22222222222222222222222222222222",
+                  "measurement": "memory_fits",
+                  "expected": false
+                },
+                {
+                  "id": "concurrent",
+                  "kind": "ASSUMPTION",
+                  "label": "All three allocations are concurrent."
+                },
+                {
+                  "id": "conclusion",
+                  "kind": "CLAIM",
+                  "label": "The declared concurrent memory model exceeds the limit."
+                }
+              ],
+              "rules": [
+                {
+                  "id": "via_exact",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "exact",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "via_execution",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "execution_disagrees",
+                  "conclusion": "conclusion",
+                  "polarity": "negative",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "negative"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                }
+              ],
+              "target": "conclusion",
+              "assumptions": [
+                "All three allocations are concurrent.",
+                "Proposed links compare computational outputs. Model interpretations and physical behavior remain unqualified."
+              ],
+              "coverage": "DECLARED_FINITE_GRAPH"
+            },
+            "node": "exact"
+          },
+          "expected_state": "MATCH_WITH_OBLIGATIONS"
+        },
+        {
+          "label": "Missing node is not no impact",
+          "context": {
+            "task": "DEPENDENCY_IMPACT",
+            "graph": {
+              "nodes": [
+                {
+                  "id": "exact",
+                  "kind": "ATOM",
+                  "label": "Exact concurrent memory comparison is false",
+                  "source": "MATH",
+                  "receipt": "11111111111111111111111111111111",
+                  "index": 0,
+                  "expected": false
+                },
+                {
+                  "id": "experiment",
+                  "kind": "ATOM",
+                  "label": "Executed memory comparison is false",
+                  "source": "EXPERIMENT",
+                  "receipt": "22222222222222222222222222222222",
+                  "measurement": "memory_fits",
+                  "expected": false
+                },
+                {
+                  "id": "concurrent",
+                  "kind": "ASSUMPTION",
+                  "label": "All three allocations are concurrent."
+                },
+                {
+                  "id": "conclusion",
+                  "kind": "CLAIM",
+                  "label": "The declared concurrent memory model exceeds the limit."
+                }
+              ],
+              "rules": [
+                {
+                  "id": "via_exact",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "exact",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "via_execution",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "execution_disagrees",
+                  "conclusion": "conclusion",
+                  "polarity": "negative",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "negative"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                }
+              ],
+              "target": "conclusion",
+              "assumptions": [
+                "All three allocations are concurrent.",
+                "Proposed links compare computational outputs. Model interpretations and physical behavior remain unqualified."
+              ],
+              "coverage": "DECLARED_FINITE_GRAPH"
+            },
+            "node": "missing"
+          },
+          "expected_state": "REJECTED_INPUT"
+        }
+      ],
+      "licence": "Ledger adapter: existing project source licences. Dependency licences are not independently reviewed by this Atlas; retained distribution notices remain authoritative."
+    },
+    {
+      "id": "finite_reason_paths",
+      "title": "Finite support and refutation paths",
+      "task": "REASON_PROPAGATION",
+      "signature": "Finite proposed reason DAG + checked observations -> support/refutation paths",
+      "domain": "The local bounded support/refutation calculus.",
+      "preconditions": [
+        "A valid acyclic finite graph with explicit assumptions.",
+        "Actual receipt observations must be checked for owner, problem revision and freshness.",
+        "Rule labels remain proposed interpretations."
+      ],
+      "guarantee": "The existing engine preserves distinct support and refutation paths, including conflict or unknown states.",
+      "non_guarantees": [
+        "A supported proposed rule is not an independently approved theorem.",
+        "Admission validates graph shape only; it does not read or attest arbitrary receipt IDs."
+      ],
+      "cost": "64 nodes / 128 rules; at most 4096 combinations per expansion and 256 paths per node; budget excess is refused.",
+      "counterexample": "Two contradictory current observations produce conflict, not permission to choose the preferred result.",
+      "references": [
+        "Local authority: workbench/reason_graph.py:compute; workbench/reason_service.py:observe; workbench/stac/evidence.py"
+      ],
+      "examples": [
+        {
+          "label": "Well-formed proposed graph",
+          "context": {
+            "task": "REASON_PROPAGATION",
+            "graph": {
+              "nodes": [
+                {
+                  "id": "exact",
+                  "kind": "ATOM",
+                  "label": "Exact concurrent memory comparison is false",
+                  "source": "MATH",
+                  "receipt": "11111111111111111111111111111111",
+                  "index": 0,
+                  "expected": false
+                },
+                {
+                  "id": "experiment",
+                  "kind": "ATOM",
+                  "label": "Executed memory comparison is false",
+                  "source": "EXPERIMENT",
+                  "receipt": "22222222222222222222222222222222",
+                  "measurement": "memory_fits",
+                  "expected": false
+                },
+                {
+                  "id": "concurrent",
+                  "kind": "ASSUMPTION",
+                  "label": "All three allocations are concurrent."
+                },
+                {
+                  "id": "conclusion",
+                  "kind": "CLAIM",
+                  "label": "The declared concurrent memory model exceeds the limit."
+                }
+              ],
+              "rules": [
+                {
+                  "id": "via_exact",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "exact",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "via_execution",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "execution_disagrees",
+                  "conclusion": "conclusion",
+                  "polarity": "negative",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "negative"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                }
+              ],
+              "target": "conclusion",
+              "assumptions": [
+                "All three allocations are concurrent.",
+                "Proposed links compare computational outputs. Model interpretations and physical behavior remain unqualified."
+              ],
+              "coverage": "DECLARED_FINITE_GRAPH"
+            }
+          },
+          "expected_state": "MATCH_WITH_OBLIGATIONS"
+        },
+        {
+          "label": "Refuse cyclic inference",
+          "context": {
+            "task": "REASON_PROPAGATION",
+            "graph": {
+              "nodes": [
+                {
+                  "id": "exact",
+                  "kind": "ATOM",
+                  "label": "Exact concurrent memory comparison is false",
+                  "source": "MATH",
+                  "receipt": "11111111111111111111111111111111",
+                  "index": 0,
+                  "expected": false
+                },
+                {
+                  "id": "experiment",
+                  "kind": "ATOM",
+                  "label": "Executed memory comparison is false",
+                  "source": "EXPERIMENT",
+                  "receipt": "22222222222222222222222222222222",
+                  "measurement": "memory_fits",
+                  "expected": false
+                },
+                {
+                  "id": "concurrent",
+                  "kind": "ASSUMPTION",
+                  "label": "All three allocations are concurrent."
+                },
+                {
+                  "id": "conclusion",
+                  "kind": "CLAIM",
+                  "label": "The declared concurrent memory model exceeds the limit."
+                }
+              ],
+              "rules": [
+                {
+                  "id": "via_exact",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "conclusion",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "via_execution",
+                  "conclusion": "conclusion",
+                  "polarity": "positive",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "positive"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                },
+                {
+                  "id": "execution_disagrees",
+                  "conclusion": "conclusion",
+                  "polarity": "negative",
+                  "premises": [
+                    {
+                      "id": "experiment",
+                      "polarity": "negative"
+                    },
+                    {
+                      "id": "concurrent",
+                      "polarity": "positive"
+                    }
+                  ]
+                }
+              ],
+              "target": "conclusion",
+              "assumptions": [
+                "All three allocations are concurrent.",
+                "Proposed links compare computational outputs. Model interpretations and physical behavior remain unqualified."
+              ],
+              "coverage": "DECLARED_FINITE_GRAPH"
+            }
+          },
+          "expected_state": "REJECTED_INPUT"
+        }
+      ],
+      "licence": "Ledger adapter: existing project source licences. Dependency licences are not independently reviewed by this Atlas; retained distribution notices remain authoritative."
+    },
+    {
+      "id": "linear_optimization",
+      "title": "Linear optimization",
+      "task": "OPTIMIZE_LINEAR",
+      "signature": "Linear objective + feasible set -> optimum or qualified status",
+      "domain": "Reference entry only; the existing feasibility adapter has no objective contract.",
+      "preconditions": [
+        "A bounded/appropriately reported objective, compatible dimensions and constraints.",
+        "A qualified optimization adapter and optimality checks would be needed."
+      ],
+      "guarantee": "No Ledger execution guarantee: this profile is not implemented.",
+      "non_guarantees": [
+        "Feasibility must not be presented as optimality."
+      ],
+      "cost": "No local implementation budget or performance measured.",
+      "counterexample": "One feasible solution cannot establish an optimum.",
+      "references": [
+        "Microsoft Z3 Guide, Arithmetical Optimization (conceptual reference only): https://microsoft.github.io/z3guide/docs/optimization/arithmeticaloptimization/"
+      ],
+      "examples": [
+        {
+          "label": "Reference only",
+          "context": {
+            "task": "OPTIMIZE_LINEAR"
+          },
+          "expected_state": "NOT_IMPLEMENTED"
+        }
+      ],
+      "licence": "No implementation or dependency provisioned by this reference entry."
+    },
+    {
+      "id": "shortest_path",
+      "title": "Nonnegative weighted shortest path",
+      "task": "SHORTEST_PATH",
+      "signature": "Weighted graph + source -> shortest path distances",
+      "domain": "Reference Dijkstra profile; not mapped to a Ledger pathfinding operation.",
+      "preconditions": [
+        "A finite graph, explicit vertices/edges and nonnegative comparable weights.",
+        "A qualified local adapter would need to check its graph and numeric domain."
+      ],
+      "guarantee": "No Ledger execution guarantee: this profile is not implemented.",
+      "non_guarantees": [
+        "Negative edges require another method or an explicit rejection."
+      ],
+      "cost": "Implementation and priority queue determine cost; no local performance record.",
+      "counterexample": "A negative edge invalidates the ordinary Dijkstra precondition.",
+      "references": [
+        "MIT 6.006 Spring 2020, Lecture 13: https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-13-dijkstra/"
+      ],
+      "examples": [
+        {
+          "label": "Reference only",
+          "context": {
+            "task": "SHORTEST_PATH"
+          },
+          "expected_state": "NOT_IMPLEMENTED"
+        }
+      ],
+      "licence": "No implementation or dependency provisioned by this reference entry."
+    },
+    {
+      "id": "least_squares",
+      "title": "Linear least squares",
+      "task": "FIT_LINEAR",
+      "signature": "Design matrix + observed responses -> fitted coefficients and diagnostics",
+      "domain": "Reference entry for minimizing squared residuals; not a current Ledger fitting operation.",
+      "preconditions": [
+        "A declared model, compatible response units and numeric data.",
+        "Rank and conditioning must be assessed; inference needs additional statistical assumptions."
+      ],
+      "guarantee": "No Ledger execution guarantee: this profile is not implemented.",
+      "non_guarantees": [
+        "A fit does not by itself prove a causal mechanism or predictive accuracy."
+      ],
+      "cost": "A future implementation must declare matrix bounds, numerical precision and conditioning diagnostics.",
+      "counterexample": "Rank-deficient data need not determine unique coefficients.",
+      "references": [
+        "NIST/SEMATECH e-Handbook, section 4.4.3.1: https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+      ],
+      "examples": [
+        {
+          "label": "Reference only",
+          "context": {
+            "task": "FIT_LINEAR"
+          },
+          "expected_state": "NOT_IMPLEMENTED"
+        }
+      ],
+      "licence": "No implementation or dependency provisioned by this reference entry."
+    },
+    {
+      "id": "scalar_root",
+      "title": "Bracketed scalar root finding",
+      "task": "ROOT_SCALAR",
+      "signature": "Continuous scalar function + sign-changing bracket -> approximate root",
+      "domain": "Reference Brent-style profile; not a current Ledger root solver.",
+      "preconditions": [
+        "A continuous real function on the bracket and opposite endpoint signs.",
+        "A future adapter must declare tolerances, iterations, units and function-domain checks."
+      ],
+      "guarantee": "No Ledger execution guarantee: this profile is not implemented.",
+      "non_guarantees": [
+        "A sampled sign change is insufficient if the function has a pole inside the bracket."
+      ],
+      "cost": "No local implementation or numerical convergence record.",
+      "counterexample": "1/x changes sign across zero but has no root there.",
+      "references": [
+        "SciPy 1.18.0, brentq (reference only, not installed by this pass): https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brentq.html"
+      ],
+      "examples": [
+        {
+          "label": "Reference only",
+          "context": {
+            "task": "ROOT_SCALAR"
+          },
+          "expected_state": "NOT_IMPLEMENTED"
+        }
+      ],
+      "licence": "No implementation or dependency provisioned by this reference entry."
+    },
+    {
+      "id": "experimental_design",
+      "title": "Basic experimental design",
+      "task": "DESIGN_EXPERIMENT",
+      "signature": "Objectives + factors + levels + constraints -> proposed trial design",
+      "domain": "Reference entry; not a current automated design generator.",
+      "preconditions": [
+        "Explicit objectives, factors, levels and admissible trials.",
+        "Randomization/blocking, confounding and replication choices need review."
+      ],
+      "guarantee": "No Ledger execution guarantee: this profile is not implemented.",
+      "non_guarantees": [
+        "A proposed trial plan does not establish a measured effect."
+      ],
+      "cost": "Trial count and resource limits must be declared by a future adapter.",
+      "counterexample": "Changing two confounded factors without suitable design can prevent attribution.",
+      "references": [
+        "NIST/SEMATECH e-Handbook, section 5.3: https://www.itl.nist.gov/div898/handbook/pri/section3/pri3.htm"
+      ],
+      "examples": [
+        {
+          "label": "Reference only",
+          "context": {
+            "task": "DESIGN_EXPERIMENT"
+          },
+          "expected_state": "NOT_IMPLEMENTED"
+        }
+      ],
+      "licence": "No implementation or dependency provisioned by this reference entry."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "state": "PASSED",
+  "baseline": "NAVIGATION-01",
+  "operations": 690,
+  "all_operation_schemas_and_scopes_unchanged": true,
+  "job_tool_targets": 112,
+  "all_job_tool_targets_unchanged": true,
+  "baseline_settings": 31,
+  "settings": 34,
+  "added_settings": [
+    "brain.context",
+    "brain.memory_mb",
+    "brain.threads"
+  ],
+  "all_31_existing_setting_definitions_unchanged": true,
+  "schema_digest": "9b28255cf4cd31117ece3edada8a737b569e9de996cbb32836e3b1040f92e1a1"
+}

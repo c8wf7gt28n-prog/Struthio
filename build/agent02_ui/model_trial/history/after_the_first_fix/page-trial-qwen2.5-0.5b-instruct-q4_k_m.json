@@ -1,0 +1,349 @@
+{
+  "model_file": "models/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+  "bytes": 491400032,
+  "steps": [
+    {
+      "label": "register",
+      "job": "2a8e65006b214ae2a82bb95168f13229",
+      "state": "Completed",
+      "seconds": 1.5,
+      "error": ""
+    },
+    {
+      "label": "activate",
+      "job": "af60e0828956407ca72193ab29fc4eea",
+      "state": "Completed",
+      "seconds": 4.5,
+      "error": ""
+    },
+    {
+      "label": "bold selected words",
+      "job": "91b3e6fa500c4c888899a89c401610b0",
+      "state": "Completed",
+      "seconds": 12.0,
+      "error": ""
+    },
+    {
+      "label": "heading on the caret paragraph",
+      "job": "0749f3f1f7f744e0ab313c3e995d9c05",
+      "state": "Completed",
+      "seconds": 18.0,
+      "error": ""
+    },
+    {
+      "label": "replace a word",
+      "job": "037816908b784ef4b54ee6300dfcc4cb",
+      "state": "Completed",
+      "seconds": 13.5,
+      "error": ""
+    }
+  ],
+  "started": 1793951400.6466007,
+  "where": "build container, CPU runtime, not the owner host",
+  "model_turn_module": true,
+  "model_id": "f78a6286d95e39db05e6cec09c105604543d1d27df8a3840c92b53a4eebc78aa",
+  "status_after_use": "READY",
+  "document": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+  "blocks_before": [
+    {
+      "id": "9ff77136c2f0424391cbde3510bdd7ae",
+      "style": "Normal",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "marks": []
+    },
+    {
+      "id": "c7d8a202829446c5b594bb1b020d2199",
+      "style": "Normal",
+      "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg.",
+      "marks": []
+    },
+    {
+      "id": "142b4063d8e04ea8af71ca79895c4029",
+      "style": "Normal",
+      "text": "Third paragraph, plain words.",
+      "marks": []
+    }
+  ],
+  "trials": [
+    {
+      "label": "bold selected words",
+      "request": "Make the words \"quick brown\" bold.",
+      "about": "document \u201cFox page\u201d (id f1ebdce12a9b4f4eb0fb4008c2cbfa99, revision 1) \u00b7 selected words 4\u201315 of paragraph 1 (block index 0): \u201cquick brown\u201d\nTo change this page use documents.edit with id f1ebdce12a9b4f4eb0fb4008c2cbfa99, expected_revision 1, selection {block, start, end, text} and change {bold|italic|underline|style|replace|append}.",
+      "state": "Completed",
+      "seconds": 12.1,
+      "text": "{\n  \"text\": \"quick brown\",\n  \"actions\": [\n    {\n      \"operation\": \"documents.edit\",\n      \"arguments\": {\n        \"id\": \"f1ebdce12a9b4f4eb0fb4008c2cbfa99\",\n        \"expected_revision\": 1,\n        \"selection\": {\n          \"block\": 4,\n          \"start\": 15,\n          \"end\": 25,\n          \"text\": \"quick brown\"\n        },\n        \"change\": {\n          \"bold\": true,\n          \"italic\": false,\n          \"underline\": false\n        }\n      }\n    }\n  ]\n}",
+      "proposal": {
+        "text": "quick brown",
+        "actions": [
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+              "expected_revision": 1,
+              "selection": {
+                "block": 4,
+                "start": 15,
+                "end": 25,
+                "text": "quick brown"
+              },
+              "change": {
+                "bold": true,
+                "italic": false,
+                "underline": false
+              }
+            }
+          }
+        ]
+      },
+      "applied": true,
+      "decision": {
+        "apply": true,
+        "arguments": {
+          "id": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+          "expected_revision": 1,
+          "selection": {
+            "block": 0,
+            "start": 4,
+            "end": 15,
+            "text": "quick brown"
+          },
+          "change": {
+            "bold": true
+          },
+          "origin": "SLATE_MODEL"
+        },
+        "reason": "it edits the open page at its current revision",
+        "notes": [
+          "the model named paragraph 5, words 15\u201325, which do not hold \u201cquick brown\u201d; your selection in paragraph 1 is used",
+          "set aside what changes nothing: italic and underline off riding along"
+        ],
+        "corrections": [
+          "the model named paragraph 5, words 15\u201325, which do not hold \u201cquick brown\u201d; your selection in paragraph 1 is used",
+          "set aside what changes nothing: italic and underline off riding along"
+        ]
+      },
+      "blocks_after": [
+        {
+          "id": "9ff77136c2f0424391cbde3510bdd7ae",
+          "marks": [
+            {
+              "bold": true,
+              "end": 15,
+              "start": 4
+            }
+          ],
+          "style": "Normal",
+          "text": "The quick brown fox jumps over the lazy dog."
+        },
+        {
+          "id": "c7d8a202829446c5b594bb1b020d2199",
+          "marks": [],
+          "style": "Normal",
+          "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg."
+        },
+        {
+          "id": "142b4063d8e04ea8af71ca79895c4029",
+          "marks": [],
+          "style": "Normal",
+          "text": "Third paragraph, plain words."
+        }
+      ],
+      "edit_error": null,
+      "applied_words": "made \u201cquick brown\u201d bold"
+    },
+    {
+      "label": "heading on the caret paragraph",
+      "request": "Make this paragraph a heading.",
+      "about": "document \u201cFox page\u201d (id f1ebdce12a9b4f4eb0fb4008c2cbfa99, revision 2) \u00b7 no words selected \u00b7 caret in paragraph 3 (block index 2)\nTo change this page use documents.edit with id f1ebdce12a9b4f4eb0fb4008c2cbfa99, expected_revision 2, selection {block, start, end, text} and change {bold|italic|underline|style|replace|append}.",
+      "state": "Completed",
+      "seconds": 18.1,
+      "text": "{ \"text\": \"About the open item: document \u201cFox page\u201d (id f1ebdce12a9b4f4eb0fb4008c2cbfa99, revision 2) \u00b7 no words selected \u00b7 caret in paragraph 3 (block index 2) To change this page use documents.edit with id f1ebdce12a9b4f4eb0fb4008c2cbfa99, expected_\",\"actions\": [{\"operation\":\"documents.edit\",\"arguments\":{\"id\":\"f1ebdce12a9b4f4eb0fb4008c2cbfa99\",\"expected_revision\":2,\"selection\":{\"block\":3,\"start\":25,\"end\":25,\"text\":\"quick brown\"},\"change\":{\"bold\":true,\"italic\":false,\"underline\":false}}},{\"operation\":\"documents.edit\",\"arguments\":{\"id\":\"f1ebdce12a9b4f4eb0fb4008c2cbfa99\",\"expected_revision\":2,\"selection\":{\"block\":3,\"start\":25,\"end\":25,\"text\":\"quick brown\"},\"change\":{\"bold\":true,\"italic\":false,\"underline\":false}}},{\"operation\":\"documents.edit\",\"arguments\":{\"id\":\"f1ebdce12a9b4f4eb0fb4008c2cbfa99\",\"expected_revision\":2,\"selection\":{\"block\":3,\"start\":25,\"end\":25,\"text\":\"quick brown\"},\"change\":{\"bold\":true,\"italic\":false,\"underline\":false}}}]}",
+      "proposal": {
+        "text": "About the open item: document \u201cFox page\u201d (id f1ebdce12a9b4f4eb0fb4008c2cbfa99, revision 2) \u00b7 no words selected \u00b7 caret in paragraph 3 (block index 2) To change this page use documents.edit with id f1ebdce12a9b4f4eb0fb4008c2cbfa99, expected_",
+        "actions": [
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+              "expected_revision": 2,
+              "selection": {
+                "block": 3,
+                "start": 25,
+                "end": 25,
+                "text": "quick brown"
+              },
+              "change": {
+                "bold": true,
+                "italic": false,
+                "underline": false
+              }
+            }
+          },
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+              "expected_revision": 2,
+              "selection": {
+                "block": 3,
+                "start": 25,
+                "end": 25,
+                "text": "quick brown"
+              },
+              "change": {
+                "bold": true,
+                "italic": false,
+                "underline": false
+              }
+            }
+          },
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+              "expected_revision": 2,
+              "selection": {
+                "block": 3,
+                "start": 25,
+                "end": 25,
+                "text": "quick brown"
+              },
+              "change": {
+                "bold": true,
+                "italic": false,
+                "underline": false
+              }
+            }
+          }
+        ]
+      },
+      "applied": null,
+      "decision": {
+        "apply": false,
+        "arguments": null,
+        "reason": "it names paragraph 4 and the page has 3",
+        "notes": [],
+        "corrections": []
+      },
+      "blocks_after": [
+        {
+          "id": "9ff77136c2f0424391cbde3510bdd7ae",
+          "marks": [
+            {
+              "bold": true,
+              "end": 15,
+              "start": 4
+            }
+          ],
+          "style": "Normal",
+          "text": "The quick brown fox jumps over the lazy dog."
+        },
+        {
+          "id": "c7d8a202829446c5b594bb1b020d2199",
+          "marks": [],
+          "style": "Normal",
+          "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg."
+        },
+        {
+          "id": "142b4063d8e04ea8af71ca79895c4029",
+          "marks": [],
+          "style": "Normal",
+          "text": "Third paragraph, plain words."
+        }
+      ]
+    },
+    {
+      "label": "replace a word",
+      "request": "Replace the word lazy with sleepy in this paragraph.",
+      "about": "document \u201cFox page\u201d (id f1ebdce12a9b4f4eb0fb4008c2cbfa99, revision 2) \u00b7 selected words 35\u201339 of paragraph 1 (block index 0): \u201clazy\u201d\nTo change this page use documents.edit with id f1ebdce12a9b4f4eb0fb4008c2cbfa99, expected_revision 2, selection {block, start, end, text} and change {bold|italic|underline|style|replace|append}.",
+      "state": "Completed",
+      "seconds": 13.6,
+      "text": "{\n  \"text\": \"lazy\",\n  \"actions\": [\n    {\n      \"operation\": \"documents.edit\",\n      \"arguments\": {\n        \"id\": \"f1ebdce12a9b4f4eb0fb4008c2cbfa99\",\n        \"expected_revision\": 2,\n        \"selection\": {\n          \"block\": 35,\n          \"start\": 35,\n          \"end\": 39,\n          \"text\": \"lazy\"\n        },\n        \"change\": {\n          \"bold\": true,\n          \"italic\": false,\n          \"underline\": false\n        }\n      }\n    }\n  ]\n}",
+      "proposal": {
+        "text": "lazy",
+        "actions": [
+          {
+            "operation": "documents.edit",
+            "arguments": {
+              "id": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+              "expected_revision": 2,
+              "selection": {
+                "block": 35,
+                "start": 35,
+                "end": 39,
+                "text": "lazy"
+              },
+              "change": {
+                "bold": true,
+                "italic": false,
+                "underline": false
+              }
+            }
+          }
+        ]
+      },
+      "applied": true,
+      "decision": {
+        "apply": true,
+        "arguments": {
+          "id": "f1ebdce12a9b4f4eb0fb4008c2cbfa99",
+          "expected_revision": 2,
+          "selection": {
+            "block": 0,
+            "start": 35,
+            "end": 39,
+            "text": "lazy"
+          },
+          "change": {
+            "bold": true
+          },
+          "origin": "SLATE_MODEL"
+        },
+        "reason": "it edits the open page at its current revision",
+        "notes": [
+          "the model named paragraph 36, words 35\u201339, which do not hold \u201clazy\u201d; your selection in paragraph 1 is used",
+          "set aside what changes nothing: italic and underline off riding along"
+        ],
+        "corrections": [
+          "the model named paragraph 36, words 35\u201339, which do not hold \u201clazy\u201d; your selection in paragraph 1 is used",
+          "set aside what changes nothing: italic and underline off riding along"
+        ]
+      },
+      "blocks_after": [
+        {
+          "id": "9ff77136c2f0424391cbde3510bdd7ae",
+          "marks": [
+            {
+              "bold": true,
+              "end": 15,
+              "start": 4
+            },
+            {
+              "bold": true,
+              "end": 39,
+              "start": 35
+            }
+          ],
+          "style": "Normal",
+          "text": "The quick brown fox jumps over the lazy dog."
+        },
+        {
+          "id": "c7d8a202829446c5b594bb1b020d2199",
+          "marks": [],
+          "style": "Normal",
+          "text": "A second paragraph about the crate: 12.5 kg, 3 kg and 0.5 kg."
+        },
+        {
+          "id": "142b4063d8e04ea8af71ca79895c4029",
+          "marks": [],
+          "style": "Normal",
+          "text": "Third paragraph, plain words."
+        }
+      ],
+      "edit_error": null,
+      "applied_words": "made \u201clazy\u201d bold"
+    }
+  ],
+  "status_end": "READY",
+  "finished": 1793951450.4934666
+}

@@ -1,0 +1,17 @@
+{
+  "source": "ARC_Visual_Foundation_v0_1.zip",
+  "sha256": "d580a9d771d294475aeea52bc50964fd90c9cf9b50dbbfe443a2244014c4ec3c",
+  "files": {
+    "file-table.svg": "39f0c7d11f006d68b944d433c42e1d72c18c4935a46ee464c947d0cae8b89c40",
+    "refresh.svg": "0456917e6e9194488032b6c73f918b60942cf66448eb87bf41c80d1aaee250ad",
+    "import.svg": "1ef2101f1402cd5fd6623c152d2384defac638e37b7ffa95f1a9da6cffe1c4ea",
+    "page-link.svg": "5619c1d35ec107b422cead5e63f33b56d8322021c2d18a734ff68633e2058af5",
+    "source-fact.svg": "4ecaa80a28f6d75ab26e0f62a4db1a3fb9f5eee230c099da9c33c3740457b2c4",
+    "export.svg": "798e47f7a483ca728efb8daac886093a815706b778dc3f08384c4178d93b25fe",
+    "build.svg": "220a9c42174b2ef70c272dc1a78c63ce43bf0da60a788f6094eaef40cf0305c7",
+    "search.svg": "a119926d2a5a533b8ffd902503d40d14a14bee4771bb08394b89e8133d836d08",
+    "vendor-vault.svg": "ed9435c1778974e531d89c710ed148a05768e6c2a13bde2282172b507b85b8f7",
+    "power-rail.svg": "528c974789ce10b253006436153c3a2eee0923636f7512b758e782ed4e794096",
+    "fact-review.svg": "33d8ab7a59fc02f894fd23ada2015422006e29fcd013c7f7c9d80a58bf04c20f"
+  }
+}

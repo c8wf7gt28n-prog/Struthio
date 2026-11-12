@@ -1,0 +1,391 @@
+{
+ "frontier": [
+  {
+   "assumptions": [],
+   "context_digest": "16ae013d80c0d36b0a2c898ad91cb1267c13b5528d5375a1d96198446dd05500",
+   "hypothesis": "The specified resource schedule fits the declared capacity.",
+   "key": "b1",
+   "origin": "OWNER_PROBLEM_CANDIDATE",
+   "problem_revision": 1,
+   "status": "PROPOSED"
+  },
+  {
+   "assumptions": [],
+   "context_digest": "16ae013d80c0d36b0a2c898ad91cb1267c13b5528d5375a1d96198446dd05500",
+   "hypothesis": "A precondition violation or an adverse resource result may require a conditional refusal.",
+   "key": "b2",
+   "origin": "OWNER_PROBLEM_CANDIDATE",
+   "problem_revision": 1,
+   "status": "PROPOSED"
+  }
+ ],
+ "limits": {
+  "decision_seconds": 180,
+  "decisions": 16,
+  "failures": 2,
+  "frontier": 6,
+  "max_tokens": 768
+ },
+ "note": "The saved repeated methods.preview from the first case of the recorded local-model family trial (the program's own record of one adaptive step), reduced to what slate_action.phase_view and method_continuations read. Fixed test data; nothing reads the trial record.",
+ "qualifying_method": {
+  "accepted_by": "desktop-owner",
+  "actor": "desktop-owner",
+  "assignment": "3e9a33ae274c4cc5850508eece4d21de",
+  "components": {
+   "LedgerOffice.java": "b1e89ee058211094f3745022468770b47b644cb9bd5900ccae013af6ec1e0671",
+   "LedgerSession.java": "af51bbd47e5dfe1435997e8a77829867a5a0b9abe701169ef8d24357d6f3d9a1",
+   "checked_methods.py": "274a2d5e17a9fd77adb96b85cd2e1a558317bb093e77cf23b0a335147bcd417f",
+   "engineering_cli.py": "2f86cad284e00f3c7e5fed0f228dc62e4d2a482c7cdc5e8648a84d69b9ece01e",
+   "engineering_kernel.py": "965bf640e31d41f50eb4940a80f12e82df8cc85bb2d71f4bf231ab576c827c61",
+   "experiment_runtime.py": "9329f94b4463fc3a78b5ac260643e042957bef78e189064542afe0631d54aaa9",
+   "joined_work.py": "00b45c8b088042c9a2e91f0ec7c741affc2ff235fa0d74ea36975762531106e7",
+   "math_service.py": "afa7a28f2cc2bebce7e6d64ae13d9697dba25bf6a5dd7e0761d6727da01be29e",
+   "native_sessions.py": "f86ad12c3b52349d010759391bbcc12620e794457ebe794c3fbda6b654f1a8f0",
+   "office_math_runtime.py": "2d35f9a5f19ca49f046c7e64274ad75abbf6511f20dea73a3162e70635b9d875",
+   "project_context.py": "81349dfab5f9eb2c4e06dfc6730477a7307d79c02003cc09c5681050fb5f3da1",
+   "schedule_math.py": "661800f5df7189deb2f5649e78cc58377d81be8ed56ea308000a637610301ba8",
+   "typed_artifacts.py": "b99633601211b4335483dc8872150341828b2031fad40f4868e95c292f056586"
+  },
+  "copy": "5f3104ed9a834c568bead62aa406d53e",
+  "created": 1793595642.300288,
+  "evidence_digest": "32b808bc81ce01ed1cd2269d7660fa4965ee52488c5f2506a45bfb3be8c299ae",
+  "expected_checks": [
+   "Exact half-open peak",
+   "Actual Calc recalculation and reopen",
+   "Protected Python agreement",
+   "Native Writer content and dependency bindings"
+  ],
+  "failure_cases": [
+   "Unknown or incompatible units",
+   "Closed lifetimes",
+   "Variable capacity",
+   "Nonadditive resources",
+   "Unmodeled overhead, fragmentation or indivisibility",
+   "Changed inputs or method"
+  ],
+  "id": "bf2f09990e1748498655d7674cc81a4d",
+  "kind": "checked_method",
+  "notes": [
+   {
+    "actor": "desktop-owner",
+    "at": 1793595642.7358277,
+    "text": "Synthetic evaluator owner accepts the checked additive profile; the model inherits no authority."
+   }
+  ],
+  "owner": "desktop-owner",
+  "preconditions": {
+   "additive": true,
+   "constant_capacity": true,
+   "fragmentation": "NOT_APPLICABLE",
+   "indivisibility": "NOT_APPLICABLE",
+   "interval_semantics": "HALF_OPEN",
+   "overhead": "NONE"
+  },
+  "profile": "ledger.additive-capacity-method/1",
+  "project": "2210b57109264d68a291ab9f432c26c9",
+  "qualification": "DECLARED_ADDITIVE_MODEL_ONLY_NOT_A_PHYSICAL_GUARANTEE",
+  "revision": 2,
+  "schema": "ledger.checked-method/1",
+  "source_job": "27312742a3464e76a769b4cc0c37a086",
+  "state": "ACCEPTED",
+  "steps": [
+   {
+    "after": [],
+    "arguments": {
+     "allocations": [
+      {
+       "lifetime": "buffer_A_life",
+       "quantity": "buffer_A"
+      },
+      {
+       "lifetime": "buffer_B_life",
+       "quantity": "buffer_B"
+      },
+      {
+       "lifetime": "workspace_life",
+       "quantity": "workspace"
+      }
+     ],
+     "capacity": "memory_limit",
+     "expected_context_digest": "da0b9a8847433684dc1764a4abb8fab8357994eaef26afce025d27b448029ef4",
+     "expected_revision": 1,
+     "id": "0fc2c2ed054b4503a59c428b3f021f7f"
+    },
+    "key": "Capacity",
+    "operation": "math.schedule"
+   }
+  ],
+  "title": "Checked capacity over declared half-open lifetimes",
+  "typed_inputs": {
+   "allocations": "same quantity dimension as capacity",
+   "capacity": "nonnegative scalar quantity",
+   "lifetimes": "known nonnegative rational time intervals",
+   "units": "exact compatible conversions"
+  },
+  "updated": 1793595642.7358258
+ },
+ "saved_observation": {
+  "arguments": {
+   "allocations": [
+    {
+     "lifetime": "pump_life",
+     "quantity": "pump"
+    },
+    {
+     "lifetime": "heater_life",
+     "quantity": "heater"
+    },
+    {
+     "lifetime": "controller_life",
+     "quantity": "controller"
+    }
+   ],
+   "capacity": "current_limit",
+   "declarations": {
+    "additive": true,
+    "basis": "resources.csv",
+    "constant_capacity": true,
+    "fragmentation": "NOT_APPLICABLE",
+    "indivisibility": "NOT_APPLICABLE",
+    "interval_semantics": "HALF_OPEN",
+    "overhead": "NONE"
+   },
+   "expected_context_digest": "16ae013d80c0d36b0a2c898ad91cb1267c13b5528d5375a1d96198446dd05500",
+   "expected_revision": 1,
+   "id": "fc4d679529f74df88f07cbb3dbe3914c",
+   "method": "bf2f09990e1748498655d7674cc81a4d",
+   "method_revision": 2
+  },
+  "operation": "methods.preview",
+  "outcome": "OBSERVED",
+  "result": {
+   "allocations": [
+    {
+     "lifetime": "pump_life",
+     "quantity": "pump"
+    },
+    {
+     "lifetime": "heater_life",
+     "quantity": "heater"
+    },
+    {
+     "lifetime": "controller_life",
+     "quantity": "controller"
+    }
+   ],
+   "authority": "PREVIEW_NO_EXECUTION_PERMISSION",
+   "binding_current": true,
+   "capacity": "current_limit",
+   "context_digest": "16ae013d80c0d36b0a2c898ad91cb1267c13b5528d5375a1d96198446dd05500",
+   "declarations": {
+    "additive": true,
+    "basis": "resources.csv",
+    "constant_capacity": true,
+    "fragmentation": "NOT_APPLICABLE",
+    "indivisibility": "NOT_APPLICABLE",
+    "interval_semantics": "HALF_OPEN",
+    "overhead": "NONE"
+   },
+   "execution_started": false,
+   "kind": "method_preview",
+   "method": {
+    "digest": "baaaa56beab5929c4024db91ba8b111234a06e05ecde9e0a6d0d69e894f8c32a",
+    "id": "bf2f09990e1748498655d7674cc81a4d",
+    "revision": 2
+   },
+   "method_id": "bf2f09990e1748498655d7674cc81a4d",
+   "method_revision": 2,
+   "precondition_rejected": false,
+   "problem": "fc4d679529f74df88f07cbb3dbe3914c",
+   "problem_revision": 1,
+   "schema": "ledger.method-preview/1",
+   "snapshot": {
+    "assumptions": [
+     "Half-open [start, stop) lifetimes; releases at a boundary occur before allocations at that boundary.",
+     "Additive capacity; no fragmentation, alignment, allocator overhead or indivisibility is modeled."
+    ],
+    "capacity": {
+     "decimal": "10",
+     "decimal_exact": true,
+     "dimension": {
+      "current": 1
+     },
+     "rational": "10",
+     "unit": "A"
+    },
+    "fits": true,
+    "inputs": [
+     {
+      "amount": {
+       "decimal": "4",
+       "decimal_exact": true,
+       "dimension": {
+        "current": 1
+       },
+       "rational": "4",
+       "unit": "A"
+      },
+      "basis": "Declared synthetic resources.csv",
+      "lifetime": "pump_life",
+      "quantity": "pump",
+      "start": "0",
+      "stop": "7",
+      "time_unit": "s"
+     },
+     {
+      "amount": {
+       "decimal": "3",
+       "decimal_exact": true,
+       "dimension": {
+        "current": 1
+       },
+       "rational": "3",
+       "unit": "A"
+      },
+      "basis": "Declared synthetic resources.csv",
+      "lifetime": "heater_life",
+      "quantity": "heater",
+      "start": "0",
+      "stop": "7",
+      "time_unit": "s"
+     },
+     {
+      "amount": {
+       "decimal": "2",
+       "decimal_exact": true,
+       "dimension": {
+        "current": 1
+       },
+       "rational": "2",
+       "unit": "A"
+      },
+      "basis": "Declared synthetic resources.csv",
+      "lifetime": "controller_life",
+      "quantity": "controller",
+      "start": "6",
+      "stop": "12",
+      "time_unit": "s"
+     }
+    ],
+    "missing": [],
+    "observed": true,
+    "peak": {
+     "decimal": "9",
+     "decimal_exact": true,
+     "dimension": {
+      "current": 1
+     },
+     "rational": "9",
+     "unit": "A"
+    },
+    "physical_qualification": false,
+    "segments": [
+     {
+      "active": [
+       "heater",
+       "pump"
+      ],
+      "demand": {
+       "decimal": "7",
+       "decimal_exact": true,
+       "dimension": {
+        "current": 1
+       },
+       "rational": "7",
+       "unit": "A"
+      },
+      "fits": true,
+      "start": "0",
+      "stop": "6",
+      "unit": "s"
+     },
+     {
+      "active": [
+       "controller",
+       "heater",
+       "pump"
+      ],
+      "demand": {
+       "decimal": "9",
+       "decimal_exact": true,
+       "dimension": {
+        "current": 1
+       },
+       "rational": "9",
+       "unit": "A"
+      },
+      "fits": true,
+      "start": "6",
+      "stop": "7",
+      "unit": "s"
+     },
+     {
+      "active": [
+       "controller"
+      ],
+      "demand": {
+       "decimal": "2",
+       "decimal_exact": true,
+       "dimension": {
+        "current": 1
+       },
+       "rational": "2",
+       "unit": "A"
+      },
+      "fits": true,
+      "start": "7",
+      "stop": "12",
+      "unit": "s"
+     }
+    ],
+    "state": "FEASIBLE"
+   },
+   "state": "SUPPORTED"
+  }
+ },
+ "used": {
+  "files": [],
+  "output_bytes": 4419,
+  "seconds": 251.27710209925135,
+  "steps": 3,
+  "tokens": 11412
+ },
+ "variables": [
+  {
+   "name": "current_limit",
+   "type": "quantity"
+  },
+  {
+   "name": "pump",
+   "type": "quantity"
+  },
+  {
+   "name": "heater",
+   "type": "quantity"
+  },
+  {
+   "name": "controller",
+   "type": "quantity"
+  },
+  {
+   "name": "pump_life",
+   "type": "interval"
+  },
+  {
+   "name": "heater_life",
+   "type": "interval"
+  },
+  {
+   "name": "controller_life",
+   "type": "interval"
+  },
+  {
+   "name": "assumption",
+   "type": "text"
+  },
+  {
+   "name": "assumption",
+   "type": "text"
+  }
+ ]
+}

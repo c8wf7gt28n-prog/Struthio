@@ -1,0 +1,158 @@
+{
+  "state": "PASSED",
+  "scope": "Development examples on execution host; not ThinkPad acceptance or current-host Atlas promotion",
+  "checks": [
+    {
+      "method": "dimensional_arithmetic",
+      "state": "PASSED",
+      "observed": "5/4 W",
+      "operation": "math.evaluate"
+    },
+    {
+      "method": "interval_capacity",
+      "state": "PASSED",
+      "observed": "6 MiB half-open peak fits 8 MiB; saved receipt reopens current",
+      "operation": "math.schedule"
+    },
+    {
+      "method": "linear_equalities",
+      "state": "PASSED",
+      "operation": "math.solve",
+      "backend": "SYMPY",
+      "observed": "x = 3; exact witness rechecked",
+      "version": "1.14.0"
+    },
+    {
+      "method": "linear_feasibility",
+      "state": "PASSED",
+      "operation": "math.solve",
+      "backend": "Z3",
+      "observed": "x = 3; exact witness rechecked",
+      "version": "4.15.4.0"
+    },
+    {
+      "method": "linear_feasibility",
+      "state": "PASSED",
+      "operation": "math.solve",
+      "backend": "Z3",
+      "observed": "x > 1 with x <= 1 is infeasible"
+    },
+    {
+      "method": "rational_normalization",
+      "state": "PASSED",
+      "operation": "math.solve",
+      "backend": "SYMPY",
+      "observed": "x/x normalizes to 1 while x != 0 survives; numerical state UNKNOWN"
+    },
+    {
+      "method": "dependency_impact",
+      "state": "PASSED",
+      "operation": "reasons.impact",
+      "observed": "Declared downstream claim tracked; outside-graph impact UNKNOWN"
+    },
+    {
+      "method": "finite_reason_paths",
+      "state": "PASSED",
+      "operation": "reasons.evaluate",
+      "observed": "Checked exact receipt supports the conditional proposed claim; no physical qualification"
+    }
+  ],
+  "distinct_linked_methods_checked": 7,
+  "trusted_solver_worker_calls": 4,
+  "engineering_jobs": 0,
+  "native_app_trials": 0,
+  "model_generations": 0,
+  "seconds": 5.698643866999191,
+  "host": {
+    "system": "Linux",
+    "release": "6.18.57",
+    "machine": "x86_64",
+    "session_digest": "0c29632c7c312b9d2b300d6be627ee586eadcc8307fdcb6e2acc99a34354e290",
+    "basis": "PASSIVE_PLATFORM_AND_BOOT_SESSION_NOT_HARDWARE_ACCEPTANCE"
+  },
+  "dependencies": {
+    "sympy": {
+      "installed": "1.14.0",
+      "required": "1.14.0",
+      "state": "PINNED"
+    },
+    "z3-solver": {
+      "installed": "4.15.4.0",
+      "required": "4.15.4.0",
+      "state": "PINNED"
+    },
+    "mpmath": {
+      "installed": "1.3.0",
+      "required": "1.3.0",
+      "state": "PINNED"
+    }
+  },
+  "catalog_digest": "5d373fa264241f84b03078f4730d123da3e2c2f8534698a5af3b46452fee35a6",
+  "source_bindings": {
+    "docs/HATCH_ALGORITHM_ATLAS.md": {
+      "path": "docs/HATCH_ALGORITHM_ATLAS.md",
+      "state": "PRESENT",
+      "sha256": "8e7fecd1e4d1f9be26c5c4162849fcf117c5d9b848fc33abf9b5d2bb3b56a04d"
+    },
+    "workbench/algorithm_atlas.py": {
+      "path": "workbench/algorithm_atlas.py",
+      "state": "PRESENT",
+      "sha256": "c2ac952b772c6140f2de54bbbe385280834ea1c14ecff2d0b4b5b5b4d2a7e327"
+    },
+    "workbench/algorithm_corpus.json": {
+      "path": "workbench/algorithm_corpus.json",
+      "state": "PRESENT",
+      "sha256": "b4c1ed13e84e79a0dc9f894a797f3ba6c945f4363a3095ab44d27bc11cab1d77"
+    },
+    "workbench/checked_methods.py": {
+      "path": "workbench/checked_methods.py",
+      "state": "PRESENT",
+      "sha256": "274a2d5e17a9fd77adb96b85cd2e1a558317bb093e77cf23b0a335147bcd417f"
+    },
+    "workbench/math_backend.py": {
+      "path": "workbench/math_backend.py",
+      "state": "PRESENT",
+      "sha256": "1062e10f395933640f3dbeff71e82a9ca539fd04f71efd0927b556da5689ed61"
+    },
+    "workbench/math_model.py": {
+      "path": "workbench/math_model.py",
+      "state": "PRESENT",
+      "sha256": "0a582ee458b69032ad9e598ee25e27e36a7a2d3a5b8cd74b11d8fa4459784485"
+    },
+    "workbench/math_service.py": {
+      "path": "workbench/math_service.py",
+      "state": "PRESENT",
+      "sha256": "afa7a28f2cc2bebce7e6d64ae13d9697dba25bf6a5dd7e0761d6727da01be29e"
+    },
+    "workbench/math_units.py": {
+      "path": "workbench/math_units.py",
+      "state": "PRESENT",
+      "sha256": "d2c6cf9bbad083c1a1b6053e78becd2000eca79ea4e696e6151b67745e2e51fa"
+    },
+    "workbench/problem_service.py": {
+      "path": "workbench/problem_service.py",
+      "state": "PRESENT",
+      "sha256": "9950fdcb4263f68147e582f523f21ade5c19c53d87b0d2e3b46ed2406818df88"
+    },
+    "workbench/reason_graph.py": {
+      "path": "workbench/reason_graph.py",
+      "state": "PRESENT",
+      "sha256": "e37dcc16e8d4b666183d6bd6d26e1e90ed9fdea851707add61931cafd3420a36"
+    },
+    "workbench/reason_service.py": {
+      "path": "workbench/reason_service.py",
+      "state": "PRESENT",
+      "sha256": "85cfc18e1d0c2f65cd232cb1db90c3ce2b98773e39b7801138780f97ff144962"
+    },
+    "workbench/schedule_math.py": {
+      "path": "workbench/schedule_math.py",
+      "state": "PRESENT",
+      "sha256": "661800f5df7189deb2f5649e78cc58377d81be8ed56ea308000a637610301ba8"
+    },
+    "workbench/stac/evidence.py": {
+      "path": "workbench/stac/evidence.py",
+      "state": "PRESENT",
+      "sha256": "c639d0f66b189aac6ec7f66b6484fabda734c15a796a9f6216db3e35d2c3f79e"
+    }
+  }
+}

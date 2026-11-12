@@ -1,0 +1,119 @@
+{
+  "schema": "arc.campaign-milestones/1",
+  "definition": "A milestone closes an observable workflow across its dependent passes; no fixed number of passes automatically earns one.",
+  "current_delivery": "P20",
+  "current_milestone": "M3",
+  "planned_remaining_after_this_delivery": 22,
+  "milestones": [
+    {
+      "id": "M1",
+      "name": "Concern foundation",
+      "passes": [
+        "N1",
+        "N2/G1-G5",
+        "N3",
+        "P17"
+      ],
+      "state": "DEMONSTRATED_IN_DEVELOPMENT_REVIEW_OPEN",
+      "workflow": "Organize one concern, retain stable identities, read original evidence, save separate notes and keep shared jobs independent of desktop closure."
+    },
+    {
+      "id": "M2",
+      "name": "Shared reading",
+      "passes": [
+        "SW-001",
+        "P17",
+        "SW-002"
+      ],
+      "state": "DEMONSTRATED_IN_DEVELOPMENT_REVIEW_OPEN",
+      "workflow": "The owner reviews and publishes an exact view; a paired satellite reads the same identity/revision through an inert renderer with its own presentation."
+    },
+    {
+      "id": "M3",
+      "name": "Documents and working knowledge",
+      "passes": [
+        "P18",
+        "P19",
+        "P20"
+      ],
+      "state": "DEMONSTRATED_IN_DEVELOPMENT_REVIEW_OPEN",
+      "workflow": "Optional notes exchange, source-bound notebook blocks, engineering tables/BOMs and the declared editable-document profile work together with visible conversion losses.",
+      "demonstrated_passes": [
+        "P18",
+        "P19",
+        "P20"
+      ],
+      "remaining_passes": []
+    },
+    {
+      "id": "M4",
+      "name": "Traceable engineering desk",
+      "passes": [
+        "P21",
+        "P22",
+        "P23",
+        "P24"
+      ],
+      "state": "PLANNED",
+      "workflow": "Navigate exact source, manage real tasks, trace claims/dependencies and compare hypothetical candidates without rewriting accepted history."
+    },
+    {
+      "id": "M5",
+      "name": "Grounded Slate reasoning",
+      "passes": [
+        "P25",
+        "P26",
+        "P27",
+        "P28"
+      ],
+      "state": "PLANNED",
+      "workflow": "staC (pronounced Stacy), reproducible recipes, actual local-model reasoning and genuine reviewed Frontier/Gemini exchanges share checked source and effect contracts."
+    },
+    {
+      "id": "M6",
+      "name": "Durable continuity",
+      "passes": [
+        "P29",
+        "P30",
+        "P31",
+        "P32",
+        "SW-003"
+      ],
+      "state": "PLANNED",
+      "workflow": "Evaluated study, exact-context resume, real model replacement, complete verified recovery and device reconnect preserve decisions and avoid duplicate work."
+    },
+    {
+      "id": "M7",
+      "name": "Hosted conversational office",
+      "passes": [
+        "N4",
+        "N5",
+        "P33",
+        "P34",
+        "P35"
+      ],
+      "state": "PLANNED",
+      "workflow": "Guided Debian hosting, a conversation-first satellite, optional collaboration/mail adapters and actual voice use one concern and service."
+    },
+    {
+      "id": "M8",
+      "name": "Owner-qualified release",
+      "passes": [
+        "SW-004",
+        "SW-005",
+        "P36",
+        "P37"
+      ],
+      "state": "PLANNED",
+      "workflow": "Resolve the conditional graphical bridge pilot, prove the real iPhone/home network and ThinkPad workflow, then rehearse installation/update/restore with independent acceptance."
+    }
+  ],
+  "qualification": "Development demonstration and actual owner/independent acceptance are separate states. Every milestone retains owner/independent acceptance OPEN until its own evidence exists.",
+  "count_basis": "Eight capability groups, not equal effort or percentages. Dependencies overlap (P17 serves M1 and M2); count each retained delivery once. N2/G1-G5 is one expanded delivery. Historical 86/225 points are unchanged.",
+  "standing_handoff": "Include a roughly ten-minute discussion of current state, next work, milestone movement and final destination with every pass.",
+  "language": {
+    "spelling": "staC",
+    "pronunciation": "Stacy",
+    "hint": "STAY-see"
+  }
+}

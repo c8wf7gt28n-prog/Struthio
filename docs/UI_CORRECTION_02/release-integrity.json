@@ -1,0 +1,59 @@
+{
+  "state": "PASSED",
+  "pass": "I05",
+  "runtime": {
+    "state": "PASSED",
+    "payload": {
+      "state": "VERIFIED",
+      "files": 1044,
+      "version": "5.1.0a5",
+      "problems": [],
+      "meaning": "Payload matches the local manifest; this does not authenticate its publisher."
+    },
+    "foundation": "VERIFIED_SOURCE_BINDINGS",
+    "capabilities": 660,
+    "schema_digest": "22a86b84da34867a60d3e5398e4e721664819b9278f6260a1b8dd492cf172028",
+    "python_files_parsed": 475,
+    "errors": [],
+    "scope": "Runtime integrity, source bindings, syntax and registry agreement; no physical qualification"
+  },
+  "preservation": {
+    "state": "PASSED",
+    "previous_operations_retained": 633,
+    "operations": 660,
+    "previous_job_tools_retained": 109,
+    "job_tools": 112,
+    "baseline_files": 844,
+    "deleted": [],
+    "additive_contract_extensions": [
+      {
+        "operation": "work.investigate",
+        "added": [
+          "joined.prepare",
+          "joined.result",
+          "joined.run",
+          "methods.instantiate",
+          "methods.preview",
+          "methods.result",
+          "methods.run"
+        ],
+        "optional_argument": {
+          "completion": {
+            "type": "string",
+            "enum": [
+              "OBSERVED_FINDING",
+              "APPLICATION_CHAIN_OR_UNSUPPORTED_METHOD"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "acceptance": {
+    "actual_visible_takeover": "OPEN",
+    "mechanical_done_when_satisfied": false,
+    "i05_done_when_satisfied": false,
+    "joined_tool_model_selection": "NOT_MEASURED_BY_THIS_CHECK",
+    "notice": "This checker reports mechanics, not full model acceptance. Coordinator commands and offscreen Qt do not qualify native Calc visibility. No model inference is started. Prior checkers and I04 model evidence remain shipped."
+  }
+}

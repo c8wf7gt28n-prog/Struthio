@@ -1,0 +1,100 @@
+{
+  "title": "Clock Lab feasibility",
+  "request": "Can this synthetic clock design meet its memory and power constraints? Use the supplied files, identify missing information, and keep evidence for the answer.",
+  "goals": [
+    "Determine memory feasibility under explicitly stated lifetimes.",
+    "Evaluate declared power assumptions without treating typical loads as guaranteed maxima."
+  ],
+  "variables": [
+    {
+      "name": "memory_limit",
+      "type": "quantity",
+      "unit": "MiB",
+      "state": "KNOWN",
+      "basis": "Synthetic requirements, revision 1",
+      "value": "16"
+    },
+    {
+      "name": "buffer_A",
+      "type": "quantity",
+      "unit": "MiB",
+      "state": "KNOWN",
+      "basis": "Synthetic requirements, revision 1",
+      "value": "6"
+    },
+    {
+      "name": "buffer_B",
+      "type": "quantity",
+      "unit": "MiB",
+      "state": "KNOWN",
+      "basis": "Synthetic requirements, revision 1",
+      "value": "6"
+    },
+    {
+      "name": "workspace",
+      "type": "quantity",
+      "unit": "MiB",
+      "state": "KNOWN",
+      "basis": "Synthetic requirements, revision 1",
+      "value": "5"
+    },
+    {
+      "name": "lifetime_A",
+      "type": "interval",
+      "unit": "s",
+      "state": "UNKNOWN",
+      "basis": "Synthetic requirements, revision 1"
+    },
+    {
+      "name": "lifetime_B",
+      "type": "interval",
+      "unit": "s",
+      "state": "UNKNOWN",
+      "basis": "Synthetic requirements, revision 1"
+    },
+    {
+      "name": "lifetime_workspace",
+      "type": "interval",
+      "unit": "s",
+      "state": "UNKNOWN",
+      "basis": "Synthetic requirements, revision 1"
+    },
+    {
+      "name": "voltage",
+      "type": "quantity",
+      "unit": "V",
+      "state": "KNOWN",
+      "basis": "Synthetic requirements, revision 1",
+      "value": "5"
+    },
+    {
+      "name": "declared_current_limit",
+      "type": "quantity",
+      "unit": "mA",
+      "state": "KNOWN",
+      "basis": "Synthetic requirements, revision 1",
+      "value": "300"
+    },
+    {
+      "name": "assumed_typical_current",
+      "type": "quantity",
+      "unit": "mA",
+      "state": "KNOWN",
+      "basis": "Declared typical assumption; not a measured maximum",
+      "value": "250"
+    }
+  ],
+  "assumptions": [
+    "Memory sizes use binary MiB.",
+    "Load currents are declared typical assumptions.",
+    "Memory allocation lifetimes have not been supplied."
+  ],
+  "questions": [
+    "When is each allocation live?",
+    "Are there measured worst-case currents and applicable supply limits?"
+  ],
+  "candidates": [
+    "Read the inputs and identify missing quantities.",
+    "Compare simultaneous allocation with an explicitly supplied lifetime schedule later."
+  ]
+}

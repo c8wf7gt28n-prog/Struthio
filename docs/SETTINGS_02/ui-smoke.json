@@ -1,0 +1,54 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Twenty-five definitions project into separate Ledger and Slate settings roots",
+    "Existing script menu writes shared history; saved preference reopens and registry Undo updates actual presentation",
+    "Highlighted integer edit changes the actual left dock and reports measured width",
+    "Output height stays pending while the real output panel is hidden",
+    "Showing the panel applies its height; output-page choice reads back the existing Problems tab",
+    "Legacy reading editor saves two values in one Session batch and the same per-key history",
+    "A genuine code editor consumes the changed point size",
+    "Registry Undo and the existing prose-size shortcut both use the shared journal",
+    "Concurrent reading change refuses the whole legacy batch and preserves all unsaved dialog values",
+    "Gemini model preference reaches the existing file and next-request cache with credential bytes unchanged",
+    "Existing source-sharing control and registry Undo use the same owner-authorized setting",
+    "Unavailable provider store disables its editor, preserves the draft and keeps Ledger operational",
+    "Repair restores editing without silently replacing a retained draft or its original revision",
+    "Affected layout resizes to 1366 by 768 and Trash remains fixed outside the tree",
+    "Window close saves Session state and removes the desktop lease"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Settings_02_Layout.png",
+      "sha256": "5c3d379f8ea5390ac6a8050b86757375face393be08fd312aed9e8153a89c1ab",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_02_Reading.png",
+      "sha256": "ced396b25d6b7f3655e56f4c475744cb49842f126ee44344c586fc410b665d09",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_02_Provider.png",
+      "sha256": "e037e89937f607fca7e45251fc2c807589e392327dcb216f87f2c9ae1d2d0026",
+      "resolution": [
+        1920,
+        1200
+      ]
+    }
+  ],
+  "settings_count": 25,
+  "jobs": 0,
+  "model_generations": 0,
+  "provider_requests": 0,
+  "engineering_solver_calls": 0,
+  "native_acceptance": false,
+  "natural_language_setting_selection": "NOT_TESTED_WITH_A_REAL_MODEL"
+}

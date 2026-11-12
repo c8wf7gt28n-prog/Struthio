@@ -1,0 +1,58 @@
+LEDGER AND SLATE — HATCH RESUME AND VALIDATION POLICY
+Prepared 2026-11-02, America/Phoenix
+
+NEW CHAT STARTING INSTRUCTION
+Continue Ledger & Slate from Ledger_Slate_UI_Mini_Pass.zip and HATCH CAMPAIGN .docx. Read UI_MINI_PASS_RESULT.json and I05_RESULT.json first. Preserve the complete application, Paper/Struthio colors, Hatch menu, Nice sliders, originals, historical evidence and existing capabilities. Start with one narrowly scoped I05 correction. Use the timing findings and bounded validation policy below. Do not launch a broad test/model campaign simply to establish context. Report current blockers early and save a checkpoint instead of allowing repeated expensive trials to expand the turn indefinitely.
+
+FILES TO ATTACH OR SELECT IN THE NEW CHAT
+1. Ledger_Slate_UI_Mini_Pass.zip — full current source checkpoint including the accumulated I05 work and newer UI; not merely a patch.
+   Library: https://chatgpt.com/library?file_id=libfile_77b779f354a0819196e21b262c306389&account_id=personal
+   ZIP SHA256: 45f5c4b286e24de42ac50564d819e96f92e0f2b8e9eb917322d8eb21993ebe82
+2. HATCH CAMPAIGN .docx — six-pass blueprint and prior-acceptance gates.
+   Library: https://chatgpt.com/library?file_id=libfile_f0402c28e9048191a0c0000992e98898&account_id=personal
+3. This resume file.
+
+CURRENT EVIDENCE STATUS
+- I04 is accepted for its recorded, bounded execution-host reference family.
+- I05 implementation/mechanical checks passed historically; actual-model selection FAILED. Actual visible Calc takeover remains OPEN_BLOCKED_HOST in the retained records.
+- I06 has not started. The integrated campaign remains 4/6 accepted milestones. This is separate from future H01-H06 progress.
+- UI-MINI-01 implements Hatch, header/menu changes, registry-style settings, pinned Trash, Agenda drag order and per-row niceness sliders. It is explicitly UNTESTED. Offscreen screenshots do not establish native GUI, lifecycle or scheduler acceptance.
+- HATCH's blueprint used an older I05 snapshot. Its NOT_RUN model status and count of 35 checks are superseded by current I05_RESULT.json: model FAILED and 41 historical focused checks.
+- Model weights are external and not bundled in the checkpoint. The historical reference was Qwen3.5-4B-Q4_K_M.gguf, SHA256 00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4, llama.cpp b11669, CPU, 4 threads, 6144-token context. Check availability before attempting a real trial; do not silently replace the model or download weights.
+
+WHAT THE RETAINED TIMINGS ACTUALLY SHOW
+The latest I05 focused-test receipt records 41 tests in 3.982 seconds. These routine tests do not explain an hours-long development pass.
+Seven retained model development attempts, including one paused attempt, contain 28 validated generations. Their individual work intervals total 31.59 minutes. Within those intervals, recorded model-decision elapsed times total 29.90 minutes. The first recorded work start to the final recorded state update spans 63.04 minutes, including gaps. These quantities overlap; do not add them together. This is a reconstruction of one recorded I05 period, not a complete profiler of every previous pass or proof that every gap was test execution.
+The model runner already stops its family after the first failed case. The seven attempts came from repeated development runs, rather than all three cases being blindly run after each failure. Each invocation creates a new fixture, requalifies the protected runtime, runs a Calc/Python/Writer basis chain, registers and activates the model, then performs inference. Setup is repeated across invocations.
+The model repeatedly confused preparation with execution, invented an action identifier, finished without requested application outputs, or repeated an already completed method/check. The duplicate guard correctly stopped repeated actions. Preserve that guard. Another trial was paused for compatibility repair.
+The retained GUI records document AF_UNIX denial and a usable headless Office build without an accepted visible Calc session. Treat this as a historical host blocker. A new host needs a cheap capability check; a known unchanged blocker does not warrant another lengthy display/Office reconstruction loop.
+Earlier I01-I04 checkers recursively delegate to prior checkers. The current I05 checker is already flatter: it does not automatically rerun every earlier milestone. Do not incorrectly blame the current I05 entry point for recursively running the entire old campaign.
+Development workflow also contributed: implementation, runtime setup/repair, model debugging, GUI troubleshooting and acceptance were combined in large turns. The UI mini pass touched several backend/UI areas despite having no tests. A new chat alone does not make those operations faster.
+
+WORKING POLICY FOR THE NEXT PASS
+1. Keep the scope to one changed boundary and its deliverable. Avoid unrelated UI improvements, infrastructure rebuilds or new test frameworks.
+2. Keep quick deterministic checks separate from native-tool acceptance, real-model experiments and owner-host qualification. Use existing tests and runners. The recorded 41-test suite is cheap enough for a single end-of-slice baseline; select the relevant boundary checks during editing.
+3. Perform a cheap dependency/display/model preflight before expensive acceptance. An unchanged host blocker ends that branch immediately with BLOCKED status and a concrete required host capability. Do not relabel offscreen/headless output as visible acceptance.
+4. For model debugging, inspect the saved failing frame and decision first. Use deterministic reproduction of validation/state handling before another real generation. Replay checks do not prove improved model behavior.
+5. Allow one expensive development attempt per stated intervention. Preserve the runner's existing first-failed-case stop. After a repeated failure, inspect the cause before another attempt. Repeating an unchanged failure is not progress.
+6. Default expensive development diagnostics to a 10-minute wall-clock budget per attempt, with safe owned-job cleanup and saved evidence when exhausted. This is a proposed development budget, not an already-implemented timeout. A full frozen acceptance family may need a larger declared budget; do not silently change its acceptance criteria or call a shortened diagnostic an accepted family.
+7. Reuse unchanged fixtures/receipts only when source, input, runtime, schema and relevant environment identities still match. Changes to the validated boundary require requalification. Keep historical success distinct from current-source evidence.
+8. Record separate times for setup, quick checks, native applications, inference, packaging and blocked waiting. Announce expensive stages before starting. Save/report when a diagnostic budget is reached instead of silently continuing for hours.
+9. Run broader integration acceptance at a deliberate milestone, not after every small edit. Native process ownership, original-file preservation, permissions and recovery still need their meaningful negative cases before acceptance.
+10. Do not remove capabilities or weaken evidence/grant/duplicate guards to make a test appear to pass. Preserve all legacy entry points. Keep blocked/failed/untested gates explicit.
+
+NEXT TECHNICAL TARGET
+Investigate I05's repeated completed-method/precondition selection. A bounded full-method application using the existing executor and typed Calc/Python/Writer receipts is one documented design hypothesis, not an established fix. Inspect existing joined_work, checked_methods, adaptive_work, continuing_work and slate_action contracts before introducing another abstraction. Keep the lower-level tools and owner grants. Make one causal correction and one bounded development trial when that trial is in scope.
+Finish I05 model selection and actual visible ownership/takeover acceptance before I06. Qualify I06 on the owner ThinkPad as required. H01-H06 follow the HATCH blueprint. Isolated additive Atlas/Discovery prototyping is allowed while earlier gates remain open, without claiming those milestones accepted.
+
+SOURCES INSIDE THE CHECKPOINT
+- examples/clock_lab/observed_i05/acceptance/acceptance-focused-tests.json
+- examples/clock_lab/observed_i05/development/model-trial-1.json through model-trial-6.json
+- examples/clock_lab/observed_i05/development/model-development-review.json
+- examples/clock_lab/observed_i05/acceptance/model-family.json
+- I05_RESULT.json, I05_CHECKS.json, I05_MODEL_TRIAL.json, I05_DISCUSSION.txt
+- workbench/joined_model_checks.py
+- tools/check_release.py, tools/check_i01.py through check_i05.py
+- UI_MINI_PASS_RESULT.json and docs/UI_MINI_PASS.md
+
+NO TESTS, MODEL RUNS, NATIVE ACCEPTANCE TRIALS OR APPLICATION CODE CHANGES WERE PERFORMED FOR THIS TIMING REVIEW.

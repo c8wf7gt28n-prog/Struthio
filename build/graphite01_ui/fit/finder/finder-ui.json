@@ -1,0 +1,366 @@
+{
+  "schema": "ledger.agent01-finder-ui/1",
+  "checkpoint": "HATCH AGENT-01 · fit assertions GRAPHITE-01 G-B",
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "01 Home shows the Finder (FinderPage) with Today as its first place and the TodayPage inside it (page.today, four cards present); the places read Today · Files · Ingress · Egress · Workspace · Program · 6 mount(s); five parts visible; the context word reads Home",
+    "02 Clicking the Machine view’s storage row for the workspace filled the centre with that folder through ledger.browse: status “7 items · 23 GB available on this disk · observed from this computer” matches an independent read (7 items), the names and order agree, the path bar ends in workspace",
+    "03 Double-click descended into Finder demo; List, Icons and Columns show the same five names in the same order (archive, drawings, notes.txt, picture.png, plan.md) from one listing",
+    "04 The preview pane shows notes.txt’s first 12 lines read-only with its kind, size and dates; picture.png as a 320 × 200 thumbnail; the drawings folder as “3 items” with the disk space",
+    "05 Backspace went up to the workspace with the demo folder selected and the path bar following; back and forward (words and Alt Left / Alt Right) walk the history, which begins at Today",
+    "06 The Hidden word changes the count from 5 to 6 (.quiet appears) and back; every listing came through ledger.browse",
+    "07 A 600-entry folder stopped at 500 with the line offering “show up to 2000”; the word raised the bound and the 600 items came through one more ledger.browse",
+    "08 The context menu reads Open · Open in viewer · Copy path · Ask Graphite about this file (and Show in Files · Change it in Files inside Files); none of its words creates, renames, moves or deletes",
+    "09 Enter on notes.txt opened it in the editor tab (CodeEditor) and _close_start happened: the centre is the workspace, Home inactive",
+    "10 With the editor open a storage row changed nothing in the centre; Home returned at the Finder’s last place; selecting the Today row showed Today; the Program row showed the program folder; the place and view are written to session.state[finder]",
+    "11 1366×768: the list, the preview and the five parts stay visible; every word whole and nothing in the centre scrolls sideways at 1920×1200 and 1366×768: the toolbar folds Hidden · Places · Preview into ⋯ (whose Show hidden files row changed the count 5 → 6 and back), the List folds Date Modified · Kind; Today’s Continue row keeps a document five folders deep a whole link; a 91-character folder name elides in the middle at the foot (“Survey of the north field gate p… the new level and the long tape”, whole in its tooltip)",
+    "11b 18 pt at 1366×768: every word whole with Hidden · Places · Preview · Icons · List · Columns folded and a deep path showing second survey › measured on site after …; at 18 pt and 1920×1200 the List keeps all four columns with Date Modified 154 px wide; back at 14 pt and 1920×1200 every word unfolds and Date Modified is 120 px again",
+    "12 Every file the check made is byte-for-byte and time-for-time as before (610 files compared); zero jobs, launches, provider requests or processes"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_AGENT_01_Finder_01_Today_1920.png",
+      "note": "Home: the Finder with Today as its first place; the toolbar above (back, forward, place, views, Hidden, Preview, Places); both columns, the Ledger Head and the typing strip unchanged",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "1b33c5c9c0745b1707d427a43437d660fa9c557024e0f9430029f616504cde34",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_01_Finder_02_List_1920.png",
+      "note": "The demo folder as a List (Name · Date Modified · Size · Kind, folders first) with the preview pane and the path bar below",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "a02793fd4818181d9e63ec4e4e2838bc55abe96a77bc2c8429f2f96187e93b88",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_01_Finder_03_Icons_1920.png",
+      "note": "The same folder as Icons: tiles with the kind word, the preview open",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "56517c3f3ee443c1027b8942776d9b5628688701c5fd45a066281f623df1c527",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_01_Finder_04_Columns_1920.png",
+      "note": "The same folder as Columns (Miller columns from the Workspace place; the preview is the last column)",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "c0253a1ae4331b77cbf382924829a66fbe2a7160505bcc2d1581e8dfc2abb2f3",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_01_Finder_05_Preview_1920.png",
+      "note": "The preview pane for a folder, after the text and the picture were previewed",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "485ea10183ebfdc2ed2435209aa650c09d466eaedeba28b547e529aa358972dd",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_01_Finder_06_Compact_1366.png",
+      "note": "The Finder’s List with the preview at 1366 by 768: every word whole; Hidden, Places, Preview folded into ⋯; the List shows Name, Size; all five parts visible",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "75494286cea5bf428620078ef44a78bd8791da5bcfa1e37b2b48c4ddd32f0e0b",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_01_Finder_07_Columns_1366.png",
+      "note": "Columns at 1366 by 768 (the Columns view scrolls sideways by design)",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "0334af250bf5da3d19ba52462523774c7bc02fc83ccdd51732aaadb8fbcf3d09",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_GRAPHITE_01_Finder_08_Deep_Path_18pt_1366.png",
+      "note": "18 pt at 1366 by 768: the toolbar folds Hidden, Places, Preview, Icons · List · Columns into ⋯, the List keeps Name, the path bar folds 7 leading folders into …, the preview scrolls down; every word whole",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "8311323315aa3891b918d87e6f012c0538273d3f3bf630c5b4a2a36818a62e5e",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_GRAPHITE_01_Finder_09_Today_18pt_1366.png",
+      "note": "Today at 18 pt and 1366 by 768: one column of cards, nothing sideways, every word whole; the Continue row keeps the name gate posts.md whole beside its five folders, which wrap",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "cdfa8cd51e90a15f24ff6e7363664a5a00b24fea8e3c9244b5fc44dd16b804a6",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_GRAPHITE_01_Finder_10_List_18pt_1920.png",
+      "note": "The List at 18 pt and 1920 by 1200: Date Modified 154 px wide (120 at 14 pt, scaled with the interface), its title and the dates whole",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "a6f23ef71122eb38a57b965d6bde8dae766a55bfa55faafa899ea8f7d86dfe2b",
+      "resolution": [
+        1920,
+        1200
+      ]
+    }
+  ],
+  "places": [
+    "Today",
+    "Files",
+    "Ingress",
+    "Egress",
+    "Workspace",
+    "Program",
+    "/",
+    "/mnt/skills/examples",
+    "/mnt/skills/public",
+    "/opt/claude-code",
+    "/opt/env-runner",
+    "/opt/rclone"
+  ],
+  "listing_operation": "ledger.browse",
+  "bound": {
+    "default": 500,
+    "more": 2000
+  },
+  "views": [
+    "icons",
+    "list",
+    "columns"
+  ],
+  "words_whole": {
+    "1920 Today": {
+      "size": [
+        1920,
+        1200
+      ],
+      "folded": [],
+      "list_hidden": [],
+      "path_folded": [],
+      "place": "Today",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": [],
+      "continue_link": [
+        73,
+        67
+      ]
+    },
+    "1920 List": {
+      "size": [
+        1920,
+        1200
+      ],
+      "folded": [],
+      "list_hidden": [],
+      "path_folded": [],
+      "place": "Finder demo",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1366 List": {
+      "size": [
+        1366,
+        768
+      ],
+      "folded": [
+        "hidden",
+        "places",
+        "preview"
+      ],
+      "list_hidden": [
+        "Date Modified",
+        "Kind"
+      ],
+      "path_folded": [
+        "/",
+        "tmp"
+      ],
+      "place": "Finder demo",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1366 Columns": {
+      "size": [
+        1366,
+        768
+      ],
+      "folded": [
+        "hidden",
+        "places",
+        "preview"
+      ],
+      "list_hidden": [
+        "Date Modified",
+        "Kind"
+      ],
+      "path_folded": [
+        "/",
+        "tmp"
+      ],
+      "place": "Finder demo",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1366 Today": {
+      "size": [
+        1366,
+        768
+      ],
+      "folded": [
+        "hidden",
+        "places"
+      ],
+      "list_hidden": [
+        "Date Modified",
+        "Kind"
+      ],
+      "path_folded": [],
+      "place": "Today",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": [],
+      "continue_link": [
+        67,
+        67
+      ]
+    },
+    "1366 long folder name": {
+      "size": [
+        1366,
+        768
+      ],
+      "folded": [
+        "hidden",
+        "places",
+        "preview",
+        "views"
+      ],
+      "list_hidden": [
+        "Date Modified",
+        "Kind"
+      ],
+      "path_folded": [
+        "/",
+        "tmp",
+        "ledger-agent01-finder-ui-1qv5ts6e",
+        "workspace"
+      ],
+      "place": "Survey of the north field gate posts, m…",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1366 18pt deep path": {
+      "size": [
+        1366,
+        768
+      ],
+      "folded": [
+        "hidden",
+        "places",
+        "preview",
+        "views"
+      ],
+      "list_hidden": [
+        "Date Modified",
+        "Size",
+        "Kind"
+      ],
+      "path_folded": [
+        "/",
+        "tmp",
+        "ledger-agent01-finder-ui-1qv5ts6e",
+        "workspace",
+        "Survey",
+        "gate posts",
+        "north field"
+      ],
+      "place": "measured on site",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1366 18pt Today": {
+      "size": [
+        1366,
+        768
+      ],
+      "folded": [
+        "hidden",
+        "places",
+        "preview",
+        "views"
+      ],
+      "list_hidden": [
+        "Date Modified",
+        "Size",
+        "Kind"
+      ],
+      "path_folded": [],
+      "place": "Today",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": [],
+      "continue_link": [
+        88,
+        88
+      ]
+    },
+    "1920 18pt List": {
+      "size": [
+        1920,
+        1200
+      ],
+      "folded": [],
+      "list_hidden": [],
+      "path_folded": [],
+      "place": "Finder demo",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": [],
+      "date_width": 154
+    },
+    "1920 back at 14pt": {
+      "size": [
+        1920,
+        1200
+      ],
+      "folded": [],
+      "list_hidden": [],
+      "path_folded": [],
+      "place": "Finder demo",
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    }
+  },
+  "real_job_submissions": 0,
+  "worker_processes_started": 0,
+  "model_generations": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "processes_started": 0,
+  "files_changed_by_finder": 0,
+  "acceptance_claimed": false,
+  "note": "Mechanical offscreen evidence of the Finder workspace: Today first, the left column as sidebar, read-only by design, the 500/2000 bound. The owner display remains open."
+}

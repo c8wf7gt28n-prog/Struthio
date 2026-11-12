@@ -1,0 +1,13 @@
+{
+  "baseline_operations": 684,
+  "operations": 685,
+  "added": [
+    "ledger.operations"
+  ],
+  "removed": [],
+  "changed_existing_schemas": [],
+  "changed_existing_scopes": [],
+  "tools_unchanged": true,
+  "tool_count": 112,
+  "schema_digest": "82fb225a45be3272ae1d66fabf6a0e5d0489b021a317016a99bcc1521e626267"
+}

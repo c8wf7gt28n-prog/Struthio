@@ -1,0 +1,634 @@
+{
+  "definitions": [
+    {
+      "key": "reading.family",
+      "label": "Interface font",
+      "category": "Appearance",
+      "default": "IBM Plex Sans",
+      "type": "string",
+      "description": "Unavailable fonts use the existing local fallback.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": []
+    },
+    {
+      "key": "reading.prose_family",
+      "label": "Prose font",
+      "category": "Appearance",
+      "default": "IBM Plex Sans",
+      "type": "string",
+      "description": "Prose font is separate from interface and source code.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": []
+    },
+    {
+      "key": "reading.code_family",
+      "label": "Code font",
+      "category": "Appearance",
+      "default": "IBM Plex Mono",
+      "type": "string",
+      "description": "Unavailable or non-fixed-pitch choices use a local monospaced fallback.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": []
+    },
+    {
+      "key": "reading.ui_pt",
+      "label": "Interface text (pt)",
+      "category": "Appearance",
+      "default": 14.0,
+      "type": "number",
+      "description": "Interface text (pt) in the existing reading profile.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": [],
+      "minimum": 9,
+      "maximum": 28
+    },
+    {
+      "key": "reading.navigation_pt",
+      "label": "Tree text (pt)",
+      "category": "Appearance",
+      "default": 15.0,
+      "type": "number",
+      "description": "Tree text (pt) in the existing reading profile.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": [],
+      "minimum": 9,
+      "maximum": 28
+    },
+    {
+      "key": "reading.code_pt",
+      "label": "Code text (pt)",
+      "category": "Appearance",
+      "default": 14.0,
+      "type": "number",
+      "description": "Code text (pt) in the existing reading profile.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": [],
+      "minimum": 9,
+      "maximum": 32
+    },
+    {
+      "key": "reading.prose_pt",
+      "label": "Prose text (pt)",
+      "category": "Appearance",
+      "default": 16.0,
+      "type": "number",
+      "description": "Prose text (pt) in the existing reading profile.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": [],
+      "minimum": 9,
+      "maximum": 40
+    },
+    {
+      "key": "reading.line_height",
+      "label": "Document line spacing",
+      "category": "Appearance",
+      "default": 1.4,
+      "type": "number",
+      "description": "Document line spacing in the existing reading profile.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": [],
+      "minimum": 1.0,
+      "maximum": 1.8
+    },
+    {
+      "key": "reading.reduce_motion",
+      "label": "Reduce motion",
+      "category": "Appearance",
+      "default": false,
+      "type": "boolean",
+      "description": "Use quiet/static optional presentation.",
+      "root": "Ledger",
+      "group": "Appearance",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session reading_profile",
+      "dependencies": [],
+      "overrides": []
+    },
+    {
+      "key": "stacy.reactions",
+      "label": "Slate reactions",
+      "category": "Slate",
+      "default": true,
+      "type": "boolean",
+      "description": "Optional idle and job reactions; does not start tools.",
+      "root": "Slate",
+      "group": "Behavior",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session layout.stacy_reactions",
+      "dependencies": [],
+      "overrides": []
+    },
+    {
+      "key": "stacy.enabled",
+      "label": "Allow new Slate AI activity",
+      "category": "Slate",
+      "default": true,
+      "type": "boolean",
+      "description": "OFF blocks new model activation, qualification and inference. Running requests may finish; ordinary Ledger tools stay available.",
+      "root": "Slate",
+      "group": "Behavior",
+      "scope": "Project private",
+      "scope_id": "project_private",
+      "supported_scopes": [
+        "project_private"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Kernel settings: ledger.stacy.enabled",
+      "dependencies": [],
+      "overrides": []
+    },
+    {
+      "key": "stacy.provider",
+      "label": "Slate chat provider",
+      "category": "Slate",
+      "default": "local",
+      "type": "string",
+      "description": "Select the provider for the next request. This does not load a local model or configure a Gemini credential.",
+      "root": "Slate",
+      "group": "Providers",
+      "scope": "Project private",
+      "scope_id": "project_private",
+      "supported_scopes": [
+        "project_private"
+      ],
+      "application": "next_use",
+      "effect": "Next request or owned work",
+      "store": "Kernel settings: ledger.stacy.provider",
+      "dependencies": [
+        "stacy.enabled"
+      ],
+      "overrides": [],
+      "choices": [
+        "local",
+        "gemini"
+      ]
+    },
+    {
+      "key": "stacy.actions",
+      "label": "Enable Slate action proposals",
+      "category": "Slate",
+      "default": false,
+      "type": "boolean",
+      "description": "Gemini may propose registered commands for review. This grants no source acceptance authority.",
+      "root": "Slate",
+      "group": "Tools",
+      "scope": "Project private",
+      "scope_id": "project_private",
+      "supported_scopes": [
+        "project_private"
+      ],
+      "application": "next_use",
+      "effect": "Next request or owned work",
+      "store": "Kernel settings: ledger.stacy.actions",
+      "dependencies": [
+        "stacy.enabled",
+        "stacy.provider"
+      ],
+      "overrides": []
+    },
+    {
+      "key": "stacy.share_activity",
+      "label": "Share activity context",
+      "category": "Slate",
+      "default": false,
+      "type": "boolean",
+      "description": "Include redacted activity, settings and workspace metadata in the next Gemini request. Source sharing remains separate.",
+      "root": "Slate",
+      "group": "Tools",
+      "scope": "Project private",
+      "scope_id": "project_private",
+      "supported_scopes": [
+        "project_private"
+      ],
+      "application": "next_use",
+      "effect": "Next request or owned work",
+      "store": "Kernel settings: ledger.stacy.share_activity",
+      "dependencies": [
+        "stacy.enabled",
+        "stacy.provider"
+      ],
+      "overrides": []
+    },
+    {
+      "key": "workspace.startup",
+      "label": "Startup",
+      "category": "Workspace",
+      "default": "last",
+      "type": "string",
+      "description": "Choose the policy consumed at the next desktop launch.",
+      "root": "Ledger",
+      "group": "Workspace",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "next_launch",
+      "effect": "Next desktop launch",
+      "store": "Session view_preferences",
+      "dependencies": [],
+      "overrides": [],
+      "choices": [
+        "last",
+        "home"
+      ]
+    },
+    {
+      "key": "workspace.mode",
+      "label": "Workspace arrangement",
+      "category": "Workspace",
+      "default": "engineering",
+      "type": "string",
+      "description": "Focus or engineering arrangement.",
+      "root": "Ledger",
+      "group": "Workspace",
+      "scope": "Connected session profile",
+      "scope_id": "session_profile",
+      "supported_scopes": [
+        "session_profile"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Session view_preferences",
+      "dependencies": [],
+      "overrides": [],
+      "choices": [
+        "engineering",
+        "focus"
+      ]
+    },
+    {
+      "key": "operations.priority",
+      "label": "Work CPU priority",
+      "category": "Operations",
+      "default": "normal",
+      "type": "string",
+      "description": "Background lowers Ledger work priority. Normal applies to new work; existing lower priorities remain until those processes exit.",
+      "root": "Ledger",
+      "group": "Operations",
+      "scope": "Project private",
+      "scope_id": "project_private",
+      "supported_scopes": [
+        "project_private"
+      ],
+      "application": "next_use",
+      "effect": "Next request or owned work",
+      "store": ".ledger/master-stop/priority.json",
+      "dependencies": [],
+      "overrides": [],
+      "choices": [
+        "normal",
+        "background"
+      ]
+    },
+    {
+      "key": "operations.services_enabled",
+      "label": "Ledger services admission",
+      "category": "Operations",
+      "default": true,
+      "type": "boolean",
+      "description": "Hatch holds new work here while running jobs drain gracefully. Use Hatch for a complete service cycle.",
+      "root": "Ledger",
+      "group": "Operations",
+      "scope": "Project private",
+      "scope_id": "project_private",
+      "supported_scopes": [
+        "project_private"
+      ],
+      "application": "immediate",
+      "effect": "Immediately after consumer readback",
+      "store": "Kernel settings: ledger.operations.services_enabled",
+      "dependencies": [],
+      "overrides": []
+    }
+  ],
+  "nodes": [
+    {
+      "id": "settings:ledger",
+      "parent": null,
+      "role": "settings_root",
+      "label": "Ledger",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:ledger:appearance",
+      "parent": "settings:ledger",
+      "role": "settings_group",
+      "label": "Appearance",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.code_family",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Code font",
+      "target": "reading.code_family",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.code_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Code text (pt)",
+      "target": "reading.code_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.line_height",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Document line spacing",
+      "target": "reading.line_height",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.family",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Interface font",
+      "target": "reading.family",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.ui_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Interface text (pt)",
+      "target": "reading.ui_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.prose_family",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Prose font",
+      "target": "reading.prose_family",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.prose_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Prose text (pt)",
+      "target": "reading.prose_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.reduce_motion",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Reduce motion",
+      "target": "reading.reduce_motion",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:reading.navigation_pt",
+      "parent": "settings:ledger:appearance",
+      "role": "setting",
+      "label": "Tree text (pt)",
+      "target": "reading.navigation_pt",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:ledger:operations",
+      "parent": "settings:ledger",
+      "role": "settings_group",
+      "label": "Operations",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:operations.services_enabled",
+      "parent": "settings:ledger:operations",
+      "role": "setting",
+      "label": "Ledger services admission",
+      "target": "operations.services_enabled",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:operations.priority",
+      "parent": "settings:ledger:operations",
+      "role": "setting",
+      "label": "Work CPU priority",
+      "target": "operations.priority",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:ledger:workspace",
+      "parent": "settings:ledger",
+      "role": "settings_group",
+      "label": "Workspace",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:workspace.startup",
+      "parent": "settings:ledger:workspace",
+      "role": "setting",
+      "label": "Startup",
+      "target": "workspace.startup",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:workspace.mode",
+      "parent": "settings:ledger:workspace",
+      "role": "setting",
+      "label": "Workspace arrangement",
+      "target": "workspace.mode",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate",
+      "parent": null,
+      "role": "settings_root",
+      "label": "Slate",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate:behavior",
+      "parent": "settings:slate",
+      "role": "settings_group",
+      "label": "Behavior",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.enabled",
+      "parent": "settings:slate:behavior",
+      "role": "setting",
+      "label": "Allow new Slate AI activity",
+      "target": "stacy.enabled",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.reactions",
+      "parent": "settings:slate:behavior",
+      "role": "setting",
+      "label": "Slate reactions",
+      "target": "stacy.reactions",
+      "scope": "session_profile",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate:providers",
+      "parent": "settings:slate",
+      "role": "settings_group",
+      "label": "Providers",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.provider",
+      "parent": "settings:slate:providers",
+      "role": "setting",
+      "label": "Slate chat provider",
+      "target": "stacy.provider",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "settings:slate:tools",
+      "parent": "settings:slate",
+      "role": "settings_group",
+      "label": "Tools",
+      "target": null,
+      "scope": null,
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.actions",
+      "parent": "settings:slate:tools",
+      "role": "setting",
+      "label": "Enable Slate action proposals",
+      "target": "stacy.actions",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    },
+    {
+      "id": "setting:stacy.share_activity",
+      "parent": "settings:slate:tools",
+      "role": "setting",
+      "label": "Share activity context",
+      "target": "stacy.share_activity",
+      "scope": "project_private",
+      "provider": "shared_settings"
+    }
+  ]
+}

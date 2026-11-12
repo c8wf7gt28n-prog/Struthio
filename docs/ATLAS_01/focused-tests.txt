@@ -1,0 +1,13 @@
+test_full_registry_has_stable_ids_no_duplicates_and_exact_schemas (tests_integrated.test_tool_atlas.AtlasTests.test_full_registry_has_stable_ids_no_duplicates_and_exact_schemas) ... ok
+test_invocation_checks_real_contract_and_never_submits_job (tests_integrated.test_tool_atlas.AtlasTests.test_invocation_checks_real_contract_and_never_submits_job) ... ok
+test_native_binary_change_invalidates_snapshot_without_running_it (tests_integrated.test_tool_atlas.AtlasTests.test_native_binary_change_invalidates_snapshot_without_running_it) ... ok
+test_scope_and_tutor_mode_block_snapshot_writes (tests_integrated.test_tool_atlas.AtlasTests.test_scope_and_tutor_mode_block_snapshot_writes) ... ok
+test_search_vocabulary_and_paging_do_not_change_execution_eligibility (tests_integrated.test_tool_atlas.AtlasTests.test_search_vocabulary_and_paging_do_not_change_execution_eligibility) ... ok
+test_session_change_is_stale_and_does_not_promote_qualification (tests_integrated.test_tool_atlas.AtlasTests.test_session_change_is_stale_and_does_not_promote_qualification) ... ok
+test_snapshot_is_private_and_rechecks_adapter_source (tests_integrated.test_tool_atlas.AtlasTests.test_snapshot_is_private_and_rechecks_adapter_source) ... ok
+test_stac_forwards_caller_and_rejects_extra_stages_or_shell_syntax (tests_integrated.test_tool_atlas.AtlasTests.test_stac_forwards_caller_and_rejects_extra_stages_or_shell_syntax) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 3.401s
+
+OK

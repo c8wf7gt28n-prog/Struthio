@@ -1,0 +1,19 @@
+{
+  "state": "PASSED",
+  "no_baseline_files_deleted": true,
+  "all_historical_baseline_bytes_preserved": true,
+  "modified_workbench_sources": [
+    "workbench/control_qt.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/settings_qt.py",
+    "workbench/settings_registry.py",
+    "workbench/shell2.py",
+    "workbench/stacy_control.py",
+    "workbench/stacy_foundation.py",
+    "workbench/stacy_foundation_qt.py",
+    "workbench/theme2.py"
+  ],
+  "all_changed_workbench_sources_in_seed": true,
+  "companion_preserved_sha256": "4af10e974cd5e1dbbee17e78f40e9ea4179ad65fe4eb3d1b18b7942d4ca3e8ce"
+}

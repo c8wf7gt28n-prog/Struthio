@@ -1,0 +1,10 @@
+{
+  "state": "PASSED",
+  "source_bindings": "VERIFIED_SOURCE_BINDINGS",
+  "python_files_parsed": 492,
+  "operation_count": 677,
+  "schema_digest": "59e7521b4a239f8fa345e48e832123b20755e0e841ba83253d612cad68a5cb1f",
+  "all_modified_workbench_files_in_seed": true,
+  "physical_qualification": false,
+  "notice": "Source/syntax/registry; payload manifest verified after packaging."
+}

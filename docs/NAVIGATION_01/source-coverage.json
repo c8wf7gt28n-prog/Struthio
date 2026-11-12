@@ -1,0 +1,52 @@
+{
+  "state": "PASSED",
+  "baseline": "SETTINGS-03",
+  "changed_existing_sources": [
+    {
+      "file": "workbench/cabinet_qt.py",
+      "baseline_sha256": "87452eb9d967ea529658df7ab1d4678669e02cf81703bb61c4d7eac49733f752",
+      "sha256": "8250c2be7d6019f37e09fc2d886a7c9805aa5f7fa5f1171dec64c56490f25ec3"
+    },
+    {
+      "file": "workbench/explore_qt.py",
+      "baseline_sha256": "2f4558e19e0e5ed2a201335120524184f78204dcaa85f4e8699bd782247617d2",
+      "sha256": "081e0f33f43a31eeb49190312dd9d6c5ad22a2758fb8745a1c1bcfe0121c80e1"
+    },
+    {
+      "file": "workbench/settings_qt.py",
+      "baseline_sha256": "0a489d9353f0d6f33ebc8201f1de1fb40f7b51e85f12df7f290e3bc13c579f7c",
+      "sha256": "406910b942847caff7d5ba2f6f1779d6e3cccff48f56c1034ac0dfd1514fc4af"
+    },
+    {
+      "file": "workbench/shell2.py",
+      "baseline_sha256": "d18697ddab721bba9b71e99790ad2c215070513205e6f892290028e18dfe9557",
+      "sha256": "401944f4ec560a1c6091922363d348d4e3332597f9cfd7109677fca2a52e41ed"
+    },
+    {
+      "file": "workbench/stacy_foundation.py",
+      "baseline_sha256": "fcd9a2ae48aecc1e9164aecddb4ecda5dab34c4a84e76cf6b6aad40aae9f39ed",
+      "sha256": "2d8bc07918e0357257419e1f32873a40bc52c185846023c90f9c8761e32af94e"
+    }
+  ],
+  "new_sources": [
+    {
+      "file": "workbench/navigation_qt.py",
+      "sha256": "32c1be3a14531aad07f2c588e9080f4e83a073f528675187a27d8d21fb197948"
+    },
+    {
+      "file": "tools/check_navigation_ui.py",
+      "sha256": "3c76c614f68a7efbc4a5466d060b8f634c05c5f7c195916e7f5dfdc13b8ef25f"
+    },
+    {
+      "file": "tools/package_hatch_navigation_01.py",
+      "sha256": "8b92662818ffdcc7beed89a5d39c16ab66e651ddc442ea585d2c5c68956a24a3"
+    }
+  ],
+  "all_backend_implementations_unchanged": true,
+  "operation_schemas_and_scopes_unchanged": true,
+  "job_tool_targets_unchanged": true,
+  "setting_definitions_unchanged": true,
+  "new_runtime_store": false,
+  "historical_evidence": "Required unchanged by complete-archive comparison",
+  "source_bindings": "Rebuilt before archive creation"
+}

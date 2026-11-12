@@ -1,0 +1,265 @@
+"""The pill link: the same pills over a dedicated cable, and nothing else (docs/PILLS.md, step 6).
+
+The workstation serves; the appliance only ever connects out to it, so the appliance has no listening service at all.
+
+    workstation:  python3 -m pillkit.link serve --listen 10.77.0.1:7717 --outbox ~/pills/out --inbox ~/pills/in
+    Ledger:       Tools › Pills › Fetch / Send (pills.fetch, pills.send), or python3 -m pillkit.link fetch|send …
+
+What it is: a mutually authenticated, encrypted channel between two paired computers. Each side proves its pill identity
+(Ed25519) over a fresh X25519 exchange; the session keys come from HKDF-SHA256; every frame is ChaCha20-Poly1305 with a
+counting nonce, so a changed, replayed or reordered frame ends the session.
+
+What it carries: exactly three requests. `list` (pills in the outbox addressed to the caller), `get` (one of those, by
+pill id), and `put` (a pill for the server, which must check as a pill signed by the caller and addressed to the server;
+it is stored under its own id, never under a name the caller chose). No paths, no commands, no shell, no file sync.
+A pill that arrives this way is still only a pill: it is checked again and quarantined like one from a USB stick.
+"""
+from __future__ import annotations
+import argparse
+import hashlib
+import json
+import os
+import socket
+import struct
+import sys
+from pathlib import Path
+from . import pill as P
+
+SCHEMA = 'arc.pill-link/1'
+MAX_FRAME = P.MAX_PILL + 4096
+MAX_HELLO = 4096
+IDLE = 60
+
+
+def primitives():
+    try:
+        from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+        from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.exceptions import InvalidSignature, InvalidTag
+    except ImportError:P.refuse('PILL_NEEDS_CRYPTOGRAPHY', 'the pill link needs the Python "cryptography" package')
+    return X25519PrivateKey, X25519PublicKey, Ed25519PublicKey, ChaCha20Poly1305, HKDF, hashes, serialization, InvalidSignature, InvalidTag
+
+
+# -- framing -----------------------------------------------------------------------------------------------------------
+
+def read_exact(sock, n):
+    out = bytearray()
+    while len(out) < n:
+        chunk = sock.recv(min(n - len(out), 1 << 20))
+        if not chunk:P.refuse('PILL_LINK_CLOSED', 'the other side closed the link')
+        out += chunk
+    return bytes(out)
+
+
+def send_raw(sock, data):
+    sock.sendall(struct.pack('>I', len(data)) + data)
+
+
+def recv_raw(sock, limit):
+    (n,) = struct.unpack('>I', read_exact(sock, 4))
+    if n > limit:P.refuse('PILL_LINK_FRAME', 'a frame larger than allowed')
+    return read_exact(sock, n)
+
+
+class Channel:
+    """Encrypted frames in both directions, each with its own key and a counting nonce."""
+
+    def __init__(self, sock, send_key, recv_key):
+        prims = primitives();self.sock = sock;self.InvalidTag = prims[8]
+        self.tx, self.rx = prims[3](send_key), prims[3](recv_key);self.sent = self.received = 0
+
+    def send(self, value, data=b''):
+        header = P.canonical(value)
+        plain = struct.pack('>I', len(header)) + header + data
+        send_raw(self.sock, self.tx.encrypt(self.sent.to_bytes(12, 'big'), plain, None));self.sent += 1
+
+    def recv(self):
+        frame = recv_raw(self.sock, MAX_FRAME + 16)
+        try:plain = self.rx.decrypt(self.received.to_bytes(12, 'big'), frame, None)
+        except self.InvalidTag:P.refuse('PILL_LINK_TAMPERED', 'a frame was changed, replayed or reordered on the way')
+        self.received += 1
+        (n,) = struct.unpack('>I', plain[:4])
+        if n > MAX_HELLO * 16:P.refuse('PILL_LINK_FRAME', 'a request header is too large')
+        return P.strict_json(plain[4:4 + n], 'a link request'), plain[4 + n:]
+
+
+# -- the handshake -----------------------------------------------------------------------------------------------------
+
+def transcript(*parts):
+    return hashlib.sha256(b'|'.join(P.canonical(p) for p in parts)).digest()
+
+
+def hello(keyring, eph_public):
+    return {'schema': SCHEMA, 'key': keyring.key, 'eph': eph_public.hex(), 'nonce': os.urandom(16).hex()}
+
+
+def check_hello(value, keyring):
+    if not isinstance(value, dict) or set(value) - {'schema', 'key', 'eph', 'nonce', 'sig'} or value.get('schema') != SCHEMA:
+        P.refuse('PILL_LINK_HELLO', 'not a pill link')
+    peer = keyring.peers().get(value.get('key'))
+    if peer is None:P.refuse('PILL_UNKNOWN_SENDER', 'a computer this one is not paired with tried to connect')
+    try:eph = bytes.fromhex(value['eph']);bytes.fromhex(value['nonce'])
+    except (ValueError, TypeError, KeyError):P.refuse('PILL_LINK_HELLO', 'a malformed greeting')
+    if len(eph) != 32:P.refuse('PILL_LINK_HELLO', 'a malformed key exchange')
+    return peer, eph
+
+
+def verify(peer, signature_hex, message):
+    prims = primitives()
+    try:prims[2].from_public_bytes(bytes.fromhex(peer['public'])).verify(bytes.fromhex(signature_hex), message)
+    except (prims[7], ValueError, TypeError):P.refuse('PILL_LINK_IDENTITY', '%s did not prove its identity' % peer['name'])
+
+
+def keys(own_eph, peer_eph, salt, initiator):
+    prims = primitives()
+    shared = own_eph.exchange(prims[1].from_public_bytes(peer_eph))
+    material = prims[4](algorithm=prims[5].SHA256(), length=64, salt=salt, info=SCHEMA.encode()).derive(shared)
+    c2s, s2c = material[:32], material[32:]
+    return (c2s, s2c) if initiator else (s2c, c2s)
+
+
+def eph_pair():
+    prims = primitives();private = prims[0].generate()
+    return private, private.public_key().public_bytes(prims[6].Encoding.Raw, prims[6].PublicFormat.Raw)
+
+
+def connect(keyring, address, timeout=30):
+    """Open a link to a paired computer's pill service. Returns (Channel, peer key, peer)."""
+    host, port = parse_address(address)
+    sock = socket.create_connection((host, port), timeout=timeout)
+    try:
+        own, own_pub = eph_pair();mine = hello(keyring, own_pub)
+        send_raw(sock, P.canonical(mine))
+        theirs = P.strict_json(recv_raw(sock, MAX_HELLO), 'the greeting')
+        peer, peer_eph = check_hello(theirs, keyring)
+        t = transcript(mine, {k: v for k, v in theirs.items() if k != 'sig'})
+        verify(peer, theirs.get('sig', ''), b'server' + t)
+        send_raw(sock, P.canonical({'sig': keyring.sign(b'client' + t)}))
+    except BaseException:
+        sock.close();raise
+    send_key, recv_key = keys(own, peer_eph, bytes.fromhex(mine['nonce']) + bytes.fromhex(theirs['nonce']), True)
+    return Channel(sock, send_key, recv_key), theirs['key'], peer
+
+
+def accept(sock, keyring):
+    """The server's side of the handshake. Returns (Channel, peer key, peer)."""
+    theirs = P.strict_json(recv_raw(sock, MAX_HELLO), 'the greeting')
+    peer, peer_eph = check_hello(theirs, keyring)
+    own, own_pub = eph_pair();mine = hello(keyring, own_pub)
+    t = transcript(theirs, mine)
+    send_raw(sock, P.canonical({**mine, 'sig': keyring.sign(b'server' + t)}))
+    answer = P.strict_json(recv_raw(sock, MAX_HELLO), 'the proof')
+    verify(peer, answer.get('sig', '') if isinstance(answer, dict) else '', b'client' + t)
+    send_key, recv_key = keys(own, peer_eph, bytes.fromhex(theirs['nonce']) + bytes.fromhex(mine['nonce']), False)
+    return Channel(sock, send_key, recv_key), theirs['key'], peer
+
+
+def parse_address(text, listening=False):
+    host, _, port = str(text).rpartition(':')
+    if not host or not port.isdigit() or not (0 if listening else 1) <= int(port) < 65536:P.refuse('PILL_LINK_ADDRESS', 'give an address as host:port')
+    return host.strip('[]'), int(port)
+
+
+# -- the service ---------------------------------------------------------------------------------------------------
+
+def outbox_for(outbox, keyring, peer_key):
+    """Pills waiting in the outbox for this caller: signed here, addressed to it. Read fresh each time."""
+    found = {}
+    for path in sorted(Path(outbox).glob('*.pill')) if Path(outbox).is_dir() else []:
+        try:
+            members = P.read_members(path.read_bytes());c = P.strict_json(members['pill.json'], 'pill.json')
+            if c['recipient']['key'] == peer_key and c['sender']['key'] == keyring.key:found[c['id']] = path
+        except (P.PillError, KeyError, TypeError, OSError):continue
+    return found
+
+
+def serve_one(sock, keyring, outbox, inbox, log=print):
+    sock.settimeout(IDLE)
+    try:
+        chan, peer_key, peer = accept(sock, keyring)
+        log('Link from %s.' % peer['name'])
+        while True:
+            request, data = chan.recv();op = request.get('op') if isinstance(request, dict) else None
+            if op == 'list':
+                chan.send({'ok': True, 'pills': sorted(outbox_for(outbox, keyring, peer_key))})
+            elif op == 'get':
+                path = outbox_for(outbox, keyring, peer_key).get(str(request.get('id')))
+                if path is None:chan.send({'ok': False, 'error': 'PILL_LINK_NONE: no such pill for you'});continue
+                chan.send({'ok': True, 'id': request['id']}, path.read_bytes())
+            elif op == 'put':
+                try:
+                    got = P.open_pill(data, keyring, replay=False)  # checked like any pill: signed by a paired computer, for us
+                    if got.contract['sender']['key'] != peer_key:P.refuse('PILL_SENDER', 'a pill signed by another computer')
+                    Path(inbox).mkdir(parents=True, mode=0o700, exist_ok=True)
+                    target = Path(inbox) / (got.id + '.pill')
+                    if not target.exists():P.write_private(target, data)
+                    chan.send({'ok': True, 'id': got.id});log('Received pill %s from %s.' % (got.id, peer['name']))
+                except P.PillError as exc:chan.send({'ok': False, 'error': str(exc)})
+            elif op == 'bye':chan.send({'ok': True});return
+            else:chan.send({'ok': False, 'error': 'PILL_LINK_REQUEST: only list, get and put'});return
+    except (P.PillError, OSError, ValueError) as exc:log('Link ended: %s' % exc)
+    finally:sock.close()
+
+
+def serve(keyring, listen, outbox, inbox, any_address=False, log=print, ready=None):
+    host, port = parse_address(listen, listening=True)
+    if host in ('0.0.0.0', '::', '') and not any_address:P.refuse('PILL_LINK_ADDRESS', 'listen on the dedicated link\'s own address, not on every network (or pass --any)')
+    server = socket.create_server((host, port))
+    log('Serving pills on %s:%d for paired computers only.' % server.getsockname()[:2])
+    if ready:ready(server.getsockname()[1])
+    try:
+        while True:
+            sock, _ = server.accept();serve_one(sock, keyring, outbox, inbox, log)  # one at a time, by design
+    finally:server.close()
+
+
+# -- the client ----------------------------------------------------------------------------------------------------
+
+def fetch(keyring, address, into):
+    """Every pill waiting for this computer, saved into a quarantine folder under its own id. Returns the paths."""
+    chan, _, peer = connect(keyring, address);saved = []
+    try:
+        chan.send({'op': 'list'});listing, _ = chan.recv()
+        for pid in listing.get('pills', [])[:200]:
+            if not P.ID.fullmatch(str(pid)):continue
+            target = Path(into) / (pid + '.pill')
+            if target.exists():continue
+            chan.send({'op': 'get', 'id': pid});answer, data = chan.recv()
+            if answer.get('ok'):Path(into).mkdir(parents=True, mode=0o700, exist_ok=True);P.write_private(target, data);saved.append(str(target))
+        chan.send({'op': 'bye'});chan.recv()
+    finally:chan.sock.close()
+    return {'from': peer['name'], 'saved': saved}
+
+
+def send(keyring, address, pill_path):
+    chan, _, peer = connect(keyring, address)
+    try:
+        chan.send({'op': 'put'}, Path(pill_path).read_bytes());answer, _ = chan.recv()
+        chan.send({'op': 'bye'});chan.recv()
+    finally:chan.sock.close()
+    if not answer.get('ok'):P.refuse('PILL_LINK_REFUSED', '%s refused it: %s' % (peer['name'], answer.get('error')))
+    return {'to': peer['name'], 'id': answer['id']}
+
+
+def main(argv=None):
+    from .handler import keyring as own_ring
+    ap = argparse.ArgumentParser(prog='pillkit.link', description='Pills over a dedicated link: paired computers only, pills only.')
+    sub = ap.add_subparsers(dest='command', required=True)
+    s = sub.add_parser('serve');s.add_argument('--listen', required=True);s.add_argument('--outbox', required=True);s.add_argument('--inbox', required=True);s.add_argument('--any', action='store_true')
+    s = sub.add_parser('fetch');s.add_argument('--from', dest='address', required=True);s.add_argument('--into', required=True)
+    s = sub.add_parser('send');s.add_argument('pill');s.add_argument('--to', dest='address', required=True)
+    a = ap.parse_args(argv)
+    try:
+        if a.command == 'serve':serve(own_ring(), a.listen, Path(a.outbox).expanduser(), Path(a.inbox).expanduser(), a.any)
+        elif a.command == 'fetch':print(json.dumps(fetch(own_ring(), a.address, Path(a.into).expanduser()), indent=1))
+        else:print(json.dumps(send(own_ring(), a.address, a.pill), indent=1))
+    except P.PillError as exc:print('Refused. ' + str(exc));return 2
+    except KeyboardInterrupt:return 0
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

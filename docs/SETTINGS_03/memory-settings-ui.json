@@ -1,0 +1,68 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Five genuine memory settings appear under Slate / Memory; missing profiles remain unavailable rather than fabricated",
+    "Existing profile values are read directly and numeric writing uses a precise poem passage",
+    "Apply updates the original profile and shared setting history without altering the imported reference",
+    "The existing Undo control restores a value as a new guarded journal revision",
+    "A direct legacy profile change blocks stale Apply while preserving the highlighted draft",
+    "Explicit reload and Apply preserve other profile parameters rather than replacing a stale whole profile",
+    "Default restores the genuine original parameter default through the same owner-checked route",
+    "A disabled profile shows stored parameters without claiming an active reply effect",
+    "An existing very small legal weight is displayed without rounding or a phantom draft",
+    "Invalid numeric writing leaves profile values unchanged and preserves the draft",
+    "Owner-private values and histories are isolated and omitted from the optional activity-sharing aggregate",
+    "A fresh laptop-size desktop reads the same stored profile while retaining the fixed Trash, Stop, monitors and return footer",
+    "Clean close starts no model, provider request or tool job; stored preferences are not claimed as model compliance"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Settings_03_Missing.png",
+      "sha256": "12d2b9925392cfe413c9b5102f87bd0b28dc2147cf887bea2bd3e6e1e2849616",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_03_Memory.png",
+      "sha256": "9b5934b9f714615503759d31213a505ccbd9e7762a243c05c6db85d555c8b2cc",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_03_Conflict.png",
+      "sha256": "3fe89bcd590e825e0158672836dae1ec6c661ad1d313a3e0763911d552573fd3",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_03_Disabled.png",
+      "sha256": "cda9439849586a827904f3482d207e885a410b9d5e094a3e733dfcc1ed157aeb",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Settings_03_Compact.png",
+      "sha256": "1f48654cf650aba0ad35c755b14b68f5d2b6e356bbfe7a447eb2ec0eb1a6e3cf",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "jobs_submitted": 0,
+  "model_calls": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "native_acceptance": false,
+  "profile_fixture": "DISPOSABLE_OWNER_REFERENCE",
+  "clean_close": true
+}

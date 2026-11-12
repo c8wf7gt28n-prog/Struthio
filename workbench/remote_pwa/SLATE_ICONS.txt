@@ -1,0 +1,10 @@
+Slate satellite icons
+
+slate-icon-192.png and slate-icon-512.png are transparent, padded derivatives
+of the already supplied and approved Slate resting bird sprite. No new artwork
+was generated. The source is branding/slate/slate_keyposes.png; consult the
+existing source and its accompanying provenance/licence notices. The resting
+bird crop is x=98, y=146, width=265, height=234, mirrored toward the interface
+action. Original atlas SHA-256:
+22a4e4ff6fdb0afb7d9199d171997971139cb73fcf7a257771507c87c2b184b1.
+Historical girl/fairy assets and their original provenance remain unchanged.

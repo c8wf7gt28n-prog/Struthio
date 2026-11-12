@@ -1,0 +1,19 @@
+{
+  "state": "PASSED",
+  "baseline": "ATLAS-01",
+  "old_operations": 666,
+  "new_operations": 669,
+  "added_operations": [
+    "algo.find_applicable",
+    "algo.get",
+    "algo.lookup"
+  ],
+  "job_tools": 112,
+  "job_targets": "IDENTICAL",
+  "old_scope_assignments": "IDENTICAL",
+  "unchanged_operation_schemas": 665,
+  "extended_operation_schemas": {
+    "ledger.navigate": "Only adds algorithms to destination enum; all old values remain"
+  },
+  "scope": "Structural preservation; not execution of every legacy operation"
+}

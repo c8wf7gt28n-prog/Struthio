@@ -1,0 +1,19 @@
+test_disk_read_is_fresh_when_bound_profile_is_older (tests_integrated.test_settings_registry.SettingsRegistryTests.test_disk_read_is_fresh_when_bound_profile_is_older) ... ok
+test_external_profile_undo_receipt_recovers_atomic_journal_state (tests_integrated.test_settings_registry.SettingsRegistryTests.test_external_profile_undo_receipt_recovers_atomic_journal_state) ... ok
+test_human_and_typed_slate_edit_same_store_and_reversible_history (tests_integrated.test_settings_registry.SettingsRegistryTests.test_human_and_typed_slate_edit_same_store_and_reversible_history) ... ok
+test_invalid_values_leave_profile_and_journal_unchanged (tests_integrated.test_settings_registry.SettingsRegistryTests.test_invalid_values_leave_profile_and_journal_unchanged) ... ok
+test_legacy_expected_value_and_unknown_keys_still_validate (tests_integrated.test_settings_registry.SettingsRegistryTests.test_legacy_expected_value_and_unknown_keys_still_validate) ... ok
+test_pending_launch_and_font_fallback_use_consumer_receipts (tests_integrated.test_settings_registry.SettingsRegistryTests.test_pending_launch_and_font_fallback_use_consumer_receipts) ... ok
+test_priority_policy_readback_never_claims_running_process_effect (tests_integrated.test_settings_registry.SettingsRegistryTests.test_priority_policy_readback_never_claims_running_process_effect) ... ok
+test_restore_and_undo_do_not_bypass_owner_or_provider_boundaries (tests_integrated.test_settings_registry.SettingsRegistryTests.test_restore_and_undo_do_not_bypass_owner_or_provider_boundaries) ... ok
+test_restore_uses_real_default_and_revision_guard (tests_integrated.test_settings_registry.SettingsRegistryTests.test_restore_uses_real_default_and_revision_guard) ... ok
+test_revision_detects_change_away_and_back_to_same_value (tests_integrated.test_settings_registry.SettingsRegistryTests.test_revision_detects_change_away_and_back_to_same_value) ... ok
+test_saved_value_is_not_claimed_as_active_without_readback (tests_integrated.test_settings_registry.SettingsRegistryTests.test_saved_value_is_not_claimed_as_active_without_readback) ... ok
+test_scope_is_real_and_navigation_is_separate_from_cabinet (tests_integrated.test_settings_registry.SettingsRegistryTests.test_scope_is_real_and_navigation_is_separate_from_cabinet) ... ok
+test_slate_context_preserves_legacy_values_and_effective_metadata (tests_integrated.test_settings_registry.SettingsRegistryTests.test_slate_context_preserves_legacy_values_and_effective_metadata) ... ok
+test_undo_refuses_a_newer_same_value_revision (tests_integrated.test_settings_registry.SettingsRegistryTests.test_undo_refuses_a_newer_same_value_revision) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 3.304s
+
+OK

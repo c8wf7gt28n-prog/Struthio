@@ -1,0 +1,44 @@
+{
+  "state": "PASSED",
+  "calls": [
+    {
+      "operation": "stac.run",
+      "arguments": {
+        "program": "algorithms | find \"capacity\""
+      },
+      "state": "PASSED"
+    },
+    {
+      "operation": "language.run",
+      "arguments": {
+        "text": "algo.lookup {\"query\":\"linear\"}"
+      },
+      "state": "PASSED"
+    },
+    {
+      "operation": "language.run",
+      "arguments": {
+        "text": "algo.find_applicable {\"context\":{\"task\":\"SHORTEST_PATH\"}}"
+      },
+      "state": "PASSED"
+    },
+    {
+      "operation": "ledger.capabilities.search",
+      "arguments": {
+        "query": "algo.",
+        "limit": 50
+      },
+      "state": "PASSED"
+    },
+    {
+      "operation": "ledger.capabilities.describe",
+      "arguments": {
+        "operation": "algo.find_applicable"
+      },
+      "state": "PASSED"
+    }
+  ],
+  "jobs": 0,
+  "model_generations": 0,
+  "solver_calls": 0
+}

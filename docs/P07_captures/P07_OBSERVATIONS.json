@@ -1,0 +1,15 @@
+{
+  "state": "PASSED",
+  "scope": "ONE_SHORT_NATIVE_QT_WALKTHROUGH_AND_SOURCE_HANDOFF_BOUNDARY",
+  "observations": [
+    "Project Desk prepares 12/5 W (2.4 W) from a file and a native document with exact spans, revisions and an explicit warm condition.",
+    "A bounded omitted passage can be read and brought first into a focused context.",
+    "The model handoff includes exact evidence with supplied aliases. Trimming a dependency omits its exact result.",
+    "Changing the original source makes the focused context stale and prevents passage reuse."
+  ],
+  "inference_boundary": "PROTOCOL_DOUBLE_FOR_PROMPT_AND_RESPONSE",
+  "native_tool_launches": 0,
+  "model_generations": 0,
+  "owner_host_qualification": "PENDING",
+  "capture": "Graphite_P07_Evidence.png"
+}

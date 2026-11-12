@@ -1,0 +1,24 @@
+{
+  "state": "PASSED",
+  "baseline": "ATLAS-02",
+  "old_operations": 669,
+  "new_operations": 677,
+  "added_operations": [
+    "discovery.create",
+    "discovery.get",
+    "discovery.history",
+    "discovery.list",
+    "discovery.observe",
+    "discovery.revise",
+    "discovery.schema",
+    "discovery.validate"
+  ],
+  "job_tools": 112,
+  "job_targets": "IDENTICAL",
+  "old_scope_assignments": "IDENTICAL",
+  "unchanged_operation_schemas": 668,
+  "extended_operation_schemas": {
+    "ledger.navigate": "Only adds discovery; all previous destinations remain"
+  },
+  "scope": "Structural preservation, not execution of every legacy operation"
+}

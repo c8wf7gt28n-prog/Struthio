@@ -1,0 +1,39 @@
+{
+  "state": "PASSED",
+  "checks": [
+    {
+      "operation": "stac.run",
+      "state": "PASSED"
+    },
+    {
+      "operation": "language.run",
+      "state": "PASSED"
+    },
+    {
+      "operation": "ledger.capabilities.search",
+      "state": "PASSED"
+    },
+    {
+      "operation": "ledger.capabilities.describe",
+      "state": "PASSED"
+    }
+  ],
+  "actual_exact_predicate": {
+    "grade": "CHECKED_NUMERIC",
+    "state": "MATCH",
+    "expected": false,
+    "actual": false,
+    "scope": "THIS_BOUND_DECLARED_PREDICATE_ONLY; free-text interpretation and physical truth remain unreviewed."
+  },
+  "inquiry_state_after_source_change": "STALE",
+  "branch_states": {
+    "sourceA": "STALE",
+    "sourceB": "CURRENT",
+    "claimA": "STALE",
+    "claimB": "HYPOTHESIS"
+  },
+  "model_generations": 0,
+  "solver_calls": 0,
+  "jobs": 0,
+  "scope": "Disposable exact mathematical fixtures; no owner-host/native acceptance"
+}

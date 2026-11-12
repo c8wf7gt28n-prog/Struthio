@@ -1,0 +1,261 @@
+{
+  "schema": "arc.stacy-implementation-progress/1",
+  "plan": "Stacy born 1.5",
+  "completed_passes": 2,
+  "implemented_passes": 8,
+  "total_passes": 8,
+  "estimated_completion_percent": 38.2,
+  "estimate_basis": "Historical core/window baseline 86/225; unified delivery count is tracked separately, not as an effort or qualification estimate.",
+  "current_pass": {
+    "id": "P20",
+    "name": "Typed tables, BOMs and editable documents",
+    "state": "IMPLEMENTED_DEVELOPMENT_CANDIDATE_REVIEW_OPEN",
+    "independent_source_acceptance": "OPEN"
+  },
+  "next_step": {
+    "name": "P21 code navigation/editor interoperability; M4 boundary P24."
+  },
+  "next_pass_after_gate": {
+    "id": 21,
+    "name": "Code navigation and editor interoperability"
+  },
+  "qualification_limits": [
+    "Linux native development tests are not ThinkPad measurements",
+    "Vulkan and vision/embedding execution profiles are unqualified",
+    "Engineering-answer accuracy is not implied by successful inference",
+    "Debian is the sole desktop target; actual ThinkPad and iPhone/network acceptance remain open.",
+    "N3 real-process/native tests explicitly select authenticated loopback because the sandbox denies AF_UNIX; actual ThinkPad Unix credentials and systemd boot/logout checks remain OPEN.",
+    "P17 qualifies exact declared genuine/authored PDF examples and measured development tools; annotations are owner notes, not accepted facts.",
+    "Chinese native text is demonstrated; only English OCR data was installed. Full DOCX editing/conversion and later shared-phone document views remain retained scope.",
+    "P17 changes one protected SDK intake rule; old admissions require explicit review under the new fingerprint. Independent acceptance remains OPEN.",
+    "SW-002 has actual Qt Chromium development evidence and explicit per-view publication, not physical iPhone/Safari/HTTPS/cellular qualification.",
+    "P18 demonstrates bounded same-profile notes exchange and actual Joplin CLI 3.7.1 export/import. Obsidian/Logseq file subsets are syntax-fixture profiles; no Logseq DB, plugin/query execution or universal conversion qualification.",
+    "P19 supports native saved notebooks, linked inert Marginalia originals and one-way AppFlowy Editor document JSON import. A public author-exported reproduction qualifies exact bytes; exact app version unknown. Full AppFlowy, unseen standalone Marginalia and editable spreadsheet/DOCX profiles are not qualified.",
+    "P20 declares bounded CSV/XLSX/ODS, native-ID BOM comparison and editable paragraph/table DOCX. Measured development LibreOfficeDev alpha; Debian stable/owner GUI/full Orange Book acceptance OPEN. One existing protected notebook SDK file changes; independent acceptance OPEN.",
+    "P20 runtime anomaly OPEN: one malformed disposable assembled engineering database; two clean combined/integrity reruns passed, cause unresolved. Retain working installation; owner install not qualified."
+  ],
+  "archive": "Original sealed user-data archive remains unchanged and separate.",
+  "open_gates": [
+    {
+      "pass": 3,
+      "name": "Owner ThinkPad CPU/model swap/recovery and permitted workflow",
+      "estimated_completion_after_gate_percent": 75
+    },
+    {
+      "pass": 4,
+      "name": "Independent protected-source acceptance and owner-directed real-corpus admission"
+    },
+    {
+      "pass": 5,
+      "name": "Genuine ROM/current-native project and physical evidence remain unavailable"
+    },
+    {
+      "pass": 6,
+      "name": "Owner-host qualification of private learning, compaction, snapshot recovery and model replacement"
+    },
+    {
+      "pass": 7,
+      "name": "Actual external reviewer return, evaluated proposal and optional live Gemini qualification",
+      "estimated_completion_after_gate_percent": 88
+    },
+    {
+      "pass": 8,
+      "name": "Actual owner idle/host profile, independent protected-source review, combined real-model swap plus cold private-edition restore, and domain-learning benefit remain unqualified"
+    }
+  ],
+  "companion_integration": {
+    "edition": "Slate Struthio bird / event-driven groundwork",
+    "state": "INWARD_PRESENTATION_AND_BOUNDED_EVENT_CUES",
+    "scope": "Unchanged approved pose pixels; one-shot notice/acknowledgement, no idle animation or integrated sprint. Existing conversation and real job state remain.",
+    "legacy_art_bytes_preserved": true
+  },
+  "knowledge_campaign": {
+    "plan": "Stacy knowledge integration plan",
+    "passes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "current_pass": 12,
+    "planned_target_percent": 65,
+    "acceptance_checked_percent": 61,
+    "status": "FOUR_PASS_12_DEVELOPMENT_CHECKS_PASSED_INDEPENDENT_REVIEW_OPEN",
+    "scope": "Source identity, archival retrieval and V1 reference selection; no current engineering or physical acceptance",
+    "completed_current_checks": [
+      "12.1",
+      "12.2",
+      "12.3",
+      "12.4"
+    ],
+    "open_current_checks": [
+      "12.5"
+    ]
+  },
+  "expanded_campaign": {
+    "plan": "Ledger and Slate expanded campaign edition 2",
+    "status": "OWNER_AUTHORIZED",
+    "total_points": 200,
+    "earned_points": 81,
+    "acceptance_checked_percent": 40.5,
+    "current_pass": 16,
+    "current_pass_checks": [
+      "16.1",
+      "16.2",
+      "16.3",
+      "16.4",
+      "16.5"
+    ],
+    "remaining_implementation_passes": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37
+    ],
+    "independent_acceptance": "OPEN",
+    "original_knowledge_campaign_percent": 61,
+    "state": "FIVE_PASS_16_DEVELOPMENT_CHECKS_PASSED_INDEPENDENT_ACCEPTANCE_OPEN",
+    "tracking_basis": "Historical P16 acceptance-point baseline; current development delivery and remaining retained deliveries are tracked separately under current_delivery/unified_campaign."
+  },
+  "debug_pass": {
+    "id": "13D",
+    "state": "IMPLEMENTED_DEVELOPMENT_CANDIDATE_REVIEW_OPEN",
+    "earned_feature_points": 0,
+    "purpose": "Owner-private generic reads, paired-device operation boundary and late-response grant checks",
+    "independent_source_security_acceptance": "OPEN",
+    "remote_pairing_policy": 2,
+    "re_pair_previous_devices": true
+  },
+  "window_campaign": {
+    "plan": "Slate Windows campaign addendum v1",
+    "status": "SW001_DEVELOPMENT_CHECKS_PASSED_INDEPENDENT_ACCEPTANCE_OPEN",
+    "total_points": 25,
+    "earned_points": 5,
+    "acceptance_checked_percent": 20,
+    "passes": [
+      {
+        "id": "SW-001",
+        "after": [
+          14
+        ],
+        "checks": 5
+      },
+      {
+        "id": "SW-002",
+        "after": [
+          "SW-001",
+          17
+        ],
+        "checks": 5
+      },
+      {
+        "id": "SW-003",
+        "after": [
+          "SW-002",
+          32
+        ],
+        "checks": 5
+      },
+      {
+        "id": "SW-004",
+        "after": [
+          "SW-003"
+        ],
+        "requires": "Owner host; adoption conditional",
+        "checks": 5
+      },
+      {
+        "id": "SW-005",
+        "after": [
+          "SW-003",
+          "Any adopted SW-004"
+        ],
+        "before_core_closes": 36,
+        "checks": 5
+      }
+    ],
+    "blanket_mobile_deferral_superseded": true,
+    "current_pass": "SW-001",
+    "completed_passes": [
+      "SW-001"
+    ],
+    "remaining_implementation_passes": [
+      "SW-002",
+      "SW-003",
+      "SW-004",
+      "SW-005"
+    ]
+  },
+  "combined_campaign": {
+    "earned_points": 86,
+    "total_points": 225,
+    "acceptance_checked_percent": 38.2,
+    "remaining_implementation_passes": 25,
+    "independent_acceptance": "OPEN",
+    "tracking_basis": "Historical P16 acceptance-point baseline; current development delivery and remaining retained deliveries are tracked separately under current_delivery/unified_campaign."
+  },
+  "engineering_discovery_policy": {
+    "state": "OWNER_AUTHORIZED",
+    "retain": "Source-bound private investigation findings and evidence",
+    "source_acceptance": "SEPARATE",
+    "physical_acceptance": "HOLD"
+  },
+  "legacy_eight_pass_estimate": {
+    "estimated_completion_percent": 90,
+    "scope": "Historical Stacy born eight-pass software estimate; not the current expanded campaign."
+  },
+  "product": "Ledger and Slate",
+  "current_delivery": {
+    "id": "P20",
+    "name": "Typed tables, BOMs and editable documents",
+    "campaign_pass": 20,
+    "state": "IMPLEMENTED_DEVELOPMENT_CANDIDATE_REVIEW_OPEN",
+    "independent_source_acceptance": "OPEN"
+  },
+  "unified_campaign": {
+    "edition": 10,
+    "planned_remaining_after_p16": 30,
+    "development_deliveries": [
+      "N1",
+      "N2-G5",
+      "N3",
+      "P17",
+      "SW-002",
+      "P18",
+      "P19",
+      "P20"
+    ],
+    "remaining_deliveries": 22,
+    "next_delivery": "P21",
+    "target": "DEBIAN_13_THINKPAD_AND_IPHONE",
+    "overall_completion_percent": "NOT_RECALCULATED",
+    "count_basis": "Eight retained development deliveries after P16; unequal groups are not effort percentages."
+  },
+  "milestones": {
+    "register": "docs/milestones.json",
+    "current": "M3",
+    "state": "DEMONSTRATED_IN_DEVELOPMENT_REVIEW_OPEN",
+    "next": "M4",
+    "next_boundary": "P24"
+  }
+}

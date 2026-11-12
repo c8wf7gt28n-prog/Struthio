@@ -1,0 +1,1106 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "Start with no project keeps the five parts visible; each side column sits on its own floor (left 360, right 400) and every strip word is whole",
+    "Opening a project record and a source file keeps the frame; the context word names the selected record inside the box, clear of the typed text",
+    "Two workspaces launched from Hatch open as rooms with the edited Preview kept, no pin used and zero job, worker, model, provider or process activity",
+    "F11 round trip keeps both column widths (360/400) and the five parts",
+    "Switching among six tabs leaves the tab strip at one height (y=51) and keeps the unsaved draft",
+    "The strip reads Graphite \u00b7 staC \u00b7 Console with Find and Kernel as quiet advanced words; the box keeps poem, its description names the destination, and a status message leaves after 10 s",
+    "Held state is one sentence on the Services line, the queue row and the Hatch row; the Services line does not shift the column; queue rows are elided to their width and sized from their words",
+    "14 \u2192 16 \u2192 18 \u2192 20 \u2192 28 \u2192 14 pt: floors follow the rows under the scaled cap and come back to 360/400 with no ratchet; widths the owner dragged survive the excursion; layout.navigator_width reads back as requested at and above the floor; the right column never follows the left",
+    "Tab from Pin / Unpin reaches Hatch in one stop; with a room in the centre the forward cycle from Hatch returns to Hatch in 64 stops through the strip (Explore, Line, Half, Tall, the box, Slate, staC, Console, Find, Kernel), Nice in the head (which holds Stop) and the right panel, with no stop trapped (a source editor keeps Tab for indentation, as before)",
+    "Home keeps the right column and names a waiting job in words; leaving Home returns the workspace with the draft intact",
+    "At 1366 by 768 and 1280 by 720 every top command word is whole without scrolling and the five parts stay (window minimum 1040 by 640: under the row's width the rightmost words fold into \u22ef, never clipped or scrolled)",
+    "Every word in the window whole (outside the head and the centre only the pending bold words) and nothing in the centre sideways at Home at 1920 by 1200 (Today in two columns), 1366 by 768 and 18 pt (one column); at 1100 by 700 the head keeps Work \u00b7 Revise \u00b7 Tools \u00b7 Arrange \u00b7 Commands \u00b7 Rules and folds Properties \u00b7 Guide into \u22ef, whose rows are the same menus; at all 37 widths from 1040 to 1400 the head neither scrolls nor clips a word; at 1920 every menu word is back",
+    "Save and reopen restore both remembered column widths and the five parts; clean close with zero job, worker, model, provider, native or OS session activity"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_01_Start_Home.png",
+      "note": "Start with no project: Today in the centre with both side columns, the Ledger Head and the typing strip; the right column shows Operations. The context word reads Home.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "5577310e51099092cc3249e47c1a96ef9b7ca6a04c0c1035e29aa4284003dbdc",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_02_Workspaces_From_Hatch.png",
+      "note": "Project Desk and Activity & receipts opened from Hatch as rooms beside the edited Preview; the five parts stay; the context word names the current workspace.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "0486f6c1ffdef1a403f71c180367b9bc9204f5577366edbf56ce325d69125140",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_03_Held_State_Words.png",
+      "note": "Admission held: the Services line, the queue row reason and the Hatch Services row say the one sentence from service_lifecycle.SUMMARIES; the line keeps its two-line height; metadata is sized from the interface setting.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "17a34e75bafef06ba8ef89bdcce71d559aaafab85bb68b7c3270eb1d100b8af6",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_04_Interface_20pt.png",
+      "note": "Interface text at 20 pt: both columns widened to their own rows (floors 457/503 under the scaled cap 560); every strip word whole; the strip one line taller.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "b49aa85bd877eb37e2d9b4728cd8f206d5d2ee9edf67d2f3b62531055c66a1ed",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_05_Interface_28pt.png",
+      "note": "Interface text at 28 pt (200%): the cap holds at 560; Hatch, Explore, Slate, staC and Console stay whole; the secondary words elide by the documented rule (\u2026, \u2026).",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "84f9d4f3cf93dc350caf17e2f29ae9e4384e7f95c3ac2dc06fb2645931923975",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_06_Home_Right_Column.png",
+      "note": "Home after work: Today in the centre, the right column still showing Operations, the typing strip below; the Waiting for you card says the interrupted job in words (Local model \u00b7 interrupted).",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "71bec3635e5ebe2ec132518b3535418dc7df92bc5ebb549c96755f68268d1fbd",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_07_Compact_1366.png",
+      "note": "1366 by 768: both columns on their own floors, the centre keeps 606 px, every command word whole (the top row's end cells give up slack before the words scroll), the five parts and the fixed controls visible.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "2950a0a5586e436c0fcd9f82f19d818dd4c7269c5774e8a9e01ef74685779edc",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_08_Compact_1280.png",
+      "note": "1280 by 720: the top command row keeps Work \u2026 Guide whole; the centre keeps 520 px.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "d0eddfc6d8812bbc775eeda2437eb61854c3a64318b75d5ac438f2def7cd697d",
+      "resolution": [
+        1280,
+        720
+      ]
+    },
+    {
+      "file": "Ledger_Slate_GRAPHITE_01_Frame_11_Fit_14pt_1366.png",
+      "note": "Home at 14 pt and 1366 by 768: Today in one column, every word in the head and the centre whole (labels and buttons measured against the room the style gives them), nothing in the centre scrolls sideways; the Finder toolbar folds hidden \u00b7 places into \u22ef.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "6f41fb4efcc23d97d8df9a2789d7094000d6392b1256a33166d8860e672ba34e",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_GRAPHITE_01_Frame_11_Fit_18pt_1366.png",
+      "note": "Home at 18 pt and 1366 by 768: Today in one column, every word in the head and the centre whole (labels and buttons measured against the room the style gives them), nothing in the centre scrolls sideways; the Finder toolbar folds hidden \u00b7 places \u00b7 preview \u00b7 views into \u22ef.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "fae0b60aa76f8f6bba05addf044a3d6de06292d38e51125855819afffb7a8fad",
+      "resolution": [
+        1366,
+        768
+      ]
+    },
+    {
+      "file": "Ledger_Slate_GRAPHITE_01_Frame_12_Head_Folds_1100.png",
+      "note": "1100 by 700: the head keeps Work \u00b7 Revise \u00b7 Tools \u00b7 Arrange \u00b7 Commands \u00b7 Rules whole and folds Properties \u00b7 Guide into \u22ef (the same menus, as its rows); nothing scrolls.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "a5675e1f3bdc616f2385f36b825e7285222691c13beae8363120c4f396ae617d",
+      "resolution": [
+        1100,
+        700
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_09_Reopened.png",
+      "note": "The window reopened from the saved session: both remembered column widths (420/460) and the five parts are back.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "59d81798a4504caa31625cd84e15ec3da1e714910732c3566335ade7a5ce0516",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_DESKTOP_01_Frame_10_Reopened_1366.png",
+      "note": "The reopened window at 1366 by 768.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "917eb9c20d49ecf73b9329bc3dd05b8205a2c8c3dea36c515bcd5425d6652fae",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "fresh_floors": [
+    360,
+    400
+  ],
+  "fresh_widths": [
+    360,
+    400
+  ],
+  "excursion": {
+    "16": {
+      "widths": [
+        389,
+        431
+      ],
+      "floors": [
+        389,
+        431
+      ],
+      "bar": 73,
+      "box": 43
+    },
+    "18": {
+      "widths": [
+        431,
+        474
+      ],
+      "floors": [
+        431,
+        474
+      ],
+      "bar": 80,
+      "box": 48
+    },
+    "20": {
+      "widths": [
+        457,
+        503
+      ],
+      "floors": [
+        457,
+        503
+      ],
+      "bar": 85,
+      "box": 50
+    }
+  },
+  "strip_heights": {
+    "14": [
+      67,
+      40
+    ],
+    "16": [
+      73,
+      43
+    ],
+    "18": [
+      80,
+      48
+    ],
+    "20": [
+      85,
+      50
+    ]
+  },
+  "elided_at_28pt": [
+    "\u2026",
+    "\u2026"
+  ],
+  "compact": {
+    "1366x768": {
+      "widths": [
+        360,
+        400
+      ],
+      "floors": [
+        360,
+        400
+      ],
+      "centre": 606,
+      "brand": 308,
+      "right_holder": 362,
+      "words": {
+        "Work": [
+          71,
+          71
+        ],
+        "Revise": [
+          76,
+          76
+        ],
+        "Tools": [
+          72,
+          72
+        ],
+        "Arrange": [
+          88,
+          88
+        ],
+        "Commands": [
+          99,
+          99
+        ],
+        "Rules": [
+          71,
+          71
+        ],
+        "Properties": [
+          103,
+          103
+        ],
+        "Guide": [
+          72,
+          72
+        ]
+      },
+      "folded": [],
+      "ribbon_scroll": 0
+    },
+    "1280x720": {
+      "widths": [
+        360,
+        400
+      ],
+      "floors": [
+        360,
+        400
+      ],
+      "centre": 520,
+      "brand": 254,
+      "right_holder": 330,
+      "words": {
+        "Work": [
+          71,
+          71
+        ],
+        "Revise": [
+          76,
+          76
+        ],
+        "Tools": [
+          72,
+          72
+        ],
+        "Arrange": [
+          88,
+          88
+        ],
+        "Commands": [
+          99,
+          99
+        ],
+        "Rules": [
+          71,
+          71
+        ],
+        "Properties": [
+          103,
+          103
+        ],
+        "Guide": [
+          72,
+          72
+        ]
+      },
+      "folded": [],
+      "ribbon_scroll": 0
+    }
+  },
+  "words_whole": {
+    "1920x1200 14pt": {
+      "today_columns": 2,
+      "finder_folded": [],
+      "head_folded": [],
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1366x768 14pt": {
+      "today_columns": 1,
+      "finder_folded": [
+        "hidden",
+        "places"
+      ],
+      "head_folded": [],
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1366x768 18pt": {
+      "today_columns": 1,
+      "finder_folded": [
+        "hidden",
+        "places",
+        "preview",
+        "views"
+      ],
+      "head_folded": [],
+      "clipped": [],
+      "sideways": [],
+      "elsewhere": []
+    },
+    "1100x700 head": {
+      "shown": [
+        "Work",
+        "Revise",
+        "Tools",
+        "Arrange",
+        "Commands",
+        "Rules"
+      ],
+      "folded": [
+        "Properties",
+        "Guide"
+      ],
+      "ribbon_scroll": 0
+    },
+    "head sweep 1040-1400 at 720": {
+      "widths": 37,
+      "folded_at": {
+        "1040": [
+          "Properties",
+          "Guide"
+        ],
+        "1050": [
+          "Properties",
+          "Guide"
+        ],
+        "1060": [
+          "Properties",
+          "Guide"
+        ],
+        "1070": [
+          "Properties",
+          "Guide"
+        ],
+        "1080": [
+          "Properties",
+          "Guide"
+        ],
+        "1090": [
+          "Properties",
+          "Guide"
+        ],
+        "1100": [
+          "Properties",
+          "Guide"
+        ],
+        "1110": [
+          "Properties",
+          "Guide"
+        ],
+        "1120": [
+          "Guide"
+        ],
+        "1130": [
+          "Guide"
+        ]
+      }
+    }
+  },
+  "tab_strip_y": {
+    "desk": 51,
+    "editor": 51,
+    "trail": 51,
+    "record": 51,
+    "settings": 51,
+    "service": 51
+  },
+  "tab_order_from_hatch": [
+    "ExploreButton:Explore",
+    "QPushButton:Line",
+    "QPushButton:Half",
+    "QPushButton:Tall",
+    "OneBox:OneBox",
+    "QPushButton:Graphite",
+    "QPushButton:staC",
+    "QPushButton:Console",
+    "QPushButton:Find",
+    "QPushButton:Kernel",
+    "NiceButton:NiceButton:Nice \u25be",
+    "QToolButton:GlobalSearch:Search",
+    "QCheckBox:Follow latest",
+    "QPushButton:Work trail",
+    "QListWidget:LedgerActivityTail",
+    "QScrollArea:RibbonScroll",
+    "QPushButton:Context",
+    "QPushButton:Graphite",
+    "TrashCan:TrashCan",
+    "QPushButton:Logical cabinet",
+    "QPushButton:Existing views",
+    "QLineEdit:CabinetQuery",
+    "QTreeWidget:LogicalCabinet",
+    "QPushButton:Refresh cabinet",
+    "QPushButton:Import",
+    "QPushButton:Export",
+    "QPushButton:Cabinet",
+    "QPushButton:Machine",
+    "QPushButton:Settings",
+    "QToolButton:favoriteGroupMenu:Work",
+    "QToolButton:favoriteGroupMenu:Revise",
+    "QToolButton:favoriteGroupMenu:Tools",
+    "QToolButton:favoriteGroupMenu:Arrange",
+    "QToolButton:favoriteGroupMenu:Commands",
+    "QToolButton:favoriteGroupMenu:Rules",
+    "QToolButton:favoriteGroupMenu:Properties",
+    "QToolButton:favoriteGroupMenu:Guide",
+    "QScrollArea",
+    "QPushButton:Service details",
+    "QPushButton:Open record",
+    "QPushButton:Explore",
+    "QPushButton:KillSwitch:\u25a0 Stop everything",
+    "QListWidget",
+    "QueueList",
+    "QCheckBox:Background CPU for owned",
+    "QPushButton:Open Agenda",
+    "QPushButton:Work trail",
+    "QPushButton:AI admission",
+    "QPushButton:Operations",
+    "QPushButton:Return thread \u00b7 1",
+    "QScrollArea",
+    "QComboBox",
+    "QPushButton:Refresh",
+    "QComboBox",
+    "QTreeWidget",
+    "QTreeWidget",
+    "QPushButton:Study limits",
+    "QPushButton:Brain limits",
+    "QCheckBox:Technical detail",
+    "QSlider",
+    "QTabBar:qt_tabwidget_tabbar",
+    "QToolButton:ScrollLeftButton",
+    "QPushButton:Pin / Unpin",
+    "HatchButton:Hatch"
+  ],
+  "focus_observed": [
+    {
+      "step": "start",
+      "focus": "QPushButton:Places \u25be"
+    },
+    {
+      "step": "project opened",
+      "focus": "NiceButton:NiceButton:Nice \u25be"
+    },
+    {
+      "step": "two workspaces from Hatch",
+      "focus": "NiceButton:NiceButton:Nice \u25be"
+    },
+    {
+      "step": "after F11 round trip",
+      "focus": "NiceButton:NiceButton:Nice \u25be"
+    },
+    {
+      "step": "after tab switches",
+      "focus": "NiceButton:NiceButton:Nice \u25be"
+    },
+    {
+      "step": "after keyboard walk",
+      "focus": "HatchButton:Hatch"
+    },
+    {
+      "step": "home",
+      "focus": "HatchButton:Hatch"
+    },
+    {
+      "step": "before close",
+      "focus": "WorkTrailTab"
+    },
+    {
+      "step": "reopened",
+      "focus": "QTabBar:qt_tabwidget_tabbar"
+    }
+  ],
+  "areas_observed": [
+    {
+      "step": "start, no project",
+      "left": [
+        0,
+        72,
+        360,
+        1060
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        71
+      ],
+      "centre": [
+        361,
+        72,
+        1158,
+        989
+      ],
+      "right": [
+        1520,
+        72,
+        400,
+        1060
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "project opened",
+      "left": [
+        0,
+        72,
+        360,
+        1060
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        71
+      ],
+      "centre": [
+        361,
+        72,
+        1158,
+        989
+      ],
+      "right": [
+        1520,
+        72,
+        400,
+        1060
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "two workspaces from Hatch",
+      "left": [
+        0,
+        51,
+        360,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        361,
+        51,
+        1158,
+        1011
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "fullscreen",
+      "left": [
+        0,
+        51,
+        360,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        361,
+        51,
+        1158,
+        1011
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "after F11 round trip",
+      "left": [
+        0,
+        51,
+        360,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        361,
+        51,
+        1158,
+        1011
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "tab desk",
+      "left": [
+        0,
+        51,
+        360,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        361,
+        51,
+        1158,
+        971
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "tab editor",
+      "left": [
+        0,
+        51,
+        360,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        361,
+        51,
+        1158,
+        976
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "tab trail",
+      "left": [
+        0,
+        51,
+        360,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        361,
+        51,
+        1158,
+        1011
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "tab record",
+      "left": [
+        0,
+        51,
+        360,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        361,
+        51,
+        1158,
+        1011
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "home with right column",
+      "left": [
+        0,
+        51,
+        420,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        421,
+        51,
+        1098,
+        729
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "1366x768",
+      "left": [
+        0,
+        51,
+        360,
+        649
+      ],
+      "head": [
+        0,
+        0,
+        1366,
+        51
+      ],
+      "centre": [
+        360,
+        51,
+        606,
+        325
+      ],
+      "right": [
+        966,
+        51,
+        400,
+        649
+      ],
+      "strip": [
+        0,
+        701,
+        1366,
+        67
+      ]
+    },
+    {
+      "step": "1280x720",
+      "left": [
+        0,
+        51,
+        360,
+        601
+      ],
+      "head": [
+        0,
+        0,
+        1280,
+        51
+      ],
+      "centre": [
+        360,
+        51,
+        520,
+        301
+      ],
+      "right": [
+        880,
+        51,
+        400,
+        601
+      ],
+      "strip": [
+        0,
+        653,
+        1280,
+        67
+      ]
+    },
+    {
+      "step": "fit 1920x1200 14pt",
+      "left": [
+        0,
+        51,
+        420,
+        1081
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        421,
+        51,
+        1098,
+        710
+      ],
+      "right": [
+        1520,
+        51,
+        400,
+        1081
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "fit 1366x768 14pt",
+      "left": [
+        0,
+        51,
+        360,
+        649
+      ],
+      "head": [
+        0,
+        0,
+        1366,
+        51
+      ],
+      "centre": [
+        360,
+        51,
+        606,
+        325
+      ],
+      "right": [
+        966,
+        51,
+        400,
+        649
+      ],
+      "strip": [
+        0,
+        701,
+        1366,
+        67
+      ]
+    },
+    {
+      "step": "fit 1366x768 18pt",
+      "left": [
+        0,
+        66,
+        431,
+        621
+      ],
+      "head": [
+        0,
+        0,
+        1366,
+        66
+      ],
+      "centre": [
+        431,
+        66,
+        506,
+        311
+      ],
+      "right": [
+        937,
+        66,
+        429,
+        621
+      ],
+      "strip": [
+        0,
+        688,
+        1366,
+        80
+      ]
+    },
+    {
+      "step": "reopened from the saved session",
+      "left": [
+        0,
+        52,
+        420,
+        1080
+      ],
+      "head": [
+        0,
+        0,
+        1920,
+        51
+      ],
+      "centre": [
+        421,
+        52,
+        1038,
+        934
+      ],
+      "right": [
+        1460,
+        52,
+        460,
+        1080
+      ],
+      "strip": [
+        0,
+        1133,
+        1920,
+        67
+      ]
+    },
+    {
+      "step": "reopened at 1366",
+      "left": [
+        0,
+        51,
+        420,
+        649
+      ],
+      "head": [
+        0,
+        0,
+        1366,
+        51
+      ],
+      "centre": [
+        421,
+        51,
+        484,
+        497
+      ],
+      "right": [
+        906,
+        51,
+        460,
+        649
+      ],
+      "strip": [
+        0,
+        701,
+        1366,
+        67
+      ]
+    }
+  ],
+  "column_policy": {
+    "cap_px_at_14pt": 400,
+    "cap_scale_max": 1.4,
+    "row_air_px": 24,
+    "elision": "the cat, Explore, Graphite, staC, Console stay whole; Line/Half/Tall and Find/Kernel share the room left under the cap, whole word in the tooltip",
+    "status_message_ceiling_ms": 10000,
+    "window_minimum": [
+      1040,
+      640
+    ]
+  },
+  "disposable_job_records": 1,
+  "jobs_submitted": 0,
+  "worker_processes_started": 0,
+  "model_generations": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "os_power_or_logout_commands": 0,
+  "owner_host_acceptance": false,
+  "clean_close": true
+}

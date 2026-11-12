@@ -1,0 +1,35 @@
+{
+  "state": "PASSED",
+  "scope": "FOCUSED_WORKER_PROTOCOL_AND_COLLECTION_TO_REPORT_WALKTHROUGH",
+  "P08": {
+    "boundary": "AUTHENTICATED_LOOPBACK_WORKER_PROTOCOL_DOUBLE",
+    "observations": [
+      "First source turn ran cold. The matching turn requested runtime reuse and reused the measured prompt budget.",
+      "A same-size change to the weights with restored mtime prevented reuse of the loaded identity.",
+      "Stop cleared the slot claim and invalidated an earlier launch request."
+    ]
+  },
+  "P09": {
+    "boundary": "LOCAL_INGRESS_REFERENCE_WORKER_PROJECT_AND_EXPORT",
+    "observations": [
+      "Two admitted sources were indexed and linked to a project. A prepared question found a matching passage with its source location.",
+      "The verified ZIP in Egress contained the source files with ordinary names and a project relationship catalog."
+    ]
+  },
+  "P10": {
+    "boundary": "LOCAL_PDF_TEXT_AND_TESSERACT_OCR_NATIVE_QT_AND_EXACT_MATH",
+    "observations": [
+      "An image-only page required OCR. Local OCR supplied table candidates for review.",
+      "A missing unit blocked calculation. The reviewed sheet yielded an editable 2.4 W report from 12 V and 200 mA.",
+      "Editing the current to 250 mA marked the first report for recheck. The next report recorded 3 W and the changed input.",
+      "Native Qt opened the review dialog, working sheet and report."
+    ],
+    "captures": [
+      "Graphite_P10_PDF_Table.png",
+      "Graphite_P10_Report.png"
+    ]
+  },
+  "live_model_qualification": "PENDING",
+  "owner_host_qualification": "PENDING",
+  "gpu_qualification": "PENDING"
+}

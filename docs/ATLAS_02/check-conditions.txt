@@ -1,0 +1,19 @@
+Validation conditions for ATLAS-02
+
+Boundary tests and UI admission do not launch solvers or engineering jobs.
+The separate method check uses the existing pinned SymPy/Z3 worker adapters.
+Private execution-host dependency paths are not bundled or treated as ThinkPad installation.
+
+Two harness assumptions were corrected during development:
+1. The first method-check launch inserted the program path only in its parent
+   process. The child worker could not import workbench. The check was rerun from
+   the actual program directory with the pinned package path inherited normally.
+   No solver guard, timeout, model case or adapter code was changed to make it pass.
+2. An initial UI assertion expected an unpinned Preview to survive opening a
+   different Preview. The existing workspace policy replaces that Preview. The
+   final check pins the Algorithm Atlas, then confirms it survives a switch to
+   the Tool Atlas and back. The production tab policy was not changed.
+
+Actual computations, source bindings and host/session information are recorded
+in method-checks.json. They are development examples, not current-host Atlas
+qualification or owner-hardware acceptance. No full historical suite was rerun.

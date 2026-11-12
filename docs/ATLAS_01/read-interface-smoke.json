@@ -1,0 +1,36 @@
+{
+  "state": "PASSED",
+  "calls": [
+    {
+      "operation": "language.run",
+      "arguments": {
+        "text": "atlas.lookup {\"query\":\"Python\"}"
+      },
+      "state": "PASSED"
+    },
+    {
+      "operation": "stac.run",
+      "arguments": {
+        "program": "atlas | operation math.preview"
+      },
+      "state": "PASSED"
+    },
+    {
+      "operation": "ledger.capabilities.search",
+      "arguments": {
+        "query": "atlas",
+        "limit": 50
+      },
+      "state": "PASSED"
+    },
+    {
+      "operation": "ledger.capabilities.describe",
+      "arguments": {
+        "operation": "atlas.invocation"
+      },
+      "state": "PASSED"
+    }
+  ],
+  "jobs": 0,
+  "model_generations": 0
+}

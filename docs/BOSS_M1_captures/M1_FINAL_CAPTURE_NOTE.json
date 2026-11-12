@@ -1,0 +1,13 @@
+{
+  "native": "Qt offscreen",
+  "size": [
+    1366,
+    768
+  ],
+  "chain_output": "Slate/Chains/chain-4d80dd0df43b423ba2d09db5e8615196.csv",
+  "source_cap_filtered_to_one_row_refused": true,
+  "program_secondary_did_not_launch": true,
+  "system_menu_opened_without_power_action": true,
+  "model_run": false,
+  "gpu_run": false
+}

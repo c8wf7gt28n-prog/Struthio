@@ -1,0 +1,27 @@
+{
+  "schema": "arc-ledger.noir-assets/1",
+  "direction": "Noir workshop direction 24 October 2026; owner-selected Stacy appearance 25 October 2026",
+  "files": {
+    "clip.png": {
+      "sha256": "515b680550c647ad172e7ef86c012e6f03b2f23a7880949c744f21ce24a388c3",
+      "bytes": 1390535,
+      "source": "branding/stacy/stacy.png"
+    },
+    "orange-book.svg": {
+      "sha256": "e2ff7f9f50e4a9bee2c3d79e7e8b336a5a9aa1471f35a6df8b17487283d0586a",
+      "bytes": 4795,
+      "source": "ARC_Ledger_Visual_Preparation_v1/04_orange_book/orange-book-cover-editable.svg"
+    },
+    "tokens.json": {
+      "sha256": "fc13a0db170f46abb64d185012efc26f8c3963e9dd9dcac538b7edfb1273c882",
+      "bytes": 1986,
+      "source": "ARC_Ledger_Visual_Preparation_v1/06_theme/tokens.json"
+    }
+  },
+  "policy": "Artwork only; native Qt supplies controls and recorded data. No source acceptance or activity is encoded by art.",
+  "home_native_pixels": [
+    1586,
+    992
+  ],
+  "clip": "Stacy, one static portrait; clip.png retained as a compatibility asset name"
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "arc.clock-lab-inputs/1",
+  "revision": 1,
+  "synthetic": true,
+  "files": {
+    "clock_board.kicad_pcb": "34cbef2e56f0679bfe71b96e43f6560f5ca157c3c70ea2d1aa1e027bd80a25b6",
+    "clock_lab.xlsx": "bf5a37005723ca0ee691fac632ace37037dbb4c11fb8babbab842a65368e4758",
+    "experiment.py": "78c399029828a017cc607a36808f96be6c81f9ed14ed1958b762e58648cdd0d9",
+    "memory.csv": "a39969a9d3bbb7f0f321e34e30336ba00eecebc1d4422fa6d8a654bdc7ed6410",
+    "parts.csv": "cf6737e05490017371b4c615a87c414a622cd4062ba228b7768ee9f9a41a66ef",
+    "power.csv": "9f8472f2c417a33f1d67d272a07dd88726a65047c59e13265950c90b61fb6ada",
+    "problem.json": "97daa30e52c35fac229172fc3bf5807a6bf8435ccde049886e4edd5c7dc9a0e3",
+    "requirements.md": "f34c2f67782a913ee0402297fd789f52e9ba78de0e9cf7e078a7c55eabf5a8fd",
+    "requirements.pdf": "d0a78efa43373cf1b07b4af7edec74f8d8580dd582ef8f9e16f47430bcacce74"
+  }
+}

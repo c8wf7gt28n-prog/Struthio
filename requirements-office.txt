@@ -1,0 +1,2 @@
+# Optional editable DOCX export; table reading uses the standard library.
+python-docx==1.2.0

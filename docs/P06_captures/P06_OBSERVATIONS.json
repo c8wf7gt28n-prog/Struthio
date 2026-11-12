@@ -1,0 +1,16 @@
+{
+  "state": "PASSED",
+  "scope": "FOCUSED_RESOURCE_BOUNDARIES_ONLY",
+  "observations": [
+    "Genuine queued model requests retain background/foreground intent; foreground takes the next turn, model turns serialize and a CPU lane remains available. Native model launcher held.",
+    "Foreground activity expires without changing an assignment; pressure defers admission. Owner queue promotion changes admission priority independently of CPU nice.",
+    "A 32 GiB resident budget with 8 GiB observed RSS reserves 24 GiB of future growth; resident memory is not subtracted twice and GPU budgets are not added to RAM.",
+    "The real Linux CPU child receives its address-space cap and is reaped when the simulated resident guard is exceeded; no model or large allocation used.",
+    "A real owned queued worker waits before tool launch, survives the old sixty-second recovery threshold, then exits on owner cancellation without running its tool.",
+    "Fourteen background requests leave two foreground queue places; the sixteen-request bound is enforced, with all native launchers held."
+  ],
+  "automated_suites_run": 0,
+  "model_generations": 0,
+  "model_worker_launches": 0,
+  "owner_host_qualification": "PENDING"
+}

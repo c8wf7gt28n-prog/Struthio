@@ -1,0 +1,1218 @@
+{
+  "baseline": "HATCH INTEGRATION-01",
+  "specification_version": "1.0",
+  "checkpoint": "Graphite 0.1",
+  "date": "2026-11-06",
+  "commission": "Creative Implementation Commission v2.1 (2026-11-04)",
+  "evidence_note": "Evidence entries name the report each check writes (mostly under build/). The reports and captures of passes before Graphite 0.1 left the tree at 0.1 (D35: they record that something happened) and are in the project's git history (LS.git, commit 5e3da76 and earlier) and the owner's backups; running the named check or test writes its report again. Graphite 0.1's own evidence is build/graphite01_ui; the live model-trial records stay under build/agent01_ui/model_trial and build/agent02_ui/model_trial.",
+  "passes": {
+    "WORKSHOP-01": "Gate one (five-part desktop, truthful Hatch, Machine navigator, paper passages, writing marker) and the first Gate-two route (the shared document) under Commission v2.1",
+    "next": "more assignments (an ARC calculation that follows a changed condition, datasheet to spreadsheet), Python helpers Graphite writes itself, native application handover, model replacement with rollback, owner-host installation and qualification on the ThinkPad",
+    "AGENT-01": "The resident agent loop, the numbers task with condition cards and helpers, quiet connections, the Investigations room in Hatch, the live small-model trial",
+    "AGENT-02": "Work continues in the resident service while Ledger is closed; the model turn applied on a real page; the files-about assignment",
+    "GRAPHITE-01": "The public rename to Graphite, the sharpened-point mark, the GRAPHITE startup screen, the peeking cat that opens the menu, the compact-layout fixes; STRUTHIO ARCADE 1.9.0 desk mode behind the mark",
+    "Graphite 0.1": "One release without the history (D34, D35): the release check re-based on the recorded registry docs/GRAPHITE_0.1_REGISTRY.json, settings in Graphite words, version Graphite 0.1, records that only said something happened removed"
+  },
+  "requirements": [
+    {
+      "id": "PD01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/qt_app.py",
+        "workbench/typebar_qt.py",
+        "workbench/empty_workspace_qt.py",
+        "workbench/hatch_qt.py",
+        "workbench/machine_qt.py"
+      ],
+      "acceptance": [
+        "AC01",
+        "AC14"
+      ],
+      "evidence": [
+        "build/desktop01_ui/frame/frame-ui.json: PASSED, 12 checks, 10 captures",
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures",
+        "build/desktop01_ui/machine/machine-ui.json: PASSED, 8 checks, 4 captures"
+      ],
+      "limits": [
+        "Mechanical and offscreen; owner-host use of the five parts is pending the ThinkPad"
+      ]
+    },
+    {
+      "id": "PD02",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/documents.py",
+        "workbench/document_qt.py",
+        "workbench/shell2.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC04",
+        "AC06"
+      ],
+      "evidence": [
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Documents route only (write, select, Slate bold, save, reopen, undo) without a model; spreadsheet, design and native application routes and the live-model turn are open"
+      ]
+    },
+    {
+      "id": "PD03",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/agent_loop.py",
+        "workbench/agent_profiles.py",
+        "workbench/conditions.py",
+        "workbench/profile_files.py",
+        "workbench/profile_numbers.py"
+      ],
+      "acceptance": [
+        "AC06",
+        "AC08",
+        "AC17"
+      ],
+      "evidence": [
+        "build/agent02_ui/files_about/files-about-ui.json: PASSED, 7 checks, 4 captures",
+        "build/agent02_ui/focused-tests.json: PASSED, 379 cases"
+      ],
+      "limits": [
+        "A second explicit procedure (files about something: Files and Ingress, four reads, a findings page); the cross-application loop through Calc, Python and KiCad operations is open"
+      ]
+    },
+    {
+      "id": "PD04",
+      "state": "DONE",
+      "changed_paths": [
+        "docs/DECISION_REGISTER.json"
+      ],
+      "acceptance": [
+        "AC15"
+      ],
+      "evidence": [
+        "docs/DECISION_REGISTER.json D01–D17 record each presentation choice as reversible; menu words and palette untouched"
+      ],
+      "limits": [
+        "Owner review of the X marker, Hatch order and words is pending"
+      ]
+    },
+    {
+      "id": "BL01",
+      "state": "DONE",
+      "changed_paths": [],
+      "acceptance": [
+        "AC14"
+      ],
+      "evidence": [
+        "scratchpad notes/BL_evidence.json: seven intake hashes match BASELINE_ARCHIVES.json; derived RELEASE_PARTS.json sha256 d734cd79… matches RESTORATION_AUDIT.json; INSTALL_LS.py --extract-only restored 1,491 files identical (name, bytes, sha256, mode) to the working tree at commit fea2b5a; untouched copy LS_baseline_i01 retained"
+      ],
+      "limits": [
+        "File restoration and inventory only; no dependency installation, model generation, native application start or desktop acceptance"
+      ]
+    },
+    {
+      "id": "BL02",
+      "state": "DONE",
+      "changed_paths": [],
+      "acceptance": [
+        "AC13",
+        "AC14"
+      ],
+      "evidence": [
+        "scratchpad notes/BL_evidence.json: seven intake hashes match BASELINE_ARCHIVES.json; derived RELEASE_PARTS.json sha256 d734cd79… matches RESTORATION_AUDIT.json; INSTALL_LS.py --extract-only restored 1,491 files identical (name, bytes, sha256, mode) to the working tree at commit fea2b5a; untouched copy LS_baseline_i01 retained"
+      ],
+      "limits": [
+        "File restoration and inventory only; no dependency installation, model generation, native application start or desktop acceptance"
+      ]
+    },
+    {
+      "id": "UI01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/empty_workspace_qt.py",
+        "workbench/typebar_qt.py",
+        "workbench/qt_app.py"
+      ],
+      "acceptance": [
+        "AC01"
+      ],
+      "evidence": [
+        "build/desktop01_ui/frame/frame-ui.json: PASSED, 12 checks, 10 captures"
+      ],
+      "limits": [
+        "Offscreen 1920×1200 and 1366×768; the owner display is pending"
+      ]
+    },
+    {
+      "id": "UI02",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/workspace_tabs.py",
+        "workbench/explore_qt.py",
+        "workbench/control_qt.py"
+      ],
+      "acceptance": [
+        "AC01",
+        "AC04",
+        "AC12"
+      ],
+      "evidence": [
+        "build/desktop01_ui/frame/frame-ui.json: PASSED, 12 checks, 10 captures",
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures"
+      ],
+      "limits": [
+        "Navigation keeps the Preview, pins, drafts and selection in the checks; takeover of a native application (AC04) is open"
+      ]
+    },
+    {
+      "id": "NV01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/machine_overview.py",
+        "workbench/machine_qt.py",
+        "workbench/settings_qt.py"
+      ],
+      "acceptance": [
+        "AC01",
+        "AC10"
+      ],
+      "evidence": [
+        "build/desktop01_ui/machine/machine-ui.json: PASSED, 8 checks, 4 captures",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Observations are of the check container, not the ThinkPad"
+      ]
+    },
+    {
+      "id": "NV02",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/machine_qt.py",
+        "workbench/cabinet.py",
+        "workbench/explore.py"
+      ],
+      "acceptance": [
+        "AC04",
+        "AC07",
+        "AC14"
+      ],
+      "evidence": [
+        "build/desktop01_ui/machine/machine-ui.json: PASSED, 8 checks, 4 captures",
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures"
+      ],
+      "limits": [
+        "Work rows select the same record identities; documents file under their project; no copies"
+      ]
+    },
+    {
+      "id": "NV03",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/machine_qt.py",
+        "workbench/settings_qt.py"
+      ],
+      "acceptance": [
+        "AC10",
+        "AC14"
+      ],
+      "evidence": [
+        "build/desktop01_ui/machine/machine-ui.json: PASSED, 8 checks, 4 captures"
+      ],
+      "limits": [
+        "Trash pinned bottom right; Import and Export routes unchanged"
+      ]
+    },
+    {
+      "id": "HT01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/hatch_qt.py",
+        "workbench/explore.py"
+      ],
+      "acceptance": [
+        "AC02"
+      ],
+      "evidence": [
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures"
+      ],
+      "limits": [
+        "Order is a reversible default (D01)"
+      ]
+    },
+    {
+      "id": "HT02",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/explore.py",
+        "workbench/explore_qt.py",
+        "workbench/capability_catalog.py"
+      ],
+      "acceptance": [
+        "AC02",
+        "AC14"
+      ],
+      "evidence": [
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures"
+      ],
+      "limits": [
+        "Descriptors come from the registered catalogue; qualification is not assessed on this host"
+      ]
+    },
+    {
+      "id": "HT03",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/explore.py",
+        "workbench/explore_qt.py"
+      ],
+      "acceptance": [
+        "AC02",
+        "AC11"
+      ],
+      "evidence": [
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures"
+      ],
+      "limits": [
+        "Needs setup from passive detection; no tool runs on discovery"
+      ]
+    },
+    {
+      "id": "VS01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/theme2.py",
+        "workbench/cabinet_qt.py",
+        "workbench/shell2.py",
+        "workbench/document_qt.py"
+      ],
+      "acceptance": [
+        "AC15"
+      ],
+      "evidence": [
+        "build/desktop01_ui/paper/paper-ui.json: PASSED, 10 checks, 14 captures",
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures"
+      ],
+      "limits": [
+        "Palette values remain provisional (PD04)"
+      ]
+    },
+    {
+      "id": "VS02",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/explore_qt.py",
+        "workbench/hatch_qt.py",
+        "workbench/settings_qt.py"
+      ],
+      "acceptance": [
+        "AC02",
+        "AC15"
+      ],
+      "evidence": [
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures",
+        "build/desktop01_ui/paper/paper-ui.json: PASSED, 10 checks, 14 captures"
+      ],
+      "limits": [
+        "Pink action words and underlines; owner review pending"
+      ]
+    },
+    {
+      "id": "VS03",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/writing_marker.py",
+        "workbench/settings_registry.py",
+        "workbench/reading_preferences.py"
+      ],
+      "acceptance": [
+        "AC15"
+      ],
+      "evidence": [
+        "build/desktop01_ui/paper/paper-ui.json: PASSED, 10 checks, 14 captures",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "The X form is an owner review item; static under Reduce motion"
+      ]
+    },
+    {
+      "id": "CM01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/typebar_qt.py",
+        "workbench/console_qt.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC09",
+        "AC15"
+      ],
+      "evidence": [
+        "build/desktop01_ui/frame/frame-ui.json: PASSED, 12 checks, 10 captures",
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures"
+      ],
+      "limits": [
+        "Slate · staC · Console with Find and Kernel quieter; the context word names the open work"
+      ]
+    },
+    {
+      "id": "CM02",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/shell2.py",
+        "workbench/document_qt.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC09",
+        "AC14"
+      ],
+      "evidence": [
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures"
+      ],
+      "limits": [
+        "A typed request on a document resolves by rule (no model) or goes to the model path with the document as context; other workspaces unchanged"
+      ]
+    },
+    {
+      "id": "CM03",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/documents.py",
+        "workbench/document_qt.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC09"
+      ],
+      "evidence": [
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Selection bound to document, revision, block, offsets and quoted words; permitted effects are the documented direct edits; other artifact kinds open"
+      ]
+    },
+    {
+      "id": "WS01",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/documents.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC04",
+        "AC09"
+      ],
+      "evidence": [
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Document selections only; spreadsheet cells, design objects and source passages open"
+      ]
+    },
+    {
+      "id": "WS02",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/documents.py",
+        "workbench/document_qt.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC04"
+      ],
+      "evidence": [
+        "build/workshop01_ui/documents/document-ui.json: PASSED, 9 checks, 3 captures",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Ledger-native document with inline bold/italic/underline, headings and code; save, reopen, undo; the live-model turn and DOCX export open"
+      ]
+    },
+    {
+      "id": "WS03",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC04",
+        "AC12"
+      ],
+      "evidence": [],
+      "limits": [
+        "Takeover and pause of conflicting automation: open"
+      ]
+    },
+    {
+      "id": "WS04",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/agent_loop.py",
+        "workbench/agent_qt.py",
+        "workbench/host_service.py",
+        "workbench/qt_app.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC04",
+        "AC12"
+      ],
+      "evidence": [
+        "build/agent02_ui/continue/continue-service.json: PASSED, 5 checks, 0 captures; build/agent02_ui/continue/continue-ui.json: PASSED, 11 checks, 4 captures",
+        "build/agent02_ui/focused-tests.json: PASSED, 379 cases"
+      ],
+      "limits": [
+        "A running assignment continues in the resident Ledger service when the window closes (same record, same step; the desktop has priority, 20 s lease); pause on close when the service is off or the setting is off; Today says what happened; human takeover of a native artifact is open"
+      ]
+    },
+    {
+      "id": "AI01",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/local_brain.py"
+      ],
+      "acceptance": [
+        "AC11",
+        "AC13"
+      ],
+      "evidence": [
+        "build/agent01_ui/model_trial: qwen2.5-0.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed; qwen2.5-1.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed"
+      ],
+      "limits": [
+        "Two GGUF files registered, qualified and used through the real operations in the build container; the owner host and the owner's own file are pending"
+      ]
+    },
+    {
+      "id": "AI02",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC11",
+        "AC12"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: HOST-01"
+      ]
+    },
+    {
+      "id": "AI03",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/agent_loop.py",
+        "workbench/agent_profiles.py",
+        "workbench/document_qt.py",
+        "workbench/documents.py",
+        "workbench/local_brain.py",
+        "workbench/model_turn.py",
+        "workbench/shell2.py"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC06",
+        "AC09"
+      ],
+      "evidence": [
+        "build/agent02_ui/model_turn/model-turn-ui.json: PASSED, 11 checks, 3 captures",
+        "build/agent02_ui/model_trial: qwen2.5-0.5b-instruct-q4_k_m.gguf: 6 requests, applied 4; qwen2.5-1.5b-instruct-q4_k_m.gguf: 6 requests, applied 4",
+        "build/agent02_ui/focused-tests.json: PASSED, 379 cases"
+      ],
+      "limits": [
+        "A documents.edit the model proposes for the open page is applied at once through the Kernel and the page's undo stack, highlighted and undoable; other proposed operations keep the review words; live with the 1.5B model in the build container where recorded; owner host pending"
+      ]
+    },
+    {
+      "id": "AI04",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/agent_loop.py",
+        "workbench/investigations.py"
+      ],
+      "acceptance": [
+        "AC06",
+        "AC08"
+      ],
+      "evidence": [
+        "build/agent02_ui/continue/continue-service.json: PASSED, 5 checks, 0 captures; build/agent02_ui/continue/continue-ui.json: PASSED, 11 checks, 4 captures",
+        "build/agent02_ui/focused-tests.json: PASSED, 379 cases"
+      ],
+      "limits": [
+        "Steps taken by the service carry driver service in their recorded inputs; every step still recorded before interpretation"
+      ]
+    },
+    {
+      "id": "AI05",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/agent_loop.py",
+        "workbench/conditions.py",
+        "workbench/helpers.py"
+      ],
+      "acceptance": [
+        "AC08",
+        "AC09",
+        "AC11"
+      ],
+      "evidence": [
+        "build/agent01_ui/focused-tests.json: PASSED, 326 cases"
+      ],
+      "limits": [
+        "Assignments, findings, helpers and condition cards live in the Kernel store and the desk store, outside model weights; survival across a model swap in one session is open"
+      ]
+    },
+    {
+      "id": "RM01",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/profile_numbers.py",
+        "workbench/quantities.py"
+      ],
+      "acceptance": [
+        "AC05",
+        "AC06",
+        "AC08"
+      ],
+      "evidence": [
+        "build/agent01_ui/focused-tests.json: PASSED, 326 cases",
+        "build/agent01_ui/agent/agent-ui.json: PASSED, 13 checks, 5 captures"
+      ],
+      "limits": [
+        "Unit-checked exact sums of quantities written on a page through math.evaluate; units outside the Kernel algebra are carried as base-unit numbers with a declared assumption"
+      ]
+    },
+    {
+      "id": "RM02",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC05",
+        "AC08",
+        "AC17"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: EVIDENCE-01"
+      ]
+    },
+    {
+      "id": "RM03",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC06",
+        "AC08"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: EVIDENCE-01"
+      ]
+    },
+    {
+      "id": "RM04",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC08",
+        "AC14"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: EVIDENCE-01"
+      ]
+    },
+    {
+      "id": "XD01",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC05",
+        "AC06",
+        "AC07"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: EVIDENCE-01"
+      ]
+    },
+    {
+      "id": "XD02",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC06"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: EVIDENCE-01"
+      ]
+    },
+    {
+      "id": "XD03",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/conditions.py",
+        "workbench/document_qt.py",
+        "workbench/documents.py"
+      ],
+      "acceptance": [
+        "AC07"
+      ],
+      "evidence": [
+        "build/agent01_ui/focused-tests.json: PASSED, 326 cases",
+        "build/agent01_ui/agent/agent-ui.json: PASSED, 13 checks, 5 captures"
+      ],
+      "limits": [
+        "A result bound to its inputs reads STALE when they change and rechecks on one word; dependencies across artifacts (sheets, design objects) are open"
+      ]
+    },
+    {
+      "id": "XD04",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC06",
+        "AC08"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: EVIDENCE-01"
+      ]
+    },
+    {
+      "id": "LP01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/typebar_qt.py",
+        "workbench/operations_qt.py",
+        "workbench/operations.py",
+        "workbench/desktop_header_qt.py"
+      ],
+      "acceptance": [
+        "AC01",
+        "AC05",
+        "AC08",
+        "AC10"
+      ],
+      "evidence": [
+        "build/desktop01_ui/frame/frame-ui.json: PASSED, 12 checks, 10 captures"
+      ],
+      "limits": [
+        "Right column visible through Home, launch, maximize; held-state sentence from service summaries"
+      ]
+    },
+    {
+      "id": "LP02",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/agent_qt.py",
+        "workbench/shell2.py"
+      ],
+      "acceptance": [
+        "AC12",
+        "AC15"
+      ],
+      "evidence": [
+        "build/agent02_ui/continue/continue-service.json: PASSED, 5 checks, 0 captures; build/agent02_ui/continue/continue-ui.json: PASSED, 11 checks, 4 captures"
+      ],
+      "limits": [
+        "The right column says when the Ledger service is doing the work; Today says what was done while Ledger was closed"
+      ]
+    },
+    {
+      "id": "LP03",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/operations.py",
+        "workbench/hatch_qt.py"
+      ],
+      "acceptance": [
+        "AC11",
+        "AC12",
+        "AC13"
+      ],
+      "evidence": [
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures",
+        "build/desktop01_ui/frame/frame-ui.json: PASSED, 12 checks, 10 captures"
+      ],
+      "limits": [
+        "Service and power targets named; Ledger never issues an OS power or session command"
+      ]
+    },
+    {
+      "id": "ST01",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/settings_registry.py",
+        "workbench/session_settings.py",
+        "workbench/ledger_control.py",
+        "workbench/control_qt.py",
+        "docs/SETTINGS_INVENTORY_07.md"
+      ],
+      "acceptance": [
+        "AC10",
+        "AC14"
+      ],
+      "evidence": [
+        "build/desktop01_ui/paper/paper-ui.json: PASSED, 10 checks, 14 captures",
+        "HATCH_WORKSHOP_01_RESULT.json release_check (tools/check_release.py → tools/check_hatch.py)"
+      ],
+      "limits": [
+        "42 definitions; appearance.writing_marker recorded; Slate-made settings changes through ledger.settings.set unchanged"
+      ]
+    },
+    {
+      "id": "ST02",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "workbench/local_brain.py",
+        "workbench/tool_selection.py"
+      ],
+      "acceptance": [
+        "AC07",
+        "AC09",
+        "AC11",
+        "AC14"
+      ],
+      "evidence": [
+        "build/agent01_ui/model_trial: qwen2.5-0.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed; qwen2.5-1.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed"
+      ],
+      "limits": [
+        "Plan prompt bounded for a 2,048-token context; choice mode for small models; settings unchanged"
+      ]
+    },
+    {
+      "id": "ST03",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC14",
+        "AC16"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: HOST-01"
+      ]
+    },
+    {
+      "id": "OS01",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "INSTALL_LS.py",
+        "INSTALL_DEBIAN.sh",
+        "START_MINIMAL_DEBIAN.sh",
+        "LS_XSESSION.sh",
+        "README_WORKSHOP_01.txt"
+      ],
+      "acceptance": [
+        "AC13"
+      ],
+      "evidence": [
+        "scratchpad out/packaging.json: volumes restored with INSTALL_LS.py --extract-only and compared file by file"
+      ],
+      "limits": [
+        "Installation on the owner ThinkPad, the dedicated X session and the display are pending; no bootable image"
+      ]
+    },
+    {
+      "id": "OS02",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC13"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: HOST-01"
+      ]
+    },
+    {
+      "id": "OS03",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC11",
+        "AC12",
+        "AC13",
+        "AC14"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: HOST-01"
+      ]
+    },
+    {
+      "id": "OS04",
+      "state": "IN_PROGRESS",
+      "changed_paths": [
+        "tools/package_graphite.py",
+        "tools/package_release_parts.py"
+      ],
+      "acceptance": [
+        "AC13",
+        "AC14"
+      ],
+      "evidence": [
+        "RELEASE_PARTS.json beside the volumes; restore comparison identical",
+        "Graphite 0.1 (build container): tools/package_graphite.py wrote Graphite_0.1_full.zip, package_release_parts.py five volumes of at most 15,000,000 bytes, and INSTALL_LS.py --extract-only restored a copy whose payload (release_integrity.verify) and seed both verified"
+      ],
+      "limits": [
+        "Public hosting and the offline dependency cache remain separate"
+      ]
+    },
+    {
+      "id": "AR01",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC17"
+      ],
+      "evidence": [],
+      "limits": [
+        "planned pass: EVIDENCE-01"
+      ]
+    },
+    {
+      "id": "IM01",
+      "state": "PENDING",
+      "changed_paths": [],
+      "acceptance": [
+        "AC03",
+        "AC04",
+        "AC06",
+        "AC14"
+      ],
+      "evidence": [],
+      "limits": [
+        "next: live-model turn, takeover, resume (after WORKSHOP-01)"
+      ]
+    },
+    {
+      "id": "IM02",
+      "state": "DONE",
+      "changed_paths": [
+        "docs/HATCH_WORKSHOP_01.md",
+        "HATCH_WORKSHOP_01_RESULT.json",
+        "IMPLEMENTATION_LEDGER.json"
+      ],
+      "acceptance": [
+        "AC08",
+        "AC12",
+        "AC14",
+        "AC18"
+      ],
+      "evidence": [
+        "HATCH_WORKSHOP_01_RESULT.json release_check (tools/check_release.py → tools/check_hatch.py)"
+      ],
+      "limits": [
+        "Every evidence file names its mode; nothing claims acceptance"
+      ]
+    },
+    {
+      "id": "IM03",
+      "state": "DONE",
+      "changed_paths": [
+        "workbench/explore.py",
+        "workbench/explore_qt.py",
+        "docs/DOCUMENTS_01.md"
+      ],
+      "acceptance": [
+        "AC03",
+        "AC06",
+        "AC07",
+        "AC14"
+      ],
+      "evidence": [
+        "build/desktop01_ui/hatch/hatch-ui.json: PASSED, 11 checks, 6 captures"
+      ],
+      "limits": [
+        "Presentation contract per adapter; the document route documented"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "AC01",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/desktop01_ui/frame/frame-ui.json: type, open, launch two workspaces from Hatch, F11 round trip, switch, save, reopen the window: five parts visible at every step",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; actual engine, live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC02",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/desktop01_ui/hatch/hatch-ui.json: Hatch with no model: workspace row, checks row needing setup, services submenu, footer, keyboard open and traverse, discovery runs nothing",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; actual engine, live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC03",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": "TRIAL_IN_BUILD_CONTAINER",
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/workshop01_ui/documents/document-ui.json: type a paragraph, select words, ask Slate in the strip to make them bold, formatting changes on the page and in the store, continue typing, save, reopen, undo; no model",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases",
+        "build/agent01_ui/model_trial: qwen2.5-0.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed; qwen2.5-1.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed",
+        "build/agent02_ui/model_turn/model-turn-ui.json: PASSED, 11 checks, 3 captures",
+        "build/agent02_ui/model_trial: qwen2.5-0.5b-instruct-q4_k_m.gguf: 6 requests, applied 4; qwen2.5-1.5b-instruct-q4_k_m.gguf: 6 requests, applied 4"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; actual engine, live model, real display and owner host columns stay open",
+        "Live model turns ran in the build container with Qwen2.5 0.5B and 1.5B through the real operations; the owner host and the model turn applied to a page in the desktop remain open",
+        "The model turn is applied on the open page in the desktop (offscreen check with a canned proposal) and live at the Kernel level with the 1.5B model in the build container; the owner host remains open"
+      ]
+    },
+    {
+      "id": "AC04",
+      "state": "NOT_RUN",
+      "mechanical": null,
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [],
+      "limits": [
+        "later pass; nothing run in WORKSHOP-01"
+      ]
+    },
+    {
+      "id": "AC05",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": "LEDGER_EXACT_ARITHMETIC",
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/agent01_ui/agent/agent-ui.json: calculation: 12.5 kg + 3 kg + 0.5 kg = 16 kg through math.evaluate, written to the page and bound",
+        "build/agent01_ui/focused-tests.json: PASSED, 326 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC06",
+      "state": "NOT_RUN",
+      "mechanical": null,
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [],
+      "limits": [
+        "later pass; nothing run in WORKSHOP-01"
+      ]
+    },
+    {
+      "id": "AC07",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/agent01_ui/agent/agent-ui.json: a changed input (3 kg → 4 kg) marks the card stale; recheck gives 17 kg and rebinds",
+        "build/agent01_ui/focused-tests.json: PASSED, 326 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC08",
+      "state": "PARTIAL",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/agent01_ui/agent/agent-ui.json: the choice-mode consultation feeds the next step; recorded as a step",
+        "build/agent01_ui/focused-tests.json: PASSED, 326 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC09",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/workshop01_ui/documents/document-ui.json: typing, a strip request, Slate's turn and continued typing on one page with one undo stack",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; actual engine, live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC10",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/desktop01_ui/machine/machine-ui.json: machine, storage and device state, project links, Import and Export, pinned Trash, settings hierarchy",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; actual engine, live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC11",
+      "state": "NOT_RUN",
+      "mechanical": null,
+      "actual_engine": null,
+      "actual_model": "TRIAL_IN_BUILD_CONTAINER",
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/agent01_ui/model_trial: qwen2.5-0.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed; qwen2.5-1.5b-instruct-q4_k_m.gguf READY, asks Completed,Completed,Completed,Completed,Completed,Completed,Completed",
+        "build/agent02_ui/model_turn/model-turn-ui.json: PASSED, 11 checks, 3 captures",
+        "build/agent02_ui/model_trial: qwen2.5-0.5b-instruct-q4_k_m.gguf: 6 requests, applied 4; qwen2.5-1.5b-instruct-q4_k_m.gguf: 6 requests, applied 4"
+      ],
+      "limits": [
+        "later pass; nothing run in WORKSHOP-01",
+        "Live model turns ran in the build container with Qwen2.5 0.5B and 1.5B through the real operations; the owner host and the model turn applied to a page in the desktop remain open",
+        "The model turn is applied on the open page in the desktop (offscreen check with a canned proposal) and live at the Kernel level with the 1.5B model in the build container; the owner host remains open"
+      ]
+    },
+    {
+      "id": "AC12",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/agent01_ui/agent/agent-ui.json: Stop mid-way, pause on close with the reason, resume from Today, run to DONE",
+        "build/agent01_ui/focused-tests.json: PASSED, 326 cases",
+        "build/agent02_ui/continue/continue-service.json: PASSED, 5 checks, 0 captures; build/agent02_ui/continue/continue-ui.json: PASSED, 11 checks, 4 captures: closing with the service live releases the assignment, the service finishes it, Today reports it; the real service process finished a numbers assignment in the build container",
+        "build/agent02_ui/focused-tests.json: PASSED, 379 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; the real resident service ran in the build container; live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC13",
+      "state": "NOT_RUN",
+      "mechanical": null,
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [],
+      "limits": [
+        "later pass; nothing run in WORKSHOP-01"
+      ]
+    },
+    {
+      "id": "AC14",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "tools/check_release.py registry and settings sections ADDITIONS_RECORDED; focused modules green; restore comparison identical",
+        "HATCH_WORKSHOP_01_RESULT.json release_check (tools/check_release.py → tools/check_hatch.py)",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; actual engine, live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC15",
+      "state": "MECHANICAL_COLUMN_ONLY",
+      "mechanical": "PASSED",
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [
+        "build/desktop01_ui/paper/paper-ui.json: keyboard operation, focus rule, disabled actions, reduced motion, poem hints, the X marker; Hatch keyboard walk in the hatch check",
+        "build/desktop01_ui/focused-tests.json: PASSED, 265 cases"
+      ],
+      "limits": [
+        "Offscreen Qt and focused tests in a container; actual engine, live model, real display and owner host columns stay open"
+      ]
+    },
+    {
+      "id": "AC16",
+      "state": "NOT_RUN",
+      "mechanical": null,
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [],
+      "limits": [
+        "later pass; nothing run in WORKSHOP-01"
+      ]
+    },
+    {
+      "id": "AC17",
+      "state": "NOT_RUN",
+      "mechanical": null,
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [],
+      "limits": [
+        "later pass; nothing run in WORKSHOP-01"
+      ]
+    },
+    {
+      "id": "AC18",
+      "state": "NOT_RUN",
+      "mechanical": null,
+      "actual_engine": null,
+      "actual_model": null,
+      "real_gui": null,
+      "owner_host": null,
+      "evidence": [],
+      "limits": [
+        "later pass; nothing run in WORKSHOP-01"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "schema": "ledger.live-model-trial/1",
+  "checkpoint": "HATCH AGENT-01",
+  "where": "build container (4 logical CPUs, Intel Xeon 2.30 GHz, 15.7 GiB RAM), not the owner host",
+  "model": {
+    "source": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+    "file": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+    "bytes": 491400032,
+    "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "licence": "apache-2.0",
+    "model_id": "f78a6286d95e39db05e6cec09c105604543d1d27df8a3840c92b53a4eebc78aa"
+  },
+  "runtime": {
+    "schema": "arc.brain-runtime/1",
+    "state": "PINNED_CPU_AVAILABLE",
+    "build": "b11669",
+    "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+    "platform": "linux-x64",
+    "backend": "CPU",
+    "vulkan": "NOT_QUALIFIED"
+  },
+  "host": {
+    "schema": "arc.brain-host/1",
+    "os": "Linux",
+    "release": "6.18.44-fc-v236",
+    "architecture": "x86_64",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.30GHz",
+    "logical_cpus": 4,
+    "total_ram_bytes": 16867418112,
+    "available_ram_bytes": 16240340992,
+    "gpu": "NOT_QUALIFIED",
+    "backend": "CPU",
+    "measured_on": "CURRENT_EXECUTION_HOST"
+  },
+  "steps": [
+    {
+      "label": "register (brain.inspect)",
+      "job": "4717d26a123d43debc864eee7f87a6d7",
+      "state": "Completed",
+      "seconds": 1.5,
+      "error": ""
+    },
+    {
+      "label": "activate (brain.activate)",
+      "job": "99dd0eae51924072bf247d17ee239c9f",
+      "state": "Completed",
+      "seconds": 4.5,
+      "error": ""
+    },
+    {
+      "label": "chat: one sentence",
+      "job": "ca25d196215340c18603167fb96e15ae",
+      "state": "Completed",
+      "seconds": 4.5,
+      "error": ""
+    },
+    {
+      "label": "plan: document bold",
+      "job": "3894cad7b7c2450abce29ce883ccfd7b",
+      "state": "Completed",
+      "seconds": 12.1,
+      "error": ""
+    },
+    {
+      "label": "choice among four",
+      "job": "2b279b43a84e4145921382da109adbb4",
+      "state": "Completed",
+      "seconds": 4.5,
+      "error": ""
+    },
+    {
+      "label": "choice mode 1",
+      "job": "8ed257ba64604bf38359718eb503722b",
+      "state": "Completed",
+      "seconds": 1.5,
+      "error": ""
+    },
+    {
+      "label": "choice mode 2",
+      "job": "01ce4a6bd78e434e9989d59bf0b687b3",
+      "state": "Completed",
+      "seconds": 1.5,
+      "error": ""
+    },
+    {
+      "label": "choice mode 3",
+      "job": "da95699e33644752bbd998867c9daa25",
+      "state": "Completed",
+      "seconds": 3.0,
+      "error": ""
+    },
+    {
+      "label": "choice mode units differ",
+      "job": "fae2edc12323434182fa18cc21896a74",
+      "state": "Completed",
+      "seconds": 1.5,
+      "error": ""
+    }
+  ],
+  "activation": {
+    "status": "ACTIVATED",
+    "qualification": {
+      "state": "CPU_CHAT_QUALIFIED",
+      "at": 1793884631.8408315,
+      "file_set_id": "f78a6286d95e39db05e6cec09c105604543d1d27df8a3840c92b53a4eebc78aa",
+      "runtime": {
+        "build": "b11669",
+        "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+        "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+        "platform": "linux-x64",
+        "backend": "CPU"
+      },
+      "config": {
+        "context": 4096,
+        "threads": 4,
+        "weight_loading": "RESIDENT_COPY",
+        "memory_mb": 10028,
+        "estimated_peak_bytes": 1091804873,
+        "estimated_kv_bytes": 50331648,
+        "backend": "CPU",
+        "host": {
+          "schema": "arc.brain-host/1",
+          "os": "Linux",
+          "release": "6.18.44-fc-v236",
+          "architecture": "x86_64",
+          "cpu": "Intel(R) Xeon(R) Processor @ 2.30GHz",
+          "logical_cpus": 4,
+          "total_ram_bytes": 16867418112,
+          "available_ram_bytes": 16178192384,
+          "gpu": "NOT_QUALIFIED",
+          "backend": "CPU",
+          "measured_on": "CURRENT_EXECUTION_HOST"
+        }
+      },
+      "load_seconds": 0.7114868819999174,
+      "sample_usage": {
+        "completion_tokens": 8,
+        "prompt_tokens": 35,
+        "total_tokens": 43,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "memory": {
+        "rss_bytes": 631558144,
+        "peak_rss_bytes": 631558144
+      },
+      "template_sha256": "d5495a1e5db0611132a97e46a65dbb64a642a499421228b9c8b93229097fa9a4",
+      "limits": "Load, tokenizer/template and text generation qualification; engineering-answer accuracy is not inferred."
+    }
+  },
+  "status_after_use": {
+    "state": "READY",
+    "worker": {
+      "model_id": "f78a6286d95e39db05e6cec09c105604543d1d27df8a3840c92b53a4eebc78aa",
+      "pid": 817,
+      "started": 1793884630.5317516,
+      "context": 4096,
+      "backend": "CPU",
+      "runtime": {
+        "build": "b11669",
+        "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+        "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+        "platform": "linux-x64",
+        "backend": "CPU"
+      }
+    }
+  },
+  "asks": [
+    {
+      "label": "chat: one sentence",
+      "mode": "chat",
+      "state": "Completed",
+      "seconds": 4.6,
+      "text": "A ledger is a system for tracking and managing work, ideas, documents, and other resources.",
+      "proposal": null
+    },
+    {
+      "label": "plan: document bold",
+      "mode": "plan",
+      "state": "Completed",
+      "seconds": 12.1,
+      "text": "{\n  \"text\": \"quick brown\",\n  \"actions\": [\n    {\n      \"operation\": \"knowledge.page\",\n      \"arguments\": {\n        \"id\": \"0123456789abcdef0123456789abcdef\",\n        \"record_id\": \"0123456789abcdef0123456789abcdef\",\n        \"page_index\": 4,\n        \"render\": false,\n        \"request_key\": \"normal\"\n      }\n    }\n  ]\n}",
+      "proposal": {
+        "text": "quick brown",
+        "actions": [
+          {
+            "operation": "knowledge.page",
+            "arguments": {
+              "id": "0123456789abcdef0123456789abcdef",
+              "record_id": "0123456789abcdef0123456789abcdef",
+              "page_index": 4,
+              "render": false,
+              "request_key": "normal"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "choice among four",
+      "mode": "chat",
+      "state": "Completed",
+      "seconds": 4.5,
+      "text": "3",
+      "proposal": null
+    },
+    {
+      "label": "choice mode 1",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 1.5,
+      "text": "Option 3",
+      "proposal": {
+        "choice": 3,
+        "options": 4
+      }
+    },
+    {
+      "label": "choice mode 2",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 1.5,
+      "text": "Option 3",
+      "proposal": {
+        "choice": 3,
+        "options": 4
+      }
+    },
+    {
+      "label": "choice mode 3",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 3.0,
+      "text": "Option 3",
+      "proposal": {
+        "choice": 3,
+        "options": 4
+      }
+    },
+    {
+      "label": "choice mode units differ",
+      "mode": "choice",
+      "state": "Completed",
+      "seconds": 1.5,
+      "text": "Option 3",
+      "proposal": {
+        "choice": 3,
+        "options": 4
+      }
+    }
+  ],
+  "findings": [
+    "brain.model.add, brain.model.use and brain.ask ran end to end with real worker processes and the pinned CPU runtime; the model loaded in under a second and answered chat questions in 1.5 to 4.6 s.",
+    "The first live reply exposed two defects fixed in this pass: an undefined name in the reply path (NameError) and a plan prompt larger than a 2,048-token context (CONTEXT_BUDGET_EXCEEDED); the plan prompt now carries a core set plus the tools chosen for the request.",
+    "Plan mode returned schema-valid JSON but chose a poor operation (knowledge.page for a bold request); with 0.5B parameters the open proposal path is not a dependable decider.",
+    "Choice mode (schema-constrained, temperature 0) answered deterministically but picked option 3 (read the page again) in every situation, including when 1 (sum) or 2 (units differ: ask) was plainly right. The loop therefore keeps explicit rules primary and treats the model pick as advisory, recorded as a step."
+  ],
+  "not_claimed": "Owner-host qualification, the ThinkPad display and the owner's chosen model file remain pending."
+}

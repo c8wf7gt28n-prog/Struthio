@@ -1,0 +1,173 @@
+{
+  "schema": "ledger.i04-accepted-trials/1",
+  "state": "PASSED_REFERENCE_FAMILY",
+  "accepted_reference_family": true,
+  "model": {
+    "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+    "config": {
+      "context": 6144,
+      "threads": 4,
+      "memory_mb": 4480,
+      "backend": "CPU",
+      "weight_loading": "RESIDENT_COPY"
+    },
+    "runtime": {
+      "build": "b11669",
+      "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+      "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+      "platform": "linux-x64",
+      "backend": "CPU"
+    },
+    "template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+    "files": {
+      "/tmp/ledger-i04-model/Qwen3.5-4B-Q4_K_M.gguf": {
+        "bytes": 2740937888,
+        "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+        "stat": [
+          2740937888,
+          1793570462198783431,
+          1793570462198783431,
+          3678853
+        ]
+      }
+    },
+    "thinking_enabled": false,
+    "temperature": 0,
+    "profile": "ledger.adaptive-investigation/1"
+  },
+  "executor_digest": "4278e30dcec1036076a38e12dee25047c922539bd5231afb88481e7b3d0bb9fd",
+  "cases": [
+    {
+      "name": "Capacity_A",
+      "state": "PASSED",
+      "finding": {
+        "decision": "9f7e6e4d597f5607b7b2c72da3f16dbc",
+        "observations": [
+          "O2"
+        ],
+        "review": "UNREVIEWED_MODEL_INTERPRETATION",
+        "text": "The owner's request is fully resolved by actual observations. The concurrent check (O1) proved the hypothesis that all allocations fit simultaneously is false (17 MiB > 16 MiB capacity). The owner-supplied lifetime schedule check (O2) confirmed feasibility (12 MiB peak < 16 MiB capacity). Under the assumption that buffer_A and buffer_B are live [0,10) and workspace is live [10,20), the allocations fit within the 16 MiB limit. This establishes sufficiency for the owner-supplied schedule but does not guarantee fit for other untested lifetime configurations."
+      },
+      "model_generations": 8
+    },
+    {
+      "name": "Capacity_B",
+      "state": "PASSED",
+      "finding": {
+        "decision": "8bb9e49683d955e58e4a8a0145125947",
+        "observations": [
+          "O2"
+        ],
+        "review": "UNREVIEWED_MODEL_INTERPRETATION",
+        "text": "Under the tested inputs and assumptions (memory_limit=16 MiB, buffer_A=6 MiB, buffer_B=6 MiB, workspace=5 MiB, and owner-supplied lifetimes lifetime_A=[0,10), lifetime_B=[0,10), lifetime_workspace=[9,20)), the allocations do not fit. The concurrent assumption fails (17 MiB > 16 MiB), and the explicit owner schedule also fails (peak demand 17 MiB > 16 MiB). No further testing is required as the owner's requested analysis is complete."
+      },
+      "model_generations": 8
+    },
+    {
+      "name": "Direct_title",
+      "state": "PASSED",
+      "finding": {
+        "decision": "477ab8bd35bb566c8b1d3880311a2077",
+        "observations": [],
+        "review": "UNREVIEWED_MODEL_INTERPRETATION",
+        "text": "The problem explicitly states 'No engineering investigation is needed' and requests a short title. The current proposal (b1) directly addresses this by suggesting 'Idea Notebook Title'. No data, calculations, or physical constraints were required or violated. The request is fully satisfied by the proposed title under the stated assumptions."
+      },
+      "model_generations": 2
+    }
+  ],
+  "generation_count": 18,
+  "cloud_calls": 0,
+  "report": "examples/clock_lab/observed_i04/accepted/reference-family.json",
+  "semantic_review": "examples/clock_lab/observed_i04/accepted/semantic-review.json",
+  "historical_reports": [
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-bound.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No model-recorded rejection/refinement"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-completion.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: Stop development trial to complete operation-schema binding audit",
+            "Supplied lifetime variant not checked correctly"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-qwen3.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: End failed-order trial before correcting original-request projection",
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement",
+            "Asked before observing the requested concurrent check"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-request.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: Stop synthetic trial to save the owner-requested implementation checkpoint; acceptance remains open",
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement",
+            "Asked before observing the requested concurrent check"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-strict.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "Supplied lifetime variant not checked correctly",
+            "No model-recorded rejection/refinement",
+            "Asked before observing the requested concurrent check"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "examples/clock_lab/observed_i04/development/qualification-typed.json",
+      "state": "FAILED",
+      "cases": [
+        {
+          "name": "Capacity_A",
+          "state": "FAILED",
+          "acceptance_failures": [
+            "No completed proposed finding: DUPLICATE_ACTION_ON_UNCHANGED_INPUTS"
+          ]
+        }
+      ]
+    }
+  ],
+  "post_checkpoint_rejected_trial": "examples/clock_lab/observed_i04/development/post-checkpoint-baseline-semantic-review.json",
+  "notice": "One synthetic reference family on this execution host. Earlier failures remain failures. This is not a baseline intelligence comparison or ThinkPad qualification."
+}

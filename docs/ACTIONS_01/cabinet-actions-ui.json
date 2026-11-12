@@ -1,0 +1,67 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "The cabinet shelf uses the exact shared ledger.cabinet.actions snapshot",
+    "Prepare writing focuses the retained draft without saving another idea",
+    "An idea offers related workspaces without presenting a project writing form",
+    "Tree right-click opens the same ordered model and preserves the selected identity",
+    "An old menu reads its captured identity even after the tree selects another idea",
+    "A changed record signature stops the old action before navigation or writing",
+    "Record changes and rejected stale actions preserve unsaved writing",
+    "Unavailable workspace actions retain a visible reason and a disabled control",
+    "Opening a related workspace preserves edited source, original bytes and project membership",
+    "Laptop layout retains the action shelf, fixed Trash, monitors and visible Stop",
+    "Poem, saved text and empty job records survive the pass with no provider request"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Actions_01_Writing.png",
+      "sha256": "839392cb10291ee120bd0cb074f4b720041aa5c560b60f0809fae51e66fb6e5d",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Actions_01_Selection.png",
+      "sha256": "a6b4cdf78196d394008b2907fcf62e652e6ebd8d0d9326e50992aa3a21625852",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Actions_01_Menu.png",
+      "sha256": "56f870b04dd3247bb9853a9f35b0f7773de5c40c4caafa98a06745dca23cebdf",
+      "resolution": [
+        434,
+        207
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Actions_01_Unavailable.png",
+      "sha256": "603fa899c0fbe0553f14ab78a2e2e4fd1a5fbce17cae6b564b7eb176728833f3",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Actions_01_Compact.png",
+      "sha256": "8f94822e5b6cdf36404630872295a81c226ffd97e2fcf8ea6d57c1828aa86098",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "jobs_submitted": 0,
+  "model_calls": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "native_acceptance": false,
+  "missing_workspace_case": "CONTROLLED_SOURCE_OBSERVATION",
+  "owner_ui_review": "READY_FOR_COHESIVE_REVIEW",
+  "clean_close": true
+}

@@ -1,0 +1,24 @@
+{
+  "state": "PASSED",
+  "scope": "FOCUSED_MECHANICAL_READBACK_NOT_MODEL_OR_HARDWARE_QUALIFICATION",
+  "observations": [
+    "Saved backend preferences freeze at submission and later edits do not rewrite the queued job; native model launcher held.",
+    "Unavailable Vulkan makes one CPU attempt with requested backend and fallback reason retained.",
+    "A failed offload gets one CPU attempt; cancellation, changed weights and host-memory guard failures never retry.",
+    "Device parser retains driver name and reported budget separately, and marks software-only Vulkan.",
+    "Linux Vulkan supervisor reaps its real child on completion and on a simulated resident-budget breach; no large allocation or model used.",
+    "Actual bundled Vulkan worker executes device discovery here and reports no physical device; no running inference is fabricated."
+  ],
+  "worker_model_launches": 0,
+  "model_generations": 0,
+  "physical_vulkan_device": false,
+  "automated_suites_run": 0,
+  "runtime": {
+    "build": "b11669",
+    "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+    "archive_sha256": "e8709e5ba6c1b093dea7f3de57f4aba842f9a188fba6b465782d65d6fcfa4d9f",
+    "platform": "linux-vulkan-x64",
+    "backend": "VULKAN"
+  },
+  "owner_host_qualification": "PENDING"
+}

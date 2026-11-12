@@ -1,0 +1,553 @@
+[
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": "IBM Plex Sans",
+    "dependencies": [],
+    "description": "Unavailable fonts use the existing local fallback.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.family",
+    "label": "Interface font",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": "IBM Plex Sans",
+    "dependencies": [],
+    "description": "Prose font is separate from interface and source code.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.prose_family",
+    "label": "Prose font",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": "IBM Plex Mono",
+    "dependencies": [],
+    "description": "Unavailable or non-fixed-pitch choices use a local monospaced fallback.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.code_family",
+    "label": "Code font",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": 14.0,
+    "dependencies": [],
+    "description": "Interface text (pt) in the existing reading profile.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.ui_pt",
+    "label": "Interface text (pt)",
+    "maximum": 28,
+    "minimum": 9,
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "number"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": 15.0,
+    "dependencies": [],
+    "description": "Tree text (pt) in the existing reading profile.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.navigation_pt",
+    "label": "Tree text (pt)",
+    "maximum": 28,
+    "minimum": 9,
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "number"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": 14.0,
+    "dependencies": [],
+    "description": "Code text (pt) in the existing reading profile.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.code_pt",
+    "label": "Code text (pt)",
+    "maximum": 32,
+    "minimum": 9,
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "number"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": 16.0,
+    "dependencies": [],
+    "description": "Prose text (pt) in the existing reading profile.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.prose_pt",
+    "label": "Prose text (pt)",
+    "maximum": 40,
+    "minimum": 9,
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "number"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": 1.4,
+    "dependencies": [],
+    "description": "Document line spacing in the existing reading profile.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.line_height",
+    "label": "Document line spacing",
+    "maximum": 1.8,
+    "minimum": 1.0,
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "number"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": false,
+    "dependencies": [],
+    "description": "Use quiet/static optional presentation.",
+    "effect": "Immediately after consumer readback",
+    "group": "Appearance",
+    "key": "reading.reduce_motion",
+    "label": "Reduce motion",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session reading_profile",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "immediate",
+    "category": "Slate",
+    "default": true,
+    "dependencies": [],
+    "description": "Optional idle and job reactions; does not start tools.",
+    "effect": "Immediately after consumer readback",
+    "group": "Behavior",
+    "key": "stacy.reactions",
+    "label": "Slate reactions",
+    "overrides": [],
+    "root": "Slate",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session layout.stacy_reactions",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "immediate",
+    "category": "Slate",
+    "default": true,
+    "dependencies": [],
+    "description": "OFF blocks new model activation, qualification and inference. Running requests may finish; ordinary Ledger tools stay available.",
+    "effect": "Immediately after consumer readback",
+    "group": "Behavior",
+    "key": "stacy.enabled",
+    "label": "Allow new Slate AI activity",
+    "overrides": [],
+    "requires_owner": true,
+    "root": "Slate",
+    "scope": "Project private",
+    "scope_id": "project_private",
+    "store": "Kernel settings: ledger.stacy.enabled",
+    "supported_scopes": [
+      "project_private"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "next_use",
+    "category": "Slate",
+    "choices": [
+      "local",
+      "gemini"
+    ],
+    "default": "local",
+    "dependencies": [
+      "stacy.enabled"
+    ],
+    "description": "Select the provider for the next request. This does not load a local model or configure a Gemini credential.",
+    "effect": "Next request or owned work",
+    "group": "Providers",
+    "key": "stacy.provider",
+    "label": "Slate chat provider",
+    "overrides": [],
+    "requires_owner": true,
+    "root": "Slate",
+    "scope": "Project private",
+    "scope_id": "project_private",
+    "store": "Kernel settings: ledger.stacy.provider",
+    "supported_scopes": [
+      "project_private"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "next_use",
+    "category": "Slate",
+    "default": false,
+    "dependencies": [
+      "stacy.enabled",
+      "stacy.provider"
+    ],
+    "description": "Gemini may propose registered commands for review. This grants no source acceptance authority.",
+    "effect": "Next request or owned work",
+    "group": "Tools",
+    "key": "stacy.actions",
+    "label": "Enable Slate action proposals",
+    "overrides": [],
+    "root": "Slate",
+    "scope": "Project private",
+    "scope_id": "project_private",
+    "store": "Kernel settings: ledger.stacy.actions",
+    "supported_scopes": [
+      "project_private"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "next_use",
+    "category": "Slate",
+    "default": false,
+    "dependencies": [
+      "stacy.enabled",
+      "stacy.provider"
+    ],
+    "description": "Include redacted activity, settings and workspace metadata in the next Gemini request. Source sharing remains separate.",
+    "effect": "Next request or owned work",
+    "group": "Tools",
+    "key": "stacy.share_activity",
+    "label": "Share activity context",
+    "overrides": [],
+    "root": "Slate",
+    "scope": "Project private",
+    "scope_id": "project_private",
+    "store": "Kernel settings: ledger.stacy.share_activity",
+    "supported_scopes": [
+      "project_private"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "next_launch",
+    "category": "Workspace",
+    "choices": [
+      "last",
+      "home"
+    ],
+    "default": "last",
+    "dependencies": [],
+    "description": "Choose the policy consumed at the next desktop launch.",
+    "effect": "Next desktop launch",
+    "group": "Workspace",
+    "key": "workspace.startup",
+    "label": "Startup",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session view_preferences",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "immediate",
+    "category": "Workspace",
+    "choices": [
+      "engineering",
+      "focus"
+    ],
+    "default": "engineering",
+    "dependencies": [],
+    "description": "Focus or engineering arrangement.",
+    "effect": "Immediately after consumer readback",
+    "group": "Workspace",
+    "key": "workspace.mode",
+    "label": "Workspace arrangement",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session view_preferences",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "next_use",
+    "category": "Operations",
+    "choices": [
+      "normal",
+      "background"
+    ],
+    "default": "normal",
+    "dependencies": [],
+    "description": "Background lowers Ledger work priority. Normal applies to new work; existing lower priorities remain until those processes exit.",
+    "effect": "Next request or owned work",
+    "group": "Operations",
+    "key": "operations.priority",
+    "label": "Work CPU priority",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Project private",
+    "scope_id": "project_private",
+    "store": ".ledger/master-stop/priority.json",
+    "supported_scopes": [
+      "project_private"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "immediate",
+    "category": "Operations",
+    "default": true,
+    "dependencies": [],
+    "description": "Hatch holds new work here while running jobs drain gracefully. Use Hatch for a complete service cycle.",
+    "effect": "Immediately after consumer readback",
+    "group": "Operations",
+    "key": "operations.services_enabled",
+    "label": "Ledger services admission",
+    "overrides": [],
+    "requires_owner": true,
+    "root": "Ledger",
+    "scope": "Project private",
+    "scope_id": "project_private",
+    "store": "Kernel settings: ledger.operations.services_enabled",
+    "supported_scopes": [
+      "project_private"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "immediate",
+    "category": "Appearance",
+    "default": true,
+    "dependencies": [],
+    "description": "Use the existing script accent for incidental text. Working text stays in the reading fonts.",
+    "effect": "After desktop presentation readback",
+    "group": "Appearance",
+    "key": "appearance.cursive",
+    "label": "Script for incidental text",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session cursive",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "immediate",
+    "category": "Workspace",
+    "default": 285,
+    "dependencies": [],
+    "description": "Requested width in pixels. Font and window constraints may require a wider column.",
+    "effect": "After desktop layout readback",
+    "group": "Layout",
+    "key": "layout.navigator_width",
+    "label": "Left column width",
+    "maximum": 600,
+    "minimum": 160,
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session layout.navigator_width",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "integer"
+  },
+  {
+    "application": "immediate",
+    "category": "Workspace",
+    "default": 170,
+    "dependencies": [],
+    "description": "Requested height in pixels. A hidden panel remains pending until shown.",
+    "effect": "After desktop layout readback",
+    "group": "Layout",
+    "key": "layout.output_height",
+    "label": "Output panel height",
+    "maximum": 700,
+    "minimum": 80,
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session layout.output_height",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "integer"
+  },
+  {
+    "application": "immediate",
+    "category": "Workspace",
+    "default": false,
+    "dependencies": [],
+    "description": "Show the existing output dock. Workspace arrangement can also change panel visibility.",
+    "effect": "After desktop layout readback",
+    "group": "Layout",
+    "key": "layout.output_visible",
+    "label": "Show output panel",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session layout.output_visible",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "boolean"
+  },
+  {
+    "application": "immediate",
+    "category": "Workspace",
+    "choices": [
+      "Output",
+      "Problems",
+      "Debug",
+      "Agent Activity"
+    ],
+    "default": "Output",
+    "dependencies": [],
+    "description": "Select the existing Output, Problems, Debug or Agent Activity page.",
+    "effect": "After desktop layout readback",
+    "group": "Layout",
+    "key": "layout.output_tab",
+    "label": "Selected output page",
+    "overrides": [],
+    "root": "Ledger",
+    "scope": "Connected session profile",
+    "scope_id": "session_profile",
+    "store": "Session layout.output_tab",
+    "supported_scopes": [
+      "session_profile"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "next_use",
+    "category": "Slate",
+    "default": "",
+    "dependencies": [],
+    "description": "Model name for the next Gemini request. Empty retains the existing automatic choice. This does not make a cloud request.",
+    "effect": "Next request or owned work",
+    "group": "Providers",
+    "key": "gemini.model",
+    "label": "Gemini model preference",
+    "maxLength": 200,
+    "minLength": 0,
+    "overrides": [],
+    "requires_owner": true,
+    "root": "Slate",
+    "scope": "Personal Gemini preferences",
+    "scope_id": "personal_profile",
+    "store": "Existing clip.json model field; credential bytes preserved",
+    "supported_scopes": [
+      "personal_profile"
+    ],
+    "type": "string"
+  },
+  {
+    "application": "next_use",
+    "category": "Slate",
+    "default": false,
+    "dependencies": [],
+    "description": "Allow the existing Gemini chat control to attach the current file on the next request. No file is sent by changing this setting.",
+    "effect": "Next request or owned work",
+    "group": "Providers",
+    "key": "gemini.include_file",
+    "label": "Include the current file with Gemini",
+    "overrides": [],
+    "requires_owner": true,
+    "root": "Slate",
+    "scope": "Personal Gemini preferences",
+    "scope_id": "personal_profile",
+    "store": "Existing clip.json include_file field; credential bytes preserved",
+    "supported_scopes": [
+      "personal_profile"
+    ],
+    "type": "boolean"
+  }
+]

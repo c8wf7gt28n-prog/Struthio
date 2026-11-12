@@ -1,0 +1,20 @@
+{
+  "schema": "arc.assistant-presentation/1",
+  "name": "Slate",
+  "system": "Ledger & Slate",
+  "language": "staC",
+  "former_name": "Stacy",
+  "migration": "PRESENTATION_ONLY_PRESERVE_STORAGE_AND_HISTORY",
+  "legacy_contracts": [
+    "stacy.* operation names",
+    "stacy.* and ledger.stacy.* preference keys",
+    "stacy awareness consumer",
+    "arc.stacy-* schemas",
+    "branding/stacy assets",
+    "Python classes and historical actor STACY"
+  ],
+  "authority": "Owner plan edition 2 authorized 26 October 2026",
+  "language_pronunciation": "Stacy",
+  "language_pronunciation_hint": "STAY-see",
+  "language_name_policy": "Keep the spelling staC; use the owner-selected pronunciation."
+}

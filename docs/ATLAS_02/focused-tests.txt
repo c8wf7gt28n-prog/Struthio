@@ -1,0 +1,15 @@
+test_cancellation_domain_guard_is_retained (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_cancellation_domain_guard_is_retained) ... ok
+test_catalog_change_refuses_an_old_selection_digest (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_catalog_change_refuses_an_old_selection_digest) ... ok
+test_context_fields_and_task_signatures_are_not_guessed (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_context_fields_and_task_signatures_are_not_guessed) ... ok
+test_corpus_links_exact_contracts_and_preserves_planned_boundary (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_corpus_links_exact_contracts_and_preserves_planned_boundary) ... ok
+test_documented_valid_and_invalid_examples_never_launch_solver (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_documented_valid_and_invalid_examples_never_launch_solver) ... ok
+test_matched_equation_can_still_lack_its_runtime_dependency (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_matched_equation_can_still_lack_its_runtime_dependency) ... ok
+test_owned_revision_checks_are_not_relabelled_as_mathematical_failure (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_owned_revision_checks_are_not_relabelled_as_mathematical_failure) ... ok
+test_read_admission_cannot_write_method_results_or_issue_permission (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_read_admission_cannot_write_method_results_or_issue_permission) ... ok
+test_resource_profile_reuses_exact_units_and_refuses_false_transfer (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_resource_profile_reuses_exact_units_and_refuses_false_transfer) ... ok
+test_stac_read_routes_are_finite_and_forward_the_principal (tests_integrated.test_algorithm_atlas.AlgorithmAtlasTests.test_stac_read_routes_are_finite_and_forward_the_principal) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 7.086s
+
+OK

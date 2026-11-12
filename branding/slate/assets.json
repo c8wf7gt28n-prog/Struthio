@@ -1,0 +1,140 @@
+{
+  "schema": "arc.slate.quiet-bird.assets/1",
+  "atlas": "slate_keyposes.png",
+  "sheet_pixels": [
+    1254,
+    1254
+  ],
+  "scale": 0.22,
+  "poses": [
+    {
+      "name": "rest",
+      "rect": [
+        98,
+        146,
+        265,
+        234
+      ],
+      "anchor": [
+        271.9602122015915,
+        375.0
+      ]
+    },
+    {
+      "name": "notice",
+      "rect": [
+        490,
+        138,
+        255,
+        242
+      ],
+      "anchor": [
+        658.814404432133,
+        376.0
+      ]
+    },
+    {
+      "name": "blink",
+      "rect": [
+        887,
+        148,
+        263,
+        231
+      ],
+      "anchor": [
+        1057.3066298342542,
+        375.0
+      ]
+    },
+    {
+      "name": "crouch",
+      "rect": [
+        85,
+        580,
+        287,
+        188
+      ],
+      "anchor": [
+        264.21033210332104,
+        764.0
+      ]
+    },
+    {
+      "name": "lift",
+      "rect": [
+        492,
+        527,
+        263,
+        243
+      ],
+      "anchor": [
+        657.9545454545455,
+        765.0
+      ]
+    },
+    {
+      "name": "airborne",
+      "rect": [
+        892,
+        532,
+        284,
+        207
+      ],
+      "anchor": [
+        1085.8974358974358,
+        734.0
+      ]
+    },
+    {
+      "name": "land",
+      "rect": [
+        84,
+        912,
+        267,
+        250
+      ],
+      "anchor": [
+        257.14285714285717,
+        1157.0
+      ]
+    },
+    {
+      "name": "settle",
+      "rect": [
+        490,
+        926,
+        272,
+        227
+      ],
+      "anchor": [
+        666.1119047619047,
+        1148.0
+      ]
+    },
+    {
+      "name": "acknowledge",
+      "rect": [
+        897,
+        910,
+        261,
+        246
+      ],
+      "anchor": [
+        1084.0525059665872,
+        1151.0
+      ]
+    }
+  ],
+  "source_art": "Nine image-generated key poses, with measured source crops and foot anchors. Original PNG pixels are unchanged.",
+  "motion": "Runtime position interpolation over a 128-sample hop path; this is nine pose keys, not 128 hand-drawn poses.",
+  "files": {
+    "approved_character_study.png": {
+      "bytes": 1844853,
+      "sha256": "ee79a64ed23fc3d1c87611f9e6f4e1f25b99afca719b36c134673be15221486d"
+    },
+    "slate_keyposes.png": {
+      "bytes": 765784,
+      "sha256": "22a4e4ff6fdb0afb7d9199d171997971139cb73fcf7a257771507c87c2b184b1"
+    }
+  }
+}
