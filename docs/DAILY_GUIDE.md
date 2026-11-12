@@ -21,9 +21,10 @@ Talk: with no model she shows the staC that reads it and what the records say. R
 (Work, Think, Make, Build, Move, Set up): Enter opens one. N shows this computer's network the same way; W returns to the
 work. With a model loaded Stacy reads the sheet first and then says the answer in her own words under the rows; say "this"
 in your question and she takes the selected sheet. **D** asks the records what can be done about the selected sheet: the
-steps show numbered, a digit takes one, a read runs at once and a change waits for your go (1, or Run in Talk). **C** checks
-the desk and says what waits; **1** then settles what needs no decision of yours, with one go for the listed changes, and
-the desk checks itself again. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+steps show numbered, a digit takes one, a read runs at once and a change waits for your go (**G**, or Run in Talk; a
+digit never approves). **C** checks the desk and says what waits; **1** then puts up what needs no decision of yours and
+**G** is one go for the listed changes; the desk checks itself again. On the shelf, **F** offers a program's full window on
+one of its files. A turned corner marks what changed in the last twelve hours. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

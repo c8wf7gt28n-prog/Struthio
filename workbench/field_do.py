@@ -178,8 +178,31 @@ def _page(kernel, principal, obj, field):
             Step('See its history', 'read', 'documents.get %s | pick events | select revision,actor,action,at' % js(id=ident))]
 
 
+# The programs that have a window of their own, the kind of file each opens, and how the owner knows it. Each is started only
+# through its own operation (programs.<key>.open), which takes a file and the digest it was just read with, and asks.
+NATIVE = {'freecad': ('.fcstd', 'FreeCAD'), 'inkscape': ('.svg', 'Inkscape'), 'blender': ('.blend', 'Blender'),
+          'godot': ('project.godot', 'Godot'), 'mail': ('.eml', 'the mail program')}
+
+
+def _app(kernel, principal, obj, field):
+    key = obj.target.get('key');out = [Step('See what it is and what it needs', 'read', obj.stac)] if obj.stac else []
+    native = NATIVE.get(key)
+    if not native:return out
+    suffix, name = native
+    out.append(Step('Find its files', 'read', 'files.find %s | pick records | select name,path,modified' % js(text=suffix, limit=20)))
+    found = _read(kernel, principal, 'files.find', {'text': suffix, 'limit': 20}) or {}
+    for row in [r for r in found.get('records', ()) if str(r.get('path', '')).lower().endswith(suffix)][:3]:
+        seen = _read(kernel, principal, 'programs.%s.inspect' % key, {'path': row['path']})
+        out.append(Step('Look at %s' % row.get('name', row['path']), 'read', 'programs.%s.inspect %s | select state,tool.available,sha256' % (key, js(path=row['path']))))
+        if seen and seen.get('sha256'):
+            out.append(Step('Open %s in %s' % (row.get('name', row['path']), name), 'write',
+                            op('programs.%s.open' % key, path=row['path'], expected_sha256=seen['sha256']),
+                            'its own full window, on this file as it was just read; refused if the file changed or the program is not installed', 'approve'))
+    return out
+
+
 BY_KIND = {'calculation': _calculation, 'sheet': _sheet, 'finding': _claim, 'question': _claim, 'source': _source,
-           'condition': _condition, 'job': _job, 'document': _page}
+           'condition': _condition, 'job': _job, 'document': _page, 'app': _app}
 
 
 def steps_for(kernel, principal, obj, field=None):
@@ -193,7 +216,24 @@ def steps_for(kernel, principal, obj, field=None):
         steps = []
     if not steps and obj.stac:
         steps = [Step('See what the records say about it', 'read', obj.stac)]
-    return [step for step in steps if step.line][:9]
+    return [step for step in (_by_scope(step) for step in steps if step.line) if step is not None][:9]
+
+
+def _by_scope(step):
+    """Whether a step runs by itself is the Kernel's word, not this module's: a line whose operation the Kernel registers as a
+    read runs at once; any other scope waits for the owner, whatever the step was written as. A staC line is a read by the
+    language's own rule (it refuses anything else). An operation the Kernel does not know is not offered."""
+    try:
+        operation, _ = call(step.line)
+    except (ValueError, TypeError):
+        return None
+    if not step.line.strip().startswith('/'):
+        step.kind = 'read';step.scope = 'read';return step
+    from .engineering_kernel import CAPABILITIES
+    scope = CAPABILITIES.get(operation)
+    if scope is None:return None
+    step.scope = scope;step.kind = 'read' if scope == 'read' else 'write'
+    return step
 
 
 def settling(waiting):

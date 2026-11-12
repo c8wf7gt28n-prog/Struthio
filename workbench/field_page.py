@@ -42,8 +42,11 @@ class FieldPage(QWidget):
         self.view.do_asked.connect(lambda obj: do(self.host, obj))
         self.view.step_chosen.connect(lambda obj, n: take(self.host, obj, n))
         self.view.check_asked.connect(lambda: check_desk(self.host))
+        self.view.go_asked.connect(lambda: go(self.host))
+        self.view.full_asked.connect(lambda obj: full_window(self.host, obj))
         self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
-        self.pending = None                     # what the single offered step runs, when it is a step of the desk or the Run of what waits in Talk
+        self.pending = None                     # what G runs: the Run of what waits in Talk for the owner's go
+        self.star = None                        # what step 1 does when the steps are the desk's own (settle what can be settled)
         self.view.faces = FACES;self.face = self.view.face = 'work'
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
@@ -196,12 +199,21 @@ def _talk(host):
     return face
 
 
-def _offer(host, words, run, kind='run'):
-    """One step offered from the keyboard that is not a step of a sheet: settling the desk, or the Run of what waits in Talk.
-    It shows where the steps show, as 1; taking it runs `run`. The mouse has the same thing in Talk."""
+def _await_go(host, words, run):
+    """Something waits in Talk for the owner's go. From the keyboard the go is G, and only G: a digit chooses a step and never
+    approves one. The Field says what G would run for as long as it would; moving to another sheet, or Esc, withdraws it from
+    the keyboard (the Run in Talk stays)."""
     page = host.field_page
-    page.steps = (words,);page.steps_of = '*';page.pending = run
-    page.view.steps = ((words, kind),);page.view.update()      # 'run': taking it is the owner's go itself; 'write': it shows what it would do first
+    page.pending = run;page.view.go = words;page.view.update()
+
+
+def go(host):
+    """G: the owner's go for what waits."""
+    page = host.field_page
+    run, page.pending = page.pending, None
+    page.view.go = '';page.view.update()
+    if run is not None:run()
+    if getattr(host, '_field_active', False):page.view.setFocus(Qt.OtherFocusReason)
 
 
 def do(host, obj):
@@ -225,10 +237,10 @@ def take(host, obj, n):
     answered. A step that changes something is put in Talk with its exact line and waits for the owner's Run; when it has
     run, the Field reads the records again."""
     page = host.field_page
-    if page.steps_of == '*':                   # the one step of the desk, or the Run of what waits in Talk
-        run, page.pending = page.pending, None
+    if page.steps_of == '*':                   # the desk's own step: it shows what it would change and asks; it runs nothing
+        star, page.star = page.star, None
         page.steps = ();page.steps_of = '';page.view.steps = ();page.view.update()
-        if n == 0 and run is not None:run()
+        if n == 0 and star is not None:star()
         page.view.setFocus(Qt.OtherFocusReason)
         return None
     if obj is None or page.steps_of != obj.id or not 0 <= n < len(page.steps):return None
@@ -239,7 +251,7 @@ def take(host, obj, n):
     else:
         done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
         card = face.stage(obj.title, step, done=done)
-        _offer(host, 'Run it, as written in Talk', lambda:face.run_staged(card, done))      # the keyboard's Run: 1
+        _await_go(host, step.words[:1].lower() + step.words[1:], lambda:face.run_staged(card, done))
     page.view.setFocus(Qt.OtherFocusReason)
     return card
 
@@ -256,6 +268,21 @@ def _after(host, obj, ok, result):
         if ident and page.view.field.get(ident) is not None:
             page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe();break
     page.view.update()
+
+
+def full_window(host, obj):
+    """F on the shelf: this program in its full window. A program with a window of its own is started on a file, through its
+    own operation and with the owner's go, so F says what can be done with it (its files, and Open … in … for each); when
+    there is exactly one file to open, that step is put up at once. A room of Graphite's own has no other window: it says so."""
+    from .field_do import NATIVE
+    key = (obj.target or {}).get('key') if isinstance(obj.target, dict) else None
+    if key not in NATIVE:
+        host.statusBar().showMessage('Field · %s is a room of Graphite’s own: Enter opens it' % obj.title, 7000);return None
+    steps = do(host, obj)
+    opens = [n for n, step in enumerate(steps) if step.kind == 'write' and step.words.startswith('Open ')]
+    if len(opens) == 1:return take(host, obj, opens[0])
+    if not opens:host.statusBar().showMessage('Field · %s opens a file; none of its files is in Files yet' % obj.title, 7000)
+    return None
 
 
 def check_desk(host):
@@ -277,11 +304,14 @@ def check_desk(host):
         # The changes go up together for one Run; when they have run the desk is checked again, and that check is the answer.
         done = lambda results:check_desk(host)
         card = face.say_plan(plan, done=done)
-        _offer(host, 'Run all %d, as listed in Talk' % len(plan) if len(plan) > 1 else 'Run it, as listed in Talk', lambda:face.run_plan(card, done))
+        _await_go(host, 'all %d changes, as listed in Talk' % len(plan) if len(plan) > 1 else 'the change, as listed in Talk', lambda:face.run_plan(card, done))
         page.view.setFocus(Qt.OtherFocusReason)
     card = face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle)
-    page.steps = ();page.steps_of = '';page.pending = None
-    if plan:_offer(host, 'Settle what I can: %d change%s' % (len(plan), '' if len(plan) == 1 else 's'), settle, 'write')
+    page.steps = ();page.steps_of = '';page.pending = None;page.star = None
+    if plan:                                   # the desk's own step, numbered 1: it puts the changes up; G then gives the go
+        words = 'Settle what I can: %d change%s' % (len(plan), '' if len(plan) == 1 else 's')
+        page.steps = (words,);page.steps_of = '*';page.star = settle
+        page.view.steps = ((words, 'write'),);page.view.update()
     return card
 
 

@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 9911,
-      "sha256": "9aaabb290ef97fb60c3e548d4b1d899e9b0dc723007d8d48d951074bb558ddea"
+      "bytes": 9926,
+      "sha256": "313d4c3ab42d7afdb263d2c1de5650dd9e999c8a740bd1f2426eaaca90fd24d2"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 14110,
-      "sha256": "26dda75156c36ff569c02bff7f4f1c5469dff8c8cf35199cd039c6087157e43d"
+      "bytes": 14290,
+      "sha256": "9227d6853fa80faedae7de2d3c047876ef7a84cf8af030e02a7314af51a24bf1"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -1098,8 +1098,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 24896,
-      "sha256": "84224a906e1673e4da972c02ba2a11b2d023835359ea042a3516e255c3c0b9e7"
+      "bytes": 25060,
+      "sha256": "8fdbe0e32c7957583271f50c73f22582eb40d3f7526ac071ca24a6c81d566b53"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1482,8 +1482,8 @@
       "sha256": "33d64ca7c9629aeceaf7fdd0f44f93447fd2128895edd0226d339ad14df8475a"
     },
     "docs/RELEASE_NOTES_0.4.md": {
-      "bytes": 3981,
-      "sha256": "a837ee315f26ff25b2d8332d750771e8361e72fd2ea57fcf25556e56c9f4fa21"
+      "bytes": 5138,
+      "sha256": "c56fb5feca526ec675aa43eb74cdfe9b3a09c7a1017f81380617f21fdc7d43a4"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -1594,8 +1594,8 @@
       "sha256": "20ad18f8e9d0b4133c4d6784e94cc9798008be093ea93b3ce147aa294b5907a4"
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
-      "bytes": 7614,
-      "sha256": "0bf9df2770739c92007d7e01604505145c41b5c918730196e2b6e61374778e43"
+      "bytes": 7645,
+      "sha256": "6d07c1117aaf19949bdf2ce581cdeadfd976c5e6806c8c1ca0e1794578135f7b"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -2002,16 +2002,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1871232,
-      "sha256": "b74a1812f28b2a739003e4dfe396541b2315d1349dcaefcf00adecb4b675bfe1"
+      "bytes": 1871594,
+      "sha256": "555d2071c389394f905ee67eae4d029b0d063b7f6ec122cf32ad8c6362693deb"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4276224,
-      "sha256": "d590b8e87d35296bece128ec4c6a0cfc6e2016ae2253057d7a63287b593e57db"
+      "sha256": "452065a0d0a062c23dcb51f1a381d5df5d9fc6c236d6ad81cd1335cbfd7c4a9e"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "8c286c651ab035bf81b130a0dc13f0df1d7487a0149d4b02732737bda909b4c5"
+      "sha256": "d0527b81a9a9a42b08acdc61785364c56c4576c78ffa377c345d417446f8f6fb"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3338,24 +3338,24 @@
       "sha256": "36345847d33360c98a858ad248baa1d3747afa812591a8ce1a794ad605d25791"
     },
     "workbench/field_do.py": {
-      "bytes": 15594,
-      "sha256": "57ea9d9ad14ea737772dbca98afb2d7cc64b6166593ca8290f7dd322f8d46f44"
+      "bytes": 18158,
+      "sha256": "890dc1f85043c1bbaa6d4494a8c0e6b9f50442adb0ef2c2718f71d056b0440cd"
     },
     "workbench/field_model.py": {
-      "bytes": 16860,
-      "sha256": "59f2b17000f6890b3bfcd97d05ebb859430648d62a862d82ca89f5f9e88e9225"
+      "bytes": 17512,
+      "sha256": "c5048c853fc5df718074c8ece98e6a4ab5b25266a495bf030fd817f66ee14a46"
     },
     "workbench/field_page.py": {
-      "bytes": 20410,
-      "sha256": "021fe0def4ce9c620a9b4626e7a12a9a986c050dd45ae2fb7fe8cdff8498edc8"
+      "bytes": 22105,
+      "sha256": "6ce89a7504c24c4389e74974f923df62bfd5fbcfae97bedcf53e903f85c97e7e"
     },
     "workbench/field_qt.py": {
-      "bytes": 46598,
-      "sha256": "ddfa58b9f5a559283bcb8726a7fe5219cd8574a6daddbdf05d807a39825b8bb0"
+      "bytes": 48352,
+      "sha256": "b9601835c1b3f549ae38b62468a06e4487f35826c40f8e6f5c31ce54fe5e7f32"
     },
     "workbench/field_source.py": {
-      "bytes": 35240,
-      "sha256": "b0af55422e256ac0444ab456c1521c7f5f269915f97f78da8ef387a312301e7d"
+      "bytes": 35742,
+      "sha256": "d74caceaf404e5a5f89dd392d8d8f18167c43c438d83f76c2a53f72339749c4e"
     },
     "workbench/file_delivery.py": {
       "bytes": 1445,
@@ -4402,8 +4402,8 @@
       "sha256": "f6c5a6e751e5487be0c352c3e5cd25827c0afc1dbd3567dd5af2b6641edccdc8"
     },
     "workbench/shell2.py": {
-      "bytes": 185113,
-      "sha256": "32e26f95c1abe7e7cb8182a79dcb9f4ee514c96576680c8e2a44078d7d8b6bc1"
+      "bytes": 185521,
+      "sha256": "52285479672848206934563fe841f0262a4bceadf0b0f008989a33655e82ce9c"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,

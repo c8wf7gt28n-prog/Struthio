@@ -86,7 +86,9 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   model, knows what there is to do: for a sheet it asks the records how the thing stands and offers the steps that fit
   (`workbench/field_do.py`), each an exact line. A read runs at once. A change is put in Talk with its line and waits for
   one go. C checks the desk; one go settles what needs no decision of the owner's; then the desk checks itself, and that
-  check is what "done" means. Keys in the Field: D, a digit, C, 1. Every step is an operation the program already had;
+  check is what "done" means. Keys in the Field: D, a digit to choose, G for the go (a digit never approves), C, and F
+  on the shelf for a program's full window. Whether a step runs by itself is the Kernel's scope for it, read from the
+  Kernel. Every step is an operation the program already had;
   add steps there, not a second engine. A model's place is to put reads into words and, later, to pick among steps the
   program offers; it does not plan.
 - **The shelf** (12 November; P in the Field). Every program and room as a sheet, in six columns set by hand that do not

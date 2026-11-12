@@ -82,6 +82,7 @@ class Reader:
         self.left_out = []
         self.replaced = set()        # calculations another calculation says it replaces (a recheck makes a new page)
         self.results = {}            # a calculation's result as words ("3.36 W"), by its id
+        self.touched = {}            # object id -> when its record last changed, where a record says (pages, findings, jobs)
         self.replaces = {}           # new calculation id -> the id of the one it replaced
         self.retired = 0             # how many of those were taken off the Field
 
@@ -199,6 +200,7 @@ class Reader:
     def pages_and_calculations(self):
         for row in self.newest(self.pages('documents.list', 'documents'), 'pages', PAGES_CEILING):
             ident = 'document:' + row['id'];target = {'kind': 'document', 'id': row['id']}
+            self.touched[ident] = row.get('updated') or 0
             got = self.call('documents.get', {'id': row['id']}, record=ident)
             page_code = 'documents.list | pick documents | where id=%s | select title,revision,words' % row['id']
             if got is None:
@@ -242,6 +244,7 @@ class Reader:
                 claims.setdefault(claim['id'], claim)
             for claim in self.newest(claims.values(), 'findings', CLAIMS_CEILING):
                 ident = 'claim:' + claim['id'];question = str(claim.get('role', '')).upper() == 'QUESTION'
+                self.touched[ident] = claim.get('created') or 0
                 evidence = str(claim.get('evidence_state', '')).upper();review = str(claim.get('review', '')).upper()
                 answer = self.call('investigation.path', {'claim': claim['id']}, record=ident)
                 path = (answer or {}).get('path') or ()
@@ -408,6 +411,9 @@ def read_field(kernel, principal, title='', skip=()):
         reader.objects = [obj for obj in reader.objects if obj.id not in gone]
         reader.links = [link for link in reader.links if link.source not in gone and link.target not in gone]
         reader.retired = len(gone)
+    for obj in reader.objects:   # what the records say of when each thing last changed; a thing with no such record stays unmarked
+        try:obj.touched = float(reader.touched.get(obj.id) or 0)
+        except (TypeError, ValueError):obj.touched = 0.0
     moved = _moved(reader)
     for obj in reader.objects:   # a finding whose words still carry a result that has since been worked again: it waits, and says which
         if obj.kind != 'finding' or obj.state != STATE_CURRENT:continue

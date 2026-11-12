@@ -53,7 +53,7 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
 - When a local GGUF is available, open **Brain** to add the model and qualify its effective backend.
 - In the Field press **P** for every program and room as a shelf; **Enter** opens one.
-- In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A step that changes something waits for your go.
+- In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A digit chooses a step; a step that changes something waits for **G**, your go.
 
 ## The first model
 

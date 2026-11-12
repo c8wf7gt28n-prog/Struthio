@@ -29,6 +29,9 @@ ATTENTION = (STATE_RECHECK, STATE_OPEN, STATE_HELD, 'waiting', 'paused', 'failed
 SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running', 'in use')
 
 
+LATELY = 12 * 3600                       # "lately": the last twelve hours, a working day's reach
+
+
 @dataclass
 class FieldObject:
     id: str
@@ -42,6 +45,11 @@ class FieldObject:
     tag: str = ''                       # the word above the title when the kind's own word is not the clearest one
     stac: str = ''                      # the staC line that reads this object: a read-only pipeline, exact, ready for the writing line
     column: int = -1                    # a fixed column for a face that is a shelf, not a flow (the programs); -1: by kind and by wires
+    touched: float = 0.0                # when its record last changed (seconds since 1970), where the records say; 0: not known
+
+    def lately(self, now, within=LATELY):
+        """Whether its record changed in the last hours: what the owner, or Graphite for the owner, has just been working on."""
+        return bool(self.touched) and 0 <= now - self.touched <= within
 
     def needs_attention(self):
         return self.state in ATTENTION
@@ -269,6 +277,10 @@ class Field:
         recheck = sum(1 for obj in self.objects if obj.state == STATE_RECHECK)
         if recheck:
             parts.append('%d to recheck' % recheck)
+        import time
+        now = time.time();lately = sum(1 for obj in self.objects if obj.lately(now))
+        if lately:
+            parts.append('%d changed lately' % lately)
         return parts
 
     def place(self, width, height, scale=1.0, sheet_h=None, least_w=None):

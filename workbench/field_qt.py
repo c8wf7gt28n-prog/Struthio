@@ -21,7 +21,7 @@ comes first: the rail appears only when the sheets keep their room and it never 
 (a narrow window, the ASCII or Clean desk) the same line is in the foot and the same keys work.
 """
 from PySide6.QtCore import QPoint, QPointF, QRectF, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QFont, QFontMetricsF, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap, QRadialGradient
+from PySide6.QtGui import QColor, QFont, QFontMetricsF, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QRadialGradient
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
 from . import boss_theme as t
@@ -51,6 +51,7 @@ class FieldView(QWidget):
     step_chosen = Signal(object, int)  # a digit while the steps show: take that step
     full_asked = Signal(object)        # F on the shelf: the selected program in its full window
     check_asked = Signal()             # C: check the desk (everything read again, what waits said with its next step)
+    go_asked = Signal()                # G: the owner's go for what waits in Talk. Never a digit: digits only choose
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -61,6 +62,8 @@ class FieldView(QWidget):
         self.art_folder = None              # branding/boss of the program that serves this workspace; the page sets it
         self.problem = ''                   # what could not be read, in words; shown on the surface, never hidden
         self.steps = ()                     # what can be done about the selected sheet, while the owner looks at it: (words, kind) pairs
+        self._now = 0.0                     # the time of this painting, for "changed lately"
+        self.go = ''                        # what G would run now, in words, while something waits in Talk for the owner's go
         self._plate = None;self._plate_drawn = (None, None)
         self._face_boxes = []
         self.scroll_x = 0.0;self.scroll_y = 0.0
@@ -86,7 +89,7 @@ class FieldView(QWidget):
         return self.field.get(self.field.selected)
 
     def _describe(self):
-        obj = self.selected();self.steps = ()          # the steps belong to the sheet they were asked for: another sheet, or a new reading, closes them
+        obj = self.selected();self.steps = ();self.go = ''      # the steps and the go belong to the sheet they were asked for: another sheet, or a new reading, closes them
         if obj is None:
             self.setAccessibleDescription(self.problem or 'Nothing is here yet.')
         else:
@@ -219,14 +222,17 @@ class FieldView(QWidget):
             if self.selected() is not None and self.selected().stac:self.stac_line.emit(self.selected())
             return
         elif key == Qt.Key_Escape:
-            if self.steps:                   # the first Esc closes the steps; the next one leaves
-                self.steps = ();self.update();return
+            if self.steps or self.go:        # the first Esc closes the steps and withdraws the go from the keyboard; the next one leaves
+                self.steps = ();self.go = '';self.update();return
             self.left.emit();return
         elif key == Qt.Key_D and plain:      # D: what can be done about this. The page asks the records and fills .steps
             if self.selected() is not None:self.do_asked.emit(self.selected())
             return
         elif plain and self.steps and Qt.Key_1 <= key <= Qt.Key_9:
             if key - Qt.Key_1 < len(self.steps):self.step_chosen.emit(self.selected(), key - Qt.Key_1)
+            return
+        elif key == Qt.Key_G and plain:      # G: go. Only while something waits in Talk and says so here
+            if self.go:self.go_asked.emit()
             return
         elif key == Qt.Key_C and plain:      # C: check the desk
             self.check_asked.emit();return
@@ -277,6 +283,8 @@ class FieldView(QWidget):
         p = QPainter(self)
         try:                                 # a drawing error is contained: the painter is always ended, the window stays
             p.setRenderHint(QPainter.Antialiasing);p.setRenderHint(QPainter.TextAntialiasing)
+            import time
+            self._now = time.time()
             p.fillRect(self.rect(), QColor(t.TERMINAL_GROUND))
             body = self._layout()
             if self.texture:self._texture(p, body)
@@ -343,7 +351,7 @@ class FieldView(QWidget):
         """Stacy's rail speaks staC: under her portrait, the pipeline that reads the selected sheet, and the two keys for it."""
         w = self.rail();obj = self.selected()
         if not w or obj is None:return
-        if self.steps:return self._do(p, body, w)
+        if self.steps or self.go:return self._do(p, body, w)
         if not obj.stac:return
         s = self.scale()
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font());head = QFontMetricsF(self.mono(12, QFont.Medium))
@@ -384,7 +392,8 @@ class FieldView(QWidget):
             write = kind == 'write';room = inner_w - (asks_w if write else 0)
             for at, line in enumerate(self._wrap('%d  %s' % (n + 1, words), fm, room, 2)):
                 rows.append((line if at == 0 else '   ' + line, write and at == 0))
-        tall = pad * 2 + head.height() + 4 * s + len(rows) * fm.height() + 6 * s + head.height()
+        going = self._wrap('G  ' + self.go, fm, inner_w, 3) if self.go else []
+        tall = pad * 2 + head.height() + 4 * s + (len(rows) + len(going)) * fm.height() + (4 * s if rows and going else 0) + 6 * s + head.height()
         if tall > body.height() - 24 * s:return           # no room under her: the foot still says them
         box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
         p.setPen(QPen(ink(t.AMBER_EDGE, 0.8), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.92));p.drawRect(box)
@@ -398,8 +407,15 @@ class FieldView(QWidget):
             y += fm.height();p.setPen(QColor(t.TEXT));p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line, Qt.ElideRight, inner_w - (asks_w if write else 0)))
             if write:
                 p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(box.right() - pad - fm.horizontalAdvance(asks), y - fm.descent()), asks)
+        if going:                            # what waits in Talk for the owner's go, and the key that gives it
+            if rows:y += 4 * s
+            p.setPen(QColor(t.AMBER_TEXT))
+            for at, line in enumerate(going):
+                y += fm.height();p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line if at == 0 else '   ' + line, Qt.ElideRight, inner_w))
         y += 6 * s + head.ascent();p.setPen(QColor(t.QUIET))
-        p.drawText(QPointF(x, y), fm.elidedText('1-%d  take  ·  Esc  close' % min(9, len(self.steps)) if len(self.steps) > 1 else '1  take  ·  Esc  close', Qt.ElideRight, inner_w))
+        keys = [('1-%d  take' % min(9, len(self.steps)) if len(self.steps) > 1 else '1  take')] if self.steps else []
+        if self.go:keys.append('G  go')
+        p.drawText(QPointF(x, y), fm.elidedText('  ·  '.join(keys + ['Esc  close']), Qt.ElideRight, inner_w))
 
     def _texture(self, p, body):
         """A still scan texture and a darker rim: depth without movement."""
@@ -511,6 +527,9 @@ class FieldView(QWidget):
             for cx, cy, dx, dy in ((r.left() - o, r.top() - o, 1, 1), (r.right() + o, r.top() - o, -1, 1),
                                    (r.left() - o, r.bottom() + o, 1, -1), (r.right() + o, r.bottom() + o, -1, -1)):
                 p.drawLine(QPointF(cx, cy), QPointF(cx + dx * k, cy));p.drawLine(QPointF(cx, cy), QPointF(cx, cy + dy * k))
+        if obj.lately(self._now):            # its record changed in the last hours: a small turned corner, the mark of what was just worked on
+            fold = 9 * s;p.save();p.setPen(Qt.NoPen);p.setBrush(ink(t.AMBER_EDGE, 0.55 + 0.4 * keep))
+            p.drawPolygon(QPolygonF([QPointF(r.right() - fold, r.top()), QPointF(r.right(), r.top()), QPointF(r.right(), r.top() + fold)]));p.restore()
         pad = 12 * s;inner = r.adjusted(pad, pad - 2 * s, -pad, -pad + 2 * s)
         # Kind at the left, state at the right. A narrow sheet keeps its kind and the state's mark; the state's word gives way.
         p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font());y = inner.top() + fm.ascent()
@@ -652,8 +671,9 @@ class FieldView(QWidget):
         if not said:said = obj.where
         p.setFont(self.mono(12.5));fm3 = QFontMetricsF(p.font());p.setPen(QColor(t.QUIET))
         code = '' if self.rail() or not obj.stac else 'staC  ' + '  '.join(self.stac_lines(obj.stac))      # no rail: the line is said here
-        if self.steps:                       # the owner asked what can be done: the foot says the steps, wherever the rail is
-            said = 'DO      ' + '      '.join('%d  %s%s' % (n + 1, words, ' (asks first)' if kind == 'write' else '') for n, (words, kind) in enumerate(self.steps[:9]))
+        if self.steps or self.go:            # the owner asked what can be done: the foot says the steps and the go, wherever the rail is
+            said = 'DO      ' + '      '.join(['%d  %s%s' % (n + 1, words, ' (asks first)' if kind == 'write' else '') for n, (words, kind) in enumerate(self.steps[:9])]
+                                              + (['G  ' + self.go] if self.go else []))
             code = '';p.setPen(QColor(t.AMBER_TEXT))
         code_w = min(fm3.horizontalAdvance(code), wide * 0.5) if code else 0.0
         p.drawText(QPointF(x, top + h - 14 * s), fm3.elidedText(said, Qt.ElideRight, wide - (code_w + 28 * s if code else 0)))

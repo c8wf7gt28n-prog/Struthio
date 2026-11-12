@@ -1688,8 +1688,11 @@ class SlateFace(QWidget):
         from .engineering_kernel import operator
         from .field_do import call as line_call
         if card.ran is not None:return           # one go, one run
-        operation, arguments = line_call(card.step.line)
-        r = engineering(self.host.root).dispatch(operation, arguments, operator())
+        try:
+            operation, arguments = line_call(card.step.line)
+            r = engineering(self.host.root).dispatch(operation, arguments, operator())
+        except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
+            r = {'ok': False, 'error': {'message': str(exc)[:300]}}
         card.ran = bool(r.get('ok'));card.run.setEnabled(False);card.run.setText('Ran' if card.ran else 'Refused')
         if card.ran:
             result = r['result'] if isinstance(r['result'], dict) else {}
@@ -1749,8 +1752,11 @@ class SlateFace(QWidget):
         if card.results is not None:return        # one go, one run
         card.results = [];card.run.setEnabled(False)
         for n, (obj, step) in enumerate(card.plan):
-            operation, arguments = line_call(step.line)
-            r = engineering(self.host.root).dispatch(operation, arguments, operator())
+            try:
+                operation, arguments = line_call(step.line)
+                r = engineering(self.host.root).dispatch(operation, arguments, operator())
+            except Exception as exc:  # noqa: BLE001 - said as a refusal; the list stops here
+                r = {'ok': False, 'error': {'message': str(exc)[:300]}}
             ok = bool(r.get('ok'));card.results.append((step.line, ok, r.get('result') if ok else (r.get('error') or {}).get('message')))
             result = r.get('result') if ok and isinstance(r.get('result'), dict) else {}
             title = (result.get('document') or {}).get('title') if isinstance(result.get('document'), dict) else None

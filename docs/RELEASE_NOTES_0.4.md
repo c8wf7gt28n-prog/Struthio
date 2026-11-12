@@ -13,8 +13,9 @@ come from the thing's own record. A digit takes a step.
 
 - A step that only reads runs at once. Stacy shows the exact line and what the records answered.
 - A step that changes something says **asks**. It is put in Talk with what it does, what it leaves behind and its exact
-  line, and waits. **1** (or Run) is your go; it runs once, through the same Kernel as everything else, and the Field reads
-  the records again.
+  line, and waits. **G** (or Run in Talk) is your go; it runs once, through the same Kernel as everything else, and the
+  Field reads the records again. A digit only ever chooses a step: it never approves one. Whether a step may run by
+  itself is the Kernel's own word for that operation, not this page's.
 - Every line can be put in the writing strip, changed and run again. What Graphite did is always something you can read
   and repeat.
 
@@ -29,12 +30,12 @@ says how many things she read, which wait for you and why, with the step that wo
 made. The same is in the Field's own menu.
 
 **Settle what I can.** After a check, **1** puts the changes that need no decision of yours up together: each named, with
-its exact line. **1** again is one go for the whole list. They run in order and stop at the first that is refused; each
+its exact line. **G** is one go for the whole list. They run in order and stop at the first that is refused; each
 says how it went. Then the desk checks itself again. Finished means that check finds nothing waiting, not that something
 said so. What only you can decide (an open question, a review) is left, and named.
 
-**From the keyboard alone.** Change a number in a sheet, then: **C 1 1**. The calculations that read it are worked again.
-**A** goes to what still waits; **D**, a digit, **1**.
+**From the keyboard alone.** Change a number in a sheet, then: **C 1 G**. The calculations that read it are worked again.
+**A** goes to what still waits; **D**, a digit, **G**.
 
 **It notices what a change left behind.** A calculation brought up to date keeps your name for it, with the new result
 where the name carried the old one ("07 Settled power · 3.36 W" becomes "07 Settled power · 3.6 W"). The page it replaces
@@ -42,9 +43,19 @@ is kept in Documents and no longer waits on the Field for ever. A finding whose 
 it says which number moved, and offers to be written again with the new one or retired. That is a match of words, said as
 one, not a recorded link.
 
+**What changed lately.** A sheet whose record changed in the last twelve hours carries a small turned corner, and the head
+counts them. After a settling, the pages Graphite made for you are the ones marked. Pages, calculations and findings have
+such a time in their records; sources and reviewed sheets do not yet.
+
+**A program's full window, from the shelf.** On the shelf (**P**), **F** on a program that has a window of its own
+(FreeCAD, Inkscape, Blender, Godot, mail) looks in Files for the files it opens and puts up "Open … in …" through that
+program's own operation, which checks the file against what was just read; **G** is the go. **D** shows the same steps.
+A room of Graphite's own says that Enter opens it. Where the program is not installed, the go is refused and says so.
+
 **Not done, said plainly.** Nothing here has run on the ThinkPad; all of it was checked offscreen in a build container.
 The steps are offered by rules written for each kind of thing, and only for what the worked case could exercise: a sheet
 whose source was decided again still has to be reviewed from its page by hand, and a held source is not yet decided from
-here. The assignment loop that keeps working while Graphite is closed is not connected to this yet: settling runs while you
-watch. A finding rewritten with a new number stands on nothing until its sources are cited for it again. No model takes
+here. No native program was started: none is installed in the build container, where the go was refused with the
+program's own words. The assignment loop that keeps working while Graphite is closed is not connected to this yet:
+settling runs while you watch. A chain of steps cannot yet be kept under a name and run again on new material. A finding rewritten with a new number stands on nothing until its sources are cited for it again. No model takes
 part in choosing a step; with a model loaded Stacy still only puts reads into words.
