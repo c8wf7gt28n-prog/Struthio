@@ -49,7 +49,8 @@ BLENDER_CHECK = (
 
 
 def _tool(room):
-    commands = ("blender",) if room == "blender" else ("godot4", "godot")
+    # Godot: its own builds are godot4 or godot; Debian 13 ships Godot 3 as the package godot3, whose command is godot3.
+    commands = ("blender",) if room == "blender" else ("godot4", "godot", "godot3")
     for command in commands:
         executable = shutil.which(command)
         if executable:

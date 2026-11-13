@@ -2110,6 +2110,82 @@ class SlateFace(QWidget):
         more.setWordWrap(True);more.setStyleSheet('color:%s' % QUIET);more.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(more)
         return card
 
+    def start_asked(self, text):
+        """“Start a Godot project called Lander”, “get me started in Godot”: a starting point in another program (the owner,
+        13 November 2026: "get me started on a project in a program that I may not be particularly familiar with"). She
+        makes a folder in Files with the smallest project that runs, written for the Godot on this computer, and a page of
+        first steps; the Godot room's own read then says what it is; and opening it in Godot is put up as a step, which
+        waits for Approve unless her hand is free. One act, one line in her trail, one Undo (the folder to the Trash).
+        True when the words were such a request."""
+        from . import stacy_hand, stacy_start
+        from .field_do import Step, op
+        asked = stacy_start.asked(text)
+        if asked is None:return False
+        program, name = asked;folder = stacy_start.folder_name(name)
+        self.thing = None;self.mine(text)
+        if self.run_line(op('files.get', path=folder)).get('ok'):
+            self.say('There is already something called “%s” in Files, and I do not write over what is there. Give it another name: start a Godot project called …' % folder);return True
+        tool = stacy_start.godot_tool();files = stacy_start.start_files(name, tool)
+        holder = type('Started', (), {'title': folder})()
+        parts = [(holder, Step('Make the folder', 'write', op('files.mkdir', path='', name=folder), '', 'execute'))]
+        parts += [(holder, Step('Write %s' % file, 'write', op('files.write', path=folder + '/' + file, text=words), '', 'execute')) for file, words in files]
+        mine = stacy_hand.level(self.host) != 'ask' and all(stacy_hand.hers(stacy_hand.level(self.host), 'execute', line.split(' ', 1)[0][1:]) for line in (step.line for _, step in parts))
+        holding = []
+        done = lambda results:self.started(holding[0], name, folder, tool, results, text.strip())
+        card = self.say_plan(parts, done=done, hers=mine, word=text.strip(), brief=True,
+                             title='To start “%s” in Godot %d I make a folder in Files with the smallest project that runs, and a page of first steps.' % (name, tool['major']))
+        card.one_entry = True;holding.append(card)
+        if mine:self.run_plan(card, done)
+        return True
+
+    def started(self, card, name, folder, tool, results, word):
+        """After the starting files were written: one line in her trail with one Undo, what the Godot room reads the project
+        as, the step that opens it in Godot, and the ways into it from here."""
+        from . import stacy_hand
+        from .engine import engineering
+        from .field_do import Step, op
+        if sum(1 for _, ok, _ in results if ok) < len(card.plan):
+            self.made_done(False, None)
+            self.say('I stopped at the step that was refused. What was made before it is in “%s” in Files; move it to the Trash if you do not want it.' % folder);return
+        if card.hers:
+            undo = '/files.trash ' + json.dumps({'path': folder}, ensure_ascii=False, separators=(', ', ': '))
+            card.entry = stacy_hand.record(self.host.session.state, 'Started a Godot %d project · “%s”' % (tool['major'], folder), card.plan[0][1].line, undo, word, True)
+            back = button('Undo', 'stac', 'Move the whole folder to the Trash, which gives it back');back.setObjectName('StagedUndo');card.back = back;card.undone = None
+            back.clicked.connect(lambda:self.undo_staged(card, self.made_done));card.row.insertWidget(0, back)
+            try:self.host.session.save()
+            except Exception:  # noqa: BLE001 - the project is made and said
+                pass
+        self.made_done(True, None)
+        project = folder + '/project.godot'
+        r = self.run_line(op('programs.godot.inspect', path=project))
+        result = r['result'] if r.get('ok') and isinstance(r.get('result'), dict) else None
+        root = None
+        try:
+            from . import files_service
+            root = files_service.root(engineering(self.host.root))
+        except Exception:  # noqa: BLE001 - without the folder's place the links are left out; the project is in Files
+            pass
+        def show(file):
+            from .work_location import navigate
+            try:navigate(self.host, str(root / folder / file))
+            except Exception as exc:  # noqa: BLE001 - said, never raised into the window
+                self.host.statusBar().showMessage(str(exc), 8000)
+        said = ('“%s” is in Files and runs as it is. ' % folder) + (
+            'The Godot room reads it as the project “%s”, main scene %s. ' % (result.get('title'), str(result.get('main_scene') or 'not set').replace('res://', '')) if result else
+            'The Godot room could not read it: %s. ' % str((r.get('error') or {}).get('message'))[:200])
+        if result and result.get('state') != 'READY':
+            said += ('Godot is not on this computer (I looked for godot4, godot and godot3), so I cannot open it there yet. On Debian it is the package godot3, '
+                     'which is what I wrote these files for. Once it is installed, Programs ▸ Godot opens this project.')
+        after = self.say(said)
+        if root is not None:
+            after.box.addWidget(sentence('{steps}  ·  {script}  ·  {room}', {
+                'steps': ('Read the first steps', lambda:show('START_HERE.md')), 'script': ('Read main.gd here', lambda:show('main.gd')),
+                'room': ('The Godot room', lambda:open_destination(self.host, 'program:godot'))}))
+        if result and result.get('state') == 'READY' and result.get('sha256'):
+            step = Step('Open it in Godot', 'write', op('programs.godot.open', path=project, expected_sha256=result['sha256']),
+                        "Godot's own window opens on this project, in its editor", 'approve')
+            self.stage(folder, step, done=None, asked=True, word=word)
+
     def made_asked(self, text):
         """“Make a folder called Bracket”, “write a file called plan.txt saying …”, “start a page called Bench plan”: an
         artifact asked of her (the owner: "an artifact is made just as if I had saved a file"). It goes through the same
@@ -2198,7 +2274,7 @@ class SlateFace(QWidget):
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
 
-    def say_plan(self, plan, done=None, title=None, hers=False, word=''):
+    def say_plan(self, plan, done=None, title=None, hers=False, word='', brief=False):
         """Several changes put up together: each named, with its exact line, and one Run. Run is the owner's go for the whole
         list as written. They run in order through the Kernel and stop at the first that is refused; each says how it went.
         `done(results)` is told, so the desk can be checked again: finished means the check finds nothing waiting.
@@ -2211,12 +2287,13 @@ class SlateFace(QWidget):
         for n, (obj, step) in enumerate(plan):
             said = QLabel(breakable('%d  “%s”: %s' % (n + 1, obj.title, step.words[:1].lower() + step.words[1:])));said.setWordWrap(True)
             said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
-            code = QLabel(breakable(step.line));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(14))
+            shown = step.line if not brief or len(step.line) <= 96 else step.line[:95] + '…'      # brief: a line that carries a whole file is shown by its start
+            code = QLabel(breakable(shown));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(14))
             code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
             card.box.addWidget(code);card.rows.append(said)
         row = QHBoxLayout();run = button('Approve all %d' % len(plan) if len(plan) > 1 else 'Approve', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
         run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do; in the Field, G does the same')
-        card.plan = plan;card.run = run;card.results = None;card.hers = bool(hers);card.word = word
+        card.plan = plan;card.run = run;card.results = None;card.hers = bool(hers);card.word = word;card.row = row;card.one_entry = False
         if hers:run.hide()
         else:
             approve_button(run, self.host)
@@ -2242,7 +2319,7 @@ class SlateFace(QWidget):
             result = r.get('result') if ok and isinstance(r.get('result'), dict) else {}
             title = (result.get('document') or {}).get('title') if isinstance(result.get('document'), dict) else None
             card.rows[n].setText(breakable(card.rows[n].text() + ('  ·  done' + (': “%s”' % title if title else '') if ok else '  ·  REFUSED: ' + str((r.get('error') or {}).get('message'))[:200])))
-            if getattr(card, 'hers', False):     # her own act: a line in her trail (a page worked again is kept beside the old one, so there is no exact Undo)
+            if getattr(card, 'hers', False) and not getattr(card, 'one_entry', False):     # her own act: a line in her trail (a page worked again is kept beside the old one, so there is no exact Undo)
                 from . import stacy_hand
                 stacy_hand.record(self.host.session.state, '%s · “%s”' % (step.words, obj.title), step.line, '', getattr(card, 'word', ''), ok)
             if not ok:break
@@ -2353,6 +2430,7 @@ class SlateFace(QWidget):
     def ask(self, text, about=None):
         if self.own_word(text):return
         if self.set_asked(text):return
+        if self.start_asked(text):return
         if self.made_asked(text):return
         if self.run_asked(text):return
         thing = self.what_if(text)

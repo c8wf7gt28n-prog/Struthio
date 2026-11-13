@@ -1,4 +1,4 @@
-# Graphite 0.6.0 · The desk does, doubts, looks ahead, glows more, says each thing once, and reads from far off
+# Graphite 0.6.1 · The desk does, doubts, looks ahead, glows more, says each thing once, and reads from far off
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
@@ -6,6 +6,7 @@ on. Graphite is the public name of the workspace; its assistant's face is Stacy,
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **From the ThinkPad** · the eight menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand in the open across the head; one dial sets how strongly the desk glows (Rules ▸ Desk artwork ▸ Glow: Soft, Bright, Neon; it opens on Neon); no key is printed beside the thing it does; the left trees are green circuit traces with the path to the current row lit; the menus' lines carry glyphs.
+- **A start in another program** · say "start a Godot project called Lander" and Stacy makes a folder in Files with the smallest project that runs (project file, one scene, one script) and a page of first steps, written for the Godot on this computer; the Godot room reads it back, and opening it in Godot is a step that waits for you, or is hers with a free hand. One Undo moves the folder to the Trash.
 - **Stacy's hand** · two words under her face say how far she acts by herself; click them to change it. **Ask first**: every change waits for your Approve. **Do and show** (what it opens with): a change you ask her for is made at once and shown, with one **Undo** that puts back exactly what it took. **Free hand**: she also makes the changes the records mark for approval and, after a change, brings back to current what stood on it. Say "make a folder called Bracket" or "write a file called plan.txt saying …" and it is in Files as if you had saved it, with an Undo that moves it to the Trash. What cannot be undone always asks. Her trail (**What she did…**) lists every act.
 - **One line to type on** · five names stand at the left of the line at the bottom: Stacy, Terminal, Search, Web, Log. The lit one gets the words. Web opens an address, or searches for words, in this computer's own browser; an address typed anywhere goes to Web by itself. The arrow at the line's end says what it will do, and turns green to run a line that reads as staC.
 - **The head and the right pane** · the middle of the head is an equalizer: each bar is one processor thread of this computer over the last second. The right pane is one view, Stacy: her face, **This** (what is open or selected), **Now** (what is running and what waits), and the conversation.
@@ -51,12 +52,12 @@ The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **Referen
 
 ## Install
 
-From the release volumes (`Graphite_0.6.0_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.6.1_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.0" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.0" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.1" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.1" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -146,7 +147,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.6.0_full.zip PARTS "Graphite 0.6.0"
+python3 tools/package_release_parts.py OUT/Graphite_0.6.1_full.zip PARTS "Graphite 0.6.1"
 ```
 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).
