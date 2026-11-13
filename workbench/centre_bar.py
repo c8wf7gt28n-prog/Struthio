@@ -12,6 +12,7 @@ control the open view cannot serve is dimmed and its tip says why, instead of be
 next.
 
     ‹ Field   the name of what is open, and whether it is saved      Find   −  +   Undo  Redo   Save
+    (and, while something is being looked for, the line Find opens: centre_find)
 
 (0.4.9, the audit of what repeats what: there was an Actions control here that opened the chain menu, which has nothing to
 do with what is open. It is gone until it can show what can be done with the open thing; the Menu key and the right
@@ -24,9 +25,10 @@ moves (never from inside the move: see focus_moved), and when the pointer comes 
 from PySide6.QtCore import QEvent, QPoint, Qt, QTimer
 from PySide6.QtGui import QFontMetrics
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QTableWidget,
-                               QTextEdit, QWidget)
+                               QTextEdit, QVBoxLayout, QWidget)
 
 from . import boss_theme as t
+from .centre_find import FindLine, subject as find_subject
 from .tool_faces import start as start_faces, wear
 
 SIZES = (-4, 12)                # how far the size of one view may be taken from the desk's own, in points
@@ -37,7 +39,8 @@ class CentreBar(QWidget):
     def __init__(self, host):
         super().__init__(host)
         self.host = host;self.setObjectName('CentreBar');self.setAccessibleName('The centre’s controls');self._looking = False
-        row = QHBoxLayout(self);row.setContentsMargins(10, 4, 10, 4);row.setSpacing(6)
+        whole = QVBoxLayout(self);whole.setContentsMargins(0, 0, 0, 0);whole.setSpacing(0)      # the controls, and under them the line Find opens
+        row = QHBoxLayout();row.setContentsMargins(10, 4, 10, 4);row.setSpacing(6);whole.addLayout(row)
 
         def control(words, name, does, key='', glyph='', tone=None):
             button = QPushButton(words);button.setObjectName(name);button.setCursor(Qt.PointingHandCursor)
@@ -49,7 +52,7 @@ class CentreBar(QWidget):
         self.field = control('‹ Field', 'CentreField', self.to_field, 'F9', 'field', 'live')
         self.title = QLabel();self.title.setObjectName('CentreTitle');self.title.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.title.setTextFormat(Qt.PlainText)
-        self.find = control('Find', 'CentreFind', lambda: self.host.a_find.trigger(), 'Ctrl+F', 'find')
+        self.find = control('Find', 'CentreFind', self.open_find, 'Ctrl+F', 'find')
         self.smaller = control('−', 'CentreSmaller', lambda: self.resize_view(-1), glyph='smaller')
         self.larger = control('+', 'CentreLarger', lambda: self.resize_view(1), glyph='larger')
         self.undo = control('Undo', 'CentreUndo', lambda: self.in_place('undo'), 'Ctrl+Z', 'undo')
@@ -59,6 +62,7 @@ class CentreBar(QWidget):
         for group in ((self.find,), (self.smaller, self.larger), (self.undo, self.redo), (self.save,)):
             row.addSpacing(8)
             for button in group:row.addWidget(button)
+        self.finder = FindLine(self);whole.addWidget(self.finder);self._found_on = None
         self.restyle()
         host.tabs.currentChanged.connect(lambda _=0: self.sync())
         host.central_stack.currentChanged.connect(lambda _=0: self.sync())
@@ -78,8 +82,25 @@ class CentreBar(QWidget):
             'QWidget#CentreBar QPushButton:focus {border:1px solid %(AMBER_EDGE)s;} '
             'QWidget#CentreBar QPushButton:disabled {color:%(LINE_MID)s;background:transparent;border:1px solid %(LINE)s;} '
             'QWidget#CentreBar QPushButton#CentreField {background:%(TEAL_SOFT)s;border:1px solid %(TEAL_EDGE)s;color:%(TEAL_TEXT)s;} '
-            'QWidget#CentreBar QLabel#CentreTitle {color:%(QUIET)s;background:transparent;}'
-            % {name: getattr(t, name) for name in ('GROUND', 'LINE', 'LINE_MID', 'RAISED', 'TEXT', 'TEAL_SOFT', 'TEAL_TEXT', 'AMBER_EDGE', 'TEAL_EDGE', 'QUIET')})
+            'QWidget#CentreBar QLabel#CentreTitle {color:%(QUIET)s;background:transparent;} '
+            'QWidget#CentreBar QLabel#CentreFindSays, QWidget#CentreBar QLabel#CentreFindCount {color:%(QUIET)s;background:transparent;} '
+            'QWidget#CentreBar QLabel#CentreFindCount[none="true"] {color:%(AMBER_TEXT)s;} '
+            'QWidget#CentreBar QLineEdit#CentreFindWords {color:%(TEXT)s;background:%(TERMINAL_GROUND)s;border:1px solid %(LINE)s;border-radius:0;padding:3px 8px;} '
+            'QWidget#CentreBar QLineEdit#CentreFindWords:focus {border:1px solid %(AMBER_EDGE)s;padding:3px 8px;}'
+            % {name: getattr(t, name) for name in ('GROUND', 'LINE', 'LINE_MID', 'RAISED', 'TEXT', 'TEAL_SOFT', 'TEAL_TEXT', 'AMBER_EDGE', 'AMBER_TEXT', 'TEAL_EDGE', 'QUIET', 'TERMINAL_GROUND')})
+
+    # ---- Find ----------------------------------------------------------------------------------------------------------
+    def find_subject(self):
+        """What Find would search in the page that is open, or None."""
+        try:return find_subject(self.page(), self.host.current_editor())
+        except RuntimeError:
+            return None
+
+    def open_find(self):
+        """Open the line under the controls on what is open. False when this page shows nothing that can be searched."""
+        what = self.find_subject()
+        if what is None:return False
+        self._found_on = self.page();self.finder.open(what);return True
 
     # ---- what is open, and what it can do ------------------------------------------------------------------------------
     def page(self):
@@ -130,7 +151,8 @@ class CentreBar(QWidget):
             button.setToolTip((what + (' (%s)' % key if key else '')) if on else why)
 
         offer(self.field, True, 'Back to the Field: your work as tiles and wires, at the tile this was opened from', '')
-        offer(self.find, editor is not None, 'Find in this text', 'Find works in a text file. This view has no find of its own yet.')
+        if self.finder.isVisible() and page is not self._found_on:self.finder.close_line()     # another page came to the front: its words are not these
+        offer(self.find, self.find_subject() is not None, 'Find in what is open', 'This page shows nothing that can be searched.')
         view = self.sized(page)
         offer(self.smaller, view is not None, 'Smaller: this view only', 'This view has nothing whose size can be changed here.')
         offer(self.larger, view is not None, 'Larger: this view only', 'This view has nothing whose size can be changed here.')

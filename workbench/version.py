@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Graphite'
-VERSION = '0.4.9'
-SHORT = '0.4.9'
-LINEAGE = ('0.4.9: an audit, nothing added: one visible home for each action (the strip under the work, the Actions control, the repeated Save buttons, the size choice and heading of the PDF page, the dots on a sheet, the words that scrolled, and seven of the foot\'s buttons are gone); Save is lit only when it would save something. '
+VERSION = '0.5.0'
+SHORT = '0.5.0'
+LINEAGE = ('0.5.0: the builder given a free hand: the whole desk on Z is a map (a sheet seen from far off is the glyph of its kind, its name in letters that stay readable, and its state\'s mark), Find works on every page (one line above the work: writing, the cells of a sheet, lists, the lines of a finding, the words of a PDF page), the Field is seen as it was last seen, and a crawler presses every control of the work pages looking for a way to end the program. '
+           '0.4.9 (never cut as a set of its own; all of it is in 0.5.0): an audit: one visible home for each action (the strip under the work, the Actions control, the repeated Save buttons, the size choice and heading of the PDF page, the dots on a sheet, the words that scrolled, and seven of the foot\'s buttons are gone); Save is lit only when it would save something; then no white boxes (buttons and fields are dark plates with a quiet edge; a PDF page is shown in the desk\'s light, its own light under More), drawn icons as an option (Work, Rules, Buttons), and a fault mended that could end the program when a finding was read again. '
            '0.4.8: a control looks like a control: an action is a boxed button (the keys at the foot of the Field; one row of tools above the sheet, the PDF and the page of writing, with what is needed now and then under More), a word that only goes somewhere is underlined, and the work has neither look. '
            '0.4.7: amber glows where it means something (one halo where the keys go; what waits lit at its mark; Approve, in the Field and in Talk; a lamp at the head) and the mouse comes first (the bar above the centre: Field, Find, size, Undo, Redo, Save, Actions; in the Field Z for the whole desk, bars to drag, the dots on a sheet for its menu; buttons as wide as their words). '
            '0.4.6: green: the pointer (the two facets of the mark, aimed at 11 o\'clock, as before) is drawn in the green of the desk and carries a little light over the Field; what the pointer is over answers in green where it answered in amber; live marks, live wires and live readings glow; the Clean desk keeps the green and drops the glow. '

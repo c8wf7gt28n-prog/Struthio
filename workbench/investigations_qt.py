@@ -153,6 +153,10 @@ class InvestigationTab(QWidget):
         self.render();self.tell_inspector()
 
     # the sheet -------------------------------------------------------------
+    def centre_find_in(self):
+        """Find searches the lines of the sheet that is open, not the list of journals beside it."""
+        return self.scroll
+
     def clear(self):
         """A fresh page each time: the scroll area deletes the old one, so nothing stale is ever drawn."""
         self.body = QWidget();self.body.setObjectName('JournalPage')

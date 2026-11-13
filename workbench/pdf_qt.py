@@ -160,6 +160,9 @@ class PdfDocumentTab(ServiceTab):
         self.split.setOrientation(Qt.Vertical if state[2] else Qt.Horizontal);self.split.setMinimumHeight(650 if state[2] else 360)
     def fit(self,*args):
         factor=(1,1.25,1.5,2)[self.zoom.currentIndex()];self.canvas.scale_to(max(150,self.scroll.viewport().width()-6)*factor)
+    def centre_find_in(self):
+        """Find searches the words of this page (the native text; the OCR's words when that tab is the one showing)."""
+        return self.ocr_text if self.views.currentWidget() is self.ocr_text else self.native
     def page_light(self):
         """More: the page in the desk's light, or in its own. Only how brightly the page is shown; the file, the
         citation and every exported or shared view are the page as it is. The choice is kept for the next page opened."""

@@ -1,14 +1,16 @@
-# Graphite 0.4.9 · The desk does, doubts, looks ahead, glows, and says each thing once
+# Graphite 0.5.0 · The desk does, doubts, looks ahead, glows, says each thing once, and reads from far off
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
 on. Graphite is the public name of the workspace; its assistant's face is Stacy, and she speaks staC; before November 6, 2026 the program was called Ledger &
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
+- **The map** · **Z** shows the whole desk, and from that far a sheet is the glyph of its kind, its name in letters that stay readable, and the mark of its state. The Field opens as it was last seen.
+- **Find, everywhere** · Find (Ctrl+F) opens one line above the work on whatever is open: writing, the cells of a sheet, a list, the lines of a finding, the words of a PDF page. Enter for the next place, Shift+Enter for the one before, Esc to close.
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
 - **Once** · each action has one visible home (its key is the second road, the right button on a thing is that thing's own road) and a name is said once. Save is lit only when a press would save something.
-- **Buttons** · an action is a button (a dark plate with a quiet edge, never a bright outline) and a word that only goes somewhere is underlined, so the interface is never mistaken for the work. A PDF page is shown in the desk's light, its paper brought down from white; its own light is one line away under **More ▾**.
-- **Icons, as an option** · Work ▸ Rules ▸ Buttons ▸ Icons gives every tool one of Graphite's own drawn glyphs and no box at all; what is particular to a page keeps its words beside its glyph. Words is what opens. The sheet, the PDF and the page of writing each have one row of tools, with what is needed now and then under **More ▾**; the keys at the foot of the Field are buttons.
+- **Buttons** · an action is a button (a dark plate with a quiet edge, never a bright outline) and a word that only goes somewhere is underlined, so the interface is never mistaken for the work. A PDF page is shown in the desk's light, its paper brought down from white; its own light is one line away under **More ▾**. The sheet, the PDF and the page of writing each have one row of tools, with what is needed now and then under **More ▾**; the keys at the foot of the Field are buttons.
+- **Icons, as an option** · Work ▸ Rules ▸ Buttons ▸ Icons gives every tool one of Graphite's own drawn glyphs and no box at all; what is particular to a page keeps its words beside its glyph. Words is what opens.
 - **The mouse first** · above whatever is open in the centre: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, always in the same place. In the Field **Z** shows the whole desk and the bars at the edges drag; the right button on a sheet shows what can be done with it.
 - **Amber** · one amber halo marks where the keys go (the selected sheet, the page being read, or the writing line); what waits for you is lit at its mark, and Approve glows until it is pressed.
 - **Green** · the pointer (the mark's two facets, aimed at 11 o'clock) is drawn in the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
@@ -44,12 +46,12 @@ The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **Referen
 
 ## Install
 
-From the release volumes (`Graphite_0.4.9_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.5.0_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.9" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.9" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.5.0" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.5.0" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -139,7 +141,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.4.9_full.zip PARTS "Graphite 0.4.9"
+python3 tools/package_release_parts.py OUT/Graphite_0.5.0_full.zip PARTS "Graphite 0.5.0"
 ```
 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).

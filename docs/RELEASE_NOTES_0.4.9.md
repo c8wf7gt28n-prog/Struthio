@@ -1,6 +1,6 @@
 # What's new in Graphite 0.4.9
 
-November 13, 2026. Guide → What's New opens this page. The 0.4.8, 0.4.7, 0.4.6, 0.4.5, 0.4.4, 0.4.3, 0.4.2, 0.4.1, 0.4, 0.3.1
+November 13, 2026. This release was never cut as a set of its own: all of it is in 0.5.0, whose notes Guide → What's New opens. The 0.4.8, 0.4.7, 0.4.6, 0.4.5, 0.4.4, 0.4.3, 0.4.2, 0.4.1, 0.4, 0.3.1
 and 0.3 notes beside it describe what came before.
 
 The owner: "Really question what everything does and if it's place is justified. Every click necessary. No redoing the

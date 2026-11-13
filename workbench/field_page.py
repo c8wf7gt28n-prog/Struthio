@@ -15,7 +15,7 @@ Master specification, section 72: "A simple Open or Back action can accompany th
 """
 import re
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtWidgets import QApplication, QSizePolicy, QVBoxLayout, QWidget
 
 from .field_model import Field
@@ -35,6 +35,18 @@ class FieldPage(QWidget):
         layout = QVBoxLayout(self);layout.setContentsMargins(0, 0, 0, 0);layout.setSpacing(0)
         self.view = FieldView(self);self.view.setMinimumSize(0, 0);self.view.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         layout.addWidget(self.view)
+        # The desk is seen as it was last seen: its size, or the whole of it. (The specification's "remember the view".)
+        state = getattr(getattr(host, 'session', None), 'state', None)
+        seen = state.get('field_zoom') if isinstance(state, dict) else None
+        if seen:
+            self.view.zoom = max(FieldView.ZOOM[0], min(FieldView.ZOOM[1], float(seen['zoom'])));self.view._fitted = bool(seen['whole'])
+        self._keep = QTimer(self);self._keep.setSingleShot(True);self._keep.setInterval(900)       # one write after the wheel has stopped turning
+        self._keep.timeout.connect(lambda: self.host.session.save())
+
+        def kept(zoom, whole):
+            if isinstance(state, dict):
+                state['field_zoom'] = {'zoom': round(float(zoom), 3), 'whole': bool(whole)};self._keep.start()
+        self.view.on_zoom = kept
         self.view.opened.connect(lambda obj: open_object(self.host, obj))
         self.view.left.connect(lambda: back(self.host))
         self.view.face_chosen.connect(self.show_face)

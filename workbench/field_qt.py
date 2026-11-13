@@ -25,6 +25,8 @@ from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeyEvent, QLinearGradie
 from PySide6.QtWidgets import QSizePolicy, QToolTip, QWidget
 
 from . import boss_theme as t
+from . import tool_faces
+from .glyph_set import KIND as KIND_GLYPH
 from .field_model import ATTENTION, KIND_TAG, SETTLED, STATE_CURRENT, STATE_HELD, STATE_OPEN, STATE_RECHECK, Field
 
 WORD_INK = (1.0, 0.94, 0.84, 0.78)          # how much of its ink a sheet's lettering keeps at each step from the selection
@@ -126,6 +128,7 @@ class FieldView(QWidget):
         self._face_boxes = []
         self.scroll_x = 0.0;self.scroll_y = 0.0
         self.zoom = 1.0                     # how large the sheets are drawn: 1 is the owner's reading size; Z fits the whole desk in the window
+        self.on_zoom = None                 # told (zoom, whole desk?) when the owner changes how the desk is seen, so it can be kept
         self._fitted = False                # Z asked for the whole desk: it stays whole when the window or the desk changes, until the size is set by hand
         self._placed = {};self._surface = (0.0, 0.0);self._gap = 34.0;self._labels = [];self._reveal_pending = False
         self.setFocusPolicy(Qt.StrongFocus)
@@ -225,6 +228,7 @@ class FieldView(QWidget):
         return 2 * 12 * s + tag + 6 * s + TITLE_LINES * title + 4 * s + FACT_LINES * fact + where + 4 * s
 
     ZOOM = (0.35, 1.6)                   # the smallest and the largest the sheets are drawn
+    FAR = 0.6                            # below this no word on a sheet can be read: a sheet is drawn as its glyph and its name (_far)
 
     def room(self, body=None):
         """The room the sheets have, in their own measure: the body of the Field seen through the zoom. At half size the
@@ -244,7 +248,13 @@ class FieldView(QWidget):
             self._layout()
         else:
             self.zoom = zoom;self._layout();self._reveal();self._layout()
-        self._rehover();self.update()
+        self._rehover();self.update();self._zoom_said()
+
+    def _zoom_said(self):
+        if callable(self.on_zoom):
+            try:self.on_zoom(self.zoom, self._fitted)
+            except Exception:  # noqa: BLE001 - remembering a size is never worth an error
+                pass
 
     def fit(self):
         """The zoom at which the whole desk is in the window: the largest step at which nothing runs off either way."""
@@ -369,7 +379,7 @@ class FieldView(QWidget):
             self.scroll_y = max(0.0, min(max(0.0, self._surface[1] - high), self.scroll_y + step));self._rehover();self.update();return
         elif key == Qt.Key_Z and plain:      # Z: the whole desk in the window; again, its ordinary size
             fitted = self.fit();whole = not (abs(self.zoom - fitted) < 1e-6 or (fitted >= 1.0 and self.zoom != 1.0))
-            self.set_zoom(fitted if whole else 1.0);self._fitted = whole and fitted < 1.0;return
+            self.set_zoom(fitted if whole else 1.0);self._fitted = whole and fitted < 1.0;self._zoom_said();return
         elif event.text() in ('+', '=') or key in (Qt.Key_Plus, Qt.Key_Equal):       # larger
             self.set_zoom(round(self.zoom * 20 + 2) / 20.0);return
         elif event.text() in ('-', '−') or key == Qt.Key_Minus:                      # smaller
@@ -1015,12 +1025,13 @@ class FieldView(QWidget):
             p.drawText(QPointF(left, base), census)
 
     def _columns(self, p, body):
-        s = self.scale();p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font())
+        s = self.scale();far = self.zoom < self.FAR      # far off, a column's name keeps its reading size as the sheets' names do
+        p.setFont(self.mono(11 / self.zoom if far else 12, QFont.Medium));fm = QFontMetricsF(p.font())
         for rank in self.field.ranks():
             ids = self.field.column(rank)
             if not ids or ids[0] not in self._placed:continue
             first = self._placed[ids[0]]
-            x = body.left() + first.x - self.scroll_x;y = body.top() + 24 * s - self.scroll_y
+            x = body.left() + first.x - self.scroll_x;y = body.top() + (min(first.y - 6 * s, fm.ascent() + 6 * s / self.zoom) if far else 24 * s) - self.scroll_y
             p.setPen(ink(t.QUIET, 0.95))
             p.drawText(QPointF(x, y), self.field.rank_title(rank))
             p.setPen(QPen(ink(t.LINE, 0.9), 1))
@@ -1131,7 +1142,10 @@ class FieldView(QWidget):
         if obj.lately(self._now):            # its record changed in the last hours: a small turned corner, the mark of what was just worked on
             fold = 9 * s;p.save();p.setPen(Qt.NoPen);p.setBrush(ink(t.AMBER_EDGE, 0.55 + 0.4 * keep))
             p.drawPolygon(QPolygonF([QPointF(r.right() - fold, r.top()), QPointF(r.right(), r.top()), QPointF(r.right(), r.top() + fold)]));p.restore()
-        pad = 12 * s;inner = r.adjusted(pad, pad - 2 * s, -pad, -pad + 2 * s)
+        pad = 12 * s;inner = r.adjusted(pad, pad - 2 * s, -pad, -pad + 2 * s);would = self.would.get(obj.id)
+        if self.zoom < self.FAR:             # seen from far off: its glyph, its state's mark and its name, and nothing that cannot be read
+            self._far(p, obj, r, keep, selected and focus)
+            self._would_edge(p, r, would, touched, selected and focus);return
         # Kind at the left, state at the right. A narrow sheet keeps its kind and the state's mark; the state's word gives way.
         p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font());y = inner.top() + fm.ascent()
         state = STATE_WORD.get(obj.state, obj.state or '')
@@ -1140,8 +1154,13 @@ class FieldView(QWidget):
         full = obj.tag or KIND_TAG.get(obj.kind, obj.kind.upper())
         worded = bool(state) and inner.width() >= fm.horizontalAdvance(full) + state_w + 8 * s
         if state and not worded:state_w = mark
-        tag = fm.elidedText(full, Qt.ElideRight, max(10.0, inner.width() - state_w - 8 * s))
-        p.setPen(ink(t.AMBER_TEXT if obj.kind in ('question', 'condition') else t.QUIET, keep));p.drawText(QPointF(inner.left(), y), tag)
+        kind_ink = t.AMBER_TEXT if obj.kind in ('question', 'condition') else t.QUIET;lead = 0.0
+        if tool_faces.mode() == 'icons' and obj.kind in KIND_GLYPH and inner.width() > 90 * s:      # the owner chose icons: the kind's glyph leads its word
+            side = fm.height() * 1.08;lead = side + 5 * s
+            self._glyph(p, KIND_GLYPH[obj.kind], QRectF(inner.left(), y - fm.ascent() + (fm.height() - side) / 2 - 1, side, side), ink(kind_ink, keep), ink(t.FAINT, keep))
+        tag = fm.elidedText(full, Qt.ElideRight, max(10.0, inner.width() - state_w - 8 * s - lead))
+        if lead and tag != full:tag = ''     # no room for both: the glyph alone says the kind, whole, rather than half a word beside it
+        p.setPen(ink(kind_ink, keep));p.drawText(QPointF(inner.left() + lead, y), tag)
         if state:
             sx = inner.right() - state_w;box = QRectF(sx, y - fm.ascent() / 2 - mark / 2 + 1, mark, mark)
             self._mark(p, box, obj.state, ink(state_colour, max(keep, 0.85) if obj.state in ATTENTION else keep))
@@ -1158,20 +1177,55 @@ class FieldView(QWidget):
         # Facts, while they fit above the identity line.
         p.setFont(self.mono(12.5));fm = QFontMetricsF(p.font());fm_where = QFontMetricsF(self.mono(12));where_h = fm_where.height() if obj.where else 0
         y += 4 * s
-        would = self.would.get(obj.id)
         facts = () if self.field.compact else (((would,) + tuple(obj.lines[:FACT_LINES - 1])) if would else obj.lines[:FACT_LINES])
         for at, fact in enumerate(facts):
             if y + fm.height() > inner.bottom() - where_h + 1:break
             y += fm.height();p.setPen(ink(t.AMBER_TEXT, 1.0) if would and at == 0 else ink(t.QUIET, keep))
             p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(str(fact)[:LONGEST], Qt.ElideRight, inner.width()))
-        if would:                            # and a broken amber edge: it reads as "would", without colour too
-            if self.go and not touched and not (selected and focus):      # a change that waits for Approve would move this: lit, faintly. A what-if that only asks is not.
-                self._halo(p, r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s), t.AMBER_EDGE, 0.7)
-            pen = QPen(ink(t.AMBER_EDGE, 0.95), 1.6);pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 4])
-            p.setPen(pen);p.setBrush(Qt.NoBrush);p.drawRect(r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s))
+        self._would_edge(p, r, would, touched, selected and focus)
         if obj.where and not self.field.compact and inner.bottom() - fm_where.descent() > y + 2:
             p.setFont(self.mono(12));p.setPen(ink(t.FAINT if depth <= 1 else t.QUIET, keep))
             p.drawText(QPointF(inner.left(), inner.bottom() - fm_where.descent()), fm_where.elidedText(str(obj.where)[:LONGEST], Qt.ElideMiddle, inner.width()))
+
+    def _would_edge(self, p, r, would, touched, lit):
+        """A sheet a what-if would move: a broken amber edge, which reads as "would" without colour too."""
+        if not would:return
+        s = self.scale()
+        if self.go and not touched and not lit:      # a change that waits for Approve would move this: lit, faintly. A what-if that only asks is not.
+            self._halo(p, r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s), t.AMBER_EDGE, 0.7)
+        pen = QPen(ink(t.AMBER_EDGE, 0.95), 1.6);pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 4])
+        p.setPen(pen);p.setBrush(Qt.NoBrush);p.drawRect(r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s))
+
+    @staticmethod
+    def _glyph(p, draw, box, line, fill):
+        """One of Graphite's drawn glyphs (glyph_set) in this box, in these two inks."""
+        p.save();p.translate(box.left(), box.top());p.scale(box.width() / 20.0, box.height() / 20.0);p.setPen(Qt.NoPen);p.setBrush(Qt.NoBrush)
+        try:draw(p, line, fill)
+        finally:p.restore()
+
+    def _far(self, p, obj, r, keep, lit):
+        """A sheet seen from far off. With the whole desk in the window a sheet's words are five pixels high and say nothing,
+        so the sheet is drawn as a map draws a town: the glyph of its kind, the mark of its state, and its name in letters
+        that stay large enough to read however far away the desk is. Sizes here are in screen pixels, turned into the units
+        the sheets are drawn in (one pixel is 1 / zoom of them)."""
+        s = self.scale();px = 1.0 / self.zoom;pad = 6 * s * px
+        side = min(20 * s * px, r.height() - 2 * pad);kind_ink = t.AMBER_TEXT if obj.kind in ('question', 'condition') else t.QUIET
+        draw = KIND_GLYPH.get(obj.kind)
+        if draw is not None:self._glyph(p, draw, QRectF(r.left() + pad, r.top() + pad, side, side), ink(kind_ink, max(keep, 0.75)), ink(t.FAINT, keep))
+        mark = 7 * s * px;room = 0.0
+        if obj.state:                        # its state, in the corner: the same mark it has near to, the same light
+            colour = t.READY if obj.state in SETTLED else (t.AMBER_EDGE if obj.state in ATTENTION else t.QUIET)
+            self._mark(p, QRectF(r.right() - pad - mark, r.top() + pad, mark, mark), obj.state, ink(colour, max(keep, 0.85) if obj.state in ATTENTION else keep))
+            room = mark + 4 * s * px
+        left = r.left() + pad + side + 6 * s * px;width = r.right() - pad - left - room
+        if width < 30 * s * px:return
+        p.setFont(self.sans(11.5 * px));fm = QFontMetricsF(p.font());p.setPen(ink(t.TEXT, max(keep, 0.8)))
+        lines = self._wrap(obj.title, fm, width, max(1, int((r.height() - 2 * pad) / fm.height())))
+        y = r.top() + pad + max(0.0, (min(side, r.height() - 2 * pad) - fm.height()) / 2) if len(lines) == 1 else r.top() + pad - 2 * px
+        for text in lines:
+            y += fm.height()
+            if lit:self._bloom(p, QPointF(left, y - fm.descent()), text, t.AMBER_EDGE)
+            p.drawText(QPointF(left, y - fm.descent()), text)
 
     def _wire_words(self, p):
         s = self.scale();p.setFont(self.mono(12));fm = QFontMetricsF(p.font())

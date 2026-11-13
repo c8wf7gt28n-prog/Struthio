@@ -8,6 +8,9 @@ strokes of one weight with sharp joins, arrow heads and folded corners as small 
 program would draw a circle, because graphite is sheets of carbon in a hexagonal lattice. Each glyph is one idea, read in
 one colour at 20 px; the accent only fills a facet and never carries the meaning.
 
+The same hand draws the kinds of sheet on the Field (KIND): a source, a sheet, a calculation, a finding, a question and
+the rest. Seen from far off, where no word can be read, a sheet on the desk is its kind's glyph and its name (field_qt).
+
 Every glyph is a function draw(p, ink, accent) that paints inside a 20 x 20 unit box; the caller places and scales the
 painter and chooses the two colours. Horizontal and vertical strokes sit on half-unit centres so that they are crisp at
 the true size. This file imports only PySide6, so a contact sheet can be made from it alone.
@@ -167,6 +170,77 @@ def stop(p, ink, accent):
     facet(p, ink, (5.5, 5.5), (14.5, 5.5), (14.5, 14.5), (5.5, 14.5))
 
 
+# ---- the kinds of sheet on the Field ----------------------------------------------------------------------------------
+
+HEX = ((10.0, 2.5), (16.5, 6.25), (16.5, 13.75), (10.0, 17.5), (3.5, 13.75), (3.5, 6.25))      # one cell of the lattice
+
+
+def page(p, ink, accent):
+    """A source: a page as it came, its corner folded."""
+    facet(p, accent, (11.5, 2.5), (15.5, 6.5), (11.5, 6.5))
+    pen(p, ink);line(p, (4.5, 2.5), (11.5, 2.5), (15.5, 6.5), (15.5, 17.5), (4.5, 17.5), close=True);line(p, (11.5, 2.5), (11.5, 6.5), (15.5, 6.5))
+    line(p, (7.5, 10.5), (12.5, 10.5));line(p, (7.5, 13.5), (12.5, 13.5))
+
+
+def found(p, ink, accent):
+    """A finding: a cell of the lattice, ticked."""
+    pen(p, ink);line(p, *HEX, close=True)
+    pen(p, ink, 1.8);line(p, (6.6, 10.2), (9.2, 12.8), (13.6, 7.4))
+
+
+def asked(p, ink, accent):
+    """An open question."""
+    pen(p, ink, 1.8);line(p, (6.5, 7.2), (6.5, 5.0), (9.0, 2.5), (11.0, 2.5), (13.5, 5.0), (13.5, 7.5), (10.0, 10.5), (10.0, 13.0))
+    facet(p, ink, (10.0, 14.6), (11.9, 16.5), (10.0, 18.4), (8.1, 16.5))
+
+
+def limit(p, ink, accent):
+    """A condition: no more than this."""
+    pen(p, ink, 1.8);line(p, (14.5, 3.0), (5.5, 7.5), (14.5, 12.0));line(p, (5.0, 16.5), (15.0, 16.5))
+
+
+def steps(p, ink, accent):
+    """A method: the steps, one after another."""
+    pen(p, ink);line(p, (2.5, 16.5), (7.5, 16.5), (7.5, 11.5), (12.5, 11.5), (12.5, 6.5), (17.5, 6.5))
+    facet(p, accent, (12.5, 6.5), (17.5, 6.5), (17.5, 3.0))
+
+
+def running(p, ink, accent):
+    """A job: a cell of the lattice, at work."""
+    pen(p, ink);line(p, *HEX, close=True)
+    facet(p, ink, (8.0, 6.3), (14.2, 10.0), (8.0, 13.7))
+
+
+def folder(p, ink, accent):
+    facet(p, accent, (2.5, 4.5), (8.0, 4.5), (10.0, 7.5), (2.5, 7.5))
+    pen(p, ink);line(p, (2.5, 4.5), (8.0, 4.5), (10.0, 7.5), (17.5, 7.5), (17.5, 15.5), (2.5, 15.5), close=True)
+
+
+def port(p, ink, accent):
+    """An interface of this computer: a socket and its lead."""
+    pen(p, ink);p.drawRect(QRectF(4.5, 6.5, 11, 7));line(p, (7.5, 6.5), (7.5, 2.5));line(p, (12.5, 6.5), (12.5, 2.5));line(p, (10.0, 13.5), (10.0, 18.0))
+
+
+def window(p, ink, accent):
+    """A program that is running: its window."""
+    facet(p, accent, (2.5, 4.5), (17.5, 4.5), (17.5, 8.5), (2.5, 8.5))
+    pen(p, ink);p.drawRect(QRectF(2.5, 4.5, 15, 11));line(p, (2.5, 8.5), (17.5, 8.5))
+    facet(p, ink, (5.0, 11.0), (8.5, 12.75), (5.0, 14.5))
+
+
+def reach(p, ink, accent):
+    """Where it reaches: the line arrives at a far wall."""
+    pen(p, ink);line(p, (2.5, 10.5), (9.0, 10.5));line(p, (16.5, 3.5), (16.5, 17.5))
+    facet(p, ink, (14.6, 10.5), (9.0, 6.0), (9.0, 15.0))
+
+
+def rooms(p, ink, accent):
+    """A program Graphite can open: four rooms, one lit."""
+    facet(p, accent, (3.5, 3.5), (8.5, 3.5), (8.5, 8.5), (3.5, 8.5))
+    pen(p, ink)
+    for x, y in ((3.5, 3.5), (11.5, 3.5), (3.5, 11.5), (11.5, 11.5)):p.drawRect(QRectF(x, y, 5, 5))
+
+
 def letters(text, weight=QFont.DemiBold, italic=False, under=False, family='IBM Plex Sans', size=13.0):
     """A glyph that is type: the letter a writer already knows a style by."""
     def draw(p, ink, accent):
@@ -188,3 +262,8 @@ GLYPHS = {
     'body': letters('¶', QFont.Normal, size=14.0), 'code': letters('{}', QFont.Medium, family='IBM Plex Mono', size=12.0),
     'plain': letters('Aa', QFont.Normal, size=12.0),
 }
+
+# What each kind of sheet on the Field is drawn as (field_model.KINDS). A sheet seen from far off is this glyph and its name.
+KIND = {'source': page, 'folder': folder, 'sheet': table, 'method': steps, 'calculation': report, 'job': running,
+        'document': cell, 'finding': found, 'question': asked, 'condition': limit,
+        'interface': port, 'program': window, 'endpoint': reach, 'app': rooms}

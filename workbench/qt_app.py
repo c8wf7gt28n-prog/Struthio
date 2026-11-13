@@ -4124,6 +4124,9 @@ class WorkbenchWindow(QMainWindow):
                 self.open_document(p)
 
     def find(self):
+        bar = getattr(self, 'centre_bar', None)       # 0.5: Find is one line above the work, for whatever is open (centre_find)
+        if bar is not None and bar.page() is not None:
+            bar.open_find();return
         ed = self.current_editor()
         if ed is None:
             return
@@ -4133,6 +4136,9 @@ class WorkbenchWindow(QMainWindow):
             self.find_next()
 
     def find_next(self):
+        bar = getattr(self, 'centre_bar', None)
+        if bar is not None and bar.finder.isVisible():
+            bar.finder.step(1);return
         ed = self.current_editor()
         if ed is None or not self.find_text:
             return
