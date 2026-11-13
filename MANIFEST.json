@@ -774,44 +774,44 @@
       "sha256": "f61de2cc722538d1a517c74e993c28816e9542db01dc65cf66eb5c30872b332e"
     },
     "build/graphite_desk/Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png": {
-      "bytes": 207903,
-      "sha256": "491d1215e4031179fe6142ea3e9391e0373045526d1fdb8ae2a599e5d33343b8"
+      "bytes": 236714,
+      "sha256": "827acc3bf0ce52d9930ab9d915c6180286a18391235e56e0a361f6a8d4d247bf"
     },
     "build/graphite_desk/Graphite_Desk_D4_02_Bold_Applied_1920x1200.png": {
-      "bytes": 178260,
-      "sha256": "635d5915eb3dc35ed6b519da8f75e3b96db8639a76ab66a553a93f8225b5010d"
+      "bytes": 204931,
+      "sha256": "f16abc73a09a695beac372f2020beb36aec888bec958b5c33aa178ae81872028"
     },
     "build/graphite_desk/Graphite_Desk_D4_03_Two_Revisions_Right_Click_1920x1200.png": {
-      "bytes": 201704,
-      "sha256": "eb5b9ca08e1e9aa83403c20001f235ffd92bbe4939741175fa5f1c735fece76b"
+      "bytes": 223342,
+      "sha256": "5793caa56c336dcc5004104ab607d23bb2b94c200213c9dbc44ad8c6dbff7c8e"
     },
     "build/graphite_desk/Graphite_Desk_D4_04_Compare_Revisions_Result_1920x1200.png": {
-      "bytes": 180199,
-      "sha256": "5e97fd1c827be6f0797237b5109c6a5ac8a8a7383bf63784402cbc2f34acde9e"
+      "bytes": 201398,
+      "sha256": "962e2fe5db67d4160945dfb49c0e75e5f51e7e65961ea94ca120b9bb5dec31f1"
     },
     "build/graphite_desk/Graphite_Desk_D4_05_Job_Right_Click_TEST_DATA_1920x1200.png": {
-      "bytes": 207712,
-      "sha256": "34ef86734d488e948a114f8c5abd0021d9b870178f8053534dc1e4f783bb562d"
+      "bytes": 232142,
+      "sha256": "68509b23076c9ed1484e17058eb3fdcb0b5c4b857cf153d5815ecfd3799202ff"
     },
     "build/graphite_desk/Graphite_Desk_D4_05b_Job_Paused_TEST_DATA_1920x1200.png": {
-      "bytes": 197795,
-      "sha256": "1287919f28fdd046d3f2394c4e9e29fa488e976d7a3f29ef640f963f0e4f587b"
+      "bytes": 219931,
+      "sha256": "f07b22e9905858e77438fc8e00060e9b5ac903cf2154aa129901163fd7031223"
     },
     "build/graphite_desk/Graphite_Desk_D4_06_Cabinet_Tree_Right_Click_1920x1200.png": {
-      "bytes": 196525,
-      "sha256": "767fc3c0aa73b118fd0061d9049ceacaa0c683ac3f4b5450a1590fb82ef84605"
+      "bytes": 218749,
+      "sha256": "dd3d3f87a2fb138c371660eb330f988d13a2ac5538e9d21634698b755993fd33"
     },
     "build/graphite_desk/Graphite_Desk_D4_07_Network_Connection_Right_Click_1920x1200.png": {
-      "bytes": 274437,
-      "sha256": "eee3b9df506b01a028470deec8e1718390932f8ddd60709d8048cf6ff6216498"
+      "bytes": 290599,
+      "sha256": "fa1bd3f14cb1961189cafad850e5471db4ee60e8a6808eb611c6b6a17d504432"
     },
     "build/graphite_desk/Graphite_Desk_D4_08_Passage_Right_Click_1366x768.png": {
-      "bytes": 189254,
-      "sha256": "da6ed215664efb683459b7f59d3483eb41f4ef9ee04e2603b89eb1d90d008804"
+      "bytes": 194835,
+      "sha256": "f80f6aa17c69ef48cf193033537ef72f28b6d0620755b593f701a01ce533d1bd"
     },
     "build/graphite_desk/context-menu-ui.json": {
-      "bytes": 14234,
-      "sha256": "bcea491f02b7fbc9f259c340ffa8db59c9857941e312f69d5cb7bcc527d2e95f"
+      "bytes": 14175,
+      "sha256": "4c0905d9b8b7b2b7193aff4d29732297f7172b6116f36b615e13de46f10b7efd"
     },
     "build/graphite_desk/desk-ui.json": {
       "bytes": 300920,

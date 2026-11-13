@@ -10,118 +10,118 @@
   "05 Pause on the running job went through jobs.pause with the job's id after its state was read again (jobs.get): \"Asked to pause · Build STRUTHIO desk mode · it pauses at its next safe point\"",
   "05b the queued job paused through jobs.pause: the System menu's list shows it waiting, paused, and the status line says so",
   "06 the cabinet tree: Refresh, View as (its current view marked), New Idea, New Project, Import, Export",
-  "07 a real network connection (python → 127.0.0.1:49585): Ask Stacy about this, Follow this conversation (the filter in the line, the entry pinned), Show the process (python), Copy address",
+  "07 a real network connection (python → 127.0.0.1:33841): Ask Graphite about this, Follow this conversation (the filter in the line, the entry pinned), Show the process (python), Copy address",
   "08 at 1366 by 768 the passage's menu is whole and inside the window",
   "08 at 14, 18 and 20 pt the menu's row height, icon column and margin are the programs list's (passage_1920: [24, 26, 6], passage_18pt: [31, 34, 8], passage_20pt: [34, 36, 8])"
  ],
  "captures": [
   {
    "file": "Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png",
-   "note": "Right-click on a selected passage (\"within a hair\") in a document at 1920 by 1200: the passage named at the top with its page and revision; Bold, Italic, Underline, Plain, Paragraph style and Move to notes first; Inspect in the line (the equivalent documents.edit command); Ask Stacy about this and Search; New document and Export; the text edits last. The caption at the foot is in the script.",
+   "note": "Right-click on a selected passage (\"within a hair\") in a document at 1920 by 1200: the passage named at the top with its page and revision; Bold, Italic, Underline, Plain, Paragraph style and Move to notes first; Inspect in the line (the equivalent documents.edit command); Ask Graphite about this and Search; New document and Export; the text edits last. The caption at the foot is in the script.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS",
    "status": "",
-   "sha256": "491d1215e4031179fe6142ea3e9391e0373045526d1fdb8ae2a599e5d33343b8",
+   "sha256": "827acc3bf0ce52d9930ab9d915c6180286a18391235e56e0a361f6a8d4d247bf",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 207903
+   "bytes": 236714
   },
   {
    "file": "Graphite_Desk_D4_02_Bold_Applied_1920x1200.png",
-   "note": "Bold chosen from that menu: documents.edit went through Kernel.dispatch with the page's id and the revision seen at the right-click (2); the page shows \"within a hair\" in bold and its foot says revision 3 (\"Right-click · Saved · revision 3 · You made “within a hair” bold · today 12:01\"); Ctrl Z takes it back.",
+   "note": "Bold chosen from that menu: documents.edit went through Kernel.dispatch with the page's id and the revision seen at the right-click (2); the page shows \"within a hair\" in bold and its foot says revision 3 (\"Right-click · Saved · revision 3 · You made “within a hair” bold · today 03:40\"); Ctrl Z takes it back.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS",
    "status": "Done on the page: made “within a hair” bold · revision 3 · Ctrl Z takes it back.",
-   "sha256": "635d5915eb3dc35ed6b519da8f75e3b96db8639a76ab66a553a93f8225b5010d",
+   "sha256": "f16abc73a09a695beac372f2020beb36aec888bec958b5c33aa178ae81872028",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 178260
+   "bytes": 204931
   },
   {
    "file": "Graphite_Desk_D4_03_Two_Revisions_Right_Click_1920x1200.png",
    "note": "Right-click on two revisions of one file selected in Files (\"regulator rev B.txt\" and \"regulator rev C.txt\"): both named at the top; Compare revisions first, then Copy to, Move to, Copy paths and, last, Move to Trash.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS",
    "status": "",
-   "sha256": "eb5b9ca08e1e9aa83403c20001f235ffd92bbe4939741175fa5f1c735fece76b",
+   "sha256": "5793caa56c336dcc5004104ab607d23bb2b94c200213c9dbc44ad8c6dbff7c8e",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 201704
+   "bytes": 223342
   },
   {
    "file": "Graphite_Desk_D4_04_Compare_Revisions_Result_1920x1200.png",
    "note": "Compare revisions chosen: files.compare on the two actual files (the older, rev B, before; rev C after) in the Compare room, the changed lines marked in words (added on a pencil wash, removed on an eraser wash); it is a tab you can keep open.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS",
    "status": "Compared revisions: regulator rev B.txt and regulator rev C.txt, in the Compare room",
-   "sha256": "5e97fd1c827be6f0797237b5109c6a5ac8a8a7383bf63784402cbc2f34acde9e",
+   "sha256": "962e2fe5db67d4160945dfb49c0e75e5f51e7e65961ea94ca120b9bb5dec31f1",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 180199
+   "bytes": 201398
   },
   {
    "file": "Graphite_Desk_D4_05_Job_Right_Click_TEST_DATA_1920x1200.png",
    "note": "TEST DATA: two job records the check wrote (no job runs in a check: Kernel.launch and Kernel.submit are held) (labelled on the image). Right-click on the running job in the System menu's process list: the job named at the top with its state (Running); Inspect output, Pause and Stop available, Resume shown unavailable (it is running); Inspect in the line (@job:…), Copy the job id; Show in Jobs.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS_ON_TEST_DATA_LABELLED",
    "status": "",
-   "sha256": "34ef86734d488e948a114f8c5abd0021d9b870178f8053534dc1e4f783bb562d",
+   "sha256": "68509b23076c9ed1484e17058eb3fdcb0b5c4b857cf153d5815ecfd3799202ff",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 207712
+   "bytes": 232142
   },
   {
    "file": "Graphite_Desk_D4_05b_Job_Paused_TEST_DATA_1920x1200.png",
    "note": "TEST DATA: two job records the check wrote (no job runs in a check: Kernel.launch and Kernel.submit are held) (labelled on the image). Pause chosen on the queued job's right-click: jobs.pause went through Kernel.dispatch with its id after its state was read again; the Kernel paused it at once, so the System menu's list no longer shows it among the active rows and its WAITING lines read it paused (\"WAITING · struthio.build · Paused\"); the status line says \"Paused · Board checks for amp rev C · now paused\".",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS_ON_TEST_DATA_LABELLED",
    "status": "Paused · Board checks for amp rev C · now paused",
-   "sha256": "1287919f28fdd046d3f2394c4e9e29fa488e976d7a3f29ef640f963f0e4f587b",
+   "sha256": "f07b22e9905858e77438fc8e00060e9b5ac903cf2154aa129901163fd7031223",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 197795
+   "bytes": 219931
   },
   {
    "file": "Graphite_Desk_D4_06_Cabinet_Tree_Right_Click_1920x1200.png",
    "note": "Right-click on the cabinet tree's empty place: the tree named at the top; Refresh, View as (open: Logical cabinet marked with the short yellow mark, Existing views), New Idea, New Project, Import (Ingress) and Export (Egress): the homes of the cabinet's old Refresh, view choices and transfers.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS",
    "status": "",
-   "sha256": "767fc3c0aa73b118fd0061d9049ceacaa0c683ac3f4b5450a1590fb82ef84605",
+   "sha256": "dd3d3f87a2fb138c371660eb330f988d13a2ac5538e9d21634698b755993fd33",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 196525
+   "bytes": 218749
   },
   {
    "file": "Graphite_Desk_D4_07_Network_Connection_Right_Click_1920x1200.png",
-   "note": "A real connection, read by D5's network.observe from this computer's connection table: the check's own loopback connection (127.0.0.1, port 49585; nothing leaves the computer), the stream filtered to its port in the line (port 49585, Enter). Right-click on it: named by who talks to whom (\"python → 127.0.0.1:49585\"); Ask Stacy about this (an assignment with the connection as its context), Follow this conversation (the stream filtered to the far host and port, the entry pinned), Show the process (python, pid 1: this check), Copy address (127.0.0.1:49585). No notes: the owner replaced them with the network.",
+   "note": "A real connection, read by D5's network.observe from this computer's connection table: the check's own loopback connection (127.0.0.1, port 33841; nothing leaves the computer), the stream filtered to its port in the line (port 33841, Enter). Right-click on it: named by who talks to whom (\"python → 127.0.0.1:33841\"); Ask Graphite about this (an assignment with the connection as its context), Follow this conversation (the stream filtered to the far host and port, the entry pinned), Show the process (python, pid 15277: this check), Copy address (127.0.0.1:33841). No notes: the owner replaced them with the network.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS",
    "status": "",
-   "sha256": "eee3b9df506b01a028470deec8e1718390932f8ddd60709d8048cf6ff6216498",
+   "sha256": "fa1bd3f14cb1961189cafad850e5471db4ee60e8a6808eb611c6b6a17d504432",
    "resolution": [
     1920,
     1200
    ],
-   "bytes": 274437
+   "bytes": 290599
   },
   {
    "file": "Graphite_Desk_D4_08_Passage_Right_Click_1366x768.png",
    "note": "The same passage's menu at 1366 by 768: whole, inside the window, the desk's row height and icon column.",
    "mode": "ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS",
    "status": "",
-   "sha256": "da6ed215664efb683459b7f59d3483eb41f4ef9ee04e2603b89eb1d90d008804",
+   "sha256": "f80f6aa17c69ef48cf193033537ef72f28b6d0620755b593f701a01ce533d1bd",
    "resolution": [
     1366,
     768
    ],
-   "bytes": 189254
+   "bytes": 194835
   }
  ],
  "superseded": [],
@@ -142,7 +142,7 @@
     38
    ],
    "width": 369,
-   "height": 542,
+   "height": 553,
    "inside": true,
    "clipped": 0,
    "heading": [
@@ -160,7 +160,7 @@
    "—",
    "Inspect in the line",
    "—",
-   "Ask Stacy about this",
+   "Ask Graphite about this",
    "Search for these words",
    "—",
    "New document",
@@ -176,7 +176,7 @@
   ],
   "bold": {
    "dispatched": {
-    "id": "5e0dc077a05e475e9adccd30d969ee89",
+    "id": "99ae895b8f6e4208b1bea8b342c47e01",
     "expected_revision": 2,
     "change": {
      "bold": true
@@ -184,7 +184,7 @@
     "origin": "HUMAN",
     "request": "Right-click · bold"
    },
-   "foot": "Right-click · Saved · revision 3 · You made “within a hair” bold · today 12:01",
+   "foot": "Right-click · Saved · revision 3 · You made “within a hair” bold · today 03:40",
    "revision_before": 2,
    "revision_after": 3
   },
@@ -195,8 +195,6 @@
     "—",
     "Copy to…",
     "Move to…",
-    "—",
-    "Stage selected files in Delivery",
     "—",
     "Copy paths",
     "—",
@@ -218,7 +216,7 @@
      38
     ],
     "width": 372,
-    "height": 254,
+    "height": 232,
     "inside": true,
     "clipped": 0,
     "heading": [
@@ -268,7 +266,7 @@
      38
     ],
     "width": 335,
-    "height": 269,
+    "height": 280,
     "inside": true,
     "clipped": 0,
     "heading": [
@@ -309,8 +307,8 @@
     "word_x": [
      38
     ],
-    "width": 244,
-    "height": 218,
+    "width": 328,
+    "height": 229,
     "inside": true,
     "clipped": 0,
     "heading": [
@@ -322,13 +320,13 @@
   "connection": {
    "real": true,
    "words": [
-    "Ask Stacy about this",
+    "Ask Graphite about this",
     "Follow this conversation",
     "Show the process",
     "—",
     "Copy address"
    ],
-   "label": "python → 127.0.0.1:49585",
+   "label": "python → 127.0.0.1:33841",
    "noun": "network connection · tcp · established",
    "process": "python",
    "rules": {
@@ -347,11 +345,11 @@
      38
     ],
     "width": 477,
-    "height": 179,
+    "height": 190,
     "inside": true,
     "clipped": 0,
     "heading": [
-     "python → 127.0.0.1:49585",
+     "python → 127.0.0.1:33841",
      "network connection · tcp · established"
     ]
    }
@@ -372,7 +370,7 @@
     38
    ],
    "width": 369,
-   "height": 542,
+   "height": 553,
    "inside": true,
    "clipped": 0,
    "heading": [
@@ -396,7 +394,7 @@
     49
    ],
    "width": 475,
-   "height": 702,
+   "height": 714,
    "inside": true,
    "clipped": 0,
    "heading": [
@@ -420,7 +418,7 @@
     53
    ],
    "width": 527,
-   "height": 766,
+   "height": 780,
    "inside": true,
    "clipped": 0,
    "heading": [
@@ -433,7 +431,7 @@
   [
    "documents.edit",
    {
-    "id": "5e0dc077a05e475e9adccd30d969ee89",
+    "id": "99ae895b8f6e4208b1bea8b342c47e01",
     "expected_revision": "2",
     "change": "{'bold': True}",
     "origin": "HUMAN",
@@ -483,8 +481,7 @@
   "queued",
   "network",
   "event",
-  "empty",
-  "field"
+  "empty"
  ],
  "finders": [
   "find_document",
@@ -499,7 +496,6 @@
   "find_process_list",
   "find_jobs",
   "find_today",
-  "find_field",
   "find_workspace"
  ],
  "sections": [
