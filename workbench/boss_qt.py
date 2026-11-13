@@ -269,6 +269,12 @@ def appearance_menu(host):
     for key, word in zip(ART_MODES, ('Illustrated', 'ASCII', 'Clean')):
         action = menu.addAction(word);action.setCheckable(True);group.addAction(action);actions[key] = action
         action.triggered.connect(lambda checked=False, mode=key:choose_art(host, mode))
+    glow = QMenu('Glow', menu);levels = QActionGroup(glow);levels.setExclusive(True);lit = {}
+    for key, word, _ in t.GLOW_LEVELS:
+        line = glow.addAction(word);line.setCheckable(True);levels.addAction(line);lit[key] = line
+        line.triggered.connect(lambda checked=False, key=key:choose_glow(host, key))
+    glow.aboutToShow.connect(lambda:lit.get(host.session.state.get('glow', t.GLOW_OPENS), lit[t.GLOW_OPENS]).setChecked(True))
+    menu.addMenu(glow)
     menu.addSeparator()
     menu.addMenu(host.idle_display.menu(menu))
     plates = QMenu('Art plates', menu)
@@ -305,8 +311,9 @@ def lamp(widget, colour, on=True, blur=14.0, alpha=0.85):
     from PySide6.QtWidgets import QGraphicsDropShadowEffect
     if bool(on) == (widget.graphicsEffect() is not None):return
     if on:
-        glow = QGraphicsDropShadowEffect(widget);glow.setOffset(0, 0);glow.setBlurRadius(blur)
-        ink = QColor(colour);ink.setAlphaF(alpha);glow.setColor(ink);widget.setGraphicsEffect(glow)
+        level = t.glow()
+        glow = QGraphicsDropShadowEffect(widget);glow.setOffset(0, 0);glow.setBlurRadius(blur * (0.6 + 0.4 * level))
+        ink = QColor(colour);ink.setAlphaF(min(1.0, alpha * (0.85 + 0.15 * level)));glow.setColor(ink);widget.setGraphicsEffect(glow)
     else:
         widget.setGraphicsEffect(None)
 
@@ -315,6 +322,26 @@ def waits(button, host, yes=True):
     """A button that applies a change when the owner presses it waits for the owner, and what waits for the owner glows in
     amber: the Approve of a change put up in Talk is lit as the Field's Approve is. `yes` False when it has been pressed."""
     button.setProperty(WAITS, bool(yes));lamp(button, t.AMBER_EDGE, bool(yes) and button.isEnabled() and glows(host))
+
+
+def set_glow(host):
+    """Put the session's choice of glow in force (boss_theme.GLOW). Called when a window starts and when the choice changes."""
+    try:chosen = host.session.state.get('glow', t.GLOW_OPENS)
+    except Exception:  # noqa: BLE001 - a host without a session: what the desk opens with
+        chosen = t.GLOW_OPENS
+    t.GLOW[0] = next((level for key, _, level in t.GLOW_LEVELS if key == chosen), dict((k, v) for k, _, v in t.GLOW_LEVELS)[t.GLOW_OPENS])
+    return t.GLOW[0]
+
+
+def choose_glow(host, key):
+    if key not in [k for k, _, _ in t.GLOW_LEVELS]:return
+    from PySide6.QtWidgets import QPushButton
+    host.session.state['glow'] = key;host.session.save();set_glow(host)
+    for button in host.findChildren(QPushButton):       # a lamp is made at one strength: made again at the new one
+        if button.property(WAITS):
+            lamp(button, t.AMBER_EDGE, False);lamp(button, t.AMBER_EDGE, button.isEnabled() and glows(host))
+    choose_art(host, host.session.state.get('desk_art', 'illustrated'))     # everything that glows is drawn again
+    for widget in host.findChildren(QWidget):QWidget.update(widget)      # (a list or a tree has an update of its own that wants a row)
 
 
 def choose_art(host, mode):

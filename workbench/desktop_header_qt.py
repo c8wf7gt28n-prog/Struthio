@@ -396,6 +396,11 @@ class NicePopup(QFrame):
                 if row['id'] == selected:self.queue.setCurrentItem(item)
             self.signature = signature
         self.queue.setVisible(bool(queued));self.empty.setVisible(not queued)
+        # 0.5.1 (the owner, with 0.4.6 on the ThinkPad: the System menu "could be simplified"): with nothing queued, the
+        # queue's heading, its two dimmed order buttons and the note about sliders said nothing; they are shown when there
+        # is a queue to order or a row with a slider, and one line says the queue is empty otherwise.
+        for part in (self.queued_label, self.earlier, self.later):part.setVisible(bool(queued))
+        self.note.setVisible(bool(queued) or bool(active))
         if queued:self.queue.setFixedHeight(self.rows_height(self.queue, 99 if self.section else 3))  # up to three whole rows, then it scrolls (the System menu: every row, the menu scrolls as one)
         self.queue.setToolTip('No queued Agenda work' if not queued else 'Drag to change persistent Agenda scheduling priority. Crossing a tier adopts that tier; background work waits for idle.')
         self.order_selection()

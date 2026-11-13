@@ -571,7 +571,7 @@ class TopBar(QWidget):
         self._style_key = key
         self.setStyleSheet(CHROME_OVERRIDES + 'QWidget#TopBar2 {background:transparent;border:0;}')
         font = mono_font(max(14, round(16 * scale)))
-        for widget in (self.path, self.more_menus, self.programs, self.nice):
+        for widget in [self.path, self.more_menus, self.programs, self.nice] + list(getattr(self, 'bar_menus', [])):
             widget.setFont(font)
         self.pulse.restyle()
 
@@ -586,6 +586,30 @@ class TopBar(QWidget):
 
     def headings(self):
         return list(getattr(self.host, 'command_menus', {}).values())
+
+    def menu_words(self):
+        """The familiar menus in the open, one word each, across the head (0.5.1). The owner, with 0.4.6 on the ThinkPad:
+        "The work menu, I don't know if I like that. It's just an extra click to get to the familiar ... file, edit, tools,
+        arrange, command, rules, property, guide ... I almost wonder if we should just have those at the top, kind of like
+        Apple does, instead of hidden away in a menu." Each word opens the very menu that was inside Work: the same QMenu
+        objects, so nothing is listed twice and every key still works."""
+        heads = [heading for heading in self.headings() if heading.menu() is not None]
+        if len(getattr(self, 'bar_menus', [])) != len(heads):
+            for old in getattr(self, 'bar_menus', []):old.deleteLater()
+            self.bar_menus = []
+            for heading in heads:
+                word = QToolButton(self.first_row);word.setObjectName('HeadMenu');word.setPopupMode(QToolButton.InstantPopup)
+                word.setToolButtonStyle(Qt.ToolButtonTextOnly);word.setCursor(Qt.PointingHandCursor);word.setFont(self.more_menus.font())
+                self.bar_menus.append(word)
+        from .tool_faces import dress
+        for word, heading in zip(self.bar_menus, heads):
+            if word.menu() is not heading.menu():
+                word.setMenu(heading.menu())
+                if not heading.menu().property('glyphDressed'):      # with icons chosen, a line that names a drawn thing carries its glyph
+                    heading.menu().setProperty('glyphDressed', True);heading.menu().aboutToShow.connect(lambda menu=heading.menu(): dress(menu))
+            if word.text() != heading.text():
+                word.setText(heading.text());word.setAccessibleName(heading.text() + ' menu')
+        return self.bar_menus
 
     def plan_menus(self, d, reach):
         """The menu row for desk d: (kept headings, left edges, gaps, widths, inset on the column or None). The words lie on
@@ -622,10 +646,28 @@ class TopBar(QWidget):
             self.nice.setParent(self.first_row)
             h, o, gap = d.band, d.inset, max(6, d.gap // 2)
             x = d.width - o
-            for widget in (self.nice, self.programs, self.more_menus):
+            for widget in (self.nice, self.programs):
                 width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4))
                 x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
-            self.path.setGeometry(o, 0, max(40, x - o - gap), h);self.path.show()
+            # The familiar menus stand in the open from the left edge; the name of what is open follows them. In a window too
+            # narrow for all of them and a name, the rightmost fold into ⋯, which lists every menu.
+            words = self.menu_words();air = round(22 * min(d.scale, 1.4));name_room = round(180 * d.scale)
+            widths = [word.fontMetrics().horizontalAdvance(word.text()) + air for word in words]
+            fold = self.more_menus.fontMetrics().horizontalAdvance('⋯') + round(26 * min(d.scale, 1.4));kept = 0
+            for keep in range(len(words), -1, -1):
+                if o + sum(widths[:keep]) + (fold if keep < len(words) else 0) + gap + name_room <= x or keep == 0:
+                    kept = keep;break
+            left = max(0, o - air // 2)
+            for at, word in enumerate(words):
+                if at < kept:
+                    word.setGeometry(left, 0, widths[at], h);word.show();left += widths[at]
+                else:word.hide()
+            if kept < len(words) or not words:
+                self.more_menus.setText('⋯' if words else 'Work ▾');width = fold if words else self.more_menus.fontMetrics().horizontalAdvance('Work ▾') + round(26 * min(d.scale, 1.4))
+                self.more_menus.setGeometry(left, 0, width, h);self.more_menus.show();left += width
+            else:
+                self.more_menus.setText('Work ▾');self.more_menus.hide()      # still there, and still lists every menu, for what reads it
+            self.path.setGeometry(left + gap, 0, max(40, x - left - 2 * gap), h);self.path.show()
             self.folded_menus = self.headings()
             self.plan = None
         finally:self._placing = False
@@ -783,8 +825,18 @@ class PathBar(QLineEdit):
         name, where = self.friendly();option = QStyleOptionFrame();self.initStyleOption(option)
         box = self.style().subElementRect(QStyle.SE_LineEditContents, option, self).adjusted(2, 0, -2, 0)
         p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing);p.setFont(self.font());fm = QFontMetrics(self.font())
-        said = fm.elidedText(name, Qt.ElideMiddle, box.width());p.setPen(self.palette().color(QPalette.Text))
-        p.drawText(box, Qt.AlignVCenter | Qt.AlignLeft, said)
+        said = fm.elidedText(name, Qt.ElideMiddle, box.width());ink_now = self.palette().color(QPalette.Text)
+        try:
+            from .boss_qt import glows
+            from .boss_theme import glow
+            level = glow() if glows(self.host) else 0.0
+        except Exception:  # noqa: BLE001 - a name is drawn whatever else is the matter
+            level = 0.0
+        if level > 0:       # the name of what is open is lit: the same word, faintly, a little off all round
+            halo = QColor(ink_now);halo.setAlphaF(min(0.28, 0.07 * level));p.setPen(halo)
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1), (2, 0), (-2, 0)):
+                p.drawText(box.translated(dx, dy), Qt.AlignVCenter | Qt.AlignLeft, said)
+        p.setPen(ink_now);p.drawText(box, Qt.AlignVCenter | Qt.AlignLeft, said)
         left = box.left() + fm.horizontalAdvance(said) + fm.horizontalAdvance('   ')
         if where and box.right() - left > fm.horizontalAdvance('mmmmmm'):
             p.setPen(QColor(QUIET));p.drawText(box.adjusted(left - box.left(), 0, 0, 0), Qt.AlignVCenter | Qt.AlignLeft, fm.elidedText(where, Qt.ElideMiddle, box.right() - left))

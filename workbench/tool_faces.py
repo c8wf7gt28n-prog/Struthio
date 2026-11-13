@@ -39,10 +39,10 @@ FOR_WORDS = {
     'Export…': 'export', 'Edit cell': 'cell', 'Open source row': 'source', 'New document': 'document',
     'Compare sources again': 'again', 'Stop': 'stop', 'Bold': 'bold', 'Italic': 'italic', 'Underline': 'underline',
     'Heading': 'h1', 'Subheading': 'h2', 'Minor heading': 'h3', 'Body': 'body', 'Code': 'code', 'Plain': 'plain',
-    'Pin / Unpin': 'pin',
+    'Pin / Unpin': 'pin', 'Close': 'close',
 }
 # The glyphs that stand alone: what every program draws the same way. Every other glyph keeps its words beside it.
-BARE = frozenset(('find', 'smaller', 'larger', 'undo', 'redo', 'save', 'previous', 'next', 'more', 'pin',
+BARE = frozenset(('find', 'smaller', 'larger', 'undo', 'redo', 'save', 'previous', 'next', 'more', 'pin', 'close',
                   'bold', 'italic', 'underline', 'h1', 'h2', 'h3', 'body', 'code', 'plain'))
 NAMES = {'−': 'Smaller', '+': 'Larger'}         # what a bare sign is called in its tip
 
@@ -123,8 +123,11 @@ def paint(button, key):
         finally:p.restore()
 
     if over and not down and glows(button):       # what the pointer is over glows a little, as on the rest of the desk
-        halo = QColor(t.READY);halo.setAlphaF(0.09)
+        level = t.glow();halo = QColor(t.READY);halo.setAlphaF(min(0.3, 0.09 * level))
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (-1, 1), (1, -1)):glyph(dx, dy, halo, halo)
+        if level >= 1.5:
+            far = QColor(t.READY);far.setAlphaF(min(0.16, 0.035 * level))
+            for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2), (-2, -2), (2, 2), (-2, 2), (2, -2)):glyph(dx, dy, far, far)
     glyph(0, 0, QColor(ink), QColor(accent))
     if not bare:
         p.setFont(button.font());p.setPen(QColor(ink))
@@ -165,6 +168,75 @@ def wear(button, key=None, tone=None):
     if tone:button.setProperty('faceTone', tone)
     button.installEventFilter(FACE);fit(button)
     return button
+
+
+# ---- glyphs in the menus ---------------------------------------------------------------------------------------------
+# The owner, with 0.4.6 on the ThinkPad: "I love your icons. I wish we had more icons." With icons chosen, a line of a
+# menu that names something a glyph was drawn for carries that glyph before its words. The words are what they were.
+FOR_MENU = {
+    'New File': 'document', 'New Idea': 'note', 'New Project': 'folder', 'Open': 'folder', 'Open in Universal Viewer': 'page',
+    'Find a File': 'find', 'Receive Files': 'receive', 'Import (Ingress)': 'receive', 'Export (Egress)': 'export',
+    'Work on a Copy of a File': 'copy', 'Save': 'save', 'Save All': 'save', 'Close': 'close', 'Recover Unsaved Work': 'undo',
+    'Undo': 'undo', 'Redo': 'redo', 'Cut': 'cut', 'Copy': 'copy', 'Paste': 'paste', 'Select All': 'select', 'Find': 'find',
+    'Find Next': 'next', 'Replace': 'recalc', 'Go to Line': 'source',
+    'Explore capabilities': 'rooms', 'Inquiries': 'asked', 'System Check': 'found', 'STOP / KILL all Graphite operations': 'stop',
+    'Engineering': 'chip', 'Today': 'home', 'Field': 'field', 'Files': 'folder', 'Library': 'stack', 'Changes': 'delta',
+    'Continuing work': 'running', 'Graphite\'s Agenda': 'agenda', 'Console': 'prompt', 'Cabinet': 'folder',
+    'Refresh Machine View': 'recalc', 'Full Screen': 'full', 'Reading and Layout': 'sliders', 'Larger prose': 'larger',
+    'Smaller prose': 'smaller', 'Word Wrap': 'lines', 'Split Editor / Close Split': 'split', 'Pin / Unpin workspace': 'pin',
+    'Reset Window Layout': 'undo', 'Graphite Commands': 'prompt', 'Run an operation': 'running', 'Chain Menu': 'chain',
+    'Constructed chain': 'chain', 'Writing Line': 'cell', 'Command Palette': 'prompt', 'Favorite commands': 'star',
+    'Graphite Settings': 'sliders', 'Desk artwork': 'picture', 'Buttons': 'rooms', 'Inspector': 'info', 'This Computer': 'chip',
+    'Pills and Paired Computers': 'port', 'Getting Started': 'book', 'Keyboard Shortcuts': 'key', 'Installation Guide': 'receive',
+    'The Orange Book': 'book', 'About Graphite': 'info', 'Assistant': 'asked', 'Terminal': 'prompt', 'Search': 'find', 'Log': 'lines',
+}
+_icons = {}
+
+
+def icon(key):
+    """A glyph as an icon a menu can show: its ink at rest, amber when its line is chosen, dim when it cannot be used."""
+    if key in _icons:return _icons[key]
+    from PySide6.QtGui import QIcon, QPixmap
+    from .glyph_set import KIND
+    draw = GLYPHS.get(key) or KIND.get(key);made = QIcon()
+    if draw is None:return made
+    for state, line, fill in ((QIcon.Normal, t.TEXT, t.FAINT), (QIcon.Active, t.AMBER_TEXT, t.AMBER_EDGE), (QIcon.Selected, t.AMBER_TEXT, t.AMBER_EDGE), (QIcon.Disabled, t.LINE_MID, t.LINE)):
+        for ratio in (1, 2):
+            image = QPixmap(SIDE * ratio, SIDE * ratio);image.fill(Qt.transparent)
+            p = QPainter(image);p.setRenderHint(QPainter.Antialiasing);p.scale(SIDE * ratio / 20.0, SIDE * ratio / 20.0)
+            try:draw(p, QColor(line), QColor(fill))
+            finally:p.end()
+            image.setDevicePixelRatio(ratio);made.addPixmap(image, state)
+    _icons[key] = made;return made
+
+
+def named(text):
+    """A menu line's words as they are looked up: without the mnemonic mark, the key beside them, or the dots."""
+    return text.replace('&', '').split('\t')[0].rstrip('….').strip()
+
+
+def dress(menu):
+    """Give the lines of this menu their glyphs (or take them away again, with words chosen). Looked at each time the
+    menu opens; a menu inside it is dressed when it opens in its turn."""
+    from PySide6.QtGui import QIcon
+    from .glyph_set import KIND
+    on = STATE['mode'] == 'icons'
+    if bool(menu.property('glyphs')) != on:      # the menu's own sheet makes room for a column of glyphs, or closes it
+        menu.setProperty('glyphs', on);style = menu.style();style.unpolish(menu);style.polish(menu)
+    for line in menu.actions():
+        if line.isSeparator():continue
+        inner = line.menu()
+        if inner is not None and not inner.property('glyphDressed'):
+            inner.setProperty('glyphDressed', True);inner.aboutToShow.connect(lambda inner=inner: dress(inner))
+        key = FOR_MENU.get(named(line.text()))
+        if key is None or (key not in GLYPHS and key not in KIND):continue
+        if on and not line.property('glyphIcon'):           # some lines carry an older picture the menus never showed: it is kept, to be put back
+            line.setProperty('iconBefore', line.icon());line.setProperty('shownBefore', line.isIconVisibleInMenu())
+            line.setIcon(icon(key));line.setProperty('glyphIcon', True)
+        if on:line.setIconVisibleInMenu(True)
+        elif line.property('glyphIcon'):
+            before = line.property('iconBefore');line.setIcon(before if isinstance(before, QIcon) else QIcon())
+            line.setIconVisibleInMenu(bool(line.property('shownBefore')));line.setProperty('glyphIcon', False)
 
 
 def start(host):

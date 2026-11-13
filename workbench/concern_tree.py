@@ -28,6 +28,8 @@ class ConcernTree(QTreeWidget):
                    for row in range(index.row() + 1, self.model().rowCount(parent)))
 
     def drawBranches(self, painter, rect, index):
+        if not getattr(self, '_path_watched', False):      # 0.5.1: the lit path follows the current row, so every branch is drawn again when it moves
+            self._path_watched = True;self.currentItemChanged.connect(lambda *_: self.viewport().update())
         if getattr(self, 'desk_branches', False):  # HATCH DESK D1b: Existing views draw the desk trees' branch lines
             from .pane_qt import draw_branches
             return draw_branches(self, painter, rect, index)

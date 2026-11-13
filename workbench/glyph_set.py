@@ -248,6 +248,139 @@ def rooms(p, ink, accent):
     for x, y in ((3.5, 3.5), (11.5, 3.5), (3.5, 11.5), (11.5, 11.5)):p.drawRect(QRectF(x, y, 5, 5))
 
 
+# ---- what the menus name ---------------------------------------------------------------------------------------------
+
+def copy(p, ink, accent):
+    """Two sheets, one over the other."""
+    facet(p, accent, (3.5, 6.5), (12.5, 6.5), (12.5, 17.5), (3.5, 17.5))
+    pen(p, ink);p.drawRect(QRectF(3.5, 6.5, 9, 11));line(p, (7.5, 6.5), (7.5, 2.5), (16.5, 2.5), (16.5, 13.5), (12.5, 13.5))
+
+
+def paste(p, ink, accent):
+    """The board a sheet is clipped to."""
+    pen(p, ink);p.drawRect(QRectF(4.5, 4.5, 11, 13));line(p, (7.5, 10.5), (12.5, 10.5));line(p, (7.5, 13.5), (12.5, 13.5))
+    facet(p, ink, (7.5, 2.5), (12.5, 2.5), (12.5, 6.5), (7.5, 6.5))
+
+
+def cut(p, ink, accent):
+    """Scissors."""
+    pen(p, ink);line(p, (5.0, 2.5), (13.2, 13.2));line(p, (15.0, 2.5), (6.8, 13.2))
+    for x in (5.5, 14.5):facet(p, ink, (x - 2.5, 15.5), (x, 13.0), (x + 2.5, 15.5), (x, 18.0))
+
+
+def select(p, ink, accent):
+    """All of it: a marked-off field."""
+    facet(p, accent, (6.5, 6.5), (13.5, 6.5), (13.5, 13.5), (6.5, 13.5))
+    pen(p, ink)
+    for a, b in (((3.5, 3.5), (8.0, 3.5)), ((12.0, 3.5), (16.5, 3.5)), ((3.5, 16.5), (8.0, 16.5)), ((12.0, 16.5), (16.5, 16.5)),
+                 ((3.5, 3.5), (3.5, 8.0)), ((3.5, 12.0), (3.5, 16.5)), ((16.5, 3.5), (16.5, 8.0)), ((16.5, 12.0), (16.5, 16.5))):line(p, a, b)
+
+
+def full(p, ink, accent):
+    """The whole screen: four corners."""
+    pen(p, ink, 1.8)
+    line(p, (3.5, 8.0), (3.5, 3.5), (8.0, 3.5));line(p, (12.0, 3.5), (16.5, 3.5), (16.5, 8.0))
+    line(p, (3.5, 12.0), (3.5, 16.5), (8.0, 16.5));line(p, (12.0, 16.5), (16.5, 16.5), (16.5, 12.0))
+
+
+def home(p, ink, accent):
+    """Today: the house."""
+    facet(p, accent, (8.5, 16.5), (8.5, 12.5), (11.5, 12.5), (11.5, 16.5))
+    pen(p, ink);line(p, (2.5, 10.5), (10.0, 3.5), (17.5, 10.5));line(p, (5.5, 9.0), (5.5, 16.5), (14.5, 16.5), (14.5, 9.0))
+
+
+def sliders(p, ink, accent):
+    """Settings: three rules, each set somewhere."""
+    pen(p, ink)
+    for y, x in ((5.5, 7.0), (10.5, 13.0), (15.5, 9.0)):
+        line(p, (3.0, y), (17.0, y));facet(p, ink, (x - 1.6, y - 2.6), (x + 1.6, y - 2.6), (x + 1.6, y + 2.6), (x - 1.6, y + 2.6))
+
+
+def prompt(p, ink, accent):
+    """The terminal: a prompt and its cursor."""
+    pen(p, ink, 1.8);line(p, (4.0, 5.0), (9.5, 10.0), (4.0, 15.0));line(p, (11.0, 15.5), (17.0, 15.5))
+
+
+def lines(p, ink, accent):
+    """A log: lines, one after another."""
+    pen(p, ink);line(p, (3.0, 5.5), (17.0, 5.5));line(p, (3.0, 10.5), (12.5, 10.5));line(p, (3.0, 15.5), (15.0, 15.5))
+
+
+def info(p, ink, accent):
+    """About: a cell of the lattice with an i in it."""
+    pen(p, ink);line(p, *HEX, close=True)
+    pen(p, ink, 1.8);line(p, (10.0, 9.5), (10.0, 14.2));facet(p, ink, (10.0, 5.2), (11.4, 6.6), (10.0, 8.0), (8.6, 6.6))
+
+
+def close(p, ink, accent):
+    pen(p, ink, 1.8);line(p, (5.0, 5.0), (15.0, 15.0));line(p, (15.0, 5.0), (5.0, 15.0))
+
+
+def receive(p, ink, accent):
+    """Into the tray."""
+    pen(p, ink);line(p, (3.5, 11.5), (3.5, 16.5), (16.5, 16.5), (16.5, 11.5));line(p, (10.0, 2.5), (10.0, 9.0))
+    facet(p, ink, (10.0, 14.0), (5.2, 8.4), (14.8, 8.4))
+
+
+def chip(p, ink, accent):
+    """This computer: a chip and its pins."""
+    facet(p, accent, (8.0, 8.0), (12.0, 8.0), (12.0, 12.0), (8.0, 12.0))
+    pen(p, ink);p.drawRect(QRectF(5.5, 5.5, 9, 9))
+    for a in (8.0, 12.0):
+        line(p, (a, 5.5), (a, 2.5));line(p, (a, 14.5), (a, 17.5));line(p, (5.5, a), (2.5, a));line(p, (14.5, a), (17.5, a))
+
+
+def book(p, ink, accent):
+    """A book, open."""
+    pen(p, ink);line(p, (10.0, 5.5), (3.5, 4.0), (3.5, 15.0), (10.0, 16.5), (16.5, 15.0), (16.5, 4.0), (10.0, 5.5));line(p, (10.0, 5.5), (10.0, 16.5))
+
+
+def key(p, ink, accent):
+    """A key of the keyboard."""
+    facet(p, accent, (6.5, 5.5), (13.5, 5.5), (13.5, 11.5), (6.5, 11.5))
+    pen(p, ink);p.drawRect(QRectF(3.5, 3.5, 13, 13));p.drawRect(QRectF(6.5, 5.5, 7, 6))
+
+
+def stack(p, ink, accent):
+    """The library: layers, as graphite is layers."""
+    facet(p, accent, (10.0, 3.0), (17.0, 6.5), (10.0, 10.0), (3.0, 6.5))
+    pen(p, ink);line(p, (10.0, 3.0), (17.0, 6.5), (10.0, 10.0), (3.0, 6.5), close=True);line(p, (3.0, 10.0), (10.0, 13.5), (17.0, 10.0));line(p, (3.0, 13.5), (10.0, 17.0), (17.0, 13.5))
+
+
+def delta(p, ink, accent):
+    """What changed."""
+    pen(p, ink, 1.8);line(p, (10.0, 3.5), (17.0, 16.5), (3.0, 16.5), close=True)
+
+
+def agenda(p, ink, accent):
+    """A list of things, the first one done."""
+    facet(p, ink, (3.0, 4.0), (6.5, 4.0), (6.5, 7.5), (3.0, 7.5))
+    pen(p, ink);p.drawRect(QRectF(3.5, 9.5, 2.5, 2.5));p.drawRect(QRectF(3.5, 14.5, 2.5, 2.5))
+    for y in (5.5, 10.5, 15.5):line(p, (9.0, y), (17.0, y))
+
+
+def chain(p, ink, accent):
+    """Two links."""
+    pen(p, ink);p.drawRect(QRectF(2.5, 7.5, 8.5, 5.5));p.drawRect(QRectF(9.0, 7.5, 8.5, 5.5))
+
+
+def star(p, ink, accent):
+    """A favourite; what is new."""
+    points = ((10.0, 2.5), (12.2, 7.8), (17.5, 10.0), (12.2, 12.2), (10.0, 17.5), (7.8, 12.2), (2.5, 10.0), (7.8, 7.8))
+    facet(p, accent, *points);pen(p, ink);line(p, *points, close=True)
+
+
+def split(p, ink, accent):
+    """One view made two."""
+    pen(p, ink);p.drawRect(QRectF(2.5, 4.5, 15, 11));line(p, (10.0, 4.5), (10.0, 15.5))
+
+
+def picture(p, ink, accent):
+    """Artwork: a framed view."""
+    pen(p, ink);p.drawRect(QRectF(2.5, 4.5, 15, 11));line(p, (4.5, 13.5), (8.5, 9.5), (11.0, 12.0), (13.5, 9.0), (16.0, 12.0))
+    facet(p, accent, (5.0, 6.5), (7.5, 6.5), (7.5, 9.0), (5.0, 9.0))
+
+
 def letters(text, weight=QFont.DemiBold, italic=False, under=False, family='IBM Plex Sans', size=13.0):
     """A glyph that is type: the letter a writer already knows a style by."""
     def draw(p, ink, accent):
@@ -263,6 +396,12 @@ GLYPHS = {
     'previous': previous, 'next': following, 'cite': cite, 'table': table, 'more': more, 'note': note,
     'report': report, 'recalc': recalc, 'export': export, 'cell': cell, 'source': source,
     'document': document, 'again': again, 'stop': stop, 'pin': pin,
+    'copy': copy, 'paste': paste, 'cut': cut, 'select': select, 'full': full, 'home': home, 'sliders': sliders, 'prompt': prompt,
+    'lines': lines, 'info': info, 'close': close, 'receive': receive, 'chip': chip, 'book': book, 'key': key, 'stack': stack,
+    'delta': delta, 'agenda': agenda, 'chain': chain, 'star': star, 'split': split, 'picture': picture,
+    # the kinds of sheet, by what they draw, so a menu or a tab can wear them too
+    'page': page, 'found': found, 'asked': asked, 'limit': limit, 'steps': steps, 'running': running, 'folder': folder,
+    'port': port, 'window': window, 'reach': reach, 'rooms': rooms,
     'bold': letters('B', QFont.Bold, size=14.0), 'italic': letters('I', QFont.DemiBold, italic=True, size=14.0),
     'underline': letters('U', QFont.DemiBold, under=True, size=12.0),
     'h1': letters('H1'), 'h2': letters('H2', QFont.Medium, size=12.0), 'h3': letters('H3', QFont.Normal, size=11.0),

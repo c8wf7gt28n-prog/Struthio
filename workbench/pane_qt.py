@@ -38,7 +38,7 @@ LEFT_WORDS = ('Files', 'Machine', 'Settings')
 RIGHT_WORDS = ('Talk', 'Activity', 'Context')
 # Paper v1.1 (shell2's palette, repeated so this module needs no window code): graphite words, quieter graphite for the tabs
 # not chosen, a faint rule under each tab row, pencil-grey branch lines, eraser pink for a selected row.
-from .boss_theme import TEXT, QUIET, LINE, LINE_STRONG as BRANCH, ERASER, GROUND
+from .boss_theme import TEXT, QUIET, LINE, LINE_STRONG as BRANCH, ERASER, GROUND, TEAL_EDGE as TRACE, READY as LIVE, glow as glow_level
 TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {padding:0 2px;border:0;} '
               'QTreeWidget::item:selected {background:%s;color:%s;} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
               % (TEXT, ERASER, TEXT))
@@ -268,32 +268,70 @@ def next_visible(view, index):
     return any(not view.isRowHidden(row, parent) for row in range(index.row() + 1, model.rowCount(parent)))
 
 
+def lit_path(view):
+    """The rows from a root down to the current row, as (parent, row) pairs: the path a signal would take to reach it."""
+    index = view.currentIndex();path = set()
+    while index.isValid():
+        path.add((index.parent(), index.row()));index = index.parent()
+    return path
+
+
 def draw_branches(view, painter, rect, index):
-    """The connecting branch lines and the open or closed chevron of one row, the same in every left tree: a one-pixel
-    pencil-grey line down each level that has rows still to come, an elbow from the parent's line to the row (to its chevron,
-    or toward its words for a row with nothing inside), a short stem from an open row's chevron down to its first child, and
-    the chevron in graphite. Roots stand on their own (a chevron, no line)."""
+    """The branches of one row, the same in every left tree, drawn as the traces of a circuit board (0.5.1; the owner, with
+    0.4.6 on the ThinkPad: "I almost wonder if the tree and the branching could be green and maybe kind of circuit themed.
+    That'd be cool."). A green trace runs down each level that has rows still to come; a row leaves it by a short chamfer,
+    as a trace leaves a bus, and ends in a pad (a row with nothing inside) or at its chevron. The traces from the root to
+    the current row are lit and, on a desk that glows, throw a little light: the path is read at a glance. Roots stand on
+    their own (a chevron, no trace). Until 0.5.1 these were one-pixel pencil-grey lines with square elbows."""
     step = view.indentation()
     if step <= 0 or rect.width() < step:return
     model = view.model();own = rect.right() + 1 - step;mid = rect.top() + rect.height() // 2;cx = own + step // 2
-    has = model.hasChildren(index);half = max(3, round(step * 0.18))
-    painter.save();painter.setRenderHint(QPainter.Antialiasing, False)
-    painter.fillRect(rect, QColor(GROUND))  # a chosen row is marked over its words only; the branches stay on plain paper
-    line = QPen(QColor(BRANCH), 1);line.setCosmetic(True);painter.setPen(line)
-    parent = index.parent()
+    has = model.hasChildren(index);half = max(3, round(step * 0.18));cut = max(3, min(6, step // 4))
+    path = lit_path(view);parent = index.parent();here = (parent, index.row()) in path
+    try:
+        from .boss_qt import glows
+        level = glow_level() if glows(view.window()) else 0.0
+    except Exception:  # noqa: BLE001 - a tree is drawn whatever else is the matter
+        level = 0.0
+    painter.save();painter.setRenderHint(QPainter.Antialiasing, True)
+    painter.fillRect(rect, QColor(GROUND))  # a chosen row is marked over its words only; the branches stay on plain ground
+    dim = QColor(TRACE);dim.setAlphaF(0.78)
+
+    def trace(points, lit):
+        """One run of trace through these points: lit (and glowing) when it is on the way to the current row."""
+        if lit and level > 0:
+            for width, alpha in ((7.0, 0.05 * level), (4.0, 0.11 * level)):
+                halo = QColor(LIVE);halo.setAlphaF(min(0.5, alpha));pen = QPen(halo, width);pen.setCapStyle(Qt.RoundCap);pen.setJoinStyle(Qt.RoundJoin)
+                painter.setPen(pen);painter.drawPolyline(points)
+        pen = QPen(QColor(LIVE) if lit else dim, 1.5 if lit else 1.2);pen.setCapStyle(Qt.FlatCap);pen.setJoinStyle(Qt.MiterJoin)
+        painter.setPen(pen);painter.drawPolyline(points)
+
+    def lit_child_row(of):
+        """The row, among the children of `of`, that the lit path goes through; -1 when it does not pass through `of`."""
+        return next((row for holder, row in path if holder == of), -1)
+
     if parent.isValid() and own - step >= rect.left():
-        px = own - step + step // 2
-        painter.drawLine(px, rect.top(), px, mid)
-        if next_visible(view, index):painter.drawLine(px, mid, px, rect.bottom())
-        painter.drawLine(px, mid, (cx - half - 3) if has else (rect.right() - 3), mid)
+        px = own - step + step // 2 + 0.5;goes = lit_child_row(parent);more = next_visible(view, index)
+        end = (cx - half - 3) if has else (rect.right() - 6)
+        # the bus beside this row: lit as far as the row the path leaves it by
+        if more:trace([QPointF(px, mid - cut), QPointF(px, rect.bottom() + 1)], goes > index.row())
+        trace([QPointF(px, rect.top()), QPointF(px, mid - cut)], goes >= index.row())
+        # this row's own trace: off the bus by a chamfer, then along to the row
+        trace([QPointF(px, mid - cut), QPointF(px + cut, mid + 0.5), QPointF(end, mid + 0.5)], here)
+        if not has:                               # a pad where the trace ends at a row with nothing inside
+            painter.setPen(Qt.NoPen);painter.setBrush(QColor(LIVE) if here else dim);painter.drawEllipse(QPointF(end + 1.0, mid + 0.5), 2.4, 2.4)
+            if here and level > 0:
+                ring = QColor(LIVE);ring.setAlphaF(min(0.4, 0.12 * level));painter.setBrush(ring);painter.drawEllipse(QPointF(end + 1.0, mid + 0.5), 5.5, 5.5)
+            painter.setBrush(Qt.NoBrush)
         x = px - step;ancestor = parent
         while ancestor.parent().isValid() and x >= rect.left():
-            if next_visible(view, ancestor):painter.drawLine(x, rect.top(), x, rect.bottom())
+            if next_visible(view, ancestor):
+                trace([QPointF(x, rect.top()), QPointF(x, rect.bottom() + 1)], lit_child_row(ancestor.parent()) > ancestor.row())
             ancestor = ancestor.parent();x -= step
     if has:
-        if view.isExpanded(index):painter.drawLine(cx, mid + half + 2, cx, rect.bottom())  # down to the first child's elbow
-        painter.setRenderHint(QPainter.Antialiasing, True)
-        chevron = QPen(QColor(TEXT), 1.5);chevron.setCapStyle(Qt.RoundCap);chevron.setJoinStyle(Qt.RoundJoin);painter.setPen(chevron)
+        if view.isExpanded(index):            # down to the first child's chamfer: lit when the path goes on below this row
+            trace([QPointF(cx + 0.5, mid + half + 2), QPointF(cx + 0.5, rect.bottom() + 1)], lit_child_row(index) >= 0)
+        chevron = QPen(QColor(LIVE if here else TEXT), 1.5);chevron.setCapStyle(Qt.RoundCap);chevron.setJoinStyle(Qt.RoundJoin);painter.setPen(chevron)
         if view.isExpanded(index):points = [QPointF(cx - half, mid - half / 2), QPointF(cx, mid + half / 2), QPointF(cx + half, mid - half / 2)]
         else:points = [QPointF(cx - half / 2, mid - half), QPointF(cx + half / 2, mid), QPointF(cx - half / 2, mid + half)]
         painter.drawPolyline(points)
@@ -314,6 +352,7 @@ class BranchTree(QTreeWidget):
     def __init__(self, parent=None):
         super().__init__(parent);self.row_height = 0;self.setRootIsDecorated(True);self.setUniformRowHeights(True)
         self.setItemDelegate(RowDelegate(self));self.setStyleSheet(TREE_STYLE);self.setProperty('deskTree', True)
+        self.currentItemChanged.connect(lambda *_: self.viewport().update())      # the lit path moves with the current row: every branch is drawn again
 
     def set_metrics(self, row, indent):
         if (self.row_height, self.indentation()) == (int(row), int(indent)):return

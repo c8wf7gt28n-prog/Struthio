@@ -47,6 +47,20 @@ class GlyphSetTests(unittest.TestCase):
     def test_every_word_that_wears_a_glyph_names_one_that_exists(self):
         self.assertEqual(sorted(set(tool_faces.FOR_WORDS.values())-set(glyph_set.GLYPHS)),[])
         self.assertEqual(sorted(set(tool_faces.BARE)-set(glyph_set.GLYPHS)),[])
+        drawn_for=set(glyph_set.GLYPHS)|set(glyph_set.KIND)
+        self.assertEqual(sorted(set(tool_faces.FOR_MENU.values())-drawn_for),[],'a menu line names a glyph nobody drew')
+
+    def test_a_menu_line_is_looked_up_without_its_mnemonic_its_key_or_its_dots(self):
+        self.assertEqual([tool_faces.named(w) for w in ('&Undo','Find…\tCtrl+F','New &File…','Pin / Unpin workspace\tCtrl+Shift+K')],['Undo','Find','New File','Pin / Unpin workspace'])
+
+    def test_a_menu_wears_glyphs_only_with_icons_chosen_and_gives_back_what_it_had(self):
+        from PySide6.QtWidgets import QMenu
+        menu=QMenu();undo=menu.addAction('&Undo');other=menu.addAction('Something with no glyph');menu.addSeparator()
+        self.addCleanup(lambda:tool_faces.STATE.update(mode='words'))
+        tool_faces.STATE['mode']='words';tool_faces.dress(menu);self.assertTrue(undo.icon().isNull())
+        tool_faces.STATE['mode']='icons';tool_faces.dress(menu)
+        self.assertFalse(undo.icon().isNull());self.assertTrue(undo.isIconVisibleInMenu());self.assertTrue(other.icon().isNull());self.assertEqual(undo.text(),'&Undo')
+        tool_faces.STATE['mode']='words';tool_faces.dress(menu);self.assertTrue(undo.icon().isNull(),'with words chosen the line is as it was')
 
 
 class ToolFaceTests(unittest.TestCase):
@@ -152,12 +166,25 @@ class KeptChoicesTests(unittest.TestCase):
         s=Session(self.path);s.state.update(extra);s.save();return Session(self.path)
 
     def test_buttons_page_light_and_field_zoom_round_trip_and_nonsense_is_dropped(self):
-        again=self.write(buttons='icons',page_own_light=True,field_zoom={'zoom':0.45,'whole':False})
-        self.assertEqual((again.state.get('buttons'),again.state.get('page_own_light'),again.state.get('field_zoom')),('icons',True,{'zoom':0.45,'whole':False}))
+        again=self.write(buttons='icons',page_own_light=True,field_zoom={'zoom':0.45,'whole':False},glow='neon')
+        self.assertEqual((again.state.get('buttons'),again.state.get('page_own_light'),again.state.get('field_zoom'),again.state.get('glow')),('icons',True,{'zoom':0.45,'whole':False},'neon'))
         fresh=Session(self.path.with_name('fresh.json'))
-        for key in ('buttons','page_own_light','field_zoom'):self.assertNotIn(key,fresh.state,key+': no default is invented by the loader')
-        for bad in (dict(buttons='pictures'),dict(page_own_light='yes'),dict(field_zoom={'zoom':9,'whole':False}),dict(field_zoom={'zoom':0.5,'whole':'no'}),dict(field_zoom='far')):
+        for key in ('buttons','page_own_light','field_zoom','glow'):self.assertNotIn(key,fresh.state,key+': no default is invented by the loader')
+        for bad in (dict(buttons='pictures'),dict(page_own_light='yes'),dict(field_zoom={'zoom':9,'whole':False}),dict(field_zoom={'zoom':0.5,'whole':'no'}),dict(field_zoom='far'),dict(glow='blinding')):
             key=next(iter(bad));self.assertNotIn(key,self.write(**bad).state,repr(bad)+' is not kept')
+
+
+class GlowDialTests(unittest.TestCase):
+    def test_the_dial_opens_on_bright_and_follows_the_session(self):
+        from workbench import boss_qt
+        self.addCleanup(lambda:boss_theme.GLOW.__setitem__(0,dict((k,v) for k,_,v in boss_theme.GLOW_LEVELS)[boss_theme.GLOW_OPENS]))
+        levels=dict((k,v) for k,_,v in boss_theme.GLOW_LEVELS);self.assertEqual(boss_theme.GLOW_OPENS,'bright')
+        self.assertLess(levels['soft'],levels['bright']);self.assertLess(levels['bright'],levels['neon']);self.assertEqual(levels['soft'],1.0,'Soft is what 0.5.0 had')
+        host=type('Host',(),{})();host.session=type('S',(),{'state':{}})()
+        self.assertEqual(boss_qt.set_glow(host),levels['bright']);self.assertEqual(boss_theme.glow(),levels['bright'])
+        host.session.state['glow']='neon';self.assertEqual(boss_qt.set_glow(host),levels['neon'])
+        host.session.state['glow']='nonsense';self.assertEqual(boss_qt.set_glow(host),levels['bright'])
+        self.assertEqual(boss_qt.set_glow(object()),levels['bright'],'a host with no session gets what the desk opens with')
 
 
 if __name__=='__main__':

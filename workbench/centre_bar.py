@@ -240,6 +240,8 @@ def install(host):
     bar = getattr(host, 'centre_bar', None)
     if bar is None:
         start_faces(host)       # Words or Icons: read before the first tool is made
+        from .boss_qt import set_glow
+        set_glow(host)          # and how strongly this desk glows
         bar = host.centre_bar = CentreBar(host)
         layout = host.center_layout;layout.insertWidget(max(0, layout.indexOf(host.central_stack)), bar)
         bar.sync()

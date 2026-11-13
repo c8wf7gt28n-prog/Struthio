@@ -330,7 +330,22 @@ def paint_band(widget, painter):
     from PySide6.QtGui import QBrush, QColor
     from .boss_theme import AMBER_EDGE
     painter.save();painter.setBrushOrigin(0, 0);painter.fillRect(widget.rect(), QBrush(grain_tile()))
-    y = getattr(widget, 'command_band_height', widget.height()) - 2 if widget.objectName() == 'TopBar2' else 0
+    top = widget.objectName() == 'TopBar2'
+    y = getattr(widget, 'command_band_height', widget.height()) - 2 if top else 0
+    # The band's amber rule throws its light into the band (0.5.1: "I want way more glow effect"): a short fall of amber
+    # from the rule, deeper and stronger as the desk's glow is turned up; none on the Clean desk.
+    try:
+        from .boss_qt import glows
+        from .boss_theme import glow
+        level = glow() if glows(widget.window()) else 0.0
+    except Exception:  # noqa: BLE001 - a band is drawn whatever else is the matter
+        level = 0.0
+    if level > 0:
+        from PySide6.QtGui import QLinearGradient
+        deep = round(7 * level);start, end = (max(0, y), max(0, y) - deep) if top else (2, 2 + deep)
+        fall = QLinearGradient(0, start, 0, end);lit = QColor(AMBER_EDGE);lit.setAlphaF(min(0.42, 0.11 * level));dark = QColor(AMBER_EDGE);dark.setAlphaF(0.0)
+        fall.setColorAt(0.0, lit);fall.setColorAt(1.0, dark)
+        painter.fillRect(0, min(start, end), widget.width(), deep, QBrush(fall))
     painter.fillRect(0, max(0, y), widget.width(), 2, QColor(AMBER_EDGE))
     painter.restore()
 

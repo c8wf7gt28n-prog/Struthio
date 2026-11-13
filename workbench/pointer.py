@@ -82,8 +82,9 @@ def drawn(shape, glow=True, ratio=1.0):
     p = QPainter(pixmap);p.setRenderHint(QPainter.Antialiasing);p.translate(PAD, PAD)
     green = QColor(t.READY)
     if glow:
+        gain = min(2.4, 0.55 + 0.45 * t.glow())                               # the desk's dial (boss_theme.GLOW): Soft is 1, Bright 1.4, Neon 1.9
         for width, alpha in ((9.0, 0.07), (6.2, 0.12), (3.8, 0.2)):          # widest and faintest first: a halo, not a border
-            halo = QColor(green);halo.setAlphaF(alpha)
+            halo = QColor(green);halo.setAlphaF(min(0.6, alpha * gain))
             p.setPen(QPen(halo, width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin));p.setBrush(Qt.NoBrush);p.drawPath(path)
     p.setPen(QPen(QColor(t.TERMINAL_GROUND), 2.2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin));p.setBrush(green);p.drawPath(path)
     p.setPen(Qt.NoPen);p.drawPath(path)
@@ -153,8 +154,8 @@ class Pointer(QObject):
         return False
 
     def restyle(self, glow):
-        if bool(glow) == self.glow:return
-        self.glow = bool(glow);self.build()
+        if (bool(glow), t.glow()) == (self.glow, getattr(self, 'level', None)):return
+        self.glow = bool(glow);self.level = t.glow();self.build()
         for widget in self.app.allWidgets():
             try:
                 if widget.property(MARK) is not None:self.give(widget)

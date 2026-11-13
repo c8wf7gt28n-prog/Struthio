@@ -129,6 +129,15 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   the pale ink is for words and for the Field's sheets, never for the outline of a control. A document's white page is
   shown in the desk's light (the same page, its paper brought down from white, the file untouched) with its own light
   one line away under More and the choice kept. (0.4.9.)
+  From the ThinkPad (13 November, with 0.4.6 installed there, walking the window top to bottom). Built in 0.5.1: the
+  familiar menus in the open across the head ("kind of like Apple does, instead of hidden away in a menu"); "way more
+  glow" (one dial, opening on Bright); the tree "green and maybe kind of circuit themed"; "more icons" (the menus'
+  lines). Said to need thought, with the builder's recommendation in `docs/RELEASE_NOTES_0.5.1.md` and nothing built:
+  the right pane's three views made one ("I don't think we need three options"); the bottom line kept as "one master
+  typing line that I select whom I'm typing to" (terminal, assistant, logs, web search, system search, URL), not a
+  field in Stacy's pane; the System menu regrouped; small versions of programs such as GIMP and Godot in Programs.
+  What works as wanted and stays: the Programs menu ("terrific"; opening Mail goes to the mail program), the left
+  pane's Files, Machine and Settings, the meters for CPU, GPU, RAM and the context window.
   A free hand (13 November: "If there is anything that you want to add or subtract or change in the program ... Turn
   off all my rules, and don't hold back. Your art&development ideas have been great. I think you know what we are
   trying to accomplish"). What the builder adds on his own judgment is said as such in the notes, with why, and with
@@ -192,8 +201,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.5.0: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), actions drawn as buttons with one row of tools on each work page (0.4.8), an audit that left each action one visible home, then dark plates for white boxes and icons as an option (0.4.9), and the builder's own additions when given a free hand: the whole desk as a map, Find on every page, the Field seen as it was last seen (0.5.0). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.5.1: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), actions drawn as buttons with one row of tools on each work page (0.4.8), an audit that left each action one visible home, then dark plates for white boxes and icons as an option (0.4.9), and the builder's own additions when given a free hand: the whole desk as a map, Find on every page, the Field seen as it was last seen (0.5.0), and the owner's first walk round it on the ThinkPad: the menus across the head, a dial for the glow, the trees as circuit traces, glyphs in the menus (0.5.1). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

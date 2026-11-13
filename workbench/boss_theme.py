@@ -23,6 +23,19 @@ PENCIL_DEEP, ERASER, ERASER_DEEP, ERASER_MARK = '#443527', '#493225', '#593a29',
 TEAL, TEAL_SOFT, TEAL_EDGE, TEAL_TEXT = '#c3ed74', '#1b2817', '#789654', '#cbf08b'
 READY, STOP = '#c3ed74', '#ff9a36'
 
+# How strongly the desk glows. The owner, with 0.4.6 on the ThinkPad's own panel: "You asked me about the glow effect.
+# It's not enough. I want way more glow effect." So there is one dial for all of it (Work ▸ Rules ▸ Desk artwork ▸ Glow),
+# and it opens on Bright: every light on the desk (the halo of what has the keyboard, the lamps of what is live, the
+# wires, lit words, the pointer, the rule of each band, the live path in the tree, an icon under the pointer) is
+# multiplied by this. Soft is what 0.5.0 had. The Clean desk has no glow whatever this says.
+GLOW_LEVELS = (('soft', 'Soft', 1.0), ('bright', 'Bright', 1.9), ('neon', 'Neon', 3.0))
+GLOW_OPENS = 'bright'
+GLOW = [1.9]        # the level in force (boss_qt.set_glow keeps it in step with the session)
+
+
+def glow():
+    return GLOW[0]
+
 TOKENS = {v for k, v in tuple(globals().items()) if isinstance(v, str) and v.startswith('#')}
 LEGACY = {
     '#f6f3eb': GROUND, '#fffdf8': CARD, '#eee9df': RAISED,
@@ -69,6 +82,8 @@ QMainWindow::separator {background:%(LINE_STRONG)s;width:1px;height:1px;}
 QMenu {padding:6px 0; border:1px solid %(LINE_MID)s;}
 QMenu::item {padding:9px 28px 9px 16px; border-radius:0;}
 QMenu::item:selected {color:%(AMBER_TEXT)s; border-left:2px solid %(AMBER_EDGE)s;}
+QMenu[glyphs="true"]::item {padding-left:44px;}
+QMenu[glyphs="true"]::icon {left:13px;}
 QPushButton {border-bottom:1px solid transparent; padding:5px 7px;}
 QPushButton:hover, QToolButton:hover {background:%(TEAL_SOFT)s; border-bottom-color:%(READY)s;}
 QPushButton:checked, QToolButton:checked, QTabBar::tab:selected {border-bottom:2px solid %(AMBER_EDGE)s;}
@@ -93,16 +108,18 @@ QLineEdit#WorkspacePath, QLineEdit#WorkspacePath:focus {
     background:transparent; color:%(AMBER_TEXT)s; border:0; border-radius:0;
     padding:0; font-family:"IBM Plex Mono"; selection-background-color:%(AMBER_SOFT)s; selection-color:%(TEXT)s;
 }
-QToolButton#MoreMenus, QToolButton#BossPrograms, QToolButton#SystemMenu {
+QToolButton#MoreMenus, QToolButton#HeadMenu, QToolButton#BossPrograms, QToolButton#SystemMenu {
     font-family:"IBM Plex Mono"; color:%(TEXT)s; background:transparent;
     border:0; border-bottom:2px solid transparent; border-radius:0; padding:5px 10px;
 }
-QToolButton#MoreMenus:focus, QToolButton#BossPrograms:focus, QToolButton#SystemMenu:focus {
+QToolButton#MoreMenus:focus, QToolButton#HeadMenu:focus, QToolButton#HeadMenu:pressed, QToolButton#BossPrograms:focus, QToolButton#SystemMenu:focus {
     color:%(AMBER_TEXT)s; border-bottom:2px solid %(AMBER_EDGE)s; background:%(AMBER_SOFT)s;
 }
-QToolButton#MoreMenus:hover, QToolButton#BossPrograms:hover, QToolButton#SystemMenu:hover {
+QToolButton#MoreMenus:hover, QToolButton#HeadMenu:hover, QToolButton#BossPrograms:hover, QToolButton#SystemMenu:hover {
     color:%(TEAL_TEXT)s; border-bottom:2px solid %(READY)s; background:%(TEAL_SOFT)s;
 }
+QToolButton#HeadMenu {padding:5px 0; color:%(QUIET)s;}
+QToolButton#HeadMenu::menu-indicator, QToolButton#MoreMenus::menu-indicator {image:none; width:0;}
 QLabel#MonitorReading {color:%(QUIET)s; font-family:"IBM Plex Mono";}
 QLabel#MonitorReading[liveReading="true"] {color:%(READY)s;}
 QPlainTextEdit#Capture {background:%(CARD)s; border-bottom:1px solid %(LINE)s;}

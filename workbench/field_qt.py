@@ -1005,9 +1005,9 @@ class FieldView(QWidget):
         the ground under it, beneath the sheets and the wires, the way a lamp shows under glass. It moves only when the hand
         moves it, nothing here moves by itself. The Clean desk has none, and a page being read is not lit from behind."""
         if not self.texture or self.reading is not None or not body.contains(self._mouse):return
-        reach = self.LIGHT * self.scale()
+        level = min(t.glow(), 2.4);reach = self.LIGHT * self.scale() * (1.0 + 0.18 * (level - 1.0))
         pool = QRadialGradient(self._mouse, reach)
-        pool.setColorAt(0.0, ink(t.READY, 0.14));pool.setColorAt(0.35, ink(t.READY, 0.065));pool.setColorAt(1.0, ink(t.READY, 0.0))
+        pool.setColorAt(0.0, ink(t.READY, min(0.4, 0.14 * level)));pool.setColorAt(0.35, ink(t.READY, min(0.2, 0.065 * level)));pool.setColorAt(1.0, ink(t.READY, 0.0))
         p.save();p.setClipRect(body);p.setPen(Qt.NoPen);p.setBrush(pool);p.drawEllipse(self._mouse, reach, reach);p.restore()
 
     def _head(self, p):
@@ -1084,7 +1084,7 @@ class FieldView(QWidget):
             colour = t.AMBER_EDGE if link.stale else t.READY if hovered else (t.TEXT if touching else t.TEAL_EDGE)
             if self.texture:      # the light a wire carries, under the line, wide and faint: green when it is live, amber when it asks for a recheck
                 lamp = t.AMBER_EDGE if link.stale else t.READY
-                gain = 2.6 if touching else (2.0 if link.stale else 1.0)
+                gain = (2.6 if touching else (2.0 if link.stale else 1.0)) * min(t.glow(), 2.6)
                 for width, alpha in ((7.0, 0.035), (4.0, 0.07)):
                     p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(lamp, alpha * gain * (1.0 if near <= 1 or touching or link.stale else 0.6)), width * s));p.drawPath(path)
             pen = QPen(ink(colour, strength * (0.95 if link.stale or touching else 0.8)), 1.8 if touching or link.stale else 1.0)
@@ -1104,8 +1104,11 @@ class FieldView(QWidget):
         """A soft glow around a rectangle: three outlines, the widest the faintest. Still, like everything on this surface.
         The Clean desk has none."""
         if not self.texture:return
-        s = self.scale();p.save();p.setBrush(Qt.NoBrush)
-        for grow, width, alpha in ((7.0, 8.0, 0.05), (4.0, 5.0, 0.09), (1.5, 2.5, 0.17)):
+        s = self.scale();level = t.glow();strength = strength * level;p.save();p.setBrush(Qt.NoBrush)
+        rings = ((7.0, 8.0, 0.05), (4.0, 5.0, 0.09), (1.5, 2.5, 0.17))
+        if level >= 1.5:rings = ((13.0, 12.0, 0.022),) + rings        # a brighter desk throws its light further, not only harder
+        if level >= 2.5:rings = ((20.0, 15.0, 0.014),) + rings
+        for grow, width, alpha in rings:
             p.setPen(QPen(ink(colour, min(1.0, alpha * strength)), width * s));p.drawRect(rect.adjusted(-grow * s, -grow * s, grow * s, grow * s))
         p.restore()
 
@@ -1114,8 +1117,8 @@ class FieldView(QWidget):
         the caller draws next. The letters stay as sharp as they were; only the dark around them warms. For the few words
         that are lit (the sheet that has the keyboard, the chosen face), never for running text. The Clean desk has none."""
         if not self.texture:return
-        s = self.scale();p.save();p.setPen(ink(colour, min(1.0, 0.085 * strength)))
-        for reach in (1.1 * s, 2.2 * s):
+        s = self.scale();level = t.glow();p.save();p.setPen(ink(colour, min(1.0, 0.085 * strength * min(level, 2.4))))
+        for reach in ((1.1 * s, 2.2 * s, 3.6 * s) if level >= 1.5 else (1.1 * s, 2.2 * s)):
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
                 p.drawText(QPointF(at.x() + dx * reach, at.y() + dy * reach), text)
         p.restore()
@@ -1128,8 +1131,8 @@ class FieldView(QWidget):
         a full one."""
         p.save();pen = QPen(colour, 1.5)
         if self.texture and state in SETTLED:
-            reach = box.width() * 2.6
-            glow = QRadialGradient(box.center(), reach);inner = QColor(colour);inner.setAlphaF(min(1.0, colour.alphaF()) * 0.42)
+            level = t.glow();reach = box.width() * (2.6 + 1.1 * (level - 1.0))
+            glow = QRadialGradient(box.center(), reach);inner = QColor(colour);inner.setAlphaF(min(1.0, colour.alphaF()) * min(0.85, 0.42 * (0.7 + 0.3 * level)))
             outer = QColor(colour);outer.setAlphaF(0.0);glow.setColorAt(0.0, inner);glow.setColorAt(1.0, outer)
             p.setPen(Qt.NoPen);p.setBrush(glow);p.drawEllipse(box.center(), reach, reach)
         elif state in ATTENTION:
