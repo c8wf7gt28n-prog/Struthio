@@ -1254,6 +1254,7 @@ def field_entries(host, t):
                      ('What is running', 'ledger.explore {"kind":"INSTRUMENT"} | pick instruments | select title,running_jobs,queued_jobs'))
         else:
             lines = (('Everything that waits', 'field.read | pick waiting | select kind,title,state'),
+                     ('What I doubt', 'field.doubt | pick rows | where verdict=doubt | select title,about,why'),
                      ('What changed lately', 'field.read | pick objects | where lately=yes | select kind,title,changed_at'),
                      ('The wires', 'field.read | pick links | select from,to,label,stale'),
                      ('The pages', 'documents.list | pick documents | select title,revision,words'),
@@ -1279,6 +1280,8 @@ def field_entries(host, t):
                          tip='Its staC line in the writing strip; nothing runs until Ctrl+Enter:\n' + obj.stac))
         out.append(Entry('field:run', 'Run its staC', 'command', lambda:field_page.stac_run(host, obj), icon='line', caption='Shift+Enter',
                          operation='language.run', tip='A read; the answer shows in the working area:\n' + obj.stac))
+    out.append(Entry('field:doubt', 'Doubt it', 'command', lambda:view.doubt_asked.emit(obj), icon='line', caption='X',
+                     tip='Cross-examine it for what a plausible result may hide: what does not hold, what cannot be told, what holds'))
     out.append(Entry('field:trace', 'Trace it', 'command', lambda:view.trace_asked.emit(obj), icon='line', caption='T',
                      tip='Where it comes from and what rests on it, hop by hop along the wires'))
     out.append(Entry('field:do', 'What can be done', 'command', lambda:view.do_asked.emit(obj), icon='line', caption='D',

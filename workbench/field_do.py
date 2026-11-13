@@ -28,6 +28,7 @@ class Step:
     why: str = ''           # why the records offer it, or what it will leave behind
     scope: str = 'read'     # the Kernel's scope for it: read, execute, approve
     settles: bool = False   # taking it is what brings the thing back to current (so "settle the desk" may include it)
+    more: tuple = ()        # further (words, line) pairs that go with it: the step is the whole list, put up together for one go
 
 
 def op(operation, **arguments):
@@ -128,6 +129,30 @@ def _claim(kernel, principal, obj, field):
     if due or (sheet.get('next') or {}).get('kind') == 'CHECK':
         out.append(Step('Run its due checks (%d)' % len(due) if due else 'Run its due checks', 'write', op('investigation.continue', id=inv),
                         'each check is a read with an expectation; what passes counts as support', 'execute', True))
+    if finding and claim and field is not None:      # what Stacy's doubt finds wrong with its checking, as steps that put it right
+        from .field_doubt import quoted_calculation, weak_check
+        checks = [c for c in sheet.get('checked', ()) if c.get('claim') == claim]
+        registered = {row.get('address') for row in sheet.get('read', ())}
+        weak = next((found for found in (weak_check(kernel, principal, c) for c in checks) if found and found[1]), None)
+        if weak and all(weak_check(kernel, principal, c) is not None for c in checks):
+            said, narrow, cell = weak;address = narrow.split(' | ', 1)[0].lstrip('@');value = next(str(c.get('value')) for c in checks if weak_check(kernel, principal, c))
+            lines = ([('have it watch the sheet', op('investigation.add_source', id=inv, address=address))] if address not in registered else []) + [
+                ('bind a check on cell %s' % cell, op('investigation.check', claim=claim, program=narrow, oracle='Cell %s still says “%s”.' % (cell, value),
+                                                    expect='CONTAINS', value='"cells.%s.value": %s' % (cell, json.dumps(value, ensure_ascii=False)), refutes_on_fail=True)),
+                ('run the checks that are due', op('investigation.continue', id=inv))]
+            out.append(Step('Give it a check that can fail', 'write', lines[0][1], 'the check it has passes whatever the cell says; this one reads cell %s itself' % cell, 'execute', more=tuple(lines[1:])))
+            out[-1].words_first = lines[0][0]
+        elif not checks:
+            quoted = quoted_calculation(kernel, principal, obj, field)
+            if quoted:
+                calc, decimal, unit = quoted;address = calc.id;record = calc.target['id']
+                lines = ([('have it watch “%s”' % calc.title, op('investigation.add_source', id=inv, address=address))] if address not in registered else []) + [
+                    ('bind a check on its result', op('investigation.check', claim=claim,
+                                                     program='documents.get %s | pick document.derivation.calculation.outputs | select value.decimal,value.unit' % js(id=record),
+                                                     oracle='“%s” gives %s %s.' % (calc.title, decimal, unit), expect='CONTAINS', value='"value.decimal": "%s"' % decimal, refutes_on_fail=True)),
+                    ('run the checks that are due', op('investigation.continue', id=inv))]
+                out.append(Step('Check it against “%s”' % calc.title, 'write', lines[0][1], 'it says %s %s, which is that calculation’s result; the check holds it to that' % (decimal, unit), 'execute', more=tuple(lines[1:])))
+                out[-1].words_first = lines[0][0]
     quoted = next(((was, now, name) for was, now, name in (field.moved if field is not None else ()) if was in obj.title and now not in obj.title), None) if finding else None
     if quoted:                                # its words carry a result that has since been worked again
         was, now, name = quoted
@@ -218,6 +243,8 @@ def steps_for(kernel, principal, obj, field=None):
         steps = [Step('See what the records say about it', 'read', obj.stac)]
     if field is not None and steps and (field.fed_by(obj.id) or field.feeds(obj.id)):      # it has wires: they can be followed
         steps.insert(1, Step('Trace it along the wires', 'read', 'field.trace %s | pick rows | select way,steps,kind,title,state,by' % js(id=obj.id)))
+    if steps and obj.kind in ('calculation', 'sheet', 'finding', 'condition', 'source'):   # it can be cross-examined
+        steps.insert(1, Step('Doubt it', 'read', 'field.doubt %s | pick rows | select verdict,about,why' % js(id=obj.id)))
     return [step for step in (_by_scope(step) for step in steps if step.line) if step is not None][:9]
 
 

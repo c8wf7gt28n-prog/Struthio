@@ -7,6 +7,7 @@ other read she makes. They change nothing and are not journaled (showing the des
   field.read    read   {}           the Field of this workspace as records: objects, wires, what waits, counts
   field.trace   read   {id}         where one thing comes from and what rests on it, hop by hop along the wires
   field.whatif  read   {id, set}    a calculation worked again with other values for some inputs, changing nothing
+  field.doubt   read   {id?}        what a plausible result may hide: one thing cross-examined, or every doubt on the desk
 
 Lines that work:
 
@@ -15,6 +16,8 @@ Lines that work:
   field.read | pick links | where stale=yes | select from,to,label
   field.trace {"id":"document:<id>"} | pick rows | select way,steps,kind,title,state,by
   field.whatif {"id":"document:<id>","set":{"B3":"320"}} | select says_now,would_be,exact
+  field.doubt {"id":"claim:<id>"} | pick rows | select verdict,about,why
+  field.doubt | pick rows | where verdict=doubt | select title,about,why
 
 The reading is the Field's own (workbench/field_source.py), so a line and the picture can never disagree. Yes and no are
 written as the words "yes" and "no", which a staC `where` compares without ceremony.
@@ -27,6 +30,7 @@ FIELDS = {
     'field.read': ({}, []),
     'field.trace': ({'id': TEXT}, ['id']),
     'field.whatif': ({'id': TEXT, 'set': {'type': 'object'}}, ['id', 'set']),
+    'field.doubt': ({'id': TEXT}, []),
 }
 SCOPES = {operation: 'read' for operation in FIELDS}
 OBSERVERS = tuple(FIELDS)
@@ -98,7 +102,29 @@ def whatif(kernel, principal, ident, changes):
     return {'schema': SCHEMA, 'id': 'document:' + record, **datasheet_work.what_if(answer['result']['document'], changes)}
 
 
+def doubt(kernel, principal, ident=None):
+    """One thing cross-examined (workbench/field_doubt.py), worst first; or, with no id, every doubt and every cannot-tell on
+    the desk. Exact questions put to the records: no model, nothing changed."""
+    from .field_doubt import desk, doubts_for
+    from .field_source import read_field
+    field, _ = read_field(kernel, principal)
+    if ident:
+        obj = field.get(ident)
+        if obj is None:
+            raise ValueError('Nothing on the desk has the id %s. field.read lists the ids.' % ident[:80])
+        found = doubts_for(kernel, principal, obj, field)
+        rows = [{'verdict': d.verdict, 'about': d.about, 'why': d.why, 'see': d.see} for d in found]
+        return {'schema': SCHEMA, 'id': obj.id, 'title': obj.title, 'kind': obj.kind, 'rows': rows,
+                'doubts': sum(1 for d in found if d.verdict == 'doubt'), 'cannot_tell': sum(1 for d in found if d.verdict == 'cannot tell'),
+                'holds': sum(1 for d in found if d.verdict == 'holds')}
+    found = desk(kernel, principal, field)
+    rows = [{'title': obj.title, 'kind': obj.kind, 'id': obj.id, 'verdict': d.verdict, 'about': d.about, 'why': d.why, 'see': d.see} for obj, d in found]
+    return {'schema': SCHEMA, 'rows': rows, 'doubts': sum(1 for _, d in found if d.verdict == 'doubt'),
+            'cannot_tell': sum(1 for _, d in found if d.verdict == 'cannot tell'), 'looked_at': sum(1 for obj in field.objects if obj.kind in ('calculation', 'sheet', 'finding', 'condition', 'source'))}
+
+
 def dispatch(kernel, operation, args, principal):
+    if operation == 'field.doubt':return doubt(kernel, principal, args.get('id'))
     if operation == 'field.read':return read(kernel, principal)
     if operation == 'field.trace':return trace(kernel, principal, args['id'])
     if operation == 'field.whatif':return whatif(kernel, principal, args['id'], args['set'])

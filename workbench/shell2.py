@@ -1648,7 +1648,7 @@ class SlateFace(QWidget):
             if r.get('ok') and said == 'Done.' and isinstance(r['result'], dict):      # a read whose answer is a record, not rows: the record itself, in short
                 said = json.dumps(r['result'], indent=1, ensure_ascii=False, default=str)[:1500]
         shown = said
-        if r.get('ok') and len(rows) > 1 and all(isinstance(row, dict) and len(row) >= 4 for row in rows):
+        if r.get('ok') and len(rows) > 1 and all(isinstance(row, dict) and len(row) >= 3 for row in rows):
             # Several rows of several fields read better as lines than as blocks: the fields once, then a row a line.
             # (What the model is given stays field by field: card.said.)
             keys = list(rows[0]);text = lambda value:value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
@@ -1718,7 +1718,7 @@ class SlateFace(QWidget):
         note = QLabel(breakable(said));note.setWordWrap(True);note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(note)
         if done is not None:done(card.ran, r.get('result') if card.ran else None)
 
-    def say_desk(self, count, waiting, lines, go, plan=(), settle=None):
+    def say_desk(self, count, waiting, lines, go, plan=(), settle=None, doubts=(), look=None):
         """The desk, checked: how many things were read, which wait for the owner and why, and the reads that were made.
         `go(object)` goes to one of them in the Field and says what can be done about it. `plan` is the changes that would
         settle what can be settled without a decision of the owner's; `settle()` puts them up for one Run."""
@@ -1734,16 +1734,23 @@ class SlateFace(QWidget):
             if len(waiting) > 12:card.box.addWidget(QLabel('… and %d more' % (len(waiting) - 12)))
         if plan and settle is not None:
             card.box.addWidget(sentence('{settle}', {'settle': ('Settle what I can: %d change%s, one Run' % (len(plan), '' if len(plan) == 1 else 's'), settle)}))
+        if doubts:                           # what a plausible result may hide: looked for on everything, said beside what waits
+            head = QLabel('I doubt %d thing%s that look%s right:' % (len(doubts), '' if len(doubts) == 1 else 's', 's' if len(doubts) == 1 else ''));head.setWordWrap(True);card.box.addWidget(head)
+            for row in doubts[:8]:
+                if look is not None:card.box.addWidget(sentence('{go}', {'go': ('“%s”' % row['title'], lambda ident=row['id']:look(ident))}))
+                said = QLabel(breakable(row['why']));said.setWordWrap(True);said.setStyleSheet('color:%s' % QUIET);said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
+            if len(doubts) > 8:card.box.addWidget(QLabel('… and %d more: X on a sheet doubts it' % (len(doubts) - 8)))
         if lines:program_detail(card.box, 'The %d reads I made' % len(lines), '\n'.join(lines))
-        card.waiting = waiting;card.plan = plan
+        card.waiting = waiting;card.plan = plan;card.doubts = list(doubts)
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
 
-    def say_plan(self, plan, done=None):
+    def say_plan(self, plan, done=None, title=None):
         """Several changes put up together: each named, with its exact line, and one Run. Run is the owner's go for the whole
         list as written. They run in order through the Kernel and stop at the first that is refused; each says how it went.
         `done(results)` is told, so the desk can be checked again: finished means the check finds nothing waiting."""
-        card = self.say('To settle the desk I would make %d change%s. One Run does them in order, as written here, and stops at the first that is refused.' % (len(plan), '' if len(plan) == 1 else 's'))
+        card = self.say((title or 'To settle the desk I would make %d change%s.' % (len(plan), '' if len(plan) == 1 else 's'))
+                        + ' One Run does them in order, as written here, and stops at the first that is refused.')
         card.rows = []
         for n, (obj, step) in enumerate(plan):
             said = QLabel(breakable('%d  “%s”: %s' % (n + 1, obj.title, step.words[:1].lower() + step.words[1:])));said.setWordWrap(True)
@@ -1824,6 +1831,9 @@ class SlateFace(QWidget):
         if direct is not None:self.say(direct);return
         brain = call(self.host, 'brain.status') or {}
         selected = self.selected_file()
+        if thing and thing.get('whole'):          # the rows are already plain sentences written by exact rules: a model is not asked to say them again
+            self.answer_in_stac(thing, thing.get('intro') or 'What the records say about “%s”:' % thing['title'])
+            return
         if brain.get('state') == 'READY' and thing:  # she reads first, exactly, then says it in her own words from what she read
             card = self.answer_in_stac(thing, thing.get('intro') or 'The records about “%s”, and the staC that reads them:' % thing['title'])
             if not card.answered:return

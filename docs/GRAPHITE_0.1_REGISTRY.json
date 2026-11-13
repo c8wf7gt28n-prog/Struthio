@@ -181,6 +181,7 @@
    "experiments.result": "workbench/lab_service.py#dispatch",
    "experiments.run": "workbench/lab_service.py#dispatch",
    "experiments.status": "workbench/lab_service.py#dispatch",
+   "field.doubt": "workbench/field_service.py#dispatch",
    "field.read": "workbench/field_service.py#dispatch",
    "field.trace": "workbench/field_service.py#dispatch",
    "field.whatif": "workbench/field_service.py#dispatch",
@@ -965,9 +966,9 @@
   }
  },
  "counts": {
-  "adapters": 763,
+  "adapters": 764,
   "job_tools": 113,
-  "operations": 763,
+  "operations": 764,
   "settings": 49
  },
  "formulas": {
@@ -2835,6 +2836,13 @@
   "experiments.status": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
+   "scope": "read"
+  },
+  "field.doubt": {
+   "arguments": "6531dae66d37b6a3733f4ca66a90055d8f8391c04e9e0cf0fe4b272505c29c33",
+   "properties": {
+    "id": "52ba84a4bbf396ba"
+   },
    "scope": "read"
   },
   "field.read": {
@@ -7479,9 +7487,9 @@
    "scope": "read"
   }
  },
- "release": "Graphite 0.4.1",
+ "release": "Graphite 0.4.2",
  "schema": "graphite.registry-record/1",
- "schema_digest": "cf4dec09cdcda77463185392c559ea3aaeb494ef12e9be3e2854b6287ee21c02",
+ "schema_digest": "896020c4229e11093ab1edc7e987770c908559e05bc49d079c9c98a675b9cdc3",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

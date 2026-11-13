@@ -27,7 +27,9 @@ digit never approves). **C** checks the desk and says what waits; **1** then put
 one of its files. A turned corner marks what changed in the last twelve hours. **T** traces the selected sheet back to its source and on
 to what rests on it. With a calculation selected, ask "what if B3 were 320?": Stacy works it exactly and changes nothing.
 In the writing strip `this` is the selected sheet (`this | count`, Ctrl+Enter), and `field.read` is the whole desk as
-records (`field.read | pick waiting | select kind,title,state`). `docs/RELEASE_NOTES_0.4.1.md` has the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+records (`field.read | pick waiting | select kind,title,state`). **X** doubts the selected sheet: Stacy puts exact questions to the records and shows what does not hold, what she cannot
+tell and what holds; **D** then offers the step that removes a doubt, and **C** lists what she doubts across the desk.
+`docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

@@ -91,6 +91,13 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   Kernel. Every step is an operation the program already had;
   add steps there, not a second engine. A model's place is to put reads into words and, later, to pick among steps the
   program offers; it does not plan.
+- **Catch the trap first** (13 November: the owner's whole-build specification, 35 situations each with a "difficult
+  variation", and "build what you think is the neatest ... upon the spirit of the idea"). Before Stacy makes more, she
+  catches more: X doubts a sheet with exact questions (`workbench/field_doubt.py`), worst first, each row a read; a doubt
+  comes with the step that removes it; the desk check doubts everything. No model takes part, and a model is not asked to
+  rephrase a doubt. The specification is the map and the acceptance test (it counts on the ThinkPad, on the owner's own
+  material); it is reached one trap and one situation at a time, by adding a question here and its steps in
+  `field_do.py`, never by trusting a model more.
 - **staC reads the desk** (12 November: "Can we make staC and Stacy more powerful in creative ways"). The Field is a staC
   source: `field.read` (objects, wires, what waits), `field.trace {id}` (where a thing comes from, what rests on it),
   `field.whatif {id, set}` (a calculation worked with other values, changing nothing). `this` at the start of a line is
@@ -111,8 +118,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4.1: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), and staC reading the desk, with trace and what-if (0.4.1). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.2: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), and Stacy's doubt (0.4.2). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

@@ -46,6 +46,7 @@ class FieldPage(QWidget):
         self.view.check_asked.connect(lambda: check_desk(self.host))
         self.view.go_asked.connect(lambda: go(self.host))
         self.view.trace_asked.connect(lambda obj: trace(self.host, obj))
+        self.view.doubt_asked.connect(lambda obj: doubt(self.host, obj))
         self.view.full_asked.connect(lambda obj: full_window(self.host, obj))
         self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
         self.pending = None                     # what G runs: the Run of what waits in Talk for the owner's go
@@ -251,6 +252,12 @@ def take(host, obj, n):
     if face is None:return None
     if step.kind == 'read':
         card = face.answer_in_stac({'title': obj.title, 'stac': step.line, 'kind': obj.kind}, '%s, for “%s”:' % (step.words, obj.title))
+    elif step.more:                            # a step that is several changes: put up together, named, for one go
+        from .field_do import Step
+        parts = [(obj, Step(getattr(step, 'words_first', step.words), 'write', step.line))] + [(obj, Step(words, 'write', line)) for words, line in step.more]
+        done = lambda results, obj=obj:_after(host, obj, any(ok for _, ok, _ in results), None)
+        card = face.say_plan(parts, done=done, title='For “%s”: %s. That is %d changes.' % (obj.title, step.words[:1].lower() + step.words[1:], len(parts)))
+        _await_go(host, 'all %d changes, as listed in Talk' % len(parts), lambda:face.run_plan(card, done))
     else:
         done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
         card = face.stage(obj.title, step, done=done)
@@ -303,6 +310,20 @@ def trace(host, obj):
     if getattr(host, '_field_active', False):host.field_page.view.setFocus(Qt.OtherFocusReason)
 
 
+def doubt(host, obj):
+    """X: cross-examine this for what a plausible result may hide. Exact questions are put to the records (field.doubt, a staC
+    line like any other): what does not hold comes first, then what cannot be told, then what holds. With a model Stacy then
+    says it in her own words. Nothing is changed."""
+    from .field_do import js
+    shell = getattr(host, 'shell2', None)
+    if shell is None or obj is None:return None
+    line = 'field.doubt %s | pick rows | select verdict,about,why' % js(id=obj.id)
+    shell.face.thing = {**thing_of(host, obj), 'stac': line, 'explicit': True, 'whole': True,
+                        'intro': 'I doubted “%s”. What does not hold comes first, then what I cannot tell, then what holds:' % obj.title}
+    shell.ask('What could be wrong with “%s”?' % obj.title)
+    if getattr(host, '_field_active', False):host.field_page.view.setFocus(Qt.OtherFocusReason)
+
+
 def full_window(host, obj):
     """F on the shelf: this program in its full window. A program with a window of its own is started on a file, through its
     own operation and with the owner's go, so F says what can be done with it (its files, and Open … in … for each); when
@@ -333,13 +354,20 @@ def check_desk(host):
         if page.view.field.get(obj.id) is None:return
         page.view.field.select(obj.id);page.view._reveal_pending = True;page.view._describe();page.view.update();do(host, obj)
     plan = settling(waiting)
+    answer = kernel.dispatch('field.doubt', {}, operator())      # the same check also cross-examines everything: what a plausible result may hide
+    doubts = [row for row in (answer['result']['rows'] if answer.get('ok') else ()) if row['verdict'] == 'doubt']
+    if answer.get('ok'):lines.append('field.doubt | pick rows | select title,verdict,about,why')
     def settle():
         # The changes go up together for one Run; when they have run the desk is checked again, and that check is the answer.
         done = lambda results:check_desk(host)
         card = face.say_plan(plan, done=done)
         _await_go(host, 'all %d changes, as listed in Talk' % len(plan) if len(plan) > 1 else 'the change, as listed in Talk', lambda:face.run_plan(card, done))
         page.view.setFocus(Qt.OtherFocusReason)
-    card = face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle)
+    def look(ident):
+        obj = page.view.field.get(ident)
+        if obj is None:return
+        page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe();page.view.update();doubt(host, obj)
+    card = face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle, doubts, look)
     page.steps = ();page.steps_of = '';page.pending = None;page.star = None
     if plan:                                   # the desk's own step, numbered 1: it puts the changes up; G then gives the go
         words = 'Settle what I can: %d change%s' % (len(plan), '' if len(plan) == 1 else 's')

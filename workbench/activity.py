@@ -30,7 +30,7 @@ OBSERVER_OPERATIONS=frozenset({
  # HATCH DESK D5: Log's Network stream reads these every second or two while it is open
  'network.observe','network.capture.read',
  # Graphite 0.4.1: the desk read as records; showing the desk is not an event
- 'field.read','field.trace','field.whatif'})
+ 'field.read','field.trace','field.whatif','field.doubt'})
 
 def folder(root):
     """Legacy journal location, now used only for migration and failed delivery."""
