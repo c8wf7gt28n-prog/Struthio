@@ -233,6 +233,23 @@ def _talk(host):
     return face
 
 
+def _waits(host, step):
+    """Whether a step that changes something would wait for the owner's Approve, with Stacy's hand where it is now."""
+    from . import stacy_hand
+    from .field_do import call
+    if step.more:return True                     # several changes for one go: they are put up together and wait
+    try:operation, arguments = call(step.line)
+    except Exception:  # noqa: BLE001 - a line that cannot be read waits
+        return True
+    return not stacy_hand.hers(stacy_hand.level(host), step.scope, operation, arguments)
+
+
+def _shown_kind(host, step):
+    """How a step is shown: 'read'; 'write', it changes something and waits for the owner; or 'does', it changes something
+    and, with Stacy's hand where it is, she does it at once."""
+    return step.kind if step.kind != 'write' or _waits(host, step) else 'does'
+
+
 def _await_go(host, words, run):
     """Something waits in Talk for the owner's go. From the keyboard the go is G, and only G: a digit chooses a step and never
     approves one. The Field says what G would run for as long as it would; moving to another sheet, or Esc, withdraws it from
@@ -259,7 +276,7 @@ def do(host, obj):
     if kernel is None or obj is None:return ()
     steps = steps_for(kernel, operator(), obj, page.view.field)
     page.steps = tuple(steps);page.steps_of = obj.id
-    page.view.steps = tuple((step.words, step.kind) for step in steps);page.view.update()
+    page.view.steps = tuple((step.words, _shown_kind(host, step)) for step in steps);page.view.update()
     face = _talk(host)
     if face is not None and steps:face.say_steps(obj.title, steps, lambda n, obj=obj:take(host, obj, n))
     if not steps:host.statusBar().showMessage('Field · the records offer nothing to do about %s' % obj.title, 6000)
@@ -267,10 +284,10 @@ def do(host, obj):
         # The steps, where the eyes are and where the pointer can reach them: a light page whose rows are the steps. A click on
         # a row, or its digit, takes it; the page steps aside at any other key. A step that changes something says it waits.
         name = obj.title if len(obj.title) <= 56 else obj.title[:55].rstrip() + '…'
-        rows = [('k', '%d\t%s%s%s' % (n + 1, step.words, ' · waits for your Approve' if step.kind == 'write' else '', (' — ' + step.why) if step.why else '')) for n, step in enumerate(steps)]
+        rows = [('k', '%d\t%s%s%s' % (n + 1, step.words, ' · waits for your Approve' if step.kind == 'write' and _waits(host, step) else '', (' — ' + step.why) if step.why else '')) for n, step in enumerate(steps)]
         page.view.show_reading('What can be done about “%s”' % name, rows, '1 – %d  take a step      Esc  close      any other key moves on' % len(steps) if len(steps) > 1 else '1  take the step      Esc  close',
                                light=True)
-        page.view.steps = tuple((step.words, step.kind) for step in steps)       # showing the page does not withdraw what was just offered
+        page.view.steps = tuple((step.words, _shown_kind(host, step)) for step in steps)       # showing the page does not withdraw what was just offered
         page.view.setFocus(Qt.OtherFocusReason)
     return page.steps
 
@@ -300,8 +317,8 @@ def take(host, obj, n):
         _await_go(host, 'all %d changes, as listed in Talk' % len(parts), lambda:face.run_plan(card, done))
     else:
         done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
-        card = face.stage(obj.title, step, done=done)
-        _await_go(host, step.words[:1].lower() + step.words[1:], lambda:face.run_staged(card, done))
+        card = face.stage(obj.title, step, done=done, asked=True, word='the step you took from my list')      # taking the step is the owner's word
+        if card.ran is None:_await_go(host, step.words[:1].lower() + step.words[1:], lambda:face.run_staged(card, done))
     page.view.setFocus(Qt.OtherFocusReason)
     return card
 
@@ -318,6 +335,35 @@ def _after(host, obj, ok, result):
         if ident and page.view.field.get(ident) is not None:
             page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe();break
     page.view.update()
+    QTimer.singleShot(0, lambda:notice(host))      # with a free hand she looks over the desk after a change (nothing happens on the other places)
+
+
+def notice(host):
+    """Free hand: "I kind of want her to be autonomous", noticing things (the owner, 13 November 2026). After a change made
+    through her, Stacy checks the desk as C does and, for each thing that waits and has a step that brings it back to
+    current without a decision of the owner's, takes that step herself: a calculation that stood on a changed number is
+    worked again, a finding is compared with its changed source. She says what she noticed and what she did, each change
+    is a line in her trail, and what needs the owner's judgment is left alone. One pass; on any other place of the dial,
+    nothing."""
+    from . import stacy_hand
+    from .engineering_kernel import operator
+    from .field_do import settling, sweep
+    page = getattr(host, 'field_page', None);kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None);face = _talk(host)
+    if page is None or kernel is None or face is None or stacy_hand.level(host) != 'free' or getattr(page, 'noticing', False):return None
+    if page.face != 'work':return None
+    page.noticing = True
+    try:
+        page.refresh(force=True)
+        waiting, _ = sweep(kernel, operator(), page.view.field)
+        plan = [(obj, step) for obj, step in settling(waiting) if not _waits(host, step)]
+        if not plan:return None
+        done = lambda results:(page.refresh(force=True), page.view.update())
+        card = face.say_plan(plan, done=done, hers=True, word='what I noticed after the change',
+                             title='I noticed %d thing%s that stood on what just changed.' % (len(plan), '' if len(plan) == 1 else 's'))
+        face.run_plan(card, done)
+        return card
+    finally:
+        page.noticing = False
 
 
 THIS = re.compile(r'^(explain\s+)?this\b\s*(\|.*)?$', re.IGNORECASE | re.DOTALL)
@@ -431,7 +477,7 @@ def brief(host):
     return card
 
 
-def stage_set(host, obj, cell, value):
+def stage_set(host, obj, cell, value, word=''):
     """“Set B3 to 300”, asked of Stacy with a sheet (or a calculation, which stands for its sheet) selected: the change is
     put up with its exact line and waits for Approve, and meanwhile the Field marks what it would move, as a what-if does.
     Approving saves the sheet through the same operation the owner's own edit uses; then the records are read again."""
@@ -452,8 +498,10 @@ def stage_set(host, obj, cell, value):
                 '%s says %s%s now. The sheet is saved with the new value and everything worked from it waits for a recheck; the Field marks what would move' % (
                     cell, held.get('value'), ' ' + unit if unit else ''), 'execute')
     done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
-    card = face.stage(title, step, done=done)
-    _await_go(host, '%s on “%s”' % (words[:1].lower() + words[1:], title), lambda:face.run_staged(card, done))
+    card = face.stage(title, step, done=done, asked=True, word=word)      # asked of her: it follows her hand (done at once, or waiting)
+    if card.ran is None:_await_go(host, '%s on “%s”' % (words[:1].lower() + words[1:], title), lambda:face.run_staged(card, done))
+    elif card.ran is False:                    # she tried at once and it was refused: nothing would move, so nothing is marked
+        page.view.would = {};page.view.would_said = '';page.view.update()
     page.view.setFocus(Qt.OtherFocusReason)
     return card
 
@@ -508,8 +556,10 @@ def check_desk(host):
     def settle():
         # The changes go up together for one Run; when they have run the desk is checked again, and that check is the answer.
         done = lambda results:check_desk(host)
-        card = face.say_plan(plan, done=done)
-        _await_go(host, 'all %d changes, as listed in Talk' % len(plan) if len(plan) > 1 else 'the change, as listed in Talk', lambda:face.run_plan(card, done))
+        mine = all(not _waits(host, step) for _, step in plan)       # with a free hand, "settle what you can" is done, not put up
+        card = face.say_plan(plan, done=done, hers=mine, word='settle what you can' if mine else '')
+        if mine:face.run_plan(card, done)
+        else:_await_go(host, 'all %d changes, as listed in Talk' % len(plan) if len(plan) > 1 else 'the change, as listed in Talk', lambda:face.run_plan(card, done))
         page.view.setFocus(Qt.OtherFocusReason)
     def look(ident):
         obj = page.view.field.get(ident)

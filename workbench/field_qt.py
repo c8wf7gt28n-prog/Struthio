@@ -962,7 +962,8 @@ class FieldView(QWidget):
         for line, write, n in rows:
             y += fm.height();p.setPen(QColor(t.TEXT));p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line, Qt.ElideRight, inner_w - (asks_w if write else 0)))
             self._hot.append((QRectF(x - 4 * s, y - fm.height(), inner_w + 8 * s, fm.height()), Qt.Key_1 + n, str(n + 1),
-                              'Take this step: %s' % ('it is put up for you to approve; nothing is changed yet' if self.steps[n][1] == 'write' else 'a read, it runs at once')))
+                              'Take this step: %s' % ('it is put up for you to approve; nothing is changed yet' if self.steps[n][1] == 'write' else
+                                                       'it changes something: Stacy does it at once and shows it, with an Undo where there is one' if self.steps[n][1] == 'does' else 'a read, it runs at once')))
             if write:
                 p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(box.right() - pad - fm.horizontalAdvance(asks), y - fm.descent()), asks)
         if going:                            # what waits in Talk for the owner's go, and the key that gives it

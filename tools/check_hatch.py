@@ -43,6 +43,8 @@ FOCUSED_MODULES=(
  'test_desk','test_frame','test_paper','test_machine','test_documents','test_graphite','test_writing_line','test_context_menu',
  # 0.4.9 and 0.5: the drawn glyphs, a tool's face (words or a glyph), Find in what is open, a page in the desk's light
  'test_faces_find_light',
+ # 0.6: Stacy's hand: the dial, what always asks, what takes an act back, her trail
+ 'test_stacy_hand',
  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
  # the network capability the agent can inspect (HATCH DESK D5)
  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',

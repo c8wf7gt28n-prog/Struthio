@@ -124,6 +124,10 @@ class Session:
             s['field_zoom']={'zoom':float(seen['zoom']),'whole':seen['whole']}
         if data.get('glow') in ('soft','bright','neon'):s['glow']=data['glow']     # how strongly the desk glows (boss_theme.GLOW_LEVELS)
         if data.get('buttons') in ('words','icons'):s['buttons']=data['buttons']     # tool buttons as words on plates, or as Graphite's glyphs (tool_faces)
+        if data.get('stacy_hand') in ('ask','show','free'):s['stacy_hand']=data['stacy_hand']     # how far Stacy acts by herself (stacy_hand.LEVELS)
+        if isinstance(data.get('stacy_trail'),list):
+            from .stacy_hand import clean as clean_trail
+            s['stacy_trail']=clean_trail(data['stacy_trail'])     # what she did by herself, each with its Undo where there is one
         if type(data.get('page_own_light')) is bool:s['page_own_light']=data['page_own_light']     # a PDF page shown as the file has it, not in the desk's light
         if type(data.get('writing_marker')) is bool:s['writing_marker']=data['writing_marker']  # appearance.writing_marker (VS03)
         navigation=data.get('settings_navigation')

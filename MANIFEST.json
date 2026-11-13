@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "package_profile": "runtime",
-  "note": "Graphite 0.5.3: the middle of the head is an equalizer (each bar one processor thread of this computer over the last second) and the name of what is open is back in the bar above the work; the right pane is one view, Stacy, with a line for what is open and a line for what is running and waiting; the line at the bottom has five names to choose whom you are typing to (Stacy, Terminal, Search, Web, Log), Web opens in the browser of this computer, and the arrow says what it will do. Before it, 0.5.2: sleek and tidy: no key is printed beside the thing it does (every key still works), the glyphs in the menus are neon green, and the glow opens on Neon. Before it, 0.5.1, from the first walk round it on the ThinkPad: the eight menus stand across the head, one dial sets the glow (it opens on Bright), the left trees are green circuit traces with the path to the current row lit, and the lines of the menus carry glyphs. Before it, 0.5.0: simple at rest (the head says the name of what is open and gives its address on a click, tools are drawn glyphs, Stacy is first on the right, Z glides); the whole desk on Z is a map (a sheet from far off is the glyph of its kind, its name and the mark of its state), Find works on every page, and the Field is seen as it was last seen. With it, 0.4.9, never cut alone: an audit: one visible home for each action, a name said once, Save lit only when it would save something; no white boxes (buttons and fields are dark plates with a quiet edge, a PDF page is shown in the light of the desk with its own light under More); drawn icons as an option (Work, Rules, Buttons); and a fault mended that could end the program when a finding was read again. Before it, 0.4.8: a control looks like a control (actions are boxed buttons, one row of tools above the sheet, the PDF and the page of writing, with the rest under More; link words are underlined). Before it, 0.4.7: amber glows where the keys go and on what waits, and the mouse comes first (a bar of controls above the centre, Z for the whole desk, bars to drag, buttons as wide as their words). Before it, 0.4.6: the pointer is the green of the desk and what it is over answers in green; live marks, wires and readings glow (not on the Clean desk). Before it, 0.4.5: the mouse path (a click opens a tile, \u2039 Field comes back, every shown key can be clicked, Approve is a button) and the first change Stacy makes on approval (set B3 to 300). Before it, 0.4.4: a pass for reading and for finding the keys (? shows every key; the doubt, the desk check and the brief open on a page over the work). Before it, 0.4.3: a what-if is followed along the wires and marked on the Field, the doubt catches more (a subtotal counted twice, a prefix slip), B writes the desk up as a page, and the owner keeps staC lines under their own words. Before it, 0.4.2: Stacy doubts a result (X) and offers the step that removes the doubt. staC reads the desk itself, `this` is the selected sheet, T traces a thing to its source and Stacy answers \"what if\" exactly. The desk does. In the Field, D offers the steps the records have for a sheet (reads run, changes ask once), C checks the desk, and one go settles what needs no decision of the owner\u2019s. Stacy is the assistant\u2019s face and answers in staC; P shows every program as a shelf. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 0.6.0: Stacy has a hand: two words under her face say how far she acts by herself (Ask first, Do and show, Free hand); a change asked of her is made at once and shown, with one Undo and a line in her trail; what cannot be undone always asks; with a free hand she also brings back to current what stood on a change. Before it, 0.5.3: the middle of the head is an equalizer (each bar one processor thread of this computer over the last second) and the name of what is open is back in the bar above the work; the right pane is one view, Stacy, with a line for what is open and a line for what is running and waiting; the line at the bottom has five names to choose whom you are typing to (Stacy, Terminal, Search, Web, Log), Web opens in the browser of this computer, and the arrow says what it will do. Before it, 0.5.2: sleek and tidy: no key is printed beside the thing it does (every key still works), the glyphs in the menus are neon green, and the glow opens on Neon. Before it, 0.5.1, from the first walk round it on the ThinkPad: the eight menus stand across the head, one dial sets the glow (it opens on Bright), the left trees are green circuit traces with the path to the current row lit, and the lines of the menus carry glyphs. Before it, 0.5.0: simple at rest (the head says the name of what is open and gives its address on a click, tools are drawn glyphs, Stacy is first on the right, Z glides); the whole desk on Z is a map (a sheet from far off is the glyph of its kind, its name and the mark of its state), Find works on every page, and the Field is seen as it was last seen. With it, 0.4.9, never cut alone: an audit: one visible home for each action, a name said once, Save lit only when it would save something; no white boxes (buttons and fields are dark plates with a quiet edge, a PDF page is shown in the light of the desk with its own light under More); drawn icons as an option (Work, Rules, Buttons); and a fault mended that could end the program when a finding was read again. Before it, 0.4.8: a control looks like a control (actions are boxed buttons, one row of tools above the sheet, the PDF and the page of writing, with the rest under More; link words are underlined). Before it, 0.4.7: amber glows where the keys go and on what waits, and the mouse comes first (a bar of controls above the centre, Z for the whole desk, bars to drag, buttons as wide as their words). Before it, 0.4.6: the pointer is the green of the desk and what it is over answers in green; live marks, wires and readings glow (not on the Clean desk). Before it, 0.4.5: the mouse path (a click opens a tile, \u2039 Field comes back, every shown key can be clicked, Approve is a button) and the first change Stacy makes on approval (set B3 to 300). Before it, 0.4.4: a pass for reading and for finding the keys (? shows every key; the doubt, the desk check and the brief open on a page over the work). Before it, 0.4.3: a what-if is followed along the wires and marked on the Field, the doubt catches more (a subtotal counted twice, a prefix slip), B writes the desk up as a page, and the owner keeps staC lines under their own words. Before it, 0.4.2: Stacy doubts a result (X) and offers the step that removes the doubt. staC reads the desk itself, `this` is the selected sheet, T traces a thing to its source and Stacy answers \"what if\" exactly. The desk does. In the Field, D offers the steps the records have for a sheet (reads run, changes ask once), C checks the desk, and one go settles what needs no decision of the owner\u2019s. Stacy is the assistant\u2019s face and answers in staC; P shows every program as a shelf. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 15522,
-      "sha256": "1ef5dbac0c4878278cdd030b14ea5a7d477538bc7267762e6ecf477df646dcbe"
+      "bytes": 16400,
+      "sha256": "d650ce6a30ae12e337305c9c1a7d03224260c5de5d38baa69a4b02a3b310358a"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 29172,
-      "sha256": "29b515e950523a4feea68466a9c536f3f0c1c80b7b9887e368dee52a930d304e"
+      "bytes": 30117,
+      "sha256": "3cb01b22c4cb16e8367337b696a47368a2efb1e86ff2216beea0dc7a327cd952"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -1098,8 +1098,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 30654,
-      "sha256": "35f2abaf687add47817c9cde44f89c92eea68f82d6c8bd2da5ec71b9629bf6c2"
+      "bytes": 32252,
+      "sha256": "25bce8a456bad6fd90614db8f6e48c082ad3686ac6edbdb022cd04120840f57a"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1159,7 +1159,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 280113,
-      "sha256": "85783e78e55a93a54afeccfb537d9da906bbaade92ee3fc9de01e334958306d4"
+      "sha256": "1a1ba5338d593ec623d09b2d85e5357ed73f8c10bcfef24e772e61d9cde5265e"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12513,
@@ -1537,6 +1537,10 @@
       "bytes": 6876,
       "sha256": "ae22c0b081f8b447e1f98d782de9e299a28730f92bf45c056e7a98e5d99fbe85"
     },
+    "docs/RELEASE_NOTES_0.6.0.md": {
+      "bytes": 7472,
+      "sha256": "984097455dab8629e9f8cde3673b5c381e6b21d27a06cb92f38d625935ce6ce3"
+    },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
       "sha256": "03a8d7e31fd4b7cca05b9c16a9f7aab641b727c73bc4ffd82ad0e3d7337ff1c4"
@@ -1647,7 +1651,7 @@
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
       "bytes": 8823,
-      "sha256": "085e179a86ca13aec52d7759058de217134e0703fe0c7fb6aae2605238d59ffe"
+      "sha256": "ec35b43a9308c18badc1c5c8072e44a60ff5ff570919431bf2517af1ac3c1155"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -2054,16 +2058,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1902686,
-      "sha256": "ebc4239a6c81ee853a7245841ad28a8e26a4657c57c918a07413d853b417c43e"
+      "bytes": 1905194,
+      "sha256": "154651c33342ed6c7084e0428f656b08a701145ce3f5b48eaf69f7de18afdaa8"
     },
     "project/stacy_seed/current/index.sqlite": {
-      "bytes": 4345856,
-      "sha256": "6b9f8c9980a929a89ee34a4ebde2851dc07801ddcd87121cde7f2dcb7803f352"
+      "bytes": 4349952,
+      "sha256": "444716878ee2c10f90a1561a60c7cb394297e7a658b946ff9b3236134581095f"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "f77b63dda4faa20fb583e3a5e9625d1e4d62bfacd774a7c7b69c0e405aded001"
+      "sha256": "c898bd4c389df0601333295e217755a9a05369082945ea3ae511c3e9d442e0b2"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2629,6 +2633,10 @@
       "bytes": 18032,
       "sha256": "688ad6b5b1b6e6fac098b13e4a8636787d8a9a30258d336a8e194fd6875141d7"
     },
+    "tests_integrated/test_stacy_hand.py": {
+      "bytes": 8779,
+      "sha256": "abf111d1740113ef647336354db7698834ab666cf689c73680004b518c2e3060"
+    },
     "tests_integrated/test_startup_scripts.py": {
       "bytes": 15723,
       "sha256": "3e5597ddbe971b09fe758f1d47bc33eb39c06adf18f71439800102f60f771bca"
@@ -2718,8 +2726,8 @@
       "sha256": "871cc8ecb2e66ff89bcc7fd8fd96d5458c2baa90fd9a339a0f6b6ccf86640f96"
     },
     "tools/check_hatch.py": {
-      "bytes": 28651,
-      "sha256": "97aff21ceb8e40b93a168d52e0501aba96b8ec81e43029595777e54aae477afe"
+      "bytes": 28755,
+      "sha256": "399a7d6fff0f5c7d5252661e3602810a1f7cfdf0d3bdb6e2cccf31a3bd25e602"
     },
     "tools/check_hatch_ui.py": {
       "bytes": 33225,
@@ -2802,8 +2810,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/package_graphite.py": {
-      "bytes": 13578,
-      "sha256": "01c746674832dbd8b896353e427a7bd1bbd903149f6a0ce7cea6a144eaea9ca6"
+      "bytes": 13904,
+      "sha256": "361fc3fd492c37d151bae7fe5227b776f812257eecd0c92c44706d12323ae3ea"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -3422,12 +3430,12 @@
       "sha256": "4437fe75c5547ea142dff52ea998b17ff01124f3583f58217a4f95a5f0e87d3d"
     },
     "workbench/field_page.py": {
-      "bytes": 38324,
-      "sha256": "7a14832dbbce7acdb7d3010eaf79ed85627e39c437c71c5715183eaf713f2db2"
+      "bytes": 41764,
+      "sha256": "dfd5155788e2b64815f7ffc573ffe2c3cf12a907b5774fe20a10a508f2f1f1e2"
     },
     "workbench/field_qt.py": {
-      "bytes": 107215,
-      "sha256": "f743397829dff9efebf44ca6599d0521f0fef4352029b9a68b82a13be9e3dd2d"
+      "bytes": 107397,
+      "sha256": "da64305d33925cf48e0372aa71dd41f4b4a34989ea9e40dc3fcfc293bf43bac5"
     },
     "workbench/field_ripple.py": {
       "bytes": 19666,
@@ -3794,8 +3802,8 @@
       "sha256": "1ae36ab74d1aca75e1895707812947ffbd7aeb0fd0c16416d6cdc1cc7fff69c4"
     },
     "workbench/menus2.py": {
-      "bytes": 22736,
-      "sha256": "ed1e196dfae1e022a8c2d4623d95bee7cc1f120dc1c73293682c1807dfcd4b6a"
+      "bytes": 22840,
+      "sha256": "565893e17bbd256a1d355c0a112d504ff9313f414ad901cdc85426860bba5593"
     },
     "workbench/model_settings.py": {
       "bytes": 8921,
@@ -4466,8 +4474,8 @@
       "sha256": "36ad61bc8357a0b90c4749f447b9665f3eae8f310d86d7773edfc70f51da7c8d"
     },
     "workbench/session.py": {
-      "bytes": 19980,
-      "sha256": "d2dd8f97159f0ccf58d06acbae9e38b98e8e927b496164b66a618491c1a9fd22"
+      "bytes": 20371,
+      "sha256": "9c330fc04b74c1874c0dc89b1bc0d9d96661586d4e46ca58912df0940680213c"
     },
     "workbench/session_power.py": {
       "bytes": 21701,
@@ -4498,8 +4506,8 @@
       "sha256": "66bc2507e0e695ac4952a5bd76d45e078c4f642ca0e41c93af9cf11068cf99fe"
     },
     "workbench/shell2.py": {
-      "bytes": 216238,
-      "sha256": "7f138a94d8e0c2c34b4238ccda57285374d9c5c8a4191b4cd0cbd23401888778"
+      "bytes": 233878,
+      "sha256": "3686c984d4046a8dff551ea6dc874ab818952342364ecdd17f990657c3906fb9"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,
@@ -4645,6 +4653,10 @@
       "bytes": 14552,
       "sha256": "72cefea8201689c51b58b394664346e05a9b93a26aa0103e1e46df671e9579f2"
     },
+    "workbench/stacy_hand.py": {
+      "bytes": 9793,
+      "sha256": "b9580d54d6c715259ba1a4bd46d5ec81439cbb2be5516de138dc333886dbeee1"
+    },
     "workbench/stacy_language.py": {
       "bytes": 6436,
       "sha256": "4a4a4f3c99f6533ce7fd13c080d2aa623eba61b6f04048b88dccdf11c9c7afe4"
@@ -4786,8 +4798,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 10068,
-      "sha256": "64607408509f5eae169f7f442c54e87511208ffb9190ce9c6cd1182b3f82abbf"
+      "bytes": 10669,
+      "sha256": "4f1068c0eac4d9bf2b36d0f8f238fdb76187c3a09001a06954dbfa158ab1db88"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -4918,5 +4930,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "0.5.3"
+  "graphite_release": "0.6.0"
 }

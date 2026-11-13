@@ -1,4 +1,4 @@
-# Graphite 0.5.3 · The desk does, doubts, looks ahead, glows more, says each thing once, and reads from far off
+# Graphite 0.6.0 · The desk does, doubts, looks ahead, glows more, says each thing once, and reads from far off
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
@@ -6,6 +6,7 @@ on. Graphite is the public name of the workspace; its assistant's face is Stacy,
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **From the ThinkPad** · the eight menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand in the open across the head; one dial sets how strongly the desk glows (Rules ▸ Desk artwork ▸ Glow: Soft, Bright, Neon; it opens on Neon); no key is printed beside the thing it does; the left trees are green circuit traces with the path to the current row lit; the menus' lines carry glyphs.
+- **Stacy's hand** · two words under her face say how far she acts by herself; click them to change it. **Ask first**: every change waits for your Approve. **Do and show** (what it opens with): a change you ask her for is made at once and shown, with one **Undo** that puts back exactly what it took. **Free hand**: she also makes the changes the records mark for approval and, after a change, brings back to current what stood on it. Say "make a folder called Bracket" or "write a file called plan.txt saying …" and it is in Files as if you had saved it, with an Undo that moves it to the Trash. What cannot be undone always asks. Her trail (**What she did…**) lists every act.
 - **One line to type on** · five names stand at the left of the line at the bottom: Stacy, Terminal, Search, Web, Log. The lit one gets the words. Web opens an address, or searches for words, in this computer's own browser; an address typed anywhere goes to Web by itself. The arrow at the line's end says what it will do, and turns green to run a line that reads as staC.
 - **The head and the right pane** · the middle of the head is an equalizer: each bar is one processor thread of this computer over the last second. The right pane is one view, Stacy: her face, **This** (what is open or selected), **Now** (what is running and what waits), and the conversation.
 - **Simple at rest** · the bar above the work says the name of what is open (click it for its address); tools are drawn glyphs with no boxes; Stacy is the right pane; the name of a thing is said once.
@@ -18,7 +19,7 @@ Slate, and folders, scripts, settings keys and internal names keep those earlier
 - **The mouse first** · above whatever is open in the centre: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, always in the same place. In the Field **Z** shows the whole desk and the bars at the edges drag; the right button on a sheet shows what can be done with it.
 - **Amber** · one amber halo marks where the keys go (the selected sheet, the page being read, or the writing line); what waits for you is lit at its mark, and Approve glows until it is pressed.
 - **Green** · the pointer (the mark's two facets, aimed at 11 o'clock) is drawn in the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
-- **The mouse** · click a tile in the Field to open it in the centre; **‹ Field** above the centre comes back to the same tile; the buttons at the foot of the Field do what their keys do; a change that waits has an **Approve** button. Ask Stacy "set B3 to 300" and the change waits for your Approve with what it would move marked.
+- **The mouse** · click a tile in the Field to open it in the centre; **‹ Field** above the centre comes back to the same tile; the buttons at the foot of the Field do what their keys do; a change that waits has an **Approve** button. Ask Stacy "set B3 to 300" and, with her hand at Do and show, it is done at once with an Undo; at Ask first it waits for your Approve with what it would move marked.
 - **Every key** · press **?** in the Field for a card of every key. The doubt (X), the desk check (C) and the brief (B) open on a page over the work at your reading size; the doubt and the check step aside at the next key.
 - **Look ahead** · with a sheet or a calculation selected in the Field, ask "what if B4 were 100?": the cell is set without changing anything, the wires are followed, and the Field marks everything that would move with what it would say (**Esc** clears).
 - **The brief** · press **B** in the Field: the whole desk written up as one page, from the records and by no model; **G** keeps it as a page that knows when the desk has moved on.
@@ -26,7 +27,7 @@ Slate, and folders, scripts, settings keys and internal names keep those earlier
 - **Your own words** · `word waits = field.read | pick waiting | select kind,title,state`, then `waits`, `waits | count`, `words`, `forget waits`: a staC line kept under a word of yours.
 - **Doubt** · press **X** on a sheet in the Field: Stacy cross-examines it for what a plausible result may hide (an edited input, mixed conditions, one source, a check that cannot fail, a number recorded nowhere) and **D** offers the step that removes the doubt.
 - **staC reads the desk** · `field.read | pick waiting | select kind,title,state`; `this` is the sheet selected in the Field; **T** traces a thing to its source; ask "what if B3 were 320?" about a calculation and nothing is changed.
-- **Doing** · press **D** on a sheet in the Field for the steps the records offer (a read runs; a change waits for **G**, your go); **C** checks the desk and offers to settle what needs no decision of yours.
+- **Doing** · press **D** on a sheet in the Field for the steps the records offer (a read runs; a change that waits is marked "asks first" and waits for **G**, your go; with Stacy's hand at Do and show or Free hand, the others are done when you take them); **C** checks the desk and offers to settle what needs no decision of yours.
 - **The shelf** · press **P** in the Field: every program and room in six fixed columns; Enter opens one.
 - **The Field** · press **F9** (or Arrange → Field, or type `field` in the writing strip): the work in this workspace as sheets with the wires that say what feeds what. Arrow keys follow the wires, Enter opens the real page, Esc comes back. Stacy's rail shows the staC line for the selected sheet: **S** puts it in the writing strip, **Shift+Enter** runs it. **N** shows this computer's network the same way; **W** returns to the work. It is the first slice of the objects and instruments desktop (master specification, sections 70 to 72), new in 0.3. Right-click a sheet (or press the Menu key) for what can be done with it. Guide → What's New has the rest.
 - **Visual baseline** · [Visual Pass 1 reference review](docs/BOSS_VISUAL_PASS_01_REVISION.md) compares the five owner references with the revised worksheet, PDF evidence review and research journal.
@@ -50,12 +51,12 @@ The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **Referen
 
 ## Install
 
-From the release volumes (`Graphite_0.5.3_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.6.0_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.5.3" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.5.3" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.0" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.0" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -145,7 +146,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.5.3_full.zip PARTS "Graphite 0.5.3"
+python3 tools/package_release_parts.py OUT/Graphite_0.6.0_full.zip PARTS "Graphite 0.6.0"
 ```
 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).

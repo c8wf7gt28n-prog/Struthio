@@ -452,6 +452,36 @@ def button(text, kind='quiet', tip=''):
     return b
 
 
+def hand_menu(host, face=None):
+    """Rules ▸ Stacy's hand, and the same menu from the words under her name: how far she acts by herself (stacy_hand)."""
+    from PySide6.QtGui import QActionGroup
+    from PySide6.QtWidgets import QMenu
+    from . import stacy_hand
+    menu = QMenu("Stacy's hand", host);group = QActionGroup(menu);group.setExclusive(True);lines = {}
+    tips = {'ask': 'As before: every change waits for your Approve',
+            'show': 'She makes ordinary changes at once and shows them, each with an Undo where it can be taken back',
+            'free': 'She also makes the changes the records mark for approval. What cannot be undone still asks'}
+    def choose(key):
+        stacy_hand.choose(host, key);host.session.save()
+        talk = getattr(getattr(host, 'shell2', None), 'face', None)
+        if talk is not None:talk.show_hand()
+    for key, word in stacy_hand.LEVELS:
+        line = menu.addAction(word);line.setCheckable(True);line.setToolTip(tips[key]);group.addAction(line);lines[key] = line
+        line.triggered.connect(lambda checked=False, key=key:choose(key))
+    menu.setToolTipsVisible(True)
+    mark = lambda:lines[stacy_hand.level(host)].setChecked(True)
+    menu.aboutToShow.connect(mark);mark()
+    def said(what):                              # her pane is found when the line is chosen: the menus are built before it is
+        shell = getattr(host, 'shell2', None);talk = face or getattr(shell, 'face', None)
+        if talk is None:return
+        if shell is not None and callable(getattr(shell, 'show_primary_face', None)):shell.show_primary_face()
+        getattr(talk, what)()
+    menu.addSeparator()
+    menu.addAction('What she did…').triggered.connect(lambda checked=False:said('say_trail'))
+    menu.addAction('What always asks…').triggered.connect(lambda checked=False:said('say_always'))
+    return menu
+
+
 def approve_button(run, host):
     """The owner's Approve of a change that waits, in Talk: the same filled amber button the Field shows at its foot, so one
     waiting change looks the same in both places, and lit in amber while it waits (boss_qt.waits). Under the pointer its
@@ -1697,6 +1727,9 @@ class SlateFace(QWidget):
         self.portrait = PanelInk(host, 'face');self.portrait.setParent(self);top.addWidget(self.portrait, 0, Qt.AlignTop)
         self.signature = pleasantry(QLabel('Stacy'), host, 26);names.addWidget(self.signature)
         self.model = QLabel('Stacy');self.model.setWordWrap(True);self.model.setStyleSheet('color:%s' % QUIET);names.addWidget(self.model)
+        # 0.6.0: her hand, in two words, under what she speaks with; a click changes it (stacy_hand: asks first, does and shows, a free hand).
+        self.hand = QPushButton();self.hand.setProperty('arcButton', 'link');self.hand.setObjectName('StacyHand');self.hand.setCursor(Qt.PointingHandCursor)
+        self.hand.clicked.connect(self.open_hand);names.addWidget(self.hand, 0, Qt.AlignLeft);self.show_hand()
         names.addStretch(1);top.addLayout(names, 1);outer.addLayout(top)
         self.portrait.set_available(True)      # only once it is inside this pane: shown before that, it would be a window of its own
         self.thing = None      # the thing a question is about, when the asker knows it: {'title', 'stac', 'kind'} (a sheet of the Field)
@@ -1887,20 +1920,41 @@ class SlateFace(QWidget):
     # ---- doing: the steps the records offer for a thing (workbench/field_do.py), said and carried out here ---------------------
     def say_steps(self, title, steps, take):
         """What can be done about a thing: each step a word to choose, numbered as the Field numbers them. `take(n)` takes one."""
-        card = self.say('What can be done about “%s”. A number in the Field takes a step, or choose it here. One that changes something asks first.' % title)
+        from .field_page import _waits
+        asks = [step.kind == 'write' and _waits(self.host, step) for step in steps[:9]];writes = [step.kind == 'write' for step in steps[:9]]
+        rule = ('' if not any(writes) else ' One that changes something asks first.' if asks == writes else
+                ' A step marked “asks first” waits for you; any other that changes something I do at once and show.')
+        card = self.say('What can be done about “%s”. A number in the Field takes a step, or choose it here.%s' % (title, rule))
         for n, step in enumerate(steps[:9]):
-            words = '%d  %s' % (n + 1, step.words) + ('  ·  asks first' if step.kind == 'write' else '')
+            words = '%d  %s' % (n + 1, step.words) + ('  ·  asks first' if asks[n] else '')
             card.box.addWidget(sentence('{go}', {'go': (words, lambda n=n:take(n))}))
         card.steps = steps
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
 
-    def stage(self, title, step, done=None):
-        """A step that changes something waits here for the owner: what it does, what it leaves behind, the exact line, and
-        Run. Run is the owner's go: the line goes through the Kernel with the owner's own authority, once. `done(ok, result)`
-        is told how it went, so the Field can read the records again."""
+    def stage(self, title, step, done=None, asked=False, word=''):
+        """A step that changes something: what it does, what it leaves behind and the exact line. `done(ok, result)` is told
+        how it went, so the Field can read the records again.
+
+        Until 0.5.3 every such step waited here for the owner's Approve. Since 0.6.0 a change the owner asked for (`asked`:
+        "set B3 to 300" said to her, a step taken from her list) follows her hand (stacy_hand): with the dial at Do and
+        show or Free hand, and the operation hers to do, she does it at once, says what she did, writes it in her trail
+        and offers one Undo where it can be taken back exactly. A step that was only offered (the brief's "keep it as a
+        page") still waits, and so does anything that cannot be undone. `card.ran` is None while it waits."""
+        from . import stacy_hand
         from .context_menu import inspect_in_line
-        card = self.say('For “%s”: %s. This changes something, so it waits for you.' % (title, step.words[:1].lower() + step.words[1:]))
+        from .field_do import call as line_call
+        try:operation, arguments = line_call(step.line)
+        except Exception:  # noqa: BLE001 - a line she cannot read is never hers to run; it waits, and Approve says why it is refused
+            operation, arguments = '', {}
+        place = stacy_hand.level(self.host)
+        mine = bool(asked and operation and stacy_hand.hers(place, step.scope, operation, arguments))
+        if mine:lead = 'For “%s”: %s.' % (title, step.words[:1].lower() + step.words[1:])
+        elif asked and place != 'ask':
+            lead = 'For “%s”: %s. This waits for you: %s.' % (title, step.words[:1].lower() + step.words[1:],
+                                                              stacy_hand.why_asks(operation, arguments) or 'the records mark it for your approval')
+        else:lead = 'For “%s”: %s. This changes something, so it waits for you.' % (title, step.words[:1].lower() + step.words[1:])
+        card = self.say(lead)
         if step.why:
             why = QLabel(breakable(step.why[:1].upper() + step.why[1:] + '.'));why.setWordWrap(True);why.setStyleSheet('color:%s' % QUIET)
             why.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(why)
@@ -1910,10 +1964,14 @@ class SlateFace(QWidget):
         row = QHBoxLayout();run = button('Approve', 'stac');run.setObjectName('StagedRun');row.addWidget(run)
         run.setToolTip('Apply this change. Nothing is changed until you do; in the Field, G does the same')
         row.addWidget(sentence('{line}', {'line': ('in the line', lambda:inspect_in_line(self.host, step.line))}));row.addStretch(1);card.box.addLayout(row)
-        card.step = step;card.run = run;card.ran = None
+        card.step = step;card.run = run;card.ran = None;card.hers = mine;card.word = word;card.title = title;card.row = row;card.entry = None
+        QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
+        if mine:
+            run.hide()                          # nothing waits: she does it now
+            self.run_staged(card, done)
+            return card
         approve_button(run, self.host)          # it waits for the owner: the Field's own Approve, lit in amber
         run.clicked.connect(lambda:self.run_staged(card, done))
-        QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
 
     def run_staged(self, card, done=None):
@@ -1935,11 +1993,183 @@ class SlateFace(QWidget):
             elif isinstance(result.get('words'), str) and result['words']:said = 'Done. ' + result['words']
             elif isinstance(result.get('changed'), list):said = 'Done: %s.' % ('nothing had changed' if not result['changed'] else '%d changed' % len(result['changed']))
             elif isinstance(result.get('ran'), list):said = 'Done: %d check%s ran%s.' % (len(result['ran']), '' if len(result['ran']) == 1 else 's', (': ' + ', '.join(str(x.get('outcome')) for x in result['ran'][:6])) if result['ran'] else '')
+            elif isinstance(result.get('trashed'), str):said = 'Done: “%s” is in the Trash, which gives it back.' % result['trashed']
+            elif isinstance(result.get('path'), str) and result.get('kind'):said = 'Done: “%s” is in Files.' % result['path']
+            elif isinstance(result.get('title'), str) and result['title']:said = 'Done: “%s”.' % result['title']
             else:said = 'Done.'
         else:
             said = 'It was refused, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400]
         note = QLabel(breakable(said));note.setWordWrap(True);note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(note)
+        if getattr(card, 'hers', False):         # her own act: one line in her trail, and one Undo where it can be taken back exactly
+            from . import stacy_hand
+            back = stacy_hand.takes_back(operation, arguments, r.get('result')) if card.ran else ''
+            card.entry = stacy_hand.record(self.host.session.state, '%s · “%s”' % (card.step.words, card.title), card.step.line, back, card.word, card.ran)
+            try:self.host.session.save()
+            except Exception:  # noqa: BLE001 - the act is done and said; a trail that could not be written is not worth an error
+                pass
+            if back:
+                undo = button('Undo', 'stac', 'Put it back as it was');undo.setObjectName('StagedUndo');card.back = undo;card.undone = None
+                undo.clicked.connect(lambda:self.undo_staged(card, done));card.row.insertWidget(0, undo)
+            elif card.ran:
+                kept = QLabel('There is no exact Undo for this: what it made is kept beside what was there.');kept.setWordWrap(True);kept.setStyleSheet('color:%s' % FAINT)
+                kept.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(kept)
         if done is not None:done(card.ran, r.get('result') if card.ran else None)
+
+    def run_line(self, line):
+        """One line through the Kernel with the owner's authority: the answer, or a refusal in the same shape."""
+        from .engine import engineering
+        from .engineering_kernel import operator
+        from .field_do import call as line_call
+        try:
+            operation, arguments = line_call(line)
+            return engineering(self.host.root).dispatch(operation, arguments, operator())
+        except Exception as exc:  # noqa: BLE001 - said as a refusal, never raised into the window
+            return {'ok': False, 'error': {'message': str(exc)[:300]}}
+
+    def undo_staged(self, card, done=None):
+        """Undo on one of her acts: the line that puts it back as it was, once. If what she changed was changed again since,
+        the Kernel refuses and nothing is touched."""
+        from . import stacy_hand
+        if getattr(card, 'undone', None) is not None or not card.entry or not card.entry.get('undo'):return
+        r = self.run_line(card.entry['undo'])
+        card.undone = bool(r.get('ok'));card.back.setEnabled(False);card.back.setText('Undone' if card.undone else 'Not undone')
+        if card.undone:
+            stacy_hand.taken_back(self.host.session.state, card.entry)
+            result = r['result'] if isinstance(r.get('result'), dict) else {}
+            said = 'Taken back. ' + str(result.get('words') or ('“%s” is in the Trash, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else ''))
+        else:
+            said = 'It could not be taken back, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400]
+        try:self.host.session.save()
+        except Exception:  # noqa: BLE001
+            pass
+        note = QLabel(breakable(said.strip()));note.setWordWrap(True);note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(note)
+        if card.undone and done is not None:done(True, r.get('result'))
+
+    def show_hand(self):
+        """Her hand, in two words under what she speaks with."""
+        from . import stacy_hand
+        place = stacy_hand.level(self.host)
+        self.hand.setText(stacy_hand.SAYS[place]);self.hand.setAccessibleName("Stacy's hand: " + dict(stacy_hand.LEVELS)[place])
+        self.hand.setToolTip('How far Stacy acts by herself: %s. Click to change it.' % dict(stacy_hand.LEVELS)[place])
+
+    def open_hand(self):
+        menu = hand_menu(self.host, self)
+        try:
+            from .tool_faces import dress
+            dress(menu)
+        except Exception:  # noqa: BLE001 - a menu without its glyphs is still the menu
+            pass
+        menu.popup(self.hand.mapToGlobal(self.hand.rect().bottomLeft()));self._hand_menu = menu
+
+    def say_trail(self):
+        """What she did by herself, the latest first, each with its Undo where one is left."""
+        from . import stacy_hand
+        acts = stacy_hand.trail(self.host.session.state)
+        card = self.say('What I did by myself, the latest first:' if acts else 'I have not done anything by myself yet. With my hand at “Do and show”, a change you ask me for is done at once and listed here.')
+        marks = {'done': '', 'undone': ' · taken back', 'refused': ' · refused, nothing changed'}
+        for entry in acts[:12]:
+            line = QLabel(breakable('%s  %s%s' % (entry['at'], entry['words'], marks.get(entry['state'], ''))));line.setWordWrap(True)
+            line.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(line)
+            if entry.get('word'):
+                word = QLabel(breakable('at your word: “%s”' % entry['word']));word.setWordWrap(True);word.setStyleSheet('color:%s' % FAINT)
+                word.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(word)
+            if entry['state'] == 'done' and entry.get('undo'):
+                card.box.addWidget(sentence('{undo}', {'undo': ('Undo this', lambda entry=entry:self.undo_entry(entry))}))
+        if len(acts) > 12:card.box.addWidget(QLabel('… and %d before them' % (len(acts) - 12)))
+        return card
+
+    def undo_entry(self, entry):
+        """Undo from the trail: the same line, once."""
+        from . import stacy_hand
+        if entry.get('state') != 'done' or not entry.get('undo'):return self.say('That one has already been taken back.')
+        r = self.run_line(entry['undo'])
+        if r.get('ok'):
+            stacy_hand.taken_back(self.host.session.state, entry)
+            result = r['result'] if isinstance(r.get('result'), dict) else {}
+            card = self.say(('Taken back: %s. ' % entry['words']) + str(result.get('words') or ''))
+            page = getattr(self.host, 'field_page', None)
+            if page is not None:
+                try:page.refresh(force=True)
+                except Exception:  # noqa: BLE001 - the change is undone; the Field reads again on its next look
+                    pass
+        else:
+            card = self.say('It could not be taken back, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400])
+        try:self.host.session.save()
+        except Exception:  # noqa: BLE001
+            pass
+        return card
+
+    def say_always(self):
+        """What asks on every place of the dial, and the Terminal commands that are hers."""
+        from . import stacy_hand
+        card = self.say('Wherever my hand is set, these wait for you, because they cannot be undone:')
+        for _, why in stacy_hand.ALWAYS_ASKS:
+            line = QLabel(breakable('· ' + why[:1].upper() + why[1:]));line.setWordWrap(True);line.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(line)
+        more = QLabel(breakable('In the Terminal I run by myself only commands that read and change nothing: %s and the like, one at a time, with nothing piped or redirected. '
+                                'Any other command is put in the line for you.' % ', '.join(stacy_hand.TERMINAL_READS[:9])))
+        more.setWordWrap(True);more.setStyleSheet('color:%s' % QUIET);more.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(more)
+        return card
+
+    def made_asked(self, text):
+        """“Make a folder called Bracket”, “write a file called plan.txt saying …”, “start a page called Bench plan”: an
+        artifact asked of her (the owner: "an artifact is made just as if I had saved a file"). It goes through the same
+        operation the owner's own New Folder, save and New Document use, follows her hand (done at once, or waiting for
+        Approve), and is marked as hers where the records have a place for it. She never writes over a file by herself.
+        True when the words were such a request."""
+        from . import stacy_hand
+        from .field_do import Step, op
+        asked = stacy_hand.made(text)
+        if asked is None:return False
+        kind, name, words = asked
+        self.thing = None;self.mine(text)
+        if kind in ('file', 'folder'):
+            if self.run_line(op('files.get', path=name)).get('ok'):
+                self.say('There is already something called “%s” in Files. I do not write over what is there by myself: say another name.' % name);return True
+            parent, _, leaf = name.rpartition('/')
+            step = (Step('Make a folder called “%s”' % name, 'write', op('files.mkdir', path=parent, name=leaf), 'a new, empty folder in Files; Undo moves it to the Trash', 'execute') if kind == 'folder' else
+                    Step('Make a file called “%s”' % name, 'write', op('files.write', path=name, text=words), 'a new file in Files with those words; Undo moves it to the Trash', 'execute'))
+            title = 'Files'
+        elif kind == 'page':
+            step = Step('Start a page called “%s”' % name, 'write', op('documents.create', title=name, text=words, origin='SLATE'),
+                        'a page in Documents and on the Field, marked as started by me', 'execute');title = 'Documents'
+        else:
+            step = Step('Keep a note: “%s”' % name, 'write', op('ideas.capture', text=name + ('\n\n' + words if words else ''), origin='SLATE'),
+                        'a note in Notes, marked as kept by me', 'execute');title = 'Notes'
+        self.stage(title, step, done=self.made_done, asked=True, word=text.strip())
+        return True
+
+    def made_done(self, ok, result):
+        """After an artifact of hers was made or taken back: the tree and the Field read again, so it is where the owner's own would be."""
+        host = self.host
+        for look in (lambda:host.concern.rebuild(), lambda:host.field_page.refresh(force=True), lambda:host.field_page.view.update()):
+            try:look()
+            except Exception:  # noqa: BLE001 - the thing is made; a view that could not be read again catches up on its next look
+                pass
+
+    def run_asked(self, text):
+        """“run df -h”, “in the terminal: ls Documents”: a Terminal command asked of her. One that only reads is hers to run
+        (stacy_hand.terminal_hers) unless her hand is at Ask first; any other is put in the line, with Terminal chosen, for
+        the owner to run. True when the words were such a request."""
+        from . import stacy_hand
+        named = re.match(r'^\s*(?:in|on)\s+the\s+terminal[,:]?\s*(?:run\s+)?(.+)$', text, re.IGNORECASE | re.DOTALL)
+        plain = re.match(r'^\s*(?:run\s+|\$\s*)(.+)$', text, re.IGNORECASE | re.DOTALL)
+        command = (named or plain).group(1).strip() if (named or plain) else ''
+        if not command or (not named and not stacy_hand.terminal_hers(command)):return False      # "run the numbers again" is not a command
+        self.thing = None;self.mine(text)
+        bar = getattr(self.host, 'type_bar', None)
+        if stacy_hand.terminal_hers(command) and stacy_hand.level(self.host) != 'ask':
+            to_console(self.host, 'shell', command)
+            stacy_hand.record(self.host.session.state, 'Ran in the Terminal: ' + command, '$ ' + command, '', text.strip(), True)
+            try:self.host.session.save()
+            except Exception:  # noqa: BLE001
+                pass
+            self.say('I ran it in the Terminal: %s. It only reads; what it answered is above the line.' % command)
+            return True
+        if bar is not None:
+            bar.set_target('shell', focus=False);bar.box.setText(command)
+        self.say(('My hand is at “Ask first”, so' if stacy_hand.terminal_hers(command) else 'That command may change something, or I cannot tell that it only reads, so')
+                 + ' it is yours to run: it is in the line, with Terminal chosen.')
+        return True
 
     def say_desk(self, count, waiting, lines, go, plan=(), settle=None, doubts=(), look=None):
         """The desk, checked: how many things were read, which wait for the owner and why, and the reads that were made.
@@ -1968,12 +2198,15 @@ class SlateFace(QWidget):
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
 
-    def say_plan(self, plan, done=None, title=None):
+    def say_plan(self, plan, done=None, title=None, hers=False, word=''):
         """Several changes put up together: each named, with its exact line, and one Run. Run is the owner's go for the whole
         list as written. They run in order through the Kernel and stop at the first that is refused; each says how it went.
-        `done(results)` is told, so the desk can be checked again: finished means the check finds nothing waiting."""
+        `done(results)` is told, so the desk can be checked again: finished means the check finds nothing waiting.
+        `hers` (0.6.0, her hand at Free hand): there is no Run to wait for; the caller runs the list at once (run_plan), and
+        each change is one line in her trail."""
         card = self.say((title or 'To settle the desk I would make %d change%s.' % (len(plan), '' if len(plan) == 1 else 's'))
-                        + ' One Run does them in order, as written here, and stops at the first that is refused.')
+                        + ((' I am doing it now, as written here.' if len(plan) == 1 else ' I am doing them in order, as written here, and stop at the first that is refused.') if hers else
+                           ' One Run does them in order, as written here, and stops at the first that is refused.'))
         card.rows = []
         for n, (obj, step) in enumerate(plan):
             said = QLabel(breakable('%d  “%s”: %s' % (n + 1, obj.title, step.words[:1].lower() + step.words[1:])));said.setWordWrap(True)
@@ -1983,9 +2216,11 @@ class SlateFace(QWidget):
             card.box.addWidget(code);card.rows.append(said)
         row = QHBoxLayout();run = button('Approve all %d' % len(plan) if len(plan) > 1 else 'Approve', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
         run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do; in the Field, G does the same')
-        card.plan = plan;card.run = run;card.results = None
-        approve_button(run, self.host)
-        run.clicked.connect(lambda:self.run_plan(card, done))
+        card.plan = plan;card.run = run;card.results = None;card.hers = bool(hers);card.word = word
+        if hers:run.hide()
+        else:
+            approve_button(run, self.host)
+            run.clicked.connect(lambda:self.run_plan(card, done))
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
 
@@ -2007,9 +2242,16 @@ class SlateFace(QWidget):
             result = r.get('result') if ok and isinstance(r.get('result'), dict) else {}
             title = (result.get('document') or {}).get('title') if isinstance(result.get('document'), dict) else None
             card.rows[n].setText(breakable(card.rows[n].text() + ('  ·  done' + (': “%s”' % title if title else '') if ok else '  ·  REFUSED: ' + str((r.get('error') or {}).get('message'))[:200])))
+            if getattr(card, 'hers', False):     # her own act: a line in her trail (a page worked again is kept beside the old one, so there is no exact Undo)
+                from . import stacy_hand
+                stacy_hand.record(self.host.session.state, '%s · “%s”' % (step.words, obj.title), step.line, '', getattr(card, 'word', ''), ok)
             if not ok:break
         went = sum(1 for _, ok, _ in card.results if ok)
         card.run.setText('Ran %d of %d' % (went, len(card.plan)))
+        if getattr(card, 'hers', False):
+            try:self.host.session.save()
+            except Exception:  # noqa: BLE001 - the changes are made and said
+                pass
         if done is not None:done(card.results)
 
     def what_if(self, text):
@@ -2105,12 +2347,14 @@ class SlateFace(QWidget):
             cells = sorted({c for c in names.values()}, key=lambda c: (len(c), c))
             self.say('Say which number and its new value, for example “set %s to” and a number. The numbers here are in %s.' % (cells[-1], ', '.join(cells[:12])));return True
         from .field_page import stage_set
-        stage_set(self.host, chosen, cell, tokens[at])
+        stage_set(self.host, chosen, cell, tokens[at], word=text.strip())
         return True
 
     def ask(self, text, about=None):
         if self.own_word(text):return
         if self.set_asked(text):return
+        if self.made_asked(text):return
+        if self.run_asked(text):return
         thing = self.what_if(text)
         if thing and thing.get('refusal'):
             self.thing = None;self.mine(text);self.say(thing['refusal']);return
