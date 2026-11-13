@@ -1,0 +1,76 @@
+PCB net,U1 package pad,ESP32-P4 package signal
+BTN_LEFT,1,GPIO1
+BTN_RIGHT,2,GPIO2
+DART_LEFT,3,GPIO3
+DART_RIGHT,4,GPIO4
+I2S_BCLK,5,GPIO5
+I2S_LRCLK,6,GPIO6
+I2S_DOUT,7,GPIO7
+AUDIO_SD_CTRL,8,GPIO8
+3V3_SYS,9,Dedicated/non-GPIO or needs pin-table review
+BACKLIGHT_PWM,10,GPIO9
+LCD_RESET_GATE,11,GPIO10
+CHG_STATUS,12,GPIO11
+BQ_EN1,14,GPIO13
+BAT_ADC,17,GPIO16
+USB_CURR_OUT2,18,GPIO17
+3V3_SYS,21,Dedicated/non-GPIO or needs pin-table review
+1V1_HP,26,Dedicated/non-GPIO or needs pin-table review
+FLASH_CS_SOC,27,Dedicated/non-GPIO or needs pin-table review
+FLASH_IO1_SOC,28,Dedicated/non-GPIO or needs pin-table review
+FLASH_IO2_SOC,29,Dedicated/non-GPIO or needs pin-table review
+VDDO_FLASH_3V3,30,Dedicated/non-GPIO or needs pin-table review
+FLASH_IO3_SOC,31,Dedicated/non-GPIO or needs pin-table review
+FLASH_CLK_SOC,32,Dedicated/non-GPIO or needs pin-table review
+FLASH_IO0_SOC,33,Dedicated/non-GPIO or needs pin-table review
+DSI_REXT,34,Dedicated/non-GPIO or needs pin-table review
+DSI_D1_P_SOC,35,Dedicated/non-GPIO or needs pin-table review
+DSI_D1_N_SOC,36,Dedicated/non-GPIO or needs pin-table review
+DSI_CLK_N_SOC,37,Dedicated/non-GPIO or needs pin-table review
+DSI_CLK_P_SOC,38,Dedicated/non-GPIO or needs pin-table review
+DSI_D0_P_SOC,39,Dedicated/non-GPIO or needs pin-table review
+DSI_D0_N_SOC,40,Dedicated/non-GPIO or needs pin-table review
+VDDO_MIPI_2V5,41,Dedicated/non-GPIO or needs pin-table review
+VDD_USBPHY_LOCAL,51,Dedicated/non-GPIO or needs pin-table review
+USB_JTAG_DM,52,Dedicated/non-GPIO or needs pin-table review
+USB_JTAG_DP,53,Dedicated/non-GPIO or needs pin-table review
+1V1_HP,54,Dedicated/non-GPIO or needs pin-table review
+USB_RECOVERY_GPIO26,55,GPIO26
+USB_RECOVERY_GPIO27,56,GPIO27
+VDDO_PSRAM_1V9,59,Dedicated/non-GPIO or needs pin-table review
+3V3_SYS,62,Dedicated/non-GPIO or needs pin-table review
+STRAP_GPIO34,65,GPIO34
+BOOT_STRAP,66,GPIO35
+VDDO_PSRAM_1V9,67,Dedicated/non-GPIO or needs pin-table review
+DOWNLOAD_STRAP_GPIO36,68,GPIO36
+UART0_TX,69,GPIO37
+UART0_RX,70,GPIO38
+VDDO_FLASH_3V3,71,Dedicated/non-GPIO or needs pin-table review
+VDDO_PSRAM_1V9,72,Dedicated/non-GPIO or needs pin-table review
+VDDO_MIPI_2V5,73,Dedicated/non-GPIO or needs pin-table review
+3V3_SYS,75,Dedicated/non-GPIO or needs pin-table review
+1V1_HP,76,Dedicated/non-GPIO or needs pin-table review
+3V3_SYS,77,Dedicated/non-GPIO or needs pin-table review
+FB_DCDC,78,Dedicated/non-GPIO or needs pin-table review
+EN_DCDC,79,Dedicated/non-GPIO or needs pin-table review
+USB_CURR_OUT1,84,GPIO43
+3V3_SYS,85,Dedicated/non-GPIO or needs pin-table review
+PGOOD_STATUS,86,GPIO44
+BQ_EN2,88,GPIO46
+1V1_HP,91,Dedicated/non-GPIO or needs pin-table review
+3V3_SYS,96,Dedicated/non-GPIO or needs pin-table review
+XTAL_N_SOC,99,Dedicated/non-GPIO or needs pin-table review
+XTAL_P_SOC,100,Dedicated/non-GPIO or needs pin-table review
+3V3_SYS,101,Dedicated/non-GPIO or needs pin-table review
+3V3_SYS,102,Dedicated/non-GPIO or needs pin-table review
+CHIP_PU,103,Dedicated/non-GPIO or needs pin-table review
+PWR_WAKE,104,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review
+GND,105,Dedicated/non-GPIO or needs pin-table review

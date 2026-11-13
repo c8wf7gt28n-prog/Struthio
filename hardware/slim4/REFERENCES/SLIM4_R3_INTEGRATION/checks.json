@@ -1,0 +1,27 @@
+{
+  "outline_width_mm": 104.0,
+  "outline_height_mm": 135.296,
+  "button_diameter_mm": 16,
+  "button_centers_x_mm": [
+    -40.75,
+    40.75
+  ],
+  "button_move_outward_mm": 0.75,
+  "guide_inner_diameter_mm": 16.4,
+  "guide_outer_diameter_mm": 19.6,
+  "guide_wall_mm": 1.6,
+  "nominal_guide_to_lcd_x_gap_mm": 0.8000000000000007,
+  "pcb_thickness_mm": 1,
+  "pcb_solid_count": 1,
+  "pcb_area_mm2": 6672.878869244158,
+  "rear_air_cc": [
+    1.9359719374523527,
+    1.9359719374523532
+  ],
+  "all_solids_valid": true,
+  "solid_intersections": [],
+  "regions_outside_board": [
+    "USB_C"
+  ],
+  "limits": "Envelope intersections only; region reserves are not footprints. Rear grip surface blending, tolerances, gaskets, wire exit, cap motion and full electrical layout unresolved."
+}

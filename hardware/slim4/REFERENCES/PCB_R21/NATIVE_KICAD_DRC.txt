@@ -1,0 +1,10 @@
+** Drc report for work_r21/SLIM4_R21.kicad_pcb **
+** Created on 2026-10-05 22:38:12 **
+
+** Found 0 DRC violations **
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **

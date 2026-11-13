@@ -1,0 +1,28 @@
+# AI change report — R32
+
+- Platform/model: Claude Code (Anthropic), cloud session.
+- Input package revision: R31 (commit 0ea9937), firmware R11 (commit 8058008).
+- Output revision: R32, made of PCB R27, CASE R12 (set aside, unchanged), ACRYLIC R2, and the firmware in `firmware/slim4` (R12).
+- Parent layers edited: PCB (R26 → R27), answering the margins found by the pre-order review of R26 (`CHECKS/PREORDER_REVIEW_R26/`). CASE and ACRYLIC are set aside by the owner; CPU sourcing is the owner's.
+- Source files changed:
+  - `LAYERS/01_PCB/*`: R27 board and project; `SLIM4.pretty` (C138, C139, C140 added; D2, R401, R402, R424 rewritten); `R27_FROM_R26/` (new: edits 36–44, `r27_lib.py`, `r27_export_lib.py`, `r27_plane_check.py` and its output `PLANE_CHECK_R27.txt`, `build_r27.sh`); `BRINGUP_PROCEDURE.md` (new in the review commit, updated for R27); `NATIVE_KICAD_DRC.txt`; docs. R26 moved to `REFERENCES/PCB_R26/`.
+  - `CHECKS/`: `PREORDER_REVIEW_R26/` (five reports, netlist); `convergence_check.py` (R27 paths, A1 hashes), `build_builder_packs.py`, `build_pcb_viewer_data.py`, `build_viewer_bundle.py`, `render_review.py`, `dsi_pair_check.py`, `export_pcb_layer.py` (paths and labels), `make_manifest.py`, `COMPONENT_ENVELOPES_R27.json` (renamed).
+  - `LAYERS/02_CASE/build_r12.py`, `export_layer_formats.py`: data paths and labels only.
+  - Studio: `app.js`, `eye.js`, `index.html`, `sw.js`, `manifest.webmanifest` (labels, tour text, cache name).
+  - Docs: `DECISIONS_R32.md`, `PRODUCTION_GATES.md`, `README.txt`, `QC_REPORT.txt`, `CHANGELOG.md`, `AI_HANDOFF.md`, `ASSEMBLY/ASSEMBLY_SEQUENCE.md`, `REFERENCES/PCB_R26/README.md`.
+  - Firmware R12: `slim4_power.c` (charge-time limit), `slim4_board.c` / `slim4_board.h` / `slim4_panel_cfaf.h` (safe DSI profile by default), `slim4_console.c`, `app_main.c` (labels), host tests, README, `docs/FIRST_BOOT.md`, `docs/ARCHITECTURE.md`, `RELEASE_NOTES_R12.md`; version 0.11.0. The review fixes and the console were committed before (1f491cd, af0771a).
+- Dimensions or coordinates changed:
+  - Board outline, thickness, battery window, J1–J5, switches and every GPIO are unchanged. R424 moved from (−22.50, 59.00) to (15.72, 10.87). New parts: C138 (1.03, 77.72), C139 (−5.17, 91.73), C140 (27.35, 104.60), all on the back.
+  - Copper: 27 GND vias in U1's exposed pad (14 of them in or across the gaps, with a 0.25 mm B.Cu stub to a square), C138/C139/C140 joins, C139's 1V1 and GND vias, BQ_TS rerouted (5.2 mm), R424's GND via. Vias 339 → 368, track segments 2796 → 2814. The DSI pairs and every other route are unchanged.
+  - Silkscreen: eight mirrored B.SilkS texts.
+- Shared datum and units preserved: yes.
+- PCB edits: 9 scripted edits (36–44). `build_r27.sh` reproduces the board from R26: two independent rebuilds have identical tracks, vias, pads, footprints, drawings (4122 items) and zone fills, and byte-identical library files. KiCad 7.0.11 DRC: 0 / 0 / 0.
+- Fit and interference checks: 78 PASS, 3 FAIL, 9 GATE, 3 INFO over 320 pair evaluations; the same 3 case FAIL rows as R31 (C6, F1, G1).
+- Validation: DSI pair check identical to R26's (spread 0.201 mm, skew 0.031 mm); FB_DCDC / EN_DCDC plane check (no gap; 5 named crossings, at most 0.069 mm² of track); all 31 exposed-pad vias traced to the pad's copper on B.Cu; In2 planes compared with R26 (1V1_HP 177.8 → 162.9 mm², one piece, every 1V1 via near U1 on it; 3V3, SYS_RAW and BAT_PLUS within 0.6 mm²); solder mask has no opening at any via outside an SMD pad; firmware pin check 19/19 on R27; ESP-IDF v6.1 clean build, no warnings; 116 host cases.
+- Production gates closed or still open: `LAYERS/01_PCB/RELEASE_GATES.md` and `PRODUCTION_GATES.md`. Open: U1 stock (owner), bring-up (`LAYERS/01_PCB/BRINGUP_PROCEDURE.md`), the case pass.
+- Known limitations:
+  - No schematic exists; reviews work from the netlist.
+  - The core regulator stays 12–21 mm from U1 (decision 3); its rail at U1 under load is a bring-up measurement.
+  - R401/R402 sit beside J2, not U1; the USB D+ line keeps its In1 segment (the slot that FB_DCDC and EN_DCDC cross).
+  - Exposed-pad vias are limited to 31 by the DSI CLK pair on F.Cu and the slow nets on In3 that cross under U1.
+  - Nothing has been built; impedance, ripple and temperatures are estimates until bring-up.

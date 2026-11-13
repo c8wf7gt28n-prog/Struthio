@@ -1,0 +1,7 @@
+# R7 — answers to the R6 simulation audit
+
+- **Console on UART0 with USB-Serial-JTAG as secondary output** (ESP-IDF's ESP32-P4 default). On the board every app log line still arrives over USB-C (UART0's pins reach nothing); Espressif's esp-emu prints UART0, so its run should now show the app's log (not yet run here). The R6 audit's "stall after `esp_psram: Reserving pool`" was the console: R6 logged to USB-Serial-JTAG only. The audit's own debug log shows the R6 app running on: 390 reads of the NVS partition at 0x9000 (`nvs_flash_init` in `slim4_board_init`), and both cores idle in FreeRTOS (`esp_cpu_wait_for_intr`, `vPortExitCriticalMultiCore` in the identical ELF, SHA-256 cc3797e8…).
+- **USB power budget.** The backlight is capped at 15 % on a 500 mA USB source unless a charge cycle is running: the BQ24074's 450 mA minimum at 4.4 V (1.98 W) less the 3.3 V rail at Espressif's 380 mA design provision and the panel logic (1.55 W) leaves 19 %. No cap on the battery or on USB-C 1.5 A / 3 A.
+- **Reversed or shorted pack on USB** (battery rail below 1.5 V for 1.5 s): logged, and shown on the diagnostic screen as `BATTERY REVERSED - UNPLUG`.
+- **Over-temperature charge suspend** only while a cell is charging, and it ends if the cell falls to 3.6 V: the BQ24074's suspend also takes the system off USB (CE is tied low), which in R6 would have switched a board with no battery off.
+- Clean ESP-IDF v6.1 build from `sdkconfig.defaults`, 0 warnings. The release package now carries the source, ELF, map, `sdkconfig`, `dependencies.lock` and docs with the images.

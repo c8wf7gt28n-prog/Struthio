@@ -1,0 +1,13 @@
+region,function,center_x_mm,center_y_mm,width_mm,length_mm,z_min_mm,height_mm,board_side
+P4_CLUSTER,ESP32-P4NRW32X + local passives,0,84,16,16,6.5,2.2,rear
+FLASH,flexible capacity NOR,17,83,10,10,6.5,1.2,rear
+XTAL,40MHz crystal + matching,-15,84,6,6,6.5,1.3,rear
+CORE_DCDC,revision-specific P4 core supply,0,101,10,8,6.5,2.2,rear
+SYS_POWER,buck-boost + LCD supplies,-17,103,16,14,6.5,2.6,rear
+LCD_FPC,connector + latch access TBD,17,109,18,6,6.5,2,rear
+BACKLIGHT,boost + support,17,97,10,8,6.5,2.5,rear
+AMP_L,MAX98360C + bypass,-22,117,8,8,6.5,1.5,rear
+AMP_R,MAX98360C + bypass,22,117,8,8,6.5,1.5,rear
+USB_C,socket/protection reserve,0,7,12,10,6.5,3.3,rear
+CHARGER,power path + charge support,17,8,14,10,6.5,2,rear
+BAT_CONN,keyed battery plug reserve,-24,64,7,8,6.5,3,rear

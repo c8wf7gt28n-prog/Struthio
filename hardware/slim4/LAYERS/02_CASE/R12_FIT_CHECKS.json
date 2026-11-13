@@ -1,0 +1,326 @@
+{
+  "revision": "R12",
+  "status": "CHECKED ON PCB R28 IN CAD; CASE SET ASIDE FOR R23-R28, CASE PASS AND PHYSICAL GATES OPEN (see CHECKS/R33_CONVERGENCE_REPORT.md)",
+  "exterior_outline_mm": [
+    104.0,
+    135.3
+  ],
+  "pcb_revision": "R28",
+  "pcb_thickness_mm": 1.2,
+  "z_stack_mm": {
+    "rear_floor_outer": -5.7,
+    "rear_floor_inner": -3.7,
+    "board": [
+      0.0,
+      1.2
+    ],
+    "lcd_module": [
+      5.1,
+      6.85
+    ],
+    "front_plate": [
+      5.65,
+      7.65
+    ],
+    "film": [
+      7.65,
+      7.8500000000000005
+    ],
+    "relief_top": 8.350000000000001,
+    "cap_top": 9.350000000000001,
+    "body_thickness": 13.55,
+    "with_caps": 15.05
+  },
+  "screen": {
+    "lcd_module_mm": [
+      60.3,
+      111.4,
+      1.75
+    ],
+    "lcd_top_y": 2.21,
+    "lcd_center_y": 57.91,
+    "active_center_y": 55.648,
+    "opening_mm": [
+      58.8,
+      104.0
+    ],
+    "lens_mm": [
+      59.2,
+      104.4,
+      0.7
+    ]
+  },
+  "controls": {
+    "flap_centers": [
+      [
+        -40.75,
+        102.0
+      ],
+      [
+        40.75,
+        102.0
+      ]
+    ],
+    "flap_stroke_to_stop_mm": 0.6,
+    "pregap_mm": 0.15,
+    "dart_switch_row_y": 119.296,
+    "dart_pill_center_y": 119.8,
+    "dart_stop_angle_deg": 2.149,
+    "power": "rear plunger on SW5 (PWR_WAKE); pinholes on SW6 RESET and SW7 BOOT"
+  },
+  "battery_envelope_mm": [
+    34.0,
+    50.0,
+    7.0
+  ],
+  "speakers": {
+    "part": "Same Sky CMS-18138A-SP",
+    "centers": [
+      [
+        -38.3,
+        125.6
+      ],
+      [
+        38.3,
+        125.6
+      ]
+    ]
+  },
+  "board_clamps": [
+    [
+      -33.5,
+      84.0
+    ],
+    [
+      33.5,
+      84.0
+    ],
+    [
+      -38.0,
+      114.0
+    ],
+    [
+      38.0,
+      114.0
+    ],
+    [
+      -15.0,
+      126.0
+    ],
+    [
+      24.5,
+      126.0
+    ]
+  ],
+  "rear_supports": [
+    [
+      -40.75,
+      96.0
+    ],
+    [
+      40.75,
+      96.0
+    ],
+    [
+      -40.75,
+      108.0
+    ],
+    [
+      40.75,
+      108.0
+    ],
+    [
+      -24.0,
+      119.3
+    ],
+    [
+      24.25,
+      119.3
+    ],
+    [
+      -24.0,
+      10.0
+    ],
+    [
+      -26.0,
+      40.0
+    ],
+    [
+      -26.0,
+      54.0
+    ],
+    [
+      21.5,
+      60.0
+    ],
+    [
+      -21.5,
+      76.0
+    ],
+    [
+      21.5,
+      76.0
+    ],
+    [
+      -10.0,
+      100.0
+    ]
+  ],
+  "parameters": {
+    "revision_case": "R12",
+    "revision_acrylic": "R2",
+    "package": "R33",
+    "pcb_t": 1.2,
+    "wall": 2.0,
+    "board_to_wall_clearance": 0.3,
+    "plate_z0": 5.65,
+    "plate_t": 2.0,
+    "film_t": 0.2,
+    "relief": 0.5,
+    "cap_rise": 1.5,
+    "lcd": [
+      60.3,
+      111.4,
+      1.75
+    ],
+    "lcd_top_y": 2.21,
+    "lcd_z0": 5.1,
+    "lcd_tape": 0.1,
+    "active": [
+      58.104,
+      103.296
+    ],
+    "active_top_inactive": 1.79,
+    "screen_opening": [
+      58.8,
+      104.0
+    ],
+    "screen_r": 2.5,
+    "lens": [
+      59.2,
+      104.4,
+      0.7
+    ],
+    "lens_r": 2.5,
+    "lens_rebate": [
+      59.4,
+      104.6
+    ],
+    "lens_rebate_r": 2.6,
+    "lcd_pocket_w": 60.5,
+    "lcd_pocket_top_gap": 0.1,
+    "lcd_fpc_bend": 0.6,
+    "flap_centers": [
+      [
+        -40.75,
+        102.0
+      ],
+      [
+        40.75,
+        102.0
+      ]
+    ],
+    "flap_hole_d": 17.0,
+    "flap_cap_d": 16.0,
+    "bezel_od": 18.0,
+    "cap_recess_d": 12.6,
+    "cap_nub_d": 1.4,
+    "cap_flange_d": 17.8,
+    "cap_flange_t": 0.8,
+    "cap_leg_r": 7.15,
+    "cap_leg_d": 1.2,
+    "pregap": 0.15,
+    "ot_design": 0.15,
+    "dart_y": 119.296,
+    "dart_cy": 119.8,
+    "dart_sw_x": 16.0,
+    "dart_hole": [
+      50.0,
+      7.0
+    ],
+    "dart_hole_r": 3.4,
+    "dart_cap": [
+      49.0,
+      6.5
+    ],
+    "dart_cap_r": 3.15,
+    "dart_surround": [
+      52.0,
+      9.0
+    ],
+    "dart_surround_r": 4.4,
+    "dart_nub_d": 1.4,
+    "dart_leg_x": 23.0,
+    "dart_leg_d": 1.2,
+    "dart_pivot_z": 5.05,
+    "dart_trunnion_d": 1.0,
+    "dart_trunnion_clear": 0.1,
+    "dart_boss": [
+      2.0,
+      1.4
+    ],
+    "dart_boss_z0": 4.3,
+    "dart_keel": [
+      2.0,
+      4.55
+    ],
+    "film_clear": 0.2,
+    "film_edge_inset": 0.2,
+    "film_stack": [
+      [
+        "clear optical PET, hard-coat face",
+        0.175
+      ],
+      [
+        "optically clear adhesive",
+        0.025
+      ]
+    ],
+    "film_vent_r": 0.3,
+    "floor_inner_z": -3.7,
+    "lap": 1.0,
+    "lap_clear": 0.1,
+    "lap_tape": 0.1,
+    "battery": [
+      34.0,
+      50.0,
+      7.0
+    ],
+    "battery_center": [
+      0.0,
+      43.5
+    ],
+    "battery_pad": 0.2,
+    "speaker": [
+      18.0,
+      13.0,
+      2.5
+    ],
+    "speaker_center_x": 38.3,
+    "speaker_center_y": 125.6,
+    "speaker_gasket": 0.25,
+    "chamber_wall": 1.0,
+    "chamber_clear": 0.2,
+    "grille_slot": [
+      12.0,
+      0.8
+    ],
+    "grille_pitch": 1.9,
+    "usb_pocket": [
+      12.6,
+      6.6
+    ],
+    "usb_pocket_r": 1.6,
+    "power_pin_d": 2.4,
+    "power_hole_d": 2.8,
+    "power_collar_d": 4.0,
+    "power_gap": 0.1,
+    "power_proud": 0.3,
+    "pinhole_d": 1.2,
+    "fpc_w": 10.5,
+    "fpc_clear": 0.5,
+    "saddle_center_y": 131.3,
+    "post_d_rear": 2.4,
+    "post_d_front": 2.0
+  }
+}

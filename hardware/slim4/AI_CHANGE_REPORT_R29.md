@@ -1,0 +1,26 @@
+# AI change report — R29
+
+- Platform/model: Claude Code (Anthropic), cloud session.
+- Input package revision: R28 (commit 5d85817).
+- Output revision: R29, made of PCB R24, CASE R12 (set aside, unchanged), ACRYLIC R2, and the firmware in `firmware/slim4` (R8, unchanged).
+- Parent layers edited: PCB (R23 → R24), answering the second hardware review's hold on the order. CASE and ACRYLIC are set aside by the owner.
+- Source files changed:
+  - `LAYERS/01_PCB/*`: R24 board, project (renamed, unchanged), library (C402 replaced; C416–C421 added; C301, C405, R414 removed), docs, `R24_FROM_R23/` (new). R23 moved to `REFERENCES/PCB_R23/`.
+  - `CHECKS/`: `convergence_check.py` (R24 paths and A1 hashes), `build_builder_packs.py` (R24/R29; a via opening is counted only outside SMD pads), `build_pcb_viewer_data.py`, `build_viewer_bundle.py`, `render_review.py`, `make_manifest.py`, `export_pcb_layer.py` (docstring), `COMPONENT_ENVELOPES_R24.json` (renamed; text).
+  - `LAYERS/02_CASE/build_r12.py`, `export_layer_formats.py`: data paths and labels only.
+  - Studio: `app.js`, `eye.js`, `index.html`, `sw.js`, `manifest.webmanifest` (labels).
+  - Docs: `DECISIONS_R29.md`, `PRODUCTION_GATES.md`, `README.txt`, `QC_REPORT.txt`, `CHANGELOG.md`, `AI_HANDOFF.md`, `ASSEMBLY/ASSEMBLY_SEQUENCE.md`, `REFERENCES/`.
+  - Firmware: `tools/check_pinmap.py` reads the R24 board; README and first-boot notes name R24.
+- Dimensions or coordinates changed:
+  - Board outline, thickness, battery window, J1–J5, switches and every GPIO are unchanged.
+  - Moved: U3 (rotated), U6 (−6.0, 106.5), U7 (28.0, 99.0), L1 (−22.35, 103.0), L2 (rotated), L3 (32.4, 97.6), D2 (31.25, 102.55) and the capacitors and resistors around them (23 parts). The full list is in `LAYERS/01_PCB/README_PCB_LAYER.md`.
+- Shared datum and units preserved: yes.
+- PCB edits: 9 scripted edits (16–24). `build_r24.sh` reproduces the board from R23: three independent rebuilds have identical tracks, vias, pads and zone fills. KiCad 7.0.11 DRC: 0 / 0 / 0.
+- Fit and interference checks: 78 PASS, 3 FAIL, 9 GATE, 3 INFO, over 323 pair evaluations; the same 3 case FAIL rows as R28 (C6, F1, G1); nothing new from the moved or added parts.
+- Validation: per-net track widths and lengths R23 vs R24 (`CHANGELOG.md`); DSI via-to-ground distances; LCSC numbers of the new parts read from their LCSC pages; firmware pin check 19/19 on R24.
+- Production gates closed or still open: `LAYERS/01_PCB/RELEASE_GATES.md` and `PRODUCTION_GATES.md`. Open: U1 stock, bring-up (now with switch-node, ripple and temperature checks), the case pass.
+- Known limitations:
+  - No schematic exists; reviews work from the netlist.
+  - The layout is checked by DRC and against datasheet guidance, not simulated or measured.
+  - DSI pairs keep R23's routing; In3 sections reference In2 power on one side; no impedance control ordered.
+  - About 82 mm of 0.152 mm 3.3 V fan-out to U1 remains (a few mV).

@@ -1,0 +1,1 @@
+rf check: 4 RF segments, 6.05 mm, all B.Cu 0.18 mm over In4 GND (+0.3 mm each side); nearest other-net copper 0.66 mm (U15.33 )
