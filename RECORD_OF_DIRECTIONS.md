@@ -62,7 +62,9 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 - **The look.** Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits
   for the owner. Green is what is live: readings, what is current, staC, the pointer, and whatever the pointer is over
-  (13 November: "I'd probably like the mouse pointer to be the systems green. We kinda need more green glowing"). Live
+  (13 November: "I'd probably like the mouse pointer to be the systems green. We kinda need more green glowing"). The
+  pointer keeps the shape the owner gave it earlier (the mark's two facets, aimed at 11 o'clock, the click at the tip)
+  and takes the green as its ink. Live
   things glow a little, and the pointer carries a faint light over the Field; the Clean desk keeps the green and has no
   glow. Monospaced lettering, thin rules, original ink-and-halftone art. Surfaces are still: nothing moves unless the
   owner's hand moves it. Art sits in its own places (Illustrated, ASCII or Clean) and never enters documents.

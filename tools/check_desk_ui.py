@@ -772,17 +772,20 @@ console.set_size(1);settle();align();assert tail.isVisible() and (w.log_view if 
 console.set_size(0);settle();align();assert not tail.isVisible()
 check('08 In Line the centre foot is empty (the workspace reaches the lower band); a status message shows there while it lasts, a long one wrapped with both panes and every pair unmoved; Half shows the working area above the band with the mode\'s page (D3: Assignment\'s answers here; the Timeline is Log\'s Events stream, step 12)')
 # 09 · the pointer: the mark's two facets, aimed at 11 o'clock, the click at the tip (D1b) -----------------------------------------
-shape=graphite_brand.pointer_shape(1.0);cursor=w.cursor()
-assert w.property('graphitePointer') and cursor.shape()==Qt.BitmapCursor and (cursor.hotSpot().x(),cursor.hotSpot().y())==shape['hotspot']
-assert cursor.pixmap().toImage().convertToFormat(QImage.Format_ARGB32)==graphite_brand.pointer_pixmap(1.0).toImage().convertToFormat(QImage.Format_ARGB32)
+# 13 November 2026: the same facets, aim and hotspot, drawn in the system green by workbench/pointer.py (with room around them for the glow).
+from workbench import pointer as green_pointer
+shape=graphite_brand.pointer_shape(1.0);cursor=w.cursor();green_arrow,green_x,green_y=green_pointer.drawn(Qt.ArrowCursor,green_pointer._installed.glow,1.0)
+assert w.property('graphitePointer') and cursor.shape()==Qt.BitmapCursor and (cursor.hotSpot().x(),cursor.hotSpot().y())==(green_x,green_y)==(shape['hotspot'][0]+green_pointer.PAD,shape['hotspot'][1]+green_pointer.PAD)
+assert cursor.pixmap().toImage().convertToFormat(QImage.Format_ARGB32)==green_arrow.toImage().convertToFormat(QImage.Format_ARGB32)
 assert abs(graphite_brand.pointer_angle(shape['polygons'])-30.0)<1e-9 and shape['tip']==tuple(float(v) for v in shape['hotspot'])
 for name,widget in (('the cabinet tree',w.cabinet_page.tree.viewport()),('a pane tab',nav.cabinet),('the head',w.ribbon_dock),('the workspace',w.central_stack)):
  assert widget.cursor().shape()==Qt.BitmapCursor,(name,widget.cursor().shape())
-assert bar.box.cursor().shape()==Qt.IBeamCursor and sh.face.input.viewport().cursor().shape()==Qt.IBeamCursor,'text fields keep the I-beam'
-assert w.workspace_split.handle(1).cursor().shape()==Qt.SplitHCursor and w.trash_can.cursor().shape()==Qt.PointingHandCursor
+stands_for=lambda widget:Qt.CursorShape(int(widget.property(green_pointer.MARK))) if widget.property(green_pointer.MARK) is not None else widget.cursor().shape()
+assert stands_for(bar.box)==Qt.IBeamCursor and stands_for(sh.face.input.viewport())==Qt.IBeamCursor,'text fields keep the I-beam (drawn in the green)'
+assert w.workspace_split.handle(1).cursor().shape()==Qt.SplitHCursor and stands_for(w.trash_can)==Qt.PointingHandCursor
 tree=w.cabinet_page.tree;tree.scrollToTop();settle();second=tree.itemBelow(tree.topLevelItem(0));row=tree.visualItemRect(second)
 grab=w.grab().toImage();at=tree.viewport().mapTo(w,QPoint(row.left()+28,row.center().y()))  # on the second row's word
-p=QPainter(grab);hx,hy=shape['hotspot'];p.drawPixmap(at.x()-hx,at.y()-hy,graphite_brand.pointer_pixmap(1.0));p.end()
+p=QPainter(grab);hx,hy=shape['hotspot'];p.drawPixmap(at.x()-green_x,at.y()-green_y,green_arrow);p.end()
 crop=grab.copy(0,60,560,360);zoom=[];
 for dpr,z in ((1.0,8),(2.0,4)):
  s=graphite_brand.pointer_shape(dpr);img=graphite_brand.pointer_pixmap(dpr).toImage();side=img.width()*z

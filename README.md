@@ -6,7 +6,7 @@ on. Graphite is the public name of the workspace; its assistant's face is Stacy,
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
-- **Green** · the pointer is the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
+- **Green** · the pointer (the mark's two facets, aimed at 11 o'clock) is drawn in the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
 - **The mouse** · click a tile in the Field to open it in the centre; **‹ Field** under the centre comes back to the same tile; every key the Field shows can be clicked; a change that waits has an **Approve** button. Ask Stacy "set B3 to 300" and the change waits for your Approve with what it would move marked.
 - **Every key** · press **?** in the Field for a card of every key. The doubt (X), the desk check (C) and the brief (B) open on a page over the work at your reading size; the doubt and the check step aside at the next key.
 - **Look ahead** · with a sheet or a calculation selected in the Field, ask "what if B4 were 100?": the cell is set without changing anything, the wires are followed, and the Field marks everything that would move with what it would say (**Esc** clears).

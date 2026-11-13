@@ -127,6 +127,9 @@ def icon_files(folder):
 # tip is exactly the hotspot (whole logical pixels, so a whole device pixel at 1x and 2x): the click lands on the point, and
 # the hotspot's pixel is the point's own first pixel, drawn in graphite. Graphite facets with a thin paper edge, so the
 # pointer reads on paper and on the bands.
+# 13 November 2026, the owner: "I'd probably like the mouse pointer to be the systems green." On the desk these same facets,
+# with this aim and this hotspot, are drawn in the system green by workbench/pointer.py; what is here stays the shape's one
+# definition, and its graphite drawing is what a window gets when the application has no green pointer.
 
 POINTER_AIM = 30.0       # degrees left of vertical: 11 o'clock
 POINTER_REACH = 22.0     # logical px from the tip to the farthest corner of the facets
@@ -198,6 +201,10 @@ def use_pointer(window):
     """Set the pointer on a window: every widget that sets no cursor of its own shows it; text fields keep their I-beam,
     splitters their resize cursors, links their hand (each sets its own); the pane separators show the resize cursor while
     the pointer is over them (desk_qt.MirroredDrag.hover, which puts this pointer back after)."""
+    from . import pointer
+    green = pointer.arrow(window)      # on the desk the same facets are drawn in the system green (workbench/pointer.py, 13 November 2026)
+    if green is not None:
+        window.setProperty('graphitePointer', True);return green
     dpr = window.devicePixelRatioF() if hasattr(window, 'devicePixelRatioF') else 1.0
     cursor = pointer_cursor(2.0 if dpr > 1.0 else 1.0);window.setCursor(cursor);window.setProperty('graphitePointer', True)
     return cursor

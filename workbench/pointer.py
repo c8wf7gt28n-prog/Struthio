@@ -1,13 +1,18 @@
 """The pointer, in the desk's green.
 
 The owner (13 November 2026): "I'd probably like the mouse pointer to be the systems green. We kinda need more green
-glowing." Green is the desk's colour for what is live, and the pointer is the most live thing on it. So the arrow, the
-hand over something that can be clicked, the text bar and the grabbing hand are drawn here in the system green
-(boss_theme.READY), with a dark edge so they read over a light page as well as over the dark desk, and a soft green glow
-around them. The Clean desk keeps the green and drops the glow, as it drops every other ornament.
+glowing." Green is the desk's colour for what is live, and the pointer is the most live thing on it.
+
+The pointer itself is the one the owner asked for earlier (HATCH DESK D1b, workbench/graphite_brand.py): "the two facets of
+the Graphite mark ... Aim it at 11 o'clock, 30 degrees left of vertical, with the click at the tip." Its shape, its aim and
+its hotspot are taken from there unchanged (graphite_brand.pointer_shape); only its ink is new. It was graphite with a
+paper edge, made for the paper desk. Here it is the system green (boss_theme.READY) with a dark edge, so it reads over a
+light page as well as over the dark desk, and a soft green glow. The hand over something that can be clicked, the text bar
+and the closed hand of a drag are drawn in the same ink. The Clean desk keeps the green and drops the glow, as it drops
+every other ornament.
 
 The shapes are drawn, not loaded: no picture file, any size, the same on every machine. One filter on the application
-gives every window the green arrow and turns the standard arrow, hand and text bar of any widget into their green
+gives every window the green pointer and turns the standard arrow, hand and text bar of any widget into their green
 counterparts as they are set. Cursors this module does not draw (the resize arrows, the wait cursor) stay the system's.
 
     install(app)        once, when the application is made
@@ -21,16 +26,27 @@ from PySide6.QtWidgets import QApplication, QWidget
 from . import boss_theme as t
 
 BOX = 32                       # the drawing box of one pointer, in logical pixels
+PAD = 4                        # room around the box for the glow, on every side (the hotspot moves with it)
 SHAPES = (Qt.ArrowCursor, Qt.PointingHandCursor, Qt.IBeamCursor, Qt.ClosedHandCursor, Qt.OpenHandCursor)
+MARK = 'greenPointer'          # on a widget that holds one of these pointers: which shape it stands for (a number)
 _installed = None
 
 
+def _number(shape):
+    """A pointer shape as the number a widget property can keep (the shapes are an enumeration, not numbers)."""
+    return int(getattr(shape, 'value', shape))
+
+
 def _arrow():
-    path = QPainterPath(QPointF(5, 3))
-    for x, y in ((5, 22.5), (9.8, 18.2), (13.2, 25.6), (16.4, 24.2), (13.1, 17.0), (19.6, 17.0)):
-        path.lineTo(x, y)
-    path.closeSubpath()
-    return path, (5, 3)
+    """The pointer: the mark's two facets, exactly as graphite_brand places them (the tip is the click, on a whole pixel)."""
+    from .graphite_brand import pointer_shape
+    shape = pointer_shape(1.0)
+    path = QPainterPath();path.setFillRule(Qt.WindingFill)
+    for wedge in shape['polygons']:
+        path.moveTo(QPointF(*wedge[0]))
+        for x, y in wedge[1:]:path.lineTo(QPointF(x, y))
+        path.closeSubpath()
+    return path, shape['hotspot']
 
 
 def _hand(pointing=True):
@@ -61,9 +77,9 @@ def _shape(shape):
 
 def drawn(shape, glow=True, ratio=1.0):
     """One pointer: (pixmap, hot x, hot y). Green, a dark edge, and (unless glow is off) a soft halo of the same green."""
-    path, hot = _shape(shape)
-    pixmap = QPixmap(round(BOX * ratio), round(BOX * ratio));pixmap.setDevicePixelRatio(ratio);pixmap.fill(Qt.transparent)
-    p = QPainter(pixmap);p.setRenderHint(QPainter.Antialiasing)
+    path, hot = _shape(shape);side = BOX + 2 * PAD
+    pixmap = QPixmap(round(side * ratio), round(side * ratio));pixmap.setDevicePixelRatio(ratio);pixmap.fill(Qt.transparent)
+    p = QPainter(pixmap);p.setRenderHint(QPainter.Antialiasing);p.translate(PAD, PAD)
     green = QColor(t.READY)
     if glow:
         for width, alpha in ((9.0, 0.07), (6.2, 0.12), (3.8, 0.2)):          # widest and faintest first: a halo, not a border
@@ -71,8 +87,12 @@ def drawn(shape, glow=True, ratio=1.0):
             p.setPen(QPen(halo, width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin));p.setBrush(Qt.NoBrush);p.drawPath(path)
     p.setPen(QPen(QColor(t.TERMINAL_GROUND), 2.2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin));p.setBrush(green);p.drawPath(path)
     p.setPen(Qt.NoPen);p.drawPath(path)
+    if shape == Qt.ArrowCursor:
+        # The point's first device pixel, solid (as graphite_brand draws it): a sharp point covers only a sliver of the pixel
+        # it starts in, which would draw it pale; the hotspot's pixel is the tip, so the click is visibly on it.
+        p.setRenderHint(QPainter.Antialiasing, False);p.fillRect(QRectF(hot[0], hot[1], 1.0 / ratio, 1.0 / ratio), green)
     p.end()
-    return pixmap, hot[0], hot[1]
+    return pixmap, hot[0] + PAD, hot[1] + PAD
 
 
 class Pointer(QObject):
@@ -99,14 +119,14 @@ class Pointer(QObject):
         try:
             if widget.testAttribute(Qt.WA_SetCursor):
                 shape = widget.cursor().shape()
-                if shape in self.cursors:widget.setCursor(self.cursors[shape])
-                elif shape == Qt.BitmapCursor and widget.property('graphitePointer') is not None:
-                    widget.setCursor(self.cursors.get(Qt.CursorShape(int(widget.property('graphitePointer'))), self.cursors[Qt.ArrowCursor]))
-                    return
-                else:return
-                widget.setProperty('graphitePointer', int(shape))
+                if shape in self.cursors:
+                    widget.setProperty(MARK, _number(shape));widget.setCursor(self.cursors[shape])
+                elif shape == Qt.BitmapCursor and widget.property(MARK) is not None:      # one of ours, to be drawn again (the desk art changed)
+                    widget.setCursor(self.cursors.get(Qt.CursorShape(int(widget.property(MARK))), self.cursors[Qt.ArrowCursor]))
+                elif shape == Qt.BitmapCursor and widget.property('graphitePointer'):       # the mark's pointer in its graphite ink: the same facets, in green
+                    widget.setProperty(MARK, _number(Qt.ArrowCursor));widget.setCursor(self.cursors[Qt.ArrowCursor])
             elif widget.isWindow():
-                widget.setCursor(self.cursors[Qt.ArrowCursor]);widget.setProperty('graphitePointer', int(Qt.ArrowCursor))
+                widget.setProperty(MARK, _number(Qt.ArrowCursor));widget.setCursor(self.cursors[Qt.ArrowCursor])
         except RuntimeError:        # the widget is going away
             pass
         finally:
@@ -136,7 +156,21 @@ class Pointer(QObject):
         if bool(glow) == self.glow:return
         self.glow = bool(glow);self.build()
         for widget in self.app.allWidgets():
-            if widget.property('graphitePointer') is not None:self.give(widget)
+            try:
+                if widget.property(MARK) is not None:self.give(widget)
+            except RuntimeError:    # a widget on its way out
+                pass
+
+
+def arrow(window):
+    """The green pointer for a window that asks for the Graphite pointer by name (graphite_brand.use_pointer): the cursor it
+    was given, or None when the application has no green pointer (then the caller keeps its own)."""
+    if _installed is None:return None
+    try:
+        window.setProperty(MARK, _number(Qt.ArrowCursor));window.setCursor(_installed.cursors[Qt.ArrowCursor])
+    except RuntimeError:
+        return None
+    return _installed.cursors[Qt.ArrowCursor]
 
 
 def install(app):
@@ -145,7 +179,11 @@ def install(app):
     if _installed is None or _installed.app is not app:
         _installed = Pointer(app)
         app.installEventFilter(_installed)
-        for widget in app.allWidgets():_installed.give(widget)
+        for widget in app.allWidgets():
+            try:
+                if widget.isVisible():_installed.give(widget)     # what is already on screen; the rest get theirs when shown
+            except Exception:  # noqa: BLE001 - the pointer's colour never stops the application from being made
+                pass
     return _installed
 
 

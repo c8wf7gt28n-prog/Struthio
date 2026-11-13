@@ -9,11 +9,13 @@ need more green glowing I think." This release is that, and one rule to keep it 
 **Amber is what is selected, what has the keyboard, and what waits for you. Green is what is live: readings, what is
 current, staC, the pointer, and whatever the pointer is over.**
 
-**The pointer is green.** The arrow, the hand over something you can click, the text bar in a writing place and the
-closed hand while you drag the Field are drawn by Graphite in the desk's green, with a dark edge so they read over a light
-page as well as over the dark desk, and a soft halo of the same green. They are drawn, not loaded from a picture, so
-they are the same on every machine. The cursors Graphite does not draw stay the system's: the resize arrows on a divider
-and the wait cursor.
+**The pointer is green.** It is the pointer you asked for before: the two facets of the Graphite mark, aimed at 11
+o'clock, 30 degrees left of straight up, with the click at the tip. Its shape, its aim and the place of the click are
+unchanged; only its ink is new. It was graphite with a paper edge, made for the paper desk. Now it is the desk's green
+with a dark edge, so it reads over a light page as well as over the dark desk, and a soft halo of the same green. The
+hand over something you can click, the text bar in a writing place and the closed hand while you drag the Field are drawn
+in the same ink. They are drawn, not loaded from a picture, so they are the same on every machine. The cursors Graphite
+does not draw stay the system's: the resize arrows on a divider and the wait cursor.
 
 **What the pointer is over answers in green.**
 
@@ -37,9 +39,10 @@ and the wait cursor.
 **The Clean desk has no glow.** It keeps the green pointer and the green answers and drops every halo, the pointer's
 included, as it drops every other ornament. Work → Desk art chooses.
 
-**What was checked, and what was not.** In the build container, with the window run offscreen: the window, the writing
-strip and the Field hold the green pointer and it changes shape over a tile, a key and during a drag; the Clean desk
-drops the glow from the pointer, the Field and the readings and the Illustrated desk brings it back; a top menu, a link
+**What was checked, and what was not.** In the build container, with the window run offscreen: the window holds the
+facets pointer in green with the click on its tip and its aim at 30 degrees; the writing strip and the Field hold theirs
+and the Field's changes shape over a tile, a key and during a drag; the Clean desk takes the glow off every pointer
+already handed out, off the Field and off the readings, and the Illustrated desk brings it back; a top menu, a link
 word, a row of the cabinet tree, a row of the Activity list and a tab that is not the chosen one draw green under the
 pointer (the scroll handle's green is set in the same style sheet and was not looked at); the mouse path of 0.4.5 and
 the keyboard walks still pass. One thing was
@@ -52,6 +55,11 @@ the glow look on the ThinkPad's own screen, and whether its X session shows a co
 the X Render extension, which a normal Xorg has), is for the first boot to show. If the session cannot do it, the pointer
 falls back to the system's and nothing else changes. The pointer is one size; it does not grow with the reading size.
 Nothing has run on the ThinkPad.
+
+**This is the second cut of 0.4.6.** The first, made an hour earlier, drew a plain arrow where your facets pointer
+belongs, kept the glow on pointers already handed out when the desk was changed to Clean, and left one version record
+saying 0.4.5. The project's own tests found the last two and reading the code for the fix found the first. If you have
+the first set, delete it; this one has the same file names.
 
 Nothing else is new here. The next journeys are the ones 0.4.5 named: an ordinary workbook as a citizen of the chain, the
 centre's common frame and small toolbar, a full program through Programs with the saved revision coming back, and Stacy
