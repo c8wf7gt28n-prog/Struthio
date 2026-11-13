@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 13234,
-      "sha256": "3fdea9696423f20503bda7e012ffbc3ca293411829011933401a3262f3e44025"
+      "bytes": 13412,
+      "sha256": "7bf0e97d6e97ed8c9797506c32b4c6b21f8f203b3003f78bd10f4523ae37b7cf"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 23106,
-      "sha256": "68bcc4cd6a1495e989911d4749c110489ea08e405837e25231668639484b8d44"
+      "bytes": 23110,
+      "sha256": "a53fc6a1c97aad43767b1ee44241b91642f4452abecf2f86603880a9f21e5d36"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -2038,16 +2038,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1897187,
-      "sha256": "76df4709dc08a39b65fad923a2f2ede4ed9f82549bcd7ea708a90a7f0d01bad2"
+      "bytes": 1897369,
+      "sha256": "6dcc5bcef7e87949b18acf20ea7b3f1afdd26f2118dd78a1ce3bd0c3977c73ae"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4337664,
-      "sha256": "92a26d4fb796a4592cd41a661626f4cee39300912c4bb3c66f7cb41598cce6d9"
+      "sha256": "01d62e58ac799b86579870ab46f90cd5397ee1232ecbcd00a7399610c98a92b5"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "890ed8f0c51084856d160f7d98ea941310cefadcc5798d3df6922f4d64aa9e4b"
+      "sha256": "d9f9f0314dfe1a5f8cfe67845b717ef95aedbed7eac65a60d86a3199daf93ef8"
     },
     "requirements-experiments.txt": {
       "bytes": 70,

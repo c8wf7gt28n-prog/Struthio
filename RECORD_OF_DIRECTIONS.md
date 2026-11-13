@@ -130,7 +130,7 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   shown in the desk's light (the same page, its paper brought down from white, the file untouched) with its own light
   one line away under More and the choice kept. (0.4.9.)
   A control looks like a control (13 November: "bring in buttons where useful. And simplify the interface. And also make
-  it look more complete and untied to the work"): an action is a boxed button, a word that only goes somewhere is an
+  it look more complete and untied to the work"): an action is a button (a plate), a word that only goes somewhere is an
   underlined word, and the work itself has neither look. Each work page has one row of tools; what is needed now and
   then is under More, and nothing is taken away. (0.4.8. An earlier rule, "a button is a word", is withdrawn for actions.)
   The mouse is the primary input (13 November: "now that we're using mouse as primary input for graphite"): every
