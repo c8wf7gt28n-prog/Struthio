@@ -985,6 +985,36 @@ class OneBox(QLineEdit):
         return found
 
 
+def shaped_rows(rows):
+    """Rows of the shapes Stacy answers in most, written for a narrow column: a line that names the thing, then what the
+    records say of it, a blank line between rows. A doubt leads with its verdict; a what-if with what it says now and what it
+    would say; a trace with which way and how far. None for any other shape (the caller's own layout then stands)."""
+    if not rows or not all(isinstance(row, dict) for row in rows):return None
+    keys = set(rows[0])
+    if any(set(row) != keys for row in rows):return None
+    say = lambda value: value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+    out = []
+    if {'verdict', 'about', 'why'} <= keys:
+        for row in rows[:50]:
+            head = '%s · %s' % (say(row['verdict']).upper(), say(row['about']))
+            out.append((head + '\n“%s”' % say(row['title']) if row.get('title') else head) + '\n' + say(row['why']))
+    elif {'title', 'says_now', 'would_be', 'why'} <= keys:
+        for row in rows[:50]:
+            now = say(row['says_now']).strip();then = say(row['would_be']).strip()
+            change = ('%s  →  %s' % (now, then)) if now and then and now != then else (('%s, as now' % now) if now else then)
+            out.append('%s\n%s\n%s' % (say(row['title']), change, say(row['why'])))
+    elif {'way', 'steps', 'kind', 'title'} <= keys:
+        for row in rows[:50]:
+            way = say(row['way']);far = row.get('steps') if isinstance(row.get('steps'), int) else 0
+            lead = '•' if way == 'this' else ('←' if way == 'from' else '→') * max(1, min(3, far))
+            line = '%s %s · %s%s' % (lead, say(row['kind']), say(row['title']), (' (%s)' % say(row['state'])) if row.get('state') else '')
+            out.append(line + (' · ' + say(row['by']) if row.get('by') else ''))
+        return '\n'.join(out) + ('\n… %d more rows' % (len(rows) - 50) if len(rows) > 50 else '')
+    else:
+        return None
+    return '\n\n'.join(out) + ('\n\n… %d more rows' % (len(rows) - 50) if len(rows) > 50 else '')
+
+
 def to_console(host, page, text):
     """Hand a typed line from the box to the console page it belongs to, and run it there. Only the page's own lead character
     is dropped (D3: in Shell a path such as /usr/bin/env or a pattern such as ?.txt is the shell's)."""
@@ -1637,9 +1667,14 @@ class SlateFace(QWidget):
         from .field_do import call as line_call
         line = thing['stac'];operation, arguments = line_call(line)
         card = self.say(intro)
-        code = QLabel(breakable(line.replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))      # a stage a line, as her rail in the Field shows it
+        # A stage a line, as her rail in the Field shows it, with long record numbers shortened for the eye as the rail does.
+        # The line itself stays exact: it is what runs, what "in the line" gives, and the label's tooltip.
+        code = QLabel(breakable(re.sub(r'([0-9a-f]{6})[0-9a-f]{20,}', '\\1…', line).replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))
+        code.setToolTip(line)
         code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('staC: ' + line);card.box.addWidget(code)
+        code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('staC: ' + line)
+        answer_first = bool(thing.get('whole'))       # when the rows are the whole answer (a doubt, a what-if, a brief), they are read first and the line that read them comes after
+        if not answer_first:card.box.addWidget(code)
         r = engineering(self.host.root).dispatch(operation, arguments, operator())
         rows = (r['result'].get('rows') or []) if r.get('ok') and isinstance(r.get('result'), dict) else []
         if r.get('ok') and rows and all(isinstance(row, dict) for row in rows):  # a row a block, a field a line; what is empty is not said
@@ -1651,8 +1686,10 @@ class SlateFace(QWidget):
                 else 'The records did not answer: ' + r['error']['message']
             if r.get('ok') and said == 'Done.' and isinstance(r['result'], dict):      # a read whose answer is a record, not rows: the record itself, in short
                 said = json.dumps(r['result'], indent=1, ensure_ascii=False, default=str)[:1500]
-        shown = said
-        if r.get('ok') and rows and all(isinstance(row, dict) and len(row) == 1 for row in rows):
+        shown = said;shaped = shaped_rows(rows) if r.get('ok') else None
+        if shaped is not None:                # a doubt, a what-if, a trace: each row a few short lines, made for this column
+            shown = shaped
+        elif r.get('ok') and rows and all(isinstance(row, dict) and len(row) == 1 for row in rows):
             # Rows of one field are lines of writing (a page's words, a brief): each on its own line, with nothing in front of it.
             shown = '\n'.join(str(value if isinstance(value, str) else json.dumps(value, ensure_ascii=False))[:600] for row in rows[:120] for value in row.values())
             if len(rows) > 120:shown += '\n… %d more lines' % (len(rows) - 120)
@@ -1668,6 +1705,8 @@ class SlateFace(QWidget):
             if len(rows) > 50:shown += '\n… %d more rows' % (len(rows) - 50)
         answer = QLabel(breakable(shown));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
         answer.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);answer.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(answer)
+        if answer_first:
+            code.setFont(mono_font(13));card.box.addWidget(code)
         from .context_menu import inspect_in_line
         words = {'line': ('in the line', lambda p=line:inspect_in_line(self.host, p)), 'watch': ('watch it', lambda p=line:self.watch(p)),
                  'keep': ('add to the Agenda', lambda p=line:self.keep_in_agenda(p))}
@@ -1837,7 +1876,7 @@ class SlateFace(QWidget):
         show_would(self.host, chosen.id, setting, said)
         return {**thing_of(self.host, chosen), 'stac': 'field.ripple %s | pick rows | select way,title,says_now,would_be,why' % js(id=chosen.id, set=setting),
                 'explicit': True, 'whole': True,
-                'intro': 'What if %s, on “%s”. Followed along the wires and worked exactly; nothing is changed. The Field marks what would move until Esc:' % (said, chosen.title)}
+                'intro': 'What if %s on “%s”. Nothing is changed:' % (said, chosen.title if len(chosen.title) <= 44 else chosen.title[:43].rstrip() + '…')}
 
     def own_word(self, text):
         """A line that is one of the owner's own staC words (or says something about them), asked in conversation: she does

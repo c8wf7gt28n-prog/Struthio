@@ -48,6 +48,7 @@ class FieldPage(QWidget):
         self.view.trace_asked.connect(lambda obj: trace(self.host, obj))
         self.view.doubt_asked.connect(lambda obj: doubt(self.host, obj))
         self.view.brief_asked.connect(lambda: brief(self.host))
+        self.view.reading_closed.connect(self._reading_closed)
         self.view.full_asked.connect(lambda obj: full_window(self.host, obj))
         self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
         self.pending = None                     # what G runs: the Run of what waits in Talk for the owner's go
@@ -56,6 +57,10 @@ class FieldPage(QWidget):
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
         QApplication.instance().focusChanged.connect(self._keyboard_moved)
+
+    def _reading_closed(self):
+        """The owner closed the page being read (Esc): what waited on it for a go is withdrawn from the keyboard too."""
+        self.pending = None
 
     def _keyboard_moved(self, old, now):
         """While the Field is in front the keyboard is never left nowhere: when the writing strip (or anything else) gives it up
@@ -319,38 +324,75 @@ def doubt(host, obj):
     shell = getattr(host, 'shell2', None)
     if shell is None or obj is None:return None
     line = 'field.doubt %s | pick rows | select verdict,about,why' % js(id=obj.id)
-    shell.face.thing = {**thing_of(host, obj), 'stac': line, 'explicit': True, 'whole': True,
-                        'intro': 'I doubted “%s”. What does not hold comes first, then what I cannot tell, then what holds:' % obj.title}
+    name = obj.title if len(obj.title) <= 44 else obj.title[:43].rstrip() + '…'
+    shell.face.thing = {**thing_of(host, obj), 'stac': line, 'explicit': True, 'whole': True, 'intro': 'Doubting “%s”, worst first:' % name}
     shell.ask('What could be wrong with “%s”?' % obj.title)
-    if getattr(host, '_field_active', False):host.field_page.view.setFocus(Qt.OtherFocusReason)
+    page = getattr(host, 'field_page', None)
+    if page is not None and getattr(host, '_field_active', False):
+        show_doubt(host, obj, line);page.view.setFocus(Qt.OtherFocusReason)
+
+
+def show_doubt(host, obj, line):
+    """The doubt, where the eyes are: over the work, at reading size, grouped by what was found. It is a light page: it
+    steps aside at the next key that is not a reading key (an arrow moves on, D offers what can be done), and Esc closes
+    it. Talk keeps the same answer as a card."""
+    from .engineering_kernel import operator
+    page = host.field_page;kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
+    if kernel is None:return
+    answer = kernel.dispatch('field.doubt', {'id': obj.id}, operator())
+    if not answer.get('ok'):return
+    rows = answer['result'].get('rows', ());sheet = []
+    for verdict, heading in (('doubt', 'Does not hold'), ('cannot tell', 'Cannot tell'), ('note', 'Worth knowing'), ('holds', 'Holds')):
+        found = [row for row in rows if row.get('verdict') == verdict]
+        if found:
+            sheet.append(('h', heading))
+            sheet.extend(('b', '%s — %s' % (row['about'][:1].upper() + row['about'][1:], row['why'])) for row in found)
+    worst = sum(1 for row in rows if row.get('verdict') == 'doubt')
+    name = obj.title if len(obj.title) <= 60 else obj.title[:59].rstrip() + '…'
+    page.view.show_reading('Doubting “%s”' % name, sheet or [('q', 'There is nothing I know how to doubt about this yet.')],
+                           ('D  what can be done about it      ' if worst else '') + 'Esc  close      any other key moves on', line, light=True)
 
 
 def brief(host):
-    """B: the desk written up as one page, from the records. Stacy reads it (field.brief, a staC line like any other) and shows
-    every line; keeping it as a page is a change, so that waits for the owner's go. No model writes any of it."""
+    """B: the desk written up as one page, from the records. It is a page, so it is shown as one: over the work, at reading
+    size, to scroll. Keeping it as a page is a change, so that waits for the owner's go (G here, or Run in Talk), and the
+    go keeps exactly the desk that was shown. No model writes any of it; the staC line that reads it is under the page."""
+    from .engineering_kernel import operator
     from .field_do import Step, op
-    page = host.field_page
-    if page.face != 'work' or not page.view.field.objects:return None
-    face = _talk(host)
-    if face is None:return None
-    from .field_brief import fingerprint
-    page.refresh(force=True)                   # the brief is of the desk as it is: read first, so what is shown and what would be kept are the same desk
-    title = str(page.view.field.title or host.root.name).split('  ·  ')[0]
-    face.answer_in_stac({'title': title, 'stac': 'field.brief | pick lines | select text', 'kind': 'desk', 'whole': True},
-                        'The desk, written up from the records. This is what the page would say:')
-    step = Step('Keep the brief as a page', 'write', op('field.brief.keep', shown=fingerprint(page.view.field)),
+    page = host.field_page;kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
+    if kernel is None or page.face != 'work' or not page.view.field.objects:return None
+    answer = kernel.dispatch('field.brief', {}, operator())
+    if not answer.get('ok'):
+        host.statusBar().showMessage('Field · the brief could not be read: %s' % str((answer.get('error') or {}).get('message'))[:160], 9000);return None
+    made = answer['result'];lines = made['lines'];title = lines[0]['text'] if lines else 'The brief'
+    style = {'head': 'q', 'title': 'h', 'foot': 'q'}
+    page.view.show_reading(title, [(style.get(line['part'], 'b'), line['text']) for line in lines[1:]],
+                           'G  keep it as a page      ↑ ↓  read on      Esc  close', 'field.brief | pick lines | select text')
+    step = Step('Keep the brief as a page', 'write', op('field.brief.keep', shown=made['fingerprint']),
                 'a page in Documents and on the Field, to edit, export or print; when the desk changes it says so, and a later brief takes its place', 'execute')
+
     def done(ok, result):
         page.steps = ();page.steps_of = '';page.pending = None
-        if not ok:return
+        page.view.close_reading()
+        if not ok:
+            host.statusBar().showMessage('Field · the brief was not kept; B reads the desk again', 9000);page.view.update();return
         page.refresh(force=True)
-        made = (result or {}).get('document') if isinstance(result, dict) else None
-        ident = 'document:' + str(made.get('id')) if isinstance(made, dict) and made.get('id') else ''
+        kept = (result or {}).get('document') if isinstance(result, dict) else None
+        ident = 'document:' + str(kept.get('id')) if isinstance(kept, dict) and kept.get('id') else ''
         if ident and page.view.field.get(ident) is not None:
             page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe()
         page.view.update()
-    card = face.stage(title, step, done=done)
-    _await_go(host, 'keep the brief as a page', lambda:face.run_staged(card, done))
+
+    face = _talk(host)
+    if face is not None:                       # Talk holds the change itself, with its line and its Run; the page is read in the Field
+        card = face.stage(title, step, done=done)
+        run = lambda: face.run_staged(card, done)
+    else:
+        card = None
+        def run():
+            r = kernel.dispatch('field.brief.keep', {'shown': made['fingerprint']}, operator())
+            done(bool(r.get('ok')), r.get('result') if r.get('ok') else None)
+    _await_go(host, 'keep the brief as a page', run)
     page.view.setFocus(Qt.OtherFocusReason)
     return card
 
@@ -418,6 +460,24 @@ def check_desk(host):
         words = 'Settle what I can: %d change%s' % (len(plan), '' if len(plan) == 1 else 's')
         page.steps = (words,);page.steps_of = '*';page.star = settle
         page.view.steps = ((words, 'write'),);page.view.update()
+    # The same answer where the eyes are: a light page over the work. It steps aside at the next key, so 1 settles and A
+    # goes to the next thing that waits exactly as they do without it. Talk keeps the card, with its links.
+    count = len(page.view.field.objects);sheet = [('q', 'I read the desk: %d thing%s, each from its record. Nothing is changed.' % (count, '' if count == 1 else 's'))]
+    sheet.append(('h', 'Waits for you' if waiting else 'Nothing waits for you'))
+    for obj, why, steps in waiting[:12]:
+        first = next((step for step in steps if step.settles), None) or next((step for step in steps if step.kind == 'write'), None)
+        sheet.append(('b', '“%s” — %s%s' % (obj.title, why, ('. Next: ' + first.words[:1].lower() + first.words[1:]) if first else '')))
+    if len(waiting) > 12:sheet.append(('q', '… and %d more: A goes to each in turn.' % (len(waiting) - 12)))
+    if doubts:
+        sheet.append(('h', 'Looks right, and I doubt it'))
+        sheet.extend(('b', '“%s” — %s: %s' % (row['title'], row['about'], row['why'])) for row in doubts[:8])
+        if len(doubts) > 8:sheet.append(('q', '… and %d more: X on a sheet doubts it.' % (len(doubts) - 8)))
+    elif answer.get('ok'):
+        sheet.append(('h', 'Nothing I doubt'));sheet.append(('q', 'By the questions I have. They are few: this is not a proof.'))
+    keys = (['1  settle what I can (%d change%s)' % (len(plan), '' if len(plan) == 1 else 's')] if plan else []) + (['A  the next that waits'] if waiting else []) + ['Esc  close']
+    page.view.show_reading('The desk, checked', sheet, '      '.join(keys), 'field.read | pick waiting | select kind,title,state', light=True)
+    if plan:page.view.steps = ((words, 'write'),)      # showing the page describes the sheet again; the desk's own step stays offered
+    page.view.setFocus(Qt.OtherFocusReason)
     return card
 
 

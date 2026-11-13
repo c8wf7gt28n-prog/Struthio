@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Graphite'
-VERSION = '0.4.3'
-SHORT = '0.4.3'
-LINEAGE = ('0.4.3: the desk looks ahead: a what-if on a sheet is followed along the wires to everything that would move, and the Field marks it; the doubt catches a subtotal counted twice, the same digits under another unit and a check on a replaced page; B writes the desk up as a page from the records; the owner keeps staC lines under words of their own; the right-click menu cascades into all of it (What if, Doubt it, Trace it, What can be done, Your words); Backspace goes back. '
+VERSION = '0.4.4'
+SHORT = '0.4.4'
+LINEAGE = ('0.4.4: a pass for the eye and the hand: ? shows every key of the Field; the doubt, the desk check and the brief are read on a page over the work at the owner\'s reading size; Stacy\'s column puts the answer first and writes each row in a few short lines. '
+           '0.4.3: the desk looks ahead: a what-if on a sheet is followed along the wires to everything that would move, and the Field marks it; the doubt catches a subtotal counted twice, the same digits under another unit and a check on a replaced page; B writes the desk up as a page from the records; the owner keeps staC lines under words of their own; the right-click menu cascades into all of it (What if, Doubt it, Trace it, What can be done, Your words); Backspace goes back. '
            '0.4.2: Stacy doubts: X cross-examines a sheet for what a plausible result may hide (an edited input, mixed conditions, one source, a check that cannot fail, a number recorded nowhere), each doubt with the step that removes it; the desk check doubts too. '
            '0.4.1: staC reads the desk itself (field.read, field.trace, field.whatif); `this` is the sheet selected in the Field; T traces where a thing comes from; Stacy answers "what if" exactly without changing anything. '
            '0.4: the desk does: D offers the steps the records have for a sheet, reads run and changes ask once; C checks the desk; one go settles what needs no decision, and the desk checks itself afterwards; a recomputed calculation keeps its name and a finding that quotes the old number is noticed. '

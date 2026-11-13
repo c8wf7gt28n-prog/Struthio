@@ -98,6 +98,12 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   rephrase a doubt. The specification is the map and the acceptance test (it counts on the ThinkPad, on the owner's own
   material); it is reached one trap and one situation at a time, by adding a question here and its steps in
   `field_do.py`, never by trusting a model more.
+- **A pass for the eye and the hand** (13 November: "Should we do a pass that focuses on the user experience"). After
+  the powers, a pass that adds none: the real screens were looked at as a newcomer would, at the small size and at large
+  reading sizes, and what got in the way was put right. An answer is read where the eyes are: a page over the work
+  (`FieldView.show_reading`) for the doubt, the desk check, the brief and the keys; light pages step aside at the next
+  key. Talk puts the answer before the line. ? shows every key. When a new power is added, look at it on the small
+  screen before it is called done: if the answer is below the fold, it is not done.
 - **Look ahead, write it up, the owner's own words** (13 November: "Build a few ideas surprise me"). Four additions in the
   same spirit, none with a model. A what-if on a sheet is followed along the wires (`workbench/field_ripple.py`,
   `field.ripple`): calculations worked again exactly, words that carry a number that would move, and each check run by
@@ -128,8 +134,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4.3: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), and the look ahead, the brief and the owner's words (0.4.3). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.4: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), and a pass for reading and finding the keys (0.4.4). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

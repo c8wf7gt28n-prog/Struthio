@@ -36,8 +36,9 @@ has changed. **Backspace** goes back to the sheet you were on before. In the wri
 word of your own: `word waits = field.read | pick waiting | select kind,title,state`, then `waits` (Ctrl+Enter), `words`
 to list them, `forget waits` to let one go. Right-click a sheet (or the Menu key) for the same things as cascades: What if ›
 a number › a value to try, Doubt it ›, Trace it ›, What can be done ›, Your words ›; choosing in a menu never approves a
-change.
-`docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+change. **?** shows every key of the Field on a card. The doubt, the desk check and the brief open on a page over the work,
+at your reading size; the doubt and the check step aside at the next key you press, and Esc closes any of them.
+`docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 
