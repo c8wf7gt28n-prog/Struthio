@@ -2067,7 +2067,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 1907065,
-      "sha256": "3ecde3c801145baf65c7a972beb055f5a25db105380ddf493015dea6115dd516"
+      "sha256": "7f3bbafc6d6542d27146ce08dcf2952cee3f61a501c44cdea2686e8755535f24"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4354048,
@@ -2075,7 +2075,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "486349a00e610c6008aa4e986a0858c5370c4bf758e53397e2e044dc4bd7139a"
+      "sha256": "bd752c64fc9e9faa393aa73807cb58313ae44fe3f8d23130caf34cf8364782ac"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2250,8 +2250,8 @@
       "sha256": "a9ff2f4434cb986e1650cbb41f31299d4cd6865832c8ee1fa7001324f4a1ab64"
     },
     "sdk/cli/arc1cli/gguf_inspect.py": {
-      "bytes": 11195,
-      "sha256": "883205a514d0b1c9711970a8ab10ba1d2a6919c8f6d53ae4e223e54bc2ad802e"
+      "bytes": 11264,
+      "sha256": "ad9db8935ea1511399e001d1f67bc5445648d64bbf9e455bce2cd2ca6ad62acf"
     },
     "sdk/cli/arc1cli/hardware.py": {
       "bytes": 10508,

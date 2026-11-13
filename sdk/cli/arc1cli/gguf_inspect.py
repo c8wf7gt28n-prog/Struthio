@@ -12,7 +12,7 @@ TYPES={0:('F32',1,4),1:('F16',1,2),2:('Q4_0',32,18),3:('Q4_1',32,20),
        6:('Q5_0',32,22),7:('Q5_1',32,24),8:('Q8_0',32,34),9:('Q8_1',32,40),
        10:('Q2_K',256,84),11:('Q3_K',256,110),12:('Q4_K',256,144),13:('Q5_K',256,176),
        14:('Q6_K',256,210),15:('Q8_K',256,292),30:('BF16',1,2)}
-ARCHITECTURES={'llama','qwen2','qwen3','qwen3moe','qwen35','gemma','gemma2','gemma3','phi3','gpt2','smollm3'}
+ARCHITECTURES={'llama','qwen2','qwen3','qwen3moe','qwen35','qwen35moe','gemma','gemma2','gemma3','phi3','gpt2','smollm3'}  # qwen35moe: Qwen3.6-35B-A3B, the owner's model (0.8.0)
 MAX_HEADER=128*1024*1024
 
 class Reader:
