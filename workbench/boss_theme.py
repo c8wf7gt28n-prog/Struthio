@@ -1,5 +1,10 @@
 """BOSS desk colours. Presentation only; document formats keep their own ink.
 
+A control looks like a control (13 November 2026: "bring in buttons where useful ... make it look more complete and
+untied to the work"). An action is a button: a boxed word (arcButton "tool", made with theme2.tool) that answers the
+pointer in green and the keyboard in amber. A word that only goes somewhere stays an underlined word. The work itself
+(a page, a table, a sheet) has neither look, so the two are never mistaken for each other.
+
 Amber is for what is selected, what has the keyboard, and what waits for the owner. Green is for what is live: readings,
 what is current, staC, the pointer, and whatever the pointer is over (13 November 2026: "the mouse pointer to be the systems
 green ... more green glowing")."""
@@ -60,6 +65,16 @@ QMenu::item:selected {color:%(AMBER_TEXT)s; border-left:2px solid %(AMBER_EDGE)s
 QPushButton {border-bottom:1px solid transparent; padding:5px 7px;}
 QPushButton:hover, QToolButton:hover {background:%(TEAL_SOFT)s; border-bottom-color:%(READY)s;}
 QPushButton:checked, QToolButton:checked, QTabBar::tab:selected {border-bottom:2px solid %(AMBER_EDGE)s;}
+QPushButton[arcButton="tool"], QToolButton[arcButton="tool"] {
+    color:%(TEXT)s; background:transparent; border:1px solid %(LINE_STRONG)s; border-radius:0; padding:4px 11px; text-align:center;
+}
+QPushButton[arcButton="tool"]:hover, QToolButton[arcButton="tool"]:hover {background:%(TEAL_SOFT)s; border:1px solid %(READY)s; color:%(TEAL_TEXT)s;}
+QPushButton[arcButton="tool"]:pressed, QToolButton[arcButton="tool"]:pressed {background:%(AMBER_SOFT)s; border:1px solid %(AMBER_EDGE)s;}
+QPushButton[arcButton="tool"]:focus, QToolButton[arcButton="tool"]:focus {border:1px solid %(AMBER_EDGE)s;}
+QPushButton[arcButton="tool"]:checked, QToolButton[arcButton="tool"]:checked {border:1px solid %(AMBER_EDGE)s; color:%(AMBER_TEXT)s; background:%(AMBER_SOFT)s; font-weight:400;}
+QPushButton[arcButton="tool"]:disabled, QToolButton[arcButton="tool"]:disabled {color:%(FAINT)s; border:1px solid %(LINE)s; background:transparent;}
+QToolButton[arcButton="tool"]::menu-indicator {image:none; width:0;}
+QPushButton[arcButton="link"] {text-decoration:underline;}
 QTabBar::tab:selected {color:%(AMBER_TEXT)s;}
 QTreeView::item, QListView::item {border-radius:0;}
 QTreeView::item:selected, QListView::item:selected {border-left:2px solid %(AMBER_EDGE)s;}

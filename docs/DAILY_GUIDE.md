@@ -45,7 +45,9 @@ The pointer is the desk's green, and whatever it is over answers in green; amber
 Above whatever is open in the centre there is one row of controls: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, **Actions ▾**; one that
 the open view cannot serve is dimmed and says why. In the Field **Z** shows the whole desk (again for the ordinary size), the
 bars at the edges drag, and **⋯** on the sheet under the pointer shows its menu. The amber light is where the keys go.
-`docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+An action is a boxed button; a word that only goes somewhere is underlined. Each work page has one row of tools above it, and
+**More ▾** holds what is needed now and then.
+`docs/RELEASE_NOTES_0.4.8.md`, `docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

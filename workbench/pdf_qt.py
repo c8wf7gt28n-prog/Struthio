@@ -62,7 +62,7 @@ class PdfDocumentTab(ServiceTab):
         self.next=QPushButton('Next');self.next.clicked.connect(lambda:self.go(1))
         self.zoom=QComboBox();self.zoom.addItems(['Fit width','125%','150%','200%']);self.zoom.currentIndexChanged.connect(self.fit)
         self.refresh_button=QPushButton('Check original');self.refresh_button.clicked.connect(self.recheck)
-        self.navigation_widgets=[self.previous,self.page,self.next,self.zoom,self.refresh_button];self.outer.addLayout(self.navigation_grid)
+        self.outer.addLayout(self.navigation_grid)
         self.location=QLabel('Choose an admitted PDF in Exact References.');self.location.setWordWrap(True);self.location.setTextFormat(Qt.PlainText);self.outer.addWidget(self.location)
         self.action_grid=QGridLayout();self.buttons={}
         from .datasheet_qt import review_pdf_table
@@ -70,7 +70,26 @@ class PdfDocumentTab(ServiceTab):
                 ('Review table',lambda:review_pdf_table(self)),('Export library volume',self.export),
                 ('Focus reading',lambda:host.set_workspace_layout('focus')),('Share page view',self.share_page))):
             button=QPushButton(label);button.clicked.connect(fn);self.buttons[label]=button
-        self.outer.addLayout(self.action_grid)
+        # One row of tools above the page: turn the pages, choose the size, and the two things done with a page most often.
+        # What is done now and then is one click further, under More. Every button the page had is still made and still
+        # does what it did; the ones not in the row are kept out of sight and More presses them.
+        from .theme2 import tool,more
+        self.previous.setText('‹ Previous');self.next.setText('Next ›')
+        self.previous.setToolTip('The page before');self.next.setToolTip('The next page');self.zoom.setToolTip('How large the page is shown');self.page.setToolTip('The page shown, by its place in the file')
+        self.buttons['Copy citation'].setToolTip('Copy a citation of this page, with the file and its fingerprint');self.buttons['Review table'].setToolTip('Read a table on this page into a sheet you check row by row')
+        for one in (self.previous,self.next,self.buttons['Copy citation'],self.buttons['Review table']):tool(one)
+        self.kept=QWidget(self);self.kept.hide();kept=QVBoxLayout(self.kept)
+        for label in ('Open citation','OCR this page','Export library volume','Focus reading','Share page view'):kept.addWidget(self.buttons[label])
+        kept.addWidget(self.refresh_button)
+        SAYS={'Open citation':'Go to the page a copied citation names','OCR this page':'Read the page as a picture; the words are kept apart as unverified',
+              'Check original':'Check that the file is still the one that was brought in','Export library volume':'Write this reference out as a library volume',
+              'Share page view':'Offer this page view to a paired computer','Focus reading':'Give the page the whole centre'}
+        def now_and_then():
+            rows=[(self.buttons[l].text(),self.buttons[l].click,self.buttons[l].isEnabled(),SAYS[l]) for l in ('Open citation','OCR this page')]
+            rows.append((self.refresh_button.text(),self.refresh_button.click,self.refresh_button.isEnabled(),SAYS['Check original']));rows.append(None)
+            return rows+[(self.buttons[l].text(),self.buttons[l].click,self.buttons[l].isEnabled(),SAYS[l]) for l in ('Export library volume','Share page view','Focus reading')]
+        self.more=more('More',now_and_then,'What is needed now and then: citations, OCR, checking the original, export')
+        self.navigation_widgets=[self.previous,self.page,self.next,self.zoom,self.buttons['Copy citation'],self.buttons['Review table'],self.more]
         self.split=QSplitter(Qt.Horizontal);self.views=QTabWidget();self.scroll=QScrollArea();self.scroll.setWidgetResizable(False);self.canvas=PageCanvas();self.scroll.setWidget(self.canvas);self.views.addTab(self.scroll,'Original page')
         self.native=QPlainTextEdit();self.native.setReadOnly(True);self.views.addTab(self.native,'Native text')
         self.ocr_text=QPlainTextEdit();self.ocr_text.setReadOnly(True);self.views.addTab(self.ocr_text,'OCR · unverified')
@@ -87,13 +106,14 @@ class PdfDocumentTab(ServiceTab):
         new=QPushButton('New note');new.clicked.connect(self.new_note);buttons.addWidget(new,0,1)
         reload=QPushButton('Reload notes');reload.clicked.connect(self.reload_notes);buttons.addWidget(reload,1,0)
         self.recover_button=QPushButton('Recover draft');self.recover_button.clicked.connect(self.recover);buttons.addWidget(self.recover_button,1,1);box.addLayout(buttons)
-        for word in (self.save_button,new,reload,self.recover_button):buttons.setAlignment(word,Qt.AlignLeft|Qt.AlignVCenter)
+        for word in (self.save_button,new,reload,self.recover_button):buttons.setAlignment(word,Qt.AlignLeft|Qt.AlignVCenter);tool(word)
         self.region_label=QLabel('Full page · notes remain owner annotations');self.region_label.setWordWrap(True);box.addWidget(self.region_label)
         self.split.addWidget(notes);self.split.setSizes([780,330]);self.split.setHandleWidth(8);self.outer.addWidget(self.split,1);self.outer.addWidget(self.status)
         self.draft_timer=QTimer(self);self.draft_timer.setSingleShot(True);self.draft_timer.setInterval(600);self.draft_timer.timeout.connect(self.flush_draft)
         self.editor.textChanged.connect(self.edited);self.kind.currentTextChanged.connect(self.edited);self.printed.textChanged.connect(self.edited);self.canvas.selected.connect(self.region_selected)
         self.timer=QTimer(self);self.timer.setInterval(350);self.timer.timeout.connect(self.poll);self.timer.start();self.clear_editor();self.arrange()
     def title(self):return 'PDF · '+(self.document['name'] if self.document else 'original source')
+    def centre_title(self):return self.document['name'] if self.document else 'A reference'      # for the centre's bar: the file that is open, by its name
     def share_page(self):
         from .window_views_qt import share_pdf
         return share_pdf(self)
@@ -103,17 +123,18 @@ class PdfDocumentTab(ServiceTab):
         super().resizeEvent(event)
     def arrange(self):
         available=max(250,self.reader_scroll.viewport().width()-20)
-        state=(5 if available>=800 else 3 if available>=500 else 2,3 if available>=850 else 2 if available>=620 else 1,available<720)
+        state=(7 if available>=900 else 4 if available>=520 else 3,0,available<720)
         if state==getattr(self,'_arrangement',None):return
         self._arrangement=state
-        for grid,widgets,columns in ((self.navigation_grid,self.navigation_widgets,state[0]),(self.action_grid,list(self.buttons.values()),state[1])):
+        for grid,widgets,columns in ((self.navigation_grid,self.navigation_widgets,state[0]),):
             # A button is drawn as its words; left to fill its cell it was pressed by a click well beside them. The page number
             # and the size choice still fill theirs.
             for index,widget in enumerate(widgets):
                 grid.removeWidget(widget)
                 if isinstance(widget,QPushButton):grid.addWidget(widget,index//columns,index%columns,Qt.AlignLeft|Qt.AlignVCenter)
                 else:grid.addWidget(widget,index//columns,index%columns)
-            for column in range(5):grid.setColumnStretch(column,1 if column<columns else 0)
+            for column in range(9):grid.setColumnStretch(column,1 if column==columns else 0)      # the tools sit together at the left; the room is after them
+            grid.setHorizontalSpacing(8)
         self.split.setOrientation(Qt.Vertical if state[2] else Qt.Horizontal);self.split.setMinimumHeight(650 if state[2] else 360)
     def fit(self,*args):
         factor=(1,1.25,1.5,2)[self.zoom.currentIndex()];self.canvas.scale_to(max(150,self.scroll.viewport().width()-6)*factor)

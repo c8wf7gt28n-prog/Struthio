@@ -1,4 +1,4 @@
-# Graphite 0.4.7 · The desk does, doubts, looks ahead, glows, and puts the mouse first
+# Graphite 0.4.8 · The desk does, doubts, looks ahead, glows, and looks like itself
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
@@ -6,6 +6,7 @@ on. Graphite is the public name of the workspace; its assistant's face is Stacy,
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
+- **Buttons** · an action is a boxed button and a word that only goes somewhere is underlined, so the interface is never mistaken for the work. The sheet, the PDF and the page of writing each have one row of tools, with what is needed now and then under **More ▾**; the keys at the foot of the Field are buttons.
 - **The mouse first** · above whatever is open in the centre: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, **Actions ▾**, always in the same place. In the Field **Z** shows the whole desk, the bars at the edges drag, and **⋯** on the sheet under the pointer shows what can be done with it.
 - **Amber** · one amber halo marks where the keys go (the selected sheet, the page being read, or the writing line); what waits for you is lit at its mark, and Approve glows until it is pressed.
 - **Green** · the pointer (the mark's two facets, aimed at 11 o'clock) is drawn in the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
@@ -40,12 +41,12 @@ The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **Referen
 
 ## Install
 
-From the release volumes (`Graphite_0.4.7_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.4.8_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.7" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.7" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.8" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.4.8" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -135,7 +136,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.4.7_full.zip PARTS "Graphite 0.4.7"
+python3 tools/package_release_parts.py OUT/Graphite_0.4.8_full.zip PARTS "Graphite 0.4.8"
 ```
 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).

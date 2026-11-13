@@ -550,7 +550,11 @@ class FieldView(QWidget):
                 total = fm.horizontalAdvance(str(item))
                 if x + total > end:break
                 spot = QRectF(x - 4 * s, base - fm.ascent() - 4 * s, total + 8 * s, fm.height() + 8 * s)
-                p.setPen(QColor(t.READY if found is not None and spot.contains(self._mouse) else colour));p.drawText(QPointF(x, base), str(item))
+                over = found is not None and spot.contains(self._mouse)
+                if found is not None:        # a key that can be clicked is a button, and looks like one: boxed, green under the pointer
+                    box = spot.adjusted(-2 * s, 0.5, 2 * s, -0.5)
+                    p.save();p.setPen(QPen(QColor(t.READY) if over else ink(t.LINE_STRONG, 0.85), 1));p.setBrush(QColor(t.TEAL_SOFT) if over else Qt.NoBrush);p.drawRect(box);p.restore()
+                p.setPen(QColor(t.TEAL_TEXT if over else colour));p.drawText(QPointF(x, base), str(item))
                 if found is not None:
                     self._hot.append((spot, found[0], found[1], words[:1].upper() + words[1:] + ' (%s)' % label.strip()))
             x += total + gap
@@ -1275,8 +1279,10 @@ class FieldView(QWidget):
                 self._keys_line(p, body.right() - 28 * s - size_w, base, [size], t.QUIET, size_w + 2)
                 at = body.right() - 28 * s - size_w - 10 * s
                 for sign, step, tip in (('+', 2, 'Larger (+, or Ctrl and the wheel)'), ('−', -2, 'Smaller (−, or Ctrl and the wheel)')):
-                    at -= sign_w;spot = QRectF(at, body.bottom() - 24 * s, sign_w, 24 * s)
-                    p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(spot, Qt.AlignCenter, sign)
+                    at -= sign_w;spot = QRectF(at, body.bottom() - 24 * s, sign_w, 24 * s);over = spot.contains(self._mouse)
+                    box = spot.adjusted(2 * s, 3 * s, -2 * s, -3 * s)
+                    p.save();p.setPen(QPen(QColor(t.READY) if over else ink(t.LINE_STRONG, 0.85), 1));p.setBrush(QColor(t.TEAL_SOFT) if over else Qt.NoBrush);p.drawRect(box);p.restore()
+                    p.setPen(QColor(t.TEAL_TEXT if over else t.QUIET));p.drawText(spot, Qt.AlignCenter, sign)
                     self._hot.append((spot, lambda step=step: self.set_zoom(round(self.zoom * 20 + step) / 20.0), '', tip))
                 tail = size_w + 10 * s + 2 * sign_w + 3 * fm.horizontalAdvance(' ');room -= tail
             else:size = ''

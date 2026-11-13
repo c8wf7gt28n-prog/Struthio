@@ -65,6 +65,8 @@ class ConcernController(QObject):
         area = QPushButton('Working area'); area.clicked.connect(lambda: self.open(
             self.current_attention['object_id'] if self.current_attention else 'concern'))
         ask = QPushButton('Ask Stacy'); ask.clicked.connect(self.ask_slate)
+        from .theme2 import tool
+        tool(area, 'Open the working area this belongs to'); tool(ask, 'Ask Stacy about what is open here')
         row.addWidget(area); row.addWidget(ask)
         self.host.center_layout.insertWidget(1, self.context_strip)
         # The controls that carry across whatever is open (Field, Find, size, Undo, Redo, Save, Actions) are the centre's

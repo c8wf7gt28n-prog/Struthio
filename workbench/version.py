@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Graphite'
-VERSION = '0.4.7'
-SHORT = '0.4.7'
-LINEAGE = ('0.4.7: amber glows where it means something (one halo where the keys go; what waits lit at its mark; Approve, in the Field and in Talk; a lamp at the head) and the mouse comes first (the bar above the centre: Field, Find, size, Undo, Redo, Save, Actions; in the Field Z for the whole desk, bars to drag, the dots on a sheet for its menu; buttons as wide as their words). '
+VERSION = '0.4.8'
+SHORT = '0.4.8'
+LINEAGE = ('0.4.8: a control looks like a control: an action is a boxed button (the keys at the foot of the Field; one row of tools above the sheet, the PDF and the page of writing, with what is needed now and then under More), a word that only goes somewhere is underlined, and the work has neither look. '
+           '0.4.7: amber glows where it means something (one halo where the keys go; what waits lit at its mark; Approve, in the Field and in Talk; a lamp at the head) and the mouse comes first (the bar above the centre: Field, Find, size, Undo, Redo, Save, Actions; in the Field Z for the whole desk, bars to drag, the dots on a sheet for its menu; buttons as wide as their words). '
            '0.4.6: green: the pointer (the two facets of the mark, aimed at 11 o\'clock, as before) is drawn in the green of the desk and carries a little light over the Field; what the pointer is over answers in green where it answered in amber; live marks, live wires and live readings glow; the Clean desk keeps the green and drops the glow. '
            '0.4.5: the mouse path: a click opens a tile, ‹ Field comes back to it, every key shown is a place to click, a waiting change has an Approve button, D shows the steps as rows to click; Stacy changes a number when asked (field.set) and the change waits for Approve with what it would move marked. '
            '0.4.4: a pass for the eye and the hand: ? shows every key of the Field; the doubt, the desk check and the brief are read on a page over the work at the owner\'s reading size; Stacy\'s column puts the answer first and writes each row in a few short lines. '

@@ -107,6 +107,9 @@ class InvestigationTab(QWidget):
         else:self.empty()
 
     def title(self):return 'Investigations'
+    def centre_title(self):      # for the centre's bar: the question that is open, by its own name
+        sheet = self.sheet if isinstance(self.sheet, dict) else {}
+        return str(sheet.get('question') or 'Investigations')
 
     def info(self):return 'Continuing investigations · the top sheet'
 
@@ -208,6 +211,8 @@ class InvestigationTab(QWidget):
         go.clicked.connect(lambda:self.act('investigation.continue', {'id': s['id']}));nxt.addWidget(go)
         again = button('Compare sources again', 'quiet');again.clicked.connect(lambda:self.act('investigation.refresh', {'id': s['id']}));nxt.addWidget(again)
         stop = button('Stop', 'quiet');stop.clicked.connect(lambda:self.act('investigation.stop', {'id': s['id'], 'reason': 'Stopped from the sheet'}));nxt.addWidget(stop)
+        from .theme2 import tool        # beside Continue, the two other things that can be done now are buttons too
+        tool(again, 'Read the sources again and compare them with what was read before');tool(stop, 'Stop this investigation where it is; what it found is kept')
         next_page.addLayout(nxt);self.page.addWidget(next_panel);self.page.addWidget(self.status)
         self.section('[ SOURCES ]', [(r['address'], 'snapshot ' + r['digest'][:12] + ('' if r['state'] == 'CURRENT' else '  ·  ' + r['state'].lower()), True) for r in s['read']],
                      'Nothing read yet. Add a staC address below, or press Investigate on an open file.')

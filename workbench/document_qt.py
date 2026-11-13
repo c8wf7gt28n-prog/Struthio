@@ -209,6 +209,8 @@ class DocumentsTab(QWidget):
         words = QHBoxLayout(); words.setSpacing(2)
         self.new_word = action('New document', self.new_document); self.new_word.setAccessibleDescription('Start an empty document; it is saved as you write')
         self.export_word = action('Export…', self.export_document); self.export_word.setAccessibleDescription('Write the current document to a Markdown, HTML or text file you choose')
+        from .theme2 import tool        # the page's actions are buttons: New, Export, and the row that shapes the writing
+        tool(self.new_word, 'Start an empty document; it is saved as you write'); tool(self.export_word, 'Write the current document to a Markdown, HTML or text file you choose'); words.setSpacing(8)
         words.addWidget(self.new_word); words.addWidget(self.export_word); words.addStretch(1); left_box.addLayout(words)
         self.list = QListWidget(); self.list.setObjectName('DocumentList'); self.list.setAccessibleName('Saved documents, newest first')
         # The desk's review set found a saved page's line cut at its time and the list scrolling sideways in its 230 px column:
@@ -219,12 +221,14 @@ class DocumentsTab(QWidget):
         right = QWidget(); box = QVBoxLayout(right); box.setContentsMargins(0, 0, 0, 0); box.setSpacing(6)
         self.title_box = QLineEdit(); self.title_box.setObjectName('DocumentTitle'); self.title_box.setMaxLength(200)
         writing_prompt(self.title_box, 'Document title'); self.title_box.setAccessibleName('Document title'); self.title_box.textEdited.connect(self.changed); box.addWidget(self.title_box)
-        marks = WordRow(spacing=2); self.mark_words = {}  # one row while it fits, wrapping where the page is narrow
+        marks = WordRow(spacing=6, line_spacing=6); self.mark_words = {}  # one row while it fits, wrapping where the page is narrow
         for label, key, tip in (('Bold', 'bold', 'Ctrl B'), ('Italic', 'italic', 'Ctrl I'), ('Underline', 'underline', 'Ctrl U')):
             word = action(label, lambda checked=False, k=key: self.toggle_mark(k)); word.setToolTip(tip); word.setAccessibleDescription(tip + ' · applies to the selected words'); marks.add(word); self.mark_words[key] = word
         for n, (label, style, tip) in enumerate((('Heading', 'Heading1', 'Ctrl 1'), ('Subheading', 'Heading2', 'Ctrl 2'), ('Minor heading', 'Heading3', 'Ctrl 3'), ('Body', 'Normal', 'Ctrl 0'), ('Code', 'Code', 'Ctrl `'))):
             word = action(label, lambda checked=False, s=style: self.set_style(s)); word.setToolTip(tip); word.setAccessibleDescription(tip + ' · applies to the paragraph'); marks.add(word, 14 if n == 0 else 0); self.mark_words[style] = word
         plain = action('Plain', self.clear_marks); plain.setToolTip('Remove bold, italic and underline from the selected words'); marks.add(plain, 14); self.mark_words['clear'] = plain
+        for word in self.mark_words.values():       # a row of tools, as every writing program has: the words they were, drawn as buttons
+            said = word.toolTip(); tool(word); word.setToolTip(said)
         box.addLayout(marks)
         self.page = DocumentPage(self); self.page.textChanged.connect(self.changed); self.page.focus_left.connect(self.flush); box.addWidget(self.page, 1)
         # AGENT-01: a result on this page bound to words that changed reads stale here, and one word rechecks it

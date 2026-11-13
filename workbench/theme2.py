@@ -191,11 +191,43 @@ def holding_layout(layout, widget):
     return None
 
 
+def tool(button, tip=''):
+    """Make a button a tool: an action, drawn as a button (boss_theme: arcButton "tool"). As wide as its words, a hand for
+    the pointer, and no sheet of its own, so the desk's one button look reaches it. Returns the button."""
+    from PySide6.QtWidgets import QSizePolicy
+    from PySide6.QtCore import Qt
+    button.setProperty('arcButton', 'tool');button.setCursor(Qt.PointingHandCursor)
+    button.setSizePolicy(QSizePolicy.Maximum, button.sizePolicy().verticalPolicy())
+    if button.styleSheet():button.setStyleSheet('')
+    if tip:button.setToolTip(tip)
+    style = button.style();style.unpolish(button);style.polish(button)
+    return button
+
+
+def more(words, entries, tip='More that can be done here'):
+    """A tool that opens a short menu: for the actions of a page that are not needed every time. `entries` is called each
+    time the menu opens and gives (words, what to do, whether it can be done now, why or what it does) for each line; None
+    for a rule between lines. Each line presses what a button on the page used to press, so nothing new is done here."""
+    from PySide6.QtWidgets import QMenu, QToolButton
+    button = QToolButton();button.setText(words + ' ▾');button.setPopupMode(QToolButton.InstantPopup);tool(button, tip)
+    menu = QMenu(button);menu.setToolTipsVisible(True);button.setMenu(menu)
+
+    def fill():
+        menu.clear()
+        for entry in entries():
+            if entry is None:
+                menu.addSeparator();continue
+            said, does, can, why = entry
+            line = menu.addAction(said);line.setEnabled(bool(can));line.setToolTip(why or '');line.triggered.connect(lambda checked=False, does=does: does())
+    menu.aboutToShow.connect(fill);fill()
+    return button
+
+
 def as_words(button):
     """4.1: a button is a word. A row made only of buttons sits to the left at its natural width instead of spreading boxes across the panel."""
     from PySide6.QtWidgets import QBoxLayout, QPushButton, QSizePolicy, QSpacerItem
     from PySide6.QtCore import Qt
-    if button.property('arcButton') in ('filter', 'segment') or button.property('paperWords'):return
+    if button.property('arcButton') in ('filter', 'segment', 'tool') or button.property('paperWords'):return
     button.setProperty('paperWords', True)
     if button.cursor().shape() == Qt.ArrowCursor:button.setCursor(Qt.PointingHandCursor)
     parent = button.parentWidget()

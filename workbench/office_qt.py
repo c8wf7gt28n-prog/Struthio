@@ -3,7 +3,7 @@ import copy, json, uuid
 from pathlib import Path
 from PySide6.QtCore import Qt,QTimer,QProcess,QProcessEnvironment
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QWidget, QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QLineEdit, QPlainTextEdit, QComboBox, QTabWidget, QTableWidget, QTableWidgetItem, QTreeWidget, QTreeWidgetItem, QHeaderView, QDialogButtonBox, QCheckBox, QFileDialog, QInputDialog, QMessageBox, QScrollArea
+from PySide6.QtWidgets import QWidget, QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QLineEdit, QPlainTextEdit, QComboBox, QTabWidget, QTableWidget, QTableWidgetItem, QTreeWidget, QTreeWidgetItem, QHeaderView, QDialogButtonBox, QCheckBox, QFileDialog, QInputDialog, QMessageBox, QScrollArea, QSizePolicy
 from .engine import engineering
 from .engineering_kernel import operator
 from . import office_service,office_runtime
@@ -84,19 +84,41 @@ class OfficePanel(QWidget):
         super().__init__(host);self.host=host;self.ident=key;self.writer=uuid.uuid4().hex;self.recovered_writer=None;self.dirty=False;self.loading=True;self.last_result=None;self.job=None;self.selected_block=None
         QFontDatabase.addApplicationFont(str(locations.program(host.root)/'branding/fonts/NotoSansCJKsc-Regular.otf'))
         self.setProperty('concern_id',key);self.setProperty('ledgerTitle','Office working copy');outer=QVBoxLayout(self);outer.setContentsMargins(0,0,0,0);self.scroll=QScrollArea();self.scroll.setWidgetResizable(True);outer.addWidget(self.scroll);content=QWidget();self.scroll.setWidget(content);box=QVBoxLayout(content)
-        self.title_edit=QLineEdit();self.title_edit.setAccessibleName('Office working title');box.addWidget(self.title_edit);box.addWidget(plain('Working copy · originals remain separate. Save commits; conversion and recalculation require review.'))
-        row=QGridLayout();self.save_button=QPushButton('Save working');self.save_button.setToolTip('Save this working copy');self.save_button.clicked.connect(self.save_concern_note);row.addWidget(self.save_button,0,0);self.recovery=QPushButton('Review recovery');self.recovery.clicked.connect(self.recover);row.addWidget(self.recovery,0,1)
-        self.format=QComboBox();self.format.setAccessibleName('Office export format');row.addWidget(self.format,1,0);self.export_button=QPushButton('Preview export');self.export_button.clicked.connect(lambda:self.operation('export'));row.addWidget(self.export_button,1,1)
-        self.calc=QPushButton('Recalculate');self.calc.clicked.connect(lambda:self.operation('recalculate'));row.addWidget(self.calc,2,0);self.edit_copy=QPushButton('Prepare edit copy');self.edit_copy.clicked.connect(lambda:self.operation('edit'));row.addWidget(self.edit_copy,2,1)
+        from .theme2 import tool,more
+        KEPT='Working copy · originals remain separate. Save commits; conversion and recalculation require review.'
+        self.title_edit=QLineEdit();self.title_edit.setAccessibleName('Office working title');self.title_edit.setToolTip(KEPT);box.addWidget(self.title_edit)
+        # The page's actions. What is used every time is a row of tools above the work; what is used now and then is one click
+        # further, under More. Every button the page ever had is still made and still does what it did (the page enables,
+        # disables and presses them by name): the ones not in the row are kept out of sight and More presses them.
+        self.kept=QWidget(self);self.kept.hide();row=QGridLayout(self.kept)
+        self.save_button=QPushButton('Save working');self.save_button.setToolTip('Save this working copy');self.save_button.clicked.connect(self.save_concern_note);row.addWidget(self.save_button,0,0);self.recovery=QPushButton('Review recovery');self.recovery.clicked.connect(self.recover);row.addWidget(self.recovery,0,1)
+        self.format=QComboBox();self.format.setAccessibleName('Office export format');self.format.setToolTip('The format Preview export writes');self.export_button=QPushButton('Preview export');self.export_button.clicked.connect(lambda:self.operation('export'))
+        self.calc=QPushButton('Recalculate');self.calc.clicked.connect(lambda:self.operation('recalculate'));self.edit_copy=QPushButton('Prepare edit copy');self.edit_copy.clicked.connect(lambda:self.operation('edit'));row.addWidget(self.edit_copy,2,1)
         self.review_file=QPushButton('Review file');self.review_file.setToolTip('Review the saved external candidate and its changes');self.review_file.clicked.connect(self.candidate);row.addWidget(self.review_file,3,0);self.copy=QPushButton('Save output copy');self.copy.clicked.connect(self.copy_output);row.addWidget(self.copy,3,1)
-        self.open_editor=QPushButton('Open editor');self.open_editor.clicked.connect(self.launch_editor);row.addWidget(self.open_editor,4,0);self.bom=QPushButton('Compare BOM');self.bom.clicked.connect(self.compare_bom);row.addWidget(self.bom,4,1);box.addLayout(row)
-        # A button here is drawn as its words alone. Left to fill its cell of the grid it was pressed by a click anywhere in
-        # a strip as wide as half the page, beside words that were not there; now it is as wide as its words.
-        for button in (self.save_button,self.recovery,self.export_button,self.calc,self.edit_copy,self.review_file,self.copy,self.open_editor,self.bom):row.setAlignment(button,Qt.AlignLeft|Qt.AlignVCenter)
+        self.open_editor=QPushButton('Open editor');self.open_editor.clicked.connect(self.launch_editor);row.addWidget(self.open_editor,4,0);self.bom=QPushButton('Compare BOM');self.bom.clicked.connect(self.compare_bom);row.addWidget(self.bom,4,1)
         from .datasheet_qt import calculate_report
         self.datasheet_report=QPushButton('Calculate and write report…')
         self.datasheet_report.clicked.connect(lambda:calculate_report(self))
-        box.addWidget(self.datasheet_report,0,Qt.AlignLeft)
+        self.datasheet_report.setToolTip('Work a number out from this sheet and write it up as a page, with what it stands on')
+        self.calc.setToolTip('Have the office program work the formulas out again; the result is reviewed before it is kept')
+        self.export_button.setToolTip('Write this working copy in the chosen format, to look at before it is kept')
+        SAYS={'Save working':('Save this working copy (Save in the bar above does the same)','Nothing to save: no changes since the last save'),
+              'Review recovery':('Look at a draft kept from an earlier session','There is no kept draft to look at'),
+              'Prepare edit copy':('Prepare a copy to edit in the full office program','Save first: the copy is made from what is saved'),
+              'Review file':('Review the saved external candidate and its changes','Save first, then review'),
+              'Open editor':('Open the prepared copy in the office program','Prepare an edit copy first'),
+              'Save output copy':('Write the last result to a file you choose','There is no result yet: Recalculate, Preview export or Prepare edit copy first'),
+              'Compare BOM':('Compare this bill of materials with the board it came from','This sheet did not come from a bill of materials, or it has unsaved changes')}
+        def now_and_then():
+            return [('This is a working copy: the original is kept',lambda:None,False,KEPT),None]+\
+                   [(b.text(),b.click,b.isEnabled(),SAYS[b.text()][0 if b.isEnabled() else 1]) for b in (self.save_button,self.recovery)]+[None]+\
+                   [(b.text(),b.click,b.isEnabled(),SAYS[b.text()][0 if b.isEnabled() else 1]) for b in (self.edit_copy,self.open_editor,self.review_file,self.copy)]+[None]+\
+                   [(self.bom.text(),self.bom.click,self.bom.isEnabled(),SAYS['Compare BOM'][0 if self.bom.isEnabled() else 1])]
+        self.more=more('More',now_and_then,'What is needed now and then: recovery, the full office program, output copies')
+        tools=QHBoxLayout();tools.setContentsMargins(0,2,0,2);tools.setSpacing(8)
+        for one in (self.datasheet_report,self.calc,self.export_button):tool(one)
+        tools.addWidget(self.datasheet_report);tools.addWidget(self.calc);tools.addSpacing(6);tools.addWidget(self.format);tools.addWidget(self.export_button);tools.addSpacing(6);tools.addWidget(self.more);tools.addStretch(1)
+        self.format.setSizePolicy(QSizePolicy.Maximum,QSizePolicy.Fixed);box.addLayout(tools)
         self.pages=QTabWidget();self.pages.setMinimumHeight(360);box.addWidget(self.pages,1);self.working=QWidget();self.work_box=QVBoxLayout(self.working);self.pages.addTab(self.working,'Working content')
         self.readings=QPlainTextEdit();self.readings.setReadOnly(True);self.readings.setProperty('arcReadingRole','prose');self.readings.setAccessibleName('Measured results and BOM comparison');self.pages.addTab(self.readings,'Readings')
         self.details=QPlainTextEdit();self.details.setReadOnly(True);self.details.setAccessibleName('Office source and exact record details');self.pages.addTab(self.details,'Details');self.status=plain();self.status.setAccessibleName('Office save and job status');box.addWidget(self.status)
@@ -206,7 +228,7 @@ class OfficePanel(QWidget):
             lines.append('Working BOM comparison changes no native CAD source or engineering acceptance.');self.readings.setPlainText('\n\n'.join(lines));self.pages.setCurrentWidget(self.readings)
         except (ValueError,OSError) as e:self.status.setText(str(e))
     def setup_table(self):
-        row=QHBoxLayout();self.sheets=QComboBox();self.sheets.setAccessibleName('Working sheet');self.sheets.currentIndexChanged.connect(self.refresh_table);row.addWidget(self.sheets,1);self.address=QLineEdit('A1');self.address.setMaximumWidth(110);self.address.setAccessibleName('Working cell address');row.addWidget(self.address);self.edit_cell_button=QPushButton('Edit cell');self.edit_cell_button.clicked.connect(self.edit_cell);row.addWidget(self.edit_cell_button);self.work_box.addLayout(row)
+        row=QHBoxLayout();self.sheets=QComboBox();self.sheets.setAccessibleName('Working sheet');self.sheets.currentIndexChanged.connect(self.refresh_table);row.addWidget(self.sheets,1);self.address=QLineEdit('A1');self.address.setMaximumWidth(110);self.address.setAccessibleName('Working cell address');row.addWidget(self.address);self.edit_cell_button=QPushButton('Edit cell');__import__('workbench.theme2',fromlist=['tool']).tool(self.edit_cell_button,'Change the selected cell (a double-click on the cell does the same)');self.edit_cell_button.clicked.connect(self.edit_cell);row.addWidget(self.edit_cell_button);self.work_box.addLayout(row)
         self.grid=QTableWidget();self.grid.setEditTriggers(QTableWidget.NoEditTriggers);self.grid.verticalHeader().setDefaultSectionSize(max(34,self.fontMetrics().height()+14));self.grid.setAccessibleName('Typed working table');self.grid.itemSelectionChanged.connect(self.cell_selected);self.grid.cellDoubleClicked.connect(lambda *a:self.edit_cell());self.work_box.addWidget(self.grid,1);self.cell_info=plain();self.work_box.addWidget(self.cell_info)
         self.source_bench = QWidget(self.working)
         evidence = QHBoxLayout(self.source_bench)
@@ -215,6 +237,7 @@ class OfficePanel(QWidget):
         self.source_row_info.setAccessibleName('Reviewed PDF row')
         evidence.addWidget(self.source_row_info, 1)
         self.source_row_button = QPushButton('Open source row')
+        __import__('workbench.theme2', fromlist=['tool']).tool(self.source_row_button)
         self.source_row_button.setToolTip('Pin this sheet to keep it open while viewing the original PDF.')
         self.source_row_button.clicked.connect(self.open_source_row)
         evidence.addWidget(self.source_row_button)
