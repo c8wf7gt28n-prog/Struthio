@@ -1651,8 +1651,12 @@ class SlateFace(QWidget):
         if r.get('ok') and len(rows) > 1 and all(isinstance(row, dict) and len(row) >= 3 for row in rows):
             # Several rows of several fields read better as lines than as blocks: the fields once, then a row a line.
             # (What the model is given stays field by field: card.said.)
+            # A field is cut where a table would run away, and the cut is marked. Rows that are whole sentences (a doubt's reason)
+            # are what the owner came to read, so they are given their length.
             keys = list(rows[0]);text = lambda value:value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
-            shown = ' · '.join(keys) + '\n' + '\n'.join(' · '.join(str(text(row.get(key, '')))[:120] or '—' for key in keys) for row in rows[:50])
+            cut = 400 if thing.get('whole') else 120
+            short = lambda value:value if len(value) <= cut else value[:cut - 1].rstrip() + '…'
+            shown = ' · '.join(keys) + '\n' + '\n'.join(' · '.join(short(str(text(row.get(key, '')))) or '—' for key in keys) for row in rows[:50])
             if len(rows) > 50:shown += '\n… %d more rows' % (len(rows) - 50)
         answer = QLabel(breakable(shown));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
         answer.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);answer.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(answer)
