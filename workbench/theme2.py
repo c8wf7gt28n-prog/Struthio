@@ -13,6 +13,7 @@ from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget
 from .shell2 import (AMBER, AMBER_EDGE, AMBER_SOFT, CARD, ERASER, ERASER_DEEP, ERASER_MARK, GROUND, LINE, LINE_STRONG, PANEL, PENCIL_DEEP, QUIET, RAISED,
                      TEAL_EDGE, TEAL_SOFT, TEAL_TEXT, TEXT)
+from .boss_theme import LINE_MID
 
 PALETTE = (('Window', GROUND), ('Base', CARD), ('AlternateBase', GROUND), ('Button', CARD), ('WindowText', TEXT), ('Text', TEXT),
            ('ButtonText', TEXT), ('BrightText', TEXT), ('Light', CARD), ('Midlight', LINE), ('Dark', LINE_STRONG), ('Mid', LINE),
@@ -22,7 +23,7 @@ PALETTE = (('Window', GROUND), ('Base', CARD), ('AlternateBase', GROUND), ('Butt
 QSS2 = r"""
 QMainWindow, QDialog { background: %(GROUND)s; }
 QWidget { color: %(TEXT)s; }
-QToolTip { background: %(CARD)s; color: %(TEXT)s; border: 1px solid %(LINE_STRONG)s; padding: 6px 10px; border-radius: 8px; }
+QToolTip { background: %(CARD)s; color: %(TEXT)s; border: 1px solid %(LINE_MID)s; padding: 6px 10px; border-radius: 8px; }
 
 QMenuBar { background: %(GROUND)s; border: 0; }
 QMenu { background: %(CARD)s; border: 1px solid %(LINE)s; padding: 6px; border-radius: 10px; }
@@ -34,7 +35,7 @@ QMenu::separator { height: 1px; background: %(LINE)s; margin: 6px 10px; }
 QPushButton { background: transparent; color: %(TEXT)s; border: 0; border-bottom: 3px solid %(ERASER_MARK)s; border-radius: 0; padding: 4px 2px; text-align: left; }
 QPushButton:hover { background: %(TEAL_SOFT)s; border-bottom: 3px solid %(TEAL_EDGE)s; }
 QPushButton:pressed { background: %(ERASER)s; border-bottom: 3px solid %(ERASER_MARK)s; }
-QPushButton:disabled { color: %(LINE_STRONG)s; border-bottom-color: transparent; }
+QPushButton:disabled { color: %(LINE_MID)s; border-bottom-color: transparent; }
 QPushButton:checked { border-bottom: 3px solid %(TEXT)s; font-weight: 600; }
 QPushButton:focus { border-bottom: 3px solid %(TEXT)s; }
 QPushButton[arcButton="primary"] { font-weight: 600; }
@@ -56,15 +57,15 @@ QToolButton:checked { border-bottom: 2px solid %(TEXT)s; }
 QToolButton:focus { border-bottom: 2px solid %(TEXT)s; }
 QToolButton::menu-indicator { width: 0; }
 
-QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit { background: %(CARD)s; border: 1px solid %(LINE_STRONG)s; border-radius: 8px; padding: 7px 12px;
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit { background: %(CARD)s; border: 1px solid %(LINE_MID)s; border-radius: 8px; padding: 7px 12px;
     selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s; }
-QLineEdit:focus, QComboBox:focus, QSpinBox:focus { border: 2px solid %(TEXT)s; padding: 6px 11px; }
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus { border: 2px solid %(AMBER_EDGE)s; padding: 6px 11px; }
 QComboBox::drop-down { border: 0; width: 24px; }
 QComboBox QAbstractItemView { background: %(CARD)s; border: 1px solid %(LINE)s; selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s; }
 
 QPlainTextEdit, QTextEdit, QTextBrowser { background: %(CARD)s; border: 1px solid %(LINE)s; border-radius: 10px;
     selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s; }
-QPlainTextEdit:focus, QTextEdit:focus { border: 2px solid %(TEXT)s; }
+QPlainTextEdit:focus, QTextEdit:focus { border: 2px solid %(AMBER_EDGE)s; }
 
 QTreeView, QTreeWidget, QListView, QListWidget, QTableView, QTableWidget { background: %(GROUND)s; border: 0; border-radius: 0;
     alternate-background-color: %(CARD)s; outline: 0; selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s; }
@@ -83,13 +84,13 @@ QTabBar::tab:hover:!selected { color: %(TEAL_TEXT)s; background: %(RAISED)s; bor
 QScrollBar:vertical { background: %(GROUND)s; width: 10px; margin: 2px; }
 QScrollBar:horizontal { background: %(GROUND)s; height: 10px; margin: 2px; }
 QScrollBar::handle { background: %(ERASER_MARK)s; border-radius: 4px; min-height: 32px; min-width: 32px; }
-QScrollBar::handle:hover, QScrollBar::handle:pressed { background: %(ERASER_MARK)s; border: 1px solid %(LINE_STRONG)s; }
+QScrollBar::handle:hover, QScrollBar::handle:pressed { background: %(ERASER_MARK)s; border: 1px solid %(LINE_MID)s; }
 QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::sub-page { width: 0; height: 0; background: none; }
 
 QCheckBox, QRadioButton { spacing: 8px; }
-QCheckBox::indicator, QRadioButton::indicator { width: 16px; height: 16px; border: 1px solid %(LINE_STRONG)s; background: %(CARD)s; }
+QCheckBox::indicator, QRadioButton::indicator { width: 16px; height: 16px; border: 1px solid %(LINE_MID)s; background: %(CARD)s; }
 QCheckBox::indicator { border-radius: 4px; } QRadioButton::indicator { border-radius: 8px; }
-QCheckBox::indicator:checked, QRadioButton::indicator:checked { background: %(AMBER)s; border: 2px solid %(TEXT)s; }
+QCheckBox::indicator:checked, QRadioButton::indicator:checked { background: %(AMBER)s; border: 2px solid %(AMBER_EDGE)s; }
 QProgressBar { background: %(RAISED)s; border: 1px solid %(LINE)s; border-radius: 4px; text-align: center; color: %(TEXT)s; max-height: 8px; }
 QProgressBar::chunk { background: %(AMBER_EDGE)s; border-radius: 3px; }
 QSplitter::handle { background: %(LINE)s; }
@@ -103,8 +104,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 0; color: %(QUIET)s; }
 
 QWidget#TopBar2 { background: %(GROUND)s; border-bottom: 1px solid %(LINE)s; }
 QLineEdit#OneBox { background: %(RAISED)s; border: 1px solid %(LINE)s; border-radius: 8px; padding: 8px 14px; color: %(TEXT)s; }
-QLineEdit#OneBox:focus { background: %(CARD)s; border: 2px solid %(TEXT)s; padding: 7px 13px; }
-QFrame#OneBoxResults { background: %(CARD)s; border: 1px solid %(LINE_STRONG)s; border-radius: 12px; }
+QLineEdit#OneBox:focus { background: %(CARD)s; border: 2px solid %(AMBER_EDGE)s; padding: 7px 13px; }
+QFrame#OneBoxResults { background: %(CARD)s; border: 1px solid %(LINE_MID)s; border-radius: 12px; }
 QListWidget#OneBoxList { background: transparent; border: 0; }
 QListWidget#OneBoxList::item { padding: 9px 12px; border-radius: 8px; }
 QListWidget#OneBoxList::item:selected { background: %(AMBER_SOFT)s; border-left: 2px solid %(TEXT)s; }
@@ -117,7 +118,7 @@ QWidget#FaceSwitch { background: transparent; }
 QFrame#Card2 { background: %(CARD)s; border: 1px solid %(LINE)s; border-radius: 10px; }
 QFrame#TodaySide { background: %(GROUND)s; border: 0; }
 QWidget#TodayPage, QWidget#LibraryTab, QWidget#ItemView, QWidget#SlateFace { background: %(GROUND)s; }
-QLabel#KindChip { background: %(CARD)s; color: %(TEXT)s; border: 1px solid %(LINE_STRONG)s; border-radius: 8px; padding: 3px 10px; }
+QLabel#KindChip { background: %(CARD)s; color: %(TEXT)s; border: 1px solid %(LINE_MID)s; border-radius: 8px; padding: 3px 10px; }
 QPushButton#AddressChip { background: %(TEAL_SOFT)s; color: %(TEAL_TEXT)s; border: 1px solid %(LINE)s; border-radius: 8px; padding: 4px 10px;
     font-family: "IBM Plex Mono", "DejaVu Sans Mono", monospace; }
 QPushButton#AddressChip:hover { background: %(TEAL_SOFT)s; }
@@ -131,7 +132,7 @@ QLineEdit#SlateInput, QPlainTextEdit#SlateInput, QPlainTextEdit#Capture, QLineEd
     padding: 10px 14px; selection-background-color: %(ERASER_DEEP)s; selection-color: %(TEXT)s; }
 QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capture:focus, QLineEdit#ProjectTitle:focus { border: 0; border-bottom: 2px solid %(TEXT)s;
     padding: 10px 14px 8px 14px; }
-""" % dict(GROUND=GROUND, PANEL=PANEL, CARD=CARD, RAISED=RAISED, LINE=LINE, LINE_STRONG=LINE_STRONG, TEXT=TEXT, QUIET=QUIET,
+""" % dict(GROUND=GROUND, PANEL=PANEL, CARD=CARD, RAISED=RAISED, LINE=LINE, LINE_STRONG=LINE_STRONG, LINE_MID=LINE_MID, TEXT=TEXT, QUIET=QUIET,
            AMBER=AMBER, AMBER_SOFT=AMBER_SOFT, AMBER_EDGE=AMBER_EDGE, PENCIL_DEEP=PENCIL_DEEP, ERASER=ERASER, ERASER_DEEP=ERASER_DEEP, ERASER_MARK=ERASER_MARK,
            TEAL_SOFT=TEAL_SOFT, TEAL_EDGE=TEAL_EDGE, TEAL_TEXT=TEAL_TEXT)
 

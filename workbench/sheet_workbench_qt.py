@@ -22,30 +22,30 @@ FILE_MARKS = {'csv': '[#]', 'spreadsheet': '[=]', 'pdf': '[P]', 'document': '[=]
 
 SURFACE = """
 QTableView#SheetRows, QTableWidget#ChainPreview {
-    background: %(GROUND)s; color: %(TEXT)s; gridline-color: %(LINE_STRONG)s;
+    background: %(GROUND)s; color: %(TEXT)s; gridline-color: %(LINE)s;
     selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s;
-    font-family: "IBM Plex Mono"; border: 1px solid %(LINE_STRONG)s; border-radius: 0;
+    font-family: "IBM Plex Mono"; border: 1px solid %(LINE)s; border-radius: 0;
 }
 QTableView#SheetRows QHeaderView::section, QTableWidget#ChainPreview QHeaderView::section {
     background: %(PANEL)s; color: %(TEXT)s; border: 0; padding: 4px 9px;
-    border-right: 1px solid %(LINE_STRONG)s; border-bottom: 1px solid %(LINE_STRONG)s;
+    border-right: 1px solid %(LINE)s; border-bottom: 1px solid %(LINE_MID)s;
 }
 QTableView#SheetRows QHeaderView::section:horizontal {min-height: 38px; font-weight: 600; padding-left: 3px; padding-right: 3px;}
 QTableView#SheetRows QHeaderView::section:vertical {padding: 2px 3px;}
 QTableView#SheetRows QHeaderView::section:vertical:checked {background: %(AMBER_SOFT)s; color: %(AMBER_EDGE)s;}
 QTableView#SheetRows QTableCornerButton::section {background: %(PANEL)s; border: 0;
-    border-right: 1px solid %(LINE_STRONG)s; border-bottom: 1px solid %(LINE_STRONG)s;}
+    border-right: 1px solid %(LINE)s; border-bottom: 1px solid %(LINE_MID)s;}
 QTableWidget#ChainPreview QHeaderView::section {background:%(TEAL_SOFT)s;}
 QTableView#SheetRows::item, QTableWidget#ChainPreview::item {padding: 0 9px;}
 QTableView#SheetRows::item:selected {background:%(AMBER_SOFT)s;border-top:1px solid %(AMBER_EDGE)s;border-bottom:1px solid %(AMBER_EDGE)s;}
-QFrame#WorksheetResult {background: %(GROUND)s; border: 1px solid %(LINE_STRONG)s;}
+QFrame#WorksheetResult {background: %(GROUND)s; border: 1px solid %(LINE)s;}
 QFrame#WorksheetTotal {border:1px solid %(TEAL_EDGE)s; background:%(TEAL_SOFT)s;}
 QFrame#WorksheetTotal QLabel {font-family:"IBM Plex Mono";font-weight:600;color:%(READY)s;}
 QLabel#WorksheetTitle, QLabel#WorksheetPreviewTitle, QLabel#WorksheetChainTitle {font-family: "IBM Plex Mono"; font-weight: 600;}
 QLabel#WorksheetSelection, QLabel#WorksheetSourceState, QLabel#WorksheetHint {font-family:"IBM Plex Mono";}
 QLabel#WorksheetHint {color:%(QUIET)s; font-size:12px;}
 QPushButton#WorksheetChainStep, QPushButton#FullSpreadsheet, QPushButton#WorksheetCommands {
-    font-family:"IBM Plex Mono";border:1px solid %(LINE_STRONG)s;border-radius:0;padding:5px 9px;
+    font-family:"IBM Plex Mono";background:%(RAISED)s;border:1px solid %(LINE)s;border-radius:0;padding:5px 9px;
 }
 QPushButton#WorksheetChainStep {font-size:14px; padding:4px 6px;}
 QPushButton#WorksheetChainStep:hover, QPushButton#WorksheetChainStep:focus,
@@ -350,7 +350,7 @@ class Worksheet(QWidget):
         self.folder.itemActivated.connect(self.open_item)
         self.folder.hide()
         self.workflow = QFrame(self)
-        self.workflow.setStyleSheet('QFrame {border-top:1px solid %s;} QLabel {font-family:"IBM Plex Mono";border:0;}' % ink.LINE_STRONG)
+        self.workflow.setStyleSheet('QFrame {border-top:1px solid %s;} QLabel {font-family:"IBM Plex Mono";border:0;}' % ink.LINE_MID)
         progress = QVBoxLayout(self.workflow)
         progress.setContentsMargins(0, 7, 0, 4)
         progress.setSpacing(3)
@@ -585,7 +585,7 @@ class Worksheet(QWidget):
         desk_style(menu, self.host)
         menu.setStyleSheet(menu.styleSheet() + ('QMenu {border:1px solid %s;} '
             'QMenu::item {padding:6px 21px 6px 13px;} '
-            'QMenu::item:selected {border:1px solid %s;background:%s;}' % (ink.LINE_STRONG, ink.AMBER_EDGE, ink.AMBER_SOFT)))
+            'QMenu::item:selected {border:1px solid %s;background:%s;}' % (ink.LINE_MID, ink.AMBER_EDGE, ink.AMBER_SOFT)))
         menu.hovered.connect(self.trace.update)
         menu.aboutToHide.connect(lambda: QTimer.singleShot(0, self.trace.update))
         count = len(selected)

@@ -27,7 +27,7 @@ QWidget#ProgramRoom QLabel#ProgramStatus { color: %(AMBER_TEXT)s; }
 QWidget#ProgramRoom QLabel#ProgramStatus[ready="true"] { color: %(READY)s; }
 QWidget#ProgramRoom QLineEdit, QWidget#ProgramRoom QPlainTextEdit,
 QWidget#ProgramRoom QComboBox, QWidget#ProgramRoom QDoubleSpinBox {
-    color: %(TEXT)s; background: %(PANEL)s; border: 1px solid %(LINE_STRONG)s;
+    color: %(TEXT)s; background: %(PANEL)s; border: 1px solid %(LINE)s;
     border-radius: 0; padding: 6px;
     selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s;
 }
@@ -35,7 +35,7 @@ QWidget#ProgramRoom QPlainTextEdit#ProgramDetails { border-color: %(LINE)s; }
 QWidget#ProgramRoom QLineEdit:focus, QWidget#ProgramRoom QComboBox:focus,
 QWidget#ProgramRoom QPlainTextEdit:focus { border: 1px solid %(AMBER_EDGE)s; }
 QWidget#ProgramRoom QPushButton {
-    color: %(TEXT)s; background: %(PANEL)s; border: 1px solid %(LINE_STRONG)s;
+    color: %(TEXT)s; background: %(RAISED)s; border: 1px solid %(LINE)s;
     border-radius: 0; padding: 6px 9px;
 }
 QWidget#ProgramRoom QPushButton:hover, QWidget#ProgramRoom QPushButton:focus {

@@ -6,9 +6,9 @@ and 0.3 notes beside it describe what came before.
 The owner: "Really question what everything does and if it's place is justified. Every click necessary. No redoing the
 same thing multiple places."
 
-This release adds nothing. Every control on the main surfaces was listed from the running program with what it does, and
-each was asked two questions: does anything else on this screen already do this, and would anyone miss it. The rule the
-cuts follow:
+This release adds one line to one menu (see "No white boxes") and otherwise only takes away. Every control on the main
+surfaces was listed from the running program with what it does, and each was asked two questions: does anything else on
+this screen already do this, and would anyone miss it. The rule the cuts follow:
 
 **One visible home for each action.** Its key is the second road. The right button on a thing is that thing's own road.
 A name is said once.
@@ -48,6 +48,28 @@ A name is said once.
 
 **The Work menu**: Desk artwork was under both Arrange and Rules. It is under Rules.
 
+## No white boxes
+
+The owner, looking at the PDF page of 0.4.8: "No ugly white boxes that stand out like a sore thumb."
+
+Two things on that screen were white, and both are changed.
+
+- **Buttons and fields were outlined in the pale ink.** 0.4.8 made every action a box drawn in the brightest line the
+  desk has, so a row of tools shone harder than the work under it. A button is now a dark raised plate with a quiet
+  edge: it is found by its shape, not by its brightness. It answers in green under the pointer and in amber when it has
+  the keys, as before. A button that cannot be used now is dimmer still. The same was done wherever that ink outlined a
+  box: the writing line, the fields, the page number, the scroll thumbs, the keys at the Field's foot, the menu's edge,
+  the tips, the checkboxes, the table review, the worksheet's grid, the program rooms, the frames round the pictures.
+- **A PDF page is a white sheet.** The page is now shown **in the desk's light**: the same page, every mark where it
+  is, with its paper brought down from white to a low warm tone (each colour multiplied by one tone, so black ink stays
+  black). Only how brightly the page is shown here changes: the file, its citation, what is exported, shared or read by
+  OCR are the page as it is. **More ▾ → Show the page in its own light** shows it exactly as the file has it; the
+  choice is kept, and the same line turns it back. The page beside the rows in Review table and the original page in
+  Exact References follow the same choice.
+
+Left as they were: the sheets on the Field (their edges fade with distance and were not what was pointed at), pictures
+and artwork (a photograph is not a white box), and the amber Send button.
+
 ## What was questioned and kept, and why
 
 - **A click opens a sheet, and the right button shows its menu.** Two roads to a sheet's actions remain: the foot (for
@@ -80,6 +102,11 @@ artwork once). The mouse path (open a sheet tile, change a cell, save with the b
 the keyboard walks pass at 1920 by 1200 and 1366 by 768. One of the cuts removed a small function the Field's clicks
 depend on; the mouse probes failed at once and it was put back before anything was committed. The project's own tests
 were run on the exact commit before this set was cut: see the set's START_HERE for the numbers.
+
+The plates and the desk's light were looked at in pictures of the running window at both sizes, on every work page,
+the Field, the table review, Settings, Machine and Talk; a probe switches the page's light both ways and reads the
+brightest point of the page as shown (117 of 255 in the desk's light, 241 in its own). The low tone was chosen by eye
+from those pictures, not on the ThinkPad's panel: if the page reads too dim or still too bright there, it is one value.
 
 Not seen: any of it on the ThinkPad's own screen. No second reader has gone over this release. Nothing has run on the
 ThinkPad.

@@ -1,8 +1,11 @@
-"""BOSS desk colours. Presentation only; document formats keep their own ink.
+"""BOSS desk colours. Presentation only; document formats keep their own ink (a page may be shown in the desk's
+light, page_light, which changes how brightly it is seen here and nothing of the document).
 
 A control looks like a control (13 November 2026: "bring in buttons where useful ... make it look more complete and
-untied to the work"). An action is a button: a boxed word (arcButton "tool", made with theme2.tool) that answers the
-pointer in green and the keyboard in amber. A word that only goes somewhere stays an underlined word. The work itself
+untied to the work"). An action is a button: a word on a dark plate with a quiet edge (arcButton "tool", made with
+theme2.tool) that answers the pointer in green and the keyboard in amber. Nothing on the desk is outlined in the pale ink:
+the owner, of the first cut of these buttons, "No ugly white boxes that stand out like a sore thumb". A button, a field and
+a scroll thumb are told from the ground by a plate a shade lighter and an edge a shade lighter again, never by a bright line. A word that only goes somewhere stays an underlined word. The work itself
 (a page, a table, a sheet) has neither look, so the two are never mistaken for each other.
 
 Amber is for what is selected, what has the keyboard, and what waits for the owner. Green is for what is live: readings,
@@ -13,6 +16,7 @@ import re
 GROUND, PANEL, CARD, RAISED = '#0b0e0d', '#111513', '#151a17', '#202520'
 TERMINAL_GROUND = '#080a09'
 LINE, LINE_STRONG = '#474436', '#bcac8e'
+LINE_MID = '#6b6550'           # an edge that must be found but must not shine: a scroll thumb, the words of a button that cannot be used now
 TEXT, QUIET, FAINT = '#f4e8ce', '#c8baa0', '#a89b84'
 AMBER, AMBER_SOFT, AMBER_EDGE, AMBER_TEXT = '#4b2a14', '#4b2a14', '#ff9a36', '#ffba72'
 PENCIL_DEEP, ERASER, ERASER_DEEP, ERASER_MARK = '#443527', '#493225', '#593a29', '#dd854b'
@@ -22,7 +26,7 @@ READY, STOP = '#c3ed74', '#ff9a36'
 TOKENS = {v for k, v in tuple(globals().items()) if isinstance(v, str) and v.startswith('#')}
 LEGACY = {
     '#f6f3eb': GROUND, '#fffdf8': CARD, '#eee9df': RAISED,
-    '#dad4c8': LINE, '#7d776d': LINE_STRONG, '#504d46': TEXT,
+    '#dad4c8': LINE, '#7d776d': LINE_MID, '#504d46': TEXT,
     '#6c675e': QUIET, '#f8edc9': AMBER_SOFT, '#d4b56a': AMBER_EDGE,
     '#f3e3af': PENCIL_DEEP, '#f3e3e2': ERASER, '#ecd7d5': ERASER_DEEP,
     '#cba5a4': ERASER_MARK, '#d9d2c4': LINE, '#885e64': TEXT,
@@ -47,7 +51,7 @@ def relight(css):
             if 'background' in prop:
                 return GROUND if sum(rgb) < 150 else CARD
             if 'border' in prop or 'gridline' in prop:
-                return LINE_STRONG
+                return LINE_MID       # an old outline becomes a quiet edge: no box on the desk is drawn in the pale ink
             if prop.strip() in ('color', 'selection-color', 'placeholder-text-color'):
                 return QUIET if max(rgb) - min(rgb) < 32 and 85 < sum(rgb) / 3 < 190 else TEXT
             return c
@@ -56,29 +60,32 @@ def relight(css):
 
 
 CHROME_OVERRIDES = '''
-QMenu, QToolTip, QLineEdit, QComboBox, QPlainTextEdit, QTextEdit, QTextBrowser,
+QMenu, QToolTip, QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit, QPlainTextEdit, QTextEdit, QTextBrowser,
 QFrame#Card2, QFrame#OneBoxResults, QTabBar::tab {border-radius:0;}
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateTimeEdit {border:1px solid %(LINE)s;}
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus, QDateTimeEdit:focus {border:2px solid %(AMBER_EDGE)s;}
+QPlainTextEdit:focus, QTextEdit:focus {border:2px solid %(AMBER_EDGE)s;}
 QMainWindow::separator {background:%(LINE_STRONG)s;width:1px;height:1px;}
-QMenu {padding:6px 0; border:1px solid %(LINE_STRONG)s;}
+QMenu {padding:6px 0; border:1px solid %(LINE_MID)s;}
 QMenu::item {padding:9px 28px 9px 16px; border-radius:0;}
 QMenu::item:selected {color:%(AMBER_TEXT)s; border-left:2px solid %(AMBER_EDGE)s;}
 QPushButton {border-bottom:1px solid transparent; padding:5px 7px;}
 QPushButton:hover, QToolButton:hover {background:%(TEAL_SOFT)s; border-bottom-color:%(READY)s;}
 QPushButton:checked, QToolButton:checked, QTabBar::tab:selected {border-bottom:2px solid %(AMBER_EDGE)s;}
 QPushButton[arcButton="tool"], QToolButton[arcButton="tool"] {
-    color:%(TEXT)s; background:transparent; border:1px solid %(LINE_STRONG)s; border-radius:0; padding:4px 11px; text-align:center;
+    color:%(TEXT)s; background:%(RAISED)s; border:1px solid %(LINE)s; border-radius:0; padding:4px 11px; text-align:center;
 }
-QPushButton[arcButton="tool"]:hover, QToolButton[arcButton="tool"]:hover {background:%(TEAL_SOFT)s; border:1px solid %(READY)s; color:%(TEAL_TEXT)s;}
+QPushButton[arcButton="tool"]:hover, QToolButton[arcButton="tool"]:hover {background:%(TEAL_SOFT)s; border:1px solid %(TEAL_EDGE)s; color:%(TEAL_TEXT)s;}
 QPushButton[arcButton="tool"]:pressed, QToolButton[arcButton="tool"]:pressed {background:%(AMBER_SOFT)s; border:1px solid %(AMBER_EDGE)s;}
 QPushButton[arcButton="tool"]:focus, QToolButton[arcButton="tool"]:focus {border:1px solid %(AMBER_EDGE)s;}
 QPushButton[arcButton="tool"]:checked, QToolButton[arcButton="tool"]:checked {border:1px solid %(AMBER_EDGE)s; color:%(AMBER_TEXT)s; background:%(AMBER_SOFT)s; font-weight:400;}
-QPushButton[arcButton="tool"]:disabled, QToolButton[arcButton="tool"]:disabled {color:%(FAINT)s; border:1px solid %(LINE)s; background:transparent;}
+QPushButton[arcButton="tool"]:disabled, QToolButton[arcButton="tool"]:disabled {color:%(LINE_MID)s; border:1px solid %(LINE)s; background:transparent;}
 QToolButton[arcButton="tool"]::menu-indicator {image:none; width:0;}
 QPushButton[arcButton="link"] {text-decoration:underline;}
 QTabBar::tab:selected {color:%(AMBER_TEXT)s;}
 QTreeView::item, QListView::item {border-radius:0;}
 QTreeView::item:selected, QListView::item:selected {border-left:2px solid %(AMBER_EDGE)s;}
-QScrollBar::handle {background:%(LINE_STRONG)s;}
+QScrollBar::handle {background:%(LINE_MID)s;}
 QScrollBar::handle:hover {background:%(TEAL_EDGE)s;}
 QLabel[arcRole2="title"], QLabel[arcRole2="hero"], QLabel[arcRole2="section"],
 QHeaderView::section {font-family:"IBM Plex Mono";}

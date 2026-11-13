@@ -124,6 +124,11 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   on a thing is that thing's own road; a name is said once; a control is lit only when a press would do something.
   Before anything is added to a surface, what already does that job there is looked for. (0.4.9 cut by this rule and
   added nothing. Still open: the Work menu repeats most of the screen, and the Activity pane's links repeat the menus.)
+  Nothing on the desk is a white box (13 November, of the 0.4.8 PDF page: "No ugly white boxes that stand out like a
+  sore thumb"): a button or a field is a dark plate with a quiet edge, found by its shape and not by its brightness;
+  the pale ink is for words and for the Field's sheets, never for the outline of a control. A document's white page is
+  shown in the desk's light (the same page, its paper brought down from white, the file untouched) with its own light
+  one line away under More and the choice kept. (0.4.9.)
   A control looks like a control (13 November: "bring in buttons where useful. And simplify the interface. And also make
   it look more complete and untied to the work"): an action is a boxed button, a word that only goes somewhere is an
   underlined word, and the work itself has neither look. Each work page has one row of tools; what is needed now and

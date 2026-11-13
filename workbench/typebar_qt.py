@@ -336,7 +336,7 @@ class TypeBar(QWidget):
 
     # -- the band ---------------------------------------------------------------------------------------------------------
     def band_style(self, scale, px=None):
-        from .boss_theme import TERMINAL_GROUND, AMBER_TEXT, AMBER_EDGE, LINE_STRONG, TEXT, QUIET, READY
+        from .boss_theme import TERMINAL_GROUND, AMBER_TEXT, AMBER_EDGE, LINE, TEXT, QUIET, READY      # the line's edge at rest is the quiet one; amber when it has the keyboard
         from .shell2 import MONO
         px = max(11, round(15 * scale)) if px is None else int(px)
         key = (round(scale, 4), px)
@@ -351,7 +351,7 @@ class TypeBar(QWidget):
             'QWidget#TypeBar QPushButton#WritingSubmit:focus {background:%s;} '
             'QWidget#TypeBar QPushButton#WritingSubmit:hover {border:2px solid %s;} '      # under the pointer: the pointer's green edge
             'QWidget#TypeBar QLabel#TypeContext {font-size:%dpx;}'
-            % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE_STRONG, MONO, px, AMBER_EDGE,
+            % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE, MONO, px, AMBER_EDGE,
                AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, READY, px))
         for b in list(self.targets.values()) + [self.box, self.context]:
             b.style().unpolish(b);b.style().polish(b)
@@ -476,7 +476,7 @@ class TypeBar(QWidget):
     def paintEvent(self, event):
         """Keep the mode, command, and instrument groups visually separate."""
         from PySide6.QtGui import QColor, QPainter
-        from .boss_theme import LINE_STRONG
+        from .boss_theme import LINE as LINE_STRONG      # the two ticks beside the line: the quiet ink, as the line's own edge at rest
         from .desk_qt import paint_band
         p = QPainter(self);paint_band(self, p)
         if self.box.width() > 0 and self.send.x() > self.box.x():

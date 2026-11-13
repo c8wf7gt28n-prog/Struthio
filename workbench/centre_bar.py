@@ -67,17 +67,18 @@ class CentreBar(QWidget):
 
     # ---- how it looks ------------------------------------------------------------------------------------------------
     def restyle(self):
-        """Boxes, not bare words: on this bar a control is told from the name beside it by its edge. Under the pointer it
-        answers in the pointer's green, as everything on the desk does; dimmed when the open view cannot serve it."""
+        """Plates, not bare words and not bright outlines: on this bar a control is told from the name beside it by a ground a
+        shade lighter and a quiet edge. Under the pointer it answers in the pointer's green, as everything on the desk does;
+        without its plate, and dim, when the open view cannot serve it."""
         self.setStyleSheet(
             'QWidget#CentreBar {background:%(GROUND)s;border-bottom:1px solid %(LINE)s;} '
-            'QWidget#CentreBar QPushButton {color:%(TEXT)s;background:transparent;border:1px solid %(LINE_STRONG)s;border-radius:0;padding:3px 11px;text-align:center;} '
-            'QWidget#CentreBar QPushButton:hover {background:%(TEAL_SOFT)s;border:1px solid %(READY)s;color:%(TEAL_TEXT)s;} '
+            'QWidget#CentreBar QPushButton {color:%(TEXT)s;background:%(RAISED)s;border:1px solid %(LINE)s;border-radius:0;padding:3px 11px;text-align:center;} '
+            'QWidget#CentreBar QPushButton:hover {background:%(TEAL_SOFT)s;border:1px solid %(TEAL_EDGE)s;color:%(TEAL_TEXT)s;} '
             'QWidget#CentreBar QPushButton:focus {border:1px solid %(AMBER_EDGE)s;} '
-            'QWidget#CentreBar QPushButton:disabled {color:%(FAINT)s;border:1px solid %(LINE)s;} '
-            'QWidget#CentreBar QPushButton#CentreField {border:1px solid %(TEAL_EDGE)s;color:%(TEAL_TEXT)s;} '
+            'QWidget#CentreBar QPushButton:disabled {color:%(LINE_MID)s;background:transparent;border:1px solid %(LINE)s;} '
+            'QWidget#CentreBar QPushButton#CentreField {background:%(TEAL_SOFT)s;border:1px solid %(TEAL_EDGE)s;color:%(TEAL_TEXT)s;} '
             'QWidget#CentreBar QLabel#CentreTitle {color:%(QUIET)s;background:transparent;}'
-            % {name: getattr(t, name) for name in ('GROUND', 'LINE', 'LINE_STRONG', 'TEXT', 'TEAL_SOFT', 'READY', 'TEAL_TEXT', 'AMBER_EDGE', 'FAINT', 'TEAL_EDGE', 'QUIET')})
+            % {name: getattr(t, name) for name in ('GROUND', 'LINE', 'LINE_MID', 'RAISED', 'TEXT', 'TEAL_SOFT', 'TEAL_TEXT', 'AMBER_EDGE', 'TEAL_EDGE', 'QUIET')})
 
     # ---- what is open, and what it can do ------------------------------------------------------------------------------
     def page(self):

@@ -78,7 +78,7 @@ class WorkshopStrip(QWidget):
         else:
             region = QRectF(0, 0, image.width() * 0.64, image.height())
             draw_plate(painter, target, image, 0.44, region)
-        painter.setPen(QPen(QColor(t.LINE_STRONG), 1));painter.drawRect(target)
+        painter.setPen(QPen(QColor(t.LINE_MID), 1));painter.drawRect(target)
         painter.end()
 
 
@@ -220,7 +220,7 @@ class PanelInk(QWidget):
                 painter.fillRect(QRectF(target.left(), 0, fade_width, target.height()), fade)
             elif self.kind == 'face':
                 draw_plate(painter, target, self.portrait(), 0.5)
-                painter.setPen(QPen(QColor(t.LINE_STRONG), 1));painter.setBrush(Qt.NoBrush)
+                painter.setPen(QPen(QColor(t.LINE_MID), 1));painter.setBrush(Qt.NoBrush)
                 painter.drawRect(target.adjusted(0.5, 0.5, -0.5, -0.5))
             else:
                 draw_plate(painter, target, self.portrait(), 0.24)

@@ -7,15 +7,17 @@ from PySide6.QtGui import QPixmap,QPainter,QPen,QColor,QTextCursor,QFontDatabase
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSpinBox, QComboBox, QLineEdit, QPlainTextEdit, QTabWidget, QScrollArea, QSplitter, QTreeWidget, QTreeWidgetItem, QApplication, QMessageBox, QInputDialog, QFileDialog, QTextEdit
 from .register_tabs import ServiceTab
 from sdk.cli.arc1cli import pdf_evidence as pdf,record_store as records
-from . import locations
+from . import locations,page_light
 
 _CJK_FONTS=set()
 
 
 class PageCanvas(QWidget):
+    """The original page. By default it is seen in the desk's light (page_light): the same page with its paper brought
+    down from white. own_light shows it exactly as the file has it (More, on the page)."""
     selected=Signal(object)
     def __init__(self):
-        super().__init__();self.image=QPixmap();self.region=[0,0,1,1];self.annotations=[];self.origin=None
+        super().__init__();self.image=QPixmap();self.region=[0,0,1,1];self.annotations=[];self.origin=None;self.own_light=False
         self.setAccessibleName('Original PDF page; drag a region for a source-bound note')
         self.setMinimumSize(1,1)
     def clear(self):self.image=QPixmap();self.setFixedSize(1,1);self.update()
@@ -29,6 +31,7 @@ class PageCanvas(QWidget):
     def paintEvent(self,event):
         if self.image.isNull():return
         p=QPainter(self);p.drawPixmap(self.rect(),self.image)
+        if not self.own_light:page_light.wash(p,self.rect())
         for region in [v['anchor']['rect'] for v in self.annotations]+[self.region]:
             if region==[0,0,1,1]:continue
             x,y,w,h=region;p.setPen(QPen(QColor('#d38f39'),2));p.drawRect(QRectF(x*self.width(),y*self.height(),w*self.width(),h*self.height()))
@@ -89,11 +92,15 @@ class PdfDocumentTab(ServiceTab):
             rows.append((self.refresh_button.text(),self.refresh_button.click,self.refresh_button.isEnabled(),SAYS['Check original']));rows.append(None)
             rows+=[(self.reload_button.text(),self.reload_button.click,True,'Read this page\'s notes again from the records'),
                    (self.recover_button.text(),self.recover_button.click,self.recover_button.isEnabled(),'Bring back a note that was being written when the page was left' if self.recover_button.isEnabled() else 'There is no unfinished note kept for this page'),None]
-            return rows+[(self.buttons[l].text(),self.buttons[l].click,self.buttons[l].isEnabled(),SAYS[l]) for l in ('Export library volume','Share page view','Focus reading')]
+            rows+=[(self.buttons[l].text(),self.buttons[l].click,self.buttons[l].isEnabled(),SAYS[l]) for l in ('Export library volume','Share page view','Focus reading')]
+            own=self.canvas.own_light
+            return rows+[None,('Show the page in the desk\'s light' if own else 'Show the page in its own light',self.page_light,True,
+                               'The same page with its paper brought down from white, so it sits in the dark desk' if own else 'The page exactly as the file has it: its own paper, its own colours')]
         self.more=more('More',now_and_then,'What is needed now and then: citations, OCR, checking the original, export')
         kept.addWidget(self.zoom)      # still made (the page reads its choice); − and + in the bar above the work step it
         self.navigation_widgets=[self.previous,self.page,self.next,self.buttons['Copy citation'],self.buttons['Review table'],self.more]
         self.split=QSplitter(Qt.Horizontal);self.views=QTabWidget();self.scroll=QScrollArea();self.scroll.setWidgetResizable(False);self.canvas=PageCanvas();self.scroll.setWidget(self.canvas);self.views.addTab(self.scroll,'Original page')
+        self.canvas.own_light=page_light.own(host)
         self.native=QPlainTextEdit();self.native.setReadOnly(True);self.views.addTab(self.native,'Native text')
         self.ocr_text=QPlainTextEdit();self.ocr_text.setReadOnly(True);self.views.addTab(self.ocr_text,'OCR · unverified')
         self.proof=QPlainTextEdit();self.proof.setReadOnly(True);self.views.addTab(self.proof,'Source / tools')
@@ -153,6 +160,13 @@ class PdfDocumentTab(ServiceTab):
         self.split.setOrientation(Qt.Vertical if state[2] else Qt.Horizontal);self.split.setMinimumHeight(650 if state[2] else 360)
     def fit(self,*args):
         factor=(1,1.25,1.5,2)[self.zoom.currentIndex()];self.canvas.scale_to(max(150,self.scroll.viewport().width()-6)*factor)
+    def page_light(self):
+        """More: the page in the desk's light, or in its own. Only how brightly the page is shown; the file, the
+        citation and every exported or shared view are the page as it is. The choice is kept for the next page opened."""
+        own=self.canvas.own_light=not self.canvas.own_light;self.canvas.update()
+        session=getattr(self.host,'session',None)
+        if session is not None:session.state['page_own_light']=own;session.save()
+        self.status.setText('The page is shown as the file has it.' if own else 'The page is shown in the desk\'s light: the same page, its paper brought down from white. Its own light is under More.')
     def fields(self):return {'text':self.editor.toPlainText(),'kind':self.kind.currentData(),'printed_label':self.printed.text(),'rect':list(self.canvas.region)}
     def is_dirty(self):
         fields=self.fields();return fields['text']!=self.baseline.get('text','') or bool(fields['text']) and fields!=self.baseline

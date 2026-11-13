@@ -64,7 +64,7 @@ class InvestigationTab(QWidget):
         self.setProperty('ledgerRoom', True);self.setObjectName('LibraryTab')
         self.setStyleSheet('''
             QWidget#JournalPage {background:%(GROUND)s;}
-            QFrame#JournalHeading {background:%(GROUND)s;border:1px solid %(LINE_STRONG)s;border-top:2px solid %(AMBER_EDGE)s;}
+            QFrame#JournalHeading {background:%(GROUND)s;border:1px solid %(LINE)s;border-top:2px solid %(AMBER_EDGE)s;}
             QWidget#JournalHeadingWords, QWidget#JournalHeadingWords QLabel {background:transparent;border:0;}
             QLabel#JournalSection, QLabel#JournalKicker {font-family:"IBM Plex Mono";font-size:14px;font-weight:600;}
             QLabel#JournalKicker {color:%(TEXT)s;}
@@ -76,7 +76,7 @@ class InvestigationTab(QWidget):
             QFrame#JournalNext {background:%(PANEL)s;border:1px solid %(LINE)s;}
             QPushButton#JournalContinue {background:%(AMBER_EDGE)s;color:%(TERMINAL_GROUND)s;border-radius:0;
                 font-family:"IBM Plex Mono";font-weight:600;padding:6px 9px;}
-            QPushButton#JournalContinue:focus {border:1px solid %(TEXT)s;}
+            QPushButton#JournalContinue:focus {border:1px solid %(AMBER_EDGE)s;}
         ''' % vars(ink))
         outer = QHBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0);outer.setSpacing(0)
         side = QFrame();side.setObjectName('JournalIndex');side.setFixedWidth(176)
@@ -263,7 +263,7 @@ class InvestigationTab(QWidget):
             note.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
             wash = EVIDENCE_WASH.get(state)
             colour = ink.READY if state == 'SUPPORTED' else TEXT
-            note.setStyleSheet(('background:%s;border:1px solid %s;padding:4px 8px;color:%s' % (wash, ink.TEAL_EDGE if state == 'SUPPORTED' else ink.LINE_STRONG, colour))
+            note.setStyleSheet(('background:%s;border:1px solid %s;padding:4px 8px;color:%s' % (wash, ink.TEAL_EDGE if state == 'SUPPORTED' else ink.LINE_MID, colour))
                                if wash else 'color:%s' % QUIET)
             row.addWidget(note, 2, Qt.AlignTop)
             self.page.addLayout(row)

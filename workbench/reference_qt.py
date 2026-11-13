@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QWidget,QLabel,QPushButton,QComboBox,QLineEdit,QP
 from .register_tabs import ServiceTab
 from . import reference_service as refs,local_brain
 from sdk.cli.arc1cli import record_store as records
-from . import locations
+from . import locations,page_light
 
 def esc(value):return html.escape(str(value))
 
@@ -187,7 +187,7 @@ class ReferenceTab(ServiceTab):
         if not self.citation or result['citation']!=self.citation['id']:self.note.setText('The previous page render finished. Select its reference to render it again.');return
         path=self.kernel.safe(result['image'])
         if records.sha(path)!=result['image_sha256']:self.note.setText('Rendered page changed; render it again.');return
-        pixmap=QPixmap(str(path));self.image_label.setPixmap(pixmap.scaledToWidth(max(300,self.image_scroll.viewport().width()-20),Qt.SmoothTransformation));self.detail.setCurrentWidget(self.image_scroll);self.note.setText('Original PDF page '+str(result['page_index']+1)+' · render derived from the verified original')
+        pixmap=page_light.lit(QPixmap(str(path)),page_light.own(self.host));self.image_label.setPixmap(pixmap.scaledToWidth(max(300,self.image_scroll.viewport().width()-20),Qt.SmoothTransformation));self.detail.setCurrentWidget(self.image_scroll);self.note.setText('Original PDF page '+str(result['page_index']+1)+' · render derived from the verified original')
     def atlas(self):
         if not self.ns() or not self.subject.text().strip():return
         self.call('references.atlas',{'namespace':self.ns(),'subject':self.subject.text().strip()},self.atlas_loaded)

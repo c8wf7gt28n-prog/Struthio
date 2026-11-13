@@ -7,6 +7,7 @@ from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (QAbstractItemView, QDialog, QDialogButtonBox, QFormLayout, QFrame, QHeaderView,
     QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QScrollArea, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 from . import boss_theme as ink
+from . import page_light
 
 
 def words(text):
@@ -91,22 +92,22 @@ class TableReview(QDialog):
         width = min(1160, max(720, parent.window().width() - 74))
         self.resize(width, min(650, max(460, parent.window().height() - 118)))
         self.setStyleSheet('''
-            QDialog#PdfEvidenceReview {background:%(GROUND)s;border:1px solid %(LINE_STRONG)s;}
-            QFrame#EvidencePanel {background:%(PANEL)s;border:1px solid %(LINE_STRONG)s;border-top:2px solid %(AMBER_EDGE)s;}
+            QDialog#PdfEvidenceReview {background:%(GROUND)s;border:1px solid %(LINE_MID)s;}
+            QFrame#EvidencePanel {background:%(PANEL)s;border:1px solid %(LINE)s;border-top:2px solid %(AMBER_EDGE)s;}
             QLabel#EvidenceMasthead {color:%(TEXT)s;font-family:"IBM Plex Mono";font-size:21px;font-weight:600;}
             QLabel#EvidenceTitle {color:%(AMBER_TEXT)s;font-family:"IBM Plex Mono";font-size:14px;font-weight:600;}
             QLabel#EvidenceMeta {color:%(QUIET)s;font-family:"IBM Plex Mono";font-size:12px;}
             QLabel#EvidenceSelected {color:%(TEXT)s;background:%(AMBER_SOFT)s;border:1px solid %(AMBER_EDGE)s;
                 padding:6px 8px;font-family:"IBM Plex Mono";font-size:12px;}
-            QTableWidget#EvidenceRows {background:%(GROUND)s;border:1px solid %(LINE_STRONG)s;
+            QTableWidget#EvidenceRows {background:%(GROUND)s;border:1px solid %(LINE)s;
                 selection-background-color:%(AMBER_SOFT)s;selection-color:%(TEXT)s;
-                gridline-color:%(LINE_STRONG)s;font-family:"IBM Plex Mono";}
+                gridline-color:%(LINE)s;font-family:"IBM Plex Mono";}
             QTableWidget#EvidenceRows QHeaderView::section {background:%(CARD)s;color:%(TEXT)s;border:0;
-                border-bottom:1px solid %(LINE_STRONG)s;border-right:1px solid %(LINE)s;padding:5px 6px;
+                border-bottom:1px solid %(LINE_MID)s;border-right:1px solid %(LINE)s;padding:5px 6px;
                 font-family:"IBM Plex Mono";font-weight:600;}
-            QLineEdit#EvidenceTitleField {background:%(PANEL)s;border:1px solid %(LINE_STRONG)s;
+            QLineEdit#EvidenceTitleField {background:%(PANEL)s;border:1px solid %(LINE)s;
                 border-radius:0;font-family:"IBM Plex Mono";padding:5px 8px;}
-            QDialogButtonBox QPushButton {border:1px solid %(LINE_STRONG)s;border-radius:0;
+            QDialogButtonBox QPushButton {background:%(RAISED)s;border:1px solid %(LINE)s;border-radius:0;
                 font-family:"IBM Plex Mono";padding:6px 10px;}
             QPushButton#EvidenceCommit {background:%(AMBER_EDGE)s;color:%(TERMINAL_GROUND)s;
                 border:1px solid %(AMBER_EDGE)s;border-radius:0;font-family:"IBM Plex Mono";}
@@ -145,7 +146,8 @@ class TableReview(QDialog):
             if source.get('source_sha256'):
                 digest = words('SHA-256 · ' + source['source_sha256'][:12]);digest.setObjectName('EvidenceMeta')
                 digest.setToolTip(source['source_sha256']);left.addWidget(digest)
-            self.crop = SourceCrop(page_image, source['rect'], round(width * .435))
+            # the page beside the rows is shown as the page behind this review is: in the desk's light, or in its own
+            self.crop = SourceCrop(page_light.lit(page_image, getattr(getattr(parent, 'canvas', None), 'own_light', False)), source['rect'], round(width * .435))
             self.original_scroll = QScrollArea()
             self.original_scroll.setWidget(self.crop)
             self.original_scroll.setAlignment(Qt.AlignTop | Qt.AlignLeft)

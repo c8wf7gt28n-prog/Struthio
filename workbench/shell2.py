@@ -300,7 +300,7 @@ def chrome_css(profile, assets):
     ] if SCRIPT_ON[0] and SCRIPT in QFontDatabase.families() else []) + [
         'QLabel[arcRole2="lead"] {font-size:%s;color:%s;}' % (px(18), QUIET),
         'QPushButton:focus, QToolButton:focus {border:0;border-bottom:3px solid %s;}' % TEXT,  # a word is focused by its underline, never a box
-        'QComboBox:focus {border:2px solid %s;}' % TEXT,
+        'QComboBox:focus {border:2px solid %s;}' % AMBER_EDGE,
         'QTreeWidget:focus, QListWidget:focus {border:0;}',  # a list shows focus by its current row, marked in graphite
         'QLabel[arcRole2="item"], QLabel#ItemTitle {font-size:%s;font-weight:600;}' % px(20),
         'QLabel[arcRole2="card"] {font-size:%s;font-weight:600;}' % px(20),
@@ -379,7 +379,7 @@ class LibraryDelegate(QStyledItemDelegate):
         if index.data(BADGE_ROLE):
             width = metrics.horizontalAdvance(extra) + 14;from PySide6.QtCore import QRectF
             pill = QRectF(rect.right() - width, rect.center().y() - 10, width, 20)
-            painter.setRenderHint(QPainter.Antialiasing);painter.setPen(Qt.NoPen);painter.setBrush(QColor(AMBER));painter.drawRoundedRect(pill, 9, 9);painter.setPen(QPen(QColor(LINE_STRONG), 1));painter.setBrush(Qt.NoBrush);painter.drawRoundedRect(pill, 9, 9)
+            painter.setRenderHint(QPainter.Antialiasing);painter.setPen(Qt.NoPen);painter.setBrush(QColor(AMBER));painter.drawRoundedRect(pill, 9, 9);painter.setPen(QPen(QColor(LINE), 1));painter.setBrush(Qt.NoBrush);painter.drawRoundedRect(pill, 9, 9)
             painter.setPen(QColor(TEXT));painter.drawText(pill, Qt.AlignCenter, extra)
         else:
             painter.setPen(QColor(FAINT));painter.drawText(rect, Qt.AlignRight | Qt.AlignVCenter, extra)
