@@ -65,10 +65,13 @@ class ConcernController(QObject):
         area = QPushButton('Working area'); area.clicked.connect(lambda: self.open(
             self.current_attention['object_id'] if self.current_attention else 'concern'))
         ask = QPushButton('Ask Stacy'); ask.clicked.connect(self.ask_slate)
-        from .theme2 import tool
-        tool(area, 'Open the working area this belongs to'); tool(ask, 'Ask Stacy about what is open here')
         row.addWidget(area); row.addWidget(ask)
         self.host.center_layout.insertWidget(1, self.context_strip)
+        # The strip is no longer shown (0.4.9, the audit of what repeats what). It said the name of what is open, which the
+        # bar above the work says; "Working area" opened the record that Activity's "Open record" opens; and "Ask Stacy"
+        # opened a second place to talk to her, with the name typed in, when the writing line under the window already
+        # carries what is open. It is still made, because the window's own code keeps it in step; it is only never shown.
+        self.context_strip.setVisible(False)
         # The controls that carry across whatever is open (Field, Find, size, Undo, Redo, Save, Actions) are the centre's
         # bar, above the work and always in the same place (workbench/centre_bar.py). Back to the Field is its first
         # control: where the eye and the hand look for a way back, not at the far end of a strip under the page.

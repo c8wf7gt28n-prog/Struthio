@@ -110,8 +110,9 @@ class OfficePanel(QWidget):
               'Save output copy':('Write the last result to a file you choose','There is no result yet: Recalculate, Preview export or Prepare edit copy first'),
               'Compare BOM':('Compare this bill of materials with the board it came from','This sheet did not come from a bill of materials, or it has unsaved changes')}
         def now_and_then():
+            # (Save working is not here: Save in the bar above the work is the one place that saves.)
             return [('This is a working copy: the original is kept',lambda:None,False,KEPT),None]+\
-                   [(b.text(),b.click,b.isEnabled(),SAYS[b.text()][0 if b.isEnabled() else 1]) for b in (self.save_button,self.recovery)]+[None]+\
+                   [(b.text(),b.click,b.isEnabled(),SAYS[b.text()][0 if b.isEnabled() else 1]) for b in (self.recovery,)]+[None]+\
                    [(b.text(),b.click,b.isEnabled(),SAYS[b.text()][0 if b.isEnabled() else 1]) for b in (self.edit_copy,self.open_editor,self.review_file,self.copy)]+[None]+\
                    [(self.bom.text(),self.bom.click,self.bom.isEnabled(),SAYS['Compare BOM'][0 if self.bom.isEnabled() else 1])]
         self.more=more('More',now_and_then,'What is needed now and then: recovery, the full office program, output copies')

@@ -262,6 +262,7 @@ class DocumentsTab(QWidget):
         if self.document_id is None: self.open_first_or_new()
 
     # -- host contract -------------------------------------------------------------------------------------------------------
+    saves_itself = True       # for the centre's bar: this page saves as it is written, so its Save has nothing to do
     def title(self): return 'Documents'
     def centre_title(self): return (self.title_box.text().strip() or 'A page without a name') if self.document_id is not None else 'Documents'      # for the centre's bar: the page that is open, by its own name
     def is_dirty(self): return bool(self.dirty)

@@ -38,16 +38,16 @@ to list them, `forget waits` to let one go. Right-click a sheet (or the Menu key
 a number › a value to try, Doubt it ›, Trace it ›, What can be done ›, Your words ›; choosing in a menu never approves a
 change. **?** shows every key of the Field on a card. The doubt, the desk check and the brief open on a page over the work,
 at your reading size; the doubt and the check step aside at the next key you press, and Esc closes any of them.
-With the mouse: a click on a tile opens it in the centre, and **‹ Field** in the bar under the centre comes back to the same tile; the
+With the mouse: a click on a tile opens it in the centre, and **‹ Field** in the bar above the centre comes back to the same tile; the
 right button shows a tile's menu; every key shown at the foot, on the key card and on a page can be clicked; a change that
 waits has an **Approve** button. Ask Stacy "set B3 to 300" with a sheet selected and the change waits for your Approve.
 The pointer is the desk's green, and whatever it is over answers in green; amber is what is selected and what waits for you.
-Above whatever is open in the centre there is one row of controls: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, **Actions ▾**; one that
-the open view cannot serve is dimmed and says why. In the Field **Z** shows the whole desk (again for the ordinary size), the
-bars at the edges drag, and **⋯** on the sheet under the pointer shows its menu. The amber light is where the keys go.
+Above whatever is open in the centre there is one row of controls: **‹ Field**, Find, **−** **+**, Undo, Redo, Save; one that
+the open view cannot serve is dimmed and says why, and Save is lit only when there is something to save. In the Field **Z** shows the
+whole desk (again for the ordinary size), the bars at the edges drag, and the right button on a sheet shows its menu. The amber light is where the keys go.
 An action is a boxed button; a word that only goes somewhere is underlined. Each work page has one row of tools above it, and
 **More ▾** holds what is needed now and then.
-`docs/RELEASE_NOTES_0.4.8.md`, `docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+`docs/RELEASE_NOTES_0.4.9.md`, `docs/RELEASE_NOTES_0.4.8.md`, `docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

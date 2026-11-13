@@ -119,6 +119,11 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   (click into the work; one familiar place to work in the centre, with Programs as the only way to a full program; give
   Stacy the part the owner does not know how to do; carry the result forward) are built together as journeys, not as four
   layers: take one item from the Field to the centre, through a full program and back, then let Stacy make the same trip.
+  One visible home for each action (13 November: "Really question what everything does and if it's place is justified.
+  Every click necessary. No redoing the same thing multiple places"). Its key is the second road and the right button
+  on a thing is that thing's own road; a name is said once; a control is lit only when a press would do something.
+  Before anything is added to a surface, what already does that job there is looked for. (0.4.9 cut by this rule and
+  added nothing. Still open: the Work menu repeats most of the screen, and the Activity pane's links repeat the menus.)
   A control looks like a control (13 November: "bring in buttons where useful. And simplify the interface. And also make
   it look more complete and untied to the work"): an action is a boxed button, a word that only goes somewhere is an
   underlined word, and the work itself has neither look. Each work page has one row of tools; what is needed now and
@@ -168,8 +173,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4.8: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), and actions drawn as buttons with one row of tools on each work page (0.4.8). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.9: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), actions drawn as buttons with one row of tools on each work page (0.4.8), and an audit that left each action one visible home (0.4.9). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

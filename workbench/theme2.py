@@ -219,7 +219,10 @@ def more(words, entries, tip='More that can be done here'):
                 menu.addSeparator();continue
             said, does, can, why = entry
             line = menu.addAction(said);line.setEnabled(bool(can));line.setToolTip(why or '');line.triggered.connect(lambda checked=False, does=does: does())
-    menu.aboutToShow.connect(fill);fill()
+    menu.aboutToShow.connect(fill)
+    # The lines are read each time the menu opens. Until then it holds one quiet line, so that it is a menu with something
+    # in it: a page often makes its More before it has made the buttons More will press.
+    menu.addAction(words).setEnabled(False)
     return button
 
 

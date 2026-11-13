@@ -56,7 +56,7 @@ class PdfDocumentTab(ServiceTab):
         self.document=None;self.page_result=None;self.source={};self.page_index=0;self._epoch=0;self._page_job=None;self._export_job=None
         self.table_page_job=None
         self.writer=uuid.uuid4().hex;self.edit_id=None;self.version=0;self.baseline={};self._loading=False
-        self.heading=QLabel('Technical PDF');self.heading.setTextFormat(Qt.PlainText);self.heading.setWordWrap(True);self.heading.setStyleSheet('font-size:18px;font-weight:bold');self.outer.addWidget(self.heading)
+        self.heading=QLabel('Technical PDF');self.heading.setTextFormat(Qt.PlainText);self.heading.setWordWrap(True);self.heading.setStyleSheet('font-size:18px;font-weight:bold');self.outer.addWidget(self.heading);self.heading.hide()      # 0.4.9: the bar above the work names the file; this line only said it again
         self.navigation_grid=QGridLayout();self.previous=QPushButton('Previous');self.previous.clicked.connect(lambda:self.go(-1))
         self.page=QSpinBox();self.page.setRange(1,512);self.page.setAccessibleName('Physical PDF page');self.page.editingFinished.connect(lambda:self.navigate(self.page.value()-1))
         self.next=QPushButton('Next');self.next.clicked.connect(lambda:self.go(1))
@@ -87,9 +87,12 @@ class PdfDocumentTab(ServiceTab):
         def now_and_then():
             rows=[(self.buttons[l].text(),self.buttons[l].click,self.buttons[l].isEnabled(),SAYS[l]) for l in ('Open citation','OCR this page')]
             rows.append((self.refresh_button.text(),self.refresh_button.click,self.refresh_button.isEnabled(),SAYS['Check original']));rows.append(None)
+            rows+=[(self.reload_button.text(),self.reload_button.click,True,'Read this page\'s notes again from the records'),
+                   (self.recover_button.text(),self.recover_button.click,self.recover_button.isEnabled(),'Bring back a note that was being written when the page was left' if self.recover_button.isEnabled() else 'There is no unfinished note kept for this page'),None]
             return rows+[(self.buttons[l].text(),self.buttons[l].click,self.buttons[l].isEnabled(),SAYS[l]) for l in ('Export library volume','Share page view','Focus reading')]
         self.more=more('More',now_and_then,'What is needed now and then: citations, OCR, checking the original, export')
-        self.navigation_widgets=[self.previous,self.page,self.next,self.zoom,self.buttons['Copy citation'],self.buttons['Review table'],self.more]
+        kept.addWidget(self.zoom)      # still made (the page reads its choice); − and + in the bar above the work step it
+        self.navigation_widgets=[self.previous,self.page,self.next,self.buttons['Copy citation'],self.buttons['Review table'],self.more]
         self.split=QSplitter(Qt.Horizontal);self.views=QTabWidget();self.scroll=QScrollArea();self.scroll.setWidgetResizable(False);self.canvas=PageCanvas();self.scroll.setWidget(self.canvas);self.views.addTab(self.scroll,'Original page')
         self.native=QPlainTextEdit();self.native.setReadOnly(True);self.views.addTab(self.native,'Native text')
         self.ocr_text=QPlainTextEdit();self.ocr_text.setReadOnly(True);self.views.addTab(self.ocr_text,'OCR · unverified')
@@ -102,11 +105,13 @@ class PdfDocumentTab(ServiceTab):
         self.kind.setAccessibleName('Annotation kind');box.addWidget(self.kind)
         self.printed=QLineEdit();writing_prompt(self.printed, 'Printed label you observed · optional');self.printed.setAccessibleName('Owner-observed printed page label');box.addWidget(self.printed)
         self.editor=QPlainTextEdit();self.editor.setProperty('arcReadingRole','prose');writing_prompt(self.editor, 'Your note. Drag a page region to keep its table or figure context.');self.editor.setAccessibleName('PDF annotation text');self.editor.setMinimumHeight(95);self.editor.setEnabled(False);box.addWidget(self.editor,1)
-        buttons=QGridLayout();self.save_button=QPushButton('Save note');self.save_button.clicked.connect(self.save_note);buttons.addWidget(self.save_button,0,0)
-        new=QPushButton('New note');new.clicked.connect(self.new_note);buttons.addWidget(new,0,1)
-        reload=QPushButton('Reload notes');reload.clicked.connect(self.reload_notes);buttons.addWidget(reload,1,0)
-        self.recover_button=QPushButton('Recover draft');self.recover_button.clicked.connect(self.recover);buttons.addWidget(self.recover_button,1,1);box.addLayout(buttons)
-        for word in (self.save_button,new,reload,self.recover_button):buttons.setAlignment(word,Qt.AlignLeft|Qt.AlignVCenter);tool(word)
+        # Under the note there is one button: New note. Saving the note is Save in the bar above the work (the one place that
+        # saves; Ctrl+S). Reload notes and Recover draft are needed now and then and are under More. All four are still made.
+        buttons=QGridLayout();self.save_button=QPushButton('Save note');self.save_button.clicked.connect(self.save_note);kept.addWidget(self.save_button)
+        new=QPushButton('New note');new.clicked.connect(self.new_note);buttons.addWidget(new,0,0)
+        self.reload_button=reload=QPushButton('Reload notes');reload.clicked.connect(self.reload_notes);kept.addWidget(reload)
+        self.recover_button=QPushButton('Recover draft');self.recover_button.clicked.connect(self.recover);kept.addWidget(self.recover_button);box.addLayout(buttons)
+        buttons.setAlignment(new,Qt.AlignLeft|Qt.AlignVCenter);tool(new,'Start another note on this page')
         self.region_label=QLabel('Full page · notes remain owner annotations');self.region_label.setWordWrap(True);box.addWidget(self.region_label)
         self.split.addWidget(notes);self.split.setSizes([780,330]);self.split.setHandleWidth(8);self.outer.addWidget(self.split,1);self.outer.addWidget(self.status)
         self.draft_timer=QTimer(self);self.draft_timer.setSingleShot(True);self.draft_timer.setInterval(600);self.draft_timer.timeout.connect(self.flush_draft)
@@ -114,16 +119,26 @@ class PdfDocumentTab(ServiceTab):
         self.timer=QTimer(self);self.timer.setInterval(350);self.timer.timeout.connect(self.poll);self.timer.start();self.clear_editor();self.arrange()
     def title(self):return 'PDF · '+(self.document['name'] if self.document else 'original source')
     def centre_title(self):return self.document['name'] if self.document else 'A reference'      # for the centre's bar: the file that is open, by its name
+    def centre_size(self,step):
+        """− and + in the bar above the work: the page one step smaller or larger (fit the width, 125, 150, 200 per cent)."""
+        at=max(0,min(self.zoom.count()-1,self.zoom.currentIndex()+(1 if step>0 else -1)))
+        if at!=self.zoom.currentIndex():self.zoom.setCurrentIndex(at)
+        self.status.setText('The page is shown '+('to fit the width' if at==0 else 'at '+self.zoom.currentText())+'.')
     def share_page(self):
         from .window_views_qt import share_pdf
         return share_pdf(self)
     def info(self):return self.location.text()
     def resizeEvent(self,event):
-        if hasattr(self,'split'):self.arrange();self.fit()
+        if hasattr(self,'split'):
+            self.arrange();self.fit()
+            QTimer.singleShot(0,self.settle)      # and once more when the page's own scroll area has taken its new width: arrange reads that width
         super().resizeEvent(event)
+    def settle(self):
+        try:self.arrange();self.fit()
+        except RuntimeError:pass                  # the page was closed meanwhile
     def arrange(self):
         available=max(250,self.reader_scroll.viewport().width()-20)
-        state=(7 if available>=900 else 4 if available>=520 else 3,0,available<720)
+        state=(6 if available>=760 else 3,0,available<720)
         if state==getattr(self,'_arrangement',None):return
         self._arrangement=state
         for grid,widgets,columns in ((self.navigation_grid,self.navigation_widgets,state[0]),):

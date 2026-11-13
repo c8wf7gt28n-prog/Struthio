@@ -21,7 +21,7 @@ DISPLAY_TITLES={'File':'Work','Edit':'Revise','Tools':'Tools','Options':'Arrange
 FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery']
 EDIT = ['undo', 'redo', None, 'cut', 'copy', 'paste', 'select', None, 'find', 'find_next', 'replace', 'goto']
 VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda', '@slate_panel', None, '@console_sizes', '@cabinet', '@machine_refresh', None,
-        'fullscreen', 'reading', 'prose_more', 'prose_less', '@desk_art', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']
+        'fullscreen', 'reading', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9)
 TOOLS = ['discovery','algorithms','atlas', '@type_to', '@chain', 'ledger_commands', None,
          'ledger_settings', 'doctor', '@computer', '@pills', None, 'master_stop', None, '@engineering', '@service']
 HELP = ['@getting_started', '@whats_new', 'keys', 'setup_guide', None, 'orange_book', None, 'about']

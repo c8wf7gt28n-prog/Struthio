@@ -11,7 +11,11 @@ thing by one road. What is new is that the controls are visible, always in the s
 control the open view cannot serve is dimmed and its tip says why, instead of being absent in one view and present in the
 next.
 
-    ‹ Field   the name of what is open, and whether it is saved      Find   −  +   Undo  Redo   Save   Actions ▾
+    ‹ Field   the name of what is open, and whether it is saved      Find   −  +   Undo  Redo   Save
+
+(0.4.9, the audit of what repeats what: there was an Actions control here that opened the chain menu, which has nothing to
+do with what is open. It is gone until it can show what can be done with the open thing; the Menu key and the right
+button still open the menus they always did. And Save is lit only when there is something to save.)
 
 It shows while the work is in the centre, and steps aside for the Field and for Home, which have the whole centre.
 Nothing here runs on a timer: the controls are looked at again when the open page changes, when the keyboard moves, and
@@ -50,9 +54,8 @@ class CentreBar(QWidget):
         self.undo = control('Undo', 'CentreUndo', lambda: self.in_place('undo'), 'Ctrl+Z')
         self.redo = control('Redo', 'CentreRedo', lambda: self.in_place('redo'), 'Ctrl+Y')
         self.save = control('Save', 'CentreSave', lambda: self.host.a_save.trigger(), 'Ctrl+S')
-        self.actions = control('Actions ▾', 'CentreActions', self.show_actions, 'Menu')
         row.addWidget(self.field);row.addSpacing(8);row.addWidget(self.title, 1)
-        for group in ((self.find,), (self.smaller, self.larger), (self.undo, self.redo), (self.save,), (self.actions,)):
+        for group in ((self.find,), (self.smaller, self.larger), (self.undo, self.redo), (self.save,)):
             row.addSpacing(8)
             for button in group:row.addWidget(button)
         self.restyle()
@@ -115,6 +118,8 @@ class CentreBar(QWidget):
                 pass
         unsaved = bool(getattr(page, 'is_dirty', None) and page.is_dirty()) or bool(editor is not None and editor.document().isModified())
         can_save = callable(getattr(page, 'save_concern_note', None)) or hasattr(page, 'can_close_pdf') or (editor is not None and not editor.isReadOnly())
+        knows = callable(getattr(page, 'is_dirty', None)) or editor is not None      # the view can say whether it has changes
+        itself = bool(getattr(page, 'saves_itself', False))                           # the view saves as it goes
         said = name.rstrip(' •') + ('  ·  read only' if editor is not None and editor.isReadOnly() else '  ·  not saved yet' if unsaved else '')
         self._said = said;self.fit_title()
 
@@ -133,9 +138,12 @@ class CentreBar(QWidget):
         nowhere = 'Undo and Redo work where you are typing: click in the text first.' if place is None else 'Nothing to take back here.'
         offer(self.undo, undo, 'Take back the last change where you are typing', nowhere)
         offer(self.redo, redo, 'Put back what was taken back', nowhere if place is None else 'Nothing to put back here.')
-        offer(self.save, can_save, 'Save this' + (': it has changes that are not saved' if unsaved else ''), 'This view has nothing to save: what it shows is a record, or it saves as you go.')
+        # Save is lit when a press would save something: never to be pressed "to be sure".
+        why = ('This view has nothing to save: what it shows is a record.' if not can_save else
+               'This page saves itself as you write; there is nothing to press.' if itself and not unsaved else
+               'Nothing to save: no changes since the last save.')
+        offer(self.save, can_save and (unsaved or not knows) and not (itself and not unsaved), 'Save this: it has changes that are not saved' if unsaved else 'Save this', why)
         self.save.setText('Save •' if can_save and unsaved else 'Save')
-        offer(self.actions, True, 'What can be done here: the same menu the Menu key opens', '')
 
     def fit_title(self):
         words = getattr(self, '_said', '')
@@ -168,10 +176,6 @@ class CentreBar(QWidget):
         place = self.typed_in(self.page())
         if place is not None and callable(getattr(place, what, None)):getattr(place, what)()
 
-    def show_actions(self):
-        from .chain_menu import open_here
-        open_here(self.host, self.actions.mapToGlobal(QPoint(0, self.actions.height())))
-
     def resize_view(self, step):
         """Make the open view's table or writing one point larger or smaller. Only this view: the desk's own reading size is
         in Settings. The size is carried in the view's own style sheet, because the desk's sheet sets sizes and would win
@@ -179,7 +183,7 @@ class CentreBar(QWidget):
         page = self.page();view = self.sized(page)
         if view is None:return
         if callable(getattr(view, 'centre_size', None)):
-            view.centre_size(step);return
+            view.centre_size(step);self.sync();return
         moved = int(view.property('centreSize') or 0)
         base = view.property('centreBase')
         if base is None:

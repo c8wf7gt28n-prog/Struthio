@@ -542,7 +542,7 @@ def refresh(host):
     # One header, not four: the source actions appear for code, the Concern strip when a Concern item is in focus.
     host.context_bar.setVisible(not host._home_active and type(tab).__name__ == 'CodeEditor')
     strip = getattr(host.concern, 'context_strip', None)
-    if strip is not None:strip.setVisible(not host._home_active and bool(getattr(host.concern, 'current_attention', None)))
+    if strip is not None:strip.setVisible(False)      # 0.4.9: the bar above the work names what is open; this strip only repeated it
     host.workspace_status.setVisible(host._home_active or type(tab).__name__ != 'ConcernDossier')
     if getattr(host, '_field_active', False):  # the Field has the whole centre: no bar of the work under it
         host.context_bar.hide();host.workspace_status.hide()
