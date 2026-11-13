@@ -65,7 +65,12 @@ class ConcernController(QObject):
         area = QPushButton('Working area'); area.clicked.connect(lambda: self.open(
             self.current_attention['object_id'] if self.current_attention else 'concern'))
         ask = QPushButton('Ask Stacy'); ask.clicked.connect(self.ask_slate)
-        row.addWidget(area); row.addWidget(ask)
+        # Back to the Field, in the same place whatever is open in the centre: a click here is F9. The Field keeps the tile
+        # and the view it was left with, so this is the way back from a tile that was opened with a click.
+        self.field_button = QPushButton('‹ Field'); self.field_button.setAccessibleName('Back to the Field')
+        self.field_button.setToolTip('Back to the Field: your work as tiles and wires, at the tile you opened this from (F9)')
+        self.field_button.clicked.connect(lambda: self.host.a_field.trigger() if hasattr(self.host, 'a_field') else None)
+        row.addWidget(self.field_button); row.addWidget(area); row.addWidget(ask)
         self.host.center_layout.insertWidget(1, self.context_strip)
         self.changed.connect(self.track_current); self.track_current()
 

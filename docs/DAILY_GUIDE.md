@@ -38,7 +38,10 @@ to list them, `forget waits` to let one go. Right-click a sheet (or the Menu key
 a number › a value to try, Doubt it ›, Trace it ›, What can be done ›, Your words ›; choosing in a menu never approves a
 change. **?** shows every key of the Field on a card. The doubt, the desk check and the brief open on a page over the work,
 at your reading size; the doubt and the check step aside at the next key you press, and Esc closes any of them.
-`docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+With the mouse: a click on a tile opens it in the centre, and **‹ Field** in the bar under the centre comes back to the same tile; the
+right button shows a tile's menu; every key shown at the foot, on the key card and on a page can be clicked; a change that
+waits has an **Approve** button. Ask Stacy "set B3 to 300" with a sheet selected and the change waits for your Approve.
+`docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

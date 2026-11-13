@@ -15,6 +15,10 @@ One operation here changes something, and so it is not a read and waits for the 
 
   field.brief.keep  execute  {shown?}   the brief written as a page in Documents; a later one takes its place. `shown` is
                                         the fingerprint field.brief gave: with it, nothing is kept if the desk has changed since
+  field.set         execute  {id, cell, value, expected_revision}
+                                        one number of a sheet set to another value and the sheet saved. The what-if made real:
+                                        field.ripple with the same cell and value says beforehand what it will move. Refused
+                                        when the sheet has been saved since `expected_revision` was read.
 
 Lines that work:
 
@@ -44,8 +48,10 @@ FIELDS = {
     'field.ripple': ({'id': TEXT, 'set': {'type': 'object'}}, ['id', 'set']),
     'field.brief': ({}, []),
     'field.brief.keep': ({'shown': {'type': 'string', 'minLength': 64, 'maxLength': 64}}, []),
+    'field.set': ({'id': TEXT, 'cell': {'type': 'string', 'minLength': 2, 'maxLength': 8}, 'value': {'type': 'string', 'minLength': 1, 'maxLength': 40},
+                   'expected_revision': {'type': 'string', 'minLength': 64, 'maxLength': 64}}, ['id', 'cell', 'value', 'expected_revision']),
 }
-WRITES = ('field.brief.keep',)
+WRITES = ('field.brief.keep', 'field.set')
 SCOPES = {operation: 'execute' if operation in WRITES else 'read' for operation in FIELDS}
 OBSERVERS = tuple(operation for operation in FIELDS if operation not in WRITES)
 REACH = 8                    # how many hops a trace follows in each direction
@@ -154,7 +160,42 @@ def brief(kernel, principal):
     return {'schema': SCHEMA, **compose(kernel, principal, field)}
 
 
+def set_cell(kernel, principal, ident, cell, value, expected):
+    """One number of a sheet set to another value, and the sheet saved through the Office's own save (its rules are the
+    rules: the revision that was read must still be the sheet's). Only a number takes a number; the cell keeps its unit.
+    Everything worked from the sheet then waits for a recheck, as after any saved change."""
+    import re
+    from decimal import Decimal, InvalidOperation
+    record = ident[len('office:'):] if ident.startswith('office:') else ident;cell = str(cell).strip().upper()
+    answer = kernel.dispatch('office.get', {'id': record}, principal)
+    if not answer.get('ok'):
+        raise ValueError('That sheet cannot be read: ' + str((answer.get('error') or {}).get('message'))[:160])
+    got = answer['result'];document = got['document']
+    if got.get('revision') != expected:
+        raise ValueError('The sheet was saved again after this change was put up, so nothing was changed. Ask again to see it as it is now.')
+    cells = (document.get('sheets') or [{}])[0].get('cells') or {};held = cells.get(cell)
+    if not re.fullmatch(r'[A-Z]{1,3}[0-9]{1,5}', cell) or held is None:
+        raise ValueError('%s is not a cell of “%s”' % (cell[:8], str(document.get('title'))[:60]))
+    try:
+        was = Decimal(str(held.get('value')).strip());now = Decimal(str(value).strip().replace(',', ''))
+        if str(held.get('type')) == 'text' or not was.is_finite() or not now.is_finite():raise InvalidOperation
+    except (InvalidOperation, ValueError):
+        raise ValueError('%s holds %s; only a number can be set to a number here' % (cell, 'words' if str((held or {}).get('type')) == 'text' else 'no plain number')) from None
+    if was == now:
+        raise ValueError('%s already says %s' % (cell, held.get('value')))
+    cells[cell] = {**held, 'value': str(value).strip().replace(',', '')}
+    saved = kernel.dispatch('office.save', {'id': record, 'expected_revision': expected, 'document': document}, principal)
+    if not saved.get('ok'):
+        raise ValueError('The sheet was not saved: ' + str((saved.get('error') or {}).get('message'))[:200])
+    unit = str(held.get('unit') or '').strip()
+    return {'schema': SCHEMA, 'id': 'office:' + record, 'cell': cell, 'was': str(held.get('value')), 'now': cells[cell]['value'], 'unit': unit,
+            'revision': (saved['result'] or {}).get('revision'),
+            'words': '%s of “%s” now says %s%s (it said %s). What was worked from this sheet waits for a recheck: C checks the desk.' % (
+                cell, document.get('title'), cells[cell]['value'], ' ' + unit if unit else '', held.get('value'))}
+
+
 def dispatch(kernel, operation, args, principal):
+    if operation == 'field.set':return set_cell(kernel, principal, args['id'], args['cell'], args['value'], args['expected_revision'])
     if operation == 'field.brief':return brief(kernel, principal)
     if operation == 'field.brief.keep':
         from .field_brief import keep

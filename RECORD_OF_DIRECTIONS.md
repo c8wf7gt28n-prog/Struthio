@@ -35,9 +35,12 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   what counts is whether it runs. Woz: the fewest parts that do the job; a machine one person can understand whole; the
   schematics come in the box; it is ready the moment it is switched on; it is generous, a little playful, and kind to
   the person at the keyboard (plain words, no blame, nothing taken from them, useful on a modest machine).
-- **Simple, for a power user** (12 November: "let's concentrate on simple power user"). Keyboard first. One line to
-  speak in. Few words on the screen and none that explain themselves twice. One rule instead of a setting where a rule
-  will do. No hand-holding, no second way to do a thing unless the second way is the keyboard.
+- **Simple, for a power user** (12 November: "let's concentrate on simple power user"). One line to speak in. Few words
+  on the screen and none that explain themselves twice. One rule instead of a setting where a rule will do. No
+  hand-holding. **The mouse and the keys do the same things** (13 November, the whole-build specification: "The mouse, keys
+  and Stacy use the same target and operation"; "Click a tile to open the item"; "an explicit Approve button"). An earlier
+  reading of this point as "keyboard first" was the builder's, not the owner's, and is withdrawn: someone should be able
+  to sit down with a mouse and do the ordinary work by looking at the screen, and the keys make the same person faster.
 - **Checking.** Light. Batch related edits, then one launch-and-use check. Dig deeper only for a real failure or a
   worry about the owner's data. No new test suites, no test-count campaigns.
 - **Honesty.** Say plainly what is not done. Nothing counts as accepted on the ThinkPad until it is tried there.
@@ -89,8 +92,13 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   check is what "done" means. Keys in the Field: D, a digit to choose, G for the go (a digit never approves), C, and F
   on the shelf for a program's full window. Whether a step runs by itself is the Kernel's scope for it, read from the
   Kernel. Every step is an operation the program already had;
-  add steps there, not a second engine. A model's place is to put reads into words and, later, to pick among steps the
-  program offers; it does not plan.
+  add steps there, not a second engine. What a model does grows with the model. A 2B model on four processor threads
+  puts reads into words and no more; that was measured (`docs/MODEL_TRIAL_03.md`) and it is a floor, not a ceiling. It
+  was never measured what a model can do when it is given a concrete goal, the open item and a few relevant operations,
+  and the owner's specification asks for exactly that: "Let the local model work out the steps." So the model's part is
+  to be found by trying it on real jobs (the specification's tenth extension: two models, the same finished job), not
+  fixed here. What does not move: every change waits for the owner's Approve, exact numbers come from exact computation,
+  and what Stacy did can be checked by the same doubts as anyone's work.
 - **Catch the trap first** (13 November: the owner's whole-build specification, 35 situations each with a "difficult
   variation", and "build what you think is the neatest ... upon the spirit of the idea"). Before Stacy makes more, she
   catches more: X doubts a sheet with exact questions (`workbench/field_doubt.py`), worst first, each row a read; a doubt
@@ -98,6 +106,16 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   rephrase a doubt. The specification is the map and the acceptance test (it counts on the ThinkPad, on the owner's own
   material); it is reached one trap and one situation at a time, by adding a question here and its steps in
   `field_do.py`, never by trusting a model more.
+- **One thin journey through all four** (13 November: the owner's second specification and "What we want from Graphite").
+  The evidence side had become a more complete product than the everyday work and the handing over. The four parts
+  (click into the work; one familiar place to work in the centre, with Programs as the only way to a full program; give
+  Stacy the part the owner does not know how to do; carry the result forward) are built together as journeys, not as four
+  layers: take one item from the Field to the centre, through a full program and back, then let Stacy make the same trip.
+  First journey, 0.4.5: with the mouse alone, open a sheet tile, change a cell, save, come back to the same tile, trace
+  the calculation and approve its recheck; and the same change asked of Stacy in words and approved with a click
+  (`field.set`). Known to be missing for the next ones: the centre's common frame and small toolbar; an ordinary workbook
+  as a citizen of the chain (a calculation can only be made from a sheet reviewed from a PDF); a full program through
+  Programs with the saved revision coming back; Stacy working out steps for a goal.
 - **A pass for the eye and the hand** (13 November: "Should we do a pass that focuses on the user experience"). After
   the powers, a pass that adds none: the real screens were looked at as a newcomer would, at the small size and at large
   reading sizes, and what got in the way was put right. An answer is read where the eyes are: a page over the work
@@ -134,8 +152,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4.4: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), and a pass for reading and finding the keys (0.4.4). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.5: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), and the mouse path with Stacy's first change on approval (0.4.5). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

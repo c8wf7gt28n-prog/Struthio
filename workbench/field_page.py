@@ -49,6 +49,7 @@ class FieldPage(QWidget):
         self.view.doubt_asked.connect(lambda obj: doubt(self.host, obj))
         self.view.brief_asked.connect(lambda: brief(self.host))
         self.view.reading_closed.connect(self._reading_closed)
+        self.view.menu_asked.connect(self._menu)
         self.view.full_asked.connect(lambda obj: full_window(self.host, obj))
         self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
         self.pending = None                     # what G runs: the Run of what waits in Talk for the owner's go
@@ -57,6 +58,12 @@ class FieldPage(QWidget):
         self.problem = ''            # what the last reading could not read, in words
         self.unread = set()          # records that refused: not asked again until the owner looks again
         QApplication.instance().focusChanged.connect(self._keyboard_moved)
+
+    def _menu(self):
+        """A click on "Menu" at the foot: the selected sheet's own menu, as the Menu key and the right button open it."""
+        from . import context_menu
+        self.view.setFocus(Qt.OtherFocusReason)
+        context_menu.open_at_focus(self.host)
 
     def _reading_closed(self):
         """The owner closed the page being read (Esc): what waited on it for a go is withdrawn from the keyboard too."""
@@ -239,6 +246,15 @@ def do(host, obj):
     face = _talk(host)
     if face is not None and steps:face.say_steps(obj.title, steps, lambda n, obj=obj:take(host, obj, n))
     if not steps:host.statusBar().showMessage('Field · the records offer nothing to do about %s' % obj.title, 6000)
+    if steps:
+        # The steps, where the eyes are and where the pointer can reach them: a light page whose rows are the steps. A click on
+        # a row, or its digit, takes it; the page steps aside at any other key. A step that changes something says it waits.
+        name = obj.title if len(obj.title) <= 56 else obj.title[:55].rstrip() + '…'
+        rows = [('k', '%d\t%s%s%s' % (n + 1, step.words, ' · waits for your Approve' if step.kind == 'write' else '', (' — ' + step.why) if step.why else '')) for n, step in enumerate(steps)]
+        page.view.show_reading('What can be done about “%s”' % name, rows, '1 – %d  take a step      Esc  close      any other key moves on' % len(steps) if len(steps) > 1 else '1  take the step      Esc  close',
+                               light=True)
+        page.view.steps = tuple((step.words, step.kind) for step in steps)       # showing the page does not withdraw what was just offered
+        page.view.setFocus(Qt.OtherFocusReason)
     return page.steps
 
 
@@ -254,6 +270,7 @@ def take(host, obj, n):
         page.view.setFocus(Qt.OtherFocusReason)
         return None
     if obj is None or page.steps_of != obj.id or not 0 <= n < len(page.steps):return None
+    if page.view.reading is not None and page.view.reading.get('light'):page.view.close_reading()      # the page that offered the steps has done its work
     step = page.steps[n];face = _talk(host)
     if face is None:return None
     if step.kind == 'read':
@@ -397,7 +414,34 @@ def brief(host):
     return card
 
 
-def show_would(host, ident, setting, said):
+def stage_set(host, obj, cell, value):
+    """“Set B3 to 300”, asked of Stacy with a sheet (or a calculation, which stands for its sheet) selected: the change is
+    put up with its exact line and waits for Approve, and meanwhile the Field marks what it would move, as a what-if does.
+    Approving saves the sheet through the same operation the owner's own edit uses; then the records are read again."""
+    from .engineering_kernel import operator
+    from .field_do import Step, op
+    from .field_ripple import cells_named
+    page = host.field_page;kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None);face = _talk(host)
+    if kernel is None or face is None:return None
+    sheet, _ = cells_named(kernel, operator(), obj)
+    got = kernel.dispatch('office.get', {'id': sheet}, operator()) if sheet else {'ok': False}
+    if not got.get('ok'):
+        face.say('I cannot read the sheet that number is on, so I have not put a change up.');return None
+    held = ((got['result']['document'].get('sheets') or [{}])[0].get('cells') or {}).get(cell) or {}
+    title = str(got['result']['document'].get('title') or 'the sheet');unit = str(held.get('unit') or '').strip()
+    words = 'Set %s to %s%s' % (cell, value, ' ' + unit if unit else '')
+    show_would(host, 'office:' + str(sheet), {cell: value}, '%s = %s' % (cell, value), lead='if approved: set ')
+    step = Step(words, 'write', op('field.set', id='office:' + str(sheet), cell=cell, value=value, expected_revision=got['result']['revision']),
+                '%s says %s%s now. The sheet is saved with the new value and everything worked from it waits for a recheck; the Field marks what would move' % (
+                    cell, held.get('value'), ' ' + unit if unit else ''), 'execute')
+    done = lambda ok, result, obj=obj:_after(host, obj, ok, result)
+    card = face.stage(title, step, done=done)
+    _await_go(host, '%s on “%s”' % (words[:1].lower() + words[1:], title), lambda:face.run_staged(card, done))
+    page.view.setFocus(Qt.OtherFocusReason)
+    return card
+
+
+def show_would(host, ident, setting, said, lead='what if '):
     """A what-if, shown on the Field: the sheets that would move carry what they would say, in amber, until Esc or the next
     reading. The same read Stacy shows in Talk (field.ripple); a refusal marks nothing."""
     from .engineering_kernel import operator
@@ -406,7 +450,7 @@ def show_would(host, ident, setting, said):
     if page is None or kernel is None:return {}
     answer = kernel.dispatch('field.ripple', {'id': ident, 'set': setting}, operator())
     page.view.would = marks(answer['result']) if answer.get('ok') else {}
-    page.view.would_said = ('what if ' + said) if page.view.would else ''
+    page.view.would_said = (lead + said) if page.view.would else ''
     page.view.update()
     return page.view.would
 

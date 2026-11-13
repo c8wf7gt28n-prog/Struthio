@@ -1739,7 +1739,8 @@ class SlateFace(QWidget):
         code = QLabel(breakable(step.line));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))
         code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + step.line);card.box.addWidget(code)
-        row = QHBoxLayout();run = button('Run', 'stac');run.setObjectName('StagedRun');row.addWidget(run)
+        row = QHBoxLayout();run = button('Approve', 'stac');run.setObjectName('StagedRun');row.addWidget(run)
+        run.setToolTip('Apply this change. Nothing is changed until you do; in the Field, G does the same')
         row.addWidget(sentence('{line}', {'line': ('in the line', lambda:inspect_in_line(self.host, step.line))}));row.addStretch(1);card.box.addLayout(row)
         card.step = step;card.run = run;card.ran = None
         run.clicked.connect(lambda:self.run_staged(card, done))
@@ -1756,7 +1757,7 @@ class SlateFace(QWidget):
             r = engineering(self.host.root).dispatch(operation, arguments, operator())
         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
             r = {'ok': False, 'error': {'message': str(exc)[:300]}}
-        card.ran = bool(r.get('ok'));card.run.setEnabled(False);card.run.setText('Ran' if card.ran else 'Refused')
+        card.ran = bool(r.get('ok'));card.run.setEnabled(False);card.run.setText('Approved' if card.ran else 'Refused')
         if card.ran:
             result = r['result'] if isinstance(r['result'], dict) else {}
             if isinstance(result.get('document'), dict) and result['document'].get('title'):said = 'Done: “%s”.' % result['document']['title']
@@ -1809,7 +1810,8 @@ class SlateFace(QWidget):
             code = QLabel(breakable(step.line));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(14))
             code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
             card.box.addWidget(code);card.rows.append(said)
-        row = QHBoxLayout();run = button('Run all %d' % len(plan) if len(plan) > 1 else 'Run', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
+        row = QHBoxLayout();run = button('Approve all %d' % len(plan) if len(plan) > 1 else 'Approve', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
+        run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do; in the Field, G does the same')
         card.plan = plan;card.run = run;card.results = None
         run.clicked.connect(lambda:self.run_plan(card, done))
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
@@ -1906,8 +1908,35 @@ class SlateFace(QWidget):
         self.answer_in_stac({'title': name, 'stac': line, 'kind': 'word'}, 'Your words, each with its line:' if made is not None else 'Your word “%s” is this line:' % name)
         return True
 
+    def set_asked(self, text):
+        """“Set B3 to 300”, “change the settled current to 300”, “make B3 300”: asked with a sheet or a calculation selected
+        in the Field. The change is put up for approval (workbench/field_page.py, stage_set); nothing is changed by asking.
+        True when the line was such a request, whether or not a change could be put up."""
+        asked = re.match(r'^\s*(?:set|change|make)\b(.*)$', text, re.IGNORECASE | re.DOTALL)
+        view = getattr(getattr(self.host, 'field_page', None), 'view', None)
+        chosen = view.selected() if asked and view is not None and getattr(self.host, '_field_active', False) else None
+        if chosen is None or chosen.kind not in ('calculation', 'sheet') or not isinstance(chosen.target, dict):return False
+        from .engine import engineering
+        from .engineering_kernel import operator
+        from .field_ripple import cells_named
+        _, names = cells_named(engineering(self.host.root), operator(), chosen)
+        tokens = asked.group(1).replace('=', ' ').replace('?', ' ').split()
+        at = next((i for i in range(len(tokens) - 1, -1, -1) if re.fullmatch(r'-?\d+(?:\.\d+)?', tokens[i])), None)
+        if not names or at is None:return False
+        filler = {'the', 'a', 'an', 'is', 'to', 'be', 'at', 'of', 'cell', 'value', 'in', 'it', 'its', 'equal', 'equals'}
+        name = ' '.join(t for t in tokens[:at] if t.lower() not in filler).lower()
+        cell = names.get(name) or next((c for n, c in names.items() if name and all(word in n.split() for word in name.split())), None)
+        self.thing = None;self.mine(text)
+        if cell is None:
+            cells = sorted({c for c in names.values()}, key=lambda c: (len(c), c))
+            self.say('Say which number and its new value, for example “set %s to” and a number. The numbers here are in %s.' % (cells[-1], ', '.join(cells[:12])));return True
+        from .field_page import stage_set
+        stage_set(self.host, chosen, cell, tokens[at])
+        return True
+
     def ask(self, text, about=None):
         if self.own_word(text):return
+        if self.set_asked(text):return
         thing = self.what_if(text)
         if thing and thing.get('refusal'):
             self.thing = None;self.mine(text);self.say(thing['refusal']);return
@@ -2221,7 +2250,9 @@ class SlateFace(QWidget):
         tab = self.host.tabs.currentWidget()
         if hasattr(tab, 'slate_context'):return tab.slate_context()  # Files: the selected file, with its address
         address = getattr(tab, 'address', None)
-        if address:return getattr(tab, 'root_path', Path('item')).name + ' (@' + address + ')'
+        if isinstance(address, str) and address:return getattr(tab, 'root_path', Path('item')).name + ' (@' + address + ')'
+        if tab is not None and tab.property('ledgerTitle'):      # a sheet's page keeps a cell box under that name: say the page by its title instead
+            return str(tab.property('ledgerTitle'))
         return None
 
     def selected_file(self):
