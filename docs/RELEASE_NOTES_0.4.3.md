@@ -65,6 +65,21 @@ them under "This face in staC".
 **Backspace: where I was.** In the Field, Backspace goes back to the sheet you were on before this one, and the one
 before that.
 
+**The right-click menu cascades into all of it.** Right-click a sheet in the Field (or press the Menu key):
+
+- **What if ›** lists its numbers, each with its cell, its words and its value, and under each the values worth trying:
+  10 % more, 10 % less, twice, half, or another value to finish in the line. Two moves, and the Field shows what would
+  move.
+- **Doubt it ›** shows what Stacy finds right in the menu, worst first. A row's reason is its tooltip; choosing a row shows
+  the read that is its evidence. The first row is the whole of it in Talk, as X gives it.
+- **Trace it ›** lists where the sheet comes from and what rests on it; choosing one goes there.
+- **What can be done ›** lists the steps D offers. A read runs; a change is put up in Talk and waits for **G**. Choosing in
+  a menu never approves anything.
+- **Your words ›** runs one of your own words here; a word whose line starts with `this` reads this sheet.
+
+On an empty place of the Field the menu has The brief and Your words, where a word can also go to the line, be forgotten,
+or a new one be started.
+
 **Put right from 0.4.2 and 0.4.1.** A second set of readers went through the code while this was built, and these were
 theirs:
 

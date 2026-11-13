@@ -127,6 +127,8 @@ def ripple(kernel, principal, field, ident, changes):
         if cell is None:
             known = sorted({c for c in names.values()}, key=lambda c: (len(c), c))
             raise ValueError('%s is not a number on “%s”. Its numbers are in %s.' % (key[:40], str(start.title)[:60], ', '.join(known[:12]) or 'no cell'))
+        if str((cells.get(cell) or {}).get('type') or '') == 'text' or _decimal((cells.get(cell) or {}).get('value')) is None:
+            raise ValueError('%s holds words, not a number: a what-if sets a number' % cell)
         if _decimal(value) is None:
             raise ValueError('%s needs a plain number%s' % (cell, (', in ' + unit_of(cells, cell)) if unit_of(cells, cell) else ''))
         setting[cell] = value.strip()

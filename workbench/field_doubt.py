@@ -279,7 +279,7 @@ def _twice_in_run(ident, column, run, numbers, label, units):
                 at(t), name(t), at(start), at(t - 1), at(u), name(u), at(first), at(u - 1), at(u), _plain_decimal(without), _plain_decimal(total))
             involved = ','.join('cells.%s.value' % at(k) for k in range(start, t + 1))[:400]
             see = '@office:%s | pick document.sheets | select %s' % (ident, involved)
-            named = any(word in label(run[u]).lower() for word in ('total', 'sum', 'subtotal'))
+            named = re.search(r'\b(sub-?total|total|sum)\b', label(run[u]), re.IGNORECASE) is not None      # the word itself: "Consumption" is not a sum
             out.append(Doubt('doubt' if named else 'cannot tell', 'counted twice',
                              said if named else said.replace(': those rows are counted twice.', '. If %s is a subtotal, those rows are counted twice.' % at(u)), see))
             break

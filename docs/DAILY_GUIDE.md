@@ -34,7 +34,9 @@ change is followed along the wires, nothing is changed, and the Field marks what
 desk written up as one page from the records; **G** keeps it as a page, and D on that page writes it again when the desk
 has changed. **Backspace** goes back to the sheet you were on before. In the writing strip you can keep a staC line under a
 word of your own: `word waits = field.read | pick waiting | select kind,title,state`, then `waits` (Ctrl+Enter), `words`
-to list them, `forget waits` to let one go.
+to list them, `forget waits` to let one go. Right-click a sheet (or the Menu key) for the same things as cascades: What if ›
+a number › a value to try, Doubt it ›, Trace it ›, What can be done ›, Your words ›; choosing in a menu never approves a
+change.
 `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
