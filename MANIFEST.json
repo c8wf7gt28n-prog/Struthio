@@ -2514,8 +2514,8 @@
       "sha256": "33fab27813fc04d637216adb657f5be48073d49155ba4ad3924320148b3d5a2f"
     },
     "tests_integrated/test_faces_find_light.py": {
-      "bytes": 14719,
-      "sha256": "47b2fe17263cf3fa2a6245e8ac15ccf093bfdec39b762e89b325c8b5dfc821a5"
+      "bytes": 14999,
+      "sha256": "cffac178825dd091df39d7317b819517f92a38e5b6e978c09cff12fb95e7a059"
     },
     "tests_integrated/test_frame.py": {
       "bytes": 8654,

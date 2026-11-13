@@ -60,6 +60,7 @@ class GlyphSetTests(unittest.TestCase):
         tool_faces.dress(menu)
         self.assertFalse(save.isShortcutVisibleInContextMenu());self.assertEqual(save.shortcut().toString(),'Ctrl+S','the key still works; it is not printed')
         self.assertEqual(idea.text(),'New Idea…','a key written into a line after a tab is taken out of it')
+        self.assertEqual(save.text(),'Save','and no letter is underlined');both=menu.addAction('Find && Replace');tool_faces.dress(menu);self.assertEqual(both.text(),'Find && Replace','a real ampersand stays')
 
     def test_a_menu_wears_glyphs_only_with_icons_chosen_and_gives_back_what_it_had(self):
         from PySide6.QtWidgets import QMenu
@@ -67,7 +68,8 @@ class GlyphSetTests(unittest.TestCase):
         self.addCleanup(lambda:tool_faces.STATE.update(mode='words'))
         tool_faces.STATE['mode']='words';tool_faces.dress(menu);self.assertTrue(undo.icon().isNull())
         tool_faces.STATE['mode']='icons';tool_faces.dress(menu)
-        self.assertFalse(undo.icon().isNull());self.assertTrue(undo.isIconVisibleInMenu());self.assertTrue(other.icon().isNull());self.assertEqual(undo.text(),'&Undo')
+        self.assertFalse(undo.icon().isNull());self.assertTrue(undo.isIconVisibleInMenu());self.assertTrue(other.icon().isNull())
+        self.assertEqual(undo.text(),'Undo','its words, without the mark for an underlined letter (0.5.2)')
         tool_faces.STATE['mode']='words';tool_faces.dress(menu);self.assertTrue(undo.icon().isNull(),'with words chosen the line is as it was')
 
 
