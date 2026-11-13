@@ -1,4 +1,8 @@
-"""BOSS desk colours. Presentation only; document formats keep their own ink."""
+"""BOSS desk colours. Presentation only; document formats keep their own ink.
+
+Amber is for what is selected, what has the keyboard, and what waits for the owner. Green is for what is live: readings,
+what is current, staC, the pointer, and whatever the pointer is over (13 November 2026: "the mouse pointer to be the systems
+green ... more green glowing")."""
 import re
 
 GROUND, PANEL, CARD, RAISED = '#0b0e0d', '#111513', '#151a17', '#202520'
@@ -54,13 +58,13 @@ QMenu {padding:6px 0; border:1px solid %(LINE_STRONG)s;}
 QMenu::item {padding:9px 28px 9px 16px; border-radius:0;}
 QMenu::item:selected {color:%(AMBER_TEXT)s; border-left:2px solid %(AMBER_EDGE)s;}
 QPushButton {border-bottom:1px solid transparent; padding:5px 7px;}
-QPushButton:hover, QToolButton:hover {background:%(AMBER_SOFT)s; border-bottom-color:%(AMBER_EDGE)s;}
+QPushButton:hover, QToolButton:hover {background:%(TEAL_SOFT)s; border-bottom-color:%(READY)s;}
 QPushButton:checked, QToolButton:checked, QTabBar::tab:selected {border-bottom:2px solid %(AMBER_EDGE)s;}
 QTabBar::tab:selected {color:%(AMBER_TEXT)s;}
 QTreeView::item, QListView::item {border-radius:0;}
 QTreeView::item:selected, QListView::item:selected {border-left:2px solid %(AMBER_EDGE)s;}
 QScrollBar::handle {background:%(LINE_STRONG)s;}
-QScrollBar::handle:hover {background:%(AMBER_EDGE)s;}
+QScrollBar::handle:hover {background:%(TEAL_EDGE)s;}
 QLabel[arcRole2="title"], QLabel[arcRole2="hero"], QLabel[arcRole2="section"],
 QHeaderView::section {font-family:"IBM Plex Mono";}
 QLineEdit#WorkspacePath, QLineEdit#WorkspacePath:focus {
@@ -71,9 +75,11 @@ QToolButton#MoreMenus, QToolButton#BossPrograms, QToolButton#SystemMenu {
     font-family:"IBM Plex Mono"; color:%(TEXT)s; background:transparent;
     border:0; border-bottom:2px solid transparent; border-radius:0; padding:5px 10px;
 }
-QToolButton#MoreMenus:hover, QToolButton#BossPrograms:hover, QToolButton#SystemMenu:hover,
 QToolButton#MoreMenus:focus, QToolButton#BossPrograms:focus, QToolButton#SystemMenu:focus {
     color:%(AMBER_TEXT)s; border-bottom:2px solid %(AMBER_EDGE)s; background:%(AMBER_SOFT)s;
+}
+QToolButton#MoreMenus:hover, QToolButton#BossPrograms:hover, QToolButton#SystemMenu:hover {
+    color:%(TEAL_TEXT)s; border-bottom:2px solid %(READY)s; background:%(TEAL_SOFT)s;
 }
 QLabel#MonitorReading {color:%(QUIET)s; font-family:"IBM Plex Mono";}
 QLabel#MonitorReading[liveReading="true"] {color:%(READY)s;}

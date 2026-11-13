@@ -41,7 +41,8 @@ at your reading size; the doubt and the check step aside at the next key you pre
 With the mouse: a click on a tile opens it in the centre, and **‹ Field** in the bar under the centre comes back to the same tile; the
 right button shows a tile's menu; every key shown at the foot, on the key card and on a page can be clicked; a change that
 waits has an **Approve** button. Ask Stacy "set B3 to 300" with a sheet selected and the change waits for your Approve.
-`docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+The pointer is the desk's green, and whatever it is over answers in green; amber is what is selected and what waits for you.
+`docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

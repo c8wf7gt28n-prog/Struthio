@@ -13,8 +13,10 @@ from .engineering_kernel import operator
 
 INK='#eee9dd'
 ACTION_STYLE="""QPushButton {background:transparent;color:#eee9dd;border:0;border-radius:0;padding:6px 7px;text-decoration:underline;}
+QPushButton:hover {color:#cbf08b;}
 QPushButton:focus {border-bottom:2px solid #eee9dd;}
 QPushButton:disabled {color:#b0bcb9;text-decoration:none;}"""
+# (the hover colour is boss_theme.TEAL_TEXT: a word the pointer is over answers in the desk's green, as every button does)
 # DESKTOP-01: the current left-column view is said by weight and a pink rule, not by colour alone (the words stay pink actions).
 CHECKED_RULE="""
 QPushButton[settingsAction="true"]:checked {font-weight:600;text-decoration:none;border-bottom:2px solid #eee9dd;}"""
@@ -31,6 +33,7 @@ QLineEdit#SettingValue,QComboBox#SettingValue,QDoubleSpinBox#SettingValue {
 QLineEdit#SettingValue:focus,QComboBox#SettingValue:focus,QDoubleSpinBox#SettingValue:focus {border-bottom:2px solid #eee9dd;}
 QComboBox#SettingValue::drop-down {border:0;background:transparent;}
 QPushButton[settingsAction="true"] {background:transparent;color:#eee9dd;border:0;border-radius:0;padding:6px 7px;text-decoration:underline;}
+QPushButton[settingsAction="true"]:hover {color:#cbf08b;}
 QPushButton[settingsAction="true"]:focus {border-bottom:2px solid #eee9dd;}
 QPushButton[settingsAction="true"]:disabled {color:#b0bcb9;text-decoration:none;}
 QTreeWidget#SettingsHistory,QPlainTextEdit#SettingsDetail {background:transparent;color:#eee9dd;border:0;}

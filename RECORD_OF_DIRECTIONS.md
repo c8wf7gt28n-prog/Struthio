@@ -60,9 +60,12 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## The desk
 
-- **The look.** Near-black ground, cream reading text, amber for what is selected and what waits for the owner, small
-  green marks for live readings and what is current. Monospaced lettering, thin rules, original ink-and-halftone art.
-  Surfaces are still. Art sits in its own places (Illustrated, ASCII or Clean) and never enters documents.
+- **The look.** Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits
+  for the owner. Green is what is live: readings, what is current, staC, the pointer, and whatever the pointer is over
+  (13 November: "I'd probably like the mouse pointer to be the systems green. We kinda need more green glowing"). Live
+  things glow a little, and the pointer carries a faint light over the Field; the Clean desk keeps the green and has no
+  glow. Monospaced lettering, thin rules, original ink-and-halftone art. Surfaces are still: nothing moves unless the
+  owner's hand moves it. Art sits in its own places (Illustrated, ASCII or Clean) and never enters documents.
 - **The frame.** The path of the current work across the top with Work, Programs and System; Files, Machine and
   Settings on the left; Talk, Activity and Context on the right; one writing strip along the bottom (Assistant,
   Terminal, Log) with CPU, GPU, RAM and TXT beside it. The work is in the middle.
@@ -152,8 +155,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4.5: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), and the mouse path with Stacy's first change on approval (0.4.5). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.6: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), and the green pointer with green for what it is over and a glow for what is live (0.4.6). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

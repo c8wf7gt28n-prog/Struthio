@@ -21,7 +21,7 @@ comes first: the rail appears only when the sheets keep their room and it never 
 (a narrow window, the ASCII or Clean desk) the same line is in the foot and the same keys work.
 """
 from PySide6.QtCore import QEvent, QPoint, QPointF, QRectF, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeyEvent, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QRadialGradient
+from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeyEvent, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QRadialGradient, QRegion
 from PySide6.QtWidgets import QSizePolicy, QToolTip, QWidget
 
 from . import boss_theme as t
@@ -111,6 +111,8 @@ class FieldView(QWidget):
         self._through = []                  # places on a page for reading whose click first closes the page, then does what the key does
         self._hover = ''                    # the sheet under the pointer: its wires show, and its whole name
         self._press = None                  # where a press began: (position, the sheet there, the scroll then)
+        self._mouse = QPointF(-1, -1)       # where the pointer is, so what it is over can answer in its green
+        self._shape = None                  # the pointer's shape here, as last set (see _point)
         self._panned = False
         self.setMouseTracking(True)
         self._plate = None;self._plate_drawn = (None, None)
@@ -400,6 +402,7 @@ class FieldView(QWidget):
                 total = wide + 8 * s + fm.horizontalAdvance(said)
                 if x + wide > end:break
                 box = QRectF(x, base - fm.ascent() - 3 * s, wide, fm.height() + 6 * s)
+                if box.contains(self._mouse):self._halo(p, box, t.READY, 1.8)      # under the pointer, the button that approves glows green
                 p.save();p.setPen(Qt.NoPen);p.setBrush(QColor(t.AMBER_EDGE));p.drawRect(box)
                 p.setPen(QColor(t.GROUND));p.drawText(box, Qt.AlignCenter, 'Approve');p.restore()
                 p.setPen(QColor(colour));p.drawText(QPointF(x + wide + 8 * s, base), said)
@@ -408,9 +411,10 @@ class FieldView(QWidget):
             else:
                 total = fm.horizontalAdvance(str(item))
                 if x + total > end:break
-                p.setPen(QColor(colour));p.drawText(QPointF(x, base), str(item))
+                spot = QRectF(x - 4 * s, base - fm.ascent() - 4 * s, total + 8 * s, fm.height() + 8 * s)
+                p.setPen(QColor(t.READY if found is not None and spot.contains(self._mouse) else colour));p.drawText(QPointF(x, base), str(item))
                 if found is not None:
-                    self._hot.append((QRectF(x - 4 * s, base - fm.ascent() - 4 * s, total + 8 * s, fm.height() + 8 * s), found[0], found[1], words[:1].upper() + words[1:] + ' (%s)' % label.strip()))
+                    self._hot.append((spot, found[0], found[1], words[:1].upper() + words[1:] + ' (%s)' % label.strip()))
             x += total + gap
         return x
 
@@ -438,6 +442,12 @@ class FieldView(QWidget):
             self.field.select(ident);self._describe();self.update()
         super().mousePressEvent(event)
 
+    def _point(self, shape):
+        """The pointer's shape over this surface, set only when it changes: the hand moves many times a second, and each
+        change is drawn in the desk's green by workbench/pointer.py."""
+        if shape != self._shape:
+            self._shape = shape;self.setCursor(shape)
+
     def mouseMoveEvent(self, event):
         pos = event.position()
         if self._press is not None and event.buttons() & Qt.LeftButton:      # a drag moves the surface
@@ -446,12 +456,15 @@ class FieldView(QWidget):
                 self._panned = True;body = self._layout()
                 self.scroll_x = max(0.0, min(max(0.0, self._surface[0] - body.width()), x - delta.x()))
                 self.scroll_y = max(0.0, min(max(0.0, self._surface[1] - body.height()), y - delta.y()))
-                self.setCursor(Qt.ClosedHandCursor);self.update()
+                self._point(Qt.ClosedHandCursor);self._mouse = QPointF(pos);self.update()
             return
         hot = self._hot_at(pos);ident = '' if hot or self.reading is not None else (self._hit(pos) or '')
-        self.setCursor(Qt.PointingHandCursor if hot or ident else Qt.ArrowCursor)
-        if ident != self._hover:
+        self._point(Qt.PointingHandCursor if hot or ident else Qt.ArrowCursor)
+        over = self._hot_at(self._mouse);was = QPointF(self._mouse);self._mouse = QPointF(pos)
+        if ident != self._hover or (hot is None) != (over is None) or (hot is not None and over is not None and hot[0] != over[0]):
             self._hover = ident;self.update()
+        elif self.texture and self.reading is None:      # the pointer's light moved: only the two places it was and is are drawn again
+            self.update(QRegion(self._lit(was)).united(QRegion(self._lit(self._mouse))))
         obj = self.field.get(ident) if ident else None
         tip = hot[3] if hot else ('%s%s\nClick opens it · right-click for what can be done' % (obj.title, (' · ' + STATE_WORD.get(obj.state, obj.state)) if obj.state else '')) if obj is not None else ''
         if tip:QToolTip.showText(event.globalPosition().toPoint(), tip, self)
@@ -461,7 +474,7 @@ class FieldView(QWidget):
         press, self._press = self._press, None
         if press is None or event.button() != Qt.LeftButton:return super().mouseReleaseEvent(event)
         if self._panned:
-            self._panned = False;self.setCursor(Qt.ArrowCursor);return
+            self._panned = False;self._point(Qt.ArrowCursor);return
         ident = press[1]
         if ident and self._hit(event.position()) == ident:      # a click on a sheet: it is the selected one, and it opens
             if ident != self.field.selected:
@@ -469,7 +482,8 @@ class FieldView(QWidget):
             self.update();self.opened.emit(self.selected())
 
     def leaveEvent(self, event):
-        if self._hover:
+        self._mouse = QPointF(-1, -1)
+        if self._hover or self._hot or self.texture:
             self._hover = '';self.update()
         super().leaveEvent(event)
 
@@ -492,6 +506,7 @@ class FieldView(QWidget):
             p.fillRect(self.rect(), QColor(t.TERMINAL_GROUND))
             body = self._layout()
             if self.texture:self._texture(p, body)
+            self._light(p, body)
             self._art(p, body)
             self._stac(p, body)
             self._head(p)
@@ -579,10 +594,12 @@ class FieldView(QWidget):
         key_w = min(inner.width() * 0.32, max([fm_key.horizontalAdvance(text.split('\t', 1)[0]) for style, text in read['lines'] if style == 'k'] or [0.0]) + 22 * s)
         rows = [];at = 0.0                     # (y from the top of the writing, x, font, colour, text)
         spots = []                             # a key and its words are a place to click: (top, bottom, the key's label, its words)
+        calm = False                           # under a heading that says something holds (or that nothing waits), the marks are green
         for style, text in read['lines']:
             if style == 'h':
+                calm = str(text).strip().lower().startswith(('holds', 'nothing'))
                 at += (16 * s if rows else 2 * s)
-                rows.append((at + fm_head.ascent(), 0.0, head_font, t.AMBER_TEXT, str(text).upper()));at += fm_head.height() + 6 * s
+                rows.append((at + fm_head.ascent(), 0.0, head_font, t.READY if calm else t.AMBER_TEXT, str(text).upper()));at += fm_head.height() + 6 * s
             elif style == 'k':
                 keys, _, words = str(text).partition('\t');lines = self._flow(words, fm_text, inner.width() - key_w);began = at
                 rows.append((at + fm_text.ascent(), 0.0, key_font, t.AMBER_TEXT, keys))
@@ -593,7 +610,7 @@ class FieldView(QWidget):
                 font, fm, colour = (quiet_font, fm_quiet, t.QUIET) if style == 'q' else (text_font, fm_text, t.TEXT)
                 hang = fm.horizontalAdvance('·  ') if style == 'b' else 0.0
                 for index, line in enumerate(self._flow(text, fm, inner.width() - hang)):
-                    if style == 'b' and index == 0:rows.append((at + fm.ascent(), 0.0, font, t.AMBER_EDGE, '·'))
+                    if style == 'b' and index == 0:rows.append((at + fm.ascent(), 0.0, font, t.READY if calm else t.AMBER_EDGE, '·'))
                     rows.append((at + fm.ascent(), hang, font, colour, line));at += fm.height()
                 at += 7 * s
         self._read_room = max(0.0, at - inner.height());self._read_at = max(0.0, min(self._read_room, self._read_at))
@@ -615,7 +632,7 @@ class FieldView(QWidget):
             p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(r.right() - pad - fm_foot.horizontalAdvance(more), base), more)
         self._keys_line(p, r.left() + pad, base, [item for item in read['foot'].split('      ') if item.strip()], t.QUIET, r.width() - 2 * pad - fm_foot.horizontalAdvance(more) - 16 * s)
         if code:
-            p.setPen(QColor(t.FAINT));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('staC  ' + code, Qt.ElideRight, r.width() - 2 * pad))
+            p.setPen(QColor(t.TEAL_EDGE));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('staC  ' + code, Qt.ElideRight, r.width() - 2 * pad))
         p.restore()
 
     def _art(self, p, body):
@@ -681,7 +698,7 @@ class FieldView(QWidget):
         y += 4 * s + head.descent()
         p.setFont(self.mono(12))
         for line in lines:
-            y += fm.height();p.setPen(QColor(t.QUIET if line.startswith(('|', ' ')) else t.TEXT))
+            y += fm.height();p.setPen(QColor(t.TEAL_EDGE if line.startswith(('|', ' ')) else t.TEAL_TEXT))      # staC is green wherever it is said
             p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line, Qt.ElideRight, inner_w))
         y += 6 * s + head.ascent()
         p.setFont(self.mono(12));p.setPen(QColor(t.QUIET))
@@ -737,6 +754,23 @@ class FieldView(QWidget):
         p.fillRect(body, rim)
         p.restore()
 
+    LIGHT = 150.0                        # how far the pointer's light reaches on the ground, before the interface scale
+
+    def _lit(self, at):
+        """The square of the surface the pointer's light falls on when the pointer is at this point."""
+        reach = self.LIGHT * self.scale() + 2
+        return QRectF(at.x() - reach, at.y() - reach, 2 * reach, 2 * reach).toAlignedRect()
+
+    def _light(self, p, body):
+        """The pointer is green and it glows, so it lights the desk a little where it is: a faint pool of the same green on
+        the ground under it, beneath the sheets and the wires, the way a lamp shows under glass. It moves only when the hand
+        moves it, nothing here moves by itself. The Clean desk has none, and a page being read is not lit from behind."""
+        if not self.texture or self.reading is not None or not body.contains(self._mouse):return
+        reach = self.LIGHT * self.scale()
+        pool = QRadialGradient(self._mouse, reach)
+        pool.setColorAt(0.0, ink(t.READY, 0.14));pool.setColorAt(0.35, ink(t.READY, 0.065));pool.setColorAt(1.0, ink(t.READY, 0.0))
+        p.save();p.setClipRect(body);p.setPen(Qt.NoPen);p.setBrush(pool);p.drawEllipse(self._mouse, reach, reach);p.restore()
+
     def _head(self, p):
         s = self.scale();h = self.head_height();x = 28 * s
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, h - 0.5), QPointF(self.width(), h - 0.5))
@@ -791,7 +825,11 @@ class FieldView(QWidget):
                 start = QPointF(a.left(), a.center().y());end = QPointF(b.right(), b.center().y())
             reach = max(24.0 * s, abs(end.x() - start.x()) * 0.5) * (1 if end.x() >= start.x() else -1)
             path = QPainterPath(start);path.cubicTo(QPointF(start.x() + reach, start.y()), QPointF(end.x() - reach, end.y()), end)
-            colour = t.AMBER_EDGE if link.stale else (t.TEXT if touching else t.TEAL_EDGE)
+            hovered = bool(self._hover) and self._hover in (link.source, link.target) and self.field.selected not in (link.source, link.target)
+            colour = t.AMBER_EDGE if link.stale else t.READY if hovered else (t.TEXT if touching else t.TEAL_EDGE)
+            if self.texture and not link.stale:      # the light a live wire carries: under the line, wide and faint
+                for width, alpha in ((7.0, 0.035), (4.0, 0.07)):
+                    p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(t.READY, alpha * (2.6 if touching else 1.0) * (1.0 if near <= 1 or touching else 0.6)), width * s));p.drawPath(path)
             pen = QPen(ink(colour, strength * (0.95 if link.stale or touching else 0.8)), 1.8 if touching or link.stale else 1.0)
             if link.stale:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([5, 4])
             p.setBrush(Qt.NoBrush);p.setPen(pen);p.drawPath(path)
@@ -805,11 +843,25 @@ class FieldView(QWidget):
                 at = min((n / 40.0 for n in range(1, 40)), key=lambda f: abs(path.pointAtPercent(f).x() - want))
                 self._labels.append((path.pointAtPercent(at), word, link.stale))
 
+    def _halo(self, p, rect, colour, strength=1.0):
+        """A soft glow around a rectangle: three outlines, the widest the faintest. Still, like everything on this surface.
+        The Clean desk has none."""
+        if not self.texture:return
+        s = self.scale();p.save();p.setBrush(Qt.NoBrush)
+        for grow, width, alpha in ((7.0, 8.0, 0.05), (4.0, 5.0, 0.09), (1.5, 2.5, 0.17)):
+            p.setPen(QPen(ink(colour, min(1.0, alpha * strength)), width * s));p.drawRect(rect.adjusted(-grow * s, -grow * s, grow * s, grow * s))
+        p.restore()
+
     def _mark(self, p, box, state, colour):
         """One mark per state, different in shape and not only in hue: settled a filled square, recheck half filled, open
-        hollow, held crossed, waiting a dot inside, failed a cross, cannot be read or reached a dash."""
+        hollow, held crossed, waiting a dot inside, failed a cross, cannot be read or reached a dash. What is settled glows
+        a little in the desk's green: it is what is live."""
         p.save();pen = QPen(colour, 1.5);p.setPen(pen);p.setBrush(Qt.NoBrush)
         if state in SETTLED:
+            if self.texture:
+                glow = QRadialGradient(box.center(), box.width() * 2.6);inner = QColor(colour);inner.setAlphaF(min(1.0, colour.alphaF()) * 0.42)
+                outer = QColor(colour);outer.setAlphaF(0.0);glow.setColorAt(0.0, inner);glow.setColorAt(1.0, outer)
+                p.setPen(Qt.NoPen);p.setBrush(glow);p.drawEllipse(box.center(), box.width() * 2.6, box.width() * 2.6)
             p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
         elif state == STATE_RECHECK:
             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
@@ -827,9 +879,11 @@ class FieldView(QWidget):
 
     def _sheet(self, p, obj, r, depth):
         s = self.scale();depth = min(depth, 3);keep = WORD_INK[depth];edge_keep = EDGE_INK[depth];selected = depth == 0;focus = self.hasFocus()
+        touched = bool(self._hover) and obj.id == self._hover and not selected      # under the pointer: it answers in the pointer's green
+        if touched:self._halo(p, r, t.READY, 1.5)
         p.setBrush(QColor((t.CARD, t.CARD, t.PANEL, t.GROUND)[depth]))       # a sheet recedes by its ground and its edge; its words stay readable
-        edge = t.AMBER_EDGE if selected and focus else (t.LINE_STRONG if depth <= 1 else t.LINE)
-        p.setPen(QPen(ink(edge, 1.0 if selected else edge_keep + 0.1), 2 if selected else 1));p.drawRect(r)
+        edge = t.AMBER_EDGE if selected and focus else t.READY if touched else (t.LINE_STRONG if depth <= 1 else t.LINE)
+        p.setPen(QPen(ink(edge, 1.0 if selected else 0.85 if touched else edge_keep + 0.1), 2 if selected else 1));p.drawRect(r)
         if selected:                         # corner ticks: the selection reads without colour too
             p.setPen(QPen(ink(t.AMBER_EDGE if focus else t.LINE_STRONG, 1.0), 2));k = 9 * s;o = 5 * s
             for cx, cy, dx, dy in ((r.left() - o, r.top() - o, 1, 1), (r.right() + o, r.top() - o, -1, 1),
@@ -1006,4 +1060,4 @@ class FieldView(QWidget):
         code_w = min(fm3.horizontalAdvance(code), wide * 0.5) if code else 0.0
         p.drawText(QPointF(x, top + h - 14 * s), fm3.elidedText(said, Qt.ElideRight, wide - (code_w + 28 * s if code else 0)))
         if code:
-            p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(self.width() - x - code_w, top + h - 14 * s), fm3.elidedText(code, Qt.ElideRight, code_w))
+            p.setPen(QColor(t.TEAL_TEXT));p.drawText(QPointF(self.width() - x - code_w, top + h - 14 * s), fm3.elidedText(code, Qt.ElideRight, code_w))

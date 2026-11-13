@@ -32,18 +32,18 @@ QMenu::item:disabled { color: %(QUIET)s; }
 QMenu::separator { height: 1px; background: %(LINE)s; margin: 6px 10px; }
 
 QPushButton { background: transparent; color: %(TEXT)s; border: 0; border-bottom: 3px solid %(ERASER_MARK)s; border-radius: 0; padding: 4px 2px; text-align: left; }
-QPushButton:hover { background: %(AMBER_SOFT)s; border-bottom: 3px solid %(AMBER_EDGE)s; }
+QPushButton:hover { background: %(TEAL_SOFT)s; border-bottom: 3px solid %(TEAL_EDGE)s; }
 QPushButton:pressed { background: %(ERASER)s; border-bottom: 3px solid %(ERASER_MARK)s; }
 QPushButton:disabled { color: %(LINE_STRONG)s; border-bottom-color: transparent; }
 QPushButton:checked { border-bottom: 3px solid %(TEXT)s; font-weight: 600; }
 QPushButton:focus { border-bottom: 3px solid %(TEXT)s; }
 QPushButton[arcButton="primary"] { font-weight: 600; }
-QPushButton[arcButton="primary"]:hover { background: %(AMBER_SOFT)s; }
+QPushButton[arcButton="primary"]:hover { background: %(TEAL_SOFT)s; }
 QPushButton[arcButton="primary"]:focus { border-bottom: 3px solid %(TEXT)s; }
 QPushButton[arcButton="warm"]:hover { border-bottom: 3px solid %(ERASER_MARK)s; background: %(ERASER)s; }
 QPushButton[arcButton="stac"] { font-family: "IBM Plex Mono", monospace; }
 QPushButton[arcButton="link"] { padding: 3px 0; }
-QPushButton[arcButton="link"]:hover { background: %(AMBER_SOFT)s; }
+QPushButton[arcButton="link"]:hover { background: %(TEAL_SOFT)s; }
 QPushButton[arcButton="filter"] { padding: 8px 4px; margin-right: 10px; color: %(QUIET)s; border-bottom: 2px solid transparent; }
 QPushButton[arcButton="filter"]:hover { color: %(TEXT)s; }
 QPushButton[arcButton="filter"]:checked { color: %(TEXT)s; background: %(AMBER_SOFT)s; border-bottom: 2px solid %(TEXT)s; }
@@ -51,7 +51,7 @@ QPushButton[arcButton="segment"] { background: transparent; border: 0; border-bo
 QPushButton[arcButton="segment"]:checked { color: %(TEXT)s; border-bottom: 2px solid %(TEXT)s; background: transparent; font-weight: 600; }
 
 QToolButton { background: transparent; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 4px 4px; color: %(TEXT)s; }
-QToolButton:hover { border-bottom: 2px solid %(AMBER_EDGE)s; }
+QToolButton:hover { border-bottom: 2px solid %(TEAL_EDGE)s; }
 QToolButton:checked { border-bottom: 2px solid %(TEXT)s; }
 QToolButton:focus { border-bottom: 2px solid %(TEXT)s; }
 QToolButton::menu-indicator { width: 0; }
@@ -69,7 +69,7 @@ QPlainTextEdit:focus, QTextEdit:focus { border: 2px solid %(TEXT)s; }
 QTreeView, QTreeWidget, QListView, QListWidget, QTableView, QTableWidget { background: %(GROUND)s; border: 0; border-radius: 0;
     alternate-background-color: %(CARD)s; outline: 0; selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s; }
 QTreeView::item, QListView::item { padding: 6px 8px; border-radius: 8px; border-left: 2px solid transparent; }
-QTreeView::item:hover, QListView::item:hover { background: %(RAISED)s; }
+QTreeView::item:hover, QListView::item:hover { background: %(TEAL_SOFT)s; }
 QTreeView::item:selected, QListView::item:selected { background: %(AMBER_SOFT)s; color: %(TEXT)s; }
 QListView::item:selected, QTreeWidget#hardwareTree::item:selected { border-left: 2px solid %(TEXT)s; }
 QHeaderView::section { background: %(GROUND)s; color: %(QUIET)s; border: 0; border-bottom: 1px solid %(LINE)s; padding: 8px 10px; }
@@ -78,7 +78,7 @@ QTableView { gridline-color: %(LINE)s; }
 QTabWidget::pane { border: 0; border-top: 1px solid %(LINE)s; background: %(GROUND)s; }
 QTabBar::tab { background: transparent; color: %(QUIET)s; min-height: 24px; padding: 8px 6px; margin-right: 18px; border: 0; border-bottom: 2px solid transparent; }
 QTabBar::tab:selected { color: %(TEXT)s; border-bottom: 2px solid %(TEXT)s; background: %(AMBER_SOFT)s; border-top-left-radius: 8px; border-top-right-radius: 8px; }
-QTabBar::tab:hover:!selected { color: %(TEXT)s; background: %(RAISED)s; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+QTabBar::tab:hover:!selected { color: %(TEAL_TEXT)s; background: %(RAISED)s; border-top-left-radius: 8px; border-top-right-radius: 8px; }
 
 QScrollBar:vertical { background: %(GROUND)s; width: 10px; margin: 2px; }
 QScrollBar:horizontal { background: %(GROUND)s; height: 10px; margin: 2px; }
@@ -119,7 +119,7 @@ QWidget#TodayPage, QWidget#LibraryTab, QWidget#ItemView, QWidget#SlateFace { bac
 QLabel#KindChip { background: %(CARD)s; color: %(TEXT)s; border: 1px solid %(LINE_STRONG)s; border-radius: 8px; padding: 3px 10px; }
 QPushButton#AddressChip { background: %(TEAL_SOFT)s; color: %(TEAL_TEXT)s; border: 1px solid %(LINE)s; border-radius: 8px; padding: 4px 10px;
     font-family: "IBM Plex Mono", "DejaVu Sans Mono", monospace; }
-QPushButton#AddressChip:hover { background: %(AMBER_SOFT)s; }
+QPushButton#AddressChip:hover { background: %(TEAL_SOFT)s; }
 QFrame#SlateMine { background: %(AMBER_SOFT)s; border: 1px solid %(LINE)s; border-radius: 10px; }
 QFrame#SlateTheirs { background: %(CARD)s; border: 1px solid %(LINE)s; border-radius: 10px; }
 QFrame#StacCard { background: %(TEAL_SOFT)s; border: 1px solid %(LINE)s; border-radius: 10px; }

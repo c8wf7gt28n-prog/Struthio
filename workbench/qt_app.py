@@ -5329,6 +5329,8 @@ def make_app(argv=None):
     app.setStyleSheet(QSS2)
     from .theme2 import install as relight_older_panels
     relight_older_panels(app)
+    from .pointer import install as green_pointer      # the pointer in the desk's green, with its glow
+    green_pointer(app)
     return app
 
 

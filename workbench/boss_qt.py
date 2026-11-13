@@ -291,6 +291,8 @@ def appearance_menu(host):
 def choose_art(host, mode):
     if mode not in ART_MODES:return
     host.session.state['desk_art'] = mode;host.session.save()
+    from . import pointer
+    pointer.restyle(mode != 'clean')           # the pointer keeps its green on the Clean desk and drops its glow
     for kind in (ArtPanel, PanelInk):
         for panel in host.findChildren(kind):panel.refresh()
     field = getattr(host, 'field_page', None)      # the Field keeps Stacy's rail (or the ASCII mark, or nothing) in step
@@ -298,3 +300,5 @@ def choose_art(host, mode):
         field.view.art_mode = mode;field.view.texture = mode != 'clean';field.view.update()
     bar = getattr(host, 'type_bar', None)
     if bar is not None:bar.align()
+    from .desktop_header_qt import DesktopMonitors
+    for meters in host.findChildren(DesktopMonitors):meters.relight()      # the live readings glow, or not, with the desk

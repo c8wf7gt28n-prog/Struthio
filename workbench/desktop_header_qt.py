@@ -103,6 +103,24 @@ class DesktopMonitors(QWidget):
             self.values[key].setMinimumWidth(max(40, self.values[key].fontMetrics().horizontalAdvance('100%') + 4))  # the numbers never clip
         QTimer.singleShot(0, self.elide_keys)
 
+    def relight(self):
+        """A live reading is green, and on the Illustrated and ASCII desks it glows a little, as the pointer and the Field's
+        live things do. A reading that is not there ('—') does not glow, and the Clean desk has no glow at all."""
+        from PySide6.QtGui import QColor
+        from PySide6.QtWidgets import QGraphicsDropShadowEffect
+        from . import boss_theme as t
+        try:glow = self.host.session.state.get('desk_art', 'illustrated') != 'clean'
+        except Exception:  # noqa: BLE001 - a host without a session (a check): no ornament
+            glow = False
+        for value in self.values.values():
+            lit = bool(glow and value.property('liveReading'))
+            if lit == (value.graphicsEffect() is not None):continue
+            if lit:
+                halo = QGraphicsDropShadowEffect(value);halo.setOffset(0, 0);halo.setBlurRadius(14)
+                colour = QColor(t.READY);colour.setAlphaF(0.85);halo.setColor(colour);value.setGraphicsEffect(halo)
+            else:
+                value.setGraphicsEffect(None)
+
     def elide_keys(self):
         """The key words elide to the room their reading leaves them; the readings (the numbers) keep their width."""
         for key, label in self.labels.items():
@@ -139,6 +157,7 @@ class DesktopMonitors(QWidget):
                 value.setProperty('liveReading', live)
                 value.style().unpolish(value)
                 value.style().polish(value)
+        self.relight()
         self.setAccessibleDescription('Current Graphite host observation at '+str(sample['sampled_at'])+'; owner-host qualification remains separate.')
 
 

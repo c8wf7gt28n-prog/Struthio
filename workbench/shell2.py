@@ -306,7 +306,7 @@ def chrome_css(profile, assets):
         'QLabel[arcRole2="card"] {font-size:%s;font-weight:600;}' % px(20),
         'QLabel[arcRole2="section"] {font-size:%s;letter-spacing:1px;color:%s;font-weight:500;}' % (px(13), QUIET),
         'QWidget#LibraryFoot QPushButton {border:0;border-bottom:3px solid %s;background:transparent;color:%s;text-align:left;padding:4px 2px;}' % (ERASER_MARK, TEXT),
-        'QWidget#LibraryFoot QPushButton:hover {background:%s;border-bottom:3px solid %s;}' % (AMBER_SOFT, AMBER_EDGE),
+        'QWidget#LibraryFoot QPushButton:hover {background:%s;border-bottom:3px solid %s;}' % (TEAL_SOFT, TEAL_EDGE),
         'QLabel[arcRole2="quiet"] {font-size:%s;color:%s;}' % (px(14), QUIET),
         'QLabel#KindChip, QPushButton#AddressChip {font-size:%s;}' % px(14),
         'QLineEdit#OneBox {font-size:%s;}' % px(16),
@@ -317,7 +317,7 @@ def chrome_css(profile, assets):
         'QWidget#CommandRow2 QToolButton:hover {background:%s;}' % RAISED,
         'QWidget#TimelineHead QLabel {font-size:%s;color:%s;}' % (px(14), QUIET),
         'QWidget#TimelineHead QPushButton, QWidget#TimelineHead QCheckBox {font-size:%s;color:%s;background:transparent;border:0;padding:4px 2px;margin:0 6px;}' % (px(14), TEXT),
-        'QWidget#TimelineHead QPushButton {border-bottom:3px solid %s;} QWidget#TimelineHead QPushButton:hover {background:%s;border-bottom:3px solid %s;}' % (ERASER_MARK, AMBER_SOFT, AMBER_EDGE),
+        'QWidget#TimelineHead QPushButton {border-bottom:3px solid %s;} QWidget#TimelineHead QPushButton:hover {background:%s;border-bottom:3px solid %s;}' % (ERASER_MARK, TEAL_SOFT, TEAL_EDGE),
         'QWidget#SlateFace QLabel, QFrame#SlateMine QLabel, QFrame#SlateTheirs QLabel {font-size:%s;}' % px(18),
         'QLineEdit#SlateInput, QPlainTextEdit#SlateInput, QPlainTextEdit#Capture {font-size:%s;}' % px(18),
     ])
