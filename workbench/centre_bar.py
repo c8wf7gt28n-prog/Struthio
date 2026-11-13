@@ -151,7 +151,7 @@ class CentreBar(QWidget):
 
         def offer(button, on, what, why):
             button.setEnabled(bool(on));key = button.property('key')
-            button.setToolTip((what + (' (%s)' % key if key else '')) if on else why)
+            button.setToolTip(what if on else why)      # 0.5.2: no key beside the words; the key still works
 
         offer(self.field, True, 'Back to the Field: your work as tiles and wires, at the tile this was opened from', '')
         if self.finder.isVisible() and page is not self._found_on:self.finder.close_line()     # another page came to the front: its words are not these

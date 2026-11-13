@@ -51,9 +51,9 @@ An action is a button, a dark plate with a quiet edge; a word that only goes som
 **Find** (Ctrl+F) opens one line above the work and searches whatever is open: writing, the cells of a sheet, a list, the lines of a finding, the words of a PDF page; Enter goes to the next place, Shift+Enter to the one before, Esc closes it.
 With the whole desk in the window (**Z**), each sheet is the glyph of its kind, its name and the mark of its state, all large enough to read; the Field opens as you last saw it.
 The menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand across the head; after them the head says the name of what is open and whether it is saved; click the name (or Ctrl+L) for its address.
-**Rules ▸ Desk artwork ▸ Glow** sets how strongly the desk glows: Soft, Bright (what it opens with) or Neon. In the left tree the traces from the root to the row you are on are lit.
+**Rules ▸ Desk artwork ▸ Glow** sets how strongly the desk glows: Soft, Bright or Neon (what it opens with). Keys work as they always did but are not printed beside what they do; the **?** key in the Field lists them. In the left tree the traces from the root to the row you are on are lit.
 Every tool is one of Graphite's own glyphs with no box (a tool particular to a page keeps its words beside its glyph; a glyph alone says its name in its tip); **Work ▸ Rules ▸ Buttons ▸ Words** brings back worded plates.
-`docs/RELEASE_NOTES_0.5.1.md`, `docs/RELEASE_NOTES_0.5.0.md`, `docs/RELEASE_NOTES_0.4.9.md`, `docs/RELEASE_NOTES_0.4.8.md`, `docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+`docs/RELEASE_NOTES_0.5.2.md`, `docs/RELEASE_NOTES_0.5.1.md`, `docs/RELEASE_NOTES_0.5.0.md`, `docs/RELEASE_NOTES_0.4.9.md`, `docs/RELEASE_NOTES_0.4.8.md`, `docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

@@ -798,7 +798,7 @@ class PathBar(QLineEdit):
         if force or not self.hasFocus():
             if self.text() != address:
                 self.setText(address);self.setCursorPosition(0)
-        self.setToolTip(address + '\n' + description + '\nCtrl+L · Enter to open · Esc to restore')
+        self.setToolTip(address + '\n' + description)      # 0.5.2: no keys beside it
 
     def friendly(self):
         """(the name of what is open, and quietly where or what it is), as the head says them at rest."""

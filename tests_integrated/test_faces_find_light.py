@@ -53,6 +53,14 @@ class GlyphSetTests(unittest.TestCase):
     def test_a_menu_line_is_looked_up_without_its_mnemonic_its_key_or_its_dots(self):
         self.assertEqual([tool_faces.named(w) for w in ('&Undo','Find…\tCtrl+F','New &File…','Pin / Unpin workspace\tCtrl+Shift+K')],['Undo','Find','New File','Pin / Unpin workspace'])
 
+    def test_a_menu_line_shows_its_words_and_never_its_key(self):
+        from PySide6.QtGui import QKeySequence
+        from PySide6.QtWidgets import QMenu
+        menu=QMenu();save=menu.addAction('&Save');save.setShortcut(QKeySequence('Ctrl+S'));idea=menu.addAction('New Idea…\tCtrl+Shift+N')
+        tool_faces.dress(menu)
+        self.assertFalse(save.isShortcutVisibleInContextMenu());self.assertEqual(save.shortcut().toString(),'Ctrl+S','the key still works; it is not printed')
+        self.assertEqual(idea.text(),'New Idea…','a key written into a line after a tab is taken out of it')
+
     def test_a_menu_wears_glyphs_only_with_icons_chosen_and_gives_back_what_it_had(self):
         from PySide6.QtWidgets import QMenu
         menu=QMenu();undo=menu.addAction('&Undo');other=menu.addAction('Something with no glyph');menu.addSeparator()
@@ -175,16 +183,16 @@ class KeptChoicesTests(unittest.TestCase):
 
 
 class GlowDialTests(unittest.TestCase):
-    def test_the_dial_opens_on_bright_and_follows_the_session(self):
+    def test_the_dial_opens_on_neon_and_follows_the_session(self):
         from workbench import boss_qt
         self.addCleanup(lambda:boss_theme.GLOW.__setitem__(0,dict((k,v) for k,_,v in boss_theme.GLOW_LEVELS)[boss_theme.GLOW_OPENS]))
-        levels=dict((k,v) for k,_,v in boss_theme.GLOW_LEVELS);self.assertEqual(boss_theme.GLOW_OPENS,'bright')
+        levels=dict((k,v) for k,_,v in boss_theme.GLOW_LEVELS);self.assertEqual(boss_theme.GLOW_OPENS,'neon','0.5.2: the owner, having seen the three, likes Neon')
         self.assertLess(levels['soft'],levels['bright']);self.assertLess(levels['bright'],levels['neon']);self.assertEqual(levels['soft'],1.0,'Soft is what 0.5.0 had')
         host=type('Host',(),{})();host.session=type('S',(),{'state':{}})()
-        self.assertEqual(boss_qt.set_glow(host),levels['bright']);self.assertEqual(boss_theme.glow(),levels['bright'])
-        host.session.state['glow']='neon';self.assertEqual(boss_qt.set_glow(host),levels['neon'])
-        host.session.state['glow']='nonsense';self.assertEqual(boss_qt.set_glow(host),levels['bright'])
-        self.assertEqual(boss_qt.set_glow(object()),levels['bright'],'a host with no session gets what the desk opens with')
+        self.assertEqual(boss_qt.set_glow(host),levels['neon']);self.assertEqual(boss_theme.glow(),levels['neon'])
+        host.session.state['glow']='soft';self.assertEqual(boss_qt.set_glow(host),levels['soft'])
+        host.session.state['glow']='nonsense';self.assertEqual(boss_qt.set_glow(host),levels['neon'])
+        self.assertEqual(boss_qt.set_glow(object()),levels['neon'],'a host with no session gets what the desk opens with')
 
 
 if __name__=='__main__':

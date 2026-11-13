@@ -202,7 +202,7 @@ class DocumentsTab(QWidget):
         self.setObjectName('LibraryTab'); self.setProperty('ledgerRoom', True); self.setStyleSheet(PAGE_STYLE)
         outer = QVBoxLayout(self); outer.setContentsMargins(28, 18, 28, 12); outer.setSpacing(8)
         head = QHBoxLayout(); head.addWidget(role(QLabel('Documents'), 'title'), 1); outer.addLayout(head)
-        self.lead = QLabel('Write here. Select words and ask Stacy in the strip below: “make these words bold”. Saving is automatic; Ctrl Z takes any change back, hers too.')
+        self.lead = QLabel('Write here. Select words and ask Stacy in the strip below: “make these words bold”. Saving is automatic, and any change can be taken back, hers too.')
         self.lead.setWordWrap(True); self.lead.setStyleSheet('color:%s' % QUIET); outer.addWidget(self.lead)
         split = QSplitter(Qt.Horizontal); split.setChildrenCollapsible(False); outer.addWidget(split, 1)
         left = QWidget(); left_box = QVBoxLayout(left); left_box.setContentsMargins(0, 0, 12, 0); left_box.setSpacing(6)
@@ -223,9 +223,9 @@ class DocumentsTab(QWidget):
         writing_prompt(self.title_box, 'Document title'); self.title_box.setAccessibleName('Document title'); self.title_box.textEdited.connect(self.changed); box.addWidget(self.title_box)
         marks = WordRow(spacing=6, line_spacing=6); self.mark_words = {}  # one row while it fits, wrapping where the page is narrow
         for label, key, tip in (('Bold', 'bold', 'Ctrl B'), ('Italic', 'italic', 'Ctrl I'), ('Underline', 'underline', 'Ctrl U')):
-            word = action(label, lambda checked=False, k=key: self.toggle_mark(k)); word.setToolTip(tip); word.setAccessibleDescription(tip + ' · applies to the selected words'); marks.add(word); self.mark_words[key] = word
+            word = action(label, lambda checked=False, k=key: self.toggle_mark(k)); word.setToolTip(label + ' the selected words'); word.setAccessibleDescription(tip + ' · applies to the selected words'); marks.add(word); self.mark_words[key] = word
         for n, (label, style, tip) in enumerate((('Heading', 'Heading1', 'Ctrl 1'), ('Subheading', 'Heading2', 'Ctrl 2'), ('Minor heading', 'Heading3', 'Ctrl 3'), ('Body', 'Normal', 'Ctrl 0'), ('Code', 'Code', 'Ctrl `'))):
-            word = action(label, lambda checked=False, s=style: self.set_style(s)); word.setToolTip(tip); word.setAccessibleDescription(tip + ' · applies to the paragraph'); marks.add(word, 14 if n == 0 else 0); self.mark_words[style] = word
+            word = action(label, lambda checked=False, s=style: self.set_style(s)); word.setToolTip('Make this paragraph: ' + label.lower()); word.setAccessibleDescription(tip + ' · applies to the paragraph'); marks.add(word, 14 if n == 0 else 0); self.mark_words[style] = word
         plain = action('Plain', self.clear_marks); plain.setToolTip('Remove bold, italic and underline from the selected words'); marks.add(plain, 14); self.mark_words['clear'] = plain
         for word in self.mark_words.values():       # a row of tools, as every writing program has: the words they were, drawn as buttons
             said = word.toolTip(); tool(word); word.setToolTip(said)

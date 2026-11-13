@@ -25,12 +25,12 @@ READY, STOP = '#c3ed74', '#ff9a36'
 
 # How strongly the desk glows. The owner, with 0.4.6 on the ThinkPad's own panel: "You asked me about the glow effect.
 # It's not enough. I want way more glow effect." So there is one dial for all of it (Work ▸ Rules ▸ Desk artwork ▸ Glow),
-# and it opens on Bright: every light on the desk (the halo of what has the keyboard, the lamps of what is live, the
+# and it opens on Neon (0.5.1 opened on Bright): every light on the desk (the halo of what has the keyboard, the lamps of what is live, the
 # wires, lit words, the pointer, the rule of each band, the live path in the tree, an icon under the pointer) is
 # multiplied by this. Soft is what 0.5.0 had. The Clean desk has no glow whatever this says.
 GLOW_LEVELS = (('soft', 'Soft', 1.0), ('bright', 'Bright', 1.9), ('neon', 'Neon', 3.0))
-GLOW_OPENS = 'bright'
-GLOW = [1.9]        # the level in force (boss_qt.set_glow keeps it in step with the session)
+GLOW_OPENS = 'neon'         # 0.5.2: the owner, having seen the three: "I like neon setting"
+GLOW = [3.0]        # the level in force (boss_qt.set_glow keeps it in step with the session)
 
 
 def glow():

@@ -372,7 +372,7 @@ class FieldView(QWidget):
         steps, go = self.steps, self.go;self._describe();self.steps, self.go = steps, go      # the description follows the sheet again; what waits is not withdrawn
 
     def show_keys(self):
-        self.show_reading('The keys of the Field', KEYS, 'Esc  close      ↑ ↓  read on      ?  close')
+        self.show_reading('The keys of the Field', KEYS, 'Esc  close')
 
     def _reading_key(self, event):
         """The keys while a page is being read. A page (the brief, the keys) takes reading keys only, so a letter meant for
@@ -532,7 +532,11 @@ class FieldView(QWidget):
     def _keys_line(self, p, x, base, items, colour, room, target=''):
         """Draw 'KEY  what it does' items along one line, each a place to click that does what its key does. An item whose key
         is G is the owner's go, so it is drawn as an Approve button and says what it would apply, and to what. Items that do
-        not fit are left out from the end. Returns the x after the last one drawn."""
+        not fit are left out from the end. Returns the x after the last one drawn.
+
+        0.5.2 (the owner: "We don't need to display keyboard shortcuts anywhere ... keep it sleek and tidy"): what is drawn
+        is the words alone, as a button. The key still does what it did, and is still what the item is found by; an item
+        that only told of a key and could not be clicked is not drawn at all."""
         s = self.scale();fm = QFontMetricsF(p.font());gap = fm.horizontalAdvance('      ');end = x + room
         for item in items:
             label, _, words = str(item).partition('  ');words = words.strip();found = self._key_of(label)
@@ -547,18 +551,19 @@ class FieldView(QWidget):
                 p.setPen(QColor(t.GROUND));p.drawText(box, Qt.AlignCenter, 'Approve');p.restore()
                 p.setPen(QColor(colour));p.drawText(QPointF(x + wide + 8 * s, base), said)
                 self._hot.append((QRectF(x, box.top(), total, box.height()), Qt.Key_G, 'g',
-                                  'Approve: %s%s. Nothing is changed until you do (G does the same)' % (words, (' · for “%s”' % str(target)[:80]) if target else '')))
+                                  'Approve: %s%s. Nothing is changed until you do' % (words, (' · for “%s”' % str(target)[:80]) if target else '')))
             else:
-                total = fm.horizontalAdvance(str(item))
+                if found is None or not words:continue          # it only named a key: not shown
+                said = words[:1].upper() + words[1:];total = fm.horizontalAdvance(said)
                 if x + total > end:break
                 spot = QRectF(x - 4 * s, base - fm.ascent() - 4 * s, total + 8 * s, fm.height() + 8 * s)
                 over = found is not None and spot.contains(self._mouse)
                 if found is not None:        # a key that can be clicked is a button, and looks like one: a dark plate with a quiet edge, green under the pointer
                     box = spot.adjusted(-2 * s, 0.5, 2 * s, -0.5)
                     p.save();p.setPen(QPen(QColor(t.TEAL_EDGE if over else t.LINE), 1));p.setBrush(QColor(t.TEAL_SOFT if over else t.RAISED));p.drawRect(box);p.restore()
-                p.setPen(QColor(t.TEAL_TEXT if over else colour));p.drawText(QPointF(x, base), str(item))
+                p.setPen(QColor(t.TEAL_TEXT if over else colour));p.drawText(QPointF(x, base), said)
                 if found is not None:
-                    self._hot.append((spot, found[0], found[1], words[:1].upper() + words[1:] + ' (%s)' % label.strip()))
+                    self._hot.append((spot, found[0], found[1], said))
             x += total + gap
         return x
 
@@ -844,7 +849,7 @@ class FieldView(QWidget):
         more = ('↑ more   ' if self._read_at > 1 else '') + ('more ↓' if self._read_room - self._read_at > 1 else '')
         if more:
             at = r.right() - pad - fm_foot.horizontalAdvance(more)
-            for word, key, tip in (('↑ more   ', Qt.Key_PageUp, 'Read back (PgUp)'), ('more ↓', Qt.Key_PageDown, 'Read on (PgDn)')):
+            for word, key, tip in (('↑ more   ', Qt.Key_PageUp, 'Read back'), ('more ↓', Qt.Key_PageDown, 'Read on')):
                 if word not in more:continue
                 wide = fm_foot.horizontalAdvance(word);spot = QRectF(at - 4 * s, base - fm_foot.ascent() - 5 * s, fm_foot.horizontalAdvance(word.strip()) + 8 * s, fm_foot.height() + 10 * s)
                 p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.AMBER_TEXT));p.drawText(QPointF(at, base), word)
@@ -921,14 +926,14 @@ class FieldView(QWidget):
             p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line, Qt.ElideRight, inner_w))
         y += 6 * s + head.ascent()
         p.setFont(self.mono(12));fm_keys = QFontMetricsF(p.font());at = x;sep = '  ·  ';end = x + inner_w
-        keys = (('S', 'line', 'Put this line in the writing strip; nothing runs (S)'), ('Shift+Enter', 'run', 'Run this line: a read, nothing is changed (Shift+Enter)'))
+        keys = (('S', 'Line', 'Put this line in the writing strip; nothing runs'), ('Shift+Enter', 'Run', 'Run this line: a read, nothing is changed'))
         for index, (label, words, tip) in enumerate(keys):
-            if end - at < fm_keys.horizontalAdvance(label[:5] + '…'):break          # no room to say even the start of it: the key itself still works
-            shown = fm_keys.elidedText('%s  %s' % (label, words), Qt.ElideRight, end - at);wide = fm_keys.horizontalAdvance(shown)      # cut short when the rail is narrow, as it always was
+            if end - at < fm_keys.horizontalAdvance(words):break          # no room to say it: the key itself still works
+            shown = words;wide = fm_keys.horizontalAdvance(shown)      # 0.5.2: the words alone; the key is not shown
             spot = QRectF(at - 4 * s, y - fm_keys.ascent() - 4 * s, wide + 8 * s, fm_keys.height() + 8 * s);found = self._key_of(label)
             p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(at, y), shown)
             self._hot.append((spot, found[0], found[1], tip));at += wide
-            if index + 1 < len(keys) and end - at - fm_keys.horizontalAdvance(sep) >= fm_keys.horizontalAdvance(keys[index + 1][0][:5] + '…'):
+            if index + 1 < len(keys) and end - at - fm_keys.horizontalAdvance(sep) >= fm_keys.horizontalAdvance(keys[index + 1][1]):
                 p.setPen(QColor(t.FAINT));p.drawText(QPointF(at, y), sep);at += fm_keys.horizontalAdvance(sep)      # a dot only between two keys that are both there
             else:break
 
@@ -966,10 +971,7 @@ class FieldView(QWidget):
             for at, line in enumerate(going):
                 y += fm.height();p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line if at == 0 else '   ' + line, Qt.ElideRight, inner_w))
                 self._hot.append((QRectF(x - 4 * s, y - fm.height(), inner_w + 8 * s, fm.height()), Qt.Key_G, 'g', 'Approve: %s. Nothing is changed until you do' % self.go))
-        y += 6 * s + head.ascent();p.setPen(QColor(t.QUIET))
-        keys = [('1-%d  take' % min(9, len(self.steps)) if len(self.steps) > 1 else '1  take')] if self.steps else []
-        if self.go:keys.append('G  go')
-        p.drawText(QPointF(x, y), fm.elidedText('  ·  '.join(keys + ['Esc  close']), Qt.ElideRight, inner_w))
+        # (0.5.2: a line of keys stood here, "1-6 take · G go · Esc close". The rows above are clicked; keys are not shown.)
 
     def _texture(self, p, body):
         """A still scan texture and a darker rim: depth without movement."""
@@ -1048,7 +1050,7 @@ class FieldView(QWidget):
                 mark = 8 * s;lamp = QRectF(left - mark - 10 * s, base - fm3.ascent() / 2 - mark / 2 + 1, mark, mark)
                 over = QRectF(lamp.left() - 6 * s, 0, census_w + mark + 22 * s, h)
                 self._mark(p, lamp, 'waiting', QColor(t.AMBER_EDGE))
-                self._hot.append((over, Qt.Key_A, 'a', 'Go to the next thing that waits for you (A)'))
+                self._hot.append((over, Qt.Key_A, 'a', 'Go to the next thing that waits for you'))
                 p.setPen(QColor(t.READY if over.contains(self._mouse) else t.AMBER_TEXT))
             p.drawText(QPointF(left, base), census)
 
@@ -1310,19 +1312,19 @@ class FieldView(QWidget):
         # the window shows, and whenever the sheets are not at their ordinary size.
         size = ''
         if abs(self.zoom - 1.0) > 1e-6:
-            size = 'Z  %s · now %d%%' % ('ordinary size' if self._fitted else 'whole desk', round(self.zoom * 100))
+            size = 'Z  %s · %d%%' % ('ordinary size' if self._fitted else 'whole desk', round(self.zoom * 100))
         elif beyond:size = 'Z  whole desk'
-        note = ' · '.join(part for part in ((self.would_said + ' · nothing is changed · Esc clears') if self.would_said else '', self.field.note, self.problem) if part)
+        note = ' · '.join(part for part in ((self.would_said + ' · nothing is changed') if self.would_said else '', self.field.note, self.problem) if part)
         aside = self.field.aside if not note else ''      # what belongs elsewhere is said quietly, when nothing louder is being said
         if note or size or aside:           # on its own strip of ground, so it is read over whatever sheet lies under it
             p.fillRect(QRectF(body.left(), body.bottom() - 24 * s, body.width(), 24 * s), ink(t.TERMINAL_GROUND, 0.9))
         fm = QFontMetricsF(p.font());room = body.width() - 56 * s;base = body.bottom() - 13 * s + (fm.ascent() - fm.descent()) / 2;tail = 0.0
         if size:                           # at the right end of the strip
-            size_w = fm.horizontalAdvance(size);sign_w = 24 * s
+            size_w = fm.horizontalAdvance(size.partition('  ')[2]);sign_w = 24 * s      # the words alone are drawn (0.5.2)
             if size_w + 2 * sign_w < room * 0.6:
-                self._keys_line(p, body.right() - 28 * s - size_w, base, [size], t.QUIET, size_w + 2)
+                self._keys_line(p, body.right() - 28 * s - size_w, base, [size], t.QUIET, size_w + 2)      # (drawn as its words; Z is not shown)
                 at = body.right() - 28 * s - size_w - 10 * s
-                for sign, step, tip in (('+', 2, 'Larger (+, or Ctrl and the wheel)'), ('−', -2, 'Smaller (−, or Ctrl and the wheel)')):
+                for sign, step, tip in (('+', 2, 'Larger'), ('−', -2, 'Smaller')):
                     at -= sign_w;spot = QRectF(at, body.bottom() - 24 * s, sign_w, 24 * s);over = spot.contains(self._mouse)
                     box = spot.adjusted(2 * s, 3 * s, -2 * s, -3 * s)
                     p.save();p.setPen(QPen(QColor(t.TEAL_EDGE if over else t.LINE), 1));p.setBrush(QColor(t.TEAL_SOFT if over else t.RAISED));p.drawRect(box);p.restore()
@@ -1336,10 +1338,10 @@ class FieldView(QWidget):
     def _empty(self, p, body):
         s = self.scale();p.setFont(self.mono(13));fm = QFontMetricsF(p.font())
         if self.problem:
-            p.setPen(QColor(t.AMBER_TEXT));lines = ('// the records could not be read', '', '   ' + self.problem + '.', '   R looks again.')
+            p.setPen(QColor(t.AMBER_TEXT));lines = ('// the records could not be read', '', '   ' + self.problem + '.')
         else:
             p.setPen(QColor(t.QUIET));lines = ('// nothing in the field yet', '', '   bring material in through Ingress, or open a file;',
-                                               '   what you work on appears here with what it came from.', '', '   ?  shows every key of the Field.')
+                                               '   what you work on appears here with what it came from.')
         y = body.center().y() - len(lines) * fm.height() / 2;x = max(28 * s, body.center().x() - 240 * s)
         for line in lines:
             y += fm.height();p.drawText(QPointF(x, y), line)
@@ -1353,11 +1355,11 @@ class FieldView(QWidget):
         # least needed first. Only what has no other home on this surface is here (0.4.9, the audit of what repeats what):
         # a click on a sheet opens it, so there is no Open; the faces are at the head; the lamp at the head goes to what waits;
         # Z is on the strip above; the right button is the menu. Every key is still on the card that ? shows.
-        legend = [(2, 'D  do'), (4, 'X  doubt'), (6, 'T  trace'), (5, 'C  check all'), (6.5, 'B  brief'), (10, 'R  look again'), (12, '⌫  where I was'), (0.5, '?  keys'), (0, 'Esc  back')]
+        legend = [(2, 'D  do'), (4, 'X  doubt'), (6, 'T  trace'), (5, 'C  check all'), (6.5, 'B  brief'), (10, 'R  look again'), (12, '⌫  where I was'), (0, 'Esc  back')]
         if not self.rail():legend.insert(5, (7, 'S  staC'))       # where Stacy's rail is not shown, the line's key is offered here instead
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font())
         if obj is None:
-            self._keys_line(p, x, top + h / 2 + fm.ascent() / 2, ['R  look again', '?  keys', 'Esc  back'], t.QUIET, self.width() - 2 * x);return
+            self._keys_line(p, x, top + h / 2 + fm.ascent() / 2, ['R  look again', 'Esc  back'], t.QUIET, self.width() - 2 * x);return
         wide = self.width() - 2 * x;compact = h < 60 * s
         p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT))
         tag = obj.tag or KIND_TAG.get(obj.kind, obj.kind.upper())

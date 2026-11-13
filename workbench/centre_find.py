@@ -118,9 +118,9 @@ class FindLine(QWidget):
             button = QPushButton(words);button.setCursor(Qt.PointingHandCursor);button.setFocusPolicy(Qt.TabFocus);button.setToolTip(tip)
             button.clicked.connect(does);return wear(button, glyph)
 
-        self.before = control('‹ Before', 'The place before (Shift+Enter)', lambda: self.step(-1), 'previous')
-        self.after = control('Next ›', 'The next place (Enter)', lambda: self.step(1), 'next')
-        self.shut = control('Close', 'Close Find (Esc)', self.close_line, '')
+        self.before = control('‹ Before', 'The place before', lambda: self.step(-1), 'previous')
+        self.after = control('Next ›', 'The next place', lambda: self.step(1), 'next')
+        self.shut = control('Close', 'Close Find', self.close_line, '')
         for part in (self.says, self.line, self.before, self.after, self.count):row.addWidget(part)
         row.addStretch(1);row.addWidget(self.shut)
         self.wait = QTimer(self);self.wait.setSingleShot(True);self.wait.setInterval(140);self.wait.timeout.connect(self.search)

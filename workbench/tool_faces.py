@@ -195,19 +195,29 @@ _icons = {}
 
 def icon(key):
     """A glyph as an icon a menu can show: its ink at rest, amber when its line is chosen, dim when it cannot be used."""
-    if key in _icons:return _icons[key]
+    kept = (key, t.glow())       # the light under a glyph follows the desk's dial
+    if kept in _icons:return _icons[kept]
     from PySide6.QtGui import QIcon, QPixmap
     from .glyph_set import KIND
     draw = GLYPHS.get(key) or KIND.get(key);made = QIcon()
     if draw is None:return made
-    for state, line, fill in ((QIcon.Normal, t.TEXT, t.FAINT), (QIcon.Active, t.AMBER_TEXT, t.AMBER_EDGE), (QIcon.Selected, t.AMBER_TEXT, t.AMBER_EDGE), (QIcon.Disabled, t.LINE_MID, t.LINE)):
+    # 0.5.2 (the owner: "the icons in the drop down menus could be neon green"): the desk's live green, with a little of
+    # its own light under it; brighter on the line the pointer is on; dim on a line that cannot be used.
+    level = t.glow()
+    for state, line, fill, lit in ((QIcon.Normal, t.READY, t.TEAL_EDGE, 0.10), (QIcon.Active, t.TEAL_TEXT, t.READY, 0.18),
+                                   (QIcon.Selected, t.TEAL_TEXT, t.READY, 0.18), (QIcon.Disabled, t.LINE_MID, t.LINE, 0.0)):
         for ratio in (1, 2):
             image = QPixmap(SIDE * ratio, SIDE * ratio);image.fill(Qt.transparent)
             p = QPainter(image);p.setRenderHint(QPainter.Antialiasing);p.scale(SIDE * ratio / 20.0, SIDE * ratio / 20.0)
-            try:draw(p, QColor(line), QColor(fill))
+            try:
+                if lit and level > 0:
+                    halo = QColor(t.READY);halo.setAlphaF(min(0.32, lit * level / 1.9))
+                    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                        p.save();p.translate(dx, dy);draw(p, halo, halo);p.restore()
+                draw(p, QColor(line), QColor(fill))
             finally:p.end()
             image.setDevicePixelRatio(ratio);made.addPixmap(image, state)
-    _icons[key] = made;return made
+    _icons[kept] = made;return made
 
 
 def named(text):
@@ -225,15 +235,20 @@ def dress(menu):
         menu.setProperty('glyphs', on);style = menu.style();style.unpolish(menu);style.polish(menu)
     for line in menu.actions():
         if line.isSeparator():continue
+        # 0.5.2 ("We don't need to display keyboard shortcuts anywhere ... keep it sleek and tidy"): a line shows its words.
+        # The key still does what it did; it is no longer printed beside them, nor written into the line after a tab.
+        if line.isShortcutVisibleInContextMenu():line.setShortcutVisibleInContextMenu(False)
+        if '\t' in line.text():line.setText(line.text().split('\t')[0])
+        if '&' in line.text().replace('&&', ''):line.setText(line.text().replace('&&', '\0').replace('&', '').replace('\0', '&&'))      # nor an underlined letter
         inner = line.menu()
         if inner is not None and not inner.property('glyphDressed'):
             inner.setProperty('glyphDressed', True);inner.aboutToShow.connect(lambda inner=inner: dress(inner))
         key = FOR_MENU.get(named(line.text()))
         if key is None or (key not in GLYPHS and key not in KIND):continue
         if on and not line.property('glyphIcon'):           # some lines carry an older picture the menus never showed: it is kept, to be put back
-            line.setProperty('iconBefore', line.icon());line.setProperty('shownBefore', line.isIconVisibleInMenu())
-            line.setIcon(icon(key));line.setProperty('glyphIcon', True)
-        if on:line.setIconVisibleInMenu(True)
+            line.setProperty('iconBefore', line.icon());line.setProperty('shownBefore', line.isIconVisibleInMenu());line.setProperty('glyphIcon', True)
+        if on:
+            line.setIcon(icon(key));line.setIconVisibleInMenu(True)      # set each time: its light follows the dial
         elif line.property('glyphIcon'):
             before = line.property('iconBefore');line.setIcon(before if isinstance(before, QIcon) else QIcon())
             line.setIconVisibleInMenu(bool(line.property('shownBefore')));line.setProperty('glyphIcon', False)
@@ -243,6 +258,11 @@ def start(host):
     """Read the choice the session keeps. Called once, before the work pages are made."""
     chosen = getattr(getattr(host, 'session', None), 'state', {}).get(KEY, OPENS_WITH)
     STATE['mode'] = chosen if chosen in MODES else OPENS_WITH
+    try:        # no menu anywhere in the program prints a key beside a line (0.5.2); the keys work as they did
+        from PySide6.QtCore import QCoreApplication
+        QCoreApplication.setAttribute(Qt.AA_DontShowShortcutsInContextMenus, True)
+    except Exception:  # noqa: BLE001 - how a menu is printed is never worth an error
+        pass
 
 
 def restyle(host):
