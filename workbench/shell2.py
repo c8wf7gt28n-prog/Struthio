@@ -1004,7 +1004,11 @@ def preview_rows(host, text, shown=4):
     from .engineering_kernel import operator
     try:
         from .field_page import expand_this
-        text = expand_this(host, text)        # `this`: the sheet selected in the Field
+        from .stac_words import command, expand, known_to
+        made = command(text)
+        if made is not None and made.startswith('/'):      # keeping or forgetting a word changes something: it is not previewed, it is said
+            return [('section', 'PREVIEW', None), ('note', ('Ctrl+Enter keeps this word' if made.startswith('/words.keep') else 'Ctrl+Enter forgets this word'), None)]
+        text = expand_this(host, made or expand(known_to(host), text))        # the owner's words, then `this`: the sheet selected in the Field
     except ValueError as exc:
         return [('section', 'PREVIEW', None), ('note', str(exc)[:110], None)]
     try:r = engineering(host.root).dispatch('language.run', {'text': text}, operator())
@@ -1648,7 +1652,11 @@ class SlateFace(QWidget):
             if r.get('ok') and said == 'Done.' and isinstance(r['result'], dict):      # a read whose answer is a record, not rows: the record itself, in short
                 said = json.dumps(r['result'], indent=1, ensure_ascii=False, default=str)[:1500]
         shown = said
-        if r.get('ok') and len(rows) > 1 and all(isinstance(row, dict) and len(row) >= 3 for row in rows):
+        if r.get('ok') and rows and all(isinstance(row, dict) and len(row) == 1 for row in rows):
+            # Rows of one field are lines of writing (a page's words, a brief): each on its own line, with nothing in front of it.
+            shown = '\n'.join(str(value if isinstance(value, str) else json.dumps(value, ensure_ascii=False))[:600] for row in rows[:120] for value in row.values())
+            if len(rows) > 120:shown += '\n… %d more lines' % (len(rows) - 120)
+        elif r.get('ok') and len(rows) > 1 and all(isinstance(row, dict) and len(row) >= 3 for row in rows):
             # Several rows of several fields read better as lines than as blocks: the fields once, then a row a line.
             # (What the model is given stays field by field: card.said.)
             # A field is cut where a table would run away, and the cut is marked. Rows that are whole sentences (a doubt's reason)
@@ -1790,21 +1798,25 @@ class SlateFace(QWidget):
         if done is not None:done(card.results)
 
     def what_if(self, text):
-        """“What if B3 were 320?”, asked while a calculation is selected in the Field: the calculation's own recipe worked with
-        that value, exactly, changing nothing (field.whatif, a read). The inputs are named by their cell, their symbol or
-        their words; several go together with "and". Returns the thing to answer about, a dict with 'refusal' when the
-        question is a what-if but names no input of this calculation, or None when it is not a what-if about a calculation."""
+        """“What if B3 were 320?”, asked while a sheet or a calculation is selected in the Field: that cell set to that value
+        and followed along the wires, changing nothing (field.ripple, a read). Every calculation that reads the cell is worked
+        again exactly with its own recipe; every finding, page and check that would move is named, and the Field marks them
+        until Esc. A cell is named by its address, by its row's words, or (for a calculation) by its symbol; several go
+        together with "and". Returns the thing to answer about, a dict with 'refusal' when the question is a what-if but
+        names no number of this sheet, or None when it is not a what-if about a sheet or a calculation."""
         asked = re.match(r'^\s*what\s+if\b(.*)$', text, re.IGNORECASE | re.DOTALL)
         view = getattr(getattr(self.host, 'field_page', None), 'view', None)
         chosen = view.selected() if asked and view is not None and getattr(self.host, '_field_active', False) else None
-        if chosen is None or chosen.kind != 'calculation' or not isinstance(chosen.target, dict):return None
-        got = call(self.host, 'documents.get', {'id': chosen.target.get('id')}) or {}
-        inputs = ((got.get('document') or {}).get('derivation') or {}).get('inputs') or []
-        if not inputs:return None
-        names = {}
-        for item in inputs:
-            for name in (str(item['cell']), str(item['symbol']), str(item['symbol']).replace('_', ' '), str(item.get('parameter') or '')):
-                if name.strip():names[name.strip().lower()] = item['cell']
+        if chosen is None or chosen.kind not in ('calculation', 'sheet') or not isinstance(chosen.target, dict):return None
+        from .engine import engineering
+        from .engineering_kernel import operator
+        from .field_ripple import cells_named
+        _, names = cells_named(engineering(self.host.root), operator(), chosen)
+        if not names:return None
+        inputs = []
+        if chosen.kind == 'calculation':
+            got = call(self.host, 'documents.get', {'id': chosen.target.get('id')}) or {}
+            inputs = ((got.get('document') or {}).get('derivation') or {}).get('inputs') or []
         filler = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'to', 'at', 'of', 'became', 'becomes', 'goes', 'went', 'equals', 'equal', 'cell', 'value', 'in', 'it', 'its'}
         setting = {}
         for part in re.split(r'\band\b|[,;]', asked.group(1).replace('=', ' ').replace('?', ' ')):
@@ -1813,15 +1825,50 @@ class SlateFace(QWidget):
             name = ' '.join(t for t in tokens[:at] if t.lower() not in filler).lower()
             cell = names.get(name) or next((c for n, c in names.items() if name and all(word in n.split() for word in name.split())), None)
             if cell:setting[cell] = tokens[at]
-        said = ', '.join('%s (%s, in %s)' % (i['cell'], i.get('parameter') or i['symbol'], i['unit']) for i in inputs)
         if not setting:
-            return {'refusal': 'Say which input and its new value, for example “what if %s were” and a number. This calculation reads %s.' % (inputs[-1]['cell'], said)}
+            if inputs:
+                said = ', '.join('%s (%s, in %s)' % (i['cell'], i.get('parameter') or i['symbol'], i['unit']) for i in inputs)
+                return {'refusal': 'Say which input and its new value, for example “what if %s were” and a number. This calculation reads %s.' % (inputs[-1]['cell'], said)}
+            cells = sorted({cell for cell in names.values()}, key=lambda cell: (len(cell), cell))
+            return {'refusal': 'Say which cell and its new value, for example “what if %s were” and a number. The numbers of this sheet are in %s.' % (cells[-1], ', '.join(cells[:12]))}
         from .field_do import js
-        from .field_page import thing_of
-        return {**thing_of(self.host, chosen), 'stac': 'field.whatif %s | select says_now,would_be,exact,set,changed' % js(id=chosen.id, set=setting),
-                'explicit': True, 'intro': 'What if, for “%s”. Worked exactly with its own recipe; nothing is changed:' % chosen.title}
+        from .field_page import show_would, thing_of
+        said = ', '.join('%s = %s' % pair for pair in setting.items())
+        show_would(self.host, chosen.id, setting, said)
+        return {**thing_of(self.host, chosen), 'stac': 'field.ripple %s | pick rows | select way,title,says_now,would_be,why' % js(id=chosen.id, set=setting),
+                'explicit': True, 'whole': True,
+                'intro': 'What if %s, on “%s”. Followed along the wires and worked exactly; nothing is changed. The Field marks what would move until Esc:' % (said, chosen.title)}
+
+    def own_word(self, text):
+        """A line that is one of the owner's own staC words (or says something about them), asked in conversation: she does
+        what the line says. `word NAME = LINE` keeps and `forget NAME` lets go, said in a sentence; a word, or `words`, is
+        read and shown as any staC line is. True when the line was one of these."""
+        from .stac_words import command, expand, known_to
+        made = command(text)
+        if made is not None and made.startswith('/'):
+            from .engine import engineering
+            from .engineering_kernel import operator
+            from .field_do import call as line_call
+            self.thing = None;self.mine(text)
+            operation, arguments = line_call(made)
+            r = engineering(self.host.root).dispatch(operation, arguments, operator())
+            self.host._stac_words = None
+            self.say(str(r['result'].get('words') or 'Done.') if r.get('ok') else 'I could not: ' + str((r.get('error') or {}).get('message'))[:300])
+            return True
+        line = made if made is not None else expand(known_to(self.host), text)
+        if line == text or str(line).lower().startswith('explain '):return False
+        try:
+            from .field_page import expand_this
+            line = expand_this(self.host, line)
+        except ValueError as exc:
+            self.thing = None;self.mine(text);self.say(str(exc));return True
+        self.thing = None;self.mine(text)
+        name = text.strip().split()[0]
+        self.answer_in_stac({'title': name, 'stac': line, 'kind': 'word'}, 'Your words, each with its line:' if made is not None else 'Your word “%s” is this line:' % name)
+        return True
 
     def ask(self, text, about=None):
+        if self.own_word(text):return
         thing = self.what_if(text)
         if thing and thing.get('refusal'):
             self.thing = None;self.mine(text);self.say(thing['refusal']);return

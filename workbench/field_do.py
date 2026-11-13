@@ -19,6 +19,8 @@ import hashlib
 import json
 from dataclasses import dataclass
 
+from .field_model import carries, rewritten
+
 
 @dataclass
 class Step:
@@ -147,16 +149,16 @@ def _claim(kernel, principal, obj, field):
             if quoted:
                 calc, decimal, unit = quoted;address = calc.id;record = calc.target['id']
                 lines = ([('have it watch “%s”' % calc.title, op('investigation.add_source', id=inv, address=address))] if address not in registered else []) + [
-                    ('bind a check on its result', op('investigation.check', claim=claim,
-                                                     program='documents.get %s | pick document.derivation.calculation.outputs | select value.decimal,value.unit' % js(id=record),
+                    ('bind a check on its result', op('investigation.check', claim=claim,       # from the page's address, so the finding is wired to it and a look at its sources sees it
+                                                     program='@document:%s | pick document.derivation.calculation.outputs | select value.decimal,value.unit' % record,
                                                      oracle='“%s” gives %s %s.' % (calc.title, decimal, unit), expect='CONTAINS', value='"value.decimal": "%s"' % decimal, refutes_on_fail=True)),
                     ('run the checks that are due', op('investigation.continue', id=inv))]
                 out.append(Step('Check it against “%s”' % calc.title, 'write', lines[0][1], 'it says %s %s, which is that calculation’s result; the check holds it to that' % (decimal, unit), 'execute', more=tuple(lines[1:])))
                 out[-1].words_first = lines[0][0]
-    quoted = next(((was, now, name) for was, now, name in (field.moved if field is not None else ()) if was in obj.title and now not in obj.title), None) if finding else None
+    quoted = next(((was, now, name) for was, now, name in (field.moved if field is not None else ()) if carries(obj.title, was) and not carries(obj.title, now)), None) if finding else None
     if quoted:                                # its words carry a result that has since been worked again
         was, now, name = quoted
-        out.append(Step('Write it again with %s' % now, 'write', op('investigation.claim', id=inv, text=str(obj.title).replace(was, now), role='FINDING'),
+        out.append(Step('Write it again with %s' % now, 'write', op('investigation.claim', id=inv, text=rewritten(obj.title, was, now), role='FINDING'),
                         'a new finding with the number “%s” gives now; it stands on nothing until its sources are cited for it' % name, 'execute'))
         if not (path and path.get('review') == 'NEEDS_REVIEW'):
             out.append(Step('Retire this one', 'write', op('investigation.review', claim=claim, decision='RETIRE'),
@@ -199,8 +201,14 @@ def _job(kernel, principal, obj, field):
 
 def _page(kernel, principal, obj, field):
     ident = obj.target['id']
-    return [Step('Read its words', 'read', 'documents.get %s | pick document.blocks | select text' % js(id=ident)),
-            Step('See its history', 'read', 'documents.get %s | pick events | select revision,actor,action,at' % js(id=ident))]
+    out = [Step('Read its words', 'read', 'documents.get %s | pick document.blocks | select text' % js(id=ident)),
+           Step('See its history', 'read', 'documents.get %s | pick events | select revision,actor,action,at' % js(id=ident))]
+    if obj.tag == 'BRIEF':                    # the desk written up: what it would say now, and writing it again when the desk has moved on
+        out.insert(1, Step('See what it would say now', 'read', 'field.brief | pick lines | select text'))
+        if obj.state == 'recheck':
+            out.insert(1, Step('Write it again', 'write', op('field.brief.keep'),
+                               'the desk as it is now, as a new page; this one is kept in Documents', 'execute', True))
+    return out
 
 
 # The programs that have a window of their own, the kind of file each opens, and how the owner knows it. Each is started only
@@ -243,7 +251,7 @@ def steps_for(kernel, principal, obj, field=None):
         steps = [Step('See what the records say about it', 'read', obj.stac)]
     if field is not None and steps and (field.fed_by(obj.id) or field.feeds(obj.id)):      # it has wires: they can be followed
         steps.insert(1, Step('Trace it along the wires', 'read', 'field.trace %s | pick rows | select way,steps,kind,title,state,by' % js(id=obj.id)))
-    if steps and obj.kind in ('calculation', 'sheet', 'finding', 'condition', 'source'):   # it can be cross-examined
+    if steps and obj.kind in ('calculation', 'sheet', 'finding', 'condition', 'source', 'document'):   # it can be cross-examined
         steps.insert(1, Step('Doubt it', 'read', 'field.doubt %s | pick rows | select verdict,about,why' % js(id=obj.id)))
     return [step for step in (_by_scope(step) for step in steps if step.line) if step is not None][:9]
 
@@ -273,6 +281,7 @@ def settling(waiting):
         step = next((step for step in steps if step.kind == 'write' and step.settles), None)
         if step is not None and step.line not in seen:
             plan.append((obj, step));seen.add(step.line)
+    plan.sort(key=lambda pair: pair[0].tag == 'BRIEF')      # the brief is written last: it describes the desk the other changes leave
     return plan
 
 
@@ -286,7 +295,7 @@ def sweep(kernel, principal, field):
         if obj.needs_attention():
             why = obj.state
             if obj.kind == 'finding':
-                quoted = next(((was, now, name) for was, now, name in field.moved if was in obj.title and now not in obj.title), None)
+                quoted = next(((was, now, name) for was, now, name in field.moved if carries(obj.title, was) and not carries(obj.title, now)), None)
                 if quoted:why = 'its words say %s; “%s” now gives %s' % (quoted[0], quoted[2], quoted[1])
             waiting.append((obj, why, steps_for(kernel, principal, obj, field)));seen.add(obj.id)
     by_inv = {}

@@ -29,7 +29,13 @@ to what rests on it. With a calculation selected, ask "what if B3 were 320?": St
 In the writing strip `this` is the selected sheet (`this | count`, Ctrl+Enter), and `field.read` is the whole desk as
 records (`field.read | pick waiting | select kind,title,state`). **X** doubts the selected sheet: Stacy puts exact questions to the records and shows what does not hold, what she cannot
 tell and what holds; **D** then offers the step that removes a doubt, and **C** lists what she doubts across the desk.
-`docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+"What if" also works with a sheet selected, by cell or by the row's words ("what if the pulse duration were 100?"): the
+change is followed along the wires, nothing is changed, and the Field marks what would move until **Esc**. **B** shows the
+desk written up as one page from the records; **G** keeps it as a page, and D on that page writes it again when the desk
+has changed. **Backspace** goes back to the sheet you were on before. In the writing strip you can keep a staC line under a
+word of your own: `word waits = field.read | pick waiting | select kind,title,state`, then `waits` (Ctrl+Enter), `words`
+to list them, `forget waits` to let one go.
+`docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

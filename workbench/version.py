@@ -9,9 +9,10 @@ are unchanged.
   python3 -m workbench.version
 """
 NAME = 'Graphite'
-VERSION = '0.4.2'
-SHORT = '0.4.2'
-LINEAGE = ('0.4.2: Stacy doubts: X cross-examines a sheet for what a plausible result may hide (an edited input, mixed conditions, one source, a check that cannot fail, a number recorded nowhere), each doubt with the step that removes it; the desk check doubts too. '
+VERSION = '0.4.3'
+SHORT = '0.4.3'
+LINEAGE = ('0.4.3: the desk looks ahead: a what-if on a sheet is followed along the wires to everything that would move, and the Field marks it; the doubt catches a subtotal counted twice, the same digits under another unit and a check on a replaced page; B writes the desk up as a page from the records; the owner keeps staC lines under words of their own; Backspace goes back. '
+           '0.4.2: Stacy doubts: X cross-examines a sheet for what a plausible result may hide (an edited input, mixed conditions, one source, a check that cannot fail, a number recorded nowhere), each doubt with the step that removes it; the desk check doubts too. '
            '0.4.1: staC reads the desk itself (field.read, field.trace, field.whatif); `this` is the sheet selected in the Field; T traces where a thing comes from; Stacy answers "what if" exactly without changing anything. '
            '0.4: the desk does: D offers the steps the records have for a sheet, reads run and changes ask once; C checks the desk; one go settles what needs no decision, and the desk checks itself afterwards; a recomputed calculation keeps its name and a finding that quotes the old number is noticed. '
            '0.3.1: Stacy is the assistant\'s face and answers in staC, reading first and saying it with a small model when one is loaded; the shelf of every program on P in the Field; Graphite opens on the Field when there is work; free software under the GNU GPL version 2 only. '

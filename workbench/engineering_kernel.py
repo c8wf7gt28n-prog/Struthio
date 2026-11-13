@@ -55,6 +55,7 @@ from . import documents  # WORKSHOP-01: documents.* over the existing Project De
 from . import agent_loop, conditions, helpers, related, browse  # AGENT-01: the resident agent loop, condition cards, retained helpers, quiet connections, the Finder's listing (recorded additions)
 from . import network_watch, network_capture  # HATCH DESK D5: network.observe and the headers-only capture, its job tool network.capture (recorded additions)
 from . import field_service  # Graphite 0.4.1: the desk as something staC can read (field.read, field.trace, field.whatif: three reads, recorded additions)
+from . import stac_words  # Graphite 0.4.3: the owner's own staC words (words.list, words.keep, words.forget: recorded additions)
 from . import program_mail, program_build, program_transfer, program_cartridge
 from . import program_vector, program_media, program_freecad
 from . import program_print, program_delivery
@@ -223,6 +224,7 @@ CAPABILITIES = {
     **agent_loop.SCOPES, **conditions.SCOPES, **helpers.SCOPES, **related.SCOPES, **browse.SCOPES,
     **network_watch.SCOPES,
     **field_service.SCOPES,
+    **stac_words.SCOPES,
     **native_projects.SCOPES,
     **{name:'read' for name in workspace_services.FIELDS},
     **desktop_services.SCOPES,
@@ -622,6 +624,7 @@ class Kernel:
         if op in browse.FIELDS:return browse.dispatch(self,op,a,p)
         if op in network_watch.FIELDS:return network_watch.dispatch(self,op,a,p)
         if op in field_service.FIELDS:return field_service.dispatch(self,op,a,p)
+        if op in stac_words.FIELDS:return stac_words.dispatch(self,op,a,p)
         if op in native_projects.FIELDS:return native_projects.dispatch(self,op,a,p)
         if op in workspace_services.FIELDS:
             return workspace_services.dispatch(self,op,a,p)

@@ -353,8 +353,10 @@ def load(db, ident, principal):
     return doc
 
 
-def create(kernel, args, principal, derivation=None):
-    blocks = normalize_blocks(from_text(args.get('text', '')))
+def create(kernel, args, principal, derivation=None, brief=None, blocks=None):
+    """`derivation` is for a calculation worked out from a sheet; `brief` marks a page written from the whole desk
+    (workbench/field_brief.py), which may bring its own styled blocks. Neither can be set through the operation."""
+    blocks = normalize_blocks(blocks if blocks is not None else from_text(args.get('text', '')))
     with kernel.db() as db:
         records.ensure(db)
         if args.get('project'): records.read(db, 'project', args['project'], principal)
@@ -363,6 +365,8 @@ def create(kernel, args, principal, derivation=None):
                           last_change={'actor': args.get('origin', 'HUMAN'), 'words': 'started the document', 'at': time.time()})
         if derivation:
             doc['derivation'] = derivation
+        if brief:
+            doc['brief'] = brief
         return records.write(db, doc, principal, 'DOCUMENT_CREATED')
 
 

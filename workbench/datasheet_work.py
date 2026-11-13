@@ -273,20 +273,21 @@ def what_if(document, changes):
     derivation = document.get('derivation') or {}
     if derivation.get('profile') != REPORT or not derivation.get('recipe'):
         raise ValueError('"What if" works on a calculation that was worked out from a reviewed sheet')
-    recipe = derivation['recipe'];named = {}
+    recipe = derivation['recipe'];by_symbol = {};by_cell = {}
     for item in derivation['inputs']:
-        named[str(item['symbol']).lower()] = item;named[str(item['cell']).lower()] = item
+        by_symbol[str(item['symbol']).lower()] = [item];by_cell.setdefault(str(item['cell']).lower(), []).append(item)
     setting = {}
     for key, value in changes.items():
-        item = named.get(str(key).strip().lower())
-        if item is None:
+        # A symbol names one input. A cell names every input that reads it: two symbols on one cell move together.
+        items = by_symbol.get(str(key).strip().lower()) or by_cell.get(str(key).strip().lower())
+        if not items:
             raise ValueError('%s is not an input of this calculation. Its inputs are %s.' % (
                 str(key)[:40], ', '.join('%s (%s)' % (i['symbol'], i['cell']) for i in derivation['inputs'])))
         try:
             math_units.rational(str(value).strip())
         except Exception:  # noqa: BLE001 - whatever the number parser says, the owner is told the same plain thing
-            raise ValueError('%s needs a plain number, in %s' % (item['symbol'], item['unit'])) from None
-        setting[item['symbol']] = str(value).strip()
+            raise ValueError('%s needs a plain number, in %s' % (items[0]['symbol'], items[0]['unit'])) from None
+        for item in items:setting[item['symbol']] = str(value).strip()
     variables = {};inputs = []
     for item in derivation['inputs']:
         unit = item['unit'];value = setting.get(item['symbol'], item['value'])

@@ -98,6 +98,16 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   rephrase a doubt. The specification is the map and the acceptance test (it counts on the ThinkPad, on the owner's own
   material); it is reached one trap and one situation at a time, by adding a question here and its steps in
   `field_do.py`, never by trusting a model more.
+- **Look ahead, write it up, the owner's own words** (13 November: "Build a few ideas surprise me"). Four additions in the
+  same spirit, none with a model. A what-if on a sheet is followed along the wires (`workbench/field_ripple.py`,
+  `field.ripple`): calculations worked again exactly, words that carry a number that would move, and each check run by
+  its own program on the sheet as it would be; the Field marks what would move. More traps as exact questions
+  (a subtotal counted twice, the same digits under another unit, a check on a replaced page); quantities are compared in
+  base units. B writes the desk up as one page from the records (`workbench/field_brief.py`); the go keeps what was
+  shown, and the page knows when the desk has moved on. The owner keeps staC reads under words of their own
+  (`workbench/stac_words.py`); a word is written out before it runs. And a rule of working that proved itself: a second
+  set of readers went through the code while it was being written and found real faults in 0.4.1 and 0.4.2; have a
+  reader that did not write the code read it before it is called done.
 - **staC reads the desk** (12 November: "Can we make staC and Stacy more powerful in creative ways"). The Field is a staC
   source: `field.read` (objects, wires, what waits), `field.trace {id}` (where a thing comes from, what rests on it),
   `field.whatif {id, set}` (a calculation worked with other values, changing nothing). `this` at the start of a line is
@@ -118,8 +128,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4.2: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), and Stacy's doubt (0.4.2). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.3: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), and the look ahead, the brief and the owner's words (0.4.3). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

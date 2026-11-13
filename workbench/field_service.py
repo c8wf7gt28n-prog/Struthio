@@ -1,13 +1,20 @@
 """The desk as something staC can read.
 
 staC could read every record of the workspace but not the desk that is made of them: what waits, what feeds what, what
-changed lately. These three operations are reads, so a staC line can start with any of them, and Stacy shows them like any
+changed lately. These operations are reads, so a staC line can start with any of them, and Stacy shows them like any
 other read she makes. They change nothing and are not journaled (showing the desk is not an event).
 
   field.read    read   {}           the Field of this workspace as records: objects, wires, what waits, counts
   field.trace   read   {id}         where one thing comes from and what rests on it, hop by hop along the wires
   field.whatif  read   {id, set}    a calculation worked again with other values for some inputs, changing nothing
   field.doubt   read   {id?}        what a plausible result may hide: one thing cross-examined, or every doubt on the desk
+  field.ripple  read   {id, set}    a cell set to another value and followed along the wires: everything that would move
+  field.brief   read   {}           the desk written up as one page, line by line, from the records (no model)
+
+One operation here changes something, and so it is not a read and waits for the owner wherever it is offered:
+
+  field.brief.keep  execute  {shown?}   the brief written as a page in Documents; a later one takes its place. `shown` is
+                                        the fingerprint field.brief gave: with it, nothing is kept if the desk has changed since
 
 Lines that work:
 
@@ -18,6 +25,9 @@ Lines that work:
   field.whatif {"id":"document:<id>","set":{"B3":"320"}} | select says_now,would_be,exact
   field.doubt {"id":"claim:<id>"} | pick rows | select verdict,about,why
   field.doubt | pick rows | where verdict=doubt | select title,about,why
+  field.ripple {"id":"office:<id>","set":{"B4":"100"}} | pick rows | select way,kind,title,says_now,would_be,why
+  field.brief | pick lines | select text
+  field.brief | pick lines | where part=doubt | select text
 
 The reading is the Field's own (workbench/field_source.py), so a line and the picture can never disagree. Yes and no are
 written as the words "yes" and "no", which a staC `where` compares without ceremony.
@@ -31,9 +41,13 @@ FIELDS = {
     'field.trace': ({'id': TEXT}, ['id']),
     'field.whatif': ({'id': TEXT, 'set': {'type': 'object'}}, ['id', 'set']),
     'field.doubt': ({'id': TEXT}, []),
+    'field.ripple': ({'id': TEXT, 'set': {'type': 'object'}}, ['id', 'set']),
+    'field.brief': ({}, []),
+    'field.brief.keep': ({'shown': {'type': 'string', 'minLength': 64, 'maxLength': 64}}, []),
 }
-SCOPES = {operation: 'read' for operation in FIELDS}
-OBSERVERS = tuple(FIELDS)
+WRITES = ('field.brief.keep',)
+SCOPES = {operation: 'execute' if operation in WRITES else 'read' for operation in FIELDS}
+OBSERVERS = tuple(operation for operation in FIELDS if operation not in WRITES)
 REACH = 8                    # how many hops a trace follows in each direction
 
 
@@ -105,7 +119,7 @@ def whatif(kernel, principal, ident, changes):
 def doubt(kernel, principal, ident=None):
     """One thing cross-examined (workbench/field_doubt.py), worst first; or, with no id, every doubt and every cannot-tell on
     the desk. Exact questions put to the records: no model, nothing changed."""
-    from .field_doubt import desk, doubts_for
+    from .field_doubt import BY_KIND, desk, doubts_for
     from .field_source import read_field
     field, _ = read_field(kernel, principal)
     if ident:
@@ -120,11 +134,33 @@ def doubt(kernel, principal, ident=None):
     found = desk(kernel, principal, field)
     rows = [{'title': obj.title, 'kind': obj.kind, 'id': obj.id, 'verdict': d.verdict, 'about': d.about, 'why': d.why, 'see': d.see} for obj, d in found]
     return {'schema': SCHEMA, 'rows': rows, 'doubts': sum(1 for _, d in found if d.verdict == 'doubt'),
-            'cannot_tell': sum(1 for _, d in found if d.verdict == 'cannot tell'), 'looked_at': sum(1 for obj in field.objects if obj.kind in ('calculation', 'sheet', 'finding', 'condition', 'source'))}
+            'cannot_tell': sum(1 for _, d in found if d.verdict == 'cannot tell'), 'looked_at': sum(1 for obj in field.objects if obj.kind in BY_KIND)}
+
+
+def ripple(kernel, principal, ident, changes):
+    """A cell of a sheet (or an input of a calculation) set to another value, and everything downstream said as it is and
+    as it would be (workbench/field_ripple.py). A read: nothing is changed."""
+    from .field_ripple import ripple as follow
+    from .field_source import read_field
+    field, _ = read_field(kernel, principal)
+    return {'schema': SCHEMA, **follow(kernel, principal, field, ident, changes)}
+
+
+def brief(kernel, principal):
+    """The desk written up from the records (workbench/field_brief.py). A read: this is what the page would say."""
+    from .field_brief import compose
+    from .field_source import read_field
+    field, _ = read_field(kernel, principal)
+    return {'schema': SCHEMA, **compose(kernel, principal, field)}
 
 
 def dispatch(kernel, operation, args, principal):
+    if operation == 'field.brief':return brief(kernel, principal)
+    if operation == 'field.brief.keep':
+        from .field_brief import keep
+        return {'schema': SCHEMA, **keep(kernel, principal, args.get('shown'))}
     if operation == 'field.doubt':return doubt(kernel, principal, args.get('id'))
+    if operation == 'field.ripple':return ripple(kernel, principal, args['id'], args['set'])
     if operation == 'field.read':return read(kernel, principal)
     if operation == 'field.trace':return trace(kernel, principal, args['id'])
     if operation == 'field.whatif':return whatif(kernel, principal, args['id'], args['set'])

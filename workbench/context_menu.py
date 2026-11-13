@@ -1255,11 +1255,19 @@ def field_entries(host, t):
         else:
             lines = (('Everything that waits', 'field.read | pick waiting | select kind,title,state'),
                      ('What I doubt', 'field.doubt | pick rows | where verdict=doubt | select title,about,why'),
+                     ('The brief, line by line', 'field.brief | pick lines | select text'),
                      ('What changed lately', 'field.read | pick objects | where lately=yes | select kind,title,changed_at'),
                      ('The wires', 'field.read | pick links | select from,to,label,stale'),
                      ('The pages', 'documents.list | pick documents | select title,revision,words'),
                      ('The sheets', 'office.list | pick documents | select title,kind,version'),
                      ('Work that is not finished', 'jobs | where state is not Completed | select tool,state'))
+            out.append(Entry('field:brief', 'The brief', 'command', view.brief_asked.emit, icon='line', caption='B',
+                             tip='The desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first'))
+        try:                                  # the owner's own staC words go with the lines of every face
+            from .stac_words import known_to
+            lines = tuple(lines) + tuple(('Your word “%s”' % name, code) for name, code in sorted(known_to(host).items()))
+        except Exception:  # noqa: BLE001 - the menu is never stopped because the words could not be read
+            pass
         out.append(Entry('field:stac', 'This face in staC', 'command', icon='line', tip='Read-only staC lines for what the Field shows; each goes to the writing strip',
                          submenu=lambda:[Entry('field:stac:%d' % n, label, 'command', lambda code=code:inspect_in_line(host, code), icon='line', tip=code)
                                          for n, (label, code) in enumerate(lines)]))
@@ -1286,6 +1294,9 @@ def field_entries(host, t):
                      tip='Where it comes from and what rests on it, hop by hop along the wires'))
     out.append(Entry('field:do', 'What can be done', 'command', lambda:view.do_asked.emit(obj), icon='line', caption='D',
                      tip='The steps the records offer for this. A read runs at once; one that changes something asks first'))
+    if view.face == 'work':
+        out.append(Entry('field:brief', 'The brief of the desk', 'command', view.brief_asked.emit, icon='line', caption='B',
+                         tip='The whole desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first'))
     if not network:
         out.append(Entry('field:ask', 'Ask Stacy about this', 'command', lambda:ask_about_sheet(host, obj),
                          icon='ask', tip='Its name in the line for you to finish. Her answer is in Talk; with no model she answers from the records, in staC'))

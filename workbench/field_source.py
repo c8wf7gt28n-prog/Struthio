@@ -34,7 +34,7 @@ ports they wait on. It reads /proc and /sys only, starts no capture, and nothing
 """
 from pathlib import Path
 
-from .field_model import Field, FieldLink, FieldObject, STATE_CURRENT, STATE_HELD, STATE_OPEN, STATE_RECHECK
+from .field_model import Field, FieldLink, FieldObject, STATE_CURRENT, STATE_HELD, STATE_OPEN, STATE_RECHECK, carries
 
 UNAVAILABLE = 'unavailable'      # the record cannot reach its source now: quiet ink, not an alarm
 NOT_READ = 'not read'            # the record itself could not be read this time
@@ -81,6 +81,7 @@ class Reader:
         self.skip = set(skip)        # ids that could not be read last time: not asked again until the owner looks again
         self.left_out = []
         self.replaced = set()        # calculations another calculation says it replaces (a recheck makes a new page)
+        self.briefs = {}             # a kept brief's id -> its mark (the fingerprint of the desk it was written from)
         self.results = {}            # a calculation's result as words ("3.36 W"), by its id
         self.touched = {}            # object id -> when its record last changed, where a record says (pages, findings, jobs)
         self.replaces = {}           # new calculation id -> the id of the one it replaced
@@ -206,6 +207,13 @@ class Reader:
             if got is None:
                 self.add(FieldObject(ident, 'document', row.get('title') or row['id'], 'could not be read', NOT_READ, (), '', target, stac=page_code));continue
             derivation = (got.get('document') or {}).get('derivation')
+            mark = (got.get('document') or {}).get('brief')
+            if isinstance(mark, dict) and mark.get('profile') == 'field-brief/1':      # the desk written up from the records: a page that knows which desk it described
+                if mark.get('replaces'):self.replaced.add('document:' + str(mark['replaces']))
+                self.briefs[ident] = mark
+                self.add(FieldObject(ident, 'document', row.get('title') or row['id'], 'the desk written up from the records', STATE_CURRENT,
+                                     ('revision %s' % row['revision'],) if row.get('revision') is not None else (), '', target, 'BRIEF',
+                                     stac='documents.get %s | pick document.blocks | select text' % stac_json(id=row['id'])));continue
             if derivation and derivation.get('replaces'):
                 self.replaced.add('document:' + str(derivation['replaces']));self.replaces[ident] = 'document:' + str(derivation['replaces'])
             value = ((((derivation or {}).get('calculation') or {}).get('outputs') or [{}])[0] or {}).get('value')
@@ -407,10 +415,10 @@ def read_field(kernel, principal, title='', skip=()):
     investigations = reader.findings()
     reader.settle_tables();reader.totals();reader.jobs()
     if reader.replaced:      # a calculation that was brought up to date is a new page; the one it replaced is history, not work
-        gone = {obj.id for obj in reader.objects if obj.id in reader.replaced and obj.kind == 'calculation'}
+        gone = {obj.id for obj in reader.objects if obj.id in reader.replaced and (obj.kind == 'calculation' or obj.tag == 'BRIEF')}
         reader.objects = [obj for obj in reader.objects if obj.id not in gone]
         reader.links = [link for link in reader.links if link.source not in gone and link.target not in gone]
-        reader.retired = len(gone)
+        reader.retired = len([ident for ident in gone if ident not in reader.briefs])
     for obj in reader.objects:   # what the records say of when each thing last changed; a thing with no such record stays unmarked
         try:obj.touched = float(reader.touched.get(obj.id) or 0)
         except (TypeError, ValueError):obj.touched = 0.0
@@ -418,7 +426,7 @@ def read_field(kernel, principal, title='', skip=()):
     for obj in reader.objects:   # a finding whose words still carry a result that has since been worked again: it waits, and says which
         if obj.kind != 'finding' or obj.state != STATE_CURRENT:continue
         for was, now, name in moved:
-            if was in obj.title and now not in obj.title:
+            if carries(obj.title, was) and not carries(obj.title, now):
                 obj.state = STATE_RECHECK;obj.lines = ('says %s; now %s' % (was, now),) + tuple(obj.lines)[:2];break
     if not title and len(investigations) == 1:
         question, state = investigations[0]
@@ -428,7 +436,16 @@ def read_field(kernel, principal, title='', skip=()):
         aside = '%d sheet%s of your Office %s not shown here' % (reader.elsewhere, '' if reader.elsewhere == 1 else 's', 'is' if reader.elsewhere == 1 else 'are')
     if reader.retired:
         aside += ('  ·  ' if aside else '') + '%d earlier calculation%s replaced, kept in Documents' % (reader.retired, '' if reader.retired == 1 else 's')
-    return Field(reader.objects, reader.links, title, note=_left_out(reader), aside=aside, moved=moved), reader
+    field = Field(reader.objects, reader.links, title, note=_left_out(reader), aside=aside, moved=moved,
+                  replaced=frozenset(ident.split(':', 1)[1] for ident in reader.replaced))
+    if reader.briefs:        # a kept brief describes one desk: when the desk is no longer that one, the brief waits to be written again
+        from .field_brief import fingerprint
+        now = fingerprint(field)
+        for obj in field.objects:
+            mark = reader.briefs.get(obj.id)
+            if mark is not None and mark.get('fingerprint') != now:
+                obj.state = STATE_RECHECK;obj.lines = ('the desk changed since it was written',) + tuple(obj.lines)[:1]
+    return field, reader
 
 
 def _moved(reader):

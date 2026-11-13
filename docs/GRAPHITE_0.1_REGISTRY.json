@@ -181,8 +181,11 @@
    "experiments.result": "workbench/lab_service.py#dispatch",
    "experiments.run": "workbench/lab_service.py#dispatch",
    "experiments.status": "workbench/lab_service.py#dispatch",
+   "field.brief": "workbench/field_service.py#dispatch",
+   "field.brief.keep": "workbench/field_service.py#dispatch",
    "field.doubt": "workbench/field_service.py#dispatch",
    "field.read": "workbench/field_service.py#dispatch",
+   "field.ripple": "workbench/field_service.py#dispatch",
    "field.trace": "workbench/field_service.py#dispatch",
    "field.whatif": "workbench/field_service.py#dispatch",
    "files.cells": "workbench/files_service.py#dispatch",
@@ -726,6 +729,9 @@
    "vendor.status": "workbench/vendor_adapter.py#dispatch",
    "vendor.value": "workbench/vendor_adapter.py#dispatch",
    "viewer.describe": "workbench/universal_view.py#dispatch",
+   "words.forget": "workbench/stac_words.py#dispatch",
+   "words.keep": "workbench/stac_words.py#dispatch",
+   "words.list": "workbench/stac_words.py#dispatch",
    "work.advance": "workbench/continuing_work.py#dispatch",
    "work.answer": "workbench/adaptive_work.py#dispatch",
    "work.authorize": "workbench/continuing_work.py#dispatch",
@@ -966,9 +972,9 @@
   }
  },
  "counts": {
-  "adapters": 764,
+  "adapters": 770,
   "job_tools": 113,
-  "operations": 764,
+  "operations": 770,
   "settings": 49
  },
  "formulas": {
@@ -2838,6 +2844,18 @@
    "properties": {},
    "scope": "read"
   },
+  "field.brief": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
+  "field.brief.keep": {
+   "arguments": "3faee131c5281ed02f31a77703e996ed7674d34be6c8d37262bc76ce9d028b2b",
+   "properties": {
+    "shown": "7e3f7236ab75c8d7"
+   },
+   "scope": "execute"
+  },
   "field.doubt": {
    "arguments": "6531dae66d37b6a3733f4ca66a90055d8f8391c04e9e0cf0fe4b272505c29c33",
    "properties": {
@@ -2848,6 +2866,14 @@
   "field.read": {
    "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
    "properties": {},
+   "scope": "read"
+  },
+  "field.ripple": {
+   "arguments": "79321876e5422af0a1a7220620b282cd5acd6fdda40d6b5427d02f8887e23c28",
+   "properties": {
+    "id": "52ba84a4bbf396ba",
+    "set": "a2c799262a3ce3c1"
+   },
    "scope": "read"
   },
   "field.trace": {
@@ -7163,6 +7189,26 @@
    },
    "scope": "read"
   },
+  "words.forget": {
+   "arguments": "18b403b0fe96d835ec6097ec0bbb1445a61ed61813e79896fdadbd5b6c1cce36",
+   "properties": {
+    "name": "ed1684cd6d9b3d97"
+   },
+   "scope": "execute"
+  },
+  "words.keep": {
+   "arguments": "8a10c5617152cae0aea88f7f41549ff42ef1af017820625b99c459f5165c50b1",
+   "properties": {
+    "line": "c0cdda02ff3d9e59",
+    "name": "ed1684cd6d9b3d97"
+   },
+   "scope": "execute"
+  },
+  "words.list": {
+   "arguments": "d746974fa9afd5e951f76f9af38954b0ad7f436f2120dc974da65e5ee39f856f",
+   "properties": {},
+   "scope": "read"
+  },
   "work.advance": {
    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
    "properties": {
@@ -7487,9 +7533,9 @@
    "scope": "read"
   }
  },
- "release": "Graphite 0.4.2",
+ "release": "Graphite 0.4.3",
  "schema": "graphite.registry-record/1",
- "schema_digest": "896020c4229e11093ab1edc7e987770c908559e05bc49d079c9c98a675b9cdc3",
+ "schema_digest": "511609b5650559bebab2d2cef2a7dbcc3577948048465fbbaf6ac364c76a222d",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

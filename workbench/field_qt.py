@@ -54,6 +54,7 @@ class FieldView(QWidget):
     go_asked = Signal()                # G: the owner's go for what waits in Talk. Never a digit: digits only choose
     trace_asked = Signal(object)       # T: where the selected object comes from and what rests on it
     doubt_asked = Signal(object)       # X: cross-examine the selected object for what a plausible result may hide
+    brief_asked = Signal()             # B: the desk written up as one page, from the records
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -66,6 +67,9 @@ class FieldView(QWidget):
         self.steps = ()                     # what can be done about the selected sheet, while the owner looks at it: (words, kind) pairs
         self._now = 0.0                     # the time of this painting, for "changed lately"
         self.go = ''                        # what G would run now, in words, while something waits in Talk for the owner's go
+        self.would = {}                     # a what-if followed along the wires: {object id: the few words of what it would say}
+        self.would_said = ''                # the what-if itself, in words, for as long as its marks show
+        self._trail = [];self._last = ''    # the sheets the owner was on before this one, for Backspace
         self._plate = None;self._plate_drawn = (None, None)
         self._face_boxes = []
         self.scroll_x = 0.0;self.scroll_y = 0.0
@@ -84,6 +88,7 @@ class FieldView(QWidget):
         kept = bool(keep and self.field.get(keep))
         if kept:self.field.select(keep)
         else:self.scroll_x = self.scroll_y = 0.0
+        self.would = {};self.would_said = ''      # a what-if is about the records as they were read: a new reading ends it
         self._reveal_pending = True
         self._describe();self.update()
 
@@ -92,6 +97,10 @@ class FieldView(QWidget):
 
     def _describe(self):
         obj = self.selected();self.steps = ();self.go = ''      # the steps and the go belong to the sheet they were asked for: another sheet, or a new reading, closes them
+        now = self.field.selected
+        if self._last and now and now != self._last and (not self._trail or self._trail[-1] != self._last):
+            self._trail.append(self._last);del self._trail[:-40]       # where the owner was: Backspace goes back along it
+        if now:self._last = now
         if obj is None:
             self.setAccessibleDescription(self.problem or 'Nothing is here yet.')
         else:
@@ -226,7 +235,16 @@ class FieldView(QWidget):
         elif key == Qt.Key_Escape:
             if self.steps or self.go:        # the first Esc closes the steps and withdraws the go from the keyboard; the next one leaves
                 self.steps = ();self.go = '';self.update();return
+            if self.would:                   # then a what-if's marks are cleared: the desk shows what is, again
+                self.would = {};self.would_said = '';self.update();return
             self.left.emit();return
+        elif key == Qt.Key_Backspace and plain:      # back to the sheet the owner was on before this one, and the one before that
+            at = next((n for n in range(len(self._trail) - 1, -1, -1) if self._trail[n] != self.field.selected and self.field.get(self._trail[n]) is not None), None)
+            if at is None:return                  # nothing on this face to go back to; what was visited on another face is kept for when it shows again
+            ident = self._trail[at];del self._trail[at:]
+            self._last = '';self.field.select(ident)      # going back is not a step forward: it leaves no trail of its own
+        elif key == Qt.Key_B and plain:      # B: the brief
+            self.brief_asked.emit();return
         elif key == Qt.Key_D and plain:      # D: what can be done about this. The page asks the records and fills .steps
             if self.selected() is not None:self.do_asked.emit(self.selected())
             return
@@ -563,9 +581,15 @@ class FieldView(QWidget):
         # Facts, while they fit above the identity line.
         p.setFont(self.mono(12.5));fm = QFontMetricsF(p.font());fm_where = QFontMetricsF(self.mono(12));where_h = fm_where.height() if obj.where else 0
         y += 4 * s
-        for fact in (() if self.field.compact else obj.lines[:FACT_LINES]):
+        would = self.would.get(obj.id)
+        facts = () if self.field.compact else (((would,) + tuple(obj.lines[:FACT_LINES - 1])) if would else obj.lines[:FACT_LINES])
+        for at, fact in enumerate(facts):
             if y + fm.height() > inner.bottom() - where_h + 1:break
-            y += fm.height();p.setPen(ink(t.QUIET, keep));p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(str(fact)[:LONGEST], Qt.ElideRight, inner.width()))
+            y += fm.height();p.setPen(ink(t.AMBER_TEXT, 1.0) if would and at == 0 else ink(t.QUIET, keep))
+            p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(str(fact)[:LONGEST], Qt.ElideRight, inner.width()))
+        if would:                            # and a broken amber edge: it reads as "would", without colour too
+            pen = QPen(ink(t.AMBER_EDGE, 0.95), 1.6);pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 4])
+            p.setPen(pen);p.setBrush(Qt.NoBrush);p.drawRect(r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s))
         if obj.where and not self.field.compact and inner.bottom() - fm_where.descent() > y + 2:
             p.setFont(self.mono(12));p.setPen(ink(t.FAINT if depth <= 1 else t.QUIET, keep))
             p.drawText(QPointF(inner.left(), inner.bottom() - fm_where.descent()), fm_where.elidedText(str(obj.where)[:LONGEST], Qt.ElideMiddle, inner.width()))
@@ -620,7 +644,7 @@ class FieldView(QWidget):
         if tall - body.height() - self.scroll_y > 1:said.append('more below ↓')
         if self.scroll_x > 1:said.append('← more')
         if wide - body.width() - self.scroll_x > 1:said.append('more →')
-        note = ' · '.join(part for part in (self.field.note, self.problem) if part)
+        note = ' · '.join(part for part in ((self.would_said + ' · nothing is changed · Esc clears') if self.would_said else '', self.field.note, self.problem) if part)
         if not note and self.field.aside:  # what belongs elsewhere is said quietly, when nothing louder is being said
             said.insert(0, self.field.aside)
         if said or note:                   # on its own strip of ground, so it is read over whatever sheet lies under it
@@ -649,7 +673,8 @@ class FieldView(QWidget):
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, top + 0.5), QPointF(self.width(), top + 0.5))
         obj = self.selected()
         # The keys, in the order they are read; when the line is too narrow they give way one at a time, the least needed first.
-        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'D  do'), (4, 'X  doubt'), (5, 'C  check all'), (6, 'T  trace'), (7, 'S  staC'), (9, 'Menu  more'), (8, 'A  next waiting'), (10, 'R  look again'), (0, 'Esc  back')]
+        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'D  do'), (4, 'X  doubt'), (5, 'C  check all'), (6, 'T  trace'), (6.5, 'B  brief'), (7, 'S  staC'), (9, 'Menu  more'), (8, 'A  next waiting'),
+                  (10, 'R  look again'), (12, '⌫  where I was'), (0, 'Esc  back')]
         legend = [(11, '%s  %s' % (letter.upper(), name)) for name, letter in self.faces if name != self.face] + legend
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font())
         if obj is None:
@@ -678,6 +703,8 @@ class FieldView(QWidget):
         if feeds:said += ('   ·   ' if said else '') + self.field.verbs[1] + ' ' + ', '.join(str(f)[:60] for f in feeds[:6])
         if not said:said = obj.where
         p.setFont(self.mono(12.5));fm3 = QFontMetricsF(p.font());p.setPen(QColor(t.QUIET))
+        if self.would.get(obj.id):           # a what-if marks this sheet: the foot says it whole
+            said = 'WHAT IF      ' + self.would_said.replace('what if ', '', 1) + '      ' + self.would[obj.id];p.setPen(QColor(t.AMBER_TEXT))
         code = '' if self.rail() or not obj.stac else 'staC  ' + '  '.join(self.stac_lines(obj.stac))      # no rail: the line is said here
         if self.steps or self.go:            # the owner asked what can be done: the foot says the steps and the go, wherever the rail is
             said = 'DO      ' + '      '.join(['%d  %s%s' % (n + 1, words, ' (asks first)' if kind == 'write' else '') for n, (words, kind) in enumerate(self.steps[:9])]

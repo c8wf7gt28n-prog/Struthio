@@ -286,9 +286,10 @@ class TypeBar(QWidget):
             self.refresh_context();return True
         if self.target != 'slate':return False
         if not text:return True
-        try:                                  # `this` is the sheet selected in the Field: written out here, so what runs is what shows
+        try:                                  # the owner's own words, then `this` (the sheet selected in the Field): written out here, so what runs is what shows
             from .field_page import expand_this
-            text = expand_this(self.host, text)
+            from .stac_words import written_out
+            text = expand_this(self.host, written_out(self.host, text))
         except ValueError as exc:
             self.note(str(exc));return True
         if popup is not None:popup.hide()
@@ -517,10 +518,13 @@ class TypeBar(QWidget):
             written = self.box.text()
             try:
                 from .field_page import expand_this
-                written = expand_this(self.host, written)
+                from .stac_words import command, expand, known_to
+                written = expand_this(self.host, command(written) or expand(known_to(self.host), written))
             except ValueError:pass
             kind = stac_hint_kind(written) or kind
             words = {'stac': 'staC on Ctrl+Enter', 'inspect': 'Preview on Ctrl+Enter'}.get(kind)
+            if written.startswith(('/words.keep ', '/words.forget ')):      # a line about the owner's own words: it changes them, and says so
+                kind, words = 'word', ('Keeps this word' if written.startswith('/words.keep ') else 'Forgets this word') + ' on Ctrl+Enter'
         elif getattr(self, 'target', None) == 'log' and view is not None:
             filtered = view.filters.get(view.stream, '')
             kind, words = 'log', view.summary() if self.console.size_level == 0 else (('filter · ' + filtered) if filtered else '')

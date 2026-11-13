@@ -32,6 +32,19 @@ SETTLED = (STATE_CURRENT, 'up', 'connected', 'listening', 'running', 'in use')
 LATELY = 12 * 3600                       # "lately": the last twelve hours, a working day's reach
 
 
+def carries(text, words):
+    """Whether a text says these words as a whole number with its unit: "3.36 W" is carried by "is 3.36 W." and not by
+    "13.36 W" or "3.36 Wh". The match of words that says a finding still quotes an old result."""
+    import re
+    return bool(words) and re.search(r'(?<![\w.])' + re.escape(str(words)) + r'(?![\w])', str(text)) is not None
+
+
+def rewritten(text, was, now):
+    """The text with one number put in the place of another, where it is carried whole."""
+    import re
+    return re.sub(r'(?<![\w.])' + re.escape(str(was)) + r'(?![\w])', lambda _: str(now), str(text))
+
+
 @dataclass
 class FieldObject:
     id: str
@@ -85,6 +98,7 @@ class Field:
     heads: tuple = ()                   # the columns' names, for a face that names its own (the programs' shelf)
     compact: bool = False               # a shelf of many small things: a sheet carries its name and state; the foot says the rest
     moved: tuple = ()                   # results that changed when a calculation was brought up to date: (old words, new words, its title)
+    replaced: frozenset = frozenset()   # record ids of pages a newer page took the place of (they are kept in Documents, not shown)
 
     def __post_init__(self):
         seen = set();kept = []

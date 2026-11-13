@@ -47,6 +47,7 @@ class FieldPage(QWidget):
         self.view.go_asked.connect(lambda: go(self.host))
         self.view.trace_asked.connect(lambda obj: trace(self.host, obj))
         self.view.doubt_asked.connect(lambda obj: doubt(self.host, obj))
+        self.view.brief_asked.connect(lambda: brief(self.host))
         self.view.full_asked.connect(lambda obj: full_window(self.host, obj))
         self.steps = ();self.steps_of = ''      # the steps last offered, and the object they were offered for
         self.pending = None                     # what G runs: the Run of what waits in Talk for the owner's go
@@ -322,6 +323,50 @@ def doubt(host, obj):
                         'intro': 'I doubted “%s”. What does not hold comes first, then what I cannot tell, then what holds:' % obj.title}
     shell.ask('What could be wrong with “%s”?' % obj.title)
     if getattr(host, '_field_active', False):host.field_page.view.setFocus(Qt.OtherFocusReason)
+
+
+def brief(host):
+    """B: the desk written up as one page, from the records. Stacy reads it (field.brief, a staC line like any other) and shows
+    every line; keeping it as a page is a change, so that waits for the owner's go. No model writes any of it."""
+    from .field_do import Step, op
+    page = host.field_page
+    if page.face != 'work' or not page.view.field.objects:return None
+    face = _talk(host)
+    if face is None:return None
+    from .field_brief import fingerprint
+    page.refresh(force=True)                   # the brief is of the desk as it is: read first, so what is shown and what would be kept are the same desk
+    title = str(page.view.field.title or host.root.name).split('  ·  ')[0]
+    face.answer_in_stac({'title': title, 'stac': 'field.brief | pick lines | select text', 'kind': 'desk', 'whole': True},
+                        'The desk, written up from the records. This is what the page would say:')
+    step = Step('Keep the brief as a page', 'write', op('field.brief.keep', shown=fingerprint(page.view.field)),
+                'a page in Documents and on the Field, to edit, export or print; when the desk changes it says so, and a later brief takes its place', 'execute')
+    def done(ok, result):
+        page.steps = ();page.steps_of = '';page.pending = None
+        if not ok:return
+        page.refresh(force=True)
+        made = (result or {}).get('document') if isinstance(result, dict) else None
+        ident = 'document:' + str(made.get('id')) if isinstance(made, dict) and made.get('id') else ''
+        if ident and page.view.field.get(ident) is not None:
+            page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe()
+        page.view.update()
+    card = face.stage(title, step, done=done)
+    _await_go(host, 'keep the brief as a page', lambda:face.run_staged(card, done))
+    page.view.setFocus(Qt.OtherFocusReason)
+    return card
+
+
+def show_would(host, ident, setting, said):
+    """A what-if, shown on the Field: the sheets that would move carry what they would say, in amber, until Esc or the next
+    reading. The same read Stacy shows in Talk (field.ripple); a refusal marks nothing."""
+    from .engineering_kernel import operator
+    from .field_ripple import marks
+    page = getattr(host, 'field_page', None);kernel = getattr(getattr(host, 'ledger_bridge', None), 'kernel', None)
+    if page is None or kernel is None:return {}
+    answer = kernel.dispatch('field.ripple', {'id': ident, 'set': setting}, operator())
+    page.view.would = marks(answer['result']) if answer.get('ok') else {}
+    page.view.would_said = ('what if ' + said) if page.view.would else ''
+    page.view.update()
+    return page.view.would
 
 
 def full_window(host, obj):
