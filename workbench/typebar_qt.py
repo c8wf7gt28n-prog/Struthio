@@ -27,6 +27,8 @@ PRIMARY_TARGETS = ('slate', 'shell', 'find', 'web', 'log')
 SHOWN = {'slate': 'Stacy'}                        # the word on the strip where it is not the mode's own label
 WEB_SEARCH = 'https://duckduckgo.com/?q='         # where words typed to Web are searched for: in the owner's own browser
 ADDRESS_STARTS = ('http://', 'https://', 'www.')
+# Endings that are a file's far more often than a site's: a bare name ending so is words, not an address.
+FILE_ENDINGS = frozenset('txt md pdf py gd json csv tsv png jpg jpeg gif svg zip tar gz log sh c h cpp rs go js ts html htm css xml yml yaml toml ini cfg doc docx odt ods xls xlsx ppt tscn godot wav mp3 mp4'.split())
 QUIET_TARGETS = ()                                # Find and Kernel were the quiet words; Kernel's home is Commands now
 MAPPED = {'slate': 'slate', 'stac': 'slate', 'kernel': 'slate', 'shell': 'shell', 'find': 'find', 'web': 'web', 'log': 'log'}  # old targets -> modes
 CONSOLE_PAGE = {'slate': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
@@ -323,12 +325,35 @@ class TypeBar(QWidget):
     @staticmethod
     def address_of(words):
         """The address these words are, with its scheme, or '' when they are words to search for."""
+        import re
         words = words.strip()
-        if not words or ' ' in words:return ''
+        if not words or any(ch.isspace() for ch in words):return ''
         low = words.lower()
         if low.startswith(('http://', 'https://')):return words
-        if low.startswith('www.') or ('.' in words and words.rsplit('.', 1)[-1].split('/')[0].isalpha() and len(words.rsplit('.', 1)[-1].split('/')[0]) >= 2):return 'https://' + words
-        return ''
+        # The host is what stands before the first / ? or #, without a port. It is an address when it is localhost, an
+        # IP number, a name ending in a local suffix, a name that begins www., or a dotted name whose last part is letters;
+        # a bare file name (notes.txt, with nothing after it) is not. What is on this computer or this network is asked
+        # for plainly (http), never sent to a search engine as words.
+        host = re.split(r'[/?#]', words, maxsplit=1)[0];rest = words[len(host):]
+        name, colon, port = host.partition(':')
+        if colon and not port.isdigit():return ''
+        name = name.lower()
+        if not name or not re.fullmatch(r'[a-z0-9.\-]+', name) or name.startswith(('.', '-')) or '..' in name:return ''
+        local = name == 'localhost' or re.fullmatch(r'\d{1,3}(\.\d{1,3}){3}', name) is not None or name.endswith(('.local', '.lan', '.home', '.internal', '.localhost'))
+        if local:return 'http://' + words
+        last = name.rsplit('.', 1)[-1]
+        if '.' not in name or not last.isalpha() or not 2 <= len(last) <= 24:return ''
+        if name.startswith('www.') or colon or rest:return ('http://' if colon else 'https://') + words
+        return '' if last in FILE_ENDINGS else 'https://' + words
+
+    @staticmethod
+    def plain_address(words):
+        """With Stacy or Search lit, the address a line is when it can be nothing else: written with http:// or https://,
+        beginning www., or naming this computer or the local network (localhost, an IP number, a .local name, a port).
+        A bare dotted name (files.list, field.read) is a staC operation as often as a site, so it stays with whom it was
+        typed to."""
+        address = TypeBar.address_of(words);low = str(words or '').strip().lower()
+        return address if address and (low.startswith(('http://', 'https://', 'www.')) or address.startswith('http://')) else ''
 
     def open_web(self, text):
         """Web: an address is opened, and words are searched for, in this computer's own browser. Graphite fetches nothing
@@ -346,7 +371,9 @@ class TypeBar(QWidget):
 
     def typed(self, text):
         """Update the Assistant hint and work context as the line changes."""
-        if self.target != 'web' and text.lower().startswith(ADDRESS_STARTS):self.set_target('web', focus=False)      # an address goes to Web by itself
+        # (0.5.3 switched to Web as soon as the line began with an address. Another reader showed what that did: a sentence
+        # for Stacy that begins with an address was sent to a search engine. The name that is lit is never changed by
+        # typing now; a line that is nothing but one address is opened when it is entered: eventFilter.)
         if self.target == 'web':
             popup = getattr(self.box, 'popup', None)
             if popup is not None and popup.isVisible():popup.hide()
@@ -393,7 +420,7 @@ class TypeBar(QWidget):
     def submit_line(self):
         """The arrow at the line's end. It does what its tip says: opens an address, filters the Log, and with Stacy chosen
         it runs a line that reads as staC (as Ctrl+Enter does) and gives any other line to her (as Enter does)."""
-        if self.target == 'web':
+        if self.target == 'web' or (self.target in ('slate', 'find') and TypeBar.plain_address(self.box.text())):
             self.open_web(self.box.text())
         elif self.target == 'log':
             self.log_enter()
@@ -673,8 +700,11 @@ class TypeBar(QWidget):
         if not self.context.isVisible():self.context.show()
 
     def eventFilter(self, watched, event):
-        if watched is self.box and event.type() == QEvent.KeyPress and self.target == 'web' and event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            self.open_web(self.box.text());return True      # Web: Enter opens it in the browser
+        if watched is self.box and event.type() == QEvent.KeyPress and event.key() in (Qt.Key_Return, Qt.Key_Enter) and not (event.modifiers() & Qt.ControlModifier):
+            if self.target == 'web':
+                self.open_web(self.box.text());return True      # Web: Enter opens it in the browser
+            if self.target in ('slate', 'find') and TypeBar.plain_address(self.box.text()):
+                self.open_web(self.box.text());return True      # with Stacy or Search lit, a line that is one address and nothing else is opened; words stay with whom they were typed to
         if watched is self.box and event.type() == QEvent.Resize:self.place_context()
         if watched is self.box and event.type() in (QEvent.FocusIn, QEvent.FocusOut):self.update()      # the lit edge comes and goes with the keyboard
         return super().eventFilter(watched, event)

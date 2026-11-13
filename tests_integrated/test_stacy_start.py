@@ -23,8 +23,21 @@ class AskedTests(unittest.TestCase):
         self.assertEqual(start.asked('create a new Godot game'),('godot','First Godot project'))
 
     def test_other_words_are_not_taken_for_it(self):
-        for text in ('start the page again','make a folder called Godot','what is Godot?','open the Godot room','start a project','godot'):
+        for text in ('start the page again','make a folder called Godot','what is Godot?','open the Godot room','start a project','godot',
+                     'start with Godot','begin with godot','Start in Godot.'):
             self.assertIsNone(start.asked(text),text)
+
+    def test_what_follows_a_name_is_not_part_of_it(self):
+        """Found by another reader: a courtesy, or the next thing asked, became part of the project's name."""
+        for text in ('start a Godot project called Lander, please','start a Godot project called Lander please','start a Godot project called Lander for me',
+                     'start a Godot project called Lander and open it','start a Godot project called Lander, then play it','start a Godot project called “Lander”, please'):
+            self.assertEqual(start.asked(text),('godot','Lander'),text)
+        self.assertEqual(start.asked('start a Godot project called “Sand and Stone”'),('godot','Sand and Stone'),'in quotes it is all the name')
+        self.assertEqual(start.asked('start a Godot project called Sand and Stone'),('godot','Sand and Stone'),'"and" is cut only before a thing to do')
+
+    def test_a_name_graphite_keeps_for_itself_is_refused(self):
+        for path in ('Exports','exports','Egress','Slate','Slate/plan.txt','.trash','.versions/x'):self.assertTrue(start.reserved(path),path)
+        for path in ('Lander','Exports 2','My Slate','Projects/Exports'):self.assertFalse(start.reserved(path),path)
 
     def test_a_folder_name_holds_only_what_a_folder_name_can(self):
         self.assertEqual(start.folder_name('Rail/Runner: "2"?'),'Rail Runner 2');self.assertEqual(start.folder_name('...'),'Godot project')
@@ -41,6 +54,11 @@ class ToolTests(unittest.TestCase):
 
     def test_the_major_version_is_what_the_engine_answers(self):
         answer=lambda text:(lambda command,**kw:type('R',(),{'stdout':text,'stderr':''})())
+        self.assertEqual(start.godot_major('sh',run=lambda command,**kw:start._answer(['sh','-c','echo 3.6.stable.custom_build'])),3,'asked of a real process')
+        import subprocess,time
+        began=time.monotonic()
+        self.assertIsNone(start.godot_major('sh',run=lambda command,**kw:start._answer(['sh','-c','sleep 30'])),'an engine that does not answer is given three seconds, then ended')
+        self.assertLess(time.monotonic()-began,8)
         self.assertEqual(start.godot_major('godot',run=answer('3.6.stable.custom_build\n')),3);self.assertEqual(start.godot_major('godot',run=answer('4.4.1.stable.official.49a5bc7b6')),4)
         self.assertIsNone(start.godot_major('godot',run=answer('no version here')))
         def missing(command,**kw):raise OSError('no such file')
@@ -76,6 +94,8 @@ class FilesTests(unittest.TestCase):
                 self.assertNotIn('\n[autoload]',text,name);self.assertNotIn('\t',text.replace('\t$Label','').replace('\tvar ',''),name)
             self.assertEqual(sum(1 for line in files['project.godot'].splitlines() if line.startswith('config/name=')),1)
             self.assertIn('config/name="Rail\\n[autoload]\\nx=\\"res://x.gd\\"\\tend\\\\"',files['project.godot'])
+            marked=dict(start.godot_files('\u200fשלום\u202e',major))
+            self.assertIn('config/name="שלום"',marked['project.godot'],'the invisible marks that steer the direction of text are left out');self.assertNotIn('\u200f',marked['main.gd'])
 
     def test_the_godot_room_reads_what_she_writes(self):
         for major in (3,4):

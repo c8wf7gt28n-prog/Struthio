@@ -10,7 +10,7 @@ So it is one picture of everything that moves, in six groups, left to right, wit
 
   CPU   one bar for each processor thread (in pairs or fours when there are more than eight): how hard it worked
   KRN   the kernel: its share of the processor's time; and how fast it is switching between tasks and taking interrupts
-  RAM   memory in use; and paging (what is being read into or written out of memory)
+  RAM   memory in use; and swapping (what is being moved between memory and the disk for want of room)
   SSD   the disks: being read; being written
   NET   the network: coming in; going out
   GPU   the graphics processor: how busy; and its own memory in use
@@ -44,7 +44,7 @@ NAMES = {'CPU': 'Processor', 'KRN': 'Kernel', 'RAM': 'Memory', 'SSD': 'Disks', '
 # The fixed scales for rates: (floor, ceiling). At or under the floor a bar rests; at the ceiling it is full; between, logarithmic.
 SCALES = {'switches': (500.0, 200000.0),         # task switches a second
           'interrupts': (300.0, 100000.0),       # interrupts a second
-          'paging': (16e3, 500e6),               # bytes a second paged in or out
+          'paging': (16e3, 500e6),               # bytes a second swapped in or out
           'disk': (16e3, 500e6),                 # bytes a second read or written
           'net': (1e3, 100e6)}                   # bytes a second in or out
 WHOLE_DISK = re.compile(r'^(sd[a-z]+|vd[a-z]+|xvd[a-z]+|hd[a-z]+|nvme\d+n\d+|mmcblk\d+)$')      # a disk itself, not one of its partitions
@@ -110,7 +110,7 @@ def kernel_counts(path='/proc/stat'):
 
 
 def memory_counts(meminfo='/proc/meminfo', vmstat='/proc/vmstat'):
-    """{'used': share of memory in use, 0 to 1, 'paged': bytes paged in and out since the computer started}; a part that
+    """{'used': share of memory in use, 0 to 1, 'paged': bytes swapped in and out since the computer started}; a part that
     cannot be read is left out."""
     out = {}
     try:
@@ -124,11 +124,13 @@ def memory_counts(meminfo='/proc/meminfo', vmstat='/proc/vmstat'):
     except (OSError, ValueError, IndexError):
         pass
     try:
+        # Swapping, not all disk traffic: pswpin and pswpout count pages moved between memory and swap (pgpgin and pgpgout
+        # count every block read or written, which is the disks' own bars over again).
         paged = 0;seen = False
         with open(vmstat) as stream:
             for line in stream:
                 key, _, text = line.partition(' ')
-                if key in ('pgpgin', 'pgpgout'):paged += int(text) * 1024;seen = True      # counted in kibibytes
+                if key in ('pswpin', 'pswpout'):paged += int(text) * 4096;seen = True      # counted in pages
         if seen:out['paged'] = paged
     except (OSError, ValueError):
         pass
@@ -169,7 +171,7 @@ def gpu_counts(root='/sys/class/drm'):
     """{'busy': 0 to 1, 'memory': share of the graphics memory in use} from the busiest adapter that reports; a part that
     is not reported is left out (many drivers report neither)."""
     out = {}
-    try:cards = sorted(Path(root).glob('card*/device'))[:8]
+    try:cards = sorted(card / 'device' for card in Path(root).iterdir() if re.fullmatch(r'card\d+', card.name))[:8]      # the cards themselves, not their connectors (card0-DP-1 ...)
     except OSError:return out
     for card in cards:
         try:
@@ -233,7 +235,7 @@ class Activity:
         if not now['kernel']:missing.append('KRN')
         used = now['memory'].get('used');paged = rate('memory', 'paged')
         bars['RAM'] = [used or 0.0, scaled(paged, *SCALES['paging'])]
-        words['RAM'] = ('%d%% in use; paging %s' % (round(100 * used), amount(paged) if paged is not None else 'not reported')) if used is not None else 'not reported'
+        words['RAM'] = ('%d%% in use; %s' % (round(100 * used), 'swapping not reported' if paged is None else 'not swapping' if paged < 1 else 'swapping ' + amount(paged))) if used is not None else 'not reported'
         if used is None:missing.append('RAM')
         read = rate('disk', 'read');written = rate('disk', 'written')
         bars['SSD'] = [scaled(read, *SCALES['disk']), scaled(written, *SCALES['disk'])]

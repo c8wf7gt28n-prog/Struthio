@@ -21,6 +21,25 @@ class ModeTests(unittest.TestCase):
         self.assertEqual(owner.address_of('https://example.org/a b'),'');self.assertEqual(owner.address_of('https://example.org/x'),'https://example.org/x')
         self.assertEqual(owner.address_of('www.example.org'),'https://www.example.org');self.assertEqual(owner.address_of('example.org/page'),'https://example.org/page')
         self.assertEqual(owner.address_of('rail limits rev b'),'');self.assertEqual(owner.address_of('3.36'),'','a number is words, not an address');self.assertEqual(owner.address_of(''),'')
+        # 0.7.0, found by another reader: what is on this computer or this network is opened, never sent to a search engine
+        for words,address in (('localhost:8080','http://localhost:8080'),('192.168.1.1','http://192.168.1.1'),('nas.local:5000','http://nas.local:5000'),
+                              ('example.com:8080','http://example.com:8080'),('example.com?q=1','https://example.com?q=1'),
+                              ('example.com/index.php?id=3','https://example.com/index.php?id=3'),('en.wikipedia.org/wiki/Python_3.0','https://en.wikipedia.org/wiki/Python_3.0')):
+            self.assertEqual(owner.address_of(words),address,words)
+        for words in ('notes.txt','main.gd','e.g.','v1.2.3','foo:bar','https://intranet.example/plan what does it say'):
+            self.assertEqual(owner.address_of(words),'',words+' is words, not an address')
+        # with Stacy or Search lit, only what can be nothing but an address leaves the line for the browser
+        for words in ('files.list','field.read','example.org','example.org/page'):self.assertEqual(owner.plain_address(words),'',words)
+        for words,address in (('https://example.org/x','https://example.org/x'),('www.example.org','https://www.example.org'),('localhost:8080','http://localhost:8080'),
+                              ('192.168.1.1','http://192.168.1.1')):
+            self.assertEqual(owner.plain_address(words),address,words)
+
+    def test_typing_never_changes_whom_the_words_go_to(self):
+        """0.7.0, found by another reader: the line moved to Web as soon as it began with an address, so a sentence for
+        Stacy that began with one was sent to a search engine. The lit name now changes only when the owner chooses."""
+        import inspect
+        source=inspect.getsource(bar.TypeBar.typed)
+        self.assertNotIn("set_target('web'",source)
         self.assertEqual({k:bar.MAPPED[k] for k in ('slate','stac','kernel','shell','find','log')},
                          {'slate':'slate','stac':'slate','kernel':'slate','shell':'shell','find':'find','log':'log'},
                          'legacy targets retain their mode and command prefixes')

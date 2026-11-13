@@ -29,7 +29,7 @@ Click a meter and its card opens upward from the band. A click anywhere else put
 - **CPU**: Graphite's work on the processor. It is the System menu's own process list, whole.
 - **GPU**: what the graphics processor is for here: Stacy's model (**Brain room**) and Graphite's services (On, Off,
   Restart, Service details). "Brain room can probably move into system menu": it moved here with the rest.
-- **RAM**: memory in use, paging, disks and network as the equalizer reads them, and **Machine** (this computer,
+- **RAM**: memory in use, swapping, disks and network as the equalizer reads them, and **Machine** (this computer,
   described, in the left pane).
 - **TXT**: the text Stacy holds: **Full chat**, and **What she has in view** (Context). The reading itself is still a
   dash: the model's runtime does not report how full her context is.
@@ -43,7 +43,7 @@ It is one picture in six groups, left to right, with a small gap between them:
 
 - **Processor**: one bar for each thread (in pairs when there are more than eight: on the ThinkPad, eight bars).
 - **Kernel**: its share of the processor's time; how fast it switches between tasks and takes interrupts.
-- **Memory**: in use; paging.
+- **Memory**: in use; swapping (what is moved to the disk for want of room).
 - **Disks**: being read; being written.
 - **Network**: coming in; going out.
 - **Graphics**: how busy; its own memory in use.
@@ -75,20 +75,52 @@ with Log lit. Full chat did not become a third stream: it is a conversation you 
 the Log is something you read. It is on TXT. If you want the conversation's record as a stream of the Log as well, say
 so.
 
-## Stacy's hand: holes closed
+## Stacy's hand: holes closed, and her rule turned round
 
-These were in 0.6.0 and 0.6.1 as sent, and were found by reading her rule against every command and every operation:
+These were in 0.6.0 and 0.6.1 as sent. Some I found by reading her rule against each command and every operation; most
+were found by other readers (below).
 
-- **Her Terminal list let through forms that do more than read.** `ip netns exec …` and `ip vrf exec …` run any
-  program; `ip -batch` runs a file; `find … -fprint0` writes a file; `file -C` writes one; `date` followed by digits
-  sets the clock; `sensors -s` sets limits. Most need root to do harm, but none is a read. Each command is now held to
-  its reading forms.
-- **With a free hand she could have been handed things that leave the computer or forget.** Not by any path that
-  existed, but the rule itself would have allowed transfers, mail, pairing, publishing, packet capture, installing a
-  release, and several kinds of forgetting. The rule now names them, and a test runs every operation the program has
-  against it.
-- **A project name with a line break could break the Godot files it was written into.** A name can no longer end its
-  own line; both real engines still load such a project.
+- **Her rule is now a list of what she may do, not of what she may not.** Before, she could do any change of the right
+  kind unless it was on a list of things that ask. Now she does by herself only operations named on her list (setting
+  a number, keeping a page, writing a new file or folder, making a page or a note, working a calculation again with a
+  free hand, opening a program on a project with a free hand, and a few more). Anything else asks, including whatever
+  is added to the program later. The list of what always asks stays as a second net, and now also names cancelling a
+  job and retiring a finding: neither can be put back.
+- **Her Terminal list let through forms that do more than read.** The line is run by your shell, and a shell expands
+  what she read as plain text: `find . -delete$Z` reaches `find` as `-delete`. She now refuses any line with a
+  character a shell would expand (`$`, a backslash, braces, brackets, `!`, `#`), and holds each command that has
+  changing forms to an exact list of its reading options (so `ip l s eth0 down`, `date -s12:00`, `dmesg -Tc`,
+  `tail -f`, `lspci -q` and the like ask).
+- **An Undo could take more than she made.** Undo on a file or folder she made now runs only while it is still exactly
+  as she made it. Once you have written in it, it is yours, and she says so instead of moving it to the Trash. A trail
+  read back from the session file runs only the two kinds of Undo she writes.
+- **Smaller things the readers found.** A name in quotes is the whole name ("Notes on saying no"). "… called Lander,
+  please" names the project Lander. A project cannot take a name Graphite keeps for itself (Exports, Egress, Slate).
+  A step word on an older list no longer takes whatever step now stands at its number. "Run df -h" while another
+  command is still running says so instead of claiming it ran. "Make a folder called Rev 2" with a sheet selected
+  makes the folder instead of being read as setting a number. "Settle what I can" says "done at once" when it is. With
+  a free hand, noticing keeps the calculation you had selected selected. The Godot version check gives up after three
+  seconds and ends whatever it started. A name with an invisible direction mark no longer breaks a Godot 4 script.
+
+## The line: typing never changes whom you are typing to
+
+In 0.5.3 the line moved to Web as soon as it began with an address. A reader showed what that did: a question for
+Stacy that began with a link was sent to a search engine. The lit name now changes only when you choose it. With Stacy
+or Search lit, a line that is nothing but an address (`https://…`, `www.…`, `localhost:8080`, `192.168.1.1`) is opened
+in the browser; anything else stays with them. With Web lit, an address on this computer or this network (localhost, an
+IP number, a `.local` name, any host with a port) is opened, never searched for, and `notes.txt` is searched for, not
+opened as a site.
+
+## Other things the readers found in the window
+
+- "This:" under Stacy's face stayed at "nothing is open" when the same page was opened again. It no longer does.
+- A right-click Paste in the address line was lost, because the line hid itself when its own menu opened.
+- With a spreadsheet's worksheet open, the pane's title now goes between Stacy and the sheet's Preview, so neither is
+  out of reach.
+- The equalizer's second memory bar counted every disk read and write, so it was the disk bars over again. It now
+  counts swapping.
+- A second graphics card was never read if the first had many screen connectors. It is read now.
+- With Web lit, the list under the line offered "Ask Stacy". Web has no list now.
 
 ## Smaller
 
@@ -104,9 +136,14 @@ have tests with counters written by hand (a gigabyte read in a second fills the 
 twice; the loopback is not the network). The project's own tests and the window gate were run on the exact commit
 before this set was cut: see the set's START_HERE for the numbers.
 
+**Other readers.** Four readers went over everything from 0.5.3 to 0.7.0, each from one side (Stacy's hand; her acts,
+Undo and trail; the Godot start; the window), and reported 32 faults in all. A fifth reader then tried to disprove the
+eight on Stacy's hand and confirmed every one. The checks of the other 24 were stopped by the account's usage limit.
+I treated those as real unless the code showed otherwise. Every fault is either fixed or listed here as not fixed.
+Each fix has a test or a step in a probe. Not fixed: the Godot version check still runs while the window waits (three
+seconds at most now).
+
 Not done: nothing later than 0.4.6 has run on the ThinkPad. The graphics group has never been seen moving: the build
 container's driver reports nothing, so those two bars rested and the card said so. Leaving (Log out, Restart, Shut
 down) was not carried out: the four lines are the same actions the System menu called, and only their presence was
-checked. An independent review by other readers was started twice and both times stopped by the account's usage limit
-before any reader reported; what the first had begun (her rule against every operation) was finished by hand and is
-the source of the fixes above. So there is still no second reader over 0.4.7 to 0.7.0.
+checked. The readers read; they did not run the program on a screen.

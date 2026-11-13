@@ -474,7 +474,7 @@ def hand_menu(host, face=None):
     def said(what):                              # her pane is found when the line is chosen: the menus are built before it is
         shell = getattr(host, 'shell2', None);talk = face or getattr(shell, 'face', None)
         if talk is None:return
-        if shell is not None and callable(getattr(shell, 'show_primary_face', None)):shell.show_primary_face()
+        if shell is not None and callable(getattr(shell, 'show_slate_face', None)):shell.show_slate_face()      # her own face, not a worksheet's preview
         getattr(talk, what)()
     menu.addSeparator()
     menu.addAction('What she did…').triggered.connect(lambda checked=False:said('say_trail'))
@@ -921,6 +921,8 @@ class PathBar(QLineEdit):
         super().keyPressEvent(event)
 
     def focusOutEvent(self, event):
+        if event.reason() == Qt.PopupFocusReason:     # its own right-click menu opened (Paste is there): the line stays as it is
+            super().focusOutEvent(event);return
         super().focusOutEvent(event);self.refresh(force=True)
         equalizer = getattr(self.top, 'equalizer', None)
         if equalizer is not None:                     # the address is done with: it goes, and this computer at work comes back
@@ -1071,7 +1073,7 @@ class OneBox(QLineEdit):
         operation. Log: nothing (the line filters the stream)."""
         from .typebar_qt import parses_as_stac
         rows = [];mode = self.mode();page = self.console_page(text)
-        if mode == 'log':return rows
+        if mode in ('log', 'web'):return rows      # Web has no list: Enter opens or searches in the browser, and the list must not offer another thing
         if page == 'find':return self.search_rows(text[1:].strip() if text.startswith('?') else text)
         if page in ('kernel', 'shell'):
             word = {'kernel': 'Operation  ', 'shell': (getattr(getattr(self.host, 'type_bar', None), 'labels', {}).get('shell', 'Shell')) + '  '}[page]
@@ -1783,7 +1785,8 @@ class SlateFace(QWidget):
         from html import escape
         name, how = self.this_is();shell = getattr(self.host, 'shell2', None)
         if not name:
-            if self.this.text() != 'This: nothing is open.':self.this.setText('This: nothing is open.')
+            if self.this.text() != 'This: nothing is open.':
+                self.this.setText('This: nothing is open.');self.this.setProperty('said', '')      # so the same thing, opened again, is said again
             return
         name = name.replace('{', '(').replace('}', ')')
         said = 'This: %s · {more}' % escape(name if len(name) <= 46 else name[:45] + '…')
@@ -1929,7 +1932,7 @@ class SlateFace(QWidget):
         card = self.say('What can be done about “%s”. A number in the Field takes a step, or choose it here.%s' % (title, rule))
         for n, step in enumerate(steps[:9]):
             words = '%d  %s' % (n + 1, step.words) + ('  ·  asks first' if asks[n] else '')
-            card.box.addWidget(sentence('{go}', {'go': (words, lambda n=n:take(n))}))
+            card.box.addWidget(sentence('{go}', {'go': (words, lambda n=n, line=step.line:take(n, line))}))      # the word takes this step, not whatever stands at its number later
         card.steps = steps
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
@@ -1953,8 +1956,7 @@ class SlateFace(QWidget):
         mine = bool(asked and operation and stacy_hand.hers(place, step.scope, operation, arguments))
         if mine:lead = 'For “%s”: %s.' % (title, step.words[:1].lower() + step.words[1:])
         elif asked and place != 'ask':
-            lead = 'For “%s”: %s. This waits for you: %s.' % (title, step.words[:1].lower() + step.words[1:],
-                                                              stacy_hand.why_asks(operation, arguments) or 'the records mark it for your approval')
+            lead = 'For “%s”: %s. This waits for you: %s.' % (title, step.words[:1].lower() + step.words[1:], stacy_hand.why_waits(place, step.scope, operation, arguments))
         else:lead = 'For “%s”: %s. This changes something, so it waits for you.' % (title, step.words[:1].lower() + step.words[1:])
         card = self.say(lead)
         if step.why:
@@ -2006,7 +2008,9 @@ class SlateFace(QWidget):
         if getattr(card, 'hers', False):         # her own act: one line in her trail, and one Undo where it can be taken back exactly
             from . import stacy_hand
             back = stacy_hand.takes_back(operation, arguments, r.get('result')) if card.ran else ''
-            card.entry = stacy_hand.record(self.host.session.state, '%s · “%s”' % (card.step.words, card.title), card.step.line, back, card.word, card.ran)
+            guards = stacy_hand.guard(operation, arguments, r.get('result')) if card.ran else []
+            card.entry = stacy_hand.record(self.host.session.state, '%s · “%s”' % (card.step.words, card.title), card.step.line, back, card.word, card.ran, guards=guards)
+            back = card.entry['undo']                # only a line an Undo may run is kept (stacy_hand.undo_allowed)
             try:self.host.session.save()
             except Exception:  # noqa: BLE001 - the act is done and said; a trail that could not be written is not worth an error
                 pass
@@ -2034,7 +2038,8 @@ class SlateFace(QWidget):
         the Kernel refuses and nothing is touched."""
         from . import stacy_hand
         if getattr(card, 'undone', None) is not None or not card.entry or not card.entry.get('undo'):return
-        r = self.run_line(card.entry['undo'])
+        changed = self.changed_since(card.entry)
+        r = {'ok': False, 'error': {'message': changed}} if changed else self.run_line(card.entry['undo'])
         card.undone = bool(r.get('ok'));card.back.setEnabled(False);card.back.setText('Undone' if card.undone else 'Not undone')
         if card.undone:
             stacy_hand.taken_back(self.host.session.state, card.entry)
@@ -2047,6 +2052,29 @@ class SlateFace(QWidget):
             pass
         note = QLabel(breakable(said.strip()));note.setWordWrap(True);note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(note)
         if card.undone and done is not None:done(True, r.get('result'))
+
+    def changed_since(self, entry):
+        """Why an Undo must not run, in words, or '' when it may. An Undo is one of the two lines her rule writes and no
+        other (stacy_hand.undo_allowed); and what she made must still be as she made it: a file still holding exactly her
+        words, a folder still holding exactly what she put in it. Otherwise it is the owner's work now, and stays."""
+        import hashlib
+        from . import files_service, stacy_hand
+        from .engine import engineering
+        guards = entry.get('guard') or []
+        if not stacy_hand.undo_allowed(entry.get('undo'), guards):return 'that is not a line I may undo with'
+        if not guards:return ''                    # a number set back names the revision it expects: the Kernel is its guard
+        try:
+            kernel = engineering(self.host.root)
+            for g in guards:
+                path = files_service.resolve(kernel, g['path'])
+                if 'sha256' in g:
+                    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != g['sha256']:
+                        return '“%s” was changed after I made it, so it is yours now and I leave it. Move it to the Trash yourself if you want it gone' % g['path']
+                elif not path.is_dir() or sum(1 for p in path.iterdir() if not files_service.machine(p)) != g['items']:
+                    return '“%s” no longer holds just what I put in it, so it is yours now and I leave it. Move it to the Trash yourself if you want it gone' % g['path']
+        except (OSError, ValueError) as exc:
+            return 'what I made is no longer where I made it (%s)' % str(exc)[:120]
+        return ''
 
     def show_hand(self):
         """Her hand, in two words under what she speaks with."""
@@ -2085,11 +2113,12 @@ class SlateFace(QWidget):
         """Undo from the trail: the same line, once."""
         from . import stacy_hand
         if entry.get('state') != 'done' or not entry.get('undo'):return self.say('That one has already been taken back.')
-        r = self.run_line(entry['undo'])
+        changed = self.changed_since(entry)
+        r = {'ok': False, 'error': {'message': changed}} if changed else self.run_line(entry['undo'])
         if r.get('ok'):
             stacy_hand.taken_back(self.host.session.state, entry)
             result = r['result'] if isinstance(r.get('result'), dict) else {}
-            card = self.say(('Taken back: %s. ' % entry['words']) + str(result.get('words') or ''))
+            card = self.say(('Taken back: %s. ' % entry['words']) + str(result.get('words') or ('“%s” is in the Trash, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else '')))
             page = getattr(self.host, 'field_page', None)
             if page is not None:
                 try:page.refresh(force=True)
@@ -2126,6 +2155,8 @@ class SlateFace(QWidget):
         if asked is None:return False
         program, name = asked;folder = stacy_start.folder_name(name)
         self.thing = None;self.mine(text)
+        if stacy_start.reserved(folder):
+            self.say('“%s” is a name Graphite keeps for a folder of its own. Give the project another: start a Godot project called …' % folder);return True
         if self.run_line(op('files.get', path=folder)).get('ok'):
             self.say('There is already something called “%s” in Files, and I do not write over what is there. Give it another name: start a Godot project called …' % folder);return True
         tool = stacy_start.godot_tool();files = stacy_start.start_files(name, tool)
@@ -2147,13 +2178,24 @@ class SlateFace(QWidget):
         from . import stacy_hand
         from .engine import engineering
         from .field_do import Step, op
-        if sum(1 for _, ok, _ in results if ok) < len(card.plan):
+        went = sum(1 for _, ok, _ in results if ok)
+        if went < len(card.plan):
             self.made_done(False, None)
-            self.say('I stopped at the step that was refused. What was made before it is in “%s” in Files; move it to the Trash if you do not want it.' % folder);return
+            if not went:                           # the first step was refused: this start made nothing
+                self.say('Nothing was made: the folder “%s” could not be made (%s).' % (folder, str(results[0][2])[:160] if results else 'refused'));return
+            if card.hers:                          # an act of hers that stopped part-way is still a line in her trail; it has no Undo
+                stacy_hand.record(self.host.session.state, 'Started a Godot %d project and stopped part-way · “%s”' % (tool['major'], folder), card.plan[0][1].line, '', word, True)
+                try:self.host.session.save()
+                except Exception:  # noqa: BLE001
+                    pass
+            self.say('I stopped at the step that was refused, after %d of %d. What this start made is in “%s” in Files; move that folder to the Trash if you do not want it.' % (went, len(card.plan), folder));return
         if card.hers:
             undo = '/files.trash ' + json.dumps({'path': folder}, ensure_ascii=False, separators=(', ', ': '))
-            card.entry = stacy_hand.record(self.host.session.state, 'Started a Godot %d project · “%s”' % (tool['major'], folder), card.plan[0][1].line, undo, word, True)
-            back = button('Undo', 'stac', 'Move the whole folder to the Trash, which gives it back');back.setObjectName('StagedUndo');card.back = back;card.undone = None
+            import hashlib
+            wrote = [(json.loads(step.line.split(' ', 1)[1])['path'], json.loads(step.line.split(' ', 1)[1])['text']) for _, step in card.plan[1:]]
+            guards = [{'path': folder, 'items': len(wrote)}] + [{'path': path, 'sha256': hashlib.sha256(text.encode('utf-8')).hexdigest()} for path, text in wrote]
+            card.entry = stacy_hand.record(self.host.session.state, 'Started a Godot %d project · “%s”' % (tool['major'], folder), card.plan[0][1].line, undo, word, True, guards=guards)
+            back = button('Undo', 'stac', 'Move the whole folder to the Trash, which gives it back, while it is still as I made it');back.setObjectName('StagedUndo');card.back = back;card.undone = None
             back.clicked.connect(lambda:self.undo_staged(card, self.made_done));card.row.insertWidget(0, back)
             try:self.host.session.save()
             except Exception:  # noqa: BLE001 - the project is made and said
@@ -2202,6 +2244,9 @@ class SlateFace(QWidget):
         kind, name, words = asked
         self.thing = None;self.mine(text)
         if kind in ('file', 'folder'):
+            from .stacy_start import reserved
+            if reserved(name):
+                self.say('“%s” begins with a name Graphite keeps for a folder of its own. Give it another name.' % name);return True
             if self.run_line(op('files.get', path=name)).get('ok'):
                 self.say('There is already something called “%s” in Files. I do not write over what is there by myself: say another name.' % name);return True
             parent, _, leaf = name.rpartition('/')
@@ -2237,6 +2282,13 @@ class SlateFace(QWidget):
         self.thing = None;self.mine(text)
         bar = getattr(self.host, 'type_bar', None)
         if stacy_hand.terminal_hers(command) and stacy_hand.level(self.host) != 'ask':
+            console = getattr(self.host, 'console', None)
+            if console is None or getattr(console, 'process', None) is not None:      # nothing to run it in, or a command is still running there
+                if bar is not None:
+                    bar.set_target('shell', focus=False);bar.box.setText(command)
+                self.say('The Terminal is still running a command, so I have not run this one: it is in the line, with Terminal chosen, for when that one has ended.'
+                         if console is not None else 'There is no Terminal in this window, so I have not run it.')
+                return True
             to_console(self.host, 'shell', command)
             stacy_hand.record(self.host.session.state, 'Ran in the Terminal: ' + command, '$ ' + command, '', text.strip(), True)
             try:self.host.session.save()
@@ -2250,7 +2302,7 @@ class SlateFace(QWidget):
                  + ' it is yours to run: it is in the line, with Terminal chosen.')
         return True
 
-    def say_desk(self, count, waiting, lines, go, plan=(), settle=None, doubts=(), look=None):
+    def say_desk(self, count, waiting, lines, go, plan=(), settle=None, doubts=(), look=None, hers=False):
         """The desk, checked: how many things were read, which wait for the owner and why, and the reads that were made.
         `go(object)` goes to one of them in the Field and says what can be done about it. `plan` is the changes that would
         settle what can be settled without a decision of the owner's; `settle()` puts them up for one Run."""
@@ -2265,7 +2317,7 @@ class SlateFace(QWidget):
                 said.setStyleSheet('color:%s' % QUIET);said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
             if len(waiting) > 12:card.box.addWidget(QLabel('… and %d more' % (len(waiting) - 12)))
         if plan and settle is not None:
-            card.box.addWidget(sentence('{settle}', {'settle': ('Settle what I can: %d change%s, one Run' % (len(plan), '' if len(plan) == 1 else 's'), settle)}))
+            card.box.addWidget(sentence('{settle}', {'settle': (('Settle what I can: %d change%s, done at once' if hers else 'Settle what I can: %d change%s, one Run') % (len(plan), '' if len(plan) == 1 else 's'), settle)}))
         if doubts:                           # what a plausible result may hide: looked for on everything, said beside what waits
             head = QLabel('I doubt %d thing%s that look%s right:' % (len(doubts), '' if len(doubts) == 1 else 's', 's' if len(doubts) == 1 else ''));head.setWordWrap(True);card.box.addWidget(head)
             for row in doubts[:8]:
@@ -2432,9 +2484,9 @@ class SlateFace(QWidget):
 
     def ask(self, text, about=None):
         if self.own_word(text):return
-        if self.set_asked(text):return
-        if self.start_asked(text):return
+        if self.start_asked(text):return      # before "set": "make a folder called Rev 2" has a number in it and is not a number to set
         if self.made_asked(text):return
+        if self.set_asked(text):return
         if self.run_asked(text):return
         thing = self.what_if(text)
         if thing and thing.get('refusal'):
@@ -3297,21 +3349,33 @@ class Shell2(QObject):
             button.hide()       # 0.5.3: one view, no three tabs; the buttons stay for what calls them and are not shown
         self.pane_title(current, preview)
 
+    def title_clicked(self):
+        """The pane's title is a way back: from Activity or Context to what was there, and with a worksheet open, from Stacy
+        to the sheet's Preview and from the Preview to her."""
+        current = self.host.console_pages.currentWidget();preview = self.worksheet.preview if self.worksheet is not None else None
+        if current is self.face:
+            if preview is not None:self.show_worksheet_preview()
+        elif preview is not None and current is preview:self.show_slate_face()
+        else:self.show_primary_face()
+
     def pane_title(self, current, preview):
         """Where the three tabs stood: the name of the pane, Stacy; and, while Activity or Context is up, the way back to her."""
         title = getattr(self, 'title_word', None)
         if title is None:
             title = self.title_word = QPushButton(self.face_tabs);title.setObjectName('PaneTitle');title.setCursor(Qt.PointingHandCursor)
-            title.setFocusPolicy(Qt.TabFocus);title.clicked.connect(lambda checked=False: self.show_primary_face() if self.host.console_pages.currentWidget() is not self.face else None)
+            title.setFocusPolicy(Qt.TabFocus);title.clicked.connect(lambda checked=False:self.title_clicked())
             self.face.signature.hide()      # her name is said once: the pane's title says it, so the line beside her face need not
             title.setStyleSheet('QPushButton#PaneTitle {font-family:"IBM Plex Mono";font-weight:600;color:%s;background:transparent;border:0;border-bottom:2px solid %s;padding:0 2px;text-align:left;} '
                                 'QPushButton#PaneTitle:hover {color:%s;border-bottom:2px solid %s;}' % (TEXT, AMBER_EDGE, TEAL_TEXT, READY))
-        home = current is self.face or (preview is not None and current is preview)
         other = 'Activity' if current is getattr(self.host, 'operations_panel', None) else ('Sources' if preview is not None else 'Context') if current is getattr(self.host, 'arc_inspector', None) else ''
-        words = 'Stacy' if home or not other else '‹ Stacy  ·  %s' % other
+        # With a spreadsheet's worksheet open the pane has two faces of its own, her and the sheet's Preview: the title is
+        # then the way from one to the other, so neither is ever out of reach.
+        pair = '' if preview is None or other else ('Preview  ›' if current is self.face else '‹ Stacy' if current is preview else '')
+        home = not other and not pair
+        words = pair or ('Stacy' if home else '‹ Stacy  ·  %s' % other)
         if title.text() != words:
-            title.setText(words);title.setAccessibleName('Stacy' if home else 'Back to Stacy from ' + other)
-            title.setToolTip('' if home else 'Back to Stacy')
+            title.setText(words);title.setAccessibleName('Stacy' if home else ('The sheet’s Preview' if pair.startswith('Preview') else 'Back to Stacy' + (' from ' + other if other else '')))
+            title.setToolTip('' if home else ('The sheet’s Preview' if pair.startswith('Preview') else 'Back to Stacy'))
         tabs = self.face_tabs
         # 0.7.0 ("Probably don't even need the Stacy name tag taking up space"): at rest the pane has no title row at all;
         # her face is its top. The row comes back, as the way back, only while Activity or Context is up.

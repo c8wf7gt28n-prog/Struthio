@@ -278,7 +278,7 @@ def do(host, obj):
     page.steps = tuple(steps);page.steps_of = obj.id
     page.view.steps = tuple((step.words, _shown_kind(host, step)) for step in steps);page.view.update()
     face = _talk(host)
-    if face is not None and steps:face.say_steps(obj.title, steps, lambda n, obj=obj:take(host, obj, n))
+    if face is not None and steps:face.say_steps(obj.title, steps, lambda n, line=None, obj=obj:take(host, obj, n, line))
     if not steps:host.statusBar().showMessage('Field · the records offer nothing to do about %s' % obj.title, 6000)
     if steps:
         # The steps, where the eyes are and where the pointer can reach them: a light page whose rows are the steps. A click on
@@ -292,7 +292,7 @@ def do(host, obj):
     return page.steps
 
 
-def take(host, obj, n):
+def take(host, obj, n, line=None):
     """Take one of the steps offered for this sheet. A read runs at once and Stacy shows its line and what the records
     answered. A step that changes something is put in Talk with its exact line and waits for the owner's Run; when it has
     run, the Field reads the records again."""
@@ -304,6 +304,10 @@ def take(host, obj, n):
         page.view.setFocus(Qt.OtherFocusReason)
         return None
     if obj is None or page.steps_of != obj.id or not 0 <= n < len(page.steps):return None
+    if line is not None and page.steps[n].line != line:      # a word on an older list: that number is another step now, so nothing is taken
+        face = _talk(host)
+        if face is not None:face.say('That list is from before, and its steps have changed. Here they are as they stand now.')
+        do(host, obj);return None
     if page.view.reading is not None and page.view.reading.get('light'):page.view.close_reading()      # the page that offered the steps has done its work
     step = page.steps[n];face = _talk(host)
     if face is None:return None
@@ -357,7 +361,19 @@ def notice(host):
         waiting, _ = sweep(kernel, operator(), page.view.field)
         plan = [(obj, step) for obj, step in settling(waiting) if not _waits(host, step)]
         if not plan:return None
-        done = lambda results:(page.refresh(force=True), page.view.update())
+        chosen = page.view.field.selected
+
+        def done(results):
+            # The Field reads again. A calculation worked again is a new page that takes the old one's place: if the old one
+            # was selected, the new one is, so "this" still means the thing the owner was on.
+            page.refresh(force=True)
+            if chosen and page.view.field.get(chosen) is None:
+                for (obj, _), (_, ok, result) in zip(plan, results):
+                    made = result.get('document') if ok and isinstance(result, dict) else None
+                    ident = 'document:' + str(made.get('id')) if isinstance(made, dict) and made.get('id') else ''
+                    if obj.id == chosen and ident and page.view.field.get(ident) is not None:
+                        page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe();break
+            page.view.update()
         card = face.say_plan(plan, done=done, hers=True, word='what I noticed after the change',
                              title='I noticed %d thing%s that stood on what just changed.' % (len(plan), '' if len(plan) == 1 else 's'))
         face.run_plan(card, done)
@@ -556,7 +572,7 @@ def check_desk(host):
     def settle():
         # The changes go up together for one Run; when they have run the desk is checked again, and that check is the answer.
         done = lambda results:check_desk(host)
-        mine = all(not _waits(host, step) for _, step in plan)       # with a free hand, "settle what you can" is done, not put up
+        mine = settles_hers                        # when every change is hers, "settle what I can" is done, not put up
         card = face.say_plan(plan, done=done, hers=mine, word='settle what you can' if mine else '')
         if mine:face.run_plan(card, done)
         else:_await_go(host, 'all %d changes, as listed in Talk' % len(plan) if len(plan) > 1 else 'the change, as listed in Talk', lambda:face.run_plan(card, done))
@@ -565,12 +581,13 @@ def check_desk(host):
         obj = page.view.field.get(ident)
         if obj is None:return
         page.view.field.select(ident);page.view._reveal_pending = True;page.view._describe();page.view.update();doubt(host, obj)
-    card = face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle, doubts, look)
+    settles_hers = bool(plan) and all(not _waits(host, step) for _, step in plan)      # said where it is offered: the step is shown as one she does, or one that asks
+    card = face.say_desk(len(page.view.field.objects), waiting, lines, go, plan, settle, doubts, look, hers=settles_hers)
     page.steps = ();page.steps_of = '';page.pending = None;page.star = None
     if plan:                                   # the desk's own step, numbered 1: it puts the changes up; G then gives the go
         words = 'Settle what I can: %d change%s' % (len(plan), '' if len(plan) == 1 else 's')
         page.steps = (words,);page.steps_of = '*';page.star = settle
-        page.view.steps = ((words, 'write'),);page.view.update()
+        page.view.steps = ((words, 'does' if settles_hers else 'write'),);page.view.update()
     # The same answer where the eyes are: a light page over the work. It steps aside at the next key, so 1 settles and A
     # goes to the next thing that waits exactly as they do without it. Talk keeps the card, with its links.
     count = len(page.view.field.objects);sheet = [('q', 'I read the desk: %d thing%s, each from its record. Nothing is changed.' % (count, '' if count == 1 else 's'))]
@@ -587,7 +604,7 @@ def check_desk(host):
         sheet.append(('h', 'Nothing I doubt'));sheet.append(('q', 'By the questions I have. They are few: this is not a proof.'))
     keys = (['1  settle what I can (%d change%s)' % (len(plan), '' if len(plan) == 1 else 's')] if plan else []) + (['A  the next that waits'] if waiting else []) + ['Esc  close']
     page.view.show_reading('The desk, checked', sheet, '      '.join(keys), 'field.read | pick waiting | select kind,title,state', light=True)
-    if plan:page.view.steps = ((words, 'write'),)      # showing the page describes the sheet again; the desk's own step stays offered
+    if plan:page.view.steps = ((words, 'does' if settles_hers else 'write'),)      # showing the page describes the sheet again; the desk's own step stays offered
     page.view.setFocus(Qt.OtherFocusReason)
     return card
 

@@ -21,9 +21,14 @@ import time
 PROGRAMS = {'godot': 'Godot'}
 GODOT_COMMANDS = ('godot4', 'godot', 'godot3')      # Godot's own builds; Debian's Godot 4 (unstable); Debian 13's Godot 3
 DEBIAN_SHIPS = 3                                    # the Godot a Debian 13 computer gets from its own packages
-ASK = re.compile(r'^\s*(?:please\s+)?(?:get\s+me\s+started|start|begin|set\s+up|make|create)\s+(?:me\s+)?(?:on\s+|with\s+)?(?:a\s+|an\s+)?(?:new\s+|first\s+)?'
-                 r'(?:(?P<a>godot)\s+(?:project|game)|(?:project|game)\s+(?:in|with|for)\s+(?P<b>godot)|(?:in|with)\s+(?P<c>godot))'
+# A start is asked for by naming a project or a game, or by "get me started in Godot". A bare "start with Godot" is not
+# one: it may mean "begin with that one".
+ASK = re.compile(r'^\s*(?:please\s+)?(?:(?:get\s+me\s+started|start|begin|set\s+up|make|create)\s+(?:me\s+)?(?:on\s+|with\s+)?(?:a\s+|an\s+)?(?:new\s+|first\s+)?'
+                 r'(?:(?P<a>godot)\s+(?:project|game)|(?:project|game)\s+(?:in|with|for)\s+(?P<b>godot))|get\s+me\s+started\s+(?:in|with|on)\s+(?P<c>godot))'
                  r'(?:\s*,?\s*(?:called|named)\s+(?P<name>.+?))?\s*[.!]?\s*$', re.IGNORECASE | re.DOTALL)
+# What follows a name and is not part of it: a courtesy, or the next thing asked ("... called Lander, please", "... and open it").
+AFTER = re.compile(r'(?:\s*,?\s*(?:please|for\s+me|thanks|thank\s+you))+\s*[.!]?\s*$|\s*,?\s+(?:and|then)\s+(?:then\s+)?(?:open|play|run|start|show|launch)\b.*$', re.IGNORECASE | re.DOTALL)
+RESERVED = ('slate', 'egress', 'exports', '.trash', '.versions')      # folders of Files that Graphite keeps for itself (files_service)
 QUOTES = '“”"\'‘’ '
 
 
@@ -33,8 +38,17 @@ def asked(text):
     found = ASK.match(str(text or ''))
     if not found:return None
     program = (found.group('a') or found.group('b') or found.group('c')).lower()
-    name = re.sub(r'\s+', ' ', found.group('name') or '').strip().strip(QUOTES).rstrip('.').strip() or 'First %s project' % PROGRAMS[program]
+    given = found.group('name') or ''
+    quoted = re.match(r'^\s*[“"]([^“”"]+)[”"]', given)      # a name in quotes is the whole of what is between them
+    name = quoted.group(1) if quoted else AFTER.sub('', given)
+    name = re.sub(r'\s+', ' ', name).strip().strip(QUOTES).rstrip('.').strip() or 'First %s project' % PROGRAMS[program]
     return program, name
+
+
+def reserved(path):
+    """Whether a path in Files begins with a folder Graphite keeps for itself."""
+    first = str(path or '').replace('\\', '/').strip('/').split('/', 1)[0].strip().casefold()
+    return first in RESERVED
 
 
 def folder_name(name):
@@ -44,10 +58,24 @@ def folder_name(name):
     return kept or 'Godot project'
 
 
-def godot_major(executable, run=subprocess.run):
+def _answer(command, **kw):
+    """What a command prints, waiting three seconds at most; whatever it started is ended with it (a launcher that
+    ignores --version and opens the editor must not be left running, nor hold the window)."""
+    import os
+    import signal
+    process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+    try:out, err = process.communicate(timeout=3)
+    except subprocess.TimeoutExpired:
+        try:os.killpg(process.pid, signal.SIGKILL)
+        except OSError:process.kill()
+        process.communicate();raise
+    return type('Answer', (), {'stdout': out, 'stderr': err})()
+
+
+def godot_major(executable, run=_answer):
     """3 or 4, from what the engine itself answers to --version; None when it does not answer."""
     try:
-        said = run([executable, '--version'], capture_output=True, text=True, timeout=8)
+        said = run([executable, '--version'], capture_output=True, text=True, timeout=3)
         found = re.search(r'(\d+)\.\d+', (said.stdout or '') + (said.stderr or ''))
         return int(found.group(1)) if found and int(found.group(1)) in (3, 4) else None
     except (OSError, subprocess.SubprocessError, ValueError):
@@ -67,8 +95,11 @@ def godot_tool(which=shutil.which, major=godot_major):
 def _quoted(name):
     """A name inside double quotes, for Godot's settings, scenes and scripts: a backslash, a quote and a line break are
     written as their escapes, and any other control character is left out, so a name can never end its own string."""
+    import unicodedata
     text = str(name).replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-    return '"' + ''.join(ch for ch in text if ch >= ' ') + '"'
+    # Control characters and the invisible marks that steer the direction of text are left out: Godot 4 refuses a script
+    # with a raw direction mark inside a string.
+    return '"' + ''.join(ch for ch in text if unicodedata.category(ch) not in ('Cc', 'Cf')) + '"'
 
 
 def godot_files(name, major):
@@ -118,7 +149,7 @@ def first_steps(name, major, tool, now=None):
              '## From Graphite', '',
              '- `main.gd` and `main.tscn` are plain text: they open here, and Find works in them.',
              '- Programs, Godot inspects the project, opens it in Godot, or plays a scene without the editor.',
-             "- The whole folder was one act of Stacy's: Undo on her card moves it to the Trash, which gives it back.", '',
+             '- To be rid of it, move the folder to the Trash, which gives it back. While it is still as Stacy made it, Undo on her card does that.', '',
              'A Godot 3 project and a Godot 4 project are not the same files: this one is for Godot %d.' % major]
     return '\n'.join(lines) + '\n'
 

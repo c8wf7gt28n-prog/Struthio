@@ -11,7 +11,7 @@ no meter went to the place a person would look for it:
         order; background priority; the Agenda and the Work trail. (It is the System menu's own process list, whole:
         desktop_header_qt.NicePopup, which was always able to stand by itself.)
   GPU   what the graphics processor is for here: Stacy's model (the Brain room) and Graphite's services, On, Off, Restart.
-  RAM   memory in use and paging; and the way to Machine, where this computer is described.
+  RAM   memory in use and swapping; and the way to Machine, where this computer is described.
   TXT   the text Stacy holds: the Full chat, and what she has in view (Context).
 
   Log out, Exit Graphite, Restart, Shut down    at the foot of the Work menu, the first menu, where a desktop keeps them.
@@ -116,9 +116,9 @@ def ram_card(host, anchor):
     got = memory();card.line(('%s in use of %s (%d%%).' % (gb(got['used']), gb(got['total']), got['percent'])) if got else 'Memory in use is not reported here.')
     equalizer = getattr(getattr(getattr(host, 'shell2', None), 'top', None), 'equalizer', None)
     words = getattr(equalizer, 'words', {}) if equalizer is not None else {}
-    for group, name in (('RAM', 'Paging'), ('SSD', 'Disks'), ('NET', 'Network')):
+    for group, name in (('RAM', 'Swap'), ('SSD', 'Disks'), ('NET', 'Network')):
         said = words.get(group)
-        if said:card.line('%s: %s.' % (name, said.partition('; paging ')[2] if group == 'RAM' and '; paging ' in said else said), quiet=True)
+        if said:card.line('%s: %s.' % (name, said.partition('; ')[2] if group == 'RAM' and '; ' in said else said), quiet=True)
 
     def machine():
         bar = getattr(getattr(host, 'settings_navigator', None), 'bar', None)
