@@ -2063,7 +2063,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 1906288,
-      "sha256": "efe05595e1090afc9efc4d25282d546d055f19a0e107e3357be64a5a045e3f1d"
+      "sha256": "023f3f318b38dd30c6aff9bb3af3d60622a88a76dbe08b7d1847983dfc1c3d38"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4349952,
@@ -2071,7 +2071,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "a81fc2168eeb34d4b457cc0c55e21c33cb6a85e51301ef656cc8c5a75faaa182"
+      "sha256": "2ca561f5b34ef7aed504847225a75be42c3575ba1616f7a4d03caa47e466a484"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -4514,8 +4514,8 @@
       "sha256": "66bc2507e0e695ac4952a5bd76d45e078c4f642ca0e41c93af9cf11068cf99fe"
     },
     "workbench/shell2.py": {
-      "bytes": 240163,
-      "sha256": "44c86413f6f365b7c9351e1f82bd40573f11fe2205682f57aca32880d1962972"
+      "bytes": 240441,
+      "sha256": "6132d3594c9140ba9edff8513d3043bde099dd86166fd5c7acd58f64936a6f6d"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,

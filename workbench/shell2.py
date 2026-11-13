@@ -1994,6 +1994,7 @@ class SlateFace(QWidget):
             elif isinstance(result.get('changed'), list):said = 'Done: %s.' % ('nothing had changed' if not result['changed'] else '%d changed' % len(result['changed']))
             elif isinstance(result.get('ran'), list):said = 'Done: %d check%s ran%s.' % (len(result['ran']), '' if len(result['ran']) == 1 else 's', (': ' + ', '.join(str(x.get('outcome')) for x in result['ran'][:6])) if result['ran'] else '')
             elif isinstance(result.get('trashed'), str):said = 'Done: “%s” is in the Trash, which gives it back.' % result['trashed']
+            elif result.get('state') == 'STARTED' and result.get('pid'):said = 'Done: its own window was started on “%s”.' % str(result.get('path') or card.title)
             elif isinstance(result.get('path'), str) and result.get('kind'):said = 'Done: “%s” is in Files.' % result['path']
             elif isinstance(result.get('title'), str) and result['title']:said = 'Done: “%s”.' % result['title']
             else:said = 'Done.'
@@ -2010,7 +2011,7 @@ class SlateFace(QWidget):
             if back:
                 undo = button('Undo', 'stac', 'Put it back as it was');undo.setObjectName('StagedUndo');card.back = undo;card.undone = None
                 undo.clicked.connect(lambda:self.undo_staged(card, done));card.row.insertWidget(0, undo)
-            elif card.ran:
+            elif card.ran and not operation.startswith('programs.'):      # opening a program made nothing: there is nothing to take back
                 kept = QLabel('There is no exact Undo for this: what it made is kept beside what was there.');kept.setWordWrap(True);kept.setStyleSheet('color:%s' % FAINT)
                 kept.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(kept)
         if done is not None:done(card.ran, r.get('result') if card.ran else None)
