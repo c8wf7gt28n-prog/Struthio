@@ -43,6 +43,8 @@ def slider_for(view,ident):
  item=next(view.item(i) for i in range(view.count()) if view.item(i).data(Qt.UserRole)==ident)
  return view.itemWidget(item).findChild(QSlider)
 w.resize(1920,1200);w.show();settle();panel=w.operations_panel
+assert w.console_pages.currentWidget() is w.shell2.face  # 0.5: Stacy is the first thing on the right; this check then asks for Activity itself
+w.shell2.show_operations_face();settle()
 assert w.console_pages.currentWidget() is panel and w.shell2.operations_button.isChecked()
 assert w.shell2.top.pulse.parentWidget() is w.operations_monitors
 # UI-03: the monitors' holder stands in the head immediately left of Nice; the original Stop is the first row of Nice, not a second control.

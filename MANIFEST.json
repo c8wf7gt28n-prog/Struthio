@@ -1522,8 +1522,8 @@
       "sha256": "b74d1b6c080ed583889eedb20f9228dee76a3bd5577c99b307dcde893b0aa002"
     },
     "docs/RELEASE_NOTES_0.5.0.md": {
-      "bytes": 9583,
-      "sha256": "ed1df9a25dd374fc573d6f799100b00a1bd819a95efcb832bfcae36b1009110b"
+      "bytes": 9932,
+      "sha256": "9f73379ba15d0e50f9e019c8e9dff731e0bed2f5034423dae112366b7791c79a"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -2694,8 +2694,8 @@
       "sha256": "a7a5d8e3544e13092918c1aad1a20833c7d33b59c9ab23b86b5fa52c08df8d66"
     },
     "tools/check_frame_ui.py": {
-      "bytes": 36754,
-      "sha256": "b289bf61fe50528becf39d797dc5adfead251118f4674f86bd283fd2cff291c4"
+      "bytes": 36840,
+      "sha256": "ef55e5aea1d59de937ac4389191ad406c48010de5a2df254979a2d7a8433a051"
     },
     "tools/check_graphite_ui.py": {
       "bytes": 25951,
@@ -2742,8 +2742,8 @@
       "sha256": "58565fadd2e750263e0c2f265f19eb2e16341a8fbd995cb8f351d4d76f2d87bd"
     },
     "tools/check_operations_ui.py": {
-      "bytes": 10925,
-      "sha256": "72835ebfaa1c51372b65759e74fdc48afd5b0bbed0d7a752fd7451a36077ff6f"
+      "bytes": 11110,
+      "sha256": "993716d791e022a1937ccad3b496e63b6e97e112c340fd99a5fa7b395c122ea4"
     },
     "tools/check_paper_ui.py": {
       "bytes": 29573,

@@ -126,7 +126,7 @@ assert fresh_widths==fresh_floors==[w.desk.pane,w.desk.pane],(fresh_widths,fresh
 from workbench import desk_qt
 need_least,need_whole,need_centre=desk_qt.needs(w);assert w.desk.pane==desk_qt.pane_width(w.width(),1.0,bar.pane_owner,need_least,need_whole,need_centre),(w.desk,need_least,need_whole,need_centre)
 assert whole(bar_words()['primary']) and whole(bar_words()['secondary']),[(b.text(),b.width(),b.sizeHint().width()) for b in bar_words()['primary']+bar_words()['secondary']]
-assert w.sim_dock.isVisible() and w.console_pages.currentWidget() is w.operations_panel
+assert w.sim_dock.isVisible() and w.console_pages.currentWidget() is w.shell2.face  # 0.5: Stacy is the first thing on the right (it was Activity); Activity is one word away
 page=w._empty_home_page;assert page.layout().contentsMargins().right()==0,'Today sits in the centre; the right panel is shown, not compensated for'
 assert bar.context.isVisible() and bar.context_text=='Home' and bar.context.text().endswith('Home'),(bar.context_text,bar.context.text())
 capture('Ledger_Slate_DESKTOP_01_Frame_01_Start_Home.png','Start with no project: Today in the centre with both side columns, the Ledger Head and the typing strip; the right column shows Operations. The context word reads Home.')

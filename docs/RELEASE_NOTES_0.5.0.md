@@ -102,6 +102,9 @@ listed since 0.4.7.
   change to icons and back, Find's search of writing, tables, lists, trees and pages of words, the page in the desk's
   light (white comes down, black stays black, the picture given is untouched), and what the session keeps.
 - **The README's list of what is new** had one bullet run into another in the 0.4.9 commit. Mended.
+- **Two of the project's window checks said the right pane opens on Activity.** They now say what is so: it opens on
+  Stacy (`tools/check_frame_ui.py`; `tools/check_operations_ui.py` then asks for Activity itself and passes). The frame
+  check still stops where it stopped before this release, on an older assertion about the writing line's words.
 
 ## What was thought about and left for the owner
 
