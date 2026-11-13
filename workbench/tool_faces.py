@@ -1,7 +1,8 @@
 """How a tool button is drawn: its words on a plate, or one of Graphite's own glyphs.
 
 The owner, 13 November 2026, after "No ugly white boxes that stand out like a sore thumb": "Or graphite themed icons can
-be tried as an option also." So it is an option, and words stay the default:
+be tried as an option also." And, the same evening: "mostly focus on how it looks ... and fun to use. Think apple
+simplicity but still very powerful." So a workspace that has never chosen opens with icons, and words are one choice away:
 
     Work ▸ Rules ▸ Buttons ▸ Words | Icons            (kept in the session as "buttons")
 
@@ -27,7 +28,8 @@ MODES = ('words', 'icons')
 KEY = 'buttons'                 # the session's name for the choice
 SIDE = 20                       # a glyph's box, in pixels: the size it was drawn to be read at
 WIDEST = 16777215               # Qt's "no limit" for a widget's width
-STATE = {'mode': 'words'}
+OPENS_WITH = 'icons'            # what a workspace that has never chosen is shown (0.5: the owner asked for the look of it first)
+STATE = {'mode': 'words'}       # a button made outside a window (a test, a tool) is its words until a window says otherwise
 
 # What a tool wears, by the words on it. A button made with a glyph of its own (the bar above the work) says so itself.
 FOR_WORDS = {
@@ -37,9 +39,10 @@ FOR_WORDS = {
     'Export…': 'export', 'Edit cell': 'cell', 'Open source row': 'source', 'New document': 'document',
     'Compare sources again': 'again', 'Stop': 'stop', 'Bold': 'bold', 'Italic': 'italic', 'Underline': 'underline',
     'Heading': 'h1', 'Subheading': 'h2', 'Minor heading': 'h3', 'Body': 'body', 'Code': 'code', 'Plain': 'plain',
+    'Pin / Unpin': 'pin',
 }
 # The glyphs that stand alone: what every program draws the same way. Every other glyph keeps its words beside it.
-BARE = frozenset(('find', 'smaller', 'larger', 'undo', 'redo', 'save', 'previous', 'next', 'more',
+BARE = frozenset(('find', 'smaller', 'larger', 'undo', 'redo', 'save', 'previous', 'next', 'more', 'pin',
                   'bold', 'italic', 'underline', 'h1', 'h2', 'h3', 'body', 'code', 'plain'))
 NAMES = {'−': 'Smaller', '+': 'Larger'}         # what a bare sign is called in its tip
 
@@ -166,8 +169,8 @@ def wear(button, key=None, tone=None):
 
 def start(host):
     """Read the choice the session keeps. Called once, before the work pages are made."""
-    chosen = getattr(getattr(host, 'session', None), 'state', {}).get(KEY, 'words')
-    STATE['mode'] = chosen if chosen in MODES else 'words'
+    chosen = getattr(getattr(host, 'session', None), 'state', {}).get(KEY, OPENS_WITH)
+    STATE['mode'] = chosen if chosen in MODES else OPENS_WITH
 
 
 def restyle(host):

@@ -7,8 +7,36 @@ November 13, 2026. Guide → What's New opens this page. The 0.4.9, 0.4.8, 0.4.7
 The owner: "If there is anything that you want to add or subtract or change in the program, in the ui, desktop,
 interface, options, under the hood, deep inside, whatever. Turn off all my rules, and don't hold back."
 
-So what is here was chosen by the builder, not asked for line by line. Three things, each because something a person
-looks at every day was missing or did not work; and one hunt under the hood.
+And, the same evening: "But mostly focus on how it looks ... and fun to use. Think apple simplicity but still very
+powerful. ... ill stop and let you do it your way :)"
+
+So what is here was chosen by the builder, not asked for line by line: first a pass over how the window looks at rest,
+then three things that were missing or did not work, and one hunt under the hood.
+
+## How it looks
+
+The rule of the pass: **at rest the window shows names and pictures, and the machinery is one move away.** Nothing was
+taken out of the program; several things stopped being the first thing seen.
+
+- **The head of the window says a name.** It used to show the address of what is open, and for a page opened from a
+  record that is `graphite://open/5ab8a3fd7bb342f9…`: honest, typeable, and no use to a person. Now it says the name
+  ("07_Bench_Readings.pdf"), then quietly the room it is in and whether it is saved ("Preview · PDF", "Documents · not
+  saved yet"); in the Field it says "The Field". **Click it, or press Ctrl+L, and the address is there**, whole and
+  selected, to read, copy or type over, exactly as before; Esc puts the name back. Its tip always carries the address.
+- **The name is said once.** The bar above the work no longer repeats it beside the controls: the bar is the way back
+  to the Field on the left and six controls on the right, and nothing else.
+- **Tools are icons at first sight.** A workspace that has never chosen opens with the drawn glyphs and no boxes;
+  **Work ▸ Rules ▸ Buttons ▸ Words** brings back the worded plates, and the choice is kept. (0.4.9 opened with words;
+  the owner asked for the look first.)
+- **Stacy is the first thing on the right**, with her face and what she can be asked, not the ledger of services.
+  Activity is one word away.
+- **Z glides.** The desk draws back to show all of itself, or comes near again, in about a fifth of a second instead of
+  a cut, so the eye keeps its place on it. With "reduce motion" on it changes at once, as before.
+- **Fine print is fine print.** The two lines of a PDF page's identity (its physical page, labels and SHA-256) are
+  drawn faint: there to be read when wanted, not the first thing seen.
+
+What this pass did not do, and would be next: the Activity pane is still a wall of small words; the tab row still says
+"Pin / Unpin"; the sheet page still shows three lines of status under the table; Home was not touched.
 
 ## The whole desk is a map
 
@@ -26,7 +54,7 @@ The names of the columns keep their reading size too. Nothing else changes: the 
 sheet, the selected sheet has its amber halo, a what-if still marks what it would move. Nearer than 60 per cent the
 sheets are drawn as they always were.
 
-With **Buttons ▸ Icons** chosen, the glyph also leads the kind's word on a sheet seen near to; where there is no room
+With icons (what a workspace opens with), the glyph also leads the kind's word on a sheet seen near to; where there is no room
 for both, the glyph stands alone rather than half a word beside it.
 
 ## Find works on every page
@@ -83,7 +111,9 @@ These are the builder's proposals, in the order he would take them; none is done
 
 ## What was checked, and what was not
 
-Probes run the real window offscreen at 1920 by 1200 and 1366 by 768: the map (Z, the arrows, the programs face, + and
+Probes run the real window offscreen at 1920 by 1200 and 1366 by 768: the look (what the head says on four pages and
+in the Field, the address on a click, the glide seen frame by frame and its absence when motion is reduced, icons and
+Stacy at first sight), the map (Z, the arrows, the programs face, + and
 −, back to near, the zoom written to the session file), Find on five pages (lit, opens with the keyboard, counts,
 steps both ways, "not here", Esc, Ctrl+F, F3, closing when another page comes forward, and a finding replacing its
 sheet while the line is open on it), the icons, the plates, the page's light, and the earlier mouse and keyboard walks.

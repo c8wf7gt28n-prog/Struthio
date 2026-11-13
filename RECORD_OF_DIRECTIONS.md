@@ -134,7 +134,11 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   trying to accomplish"). What the builder adds on his own judgment is said as such in the notes, with why, and with
   what he would do next for the owner to steer; the record of what is and is not checked stays as strict as before.
   (0.5.0: the map, Find everywhere, the remembered Field, the crawler. Proposals: `docs/RELEASE_NOTES_0.5.0.md`.)
-  Icons are an option, words the default (13 November: "Or graphite themed icons can be tried as an option also"):
+  Simple at rest (13 November: "mostly focus on how it looks ... and fun to use. Think apple simplicity but still very
+  powerful"). At rest the window shows names and pictures, and the machinery is one move away: the head says a name and
+  gives its address when clicked; a tool is a glyph; a name is said once; fine print is faint; what moves, glides (and
+  is still when motion is reduced). Nothing is removed to make it simple: it stops being the first thing seen. (0.5.0.)
+  Icons are what a workspace opens with since 0.5.0, and words are one choice away (13 November: "Or graphite themed icons can be tried as an option also"):
   Work ▸ Rules ▸ Buttons. A glyph is drawn in the language of Graphite's own mark (cut strokes, small solid facets, a
   hexagon for a circle), read at 20 pixels in one colour; it stands alone only for what every program draws the same
   way, and otherwise keeps its words beside it. (0.4.9. Whether the glyphs say what they mean is the owner's to judge

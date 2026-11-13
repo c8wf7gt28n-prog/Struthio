@@ -122,7 +122,7 @@ class OfficePanel(QWidget):
         self.format.setSizePolicy(QSizePolicy.Maximum,QSizePolicy.Fixed);box.addLayout(tools)
         self.pages=QTabWidget();self.pages.setMinimumHeight(360);box.addWidget(self.pages,1);self.working=QWidget();self.work_box=QVBoxLayout(self.working);self.pages.addTab(self.working,'Working content')
         self.readings=QPlainTextEdit();self.readings.setReadOnly(True);self.readings.setProperty('arcReadingRole','prose');self.readings.setAccessibleName('Measured results and BOM comparison');self.pages.addTab(self.readings,'Readings')
-        self.details=QPlainTextEdit();self.details.setReadOnly(True);self.details.setAccessibleName('Office source and exact record details');self.pages.addTab(self.details,'Details');self.status=plain();self.status.setAccessibleName('Office save and job status');box.addWidget(self.status)
+        self.details=QPlainTextEdit();self.details.setReadOnly(True);self.details.setAccessibleName('Office source and exact record details');self.pages.addTab(self.details,'Details');self.status=plain();self.status.setAccessibleName('Office save and job status');box.addWidget(self.status);self.status.setStyleSheet('color:%s' % __import__('workbench.boss_theme',fromlist=['FAINT']).FAINT)
         self.draft_timer=QTimer(self);self.draft_timer.setSingleShot(True);self.draft_timer.setInterval(650);self.draft_timer.timeout.connect(self.flush_draft)
         self.job_timer=QTimer(self);self.job_timer.setInterval(350);self.job_timer.timeout.connect(self.poll_job);self.editor=QProcess(self);self.editor.setObjectName('OfficeCandidateEditor');self.editor.finished.connect(lambda *a:self.status.setText('Editor closed. Review the changed candidate file before Save.'));self.editor.errorOccurred.connect(lambda *a:self.status.setText('The external editor could not start. The prepared copy is retained.'))
         self.title_edit.textChanged.connect(self.title_changed);saved=invoke(host,'get',{'id':key});self.table=saved['document']['schema']==t.SCHEMA
@@ -230,11 +230,12 @@ class OfficePanel(QWidget):
         except (ValueError,OSError) as e:self.status.setText(str(e))
     def setup_table(self):
         row=QHBoxLayout();self.sheets=QComboBox();self.sheets.setAccessibleName('Working sheet');self.sheets.currentIndexChanged.connect(self.refresh_table);row.addWidget(self.sheets,1);self.address=QLineEdit('A1');self.address.setMaximumWidth(110);self.address.setAccessibleName('Working cell address');row.addWidget(self.address);self.edit_cell_button=QPushButton('Edit cell');__import__('workbench.theme2',fromlist=['tool']).tool(self.edit_cell_button,'Change the selected cell (a double-click on the cell does the same)');self.edit_cell_button.clicked.connect(self.edit_cell);row.addWidget(self.edit_cell_button);self.work_box.addLayout(row)
-        self.grid=QTableWidget();self.grid.setEditTriggers(QTableWidget.NoEditTriggers);self.grid.verticalHeader().setDefaultSectionSize(max(34,self.fontMetrics().height()+14));self.grid.setAccessibleName('Typed working table');self.grid.itemSelectionChanged.connect(self.cell_selected);self.grid.cellDoubleClicked.connect(lambda *a:self.edit_cell());self.work_box.addWidget(self.grid,1);self.cell_info=plain();self.work_box.addWidget(self.cell_info)
+        self.grid=QTableWidget();self.grid.setEditTriggers(QTableWidget.NoEditTriggers);self.grid.verticalHeader().setDefaultSectionSize(max(34,self.fontMetrics().height()+14));self.grid.setAccessibleName('Typed working table');self.grid.itemSelectionChanged.connect(self.cell_selected);self.grid.cellDoubleClicked.connect(lambda *a:self.edit_cell());self.work_box.addWidget(self.grid,1);self.cell_info=plain();self.cell_info.setStyleSheet('color:%s' % __import__('workbench.boss_theme',fromlist=['FAINT']).FAINT);self.work_box.addWidget(self.cell_info)
         self.source_bench = QWidget(self.working)
         evidence = QHBoxLayout(self.source_bench)
         evidence.setContentsMargins(0, 0, 0, 0)
         self.source_row_info = plain()
+        self.source_row_info.setStyleSheet('color:%s' % __import__('workbench.boss_theme',fromlist=['FAINT']).FAINT)      # fine print: there when wanted, never the first thing seen
         self.source_row_info.setAccessibleName('Reviewed PDF row')
         evidence.addWidget(self.source_row_info, 1)
         self.source_row_button = QPushButton('Open source row')

@@ -20,7 +20,7 @@ that line in the writing strip to read or change; Shift+Enter runs it and the an
 comes first: the rail appears only when the sheets keep their room and it never covers a sheet or a wire. Without the rail
 (a narrow window, the ASCII or Clean desk) the same line is in the foot and the same keys work.
 """
-from PySide6.QtCore import QEvent, QPoint, QPointF, QRectF, QSize, Qt, Signal
+from PySide6.QtCore import QEasingCurve, QEvent, QPoint, QPointF, QRectF, QSize, Qt, QVariantAnimation, Signal
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeyEvent, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QRadialGradient, QRegion
 from PySide6.QtWidgets import QSizePolicy, QToolTip, QWidget
 
@@ -129,6 +129,8 @@ class FieldView(QWidget):
         self.scroll_x = 0.0;self.scroll_y = 0.0
         self.zoom = 1.0                     # how large the sheets are drawn: 1 is the owner's reading size; Z fits the whole desk in the window
         self.on_zoom = None                 # told (zoom, whole desk?) when the owner changes how the desk is seen, so it can be kept
+        self.still = None                   # asked whether motion is to be reduced (the profile's setting); None: it may move
+        self._gliding = None
         self._fitted = False                # Z asked for the whole desk: it stays whole when the window or the desk changes, until the size is set by hand
         self._placed = {};self._surface = (0.0, 0.0);self._gap = 34.0;self._labels = [];self._reveal_pending = False
         self.setFocusPolicy(Qt.StrongFocus)
@@ -228,6 +230,7 @@ class FieldView(QWidget):
         return 2 * 12 * s + tag + 6 * s + TITLE_LINES * title + 4 * s + FACT_LINES * fact + where + 4 * s
 
     ZOOM = (0.35, 1.6)                   # the smallest and the largest the sheets are drawn
+    GLIDE = 190                          # milliseconds Z takes to draw the desk back or bring it near (glide)
     FAR = 0.6                            # below this no word on a sheet can be read: a sheet is drawn as its glyph and its name (_far)
 
     def room(self, body=None):
@@ -235,7 +238,7 @@ class FieldView(QWidget):
         same window holds twice as much each way."""
         body = body or self.body();return body.width() / self.zoom, body.height() / self.zoom
 
-    def set_zoom(self, zoom, about=None):
+    def set_zoom(self, zoom, about=None, said=True):
         """Draw the sheets larger or smaller. `about` is the point of the window that stays where it is (the pointer, for
         the wheel); without one the selected sheet is kept in view. The head, the foot and a page being read keep the
         owner's reading size: only the surface of sheets is seen from further away."""
@@ -248,7 +251,29 @@ class FieldView(QWidget):
             self._layout()
         else:
             self.zoom = zoom;self._layout();self._reveal();self._layout()
-        self._rehover();self.update();self._zoom_said()
+        self._rehover();self.update()
+        if said:self._zoom_said()
+
+    def glide(self, zoom, whole):
+        """Z: the desk draws back to show all of itself, or comes near again, in a short glide and not a cut, so the eye
+        keeps its place on it. At once when the profile asks for less motion, or when the Field is not showing."""
+        zoom = max(self.ZOOM[0], min(self.ZOOM[1], float(zoom)))
+        if self._gliding is not None:
+            moving = self._gliding;self._gliding = None;moving.stop()
+        calm = False
+        try:calm = bool(self.still()) if callable(self.still) else False
+        except Exception:  # noqa: BLE001 - how it moves is never worth an error
+            calm = True
+        if calm or not self.isVisible() or abs(zoom - self.zoom) < 1e-6:
+            self.set_zoom(zoom, said=False);self._fitted = whole;self._zoom_said();return
+        move = QVariantAnimation(self);move.setDuration(self.GLIDE);move.setEasingCurve(QEasingCurve.OutCubic)
+        move.setStartValue(float(self.zoom));move.setEndValue(zoom)
+        move.valueChanged.connect(lambda value: self.set_zoom(float(value), said=False) if self._gliding is move else None)
+
+        def arrived():
+            if self._gliding is not move:return
+            self._gliding = None;self.set_zoom(zoom, said=False);self._fitted = whole;self._zoom_said();self.update()
+        move.finished.connect(arrived);self._gliding = move;move.start(QVariantAnimation.DeleteWhenStopped)
 
     def _zoom_said(self):
         if callable(self.on_zoom):
@@ -379,7 +404,7 @@ class FieldView(QWidget):
             self.scroll_y = max(0.0, min(max(0.0, self._surface[1] - high), self.scroll_y + step));self._rehover();self.update();return
         elif key == Qt.Key_Z and plain:      # Z: the whole desk in the window; again, its ordinary size
             fitted = self.fit();whole = not (abs(self.zoom - fitted) < 1e-6 or (fitted >= 1.0 and self.zoom != 1.0))
-            self.set_zoom(fitted if whole else 1.0);self._fitted = whole and fitted < 1.0;self._zoom_said();return
+            self.glide(fitted if whole else 1.0, whole and fitted < 1.0);return
         elif event.text() in ('+', '=') or key in (Qt.Key_Plus, Qt.Key_Equal):       # larger
             self.set_zoom(round(self.zoom * 20 + 2) / 20.0);return
         elif event.text() in ('-', '−') or key == Qt.Key_Minus:                      # smaller

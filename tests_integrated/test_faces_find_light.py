@@ -57,9 +57,15 @@ class ToolFaceTests(unittest.TestCase):
     def button(self,words):
         b=QPushButton(words);self.row.addWidget(b);return tool_faces.wear(b)
 
-    def test_words_are_the_default_and_a_button_is_left_alone(self):
+    def test_outside_a_window_a_button_is_its_words_and_is_left_alone(self):
         b=self.button('Copy citation');self.assertEqual(tool_faces.mode(),'words')
         self.assertEqual((b.minimumWidth(),b.maximumWidth()),(0,tool_faces.WIDEST));self.assertFalse(b.property('facedWidths'))
+
+    def test_a_workspace_that_never_chose_opens_with_icons_and_a_choice_is_kept(self):
+        host=type('Host',(),{})();host.session=type('S',(),{'state':{}})()
+        tool_faces.start(host);self.assertEqual(tool_faces.mode(),'icons','0.5: the look first; words are one choice away')
+        host.session.state['buttons']='words';tool_faces.start(host);self.assertEqual(tool_faces.mode(),'words')
+        host.session.state['buttons']='nonsense';tool_faces.start(host);self.assertEqual(tool_faces.mode(),tool_faces.OPENS_WITH)
 
     def test_icons_change_only_the_width_and_going_back_restores_it(self):
         bare,worded,plain=self.button('Find'),self.button('Copy citation'),self.button('Something with no glyph')

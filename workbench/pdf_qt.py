@@ -67,6 +67,7 @@ class PdfDocumentTab(ServiceTab):
         self.refresh_button=QPushButton('Check original');self.refresh_button.clicked.connect(self.recheck)
         self.outer.addLayout(self.navigation_grid)
         self.location=QLabel('Choose an admitted PDF in Exact References.');self.location.setWordWrap(True);self.location.setTextFormat(Qt.PlainText);self.outer.addWidget(self.location)
+        self.location.setStyleSheet('color:%s' % __import__('workbench.boss_theme',fromlist=['FAINT']).FAINT)      # the page's identity is fine print: there when wanted, never the first thing seen
         self.action_grid=QGridLayout();self.buttons={}
         from .datasheet_qt import review_pdf_table
         for index,(label,fn) in enumerate((('Copy citation',self.copy_citation),('Open citation',self.open_citation),('OCR this page',self.ocr),

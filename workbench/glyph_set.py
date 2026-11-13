@@ -166,6 +166,13 @@ def again(p, ink, accent):
     facet(p, ink, (2.4, 15.5), (7.0, 12.2), (7.0, 18.8));facet(p, ink, (17.6, 15.5), (13.0, 12.2), (13.0, 18.8))
 
 
+def pin(p, ink, accent):
+    """A pin: this stays open."""
+    facet(p, accent, (7.5, 3.5), (12.5, 3.5), (12.5, 9.5), (7.5, 9.5))
+    pen(p, ink);line(p, (5.5, 3.5), (14.5, 3.5));line(p, (7.5, 3.5), (7.5, 9.5));line(p, (12.5, 3.5), (12.5, 9.5))
+    line(p, (4.0, 9.5), (16.0, 9.5));line(p, (10.0, 9.5), (10.0, 17.5))
+
+
 def stop(p, ink, accent):
     facet(p, ink, (5.5, 5.5), (14.5, 5.5), (14.5, 14.5), (5.5, 14.5))
 
@@ -255,7 +262,7 @@ GLYPHS = {
     'field': field, 'find': find, 'smaller': smaller, 'larger': larger, 'undo': undo, 'redo': redo, 'save': save,
     'previous': previous, 'next': following, 'cite': cite, 'table': table, 'more': more, 'note': note,
     'report': report, 'recalc': recalc, 'export': export, 'cell': cell, 'source': source,
-    'document': document, 'again': again, 'stop': stop,
+    'document': document, 'again': again, 'stop': stop, 'pin': pin,
     'bold': letters('B', QFont.Bold, size=14.0), 'italic': letters('I', QFont.DemiBold, italic=True, size=14.0),
     'underline': letters('U', QFont.DemiBold, under=True, size=12.0),
     'h1': letters('H1'), 'h2': letters('H2', QFont.Medium, size=12.0), 'h3': letters('H3', QFont.Normal, size=11.0),

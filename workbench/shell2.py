@@ -731,7 +731,12 @@ def relaunch(host, folder):
 # Where you are --------------------------------------------------------------------
 
 class PathBar(QLineEdit):
-    """The active address on the head itself. Ctrl+L, Enter, Escape, Copy."""
+    """The active address on the head itself. Ctrl+L, Enter, Escape, Copy.
+
+    0.5: at rest the head says the name of what is open and, quietly, where it is, not the address. A page opened from a
+    record has an address like graphite://open/5ab8a3fd..., which is honest and typeable and tells a person nothing.
+    The address is still the line's text, and it is what is shown the moment the line has the keyboard (a click, or
+    Ctrl+L), whole and selected, to be read, copied or typed over; its tip always carries it."""
     def __init__(self, host, top):
         super().__init__();self.host = host;self.top = top;self.words = self
         self.setObjectName('WorkspacePath');self.setFrame(False);self.setMinimumWidth(0)
@@ -746,11 +751,48 @@ class PathBar(QLineEdit):
         if getattr(self.host, '_closing', False):return
         from .work_location import location
         address, description = location(self.host)
-        self._address = address
+        if (address, description) != (getattr(self, '_address', None), getattr(self, '_kind', None)):self.update()
+        self._address = address;self._kind = description
         if force or not self.hasFocus():
             if self.text() != address:
                 self.setText(address);self.setCursorPosition(0)
         self.setToolTip(address + '\n' + description + '\nCtrl+L · Enter to open · Esc to restore')
+
+    def friendly(self):
+        """(the name of what is open, and quietly where or what it is), as the head says them at rest."""
+        host = self.host;address = getattr(self, '_address', None) or self.text();kind = getattr(self, '_kind', '') or ''
+        if getattr(host, '_field_active', False):return 'The Field', Path(host.root).name
+        tabs = getattr(host, 'tabs', None);title = tabs.tabText(tabs.currentIndex()).replace('&', '').replace('◆ ', '').strip() if tabs is not None and tabs.currentIndex() >= 0 else ''
+        bar = getattr(host, 'centre_bar', None)       # the bar above the work knows the name of what is open; the tab knows what kind of room it is in
+        name = getattr(bar, '_name', '') if bar is not None and not bar.isHidden() else ''
+        if name:
+            room = title.replace(name, '').strip(' ·•') if name in title else title
+            state = str(getattr(bar, '_said', ''))[len(name):].strip(' ·')      # "not saved yet", "read only", or nothing
+            return name, ' · '.join(part for part in ('' if room == name else room, state) if part)
+        if address.startswith('graphite://'):
+            if address.startswith('graphite://documents/'):return title or 'Document', kind
+            return (kind or title or 'Work'), ''
+        if kind.startswith('Workspace'):return ('Today' if 'Today' in kind else Path(address).name or 'Workspace'), short(address)
+        path = Path(address)
+        return path.name or address, short(path.parent)
+
+    def paintEvent(self, event):
+        if self.hasFocus():return super().paintEvent(event)      # being typed in: the address itself, as it is
+        from PySide6.QtGui import QFontMetrics, QPalette
+        from PySide6.QtWidgets import QStyle, QStyleOptionFrame
+        name, where = self.friendly();option = QStyleOptionFrame();self.initStyleOption(option)
+        box = self.style().subElementRect(QStyle.SE_LineEditContents, option, self).adjusted(2, 0, -2, 0)
+        p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing);p.setFont(self.font());fm = QFontMetrics(self.font())
+        said = fm.elidedText(name, Qt.ElideMiddle, box.width());p.setPen(self.palette().color(QPalette.Text))
+        p.drawText(box, Qt.AlignVCenter | Qt.AlignLeft, said)
+        left = box.left() + fm.horizontalAdvance(said) + fm.horizontalAdvance('   ')
+        if where and box.right() - left > fm.horizontalAdvance('mmmmmm'):
+            p.setPen(QColor(QUIET));p.drawText(box.adjusted(left - box.left(), 0, 0, 0), Qt.AlignVCenter | Qt.AlignLeft, fm.elidedText(where, Qt.ElideMiddle, box.right() - left))
+        p.end()
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        if event.reason() == Qt.MouseFocusReason:QTimer.singleShot(0, self.selectAll)      # a click shows the whole address, ready to copy or type over
 
     def edit_location(self):
         self.refresh(force=True);self.setFocus(Qt.ShortcutFocusReason);self.selectAll()
@@ -2602,6 +2644,17 @@ class Shell2(QObject):
         self.restyle(getattr(host, 'reading_profile', None))
         self.timer = QTimer(self);self.timer.setInterval(5000);self.timer.timeout.connect(self.tick);self.timer.start()
         QTimer.singleShot(300, self.tick)
+        QTimer.singleShot(0, self.stacy_first)
+
+    def stacy_first(self):
+        """0.5: the first thing on the right is Stacy, not the ledger of services. Activity is one word away, and is where
+        the right pane goes by itself when work starts running."""
+        host = self.host
+        try:
+            if self.worksheet is None and host.console_pages.currentWidget() is not self.face:
+                host.console_pages.setCurrentWidget(self.face);self.face.refresh()
+        except Exception:  # noqa: BLE001 - which face shows first is never worth an error
+            pass
 
     def dress(self):
         """The frame from the mockups: quiet chrome, so the work stands out. Every control keeps working as before."""

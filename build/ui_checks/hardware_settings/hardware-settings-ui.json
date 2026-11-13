@@ -1,0 +1,56 @@
+{
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "settings_count": 49,
+  "setting": "hardware.category_views",
+  "checks": [
+    "Opening, filtering, navigating and refreshing two hardware panes journals nothing; the readback lists both panes at Auto view",
+    "An explicit pane choice is one journaled hardware.category_views change through ledger.settings.set with the row revision; an unchanged pick writes nothing",
+    "A Set from outside the pane reaches the open pane under blocked signals within one tick; the journal keeps exactly two changes",
+    "The Settings editor lists every current pane, shows saved choices, and Apply records one change without disturbing open panes it did not change",
+    "An intervening shared revision refuses a stale editor draft, preserves it until Reload, and the open panes follow the saved map",
+    "Default empties the saved map and every open pane returns to Auto view; Undo restores the previous map and the pane follows",
+    "With no open pane the readback says NO_OPEN_PANE rather than applied; a reopened pane takes the saved mode without journaling",
+    "The public batch enum stays 17 keys; clean close removes the desktop lease; zero jobs, workers, model generations, provider requests or native tools"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_HATCH_Integration_01_Hardware_Pane.png",
+      "note": "Actual f133 / Firmware pane at Details after one explicit choice: one journal change, row APPLIED; d213 / Schematics stays Auto view.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "5a10214cd6c444088f00b1ffe91476119874095253af3e032332df12daaab5c6",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Integration_01_Hardware_Editor.png",
+      "note": "Actual Settings editor for Hardware category views: one combo per current pane, saved choices shown, change history in words.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "c299263486a747bbccb33a53b1aa74e8399ba4c89f2fe53d1e71762ff9866976",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_HATCH_Integration_01_Hardware_Default.png",
+      "note": "Actual state after Default: saved map empty, both open panes back at Auto view, readback APPLIED, history reversible.",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "b0a4e58017726851ddd9a5887e1f90e6ec8a6c0ad3497da00e5c6b6f1ba899b2",
+      "resolution": [
+        1920,
+        1200
+      ]
+    }
+  ],
+  "queued_job_submissions": 0,
+  "all_kernel_launchers_held": true,
+  "worker_processes_started": 0,
+  "model_generations": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "owner_host_acceptance": false,
+  "clean_close": true
+}

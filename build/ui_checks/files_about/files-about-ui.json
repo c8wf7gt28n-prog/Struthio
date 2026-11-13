@@ -1,0 +1,131 @@
+{
+  "schema": "ledger.agent02-files-about-ui/1",
+  "checkpoint": "HATCH AGENT-02 WI-C",
+  "state": "PASSED",
+  "mode": "ACTUAL_QT_OFFSCREEN",
+  "checks": [
+    "01 No page open (no tab at all); the agent driver exists with nothing running; the Work block is hidden; no document exists; no model is loaded; five parts visible",
+    "02 Typing strip → Slate with key events: “find files about pellets” became assignment 4937b0b8 of profile files_about with context {} (its own words chose it, no model); Slate said “Working on it: find files about pellets. Watch the Work line”",
+    "03 After two driver steps (receiving.status, files.find) the Work block reads working on · find files about pellets · running and doing now · Listing Ingress by name (step 3 of 5); Stop and Pause are words on the inspect line",
+    "04 The driver worked it to DONE between events: 12 steps (receiving.status, files.find, ledger.browse on Ingress only, files.get ×2 inside Files, documents.create, documents.edit ×6), one CHOICE row (no model: the rule default, write the page); found · “5 files about pellets: 4 in Files, 1 waiting in Ingress; Graphite read the first lines of 2.”",
+    "05 The Document word on the inspect line opened the findings page “Files about pellets” in Documents (revision 7): the request, four lines for Files (best first, the Egress copy last), one for Ingress (“waiting to be received, not read”) and “Looked in Files and Ingress on 2026-11-13 · 5 matches · read 2”; roof.txt, the receipt and the scan are not on it",
+    "06 1366×768: the findings page, the Work block and the five parts stay visible",
+    "07 Zero jobs, launches, provider requests or processes; no model (NO_MODEL_SELECTED); model_used False; the one document in the workspace is the findings page"
+  ],
+  "captures": [
+    {
+      "file": "Ledger_Slate_AGENT_02_FilesAbout_01_Running_1920.png",
+      "note": "Files about pellets, running after two steps with no page open: the Work block in the right column's Activity with Stop and Pause",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "17989bcae03359fbe42d95222574d5992a2dba9f7c6fdfc3b1561ba1ab81c51c",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_02_FilesAbout_02_Done_1920.png",
+      "note": "Files about pellets, done: the found line with the summary and the inspect line with Investigation and Document",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "6ff8dd44d1f30ddc7c5ba048e323a82dc2bda277daef2829ae0267170aab50b1",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_02_FilesAbout_03_Page_1920.png",
+      "note": "The findings page opened from the inspect line: one paragraph per match and the last line saying where Slate looked",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "b559a5525f1d9f21cba23196f4d571406ababc5d6a9a9914d133fae2077970a8",
+      "resolution": [
+        1920,
+        1200
+      ]
+    },
+    {
+      "file": "Ledger_Slate_AGENT_02_FilesAbout_04_Compact_1366.png",
+      "note": "The findings page and the right column at 1366 by 768",
+      "mode": "ACTUAL_QT_WINDOW_GRAB",
+      "sha256": "67358810570761ea3f17264781a4a02d19b54ee01ca4414ac80bf4cb8bdf99a3",
+      "resolution": [
+        1366,
+        768
+      ]
+    }
+  ],
+  "request": "find files about pellets",
+  "typed_with_no_page_open": true,
+  "assignment": {
+    "id": "4937b0b86f3c4ce0bc79edd3ffa29c7d",
+    "profile": "files_about",
+    "state": "DONE",
+    "steps_used": 12,
+    "reason": "Found 5 files about pellets; the findings page is in Documents"
+  },
+  "context_at_assign": {},
+  "operations": [
+    "receiving.status",
+    "files.find",
+    "ledger.browse",
+    "files.get",
+    "files.get",
+    "documents.create",
+    "documents.edit",
+    "documents.edit",
+    "documents.edit",
+    "documents.edit",
+    "documents.edit",
+    "documents.edit"
+  ],
+  "reads": [
+    "Coop/pellet_order.md",
+    "pellet price.csv"
+  ],
+  "browsed": [
+    "/tmp/ledger-agent02-files-about-ui-3z51vd9h/workspace/Ingress"
+  ],
+  "choices": [
+    {
+      "kind": "CHOICE",
+      "outcome": "DONE"
+    }
+  ],
+  "findings_page": {
+    "id": "330856b85666445da811973402b3f6dc",
+    "title": "Files about pellets",
+    "revision": 7,
+    "paragraphs": [
+      "Request: “find files about pellets” · Graphite searched Files for “pellet”",
+      "pellet_order.md · Files › Coop · 69 bytes · changed 2026-11-13 · matched by name · first line: “# Pellet order for November”",
+      "pellet price.csv · Files · 32 bytes · changed 2026-11-13 · matched by name · Table · columns supplier, kg, price · 1 row",
+      "feed notes.txt · Files · 59 bytes · changed 2026-11-10 · matched on line 2: Pellets: 12.5 kg a week.",
+      "pellets_share.txt · Files › Egress · 30 bytes · changed 2026-11-13 · matched by name",
+      "Pellets invoice.pdf · Ingress · 16 bytes · changed 2026-11-13 · waiting to be received, not read",
+      "Looked in Files and Ingress on 2026-11-13 · 5 matches · read 2"
+    ]
+  },
+  "found": [
+    "pellet_order.md · Files › Coop · 69 bytes · changed 2026-11-13 · matched by name",
+    "pellet price.csv · Files · 32 bytes · changed 2026-11-13 · matched by name",
+    "feed notes.txt · Files · 59 bytes · changed 2026-11-10 · matched on line 2: Pellets: 12.5 kg a week.",
+    "pellets_share.txt · Files › Egress · 30 bytes · changed 2026-11-13 · matched by name",
+    "Pellets invoice.pdf · Ingress · 16 bytes · changed 2026-11-13 · waiting to be received, not read",
+    "First line of pellet_order.md: “# Pellet order for November”",
+    "pellet price.csv has no lines to read: Table · columns supplier, kg, price · 1 row",
+    "5 files about pellets: 4 in Files, 1 waiting in Ingress; Graphite read the first lines of 2."
+  ],
+  "model_used": false,
+  "basis": "LOCAL_STEPS_NO_MODEL",
+  "brain_state": "NO_MODEL_SELECTED",
+  "profile_module": "workbench/profile_files.py",
+  "read_limit": 4,
+  "real_job_submissions": 0,
+  "worker_processes_started": 0,
+  "model_generations": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "processes_started": 0,
+  "acceptance_claimed": false,
+  "note": "Mechanical offscreen evidence of the files-about assignment typed with no page open, worked by the desktop driver without a model, and its findings page opened from the inspect line; the live-model advice (read one more or write) and the owner display remain open."
+}

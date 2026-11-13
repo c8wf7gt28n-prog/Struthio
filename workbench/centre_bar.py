@@ -11,7 +11,8 @@ thing by one road. What is new is that the controls are visible, always in the s
 control the open view cannot serve is dimmed and its tip says why, instead of being absent in one view and present in the
 next.
 
-    ‹ Field   the name of what is open, and whether it is saved      Find   −  +   Undo  Redo   Save
+    ‹ Field                                                           Find   −  +   Undo  Redo   Save
+    (0.5: the name of what is open, and whether it is saved, is said once, at the head of the window)
     (and, while something is being looked for, the line Find opens: centre_find)
 
 (0.4.9, the audit of what repeats what: there was an Actions control here that opened the chain menu, which has nothing to
@@ -58,7 +59,9 @@ class CentreBar(QWidget):
         self.undo = control('Undo', 'CentreUndo', lambda: self.in_place('undo'), 'Ctrl+Z', 'undo')
         self.redo = control('Redo', 'CentreRedo', lambda: self.in_place('redo'), 'Ctrl+Y', 'redo')
         self.save = control('Save', 'CentreSave', lambda: self.host.a_save.trigger(), 'Ctrl+S', 'save')
-        row.addWidget(self.field);row.addSpacing(8);row.addWidget(self.title, 1)
+        # 0.5: the name of what is open is said once, at the head of the window (shell2.PathBar), with whether it is saved.
+        # This label is still kept in step (the head and the checks read it) but is no longer shown beside the controls.
+        row.addWidget(self.field);row.addSpacing(8);row.addWidget(self.title, 1);self.title.hide();row.addStretch(1)
         for group in ((self.find,), (self.smaller, self.larger), (self.undo, self.redo), (self.save,)):
             row.addSpacing(8)
             for button in group:row.addWidget(button)
@@ -144,7 +147,7 @@ class CentreBar(QWidget):
         knows = callable(getattr(page, 'is_dirty', None)) or editor is not None      # the view can say whether it has changes
         itself = bool(getattr(page, 'saves_itself', False))                           # the view saves as it goes
         said = name.rstrip(' •') + ('  ·  read only' if editor is not None and editor.isReadOnly() else '  ·  not saved yet' if unsaved else '')
-        self._said = said;self.fit_title()
+        self._said = said;self._name = name.rstrip(' •');self.fit_title()
 
         def offer(button, on, what, why):
             button.setEnabled(bool(on));key = button.property('key')
@@ -171,7 +174,8 @@ class CentreBar(QWidget):
 
     def fit_title(self):
         words = getattr(self, '_said', '')
-        self.title.setText(QFontMetrics(self.title.font()).elidedText(words, Qt.ElideMiddle, max(40, self.title.width() - 4)));self.title.setToolTip(words)
+        shown = words if self.title.isHidden() else QFontMetrics(self.title.font()).elidedText(words, Qt.ElideMiddle, max(40, self.title.width() - 4))
+        self.title.setText(shown);self.title.setToolTip(words)
 
     def resizeEvent(self, event):
         super().resizeEvent(event);self.fit_title()

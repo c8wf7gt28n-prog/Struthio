@@ -47,6 +47,11 @@ class FieldPage(QWidget):
             if isinstance(state, dict):
                 state['field_zoom'] = {'zoom': round(float(zoom), 3), 'whole': bool(whole)};self._keep.start()
         self.view.on_zoom = kept
+
+        def calm():      # the profile's "reduce motion": the desk then changes size at once
+            from .document_qt import profile_of
+            return bool(profile_of(self.host).get('reduce_motion'))
+        self.view.still = calm
         self.view.opened.connect(lambda obj: open_object(self.host, obj))
         self.view.left.connect(lambda: back(self.host))
         self.view.face_chosen.connect(self.show_face)

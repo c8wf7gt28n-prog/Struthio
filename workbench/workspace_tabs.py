@@ -9,6 +9,8 @@ class WorkspaceTabs(QTabWidget):
         self.pin_button=QPushButton('Pin / Unpin')
         self.pin_button.setToolTip('Keep this workspace open · maximum five pins · workspaces opened from the menu or Explore are rooms and are not counted')
         self.pin_button.clicked.connect(self.toggle_pin)
+        from .tool_faces import wear
+        wear(self.pin_button)       # with icons it is a pin; its words are in its tip
         self.setCornerWidget(self.pin_button,Qt.TopRightCorner)
         self.tabBarDoubleClicked.connect(lambda i:self.pin(self.widget(i)))
 
