@@ -283,11 +283,14 @@ class FieldView(QWidget):
 
     def fit(self):
         """The zoom at which the whole desk is in the window: the largest step at which nothing runs off either way."""
-        body = self.body();s = self.scale()
+        body = self.body();s = self.scale();high = body.height() - 26 * s      # clear of the strip that says how it is seen
         for step in range(20, int(self.ZOOM[0] * 20) - 1, -1):
             zoom = step / 20.0
-            _, wide, tall = self.field.place(body.width() / zoom, body.height() / zoom, s, self.sheet_height(), self.least_width())
-            if wide <= body.width() / zoom + 0.5 and tall <= (body.height() - 26 * s) / zoom + 0.5:return zoom      # clear of the strip that says how it is seen
+            # The desk is placed in the room it will really have. (Until 0.5 it was placed in the whole height and then asked to
+            # be shorter than the height less the strip; a desk is never shorter than the room it is placed in, so nothing
+            # ever fitted and Z always drew the desk at its smallest, however large the window.)
+            _, wide, tall = self.field.place(body.width() / zoom, high / zoom, s, self.sheet_height(), self.least_width())
+            if wide <= body.width() / zoom + 0.5 and tall <= high / zoom + 0.5:return zoom
         return self.ZOOM[0]
 
     def _rehover(self):

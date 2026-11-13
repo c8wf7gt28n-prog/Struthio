@@ -32,11 +32,18 @@ taken out of the program; several things stopped being the first thing seen.
   Activity is one word away.
 - **Z glides.** The desk draws back to show all of itself, or comes near again, in about a fifth of a second instead of
   a cut, so the eye keeps its place on it. With "reduce motion" on it changes at once, as before.
-- **Fine print is fine print.** The two lines of a PDF page's identity (its physical page, labels and SHA-256) are
-  drawn faint: there to be read when wanted, not the first thing seen.
+- **Z fits the window you have.** Since 0.4.7, Z drew the desk at its smallest size (35 per cent) whatever the size of
+  the window: the code placed the desk in the whole height and then asked it to be shorter than the height less one
+  strip, and a desk is never shorter than the room it is placed in, so nothing ever fitted. On a 1920 by 1200 screen
+  the whole desk sat small in the middle of a great deal of black. It is now placed in the room it will really have:
+  the worked case shows whole at 80 per cent on that screen (every sheet readable, as near to), and at 40 per cent,
+  as the map, in a 1366 by 768 window.
+- **Fine print is fine print.** The two lines of a PDF page's identity (its physical page, labels and SHA-256) and
+  the status lines under a sheet are drawn faint: there to be read when wanted, not the first thing seen. Pin / Unpin
+  beside the tabs is a pin.
 
-What this pass did not do, and would be next: the Activity pane is still a wall of small words; the tab row still says
-"Pin / Unpin"; the sheet page still shows three lines of status under the table; Home was not touched.
+What this pass did not do, and would be next: the Activity pane is still a wall of small words; Home was not
+touched; the left tree is still words only; the Work menu still repeats the screen.
 
 ## The whole desk is a map
 

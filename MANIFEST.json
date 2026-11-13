@@ -1522,8 +1522,8 @@
       "sha256": "b74d1b6c080ed583889eedb20f9228dee76a3bd5577c99b307dcde893b0aa002"
     },
     "docs/RELEASE_NOTES_0.5.0.md": {
-      "bytes": 8913,
-      "sha256": "69fd5f46d78cafbd0371aa03d53356cc86308e638abbaafc6f8fc96e62fba7ea"
+      "bytes": 9583,
+      "sha256": "ed1df9a25dd374fc573d6f799100b00a1bd819a95efcb832bfcae36b1009110b"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -3410,8 +3410,8 @@
       "sha256": "7a14832dbbce7acdb7d3010eaf79ed85627e39c437c71c5715183eaf713f2db2"
     },
     "workbench/field_qt.py": {
-      "bytes": 106401,
-      "sha256": "f4034e4f4c851bc4c8028fc744e211e97975d9f30c30b51e82bb66bb9aef9212"
+      "bytes": 106751,
+      "sha256": "5bb98ee514c6a0fdca47769b8d12f32ec88d89dd1102e7f2fe36ef8bd7e56da1"
     },
     "workbench/field_ripple.py": {
       "bytes": 19666,
