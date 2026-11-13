@@ -65,13 +65,13 @@ class ConcernController(QObject):
         area = QPushButton('Working area'); area.clicked.connect(lambda: self.open(
             self.current_attention['object_id'] if self.current_attention else 'concern'))
         ask = QPushButton('Ask Stacy'); ask.clicked.connect(self.ask_slate)
-        # Back to the Field, in the same place whatever is open in the centre: a click here is F9. The Field keeps the tile
-        # and the view it was left with, so this is the way back from a tile that was opened with a click.
-        self.field_button = QPushButton('‹ Field'); self.field_button.setAccessibleName('Back to the Field')
-        self.field_button.setToolTip('Back to the Field: your work as tiles and wires, at the tile you opened this from (F9)')
-        self.field_button.clicked.connect(lambda: self.host.a_field.trigger() if hasattr(self.host, 'a_field') else None)
-        row.addWidget(self.field_button); row.addWidget(area); row.addWidget(ask)
+        row.addWidget(area); row.addWidget(ask)
         self.host.center_layout.insertWidget(1, self.context_strip)
+        # The controls that carry across whatever is open (Field, Find, size, Undo, Redo, Save, Actions) are the centre's
+        # bar, above the work and always in the same place (workbench/centre_bar.py). Back to the Field is its first
+        # control: where the eye and the hand look for a way back, not at the far end of a strip under the page.
+        from .centre_bar import install as install_centre_bar
+        self.field_button = install_centre_bar(self.host).field; self.field_button.setAccessibleName('Back to the Field')
         self.changed.connect(self.track_current); self.track_current()
 
     def track_current(self):
@@ -97,6 +97,8 @@ class ConcernController(QObject):
         else:
             title = str(tab.property('ledgerTitle') or 'Workspace') if tab else 'Workspace'
             self.context_label.setText('Working area · ' + title)
+        bar = getattr(self.host, 'centre_bar', None)      # the centre's controls say what is open now, and what it can do
+        if bar is not None:bar.sync()
         if self.current_attention != previous:
             self.attention.emit(self.current_attention)
             if hasattr(self.host, 'arc_inspector'):

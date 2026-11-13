@@ -93,6 +93,7 @@ QCheckBox::indicator:checked, QRadioButton::indicator:checked { background: %(AM
 QProgressBar { background: %(RAISED)s; border: 1px solid %(LINE)s; border-radius: 4px; text-align: center; color: %(TEXT)s; max-height: 8px; }
 QProgressBar::chunk { background: %(AMBER_EDGE)s; border-radius: 3px; }
 QSplitter::handle { background: %(LINE)s; }
+QSplitter::handle:hover { background: %(TEAL_EDGE)s; }
 QMainWindow::separator { background: %(LINE)s; width: 1px; height: 1px; }
 QDockWidget::title { background: %(GROUND)s; padding: 8px 12px; color: %(QUIET)s; }
 QStatusBar { background: %(GROUND)s; border-top: 1px solid %(LINE)s; color: %(QUIET)s; }

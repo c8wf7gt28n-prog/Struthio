@@ -404,10 +404,14 @@ class InkWord:
 
     @staticmethod
     def marked(widget):
-        """The mark's colour now, or None: pink for an action under the hand, focused or with its menu open; yellow for the
-        active choice."""
+        """The mark's colour now, or None: the keyboard's colour for a word that has the keyboard, is held down or has its menu
+        open; the pointer's green for a word the pointer is over (so 'the pointer is here' is never mistaken for 'the keys go
+        here'); the chosen colour for the active choice."""
         menu = widget.menu() if hasattr(widget, 'menu') else None
-        if widget.hasFocus() or widget.underMouse() or (hasattr(widget, 'isDown') and widget.isDown()) or (menu is not None and menu.isVisible()):return ERASER_MARK
+        if widget.hasFocus() or (hasattr(widget, 'isDown') and widget.isDown()) or (menu is not None and menu.isVisible()):return ERASER_MARK
+        if widget.underMouse():
+            from .boss_theme import READY
+            return READY
         if hasattr(widget, 'isChecked') and widget.isChecked():return PENCIL
         return None
 

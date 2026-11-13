@@ -278,7 +278,8 @@ class StreamTab(QPushButton):
         p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing);p.setFont(font)
         p.setPen(QColor(TEXT if self.isChecked() else QUIET));p.drawText(self.rect().adjusted(0, 0, 0, -MARK), Qt.AlignCenter, self.text())
         fm = QFontMetrics(font);w = fm.horizontalAdvance(self.text());x = (self.width() - w) // 2
-        colour = ERASER_MARK if (self.hasFocus() or self.underMouse()) else PENCIL if self.isChecked() else None
+        from .boss_theme import READY
+        colour = ERASER_MARK if self.hasFocus() else READY if self.underMouse() else PENCIL if self.isChecked() else None      # the keyboard's colour, the pointer's green, the chosen one
         if colour:p.fillRect(QRect(x, self.height() - MARK, w, MARK), QColor(colour))
         p.end()
 

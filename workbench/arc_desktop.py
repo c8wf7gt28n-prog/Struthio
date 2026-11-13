@@ -547,6 +547,8 @@ def refresh(host):
     if getattr(host, '_field_active', False):  # the Field has the whole centre: no bar of the work under it
         host.context_bar.hide();host.workspace_status.hide()
         if strip is not None:strip.hide()
+    bar = getattr(host, 'centre_bar', None)
+    if bar is not None:bar.sync()                # above the work, whenever the work is in the centre
     documents = type(tab).__name__ == 'CodeEditor' or host.tabs.count() > 1
     host.tabs.tabBar().setVisible(documents)
     host.tabs.pin_button.setVisible(documents)

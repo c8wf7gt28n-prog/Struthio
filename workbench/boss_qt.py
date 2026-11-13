@@ -288,6 +288,35 @@ def appearance_menu(host):
     return menu
 
 
+WAITS = 'waitsForOwner'        # on a button that applies a change when the owner presses it: it glows amber while it waits
+
+
+def glows(host):
+    """Whether this desk has glow: the Illustrated and ASCII desks do; the Clean desk has none, as it has no other ornament."""
+    try:return host.session.state.get('desk_art', 'illustrated') != 'clean'
+    except Exception:  # noqa: BLE001 - a host without a session (a check, a bare window): no ornament
+        return False
+
+
+def lamp(widget, colour, on=True, blur=14.0, alpha=0.85):
+    """A still glow round a small widget: a drop shadow with no offset, in the colour given. For a button or a reading, never
+    for a place that is typed in (it would be drawn through a picture at every blink of the cursor) and never for
+    something large or scrolling."""
+    from PySide6.QtWidgets import QGraphicsDropShadowEffect
+    if bool(on) == (widget.graphicsEffect() is not None):return
+    if on:
+        glow = QGraphicsDropShadowEffect(widget);glow.setOffset(0, 0);glow.setBlurRadius(blur)
+        ink = QColor(colour);ink.setAlphaF(alpha);glow.setColor(ink);widget.setGraphicsEffect(glow)
+    else:
+        widget.setGraphicsEffect(None)
+
+
+def waits(button, host, yes=True):
+    """A button that applies a change when the owner presses it waits for the owner, and what waits for the owner glows in
+    amber: the Approve of a change put up in Talk is lit as the Field's Approve is. `yes` False when it has been pressed."""
+    button.setProperty(WAITS, bool(yes));lamp(button, t.AMBER_EDGE, bool(yes) and button.isEnabled() and glows(host))
+
+
 def choose_art(host, mode):
     if mode not in ART_MODES:return
     host.session.state['desk_art'] = mode;host.session.save()
@@ -299,6 +328,10 @@ def choose_art(host, mode):
     if field is not None:
         field.view.art_mode = mode;field.view.texture = mode != 'clean';field.view.update()
     bar = getattr(host, 'type_bar', None)
-    if bar is not None:bar.align()
+    if bar is not None:
+        bar.align();bar.update()                   # the writing line's lit edge follows the desk too
+    from PySide6.QtWidgets import QPushButton
+    for button in host.findChildren(QPushButton):  # every Approve that still waits
+        if button.property(WAITS):lamp(button, t.AMBER_EDGE, button.isEnabled() and mode != 'clean')
     from .desktop_header_qt import DesktopMonitors
     for meters in host.findChildren(DesktopMonitors):meters.relight()      # the live readings glow, or not, with the desk

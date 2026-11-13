@@ -336,7 +336,7 @@ class TypeBar(QWidget):
 
     # -- the band ---------------------------------------------------------------------------------------------------------
     def band_style(self, scale, px=None):
-        from .boss_theme import TERMINAL_GROUND, AMBER_TEXT, AMBER_EDGE, LINE_STRONG, TEXT, QUIET
+        from .boss_theme import TERMINAL_GROUND, AMBER_TEXT, AMBER_EDGE, LINE_STRONG, TEXT, QUIET, READY
         from .shell2 import MONO
         px = max(11, round(15 * scale)) if px is None else int(px)
         key = (round(scale, 4), px)
@@ -348,10 +348,11 @@ class TypeBar(QWidget):
             'QWidget#TypeBar QLineEdit#OneBox {background:%s;color:%s;placeholder-text-color:%s;border:1px solid %s;border-radius:0;padding:6px 12px;font-family:"%s";font-size:%dpx;} '
             'QWidget#TypeBar QLineEdit#OneBox:focus {border-color:%s;} '
             'QWidget#TypeBar QPushButton#WritingSubmit {background:%s;color:%s;border:1px solid %s;border-radius:0;text-align:center;} '
-            'QWidget#TypeBar QPushButton#WritingSubmit:hover, QWidget#TypeBar QPushButton#WritingSubmit:focus {background:%s;} '
+            'QWidget#TypeBar QPushButton#WritingSubmit:focus {background:%s;} '
+            'QWidget#TypeBar QPushButton#WritingSubmit:hover {border:2px solid %s;} '      # under the pointer: the pointer's green edge
             'QWidget#TypeBar QLabel#TypeContext {font-size:%dpx;}'
             % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE_STRONG, MONO, px, AMBER_EDGE,
-               AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, px))
+               AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, READY, px))
         for b in list(self.targets.values()) + [self.box, self.context]:
             b.style().unpolish(b);b.style().polish(b)
 
@@ -481,6 +482,20 @@ class TypeBar(QWidget):
         if self.box.width() > 0 and self.send.x() > self.box.x():
             for x in (self.box.x() - 9, self.send.geometry().right() + 9):
                 p.fillRect(x, self.box.y(), 1, self.box.height(), QColor(LINE_STRONG))
+        if self.box.width() > 0 and self.box.hasFocus():
+            # The writing line has the keyboard: its amber edge is lit, above it and below it. One place on the desk holds
+            # the keys at a time, and the amber light is there: here, or on the Field's selected sheet. Drawn on the band
+            # inside the line's own columns (the band beside it is left as it is), and not on the Clean desk.
+            from PySide6.QtCore import QLineF
+            from PySide6.QtGui import QPen
+            from .boss_qt import glows
+            from .boss_theme import AMBER_EDGE
+            if glows(self.host):
+                r = self.box.geometry();p.setRenderHint(QPainter.Antialiasing)
+                for away, width, alpha in ((5.0, 5.0, 0.07), (3.2, 3.2, 0.12), (1.6, 2.0, 0.2)):
+                    ink = QColor(AMBER_EDGE);ink.setAlphaF(alpha);p.setPen(QPen(ink, width))
+                    p.drawLine(QLineF(r.left() + 1, r.top() - away, r.right(), r.top() - away))
+                    p.drawLine(QLineF(r.left() + 1, r.bottom() + 1 + away, r.right(), r.bottom() + 1 + away))
         p.end()
 
     def resizeEvent(self, event):
@@ -559,6 +574,7 @@ class TypeBar(QWidget):
 
     def eventFilter(self, watched, event):
         if watched is self.box and event.type() == QEvent.Resize:self.place_context()
+        if watched is self.box and event.type() in (QEvent.FocusIn, QEvent.FocusOut):self.update()      # the lit edge comes and goes with the keyboard
         return super().eventFilter(watched, event)
 
     def floors(self):

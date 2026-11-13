@@ -38,6 +38,7 @@ KEYS = (('h', 'Move'),
         ('k', '← ↑ ↓ →\tfollow the wires from sheet to sheet'),
         ('k', 'Home  End\tthe first sheet, the last sheet'),
         ('k', 'PgUp  PgDn\tscroll the surface'),
+        ('k', 'Z\tthe whole desk in the window, Z again for its ordinary size; + and − for larger and smaller'),
         ('k', 'A\tthe next thing that waits for you (Shift+A the one before)'),
         ('k', 'Backspace\tback to the sheet you were on before'),
         ('k', 'W  P  N\tthe faces: the work, every program as a shelf, this computer’s network'),
@@ -60,6 +61,10 @@ KEYS = (('h', 'Move'),
         ('k', 'F\ton the shelf: this program in its own full window'),
         ('h', 'Also'),
         ('k', 'Menu key\tor right-click: the same things as a cascading menu, on the sheet under the pointer'),
+        ('h', 'With the mouse'),
+        ('k', 'click\topen a sheet; ⋯ on it, or the right button, shows what can be done with it'),
+        ('k', 'drag\tthe ground, or the bars at the edges, to move the surface; Ctrl and the wheel for size'),
+        ('k', 'every key\tshown on the surface is a place to click, and does what the key does'),
         ('k', 'F9\tthe Field, from anywhere in Graphite'),
         ('k', 'this\tin the writing strip: the selected sheet (this | count, then Ctrl+Enter)'),
         ('k', 'word\tin the writing strip: word NAME = LINE keeps a staC line under a word of your own'))
@@ -114,10 +119,15 @@ class FieldView(QWidget):
         self._mouse = QPointF(-1, -1)       # where the pointer is, so what it is over can answer in its green
         self._shape = None                  # the pointer's shape here, as last set (see _point)
         self._panned = False
+        self._grab = None                   # a scroll thumb held by the mouse: ('v' or 'h', where in the thumb it was taken)
+        self._bar = ''                      # the scroll thumb under the pointer: 'v', 'h' or ''
+        self._chip = None                   # the ⋯ on the sheet under the pointer: (its rectangle, the sheet)
         self.setMouseTracking(True)
         self._plate = None;self._plate_drawn = (None, None)
         self._face_boxes = []
         self.scroll_x = 0.0;self.scroll_y = 0.0
+        self.zoom = 1.0                     # how large the sheets are drawn: 1 is the owner's reading size; Z fits the whole desk in the window
+        self._fitted = False                # Z asked for the whole desk: it stays whole when the window or the desk changes, until the size is set by hand
         self._placed = {};self._surface = (0.0, 0.0);self._gap = 34.0;self._labels = [];self._reveal_pending = False
         self.setFocusPolicy(Qt.StrongFocus)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -136,6 +146,7 @@ class FieldView(QWidget):
         self.would = {};self.would_said = ''      # a what-if is about the records as they were read: a new reading ends it
         self.reading = None                       # and so is a page shown over them
         self._reveal_pending = True
+        if self._fitted:self.zoom = self.fit()    # the whole desk was asked for: a new reading is shown whole too
         self._describe();self.update()
 
     def selected(self):
@@ -214,20 +225,68 @@ class FieldView(QWidget):
         if self.field.compact:return 2 * 12 * s + tag + 6 * s + TITLE_LINES * title        # a shelf: the name and the state; the foot says the rest
         return 2 * 12 * s + tag + 6 * s + TITLE_LINES * title + 4 * s + FACT_LINES * fact + where + 4 * s
 
-    def _layout(self):
+    ZOOM = (0.35, 1.6)                   # the smallest and the largest the sheets are drawn
+
+    def room(self, body=None):
+        """The room the sheets have, in their own measure: the body of the Field seen through the zoom. At half size the
+        same window holds twice as much each way."""
+        body = body or self.body();return body.width() / self.zoom, body.height() / self.zoom
+
+    def set_zoom(self, zoom, about=None):
+        """Draw the sheets larger or smaller. `about` is the point of the window that stays where it is (the pointer, for
+        the wheel); without one the selected sheet is kept in view. The head, the foot and a page being read keep the
+        owner's reading size: only the surface of sheets is seen from further away."""
+        zoom = max(self.ZOOM[0], min(self.ZOOM[1], float(zoom)));self._fitted = False
+        if abs(zoom - self.zoom) < 1e-6:return
+        body = self.body();was = self.zoom
+        if about is not None and body.contains(about):
+            x = self.scroll_x + (about.x() - body.left()) / was;y = self.scroll_y + (about.y() - body.top()) / was
+            self.zoom = zoom;self.scroll_x = x - (about.x() - body.left()) / zoom;self.scroll_y = y - (about.y() - body.top()) / zoom
+            self._layout()
+        else:
+            self.zoom = zoom;self._layout();self._reveal();self._layout()
+        self._rehover();self.update()
+
+    def fit(self):
+        """The zoom at which the whole desk is in the window: the largest step at which nothing runs off either way."""
         body = self.body();s = self.scale()
-        self._placed, wide, tall = self.field.place(body.width(), body.height(), s, self.sheet_height(), self.least_width())
+        for step in range(20, int(self.ZOOM[0] * 20) - 1, -1):
+            zoom = step / 20.0
+            _, wide, tall = self.field.place(body.width() / zoom, body.height() / zoom, s, self.sheet_height(), self.least_width())
+            if wide <= body.width() / zoom + 0.5 and tall <= (body.height() - 26 * s) / zoom + 0.5:return zoom      # clear of the strip that says how it is seen
+        return self.ZOOM[0]
+
+    def _rehover(self):
+        """After the surface moves under a still pointer (a scroll, a zoom, a key that brings a sheet into view), the sheet
+        under the pointer is looked up again, so the green answer is never left on a sheet the pointer is no longer over."""
+        if self._mouse.x() < 0 or self.reading is not None:return
+        bar = self._bar_at(self._mouse);hot = None if bar else self._hot_at(self._mouse);ident = '' if hot or bar else (self._hit(self._mouse) or '')
+        if hot is not None and self._chip is not None and hot[0] == self._chip[0]:ident = self._chip[1]
+        if ident != self._hover:self._hover = ident
+        self._bar = bar[0] if bar else ''
+        self._point(Qt.PointingHandCursor if hot or ident or bar else Qt.ArrowCursor)
+
+    def _layout(self):
+        body = self.body();s = self.scale();wide_room, tall_room = self.room(body)
+        self._placed, wide, tall = self.field.place(wide_room, tall_room, s, self.sheet_height(), self.least_width())
         self._surface = (wide, tall)
         lefts = sorted({round(place.x, 1) for place in self._placed.values()})
         widths = [place.w for place in self._placed.values()]
         self._gap = (lefts[1] - lefts[0] - widths[0]) if len(lefts) > 1 else 34.0
         if self._reveal_pending:
             self._reveal_pending = False;self._reveal(body)
-        self.scroll_x = max(0.0, min(self.scroll_x, max(0.0, wide - body.width())))
-        self.scroll_y = max(0.0, min(self.scroll_y, max(0.0, tall - body.height())))
+        self.scroll_x = max(0.0, min(self.scroll_x, max(0.0, wide - wide_room)))
+        self.scroll_y = max(0.0, min(self.scroll_y, max(0.0, tall - tall_room)))
         return body
 
     def sheet_rect(self, ident, body=None):
+        """Where a sheet is in the window, as it is seen (through the zoom): what a click, the pointer and a menu go by."""
+        body = body or self.body();p = self._placed.get(ident);z = self.zoom
+        return None if p is None else QRectF(body.left() + (p.x - self.scroll_x) * z, body.top() + (p.y - self.scroll_y) * z, p.w * z, p.h * z)
+
+    def _drawn_rect(self, ident, body=None):
+        """Where a sheet is drawn, in the surface's own measure: the painter is scaled by the zoom about the body's corner
+        while the sheets and wires are drawn, so they are placed as if at their ordinary size."""
         body = body or self.body();p = self._placed.get(ident)
         return None if p is None else QRectF(body.left() + p.x - self.scroll_x, body.top() + p.y - self.scroll_y, p.w, p.h)
 
@@ -245,16 +304,17 @@ class FieldView(QWidget):
         body = body or self.body();p = self._placed.get(self.field.selected);s = self.scale();room = 14 * s
         if p is None:return
         # Under the sheet: clear of the strip that says where the surface goes on. Above it: what room is left, a little when there is some.
-        high = body.height();strip = 26 * s
+        wide, high = self.room(body);strip = 26 * s / self.zoom
         low = strip if high >= p.h + strip else max(0.0, min(room, high - p.h))
         top = max(0.0, min(room, high - p.h - low))
         if p.y - top < self.scroll_y:self.scroll_y = max(0.0, p.y - top - min(26 * s, max(0.0, high - p.h - top - low)))
         elif p.y + p.h + low > self.scroll_y + high:self.scroll_y = p.y + p.h + low - high
         if p.x - room < self.scroll_x:self.scroll_x = max(0.0, p.x - room)
-        elif p.x + p.w + room > self.scroll_x + body.width():self.scroll_x = p.x + p.w + room - body.width()
+        elif p.x + p.w + room > self.scroll_x + wide:self.scroll_x = p.x + p.w + room - wide
 
     def resizeEvent(self, event):
         self._reveal_pending = True
+        if self._fitted:self.zoom = self.fit()      # the whole desk was asked for: it stays whole in the new window
         super().resizeEvent(event)
 
     # ---- a page to read, over the work -----------------------------------------------------------------------------
@@ -307,8 +367,17 @@ class FieldView(QWidget):
         elif key == Qt.Key_Home:self.field.select(self.field.first())
         elif key == Qt.Key_End:self.field.select(self.field.last())
         elif key in (Qt.Key_PageDown, Qt.Key_PageUp):
-            body = self._layout();step = body.height() * 0.85 * (1 if key == Qt.Key_PageDown else -1)
-            self.scroll_y = max(0.0, min(max(0.0, self._surface[1] - body.height()), self.scroll_y + step));self.update();return
+            self._layout();high = self.room()[1];step = high * 0.85 * (1 if key == Qt.Key_PageDown else -1)
+            self.scroll_y = max(0.0, min(max(0.0, self._surface[1] - high), self.scroll_y + step));self._rehover();self.update();return
+        elif key == Qt.Key_Z and plain:      # Z: the whole desk in the window; again, its ordinary size
+            fitted = self.fit();whole = not (abs(self.zoom - fitted) < 1e-6 or (fitted >= 1.0 and self.zoom != 1.0))
+            self.set_zoom(fitted if whole else 1.0);self._fitted = whole and fitted < 1.0;return
+        elif event.text() in ('+', '=') or key in (Qt.Key_Plus, Qt.Key_Equal):       # larger
+            self.set_zoom(round(self.zoom * 20 + 2) / 20.0);return
+        elif event.text() in ('-', '−') or key == Qt.Key_Minus:                      # smaller
+            self.set_zoom(round(self.zoom * 20 - 2) / 20.0);return
+        elif key == Qt.Key_0 and event.modifiers() & Qt.ControlModifier:             # Ctrl+0: the ordinary size
+            self.set_zoom(1.0);return
         elif key == Qt.Key_A and plain:      # A: the next thing that waits for the owner; Shift+A the one before. Tab leaves, as everywhere.
             self.field.next_attention(backwards=bool(event.modifiers() & Qt.ShiftModifier))
         elif key in (Qt.Key_Return, Qt.Key_Enter):
@@ -359,7 +428,7 @@ class FieldView(QWidget):
             self.face_chosen.emit(next(name for name, letter in self.faces if event.text().lower() == letter));return
         else:
             return super().keyPressEvent(event)
-        self._layout();self._reveal();self.update()        # a selecting key always brings the sheet into view, changed or not
+        self._layout();self._reveal();self._rehover();self.update()        # a selecting key always brings the sheet into view, changed or not
         if self.field.selected != before:self._describe()
 
     def _hit(self, pos):
@@ -371,7 +440,7 @@ class FieldView(QWidget):
         return None
 
     KEY_OF = {'Enter': (Qt.Key_Return, ''), 'Esc': (Qt.Key_Escape, ''), '⌫': (Qt.Key_Backspace, ''), 'Backspace': (Qt.Key_Backspace, ''), '?': (Qt.Key_Question, '?'),
-              'Menu': (Qt.Key_Menu, ''), 'Menu key': (Qt.Key_Menu, '')}
+              'Menu': (Qt.Key_Menu, ''), 'Menu key': (Qt.Key_Menu, ''), 'Shift+Enter': ((Qt.Key_Return, Qt.ShiftModifier), '')}
 
     def _key_of(self, label):
         """The key a shown label stands for ('D', '1', 'Esc', '?'): (key, the text it types), or None for a label that names no one key."""
@@ -382,10 +451,78 @@ class FieldView(QWidget):
         return None
 
     def press_key(self, key, text=''):
-        """Do what a key does, for a click: the same event the keyboard sends, so the mouse can never do something else."""
+        """Do what a key does, for a click: the same event the keyboard sends, so the mouse can never do something else. A
+        key held with Shift is (key, Shift). The few places that no key reaches (a scroll sideways, the ⋯ on a sheet) carry
+        what they do themselves."""
+        if callable(key):
+            key();return
         if key == Qt.Key_Menu:
             self.menu_asked.emit();return
-        self.keyPressEvent(QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, text))
+        held = Qt.NoModifier
+        if isinstance(key, tuple):key, held = key
+        self.keyPressEvent(QKeyEvent(QEvent.KeyPress, key, held, text))
+
+    def _sideways(self, way):
+        """Move the surface a window's width left (-1) or right (1): what Shift and the wheel do, for a click."""
+        self._layout();wide = self.room()[0]
+        self.scroll_x = max(0.0, min(max(0.0, self._surface[0] - wide), self.scroll_x + way * wide * 0.85));self._rehover();self.update()
+
+    def _menu_for(self, ident):
+        """The menu of a sheet, asked for with the left button on its ⋯: the sheet becomes the selected one (as the right
+        button makes it) and its menu opens. Nothing is opened and nothing is changed."""
+        if ident and ident != self.field.selected and self.field.get(ident) is not None:
+            self.field.select(ident);self._describe();self.update()
+        self.menu_asked.emit()
+
+    def _bars(self, body=None):
+        """The scroll thumbs, when the surface runs beyond the window: [(which, its track, the thumb)], 'v' down the right
+        edge and 'h' along the foot of the sheets. The thumb's length is the share of the surface the window shows."""
+        body = body or self.body();s = self.scale();wide, tall = self._surface;room_w, room_h = self.room(body);thick = 6.0 * s;strip = 24.0 * s;out = []
+        down = tall - room_h > 1;across = wide - room_w > 1
+        if down:
+            track = QRectF(body.right() - thick - 3 * s, body.top() + 6 * s, thick, max(40.0, body.height() - strip - 12 * s))
+            size = min(track.height(), max(30.0 * s, track.height() * room_h / tall))
+            out.append(('v', track, QRectF(track.left(), track.top() + (track.height() - size) * min(1.0, self.scroll_y / (tall - room_h)), thick, size)))
+        if across:
+            track = QRectF(body.left() + 6 * s, body.bottom() - strip - thick - 3 * s, max(40.0, body.width() - 12 * s - (thick + 6 * s if down else 0)), thick)
+            size = min(track.width(), max(30.0 * s, track.width() * room_w / wide))
+            out.append(('h', track, QRectF(track.left() + (track.width() - size) * min(1.0, self.scroll_x / (wide - room_w)), track.top(), size, thick)))
+        return out
+
+    def _bar_at(self, pos):
+        """The scroll bar under a point, with room around it for the hand: (which, its track, the thumb), or None."""
+        if self.reading is not None or not self.field.objects:return None
+        reach = 5.0 * self.scale()
+        return next((bar for bar in self._bars() if bar[1].adjusted(-reach, -reach, reach, reach).contains(pos)), None)
+
+    def _scrollbars(self, p, body):
+        """Draw the thumbs: quiet until the pointer is on one or the hand holds it, then the pointer's green."""
+        for which, track, thumb in self._bars(body):
+            lit = which == self._bar or (self._grab is not None and self._grab[0] == which)
+            p.fillRect(track, ink(t.LINE, 0.35))
+            p.fillRect(thumb, ink(t.READY, 0.9) if lit else ink(t.LINE_STRONG, 0.95))
+
+    def _menu_chip(self, p, body):
+        """On the sheet under the pointer, a small ⋯ at its lower corner. A left click on it shows what can be done with the
+        sheet: the menu the right button and the Menu key show, for the hand that does not think of the right button. A
+        sheet seen from too far away to carry it has none; the right button still works there."""
+        self._chip = None;ident = self._hover
+        if not ident or self.reading is not None:return
+        r = self.sheet_rect(ident, body)
+        if r is None:return
+        s = self.scale();wide, high = 30.0 * s, 20.0 * s
+        if r.width() < wide * 2.4 or r.height() < high * 2.2:return
+        # At the sheet's lower corner, or as low on it as the strip and the bar at the foot of the sheets leave in view.
+        floor = min(r.bottom(), body.bottom() - 38 * s);left = min(r.right(), body.right() - 12 * s)
+        box = QRectF(left - wide - 4 * s, floor - high - 4 * s, wide, high)
+        if box.top() < max(r.top(), body.top()) + 4 * s or box.left() < max(r.left(), body.left()) + 4 * s:return
+        over = box.contains(self._mouse)
+        p.save();p.setPen(QPen(QColor(t.READY if over else t.LINE_STRONG), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.96));p.drawRect(box)
+        p.setPen(Qt.NoPen);p.setBrush(QColor(t.READY if over else t.TEXT))
+        for step in (-1, 0, 1):p.drawEllipse(QPointF(box.center().x() + step * 6.5 * s, box.center().y()), 1.8 * s, 1.8 * s)
+        p.restore()
+        self._chip = (box, ident)
+        self._hot.append((box, lambda ident=ident: self._menu_for(ident), '', 'What can be done with this sheet (the right button shows the same menu)'))
 
     def _hot_at(self, pos):
         return next(((box, key, text, words) for box, key, text, words in reversed(self._hot) if box.contains(pos)), None)
@@ -402,7 +539,8 @@ class FieldView(QWidget):
                 total = wide + 8 * s + fm.horizontalAdvance(said)
                 if x + wide > end:break
                 box = QRectF(x, base - fm.ascent() - 3 * s, wide, fm.height() + 6 * s)
-                if box.contains(self._mouse):self._halo(p, box, t.READY, 1.8)      # under the pointer, the button that approves glows green
+                over = QRectF(x, box.top(), total, box.height()).contains(self._mouse)      # the same place a click lands on
+                self._halo(p, box, t.READY if over else t.AMBER_EDGE, 1.8 if over else 2.0)      # it waits for the owner: amber; under the pointer: green
                 p.save();p.setPen(Qt.NoPen);p.setBrush(QColor(t.AMBER_EDGE));p.drawRect(box)
                 p.setPen(QColor(t.GROUND));p.drawText(box, Qt.AlignCenter, 'Approve');p.restore()
                 p.setPen(QColor(colour));p.drawText(QPointF(x + wide + 8 * s, base), said)
@@ -434,6 +572,14 @@ class FieldView(QWidget):
         for box, name in self._face_boxes:
             if box.contains(pos):
                 self.face_chosen.emit(name);return
+        bar = self._bar_at(pos) if event.button() == Qt.LeftButton else None
+        if bar is not None:                   # a scroll bar: its thumb is taken hold of; a click on its track moves a window's worth that way
+            which, track, thumb = bar
+            if thumb.adjusted(-5, -5, 5, 5).contains(pos):
+                self._grab = (which, (pos.y() - thumb.top()) if which == 'v' else (pos.x() - thumb.left()));self.update()
+            elif which == 'v':self.press_key(Qt.Key_PageUp if pos.y() < thumb.top() else Qt.Key_PageDown)
+            else:self._sideways(-1 if pos.x() < thumb.left() else 1)
+            return
         ident = self._hit(pos)
         if event.button() == Qt.LeftButton:
             self._press = (QPointF(pos), ident, (self.scroll_x, self.scroll_y));self._panned = False
@@ -450,19 +596,33 @@ class FieldView(QWidget):
 
     def mouseMoveEvent(self, event):
         pos = event.position()
+        if self._grab is not None and event.buttons() & Qt.LeftButton:       # a thumb in the hand: the surface follows it
+            which, held = self._grab;bar = next((b for b in self._bars() if b[0] == which), None)
+            if bar is not None:
+                _, track, thumb = bar;wide, high = self.room()
+                if which == 'v':
+                    span = max(1.0, track.height() - thumb.height());self.scroll_y = max(0.0, min(1.0, (pos.y() - held - track.top()) / span)) * max(0.0, self._surface[1] - high)
+                else:
+                    span = max(1.0, track.width() - thumb.width());self.scroll_x = max(0.0, min(1.0, (pos.x() - held - track.left()) / span)) * max(0.0, self._surface[0] - wide)
+                self._mouse = QPointF(pos);self.update()
+            return
+        if self._grab is not None:            # the button came up somewhere this surface did not see: the thumb is let go
+            self._grab = None;self.update()
         if self._press is not None and event.buttons() & Qt.LeftButton:      # a drag moves the surface
             start, _, (x, y) = self._press;delta = pos - start
             if self._panned or abs(delta.x()) + abs(delta.y()) > 6:
-                self._panned = True;body = self._layout()
-                self.scroll_x = max(0.0, min(max(0.0, self._surface[0] - body.width()), x - delta.x()))
-                self.scroll_y = max(0.0, min(max(0.0, self._surface[1] - body.height()), y - delta.y()))
+                self._panned = True;self._layout();wide, high = self.room()
+                self.scroll_x = max(0.0, min(max(0.0, self._surface[0] - wide), x - delta.x() / self.zoom))
+                self.scroll_y = max(0.0, min(max(0.0, self._surface[1] - high), y - delta.y() / self.zoom))
                 self._point(Qt.ClosedHandCursor);self._mouse = QPointF(pos);self.update()
             return
-        hot = self._hot_at(pos);ident = '' if hot or self.reading is not None else (self._hit(pos) or '')
-        self._point(Qt.PointingHandCursor if hot or ident else Qt.ArrowCursor)
-        over = self._hot_at(self._mouse);was = QPointF(self._mouse);self._mouse = QPointF(pos)
-        if ident != self._hover or (hot is None) != (over is None) or (hot is not None and over is not None and hot[0] != over[0]):
-            self._hover = ident;self.update()
+        bar = self._bar_at(pos);hot = None if bar else self._hot_at(pos)
+        ident = '' if hot or bar or self.reading is not None else (self._hit(pos) or '')
+        if hot is not None and self._chip is not None and hot[0] == self._chip[0]:ident = self._chip[1]      # on a sheet's ⋯ the pointer is still on that sheet
+        self._point(Qt.PointingHandCursor if hot or ident or bar else Qt.ArrowCursor)
+        over = self._hot_at(self._mouse);was = QPointF(self._mouse);self._mouse = QPointF(pos);which = bar[0] if bar else ''
+        if ident != self._hover or which != self._bar or (hot is None) != (over is None) or (hot is not None and over is not None and hot[0] != over[0]):
+            self._hover = ident;self._bar = which;self.update()
         elif self.texture and self.reading is None:      # the pointer's light moved: only the two places it was and is are drawn again
             self.update(QRegion(self._lit(was)).united(QRegion(self._lit(self._mouse))))
         obj = self.field.get(ident) if ident else None
@@ -471,6 +631,8 @@ class FieldView(QWidget):
         else:QToolTip.hideText()
 
     def mouseReleaseEvent(self, event):
+        if self._grab is not None and event.button() == Qt.LeftButton:
+            self._grab = None;self._rehover();self.update();return
         press, self._press = self._press, None
         if press is None or event.button() != Qt.LeftButton:return super().mouseReleaseEvent(event)
         if self._panned:
@@ -479,22 +641,63 @@ class FieldView(QWidget):
         if ident and self._hit(event.position()) == ident:      # a click on a sheet: it is the selected one, and it opens
             if ident != self.field.selected:
                 self.field.select(ident);self._describe()
-            self.update();self.opened.emit(self.selected())
+            self.update();lift = self._guard_second_click(event.timestamp());self.opened.emit(self.selected());lift()
+
+    def _guard_second_click(self, stamp=0):
+        """A sheet opens on one click. A hand that double-clicks to open would land its second click on whatever the newly
+        opened page puts under the pointer, and press it. So the second click of that double-click is dropped: any press
+        of the left button in this window that was made within a double-click's time of the opening click, however late
+        it is delivered (opening a page can take longer than that, and the second click waits in the queue meanwhile). A
+        click made later than that is a new intention and goes through. The keyboard is not touched and nothing is delayed.
+        Returns what to call when the page has been opened: it lets the guard go a moment after."""
+        import time
+        from PySide6.QtCore import QObject, QTimer
+        from PySide6.QtWidgets import QApplication
+        app = QApplication.instance();window = self.window()
+        if app is None or getattr(self, '_guard', None) is not None:return lambda: None
+        within = max(150, min(600, app.doubleClickInterval()));began = time.monotonic()
+
+        class Guard(QObject):
+            def eventFilter(guard, watched, event):
+                try:
+                    if event.type() in (QEvent.MouseButtonPress, QEvent.MouseButtonDblClick, QEvent.MouseButtonRelease) and event.button() == Qt.LeftButton \
+                            and isinstance(watched, QWidget) and watched.window() is window:
+                        made = event.timestamp()
+                        return not (stamp and made and made - stamp > within)      # made after the double-click's time: a new click
+                except Exception:  # noqa: BLE001 - a guard never breaks an event
+                    pass
+                return False
+
+        self._guard = Guard(self);app.installEventFilter(self._guard)
+
+        def gone():
+            guard, self._guard = self._guard, None
+            if guard is not None:
+                app.removeEventFilter(guard);guard.deleteLater()
+
+        def lift():        # the page is open: what was clicked meanwhile is in the queue and is seen before this fires
+            QTimer.singleShot(max(180, within - int((time.monotonic() - began) * 1000)), gone)
+        return lift
 
     def leaveEvent(self, event):
         self._mouse = QPointF(-1, -1)
-        if self._hover or self._hot or self.texture:
-            self._hover = '';self.update()
+        if self._hover or self._hot or self.texture or self._bar:
+            self._hover = '';self._bar = '';self.update()
         super().leaveEvent(event)
 
     def wheelEvent(self, event):
         if self.reading is not None:
             self._read_at = max(0.0, min(self._read_room, self._read_at - event.angleDelta().y() / 2.0));self.update();return
-        body = self._layout();room_x = max(0.0, self._surface[0] - body.width());room_y = max(0.0, self._surface[1] - body.height())
+        if event.modifiers() & Qt.ControlModifier:       # Ctrl and the wheel: larger or smaller, about the pointer
+            turn = event.angleDelta().y() or event.angleDelta().x()
+            if turn:self.set_zoom(round(self.zoom * 20 + (1 if turn > 0 else -1)) / 20.0, event.position())
+            return
+        self._layout();wide, high = self.room();room_x = max(0.0, self._surface[0] - wide);room_y = max(0.0, self._surface[1] - high)
         dx = event.angleDelta().x();dy = event.angleDelta().y()
         if event.modifiers() & Qt.ShiftModifier or (room_y <= 0 and not dx):dx, dy = dy or dx, 0     # Shift, or nothing to scroll down: sideways
         if (not room_x or not dx) and (not room_y or not dy):return super().wheelEvent(event)
-        self.scroll_x = max(0.0, min(room_x, self.scroll_x - dx / 2.0));self.scroll_y = max(0.0, min(room_y, self.scroll_y - dy / 2.0));self.update()
+        self.scroll_x = max(0.0, min(room_x, self.scroll_x - dx / 2.0 / self.zoom));self.scroll_y = max(0.0, min(room_y, self.scroll_y - dy / 2.0 / self.zoom))
+        self._rehover();self.update()
 
     # ---- drawing ---------------------------------------------------------------------------------------------------
     def paintEvent(self, event):
@@ -514,17 +717,21 @@ class FieldView(QWidget):
                 self._empty(p, body)
             else:
                 p.save();p.setClipRect(body)
+                if self.zoom != 1.0:         # the surface is seen from nearer or further: scaled about the body's corner
+                    p.translate(body.topLeft());p.scale(self.zoom, self.zoom);p.translate(-body.topLeft())
                 depth = self.field.depth()
                 self._columns(p, body)
-                seen = body.adjusted(-40, -40, 40, 40)
-                order = [i for i in sorted(self._placed, key=lambda i: -depth.get(i, 3)) if self.sheet_rect(i, body).intersects(seen)]
-                for ident in order:self._ghosts(p, self.sheet_rect(ident, body), depth.get(ident, 3))
+                wide, high = self.room(body);seen = QRectF(body.left() - 40, body.top() - 40, wide + 80, high + 80)
+                order = [i for i in sorted(self._placed, key=lambda i: -depth.get(i, 3)) if self._drawn_rect(i, body).intersects(seen)]
+                for ident in order:self._ghosts(p, self._drawn_rect(ident, body), depth.get(ident, 3))
                 self._labels = []
                 self._wires(p, body, depth, seen)
-                for ident in order:self._sheet(p, self.field.get(ident), self.sheet_rect(ident, body), depth.get(ident, 3))
+                for ident in order:self._sheet(p, self.field.get(ident), self._drawn_rect(ident, body), depth.get(ident, 3))
                 self._wire_words(p)
                 p.restore()
+                self._menu_chip(p, body)
                 self._more(p, body)
+                self._scrollbars(p, body)
             self._foot(p)
             if self.reading is not None:self._reading(p, body)
         except Exception as exc:  # noqa: BLE001 - say it on the surface instead of taking the program down
@@ -573,6 +780,7 @@ class FieldView(QWidget):
         p.fillRect(QRectF(0, self.height() - self.foot_height(), self.width(), self.foot_height()), ink(t.GROUND, 0.86))      # the foot's keys do not act while the page is read
         p.setClipRect(whole)
         p.fillRect(whole, ink(t.TERMINAL_GROUND, 0.72))        # the work recedes while the page is read
+        if self.hasFocus():self._halo(p, r, t.AMBER_EDGE, 1.3)       # the page has the keyboard now
         p.setPen(QPen(ink(t.AMBER_EDGE, 0.9), 1.4));p.setBrush(QColor(t.GROUND));p.drawRect(r)
         title_font = self.sans(17 if tight else 19);fm_title = QFontMetricsF(title_font);y = r.top() + pad + fm_title.ascent()
         close_font = self.mono(12);fm_close = QFontMetricsF(close_font);close = '✕  Close';close_w = fm_close.horizontalAdvance(close)
@@ -629,7 +837,12 @@ class FieldView(QWidget):
         base = r.bottom() - pad / 2 - fm_foot.descent();p.setFont(self.mono(12))
         more = ('↑ more   ' if self._read_at > 1 else '') + ('more ↓' if self._read_room - self._read_at > 1 else '')
         if more:
-            p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(r.right() - pad - fm_foot.horizontalAdvance(more), base), more)
+            at = r.right() - pad - fm_foot.horizontalAdvance(more)
+            for word, key, tip in (('↑ more   ', Qt.Key_PageUp, 'Read back (PgUp)'), ('more ↓', Qt.Key_PageDown, 'Read on (PgDn)')):
+                if word not in more:continue
+                wide = fm_foot.horizontalAdvance(word);spot = QRectF(at - 4 * s, base - fm_foot.ascent() - 5 * s, fm_foot.horizontalAdvance(word.strip()) + 8 * s, fm_foot.height() + 10 * s)
+                p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.AMBER_TEXT));p.drawText(QPointF(at, base), word)
+                self._hot.append((spot, key, '', tip));at += wide
         self._keys_line(p, r.left() + pad, base, [item for item in read['foot'].split('      ') if item.strip()], t.QUIET, r.width() - 2 * pad - fm_foot.horizontalAdvance(more) - 16 * s)
         if code:
             p.setPen(QColor(t.TEAL_EDGE));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('staC  ' + code, Qt.ElideRight, r.width() - 2 * pad))
@@ -691,7 +904,7 @@ class FieldView(QWidget):
         box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
         p.setPen(QPen(ink(t.LINE_STRONG, 0.7), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.9));p.drawRect(box)
         x = box.left() + pad;y = box.top() + pad + head.ascent()
-        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(x, y), 'staC')
+        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.TEAL_TEXT));p.drawText(QPointF(x, y), 'staC')
         said = 'says how this is read';said_w = head.horizontalAdvance(said)
         if inner_w > head.horizontalAdvance('staC') + said_w + 12 * s:
             p.setPen(QColor(t.QUIET));p.setFont(self.mono(12));p.drawText(QPointF(box.right() - pad - said_w, y), said)
@@ -701,8 +914,17 @@ class FieldView(QWidget):
             y += fm.height();p.setPen(QColor(t.TEAL_EDGE if line.startswith(('|', ' ')) else t.TEAL_TEXT))      # staC is green wherever it is said
             p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line, Qt.ElideRight, inner_w))
         y += 6 * s + head.ascent()
-        p.setFont(self.mono(12));p.setPen(QColor(t.QUIET))
-        p.drawText(QPointF(x, y), QFontMetricsF(p.font()).elidedText('S  line  ·  Shift+Enter  run', Qt.ElideRight, inner_w))
+        p.setFont(self.mono(12));fm_keys = QFontMetricsF(p.font());at = x;sep = '  ·  ';end = x + inner_w
+        keys = (('S', 'line', 'Put this line in the writing strip; nothing runs (S)'), ('Shift+Enter', 'run', 'Run this line: a read, nothing is changed (Shift+Enter)'))
+        for index, (label, words, tip) in enumerate(keys):
+            if end - at < fm_keys.horizontalAdvance(label[:5] + '…'):break          # no room to say even the start of it: the key itself still works
+            shown = fm_keys.elidedText('%s  %s' % (label, words), Qt.ElideRight, end - at);wide = fm_keys.horizontalAdvance(shown)      # cut short when the rail is narrow, as it always was
+            spot = QRectF(at - 4 * s, y - fm_keys.ascent() - 4 * s, wide + 8 * s, fm_keys.height() + 8 * s);found = self._key_of(label)
+            p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(at, y), shown)
+            self._hot.append((spot, found[0], found[1], tip));at += wide
+            if index + 1 < len(keys) and end - at - fm_keys.horizontalAdvance(sep) >= fm_keys.horizontalAdvance(keys[index + 1][0][:5] + '…'):
+                p.setPen(QColor(t.FAINT));p.drawText(QPointF(at, y), sep);at += fm_keys.horizontalAdvance(sep)      # a dot only between two keys that are both there
+            else:break
 
     def _do(self, p, body, w):
         """The same place in Stacy's rail, when the owner asked what can be done (D): the steps the records offer for the selected
@@ -718,6 +940,7 @@ class FieldView(QWidget):
         tall = pad * 2 + head.height() + 4 * s + (len(rows) + len(going)) * fm.height() + (4 * s if rows and going else 0) + 6 * s + head.height()
         if tall > body.height() - 24 * s:return           # no room under her: the foot still says them
         box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
+        if self.go:self._halo(p, box, t.AMBER_EDGE, 1.0)      # something in it waits for the owner's Approve
         p.setPen(QPen(ink(t.AMBER_EDGE, 0.8), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.92));p.drawRect(box)
         x = box.left() + pad;y = box.top() + pad + head.ascent()
         p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(x, y), 'DO')
@@ -752,6 +975,16 @@ class FieldView(QWidget):
         rim = QRadialGradient(body.center(), max(body.width(), body.height()) * 0.72)      # a darker rim: depth that does not move
         rim.setColorAt(0.0, ink('#000000', 0.0));rim.setColorAt(0.6, ink('#000000', 0.0));rim.setColorAt(1.0, ink('#000000', 0.6))
         p.fillRect(body, rim)
+        # The desk's two lights, very low: amber rising from the foot, where what is selected is named and what waits is
+        # approved, and green falling from the head, where the live faces are. They do not move and they say nothing; they
+        # are the room the sheets are in.
+        s = self.scale();reach = min(body.height() * 0.42, 190 * s)
+        floor = QLinearGradient(QPointF(0, body.bottom()), QPointF(0, body.bottom() - reach))
+        floor.setColorAt(0.0, ink(t.AMBER_EDGE, 0.075));floor.setColorAt(0.45, ink(t.AMBER_EDGE, 0.022));floor.setColorAt(1.0, ink(t.AMBER_EDGE, 0.0))
+        p.fillRect(QRectF(body.left(), body.bottom() - reach, body.width(), reach), floor)
+        sky = QLinearGradient(QPointF(0, body.top()), QPointF(0, body.top() + reach * 0.7))
+        sky.setColorAt(0.0, ink(t.READY, 0.04));sky.setColorAt(1.0, ink(t.READY, 0.0))
+        p.fillRect(QRectF(body.left(), body.top(), body.width(), reach * 0.7), sky)
         p.restore()
 
     LIGHT = 150.0                        # how far the pointer's light reaches on the ground, before the interface scale
@@ -780,23 +1013,38 @@ class FieldView(QWidget):
         self._face_boxes = []
         for name, letter in self.faces:      # the faces of the Field: the one showing is underlined, each says its key
             word = name.upper();w = fm.horizontalAdvance(word);on = name == self.face
-            p.setPen(QColor(t.AMBER_TEXT if on else t.QUIET));p.drawText(QPointF(x, base), word)
-            if on:p.setPen(QPen(QColor(t.AMBER_EDGE), 2));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
+            spot = QRectF(x - 6 * s, 0, w + 12 * s, h)
+            if on:self._bloom(p, QPointF(x, base), word, t.AMBER_EDGE, 1.2)
+            else:self._hot.append((spot, getattr(Qt, 'Key_' + letter.upper(), Qt.Key_unknown), letter, 'The %s face of the Field (%s)' % (name, letter.upper())))
+            p.setPen(QColor(t.AMBER_TEXT if on else t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(x, base), word)
+            if on:
+                if self.texture:             # the chosen face's rule is lit from below
+                    for width, alpha in ((7.0, 0.07), (4.0, 0.14)):
+                        p.setPen(QPen(ink(t.AMBER_EDGE, alpha), width * s, Qt.SolidLine, Qt.RoundCap));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
+                p.setPen(QPen(QColor(t.AMBER_EDGE), 2));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
             self._face_boxes.append((QRectF(x - 4 * s, 0, w + 8 * s, h), name));x += w + 16 * s
         if self.faces:x += 4 * s
         p.setFont(self.sans(17));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
         said = self.field.title or 'This workspace';parts = self.field.census()
         p.setFont(self.mono(12.5));fm3 = QFontMetricsF(p.font());room = self.width() - x - 28 * s
         waiting = [part for part in parts if 'recheck' in part or 'open question' in part]
-        while parts and fm3.horizontalAdvance('  ·  '.join(parts)) + 24 * s + fm2.horizontalAdvance(said) > room:
+        while parts and fm3.horizontalAdvance('  ·  '.join(parts)) + 44 * s + fm2.horizontalAdvance(said) > room:
             parts = waiting if parts != waiting and waiting else []        # the title keeps its room; the counts give way, what waits last
             waiting = []
         census = '  ·  '.join(parts);census_w = fm3.horizontalAdvance(census)
         p.setFont(self.sans(17))
-        p.drawText(QPointF(x, h / 2 + fm2.ascent() / 2 - 2), fm2.elidedText(said, Qt.ElideRight, max(60.0, room - (census_w + 24 * s if census else 0))))
+        p.drawText(QPointF(x, h / 2 + fm2.ascent() / 2 - 2), fm2.elidedText(said, Qt.ElideRight, max(60.0, room - (census_w + 44 * s if census else 0))))
         if census:
-            p.setFont(self.mono(12.5));p.setPen(QColor(t.QUIET))
-            p.drawText(QPointF(self.width() - 28 * s - census_w, base), census)
+            p.setFont(self.mono(12.5));p.setPen(QColor(t.QUIET));left = self.width() - 28 * s - census_w
+            if any(obj.needs_attention() for obj in self.field.objects):
+                # Something on the desk waits, here or out of sight: one lamp says so, and the counts beside it are the place to
+                # click for the next thing that waits (what A does).
+                mark = 8 * s;lamp = QRectF(left - mark - 10 * s, base - fm3.ascent() / 2 - mark / 2 + 1, mark, mark)
+                over = QRectF(lamp.left() - 6 * s, 0, census_w + mark + 22 * s, h)
+                self._mark(p, lamp, 'waiting', QColor(t.AMBER_EDGE))
+                self._hot.append((over, Qt.Key_A, 'a', 'Go to the next thing that waits for you (A)'))
+                p.setPen(QColor(t.READY if over.contains(self._mouse) else t.AMBER_TEXT))
+            p.drawText(QPointF(left, base), census)
 
     def _columns(self, p, body):
         s = self.scale();p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font())
@@ -814,7 +1062,7 @@ class FieldView(QWidget):
     def _wires(self, p, body, depth, seen):
         s = self.scale()
         for link in self.field.links:
-            a = self.sheet_rect(link.source, body);b = self.sheet_rect(link.target, body)
+            a = self._drawn_rect(link.source, body);b = self._drawn_rect(link.target, body)
             if a is None or b is None or not a.united(b).intersects(seen):continue
             near = min(depth.get(link.source, 3), depth.get(link.target, 3))
             touching = self.field.selected in (link.source, link.target) or (bool(self._hover) and self._hover in (link.source, link.target))
@@ -827,9 +1075,11 @@ class FieldView(QWidget):
             path = QPainterPath(start);path.cubicTo(QPointF(start.x() + reach, start.y()), QPointF(end.x() - reach, end.y()), end)
             hovered = bool(self._hover) and self._hover in (link.source, link.target) and self.field.selected not in (link.source, link.target)
             colour = t.AMBER_EDGE if link.stale else t.READY if hovered else (t.TEXT if touching else t.TEAL_EDGE)
-            if self.texture and not link.stale:      # the light a live wire carries: under the line, wide and faint
+            if self.texture:      # the light a wire carries, under the line, wide and faint: green when it is live, amber when it asks for a recheck
+                lamp = t.AMBER_EDGE if link.stale else t.READY
+                gain = 2.6 if touching else (2.0 if link.stale else 1.0)
                 for width, alpha in ((7.0, 0.035), (4.0, 0.07)):
-                    p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(t.READY, alpha * (2.6 if touching else 1.0) * (1.0 if near <= 1 or touching else 0.6)), width * s));p.drawPath(path)
+                    p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(lamp, alpha * gain * (1.0 if near <= 1 or touching or link.stale else 0.6)), width * s));p.drawPath(path)
             pen = QPen(ink(colour, strength * (0.95 if link.stale or touching else 0.8)), 1.8 if touching or link.stale else 1.0)
             if link.stale:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([5, 4])
             p.setBrush(Qt.NoBrush);p.setPen(pen);p.drawPath(path)
@@ -852,16 +1102,33 @@ class FieldView(QWidget):
             p.setPen(QPen(ink(colour, min(1.0, alpha * strength)), width * s));p.drawRect(rect.adjusted(-grow * s, -grow * s, grow * s, grow * s))
         p.restore()
 
+    def _bloom(self, p, at, text, colour, strength=1.0):
+        """The light a lit word throws: the same word drawn faintly a little off in eight directions, under the crisp word
+        the caller draws next. The letters stay as sharp as they were; only the dark around them warms. For the few words
+        that are lit (the sheet that has the keyboard, the chosen face), never for running text. The Clean desk has none."""
+        if not self.texture:return
+        s = self.scale();p.save();p.setPen(ink(colour, min(1.0, 0.085 * strength)))
+        for reach in (1.1 * s, 2.2 * s):
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
+                p.drawText(QPointF(at.x() + dx * reach, at.y() + dy * reach), text)
+        p.restore()
+
     def _mark(self, p, box, state, colour):
         """One mark per state, different in shape and not only in hue: settled a filled square, recheck half filled, open
         hollow, held crossed, waiting a dot inside, failed a cross, cannot be read or reached a dash. What is settled glows
-        a little in the desk's green: it is what is live."""
-        p.save();pen = QPen(colour, 1.5);p.setPen(pen);p.setBrush(Qt.NoBrush)
+        a little in the desk's green: it is what is live. What waits for the owner is lit in amber around its mark and never
+        inside it: the shapes are the sign that does not depend on colour, and a hollow mark filled with light would read as
+        a full one."""
+        p.save();pen = QPen(colour, 1.5)
+        if self.texture and state in SETTLED:
+            reach = box.width() * 2.6
+            glow = QRadialGradient(box.center(), reach);inner = QColor(colour);inner.setAlphaF(min(1.0, colour.alphaF()) * 0.42)
+            outer = QColor(colour);outer.setAlphaF(0.0);glow.setColorAt(0.0, inner);glow.setColorAt(1.0, outer)
+            p.setPen(Qt.NoPen);p.setBrush(glow);p.drawEllipse(box.center(), reach, reach)
+        elif state in ATTENTION:
+            self._halo(p, box, colour, 1.6 * min(1.0, colour.alphaF() + 0.15))
+        p.setPen(pen);p.setBrush(Qt.NoBrush)
         if state in SETTLED:
-            if self.texture:
-                glow = QRadialGradient(box.center(), box.width() * 2.6);inner = QColor(colour);inner.setAlphaF(min(1.0, colour.alphaF()) * 0.42)
-                outer = QColor(colour);outer.setAlphaF(0.0);glow.setColorAt(0.0, inner);glow.setColorAt(1.0, outer)
-                p.setPen(Qt.NoPen);p.setBrush(glow);p.drawEllipse(box.center(), box.width() * 2.6, box.width() * 2.6)
             p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(box)
         elif state == STATE_RECHECK:
             p.drawRect(box);p.setPen(Qt.NoPen);p.setBrush(colour);p.drawRect(QRectF(box.left(), box.top(), box.width() / 2, box.height()))
@@ -880,7 +1147,11 @@ class FieldView(QWidget):
     def _sheet(self, p, obj, r, depth):
         s = self.scale();depth = min(depth, 3);keep = WORD_INK[depth];edge_keep = EDGE_INK[depth];selected = depth == 0;focus = self.hasFocus()
         touched = bool(self._hover) and obj.id == self._hover and not selected      # under the pointer: it answers in the pointer's green
+        # The light outside a sheet says where the hand is: green under the pointer, amber on the sheet that has the keyboard
+        # (one on the whole surface, and the strongest, because it is where a key will act). What a sheet's state is, is
+        # lit inside it, at its mark; so a sheet that waits can be under the pointer and say both.
         if touched:self._halo(p, r, t.READY, 1.5)
+        elif selected and focus:self._halo(p, r, t.AMBER_EDGE, 1.9)
         p.setBrush(QColor((t.CARD, t.CARD, t.PANEL, t.GROUND)[depth]))       # a sheet recedes by its ground and its edge; its words stay readable
         edge = t.AMBER_EDGE if selected and focus else t.READY if touched else (t.LINE_STRONG if depth <= 1 else t.LINE)
         p.setPen(QPen(ink(edge, 1.0 if selected else 0.85 if touched else edge_keep + 0.1), 2 if selected else 1));p.drawRect(r)
@@ -913,7 +1184,9 @@ class FieldView(QWidget):
         # Title: whole words on up to two lines; only a title longer than that is cut, once.
         p.setFont(self.sans(15));fm = QFontMetricsF(p.font());p.setPen(ink(t.TEXT, keep))
         for line in self._wrap(obj.title, fm, inner.width(), TITLE_LINES):
-            y += fm.height();p.drawText(QPointF(inner.left(), y - fm.descent()), line)
+            y += fm.height()
+            if selected and focus:self._bloom(p, QPointF(inner.left(), y - fm.descent()), line, t.AMBER_EDGE)      # the name of the sheet that has the keyboard is lit
+            p.drawText(QPointF(inner.left(), y - fm.descent()), line)
         # Facts, while they fit above the identity line.
         p.setFont(self.mono(12.5));fm = QFontMetricsF(p.font());fm_where = QFontMetricsF(self.mono(12));where_h = fm_where.height() if obj.where else 0
         y += 4 * s
@@ -924,6 +1197,8 @@ class FieldView(QWidget):
             y += fm.height();p.setPen(ink(t.AMBER_TEXT, 1.0) if would and at == 0 else ink(t.QUIET, keep))
             p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(str(fact)[:LONGEST], Qt.ElideRight, inner.width()))
         if would:                            # and a broken amber edge: it reads as "would", without colour too
+            if self.go and not touched and not (selected and focus):      # a change that waits for Approve would move this: lit, faintly. A what-if that only asks is not.
+                self._halo(p, r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s), t.AMBER_EDGE, 0.7)
             pen = QPen(ink(t.AMBER_EDGE, 0.95), 1.6);pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 4])
             p.setPen(pen);p.setBrush(Qt.NoBrush);p.drawRect(r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s))
         if obj.where and not self.field.compact and inner.bottom() - fm_where.descent() > y + 2:
@@ -973,28 +1248,51 @@ class FieldView(QWidget):
         return [fm.elidedText(l, Qt.ElideRight, width) for l in out]
 
     def _more(self, p, body):
-        """Where the surface goes on beyond the window, and what the reader left out. Said, never hidden."""
-        s = self.scale();p.setFont(self.mono(12));wide, tall = self._surface
-        said = []
-        if self.scroll_y > 1:said.append('↑ more above')
-        if tall - body.height() - self.scroll_y > 1:said.append('more below ↓')
-        if self.scroll_x > 1:said.append('← more')
-        if wide - body.width() - self.scroll_x > 1:said.append('more →')
+        """Where the surface goes on beyond the window, and what the reader left out. Said, never hidden. Each word that says
+        where it goes on is a place to click and moves the surface that way; Z and the two signs beside it change how
+        large the sheets are seen."""
+        s = self.scale();p.setFont(self.mono(12));wide, tall = self._surface;wide_room, tall_room = self.room(body)
+        said = []                          # (the words, what a click on them does: a key or a call, what that is in words)
+        if self.scroll_y > 1:said.append(('↑ more above', Qt.Key_PageUp, 'Move up (PgUp)'))
+        if tall - tall_room - self.scroll_y > 1:said.append(('more below ↓', Qt.Key_PageDown, 'Move down (PgDn)'))
+        if self.scroll_x > 1:said.append(('← more', lambda: self._sideways(-1), 'Move left (Shift and the wheel)'))
+        if wide - wide_room - self.scroll_x > 1:said.append(('more →', lambda: self._sideways(1), 'Move right (Shift and the wheel)'))
+        # How the surface is being seen, and the one key that changes it, as a place to click: offered when there is more
+        # than the window shows, and whenever the sheets are not at their ordinary size.
+        size = ''
+        if abs(self.zoom - 1.0) > 1e-6:
+            size = 'Z  %s · now %d%%' % ('ordinary size' if self._fitted else 'whole desk', round(self.zoom * 100))
+        elif said:size = 'Z  whole desk'
         note = ' · '.join(part for part in ((self.would_said + ' · nothing is changed · Esc clears') if self.would_said else '', self.field.note, self.problem) if part)
         if not note and self.field.aside:  # what belongs elsewhere is said quietly, when nothing louder is being said
-            said.insert(0, self.field.aside)
-        if said or note:                   # on its own strip of ground, so it is read over whatever sheet lies under it
+            said.insert(0, (self.field.aside, None, ''))
+        if said or note or size:           # on its own strip of ground, so it is read over whatever sheet lies under it
             p.fillRect(QRectF(body.left(), body.bottom() - 24 * s, body.width(), 24 * s), ink(t.TERMINAL_GROUND, 0.9))
-        fm = QFontMetricsF(p.font());room = body.width() - 56 * s
+        fm = QFontMetricsF(p.font());room = body.width() - 56 * s;base = body.bottom() - 13 * s + (fm.ascent() - fm.descent()) / 2;tail = 0.0
+        if size:                           # at the right end of the strip, where the eye already looks for where the surface goes on
+            size_w = fm.horizontalAdvance(size);sign_w = 24 * s
+            if size_w + 2 * sign_w < room * 0.6:
+                self._keys_line(p, body.right() - 28 * s - size_w, base, [size], t.QUIET, size_w + 2)
+                at = body.right() - 28 * s - size_w - 10 * s
+                for sign, step, tip in (('+', 2, 'Larger (+, or Ctrl and the wheel)'), ('−', -2, 'Smaller (−, or Ctrl and the wheel)')):
+                    at -= sign_w;spot = QRectF(at, body.bottom() - 24 * s, sign_w, 24 * s)
+                    p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(spot, Qt.AlignCenter, sign)
+                    self._hot.append((spot, lambda step=step: self.set_zoom(round(self.zoom * 20 + step) / 20.0), '', tip))
+                tail = size_w + 10 * s + 2 * sign_w + 3 * fm.horizontalAdvance(' ');room -= tail
+            else:size = ''
         if note:                           # what is being said comes first; where the surface goes on takes what is left, the sideways words giving way first
             note = fm.elidedText(note, Qt.ElideRight, room)
             left = room - fm.horizontalAdvance(note) - 28 * s
-            while said and fm.horizontalAdvance('   '.join(said)) > left:said.pop()
+            while said and fm.horizontalAdvance('   '.join(words for words, _, _ in said)) > left:said.pop()
             p.setPen(QColor(t.AMBER_TEXT))
             p.drawText(QRectF(body.left() + 28 * s, body.bottom() - 22 * s, room, 18 * s), Qt.AlignLeft | Qt.AlignVCenter, note)
-        if said:
-            p.setPen(QColor(t.QUIET))
-            p.drawText(QRectF(body.left(), body.bottom() - 22 * s, body.width() - 28 * s, 18 * s), Qt.AlignRight | Qt.AlignVCenter, '   '.join(said))
+        at = body.right() - 28 * s - tail;gap = fm.horizontalAdvance('   ')
+        for words, does, tip in reversed(said):      # from the right end, each its own place
+            wide_w = fm.horizontalAdvance(words);at -= wide_w
+            spot = QRectF(at - 5 * s, body.bottom() - 24 * s, wide_w + 10 * s, 24 * s)
+            p.setPen(QColor(t.READY if does is not None and spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(at, base), words)
+            if does is not None:self._hot.append((spot, does, '', tip))
+            at -= gap
 
     def _empty(self, p, body):
         s = self.scale();p.setFont(self.mono(13));fm = QFontMetricsF(p.font())
@@ -1013,7 +1311,7 @@ class FieldView(QWidget):
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, top + 0.5), QPointF(self.width(), top + 0.5))
         obj = self.selected()
         # The keys, in the order they are read; when the line is too narrow they give way one at a time, the least needed first.
-        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'D  do'), (4, 'X  doubt'), (5, 'C  check all'), (6, 'T  trace'), (6.5, 'B  brief'), (7, 'S  staC'), (9, 'Menu  more'), (8, 'A  next waiting'),
+        legend = [(3, '← ↑ ↓ →  move'), (1, 'Enter  open'), (2, 'D  do'), (4, 'X  doubt'), (5, 'C  check all'), (6, 'T  trace'), (6.5, 'B  brief'), (6.8, 'Z  whole desk'), (7, 'S  staC'), (9, 'Menu  more'), (8, 'A  next waiting'),
                   (10, 'R  look again'), (12, '⌫  where I was'), (0.5, '?  keys'), (0, 'Esc  back')]
         legend = [(11, '%s  %s' % (letter.upper(), name)) for name, letter in self.faces if name != self.face] + legend
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font())

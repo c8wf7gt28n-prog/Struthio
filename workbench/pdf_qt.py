@@ -87,8 +87,9 @@ class PdfDocumentTab(ServiceTab):
         new=QPushButton('New note');new.clicked.connect(self.new_note);buttons.addWidget(new,0,1)
         reload=QPushButton('Reload notes');reload.clicked.connect(self.reload_notes);buttons.addWidget(reload,1,0)
         self.recover_button=QPushButton('Recover draft');self.recover_button.clicked.connect(self.recover);buttons.addWidget(self.recover_button,1,1);box.addLayout(buttons)
+        for word in (self.save_button,new,reload,self.recover_button):buttons.setAlignment(word,Qt.AlignLeft|Qt.AlignVCenter)
         self.region_label=QLabel('Full page · notes remain owner annotations');self.region_label.setWordWrap(True);box.addWidget(self.region_label)
-        self.split.addWidget(notes);self.split.setSizes([780,330]);self.outer.addWidget(self.split,1);self.outer.addWidget(self.status)
+        self.split.addWidget(notes);self.split.setSizes([780,330]);self.split.setHandleWidth(8);self.outer.addWidget(self.split,1);self.outer.addWidget(self.status)
         self.draft_timer=QTimer(self);self.draft_timer.setSingleShot(True);self.draft_timer.setInterval(600);self.draft_timer.timeout.connect(self.flush_draft)
         self.editor.textChanged.connect(self.edited);self.kind.currentTextChanged.connect(self.edited);self.printed.textChanged.connect(self.edited);self.canvas.selected.connect(self.region_selected)
         self.timer=QTimer(self);self.timer.setInterval(350);self.timer.timeout.connect(self.poll);self.timer.start();self.clear_editor();self.arrange()
@@ -106,7 +107,12 @@ class PdfDocumentTab(ServiceTab):
         if state==getattr(self,'_arrangement',None):return
         self._arrangement=state
         for grid,widgets,columns in ((self.navigation_grid,self.navigation_widgets,state[0]),(self.action_grid,list(self.buttons.values()),state[1])):
-            for index,widget in enumerate(widgets):grid.removeWidget(widget);grid.addWidget(widget,index//columns,index%columns)
+            # A button is drawn as its words; left to fill its cell it was pressed by a click well beside them. The page number
+            # and the size choice still fill theirs.
+            for index,widget in enumerate(widgets):
+                grid.removeWidget(widget)
+                if isinstance(widget,QPushButton):grid.addWidget(widget,index//columns,index%columns,Qt.AlignLeft|Qt.AlignVCenter)
+                else:grid.addWidget(widget,index//columns,index%columns)
             for column in range(5):grid.setColumnStretch(column,1 if column<columns else 0)
         self.split.setOrientation(Qt.Vertical if state[2] else Qt.Horizontal);self.split.setMinimumHeight(650 if state[2] else 360)
     def fit(self,*args):

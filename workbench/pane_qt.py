@@ -155,7 +155,10 @@ class PaneTab(QPushButton):
 
     def mark_colour(self):
         """The colour the tab draws its mark in now, or None."""
-        if self.hasFocus() or self.underMouse():return desk_qt.ERASER_MARK
+        if self.hasFocus():return desk_qt.ERASER_MARK
+        if self.underMouse():                  # under the pointer: the pointer's green, not the keyboard's colour
+            from .boss_theme import READY
+            return READY
         return desk_qt.PENCIL if self.isChecked() else None
 
     def paintEvent(self, event):

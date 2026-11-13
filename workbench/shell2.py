@@ -289,8 +289,8 @@ def chrome_css(profile, assets):
         'QTreeWidget#hardwareTree::branch {image:none;border-image:none;background:transparent;}',
         'QTreeWidget#hardwareTree::branch:has-children:closed {image:url(%s/chevron-right.svg);}' % folder,
         'QTreeWidget#hardwareTree::branch:has-children:open {image:url(%s/chevron-down.svg);}' % folder,
-        'QTabBar::close-button {image:url(%s/close.svg);subcontrol-position:right;margin:2px;}' % folder,
-        'QTabBar::close-button:hover {background:%s;border-radius:4px;}' % RAISED,
+        'QTabBar::close-button {image:url(%s/close.svg);subcontrol-position:right;width:18px;height:18px;margin:3px;}' % folder,      # a place the hand can hit: 24 px a side
+        'QTabBar::close-button:hover {background:%s;border-radius:0;}' % TEAL_SOFT,
         "QLabel[arcReadingRole='heading'] {font-size:%s;font-weight:600;}" % px(20),
         'QLabel#homeTitle {font-size:%s;font-weight:500;}' % px(28),
         'QLabel[arcRole2="title"], QLabel[arcRole2="hero"] {font-size:%s;font-weight:500;}' % px(28),
@@ -450,6 +450,19 @@ def sentence(html, actions, label=None):
 def button(text, kind='quiet', tip=''):
     b = QPushButton(text);b.setCursor(Qt.PointingHandCursor);b.setToolTip(tip);b.setProperty('arcButton', kind)
     return b
+
+
+def approve_button(run, host):
+    """The owner's Approve of a change that waits, in Talk: the same filled amber button the Field shows at its foot, so one
+    waiting change looks the same in both places, and lit in amber while it waits (boss_qt.waits). Under the pointer its
+    edge answers in the pointer's green; once pressed it is spent and plain."""
+    from .boss_qt import waits
+    run.setStyleSheet('QPushButton {background:%s;color:%s;border:1px solid %s;border-radius:0;padding:4px 12px;font-weight:600;} '
+                      'QPushButton:hover {border:1px solid %s;} QPushButton:focus {border:1px solid %s;} '
+                      'QPushButton:disabled {background:transparent;color:%s;border:1px solid transparent;font-weight:400;}'
+                      % (AMBER_EDGE, GROUND, AMBER_EDGE, READY, TEXT, QUIET))
+    waits(run, host)
+    return run
 
 
 # Top bar ---------------------------------------------------------------------
@@ -1743,6 +1756,7 @@ class SlateFace(QWidget):
         run.setToolTip('Apply this change. Nothing is changed until you do; in the Field, G does the same')
         row.addWidget(sentence('{line}', {'line': ('in the line', lambda:inspect_in_line(self.host, step.line))}));row.addStretch(1);card.box.addLayout(row)
         card.step = step;card.run = run;card.ran = None
+        approve_button(run, self.host)          # it waits for the owner: the Field's own Approve, lit in amber
         run.clicked.connect(lambda:self.run_staged(card, done))
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
@@ -1758,6 +1772,8 @@ class SlateFace(QWidget):
         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
             r = {'ok': False, 'error': {'message': str(exc)[:300]}}
         card.ran = bool(r.get('ok'));card.run.setEnabled(False);card.run.setText('Approved' if card.ran else 'Refused')
+        from .boss_qt import waits
+        waits(card.run, self.host, False)        # it no longer waits
         if card.ran:
             result = r['result'] if isinstance(r['result'], dict) else {}
             if isinstance(result.get('document'), dict) and result['document'].get('title'):said = 'Done: “%s”.' % result['document']['title']
@@ -1813,6 +1829,7 @@ class SlateFace(QWidget):
         row = QHBoxLayout();run = button('Approve all %d' % len(plan) if len(plan) > 1 else 'Approve', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
         run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do; in the Field, G does the same')
         card.plan = plan;card.run = run;card.results = None
+        approve_button(run, self.host)
         run.clicked.connect(lambda:self.run_plan(card, done))
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
         return card
@@ -1823,6 +1840,8 @@ class SlateFace(QWidget):
         from .field_do import call as line_call
         if card.results is not None:return        # one go, one run
         card.results = [];card.run.setEnabled(False)
+        from .boss_qt import waits
+        waits(card.run, self.host, False)
         for n, (obj, step) in enumerate(card.plan):
             try:
                 operation, arguments = line_call(step.line)

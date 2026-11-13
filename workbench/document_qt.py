@@ -247,7 +247,7 @@ class DocumentsTab(QWidget):
         self.report_bar.hide()
         box.addWidget(self.report_bar)
         self.foot = QLabel(); self.foot.setWordWrap(True); self.foot.setStyleSheet('color:%s' % QUIET); self.foot.setAccessibleName('Document state: saved revision and the last change'); box.addWidget(self.foot)
-        split.addWidget(right); split.setStretchFactor(0, 0); split.setStretchFactor(1, 1); split.setSizes([230, 900])
+        split.addWidget(right); split.setStretchFactor(0, 0); split.setStretchFactor(1, 1); split.setSizes([230, 900]); split.setHandleWidth(8)      # a divider the hand can take hold of
         for keys, slot in (('Ctrl+B', lambda: self.toggle_mark('bold')), ('Ctrl+I', lambda: self.toggle_mark('italic')), ('Ctrl+U', lambda: self.toggle_mark('underline')),
                            ('Ctrl+1', lambda: self.set_style('Heading1')), ('Ctrl+2', lambda: self.set_style('Heading2')), ('Ctrl+3', lambda: self.set_style('Heading3')),
                            ('Ctrl+0', lambda: self.set_style('Normal')), ('Ctrl+`', lambda: self.set_style('Code')), ('Ctrl+S', self.flush)):
@@ -259,6 +259,7 @@ class DocumentsTab(QWidget):
 
     # -- host contract -------------------------------------------------------------------------------------------------------
     def title(self): return 'Documents'
+    def centre_title(self): return (self.title_box.text().strip() or 'A page without a name') if self.document_id is not None else 'Documents'      # for the centre's bar: the page that is open, by its own name
     def is_dirty(self): return bool(self.dirty)
     def save_concern_note(self): return self.flush()          # the window's save-all walk saves the page like a note
     def can_close_concern(self): self.flush(); return True     # closing the tab never loses writing: it is saved first

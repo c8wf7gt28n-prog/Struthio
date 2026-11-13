@@ -298,7 +298,7 @@ class InvestigationTab(QWidget):
                 expect.addItem(label, key)
             row.addWidget(expect);value = QLineEdit();writing_prompt(value, 'text or N');value.setMaximumWidth(160);row.addWidget(value)
             box.addLayout(row)
-            refutes = QCheckBox('failing refutes it');box.addWidget(refutes)
+            refutes = QCheckBox('failing refutes it');box.addWidget(refutes, 0, Qt.AlignLeft)      # as wide as its words: a click far to its right ticks nothing
             bind = button('Bind the check', 'quiet')
             bind.clicked.connect(lambda:program.text().strip() and oracle.text().strip() and self.act('investigation.check', {
                 'claim': which.currentData(), 'program': program.text().strip(), 'oracle': oracle.text().strip(), 'expect': expect.currentData(),

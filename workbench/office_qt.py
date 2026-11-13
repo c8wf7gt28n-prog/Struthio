@@ -90,10 +90,13 @@ class OfficePanel(QWidget):
         self.calc=QPushButton('Recalculate');self.calc.clicked.connect(lambda:self.operation('recalculate'));row.addWidget(self.calc,2,0);self.edit_copy=QPushButton('Prepare edit copy');self.edit_copy.clicked.connect(lambda:self.operation('edit'));row.addWidget(self.edit_copy,2,1)
         self.review_file=QPushButton('Review file');self.review_file.setToolTip('Review the saved external candidate and its changes');self.review_file.clicked.connect(self.candidate);row.addWidget(self.review_file,3,0);self.copy=QPushButton('Save output copy');self.copy.clicked.connect(self.copy_output);row.addWidget(self.copy,3,1)
         self.open_editor=QPushButton('Open editor');self.open_editor.clicked.connect(self.launch_editor);row.addWidget(self.open_editor,4,0);self.bom=QPushButton('Compare BOM');self.bom.clicked.connect(self.compare_bom);row.addWidget(self.bom,4,1);box.addLayout(row)
+        # A button here is drawn as its words alone. Left to fill its cell of the grid it was pressed by a click anywhere in
+        # a strip as wide as half the page, beside words that were not there; now it is as wide as its words.
+        for button in (self.save_button,self.recovery,self.export_button,self.calc,self.edit_copy,self.review_file,self.copy,self.open_editor,self.bom):row.setAlignment(button,Qt.AlignLeft|Qt.AlignVCenter)
         from .datasheet_qt import calculate_report
         self.datasheet_report=QPushButton('Calculate and write report…')
         self.datasheet_report.clicked.connect(lambda:calculate_report(self))
-        box.addWidget(self.datasheet_report)
+        box.addWidget(self.datasheet_report,0,Qt.AlignLeft)
         self.pages=QTabWidget();self.pages.setMinimumHeight(360);box.addWidget(self.pages,1);self.working=QWidget();self.work_box=QVBoxLayout(self.working);self.pages.addTab(self.working,'Working content')
         self.readings=QPlainTextEdit();self.readings.setReadOnly(True);self.readings.setProperty('arcReadingRole','prose');self.readings.setAccessibleName('Measured results and BOM comparison');self.pages.addTab(self.readings,'Readings')
         self.details=QPlainTextEdit();self.details.setReadOnly(True);self.details.setAccessibleName('Office source and exact record details');self.pages.addTab(self.details,'Details');self.status=plain();self.status.setAccessibleName('Office save and job status');box.addWidget(self.status)
@@ -332,7 +335,7 @@ class OfficeHub(QDialog):
         super().__init__(host);self.host=host;self.parent_id=parent;self.setWindowTitle('Office tables and documents');self.resize(760,620);box=QVBoxLayout(self);box.addWidget(plain('Explicit working copies with untouched originals, reviewed differences and separate measured results.'))
         self.items=QTreeWidget();self.items.setHeaderLabels(['Working copy','Version']);self.items.setRootIsDecorated(False);self.items.header().setSectionResizeMode(0,QHeaderView.Stretch);box.addWidget(self.items,1);row=QGridLayout();self.import_button=QPushButton('Import working copy');self.import_button.clicked.connect(self.import_file);row.addWidget(self.import_button,0,0);self.open_button=QPushButton('Open selected');self.open_button.clicked.connect(self.open);row.addWidget(self.open_button,0,1)
         self.bom_button=QPushButton('BOM from KiCad PCB');self.bom_button.clicked.connect(lambda:self.import_file(True));row.addWidget(self.bom_button,1,0);self.notebook_button=QPushButton('Copy saved notebook');self.notebook_button.clicked.connect(self.from_notebook);row.addWidget(self.notebook_button,1,1)
-        self.book_button=QPushButton('Copy current Orange Book');self.book_button.clicked.connect(self.from_book);row.addWidget(self.book_button,2,0);self.doctor=QPushButton('Inspect Office tools');self.doctor.clicked.connect(self.inspect_tools);row.addWidget(self.doctor,2,1);box.addLayout(row);self.status=plain();box.addWidget(self.status);self.reload()
+        self.book_button=QPushButton('Copy current Orange Book');self.book_button.clicked.connect(self.from_book);row.addWidget(self.book_button,2,0);self.doctor=QPushButton('Inspect Office tools');self.doctor.clicked.connect(self.inspect_tools);row.addWidget(self.doctor,2,1);box.addLayout(row);[row.setAlignment(b,Qt.AlignLeft|Qt.AlignVCenter) for b in (self.import_button,self.open_button,self.bom_button,self.notebook_button,self.book_button,self.doctor)];self.status=plain();box.addWidget(self.status);self.reload()
     def reload(self):
         self.items.clear()
         try:

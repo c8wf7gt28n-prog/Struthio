@@ -42,7 +42,10 @@ With the mouse: a click on a tile opens it in the centre, and **‹ Field** in t
 right button shows a tile's menu; every key shown at the foot, on the key card and on a page can be clicked; a change that
 waits has an **Approve** button. Ask Stacy "set B3 to 300" with a sheet selected and the change waits for your Approve.
 The pointer is the desk's green, and whatever it is over answers in green; amber is what is selected and what waits for you.
-`docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
+Above whatever is open in the centre there is one row of controls: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, **Actions ▾**; one that
+the open view cannot serve is dimmed and says why. In the Field **Z** shows the whole desk (again for the ordinary size), the
+bars at the edges drag, and **⋯** on the sheet under the pointer shows its menu. The amber light is where the keys go.
+`docs/RELEASE_NOTES_0.4.7.md`, `docs/RELEASE_NOTES_0.4.6.md`, `docs/RELEASE_NOTES_0.4.5.md`, `docs/RELEASE_NOTES_0.4.4.md`, `docs/RELEASE_NOTES_0.4.3.md`, `docs/RELEASE_NOTES_0.4.2.md` and `docs/RELEASE_NOTES_0.4.1.md` have the details. `docs/RELEASE_NOTES_0.4.md` has the details. `docs/RELEASE_NOTES_0.3.md` has the details.
 
 ## The desk
 

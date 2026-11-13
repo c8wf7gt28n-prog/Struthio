@@ -64,7 +64,10 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   for the owner. Green is what is live: readings, what is current, staC, the pointer, and whatever the pointer is over
   (13 November: "I'd probably like the mouse pointer to be the systems green. We kinda need more green glowing"). The
   pointer keeps the shape the owner gave it earlier (the mark's two facets, aimed at 11 o'clock, the click at the tip)
-  and takes the green as its ink. Live
+  and takes the green as its ink. Amber glows only where it means something (13 November: "let's add some glow effects
+  to the orange and anywhere else it would enhance the mood"): one amber halo on the desk, where the keys go (the
+  selected sheet, the page being read, or the writing line), and a light at the mark of whatever waits for the owner,
+  with Approve lit until it is pressed. Live
   things glow a little, and the pointer carries a faint light over the Field; the Clean desk keeps the green and has no
   glow. Monospaced lettering, thin rules, original ink-and-halftone art. Surfaces are still: nothing moves unless the
   owner's hand moves it. Art sits in its own places (Illustrated, ASCII or Clean) and never enters documents.
@@ -116,6 +119,10 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   (click into the work; one familiar place to work in the centre, with Programs as the only way to a full program; give
   Stacy the part the owner does not know how to do; carry the result forward) are built together as journeys, not as four
   layers: take one item from the Field to the centre, through a full program and back, then let Stacy make the same trip.
+  The mouse is the primary input (13 November: "now that we're using mouse as primary input for graphite"): every
+  control is a visible place of a size the hand can hit, a control is as wide as it looks, and a view that cannot serve
+  a control dims it and says why. The centre's bar (0.4.7: Field, Find, size, Undo, Redo, Save, Actions, made of the
+  actions the keys already had) is the first slice of the specification's toolbar.
   First journey, 0.4.5: with the mouse alone, open a sheet tile, change a cell, save, come back to the same tile, trace
   the calculation and approve its recheck; and the same change asked of Stacy in words and approved with a click
   (`field.set`). Known to be missing for the next ones: the centre's common frame and small toolbar; an ordinary workbook
@@ -157,8 +164,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.4.6: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), and the green pointer with green for what it is over and a glow for what is live (0.4.6). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.4.7: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and
