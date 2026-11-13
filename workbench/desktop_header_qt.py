@@ -86,9 +86,24 @@ class DesktopMonitors(QWidget):
             label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);label.setMinimumWidth(0)
             label.setAccessibleName(key + ' monitor');value.setAccessibleName(key + ' reading')
             col.addWidget(label);col.addWidget(value);col.addStretch(1);row.addLayout(col);self.values[key] = value;self.labels[key] = label
+        self.setCursor(Qt.PointingHandCursor)      # 0.7.0: each meter is a door (meter_cards): a click opens what it is about
         self.restyle()
         self.previous = None;self.timer = QTimer(self, interval=2000)
         self.timer.timeout.connect(self.refresh);self.timer.start();self.refresh()
+
+    def key_at(self, x):
+        """The meter under a point: the one whose reading is nearest."""
+        return min(self.KEYS, key=lambda key:abs(self.values[key].geometry().center().x() - x))
+
+    def open_card(self, key):
+        """A meter's card, opened upward from it: CPU Graphite's work, GPU the model and the services, RAM memory, TXT the
+        conversation (meter_cards). These were the System menu's rows and two links of Stacy's pane."""
+        from .meter_cards import open_card
+        return open_card(self.host, self.values[key], key)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton and self.rect().contains(event.position().toPoint()):self.open_card(self.key_at(event.position().x()))
+        super().mouseReleaseEvent(event)
 
     def restyle(self):
         """Scale the monitor labels and readings with the interface size."""
@@ -157,6 +172,11 @@ class DesktopMonitors(QWidget):
                 value.setProperty('liveReading', live)
                 value.style().unpolish(value)
                 value.style().polish(value)
+        from .meter_cards import DOORS
+        for key in self.KEYS:                    # what a click on each opens, said after its reading
+            tip = self.values[key].toolTip()
+            if DOORS[key] not in tip:self.values[key].setToolTip(tip + '\nClick: ' + DOORS[key] + '.')
+            self.labels[key].setToolTip('Click: ' + DOORS[key] + '.')
         self.relight()
         self.setAccessibleDescription('Current Graphite host observation at '+str(sample['sampled_at'])+'; owner-host qualification remains separate.')
 

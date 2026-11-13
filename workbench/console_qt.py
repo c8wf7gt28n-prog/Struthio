@@ -268,6 +268,7 @@ class Console(QWidget):
         self.fit();self.quiet_foot()
         bar = getattr(self.host, 'type_bar', None)
         if bar is not None and getattr(bar, 'target', None) == 'log':bar.refresh_context()  # Line: the band's quiet word sums the stream up
+        if bar is not None and getattr(bar, 'expand', None) is not None:bar.expand.say()      # the line's expand control shows the size it is at
 
     def quiet_foot(self):
         """HATCH DESK D1b: in Line the centre foot is empty, the workspace reaching the lower band (the Timeline's line, the
@@ -386,10 +387,10 @@ class Console(QWidget):
         """The area's first words: an explanation you may skip, so the Paper script (the quiet-script rule), its keys and
         lead characters printed."""
         from .shell2 import keyed_html
-        lines = ('Answers stay here; the word marked in the band says where the line goes.',
-                 'Ctrl+Enter runs typed staC. Prefix explain to preview a plan.',
-                 'A leading / runs an operation by name.',
-                 'Tab completes, ↑ ↓ walk each page\'s history, Esc leaves the line.')
+        # 0.7.0: no key is named here either (the owner: no shortcut printed anywhere); the keys work as they did.
+        lines = ('Answers stay here; the name lit in the band says who the line goes to.',
+                 'staC you type is run by the arrow. Put explain before it to see the plan first.',
+                 'A leading / runs an operation by name.')
         self.say('<br>'.join(keyed_html(line, round(self.px * 1.3), self.px) for line in lines))  # short lines: the area never folds
 
     def font_css(self):

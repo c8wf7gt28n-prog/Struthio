@@ -23,6 +23,20 @@ class DialTests(unittest.TestCase):
         self.assertTrue(hand.why_asks('files.copy',{'path':'a','address':'10.0.0.5'}),'an address among the arguments: it reaches another computer')
         self.assertEqual(hand.why_asks('files.trash'),'','moving to the Trash can be undone; emptying it cannot')
 
+    def test_no_operation_the_program_has_that_leaves_the_computer_or_forgets_is_hers(self):
+        """Every operation in the registry is run against the rule (0.7.0): with a free hand none of these is hers."""
+        import json
+        ops=json.loads((Path(__file__).resolve().parents[1]/'docs'/'GRAPHITE_0.1_REGISTRY.json').read_text(encoding='utf-8'))['operations']
+        for name in ('programs.transfer.download','programs.transfer.list','programs.mail.draft','programs.mail.open','programs.delivery.build','pills.fetch','pills.pair',
+                     'pills.unpair','notes.exchange.commit','notes.exchange.export','remote.disable','remote.revoke','releases.install','network.capture.start',
+                     'changes.publish','ledger.windows.publish','knowledge.revoke','matrix.forget','memory.context.clear','copies.discard','records.clear_staging',
+                     'joined.session.takeover','repairs.authorize','words.forget','memory.profile.delete','exchange.send'):
+            self.assertIn(name,ops,name+' is an operation the program has');self.assertTrue(hand.why_asks(name),name)
+            self.assertFalse(hand.hers('free',ops[name]['scope'],name),name)
+        for name in ('field.set','files.write','files.mkdir','files.trash','documents.create','ideas.capture','office.datasheet.recheck','programs.godot.open'):
+            self.assertIn(name,ops);self.assertEqual(hand.why_asks(name),'',name+' follows the dial')
+        self.assertTrue(hand.hers('ask','read','exchange.list'),'a read never asks, whatever it reads')
+
     def test_the_dial_is_kept_in_the_session_and_opens_on_do_and_show(self):
         host=type('H',(),{})();host.session=type('S',(),{'state':{}})()
         self.assertEqual(hand.level(host),'show');self.assertEqual(hand.choose(host,'free'),'free');self.assertEqual(host.session.state[hand.KEY],'free')
@@ -55,6 +69,7 @@ class MadeTests(unittest.TestCase):
     def test_other_words_are_not_taken_for_it(self):
         for text in ('make these words bold','set B3 to 300','make a folder called ','what is a folder called in Debian?','write to the file','start the page again'):
             self.assertIsNone(hand.made(text),text)
+        self.assertEqual(hand.made('make a folder called Rail\n  Runner')[1],'Rail Runner','a line break inside a name is a space')
 
     def test_what_she_made_new_goes_to_the_trash_and_what_was_written_over_does_not(self):
         import json
@@ -105,6 +120,16 @@ class TerminalTests(unittest.TestCase):
         for line in ('rm -rf x','sudo ls','ls | wc -l','cat a > b','ls; rm x','echo `id`','ls $(pwd)','find . -delete','find . -exec rm {} +','date -s 12:00',
                      'ip link set eth0 down','dmesg -C','journalctl --vacuum-time=1s','hostname newname','env X=1 rm x','','python3 x.py','ls "unterminated'):
             self.assertFalse(hand.terminal_hers(line),line)
+
+    def test_the_forms_of_a_reading_command_that_do_more_than_read_ask(self):
+        """Found by reading the list against each command's own manual (0.7.0): these were let through."""
+        for line in ('ip netns exec x rm -rf y','ip vrf exec red rm x','ip -batch cmds.txt','ip -b cmds.txt','ip -n ns1 addr','ip xfrm state','ip monitor',
+                     'find . -fprint0 out','find . -fprintf out %p','file -C -m magic','file -Cm magic','date 010112002030','sensors -s','journalctl --update-catalog',
+                     'hostname -F /etc/hostname','hostname -b box','dmesg --console-off'):
+            self.assertFalse(hand.terminal_hers(line),line)
+        for line in ('ip addr','ip -br a','ip -4 route show','ip -s link show dev eth0','ip neigh','find . -name "*.gd" -newer x','file notes.txt','file -b -i a.pdf',
+                     'date +%F','date -u','date -d tomorrow +%A','date -r notes.txt','sensors','journalctl -b -n 20','hostname','hostname -f','dmesg -T'):
+            self.assertTrue(hand.terminal_hers(line),line)
 
 
 if __name__=='__main__':unittest.main()

@@ -29,8 +29,8 @@ bash PREPARE_DEBIAN.sh
 Log into your ordinary Debian account. From the same USB directory install the app and its pinned local Python wheels:
 
 ```bash
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.1" --offline --system-ready --minimal-session --vulkan --calc
-bash "$HOME/Applications/Graphite-0.6.1/START_MINIMAL_DEBIAN.sh"
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.7.0" --offline --system-ready --minimal-session --vulkan --calc
+bash "$HOME/Applications/Graphite-0.7.0/START_MINIMAL_DEBIAN.sh"
 ```
 
 Use a new target folder for a first install. The root script checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files. The application phase checks every release part and uses pip with its package index disabled.

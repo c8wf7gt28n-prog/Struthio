@@ -1,4 +1,4 @@
-# Graphite 0.6.1 · The desk does, doubts, looks ahead, glows more, says each thing once, and reads from far off
+# Graphite 0.7.0 · The desk does, doubts, looks ahead, glows more, says each thing once, and reads from far off
 
 Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
 one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
@@ -6,6 +6,7 @@ on. Graphite is the public name of the workspace; its assistant's face is Stacy,
 Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
 
 - **From the ThinkPad** · the eight menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand in the open across the head; one dial sets how strongly the desk glows (Rules ▸ Desk artwork ▸ Glow: Soft, Bright, Neon; it opens on Neon); no key is printed beside the thing it does; the left trees are green circuit traces with the path to the current row lit; the menus' lines carry glyphs.
+- **No System menu** · the four meters at the foot are doors: click **CPU** for Graphite's work (what runs and waits, Stop all jobs), **GPU** for Stacy's model and Graphite's services, **RAM** for memory and Machine, **TXT** for the Full chat and what Stacy has in view. Leaving (Log out, Exit Graphite, Restart, Shut down) is at the foot of the **Work** menu; the game is at the foot of **Programs**. The equalizer in the head shows everything that moves (processor, kernel, memory, disks, network, graphics); click it for what each reads. A small control at the left end of the line opens the room above it: one chevron for more, two for taller, one down to close.
 - **A start in another program** · say "start a Godot project called Lander" and Stacy makes a folder in Files with the smallest project that runs (project file, one scene, one script) and a page of first steps, written for the Godot on this computer; the Godot room reads it back, and opening it in Godot is a step that waits for you, or is hers with a free hand. One Undo moves the folder to the Trash.
 - **Stacy's hand** · two words under her face say how far she acts by herself; click them to change it. **Ask first**: every change waits for your Approve. **Do and show** (what it opens with): a change you ask her for is made at once and shown, with one **Undo** that puts back exactly what it took. **Free hand**: she also makes the changes the records mark for approval and, after a change, brings back to current what stood on it. Say "make a folder called Bracket" or "write a file called plan.txt saying …" and it is in Files as if you had saved it, with an Undo that moves it to the Trash. What cannot be undone always asks. Her trail (**What she did…**) lists every act.
 - **One line to type on** · five names stand at the left of the line at the bottom: Stacy, Terminal, Search, Web, Log. The lit one gets the words. Web opens an address, or searches for words, in this computer's own browser; an address typed anywhere goes to Web by itself. The arrow at the line's end says what it will do, and turns green to run a line that reads as staC.
@@ -37,7 +38,7 @@ Slate, and folders, scripts, settings keys and internal names keep those earlier
 - **Resource scheduling** · [Traffic cop P06](docs/TRAFFIC_COP_P06.md) covers shared-memory admission, foreground turns and readable waiting reasons.
 - **Hardware route:** read [ThinkPad / Vulkan P05](docs/THINKPAD_VULKAN_P05.md): the bundled Vulkan worker, hardware profile, launch defaults, actual backend readback and CPU fallback.
 - **Current desk:** read [BOSS M1](docs/BOSS_M1.md): the new native interface, path, contextual commands and constructed chains.
-- **Earlier guide:** read [the daily guide](docs/DAILY_GUIDE.md) (the desk, the cat and its programs list, the System menu, the
+- **Earlier guide:** read [the daily guide](docs/DAILY_GUIDE.md) (the desk, the programs list, the four meters and leaving, the
   writing line and its four modes, Log with its Events and Network streams, the right-click menu, documents, assignments, the
   Finder, Ingress and Egress, the local model, the game behind the mark).
 - **Working on it:** read [RECORD_OF_DIRECTIONS.md](RECORD_OF_DIRECTIONS.md) first: the owner's directions, where the
@@ -52,12 +53,12 @@ The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **Referen
 
 ## Install
 
-From the release volumes (`Graphite_0.6.1_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
+From the release volumes (`Graphite_0.7.0_part_NN.zip`, `RELEASE_PARTS.json` and `INSTALL_LS.py` in one folder, for
 example a USB stick), as your ordinary Debian user:
 
 ```
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.1" --minimal-session --vulkan --plan
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.6.1" --minimal-session --vulkan --yes
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.7.0" --minimal-session --vulkan --plan
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.7.0" --minimal-session --vulkan --yes
 ```
 
 `INSTALL_LS.py` is the Graphite installer (its file name is kept: scripts, tests and earlier notes call it). It verifies
@@ -85,8 +86,8 @@ bash START_MINIMAL_DEBIAN.sh   # from a Debian text login: the dedicated fullscr
 bash START_OFFICE.sh           # from an existing desktop: the ordinary window on the Office workspace (~/Concern/Office)
 ```
 
-Leave through the System menu (the pale Graphite symbol at the upper right) → Return to Debian, or Exit Graphite on an
-existing desktop. The same menu's Log out, Restart and Shut down first save or set aside your work as leaving does, ask you
+Leave through the Work menu's last group → Return to Debian, or Exit Graphite on an
+existing desktop. The same group's Log out, Restart and Shut down first save or set aside your work as leaving does, ask you
 to confirm, and then ask the system's own logind (never sudo); without a login session they say they are unavailable. On Windows, `START_OFFICE.cmd` starts the same program after Python
 and `requirements-qt.txt` are installed.
 
@@ -147,7 +148,7 @@ pairing or updating. No publisher private key or default trust root is included.
 ```
 python3 tools/package_graphite.py --dry-run                                     # what would be shipped; writes nothing
 python3 tools/package_graphite.py OUT
-python3 tools/package_release_parts.py OUT/Graphite_0.6.1_full.zip PARTS "Graphite 0.6.1"
+python3 tools/package_release_parts.py OUT/Graphite_0.7.0_full.zip PARTS "Graphite 0.7.0"
 ```
 
 Graphite's own code and documents are free software under the GNU General Public License, version 2 only (COPYING).

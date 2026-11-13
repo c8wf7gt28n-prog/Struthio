@@ -201,8 +201,64 @@ class EqualizerTests(unittest.TestCase):
 
     def test_more_threads_than_bars_are_shown_in_equal_groups(self):
         from workbench import equalizer_qt as eq
-        self.assertEqual(eq.grouped([0.5]*4),[0.5]*4);self.assertEqual(len(eq.grouped([0.0]*16)),16)
-        many=eq.grouped([1.0,0.0]*16);self.assertEqual(len(many),16);self.assertEqual(many,[0.5]*16,'thirty-two threads: sixteen bars, each the mean of two')
+        self.assertEqual(eq.grouped([0.5]*4),[0.5]*4);self.assertEqual(len(eq.grouped([0.0]*8)),8)
+        pairs=eq.grouped([1.0,0.0]*8);self.assertEqual(pairs,[0.5]*8,'sixteen threads, as on the ThinkPad: eight bars, each the mean of two')
+        self.assertEqual(eq.grouped([1.0,0.0,0.0,0.0]*8),[0.25]*8,'thirty-two threads: eight bars, each the mean of four')
+
+    def test_a_rate_is_drawn_on_one_fixed_scale(self):
+        from workbench import equalizer_qt as eq
+        floor,ceiling=eq.SCALES['disk']
+        self.assertEqual(eq.scaled(0,floor,ceiling),0.0);self.assertEqual(eq.scaled(floor,floor,ceiling),0.0,'at the floor a bar rests');self.assertEqual(eq.scaled(None,floor,ceiling),0.0)
+        self.assertEqual(eq.scaled(ceiling*4,floor,ceiling),1.0);self.assertAlmostEqual(eq.scaled((floor*ceiling)**0.5,floor,ceiling),0.5,places=6)
+        self.assertLess(eq.scaled(1e6,floor,ceiling),eq.scaled(1e7,floor,ceiling));self.assertEqual(eq.amount(12.4e6),'12 MB/s');self.assertEqual(eq.amount(1500),'1.5 kB/s')
+
+    def test_everything_that_moves_is_read_twice_and_compared(self):
+        """Processor, kernel, memory, disks, network and graphics from this computer's own counters, one second apart."""
+        from workbench import equalizer_qt as eq
+        folder=tempfile.TemporaryDirectory();self.addCleanup(folder.cleanup);root=Path(folder.name);card=root/'drm'/'card0'/'device';card.mkdir(parents=True)
+        def write(stat,vm,disk,net,busy):
+            (root/'stat').write_text(stat);(root/'meminfo').write_text('MemTotal:       1000 kB\nMemFree:  100 kB\nMemAvailable:    250 kB\n');(root/'vmstat').write_text(vm)
+            (root/'diskstats').write_text(disk);(root/'netdev').write_text(net);(card/'gpu_busy_percent').write_text(busy)
+            (card/'mem_info_vram_used').write_text('100\n');(card/'mem_info_vram_total').write_text('400\n')
+        net='Inter-|   Receive |  Transmit\n face |bytes packets|bytes packets\n    lo: 999 1 0 0 0 0 0 0 999 1 0 0 0 0 0 0\n  eth0: %d 1 0 0 0 0 0 0 %d 1 0 0 0 0 0 0\n'
+        disk='   7 0 loop0 9 9 9999 9 9 9 9999 9 0 0 0\n 259 0 nvme0n1 10 0 %d 0 10 0 %d 0 0 0 0\n 259 1 nvme0n1p1 10 0 %d 0 10 0 %d 0 0 0 0\n'
+        ticks=[10.0];activity=eq.Activity(stat=str(root/'stat'),meminfo=str(root/'meminfo'),vmstat=str(root/'vmstat'),diskstats=str(root/'diskstats'),netdev=str(root/'netdev'),
+                                          drm=str(root/'drm'),clock=lambda:ticks[0])
+        write('cpu  100 0 100 800 0 0 0 0\ncpu0 50 0 50 400 0 0 0 0\ncpu1 50 0 50 400 0 0 0 0\nintr 1000 5\nctxt 2000\n','pgpgin 0\npgpgout 0\n',disk%(0,0,0,0),net%(0,0),'10\n')
+        first=activity.sample();self.assertEqual(first['bars']['CPU'],[0.0,0.0],'the first reading has nothing to compare with: every rate rests')
+        self.assertEqual(first['bars']['SSD'],[0.0,0.0]);self.assertAlmostEqual(first['bars']['RAM'][0],0.75);self.assertEqual(first['bars']['GPU'],[0.1,0.25]);self.assertEqual(first['missing'],[])
+        ticks[0]=11.0
+        write('cpu  200 0 200 800 0 0 0 0\ncpu0 150 0 50 400 0 0 0 0\ncpu1 50 0 150 400 0 0 0 0\nintr 101000 5\nctxt 202000\n','pgpgin 0\npgpgout 0\n',
+              disk%(2*500000000//512,0,7,7),net%(100000000,0),'80\n')
+        second=activity.sample()
+        self.assertEqual(second['bars']['CPU'],[1.0,1.0]);self.assertAlmostEqual(second['bars']['KRN'][0],0.5,msg='half of the time that passed was the kernel’s')
+        self.assertEqual(second['bars']['KRN'][1],1.0,'two hundred thousand switches a second is the top of its scale')
+        self.assertEqual(second['bars']['SSD'],[1.0,0.0],'a gigabyte read in the second, nothing written; the partition is not counted twice and the loop device not at all')
+        self.assertEqual(second['bars']['NET'],[1.0,0.0],'the loopback is not the network');self.assertEqual(second['bars']['GPU'][0],0.8)
+        self.assertIn('reading',second['words']['SSD']);self.assertIn('80% busy',second['words']['GPU']);self.assertIn('75% in use',second['words']['RAM'])
+
+    def test_a_source_this_computer_does_not_have_rests_and_is_named(self):
+        from workbench import equalizer_qt as eq
+        folder=tempfile.TemporaryDirectory();self.addCleanup(folder.cleanup);root=Path(folder.name);absent=str(root/'absent')
+        got=eq.Activity(stat=absent,meminfo=absent,vmstat=absent,diskstats=absent,netdev=absent,drm=absent,clock=lambda:0.0).sample()
+        self.assertEqual(sorted(got['missing']),sorted(eq.GROUPS));self.assertTrue(all(value==0.0 for group in eq.GROUPS for value in got['bars'][group]))
+        self.assertEqual([len(got['bars'][group]) for group in eq.GROUPS],[1,2,2,2,2,2],'the picture keeps its shape')
+        self.assertIn('reports nothing',got['words']['GPU'])
+
+
+class DoorTests(unittest.TestCase):
+    """0.7.0: the System menu is gone from the head; each of its things has one new door."""
+
+    def test_every_meter_is_a_door_and_says_what_it_opens(self):
+        from workbench import meter_cards
+        from workbench.desktop_header_qt import DesktopMonitors
+        self.assertEqual(tuple(meter_cards.DOORS),DesktopMonitors.KEYS);self.assertEqual(tuple(meter_cards.CARDS),DesktopMonitors.KEYS)
+        self.assertTrue(all(words and words[0].isupper() for words in meter_cards.DOORS.values()))
+
+    def test_leaving_is_the_last_group_of_the_first_menu(self):
+        from workbench import menus2, session_power
+        self.assertEqual(menus2.FILE[-2:],[None,'@leave'],'a separator, then leaving');self.assertEqual(menus2.DISPLAY_TITLES['File'],'Work')
+        self.assertEqual([session_power.WORDS[k] for k in ('logout','restart','shutdown')],['Log out','Restart','Shut down'])
 
 
 class GlowDialTests(unittest.TestCase):

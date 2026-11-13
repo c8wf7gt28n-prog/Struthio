@@ -230,7 +230,8 @@ class PaneBody(QWidget):
         for part in (tabs, content, foot):part.setParent(self);part.show()
 
     def arrange(self):
-        tabs, content, foot = pane_parts(self.width(), self.height(), self.inset, self.tabs.height(), self.gap, self.foot.height())
+        rest = bool(getattr(self.tabs, 'at_rest', False))      # a pane whose title row is put away at rest (the right pane, 0.7.0): its content starts at its top
+        tabs, content, foot = pane_parts(self.width(), self.height(), self.inset, 0 if rest else self.tabs.height(), max(self.gap, 10) if rest else self.gap, self.foot.height())
         for part, box in ((self.tabs, tabs), (self.content, content), (self.foot, foot)):
             if part.geometry() != QRect(*box):part.setGeometry(*box)
         if self.foot.trash is not None and self.foot.trash.geometry() != self.foot.slot:self.foot.trash.setGeometry(self.foot.slot)

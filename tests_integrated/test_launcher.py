@@ -225,7 +225,7 @@ class LauncherTests(unittest.TestCase):
         button,host=self.hatch();lst=button.programs
         self.assertTrue(button.prepare());words=lst.words()
         plain=sorted((programs_qt.PLAIN[row[0]] for row in explore.VIEWS),key=str.casefold)
-        self.assertEqual(words,plain+['—','Explore the workshop']);self.assertEqual(len(plain),len(explore.VIEWS))
+        self.assertEqual(words,plain+['—','Explore the workshop','Game'],'0.7.0: the game is among the programs, last (it was the System menu’s first row)');self.assertEqual(len(plain),len(explore.VIEWS))
         self.assertEqual(set(lst.rows_by_key),{row[0] for row in explore.VIEWS},'every capability of the Hatch groups, once')
         self.assertEqual(set(button.entries),set(lst.rows_by_key));self.assertIs(lst.explore_row.action,button.explore_action)
         self.assertEqual(programs_qt.order(),[k for k in sorted(lst.rows_by_key,key=lambda k:(programs_qt.PLAIN[k].casefold(),k))])
@@ -253,8 +253,9 @@ class LauncherTests(unittest.TestCase):
         lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_K);self.assertEqual(focus(),'KiCad checks','the same letter again: the next row with it')
         lst.typed_at=0;QTest.keyClicks(QApplication.focusWidget(),'ng');self.assertEqual(focus(),'ngspice profiles','letters typed together make one prefix')
         lst.typed_at=0;QTest.keyClick(QApplication.focusWidget(),Qt.Key_E);self.assertEqual(focus(),'Explore the workshop')
+        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Down);self.assertEqual(focus(),'Game','the game is the last row (0.7.0)')
         QTest.keyClick(QApplication.focusWidget(),Qt.Key_Down);self.assertEqual(focus(),'Agenda','Down wraps from the last row')
-        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Up);self.assertEqual(focus(),'Explore the workshop','and Up from the first')
+        QTest.keyClick(QApplication.focusWidget(),Qt.Key_Up);self.assertEqual(focus(),'Game','and Up from the first')
         QTest.keyClick(QApplication.focusWidget(),Qt.Key_Home);self.assertEqual(focus(),'Agenda')
         QTest.keyClick(QApplication.focusWidget(),Qt.Key_F1);self.assertTrue(host.status.messages[-1].startswith('Agenda — Open Graphite'),host.status.messages[-1])
         QTest.keyClick(QApplication.focusWidget(),Qt.Key_Escape);self.assertFalse(lst.isVisible())
@@ -265,7 +266,7 @@ class LauncherTests(unittest.TestCase):
             if op=='ledger.explore':return {'ok':False,'error':{'code':'FIXTURE','message':'Capability view unavailable for this test'}}
             return real(op,args,principal)
         with patch.object(self.kernel,'dispatch',side_effect=failing):self.assertFalse(button.prepare())
-        self.assertEqual(lst.words(),['Capabilities unavailable · Capability view unavailable for this test','—','Explore the workshop'])
+        self.assertEqual(lst.words(),['Capabilities unavailable · Capability view unavailable for this test','—','Explore the workshop','Game'])
         self.assertTrue(button.prepare());self.assertNotIn('Capabilities unavailable',' '.join(lst.words()))
         # A missing adapter disables only its row, in words; choosing it opens nothing.
         with self.missing('brain_qt.py'):self.assertTrue(button.prepare())

@@ -170,8 +170,19 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   glow" (one dial, opening on Bright); the tree "green and maybe kind of circuit themed"; "more icons" (the menus'
   lines). Built in 0.5.3: the right pane's three views made one ("I don't think we need three options"); the bottom
   line kept as "one master typing line that I select whom I'm typing to" (terminal, assistant, logs, web search, system
-  search, URL), not a field in Stacy's pane. Still not built: the System menu regrouped; small versions of programs
-  such as GIMP and Godot in Programs; a system log beside the two streams Log has.
+  search, URL), not a field in Stacy's pane. Still not built: small versions of programs such as GIMP in Programs; a
+  system log beside the two streams Log has.
+  No System menu (13 November, having seen 0.5.3 to 0.6.1 in pictures: "How much of the system menu could we move into
+  clickable: cpu/gpu/ram/text? Could we eliminate the system menu if we got creative"; "Make the thinking/activity
+  equalizer represent any and all data activity available together actively showing SSD, RAM, GPU, CPU, kernel
+  activity"; "Brain room can probably move into system menu"; "Full chat in Stacy column can probably move into log
+  ... but then how to select what log file we're looking at"; "Probably don't even need the Stacy name tag taking up
+  space"; "The type bar at the bottom needs a optional expand to show more data, like if I'm trying to use the
+  terminal"). Built in 0.7.0: each meter is a door to what it is about (CPU the work, GPU the model and the services,
+  RAM memory and Machine, TXT the Full chat and Context); leaving at the foot of the Work menu; the game at the foot of
+  Programs; the equalizer in six groups on fixed scales; no title on Stacy's pane at rest; an expand control on the
+  line. The builder's choice, for the owner to overrule: Full chat went to TXT and not into the Log, because the Log
+  is read and the chat is typed into.
   What works as wanted and stays: the Programs menu ("terrific"; opening Mail goes to the mail program), the left
   pane's Files, Machine and Settings, the meters for CPU, GPU, RAM and the context window.
   A free hand (13 November: "If there is anything that you want to add or subtract or change in the program ... Turn
@@ -232,13 +243,13 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   workspace has anything in it, with what waits selected; Esc goes to where the owner left off. An empty workspace
   opens on Home. Home's "Start: always Home" still means Home.
 - **Small things that stay.** `poem` as the empty hint. Ingress and Egress. The pinned Trash. Home as a file browser.
-  The game behind System (STRUTHIO ARCADE; its source is the STRUTHIO repository's `arcade/`, changed there and
+  The game at the foot of Programs (STRUTHIO ARCADE; its source is the STRUTHIO repository's `arcade/`, changed there and
   copied in).
 
 ## Where it stands
 
-Graphite 0.6.1: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), actions drawn as buttons with one row of tools on each work page (0.4.8), an audit that left each action one visible home, then dark plates for white boxes and icons as an option (0.4.9), and the builder's own additions when given a free hand: the whole desk as a map, Find on every page, the Field seen as it was last seen (0.5.0), and the owner's first walk round it on the ThinkPad: the menus across the head, a dial for the glow, the trees as circuit traces, glyphs in the menus (0.5.1), then no key printed anywhere, the menus' glyphs in neon green, and Neon as the glow it opens with (0.5.2), then the head's equalizer, the right pane as one view and the line with five names to choose whom is typed to (0.5.3), then Stacy's hand: the dial, do and show with Undo, her trail, and noticing with a free hand (0.6.0), and the first journey, a starting project in Godot (0.6.1). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.7.0: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), actions drawn as buttons with one row of tools on each work page (0.4.8), an audit that left each action one visible home, then dark plates for white boxes and icons as an option (0.4.9), and the builder's own additions when given a free hand: the whole desk as a map, Find on every page, the Field seen as it was last seen (0.5.0), and the owner's first walk round it on the ThinkPad: the menus across the head, a dial for the glow, the trees as circuit traces, glyphs in the menus (0.5.1), then no key printed anywhere, the menus' glyphs in neon green, and Neon as the glow it opens with (0.5.2), then the head's equalizer, the right pane as one view and the line with five names to choose whom is typed to (0.5.3), then Stacy's hand: the dial, do and show with Undo, her trail, and noticing with a free hand (0.6.0), and the first journey, a starting project in Godot (0.6.1), then the System menu dissolved into the four meters, the Work menu and Programs, with the equalizer showing everything that moves (0.7.0). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

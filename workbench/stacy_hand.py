@@ -32,11 +32,18 @@ KEPT = 40                   # acts kept in the trail
 SAYS = {'ask': 'asks before any change', 'show': 'does and shows', 'free': 'has a free hand'}
 
 # What cannot be undone always asks, whatever the dial says: (operations it covers, why it asks).
+# 0.7.0 widened it after every operation the Kernel has was run against the rule: with a free hand it would have let
+# through, had they ever been put up, transfers, mail, pairing, publishing, packet capture, and several kinds of
+# forgetting. None could be reached by her then; they are closed here before anything else can reach them.
 ALWAYS_ASKS = (
-    (('*.send', 'exchange.*'), 'it sends something to another computer'),
-    (('*.delete', '*.remove', '*.purge', '*.erase', '*.wipe'), 'what it removes cannot be brought back'),
+    (('*.send', 'exchange.*', 'pills.*', 'notes.exchange.*', 'remote.*', 'programs.transfer.*', 'programs.mail.*', 'programs.delivery.*',
+      '*.pair', '*.unpair', '*.fetch', '*.upload', '*.download', '*.publish'), 'it reaches another computer, or sends something off this one'),
+    (('network.capture.*',), 'it listens to what passes on this computer’s network'),
+    (('*.delete', '*.remove', '*.purge', '*.erase', '*.wipe', '*.forget', '*.discard', '*.revoke', '*.clear', '*.clear_staging', '*.takeover',
+      '*.reset'), 'what it removes cannot be brought back'),
     (('*.empty', 'trash.*'), 'the Trash, once emptied, cannot be brought back'),
     (('power.*', 'session.*'), 'it ends the session or turns this computer off'),
+    (('releases.*', 'repairs.*', '*.install'), 'it changes the program itself'),
     (('shell.*', 'terminal.*'), 'a command in the Terminal can do anything'),
 )
 LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by one of these names reaches another computer
@@ -46,12 +53,41 @@ LEAVES = ('address', 'peer', 'url', 'host', 'recipient')      # an argument by o
 TERMINAL_READS = ('ls', 'pwd', 'cat', 'head', 'tail', 'wc', 'df', 'du', 'free', 'uptime', 'uname', 'whoami', 'id', 'date', 'hostname', 'lsblk', 'lscpu',
                   'lsusb', 'lspci', 'sensors', 'ps', 'which', 'file', 'stat', 'find', 'grep', 'ip', 'journalctl', 'dmesg', 'nproc', 'env', 'printenv')
 TERMINAL_MARKS = ('|', '&', ';', '>', '<', '`', '$(', '\n', '\r')
-TERMINAL_ONLY = {'find': lambda words: not any(w in ('-delete', '-exec', '-execdir', '-ok', '-okdir', '-fprint', '-fprintf', '-fls') for w in words),
-                 'date': lambda words: not any(w in ('-s', '--set') or w.startswith('--set=') for w in words),
-                 'ip': lambda words: not any(w in ('add', 'del', 'delete', 'set', 'flush', 'change', 'replace', 'append') for w in words),
-                 'dmesg': lambda words: not any(w in ('-C', '-c', '--clear', '--read-clear', '-n', '--console-level', '-D', '-E') for w in words),
-                 'journalctl': lambda words: not any(w.startswith(('--vacuum', '--rotate', '--flush', '--sync', '--setup-keys')) for w in words),
-                 'hostname': lambda words: len(words) == 1 or all(w.startswith('-') for w in words[1:]),
+IP_OBJECTS = ('addr', 'address', 'a', 'link', 'l', 'route', 'r', 'neigh', 'neighbor', 'neighbour', 'n', 'rule', 'ru')
+IP_FLAGS = ('-4', '-6', '-br', '-brief', '-c', '-color', '-o', '-oneline', '-s', '-stats', '-statistics', '-d', '-details', '-h', '-human',
+            '-human-readable', '-j', '-json', '-p', '-pretty', '-r', '-resolve')
+IP_CHANGES = ('add', 'del', 'delete', 'set', 'flush', 'change', 'replace', 'append', 'prepend', 'exec', 'save', 'restore', 'update', 'monitor')
+
+
+def _ip_reads(words):
+    """ip only in its showing forms: a known object (addr, link, route, neigh, rule), flags that only change how it prints,
+    and no word that changes anything or runs something (ip netns exec and ip vrf exec run any program; -batch runs a file)."""
+    rest = words[1:];named = [w for w in rest if not w.startswith('-')]
+    return (all(w in IP_FLAGS for w in rest if w.startswith('-')) and (not named or named[0] in IP_OBJECTS)
+            and not any(w in IP_CHANGES for w in named))
+
+
+def _date_reads(words):
+    """date only shows: a format (+...), a flag, or the date given to -d / -r. A bare word after date sets the clock."""
+    skip = False
+    for w in words[1:]:
+        if skip:
+            skip = False;continue
+        if w in ('-d', '--date', '-r', '--reference', '-f', '--file'):
+            skip = True;continue
+        if w in ('-s', '--set') or w.startswith('--set=') or not w.startswith(('-', '+')):return False
+    return True
+
+
+TERMINAL_ONLY = {'find': lambda words: not any(re.match(r'-(delete|exec|execdir|ok|okdir|fprint|fprint0|fprintf|fls)$', w) for w in words),
+                 'date': _date_reads,
+                 'ip': _ip_reads,
+                 'file': lambda words: not any(w in ('-C', '--compile') or (w.startswith('-') and not w.startswith('--') and 'C' in w) for w in words),
+                 'sensors': lambda words: not any(w in ('-s', '--set') for w in words),
+                 'dmesg': lambda words: not any(w in ('-C', '-c', '--clear', '--read-clear', '-n', '--console-level', '-D', '-E', '--console-off', '--console-on') for w in words),
+                 'journalctl': lambda words: not any(w.startswith(('--vacuum', '--rotate', '--flush', '--sync', '--setup-keys', '--update-catalog',
+                                                                   '--relinquish-var', '--smart-relinquish-var')) for w in words),
+                 'hostname': lambda words: len(words) == 1 or all(w.startswith('-') and w not in ('-F', '--file', '-b', '--boot') for w in words[1:]),
                  'env': lambda words: len(words) == 1}
 
 
@@ -78,8 +114,8 @@ def why_asks(operation, arguments=None):
 
 def hers(place, scope, operation, arguments=None):
     """Whether, with the dial at `place`, an operation of this Kernel scope is hers to do now without asking."""
+    if scope == 'read':return True               # a read never asks
     if why_asks(operation, arguments):return False
-    if scope == 'read':return True
     if place == 'show':return scope == 'execute'
     if place == 'free':return scope in ('execute', 'approve')
     return False
@@ -96,7 +132,7 @@ def made(text):
     ending is a .txt."""
     asked = MAKE.match(str(text or ''))
     if not asked:return None
-    kind = asked.group(1).lower();name = asked.group(2).strip().strip(QUOTES).rstrip('.').strip();words = (asked.group(3) or '').strip()
+    kind = asked.group(1).lower();name = re.sub(r'\s+', ' ', asked.group(2)).strip().strip(QUOTES).rstrip('.').strip();words = (asked.group(3) or '').strip()
     if words[:1] in '“"‘\'' and words[-1:] in '”"’\'':words = words[1:-1].strip()
     if not name or len(name) > 120:return None
     if kind == 'document':kind = 'page'

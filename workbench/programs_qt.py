@@ -707,7 +707,15 @@ class ProgramsList(DeskMenu):
         for key in order():
             row = MenuRow(self, actions[key].text(), key, action=actions[key]);self.rows_by_key[key] = row;self.box.addWidget(row)
         self.rule = Rule(self);self.box.addWidget(self.rule)
-        self.explore_row = MenuRow(self, EXPLORE, 'explore', action=explore_action);self.box.addWidget(self.explore_row);self.end_rows()
+        self.explore_row = MenuRow(self, EXPLORE, 'explore', action=explore_action);self.box.addWidget(self.explore_row)
+        # 0.7.0: the game, among the programs (it was the System menu's first row).
+        self.game_row = MenuRow(self, 'Game', 'game', 'STRUTHIO', callback=self.open_game);self.game_row.setObjectName('GameRow')
+        self.game_row.setToolTip('STRUTHIO in its offline desk mode, paused at tick zero');self.game_row.setAccessibleName('Game: STRUTHIO in its offline desk mode, paused at tick zero')
+        self.box.addWidget(self.game_row);self.end_rows()
+
+    def open_game(self):
+        from .struthio_qt import show
+        show(self.host)
 
     def show_unavailable(self, message):
         self.unavailable.word = 'Capabilities unavailable · ' + message[:80];self.unavailable.setToolTip(message);self.unavailable.show()

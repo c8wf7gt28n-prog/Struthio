@@ -68,6 +68,15 @@ class FilesTests(unittest.TestCase):
         files=dict(start.godot_files('Rail "Runner"',3))
         self.assertIn('config/name="Rail \\"Runner\\""',files['project.godot']);self.assertIn('text = "Rail \\"Runner\\""',files['main.tscn'])
 
+    def test_a_name_can_never_end_its_own_line(self):
+        self.assertEqual(start.asked('start a Godot project called Rail\nRunner'),('godot','Rail Runner'),'a line break in what was said is a space')
+        for major in (3,4):
+            files=dict(start.godot_files('Rail\n[autoload]\nx="res://x.gd"\tend\\',major))
+            for name,text in files.items():
+                self.assertNotIn('\n[autoload]',text,name);self.assertNotIn('\t',text.replace('\t$Label','').replace('\tvar ',''),name)
+            self.assertEqual(sum(1 for line in files['project.godot'].splitlines() if line.startswith('config/name=')),1)
+            self.assertIn('config/name="Rail\\n[autoload]\\nx=\\"res://x.gd\\"\\tend\\\\"',files['project.godot'])
+
     def test_the_godot_room_reads_what_she_writes(self):
         for major in (3,4):
             folder=tempfile.TemporaryDirectory();self.addCleanup(folder.cleanup);root=Path(folder.name)

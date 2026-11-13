@@ -18,7 +18,8 @@ DISPLAY_TITLES={'File':'Work','Edit':'Revise','Tools':'Tools','Options':'Arrange
                 'Commands':'Commands','Settings':'Rules','Properties':'Properties','Help':'Guide'}
 # File: getting files in and working on them. Edit: text. View: where you are and how the window looks.
 # Tools: who you type to, the chain menu, and Ledger's own tools. Help: how to begin, and what is new.
-FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery']
+FILE = ['new', '@new_idea', '@new_project', 'open', 'viewer', 'quick', '@recent', None, '@receive', '@import', '@export', '@work_copy', None, 'save', 'save_all', 'close', None, 'recovery',
+        None, '@leave']      # 0.7.0: leaving (Log out, Exit Graphite, Restart, Shut down) at the foot of the first menu; it was the System menu's last group
 EDIT = ['undo', 'redo', None, 'cut', 'copy', 'paste', 'select', None, 'find', 'find_next', 'replace', 'goto']
 VIEW = ['home', '@field', '@files', '@library', '@project_desk', '@changes', '@continuing', '@deployment', '@agenda', '@slate_panel', None, '@console_sizes', '@cabinet', '@machine_refresh', None,
         'fullscreen', 'reading', 'prose_more', 'prose_less', None, 'wrap', 'split_editor', 'pin', 'reopen', None, 'reset']      # Desk artwork is under Rules, once (0.4.9)
@@ -205,6 +206,17 @@ def rebuild(host):
             sub = QMenu('Writing Line' if key == '@type_to' else 'Console', host)  # D3: the line's four modes
             for a in ([host.a_talk[k] for k in ('slate', 'shell', 'find', 'log')] if key == '@type_to' else host.a_sizes.values()):sub.addAction(a);placed.add(a)
             sub.aboutToShow.connect(host._menus_sync);menu.addMenu(sub);return
+        if key == '@leave':
+            from . import session_power as power
+            made = getattr(host, '_leave_actions', None)
+            if made is None:
+                made = host._leave_actions = {};leave = power.session_exit()
+                for name, word in (('logout', power.WORDS['logout']), ('leave', leave['label']), ('restart', power.WORDS['restart']), ('shutdown', power.WORDS['shutdown'])):
+                    a = QAction(word, host);a.setToolTip(power.SCOPES[name]);a.setStatusTip(power.SCOPES[name])
+                    a.triggered.connect(lambda checked=False, name=name:power.leave(host) if name == 'leave' else power.run_action(host, name))
+                    made[name] = a
+            for a in made.values():menu.addAction(a);placed.add(a)
+            return
         if key == '@chain_desk':
             a = menu.addAction('Constructed chain')
             a.triggered.connect(lambda checked=False:__import__('workbench.chain_workbench_qt',fromlist=['tray']).tray(host).show());return

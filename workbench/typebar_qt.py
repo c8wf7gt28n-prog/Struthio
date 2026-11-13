@@ -12,7 +12,7 @@ The active mode supplies the field's accessible hint. `poem` is the placeholder.
 from __future__ import annotations
 from .text_prompts import writing_prompt
 from PySide6.QtCore import Qt, QTimer, QEvent, QSize
-from PySide6.QtWidgets import QDockWidget, QWidget, QLabel
+from PySide6.QtWidgets import QDockWidget, QWidget, QLabel, QPushButton
 from .shell2 import button
 
 STREAMS_WORDS = (('events', 'Events'), ('network', 'Network'))  # log_qt.STREAMS, without importing the view
@@ -156,6 +156,46 @@ def parses_as_stac(text):
     return stac_hint_kind(text) == 'stac'
 
 
+class ExpandButton(QPushButton):
+    """The line's expand (the owner, 13 November 2026: "The type bar at the bottom needs a optional expand to show more
+    data, like if I'm trying to use the terminal"). The room above the line always had three sizes (one line, half, tall)
+    but their words were hidden and the only way to them was a menu. This is one control at the left end of the line that
+    steps through them: one chevron up at rest (show more), two when half open (taller still), one down when tall (back to
+    one line). What shows in the room is the page of whoever is being typed to: Stacy's answers, the Terminal's output,
+    Search's results, or the Log with its own choice of stream at its top."""
+    SAYS = ('Show more above the line', 'Taller still', 'Back to one line')
+    SIZES = ('one line', 'half the window', 'tall')
+
+    def __init__(self, bar):
+        super().__init__(bar);self.bar = bar;self.level = -1;self.setObjectName('TypeExpand');self.setCursor(Qt.PointingHandCursor)
+        self.setFocusPolicy(Qt.TabFocus);self.setAttribute(Qt.WA_Hover, True);self.clicked.connect(self.step);self.say()
+
+    def step(self):
+        console = self.bar.console;console.set_size((int(console.size_level) + 1) % 3);self.say()
+
+    def say(self):
+        level = max(0, min(2, int(getattr(self.bar.console, 'size_level', 0) or 0)))
+        if level == self.level:return
+        self.level = level;self.setToolTip(self.SAYS[level]);self.setAccessibleName('The room above the line is %s. %s' % (self.SIZES[level], self.SAYS[level]));self.update()
+
+    def paintEvent(self, event):
+        from PySide6.QtCore import QPointF
+        from PySide6.QtGui import QColor, QPainter, QPen
+        from .boss_theme import LINE, QUIET, READY
+        p = QPainter(self);p.setRenderHint(QPainter.Antialiasing);box = self.rect().adjusted(0, 0, -1, -1)
+        over = self.underMouse() or self.hasFocus()
+        p.setPen(QPen(QColor(READY if over else LINE), 1));p.setBrush(Qt.NoBrush);p.drawRect(box)
+        pen = QPen(QColor(READY if over or self.level else QUIET), 1.8);pen.setCapStyle(Qt.RoundCap);pen.setJoinStyle(Qt.RoundJoin);p.setPen(pen)
+        cx = box.center().x() + 0.5;cy = box.center().y() + 0.5;w = min(6.0, box.width() / 3.2)
+        def chevron(y, up=True):
+            tip = y - 3.0 if up else y + 3.0;base = y + 2.0 if up else y - 2.0
+            p.drawPolyline([QPointF(cx - w, base), QPointF(cx, tip), QPointF(cx + w, base)])
+        if self.level == 0:chevron(cy)
+        elif self.level == 1:chevron(cy - 3.5);chevron(cy + 3.5)
+        else:chevron(cy, up=False)
+        p.end()
+
+
 class TypeBar(QWidget):
     def __init__(self, host, box, console):
         super().__init__();self.host = host;self.box = box;self.console = console;self.setObjectName('TypeBar')
@@ -194,6 +234,7 @@ class TypeBar(QWidget):
         self.send.setAccessibleName('Submit writing line')
         self.send.setToolTip(SENDS['slate'])
         self.send.clicked.connect(self.submit_line)
+        self.expand = ExpandButton(self)      # 0.7.0: the room above the line, opened and closed from the line itself
         # The context word (CM01): the active work context, in quiet lettering at the right end of the line.
         self.context = QLabel(box);self.context.setObjectName('TypeContext');self.context.setTextFormat(Qt.PlainText)
         self.context.setAttribute(Qt.WA_TransparentForMouseEvents);self.context.setFocusPolicy(Qt.NoFocus)
@@ -491,8 +532,9 @@ class TypeBar(QWidget):
             self.left.setGeometry(0, 0, p, h);self.right.setGeometry(d.width - meter_slot, 0, meter_slot, h)
             line_left = max(p + o, round(d.width * .21)) if wide else p + o
             line_width = max(120, d.width - meter_slot - o - line_left)
-            button_width = max(32, wh + 3)
-            self.box.setFixedSize(line_width - button_width, wh);self.box.move(line_left, y)
+            button_width = max(32, wh + 3);grip = max(26, round(wh * 0.8))      # the expand control stands at the line's left end, the arrow at its right
+            self.expand.setGeometry(line_left, y, grip, wh);self.expand.say()
+            self.box.setFixedSize(line_width - button_width - grip - 4, wh);self.box.move(line_left + grip + 4, y)
             self.send.setGeometry(line_left + line_width - button_width, y, button_width, wh)
             # 0.5.3: five names stand here (Search is shown; it was hidden and reached by a key). They take the slot's width
             # between its insets: the air between them is what is left over, shared, and never less than a little.

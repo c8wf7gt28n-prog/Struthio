@@ -33,7 +33,7 @@ def asked(text):
     found = ASK.match(str(text or ''))
     if not found:return None
     program = (found.group('a') or found.group('b') or found.group('c')).lower()
-    name = (found.group('name') or '').strip().strip(QUOTES).rstrip('.').strip() or 'First %s project' % PROGRAMS[program]
+    name = re.sub(r'\s+', ' ', found.group('name') or '').strip().strip(QUOTES).rstrip('.').strip() or 'First %s project' % PROGRAMS[program]
     return program, name
 
 
@@ -65,7 +65,10 @@ def godot_tool(which=shutil.which, major=godot_major):
 
 
 def _quoted(name):
-    return '"' + str(name).replace('\\', '\\\\').replace('"', '\\"') + '"'
+    """A name inside double quotes, for Godot's settings, scenes and scripts: a backslash, a quote and a line break are
+    written as their escapes, and any other control character is left out, so a name can never end its own string."""
+    text = str(name).replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+    return '"' + ''.join(ch for ch in text if ch >= ' ') + '"'
 
 
 def godot_files(name, major):

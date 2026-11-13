@@ -687,7 +687,11 @@ class TopBar(QWidget):
             self.nice.setParent(self.first_row)
             h, o, gap = d.band, d.inset, max(6, d.gap // 2)
             x = d.width - o
-            for widget in (self.nice, self.programs):
+            # 0.7.0: the System menu is gone from the head (the owner: "Could we eliminate the system menu if we got creative").
+            # Its things are behind the four meters at the foot (meter_cards), at the foot of the Work menu (leaving) and
+            # among the programs (the game). The button and its menu stay alive, out of sight, for what still calls them.
+            self.nice.setGeometry(0, 0, 0, 0);self.nice.hide()
+            for widget in (self.programs,):
                 width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4))
                 x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
             # The familiar menus stand in the open from the left edge; the name of what is open follows them. In a window too
@@ -1733,10 +1737,8 @@ class SlateFace(QWidget):
         names.addStretch(1);top.addLayout(names, 1);outer.addLayout(top)
         self.portrait.set_available(True)      # only once it is inside this pane: shown before that, it would be a window of its own
         self.thing = None      # the thing a question is about, when the asker knows it: {'title', 'stac', 'kind'} (a sheet of the Field)
-        head = QHBoxLayout();head.setSpacing(14)
-        change = QPushButton('Brain room');change.setProperty('arcButton', 'link');change.setToolTip('Choose, swap or stop Stacy\'s brain: the model, on this computer');change.clicked.connect(lambda:open_destination(host, 'slate'));head.addWidget(change)
-        full = QPushButton('Full chat');full.setProperty('arcButton', 'link');full.setToolTip('The full conversation with Stacy, with /commands and providers');full.clicked.connect(host.open_clip);head.addWidget(full)
-        head.addStretch(1);outer.addLayout(head)
+        # 0.7.0: "Brain room" and "Full chat" stood here as two links. They are behind the meters now: the Brain room on
+        # GPU (the model is what the graphics processor is for), the Full chat on TXT (the text she holds). (meter_cards)
         # 0.5.3, the right pane as one view (the owner: "I don't think we need three options. Context and activity almost
         # seem like they could be merged ... talk seems like that could be merged with activity too"): under her face,
         # two lines carry what the other two views were for. This: what is open or selected, which is what "this" means
@@ -3311,6 +3313,12 @@ class Shell2(QObject):
             title.setText(words);title.setAccessibleName('Stacy' if home else 'Back to Stacy from ' + other)
             title.setToolTip('' if home else 'Back to Stacy')
         tabs = self.face_tabs
+        # 0.7.0 ("Probably don't even need the Stacy name tag taking up space"): at rest the pane has no title row at all;
+        # her face is its top. The row comes back, as the way back, only while Activity or Context is up.
+        if getattr(tabs, 'at_rest', None) != bool(home):
+            tabs.at_rest = bool(home);tabs.setVisible(not home)
+            body = tabs.parentWidget()
+            if callable(getattr(body, 'arrange', None)):body.arrange()
         if getattr(tabs, 'title', None) is not title:
             tabs.title = title;tabs.placed = None      # the row places it where the tabs' words stood, at their size (pane_qt.PaneTabs.place)
             title.setGeometry(getattr(tabs, 'inset', 16), max(0, tabs.height() - 36), max(40, title.sizeHint().width() + 12), 30)
