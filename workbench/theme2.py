@@ -202,6 +202,8 @@ def tool(button, tip=''):
     if button.styleSheet():button.setStyleSheet('')
     if tip:button.setToolTip(tip)
     style = button.style();style.unpolish(button);style.polish(button)
+    from .tool_faces import wear
+    wear(button)        # when the owner chooses Icons, a tool that has a glyph wears it (tool_faces)
     return button
 
 

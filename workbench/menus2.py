@@ -210,7 +210,8 @@ def rebuild(host):
             a.triggered.connect(lambda checked=False:__import__('workbench.chain_workbench_qt',fromlist=['tray']).tray(host).show());return
         if key == '@desk_art':
             from .boss_qt import appearance_menu
-            menu.addMenu(appearance_menu(host));return
+            from .tool_faces import menu as buttons_menu
+            menu.addMenu(appearance_menu(host));menu.addMenu(buttons_menu(host));return      # the desk's art, and its buttons: words or glyphs
         if key == '@targets' and hasattr(host, 'target_menu'):menu.addMenu(host.target_menu);return
         if key == '@cabinet':  # HATCH DESK D1b: how the cabinet is arranged (it was the left pane's own words)
             sub = QMenu('Cabinet', host);host.cabinet_menu = sub

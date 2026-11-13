@@ -119,6 +119,7 @@ class Session:
         if type(idle_minutes) is int and idle_minutes in IDLE_DISPLAY_MINUTES:
             s['idle_display_minutes'] = idle_minutes
         if type(data.get('cursive')) is bool:s['cursive']=data['cursive']
+        if data.get('buttons') in ('words','icons'):s['buttons']=data['buttons']     # tool buttons as words on plates, or as Graphite's glyphs (tool_faces)
         if type(data.get('page_own_light')) is bool:s['page_own_light']=data['page_own_light']     # a PDF page shown as the file has it, not in the desk's light
         if type(data.get('writing_marker')) is bool:s['writing_marker']=data['writing_marker']  # appearance.writing_marker (VS03)
         navigation=data.get('settings_navigation')

@@ -6,7 +6,8 @@ and 0.3 notes beside it describe what came before.
 The owner: "Really question what everything does and if it's place is justified. Every click necessary. No redoing the
 same thing multiple places."
 
-This release adds one line to one menu (see "No white boxes") and otherwise only takes away. Every control on the main
+This release adds two choices (a line under More on a PDF page, see "No white boxes"; and Words or Icons for the
+buttons, see "Icons, as an option"), mends one fault that could end the program, and otherwise only takes away. Every control on the main
 surfaces was listed from the running program with what it does, and each was asked two questions: does anything else on
 this screen already do this, and would anyone miss it. The rule the cuts follow:
 
@@ -70,6 +71,41 @@ Two things on that screen were white, and both are changed.
 Left as they were: the sheets on the Field (their edges fade with distance and were not what was pointed at), pictures
 and artwork (a photograph is not a white box), and the amber Send button.
 
+## Icons, as an option
+
+The owner, after the plates: "Or graphite themed icons can be tried as an option also."
+
+**Work ▸ Rules ▸ Buttons ▸ Words | Icons.** Words is what opens; the choice is kept.
+
+With Icons, a tool button has no box at all. It wears one of thirty glyphs drawn for Graphite in the language of its
+own mark: straight strokes of one weight with sharp joins, arrow heads and folded corners as small solid facets, and a
+hexagon where another program would draw a circle (graphite is sheets of carbon in a hexagonal lattice; the lens of
+Find is one).
+
+- **What every program has is its glyph alone**: Find, − and +, Undo, Redo, Save in the bar above the work; the page
+  before and after; More; and on the page of writing B, I, U, H1, H2, H3, ¶, {} and Aa. Its tip begins with its name.
+- **What is particular to a page keeps its words beside its glyph**: Field, Copy citation, Review table, New note,
+  Calculate and write report, Recalculate, Preview export, Edit cell, Open source row, New document, Export, Compare
+  sources again, Stop. No drawing says "Copy citation".
+- Under the pointer a button answers in green, with a little glow; pressed, chosen or holding the keyboard it is amber;
+  when it cannot be used it is dim. The way back to the Field is green at rest, as it was.
+
+Only how a button is painted and how wide it is change. Its words, its name for a screen reader, its tip, its click and
+its place are the same, so the keys, Stacy, More and the checks still find it by its words; going back to Words gives
+every button the width it had. The keys at the Field's foot are not changed: a key cap is already a letter.
+
+The glyphs were drawn and looked at at their true size, 20 pixels, in pictures. They have not been seen on the
+ThinkPad's panel, and nobody but their author has judged whether each one says what it means.
+
+## A fault that could end the program (in 0.4.7 and 0.4.8)
+
+Found while the icons were being checked, and not caused by them. The bar above the work looked at the open page the
+instant the keyboard moved. A finding replaces its whole sheet when it is read again, and if the keyboard was on one of
+its buttons (after a click on **Compare sources again**, say), the keyboard moved while that button was being
+destroyed; the bar then read a page whose parts were half gone, and Qt ended the program with no message. The bar now
+looks a moment after the move, never inside it. A probe reproduces the end of the program without the mend and runs
+three replacements with it. 0.4.6 and earlier have no bar and were never exposed.
+
 ## What was questioned and kept, and why
 
 - **A click opens a sheet, and the right button shows its menu.** Two roads to a sheet's actions remain: the foot (for
@@ -108,5 +144,6 @@ the Field, the table review, Settings, Machine and Talk; a probe switches the pa
 brightest point of the page as shown (117 of 255 in the desk's light, 241 in its own). The low tone was chosen by eye
 from those pictures, not on the ThinkPad's panel: if the page reads too dim or still too bright there, it is one value.
 
-Not seen: any of it on the ThinkPad's own screen. No second reader has gone over this release. Nothing has run on the
-ThinkPad.
+Not seen: any of it on the ThinkPad's own screen. No second reader has gone over this release. The owner reports
+(13 November) that 0.4.6 is installed and running on the ThinkPad; nothing later has run there, and no account of what
+was tried there has been recorded yet.

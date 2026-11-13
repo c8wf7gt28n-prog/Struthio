@@ -129,6 +129,11 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   the pale ink is for words and for the Field's sheets, never for the outline of a control. A document's white page is
   shown in the desk's light (the same page, its paper brought down from white, the file untouched) with its own light
   one line away under More and the choice kept. (0.4.9.)
+  Icons are an option, words the default (13 November: "Or graphite themed icons can be tried as an option also"):
+  Work ▸ Rules ▸ Buttons. A glyph is drawn in the language of Graphite's own mark (cut strokes, small solid facets, a
+  hexagon for a circle), read at 20 pixels in one colour; it stands alone only for what every program draws the same
+  way, and otherwise keeps its words beside it. (0.4.9. Whether the glyphs say what they mean is the owner's to judge
+  on the ThinkPad's panel.)
   A control looks like a control (13 November: "bring in buttons where useful. And simplify the interface. And also make
   it look more complete and untied to the work"): an action is a button (a plate), a word that only goes somewhere is an
   underlined word, and the work itself has neither look. Each work page has one row of tools; what is needed now and
@@ -194,8 +199,11 @@ copy are kept back (`RIGHTS.md`).
 
 Never yet done, by every document in the tree:
 
-- Graphite has not run on the ThinkPad (E16 Gen 2, Ryzen 7 7735HS, Radeon 680M, about 61 GiB shared memory, Debian 13
-  at a text console). The offline kit is ready: `docs/THINKPAD_FIRST_INSTALL.md`.
+- Nothing later than 0.4.6 has run on the ThinkPad (E16 Gen 2, Ryzen 7 7735HS, Radeon 680M, about 61 GiB shared memory,
+  Debian 13 at a text console). The owner reported on 13 November 2026: "I have 0.4.6 running on thinkpad". That is the
+  first run on the machine this is built for. What was tried there, how the pointer and the glow look on its panel and
+  how fast the Field is have not been reported yet, and nothing is claimed as accepted. The offline kit:
+  `docs/THINKPAD_FIRST_INSTALL.md`.
 - No model has answered on the ThinkPad, and the Vulkan path has not met the Radeon. (Two small models answered in the
   build container on 12 November: `docs/MODEL_TRIAL_03.md`.) No model file ships; the owner chooses one.
 - Rust: asked about on 12 November ("I'm thinking rust soon???"). Not a rewrite. When the ThinkPad shows what is slow,

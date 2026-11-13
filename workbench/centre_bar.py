@@ -18,15 +18,16 @@ do with what is open. It is gone until it can show what can be done with the ope
 button still open the menus they always did. And Save is lit only when there is something to save.)
 
 It shows while the work is in the centre, and steps aside for the Field and for Home, which have the whole centre.
-Nothing here runs on a timer: the controls are looked at again when the open page changes, when the keyboard moves, and
-when the pointer comes onto the bar.
+Nothing here runs on a clock: the controls are looked at again when the open page changes, a moment after the keyboard
+moves (never from inside the move: see focus_moved), and when the pointer comes onto the bar.
 """
-from PySide6.QtCore import QEvent, QPoint, Qt
+from PySide6.QtCore import QEvent, QPoint, Qt, QTimer
 from PySide6.QtGui import QFontMetrics
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QTableWidget,
                                QTextEdit, QWidget)
 
 from . import boss_theme as t
+from .tool_faces import start as start_faces, wear
 
 SIZES = (-4, 12)                # how far the size of one view may be taken from the desk's own, in points
 MARK = '/*centre-size*/'        # the piece of a view's own style sheet that carries its size, so it can be replaced
@@ -35,25 +36,25 @@ MARK = '/*centre-size*/'        # the piece of a view's own style sheet that car
 class CentreBar(QWidget):
     def __init__(self, host):
         super().__init__(host)
-        self.host = host;self.setObjectName('CentreBar');self.setAccessibleName('The centre’s controls')
+        self.host = host;self.setObjectName('CentreBar');self.setAccessibleName('The centre’s controls');self._looking = False
         row = QHBoxLayout(self);row.setContentsMargins(10, 4, 10, 4);row.setSpacing(6)
 
-        def control(words, name, does, key=''):
+        def control(words, name, does, key='', glyph='', tone=None):
             button = QPushButton(words);button.setObjectName(name);button.setCursor(Qt.PointingHandCursor)
             button.setFocusPolicy(Qt.TabFocus)      # a click leaves the keyboard where it is: Undo is for the page being typed in
             button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed);button.setProperty('key', key)
             button.clicked.connect(lambda: (does(), self.sync()))
-            return button
+            return wear(button, glyph, tone)        # words on a plate, or its glyph when the owner chooses Icons (tool_faces)
 
-        self.field = control('‹ Field', 'CentreField', self.to_field, 'F9')
+        self.field = control('‹ Field', 'CentreField', self.to_field, 'F9', 'field', 'live')
         self.title = QLabel();self.title.setObjectName('CentreTitle');self.title.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.title.setTextFormat(Qt.PlainText)
-        self.find = control('Find', 'CentreFind', lambda: self.host.a_find.trigger(), 'Ctrl+F')
-        self.smaller = control('−', 'CentreSmaller', lambda: self.resize_view(-1))
-        self.larger = control('+', 'CentreLarger', lambda: self.resize_view(1))
-        self.undo = control('Undo', 'CentreUndo', lambda: self.in_place('undo'), 'Ctrl+Z')
-        self.redo = control('Redo', 'CentreRedo', lambda: self.in_place('redo'), 'Ctrl+Y')
-        self.save = control('Save', 'CentreSave', lambda: self.host.a_save.trigger(), 'Ctrl+S')
+        self.find = control('Find', 'CentreFind', lambda: self.host.a_find.trigger(), 'Ctrl+F', 'find')
+        self.smaller = control('−', 'CentreSmaller', lambda: self.resize_view(-1), glyph='smaller')
+        self.larger = control('+', 'CentreLarger', lambda: self.resize_view(1), glyph='larger')
+        self.undo = control('Undo', 'CentreUndo', lambda: self.in_place('undo'), 'Ctrl+Z', 'undo')
+        self.redo = control('Redo', 'CentreRedo', lambda: self.in_place('redo'), 'Ctrl+Y', 'redo')
+        self.save = control('Save', 'CentreSave', lambda: self.host.a_save.trigger(), 'Ctrl+S', 'save')
         row.addWidget(self.field);row.addSpacing(8);row.addWidget(self.title, 1)
         for group in ((self.find,), (self.smaller, self.larger), (self.undo, self.redo), (self.save,)):
             row.addSpacing(8)
@@ -157,6 +158,16 @@ class CentreBar(QWidget):
         self.sync();super().enterEvent(event)       # the pointer is coming for a control: it should say what is true now
 
     def focus_moved(self, old, new):
+        """The keyboard moved: look at the open page again, but not from inside the move. A page may be taking its old parts
+        away at this very moment (a finding replaces its whole sheet, and the keyboard leaves a button as that button is
+        destroyed). Reading the page then reads parts that are half gone, and Qt ends the program. So the look waits until
+        the move is over; several moves in one breath are one look."""
+        if self._looking:return
+        self._looking = True
+        QTimer.singleShot(0, self.look_again)
+
+    def look_again(self):
+        self._looking = False
         try:
             if self.isVisible():self.sync()
         except RuntimeError:                         # the window is closing
@@ -202,6 +213,7 @@ def install(host):
     """Put the bar above the work, once. Returns it."""
     bar = getattr(host, 'centre_bar', None)
     if bar is None:
+        start_faces(host)       # Words or Icons: read before the first tool is made
         bar = host.centre_bar = CentreBar(host)
         layout = host.center_layout;layout.insertWidget(max(0, layout.indexOf(host.central_stack)), bar)
         bar.sync()

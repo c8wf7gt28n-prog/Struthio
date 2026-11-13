@@ -3,7 +3,7 @@
   "product": "Ledger & Slate",
   "version": "0.4.9",
   "package_profile": "runtime",
-  "note": "Graphite 0.4.9: an audit: one visible home for each action, a name said once, Save lit only when it would save something; and no white boxes (buttons and fields are dark plates with a quiet edge, a PDF page is shown in the light of the desk with its own light under More). Before it, 0.4.8: a control looks like a control (actions are boxed buttons, one row of tools above the sheet, the PDF and the page of writing, with the rest under More; link words are underlined). Before it, 0.4.7: amber glows where the keys go and on what waits, and the mouse comes first (a bar of controls above the centre, Z for the whole desk, bars to drag, buttons as wide as their words). Before it, 0.4.6: the pointer is the green of the desk and what it is over answers in green; live marks, wires and readings glow (not on the Clean desk). Before it, 0.4.5: the mouse path (a click opens a tile, \u2039 Field comes back, every shown key can be clicked, Approve is a button) and the first change Stacy makes on approval (set B3 to 300). Before it, 0.4.4: a pass for reading and for finding the keys (? shows every key; the doubt, the desk check and the brief open on a page over the work). Before it, 0.4.3: a what-if is followed along the wires and marked on the Field, the doubt catches more (a subtotal counted twice, a prefix slip), B writes the desk up as a page, and the owner keeps staC lines under their own words. Before it, 0.4.2: Stacy doubts a result (X) and offers the step that removes the doubt. staC reads the desk itself, `this` is the selected sheet, T traces a thing to its source and Stacy answers \"what if\" exactly. The desk does. In the Field, D offers the steps the records have for a sheet (reads run, changes ask once), C checks the desk, and one go settles what needs no decision of the owner\u2019s. Stacy is the assistant\u2019s face and answers in staC; P shows every program as a shelf. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 0.4.9: an audit: one visible home for each action, a name said once, Save lit only when it would save something; no white boxes (buttons and fields are dark plates with a quiet edge, a PDF page is shown in the light of the desk with its own light under More); drawn icons as an option (Work, Rules, Buttons); and a fault mended that could end the program when a finding was read again. Before it, 0.4.8: a control looks like a control (actions are boxed buttons, one row of tools above the sheet, the PDF and the page of writing, with the rest under More; link words are underlined). Before it, 0.4.7: amber glows where the keys go and on what waits, and the mouse comes first (a bar of controls above the centre, Z for the whole desk, bars to drag, buttons as wide as their words). Before it, 0.4.6: the pointer is the green of the desk and what it is over answers in green; live marks, wires and readings glow (not on the Clean desk). Before it, 0.4.5: the mouse path (a click opens a tile, \u2039 Field comes back, every shown key can be clicked, Approve is a button) and the first change Stacy makes on approval (set B3 to 300). Before it, 0.4.4: a pass for reading and for finding the keys (? shows every key; the doubt, the desk check and the brief open on a page over the work). Before it, 0.4.3: a what-if is followed along the wires and marked on the Field, the doubt catches more (a subtotal counted twice, a prefix slip), B writes the desk up as a page, and the owner keeps staC lines under their own words. Before it, 0.4.2: Stacy doubts a result (X) and offers the step that removes the doubt. staC reads the desk itself, `this` is the selected sheet, T traces a thing to its source and Stacy answers \"what if\" exactly. The desk does. In the Field, D offers the steps the records have for a sheet (reads run, changes ask once), C checks the desk, and one go settles what needs no decision of the owner\u2019s. Stacy is the assistant\u2019s face and answers in staC; P shows every program as a shelf. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). It keeps the Field, After Midnight\u2019s desk art, the offline Debian setup, model-free workshop and staC source-bound workflow. Read docs/THINKPAD_FIRST_INSTALL.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 13412,
-      "sha256": "7bf0e97d6e97ed8c9797506c32b4c6b21f8f203b3003f78bd10f4523ae37b7cf"
+      "bytes": 13757,
+      "sha256": "45b6afe448111962588a7ae495f43538d705fbd0c13ec722dc2f533d61be034a"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 23110,
-      "sha256": "a53fc6a1c97aad43767b1ee44241b91642f4452abecf2f86603880a9f21e5d36"
+      "bytes": 23910,
+      "sha256": "2c131e59688f8ee94016d640a0366ea97679c667a55563b8e0876c157832fbf1"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -1098,8 +1098,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 28383,
-      "sha256": "5079cf6983331f86ee9d13c8c9c26a0c147b45450648ff5b64484a2d831d1687"
+      "bytes": 28623,
+      "sha256": "942ae427b24eca60b203b56703d00bae3d63ef2d2445f6e4a1c00a66f836c8cf"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1514,8 +1514,8 @@
       "sha256": "40e154bf3ae8b3f243b3513f86154a461bb6351b93b12be35957e9b56b881f6e"
     },
     "docs/RELEASE_NOTES_0.4.9.md": {
-      "bytes": 8096,
-      "sha256": "407f5496165c8146754e2cba768984c7eed3d4b59f341304b8b0f897d85f05a3"
+      "bytes": 10958,
+      "sha256": "55f9085fa2e14606033a1a1edb4c01c65d7daf595f8b81762dff01d5d7528ab8"
     },
     "docs/RELEASE_NOTES_0.4.md": {
       "bytes": 5239,
@@ -2038,16 +2038,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1897369,
-      "sha256": "6dcc5bcef7e87949b18acf20ea7b3f1afdd26f2118dd78a1ce3bd0c3977c73ae"
+      "bytes": 1898769,
+      "sha256": "a4fa2e81503e80cb170653b35f1e0c8d289dc8f8462b58b1ff2d8583fe3e169a"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4337664,
-      "sha256": "01d62e58ac799b86579870ab46f90cd5397ee1232ecbcd00a7399610c98a92b5"
+      "sha256": "04499328caacada7f07bb4d54313d89c0abf49d81c9de708af64d71b11b11b50"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "d9f9f0314dfe1a5f8cfe67845b717ef95aedbed7eac65a60d86a3199daf93ef8"
+      "sha256": "80acf0f65513b7cc34831719fdb16c3e03faa6dee0be95fe6dfbeacf86d2197b"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2782,8 +2782,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/package_graphite.py": {
-      "bytes": 12164,
-      "sha256": "e088f9049bfca7c9bcd3b1b257a28a15836818b9ff9765e87600287ca0bb6127"
+      "bytes": 12286,
+      "sha256": "39bf78e1c57057177a7ceca1bcca2f3fb2b7956531138ed7c7d746e468f4d8df"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -3058,8 +3058,8 @@
       "sha256": "18f554297335a03840674dbdd881475782c6b2f9b0ad34c8f7b38c8166cde54a"
     },
     "workbench/centre_bar.py": {
-      "bytes": 14007,
-      "sha256": "539f7e854e27cab14206bda3fb1dc593fe5f5561423d3cbca8a16a58ae5eb5f0"
+      "bytes": 15037,
+      "sha256": "5379b4715ace3d0906e7f72d1c8e2dbf7c94ac8814f351a13d98b6e82efbfa1a"
     },
     "workbench/chain_icons.py": {
       "bytes": 8001,
@@ -3449,6 +3449,10 @@
       "bytes": 26852,
       "sha256": "11af0e26250d7b068008fa16756b68ad0c485a1c47fdc658d5af7158e1224ee9"
     },
+    "workbench/glyph_set.py": {
+      "bytes": 8693,
+      "sha256": "15313650d78fb8adcc06b033ddfaa3fa668112ee56abade17d84d38d7c0f2ea5"
+    },
     "workbench/graphite_brand.py": {
       "bytes": 31917,
       "sha256": "8af13521589bd02fff379852ac2e9415e5793dfca83d04d1a2534199f43a77b9"
@@ -3762,8 +3766,8 @@
       "sha256": "1ae36ab74d1aca75e1895707812947ffbd7aeb0fd0c16416d6cdc1cc7fff69c4"
     },
     "workbench/menus2.py": {
-      "bytes": 22590,
-      "sha256": "200a2ec2da1c46a893cc7ffc31440c025974adfe4bce12d91a79757a23a5582e"
+      "bytes": 22736,
+      "sha256": "ed1e196dfae1e022a8c2d4623d95bee7cc1f120dc1c73293682c1807dfcd4b6a"
     },
     "workbench/model_settings.py": {
       "bytes": 8921,
@@ -4434,8 +4438,8 @@
       "sha256": "36ad61bc8357a0b90c4749f447b9665f3eae8f310d86d7773edfc70f51da7c8d"
     },
     "workbench/session.py": {
-      "bytes": 19329,
-      "sha256": "41275ca2bd4a7f820b8db3ee5b31e7b569f498a1a025b1e85ed87b58f77ad4fb"
+      "bytes": 19486,
+      "sha256": "97047d9c2b9050bf70050585a465f0a5f8d7ffdb5268ed45052464ad1b384a9c"
     },
     "workbench/session_power.py": {
       "bytes": 21701,
@@ -4674,8 +4678,8 @@
       "sha256": "9a701b1476d4808cfc39be922d95a66b2f90d37c72922fb36049f03d18b8b750"
     },
     "workbench/theme2.py": {
-      "bytes": 18617,
-      "sha256": "159e630ed83b1741c02ff15e0b79891a852635187452bbb20084378d3503ae1c"
+      "bytes": 18752,
+      "sha256": "61a3c6adeb68c07476f4445b578fb25ccf80ff1d91c288d66342700c3812039b"
     },
     "workbench/thumbnails.py": {
       "bytes": 13614,
@@ -4688,6 +4692,10 @@
     "workbench/tool_atlas_qt.py": {
       "bytes": 7363,
       "sha256": "255ce908d1c477276ab325018233ef60cb2193c5e4a32e237a90b4e831cfafe6"
+    },
+    "workbench/tool_faces.py": {
+      "bytes": 10221,
+      "sha256": "10c0ca1c7d428520354bf81335d9d44e1355f3312ee126c566c6af884a57ee64"
     },
     "workbench/tool_inventory.py": {
       "bytes": 4078,

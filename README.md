@@ -7,7 +7,8 @@ Slate, and folders, scripts, settings keys and internal names keep those earlier
 
 - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
 - **Once** · each action has one visible home (its key is the second road, the right button on a thing is that thing's own road) and a name is said once. Save is lit only when a press would save something.
-- **Buttons** · an action is a button (a dark plate with a quiet edge, never a bright outline) and a word that only goes somewhere is underlined, so the interface is never mistaken for the work. A PDF page is shown in the desk's light, its paper brought down from white; its own light is one line away under **More ▾**. The sheet, the PDF and the page of writing each have one row of tools, with what is needed now and then under **More ▾**; the keys at the foot of the Field are buttons.
+- **Buttons** · an action is a button (a dark plate with a quiet edge, never a bright outline) and a word that only goes somewhere is underlined, so the interface is never mistaken for the work. A PDF page is shown in the desk's light, its paper brought down from white; its own light is one line away under **More ▾**.
+- **Icons, as an option** · Work ▸ Rules ▸ Buttons ▸ Icons gives every tool one of Graphite's own drawn glyphs and no box at all; what is particular to a page keeps its words beside its glyph. Words is what opens. The sheet, the PDF and the page of writing each have one row of tools, with what is needed now and then under **More ▾**; the keys at the foot of the Field are buttons.
 - **The mouse first** · above whatever is open in the centre: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, always in the same place. In the Field **Z** shows the whole desk and the bars at the edges drag; the right button on a sheet shows what can be done with it.
 - **Amber** · one amber halo marks where the keys go (the selected sheet, the page being read, or the writing line); what waits for you is lit at its mark, and Approve glows until it is pressed.
 - **Green** · the pointer (the mark's two facets, aimed at 11 o'clock) is drawn in the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
@@ -35,8 +36,9 @@ Slate, and folders, scripts, settings keys and internal names keep those earlier
   knowledge is, where things stand and how to continue.
 
 The supplied Graphite 0.1 baseline has historical mechanical and offscreen evidence from the build container, and live trials of the small Qwen models
-where the docs say so. The owner's ThinkPad, its display and inputs, and the owner's model file have not been tried yet;
-nothing here claims they are accepted.
+where the docs say so. The owner reports (13 November 2026) that 0.4.6 is installed and running on the ThinkPad; no account of what was tried
+there is recorded yet, nothing later has run there, and the owner's model file has not been tried. Nothing here claims
+any of it is accepted.
 
 The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **References → Read technical PDF → Review table** to make a sheet from a reviewed source. Open **Project Desk → Ask Stacy → Prepare evidence** to see matching project passages and exact results before a model turn. Live model and owner-host Vulkan qualification remain pending. P11 covers full native programs.
 
