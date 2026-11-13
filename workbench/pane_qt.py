@@ -190,10 +190,15 @@ class PaneTabs(QWidget):
         sheet = ("QPushButton[paneTab=\"true\"] {font-family:'%s';font-size:%dpx;padding:0;margin:0;border:0;background:transparent;}"
                  % (font.family(), font.pixelSize()))
         if self.styleSheet() != sheet:self.setStyleSheet(sheet)
+        title = getattr(self, 'title', None)      # 0.5.3: a pane with one view has one title where its three tabs stood (the right pane: Stacy)
         for button, x in zip(self.buttons, xs):
             button.mark = mark
             if button.geometry() != QRect(int(x), int(top), int(T), int(h)):button.setGeometry(int(x), int(top), int(T), int(h))
+            if title is not None and button.isVisible():button.hide()
             button.update()
+        if title is not None:
+            title.setFont(font);wide = max(40, min(self.width() - 2 * self.inset, title.sizeHint().width() + 12))
+            title.setGeometry(self.inset, int(top), wide, int(h));title.show();title.raise_()
         self.update()
 
     def minimumSizeHint(self):return QSize(self.need, self.height())

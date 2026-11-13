@@ -176,12 +176,33 @@ class KeptChoicesTests(unittest.TestCase):
         s=Session(self.path);s.state.update(extra);s.save();return Session(self.path)
 
     def test_buttons_page_light_and_field_zoom_round_trip_and_nonsense_is_dropped(self):
-        again=self.write(buttons='icons',page_own_light=True,field_zoom={'zoom':0.45,'whole':False},glow='neon')
+        again=self.write(buttons='icons',page_own_light=True,field_zoom={'zoom':0.45,'whole':False},glow='neon',type_target='web')
+        self.assertEqual(again.state.get('type_target'),'web','the line remembers that Web was the one typed to')
         self.assertEqual((again.state.get('buttons'),again.state.get('page_own_light'),again.state.get('field_zoom'),again.state.get('glow')),('icons',True,{'zoom':0.45,'whole':False},'neon'))
         fresh=Session(self.path.with_name('fresh.json'))
         for key in ('buttons','page_own_light','field_zoom','glow'):self.assertNotIn(key,fresh.state,key+': no default is invented by the loader')
         for bad in (dict(buttons='pictures'),dict(page_own_light='yes'),dict(field_zoom={'zoom':9,'whole':False}),dict(field_zoom={'zoom':0.5,'whole':'no'}),dict(field_zoom='far'),dict(glow='blinding')):
             key=next(iter(bad));self.assertNotIn(key,self.write(**bad).state,repr(bad)+' is not kept')
+
+
+class EqualizerTests(unittest.TestCase):
+    """The head's equalizer shows what is so: each bar one processor thread's work between two readings."""
+    STAT=('cpu  100 0 100 800 0 0 0 0 0 0\ncpu0 50 0 50 400 0 0 0 0 0 0\ncpu1 50 0 50 400 0 0 0 0 0 0\nintr 5\n',
+          'cpu  300 0 100 900 0 0 0 0 0 0\ncpu0 150 0 50 400 0 0 0 0 0 0\ncpu1 50 0 50 500 0 0 0 0 0 0\nintr 9\n')
+
+    def test_a_thread_that_worked_the_whole_second_is_full_and_one_that_idled_is_empty(self):
+        from workbench import equalizer_qt as eq
+        folder=tempfile.TemporaryDirectory();self.addCleanup(folder.cleanup);first,second=Path(folder.name)/'a',Path(folder.name)/'b'
+        first.write_text(self.STAT[0]);second.write_text(self.STAT[1])
+        before,now=eq.readings(str(first)),eq.readings(str(second))
+        self.assertEqual(sorted(before),[0,1],'the line for all threads together is not a bar')
+        self.assertEqual(eq.loads(before,now),[1.0,0.0]);self.assertEqual(eq.loads({},now),[0.0,0.0],'no earlier reading: nothing is claimed')
+        self.assertEqual(eq.readings(str(Path(folder.name)/'absent')),{},'where it cannot be read there are no bars, and no error')
+
+    def test_more_threads_than_bars_are_shown_in_equal_groups(self):
+        from workbench import equalizer_qt as eq
+        self.assertEqual(eq.grouped([0.5]*4),[0.5]*4);self.assertEqual(len(eq.grouped([0.0]*16)),16)
+        many=eq.grouped([1.0,0.0]*16);self.assertEqual(len(many),16);self.assertEqual(many,[0.5]*16,'thirty-two threads: sixteen bars, each the mean of two')
 
 
 class GlowDialTests(unittest.TestCase):

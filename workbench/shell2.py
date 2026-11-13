@@ -549,6 +549,17 @@ class TopBar(QWidget):
         self.programs = QToolButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Programs ▾')
         self.programs.setAccessibleName('Programs');self.programs.setToolTip('Installed applications and capabilities')
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
+        # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
+        # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
+        # no longer stand here (the bar above the work says the name; Ctrl+L still brings the address, here, to be typed);
+        # in their place, this computer at work (equalizer_qt).
+        from .equalizer_qt import Equalizer
+        self.equalizer = Equalizer(host);self.equalizer.setParent(first)
+
+        def calm():
+            from .document_qt import profile_of
+            return bool(profile_of(self.host).get('reduce_motion'))
+        self.equalizer.still = calm
         for watched in (self, getattr(host, 'ribbon_commands', None)):
             if watched is not None:watched.installEventFilter(self)
 
@@ -667,7 +678,13 @@ class TopBar(QWidget):
                 self.more_menus.setGeometry(left, 0, width, h);self.more_menus.show();left += width
             else:
                 self.more_menus.setText('Work ▾');self.more_menus.hide()      # still there, and still lists every menu, for what reads it
-            self.path.setGeometry(left + gap, 0, max(40, x - left - 2 * gap), h);self.path.show()
+            # The middle: the equalizer, centred in what is left. The address line lies under it, out of sight, and comes
+            # up in its place only while it has the keyboard (Ctrl+L).
+            room = max(0, x - left - 2 * gap);self.path.setGeometry(left + gap, 0, max(40, room), h)
+            typing = self.path.hasFocus();self.path.setVisible(typing)
+            wide = min(room, round(self.equalizer.sizeHint().width() * min(d.scale, 1.5)));tall = min(h - 16, round(40 * min(d.scale, 1.3)))
+            self.equalizer.setGeometry(left + gap + (room - wide) // 2, (h - tall) // 2 - 1, max(0, wide), tall)
+            self.equalizer.setVisible(not typing and wide >= 48)
             self.folded_menus = self.headings()
             self.plan = None
         finally:self._placing = False
@@ -745,6 +762,9 @@ class TopBar(QWidget):
         jobs = call(self.host, 'jobs.list') or []
         active = [j for j in jobs if j.get('state') in ('Queued', 'Running')] if isinstance(jobs, list) else []
         self.running.setText(('◐  %d running' % len(active)) if active else '');self.running.setVisible(False)  # the pulse shows it, on its own 2 s sample
+        equalizer = getattr(self, 'equalizer', None)
+        if equalizer is not None and equalizer.busy != bool(active):
+            equalizer.busy = bool(active);equalizer.update()      # amber along its bottom while Graphite itself has work running
         self.running.setToolTip('\n'.join(j.get('tool', '') for j in active[:8]))
         _ = dot
 
@@ -847,6 +867,9 @@ class PathBar(QLineEdit):
         if event.reason() == Qt.MouseFocusReason:QTimer.singleShot(0, self.selectAll)      # a click shows the whole address, ready to copy or type over
 
     def edit_location(self):
+        equalizer = getattr(self.top, 'equalizer', None)      # 0.5.3: the address comes up in the equalizer's place while it is typed
+        if equalizer is not None:equalizer.hide()
+        self.show();self.raise_()
         self.refresh(force=True);self.setFocus(Qt.ShortcutFocusReason);self.selectAll()
 
     def navigate(self):
@@ -865,6 +888,9 @@ class PathBar(QLineEdit):
 
     def focusOutEvent(self, event):
         super().focusOutEvent(event);self.refresh(force=True)
+        equalizer = getattr(self.top, 'equalizer', None)
+        if equalizer is not None:                     # the address is done with: it goes, and this computer at work comes back
+            self.hide();equalizer.setVisible(equalizer.width() >= 48)
 
 
 # The one box -------------------------------------------------------------------
@@ -902,10 +928,12 @@ class KeyedWords(QuietWords):
         finally:quiet_html = plain
 
 
-CAPTIONS = {'slate': 'Enter asks staC · Ctrl+Enter runs typed staC · / an operation · ? Search · $ Shell',
-            'find': 'Enter searches the workspace · ↑ ↓ choose a result · Esc leaves the line',
-            'shell': 'Enter runs it in your shell · Esc leaves the line',
-            'log': 'Enter filters the stream'}
+# 0.5.3: what the list under the line is, with no key named (the keys work as they did).
+CAPTIONS = {'slate': 'Your words go to Stacy · staC you type is run by the arrow · / an operation',
+            'find': 'Choose a result, or search the whole workspace',
+            'shell': 'Runs in your shell',
+            'log': 'Filters the stream'}
+KEY_WORDS = ('Enter',)      # a row's old note of the key that takes it: no longer written beside it
 
 
 class OneBox(QLineEdit):
@@ -915,8 +943,7 @@ class OneBox(QLineEdit):
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('OneBox')
         writing_prompt(self, 'Ask staC, run a command, or search · @ / ? $')
-        self.setToolTip('The writing line: the mode marked at its right says where the words go. Assignment: Enter gives them to Graphite, '
-                        'Ctrl+Enter runs typed staC, / runs an operation. Shell, Search (Ctrl+K) and Log. @ / ? $ typed first choose the mode.')
+        self.setToolTip('The one line you type on. The name lit at its left says who the words go to: Stacy, the Terminal, Search, the Web or the Log.')
         self.setAccessibleName('Writing line: Assignment, Shell, Search and Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
         self.popup = ResultsPopup(host, self);self.textEdited.connect(self.update_results);self.returnPressed.connect(self.popup.activate_current)
         self._catalog = [];self._catalog_at = 0
@@ -1018,10 +1045,10 @@ class OneBox(QLineEdit):
             rows.append(('stac', word + text, ('Enter', lambda:to_console(self.host, page, text))))
             return rows
         if page == 'stac' or parses_as_stac(text):
-            rows.append(('section', 'STAC · CTRL+ENTER RUNS IT', None))
+            rows.append(('section', 'STAC · THE ARROW RUNS IT', None))
             if preview and text.startswith('@'):rows += preview_rows(self.host, text)
-        rows.append(('section', 'ASK staC', None))
-        rows.append(('ask', 'Ask staC · ' + (text if len(text) < 48 else text[:46] + '…'), ('Enter', lambda:self.host.shell2.ask(text))))
+        rows.append(('section', 'ASK STACY', None))
+        rows.append(('ask', 'Ask Stacy · ' + (text if len(text) < 48 else text[:46] + '…'), ('Enter', lambda:self.host.shell2.ask(text))))
         rows.append(('keep', 'Keep as a note in Notes', ('', lambda:capture(self.host, text))))
         learned = call(self.host, 'matrix.examples', {'text': text[:600]}) or {}
         worked = learned.get('worked') or []
@@ -1187,7 +1214,7 @@ class ResultsPopup(QFrame):
                 item.setFlags(Qt.NoItemFlags);item.setForeground(QColor(FAINT));font = QFont(SANS);font.setPixelSize(13);font.setWeight(QFont.Medium);font.setLetterSpacing(QFont.AbsoluteSpacing, 1.0);item.setFont(font)
             else:
                 hint, fn = extra
-                if hint:item.setText(text + '      ' + hint)
+                if hint and hint not in KEY_WORDS:item.setText(text + '      ' + hint)
                 if kind == 'stac':item.setFont(mono_font(16));item.setForeground(QColor(TEAL_TEXT))
                 if kind in ('ask', 'search'):item.setForeground(QColor(AMBER_TEXT))
                 self.actions[id(item)] = fn;item.setData(Qt.UserRole, id(item))
@@ -1677,7 +1704,13 @@ class SlateFace(QWidget):
         change = QPushButton('Brain room');change.setProperty('arcButton', 'link');change.setToolTip('Choose, swap or stop Stacy\'s brain: the model, on this computer');change.clicked.connect(lambda:open_destination(host, 'slate'));head.addWidget(change)
         full = QPushButton('Full chat');full.setProperty('arcButton', 'link');full.setToolTip('The full conversation with Stacy, with /commands and providers');full.clicked.connect(host.open_clip);head.addWidget(full)
         head.addStretch(1);outer.addLayout(head)
-        # His Agenda in one line: what he is doing now and what needs you; the words open it.
+        # 0.5.3, the right pane as one view (the owner: "I don't think we need three options. Context and activity almost
+        # seem like they could be merged ... talk seems like that could be merged with activity too"): under her face,
+        # two lines carry what the other two views were for. This: what is open or selected, which is what "this" means
+        # to her; its word opens the whole of it (Context). Now: what she is doing and what waits for you; its words open
+        # the whole of that (Activity, the Agenda). Then the conversation. The three tabs above are gone.
+        self.this = role(QLabel(), 'quiet');self.this.setWordWrap(True);outer.addWidget(self.this)
+        # Her Agenda in one line: what she is doing now and what needs you; the words open it.
         self.agenda = role(QLabel(), 'quiet');self.agenda.setWordWrap(True);outer.addWidget(self.agenda)
         self.agenda_timer = QTimer(self);self.agenda_timer.setInterval(4000);self.agenda_timer.timeout.connect(self.show_agenda);self.agenda_timer.start()
         QTimer.singleShot(0, self.show_agenda)
@@ -1698,14 +1731,42 @@ class SlateFace(QWidget):
         self.input_hint = hint  # with the typing bar, both are hidden: you write to Slate at the foot of the window
         self.timer = QTimer(self);self.timer.setInterval(800);self.timer.timeout.connect(self.poll)
 
+    def this_is(self):
+        """The name of what "this" means to her now: the page open in the centre, or the sheet selected in the Field."""
+        host = self.host
+        try:
+            if getattr(host, '_field_active', False):
+                chosen = host.field_page.view.selected()
+                return (chosen.title if chosen is not None else ''), 'selected in the Field'
+            bar = getattr(host, 'centre_bar', None)
+            if bar is not None and not bar.isHidden() and getattr(bar, '_name', ''):return bar._name, 'open'
+        except Exception:  # noqa: BLE001 - a name is never worth an error
+            pass
+        return '', ''
+
+    def show_this(self):
+        from html import escape
+        name, how = self.this_is();shell = getattr(self.host, 'shell2', None)
+        if not name:
+            if self.this.text() != 'This: nothing is open.':self.this.setText('This: nothing is open.')
+            return
+        name = name.replace('{', '(').replace('}', ')')
+        said = 'This: %s · {more}' % escape(name if len(name) <= 46 else name[:45] + '…')
+        if self.this.property('said') == said:return
+        self.this.setProperty('said', said)
+        sentence(said, {'more': ('more', lambda: shell.show_context_face() if shell is not None else None)}, self.this)
+        self.this.setToolTip('What “this” means to Stacy now: %s, %s. The word opens everything Graphite knows about it.' % (name, how))
+
     def show_agenda(self):
+        self.show_this()
         if not self.isVisible() and self.agenda.text():return
         from .agenda_qt import summary
-        found = summary(self.host)
+        found = summary(self.host);shell = getattr(self.host, 'shell2', None)
         if not found:self.agenda.hide();return
         text, waiting = found
-        sentence('Agenda: ' + text, {'waiting': ('%d waiting for you' % waiting, lambda:open_destination(self.host, 'agenda')),
-                                     'open': ('open', lambda:open_destination(self.host, 'agenda'))}, self.agenda);self.agenda.show()
+        sentence('Now: ' + text + ' · {activity}', {'waiting': ('%d waiting for you' % waiting, lambda:open_destination(self.host, 'agenda')),
+                                     'open': ('open', lambda:open_destination(self.host, 'agenda')),
+                                     'activity': ('activity', lambda: shell.show_operations_face() if shell is not None else None)}, self.agenda);self.agenda.show()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -2908,6 +2969,31 @@ class Shell2(QObject):
         self.operations_button.setChecked(current is not None and current is getattr(self.host, 'operations_panel', None))
         for button in (self.slate_button, self.operations_button, self.context_button):
             button.setAccessibleDescription('Current view' if button.isChecked() else '')
+            button.hide()       # 0.5.3: one view, no three tabs; the buttons stay for what calls them and are not shown
+        self.pane_title(current, preview)
+
+    def pane_title(self, current, preview):
+        """Where the three tabs stood: the name of the pane, Stacy; and, while Activity or Context is up, the way back to her."""
+        title = getattr(self, 'title_word', None)
+        if title is None:
+            title = self.title_word = QPushButton(self.face_tabs);title.setObjectName('PaneTitle');title.setCursor(Qt.PointingHandCursor)
+            title.setFocusPolicy(Qt.TabFocus);title.clicked.connect(lambda checked=False: self.show_primary_face() if self.host.console_pages.currentWidget() is not self.face else None)
+            self.face.signature.hide()      # her name is said once: the pane's title says it, so the line beside her face need not
+            title.setStyleSheet('QPushButton#PaneTitle {font-family:"IBM Plex Mono";font-weight:600;color:%s;background:transparent;border:0;border-bottom:2px solid %s;padding:0 2px;text-align:left;} '
+                                'QPushButton#PaneTitle:hover {color:%s;border-bottom:2px solid %s;}' % (TEXT, AMBER_EDGE, TEAL_TEXT, READY))
+        home = current is self.face or (preview is not None and current is preview)
+        other = 'Activity' if current is getattr(self.host, 'operations_panel', None) else ('Sources' if preview is not None else 'Context') if current is getattr(self.host, 'arc_inspector', None) else ''
+        words = 'Stacy' if home or not other else '‹ Stacy  ·  %s' % other
+        if title.text() != words:
+            title.setText(words);title.setAccessibleName('Stacy' if home else 'Back to Stacy from ' + other)
+            title.setToolTip('' if home else 'Back to Stacy')
+        tabs = self.face_tabs
+        if getattr(tabs, 'title', None) is not title:
+            tabs.title = title;tabs.placed = None      # the row places it where the tabs' words stood, at their size (pane_qt.PaneTabs.place)
+            title.setGeometry(getattr(tabs, 'inset', 16), max(0, tabs.height() - 36), max(40, title.sizeHint().width() + 12), 30)
+        else:
+            title.resize(max(40, min(tabs.width() - 2 * getattr(tabs, 'inset', 16), title.sizeHint().width() + 12)), title.height())
+        title.show();title.raise_()
 
     def sync_worksheet(self, *_):
         host = self.host

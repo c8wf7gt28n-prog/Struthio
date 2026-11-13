@@ -29,8 +29,8 @@ bash PREPARE_DEBIAN.sh
 Log into your ordinary Debian account. From the same USB directory install the app and its pinned local Python wheels:
 
 ```bash
-python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.5.2" --offline --system-ready --minimal-session --vulkan --calc
-bash "$HOME/Applications/Graphite-0.5.2/START_MINIMAL_DEBIAN.sh"
+python3 INSTALL_LS.py --usb . --target "$HOME/Applications/Graphite-0.5.3" --offline --system-ready --minimal-session --vulkan --calc
+bash "$HOME/Applications/Graphite-0.5.3/START_MINIMAL_DEBIAN.sh"
 ```
 
 Use a new target folder for a first install. The root script checks the whole dependency cache and can install Python on a bare Debian console. APT uses an empty repository list and the verified local Debian files. The application phase checks every release part and uses pip with its package index disabled.
@@ -59,9 +59,17 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 
 ## The first model
 
-The owner's choice is the Qwen family's 4.0 release at 27B, 4-bit quantised, once it exists. On 12 November 2026 it did not:
-the publisher's page held no Qwen 4 weights, and files under that name elsewhere were placeholders. Read on that day from
-the publisher's and the runtime's own pages, not tried on this machine:
+On 13 November 2026 the owner named the model Stacy is to run: **Qwen3.6-35B-A3B at Q4_K_M, as a GGUF file**. Read from
+search results that day, not from the publisher's page and not tried on this machine: the Q4_K_M file is about 21 to
+22 GB depending on who made it (one maker's "UD-Q4_K_M" is 22.1 GB, another's Q4_K_M 20.75 GB), and one comparison says
+it wants about 24 GB of memory at a 16k context. It is a mixture of experts: all 35B are held in memory, about 3B work
+on each token, so it should answer faster than a 27B of the same size on this processor. Whether the bundled runtime
+(llama.cpp b11669) reads the file is not known: the Brain room shows it on the ThinkPad. The memory recorded for the
+ThinkPad (about 61 GiB) is room for it. A file named "MTP" under that name is a small helper, not the model.
+
+Before that, on 12 November, the owner's choice was the Qwen family's 4.0 release at 27B, 4-bit quantised, once it
+existed. On that day it did not: the publisher's page held no Qwen 4 weights, and files under that name elsewhere were
+placeholders. Read on that day from the publisher's and the runtime's own pages, not tried on this machine:
 
 - To rehearse until then, the same publisher's Qwen3.8-27B at Q4_K_M (about 17 GB, Apache 2.0). The bundled runtime
   (llama.cpp b11669) is newer than the builds that file was made with.

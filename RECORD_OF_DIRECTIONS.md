@@ -137,15 +137,27 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   saved a file. I'm less concerned about her running out of control"). The builder's proposal and the three questions
   put to the owner are in `docs/RELEASE_NOTES_0.5.2.md`: the same hands as the owner's; Undo after instead of Approve
   before; her work landing where the owner's does; a dial (Ask first, Do and show, Free hand); a short list that still
-  asks because it cannot be undone. This changes a standing rule (she reads freely, a change waits for Approve) and
-  waits for the owner's answers.
+  asks because it cannot be undone. This changes a standing rule (she reads freely, a change waits for Approve).
+  The owner's answers (13 November, dictated; nothing built yet): what cannot be undone always asks, by rule, such as
+  emptying the Trash or anything leaving the computer; "some terminal commands are reasonable" for her to run herself;
+  "I kind of want her to be autonomous", noticing things; her model is Qwen3.6-35B-A3B at Q4_K_M (GGUF); and the first
+  journey wanted is "ask her to get me started on a project in a program that I may not be particularly familiar with.
+  I get a starting point in that program, and then I can work from within Graphite for basic operations, or the actual
+  program window". One phrase did not come through clearly ("pick up this DSF if we could find it") and is asked about.
+  The window's three working parts (13 November: "Let's continue building the bottom bar where we type and how that's
+  going to work. And let's keep building the right-hand independent space window"; of the head's middle, "Let's just
+  leave it out ... Free up the space ... an equalizer ... pulse up and down to represent something"). Built in 0.5.3:
+  the head's middle is an equalizer that shows something true (one bar a processor thread); the name of what is open
+  is in the bar above the work and its address comes on a click; the right pane is one view (Stacy, This, Now, the
+  conversation); the line has five names to choose whom is typed to (Stacy, Terminal, Search, Web, Log), Web opening in
+  the computer's own browser, and an arrow that says what it will do. This reverses 0.5.0's "the head says a name".
   From the ThinkPad (13 November, with 0.4.6 installed there, walking the window top to bottom). Built in 0.5.1: the
   familiar menus in the open across the head ("kind of like Apple does, instead of hidden away in a menu"); "way more
   glow" (one dial, opening on Bright); the tree "green and maybe kind of circuit themed"; "more icons" (the menus'
-  lines). Said to need thought, with the builder's recommendation in `docs/RELEASE_NOTES_0.5.1.md` and nothing built:
-  the right pane's three views made one ("I don't think we need three options"); the bottom line kept as "one master
-  typing line that I select whom I'm typing to" (terminal, assistant, logs, web search, system search, URL), not a
-  field in Stacy's pane; the System menu regrouped; small versions of programs such as GIMP and Godot in Programs.
+  lines). Built in 0.5.3: the right pane's three views made one ("I don't think we need three options"); the bottom
+  line kept as "one master typing line that I select whom I'm typing to" (terminal, assistant, logs, web search, system
+  search, URL), not a field in Stacy's pane. Still not built: the System menu regrouped; small versions of programs
+  such as GIMP and Godot in Programs; a system log beside the two streams Log has.
   What works as wanted and stays: the Programs menu ("terrific"; opening Mail goes to the mail program), the left
   pane's Files, Machine and Settings, the meters for CPU, GPU, RAM and the context window.
   A free hand (13 November: "If there is anything that you want to add or subtract or change in the program ... Turn
@@ -211,8 +223,8 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
 
 ## Where it stands
 
-Graphite 0.5.2: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
-on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), actions drawn as buttons with one row of tools on each work page (0.4.8), an audit that left each action one visible home, then dark plates for white boxes and icons as an option (0.4.9), and the builder's own additions when given a free hand: the whole desk as a map, Find on every page, the Field seen as it was last seen (0.5.0), and the owner's first walk round it on the ThinkPad: the menus across the head, a dial for the glow, the trees as circuit traces, glyphs in the menus (0.5.1), then no key printed anywhere, the menus' glyphs in neon green, and Neon as the glow it opens with (0.5.2). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
+Graphite 0.5.3: 0.2a13 "After Midnight" plus the Field (0.3), then Stacy as the assistant answering in staC, the start
+on the work, the shelf and the GPL (0.3.1), the desk that does (0.4), staC reading the desk, with trace and what-if (0.4.1), Stacy's doubt (0.4.2), the look ahead, the brief and the owner's words (0.4.3), a pass for reading and finding the keys (0.4.4), the mouse path with Stacy's first change on approval (0.4.5), the green pointer with green for what it is over and a glow for what is live (0.4.6), and amber light for the keyboard and for what waits, with the mouse put first: the centre's bar, the whole desk on Z, bars to drag (0.4.7), actions drawn as buttons with one row of tools on each work page (0.4.8), an audit that left each action one visible home, then dark plates for white boxes and icons as an option (0.4.9), and the builder's own additions when given a free hand: the whole desk as a map, Find on every page, the Field seen as it was last seen (0.5.0), and the owner's first walk round it on the ThinkPad: the menus across the head, a dial for the glow, the trees as circuit traces, glyphs in the menus (0.5.1), then no key printed anywhere, the menus' glyphs in neon green, and Neon as the glow it opens with (0.5.2), then the head's equalizer, the right pane as one view and the line with five names to choose whom is typed to (0.5.3). Passes 1 to 10 of the twenty-pass plan (`docs/BOSS_IMPLEMENTATION_PLAN.md`) are
 built: the dark desk, the editable path, cascading menus that build staC chains, the Vulkan worker and memory
 coordination, evidence preparation on the CPU, the model lifecycle, source collections, and PDF table to sheet to
 report. Releases 0.2a8 to 0.2a13 then prepared the first ThinkPad install (offline kit, first-run workshop) and

@@ -9,9 +9,18 @@ from workbench.session import Session
 
 
 class ModeTests(unittest.TestCase):
-    def test_four_modes_and_the_old_targets_mapping(self):
-        self.assertEqual(bar.TARGETS,(('slate','Assistant'),('shell','Terminal'),('find','Search'),('log','Log')))
-        self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','log'));self.assertEqual(bar.QUIET_TARGETS,())
+    def test_five_modes_and_the_old_targets_mapping(self):
+        # 0.5.3: Web joined the four, and all five stand on the strip (the owner's "one master typing line that I select whom I'm typing to").
+        self.assertEqual(bar.TARGETS,(('slate','Assistant'),('shell','Terminal'),('find','Search'),('web','Web'),('log','Log')))
+        self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
+        self.assertEqual(bar.MAPPED['web'],'web');self.assertEqual(bar.SHOWN,{'slate':'Stacy'},'the strip says Stacy; the mode keeps its label')
+        self.assertNotIn('web',bar.CONSOLE_PAGE,'Web has no page above the line: what it opens is in the browser')
+
+    def test_web_tells_an_address_from_words_to_search_for(self):
+        owner=bar.TypeBar
+        self.assertEqual(owner.address_of('https://example.org/a b'),'');self.assertEqual(owner.address_of('https://example.org/x'),'https://example.org/x')
+        self.assertEqual(owner.address_of('www.example.org'),'https://www.example.org');self.assertEqual(owner.address_of('example.org/page'),'https://example.org/page')
+        self.assertEqual(owner.address_of('rail limits rev b'),'');self.assertEqual(owner.address_of('3.36'),'','a number is words, not an address');self.assertEqual(owner.address_of(''),'')
         self.assertEqual({k:bar.MAPPED[k] for k in ('slate','stac','kernel','shell','find','log')},
                          {'slate':'slate','stac':'slate','kernel':'slate','shell':'shell','find':'find','log':'log'},
                          'legacy targets retain their mode and command prefixes')
@@ -20,9 +29,11 @@ class ModeTests(unittest.TestCase):
 
     def test_destination_hint_names_the_mode(self):
         assistant = bar.destination_hint('slate')
-        self.assertTrue(assistant.startswith('Assistant · '));self.assertIn('Ctrl+Enter',assistant)
+        self.assertTrue(assistant.startswith('Stacy · '));self.assertIn('the arrow runs it',assistant)
+        for hint in bar.HINTS.values():
+            for key in ('Enter','Ctrl+','Tab ','Esc'):self.assertNotIn(key,hint,'the line names no key')
         self.assertEqual(bar.destination_hint('stac'),assistant)
-        self.assertTrue(bar.destination_hint('kernel').startswith('Assistant · an operation by name'))
+        self.assertTrue(bar.destination_hint('kernel').startswith('Stacy · an operation by name'))
         self.assertTrue(bar.destination_hint('find').startswith('Search · '));self.assertTrue(bar.destination_hint('log').startswith('Log · '))
         self.assertEqual(bar.destination_hint('shell'),'Terminal · ' + bar.HINTS['shell'])
         self.assertEqual(bar.destination_hint('shell','Terminal','Commands run in /bin/bash'),'Terminal · Commands run in /bin/bash')
@@ -428,6 +439,16 @@ class LineTests(unittest.TestCase):
         self.assertEqual(self.box.text(),'','the line is cleared once it ran')
         self.key('/files.list path=Slate',control=True);self.assertEqual(self.ran[-1],('kernel','files.list path=Slate'),'a / line runs on its page')
 
+    def test_the_arrow_runs_a_line_that_reads_as_stac_and_asks_with_any_other(self):
+        """0.5.3: the arrow does what the line's cue says, so typed staC can be run without a key being named anywhere."""
+        b=self.host.type_bar;type(b).submit_line=bar.TypeBar.submit_line
+        with patch('workbench.shell2.call',return_value=None):
+            self.box.setText('files.list');b.context_kind='stac';b.submit_line()
+            self.assertEqual(self.ran,[('stac','files.list')]);self.assertEqual(self.asked,[],'a line that reads as staC is run, not asked about')
+            self.box.setText('show me the files');b.context_kind='context';b.submit_line()
+            self.assertEqual(self.asked,['show me the files']);self.assertEqual(len(self.ran),1,'words go to Stacy')
+            self.box.setText('   ');b.context_kind='stac';b.submit_line();self.assertEqual(len(self.ran),1,'an empty line does nothing')
+
     def test_up_and_down_walk_the_typed_stac_history_in_assistant(self):
         """An empty Assistant line recalls typed staC. A slash recalls operations."""
         from PySide6.QtCore import Qt
@@ -448,8 +469,8 @@ class LineTests(unittest.TestCase):
 
     def test_the_line_offers_stac_for_ctrl_enter_and_search_searches(self):
         with patch('workbench.shell2.call',return_value=None):
-            rows=self.box.results('files.list');self.assertEqual(rows[0],('section','STAC · CTRL+ENTER RUNS IT',None));self.assertEqual(rows[2][0],'ask')
-            self.assertNotIn(('section','STAC · CTRL+ENTER RUNS IT',None),self.box.results('show me the files'))
+            rows=self.box.results('files.list');self.assertEqual(rows[0],('section','STAC · THE ARROW RUNS IT',None));self.assertEqual(rows[2][0],'ask')
+            self.assertNotIn(('section','STAC · THE ARROW RUNS IT',None),self.box.results('show me the files'))
             self.host.type_target='find';self.host.type_bar.target='find'
             rows=self.box.results('Interface text');self.assertEqual(rows[1][0],'search');self.assertIn(('section','SETTINGS',None),rows)
             self.assertTrue(any(r[0]=='command' and 'reading.ui_pt' in r[1] for r in rows),rows)

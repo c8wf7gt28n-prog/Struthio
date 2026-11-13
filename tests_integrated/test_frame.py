@@ -40,12 +40,12 @@ class ColumnArithmeticTests(unittest.TestCase):
         self.assertEqual(bar.hatch_icon_px(2.0),62,'28 pt is capped at 1.4');self.assertEqual(bar.hatch_icon_px(0.64),44,'a smaller interface never shrinks the egg')
 
     def test_the_strip_words_and_destination_hint(self):
-        # Search is a mode reached by shortcut, with three controls on the strip.
-        self.assertEqual([label for _,label in bar.TARGETS],['Assistant','Terminal','Search','Log'])
-        self.assertEqual([key for key,_ in bar.TARGETS],['slate','shell','find','log'],'keys, prefixes and histories unchanged')
-        self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','log'));self.assertEqual(bar.QUIET_TARGETS,())
+        # 0.5.3: five modes, all on the strip (Search was reached by shortcut only; Web is new).
+        self.assertEqual([label for _,label in bar.TARGETS],['Assistant','Terminal','Search','Web','Log'])
+        self.assertEqual([key for key,_ in bar.TARGETS],['slate','shell','find','web','log'],'the earlier keys, prefixes and histories unchanged')
+        self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
         self.assertTrue(bar.destination_hint('shell').startswith('Terminal · '));self.assertIn(bar.HINTS['shell'],bar.destination_hint('shell'))
-        self.assertTrue(bar.destination_hint('slate').startswith('Assistant · '))
+        self.assertTrue(bar.destination_hint('slate').startswith('Stacy · '))
 
 
 class SessionLoaderTests(unittest.TestCase):

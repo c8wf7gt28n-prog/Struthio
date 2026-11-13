@@ -17,21 +17,33 @@ from .shell2 import button
 
 STREAMS_WORDS = (('events', 'Events'), ('network', 'Network'))  # log_qt.STREAMS, without importing the view
 
-MODES = (('slate', 'Assistant'), ('shell', 'Terminal'), ('find', 'Search'), ('log', 'Log'))
+# 0.5.3: the one line, and whom it is typed to. The owner: "I like the idea of one master typing line that I select whom
+# I'm typing to ... terminal console open, communication with the assistant, a log, system log, network log, web
+# search, system search, URL". All five stand to the left of the line now, by name: Stacy, Terminal, Search, Web, Log.
+# (Search was reached only by a key or a leading ?; Web is new.) An address typed in any of them goes to Web by itself.
+MODES = (('slate', 'Assistant'), ('shell', 'Terminal'), ('find', 'Search'), ('web', 'Web'), ('log', 'Log'))
 TARGETS = MODES                                   # Preserve the mode keys used by existing callers.
-PRIMARY_TARGETS = ('slate', 'shell', 'log')
+PRIMARY_TARGETS = ('slate', 'shell', 'find', 'web', 'log')
+SHOWN = {'slate': 'Stacy'}                        # the word on the strip where it is not the mode's own label
+WEB_SEARCH = 'https://duckduckgo.com/?q='         # where words typed to Web are searched for: in the owner's own browser
+ADDRESS_STARTS = ('http://', 'https://', 'www.')
 QUIET_TARGETS = ()                                # Find and Kernel were the quiet words; Kernel's home is Commands now
-MAPPED = {'slate': 'slate', 'stac': 'slate', 'kernel': 'slate', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # old targets -> modes
+MAPPED = {'slate': 'slate', 'stac': 'slate', 'kernel': 'slate', 'shell': 'shell', 'find': 'find', 'web': 'web', 'log': 'log'}  # old targets -> modes
 CONSOLE_PAGE = {'slate': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
 JUMPS = {'@': 'stac', '/': 'kernel', '?': 'find', '$': 'shell'}  # a first character typed into an empty line
-HINTS = {'slate': 'Ask staC (Enter)  ·  Ctrl+Enter runs typed staC or previews it with explain  ·  / runs an operation by name',
-         'kernel': 'an operation by name: ' + 'files.list path=Slate  ·  help copies.review  ·  ops agenda' + '  ·  Tab completes, Enter runs',  # the example: an operation's real argument
-         'find': 'files and their words, the cabinet, settings, commands and the Timeline  ·  Enter searches the workspace',
+# 0.5.3: the hints say what to type and name no key (the owner, 13 November 2026: no key printed anywhere; every key still works).
+HINTS = {'slate': 'ask in your own words, or type staC and the arrow runs it  ·  / runs an operation by name',
+         'kernel': 'an operation by name: ' + 'files.list path=Slate  ·  help copies.review  ·  ops agenda',  # the example: an operation's real argument
+         'find': 'files and their words, the cabinet, settings, commands and the Timeline',
          'shell': 'a command, in your Files folder',
-         'log': "words in Graphite's events  ·  Enter filters"}
-TIPS = {'slate': 'Ask staC in your own words (Enter), or run typed staC yourself (Ctrl+Enter)',
-        'shell': 'Terminal: type to Debian through your configured shell, in your Files folder (or start with $)',
-        'find': 'Search: files and their words across the workspace (Ctrl+K, or start with ?)',
+         'web': 'an address to open, or words to search for, in your own browser',
+         'log': "words in Graphite's events"}
+SENDS = {'slate': 'Ask Stacy', 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
+READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
+TIPS = {'slate': 'Stacy: ask in your own words, or type staC yourself',
+        'shell': 'Terminal: type to Debian through your configured shell, in your Files folder',
+        'find': 'Search: files and their words across the workspace',
+        'web': 'Web: an address is opened, and words are searched for, in this computer’s own browser. Graphite itself fetches nothing.',
         'log': "Log: follow Graphite's events or this computer's network above the line"}
 CAP_SCALE_MAX = 1.4    # sizes that are not text follow the interface size up to this factor (desk_qt.SCALE_MAX)
 NAV_RANGE = (160, 600) # session.py keeps the same bounds for the saved widths
@@ -81,7 +93,7 @@ def destination_hint(key, word=None, hint=None):
     """Combine the mode label with its instructions or the supplied detail."""
     mode = MAPPED.get(key, 'slate')
     hint_key = 'kernel' if key == 'kernel' else mode
-    return (word or dict(TARGETS)[mode]) + ' · ' + (hint or HINTS[hint_key])
+    return (word or SHOWN.get(mode, dict(TARGETS)[mode])) + ' · ' + (hint or HINTS[hint_key])
 
 
 NO_LOGIN = ('nologin', 'false')
@@ -180,7 +192,7 @@ class TypeBar(QWidget):
         self.send.setIcon(QIcon(arrow));self.send.setIconSize(QSize(19, 19))
         self.send.setFocusPolicy(Qt.TabFocus)
         self.send.setAccessibleName('Submit writing line')
-        self.send.setToolTip('Submit the writing line using its current mode')
+        self.send.setToolTip(SENDS['slate'])
         self.send.clicked.connect(self.submit_line)
         # The context word (CM01): the active work context, in quiet lettering at the right end of the line.
         self.context = QLabel(box);self.context.setObjectName('TypeContext');self.context.setTextFormat(Qt.PlainText)
@@ -194,7 +206,7 @@ class TypeBar(QWidget):
         self.targets = {}
         for key, _ in TARGETS:
             label = self.labels[key]
-            word = {'shell': '[>_] Terminal', 'log': '[=] Log'}.get(key, label)
+            word = SHOWN.get(key, label)       # 0.5.3: names alone (they were "Assistant", "[>_] Terminal", "[=] Log")
             b = button(word, 'filter');b.setParent(self.right);b.setCheckable(True);b.clicked.connect(lambda checked=False, k=key:self.set_target(k))
             b.setToolTip(TIPS[key] + ('' if key != 'shell' else ' (%s)' % self.shell));self.targets[key] = b;self.words[b] = word;InkWord.install(b)
             b.setAccessibleName('Writing line mode: ' + label);b.setProperty('arcPrimary', True)
@@ -225,11 +237,11 @@ class TypeBar(QWidget):
         mode = MAPPED.get(key, 'slate');changed = mode != getattr(self, 'target', None)
         self.target = mode;self.host.type_target = mode
         for k, b in self.targets.items():
-            if b.isChecked() != (k == mode or (k == 'slate' and mode == 'find')):b.setChecked(k == mode or (k == 'slate' and mode == 'find'))
+            if b.isChecked() != (k == mode):b.setChecked(k == mode)      # 0.5.3: Search has its own name on the strip; Stacy's no longer stands for it
             b.setAccessibleDescription('Current mode' if k == mode else '')
         if hasattr(self.host, 'session'):self.host.session.state['type_target'] = mode
-        page = CONSOLE_PAGE[mode]
-        if self.console.mode != page and not (mode == 'slate' and self.console.mode in ('stac', 'kernel')):self.console.set_mode(page)
+        page = CONSOLE_PAGE.get(mode)      # Web has no page above the line: what it opens is in the browser
+        if page is not None and self.console.mode != page and not (mode == 'slate' and self.console.mode in ('stac', 'kernel')):self.console.set_mode(page)
         if changed:
             popup = getattr(self.box, 'popup', None)
             if popup is not None:popup.hide()
@@ -267,8 +279,36 @@ class TypeBar(QWidget):
         else:hint = destination_hint('kernel' if kernel or (self.target == 'slate' and self.box.text().startswith('/')) else self.target)
         writing_prompt(self.box, hint)
 
+    @staticmethod
+    def address_of(words):
+        """The address these words are, with its scheme, or '' when they are words to search for."""
+        words = words.strip()
+        if not words or ' ' in words:return ''
+        low = words.lower()
+        if low.startswith(('http://', 'https://')):return words
+        if low.startswith('www.') or ('.' in words and words.rsplit('.', 1)[-1].split('/')[0].isalpha() and len(words.rsplit('.', 1)[-1].split('/')[0]) >= 2):return 'https://' + words
+        return ''
+
+    def open_web(self, text):
+        """Web: an address is opened, and words are searched for, in this computer's own browser. Graphite fetches nothing
+        itself and keeps nothing of it; what leaves the computer leaves through the browser, at the owner's word."""
+        from urllib.parse import quote_plus
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+        words = text.strip()
+        if not words:return False
+        address = self.address_of(words);went = QDesktopServices.openUrl(QUrl(address or WEB_SEARCH + quote_plus(words)))
+        if went:
+            self.note(('Opened in your browser: ' + address) if address else ('Searching in your browser for: ' + words));self.box.clear()
+        else:self.note('No browser answered on this computer. Programs shows what is installed.')
+        return went
+
     def typed(self, text):
         """Update the Assistant hint and work context as the line changes."""
+        if self.target != 'web' and text.lower().startswith(ADDRESS_STARTS):self.set_target('web', focus=False)      # an address goes to Web by itself
+        if self.target == 'web':
+            popup = getattr(self.box, 'popup', None)
+            if popup is not None and popup.isVisible():popup.hide()
         if self.target == 'slate':self.mode_hint();self.refresh_context()
 
     def ctrl_enter(self):
@@ -310,10 +350,24 @@ class TypeBar(QWidget):
         self.refresh_context()
 
     def submit_line(self):
-        if self.target == 'log':
+        """The arrow at the line's end. It does what its tip says: opens an address, filters the Log, and with Stacy chosen
+        it runs a line that reads as staC (as Ctrl+Enter does) and gives any other line to her (as Enter does)."""
+        if self.target == 'web':
+            self.open_web(self.box.text())
+        elif self.target == 'log':
             self.log_enter()
+        elif self.target == 'slate' and getattr(self, 'context_kind', None) in READS and self.box.text().strip():
+            self.ctrl_enter()
         elif self.box.text().strip():
             self.box.returnPressed.emit()
+
+    def send_says(self):
+        """The arrow's tip and colour: green while the line reads as staC and the arrow would run it, amber otherwise."""
+        reads = self.target == 'slate' and getattr(self, 'context_kind', None) in READS
+        tip = {'stac': 'Run this staC', 'inspect': 'Show this plan', 'word': 'Do this to your words'}[self.context_kind] if reads else SENDS.get(self.target, SENDS['slate'])
+        if self.send.toolTip() != tip:self.send.setToolTip(tip);self.send.setAccessibleDescription(tip)
+        if bool(self.send.property('reads')) != reads:
+            self.send.setProperty('reads', reads);self.send.style().unpolish(self.send);self.send.style().polish(self.send);self.send.update()
 
     def note(self, message):
         """Keep a status message visible beside the console while writing retains its invitation; no message lingers:
@@ -350,9 +404,10 @@ class TypeBar(QWidget):
             'QWidget#TypeBar QPushButton#WritingSubmit {background:%s;color:%s;border:1px solid %s;border-radius:0;text-align:center;} '
             'QWidget#TypeBar QPushButton#WritingSubmit:focus {background:%s;} '
             'QWidget#TypeBar QPushButton#WritingSubmit:hover {border:2px solid %s;} '      # under the pointer: the pointer's green edge
+            'QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {background:%s;border:1px solid %s;} '      # the line reads as staC: the arrow is live
             'QWidget#TypeBar QLabel#TypeContext {font-size:%dpx;}'
             % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE, MONO, px, AMBER_EDGE,
-               AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, READY, px))
+               AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, READY, READY, READY, px))
         for b in list(self.targets.values()) + [self.box, self.context]:
             b.style().unpolish(b);b.style().polish(b)
 
@@ -387,7 +442,7 @@ class TypeBar(QWidget):
     def slot_need(self, px, gap, scale):
         from . import desk_qt
         a = desk_qt.ink_air(scale);o = desk_qt.inset(scale)
-        need = sum(self.ink_w(self.targets[k], px) + 2 * a for k in PRIMARY_TARGETS) + 2 * int(gap) + 2 * o
+        need = sum(self.ink_w(self.targets[k], px) + 2 * a for k in PRIMARY_TARGETS) + (len(PRIMARY_TARGETS) - 1) * int(gap) + 2 * o      # a gap between each pair (five names since 0.5.3)
         return max(need, self.monitors.minimumSizeHint().width() + 2 * o)
 
     def row_need(self, primary, secondary):
@@ -439,12 +494,15 @@ class TypeBar(QWidget):
             button_width = max(32, wh + 3)
             self.box.setFixedSize(line_width - button_width, wh);self.box.move(line_left, y)
             self.send.setGeometry(line_left + line_width - button_width, y, button_width, wh)
-            x = o
-            for key in PRIMARY_TARGETS:
-                control = self.targets[key];width = self.ink_w(control, px) + 10
-                control.setGeometry(x, y, width, wh);control.show()
-                desk_qt.InkWord.place(control, 4, self.line_baseline());x += width + 6
-            self.targets['find'].hide();self.hatch.hide()
+            # 0.5.3: five names stand here (Search is shown; it was hidden and reached by a key). They take the slot's width
+            # between its insets: the air between them is what is left over, shared, and never less than a little.
+            widths = [self.ink_w(self.targets[key], px) + 8 for key in PRIMARY_TARGETS]
+            spare = (p - 2 * o - sum(widths)) / max(1, len(widths) - 1);gap = max(2.0, min(10.0, spare));x = float(o)
+            for key, width in zip(PRIMARY_TARGETS, widths):
+                control = self.targets[key]
+                control.setGeometry(round(x), y, width, wh);control.show()
+                desk_qt.InkWord.place(control, 4, self.line_baseline());x += width + gap
+            self.hatch.hide()
             for control in self.console.sizes.values():control.hide()
             self.monitors.setGeometry(o, 0, max(0, meter_slot - 2 * o), h);self.monitors.show()
         finally:self._placing = False
@@ -528,7 +586,7 @@ class TypeBar(QWidget):
         """Show the line's staC action, current Log filter, or active work context."""
         kind, words = 'context', None
         view = getattr(self.host, 'log_view', None)
-        if getattr(self, 'target', None) == 'find':kind, words = 'context', 'Search · Enter searches'
+        if getattr(self, 'target', None) in ('find', 'web'):kind, words = 'context', ''
         elif getattr(self, 'target', None) == 'slate':
             written = self.box.text()
             try:
@@ -537,23 +595,23 @@ class TypeBar(QWidget):
                 written = expand_this(self.host, command(written) or expand(known_to(self.host), written))
             except ValueError:pass
             kind = stac_hint_kind(written) or kind
-            words = {'stac': 'staC on Ctrl+Enter', 'inspect': 'Preview on Ctrl+Enter'}.get(kind)
+            words = {'stac': 'runs as staC', 'inspect': 'a plan to look at'}.get(kind)
             if written.startswith(('/words.keep ', '/words.forget ')):      # a line about the owner's own words: it changes them, and says so
-                kind, words = 'word', ('Keeps this word' if written.startswith('/words.keep ') else 'Forgets this word') + ' on Ctrl+Enter'
+                kind, words = 'word', 'keeps this word' if written.startswith('/words.keep ') else 'forgets this word'
         elif getattr(self, 'target', None) == 'log' and view is not None:
             filtered = view.filters.get(view.stream, '')
             kind, words = 'log', view.summary() if self.console.size_level == 0 else (('filter · ' + filtered) if filtered else '')
         if words is None:words = self.context_words()
         if (kind, words) != (getattr(self, 'context_kind', None), self.context_text):
             self.context_text = words;self.context_kind = kind
-            tip = {'stac': 'The line parses as staC. Ctrl+Enter runs the command. Enter asks staC in conversation.',
-                   'inspect': 'Ctrl+Enter previews this staC plan. Remove explain when you are ready to run it.',
+            tip = {'stac': 'The line reads as staC: the arrow runs it. To ask Stacy about it instead, say it in your own words.',
+                   'inspect': 'The arrow shows this staC plan without running it. Remove explain when you are ready to run it.',
                    'log': 'Log: ' + words + '\nThe stream above the line; Half or Tall shows it.' if words else 'Log'}.get(kind)
             self.context.setToolTip(tip or (('Active work context: ' + words + '\n' if words else '') + 'The selected cabinet record, else the current workspace.'))
-            self.context.setAccessibleName({'stac': 'Runs as staC on Ctrl+Enter', 'inspect': 'Previews staC on Ctrl+Enter',
+            self.context.setAccessibleName({'stac': 'Runs as staC', 'inspect': 'Shows a staC plan',
                                             'log': 'Log summary'}.get(kind, 'Active work context'))
             self.context.setAccessibleDescription(words)
-        self.place_context()
+        self.send_says();self.place_context()
 
     def place_context(self):
         """The context word takes at most a third of the line (260 px at the default size), elided in the middle, clear of the
@@ -573,6 +631,8 @@ class TypeBar(QWidget):
         if not self.context.isVisible():self.context.show()
 
     def eventFilter(self, watched, event):
+        if watched is self.box and event.type() == QEvent.KeyPress and self.target == 'web' and event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            self.open_web(self.box.text());return True      # Web: Enter opens it in the browser
         if watched is self.box and event.type() == QEvent.Resize:self.place_context()
         if watched is self.box and event.type() in (QEvent.FocusIn, QEvent.FocusOut):self.update()      # the lit edge comes and goes with the keyboard
         return super().eventFilter(watched, event)

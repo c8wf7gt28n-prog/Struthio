@@ -889,7 +889,7 @@ for mode in ('slate','shell','find','log'):
  word=bar.targets[mode];image=w.grab().toImage();x0,x1,_,_=ink_span(word,w);y=symmetry.box(word,w)[1]+word.height()-desk_qt.MARK
  yellow[mode]=[b_.text() for b_ in bar.targets.values() if image.pixel(sum(ink_span(b_,w)[:2])//2,symmetry.box(b_,w)[1]+b_.height()-1)==QColor(desk_qt.PENCIL).rgb()]
  assert yellow[mode]==[bar.labels[mode]],(mode,yellow[mode])
- assert box.placeholderText()=='poem' and box.accessibleDescription().startswith(bar.labels[mode] if mode!='log' else 'Log · '),(mode,box.accessibleDescription())
+ assert box.placeholderText()=='poem' and box.accessibleDescription().startswith(typebar_qt.SHOWN.get(mode,bar.labels[mode]) if mode!='log' else 'Log · '),(mode,box.accessibleDescription())
  strips.append(('%s: %s'%(bar.labels[mode],typebar_qt.TIPS[mode].split(': ',1)[1]),band_strip(mode)))
 assert bar.labels['shell']==typebar_qt.shell_label(typebar_qt.configured_shell()) and bar.labels['shell']==('Bash' if Path(typebar_qt.configured_shell()).name=='bash' else 'Shell'),bar.labels
 # D3-fix: the poem placeholder as drawn, legible on the line's paper (the review measured 2.42:1): its darkest pixel in the window
@@ -903,7 +903,7 @@ record('Graphite_Desk_D3_01_Writing_Line_Modes_1920x1200.png','The lower band at
 # Assignment: words to Graphite on Enter; typed staC runs only on Ctrl+Enter, through the staC target's own path
 bar.set_target('slate');box.setFocus();QTest.keyClicks(box,'files.list');settle();bar.refresh_context()
 hint=dict(context=bar.context.text(),visible=bar.context.isVisible(),results=[box.popup.list.item(i).text() for i in range(min(3,box.popup.list.count()))])
-assert hint['visible'] and hint['context']=='· staC on Ctrl+Enter' and hint['results'][0]=='STAC · CTRL+ENTER RUNS IT',hint
+assert hint['visible'] and hint['context']=='· runs as staC' and hint['results'][0]=='STAC · THE ARROW RUNS IT',hint
 with patch.object(sh,'ask') as asked,patch.object(type(console),'run_stac',autospec=True,side_effect=type(console).run_stac) as ran:
  QTest.keyClick(box,Qt.Key_Return);settle()
  assert [c.args for c in asked.call_args_list]==[('files.list',)],asked.call_args_list
@@ -930,7 +930,7 @@ assert [(a.text().split('\t')[0],a.shortcut().toString()) for a in line_menu.act
 box.clear();console.set_size(0);settle()
 # Search: results as you type, Enter searches the workspace, each result opens where it belongs
 bar.set_target('find');QTest.keyClicks(box,'Bench');settle(60);rows=[box.popup.list.item(i).text() for i in range(box.popup.list.count())]
-assert box.popup.isVisible() and rows[:2]==['SEARCH','Search the workspace for “Bench”      Enter'] and 'CABINET' in rows,rows
+assert box.popup.isVisible() and rows[:2]==['SEARCH','Search the workspace for “Bench”'] and 'CABINET' in rows,rows
 assert box.popup.hint.scripted() and not symmetry.worst(script_labels()),symmetry.table(symmetry.worst(script_labels()))  # the caption: the script, keys printed, whole
 record('Graphite_Desk_D3_03_Search_Results_1920x1200.png','Search at 1920 by 1200 (Ctrl+K, or the Search word): Bench typed in the line; the results open under it as you type, first the search itself (Enter), then the cabinet\'s matching records (the project Bench notes) and anything else by name, each opening where it belongs.',
  w.grab().toImage(),'ACTUAL_QT_WINDOW_GRAB')

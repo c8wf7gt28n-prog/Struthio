@@ -11,8 +11,7 @@ thing by one road. What is new is that the controls are visible, always in the s
 control the open view cannot serve is dimmed and its tip says why, instead of being absent in one view and present in the
 next.
 
-    ‹ Field                                                           Find   −  +   Undo  Redo   Save
-    (0.5: the name of what is open, and whether it is saved, is said once, at the head of the window)
+    ‹ Field   the name of what is open, and whether it is saved      Find   −  +   Undo  Redo   Save
     (and, while something is being looked for, the line Find opens: centre_find)
 
 (0.4.9, the audit of what repeats what: there was an Actions control here that opened the chain menu, which has nothing to
@@ -52,16 +51,16 @@ class CentreBar(QWidget):
 
         self.field = control('‹ Field', 'CentreField', self.to_field, 'F9', 'field', 'live')
         self.title = QLabel();self.title.setObjectName('CentreTitle');self.title.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        self.title.setTextFormat(Qt.PlainText)
+        self.title.setTextFormat(Qt.PlainText);self.title.setCursor(Qt.PointingHandCursor);self.title.installEventFilter(self)      # a click on the name gives its address
         self.find = control('Find', 'CentreFind', self.open_find, 'Ctrl+F', 'find')
         self.smaller = control('−', 'CentreSmaller', lambda: self.resize_view(-1), glyph='smaller')
         self.larger = control('+', 'CentreLarger', lambda: self.resize_view(1), glyph='larger')
         self.undo = control('Undo', 'CentreUndo', lambda: self.in_place('undo'), 'Ctrl+Z', 'undo')
         self.redo = control('Redo', 'CentreRedo', lambda: self.in_place('redo'), 'Ctrl+Y', 'redo')
         self.save = control('Save', 'CentreSave', lambda: self.host.a_save.trigger(), 'Ctrl+S', 'save')
-        # 0.5: the name of what is open is said once, at the head of the window (shell2.PathBar), with whether it is saved.
-        # This label is still kept in step (the head and the checks read it) but is no longer shown beside the controls.
-        row.addWidget(self.field);row.addSpacing(8);row.addWidget(self.title, 1);self.title.hide();row.addStretch(1)
+        # The name of what is open, and whether it is saved, is said here, once. (0.5.0 moved it to the head of the window;
+        # 0.5.3 brought it back: the owner wanted the head's middle left free.)
+        row.addWidget(self.field);row.addSpacing(8);row.addWidget(self.title, 1)
         for group in ((self.find,), (self.smaller, self.larger), (self.undo, self.redo), (self.save,)):
             row.addSpacing(8)
             for button in group:row.addWidget(button)
@@ -175,7 +174,15 @@ class CentreBar(QWidget):
     def fit_title(self):
         words = getattr(self, '_said', '')
         shown = words if self.title.isHidden() else QFontMetrics(self.title.font()).elidedText(words, Qt.ElideMiddle, max(40, self.title.width() - 4))
-        self.title.setText(shown);self.title.setToolTip(words)
+        self.title.setText(shown);self.title.setToolTip((words + '\nClick for its address.') if words else '')
+
+    def eventFilter(self, watched, event):
+        """A click on the name of what is open brings up its address at the head of the window, ready to copy or type over."""
+        if watched is getattr(self, 'title', None) and event.type() == QEvent.MouseButtonRelease and event.button() == Qt.LeftButton:
+            path = getattr(getattr(getattr(self.host, 'shell2', None), 'top', None), 'path', None)
+            if path is not None:path.edit_location()
+            return True
+        return super().eventFilter(watched, event)
 
     def resizeEvent(self, event):
         super().resizeEvent(event);self.fit_title()

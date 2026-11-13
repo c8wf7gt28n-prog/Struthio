@@ -27,7 +27,7 @@ MAX_RECENT = 10
 from .presentation_preferences import DEFAULTS, OUTPUT_TABS, CURSIVE_DEFAULT
 SELF_TREE_IDS = {'root', 'interface', 'source', 'clip', 'tools', 'simulator', 'tests', 'settings', 'recovery'}
 # Desktop fields restored with bounds since INTEGRATION-01 (they were written on every save but never read back).
-TYPE_TARGETS = ('slate', 'stac', 'kernel', 'find', 'shell', 'log')   # typebar_qt.MAPPED keys (D3: the four modes and the old targets); Qt-free
+TYPE_TARGETS = ('slate', 'stac', 'kernel', 'find', 'shell', 'web', 'log')   # typebar_qt.MAPPED keys (D3: the four modes and the old targets); Qt-free
 LOG_STREAMS = ('events', 'network')                                  # log_qt.STREAMS: the Log view's remembered stream (D3)
 CONSOLE_PAGES = ('log', 'stac', 'kernel', 'find', 'shell')    # console_qt.MODES keys
 CONSOLE_HISTORY_LINES = 50                                    # typed console lines kept per page on disk
