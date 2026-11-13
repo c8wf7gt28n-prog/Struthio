@@ -205,7 +205,7 @@ def claim(kernel,ident):
     from . import brain_runtime,local_brain,work_trail,ledger_control
     stamp=process_identity(os.getpid());last_reason=None;last_save=0
     while True:
-        host=brain_runtime.host()
+        host=brain_runtime.host(profile=False)
         observed_at = time.monotonic()
         clock_origin = time.time() - observed_at
         with kernel.db() as db:
@@ -275,7 +275,7 @@ def observation(kernel):
     """Project the admission view into a content-free, typed local readback."""
     from . import brain_runtime, host_observations
 
-    host = brain_runtime.host()
+    host = brain_runtime.host(profile=False)
     sampled_at = time.time()
     observed_at = time.monotonic()
     with kernel.db() as db:

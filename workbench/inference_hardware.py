@@ -18,6 +18,9 @@ RUNTIME_PACKAGES = ('libvulkan1', 'mesa-vulkan-drivers', 'firmware-amd-graphics'
 BUILD_PACKAGES = ('build-essential', 'cmake', 'libvulkan-dev', 'glslc', 'spirv-headers')
 _cache = None
 _cache_at = 0.0
+_packages = None
+_packages_at = 0.0
+PACKAGES_FOR = 900      # seconds the installed-package list is kept: it changes when the owner installs something, not every minute
 
 
 def read(path):
@@ -30,7 +33,18 @@ def integer(path):
     except (TypeError,ValueError):return None
 
 
-def packages():
+def packages(refresh=False):
+    """The runtime packages installed, by dpkg-query. Kept for PACKAGES_FOR seconds (0.7.0: it was asked again with every
+    hardware snapshot, so a process was started every minute while anything watched the host); a refresh asks again."""
+    global _packages, _packages_at
+    if not refresh and _packages is not None and time.monotonic() - _packages_at < PACKAGES_FOR:
+        return dict(_packages)
+    found = _query_packages()
+    _packages = dict(found);_packages_at = time.monotonic()
+    return found
+
+
+def _query_packages():
     command = shutil.which('dpkg-query')
     if not command:return {}
     try:
@@ -65,7 +79,7 @@ def snapshot(refresh=False):
                              reported_vram_bytes=integer(device/'mem_info_vram_total'),
                              reported_gtt_bytes=integer(device/'mem_info_gtt_total')))
     # Non-sensitive product identifiers only: serial/UUID and owner/account data are intentionally absent.
-    installed = packages()
+    installed = packages(refresh=refresh)
     found = dict(schema='graphite.inference-hardware/1',measured_on='CURRENT_EXECUTION_HOST',
                  machine=dict(vendor=read('/sys/class/dmi/id/sys_vendor'),product=read('/sys/class/dmi/id/product_name'),
                               version=read('/sys/class/dmi/id/product_version')),

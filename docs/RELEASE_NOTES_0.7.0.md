@@ -126,6 +126,12 @@ opened as a site.
 
 The room above the line no longer names keys in its standing words.
 
+Opening the Work trail started a process: to show memory it read the whole hardware profile, and that asks Debian for
+the installed packages (`dpkg-query`) whenever its 60-second copy is out of date. On the ThinkPad that meant a process
+every minute while anything watched memory. Readers of memory now read memory alone, and the package list is kept for
+fifteen minutes (the Brain room's hardware check still reads it afresh). This was found by the window gate's frame
+check, which forbids any process during plain navigation. It used to stop there only sometimes, and now it never does.
+
 ## What was checked, and what was not
 
 A new probe walks every move in the real window: each meter's card opens inside the window with the right words;

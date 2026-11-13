@@ -7,7 +7,10 @@ from .locations import program
 PIN='runtimes/llama.cpp/b11669/runtime.json'
 ADDON_HINT='The runtime for this computer comes as an add-on: unzip the runtime add-on into the program folder, which places %s next to runtime.json.'
 
-def host():
+def host(profile=True):
+    """This computer for a model: its memory now and, with `profile`, its hardware profile (inference_hardware.snapshot,
+    which reads the installed packages through dpkg-query when its list is not kept). A reader of memory alone passes
+    profile=False, so opening a page that shows memory starts no process (0.7.0)."""
     total=available=None;cpu=platform.processor() or platform.machine()
     if os.name=='nt':
         import ctypes
@@ -30,6 +33,11 @@ def host():
                 maximum=int(limit.read_text());total=min(total,maximum)
                 available=min(available,max(0,maximum-int(usage.read_text())))
         except (OSError,ValueError,KeyError):pass
+    if not profile:
+        return {'schema':'arc.brain-host/1','os':platform.system(),'release':platform.release(),'architecture':platform.machine(),
+                'cpu':cpu,'logical_cpus':os.cpu_count(),'total_ram_bytes':total,'available_ram_bytes':available,
+                'gpu':'NOT_READ_HERE','backend':'CPU','hardware_profile':None,'measured_on':'CURRENT_EXECUTION_HOST',
+                'backend_note':'Memory only: the hardware profile is read where it is shown (the Brain room).'}
     from .inference_hardware import snapshot
     profile=snapshot()
     return {'schema':'arc.brain-host/1','os':platform.system(),'release':platform.release(),'architecture':platform.machine(),

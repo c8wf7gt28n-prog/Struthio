@@ -88,7 +88,7 @@ def idle_reason(kernel,db,owner,config,ignore_job=None):
     cpu=p['cpu']
     if cpu.get('status')!='MEASURED' or cpu.get('percent') is None or cpu.get('age_seconds') is None or cpu['age_seconds']+max(0,time.time()-p['at'])>7:return 'HOST_CPU_NOT_MEASURED'
     if cpu['percent']>config['max_host_cpu']:return 'HOST_CPU_BUDGET'
-    ram=brain_runtime.host()['available_ram_bytes']
+    ram=brain_runtime.host(profile=False)['available_ram_bytes']
     if ram is None or ram<config['min_available_mb']*1024**2:return 'HOST_RAM_BUDGET_OR_UNKNOWN'
     power=measured_power()
     if config['require_ac'] and power not in ('AC','NO_BATTERY_REPORTED'):return 'BATTERY_OR_POWER_UNKNOWN'

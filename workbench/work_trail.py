@@ -284,7 +284,7 @@ def resources(kernel, principal):
     from . import brain_runtime, study_service,resource_control
     with _CPU_LOCK:
         cpu = _CPU.setdefault(str(kernel.root), HostCpuSampler()).snapshot()
-    host = brain_runtime.host()
+    host = brain_runtime.host(profile=False)      # memory alone: opening the Work trail starts no process
     with kernel.db() as db:
         study = study_service.settings(db, principal.identity)
         jobs = [json.loads(r[0]) for r in db.execute("SELECT payload FROM jobs WHERE owner=? AND state IN ('Running','Queued') LIMIT 4", (principal.identity,))]
