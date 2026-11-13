@@ -79,7 +79,7 @@ def five_visible(step,window=None):
  assert inside,(step,bounds,window.size())
  assert bounds['left'][0]<bounds['centre'][0]<bounds['right'][0] and bounds['head'][1]<bounds['centre'][1]<bounds['strip'][1],(step,bounds)
  # UI-03: Stop is the first row of Nice (no separate Stop in the head) and the monitors' holder stands in the head beside Nice.
- assert window.trash_can.isVisible() and window.shell2.top.nice.isVisible() and window.operations_monitors.isVisible() and not window.master_stop_button.isVisible(),step
+ assert window.trash_can.isVisible() and window.shell2.top.programs.isVisible() and window.operations_monitors.isVisible() and not window.master_stop_button.isVisible(),step
  return bounds
 def capture(name,note,*popups,window=None):
  window=window or w;window.operations_panel.refresh();settle();pix=window.grab();mode='ACTUAL_QT_WINDOW_GRAB';painter=QPainter(pix)

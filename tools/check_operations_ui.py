@@ -48,7 +48,7 @@ w.shell2.show_operations_face();settle()
 assert w.console_pages.currentWidget() is panel and w.shell2.operations_button.isChecked()
 assert w.shell2.top.pulse.parentWidget() is w.operations_monitors
 # UI-03: the monitors' holder stands in the head immediately left of Nice; the original Stop is the first row of Nice, not a second control.
-assert w.operations_monitors is w.shell2.top.pulse_holder and w.operations_monitors.isVisible() and w.shell2.top.nice.isVisible() and not w.master_stop_button.isVisible()
+assert w.operations_monitors is w.shell2.top.pulse_holder and w.operations_monitors.isVisible() and w.shell2.top.programs.isVisible() and not w.master_stop_button.isVisible()
 record('Operations is a persistent right-column view; the original monitors stay in the head beside Nice and the original Stop is the first row of Nice (UI-03)')
 project=call('projects.create',{'title':'A power supply worth understanding','intent':'Keep assumptions, calculations and evidence connected to this project.'})
 idea=call('ideas.capture',{'project':project['id'],'text':'Can the power budget hold during the busiest frame?'})
@@ -108,7 +108,7 @@ with patch.object(w.master_stop_controller,'request',return_value=True):
  assert w.master_stop_button.accessibleName()=='Master stop: stop or kill all Graphite operations'
  assert w.a_master_stop.shortcuts()
 record('Original master Stop action, controller and shortcut remain connected; no stop was invoked')
-w.resize(1366,768);settle();assert w.trash_can.isVisible() and w.shell2.top.nice.isVisible() and w.operations_monitors.isVisible()
+w.resize(1366,768);settle();assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible()
 assert w.shell2.top.pulse.parentWidget() is w.operations_monitors
 capture('Ledger_Slate_HATCH_Operations_01_Compact.png');record('Compact layout retains fixed Trash, the host monitors in the head, Nice (which holds Stop) and a scrollable operations workspace')
 assert w.type_bar.box.placeholderText()=='poem';assert call('ideas.get',{'id':idea['id']})==idea

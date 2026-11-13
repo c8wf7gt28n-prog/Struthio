@@ -95,7 +95,7 @@ assert call('memory.profile')['original_sha256']==original['original_sha256']
 assert k.listing('jobs')==[];assert w.close() is True;settle();assert not w.desktop_lease.exists()
 w2=WorkbenchWindow(root,Session(RUN/'profile/session.json',root),restore=False);w2.resize(1366,768);w2.show();settle(w2)
 tab2=show(tiny,w2);assert tab2.string.text()=='1e-20' and tab2.current['stored']==1e-20
-assert w2.shell2.top.nice.isVisible() and w2.trash_can.isVisible() and w2.operations_monitors.isVisible() and w2.return_thread.footer.isVisible()
+assert w2.shell2.top.programs.isVisible() and w2.trash_can.isVisible() and w2.operations_monitors.isVisible() and w2.return_thread.footer.isVisible()
 capture('Ledger_Slate_HATCH_Settings_03_Compact.png',w2)
 check('A fresh laptop-size desktop reads the same stored profile while retaining the fixed Trash, Stop, monitors and return footer')
 assert w2.close() is True;settle(w2);assert not w2.desktop_lease.exists();provider.assert_not_called();provider.stop()

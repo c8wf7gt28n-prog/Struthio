@@ -101,7 +101,7 @@ QTest.mouseClick(control.edit_defaults_button,Qt.LeftButton);settle()
 assert type(w.tabs.currentWidget()).__name__=='SettingsTab' and w.tabs.currentWidget().key=='brain.context'
 check('Use saved launch defaults deliberately clears local overrides; Edit defaults returns to the exact shared Settings key')
 tab=show('brain.memory_mb');w.resize(1366,768);settle();tab.scroll.ensureWidgetVisible(tab.model_panel);settle()
-assert w.trash_can.isVisible() and w.shell2.top.nice.isVisible() and w.operations_monitors.isVisible() and w.return_thread.footer.isVisible()
+assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and w.return_thread.footer.isVisible()
 assert tab.model_panel.isVisible() and w.settings_navigator.selected_key()=='brain.memory_mb'
 capture('Ledger_Slate_HATCH_Model_01_Compact.png','Actual compact Settings view. The queued fixture request is cancelled and no running worker is claimed.')
 check('Compact Settings keeps the model readback, selected key, fixed Trash, Stop, monitors and return thread reachable')

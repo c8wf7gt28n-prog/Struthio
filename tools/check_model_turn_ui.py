@@ -96,7 +96,7 @@ def wait_for(predicate,ms=6000):
  return predicate()
 def five_parts():
  parts=(w.nav_dock,w.ribbon_dock,w.central_stack,w.sim_dock,getattr(w,'type_dock',None))
- return all(p is not None and p.isVisible() for p in parts) and w.trash_can.isVisible() and w.shell2.top.nice.isVisible()
+ return all(p is not None and p.isVisible() for p in parts) and w.trash_can.isVisible() and w.shell2.top.programs.isVisible()
 FIRST='The quick brown fox jumps over the lazy dog.';SECOND='It slept under the oak.'
 REQUEST='make the words I picked stand out';STALE_REQUEST='draw a line under the picked words'
 w.resize(1920,1200);w.show();settle();bridge.timer.stop();w.type_bar.hatch.lifecycle.timer.stop()

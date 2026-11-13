@@ -54,7 +54,7 @@ def stored(ident):return call('documents.get',{'id':ident})['document']
 def five_parts():
  """The frame check's five parts: left column, Ledger Head, centre, right column, typing strip, with Trash and Master Stop."""
  parts=(w.nav_dock,w.ribbon_dock,w.central_stack,w.sim_dock,getattr(w,'type_dock',None))
- return all(p is not None and p.isVisible() for p in parts) and w.trash_can.isVisible() and w.shell2.top.nice.isVisible()
+ return all(p is not None and p.isVisible() for p in parts) and w.trash_can.isVisible() and w.shell2.top.programs.isVisible()
 w.resize(1920,1200);w.show();settle();bridge.timer.stop();w.type_bar.hatch.lifecycle.timer.stop()
 with k.db() as db:jobs_before=db.execute('SELECT count(*) FROM jobs').fetchone()[0]
 # 01 · the Hatch catalogue route opens the Documents room (the same entry Hatch ▸ Work ▸ Documents uses)

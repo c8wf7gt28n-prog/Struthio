@@ -83,7 +83,7 @@ def align(times=3):
  for _ in range(times):bar.align();settle()
 def five_parts():
  parts=(w.nav_dock,w.ribbon_dock,w.central_stack,w.sim_dock,getattr(w,'type_dock',None))
- return all(p is not None and p.isVisible() for p in parts) and w.trash_can.isVisible() and w.shell2.top.nice.isVisible() and w.operations_monitors.isVisible()
+ return all(p is not None and p.isVisible() for p in parts) and w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible()
 def row_widget(view,ident):return next(view.itemWidget(view.item(i)) for i in range(view.count()) if view.item(i).data(Qt.UserRole)==ident)
 def row_index(view,ident):return next(i for i in range(view.count()) if view.item(i).data(Qt.UserRole)==ident)
 def queue_order():return [r['id'] for r in call('agenda.view')['next'] if r.get('kind')!='job']
@@ -111,7 +111,7 @@ assert readings['TXT']=='—' and 'does not publish' in tips['TXT'],tips['TXT'] 
 assert all(('unavailable' in tips[key] or 'does not publish' in tips[key]) for key,value in readings.items() if value=='—'),tips  # a dash always says why
 assert not w.master_stop_button.isVisible() and w.master_stop_button.accessibleName()=='Master stop: stop or kill all Graphite operations'
 assert [b for b in w.ribbon_dock.findChildren(QAbstractButton) if b.isVisible() and 'stop' in b.text().lower()]==[],'no separate Stop in the head'
-assert nice.isVisible() and nice.text()=='' and nice.accessibleName()==nice.toolTip()=='System menu' and type(nice).__name__=='SystemButton'
+assert not nice.isVisible() and nice.text()=='' and nice.accessibleName()==nice.toolTip()=='System menu' and type(nice).__name__=='SystemButton'
 assert five_parts()
 observations['head']=dict(head=head,monitors=ph,nice=nh,readings=readings,tooltips=tips)
 capture('01_Nice_Closed_1920.png','The head at 1920 by 1200: CPU · GPU · RAM · TXT immediately left of the erased Graphite symbol, the System menu (unavailable readings are the explicit dash, the reason in the tooltip); no separate Stop; the cat at the left of the lower band.')

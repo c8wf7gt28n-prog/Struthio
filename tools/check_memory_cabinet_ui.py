@@ -97,7 +97,7 @@ assert checkpoint['id'] in room.result.toPlainText() and call('memory.checkpoint
 check('Task filing keeps the original checkpoint identity and independently verified readback route')
 suggestions=call('ledger.explore',{'context':current})['suggestions'];assert [row['id'] for row in suggestions]==['memory','settings']
 assert all(key in BY_KEY for key in MEMORY_KEYS)  # which definitions exist is the recorded registry's business (tools/check_release.py)
-assert w.shell2.top.nice.isVisible()
+assert w.shell2.top.programs.isVisible()
 check('Memory records link to the existing Memory and Settings workspaces without changing settings or execution controls')
 room=open_record(current);ed=room.direction_editor;ed.start();pending='A return draft still needs owner review.'
 ed.writing.setPlainText(pending);ed.reason.setText('Continue after returning.')
@@ -107,7 +107,7 @@ room2=open_record(current,w2);ed2=room2.direction_editor
 assert ed2.writing.toPlainText()==pending and ed2.reason.text()=='Continue after returning.' and ed2.guard is None and not ed2.save.isEnabled()
 check('A fresh desktop recovers correction writing and requires history review instead of silently rebasing it')
 room2.scroll.ensureWidgetVisible(ed2.writing);settle(w2)
-assert w2.trash_can.isVisible() and w2.shell2.top.nice.isVisible() and w2.operations_monitors.isVisible() and w2.return_thread.footer.isVisible()
+assert w2.trash_can.isVisible() and w2.shell2.top.programs.isVisible() and w2.operations_monitors.isVisible() and w2.return_thread.footer.isVisible()
 capture('Ledger_Slate_HATCH_Memory_01_Compact.png',w2)
 check('Laptop layout retains typed memory filing, the correction passage, fixed Trash, Stop, host monitors and the return footer')
 assert w2.close() is True;settle(w2);assert not w2.desktop_lease.exists()

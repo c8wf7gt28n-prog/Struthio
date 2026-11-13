@@ -77,7 +77,7 @@ def plain(html):
  return unescape(re.sub(r'<[^>]+>','',html))
 def five_parts(window):
  parts=(window.nav_dock,window.ribbon_dock,window.central_stack,window.sim_dock,getattr(window,'type_dock',None))
- return all(p is not None and p.isVisible() for p in parts) and window.trash_can.isVisible() and window.shell2.top.nice.isVisible()
+ return all(p is not None and p.isVisible() for p in parts) and window.trash_can.isVisible() and window.shell2.top.programs.isVisible()
 def type_request(window,text,hold=False):
  bar=window.type_bar;bar.set_target('slate');box=bar.box;box.clear();box.setFocus();settle(window)
  QTest.keyClicks(box,text);settle(window);QTest.keyClick(box,Qt.Key_Return)

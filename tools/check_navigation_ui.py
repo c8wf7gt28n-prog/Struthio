@@ -176,7 +176,7 @@ check('The existing return-copy route retains the cabinet draft and source recov
 w.tabs.setCurrentWidget(room);settle();fold=page.tree.currentItem().parent();fold.setExpanded(False)
 w.resize(1440,900);settle();assert not fold.isExpanded()
 fold.setExpanded(True);w.resize(1366,768);settle()
-assert nav.stack.currentIndex()==0 and w.trash_can.isVisible() and w.shell2.top.nice.isVisible() and w.operations_monitors.isVisible()
+assert nav.stack.currentIndex()==0 and w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible()
 assert room.reveal_button.isVisible() and room.reveal_button.width()>=room.reveal_button.minimumSizeHint().width()
 assert w.return_thread.footer.isVisible() and room.writing.toPlainText().startswith('Keep the work')
 assert page.tree.viewport().rect().contains(page.tree.visualItemRect(page.tree.currentItem()).center())

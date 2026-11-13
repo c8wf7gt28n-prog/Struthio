@@ -80,7 +80,7 @@ def plain(html):
  return unescape(re.sub(r'<[^>]+>','',html))
 def five_parts(window):
  parts=(window.nav_dock,window.ribbon_dock,window.central_stack,window.sim_dock,getattr(window,'type_dock',None))
- return all(p is not None and p.isVisible() for p in parts) and window.trash_can.isVisible() and window.shell2.top.nice.isVisible()
+ return all(p is not None and p.isVisible() for p in parts) and window.trash_can.isVisible() and window.shell2.top.programs.isVisible()
 def label_with(layout,word):
  for i in range(layout.count()):
   widget=layout.itemAt(i).widget()

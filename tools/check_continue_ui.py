@@ -88,7 +88,7 @@ def plain(html):
 def line(face,key):return plain(face.work.lines[key].text())
 def five_parts(win):
  parts=(win.nav_dock,win.ribbon_dock,win.central_stack,win.sim_dock,getattr(win,'type_dock',None))
- return all(p is not None and p.isVisible() for p in parts) and win.trash_can.isVisible() and win.shell2.top.nice.isVisible()
+ return all(p is not None and p.isVisible() for p in parts) and win.trash_can.isVisible() and win.shell2.top.programs.isVisible()
 def type_request(win,text):
  """Type to Slate in the strip and press Return; the driver's timer is stopped before any event is pumped, so the check steps by hand."""
  bar=win.type_bar;bar.set_target('slate');box=bar.box;box.clear();box.setFocus();settle(win)

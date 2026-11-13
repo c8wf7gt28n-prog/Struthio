@@ -82,7 +82,7 @@ source=root/'Files/doorway_draft.py';source.parent.mkdir(exist_ok=True);source.w
 editor=w.open_document(source);editor.appendPlainText('# unsaved thought kept through every opening of the list');settle()
 assert w.tabs.preview() is editor and editor.document().isModified();jobs_before=jobs();assert jobs_before==0
 # 01 · HT01 (D2): the list's order and stable identities; creation, services and leaving have their own homes
-PLAIN=sorted((programs_qt.PLAIN[v[0]] for v in explore.VIEWS),key=str.casefold);EXPECTED=PLAIN+['—','Explore the workshop']
+PLAIN=sorted((programs_qt.PLAIN[v[0]] for v in explore.VIEWS),key=str.casefold);EXPECTED=PLAIN+['—','Explore the workshop','Game']  # 0.7.0: the game is the last of the programs
 objects=rows()+[lst.explore_row];start=time.perf_counter();assert hatch.prepare();opening=time.perf_counter()-start
 for _ in range(10):assert hatch.prepare()
 assert lst.words()==EXPECTED and rows()+[lst.explore_row]==objects,lst.words()
@@ -269,7 +269,7 @@ def list_fit(tag):
   between_the_bands=pos.y()>=w.ribbon_dock.height() and pos.y()+lst.height()==w.height()-w.type_dock.height())
  observations.setdefault('list_fit',{})[tag]=info;print(tag,json.dumps(info),flush=True);return info
 w.resize(1366,768);settle();info=list_fit('14pt_1366x768');assert info['between_the_bands'] and info['single_column'] and not info['scrolls'],info
-assert w.trash_can.isVisible() and w.shell2.top.nice.isVisible() and w.operations_monitors.isVisible() and w.return_thread.footer.isVisible()
+assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and w.return_thread.footer.isVisible()
 capture('06_Compact_1366.png','The whole programs list at 1366 by 768 and 14 pt: one column between the two bands, no scrolling; Trash, the System menu\'s symbol, the monitors and the return footer stay visible.',lst);lst.close_menu();settle()
 w.resize(1280,720);settle();info=list_fit('14pt_1280x720');assert info['between_the_bands'] and info['single_column'],info;lst.close_menu();settle()
 call('ledger.settings.set',{'key':'reading.ui_pt','value':18});bridge.sync_profile(force=True);settle(50)

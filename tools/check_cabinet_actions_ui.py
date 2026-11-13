@@ -96,7 +96,7 @@ assert editor.toPlainText()==buffer and source.read_text()=='Original bytes.\n'
 assert call('ideas.get',{'id':idea['id']})['project']==project['id']
 check('Opening a related workspace preserves edited source, original bytes and project membership')
 room=w.cabinet_page.open(iid);w.resize(1366,768);w.shell2.show_operations_face();settle()
-assert w.shell2.top.nice.isVisible() and w.operations_monitors.isVisible() and w.trash_can.isVisible()
+assert w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and w.trash_can.isVisible()
 assert room.action_shelf.isVisible();capture('Ledger_Slate_HATCH_Actions_01_Compact.png')
 check('Laptop layout retains the action shelf, fixed Trash, monitors and visible Stop')
 assert room.writing.placeholderText()=='poem' and w.cabinet_page.query.placeholderText()=='poem'
