@@ -91,5 +91,8 @@ earlier walks. Twenty tests cover the glyphs, the faces, Find, the page's light,
 project's own tests and the window gate were run on the exact commit before this set was cut: see the set's
 START_HERE for the numbers.
 
+One of the project's window checks counted the trees' branch lines by their old exact grey (`tools/check_desk_ui.py`);
+it now counts the green traces, and stops where it stopped before this release, on an older matter.
+
 Not seen: any of it on the ThinkPad's own panel. How strong Bright should be, and whether the traces read as a
 circuit there, are the owner's to say. No second reader has gone over 0.4.7 to 0.5.1.

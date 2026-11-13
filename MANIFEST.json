@@ -1526,8 +1526,8 @@
       "sha256": "9f73379ba15d0e50f9e019c8e9dff731e0bed2f5034423dae112366b7791c79a"
     },
     "docs/RELEASE_NOTES_0.5.1.md": {
-      "bytes": 6604,
-      "sha256": "2487abec94b01a471fd841e9963517d482eff062f3eceff4d1e16d751dfbe682"
+      "bytes": 6824,
+      "sha256": "482a9d2e672ba684abbe8820729a49e40771daa4cdf25f632a63f64e107c2418"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -2678,8 +2678,8 @@
       "sha256": "54771e2c7e0326f3c92ec90d96e36ae61cb4dffc1d4337e1a9aa0a15e0da1ef0"
     },
     "tools/check_desk_ui.py": {
-      "bytes": 133664,
-      "sha256": "093f8954d58cd9239e2d9fc7c1d9ce5aeafdb5f8a82ed3716adf7bf0361e728c"
+      "bytes": 134020,
+      "sha256": "a528721900dc8f77f8cc04161cd8d5c6b5b4eb089eaaa600e3268e6db696d26e"
     },
     "tools/check_document_ui.py": {
       "bytes": 12467,

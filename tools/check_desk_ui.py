@@ -445,7 +445,11 @@ def tree_pairs(window=None):
   first=tree.topLevelItem(0);first.setExpanded(True);settle()
   boxes.append(S.box(tree,window));indents.append(tree.indentation());heights.append(tree.visualItemRect(first).height())
   image=tree.viewport().grab().toImage();x=tree.indentation()//2
-  hits=sum(1 for y in range(image.height()) if image.pixel(x,y)==BRANCH);columns.append(x);found[view]=hits
+  # 0.5.1: the branches are green circuit traces (pane_qt.draw_branches), drawn smooth, not one-pixel lines of one exact
+  # grey: a row of the trunk's column counts when a pixel there, or beside it, is plainly green.
+  def trace(px):
+   c=QColor(px);return c.green()>c.red()+12 and c.green()>c.blue()+12
+  hits=sum(1 for y in range(image.height()) if any(trace(image.pixel(x+dx,y)) for dx in (-1,0,1) if 0<=x+dx<image.width()));columns.append(x);found[view]=hits
  nav.show_view(before,persist=False);settle()
  rows=[]
  for field,index in (('left edge',0),('top',1),('width',2),('height',3)):rows+=S.same('trees · '+field,[b[index] for b in boxes],field)
