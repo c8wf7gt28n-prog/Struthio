@@ -143,6 +143,8 @@ class FieldView(QWidget):
         self.auto_fit = True                # 0.8.0, less scrolling: a desk that would fit whole a little smaller (AUTO_LEAST) is shown whole, until the size is set by hand
         self._placed = {};self._surface = (0.0, 0.0);self._gap = 34.0;self._labels = [];self._reveal_pending = False
         self._route = None                  # the last Trace's wires, held as a fine line until the selection moves (surge)
+        self.revisions = None               # two revisions of one sheet side by side, cut to over the work (show_revisions)
+        self._rev_rows = [];self._rev_rect = QRectF()
         from PySide6.QtCore import QTimer
         self._surge_timer = QTimer(self);self._surge_timer.setInterval(16);self._surge_timer.timeout.connect(self._surge_tick)
         self.trace_asked.connect(lambda obj:self.surge(obj.id) if obj is not None else None)
@@ -398,6 +400,85 @@ class FieldView(QWidget):
         self.setAccessibleDescription(str(title) + '. ' + ' '.join(str(text).replace('\t', ': ') for _, text in lines)[:4000])
         self.update()
 
+    # ---- REV A / REV B: the hard cut ------------------------------------------------------------------------------
+    # 0.8.2, the owner's "Graphite after hours": "the Field cuts straight to REV A / REV B. Same sheet position. Same row and
+    # column guides. When a row can be matched across the two revisions, let the previous value show as a violet afterimage a
+    # few pixels away from the current one. Put a fine pink edge around the changed cell. A clean before-and-after value should
+    # be available when you select it." The heading is in the desk's display face; the values are in the clear face, so 1, l
+    # and I never blur. It is a cut, not a fade: it is there at once, and gone at once.
+    def show_revisions(self, compared):
+        """compared: {'a': title, 'b': title, 'a_rev', 'b_rev', 'rows': [{'parameter', 'a': {...}, 'b': {...}, 'changed': [...]}]}."""
+        rows = compared.get('rows') or []
+        first = next((n for n, row in enumerate(rows) if row.get('changed')), 0)
+        self.revisions = dict(compared, sel=first);self.close_reading() if self.reading is not None else None
+        said = '; '.join('%s: %s' % (row['parameter'], self.revision_words(row)) for row in rows if row.get('changed'))
+        self.setAccessibleDescription('Rev %s and Rev %s side by side. %s' % (compared.get('a_rev', 'A'), compared.get('b_rev', 'B'), said or 'Nothing changed.'))
+        self.update()
+
+    def close_revisions(self):
+        if self.revisions is not None:
+            self.revisions = None;self._rev_rows = [];self._describe_quietly();self.update()
+
+    def revision_words(self, row):
+        """A row's change in plain words: each changed field, before and after."""
+        a, b = row.get('a') or {}, row.get('b') or {};out = []
+        for field in row.get('changed') or ():
+            before = ('%s %s' % (a.get(field, ''), a.get('unit', '') if field == 'value' else '')).strip() or 'nothing'
+            after = ('%s %s' % (b.get(field, ''), b.get('unit', '') if field == 'value' else '')).strip() or 'nothing'
+            out.append('%s %s in Rev %s, %s in Rev %s' % ('value' if field == 'value' else field, before, self.revisions.get('a_rev', 'A') if self.revisions else 'A',
+                                                         after, self.revisions.get('b_rev', 'B') if self.revisions else 'B'))
+        return '; '.join(out) or 'the same in both'
+
+    def _revisions_key(self, event):
+        key = event.key();rows = (self.revisions or {}).get('rows') or []
+        if key in (Qt.Key_Up, Qt.Key_Down) and rows:
+            self.revisions['sel'] = (self.revisions['sel'] + (1 if key == Qt.Key_Down else -1)) % len(rows);self.update();return True
+        self.close_revisions()
+        return key == Qt.Key_Escape
+
+    def _revisions(self, p, body):
+        cmp = self.revisions;s = self.scale();rows = cmp.get('rows') or []
+        p.save()
+        p.fillRect(body, QColor(t.TERMINAL_GROUND))                     # the cut: the work is gone at once, the head and foot stay
+        if self.texture:self._texture(p, body)
+        rect = self._reading_rect(body);self._rev_rect = rect;self._rev_rows = []
+        x = rect.left() + 8 * s;y = rect.top() + 18 * s
+        p.setFont(self.display(30));fm = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
+        title = 'REV %s / REV %s' % (cmp.get('a_rev', 'A'), cmp.get('b_rev', 'B'))
+        self._bloom(p, QPointF(x, y + fm.ascent()), title, t.READY, 0.8);p.drawText(QPointF(x, y + fm.ascent()), title);y += fm.height() + 4 * s
+        p.setFont(self.mono(12.5));fm = QFontMetricsF(p.font());p.setPen(QColor(t.QUIET))
+        p.drawText(QPointF(x, y + fm.ascent()), '%s  →  %s' % (cmp.get('a', ''), cmp.get('b', '')));y += fm.height() + 16 * s
+        widths = (0.30, 0.15, 0.10, 0.45);cols = [];left = rect.left()
+        for share in widths:cols.append((left, rect.width() * share));left += rect.width() * share
+        p.setFont(self.mono(11.5, QFont.Medium));fm = QFontMetricsF(p.font());p.setPen(ink(t.VIOLET, 0.95))
+        for (cx, cw), word in zip(cols, ('PARAMETER', 'VALUE', 'UNIT', 'CONDITIONS')):p.drawText(QPointF(cx + 8 * s, y + fm.ascent()), word)
+        y += fm.height() + 8 * s;top = y
+        value_font = self.mono(15);word_font = self.sans(15);row_h = max(QFontMetricsF(value_font).height(), QFontMetricsF(word_font).height()) * 2.1
+        for n, row in enumerate(rows):
+            band = QRectF(rect.left(), y, rect.width(), row_h);self._rev_rows.append((band, n))
+            if n == cmp.get('sel'):p.fillRect(band, ink(t.READY, 0.07))
+            p.setPen(QPen(ink(t.LINE, 0.9), 1));p.drawLine(QPointF(rect.left(), y + row_h), QPointF(rect.right(), y + row_h))
+            a, b = row.get('a') or {}, row.get('b') or {}
+            for (cx, cw), field in zip(cols, ('parameter', 'value', 'unit', 'conditions')):
+                cell = QRectF(cx + 8 * s, y, cw - 16 * s, row_h);font = value_font if field in ('value', 'unit') else word_font
+                p.setFont(font);fmc = QFontMetricsF(font);base = y + (row_h + fmc.ascent() - fmc.descent()) / 2
+                now = str(row.get('parameter', '')) if field == 'parameter' else str(b.get(field, '') if b else '')
+                if field in (row.get('changed') or ()):
+                    before = str(a.get(field, ''))
+                    ghost = QFont(font);ghost.setPixelSize(max(9, round(font.pixelSize() * 0.82)));p.setFont(ghost)       # the afterimage: lifted, a few pixels off, smaller
+                    p.setPen(ink(t.VIOLET, 0.7));p.drawText(QPointF(cell.left() + 5 * s, base - fmc.ascent() * 0.95), QFontMetricsF(ghost).elidedText(before, Qt.ElideRight, cell.width()))
+                    p.setFont(font)
+                    p.setPen(QPen(ink(t.OWNER, 0.95), 1.2));p.setBrush(Qt.NoBrush);p.drawRect(cell.adjusted(-4 * s, 5 * s, 4 * s, -5 * s))   # the fine pink edge
+                p.setPen(QColor(t.TEXT if field != 'parameter' else t.TEXT));p.drawText(QPointF(cell.left(), base), fmc.elidedText(now, Qt.ElideRight, cell.width()))
+            y += row_h
+        for cx, cw in cols[1:]:                                     # the column guides
+            p.setPen(QPen(ink(t.LINE, 0.7), 1));p.drawLine(QPointF(cx, top - 4 * s), QPointF(cx, y))
+        if rows and 0 <= cmp.get('sel', -1) < len(rows):            # the clean before and after of the selected row
+            row = rows[cmp['sel']];p.setFont(self.sans(15));fm = QFontMetricsF(p.font());y += 18 * s
+            p.setPen(QColor(t.TEXT));p.drawText(QRectF(x, y, rect.width() - 16 * s, fm.height() * 3), Qt.TextWordWrap,
+                                               '%s: %s.' % (row.get('parameter', ''), self.revision_words(row)))
+        p.restore()
+
     def close_reading(self):
         if self.reading is not None:
             self.reading = None;self._describe_quietly();self.update()
@@ -428,6 +509,8 @@ class FieldView(QWidget):
     # ---- input -----------------------------------------------------------------------------------------------------
     def keyPressEvent(self, event):
         key = event.key();before = self.field.selected;plain = not (event.modifiers() & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
+        if self.revisions is not None and plain and self._revisions_key(event):
+            return
         if self.reading is not None and plain and self._reading_key(event):
             return
         if plain and event.text() == '?':     # ?: every key of the Field, on a card
@@ -610,6 +693,11 @@ class FieldView(QWidget):
             if hot is not None:
                 if any(hot[0] is box for box in self._through):self.close_reading()      # a row of the key card: the card steps aside, then the key acts
                 self.press_key(hot[1], hot[2]);return
+        if self.revisions is not None:        # a click on a row selects it; a click beside the comparison closes it
+            hit = next((n for box, n in self._rev_rows if box.contains(pos)), None)
+            if hit is not None:self.revisions['sel'] = hit;self.update()
+            elif not self._rev_rect.contains(pos):self.close_revisions()
+            return
         if self.reading is not None:          # a click beside the page closes it; a click on it is for reading
             if not self._reading_rect(self.body()).contains(pos):
                 self.steps = ();self.go = '';self.close_reading();self.reading_closed.emit()
@@ -779,6 +867,7 @@ class FieldView(QWidget):
                 self._scrollbars(p, body)
             self._foot(p)
             if self.reading is not None:self._reading(p, body)
+            if self.revisions is not None:self._revisions(p, body)
         except Exception as exc:  # noqa: BLE001 - say it on the surface instead of taking the program down
             p.setClipping(False);p.setPen(QColor(t.AMBER_TEXT));p.setFont(self.mono(12))
             p.drawText(QRectF(28, self.head_height() + 12, self.width() - 56, 40), Qt.AlignLeft | Qt.AlignVCenter, 'The Field could not be drawn: %s' % str(exc)[:160])

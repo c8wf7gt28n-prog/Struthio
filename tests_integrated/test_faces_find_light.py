@@ -340,5 +340,36 @@ class MenuCatchTests(unittest.TestCase):
         child.parent_menu=None;self.assertEqual(menu_catch.side_of(child),'down')
 
 
+class RevisionCutTests(unittest.TestCase):
+    """0.8.2: two revisions of one sheet, cut to side by side: rows matched by parameter, what changed marked, a clean before
+    and after for the selected row; Esc or a click beside it closes it."""
+    def test_rows_are_matched_and_the_change_is_said_in_words(self):
+        from workbench import field_page
+        a=[{'parameter':'Continuous limit','value':'6','unit':'W','conditions':'Continuous'},{'parameter':'Pulse duration','value':'120','unit':'ms','conditions':'At up to 8 W'},
+           {'parameter':'Gone','value':'1','unit':'V'}]
+        b=[{'parameter':'Continuous limit','value':'6','unit':'W','conditions':'Continuous'},{'parameter':'Pulse duration','value':'80','unit':'ms','conditions':'At up to 8 W'},
+           {'parameter':'New','value':'2','unit':'V'}]
+        rows=field_page.compare_rows(a,b)
+        self.assertEqual([(r['parameter'],r['changed']) for r in rows],[('Continuous limit',[]),('Pulse duration',['value']),('New',['value']),('Gone',['value'])])
+        from workbench.field_qt import FieldView
+        v=FieldView();self.addCleanup(v.deleteLater);v.resize(1200,800)
+        v.show_revisions(dict(a='Limits Rev A',b='Limits Rev B',a_rev='A',b_rev='B',rows=rows))
+        self.assertEqual(v.revisions['sel'],1,'the first row that changed is selected')
+        self.assertEqual(v.revision_words(rows[1]),'value 120 ms in Rev A, 80 ms in Rev B')
+        self.assertIn('Pulse duration: value 120 ms in Rev A, 80 ms in Rev B',v.accessibleDescription())
+        self.assertFalse(v.grab().isNull())
+        v.close_revisions();self.assertIsNone(v.revisions)
+
+    def test_a_sheet_knows_its_other_revision_by_its_title(self):
+        from workbench import field_page
+        from workbench.field_model import Field,FieldObject
+        from workbench.field_qt import FieldView
+        objs=[FieldObject('a','sheet','07 Limits Rev A ARCHIVED'),FieldObject('b','sheet','07 Limits Rev B CURRENT'),FieldObject('c','sheet','07 Bench readings'),
+              FieldObject('d','source','07 Limits Rev C.pdf')]
+        v=FieldView();self.addCleanup(v.deleteLater);v.set_field(Field(objects=objs))
+        pair=field_page.revision_sibling(v,v.field.get('b'));self.assertEqual([(rev,o.id) for rev,o in pair],[('A','a'),('B','b')])
+        self.assertIsNone(field_page.revision_sibling(v,v.field.get('c')),'no revision mark');self.assertIsNone(field_page.revision_sibling(v,v.field.get('d')),'a source is not a sheet')
+
+
 if __name__=='__main__':
     unittest.main()

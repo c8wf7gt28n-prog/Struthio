@@ -2642,8 +2642,8 @@
       "sha256": "33fab27813fc04d637216adb657f5be48073d49155ba4ad3924320148b3d5a2f"
     },
     "tests_integrated/test_faces_find_light.py": {
-      "bytes": 26988,
-      "sha256": "57b9d73b173257941d49b19d27da3b6c168bfa0ca335ca0c44f41eb88927900d"
+      "bytes": 29471,
+      "sha256": "e590ffce3e6385ed1a18bb5fa826655267240f4fa68cf438d1d274701fb074f1"
     },
     "tests_integrated/test_frame.py": {
       "bytes": 8702,
@@ -3402,8 +3402,8 @@
       "sha256": "6fd3db181b40d5cc3c092fced0c2fbb8805aa774d705d34b7d9d933592a8aa7e"
     },
     "workbench/context_menu.py": {
-      "bytes": 200019,
-      "sha256": "ffe14e0d0cdc1cfdc65d2a62c5b93cd8259a4074c51f288f995ebfb7ace0b7ec"
+      "bytes": 200527,
+      "sha256": "7b80623607c0e1e0e43c20abb9e34a7823628c48f3d5124eb2568872e8bcf619"
     },
     "workbench/continuing_checks.py": {
       "bytes": 11125,
@@ -3618,12 +3618,12 @@
       "sha256": "0fa639e128bea0ba08c1768c9a1d08c5d50941c9bd52e6c307a4828e3ba8c631"
     },
     "workbench/field_page.py": {
-      "bytes": 43275,
-      "sha256": "eee8d04f4fa79b50d4948f5d0522d2548e8e806cece7b4a9a7b9def97e4cc8af"
+      "bytes": 46996,
+      "sha256": "1f25fc1a2495b4eb8c4d2d66e9435a1f6c99168a88092e1e59425a64fece34cf"
     },
     "workbench/field_qt.py": {
-      "bytes": 121681,
-      "sha256": "9e45c49bf610f6f554256453f06a80404ef6821129fdf8abf00f334a822d0252"
+      "bytes": 129105,
+      "sha256": "9fd2c98bea146014fab18e0dc51db2bdd75112dcd2b8082ddeaa27fff532a0d0"
     },
     "workbench/field_ripple.py": {
       "bytes": 19666,

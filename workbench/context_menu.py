@@ -1435,6 +1435,11 @@ def field_entries(host, t):
     out.append(Entry('field:do', 'What can be done', 'command', lambda:view.do_asked.emit(obj), icon='line',
                      submenu=lambda:field_step_rows(host, view, obj),
                      tip='The steps the records offer for this. A read runs at once; one that changes something is put up and waits for your go'))
+    pair = field_page.revision_sibling(view, obj) if work else None
+    if pair is not None:      # 0.8.2: two revisions of one sheet, cut to side by side
+        other = pair[0] if pair[1][1] is obj else pair[1]
+        out.append(Entry('field:revisions', 'Compare with Rev %s' % other[0], 'state', lambda:field_page.compare_revisions(host, obj), glyph='again',
+                         group='Look into it', tip='%s and %s, side by side: what changed between them' % (pair[0][1].title, pair[1][1].title)))
     if work and obj.stac:
         out.append(Entry('field:words', 'Your words', 'command', icon='line', submenu=lambda:word_rows(host),
                          tip='Run one of your own words here; a word whose line starts with `this` reads this sheet'))

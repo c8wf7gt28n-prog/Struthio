@@ -684,3 +684,69 @@ def open_object(host, obj):
     if opened is not None:
         leave_field(host)            # an opener that found its tab already open does not call the window's _close_start itself
     return opened
+
+
+# -- REV A / REV B (0.8.2, the owner's "Graphite after hours") -----------------------------------------------------------------
+
+REVISION_TITLE = re.compile(r'^(?P<stem>.*?)\s*\brev(?:ision)?\.?\s*(?P<rev>[A-Za-z0-9]{1,3})\b', re.IGNORECASE)
+
+
+def revision_sibling(view, obj):
+    """The other revision of a reviewed sheet on the desk ("07 Limits Rev A ARCHIVED" for "07 Limits Rev B CURRENT"), as
+    (older, newer), or None. Two sheets are revisions of one when their titles match once the revision mark is taken off."""
+    if obj is None or obj.kind != 'sheet':return None
+    mine = REVISION_TITLE.match(obj.title or '')
+    if not mine:return None
+    for other in view.field.objects:
+        if other.id == obj.id or other.kind != 'sheet':continue
+        theirs = REVISION_TITLE.match(other.title or '')
+        if theirs and theirs['stem'].strip().casefold() == mine['stem'].strip().casefold() and theirs['rev'].casefold() != mine['rev'].casefold():
+            pair = sorted(((mine['rev'].upper(), obj), (theirs['rev'].upper(), other)), key=lambda item:(len(item[0]), item[0]))
+            return pair[0], pair[1]
+    return None
+
+
+def reviewed_rows(host, obj):
+    """A sheet's reviewed rows (office.get, a read), or its cells read as rows when it has none."""
+    from .engineering_kernel import operator
+    target = obj.target if isinstance(obj.target, dict) else {}
+    if target.get('kind') != 'office':return []
+    kernel = host.ledger_bridge.kernel;got = kernel.dispatch('office.get', {'id': target['id']}, operator())
+    if not got.get('ok'):return []
+    result = got['result'];rows = (result.get('origin') or {}).get('reviewed_rows')
+    if rows:return [dict(row) for row in rows if isinstance(row, dict)]
+    cells = (((result.get('document') or {}).get('sheets') or [{}])[0].get('cells') or {})
+    heads = {}
+    for name, cell in cells.items():
+        m = re.fullmatch(r'([A-Z]+)(\d+)', name)
+        if m and m.group(2) == '1':heads[m.group(1)] = str((cell or {}).get('value') or '').strip().lower()
+    out = {}
+    for name, cell in cells.items():
+        m = re.fullmatch(r'([A-Z]+)(\d+)', name)
+        if m and m.group(2) != '1' and heads.get(m.group(1)):out.setdefault(int(m.group(2)), {})[heads[m.group(1)]] = (cell or {}).get('value')
+    return [out[n] for n in sorted(out)]
+
+
+def compare_rows(older, newer):
+    """Rows matched by their parameter across two revisions, each with the fields that changed (value, unit, conditions)."""
+    def key(row):return str(row.get('parameter') or '').strip().casefold()
+    before = {key(row): row for row in older if key(row)};seen = set();out = []
+    for row in newer:
+        k = key(row);seen.add(k);was = before.get(k) or {}
+        changed = [f for f in ('value', 'unit', 'conditions') if str(was.get(f, '') or '') != str(row.get(f, '') or '')] if was else ['value']
+        out.append({'parameter': row.get('parameter', ''), 'a': was, 'b': row, 'changed': changed})
+    for k, row in before.items():
+        if k not in seen:out.append({'parameter': row.get('parameter', ''), 'a': row, 'b': {}, 'changed': ['value']})
+    return out
+
+
+def compare_revisions(host, obj):
+    """Cut to the two revisions of a sheet, side by side (FieldView.show_revisions). Two reads; nothing is changed."""
+    page = getattr(host, 'field_page', None)
+    if page is None:return None
+    pair = revision_sibling(page.view, obj)
+    if pair is None:return None
+    (a_rev, older), (b_rev, newer) = pair
+    compared = dict(a=older.title, b=newer.title, a_rev=a_rev, b_rev=b_rev, rows=compare_rows(reviewed_rows(host, older), reviewed_rows(host, newer)))
+    page.view.show_revisions(compared);page.view.setFocus(Qt.OtherFocusReason)
+    return compared
