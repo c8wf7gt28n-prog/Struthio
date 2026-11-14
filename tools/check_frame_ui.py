@@ -172,11 +172,11 @@ check('Switching among six tabs leaves the tab strip at one height (y=%d) and ke
 # HATCH DESK D3: the strip's words are the writing line's four modes (the Shell word is Bash only when the configured shell is bash)
 assert [b.text() for b in (bar.targets[key] for key,_ in typebar_qt.TARGETS)]==['Assignment',typebar_qt.shell_label(typebar_qt.configured_shell()),'Search','Log']
 assert typebar_qt.QUIET_TARGETS==() and not [b for b in bar.targets.values() if b.property('arcQuiet')]
-assert bar.box.placeholderText()=='poem'
+assert bar.box.placeholderText()=='prompt'
 bar.set_target('shell',focus=False);assert bar.box.accessibleDescription().startswith(bar.labels['shell']+' · ') and w.console.mode=='shell' and w.type_target=='shell'
 bar.set_target('slate',focus=False);assert bar.box.accessibleDescription().startswith('Assignment · ')
 w.statusBar().showMessage('Saved as frame_draft.py');settle()
-assert w.console.hint.isVisible() and w.console.hint.text()=='Saved as frame_draft.py' and bar.box.placeholderText()=='poem' and bar._note_timer.isActive() and bar._note_timer.interval()==typebar_qt.NOTE_MS
+assert w.console.hint.isVisible() and w.console.hint.text()=='Saved as frame_draft.py' and bar.box.placeholderText()=='prompt' and bar._note_timer.isActive() and bar._note_timer.interval()==typebar_qt.NOTE_MS
 bar.expire_note();settle();assert not w.console.hint.isVisible() and bar.box.accessibleDescription().startswith('Assignment · ') and bar.box.toolTip()==bar._box_tip
 check('The strip reads Assignment · %s · Search · Log (D3: the writing line\'s four modes); the box keeps poem, its description names the mode, and a status message leaves after %d s'%(bar.labels['shell'],typebar_qt.NOTE_MS//1000))
 # 07 · the right column: one sentence for the held state, scaled metadata, unclipped rows ---------------------------------------

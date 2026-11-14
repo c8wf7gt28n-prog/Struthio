@@ -114,7 +114,7 @@ def pane_parts(width, height, inset, tabs_h, gap, foot_h):
 
 # The Qt part ----------------------------------------------------------------------------------------------------------------
 
-from PySide6.QtCore import QPointF, QRect, QSize, Qt
+from PySide6.QtCore import QPointF, QRect, QRectF, QSize, Qt
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPen
 from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton, QStyledItemDelegate, QTreeWidget, QWidget
 
@@ -282,6 +282,25 @@ def lit_path(view):
     return path
 
 
+def still(view):
+    """Whether the owner asked for less motion (the reading profile's Reduce motion)."""
+    try:
+        from .reading_profile import DEFAULT
+        return bool((view.window().session.state.get('reading_profile') or {}).get('reduce_motion', DEFAULT['reduce_motion']))
+    except Exception:  # noqa: BLE001 - a tree with no window behind it: no motion
+        return True
+
+
+def breath(view):
+    """0.8.1, the owner: "Bring some life or energy into that left-hand tree column. It's so useful but so boring looking."
+    The light on the path to the current row breathes slowly, as a live signal does: between 0.7 and 1 over 2.8 seconds.
+    Still (1) with Reduce motion, and on a tree that is not asked to breathe."""
+    if not getattr(view, 'breathing', False) or still(view):return 1.0
+    import math
+    import time
+    return 0.85 + 0.15 * math.sin(2 * math.pi * time.monotonic() / 2.8)
+
+
 def draw_branches(view, painter, rect, index):
     """The branches of one row, the same in every left tree, drawn as the traces of a circuit board (0.5.1; the owner, with
     0.4.6 on the ThinkPad: "I almost wonder if the tree and the branching could be green and maybe kind of circuit themed.
@@ -306,7 +325,8 @@ def draw_branches(view, painter, rect, index):
     def trace(points, lit):
         """One run of trace through these points: lit (and glowing) when it is on the way to the current row."""
         if lit and level > 0:
-            for width, alpha in ((7.0, 0.05 * level), (4.0, 0.11 * level)):
+            pulse = breath(view)
+            for width, alpha in ((7.0, 0.05 * level * pulse * 1.3), (4.0, 0.11 * level * pulse * 1.15)):
                 halo = QColor(LIVE);halo.setAlphaF(min(0.5, alpha));pen = QPen(halo, width);pen.setCapStyle(Qt.RoundCap);pen.setJoinStyle(Qt.RoundJoin)
                 painter.setPen(pen);painter.drawPolyline(points)
         pen = QPen(QColor(LIVE) if lit else dim, 1.5 if lit else 1.2);pen.setCapStyle(Qt.FlatCap);pen.setJoinStyle(Qt.MiterJoin)
@@ -345,11 +365,38 @@ def draw_branches(view, painter, rect, index):
 
 
 class RowDelegate(QStyledItemDelegate):
-    """Every row of a tree one height: the tree's row_height."""
+    """Every row of a tree one height: the tree's row_height. On a desk that glows (0.8.1), its words carry a little of their
+    own light: faint on every row, brighter in the live colour on the path to the current row and under the pointer."""
 
     def sizeHint(self, option, index):
         size = super().sizeHint(option, index);height = getattr(self.parent(), 'row_height', 0)
         return QSize(size.width(), height) if height else size
+
+    def paint(self, painter, option, index):
+        view = self.parent()
+        try:
+            from .boss_qt import glows
+            level = glow_level() if isinstance(view, QTreeWidget) and glows(view.window()) else 0.0
+        except Exception:  # noqa: BLE001 - a row is drawn whatever else is the matter
+            level = 0.0
+        if level > 0:
+            from PySide6.QtWidgets import QStyle, QStyleOptionViewItem
+            opt = QStyleOptionViewItem(option);self.initStyleOption(opt, index)
+            text = opt.text
+            if text:
+                style = view.style();box = style.subElementRect(QStyle.SE_ItemViewItemText, opt, view).adjusted(2, 0, -2, 0)
+                here = (index.parent(), index.row()) in lit_path(view);over = bool(option.state & QStyle.State_MouseOver)
+                # a light, not a shadow: the live colour (Graphite's green, Kasandra's cyan) spread a little round the words,
+                # faint on every row, brighter on the path to the current row (breathing with it) and under the pointer
+                halo = QColor(LIVE);strength = (0.075 if here else 0.06 if over else 0.028) * level * (breath(view) if here else 1.0)
+                shown = QFontMetrics(opt.font).elidedText(text, Qt.ElideRight, box.width())
+                painter.save();painter.setFont(opt.font);painter.setRenderHint(QPainter.TextAntialiasing)
+                for radius, share in ((2.4, 0.55), (1.3, 1.0)):
+                    halo.setAlphaF(min(0.3, strength * share));painter.setPen(halo)
+                    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (-0.7, -0.7), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7)):
+                        painter.drawText(QRectF(box).translated(dx * radius, dy * radius), int(opt.displayAlignment | Qt.AlignVCenter), shown)
+                painter.restore()
+        super().paint(painter, option, index)
 
 
 class BranchTree(QTreeWidget):
@@ -359,12 +406,25 @@ class BranchTree(QTreeWidget):
         super().__init__(parent);self.row_height = 0;self.setRootIsDecorated(True);self.setUniformRowHeights(True)
         self.setItemDelegate(RowDelegate(self));self.setStyleSheet(TREE_STYLE);self.setProperty('deskTree', True)
         self.currentItemChanged.connect(lambda *_: self.viewport().update())      # the lit path moves with the current row: every branch is drawn again
+        # 0.8.1: the lit path breathes (breath): a quiet repaint of this tree's own rows a few times a second, only while it
+        # is shown on a desk that glows and the owner has not asked for less motion.
+        from PySide6.QtCore import QTimer
+        self.breathing = True;self._breath = QTimer(self);self._breath.setInterval(140);self._breath.timeout.connect(self._breathe);self._breath.start()
 
     def set_metrics(self, row, indent):
         if (self.row_height, self.indentation()) == (int(row), int(indent)):return
         self.row_height = int(row);self.setIndentation(int(indent));self.scheduleDelayedItemsLayout();self.viewport().update()
 
     def drawBranches(self, painter, rect, index):draw_branches(self, painter, rect, index)
+
+    def _breathe(self):
+        if not self.isVisible() or still(self):return
+        try:
+            from .boss_qt import glows
+            if not glows(self.window()):return
+        except Exception:  # noqa: BLE001
+            return
+        self.viewport().update()
 
 
 # Activity's recent lines ------------------------------------------------------------------------------------------------------

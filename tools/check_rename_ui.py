@@ -133,7 +133,7 @@ for size,tag in (((1920,1200),'1920'),((1366,768),'1366')):
  top=w.shell2.top;gs=w.global_search
  assert version.NAME=='Graphite' and gs.accessibleName()==gs.toolTip()=='Graphite' and top.wordmark.text()=='Graphite' and top.mark.accessibleName()=='Graphite'
  assert top.slate_switch.text() in ('AI ON','AI OFF') and top.slate_switch.accessibleName()=='Enable or disable new Graphite AI activity'
- assert bar.targets['slate'].text()=='Assignment' and bar.targets['slate'].accessibleName()=='Writing line mode: Assignment' and hatch.accessibleName()==hatch.toolTip()=='Open programs'
+ assert bar.targets['slate'].text()=='Assignment' and bar.targets['slate'].accessibleName()=='Writing line mode: Assignment' and hatch.accessibleName()==hatch.toolTip()=='Open apps'
  assert home.today.slate.isVisible() and any(ui_fit.plain(l)=='Graphite' for l in home.today.slate.findChildren(QLabel)),'Today\'s card is titled Graphite'
  texts=window_words('today_'+tag);fit('today_'+tag)
  observations['head_'+tag]=dict(title=w.windowTitle(),mark=gs.accessibleName(),wordmark=[top.wordmark.text(),top.wordmark.isVisible()],ai_switch=top.slate_switch.text(),brain=top.brain.text(),strip=[b.text() for b in bar.targets.values()])
@@ -151,7 +151,7 @@ for size,tag in (((1920,1200),'1920'),((1366,768),'1366')):
    if menu.isVisible():menu.hide()
  QTimer.singleShot(120,inside);QTest.mouseClick(hatch,Qt.LeftButton);settle(80)
  assert rec.get('visible') and not rec.get('error') and not rec['old'],rec
- assert menu.accessibleName()=='Programs' and rec['rows'][-2:]==['—','Explore the workshop'],rec['rows']
+ assert menu.accessibleName()=='Apps' and rec['rows'][-2:]==['—','Explore the workshop'],rec['rows']
  system_list=w.shell2.top.nice.open(False);settle();system_words=system_list.words();system_old=old_words(shown_words(system_list)+[system_list.accessibleName()]);system_list.close_menu();settle()
  assert not system_old and 'Graphite services' in system_words and system_words[-3] in ('Exit Graphite','Return to Debian') and system_list.accessibleName()=='System menu',(system_words,system_old)
  record('02_Menu_%s.png'%tag,'%s: the cat\'s programs list opened by one click on the cat (HATCH DESK D2): every program and capability A to Z, then Explore the workshop; accessible name Programs. The System menu (read too) holds Graphite services and Exit Graphite.'%size[0],rec['pix'],'ACTUAL_QT_WINDOW_AND_VISIBLE_POPUP_GRABS')

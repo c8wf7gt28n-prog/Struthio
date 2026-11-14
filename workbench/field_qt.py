@@ -32,6 +32,7 @@ from .field_model import ATTENTION, KIND_TAG, SETTLED, STATE_CURRENT, STATE_HELD
 
 WORD_INK = (1.0, 0.94, 0.84, 0.78)          # how much of its ink a sheet's lettering keeps at each step from the selection
 EDGE_INK = (1.0, 0.8, 0.5, 0.34)            # the sheet's edge and marks recede further: they are not lettering
+FACE_WORDS = {'programs': 'APPS'}      # 0.8.1: the owner renamed programs to apps; the face's key stays P
 STATE_WORD = {STATE_CURRENT: 'current', STATE_RECHECK: 'recheck', STATE_OPEN: 'open', STATE_HELD: 'held'}
 
 
@@ -1084,10 +1085,10 @@ class FieldView(QWidget):
         p.setFont(self.mono(13, QFont.Medium));fm = QFontMetricsF(p.font())      # the faces' words: the working face
         self._face_boxes = []
         for name, letter in self.faces:      # the faces of the Field: the one showing is underlined, each says its key
-            word = name.upper();w = fm.horizontalAdvance(word);on = name == self.face
+            word = FACE_WORDS.get(name, name.upper());w = fm.horizontalAdvance(word);on = name == self.face
             spot = QRectF(x - 6 * s, 0, w + 12 * s, h)
             if on:self._bloom(p, QPointF(x, base), word, t.AMBER_EDGE, 1.2)
-            else:self._hot.append((spot, getattr(Qt, 'Key_' + letter.upper(), Qt.Key_unknown), letter, 'The %s face of the Field (%s)' % (name, letter.upper())))
+            else:self._hot.append((spot, getattr(Qt, 'Key_' + letter.upper(), Qt.Key_unknown), letter, 'The %s face of the Field' % FACE_WORDS.get(name, name).lower()))
             p.setPen(QColor(t.AMBER_TEXT if on else t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(x, base), word)
             if on:
                 if self.texture:             # the chosen face's rule is lit from below

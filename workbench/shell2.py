@@ -582,8 +582,8 @@ class TopBar(QWidget):
         self.more_menus = QToolButton();self.more_menus.setObjectName('MoreMenus');self.more_menus.setText('Work ▾');self.more_menus.setAccessibleName('Work commands')
         self.more_menus.setPopupMode(QToolButton.InstantPopup);self.more_menus.setToolButtonStyle(Qt.ToolButtonTextOnly);self.more_menus.setMenu(QMenu(self.more_menus))
         self.more_menus.menu().aboutToShow.connect(self.fill_more_menus);self.more_menus.setParent(first);self.more_menus.show();self.folded_menus = []
-        self.programs = QToolButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Programs ▾')
-        self.programs.setAccessibleName('Programs');self.programs.setToolTip('Installed applications and capabilities')
+        self.programs = QToolButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Apps ▾')      # 0.8.1: the owner, "We'll change the name programs to apps"
+        self.programs.setAccessibleName('Apps');self.programs.setToolTip('Installed apps and capabilities')
         from . import boss_theme as _bt
         if _bt.APPEARANCE == 'kasandra':      # 0.8.0, the owner's monogram for Programs: "kp", kasandra protocol, in her colours
             from PySide6.QtGui import QIcon
@@ -593,7 +593,7 @@ class TopBar(QWidget):
                 side = round(24 * scale_of(host))
                 self.programs.setIcon(mark);self.programs.setIconSize(QSize(side, side))
                 self.programs.setProperty('paperIcon', True)      # its own colours: menus2 makes other pictures one graphite colour
-                self.programs.setToolButtonStyle(Qt.ToolButtonTextBesideIcon);self.programs.setText('Programs ▾')
+                self.programs.setToolButtonStyle(Qt.ToolButtonTextBesideIcon);self.programs.setText('Apps ▾')
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
@@ -2275,7 +2275,7 @@ class SlateFace(QWidget):
             'The Godot room could not read it: %s. ' % str((r.get('error') or {}).get('message'))[:200])
         if result and result.get('state') != 'READY':
             said += ('Godot is not on this computer (I looked for godot4, godot and godot3), so I cannot open it there yet. On Debian it is the package godot3, '
-                     'which is what I wrote these files for. Once it is installed, Programs ▸ Godot opens this project.')
+                     'which is what I wrote these files for. Once it is installed, Apps ▸ Godot opens this project.')
         after = self.say(said)
         if root is not None:
             after.box.addWidget(sentence('{steps}  ·  {script}  ·  {room}', {

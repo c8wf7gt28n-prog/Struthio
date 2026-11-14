@@ -99,7 +99,7 @@ room=w.cabinet_page.open(iid);w.resize(1366,768);w.shell2.show_operations_face()
 assert w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and w.trash_can.isVisible()
 assert room.action_shelf.isVisible();capture('Ledger_Slate_HATCH_Actions_01_Compact.png')
 check('Laptop layout retains the action shelf, fixed Trash, monitors and visible Stop')
-assert room.writing.placeholderText()=='poem' and w.cabinet_page.query.placeholderText()=='poem'
+assert room.writing.placeholderText()=='prompt' and w.cabinet_page.query.placeholderText()=='prompt'
 assert call('ideas.get',{'id':idea['id']})['text']==idea['text'];assert k.listing('jobs')==[];provider.assert_not_called()
 check('Poem, saved text and empty job records survive the pass with no provider request')
 result=dict(state='PASSED',mode='ACTUAL_QT_OFFSCREEN',checks=checks,captures=captures,jobs_submitted=0,

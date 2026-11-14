@@ -64,7 +64,7 @@ tab.views.setCurrentItem(item);tab.open_view();settle();assert w.tabs.currentWid
 check('Open-work navigation returns to the same edited buffer')
 w.tabs.setCurrentWidget(tab);tab.detail.hide();w.resize(1366,768);settle();tab.refresh()
 assert thread.footer.isVisible() and w.shell2.top.programs.isVisible() and w.trash_can.isVisible() and w.operations_monitors.isVisible()
-assert tab.writing.placeholderText()=='poem';capture('Ledger_Slate_HATCH_Return_01_Compact.png')
+assert tab.writing.placeholderText()=='prompt';capture('Ledger_Slate_HATCH_Return_01_Compact.png')
 check('Compact layout retains the thread footer, poem writing, fixed Trash, monitors and Stop')
 w.resize(1920,1200);settle();before=call('ledger.session.read')
 dialog=thread.exit_dialog();dialog.show();settle()

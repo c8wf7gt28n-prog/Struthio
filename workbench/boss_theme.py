@@ -37,7 +37,7 @@ PALETTES = {
         BAND=(12, 15, 14), ERASED='#efeae0', ERASED_QUIET='#b0bcb9', BAND_MARK='#dd854b', BAND_PENCIL='#f2a369',
         DESK_LIGHT='#8c826b', VEIL='#000000', DISPLAY='IBM Plex Mono',
         HONEY='#f2a369', VIOLET='#c8baa0', VIOLET_DEEP='#474436', VIOLET_PALE='#f4e8ce', VIOLET_SOFT='#4b2a14',
-        ROYAL='#cbf08b', ROYAL_SOFT='#1b2817', ROYAL_INK='#cbf08b', ROYAL_TEXT='#cbf08b'),
+        ROYAL='#cbf08b', ROYAL_SOFT='#1b2817', ROYAL_INK='#cbf08b', ROYAL_TEXT='#cbf08b', RED='#ff9a36', ON_RED='#0b0e0d'),
     'kasandra': dict(
         GROUND='#171b3c', PANEL='#1b1f45', CARD='#1f234d', RAISED='#292d56', TERMINAL_GROUND='#11132c',
         LINE='#3b4479', LINE_STRONG='#8796cb', LINE_MID='#5969a1', TEXT='#e3e3ff', QUIET='#c1c6e8', FAINT='#9ca3d2',
@@ -48,7 +48,7 @@ PALETTES = {
         BAND=(20, 23, 52), ERASED='#e3e3ff', ERASED_QUIET='#aeb4dc', BAND_MARK='#83eaff', BAND_PENCIL='#83eaff',
         DESK_LIGHT='#8f97c9', VEIL='#11132c', DISPLAY='Special Elite',
         HONEY='#e9b872', VIOLET='#ab8eda', VIOLET_DEEP='#5f4fa8', VIOLET_PALE='#d2c4f5', VIOLET_SOFT='#2b2660',
-        ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6'),
+        ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6', RED='#ff3b5c', ON_RED='#fff1f4'),
 }
 
 
@@ -61,6 +61,9 @@ PALETTES = {
 # you can run stands on a royal-purple slab (ROYAL_SOFT, with a ROYAL edge and ROYAL_INK letters) wherever she shows one,
 # the arrow turns royal purple when what you typed is a line it will run, and the Field's line is said in ROYAL_TEXT.
 # Graphite keeps its green for all of these.
+# 0.8.1, the owner: "Maybe the send arrow for when we type something. I should experiment with that being red. Experiment
+# with the trash can being red." RED (Kasandra only) is on the arrow that sends what you typed and on the Trash can; with
+# ON_RED the ink on it. In Graphite RED is its amber, and neither place changes there.
 
 
 def line_sheet():

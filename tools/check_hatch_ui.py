@@ -88,7 +88,7 @@ for _ in range(10):assert hatch.prepare()
 assert lst.words()==EXPECTED and rows()+[lst.explore_row]==objects,lst.words()
 assert set(lst.rows_by_key)=={v[0] for v in explore.VIEWS} and len(rows())==len(instruments())==len(explore.VIEWS),'every capability of the Hatch groups, once'
 assert lst.explore_row.action is hatch.explore_action and hatch.explore_action.text()=='Explore the workshop'
-assert hatch.accessibleName()==hatch.toolTip()=='Open programs' and lst.accessibleName()=='Programs' and 'F1 reads the highlighted row' in hatch.accessibleDescription()
+assert hatch.accessibleName()==hatch.toolTip()=='Open apps' and lst.accessibleName()=='Apps' and 'F1 reads the highlighted row' in hatch.accessibleDescription()
 assert len({r.icon_key for r in rows()})==len(rows()),'one small graphite icon each'
 work_menu=w.menu_groups['File'];assert w.a_new_idea in work_menu.actions() and w.a_new_project in work_menu.actions() and hatch.idea_action is w.a_new_idea and hatch.project_action is w.a_new_project
 assert not any(word.startswith(('New Idea','New Project','Services','Graphite services','Exit','Return to Debian','Log','Restart','Shut')) for word in lst.words())
@@ -222,7 +222,7 @@ assert kb['down_walk']==kb['enabled'][1:]+kb['enabled'][:1] and kb['enabled']==P
 assert kb['home']=='Agenda' and kb['up_from_first']=='Explore the workshop' and kb['down_to_first']=='Agenda',kb
 assert (kb['typed_lo'],kb['typed_m'],kb['typed_m_again'],kb['typed_fi'])==('Local model','Memory','Methods','Files'),kb
 assert kb['f1_row']==kb['f1_row_expected'] and kb['f1_row'].startswith('Files · open — Read working material') and 'Opens: Graphite workspace' in kb['f1_row'] and 'Opening runs no tool.' in kb['f1_row'] and explore_qt.ROOM_NOTE not in kb['f1_row'],kb
-assert not kb['f1_tooltip'] and kb['placeholder']=='poem' and kb['closed'] and kb['focus_after'],kb
+assert not kb['f1_tooltip'] and kb['placeholder']=='prompt' and kb['closed'] and kb['focus_after'],kb
 others={}
 for name,key in (('space',Qt.Key_Space),('enter',Qt.Key_Enter)):
  rec=keyboard_session(lambda key=key:QTest.keyClick(hatch,key));others[name]=rec
@@ -246,7 +246,7 @@ ex=explore_session();assert ex['error'] is None,ex
 assert explore_button.isHidden() and not ex['focus_before'] and ex['visible'] and ex['first_active']=='Explore the workshop…' and ex['submenus']==0,ex
 assert ex['rows'][:2]==['Explore the workshop…','For '+IDEA_TEXT] and ex['rows'][-2:]==['—','Find saved work…'],ex['rows']
 assert ex['f1'].startswith('Explore the workshop… — Opens: the Explore workspace') and not ex['f1_tooltip'] and ex['up_from_first']=='Find saved work…' and ex['closed'],ex
-w.statusBar().clearMessage();settle();assert w.type_bar.box.placeholderText()=='poem'
+w.statusBar().clearMessage();settle();assert w.type_bar.box.placeholderText()=='prompt'
 check('AC15 keyboard steps: Return, Enter and Space open the programs list with its first row (Agenda) active; Down visits every row in order and wraps, Home returns to the first, Up from the first reaches Explore the workshop; typing a name\'s first letters jumps to it (lo Local model, m Memory then Methods, fi Files); F1 and Shift+F1 read the active row\'s descriptor into the writing line\'s note with no tooltip and the poem placeholder intact; Escape closes and focus returns to the cat; the Explore word behaves the same')
 # 09 · the Explore tab beside the doorway (VS02 de-duplication, V-10, V-17)
 tab=explore_qt.show(w,'idea:'+idea['id']);settle();n=tab.results.topLevelItemCount();assert n==len(explore.VIEWS)

@@ -1,5 +1,5 @@
 """One invitation for writing; retain each field's purpose as supporting help."""
-PROMPT = 'poem'
+PROMPT = 'prompt'      # 0.8.1, the owner: "Let's lose the term poem. Come up with something a little bit more Lain, hacker, old school. Maybe just prompt."
 
 
 def writing_prompt(widget, hint=''):

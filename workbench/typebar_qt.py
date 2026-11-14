@@ -7,7 +7,7 @@ Search opens workspace results. Log filters the Events or Network stream.
 
 Assistant, Terminal, and Log have visible controls. Ctrl+K and a leading `?`
 open Search. The saved mode keys also preserve older targets and histories.
-The active mode supplies the field's accessible hint. `poem` is the placeholder.
+The active mode supplies the field's accessible hint. `prompt` is the placeholder.
 """
 from __future__ import annotations
 from . import boss_theme as _bt
@@ -227,13 +227,14 @@ class TypeBar(QWidget):
         painter = QPainter(arrow)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(Qt.NoPen)
-        painter.setBrush(QColor(TERMINAL_GROUND))
+        painter.setBrush(QColor(_bt.ON_RED if _bt.APPEARANCE == 'kasandra' else TERMINAL_GROUND))      # Kasandra: pale on the red (and on royal purple)
         painter.drawPolygon(QPolygon([QPoint(7, 4), QPoint(21, 12), QPoint(7, 20)]))
         painter.end()
         self.send = button('', 'primary')
         self.send.setParent(self)
         self.send.setObjectName('WritingSubmit')
         self.send.setIcon(QIcon(arrow));self.send.setIconSize(QSize(19, 19))
+        if _bt.APPEARANCE == 'kasandra':self.send.setProperty('paperIcon', True)      # keep its own ink: menus2 would make it one grey
         self.send.setFocusPolicy(Qt.TabFocus)
         self.send.setAccessibleName('Submit writing line')
         self.send.setToolTip(SENDS['slate'])
@@ -315,7 +316,7 @@ class TypeBar(QWidget):
         if rest.strip() and hasattr(box, 'update_results'):box.update_results(rest)
 
     def mode_hint(self, kernel=False):
-        """The line's hint (its accessible description and tooltip; the placeholder stays poem): the mode's word and what to
+        """The line's hint (its accessible description and tooltip; the placeholder stays prompt): the mode's word and what to
         type there; Log's is its stream's grammar."""
         if self.message:return
         view = getattr(self.host, 'log_view', None)
@@ -368,7 +369,7 @@ class TypeBar(QWidget):
         address = self.address_of(words);went = QDesktopServices.openUrl(QUrl(address or WEB_SEARCH + quote_plus(words)))
         if went:
             self.note(('Opened in your browser: ' + address) if address else ('Searching in your browser for: ' + words));self.box.clear()
-        else:self.note('No browser answered on this computer. Programs shows what is installed.')
+        else:self.note('No browser answered on this computer. Apps shows what is installed.')
         return went
 
     def typed(self, text):
@@ -477,7 +478,8 @@ class TypeBar(QWidget):
             'QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {background:%s;border:1px solid %s;} '      # the line reads as staC: the arrow is live
             'QWidget#TypeBar QLabel#TypeContext {font-size:%dpx;}'
             % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE, MONO, px, AMBER_EDGE,
-               AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, READY, *((_bt.ROYAL, _bt.ROYAL) if _bt.APPEARANCE == 'kasandra' else (READY, READY)), px)
+               *((_bt.RED, _bt.ON_RED, _bt.RED, '#ff6b84') if _bt.APPEARANCE == 'kasandra' else (AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT)),      # 0.8.1 (Kasandra): send, in red
+               READY, *((_bt.ROYAL, _bt.ROYAL) if _bt.APPEARANCE == 'kasandra' else (READY, READY)), px)
             + ('QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {color:%s;}' % _bt.ROYAL_INK if _bt.APPEARANCE == 'kasandra' else ''))      # Kasandra: a line it will run, in royal purple
         for b in list(self.targets.values()) + [self.box, self.context]:
             b.style().unpolish(b);b.style().polish(b)

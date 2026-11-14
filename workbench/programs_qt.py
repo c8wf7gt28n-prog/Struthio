@@ -700,7 +700,7 @@ class ProgramsList(DeskMenu):
     def __init__(self, host, anchor, actions, explore_action):
         super().__init__(host, getattr(getattr(getattr(host,'shell2',None),'top',None),'programs',anchor), 'upper-programs', 'ProgramsList')
         self.actions = actions;self.explore_action = explore_action
-        self.setAccessibleName('Programs');self.setAccessibleDescription('The programs and capabilities, A to Z; type a name\'s first letters to jump to it')
+        self.setAccessibleName('Apps');self.setAccessibleDescription('The apps and capabilities, A to Z; type a name\'s first letters to jump to it')
         self.side = 'upper-programs';self.caption = Caption(self, 'applications and capabilities');self.box.addWidget(self.caption)
         self.unavailable = MenuRow(self, 'Capabilities unavailable', 'unavailable');self.unavailable.setEnabled(False);self.unavailable.hide();self.box.addWidget(self.unavailable)
         self.rows_by_key = {}

@@ -161,7 +161,7 @@ popup.hide();settle()
 # 04 · the menu button: taller than the strip words, the cat (GRAPHITE-01), the floor from the row ---------------------------
 (lp,ls),(rp,rs)=bar.rows();assert bar.explore.isHidden(),'D1a: Explore left the strip';strip_words=[w.console.sizes[i] for i in (0,1,2)]+rp+rs
 assert hatch.height()>max(b.height() for b in strip_words) and hatch.height()>=hatch.sizeHint().height(),(hatch.height(),[b.height() for b in strip_words],hatch.sizeHint().height())
-assert hatch.iconSize().height()==typebar_qt.hatch_icon_px(1.0)==44 and hatch.text()=='' and hatch.accessibleName()==hatch.toolTip()=='Open programs'
+assert hatch.iconSize().height()==typebar_qt.hatch_icon_px(1.0)==44 and hatch.text()=='' and hatch.accessibleName()==hatch.toolTip()=='Open apps'
 assert bar.height()==w.desk.band==w.ribbon_dock.height() and hatch.height()==w.desk.band,'D1a: the strip is the desk\'s band, as tall as the head'
 assert 'border:0' in hatch.styleSheet() and 'background:transparent' in hatch.styleSheet(),'no border and no wash: the cat paints itself'
 image=hatch.grab().toImage();ink,eyes=cat_pixels(image)

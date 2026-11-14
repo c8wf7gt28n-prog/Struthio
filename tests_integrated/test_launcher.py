@@ -214,7 +214,7 @@ class LauncherTests(unittest.TestCase):
         text=ast.unparse(tree)
         for word in ('subprocess','os.system','startDetached','systemctl','loginctl','poweroff','QMenu'):self.assertNotIn(word,text)
         self.assertEqual(len(re.findall(r"dispatch\('",text)),1);self.assertIn("dispatch('ledger.explore'",text)
-        self.assertEqual(hatch_qt.ORDER,('programs A to Z','—','Explore the workshop'));self.assertEqual(hatch_qt.HatchButton.NAME,'Open programs')
+        self.assertEqual(hatch_qt.ORDER,('programs A to Z','—','Explore the workshop'));self.assertEqual(hatch_qt.HatchButton.NAME,'Open apps')
 
     def test_the_programs_list_is_flat_sorted_and_holds_every_capability(self):
         """The brief: "a flat, predictable list of available programs and capabilities, like the Programs folder in a Start
@@ -238,7 +238,7 @@ class LauncherTests(unittest.TestCase):
         for key,row in lst.rows_by_key.items():
             tip=row.toolTip();self.assertIn('Opens: ',tip);self.assertIn('Graphite can: ',tip);self.assertIn('Opening runs no tool.',tip)
             self.assertEqual(row.action.property('title'),next(v[1] for v in explore.VIEWS if v[0]==key),'the catalogue\'s own title stays with the row')
-        self.assertEqual((button.accessibleName(),button.toolTip(),lst.accessibleName()),('Open programs','Open programs','Programs'))
+        self.assertEqual((button.accessibleName(),button.toolTip(),lst.accessibleName()),('Open apps','Open apps','Apps'))
         self.assertEqual(self.kernel.listing('jobs'),[]);self.assertEqual(host.status.messages,[])
 
     def test_type_to_select_jumps_to_the_rows_by_their_first_letters(self):

@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
  room=select('project:'+first['id']);assert w.tabs.indexOf(editor)>=0 and 'retained unsaved writing' in editor.toPlainText()
  assert path.read_text()=='original = True\n';record('Opening the cabinet room preserves an existing edited Preview and leaves its file untouched')
  editor.document().setModified(False)  # The draft-preservation assertion is complete; avoid unrelated modal Preview prompts below.
- assert room.writing.placeholderText()=='poem';QTest.keyClicks(room.writing,'A draft to keep with this project.');settle()
+ assert room.writing.placeholderText()=='prompt';QTest.keyClicks(room.writing,'A draft to keep with this project.');settle()
  select('project:'+second['id']);room=select('project:'+first['id']);assert room.writing.toPlainText()=='A draft to keep with this project.'
  page.refresh(force=True);assert room.writing.toPlainText()=='A draft to keep with this project.'
  record('Unsaved cabinet writing survives record changes and background tree refresh within the desktop')
@@ -94,17 +94,17 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
  w.a_cabinet_logical.trigger();settle();assert page.tree.currentItem().data(0,Qt.UserRole)['id']=='catalog:'+note
  record('Existing catalogue and workspace views remain available (Arrange ▸ Cabinet) and rebuild without duplicate roots')
  from workbench.project_desk_qt import show as show_desk
- desk=show_desk(w);settle();assert desk.project_title.placeholderText()=='poem' and desk.project_intent.placeholderText()=='poem'
+ desk=show_desk(w);settle();assert desk.project_title.placeholderText()=='prompt' and desk.project_intent.placeholderText()=='prompt'
  assert desk.project_intent.accessibleName()=='What is this project for?'
- discovery=bridge.show_discovery();settle();assert discovery.title_input.placeholderText()=='poem'
+ discovery=bridge.show_discovery();settle();assert discovery.title_input.placeholderText()=='prompt'
  from workbench.clip_workspace import ClipWorkspaceTab
- conversation=bridge.add_tab(ClipWorkspaceTab,lambda:ClipWorkspaceTab(w));settle();assert conversation.input.placeholderText()=='poem'
+ conversation=bridge.add_tab(ClipWorkspaceTab,lambda:ClipWorkspaceTab(w));settle();assert conversation.input.placeholderText()=='prompt'
  record('Project Desk, Discovery and Slate conversation use poem with their semantic field names preserved')
  bar=w.type_bar
  for target in ('slate','shell','find','log','stac','kernel'):  # D3: the four modes, then the old targets that map to them
-  bar.set_target(target,focus=False);assert bar.box.placeholderText()=='poem';assert bar.box.text()==''
+  bar.set_target(target,focus=False);assert bar.box.placeholderText()=='prompt';assert bar.box.text()==''
  bar.set_target('slate',focus=False);record('Changing among the four modes and the old targets keeps poem without inserting or submitting text')
- bar.note('Saved review copy');settle();assert bar.box.placeholderText()=='poem' and w.console.hint.isVisible()
+ bar.note('Saved review copy');settle();assert bar.box.placeholderText()=='prompt' and w.console.hint.isVisible()
  assert w.console.hint.text()=='Saved review copy';bar.note('');settle();assert not w.console.hint.isVisible()
  record('Status feedback stays visible in the console while poem remains the writing placeholder')
  for transfer,entry in zip(cabinet.TRANSFERS,(w.a_import,w.a_export)):  # D1b: Work ▸ Import (Ingress)… and Export (Egress)…
@@ -113,7 +113,7 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
  record('Import and Export (Work menu entries) open the existing receiving and outgoing-file controls without performing a transfer')
  room=select('project:'+first['id']);capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Desktop.png')
  fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText()]
- assert fields and all(f.placeholderText()=='poem' for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!='poem']
+ assert fields and all(f.placeholderText()=='prompt' for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!='prompt']
  record('Every instantiated editable field with a placeholder says exactly poem')
  w.resize(1366,768);settle();assert w.trash_can.isVisible();capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Compact.png')
  record('Affected UI resizes to 1366 by 768 with Trash fixed outside the scrolling cabinet')

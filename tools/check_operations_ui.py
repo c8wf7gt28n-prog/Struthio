@@ -111,7 +111,7 @@ record('Original master Stop action, controller and shortcut remain connected; n
 w.resize(1366,768);settle();assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible()
 assert w.shell2.top.pulse.parentWidget() is w.operations_monitors
 capture('Ledger_Slate_HATCH_Operations_01_Compact.png');record('Compact layout retains fixed Trash, the host monitors in the head, Nice (which holds Stop) and a scrollable operations workspace')
-assert w.type_bar.box.placeholderText()=='poem';assert call('ideas.get',{'id':idea['id']})==idea
+assert w.type_bar.box.placeholderText()=='prompt';assert call('ideas.get',{'id':idea['id']})==idea
 record('Poem and original record content remain intact')
 editor.document().setModified(False)
 for ident in ('c'*32,'d'*32):

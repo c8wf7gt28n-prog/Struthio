@@ -115,7 +115,7 @@ class PlaceholderTests(unittest.TestCase):
         band.show()
         application.processEvents()
 
-        self.assertEqual(band.box.placeholderText(),'poem')
+        self.assertEqual(band.box.placeholderText(),'prompt')
         palette = band.box.palette()
         background = palette.color(QPalette.Base).getRgb()[:3]
         placeholder = palette.color(QPalette.PlaceholderText).getRgb()[:3]

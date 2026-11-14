@@ -889,7 +889,7 @@ for mode in ('slate','shell','find','log'):
  word=bar.targets[mode];image=w.grab().toImage();x0,x1,_,_=ink_span(word,w);y=symmetry.box(word,w)[1]+word.height()-desk_qt.MARK
  yellow[mode]=[b_.text() for b_ in bar.targets.values() if image.pixel(sum(ink_span(b_,w)[:2])//2,symmetry.box(b_,w)[1]+b_.height()-1)==QColor(desk_qt.PENCIL).rgb()]
  assert yellow[mode]==[bar.labels[mode]],(mode,yellow[mode])
- assert box.placeholderText()=='poem' and box.accessibleDescription().startswith(typebar_qt.SHOWN.get(mode,bar.labels[mode]) if mode!='log' else 'Log · '),(mode,box.accessibleDescription())
+ assert box.placeholderText()=='prompt' and box.accessibleDescription().startswith(typebar_qt.SHOWN.get(mode,bar.labels[mode]) if mode!='log' else 'Log · '),(mode,box.accessibleDescription())
  strips.append(('%s: %s'%(bar.labels[mode],typebar_qt.TIPS[mode].split(': ',1)[1]),band_strip(mode)))
 assert bar.labels['shell']==typebar_qt.shell_label(typebar_qt.configured_shell()) and bar.labels['shell']==('Bash' if Path(typebar_qt.configured_shell()).name=='bash' else 'Shell'),bar.labels
 # D3-fix: the poem placeholder as drawn, legible on the line's paper (the review measured 2.42:1): its darkest pixel in the window
@@ -897,7 +897,7 @@ assert bar.labels['shell']==typebar_qt.shell_label(typebar_qt.configured_shell()
 bar.set_target('slate',focus=False);box.clear();w.tabs.setFocus();settle();poem_img=box.grab().toImage();rgb_of=lambda c:(c.red(),c.green(),c.blue())
 poem_paper=QColor(poem_img.pixel(3,poem_img.height()//2));poem_ink=min((QColor(poem_img.pixel(x,y)) for x in range(poem_img.width()//3) for y in range(poem_img.height())),key=lambda c:c.lightness())
 POEM=dict(paper=poem_paper.name(),ink=poem_ink.name(),contrast=round(desk_qt.contrast(rgb_of(poem_ink),rgb_of(poem_paper)),2),text=round(desk_qt.contrast(rgb_of(QColor(shell2.TEXT)),rgb_of(poem_paper)),2))
-assert box.placeholderText()=='poem' and 4.5<=POEM['contrast']<POEM['text'],POEM
+assert box.placeholderText()=='prompt' and 4.5<=POEM['contrast']<POEM['text'],POEM
 record('Graphite_Desk_D3_01_Writing_Line_Modes_1920x1200.png','The lower band at 1920 by 1200 in each of the writing line\'s four modes, Assignment · %s · Search · Log, the active one marked by the short pencil-yellow mark under its word (and only it, measured in the window\'s pixels); the flat writing line erased into the band with the light poem placeholder; Line · Half · Tall beside the cat. The Shell mode\'s word is %s because the configured shell is %s.'%(bar.labels['shell'],bar.labels['shell'],typebar_qt.configured_shell()),
  labelled_sheet(strips),'ACTUAL_QT_WINDOW_GRABS_CUT_AT_THE_LOWER_BAND')
 # Assignment: words to Graphite on Enter; typed staC runs only on Ctrl+Enter, through the staC target's own path
@@ -1063,7 +1063,7 @@ def cat_light():
   coat_on_lightest_grain=round(desk_qt.contrast(rgb(graphite_brand.CAT_COAT),desk_qt.tone(desk_qt.grain_report()['lightest_5_percent_offset'])),2))
 light=cat_light();D2_REPORT['cat_colours']=light
 assert light['coat_pixels']>=300 and light['coat_lightness']>light['brightest_elsewhere_in_the_band'] and light['coat_on_mean']>=9.0 and light['coat_on_mean']>light['lettering_on_mean'],light
-assert hatch.toolTip()==hatch.accessibleName()=='Open programs' and sym.accessibleName()=='System menu'
+assert hatch.toolTip()==hatch.accessibleName()=='Open apps' and sym.accessibleName()=='System menu'
 # the four poses inside the band, as the button draws them (each set at once, as Reduce motion does)
 strips=[];saved=cat.params;P=w.desk.pane;by=symmetry.box(w.type_dock,w)[1];bh=w.type_dock.height()
 for pose,word in (('rest','rest: paws down, tail tucked, graphite eyes'),('hover','hover: a side-glance in yellow, the tail a question mark'),('open','the list open: the tail dropped, the right paw lifted, yellow eyes up'),('sleepy','asleep after a while: settled lower, eyes closed, no yellow')):

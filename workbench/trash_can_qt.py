@@ -111,8 +111,13 @@ class TrashCan(QWidget):
         p = QPainter(self);p.setRenderHint(QPainter.Antialiasing);h = self.height();w = self.width();can, word, count = self.layout()
         if self.hover or self.hasFocus():  # the raised paper behind it, inside the box (no ink past the box)
             p.setPen(Qt.NoPen);p.setBrush(QColor(RAISED));p.drawRoundedRect(QRectF(0, 0, w, h), 6, 6)
-        draw_can(p, QRectF(can.x(), can.y(), self.can, self.can), full=self.count > 0, line=ERASER_MARK if self._dropping else None)
-        p.setFont(self.word_font);p.setPen(QColor(TEXT));p.drawText(word, 'Trash')
+        from . import boss_theme as _bt
+        red = _bt.RED if _bt.APPEARANCE == 'kasandra' else None      # 0.8.1 (Kasandra): the Trash can in red, the owner's experiment
+        if red and not self._dropping:      # a little of its own light under the red can, as the desk's glow
+            glow = QColor(red);glow.setAlphaF(min(0.35, 0.12 + 0.1 * _bt.glow()))
+            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):draw_can(p, QRectF(can.x() + dx, can.y() + dy, self.can, self.can), full=self.count > 0, line=glow.name(QColor.HexArgb))
+        draw_can(p, QRectF(can.x(), can.y(), self.can, self.can), full=self.count > 0, line=ERASER_MARK if self._dropping else red)
+        p.setFont(self.word_font);p.setPen(QColor(red or TEXT));p.drawText(word, 'Trash')
         if count is not None:p.setFont(self.count_font);p.setPen(QColor(QUIET));p.drawText(count, str(self.count))
 
     _dropping = False

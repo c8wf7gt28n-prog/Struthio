@@ -138,7 +138,7 @@ check('Import and Export are Work menu entries (the same transfers); Trash stays
 # 05 · the settings hierarchy from the switch and from the tree; V-24 filter passage
 nav.show_view('cabinet');settle();nav.settings.click();settle()
 assert nav.current_view()=='settings' and nav.settings.isChecked() and nav.tree.isVisible() and nav.tree.topLevelItemCount()>0 and type(w.tabs.currentWidget()).__name__=='SettingsTab'
-assert nav.filter.objectName()=='SettingsFilter' and nav.filter.placeholderText()=='poem' and not nav.filter.isVisible()
+assert nav.filter.objectName()=='SettingsFilter' and nav.filter.placeholderText()=='prompt' and not nav.filter.isVisible()
 w.console.output.clear();w.console.run_find('Interface text');found=w.console.output.toPlainText();assert 'SETTINGS · ' in found and 'reading.ui_pt' in found,found[:300]  # D1b: the filter's job is Find's
 capture('Ledger_Slate_HATCH_Desktop_01_Machine_03_Settings_With_Strip.png','Settings chosen from its tab: the settings hierarchy fills the left pane with its branch lines; finding a setting by its words is the writing line\'s Find (HATCH DESK D1b).')
 nav.machine.click();settle(60);settings_leaf=page.items['settings'];page.tree.setCurrentItem(settings_leaf);settle()

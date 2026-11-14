@@ -47,7 +47,7 @@ tab=explore_qt.show(w,'idea:'+idea['id']);settle()
 assert tab.property('ledgerRoom') and w.tabs.indexOf(editor)>=0 and editor.document().isModified()
 assert 'unsaved thought' in editor.toPlainText() and source.read_text()=='original = True\n'
 record('Explore opens as a Room and preserves an edited Preview and original file')
-assert tab.query.placeholderText()=='poem' and tab.query.accessibleName()=='Find capabilities, methods or registered operations'
+assert tab.query.placeholderText()=='prompt' and tab.query.accessibleName()=='Find capabilities, methods or registered operations'
 assert tab.model['context']['id']=='idea:'+idea['id'];assert [r['id'] for r in tab.model['suggestions']]==['documents','inquiries','calculate','laboratory']  # WORKSHOP-01: the page comes first for an idea
 record('Selected idea produces explained deterministic suggestions with poem as the writing invitation')
 select(tab,'instrument:calculate');capture('Ledger_Slate_HATCH_Explore_01_Workshop.png')

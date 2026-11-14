@@ -22,7 +22,7 @@ from .field_model import Field
 from .field_qt import FieldView
 from .field_source import problems, read_field, read_network, read_programs
 
-FACES = (('work', 'w'), ('programs', 'p'), ('network', 'n'))     # the faces of the Field and the key that shows each
+FACES = (('work', 'w'), ('programs', 'p'), ('network', 'n'))     # the programs face is shown as APPS (0.8.1; field_qt.FACE_WORDS)     # the faces of the Field and the key that shows each
 
 
 class FieldPage(QWidget):

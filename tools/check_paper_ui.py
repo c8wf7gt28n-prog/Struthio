@@ -139,9 +139,9 @@ captures.append(dict(file=target.name,note='The Jot it down sheet (Hatch New Ide
 dialog.reject();settle()
 # Home's Jot it down sheet is the same CaptureBox (detached workspaces only; this check attaches a project for the hardware editor).
 desk=project_desk_qt.show(w);settle();passage_colours(desk.project_title,'project_desk_title')
-assert desk.project_title.objectName()=='ProjectTitle' and desk.project_title.placeholderText()=='poem'
+assert desk.project_title.objectName()=='ProjectTitle' and desk.project_title.placeholderText()=='prompt'
 calc=desk.problem_pane.calculator
-assert all(f.placeholderText()=='poem' for f in (calc.expression,calc.assumptions,calc.start,calc.stop)) and calc.examples.accessibleName() and calc.backend.accessibleName()
+assert all(f.placeholderText()=='prompt' for f in (calc.expression,calc.assumptions,calc.start,calc.stop)) and calc.examples.accessibleName() and calc.backend.accessibleName()
 capture('Ledger_Slate_HATCH_Desktop_01_Paper_04_Project_Desk_1920.png','Project Desk (Hatch New Project): the title line is a yellow passage; the heading words sit on their own row.')
 assert 'QPlainTextEdit#SlateInput' in __import__('workbench.theme2',fromlist=['QSS2']).QSS2.split('Writable passages')[1]
 check('The cabinet title and writing, the New Idea sheet and the Project Desk title are yellow passages with no box border, visible eraser-pink selection and the poem hint; the Slate composer and Home sheet share the theme rule')

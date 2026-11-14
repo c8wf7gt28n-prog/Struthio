@@ -45,7 +45,7 @@ check('Five genuine memory settings appear under Slate / Memory; missing profile
 seed=RUN/'owner-reference.json';seed.write_text(json.dumps(dict(schema='arc.stacy.owner_personality_seed/1',name='Owner fixture',version='1',
  stacy_expression=dict(default_character='Keep questions curious and evidence explicit.',inherit_from_ryan=[],retain_independently=[]))))
 original=call('memory.profile.import',{'path':str(seed)});tab=show(weight)
-assert tab.editors.currentWidget() is tab.string and tab.string.placeholderText()=='poem'
+assert tab.editors.currentWidget() is tab.string and tab.string.placeholderText()=='prompt'
 assert tab.string.text()=='2.0' or tab.string.text()=='2'
 check('Existing profile values are read directly and numeric writing uses a precise poem passage')
 tab.string.setText('3.125');apply(tab)

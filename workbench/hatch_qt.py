@@ -19,7 +19,7 @@ from PySide6.QtWidgets import QApplication, QToolButton
 from .service_lifecycle_qt import LedgerLifecycle
 from .session_power import LEAVE, session_exit  # noqa: F401 (the leave words, for older callers)
 
-CHOICES = 'Programs and capabilities, A to Z · Explore the workshop'
+CHOICES = 'Apps and capabilities, A to Z · Explore the workshop'
 SERVICES_MENU = 'Graphite services'  # the services' place is the System menu now; the word is kept for callers
 ORDER = ('programs A to Z', '—', 'Explore the workshop')  # the list's order, for readers and checks (programs_qt.order())
 
@@ -39,7 +39,7 @@ class HatchButton(LauncherKeys, QToolButton):
     its ground in its tile, the tile centred in the band's height, placed by its drawing at rest (typebar_qt.TypeBar.place_cat,
     cat_x). Keyboard behaviour: LauncherKeys (a keyboard opening starts at the first row), and in the list Up, Down, Home, End,
     Escape, F1 and type-to-select (programs_qt.DeskMenu)."""
-    NAME = 'Open programs'
+    NAME = 'Open apps'
 
     def __init__(self, host):
         super().__init__();self.host = host

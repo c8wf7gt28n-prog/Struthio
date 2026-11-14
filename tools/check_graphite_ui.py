@@ -114,9 +114,9 @@ check('02 The head\'s mark is the sharpened point drawn pale on the band at the 
 # 03 · the cat: unlabeled, Open programs (D2) -------------------------------------------------------------------------------------------
 iface=QAccessible.queryAccessibleInterface(hatch)
 assert hatch.text()=='' and hatch.toolButtonStyle()==Qt.ToolButtonIconOnly and hatch.icon().isNull(),'unlabeled: no word and no picture, the cat is painted'
-assert hatch.accessibleName()==hatch.toolTip()=='Open programs' and iface.text(QAccessible.Name)=='Open programs' and F1_NOTE in hatch.accessibleDescription()
+assert hatch.accessibleName()==hatch.toolTip()=='Open apps' and iface.text(QAccessible.Name)=='Open apps' and F1_NOTE in hatch.accessibleDescription()
 hatch.refresh();settle()  # a lifecycle render (as every opening runs one): the choices stay in the accessible description
-assert hatch.accessibleDescription()==hatch.lifecycle.state['summary']+' · '+CHOICES+' · '+F1_NOTE and hatch.toolTip()=='Open programs',hatch.accessibleDescription()
+assert hatch.accessibleDescription()==hatch.lifecycle.state['summary']+' · '+CHOICES+' · '+F1_NOTE and hatch.toolTip()=='Open apps',hatch.accessibleDescription()
 assert hatch.iconSize()==QSize(*typebar_qt.cat_tile(1.0)) and hatch.iconSize().height()==typebar_qt.hatch_icon_px(1.0)==44
 def cat_left():  # D1-fix: the cat is placed by its drawing at rest (graphite_brand.cat_ink in its tile), not by its button's box;
  # the integration of D2 and D3: by its pale coat (outline=False), what the band shows

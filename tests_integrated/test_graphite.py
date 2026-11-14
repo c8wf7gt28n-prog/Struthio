@@ -330,7 +330,7 @@ class RenameGuardTests(unittest.TestCase):
         from workbench import version,hatch_qt,typebar_qt,desktop_header_qt
         self.assertEqual((version.NAME,version.SHORT,version.title()),('Graphite','0.1','Graphite 0.1'))
         self.assertEqual(typebar_qt.TARGETS[0],('slate','Assignment'),'the first mode is Assignment (D3; the one who answers stays Graphite); its key stays slate')
-        self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open programs','Graphite services'))  # HATCH DESK D2: the cat opens the programs list
+        self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open apps','Graphite services'))  # HATCH DESK D2: the cat opens the programs list
         self.assertEqual(desktop_header_qt.SlateSwitch.__name__,'SlateSwitch','class names are internal and stay')
 
     def test_settings_speak_graphite_and_show_workspace_and_assistant(self):

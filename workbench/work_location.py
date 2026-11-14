@@ -75,7 +75,7 @@ def navigate(host, address):
                 if host.tabs.widget(index).property('ledgerKey') == ident:
                     host._close_start();host.tabs.setCurrentIndex(index)
                     return host.tabs.widget(index)
-            raise ValueError('That working view is no longer open. Choose it in Programs.')
+            raise ValueError('That working view is no longer open. Choose it in Apps.')
         raise ValueError('That Graphite address is not supported.')
     if text.startswith('file:'):
         parsed = urlsplit(text)

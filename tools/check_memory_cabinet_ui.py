@@ -54,7 +54,7 @@ assert 'Owner direction kept' in room.body.toPlainText() and 'actual context sel
 assert room.direction_editor.begin.isEnabled();QTest.mouseClick(room.direction_editor.begin,Qt.LeftButton);settle()
 ed=room.direction_editor;new_words='Separate assumptions, source statements and measured results.'
 ed.writing.setPlainText(new_words);ed.reason.setText('Make the evidence distinction explicit.')
-assert ed.writing.placeholderText()==ed.reason.placeholderText()=='poem'
+assert ed.writing.placeholderText()==ed.reason.placeholderText()=='prompt'
 room.scroll.ensureWidgetVisible(ed.writing);capture('Ledger_Slate_HATCH_Memory_01_Direction.png')
 check('Direction editing shows origin and context, uses poem passages, and requires a reason for the correction')
 save_correction(room);new_id=room.data['record']['id'];assert new_id!=first['id'] and room.current=='memory:feedback:'+new_id

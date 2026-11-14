@@ -200,7 +200,7 @@ class Field:
             kind = kinds.pop()
             return {'source': 'MATERIAL', 'folder': 'MATERIAL', 'sheet': 'TABLES', 'calculation': 'CALCULATIONS', 'document': 'PAGES',
                     'finding': 'FINDINGS', 'question': 'OPEN', 'condition': 'OPEN', 'method': 'METHODS', 'job': 'WORK',
-                    'interface': 'THIS COMPUTER', 'program': 'PROGRAMS', 'endpoint': 'ELSEWHERE'}.get(kind, str(kind).upper())
+                    'interface': 'THIS COMPUTER', 'program': 'APPS', 'endpoint': 'ELSEWHERE'}.get(kind, str(kind).upper())
         return RANK_TITLE[min(rank, len(RANK_TITLE) - 1)]
 
     # ---- selection -------------------------------------------------------------------------------------------------
