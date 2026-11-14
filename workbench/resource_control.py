@@ -91,7 +91,8 @@ def request(job,priority=None):
     handover=tool in ('brain.activate','brain.qualify')
     if handover:
         options=(job.get('brain_launch') or {}).get('options') or spec.get('brain',{})
-        budget=options.get('memory_mb',1024)*MIB;lane='inference';basis='FROZEN_MODEL_MEMORY_BUDGET'
+        headroom=(job.get('brain_launch') or {}).get('auto_headroom_mb') or 0      # Auto's headroom stays with its budget
+        budget=(options.get('memory_mb',1024)+headroom)*MIB;lane='inference';basis='FROZEN_MODEL_MEMORY_BUDGET'
     elif tool in local_brain.JOB_TOOLS and tool!='brain.inspect':
         lane='inference';budget=128*MIB;basis='MODEL_TURN_OVERHEAD_MODEL_BUDGET_ACCOUNTED_SEPARATELY'
         if tool=='brain.change_draft':budget=max(budget,spec.get('brain',{}).get('memory_mb',1024)*MIB)
@@ -281,14 +282,31 @@ def claim(kernel,ident):
         time.sleep(.4)
 
 
+LAUNCH_WAIT=8.0     # seconds a launch waits after a handover for the stopped model's memory to come back
+
+
 def model_room(kernel,config,ident):
     from .brain_runtime import host
     with kernel.db() as db:view=_view(kernel,db,host(),ident)
     # budget_room, as at admission; the previous worker has stopped by now, so no handover credit is left to add.
-    if view['available_bytes'] is None or config['memory_mb']*MIB>budget_room(
+    # Auto's headroom (config['headroom_mb']) is kept with its budget here too, as at admission.
+    if view['available_bytes'] is None or (config['memory_mb']+(config.get('headroom_mb') or 0))*MIB>budget_room(
             view['available_bytes'],view['policy']['reserve_bytes'],view['reserved_future_bytes']):
         raise ValueError('GRAPHITE_HOST_MEMORY_LIMIT: model launch no longer has admitted shared-memory headroom')
     return view['policy']
+
+
+def await_room(kernel,config,ident,seconds=None,check=None):
+    """After a sequential handover stops the old worker, its memory comes back over a moment, not at the instant the
+    process ends. Wait for the launch room (model_room), bounded, rather than refuse a launch admission allowed and lose
+    the previous model with it. `check` (local_brain.check_job) is asked each round, so a cancel still ends the wait."""
+    end=time.monotonic()+(LAUNCH_WAIT if seconds is None else seconds)
+    while True:
+        if check is not None:check()
+        try:return model_room(kernel,config,ident)
+        except ValueError:
+            if time.monotonic()>=end:raise
+            time.sleep(.25)
 
 
 def background_reason(kernel):

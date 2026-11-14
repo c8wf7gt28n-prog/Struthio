@@ -860,9 +860,10 @@ CASES = [
     _case('R05', 5, '60 GiB available: Auto cap 32,768 MiB (the ceiling), admitted', r05, {
         'estimate_bytes': ESTIMATE, 'cap_mb': 32768, 'submit': 'ACCEPTED', 'frozen_memory_mb': 32768, 'admitted': True,
         'headroom_gib': 58.0, 'requested_mib': 32768, 'reserve_mib': 2048}, inputs={'available_gib': 60}),
-    _case('R06', 6, '40 GiB available: Auto cap 26,624 MiB (65% of available), admitted', r06, {
+    _case('R06', 6, '40 GiB available: Auto cap 26,624 MiB (65% of available), admitted; admission asks for 30,109 MiB, '
+                    'the estimate with Auto\'s 4,096 MiB headroom, which stays with the budget after submit', r06, {
         'estimate_bytes': ESTIMATE, 'cap_mb': 26624, 'submit': 'ACCEPTED', 'frozen_memory_mb': 26624, 'admitted': True,
-        'headroom_gib': 38.0, 'requested_mib': 26624, 'reserve_mib': 2048}, inputs={'available_gib': 40}),
+        'headroom_gib': 38.0, 'requested_mib': 30109, 'reserve_mib': 2048}, inputs={'available_gib': 40}),
     _case('R07', 7, '39 GiB available: Auto accepts at the estimate (26,013 MiB), and a manual cap is admitted', r07, {
         'estimate_bytes': ESTIMATE, 'auto_cap_mb': 26013, 'auto_submit': 'ACCEPTED', 'auto_frozen_memory_mb': 26013,
         'auto_admitted': True, 'auto_headroom_gib': 37.0,

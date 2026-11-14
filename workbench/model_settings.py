@@ -34,8 +34,14 @@ def freeze_launch(kernel,value,supplied,db=None):
     from .resource_control import reclaimable,reserve_setting
     config=brain.configuration(value,options,kernel.root,reclaimable(kernel,db),reserve_setting(kernel,db))
     resolved={**options,**{key:config[key] for key in ('context','threads','memory_mb')},'model_id':value['id']}
-    return dict(schema='arc.brain-launch-settings/1',options=resolved,saved_defaults=saved,
+    frozen=dict(schema='arc.brain-launch-settings/1',options=resolved,saved_defaults=saved,
                 basis='SAVED_DEFAULTS_WITH_EXPLICIT_REQUEST_OVERRIDES')
+    # Auto chose the budget after checking that its estimate and AUTO_HEADROOM_MB fit. That stays with the frozen budget to
+    # admission and launch: what each needs is the larger of the budget and the estimate with its headroom.
+    if not options.get('memory_mb'):
+        need=-(-int(config['estimated_peak_bytes'])//(1024*1024))
+        frozen['auto_headroom_mb']=max(0,need+brain.AUTO_HEADROOM_MB-config['memory_mb'])
+    return frozen
 
 
 def job_options(job):

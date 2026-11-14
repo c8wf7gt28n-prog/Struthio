@@ -150,6 +150,51 @@ class OneRule(Workspace):
         self.assertEqual(local_brain.status(self.kernel)['state'], 'READY')
 
 
+class Margins(Workspace):
+    """The verifier's two findings on the first fix: Auto's headroom was kept only at submit, and a handover near the limit
+    could stop the old model, find its memory not yet back, and lose it."""
+
+    def test_autos_headroom_stays_with_its_budget_at_admission_and_launch(self):
+        self.host.available = 39
+        r = self.use(self.model, 'auto-39', {'backend': 'CPU'})
+        self.assertTrue(r['ok'], r)
+        job = r['result']
+        self.assertEqual((job['brain_launch']['options']['memory_mb'], job['brain_launch']['auto_headroom_mb']), (26013, 4096))
+        config = {'memory_mb': 26013, 'headroom_mb': 4096}
+        for available_mib, fits in ((32156, False), (32157, True)):      # 26,013 + 4,096 headroom + 2,048 reserve
+            self.host.available = available_mib / 1024
+            with self.kernel.db() as db:
+                admitted = resource_control.decision(self.kernel, job, db, brain_runtime.host())['allowed']
+            try:
+                resource_control.model_room(self.kernel, config, job['id'])
+                launches = True
+            except ValueError:
+                launches = False
+            self.assertEqual((admitted, launches), (fits, fits), available_mib)
+        self.host.available = 60                                          # the ceiling leaves room above the estimate already
+        r = self.use(self.model, 'auto-60', {'backend': 'CPU'})
+        self.assertEqual((r['result']['brain_launch']['options']['memory_mb'], r['result']['brain_launch']['auto_headroom_mb']), (32768, 0))
+
+    def test_a_handover_waits_for_the_stopped_models_memory_and_a_cancel_ends_the_wait(self):
+        tries = []
+        def room(kernel, config, ident):
+            tries.append(ident)
+            if len(tries) < 3:
+                raise ValueError('GRAPHITE_HOST_MEMORY_LIMIT: model launch no longer has admitted shared-memory headroom')
+            return {'reserve_bytes': 0}
+        with patch.object(resource_control, 'model_room', side_effect=room):
+            self.assertEqual(resource_control.await_room(self.kernel, {'memory_mb': 1}, 'j'), {'reserve_bytes': 0})
+        self.assertEqual(len(tries), 3)
+        def cancelled():
+            raise ValueError('MODEL_OPERATION_CANCELLED')
+        never = ValueError('GRAPHITE_HOST_MEMORY_LIMIT: model launch no longer has admitted shared-memory headroom')
+        with patch.object(resource_control, 'model_room', side_effect=never):
+            with self.assertRaisesRegex(ValueError, 'MODEL_OPERATION_CANCELLED'):
+                resource_control.await_room(self.kernel, {'memory_mb': 1}, 'j', check=cancelled)
+            with self.assertRaisesRegex(ValueError, 'no longer has admitted'):      # bounded: it gives up and says why
+                resource_control.await_room(self.kernel, {'memory_mb': 1}, 'j', seconds=1)
+
+
 class Unmeasured(Workspace):
     def test_unknown_installed_ram_keeps_the_full_reserve(self):
         self.assertEqual(resource_control.reserve_bytes(2048, None), 2048 * MiB)

@@ -207,10 +207,12 @@ def _mib(value):
     return '{:,} MiB'.format(value)
 
 
-def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=None):
+def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=None,headroom_mb=0):
     """The launch plan for a registered model, or a refusal that says which check failed and with what numbers.
 
-    reserve_mb is the owner's foreground reserve setting (resource_control.reserve_setting); None means the default."""
+    reserve_mb is the owner's foreground reserve setting (resource_control.reserve_setting); None means the default.
+    headroom_mb: what Auto's frozen budget needs above itself so that its estimate and AUTO_HEADROOM_MB still fit
+    (model_settings.freeze_launch); 0 for a cap the owner set."""
     options=options or {};host=brain_runtime.host();metadata=value['inspection']['metadata'];architecture=value['inspection']['architecture']
     if value['role']!='chat':raise ValueError('This release qualifies conversational models. Embedding/vision roles remain separately registered, unqualified profiles.')
     if value['inspection']['architecture_profile']!='SUPPORTED_FOR_TRIAL':raise ValueError('MODEL_ARCHITECTURE_NOT_IN_SUPPORTED_PROFILE')
@@ -246,6 +248,11 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
         raise ValueError('MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM: the %s cap and the %s foreground reserve need %s; '
                          '%s is available' % (_mib(memory_mb),_mib(reserve//MIB),_mib(memory_mb+reserve//MIB),
                                               _mib((available+credit)//MIB)))
+    if headroom_mb and (memory_mb+headroom_mb)*MIB>room:
+        raise ValueError('MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM: Auto needs %s available for this model at %s tokens (its '
+                         '%s estimate, the %s foreground reserve and %s headroom); %s is available' % (
+                             _mib(memory_mb+headroom_mb+reserve//MIB),'{:,}'.format(context),_mib(need),_mib(reserve//MIB),
+                             _mib(AUTO_HEADROOM_MB),_mib((available+credit)//MIB)))
     if estimate>memory_mb*MIB:
         raise ValueError('MODEL_MEMORY_BUDGET_TOO_SMALL: the %s cap is below this model\'s %s estimate at %s tokens' % (
             _mib(memory_mb),_mib(need),'{:,}'.format(context)))
@@ -263,7 +270,8 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
     return {'context':context,'threads':options.get('threads',min(4,host['logical_cpus'] or 1)),'weight_loading':'RESIDENT_COPY',
             'memory_mb':memory_mb,'estimated_peak_bytes':estimate,'estimated_kv_bytes':kv_bytes,'backend':backend,
             'requested_backend':requested,'gpu_layers':layers,'cpu_fallback':fallback,'fallback_reason':reason,
-            'host':host,'reclaimable_private_bytes':reclaimable_bytes,'resource_guard':resource_guard(backend)}
+            'host':host,'reclaimable_private_bytes':reclaimable_bytes,'resource_guard':resource_guard(backend),
+            **({'headroom_mb':headroom_mb} if headroom_mb else {})}
 
 def acceleration(kernel):
     from .inference_hardware import RUNTIME_PACKAGES,BUILD_PACKAGES
@@ -496,8 +504,9 @@ def checkpoint(kernel,ident,previous):
 def run_model_job(kernel,job):
     from .model_settings import job_options
     ident=job['id'];check_job(kernel,ident);options=job_options(job);value=model(kernel,options['model_id'])
-    from .resource_control import reclaimable,reserve_setting
-    config=configuration(value,options,kernel.root,reclaimable(kernel),reserve_setting(kernel));control_claim(kernel,ident)
+    from .resource_control import await_room,reclaimable,reserve_setting
+    headroom=(job.get('brain_launch') or {}).get('auto_headroom_mb') or 0
+    config=configuration(value,options,kernel.root,reclaimable(kernel),reserve_setting(kernel),headroom);control_claim(kernel,ident)
     previous=get(kernel,'selection',{});old_worker=get(kernel,'worker',{});was_live=worker_live(old_worker)
     trial=None;allow_recovery=True
     try:
@@ -506,7 +515,9 @@ def run_model_job(kernel,job):
         for other in active_jobs(kernel):
             if other['id']!=ident and other['tool'] in REPLY_TOOLS and other['state'] in ('Queued','Running'):
                 raise ValueError('Finish or stop the current local reply before changing models')
-        if was_live:terminate(kernel,old_worker,'SEQUENTIAL_HANDOVER')
+        if was_live:
+            terminate(kernel,old_worker,'SEQUENTIAL_HANDOVER')
+            await_room(kernel,config,ident,check=lambda:check_job(kernel,ident))      # its memory comes back over a moment
         trial=start_server(kernel,value,config,ident)
         config=trial['config']
         try:sample=completion(trial,[{'role':'user','content':'Reply with the word ready.'}],8)
@@ -543,8 +554,11 @@ def run_model_job(kernel,job):
         if job['tool']=='brain.activate':trial=None
         return result
     except BaseException as exc:
-        if 'GRAPHITE_HOST_MEMORY_LIMIT' in str(exc):
+        # A refusal before anything started (the launch check) leaves the previous model to be restored; restoring goes
+        # through the same check, so it is refused in turn when there is no room. A worker stopped by the guard does not.
+        if 'GRAPHITE_HOST_MEMORY_LIMIT' in str(exc) and 'model launch no longer has admitted' not in str(exc):
             allow_recovery=False
+        if 'GRAPHITE_HOST_MEMORY_LIMIT' in str(exc):
             # A failed handover clears both worker slots and with them the log status() reads; keep why it stopped.
             put(kernel,'resource_stop',{'job_id':ident,'model_id':value['id'],'at':time.time()},'MEMORY_GUARD_STOP')
         raise

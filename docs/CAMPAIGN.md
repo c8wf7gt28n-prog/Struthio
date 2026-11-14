@@ -121,11 +121,15 @@ behaviour:
 - **Auto** (R05 to R08): Auto takes a model when its estimate, the foreground reserve and 4 GiB of headroom fit in
   what is available, and budgets 65% of available, never below the estimate nor above 32,768 MiB. Your model at
   4,096 context needs 26,013 + 2,048 + 4,096 = 32,157 MiB (31.40 GiB) available, so 60, 40 and 39 GiB are
-  accepted and 30 GiB is refused; a refusal says those numbers.
+  accepted and 30 GiB is refused; a refusal says those numbers. The headroom stays with the budget after submit:
+  admission and launch ask for the larger of the budget and the estimate with its headroom (30,109 MiB at 39 and
+  40 GiB, the budget alone at 60 GiB), so availability that falls after submit makes the model wait, not launch
+  with 2 GiB to spare.
 - **One rule** (R15): admission, the model's configuration and the launch check all ask whether the budget fits in
   what is available less the reserve and the growth already promised to other work, so a model admitted is not
   refused at launch for the same numbers. A manual cap follows the same rule; the old limit of 80% of available
-  is gone.
+  is gone. In a handover the launch waits up to 8 s for the stopped model's memory to come back; if it does not,
+  nothing has started, so the previous model is restored when there is room for it.
 - **Unmeasured memory** (R09): when installed RAM cannot be read the full 2 GiB reserve stays, and a request whose
   reading is lost after submit fails after 30 s, saying why.
 - **Ready** (R19): a restored model whose reply is empty is not Ready, and a worker that gives less context than
