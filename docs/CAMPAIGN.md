@@ -11,7 +11,7 @@ Run these from the Graphite program folder.
 
 ```bash
 python3 tools/campaign.py list                      # every case, its set, and what it needs, checked now
-python3 tools/campaign.py list --set resource       # just one set: resource, anchors, all, selftest, real
+python3 tools/campaign.py list --set resource       # just one set: resource, anchors, all, selftest, real, scenes
 python3 tools/campaign.py run --case R07            # one case
 python3 tools/campaign.py run --set resource        # a batch
 python3 tools/campaign.py run --set all --attempts 2 --out ~/Graphite_Campaign/runs/today
@@ -82,6 +82,33 @@ A fresh process then reopens the workspace and reads every one of those back, wi
 here, so the operations the assistant would choose are scripted, and the result says so. Which steps would wait
 for your approval is read from the assistant's policy table for the steps Graphite offers. No approval is pressed:
 in the window it is your Run, and the run grants it for you.
+
+## The playable scene (0.8.2)
+
+```bash
+python3 tools/campaign.py run --set scenes --out ~/Graphite_Campaign/runs/scene
+```
+
+The `scenes` set plays P01 (`tools/campaign_lib/data/scenes/P01.json`) on a live Graphite window on your After
+Hours 07 backup, with no model. Every step is a desk act, the same acts you can type in the writing line
+(`/help acts` lists them):
+
+1. open Tools across the head, then close it;
+2. write `07 Bench readings.csv` through Stacy's hand (one card, one line in her trail, one Undo);
+3. go to Files, right-click the CSV, choose Then, keep the rows where unit is mA, count them, and put the line in
+   the writing line;
+4. go to the Field, see the whole desk, select 07 Bench readings and trace it (two hops, to 07 Settled power and
+   07 Startup power);
+5. select 07 Limits Rev B CURRENT, compare it with Rev A (Pulse ceiling and Pulse duration changed), and close the
+   comparison;
+6. Undo, which takes the CSV back.
+
+Each step's result is checked against what the window then reads back. The scene is played four times: by pointer
+(P01a), by keys (P01b), and each again with Reduce motion on (P01c, P01d). A step that would wait for your Approve,
+or open a window that asks, fails unless the scene says it should. The window is the size the scene gives
+(1920×1200). P01 plays in the appearance Graphite starts in, which is Graphite in a campaign's fresh profile; for
+Kasandra, start the run with `GRAPHITE_APPEARANCE=kasandra` in front of the command. A scene that names an appearance
+says Blocked in the other one.
 
 ## Reading the results
 

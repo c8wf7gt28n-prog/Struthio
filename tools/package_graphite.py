@@ -36,11 +36,11 @@ EXCLUDED_PARTS = ('.ledger', '.venv', '__pycache__', '.pytest_cache', '.git', '.
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 0.8.1: the right-click is short and chains: the thing with its glyph, up to four usual actions, Then (the thing\'s '
-        'line read once, each step shown with what it gives) or Start from, and More in named groups; Stop asks first; nothing scrolls '
-        'and no key is printed. The model\'s memory rules are decided for the 35B (docs/CAMPAIGN.md). Kasandra is a second appearance '
-        'beside Graphite (Rules, Desk artwork, Appearance). Apps shows what is installed. Free software under the GNU GPL version 2 '
-        'only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.')
+NOTE = ('Graphite 0.8.2: the desk can be driven by name: forty desk acts, each done on the window as a hand would, typed in the '
+        'writing line by name (/help acts); the playable scene on After Hours 07 (tools/campaign.py run --set scenes, '
+        'docs/CAMPAIGN.md). After hours: Trace crystallizes along the wires, menus catch as they open, REV A / REV B. In Kasandra '
+        'her typewriter face across the window and Apps as the kp mark. Free software under the GNU GPL version 2 only (COPYING, '
+        'RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.')
 
 
 

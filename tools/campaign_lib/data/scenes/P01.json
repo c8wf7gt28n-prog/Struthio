@@ -4,7 +4,7 @@
  "title": "After Hours 07, the playable scene",
  "intent": "The owner's playable scene: open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace 07 Bench readings; compare the two revisions of the limits. Every step is a desk act, played by pointer and by keys, and with less motion.",
  "seed": "after_hours_07",
- "given": {"size": [1920, 1200], "appearance": "graphite", "dial": "show"},
+ "given": {"size": [1920, 1200], "dial": "show"},
  "runs": [
   {"name": "mouse", "style": "pointer"},
   {"name": "keys", "style": "keys"},

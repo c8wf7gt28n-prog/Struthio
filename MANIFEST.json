@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "package_profile": "runtime",
-  "note": "Graphite 0.8.1: the right-click is short and chains: the thing with its glyph, up to four usual actions, Then (the thing's line read once, each step shown with what it gives) or Start from, and More in named groups; Stop asks first; nothing scrolls and no key is printed. The model's memory rules are decided for the 35B (docs/CAMPAIGN.md). Kasandra is a second appearance beside Graphite (Rules, Desk artwork, Appearance). Apps shows what is installed. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 0.8.2: the desk can be driven by name: forty desk acts, each done on the window as a hand would, typed in the writing line by name (/help acts); the playable scene on After Hours 07 (tools/campaign.py run --set scenes, docs/CAMPAIGN.md). After hours: Trace crystallizes along the wires, menus catch as they open, REV A / REV B. In Kasandra her typewriter face across the window and Apps as the kp mark. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 17568,
-      "sha256": "de79f0f70e317f7f08fa55f5a477d1f0754dc815de2372baa3282737807e4408"
+      "bytes": 17555,
+      "sha256": "ccb2e36fcd958885e73c8da5d7ae3db637f534612e151bfe0e22f019c381afa9"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 35038,
-      "sha256": "888435222ee928700d8499dc44fbc6786b1e8fd6135286c4232d329e1480fd36"
+      "bytes": 36830,
+      "sha256": "1a34b9d2b5288ff3e3508949164dcd8f7ad16cbee129a41e6727efb7896dc796"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -1190,16 +1190,16 @@
       "sha256": "7590cb862213f05429e6d7cc190eedbecca2a35a27f8e13f3b7ed7344933fc73"
     },
     "docs/CAMPAIGN.md": {
-      "bytes": 10855,
-      "sha256": "32eb82828daf615f076d5e89144be10708d50d4b1a771053c259bdca951bbdc6"
+      "bytes": 12413,
+      "sha256": "6ae7646aca96cec0580c3769623498189aaefa89a4a9259d3a5e9629ca1ad0c6"
     },
     "docs/CONTINUE_01.md": {
       "bytes": 10775,
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 34639,
-      "sha256": "6d971d4f5dc6766a4f1af94c9cac86d455d261323df682f0044c7f06d079044e"
+      "bytes": 34670,
+      "sha256": "8e686086e2dd2f9d20569ed4cce29f80301f180060ee0f28b294dac49fb7ae78"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1259,7 +1259,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 280113,
-      "sha256": "f7aabeec84a06aac44cff7129c5b581ad14a2324170c01f25ac85e95fe864402"
+      "sha256": "0a5b80df773e40c764e56818ef78206827c9c7464bca3654de8eafb66938c294"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12513,
@@ -1658,8 +1658,8 @@
       "sha256": "67ce9d396d0ca78e7a16ae1463acaf10ed25a31c5a34c05ac3c5ab15458f1f64"
     },
     "docs/RELEASE_NOTES_0.8.2.md": {
-      "bytes": 3575,
-      "sha256": "2935e23b11c2939256d05c82b3d009936e2f95583cc65f42fdfd864089758a43"
+      "bytes": 9013,
+      "sha256": "a5566a163e1be132c1aa66fcf1ed928a9f005cd28a1196e090dccab2516ae128"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -1771,7 +1771,7 @@
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
       "bytes": 8826,
-      "sha256": "5797ea9dce0c4c671d7671da35309fdbfd48be27045f746ac2ad270ec419b1dc"
+      "sha256": "808e69b263b05de73e1021e21b5ab3ce26de4f3cb4b0e8b659c9528d8814d61f"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -2178,16 +2178,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1908794,
-      "sha256": "16c518fb61d29cc66dd883dc2b21a3c9bc1aeff30bbdb43a18203ca0f1535ff9"
+      "bytes": 1908812,
+      "sha256": "2bd26e5a95e95546532a99d7767f36fd4c1f9c0bf007b2d6ccfe573e82951790"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4358144,
-      "sha256": "e5825dcc8b0a5512d5b132a23bbc182e67a5fd98c022403aae44822ca304b1d0"
+      "sha256": "db06c415ac17774537b50e98ef1cb44c1ab9f9f359e96a7a57d1936bfb15c6c9"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "129f25da0cbd604697787db34208478dfc729939e77f290d3e1e46f393671209"
+      "sha256": "f3a83066393334916fa1149d843f531efa9c36612841e6aa5bd3a1e6fe2c3e5e"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2830,8 +2830,8 @@
       "sha256": "d23c7e79d9f732b61849adf73a5cb42381931f363791eb65f38aae6bc753a692"
     },
     "tools/campaign_lib/cases_scene.py": {
-      "bytes": 6962,
-      "sha256": "4b05623fe1caa748f58a415c3271a38dca2cc4871ea107d7d6b8c769cc36c949"
+      "bytes": 7094,
+      "sha256": "149d9ed0c06a0a42b070d8c0af2e8b6802f2d05ad38299ab39d7a10177b657f8"
     },
     "tools/campaign_lib/core.py": {
       "bytes": 11666,
@@ -2842,8 +2842,8 @@
       "sha256": "cb288f68e99cdbdf9ba2ad2fa88557fc250080c69ace24b56bc9ac449521dec3"
     },
     "tools/campaign_lib/data/scenes/P01.json": {
-      "bytes": 4258,
-      "sha256": "1af92a2e83b37d7b6290d0a27b35d754e1bd605b0a59098d2519ea0696999dba"
+      "bytes": 4232,
+      "sha256": "8bd76950505622443ef70b8b9d7e68398825344c84199646a8029ec5f6445da3"
     },
     "tools/campaign_lib/data/situations_35.json": {
       "bytes": 17476,
@@ -3014,8 +3014,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/package_graphite.py": {
-      "bytes": 10655,
-      "sha256": "a0aed9133854799ebd346f8d2c371489a9fcb0e35bf0681114c26f58fb7ccc75"
+      "bytes": 10611,
+      "sha256": "80b660b425a5916eea596581d0b3d9c23d3b396d58e7bab3ce2c6a4ef5fd95cd"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -5038,8 +5038,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 13207,
-      "sha256": "868c8e065a14f55ce081844939b49b69603fe77d513bd1594626f7b16f80817a"
+      "bytes": 13950,
+      "sha256": "2e5e87e157ac998d14c335352386a4738dcb2fd5e07d22bd8fc2b61ef2b613a2"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -5170,5 +5170,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "0.8.1"
+  "graphite_release": "0.8.2"
 }

@@ -79,7 +79,8 @@ def run_case(ctx):
                 patch.object(os, 'system', side_effect=AssertionError('No shell command')),
                 patch.object(QProcess, 'startDetached', side_effect=AssertionError('No detached program'))]
         for hold in late:hold.start()
-        w.resize(1920, 1200);w.show()
+        width, height = (scene.get('given') or {}).get('size') or (1920, 1200)      # the scene's own window, as given
+        w.resize(int(width), int(height));w.show()
 
         def settle(ms=30):
             for name in ('agenda_runner', 'study_idle'):
