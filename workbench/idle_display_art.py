@@ -190,6 +190,16 @@ class IdleDisplayArt:
         target = QRectF(855, 189, 532, 380)
         painter.setFont(self._label)
         tape = 24.0 <= seconds % 43.0 < 26.5
+        from . import boss_theme
+        if boss_theme.APPEARANCE == 'kasandra':      # 0.8.0: her office, dusk and rain in turn, in place of the workshop plate
+            from . import kasandra_art
+            base = self.folder.parent / 'kasandra';scene = kasandra_art.choose(base, 'office_banner', 'idle', int(seconds // 43.0))
+            _text(painter, 857, 178, '03 / THE OFFICE', _PAPER);painter.fillRect(target, _INK)
+            image = kasandra_art.picture(base, scene, round(target.width()), round(target.height())) if scene else QImage()
+            if not image.isNull():painter.drawImage(target, image)
+            _line(painter, 856, 585, 1386, 585, _RULE);painter.setFont(self._small)
+            _text(painter, 856, 607, 'KASANDRA / ' + (scene['title'].upper() if scene else 'A QUIET ROOM'), _AMBER);_text(painter, 1222, 607, 'STRUTHIO MARK', _MUTED)
+            return
         if tape and self._tape is None:
             self._tape = QImage(str(self.folder / 'plates' / 'Brain on Disk.png'))
         if tape and not self._tape.isNull():
