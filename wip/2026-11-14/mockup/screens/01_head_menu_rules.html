@@ -1,0 +1,190 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Graphite, finished: Rules open</title>
+<link rel="stylesheet" href="../canon.css">
+<style>
+/* 01 · head menu: Rules open, Her hand beside it. Thu 14 Nov 23:41, her state quiet. */
+/* her state: quiet (violet base, violet cursor, still caption) */
+#holo img{opacity:.86;filter:drop-shadow(0 0 10px rgba(171,142,218,.38))}
+#tear{background:rgba(210,196,245,.30);box-shadow:0 0 6px rgba(171,142,218,.55)}
+#base{border-color:var(--violet);background:radial-gradient(ellipse at center,rgba(171,142,218,.50),rgba(171,142,218,.05) 70%);box-shadow:0 0 18px rgba(171,142,218,.55)}
+#beam{background:linear-gradient(transparent,rgba(171,142,218,.16))}
+#holocap{color:var(--vpale)}
+#who i{background:var(--violet);box-shadow:0 0 8px var(--violet)}
+#state{color:var(--violet)}
+#hand .acts .kept{color:var(--quiet)}
+/* the menus across the head: a dropped menu and its child */
+.menu{position:absolute;z-index:20;background:var(--card);border:1px solid var(--line2);padding:6px 0;box-shadow:0 16px 36px rgba(6,7,22,.62),0 3px 8px rgba(6,7,22,.45)}
+.mi{position:relative;height:38px;display:flex;align-items:center;padding:0 14px 0 44px;font-size:17px;color:var(--text);white-space:nowrap}
+.mi .g{position:absolute;left:14px;top:10px;width:18px;height:18px;color:var(--violet);fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.mi .h{margin-left:auto;font-size:14px;color:var(--faint);padding-left:22px}
+.mi .ch{width:10px;height:14px;margin-left:12px;flex:none;fill:none;stroke:var(--faint);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.mi .nc{width:10px;margin-left:12px;flex:none}
+.mi.on{background:var(--bar);color:var(--onbar);border-left:2px solid var(--edge);padding-left:42px}
+.mi.on .g{left:12px;color:var(--onbar)}
+.mi.on .ch{stroke:var(--onbar)}
+.sep{height:1px;background:var(--line);margin:4px 12px}
+.mi.two{height:52px;align-items:center}
+.mi.two .d{font-size:13.5px;line-height:16px;color:var(--faint);margin-top:2px}
+.mi.two .l{line-height:20px}
+.mi.two .g{top:11px}
+.mi .w{color:var(--edge);border-bottom:2px solid var(--bar);padding-bottom:1px}
+.mi .g.radio{color:var(--line2)}
+.mi .g.tick{color:var(--edge);stroke-width:2}
+/* the catch, early in its 150 ms (f = 0.12, about 18 ms; menu_catch.py): band and line over the second row, frame lit, the cyan ghost on the far edge */
+.catch{position:absolute;left:-1px;top:-1px;right:-1px;bottom:-1px;pointer-events:none}
+.catch div{position:absolute}
+.catch .frame{left:0;top:0;right:0;bottom:0;border:2px solid rgba(210,196,245,.82)}
+.catch .band{left:0;right:0;top:40.9px;height:26px;background:linear-gradient(rgba(171,142,218,0),rgba(171,142,218,.39),rgba(171,142,218,0))}
+.catch .bline{left:2px;right:2px;top:53.2px;height:1.4px;background:rgba(235,226,255,.48)}
+.catch .ghost{right:3px;top:2px;bottom:2px;width:1.5px;background:rgba(131,234,255,.56);mix-blend-mode:plus-lighter;box-shadow:0 0 3px rgba(131,234,255,.35)}
+.catch .ghost2{right:6.5px;top:2px;bottom:2px;width:1px;background:rgba(131,234,255,.20);mix-blend-mode:plus-lighter}
+/* the pointer */
+#pointer{left:676px;top:198px;z-index:30;width:15px;height:23px;filter:drop-shadow(0 1px 2px rgba(6,7,22,.6))}
+</style></head><body>
+
+<!-- head -->
+<div id="head" class="abs">
+<div id="menus" class="abs"><span>Work</span><span>Revise</span><span>Tools</span><span>Arrange</span><span>Commands</span><span class="on">Rules</span><span>Properties</span><span>Guide</span></div>
+<div id="eq" class="abs"><i style="height:6px"></i><i style="height:9px"></i><i class="c" style="height:7px"></i><i style="height:12px"></i><i style="height:8px"></i><i class="c" style="height:5px"></i><i style="height:10px"></i><i style="height:14px"></i><i style="height:6px"></i><i style="height:9px"></i></div>
+<div id="status" class="abs">on mains · 23:41</div>
+<img id="logo" class="abs" src="../../../../branding/kasandra/kp_neon.png" alt="kp">
+
+</div>
+<!-- left column -->
+<div id="left" class="abs">
+<div id="ltabs" class="abs"><span class="on">Files</span><span>Machine</span><span>Settings</span></div>
+<div id="tree" class="abs">
+<div><span class="pole">┬ </span>Concern</div>
+<div><span class="pole">├─</span> Engineering</div>
+<div class="sel"><span class="pole">│ └─</span> Rail 12 V · After Hours 07</div>
+<div><span class="pole">├─</span> Graphite</div>
+<div><span class="pole">├─</span> Ideas</div>
+<div><span class="pole">├─</span> Notes</div>
+<div><span class="pole">├─</span> Projects</div>
+<div><span class="pole">├─</span> Bench log</div>
+<div><span class="pole">├─</span> Research &amp; references</div>
+<div><span class="pole">└─</span> Unassigned</div>
+<div style="margin-top:8px;color:var(--faint);font-size:14px">Ingress · 1 new, unread by kp</div>
+</div>
+<div id="beam" class="abs"></div>
+<div id="holo" class="abs"><img src="../../../../branding/kasandra/hologram.webp" alt=""></div>
+<div id="scan" class="abs"></div>
+<div id="tear" class="abs"></div>
+<div id="base" class="abs"></div>
+<div id="holocap" class="abs">quiet · her hand at rest</div>
+<div id="delete" class="abs"><b>🗑</b>DELETE</div>
+
+</div>
+<!-- centre: the Field -->
+<div id="centre" class="abs">
+ <div id="ctabs" class="abs"><span class="on">Field</span><span>Files</span><span>Bench</span><span class="room">KiCad · rail_12v</span><span class="room">Report draft</span></div>
+ <div id="fhead" class="abs"><span>FIELD</span><span class="work">WORK</span><span>APPS</span><span>NETWORK</span><span class="title">After Hours 07 · Rev C arrived</span></div>
+ <div id="fcount" class="abs"><span class="p">■</span> 1 open question · <span class="r">2 recheck</span> · 1 does not hold</div>
+
+ <svg id="wires" class="abs" width="1206" height="900">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2.4"/></filter></defs>
+  <g fill="none" stroke="#5a8fc4" stroke-width="2" opacity=".7">
+   <path d="M216 190 C 240 190, 240 190, 262 190"/>
+   <path d="M216 372 C 240 372, 236 470, 262 470"/>
+   <path d="M448 190 C 475 190, 475 186, 502 186"/>
+   <path d="M448 190 C 478 190, 470 330, 502 330"/>
+   <path d="M688 186 C 715 186, 715 170, 742 170"/>
+   <path d="M688 330 C 715 330, 715 470, 742 470"/>
+   <path d="M448 470 C 600 470, 600 610, 742 610"/>
+  </g>
+  <g fill="none" stroke="#83eaff" stroke-width="3" filter="url(#gl)"><path d="M216 372 C 240 372, 236 470, 262 470"/><path d="M448 470 C 520 470, 520 330, 502 330"/><path d="M688 330 C 715 330, 715 330, 742 330"/></g>
+  <g fill="none" stroke="#e8fbff" stroke-width="1.4"><path d="M216 372 C 240 372, 236 470, 262 470"/><path d="M448 470 C 520 470, 520 330, 502 330"/><path d="M688 330 C 715 330, 715 330, 742 330"/></g>
+ </svg>
+
+ <div class="colt abs" style="left:30px">MATERIAL</div>
+ <div class="colt abs" style="left:262px">TABLES</div>
+ <div class="colt abs" style="left:502px">CALCULATIONS</div>
+ <div class="colt abs" style="left:742px">FINDINGS</div>
+ <div class="colt abs" style="left:982px">OPEN</div>
+
+ <div class="card" style="left:30px;top:142px"><div class="k"><span>SOURCE</span><span class="st">CURRENT</span></div><div class="t">07_Bench_<wbr>Readings.pdf</div><div class="n">page 1 · r4</div></div>
+ <div class="card live" style="left:30px;top:322px"><div class="k"><span>INSTRUMENT</span><span class="st"><span class="dot"></span>LIVE</span></div><div class="t">Bench DMM 1</div><div class="v">startup 662 mA ±0.35%</div><div class="n">read 23:38 · its own tolerance</div></div>
+ <div class="card new" style="left:30px;top:486px"><div class="k"><span>SOURCE</span><span class="st" style="color:var(--pink)">NEW</span></div><div class="t">07_Rail_<wbr>Limits_<wbr>Rev_C.pdf</div><div class="n">quarantined · read as text</div></div>
+
+ <div class="card" style="left:262px;top:142px"><div class="k"><span>SHEET</span><span class="st">CURRENT</span></div><div class="t">07 Bench readings</div><div class="n">reviewed · ±5 ms yours</div></div>
+ <div class="card her" style="left:262px;top:422px"><div class="k"><span>SHEET</span><span class="st">CURRENT</span></div><div class="t">07 Limits Rev C</div><div class="n">pulse ≤ 100 ms · was 80</div></div>
+ <div class="card" style="left:262px;top:282px;opacity:.75"><div class="k"><span>SHEET</span><span class="st" style="color:var(--faint)">ARCHIVED</span></div><div class="t">07 Limits Rev B</div><div class="n">pulse ≤ 80 ms</div></div>
+
+ <div class="card" style="left:502px;top:142px"><div class="k"><span>Σ CALC</span><span class="st">EXACT</span></div><div class="t">Settled power</div><div class="v">3.36 W · 84/25</div></div>
+ <div class="card" style="left:502px;top:282px"><div class="k"><span>Σ RANGE</span><span class="st">ATTAINED</span></div><div class="t">Startup power</div><div class="v">[7.57, 8.04] W</div></div>
+ <div class="card" style="left:502px;top:422px"><div class="k"><span>Σ SOLVE</span><span class="st">EXACT</span></div><div class="t">Settled current ceiling</div><div class="v">≤ 500 mA at 12 V</div></div>
+
+ <div class="card yes" style="left:742px;top:122px;width:210px"><div class="k"><span>FINDING</span><span class="verdict yes">HOLDS</span></div><div class="t">Settled draw 3.36 W under the 6 W continuous limit</div></div>
+ <div class="card no" style="left:742px;top:262px;width:210px"><div class="k"><span>FINDING</span><span class="verdict no">DOES NOT HOLD</span></div><div class="t">Startup pulse over Rev C by 5–15 ms</div><div class="n">whatever the true value</div></div>
+ <div class="card cant" style="left:742px;top:412px;width:210px"><div class="k"><span>FINDING</span><span class="verdict cant">CANNOT TELL</span></div><div class="t">Startup power against 8 W</div><div class="n">the current reading settles it most often (89%)</div></div>
+ <div class="card re" style="left:742px;top:578px;width:210px"><div class="k"><span>FINDING</span><span class="verdict re">RECHECK</span></div><div class="t">The reviewed sheet keeps the 80 ms condition</div><div class="n">its source moved to Rev C</div></div>
+
+ <div class="card" style="left:982px;top:262px;width:190px;border-color:var(--pink)"><div class="k"><span style="color:var(--pink)">? OPEN</span><span></span></div><div class="t">What stretched the startup pulse?</div><div class="n">two hypotheses · a test separates them</div></div>
+
+ <div id="time" class="abs"><span class="lab" style="left:0">Tue 12 Nov</span><div class="track"></div><div class="tick" style="left:760px"></div><span class="ticklab" style="left:712px">Rev C · 14:02</span><div class="knob"></div><span class="lab" style="left:996px">now · Thu 23:41</span></div>
+
+ <div id="foot" class="abs"><div class="kind">FINDING · DOES NOT HOLD</div><div class="ft">Startup pulse over Rev C by 5–15 ms</div>
+  <div class="btns"><span>Trace</span><span>Doubt</span><span>Range</span><span>Check</span><span>What if</span><span class="new">Share as receipt</span><span>Back</span></div>
+  <div class="line">range startup.duration given ±5 ms <b>|</b> check "duration &lt;= rev_c.pulse" <b>· receipt 7f3a… · coverage complete</b></div></div>
+</div>
+
+<!-- right column: her -->
+<div id="right" class="abs">
+<div id="who" class="abs">Kasandra<i></i></div>
+<div id="state" class="abs">quiet</div>
+<div id="model" class="abs">35B · local · on the Radeon · <u>does and shows</u></div>
+<div id="brief" class="rc"><h4>WHILE YOU WERE AWAY</h4>
+ <div>Rev C of the rail limits arrived at 14:02; two findings went to recheck.</div>
+ <div>Last night's backup restored clean.</div></div>
+<div id="ask" class="abs">what changed in Rev C, and does the startup pulse still fail?</div>
+<div id="hand" class="rc"><h4>MY HAND · ON THE FIELD · DONE 23:40</h4>
+ <div class="g"><span class="m" style="color:var(--cyan)">✓</span><span>Rev B beside Rev C: pulse limit 80 → 100 ms</span></div>
+ <div class="g"><span class="m" style="color:var(--pink)">✗</span><span>Startup pulse against Rev C: does not hold, over by 5–15 ms</span></div>
+ <div class="g"><span class="m" style="color:var(--violet)">?</span><span>Startup power against 8 W: cannot tell. Next: the startup current</span></div>
+ <div class="acts"><div class="done">1 go to the Field ✓</div><div class="done">2 select Limits Rev C ✓</div><div class="done">3 compare with Rev B ✓</div><div class="done">4 range the pulse ✓</div><div class="kept">5 put the desk back · you kept it</div></div>
+ <div class="btns"><span>Put my window back</span><span>Her trail</span></div>
+ <div class="rcpt">4 acts · 3 goals · 2 model questions, 9 s<br>from Rev C r1 · Bench readings r4 · DMM&nbsp;1</div></div>
+<div id="night" class="rc" style="top:760px"><h4>TONIGHT · ON MAINS ONLY</h4>
+ <div style="font-family:EliteMono;font-size:13px;line-height:19px;color:var(--quiet)">02:00 recheck what rests on Rev C<br>02:20 read Ingress as text<br>03:00 exam: 40 scenarios<br>04:00 test last night's backup</div>
+ <div style="margin-top:6px;font-size:14px;color:var(--faint)">nothing changes your records · stops when you touch</div></div>
+<div id="voice" class="abs"><b>((·))</b> listening · say "Kas" or type</div>
+
+</div>
+<!-- the writing line -->
+<div id="bottom" class="abs">
+<div id="who2" class="abs"><span class="on">Kasandra</span><span>Terminal</span><span>Search</span><span>Web</span><span>Log</span></div>
+<div id="lineb" class="abs">prompt<span class="hint">· runs as words to her</span></div>
+<div id="send" class="abs"></div>
+<div id="meters" class="abs"><div>CPU<b>9%</b></div><div>GPU<b>3%</b></div><div>RAM<b>41%</b></div><div class="kp">KP<b>1%</b></div><div>TXT<b>—</b></div></div>
+</div>
+
+<!-- Rules, dropped from the head; the catch over it, early in its 150 ms -->
+<div id="rules" class="menu" style="left:433px;top:60px;width:330px">
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="12" rx="1"/><path d="M3.5 13.2 L7.4 8.6 L10.4 11.6 L12.4 9.6 L14.8 12.4"/><circle cx="12.4" cy="6.4" r="1.3"/></svg><span class="l">Desk artwork</span><span class="h">Illustrated</span><svg class="ch" viewBox="0 0 10 14"><path d="M3 2.5 L7.5 7 L3 11.5"/></svg></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><circle cx="9" cy="9" r="3"/><path d="M9 1.5v2.2M9 14.3v2.2M1.5 9h2.2M14.3 9h2.2M3.7 3.7l1.5 1.5M12.8 12.8l1.5 1.5M3.7 14.3l1.5-1.5M12.8 5.2l1.5-1.5"/></svg><span class="l">Glow</span><span class="h">Neon</span><svg class="ch" viewBox="0 0 10 14"><path d="M3 2.5 L7.5 7 L3 11.5"/></svg></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 2.5 A6.5 6.5 0 0 1 9 15.5 Z" fill="currentColor"/></svg><span class="l">Appearance</span><span class="h">Kasandra</span><svg class="ch" viewBox="0 0 10 14"><path d="M3 2.5 L7.5 7 L3 11.5"/></svg></div>
+ <div class="sep"></div>
+ <div class="mi on"><svg class="g" viewBox="0 0 18 18"><circle cx="9" cy="10" r="6.5"/><path d="M9 10 L12.4 6.4"/><path d="M4.1 6.3l1 .7M9 3.5v1.2M13.9 6.3l-1 .7"/><circle cx="9" cy="10" r="1.2" fill="currentColor"/></svg><span class="l">Her hand</span><span class="h"></span><svg class="ch" viewBox="0 0 10 14"><path d="M3 2.5 L7.5 7 L3 11.5"/></svg></div>
+ <div class="sep"></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><path d="M2 6.5 q1.75 -3 3.5 0 t3.5 0 t3.5 0 t3.5 0"/><path d="M2 12.5 h14"/></svg><span class="l">Reduce motion</span><span class="h">off</span><span class="nc"></span></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><path d="M1.8 9.2 Q9 2.8 16.2 9.2 Q9 15.6 1.8 9.2 Z"/><path d="M3.4 9.2 H14.6"/><path d="M6.6 9.2 a2.4 2.4 0 0 0 4.8 0 Z" fill="currentColor"/></svg><span class="l">Tired eyes</span><span class="h">off</span><span class="nc"></span></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><circle cx="6.6" cy="7" r="4"/><circle cx="11.4" cy="7" r="4"/><circle cx="9" cy="11.4" r="4"/></svg><span class="l">Colour vision</span><span class="h"></span><svg class="ch" viewBox="0 0 10 14"><path d="M3 2.5 L7.5 7 L3 11.5"/></svg></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><path d="M13.6 12.6 A6.6 6.6 0 1 1 7.6 2.6 A5.2 5.2 0 0 0 13.6 12.6 Z"/></svg><span class="l">Night shift…</span><span class="h"></span><span class="nc"></span></div>
+ <div class="sep"></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><path d="M9 2.8v8.4M4.8 7h8.4M4.8 14.8h8.4"/></svg><span class="l">Tolerances…</span><span class="h"></span><span class="nc"></span></div>
+ <div class="catch"><div class="frame"></div><div class="band"></div><div class="bline"></div><div class="ghost"></div><div class="ghost2"></div></div>
+</div>
+
+<!-- Her hand ›, beside it -->
+<div id="handmenu" class="menu" style="left:763px;top:183px;width:352px">
+ <div class="mi two"><svg class="g radio" viewBox="0 0 18 18"><circle cx="9" cy="9" r="4.5"/></svg><div><div class="l">Ask first</div><div class="d">every change waits for your Approve</div></div></div>
+ <div class="mi two"><svg class="g tick" viewBox="0 0 18 18"><path d="M3.4 9.6 L7.4 13.2 L14.6 4.6"/></svg><div><div class="l"><span class="w">Do and show</span></div><div class="d">done at once and shown, each with an Undo</div></div></div>
+ <div class="mi two"><svg class="g radio" viewBox="0 0 18 18"><circle cx="9" cy="9" r="4.5"/></svg><div><div class="l">Free hand</div><div class="d">also what is marked to wait for you</div></div></div>
+ <div class="sep"></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><rect x="4" y="8" width="10" height="7.5" rx="1"/><path d="M6.2 8 V5.8 a2.8 2.8 0 0 1 5.6 0 V8"/></svg><span class="l">What always asks…</span></div>
+ <div class="mi"><svg class="g" viewBox="0 0 18 18"><path d="M2.5 14.6 C6 14.6 5 9 9 9 S12 3.6 15.2 3.6" stroke-dasharray="1.6 2.6"/><circle cx="15.4" cy="3.6" r="1.6" fill="currentColor"/></svg><span class="l">Her trail…</span></div>
+</div>
+
+<!-- the pointer, on Her hand -->
+<svg id="pointer" class="abs" viewBox="0 0 15 23"><path d="M1 1 L1 18.5 L5.4 14.4 L8.6 21.6 L11.4 20.4 L8.3 13.3 L14 13.3 Z" fill="#f2f0ff" stroke="#11132c" stroke-width="1.3" stroke-linejoin="round"/></svg>
+</body></html>
