@@ -2910,8 +2910,8 @@
       "sha256": "871cc8ecb2e66ff89bcc7fd8fd96d5458c2baa90fd9a339a0f6b6ccf86640f96"
     },
     "tools/check_hatch.py": {
-      "bytes": 29098,
-      "sha256": "90eadd5622ab08862be13b7023a16324b586fe337501e44337af903717d5062e"
+      "bytes": 29215,
+      "sha256": "4e827b94416ebffc4bed80d6e11ab7b5ef246274921ef7988a2a56dfcf72b858"
     },
     "tools/check_hatch_ui.py": {
       "bytes": 33279,

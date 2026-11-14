@@ -51,6 +51,8 @@ FOCUSED_MODULES=(
  'test_kasandra',
  # 0.8.0: the 35B test campaign's runner (tools/campaign.py): its cases, outcomes, timeouts, resume and summary
  'test_campaign',
+ # 0.8.1: the model's memory rules, each against Graphite's own code with simulated readings
+ 'test_resource_rules',
  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
  # the network capability the agent can inspect (HATCH DESK D5)
  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',
