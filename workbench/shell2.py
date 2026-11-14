@@ -3048,7 +3048,7 @@ class TodayPage(QWidget):
         recent = [(Path(p).name, 'viewed', lambda p=p:self.host.open_in_viewer(p)) for p in getattr(self.host, '_viewer_recent', [])[:4]]
         recent += [(Path(r).name, str(Path(r).parent) if str(Path(r).parent) != '.' else '', lambda r=r:self.host.open_document(self.host.root / r)) for r in self.host.session.state.get('recent', [])[:4]]
         for title, where, fn in recent[:5]:self.continue_.line(title, tag_for(title), where, fn)  # not `name`: that is the workspace's, used below
-        if not recent:self.continue_.say('Nothing opened yet. {view} (Ctrl Alt V), or browse the {library}.', view=('Open any file', lambda:self.host.open_in_viewer()), library=('Library', lambda:open_destination(self.host, 'library:all')))
+        if not recent:self.continue_.say('Nothing opened yet. {view}, or browse the {library}.', view=('Open any file', lambda:self.host.open_in_viewer()), library=('Library', lambda:open_destination(self.host, 'library:all')))
         else:self.continue_.say('{view} or browse the {library}.', view=('Open another file', lambda:self.host.open_in_viewer()), library=('Library', lambda:open_destination(self.host, 'library:all')))
         self.slate.clear()
         brain = call(self.host, 'brain.status') or {}
