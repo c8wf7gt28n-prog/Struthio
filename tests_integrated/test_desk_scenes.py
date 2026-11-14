@@ -3,8 +3,8 @@
 The owner's playable scene: open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it
 in the writing line); back to the Field; trace 07 Bench readings; compare the two revisions of the limits; and take back
 what Stacy's hand wrote. It is played by pointer (real mouse events and right-clicks), by keys (the keys a person would
-press, sent where the keyboard is), and by pointer with less motion. Every step is an act (desk_doers.run, door 'script')
-and every check reads what read.desk reads; nothing here reaches into a widget.
+press, sent where the keyboard is), each again with less motion, and by pointer on a 1366 by 768 window. Every step is an
+act (desk_doers.run, door 'script') and every check reads what read.desk reads; nothing here reaches into a widget.
 
 The window is built once on the bench seed (test_desk_acts.build_window: three sheets imported through Graphite's own
 operations, the two revisions among them); the After Hours 07 run of the same scene is the campaign's (tools/campaign.py
@@ -36,9 +36,10 @@ class PlayableScene(unittest.TestCase):
         if w.type_bar.box.text():w.type_bar.box.clear()
         w._desk_put='';settle(WINDOW)
 
-    def play(self,run):
+    def play(self,run,size=None):
         from workbench import desk_scene
         scene=desk_scene.load(P01)
+        if size:scene['given']['size']=list(size)      # the scene sizes the window; the next run sizes it back
         out=desk_scene.run_scene(WINDOW['w'],scene,run,seed='bench',origin='desk-script:P01')
         self.assertNotIn('blocked',out)
         self.assertTrue(out['passed'],desk_scene.failures(out))
@@ -49,6 +50,23 @@ class PlayableScene(unittest.TestCase):
     def test_p01_by_mouse(self):
         out=self.play('mouse')
         self.assertTrue(all(s['by'] in ('pointer','direct') for s in out['steps']),[(s['act'],s['by']) for s in out['steps']])
+
+    def test_p01_by_mouse_on_a_small_window(self):
+        # 1366 by 768, the smallest the owner's machines show: the comparison then leaves only a few pixels beside it, and
+        # putting it away is still a click there, never a key (the 0.8.2 review found Esc pressed in both mouse runs)
+        for run in ('mouse','mouse_still'):
+            out=self.play(run,(1366,768))
+            self.assertEqual((WINDOW['w'].width(),WINDOW['w'].height()),(1366,768))
+            self.assertTrue(all(s['by'] in ('pointer','direct') for s in out['steps']),(run,[(s['act'],s['by']) for s in out['steps']]))
+            self.setUp()
+
+    def test_p01_by_keys_reduced_motion(self):
+        out=self.play('keys_still')
+        by={s['act']:s['by'] for s in out['steps']}
+        for name in ('go.files','menu.open','menu.choose','then.keep','then.count','then.end','go.field','point.sheet','sheet.trace','sheet.compare','sheet.close'):
+            self.assertEqual(by[name],'keys',name)
+        trace=next(s for s in out['steps'] if s['act']=='sheet.trace')
+        self.assertIs(trace['result']['route']['animating'],False)
 
     def test_p01_by_keys(self):
         out=self.play('keys')

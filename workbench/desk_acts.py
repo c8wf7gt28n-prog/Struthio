@@ -36,6 +36,30 @@ HEAD_MENUS = ('Work', 'Revise', 'Tools', 'Arrange', 'Commands', 'Rules', 'Proper
 # window that asks stays the owner's (head.row refuses it). The words are the rows' own, as the menus print them.
 HEAD_ROWS = {'Arrange': ('Today', 'Field', 'Files', 'Library', 'Project Desk', 'Changes', 'Continuing work', "Graphite's Agenda"),
              'Tools': ('Explore capabilities', 'Tool Atlas', 'Algorithm & Theory Atlas')}
+# The right-click's rows an act may choose (menu.choose, and the acts that walk a menu for the owner: Then, trace, doubt,
+# compare, the steps). Each goes somewhere in Graphite, shows, reads, selects or copies; none changes a record, leaves
+# Graphite, asks her model or opens a window that asks. Every other row stays the owner's: the review of 0.8.2 found rows
+# that name no operation and still change (Stage in Delivery, Delete in a document, Edit the Graphite menu) or leave (Open
+# with this computer's app), so a row is chosen only when it is listed here, never because it names nothing. A key ending
+# in ':' or ' ' stands for the rows made from it (one per file, sheet, step or value). A row that opens further rows is not
+# listed: opening it chooses nothing. The row's operation and its "asks" are still checked as well.
+MENU_ROWS = ('open', 'open:viewer', 'show:folder', 'show:files', 'show:log', 'show:finder', 'job:show', 'copy:original', 'change:files',
+             'follow', 'process', 'atlas', 'algorithms', 'explore', 'search', 'expand', 'collapse', 'view:', 'hidden', 'preview', 'refresh',
+             'run', 'inspect', 'extract:', 'compare:version:', 'job:output', 'line:', 'start:',
+             'copy:path', 'copy:paths', 'copy:address', 'copy:name', 'copy:id', 'copy:key', 'copy:row', 'copy', 'edit:copy', 'edit:all',
+             'field:open', 'field:back', 'field:face:', 'field:go:', 'field:again', 'field:check', 'field:brief', 'field:inspect', 'field:run',
+             'field:trace', 'field:trace:', 'field:doubt', 'field:doubt:', 'field:do', 'field:do:', 'field:revisions', 'field:stac:', 'field:copy')
+# The line panel's rows (Then): each puts a reading step on the line or takes one off, or ends the line by showing its
+# answer, putting it in the writing line, or copying it. The panel's line only reads.
+PANEL_ROWS = ('back', 'read:', 'step:', 'field:', 'where ', 'where:other', 'sort:', 'group:', 'first:', 'end:show', 'end:line', 'end:copy', 'end:rows')
+# Rows that only open further rows (the doer reads this from the live menu; her hand's rule, with no menu, reads it here).
+SCREENS = ('then', 'more', 'group:', 'page:next', 'start', 'line', 'view', 'extract', 'compare:version', 'field:fed', 'field:feeds', 'field:stac', 'job')
+
+
+def listed(key, rows):
+    """Whether a row's key is on a list of rows (an exact key, or the rows made from a key ending in ':' or ' ')."""
+    key = str(key or '')
+    return any(key == row or (row.endswith((':', ' ')) and key.startswith(row)) for row in rows)
 
 
 def S(least, most):
@@ -127,8 +151,8 @@ def _acts():
         Act('sheet.steps', 'List what can be done about the selected sheet; nothing is taken.', schema_of({'by': BY}), forms='PK'),
         Act('type.to', named('Choose whom the writing line goes to: Stacy, the Terminal, Search, the Web or the Log.'),
             schema_of({'who': E('her', 'terminal', 'search', 'web', 'log'), 'by': BY}, ('who',)), forms='PK'),
-        Act('type.put', 'Put words in the writing line; nothing is sent.', schema_of({'text': S(1, 4000), 'by': E('put', 'keys')}, ('text',)), forms='PK'),
-        Act('type.send', 'Send what the writing line holds, as the arrow does.', schema_of({'by': E('arrow', 'enter')}), forms='PK'),
+        Act('type.put', 'Put one line of words in the writing line; nothing is sent.', schema_of({'text': S(1, 4000), 'by': E('put', 'keys')}, ('text',)), forms='PK'),
+        Act('type.send', 'Send what the writing line holds, as the arrow does.', schema_of({'by': E('arrow', 'keys')}), forms='PK'),
         Act('type.room', 'Give the working area above the line one line, half the window, or more.', schema_of({'size': E('line', 'half', 'tall')}, ('size',))),
         Act('hand.write', named("Write a file in Files through Stacy's hand."), schema_of({'path': path, 'text': S(0, 1000000)}, ('path', 'text')), kernel='files.write'),
         Act('hand.rename', named("Rename a file in Files through Stacy's hand."), schema_of({'path': path, 'name': S(1, 255)}, ('path', 'name')), kernel='files.rename'),
@@ -164,9 +188,11 @@ REFUSALS = {
     'NOT_HERE': 'The Field is not in front.',
     'CHANGES_ROW': named("That row changes something; %s does it through Stacy's hand."),
     'CHANGES_ROW_YOURS': 'That row changes something; it stays yours.',
-    'NOT_ALLOWED_ROW': 'That row is not one an act may choose: it asks, leaves or stops work, and stays yours.',
+    'NOT_ALLOWED_ROW': 'That row is not one an act may choose: it changes, asks, leaves or stops work, and stays yours.',
     'NO_SIBLING': 'This sheet has no other revision on the desk.',
-    'DIALOG': 'It would open a window that asks; nothing was done.',
+    'DIALOG': 'It would open a window that asks, so it was stopped there.',
+    'MAKES': 'Opening it would make %s; that stays yours.',
+    'UNSEEN': '%s holds a line break or another character that is not seen; the writing line takes one line of words.',
     'UNSENT': 'The writing line holds words you have not sent; they stay.',
     'PENDING': 'An operation waits for your approval in the working area; it stays.',
     'LEAVES_OR_SHELL': 'The Web and the Terminal are yours to send to.',
@@ -243,7 +269,22 @@ def check(name, args):
         raise Refusal('BAD_ARGUMENTS', '%s needs one of %s.' % (name, _plain_list(act.one_of)))
     if act.at_least and not any(k in clean for k in act.at_least):
         raise Refusal('BAD_ARGUMENTS', '%s needs one of %s.' % (name, _plain_list(act.at_least)))
+    # A carriage return typed in the writing line is its Return: it would send what type.put says it never sends. A
+    # character no one sees could make the line say other than it shows. Neither is put there.
+    if name == 'type.put' and unseen(clean['text']):raise Refusal('BAD_ARGUMENTS', REFUSALS['UNSEEN'] % 'text')
+    if name == 'sheet.whatif' and not NUMBER.fullmatch(clean['value']):raise Refusal('BAD_ARGUMENTS', 'value is a number.')
     return clean
+
+
+NUMBER = re.compile(r'-?\d+(?:\.\d+)?')
+UNSEEN = ('Cc', 'Cf', 'Cs', 'Co', 'Cn', 'Zl', 'Zp')      # controls, format marks, surrogates, private and unassigned, line and paragraph breaks
+
+
+def unseen(text):
+    """The first character of `text` that is not seen on a line (a control such as a line break, a format mark, a line or
+    paragraph separator), or ''."""
+    import unicodedata
+    return next((ch for ch in str(text) if unicodedata.category(ch) in UNSEEN), '')
 
 
 def said(envelope):
@@ -259,10 +300,25 @@ def desk_hers(place, name, args=None, line=None):
     """(whether this act is hers to do now without asking, why not in words). A read never asks. An act that navigates moves
     the owner's window: at Ask first it is offered, not done; at Do and show and Free hand it is done. A change is her
     hand's rule on its own Kernel operation (stacy_hand.hers), so what always asks still asks; for hand.step the step's line
-    names the operation. An act only the owner does is never hers."""
+    names the operation. An act only the owner does is never hers.
+
+    Given its arguments (`args` not None), the act's own rules come first: arguments its check refuses are never hers (a
+    line break for type.put), and a right-click row is hers only by its key and only when it is on MENU_ROWS or PANEL_ROWS
+    (its words could name any row). What this rule cannot see from the arguments alone, the doer sees on the window: that a
+    file hand.write names is already there (it then waits), or that opening Documents would start a document (refused)."""
     if name not in ACTS:return False, 'there is no act by that name'
     act = ACTS[name]
     if act.owner_only:return False, 'only you do this'
+    if args is not None:
+        try:args = check(name, args)
+        except Refusal as refusal:return False, refusal.words
+        if name == 'menu.choose':
+            # A path is the right-click's rows, or the line panel's (which starts with a step, an ending or Back): the panel's
+            # column rows are named "field:" too, so the two lists are never mixed in one path.
+            segments = [s.strip() for s in args['path'].split('/') if s.strip()]
+            in_menu = bool(segments) and all(listed(s, MENU_ROWS + SCREENS) for s in segments)
+            in_panel = bool(segments) and not segments[0].startswith('field:') and all(listed(s, PANEL_ROWS) for s in segments)
+            if not (in_menu or in_panel):return False, 'that row is not one I choose by myself'
     why = stacy_hand.why_asks(name, args if isinstance(args, dict) else None)
     if why:return False, why
     if name == 'read.desk':return True, ''
@@ -285,20 +341,37 @@ def desk_hers(place, name, args=None, line=None):
 
 # -- the export, for later: what her model would be offered (nothing offers it now) -----------------------------------------
 
+def offered(act):
+    """An act's arguments as her model would be offered them: without `by` (how the hand moves, pointer or keys, is the
+    script's and the owner's choice, never hers) and without an empty `required`."""
+    properties = {k: v for k, v in act.schema['properties'].items() if k != 'by'}
+    out = {'type': 'object', 'properties': properties, 'additionalProperties': False}
+    if act.schema['required']:out['required'] = list(act.schema['required'])
+    return out
+
+
 def tools(place='show'):
-    """The acts that could one day be offered to her, as tool descriptions: [{name, words, mark, arguments, kernel, asks}]."""
+    """The acts that could one day be offered to her, as tool descriptions: [{name, words, mark, arguments, kernel, asks}]
+    (`asks` is her hand's rule for the act at that place, before any arguments are known)."""
     out = []
     for act in ACTS.values():
         if not act.exported:continue
-        asks = True if act.line_decides else not desk_hers(place, act.name, {})[0]
-        out.append({'name': act.name, 'words': act.words, 'mark': act.mark, 'arguments': act.schema, 'kernel': act.kernel, 'asks': asks})
+        asks = True if act.line_decides else not desk_hers(place, act.name)[0]
+        out.append({'name': act.name, 'words': act.words, 'mark': act.mark, 'arguments': offered(act), 'kernel': act.kernel, 'asks': asks})
     return out
 
 
 def plan_variants():
-    """The acts as a plan's choices, keyed `act` (never `operation`, so a plan check can never take an act for an operation)."""
-    return [{'type': 'object', 'properties': {'act': {'const': act.name}, 'arguments': act.schema}, 'required': ['act', 'arguments'],
-             'additionalProperties': False} for act in ACTS.values() if act.exported]
+    """The acts as a plan's choices: one object per act, keyed `act` (never `operation`, so a plan check can never take an act
+    for an operation), its arguments beside it. Flat, so that the 35 choices stay within the plan's 9,000 bytes (wrapped in
+    `arguments` they took 10,940); no act has an argument named `act`."""
+    out = []
+    for act in ACTS.values():
+        if not act.exported:continue
+        args = offered(act)
+        out.append({'type': 'object', 'properties': {'act': {'const': act.name}, **args['properties']}, 'required': ['act'] + args.get('required', []),
+                    'additionalProperties': False})
+    return out
 
 
 def compact(value):

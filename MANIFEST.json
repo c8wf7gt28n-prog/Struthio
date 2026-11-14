@@ -2626,12 +2626,12 @@
       "sha256": "6495901075c500f3ae769f0b5ec33cb0ed51d4b5c5025b199a9604ae78189fad"
     },
     "tests_integrated/test_desk_acts.py": {
-      "bytes": 25503,
-      "sha256": "86b419ce4c448b31a7ba2bfb1826fb5cf1b30344c8cd60f3d19e407dd5ef25e5"
+      "bytes": 46815,
+      "sha256": "fe85d1e818553307cb3526a24e4445670750abc6a74dcff8f2ed9c402f24e6f3"
     },
     "tests_integrated/test_desk_scenes.py": {
-      "bytes": 3412,
-      "sha256": "7c933409c06a8c9373dbb63302fbb4104c5debb641e1bfaf6b42804788b477b2"
+      "bytes": 4685,
+      "sha256": "4d80596dc2422379984aee91f969f186946e866728dea33c60c09642b6deaa73"
     },
     "tests_integrated/test_discovery.py": {
       "bytes": 14831,
@@ -3478,12 +3478,12 @@
       "sha256": "79729b77f386a49c3c25213f535a2049442f16ce9e71223d893c669985dbfbb2"
     },
     "workbench/desk_acts.py": {
-      "bytes": 20979,
-      "sha256": "bc8fe6e309e5898e12aa9748c96b86eb67a93305e5035a9394f30bb27e848840"
+      "bytes": 26784,
+      "sha256": "54f53f5823a98b5de25dc4a3c004e2e78a4f07f65b72be621d0f1fd586e9091c"
     },
     "workbench/desk_doers.py": {
-      "bytes": 68838,
-      "sha256": "e1e3fd54925673e33feb1e09db1110edb7e75e846a2e8b5258f1ad4243102fef"
+      "bytes": 78231,
+      "sha256": "96a6f2019709bc3801bae4839b642604583609d7ba2a5c0278c057bcd899c73d"
     },
     "workbench/desk_qt.py": {
       "bytes": 34271,

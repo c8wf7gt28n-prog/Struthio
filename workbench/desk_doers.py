@@ -1,10 +1,14 @@
 """Desk acts on the live window: one doer per act of desk_acts.ACTS, the guard that keeps every act from opening a window
 that asks, the read-back of what the window shows, and the one record each act leaves.
 
-run(host, name, args, door, by, origin, word) is the one entry. It checks the arguments (desk_acts.check), runs the act's
-doer inside no_dialogs(), lets the window settle (a row of a second popup acts on a zero timer), and answers with an
-envelope: {act, door, ok, by, words, result, error, seconds}. Then it writes one line in Graphite's journal (activity.record),
-except for read.desk: reading is not an event.
+run(host, name, args, door=..., by, origin, word) is the one entry; the door is always named. It checks the arguments
+(desk_acts.check), runs the act's doer inside no_dialogs() and watching(), lets the window settle (a row of a second popup
+acts on a zero timer), and answers with an envelope: {act, door, ok, by, words, result, error, changed, seconds}. Then it
+writes one line in Graphite's journal (activity.record), except for read.desk: reading is not an event.
+
+A right-click row is chosen only when it is listed (desk_acts.MENU_ROWS, PANEL_ROWS): the 0.8.2 review found rows that name
+no operation and still change or leave Graphite. Words are typed one character at a time (type_text), never with
+QTest.keyClicks, which ends the window on a character outside Latin-1.
 
 The doers do what a person does. The pointer form sends real mouse events (a press and a release, a right-click's
 ContextMenu event) to the widget under the thing; the keys form sends the keys a person would press, to where the keyboard
@@ -85,6 +89,59 @@ GUARDED = (('QInputDialog', ('getText', 'getItem', 'getInt', 'getDouble', 'getMu
            ('QFileDialog', ('getOpenFileName', 'getOpenFileNames', 'getSaveFileName', 'getExistingDirectory', 'exec')),
            ('QMessageBox', ('question', 'information', 'warning', 'critical', 'exec')),
            ('QDialog', ('exec',)), ('QMenu', ('exec',)))
+
+
+def _swap(cls, name, value, static=False):
+    """Put `value` in place of a class's attribute; returns what puts it back (an attribute the class only inherits is removed
+    again rather than copied down)."""
+    own = name in cls.__dict__;before = cls.__dict__.get(name) if own else None
+    setattr(cls, name, staticmethod(value) if static else value)
+
+    def back():
+        if own:setattr(cls, name, before)
+        else:
+            try:delattr(cls, name)
+            except AttributeError:pass
+    return back
+
+
+@contextlib.contextmanager
+def watching():
+    """Inside it, every Kernel operation that is not a read, every open handed to the computer (an address, or a file in the
+    computer's own app) and every program started is written down, and still done. It is the act's own account of what it
+    changed or left (the envelope's `changed`), so that no answer says nothing was done when something was. Work in the
+    background can land here too while the window settles: the list says what happened during the act."""
+    from .engineering_kernel import CAPABILITIES, Kernel
+    seen = [];backs = []
+    classes = [Kernel]
+    try:
+        from .host_client import HostClient
+        classes.append(HostClient)
+    except Exception:  # noqa: BLE001 - no host client in this build: the Kernel itself is the only door
+        pass
+    for cls in classes:
+        if 'dispatch' not in cls.__dict__:continue
+        original = cls.__dict__['dispatch']
+
+        def dispatch(self, operation, params=None, principal=None, _original=original):
+            if CAPABILITIES.get(operation, 'approve') != 'read':seen.append(str(operation))
+            return _original(self, operation, params, principal)
+        backs.append(_swap(cls, 'dispatch', dispatch))
+    opener = Q.QDesktopServices.openUrl
+
+    def open_url(url, _opener=opener):
+        seen.append('opened outside Graphite: ' + url.toString()[:200]);return _opener(url)
+    backs.append(_swap(Q.QDesktopServices, 'openUrl', open_url, static=True))
+    for name in ('start', 'startDetached'):
+        started = getattr(Q.QProcess, name)
+
+        def start(*args, _started=started, **kwargs):
+            seen.append('a program started');return _started(*args, **kwargs)
+        backs.append(_swap(Q.QProcess, name, start))
+    try:
+        yield seen
+    finally:
+        for back in reversed(backs):back()
 
 
 @contextlib.contextmanager
@@ -208,6 +265,17 @@ def key(c, widget, code, modifiers=None, times=1):
         Q.QTest.keyClick(widget, code, modifiers if modifiers is not None else Q.Qt.NoModifier);c.presses += 1;settle(None, 10, 1)
 
 
+def type_text(c, widget, text):
+    """Type words on `widget` (where the keyboard is) one character at a time, as a keyboard sends each: a press and a
+    release carrying the character. Never QTest.keyClicks: with the pinned Qt it ends the whole window on any character
+    outside Latin-1 (the curly quotes Graphite writes everywhere, Ω, ≥), and it reads a carriage return as Return."""
+    for ch in str(text):
+        for kind in (Q.QEvent.KeyPress, Q.QEvent.KeyRelease):
+            Q.QApplication.sendEvent(widget, Q.QKeyEvent(kind, 0, Q.Qt.NoModifier, ch))
+        c.presses += 1
+    settle(c.host)
+
+
 def sequence(c, widget, seq):
     """A key sequence read from an action (never written here): its first combination pressed on `widget`."""
     if seq.isEmpty():return False
@@ -295,7 +363,7 @@ def by_search(c, words):
     if unsent(host):raise Refusal('UNSENT', REFUSALS['UNSENT'])
     key(c, host, Q.Qt.Key_K, Q.Qt.ControlModifier)      # the search's own key (shell2.Shell2.install)
     if bar.target != 'find' or not keyboard_on(box):return False
-    Q.QTest.keyClicks(box, words);c.presses += len(words);settle(host)
+    type_text(c, box, words)
     popup = box.popup;rows = popup.list
     want = str(words).casefold()
 
@@ -365,6 +433,18 @@ def changing_row(entry):
     return False, None
 
 
+def row_refusal(entry, in_panel):
+    """Why an act may not choose this row, as a Refusal, or None. A row is chosen only when it is listed (desk_acts.MENU_ROWS;
+    PANEL_ROWS in the line panel), names no operation that changes and does not ask first: a row that names nothing can
+    still change or leave, so naming nothing is never enough."""
+    changes, act = changing_row(entry)
+    if changes and act:return Refusal('CHANGES_ROW', REFUSALS['CHANGES_ROW'] % act)
+    if changes:return Refusal('CHANGES_ROW_YOURS', REFUSALS['CHANGES_ROW_YOURS'])
+    if not desk_acts.listed(entry.key, desk_acts.PANEL_ROWS if in_panel else desk_acts.MENU_ROWS):
+        return Refusal('NOT_ALLOWED_ROW', REFUSALS['NOT_ALLOWED_ROW'])
+    return None
+
+
 def keys_to(c, menu, row, last):
     """The keysprobe walk: from where the keyboard is in this menu, Down or Up to the row, then `last` (Right opens a deeper
     screen, Enter chooses)."""
@@ -405,8 +485,8 @@ def walk(c, segments, by, guard=True):
         if not row.sub():
             if not last:raise Refusal('BAD_ARGUMENTS', 'The row “%s” does not open further rows.' % seg)
             if guard:
-                changes, act = changing_row(row.entry)
-                if changes:raise Refusal('CHANGES_ROW', REFUSALS['CHANGES_ROW'] % act if act else REFUSALS['CHANGES_ROW_YOURS'])
+                refusal = row_refusal(row.entry, isinstance(menu, LinePanel))
+                if refusal is not None:raise refusal
             host._context_last = None;host._context_said = None      # what the row says now, not what an earlier one said
         chosen_row = row.entry.key;is_then = row.entry.key == 'then';was = deepest(host)
         depth = len(getattr(was, 'stack', []) or []);line = getattr(was, 'line', None)
@@ -580,13 +660,14 @@ def look_now(host):
 
 # -- a change, through her hand ------------------------------------------------------------------------------------------------------
 
-def stage_change(c, title, words, operation, arguments, why):
+def stage_change(c, title, words, operation, arguments, why, asked=True):
     """One Kernel change put to Stacy's hand as a change asked of her is (asked=True): done at once when it is hers, with its
-    card, trail entry and Undo; else a card that waits for Approve. Returns the card."""
+    card, trail entry and Undo; else a card that waits for Approve. asked=False puts it up to wait whatever her dial says.
+    Returns the card."""
     from .engineering_kernel import CAPABILITIES
     from .field_do import Step, op
     face = c.host.shell2.face
-    card = face.stage(title, Step(words, 'write', op(operation, **arguments), why, CAPABILITIES[operation]), asked=True, word=c.word)
+    card = face.stage(title, Step(words, 'write', op(operation, **arguments), why, CAPABILITIES[operation]), asked=asked, word=c.word)
     c.card = card
     return card
 
@@ -693,6 +774,11 @@ def go_open(c):
 
 def go_app(c):
     host = c.host;hatch = host.type_bar.hatch;c.by = 'pointer'
+    if c.args['key'] == 'documents':      # Documents with no document starts one as it opens (DocumentsTab): a record, the owner's to make
+        from .context_menu import dispatch
+        listing = dispatch(host, 'documents.list', {})
+        if listing.get('ok') and not (listing.get('result') or {}).get('documents'):
+            raise Refusal('MAKES', REFUSALS['MAKES'] % 'a new document, since Documents holds none yet')
     if not alive(hatch.programs):host.shell2.top.programs.click();settle(host)
     row = hatch.programs.rows_by_key.get(c.args['key'])
     if row is None or not alive(row) or not row.isEnabled():
@@ -1031,18 +1117,28 @@ def over(view):
     return view.revisions is not None or view.reading is not None or bool(view.steps) or bool(view.go) or bool(view.would)
 
 
+def beside(view, inner):
+    """A place in the Field to click beside `inner` (the comparison or the page shown over the work), on no clickable spot:
+    the middle of the widest margin around it first. A click there closes what is shown, whatever lies under it (the
+    view's press reads its clickable spots, then what is shown over the work, before anything else). None when every
+    margin is covered. Found from the shown rectangle itself, since on a small window it leaves only a few pixels free."""
+    wide, high = float(view.width()), float(view.height())
+    margins = [Q.QRectF(0, 0, inner.left(), high), Q.QRectF(inner.right(), 0, wide - inner.right(), high),
+               Q.QRectF(0, 0, wide, inner.top()), Q.QRectF(0, inner.bottom(), wide, high - inner.bottom())]
+    margins = sorted((m for m in margins if m.width() >= 3 and m.height() >= 3), key=lambda m: -min(m.width(), m.height()))
+    for m in margins:
+        for f in (0.5, 0.3, 0.7, 0.15, 0.85):
+            at = Q.QPointF(m.center().x(), m.top() + m.height() * f) if m.height() >= m.width() else Q.QPointF(m.left() + m.width() * f, m.center().y())
+            if not inner.contains(at) and view._hot_at(at) is None:return at
+    return None
+
+
 def sheet_close(c):
     host = c.host;page, view = the_field(host)
     if not over(view):return 'Nothing was shown over the work.', {'over': None}
     if c.by == 'pointer' and (view.revisions is not None or view.reading is not None):
-        body = view._layout()
-        inner = view._rev_rect if view.revisions is not None else view._reading_rect(body)
-        spot = None
-        for fx in (0.02, 0.98, 0.5):
-            for fy in (0.05, 0.95, 0.5):
-                at = Q.QPointF(body.left() + body.width() * fx, body.top() + body.height() * fy)
-                if not inner.contains(at) and view._hot_at(at) is None:spot = at;break
-            if spot is not None:break
+        inner = view._rev_rect if view.revisions is not None else view._reading_rect(view._layout())
+        spot = beside(view, inner)
         if spot is not None:mouse(view, spot);settle(host)
     if over(view):                                    # what no click puts away (the steps, a what-if): its key
         c.by = 'keys'
@@ -1056,10 +1152,19 @@ def sheet_close(c):
 
 def sheet_whatif(c):
     host = c.host;page, view = the_field(host);obj = chosen(view);c.by = 'direct'
-    host.shell2.ask('what if %s were %s' % (c.args['cell'], c.args['value']))
+    if obj.kind not in ('sheet', 'calculation') or not isinstance(obj.target, dict):
+        raise Refusal('NOT_HERE', 'A what-if sets a number of a sheet or an input of a calculation; “%s” is neither.' % obj.title)
+    face = host.shell2.face;text = 'what if %s were %s' % (c.args['cell'], c.args['value'])
+    # The face's own what-if, never her ask: ask hands whatever the what-if cannot read to her model, and an act never asks it.
+    thing = face.what_if(text)
+    if thing is None:raise Refusal('NOT_HERE', '“%s” has no number a what-if can set.' % obj.title)
+    if thing.get('refusal'):raise Refusal('NOT_HERE', thing['refusal'])
+    face.thing = None;face.mine(text);face.answer_in_stac(thing, thing.get('intro'))      # Talk answers as it does when she is asked
     if surface(host) == 'field':view.setFocus(Q.Qt.OtherFocusReason)
     settle(host, 40, 4)
-    return (view.would_said or 'Nothing would move.') + '; nothing is changed.', {'would': view.would_said, 'sheet': obj.title}
+    said = view.would_said or ''
+    return (said[:1].upper() + said[1:] if said else 'Nothing would move') + '; nothing is changed.', \
+        {'would': said, 'moves': sorted(getattr(view.field.get(i), 'title', i) for i in view.would), 'sheet': obj.title}
 
 
 def sheet_steps(c):
@@ -1099,9 +1204,12 @@ def type_put(c):
     by = c.args.get('by', 'keys' if c.by == 'keys' else 'put');c.by = by
     if by == 'keys':
         box.clear();box.setFocus();settle(host)
-        Q.QTest.keyClicks(box, text);c.presses += len(text)
+        type_text(c, box, text)
     else:inspect_in_line(host, text, bar.target if bar.target != 'web' else 'slate')
     settle(host)
+    if box.text() != text:      # what the line holds is what was asked, or the act says it failed and leaves nothing half put
+        box.clear();host._desk_put = ''
+        raise Refusal('FAILED', REFUSALS['FAILED'] % 'the writing line did not take those words as they are')
     host._desk_put = box.text()
     return 'The writing line holds: %s' % box.text(), {'text': box.text(), 'target': WHO_OF.get(bar.target, bar.target), 'results': line_results(box)}
 
@@ -1110,8 +1218,8 @@ def type_send(c):
     host = c.host;bar = host.type_bar;box = bar.box;text = box.text().strip()
     if not text:raise Refusal('NOT_HERE', 'The writing line is empty.')
     if bar.target == 'web' or (bar.target == 'shell' and not stacy_hand.terminal_hers(text)):raise Refusal('LEAVES_OR_SHELL', REFUSALS['LEAVES_OR_SHELL'])
-    by = c.args.get('by', 'enter' if c.by == 'keys' else 'arrow');c.by = by
-    if by == 'enter':box.setFocus();settle(host);key(c, box, Q.Qt.Key_Return)
+    by = c.args.get('by', 'keys' if c.by == 'keys' else 'arrow');c.by = by
+    if by == 'keys':box.setFocus();settle(host);key(c, box, Q.Qt.Key_Return)
     else:bar.submit_line()
     settle(host, 40, 4)
     host._desk_put = ''
@@ -1126,9 +1234,18 @@ def type_room(c):
 
 
 def hand_write(c):
+    from .context_menu import dispatch
+    from .stacy_start import reserved
     path, text = c.args['path'], c.args['text'];c.by = 'direct'
-    card = stage_change(c, path, 'Write “%s” in Files' % path, 'files.write', {'path': path, 'text': text}, 'a file written at your word')
+    if reserved(path):raise Refusal('NOT_HERE', '“%s” begins with a name Graphite keeps for a folder of its own.' % path)
+    # Her own rule for a file asked of her (shell2.made_asked): she never writes over what is there by herself, and an
+    # overwrite has no exact Undo. So a path that is taken is put up to wait for the owner's Approve, whatever her dial says.
+    taken = bool(dispatch(c.host, 'files.get', {'path': path}).get('ok'))
+    card = stage_change(c, path, 'Write “%s” in Files' % path, 'files.write', {'path': path, 'text': text},
+                        'it writes over what is there now' if taken else 'a file written at your word', asked=not taken)
     settle(c.host);result = card_said(c, card)
+    if taken and result['waits']:
+        result['why'] = 'there is already something called “%s” in Files, and I do not write over what is there by myself' % path
     return change_words(result, 'wrote “%s” in Files' % path), result
 
 
@@ -1171,11 +1288,33 @@ def hand_step(c):
 
 
 def waiting_cards(host):
+    """The cards in Talk that wait for Approve, oldest first: in the order Talk holds them, never by where they are drawn
+    (a card folded behind "show them" is hidden, and a hidden card keeps no place on the screen)."""
     face = host.shell2.face
+    order = {}
+    for i in range(face.lines.count()):
+        w = face.lines.itemAt(i).widget()
+        if w is not None:order[id(w)] = i
+
+    def place(card):
+        w = card
+        while w is not None and id(w) not in order:w = w.parentWidget()
+        return order.get(id(w), -1) if w is not None else -1
     cards = [w for w in face.findChildren(Q.QFrame) if getattr(w, 'ran', 'x') is None and getattr(w, 'run', None) is not None
              and w.run.isVisibleTo(w) and w.run.isEnabled()]
-    cards.sort(key=lambda w: w.mapTo(face, Q.QPoint(0, 0)).y())
+    cards.sort(key=place)
     return cards
+
+
+def go_card(page):
+    """The card the Field's go (G) approves: the one its Run was made for (field_page keeps that Run as a closure over its
+    card), or None when it cannot be told."""
+    run = getattr(page, 'pending', None)
+    for cell in getattr(run, '__closure__', None) or ():
+        try:value = cell.cell_contents
+        except ValueError:continue
+        if getattr(value, 'run', None) is not None and hasattr(value, 'ran'):return value
+    return None
 
 
 def hand_approve(c):
@@ -1183,7 +1322,9 @@ def hand_approve(c):
     if not cards:raise Refusal('NOTHING_WAITS', REFUSALS['NOTHING_WAITS'])
     card = cards[-1]
     page = getattr(host, 'field_page', None)
-    if c.by == 'keys' and surface(host) == 'field' and page.view.go and keyboard_on(page.view):
+    # G approves what the Field's go was put up for, which need not be the latest card; the act approves the latest, so G
+    # is pressed only when the two are the same card (else its Approve is clicked), and the card read back is the one approved.
+    if c.by == 'keys' and surface(host) == 'field' and page.view.go and keyboard_on(page.view) and go_card(page) is card:
         field_keys(c, page.view, [Q.Qt.Key_G])
     else:
         c.by = 'pointer';face = host.shell2.face
@@ -1267,14 +1408,17 @@ def form_for(act, args, style):
     choices = spec['enum']
     if style is None:return choices[0] if choices[0] in ('direct', 'put', 'arrow') else 'pointer'
     if style in choices:return style
-    if style == 'keys':return 'keys' if 'keys' in choices else 'enter' if 'enter' in choices else choices[0]
+    if style == 'keys':return 'keys' if 'keys' in choices else choices[0]
     return {'put': 'put', 'arrow': 'arrow'}.get(choices[0], 'pointer' if 'pointer' in choices else choices[0])
 
 
-def run(host, name, args=None, door='script', by=None, origin=None, word=''):
-    """Run one act on the live window. Returns {act, door, ok, by, words, result, error: {code, words} or None, seconds}."""
+def run(host, name, args=None, *, door, by=None, origin=None, word=''):
+    """Run one act on the live window. `door` is always named ('owner', 'script'; 'her' is refused): a caller that forgot it
+    must not get the owner's acts by default. Returns {act, door, ok, by, words, result, error: {code, words} or None,
+    changed, seconds, presses}; `changed` is what watching() saw done during the act (a changing operation, an open handed
+    to the computer, a program started)."""
     started = time.monotonic()
-    envelope = {'act': str(name), 'door': door, 'ok': False, 'by': None, 'words': '', 'result': None, 'error': None}
+    envelope = {'act': str(name), 'door': door, 'ok': False, 'by': None, 'words': '', 'result': None, 'error': None, 'changed': []}
     c = None
     origin = origin or ('desktop-owner' if door == 'owner' else 'desk-script:script')
     try:
@@ -1283,14 +1427,18 @@ def run(host, name, args=None, door='script', by=None, origin=None, word=''):
         clean = desk_acts.check(name, args)
         act = ACTS[name]
         c = Ctx(host, name, clean, door, word or ('the act %s' % name), origin, form_for(act, clean, by))
-        with no_dialogs() as reached:
-            try:words, result = DOERS[name](c)
-            except Exception:
+        with watching() as seen, no_dialogs() as reached:
+            try:
+                try:words, result = DOERS[name](c)
+                except Exception:
+                    settle(host)
+                    if reached:words, result = None, None
+                    else:raise
                 settle(host)
-                if reached:words, result = None, None
-                else:raise
-            settle(host)
-        if reached:raise Refusal('DIALOG', REFUSALS['DIALOG'])
+            finally:
+                envelope['changed'] = list(seen)
+        if reached:      # stopped at the window that asks; what it did before that, if anything, is said, never denied
+            raise Refusal('DIALOG', REFUSALS['DIALOG'] + (' Before that: %s.' % ', '.join(dict.fromkeys(seen)) if seen else ''))
         envelope.update(ok=True, words=words, result=_plain(result), by=c.by)
     except Refusal as refusal:
         envelope.update(error={'code': refusal.code, 'words': refusal.words}, words=refusal.words, by=c.by if c is not None else None)
@@ -1312,6 +1460,9 @@ def record(host, envelope, origin, c):
     else:state = 'DONE'
     reply = getattr(getattr(c, 'card', None), 'reply', None) if c is not None else None
     correlation = reply.get('correlation_id') if isinstance(reply, dict) else None
-    try:activity.record(host.root, origin, envelope['act'], state, desk_acts.said(envelope), correlation_id=correlation)
+    words = desk_acts.said(envelope)
+    if envelope['act'] == 'type.put' and envelope['ok']:      # the line's words stay the owner's: the journal says only that some were put
+        words = 'Words were put in the writing line (%d characters); nothing was sent.' % len(str((envelope.get('result') or {}).get('text') or ''))
+    try:activity.record(host.root, origin, envelope['act'], state, words, correlation_id=correlation)
     except Exception:  # noqa: BLE001 - the act is done and said; a journal that cannot be written is said by the journal itself
         pass
