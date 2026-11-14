@@ -19,7 +19,7 @@ release-by-release plan is in `TALK_my_plans_long_chat.md`.
 ## Paused (original order below; see the change above)
 1. **Kasandra's hand, slice S1 "Her door on the Field"** (stopped mid-build).
    - Plan: `designs/judge_hand-plan.md` PART 1 §10 S1 (items 1-13, tests, scenes P02/P03, the 4B check).
-   - Unfinished build, applied on bbf033b: `hand_s1/hand_s1_unfinished.patch` (29 files, `hand_s1/files.txt`).
+   - Unfinished build, applied on bbf033b: `hand_s1/hand_s1_unfinished.patch` (28 files, `hand_s1/files.txt`; its build record, tests and scene results are in `hand_s1/build_record/`: all touched modules passed in the default look, P01-P03 9/9 in both looks, the 4B and 2B passed the goal turn; test_her_hand in Kasandra was mid-run when stopped; nothing reviewed).
      Apply on a branch from 951c789 with `git apply --3way`; expect small conflicts with 0.8.3's version and notes.
      It was NOT reviewed or tested to the end. Rebuild seed/manifest after applying.
    - The owner accepted the plan's six defaults (Go ahead covers moves up to the next goal or change, touch voids it;

@@ -1,0 +1,232 @@
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+FTraceback (most recent call last):
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/workbench/instruments_qt.py", line 339, in refresh_task
+    jobs=engineering(self.window().root).listing('jobs')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Kernel' object has no attribute 'listing'
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+.This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+.E.This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+EThis plugin does not support raise()
+This plugin does not support grabbing the keyboard
+.E...This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+..This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+.This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+F.This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+FThis plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+...This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support grabbing the keyboard
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support raise()
+This plugin does not support raise()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support grabbing the keyboard
+..
+======================================================================
+ERROR: test_an_invalid_answer_runs_nothing (tests_integrated.test_her_hand.GoalTurn.test_an_invalid_answer_runs_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 378, in test_an_invalid_answer_runs_nothing
+    before=len(journal())
+               ~~~~~~~^^
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_desk_acts.py", line 117, in journal
+    events=activity.tail(store['w'].root,limit=2000).get('events',[])
+                         ~~~~~^^^^^
+KeyError: 'w'
+
+======================================================================
+ERROR: test_at_ask_first_the_act_is_offered_and_the_window_does_not_move (tests_integrated.test_her_hand.HerDoor.test_at_ask_first_the_act_is_offered_and_the_window_does_not_move)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 148, in test_at_ask_first_the_act_is_offered_and_the_window_does_not_move
+    self.assertEqual(journal(origin='stacy-hand:%s'%t.id)[-1]['state'],'OFFERED')
+                     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_desk_acts.py", line 117, in journal
+    events=activity.tail(store['w'].root,limit=2000).get('events',[])
+                         ~~~~~^^^^^
+KeyError: 'w'
+
+======================================================================
+ERROR: test_her_journal_lines_carry_the_turn (tests_integrated.test_her_hand.HerDoor.test_her_journal_lines_carry_the_turn)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 159, in test_her_journal_lines_carry_the_turn
+    line=journal(origin='stacy-hand:%s'%t.id)[-1]
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_desk_acts.py", line 117, in journal
+    events=activity.tail(store['w'].root,limit=2000).get('events',[])
+                         ~~~~~^^^^^
+KeyError: 'w'
+
+======================================================================
+FAIL: test_eight_acts_three_states_each (tests_integrated.test_her_hand.Conformance.test_eight_acts_three_states_each)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 199, in test_eight_acts_three_states_each
+    runs+=self.check('sheet.trace',{},[lambda:self.field(),lambda:self.field(REV_A),lambda:(self.field(REV_B),act('sheet.compare'))])
+          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 182, in check
+    self.assertTrue(op.pre(before,world,args),(name,n,before))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : ('sheet.trace', 0, State(surface='field', face='work', sel='07 Bench readings', whole=True, in_sight=frozenset({'07 Limits Rev A ARCHIVED', '07 Limits Rev B CURRENT', '07 Bench readings'}), over=None, route='07 Bench readings', popups=frozenset(), came_from='today'))
+
+======================================================================
+FAIL: test_p03_you_take_the_window_back (tests_integrated.test_her_hand.Scenes.test_p03_you_take_the_window_back)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 330, in test_p03_you_take_the_window_back
+    out=self.play(P03,run)
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 319, in play
+    self.assertNotIn('blocked',out);self.assertTrue(out['passed'],desk_scene.failures(out))
+                                    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : [(5, {'path': 'desk.field.route', 'want': None, 'got': {'owner_title': '07 Bench readings', 'hops': 0, 'ends': ['07 Bench readings'], 'animating': False}, 'ok': False}), (6, {'path': 'turn.state', 'want': 'stopped', 'got': 'finished', 'ok': False}), (6, {'path': 'turn.stopped_after', 'want': 2, 'got': None, 'ok': False}), (6, {'path': 'turn.journal_stopped', 'want': 1, 'got': 0, 'ok': False}), (6, {'path': 'act.ok', 'want': True, 'got': False, 'ok': False, 'why': 'Done in 2 acts; both are shown.'})]
+
+======================================================================
+FAIL: test_a_stop_lands_between_presses (tests_integrated.test_her_hand.Turns.test_a_stop_lands_between_presses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Struthio/.claude/worktrees/wf_c8fbf54b-061-1/tests_integrated/test_her_hand.py", line 294, in test_a_stop_lands_between_presses
+    self.assertEqual(out['error']['code'],'STOPPED');self.assertIsNone(desk()['field']['route'],'the next press was never made')
+                                                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'owner_title': '07 Bench readings', 'hops': 0, 'ends': ['07 Bench readings'], 'animating': False} is not None : the next press was never made
+
+----------------------------------------------------------------------
+Ran 22 tests in 160.798s
+
+FAILED (failures=3, errors=3)

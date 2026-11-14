@@ -1,0 +1,14 @@
+test_desk_acts rc=0 secs=190 Ran 28 tests in 189.453s  OK 
+test_desk_scenes rc=0 secs=64 Ran 5 tests in 62.953s  OK 
+test_stacy_hand rc=0 secs=0 Ran 19 tests in 0.019s  OK 
+test_writing_line rc=0 secs=2 Ran 32 tests in 1.762s  OK 
+test_context_menu rc=0 secs=64 Ran 44 tests in 63.403s  OK 
+test_kasandra rc=0 secs=1 Ran 20 tests in 0.742s  OK 
+test_hologram rc=0 secs=31 Ran 23 tests in 31.101s  OK 
+test_kasandra_column rc=0 secs=29 Ran 18 tests in 28.672s  OK 
+test_release_check rc=0 secs=4 Ran 22 tests in 4.149s  OK 
+test_campaign rc=0 secs=10 Ran 23 tests in 9.649s  OK 
+test_tool_selection rc=0 secs=0 Ran 5 tests in 0.033s  OK 
+test_agent_loop rc=0 secs=5 Ran 24 tests in 4.213s  OK 
+test_model_settings rc=1 secs=5 Ran 13 tests in 4.894s  FAILED (failures=4, errors=1) 
+DONE

@@ -1,0 +1,11 @@
+P01a attempt 1  Pass       16.5s  all declared checks met
+P01b attempt 1  Pass       14.9s  all declared checks met
+P01c attempt 1  Pass       19.3s  all declared checks met
+P01d attempt 1  Pass       18.1s  all declared checks met
+P02a attempt 1  Pass       12.8s  all declared checks met
+P02b attempt 1  Pass       15.2s  all declared checks met
+P02c attempt 1  Pass       13.2s  all declared checks met
+P03a attempt 1  Pass       11.9s  all declared checks met
+P03b attempt 1  Pass       14.8s  all declared checks met
+SUMMARY campaign_graphite: 9 cases, Pass 9, Pass (current code; the spec asks otherwise) 0, Partial 0, Blocked 0, Fail 0, Timeout 0. Pass means every check matched the current code, not that the spec is met.
+Run folder: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/campaign_graphite

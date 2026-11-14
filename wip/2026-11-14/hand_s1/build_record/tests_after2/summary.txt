@@ -1,0 +1,6 @@
+test_desk_planner rc=0 secs=0 Ran 23 tests in 0.205s  OK 
+test_desk_acts rc=0 secs=186 Ran 28 tests in 185.407s  OK 
+test_her_hand rc=0 secs=164 Ran 22 tests in 163.658s  OK 
+test_desk_scenes rc=0 secs=64 Ran 5 tests in 62.912s  OK 
+test_release_check rc=0 secs=4 Ran 22 tests in 4.019s  OK 
+DONE

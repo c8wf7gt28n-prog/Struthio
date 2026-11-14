@@ -1,0 +1,54 @@
+Kasandra's hand, first slice: her door on the Field, with a planner over the desk
+
+The owner: "We keep building for Kasandra's hand" and "Keep working on the big things you're smart about
+like maths." S1 of the hand plan (judge_hand-plan.md, section 10): she is asked in Talk, in the owner's own
+words; her hand finds the goals, plans the fewest acts from the window as read now, and makes them through
+her own door, by pointer, reading the window back after each act. Navigation and reads only: every change
+through her hand is refused in this slice.
+
+- desk_ops.py (new, pure): the desk as a small state read back from read.desk, and the Field's acts as
+  operators Op(name, pre, add, delete, certain, observe, cost): go.field, point.zoom whole, point.sheet,
+  sheet.trace, sheet.compare, sheet.close, menu.close, read.desk (and go.back, for putting the window back
+  only). Costs: the probes' seconds, then a running average.
+- planner.py (new, pure): methods first (shown, traced, side_by_side, both_shown, tidy, put_back; a gap
+  filled by a search of up to four acts), then a forward uniform-cost search; goals planned jointly, else
+  one after another in the order said; budgets 4,096 expansions, 12 acts, 64 literals, TOO_FAR in words;
+  ties on cost, length, names. Plans measure about 0.1 to 1.2 ms here.
+- goals.py (new, pure): desk goals (seen and persist), words from templates only, evidence (the paths that
+  matched and a digest of read.desk), the finish rule, and progress.
+- hand_words.py (new, pure): the deterministic match (trace X / where X comes from, show or select X, X beside
+  its other revision, close what is open; find_sheet's exact-then-unique rule), the GOAL turn's numbered goals
+  (at most 16, and "none of these"), and the reading of a pick (1 to 3 different numbers in range, "none" alone).
+- her_hand_qt.py (new): HerHand, one act per tick, at least 300 ms apart; her card in her column; the ring
+  where her next press lands; Stop, Continue, Go ahead and Put my window back; the touch filter (a press
+  whose receiver is a QWindow, not on her card; the wheel does not count); the stop flag; the snapshot and
+  put back; session state her_plan; state_changed for her hologram (thinking and acting at work, waits waits
+  for you, stopped, finished done). At Ask first the moves up to the next goal are offered and the Go ahead
+  (or hand.approve) authorises exactly those, by fingerprint; a touch or a plan that changes them voids it.
+- desk_doers: door 'her' (inside her turn only; owner-only acts, a by and every change refused; at Ask
+  first OFFERED; the journal's OFFERED and STOPPED; origin stacy-hand:<turn>, correlation <turn>:<n>); the
+  stop flag read before each act and between presses (key, type_text, walk, wait_until, the mouse); walk
+  refuses a menu open on another target; read.desk says where the keyboard is, whether the line's words
+  are an act's, an operation pending, the cards waiting, where the Field was entered from, the sheets in
+  sight and the Field's sheets with their other revision; a trace only while its sheet is selected.
+- field_qt: a trace gives way as soon as the selection moves (it waited for a painting with wires).
+- desk_acts: hand.stop and hand.putback, the owner's own (42 acts, 35 exported); desk_hers refuses a by;
+  hand.approve takes her latest offer too.
+- stacy_hand: why_waits says "my hand is at Ask first" when the dial is the reason; the desk trail (200
+  moves, words put in the line kept by their length only), shown with her changes in What I did.
+- local_brain: brain.ask mode pick (her GOAL turn): no history, its own words, prompt at most 1,200
+  tokens, answer at most 32, 60 s.
+- shell2: SlateFace.plan_asked after run_asked; the Approve tooltips print no key. console_qt: the approval
+  words print no key. local_brain: "Programs" is "Apps" in the words that reach the screen.
+- desk_scene: a step may speak to her ({say, dial, until, seconds, touch_after, expect}; turn.* read);
+  runs may set their dial, steps their runs. Scenes P02 (Her door on the Field) and P03 (You take the
+  window back); P01 unchanged. The campaign's scenes set plays them.
+- kasandra_art: her picture follows her hand. qt_app: Master Stop stops her hand too.
+- hand_model_checks.py (new, needs: model): the GOAL turn on a real model, three requests frozen before it
+  runs. The 4B Q4_K_M at 4,096 context passed three runs: every answer exact, 4.6 to 6.0 s a turn, prompts
+  275 to 286 tokens, answers 7 to 10.
+- Tests: tests_integrated/test_desk_planner.py (pure) and test_her_hand.py (the live window), both in
+  FOCUSED_MODULES; test_desk_acts counts 42 acts. Seed, registry and manifest rebuilt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01SSUMdyhHQH2idKFXpgDCV8

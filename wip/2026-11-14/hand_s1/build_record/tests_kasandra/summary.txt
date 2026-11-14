@@ -1,0 +1,1 @@
+test_desk_scenes rc=0 secs=62 Ran 5 tests in 61.479s  OK 

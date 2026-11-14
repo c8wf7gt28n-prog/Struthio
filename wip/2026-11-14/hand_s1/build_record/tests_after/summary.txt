@@ -1,0 +1,16 @@
+test_desk_planner rc=0 secs=0 Ran 23 tests in 0.172s  OK 
+test_her_hand rc=0 secs=171 Ran 22 tests in 169.962s  OK 
+test_desk_acts rc=1 secs=191 Ran 28 tests in 190.685s  FAILED (failures=1) 
+test_desk_scenes rc=0 secs=61 Ran 5 tests in 61.120s  OK 
+test_stacy_hand rc=0 secs=0 Ran 19 tests in 0.020s  OK 
+test_writing_line rc=0 secs=1 Ran 32 tests in 0.918s  OK 
+test_context_menu rc=0 secs=63 Ran 44 tests in 62.649s  OK 
+test_kasandra rc=0 secs=1 Ran 20 tests in 0.766s  OK 
+test_hologram rc=0 secs=31 Ran 23 tests in 30.584s  OK 
+test_kasandra_column rc=0 secs=28 Ran 18 tests in 27.788s  OK 
+test_release_check rc=0 secs=4 Ran 22 tests in 4.667s  OK 
+test_campaign rc=0 secs=10 Ran 23 tests in 9.458s  OK 
+test_tool_selection rc=0 secs=0 Ran 5 tests in 0.031s  OK 
+test_agent_loop rc=0 secs=5 Ran 24 tests in 4.207s  OK 
+test_model_settings rc=1 secs=5 Ran 13 tests in 4.790s  FAILED (failures=4, errors=1) 
+DONE

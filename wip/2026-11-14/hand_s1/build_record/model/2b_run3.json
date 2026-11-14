@@ -1,0 +1,453 @@
+{
+  "state": "FAILED",
+  "model": "Qwen3.5-2B-Q4_K_M.gguf",
+  "activation_seconds": 5.287,
+  "config": {
+    "context": 4096,
+    "threads": 4,
+    "memory_mb": 4480
+  },
+  "bounds": {
+    "seconds": 60.0,
+    "prompt_tokens": 1200,
+    "output_tokens": 32
+  },
+  "runs": [
+    {
+      "run": 1,
+      "turns": [
+        {
+          "name": "trace",
+          "text": "show me where the bench readings come from",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.34,
+          "job_state": "Completed",
+          "model_seconds": 1.81,
+          "prompt_tokens": 279,
+          "output_tokens": 7,
+          "prefill_tokens_per_second": 213.03824609200808,
+          "decode_tokens_per_second": 12.330126815354296,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.3224754779985233,
+          "valid": true,
+          "pick": [
+            1
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ]
+          ],
+          "exact": true,
+          "over_picking": 0,
+          "missed": []
+        },
+        {
+          "name": "trace_and_side",
+          "text": "where do the bench readings come from, and put the limits side by side",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.503,
+          "job_state": "Completed",
+          "model_seconds": 1.987,
+          "prompt_tokens": 286,
+          "output_tokens": 10,
+          "prefill_tokens_per_second": 213.80476037046535,
+          "decode_tokens_per_second": 14.098053528742799,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.349358391998976,
+          "valid": true,
+          "pick": [
+            1,
+            2
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ],
+            [
+              "side_by_side",
+              {
+                "a": "07 Limits Rev A ARCHIVED",
+                "b": "07 Limits Rev B CURRENT"
+              }
+            ]
+          ],
+          "exact": true,
+          "over_picking": 0,
+          "missed": []
+        },
+        {
+          "name": "none",
+          "text": "what's for dinner",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 3.135,
+          "job_state": "Completed",
+          "model_seconds": 2.634,
+          "prompt_tokens": 275,
+          "output_tokens": 13,
+          "prefill_tokens_per_second": 177.12977622390235,
+          "decode_tokens_per_second": 11.214219630491463,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.5646363669984567,
+          "valid": true,
+          "pick": [
+            1,
+            2,
+            3
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ],
+            [
+              "traced",
+              {
+                "s": "07 Limits Rev A ARCHIVED"
+              }
+            ],
+            [
+              "traced",
+              {
+                "s": "07 Limits Rev B CURRENT"
+              }
+            ]
+          ],
+          "exact": false,
+          "over_picking": 3,
+          "missed": []
+        }
+      ],
+      "passed": false
+    },
+    {
+      "run": 2,
+      "turns": [
+        {
+          "name": "trace",
+          "text": "show me where the bench readings come from",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.509,
+          "job_state": "Completed",
+          "model_seconds": 1.962,
+          "prompt_tokens": 279,
+          "output_tokens": 7,
+          "prefill_tokens_per_second": 183.1446527669284,
+          "decode_tokens_per_second": 14.089567379833602,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.5374648469987733,
+          "valid": true,
+          "pick": [
+            1
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ]
+          ],
+          "exact": true,
+          "over_picking": 0,
+          "missed": []
+        },
+        {
+          "name": "trace_and_side",
+          "text": "where do the bench readings come from, and put the limits side by side",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.562,
+          "job_state": "Completed",
+          "model_seconds": 2.043,
+          "prompt_tokens": 286,
+          "output_tokens": 10,
+          "prefill_tokens_per_second": 212.02712761067667,
+          "decode_tokens_per_second": 13.195378098897892,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.3584614680003142,
+          "valid": true,
+          "pick": [
+            1,
+            2
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ],
+            [
+              "side_by_side",
+              {
+                "a": "07 Limits Rev A ARCHIVED",
+                "b": "07 Limits Rev B CURRENT"
+              }
+            ]
+          ],
+          "exact": true,
+          "over_picking": 0,
+          "missed": []
+        },
+        {
+          "name": "none",
+          "text": "what's for dinner",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.841,
+          "job_state": "Completed",
+          "model_seconds": 2.363,
+          "prompt_tokens": 275,
+          "output_tokens": 13,
+          "prefill_tokens_per_second": 194.81232489028525,
+          "decode_tokens_per_second": 12.770359145067022,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.4261550990013347,
+          "valid": true,
+          "pick": [
+            1,
+            2,
+            3
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ],
+            [
+              "traced",
+              {
+                "s": "07 Limits Rev A ARCHIVED"
+              }
+            ],
+            [
+              "traced",
+              {
+                "s": "07 Limits Rev B CURRENT"
+              }
+            ]
+          ],
+          "exact": false,
+          "over_picking": 3,
+          "missed": []
+        }
+      ],
+      "passed": false
+    },
+    {
+      "run": 3,
+      "turns": [
+        {
+          "name": "trace",
+          "text": "show me where the bench readings come from",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.337,
+          "job_state": "Completed",
+          "model_seconds": 1.834,
+          "prompt_tokens": 279,
+          "output_tokens": 7,
+          "prefill_tokens_per_second": 212.94653896997985,
+          "decode_tokens_per_second": 11.767451621064524,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.3197186600009445,
+          "valid": true,
+          "pick": [
+            1
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ]
+          ],
+          "exact": true,
+          "over_picking": 0,
+          "missed": []
+        },
+        {
+          "name": "trace_and_side",
+          "text": "where do the bench readings come from, and put the limits side by side",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.602,
+          "job_state": "Completed",
+          "model_seconds": 2.113,
+          "prompt_tokens": 286,
+          "output_tokens": 10,
+          "prefill_tokens_per_second": 199.7298758182989,
+          "decode_tokens_per_second": 13.441763559378991,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.4471845400003076,
+          "valid": true,
+          "pick": [
+            1,
+            2
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ],
+            [
+              "side_by_side",
+              {
+                "a": "07 Limits Rev A ARCHIVED",
+                "b": "07 Limits Rev B CURRENT"
+              }
+            ]
+          ],
+          "exact": true,
+          "over_picking": 0,
+          "missed": []
+        },
+        {
+          "name": "none",
+          "text": "what's for dinner",
+          "candidates": [
+            "Trace \u201c07 Bench readings\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev A ARCHIVED\u201d: show where it comes from and what rests on it",
+            "Trace \u201c07 Limits Rev B CURRENT\u201d: show where it comes from and what rests on it",
+            "Put \u201c07 Limits Rev A ARCHIVED\u201d and \u201c07 Limits Rev B CURRENT\u201d side by side",
+            "Select \u201c07 Bench readings\u201d in the Field",
+            "Select \u201c07 Limits Rev A ARCHIVED\u201d in the Field",
+            "Select \u201c07 Limits Rev B CURRENT\u201d in the Field",
+            "Close whatever is open over the window"
+          ],
+          "seconds": 2.647,
+          "job_state": "Completed",
+          "model_seconds": 2.128,
+          "prompt_tokens": 275,
+          "output_tokens": 13,
+          "prefill_tokens_per_second": 214.22016847832012,
+          "decode_tokens_per_second": 14.41204270288253,
+          "cache_n": 0,
+          "reused_tokens": 0,
+          "first_token_seconds": 1.2950492160016438,
+          "valid": true,
+          "pick": [
+            1,
+            2,
+            3
+          ],
+          "picked": [
+            [
+              "traced",
+              {
+                "s": "07 Bench readings"
+              }
+            ],
+            [
+              "traced",
+              {
+                "s": "07 Limits Rev A ARCHIVED"
+              }
+            ],
+            [
+              "traced",
+              {
+                "s": "07 Limits Rev B CURRENT"
+              }
+            ]
+          ],
+          "exact": false,
+          "over_picking": 3,
+          "missed": []
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "cloud_calls": 0
+}

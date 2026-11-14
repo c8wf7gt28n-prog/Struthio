@@ -1,0 +1,89 @@
+tree d1df337
+suite DONE 59
+scene graphite exit 0 **What Pass means.** Pass means every declared check matched what the current code does; it is not a verdict that the spec is met. The expectations are what Graphite does today, so a Pass shows the current behaviour held, nothing more. A case whose checks record current behaviour that a quoted spec line contradicts is counted apart as "Pass (current code; the spec asks otherwise)". An anchor that passes covers a baseline slice of its situation, not the situation's whole intent; the table says so on each one. | Pass | Pass (current code; the spec asks otherwise) | Partial | Blocked | Fail | Timeout | Total | - scenes: Pass 4 | P01a |  | P01, the playable scene in After Hours 07, by pointer | 1 | Pass | 54/54 | 17.0 | all declared checks met | | P01b |  | P01, the playable scene in After Hours 07, by keys | 1 | Pass | 55/55 | 15.6 | all declared checks met | | P01c |  | P01, the playable scene in After Hours 07, by pointer, with less motio | 1 | Pass | 56/56 | 19.9 | all declared checks met | | P01d |  | P01, the playable scene in After Hours 07, by keys, with less motion | 1 | Pass | 57/57 | 18.2 | all declared checks met | ## Against the spec: the current code passes, a quoted spec line asks otherwise 
+scene kasandra exit 0 **What Pass means.** Pass means every declared check matched what the current code does; it is not a verdict that the spec is met. The expectations are what Graphite does today, so a Pass shows the current behaviour held, nothing more. A case whose checks record current behaviour that a quoted spec line contradicts is counted apart as "Pass (current code; the spec asks otherwise)". An anchor that passes covers a baseline slice of its situation, not the situation's whole intent; the table says so on each one. | Pass | Pass (current code; the spec asks otherwise) | Partial | Blocked | Fail | Timeout | Total | - scenes: Pass 4 | P01a |  | P01, the playable scene in After Hours 07, by pointer | 1 | Pass | 54/54 | 17.5 | all declared checks met | | P01b |  | P01, the playable scene in After Hours 07, by keys | 1 | Pass | 55/55 | 16.1 | all declared checks met | | P01c |  | P01, the playable scene in After Hours 07, by pointer, with less motio | 1 | Pass | 56/56 | 19.6 | all declared checks met | | P01d |  | P01, the playable scene in After Hours 07, by keys, with less motion | 1 | Pass | 57/57 | 18.5 | all declared checks met | ## Against the spec: the current code passes, a quoted spec line asks otherwise 
+look_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+head_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+glow_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+centre_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+audit_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+mouse_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+mouse2_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+pages_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+more_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+icons_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+crash_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+boxes_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+map_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+find_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+zoom_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+amber_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+green_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+cascade_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+ux044_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+first_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+eq_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+pane_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+line_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+hand_probe 1920x1200 exit 0 tracebacks 0 done 2 wrong 0
+start_probe 1920x1200 exit 0 tracebacks 0 done 2 wrong 0
+door_probe 1920x1200 exit 0 tracebacks 0 done 2 wrong 0
+kasandra_probe 1920x1200 exit 0 tracebacks 0 done 1 wrong 0
+window 1920x1200 exit 0 tracebacks 0
+stacy 1920x1200 exit 0 tracebacks 0
+regress 1920x1200 exit 0 tracebacks 0
+look_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+head_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+glow_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+centre_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+audit_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+mouse_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+mouse2_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+pages_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+more_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+icons_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+crash_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+boxes_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+map_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+find_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+zoom_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+amber_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+green_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+cascade_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+ux044_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+first_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+eq_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+pane_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+line_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+hand_probe 1366x768 exit 0 tracebacks 0 done 2 wrong 0
+start_probe 1366x768 exit 0 tracebacks 0 done 2 wrong 0
+door_probe 1366x768 exit 0 tracebacks 0 done 2 wrong 0
+kasandra_probe 1366x768 exit 0 tracebacks 0 done 1 wrong 0
+window 1366x768 exit 0 tracebacks 0
+stacy 1366x768 exit 0 tracebacks 0
+regress 1366x768 exit 0 tracebacks 0
+crawl graphite exit 0 pressed 71 controls and menu lines | tracebacks: 0 CRAWL CLEAN DONE 
+sweep graphite exit 0 NAME SWEEP 0 places DONE 
+crawl kasandra exit 0 pressed 71 controls and menu lines | tracebacks: 0 CRAWL CLEAN DONE 
+sweep kasandra exit 0 NAME SWEEP 0 places DONE 
+gate exit 1
+base: passing 7 of 17 | now: passing 7 of 17
+  tools/check_agent_ui.py      base (True, '')     now (True, '')    
+  tools/check_context_menu_ui.py base (True, '')     now (True, '')    
+  tools/check_continue_ui.py   base (False, '142') now (False, '142')
+  tools/check_desk_ui.py       base (False, '145') now (False, '145')
+  tools/check_document_ui.py   base (True, '')     now (True, '')    
+  tools/check_files_about_ui.py base (True, '')     now (True, '')    
+  tools/check_finder_ui.py     base (False, '112') now (False, '112')
+  tools/check_frame_ui.py      base (False, '173') now (False, '173')
+  tools/check_graphite_ui.py   base (False, '99')  now (False, '99') 
+  tools/check_hardware_settings_ui.py base (True, '')     now (True, '')    
+  tools/check_hatch_ui.py      base (False, '124') now (False, '124')
+  tools/check_head_ui.py       base (False, '106') now (False, '106')
+  tools/check_machine_ui.py    base (False, '75')  now (False, '75') 
+  tools/check_model_turn_ui.py base (True, '')     now (True, '')    
+  tools/check_paper_ui.py      base (False, '110') now (False, '110')
+  tools/check_rename_ui.py     base (False, '136') now (False, '136')
+  tools/check_service_integration_ui.py base (True, '')     now (True, '')    
+scripts that differ from the baseline: 0
+CHECKS DONE

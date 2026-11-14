@@ -1,0 +1,86 @@
+..FF..FF....E
+======================================================================
+ERROR: test_worker_uses_frozen_options_even_after_saved_defaults_change (tests_integrated.test_model_settings.ModelSettingsTests.test_worker_uses_frozen_options_even_after_saved_defaults_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/workbench/local_brain.py", line 540, in run_model_job
+    receipt={'state':trial['backend']+'_CHAT_QUALIFIED','at':time.time(),'file_set_id':value['id'],'runtime':trial['runtime'],
+                     ~~~~~^^^^^^^^^^^
+KeyError: 'backend'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/tests_integrated/test_model_settings.py", line 185, in test_worker_uses_frozen_options_even_after_saved_defaults_change
+    result=brain.run_model_job(self.k,job);row=self.row('brain.context')
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/workbench/local_brain.py", line 566, in run_model_job
+    if trial:terminate(kernel,trial,'TRIAL_FINISHED')
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/workbench/local_brain.py", line 309, in terminate
+    if worker_live(worker):raise ValueError('Owned model worker termination was not confirmed')
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Owned model worker termination was not confirmed
+
+======================================================================
+FAIL: test_explicit_request_and_restore_override_launch_defaults (tests_integrated.test_model_settings.ModelSettingsTests.test_explicit_request_and_restore_override_launch_defaults)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/tests_integrated/test_model_settings.py", line 92, in test_explicit_request_and_restore_override_launch_defaults
+    self.assertEqual(model_settings.config(direct['brain_launch']['options']),dict(context=2048,threads=3,memory_mb=2048))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'con[39 chars] 2048, 'backend': 'AUTO', 'requested_backend':[43 chars]True} != {'con[39 chars] 2048}
++ {'context': 2048, 'memory_mb': 2048, 'threads': 3}
+- {'backend': 'AUTO',
+-  'context': 2048,
+-  'cpu_fallback': True,
+-  'gpu_layers': -1,
+-  'memory_mb': 2048,
+-  'requested_backend': 'AUTO',
+-  'threads': 3}
+
+======================================================================
+FAIL: test_failed_activation_retains_original_restore_and_reports_owned_restored_worker (tests_integrated.test_model_settings.ModelSettingsTests.test_failed_activation_retains_original_restore_and_reports_owned_restored_worker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/tests_integrated/test_model_settings.py", line 157, in test_failed_activation_retains_original_restore_and_reports_owned_restored_worker
+    self.assertEqual(calls,['b'*64,'a'*64]);self.assertIn(NOBODY+92,alive);self.assertEqual(snap['state'],'RESTORED_PREVIOUS')
+                                            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: 4194396 not found in set()
+
+======================================================================
+FAIL: test_new_requests_freeze_defaults_auto_and_keep_idempotency_after_defaults_change (tests_integrated.test_model_settings.ModelSettingsTests.test_new_requests_freeze_defaults_auto_and_keep_idempotency_after_defaults_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/tests_integrated/test_model_settings.py", line 87, in test_new_requests_freeze_defaults_auto_and_keep_idempotency_after_defaults_change
+    self.assertEqual(model_settings.config(direct['brain_launch']['options']),dict(context=6144,threads=6,memory_mb=2048))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'con[39 chars] 2048, 'backend': 'AUTO', 'requested_backend':[43 chars]True} != {'con[39 chars] 2048}
++ {'context': 6144, 'memory_mb': 2048, 'threads': 6}
+- {'backend': 'AUTO',
+-  'context': 6144,
+-  'cpu_fallback': True,
+-  'gpu_layers': -1,
+-  'memory_mb': 2048,
+-  'requested_backend': 'AUTO',
+-  'threads': 6}
+
+======================================================================
+FAIL: test_owner_cancellation_stays_stopped_and_never_automatically_restores (tests_integrated.test_model_settings.ModelSettingsTests.test_owner_cancellation_stays_stopped_and_never_automatically_restores)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/hand_build/base_tree/tests_integrated/test_model_settings.py", line 168, in test_owner_cancellation_stays_stopped_and_never_automatically_restores
+    self.assertEqual(calls,['b'*64]);self.assertFalse(alive);self.assertIsNone(snap['worker_config'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+
+- []
++ ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb']
+
+----------------------------------------------------------------------
+Ran 13 tests in 4.894s
+
+FAILED (failures=4, errors=1)
