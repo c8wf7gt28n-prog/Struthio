@@ -10,7 +10,13 @@ Saved here because the build container is temporary. Nothing in `wip/` is part o
   logo on Apps as the only kp mark. Suite: 64 modules, 1,007 tests, the same 20 known failures; P01 4/4 in Kasandra;
   restore identical; release check PASSED. Not run for 0.8.3: probes, crawler, name sweep, gate.
 
-## Paused, to resume in this order
+## Order changed (14 Nov, after the test measurements): tests first
+The measurement found all 20 failing tests stale, with fixes already written (`tests_measure/fix_patches/`), a behaviour
+catch rate of 53% on 136 planted bugs (61 real gaps), and release checks of 73 minutes that caught one real fault since
+0.5.0 (15 minutes after dropping duplicates and dead checks). So 0.8.4 is the test clean-up; her door is 0.8.5. The
+release-by-release plan is in `TALK_my_plans_long_chat.md`.
+
+## Paused (original order below; see the change above)
 1. **Kasandra's hand, slice S1 "Her door on the Field"** (stopped mid-build).
    - Plan: `designs/judge_hand-plan.md` PART 1 §10 S1 (items 1-13, tests, scenes P02/P03, the 4B check).
    - Unfinished build, applied on bbf033b: `hand_s1/hand_s1_unfinished.patch` (29 files, `hand_s1/files.txt`).
