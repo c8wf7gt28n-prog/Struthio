@@ -78,6 +78,8 @@ scratchpad paths of this session; adjust `S=` at their top).
   - the owner's After Hours 07 backup (`Graphite_After_Hours_07.zip`, about 1.1 MB): the campaign's scenes and the Field
     probes need it; it was never put in this public repository;
   - the 35B simulation spec (the .docx) if the campaign's anchor work continues.
+  Both were sent back to the owner on 14 Nov (the spec rebuilt as Graphite_35B_Simulation_Spec.docx, with a .txt copy),
+  because the owner had only the 0.8.3 kit. Ask for them at the start of the next session.
 - **Rebuildable, with the record here:**
   - the Python environment: `environment/venv_pip_freeze.txt` and `python_version.txt` (Python 3.13, PySide6 6.8.3);
   - the small test models: `environment/models_sha256.txt` (Qwen3.5 2B and 4B, Q4_K_M; re-download and check the hashes);
