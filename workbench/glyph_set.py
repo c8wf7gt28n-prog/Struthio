@@ -391,7 +391,56 @@ def letters(text, weight=QFont.DemiBold, italic=False, under=False, family='IBM 
     return draw
 
 
+# ---- the right-click (0.8.1, the owner: "We need to make its power easy to use and chain/pipe. With right click icons too")
+
+def trash(p, ink, accent):
+    """The Trash: a straight-sided can, its lid a facet."""
+    facet(p, accent, (7.5, 2.5), (12.5, 2.5), (12.5, 4.5), (7.5, 4.5))
+    pen(p, ink);line(p, (3.5, 4.5), (16.5, 4.5));line(p, (7.5, 4.5), (7.5, 2.5), (12.5, 2.5), (12.5, 4.5))
+    line(p, (5.0, 4.5), (6.0, 17.5), (14.0, 17.5), (15.0, 4.5));line(p, (8.5, 7.5), (8.5, 14.5));line(p, (11.5, 7.5), (11.5, 14.5))
+
+
+def pause(p, ink, accent):
+    """Held: two solid bars (stop stays one square)."""
+    facet(p, ink, (5.0, 4.5), (8.5, 4.5), (8.5, 15.5), (5.0, 15.5));facet(p, ink, (11.5, 4.5), (15.0, 4.5), (15.0, 15.5), (11.5, 15.5))
+
+
+def funnel(p, ink, accent):
+    """Keep rows where: a funnel of straight strokes, its band the accent."""
+    facet(p, accent, (4.6, 5.5), (15.4, 5.5), (12.6, 8.5), (7.4, 8.5))
+    pen(p, ink);line(p, (2.5, 3.5), (17.5, 3.5), (11.5, 10.5), (11.5, 17.0), (8.5, 15.5), (8.5, 10.5), close=True)
+
+
+def ordering(p, ink, accent):
+    """Sort by: two stems, one head up and one down."""
+    pen(p, ink);line(p, (6.5, 6.5), (6.5, 17.5));line(p, (13.5, 2.5), (13.5, 13.5))
+    facet(p, ink, (6.5, 2.0), (2.8, 7.0), (10.2, 7.0));facet(p, ink, (13.5, 18.0), (9.8, 13.0), (17.2, 13.0))
+
+
+def gathered(p, ink, accent):
+    """Count by: three short rules gathered by a bracket into one head."""
+    pen(p, ink);line(p, (2.5, 4.5), (8.5, 4.5));line(p, (2.5, 10.5), (8.5, 10.5));line(p, (2.5, 16.5), (8.5, 16.5))
+    line(p, (10.5, 4.5), (12.5, 4.5), (12.5, 16.5), (10.5, 16.5));line(p, (12.5, 10.5), (14.0, 10.5))
+    facet(p, ink, (18.0, 10.5), (14.0, 7.2), (14.0, 13.8))
+
+
+def watch(p, ink, accent):
+    """Watch it: straight lids around a diamond pupil."""
+    pen(p, ink);line(p, (2.0, 10.5), (6.5, 6.0), (13.5, 6.0), (18.0, 10.5), (13.5, 15.0), (6.5, 15.0), close=True)
+    facet(p, ink, (10.0, 7.6), (12.9, 10.5), (10.0, 13.4), (7.1, 10.5))
+
+
+def trace(p, ink, accent):
+    """Trace it: three nodes on an elbow wire, ending in a facet."""
+    facet(p, accent, (2.5, 2.5), (6.5, 2.5), (6.5, 6.5), (2.5, 6.5))
+    pen(p, ink);p.drawRect(QRectF(2.5, 2.5, 4, 4));line(p, (4.5, 6.5), (4.5, 14.5), (11.5, 14.5))
+    p.drawRect(QRectF(8.5, 8.5, 3, 3));line(p, (6.5, 10.0), (8.5, 10.0))
+    facet(p, ink, (17.5, 14.5), (12.5, 11.2), (12.5, 17.8))
+
+
 GLYPHS = {
+    'trash': trash, 'pause': pause, 'filter': funnel, 'sort': ordering, 'group': gathered, 'watch': watch, 'trace': trace,
+    'count': letters('#', QFont.DemiBold, size=14.0),
     'field': field, 'find': find, 'smaller': smaller, 'larger': larger, 'undo': undo, 'redo': redo, 'save': save,
     'previous': previous, 'next': following, 'cite': cite, 'table': table, 'more': more, 'note': note,
     'report': report, 'recalc': recalc, 'export': export, 'cell': cell, 'source': source,

@@ -118,15 +118,22 @@ Click an entry in either stream to pin it at the top while the stream moves on. 
 
 ## The right-click menu
 
-Right-click anything you are working on, or press the Menu key or Shift+F10 for what has the keyboard focus. The menu names the thing at its top (a passage with its page and revision, a file or two files, a record, a job with its state, an event, a network connection) and offers what you can do to it right there:
+Right-click anything you are working on, or use the keyboard's menu key for what has the focus. Every menu has one short shape, and every row wears one of Graphite's drawn glyphs:
 
-- **Changes first**: on selected words Bold, Italic, Underline, Plain, the paragraph's style, Move to notes; on a file Rename, Copy to, Move to, Versions, Export, and Move to Trash last.
-- **What its state allows**: a job's Inspect output, Pause, Resume, Stop; Agenda work's Pause, Resume and Stop. A greyed entry says why (Pause on a network capture, which the Kernel will not pause).
-- **As a line**: Inspect in the line puts the equivalent command in the writing line to read or change; Run runs it.
-- **Capabilities that take it**: Compare revisions when two revisions of one file are selected, Compare with…, Extract, the program for its kind, the Tool Atlas, Ask Stacy about this.
-- **The tree's own words**: Refresh, View as, New Idea, New Project, Import, Export.
-- On an event: Ask Stacy about this, Show in Log, its job, Copy. On a connection or packet: Ask Stacy about this, Follow this conversation, Show the process, Copy address.
-- On an empty place, the root menu: on Today and an empty part of the workspace it is the menu itself (Inquiries, the atlases, your kept chains, Start a chain from, the writing line's modes, Edit the Graphite menu, New Idea, New Project, Import); in a folder in Files, the Finder or the Library it is the first row, Root menu ›.
+- **At the top, the thing itself**: its kind's glyph, its name and what it is (a passage and its page, a file, two files, a record, a job and its state, an event, a network connection).
+- **Up to four usual actions** for that kind of thing: on a file Open, Ask Stacy about this, Rename, Move to Trash; on selected words Bold, Italic, Move to notes, Ask; on a sheet in the Field Open, What can be done, Doubt it, Ask; on a job Inspect output, Pause or Resume (whichever applies), Stop, Show in Jobs. Only rows that can act now are here; one that cannot is under More, dim, and its tooltip says why.
+- **Then ›** when the thing has a line, or **Start from ›** on an empty place (one of your kept chains or words, or a file in Files).
+- **More ›** for everything else, in named groups: Open and show, Change it, Look into it, Send and keep, Edit and copy, This working copy, Make and arrange, As a line. Nothing was taken away to make the menu short.
+
+**Then ›, the line panel.** It shows the thing's line on its royal-purple slab, how many rows it gives, the first few, and how many steps the line has left. It reads once when it opens; after that every choice is counted from that one read, so you see what a step would give before you take it:
+
+- **Keep rows where ›** a column › a value. Each value says how many rows it keeps (is mA, 2 rows; at least 110, 3 rows). Another value… puts the line so far in the writing line for you to finish.
+- **Sort by ›**, **Count**, **Count by ›** a column, **First ›** 5, 10, 20… rows, **Read it as ›** (rows, headings, layers…), and **Back a step** (Backspace does the same).
+- **Then**: Show it (runs it; the answer is in the working area), Put it in the writing line, Copy the line, Copy the rows (as CSV). A line gives at most 200 rows; above that Show it says so and First › offers 200.
+
+**Stop asks first.** Stop on a job or on Agenda work opens a small screen that says why it asks (what it stops cannot be put back), with Stop it and Leave it. Nothing is stopped before Stop it, and the job is read again at that moment.
+
+Deeper screens open beside the menu and replace each other in place, with Back at their top, so there are never more than two popups and no screen scrolls.
 
 Everything goes through the same checks as elsewhere. A change is refused, with nothing done, if the page, file or job moved on since you right-clicked it. The result shows where it belongs: the page, the Compare room, the working area, the job's row. Run and Inspect output say "Not run" with the reason when the line is refused; they never say they ran. Text fields keep their own menu (cut, copy, paste).
 

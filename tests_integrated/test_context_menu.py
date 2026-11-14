@@ -13,14 +13,27 @@ and state; the target named at the top; Bold, rename and Pause through Kernel.di
 each refused when the revision moved; Compare revisions on the two actual files; nothing lost from the old menus; the Menu key
 and Shift+F10; the menu's metrics are the programs list's; text fields keep their own menus. The owner's captures are
 tools/check_context_menu_ui.py.
+
+0.8.1 (the owner: "right click was too complex. We need to make its power easy to use and chain/pipe. With right click
+icons too"): every menu is one short shape (up to four usual rows, Then or Start from, More), every row wears a drawn glyph,
+no key is printed, no screen scrolls, Stop asks first, and the line panel reads a line once and counts every step from
+that read (line_steps).
 """
-import os,platform,subprocess,sys,tempfile,time,unittest
+import ast,os,platform,re,subprocess,sys,tempfile,time,unittest
 from pathlib import Path
 from unittest.mock import patch
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 from workbench import context_menu as cm
 
 WINDOW={}
+SHEET='office:owner:'+'a'*32
+BENCH=[{'parameter':'Rail voltage','value':'12','unit':'V'},{'parameter':'Settled current','value':'280','unit':'mA'},
+       {'parameter':'Startup current','value':'650','unit':'mA'},{'parameter':'Startup duration','value':'110','unit':'ms'}]
+BENCH_CSV='parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n'
+# A printed key: a whole caption that is one, or words that tell one (the judge's keys_scan patterns).
+KEY_CAPTION=r'^(?:(?:Ctrl|Shift|Alt|Meta)\b.*|Esc|Enter|Return|Space|Backspace|Tab|F\d{1,2}|[A-Z0-9`])$'
+KEY_TEXT=(r'\b(?:Ctrl|Shift|Alt|Meta)\s*[+ ]\s*\w|\buntil Esc\b|\b(?:Esc|Enter|Space|Backspace|F\d{1,2})\s+(?:asks|shows|takes|does|keeps|runs|closes)\b'
+          r'|\([A-Z]\)|\(F\d{1,2}\)|\b[A-Z](?:\s*/\s*[A-Z])*\s+(?:shows|tells|does)\b|\bShortcut:')
 
 
 def no_logind(request):
@@ -196,6 +209,57 @@ class Rules(unittest.TestCase):
         self.assertEqual([(e.label,e.enabled) for e in out[1].submenu()],[('Board layers',True),('Broken',False)])
         self.assertIn('Does not parse',out[1].submenu()[1].reason)
 
+    def test_a_line_is_read_once_and_every_offer_is_counted_from_that_read(self):
+        from workbench import line_steps
+        calls=[]
+        def dispatch(op,args):
+            calls.append(op)
+            if op=='language.parse':
+                return {'ok':True,'result':{'call':{'operation':'ledger.address.read','arguments':{'address':SHEET}},'address':SHEET,'seed_id':'s'}}
+            return {'ok':True,'result':{'object':{'origin':{'reviewed_rows':BENCH}}}}
+        base='@%s | pick origin.reviewed_rows'%SHEET
+        held=line_steps.Held(dispatch);held.read(base)
+        self.assertEqual(held.count(base),4)
+        self.assertEqual([(o.words,o.count) for o in line_steps.values(held,base,'unit')],
+                         [('is mA',2),('is V',1),('is ms',1),('is not mA',2),('is not V',3),('is not ms',3)])
+        self.assertEqual([(o.words,o.count) for o in line_steps.values(held,base,'value')],
+                         [('at least 110',3),('at least 280',2),('at least 650',1),('at most 12',1),('at most 110',2),('at most 280',3)])
+        self.assertEqual(held.rows(base+' | where unit=mA | count'),[{'count':2}])
+        self.assertEqual(held.rows(base+' | group unit | count'),[{'unit':'V','count':1},{'unit':'mA','count':2},{'unit':'ms','count':1}])
+        self.assertEqual((line_steps.steps_left(base),line_steps.steps_left(base+' | where unit=mA')),(6,5))
+        self.assertNotIn('value',line_steps.sortable(held,base),'numbers written as text sort as text (110 before 12): not offered')
+        self.assertEqual(calls,['language.parse','ledger.address.read'],'two reads in all')
+
+    def test_the_window_never_names_the_language_and_says_the_200_limit(self):
+        from workbench import line_steps
+        self.assertIsNone(re.search(r'(?i)language|stac|pipeline',line_steps.plain('Shell syntax and command substitution are not part of Stacy language')))
+        self.assertEqual(line_steps.ending_ready(450),(False,'The answer is 450 rows; a line gives at most 200 · keep fewer first'))
+        self.assertTrue(line_steps.ending_ready(200)[0])
+        self.assertFalse([s.words for s in line_steps.STEPS if s.words.lower().startswith(('where ','pick ','select ','join ','take ','group '))])
+
+    def test_no_string_in_the_menu_prints_a_key(self):
+        self.assertEqual(key_literals(['workbench/context_menu.py','workbench/field_page.py','workbench/line_steps.py']),[])
+
+    def test_every_glyph_the_menu_names_is_drawn(self):
+        from workbench.glyph_set import GLYPHS,KIND
+        self.assertTrue({'trash','pause','filter','sort','count','group','watch','trace'}<=set(GLYPHS))
+        for key in cm.glyph_keys():self.assertTrue(key in GLYPHS or key in KIND,key)
+        self.assertFalse(any(hasattr(cm,n) for n in ('EXTRA','_extra_paths','paint_icon')),'one set of glyphs: Graphite\'s own')
+
+    def test_four_usual_then_more_and_nothing_grey_at_rest(self):
+        for kind,usual in cm.REST.items():self.assertGreaterEqual(len(usual),1,kind)
+        keys=('open','open:outside','show:folder','rename','copy:to','move:to','versions','export','inspect','run','chain','compare:with',
+              'compare:version','extract','atlas','explore','delivery:stage','explain','ask','investigate','agenda','copy:path','copy:address','trash')
+        rest,more=cm.first_level('file',[cm.Entry(k,k,'open') for k in keys],line='@files:a.csv | rows')
+        self.assertEqual([e.key for e in rest],['open','ask','rename','trash','then','more'])
+        self.assertFalse({'inspect','run','chain','extract'}&set(cm.keys_of(more)),'the line panel does those once there is a line')
+        self.assertEqual(set(cm.keys_of(more))|{'open','ask','rename','trash','inspect','run','chain','extract'},set(keys))
+        job=[cm.Entry('job:output','Inspect output','state'),cm.Entry('job:pause','Pause','state',enabled=False),cm.Entry('job:resume','Resume','state'),
+             cm.Entry('job:stop','Stop','state',operation='jobs.cancel'),cm.Entry('copy:id','Copy the job id','edit'),cm.Entry('job:show','Show in Jobs','open')]
+        rest,more=cm.first_level('job',job,line='@job:'+'a'*32)
+        self.assertEqual([e.key for e in rest],['job:output','job:resume','job:stop','job:show','then','more'],'Pause cannot act: not at rest')
+        self.assertEqual(next(e for e in rest if e.key=='job:stop').caption,'asks');self.assertIn('job:pause',cm.keys_of(more),'under More, dim, with its reason')
+
     def test_the_folded_list_is_well_formed(self):
         kinds={'file','folder','smart','empty:files','finder','finder-outside','cabinet','library','empty:today','passage','event:activity'}
         self.assertTrue(len(cm.FOLDED)>=65)
@@ -263,12 +327,14 @@ class Window(unittest.TestCase):
         menu=right_click(d.page.viewport(),point)
         self.assertIsNotNone(menu);t=menu.target
         self.assertEqual((t.kind,t.label,t.ident,t.revision,t.surface),('passage','“pencil”',d.document_id,d.revision,'document'))
-        self.assertEqual((menu.heading.label,menu.heading.noun),('“pencil”','passage · Hello pencil world · revision %d'%d.revision),'the target before you act')
+        self.assertEqual((menu.heading.label,menu.heading.noun),('“pencil”','passage · Hello pencil world'),'the target before you act')
         self.assertEqual(menu.heading.shown_label(),'“pencil”','named whole')
         keys=menu.keys()
         for key in ('mark:bold','mark:italic','mark:underline','style','notes','inspect','ask','search','edit:undo','edit:copy','edit:all','doc:export'):self.assertIn(key,keys)
-        self.assertEqual(menu.words()[:6],['Bold','Italic','Underline','Plain','Paragraph style','Move to notes'],'the modifications first')
-        self.assertFalse(menu.row('mark:clear').isEnabled(),'nothing to clear on plain words')
+        self.assertEqual(menu.first_keys(),['mark:bold','mark:italic','notes','ask','then','more'],'four usual rows, Then, More')
+        self.assertEqual(menu.words()[:4],['Bold','Italic','Move to notes','Ask Stacy about this'])
+        self.assertFalse(menu.entry('mark:clear').enabled,'nothing to clear on plain words')
+        self.assertIsNone(menu.row('mark:clear'),'a row that cannot act is not at rest')
         self.assertTrue(menu.isVisible());self.assertEqual(menu.accessibleName(),'Right-click menu: “pencil”')
 
     def test_bold_goes_through_the_kernel_with_the_pages_id_and_revision_and_the_page_shows_it(self):
@@ -297,7 +363,9 @@ class Window(unittest.TestCase):
     def test_inspect_in_the_line_puts_the_equivalent_command_in_assignment_and_runs_nothing(self):
         d,point=self.document('Alpha beta',0,5)
         menu=right_click(d.page.viewport(),point);rec=Recorder()
-        with patch.object(cm,'dispatch',rec):menu.row('inspect').click();settle()
+        more=menu.open_child(menu.row('more'));settle()
+        self.assertEqual(more.row('inspect').word,'Put this change in the writing line','under More, as a line')
+        with patch.object(cm,'dispatch',rec):more.row('inspect').click();settle()
         bar=self.w.type_bar;self.assertEqual(bar.target,'slate');text=bar.box.text()
         self.assertTrue(text.startswith('/documents.edit {'),text);self.assertIn('"expected_revision": %d'%d.revision,text);self.assertIn('"text": "Alpha"',text)
         self.assertEqual(rec.calls,[],'inspecting runs nothing');bar.box.clear()
@@ -321,11 +389,13 @@ class Window(unittest.TestCase):
             for key in ('open','rename','copy:to','move:to','export','copy:path','trash'):self.assertIn(key,keys,(name,key))
             if kind!='folder':
                 for key in ('inspect','run','chain','compare:with','compare:version','extract','atlas','explore','explain','ask','investigate','agenda'):self.assertIn(key,keys,(name,key))
-            self.assertEqual(menu.words()[-1],'Move to Trash','the destructive last');close(menu)
-        menu=right_click(view.viewport(),point('board.dxf'));self.assertEqual(menu.row('inspect').entry.tip,'@files:board.dxf | layers');close(menu)
+            self.assertEqual(menu.first_keys(),['open','rename','copy:path','trash','then','more'] if kind=='folder' else ['open','ask','rename','trash','then','more'],name)
+            self.assertEqual(menu.words()[-1],'More','More last');close(menu)
+        menu=right_click(view.viewport(),point('board.dxf'));self.assertEqual(menu.entry('inspect').tip,'@files:board.dxf | layers')
+        self.assertEqual(menu.row('then').entry.line,'@files:board.dxf | layers','Then carries on from its line');close(menu)
         menu=right_click(view.viewport(),point('amp.kicad_pcb'));self.assertEqual(menu.target.kind,'drawing')
         adapters=[k_ for k_ in menu.keys() if k_.startswith('adapter:')];self.assertEqual(adapters,['adapter:kicad','adapter:kibot'],'the installed capabilities for a board')
-        self.assertEqual(menu.row('adapter:kicad').word,'Open in KiCad checks');close(menu)
+        self.assertEqual(menu.entry('adapter:kicad').label,'Open in KiCad checks');close(menu)
         # two revisions of one file: Compare revisions on the two actual files, the older first, in the Compare room
         view.clearSelection()
         from PySide6.QtCore import Qt
@@ -343,10 +413,12 @@ class Window(unittest.TestCase):
         tab,view,point,root=self.files();menu=right_click(view.viewport(),self.empty_place(tab,root))
         self.assertEqual(menu.target.kind,'empty')
         for key in ('new:folder','new:smart','import','work:copy','view','refresh','root'):self.assertIn(key,menu.keys())
-        self.assertEqual(menu.words()[0],'Root menu')
-        sub=menu.open_child(menu.row('root'));settle()
-        self.assertEqual(sub.keys(),['chains','start','line','menu:edit','inquiries','algorithms','atlas'],'the root of the pipe menu, as Today has it')
-        self.assertEqual(sub.words(),['Your chains','Start a chain from','Writing line','Edit the Graphite menu…','—','Inquiries…','Algorithm & Theory Atlas…','Tool Atlas…'])
+        self.assertEqual(menu.first_keys(),['new:folder','import','view','refresh','start','more'])
+        sub=menu.open_child(menu.row('start'));settle()
+        self.assertEqual(sub.keys(),['chains','start'],'Start from: yours, or a file in Files');self.assertEqual(sub.words(),['Yours','A file in Files'])
+        close(menu);menu=right_click(view.viewport(),self.empty_place(tab,root))
+        more=menu.open_child(menu.row('more'));settle()
+        for key in ('inquiries','algorithms','atlas','line','menu:edit','new:smart','work:copy'):self.assertIn(key,more.keys(),'the old root\'s rows under More')
 
     def test_rename_through_files_rename_checked_against_the_files_revision(self):
         tab,view,point,root=self.files((('rename me.txt','one\n'),('moved.txt','a\n')))
@@ -370,7 +442,7 @@ class Window(unittest.TestCase):
         menu=right_click(page.list.viewport(),page.list.visualItemRect(item).center());t=menu.target
         self.assertEqual((t.kind,t.label,t.surface),('table','finder.csv','finder'))
         old=[a.text() for a in page.menu_for(t.data).actions() if not a.isSeparator()]
-        words=set(menu.words())
+        words=menu_tree(menu.tree_entries())[1]
         for word in old:self.assertIn(word,words,'the Finder\'s own word '+word)
         for key in ('inspect','run','extract','change:files'):self.assertIn(key,menu.keys())
 
@@ -403,7 +475,9 @@ class Window(unittest.TestCase):
         page=self.w.show_start();settle();today=self.w.finder.today
         menu=right_click(today,QPoint(30,30));self.assertEqual((menu.target.kind,menu.target.surface),('empty','today'))
         for key in ('chains','start','line','menu:edit','inquiries','algorithms','atlas','new:idea','new:project','import'):self.assertIn(key,menu.keys())
-        sub=menu.open_child(menu.row('line'));settle();self.assertEqual(sub.words(),['Assignment',self.w.type_bar.labels.get('shell','Shell'),'Search','Log'])
+        self.assertEqual(menu.first_keys(),['new:idea','new:project','import','inquiries','start','more'])
+        more=menu.open_child(menu.row('more'));settle();sub=more.drill(more.row('line').entry);settle()
+        self.assertEqual([w_ for w_ in sub.words() if w_ not in ('Back','—')],['Assignment',self.w.type_bar.labels.get('shell','Shell'),'Search','Log'],'deeper rows in place, under Back')
 
     def test_log_events_connections_and_packets(self):
         view=self.log()
@@ -416,7 +490,8 @@ class Window(unittest.TestCase):
         view.show_connections([dict(proto='tcp',local='192.168.1.5',lport=51544,remote='93.184.216.34',rport=443,state='ESTABLISHED',process='firefox',pid=4242)])
         view.add_packets([dict(at=time.time(),iface='wlan0',proto='tcp',src='192.168.1.5',sport=51544,dst='93.184.216.34',dport=443,length=60,flags='S',seq=1)]);settle()
         r=view.connections.visualItemRect(view.connections.item(0));menu=right_click(view.connections.viewport(),r.center())
-        self.assertEqual(menu.target.kind,'connection');self.assertEqual(menu.words(),['Ask Stacy about this','Follow this conversation','Show the process','—','Copy address'])
+        self.assertEqual(menu.target.kind,'connection');self.assertEqual(menu.first_keys(),['ask','follow','process','copy:address','then'])
+        self.assertEqual(menu.row('then').entry.line,'network.observe | pick connections | where process has firefox')
         self.assertEqual(menu.row('copy:address').caption,'93.184.216.34:443')
         self.assertEqual((menu.heading.label,menu.heading.noun),('firefox → 93.184.216.34:443','network connection · tcp · established'),'who talks to whom')
         menu.row('follow').click();settle();self.assertEqual(self.w.type_bar.box.text(),'host 93.184.216.34 port 443');self.assertIsNotNone(view.pinned)
@@ -432,7 +507,8 @@ class Window(unittest.TestCase):
         self.w.type_bar.box.clear();self.log();view.choose('network',remember=False,read=False);settle()
         view.add_packets([dict(at=time.time(),iface='wlan0',proto='tcp',src='93.184.216.34',sport=443,dst='192.168.1.5',dport=51544,length=1500,seq=2)]);settle()
         r=view.packets.visualItemRect(view.packets.item(view.packets.count()-1));menu=right_click(view.packets.viewport(),r.center())
-        self.assertEqual(menu.target.kind,'packet');self.assertFalse(menu.row('process').isEnabled(),'the process is not known for this packet')
+        self.assertEqual(menu.target.kind,'packet');self.assertFalse(menu.entry('process').enabled,'the process is not known for this packet')
+        self.assertIsNone(menu.row('process'),'not at rest: it cannot act')
         self.assertEqual(menu.row('copy:address').caption,'93.184.216.34:443')
         view.choose('events',remember=False,read=False);self.w.type_bar.box.clear()
 
@@ -461,15 +537,20 @@ class Window(unittest.TestCase):
         with patch.object(cm,'dispatch',rec):menu.row('job:pause').click();settle()
         self.assertEqual(rec.calls[:2],[('jobs.get',{'id':'a'*32}),('jobs.pause',{'id':'a'*32})]);self.assertTrue(self.w._context_last['ok'],self.w._context_last)
         self.assertTrue(call('jobs.get',{'id':'a'*32})['pause'])
-        menu=menu_for('b'*32);self.assertFalse(menu.row('job:pause').isEnabled());self.assertIn('does not pause',menu.row('job:pause').toolTip())
-        self.jobs([('b'*32,'Cancelled','lab.python')]);menu.row('job:stop').click();settle()
-        self.assertFalse(self.w._context_last['ok']);self.assertIn('moved on since you right-clicked it (Queued, now Cancelled)',self.w._context_last['words'])
+        menu=menu_for('b'*32);self.assertFalse(menu.entry('job:pause').enabled);self.assertIn('does not pause',menu.entry('job:pause').tooltip())
+        rec=Recorder()
+        with patch.object(cm,'dispatch',rec):menu.row('job:stop').click();settle()
+        self.assertEqual(menu.row('job:stop').caption,'asks');self.assertNotIn('jobs.cancel',rec.ops(),'Stop asks first: nothing is dispatched')
+        self.assertEqual(menu.child.sentence(),'What it stops or settles cannot be put back.')
+        self.jobs([('b'*32,'Cancelled','lab.python')])
+        with patch.object(cm,'dispatch',rec):menu.child.row('ask:yes').click();settle()
+        self.assertFalse(self.w._context_last['ok']);self.assertIn('moved on since you right-clicked it (Queued, now Cancelled)',self.w._context_last['words'],'read again at the yes')
         system.hide();settle()
         # a paused job (not a row of the System menu's list) in the Jobs list: Resume through jobs.resume
         tab=self.w.show_engineering();settle();tab.refresh();tab.pages.setCurrentWidget(tab.jobs);settle()
         item=next(tab.jobs.topLevelItem(i) for i in range(tab.jobs.topLevelItemCount()) if tab.jobs.topLevelItem(i).data(0,Qt_UserRole())=='f'*32)
         menu=right_click(tab.jobs.viewport(),tab.jobs.visualItemRect(item).center());t=menu.target
-        self.assertEqual((t.kind,t.revision,t.surface),('job','Paused','jobs'));self.assertTrue(menu.row('job:resume').isEnabled());self.assertFalse(menu.row('job:pause').isEnabled())
+        self.assertEqual((t.kind,t.revision,t.surface),('job','Paused','jobs'));self.assertTrue(menu.row('job:resume').isEnabled());self.assertFalse(menu.entry('job:pause').enabled)
         self.assertNotIn('job:show',menu.keys(),'it is in Jobs already')
         rec=Recorder({'jobs.resume':{'ok':True,'result':{'id':'f'*32,'state':'Queued'}}})
         with patch.object(cm,'dispatch',rec):menu.row('job:resume').click();settle()
@@ -530,11 +611,14 @@ class Window(unittest.TestCase):
         r=pop.running.visualItemRect(row);menu=right_click(pop.running.viewport(),QPoint(r.left()+24,r.top()+8));t=menu.target
         self.assertEqual((t.kind,t.ident,t.revision,t.noun),('queued',item['id'],'RUNNING','Agenda work · running'),'not a job')
         self.assertFalse([k_ for k_ in menu.keys() if k_.startswith('job:')],'no job words for Agenda work')
-        self.assertTrue(menu.row('queued:stop').isEnabled());self.assertFalse(menu.row('queued:pause').isEnabled())
-        self.assertEqual(menu.row('inspect').entry.tip,'@files:bench.csv | rows','its program, read from the Agenda (the panel\'s snapshot leaves it out)')
+        self.assertTrue(menu.row('queued:stop').isEnabled());self.assertFalse(menu.entry('queued:pause').enabled)
+        self.assertEqual(menu.entry('inspect').tip,'@files:bench.csv | rows','its program, read from the Agenda (the panel\'s snapshot leaves it out)')
+        self.assertEqual(menu.row('then').entry.line,'@files:bench.csv | rows')
         rec=Recorder()
         with patch.object(cm,'dispatch',rec):menu.row('queued:stop').click();settle()
-        self.assertEqual(rec.ops()[-1],'agenda.cancel');self.assertTrue(self.w._context_last['ok'],self.w._context_last)
+        self.assertNotIn('agenda.cancel',rec.ops(),'Stop asks first');self.assertEqual(menu.child.sentence(),'What it stops or settles cannot be put back.')
+        with patch.object(cm,'dispatch',rec):menu.child.row('ask:yes').click();settle()
+        self.assertEqual(rec.ops()[-2:],['agenda.view','agenda.cancel'],'read again, then stopped');self.assertTrue(self.w._context_last['ok'],self.w._context_last)
         self.assertIn(item['id'],[r_['id'] for r_ in call('agenda.view')['done'] if r_['state']=='CANCELLED'])
 
     def test_run_inspect_output_and_extract_say_what_the_kernel_did(self):
@@ -550,12 +634,12 @@ class Window(unittest.TestCase):
         output=lambda:self.w.console.output.toPlainText()
         with patch.object(stacy_foundation,'seed_status',bound):
             menu=right_click(view.viewport(),point('stacrun.csv'))
-            extract=menu_tree([menu.row('extract').entry])[0];self.assertIn('extract/extract:rows',extract)
-            rows=next(e for e in menu.row('extract').entry.submenu() if e.key=='extract:rows');self.assertEqual(rows.caption,'2 rows')
-            menu.row('run').click();settle(60);last=self.w._context_last
+            extract=menu_tree([menu.entry('extract')])[0];self.assertIn('extract/extract:rows',extract)
+            rows=next(e for e in menu.entry('extract').submenu() if e.key=='extract:rows');self.assertEqual(rows.caption,'2 rows')
+            cm.perform(self.w,menu.target,menu.entry('run'));settle(60);last=self.w._context_last
             self.assertTrue(last['ok'],last);self.assertIn('Ran in the working area: @files:stacrun.csv | rows',last['words']);self.assertIn('R2',output())
             menu=right_click(view.viewport(),point('stacrun.csv'));(root/'stacrun.csv').unlink()
-            menu.row('run').click();settle(60);last=self.w._context_last
+            cm.perform(self.w,menu.target,menu.entry('run'));settle(60);last=self.w._context_last
             self.assertFalse(last['ok'],'refused, not "Ran"');self.assertTrue(last['words'].startswith('Not run: '),last['words'])
             self.assertNotIn('Ran in the working area',last['words']);self.assertGreater(len(last['words']),len('Not run:  · the working area shows the refusal'),'the reason')
             job='%032x'%0xb1;evidence='%032x'%0xb2
@@ -566,9 +650,9 @@ class Window(unittest.TestCase):
         (root/'stacrun.csv').write_text('Part,Qty\nR1,4\n');tab.reload();settle()
         with patch.object(stacy_foundation,'seed_status',unbound):
             menu=right_click(view.viewport(),point('stacrun.csv'))
-            got=menu.row('extract').entry.submenu();self.assertEqual([(e.key,e.enabled) for e in got],[('extract:refused',False)])
+            got=menu.entry('extract').submenu();self.assertEqual([(e.key,e.enabled) for e in got],[('extract:refused',False)])
             self.assertIn('seed/source binding is not current',got[0].reason)
-            menu.row('run').click();settle(60);last=self.w._context_last
+            cm.perform(self.w,menu.target,menu.entry('run'));settle(60);last=self.w._context_last
             self.assertFalse(last['ok']);self.assertIn('Not run: Graphite seed/source binding is not current',last['words'])
             o=cm.perform(self.w,t,{e.key:e for e in cm.job_entries(self.w,t)}['job:output']);self.assertFalse(o['ok'],o)
 
@@ -615,12 +699,12 @@ class Window(unittest.TestCase):
                 if it.data(0,Qt.UserRole)['name'] in names:it.setSelected(True)
             menu=right_click(view.viewport(),point(names[-1]) if names else self.empty_place(tab,root))
             self.assertIsNotNone(menu,kind);self.assertEqual(sorted(e['name'] for e in tab.selected()),sorted(names),kind)
-            paths,words=menu_tree(menu.entries);found[kind]=paths
+            paths,words=menu_tree(menu.tree_entries());found[kind]=paths
             old=[x for x in old_words(tab.old_menu()) if not names or x!=names[0]+' ›']  # the file's own submenu title (its words are read)
             close(menu);homed(kind,old,paths,words)
-        self.assertIn('rename',found['smart'],'a smart folder keeps Rename… (files.rename takes it)');self.assertIn('root/menu:edit',found['empty:files'])
-        d,p=self.document('Nothing lost here',0,7);menu=right_click(d.page.viewport(),p);found['passage']=menu_tree(menu.entries)[0];close(menu)
-        page=self.w.show_start();settle();menu=right_click(self.w.finder.today,QPoint(30,30));paths,words=menu_tree(menu.entries);found['empty:today']=paths;close(menu)
+        self.assertIn('rename',found['smart'],'a smart folder keeps Rename… (files.rename takes it)');self.assertIn('more/menu:edit',found['empty:files'])
+        d,p=self.document('Nothing lost here',0,7);menu=right_click(d.page.viewport(),p);found['passage']=menu_tree(menu.tree_entries())[0];close(menu)
+        page=self.w.show_start();settle();menu=right_click(self.w.finder.today,QPoint(30,30));paths,words=menu_tree(menu.tree_entries());found['empty:today']=paths;close(menu)
         homed('empty:today',old_words(root_menu(self.w)),paths,words)
         for old_menu,word,kind,key in cm.FOLDED:
             if kind not in found:continue
@@ -676,13 +760,103 @@ class Window(unittest.TestCase):
         keys=[e.key for e in cm.entries_for(self.w,t)]
         for key in ('chains','start','line','menu:edit','inquiries','atlas','new:idea','new:project','import'):self.assertIn(key,keys)
 
+    # 0.8.1: the short shape, the glyphs, no keys, no scrolling, and the line panel
+    FIRST={'file':['open','ask','rename','trash','then','more'],'folder':['open','rename','copy:path','trash','then','more'],
+           'two files':['compare:two','move:to','copy:paths','trash','more'],'empty:files':['new:folder','import','view','refresh','start','more'],
+           'passage':['mark:bold','mark:italic','notes','ask','then','more'],'empty:today':['new:idea','new:project','import','inquiries','start','more']}
+
+    def menus(self):
+        """(kind, menu) for each kind in FIRST, opened by a real right-click; the caller closes each."""
+        from PySide6.QtCore import QPoint,Qt
+        tab,view,point,root=self.files((('shape.csv',BENCH_CSV),('shape dir',None),('other.txt','x\n')))
+        yield 'file',right_click(view.viewport(),point('shape.csv'))
+        yield 'folder',right_click(view.viewport(),point('shape dir'))
+        view.clearSelection()
+        for i in range(view.topLevelItemCount()):
+            it=view.topLevelItem(i)
+            if it.data(0,Qt.UserRole)['name'] in ('shape.csv','other.txt'):it.setSelected(True)
+        yield 'two files',right_click(view.viewport(),point('other.txt'))
+        yield 'empty:files',right_click(view.viewport(),self.empty_place(tab,root))
+        d,p_=self.document('Shape of things',0,5);yield 'passage',right_click(d.page.viewport(),p_)
+        self.w.show_start();settle();yield 'empty:today',right_click(self.w.finder.today,QPoint(30,30))
+
+    def test_first_level_is_four_usual_then_more(self):
+        for kind,menu in self.menus():
+            self.assertIsNotNone(menu,kind)
+            self.assertEqual(menu.first_keys(),self.FIRST[kind],kind)
+            self.assertTrue(all(r.isEnabled() for r in menu.first_rows()),'%s: nothing grey at rest'%kind)
+            self.assertLessEqual(len(menu.first_rows()),6,kind);close(menu)
+
+    def test_every_screen_fits_without_scrolling_and_two_popups_at_most(self):
+        from PySide6.QtWidgets import QApplication
+        before=self.w.size();self.addCleanup(lambda:(self.w.resize(before),settle()))
+        for size in ((1366,768),(1920,1200)):
+            self.w.resize(*size);settle()
+            for kind,menu in self.menus():
+                for screen in menu.screens():
+                    settle()
+                    self.assertEqual(screen.scroll.verticalScrollBar().maximum(),0,(size,kind,screen.title))
+                    self.assertTrue(screen.bounds().contains(screen.frameGeometry()),(size,kind,screen.title))
+                    self.assertLessEqual(sum(1 for t in QApplication.topLevelWidgets() if isinstance(t,cm.ContextMenu) and t.isVisible()),2,(size,kind))
+                    self.assertLessEqual(len(screen.rows_by_key),cm.MOST_ROWS+2,(size,kind,screen.title))
+                close(menu)
+
+    def test_no_row_prints_a_key_or_unavailable_and_every_row_wears_a_drawn_glyph(self):
+        from workbench import tool_faces
+        with patch.object(cm.programs_qt,'paint_icon',side_effect=AssertionError('not Graphite glyphs')):
+            for kind,menu in self.menus():
+                for screen in menu.screens():
+                    screen.grab()
+                    for row in screen.findChildren(cm.ContextRow):
+                        for text in (row.word,row.caption,row.toolTip()):self.assertIsNone(re.search(KEY_TEXT,text or ''),(kind,row.word,text))
+                        self.assertIsNone(re.fullmatch(KEY_CAPTION,row.caption or ''),(kind,row.word));self.assertNotEqual(row.caption,'unavailable')
+                        self.assertFalse(tool_faces.icon(row.entry.glyph,row.entry.tone).isNull(),(kind,row.word))
+                        self.assertNotRegex(row.word+' '+row.toolTip(),r'(?i)\bstac\b|stacy language|\bprograms\b',(kind,row.word))
+                close(menu)
+
+    def test_opening_reads_nothing_and_the_line_panel_reads_once(self):
+        from workbench import boss_theme as bt
+        tab,view,point,root=self.files((('bench.csv',BENCH_CSV),))
+        rec=Recorder()
+        with patch.object(cm,'dispatch',rec):
+            menu=right_click(view.viewport(),point('bench.csv'));self.assertEqual(rec.ops(),[],'opening the right-click reads nothing')
+            panel=menu.open_child(menu.row('then'));settle()
+            self.assertIsInstance(panel,cm.LinePanel);self.assertEqual(rec.ops(),['language.parse','ledger.address.read'])
+            self.assertEqual(panel.line,'@files:bench.csv | rows');self.assertEqual(panel.slab.styleSheet(),bt.line_sheet())
+            self.assertEqual(panel.count_words(),'4 rows · 6 steps left')
+            panel.choose('step:where');panel.choose('field:unit');self.assertEqual(panel.row('where unit=mA').caption,'2 rows')
+            panel.choose('where unit=mA');self.assertEqual(panel.count_words(),'2 rows · 5 steps left')
+            panel.choose('step:count')
+            self.assertEqual(panel.line,'@files:bench.csv | rows | where unit=mA | count');self.assertEqual(panel.preview_rows(),[{'count':2}])
+            self.assertEqual(rec.ops(),['language.parse','ledger.address.read'],'nothing read while choosing')
+            panel.choose('step:back');self.assertEqual(panel.line,'@files:bench.csv | rows | where unit=mA','Back a step')
+            panel.choose('step:count')
+            panel.row('end:show').click();settle(60)
+        self.assertEqual(self.w.console.last_program,'@files:bench.csv | rows | where unit=mA | count','Show it runs the line it shows')
+        self.assertTrue(self.w._context_last['ok'],self.w._context_last)
+
+    def test_the_line_panel_on_a_name_with_a_space_and_a_long_table(self):
+        rows='\n'.join('R%d,%d,%s'%(n,n*10,'mA' if n%2 else 'V') for n in range(300))
+        tab,view,point,root=self.files((('long table.csv','part,value,unit\n'+rows+'\n'),))
+        menu=right_click(view.viewport(),point('long table.csv'))
+        self.assertEqual(menu.row('then').entry.line,'@files:long table.csv | rows','a space no longer stops a line')
+        panel=menu.open_child(menu.row('then'));settle()
+        self.assertEqual(panel.count_words(),'300 rows · 6 steps left')
+        self.assertFalse(panel.row('end:show').isEnabled());self.assertIn('over 200',panel.row('end:show').caption)
+        panel.choose('step:first');self.assertIn('first:200',panel.rows_by_key)
+        panel.choose('first:200');self.assertTrue(panel.row('end:show').isEnabled(),'200 rows: Show it can act')
+        close(menu)
+
     def test_the_menu_wears_the_programs_lists_metrics(self):
         from workbench import programs_qt
+        from workbench.desk_qt import scaled
         d,p=self.document('Same rows',0,4);menu=right_click(d.page.viewport(),p);m=programs_qt.metrics(self.w)
-        self.assertEqual((menu.m.row,menu.m.icon_col,menu.m.margin),(m.row,m.icon_col,m.margin))
+        icon=scaled(cm.GLYPH_SIDE,m.scale)       # the glyphs at the size they were drawn for; the Apps list keeps its 16
+        self.assertEqual((menu.m.icon,menu.m.icon_col,menu.m.margin,menu.m.pad),(icon,icon+scaled(programs_qt.ICON_GAP,m.scale),m.margin,m.pad))
+        self.assertEqual(menu.m.row,max(m.line,icon)+2*scaled(programs_qt.ROW_PAD,m.scale))
         rows=[r for r in menu.rows_by_key.values()]
-        self.assertEqual({r.height() for r in rows},{m.row},'one row height');self.assertEqual(menu.heading.height(),m.row)
-        self.assertEqual({r.word_x() for r in rows},{m.pad+m.icon_col},'one icon column')
+        self.assertEqual({r.height() for r in rows},{menu.m.row},'one row height');self.assertEqual(menu.heading.height(),menu.m.row)
+        self.assertEqual({r.word_x() for r in rows},{menu.m.pad+menu.m.icon_col},'one icon column')
         self.assertGreaterEqual(menu.width(),programs_qt.column(self.w),'the launch menus\' width rule')
         area=menu.bounds();self.assertTrue(area.contains(menu.geometry()),'inside the window')
 
@@ -706,15 +880,38 @@ def old_words(menu):
 
 
 def menu_tree(entries,prefix=''):
-    """(key paths, words) of a new menu's entries and of every submenu, opened as the menu opens them ('a/b': b in a's submenu;
-    the chain builder's own QMenu is not followed)."""
+    """(key paths, words) of a new menu's entries and of every deeper screen, opened as the menu opens them ('a/b': b on a's
+    screen; each path's tails too, so 'more/line/line:shell' also answers 'line/line:shell' and 'line:shell'; the line
+    panel's rows are Then's outline)."""
     paths,words=set(),set()
     for e in entries:
-        paths.add(prefix+e.key);words.add(e.label)
-        if e.submenu:
+        path=prefix+e.key;parts=path.split('/')
+        paths|={'/'.join(parts[i:]) for i in range(len(parts))};words.add(e.label)
+        if e.submenu and e.key not in ('compare:version',):      # kept versions are read when that screen opens, as the menu does
             sub=e.submenu() if callable(e.submenu) else list(e.submenu)
-            p,w_=menu_tree(sub,prefix+e.key+'/');paths|=p;words|=w_
+            p,w_=menu_tree(sub,path+'/');paths|=p;words|=w_
     return paths,words
+
+
+def key_literals(paths):
+    """Every string in these modules that would print a key (KEY_TEXT anywhere, KEY_CAPTION as a whole caption=), docstrings
+    and QKeySequence's own arguments left out."""
+    found=[]
+    root=Path(__file__).resolve().parent.parent
+    for rel in paths:
+        tree=ast.parse((root/rel).read_text(encoding='utf-8'))
+        skip=set()
+        for node in ast.walk(tree):
+            if isinstance(node,(ast.Module,ast.FunctionDef,ast.ClassDef,ast.AsyncFunctionDef)) and node.body and isinstance(node.body[0],ast.Expr) \
+                    and isinstance(node.body[0].value,ast.Constant):skip.add(id(node.body[0].value))
+            if isinstance(node,ast.Call) and getattr(node.func,'id',getattr(node.func,'attr',''))=='QKeySequence':
+                skip|={id(a) for a in node.args}
+            if isinstance(node,ast.keyword) and node.arg=='caption' and isinstance(node.value,ast.Constant) and isinstance(node.value.value,str):
+                if re.fullmatch(KEY_CAPTION,node.value.value):found.append('%s:%d caption %r'%(rel,node.value.lineno,node.value.value))
+        for node in ast.walk(tree):
+            if isinstance(node,ast.Constant) and isinstance(node.value,str) and id(node) not in skip and re.search(KEY_TEXT,node.value):
+                found.append('%s:%d %r'%(rel,node.lineno,node.value[:80]))
+    return found
 
 
 if __name__=='__main__':

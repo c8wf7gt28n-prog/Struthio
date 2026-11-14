@@ -394,7 +394,7 @@ def expand_this(host, text):
     if not found:return text
     page = getattr(host, 'field_page', None);obj = page.view.selected() if page is not None else None
     if obj is None or not obj.stac:
-        raise ValueError('“this” is the sheet selected in the Field (F9), and nothing is selected there')
+        raise ValueError("“this” is the sheet selected in the Field, and nothing is selected there")
     lead = found.group(1) or '';rest = found.group(2)
     return lead + (obj.stac if rest is None else obj.stac.split(' | ', 1)[0] + ' ' + rest.strip())
 

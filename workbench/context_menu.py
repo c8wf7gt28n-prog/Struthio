@@ -109,18 +109,21 @@ class Entry:
     it does), caption (a key or a status, quiet print at the right), enabled and reason (why not), operation (the Kernel operation
     it dispatches, said in its tooltip), submenu (a function returning entries, read when it opens), qmenu (a function returning a
     QMenu, for the chain builder's own cascade), checked (an active choice: the short yellow mark)."""
-    __slots__ = ('key', 'label', 'section', 'run', 'icon', 'caption', 'enabled', 'reason', 'tip', 'submenu', 'qmenu', 'operation', 'checked', 'provider')
+    __slots__ = ('key', 'label', 'section', 'run', 'icon', 'caption', 'enabled', 'reason', 'tip', 'submenu', 'qmenu', 'operation', 'checked', 'provider',
+                 'glyph', 'tone', 'group', 'asks', 'line')
 
     def __init__(self, key, label, section, run=None, icon='', caption='', enabled=True, reason='', tip='', submenu=None, qmenu=None, operation=None,
-                 checked=False):
+                 checked=False, glyph=None, tone=None, group=None, asks='', line=None):
         self.key = key;self.label = label;self.section = section if section in SECTIONS else 'capability';self.run = run;self.icon = icon
         self.caption = caption;self.enabled = bool(enabled);self.reason = reason;self.tip = tip;self.submenu = submenu;self.qmenu = qmenu
         self.operation = operation;self.checked = bool(checked);self.provider = ''
+        # 0.8.1: the glyph it wears (GLYPH_OF when None), its tone (tool_faces.TONES), its More group (GROUP_OF when None),
+        # why it asks before it acts ('' when it does not), and a line it opens in the line panel instead of running
+        self.glyph = glyph;self.tone = tone;self.group = group;self.asks = asks;self.line = line
 
     def tooltip(self):
         lines = [self.reason] if not self.enabled and self.reason else []
         if self.tip:lines.append(self.tip)
-        if self.operation:lines.append('Through Kernel.dispatch: ' + self.operation)
         return '\n'.join(lines)
 
     def as_dict(self):
@@ -303,10 +306,10 @@ def document_target(tab, page):
             for at in range(cursor.selectionStart() + 1, cursor.selectionEnd() + 1):
                 probe.setPosition(at);marks &= set(marks_of(probe.charFormat()))
                 if not marks:break
-        return Target('passage', '“%s”' % short(selection['text'], 48), 'passage · %s · revision %s' % (short(title, 24), tab.revision), ident=tab.document_id,
+        return Target('passage', '“%s”' % short(selection['text'], 48), 'passage · %s' % short(title, 24), ident=tab.document_id,
                       revision=tab.revision, data=dict(selection=selection, marks=marks, style=style, title=title), surface='document', owner=tab)
     caret = {'block': block.blockNumber(), 'start': 0, 'end': 0}
-    return Target('page', short(title, 48), 'page · revision %s' % tab.revision, ident=tab.document_id, revision=tab.revision,
+    return Target('page', short(title, 48), 'page', ident=tab.document_id, revision=tab.revision,
                   data=dict(selection=caret, marks=set(), style=style, title=title), surface='document', owner=tab)
 
 
@@ -385,25 +388,25 @@ def document_entries(host, t):
     tab = t.owner;out = [];selection = t.data['selection'];marks = t.data.get('marks') or set()
     from .document_qt import STYLE_SCALE
     if t.kind == 'passage':
-        for key, word, keys, icon in (('bold', 'Bold', 'Ctrl B', 'bold'), ('italic', 'Italic', 'Ctrl I', ''), ('underline', 'Underline', 'Ctrl U', '')):
+        for key, word in (('bold', 'Bold'), ('italic', 'Italic'), ('underline', 'Underline')):
             on = key in marks;label = ('Not ' + word.lower()) if on else word
             out.append(Entry('mark:' + key, label, 'modify', lambda key=key, on=on, label=label:edit_document(host, t, {key: not on}, label.lower()),
-                             icon=icon, caption=keys, operation='documents.edit', tip='%s the selected words on revision %s of this page' % (label, t.revision)))
+                             operation='documents.edit', tip='%s the selected words on revision %s of this page' % (label, t.revision)))
         out.append(Entry('mark:clear', 'Plain', 'modify', lambda:edit_document(host, t, {'clear': True}, 'plain'), caption='', operation='documents.edit',
                          enabled=bool(marks), reason='The selected words carry no bold, italic or underline.'))
-    styles = (('Heading1', 'Heading', 'Ctrl 1'), ('Heading2', 'Subheading', 'Ctrl 2'), ('Heading3', 'Minor heading', 'Ctrl 3'), ('Normal', 'Body', 'Ctrl 0'), ('Code', 'Code', 'Ctrl `'))
+    styles = (('Heading1', 'Heading'), ('Heading2', 'Subheading'), ('Heading3', 'Minor heading'), ('Normal', 'Body'), ('Code', 'Code'))
     current = t.data.get('style') or 'Normal'
     def style_entries():
         return [Entry('style:' + style, word, 'modify', lambda style=style, word=word:edit_document(host, t, {'style': style}, 'made the paragraph ' + word.lower()),
-                      caption=keys, checked=style == current, operation='documents.edit') for style, word, keys in styles]
+                      checked=style == current, operation='documents.edit') for style, word in styles]
     out.append(Entry('style', 'Paragraph style', 'modify', submenu=style_entries, tip='The style of paragraph %d' % (selection['block'] + 1)))
     if t.kind == 'passage':
         out.append(Entry('notes', 'Move to notes', 'modify', lambda:move_to_notes(host, t), icon='notes', operation='ideas.capture, documents.edit',
                          tip='Keep the words as an idea in the cabinet (your notes) and take them off the page'))
         line = operation_line('documents.edit', {'id': t.ident, 'expected_revision': t.revision, 'selection': selection,
                                                   'change': {'bold': 'bold' not in marks}, 'origin': 'HUMAN'})
-        out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, line), icon='line', operation='documents.edit',
-                         tip='The equivalent command for Bold with this passage as its target, in the writing line to read or change; the arrow runs it'))
+        out.append(Entry('inspect', 'Put this change in the writing line', 'command', lambda:inspect_in_line(host, line), icon='line', operation='documents.edit',
+                         group='As a line', tip='The equivalent command for Bold with this passage as its target, in the writing line to read or change; the arrow runs it'))
         about = 'About this passage (“%s”, paragraph %d of “%s”, revision %s): ' % (short(selection['text'], 80), selection['block'] + 1, short(t.data.get('title'), 40), t.revision)
         out.append(Entry('ask', named('Ask Stacy about this'), 'capability', lambda:ask_graphite(host, about), icon='inquiries',
                          tip='An assignment in the line with this passage as its context'))
@@ -414,13 +417,16 @@ def document_entries(host, t):
         try:return bool(getattr(page.document(), name)())
         except RuntimeError:return False
     has = page.textCursor().hasSelection()
-    out += [Entry('edit:undo', 'Undo', 'edit', page.undo, caption='Ctrl Z', enabled=can('isUndoAvailable'), reason='Nothing to undo on this page.'),
-            Entry('edit:redo', 'Redo', 'edit', page.redo, caption='Ctrl Y', enabled=can('isRedoAvailable'), reason='Nothing to redo on this page.'),
-            Entry('edit:cut', 'Cut', 'edit', page.cut, caption='Ctrl X', enabled=has, reason='Select words first.'),
-            Entry('edit:copy', 'Copy', 'edit', page.copy, caption='Ctrl C', enabled=has, reason='Select words first.', icon='copy'),
-            Entry('edit:paste', 'Paste', 'edit', page.paste, caption='Ctrl V', enabled=page.canPaste(), reason='Nothing to paste.'),
-            Entry('edit:delete', 'Delete', 'edit', lambda:page.textCursor().removeSelectedText(), enabled=has, reason='Select words first.'),
-            Entry('edit:all', 'Select all', 'edit', page.selectAll, caption='Ctrl A')]
+    out += [Entry('edit:undo', 'Undo', 'edit', page.undo, enabled=can('isUndoAvailable'), reason='Nothing to undo on this page.'),
+            Entry('edit:redo', 'Redo', 'edit', page.redo, enabled=can('isRedoAvailable'), reason='Nothing to redo on this page.')]
+    if has or t.kind == 'passage':  # on a caret Cut, Copy and Delete never act: they are left out there (the passage keeps them)
+        out += [Entry('edit:cut', 'Cut', 'edit', page.cut, enabled=has, reason='Select words first.'),
+                Entry('edit:copy', 'Copy', 'edit', page.copy, enabled=has, reason='Select words first.', icon='copy')]
+    out += [Entry('edit:paste', 'Paste', 'edit', page.paste, enabled=page.canPaste(), reason='Nothing to paste.')]
+    if has or t.kind == 'passage':
+        out += [Entry('edit:delete', 'Delete', 'edit', lambda:page.textCursor().removeSelectedText(), enabled=has, reason='Select words first.')]
+    out += [Entry('edit:all', 'Select all', 'edit', page.selectAll)]
+    t.extra['line'] = '@document:%s | pick document.blocks | select text' % t.ident
     out += [Entry('doc:new', 'New document', 'tree', tab.new_document, icon='new', operation='documents.create'),
             Entry('doc:export', 'Export…', 'tree', tab.export_document, icon='leave', operation='documents.render',
                   tip='Write this document to a Markdown, HTML or text file you choose (Egress first)')]
@@ -604,8 +610,8 @@ def file_entries(host, t):
     out.append(Entry('open', 'Open pill…' if pill else 'Open', 'open', lambda:tab.activate(e), icon='window'))
     if not folder and not smart:
         out.append(Entry('open:outside', "Open with this computer's app", 'open', lambda:tab.open_outside(e)))
-        out.append(Entry('show:folder', 'Show in its folder', 'open', lambda:show_in_folder(tab, rel), icon='files',
-                         enabled=tab.question is not None, reason='It is shown in its folder already.'))
+        if tab.question is not None:  # only after a search or in a smart folder: elsewhere it is in its folder already
+            out.append(Entry('show:folder', 'Show in its folder', 'open', lambda:show_in_folder(tab, rel), icon='files'))
     out.append(Entry('rename', 'Rename…', 'modify', lambda:rename_file(host, t), icon='rename', operation='files.rename'))  # a smart folder too (files.rename takes it)
     out.append(Entry('copy:to', 'Copy to…', 'modify', lambda:place_files(host, t, 'files.copy'), operation='files.copy'))
     out.append(Entry('move:to', 'Move to…', 'modify', lambda:place_files(host, t, 'files.move'), operation='files.move'))
@@ -616,22 +622,23 @@ def file_entries(host, t):
                      tip='A copy into Egress: as it is (a ZIP with SHA256SUMS) or for manufacturing; your files stay as they are'))
     if not folder and not smart:
         program = staC_for_file(rel)
-        quoted = needs_quotes(rel)
+        quoted = '|' in rel  # a bar would end the address; a space no longer does (only a join needs one word)
+        if not quoted:t.extra['line'] = program
         out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, program), icon='line', operation='language.run',
-                         enabled=not quoted, reason='An address is one word: this name has a space or a bar.', tip=program))
+                         enabled=not quoted, reason='An address ends at a bar: this name has one.', tip=program))
         out.append(Entry('run', 'Run', 'command', lambda:run_stac(host, program), icon='run', operation='language.run', enabled=not quoted,
-                         reason='An address is one word: this name has a space or a bar.', tip='Run %s; the answer shows in the working area' % program))
+                         reason='An address ends at a bar: this name has one.', tip='Run %s; the answer shows in the working area' % program))
         out.append(Entry('chain', 'Chain from here', 'command', qmenu=lambda:chain_qmenu(host, '@files:' + rel), icon='chain', enabled=not quoted,
-                         reason='An address is one word: this name has a space or a bar.', tip='The chain builder: each link a menu, each showing what it gives'))
+                         reason='An address ends at a bar: this name has one.', tip='The chain builder: each link a menu, each showing what it gives'))
         out.append(Entry('compare:with', 'Compare with…', 'capability', lambda:tab.compare_with(e), icon='compare', operation='files.compare'))
-        found = versions_of(host, rel)
-        def kept():
+        def kept():  # read when its submenu opens: opening the right-click reads nothing
+            found = versions_of(host, rel)
             return [Entry('compare:version:' + v['version'], v['version'], 'capability', lambda v=v:compare_version(host, rel, v['version']), operation='files.compare')
-                    for v in found[:12]]
-        out.append(Entry('compare:version', 'Compare with a kept version', 'capability', submenu=kept, enabled=bool(found),
-                         reason='No earlier versions are kept for %s yet.' % e['name']))
+                    for v in found[:12]] or [Entry('compare:version:none', 'No earlier versions are kept yet', 'capability', enabled=False,
+                                                   reason='Files keeps a version each time %s changes.' % e['name'])]
+        out.append(Entry('compare:version', 'Compare with a kept version', 'capability', submenu=kept))
         out.append(Entry('extract', 'Extract', 'capability', submenu=lambda:lenses_of(host, rel), icon='extract', enabled=not quoted,
-                         reason='An address is one word: this name has a space or a bar.', tip='Read it as rows, headings, layers, texts, lines or facts'))
+                         reason='An address ends at a bar: this name has one.', tip='Read it as rows, headings, layers, texts, lines or facts'))
         out += adapter_entries(host, e['name'], rel)
         out.append(Entry('delivery:stage', 'Stage in Delivery', 'capability',
                          lambda:stage_for_delivery(host, [e]), icon='delivery',
@@ -645,7 +652,7 @@ def file_entries(host, t):
         if c['for_slate'] and c.get('kind', 'file') == 'file':out.append(Entry('copy:slate', named('Ask Stacy to work on this…'), 'capability', lambda:tab.slate_on_copy(c), operation='agenda.add'))
         out.append(Entry('copy:review', 'Review changes to the original…', 'capability', lambda:tab.review_copy(c), icon='compare', operation='copies.review'))
         out.append(Entry('copy:original', 'Show the original', 'open', lambda:tab.show_original(c)))
-        out.append(Entry('copy:discard', 'Discard this draft…', 'danger', lambda:tab.discard_copy(c), operation='copies.discard'))
+        out.append(Entry('copy:discard', 'Discard this draft…', 'danger', lambda:tab.discard_copy(c), operation='copies.discard', caption='asks'))
     if folder and tab.copies.get(rel):
         c = tab.copies[rel]
         out.append(Entry('copy:look', 'Look inside, confined…', 'capability', lambda:tab.confined_look(c), operation='confine.inspect'))
@@ -657,7 +664,8 @@ def file_entries(host, t):
         else:
             out.append(Entry('copy:review', 'Review changes to the original…', 'capability', lambda:tab.review_copy(c), icon='compare', operation='copies.review'))
             out.append(Entry('copy:original', 'Show the original', 'open', lambda:tab.show_original(c)))
-        out.append(Entry('copy:discard', 'Discard this draft…', 'danger', lambda:tab.discard_copy(c), operation='copies.discard'))
+        out.append(Entry('copy:discard', 'Discard this draft…', 'danger', lambda:tab.discard_copy(c), operation='copies.discard', caption='asks'))
+    if folder and not smart and '|' not in rel:t.extra['line'] = 'files.list %s | pick entries' % json.dumps({'path': rel}, ensure_ascii=False, separators=(',', ':'))
     out.append(Entry('copy:path', 'Copy path', 'edit', lambda:copy_text(host, str(root / rel), 'Copied the path'), icon='copy'))
     out.append(Entry('copy:address', 'Copy the address', 'edit', lambda:copy_text(host, e.get('address') or '@files:' + rel, 'Copied the address')))
     out.append(Entry('trash', 'Move to Trash', 'danger', lambda:trash_files(host, t), icon='trash', operation='files.trash', tip='Trash keeps it; Restore puts it back'))
@@ -719,7 +727,8 @@ def finder_entries(host, t):
     files = page.files_root();folder = entry['kind'] == 'folder'
     out.append(Entry('open', 'Open', 'open', lambda:page.open_entry(entry), icon='window'))
     if not folder:out.append(Entry('open:viewer', 'Open in viewer', 'open', lambda:host.open_in_viewer(Path(path))))
-    in_files = files is not None and inside(path, files)
+    in_files = files is not None and inside(path, files);t.extra['inside'] = in_files
+    if not in_files and 'read only' not in t.noun:t.noun += ' · read only here'
     if in_files and Path(path).resolve() != Path(files).resolve():
         out.append(Entry('show:files', 'Show in Files', 'open', lambda:page.show_in_files(path), icon='files'))
     out.append(Entry('copy:path', 'Copy path', 'edit', lambda:page.copy_path(path), icon='copy'))
@@ -727,8 +736,8 @@ def finder_entries(host, t):
     if in_files:
         rel = Path(path).resolve().relative_to(Path(files).resolve()).as_posix()
         out.append(Entry('change:files', 'Change it in Files', 'modify', lambda:page.show_in_files(path), tip='Files keeps its own changes: rename, versions, export, Trash'))
-        if not folder and rel and not needs_quotes(rel):
-            program = staC_for_file(rel)
+        if not folder and rel and '|' not in rel:
+            program = staC_for_file(rel);t.extra['line'] = program
             out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, program), icon='line', tip=program, operation='language.run'))
             out.append(Entry('run', 'Run', 'command', lambda:run_stac(host, program), icon='run', operation='language.run'))
             out.append(Entry('extract', 'Extract', 'capability', submenu=lambda:lenses_of(host, rel), icon='extract'))
@@ -747,7 +756,7 @@ def finder_place_entries(host, t):
         out.append(Entry('view', 'View as', 'tree', icon='view', submenu=lambda:[Entry('view:' + key, VIEW_WORDS[key], 'tree', lambda key=key:page.set_view(key), checked=page.view == key)
                                                                                for key in VIEWS]))
         out.append(Entry('hidden', 'Hide hidden files' if page.hidden else 'Show hidden files', 'tree', lambda:page.set_hidden(not page.hidden)))
-        out.append(Entry('preview', 'Hide the preview' if page.preview_visible else 'Show the preview', 'tree', page.toggle_preview, caption='Space'))
+        out.append(Entry('preview', 'Hide the preview' if page.preview_visible else 'Show the preview', 'tree', page.toggle_preview))
         out.append(Entry('copy:path', 'Copy path', 'edit', lambda:page.copy_path(page.place), icon='copy'))
         out.append(Entry('refresh', 'Refresh', 'tree', page.reload, icon='restart', operation='ledger.browse'))
     return out
@@ -803,7 +812,7 @@ def cabinet_entries(host, t):
     from . import addresses
     kind = canonical.split(':', 1)[0]
     if kind in addresses.KINDS and kind not in addresses.SELECTOR_KINDS:
-        program = '@' + canonical
+        program = '@' + canonical;t.extra['line'] = program
         out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, program), icon='line', tip=program, operation='ledger.address.read'))
         out.append(Entry('run', 'Run', 'command', lambda:run_stac(host, program), icon='run', operation='ledger.address.read'))
     if t.data.get('node', {}).get('role') == 'project':
@@ -826,8 +835,7 @@ def creation_entries(host, section='tree'):
         action = getattr(host, name, None)
         word = 'New Idea…' if key == 'new:idea' else 'New Project…'
         out.append(Entry(key, word, section, (lambda a=action:a.trigger()) if action is not None else None, icon=icon, enabled=action is not None,
-                         reason='Work has no such action in this window.', caption='Ctrl Shift N' if key == 'new:idea' else '',
-                         operation='ideas.capture' if key == 'new:idea' else 'projects.create'))
+                         reason='Work has no such action in this window.', operation='ideas.capture' if key == 'new:idea' else 'projects.create'))
     return out
 
 
@@ -865,6 +873,7 @@ def machine_entries(host, t):
     page = host.machine_page;data = t.data;kind = data.get('kind');out = []
     if kind in ('work_root', 'work_empty', 'work'):
         if kind == 'work':
+            t.extra['line'] = '@' + data['node']['canonical_id']
             out.append(Entry('open', 'Open', 'open', lambda:page.open_work(data['id']), icon='window', operation='ledger.cabinet.get'))
             out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, '@' + data['node']['canonical_id']), icon='line',
                              tip='@' + data['node']['canonical_id'], operation='ledger.address.read'))
@@ -962,6 +971,7 @@ def job_entries(host, t):
     state = t.revision or '';program = '@job:' + str(t.ident);live = state in JOB_STOPPABLE;held = no_pause(t.data)
     evidence = str((t.data or {}).get('evidence') or '')
     output = '@evidence:' + evidence if evidence else program  # its output is kept in its evidence record; until then its record
+    t.extra['line'] = output
     return [Entry('job:output', 'Inspect output', 'state', lambda:run_stac(host, output), icon='investigations', operation='language.run',
                   tip=('The job\'s output as kept in its evidence (%s), in the working area' % output) if evidence else
                       ('No output is kept for this job yet: its record and state (%s), in the working area' % program)),
@@ -971,8 +981,8 @@ def job_entries(host, t):
             Entry('job:resume', 'Resume', 'state', lambda:job_action(host, t, 'jobs.resume', 'Resumed'), icon='run', operation='jobs.resume',
                   enabled=state in ('Paused', 'Interrupted') and not held,
                   reason=held or 'Only a paused or interrupted job resumes; this one is %s.' % (state.lower() or 'unknown')),
-            Entry('job:stop', 'Stop', 'state', lambda:job_action(host, t, 'jobs.cancel', 'Stopped'), icon='stop', operation='jobs.cancel',
-                  enabled=live, reason='This job has ended (%s).' % (state.lower() or 'unknown')),
+            Entry('job:stop', 'Stop…', 'state', lambda:job_action(host, t, 'jobs.cancel', 'Stopped'), icon='stop', operation='jobs.cancel',
+                  enabled=live, reason='This job has ended (%s).' % (state.lower() or 'unknown'), asks=asks_for('jobs.cancel')),
             Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, program), icon='line', tip=program, operation='jobs.get'),
             Entry('copy:id', 'Copy the job id', 'edit', lambda:copy_text(host, t.ident, 'Copied the job id'), icon='copy')] + (
         [] if t.surface == 'jobs' else [Entry('job:show', 'Show in Jobs', 'open', lambda:show_job(host, t.ident), icon='window', operation='workspace.job',
@@ -1042,9 +1052,9 @@ def queued_entries(host, t):
                  reason='Running Agenda work does not pause; Stop cancels it.' if running else 'Only waiting work pauses; this is %s.' % words),
            Entry('queued:resume', 'Resume', 'state', lambda:queued_action(host, t, 'agenda.resume', 'Resumed'), icon='run', operation='agenda.resume',
                  enabled=state in AGENDA_RESUMES, reason='Only paused work resumes; this is %s.' % words),
-           Entry('queued:stop', 'Stop', 'state', lambda:queued_action(host, t, 'agenda.cancel', 'Stopped' if running else 'Stopped and removed from the queue'),
+           Entry('queued:stop', 'Stop…', 'state', lambda:queued_action(host, t, 'agenda.cancel', 'Stopped' if running else 'Stopped and removed from the queue'),
                  icon='stop', operation='agenda.cancel', enabled=state in agenda_open(), reason='This work has ended (%s).' % words,
-                 tip='Cancel it while it runs; what it already did stays' if running else 'Take it out of the queue')]
+                 tip='Cancel it while it runs; what it already did stays' if running else 'Take it out of the queue', asks=asks_for('agenda.cancel'))]
     job = str(t.data.get('job') or '')
     if job:
         def its_job(ident=job):
@@ -1052,6 +1062,7 @@ def queued_entries(host, t):
             return job_entries(host, found) if found is not None else [Entry('job:gone', 'That job is gone', 'state', enabled=False, reason='jobs.get does not find it.')]
         out.append(Entry('job', 'Its job', 'state', submenu=its_job, icon='job', tip='The Kernel job this Agenda work runs, by its state now'))
     if program:
+        t.extra['line'] = program
         out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, program), icon='line', tip=program))
     from .shell2 import open_destination
     out.append(Entry('agenda', 'Open Agenda', 'open', lambda:open_destination(host, 'agenda'), icon='agenda'))
@@ -1107,6 +1118,7 @@ def network_entries(host, t):
     entry = t.data;process = known_process(entry)
     unknown = ('Its program belongs to another user of this computer; Graphite does not read or guess its name.' if entry.get('process') and not process
                else 'The process is not known for this %s.' % t.noun)
+    if process and re.fullmatch(r'[A-Za-z0-9_.+-]{1,60}', process):t.extra['line'] = 'network.observe | pick connections | where process has ' + process
     return [Entry('ask', named('Ask Stacy about this'), 'state', lambda:log_qt.ask_about(host, entry), icon='inquiries',
                   tip='An assignment in the line with this %s as its context' % t.noun),
             Entry('follow', 'Follow this conversation', 'state', lambda:log_focus(host, entry), icon='network',
@@ -1166,7 +1178,7 @@ def kept_chain_entries(host):
             try:typed_pipeline.parse(source(program)[0]);ok, reason = True, ''
             except ValueError as exc:ok, reason = False, str(exc)[:200]
             out.append(Entry(prefix + name, name, 'command', lambda p=program, h=how:chain_menu.then(host, p, h), icon='chain', enabled=ok,
-                             reason='Does not parse: ' + reason if not ok else '', tip=program))
+                             reason='Does not parse: ' + reason if not ok else '', tip=program, line=program if ok else None, caption=str(how or '')))
         return out
     out = build(tree)
     if problems:out.append(Entry('chains:problems', '%d line%s not understood' % (len(problems), '' if len(problems) == 1 else 's'), 'command', enabled=False,
@@ -1179,7 +1191,7 @@ def start_entries(host):
     from .chain_menu import TABLE_KINDS
     found = [e for e in (call(host, 'files.find', {'limit': 80}) or {}).get('records', [])
              if e.get('kind') in TABLE_KINDS + ('markdown', 'dxf', 'stl', 'obj', '3mf', 'text', 'json')]
-    out = [Entry('start:' + e['path'], e['path'], 'command', qmenu=lambda p=e['path']:chain_qmenu(host, '@files:' + p), icon='chain') for e in found[:30]]
+    out = [Entry('start:' + e['path'], e['path'], 'command', line=staC_for_file(e['path']), tip=staC_for_file(e['path'])) for e in found[:30] if '|' not in e['path']]
     return out or [Entry('start:none', 'Nothing in Files to read yet', 'command', enabled=False)]
 
 
@@ -1256,9 +1268,9 @@ def field_whatif_rows(host, obj):
                 new = _plain_number(number * factor)
                 rows.append(Entry('field:whatif:%s:%s' % (cell, key), ('%s · %s %s' % (words, new, unit)).strip(), 'command',
                                   lambda new=new: host.shell2.ask('what if %s were %s' % (cell, new)), icon='line', operation='field.ripple',
-                                  tip=named('A read: nothing is changed. Stacy follows the wires and the Field marks what would move, until Esc')))
+                                  tip=named('A read: nothing is changed. Stacy follows the wires and the Field marks what would move')))
             rows.append(Entry('field:whatif:%s:other' % cell, 'Another value…', 'command', lambda: ask_graphite(host, 'what if %s were ' % cell), icon='ask',
-                              tip='The question in the writing line for you to finish; Enter asks'))
+                              tip='The question in the writing line for you to finish, then send it'))
             return rows
         out.append(Entry('field:whatif:' + cell, short(' · '.join(part for part in (cell, said, ('%s %s' % (value, unit)).strip()) if part), 58), 'command', icon='line', submenu=tries))
     return out or [Entry('field:whatif:none', 'It has no number to set', 'capability', enabled=False, reason='A what-if sets a number of a sheet, or an input of a calculation')]
@@ -1277,7 +1289,7 @@ def field_step_rows(host, view, obj):
         at = next((n for n, step in enumerate(offered) if step.line == line), None)
         if at is not None:field_page.take(host, obj, at)
     return [Entry('field:do:%d' % n, short(step.words, 56), 'command', lambda line=step.line: take(line), icon='line', caption='asks' if step.kind == 'write' else '',
-                  tip=((step.why[:1].upper() + step.why[1:] + '.\n') if step.why else '') + ('It changes something: it is put up in Talk and waits for your go (G).' if step.kind == 'write' else 'A read: it runs at once.') + '\n' + step.line[:300])
+                  tip=((step.why[:1].upper() + step.why[1:] + '.\n') if step.why else '') + ('It changes something: it is put up in Talk and waits for your go.' if step.kind == 'write' else 'A read: it runs at once.') + '\n' + step.line[:300])
             for n, step in enumerate(steps)] or [Entry('field:do:none', 'The records offer nothing to do about this', 'capability', enabled=False)]
 
 
@@ -1287,7 +1299,7 @@ def field_doubt_rows(host, view, obj):
     from .engine import engineering
     from .engineering_kernel import operator
     answer = engineering(host.root).dispatch('field.doubt', {'id': obj.id}, operator())
-    out = [Entry('field:doubt:all', 'All of it, in Talk', 'command', lambda: view.doubt_asked.emit(obj), icon='ask', caption='X')]
+    out = [Entry('field:doubt:all', 'All of it, in Talk', 'command', lambda: view.doubt_asked.emit(obj), icon='ask')]
     if not answer.get('ok'):
         return out + [Entry('field:doubt:problem', 'It could not be looked at', 'capability', enabled=False, reason=str((answer.get('error') or {}).get('message'))[:200])]
     def show(row):
@@ -1307,7 +1319,7 @@ def field_trace_rows(host, view, obj, select):
     from .engine import engineering
     from .engineering_kernel import operator
     answer = engineering(host.root).dispatch('field.trace', {'id': obj.id}, operator())
-    out = [Entry('field:trace:all', 'The whole trace, in Talk', 'command', lambda: view.trace_asked.emit(obj), icon='ask', caption='T')]
+    out = [Entry('field:trace:all', 'The whole trace, in Talk', 'command', lambda: view.trace_asked.emit(obj), icon='ask')]
     for row in (answer['result'].get('rows', ()) if answer.get('ok') else ()):
         if row['way'] == 'this':continue
         out.append(Entry('field:trace:' + row['id'], short(('← ' if row['way'] == 'from' else '→ ') + str(row['title']), 56), 'state', lambda ident=row['id']: select(ident),
@@ -1351,14 +1363,14 @@ def field_entries(host, t):
         view.field.select(ident);view._layout();view._reveal();view._describe();view.update();view.setFocus(Qt.OtherFocusReason)
     if obj is None:
         other = [name for name, _ in view.faces if name != view.face]
-        out.append(Entry('field:again', 'Look again', 'open', view.look_again.emit, icon='explore', caption='R', tip='Read the records again'))
+        out.append(Entry('field:again', 'Look again', 'open', view.look_again.emit, icon='explore', tip='Read the records again'))
         if view.face == 'work':
-            out.append(Entry('field:check', 'Check the desk', 'command', view.check_asked.emit, icon='explore', caption='C',
+            out.append(Entry('field:check', 'Check the desk', 'command', view.check_asked.emit, icon='explore',
                              tip=named('Everything is read again; Stacy says what waits for you and what would settle it')))
         for name in other:
-            out.append(Entry('field:face:' + name, 'Show the %s' % name, 'open', lambda name=name:view.face_chosen.emit(name), icon='network' if name == 'network' else 'projects',
-                             caption=dict(view.faces)[name].upper()))
-        out.append(Entry('field:back', 'Back', 'open', view.left.emit, icon='explore', caption='Esc'))
+            out.append(Entry('field:face:' + name, 'Show the %s' % name.replace('programs', 'apps'), 'open', lambda name=name:view.face_chosen.emit(name),
+                             icon='network' if name == 'network' else 'projects'))
+        out.append(Entry('field:back', 'Back', 'open', view.left.emit, icon='explore', tip='Leave the Field'))
         if view.face == 'network':
             lines = (('Every connection', 'network.observe | pick connections | select process,remote,rport,state'),
                      ('What is listening', 'network.observe | pick connections | where state=LISTEN | select process,local,lport'),
@@ -1376,7 +1388,7 @@ def field_entries(host, t):
                      ('The pages', 'documents.list | pick documents | select title,revision,words'),
                      ('The sheets', 'office.list | pick documents | select title,kind,version'),
                      ('Work that is not finished', 'jobs | where state is not Completed | select tool,state'))
-            out.append(Entry('field:brief', 'The brief', 'command', view.brief_asked.emit, icon='line', caption='B',
+            out.append(Entry('field:brief', 'The brief', 'command', view.brief_asked.emit, icon='line',
                              tip=named('The desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first')))
         try:                                  # the owner's own staC words go with the lines of every face
             from .stac_words import known_to
@@ -1384,7 +1396,7 @@ def field_entries(host, t):
         except Exception:  # noqa: BLE001 - the menu is never stopped because the words could not be read
             pass
         out.append(Entry('field:stac', 'This face as lines', 'command', icon='line', tip='Read-only lines for what the Field shows; each goes to the writing strip',
-                         submenu=lambda:[Entry('field:stac:%d' % n, label, 'command', lambda code=code:inspect_in_line(host, code), icon='line', tip=code)
+                         submenu=lambda:[Entry('field:stac:%d' % n, label, 'command', lambda code=code:inspect_in_line(host, code), icon='line', tip=code, line=code)
                                          for n, (label, code) in enumerate(lines)]))
         out.append(Entry('field:words', 'Your words', 'command', icon='line', submenu=lambda:word_rows(host, manage=True),
                          tip='Lines you keep under words of your own: run one, put it in the line, forget it, or keep a new one'))
@@ -1392,37 +1404,40 @@ def field_entries(host, t):
     target = obj.target if isinstance(obj.target, dict) else {}
     network = target.get('kind') == 'network'
     out.append(Entry('field:open', 'Show in Log' if network else 'Open', 'open', lambda:field_page.open_object(host, obj), icon='network' if network else t.icon,
-                     caption='Enter', tip='The Log\'s Network stream, filtered to this' if network else 'This program\'s room' if target.get('kind') == 'program' else 'The real page for this, in its own room'))
+                     tip='The Log\'s Network stream, filtered to this' if network else 'This program\'s room' if target.get('kind') == 'program' else 'The real page for this, in its own room'))
     fed = [view.field.get(l.source) for l in view.field.fed_by(obj.id)];feeds = [view.field.get(l.target) for l in view.field.feeds(obj.id)]
     def rows(objects):
         return lambda:[Entry('field:go:' + o.id, short(o.title, 54), 'state', lambda o=o:select(o.id), caption=(o.tag or o.kind).lower()) for o in objects]
     verb_from, verb_to = view.field.verbs
     out.append(Entry('field:fed', 'What it is %s' % verb_from if verb_from == 'held by' else 'What feeds it', 'state', enabled=bool(fed), reason='Nothing is recorded as feeding this',
-                     submenu=rows(fed), caption='←'))
-    out.append(Entry('field:feeds', 'What it %s' % verb_to, 'state', enabled=bool(feeds), reason='Nothing is recorded as coming from this', submenu=rows(feeds), caption='→'))
+                     submenu=rows(fed)))
+    out.append(Entry('field:feeds', 'What it %s' % verb_to, 'state', enabled=bool(feeds), reason='Nothing is recorded as coming from this', submenu=rows(feeds)))
+    reviewed = obj.role == 'reviewed sheet' and target.get('kind') == 'office' and target.get('id')
+    if reviewed:t.extra['line'] = '@office:%s | pick origin.reviewed_rows' % target['id']      # its reviewed rows (datasheet_work keeps them)
+    elif obj.stac:t.extra['line'] = obj.stac
     if obj.stac:      # staC, said Stacy: the line that reads this object. In the line to read or change, or run as it is (a read).
-        out.append(Entry('field:inspect', 'Inspect in the line', 'command', lambda:field_page.stac_in_line(host, obj), icon='line', caption='S',
+        out.append(Entry('field:inspect', 'Inspect in the line', 'command', lambda:field_page.stac_in_line(host, obj), icon='line',
                          tip='Its line in the writing strip; nothing runs until you run it:\n' + obj.stac))
-        out.append(Entry('field:run', 'Run its line', 'command', lambda:field_page.stac_run(host, obj), icon='line', caption='Shift+Enter',
+        out.append(Entry('field:run', 'Run its line', 'command', lambda:field_page.stac_run(host, obj), icon='line',
                          operation='language.run', tip='A read; the answer shows in the working area:\n' + obj.stac))
     work = view.face == 'work'
     if work and obj.kind in ('sheet', 'calculation'):      # the cascade for looking ahead: a number, then a value to try
         out.append(Entry('field:whatif', 'What if', 'command', icon='line', submenu=lambda:field_whatif_rows(host, obj),
                          tip='Set one of its numbers to another value without changing anything: the wires are followed and the Field marks what would move'))
-    out.append(Entry('field:doubt', 'Doubt it', 'command', lambda:view.doubt_asked.emit(obj), icon='line', caption='X',
+    out.append(Entry('field:doubt', 'Doubt it', 'command', lambda:view.doubt_asked.emit(obj), icon='line',
                      submenu=(lambda:field_doubt_rows(host, view, obj)) if work else None,
-                     tip='Cross-examine it for what a plausible result may hide: what does not hold, what cannot be told, what holds (X shows all of it in Talk)'))
-    out.append(Entry('field:trace', 'Trace it', 'command', lambda:view.trace_asked.emit(obj), icon='line', caption='T',
+                     tip='Cross-examine it for what a plausible result may hide: what does not hold, what cannot be told, what holds'))
+    out.append(Entry('field:trace', 'Trace it', 'command', lambda:view.trace_asked.emit(obj), icon='line',
                      submenu=(lambda:field_trace_rows(host, view, obj, select)) if work else None,
-                     tip='Where it comes from and what rests on it, hop by hop along the wires; choose one to go there (T tells it in Talk)'))
-    out.append(Entry('field:do', 'What can be done', 'command', lambda:view.do_asked.emit(obj), icon='line', caption='D',
+                     tip='Where it comes from and what rests on it, hop by hop along the wires; choose one to go there'))
+    out.append(Entry('field:do', 'What can be done', 'command', lambda:view.do_asked.emit(obj), icon='line',
                      submenu=lambda:field_step_rows(host, view, obj),
-                     tip='The steps the records offer for this. A read runs at once; one that changes something is put up and waits for your go (D shows them in the Field)'))
+                     tip='The steps the records offer for this. A read runs at once; one that changes something is put up and waits for your go'))
     if work and obj.stac:
         out.append(Entry('field:words', 'Your words', 'command', icon='line', submenu=lambda:word_rows(host),
                          tip='Run one of your own words here; a word whose line starts with `this` reads this sheet'))
     if view.face == 'work':
-        out.append(Entry('field:brief', 'The brief of the desk', 'command', view.brief_asked.emit, icon='line', caption='B',
+        out.append(Entry('field:brief', 'The brief of the desk', 'command', view.brief_asked.emit, icon='line',
                          tip=named('The whole desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first')))
     if not network:
         out.append(Entry('field:ask', named('Ask Stacy about this'), 'command', lambda:ask_about_sheet(host, obj),
@@ -1727,88 +1742,274 @@ def target_at(host, widget, point):
     return None
 
 
+# -- the shape: the usual rows, Then or Start from, More (0.8.1) -------------------------------------------------------------------
+# The owner, 14 November 2026: "Also right click was too complex. We need to make its power easy to use and chain/pipe. With
+# right click icons too." Every menu has one short shape: the thing named at its top; up to four usual actions for that kind of
+# thing (REST); Then › when the thing has a line (the line panel: read once, carried on step by step) or Start from › on an empty
+# place; More › with everything else in named groups. Nothing is removed: every row the providers offer is under More or in the
+# line panel. A row that cannot act now is left out of the first level, never greyed there. Deeper screens replace the second
+# popup's rows in place under a Back row, so there are never more than two popups, and no screen is taller than the window.
+
+GLYPH_SIDE = 20         # the glyphs' own size (tool_faces.SIDE): this menu wears them as drawn
+MOST_ROWS = 16          # rows on one screen at most; a longer list goes on in pages
+# What a kind of thing is called at the top, as a glyph (the Open row wears it too).
+TARGET_GLYPH = {'table': 'table', 'datasheet': 'page', 'file': 'page', 'drawing': 'picture', 'folder': 'folder', 'files': 'folder', 'empty': 'home',
+                'passage': 'cell', 'page': 'document', 'library': 'stack', 'cabinet': 'folder', 'tree': 'folder', 'work': 'folder', 'machine': 'chip',
+                'setting': 'sliders', 'job': 'running', 'queued': 'agenda', 'event': 'lines', 'connection': 'port', 'packet': 'port',
+                'program': 'rooms', 'command': 'prompt'}
+GLYPH_EXACT = {
+    'open:outside': 'window', 'process': 'window', 'open:viewer': 'page', 'job:show': 'source', 'copy:original': 'source', 'viewer:folder': 'source',
+    'show:folder': 'source', 'show:files': 'source', 'show:finder': 'source', 'show:log': 'source', 'change:files': 'source', 'change:none': 'info',
+    'rename': 'cell', 'menu:edit': 'cell', 'copy:to': 'copy', 'copy': 'copy', 'edit:copy': 'copy', 'field:copy': 'copy', 'viewer:path': 'copy',
+    'move:to': 'folder', 'new:folder': 'folder', 'new:project': 'folder', 'versions': 'delta', 'compare:version': 'delta', 'field:whatif': 'delta',
+    'copy:review': 'again', 'compare:with': 'again', 'compare:two': 'again', 'compare:revisions': 'again',
+    'export': 'export', 'doc:export': 'export', 'copy:pill': 'export', 'delivery:stage': 'stack',
+    'explore': 'rooms', 'cabinet:explore': 'rooms', 'activity:explore': 'rooms', 'command:atlas': 'rooms', 'command:invoke': 'rooms', 'command:work': 'rooms',
+    'atlas': 'book', 'algorithms': 'book', 'explain': 'info', 'cabinet:record': 'info', 'command:inspect': 'info',
+    'ask': 'asked', 'field:ask': 'asked', 'copy:slate': 'asked', 'viewer:ask': 'asked', 'inquiries': 'asked',
+    'investigate': 'find', 'search': 'find', 'new:smart': 'find', 'copy:look': 'find', 'copy:run': 'prompt', 'agenda': 'agenda',
+    'trash': 'trash', 'copy:discard': 'trash', 'import': 'receive', 'keep': 'receive', 'work:copy': 'receive',
+    'view': 'sliders', 'view:all': 'full', 'hidden': 'full', 'preview': 'split', 'refresh': 'recalc', 'field:again': 'recalc',
+    'notes': 'note', 'cabinet:write': 'note', 'new:idea': 'note', 'field:brief': 'note', 'doc:new': 'document', 'job:output': 'lines',
+    'job:pause': 'pause', 'queued:pause': 'pause', 'job:resume': 'running', 'queued:resume': 'running', 'job': 'running',
+    'job:stop': 'stop', 'queued:stop': 'stop', 'follow': 'reach', 'field:doubt': 'found', 'field:check': 'found', 'field:trace': 'trace',
+    'field:do': 'steps', 'field:words': 'star', 'chains': 'star', 'field:back': 'previous', 'field:fed': 'previous', 'field:feeds': 'next',
+    'field:stac': 'lines', 'field:inspect': 'prompt', 'field:run': 'running', 'then': 'chain', 'start': 'chain', 'more': 'more', 'command:choices': 'more',
+    'expand': 'larger', 'collapse': 'smaller', 'edit:undo': 'undo', 'edit:redo': 'redo', 'edit:cut': 'cut', 'edit:paste': 'paste',
+    'edit:all': 'select', 'edit:delete': 'close', 'mark:bold': 'bold', 'mark:italic': 'italic', 'mark:underline': 'underline', 'mark:clear': 'plain',
+    'style': 'body', 'style:Heading1': 'h1', 'style:Heading2': 'h2', 'style:Heading3': 'h3', 'style:Normal': 'body', 'style:Code': 'code',
+    'line': 'prompt', 'inspect': 'prompt', 'run': 'running', 'chain': 'chain', 'extract': 'table', 'back': 'previous', 'page:next': 'more',
+    'ask:yes': 'stop', 'ask:no': 'previous', 'read': 'table', 'step:back': 'previous', 'step:where': 'filter', 'step:sort': 'sort',
+    'step:count': 'count', 'step:group': 'group', 'step:first': 'limit', 'end:show': 'running', 'end:line': 'prompt', 'end:copy': 'copy',
+    'end:rows': 'table', 'where:other': 'prompt', 'activity:explore': 'rooms', 'words:new': 'star', 'none': 'info'}
+GLYPH_PREFIX = (('adapter:', 'rooms'), ('cabinet:workspace:', 'rooms'), ('cabinet:check:', 'found'), ('compare:version:', 'delta'), ('compare:', 'again'),
+                ('copy:', 'copy'), ('show:', 'source'), ('style:', 'body'), ('view:', 'sliders'), ('line:', 'prompt'), ('chains:', 'star'), ('start:', 'page'),
+                ('field:face:', 'field'), ('field:go:', 'next'), ('field:doubt:', 'found'), ('field:trace:', 'trace'), ('field:do:', 'steps'),
+                ('field:whatif:', 'delta'), ('field:stac:', 'lines'), ('words:', 'star'), ('extract:', 'table'), ('job:', 'running'),
+                ('command-child:', 'prompt'), ('read:', 'table'), ('field:', 'filter'), ('where ', 'filter'), ('sort:', 'sort'), ('group:', 'group'),
+                ('first:', 'limit'), ('problem', 'info'), ('actions:', 'info'))
+LINE_TONE = ('then', 'start', 'end:show', 'end:line', 'field:run', 'run', 'read', 'where:other')
+DANGER_TONE = ('trash', 'copy:discard', 'ask:yes')
+
+# More's groups, in their order, and where each row goes (by its key; else by its section).
+GROUP_ORDER = ('Open and show', 'Change it', 'Look into it', 'Send and keep', 'Edit and copy', 'This working copy', 'Make and arrange', 'As a line')
+SECTION_GROUP = {'open': 'Open and show', 'modify': 'Change it', 'state': 'Open and show', 'command': 'As a line', 'capability': 'Look into it',
+                 'tree': 'Make and arrange', 'edit': 'Edit and copy', 'danger': 'Change it'}
+GROUP_EXACT = {
+    'open:outside': 'Open and show', 'show:folder': 'Open and show', 'atlas': 'Open and show', 'explore': 'Open and show', 'inquiries': 'Open and show',
+    'algorithms': 'Open and show', 'line': 'Open and show', 'menu:edit': 'Open and show', 'cabinet:record': 'Open and show',
+    'cabinet:explore': 'Open and show', 'activity:explore': 'Open and show', 'field:brief': 'Open and show', 'field:back': 'Open and show',
+    'copy:to': 'Change it', 'move:to': 'Change it', 'versions': 'Change it', 'rename': 'Change it', 'mark:underline': 'Change it',
+    'mark:clear': 'Change it', 'style': 'Change it', 'keep': 'Change it', 'trash': 'Change it',
+    'explain': 'Look into it', 'compare:with': 'Look into it', 'compare:version': 'Look into it', 'compare:two': 'Look into it',
+    'compare:revisions': 'Look into it', 'investigate': 'Look into it', 'search': 'Look into it', 'field:trace': 'Look into it',
+    'field:fed': 'Look into it', 'field:feeds': 'Look into it', 'field:whatif': 'Look into it', 'field:doubt': 'Look into it',
+    'field:do': 'Look into it', 'field:check': 'Look into it',
+    'export': 'Send and keep', 'delivery:stage': 'Send and keep', 'doc:export': 'Send and keep',
+    'copy:path': 'Edit and copy', 'copy:address': 'Edit and copy', 'copy:paths': 'Edit and copy', 'copy:name': 'Edit and copy',
+    'copy:id': 'Edit and copy', 'copy:key': 'Edit and copy', 'copy:row': 'Edit and copy', 'copy': 'Edit and copy', 'field:copy': 'Edit and copy',
+    'copy:slate': 'This working copy', 'copy:review': 'This working copy', 'copy:original': 'This working copy', 'copy:discard': 'This working copy',
+    'copy:look': 'This working copy', 'copy:run': 'This working copy', 'copy:pill': 'This working copy',
+    'new:smart': 'Make and arrange', 'work:copy': 'Make and arrange', 'view:all': 'Make and arrange', 'view': 'Make and arrange',
+    'hidden': 'Make and arrange', 'preview': 'Make and arrange', 'refresh': 'Make and arrange', 'new:folder': 'Make and arrange',
+    'new:idea': 'Make and arrange', 'new:project': 'Make and arrange', 'import': 'Make and arrange', 'doc:new': 'Make and arrange',
+    'expand': 'Make and arrange', 'collapse': 'Make and arrange',
+    'field:run': 'As a line', 'field:words': 'As a line', 'field:inspect': 'As a line', 'inspect': 'As a line', 'run': 'As a line',
+    'chain': 'As a line', 'extract': 'As a line'}
+GROUP_PREFIX = (('adapter:', 'Open and show'), ('cabinet:workspace:', 'Open and show'), ('cabinet:check:', 'Look into it'),
+                ('field:face:', 'Open and show'), ('style:', 'Change it'), ('show:', 'Open and show'))
+START_KEYS = ('chains', 'start', 'field:stac')                         # where an empty place's lines start (Start from ›)
+LINE_KEYS = ('inspect', 'run', 'chain', 'extract', 'field:inspect')     # what the line panel does once the thing has a line
+ASK_SCREEN = ('job:stop', 'queued:stop')                                # rows that ask on a screen of their own before they act
+# The usual actions for each kind of thing, most usual first: the first four present and able to act are the first level.
+# 'a|b' is whichever of them applies; 'x:*' the first row whose key starts so.
+REST = {
+    'file': ('open', 'ask', 'rename', 'trash'), 'folder': ('open', 'rename', 'copy:path', 'trash'), 'smart': ('open', 'rename', 'copy:path', 'trash'),
+    'files': ('compare:revisions|compare:two', 'move:to', 'copy:paths', 'trash'), 'empty:files': ('new:folder', 'import', 'view', 'refresh'),
+    'finder': ('open', 'show:files', 'ask', 'copy:path'), 'finder-outside': ('open', 'open:viewer', 'ask', 'copy:path'),
+    'empty:finder': ('view', 'hidden', 'preview', 'refresh'), 'library': ('open', 'keep', 'ask', 'copy:name'), 'empty:library': ('import', 'refresh'),
+    'passage': ('mark:bold', 'mark:italic', 'notes', 'ask'), 'page': ('style', 'edit:paste', 'edit:all', 'doc:new'),
+    'field-sheet': ('field:open', 'field:do', 'field:doubt', 'field:ask'), 'field-network': ('field:open', 'field:do', 'field:doubt', 'field:trace'),
+    'empty:field': ('field:again', 'field:check', 'field:brief', 'field:face:*'), 'empty:today': ('new:idea', 'new:project', 'import', 'inquiries'),
+    'event': ('open', 'ask', 'job', 'copy'), 'network': ('ask', 'follow', 'process', 'copy:address'),
+    'job': ('job:output', 'job:pause|job:resume', 'job:stop', 'job:show|copy:id'), 'queued': ('queued:pause|queued:resume', 'queued:stop', 'job', 'agenda'),
+    'cabinet': ('open', 'cabinet:write', 'cabinet:workspace:*', 'copy:id'), 'tree': ('new:idea', 'new:project', 'import', 'view'),
+    'work': ('open', 'export', 'new:idea', 'new:project', 'import', 'refresh'), 'machine': ('show:finder', 'open', 'copy:row', 'refresh'),
+    'setting': ('open', 'search', 'copy:key', 'expand'),
+    'program': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas'),
+    'command': ('command:inspect', 'command:invoke|command:choices', 'command:work', 'command:atlas')}
+
+
+def asks_for(operation):
+    """The sentence an ask screen says before an action Stacy's hand always asks about (stacy_hand.ALWAYS_ASKS), or ''."""
+    from .stacy_hand import why_asks
+    why = why_asks(str(operation or '').split(',')[0].strip())
+    return (why[:1].upper() + why[1:] + '.') if why else ''
+
+
+def target_glyph(target):
+    """The glyph a thing wears at the menu's top (and on its Open row): its kind's."""
+    if target is None:return 'more'
+    if target.kind == 'field-sheet':
+        obj = target.data.get('object');kind = getattr(obj, 'kind', '')
+        from .glyph_set import KIND
+        return kind if kind in KIND else 'table'
+    if target.kind == 'folder' and target.data.get('kind') == 'smart':return 'find'
+    return TARGET_GLYPH.get(target.kind, 'window')
+
+
+def glyph_for(entry, target=None):
+    if entry.glyph:return entry.glyph
+    key = entry.key
+    if key in ('open', 'field:open'):return target_glyph(target)
+    if key in GLYPH_EXACT:return GLYPH_EXACT[key]
+    for prefix, glyph in GLYPH_PREFIX:
+        if key.startswith(prefix):return glyph
+    return 'next'
+
+
+def glyph_keys():
+    """Every glyph this menu can name (a check: each is drawn in glyph_set)."""
+    return set(GLYPH_EXACT.values()) | {g for _, g in GLYPH_PREFIX} | set(TARGET_GLYPH.values()) | {'next', 'more'}
+
+
+def tone_for(entry):
+    if entry.tone:return entry.tone
+    key = entry.key
+    if key in LINE_TONE or key.startswith(('step:', 'read:', 'where ', 'sort:', 'group:', 'first:')):return 'line'
+    if key in DANGER_TONE:return 'danger'
+    return None
+
+
+def group_for(entry):
+    if entry.group:return entry.group
+    key = entry.key
+    if key == 'agenda':return 'Open and show' if entry.section == 'open' else 'Send and keep'  # Open Agenda; Add to the Agenda…
+    if key in GROUP_EXACT:return GROUP_EXACT[key]
+    for prefix, group in GROUP_PREFIX:
+        if key.startswith(prefix):return group
+    return SECTION_GROUP.get(entry.section, 'Look into it')
+
+
+def keys_of(entries):
+    return [e.key for e in entries]
+
+
+def kind_of(t):
+    """Which kind of thing the menu is for (REST's keys)."""
+    if t is None:return ''
+    if t.kind == 'empty':return {'files': 'empty:files', 'finder': 'empty:finder', 'library': 'empty:library', 'field': 'empty:field'}.get(t.surface, 'empty:today')
+    if t.surface == 'files':
+        if t.kind == 'folder':return 'smart' if t.data.get('kind') == 'smart' else 'folder'
+        if t.kind in FILE_KINDS:return 'file'
+    if t.surface == 'finder':return 'finder' if t.extra.get('inside') else 'finder-outside'
+    if t.kind == 'field-sheet':
+        obj = t.data.get('object');target = getattr(obj, 'target', None)
+        return 'field-network' if isinstance(target, dict) and target.get('kind') == 'network' else 'field-sheet'
+    if t.kind in ('connection', 'packet'):return 'network'
+    return t.kind
+
+
+def start_line(target):
+    """The line a thing reads as (its providers say it when they know it); None when it has none."""
+    return (target.extra.get('line') or None) if target is not None else None
+
+
+def panel_outline():
+    """The line panel's rows as readers walk them (what Then › holds); the panel itself fills them from its one read."""
+    return [Entry('read', 'Read it as', 'command'), Entry('step:where', 'Keep rows where', 'command'), Entry('step:sort', 'Sort by', 'command'),
+            Entry('step:count', 'Count', 'command'), Entry('step:group', 'Count by', 'command'), Entry('step:first', 'First', 'command'),
+            Entry('end:show', 'Show it', 'command'), Entry('end:line', 'Put it in the writing line', 'command'), Entry('end:copy', 'Copy the line', 'edit'),
+            Entry('end:rows', 'Copy the rows', 'edit')]
+
+
+def your_lines(host):
+    """Start from › Yours: the chains kept in your menu file and your own words, each opening its line in the panel."""
+    out = kept_chain_entries(host)
+    try:
+        from .stac_words import known_to
+        words = known_to(host)
+    except Exception:  # noqa: BLE001 - the menu is never stopped because the words could not be read
+        words = {}
+    for name, line in sorted(words.items()):
+        out.append(Entry('words:' + name, name, 'command', lambda name=name:host.shell2.ask(name), line=line, glyph='star', tip=line))
+    return [e for e in out if e.key != 'chains:none'] or out
+
+
+def start_entry(starts, host):
+    def children():
+        out = []
+        for e in starts:
+            if e.key == 'chains':out.append(Entry('chains', 'Yours', 'command', submenu=lambda:your_lines(host), glyph='star',
+                                                  tip='The lines you keep: your chains and your words'))
+            elif e.key == 'start':out.append(Entry('start', 'A file in Files', 'command', submenu=e.submenu, glyph='folder', tip='A file read as rows, step by step'))
+            else:out.append(Entry(e.key, e.label, 'command', submenu=e.submenu, glyph=glyph_for(e), tip=e.tip))
+        return out
+    return Entry('start', 'Start from', 'command', submenu=children, tone='line', tip='Begin a line here: one of yours, or a file in Files')
+
+
+def first_level(kind, entries, line=None, host=None):
+    """(the first level's rows, everything for More). The first level: up to four rows from REST[kind] that are present and can
+    act, then Then › (the thing has a line) or Start from › (an empty place), then More › when anything is left. A row that
+    cannot act is never on the first level: it is under More, dim, with its reason. The rows the line panel does (Inspect in
+    the line, Run, Chain, Extract) are in the panel once there is a line."""
+    flat = []
+    for e in entries:      # the old root row of an empty place spreads out: its rows go under More and Start from
+        if e.key == 'root' and callable(e.submenu):flat += e.submenu()
+        else:flat.append(e)
+    for e in flat:
+        if e.key in ASK_SCREEN and not e.asks:e.asks = asks_for(e.operation)
+    by_key = {};rest = [];used = set()
+    for e in flat:by_key.setdefault(e.key, e)
+    for want in REST.get(kind, ()):
+        if len(rest) == 4:break
+        for key in want.split('|'):
+            if key.endswith('*'):found = next((e for e in flat if e.key.startswith(key[:-1]) and e.enabled and e.key not in used), None)
+            else:found = by_key.get(key) if key in by_key and by_key[key].enabled and key not in used else None
+            if found is not None:rest.append(found);used.add(found.key);break
+    absorbed = {e.key for e in flat if line and e.key in LINE_KEYS and e.group is None}
+    if kind not in REST:      # a kind with no table yet: its first four rows that can act
+        for e in flat:
+            if len(rest) == 4:break
+            if e.enabled and e.key not in used and e.key not in START_KEYS and e.key not in absorbed:rest.append(e);used.add(e.key)
+    for e in rest:
+        if e.asks:e.caption = 'asks'
+    starts = [e for e in flat if e.key in START_KEYS and e.key not in used]
+    more = [e for e in flat if e.key not in used and e.key not in absorbed and not (e.key in START_KEYS and not line)]
+    tail = []
+    if line:tail.append(Entry('then', 'Then', 'command', submenu=panel_outline, line=line, tone='line', tip=line))
+    elif starts:tail.append(start_entry(starts, host))
+    if more:tail.append(Entry('more', 'More', 'open', submenu=lambda more=list(more):more, tip='Everything else for this, in groups'))
+    return rest + tail, more
+
+
+def in_groups(entries):
+    """More's rows in their groups, in GROUP_ORDER: [(group words, [rows])]."""
+    found = {}
+    for e in entries:found.setdefault(group_for(e), []).append(e)
+    return [(word, found[word]) for word in GROUP_ORDER if word in found] + [(word, rows) for word, rows in found.items() if word not in GROUP_ORDER]
+
+
+def paint_glyph(p, rect, key, tone=None, mode=None):
+    """One of Graphite's drawn glyphs (glyph_set, through tool_faces.icon) in a row's icon column."""
+    from PySide6.QtGui import QIcon
+    from . import tool_faces
+    box = rect.toRect() if isinstance(rect, QRectF) else rect
+    tool_faces.icon(key or 'next', tone).paint(p, box, Qt.AlignCenter, QIcon.Normal if mode is None else mode)
+
+
+def context_metrics(host):
+    """The desk menu's numbers (programs_qt.metrics) with the glyphs at the size they were drawn to be read at."""
+    from .desk_qt import scaled
+    m = programs_qt.metrics(host);icon = scaled(GLYPH_SIDE, m.scale)
+    return m._replace(icon=icon, icon_col=icon + scaled(programs_qt.ICON_GAP, m.scale), row=max(m.line, icon) + 2 * scaled(programs_qt.ROW_PAD, m.scale))
+
+
 # -- the menu -----------------------------------------------------------------------------------------------------------------------
 
-def _extra_paths(key):
-    """(strokes, fills) on the 18-unit grid for the icons programs_qt does not draw (the same line weight and grid)."""
-    strokes, fills = [], []
-    def path(*points, close=False):
-        p = QPainterPath(QPointF(*points[0]))
-        for pt in points[1:]:p.lineTo(QPointF(*pt))
-        if close:p.closeSubpath()
-        strokes.append(p);return p
-    def rect(x, y, w, h, r=1.4, fill=False):
-        p = QPainterPath();p.addRoundedRect(QRectF(x, y, w, h), r, r);(fills if fill else strokes).append(p);return p
-    def circle(x, y, r, fill=False):
-        p = QPainterPath();p.addEllipse(QPointF(x, y), r, r);(fills if fill else strokes).append(p);return p
-    def curve(start, *segments):
-        p = QPainterPath(QPointF(*start))
-        for c, e in segments:p.quadTo(QPointF(*c), QPointF(*e))
-        strokes.append(p);return p
-    if key == 'passage':  # lines of words, one washed
-        path((3, 4.5), (15, 4.5));rect(2.5, 7, 13, 4, 0.8);path((3, 13.5), (11, 13.5))
-    elif key == 'bold':  # a B
-        p = QPainterPath(QPointF(5, 3));p.lineTo(10, 3);p.quadTo(13.5, 3, 13.5, 6);p.quadTo(13.5, 9, 10, 9);p.lineTo(5, 9);p.closeSubpath();strokes.append(p)
-        p = QPainterPath(QPointF(5, 9));p.lineTo(10.5, 9);p.quadTo(14.5, 9, 14.5, 12);p.quadTo(14.5, 15, 10.5, 15);p.lineTo(5, 15);p.closeSubpath();strokes.append(p)
-    elif key == 'notes':  # a note with a folded corner
-        path((3, 3), (15, 3), (15, 11), (11, 15), (3, 15), close=True);path((11, 15), (11, 11), (15, 11));path((6, 7), (12, 7))
-    elif key == 'line':  # the writing line: a prompt and its line
-        path((3.5, 5.5), (7.5, 9), (3.5, 12.5));path((9.5, 12.5), (15, 12.5))
-    elif key == 'run':  # play
-        path((5.5, 3.5), (14.5, 9), (5.5, 14.5), close=True)
-    elif key == 'pause':  # two bars
-        rect(4.5, 3.5, 3, 11, 0.6);rect(10.5, 3.5, 3, 11, 0.6)
-    elif key == 'compare':  # two pages side by side
-        rect(2.5, 3, 6, 12, 0.8);rect(9.5, 3, 6, 12, 0.8);path((4.5, 7), (6.5, 7));path((11.5, 7), (13.5, 7));path((4.5, 10), (6.5, 10));path((11.5, 10.5), (13.5, 10.5))
-    elif key == 'extract':  # an arrow out of a tray
-        path((3, 8), (3, 15), (15, 15), (15, 8));path((9, 12), (9, 2.5));path((6, 5.5), (9, 2.5), (12, 5.5))
-    elif key == 'copy':  # two sheets
-        rect(6, 6, 9, 9.5, 1);path((3, 12), (3, 3), (11.5, 3))
-    elif key == 'trash':  # a can
-        path((3.5, 5), (14.5, 5));path((7, 5), (7, 3), (11, 3), (11, 5));path((5, 5), (6, 15.5), (12, 15.5), (13, 5));path((8, 8), (8, 13));path((10, 8), (10, 13))
-    elif key == 'view':  # an eye
-        curve((2, 9), ((9, 2), (16, 9)));curve((2, 9), ((9, 16), (16, 9)));circle(9, 9, 2.2)
-    elif key == 'network':  # three nodes linked
-        circle(4.5, 13, 2);circle(13.5, 13, 2);circle(9, 4.5, 2);path((5.5, 11.3), (8, 6.2));path((12.5, 11.3), (10, 6.2));path((6.5, 13), (11.5, 13))
-    elif key == 'packet':  # an envelope
-        rect(2.5, 4.5, 13, 9, 1);path((2.8, 5), (9, 10), (15.2, 5))
-    elif key == 'event':  # a moment on a line
-        path((2.5, 9), (15.5, 9));circle(9, 9, 2.6, True);path((9, 3), (9, 5));path((9, 13), (9, 15))
-    elif key == 'new':  # a plus
-        path((9, 3.5), (9, 14.5));path((3.5, 9), (14.5, 9))
-    elif key == 'rename':  # an I-beam on a line
-        path((9, 3), (9, 13));path((6.5, 3), (11.5, 3));path((6.5, 13), (11.5, 13));path((2.5, 15.5), (15.5, 15.5))
-    elif key == 'job':  # a gear
-        circle(9, 9, 3);import math
-        for k in range(8):
-            a = k * math.pi / 4;path((9 + 4.6 * math.cos(a), 9 + 4.6 * math.sin(a)), (9 + 6.6 * math.cos(a), 9 + 6.6 * math.sin(a)))
-    elif key == 'chain':  # two links
-        rect(2.5, 6.5, 7.5, 5, 2.5);rect(8, 6.5, 7.5, 5, 2.5)
-    else:return None
-    return strokes, fills
-
-
-EXTRA = ('passage', 'bold', 'notes', 'line', 'run', 'pause', 'compare', 'extract', 'copy', 'trash', 'view', 'network', 'packet', 'event', 'new', 'rename', 'job', 'chain')
-
-
-def paint_icon(p, rect, key, colour):
-    """One small graphite icon: programs_qt's set, with this menu's EXTRA ones in the same grid and line weight; none for ''."""
-    if not key:return
-    if key not in EXTRA:return programs_qt.paint_icon(p, rect, key, colour)
-    import math
-    strokes, fills = _extra_paths(key);s = min(rect.width(), rect.height()) / 18.0
-    k = s * (math.sqrt(abs(p.deviceTransform().determinant())) or 1.0)
-    p.save();p.setRenderHint(QPainter.Antialiasing);p.translate(rect.x() + (rect.width() - 18 * s) / 2, rect.y() + (rect.height() - 18 * s) / 2);p.scale(s, s)
-    p.setPen(QPen(QColor(colour), max(1.5, 1.0 / k if k else 1.5), Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin));p.setBrush(Qt.NoBrush)
-    for path in strokes:p.drawPath(path)
-    p.setPen(Qt.NoPen);p.setBrush(QColor(colour))
-    for path in fills:p.drawPath(path)
-    p.restore()
-
-
 class Heading(QWidget):
-    """The menu's top: the target named before you act (its icon, its readable name in print, what it is at the right in quiet
-    print), one row's height, never focused."""
+    """The menu's top: the target named before you act (its kind's glyph, its readable name in print, what it is at the right in
+    quiet print), one row's height, never focused."""
     def __init__(self, menu, target):
         super().__init__(menu.page);self.menu = menu;self.target = target;self.setFocusPolicy(Qt.NoFocus)
         label, noun = target.heading();self.label = label;self.noun = noun
@@ -1836,7 +2037,7 @@ class Heading(QWidget):
     def paintEvent(self, event):
         from .shell2 import QUIET, TEXT
         m = self.m();p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
-        paint_icon(p, self.icon_rect(), self.target.icon, QColor(TEXT))
+        paint_glyph(p, self.icon_rect(), target_glyph(self.target))
         from PySide6.QtGui import QFontMetrics
         cap_font = programs_qt.caption_font(m);font = self.word_font()
         x = m.pad + m.icon_col;avail = self.width() - x - m.pad
@@ -1876,38 +2077,71 @@ class Heading(QWidget):
         return self.noun if cap_w <= cap_room + 0.5 else QFontMetrics(cap_font).elidedText(self.noun, Qt.ElideRight, int(cap_room))
 
 
+class GroupRule(Rule):
+    """A hairline with its group's words at its start: More's groups ("Open and show", "Change it", …)."""
+    def __init__(self, menu, word):
+        super().__init__(menu);self.word = word;self.setAccessibleName(word)
+
+    def sizeHint(self):
+        import math
+        m = self.menu.m;return QSize(0, max(m.rule * 2, math.ceil(QFontMetricsF(programs_qt.caption_font(m)).height()) + 6))
+
+    def paintEvent(self, event):
+        from .shell2 import LINE, QUIET
+        m = self.menu.m;p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
+        font = programs_qt.caption_font(m);p.setFont(font);p.setPen(QColor(QUIET))
+        w = QFontMetricsF(font).horizontalAdvance(self.word);x = m.pad;y = self.height() // 2
+        p.drawText(QRectF(x, 0, w + 2, self.height()), Qt.AlignLeft | Qt.AlignVCenter, self.word)
+        p.fillRect(QRect(int(x + w + 8), y, max(0, int(self.width() - m.pad - (x + w + 8))), 1), QColor(LINE));p.end()
+
+
+class Sentence(QLabel):
+    """The ask screen's words: why this asks first, said before Yes or Leave it."""
+    def __init__(self, menu, words):
+        super().__init__(words, menu.page);self.menu = menu;self.setWordWrap(True);self.setFocusPolicy(Qt.NoFocus)
+        m = menu.m;self.setContentsMargins(m.pad, 6, m.pad, 6);self.setFont(programs_qt.word_font(m))
+        from .shell2 import TEXT
+        self.setStyleSheet('color:%s;background:transparent;' % TEXT)
+
+
 class ContextRow(MenuRow):
-    """One entry: the desk's menu row (programs_qt.MenuRow: the icon column, the word, a quiet caption), with this menu's icons, a
-    › for a submenu, the short pencil-yellow mark under an active choice, and an unavailable row's reason as its tooltip."""
+    """One entry: the desk's menu row (programs_qt.MenuRow: the icon column, the word, a quiet caption) wearing one of Graphite's
+    drawn glyphs, a › for a deeper screen, "asks" for a row that asks first, the short pencil-yellow mark under an active choice,
+    and a row that cannot act now dim with its reason as its tooltip (never the word "unavailable")."""
     def __init__(self, menu, entry):
-        caption = entry.caption if entry.enabled else 'unavailable'
-        if entry.submenu or entry.qmenu:caption = '›'
-        super().__init__(menu, entry.label, entry.icon, caption, False, callback=None);self.entry = entry
+        caption = entry.caption
+        if entry.asks:caption = 'asks'
+        elif entry.submenu or entry.qmenu or entry.line is not None:caption = (caption + ' ›') if caption and caption != '›' else '›'
+        super().__init__(menu, entry.label, '', caption, False, callback=None);self.entry = entry
+        if not entry.glyph:entry.glyph = glyph_for(entry, menu.target)
+        if entry.tone is None:entry.tone = tone_for(entry)
+        self.setProperty('paperIcon', True)  # the menus' sheet never recolours this row's glyph (menus2.paper_icon)
         self.setEnabled(entry.enabled);self.setToolTip(entry.tooltip());self.describe()
         if entry.checked:self.setAccessibleDescription('Current choice · ' + self.accessibleDescription())
         self.hover = QTimer(self, singleShot=True, interval=HOVER_MS);self.hover.timeout.connect(lambda:self.menu.open_child(self, keyboard=False))
 
-    def sub(self):return bool(self.entry.submenu or self.entry.qmenu)
+    def sub(self):return bool(self.entry.submenu or self.entry.qmenu or self.entry.asks or self.entry.line is not None)
 
     def choose(self):
         if not self.isEnabled():return
-        if self.sub():self.menu.open_child(self, keyboard=self.hasFocus() and not self.underMouse());return
-        self.menu.chosen(self);QTimer.singleShot(0, lambda:self.menu.perform(self.entry))
+        self.menu.row_chosen(self)
 
     def enterEvent(self, event):
         super().enterEvent(event)
-        if self.sub() and self.isEnabled():self.hover.start()
+        if self.sub() and self.isEnabled() and self.menu.parent_menu is None and not self.entry.asks:self.hover.start()  # only the first level opens on a rest
         elif self.menu.child is not None:QTimer.singleShot(HOVER_MS, self.menu.close_child_if_away)
 
     def leaveEvent(self, event):
         self.hover.stop();super().leaveEvent(event)
 
     def paintEvent(self, event):
+        from PySide6.QtGui import QIcon
         from .shell2 import AMBER_EDGE, AMBER_SOFT, QUIET, TEXT
         m = self.m();p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
-        if self.active() or (self.sub() and self.menu.child is not None and self.menu.child_row is self):p.fillRect(self.rect(), QColor(AMBER_SOFT))
+        lit = self.active() or (self.sub() and self.menu.child is not None and self.menu.child_row is self)
+        if lit:p.fillRect(self.rect(), QColor(AMBER_SOFT))
         ink = QColor(TEXT if self.isEnabled() else QUIET)
-        paint_icon(p, self.icon_rect(), self.icon_key, ink)
+        paint_glyph(p, self.icon_rect(), self.entry.glyph, self.entry.tone, QIcon.Disabled if not self.isEnabled() else (QIcon.Active if lit else QIcon.Normal))
         p.setFont(self.font());p.setPen(ink);x = self.word_x()
         p.drawText(QRectF(x, 0, self.width() - x - m.pad, self.height()), Qt.AlignLeft | Qt.AlignVCenter, self.word)
         if self.entry.checked:  # the active choice: a short pencil-yellow mark under the word (the desk's sign for it)
@@ -1920,33 +2154,118 @@ class ContextRow(MenuRow):
 
 
 class ContextMenu(DeskMenu):
-    """The right-click menu: the desk's menu (one row height, one icon column and margin with the programs list and the System
-    menu), the target named at its top, the sections with a hairline between them, the menu's small caption in the script at its
-    foot; opened at the pointer (or, from the keyboard, at the focused place), submenus cascading beside their row."""
-    def __init__(self, host, target, entries, parent_menu=None, name='ContextMenu'):
+    """The right-click menu: the desk's menu (one row height, one icon column and margin with the Apps list), the target named at
+    its top, its usual rows, Then or Start from, and More; opened at the pointer (or, from the keyboard, at the focused place).
+    The first level is popup 1; Then, More and any first-level › open popup 2 beside it, and anything deeper replaces popup 2's
+    rows in place under a Back row. `entries` keeps every row the providers offered (readers and checks)."""
+    def __init__(self, host, target, entries, parent_menu=None, name='ContextMenu', grouped=False, title='', sentence=''):
         super().__init__(host, None, 'pointer', name)
+        self.m = context_metrics(host)
         order = {s: i for i, s in enumerate(SECTIONS)}
-        self.target = target;self.entries = sorted(entries, key=lambda e:order.get(e.section, len(SECTIONS)));self.parent_menu = parent_menu;self.child = None;self.child_row = None;self.qchild = None
-        self.setMouseTracking(True);self.rows_by_key = {}
+        self.target = target;self.parent_menu = parent_menu;self.child = None;self.child_row = None;self.qchild = None
+        self.entries = sorted(entries, key=lambda e:order.get(e.section, len(SECTIONS))) if parent_menu is None else list(entries)
+        self.setMouseTracking(True);self.rows_by_key = {};self.stack = [];self.title = title;self.caption = None;self.heading = None
+        self.screen = [];self.grouped = False;self.sentence_text = '';self.shape = None;self.more = []
         self.setAccessibleName(('Right-click menu: ' if parent_menu is None else 'Submenu: ') + (target.label if target is not None else ''))
         if parent_menu is None and target is not None:
-            self.heading = Heading(self, target);self.box.addWidget(self.heading);self.box.addWidget(Rule(self))
-        else:self.heading = None
-        section = None
-        for entry in self.entries:
-            if section is not None and entry.section != section:self.box.addWidget(Rule(self))
-            section = entry.section;row = ContextRow(self, entry);self.rows_by_key[entry.key] = row;self.box.addWidget(row)
-        if not self.entries:
-            row = ContextRow(self, Entry('none', 'Nothing to do here', 'open', enabled=False, reason='No provider offers an action for this place.'))
-            self.box.addWidget(row)
-        if parent_menu is None:
-            self.caption = programs_qt.Caption(self, CAPTION);self.box.addWidget(self.caption)
-        else:self.caption = None
-        if hasattr(self, 'end_rows'):self.end_rows()  # the desk menu's bottom margin goes last (programs_qt.DeskMenu)
+            self.shape, self.more = first_level(kind_of(target), self.entries, start_line(target), host)
+            self.lay(self.shape)
+        else:self.lay(self.entries, grouped, sentence)
+
+    # the screen
+    def restyle(self):
+        m = context_metrics(self.host)
+        if m != self.m:
+            self.m = m;self.restyle_margins();self.apply_style()
+            for child in self.page.findChildren(QWidget):
+                if hasattr(child, 'refont'):child.refont()
+                child.updateGeometry()
+            self.box.invalidate()
+
+    def room_rows(self, labels=0):
+        """Rows one screen may hold: sixteen at most, fewer when the window is short (no screen ever scrolls). `labels`:
+        group words the screen also shows (each about two thirds of a row high)."""
+        area = self.bounds().height()
+        reserve = 2 * self.m.margin + 4 * self.m.rule + self.m.row * (2 if self.stack or self.heading is not None else 1) + (3 * self.m.row if self.sentence_text else 0)
+        return max(5, min(MOST_ROWS, (area - reserve - labels * (self.m.row * 2 // 3)) // max(1, self.m.row)))
+
+    def clear_rows(self):
+        for w in self.items():
+            self.box.removeWidget(w);w.hide();w.deleteLater()
+        if self.box.indexOf(self.bottom_margin) >= 0:self.box.removeWidget(self.bottom_margin)
+        self.rows_by_key = {};self.heading = None
+
+    def top_widgets(self):
+        """Widgets above the rows (the line panel's slab and preview)."""
+        return []
+
+    def add_row(self, entry):
+        row = ContextRow(self, entry);self.rows_by_key.setdefault(entry.key, row);self.box.addWidget(row);return row
+
+    def lay(self, entries, grouped=False, sentence=''):
+        """Fill the page with one screen: the root's heading, a Back row on a deeper screen, an ask's sentence, the rows (in
+        More's groups, or in pages of at most room_rows()), and the bottom margin last."""
+        self.clear_rows();self.screen = list(entries);self.grouped = grouped;self.sentence_text = sentence
+        if self.parent_menu is None and self.target is not None:
+            self.heading = Heading(self, self.target);self.box.addWidget(self.heading);self.box.addWidget(Rule(self))
+        tops = self.top_widgets()
+        for w in tops:self.box.addWidget(w)
+        if self.stack:
+            self.add_row(Entry('back', 'Back', 'open', glyph='previous', tip='The screen before'));self.box.addWidget(Rule(self))
+        if sentence:self.box.addWidget(Sentence(self, sentence))
+        if self.shape is not None and self.parent_menu is None:
+            usual = [e for e in entries if e.key not in ('then', 'start', 'more')];tail = [e for e in entries if e.key in ('then', 'start', 'more')]
+            for e in usual:self.add_row(e)
+            if usual and tail:self.box.addWidget(Rule(self))
+            for e in tail:self.add_row(e)
+        elif grouped:
+            groups = [[word, list(rows)] for word, rows in in_groups(entries)];folded = []
+            while sum(len(rows) for _, rows in groups) + len(folded) > self.room_rows(len(groups) + (1 if folded else 0)) \
+                    and any(len(rows) > 1 for _, rows in groups):
+                largest = max((g for g in groups if len(g[1]) > 1), key=lambda g:len(g[1]))      # the largest group becomes one row
+                groups.remove(largest);folded.append(Entry('group:' + largest[0], largest[0], 'open', submenu=lambda rows=largest[1]:rows, glyph='more',
+                                                           caption=str(len(largest[1])), group=largest[0]))
+            for word, rows in groups:
+                self.box.addWidget(GroupRule(self, word))
+                for e in rows:self.add_row(e)
+            if folded:
+                self.box.addWidget(Rule(self))
+                for e in folded:self.add_row(e)
+        else:
+            fit = self.room_rows()
+            shown = entries if len(entries) <= fit else entries[:fit - 1] + [Entry('page:next', 'More… (%d)' % (len(entries) - fit + 1), 'open',
+                                                                                    submenu=lambda rest=entries[fit - 1:]:rest, glyph='more')]
+            section = None
+            for e in shown:
+                if section is not None and e.section != section and e.key != 'page:next' and not tops:self.box.addWidget(Rule(self))
+                section = e.section;self.add_row(e)
+        if not entries and not tops:
+            self.add_row(Entry('none', 'Nothing to do here', 'open', enabled=False, reason='No provider offers an action for this place.'))
+        self.box.addWidget(self.bottom_margin)
+        self.shown_now()
+
+    def shown_now(self):
+        """Rows added to a menu already on screen are shown at once (Qt would show them a moment later, and a layout measures a
+        hidden widget as nothing: the screen would be fitted to its old rows)."""
+        for w in self.items():
+            if not w.isVisibleTo(self) and not w.testAttribute(Qt.WA_WState_ExplicitShowHide):w.show()
+
+    def refit(self):
+        """The screen's new height (and width) after its rows changed, kept inside the window."""
+        self.restyle_margins();self.box.invalidate();self.box.activate()
+        width = self.width_rule()
+        if width != self.width():self.setFixedWidth(width)
+        self.box.activate();self.layout().activate();area = self.bounds()
+        need = min(max(self.sizeHint().height(), self.measured_height()), area.height())  # the page's rows at this width, as open_at measures
+        rect = QRect(self.geometry());rect.setHeight(need);rect.setWidth(width)
+        if rect.right() > area.right():rect.moveRight(area.right())
+        if rect.bottom() > area.bottom():rect.moveBottom(area.bottom())
+        if rect.top() < area.top():rect.moveTop(area.top())
+        self.setFixedHeight(need);self.setGeometry(rect);self.scroll.verticalScrollBar().setValue(0)
 
     # readers and checks
     def words(self):
-        """The rows' words top to bottom, '—' for a hairline between sections (the heading's own hairline left out)."""
+        """The rows' words top to bottom, '—' for a hairline (the heading's own hairline left out)."""
         out = []
         for i in range(self.box.count()):
             w = self.box.itemAt(i).widget()
@@ -1956,7 +2275,34 @@ class ContextMenu(DeskMenu):
 
     def keys(self):return [e.key for e in self.entries]
 
+    def first_keys(self):return [e.key for e in (self.shape if self.shape is not None else self.screen)]
+
+    def first_rows(self):return [self.rows_by_key[k] for k in self.first_keys() if k in self.rows_by_key]
+
+    def tree_entries(self):
+        """The first level as entries, its Then, Start from and More holding the rest (what a reader walks to find a row)."""
+        return list(self.shape if self.shape is not None else self.entries)
+
+    def entry(self, key):return next((e for e in self.entries if e.key == key), None)
+
     def row(self, key):return self.rows_by_key.get(key)
+
+    def sentence(self):return self.sentence_text
+
+    def screens(self):
+        """This menu and each second screen a reader can open from it without acting: More, Then or Start from, and the line
+        panel's first column (for checks; each is opened beside this one in turn, then closed)."""
+        yield self
+        for key in ('more', 'then', 'start'):
+            row = self.row(key)
+            if row is None:continue
+            child = self.open_child(row)
+            for _ in range(4):QApplication.processEvents()
+            if child is None:continue
+            yield child
+            if isinstance(child, LinePanel) and child.row('step:where') is not None and child.row('step:where').isEnabled():
+                child.choose('step:where');QApplication.processEvents();yield child
+            self.close_child()
 
     def root(self):
         menu = self
@@ -1970,6 +2316,7 @@ class ContextMenu(DeskMenu):
             w = self.box.itemAt(i).widget()
             if isinstance(w, Heading):need = max(need, w.need())
             elif isinstance(w, ContextRow):need = max(need, w.sizeHint().width())
+            elif isinstance(w, GroupRule):need = max(need, math.ceil(2 * m.pad + QFontMetricsF(programs_qt.caption_font(m)).horizontalAdvance(w.word) + 40))
         outer = self.layout().contentsMargins() if self.layout() is not None else None
         chrome = 2 * max(1, self.frameWidth()) + ((outer.left() + outer.right()) if outer is not None else 2)  # the hairline and the frame's room
         return math.ceil(need) + chrome
@@ -2011,7 +2358,7 @@ class ContextMenu(DeskMenu):
         rect = QRect(max(area.left(), x), max(area.top(), min(y, area.bottom() + 1 - height)), width, height)
         self.setFixedHeight(rect.height());self.setGeometry(rect)
         self.show();self.raise_();self.activateWindow()
-        need = self.measured_height()
+        self.box.activate();self.layout().activate();need = max(self.sizeHint().height(), self.measured_height())
         if need != self.height():
             height = min(need, area.height());rect.setHeight(height)
             if rect.bottom() > area.bottom():rect.moveBottom(area.bottom())
@@ -2023,8 +2370,58 @@ class ContextMenu(DeskMenu):
         else:self.setFocus(Qt.PopupFocusReason)
         return rect
 
-    # submenus
+    # choosing a row
+    def row_chosen(self, row):
+        entry = row.entry
+        if entry.key == 'back':QTimer.singleShot(0, self.back);return
+        if entry.key == 'ask:no':QTimer.singleShot(0, self.leave_ask);return
+        if row.sub():self.open_child(row, keyboard=row.hasFocus() and not row.underMouse());return
+        self.chosen(row);QTimer.singleShot(0, lambda:self.perform(entry))
+
+    def ask_rows(self, entry):
+        """The ask screen's two rows: the action itself, then Leave it."""
+        yes = Entry('ask:yes', entry.label.rstrip('…').strip() + ' it', entry.section, entry.run, operation=entry.operation, glyph=glyph_for(entry),
+                    tone='danger', tip=entry.tip)
+        return [yes, Entry('ask:no', 'Leave it', 'open', glyph='previous', tip='Nothing is done')]
+
+    def leave_ask(self):
+        if self.stack:return self.back()
+        parent = self.parent_menu
+        if parent is not None:
+            row = parent.child_row;parent.close_child()
+            if row is not None:row.setFocus(Qt.TabFocusReason)
+
+    # deeper screens: in place on popup 2
+    def drill(self, entry, keyboard=False):
+        """Replace this screen's rows with the entry's deeper rows (or its ask screen) under a Back row; Back returns to these."""
+        if entry.line is not None and not entry.submenu:
+            root = self.root();return root.open_panel(entry.line, root.child_row, keyboard=keyboard)
+        if entry.asks:entries, sentence = self.ask_rows(entry), entry.asks
+        else:
+            try:entries = entry.submenu() if callable(entry.submenu) else list(entry.submenu or [])
+            except Exception as exc:entries = [Entry('problem', 'It cannot be read now', 'capability', enabled=False, reason=str(exc))]
+            sentence = ''
+        self.stack.append((self.screen, self.grouped, self.sentence_text, self.title));self.title = entry.label
+        self.lay(entries, False, sentence);self.refit()
+        first = self.first() if keyboard else None
+        if first is not None:first.setFocus(Qt.TabFocusReason)
+        return self
+
+    def back(self):
+        if not self.stack:
+            parent = self.parent_menu
+            if parent is not None:
+                row = parent.child_row;parent.close_child()
+                if row is not None:row.setFocus(Qt.TabFocusReason)
+            return None
+        screen, grouped_, sentence, title = self.stack.pop();self.title = title
+        self.lay(screen, grouped_, sentence);self.refit()
+        return self
+
     def open_child(self, row, keyboard=False):
+        entry = row.entry
+        if self.parent_menu is not None and entry.qmenu is None:  # popup 2: deeper rows replace these in place
+            QTimer.singleShot(0, lambda:self.drill(entry, keyboard));return self
         if self.child is not None and self.child_row is row and self.child.isVisible():
             if keyboard:
                 first = self.child.first()
@@ -2032,19 +2429,31 @@ class ContextMenu(DeskMenu):
             return self.child
         self.close_child()
         at = QRect(row.mapToGlobal(QPoint(0, 0)), row.size())
-        entry = row.entry
-        if entry.qmenu is not None:
+        if entry.qmenu is not None and not entry.submenu:
             try:menu = entry.qmenu()
             except Exception as exc:say(self.host, 'Not available: %s' % exc);return None
             self.qchild = menu;self.child_row = row;row.update()
             menu.aboutToHide.connect(lambda:None if self.frameGeometry().contains(QCursor.pos()) else self.root().close_menu(restore=False))
             menu.popup(QPoint(at.right() + 1, at.top() - self.m.margin))
             return menu
-        try:entries = entry.submenu() if callable(entry.submenu) else list(entry.submenu or [])
-        except Exception as exc:
-            entries = [Entry('problem', 'Unavailable', 'capability', enabled=False, reason=str(exc))]
-        child = ContextMenu(self.host, self.target, entries, parent_menu=self, name='ContextSubmenu')
+        if entry.line is not None and (entry.key == 'then' or not entry.submenu):
+            child = LinePanel(self.host, self.target, entry.line, parent_menu=self)
+        elif entry.asks:
+            child = ContextMenu(self.host, self.target, self.ask_rows(entry), parent_menu=self, name='ContextSubmenu', title=entry.label, sentence=entry.asks)
+        else:
+            try:entries = entry.submenu() if callable(entry.submenu) else list(entry.submenu or [])
+            except Exception as exc:entries = [Entry('problem', 'It cannot be read now', 'capability', enabled=False, reason=str(exc))]
+            child = ContextMenu(self.host, self.target, entries, parent_menu=self, name='ContextSubmenu', grouped=entry.key == 'more', title=entry.label)
         self.child = child;self.child_row = row;row.update()
+        child.open_at(at.topRight(), keyboard=keyboard, beside=at)
+        return child
+
+    def open_panel(self, line, row, keyboard=False):
+        """The line panel as popup 2 (in place of the screen that chose a line: a kept chain, a word, a file in Files)."""
+        self.close_child()
+        at = QRect(row.mapToGlobal(QPoint(0, 0)), row.size()) if row is not None else QRect(self.mapToGlobal(QPoint(self.width() - 1, 0)), QSize(1, self.m.row))
+        child = LinePanel(self.host, self.target, line, parent_menu=self);self.child = child;self.child_row = row
+        if row is not None:row.update()
         child.open_at(at.topRight(), keyboard=keyboard, beside=at)
         return child
 
@@ -2068,7 +2477,6 @@ class ContextMenu(DeskMenu):
         if under is not None and (under.window() is self.child or (isinstance(under, ContextRow) and under is self.child_row)):return
         self.close_child()
 
-    # choosing
     def chosen(self, row):
         """A row was chosen: the whole menu closes first (what opens is what you see)."""
         self.root().close_menu(restore=False)
@@ -2097,11 +2505,8 @@ class ContextMenu(DeskMenu):
         if event.type() == QEvent.KeyPress:
             focus = QApplication.focusWidget();key = event.key()
             if key in (Qt.Key_Right,) and isinstance(focus, ContextRow) and focus.sub() and focus.isEnabled():self.open_child(focus, keyboard=True);return True
-            if key in (Qt.Key_Left,) and self.parent_menu is not None:
-                parent = self.parent_menu;row = parent.child_row;parent.close_child()
-                if row is not None:row.setFocus(Qt.TabFocusReason)
-                return True
-            if key == Qt.Key_Escape and self.parent_menu is not None:
+            if key in (Qt.Key_Left, Qt.Key_Escape) and self.parent_menu is not None:
+                if self.stack:self.back();first = self.first();first.setFocus(Qt.TabFocusReason) if first is not None else None;return True
                 parent = self.parent_menu;row = parent.child_row;parent.close_child()
                 if row is not None:row.setFocus(Qt.TabFocusReason)
                 return True
@@ -2115,7 +2520,7 @@ class ContextMenu(DeskMenu):
             if parent.rect().contains(parent.mapFromGlobal(gp)):
                 row = parent.childAt(parent.mapFromGlobal(gp))
                 while row is not None and not isinstance(row, ContextRow):row = row.parentWidget()
-                if row is not parent.child_row:parent.close_child()
+                if row is not None and row is not parent.child_row:parent.close_child()
                 return
         super().mouseMoveEvent(event)
 
@@ -2133,6 +2538,235 @@ class ContextMenu(DeskMenu):
                 return
             menu = menu.parent_menu
         self.root().close_menu(restore=True)
+
+
+class LinePanel(ContextMenu):
+    """Then ›: the thing's line on its royal-purple slab (boss_theme.line_sheet), what it gives now (a count and the first rows),
+    the steps that carry it on, each with what it would give, and the endings. The line is read once when the panel opens
+    (line_steps.Held: language.parse and its one source call, through the Kernel); every count after that comes from what was
+    read. Show it is the one more read: the finished line run in the working area."""
+    base = line = failed = '';total = None;ready = False;slab = counted = shown = held = None
+
+    def __init__(self, host, target, line, parent_menu=None):
+        from . import line_steps
+        super().__init__(host, target, [], parent_menu=parent_menu, name='LinePanel', title='Then')
+        self.base = str(line);self.line = str(line)
+        self.held = line_steps.Held(lambda operation, arguments:dispatch(host, operation, arguments))
+        self.setAccessibleName('Line panel: ' + self.line)
+        self.lay(self.main_rows())
+
+    def open_at(self, point, keyboard=False, beside=None):
+        rect = super().open_at(point, keyboard, beside)
+        QTimer.singleShot(0, self.read)      # once the panel is shown: "reading…" until the one read is done
+        return rect
+
+    # what the panel shows
+    def top_widgets(self):
+        from . import boss_theme as bt
+        from .shell2 import MONO, QUIET
+        m = self.m
+        slab = QLabel(bt.eye(self.line), self.page);slab.setObjectName('LineSlab');slab.setWordWrap(True);slab.setStyleSheet(bt.line_sheet())
+        slab.setToolTip(self.line);slab.setFocusPolicy(Qt.NoFocus);slab.setTextInteractionFlags(Qt.NoTextInteraction)
+        font = slab.font();font.setFamily(MONO);font.setPixelSize(max(11, m.caption_px));slab.setFont(font);self.slab = slab
+        from PySide6.QtWidgets import QSizePolicy
+        slab.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)      # it wraps to the panel; it never widens it
+        counted = QLabel(self.count_words(), self.page);counted.setObjectName('LineCount');counted.setFont(programs_qt.caption_font(m))
+        counted.setStyleSheet('color:%s;background:transparent;' % QUIET);counted.setContentsMargins(m.pad, 3, m.pad, 2);counted.setWordWrap(True)
+        self.counted = counted;out = [slab, counted]
+        if self.ready and not self.failed and not self.stack:
+            shown = QLabel(self.preview_text(), self.page);shown.setObjectName('LinePreview');shown.setFont(font)
+            shown.setStyleSheet('color:%s;background:transparent;' % QUIET);shown.setContentsMargins(m.pad, 2, m.pad, 4);shown.setTextFormat(Qt.PlainText)
+            shown.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+            self.shown = shown;out.append(shown)
+        out.append(Rule(self))
+        return out
+
+    def count_words(self):
+        from . import line_steps
+        if self.failed:return self.failed
+        if not self.ready:return 'reading…'
+        left = line_steps.steps_left(self.line)
+        return '%s · %d step%s left' % (line_steps.rows_words(self.total), left, '' if left == 1 else 's')
+
+    def preview_rows(self):
+        return self.held.rows(self.line)[:3] if self.ready and not self.failed else []
+
+    def preview_text(self):
+        from . import line_steps
+        try:rows = self.held.rows(self.line)
+        except line_steps.Refusal as exc:return str(exc)
+        if not rows:return 'nothing'
+        # as many columns as the panel's width holds, each at least 8 letters wide (the preview never widens the panel)
+        font = self.slab.font() if self.slab is not None else programs_qt.word_font(self.m)
+        letters = max(20, int((self.width_rule() - 2 * self.m.pad - 8) / max(1.0, QFontMetricsF(font).horizontalAdvance('M'))))
+        most = 4
+        while most > 1 and (letters - 2 * (most - 1)) // most < 8:most -= 1
+        names, shown, more = line_steps.preview(rows, 3, most)
+        width = max(6, min(16, (letters - 2 * (max(1, len(names)) - 1)) // max(1, len(names))))
+        cut = lambda text:(text if len(text) <= width else text[:width - 1] + '…').ljust(width)
+        lines = ['  '.join(cut(n) for n in names)] if names else []
+        lines += ['  '.join(cut(v) for v in row) for row in shown]
+        if more:lines.append('and %d more' % more)
+        return '\n'.join(line.rstrip() for line in lines)
+
+    def main_rows(self):
+        """The panel's rows: Back a step, the steps (each with what it gives), then the endings."""
+        from . import line_steps
+        out = []
+        if not self.ready or self.failed:
+            return [Entry('end:line', 'Put it in the writing line', 'command', lambda:inspect_in_line(self.host, self.line), group='then'),
+                    Entry('end:copy', 'Copy the line', 'edit', lambda:copy_text(self.host, self.line, 'Copied the line'), group='then')]
+        if self.line != self.base:
+            last = line_steps.stages(self.line)[-1]
+            out.append(Entry('step:back', 'Back a step', 'command', self.step_back, caption=short(last, 28), tip='Take off: ' + last))
+        left = line_steps.steps_left(self.line);none_left = 'This line has no step left'
+        try:rows = self.held.rows(self.line)
+        except line_steps.Refusal:rows = []
+        names = line_steps.columns(rows)
+        readings = self.held.readings()
+        if self.line != self.base and self.line not in [r[1] for r in readings]:readings = []
+        if readings:
+            out.append(Entry('read', 'Read it as', 'command', submenu=lambda:[Entry('read:' + lens, lens, 'command', lambda line=line:self.set_line(line),
+                                                                                     caption=line_steps.rows_words(n), checked=line == self.line)
+                                                                               for lens, line, n in readings], tip='The other ways this can be read as rows'))
+        out.append(Entry('step:where', 'Keep rows where', 'command', submenu=self.column_rows, enabled=bool(names) and left > 0,
+                         reason=none_left if left <= 0 else 'These rows have no columns to choose by'))
+        sortable = line_steps.sortable(self.held, self.line) if names else []
+        if sortable:
+            out.append(Entry('step:sort', 'Sort by', 'command', submenu=lambda:self.sort_rows(sortable), enabled=left > 0, reason=none_left))
+        out.append(Entry('step:count', 'Count', 'command', lambda:self.add_step('count'), caption=line_steps.rows_words(self.total), enabled=left > 0,
+                         reason=none_left))
+        groups = line_steps.groupable(self.held, self.line) if names else []
+        if groups:
+            out.append(Entry('step:group', 'Count by', 'command', submenu=lambda:self.group_rows(groups), enabled=left > 1,
+                             reason=none_left if left <= 0 else 'Counting by a column takes two steps; one is left'))
+        if self.total is not None and self.total > 5:
+            out.append(Entry('step:first', 'First', 'command', submenu=self.first_rows_, enabled=left > 0, reason=none_left))
+        ok, why = line_steps.ending_ready(self.total)
+        over = '' if ok else 'over %d · keep fewer first' % line_steps.LIMIT
+        out += [Entry('end:show', 'Show it', 'command', lambda:run_stac(self.host, self.line), enabled=ok, reason=why, caption=over, group='then',
+                      tip='Run it; the answer shows in the working area'),
+                Entry('end:line', 'Put it in the writing line', 'command', lambda:inspect_in_line(self.host, self.line), group='then'),
+                Entry('end:copy', 'Copy the line', 'edit', lambda:copy_text(self.host, self.line, 'Copied the line'), group='then'),
+                Entry('end:rows', 'Copy the rows', 'edit', self.copy_rows, enabled=ok, reason=why, caption=over, group='then', tip='The rows as CSV')]
+        return out
+
+    def lay(self, entries, grouped=False, sentence=''):
+        steps = [e for e in entries if e.group != 'then'];ends = [e for e in entries if e.group == 'then']
+        if not ends:return ContextMenu.lay(self, entries, grouped, sentence)
+        ContextMenu.lay(self, steps, grouped, sentence)
+        self.box.removeWidget(self.bottom_margin)
+        if steps:self.box.addWidget(GroupRule(self, 'then'))
+        for e in ends:self.add_row(e)
+        self.box.addWidget(self.bottom_margin)
+        self.shown_now()
+
+    def width_rule(self):
+        from .desk_qt import scaled
+        least, most = scaled(360, self.m.scale), scaled(480, self.m.scale)
+        host_w = self.host.width() if hasattr(self.host, 'width') else most
+        inset = getattr(getattr(self.host, 'desk', None), 'inset', 16)
+        return int(min(max(least, self.need_width()), most, max(200, host_w - 2 * inset)))
+
+    # the one read, and what follows from it
+    def read(self):
+        from . import line_steps
+        try:
+            if not self.isVisible():return      # closed before it was read: nothing is read
+        except RuntimeError:return
+        try:
+            self.held.read(self.base);self.total = self.held.count(self.line);self.ready = True;self.failed = ''
+        except line_steps.Refusal as exc:self.ready = True;self.failed = str(exc)
+        except Exception as exc:self.ready = True;self.failed = line_steps.plain(str(exc))
+        self.stack = [];self.lay(self.main_rows());self.refit()
+
+    def set_line(self, line):
+        """The panel's line is now `line` (a step added or taken off, another reading): counted from what is held."""
+        from . import line_steps
+        self.line = line;self.stack = []
+        try:self.total = self.held.count(line);self.failed = ''
+        except line_steps.Refusal as exc:self.failed = str(exc)
+        self.setAccessibleName('Line panel: ' + self.line);self.lay(self.main_rows());self.refit()
+
+    def add_step(self, step):
+        from . import line_steps
+        return self.set_line(line_steps.with_step(self.line, step))
+
+    def step_back(self):
+        from . import line_steps
+        if self.line != self.base:self.set_line(line_steps.back_a_step(self.line))
+
+    def column_rows(self):
+        from . import line_steps
+        rows = self.held.rows(self.line)
+        return [Entry('field:' + name, name, 'command', submenu=lambda name=name:self.value_rows(name), glyph='filter') for name in line_steps.columns(rows)]
+
+    def value_rows(self, name):
+        from . import line_steps
+        out = [Entry(o.key, o.words, 'command', lambda step=o.step:self.add_step(step), caption=line_steps.rows_words(o.count), glyph='filter')
+               for o in line_steps.values(self.held, self.line, name)]
+        out.append(Entry('where:other', 'Another value…', 'command', lambda name=name:inspect_in_line(self.host, line_steps.with_step(self.line, 'where %s ' % name)),
+                         group='then', tip='The line so far in the writing line, for you to finish the value'))
+        return out
+
+    def sort_rows(self, names):
+        out = []
+        for name in names:
+            out.append(Entry('sort:' + name, '%s, low to high' % name, 'command', lambda name=name:self.add_step('sort ' + name)))
+            out.append(Entry('sort:-' + name, '%s, high to low' % name, 'command', lambda name=name:self.add_step('sort -' + name)))
+        return out
+
+    def group_rows(self, names):
+        from . import line_steps
+        out = []
+        for name in names:
+            try:kinds = len(self.held.rows(line_steps.with_step(self.line, 'group %s | count' % name)))
+            except line_steps.Refusal:continue
+            out.append(Entry('group:' + name, name, 'command', lambda name=name:self.add_step('group %s | count' % name), caption='%d kinds' % kinds))
+        return out
+
+    def first_rows_(self):
+        from . import line_steps
+        return [Entry('first:%d' % n, 'First %d' % n, 'command', lambda n=n:self.add_step('take %d' % n)) for n in line_steps.firsts(self.total)]
+
+    def copy_rows(self):
+        from . import line_steps
+        r = dispatch(self.host, 'language.run', {'text': self.line})
+        if not r.get('ok'):raise Refused('Not copied: ' + line_steps.plain(message(r)))
+        rows = (r.get('result') or {}).get('rows') or []
+        return copy_text(self.host, line_steps.as_csv(rows), 'Copied %s as CSV' % line_steps.rows_words(len(rows)))
+
+    # choosing
+    def choose(self, key):
+        """Act on one of this screen's rows by its key, at once (a reader's and a check's way; a click does the same a moment later)."""
+        entry = next((e for e in self.screen if e.key == key), None)
+        if entry is None:
+            row = self.rows_by_key.get(key);entry = row.entry if row is not None else None
+        if entry is None:raise KeyError(key)
+        return self.act(entry)
+
+    def act(self, entry):
+        if entry.key == 'back':return self.back()
+        if entry.group == 'then' or entry.key.startswith('end:'):
+            self.root().close_menu(restore=False);return perform(self.host, self.target, entry)
+        if entry.submenu:return self.drill(entry)
+        if entry.run is not None:return entry.run()
+        return None
+
+    def row_chosen(self, row):
+        entry = row.entry
+        if entry.group == 'then' or entry.key.startswith('end:'):
+            self.chosen(row);QTimer.singleShot(0, lambda:perform(self.host, self.target, entry));return
+        QTimer.singleShot(0, lambda:self.act(entry))
+
+    def open_child(self, row, keyboard=False):
+        QTimer.singleShot(0, lambda:self.act(row.entry));return self
+
+    def eventFilter(self, obj, event):
+        if self.isVisible() and isinstance(obj, QWidget) and (obj is self or obj.window() is self) and event.type() == QEvent.KeyPress \
+                and event.key() == Qt.Key_Backspace and not self.stack and self.line != self.base:
+            self.step_back();return True
+        return super().eventFilter(obj, event)
 
 
 def beside_row(menu):
@@ -2262,8 +2896,9 @@ def install(host):
 
 
 # -- what the old menus held, and where each entry is now (nothing lost) ----------------------------------------------------------------
-# (old menu, its words) -> (the target kind that offers it now, the entry's key; 'a/b' is the entry b in a's submenu). Tests build
-# each new menu, open its submenus and find every key, and read every old builder's words (submenus too) back from the new menus.
+# (old menu, its words) -> (the target kind that offers it now, the path to its entry from the first level: 'more/x' is x under
+# More, 'start/x' under Start from, 'then' the line panel, 'a/b' the entry b on a's deeper screen). Tests build each new menu, walk
+# its first level and every deeper screen, find every path, and read every old builder's words back from the new menus.
 FOLDED = (
     ('Files: a file', 'Open', 'file', 'open'), ('Files: a file', 'Open pill…', 'file', 'open'),
     ('Files: a file', 'Explain this file', 'file', 'explain'), ('Files: a file', named('Ask Stacy about this…'), 'file', 'ask'),
@@ -2279,15 +2914,15 @@ FOLDED = (
     ('Files: a file', 'Compare with a version…', 'file', 'compare:version'), ('Files: a file', 'Export…', 'file', 'export'),
     ('Files: a selection', 'Copy to…', 'file', 'copy:to'), ('Files: a selection', 'Move to…', 'file', 'move:to'), ('Files: a selection', 'Move to Trash', 'file', 'trash'),
     ('Files: an empty place', 'New folder…', 'empty:files', 'new:folder'), ('Files: an empty place', 'Import…', 'empty:files', 'import'),
-    ('Files: an empty place', 'Work on a copy of a file…', 'empty:files', 'work:copy'), ('Files: an empty place', 'chains ›', 'empty:files', 'root'),
-    ('Files: an empty place › chains', 'Inquiries…', 'empty:files', 'root/inquiries'),
-    ('Files: an empty place › chains', 'Algorithm & Theory Atlas…', 'empty:files', 'root/algorithms'),
-    ('Files: an empty place › chains', 'Tool Atlas…', 'empty:files', 'root/atlas'), ('Files: an empty place › chains', 'your kept chains', 'empty:files', 'root/chains'),
-    ('Files: an empty place › chains', 'start from ›', 'empty:files', 'root/start'), ('Files: an empty place › chains', 'writing line ›', 'empty:files', 'root/line'),
-    ('Files: an empty place › chains › writing line', 'Shell', 'empty:files', 'root/line/line:shell'),
-    ('Files: an empty place › chains', 'edit the Graphite menu…', 'empty:files', 'root/menu:edit'),
+    ('Files: an empty place', 'Work on a copy of a file…', 'empty:files', 'work:copy'), ('Files: an empty place', 'chains ›', 'empty:files', 'start'),
+    ('Files: an empty place › chains', 'Inquiries…', 'empty:files', 'more/inquiries'),
+    ('Files: an empty place › chains', 'Algorithm & Theory Atlas…', 'empty:files', 'more/algorithms'),
+    ('Files: an empty place › chains', 'Tool Atlas…', 'empty:files', 'more/atlas'), ('Files: an empty place › chains', 'your kept chains', 'empty:files', 'start/chains'),
+    ('Files: an empty place › chains', 'start from ›', 'empty:files', 'start/start'), ('Files: an empty place › chains', 'writing line ›', 'empty:files', 'more/line'),
+    ('Files: an empty place › chains › writing line', 'Shell', 'empty:files', 'more/line/line:shell'),
+    ('Files: an empty place › chains', 'edit the Graphite menu…', 'empty:files', 'more/menu:edit'),
     ('Files: a smart folder', 'Rename…', 'smart', 'rename'), ('Files: a smart folder', 'Export…', 'smart', 'export'),
-    ('Files: a file', 'the chain from @files: (the file\'s chain menu)', 'file', 'chain'),
+    ('Files: a file', 'the chain from @files: (the file\'s chain menu)', 'file', 'then'),
     ('Finder: an entry', 'Open', 'finder', 'open'), ('Finder: an entry', 'Open in viewer', 'finder', 'open:viewer'), ('Finder: an entry', 'Show in Files', 'finder', 'show:files'),
     ('Finder: an entry', 'Copy path', 'finder', 'copy:path'), ('Finder: an entry', named('Ask Stacy about this file / folder'), 'finder', 'ask'),
     ('Finder: an entry', 'Change it in Files', 'finder', 'change:files'), ('Finder: an entry outside Files', 'Nothing changes here · Files keeps its own changes', 'finder-outside', 'change:none'),
@@ -2296,10 +2931,10 @@ FOLDED = (
     ('Cabinet: a record', 'the provider checks', 'cabinet', 'cabinet:check:*'), ('Cabinet: a record', 'Open <workspace>', 'cabinet', 'cabinet:workspace:*'),
     ('Cabinet: a record', 'Explore all capabilities', 'cabinet', 'cabinet:explore'),
     ('Library: a received file', 'Open', 'library', 'open'), ('Library: a received file', 'Keep a copy in Files', 'library', 'keep'),
-    ('Today (root chain menu)', 'Inquiries…', 'empty:today', 'inquiries'), ('Today', 'Algorithm & Theory Atlas…', 'empty:today', 'algorithms'),
-    ('Today', 'Tool Atlas…', 'empty:today', 'atlas'), ('Today', 'your kept chains', 'empty:today', 'chains'), ('Today', 'start from ›', 'empty:today', 'start'),
-    ('Today', 'console › Log · Lines · Kernel · Find · Shell', 'empty:today', 'line'), ('Today', 'writing line ›', 'empty:today', 'line'),
-    ('Today › writing line', 'Shell', 'empty:today', 'line/line:shell'), ('Today', 'edit the Graphite menu…', 'empty:today', 'menu:edit'),
+    ('Today (root chain menu)', 'Inquiries…', 'empty:today', 'inquiries'), ('Today', 'Algorithm & Theory Atlas…', 'empty:today', 'more/algorithms'),
+    ('Today', 'Tool Atlas…', 'empty:today', 'more/atlas'), ('Today', 'your kept chains', 'empty:today', 'start/chains'), ('Today', 'start from ›', 'empty:today', 'start/start'),
+    ('Today', 'console › Log · Lines · Kernel · Find · Shell', 'empty:today', 'more/line'), ('Today', 'writing line ›', 'empty:today', 'more/line'),
+    ('Today › writing line', 'Shell', 'empty:today', 'more/line/line:shell'), ('Today', 'edit the Graphite menu…', 'empty:today', 'more/menu:edit'),
     ('Document page (Qt\'s text menu)', 'Undo', 'passage', 'edit:undo'), ('Document page', 'Redo', 'passage', 'edit:redo'), ('Document page', 'Cut', 'passage', 'edit:cut'),
     ('Document page', 'Copy', 'passage', 'edit:copy'), ('Document page', 'Paste', 'passage', 'edit:paste'), ('Document page', 'Delete', 'passage', 'edit:delete'),
     ('Document page', 'Select All', 'passage', 'edit:all'),

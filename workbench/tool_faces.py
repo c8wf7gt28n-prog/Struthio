@@ -193,9 +193,21 @@ FOR_MENU = {
 _icons = {}
 
 
-def icon(key):
-    """A glyph as an icon a menu can show: its ink at rest, amber when its line is chosen, dim when it cannot be used."""
-    kept = (key, t.glow())       # the light under a glyph follows the desk's dial
+TONES = (None, 'line', 'danger')
+
+
+def tone_colours(tone):
+    """(line, fill) at rest for a tone, or None for the desk's own neon. 'line' is the line's royal purple (the desk's green in
+    Graphite); 'danger' is the red of the Trash can, in Kasandra only: in Graphite it is the desk's own look."""
+    if tone == 'line':return t.ROYAL_TEXT, t.ROYAL
+    if tone == 'danger' and t.APPEARANCE == 'kasandra':return t.RED, t.RED
+    return None
+
+
+def icon(key, tone=None):
+    """A glyph as an icon a menu can show: its ink at rest, lit when its line is chosen, dim when it cannot be used. `tone`
+    (TONES) colours it as a line or as something that removes."""
+    kept = (key, t.glow(), tone)       # the light under a glyph follows the desk's dial
     if kept in _icons:return _icons[kept]
     from PySide6.QtGui import QIcon, QPixmap
     from .glyph_set import KIND
@@ -203,9 +215,13 @@ def icon(key):
     if draw is None:return made
     # 0.5.2 (the owner: "the icons in the drop down menus could be neon green"): the desk's live green, with a little of
     # its own light under it; brighter on the line the pointer is on; dim on a line that cannot be used.
-    level = t.glow()
-    for state, line, fill, lit in ((QIcon.Normal, t.READY, t.TEAL_EDGE, 0.10), (QIcon.Active, t.TEAL_TEXT, t.READY, 0.18),
-                                   (QIcon.Selected, t.TEAL_TEXT, t.READY, 0.18), (QIcon.Disabled, t.LINE_MID, t.LINE, 0.0)):
+    level = t.glow();own = tone_colours(tone)
+    states = ((QIcon.Normal, t.READY, t.TEAL_EDGE, 0.10), (QIcon.Active, t.TEAL_TEXT, t.READY, 0.18),
+              (QIcon.Selected, t.TEAL_TEXT, t.READY, 0.18), (QIcon.Disabled, t.LINE_MID, t.LINE, 0.0))
+    if own is not None:
+        states = ((QIcon.Normal, own[0], own[1], 0.10), (QIcon.Active, own[0], own[1], 0.18), (QIcon.Selected, own[0], own[1], 0.18),
+                  (QIcon.Disabled, t.LINE_MID, t.LINE, 0.0))
+    for state, line, fill, lit in states:
         for ratio in (1, 2):
             image = QPixmap(SIDE * ratio, SIDE * ratio);image.fill(Qt.transparent)
             p = QPainter(image);p.setRenderHint(QPainter.Antialiasing);p.scale(SIDE * ratio / 20.0, SIDE * ratio / 20.0)
