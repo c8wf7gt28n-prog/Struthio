@@ -1,9 +1,9 @@
 {
   "schema": "arc.ledger-runtime/1",
   "product": "Ledger & Slate",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "package_profile": "runtime",
-  "note": "Graphite 0.8.2: the desk can be driven by name: forty desk acts, each done on the window as a hand would, typed in the writing line by name (/help acts); the playable scene on After Hours 07 (tools/campaign.py run --set scenes, docs/CAMPAIGN.md). After hours: Trace crystallizes along the wires, menus catch as they open, REV A / REV B. In Kasandra her typewriter face across the window and Apps as the kp mark. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.",
+  "note": "Graphite 0.8.3: Kasandra's look, second pass: her hologram in the lower left with moving static, her column for her words, her typewriter face for every word, DELETE, burnt yellow as the highlight, the neon kp logo on Apps. Still in 0.8.2: forty desk acts typed in the writing line (/help acts) and the playable scene (tools/campaign.py run --set scenes). Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.",
   "files": {
     ".gitignore": {
       "bytes": 78,
@@ -66,12 +66,12 @@
       "sha256": "34e9c23e1a47a06c6fb11b8b0b489457428874cf3ad4cc19613b8b04916c8939"
     },
     "README.md": {
-      "bytes": 17730,
-      "sha256": "c00c892e5678d1211c0278296e19d6fb3b3ff359353378620ab5e1015db7ecb5"
+      "bytes": 17738,
+      "sha256": "b50e03df9c3dcc1fd84163db3809b2a7b6ebbaa04e7d33aef0afb95ce3137128"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 38863,
-      "sha256": "515f3f7d0b9d2083ba8c38ad8a4ad32aec398132dc49958e4babd2012e2a71e3"
+      "bytes": 39804,
+      "sha256": "6a968bf41b52ee2883a0d7826ec7b2e2631d35e11e88154cea0809ef5221db04"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -1210,8 +1210,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 35132,
-      "sha256": "3297f14acc3f5b5928ccac20e7cab9ca0bcb7669fd6d055424b9ee10e2187ab6"
+      "bytes": 35163,
+      "sha256": "68a5f5160389b89246e66c25f1582f816189a46a9fdb3e03d14babbd69b187e3"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1271,7 +1271,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 280113,
-      "sha256": "0a5b80df773e40c764e56818ef78206827c9c7464bca3654de8eafb66938c294"
+      "sha256": "32a2911d3cb164850ca1f81a891a4859a093c288c291e37eb8d253594d139187"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12513,
@@ -1673,6 +1673,10 @@
       "bytes": 9413,
       "sha256": "d5a8c73aed1316290fce607ed5d85c707f4fe23aae982de5b66f336e1f8361dc"
     },
+    "docs/RELEASE_NOTES_0.8.3.md": {
+      "bytes": 5422,
+      "sha256": "4162c968cc26dc7d9210eebb22e4b580ed6a5b4307a7db2f6e895e2f0866acc6"
+    },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
       "sha256": "03a8d7e31fd4b7cca05b9c16a9f7aab641b727c73bc4ffd82ad0e3d7337ff1c4"
@@ -1783,7 +1787,7 @@
     },
     "docs/THINKPAD_FIRST_INSTALL.md": {
       "bytes": 8826,
-      "sha256": "808e69b263b05de73e1021e21b5ab3ce26de4f3cb4b0e8b659c9528d8814d61f"
+      "sha256": "255f32278e623cc22341e66af4408948822386e0a501ef17ef917912e30fde90"
     },
     "docs/THINKPAD_VULKAN_P05.md": {
       "bytes": 8880,
@@ -2190,16 +2194,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1909447,
-      "sha256": "4e62321b28036ebbe613cb0f514fe63d453432c8ba88894645b7672f47e4254f"
+      "bytes": 1909486,
+      "sha256": "d80b102a2f3bcb0f38e513cb596c5abf0512d868bcf0f551462de4f813a93133"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4362240,
-      "sha256": "1ccd4aeecae062ff8428f09abfdf0c2726f3f65376bcde02fd386853f2222134"
+      "sha256": "b157910a92350e338d84b20a1c13d76e2ff7b69dd7c0796cf29d6ac9e6af5a52"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "321bcbc6b56832480747139b55b5f4dc3a3d5a64b5a8aa2cff3cb544b7373a48"
+      "sha256": "9667c1e6577a0a340ad2070dedd5924b4ae44a7bd3181be20ed2936a77a0a478"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -3058,8 +3062,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/package_graphite.py": {
-      "bytes": 10611,
-      "sha256": "80b660b425a5916eea596581d0b3d9c23d3b396d58e7bab3ce2c6a4ef5fd95cd"
+      "bytes": 10512,
+      "sha256": "c1bbed772ad78ce93ee95a5b08befce99af433b9c1e431a793ec73a9949e0198"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -3346,8 +3350,8 @@
       "sha256": "584ce457944decf274e149774869aa36b080b0f7ea26537a9b4016bafe712b40"
     },
     "workbench/chain_icons.py": {
-      "bytes": 8001,
-      "sha256": "8813102457e6fd66a37a827f1c620ba825a122e42fe3c9a73b913697d9e5125b"
+      "bytes": 8377,
+      "sha256": "5448361ad207a736f99d397b2393482c0935f3188bff51c45599bfb240719159"
     },
     "workbench/chain_menu.py": {
       "bytes": 27901,
@@ -4422,8 +4426,8 @@
       "sha256": "3f73f7f9fa2400c5fe3140f4046143656d7259d48d59b5f4eb47fba9a147dee6"
     },
     "workbench/pointer.py": {
-      "bytes": 10661,
-      "sha256": "9161d791d11b58768b1c59de9f8a2a53dd484ea48db0c07278e6790b2dbb16e2"
+      "bytes": 11113,
+      "sha256": "fb4e107e58020322b4fb4f9a9f78f02ac9b51ef7ff6d858356d88e2e0c5f45a7"
     },
     "workbench/presentation_preferences.py": {
       "bytes": 500,
@@ -5098,8 +5102,8 @@
       "sha256": "fbed22305d781604dc96feaa278b5cd3e6b6211a4e56298e6d0f05dd89e3cad0"
     },
     "workbench/version.py": {
-      "bytes": 13950,
-      "sha256": "2e5e87e157ac998d14c335352386a4738dcb2fd5e07d22bd8fc2b61ef2b613a2"
+      "bytes": 14414,
+      "sha256": "1711ed15d1450e36f18321371fd9468968d9c47bd97e62718d2458a2bdbb5732"
     },
     "workbench/view_modules/__init__.py": {
       "bytes": 2216,
@@ -5230,5 +5234,5 @@
   "i05_correction_checkpoint": "I05-C01",
   "ui_correction_checkpoint": "UI-C02",
   "readiness_checkpoint": "READINESS-01",
-  "graphite_release": "0.8.2"
+  "graphite_release": "0.8.3"
 }

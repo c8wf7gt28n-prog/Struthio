@@ -81,10 +81,14 @@ def drawn(shape, glow=True, ratio=1.0):
     pixmap = QPixmap(round(side * ratio), round(side * ratio));pixmap.setDevicePixelRatio(ratio);pixmap.fill(Qt.transparent)
     p = QPainter(pixmap);p.setRenderHint(QPainter.Antialiasing);p.translate(PAD, PAD)
     green = QColor(t.READY)
+    # 0.8.3, Kasandra: her menus' row under the pointer is a solid burnt-yellow bar, and the window system lays the pointer
+    # over it with its halo half seen through: cyan light over that yellow reads green (the owner: "careful how that makes the
+    # graphite not look green"). Her halo is pale violet, which never mixes green with yellow; the body stays her cyan.
+    halo_ink = QColor(t.VIOLET_PALE) if t.APPEARANCE == 'kasandra' else green
     if glow:
         gain = min(2.4, 0.55 + 0.45 * t.glow())                               # the desk's dial (boss_theme.GLOW): Soft is 1, Bright 1.4, Neon 1.9
         for width, alpha in ((9.0, 0.07), (6.2, 0.12), (3.8, 0.2)):          # widest and faintest first: a halo, not a border
-            halo = QColor(green);halo.setAlphaF(min(0.6, alpha * gain))
+            halo = QColor(halo_ink);halo.setAlphaF(min(0.6, alpha * gain))
             p.setPen(QPen(halo, width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin));p.setBrush(Qt.NoBrush);p.drawPath(path)
     p.setPen(QPen(QColor(t.TERMINAL_GROUND), 2.2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin));p.setBrush(green);p.drawPath(path)
     p.setPen(Qt.NoPen);p.drawPath(path)

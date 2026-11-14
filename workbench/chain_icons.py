@@ -11,14 +11,20 @@ ENDINGS = {'then', 'console', 'sheetsave', 'watch', 'agenda', 'keep', 'copy', 's
 
 
 def icon(name):
-    if name not in _cache:_cache[name] = QIcon(draw(name))
+    if name not in _cache:
+        made = QIcon(draw(name))
+        from . import boss_theme as t
+        if t.APPEARANCE == 'kasandra':      # 0.8.3: the row under the pointer is her solid burnt-yellow bar: draw it in the bar's ink
+            on_bar = draw(name, QColor(t.ON_BAR))
+            for mode in (QIcon.Active, QIcon.Selected):made.addPixmap(on_bar, mode)
+        _cache[name] = made
     return _cache[name]
 
 
-def draw(name):
+def draw(name, ink=None):
     pix = QPixmap(SIZE * 2, SIZE * 2);pix.fill(Qt.transparent);pix.setDevicePixelRatio(2)
     p = QPainter(pix);p.setRenderHint(QPainter.Antialiasing)
-    ink = PINK if name in ENDINGS else GRAPHITE
+    ink = ink if ink is not None else (PINK if name in ENDINGS else GRAPHITE)
     pen = QPen(ink, 1.6);pen.setCapStyle(Qt.RoundCap);pen.setJoinStyle(Qt.RoundJoin);p.setPen(pen);p.setBrush(Qt.NoBrush)
     L = lambda x1, y1, x2, y2:p.drawLine(QPointF(x1, y1), QPointF(x2, y2))
     R = lambda x, y, w, h, r=1.5:p.drawRoundedRect(QRectF(x, y, w, h), r, r)
