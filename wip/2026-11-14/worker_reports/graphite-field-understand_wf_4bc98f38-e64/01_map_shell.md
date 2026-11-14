@@ -1,0 +1,288 @@
+{
+ "summary": "The window (workbench/qt_app.py WorkbenchWindow) keeps its centre in one QStackedWidget, `central_stack`, whose page 0 is `workspace_split` (the tab widget `tabs`); Home is simply a second page of that stack plus a flag `_home_active`. `show_start()` adds/raises the Home page (a finder_qt.FinderPage whose first place is shell2.TodayPage with boss_qt.ArtPanel) and `_close_start()` puts `workspace_split` back; every room opener calls `host._close_start()` first, and that call is a no-op unless `_home_active` is True. A plain QWidget added to `central_stack` and made current works with no required methods (proved by probe at 1920x1200 and 1366x768), but nothing returns the stack to the workspace when a tab is opened unless the page arranges it. The visible top bar is three words: `Work \u25be` (a popup holding the eight QMenus Work/Revise/Tools/Arrange/Commands/Rules/Properties/Guide), `[#] Programs \u25be` (rows from explore.VIEWS) and `System \u25be`; the eight menus are refilled from key lists in menus2.rebuild every time it runs, so a command is added by key there, not by adding to the QMenu. Typing reaches a command through shell2.OneBox.commands: a fixed `places` table plus every QAction in `host.actions()`, matched by label. Kernel operations are declared per module as FIELDS/SCOPES/dispatch, wired in engineering_kernel (import, CAPABILITIES, _dispatch) and engineering_cli.schemas; the release check compares a snapshot of operations, job tools, settings and adapters with docs/GRAPHITE_0.1_REGISTRY.json, and a pure-UI action leaves it untouched (probe: all three sections PASSED, 760 operations / 113 job tools / 49 settings). Art mode is not a registered setting: it is `session.state['desk_art']`; reduced motion is the registered `reading.reduce_motion`, read from `host.reading_profile`. Colours come from boss_theme tokens through the app palette and stylesheet; widgets with their own stylesheet are re-lit unless they set `paperFunctionalInk`; custom painting with QColor(token) is the pattern used by the art widgets. Probe scripts are in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/shell-map/ and the PNGs in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/shots/probe/.",
+ "facts": [
+  {
+   "topic": "1 centre: attributes",
+   "fact": "WorkbenchWindow._build_central builds: `self.center_layout` (QVBoxLayout of the central QWidget), `self.tabs = WorkspaceTabs(self)` inside `self.workspace_split` (QSplitter, with a hidden `split_panel`), `self.central_stack = QStackedWidget()` whose first page is `workspace_split`, then `self.doc_info` (QLabel) and `self.workspace_status` (QStatusBar) under the stack. Probe order of the centre column after install: ActivityRail (hidden), central_stack, ContextActions (hidden), QWidget (hidden), docInfo (hidden), ActivityTail 'TimelineHead' (visible), QStatusBar (visible). Minimum window size is 1040x640.",
+   "where": "workbench/qt_app.py:2424-2453, 2415-2421, 2340",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "1 centre: Home state",
+   "fact": "`self._home_active=False`, `self.home_page=None` at construction. show_start(): if project_context.detached(root) it returns empty_workspace_qt.show_home(self); otherwise it creates `self.home_page=FinderPage(self)` once, `central_stack.addWidget`, sets `self.finder=self.home_page`, saves `_home_dock_state=saveState(engine_layout_version())` on first entry, sets `_home_active=True`, hides output_dock and cart_dock, `central_stack.setCurrentWidget(home_page)`, hides context_bar and doc_info, hides clip, calls `home_page.refresh()` if it exists, `set_view_preference(last_surface='home')`, title 'Home \u2014 Graphite', `arc_desktop.refresh(self)`, returns the page.",
+   "where": "workbench/qt_app.py:2308-2309, 3498-3528",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "1 centre: Home in a disposable home",
+   "fact": "A fresh disposable home is detached (no project): show_start goes through empty_workspace_qt.show_home, which keeps the page in `host._empty_home_page` (NOT `host.home_page`, which stays None), builds `FinderPage(host,today=today)`, adds it to central_stack, sets `host.finder=page` and performs the same flag/hide/title sequence. Probe: show_start returned FinderPage; page.today is TodayPage; page.today.art is ArtPanel; stack = [QSplitter, FinderPage]; title 'Home \u2014 Graphite'.",
+   "where": "workbench/empty_workspace_qt.py:34-61; workbench/qt_app.py:3499-3502",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "1 centre: return to work",
+   "fact": "`_close_start()` returns immediately unless `_home_active`; otherwise sets the flag False, `central_stack.setCurrentWidget(self.workspace_split)`, restores `_home_dock_state` (keeping pane widths), shows context_bar/doc_info/workspace_status, `set_view_preference(last_surface='workspace')`, `clip.arrive()`, `update_document_info()`. It is called by `_workspace_tab_changed` (only when `_home_active`), by `resume_workspace()` (which also opens Files/Assembly when there is no tab and focuses the current tab) and as the first line of every room opener (e.g. Shell2.show_library, rooms.show_files, empty_workspace_qt.show). Closing the last tab calls show_start().",
+   "where": "workbench/qt_app.py:3627-3639, 3537-3539, 3548-3565, 3494-3495; workbench/shell2.py:2499-2505; workbench/rooms.py:51-59",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "1 centre: what the window calls on a page",
+   "fact": "No method is required of a central_stack page (a bare QWidget mounted and painted). Optional/implicit contracts: Home page `refresh()` (qt_app 3523), `show_place('today')` (shell2 1170-1171), `.place` read by work_location while `_home_active` (work_location 9-13), `host.finder.show_place/places/files_root` used by navigation_qt.library_selected while `_home_active` (navigation_qt 23-37). `host.home_page` specifically must have `.rain.set_reduce_motion(bool)` (reading_preferences 127-128) and `.open_followup()` (arc_desktop 98). For a TAB page in host.tabs: `info()` and `title()` when `hasattr(w,'info')` (qt_app 3791-3794, 3801), optional `can_close_concern`/`can_close_pdf`/`shutdown_engineering` (3466-3469, 3481), a `path` attribute is treated as a file (3542-3543), `property('ledgerRoom')` marks a room (rooms 46-47); a tab's class name is saved in the session and only reopened if listed in workspace_tabs' methods map.",
+   "where": "workbench/qt_app.py:3523, 3466-3481, 3791-3801; workbench/shell2.py:1170-1171; workbench/work_location.py:9-13; workbench/navigation_qt.py:23-37; workbench/reading_preferences.py:127-128; workbench/arc_desktop.py:98; workbench/rooms.py:46-47; workbench/workspace_tabs.py:96-110, 132-145",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "1 centre: signals and refresh after a page change",
+   "fact": "shell2 connects `host.tabs.currentChanged` and `host.central_stack.currentChanged` to Shell2.sync_worksheet. arc_desktop.refresh(host) (called at the end of show_start and update_document_info) sets `context_bar` visible only when not `_home_active` and the current tab is a CodeEditor, always hides doc_info, and shows workspace_status when `_home_active` or the tab is not a ConcernDossier. update_document_info sets the window title from the current tab ('<title()> \u2014 Graphite') and forces 'Home \u2014 Graphite' while `_home_active`. typebar's context word is 'Home' while `_home_active`.",
+   "where": "workbench/shell2.py:2191-2192, 2400-2412; workbench/arc_desktop.py:536-548; workbench/qt_app.py:3791-3807; workbench/typebar_qt.py:501",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "1 Home page constructor",
+   "fact": "`FinderPage(host, today=None, with_today=True)`: `super().__init__()` with no parent (the stack parents it), `self.host = host`, objectName 'FinderPage', `self.is_home = with_today`; builds a toolbar `self.bar` with size policy Ignored ('the bar never widens the centre'), `self.stack` (QStackedWidget) holding `self.today = TodayPage(host)` and `self.browser`; reads `host.session.state.get('finder')`; ends with `self.go(first)`. Kernel: `getattr(getattr(host,'ledger_bridge',None),'kernel',None)`; listings via `kernel.dispatch('ledger.browse', args, operator())`. `go(place)` shows 'today' or an absolute folder; `show_place` refuses unless `host._home_active`. `title()` and `info()` exist for use as a tab.",
+   "where": "workbench/finder_qt.py:332-411, 414-427, 489-512, 877-881",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "1 Today face constructor",
+   "fact": "`TodayPage(host)`: `self.host = host`, objectName 'TodayPage', `setContextMenuPolicy(Qt.CustomContextMenu)` routed to context_menu.open_at, greeting labels with `role(QLabel, 'hero'|'lead')`, `self.art = ArtPanel(host)`, CaptureBox, four Card frames in a QGridLayout inside a QScrollArea (never scrolls sideways; fit_columns in resizeEvent), a QTimer of 4000 ms -> fill() that is started in showEvent and stopped in hideEvent. Kernel reads use `shell2.call(host, op, args)` which dispatches with operator() and returns the result or None.",
+   "where": "workbench/shell2.py:1962-2002, 2006-2018, 2042-2045, 411-419",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "2 top bar",
+   "fact": "shell2.TopBar holds `self.more_menus` (QToolButton 'Work \u25be', accessible name 'Work commands'; its menu is filled on aboutToShow by fill_more_menus with each heading's QMenu), `self.programs` (QToolButton '[#] Programs \u25be', clicked -> `host.type_bar.hatch.open_list()`), and `self.nice`/`self.system` (desktop_header_qt.SystemButton, text 'System \u25be'). TopBar.place lays out only the path and these three words and sets `folded_menus = headings()`, so all eight menus live under Work \u25be. Probe: Work\u25be popup holds ['Work','Revise','Tools','Arrange','Commands','Rules','Properties','Guide'].",
+   "where": "workbench/shell2.py:518, 533-538, 569-575, 596-618",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "2 menus: structure",
+   "fact": "qt_app._build_menus creates `self.menu_groups` (QMenus per group from sdk command_bar.MENU_DEFINITIONS), `self.favorite_actions` (key -> QAction dict) and registers every action on the window (`self.addAction(a)`). menus2.rebuild(host) renames groups by DISPLAY_TITLES {File:'Work', Edit:'Revise', Tools:'Tools', Options:'Arrange', Commands:'Commands', Settings:'Rules', Properties:'Properties', Help:'Guide'}, removes every action from every group, then refills each from a key list: FILE (Work), EDIT, VIEW (Arrange), HELP and inline lists for Commands/Settings/Properties/Tools. A key starting with '@' is looked up in the local `extras` dict, any other key in `dict(host.favorite_actions)`. rebuild is called from Shell2.dress once immediately and once by QTimer.singleShot(0). Probe menu_groups titles: File->Work, Edit->Revise, View and Options->Arrange (same QMenu), Tools->Tools, Commands, Settings->Rules, Properties, Help->Guide.",
+   "where": "workbench/qt_app.py:2793-2878; workbench/menus2.py:17-27, 64-93, 184-191, 194-245, 247-257; workbench/shell2.py:2309-2310",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "2 menus: one real command end to end (Work)",
+   "fact": "'New Idea\u2026': menus2 creates it once under `if not hasattr(host,'a_new_idea')`: `host.a_new_idea = QAction('New Idea\u2026\\tCtrl+Shift+N', host)`, triggered -> `capture_dialog(host)`, tooltip and status tip set; it is put in `extras` as '@new_idea'; the key '@new_idea' is the second entry of FILE; `add(menu,key)` places it in groups['File'] (shown as Work). Its key is a separate `QShortcut(QKeySequence('Ctrl+Shift+N'), host, activated=lambda:capture_dialog(host))` in Shell2.install (the '\\tCtrl+Shift+N' in the text only displays it). Probe Work rows: New File\u2026, New Idea\u2026, New Project\u2026, Open\u2026, Open in Universal Viewer\u2026, Find a File\u2026, Open Recent, Receive Files\u2026, Import (Ingress)\u2026, Export (Egress)\u2026, Work on a Copy of a File\u2026, Save, Save All, Close, Recover Unsaved Work\u2026.",
+   "where": "workbench/menus2.py:21, 171-182, 191, 243-245; workbench/shell2.py:2174",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "2 menus: action that carries its own shortcut",
+   "fact": "Pattern with the key on the action: `host.a_run_operation = make('Run an operation\u2026\\tAlt+3', fn); host.a_run_operation.setShortcut('Alt+3'); host.addAction(host.a_run_operation)`, key '@run_operation' in extras and in the Commands list. Base-window pattern: `self.a_home = A('Workshop Home', self.show_start, 'Ctrl+Alt+1')` via `_act(text, cb, shortcut, tip)`, key 'home' in the actions dict, in menus2.VIEW (Arrange), retitled 'Today' at the end of rebuild. A precedent for adding an action from another module is host_qt.install: `host.favorite_actions['background_service'] = action`.",
+   "where": "workbench/menus2.py:95-96, 163-165, 187, 251, 23, 269-270; workbench/qt_app.py:2626-2637, 2699, 2802, 2878; workbench/host_qt.py:103-110",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "2 Programs and System lists",
+   "fact": "Programs: programs_qt.ProgramsList builds one MenuRow per adapter of explore.VIEWS in order() (A to Z by PLAIN name) plus a rule and 'Explore the workshop'; it is created in hatch_qt with the hatch's action dict. System: system_menu_qt.SystemMenu rows are fixed (Game, Stop all jobs, the process list, Graphite services, Log out, leave, Restart, Shut down; ORDER constant), created by desktop_header_qt.SystemButton. Neither list is fed from menus2.",
+   "where": "workbench/programs_qt.py:650-657, 670-674, 696-710; workbench/hatch_qt.py:63; workbench/system_menu_qt.py:50, 145-176; workbench/desktop_header_qt.py:574; workbench/explore.py:25-31",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "2 shortcuts taken (window level, from the live window)",
+   "fact": "F-keys: F1 Keyboard Shortcuts, F3 Find Next, F5 Run Current Game, F7 Build, F8 / Shift+F8 Next/Previous Problem, F10 Output Panel, Shift+F10 and Menu (context menu), F11 Full Screen, F12 C symbol definition, Ctrl+Shift+F12 master stop, Ctrl+F4 Close, Alt+F4 Exit. Alt+1..6 writing-line modes, Alt+Z. Ctrl+letter: A C E F G H K L N O P S T V W X Y Z, plus Ctrl+, Ctrl+\\ Ctrl+` Ctrl+Space, Ctrl+Break (a_stop, read only). Ctrl+Alt: 1 Today, 2 Engineering layout, 3 Focus layout, - = B C D F G K O R V `. Ctrl+Shift: B D E F G H J (two actions already share it) K L M N O P S U Y Z Space. No Ctrl+digit is bound at window level. Widget-local: the Documents editor binds Ctrl+B/I/U, Ctrl+0/1/2/3, Ctrl+`, Ctrl+S with WidgetWithChildrenShortcut; show_keys documents F2/Del for Browse. Unbound at window level: F2, F4, F6, F9; Ctrl+B D I J M Q R U; Ctrl+0..9; Ctrl+Alt+4..9; Ctrl+Shift+A C I Q R T V W X. F6 was exercised in the probe: it triggered with no ambiguity.",
+   "where": "workbench/qt_app.py:2641-2771 (2658, 2661, 2692, 2697, 2699-2701, 2738, 2742-2748, 2756, 2759, 2767, 2771), 5200-5210; workbench/menus2.py:158-164; workbench/shell2.py:500, 2173-2174; workbench/console_qt.py:646-647; workbench/chain_menu.py:518; workbench/context_menu.py:2024-2025; workbench/organizer_qt.py:331; workbench/return_thread_qt.py:32; workbench/document_qt.py:251-254",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "3 typed command / Ctrl+K",
+   "fact": "Ctrl+K is `QShortcut('Ctrl+K', host, activated=Shell2.search)` -> `type_bar.search()` (writing line switched to Search, text selected). The line is shell2.OneBox (`host.shell2.top.box`); its popup rows come from `results(text)` / `search_rows(text)`, whose COMMANDS section is `OneBox.commands(query)`: first a fixed `places` tuple of (label, destination) run through `open_destination(host, destination)`, then every QAction in `self.host.actions()` whose enabled label (text with '&' removed) contains the query, giving (label, action.shortcut().toString(), action.trigger). Console.run_find uses the same commands(). open_destination maps destination strings ('home', 'library:<kind>', 'files', 'agenda', 'project_desk', \u2026) and falls back to `host.ledger_bridge.navigation()[destination]()`. Real example (probe): commands('today') -> [('Go to Today',''), ('Today','Ctrl+Alt+1')]; commands('full screen') -> [('Full Screen','F11')].",
+   "where": "workbench/shell2.py:2173, 2475-2480, 898-935, 949-971, 973-985, 1167-1220; workbench/typebar_qt.py:252-258; workbench/console_qt.py:538; workbench/control_qt.py:150-156",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "3 other catalogues",
+   "fact": "Command Palette (Ctrl+Shift+P, workspace_qt.WorkspacePalette) and the published desktop catalogue (control_qt.publish -> settings row 'ledger.desktop_catalog', listed by ledger_control.catalog for ledger.commands) both iterate `host.favorite_actions` only; an action that is not in favorite_actions is absent from both but still found by the writing line if it is in host.actions().",
+   "where": "workbench/workspace_qt.py:72-75; workbench/control_qt.py:431-441; workbench/ledger_control.py:425-444; workbench/qt_app.py:4170-4174",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "4 operations: declaration",
+   "fact": "A service module declares `FIELDS = {op: (properties_dict, required_list)}`, `SCOPES = {op: 'read'|'candidate'|'execute'|'approve'}` and `dispatch(kernel, op, args, principal)`. Smallest real example: browse.py (`'ledger.browse': ({'path':{\u2026}, 'all':{'type':'boolean'}, 'limit':{\u2026}}, ['path'])`, `SCOPES = {op:'read' for op in FIELDS}`, dispatch returns a dict). Wiring needs four edits: engineering_kernel import (line 55), `**module.SCOPES` in CAPABILITIES (line 222), `if op in module.FIELDS:return module.dispatch(self,op,a,p)` in Kernel._dispatch (line 620), and in engineering_cli.schemas() the FIELDS import (line 87) and spread (line 181). schemas() builds {'type':'object','properties':props,'required':required,'additionalProperties':False} for every op in CAPABILITIES. TOOLS (engineering_kernel 83-156) are job tools for jobs.submit only; a read operation needs none. Read-only observers are also listed in activity.OBSERVER_OPERATIONS so they are not journalled per call.",
+   "where": "workbench/browse.py:29-34, 137-140; workbench/machine_overview.py:45-46, 587-589; workbench/engineering_kernel.py:53-56, 83-156, 157-273, 545-620; workbench/engineering_cli.py:14-97, 174-181, 272-303; workbench/activity.py:8-11; tests_integrated/test_browse.py:103",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "4 operations: dispatch",
+   "fact": "`Kernel.dispatch(operation, params=None, principal=None)`: rejects unknown ops, unknown or missing params against schemas()[op], validates, checks `CAPABILITIES[op] in principal.scopes`, records the request unless op is in activity.OBSERVER_OPERATIONS, answers project_context.unavailable(op) when the workspace is detached and the op requires a project (prefix based; ledger.*, documents.* are not in the prefixes), else `_dispatch`. Returns {'schema', 'ok':True, 'result', 'journal_state', 'correlation_id'} or {'schema', 'ok':False, 'error':{'code','message'}}; it does not raise for those error classes. `operator(identity='desktop-owner')` is the owner principal with scopes read/candidate/execute/approve. UI code reaches the kernel as `host.ledger_bridge.kernel` or `engine.engineering(host.root)`.",
+   "where": "workbench/engineering_kernel.py:295-309, 483-543; workbench/project_context.py:6, 29, 33-36; workbench/shell2.py:411-419; workbench/finder_qt.py:416",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "4 ledger_control",
+   "fact": "ledger_control.FIELDS merges cabinet, return_thread, memory_cabinet, cabinet_actions, explore and operations FIELDS with its own ledger.* rows (ledger.commands, ledger.settings, .set, .undo, .effective, .history, .restore, .apply, ledger.activity, ledger.context, ledger.navigate, ledger.open, ledger.desktop_request); SCOPES is 'execute' for the settings writers, navigate and open, else 'read'; dispatch is an if-chain. `ledger.navigate` takes a `destination` enum (DESTINATIONS) and queues a desktop request; adding a destination changes that operation's recorded schema.",
+   "where": "workbench/ledger_control.py:20-49, 499-533; workbench/engineering_kernel.py:219, 613",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "4 registry record",
+   "fact": "tools/record_registry.snapshot() builds: operations {op: {scope, arguments sha256, properties: 16-hex per top-level property}}, job_tools {name: target}, settings {key: {definition sha256, fields}}, settings_order, settings_digest, adapters {operations: {op: 'workbench/x.py#dispatch'}, settings: {key: {store, adapter}}}, counts, schema_digest (doctor.inventory formula), release. Handlers come from stacy_foundation.handler_map (modules in engineering_kernel's namespace with FIELDS + dispatch, else literal cases in Kernel._dispatch). `python3 tools/record_registry.py` rewrites the whole file from the live tree; `--check` only compares. The release check (tools/check_release.py -> tools/check_hatch.py record_sections) reports three sections: registry (operations added/removed, scope, argument schema, job tools, schema digest), settings (added/removed/definition/order/digest), adapters.",
+   "where": "tools/record_registry.py:35-65, 77-94; tools/check_hatch.py:167-206, 222-237; tools/check_release.py:1-12; workbench/doctor.py:29-37; workbench/stacy_foundation.py:285-310",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "4 registry: what one change costs (probe, in memory)",
+   "fact": "Live tree vs record: registry PASSED, settings PASSED, adapters PASSED; counts operations 760, job_tools 113, settings 49, adapters 760. One added read operation -> registry FAILED with 'operation added: <name> (read)'; record keys that change: operations, adapters (adapters.operations[<name>]), counts (operations and adapters 761), schema_digest. One added setting -> settings FAILED with 'setting added: <key>'; keys that change: settings, settings_order, settings_digest, counts.settings, adapters.settings. A pure-UI change (no operation, no setting definition) leaves the record matching: the check still PASSED with new untracked UI modules present in workbench/.",
+   "where": "tools/check_hatch.py:167-206; docs/GRAPHITE_0.1_REGISTRY.json (counts, schema_digest, settings_digest)",
+   "confirmed_by": "probe"
+  },
+  {
+   "topic": "5 settings: definition",
+   "fact": "`spec(key, label, category, default, kind, description, **extra)` returns a dict with key, label, category, default, type, description, root ('Slate' for stacy.*, else 'Ledger'), group, scope, scope_id, supported_scopes, application, effect, store, dependencies, overrides; extras override. SPECS is the ordered list; BY_KEY indexes it; SESSION_BATCH_KEYS (computed at line 139 from specs whose store starts with 'Session ') feeds the `ledger.settings.apply` enum, so a 'Session \u2026' spec appended before line 139 would also change that operation's schema; later additions (e.g. appearance.writing_marker) are single-key Set only and leave the batch enum alone. The favorites.* specs take `allowed_items` from sdk command_bar.allowed_groups() (MENU_DEFINITIONS).",
+   "where": "workbench/settings_registry.py:11-30, 33-51, 139-146, 159-164, 174-178; workbench/ledger_control.py:37-39; sdk/cli/arc1cli/command_bar.py:43-63",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "5 art mode",
+   "fact": "Art mode is NOT in settings_registry. It is `host.session.state['desk_art']` with values 'illustrated' | 'ascii' | 'clean' (boss_qt.ART_MODES), read everywhere as `host.session.state.get('desk_art', 'illustrated')` (unset in a fresh profile, probe). The session loader keeps the key only if it is one of the three values. `boss_qt.choose_art(host, mode)` writes it, saves the session, calls `.refresh()` on every ArtPanel and PanelInk found by `host.findChildren(kind)` and then `host.type_bar.align()`; nothing else is notified. The menu is `boss_qt.appearance_menu(host)` ('Desk artwork': Illustrated, ASCII, Clean, the idle display submenu, Art plates), placed by key '@desk_art' under Arrange and Rules.",
+   "where": "workbench/boss_qt.py:9, 94-97, 158-163, 244-276; workbench/session.py:117; workbench/desk_qt.py:485; workbench/menus2.py:24, 204-206, 252",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "5 reduced motion",
+   "fact": "Setting key 'reading.reduce_motion' (boolean, default False, store 'Session reading_profile', description 'Use quiet/static optional presentation.'). Stored as `session.state['reading_profile']['reduce_motion']` (validated by reading_profile.clean); the live copy is `host.reading_profile` set by reading_preferences.apply. Widgets read it as `bool((getattr(host,'reading_profile',None) or {}).get('reduce_motion', False))` (hatch_qt, writing_marker, document_qt, idle_display_qt) or from `session.state.get('reading_profile')` (qt_app). On change, apply() only calls shell2.restyle, arc_controller.resize, `home_page.rain.set_reduce_motion` and writing_marker.motion_changed; there is no general signal. Probe: reduce_motion False, ui_pt 14.0. Interface scale is `shell2.scale_of(host)` = ui_pt / 14.",
+   "where": "workbench/settings_registry.py:41, 17; workbench/reading_profile.py:2-4, 13-31; workbench/reading_preferences.py:100-135; workbench/hatch_qt.py:54; workbench/writing_marker.py:243-245; workbench/document_qt.py:577; workbench/idle_display_qt.py:114; workbench/qt_app.py:1291-1293; workbench/shell2.py:266-268",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "6 theme: colours",
+   "fact": "boss_theme tokens: GROUND #0b0e0d, PANEL #111513, CARD #151a17, RAISED #202520, TERMINAL_GROUND #080a09, LINE #474436, LINE_STRONG #bcac8e, TEXT #f4e8ce, QUIET #c8baa0, FAINT #a89b84, AMBER #4b2a14, AMBER_SOFT #4b2a14, AMBER_EDGE #ff9a36, AMBER_TEXT #ffba72, PENCIL_DEEP #443527, ERASER #493225, ERASER_DEEP #593a29, ERASER_MARK #dd854b, TEAL #c3ed74, TEAL_SOFT #1b2817, TEAL_EDGE #789654, TEAL_TEXT #cbf08b, READY #c3ed74 (= TEAL), STOP #ff9a36 (= AMBER_EDGE). The module states only 'Presentation only; document formats keep their own ink.'; it gives no per-colour meaning. TOKENS is the set of all these hex values; LEGACY maps old paper hexes to tokens.",
+   "where": "workbench/boss_theme.py:1-20",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "6 theme: meaning by use",
+   "fact": "Palette: Window/AlternateBase = GROUND; Base/Button/Light/ToolTipBase = CARD; all text roles = TEXT; Midlight/Mid/Shadow = LINE; Dark = LINE_STRONG; Highlight = AMBER_SOFT; PlaceholderText = QUIET. CHROME_OVERRIDES: LINE_STRONG = window separators, menu border, scroll handles; AMBER_SOFT = hover background; AMBER_EDGE = 2px mark of the selected/checked/hovered item and focus; AMBER_TEXT = selected item/tab text and the path; READY = a live reading; QUIET = a resting reading; PANEL = tray background; CARD = input/table ground; LINE = hairline under inputs; corners are square (border-radius 0). Elsewhere: TERMINAL_GROUND = console output and prompt ground; TEAL_TEXT = staC/code text; TEAL_SOFT / TEAL_EDGE = supported-evidence wash and edge; ERASER / ERASER_DEEP = stop and refuted washes; ERASER_MARK = the 3px underline of an action word; PENCIL_DEEP = selection in documents; FAINT = footnotes; RAISED = hover on tab close and chips.",
+   "where": "workbench/theme2.py:17-31; workbench/boss_theme.py:49-87; workbench/console_qt.py:228; workbench/shell2.py:293, 308, 320, 1045, 1482, 2000; workbench/investigations_qt.py:19, 261; workbench/desktop_header_qt.py:206-212; workbench/document_qt.py:171",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "6 theme: fonts",
+   "fact": "Fonts are registered by shell2.load_fonts (called in make_app): IBM Plex Sans/Mono from branding/fonts/plex (PLEX list) and the script 'Parisienne' from branding/fonts/script. Constants `SANS, MONO = 'IBM Plex Sans', 'IBM Plex Mono'`, `SCRIPT = 'Parisienne'`. `shell2.mono_font(size=16)` returns QFont(MONO or 'DejaVu Sans Mono') with pointSizeF = size*0.75 and Monospace hint. The art painters set `QFont('IBM Plex Mono')` with setPixelSize (13, 12, 15, 8). reading_preferences has `family(name, fixed)` and `font(name, size, fixed)` with DejaVu fallbacks. CHROME_OVERRIDES makes QLabel roles title/hero/section and header sections IBM Plex Mono. Probe: IBM Plex Mono, IBM Plex Sans and DejaVu Sans Mono are all present offscreen.",
+   "where": "workbench/shell2.py:24-25, 43, 46-55, 258-260; workbench/qt_app.py:5301-5304; workbench/boss_qt.py:68, 128, 211-212; workbench/reading_preferences.py:25-36; workbench/boss_theme.py:64-65",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "6 theme: how a widget styles itself",
+   "fact": "make_app sets the Fusion style, the app palette (theme2.PALETTE) and the app stylesheet QSS2 + CHROME_OVERRIDES, then installs theme2.Relight on the application: at Polish, any non-window widget that has its own stylesheet and does not have property `paperFunctionalInk` gets that sheet rewritten by boss_theme.relight (token hexes kept, LEGACY mapped, any other hex replaced: backgrounds -> GROUND/CARD, borders -> LINE_STRONG, text -> TEXT/QUIET). The host stylesheet carries font sizes (reading_preferences.apply) plus shell2.chrome_css (px sizes scaled by ui_pt/14). Label text roles: `role(widget, name)` sets property arcRole2 ('title'/'hero' 28px, 'lead' 18, 'item'/'card' 20, 'section' 13 letter-spaced QUIET, 'quiet' 14). Buttons: property arcButton = 'segment' | 'filter' | 'quiet' | 'link' | 'primary' (`shell2.button(text, kind)`); every shown QPushButton is turned into a 'word' by theme2.as_words unless segment/filter. Painted widgets use QPainter with QColor(boss_theme token) directly.",
+   "where": "workbench/qt_app.py:5293-5312; workbench/theme2.py:190-236, 239-240; workbench/boss_theme.py:23-46; workbench/reading_preferences.py:109-119; workbench/shell2.py:271-323, 450, 2345-2360; workbench/finder_qt.py:352-358",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "6 theme: painter helpers",
+   "fact": "boss_qt has: `draw_plate(painter, target, image, vertical_focus, region=None)` (cover-scales the image or a source region into target, centred horizontally, vertical crop at the focus fraction, SmoothPixmapTransform), `operator_crop(image)`, cached loaders `workshop_plate(folder)`, `charcoal_workshop(folder)`, `midnight_plate(folder, scene='portrait'|'workshop')`, the ASCII BRACKET lines, and PanelInk's character-cell sampling of a plate with the ramp ' .:-=+*#%@'. It has no rule or halftone helper: rules are drawn inline (1px LINE at the foot of ArtPanel, 1px LINE_STRONG rect in WorkshopStrip). The band shading lives in desk_qt: `grain()`, `grain_tile()` (256x128 QPixmap, drawn once), `paint_band(widget, painter)` (tile fill plus a 2px AMBER_EDGE line), `contrast(a,b)`/`luminance(rgb)`, BAND=(12,15,14), ERASED '#efeae0', ERASED_QUIET '#b0bcb9', PENCIL '#f2a369'.",
+   "where": "workbench/boss_qt.py:16-54, 79, 112, 226-236; workbench/desk_qt.py:239-244, 256-275, 287-295, 316-337",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "6 art plates and ArtPanel",
+   "fact": "Plates are in branding/boss/plates/: 'Workshop in the rain.png', 'Workshop in charcoal.webp', 'Stacy after midnight.webp', 'Workshop after midnight.webp', 'RISC is good.png', 'Struthio rider.png', 'Brain on Disk.png', 'City after dark.png'; branding/boss/ also has night-signal.svg, journal-operator.webp, preview-operator.webp, roof-antenna.txt. `ArtPanel(host)`: folder `locations.program(host.root)/'branding'/'boss'`, objectName 'BossArt', paperFunctionalInk, transparent for mouse events, size policy (Ignored, Fixed). refresh() reads the mode, sets fixed height (illustrated: min(368, max(112, width//3)); ascii: 112; clean: 0 and hidden). Illustrated paints midnight_plate(folder,'workshop') ('Workshop after midnight.webp') with draw_plate focus 0.28; if missing, the charcoal plate at focus 0.05; if missing, night-signal.svg through QSvgRenderer. ASCII paints four fixed lines in IBM Plex Mono 12px QUIET and '[>_]' in AMBER_EDGE. There is no plate chooser: the plate is fixed per panel kind.",
+   "where": "workbench/boss_qt.py:10-15, 39-42, 83-136; branding/boss/plates/",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "6 rules that constrain a new view",
+   "fact": "boss_theme: 'Presentation only; document formats keep their own ink.' boss_qt: 'Optional BOSS ornament, separate from working documents and exported material.' docs/BOSS_M1.md: Desk artwork offers Illustrated, ASCII and Clean; 'artwork never becomes part of a document export. Reading size and reduced-motion settings remain available. This checkpoint introduces no continuously running animation.' docs/BOSS_IMPLEMENTATION_PLAN.md P01: 'Preserve reading scale, keyboard focus, reduced motion, and the owner's saved preferences'; 'Decoration can be reduced or removed'; 'Ship real widgets and separate artwork assets rather than a screenshot as the interface.' Text scales with ui_pt up to 200% and is 'Never shrunk to fit a window' (chrome_css docstring; reading_profile RANGES 9..28 pt). Whole-word rule: every visible QLabel and QAbstractButton must have room for its words (tools/ui_fit.whole_words); custom-painted text is not measured by it.",
+   "where": "workbench/boss_theme.py:1; workbench/boss_qt.py:1; docs/BOSS_M1.md:29-32; docs/BOSS_IMPLEMENTATION_PLAN.md:22-24; workbench/shell2.py:277-279; workbench/reading_profile.py:9-10; tools/ui_fit.py:1-16, 136-150",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "7 mount proof",
+   "fact": "Probe run at 1920x1200 and at 1366x768 (one process per size): a QWidget painting one line was added with `w.central_stack.addWidget(page)` and raised with `w.central_stack.setCurrentWidget(page)`; it showed between the two panes at window position (277, 61) with size 1366x1053 (1920x1200) and 812x608 (1366x768); both panes stayed 276 px wide; the timeline row and status bar stay under it. Saved: Probe_centre_page_1920x1200.png, Probe_centre_page_1366x768.png, Probe_centre_page_only_<size>.png, Probe_tab_page_1920x1200.png in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/shots/probe/. The 1366x768 image was read back and shows the page framed in the centre.",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/shell-map/probe.py; workbench/qt_app.py:2448-2450",
+   "confirmed_by": "probe"
+  },
+  {
+   "topic": "7 mount: return behaviour (probe)",
+   "fact": "With the page current and `_home_active` False: `w._close_start()` left the page in front, and `w.show_files()` (Files already the current tab) also left the page in front. `w.show_start()` over the page put FinderPage in front and set the flag. With the page raised while `_home_active` was True, `w._close_start()` returned the stack to the workspace and cleared the flag. With `w.tabs.currentChanged` connected to a leave function, opening a NEW tab (Library) returned to the workspace. Added as a tab instead (`w.tabs.addTab(page, page.title())`), the page showed with the tab bar and its `info()` text in doc_info.",
+   "where": "workbench/qt_app.py:3537-3539, 3627-3630; /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/shell-map/probe.py and menu_probe.py",
+   "confirmed_by": "probe"
+  },
+  {
+   "topic": "7 capture harness",
+   "fact": "tools/desk_review.py pattern: temp HOME, ARC1_WORKBENCH_CONFIG_HOME and ARC_LEDGER_CONCERN set before importing workbench; `QT_QPA_PLATFORM='offscreen:configfile=<json with one screen of W x H>'`; ARC_LEDGER_EMBEDDED=1, ARC_LEDGER_DISABLE_BOOK_WATCHER=1; holds on clip._request, Kernel.launch, Kernel.submit, session_power.system and QMessageBox.question before the window; `app=make_app([])`, `root=locations.office(HOME/'Concern'/'Office')`, `WorkbenchWindow(root, Session(RUN/'profile/session.json', root), restore=False)`; after the window, holds on subprocess.Popen, os.system, QProcess.startDetached; `settle()` stops agenda_runner/study_idle timers and pumps events; `align()` calls `w.type_bar.align()`; `size(width,height)` resizes the same window and aligns, so one process on a 1920x1200 screen can also grab smaller sizes.",
+   "where": "tools/desk_review.py:28-74",
+   "confirmed_by": "both"
+  },
+  {
+   "topic": "8 checks that hold the menus",
+   "fact": "tools/check_explore_ui.py and tools/check_navigation_ui.py call menus2.rebuild twice and assert the same QMenu objects, the same favorite_actions identities and unchanged shortcuts, so a new action must be created once (guarded by hasattr) and survive rebuilds. check_navigation_ui captures the Work, Arrange and Rules menus as images. check_desk_ui, check_hatch_ui and check_machine_ui assert only membership (a_import, a_export, a_new_idea, a_new_project in groups['File']; a_run_operation in Commands with shortcut 'Alt+3'). No check or test found pins the number of rows in Work.",
+   "where": "tools/check_explore_ui.py:87-93; tools/check_navigation_ui.py:140-142, 193-197; tools/check_desk_ui.py:722-723, 917, 1160; tools/check_hatch_ui.py:93; tools/check_machine_ui.py:126",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "8 checks that hold the centre",
+   "fact": "After show_start the UI checks assert `w._home_active` and `type(w.central_stack.currentWidget()).__name__=='FinderPage'` (and `.today` is TodayPage, `is w._empty_home_page`). Whole-window checks run `ui_fit.whole_words(w)`, `ui_fit.regions(w, w.ribbon_dock, w.central_stack)` and `ui_fit.side_scrolls(w.central_stack)` at several sizes and text sizes, and check_frame_ui records `w.centralWidget().minimumSizeHint().width()` and uses it as the room the centre can give up. desk_qt's centre floor is CENTRE = 400 px at 14 pt, PANE = 268.",
+   "where": "tools/check_desk_ui.py:500, 590, 779; tools/check_frame_ui.py:99, 122, 250, 272, 286; tools/check_finder_ui.py:79, 109, 124; workbench/desk_qt.py:31-33",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "8 tests on wording and on new files",
+   "fact": "tests_integrated/test_graphite.py: in the FRAME modules (shell2, menus2, finder_qt, programs_qt, system_menu_qt, typebar_qt, hatch_qt, empty_workspace_qt, control_qt and others) no string literal may contain the words Ledger, Slate or Hatch except the KEPT set; no workbench/*.py literal may say 'Ledger & Slate'. tests_integrated/test_release_check.py: every tests_integrated/test_*.py must be in check_hatch.FOCUSED_MODULES or ON_DEMAND_MODULES; every tools/check_*_ui.py must be in UI_CHECKS or ON_DEMAND_CHECKS and contain the three literal holds `patch.object(Kernel,'launch',side_effect=AssertionError(`, `patch.object(Kernel,'submit',\u2026`, `patch.object(clip,'_request',\u2026`; gate checks need a UI_CAPTURE_ENV variable read with os.environ.get. tests_integrated/test_system_menu.py: a check that opens the System menu must hold session_power.system. The live schema digest is compared with the record.",
+   "where": "tests_integrated/test_graphite.py:282-290, 310-325; tests_integrated/test_release_check.py:223-229, 254-274, 311-315; tests_integrated/test_system_menu.py:127-135; tools/check_hatch.py:34, 55, 58, 80",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "8 Programs row count is pinned",
+   "fact": "The number and order of Programs rows equal explore.VIEWS and are asserted in tools/check_hatch_ui.py (rows_by_key == VIEWS keys; EXPECTED order), tests_integrated/test_launcher.py (words == plain names + ['\u2014','Explore the workshop']; len(explore.VIEWS) == expected_views) and tests_integrated/test_explore.py. Operation counts are followed dynamically (len(CAPABILITIES)) in test_explore, test_tool_atlas and test_launcher; no test pins 760.",
+   "where": "tools/check_hatch_ui.py:89, 252, 292; tests_integrated/test_launcher.py:169, 228, 327; tests_integrated/test_explore.py:25, 94-95; tests_integrated/test_tool_atlas.py:28",
+   "confirmed_by": "read"
+  },
+  {
+   "topic": "8 release runtime section",
+   "fact": "check_stage_one verifies the payload against MANIFEST.json (1191 files listed); edited or unlisted sources make the runtime section read 'EDITED_SOURCES_NOT_YET_PACKAGED \u2026 This still fails the release check' until packaging rewrites the manifest. This is separate from the registry record. A new workbench module is not in MANIFEST.json until packaged (workbench/field_qt.py: not listed; workbench/finder_qt.py: listed).",
+   "where": "tools/check_stage_one.py:20-33; tools/check_hatch.py:250-258; MANIFEST.json",
+   "confirmed_by": "both"
+  }
+ ],
+ "recipes": [
+  {
+   "name": "Offscreen window in a disposable home, one page mounted in the centre, grabbed to PNG (run once per size)",
+   "code": "# QT_QPA_PLATFORM=offscreen <venv>/bin/python -B probe.py <graphite> <outdir> 1920 1200    (again with 1366 768)\nimport json, os, sys, tempfile, subprocess\nfrom pathlib import Path\nfrom unittest.mock import patch\nPROGRAM, OUT, W, H = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve(), int(sys.argv[3]), int(sys.argv[4])\nRUN = Path(tempfile.mkdtemp(prefix='graphite-probe-')); HOME = RUN/'home'; HOME.mkdir()\nSCREEN = RUN/'screen.json'; SCREEN.write_text(json.dumps({'screens':[{'name':'p','x':0,'y':0,'width':W,'height':H,'logicalDpi':96,'logicalBaseDpi':96,'dpr':1.0}]}))\nos.environ.update(QT_QPA_PLATFORM='offscreen:configfile='+str(SCREEN), ARC_LEDGER_EMBEDDED='1', ARC_LEDGER_DISABLE_BOOK_WATCHER='1',\n                  HOME=str(HOME), ARC1_WORKBENCH_CONFIG_HOME=str(RUN/'profile'), ARC_LEDGER_CONCERN=str(HOME/'Concern'))\nos.environ.pop('ARC_LEDGER_XSESSION', None); os.chdir(RUN); sys.path.insert(0, str(PROGRAM)); sys.dont_write_bytecode = True\nfrom PySide6.QtCore import QProcess, Qt\nfrom PySide6.QtGui import QColor, QFont, QPainter\nfrom PySide6.QtWidgets import QMessageBox, QWidget\nfrom PySide6.QtTest import QTest\nfrom workbench.qt_app import make_app, WorkbenchWindow\nfrom workbench import locations, clip, session_power, boss_theme as t\nfrom workbench.engineering_kernel import Kernel\nfrom workbench.session import Session\ndef held(request): raise OSError('no login session (held)')\npatch.object(clip, '_request', side_effect=AssertionError('No provider request')).start()\npatch.object(Kernel, 'launch', side_effect=AssertionError('No worker launch')).start()\npatch.object(Kernel, 'submit', side_effect=AssertionError('No job submission')).start()\npatch.object(session_power, 'system', side_effect=held).start(); patch.object(QMessageBox, 'question', return_value=QMessageBox.No).start()\napp = make_app([]); root = locations.office(HOME/'Concern'/'Office'); w = WorkbenchWindow(root, Session(RUN/'profile/session.json', root), restore=False)\nimport platform; platform.processor()\nfor target, name in ((subprocess, 'Popen'), (os, 'system'), (QProcess, 'startDetached')): patch.object(target, name, side_effect=AssertionError('held')).start()\ndef settle(ms=60, n=6):\n    for name in ('agenda_runner', 'study_idle'):\n        obj = getattr(w, name, None)\n        if obj and hasattr(obj, 'timer'): obj.timer.stop()\n    for _ in range(n): app.processEvents(); QTest.qWait(ms)\nw.resize(W, H); w.show(); settle(); w.type_bar.align(); settle()\nclass Page(QWidget):\n    def paintEvent(self, e):\n        p = QPainter(self); p.fillRect(self.rect(), QColor(t.TERMINAL_GROUND)); f = QFont('IBM Plex Mono'); f.setPixelSize(18); p.setFont(f)\n        p.setPen(QColor(t.AMBER_TEXT)); p.drawText(24, 40, '[ FIELD PROBE ]'); p.end()\npage = Page(); w.central_stack.addWidget(page)            # (b) add\nif w._home_active: w._close_start()                       # leave Home once, restoring its saved panels\nw.central_stack.setCurrentWidget(page)                    # (b) bring to the front\nw.context_bar.hide(); w.doc_info.hide(); w.setWindowTitle('Field \u2014 Graphite'); page.setFocus(); settle(); w.type_bar.align(); settle()\nassert w.grab().save(str(OUT/('Probe_centre_page_%dx%d.png' % (W, H))), 'PNG')   # (c)\nw._closing = True",
+   "observed_output": "Full script: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/shell-map/probe.py (add a 5th argument 'facts' for the fact dump). 1920x1200: 'page in front | stack: [QSplitter, FinderPage, Placeholder] | current: Placeholder | _home_active: False | title: Field \u2014 Graphite'; 'page geometry in window: (277, 61) (1366, 1053) | visible: True | nav_dock w: 276 True | sim_dock w: 276 True'; saved Probe_centre_page_1920x1200.png 1920 x 1200. 1366x768: 'page geometry in window: (277, 61) (812, 608)'; saved Probe_centre_page_1366x768.png 1366 x 768. DONE. No bytecode written (checked with PYTHONPYCACHEPREFIX: 0 files)."
+  },
+  {
+   "name": "One Work-menu action with a key, also reachable by typing (run in memory; the source edit is the two commented lines)",
+   "code": "# In source this is: in menus2.rebuild, once, under `if not hasattr(host, 'a_field'):` create the action as below;\n# add  '@field': host.a_field  to the `extras` dict (menus2.py:184-191) and the key '@field' to FILE (menus2.py:21).\nfrom PySide6.QtGui import QAction\nfrom workbench import menus2\na = QAction('Field', w); a.setShortcut('F6'); a.setToolTip('Open the field (F6)'); a.setStatusTip(a.toolTip())\na.triggered.connect(lambda checked=False: show_field())\nw.addAction(a); w.a_field = a            # addAction: the key works window-wide AND OneBox.commands finds it by label\nwork = w.menu_groups['File']             # shown as Work\nwork.addAction(a); menus2.rebuild(w)     # -> gone again: rebuild refills every group from its key lists\n# in-memory stand-in for the source edit (a non-@ key is looked up in host.favorite_actions):\nw.favorite_actions['field'] = a; menus2.FILE.insert(menus2.FILE.index('@recent') + 1, 'field'); menus2.rebuild(w); menus2.rebuild(w)\nprint(a in work.actions(), [(l, h) for l, h, f in w.shell2.top.box.commands('field')])\nQTest.keyClick(w, Qt.Key_F6)",
+   "observed_output": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/shell-map/menu_probe.py: '1 added straight to the QMenu -> in Work: True'; '2 after menus2.rebuild -> in Work: False'; '3 key in menus2.FILE + action in the lookup -> in Work: True | position 7 of 16' (after Open Recent, before Receive Files\u2026); '4 typed: OneBox.commands(\"field\") -> [(\"Field\", \"F6\")]'; '5 F6 pressed -> triggered: True | centre current: Placeholder | ambiguous shortcuts: []'; '7 typed command run -> centre current: Placeholder | hint shown beside it: F6'; '9 a NEW tab opened (Library) with currentChanged hooked -> centre current: QSplitter'."
+  },
+  {
+   "name": "Read-only registry check, and what one added operation or setting would change",
+   "code": "# <venv>/bin/python -B registry_probe.py <graphite>   (HOME, ARC1_WORKBENCH_CONFIG_HOME, ARC_LEDGER_CONCERN set to a temp dir first)\nimport sys; sys.dont_write_bytecode = True\nsys.path.insert(0, str(PROGRAM)); sys.path.insert(0, str(PROGRAM / 'tools'))\nimport record_registry as rr\nfrom check_hatch import record_sections\nrecord = rr.read(PROGRAM)\ninventory, tools, handlers, specs = rr.live_sources()\nlive = rr.snapshot((inventory, tools, handlers, specs))\nprint({k: (v['state'], v['differences']) for k, v in record_sections(live, record).items()}, live['counts'])\n# the project's own commands (the first writes docs/GRAPHITE_0.1_REGISTRY.json; the second writes nothing):\n#   python3 tools/record_registry.py\n#   python3 tools/record_registry.py --check",
+   "observed_output": "LIVE vs RECORD: registry PASSED [], settings PASSED [], adapters PASSED []; counts operations 760, job_tools 113, settings 49, adapters 760. Simulated one read op 'ledger.field': registry FAILED ['operation added: ledger.field (read)'], record keys changing: adapters, counts, operations, schema_digest (counts 761/761). Simulated one setting: settings FAILED ['setting added: appearance.field_probe'], keys changing: adapters, counts, settings, settings_digest, settings_order. Record row for ledger.browse: scope read, adapter 'workbench/browse.py#dispatch'."
+  },
+  {
+   "name": "Shape of one read-only operation (pattern copied from workbench/browse.py; not run as new code)",
+   "code": "# workbench/<module>.py\nFIELDS = {'ledger.<name>': ({'limit': {'type': 'integer', 'minimum': 1, 'maximum': 500}}, [])}   # (properties, required)\nSCOPES = {op: 'read' for op in FIELDS}\ndef dispatch(kernel, op, args, principal):\n    if op == 'ledger.<name>':\n        return {...}                      # a plain dict; raise ValueError for a refusal\n    raise ValueError('Unknown operation')\n# workbench/engineering_kernel.py: `from . import <module>` (near line 55); `**<module>.SCOPES,` in CAPABILITIES (near 222);\n#   `if op in <module>.FIELDS:return <module>.dispatch(self,op,a,p)` in Kernel._dispatch (near 620)\n# workbench/engineering_cli.py schemas(): `from .<module> import FIELDS as X_FIELDS` (near 87) and `**X_FIELDS,` (near 181)\n# workbench/activity.py OBSERVER_OPERATIONS: add the name if each call should not be journalled (lines 8-11)\n# then: python3 tools/record_registry.py   and review the diff of docs/GRAPHITE_0.1_REGISTRY.json\n# caller:\nfrom workbench.engineering_kernel import operator\nr = host.ledger_bridge.kernel.dispatch('ledger.<name>', {'limit': 50}, operator())\nvalue = r['result'] if r.get('ok') else None      # on refusal: r['error']['message']",
+   "observed_output": "Not executed as new code. Existing equivalent observed: schemas()['ledger.browse'] == {\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":4096},\"all\":{\"type\":\"boolean\"},\"limit\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":2000}},\"required\":[\"path\"],\"additionalProperties\":false}; the registry simulation above shows the record sections such an addition changes."
+  }
+ ],
+ "pitfalls": [
+  "`_close_start()` does nothing unless `_home_active` is True (qt_app.py:3627-3628). A page raised in central_stack with the flag False stays in front when a room is opened: probe showed `_close_start()` and `show_files()` leave it covering the workspace, so the newly selected tab is invisible. `tabs.currentChanged` fires only when the current tab actually changes (re-selecting the current tab, as show_files does, emits nothing). Raising the page while the flag is True does make `_close_start()` return, but then the window treats the centre as Home: title forced to 'Home \u2014 Graphite', typebar says 'Home', work_location and navigation_qt talk to `host.finder`, and last_surface='home' is saved.",
+  "Do not assign the new page to `host.home_page`: reading_preferences.apply calls `host.home_page.rain.set_reduce_motion(...)` (reading_preferences.py:127-128) and arc_desktop calls `host.home_page.open_followup()` (arc_desktop.py:98). FinderPage itself has no `rain` (finder_qt.py has no such attribute), so that line is already a latent AttributeError on the attached-project path where show_start sets `home_page=FinderPage` (qt_app.py:3506-3511); in a disposable (detached) home `home_page` stays None and the line is skipped.",
+  "Adding an action straight to a QMenu is undone: menus2.rebuild removes every action from every group and refills from key lists (menus2.py:247-257), and it runs at install, again at QTimer 0, and inside checks. Create the action once (hasattr guard, as at menus2.py:94 and 171) or two rebuilds will make two actions and break the identity assertions in check_explore_ui / check_navigation_ui.",
+  "The writing line only finds QActions that are in `host.actions()` (shell2.py:981), i.e. added with `host.addAction(action)`; actions made by menus2's `make()` without addAction (Files, Library, Agenda\u2026) are found only through the fixed `places` table (shell2.py:975-980). A label containing '\\tKey' (the menus2 display style) would be matched and shown with the tab in it; give a typed action a plain text and a real setShortcut.",
+  "Do not add the command to sdk/cli/arc1cli/command_bar.py MENU_DEFINITIONS: allowed_groups() feeds the `allowed_items` of the favorites.* setting definitions (settings_registry.py:140-146), so that changes setting definitions and the recorded registry. Putting the action in `host.favorite_actions` is registry-neutral but publishes a 'desktop.<key>' row in the desktop catalogue and the Command Palette (control_qt.py:437-441, workspace_qt.py:72-75).",
+  "QStackedWidget's minimum size is the largest of all its pages, current or not: a page with a wide minimumSizeHint (a layout of wide widgets) raises `w.centralWidget().minimumSizeHint()` for Home and every room, which the frame checks measure (check_frame_ui.py:99, 272) against the centre floor of 400 px at 14 pt. The Finder avoids this with size policy Ignored on its bars (finder_qt.py:364, 399) and ArtPanel with (Ignored, Fixed). The centre is only 812x608 at 1366x768 and the window may be as small as 1040x640.",
+  "A widget stylesheet with colours outside boss_theme.TOKENS is rewritten at Polish by theme2.Relight unless the widget has property `paperFunctionalInk` set True (theme2.py:219-231). QPainter colours are not touched.",
+  "Session keys are whitelisted on load (session.py:117 for desk_art, 191-195 for finder): a new key written to `host.session.state` is saved but dropped at the next start unless the loader is taught it. `view_preferences['last_surface']` accepts only 'home' or 'workspace' (sdk/cli/arc1cli/workspace_view.py:15-24); set_view_preference with any other value raises ValueError.",
+  "Art mode and reduced motion are not pushed to arbitrary widgets: choose_art refreshes only ArtPanel and PanelInk instances (boss_qt.py:273-274) and reading_preferences.apply notifies only four fixed consumers (reading_preferences.py:125-130). A new painted view has to read `host.session.state.get('desk_art','illustrated')` and `host.reading_profile.get('reduce_motion')` when it paints or is shown.",
+  "UI checks assert that show_start() leaves a FinderPage current with `_home_active` True (check_desk_ui.py:500, check_frame_ui.py:122 and 250, check_finder_ui.py:124); changing what Home is, or making the new view the default surface, fails them.",
+  "A Programs row is not a menu edit: it needs a new explore.VIEWS adapter, which changes the ledger.explore result and the pinned expectations in check_hatch_ui.py and test_launcher.py (expected_views, word list).",
+  "A 'Session \u2026' setting spec inserted before settings_registry.py:139 joins SESSION_BATCH_KEYS and therefore also changes the recorded argument schema of the operation ledger.settings.apply (ledger_control.py:37-39), not just the settings section.",
+  "String literals in shell2.py, menus2.py, finder_qt.py, programs_qt.py, system_menu_qt.py, typebar_qt.py, empty_workspace_qt.py and control_qt.py may not contain the words Ledger, Slate or Hatch (tests_integrated/test_graphite.py:282-325); a new module is only covered by the 'Ledger & Slate' sweep unless it is added to FRAME.",
+  "Any new or edited source makes the release check's runtime section fail against MANIFEST.json until packaging rewrites it; that is independent of the registry record and is expected while editing (tools/check_hatch.py:250-258).",
+  "In the disposable home the workspace is detached: show_start goes through empty_workspace_qt.show_home, resume_workspace opens a 'Files' FilesStart tab, and operations that require a project answer with status PROJECT_NOT_ATTACHED inside an ok result (engineering_kernel.py:512-514, 523).",
+  "The offscreen screen size is fixed when QApplication is created (the configfile), so a second size needs a second process or a `w.resize` on a screen at least that large; call `w.type_bar.align()` and pump events after every resize before grabbing, as desk_review's size() does (tools/desk_review.py:70-73)."
+ ],
+ "unknowns": [
+  "Two files, workbench/field_qt.py (357 lines) and workbench/field_model.py, appeared in the tree at 06:11:29 while my first probe was running. I did not write them and did not read them beyond noticing that nothing else imports field_qt yet; the registry check still passes with them present.",
+  "A directory sdk/cli/arc1cli/__pycache__ with six .pyc files appeared in the tree at 06:13:50. My probes run with -B and sys.dont_write_bytecode, and a rerun with PYTHONPYCACHEPREFIX showed they write no bytecode even through a child process (0 files), so it came from another process using the tree; I left it in place. It is a stray, unlisted file set as far as MANIFEST.json is concerned.",
+  "Whether tools/check_navigation_ui.py's menu_capture asserts anything about the Work menu beyond capturing it (for example whole words inside the open menu) was not read; only that it captures the menu at lines 140-142.",
+  "The attached-project path of show_start (home_page = FinderPage, then reading_preferences.apply reaching `.rain`) was established by reading only; it was not run because the disposable home is detached.",
+  "`Ctrl+Break` (a_stop, qt_app.py:2742) did not appear in the live shortcut dump (its key sequence printed as empty), so whether it is actually bound on this platform is not determined.",
+  "I did not run the UI checks or the test suite; the list of affected checks and tests is from reading their assertions, not from a failing or passing run after a change.",
+  "Whether a full-surface page is expected to hide the timeline row (ActivityTail) and the status bar under the centre was not determined: Home leaves both visible, and the probe page did the same."
+ ]
+}

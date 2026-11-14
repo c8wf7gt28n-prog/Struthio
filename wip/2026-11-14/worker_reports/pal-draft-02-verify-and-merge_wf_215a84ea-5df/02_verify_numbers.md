@@ -1,0 +1,53 @@
+| Claim (PAL 0.2 §6) | Verdict | Evidence |
+|---|---|---|
+| 12 V × 280 mA = 3.36 W | TRUE | Exact: 84/25 W. Graphite `evaluate` gives `84/25 W (3.36)` and `3360 mW` with output unit mW (math_model.py:127-147). |
+| 3.36 W is 2.64 W below 6 W | TRUE | Exact: 66/25 W. Graphite `limit - voltage * current` with `limit` declared as 6 W gives `66/25 W (2.64)`. A literal `6 - voltage*current` is refused with DIMENSION_MISMATCH, because bare numbers compile as dimensionless (math_model.py:162-163, 60). |
+| Solve 12 V·I ≤ 6 W, I ≥ 0: inclusive ceiling 500 mA | TRUE | Exact: 6/12 = 1/2 A = 500 mA, and 12 × 0.5 = 6 satisfies ≤. Graphite `sweep` boundary is `500 mA`, relation `le`, coefficient_sign +1 (math_model.py:253-256). `evaluate` at 500 is FEASIBLE (6 W vs 6 W). |
+| 501 mA gives 6.012 W, a counterexample | TRUE | Exact: 1503/250 W. Graphite: INFEASIBLE, `1503/250 W (6.012)`, `witness_check` False. |
+| Startup 110 ms against 80 ms: over by 30 ms | TRUE | Exact: 30 ms. Graphite `startup - pulse` gives `30 ms`. Sources: P01.json:20 (startup 110 ms, 650 mA); test_desk_acts.py:36 (Rev B pulse duration 80 ms; Rev A 120 ms). The 80 ms limit carries the condition "At up to 8 W" (test_faces_find_light.py:350). Startup power is 12 V × 650 mA = 39/5 = 7.8 W, so that limit applies. |
+| "the 6 W Rev B settled limit" | UNVERIFIABLE (name); number consistent | In the repo the 6 W row is called "Continuous limit" and is unchanged between Rev A and Rev B (test_faces_find_light.py:348,350). No "settled limit" row exists. The After Hours 07 backup is not in the repo (tools/campaign_lib/fixture.py:10,136). |
+| Settled current 300 mA: 3.60 W, 2.40 W headroom | TRUE | Exact: 18/5 and 12/5. Graphite prints `3.6` and `2.4`, because number_record strips trailing zeros (math_units.py:63). docs/CAMPAIGN.md:77 also has 3.60 W (18/5). |
+| V 11.8–12.2 V, I 270–290 mA: 3.186–3.538 W, headroom ≥ 2.462 W | TRUE (an exact, attained range, not just a conservative one) | Corners: 3.186, 3.422, 3.294, 3.538 W. P = V·I has ∂P/∂V = I ≥ 0 and ∂P/∂I = V ≥ 0 and is continuous on the box, so it is nondecreasing in each nonnegative input. The minimum is at (11.8 V, 270 mA) and the maximum at (12.2 V, 290 mA), so these two corners suffice. For inputs of any sign, a bilinear product still takes its extremes at the four corners. A 41×41 exact grid stays inside. Headroom 6 − V·I lies in [2.462, 2.814] W. Graphite has no interval operation (none in math_*.py); four `evaluate` calls reproduce 1593/500, 1711/500, 1647/500, 1769/500 W exactly. |
+| Robust ceiling at 12.2 V = 30,000/61 mA ≈ 491.803 mA | TRUE | Exact: 6/12.2 = 30/61 A = 491.80327868852459… mA. 12.2 V is the worst case because P rises with V; at 11.8 V the ceiling would be 30000/59 ≈ 508.47 mA. Graphite boundary: `30000/61 mA`, decimal `491.8032786885245901639344262`, decimal_exact false. |
+| Whole mA: 491 passes at 5.9902 W, 492 gives 6.0024 W | TRUE | Exact: 29951/5000 and 7503/1250 W. Graphite: FEASIBLE/INFEASIBLE, witness True/False. The engine itself does not round to whole mA: for an integer-domain variable it still reports the boundary as 30000/61. |
+| At 12 V each mA adds 12 mW | TRUE | Exact: 12 mW. Graphite `evaluate` at 1 mA with output unit mW gives `12 mW`. |
+| Derivatives in W/V and W/mA cannot be ranked by magnitude alone | TRUE | ∂P/∂V = I = 0.28 W/V. ∂P/∂I = V = 12 W/A = 0.012 W/mA. Against 0.28, the order flips with the current unit. Over the stated ranges, V moves P by 0.112 W and I by 0.24 W (together 0.352 = 3.538 − 3.186). |
+| Clock Lab: 16 MiB; 4 MiB workspace boundary "holds when the two 6 MiB allocations overlap" | PARTLY | 16 − 6 − 6 = 4. Graphite sweep root `4 MiB`, `le`, +1 (math_checks.py:40; test_exact_math.py:42). The condition is misstated. The model assumes "All three allocations are concurrent" (math_checks.py:12), so the workspace must overlap both buffers. The declared workspace is 5 MiB (examples/clock_lab/inputs/problem.json:39), so the all-concurrent case is 17 MiB > 16 MiB, which Graphite reports as INFEASIBLE. "Holds" can be misread as "the workspace fits". |
+| Rule: a·x + b ≤ 0 has boundary −b/a; a > 0 upper, a < 0 lower, a = 0 whole domain or contradiction | TRUE; Graphite only partly implements it | Exact tests pass for every sign. For a = 0: with ≤ the whole domain holds iff b ≤ 0; with < iff b < 0, so b = 0 is the whole domain under ≤ but empty under <. Graphite reports the sign and the relation but never says "upper" or "lower". `limit - V*I <= 2.4 W` gives root 300 mA, `le`, sign −1, which is really I ≥ 300 (checked: 299 fails, 300 passes). `limit >= V*I` gives 500, `ge`, −1, which is an upper bound. For a = 0 Graphite returns no boundary at all, silently: zero coefficients are dropped (math_model.py:190) and skipped (:252). The samples are 5/5 FEASIBLE for the whole-domain case and 5/5 INFEASIBLE for the contradiction. |
+| Rule: intersect with the domain | TRUE; Graphite does not do it | With I declared ≥ 0 and V·I ≤ −1 W, Graphite reports a boundary of −250/3 mA with within_sample_range false. It does not say the problem is contradictory. Boundaries ignore lower/upper (math_model.py:253-256). |
+| Rule: keep inclusive/exclusive endpoints | TRUE; Graphite shows it only through the relation | For `<` the root is still 500 mA with relation `lt`; there is no open/closed flag. `evaluate` at 500 with `<` is correctly INFEASIBLE. |
+| Rule: respect integer steps | TRUE but imprecise; Graphite does not do it | For ≤, the integer upper bound is ⌊r⌋. For < with r on the lattice it is r − step: 12 V·I < 6 W gives 499 mA, not 500. Graphite agrees (witness 499 True, 500 False) but reports the root 500 with `lt`. For a step s with offset o, use o + s·⌊(r−o)/s⌋ (enumeration-checked for 5 mA steps). A strict relation at a closed domain edge is empty (12x < 0 with x ≥ 0). Graphite: no rounding, and on an integer variable an 81-sample sweep over 0–1000 gives 40 DOMAIN_ERROR samples at non-integer x (math_model.py:101,240). |
+| Rule: x − x is exactly 0; independent interval subtraction is wider | TRUE | [1,3] − [1,3] = [−2, 2] independently. Likewise x·x on [−1,2]: independent [−2, 4], true range [0, 4]. Graphite works pointwise: `current - current` gives `0 mA`, and its affine form is (0, {}). It has no interval arithmetic, so the problem does not arise there yet. |
+| Rule: a denominator interval containing zero needs a domain obligation or a checked split | TRUE | For 1/x on [−1, 2], evaluating only the endpoints gives [−1, 1/2], which is not an enclosure: 1/x = 1000 at x = 1/1000. The true image is (−∞, −1] ∪ [1/2, ∞) via the split [−1,0) ∪ (0,2]. Graphite records DENOMINATOR_NONZERO (math_model.py:65) and gives DOMAIN_ERROR at x = 0. A 3-sample sweep over −1..2 (−1, 1/2, 2) misses the pole and is all FEASIBLE; 4 samples hit 0 and give DOMAIN_ERROR. With a variable denominator in a relation, `affine` raises UNSUPPORTED and `sweep` swallows it (math_model.py:257), so boundaries are silently `[]`. |
+| Rule: an enclosure touching both sides decides nothing alone | PARTLY | True for a conservative enclosure. When the enclosure is exact and attained (V·I over a box), the violating endpoint is a corner, and that corner is a counterexample. Example: V 11.8–12.2 V, I 270–500 mA has its maximum 6.1 W at (12.2 V, 500 mA). The "exactness status" the draft proposes should be allowed to decide this case. |
+| "The exact engine can recheck a candidate assignment against the original model" | PARTLY | `witness_check` (math_model.py:221-231) is exact, but it returns False for any assignment that differs from a declared value (:225). On the checked power model (current = 280 mA), `witness_check(current=500)` is False while `evaluate(current=500)` is FEASIBLE, because values() accepts the override (:97). With current undeclared: 500 True, 501 False. |
+| Graphite has exact rational quantities, dimensional checks, typed arithmetic and an affine boundary | TRUE (with the gaps above) | Every Graphite value above matched exact Fraction arithmetic, units included. Reversed bounds give DOMAIN_ERROR (math_model.py:40). Mixing V + mA, or comparing a mA limit with W, gives DIMENSION_MISMATCH (:60). A wrong output unit raises a bare `ValueError('INCOMPATIBLE_OUTPUT_UNIT')` from `evaluate` (math_units.py:70 via math_model.py:136/141) instead of returning a state. |
+| "Six existing exact-math tests … two optional-backend tests" | Counts consistent; run outcome not checked here | test_exact_math.py has 6 `def test_` and test_exact_math_solvers.py has 2. I did not run them in this part. |
+
+Notes:
+- Every number in the draft is correct in exact arithmetic, and Graphite's exact engine gives the same rational value and unit for each one.
+- Where Graphite and exact arithmetic disagree, it is never on a number. It is on rules the engine does not implement yet:
+  - no domain intersection;
+  - no upper/lower or open/closed flag;
+  - no integer rounding;
+  - zero-coefficient and nonlinear cases are dropped silently;
+  - no interval enclosure;
+  - `witness_check` refuses values that override a declared one.
+- The draft wording needs three fixes:
+  - the Clock Lab condition is "all three concurrent", and the declared workspace is 5 MiB;
+  - the strict-plus-integer-root case should be its own acceptance vector (499, not 500);
+  - "corners suffice" holds only for monotone or bilinear functions that are continuous on the box, never across a pole.
+- For the typed line: inline units are not possible in an expression, so "12 V × I ≤ 6 W" needs 6 W as a declared variable. "Solve for current" on the checked model must free `current` before the witness recheck.
+- field_ripple is not exact arithmetic. The what-if itself is exact, through `datasheet_work.what_if` → `math_model` (datasheet_work.py:306-307), and gives 18/5 W. The ripple's own matching uses floats with a relative tolerance of 1e-9 (field_doubt.py:64-67, 78-88; field_ripple.py:42-46):
+  - `_made_with` correctly reads 2.64 W as 6 W less 3.36 W and gives 2.4;
+  - but `_same(6, 6.000000005)` is True;
+  - and `_plain(30000/61)` shows `491.8032786885` without marking it rounded.
+  
+  A math receipt should not take numbers from the ripple.
+
+Scripts are in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/pal02/numbers/check/:
+- exact.py (exact Fraction recomputation; results in exact.json)
+- engine.py (the same cases through Graphite's functions)
+- extra.py (witness and strict-boundary checks)
+
+The repo copy is in /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/pal02/numbers/repo/.
