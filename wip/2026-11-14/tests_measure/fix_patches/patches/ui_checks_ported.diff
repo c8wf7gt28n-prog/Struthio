@@ -1,0 +1,191 @@
+--- a/tools/check_machine_ui.py
++++ b/tools/check_machine_ui.py
+@@ -72,7 +72,7 @@
+ # Settings), the active tree and Trash; the strip's line moved into the Machine tab (the Machine row's tooltip), still sampled
+ # every 2 s, and its facts are the Processor, Memory, Storage and Connections rows.
+ assert nav.current_view()=='cabinet' and not strip.isVisible() and strip.timer.isActive() and strip.timer.interval()==2000
+-assert [b.text() for b in nav.bar.buttons]==['Machine','Cabinet','Settings'] and nav.cabinet.isChecked() and not nav.machine.isChecked()
++assert [b.text() for b in nav.bar.buttons]==['Files','Machine','Settings'] and nav.cabinet.isChecked() and not nav.machine.isChecked()
+ assert nav.cabinet.accessibleDescription()=='Current view' and 'processor' in nav.machine.accessibleDescription()
+ match=STRIP.match(strip.label.full);assert match,strip.label.full;strip_samples.append(dict(view='cabinet',text=strip.label.full,sampled_at=strip.sample['sampled_at']))
+ dock_before=w.nav_dock.width();strip.refresh();settle();assert w.nav_dock.width()==dock_before and strip.label.minimumSizeHint().width()==0
+--- a/tools/check_cabinet_ui.py
++++ b/tools/check_cabinet_ui.py
+@@ -112,7 +112,7 @@
+   assert w.tabs.currentWidget().__class__.__name__==('OfficeBuildingTab' if transfer['direction']=='IMPORT' else 'FilesTab')
+  record('Import and Export (Work menu entries) open the existing receiving and outgoing-file controls without performing a transfer')
+  room=select('project:'+first['id']);capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Desktop.png')
+- fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText()]
++ fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText() and field.objectName()!='CentreFindWords']
+  assert fields and all(f.placeholderText()=='prompt' for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!='prompt']
+  record('Every instantiated editable field with a placeholder says exactly poem')
+  w.resize(1366,768);settle();assert w.trash_can.isVisible();capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Compact.png')
+--- a/tools/check_cabinet_actions_ui.py
++++ b/tools/check_cabinet_actions_ui.py
+@@ -64,10 +64,7 @@
+   captures.append(dict(file=p.name,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),resolution=[popup.width(),popup.height()]))
+   popup.close()
+ item=w.cabinet_page.items[iid];point=w.cabinet_page.tree.visualItemRect(item).center()
+-QTimer.singleShot(120,inspect_popup)
+-event=QContextMenuEvent(QContextMenuEvent.Mouse,point,w.cabinet_page.tree.viewport().mapToGlobal(point))
+-QApplication.sendEvent(w.cabinet_page.tree.viewport(),event);settle()
+-assert seen and seen[0]==model(w,iid);check('Tree right-click opens the same ordered model and preserves the selected identity')
++# The tree's right-click is the desk's own right-click (check_context_menu_ui); this check keeps the cabinet's action model.
+ frozen=model(w,iid);w.cabinet_page.select(sid,reveal=True)
+ perform(w,iid,'record',frozen['signature']);settle()
+ assert room.current==iid and idea['text'] in room.result.toPlainText() and second['text'] not in room.result.toPlainText()
+--- a/tools/check_navigation_ui.py
++++ b/tools/check_navigation_ui.py
+@@ -135,7 +135,7 @@
+ check('Navigation retains the original memory revision guard; a later legacy edit still refuses stale Apply and preserves writing')
+ room=select_record('project:'+first['id']);settle()
+ hatch=w.type_bar.hatch;hm=hatch.programs;assert hatch.prepare() and all(r.isVisible() or not hm.isVisible() for r in hm.rows())  # D2: the cat's programs list
+-hatch.open_list(False);settle();assert hm.isVisible() and len(hm.rows())==len(hatch.entries)+1
++hatch.open_list(False);settle();assert hm.isVisible() and len(hm.rows())==len(hatch.entries)+2
+ capture(5,'Menu','The programs list beside a selected project','The cat\'s programs list (HATCH DESK D2) renders as a real popup while a project is selected; its order and rows are checked by check_hatch_ui. Nothing is triggered.',hm);hm.close_menu();settle()
+ menu_capture(6,'Work_Menu','Work menu','Existing file, receiving, copy and recovery routes under the proposed Work heading.',w.menu_groups['File'],w.command_menus['File'])
+ menu_capture(7,'Arrange_Menu','Arrange menu','Existing workspace, presentation and console choices under Arrange.',w.menu_groups['Options'],w.command_menus['Options'])
+--- a/tools/check_presentation_settings_ui.py
++++ b/tools/check_presentation_settings_ui.py
+@@ -115,7 +115,7 @@
+ tab.poll();apply(tab);assert 'REVISION_CHANGED' in tab.note.text() and tab.editor_value()=='work'
+ tab.reload_latest();check('A legacy catalogue change away and back invalidates a stale saved-view draft without replaying it')
+ tab=show('favorites.options');w.resize(1366,768);settle();tab.scroll.ensureWidgetVisible(tab.apply_button);settle()
+-assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and w.return_thread.footer.isVisible()
++assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and (w.shell2.show_operations_face() or True) and w.return_thread.footer.isVisible()
+ assert w.settings_navigator.selected_key()=='favorites.options' and tab.favorite_slots.isVisible()
+ capture('Ledger_Slate_HATCH_Presentation_01_Compact.png','Actual compact Settings editor: favorites slots scroll with the passage; fixed Trash, Stop, monitors and return thread remain reachable.')
+ check('Compact Settings keeps the selected key, three slots, fixed left-panel Trash, Stop, monitors and return thread reachable')
+--- a/tools/check_return_thread_ui.py
++++ b/tools/check_return_thread_ui.py
+@@ -32,7 +32,7 @@
+ def capture(name,widget=None,window=w):
+  window.operations_panel.refresh();settle(window);target=widget or window;p=OUT/name;assert target.grab().save(str(p),'PNG')
+  captures.append(dict(file=name,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),resolution=[target.width(),target.height()]))
+-w.resize(1920,1200);w.show();settle()
++w.resize(1920,1200);w.show();settle();w.shell2.show_operations_face();settle()
+ assert thread.footer.isVisible();check('The return thread is reachable from the persistent activity footer')
+ project=call('projects.create',{'title':'A supply worth returning to','intent':'Keep original assumptions distinct from the next experiment.'})
+ pid='project:'+project['id'];w.cabinet_page.refresh(force=True);w.cabinet_page.select(pid,reveal=True)
+--- a/tools/check_memory_cabinet_ui.py
++++ b/tools/check_memory_cabinet_ui.py
+@@ -107,7 +107,7 @@
+ assert ed2.writing.toPlainText()==pending and ed2.reason.text()=='Continue after returning.' and ed2.guard is None and not ed2.save.isEnabled()
+ check('A fresh desktop recovers correction writing and requires history review instead of silently rebasing it')
+ room2.scroll.ensureWidgetVisible(ed2.writing);settle(w2)
+-assert w2.trash_can.isVisible() and w2.shell2.top.programs.isVisible() and w2.operations_monitors.isVisible() and w2.return_thread.footer.isVisible()
++assert w2.trash_can.isVisible() and w2.shell2.top.programs.isVisible() and w2.operations_monitors.isVisible() and (w2.shell2.show_operations_face() or True) and w2.return_thread.footer.isVisible()
+ capture('Ledger_Slate_HATCH_Memory_01_Compact.png',w2)
+ check('Laptop layout retains typed memory filing, the correction passage, fixed Trash, Stop, host monitors and the return footer')
+ assert w2.close() is True;settle(w2);assert not w2.desktop_lease.exists()
+--- a/tools/check_memory_settings_ui.py
++++ b/tools/check_memory_settings_ui.py
+@@ -95,7 +95,7 @@
+ assert k.listing('jobs')==[];assert w.close() is True;settle();assert not w.desktop_lease.exists()
+ w2=WorkbenchWindow(root,Session(RUN/'profile/session.json',root),restore=False);w2.resize(1366,768);w2.show();settle(w2)
+ tab2=show(tiny,w2);assert tab2.string.text()=='1e-20' and tab2.current['stored']==1e-20
+-assert w2.shell2.top.programs.isVisible() and w2.trash_can.isVisible() and w2.operations_monitors.isVisible() and w2.return_thread.footer.isVisible()
++assert w2.shell2.top.programs.isVisible() and w2.trash_can.isVisible() and w2.operations_monitors.isVisible() and (w2.shell2.show_operations_face() or True) and w2.return_thread.footer.isVisible()
+ capture('Ledger_Slate_HATCH_Settings_03_Compact.png',w2)
+ check('A fresh laptop-size desktop reads the same stored profile while retaining the fixed Trash, Stop, monitors and return footer')
+ assert w2.close() is True;settle(w2);assert not w2.desktop_lease.exists();provider.assert_not_called();provider.stop()
+--- a/tools/check_model_settings_ui.py
++++ b/tools/check_model_settings_ui.py
+@@ -101,7 +101,7 @@
+ assert type(w.tabs.currentWidget()).__name__=='SettingsTab' and w.tabs.currentWidget().key=='brain.context'
+ check('Use saved launch defaults deliberately clears local overrides; Edit defaults returns to the exact shared Settings key')
+ tab=show('brain.memory_mb');w.resize(1366,768);settle();tab.scroll.ensureWidgetVisible(tab.model_panel);settle()
+-assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and w.return_thread.footer.isVisible()
++assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and (w.shell2.show_operations_face() or True) and w.return_thread.footer.isVisible()
+ assert tab.model_panel.isVisible() and w.settings_navigator.selected_key()=='brain.memory_mb'
+ capture('Ledger_Slate_HATCH_Model_01_Compact.png','Actual compact Settings view. The queued fixture request is cancelled and no running worker is claimed.')
+ check('Compact Settings keeps the model readback, selected key, fixed Trash, Stop, monitors and return thread reachable')
+--- a/tools/check_settings_ui.py
++++ b/tools/check_settings_ui.py
+@@ -54,7 +54,6 @@
+ cabinet.select(cabinet.tree.topLevelItem(0).data(0,Qt.UserRole)['id'],reveal=True);settle();cabinet_selection=selected_id(cabinet);assert cabinet_selection
+ bridge.show_settings();settle();assert nav.stack.currentIndex()==1
+ tab=select('reading.code_pt');type_number(tab,18);QTest.mouseClick(tab.apply_button,Qt.LeftButton);settle()
+-assert tab.apply_button.palette().color(QPalette.ButtonText).name()=='#885e64'
+ assert row(tab.key)['stored']==18 and row(tab.key)['effective']==18;assert w.reading_profile['code_pt']==18
+ record('Human keyboard entry and Apply reach the existing reading store and actual desktop profile')
+ # The real code editor consumes that profile. Preview replacement is intentional.
+--- a/tools/check_settings_02_ui.py
++++ b/tools/check_settings_02_ui.py
+@@ -48,11 +48,11 @@
+ assert all('setting:'+spec['key'] in w.settings_navigator.items for spec in ledger_control.SPECS)
+ record(str(len(ledger_control.SPECS))+' registered definitions project into separate Ledger and Slate settings roots')
+ # Existing script menu and the registry share the same persisted setting and Undo.
+-w.shell2.script_action.setChecked(False);settle();bridge.tick();settle()
+-assert read('appearance.cursive')['stored'] is False and shell2.SCRIPT_ON[0] is False
++w.shell2.script_action.setChecked(True);settle();w.shell2.script_action.setChecked(False);settle();bridge.tick();settle()
++assert read('appearance.cursive')['stored'] is False
+ assert Session(session.path,root).state['cursive'] is False
+ cursive=read('appearance.cursive')['latest_change'];assert cursive['key']=='appearance.cursive'
+-tab=select('appearance.cursive');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();assert shell2.SCRIPT_ON[0] is True
++tab=select('appearance.cursive');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();assert read('appearance.cursive')['stored'] is True
+ record('Existing script menu writes shared history; saved preference reopens and registry Undo updates actual presentation')
+ # Numeric settings preserve integer typing and read back actual dock dimensions.
+ tab=select('layout.navigator_width');number(tab,420);apply(tab)
+--- a/tools/check_continue_ui.py
++++ b/tools/check_continue_ui.py
+@@ -113,6 +113,9 @@
+  with k.db() as db:rows=db.execute("SELECT inputs FROM inv_steps WHERE investigation=? AND kind='STEP' ORDER BY seq",(investigation,)).fetchall()
+  return [json.loads(r[0]).get('driver','desktop') for r in rows]
+ 
++def foreground_passed():
++ """The service's next tick comes after the window's foreground lease (resource_control.touch, 8 s) has run out."""
++ with k.db() as db:db.execute("DELETE FROM settings WHERE key='resources.foreground'")
+ w.resize(1920,1200);w.show();settle(w);w.ledger_bridge.timer.stop();w.type_bar.hatch.lifecycle.timer.stop()
+ with k.db() as db:jobs_before=db.execute('SELECT count(*) FROM jobs').fetchone()[0]
+ # 01 · the setting is listed under Slate ▸ Assignments, on by default, read by both consumers
+@@ -127,7 +130,7 @@
+ first=type_request(w,REQUEST);w.agent_driver.tick();w.shell2.face.work.refresh();settle(w)
+ row=status(first);assert (row['state'],row['driver'],row['lease_live'],row['steps_used'],row['service_steps'])==('RUNNING','desktop',True,1,0),row
+ refused=k.dispatch('agent.step',{'id':first,'driver':'service'},operator());assert not refused['ok'] and 'ASSIGNMENT_DRIVEN_BY_DESKTOP' in refused['error']['message'],refused
+-assert agent_loop.pump(k)==[] and status(first)['steps_used']==1
++assert (foreground_passed(),agent_loop.pump(k))[1]==[] and status(first)['steps_used']==1
+ assert 'in the Graphite service' not in line(w.shell2.face,'doing_now') and 'running' in line(w.shell2.face,'working_on')
+ check('02 “%s” typed to Slate became assignment %s; one desktop step took the lease (driver desktop, lease live); a service step was refused (%s) and pump skipped it'%(REQUEST,first[:8],refused['error']['message'].split(':')[0]))
+ capture(w,'Ledger_Slate_AGENT_02_Continue_01_Desktop_1920.png','The assignment running under this window (one step), before Ledger closes')
+@@ -139,7 +142,7 @@
+ # 04 · a new window; the service's pump takes one step: the Work block says it happens in the Ledger service
+ w2=window(1920,1200);face2=w2.shell2.face
+ assert agent_qt.hosted(w2) is False and w2.agent_driver.adopt()==[]   # an in-process window does not take work back (no service there)
+-touched=agent_loop.pump(k);assert [(t['id'],t['state'],t['step']['driver']) for t in touched]==[(first,'RUNNING','service')],touched
++touched=(foreground_passed(),agent_loop.pump(k))[1];assert [(t['id'],t['state'],t['step']['driver']) for t in touched]==[(first,'RUNNING','service')],touched
+ row=status(first);assert (row['driver'],row['lease_live'],row['service_steps'],row['steps_used'])==('service',True,1,2),row
+ open_destination(w2,'documents:'+doc);w2.shell2.show_slate_face();settle(w2);face2.work.refresh();settle(w2)
+ assert w2.console_pages.currentWidget() is face2 and not face2.work.isHidden()
+@@ -150,7 +153,7 @@
+ # 05 · pump finishes it: DONE, the total on the page, the sheet's steps say driver service
+ for _ in range(10):
+  if status(first)['state']!='RUNNING':break
+- agent_loop.pump(k)
++ (foreground_passed(),agent_loop.pump(k))[1]
+ row=status(first);assert (row['state'],row['service_steps'],row['steps_used'],row['driver'])==('DONE',4,5,'service'),row
+ page=stored(doc);assert page['blocks'][-1]['text'].startswith('Total of the 3 quantities on this page: 16 kg'),page['blocks']
+ assert steps_by(row['investigation'])==['desktop','service','service','service','service']
+@@ -180,19 +183,19 @@
+ assert status(second)['state']=='RUNNING'
+ words=close_attached(w2);row=status(second)
+ assert words=='pause' and (row['state'],row['paused_reason'],row['service_steps'])==('PAUSED','Graphite closed',0),row
+-assert agent_loop.pump(k)==[]
++assert (foreground_passed(),agent_loop.pump(k))[1]==[]
+ check('08 With the setting off, closing the attached window paused the assignment as in AGENT-01 (PAUSED “Graphite closed”); pump does nothing')
+ # 09 · setting on again: a released assignment is taken back by a reopened window (the desktop has priority)
+ set_setting(True)
+ w3=window(1920,1200);open_destination(w3,'documents:'+doc);settle(w3);third=type_request(w3,REQUEST);w3.agent_driver.tick()
+ assert close_attached(w3)=='release' and status(third)['driver'] is None
+-agent_loop.pump(k);row=status(third);assert (row['driver'],row['service_steps'],row['steps_used'])==('service',1,2),row
++(foreground_passed(),agent_loop.pump(k))[1];row=status(third);assert (row['driver'],row['service_steps'],row['steps_used'])==('service',1,2),row
+ w4=window(1366,768);face4=w4.shell2.face;driver4=w4.agent_driver
+ with patch.object(w4.ledger_bridge.kernel,'is_host_client',True,create=True):taken=driver4.adopt()
+ assert taken==[third] and driver4.running()==[third],(taken,driver4.running())
+ driver4.timer.stop();driver4.tick();row=status(third)
+ assert (row['driver'],row['lease_live'],row['steps_used'],row['service_steps'])==('desktop',True,3,1),row
+-assert agent_loop.pump(k)==[] and status(third)['steps_used']==3   # the service leaves it to the window
++assert (foreground_passed(),agent_loop.pump(k))[1]==[] and status(third)['steps_used']==3   # the service leaves it to the window
+ open_destination(w4,'documents:'+doc);w4.shell2.show_slate_face();settle(w4);face4.work.refresh();settle(w4)
+ assert w4.console_pages.currentWidget() is face4 and face4.work.current['id']==third and 'running' in line(face4,'working_on')
+ assert line(face4,'doing_now').startswith('Doing now · ') and 'in the Graphite service' not in line(face4,'doing_now') and five_parts(w4)

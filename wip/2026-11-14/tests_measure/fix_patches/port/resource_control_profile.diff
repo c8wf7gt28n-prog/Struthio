@@ -1,0 +1,20 @@
+--- /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/port/resource_control.orig.py	2026-11-14 10:28:48.991342344 +0000
++++ workbench/resource_control.py	2026-11-14 10:28:49.007993231 +0000
+@@ -287,7 +287,7 @@
+ 
+ def model_room(kernel,config,ident):
+     from .brain_runtime import host
+-    with kernel.db() as db:view=_view(kernel,db,host(),ident)
++    with kernel.db() as db:view=_view(kernel,db,host(profile=False),ident)
+     # budget_room, as at admission; the previous worker has stopped by now, so no handover credit is left to add.
+     # Auto's headroom (config['headroom_mb']) is kept with its budget here too, as at admission.
+     if view['available_bytes'] is None or (config['memory_mb']+(config.get('headroom_mb') or 0))*MIB>budget_room(
+@@ -312,7 +312,7 @@
+ def background_reason(kernel):
+     from .brain_runtime import host
+     with kernel.db() as db:
+-        view=_view(kernel,db,host())
++        view=_view(kernel,db,host(profile=False))
+         if view['foreground_active']:return 'Foreground interaction has the next turn'
+         if view['available_bytes'] is None or view['headroom_bytes']<128*MIB:return 'Waiting for shared-memory headroom'
+         if any(j['state']=='Queued' and (j.get('resource_request') or request(j,'normal'))['priority']=='foreground' for j in view['jobs']):return 'Foreground work is queued'

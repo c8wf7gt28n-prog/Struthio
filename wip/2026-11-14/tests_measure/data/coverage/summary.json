@@ -1,0 +1,155 @@
+{
+ "tree": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/coverage/tree",
+ "commit": "d1df337",
+ "coverage_py": "7.17.3",
+ "method": "one process per test module: python -B -m unittest -v tests_integrated.<m>, coverage started at interpreter start by boot/sitecustomize.py (COVERAGE_PROCESS_START=rc/<m>.rc: branch=True, parallel=True, source=<tree>/workbench, context=<m>, dynamic_context=test_function); Python children that inherit the environment are measured too",
+ "modules": [
+  "test_adaptive_contract",
+  "test_agent_loop",
+  "test_algorithm_atlas",
+  "test_browse",
+  "test_cabinet",
+  "test_cabinet_actions",
+  "test_campaign",
+  "test_change_sets",
+  "test_conditions",
+  "test_context_menu",
+  "test_continue_setting",
+  "test_continuing_work",
+  "test_deployment",
+  "test_desk",
+  "test_desk_acts",
+  "test_desk_scenes",
+  "test_discovery",
+  "test_documents",
+  "test_exact_math",
+  "test_exact_math_solvers",
+  "test_explore",
+  "test_faces_find_light",
+  "test_frame",
+  "test_graphite",
+  "test_hardware_settings",
+  "test_install_media",
+  "test_joined_work",
+  "test_kasandra",
+  "test_launcher",
+  "test_machine",
+  "test_memory_cabinet",
+  "test_memory_settings",
+  "test_model_settings",
+  "test_model_turn",
+  "test_network_watch",
+  "test_operations",
+  "test_paper",
+  "test_presentation_settings",
+  "test_problem",
+  "test_profile_files",
+  "test_project_desk",
+  "test_readiness",
+  "test_reasoning_graph",
+  "test_related",
+  "test_release_check",
+  "test_resource_rules",
+  "test_return_thread",
+  "test_service_lifecycle",
+  "test_settings_advanced",
+  "test_settings_registry",
+  "test_slate_reasoning",
+  "test_stacy_hand",
+  "test_stacy_start",
+  "test_startup_scripts",
+  "test_system_menu",
+  "test_tool_atlas",
+  "test_tool_selection",
+  "test_vocabulary",
+  "test_workspace_backup",
+  "test_writing_line"
+ ],
+ "focused_modules": 59,
+ "totals": {
+  "statements": 90533,
+  "covered_lines": 42545,
+  "covered_lines_focused": 42458,
+  "branches": 34982,
+  "covered_branches": 11470,
+  "covered_branches_focused": 11418,
+  "files": 468,
+  "files_executed": 386,
+  "body_statements": 76851,
+  "covered_body_lines": 30596,
+  "covered_body_lines_focused": 30509,
+  "files_with_a_body_line_run": 325
+ },
+ "body_line_pct_all": 39.81,
+ "line_pct_all": 46.99,
+ "branch_pct_all": 32.79,
+ "line_pct_focused": 46.9,
+ "branch_pct_focused": 32.64,
+ "never_executed_modules": 82,
+ "never_executed_module_statements": 11179,
+ "never_executed_module_verdicts": {
+  "never imported and named in no code (at most in MANIFEST/docs data): likely dead": {
+   "files": 5,
+   "statements": 1039
+  },
+  "imported only by workbench modules that are themselves never executed: dead chain or untested": {
+   "files": 10,
+   "statements": 1713
+  },
+  "never imported; named in code as a path or -m target (launched or listed by name)": {
+   "files": 22,
+   "statements": 2111
+  },
+  "imported (lazily) by executed workbench code, on a path no test takes: untested": {
+   "files": 43,
+   "statements": 6019
+  },
+  "imported only outside workbench (tools, sdk, root scripts, tests)": {
+   "files": 2,
+   "statements": 297
+  }
+ },
+ "functions": {
+  "functions": 7151,
+  "function_statements": 68936,
+  "never_called": 3215,
+  "never_called_statements": 31448
+ },
+ "never_called_function_kinds": {
+  "name referenced elsewhere": {
+   "functions": 2749,
+   "statements": 27688
+  },
+  "protocol method": {
+   "functions": 92,
+   "statements": 1637
+  },
+  "framework hook (called by Qt/stdlib by name)": {
+   "functions": 140,
+   "statements": 1122
+  },
+  "name appears nowhere else in the tree (likely dead)": {
+   "functions": 21,
+   "statements": 129
+  },
+  "nested": {
+   "functions": 213,
+   "statements": 872
+  }
+ },
+ "tests_in_logs": 939,
+ "tests_with_own_workbench_lines": 839,
+ "tests_ran_without_own_lines": 100,
+ "tests_skipped": 0,
+ "tests_with_zero_unique_lines": 441,
+ "modules_with_zero_unique_lines": [
+  "test_campaign",
+  "test_continue_setting",
+  "test_install_media"
+ ],
+ "greedy_note": "set cover over function-body lines; modules ranked by new body lines per baseline second, tests by new body lines",
+ "greedy_modules_for_full_focused_line_coverage": 56,
+ "focused_union_lines": 30509,
+ "greedy_tests_for_full_focused_line_coverage": 433,
+ "focused_union_lines_tests": 27378
+}

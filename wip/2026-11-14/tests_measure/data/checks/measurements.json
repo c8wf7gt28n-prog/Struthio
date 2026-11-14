@@ -1,0 +1,5803 @@
+{
+ "timings": {
+  "0.8.2": {
+   "checks_seconds": {
+    "suite": 489.7,
+    "scene_graphite": 70.9,
+    "scene_kasandra": 71.9,
+    "probes_1920x1200": 923.1,
+    "probes_1366x768": 922.8,
+    "crawl_graphite": 841.7,
+    "sweep_graphite": 12.2,
+    "crawl_kasandra": 841.7,
+    "sweep_kasandra": 11.5,
+    "gate": 191.0,
+    "total": 4376.5
+   },
+   "probe_seconds_1920x1200": {
+    "look_probe": 44.0,
+    "head_probe": 21.6,
+    "glow_probe": 21.6,
+    "centre_probe": 21.3,
+    "audit_probe": 32.3,
+    "mouse_probe": 29.0,
+    "mouse2_probe": 16.6,
+    "pages_probe": 39.0,
+    "more_probe": 21.7,
+    "icons_probe": 123.4,
+    "crash_probe": 28.9,
+    "boxes_probe": 24.0,
+    "map_probe": 16.1,
+    "find_probe": 98.7,
+    "zoom_probe": 11.8,
+    "amber_probe": 13.2,
+    "green_probe": 7.3,
+    "cascade_probe": 13.7,
+    "ux044_probe": 21.7,
+    "first_probe": 6.6,
+    "eq_probe": 25.2,
+    "pane_probe": 21.3,
+    "line_probe": 21.7,
+    "hand_probe": 84.8,
+    "start_probe": 47.0,
+    "door_probe": 45.4,
+    "kasandra_probe": 21.3,
+    "window": 13.2,
+    "stacy": 10.6,
+    "regress": 20.2
+   },
+   "probe_seconds_1366x768": {
+    "look_probe": 43.4,
+    "head_probe": 21.8,
+    "glow_probe": 21.3,
+    "centre_probe": 20.6,
+    "audit_probe": 32.1,
+    "mouse_probe": 27.8,
+    "mouse2_probe": 13.7,
+    "pages_probe": 39.0,
+    "more_probe": 22.2,
+    "icons_probe": 123.0,
+    "crash_probe": 28.5,
+    "boxes_probe": 23.3,
+    "map_probe": 15.2,
+    "find_probe": 99.9,
+    "zoom_probe": 10.7,
+    "amber_probe": 12.9,
+    "green_probe": 6.8,
+    "cascade_probe": 13.2,
+    "ux044_probe": 19.8,
+    "first_probe": 6.0,
+    "eq_probe": 24.2,
+    "pane_probe": 20.8,
+    "line_probe": 21.7,
+    "hand_probe": 83.0,
+    "start_probe": 46.3,
+    "door_probe": 66.6,
+    "kasandra_probe": 19.3,
+    "window": 12.3,
+    "stacy": 9.6,
+    "regress": 17.6
+   },
+   "method": "sequential (checks_082.sh); start = birth time of the extracted trees"
+  },
+  "0.8.1": {
+   "probe_seconds_1920x1200": {
+    "look_probe": 113.2,
+    "head_probe": 21.0,
+    "glow_probe": 21.3,
+    "centre_probe": 20.3,
+    "audit_probe": 31.8,
+    "mouse_probe": 28.2,
+    "mouse2_probe": 6.4,
+    "pages_probe": 38.5,
+    "more_probe": 21.4,
+    "icons_probe": 122.1,
+    "crash_probe": 28.0,
+    "boxes_probe": 23.2,
+    "map_probe": 15.1,
+    "find_probe": 97.9,
+    "zoom_probe": 10.8,
+    "amber_probe": 12.6,
+    "green_probe": 6.3,
+    "cascade_probe": 10.6,
+    "ux044_probe": 18.8,
+    "first_probe": 5.7,
+    "eq_probe": 24.0,
+    "pane_probe": 20.1,
+    "line_probe": 21.3,
+    "hand_probe": 82.2,
+    "start_probe": 45.6,
+    "door_probe": 43.8,
+    "kasandra_probe": 19.1,
+    "window": 11.9,
+    "stacy": 9.4,
+    "regress": 17.5
+   },
+   "probe_seconds_1366x768": {
+    "look_probe": 42.4,
+    "head_probe": 20.9,
+    "glow_probe": 20.7,
+    "centre_probe": 20.3,
+    "audit_probe": 31.5,
+    "mouse_probe": 26.1,
+    "mouse2_probe": 13.3,
+    "pages_probe": 38.2,
+    "more_probe": 21.3,
+    "icons_probe": 121.5,
+    "crash_probe": 28.1,
+    "boxes_probe": 23.5,
+    "map_probe": 15.1,
+    "find_probe": 97.7,
+    "zoom_probe": 10.3,
+    "amber_probe": 12.1,
+    "green_probe": 6.0,
+    "cascade_probe": 10.7,
+    "ux044_probe": 18.3,
+    "first_probe": 5.8,
+    "eq_probe": 24.0,
+    "pane_probe": 20.2,
+    "line_probe": 20.9,
+    "hand_probe": 81.6,
+    "start_probe": 46.3,
+    "door_probe": 44.0,
+    "kasandra_probe": 18.7,
+    "window": 11.3,
+    "stacy": 9.0,
+    "regress": 16.1
+   },
+   "probes_1920x1200": 947.9,
+   "probes_1366x768": 875.8,
+   "crawl_kasandra": 834.4,
+   "method": "the 1920 set started after the suite log; a second suite run (modules_b) overlapped its first minutes; the 1366 set overlapped the Graphite crawl and the gate, so its times are inflated"
+  },
+  "0.8.0": {
+   "crawl_kasandra": 835.2,
+   "method": "crawl_kasandra started when crawl_graphite ended (as its log order shows)"
+  },
+  "per_probe": {
+   "look_probe": {
+    "0.8.2_1920": 44.0,
+    "0.8.2_1366": 43.4,
+    "0.8.1_1920": 113.2,
+    "0.8.1_1366(contended)": 42.4,
+    "per_release_both_sizes_0.8.2": 87.4
+   },
+   "head_probe": {
+    "0.8.2_1920": 21.6,
+    "0.8.2_1366": 21.8,
+    "0.8.1_1920": 21.0,
+    "0.8.1_1366(contended)": 20.9,
+    "per_release_both_sizes_0.8.2": 43.4
+   },
+   "glow_probe": {
+    "0.8.2_1920": 21.6,
+    "0.8.2_1366": 21.3,
+    "0.8.1_1920": 21.3,
+    "0.8.1_1366(contended)": 20.7,
+    "per_release_both_sizes_0.8.2": 42.9
+   },
+   "centre_probe": {
+    "0.8.2_1920": 21.3,
+    "0.8.2_1366": 20.6,
+    "0.8.1_1920": 20.3,
+    "0.8.1_1366(contended)": 20.3,
+    "per_release_both_sizes_0.8.2": 41.9
+   },
+   "audit_probe": {
+    "0.8.2_1920": 32.3,
+    "0.8.2_1366": 32.1,
+    "0.8.1_1920": 31.8,
+    "0.8.1_1366(contended)": 31.5,
+    "per_release_both_sizes_0.8.2": 64.4
+   },
+   "mouse_probe": {
+    "0.8.2_1920": 29.0,
+    "0.8.2_1366": 27.8,
+    "0.8.1_1920": 28.2,
+    "0.8.1_1366(contended)": 26.1,
+    "per_release_both_sizes_0.8.2": 56.8
+   },
+   "mouse2_probe": {
+    "0.8.2_1920": 16.6,
+    "0.8.2_1366": 13.7,
+    "0.8.1_1920": 6.4,
+    "0.8.1_1366(contended)": 13.3,
+    "per_release_both_sizes_0.8.2": 30.3
+   },
+   "pages_probe": {
+    "0.8.2_1920": 39.0,
+    "0.8.2_1366": 39.0,
+    "0.8.1_1920": 38.5,
+    "0.8.1_1366(contended)": 38.2,
+    "per_release_both_sizes_0.8.2": 78.0
+   },
+   "more_probe": {
+    "0.8.2_1920": 21.7,
+    "0.8.2_1366": 22.2,
+    "0.8.1_1920": 21.4,
+    "0.8.1_1366(contended)": 21.3,
+    "per_release_both_sizes_0.8.2": 43.9
+   },
+   "icons_probe": {
+    "0.8.2_1920": 123.4,
+    "0.8.2_1366": 123.0,
+    "0.8.1_1920": 122.1,
+    "0.8.1_1366(contended)": 121.5,
+    "per_release_both_sizes_0.8.2": 246.4
+   },
+   "crash_probe": {
+    "0.8.2_1920": 28.9,
+    "0.8.2_1366": 28.5,
+    "0.8.1_1920": 28.0,
+    "0.8.1_1366(contended)": 28.1,
+    "per_release_both_sizes_0.8.2": 57.4
+   },
+   "boxes_probe": {
+    "0.8.2_1920": 24.0,
+    "0.8.2_1366": 23.3,
+    "0.8.1_1920": 23.2,
+    "0.8.1_1366(contended)": 23.5,
+    "per_release_both_sizes_0.8.2": 47.3
+   },
+   "map_probe": {
+    "0.8.2_1920": 16.1,
+    "0.8.2_1366": 15.2,
+    "0.8.1_1920": 15.1,
+    "0.8.1_1366(contended)": 15.1,
+    "per_release_both_sizes_0.8.2": 31.3
+   },
+   "find_probe": {
+    "0.8.2_1920": 98.7,
+    "0.8.2_1366": 99.9,
+    "0.8.1_1920": 97.9,
+    "0.8.1_1366(contended)": 97.7,
+    "per_release_both_sizes_0.8.2": 198.6
+   },
+   "zoom_probe": {
+    "0.8.2_1920": 11.8,
+    "0.8.2_1366": 10.7,
+    "0.8.1_1920": 10.8,
+    "0.8.1_1366(contended)": 10.3,
+    "per_release_both_sizes_0.8.2": 22.5
+   },
+   "amber_probe": {
+    "0.8.2_1920": 13.2,
+    "0.8.2_1366": 12.9,
+    "0.8.1_1920": 12.6,
+    "0.8.1_1366(contended)": 12.1,
+    "per_release_both_sizes_0.8.2": 26.1
+   },
+   "green_probe": {
+    "0.8.2_1920": 7.3,
+    "0.8.2_1366": 6.8,
+    "0.8.1_1920": 6.3,
+    "0.8.1_1366(contended)": 6.0,
+    "per_release_both_sizes_0.8.2": 14.1
+   },
+   "cascade_probe": {
+    "0.8.2_1920": 13.7,
+    "0.8.2_1366": 13.2,
+    "0.8.1_1920": 10.6,
+    "0.8.1_1366(contended)": 10.7,
+    "per_release_both_sizes_0.8.2": 26.9
+   },
+   "ux044_probe": {
+    "0.8.2_1920": 21.7,
+    "0.8.2_1366": 19.8,
+    "0.8.1_1920": 18.8,
+    "0.8.1_1366(contended)": 18.3,
+    "per_release_both_sizes_0.8.2": 41.5
+   },
+   "first_probe": {
+    "0.8.2_1920": 6.6,
+    "0.8.2_1366": 6.0,
+    "0.8.1_1920": 5.7,
+    "0.8.1_1366(contended)": 5.8,
+    "per_release_both_sizes_0.8.2": 12.6
+   },
+   "eq_probe": {
+    "0.8.2_1920": 25.2,
+    "0.8.2_1366": 24.2,
+    "0.8.1_1920": 24.0,
+    "0.8.1_1366(contended)": 24.0,
+    "per_release_both_sizes_0.8.2": 49.4
+   },
+   "pane_probe": {
+    "0.8.2_1920": 21.3,
+    "0.8.2_1366": 20.8,
+    "0.8.1_1920": 20.1,
+    "0.8.1_1366(contended)": 20.2,
+    "per_release_both_sizes_0.8.2": 42.1
+   },
+   "line_probe": {
+    "0.8.2_1920": 21.7,
+    "0.8.2_1366": 21.7,
+    "0.8.1_1920": 21.3,
+    "0.8.1_1366(contended)": 20.9,
+    "per_release_both_sizes_0.8.2": 43.4
+   },
+   "hand_probe": {
+    "0.8.2_1920": 84.8,
+    "0.8.2_1366": 83.0,
+    "0.8.1_1920": 82.2,
+    "0.8.1_1366(contended)": 81.6,
+    "per_release_both_sizes_0.8.2": 167.8
+   },
+   "start_probe": {
+    "0.8.2_1920": 47.0,
+    "0.8.2_1366": 46.3,
+    "0.8.1_1920": 45.6,
+    "0.8.1_1366(contended)": 46.3,
+    "per_release_both_sizes_0.8.2": 93.3
+   },
+   "door_probe": {
+    "0.8.2_1920": 45.4,
+    "0.8.2_1366": 66.6,
+    "0.8.1_1920": 43.8,
+    "0.8.1_1366(contended)": 44.0,
+    "per_release_both_sizes_0.8.2": 112.0
+   },
+   "kasandra_probe": {
+    "0.8.2_1920": 21.3,
+    "0.8.2_1366": 19.3,
+    "0.8.1_1920": 19.1,
+    "0.8.1_1366(contended)": 18.7,
+    "per_release_both_sizes_0.8.2": 40.6
+   },
+   "window": {
+    "0.8.2_1920": 13.2,
+    "0.8.2_1366": 12.3,
+    "0.8.1_1920": 11.9,
+    "0.8.1_1366(contended)": 11.3,
+    "per_release_both_sizes_0.8.2": 25.5
+   },
+   "stacy": {
+    "0.8.2_1920": 10.6,
+    "0.8.2_1366": 9.6,
+    "0.8.1_1920": 9.4,
+    "0.8.1_1366(contended)": 9.0,
+    "per_release_both_sizes_0.8.2": 20.2
+   },
+   "regress": {
+    "0.8.2_1920": 20.2,
+    "0.8.2_1366": 17.6,
+    "0.8.1_1920": 17.5,
+    "0.8.1_1366(contended)": 16.1,
+    "per_release_both_sizes_0.8.2": 37.8
+   }
+  }
+ },
+ "fixed_waits": {
+  "first_probe": [
+   {
+    "run_s": 5.4,
+    "waits_s": 1.8,
+    "share": 0.333,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/first_probe.log"
+   }
+  ],
+  "zoom_probe": [
+   {
+    "run_s": 10.5,
+    "waits_s": 4.9,
+    "share": 0.467,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/zoom_probe.log"
+   }
+  ],
+  "glow_probe": [
+   {
+    "run_s": 21.1,
+    "waits_s": 15.8,
+    "share": 0.749,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/glow_probe.log"
+   }
+  ],
+  "name_sweep": [
+   {
+    "run_s": 11.2,
+    "waits_s": 5.9,
+    "share": 0.527,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/name_sweep.log"
+   }
+  ],
+  "pages_probe": [
+   {
+    "run_s": 38.5,
+    "waits_s": 32.9,
+    "share": 0.855,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/pages_probe.log"
+   }
+  ],
+  "mouse2_probe": [
+   {
+    "run_s": 15.7,
+    "waits_s": 10.6,
+    "share": 0.675,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/mouse2_probe.log"
+   }
+  ],
+  "green_probe": [
+   {
+    "run_s": 6.3,
+    "waits_s": 1.8,
+    "share": 0.286,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/green_probe.log"
+   }
+  ],
+  "crawl_probe": [
+   {
+    "run_s": 837.7,
+    "waits_s": 793.1,
+    "share": 0.947,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/crawl_probe.log"
+   },
+   {
+    "run_s": 836.9,
+    "waits_s": 793.1,
+    "share": 0.948,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/logs/crawl_timed.log"
+   }
+  ],
+  "kasandra_probe": [
+   {
+    "run_s": 19.3,
+    "waits_s": 13.2,
+    "share": 0.684,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/kasandra_probe.log"
+   }
+  ],
+  "boxes_probe": [
+   {
+    "run_s": 22.9,
+    "waits_s": 16.6,
+    "share": 0.725,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/boxes_probe.log"
+   }
+  ],
+  "more_probe": [
+   {
+    "run_s": 21.4,
+    "waits_s": 17.0,
+    "share": 0.794,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/more_probe.log"
+   }
+  ],
+  "crash_probe": [
+   {
+    "run_s": 27.8,
+    "waits_s": 23.0,
+    "share": 0.827,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/crash_probe.log"
+   }
+  ],
+  "start_probe": [
+   {
+    "run_s": 46.2,
+    "waits_s": 40.6,
+    "share": 0.879,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/start_probe.log"
+   }
+  ],
+  "find_probe": [
+   {
+    "run_s": 98.6,
+    "waits_s": 89.5,
+    "share": 0.908,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/find_probe.log"
+   },
+   {
+    "run_s": 97.8,
+    "waits_s": 89.5,
+    "share": 0.915,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/logs/find_probe_timed.log"
+   }
+  ],
+  "head_probe": [
+   {
+    "run_s": 20.6,
+    "waits_s": 14.1,
+    "share": 0.684,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/head_probe.log"
+   }
+  ],
+  "amber_probe": [
+   {
+    "run_s": 12.6,
+    "waits_s": 7.1,
+    "share": 0.563,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/amber_probe.log"
+   }
+  ],
+  "cascade_probe": [
+   {
+    "run_s": 12.9,
+    "waits_s": 6.4,
+    "share": 0.496,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/cascade_probe.log"
+   }
+  ],
+  "ux044_probe": [
+   {
+    "run_s": 19.2,
+    "waits_s": 10.9,
+    "share": 0.568,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/ux044_probe.log"
+   }
+  ],
+  "audit_probe": [
+   {
+    "run_s": 31.7,
+    "waits_s": 26.7,
+    "share": 0.842,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/audit_probe.log"
+   }
+  ],
+  "icons_probe": [
+   {
+    "run_s": 122.6,
+    "waits_s": 112.5,
+    "share": 0.918,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/icons_probe.log"
+   },
+   {
+    "run_s": 122.0,
+    "waits_s": 112.5,
+    "share": 0.922,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/logs/icons_probe_timed.log"
+   }
+  ],
+  "pane_probe": [
+   {
+    "run_s": 19.9,
+    "waits_s": 15.6,
+    "share": 0.784,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/pane_probe.log"
+   }
+  ],
+  "mouse_probe": [
+   {
+    "run_s": 28.5,
+    "waits_s": 20.7,
+    "share": 0.726,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/mouse_probe.log"
+   }
+  ],
+  "hand_probe": [
+   {
+    "run_s": 83.7,
+    "waits_s": 69.8,
+    "share": 0.834,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/hand_probe.log"
+   },
+   {
+    "run_s": 84.2,
+    "waits_s": 69.8,
+    "share": 0.829,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/logs/hand_probe_timed.log"
+   }
+  ],
+  "eq_probe": [
+   {
+    "run_s": 24.0,
+    "waits_s": 18.3,
+    "share": 0.763,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/eq_probe.log"
+   }
+  ],
+  "door_probe": [
+   {
+    "run_s": 43.7,
+    "waits_s": 38.8,
+    "share": 0.888,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/door_probe.log"
+   }
+  ],
+  "map_probe": [
+   {
+    "run_s": 14.9,
+    "waits_s": 10.0,
+    "share": 0.671,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/map_probe.log"
+   }
+  ],
+  "look_probe": [
+   {
+    "run_s": 42.7,
+    "waits_s": 36.5,
+    "share": 0.855,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/look_probe.log"
+   }
+  ],
+  "line_probe": [
+   {
+    "run_s": 21.5,
+    "waits_s": 16.0,
+    "share": 0.744,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/line_probe.log"
+   }
+  ],
+  "centre_probe": [
+   {
+    "run_s": 20.6,
+    "waits_s": 15.2,
+    "share": 0.738,
+    "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/centre_probe.log"
+   }
+  ]
+ },
+ "two_sizes": {
+  "look_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "   07_Bench_Readings.pdf    head says: '07_Bench_Readings.pdf'            'Preview \u00b7 PDF'                    | its text: graphite://open/4d4eb690bd87456a9f48bfa80a13",
+    "   07 Bench readings        head says: '07 Bench readings'                'Preview'                          | its text: graphite://open/f3188213e6d6461eb8b85231d3ce",
+    "   Settled draw             head says: 'After Hours 07'                   'Investigations'                   | its text: graphite://open/feaacbc938974e1ca5d3c5f497b5",
+    "asked for the address: has the keyboard True | selected: graphite://open/feaacbc938974e1ca5d3c5f497b5625f",
+    "Z from 0.80: zoom seen every 22 ms [0.859, 0.925, 0.99, 0.999, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] -> rests at 1.00, whole False"
+   ],
+   "only_at_1366": [
+    "   07_Bench_Readings.pdf    head says: '07_Bench_Readings.pdf'            'Preview \u00b7 PDF'                    | its text: graphite://open/3014272431844c5aa4a9adfcdd07",
+    "   07 Bench readings        head says: '07 Bench readings'                'Preview'                          | its text: graphite://open/0a579355232e4743b9d28ff76852",
+    "   Settled draw             head says: 'After Hours 07'                   'Investigations'                   | its text: graphite://open/4d88e5dcfef74dc3b580b87810c5",
+    "asked for the address: has the keyboard True | selected: graphite://open/4d88e5dcfef74dc3b580b87810c5e6de",
+    "Z from 1.00: zoom seen every 22 ms [1.0, 0.667, 0.567, 0.44, 0.414, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4] -> rests at 0.40, whole True"
+   ]
+  },
+  "head_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "glow_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "centre_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "audit_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "Field click places: ['The apps face of the F', 'The network face of th', 'Go to the next thing t', 'Whole desk \u00b7 80%', 'Larger', 'Smaller', 'Do', 'Doubt', 'Trace', 'Check all', 'Brief', 'Line', 'Look again', 'Back']"
+   ],
+   "only_at_1366": [
+    "Field click places: ['The apps face of the F', 'The network face of th', 'Go to the next thing t', 'Whole desk', 'Larger', 'Smaller', 'Do', 'Doubt', 'Check all', 'Back']"
+   ]
+  },
+  "mouse_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "   clicked the card\u2019s row for T (Trace) -> card closed: True | Talk: \u2190\u2190 source \u00b7 07_Bench_Readings.pdf (current) \u00b7 page 1 / \u2190 sheet \u00b7 07 Bench readings (current) \u00b7 cells B2, B3 / \u2022 calculation \u00b7 07 Settled pow"
+   ],
+   "only_at_1366": [
+    "   clicked the card\u2019s row for T (None) -> card closed: True | Talk: Ask about what is open. In the Field, say \u201cthis\u201d and I take the selected sheet. What I read, I show as a line you can run yourself."
+   ]
+  },
+  "mouse2_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "3. bars: [('v', 745)]"
+   ],
+   "only_at_1366": [
+    "3. bars: [('v', 190), ('h', 509)]"
+   ]
+  },
+  "pages_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "more_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "icons_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "crash_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "boxes_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "map_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "Z: zoom 1.0 | far: False | whole: False | session now: {'zoom': 1.0, 'whole': False}"
+   ],
+   "only_at_1366": [
+    "Z: zoom 0.40000008747630855 | far: True | whole: True | session now: {'zoom': 0.4, 'whole': True}"
+   ]
+  },
+  "find_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "zoom_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "Z: sheets whole in the window 13 of 14 | zoom 1.00 | fitted stays: False | scroll 0,0",
+    "back in the Field: zoom 1.00 fitted False",
+    "Z again: zoom 0.80 | fitted True",
+    "Ctrl+wheel in x6 about \u201c07 Settled power \u00b7 3.36 W\u201d: zoom 1.30 | under the pointer still: 07 Settled power \u00b7 3.36 W",
+    "Ctrl+wheel out x3: zoom 1.15 | under the pointer still: 07 Settled power \u00b7 3.36 W"
+   ],
+   "only_at_1366": [
+    "Z: sheets whole in the window 14 of 14 | zoom 0.40 | fitted stays: True | scroll 0,0",
+    "back in the Field: zoom 0.40 fitted True",
+    "Z again: zoom 1.00 | fitted False",
+    "Ctrl+wheel in x6 about \u201c07 Bench readings\u201d: zoom 1.30 | under the pointer still: 07 Bench readings",
+    "Ctrl+wheel out x3: zoom 1.15 | under the pointer still: 07 Bench readings"
+   ]
+  },
+  "amber_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "a lamp at the head says something waits, and can be clicked: True",
+    "clicked the lamp -> selected: 07 Startup power \u00b7 7.8 W | state: recheck"
+   ],
+   "only_at_1366": [
+    "a lamp at the head says something waits, and can be clicked: False"
+   ]
+  },
+  "green_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "hover -> under the pointer: 07 Limits Rev B CURRENT | the Field\u2019s pointer now: ours"
+   ],
+   "only_at_1366": [
+    "hover -> under the pointer: None | the Field\u2019s pointer now: ours"
+   ]
+  },
+  "cascade_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "FIELD menu: ['Look again', 'Show the apps', 'Show the network', 'Back', 'Check the desk', 'The brief', 'This face as lines', 'Your words']",
+    "Your words > ['inputs', 'waits', 'Keep a new word\u2026']",
+    "   waits > ['Run it', 'In the line', 'Forget it']"
+   ],
+   "only_at_1366": [
+    "FIELD menu: ['Open', 'What feeds it', 'What it feeds', 'Inspect in the line', 'Run its line', 'Doubt it', 'Trace it', 'What can be done', 'Your words', 'The brief of the desk', 'Ask Stacy about this', 'Copy its name']",
+    "Your words > ['inputs', 'waits']",
+    "   waits > waits"
+   ]
+  },
+  "ux044_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "first_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "eq_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "   what it reads: {'CPU': '4 threads, 4% at work', 'KRN': '0% of the processor; 232 task switches and 295 interrupts a second', 'RAM': '5% in use; not swapping', 'SSD': 'reading 0 B/s, writing 0 B/s', 'NET': 'in 0 B/s, o",
+    "Ctrl+L: address shown True has the keyboard True | equalizer shown False | it says graphite://open/27381ebef4e345bc83f84855",
+    "a click on the name: address shown True has the keyboard True | it says graphite://open/27381ebef4e345bc83f84855"
+   ],
+   "only_at_1366": [
+    "   what it reads: {'CPU': '4 threads, 30% at work', 'KRN': '2% of the processor; 1,045 task switches and 1,161 interrupts a second', 'RAM': '6% in use; not swapping', 'SSD': 'reading 0 B/s, writing 2.8 MB/s', 'NET': 'in ",
+    "Ctrl+L: address shown True has the keyboard True | equalizer shown False | it says graphite://open/c0d560302d644156bce2a39b",
+    "a click on the name: address shown True has the keyboard True | it says graphite://open/c0d560302d644156bce2a39b"
+   ]
+  },
+  "pane_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "line_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "hand_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "start_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "door_probe": {
+   "same_output_digits_aside": false,
+   "only_at_1920": [
+    "RAM -> shown True inside True | words: ['Machine'] | ['MEMORY \u00b7 THIS COMPUTER', '0.9 GB in use of 16.9 GB (5%).', 'Swap: not swapping.', 'Disks: reading 0 B/s, writing 0 B/s.']"
+   ],
+   "only_at_1366": [
+    "RAM -> shown True inside True | words: ['Machine'] | ['MEMORY \u00b7 THIS COMPUTER', '0.9 GB in use of 16.9 GB (5%).', 'Swap: not swapping.', 'Disks: reading 0 B/s, writing 26 kB/s.']"
+   ]
+  },
+  "kasandra_probe": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "window": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "stacy": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  },
+  "regress": {
+   "same_output_digits_aside": true,
+   "only_at_1920": [],
+   "only_at_1366": []
+  }
+ },
+ "crawler_logs": [
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl_words.log",
+   "bytes": 6926,
+   "md5": "44b646f9713c",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 11:44"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl050_icons.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 12:32"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl051_icons.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 15:25"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl052_icons.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 16:04"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl_053.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 17:33"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl_060.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 18:02"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl_061.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 18:34"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl_070.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 19:31"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl_070c.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 20:19"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs049/crawl_070d.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-13 20:44"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs080/crawl_graphite.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-14 01:25"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs080/crawl_kasandra.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-14 01:38"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs081/crawl_graphite.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-14 04:03"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs081/crawl_kasandra.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-14 04:17"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs082/crawl_graphite.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-14 08:57"
+  },
+  {
+   "log": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/logs082/crawl_kasandra.log",
+   "bytes": 7269,
+   "md5": "d806cfe702c5",
+   "verdict": "CLEAN",
+   "when": "2026-11-14 09:11"
+  }
+ ],
+ "gate_history": {
+  "runs": [
+   "base",
+   "field",
+   "031",
+   "031d",
+   "04",
+   "041",
+   "042",
+   "042b",
+   "043",
+   "043b",
+   "044",
+   "045",
+   "046",
+   "047",
+   "048",
+   "048b",
+   "049c",
+   "050c",
+   "050d",
+   "050f",
+   "051",
+   "051b",
+   "051c",
+   "052",
+   "053",
+   "060",
+   "061",
+   "070",
+   "070b",
+   "070c",
+   "070d",
+   "080",
+   "081",
+   "082"
+  ],
+  "scripts": {
+   "tools/check_desk_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 458,
+     "error": "AssertionError: ('the branch lines are drawn in every tree', {'machine': 0, 'cabinet': 0, 'settings': 0})",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 145,
+     "error": "IndexError: list index out of range",
+     "checks": null
+    }
+   },
+   "tools/check_context_menu_ui.py": {
+    "base": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "field": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "031": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "031d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "04": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "041": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "042": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "042b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "043": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "043b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "044": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "045": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "046": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "047": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "048": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "048b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "049c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "050c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "050d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "050f": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "051": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "051b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "051c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "052": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "053": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "060": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "061": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "070": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "070b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "070c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "070d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "080": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 12
+    },
+    "081": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "082": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    }
+   },
+   "tools/check_frame_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 151,
+     "error": "Calls: [call(['/usr/bin/dpkg-query', '-W', '-f=${Package}\\t${Version}\\t${db:Status-Status}\\n', 'libvulkan1', 'mesa-vulkan-drivers', 'firmware-amd-graphics', 'vu",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 129,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 151,
+     "error": "Calls: [call(['/usr/bin/dpkg-query', '-W', '-f=${Package}\\t${Version}\\t${db:Status-Status}\\n', 'libvulkan1', 'mesa-vulkan-drivers', 'firmware-amd-graphics', 'vu",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 151,
+     "error": "Calls: [call(['/usr/bin/dpkg-query', '-W', '-f=${Package}\\t${Version}\\t${db:Status-Status}\\n', 'libvulkan1', 'mesa-vulkan-drivers', 'firmware-amd-graphics', 'vu",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 151,
+     "error": "Calls: [call(['/usr/bin/dpkg-query', '-W', '-f=${Package}\\t${Version}\\t${db:Status-Status}\\n', 'libvulkan1', 'mesa-vulkan-drivers', 'firmware-amd-graphics', 'vu",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 82,
+     "error": "AssertionError: start, no project",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 151,
+     "error": "Calls: [call(['/usr/bin/dpkg-query', '-W', '-f=${Package}\\t${Version}\\t${db:Status-Status}\\n', 'libvulkan1', 'mesa-vulkan-drivers', 'firmware-amd-graphics', 'vu",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 151,
+     "error": "Calls: [call(['/usr/bin/dpkg-query', '-W', '-f=${Package}\\t${Version}\\t${db:Status-Status}\\n', 'libvulkan1', 'mesa-vulkan-drivers', 'firmware-amd-graphics', 'vu",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 173,
+     "error": "AssertionError",
+     "checks": null
+    }
+   },
+   "tools/check_hatch_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 88,
+     "error": "AssertionError: ['Agenda', 'Assignments', 'Blender', 'Calculator', 'Cartridge Bay', 'Delivery', 'Documents', 'Files', 'FreeCAD', 'Godot', 'HDL simulation checks",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 124,
+     "error": "AssertionError",
+     "checks": null
+    }
+   },
+   "tools/check_head_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [1801, 0, 103, 60])",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [0, 0, 0, 0])",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [0, 0, 0, 0])",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [0, 0, 0, 0])",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [0, 0, 0, 0])",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [0, 0, 0, 0])",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [0, 0, 0, 0])",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 106,
+     "error": "AssertionError: ([0, 0, 1920, 60], [1667, 1140, 237, 60], [0, 0, 0, 0])",
+     "checks": null
+    }
+   },
+   "tools/check_graphite_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 94,
+     "error": "AssertionError: (False, True)",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 99,
+     "error": "AssertionError: D1a: one mark, at the far right",
+     "checks": null
+    }
+   },
+   "tools/check_rename_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 136,
+     "error": "AssertionError",
+     "checks": null
+    }
+   },
+   "tools/check_finder_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Work commands 'Work \u25be' needs 58 px, has 41; QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116\")",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Programs '[#] Programs \u25be' needs 134 px, has 116; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arran",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Apps '[#] Apps \u25be' needs 96 px, has 79; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arrange menu 'A",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError: ('1920 Today', \"QToolButton:Apps '[#] Apps \u25be' needs 96 px, has 79; QToolButton:Work menu 'Work' needs 38 px, has 36; QToolButton:Arrange menu 'A",
+     "checks": null
+    }
+   },
+   "tools/check_paper_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 110,
+     "error": "AssertionError: ('cabinet_writing', '#493225', 0.967)",
+     "checks": null
+    }
+   },
+   "tools/check_machine_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 75,
+     "error": "AssertionError",
+     "checks": null
+    }
+   },
+   "tools/check_document_ui.py": {
+    "base": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "field": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "031": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "031d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "04": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "041": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "042": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "042b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "043": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "043b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "044": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "045": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "046": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "047": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "048": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "048b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "049c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "050c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "050d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "050f": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "051": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "051b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "051c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "052": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "053": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "060": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "061": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "070": {
+     "ok": false,
+     "line": 65,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "070c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "070d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "080": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "081": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    },
+    "082": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 9
+    }
+   },
+   "tools/check_agent_ui.py": {
+    "base": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "field": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "031": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "031d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "04": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "041": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "042": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "042b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "043": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "043b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "044": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "045": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "046": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "047": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "048": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "048b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "049c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "050c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "050d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "050f": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "051": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "051b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "051c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "052": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "053": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "060": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "061": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "070": {
+     "ok": false,
+     "line": 104,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "070c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "070d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "080": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "081": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    },
+    "082": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 13
+    }
+   },
+   "tools/check_continue_ui.py": {
+    "base": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "field": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "031": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "031d": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "04": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "041": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "042": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "042b": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "043": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "043b": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "044": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "045": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "046": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "047": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "048": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "048b": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "049c": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "050c": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "050d": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "050f": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "051": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "051b": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "051c": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "052": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "053": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "060": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "061": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "070": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "070b": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "070c": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "070d": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "080": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "081": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    },
+    "082": {
+     "ok": false,
+     "line": 142,
+     "error": "AssertionError: []",
+     "checks": null
+    }
+   },
+   "tools/check_model_turn_ui.py": {
+    "base": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "field": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "031": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "031d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "04": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "041": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "042": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "042b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "043": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "043b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "044": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "045": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "046": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "047": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "048": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "048b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "049c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "050c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "050d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "050f": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "051": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "051b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "051c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "052": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "053": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "060": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "061": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "070": {
+     "ok": false,
+     "line": 112,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "070c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "070d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "080": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "081": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    },
+    "082": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 11
+    }
+   },
+   "tools/check_files_about_ui.py": {
+    "base": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "field": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "031": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "031d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "04": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "041": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "042": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "042b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "043": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "043b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "044": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "045": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "046": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "047": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "048": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "048b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "049c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "050c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "050d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "050f": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "051": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "051b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "051c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "052": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "053": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "060": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "061": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "070": {
+     "ok": false,
+     "line": 103,
+     "error": "AssertionError",
+     "checks": null
+    },
+    "070b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "070c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "070d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "080": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "081": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    },
+    "082": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 7
+    }
+   },
+   "tools/check_service_integration_ui.py": {
+    "base": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "field": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "031": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "031d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "04": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "041": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "042": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "042b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "043": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "043b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "044": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "045": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "046": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "047": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "048": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "048b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "049c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "050c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "050d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "050f": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "051": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "051b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "051c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "052": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "053": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "060": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "061": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "070": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "070b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "070c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "070d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "080": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "081": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    },
+    "082": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 16
+    }
+   },
+   "tools/check_hardware_settings_ui.py": {
+    "base": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "field": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "031": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "031d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "04": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "041": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "042": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "042b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "043": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "043b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "044": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "045": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "046": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "047": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "048": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "048b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "049c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "050c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "050d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "050f": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "051": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "051b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "051c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "052": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "053": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "060": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "061": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "070": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "070b": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "070c": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "070d": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "080": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "081": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    },
+    "082": {
+     "ok": true,
+     "line": null,
+     "error": "",
+     "checks": 8
+    }
+   }
+  }
+ },
+ "census_identifiers": {
+  "look_probe": {
+   "friendly(": {},
+   "edit_location": {},
+   "_fitted": {},
+   "Key_Z": {},
+   "still = lambda": {},
+   "PathBar": {}
+  },
+  "head_probe": {
+   "bar_menus": {},
+   "more_menus": {},
+   "MoreMenus": {},
+   "menu_words": {
+    "test_desk_acts": 1
+   }
+  },
+  "glow_probe": {
+   "choose_glow": {},
+   ".glow()": {
+    "test_faces_find_light": 1
+   },
+   "choose_art(": {},
+   "GLOW": {
+    "test_faces_find_light": 5
+   }
+  },
+  "centre_probe": {
+   "centre_bar": {},
+   "bar.larger": {},
+   "bar.smaller": {},
+   "bar.save": {
+    "test_frame": 5
+   },
+   ".sync()": {
+    "test_related": 2
+   }
+  },
+  "audit_probe": {
+   "_hot": {
+    "test_desk": 1
+   },
+   "Desk artwork": {},
+   "context_strip": {},
+   "save.isEnabled": {}
+  },
+  "mouse_probe": {
+   "_bars(": {},
+   "_grab": {},
+   "Put this line": {},
+   "Read on": {},
+   "_guard": {
+    "test_algorithm_atlas": 1,
+    "test_memory_settings": 1,
+    "test_resource_rules": 1,
+    "test_settings_registry": 1
+   },
+   "greenPointer": {}
+  },
+  "mouse2_probe": {
+   "Check original": {},
+   "OCR this page": {},
+   "Review file": {},
+   "Save output copy": {},
+   "TEAL_SOFT": {},
+   "'link'": {
+    "test_browse": 2,
+    "test_change_sets": 1
+   }
+  },
+  "pages_probe": {
+   "open_tile": {},
+   "page.more": {},
+   "findChildren(QPushButton)": {}
+  },
+  "more_probe": {
+   "page.more": {},
+   "Recover draft": {},
+   "Focus reading": {}
+  },
+  "icons_probe": {
+   "faces.choose": {},
+   "tool_faces": {
+    "test_context_menu": 2,
+    "test_desk_acts": 1,
+    "test_faces_find_light": 42
+   },
+   "BARE": {
+    "test_faces_find_light": 1
+   },
+   "glyph_of": {
+    "test_faces_find_light": 2
+   },
+   "'Buttons'": {}
+  },
+  "crash_probe": {
+   "Compare sources again": {},
+   "focus_moved": {},
+   "page.render()": {}
+  },
+  "boxes_probe": {
+   "own_light": {
+    "test_faces_find_light": 5
+   },
+   "page_light": {
+    "test_faces_find_light": 8
+   },
+   "Review table": {},
+   "lightness": {
+    "test_faces_find_light": 1,
+    "test_graphite": 9
+   }
+  },
+  "map_probe": {
+   "field_zoom": {
+    "test_faces_find_light": 7
+   },
+   "FAR": {},
+   "set_zoom": {}
+  },
+  "find_probe": {
+   "centre_find": {
+    "test_faces_find_light": 17
+   },
+   "finder": {
+    "test_context_menu": 13,
+    "test_graphite": 1,
+    "test_release_check": 1
+   },
+   "not here": {},
+   "a_find": {
+    "test_context_menu": 1,
+    "test_network_watch": 1,
+    "test_profile_files": 1
+   },
+   "a_find_next": {}
+  },
+  "zoom_probe": {
+   "QWheelEvent": {},
+   "Key_0": {},
+   "set_zoom": {},
+   "scroll_x": {},
+   "_hit(": {}
+  },
+  "amber_probe": {
+   "v.go": {},
+   "Key_G": {},
+   "Key_A": {},
+   "amber": {
+    "test_kasandra": 1
+   }
+  },
+  "green_probe": {
+   "pointer.drawn": {},
+   "graphitePointer": {},
+   "liveReading": {},
+   "DesktopMonitors": {
+    "test_faces_find_light": 3
+   },
+   "BitmapCursor": {}
+  },
+  "cascade_probe": {
+   "field:whatif": {
+    "test_desk_acts": 3
+   },
+   "field:doubt": {},
+   "field:trace": {
+    "test_desk_acts": 3
+   },
+   "field:do": {
+    "test_desk_acts": 5
+   },
+   "field:words": {
+    "test_desk_acts": 1
+   },
+   "open_at_focus": {},
+   "drill(": {
+    "test_context_menu": 1
+   }
+  },
+  "ux044_probe": {
+   "Key_Question": {},
+   "Key_X": {},
+   "Key_B": {},
+   "BRIEF": {},
+   "_read_room": {},
+   "reading": {
+    "test_agent_loop": 1,
+    "test_deployment": 3,
+    "test_desk_acts": 18,
+    "test_desk_scenes": 4,
+    "test_documents": 17,
+    "test_exact_math": 1,
+    "test_exact_math_solvers": 1,
+    "test_faces_find_light": 10,
+    "test_graphite": 3,
+    "test_hardware_settings": 6,
+    "test_launcher": 1,
+    "test_memory_cabinet": 1,
+    "test_memory_settings": 1,
+    "test_model_settings": 1,
+    "test_model_turn": 2,
+    "test_network_watch": 5,
+    "test_paper": 8,
+    "test_presentation_settings": 3,
+    "test_related": 3,
+    "test_release_check": 10,
+    "test_resource_rules": 5,
+    "test_service_lifecycle": 2,
+    "test_settings_advanced": 14,
+    "test_settings_registry": 50,
+    "test_stacy_hand": 3,
+    "test_system_menu": 2,
+    "test_writing_line": 1
+   }
+  },
+  "first_probe": {
+   "'empty'": {
+    "test_context_menu": 4,
+    "test_machine": 1
+   },
+   "problem": {
+    "test_adaptive_contract": 9,
+    "test_algorithm_atlas": 22,
+    "test_context_menu": 1,
+    "test_discovery": 14,
+    "test_documents": 1,
+    "test_exact_math": 5,
+    "test_joined_work": 17,
+    "test_launcher": 3,
+    "test_problem": 45,
+    "test_release_check": 8,
+    "test_slate_reasoning": 1
+   },
+   "locations.office": {
+    "test_context_menu": 1,
+    "test_continuing_work": 1,
+    "test_desk_acts": 1,
+    "test_problem": 1,
+    "test_system_menu": 1,
+    "test_workspace_backup": 1
+   }
+  },
+  "eq_probe": {
+   "equalizer": {
+    "test_desk_acts": 1,
+    "test_faces_find_light": 6,
+    "test_kasandra": 1
+   },
+   "eq.card": {},
+   "eq.sizes": {},
+   "edit_location": {},
+   "glide": {}
+  },
+  "pane_probe": {
+   "face_tabs": {},
+   "title_word": {},
+   "at_rest": {
+    "test_context_menu": 1
+   },
+   "show_agenda": {},
+   "linkActivated": {}
+  },
+  "line_probe": {
+   "type_bar": {
+    "test_context_menu": 13,
+    "test_desk_acts": 11,
+    "test_desk_scenes": 2,
+    "test_system_menu": 3,
+    "test_writing_line": 5
+   },
+   "targets": {
+    "test_adaptive_contract": 1,
+    "test_context_menu": 1,
+    "test_deployment": 1,
+    "test_joined_work": 1,
+    "test_workspace_backup": 1,
+    "test_writing_line": 4
+   },
+   "openUrl": {
+    "test_desk_acts": 2
+   },
+   "No browser": {},
+   "Run this line": {},
+   "duckduckgo": {}
+  },
+  "hand_probe": {
+   "stacy_hand": {
+    "test_desk_acts": 7,
+    "test_stacy_hand": 1
+   },
+   "StagedUndo": {},
+   "StagedRun": {},
+   "trail(": {
+    "test_desk_acts": 4,
+    "test_stacy_hand": 5
+   },
+   "terminal_hers": {
+    "test_stacy_hand": 8
+   },
+   "say_always": {},
+   "undo_allowed": {
+    "test_stacy_hand": 5
+   }
+  },
+  "start_probe": {
+   "stacy_start": {
+    "test_stacy_start": 1
+   },
+   "Lander": {
+    "test_stacy_start": 23
+   },
+   "program_build": {
+    "test_stacy_start": 7
+   },
+   "godot_tool": {
+    "test_stacy_start": 4
+   },
+   "PlanRun": {}
+  },
+  "door_probe": {
+   "_meter_card": {},
+   "click_meter": {},
+   "Brain room": {},
+   "size_level": {
+    "test_writing_line": 3
+   },
+   "expand": {
+    "test_cabinet": 3,
+    "test_context_menu": 1,
+    "test_exact_math": 1,
+    "test_frame": 1,
+    "test_stacy_hand": 1
+   },
+   "Log out": {
+    "test_desk_acts": 1,
+    "test_faces_find_light": 1,
+    "test_launcher": 1,
+    "test_system_menu": 5
+   }
+  },
+  "kasandra_probe": {
+   "kasandra_art": {
+    "test_kasandra": 1
+   },
+   "current_state": {
+    "test_kasandra": 12
+   },
+   "awaiting_approval": {
+    "test_kasandra": 4
+   },
+   "Special Elite": {
+    "test_kasandra": 1
+   },
+   "ArtPanel": {},
+   "note_outcome": {
+    "test_kasandra": 4
+   }
+  },
+  "window": {
+   "a_field": {},
+   "Key_F9": {},
+   "'F9'": {},
+   "Key_Return": {
+    "test_desk_acts": 1,
+    "test_system_menu": 1,
+    "test_writing_line": 1
+   },
+   "ShiftModifier": {
+    "test_context_menu": 1
+   },
+   "census(": {}
+  },
+  "stacy": {
+   "show_slate_face": {},
+   "field:ask": {
+    "test_desk_acts": 2
+   },
+   "answered": {
+    "test_agent_loop": 3,
+    "test_network_watch": 2,
+    "test_system_menu": 1
+   },
+   "signature": {
+    "test_algorithm_atlas": 1,
+    "test_cabinet": 4,
+    "test_cabinet_actions": 8,
+    "test_context_menu": 2,
+    "test_deployment": 7,
+    "test_desk_acts": 1,
+    "test_network_watch": 5
+   }
+  },
+  "regress": {
+   "saveState": {},
+   "reading.ui_pt": {
+    "test_writing_line": 1
+   },
+   "Key_Home": {
+    "test_launcher": 1
+   },
+   "Key_PageDown": {},
+   "open_at_focus": {}
+  },
+  "crawl_probe": {
+   "findChildren(QAbstractButton)": {},
+   "excepthook": {},
+   "activeModalWidget": {
+    "test_desk_acts": 3
+   }
+  },
+  "name_sweep": {
+   "stac(?!y)": {},
+   "staC": {
+    "test_context_menu": 6,
+    "test_graphite": 1,
+    "test_writing_line": 6
+   },
+   "NAME": {
+    "test_campaign": 2,
+    "test_conditions": 1,
+    "test_graphite": 6,
+    "test_kasandra": 1,
+    "test_launcher": 3,
+    "test_network_watch": 1
+   },
+   "accessibleDescription": {
+    "test_faces_find_light": 1,
+    "test_system_menu": 2
+   },
+   "findChildren(QWidget)": {}
+  }
+ },
+ "touch_summary": {
+  "workbench_modules": 445,
+  "run_at_window_start": 295,
+  "per_check": {
+   "line_probe": {
+    "files_run": 296,
+    "beyond_window_start": [
+     "config_lock.py"
+    ]
+   },
+   "centre_probe": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "empty_workspace_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "head_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "stacy": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "field_do.py",
+     "office_building_qt.py",
+     "stacy_start.py"
+    ]
+   },
+   "mouse_probe": {
+    "files_run": 319,
+    "beyond_window_start": [
+     "command_context.py",
+     "config_lock.py",
+     "datasheet_qt.py",
+     "engineering_tabs.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "native_struthio.py",
+     "office_building_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "regress": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "command_context.py",
+     "config_lock.py",
+     "empty_workspace_qt.py",
+     "engineering_tabs.py",
+     "native_struthio.py",
+     "session_settings.py"
+    ]
+   },
+   "map_probe": {
+    "files_run": 296,
+    "beyond_window_start": [
+     "config_lock.py"
+    ]
+   },
+   "kasandra_probe": {
+    "files_run": 313,
+    "beyond_window_start": [
+     "config_lock.py",
+     "empty_workspace_qt.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "crash_probe": {
+    "files_run": 297,
+    "beyond_window_start": [
+     "config_lock.py",
+     "investigations_qt.py"
+    ]
+   },
+   "first_probe": {
+    "files_run": 295,
+    "beyond_window_start": []
+   },
+   "door_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "cabinet_actions_qt.py",
+     "config_lock.py",
+     "desk_acts.py",
+     "memory_cabinet_qt.py",
+     "office_building_qt.py",
+     "system_menu_qt.py"
+    ]
+   },
+   "audit_probe": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "start_probe": {
+    "files_run": 302,
+    "beyond_window_start": [
+     "chain_workbench_qt.py",
+     "config_lock.py",
+     "field_do.py",
+     "kasandra_art.py",
+     "sheet_workbench_qt.py",
+     "stacy_start.py",
+     "universal_viewer_qt.py"
+    ]
+   },
+   "eq_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "amber_probe": {
+    "files_run": 312,
+    "beyond_window_start": [
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "office_building_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "cascade_probe": {
+    "files_run": 314,
+    "beyond_window_start": [
+     "command_context.py",
+     "engineering_tabs.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "native_struthio.py",
+     "office_building_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "boxes_probe": {
+    "files_run": 303,
+    "beyond_window_start": [
+     "cabinet_actions_qt.py",
+     "config_lock.py",
+     "datasheet_qt.py",
+     "hardware_settings_qt.py",
+     "memory_cabinet_qt.py",
+     "model_settings_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "name_sweep": {
+    "files_run": 297,
+    "beyond_window_start": [
+     "config_lock.py",
+     "empty_workspace_qt.py"
+    ]
+   },
+   "look_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "icons_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "find_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "more_probe": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "green_probe": {
+    "files_run": 296,
+    "beyond_window_start": [
+     "config_lock.py"
+    ]
+   },
+   "zoom_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "pages_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "window": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "empty_workspace_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "mouse2_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "ux044_probe": {
+    "files_run": 313,
+    "beyond_window_start": [
+     "field_brief.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "office_building_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "pane_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "hand_probe": {
+    "files_run": 312,
+    "beyond_window_start": [
+     "config_lock.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "glow_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "crawl_probe": {
+    "files_run": 316,
+    "beyond_window_start": [
+     "command_context.py",
+     "config_lock.py",
+     "datasheet_qt.py",
+     "engineering_tabs.py",
+     "investigations_qt.py",
+     "native_struthio.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "window_views_qt.py"
+    ]
+   }
+  }
+ },
+ "release_triggers": [
+  {
+   "release": "0.5.0",
+   "changed_workbench_files": 14,
+   "changed_in_window_start": [
+    "centre_bar.py",
+    "centre_find.py",
+    "field_page.py",
+    "field_qt.py",
+    "glyph_set.py",
+    "qt_app.py",
+    "session.py",
+    "shell2.py",
+    "tool_faces.py",
+    "version.py",
+    "workspace_tabs.py"
+   ],
+   "checks_whose_own_files_changed": {
+    "centre_probe": [
+     "office_qt.py"
+    ],
+    "head_probe": [
+     "pdf_qt.py"
+    ],
+    "mouse_probe": [
+     "office_qt.py"
+    ],
+    "crash_probe": [
+     "investigations_qt.py"
+    ],
+    "audit_probe": [
+     "office_qt.py",
+     "pdf_qt.py"
+    ],
+    "eq_probe": [
+     "pdf_qt.py"
+    ],
+    "boxes_probe": [
+     "pdf_qt.py"
+    ],
+    "look_probe": [
+     "investigations_qt.py",
+     "office_qt.py",
+     "pdf_qt.py"
+    ],
+    "icons_probe": [
+     "investigations_qt.py",
+     "office_qt.py",
+     "pdf_qt.py"
+    ],
+    "find_probe": [
+     "investigations_qt.py",
+     "office_qt.py",
+     "pdf_qt.py"
+    ],
+    "more_probe": [
+     "office_qt.py",
+     "pdf_qt.py"
+    ],
+    "zoom_probe": [
+     "office_qt.py"
+    ],
+    "pages_probe": [
+     "investigations_qt.py",
+     "office_qt.py",
+     "pdf_qt.py"
+    ],
+    "window": [
+     "office_qt.py"
+    ],
+    "mouse2_probe": [
+     "office_qt.py"
+    ],
+    "pane_probe": [
+     "office_qt.py"
+    ],
+    "glow_probe": [
+     "office_qt.py"
+    ],
+    "crawl_probe": [
+     "investigations_qt.py",
+     "office_qt.py",
+     "pdf_qt.py"
+    ]
+   }
+  },
+  {
+   "release": "0.5.1",
+   "changed_workbench_files": 14,
+   "changed_in_window_start": [
+    "boss_qt.py",
+    "boss_theme.py",
+    "centre_bar.py",
+    "concern_tree.py",
+    "desk_qt.py",
+    "desktop_header_qt.py",
+    "field_qt.py",
+    "glyph_set.py",
+    "pane_qt.py",
+    "pointer.py",
+    "session.py",
+    "shell2.py",
+    "tool_faces.py",
+    "version.py"
+   ],
+   "checks_whose_own_files_changed": {}
+  },
+  {
+   "release": "0.5.2",
+   "changed_workbench_files": 8,
+   "changed_in_window_start": [
+    "boss_theme.py",
+    "centre_bar.py",
+    "centre_find.py",
+    "document_qt.py",
+    "field_qt.py",
+    "shell2.py",
+    "tool_faces.py",
+    "version.py"
+   ],
+   "checks_whose_own_files_changed": {}
+  },
+  {
+   "release": "0.5.3",
+   "changed_workbench_files": 7,
+   "changed_in_window_start": [
+    "centre_bar.py",
+    "equalizer_qt.py",
+    "pane_qt.py",
+    "session.py",
+    "shell2.py",
+    "typebar_qt.py",
+    "version.py"
+   ],
+   "checks_whose_own_files_changed": {}
+  },
+  {
+   "release": "0.6.0",
+   "changed_workbench_files": 7,
+   "changed_in_window_start": [
+    "field_page.py",
+    "field_qt.py",
+    "menus2.py",
+    "session.py",
+    "shell2.py",
+    "stacy_hand.py",
+    "version.py"
+   ],
+   "checks_whose_own_files_changed": {}
+  },
+  {
+   "release": "0.6.1",
+   "changed_workbench_files": 4,
+   "changed_in_window_start": [
+    "program_build.py",
+    "shell2.py",
+    "version.py"
+   ],
+   "checks_whose_own_files_changed": {
+    "stacy": [
+     "stacy_start.py"
+    ],
+    "mouse_probe": [
+     "stacy_start.py"
+    ],
+    "kasandra_probe": [
+     "stacy_start.py"
+    ],
+    "start_probe": [
+     "stacy_start.py"
+    ],
+    "amber_probe": [
+     "stacy_start.py"
+    ],
+    "cascade_probe": [
+     "stacy_start.py"
+    ],
+    "ux044_probe": [
+     "stacy_start.py"
+    ],
+    "hand_probe": [
+     "stacy_start.py"
+    ]
+   }
+  },
+  {
+   "release": "0.7.0",
+   "changed_workbench_files": 18,
+   "changed_in_window_start": [
+    "brain_runtime.py",
+    "console_qt.py",
+    "desktop_header_qt.py",
+    "equalizer_qt.py",
+    "field_page.py",
+    "menus2.py",
+    "meter_cards.py",
+    "pane_qt.py",
+    "programs_qt.py",
+    "resource_control.py",
+    "shell2.py",
+    "stacy_hand.py",
+    "study_service.py",
+    "typebar_qt.py",
+    "version.py",
+    "work_trail.py"
+   ],
+   "checks_whose_own_files_changed": {
+    "stacy": [
+     "stacy_start.py"
+    ],
+    "mouse_probe": [
+     "stacy_start.py"
+    ],
+    "kasandra_probe": [
+     "stacy_start.py"
+    ],
+    "start_probe": [
+     "stacy_start.py"
+    ],
+    "amber_probe": [
+     "stacy_start.py"
+    ],
+    "cascade_probe": [
+     "stacy_start.py"
+    ],
+    "ux044_probe": [
+     "stacy_start.py"
+    ],
+    "hand_probe": [
+     "stacy_start.py"
+    ]
+   }
+  },
+  {
+   "release": "0.8.0",
+   "changed_workbench_files": 73,
+   "changed_in_window_start": [
+    "addresses.py",
+    "agenda.py",
+    "agenda_qt.py",
+    "arc_desktop.py",
+    "assistant_identity.py",
+    "boss_qt.py",
+    "boss_theme.py",
+    "cabinet_qt.py",
+    "chain_menu.py",
+    "concern_qt.py",
+    "conditions.py",
+    "console_qt.py",
+    "context_menu.py",
+    "desk_qt.py",
+    "desktop_header_qt.py",
+    "document_qt.py",
+    "equalizer_qt.py",
+    "field_page.py",
+    "field_qt.py",
+    "files_qt.py"
+   ],
+   "checks_whose_own_files_changed": {
+    "centre_probe": [
+     "empty_workspace_qt.py",
+     "page_light.py"
+    ],
+    "head_probe": [
+     "page_light.py"
+    ],
+    "stacy": [
+     "office_building_qt.py",
+     "stacy_start.py"
+    ],
+    "mouse_probe": [
+     "kasandra_art.py",
+     "office_building_qt.py",
+     "page_light.py",
+     "stac/language.py",
+     "stac/runtime.py",
+     "stacy_start.py"
+    ],
+    "regress": [
+     "empty_workspace_qt.py"
+    ],
+    "kasandra_probe": [
+     "empty_workspace_qt.py",
+     "kasandra_art.py",
+     "stac/language.py",
+     "stac/runtime.py",
+     "stacy_start.py"
+    ],
+    "crash_probe": [
+     "investigations_qt.py"
+    ],
+    "door_probe": [
+     "cabinet_actions_qt.py",
+     "office_building_qt.py"
+    ],
+    "audit_probe": [
+     "page_light.py"
+    ],
+    "start_probe": [
+     "kasandra_art.py",
+     "sheet_workbench_qt.py",
+     "stacy_start.py",
+     "universal_viewer_qt.py"
+    ],
+    "eq_probe": [
+     "page_light.py"
+    ],
+    "amber_probe": [
+     "kasandra_art.py",
+     "office_building_qt.py",
+     "stac/language.py",
+     "stac/runtime.py",
+     "stacy_start.py"
+    ],
+    "cascade_probe": [
+     "office_building_qt.py",
+     "stac/language.py",
+     "stac/runtime.py",
+     "stacy_start.py"
+    ],
+    "boxes_probe": [
+     "cabinet_actions_qt.py",
+     "page_light.py"
+    ],
+    "name_sweep": [
+     "empty_workspace_qt.py"
+    ],
+    "look_probe": [
+     "investigations_qt.py",
+     "page_light.py"
+    ],
+    "icons_probe": [
+     "investigations_qt.py",
+     "page_light.py"
+    ],
+    "find_probe": [
+     "investigations_qt.py",
+     "page_light.py"
+    ],
+    "more_probe": [
+     "page_light.py"
+    ],
+    "zoom_probe": [
+     "page_light.py"
+    ],
+    "pages_probe": [
+     "investigations_qt.py",
+     "page_light.py"
+    ],
+    "window": [
+     "empty_workspace_qt.py",
+     "page_light.py"
+    ],
+    "mouse2_probe": [
+     "page_light.py"
+    ],
+    "ux044_probe": [
+     "field_brief.py",
+     "kasandra_art.py",
+     "office_building_qt.py",
+     "stac/language.py",
+     "stac/runtime.py",
+     "stacy_start.py"
+    ],
+    "pane_probe": [
+     "page_light.py"
+    ],
+    "hand_probe": [
+     "kasandra_art.py",
+     "stac/language.py",
+     "stac/runtime.py",
+     "stacy_start.py"
+    ],
+    "glow_probe": [
+     "page_light.py"
+    ],
+    "crawl_probe": [
+     "investigations_qt.py",
+     "page_light.py",
+     "stac/language.py",
+     "stac/runtime.py"
+    ]
+   }
+  },
+  {
+   "release": "0.8.1",
+   "changed_workbench_files": 27,
+   "changed_in_window_start": [
+    "boss_theme.py",
+    "brain_runtime.py",
+    "context_menu.py",
+    "field_model.py",
+    "field_page.py",
+    "field_qt.py",
+    "glyph_set.py",
+    "hatch_qt.py",
+    "local_brain.py",
+    "model_settings.py",
+    "pane_qt.py",
+    "programs_qt.py",
+    "resource_control.py",
+    "shell2.py",
+    "text_prompts.py",
+    "tool_faces.py",
+    "trash_can_qt.py",
+    "typebar_qt.py",
+    "version.py",
+    "work_location.py"
+   ],
+   "checks_whose_own_files_changed": {
+    "stacy": [
+     "stacy_start.py"
+    ],
+    "mouse_probe": [
+     "stacy_start.py"
+    ],
+    "kasandra_probe": [
+     "stacy_start.py"
+    ],
+    "start_probe": [
+     "stacy_start.py"
+    ],
+    "amber_probe": [
+     "stacy_start.py"
+    ],
+    "cascade_probe": [
+     "stacy_start.py"
+    ],
+    "boxes_probe": [
+     "model_settings_qt.py"
+    ],
+    "ux044_probe": [
+     "stacy_start.py"
+    ],
+    "hand_probe": [
+     "stacy_start.py"
+    ]
+   }
+  },
+  {
+   "release": "0.8.2",
+   "changed_workbench_files": 12,
+   "changed_in_window_start": [
+    "boss_theme.py",
+    "console_qt.py",
+    "context_menu.py",
+    "field_page.py",
+    "field_qt.py",
+    "menu_catch.py",
+    "reading_preferences.py",
+    "shell2.py",
+    "version.py"
+   ],
+   "checks_whose_own_files_changed": {
+    "door_probe": [
+     "desk_acts.py"
+    ]
+   }
+  }
+ ]
+}

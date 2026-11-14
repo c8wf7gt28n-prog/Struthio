@@ -1,0 +1,95 @@
+{
+ "commit": "d1df337",
+ "files_in_tests_integrated_py": 61,
+ "test_modules": 60,
+ "helper_modules": [
+  "protocol_fixture"
+ ],
+ "tests": 939,
+ "focused_tests": 937,
+ "on_demand_tests": 2,
+ "runs": {
+  "082_baseline_seconds": 487.5,
+  "run_focused_seconds": [
+   511.3,
+   502.6,
+   494.8
+  ],
+  "run_with_on_demand_seconds": [
+   516.9,
+   507.0,
+   499.0
+  ]
+ },
+ "flaky_tests": [],
+ "runs_compared": [
+  "082",
+  "run1",
+  "run2",
+  "run3",
+  "counted4"
+ ],
+ "failing": 20,
+ "failing_all_failed_at_import_aa0ce07": true,
+ "failing_by_kind": {
+  "LOOK": 14,
+  "TEXT": 1,
+  "BEHAVIOUR": 5
+ },
+ "kinds": {
+  "BEHAVIOUR": 745,
+  "CONTRACT": 52,
+  "TEXT": 46,
+  "LOOK": 96
+ },
+ "seconds_by_kind": {
+  "BEHAVIOUR": 405.0,
+  "CONTRACT": 4.2,
+  "LOOK": 18.2,
+  "TEXT": 16.7
+ },
+ "per_module_overhead_seconds_total": 63.4,
+ "tests_under_0_1_s": 606,
+ "tests_under_1_s": 883,
+ "top14_tests_share_of_wall": 0.5,
+ "assertions_static": 6146,
+ "assertions_static_direct": 5427,
+ "assertions_executed": 28088,
+ "tests_without_assertion_static": 0,
+ "tests_without_assertion_executed": 0,
+ "tests_with_one_executed_assertion": 21,
+ "tautologies": [
+  "tests_integrated/test_system_menu.py:511 assertIs(programs.m, programs.m)"
+ ],
+ "self_comparison_determinism_kept": [
+  "tests_integrated/test_kasandra.py:106"
+ ],
+ "constant_only_tests": [
+  "tests_integrated/test_desk.py:122",
+  "tests_integrated/test_kasandra.py:41",
+  "tests_integrated/test_launcher.py:318",
+  "tests_integrated/test_vocabulary.py:53",
+  "tests_integrated/test_writing_line.py:12"
+ ],
+ "tests_with_wording_assertions": 303,
+ "wording_assertions": 707,
+ "tests_with_mechanical_near_duplicate": 59,
+ "test_files_never_changed_after_import": 46,
+ "tests_modified_after_import": 48,
+ "tests_modified_only_to_follow_look_or_words": 26,
+ "workbench_modules": 468,
+ "workbench_lines": 122535,
+ "workbench_imported_directly_by_tests": 168,
+ "workbench_loaded_by_tests": 386,
+ "workbench_not_loaded_by_any_test": 82,
+ "workbench_not_loaded_lines": 14323,
+ "workbench_not_loaded_and_unreachable_from_start": [
+  "workbench.app",
+  "workbench.stacy_presence",
+  "workbench.unix_setup",
+  "workbench.workspaces",
+  "workbench.imagebuild",
+  "workbench.owner_tls",
+  "workbench.stac.__main__"
+ ]
+}

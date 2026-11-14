@@ -1,0 +1,3801 @@
+{
+ "protocol_fixture": {
+  "file": "tests_integrated/protocol_fixture.py",
+  "guards_docstring": "Explicit HTTP protocol test double. This is not GGUF model inference.",
+  "lines": 76,
+  "tests": 0,
+  "focused": false,
+  "role": "helper (not a test module)",
+  "seconds_082": null,
+  "wall_seconds_runs": [],
+  "wall_min": null,
+  "wall_max": null,
+  "wall_spread_pct": null,
+  "test_seconds_sum_runs": [],
+  "overhead_seconds_mean": null,
+  "share_of_suite_082": null,
+  "kinds": {},
+  "assertions_static": 0,
+  "assertions_executed": null,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.local_brain"
+  ],
+  "loads_runtime_count": 0,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": null,
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_adaptive_contract": {
+  "file": "tests_integrated/test_adaptive_contract.py",
+  "guards_docstring": "Adaptive contract: exact interval semantics and the ACTION and legacy PLAN authority boundaries.",
+  "lines": 105,
+  "tests": 14,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.7,
+  "wall_seconds_runs": [
+   0.75,
+   0.7,
+   0.71
+  ],
+  "wall_min": 0.7,
+  "wall_max": 0.75,
+  "wall_spread_pct": 7.1,
+  "test_seconds_sum_runs": [
+   0.55,
+   0.53,
+   0.54
+  ],
+  "overhead_seconds_mean": 0.18,
+  "share_of_suite_082": 0.0014,
+  "kinds": {
+   "BEHAVIOUR": 12,
+   "CONTRACT": 2
+  },
+  "assertions_static": 22,
+  "assertions_executed": 29,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.adaptive_contract",
+   "workbench.clock_lab",
+   "workbench.schedule_math",
+   "workbench.slate_action",
+   "workbench.slate_reasoning"
+  ],
+  "loads_runtime_count": 199,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/adaptive_contract.py",
+    "workbench/clock_lab.py",
+    "workbench/schedule_math.py",
+    "workbench/slate_action.py",
+    "workbench/slate_reasoning.py"
+   ],
+   "source_commits_after_import": 0,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 0
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_agent_loop": {
+  "file": "tests_integrated/test_agent_loop.py",
+  "guards_docstring": "The resident agent loop (HATCH AGENT-01): an assignment is an investigation worked one bounded, recorded step at a time. Nothing here starts a worker, a job, a model or a native tool: Kernel.launch and Kernel.submit are held for every case, and the model branch runs only through patched ask_model / model_answer (the live path is not exercised here).",
+  "lines": 546,
+  "tests": 24,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 4.9,
+  "wall_seconds_runs": [
+   5.09,
+   5.28,
+   5.15
+  ],
+  "wall_min": 5.09,
+  "wall_max": 5.28,
+  "wall_spread_pct": 3.7,
+  "test_seconds_sum_runs": [
+   4.33,
+   4.46,
+   4.28
+  ],
+  "overhead_seconds_mean": 0.82,
+  "share_of_suite_082": 0.0101,
+  "kinds": {
+   "CONTRACT": 1,
+   "BEHAVIOUR": 22,
+   "TEXT": 1
+  },
+  "assertions_static": 311,
+  "assertions_executed": 494,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.activity",
+   "workbench.agent_loop",
+   "workbench.agent_profiles",
+   "workbench.agent_qt",
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.investigations",
+   "workbench.stacy_control",
+   "workbench.work_trail"
+  ],
+  "loads_runtime_count": 211,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/activity.py",
+    "workbench/agent_loop.py",
+    "workbench/agent_profiles.py",
+    "workbench/agent_qt.py",
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/investigations.py",
+    "workbench/stacy_control.py",
+    "workbench/work_trail.py"
+   ],
+   "source_commits_after_import": 7,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 7
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 2
+ },
+ "test_algorithm_atlas": {
+  "file": "tests_integrated/test_algorithm_atlas.py",
+  "guards_docstring": "Risk-focused admission checks; solver examples are a separate bounded receipt.",
+  "lines": 155,
+  "tests": 10,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.6,
+  "wall_seconds_runs": [
+   1.54,
+   1.65,
+   1.7
+  ],
+  "wall_min": 1.54,
+  "wall_max": 1.7,
+  "wall_spread_pct": 10.4,
+  "test_seconds_sum_runs": [
+   0.82,
+   0.87,
+   0.95
+  ],
+  "overhead_seconds_mean": 0.75,
+  "share_of_suite_082": 0.0033,
+  "kinds": {
+   "CONTRACT": 1,
+   "BEHAVIOUR": 9
+  },
+  "assertions_static": 52,
+  "assertions_executed": 184,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.algorithm_atlas",
+   "workbench.capability_catalog",
+   "workbench.checked_methods",
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.math_model",
+   "workbench.project_desk",
+   "workbench.stac_bridge"
+  ],
+  "loads_runtime_count": 199,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/algorithm_atlas.py",
+    "workbench/capability_catalog.py",
+    "workbench/checked_methods.py",
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/math_model.py",
+    "workbench/stac_bridge.py"
+   ],
+   "source_commits_after_import": 3,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 3
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_browse": {
+  "file": "tests_integrated/test_browse.py",
+  "guards_docstring": "The Finder's listing (HATCH AGENT-01, UI-04): ledger.browse reads a real folder and nothing else. Ordering (folders first, natural names), the hidden filter, the 500/2000 bound with a truthful count, a symlink that is shown as a link and never followed, the plain words for an unreadable folder, a file and a missing path, the result through Kernel.dispatch with the read principal, and the observer ",
+  "lines": 117,
+  "tests": 6,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.9,
+  "wall_seconds_runs": [
+   0.82,
+   0.79,
+   0.78
+  ],
+  "wall_min": 0.78,
+  "wall_max": 0.82,
+  "wall_spread_pct": 5.1,
+  "test_seconds_sum_runs": [
+   0.1,
+   0.08,
+   0.1
+  ],
+  "overhead_seconds_mean": 0.71,
+  "share_of_suite_082": 0.0018,
+  "kinds": {
+   "BEHAVIOUR": 5,
+   "CONTRACT": 1
+  },
+  "assertions_static": 72,
+  "assertions_executed": 74,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.activity",
+   "workbench.browse",
+   "workbench.engineering_kernel",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 189,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/activity.py",
+    "workbench/browse.py",
+    "workbench/engineering_kernel.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 5,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 5
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_cabinet": {
+  "file": "tests_integrated/test_cabinet.py",
+  "guards_docstring": "Cabinet identity, owner boundaries, passive reads and bounded provider failure.",
+  "lines": 172,
+  "tests": 14,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.6,
+  "wall_seconds_runs": [
+   1.58,
+   1.71,
+   1.69
+  ],
+  "wall_min": 1.58,
+  "wall_max": 1.71,
+  "wall_spread_pct": 8.2,
+  "test_seconds_sum_runs": [
+   0.88,
+   0.93,
+   0.96
+  ],
+  "overhead_seconds_mean": 0.74,
+  "share_of_suite_082": 0.0033,
+  "kinds": {
+   "BEHAVIOUR": 13,
+   "CONTRACT": 1
+  },
+  "assertions_static": 98,
+  "assertions_executed": 162,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.cabinet",
+   "workbench.discovery_ir",
+   "workbench.discovery_service",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.project_desk",
+   "workbench.session",
+   "workbench.stacy_control",
+   "workbench.working_copies"
+  ],
+  "loads_runtime_count": 191,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "sdk/cli/arc1cli/concern_catalog.py",
+    "workbench/cabinet.py",
+    "workbench/discovery_ir.py",
+    "workbench/discovery_service.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/stacy_control.py",
+    "workbench/working_copies.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_cabinet_actions": {
+  "file": "tests_integrated/test_cabinet_actions.py",
+  "guards_docstring": "Selection identity, eligibility and passive action discovery boundaries.",
+  "lines": 100,
+  "tests": 9,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.2,
+  "wall_seconds_runs": [
+   1.19,
+   1.22,
+   1.15
+  ],
+  "wall_min": 1.15,
+  "wall_max": 1.22,
+  "wall_spread_pct": 6.1,
+  "test_seconds_sum_runs": [
+   0.45,
+   0.45,
+   0.47
+  ],
+  "overhead_seconds_mean": 0.73,
+  "share_of_suite_082": 0.0025,
+  "kinds": {
+   "BEHAVIOUR": 8,
+   "CONTRACT": 1
+  },
+  "assertions_static": 52,
+  "assertions_executed": 76,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.cabinet",
+   "workbench.cabinet_actions",
+   "workbench.calculator_qt",
+   "workbench.discovery_ir",
+   "workbench.discovery_service",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.session",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 190,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "sdk/cli/arc1cli/concern_catalog.py",
+    "workbench/cabinet.py",
+    "workbench/cabinet_actions.py",
+    "workbench/calculator_qt.py",
+    "workbench/discovery_ir.py",
+    "workbench/discovery_service.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_campaign": {
+  "file": "tests_integrated/test_campaign.py",
+  "guards_docstring": "The campaign runner end to end: resource cases, a resume, a timeout, a breaking case, honest outcomes, the needs. Each case runs exactly as `tools/campaign.py run` runs it: one child process per attempt in its own disposable folder, killed at its budget. The anchors that need the owner's After Hours 07 backup are not run here (it is owner data, not shipped); A16's reopen checks are scored here on ",
+  "lines": 391,
+  "tests": 23,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 15.4,
+  "wall_seconds_runs": [
+   15.97,
+   15.93,
+   15.25
+  ],
+  "wall_min": 15.25,
+  "wall_max": 15.97,
+  "wall_spread_pct": 4.7,
+  "test_seconds_sum_runs": [
+   1.92,
+   1.72,
+   2.03
+  ],
+  "overhead_seconds_mean": 13.83,
+  "share_of_suite_082": 0.0316,
+  "kinds": {
+   "BEHAVIOUR": 20,
+   "CONTRACT": 3
+  },
+  "assertions_static": 117,
+  "assertions_executed": 258,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [],
+  "loads_runtime_count": 0,
+  "churn_file_commits": 3,
+  "churn_after_import": 3,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "sdk/cli/arc1cli/gguf_inspect.py"
+   ],
+   "source_commits_after_import": 1,
+   "test_commits_after_import": 3,
+   "source_changed_without_test": 1
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_change_sets": {
+  "file": "tests_integrated/test_change_sets.py",
+  "guards_docstring": "Change sets and imports: import profiles, archive limits, frozen previews, whole-batch review, copy apply, original publish and undo, stale and outside edits, crash recovery, XLSX cell edits, owner scopes, model multi-file output and legacy rows.",
+  "lines": 268,
+  "tests": 12,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 4.1,
+  "wall_seconds_runs": [
+   4.33,
+   4.75,
+   4.19
+  ],
+  "wall_min": 4.19,
+  "wall_max": 4.75,
+  "wall_spread_pct": 13.4,
+  "test_seconds_sum_runs": [
+   3.54,
+   3.88,
+   3.49
+  ],
+  "overhead_seconds_mean": 0.79,
+  "share_of_suite_082": 0.0084,
+  "kinds": {
+   "BEHAVIOUR": 12
+  },
+  "assertions_static": 74,
+  "assertions_executed": 80,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.cell_edits",
+   "workbench.change_sets",
+   "workbench.clip",
+   "workbench.edit_checks",
+   "workbench.edit_model",
+   "workbench.edit_storage",
+   "workbench.engineering_kernel",
+   "workbench.local_brain",
+   "workbench.slate_context",
+   "workbench.slate_reasoning",
+   "workbench.stacy_foundation",
+   "workbench.work_trail",
+   "workbench.working_copies",
+   "workbench.working_folders"
+  ],
+  "loads_runtime_count": 191,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/cell_edits.py",
+    "workbench/change_sets.py",
+    "workbench/clip.py",
+    "workbench/edit_checks.py",
+    "workbench/edit_model.py",
+    "workbench/edit_storage.py",
+    "workbench/engineering_kernel.py",
+    "workbench/local_brain.py",
+    "workbench/slate_reasoning.py",
+    "workbench/stacy_foundation.py",
+    "workbench/work_trail.py",
+    "workbench/working_copies.py",
+    "workbench/working_folders.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_conditions": {
+  "file": "tests_integrated/test_conditions.py",
+  "guards_docstring": "Quantities, condition cards, retained helpers and the numbers profile (HATCH AGENT-01, WI-B). Nothing here starts a worker, a model or a job: Kernel.launch and Kernel.submit are held with AssertionError, the exact calculator is math.evaluate in process, and the profile's steps are driven by hand exactly as the loop dispatches them.",
+  "lines": 289,
+  "tests": 16,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 2.0,
+  "wall_seconds_runs": [
+   2.35,
+   2.37,
+   2.2
+  ],
+  "wall_min": 2.2,
+  "wall_max": 2.37,
+  "wall_spread_pct": 7.7,
+  "test_seconds_sum_runs": [
+   1.57,
+   1.62,
+   1.47
+  ],
+  "overhead_seconds_mean": 0.75,
+  "share_of_suite_082": 0.0041,
+  "kinds": {
+   "BEHAVIOUR": 16
+  },
+  "assertions_static": 194,
+  "assertions_executed": 360,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.activity",
+   "workbench.agent_loop",
+   "workbench.agent_profiles",
+   "workbench.conditions",
+   "workbench.documents",
+   "workbench.engineering_kernel",
+   "workbench.helpers",
+   "workbench.math_model",
+   "workbench.profile_numbers",
+   "workbench.quantities"
+  ],
+  "loads_runtime_count": 203,
+  "churn_file_commits": 2,
+  "churn_after_import": 1,
+  "churn_after_import_with_look_files": 1,
+  "drift": {
+   "source_files": [
+    "workbench/activity.py",
+    "workbench/agent_loop.py",
+    "workbench/agent_profiles.py",
+    "workbench/conditions.py",
+    "workbench/engineering_kernel.py",
+    "workbench/helpers.py",
+    "workbench/math_model.py",
+    "workbench/profile_numbers.py",
+    "workbench/quantities.py"
+   ],
+   "source_commits_after_import": 7,
+   "test_commits_after_import": 1,
+   "source_changed_without_test": 6
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_context_menu": {
+  "file": "tests_integrated/test_context_menu.py",
+  "guards_docstring": "HATCH DESK D4: the dynamic right-click menu (workbench/context_menu.py; the owner's brief: \"Make the right-click menu a defining capability of Graphite. Take the Fluxbox pipe-menu idea seriously.\"). Pure rules (no window): revisions of one file, what a file is, the staC a file reads as, the far side of a network entry, the providers' order and their isolation, the Kernel's own Pause refusal mirror",
+  "lines": 918,
+  "tests": 44,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 61.9,
+  "wall_seconds_runs": [
+   64.72,
+   65.38,
+   63.55
+  ],
+  "wall_min": 63.55,
+  "wall_max": 65.38,
+  "wall_spread_pct": 2.9,
+  "test_seconds_sum_runs": [
+   59.31,
+   60.56,
+   58.23
+  ],
+  "overhead_seconds_mean": 5.18,
+  "share_of_suite_082": 0.127,
+  "kinds": {
+   "BEHAVIOUR": 30,
+   "CONTRACT": 2,
+   "TEXT": 6,
+   "LOOK": 6
+  },
+  "assertions_static": 299,
+  "assertions_executed": 1952,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.agenda",
+   "workbench.boss_theme",
+   "workbench.cabinet_actions_qt",
+   "workbench.chain_menu",
+   "workbench.clip",
+   "workbench.context_menu",
+   "workbench.desk_qt",
+   "workbench.document_qt",
+   "workbench.engineering_kernel",
+   "workbench.field_page",
+   "workbench.files_qt",
+   "workbench.files_service",
+   "workbench.finder_qt",
+   "workbench.glyph_set",
+   "workbench.line_steps",
+   "workbench.locations",
+   "workbench.network_capture",
+   "workbench.programs_qt",
+   "workbench.qt_app",
+   "workbench.session",
+   "workbench.session_power",
+   "workbench.stacy_foundation",
+   "workbench.tool_faces"
+  ],
+  "loads_runtime_count": 311,
+  "churn_file_commits": 3,
+  "churn_after_import": 2,
+  "churn_after_import_with_look_files": 2,
+  "drift": {
+   "source_files": [
+    "workbench/agenda.py",
+    "workbench/boss_theme.py",
+    "workbench/cabinet_actions_qt.py",
+    "workbench/chain_menu.py",
+    "workbench/clip.py",
+    "workbench/context_menu.py",
+    "workbench/desk_qt.py",
+    "workbench/document_qt.py",
+    "workbench/engineering_kernel.py",
+    "workbench/field_page.py",
+    "workbench/files_qt.py",
+    "workbench/files_service.py",
+    "workbench/finder_qt.py",
+    "workbench/glyph_set.py",
+    "workbench/line_steps.py",
+    "workbench/locations.py",
+    "workbench/network_capture.py",
+    "workbench/programs_qt.py",
+    "workbench/qt_app.py",
+    "workbench/session.py",
+    "workbench/session_power.py",
+    "workbench/stacy_foundation.py",
+    "workbench/tool_faces.py"
+   ],
+   "source_commits_after_import": 40,
+   "test_commits_after_import": 2,
+   "source_changed_without_test": 38
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_continue_setting": {
+  "file": "tests_integrated/test_continue_setting.py",
+  "guards_docstring": "agent.continue_when_closed: whether a running assignment continues in the Graphite service when the window closes. A Kernel settings boolean, project private, owner only, default on, outside the session batch; the agent loop reads the same row.",
+  "lines": 49,
+  "tests": 2,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.8,
+  "wall_seconds_runs": [
+   1.0,
+   0.93,
+   0.97
+  ],
+  "wall_min": 0.93,
+  "wall_max": 1.0,
+  "wall_spread_pct": 7.5,
+  "test_seconds_sum_runs": [
+   0.2,
+   0.18,
+   0.23
+  ],
+  "overhead_seconds_mean": 0.76,
+  "share_of_suite_082": 0.0016,
+  "kinds": {
+   "BEHAVIOUR": 2
+  },
+  "assertions_static": 13,
+  "assertions_executed": 18,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.agent_loop",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.session",
+   "workbench.settings_registry"
+  ],
+  "loads_runtime_count": 190,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/agent_loop.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_continuing_work": {
+  "file": "tests_integrated/test_continuing_work.py",
+  "guards_docstring": "Continuing work and the Agenda: grants, budgets, the Master Stop epoch, outside edits, no-progress stops, recurrences, crash reconciliation, procedures and worker refusal; no model or isolation emulation.",
+  "lines": 282,
+  "tests": 13,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 6.3,
+  "wall_seconds_runs": [
+   5.67,
+   6.09,
+   5.89
+  ],
+  "wall_min": 5.67,
+  "wall_max": 6.09,
+  "wall_spread_pct": 7.4,
+  "test_seconds_sum_runs": [
+   4.94,
+   5.35,
+   5.11
+  ],
+  "overhead_seconds_mean": 0.75,
+  "share_of_suite_082": 0.0129,
+  "kinds": {
+   "BEHAVIOUR": 13
+  },
+  "assertions_static": 108,
+  "assertions_executed": 225,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.agenda",
+   "workbench.brain_runtime",
+   "workbench.change_sets",
+   "workbench.clip",
+   "workbench.continuing_work",
+   "workbench.edit_storage",
+   "workbench.engineering_kernel",
+   "workbench.local_brain",
+   "workbench.locations",
+   "workbench.stacy_foundation",
+   "workbench.state_backup",
+   "workbench.work_trail",
+   "workbench.worker_boundary",
+   "workbench.workspace_backup"
+  ],
+  "loads_runtime_count": 192,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/agenda.py",
+    "workbench/brain_runtime.py",
+    "workbench/change_sets.py",
+    "workbench/clip.py",
+    "workbench/continuing_work.py",
+    "workbench/engineering_kernel.py",
+    "workbench/local_brain.py",
+    "workbench/locations.py",
+    "workbench/stacy_foundation.py",
+    "workbench/state_backup.py",
+    "workbench/work_trail.py",
+    "workbench/worker_boundary.py",
+    "workbench/workspace_backup.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_deployment": {
+  "file": "tests_integrated/test_deployment.py",
+  "guards_docstring": "Exchange, releases and deployment: paired exchange over the pill link, release publication and offline update recovery, with their security and recovery boundaries.",
+  "lines": 246,
+  "tests": 16,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 5.7,
+  "wall_seconds_runs": [
+   6.98,
+   6.5,
+   5.7
+  ],
+  "wall_min": 5.7,
+  "wall_max": 6.98,
+  "wall_spread_pct": 22.5,
+  "test_seconds_sum_runs": [
+   5.78,
+   5.73,
+   4.94
+  ],
+  "overhead_seconds_mean": 0.91,
+  "share_of_suite_082": 0.0117,
+  "kinds": {
+   "BEHAVIOUR": 16
+  },
+  "assertions_static": 69,
+  "assertions_executed": 69,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.clip",
+   "workbench.continuing_checks",
+   "workbench.deployment_checks",
+   "workbench.edit_checks",
+   "workbench.engineering_kernel",
+   "workbench.exchange",
+   "workbench.files_service",
+   "workbench.pills",
+   "workbench.release_publisher",
+   "workbench.release_updates",
+   "workbench.update_checks"
+  ],
+  "loads_runtime_count": 196,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/clip.py",
+    "workbench/continuing_checks.py",
+    "workbench/deployment_checks.py",
+    "workbench/edit_checks.py",
+    "workbench/engineering_kernel.py",
+    "workbench/release_publisher.py",
+    "workbench/release_updates.py",
+    "workbench/update_checks.py"
+   ],
+   "source_commits_after_import": 2,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 2
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_desk": {
+  "file": "tests_integrated/test_desk.py",
+  "guards_docstring": "HATCH DESK D1a: the desk's one grid as pure arithmetic, and the bands' grain (workbench/desk_qt.py). HATCH DESK D1b: the panes' tab rows, marks, trees, Trash and feet (workbench/pane_qt.py), and the pointer's geometry (graphite_brand.pointer_shape). D1-fix: the lower band's word size, Trash's box as its drawing, the cat's poses inside its tile, Activity's work line. No QApplication is created here",
+  "lines": 251,
+  "tests": 28,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.2,
+  "wall_seconds_runs": [
+   1.1,
+   0.95,
+   1.12
+  ],
+  "wall_min": 0.95,
+  "wall_max": 1.12,
+  "wall_spread_pct": 17.9,
+  "test_seconds_sum_runs": [
+   0.97,
+   0.84,
+   0.97
+  ],
+  "overhead_seconds_mean": 0.13,
+  "share_of_suite_082": 0.0025,
+  "kinds": {
+   "LOOK": 27,
+   "BEHAVIOUR": 1
+  },
+  "assertions_static": 134,
+  "assertions_executed": 11472,
+  "failing": [
+   "tests_integrated.test_desk.PaneWidthTests.test_the_default_follows_the_interface_size_under_the_ceiling",
+   "tests_integrated.test_desk.PaneWidthTests.test_the_workspace_keeps_the_floor_the_old_rules_protected",
+   "tests_integrated.test_desk.PaneWidthTests.test_the_owners_width_is_one_width_for_both",
+   "tests_integrated.test_desk.GrainTests.test_the_grain_is_deterministic_quiet_and_centred_on_the_band_tone",
+   "tests_integrated.test_desk.GrainTests.test_the_lettering_reads_on_the_band",
+   "tests_integrated.test_desk.GrainTests.test_the_band_colours_are_the_palettes"
+  ],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.desk_qt",
+   "workbench.graphite_brand",
+   "workbench.operations_qt",
+   "workbench.pane_qt",
+   "workbench.shell2",
+   "workbench.trash_can_qt",
+   "workbench.typebar_qt"
+  ],
+  "loads_runtime_count": 195,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/desk_qt.py",
+    "workbench/graphite_brand.py",
+    "workbench/operations_qt.py",
+    "workbench/pane_qt.py",
+    "workbench/shell2.py",
+    "workbench/trash_can_qt.py",
+    "workbench/typebar_qt.py"
+   ],
+   "source_commits_after_import": 33,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 33
+  },
+  "constant_only_tests": [
+   "tests_integrated.test_desk.GrainTests.test_the_band_colours_are_the_palettes"
+  ],
+  "tests_with_near_duplicates": 2
+ },
+ "test_desk_acts": {
+  "file": "tests_integrated/test_desk_acts.py",
+  "guards_docstring": "0.8.2: desk acts (workbench/desk_acts.py, desk_doers.py): one named act for each thing a person can do in the window. The owner, 14 November 2026: \"a pass that builds as much capabilities of Kasandra to control the graphite interface ... eventually we're going to do that, and that opens up more testing options and simulating options\". Pure rules (no window): the forty acts and their marks (navigat",
+  "lines": 689,
+  "tests": 28,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 189.7,
+  "wall_seconds_runs": [
+   190.89,
+   193.08,
+   191.01
+  ],
+  "wall_min": 190.89,
+  "wall_max": 193.08,
+  "wall_spread_pct": 1.1,
+  "test_seconds_sum_runs": [
+   185.6,
+   187.47,
+   185.33
+  ],
+  "overhead_seconds_mean": 5.53,
+  "share_of_suite_082": 0.3891,
+  "kinds": {
+   "CONTRACT": 6,
+   "BEHAVIOUR": 19,
+   "TEXT": 3
+  },
+  "assertions_static": 226,
+  "assertions_executed": 1474,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.activity",
+   "workbench.boss_theme",
+   "workbench.chain_menu",
+   "workbench.clip",
+   "workbench.context_menu",
+   "workbench.desk_acts",
+   "workbench.desk_doers",
+   "workbench.desk_scene",
+   "workbench.engineering_kernel",
+   "workbench.field_model",
+   "workbench.files_qt",
+   "workbench.local_brain",
+   "workbench.locations",
+   "workbench.menu_catch",
+   "workbench.qt_app",
+   "workbench.session",
+   "workbench.session_power",
+   "workbench.shell2",
+   "workbench.stacy_hand",
+   "workbench.tool_faces",
+   "workbench.tool_selection"
+  ],
+  "loads_runtime_count": 348,
+  "churn_file_commits": 2,
+  "churn_after_import": 2,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/activity.py",
+    "workbench/boss_theme.py",
+    "workbench/chain_menu.py",
+    "workbench/context_menu.py",
+    "workbench/desk_acts.py",
+    "workbench/desk_doers.py",
+    "workbench/desk_scene.py",
+    "workbench/engineering_kernel.py",
+    "workbench/field_model.py",
+    "workbench/files_qt.py",
+    "workbench/local_brain.py",
+    "workbench/menu_catch.py",
+    "workbench/shell2.py",
+    "workbench/stacy_hand.py",
+    "workbench/tool_selection.py"
+   ],
+   "source_commits_after_import": 45,
+   "test_commits_after_import": 2,
+   "source_changed_without_test": 43
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_desk_scenes": {
+  "file": "tests_integrated/test_desk_scenes.py",
+  "guards_docstring": "0.8.2: the first scene (tools/campaign_lib/data/scenes/P01.json), played on the live window by desk acts alone. The owner's playable scene: open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace 07 Bench readings; compare the two revisions of the limits; and take back what Stacy's hand wrote. It is played by p",
+  "lines": 87,
+  "tests": 5,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 62.7,
+  "wall_seconds_runs": [
+   62.3,
+   62.66,
+   62.51
+  ],
+  "wall_min": 62.3,
+  "wall_max": 62.66,
+  "wall_spread_pct": 0.6,
+  "test_seconds_sum_runs": [
+   57.12,
+   57.93,
+   57.69
+  ],
+  "overhead_seconds_mean": 4.91,
+  "share_of_suite_082": 0.1286,
+  "kinds": {
+   "BEHAVIOUR": 5
+  },
+  "assertions_static": 29,
+  "assertions_executed": 55,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.desk_doers",
+   "workbench.desk_scene",
+   "workbench.engineering_kernel",
+   "workbench.menu_catch"
+  ],
+  "loads_runtime_count": 308,
+  "churn_file_commits": 2,
+  "churn_after_import": 2,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/desk_doers.py",
+    "workbench/desk_scene.py",
+    "workbench/engineering_kernel.py",
+    "workbench/menu_catch.py"
+   ],
+   "source_commits_after_import": 5,
+   "test_commits_after_import": 2,
+   "source_changed_without_test": 3
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_discovery": {
+  "file": "tests_integrated/test_discovery.py",
+  "guards_docstring": "Inquiry ownership, scoped invalidation and actual-receipt admission boundaries.",
+  "lines": 196,
+  "tests": 13,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 3.8,
+  "wall_seconds_runs": [
+   3.61,
+   3.86,
+   4.02
+  ],
+  "wall_min": 3.61,
+  "wall_max": 4.02,
+  "wall_spread_pct": 11.4,
+  "test_seconds_sum_runs": [
+   2.85,
+   3.14,
+   3.29
+  ],
+  "overhead_seconds_mean": 0.74,
+  "share_of_suite_082": 0.0078,
+  "kinds": {
+   "BEHAVIOUR": 13
+  },
+  "assertions_static": 75,
+  "assertions_executed": 99,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.discovery_ir",
+   "workbench.discovery_service",
+   "workbench.engineering_kernel",
+   "workbench.math_model",
+   "workbench.project_desk"
+  ],
+  "loads_runtime_count": 199,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/discovery_ir.py",
+    "workbench/discovery_service.py",
+    "workbench/engineering_kernel.py"
+   ],
+   "source_commits_after_import": 2,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 2
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_documents": {
+  "file": "tests_integrated/test_documents.py",
+  "guards_docstring": "Documents: the shared page's store, its revision binding, Slate's rule-based edits and the Qt page round trip. Nothing here starts a model, a worker or a job: the direct edits are explicit rules, and the Qt part runs offscreen.",
+  "lines": 230,
+  "tests": 13,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.5,
+  "wall_seconds_runs": [
+   1.53,
+   1.32,
+   1.37
+  ],
+  "wall_min": 1.32,
+  "wall_max": 1.53,
+  "wall_spread_pct": 15.9,
+  "test_seconds_sum_runs": [
+   0.68,
+   0.54,
+   0.57
+  ],
+  "overhead_seconds_mean": 0.81,
+  "share_of_suite_082": 0.0031,
+  "kinds": {
+   "BEHAVIOUR": 12,
+   "CONTRACT": 1
+  },
+  "assertions_static": 132,
+  "assertions_executed": 165,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.activity",
+   "workbench.cabinet",
+   "workbench.document_qt",
+   "workbench.documents",
+   "workbench.engine",
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.explore",
+   "workbench.ledger_control",
+   "workbench.shell2",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 197,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/activity.py",
+    "workbench/cabinet.py",
+    "workbench/document_qt.py",
+    "workbench/documents.py",
+    "workbench/engine.py",
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/explore.py",
+    "workbench/ledger_control.py",
+    "workbench/shell2.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 35,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 35
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_exact_math": {
+  "file": "tests_integrated/test_exact_math.py",
+  "guards_docstring": "Exact maths: units and dimensions, missing versus zero denominators, executable text refused before any backend, sweeps that break at undefined samples with exact boundaries, and math.prepare/run bound to its source with read-only authority. No solver process starts here; the SymPy and Z3 solvers are tested on demand in test_exact_math_solvers (requirements-math.txt).",
+  "lines": 70,
+  "tests": 6,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.4,
+  "wall_seconds_runs": [
+   1.53,
+   1.37,
+   1.39
+  ],
+  "wall_min": 1.37,
+  "wall_max": 1.53,
+  "wall_spread_pct": 11.7,
+  "test_seconds_sum_runs": [
+   0.62,
+   0.63,
+   0.67
+  ],
+  "overhead_seconds_mean": 0.79,
+  "share_of_suite_082": 0.0029,
+  "kinds": {
+   "BEHAVIOUR": 6
+  },
+  "assertions_static": 23,
+  "assertions_executed": 26,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.math_backend",
+   "workbench.math_model",
+   "workbench.math_units",
+   "workbench.problem_checks",
+   "workbench.stac.quantities"
+  ],
+  "loads_runtime_count": 202,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_kernel.py",
+    "workbench/math_backend.py",
+    "workbench/math_model.py",
+    "workbench/math_units.py",
+    "workbench/problem_checks.py",
+    "workbench/stac/quantities.py"
+   ],
+   "source_commits_after_import": 2,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 2
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_exact_math_solvers": {
+  "file": "tests_integrated/test_exact_math_solvers.py",
+  "guards_docstring": "On demand: the SymPy and Z3 solvers in their child worker (python -m workbench.math_backend _worker), with an independent witness re-check of every answer. Needs requirements-math.txt (sympy and z3-solver); outside the release check's focused set because it starts a process. Run it by hand: python3 -m unittest -v tests_integrated.test_exact_math_solvers",
+  "lines": 29,
+  "tests": 2,
+  "focused": false,
+  "role": "on demand: the SymPy and Z3 solvers in a child worker; needs requirements-math.txt",
+  "seconds_082": null,
+  "wall_seconds_runs": [
+   5.59,
+   4.34,
+   4.18
+  ],
+  "wall_min": 4.18,
+  "wall_max": 5.59,
+  "wall_spread_pct": 33.7,
+  "test_seconds_sum_runs": [
+   5.47,
+   4.2,
+   4.07
+  ],
+  "overhead_seconds_mean": 0.12,
+  "share_of_suite_082": null,
+  "kinds": {
+   "BEHAVIOUR": 2
+  },
+  "assertions_static": 7,
+  "assertions_executed": 10,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.math_backend",
+   "workbench.math_model"
+  ],
+  "loads_runtime_count": 197,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/math_backend.py",
+    "workbench/math_model.py"
+   ],
+   "source_commits_after_import": 0,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 0
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_explore": {
+  "file": "tests_integrated/test_explore.py",
+  "guards_docstring": "Explore is metadata and navigation intent, never a second execution path.",
+  "lines": 124,
+  "tests": 13,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 3.7,
+  "wall_seconds_runs": [
+   3.64,
+   3.74,
+   3.64
+  ],
+  "wall_min": 3.64,
+  "wall_max": 3.74,
+  "wall_spread_pct": 2.7,
+  "test_seconds_sum_runs": [
+   2.9,
+   3.02,
+   2.87
+  ],
+  "overhead_seconds_mean": 0.74,
+  "share_of_suite_082": 0.0076,
+  "kinds": {
+   "CONTRACT": 1,
+   "BEHAVIOUR": 12
+  },
+  "assertions_static": 65,
+  "assertions_executed": 84,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.brain_qt",
+   "workbench.engineering_kernel",
+   "workbench.explore",
+   "workbench.ledger_control",
+   "workbench.math_units",
+   "workbench.session",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 190,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/brain_qt.py",
+    "workbench/engineering_kernel.py",
+    "workbench/explore.py",
+    "workbench/ledger_control.py",
+    "workbench/math_units.py",
+    "workbench/session.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 12,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 12
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 2
+ },
+ "test_faces_find_light": {
+  "file": "tests_integrated/test_faces_find_light.py",
+  "guards_docstring": "0.4.9 and 0.5: the face of a tool button (words or a glyph), Find in whatever is open, a page in the desk's light, the glyph set, and what the session keeps of them. Real offscreen widgets; no window of the program, no job, worker, model, provider or native program. Everything written goes to a temporary folder.",
+  "lines": 375,
+  "tests": 34,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.7,
+  "wall_seconds_runs": [
+   0.72,
+   0.76,
+   0.71
+  ],
+  "wall_min": 0.71,
+  "wall_max": 0.76,
+  "wall_spread_pct": 7.0,
+  "test_seconds_sum_runs": [
+   0.49,
+   0.49,
+   0.48
+  ],
+  "overhead_seconds_mean": 0.24,
+  "share_of_suite_082": 0.0014,
+  "kinds": {
+   "LOOK": 16,
+   "CONTRACT": 2,
+   "TEXT": 4,
+   "BEHAVIOUR": 12
+  },
+  "assertions_static": 149,
+  "assertions_executed": 417,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.boss_qt",
+   "workbench.boss_theme",
+   "workbench.centre_find",
+   "workbench.desktop_header_qt",
+   "workbench.equalizer_qt",
+   "workbench.field_model",
+   "workbench.field_page",
+   "workbench.field_qt",
+   "workbench.glyph_set",
+   "workbench.menu_catch",
+   "workbench.menus2",
+   "workbench.meter_cards",
+   "workbench.page_light",
+   "workbench.session",
+   "workbench.session_power",
+   "workbench.tool_faces"
+  ],
+  "loads_runtime_count": 23,
+  "churn_file_commits": 9,
+  "churn_after_import": 9,
+  "churn_after_import_with_look_files": 7,
+  "drift": {
+   "source_files": [
+    "workbench/boss_qt.py",
+    "workbench/boss_theme.py",
+    "workbench/centre_find.py",
+    "workbench/desktop_header_qt.py",
+    "workbench/equalizer_qt.py",
+    "workbench/field_model.py",
+    "workbench/field_page.py",
+    "workbench/field_qt.py",
+    "workbench/glyph_set.py",
+    "workbench/menu_catch.py",
+    "workbench/menus2.py",
+    "workbench/meter_cards.py",
+    "workbench/page_light.py",
+    "workbench/session.py",
+    "workbench/session_power.py",
+    "workbench/tool_faces.py"
+   ],
+   "source_commits_after_import": 41,
+   "test_commits_after_import": 9,
+   "source_changed_without_test": 33
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_frame": {
+  "file": "tests_integrated/test_frame.py",
+  "guards_docstring": "DESKTOP-01 frame: the strip's pure arithmetic (HATCH DESK D1a: the panes' one width is test_desk), the remembered widths, the held-state words. No QApplication is created here; the Qt behaviour (actual window bounds, focus, captures) is tools/check_frame_ui.py.",
+  "lines": 118,
+  "tests": 11,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.1,
+  "wall_seconds_runs": [
+   1.0,
+   0.93,
+   1.18
+  ],
+  "wall_min": 0.93,
+  "wall_max": 1.18,
+  "wall_spread_pct": 26.9,
+  "test_seconds_sum_runs": [
+   0.64,
+   0.6,
+   0.75
+  ],
+  "overhead_seconds_mean": 0.38,
+  "share_of_suite_082": 0.0023,
+  "kinds": {
+   "LOOK": 6,
+   "TEXT": 3,
+   "BEHAVIOUR": 1,
+   "CONTRACT": 1
+  },
+  "assertions_static": 55,
+  "assertions_executed": 65,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.desk_qt",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.operations",
+   "workbench.service_lifecycle",
+   "workbench.session",
+   "workbench.settings_registry",
+   "workbench.typebar_qt"
+  ],
+  "loads_runtime_count": 195,
+  "churn_file_commits": 2,
+  "churn_after_import": 1,
+  "churn_after_import_with_look_files": 1,
+  "drift": {
+   "source_files": [
+    "workbench/desk_qt.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/operations.py",
+    "workbench/service_lifecycle.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py",
+    "workbench/typebar_qt.py"
+   ],
+   "source_commits_after_import": 15,
+   "test_commits_after_import": 1,
+   "source_changed_without_test": 14
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 2
+ },
+ "test_graphite": {
+  "file": "tests_integrated/test_graphite.py",
+  "guards_docstring": "GRAPHITE-01 (the owner's design update of 2026-11-06): the cat's pose machine, pure; its timing and Reduce motion on an offscreen QApplication with a bare widget; the marks' palette and arithmetic; the startup screen never stops the start. The window-level behaviour (captures, real pointer and key events, the menu, the game from the mark) is tools/check_graphite_ui.py. Nothing here starts a proces",
+  "lines": 464,
+  "tests": 31,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 7.9,
+  "wall_seconds_runs": [
+   8.53,
+   7.91,
+   8.19
+  ],
+  "wall_min": 7.91,
+  "wall_max": 8.53,
+  "wall_spread_pct": 7.8,
+  "test_seconds_sum_runs": [
+   8.08,
+   7.49,
+   7.81
+  ],
+  "overhead_seconds_mean": 0.42,
+  "share_of_suite_082": 0.0162,
+  "kinds": {
+   "LOOK": 17,
+   "TEXT": 7,
+   "BEHAVIOUR": 5,
+   "CONTRACT": 2
+  },
+  "assertions_static": 135,
+  "assertions_executed": 403,
+  "failing": [
+   "tests_integrated.test_graphite.MarkAndTileTests.test_palette_is_graphite_paper_eraser_and_pencil_only",
+   "tests_integrated.test_graphite.MarkAndTileTests.test_the_band_places_the_cat_by_its_pale_coat",
+   "tests_integrated.test_graphite.RenameGuardTests.test_public_name_and_internal_identities"
+  ],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.agent_qt",
+   "workbench.conditions",
+   "workbench.desk_qt",
+   "workbench.desktop_header_qt",
+   "workbench.graphite_brand",
+   "workbench.hatch_qt",
+   "workbench.launch",
+   "workbench.locations",
+   "workbench.qt_app",
+   "workbench.settings_registry",
+   "workbench.shell2",
+   "workbench.struthio_play",
+   "workbench.struthio_qt",
+   "workbench.typebar_qt",
+   "workbench.version"
+  ],
+  "loads_runtime_count": 231,
+  "churn_file_commits": 3,
+  "churn_after_import": 2,
+  "churn_after_import_with_look_files": 2,
+  "drift": {
+   "source_files": [
+    "sdk/cli/arc1cli/concern_catalog.py",
+    "workbench/agent_qt.py",
+    "workbench/conditions.py",
+    "workbench/desk_qt.py",
+    "workbench/desktop_header_qt.py",
+    "workbench/graphite_brand.py",
+    "workbench/hatch_qt.py",
+    "workbench/launch.py",
+    "workbench/locations.py",
+    "workbench/qt_app.py",
+    "workbench/settings_registry.py",
+    "workbench/shell2.py",
+    "workbench/struthio_play.py",
+    "workbench/struthio_qt.py",
+    "workbench/typebar_qt.py",
+    "workbench/version.py"
+   ],
+   "source_commits_after_import": 43,
+   "test_commits_after_import": 2,
+   "source_changed_without_test": 42
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 2
+ },
+ "test_hardware_settings": {
+  "file": "tests_integrated/test_hardware_settings.py",
+  "guards_docstring": "hardware.category_views: one bounded adapter over the existing per-pane Session map (Auto view, Details or Thumbnails per device/group pane). Single-key Set only; set, undo and default go through the Session field; concurrent writers never resurrect a stale map; receipts say what is open; the map is presentation-only context; the legacy loader never rewrites bytes.",
+  "lines": 149,
+  "tests": 8,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.8,
+  "wall_seconds_runs": [
+   1.97,
+   2.31,
+   2.07
+  ],
+  "wall_min": 1.97,
+  "wall_max": 2.31,
+  "wall_spread_pct": 17.3,
+  "test_seconds_sum_runs": [
+   1.13,
+   1.51,
+   1.27
+  ],
+  "overhead_seconds_mean": 0.81,
+  "share_of_suite_082": 0.0037,
+  "kinds": {
+   "BEHAVIOUR": 8
+  },
+  "assertions_static": 99,
+  "assertions_executed": 138,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.session",
+   "workbench.settings_registry",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 192,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 4
+ },
+ "test_install_media": {
+  "file": "tests_integrated/test_install_media.py",
+  "guards_docstring": "Release-parts integrity, atomic extraction, non-executing install plans, truthful final status and the packager round trip.",
+  "lines": 205,
+  "tests": 17,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.3,
+  "wall_seconds_runs": [
+   0.32,
+   0.37,
+   0.29
+  ],
+  "wall_min": 0.29,
+  "wall_max": 0.37,
+  "wall_spread_pct": 27.6,
+  "test_seconds_sum_runs": [
+   0.18,
+   0.21,
+   0.15
+  ],
+  "overhead_seconds_mean": 0.14,
+  "share_of_suite_082": 0.0006,
+  "kinds": {
+   "BEHAVIOUR": 17
+  },
+  "assertions_static": 103,
+  "assertions_executed": 155,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [],
+  "loads_runtime_count": 0,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "INSTALL_DEBIAN.sh",
+    "INSTALL_LS.py",
+    "START_MINIMAL_DEBIAN.sh",
+    "START_OFFICE.sh"
+   ],
+   "source_commits_after_import": 0,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 0
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_joined_work": {
+  "file": "tests_integrated/test_joined_work.py",
+  "guards_docstring": "Joined and method work: producer identity, result scope and stable recovery keys; a saved checked preview continues only to its exact preparation (the saved step is the fixture joined_work_case.json).",
+  "lines": 150,
+  "tests": 9,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.8,
+  "wall_seconds_runs": [
+   0.73,
+   0.72,
+   0.73
+  ],
+  "wall_min": 0.72,
+  "wall_max": 0.73,
+  "wall_spread_pct": 1.4,
+  "test_seconds_sum_runs": [
+   0.49,
+   0.48,
+   0.49
+  ],
+  "overhead_seconds_mean": 0.24,
+  "share_of_suite_082": 0.0016,
+  "kinds": {
+   "BEHAVIOUR": 9
+  },
+  "assertions_static": 40,
+  "assertions_executed": 55,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.adaptive_contract",
+   "workbench.adaptive_work",
+   "workbench.checked_methods",
+   "workbench.clock_lab",
+   "workbench.joined_work",
+   "workbench.slate_action"
+  ],
+  "loads_runtime_count": 188,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/adaptive_contract.py",
+    "workbench/adaptive_work.py",
+    "workbench/checked_methods.py",
+    "workbench/clock_lab.py",
+    "workbench/joined_work.py",
+    "workbench/slate_action.py"
+   ],
+   "source_commits_after_import": 0,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 0
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_kasandra": {
+  "file": "tests_integrated/test_kasandra.py",
+  "guards_docstring": "The Kasandra appearance (0.8.0): the palette chosen at start, the stills chosen by the state of the work, the checks a still passes before it is shown, and her name where it is shown.",
+  "lines": 217,
+  "tests": 20,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.9,
+  "wall_seconds_runs": [
+   1.07,
+   1.15,
+   1.08
+  ],
+  "wall_min": 1.07,
+  "wall_max": 1.15,
+  "wall_spread_pct": 7.5,
+  "test_seconds_sum_runs": [
+   0.93,
+   1.0,
+   0.93
+  ],
+  "overhead_seconds_mean": 0.15,
+  "share_of_suite_082": 0.0018,
+  "kinds": {
+   "BEHAVIOUR": 9,
+   "CONTRACT": 2,
+   "LOOK": 8,
+   "TEXT": 1
+  },
+  "assertions_static": 82,
+  "assertions_executed": 102,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.boss_theme",
+   "workbench.kasandra_art",
+   "workbench.session"
+  ],
+  "loads_runtime_count": 9,
+  "churn_file_commits": 4,
+  "churn_after_import": 4,
+  "churn_after_import_with_look_files": 4,
+  "drift": {
+   "source_files": [
+    "workbench/boss_theme.py",
+    "workbench/kasandra_art.py",
+    "workbench/session.py"
+   ],
+   "source_commits_after_import": 15,
+   "test_commits_after_import": 4,
+   "source_changed_without_test": 11
+  },
+  "constant_only_tests": [
+   "tests_integrated.test_kasandra.PaletteTests.test_graphite_keeps_its_colours_and_its_roles_are_amber"
+  ],
+  "tests_with_near_duplicates": 1
+ },
+ "test_launcher": {
+  "file": "tests_integrated/test_launcher.py",
+  "guards_docstring": "The Hatch doorway: stored and passive state only, truthful descriptor words, no new authority. DESKTOP-01 (HT01, HT02, HT03): the six tool groups lead the menu, every row carries the presentation contract, and the five earlier choices keep their routes, identities and keys in their new places. Kernel-level, plus a few widget-level cases on an offscreen QApplication with no window.",
+  "lines": 339,
+  "tests": 17,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 4.5,
+  "wall_seconds_runs": [
+   4.71,
+   4.73,
+   4.73
+  ],
+  "wall_min": 4.71,
+  "wall_max": 4.73,
+  "wall_spread_pct": 0.4,
+  "test_seconds_sum_runs": [
+   3.81,
+   3.82,
+   3.79
+  ],
+  "overhead_seconds_mean": 0.92,
+  "share_of_suite_082": 0.0092,
+  "kinds": {
+   "BEHAVIOUR": 9,
+   "CONTRACT": 4,
+   "TEXT": 3,
+   "LOOK": 1
+  },
+  "assertions_static": 200,
+  "assertions_executed": 1453,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.brain_qt",
+   "workbench.calculator_qt",
+   "workbench.capability_catalog",
+   "workbench.engineering_kernel",
+   "workbench.explore",
+   "workbench.explore_qt",
+   "workbench.hatch_qt",
+   "workbench.lab_qt",
+   "workbench.ledger_control",
+   "workbench.local_brain",
+   "workbench.problem_qt",
+   "workbench.programs_qt",
+   "workbench.project_desk_qt",
+   "workbench.session",
+   "workbench.work_trail_qt"
+  ],
+  "loads_runtime_count": 202,
+  "churn_file_commits": 3,
+  "churn_after_import": 2,
+  "churn_after_import_with_look_files": 2,
+  "drift": {
+   "source_files": [
+    "workbench/brain_qt.py",
+    "workbench/calculator_qt.py",
+    "workbench/capability_catalog.py",
+    "workbench/engineering_kernel.py",
+    "workbench/explore.py",
+    "workbench/explore_qt.py",
+    "workbench/hatch_qt.py",
+    "workbench/lab_qt.py",
+    "workbench/ledger_control.py",
+    "workbench/local_brain.py",
+    "workbench/problem_qt.py",
+    "workbench/programs_qt.py",
+    "workbench/project_desk_qt.py",
+    "workbench/session.py",
+    "workbench/work_trail_qt.py"
+   ],
+   "source_commits_after_import": 16,
+   "test_commits_after_import": 2,
+   "source_changed_without_test": 14
+  },
+  "constant_only_tests": [
+   "tests_integrated.test_launcher.LauncherTests.test_explore_contract_is_a_bounded_read"
+  ],
+  "tests_with_near_duplicates": 2
+ },
+ "test_machine": {
+  "file": "tests_integrated/test_machine.py",
+  "guards_docstring": "Machine observations are read-only, bounded and honest; ledger.machine is a bounded read with a fixed schema, a recorded registry row (docs/GRAPHITE_0.1_REGISTRY.json) and its own handler route.",
+  "lines": 192,
+  "tests": 6,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.2,
+  "wall_seconds_runs": [
+   1.39,
+   1.21,
+   1.37
+  ],
+  "wall_min": 1.21,
+  "wall_max": 1.39,
+  "wall_spread_pct": 14.9,
+  "test_seconds_sum_runs": [
+   0.49,
+   0.47,
+   0.5
+  ],
+  "overhead_seconds_mean": 0.83,
+  "share_of_suite_082": 0.0025,
+  "kinds": {
+   "BEHAVIOUR": 5,
+   "TEXT": 1
+  },
+  "assertions_static": 81,
+  "assertions_executed": 105,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.capability_catalog",
+   "workbench.doctor",
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.machine_overview",
+   "workbench.session",
+   "workbench.stacy_foundation"
+  ],
+  "loads_runtime_count": 191,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "tools/record_registry.py",
+    "workbench/capability_catalog.py",
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/machine_overview.py",
+    "workbench/session.py",
+    "workbench/stacy_foundation.py"
+   ],
+   "source_commits_after_import": 10,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 10
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_memory_cabinet": {
+  "file": "tests_integrated/test_memory_cabinet.py",
+  "guards_docstring": "Private memory filing, source withholding and atomic correction history.",
+  "lines": 106,
+  "tests": 9,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.4,
+  "wall_seconds_runs": [
+   1.57,
+   1.49,
+   1.41
+  ],
+  "wall_min": 1.41,
+  "wall_max": 1.57,
+  "wall_spread_pct": 11.3,
+  "test_seconds_sum_runs": [
+   0.77,
+   0.63,
+   0.74
+  ],
+  "overhead_seconds_mean": 0.78,
+  "share_of_suite_082": 0.0029,
+  "kinds": {
+   "BEHAVIOUR": 9
+  },
+  "assertions_static": 64,
+  "assertions_executed": 92,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.memory_cabinet",
+   "workbench.memory_service",
+   "workbench.session",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 190,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/memory_service.py",
+    "workbench/session.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_memory_settings": {
+  "file": "tests_integrated/test_memory_settings.py",
+  "guards_docstring": "Owner profile settings, atomic history, precision and sharing boundaries.",
+  "lines": 105,
+  "tests": 9,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.8,
+  "wall_seconds_runs": [
+   1.83,
+   1.91,
+   1.88
+  ],
+  "wall_min": 1.83,
+  "wall_max": 1.91,
+  "wall_spread_pct": 4.4,
+  "test_seconds_sum_runs": [
+   1.12,
+   1.09,
+   1.13
+  ],
+  "overhead_seconds_mean": 0.76,
+  "share_of_suite_082": 0.0037,
+  "kinds": {
+   "BEHAVIOUR": 9
+  },
+  "assertions_static": 69,
+  "assertions_executed": 114,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.memory_service",
+   "workbench.session",
+   "workbench.settings_registry",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 191,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 2
+ },
+ "test_model_settings": {
+  "file": "tests_integrated/test_model_settings.py",
+  "guards_docstring": "Launch-default consumers, frozen requests and original model safety boundaries.",
+  "lines": 187,
+  "tests": 13,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 5.2,
+  "wall_seconds_runs": [
+   5.59,
+   5.5,
+   5.43
+  ],
+  "wall_min": 5.43,
+  "wall_max": 5.59,
+  "wall_spread_pct": 2.9,
+  "test_seconds_sum_runs": [
+   4.84,
+   4.64,
+   4.72
+  ],
+  "overhead_seconds_mean": 0.78,
+  "share_of_suite_082": 0.0107,
+  "kinds": {
+   "BEHAVIOUR": 13
+  },
+  "assertions_static": 108,
+  "assertions_executed": 136,
+  "failing": [
+   "tests_integrated.test_model_settings.ModelSettingsTests.test_new_requests_freeze_defaults_auto_and_keep_idempotency_after_defaults_change",
+   "tests_integrated.test_model_settings.ModelSettingsTests.test_explicit_request_and_restore_override_launch_defaults",
+   "tests_integrated.test_model_settings.ModelSettingsTests.test_failed_activation_retains_original_restore_and_reports_owned_restored_worker",
+   "tests_integrated.test_model_settings.ModelSettingsTests.test_owner_cancellation_stays_stopped_and_never_automatically_restores",
+   "tests_integrated.test_model_settings.ModelSettingsTests.test_worker_uses_frozen_options_even_after_saved_defaults_change"
+  ],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.brain_runtime",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.local_brain",
+   "workbench.model_settings",
+   "workbench.session",
+   "workbench.settings_registry",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 192,
+  "churn_file_commits": 2,
+  "churn_after_import": 1,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/brain_runtime.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/local_brain.py",
+    "workbench/model_settings.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 14,
+   "test_commits_after_import": 1,
+   "source_changed_without_test": 14
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_model_turn": {
+  "file": "tests_integrated/test_model_turn.py",
+  "guards_docstring": "The model turn applied to a real page (HATCH AGENT-02, owner decision D19): decide() and words() without Qt, then the page's apply_model_edit offscreen against a disposable store. Nothing here starts a model, a worker or a job: the proposals are written out by hand (one is the 1.5B model's own proposal from the AGENT-01 live trial), Kernel.launch and Kernel.submit are held, and the page runs offsc",
+  "lines": 467,
+  "tests": 28,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 3.6,
+  "wall_seconds_runs": [
+   3.67,
+   3.69,
+   3.69
+  ],
+  "wall_min": 3.67,
+  "wall_max": 3.69,
+  "wall_spread_pct": 0.5,
+  "test_seconds_sum_runs": [
+   2.87,
+   2.82,
+   2.88
+  ],
+  "overhead_seconds_mean": 0.83,
+  "share_of_suite_082": 0.0074,
+  "kinds": {
+   "BEHAVIOUR": 27,
+   "TEXT": 1
+  },
+  "assertions_static": 184,
+  "assertions_executed": 243,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.document_qt",
+   "workbench.documents",
+   "workbench.engine",
+   "workbench.engineering_kernel",
+   "workbench.instruction_matrix",
+   "workbench.local_brain",
+   "workbench.model_turn",
+   "workbench.shell2"
+  ],
+  "loads_runtime_count": 198,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/document_qt.py",
+    "workbench/documents.py",
+    "workbench/engine.py",
+    "workbench/engineering_kernel.py",
+    "workbench/instruction_matrix.py",
+    "workbench/local_brain.py",
+    "workbench/model_turn.py",
+    "workbench/shell2.py"
+   ],
+   "source_commits_after_import": 35,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 35
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_network_watch": {
+  "file": "tests_integrated/test_network_watch.py",
+  "guards_docstring": "The network capability (HATCH DESK D5): observe without privileges, a headers-only capture, and the agent's access. The owner, 2026-11-06: \"Instead of log notes, let's have network. And we should probably add a network traffic scanner or packet sniffer capability that the agent can inspect.\" Covered here: the /proc parsers with fixture text (IPv4, IPv6, mapped, states), the rates, the process mapp",
+  "lines": 931,
+  "tests": 50,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 4.3,
+  "wall_seconds_runs": [
+   4.16,
+   4.06,
+   4.13
+  ],
+  "wall_min": 4.06,
+  "wall_max": 4.16,
+  "wall_spread_pct": 2.5,
+  "test_seconds_sum_runs": [
+   3.33,
+   3.21,
+   3.38
+  ],
+  "overhead_seconds_mean": 0.81,
+  "share_of_suite_082": 0.0088,
+  "kinds": {
+   "BEHAVIOUR": 46,
+   "CONTRACT": 2,
+   "TEXT": 2
+  },
+  "assertions_static": 360,
+  "assertions_executed": 1999,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.activity",
+   "workbench.agent_loop",
+   "workbench.agent_profiles",
+   "workbench.clip",
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.network_capture",
+   "workbench.network_watch",
+   "workbench.profile_network",
+   "workbench.remote_service",
+   "workbench.stacy_control",
+   "workbench.stacy_foundation",
+   "workbench.tool_selection",
+   "workbench.work_trail"
+  ],
+  "loads_runtime_count": 195,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/activity.py",
+    "workbench/agent_loop.py",
+    "workbench/agent_profiles.py",
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/network_capture.py",
+    "workbench/network_watch.py",
+    "workbench/profile_network.py",
+    "workbench/remote_service.py",
+    "workbench/stacy_control.py",
+    "workbench/stacy_foundation.py",
+    "workbench/tool_selection.py",
+    "workbench/work_trail.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_operations": {
+  "file": "tests_integrated/test_operations.py",
+  "guards_docstring": "Operation observations, privacy, queue prerequisites and priority readback.",
+  "lines": 165,
+  "tests": 16,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.9,
+  "wall_seconds_runs": [
+   2.02,
+   2.07,
+   1.93
+  ],
+  "wall_min": 1.93,
+  "wall_max": 2.07,
+  "wall_spread_pct": 7.3,
+  "test_seconds_sum_runs": [
+   1.11,
+   1.21,
+   1.24
+  ],
+  "overhead_seconds_mean": 0.82,
+  "share_of_suite_082": 0.0039,
+  "kinds": {
+   "BEHAVIOUR": 15,
+   "TEXT": 1
+  },
+  "assertions_static": 101,
+  "assertions_executed": 137,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.agenda",
+   "workbench.desktop_header_qt",
+   "workbench.engineering_kernel",
+   "workbench.host_observations",
+   "workbench.job_priority",
+   "workbench.ledger_control",
+   "workbench.local_brain",
+   "workbench.operations",
+   "workbench.service_lifecycle",
+   "workbench.session",
+   "workbench.stacy_control",
+   "workbench.work_trail"
+  ],
+  "loads_runtime_count": 193,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/agenda.py",
+    "workbench/desktop_header_qt.py",
+    "workbench/engineering_kernel.py",
+    "workbench/host_observations.py",
+    "workbench/job_priority.py",
+    "workbench/ledger_control.py",
+    "workbench/local_brain.py",
+    "workbench/service_lifecycle.py",
+    "workbench/session.py",
+    "workbench/stacy_control.py",
+    "workbench/work_trail.py"
+   ],
+   "source_commits_after_import": 17,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 17
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_paper": {
+  "file": "tests_integrated/test_paper.py",
+  "guards_docstring": "The paper vocabulary: the writing-marker setting over the Session profile (type, default, store, history, undo and restore, invalid values, a foreign profile value, receipts, sharing and authority), the marker's own rules measured on real offscreen widgets, and the hardware editor's pure parts. Zero jobs, workers, models, providers or natives.",
+  "lines": 268,
+  "tests": 17,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.9,
+  "wall_seconds_runs": [
+   1.99,
+   1.89,
+   2.09
+  ],
+  "wall_min": 1.89,
+  "wall_max": 2.09,
+  "wall_spread_pct": 10.6,
+  "test_seconds_sum_runs": [
+   1.02,
+   0.99,
+   1.06
+  ],
+  "overhead_seconds_mean": 0.97,
+  "share_of_suite_082": 0.0039,
+  "kinds": {
+   "CONTRACT": 1,
+   "BEHAVIOUR": 7,
+   "LOOK": 9
+  },
+  "assertions_static": 161,
+  "assertions_executed": 191,
+  "failing": [
+   "tests_integrated.test_paper.MarkerWidgetTests.test_attach_adds_nothing_to_the_accessible_tree_and_marks_only_the_focused_passage",
+   "tests_integrated.test_paper.MarkerWidgetTests.test_reduce_motion_is_static_with_no_timer_and_the_setting_hides_the_mark",
+   "tests_integrated.test_paper.MarkerWidgetTests.test_source_editor_is_refused_and_a_narrow_margin_shrinks_the_x_instead_of_entering_the_passage",
+   "tests_integrated.test_paper.MarkerWidgetTests.test_the_page_is_never_an_ancestor_whose_margin_a_sibling_covers_nor_outside_the_scrolling_page"
+  ],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.hardware_settings_qt",
+   "workbench.ledger_control",
+   "workbench.session",
+   "workbench.settings_registry",
+   "workbench.stacy_control",
+   "workbench.writing_marker"
+  ],
+  "loads_runtime_count": 197,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_kernel.py",
+    "workbench/hardware_settings_qt.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py",
+    "workbench/stacy_control.py",
+    "workbench/writing_marker.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 5
+ },
+ "test_presentation_settings": {
+  "file": "tests_integrated/test_presentation_settings.py",
+  "guards_docstring": "Favorites/Existing views persistence, concurrency, receipts and authority.",
+  "lines": 162,
+  "tests": 16,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 2.4,
+  "wall_seconds_runs": [
+   2.79,
+   2.79,
+   2.73
+  ],
+  "wall_min": 2.73,
+  "wall_max": 2.79,
+  "wall_spread_pct": 2.2,
+  "test_seconds_sum_runs": [
+   1.96,
+   2.0,
+   1.87
+  ],
+  "overhead_seconds_mean": 0.82,
+  "share_of_suite_082": 0.0049,
+  "kinds": {
+   "BEHAVIOUR": 15,
+   "CONTRACT": 1
+  },
+  "assertions_static": 108,
+  "assertions_executed": 138,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.catalog_settings",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.session",
+   "workbench.settings_registry"
+  ],
+  "loads_runtime_count": 191,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "sdk/cli/arc1cli/command_bar.py",
+    "sdk/cli/arc1cli/concern_catalog.py",
+    "workbench/catalog_settings.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 4
+ },
+ "test_problem": {
+  "file": "tests_integrated/test_problem.py",
+  "guards_docstring": "Risk-focused I01 checks. No model, native app or host qualification claims.",
+  "lines": 111,
+  "tests": 7,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 2.3,
+  "wall_seconds_runs": [
+   2.28,
+   2.12,
+   2.25
+  ],
+  "wall_min": 2.12,
+  "wall_max": 2.28,
+  "wall_spread_pct": 7.5,
+  "test_seconds_sum_runs": [
+   1.54,
+   1.39,
+   1.47
+  ],
+  "overhead_seconds_mean": 0.75,
+  "share_of_suite_082": 0.0047,
+  "kinds": {
+   "BEHAVIOUR": 7
+  },
+  "assertions_static": 27,
+  "assertions_executed": 31,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.baseline",
+   "workbench.clock_lab",
+   "workbench.engineering_kernel",
+   "workbench.locations",
+   "workbench.problem_checks",
+   "workbench.problem_service"
+  ],
+  "loads_runtime_count": 191,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/baseline.py",
+    "workbench/clock_lab.py",
+    "workbench/engineering_kernel.py",
+    "workbench/locations.py",
+    "workbench/problem_checks.py",
+    "workbench/problem_service.py"
+   ],
+   "source_commits_after_import": 3,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 3
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_profile_files": {
+  "file": "tests_integrated/test_profile_files.py",
+  "guards_docstring": "Files about something (HATCH AGENT-02, WI-C): the second assignment, worked by the resident loop without a model. A disposable workspace holds a Files folder and an Ingress folder with matching and non-matching files. The request's own words choose the profile (fits; no model); agent.assign + agent.run work it to DONE through registered operations only: receiving.status, files.find, ledger.browse ",
+  "lines": 288,
+  "tests": 16,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 3.1,
+  "wall_seconds_runs": [
+   3.2,
+   3.43,
+   3.33
+  ],
+  "wall_min": 3.2,
+  "wall_max": 3.43,
+  "wall_spread_pct": 7.2,
+  "test_seconds_sum_runs": [
+   2.4,
+   2.71,
+   2.48
+  ],
+  "overhead_seconds_mean": 0.79,
+  "share_of_suite_082": 0.0064,
+  "kinds": {
+   "BEHAVIOUR": 14,
+   "CONTRACT": 2
+  },
+  "assertions_static": 168,
+  "assertions_executed": 323,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench",
+   "workbench.agent_loop",
+   "workbench.agent_profiles",
+   "workbench.agent_qt",
+   "workbench.clip",
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.profile_files",
+   "workbench.profile_numbers"
+  ],
+  "loads_runtime_count": 195,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/agent_loop.py",
+    "workbench/agent_profiles.py",
+    "workbench/agent_qt.py",
+    "workbench/clip.py",
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/profile_files.py",
+    "workbench/profile_numbers.py"
+   ],
+   "source_commits_after_import": 2,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 2
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_project_desk": {
+  "file": "tests_integrated/test_project_desk.py",
+  "guards_docstring": "The Project Desk: durable project, assignment and plan records and their authority boundaries.",
+  "lines": 192,
+  "tests": 11,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 3.9,
+  "wall_seconds_runs": [
+   3.8,
+   3.72,
+   3.79
+  ],
+  "wall_min": 3.72,
+  "wall_max": 3.8,
+  "wall_spread_pct": 2.2,
+  "test_seconds_sum_runs": [
+   3.06,
+   2.98,
+   3.04
+  ],
+  "overhead_seconds_mean": 0.75,
+  "share_of_suite_082": 0.008,
+  "kinds": {
+   "BEHAVIOUR": 11
+  },
+  "assertions_static": 48,
+  "assertions_executed": 55,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.baseline",
+   "workbench.clip",
+   "workbench.engineering_kernel",
+   "workbench.project_desk",
+   "workbench.project_desk_checks",
+   "workbench.stacy_foundation"
+  ],
+  "loads_runtime_count": 202,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/baseline.py",
+    "workbench/clip.py",
+    "workbench/engineering_kernel.py",
+    "workbench/project_desk.py",
+    "workbench/project_desk_checks.py",
+    "workbench/stacy_foundation.py"
+   ],
+   "source_commits_after_import": 4,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 4
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 2
+ },
+ "test_readiness": {
+  "file": "tests_integrated/test_readiness.py",
+  "guards_docstring": "Host boundaries and owned-runner cleanup, without inference or native Office.",
+  "lines": 87,
+  "tests": 10,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 4.8,
+  "wall_seconds_runs": [
+   4.78,
+   4.81,
+   4.77
+  ],
+  "wall_min": 4.77,
+  "wall_max": 4.81,
+  "wall_spread_pct": 0.8,
+  "test_seconds_sum_runs": [
+   4.6,
+   4.63,
+   4.59
+  ],
+  "overhead_seconds_mean": 0.18,
+  "share_of_suite_082": 0.0098,
+  "kinds": {
+   "BEHAVIOUR": 10
+  },
+  "assertions_static": 23,
+  "assertions_executed": 25,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.hatch_readiness",
+   "workbench.operation_stop"
+  ],
+  "loads_runtime_count": 189,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/hatch_readiness.py",
+    "workbench/operation_stop.py"
+   ],
+   "source_commits_after_import": 0,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 0
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_reasoning_graph": {
+  "file": "tests_integrated/test_reasoning_graph.py",
+  "guards_docstring": "Reasoning graphs: finite evidence decides nothing beyond what was observed, and exact lab outputs are parsed strictly.",
+  "lines": 68,
+  "tests": 7,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.7,
+  "wall_seconds_runs": [
+   0.74,
+   0.7,
+   0.7
+  ],
+  "wall_min": 0.7,
+  "wall_max": 0.74,
+  "wall_spread_pct": 5.7,
+  "test_seconds_sum_runs": [
+   0.58,
+   0.55,
+   0.55
+  ],
+  "overhead_seconds_mean": 0.15,
+  "share_of_suite_082": 0.0014,
+  "kinds": {
+   "BEHAVIOUR": 7
+  },
+  "assertions_static": 18,
+  "assertions_executed": 23,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.import_profiles",
+   "workbench.lab_service",
+   "workbench.reason_graph",
+   "workbench.reason_service"
+  ],
+  "loads_runtime_count": 197,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/import_profiles.py",
+    "workbench/lab_service.py",
+    "workbench/reason_graph.py",
+    "workbench/reason_service.py"
+   ],
+   "source_commits_after_import": 0,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 0
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_related": {
+  "file": "tests_integrated/test_related.py",
+  "guards_docstring": "Quiet connections and the right column (HATCH AGENT-01, WI-C). Related scoring and bounds, the page's own exclusion, the two-word minimum, the sources that are not filled yet, the Related block's dismissed rows, the driver's tick with a held step function (no window), the assignment route from the typing strip, and the page's stale line and recheck through the undo stack. No model, no job, no work",
+  "lines": 275,
+  "tests": 11,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.2,
+  "wall_seconds_runs": [
+   1.37,
+   1.32,
+   1.15
+  ],
+  "wall_min": 1.15,
+  "wall_max": 1.37,
+  "wall_spread_pct": 19.1,
+  "test_seconds_sum_runs": [
+   0.48,
+   0.48,
+   0.43
+  ],
+  "overhead_seconds_mean": 0.82,
+  "share_of_suite_082": 0.0025,
+  "kinds": {
+   "BEHAVIOUR": 10,
+   "TEXT": 1
+  },
+  "assertions_static": 132,
+  "assertions_executed": 147,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.activity",
+   "workbench.agent_loop",
+   "workbench.agent_qt",
+   "workbench.document_qt",
+   "workbench.engine",
+   "workbench.engineering_kernel",
+   "workbench.related",
+   "workbench.stacy_control",
+   "workbench.tool_selection"
+  ],
+  "loads_runtime_count": 198,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/activity.py",
+    "workbench/agent_loop.py",
+    "workbench/agent_qt.py",
+    "workbench/document_qt.py",
+    "workbench/engine.py",
+    "workbench/engineering_kernel.py",
+    "workbench/related.py",
+    "workbench/stacy_control.py",
+    "workbench/tool_selection.py"
+   ],
+   "source_commits_after_import": 11,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 11
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_release_check": {
+  "file": "tests_integrated/test_release_check.py",
+  "guards_docstring": "Graphite's release check: the recorded registry and its readable differences, runtime integrity, the payload privacy scan, the focused set, the UI gate and the one entry (tools/check_release.py). Fixtures for every rule; the live tree against the record.",
+  "lines": 323,
+  "tests": 22,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 5.5,
+  "wall_seconds_runs": [
+   5.82,
+   6.5,
+   6.04
+  ],
+  "wall_min": 5.82,
+  "wall_max": 6.5,
+  "wall_spread_pct": 11.7,
+  "test_seconds_sum_runs": [
+   5.69,
+   6.33,
+   5.9
+  ],
+  "overhead_seconds_mean": 0.15,
+  "share_of_suite_082": 0.0113,
+  "kinds": {
+   "BEHAVIOUR": 13,
+   "CONTRACT": 9
+  },
+  "assertions_static": 133,
+  "assertions_executed": 270,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.joined_checks",
+   "workbench.kicad_tools",
+   "workbench.ledger_control",
+   "workbench.local_brain",
+   "workbench.project_context",
+   "workbench.release_integrity",
+   "workbench.stacy_foundation"
+  ],
+  "loads_runtime_count": 189,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "tools/check_frame_ui.py",
+    "tools/check_hatch.py",
+    "tools/check_release.py",
+    "tools/check_stage_one.py",
+    "tools/record_registry.py",
+    "workbench/kicad_tools.py",
+    "workbench/local_brain.py",
+    "workbench/project_context.py",
+    "workbench/release_integrity.py"
+   ],
+   "source_commits_after_import": 14,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 14
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_resource_rules": {
+  "file": "tests_integrated/test_resource_rules.py",
+  "guards_docstring": "The model memory rules, fixed in 0.8.1, each against Graphite's own code with simulated readings. Auto's cap, one rule for admission and launch, the reserve on an unknown machine and the deadline for a lost reading, Ready meaning a valid reply, a work hold that holds, one memory reading for admission and the worker guard, the memory stop staying visible, and the simulated offload mark. The reading",
+  "lines": 329,
+  "tests": 15,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 2.9,
+  "wall_seconds_runs": [
+   3.12,
+   3.19,
+   3.24
+  ],
+  "wall_min": 3.12,
+  "wall_max": 3.24,
+  "wall_spread_pct": 3.8,
+  "test_seconds_sum_runs": [
+   2.92,
+   3.0,
+   3.04
+  ],
+  "overhead_seconds_mean": 0.2,
+  "share_of_suite_082": 0.0059,
+  "kinds": {
+   "BEHAVIOUR": 15
+  },
+  "assertions_static": 74,
+  "assertions_executed": 92,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.brain_runtime",
+   "workbench.brain_worker",
+   "workbench.local_brain",
+   "workbench.resource_control",
+   "workbench.work_trail"
+  ],
+  "loads_runtime_count": 191,
+  "churn_file_commits": 2,
+  "churn_after_import": 2,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/brain_runtime.py",
+    "workbench/brain_worker.py",
+    "workbench/local_brain.py",
+    "workbench/resource_control.py",
+    "workbench/work_trail.py"
+   ],
+   "source_commits_after_import": 6,
+   "test_commits_after_import": 2,
+   "source_changed_without_test": 4
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_return_thread": {
+  "file": "tests_integrated/test_return_thread.py",
+  "guards_docstring": "Private return copies, optimistic revisions, bounds and integrity refusal.",
+  "lines": 92,
+  "tests": 9,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.2,
+  "wall_seconds_runs": [
+   1.3,
+   1.21,
+   1.19
+  ],
+  "wall_min": 1.19,
+  "wall_max": 1.3,
+  "wall_spread_pct": 9.2,
+  "test_seconds_sum_runs": [
+   0.5,
+   0.46,
+   0.48
+  ],
+  "overhead_seconds_mean": 0.75,
+  "share_of_suite_082": 0.0025,
+  "kinds": {
+   "BEHAVIOUR": 9
+  },
+  "assertions_static": 39,
+  "assertions_executed": 63,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.return_thread",
+   "workbench.session",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 190,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_service_lifecycle": {
+  "file": "tests_integrated/test_service_lifecycle.py",
+  "guards_docstring": "Atomic service gates, stale-cycle refusal, controller lifetime and admission.",
+  "lines": 237,
+  "tests": 23,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.5,
+  "wall_seconds_runs": [
+   1.78,
+   1.78,
+   1.63
+  ],
+  "wall_min": 1.63,
+  "wall_max": 1.78,
+  "wall_spread_pct": 9.2,
+  "test_seconds_sum_runs": [
+   1.02,
+   0.97,
+   0.95
+  ],
+  "overhead_seconds_mean": 0.75,
+  "share_of_suite_082": 0.0031,
+  "kinds": {
+   "BEHAVIOUR": 23
+  },
+  "assertions_static": 115,
+  "assertions_executed": 140,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.console_services",
+   "workbench.desktop_services",
+   "workbench.engineering_kernel",
+   "workbench.host_service",
+   "workbench.ledger_control",
+   "workbench.local_brain",
+   "workbench.operation_stop",
+   "workbench.service_lifecycle",
+   "workbench.session",
+   "workbench.settings_registry",
+   "workbench.work_trail"
+  ],
+  "loads_runtime_count": 193,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/console_services.py",
+    "workbench/desktop_services.py",
+    "workbench/engineering_kernel.py",
+    "workbench/host_service.py",
+    "workbench/ledger_control.py",
+    "workbench/local_brain.py",
+    "workbench/operation_stop.py",
+    "workbench/service_lifecycle.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py",
+    "workbench/work_trail.py"
+   ],
+   "source_commits_after_import": 14,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 14
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_settings_advanced": {
+  "file": "tests_integrated/test_settings_advanced.py",
+  "guards_docstring": "Existing-store adapters, shared profile batches and credential preservation.",
+  "lines": 171,
+  "tests": 15,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 2.2,
+  "wall_seconds_runs": [
+   2.73,
+   2.49,
+   2.39
+  ],
+  "wall_min": 2.39,
+  "wall_max": 2.73,
+  "wall_spread_pct": 14.2,
+  "test_seconds_sum_runs": [
+   1.71,
+   1.78,
+   1.54
+  ],
+  "overhead_seconds_mean": 0.86,
+  "share_of_suite_082": 0.0045,
+  "kinds": {
+   "BEHAVIOUR": 15
+  },
+  "assertions_static": 105,
+  "assertions_executed": 139,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.clip",
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.session",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 192,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/clip.py",
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 4
+ },
+ "test_settings_registry": {
+  "file": "tests_integrated/test_settings_registry.py",
+  "guards_docstring": "Settings store, consumer readback, authority and concurrent-edit boundaries.",
+  "lines": 204,
+  "tests": 19,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 2.5,
+  "wall_seconds_runs": [
+   2.92,
+   2.86,
+   2.71
+  ],
+  "wall_min": 2.71,
+  "wall_max": 2.92,
+  "wall_spread_pct": 7.7,
+  "test_seconds_sum_runs": [
+   2.04,
+   2.04,
+   1.95
+  ],
+  "overhead_seconds_mean": 0.82,
+  "share_of_suite_082": 0.0051,
+  "kinds": {
+   "BEHAVIOUR": 18,
+   "CONTRACT": 1
+  },
+  "assertions_static": 130,
+  "assertions_executed": 275,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_kernel",
+   "workbench.ledger_control",
+   "workbench.session",
+   "workbench.settings_registry",
+   "workbench.stacy_control"
+  ],
+  "loads_runtime_count": 192,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_kernel.py",
+    "workbench/ledger_control.py",
+    "workbench/session.py",
+    "workbench/settings_registry.py",
+    "workbench/stacy_control.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 4
+ },
+ "test_slate_reasoning": {
+  "file": "tests_integrated/test_slate_reasoning.py",
+  "guards_docstring": "Assistant reasoning (slate.context, slate.ask, the stream): ranked context and its invalidation, streaming that publishes only validated text, citations and proposals that create no evidence, exact edit drafts, replay and scope limits, separate qualification receipts and additive record migration. The model is the protocol double in protocol_fixture.py, not inference.",
+  "lines": 238,
+  "tests": 12,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 10.9,
+  "wall_seconds_runs": [
+   11.74,
+   11.27,
+   11.37
+  ],
+  "wall_min": 11.27,
+  "wall_max": 11.74,
+  "wall_spread_pct": 4.2,
+  "test_seconds_sum_runs": [
+   10.96,
+   10.54,
+   10.66
+  ],
+  "overhead_seconds_mean": 0.74,
+  "share_of_suite_082": 0.0224,
+  "kinds": {
+   "BEHAVIOUR": 12
+  },
+  "assertions_static": 72,
+  "assertions_executed": 72,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.baseline",
+   "workbench.clip",
+   "workbench.engineering_kernel",
+   "workbench.local_brain",
+   "workbench.project_desk",
+   "workbench.project_desk_checks",
+   "workbench.slate_action",
+   "workbench.slate_checks",
+   "workbench.slate_context",
+   "workbench.slate_reasoning",
+   "workbench.slate_stream",
+   "workbench.stacy_foundation",
+   "workbench.work_trail"
+  ],
+  "loads_runtime_count": 202,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/baseline.py",
+    "workbench/clip.py",
+    "workbench/engineering_kernel.py",
+    "workbench/local_brain.py",
+    "workbench/project_desk_checks.py",
+    "workbench/slate_action.py",
+    "workbench/slate_checks.py",
+    "workbench/slate_context.py",
+    "workbench/slate_reasoning.py",
+    "workbench/slate_stream.py",
+    "workbench/stacy_foundation.py",
+    "workbench/work_trail.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 9
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_stacy_hand": {
+  "file": "tests_integrated/test_stacy_hand.py",
+  "guards_docstring": "Stacy's hand: the dial, what always asks, what takes an act back, her trail, and the Terminal lines that are hers.",
+  "lines": 196,
+  "tests": 19,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.1,
+  "wall_seconds_runs": [
+   0.12,
+   0.1,
+   0.09
+  ],
+  "wall_min": 0.09,
+  "wall_max": 0.12,
+  "wall_spread_pct": 33.3,
+  "test_seconds_sum_runs": [
+   0.02,
+   0.02,
+   0.01
+  ],
+  "overhead_seconds_mean": 0.08,
+  "share_of_suite_082": 0.0002,
+  "kinds": {
+   "BEHAVIOUR": 19
+  },
+  "assertions_static": 91,
+  "assertions_executed": 401,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.session",
+   "workbench.stacy_hand"
+  ],
+  "loads_runtime_count": 6,
+  "churn_file_commits": 3,
+  "churn_after_import": 3,
+  "churn_after_import_with_look_files": 2,
+  "drift": {
+   "source_files": [
+    "workbench/session.py",
+    "workbench/stacy_hand.py"
+   ],
+   "source_commits_after_import": 9,
+   "test_commits_after_import": 3,
+   "source_changed_without_test": 6
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_stacy_start": {
+  "file": "tests_integrated/test_stacy_start.py",
+  "guards_docstring": "Stacy starts a project in another program: what counts as asking, which Godot is here, and the files she writes.",
+  "lines": 128,
+  "tests": 14,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 3.2,
+  "wall_seconds_runs": [
+   5.82,
+   3.19,
+   3.21
+  ],
+  "wall_min": 3.19,
+  "wall_max": 5.82,
+  "wall_spread_pct": 82.4,
+  "test_seconds_sum_runs": [
+   5.72,
+   3.09,
+   3.12
+  ],
+  "overhead_seconds_mean": 0.09,
+  "share_of_suite_082": 0.0066,
+  "kinds": {
+   "BEHAVIOUR": 13,
+   "TEXT": 1
+  },
+  "assertions_static": 58,
+  "assertions_executed": 101,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.program_build",
+   "workbench.stacy_start"
+  ],
+  "loads_runtime_count": 7,
+  "churn_file_commits": 3,
+  "churn_after_import": 3,
+  "churn_after_import_with_look_files": 2,
+  "drift": {
+   "source_files": [
+    "workbench/program_build.py",
+    "workbench/stacy_start.py"
+   ],
+   "source_commits_after_import": 5,
+   "test_commits_after_import": 3,
+   "source_changed_without_test": 2
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_startup_scripts": {
+  "file": "tests_integrated/test_startup_scripts.py",
+  "guards_docstring": "Startup scripts: dedicated-session marker and exit-status readback, argument refusal, X server check, launch error log placement. Everything runs against copies of the scripts in disposable folders with stub fluxbox, startx and START_OFFICE.sh; no X server, window manager or Ledger window is started. The root refusals stay in the scripts: when the suite itself runs as root, the root-refusing scrip",
+  "lines": 193,
+  "tests": 14,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.4,
+  "wall_seconds_runs": [
+   1.47,
+   1.54,
+   1.46
+  ],
+  "wall_min": 1.46,
+  "wall_max": 1.54,
+  "wall_spread_pct": 5.5,
+  "test_seconds_sum_runs": [
+   1.37,
+   1.42,
+   1.36
+  ],
+  "overhead_seconds_mean": 0.11,
+  "share_of_suite_082": 0.0029,
+  "kinds": {
+   "CONTRACT": 2,
+   "BEHAVIOUR": 12
+  },
+  "assertions_static": 85,
+  "assertions_executed": 101,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.launch"
+  ],
+  "loads_runtime_count": 3,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "INSTALL_DEBIAN.sh",
+    "INSTALL_LEDGER.sh",
+    "LS_XSESSION.sh",
+    "START_MINIMAL_DEBIAN.sh",
+    "START_OFFICE.sh",
+    "workbench/launch.py"
+   ],
+   "source_commits_after_import": 0,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 0
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_system_menu": {
+  "file": "tests_integrated/test_system_menu.py",
+  "guards_docstring": "HATCH DESK D2: the System menu, session and power, the two launch menus' one design, and the cat's colours. The owner's brief of 2026-11-06: the System menu from the Graphite symbol (Game first, Stop all jobs beneath it, the ordered process list with a niceness slider on every row and the queue's reorder distinct from niceness, then Log out, Return to Debian, Restart and Shut down in a separated g",
+  "lines": 558,
+  "tests": 32,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 17.9,
+  "wall_seconds_runs": [
+   28.0,
+   19.28,
+   18.38
+  ],
+  "wall_min": 18.38,
+  "wall_max": 28.0,
+  "wall_spread_pct": 52.3,
+  "test_seconds_sum_runs": [
+   26.79,
+   17.99,
+   17.35
+  ],
+  "overhead_seconds_mean": 1.17,
+  "share_of_suite_082": 0.0367,
+  "kinds": {
+   "BEHAVIOUR": 24,
+   "CONTRACT": 1,
+   "TEXT": 3,
+   "LOOK": 4
+  },
+  "assertions_static": 215,
+  "assertions_executed": 274,
+  "failing": [
+   "tests_integrated.test_system_menu.MenuTests.test_the_two_menus_are_point_mirror_images",
+   "tests_integrated.test_system_menu.CatColourTests.test_the_colours_are_named_constants_and_the_coat_is_warm_paper"
+  ],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.clip",
+   "workbench.desk_qt",
+   "workbench.engine",
+   "workbench.engineering_kernel",
+   "workbench.graphite_brand",
+   "workbench.hatch_qt",
+   "workbench.ledger_control",
+   "workbench.locations",
+   "workbench.programs_qt",
+   "workbench.qt_app",
+   "workbench.session",
+   "workbench.session_power",
+   "workbench.shell2",
+   "workbench.struthio_qt",
+   "workbench.system_menu_qt"
+  ],
+  "loads_runtime_count": 298,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/clip.py",
+    "workbench/desk_qt.py",
+    "workbench/engine.py",
+    "workbench/engineering_kernel.py",
+    "workbench/graphite_brand.py",
+    "workbench/hatch_qt.py",
+    "workbench/ledger_control.py",
+    "workbench/locations.py",
+    "workbench/programs_qt.py",
+    "workbench/qt_app.py",
+    "workbench/session.py",
+    "workbench/session_power.py",
+    "workbench/shell2.py",
+    "workbench/struthio_qt.py",
+    "workbench/system_menu_qt.py"
+   ],
+   "source_commits_after_import": 37,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 37
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_tool_atlas": {
+  "file": "tests_integrated/test_tool_atlas.py",
+  "guards_docstring": "Atlas integration boundaries; no model generations or native probe jobs.",
+  "lines": 106,
+  "tests": 8,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 3.6,
+  "wall_seconds_runs": [
+   3.61,
+   3.57,
+   3.6
+  ],
+  "wall_min": 3.57,
+  "wall_max": 3.61,
+  "wall_spread_pct": 1.1,
+  "test_seconds_sum_runs": [
+   2.86,
+   2.79,
+   2.74
+  ],
+  "overhead_seconds_mean": 0.79,
+  "share_of_suite_082": 0.0074,
+  "kinds": {
+   "CONTRACT": 1,
+   "BEHAVIOUR": 7
+  },
+  "assertions_static": 37,
+  "assertions_executed": 1713,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.capability_catalog",
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.stac_bridge",
+   "workbench.tool_atlas"
+  ],
+  "loads_runtime_count": 200,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/capability_catalog.py",
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/stac_bridge.py",
+    "workbench/tool_atlas.py"
+   ],
+   "source_commits_after_import": 3,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 3
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 1
+ },
+ "test_tool_selection": {
+  "file": "tests_integrated/test_tool_selection.py",
+  "guards_docstring": "The small relevant tool set a request earns: explicit word matching over names, families and arguments; no model, no execution.",
+  "lines": 54,
+  "tests": 5,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.8,
+  "wall_seconds_runs": [
+   0.83,
+   0.88,
+   0.85
+  ],
+  "wall_min": 0.83,
+  "wall_max": 0.88,
+  "wall_spread_pct": 6.0,
+  "test_seconds_sum_runs": [
+   0.04,
+   0.03,
+   0.04
+  ],
+  "overhead_seconds_mean": 0.81,
+  "share_of_suite_082": 0.0016,
+  "kinds": {
+   "BEHAVIOUR": 5
+  },
+  "assertions_static": 37,
+  "assertions_executed": 86,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.engineering_cli",
+   "workbench.engineering_kernel",
+   "workbench.local_brain",
+   "workbench.tool_selection"
+  ],
+  "loads_runtime_count": 188,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/engineering_cli.py",
+    "workbench/engineering_kernel.py",
+    "workbench/local_brain.py",
+    "workbench/tool_selection.py"
+   ],
+   "source_commits_after_import": 7,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 7
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_vocabulary": {
+  "file": "tests_integrated/test_vocabulary.py",
+  "guards_docstring": "AGENT-01 (owner decision D28): Ingress and Egress are the names for the folders files come in through and leave from. Mechanical checks of the names and the once-only moves; no Qt, no jobs, no model.",
+  "lines": 91,
+  "tests": 9,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 0.9,
+  "wall_seconds_runs": [
+   0.84,
+   0.82,
+   0.9
+  ],
+  "wall_min": 0.82,
+  "wall_max": 0.9,
+  "wall_spread_pct": 9.8,
+  "test_seconds_sum_runs": [
+   0.71,
+   0.71,
+   0.76
+  ],
+  "overhead_seconds_mean": 0.12,
+  "share_of_suite_082": 0.0018,
+  "kinds": {
+   "TEXT": 4,
+   "BEHAVIOUR": 5
+  },
+  "assertions_static": 33,
+  "assertions_executed": 36,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.cabinet",
+   "workbench.engineering_kernel",
+   "workbench.files_service",
+   "workbench.locations",
+   "workbench.navigator_catalog",
+   "workbench.receiving",
+   "workbench.rooms",
+   "workbench.shell2"
+  ],
+  "loads_runtime_count": 189,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "workbench/cabinet.py",
+    "workbench/engineering_kernel.py",
+    "workbench/files_service.py",
+    "workbench/locations.py",
+    "workbench/navigator_catalog.py",
+    "workbench/receiving.py",
+    "workbench/rooms.py",
+    "workbench/shell2.py"
+   ],
+   "source_commits_after_import": 31,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 31
+  },
+  "constant_only_tests": [
+   "tests_integrated.test_vocabulary.EgressTests.test_names"
+  ],
+  "tests_with_near_duplicates": 0
+ },
+ "test_workspace_backup": {
+  "file": "tests_integrated/test_workspace_backup.py",
+  "guards_docstring": "Workspace backup and restore (LEDGER.sh backup create), working copies and doctor.probe: restore keeps notes, empty folders, dotfiles and working copies and skips model weights; existing targets, corrupt or unsafe backups, links and an active coordinator are refused; publication is atomic; probing initialises nothing.",
+  "lines": 129,
+  "tests": 7,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 1.3,
+  "wall_seconds_runs": [
+   1.69,
+   1.33,
+   1.35
+  ],
+  "wall_min": 1.33,
+  "wall_max": 1.69,
+  "wall_spread_pct": 27.1,
+  "test_seconds_sum_runs": [
+   0.91,
+   0.58,
+   0.6
+  ],
+  "overhead_seconds_mean": 0.76,
+  "share_of_suite_082": 0.0027,
+  "kinds": {
+   "BEHAVIOUR": 7
+  },
+  "assertions_static": 32,
+  "assertions_executed": 32,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.clip",
+   "workbench.doctor",
+   "workbench.engineering_kernel",
+   "workbench.locations",
+   "workbench.workspace_backup"
+  ],
+  "loads_runtime_count": 192,
+  "churn_file_commits": 1,
+  "churn_after_import": 0,
+  "churn_after_import_with_look_files": 0,
+  "drift": {
+   "source_files": [
+    "sdk/cli/arc1cli/concern_catalog.py",
+    "workbench/clip.py",
+    "workbench/doctor.py",
+    "workbench/engineering_kernel.py",
+    "workbench/locations.py",
+    "workbench/workspace_backup.py"
+   ],
+   "source_commits_after_import": 2,
+   "test_commits_after_import": 0,
+   "source_changed_without_test": 2
+  },
+  "constant_only_tests": [],
+  "tests_with_near_duplicates": 0
+ },
+ "test_writing_line": {
+  "file": "tests_integrated/test_writing_line.py",
+  "guards_docstring": "Writing modes, saved targets, key handling, and the Events and Network log.",
+  "lines": 516,
+  "tests": 32,
+  "focused": true,
+  "role": "focused test module",
+  "seconds_082": 2.8,
+  "wall_seconds_runs": [
+   2.74,
+   2.77,
+   2.8
+  ],
+  "wall_min": 2.74,
+  "wall_max": 2.8,
+  "wall_spread_pct": 2.2,
+  "test_seconds_sum_runs": [
+   2.26,
+   2.33,
+   2.34
+  ],
+  "overhead_seconds_mean": 0.46,
+  "share_of_suite_082": 0.0057,
+  "kinds": {
+   "TEXT": 4,
+   "BEHAVIOUR": 25,
+   "LOOK": 2,
+   "CONTRACT": 1
+  },
+  "assertions_static": 203,
+  "assertions_executed": 380,
+  "failing": [],
+  "flaky": [],
+  "imports_direct": [
+   "workbench.console_qt",
+   "workbench.desk_qt",
+   "workbench.log_qt",
+   "workbench.network_watch",
+   "workbench.session",
+   "workbench.shell2",
+   "workbench.text_prompts",
+   "workbench.typebar_qt"
+  ],
+  "loads_runtime_count": 217,
+  "churn_file_commits": 6,
+  "churn_after_import": 5,
+  "churn_after_import_with_look_files": 4,
+  "drift": {
+   "source_files": [
+    "workbench/console_qt.py",
+    "workbench/desk_qt.py",
+    "workbench/log_qt.py",
+    "workbench/network_watch.py",
+    "workbench/session.py",
+    "workbench/shell2.py",
+    "workbench/text_prompts.py",
+    "workbench/typebar_qt.py"
+   ],
+   "source_commits_after_import": 33,
+   "test_commits_after_import": 5,
+   "source_changed_without_test": 28
+  },
+  "constant_only_tests": [
+   "tests_integrated.test_writing_line.ModeTests.test_five_modes_and_the_old_targets_mapping"
+  ],
+  "tests_with_near_duplicates": 1
+ }
+}
