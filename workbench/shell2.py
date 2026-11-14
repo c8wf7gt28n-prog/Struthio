@@ -23,8 +23,9 @@ from . import boss_theme as bt
 from .boss_theme import (GROUND, PANEL, CARD, RAISED, LINE, LINE_STRONG, TEXT, QUIET, FAINT,
     AMBER, AMBER_SOFT, AMBER_EDGE, AMBER_TEXT, PENCIL_DEEP, ERASER, ERASER_DEEP, ERASER_MARK,
     TEAL, TEAL_SOFT, TEAL_EDGE, TEAL_TEXT, READY, STOP)
-SANS, MONO = bt.PALETTES[bt.APPEARANCE]['FACE'] if hasattr(bt, 'PALETTES') else 'IBM Plex Sans', 'IBM Plex Mono'      # SANS: the window's words (boss_theme.FACE)
+SANS, MONO = bt.FACE, bt.MONO      # the window's words and what must line up (boss_theme.FACE, MONO): Plex in Graphite, the typewriter faces in Kasandra
 PLEX_SANS = 'IBM Plex Sans'
+TYPEWRITER = ('KasandraElite-Regular.ttf', 'KasandraEliteMono-Regular.ttf', 'SpecialElite-Regular.ttf')
 PLEX = ('IBMPlexSans-Regular.ttf', 'IBMPlexSans-Medium.ttf', 'IBMPlexSans-SemiBold.ttf', 'IBMPlexMono-Regular.ttf', 'IBMPlexMono-Medium.ttf')
 from .stac_bridge import route_program
 
@@ -55,12 +56,39 @@ def load_fonts(root):
         if path.is_file():QFontDatabase.addApplicationFont(str(path))
     script = locations.program(root) / 'branding' / 'fonts' / 'script' / 'Parisienne-Regular.ttf'
     if script.is_file():QFontDatabase.addApplicationFont(str(script))
-    typewriter = locations.program(root) / 'branding' / 'fonts' / 'typewriter' / 'SpecialElite-Regular.ttf'
-    if typewriter.is_file():QFontDatabase.addApplicationFont(str(typewriter))      # Kasandra's headings (boss_theme.DISPLAY)
+    # Kasandra's faces (boss_theme.FACE, MONO), and Special Elite itself, so a face the owner chose stays there to choose
+    for name in TYPEWRITER:
+        typewriter = locations.program(root) / 'branding' / 'fonts' / 'typewriter' / name
+        if typewriter.is_file():QFontDatabase.addApplicationFont(str(typewriter))
+    # A character the typewriter faces do not have (an arrow, a box-drawing line) comes from Plex at the same width, never
+    # from whatever the system picks: the mono face's pitch is Plex Mono's, so a Terminal's lines still meet.
+    QFont.insertSubstitutions('Kasandra Elite', ['IBM Plex Sans', 'DejaVu Sans'])
+    QFont.insertSubstitutions('Kasandra Elite Mono', ['IBM Plex Mono', 'DejaVu Sans Mono'])
     return PLEX_SANS in QFontDatabase.families()
 
 
 SCRIPT_ON = [False]  # the owner's choice, for words drawn without a window at hand (card notes)
+
+
+def apps_mark(button, host):
+    """Kasandra's Apps button: the owner's kp emblem (0.8.3, "I attached a new kp icon/logo"), 58 x 38 at 14 pt, its thin
+    strokes thickened at 1x (kp_emblem_38, from the small cut) and the master's at 2x; the verified monogram at 36 x 36 if the
+    emblem's bytes are not the recorded ones; the words '[#] Apps ▾' if neither is. Its name stays Apps for readers."""
+    from .kasandra_art import folder, mark
+    base = folder(host.root);s = scale_of(host)
+    one, two = mark(base, 'kp_emblem_38.png'), mark(base, 'kp_emblem_76.png')
+    icon = QIcon()
+    if one is not None and two is not None:
+        icon.addFile(str(one), QSize(58, 38));icon.addFile(str(two), QSize(116, 76));size = QSize(round(58 * s), round(38 * s))
+    else:
+        monogram = mark(base, 'kp_monogram.png')
+        if monogram is not None:icon = QIcon(str(monogram));size = QSize(round(36 * s), round(36 * s))
+    if icon.isNull():
+        button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('[#] Apps ▾');return False
+    button.setIcon(icon);button.setIconSize(size)
+    button.setProperty('paperIcon', True)      # its own colours: menus2 makes other pictures one graphite colour
+    button.setToolButtonStyle(Qt.ToolButtonIconOnly);button.setText('')      # its name stays for readers (Apps)
+    return True
 
 
 def cursive_on(host):
@@ -263,7 +291,7 @@ def pleasantry(label, host, pixels):
 
 
 def mono_font(size=16):
-    font = QFont(MONO if MONO in QFontDatabase.families() else 'DejaVu Sans Mono');font.setPointSizeF(size * 0.75);font.setStyleHint(QFont.Monospace)
+    font = QFont(MONO if MONO in QFontDatabase.families() else 'IBM Plex Mono' if 'IBM Plex Mono' in QFontDatabase.families() else 'DejaVu Sans Mono');font.setPointSizeF(size * 0.75);font.setStyleHint(QFont.Monospace)
     return font
 
 
@@ -586,15 +614,7 @@ class TopBar(QWidget):
         self.programs = QToolButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Apps ▾')      # 0.8.1: the owner, "We'll change the name programs to apps"
         self.programs.setAccessibleName('Apps');self.programs.setToolTip('Installed apps and capabilities')
         from . import boss_theme as _bt
-        if _bt.APPEARANCE == 'kasandra':      # 0.8.0, the owner's monogram for Programs: "kp", kasandra protocol, in her colours
-            from PySide6.QtGui import QIcon
-            from .kasandra_art import folder as kasandra_folder
-            mark = QIcon(str(kasandra_folder(host.root) / 'kp_monogram.png'))
-            if not mark.isNull():
-                side = round(36 * scale_of(host))      # 0.8.2, the owner: "Probably don't need to call it Apps menu, just a bigger kp icon"
-                self.programs.setIcon(mark);self.programs.setIconSize(QSize(side, side))
-                self.programs.setProperty('paperIcon', True)      # its own colours: menus2 makes other pictures one graphite colour
-                self.programs.setToolButtonStyle(Qt.ToolButtonIconOnly);self.programs.setText('')      # its name stays for readers (Apps)
+        if _bt.APPEARANCE == 'kasandra':apps_mark(self.programs, host)      # her kp emblem, the Apps button's whole face
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
@@ -1176,11 +1196,12 @@ class OneBox(QLineEdit):
     def commands(self, query):
         needle = query.casefold();found = [];seen = set()
         places = (('Jot it down', 'capture'), ('Go to Today', 'home'), ('Go to the Office', 'office'), (named('Talk to Stacy'), 'slate'), ('Open the Library', 'library:all'),
-                  ('Project Desk', 'project_desk'), ('Changes', 'changes'), ('Continuing work', 'continuing'), ('Exchange & deployment', 'deployment'), ('Investigations', 'investigations'), ('New investigation', 'investigations'), ("Graphite's Agenda", 'agenda'), ('Files', 'files'), ('Trash', 'trash'), ('Egress', 'files:Egress'),
+                  ('Project Desk', 'project_desk'), ('Changes', 'changes'), ('Continuing work', 'continuing'), ('Exchange & deployment', 'deployment'), ('Investigations', 'investigations'), ('New investigation', 'investigations'), ("Graphite's Agenda", 'agenda'), ('Files', 'files'), ('DELETE', 'trash'), ('Egress', 'files:Egress'),
                   ('Night Shift', 'continuing'), ('Work on a copy of a file', 'work_copy'), ('Working copies', 'files:Working copies'),
                   ('Settings', 'settings'), ('All commands', 'commands'), ('Organizer', 'organizer'), ('Memory', 'memory'))
         for label, destination in places:
-            if needle in label.casefold():found.append((label, '', lambda d=destination:open_destination(self.host, d)));seen.add(label)
+            if needle in label.casefold() or any(needle in word.casefold() for word in ALSO.get(destination, ())):
+                found.append((label, '', lambda d=destination:open_destination(self.host, d)));seen.add(label)
         for action in self.host.actions():
             # 0.8.2: a command's words alone. Its key was printed beside it here ("Field      F9", and "\tAlt+1" left in a label
             # the menus had not yet dressed); no key is printed on screen, and every key still works.
@@ -1188,6 +1209,9 @@ class OneBox(QLineEdit):
             if not label or label in seen or not action.isEnabled() or needle not in label.casefold():continue
             seen.add(label);found.append((label, '', action.trigger))
         return found
+
+
+ALSO = {'trash': ('Trash',)}      # a place's old name still finds it (DELETE was Trash until 0.8.3)
 
 
 def shaped_rows(rows):
@@ -1703,6 +1727,33 @@ def breakable(text):
     return re.sub(r'(\S{18})(?=\S)', '\\1\u200b', str(text))
 
 
+def breakable_line(text):
+    """A line of the language, with invisible break points after , | / : = { (where a reader would break it), so a narrow
+    column folds it at its joints; a long run with none of them still breaks every 18 characters. The line itself (its tip,
+    Copy, what runs) stays exact: only what is shown carries the break points."""
+    marked = re.sub(r'([,|/:={])(?=[^\s\u200b])', '\\1\u200b', str(text))
+    return re.sub(r'([^\s\u200b]{18})(?=[^\s\u200b])', '\\1\u200b', marked)
+
+
+def leaded(label, text):
+    """Her words with room between their lines (125%), as rich text. The words as they were given are kept in the label's
+    'plain' property, for whatever reads them back (desk_doers.read_desk)."""
+    import html
+    label.setProperty('plain', str(text))
+    body = html.escape(breakable(text), quote=False).replace('\n', '<br>')
+    label.setTextFormat(Qt.RichText)
+    label.setText('<p style="line-height:125%;margin:0;white-space:pre-wrap">' + body + '</p>')
+
+
+def set_face(widget, family, px, sheet=''):
+    """A face that holds: family and size in the widget's own sheet (the window's sheet would otherwise set both on it, and a
+    setFont loses to a sheet), and in its font too, so it is measured right before it is polished. `sheet` is added (a
+    colour, the line's slab)."""
+    widget.setStyleSheet(bt.face_css(family, px) + (sheet or ''))
+    font = QFont(family);font.setPixelSize(int(px));widget.setFont(font)
+    return widget
+
+
 def program_detail(layout, title, text):
     details = QPlainTextEdit()
     details.setReadOnly(True)
@@ -1719,14 +1770,18 @@ def program_detail(layout, title, text):
 
 class Bubble(QFrame):
     def __init__(self, text='', mine=False, code=False):
-        super().__init__();self.setObjectName('SlateMine' if mine else 'SlateTheirs')
-        self.box = QVBoxLayout(self);self.box.setContentsMargins(12, 9, 12, 9);self.box.setSpacing(8)
-        self.text = QLabel(breakable(text));self.text.setWordWrap(True);self.text.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        super().__init__();self.setObjectName('SlateMine' if mine else 'SlateTheirs');self.mine = mine;self.code = code
+        self.box = QVBoxLayout(self);self.box.setContentsMargins(*((10, 9, 8, 9) if bt.APPEARANCE == 'kasandra' else (12, 9, 12, 9)));self.box.setSpacing(8)
+        self.text = QLabel();self.text.setWordWrap(True);self.text.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.text.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        if code:self.text.setFont(mono_font(16));self.text.setStyleSheet('color:%s' % TEAL_TEXT)
+        if code:set_face(self.text, MONO, 16, 'color:%s' % TEAL_TEXT)
+        self.set_text(text)
         self.box.addWidget(self.text)
 
-    def set_text(self, text):self.text.setText(breakable(text))
+    def set_text(self, text):
+        """Her words, in Kasandra with room between their lines (leaded); a line or your own words as they are."""
+        if bt.APPEARANCE == 'kasandra' and not self.mine and not self.code:leaded(self.text, text)
+        else:self.text.setProperty('plain', str(text));self.text.setText(breakable(text))
 
 
 from PySide6.QtCore import Signal  # noqa: E402
@@ -1781,18 +1836,35 @@ class SlateFace(QWidget):
 
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('SlateFace');self.job = None;self.pending = None;self.about = None
-        outer = QVBoxLayout(self);outer.setContentsMargins(14, 10, 14, 12);outer.setSpacing(10)
-        # Her face, still, in its own place (Illustrated: the portrait; ASCII: the same in characters; Clean: none), and her name, signed.
-        from .boss_qt import PanelInk
-        top = QHBoxLayout();top.setSpacing(12);names = QVBoxLayout();names.setSpacing(4)
-        self.portrait = PanelInk(host, 'face');self.portrait.setParent(self);top.addWidget(self.portrait, 0, Qt.AlignTop)
-        self.signature = pleasantry(QLabel(named('Stacy')), host, 26);names.addWidget(self.signature)
-        self.model = QLabel(named('Stacy'));self.model.setWordWrap(True);self.model.setStyleSheet('color:%s' % QUIET);names.addWidget(self.model)
+        kasandra = bt.APPEARANCE == 'kasandra'
+        outer = QVBoxLayout(self);outer.setContentsMargins(14, 0 if kasandra else 10, 14, 12);outer.setSpacing(10)
         # 0.6.0: her hand, in two words, under what she speaks with; a click changes it (stacy_hand: asks first, does and shows, a free hand).
         self.hand = QPushButton();self.hand.setProperty('arcButton', 'link');self.hand.setObjectName('StacyHand');self.hand.setCursor(Qt.PointingHandCursor)
-        self.hand.clicked.connect(self.open_hand);names.addWidget(self.hand, 0, Qt.AlignLeft);self.show_hand()
-        names.addStretch(1);top.addLayout(names, 1);outer.addLayout(top)
-        self.portrait.set_available(True)      # only once it is inside this pane: shown before that, it would be a window of its own
+        self.hand.clicked.connect(self.open_hand);self.show_hand()
+        self.signature = pleasantry(QLabel(named('Stacy')), host, 26)
+        if kasandra:
+            # 0.8.3, the owner: "We're going to move the kasandra picture to lower left column" and "The right column will
+            # have more space for kas text." Her picture is her hologram in the left pane now (hologram_qt); her column opens
+            # with a masthead, as a terminal's: her name and the state of the work on one row, what she speaks with and her
+            # hand on the next, on a rule level with the left pane's tab rule. Her words get the room the picture had.
+            from .kasandra_column import Masthead, ElidedLabel
+            self.portrait = None
+            self.model = ElidedLabel(named('Stacy'))
+            self.masthead = Masthead(host, self);outer.addWidget(self.masthead)
+            self.signature.setParent(self);self.signature.hide()      # her name is said once, on the masthead, at the size of her words
+            self.setAttribute(Qt.WA_StyledBackground, True)
+            self.setStyleSheet('QWidget#SlateFace {background:%s;}' % bt.TERMINAL_GROUND)
+        else:
+            # Her face, still, in its own place (Illustrated: the portrait; ASCII: the same in characters; Clean: none), and her name, signed.
+            from .boss_qt import PanelInk
+            self.masthead = None
+            top = QHBoxLayout();top.setSpacing(12);names = QVBoxLayout();names.setSpacing(4)
+            self.portrait = PanelInk(host, 'face');self.portrait.setParent(self);top.addWidget(self.portrait, 0, Qt.AlignTop)
+            names.addWidget(self.signature)
+            self.model = QLabel(named('Stacy'));self.model.setWordWrap(True);self.model.setStyleSheet('color:%s' % QUIET);names.addWidget(self.model)
+            names.addWidget(self.hand, 0, Qt.AlignLeft)
+            names.addStretch(1);top.addLayout(names, 1);outer.addLayout(top)
+            self.portrait.set_available(True)      # only once it is inside this pane: shown before that, it would be a window of its own
         self.thing = None      # the thing a question is about, when the asker knows it: {'title', 'stac', 'kind'} (a sheet of the Field)
         # 0.7.0: "Brain room" and "Full chat" stood here as two links. They are behind the meters now: the Brain room on
         # GPU (the model is what the graphics processor is for), the Full chat on TXT (the text she holds). (meter_cards)
@@ -1813,7 +1885,12 @@ class SlateFace(QWidget):
         self.related = RelatedBlock(host);outer.addWidget(self.related)
         self.scroll = QScrollArea();self.scroll.setWidgetResizable(True);self.scroll.setFrameShape(QFrame.NoFrame)
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.thread = QWidget();self.lines = QVBoxLayout(self.thread);self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10);self.lines.addStretch(1)
+        self.thread = QWidget();self.thread.setObjectName('SlateThread');self.lines = QVBoxLayout(self.thread);self.lines.addStretch(1)
+        if kasandra:      # her words have the column: 4 px for the scroll bar, not 14, and a little more air between cards
+            self.lines.setContentsMargins(0, 0, 4, 0);self.lines.setSpacing(12)
+            self.scroll.setStyleSheet('QScrollArea {background:transparent;border:0;}');self.scroll.viewport().setAutoFillBackground(False)
+            self.thread.setStyleSheet('QWidget#SlateThread {background:transparent;}');self.thread.setAutoFillBackground(False)
+        else:self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10)
         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
         self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show as a line you can run yourself.')
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
@@ -1885,7 +1962,7 @@ class SlateFace(QWidget):
         if getattr(self, 'unfolded', False):return
         # 0.8.0 (the owner: "if we can really try to eliminate or reduce [scrolling] as much as possible"): the latest
         # exchanges that fit in the pane's height stay in view, at most KEEP_BUBBLES; the latest one always does.
-        room = max(160, self.scroll.viewport().height() - 24);width = max(120, self.thread.width() - 14);used = 0;kept = 0
+        room = max(160, self.scroll.viewport().height() - 24);width = max(120, self.thread.width() - self.lines.contentsMargins().right());used = 0;kept = 0
         for w in reversed(items):
             if kept >= self.KEEP_BUBBLES:break
             box = w.layout()
@@ -1908,8 +1985,12 @@ class SlateFace(QWidget):
     def say(self, text):return self.add(Bubble(text))
 
     def mine(self, text, code=False):
+        bubble = Bubble(text, mine=True, code=code)
+        if bt.APPEARANCE == 'kasandra':      # yours hug their words at the right, up to 85% of the thread (kasandra_column.Hug)
+            from .kasandra_column import Hug
+            self.add(Hug(bubble));return bubble
         # The bubble's text may shrink to wrap, so it needs a share of the row, or it collapses to nothing.
-        bubble = Bubble(text, mine=True, code=code);row = QHBoxLayout();row.addStretch(1);row.addWidget(bubble, 5)
+        row = QHBoxLayout();row.addStretch(1);row.addWidget(bubble, 5)
         holder = QWidget();holder.setLayout(row);row.setContentsMargins(30, 0, 0, 0);self.add(holder);return bubble
 
     def send(self):
@@ -1941,9 +2022,9 @@ class SlateFace(QWidget):
         card = self.say(intro)
         # A stage a line, as her rail in the Field shows it, with long record numbers shortened for the eye as the rail does.
         # The line itself stays exact: it is what runs, what "in the line" gives, and the label's tooltip.
-        code = QLabel(breakable(re.sub(r'([0-9a-f]{6})[0-9a-f]{20,}', '\\1…', line).replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))
+        code = QLabel(breakable_line(re.sub(r'([0-9a-f]{6})[0-9a-f]{20,}', '\\1…', line).replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True)
         code.setToolTip(line)
-        code.setStyleSheet(bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        set_face(code, MONO, round(15 * scale_of(self.host)), bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + line)
         answer_first = bool(thing.get('whole'))       # when the rows are the whole answer (a doubt, a what-if, a brief), they are read first and the line that read them comes after
         if not answer_first:card.box.addWidget(code)
@@ -1978,7 +2059,7 @@ class SlateFace(QWidget):
         answer = QLabel(breakable(shown));answer.setTextFormat(Qt.PlainText);answer.setWordWrap(True)
         answer.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);answer.setTextInteractionFlags(Qt.TextSelectableByMouse);card.box.addWidget(answer)
         if answer_first:
-            code.setFont(mono_font(13));card.box.addWidget(code)
+            set_face(code, MONO, round(13 * scale_of(self.host)), bt.line_sheet());card.box.addWidget(code)
         from .context_menu import inspect_in_line
         words = {'line': ('in the line', lambda p=line:inspect_in_line(self.host, p)), 'watch': ('watch it', lambda p=line:self.watch(p)),
                  'keep': ('add to the Agenda', lambda p=line:self.keep_in_agenda(p))}
@@ -2028,8 +2109,8 @@ class SlateFace(QWidget):
         if step.why:
             why = QLabel(breakable(step.why[:1].upper() + step.why[1:] + '.'));why.setWordWrap(True);why.setStyleSheet('color:%s' % QUIET)
             why.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(why)
-        code = QLabel(breakable(bt.eye(step.line)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15));code.setToolTip(step.line)
-        code.setStyleSheet(bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        code = QLabel(breakable_line(bt.eye(step.line)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setToolTip(step.line)
+        set_face(code, MONO, round(15 * scale_of(self.host)), bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + step.line);card.box.addWidget(code)
         row = QHBoxLayout();run = button('Approve', 'stac');run.setObjectName('StagedRun');row.addWidget(run)
         run.setToolTip('Apply this change. Nothing is changed until you do; in the Field, G does the same')
@@ -2066,7 +2147,7 @@ class SlateFace(QWidget):
             elif isinstance(result.get('words'), str) and result['words']:said = 'Done. ' + result['words']
             elif isinstance(result.get('changed'), list):said = 'Done: %s.' % ('nothing had changed' if not result['changed'] else '%d changed' % len(result['changed']))
             elif isinstance(result.get('ran'), list):said = 'Done: %d check%s ran%s.' % (len(result['ran']), '' if len(result['ran']) == 1 else 's', (': ' + ', '.join(str(x.get('outcome')) for x in result['ran'][:6])) if result['ran'] else '')
-            elif isinstance(result.get('trashed'), str):said = 'Done: “%s” is in the Trash, which gives it back.' % result['trashed']
+            elif isinstance(result.get('trashed'), str):said = 'Done: “%s” is in DELETE, which gives it back.' % result['trashed']
             elif result.get('state') == 'STARTED' and result.get('pid'):said = 'Done: its own window was started on “%s”.' % str(result.get('path') or card.title)
             elif isinstance(result.get('path'), str) and result.get('kind'):said = 'Done: “%s” is in Files.' % result['path']
             elif isinstance(result.get('title'), str) and result['title']:said = 'Done: “%s”.' % result['title']
@@ -2115,7 +2196,7 @@ class SlateFace(QWidget):
         if card.undone:
             stacy_hand.taken_back(self.host.session.state, card.entry)
             result = r['result'] if isinstance(r.get('result'), dict) else {}
-            said = 'Taken back. ' + str(result.get('words') or ('“%s” is in the Trash, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else ''))
+            said = 'Taken back. ' + str(result.get('words') or ('“%s” is in DELETE, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else ''))
         else:
             said = 'It could not be taken back, and nothing was changed: ' + str((r.get('error') or {}).get('message'))[:400]
         try:self.host.session.save()
@@ -2140,9 +2221,9 @@ class SlateFace(QWidget):
                 path = files_service.resolve(kernel, g['path'])
                 if 'sha256' in g:
                     if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != g['sha256']:
-                        return '“%s” was changed after I made it, so it is yours now and I leave it. Move it to the Trash yourself if you want it gone' % g['path']
+                        return '“%s” was changed after I made it, so it is yours now and I leave it. Delete it yourself if you want it gone' % g['path']
                 elif not path.is_dir() or sum(1 for p in path.iterdir() if not files_service.machine(p)) != g['items']:
-                    return '“%s” no longer holds just what I put in it, so it is yours now and I leave it. Move it to the Trash yourself if you want it gone' % g['path']
+                    return '“%s” no longer holds just what I put in it, so it is yours now and I leave it. Delete it yourself if you want it gone' % g['path']
         except (OSError, ValueError) as exc:
             return 'what I made is no longer where I made it (%s)' % str(exc)[:120]
         return ''
@@ -2189,7 +2270,7 @@ class SlateFace(QWidget):
         if r.get('ok'):
             stacy_hand.taken_back(self.host.session.state, entry)
             result = r['result'] if isinstance(r.get('result'), dict) else {}
-            card = self.say(('Taken back: %s. ' % entry['words']) + str(result.get('words') or ('“%s” is in the Trash, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else '')))
+            card = self.say(('Taken back: %s. ' % entry['words']) + str(result.get('words') or ('“%s” is in DELETE, which gives it back.' % result['trashed'] if isinstance(result.get('trashed'), str) else '')))
             page = getattr(self.host, 'field_page', None)
             if page is not None:
                 try:page.refresh(force=True)
@@ -2259,14 +2340,14 @@ class SlateFace(QWidget):
                 try:self.host.session.save()
                 except Exception:  # noqa: BLE001
                     pass
-            self.say('I stopped at the step that was refused, after %d of %d. What this start made is in “%s” in Files; move that folder to the Trash if you do not want it.' % (went, len(card.plan), folder));return
+            self.say('I stopped at the step that was refused, after %d of %d. What this start made is in “%s” in Files; delete that folder if you do not want it (DELETE gives it back).' % (went, len(card.plan), folder));return
         if card.hers:
             undo = '/files.trash ' + json.dumps({'path': folder}, ensure_ascii=False, separators=(', ', ': '))
             import hashlib
             wrote = [(json.loads(step.line.split(' ', 1)[1])['path'], json.loads(step.line.split(' ', 1)[1])['text']) for _, step in card.plan[1:]]
             guards = [{'path': folder, 'items': len(wrote)}] + [{'path': path, 'sha256': hashlib.sha256(text.encode('utf-8')).hexdigest()} for path, text in wrote]
             card.entry = stacy_hand.record(self.host.session.state, 'Started a Godot %d project · “%s”' % (tool['major'], folder), card.plan[0][1].line, undo, word, True, guards=guards)
-            back = button('Undo', 'stac', 'Move the whole folder to the Trash, which gives it back, while it is still as I made it');back.setObjectName('StagedUndo');card.back = back;card.undone = None
+            back = button('Undo', 'stac', 'Delete the whole folder (DELETE gives it back) while it is still as I made it');back.setObjectName('StagedUndo');card.back = back;card.undone = None
             back.clicked.connect(lambda:self.undo_staged(card, self.made_done));card.row.insertWidget(0, back)
             try:self.host.session.save()
             except Exception:  # noqa: BLE001 - the project is made and said
@@ -2321,8 +2402,8 @@ class SlateFace(QWidget):
             if self.run_line(op('files.get', path=name)).get('ok'):
                 self.say('There is already something called “%s” in Files. I do not write over what is there by myself: say another name.' % name);return True
             parent, _, leaf = name.rpartition('/')
-            step = (Step('Make a folder called “%s”' % name, 'write', op('files.mkdir', path=parent, name=leaf), 'a new, empty folder in Files; Undo moves it to the Trash', 'execute') if kind == 'folder' else
-                    Step('Make a file called “%s”' % name, 'write', op('files.write', path=name, text=words), 'a new file in Files with those words; Undo moves it to the Trash', 'execute'))
+            step = (Step('Make a folder called “%s”' % name, 'write', op('files.mkdir', path=parent, name=leaf), 'a new, empty folder in Files; Undo deletes it, and DELETE gives it back', 'execute') if kind == 'folder' else
+                    Step('Make a file called “%s”' % name, 'write', op('files.write', path=name, text=words), 'a new file in Files with those words; Undo deletes it, and DELETE gives it back', 'execute'))
             title = 'Files'
         elif kind == 'page':
             step = Step('Start a page called “%s”' % name, 'write', op('documents.create', title=name, text=words, origin='SLATE'),
@@ -2414,8 +2495,8 @@ class SlateFace(QWidget):
             said = QLabel(breakable('%d  “%s”: %s' % (n + 1, obj.title, step.words[:1].lower() + step.words[1:])));said.setWordWrap(True)
             said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
             shown = step.line if not brief or len(step.line) <= 96 else step.line[:95] + '…'      # brief: a line that carries a whole file is shown by its start
-            code = QLabel(breakable(bt.eye(shown)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(14));code.setToolTip(step.line)
-            code.setStyleSheet(bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            code = QLabel(breakable_line(bt.eye(shown)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setToolTip(step.line)
+            set_face(code, MONO, round(14 * scale_of(self.host)), bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
             card.box.addWidget(code);card.rows.append(said)
         row = QHBoxLayout();run = button('Approve all %d' % len(plan) if len(plan) > 1 else 'Approve', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
         run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do; in the Field, G does the same')
@@ -2699,7 +2780,7 @@ class SlateFace(QWidget):
             if 'entries' in arguments:lines.append('%d reviewed files' % len(arguments['entries']))
             if 'destination' in arguments:lines.append('Save to ' + arguments['destination'])
             summary = '\n'.join(lines)
-        code = QLabel(breakable(bt.eye(summary)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setFont(mono_font(16));code.setStyleSheet(bt.line_sheet());code.setToolTip(summary);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
+        code = QLabel(breakable_line(bt.eye(summary)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);set_face(code, MONO, round(16 * scale_of(self.host)), bt.line_sheet());code.setToolTip(summary);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
         if page:  # a page edit that could not apply by itself says why, above the review words
             why = QLabel(breakable(page['words']));why.setWordWrap(True);why.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);why.setStyleSheet('color:%s' % QUIET);box.addWidget(why)
             card.setProperty('modelTurn', 'not_applied');card.words = why
@@ -2791,7 +2872,7 @@ class SlateFace(QWidget):
         the word undo (the page's one undo stack) and the owner's mark, which the instruction matrix keeps (as for a Run)."""
         card = QFrame();card.setObjectName('StacCard');card.setProperty('modelTurn', 'applied');box = QVBoxLayout(card);box.setContentsMargins(10, 8, 10, 8);box.setSpacing(6)
         label = QLabel('APPLIED ON THE PAGE');label.setStyleSheet('color:%s;font-size:9pt;letter-spacing:1px' % TEAL);box.addWidget(label)
-        code = QLabel(breakable(bt.eye(program)));code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setFont(mono_font(16));code.setStyleSheet(bt.line_sheet());code.setToolTip(program);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
+        code = QLabel(breakable_line(bt.eye(program)));code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);set_face(code, MONO, round(16 * scale_of(self.host)), bt.line_sheet());code.setToolTip(program);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
         said = QLabel(breakable(words));said.setWordWrap(True);said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);box.addWidget(said)
         def undo():
             try:answer = tab.slate_request('undo')
@@ -2893,8 +2974,8 @@ class SlateFace(QWidget):
         found = explain(value)
         card = self.say((intro + '\n\n' if intro else '') + found['text'])
         for program in found['suggestions']:
-            code = QLabel(breakable(bt.eye(program)));code.setWordWrap(True);code.setFont(mono_font(15));code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-            code.setStyleSheet(bt.line_sheet());code.setToolTip(program);card.box.addWidget(code)
+            code = QLabel(breakable_line(bt.eye(program)));code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+            set_face(code, MONO, round(15 * scale_of(self.host)), bt.line_sheet());code.setToolTip(program);card.box.addWidget(code)
             card.box.addWidget(sentence('{run}  ·  {watch}  ·  {keep}', {'run': ('run it', lambda p=program:self.run_stac(p)),
                                                                         'watch': ('watch it', lambda p=program:self.watch(p)),
                                                                         'keep': ('add to the Agenda', lambda p=program:self.keep_in_agenda(p))}))
@@ -2909,8 +2990,11 @@ class SlateFace(QWidget):
         name = self.host.shell2.model_name(brain)
         counts = (call(self.host, 'matrix.status') or {}).get('counts', {})
         learned = sum(v for k, v in counts.items() if k != 'PROPOSED')
-        self.model.setText(((name or 'a model') if brain.get('state') == 'READY' else 'no model yet'))      # 0.8.0: the language is never named
-        self.model.setToolTip('Learning from %d outcomes you marked or ran' % learned)
+        said = ((name or 'a model') if brain.get('state') == 'READY' else 'no model yet')      # 0.8.0: the language is never named
+        self.model.setText(said)
+        if getattr(self, 'masthead', None) is not None:      # the masthead shortens it in the middle: its tip is the whole name
+            self.model.setToolTip(said);self.model.setAccessibleDescription('Learning from %d outcomes you marked or ran' % learned)
+        else:self.model.setToolTip('Learning from %d outcomes you marked or ran' % learned)
         for block in (getattr(self, 'work', None), getattr(self, 'related', None)):
             if block is not None:block.refresh()
 
@@ -3138,7 +3222,7 @@ class TodayPage(QWidget):
         patterns = (call(self.host, 'matrix.patterns', {'limit': 10}) or {}).get('patterns', [])
         best = max((p for p in patterns if p['tries'] >= 2), key=lambda p:(p['success_rate'], p['tries']), default=None)
         if best:
-            label = QLabel('Works best: %s · %d of %d' % (best['shape'], best['success'], best['tries']));label.setFont(mono_font(16));label.setStyleSheet('color:%s' % TEAL)
+            label = QLabel('Works best: %s · %d of %d' % (best['shape'], best['success'], best['tries']));set_face(label, MONO, round(16 * scale_of(self.host)), 'color:%s' % TEAL)
             label.setWordWrap(True);self.slate.body.addWidget(label)
         self.facts['workspace'].setText(name + '\n' + short(self.host.root) + ('\nno project attached' if (marker or {}).get('kind', 'NO_PROJECT') == 'NO_PROJECT' else '\nproject attached'))
         cache = self.host._library_cache = library_files(self.host, limit=2000)  # counted fresh: a delivery may have just finished
@@ -3455,8 +3539,8 @@ class Shell2(QObject):
             title = self.title_word = QPushButton(self.face_tabs);title.setObjectName('PaneTitle');title.setCursor(Qt.PointingHandCursor)
             title.setFocusPolicy(Qt.TabFocus);title.clicked.connect(lambda checked=False:self.title_clicked())
             self.face.signature.hide()      # her name is said once: the pane's title says it, so the line beside her face need not
-            title.setStyleSheet('QPushButton#PaneTitle {font-family:"IBM Plex Mono";font-weight:600;color:%s;background:transparent;border:0;border-bottom:2px solid %s;padding:0 2px;text-align:left;} '
-                                'QPushButton#PaneTitle:hover {color:%s;border-bottom:2px solid %s;}' % (TEXT, AMBER_EDGE, TEAL_TEXT, READY))
+            title.setStyleSheet('QPushButton#PaneTitle {font-family:"%s";font-weight:%d;color:%s;background:transparent;border:0;border-bottom:2px solid %s;padding:0 2px;text-align:left;} '
+                                'QPushButton#PaneTitle:hover {color:%s;border-bottom:2px solid %s;}' % (bt.DISPLAY, 400 if bt.APPEARANCE == 'kasandra' else 600, TEXT, AMBER_EDGE, TEAL_TEXT, READY))
         other = 'Activity' if current is getattr(self.host, 'operations_panel', None) else ('Sources' if preview is not None else 'Context') if current is getattr(self.host, 'arc_inspector', None) else ''
         # With a spreadsheet's worksheet open the pane has two faces of its own, her and the sheet's Preview: the title is
         # then the way from one to the other, so neither is ever out of reach.

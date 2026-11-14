@@ -1,8 +1,12 @@
-"""Trash, as a trash can: apart from the Library tree, at the foot of the column, yet joined to it by a pencil stem.
+"""DELETE, as a can: apart from the Library tree, at the foot of the column, yet joined to it by a pencil stem.
+
+The owner, 14 November 2026: "I want trash called DELETE." DELETE is the place, always in capitals and named like one
+("in DELETE"); Delete is what sends a thing there; restore brings it back. The operations underneath keep their names
+(files.trash, the .trash folder).
 
 The can is drawn in the same hand as the Library's twigs (pencil gold stem, graphite can). When something is in it, a
-crumpled sheet shows over the rim, and the count sits on the right like every other Library count. Click it to open Trash;
-drop files from Files on it to move them there (the same files.trash operation, so every deletion stays recoverable).
+crumpled sheet shows over the rim, and the count sits on the right like every other Library count. Click it to open DELETE;
+drop files from Files on it to delete them (the same files.trash operation, so every deletion stays recoverable).
 """
 from __future__ import annotations
 from pathlib import Path
@@ -10,6 +14,8 @@ from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QWidget
 from .shell2 import AMBER_EDGE, CARD, ERASER, ERASER_MARK, LINE_STRONG, QUIET, RAISED, SANS, TEXT
+
+WORD = 'DELETE'          # the word drawn beside the can, measured as it is drawn
 
 
 def draw_can(p, rect, full=False, line=None):
@@ -39,16 +45,16 @@ def can_ink(can):
 
 
 class TrashCan(QWidget):
-    """Trash at the left pane's lower right (HATCH DESK D1b, larger; D1-fix: pinned by its ink). Its box is exactly what it
-    draws, right-aligned: the can, the word Trash and, when something is in it, the count, ending at the box's right edge,
+    """DELETE at the left pane's lower right (HATCH DESK D1b, larger; D1-fix: pinned by its ink). Its box is exactly what it
+    draws, right-aligned: the can, the word DELETE and, when something is in it, the count, ending at the box's right edge,
     the can's bottom line on the box's bottom edge (room for a three-digit count is kept to the left, so nothing moves when
-    Trash fills). pane_qt.place puts the box an inset from the pane's inner edge and from its bottom, so the drawn Trash is."""
+    DELETE fills). pane_qt.place puts the box an inset from the pane's inner edge and from its bottom, so the drawn DELETE is."""
 
     def __init__(self, host):
         super().__init__();self.host = host;self.count = 0;self.hover = False;self.setObjectName('TrashCan')
         self.setCursor(Qt.PointingHandCursor);self.setAcceptDrops(True);self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus);self._fit = None;self.fit(1.0)
-        self.setAccessibleName('Trash');self.setToolTip('Trash · deleted files wait here and can be put back · drop files here')
+        self.setAccessibleName(WORD);self.setToolTip('DELETE · what you delete waits here, and restore puts it back where it was · drop files here to delete them')
 
     def fit(self, scale):
         """HATCH DESK D1b: a larger Trash (the owner's brief), sized with the interface: a 30 px can and the word at the
@@ -60,8 +66,11 @@ class TrashCan(QWidget):
         from .pane_qt import TRASH_CAN, TRASH_PAD, trash_size
         self._fit = key;self.can = scaled(TRASH_CAN, scale);self.pad = scaled(TRASH_PAD, scale);self.count_gap = max(4, self.pad // 2)
         self.word_font = QFont(SANS);self.word_font.setPixelSize(max(10, round(16 * float(scale))))
+        # a name in capitals, spaced a little so it reads as a place: a typewriter's capitals in Kasandra, Plex in Graphite
+        from . import boss_theme as _bt
+        self.word_font.setLetterSpacing(QFont.AbsoluteSpacing, (1.0 if _bt.APPEARANCE == 'kasandra' else 0.8) * float(scale))
         self.count_font = QFont(SANS);self.count_font.setPixelSize(max(10, round(13 * float(scale))))
-        self.word_ink = QRectF(*self.extent(self.word_font, 'Trash'));self.ink = can_ink(self.can)  # the word's ink as drawn (desk_qt.ink_extent)
+        self.word_ink = QRectF(*self.extent(self.word_font, WORD));self.ink = can_ink(self.can)  # the word's ink as drawn (desk_qt.ink_extent)
         self.word_width = self.word_ink.width();room = self.extent(self.count_font, '999')[2]
         self.setFixedSize(*trash_size(scale, math.ceil(self.word_width), math.ceil(room), self.ink, self.count_gap))
         self.update();return self.size()
@@ -112,12 +121,12 @@ class TrashCan(QWidget):
         if self.hover or self.hasFocus():  # the raised paper behind it, inside the box (no ink past the box)
             p.setPen(Qt.NoPen);p.setBrush(QColor(RAISED));p.drawRoundedRect(QRectF(0, 0, w, h), 6, 6)
         from . import boss_theme as _bt
-        red = _bt.RED if _bt.APPEARANCE == 'kasandra' else None      # 0.8.1 (Kasandra): the Trash can in red, the owner's experiment
+        red = _bt.RED if _bt.APPEARANCE == 'kasandra' else None      # 0.8.1 (Kasandra): the can in red, the owner's experiment
         if red and not self._dropping:      # a little of its own light under the red can, as the desk's glow
             glow = QColor(red);glow.setAlphaF(min(0.35, 0.12 + 0.1 * _bt.glow()))
             for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):draw_can(p, QRectF(can.x() + dx, can.y() + dy, self.can, self.can), full=self.count > 0, line=glow.name(QColor.HexArgb))
         draw_can(p, QRectF(can.x(), can.y(), self.can, self.can), full=self.count > 0, line=ERASER_MARK if self._dropping else red)
-        p.setFont(self.word_font);p.setPen(QColor(red or TEXT));p.drawText(word, 'Trash')
+        p.setFont(self.word_font);p.setPen(QColor(red or TEXT));p.drawText(word, WORD)
         if count is not None:p.setFont(self.count_font);p.setPen(QColor(QUIET));p.drawText(count, str(self.count))
 
     _dropping = False

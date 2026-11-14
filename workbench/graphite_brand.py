@@ -89,11 +89,37 @@ def mark_icon(px):
     return icon
 
 
-def window_icon():
-    """The window icon: the tile painted at 16 to 256 px."""
+def window_icon(root=None):
+    """The window icon: the tile painted at 16 to 256 px. In Kasandra, the owner's kp emblem on its own navy tile (0.8.3:
+    "I attached a new kp icon/logo"), its letters alone at 16 and 24 px where the ostrich would be a smudge; Graphite's
+    tile when either tile's bytes are not the recorded ones."""
+    tiles = kasandra_tiles(root)
     icon = QIcon()
-    for px in ICON_SIZES:icon.addPixmap(mark_tile(px))
+    for px in ICON_SIZES:
+        if tiles is not None:
+            from PySide6.QtCore import Qt as _Qt
+            source = tiles[0] if px <= 24 else tiles[1]
+            icon.addPixmap(QPixmap.fromImage(source.scaled(px, px, _Qt.KeepAspectRatio, _Qt.SmoothTransformation)))
+        else:icon.addPixmap(mark_tile(px))
     return icon
+
+
+def kasandra_tiles(root=None):
+    """(letters tile, emblem tile) as images when Kasandra is the appearance and both verify; else None."""
+    from . import boss_theme
+    if boss_theme.APPEARANCE != 'kasandra':return None
+    from PySide6.QtGui import QImage
+    from . import kasandra_art
+    base = kasandra_art.folder(root)
+    paths = [kasandra_art.mark(base, name) for name in ('kp_tile_letters.png', 'kp_tile.png')]
+    if None in paths:return None
+    images = [QImage(str(path)) for path in paths]
+    return None if any(image.isNull() for image in images) else images
+
+
+def window_icon_source(root=None):
+    """Which tile the window icon is drawn from: 'kasandra' or 'graphite'."""
+    return 'kasandra' if kasandra_tiles(root) is not None else 'graphite'
 
 
 ICON_SIZES = (16, 24, 32, 48, 64, 128, 256)

@@ -11,7 +11,7 @@ from html import escape
 from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QScrollArea, QTextBrowser, QVBoxLayout, QWidget
-from .shell2 import AMBER, ERASER, ERASER_MARK, AMBER_EDGE, QUIET, TEXT, call_write, escape_text, role, sentence
+from .shell2 import AMBER, ERASER, ERASER_MARK, AMBER_EDGE, MONO, QUIET, TEXT, call_write, escape_text, role, sentence
 
 MAX_SHOWN = 1500
 
@@ -24,8 +24,8 @@ def lines_html(lines):
             rows.append('<tr><td colspan="4" style="color:%s;padding:4px 8px;">… %s …</td></tr>' % (QUIET, escape(r['text'])));continue
         wash = {'added': AMBER, 'removed': ERASER}.get(op, 'transparent');edge = {'added': AMBER_EDGE, 'removed': ERASER_MARK}.get(op, 'transparent')
         rows.append('<tr style="background:%s;"><td width="44" style="color:%s;padding:1px 8px;border-left:3px solid %s;">%s</td><td width="44" style="color:%s;padding:1px 8px;">%s</td>'
-                    '<td style="font-family:\'IBM Plex Mono\';padding:1px 8px;white-space:pre-wrap;">%s</td><td width="96" style="color:%s;padding:1px 8px;white-space:nowrap;">%s</td></tr>'
-                    % (wash, QUIET, edge, r.get('before', ''), QUIET, r.get('after', ''), escape(r['text']) or '&nbsp;', QUIET, '' if op == 'same' else op))
+                    '<td style="font-family:\'%s\';padding:1px 8px;white-space:pre-wrap;">%s</td><td width="96" style="color:%s;padding:1px 8px;white-space:nowrap;">%s</td></tr>'
+                    % (wash, QUIET, edge, r.get('before', ''), QUIET, r.get('after', ''), MONO, escape(r['text']) or '&nbsp;', QUIET, '' if op == 'same' else op))
     more = '' if len(lines) <= MAX_SHOWN else '<p style="color:%s">%d more lines not shown.</p>' % (QUIET, len(lines) - MAX_SHOWN)
     return '<table width="100%%" cellspacing="0" style="color:%s;">%s</table>%s' % (TEXT, ''.join(rows), more)
 
@@ -97,9 +97,9 @@ class CompareTab(QWidget):
             box.addWidget(role(QLabel('SHEET · ' + sheet['sheet'].upper()), 'section'))
             if sheet['state'] in ('added', 'removed'):box.addWidget(QLabel('This sheet was ' + sheet['state'] + '.'));continue
             if not sheet['cells']:box.addWidget(QLabel('No cell differs.'));continue
-            rows = ''.join('<tr style="background:%s;"><td width="64" style="padding:2px 8px;font-family:\'IBM Plex Mono\';">%s</td><td width="30%%" style="padding:2px 8px;">%s</td>'
+            rows = ''.join('<tr style="background:%s;"><td width="64" style="padding:2px 8px;font-family:\'%s\';">%s</td><td width="30%%" style="padding:2px 8px;">%s</td>'
                            '<td width="30" style="padding:2px 8px;">→</td><td width="30%%" style="padding:2px 8px;">%s</td><td style="padding:2px 8px;color:%s;">%s</td></tr>'
-                           % ({'added': AMBER, 'removed': ERASER}.get(c['op'], 'transparent'), c['cell'], escape(str(c['before'])), escape(str(c['after'])), QUIET, c['op'])
+                           % ({'added': AMBER, 'removed': ERASER}.get(c['op'], 'transparent'), MONO, c['cell'], escape(str(c['before'])), escape(str(c['after'])), QUIET, c['op'])
                            for c in sheet['cells'][:500])
             view = QTextBrowser();view.setHtml('<table width="100%%" cellspacing="0" style="color:%s">%s</table>' % (TEXT, rows));view.setFrameShape(QFrame.NoFrame)
             fit(view, min(len(sheet['cells']), 500));box.addWidget(view)

@@ -426,7 +426,7 @@ def document_entries(host, t):
                 Entry('edit:copy', 'Copy', 'edit', page.copy, enabled=has, reason='Select words first.', icon='copy')]
     out += [Entry('edit:paste', 'Paste', 'edit', page.paste, enabled=page.canPaste(), reason='Nothing to paste.')]
     if has or t.kind == 'passage':
-        out += [Entry('edit:delete', 'Delete', 'edit', lambda:page.textCursor().removeSelectedText(), enabled=has, reason='Select words first.')]
+        out += [Entry('edit:delete', 'Erase', 'edit', lambda:page.textCursor().removeSelectedText(), enabled=has, reason='Select words first.')]
     out += [Entry('edit:all', 'Select all', 'edit', page.selectAll)]
     t.extra['line'] = '@document:%s | pick document.blocks | select text' % t.ident
     out += [Entry('doc:new', 'New document', 'tree', tab.new_document, icon='new', operation='documents.create'),
@@ -495,8 +495,8 @@ def rename_file(host, target):
 def trash_files(host, target):
     tab = files_tab(host, target);entries = target.items or [target.data]
     for e in entries:still_file(host, e)
-    for e in entries:tab.act('files.trash', {'path': e['path']}, 'Moved to Trash. Restore it from Trash.')
-    return say(host, 'Moved %s to Trash · Trash puts %s back.' % (entries[0]['name'] if len(entries) == 1 else '%d items' % len(entries), 'it' if len(entries) == 1 else 'them'))
+    for e in entries:tab.act('files.trash', {'path': e['path']}, 'Deleted. Restore it from DELETE.')
+    return say(host, 'Deleted %s · DELETE puts %s back.' % (entries[0]['name'] if len(entries) == 1 else '%d items' % len(entries), 'it' if len(entries) == 1 else 'them'))
 
 
 def place_files(host, target, operation):
@@ -670,7 +670,7 @@ def file_entries(host, t):
     if folder and not smart and '|' not in rel:t.extra['line'] = 'files.list %s | pick entries' % json.dumps({'path': rel}, ensure_ascii=False, separators=(',', ':'))
     out.append(Entry('copy:path', 'Copy path', 'edit', lambda:copy_text(host, str(root / rel), 'Copied the path'), icon='copy'))
     out.append(Entry('copy:address', 'Copy the address', 'edit', lambda:copy_text(host, e.get('address') or '@files:' + rel, 'Copied the address')))
-    out.append(Entry('trash', 'Move to Trash', 'danger', lambda:trash_files(host, t), icon='trash', operation='files.trash', tip='Trash keeps it; Restore puts it back'))
+    out.append(Entry('trash', 'Delete', 'danger', lambda:trash_files(host, t), icon='trash', operation='files.trash', tip='DELETE keeps it; restore puts it back'))
     return out
 
 
@@ -700,7 +700,7 @@ def files_entries(host, t):
     out.append(Entry('copy:to', 'Copy to…', 'modify', lambda:place_files(host, t, 'files.copy'), operation='files.copy'))
     out.append(Entry('move:to', 'Move to…', 'modify', lambda:place_files(host, t, 'files.move'), operation='files.move'))
     out.append(Entry('copy:paths', 'Copy paths', 'edit', lambda:copy_text(host, '\n'.join(str(Path(t.owner.root) / e['path']) for e in items), 'Copied the paths'), icon='copy'))
-    out.append(Entry('trash', 'Move to Trash', 'danger', lambda:trash_files(host, t), icon='trash', operation='files.trash'))
+    out.append(Entry('trash', 'Delete', 'danger', lambda:trash_files(host, t), icon='trash', operation='files.trash'))
     return out
 
 
@@ -737,7 +737,7 @@ def finder_entries(host, t):
     out.append(Entry('ask', named('Ask Stacy about this ') + ('folder' if folder else 'file'), 'capability', lambda:page.ask_slate(path), icon='inquiries'))
     if in_files:
         rel = Path(path).resolve().relative_to(Path(files).resolve()).as_posix()
-        out.append(Entry('change:files', 'Change it in Files', 'modify', lambda:page.show_in_files(path), tip='Files keeps its own changes: rename, versions, export, Trash'))
+        out.append(Entry('change:files', 'Change it in Files', 'modify', lambda:page.show_in_files(path), tip='Files keeps its own changes: rename, versions, export, DELETE'))
         if not folder and rel and '|' not in rel:
             program = staC_for_file(rel);t.extra['line'] = program
             out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, program), icon='line', tip=program, operation='language.run'))
@@ -2574,7 +2574,8 @@ class LinePanel(ContextMenu):
         m = self.m
         slab = QLabel(bt.eye(self.line), self.page);slab.setObjectName('LineSlab');slab.setWordWrap(True);slab.setStyleSheet(bt.line_sheet())
         slab.setToolTip(self.line);slab.setFocusPolicy(Qt.NoFocus);slab.setTextInteractionFlags(Qt.NoTextInteraction)
-        font = slab.font();font.setFamily(MONO);font.setPixelSize(max(11, m.caption_px));slab.setFont(font);self.slab = slab
+        # a menu is a window of its own, outside the window's sheet, so its font holds; 12 px at least in either face
+        font = slab.font();font.setFamily(MONO);font.setPixelSize(max(12, m.caption_px));slab.setFont(font);self.slab = slab
         from PySide6.QtWidgets import QSizePolicy
         slab.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)      # it wraps to the panel; it never widens it
         counted = QLabel(self.count_words(), self.page);counted.setObjectName('LineCount');counted.setFont(programs_qt.caption_font(m))
@@ -2921,7 +2922,7 @@ FOLDED = (
     ('Files: a file', "Open with this computer's app", 'file', 'open:outside'), ('Files: a file', 'Rename…', 'file', 'rename'),
     ('Files: a file', 'Versions…', 'file', 'versions'), ('Files: a file', 'Compare with…', 'file', 'compare:with'),
     ('Files: a file', 'Compare with a version…', 'file', 'compare:version'), ('Files: a file', 'Export…', 'file', 'export'),
-    ('Files: a selection', 'Copy to…', 'file', 'copy:to'), ('Files: a selection', 'Move to…', 'file', 'move:to'), ('Files: a selection', 'Move to Trash', 'file', 'trash'),
+    ('Files: a selection', 'Copy to…', 'file', 'copy:to'), ('Files: a selection', 'Move to…', 'file', 'move:to'), ('Files: a selection', 'Delete', 'file', 'trash'),
     ('Files: an empty place', 'New folder…', 'empty:files', 'new:folder'), ('Files: an empty place', 'Import…', 'empty:files', 'import'),
     ('Files: an empty place', 'Work on a copy of a file…', 'empty:files', 'work:copy'), ('Files: an empty place', 'chains ›', 'empty:files', 'start'),
     ('Files: an empty place › chains', 'Inquiries…', 'empty:files', 'more/inquiries'),

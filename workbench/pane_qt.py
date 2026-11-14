@@ -1,20 +1,21 @@
 """The desk's two panes (HATCH DESK D1b; the owner's brief of 2026-11-06: "Left pane. Machine, Cabinet, and Settings each show a
 tree with visible connecting branches. Pin a larger Trash at the lower right. The tabs, the active tree, and Trash are the
-visible controls." and "Right pane. Conversation is for talking with the assistant. Activity shows the actions it took, the
+visible controls." Trash is called DELETE since 0.8.3, the owner: "I want trash called DELETE." and "Right pane. Conversation is for talking with the assistant. Activity shows the actions it took, the
 results it got, and what it needs from me. Context shows the files, selections, and instructions in use"; and "Be obsessive
 in symmetry").
 
     left pane, P wide                                   right pane, P wide
     | Machine · Cabinet · Settings |  (the tab row)     | Conversation · Activity · Context |
     | the active tree, inset I     |  (the content)     | the active face, inset I          |
-    | ............... Trash        |  (the foot)        |          (Trash's mirror, empty)  |
+    | ............... DELETE       |  (the foot)        |         (DELETE's mirror, empty)  |
 
 Both panes are PaneBody widgets laid out by hand, on whole pixels, from the same numbers, so every part of one is the mirror of
 the same part of the other: the tab rows (three equal tabs sharing the room between the insets, each row centred on its pane,
 one word size for all six, the menus' size or less in a narrow pane so every word stays whole; the active tab's short yellow
-mark one length and one offset under every tab of both panes), the content boxes, the feet. Trash sits at the left
+mark one length and one offset under every tab of both panes), the content boxes, the feet. DELETE sits at the left
 pane's lower right, beside the workspace (D1-fix: its box is exactly its drawing, so its ink is the inset from the pane's inner
-edge and bottom); the same place in the right pane is kept empty, so the panes' feet balance. A pane's least width counts each
+edge and bottom); the same place in the right pane is kept empty, so the panes' feet balance. In Kasandra her hologram stands
+in the left pane's empty lower part, above or beside DELETE (hologram_qt). A pane's least width counts each
 face's scrolled page (content_minimum), so no face is wider than its pane. The three
 left trees are BranchTree: one row height, one indentation, the same connecting branch lines. desk_qt.apply calls place().
 
@@ -39,6 +40,8 @@ RIGHT_WORDS = ('Talk', 'Activity', 'Context')
 # Paper v1.1 (shell2's palette, repeated so this module needs no window code): graphite words, quieter graphite for the tabs
 # not chosen, a faint rule under each tab row, pencil-grey branch lines, eraser pink for a selected row.
 from .boss_theme import TEXT, QUIET, LINE, LINE_STRONG as BRANCH, ERASER, GROUND, TEAL_EDGE as TRACE, READY as LIVE, glow as glow_level
+from .boss_theme import APPEARANCE, FACE, MONO
+BREATH = 2.8        # the lit path's breath, seconds; her hologram's base breathes with it (hologram.BREATH)
 TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {padding:0 2px;border:0;} '
               'QTreeWidget::item:selected {background:%s;color:%s;} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
               % (TEXT, ERASER, TEXT))
@@ -120,9 +123,18 @@ from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton, QStyled
 
 
 def tab_font(scale, bold=False, px=None):
-    """The tab words: the bands' menu size (desk_qt.menu_px) or `px`, Plex; the chosen tab drawn semi-bold."""
-    font = QFont('IBM Plex Mono');font.setPixelSize(int(px) if px else desk_qt.menu_px(scale))
-    if bold:font.setWeight(QFont.DemiBold)
+    """The tab words: the bands' menu size (desk_qt.menu_px) or `px`, in the window's words face (boss_theme.FACE); the
+    chosen tab drawn semi-bold in Graphite. The typewriter face has one weight, so in Kasandra the chosen tab is told by
+    its colour and its mark, and is measured at the weight it is drawn in."""
+    font = QFont(FACE);font.setPixelSize(int(px) if px else desk_qt.menu_px(scale))
+    if bold and APPEARANCE != 'kasandra':font.setWeight(QFont.DemiBold)
+    return font
+
+
+def row_font(scale):
+    """The face the tab row's height is measured in: the mono face, whose line is Plex Mono's in both appearances, so the
+    row is as tall as it always was whatever face its words are drawn in."""
+    font = QFont(MONO);font.setPixelSize(desk_qt.menu_px(scale))
     return font
 
 
@@ -163,7 +175,7 @@ class PaneTab(QPushButton):
 
     def paintEvent(self, event):
         p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
-        font = QFont(self.font());font.setWeight(QFont.DemiBold if self.isChecked() else QFont.Normal)
+        font = QFont(self.font());font.setWeight(QFont.DemiBold if self.isChecked() and APPEARANCE != 'kasandra' else QFont.Normal)
         p.setFont(font);p.setPen(QColor(TEXT if self.isChecked() else QUIET))
         p.drawText(self.rect().adjusted(0, MARK, 0, -MARK), Qt.AlignCenter, self.text())
         colour = self.mark_colour()
@@ -236,12 +248,27 @@ class PaneBody(QWidget):
             if part.geometry() != QRect(*box):part.setGeometry(*box)
         if self.foot.trash is not None and self.foot.trash.geometry() != self.foot.slot:self.foot.trash.setGeometry(self.foot.slot)
 
+        stage = getattr(self, 'hologram', None)      # her stage follows the parts it stands among (hologram_qt)
+        if stage is not None:stage.place_now()
+
     def resizeEvent(self, event):super().resizeEvent(event);self.arrange()
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setPen(QColor(BRANCH))
         x = self.width() - 1 if self.foot.trash is not None else 0
+        if APPEARANCE == 'kasandra' and self.foot.trash is None:
+            # 0.8.3, her column's inner edge: a teal line, at half strength, with a still light beside it on a desk that glows
+            try:
+                from .boss_qt import glows
+                lit = glows(self.window())
+            except Exception:  # noqa: BLE001 - an edge is drawn whatever else is the matter
+                lit = False
+            if lit:
+                from PySide6.QtGui import QLinearGradient
+                halo = QLinearGradient(0, 0, 6, 0);edge = QColor(TRACE);edge.setAlphaF(min(0.3, 0.06 * glow_level()));halo.setColorAt(0, edge)
+                clear = QColor(TRACE);clear.setAlphaF(0.0);halo.setColorAt(1, clear);painter.fillRect(QRect(1, 0, 6, self.height()), halo)
+            edge = QColor(TRACE);edge.setAlphaF(0.5);painter.setPen(edge)
+        else:painter.setPen(QColor(BRANCH))
         painter.drawLine(x, 0, x, self.height() - 1)
         painter.end()
 
@@ -298,7 +325,7 @@ def breath(view):
     if not getattr(view, 'breathing', False) or still(view):return 1.0
     import math
     import time
-    return 0.85 + 0.15 * math.sin(2 * math.pi * time.monotonic() / 2.8)
+    return 0.85 + 0.15 * math.sin(2 * math.pi * time.monotonic() / BREATH)
 
 
 def draw_branches(view, painter, rect, index):
@@ -504,7 +531,16 @@ class BranchTree(QTreeWidget):
             if not glows(self.window()):return
         except Exception:  # noqa: BLE001
             return
-        self.viewport().update()
+        # only the rows: the empty viewport below them is where her hologram may stand, and it is not drawn again for this
+        last = self.visualItemRect(self.lastVisibleItem()) if self.topLevelItemCount() else QRect()
+        bottom = last.bottom() + 1 if last.isValid() and last.bottom() >= 0 else self.viewport().height()
+        self.viewport().update(QRect(0, 0, self.viewport().width(), min(self.viewport().height(), max(0, bottom))))
+
+    def lastVisibleItem(self):
+        item = self.topLevelItem(self.topLevelItemCount() - 1)
+        while item is not None and item.isExpanded() and item.childCount():item = item.child(item.childCount() - 1)
+        while item is not None and item.isHidden():item = self.itemAbove(item)
+        return item
 
 
 # Activity's recent lines ------------------------------------------------------------------------------------------------------
@@ -622,6 +658,9 @@ def install(host):
     # is open and whether or not the centre foot shows (with the foot quiet in Line, a tall page used to move the top by a px).
     central = host.centralWidget()
     if central is not None:central.setMinimumHeight(CENTRE_MIN_HEIGHT)
+    from . import hologram_qt      # Kasandra: her hologram in the left pane's empty lower part (None in Graphite)
+    stage = hologram_qt.install(host)
+    if stage is not None:left.hologram = stage
     return left, right
 
 
@@ -632,7 +671,7 @@ def place(host, d):
     s = d.scale;I = d.inset;top = desk_qt.menu_px(s);floor = max(11, round(top * TAB_FLOOR));air = desk_qt.scaled(TAB_AIR, s)
     words = [b.text() for b in left.tabs.buttons + right.tabs.buttons];widest = widest_bold(words)
     least = widest(floor) + 2 * air  # a tab is never narrower than the widest word at the floor size (the gaps close first)
-    h = desk_qt.word_height(QFontMetrics(tab_font(s)).height())  # the row's height from the menus' size: it never moves
+    h = desk_qt.word_height(QFontMetrics(row_font(s)).height())  # the row's height from the menus' size: it never moves
     xs, T, g = tab_row(d.pane, I, desk_qt.scaled(TAB_GAP, s), 3, least)
     px = tab_px(T, top, floor, air, widest);font = tab_font(s, px=px);bold = QFontMetrics(tab_font(s, True, px))
     mark = tab_mark(T, max(round(T * .76), min(bold.horizontalAdvance(w) for w in words)))
@@ -657,4 +696,6 @@ def place(host, d):
     recent = getattr(getattr(host, 'operations_panel', None), 'recent', None)
     if recent is not None:recent.set_row(row)
     host.panes = dict(T=T, gap=g, xs=xs, mark=mark, tab_height=h, tab_px=px, tab_px_top=top, least=least, need=need, foot=foot, row=row, indent=indent, content_gap=gap)
+    from . import hologram_qt
+    hologram_qt.place(host)
     return host.panes

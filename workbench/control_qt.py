@@ -394,12 +394,12 @@ class LedgerBridge(QObject):
 
     def publish_settings_readback(self):
         self.sync_catalogue()
-        from .reading_preferences import family
-        from .reading_profile import DEFAULT, OLD_DEFAULT_FAMILIES
+        from .reading_preferences import family, in_force
+        from .reading_profile import DEFAULT
         profile=getattr(self.host,'reading_profile',DEFAULT)
         values={'reading.'+key:{'requested':value,'effective':value} for key,value in profile.items()}
         names=tuple(profile[key] for key in ('family','prose_family','code_family'))
-        actual=('IBM Plex Sans','IBM Plex Sans','IBM Plex Mono') if names==OLD_DEFAULT_FAMILIES else names
+        actual=in_force(names)      # the faces the window is drawn in: the appearance's own while the owner keeps the defaults
         for key,name in zip(('family','prose_family','code_family'),actual):
             values['reading.'+key]['effective']=family(name,key=='code_family')
         values['workspace.mode']={'requested':self.host.view_preferences['mode'],'effective':self.host.view_preferences['mode']}

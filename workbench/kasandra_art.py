@@ -212,6 +212,65 @@ def picture(base, scene, width, height, dpr=1.0, zoom=1.0):
     return image
 
 
+# The owner's marks beside the stills (branding/kasandra/README.md lists each with its SHA-256): shown only when their
+# bytes are these, the way a still is shown only when its bytes match the catalog.
+MARKS = {
+    'hologram.webp': 'b73f7108256ef7523b38bf6ba53478b62d90c8bcd3a3dec9d97b8d34913698ec',
+    'kp_emblem_source.png': '94d7bfb3932fd1cdb9c1f499fe4eee011d9e0404ff5cfa071d9a7dbb2eb3afaa',
+    'kp_emblem.png': '5bfdf6e8dd1be97fe63f549f83a61285f37695ac52bbed07739e7d435ac879c5',
+    'kp_emblem_small.png': 'd61a9330cfab1c36416193e8e87bdeaa8a3cc2615448449ea20385c835aaa50d',
+    'kp_emblem_38.png': '2c49aeb55bc2aa7ef5871bf2c3cbe307aef2d3c611529f4a3e98f0f0c3f6127e',
+    'kp_emblem_76.png': 'ffccd3e3cc8f29de1f3bec325971afa4f1b78b3883a10a7e56aff224a3b9f32c',
+    'kp_tile.png': 'bd1a274b69ad6b633c9c0d734a2e949626ebe78f4ca875ea83613268407e10f5',
+    'kp_tile_letters.png': 'a99f936f1b0283c658f029e5ead98c1a0bc56c6f62265872ff2ca7c55dd0275f',
+    'kp_monogram.png': '7c5b3c9c1f16e0d1eca1f881a0ece60bda777355fdc0fa634495deb77170a073',
+    'wordmark.webp': '0a8d44e549b4c9904df11496fb81106c918680c4c84a268098067dc919deb1e6',
+}
+CROP = (80, 15, 608, 822)       # the hologram's figure in its 800 x 875 picture: its ink, the faint glitch lines left out
+_cutouts = {}                   # path -> (QImage, glitch rows)
+
+
+def mark(base, name):
+    """The owner's mark `name` in the pack when its bytes are the recorded ones (MARKS), else None (checked once per change
+    of the file, as a still is)."""
+    if name not in MARKS:return None
+    return usable(base, {'file': name, 'sha256': MARKS[name]})
+
+
+def cutout(path):
+    """Her hologram, cut to CROP, with its alpha (never source()'s RGB32: the picture's edges are clear), decoded once."""
+    return _cut(path)[0]
+
+
+def glitch_rows(path):
+    """The rows of the cut (as shares of its height) where the picture's own glitch lines run: faint pixels (alpha 1 to 7)
+    outside her ink, left of x 86 or right of x 681. A tear lands on one of them more often than not."""
+    return _cut(path)[1]
+
+
+def _cut(path):
+    from PySide6.QtCore import QRect
+    from PySide6.QtGui import QImage, QImageReader
+    key = str(path)
+    if key in _cutouts:return _cutouts[key]
+    started = time.perf_counter()
+    reader = QImageReader(key);reader.setAutoTransform(False)
+    whole = reader.read()
+    if whole.isNull():return QImage(), ()
+    whole = whole.convertToFormat(QImage.Format_ARGB32)
+    _decodes.append(('hologram', round((time.perf_counter() - started) * 1000, 2), (whole.width(), whole.height())));del _decodes[:-64]
+    x, y, w, h = CROP
+    faint = bytes(1 if 1 <= a < 8 else 0 for a in range(256))
+    rows = [];bpl = whole.bytesPerLine();bits = bytes(whole.constBits())
+    for row in range(y, min(whole.height(), y + h)):
+        line = bits[row * bpl:row * bpl + 4 * whole.width()]
+        outside = line[3:4 * 86:4] + line[4 * 682 + 3::4]
+        if 1 in outside.translate(faint):rows.append(round((row - y) / h, 4))
+    image = whole.copy(QRect(x, y, w, h)).convertToFormat(QImage.Format_ARGB32_Premultiplied)
+    _cutouts[key] = (image, tuple(rows))
+    return _cutouts[key]
+
+
 def decodes():
     """The last decodes: (still, milliseconds, (pixel width, pixel height)), and the last scalings to a shown size
     (milliseconds). For the campaign's Art-on/Clean comparison."""
@@ -224,7 +283,7 @@ def scalings():
 
 def forget():
     """Drop every decoded picture and every check (a pack changed on disk, or a test)."""
-    _images.clear();_sources.clear();_verified.clear();_catalogs.clear()
+    _images.clear();_sources.clear();_verified.clear();_catalogs.clear();_cutouts.clear()
 
 
 # The state of the work --------------------------------------------------------

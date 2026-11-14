@@ -16,7 +16,7 @@ from .register_tabs import ServiceTab
 
 STYLE = '''
 QWidget#ProgramRoom {
-    background: %(GROUND)s; color: %(TEXT)s; font-family: "IBM Plex Mono";
+    background: %(GROUND)s; color: %(TEXT)s; font-family: "%(MONO)s";
 }
 QWidget#ProgramRoom QLabel { color: %(QUIET)s; background: transparent; }
 QWidget#ProgramRoom QWidget#ProgramHeader { border-bottom: 1px solid %(AMBER_EDGE)s; }

@@ -289,7 +289,7 @@ class RenameGuardTests(unittest.TestCase):
            # V01 W1: the left column's cabinet and concern navigator, the centre foot, and the modules whose shown words W1 renamed
            'cabinet','concern_qt','control_qt','pills','pills_qt','locations','stacy_language','release_updates','remote_service')
     KEPT={('files_qt.py','Slate'),                                   # the Files/Slate folder's name on disk (files_service.SLATE)
-          ('files_qt.py',"Graphite's area (the Slate folder). Graphite writes here directly; every change keeps the version before it, and deletions go to Trash."),
+          ('files_qt.py',"Graphite's area (the Slate folder). Graphite writes here directly; every change keeps the version before it, and deletions go to DELETE."),
           ('shell2.py','Slate'),('shell2.py','Slate/answer '),       # files.list path=Slate; a kept answer's path in Files/Slate
           ('shell2.py','\n(What Ledger knows:'),                     # pages written before the rename still split cleanly
           ('typebar_qt.py','files.list path=Slate  ·  help copies.review  ·  ops agenda'),  # a staC example naming that folder

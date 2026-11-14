@@ -50,7 +50,7 @@ ALWAYS_ASKS = (
     (('*.delete', '*.remove', '*.purge', '*.erase', '*.wipe', '*.forget', '*.discard', '*.revoke', '*.clear', '*.clear_staging', '*.takeover',
       '*.reset'), 'what it removes cannot be brought back'),
     (('*.cancel', '*.stop', '*.retire', '*.review'), 'what it stops or settles cannot be put back'),
-    (('*.empty', 'trash.*'), 'the Trash, once emptied, cannot be brought back'),
+    (('*.empty', 'trash.*'), 'DELETE, once emptied, cannot be brought back'),
     (('power.*', 'session.*'), 'it ends the session or turns this computer off'),
     (('releases.*', 'repairs.*', '*.install'), 'it changes the program itself'),
     (('shell.*', 'terminal.*'), 'a command in the Terminal can do anything'),

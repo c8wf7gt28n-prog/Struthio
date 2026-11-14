@@ -130,7 +130,7 @@ def state_of(kernel, row):
 def propose(kernel, db, row, note, principal):
     from .working_copies import keep_object
     base = load(kernel, row['base'])['files'];work = files_service.root(kernel) / row['work']
-    if not work.is_dir():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or put in Trash')
+    if not work.is_dir():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or deleted')
     found, _ = scan(work);now = {}
     for rel, path in found.items():now[rel] = keep_object(kernel, path.read_bytes())  # every file of the proposal is frozen
     ops = operations(base, now)

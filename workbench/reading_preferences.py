@@ -30,6 +30,20 @@ def family(name,fixed=False):
         QFontDatabase.FixedFont if fixed else QFontDatabase.GeneralFont).family()
 
 
+def in_force(names):
+    """The families in force (interface, prose, code) for the three a profile names. The old defaults are Plex; Plex, while
+    the owner has not chosen another face, is the appearance's own face (boss_theme FACE for words, MONO for code): Plex in
+    Graphite, the typewriter faces in Kasandra (0.8.3: the owner asked for every face in the typewriter face). A face the
+    owner chose herself is never swapped."""
+    from .reading_profile import OLD_DEFAULT_FAMILIES
+    from . import boss_theme as bt
+    names=tuple(names)
+    if names==OLD_DEFAULT_FAMILIES:names=('IBM Plex Sans','IBM Plex Sans','IBM Plex Mono')
+    ui,prose,code=names
+    return (bt.FACE if ui=='IBM Plex Sans' else ui,bt.FACE if prose=='IBM Plex Sans' else prose,
+            bt.MONO if code=='IBM Plex Mono' else code)
+
+
 def font(name,size,fixed=False):
     result=QFont(family(name,fixed));result.setPointSizeF(size)
     if fixed:result.setStyleHint(QFont.Monospace);result.setFixedPitch(True)
@@ -51,20 +65,21 @@ def browser_spacing(browser,profile):
 
 def style_widget(widget,profile):
     role=widget.property('arcReadingRole')
+    ui,prose_face,code_face=in_force((profile['family'],profile['prose_family'],profile['code_family']))
     if isinstance(widget,QPlainTextEdit):
         prose=role=='prose'
-        widget.setFont(font(profile['prose_family'] if prose else profile['code_family'],
+        widget.setFont(font(prose_face if prose else code_face,
                             profile['prose_pt'] if prose else profile['code_pt'],not prose))
         if hasattr(widget,'_update_margins'):
             widget.setTabStopDistance(widget.fontMetrics().horizontalAdvance(' ')*4)
             widget._update_margins()
     elif isinstance(widget,QTextBrowser):
-        widget.setFont(font(profile['prose_family'],profile['prose_pt']))
+        widget.setFont(font(prose_face,profile['prose_pt']))
         widget.document().setDefaultStyleSheet("body,p,li {font-family:'%s';font-size:%.1fpt;}"%
-            (family(profile['prose_family']),profile['prose_pt']))
+            (family(prose_face),profile['prose_pt']))
         browser_spacing(widget,profile)
     elif isinstance(widget,QLabel) and role:
-        widget.setFont(font(profile['prose_family'] if role=='prose' else profile['family'],
+        widget.setFont(font(prose_face if role=='prose' else ui,
             profile['prose_pt'] if role=='prose' else profile['ui_pt']+3 if role=='heading' else profile['ui_pt']))
 
 
@@ -101,12 +116,7 @@ def apply(host,profile=None,persist=False):
     profile=clean(profile if profile is not None else host.session.state.get('reading_profile',DEFAULT))
     try:families=load_fonts(str(host.root))
     except (OSError,ValueError):families=()
-    from .reading_profile import OLD_DEFAULT_FAMILIES
-    names=(profile['family'],profile['prose_family'],profile['code_family'])
-    if names==OLD_DEFAULT_FAMILIES:names=('IBM Plex Sans','IBM Plex Sans','IBM Plex Mono')
-    from . import boss_theme as bt
-    if names[0]=='IBM Plex Sans' and bt.FACE!='IBM Plex Sans':names=(bt.FACE,)+names[1:]      # Kasandra's words, until the owner chooses others
-    if names[1]=='IBM Plex Sans' and bt.FACE!='IBM Plex Sans':names=names[:1]+(bt.FACE,)+names[2:]
+    names=in_force((profile['family'],profile['prose_family'],profile['code_family']))      # the appearance's faces, until the owner chooses others
     ui=family(names[0]);prose=family(names[1]);code=family(names[2],True)
     host.reading_profile=profile
     host.setStyleSheet(

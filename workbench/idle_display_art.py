@@ -33,7 +33,7 @@ _SCOPE = tuple(0.58 * sin(i / 5) + 0.18 * sin(i / 1.8) for i in range(70))
 
 
 def _font(size, weight=QFont.Weight.Normal):
-    font = QFont('IBM Plex Mono')
+    font = QFont(theme.MONO)
     font.setStyleHint(QFont.StyleHint.Monospace)
     font.setPixelSize(size)
     font.setWeight(weight)

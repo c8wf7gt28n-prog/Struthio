@@ -156,7 +156,7 @@ def _acts():
         Act('type.room', 'Give the working area above the line one line, half the window, or more.', schema_of({'size': E('line', 'half', 'tall')}, ('size',))),
         Act('hand.write', named("Write a file in Files through Stacy's hand."), schema_of({'path': path, 'text': S(0, 1000000)}, ('path', 'text')), kernel='files.write'),
         Act('hand.rename', named("Rename a file in Files through Stacy's hand."), schema_of({'path': path, 'name': S(1, 255)}, ('path', 'name')), kernel='files.rename'),
-        Act('hand.trash', named("Move a file in Files to the Trash through Stacy's hand; the Trash gives it back."), schema_of({'path': path}, ('path',)), kernel='files.trash'),
+        Act('hand.trash', named("Delete a file in Files through Stacy's hand; DELETE gives it back."), schema_of({'path': path}, ('path',)), kernel='files.trash'),
         Act('hand.cell', named("Set a number of the selected sheet through Stacy's hand."), schema_of({'cell': S(2, 8), 'value': S(1, 40)}, ('cell', 'value')), kernel='field.set'),
         Act('hand.step', named("Take one of the steps offered for the selected sheet through Stacy's hand; the step's own line decides what it does."),
             schema_of({'n': I(1, 9)}, ('n',)), line_decides=True),

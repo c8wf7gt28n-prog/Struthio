@@ -41,7 +41,7 @@ class JournalTitle(QLabel):
         pixels = 28 if self.width() >= 330 else 20
         if getattr(self, '_pixels', None) != pixels:
             self._pixels = pixels
-            self.setStyleSheet('font-family:"IBM Plex Mono";font-size:%dpx;font-weight:600;background:transparent;border:0;' % pixels)
+            self.setStyleSheet('font-family:"%s";font-size:%dpx;font-weight:600;background:transparent;border:0;' % (ink.MONO, pixels))
         height = self.heightForWidth(self.width())
         if height > 0 and self.minimumHeight() != height:
             self.setMinimumHeight(height)
@@ -66,23 +66,23 @@ class InvestigationTab(QWidget):
             QWidget#JournalPage {background:%(GROUND)s;}
             QFrame#JournalHeading {background:%(GROUND)s;border:1px solid %(LINE)s;border-top:2px solid %(AMBER_EDGE)s;}
             QWidget#JournalHeadingWords, QWidget#JournalHeadingWords QLabel {background:transparent;border:0;}
-            QLabel#JournalSection, QLabel#JournalKicker {font-family:"IBM Plex Mono";font-size:14px;font-weight:600;}
+            QLabel#JournalSection, QLabel#JournalKicker {font-family:"%(MONO)s";font-size:14px;font-weight:600;}
             QLabel#JournalKicker {color:%(TEXT)s;}
             QLabel#JournalSection {color:%(TEXT)s;background:%(PANEL)s;border:1px solid %(LINE)s;padding:6px 10px;}
             QLabel#JournalSection[priority="true"] {color:%(AMBER_TEXT)s;border-left:2px solid %(AMBER_EDGE)s;}
-            QLabel#JournalClaim {font-family:"IBM Plex Mono";font-size:13px;}
+            QLabel#JournalClaim {font-family:"%(MONO)s";font-size:13px;}
             QLabel#JournalClaim:focus {background:%(AMBER_SOFT)s;}
             QFrame#JournalState {border-bottom:1px solid %(LINE)s;}
             QFrame#JournalNext {background:%(PANEL)s;border:1px solid %(LINE)s;}
             QPushButton#JournalContinue {background:%(AMBER_EDGE)s;color:%(TERMINAL_GROUND)s;border-radius:0;
-                font-family:"IBM Plex Mono";font-weight:600;padding:6px 9px;}
+                font-family:"%(MONO)s";font-weight:600;padding:6px 9px;}
             QPushButton#JournalContinue:focus {border:1px solid %(AMBER_EDGE)s;}
         ''' % vars(ink))
         outer = QHBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0);outer.setSpacing(0)
         side = QFrame();side.setObjectName('JournalIndex');side.setFixedWidth(176)
         side.setStyleSheet('''
             QFrame#JournalIndex {background:%(PANEL)s;border:1px solid %(LINE)s;}
-            QListWidget#JournalList {background:transparent;border:0;font-family:"IBM Plex Mono";font-size:13px;}
+            QListWidget#JournalList {background:transparent;border:0;font-family:"%(MONO)s";font-size:13px;}
             QListWidget#JournalList::item {padding:6px 4px;border-left:2px solid transparent;}
             QListWidget#JournalList::item:selected {color:%(TEXT)s;background:%(AMBER_SOFT)s;border-left-color:%(AMBER_EDGE)s;}
         ''' % vars(ink))
@@ -196,7 +196,7 @@ class InvestigationTab(QWidget):
         state_row = QHBoxLayout(state);state_row.setContentsMargins(3, 0, 3, 6)
         status_word = plain('[' + STATE_WORDS.get(s['state'], s['state']).upper() + ']', mono=True)
         status_word.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-        status_word.setStyleSheet('font-family:"IBM Plex Mono";font-size:13px;color:' + {'WAITING': ink.AMBER_TEXT, 'CRITERIA_SATISFIED': ink.READY}.get(s['state'], QUIET))
+        status_word.setStyleSheet('font-family:"%s";font-size:13px;color:' % ink.MONO + {'WAITING': ink.AMBER_TEXT, 'CRITERIA_SATISFIED': ink.READY}.get(s['state'], QUIET))
         state_row.addWidget(status_word)
         state_row.addWidget(plain('%d of %d steps used  ·  %s authority' % (used['steps'], budget.get('max_steps', 20),
                                   budget.get('effects', 'read')), quiet=True, mono=True), 4)

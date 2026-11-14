@@ -511,7 +511,7 @@ class OfficeBuildingTab(ServiceTab):
         if path:self.call('matrix.export', {'destination': path}, lambda value:self.status.setText('Exported ' + str(value['rows']) + ' rows to ' + value['path']))
 
     def forget_matrix(self):
-        if QMessageBox.question(self, 'Forget the instruction matrix', 'Delete every recorded instruction and outcome? Lessons you reviewed stay.') == QMessageBox.Yes:
+        if QMessageBox.question(self, 'Forget the instruction matrix', 'Erase every recorded instruction and outcome? Lessons you reviewed stay.') == QMessageBox.Yes:
             self.call('matrix.forget', {'all': True}, lambda value:(self.status.setText('Forgot ' + str(value['rows']) + ' rows.'), self.refresh_matrix()))
 
 

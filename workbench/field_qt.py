@@ -197,11 +197,11 @@ class FieldView(QWidget):
         return max(0.85, min(3.5, self.fontInfo().pixelSize() / 16.0))
 
     def mono(self, px, weight=QFont.Normal):
-        f = QFont('IBM Plex Mono');f.setStyleHint(QFont.Monospace);f.setPixelSize(max(11, round(px * self.scale())));f.setWeight(weight);return f
+        f = QFont(t.MONO);f.setStyleHint(QFont.Monospace);f.setPixelSize(max(11, round(px * self.scale())));f.setWeight(weight);return f
 
     def display(self, px):
         """The face of headings: Plex Mono in Graphite, the typewriter face in Kasandra (boss_theme.DISPLAY)."""
-        if t.DISPLAY == 'IBM Plex Mono':return self.mono(px, QFont.Medium)
+        if t.DISPLAY == t.MONO:return self.mono(px, QFont.Medium)
         f = QFont(t.DISPLAY);f.setPixelSize(max(12, round(px * 1.12 * self.scale())));return f
 
     def sans(self, px, weight=QFont.Medium):
@@ -1193,7 +1193,7 @@ class FieldView(QWidget):
                 p.setPen(QPen(QColor(t.AMBER_EDGE), 2));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
             self._face_boxes.append((QRectF(x - 4 * s, 0, w + 8 * s, h), name));x += w + 16 * s
         if self.faces:x += 4 * s
-        p.setFont(self.sans(17) if t.DISPLAY == 'IBM Plex Mono' else self.display(17));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
+        p.setFont(self.sans(17) if t.DISPLAY == t.MONO else self.display(17));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
         said = self.field.title or 'This workspace';parts = self.field.census()
         p.setFont(self.mono(12.5));fm3 = QFontMetricsF(p.font());room = self.width() - x - 28 * s
         waiting = [part for part in parts if 'recheck' in part or 'open question' in part]
@@ -1201,7 +1201,7 @@ class FieldView(QWidget):
             parts = waiting if parts != waiting and waiting else []        # the title keeps its room; the counts give way, what waits last
             waiting = []
         census = '  ·  '.join(parts);census_w = fm3.horizontalAdvance(census)
-        p.setFont(self.sans(17) if t.DISPLAY == 'IBM Plex Mono' else self.display(17))
+        p.setFont(self.sans(17) if t.DISPLAY == t.MONO else self.display(17))
         p.drawText(QPointF(x, h / 2 + fm2.ascent() / 2 - 2), fm2.elidedText(said, Qt.ElideRight, max(60.0, room - (census_w + 44 * s if census else 0))))
         if census:
             p.setFont(self.mono(12.5));p.setPen(QColor(t.QUIET));left = self.width() - 28 * s - census_w
@@ -1217,7 +1217,7 @@ class FieldView(QWidget):
 
     def _columns(self, p, body):
         s = self.scale();far = self.zoom < self.FAR      # far off, a column's name keeps its reading size as the sheets' names do
-        p.setFont(self.mono(11 / self.zoom if far else 12, QFont.Medium) if t.DISPLAY == 'IBM Plex Mono' else self.display(11.5 / self.zoom if far else 12.5));fm = QFontMetricsF(p.font())
+        p.setFont(self.mono(11 / self.zoom if far else 12, QFont.Medium) if t.DISPLAY == t.MONO else self.display(11.5 / self.zoom if far else 12.5));fm = QFontMetricsF(p.font())
         for rank in self.field.ranks():
             ids = self.field.column(rank)
             if not ids or ids[0] not in self._placed:continue

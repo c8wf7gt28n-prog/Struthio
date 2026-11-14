@@ -2339,7 +2339,7 @@ class WorkbenchWindow(QMainWindow):
         from .version import title as product_title
         self.setWindowTitle(product_title())
         from .graphite_brand import window_icon
-        self.setWindowIcon(window_icon())  # GRAPHITE-01: the sharpened point on a graphite tile, painted at 16-256 px
+        self.setWindowIcon(window_icon(self.root))  # GRAPHITE-01: the sharpened point on a graphite tile, painted at 16-256 px
         self.setMinimumSize(1040, 640)
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)

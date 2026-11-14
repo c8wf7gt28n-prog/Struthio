@@ -24,7 +24,8 @@ class CodeRain(QWidget):
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAccessibleName('Decorative falling code backdrop')
         self.random = random.Random(seed)
-        self.font_ = QFont('DejaVu Sans Mono')
+        from .boss_theme import MONO
+        self.font_ = QFont(MONO)      # the desk's own mono face (Kasandra's typewriter face in Kasandra)
         self.font_.setStyleHint(QFont.Monospace)
         self.font_.setPixelSize(15)
         metrics = QFontMetrics(self.font_)

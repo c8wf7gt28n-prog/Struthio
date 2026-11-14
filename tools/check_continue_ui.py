@@ -79,7 +79,7 @@ def last_said(face):
   widget=face.lines.itemAt(i).widget()
   if widget is None:continue
   bubble=widget if isinstance(widget,Bubble) else widget.findChild(Bubble)
-  if bubble is not None:return bubble.text.text()
+  if bubble is not None:return bubble.text.property('plain') or bubble.text.text()
  return ''
 def plain(html):
  import re

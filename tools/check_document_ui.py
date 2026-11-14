@@ -84,7 +84,7 @@ assert bold_runs(tab)==[{'start':4,'end':15,'bold':True}] and tab.revision==3 an
 fragment=tab.page.document().firstBlock().begin().fragment()
 cursor=tab.page.textCursor();cursor.setPosition(6);assert cursor.charFormat().fontWeight()>=QFont.Bold
 cursor.setPosition(2);assert cursor.charFormat().fontWeight()<QFont.Bold
-face=w.shell2.face;last=face.bubbles[-1].text.text() if hasattr(face,'bubbles') else ''
+face=w.shell2.face;last=(face.bubbles[-1].text.property('plain') or face.bubbles[-1].text.text()) if hasattr(face,'bubbles') else ''
 cursor.setPosition(6);weight=cursor.charFormat().fontWeight();cursor.setPosition(2);plain_weight=cursor.charFormat().fontWeight()
 check('03 Typing strip → Slate: “make these words bold” on the selection became revision 3 by SLATE through documents.edit; the page shows quick brown in bold (char weight %d) and the rest regular (%d); no model ran'%(weight,plain_weight))
 capture('Ledger_Slate_WORKSHOP_01_Documents_01_Bold_By_Slate_1920.png','Selected words made bold by Slate from the typing strip; machine column left, Slate activity right, strip below')

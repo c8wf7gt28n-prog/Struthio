@@ -21,7 +21,7 @@ class MemoryTab(ServiceTab):
         self.profile_label=QLabel('No personality seed imported.');self.profile_label.setWordWrap(True);learn.addWidget(self.profile_label)
         self.enabled=QCheckBox('Use this private personality reference in local replies');self.enabled.toggled.connect(self.toggle_profile);learn.addWidget(self.enabled)
         buttons=QGridLayout()
-        for i,(label,fn) in enumerate([('Import personality JSON',self.import_seed),('Refresh learning',self.refresh_profile),('Export private memory',self.export_memory),('Restore private memory',self.restore_memory),('Delete profile and feedback',self.delete_profile)]):self.add_button(buttons,label,fn,i)
+        for i,(label,fn) in enumerate([('Import personality JSON',self.import_seed),('Refresh learning',self.refresh_profile),('Export private memory',self.export_memory),('Restore private memory',self.restore_memory),('Erase profile and feedback',self.delete_profile)]):self.add_button(buttons,label,fn,i)
         learn.addLayout(buttons);form=QFormLayout();self.preference=QLineEdit('technical_depth');form.addRow('Preference ID',self.preference);self.direction=QLineEdit();writing_prompt(self.direction, 'Describe the response you want from Graphite');form.addRow('Owner direction',self.direction)
         self.feedback_value=QDoubleSpinBox();self.feedback_value.setRange(0,1);self.feedback_value.setSingleStep(.25);self.feedback_value.setValue(1);self.feedback_value.setDecimals(2);form.addRow('Agreement (0–1)',self.feedback_value)
         self.feedback_kind=QComboBox();self.feedback_kind.addItems(WEIGHTS);form.addRow('Feedback kind',self.feedback_kind);self.soft=QCheckBox('Soft evidence may decay; direct corrections persist');form.addRow(self.soft);learn.addLayout(form)
@@ -103,7 +103,7 @@ class MemoryTab(ServiceTab):
     def forget_feedback(self):
         ident=self.selected_feedback()
         if ident:self.call('memory.feedback.forget',{'id':ident},lambda v:(self.show_record(v),self.refresh_profile()))
-    def delete_profile(self):self.call('memory.profile.delete',{'reason':'Owner selected Delete profile and feedback'},lambda v:(self.show_record(v),self.refresh_profile(),self.note.setText('Profile and feedback deleted. Tasks and external archives remain separate.')))
+    def delete_profile(self):self.call('memory.profile.delete',{'reason':'Owner selected Erase profile and feedback'},lambda v:(self.show_record(v),self.refresh_profile(),self.note.setText('Profile and feedback erased. Tasks and external archives remain separate.')))
     def new_task(self):
         title,ok=QInputDialog.getText(self,'New memory task','Task title')
         if ok and title.strip():self.call('memory.task.create',{'title':title.strip()},self.created_task)

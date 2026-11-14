@@ -150,7 +150,7 @@ def first_steps(name, major, tool, now=None):
              '## From Graphite', '',
              '- `main.gd` and `main.tscn` are plain text: they open here, and Find works in them.',
              '- Apps, Godot inspects the project, opens it in Godot, or plays a scene without the editor.',
-             named('- To be rid of it, move the folder to the Trash, which gives it back. While it is still as Stacy made it, Undo on her card does that.'), '',
+             named('- To be rid of it, delete the folder; DELETE gives it back. While it is still as Stacy made it, Undo on her card does that.'), '',
              'A Godot 3 project and a Godot 4 project are not the same files: this one is for Godot %d.' % major]
     return '\n'.join(lines) + '\n'
 

@@ -34,7 +34,7 @@ from PySide6.QtCore import QProcess, QProcessEnvironment, Qt
 from PySide6.QtGui import QKeySequence, QShortcut, QTextCursor
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QTextBrowser, QTextEdit, QVBoxLayout, QWidget
 from .shell2 import AMBER, ERASER, ERASER_MARK, LINE, QUIET, TEXT, button, call, call_write, mono_font
-from .boss_theme import AMBER_TEXT, TERMINAL_GROUND
+from .boss_theme import AMBER_TEXT, MONO, TERMINAL_GROUND
 from .stac_bridge import route_program
 
 MODES = (('log', 'Log', '', 'filter the Timeline'),
@@ -228,7 +228,7 @@ class Console(QWidget):
         size = self.px = max(12, mono_font(14).pixelSize())
         self.setStyleSheet(
             f"QTextBrowser#ConsoleOutput, QLineEdit#ConsolePrompt {{background:{TERMINAL_GROUND};"
-            f"color:{AMBER_TEXT};border:1px solid {LINE};border-radius:2px;font-family:'IBM Plex Mono';}} "
+            f"color:{AMBER_TEXT};border:1px solid {LINE};border-radius:2px;font-family:'{MONO}';}} "
             f"QTextBrowser#ConsoleOutput {{padding:4px 8px;font-size:{size}px;}} "
             f"QLineEdit#ConsolePrompt {{padding:3px 8px;font-size:{size + 1}px;}}"
         )
@@ -397,7 +397,7 @@ class Console(QWidget):
         self.say('<br>'.join(keyed_html(line, round(self.px * 1.3), self.px) for line in lines))  # short lines: the area never folds
 
     def font_css(self):
-        return "font-family:'IBM Plex Mono';font-size:%dpx;" % getattr(self, 'px', 13)
+        return "font-family:'%s';font-size:%dpx;" % (MONO, getattr(self, 'px', 13))
 
     def link(self, label, fn):
         key = 'c%d' % (len(self.links) + 1);self.links[key] = fn

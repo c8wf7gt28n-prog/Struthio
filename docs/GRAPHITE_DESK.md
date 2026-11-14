@@ -3,8 +3,8 @@
 The owner's brief of 2026-11-06: "I want a quieter, symmetrical desk with a powerful Fluxbox-inspired right-click menu. Keep
 every useful capability reachable and put it where I would naturally look for it." Then: "Be obsessive in symmetry." This
 page is the desk as built: the one grid, the two graphite bands, the head and the lower band's slots (D1a); the two panes,
-their tabs, trees, Trash and faces, the quiet centre foot, the pointer and the quiet-script rule on the desk (D1b); and what
-two independent reviews of D1 found and how each was fixed (D1-fix): the words, the cat, the symbol and Trash are now placed
+their tabs, trees, DELETE and faces, the quiet centre foot, the pointer and the quiet-script rule on the desk (D1b); and what
+two independent reviews of D1 found and how each was fixed (D1-fix): the words, the cat, the symbol and DELETE are now placed
 and measured by what is drawn, not only by their boxes. How symmetry is measured, the measured tables, the homes of every
 control that moved, and what was chosen and why. The cat's look, the programs list and the System menu (D2), the writing
 line's four modes and Log (D3) and the right-click menu (D4) build on it; the network capability Log follows and the agent may
@@ -55,7 +55,7 @@ Nothing here is owner-host acceptance: the owner's computer is pending until the
 
 The symmetry review measured the desk's pixels and found the boxes mirrored to the pixel while what was drawn in them was
 not: the menu words' ink 7 to 9 px inside the writing line's ends, their drawn gaps 2 to 3 px apart, the cat's drawing 3 to 6
-px further in than the last word's, Trash drawn at the left of a box wider than it. Now every band word, the cat and Trash
+px further in than the last word's, DELETE drawn at the left of a box wider than it. Now every band word, the cat and DELETE
 are placed by what they draw:
 
 - **Band words** (the eight menus and ⋯ in the head; Line · Half · Tall and the target words in the lower band) are drawn by
@@ -67,7 +67,7 @@ are placed by what they draw:
   no longer drawn bold: its mark says it, and a word that does not change weight never moves.
 - **The cat** is placed by its drawing at rest (`graphite_brand.cat_ink`: the cat's parts as `paint_cat` draws them, in its
   tile): its first drawn column is the band's inset.
-- **Trash** draws exactly its box (below).
+- **DELETE** draws exactly its box (below).
 - **The word Graphite** was already drawn by its outline (D1b); **the symbol** is the mark drawn as wide as its box.
 
 The check (below) compares every one of them with its design in the window's own pixels.
@@ -168,7 +168,7 @@ are the pixels at least 90% covered, the median inked pixel is the median of tho
   left pane, P wide                                        right pane, P wide
   |  Machine   ·   Cabinet   ·   Settings  |  tab row       |  Conversation  ·  Activity  ·  Context  |
   |  the active tree, inset I               |  content       |  the active face, inset I               |
-  |                              [ Trash ]  |  foot          |  [ kept empty ]                          |
+  |                              [ DELETE ]  |  foot          |  [ kept empty ]                          |
 ```
 
 `workbench/pane_qt.py` builds both panes from the parts the window already had (every object keeps its name for callers)
@@ -186,19 +186,19 @@ same part of the other.
   everywhere). Keyboard focus and the pointer put the eraser-pink mark in the same place. A faint rule runs under each row from
   inset to inset. The tabs are checkable push buttons under their old names: `settings_navigator.machine / .cabinet /
   .settings` on the left, `shell2.slate_button / .operations_button / .context_button` on the right.
-- **The left pane shows only its tabs, the active tree and Trash.** Machine, the cabinet and Settings are `BranchTree`s: one
+- **The left pane shows only its tabs, the active tree and DELETE.** Machine, the cabinet and Settings are `BranchTree`s: one
   row height (the tree's line of text and 12 px at 14 pt, scaled), one indentation (22 px at 14 pt, scaled), the same branch
   lines: a one-pixel pencil-grey line (#9d978b) down each level that still has rows to come, an elbow from the parent's line to
   the row (to its chevron, or toward its words for a row with nothing inside), a short stem from an open row's chevron to its
   first child, and the chevron (open or closed) in graphite. Roots stand on their own. A chosen row is marked over its words
   only (eraser pink); the branches stay on plain paper. Existing views (the older Library and catalogue tree, chosen from
   Arrange) draws the same lines.
-- **Trash** is larger (a 30 px can at 14 pt, scaled; it was 22) and pinned at the left pane's lower right by its ink (D1-fix;
+- **DELETE** (called Trash until 0.8.3; the owner: "I want trash called DELETE") keeps what you delete; restore puts it back. It is larger (a 30 px can at 14 pt, scaled; it was 22) and pinned at the left pane's lower right by its ink (D1-fix;
   the review and the integrator found the can and word drawn at the left of a box wider than them, short of the inner right
-  inset). Its box is exactly what it draws, right to left: the word Trash's last inked column on the box's right edge, a pad,
+  inset). Its box is exactly what it draws, right to left: the word DELETE's last inked column on the box's right edge, a pad,
   the can (its lid the widest part, its bottom line on the box's bottom edge), and room for a three-digit count to the left,
-  so nothing moves when Trash fills (a count is drawn after the word, and the group still ends at the right edge). Placed an
-  inset from the pane's inner edge and from its bottom, outside every scroll area, in every tab, the drawn Trash is there:
+  so nothing moves when DELETE fills (a count is drawn after the word, and the group still ends at the right edge). Placed an
+  inset from the pane's inner edge and from its bottom, outside every scroll area, in every tab, the drawn DELETE is there:
   measured in the window's pixels, its ink ends 16, 21 and 22 px from the pane's inner edge and above its bottom at 14, 18 and
   20 pt. Its counterpart place in the right pane's foot is kept empty: no right-pane control belongs at the foot, so the feet
   balance by height and by the empty mirror (the check asserts the right foot holds no control).
@@ -238,7 +238,7 @@ own pixel is drawn solid graphite (a sharp point covers only a sliver of the pix
 the click visibly on it. Graphite facets with a one-pixel paper edge (also between the facets, along the mark's gap), so it
 reads on paper and on the graphite bands. `use_pointer` sets it on the window: every widget that sets no cursor of its own
 shows it (the trees, the tabs, the bands, the workspace); text fields keep their I-beam, splitters their resize cursors, links
-and Trash their hand, and the pane separators show the resize cursor while the pointer is over them (D1-fix). Menus and
+and DELETE their hand, and the pane separators show the resize cursor while the pointer is over them (D1-fix). Menus and
 dialogs are their own windows and keep the system's pointer. `tests_integrated/test_desk.PointerTests` checks the hotspot is
 the tip and the aim is 30 degrees (to 1e-9), that nothing lies beyond the tip and that the facets are the mark under one
 similarity; `test_graphite` checks the drawn pixels at 1x and 2x.
@@ -254,7 +254,7 @@ View ▸ Pleasantries in script (the setting appearance.cursive, unchanged) turn
 | Where | In the script | Stays print |
 |---|---|---|
 | The head | the word Graphite (`shell2.Wordmark`), its capitals as tall as the symbol | the menus, the monitors, the symbol |
-| Left pane | nothing: its visible words are the tabs, the tree's rows and Trash, all things you act on or read first | the tabs, every row, Trash |
+| Left pane | nothing: its visible words are the tabs, the tree's rows and DELETE, all things you act on or read first | the tabs, every row, DELETE |
 | Activity | the cabinet selection's explanation when nothing is selected ("Select saved work in the cabinet…"); where the work's order, niceness and Stop are, under the printed WORK line | the services, the Graphite line, a selected record, the WORK line, the action words, the Timeline |
 | The System menu's list | the captions after ACTIVE JOBS ("in the order they started") and QUEUED ("drag to schedule"); the sliders' and order's explanation (one print size with the rest when the script is off: D1-fix, it was a stray 13 px) | the headings, the job rows, Stop everything, the statuses and results |
 | Conversation | the face's signature (as before); the composer's hint (hidden while the writing line is the way to write) | its line, the agenda line, every message |
@@ -300,21 +300,21 @@ Finder with Today).
   from the panes' edges; the writing line centred and equally inset in the workspace column; one baseline; one height; one
   size for every word and the line.
 - The panes (D1b): pane bodies, tab rows, each tab with its mirror, the tabs' widths, tops, heights, gaps and word size, each
-  row centred on its pane, the short mark's length, offset and row, the content boxes and their inset, the feet, Trash and its
-  kept-empty mirror, Trash an inset from the pane's inner edge and its bottom, no control in the right foot; the three trees'
+  row centred on its pane, the short mark's length, offset and row, the content boxes and their inset, the feet, DELETE and its
+  kept-empty mirror, DELETE an inset from the pane's inner edge and its bottom, no control in the right foot; the three trees'
   box, indentation, row height and branch column; Activity's lines at the trees' row height and shown whole.
 
 **As drawn, in the window's own pixels (D1-fix):**
 
 - **Drawn as designed** (`drawn_as_designed`): the word Graphite (its outline and hairline), the symbol, every shown menu word,
-  every lower-band word, the cat at rest and Trash are drawn again by the check from their designs, by references it takes when
+  every lower-band word, the cat at rest and DELETE are drawn again by the check from their designs, by references it takes when
   it starts (so a later change to a painter is measured against them, not copied), over the same ground, and compared with the
   window's pixels: at most 2 levels apart (rounding). Measured: 0 levels for all twenty items at all nine sizes. A pixel's shift
   of any of them leaves its box where it was and differs by tens of levels.
 - **The word and the symbol** as drawn (D1b): their first and last inked columns at equal distances from the window's edges.
 - **The chosen tabs' yellow marks** (`tab_marks`): the pencil-yellow run under the chosen tab of each pane, its length and row
   equal, and, Cabinet and Activity being mirror partners, mirrored to the pixel.
-- **Trash** (`trash_drawn`): its ink ends an inset from the pane's inner edge and an inset above the pane's bottom (0 px).
+- **DELETE** (`trash_drawn`): its ink ends an inset from the pane's inner edge and an inset above the pane's bottom (0 px).
 - **The cat** (`cat_poses_inside`): every pose (rest, hover, open, sleepy) rendered alone lies inside the band with at least the
   band's padding above and below, the button's edges cut nothing of it, its drawn edges are its design's to within a pixel of
   antialiasing, and its design lies inside the tile's room. Measured at 14 pt: 10 px above and below at rest, the sleepy head
@@ -343,9 +343,9 @@ symbol, its right edge the band's inset from the window's and its top the band's
 the contrast): it varies with the menus' place and the script labels visible. "Largest difference" is in pixels for the
 geometric and drawn-edge rows and in levels for the drawn-as-designed rows. Before D1-fix: 127 pairs at each size by boxes,
 the drawn items unmeasured; the review's own mutations (the symbol drawn a pixel lower, the word drawn a pixel lower, the right
-pane's yellow mark drawn a pixel right, the Trash can drawn a pixel left) passed it.
+pane's yellow mark drawn a pixel right, the DELETE can drawn a pixel left) passed it.
 
-| Size | Tab width (no gap) | Tab words / menus | Tab row (in the pane) | Short mark (offset, length) | Tree row / indent | Trash box | Foot |
+| Size | Tab width (no gap) | Tab words / menus | Tab row (in the pane) | Short mark (offset, length) | Tree row / indent | DELETE box | Foot |
 |---|---|---|---|---|---|---|---|
 | 1920 × 1200, 14 pt | 108 | 15 / 15 px | 18 – 342 | 28, 52 | 32 / 22 | 95 × 29 | 53 |
 | 1366 × 768, 14 pt | 108 | 15 / 15 px | 18 – 342 | 28, 52 | 32 / 22 | 95 × 29 | 53 |
@@ -357,14 +357,14 @@ pane's yellow mark drawn a pixel right, the Trash can drawn a pixel left) passed
 | 1366 × 768, 20 pt | 114 | 16 / 21 px | 22 – 364 | 29, 56 | 47 / 31 | 134 × 40 | 73 |
 | 1280 × 800, 20 pt | 110 | 16 / 21 px | 22 – 352 | 27, 56 | 47 / 31 | 134 × 40 | 73 |
 
-The tab row's height is the menus' line and the band words' chrome: 41 px at 14 pt, 46 at 18, 50 at 20. Trash's box is its
+The tab row's height is the menus' line and the band words' chrome: 41 px at 14 pt, 46 at 18, 50 at 20. DELETE's box is its
 drawing (D1-fix), so its feet are lower than D1b's (70, 90 and 97 px).
 
 **The mutation proof** (D1-fix, in the evidence folder, not shipped): each fixed defect's old behaviour and each of the symmetry
 review's own mutations is put back for a moment against the check's measures; all 21 are caught and the desk measures clean
 again after each: the symbol drawn 1 px lower or left, the word drawn 1 px lower, the right pane's yellow mark drawn 1 px right,
-the Trash can drawn 1 px left; the symbol, the Conversation tab, the last mode word and Trash moved 1 px; the script without
-room round its swashes; Trash drawn at the left of its box; the cat at the band's foot; the writing line at the menus' boxes;
+the DELETE can drawn 1 px left; the symbol, the Conversation tab, the last mode word and DELETE moved 1 px; the script without
+room round its swashes; DELETE drawn at the left of its box; the cat at the band's foot; the writing line at the menus' boxes;
 the word at its old 34 px; Kernel elided; the separators without their resize cursor; Ctrl+K choosing Find and keeping it; the
 System menu's note at 13 px; the lower band's words at full size in a narrow window; Activity wider than its pane.
 
@@ -421,18 +421,18 @@ halfway → 400/400, then 385/385 halfway → 370/370), an excursion to 18 pt an
 12. **The short mark is the shortest word's length (D1b).** "The active tab's yellow mark the same length and offset": one
     length under every tab means it cannot be each word's own width; the shortest word's keeps it short and never longer than
     a word.
-13. **Details in tooltips, not a pane (D1b).** The brief makes the tabs, the tree and Trash the left pane's only visible
+13. **Details in tooltips, not a pane (D1b).** The brief makes the tabs, the tree and DELETE the left pane's only visible
     controls. A row's description (source, time, values) is where the pointer already is; the right pane's Context keeps its
     meaning (what is in use in the work).
 14. **The Work block in Activity (D1b).** It says what Graphite took on, is doing, found and needs: the brief's words for
     Activity. The Conversation stays the talk.
 15. **The foot's "Work trail" says Organizer (D1b).** That word opened the Organizer; in Activity, beside the work list's own
     Work trail, the same word for two rooms would mislead. Both rooms keep every route.
-16. **Trash's mirror stays empty (D1b).** The right pane has no foot control in the brief; an empty foot of the same height
+16. **DELETE's mirror stays empty (D1b).** The right pane has no foot control in the brief; an empty foot of the same height
     keeps the panes' contents mirrored, and nothing is invented to fill it.
 17. **The pointer's tip is the hotspot pixel's corner, its pixel solid (D1b).** The click is exactly at the point, and the
     point reads at 1x where a sharp 21-degree facet alone would draw its first pixel pale.
-18. **Words, the cat and Trash placed by what they draw (D1-fix).** The owner asked for obsessive symmetry and the review measured
+18. **Words, the cat and DELETE placed by what they draw (D1-fix).** The owner asked for obsessive symmetry and the review measured
     the pixels: boxes mirrored to the pixel with their contents 3 to 9 px apart is not symmetry the eye sees. Measuring each
     word's ink once per font and text (rendered from a whole-pixel origin, so the window draws exactly that ink) costs nothing at
     layout time and makes the drawn pairs exact; the check proves it by drawing each item again from its design.
@@ -905,9 +905,9 @@ scopes and checks every room uses. Nothing new is scheduled, stored or started.
 |---|---|
 | A passage | Bold · Italic · Underline (each "Not bold" when the mark is on) · Plain · Paragraph style › (Heading, Subheading, Minor heading, Body, Code; the current one marked) · Move to notes — Inspect in the line — Ask Stacy about this · Search for these words — New document · Export… — Undo · Redo · Cut · Copy · Paste · Delete · Select all |
 | A page (no selection) | Paragraph style › — New document · Export… — the text edits |
-| A file, drawing, datasheet or table (Files) | Open · Open with this computer's app · Show in its folder — Rename… · Copy to… · Move to… · Versions… · Export… — Inspect in the line · Run · Chain from here › — Compare with… · Compare with a kept version › · Extract › · Open in *the adapter for its kind* · Find tools in the Tool Atlas · Explore capabilities… · Explain this file · Ask Stacy about this… · Investigate… · Add to the Agenda… — Copy path · Copy the staC address — Move to Trash; for a working copy also Ask Stacy to work on this…, Review changes to the original…, Show the original, Discard this draft… |
-| Two files | **Compare revisions** when they are revisions of one file ("board rev B" and "board rev C", "notes v1" and "notes v2", "draft" and "draft (2)"), else Compare these two; the older is passed as *before* — Copy to… · Move to… — Copy paths — Move to Trash |
-| A folder or a smart folder (Files) | Open · Rename… (a smart folder too: `files.rename` takes it) · Copy to… · Move to… · Export… · Copy path · Move to Trash; a folder copy: Look inside, confined… · Run a command here, confined… · Review changes to the original… · Show the original · Discard this draft… (from a pill: Return as a pill… · Review the changes… · Discard this draft…) |
+| A file, drawing, datasheet or table (Files) | Open · Open with this computer's app · Show in its folder — Rename… · Copy to… · Move to… · Versions… · Export… — Inspect in the line · Run · Chain from here › — Compare with… · Compare with a kept version › · Extract › · Open in *the adapter for its kind* · Find tools in the Tool Atlas · Explore capabilities… · Explain this file · Ask Stacy about this… · Investigate… · Add to the Agenda… — Copy path · Copy the staC address — Delete; for a working copy also Ask Stacy to work on this…, Review changes to the original…, Show the original, Discard this draft… |
+| Two files | **Compare revisions** when they are revisions of one file ("board rev B" and "board rev C", "notes v1" and "notes v2", "draft" and "draft (2)"), else Compare these two; the older is passed as *before* — Copy to… · Move to… — Copy paths — Delete |
+| A folder or a smart folder (Files) | Open · Rename… (a smart folder too: `files.rename` takes it) · Copy to… · Move to… · Export… · Copy path · Delete; a folder copy: Look inside, confined… · Run a command here, confined… · Review changes to the original… · Show the original · Discard this draft… (from a pill: Return as a pill… · Review the changes… · Discard this draft…) |
 | Files' empty place | Root menu › (the whole root of the pipe menu, as Today has it, where the old chains › held it: Your chains ›, Start a chain from ›, Writing line ›, Edit the Graphite menu… — Inquiries…, Algorithm & Theory Atlas…, Tool Atlas…) — New folder… · New smart folder… · Import… · Work on a copy of a file… · View as › (Thumbnails, List) · Show all files · Refresh |
 | A Finder entry | Open · Open in viewer · Show in Files — Change it in Files (or "Nothing changes here", greyed, outside Files) — Inspect in the line · Run (inside Files) — Extract · the adapters for its kind · Ask Stacy about this file — Copy path |
 | A Finder folder's empty place | Root menu › — View as › (List, Icons, Columns) · Show/Hide hidden files · Show/Hide the preview · Refresh — Copy path |
@@ -937,11 +937,11 @@ words, the target that offers it now, the entry's key) and test_context_menu bui
 
 | Old menu | Its entries | Now |
 |---|---|---|
-| Files: a file (`files_qt.FilesTab.menu`, now `old_menu`, kept for readers) | Open / Open pill…, Explain this file, Ask Stacy about this…, Investigate…, Add to the Agenda…, Open with this computer's app, Rename…, Versions…, Compare with…, Compare with a version…, Export…, Copy to…, Move to…, Move to Trash; the chain from `@files:` around it | The file's menu, the same words (Compare with a version is now Compare with a kept version ›, listing the kept versions); the chain is Chain from here › |
+| Files: a file (`files_qt.FilesTab.menu`, now `old_menu`, kept for readers) | Open / Open pill…, Explain this file, Ask Stacy about this…, Investigate…, Add to the Agenda…, Open with this computer's app, Rename…, Versions…, Compare with…, Compare with a version…, Export…, Copy to…, Move to…, Delete; the chain from `@files:` around it | The file's menu, the same words (Compare with a version is now Compare with a kept version ›, listing the kept versions); the chain is Chain from here › |
 | Files: a working copy | Ask Stacy to work on this…, Review changes to the original…, Show the original, Discard this draft… | The file's menu |
 | Files: a folder copy | Look inside, confined…, Run a command here, confined…, Review changes to the original…, Show the original, Discard this draft…; from a pill: Return as a pill…, Review the changes…, Discard this draft… | The folder's menu |
 | Files: the empty place | New folder…, Import…, Work on a copy of a file…, chains › (the root chain menu: Inquiries…, Algorithm & Theory Atlas…, Tool Atlas…, your kept chains, start from ›, writing line ›, edit the Graphite menu…) | The empty place's menu: its own words, and Root menu › holding every word of the old chains › (D4-fix: the first build kept only Your chains › and Start a chain from ›) |
-| Files: a smart folder | Open, Rename…, Export…, Copy to…, Move to…, Move to Trash | The smart folder's menu, the same words (D4-fix: the first build had dropped Rename…) |
+| Files: a smart folder | Open, Rename…, Export…, Copy to…, Move to…, Delete | The smart folder's menu, the same words (D4-fix: the first build had dropped Rename…) |
 | The Finder (`finder_qt.FinderPage.menu_for`) | Open, Open in viewer, Show in Files, Copy path, Ask Stacy about this file / folder, Change it in Files or the greyed "Nothing changes here" | The entry's menu, the same words (test: the old builder's words are all in it) |
 | The cabinet (`cabinet_actions_qt.menu`) | "With *record*" (the heading), Read saved details, Write an idea here / Name a new project, the provider checks, Open *workspace*, Explore all capabilities | The record's menu: the heading names the record; every action of `ledger.cabinet.actions` is a row, unavailable ones with their reason |
 | The Library (`shell2.LibraryTab.menu`) | Open, Keep a copy in Files | The received file's menu |
@@ -1057,8 +1057,8 @@ each home is checked.
 - The cabinet's query box (Find work…) → the writing line ▸ Search (its CABINET rows)
 - The cabinet's status line → the Cabinet tab's tooltip
 - The settings filter (Find a setting…) and its caption → the writing line ▸ Search (its SETTINGS rows); the Settings tab's tooltip
-- Import, beside Trash → Work ▸ Import (Ingress)…; Import… on the right-click where material enters (the cabinet tree, the Work tree, Today, Files' empty place; Receive files… in the Library's)
-- Export, beside Trash → Work ▸ Export (Egress)…; Export… on a file's right-click, Export (Egress)… on a project's, Export… on a page's
+- Import, beside DELETE → Work ▸ Import (Ingress)…; Import… on the right-click where material enters (the cabinet tree, the Work tree, Today, Files' empty place; Receive files… in the Library's)
+- Export, beside DELETE → Work ▸ Export (Egress)…; Export… on a file's right-click, Export (Egress)… on a project's, Export… on a page's
 - The left column's Cabinet · Machine · Settings words → the left pane's tabs Machine · Cabinet · Settings
 - The right column's Context | Graphite segments and the Operations word → the right pane's tabs Conversation · Activity · Context
 - The Work block in Graphite's face → Activity, at its top while an assignment runs
@@ -1090,8 +1090,8 @@ with their destination patched) and records the table in desk-ui.json (`homes`).
 | The cabinet's Refresh cabinet word | Arrange ▸ Cabinet ▸ Refresh Cabinet; the cabinet tree's right-click ▸ Refresh (D4); the cabinet still refreshes itself every 2.5 s |
 | The cabinet's query box (Find work…) | The writing line's Search (Ctrl+K): CABINET rows under the line as you type, and a CABINET section when Enter searches the workspace (label and role, the box's own match); a record opens where it belongs: the Cabinet tab, selected and opened (D3) |
 | The cabinet's status line (saved records, order) | The Cabinet tab's tooltip |
-| Import (beside Trash) | Work ▸ Import (Ingress)…: the same transfer, the Office's receiving controls; where material enters, on the right-click (D4): the cabinet tree, the Work tree, Today, Files' empty place (Import…), the Library's (Receive files…) |
-| Export (beside Trash) | Work ▸ Export (Egress)…: the same transfer, Files ▸ Egress; on a file's right-click Export… (files.export) and on a project's Export (Egress)… (D4); a document's Export… on its page's right-click |
+| Import (beside DELETE) | Work ▸ Import (Ingress)…: the same transfer, the Office's receiving controls; where material enters, on the right-click (D4): the cabinet tree, the Work tree, Today, Files' empty place (Import…), the Library's (Receive files…) |
+| Export (beside DELETE) | Work ▸ Export (Egress)…: the same transfer, Files ▸ Egress; on a file's right-click Export… (files.export) and on a project's Export (Egress)… (D4); a document's Export… on its page's right-click |
 | The settings filter (Find a setting…) and its caption | The writing line's Search: SETTINGS rows as you type and a SETTINGS section on Enter (label and key, the filter's own match); a setting opens in Settings. The caption (the count of settings) is the Settings tab's tooltip |
 | Cabinet · Machine · Settings words (pink, the current one ruled) | The left pane's tabs Machine · Cabinet · Settings (the same buttons) |
 | Context \| Graphite segments and the Operations word | The right pane's tabs Conversation · Activity · Context (the same buttons: slate_button, operations_button, context_button) |
@@ -1286,7 +1286,7 @@ system bus); an unavailable row's reason could only be hovered; the services' Re
   rows in the System menu's list. `tools/check_head_ui.py`: the cat's button holds every pose; the list's caption read as words.
   On demand: `tools/check_operations_ui.py` and `tools/check_navigation_ui.py` use the System menu's list for the rows, sliders
   and Earlier, and Activity's WORK line for the counts.
-- `tests_integrated/test_desk.py`: the menu row takes an odd pixel in its gaps (no box widened); Trash's box is its drawing;
+- `tests_integrated/test_desk.py`: the menu row takes an odd pixel in its gaps (no box widened); DELETE's box is its drawing;
   BandWordTests (the letter size, its floor, `fit_size`, the symbol's height), CatTests (every pose inside the tile's room and on
   its ground), ActivityTests (the WORK line). `tests_integrated/test_graphite.py`: QuietWords' hanging indent and printed keys;
   no script label clipped (QuietWords, pleasantries); the word's capitals as tall as the symbol at 14, 18 and 20 pt.
@@ -1296,7 +1296,7 @@ system bus); an unavailable row's reason could only be hovered; the services' Re
 ## Checks and tests changed (D1b)
 
 - New: `workbench/pane_qt.py`; `graphite_brand.pointer_shape / pointer_angle / pointer_pixmap / pointer_cursor / use_pointer`.
-- `tests_integrated/test_desk.py`: PaneTests (the tab row, the word size, the mark, the trees' rows, Trash, the feet, the
+- `tests_integrated/test_desk.py`: PaneTests (the tab row, the word size, the mark, the trees' rows, DELETE, the feet, the
   parts) and PointerTests (the hotspot is the tip, the aim is 30 degrees, nothing beyond the click, the mark's facets under one
   similarity). `tests_integrated/test_graphite.py`: the pointer's pixels at 1x and 2x and the cursor's hotspot.
 - `tools/check_desk_ui.py`: the pane and tree pairs at all nine sizes (and Activity's list rows at the trees' row height);

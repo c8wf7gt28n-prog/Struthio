@@ -48,6 +48,6 @@ def describe(library_kinds):
     if len({row['id'] for row in rows}) != len(rows): raise ValueError('NAVIGATOR_SHORTCUT_ID_COLLISION')
     return {'schema': 'ledger.navigator-shortcuts/1', 'rows': rows,
             'domain_tree': 'Existing sdk.cli.arc1cli.concern_catalog; separate provider, not copied into shortcuts',
-            'footer': ['Settings', 'Trash'], 'placement_policy': {'discovery': 'KEEP', 'algorithms': 'TOOLS_MENU', 'atlas': 'TOOLS_MENU'},
+            'footer': ['Settings', 'DELETE'], 'placement_policy': {'discovery': 'KEEP', 'algorithms': 'TOOLS_MENU', 'atlas': 'TOOLS_MENU'},
             'auto_fold_order': list(FOLD_ORDER),
             'notice': 'Shortcut grouping is not object ancestry, a file move, a permission grant or a second execution registry.'}

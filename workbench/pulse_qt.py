@@ -18,6 +18,8 @@ from PySide6.QtWidgets import QMenu, QWidget
 from .shell2 import AMBER, AMBER_EDGE, CARD, ERASER, ERASER_MARK, LINE, QUIET, SANS, TEXT, call, call_write
 
 SAMPLES = 30  # one every two seconds: the last minute
+from .boss_theme import APPEARANCE as _APPEARANCE
+SMALL = 12 if _APPEARANCE == 'kasandra' else 11      # the smallest words: no typewriter text is smaller than 12 px
 NICE_WORDS = (('now', 'Now · ahead of everything'), ('normal', 'Normal'), ('background', 'Background · only when idle'))
 
 
@@ -44,7 +46,7 @@ def read_memory():
 def heading(menu, words):
     """A quiet heading in small capitals, like the Library's: menus here draw sections as bare lines."""
     if menu.actions():menu.addSeparator()
-    a = menu.addAction(words.upper());a.setEnabled(False);f = a.font();f.setPixelSize(11);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.2);a.setFont(f)
+    a = menu.addAction(words.upper());a.setEnabled(False);f = a.font();f.setPixelSize(SMALL);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.2);a.setFont(f)
     return a
 
 
@@ -113,7 +115,7 @@ class Pulse(QWidget):
         p.setPen(Qt.NoPen);p.setBrush(QColor(ERASER if hot else AMBER));p.drawPath(fill)
         p.setPen(QPen(QColor(ERASER_MARK if hot else AMBER_EDGE), 1.4));p.setBrush(Qt.NoBrush);p.drawPath(line)
         p.setPen(QPen(QColor(LINE), 1));p.drawLine(QPointF(inner.left(), inner.bottom() + 1.5), QPointF(inner.right(), inner.bottom() + 1.5))
-        f = QFont(self.font);f.setPixelSize(11);f.setCapitalization(QFont.SmallCaps);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0);p.setFont(f)
+        f = QFont(self.font);f.setPixelSize(SMALL);f.setCapitalization(QFont.SmallCaps);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0);p.setFont(f)
         p.setPen(QColor(QUIET));p.drawText(QRectF(rect.left(), rect.top() - 1, rect.width(), 12), Qt.AlignLeft | Qt.AlignTop, label)
         p.drawText(QRectF(rect.left(), rect.top() - 1, rect.width(), 12), Qt.AlignRight | Qt.AlignTop, '%d' % round(values[-1] * 100))
 
@@ -123,7 +125,7 @@ class Pulse(QWidget):
         self.spark(p, QRectF(.5, y, 50, 30), list(self.cpu), 'cpu')
         self.spark(p, QRectF(60.5, y, 50, 30), list(self.mem), 'mem')
         # the third column: Slate, headed like the others; the dot is his state (ring none, half working, full ready)
-        f = QFont(self.font);f.setPixelSize(11);f.setCapitalization(QFont.SmallCaps);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0);p.setFont(f)
+        f = QFont(self.font);f.setPixelSize(SMALL);f.setCapitalization(QFont.SmallCaps);f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0);p.setFont(f)
         p.setPen(QColor(QUIET));p.drawText(QRectF(120, y - 1, 40, 12), Qt.AlignLeft | Qt.AlignTop, 'slate')
         cx, cy, r = 127, y + 21, 5.5;state = self.slate_state()
         p.setPen(QPen(QColor(TEXT), 1.4));p.setBrush(QColor(CARD));p.drawEllipse(QPointF(cx, cy), r, r)

@@ -282,8 +282,18 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   be read exactly (the typing line, lines, numbers, addresses) stays in the clear mono face. Apps in Kasandra is the
   kp mark alone ("Probably don't need to call it Apps menu, just a bigger kp icon"). The face is never called by a
   product name on screen.
+- **Kasandra's look, the next pass** (14 November, six directions): "I want trash called DELETE." "I want all fonts to be
+  the awesome LAIN font." "We're going to move the kasandra picture to lower left column where it's boring looking."
+  "The right column will have more space for kas text. We could revisit that column appearance because the picture will
+  be gone." "I attached a new kp icon/logo." "I will attach the new kas picture that I want to be like a hologram in its
+  new position. If you can animate the static a hologram would have that would be very kool." So: the place is DELETE
+  (capitals, a name: "in DELETE"), sending a thing there is Delete, taking words out of a page is Erase; every face in
+  Kasandra is the typewriter face (Kasandra Elite for words, Kasandra Elite Mono, on Plex Mono's line and pitch, for what
+  must line up); her picture is a hologram standing in the left pane's empty lower part, with live static, never over a
+  row or DELETE, and still with Reduce motion; her column is her terminal, with a masthead and the room her picture had;
+  Apps is the owner's kp emblem.
 - **Small things that stay.** `prompt` as the empty hint (it was `poem`; 14 November: "Let's lose the term poem …
-  Maybe just prompt."). Ingress and Egress. The pinned Trash. Home as a file browser. Programs is called **Apps**
+  Maybe just prompt."). Ingress and Egress. The pinned DELETE (Trash until 0.8.3). Home as a file browser. Programs is called **Apps**
   (14 November: "We'll change the name programs to apps. APPS."). The game at the foot of Apps (STRUTHIO ARCADE; its source is the STRUTHIO repository's `arcade/`, changed there and
   copied in).
 

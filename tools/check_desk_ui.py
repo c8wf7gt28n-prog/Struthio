@@ -252,7 +252,7 @@ def drawn_as_designed(window=None):
   box=S.box(widget,window);seen[name]=differs(grab,lower,(box[0],box[1],box[2],box[3]-(desk_qt.MARK if widget is not h else 0)),(0,ly))  # above the marks (the chosen word's yellow is tab_marks' kind)
  trash=window.trash_can;x,y,tw,th=S.box(trash,window);foot=QImage(tw,th,QImage.Format_RGB32);foot.fill(QColor(pane_qt.GROUND));p=QPainter(foot);p.setRenderHint(QPainter.Antialiasing)
  can,word,count=trash.layout();REF_CAN(p,QRectF(can.x(),can.y(),trash.can,trash.can),full=trash.count>0)
- p.setFont(trash.word_font);p.setPen(QColor(shell2.TEXT));p.drawText(word,'Trash')
+ p.setFont(trash.word_font);p.setPen(QColor(shell2.TEXT));p.drawText(word,'DELETE')
  if count is not None:p.setFont(trash.count_font);p.setPen(QColor(shell2.QUIET));p.drawText(count,str(trash.count))
  p.end();seen['Trash']=differs(grab,foot,(x,y,tw,th),(x,y))
  DESIGNED.clear();DESIGNED.update(seen)

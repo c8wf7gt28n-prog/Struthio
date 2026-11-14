@@ -104,9 +104,9 @@ class FilesTab(QWidget):
         sentence('{new}  ·  {smart}  ·  {work}  ·  {import}  ·  {export}  ·  {view}  ·  {all}', words, self.actions)
         area = parts[:1] == ['Slate'];working = parts[:1] == [WORKING]
         self.copies = {c['work']: c for c in (call(self.host, 'copies.list') or {}).get('copies', []) if c['state'] == 'WORKING'} if working else {}
-        self.lead.setText(("Graphite's area (the Slate folder). Graphite writes here directly; every change keeps the version before it, and deletions go to Trash."
+        self.lead.setText(("Graphite's area (the Slate folder). Graphite writes here directly; every change keeps the version before it, and deletions go to DELETE."
                            if area else 'Working copies of files elsewhere in your home folder. Edit them freely: the originals stay as they are '
-                           'until you review a copy and choose to update its original.' if working else 'An ordinary folder on this computer: any Debian program can open it too. Deleting moves to Trash, '
+                           'until you review a copy and choose to update its original.' if working else 'An ordinary folder on this computer: any Debian program can open it too. Deleting moves it to DELETE, '
                            'and every change Graphite makes keeps the version before it.'))
         self.fill()
         hidden = self.listing.get('hidden', 0)
@@ -331,8 +331,8 @@ class FilesTab(QWidget):
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(c['source']).parent)))
 
     def discard_copy(self, c):
-        if QMessageBox.question(self, 'Discard draft', 'Move this working copy to Trash? %s is not touched, and the record of the work is kept.' % c['source_words']) == QMessageBox.Yes:
-            self.act('copies.discard', {'id': c['id']}, 'Moved the draft to Trash. The original is unchanged.')
+        if QMessageBox.question(self, 'Discard draft', 'Move this working copy to DELETE? %s is not touched, and the record of the work is kept.' % c['source_words']) == QMessageBox.Yes:
+            self.act('copies.discard', {'id': c['id']}, 'The draft is in DELETE. The original is unchanged.')
 
     def undo_copy(self, c):
         if QMessageBox.question(self, 'Undo the update', 'Put back %s as it was before the update? This is checked first: if it changed since, nothing happens.' % c['source_words']) == QMessageBox.Yes:
@@ -364,7 +364,7 @@ class FilesTab(QWidget):
         for e in entries:self.act(op, {'path': e['path'], 'to': '' if to == '.' else to}, 'Copied' if op == 'files.copy' else 'Moved')
 
     def trash(self, entries):
-        for e in entries:self.act('files.trash', {'path': e['path']}, 'Moved to Trash. Restore it from Trash.')
+        for e in entries:self.act('files.trash', {'path': e['path']}, 'Deleted. Restore it from DELETE.')
 
     def export(self, e):
         target = e['path'] if e else self.folder
@@ -475,7 +475,7 @@ class FilesTab(QWidget):
             menu.addAction('Export…', lambda:self.export(e))
         if chosen:
             menu.addAction('Copy to…', lambda:self.place(chosen, 'files.copy'));menu.addAction('Move to…', lambda:self.place(chosen, 'files.move'))
-            menu.addSeparator();menu.addAction('Move to Trash', lambda:self.trash(chosen))
+            menu.addSeparator();menu.addAction('Delete', lambda:self.trash(chosen))
         else:
             menu.addAction('New folder…', self.new_folder);menu.addAction('Import…', self.import_files);menu.addAction('Work on a copy of a file…', self.work_on_copy)
             from .chain_menu import root_menu
@@ -496,15 +496,15 @@ class TrashTab(QWidget):
         super().__init__();self.host = host;self.setObjectName('LibraryTab');self.setProperty('ledgerRoom', True)
         self.box = QVBoxLayout(self);self.box.setContentsMargins(28, 18, 28, 12);self.box.setSpacing(10);self.reload()
 
-    def title(self):return 'Trash'
+    def title(self):return 'DELETE'
 
     def reload(self):
         while self.box.count():
             item = self.box.takeAt(0)
             if item.widget():item.widget().deleteLater()
-        self.box.addWidget(role(QLabel('Trash'), 'title'))
+        self.box.addWidget(role(QLabel('DELETE'), 'title'))
         rows = (call(self.host, 'files.trash_list') or {}).get('trash', [])
-        lead = QLabel('Nothing is in Trash.' if not rows else 'Everything here can go back where it came from.');lead.setStyleSheet('color:%s' % QUIET)
+        lead = QLabel('Nothing is in DELETE.' if not rows else 'Everything here can go back where it came from.');lead.setStyleSheet('color:%s' % QUIET)
         self.box.addWidget(lead)
         for r in rows:
             self.box.addWidget(sentence(escape_text(r['original']) + '  ·  moved ' + when(r['at']) + '  ·  {restore}',

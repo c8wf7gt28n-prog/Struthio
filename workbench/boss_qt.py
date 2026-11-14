@@ -76,8 +76,11 @@ def kasandra_still(painter, target, host, slot, state, turn=0, zoom=1.0, matte=T
 
 @lru_cache(maxsize=2)
 def kasandra_wordmark(folder):
-    """The owner's wordmark, "kasandra protocol" in circuit traces (branding/kasandra/wordmark.webp), or a null image."""
-    return QImage(str(folder / 'wordmark.webp'))
+    """The owner's wordmark, "kasandra protocol" in circuit traces (branding/kasandra/wordmark.webp), or a null image when
+    its bytes are not the recorded ones (kasandra_art.mark)."""
+    from .kasandra_art import mark
+    path = mark(folder, 'wordmark.webp')
+    return QImage(str(path)) if path is not None else QImage()
 
 
 def draw_wordmark(painter, area, host, height):
@@ -107,7 +110,7 @@ class WorkshopStrip(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.fillRect(self.rect(), QColor(t.GROUND))
-        font = QFont('IBM Plex Mono');font.setPixelSize(13);painter.setFont(font)
+        font = QFont(t.MONO);font.setPixelSize(13);painter.setFont(font)
         painter.fillRect(13, 11, 7, 7, QColor(t.READY))
         painter.setPen(QColor(t.QUIET))
         painter.drawText(29, 18, '[ WORKSHEET · LOCAL WORKSPACE ]')
@@ -183,7 +186,7 @@ class ArtPanel(QWidget):
                     self._art = QSvgRenderer(str(self.art_folder / 'night-signal.svg'), self)
                 self._art.render(p, target)
         else:
-            font = QFont('IBM Plex Mono');font.setPixelSize(12);p.setFont(font)
+            font = QFont(t.MONO);font.setPixelSize(12);p.setFont(font)
             p.setPen(QColor(t.QUIET))
             lines = ('// GRAPHITE  :  WORK IN PROGRESS',
                      '   [ evidence ]  [ methods ]  [ useful work ]',
@@ -316,7 +319,7 @@ class PanelInk(QWidget):
                 draw_plate(painter, target, self.portrait(), 0.24)
             painter.end()
             return
-        font = QFont('IBM Plex Mono')
+        font = QFont(t.MONO)
         font.setPixelSize(max(12, self.height() // 6) if self.kind == 'face' else 15 if self.kind == 'bracket' else 12 if self.kind == 'journal' else 8)
         painter.setFont(font)
         painter.setPen(QColor(t.TEXT if self.kind in ('bracket', 'face') else t.QUIET))
@@ -460,6 +463,8 @@ def set_glow(host):
     except Exception:  # noqa: BLE001 - a host without a session: what the desk opens with
         chosen = t.GLOW_OPENS
     t.GLOW[0] = next((level for key, _, level in t.GLOW_LEVELS if key == chosen), dict((k, v) for k, _, v in t.GLOW_LEVELS)[t.GLOW_OPENS])
+    stage = getattr(host, 'hologram', None)
+    if stage is not None:stage.wake_or_sleep()
     return t.GLOW[0]
 
 
@@ -481,6 +486,8 @@ def choose_art(host, mode):
     pointer.restyle(mode != 'clean')           # the pointer keeps its green on the Clean desk and drops its glow
     for kind in (ArtPanel, PanelInk):
         for panel in host.findChildren(kind):panel.refresh()
+    stage = getattr(host, 'hologram', None)      # her hologram: shown, in characters, or put away with the desk's art
+    if stage is not None:stage.place_now();stage.update()
     field = getattr(host, 'field_page', None)      # the Field keeps Stacy's rail (or the ASCII mark, or nothing) in step
     if field is not None:
         field.view.art_mode = mode;field.view.texture = mode != 'clean';field.view.update()

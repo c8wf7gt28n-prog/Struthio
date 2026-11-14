@@ -24,7 +24,7 @@ SURFACE = """
 QTableView#SheetRows, QTableWidget#ChainPreview {
     background: %(GROUND)s; color: %(TEXT)s; gridline-color: %(LINE)s;
     selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s;
-    font-family: "IBM Plex Mono"; border: 1px solid %(LINE)s; border-radius: 0;
+    font-family: "%(MONO)s"; border: 1px solid %(LINE)s; border-radius: 0;
 }
 QTableView#SheetRows QHeaderView::section, QTableWidget#ChainPreview QHeaderView::section {
     background: %(PANEL)s; color: %(TEXT)s; border: 0; padding: 4px 9px;
@@ -40,19 +40,19 @@ QTableView#SheetRows::item, QTableWidget#ChainPreview::item {padding: 0 9px;}
 QTableView#SheetRows::item:selected {background:%(AMBER_SOFT)s;border-top:1px solid %(AMBER_EDGE)s;border-bottom:1px solid %(AMBER_EDGE)s;}
 QFrame#WorksheetResult {background: %(GROUND)s; border: 1px solid %(LINE)s;}
 QFrame#WorksheetTotal {border:1px solid %(TEAL_EDGE)s; background:%(TEAL_SOFT)s;}
-QFrame#WorksheetTotal QLabel {font-family:"IBM Plex Mono";font-weight:600;color:%(READY)s;}
-QLabel#WorksheetTitle, QLabel#WorksheetPreviewTitle, QLabel#WorksheetChainTitle {font-family: "IBM Plex Mono"; font-weight: 600;}
-QLabel#WorksheetSelection, QLabel#WorksheetSourceState, QLabel#WorksheetHint {font-family:"IBM Plex Mono";}
+QFrame#WorksheetTotal QLabel {font-family:"%(MONO)s";font-weight:600;color:%(READY)s;}
+QLabel#WorksheetTitle, QLabel#WorksheetPreviewTitle, QLabel#WorksheetChainTitle {font-family: "%(MONO)s"; font-weight: 600;}
+QLabel#WorksheetSelection, QLabel#WorksheetSourceState, QLabel#WorksheetHint {font-family:"%(MONO)s";}
 QLabel#WorksheetHint {color:%(QUIET)s; font-size:12px;}
 QPushButton#WorksheetChainStep, QPushButton#FullSpreadsheet, QPushButton#WorksheetCommands {
-    font-family:"IBM Plex Mono";background:%(RAISED)s;border:1px solid %(LINE)s;border-radius:0;padding:5px 9px;
+    font-family:"%(MONO)s";background:%(RAISED)s;border:1px solid %(LINE)s;border-radius:0;padding:5px 9px;
 }
 QPushButton#WorksheetChainStep {font-size:14px; padding:4px 6px;}
 QPushButton#WorksheetChainStep:hover, QPushButton#WorksheetChainStep:focus,
 QPushButton#FullSpreadsheet:hover, QPushButton#FullSpreadsheet:focus,
 QPushButton#WorksheetCommands:hover, QPushButton#WorksheetCommands:focus {border-color:%(AMBER_EDGE)s;}
 QPushButton#RunWorksheetChain {background: %(AMBER_EDGE)s; color: %(TERMINAL_GROUND)s;
-    border: 1px solid %(AMBER_EDGE)s; font-family: "IBM Plex Mono"; font-weight:600; border-radius: 0; padding: 5px 10px;}
+    border: 1px solid %(AMBER_EDGE)s; font-family: "%(MONO)s"; font-weight:600; border-radius: 0; padding: 5px 10px;}
 QPushButton#RunWorksheetChain:hover, QPushButton#RunWorksheetChain:focus {background: %(AMBER_TEXT)s;}
 QPushButton#RunWorksheetChain:disabled {background: %(PANEL)s; color: %(QUIET)s; border-color: %(LINE)s;}
 """ % vars(ink)
@@ -343,14 +343,14 @@ class Worksheet(QWidget):
         side.addLayout(actions)
 
         self.folder = BranchTree(self)
-        self.folder.setStyleSheet(self.folder.styleSheet() + ' QTreeWidget {font-family:"IBM Plex Mono";}')
+        self.folder.setStyleSheet(self.folder.styleSheet() + ' QTreeWidget {font-family:"%s";}' % ink.MONO)
         self.folder.setHeaderHidden(True)
         self.folder.setTextElideMode(Qt.ElideMiddle)
         self.folder.setAccessibleName('Files in the worksheet’s folder')
         self.folder.itemActivated.connect(self.open_item)
         self.folder.hide()
         self.workflow = QFrame(self)
-        self.workflow.setStyleSheet('QFrame {border-top:1px solid %s;} QLabel {font-family:"IBM Plex Mono";border:0;}' % ink.LINE_MID)
+        self.workflow.setStyleSheet('QFrame {border-top:1px solid %s;} QLabel {font-family:"%s";border:0;}' % (ink.LINE_MID, ink.MONO))
         progress = QVBoxLayout(self.workflow)
         progress.setContentsMargins(0, 7, 0, 4)
         progress.setSpacing(3)

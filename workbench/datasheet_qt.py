@@ -94,23 +94,23 @@ class TableReview(QDialog):
         self.setStyleSheet('''
             QDialog#PdfEvidenceReview {background:%(GROUND)s;border:1px solid %(LINE_MID)s;}
             QFrame#EvidencePanel {background:%(PANEL)s;border:1px solid %(LINE)s;border-top:2px solid %(AMBER_EDGE)s;}
-            QLabel#EvidenceMasthead {color:%(TEXT)s;font-family:"IBM Plex Mono";font-size:21px;font-weight:600;}
-            QLabel#EvidenceTitle {color:%(AMBER_TEXT)s;font-family:"IBM Plex Mono";font-size:14px;font-weight:600;}
-            QLabel#EvidenceMeta {color:%(QUIET)s;font-family:"IBM Plex Mono";font-size:12px;}
+            QLabel#EvidenceMasthead {color:%(TEXT)s;font-family:"%(MONO)s";font-size:21px;font-weight:600;}
+            QLabel#EvidenceTitle {color:%(AMBER_TEXT)s;font-family:"%(MONO)s";font-size:14px;font-weight:600;}
+            QLabel#EvidenceMeta {color:%(QUIET)s;font-family:"%(MONO)s";font-size:12px;}
             QLabel#EvidenceSelected {color:%(TEXT)s;background:%(AMBER_SOFT)s;border:1px solid %(AMBER_EDGE)s;
-                padding:6px 8px;font-family:"IBM Plex Mono";font-size:12px;}
+                padding:6px 8px;font-family:"%(MONO)s";font-size:12px;}
             QTableWidget#EvidenceRows {background:%(GROUND)s;border:1px solid %(LINE)s;
                 selection-background-color:%(AMBER_SOFT)s;selection-color:%(TEXT)s;
-                gridline-color:%(LINE)s;font-family:"IBM Plex Mono";}
+                gridline-color:%(LINE)s;font-family:"%(MONO)s";}
             QTableWidget#EvidenceRows QHeaderView::section {background:%(CARD)s;color:%(TEXT)s;border:0;
                 border-bottom:1px solid %(LINE_MID)s;border-right:1px solid %(LINE)s;padding:5px 6px;
-                font-family:"IBM Plex Mono";font-weight:600;}
+                font-family:"%(MONO)s";font-weight:600;}
             QLineEdit#EvidenceTitleField {background:%(PANEL)s;border:1px solid %(LINE)s;
-                border-radius:0;font-family:"IBM Plex Mono";padding:5px 8px;}
+                border-radius:0;font-family:"%(MONO)s";padding:5px 8px;}
             QDialogButtonBox QPushButton {background:%(RAISED)s;border:1px solid %(LINE)s;border-radius:0;
-                font-family:"IBM Plex Mono";padding:6px 10px;}
+                font-family:"%(MONO)s";padding:6px 10px;}
             QPushButton#EvidenceCommit {background:%(AMBER_EDGE)s;color:%(TERMINAL_GROUND)s;
-                border:1px solid %(AMBER_EDGE)s;border-radius:0;font-family:"IBM Plex Mono";}
+                border:1px solid %(AMBER_EDGE)s;border-radius:0;font-family:"%(MONO)s";}
         ''' % vars(ink))
         box = QVBoxLayout(self)
         box.setContentsMargins(15, 14, 15, 14)

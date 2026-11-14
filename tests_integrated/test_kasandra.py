@@ -43,6 +43,7 @@ class PaletteTests(unittest.TestCase):
         self.assertEqual((g['GROUND'], g['AMBER_EDGE'], g['READY']), ('#0b0e0d', '#ff9a36', '#c3ed74'))
         self.assertEqual(g['OWNER'], g['AMBER_EDGE']);self.assertEqual(g['RECHECK'], g['AMBER_EDGE'])
         self.assertEqual(g['DISPLAY'], 'IBM Plex Mono')
+        self.assertEqual((g['MONO'], g['FACE']), ('IBM Plex Mono', 'IBM Plex Sans'))      # 0.8.3: Graphite keeps Plex
 
     def test_kasandra_follows_the_packs_palette_by_role(self):
         pack = json.loads((PACK / 'palette.json').read_text())
@@ -51,7 +52,8 @@ class PaletteTests(unittest.TestCase):
         for role in ('GROUND', 'OWNER', 'RECHECK', 'READY', 'TEXT'):
             self.assertIn(k[role].lower(), flat, role)
         self.assertNotEqual(k['OWNER'], k['RECHECK']);self.assertNotEqual(k['OWNER'], k['AMBER_EDGE'])
-        self.assertEqual(k['DISPLAY'], 'Special Elite')
+        self.assertEqual(k['DISPLAY'], 'Kasandra Elite')      # 0.8.3: the typewriter faces built from Special Elite
+        self.assertEqual((k['FACE'], k['MONO']), ('Kasandra Elite', 'Kasandra Elite Mono'))
 
     def test_a_sheet_written_in_graphites_colours_takes_the_colours_of_their_roles(self):
         css = 'QLineEdit {background:#493225;color:#eee9dd;border:1px solid #ff9a36;} QLabel {color:#123456;}'

@@ -174,7 +174,7 @@ for wd,ht in SIZES:
  for name in ('regulator rev B.txt','regulator rev C.txt'):row_of(name).setSelected(True)
  r=view.visualItemRect(row_of('regulator rev C.txt'));menu=right_click(view.viewport(),QPoint(r.left()+120,r.bottom()-1))  # on its name, near its foot
  assert (menu.target.kind,len(menu.target.items))==('files',2) and menu.words()[0]=='Compare revisions',menu.words()
- record('Graphite_Review_05_Right_Click_Two_File_Revisions_%dx%d.png'%(wd,ht),'Right-click on two revisions of one file selected in Files, %d by %d: both named at the top; Compare revisions first (the two actual files go to files.compare), then Copy to, Move to, Copy paths and, last, Move to Trash.'%(wd,ht),grab(menu),menu)
+ record('Graphite_Review_05_Right_Click_Two_File_Revisions_%dx%d.png'%(wd,ht),'Right-click on two revisions of one file selected in Files, %d by %d: both named at the top; Compare revisions first (the two actual files go to files.compare), then Copy to, Move to, Copy paths and, last, Delete.'%(wd,ht),grab(menu),menu)
  menu.close_menu(restore=False);settle()
 
 # 06 one real command against the selected object: Bold, before and after ------------------------------------------------------

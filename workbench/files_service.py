@@ -91,7 +91,7 @@ def resolve(kernel, rel, must_exist=True):
     path = base.joinpath(*parts)
     real = path.resolve() if path.exists() or path.is_symlink() else path.parent.resolve() / path.name
     if real != base and base not in real.parents:raise ValueError('FILES_PATH_OUTSIDE: stay inside Files')
-    if parts and parts[0] in (TRASH, VERSIONS):raise ValueError('FILES_RESERVED: use Trash and versions through their own words')
+    if parts and parts[0] in (TRASH, VERSIONS):raise ValueError('FILES_RESERVED: use DELETE and versions through their own words')
     if must_exist and not path.exists():raise ValueError('FILES_NOT_FOUND: ' + '/'.join(parts)[:200])
     return path
 
@@ -207,7 +207,7 @@ def story(kernel, path, principal):
         for r in db.execute('SELECT * FROM files_origin WHERE path=?', (rel,)):add(r['at'], 'kept in Files from the delivery “%s”' % (r['label'] or r['delivery'][:8]))
         for r in db.execute('SELECT * FROM files_proposals WHERE path=? AND owner=?', (rel, principal.identity)):
             add(r['at'], 'Graphite proposed a change: ' + (r['why'] or '')[:80]);add(r['decided'], {'APPLIED': 'you applied its change', 'DECLINED': 'you declined its change'}.get(r['state'], ''))
-        for r in db.execute('SELECT * FROM files_trash WHERE original=?', (rel,)):add(r['at'], 'moved to Trash');add(r['restored'], 'restored from Trash')
+        for r in db.execute('SELECT * FROM files_trash WHERE original=?', (rel,)):add(r['at'], 'deleted (in DELETE)');add(r['restored'], 'restored from DELETE')
         tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if 'copies' in tables:
             for c in db.execute('SELECT * FROM copies WHERE work=? OR ? LIKE work || \'/%\'', (rel, rel)):
@@ -507,7 +507,7 @@ def dispatch(kernel, op, args, principal):
         ident = uuid.uuid4().hex;stored = root(kernel) / TRASH / ident
         stored.mkdir(mode=0o700);original = rel_of(kernel, path);shutil.move(str(path), str(stored / path.name))
         with opened(kernel) as db:db.execute('INSERT INTO files_trash VALUES(?,?,?,?,?,NULL)', (ident, owner, original, ident + '/' + path.name, time.time()))
-        return {'trashed': original, 'id': ident, 'note': 'In Trash. Restore puts it back.'}
+        return {'trashed': original, 'id': ident, 'note': 'In DELETE. Restore puts it back.'}
     if op == 'files.trash_list':
         with opened(kernel) as db:
             return {'trash': [dict(r) for r in db.execute('SELECT id, original, at FROM files_trash WHERE owner=? AND restored IS NULL ORDER BY at DESC', (owner,))]}

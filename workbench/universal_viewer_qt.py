@@ -9,6 +9,11 @@ from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QPointF, QRectF, Qt, 
 from PySide6.QtGui import QBrush, QColor, QFont, QPainterPath, QPen, QPixmap, QPolygonF
 from PySide6.QtWidgets import QFileDialog, QGraphicsScene, QHBoxLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QMessageBox, QPlainTextEdit, QPushButton, QTableWidget, QTableWidgetItem, QTabWidget, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 from . import universal_view as uv
+
+
+def _mono():
+    from .boss_theme import MONO
+    return MONO
 from .viewer_tabs import SourceHighlighter, ZoomCanvas
 
 LAYER_COLORS = {'Top copper': '#d0703a', 'Bottom copper': '#3a7bd0', 'Inner copper': '#b0a040', 'Top silkscreen': '#f2f2f2',
@@ -182,7 +187,7 @@ class UniversalViewerTab(QWidget):
 
     def text_page(self):
         editor = QPlainTextEdit();editor.setReadOnly(True);editor.setAccessibleName('File text');editor.setLineWrapMode(QPlainTextEdit.NoWrap)
-        font = QFont('monospace');font.setStyleHint(QFont.Monospace);editor.setFont(font)
+        font = QFont(_mono());font.setStyleHint(QFont.Monospace);editor.setFont(font)
         editor.setPlainText(self.view['text'])
         if self.view['kind'] in ('code', 'json', 'sqlite'):
             editor._highlighter = SourceHighlighter(editor.document(), uv.Path(self.view['name']).suffix or '.c')
@@ -190,7 +195,7 @@ class UniversalViewerTab(QWidget):
 
     def hex_page(self):
         editor = QPlainTextEdit();editor.setReadOnly(True);editor.setAccessibleName('File bytes in hexadecimal')
-        font = QFont('monospace');font.setStyleHint(QFont.Monospace);editor.setFont(font)
+        font = QFont(_mono());font.setStyleHint(QFont.Monospace);editor.setFont(font)
         def fill():
             if not editor.toPlainText():
                 raw = self.source.read(0, uv.MAX_HEX)

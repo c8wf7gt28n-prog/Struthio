@@ -36,7 +36,7 @@ class TrafficPanel(QFrame):
         self.setStyleSheet('''
             QFrame#TrafficCop {background:%(PANEL)s; border:1px solid %(LINE)s; border-top-color:%(AMBER_EDGE)s;}
             QFrame#CopMetric {background:%(TERMINAL_GROUND)s; border:1px solid %(LINE)s;}
-            QLabel#CopTitle, QLabel#CopState, QLabel#CopMetricName, QLabel#CopMetricValue {font-family:"IBM Plex Mono";}
+            QLabel#CopTitle, QLabel#CopState, QLabel#CopMetricName, QLabel#CopMetricValue {font-family:"%(MONO)s";}
             QLabel#CopTitle {color:%(AMBER_TEXT)s; font-weight:600;}
             QLabel#CopMetricName, QLabel#CopCaption {color:%(QUIET)s;}
             QLabel#CopMetricValue {color:%(TEXT)s; font-weight:600;}

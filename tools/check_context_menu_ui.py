@@ -204,7 +204,7 @@ for name in ('regulator rev B.txt','regulator rev C.txt'):row_of(name).setSelect
 menu=right_click(view.viewport(),view.visualItemRect(row_of('regulator rev C.txt')).center());assert menu is not None
 assert (menu.target.kind,len(menu.target.items))==('files',2) and menu.words()[0]=='Compare revisions',(menu.target,menu.words())
 measured['two_files']=dict(words=menu.words(),rules=menu_rules(menu,'two files'))
-record('Graphite_Desk_D4_03_Two_Revisions_Right_Click_1920x1200.png','Right-click on two revisions of one file selected in Files ("regulator rev B.txt" and "regulator rev C.txt"): both named at the top; Compare revisions first, then Copy to, Move to, Copy paths and, last, Move to Trash.',with_popups(menu))
+record('Graphite_Desk_D4_03_Two_Revisions_Right_Click_1920x1200.png','Right-click on two revisions of one file selected in Files ("regulator rev B.txt" and "regulator rev C.txt"): both named at the top; Compare revisions first, then Copy to, Move to, Copy paths and, last, Delete.',with_popups(menu))
 check('03 two revisions selected: the menu names both and offers Compare revisions first')
 with recorder():menu.row('compare:revisions').click();settle(80)
 room=w.tabs.currentWidget();assert room.title()=='Compare',room.title()

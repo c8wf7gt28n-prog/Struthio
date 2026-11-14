@@ -272,7 +272,7 @@ def described(kernel, db, row, look=True):
     elif pending is not None:status = 'Recovery required'
     elif original == 'missing':status = 'Original is missing'
     elif original == 'changed':status = 'Original changed — review required'
-    elif work_sha is None:status = 'Working copy missing (moved or in Trash)'
+    elif work_sha is None:status = 'Working copy missing (moved or deleted)'
     elif latest is not None and latest['state'] == 'READY' and latest['sha'] == work_sha:status = 'Ready for review — revision %d' % latest['revision']
     elif work_sha == row['base']:status = ('Same as the original — updated' if applied else 'Working copy — same as the original')
     else:status = 'Working copy — original unchanged'
@@ -300,7 +300,7 @@ def described_folder(kernel, db, row):
     elif partial:status = 'Partially applied — review required'
     elif original == 'missing':status = 'Original is missing'
     elif original == 'changed':status = 'Original changed — review required'
-    elif ops is None:status = 'Working copy missing (moved or in Trash)'
+    elif ops is None:status = 'Working copy missing (moved or deleted)'
     elif frozen:status = 'Ready for review — revision %d' % latest['revision']
     elif not ops:status = 'Same as the original' + (' — updated' if db.execute("SELECT 1 FROM copies_proposals WHERE copy=? AND state='APPLIED'", (row['id'],)).fetchone() else '')
     else:status = 'Working copy — original unchanged'
@@ -383,7 +383,7 @@ def dispatch(kernel, op, args, principal):
             if row['state'] != 'WORKING':raise ValueError('COPIES_NOT_WORKING: this draft was discarded')
             if not row['for_slate'] and 'approve' not in principal.scopes:raise ValueError('COPIES_NOT_ASSIGNED: this working copy is the owner\'s')
             work = files_service.root(kernel) / row['work']
-            if not work.is_file() or work.is_symlink():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or put in Trash')
+            if not work.is_file() or work.is_symlink():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or deleted')
             data = work.read_bytes()
             if len(data) > MAX_BYTES:raise ValueError('COPIES_SOURCE_TOO_LARGE: up to 64 MB for now')
             if CONFLICT_START.encode() in data:raise ValueError('COPIES_CONFLICTS_LEFT: settle the marked places from the merge first')
@@ -508,7 +508,7 @@ def merge_copy(kernel, db, row):
     the same lines. The working copy keeps its previous version; the copy now compares with the original as it is."""
     from .universal_view import decode
     work = files_service.root(kernel) / row['work']
-    if not work.is_file():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or put in Trash')
+    if not work.is_file():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or deleted')
     if original_state(row) != 'changed':raise ValueError('COPIES_NOTHING_TO_MERGE: the original has not changed since the work began')
     source = allowed_source(kernel, row['source'])
     theirs_bytes, info = capture(source)
@@ -535,7 +535,7 @@ def review(kernel, db, row):
     proposal = info['proposal'] if info['proposal'] and info['proposal']['state'] == 'READY' else None
     before = store(kernel) / row['base']
     after = store(kernel) / proposal['sha'] if proposal else files_service.root(kernel) / row['work']
-    if not after.is_file():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or put in Trash')
+    if not after.is_file():raise ValueError('COPIES_WORK_MISSING: the working copy was moved or deleted')
     label = ('revision %d, frozen for review' % proposal['revision']) if proposal else 'the working copy as it is now (not yet frozen)'
     out = files_service.compare_paths(before, after, info['source_words'] + ' (as the work began)', label, name=info['name'])
     out.update(copy=info, frozen=bool(proposal), paths={'before': str(before), 'after': str(after)})

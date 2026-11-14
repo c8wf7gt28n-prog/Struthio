@@ -631,7 +631,8 @@ def read_desk(host, part='all'):
         last = ''
         if cards:
             labels = cards[-1].findChildren(Q.QLabel)
-            last = next((l.text() for l in labels if l.text().strip()), '').replace('\u200b', '')
+            said = lambda l:str(l.property('plain') or l.text())      # her words as given (a leaded card keeps them in 'plain')
+            last = next((said(l) for l in labels if said(l).strip()), '').replace('\u200b', '')
         parts['talk'] = {'cards': len(cards), 'last': last[:300], 'hand': stacy_hand.level(host),
                          'trail': {k: latest.get(k) for k in ('words', 'line', 'undo', 'state')} if latest else None}
     if want('look'):parts['look'] = look_now(host)
@@ -1258,9 +1259,9 @@ def hand_rename(c):
 
 def hand_trash(c):
     path = c.args['path'];c.by = 'direct'
-    card = stage_change(c, path, 'Move “%s” to the Trash' % path, 'files.trash', {'path': path}, 'the Trash keeps it and gives it back')
+    card = stage_change(c, path, 'Delete “%s”' % path, 'files.trash', {'path': path}, 'DELETE keeps it and gives it back')
     settle(c.host);result = card_said(c, card)
-    return change_words(result, 'moved “%s” to the Trash' % path), result
+    return change_words(result, 'deleted “%s”; it waits in DELETE' % path), result
 
 
 def hand_cell(c):

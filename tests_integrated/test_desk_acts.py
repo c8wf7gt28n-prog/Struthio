@@ -183,14 +183,14 @@ class PureRules(unittest.TestCase):
         self.assertEqual([desk_hers(p,'hand.write',{'path':'a','text':'b'})[0] for p in places],[False,True,True])
         self.assertEqual([desk_hers(p,'hand.rename',{'path':'a','name':'b'})[0] for p in places],[False,False,False])
         self.assertEqual(desk_hers('show','hand.rename',{'path':'a','name':'b'})[1],'it is not among the things I do by myself')
-        self.assertEqual(desk_hers('free','hand.step',{'n':1},line='/trash.empty {}'),(False,'the Trash, once emptied, cannot be brought back'))
+        self.assertEqual(desk_hers('free','hand.step',{'n':1},line='/trash.empty {}'),(False,'DELETE, once emptied, cannot be brought back'))
         for name in OWNER_ONLY:
             self.assertEqual([desk_hers(p,name)[0] for p in places],[False,False,False],name)
         self.assertEqual(desk_acts.HAND_RULE['navigates'],{'ask':'offered','show':'done','free':'done'})
         # Given the arguments, the act's own rules come first: never a line break in the line, never a row off the lists.
         self.assertEqual(desk_hers('free','type.put',{'text':'rm -rf x\r','by':'keys'}),(False,desk_acts.REFUSALS['UNSEEN']%'text'))
         self.assertEqual(desk_hers('show','type.put',{'text':'hello'}),(True,''))
-        for path in ('more/open:outside','more/delivery:stage','more/edit:delete','more/menu:edit','ask','Move to Trash','more/explain','field:ask',
+        for path in ('more/open:outside','more/delivery:stage','more/edit:delete','more/menu:edit','ask','Delete','more/explain','field:ask',
                      'field:whatif/field:whatif:B3/field:whatif:B3:other','field:words/words:new'):
             self.assertFalse(desk_hers('free','menu.choose',{'path':path})[0],path)
         for path in ('more/copy:path','then','field:do/field:do:0','more/field:trace/field:trace:all','step:where/field:unit/where unit=mA'):
