@@ -1,0 +1,25 @@
+{
+  "name": "Graphite / Kasandra",
+  "surface": {
+    "ground": "#171B3C",
+    "panel": "#292D56",
+    "divider": "#5969A1",
+    "control_border": "#8796CB"
+  },
+  "ink": {
+    "primary": "#E3E3FF",
+    "secondary": "#C1C6E8",
+    "on_approval": "#171B3C"
+  },
+  "state": {
+    "focus": "#83EAFF",
+    "ready": "#83EAFF",
+    "recheck": "#C3B6F4",
+    "approval": "#FA507C"
+  },
+  "art": {
+    "window_dusk": "#AD658E",
+    "phosphor": "#679CD4",
+    "shadow": "#11132C"
+  }
+}

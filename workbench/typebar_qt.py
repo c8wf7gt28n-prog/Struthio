@@ -10,6 +10,7 @@ open Search. The saved mode keys also preserve older targets and histories.
 The active mode supplies the field's accessible hint. `poem` is the placeholder.
 """
 from __future__ import annotations
+from .assistant_identity import named
 from .text_prompts import writing_prompt
 from PySide6.QtCore import Qt, QTimer, QEvent, QSize
 from PySide6.QtWidgets import QDockWidget, QWidget, QLabel, QPushButton
@@ -24,7 +25,7 @@ STREAMS_WORDS = (('events', 'Events'), ('network', 'Network'))  # log_qt.STREAMS
 MODES = (('slate', 'Assistant'), ('shell', 'Terminal'), ('find', 'Search'), ('web', 'Web'), ('log', 'Log'))
 TARGETS = MODES                                   # Preserve the mode keys used by existing callers.
 PRIMARY_TARGETS = ('slate', 'shell', 'find', 'web', 'log')
-SHOWN = {'slate': 'Stacy'}                        # the word on the strip where it is not the mode's own label
+SHOWN = {'slate': named('Stacy')}                        # the word on the strip where it is not the mode's own label
 WEB_SEARCH = 'https://duckduckgo.com/?q='         # where words typed to Web are searched for: in the owner's own browser
 ADDRESS_STARTS = ('http://', 'https://', 'www.')
 # Endings that are a file's far more often than a site's: a bare name ending so is words, not an address.
@@ -40,9 +41,9 @@ HINTS = {'slate': 'ask in your own words, or type staC and the arrow runs it  ·
          'shell': 'a command, in your Files folder',
          'web': 'an address to open, or words to search for, in your own browser',
          'log': "words in Graphite's events"}
-SENDS = {'slate': 'Ask Stacy', 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
+SENDS = {'slate': named('Ask Stacy'), 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
 READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
-TIPS = {'slate': 'Stacy: ask in your own words, or type staC yourself',
+TIPS = {'slate': named('Stacy: ask in your own words, or type staC yourself'),
         'shell': 'Terminal: type to Debian through your configured shell, in your Files folder',
         'find': 'Search: files and their words across the workspace',
         'web': 'Web: an address is opened, and words are searched for, in this computer’s own browser. Graphite itself fetches nothing.',
@@ -673,7 +674,7 @@ class TypeBar(QWidget):
         if words is None:words = self.context_words()
         if (kind, words) != (getattr(self, 'context_kind', None), self.context_text):
             self.context_text = words;self.context_kind = kind
-            tip = {'stac': 'The line reads as staC: the arrow runs it. To ask Stacy about it instead, say it in your own words.',
+            tip = {'stac': named('The line reads as staC: the arrow runs it. To ask Stacy about it instead, say it in your own words.'),
                    'inspect': 'The arrow shows this staC plan without running it. Remove explain when you are ready to run it.',
                    'log': 'Log: ' + words + '\nThe stream above the line; Half or Tall shows it.' if words else 'Log'}.get(kind)
             self.context.setToolTip(tip or (('Active work context: ' + words + '\n' if words else '') + 'The selected cabinet record, else the current workspace.'))

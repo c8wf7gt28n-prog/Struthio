@@ -34,6 +34,7 @@ card stays STALE with that reason. A card whose result paragraph is gone (BROKEN
 total again and a new card is made.
 """
 from __future__ import annotations
+from .assistant_identity import named
 import json
 import sqlite3
 import time
@@ -226,7 +227,7 @@ def recheck(kernel, ident, principal):
     if card['result_block'] not in by_id or not by_id[card['result_block']][1]['text']:
         card = _write_state(kernel, principal, card, 'BROKEN', 'The result paragraph is no longer on the page.' if card['result_block'] not in by_id
                             else 'The result paragraph is empty.', doc['revision'])
-        return {'condition': card, 'document': doc, 'words': 'The result paragraph is gone from the page; ask Stacy for the total again and a new card is made.'}
+        return {'condition': card, 'document': doc, 'words': named('The result paragraph is gone from the page; ask Stacy for the total again and a new card is made.')}
     index, block = by_id[card['result_block']]
     helpers.ensure_built_in(kernel, principal, METHOD)
     found = page_quantities(doc['blocks'], exclude=others)

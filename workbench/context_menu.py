@@ -33,6 +33,7 @@ its popups, the System menu's list) is answered here when a finder knows the pla
 menu for the keyboard focus (open_at_focus), its first row under focus.
 """
 from __future__ import annotations
+from .assistant_identity import named
 import json
 import os
 import re
@@ -404,7 +405,7 @@ def document_entries(host, t):
         out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, line), icon='line', operation='documents.edit',
                          tip='The equivalent command for Bold with this passage as its target, in the writing line to read or change; Enter runs it'))
         about = 'About this passage (“%s”, paragraph %d of “%s”, revision %s): ' % (short(selection['text'], 80), selection['block'] + 1, short(t.data.get('title'), 40), t.revision)
-        out.append(Entry('ask', 'Ask Stacy about this', 'capability', lambda:ask_graphite(host, about), icon='inquiries',
+        out.append(Entry('ask', named('Ask Stacy about this'), 'capability', lambda:ask_graphite(host, about), icon='inquiries',
                          tip='An assignment in the line with this passage as its context'))
         out.append(Entry('search', 'Search for these words', 'capability', lambda:search_words(host, selection['text']), icon='investigations',
                          tip='The writing line in Search with these words: files, their words, the cabinet, settings, the Timeline'))
@@ -636,12 +637,12 @@ def file_entries(host, t):
                          lambda:stage_for_delivery(host, [e]), icon='delivery',
                          tip='Add this file to the review list. Inspect it there before building a ZIP.'))
         out.append(Entry('explain', 'Explain this file', 'capability', lambda:tab.explain(e), icon='inquiries', operation='files.get'))
-        out.append(Entry('ask', 'Ask Stacy about this…', 'capability', lambda:tab.ask(e)))
+        out.append(Entry('ask', named('Ask Stacy about this…'), 'capability', lambda:tab.ask(e)))
         out.append(Entry('investigate', 'Investigate…', 'capability', lambda:tab.investigate(e), icon='investigations', operation='investigation.create'))
         out.append(Entry('agenda', 'Add to the Agenda…', 'capability', lambda:tab.add_to_agenda(e), icon='agenda', operation='agenda.add'))
     c = tab.copy_for(rel) if hasattr(tab, 'copy_for') else None
     if c and not folder:
-        if c['for_slate'] and c.get('kind', 'file') == 'file':out.append(Entry('copy:slate', 'Ask Stacy to work on this…', 'capability', lambda:tab.slate_on_copy(c), operation='agenda.add'))
+        if c['for_slate'] and c.get('kind', 'file') == 'file':out.append(Entry('copy:slate', named('Ask Stacy to work on this…'), 'capability', lambda:tab.slate_on_copy(c), operation='agenda.add'))
         out.append(Entry('copy:review', 'Review changes to the original…', 'capability', lambda:tab.review_copy(c), icon='compare', operation='copies.review'))
         out.append(Entry('copy:original', 'Show the original', 'open', lambda:tab.show_original(c)))
         out.append(Entry('copy:discard', 'Discard this draft…', 'danger', lambda:tab.discard_copy(c), operation='copies.discard'))
@@ -722,7 +723,7 @@ def finder_entries(host, t):
     if in_files and Path(path).resolve() != Path(files).resolve():
         out.append(Entry('show:files', 'Show in Files', 'open', lambda:page.show_in_files(path), icon='files'))
     out.append(Entry('copy:path', 'Copy path', 'edit', lambda:page.copy_path(path), icon='copy'))
-    out.append(Entry('ask', 'Ask Stacy about this ' + ('folder' if folder else 'file'), 'capability', lambda:page.ask_slate(path), icon='inquiries'))
+    out.append(Entry('ask', named('Ask Stacy about this ') + ('folder' if folder else 'file'), 'capability', lambda:page.ask_slate(path), icon='inquiries'))
     if in_files:
         rel = Path(path).resolve().relative_to(Path(files).resolve()).as_posix()
         out.append(Entry('change:files', 'Change it in Files', 'modify', lambda:page.show_in_files(path), tip='Files keeps its own changes: rename, versions, export, Trash'))
@@ -758,7 +759,7 @@ def library_entries(host, t):
     tab = t.owner;e = t.data
     return [Entry('open', 'Open', 'open', lambda:host.shell2.open_library_file(e), icon='window'),
             Entry('keep', 'Keep a copy in Files', 'modify', lambda:tab.keep([e]), icon='files', operation='files.keep'),
-            Entry('ask', 'Ask Stacy about this file', 'capability', lambda:host.shell2.ask('Tell me about this file: ' + e['name']), icon='inquiries'),
+            Entry('ask', named('Ask Stacy about this file'), 'capability', lambda:host.shell2.ask('Tell me about this file: ' + e['name']), icon='inquiries'),
             Entry('copy:name', 'Copy the name', 'edit', lambda:copy_text(host, e['name']), icon='copy')]
 
 
@@ -1106,7 +1107,7 @@ def network_entries(host, t):
     entry = t.data;process = known_process(entry)
     unknown = ('Its program belongs to another user of this computer; Graphite does not read or guess its name.' if entry.get('process') and not process
                else 'The process is not known for this %s.' % t.noun)
-    return [Entry('ask', 'Ask Stacy about this', 'state', lambda:log_qt.ask_about(host, entry), icon='inquiries',
+    return [Entry('ask', named('Ask Stacy about this'), 'state', lambda:log_qt.ask_about(host, entry), icon='inquiries',
                   tip='An assignment in the line with this %s as its context' % t.noun),
             Entry('follow', 'Follow this conversation', 'state', lambda:log_focus(host, entry), icon='network',
                   enabled=bool(log_qt.conversation(entry)), reason='No far host or port to follow.', tip='The Network stream filtered to ' + (log_qt.conversation(entry) or 'it')),
@@ -1121,7 +1122,7 @@ def event_entries(host, t):
     if t.kind != 'event':return []
     from . import log_qt
     entry = t.data;event = entry.get('event') or {}
-    out = [Entry('ask', 'Ask Stacy about this', 'state', lambda:log_qt.ask_about(host, entry), icon='inquiries', tip='An assignment in the line with this event as its context'),
+    out = [Entry('ask', named('Ask Stacy about this'), 'state', lambda:log_qt.ask_about(host, entry), icon='inquiries', tip='An assignment in the line with this event as its context'),
            Entry('show:log', 'Show in Log', 'state', lambda:log_focus(host, entry), icon='event', enabled=getattr(host, 'log_view', None) is not None,
                  reason='The Log view is not in this window.', tip='The writing line in Log on the Events stream, this event pinned')]
     if t.surface == 'activity' and t.owner is not None and hasattr(t.owner, 'open_event'):
@@ -1255,7 +1256,7 @@ def field_whatif_rows(host, obj):
                 new = _plain_number(number * factor)
                 rows.append(Entry('field:whatif:%s:%s' % (cell, key), ('%s · %s %s' % (words, new, unit)).strip(), 'command',
                                   lambda new=new: host.shell2.ask('what if %s were %s' % (cell, new)), icon='line', operation='field.ripple',
-                                  tip='A read: nothing is changed. Stacy follows the wires and the Field marks what would move, until Esc'))
+                                  tip=named('A read: nothing is changed. Stacy follows the wires and the Field marks what would move, until Esc')))
             rows.append(Entry('field:whatif:%s:other' % cell, 'Another value…', 'command', lambda: ask_graphite(host, 'what if %s were ' % cell), icon='ask',
                               tip='The question in the writing line for you to finish; Enter asks'))
             return rows
@@ -1353,7 +1354,7 @@ def field_entries(host, t):
         out.append(Entry('field:again', 'Look again', 'open', view.look_again.emit, icon='explore', caption='R', tip='Read the records again'))
         if view.face == 'work':
             out.append(Entry('field:check', 'Check the desk', 'command', view.check_asked.emit, icon='explore', caption='C',
-                             tip='Everything is read again; Stacy says what waits for you and what would settle it'))
+                             tip=named('Everything is read again; Stacy says what waits for you and what would settle it')))
         for name in other:
             out.append(Entry('field:face:' + name, 'Show the %s' % name, 'open', lambda name=name:view.face_chosen.emit(name), icon='network' if name == 'network' else 'projects',
                              caption=dict(view.faces)[name].upper()))
@@ -1376,7 +1377,7 @@ def field_entries(host, t):
                      ('The sheets', 'office.list | pick documents | select title,kind,version'),
                      ('Work that is not finished', 'jobs | where state is not Completed | select tool,state'))
             out.append(Entry('field:brief', 'The brief', 'command', view.brief_asked.emit, icon='line', caption='B',
-                             tip='The desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first'))
+                             tip=named('The desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first')))
         try:                                  # the owner's own staC words go with the lines of every face
             from .stac_words import known_to
             lines = tuple(lines) + tuple(('Your word “%s”' % name, code) for name, code in sorted(known_to(host).items()))
@@ -1422,9 +1423,9 @@ def field_entries(host, t):
                          tip='Run one of your own staC words here; a word whose line starts with `this` reads this sheet'))
     if view.face == 'work':
         out.append(Entry('field:brief', 'The brief of the desk', 'command', view.brief_asked.emit, icon='line', caption='B',
-                         tip='The whole desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first'))
+                         tip=named('The whole desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first')))
     if not network:
-        out.append(Entry('field:ask', 'Ask Stacy about this', 'command', lambda:ask_about_sheet(host, obj),
+        out.append(Entry('field:ask', named('Ask Stacy about this'), 'command', lambda:ask_about_sheet(host, obj),
                          icon='ask', tip='Its name in the line for you to finish. Her answer is in Talk; with no model she answers from the records, in staC'))
     out.append(Entry('field:copy', 'Copy its name', 'edit', lambda:copy_text(host, obj.title), icon='copy'))
     return out
@@ -2265,9 +2266,9 @@ def install(host):
 # each new menu, open its submenus and find every key, and read every old builder's words (submenus too) back from the new menus.
 FOLDED = (
     ('Files: a file', 'Open', 'file', 'open'), ('Files: a file', 'Open pill…', 'file', 'open'),
-    ('Files: a file', 'Explain this file', 'file', 'explain'), ('Files: a file', 'Ask Stacy about this…', 'file', 'ask'),
+    ('Files: a file', 'Explain this file', 'file', 'explain'), ('Files: a file', named('Ask Stacy about this…'), 'file', 'ask'),
     ('Files: a file', 'Investigate…', 'file', 'investigate'), ('Files: a file', 'Add to the Agenda…', 'file', 'agenda'),
-    ('Files: a working copy', 'Ask Stacy to work on this…', 'file', 'copy:slate'), ('Files: a working copy', 'Review changes to the original…', 'file', 'copy:review'),
+    ('Files: a working copy', named('Ask Stacy to work on this…'), 'file', 'copy:slate'), ('Files: a working copy', 'Review changes to the original…', 'file', 'copy:review'),
     ('Files: a working copy', 'Show the original', 'file', 'copy:original'), ('Files: a working copy', 'Discard this draft…', 'file', 'copy:discard'),
     ('Files: a folder copy', 'Look inside, confined…', 'folder', 'copy:look'), ('Files: a folder copy', 'Run a command here, confined…', 'folder', 'copy:run'),
     ('Files: a pill folder copy', 'Return as a pill…', 'folder', 'copy:pill'), ('Files: a pill folder copy', 'Review the changes…', 'folder', 'copy:review'),
@@ -2288,7 +2289,7 @@ FOLDED = (
     ('Files: a smart folder', 'Rename…', 'smart', 'rename'), ('Files: a smart folder', 'Export…', 'smart', 'export'),
     ('Files: a file', 'the chain from @files: (the file\'s chain menu)', 'file', 'chain'),
     ('Finder: an entry', 'Open', 'finder', 'open'), ('Finder: an entry', 'Open in viewer', 'finder', 'open:viewer'), ('Finder: an entry', 'Show in Files', 'finder', 'show:files'),
-    ('Finder: an entry', 'Copy path', 'finder', 'copy:path'), ('Finder: an entry', 'Ask Stacy about this file / folder', 'finder', 'ask'),
+    ('Finder: an entry', 'Copy path', 'finder', 'copy:path'), ('Finder: an entry', named('Ask Stacy about this file / folder'), 'finder', 'ask'),
     ('Finder: an entry', 'Change it in Files', 'finder', 'change:files'), ('Finder: an entry outside Files', 'Nothing changes here · Files keeps its own changes', 'finder-outside', 'change:none'),
     ('Cabinet: a record (cabinet_actions_qt.menu)', 'With <record> (the heading)', 'cabinet', 'heading'),
     ('Cabinet: a record', 'Read saved details', 'cabinet', 'cabinet:record'), ('Cabinet: a record', 'Write an idea here / Name a new project', 'cabinet', 'cabinet:write'),

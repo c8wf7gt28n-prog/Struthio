@@ -4,6 +4,7 @@ Hardware instrumentation is driven exclusively by the verified JSONL host
 behavioral trace. The engine is never replaced by a UI animation.
 """
 from __future__ import annotations
+from .assistant_identity import named
 from .text_prompts import writing_prompt
 
 from PySide6.QtCore import Qt,QTimer
@@ -265,8 +266,8 @@ class ClipDock(QWidget):
         title_row.addLayout(summary,1)
         layout.addLayout(title_row)
         entry=QHBoxLayout()
-        conversation=QPushButton('Ask Stacy…');conversation.clicked.connect(expand)
-        conversation.setAccessibleName('Open the conversation with Stacy');entry.addWidget(conversation,1)
+        conversation=QPushButton(named('Ask Stacy…'));conversation.clicked.connect(expand)
+        conversation.setAccessibleName(named('Open the conversation with Stacy'));entry.addWidget(conversation,1)
         self.advanced=QToolButton();self.advanced.setText('More');self.advanced.setCheckable(True)
         self.advanced.setToolTip('Expand existing Graphite modes, job controls and message input')
         entry.addWidget(self.advanced);layout.addLayout(entry)
@@ -288,7 +289,7 @@ class ClipDock(QWidget):
         layout.addWidget(self.progress)
         row = QHBoxLayout()
         self.input = QLineEdit()
-        writing_prompt(self.input, 'Ask Stacy about this project…')
+        writing_prompt(self.input, named('Ask Stacy about this project…'))
         self.input.setAccessibleName('Message to Graphite')
         self.input.returnPressed.connect(self.send)
         row.addWidget(self.input, 1)

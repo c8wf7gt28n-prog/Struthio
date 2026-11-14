@@ -22,6 +22,7 @@ for the capture. A capture that cannot run on this computer is a QUESTION with t
 starts a worker, a model, a capture or a native tool.
 """
 from __future__ import annotations
+from .assistant_identity import named
 import re
 import time
 from . import agent_profiles as base
@@ -198,7 +199,7 @@ class NetworkTalk(base.Profile):
             return 'Capture: %s from the latest capture%s.' % (plural(count, 'packet header'), (' (filter: %s)' % said) if said else '')
         if capture.get('state') == 'UNAVAILABLE': return 'Capture: not available on this computer. ' + str(capture.get('reason') or '')
         if context.get('proposed'): return 'Capture: Graphite proposed one; none was taken.'
-        return 'Capture: none was taken. Ask Stacy to capture, or start one yourself in Log, Network.'
+        return named('Capture: none was taken. Ask Stacy to capture, or start one yourself in Log, Network.')
 
     # -- reading the results --------------------------------------------------------------------------------------------------
     def interpret(self, step, result, state, kernel, principal):

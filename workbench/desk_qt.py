@@ -236,11 +236,12 @@ def tight_row(widths, width, least):
 # top-left (both bands start at the window's left edge), so their pixels match where no word is drawn. Deterministic: a fixed
 # integer hash and a fixed stroke list, no random seed per run.
 
-BAND = (12, 15, 14)            # near-black glass above and below the desk
-ERASED = '#efeae0'             # lettering on a band: paper, as if erased from the shading
-ERASED_QUIET = '#b0bcb9'       # quieter lettering on a band (the monitors' key words, Find and Kernel)
-ERASER_MARK = '#dd854b'        # actions on a band: the hover and keyboard-focus mark (shell2.ERASER_MARK)
-PENCIL = '#f2a369'             # an active choice on a band: the short pencil-yellow mark (shell2.AMBER_EDGE)
+from . import boss_theme as _bt      # the band's own colours follow the appearance (Graphite or Kasandra) chosen at start
+BAND = _bt.BAND                # near-black glass above and below the desk (deep indigo in Kasandra)
+ERASED = _bt.ERASED            # lettering on a band: paper, as if erased from the shading
+ERASED_QUIET = _bt.ERASED_QUIET  # quieter lettering on a band (the monitors' key words, Find and Kernel)
+ERASER_MARK = _bt.BAND_MARK    # actions on a band: the hover and keyboard-focus mark (shell2.ERASER_MARK)
+PENCIL = _bt.BAND_PENCIL       # an active choice on a band: the short pencil-yellow mark (shell2.AMBER_EDGE)
 GRAIN_SIZE = (256, 128)        # the tile; the grain is fine enough that its repeat does not show
 GRAIN_SEED = 0x6A7A           # the stroke list's fixed seed
 GRAIN_AMPLITUDE = 2            # the grain stays within this many levels of the mean (quiet enough for small lettering)

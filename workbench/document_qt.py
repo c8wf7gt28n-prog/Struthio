@@ -10,6 +10,7 @@ recognise goes to the model path with the document and selection as context. Reo
 cabinet reads the saved revision. Nothing here starts a job, a worker or a model.
 """
 from __future__ import annotations
+from .assistant_identity import named
 from datetime import datetime
 from pathlib import Path
 from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal
@@ -202,7 +203,7 @@ class DocumentsTab(QWidget):
         self.setObjectName('LibraryTab'); self.setProperty('ledgerRoom', True); self.setStyleSheet(PAGE_STYLE)
         outer = QVBoxLayout(self); outer.setContentsMargins(28, 18, 28, 12); outer.setSpacing(8)
         head = QHBoxLayout(); head.addWidget(role(QLabel('Documents'), 'title'), 1); outer.addLayout(head)
-        self.lead = QLabel('Write here. Select words and ask Stacy in the strip below: “make these words bold”. Saving is automatic, and any change can be taken back, hers too.')
+        self.lead = QLabel(named('Write here. Select words and ask Stacy in the strip below: “make these words bold”. Saving is automatic, and any change can be taken back, hers too.'))
         self.lead.setWordWrap(True); self.lead.setStyleSheet('color:%s' % QUIET); outer.addWidget(self.lead)
         split = QSplitter(Qt.Horizontal); split.setChildrenCollapsible(False); outer.addWidget(split, 1)
         left = QWidget(); left_box = QVBoxLayout(left); left_box.setContentsMargins(0, 0, 12, 0); left_box.setSpacing(6)

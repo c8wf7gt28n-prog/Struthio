@@ -21,6 +21,7 @@ A kept brief is a page like any other: it can be edited, exported and printed. I
 was written from; when the desk changes, the Field shows the brief as waiting, and writing it again makes a new page that
 takes its place (the earlier one is kept in Documents, as a recomputed calculation's is).
 """
+from .assistant_identity import named
 import hashlib
 import json
 import time
@@ -172,6 +173,6 @@ def standing(kernel, principal, got, field):
     out = [Doubt('holds', 'the desk as it is', 'nothing on the desk has changed since this brief was written', see) if mark.get('fingerprint') == fingerprint(field) else
            Doubt('doubt', 'the desk as it is', 'the desk has changed since this brief was written; B writes it again', see)]
     if mark.get('words') and mark['words'] != _words_digest(str(got.get('plain') or '')):
-        out.append(Doubt('note', 'its words', 'this page was edited after Stacy wrote it: some of its lines are yours now, and not every line is read from a record',
+        out.append(Doubt('note', 'its words', named('this page was edited after Stacy wrote it: some of its lines are yours now, and not every line is read from a record'),
                          'documents.get %s | pick events | select revision,actor,action,at' % json.dumps({'id': (got.get('document') or {}).get('id')}, separators=(',', ':'))))
     return out

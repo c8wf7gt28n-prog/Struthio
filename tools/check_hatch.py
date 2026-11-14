@@ -47,6 +47,8 @@ FOCUSED_MODULES=(
  'test_stacy_hand',
  # 0.6.1: the first journey: a starting project in another program (Godot)
  'test_stacy_start',
+ # 0.8.0: the Kasandra appearance: the palette at start, stills by the state of the work, her name
+ 'test_kasandra',
  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
  # the network capability the agent can inspect (HATCH DESK D5)
  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',

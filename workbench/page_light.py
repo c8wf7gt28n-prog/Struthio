@@ -10,7 +10,8 @@ The page's own light is one line away (More, on a PDF page) and the choice is ke
 """
 from PySide6.QtGui import QColor, QPainter, QPixmap
 
-DESK_LIGHT = '#8c826b'      # what a page is multiplied by: white paper becomes this, black ink stays black
+from . import boss_theme as _bt
+DESK_LIGHT = _bt.DESK_LIGHT  # what a page is multiplied by: white paper becomes this, black ink stays black (warm in Graphite, cool in Kasandra)
 
 
 def own(host):

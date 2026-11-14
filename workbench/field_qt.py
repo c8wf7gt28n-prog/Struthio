@@ -20,6 +20,7 @@ that line in the writing strip to read or change; Shift+Enter runs it and the an
 comes first: the rail appears only when the sheets keep their room and it never covers a sheet or a wire. Without the rail
 (a narrow window, the ASCII or Clean desk) the same line is in the foot and the same keys work.
 """
+from .assistant_identity import named
 from PySide6.QtCore import QEasingCurve, QEvent, QPoint, QPointF, QRectF, QSize, Qt, QVariantAnimation, Signal
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeyEvent, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap, QPolygonF, QRadialGradient, QRegion
 from PySide6.QtWidgets import QSizePolicy, QToolTip, QWidget
@@ -32,6 +33,12 @@ from .field_model import ATTENTION, KIND_TAG, SETTLED, STATE_CURRENT, STATE_HELD
 WORD_INK = (1.0, 0.94, 0.84, 0.78)          # how much of its ink a sheet's lettering keeps at each step from the selection
 EDGE_INK = (1.0, 0.8, 0.5, 0.34)            # the sheet's edge and marks recede further: they are not lettering
 STATE_WORD = {STATE_CURRENT: 'current', STATE_RECHECK: 'recheck', STATE_OPEN: 'open', STATE_HELD: 'held'}
+
+
+def attention_ink(state):
+    """The colour of a state that wants attention: a recheck is RECHECK, anything else that waits is OWNER (both amber in
+    Graphite; lavender and raspberry in Kasandra)."""
+    return t.RECHECK if state == STATE_RECHECK else t.OWNER
 TITLE_LINES, FACT_LINES = 2, 2
 LONGEST = 240                               # a title is cut to this many characters before it is measured: paint time must not follow its length
 
@@ -51,7 +58,7 @@ KEYS = (('h', 'Move'),
         ('h', 'Ask · these only read, nothing is changed'),
         ('k', 'X\tdoubt it: what does not hold, what cannot be told, what holds'),
         ('k', 'T\ttrace it: where it comes from and what rests on it'),
-        ('k', 'C\tcheck the whole desk: what waits, and what Stacy doubts'),
+        ('k', named('C\tcheck the whole desk: what waits, and what Stacy doubts')),
         ('k', 'B\tthe brief: the desk written up as one page, from the records'),
         ('k', 'S\tthis sheet’s staC line, into the writing strip'),
         ('k', 'Shift+Enter\trun that line; the answer opens in the working area'),
@@ -183,6 +190,11 @@ class FieldView(QWidget):
     def mono(self, px, weight=QFont.Normal):
         f = QFont('IBM Plex Mono');f.setStyleHint(QFont.Monospace);f.setPixelSize(max(11, round(px * self.scale())));f.setWeight(weight);return f
 
+    def display(self, px):
+        """The face of headings: Plex Mono in Graphite, the typewriter face in Kasandra (boss_theme.DISPLAY)."""
+        if t.DISPLAY == 'IBM Plex Mono':return self.mono(px, QFont.Medium)
+        f = QFont(t.DISPLAY);f.setPixelSize(max(12, round(px * 1.12 * self.scale())));return f
+
     def sans(self, px, weight=QFont.Medium):
         f = QFont('IBM Plex Sans');f.setPixelSize(max(12, round(px * self.scale())));f.setWeight(weight);return f
 
@@ -207,10 +219,13 @@ class FieldView(QWidget):
         if self.art_mode != 'illustrated' or self.art_folder is None:return 0.0
         s = self.scale()
         if self.height() < 520 * s:return 0.0
-        if self._plate is None:
-            from .boss_qt import midnight_plate
-            self._plate = midnight_plate(self.art_folder, 'portrait')
-        if self._plate.isNull():return 0.0
+        if t.APPEARANCE == 'kasandra':      # Kasandra's rail: her stills are there, whichever the state of the work asks for
+            if self._kasandra('assistant_rail', 'idle') is None:return 0.0
+        else:
+            if self._plate is None:
+                from .boss_qt import midnight_plate
+                self._plate = midnight_plate(self.art_folder, 'portrait')
+            if self._plate.isNull():return 0.0
         # The columns are counted first, at their narrowest; she takes what they leave, and nothing when that is too little.
         columns = len(self.field.ranks())
         needed = columns * self.least_width() + max(0, columns - 1) * 22 * s + 2 * 16 * s if columns else 0.0
@@ -546,8 +561,8 @@ class FieldView(QWidget):
                 if x + wide > end:break
                 box = QRectF(x, base - fm.ascent() - 3 * s, wide, fm.height() + 6 * s)
                 over = QRectF(x, box.top(), total, box.height()).contains(self._mouse)      # the same place a click lands on
-                self._halo(p, box, t.READY if over else t.AMBER_EDGE, 1.8 if over else 2.0)      # it waits for the owner: amber; under the pointer: green
-                p.save();p.setPen(Qt.NoPen);p.setBrush(QColor(t.AMBER_EDGE));p.drawRect(box)
+                self._halo(p, box, t.READY if over else t.OWNER, 1.8 if over else 2.0)      # it waits for the owner (amber; raspberry in Kasandra); under the pointer: green
+                p.save();p.setPen(Qt.NoPen);p.setBrush(QColor(t.OWNER));p.drawRect(box)
                 p.setPen(QColor(t.GROUND));p.drawText(box, Qt.AlignCenter, 'Approve');p.restore()
                 p.setPen(QColor(colour));p.drawText(QPointF(x + wide + 8 * s, base), said)
                 self._hot.append((QRectF(x, box.top(), total, box.height()), Qt.Key_G, 'g',
@@ -859,22 +874,46 @@ class FieldView(QWidget):
             p.setPen(QColor(t.TEAL_EDGE));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('staC  ' + code, Qt.ElideRight, r.width() - 2 * pad))
         p.restore()
 
+    def _kasandra(self, slot, state):
+        """Kasandra's still for a place of the Field (kasandra_art.choose), or None."""
+        host = getattr(self.parentWidget(), 'host', None)
+        if host is None:return None
+        from . import kasandra_art
+        try:return kasandra_art.choose(kasandra_art.folder(host.root), slot, state)
+        except Exception:  # noqa: BLE001 - art is never worth an error: the rail gives way
+            return None
+
+    def kasandra_state(self):
+        host = getattr(self.parentWidget(), 'host', None)
+        from .kasandra_art import current_state
+        return current_state(host) if host is not None else 'idle'
+
     def _art(self, p, body):
         """The desk's artwork in its own place. Illustrated: the still portrait in the rail, veiled and fading into the ground at
-        its inner edge so she sits in the dark beside the work. ASCII: a small character mark in the corner. Clean: nothing."""
+        its inner edge so she sits in the dark beside the work. ASCII: a small character mark in the corner. Clean: nothing.
+        Kasandra: her still for what the work is doing (notes while it runs, a hand by Enter while it waits for you)."""
         w = self.rail();s = self.scale()
         if w:
             r = QRectF(self.width() - w, body.top(), w, body.height());size = (round(r.width()), round(r.height()))
-            if self._plate_drawn[0] != size:        # drawn once for a size, not on every repaint
+            scene = self._kasandra('assistant_rail', self.kasandra_state()) if t.APPEARANCE == 'kasandra' else None
+            key = (size, scene['id'] if scene else None, self.devicePixelRatioF())
+            if self._plate_drawn[0] != key:        # drawn once for a size and a still, not on every repaint
                 from .boss_qt import draw_plate
-                pix = QPixmap(QSize(*size));pix.fill(QColor(t.TERMINAL_GROUND));q = QPainter(pix)
-                draw_plate(q, QRectF(0, 0, size[0], size[1]), self._plate, 0.0)
-                q.fillRect(pix.rect(), ink('#000000', 0.16))
+                dpr = self.devicePixelRatioF()
+                pix = QPixmap(QSize(round(size[0] * dpr), round(size[1] * dpr)));pix.setDevicePixelRatio(dpr);pix.fill(QColor(t.TERMINAL_GROUND));q = QPainter(pix)
+                if scene is not None:
+                    from . import kasandra_art
+                    host = self.parentWidget().host
+                    image = kasandra_art.picture(kasandra_art.folder(host.root), scene, size[0], size[1], dpr)
+                    if not image.isNull():q.drawImage(QRectF(0, 0, size[0], size[1]), image)
+                else:
+                    draw_plate(q, QRectF(0, 0, size[0], size[1]), self._plate, 0.0)
+                q.fillRect(QRectF(0, 0, size[0], size[1]), ink(t.VEIL, 0.16))
                 edge = QLinearGradient(0, 0, size[0] * 0.34, 0);edge.setColorAt(0.0, QColor(t.TERMINAL_GROUND));edge.setColorAt(1.0, ink(t.TERMINAL_GROUND, 0.0))
-                q.fillRect(pix.rect(), edge)
+                q.fillRect(QRectF(0, 0, size[0], size[1]), edge)
                 foot = QLinearGradient(0, size[1] * 0.86, 0, size[1]);foot.setColorAt(0.0, ink(t.TERMINAL_GROUND, 0.0));foot.setColorAt(1.0, ink(t.TERMINAL_GROUND, 0.85))
-                q.fillRect(pix.rect(), foot);q.end()
-                self._plate_drawn = (size, pix)
+                q.fillRect(QRectF(0, 0, size[0], size[1]), foot);q.end()
+                self._plate_drawn = (key, pix)
             p.drawPixmap(r.topLeft(), self._plate_drawn[1])
         elif self.art_mode == 'ascii' and body.width() > 760 * s and body.height() > 420 * s:
             from .boss_qt import BRACKET
@@ -951,8 +990,8 @@ class FieldView(QWidget):
         tall = pad * 2 + head.height() + 4 * s + (len(rows) + len(going)) * fm.height() + (4 * s if rows and going else 0) + 6 * s + head.height()
         if tall > body.height() - 24 * s:return           # no room under her: the foot still says them
         box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
-        if self.go:self._halo(p, box, t.AMBER_EDGE, 1.0)      # something in it waits for the owner's Approve
-        p.setPen(QPen(ink(t.AMBER_EDGE, 0.8), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.92));p.drawRect(box)
+        if self.go:self._halo(p, box, t.OWNER, 1.0)      # something in it waits for the owner's Approve
+        p.setPen(QPen(ink(t.OWNER if self.go else t.AMBER_EDGE, 0.8), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.92));p.drawRect(box)
         x = box.left() + pad;y = box.top() + pad + head.ascent()
         p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(x, y), 'DO')
         said = 'what can be done';said_w = head.horizontalAdvance(said)
@@ -963,7 +1002,7 @@ class FieldView(QWidget):
             y += fm.height();p.setPen(QColor(t.TEXT));p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line, Qt.ElideRight, inner_w - (asks_w if write else 0)))
             self._hot.append((QRectF(x - 4 * s, y - fm.height(), inner_w + 8 * s, fm.height()), Qt.Key_1 + n, str(n + 1),
                               'Take this step: %s' % ('it is put up for you to approve; nothing is changed yet' if self.steps[n][1] == 'write' else
-                                                       'it changes something: Stacy does it at once and shows it, with an Undo where there is one' if self.steps[n][1] == 'does' else 'a read, it runs at once')))
+                                                       named('it changes something: Stacy does it at once and shows it, with an Undo where there is one') if self.steps[n][1] == 'does' else 'a read, it runs at once')))
             if write:
                 p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(box.right() - pad - fm.horizontalAdvance(asks), y - fm.descent()), asks)
         if going:                            # what waits in Talk for the owner's go, and the key that gives it
@@ -982,7 +1021,7 @@ class FieldView(QWidget):
         while y < body.bottom():
             p.fillRect(QRectF(body.left(), y, body.width(), 1), line);y += step
         rim = QRadialGradient(body.center(), max(body.width(), body.height()) * 0.72)      # a darker rim: depth that does not move
-        rim.setColorAt(0.0, ink('#000000', 0.0));rim.setColorAt(0.6, ink('#000000', 0.0));rim.setColorAt(1.0, ink('#000000', 0.6))
+        rim.setColorAt(0.0, ink(t.VEIL, 0.0));rim.setColorAt(0.6, ink(t.VEIL, 0.0));rim.setColorAt(1.0, ink(t.VEIL, 0.6))
         p.fillRect(body, rim)
         # The desk's two lights, very low: amber rising from the foot, where what is selected is named and what waits is
         # approved, and green falling from the head, where the live faces are. They do not move and they say nothing; they
@@ -1015,10 +1054,20 @@ class FieldView(QWidget):
 
     def _head(self, p):
         s = self.scale();h = self.head_height();x = 28 * s
+        if t.APPEARANCE == 'kasandra' and self.art_mode == 'illustrated' and self.texture:      # her wires over the rooftops, faint, under the Field's words
+            scene = self._kasandra('field_edge', 'viewing')
+            if scene is not None:
+                from . import kasandra_art
+                image = kasandra_art.picture(kasandra_art.folder(self.parentWidget().host.root), scene, self.width(), h, self.devicePixelRatioF())
+                if not image.isNull():
+                    p.save();p.setOpacity(0.42);p.drawImage(QRectF(0, 0, self.width(), h), image);p.restore()
+                    shade = QLinearGradient(0, 0, self.width(), 0);shade.setColorAt(0.0, ink(t.GROUND, 0.78));shade.setColorAt(0.55, ink(t.GROUND, 0.45));shade.setColorAt(1.0, ink(t.GROUND, 0.62))
+                    p.fillRect(QRectF(0, 0, self.width(), h), shade)
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, h - 0.5), QPointF(self.width(), h - 0.5))
-        p.setFont(self.mono(13, QFont.Medium));p.setPen(QColor(t.AMBER_EDGE))
+        p.setFont(self.display(13));p.setPen(QColor(t.AMBER_EDGE))
         label = 'FIELD';fm = QFontMetricsF(p.font());base = h / 2 + fm.ascent() / 2 - 2
         p.drawText(QPointF(x, base), label);x += fm.horizontalAdvance(label) + 14 * s
+        p.setFont(self.mono(13, QFont.Medium));fm = QFontMetricsF(p.font())      # the faces' words: the working face
         self._face_boxes = []
         for name, letter in self.faces:      # the faces of the Field: the one showing is underlined, each says its key
             word = name.upper();w = fm.horizontalAdvance(word);on = name == self.face
@@ -1033,7 +1082,7 @@ class FieldView(QWidget):
                 p.setPen(QPen(QColor(t.AMBER_EDGE), 2));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
             self._face_boxes.append((QRectF(x - 4 * s, 0, w + 8 * s, h), name));x += w + 16 * s
         if self.faces:x += 4 * s
-        p.setFont(self.sans(17));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
+        p.setFont(self.sans(17) if t.DISPLAY == 'IBM Plex Mono' else self.display(17));fm2 = QFontMetricsF(p.font());p.setPen(QColor(t.TEXT))
         said = self.field.title or 'This workspace';parts = self.field.census()
         p.setFont(self.mono(12.5));fm3 = QFontMetricsF(p.font());room = self.width() - x - 28 * s
         waiting = [part for part in parts if 'recheck' in part or 'open question' in part]
@@ -1041,7 +1090,7 @@ class FieldView(QWidget):
             parts = waiting if parts != waiting and waiting else []        # the title keeps its room; the counts give way, what waits last
             waiting = []
         census = '  ·  '.join(parts);census_w = fm3.horizontalAdvance(census)
-        p.setFont(self.sans(17))
+        p.setFont(self.sans(17) if t.DISPLAY == 'IBM Plex Mono' else self.display(17))
         p.drawText(QPointF(x, h / 2 + fm2.ascent() / 2 - 2), fm2.elidedText(said, Qt.ElideRight, max(60.0, room - (census_w + 44 * s if census else 0))))
         if census:
             p.setFont(self.mono(12.5));p.setPen(QColor(t.QUIET));left = self.width() - 28 * s - census_w
@@ -1050,7 +1099,7 @@ class FieldView(QWidget):
                 # click for the next thing that waits (what A does).
                 mark = 8 * s;lamp = QRectF(left - mark - 10 * s, base - fm3.ascent() / 2 - mark / 2 + 1, mark, mark)
                 over = QRectF(lamp.left() - 6 * s, 0, census_w + mark + 22 * s, h)
-                self._mark(p, lamp, 'waiting', QColor(t.AMBER_EDGE))
+                self._mark(p, lamp, 'waiting', QColor(t.OWNER))
                 self._hot.append((over, Qt.Key_A, 'a', 'Go to the next thing that waits for you'))
                 p.setPen(QColor(t.READY if over.contains(self._mouse) else t.AMBER_TEXT))
             p.drawText(QPointF(left, base), census)
@@ -1084,9 +1133,9 @@ class FieldView(QWidget):
             reach = max(24.0 * s, abs(end.x() - start.x()) * 0.5) * (1 if end.x() >= start.x() else -1)
             path = QPainterPath(start);path.cubicTo(QPointF(start.x() + reach, start.y()), QPointF(end.x() - reach, end.y()), end)
             hovered = bool(self._hover) and self._hover in (link.source, link.target) and self.field.selected not in (link.source, link.target)
-            colour = t.AMBER_EDGE if link.stale else t.READY if hovered else (t.TEXT if touching else t.TEAL_EDGE)
+            colour = t.RECHECK if link.stale else t.READY if hovered else (t.TEXT if touching else t.TEAL_EDGE)
             if self.texture:      # the light a wire carries, under the line, wide and faint: green when it is live, amber when it asks for a recheck
-                lamp = t.AMBER_EDGE if link.stale else t.READY
+                lamp = t.RECHECK if link.stale else t.READY
                 gain = (2.6 if touching else (2.0 if link.stale else 1.0)) * min(t.glow(), 2.6)
                 for width, alpha in ((7.0, 0.035), (4.0, 0.07)):
                     p.setBrush(Qt.NoBrush);p.setPen(QPen(ink(lamp, alpha * gain * (1.0 if near <= 1 or touching or link.stale else 0.6)), width * s));p.drawPath(path)
@@ -1168,6 +1217,9 @@ class FieldView(QWidget):
         p.setBrush(QColor((t.CARD, t.CARD, t.PANEL, t.GROUND)[depth]))       # a sheet recedes by its ground and its edge; its words stay readable
         edge = t.AMBER_EDGE if selected and focus else t.READY if touched else (t.LINE_STRONG if depth <= 1 else t.LINE)
         p.setPen(QPen(ink(edge, 1.0 if selected else 0.85 if touched else edge_keep + 0.1), 2 if selected else 1));p.drawRect(r)
+        if obj.state == STATE_RECHECK and t.APPEARANCE != 'graphite' and not (selected and focus) and not touched:
+            dashed = QPen(ink(t.RECHECK, max(0.8, edge_keep + 0.2)), 1.6);dashed.setStyle(Qt.CustomDashLine);dashed.setDashPattern([3, 3])      # Kasandra: a recheck has a lavender dashed edge
+            p.save();p.setBrush(Qt.NoBrush);p.setPen(dashed);p.drawRect(r);p.restore()
         if selected:                         # corner ticks: the selection reads without colour too
             p.setPen(QPen(ink(t.AMBER_EDGE if focus else t.LINE_STRONG, 1.0), 2));k = 9 * s;o = 5 * s
             for cx, cy, dx, dy in ((r.left() - o, r.top() - o, 1, 1), (r.right() + o, r.top() - o, -1, 1),
@@ -1183,7 +1235,7 @@ class FieldView(QWidget):
         # Kind at the left, state at the right. A narrow sheet keeps its kind and the state's mark; the state's word gives way.
         p.setFont(self.mono(12, QFont.Medium));fm = QFontMetricsF(p.font());y = inner.top() + fm.ascent()
         state = STATE_WORD.get(obj.state, obj.state or '')
-        state_colour = t.READY if obj.state in SETTLED else (t.AMBER_EDGE if obj.state in ATTENTION else t.QUIET)
+        state_colour = t.READY if obj.state in SETTLED else (attention_ink(obj.state) if obj.state in ATTENTION else t.QUIET)
         mark = 8 * s;state_w = (fm.horizontalAdvance(state.upper()) + mark + 6 * s) if state else 0.0
         full = obj.tag or KIND_TAG.get(obj.kind, obj.kind.upper())
         worded = bool(state) and inner.width() >= fm.horizontalAdvance(full) + state_w + 8 * s
@@ -1248,7 +1300,7 @@ class FieldView(QWidget):
         if draw is not None:self._glyph(p, draw, QRectF(r.left() + pad, r.top() + pad, side, side), ink(kind_ink, max(keep, 0.75)), ink(t.FAINT, keep))
         mark = 7 * s * px;room = 0.0
         if obj.state:                        # its state, in the corner: the same mark it has near to, the same light
-            colour = t.READY if obj.state in SETTLED else (t.AMBER_EDGE if obj.state in ATTENTION else t.QUIET)
+            colour = t.READY if obj.state in SETTLED else (attention_ink(obj.state) if obj.state in ATTENTION else t.QUIET)
             self._mark(p, QRectF(r.right() - pad - mark, r.top() + pad, mark, mark), obj.state, ink(colour, max(keep, 0.85) if obj.state in ATTENTION else keep))
             room = mark + 4 * s * px
         left = r.left() + pad + side + 6 * s * px;width = r.right() - pad - left - room

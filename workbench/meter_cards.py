@@ -22,15 +22,16 @@ A click on a meter opens its card upward from the band; a click anywhere else pu
 it opens. Nothing here is a new operation: every word on a card calls what the System menu's row or the pane's link
 called before.
 """
+from .assistant_identity import named
 from PySide6.QtCore import QPoint, Qt, QTimer
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 from . import boss_theme as t
 
 DOORS = {'CPU': 'Graphite’s work: what runs and waits, and Stop all jobs',
-         'GPU': 'Stacy’s model and Graphite’s services',
+         'GPU': named('Stacy’s model and Graphite’s services'),
          'RAM': 'Memory, and this computer',
-         'TXT': 'The conversation, and what Stacy has in view'}
+         'TXT': named('The conversation, and what Stacy has in view')}
 
 
 class MeterCard(QFrame):
@@ -86,11 +87,11 @@ def cpu_card(host, anchor):
 def gpu_card(host, anchor):
     from .host_observations import gpu
     from .shell2 import open_destination
-    card = MeterCard(host, 'GRAPHICS · STACY’S MODEL AND GRAPHITE’S SERVICES')
+    card = MeterCard(host, named('GRAPHICS · STACY’S MODEL AND GRAPHITE’S SERVICES'))
     busy = gpu();card.line(('The graphics processor is %d%% busy.' % busy) if busy is not None else 'This graphics driver does not report how busy it is.')
     face = getattr(getattr(host, 'shell2', None), 'face', None)
-    if face is not None and face.model.text():card.line('Stacy ' + face.model.text() + '.', quiet=True)
-    card.word('Brain room', lambda:open_destination(host, 'slate'), 'Choose, swap or stop Stacy’s model, on this computer')
+    if face is not None and face.model.text():card.line(named('Stacy ') + face.model.text() + '.', quiet=True)
+    card.word('Brain room', lambda:open_destination(host, 'slate'), named('Choose, swap or stop Stacy’s model, on this computer'))
     life = getattr(getattr(getattr(host, 'type_bar', None), 'hatch', None), 'lifecycle', None)
     if life is not None:
         try:life.refresh()
@@ -129,11 +130,11 @@ def ram_card(host, anchor):
 
 def txt_card(host, anchor):
     from .host_observations import snapshot
-    card = MeterCard(host, 'TEXT · WHAT STACY HOLDS')
+    card = MeterCard(host, named('TEXT · WHAT STACY HOLDS'))
     txt = snapshot()['txt']
     card.line(('Her context is %d%% full.' % txt['percent']) if txt.get('percent') is not None else
               'How full her context is cannot be shown yet: the model’s runtime does not report it.')
-    card.word('Full chat', host.open_clip, 'The whole conversation with Stacy, with /commands and providers')
+    card.word('Full chat', host.open_clip, named('The whole conversation with Stacy, with /commands and providers'))
     shell = getattr(host, 'shell2', None)
     if shell is not None:card.word('What she has in view', shell.show_context_face, 'Everything about what is open or selected: what “this” means to her')
     return card

@@ -1,5 +1,6 @@
 """Project Desk: ordinary words first, exact Kernel records available to inspect."""
 from __future__ import annotations
+from .assistant_identity import named
 from .text_prompts import writing_prompt
 import json
 import time
@@ -46,7 +47,7 @@ class ProjectDeskTab(QWidget):
         self.tabs = QTabWidget(); split.addWidget(self.tabs); split.setStretchFactor(1, 1); split.setSizes([250, 800])
         self.build_ideas(); self.build_assignments(); self.build_links()
         from .slate_reasoning_qt import ReasoningPane
-        self.reasoning = ReasoningPane(self); self.tabs.addTab(self.reasoning, 'Ask Stacy')
+        self.reasoning = ReasoningPane(self); self.tabs.addTab(self.reasoning, named('Ask Stacy'))
         from .problem_qt import ProblemPane
         self.problem_pane = ProblemPane(self); self.tabs.addTab(self.problem_pane, 'Problem sheet'); self.reload()
 

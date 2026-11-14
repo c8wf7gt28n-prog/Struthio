@@ -1,0 +1,226 @@
+{
+  "catalog_version": 1,
+  "theme": "graphite_kasandra",
+  "default_by_state": {
+    "office_banner": {
+      "idle": "office_dusk"
+    },
+    "field_edge": {
+      "viewing": "field_wires"
+    },
+    "worksheet_strip": {
+      "viewing": "field_wires"
+    },
+    "assistant_rail": {
+      "working": "working_notes",
+      "awaiting_approval": "awaiting_enter",
+      "completed": "completed_pencil",
+      "blocked": "blocked_cable",
+      "idle": "quiet_window"
+    }
+  },
+  "quiet_fallback": "quiet_window",
+  "scenes": [
+    {
+      "id": "office_dusk",
+      "title": "Office at dusk",
+      "file": "art/office_dusk.webp",
+      "thumbnail": "preview/office_dusk.webp",
+      "width": 1672,
+      "height": 941,
+      "sha256": "758d3674b5d5d96f3256e622ac7034b8215a30f656c111a8d4d786f6b4d7b468",
+      "slots": [
+        "office_banner"
+      ],
+      "states": [
+        "idle"
+      ],
+      "focal_point": [
+        0.58,
+        0.51
+      ],
+      "tags": [
+        "dusk",
+        "crt",
+        "kettle"
+      ],
+      "description": "Kasandra clears a spot at her CRT."
+    },
+    {
+      "id": "office_rain",
+      "title": "Office in the rain",
+      "file": "art/office_rain.webp",
+      "thumbnail": "preview/office_rain.webp",
+      "width": 1672,
+      "height": 941,
+      "sha256": "d6e11e416ddf3bb1ce1ca2ed9ae1527e10986dbdd9690b4bb098062ec66d2885",
+      "slots": [
+        "office_banner"
+      ],
+      "states": [
+        "idle"
+      ],
+      "focal_point": [
+        0.61,
+        0.51
+      ],
+      "tags": [
+        "rain",
+        "crt",
+        "mug"
+      ],
+      "description": "Kasandra sets down a mug by the rainy window."
+    },
+    {
+      "id": "field_wires",
+      "title": "Field power lines",
+      "file": "art/field_wires.webp",
+      "thumbnail": "preview/field_wires.webp",
+      "width": 1672,
+      "height": 941,
+      "sha256": "f61ec085b7f363d17f70c09ef95733d5c85d4603b2f663dfdba8352585bb23e1",
+      "slots": [
+        "field_edge",
+        "worksheet_strip"
+      ],
+      "states": [
+        "viewing"
+      ],
+      "focal_point": [
+        0.5,
+        0.39
+      ],
+      "tags": [
+        "power lines",
+        "skyline",
+        "empty"
+      ],
+      "description": "Utility wires and rooftops at violet dusk."
+    },
+    {
+      "id": "working_notes",
+      "title": "Working notes",
+      "file": "art/working_notes.webp",
+      "thumbnail": "preview/working_notes.webp",
+      "width": 1086,
+      "height": 1448,
+      "sha256": "a8aab3593558137dfaba266498506392e7309ee8f246b5872bfe3d245d2df71e",
+      "slots": [
+        "assistant_rail"
+      ],
+      "states": [
+        "working"
+      ],
+      "focal_point": [
+        0.51,
+        0.49
+      ],
+      "tags": [
+        "paper",
+        "pencil",
+        "review"
+      ],
+      "description": "Kasandra compares a notebook with the CRT."
+    },
+    {
+      "id": "awaiting_enter",
+      "title": "Waiting for you",
+      "file": "art/awaiting_enter.webp",
+      "thumbnail": "preview/awaiting_enter.webp",
+      "width": 1086,
+      "height": 1448,
+      "sha256": "89823400956c6e5e00f796ee6c6bb97a2223ecbc6247056575567fa342af687b",
+      "slots": [
+        "assistant_rail"
+      ],
+      "states": [
+        "awaiting_approval"
+      ],
+      "focal_point": [
+        0.5,
+        0.48
+      ],
+      "tags": [
+        "keyboard",
+        "pause",
+        "decision"
+      ],
+      "description": "Kasandra pauses above the keyboard."
+    },
+    {
+      "id": "completed_pencil",
+      "title": "Pencil down",
+      "file": "art/completed_pencil.webp",
+      "thumbnail": "preview/completed_pencil.webp",
+      "width": 1086,
+      "height": 1448,
+      "sha256": "037755fa54ea18bf305e9a51871936bccaff5144e2b1cf7334ef39b117400d6e",
+      "slots": [
+        "assistant_rail"
+      ],
+      "states": [
+        "completed"
+      ],
+      "focal_point": [
+        0.53,
+        0.49
+      ],
+      "tags": [
+        "sketch",
+        "pencil",
+        "receipt"
+      ],
+      "description": "Kasandra sets down her pencil."
+    },
+    {
+      "id": "blocked_cable",
+      "title": "Checking a cable",
+      "file": "art/blocked_cable.webp",
+      "thumbnail": "preview/blocked_cable.webp",
+      "width": 1086,
+      "height": 1448,
+      "sha256": "2943dd59ce1dd99de52ec96fe4438d62a2b9cefb4500b331be5a5760680968ad",
+      "slots": [
+        "assistant_rail"
+      ],
+      "states": [
+        "blocked"
+      ],
+      "focal_point": [
+        0.54,
+        0.5
+      ],
+      "tags": [
+        "cable",
+        "inspection",
+        "retry"
+      ],
+      "description": "Kasandra checks a loose cable by the CRT."
+    },
+    {
+      "id": "quiet_window",
+      "title": "Quiet window",
+      "file": "art/quiet_window.webp",
+      "thumbnail": "preview/quiet_window.webp",
+      "width": 1086,
+      "height": 1448,
+      "sha256": "72121ed212f461a001746d37a8a9356db7f09ed7e13f21bc358e7abe60ba21ac",
+      "slots": [
+        "assistant_rail"
+      ],
+      "states": [
+        "idle"
+      ],
+      "focal_point": [
+        0.52,
+        0.47
+      ],
+      "tags": [
+        "empty",
+        "rain",
+        "window"
+      ],
+      "description": "A quiet bench beside the rainy window."
+    }
+  ]
+}

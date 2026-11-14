@@ -8,6 +8,7 @@ stop), everything running or next on the Agenda with its nice level (now · norm
 It only reads /proc and the Kernel; every change it offers goes through the same Kernel operations as the Agenda.
 """
 from __future__ import annotations
+from .assistant_identity import named
 import os
 import shutil
 from collections import deque
@@ -160,7 +161,7 @@ class Pulse(QWidget):
         m.addAction(self.slate_words()).setEnabled(False)
         if self.slate_state() == 'none':
             m.addAction('Choose a model…', lambda:open_destination(self.host, 'slate').pick_model())
-        m.addAction('Talk to Stacy', lambda:self.host.shell2.show_slate_face())
+        m.addAction(named('Talk to Stacy'), lambda:self.host.shell2.show_slate_face())
         m.addAction('Brain room', lambda:open_destination(self.host, 'slate'))
         if self.brain.get('state') == 'READY':m.addAction('Stop the brain', lambda:(call_write(self.host, 'brain.stop', {}), self.refresh()))
         heading(m, 'Running and next')

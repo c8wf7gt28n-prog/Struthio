@@ -13,6 +13,7 @@ each other's projects. Both sets below were run in the real engines before they 
 Nothing here touches Files or starts anything: it answers "was a start asked for", "which Godot is here" and "what are the
 files". The window makes them through the owner's own operations, under Stacy's hand (shell2.SlateFace.start_asked).
 """
+from .assistant_identity import named
 import re
 import shutil
 import subprocess
@@ -105,12 +106,12 @@ def _quoted(name):
 def godot_files(name, major):
     """[(file name, text)] for the smallest Godot project that runs: the project file, one scene and one script."""
     words = _quoted(name)
-    script = ['extends Node2D', '', '# Started by Stacy in Graphite. This script runs when the scene starts.',
+    script = ['extends Node2D', '', named('# Started by Stacy in Graphite. This script runs when the scene starts.'),
               '# The words on the screen are the Label node; the arrow keys move them.', '', 'var speed = 200.0', '', '',
               'func _ready():', '\t$Label.text = %s' % _quoted(name + ': it runs. Change this line in main.gd.'), '', '',
               'func _process(delta):', '\tvar direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")']
     if major == 4:
-        project = ['; Engine configuration file.', "; Started by Stacy in Graphite. Godot rewrites this file when you change the project's settings.", '',
+        project = ['; Engine configuration file.', named("; Started by Stacy in Graphite. Godot rewrites this file when you change the project's settings."), '',
                    'config_version=5', '', '[application]', '', 'config/name=' + words, 'run/main_scene="res://main.tscn"', '',
                    '[display]', '', 'window/size/viewport_width=960', 'window/size/viewport_height=540']
         scene = ['[gd_scene load_steps=2 format=3]', '', '[ext_resource type="Script" path="res://main.gd" id="1"]', '',
@@ -118,7 +119,7 @@ def godot_files(name, major):
                  'offset_left = 40.0', 'offset_top = 40.0', 'offset_right = 640.0', 'offset_bottom = 70.0', 'text = ' + words]
         script.append('\t$Label.position += direction * speed * delta')
     else:
-        project = ['; Engine configuration file.', "; Started by Stacy in Graphite. Godot rewrites this file when you change the project's settings.", '',
+        project = ['; Engine configuration file.', named("; Started by Stacy in Graphite. Godot rewrites this file when you change the project's settings."), '',
                    'config_version=4', '', '[application]', '', 'config/name=' + words, 'run/main_scene="res://main.tscn"', '',
                    '[display]', '', 'window/size/width=960', 'window/size/height=540']
         scene = ['[gd_scene load_steps=2 format=2]', '', '[ext_resource path="res://main.gd" type="Script" id=1]', '',
@@ -135,7 +136,7 @@ def first_steps(name, major, tool, now=None):
             'Godot was not found on this computer when this was made. On Debian it is the package godot3 (Godot 3), '
             'which is what these files are written for.')
     lines = ['# %s: start here' % name, '',
-             'Stacy started this Godot %d project in Graphite on %s. It runs as it is.' % (major, time.strftime('%d %B %Y', time.localtime(now)).lstrip('0')), here, '',
+             named('Stacy started this Godot %d project in Graphite on %s. It runs as it is.') % (major, time.strftime('%d %B %Y', time.localtime(now)).lstrip('0')), here, '',
              '## What is here', '',
              '- `project.godot`: the project itself. Godot rewrites it when you change a setting; leave it to Godot.',
              '- `main.tscn`: the one scene: a node called Main with a Label under it.',
@@ -149,7 +150,7 @@ def first_steps(name, major, tool, now=None):
              '## From Graphite', '',
              '- `main.gd` and `main.tscn` are plain text: they open here, and Find works in them.',
              '- Programs, Godot inspects the project, opens it in Godot, or plays a scene without the editor.',
-             '- To be rid of it, move the folder to the Trash, which gives it back. While it is still as Stacy made it, Undo on her card does that.', '',
+             named('- To be rid of it, move the folder to the Trash, which gives it back. While it is still as Stacy made it, Undo on her card does that.'), '',
              'A Godot 3 project and a Godot 4 project are not the same files: this one is for Godot %d.' % major]
     return '\n'.join(lines) + '\n'
 

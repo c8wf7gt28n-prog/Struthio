@@ -48,6 +48,7 @@ stream with the entry pinned (a network entry's stream filtered to its conversat
 assignment about it in the line.
 """
 from __future__ import annotations
+from .assistant_identity import named
 import re
 import time
 from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer
@@ -343,7 +344,7 @@ class LogView(QWidget):
         self.pin_frame = QFrame();self.pin_frame.setObjectName('LogPinned');pin = QVBoxLayout(self.pin_frame);pin.setContentsMargins(10, 6, 10, 6);pin.setSpacing(2)
         self.pin_title = QLabel('');self.pin_title.setObjectName('LogPinnedLine');self.pin_title.setTextFormat(Qt.PlainText);self.pin_title.setWordWrap(True)
         self.pin_details = QLabel('');self.pin_details.setObjectName('LogPinnedDetails');self.pin_details.setTextFormat(Qt.PlainText);self.pin_details.setWordWrap(True)
-        self.pin_actions = sentence('{ask}  ·  {unpin}', {'ask': ('Ask Stacy about this', lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())})
+        self.pin_actions = sentence('{ask}  ·  {unpin}', {'ask': (named('Ask Stacy about this'), lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())})
         self.pin_actions.setObjectName('LogPinnedActions')
         for w in (self.pin_title, self.pin_details, self.pin_actions):pin.addWidget(w)
         self.pin_frame.hide();column.addWidget(self.pin_frame)
@@ -679,7 +680,7 @@ class LogView(QWidget):
         self.pinned = dict(entry)
         self.pin_title.setText(entry.get('line') or (event_line(entry['event']) if entry.get('kind') == 'event' else connection_line(entry) if entry.get('kind') == 'connection' else packet_line(entry)))
         rows = details(entry);self.pin_details.setText('   '.join('%s %s' % kv for kv in rows))
-        follow = {'ask': ('Ask Stacy about this', lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())}
+        follow = {'ask': (named('Ask Stacy about this'), lambda:self.ask()), 'unpin': ('Unpin', lambda:self.unpin())}
         if entry.get('stream') == 'network' and conversation(entry):
             follow['follow'] = ('Follow this conversation', lambda e=dict(entry):self.follow_conversation(e))
             from .shell2 import sentence

@@ -1,4 +1,5 @@
 """An explicit detached workspace, using Ledger's existing tabs and controls."""
+from .assistant_identity import named
 from pathlib import Path
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QGridLayout
 
@@ -87,7 +88,7 @@ class HomeDashboard(QWidget):
             row_box.addStretch(1);box.addLayout(row_box);grid.addWidget(frame, row, column);return body
         nav = lambda d:(lambda:host.ledger_bridge.navigation()[d]())
         self.office = card('Office', 0, 0, [('Open Office', nav('office')), ('Receive files…', self.receive_files)])
-        self.slate = card('Graphite', 0, 1, [('Open Graphite', nav('slate')), ('Ask Stacy', host.open_clip)])
+        self.slate = card('Graphite', 0, 1, [('Open Graphite', nav('slate')), (named('Ask Stacy'), host.open_clip)])
         self.files = card('Files', 1, 0, [('Open in viewer…', lambda:host.open_in_viewer()), ('Find a file…', host.quick_open)])
         self.matrix = card('What Graphite has learned', 1, 1, [('Instruction matrix', self.open_matrix)])
         outer.addLayout(grid, 1)
@@ -140,7 +141,7 @@ class HomeDashboard(QWidget):
         counts = (self.call('matrix.status') or {}).get('counts', {})
         total = sum(v for k, v in counts.items() if k != 'PROPOSED')
         self.matrix.setText(('%d staC runs · %d worked · %d failed or blocked' % (total, counts.get('SUCCESS', 0), counts.get('FAILED', 0) + counts.get('BLOCKED', 0)))
-                            if total else 'Nothing yet. Run staC in the Office or ask Stacy to plan; every outcome teaches her.')
+                            if total else named('Nothing yet. Run staC in the Office or ask Stacy to plan; every outcome teaches her.'))
 
     def receive_files(self):
         office = self.host.ledger_bridge.navigation()['office']();office.pick_files()

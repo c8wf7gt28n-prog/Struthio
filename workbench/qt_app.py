@@ -12,6 +12,7 @@ agent interface uses; this window never invents a result the CLI did not give,
 and never shows a connected device.
 """
 from __future__ import annotations
+from .assistant_identity import named
 from .text_prompts import writing_prompt
 
 from hashlib import sha256
@@ -1441,7 +1442,7 @@ class ClipAssistant(QWidget):
 
     def contextMenuEvent(self, event):
         window = self.parentWidget();menu = QMenu(self)
-        menu.addAction('Ask Stacy…', self.clicked.emit)
+        menu.addAction(named('Ask Stacy…'), self.clicked.emit)
         menu.addAction('Graphite workshop', window.show_clip_workspace)
         menu.addAction('Jobs && evidence', window.show_engineering)
         menu.addSeparator()
@@ -1772,7 +1773,7 @@ class ClipOverlay(QWidget):
         from . import ledger_control
         local=hasattr(self.window_,'ledger_bridge') and ledger_control.value(self.window_.ledger_bridge.kernel,'stacy.provider')=='local'
         writing_prompt(self.input, 'Ask local Graphite or type /commands' if local else 'Local commands or a Gemini key' if self.expect_key else
-                                      'Message Stacy · ' + self.settings.describe())
+                                      named('Message Stacy · ') + self.settings.describe())
         self.send_btn.setEnabled(not self.busy)
         self.input.setEnabled(not self.busy)
         self.anchor.setToolTip('Graphite: ' + self.settings.describe())

@@ -1,4 +1,5 @@
 """Concern navigation and workspaces over the portable organizational catalog."""
+from .assistant_identity import named
 from .text_prompts import writing_prompt
 import hashlib
 import sqlite3
@@ -64,7 +65,7 @@ class ConcernController(QObject):
         row.addWidget(self.context_label, 1)
         area = QPushButton('Working area'); area.clicked.connect(lambda: self.open(
             self.current_attention['object_id'] if self.current_attention else 'concern'))
-        ask = QPushButton('Ask Stacy'); ask.clicked.connect(self.ask_slate)
+        ask = QPushButton(named('Ask Stacy')); ask.clicked.connect(self.ask_slate)
         row.addWidget(area); row.addWidget(ask)
         self.host.center_layout.insertWidget(1, self.context_strip)
         # The strip is no longer shown (0.4.9, the audit of what repeats what). It said the name of what is open, which the

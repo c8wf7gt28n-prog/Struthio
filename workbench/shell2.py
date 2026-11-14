@@ -9,6 +9,7 @@
 It is a presentation layer over the existing window: every service, action, tab and dock is kept and reused.
 """
 from __future__ import annotations
+from .assistant_identity import named
 from .text_prompts import writing_prompt
 import json
 import re
@@ -18,6 +19,7 @@ from PySide6.QtGui import QColor, QFont, QFontDatabase, QIcon, QKeySequence, QPa
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMenu, QMessageBox, QPushButton, QScrollArea, QSizePolicy, QToolButton, QTreeWidgetItem, QVBoxLayout, QWidget
 
 # BOSS presentation; public names remain for existing room imports.
+from . import boss_theme as bt
 from .boss_theme import (GROUND, PANEL, CARD, RAISED, LINE, LINE_STRONG, TEXT, QUIET, FAINT,
     AMBER, AMBER_SOFT, AMBER_EDGE, AMBER_TEXT, PENCIL_DEEP, ERASER, ERASER_DEEP, ERASER_MARK,
     TEAL, TEAL_SOFT, TEAL_EDGE, TEAL_TEXT, READY, STOP)
@@ -52,6 +54,8 @@ def load_fonts(root):
         if path.is_file():QFontDatabase.addApplicationFont(str(path))
     script = locations.program(root) / 'branding' / 'fonts' / 'script' / 'Parisienne-Regular.ttf'
     if script.is_file():QFontDatabase.addApplicationFont(str(script))
+    typewriter = locations.program(root) / 'branding' / 'fonts' / 'typewriter' / 'SpecialElite-Regular.ttf'
+    if typewriter.is_file():QFontDatabase.addApplicationFont(str(typewriter))      # Kasandra's headings (boss_theme.DISPLAY)
     return SANS in QFontDatabase.families()
 
 
@@ -250,7 +254,8 @@ def pleasantry(label, host, pixels):
         label.setStyleSheet('QLabel {font-family:\"%s\";font-size:%dpx;color:%s;font-weight:400;padding:0 %dpx %dpx %dpx;}' % (SCRIPT, size, TEXT, right, bottom, left))
         label.setIndent(0)  # the room is exactly the swash's (with a padding Qt would add half an x of its own)
     else:
-        label.setStyleSheet('QLabel {font-family:\"%s\";font-size:%dpx;color:%s;font-weight:500;}' % (MONO, pixels, TEXT))
+        from .boss_theme import DISPLAY      # Plex Mono in Graphite; in Kasandra, the typewriter face her headings are set in
+        label.setStyleSheet('QLabel {font-family:\"%s\";font-size:%dpx;color:%s;font-weight:%d;}' % (DISPLAY, pixels, TEXT, 500 if DISPLAY == MONO else 400))
     label.setProperty('pleasantry', True);label.setProperty('pleasantry_px', pixels)
     return label
 
@@ -457,7 +462,7 @@ def hand_menu(host, face=None):
     from PySide6.QtGui import QActionGroup
     from PySide6.QtWidgets import QMenu
     from . import stacy_hand
-    menu = QMenu("Stacy's hand", host);group = QActionGroup(menu);group.setExclusive(True);lines = {}
+    menu = QMenu(named("Stacy's hand"), host);group = QActionGroup(menu);group.setExclusive(True);lines = {}
     tips = {'ask': 'As before: every change waits for your Approve',
             'show': 'She makes ordinary changes at once and shows them, each with an Undo where it can be taken back',
             'free': 'She also makes the changes the records mark for approval. What cannot be undone still asks'}
@@ -490,7 +495,7 @@ def approve_button(run, host):
     run.setStyleSheet('QPushButton {background:%s;color:%s;border:1px solid %s;border-radius:0;padding:4px 12px;font-weight:600;} '
                       'QPushButton:hover {border:1px solid %s;} QPushButton:focus {border:1px solid %s;} '
                       'QPushButton:disabled {background:transparent;color:%s;border:1px solid transparent;font-weight:400;}'
-                      % (AMBER_EDGE, GROUND, AMBER_EDGE, READY, TEXT, QUIET))
+                      % (bt.OWNER, bt.ON_OWNER, bt.OWNER, READY, TEXT, QUIET))      # the owner's decision: amber in Graphite, raspberry in Kasandra
     waits(run, host)
     return run
 
@@ -792,7 +797,7 @@ class TopBar(QWidget):
         ready = brain.get('state') == 'READY'
         self.brain.setText(('●  ' + model) if ready else ('○  Graphite · ' + words))
         self.brain.setStyleSheet('QPushButton#BrainChip {color:%s;}' % (TEXT if ready else QUIET))
-        self.brain.setToolTip('Stacy\'s brain, the model, runs on this computer · click to talk to her');self.host._status_brain = status_words
+        self.brain.setToolTip(named('Stacy\'s brain, the model, runs on this computer · click to talk to her'));self.host._status_brain = status_words
         jobs = call(self.host, 'jobs.list') or []
         active = [j for j in jobs if j.get('state') in ('Queued', 'Running')] if isinstance(jobs, list) else []
         self.running.setText(('◐  %d running' % len(active)) if active else '');self.running.setVisible(False)  # the pulse shows it, on its own 2 s sample
@@ -808,13 +813,16 @@ def short(path):
     except ValueError:return str(path)
 
 
-def relaunch(host, folder):
-    """Start Ledger again on another workspace, then close this window normally (it saves and asks about unsaved work)."""
+def relaunch(host, folder, drop=()):
+    """Start Ledger again on another workspace, then close this window normally (it saves and asks about unsaved work).
+    `drop`: names taken out of the new start's environment (an appearance chosen in the menu must not be outranked by one
+    this start was given)."""
     import os
     import sys
     from PySide6.QtCore import QProcess
     from . import locations
     env = dict(os.environ);env['ARC_LEDGER_WORKSPACE'] = str(folder);env.pop('ARC_LEDGER_EDITION', None)
+    for name in drop:env.pop(name, None)
     if not host.close():return
     process = QProcess();process.setProgram(sys.executable);process.setArguments(['-m', 'workbench.launch'])
     process.setWorkingDirectory(str(locations.PACKAGE))
@@ -965,7 +973,7 @@ class KeyedWords(QuietWords):
 
 
 # 0.5.3: what the list under the line is, with no key named (the keys work as they did).
-CAPTIONS = {'slate': 'Your words go to Stacy · staC you type is run by the arrow · / an operation',
+CAPTIONS = {'slate': named('Your words go to Stacy · staC you type is run by the arrow · / an operation'),
             'find': 'Choose a result, or search the whole workspace',
             'shell': 'Runs in your shell',
             'log': 'Filters the stream'}
@@ -979,7 +987,7 @@ class OneBox(QLineEdit):
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('OneBox')
         writing_prompt(self, 'Ask staC, run a command, or search · @ / ? $')
-        self.setToolTip('The one line you type on. The name lit at its left says who the words go to: Stacy, the Terminal, Search, the Web or the Log.')
+        self.setToolTip(named('The one line you type on. The name lit at its left says who the words go to: Stacy, the Terminal, Search, the Web or the Log.'))
         self.setAccessibleName('Writing line: Assignment, Shell, Search and Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
         self.popup = ResultsPopup(host, self);self.textEdited.connect(self.update_results);self.returnPressed.connect(self.popup.activate_current)
         self._catalog = [];self._catalog_at = 0
@@ -1083,8 +1091,8 @@ class OneBox(QLineEdit):
         if page == 'stac' or parses_as_stac(text):
             rows.append(('section', 'STAC · THE ARROW RUNS IT', None))
             if preview and text.startswith('@'):rows += preview_rows(self.host, text)
-        rows.append(('section', 'ASK STACY', None))
-        rows.append(('ask', 'Ask Stacy · ' + (text if len(text) < 48 else text[:46] + '…'), ('Enter', lambda:self.host.shell2.ask(text))))
+        rows.append(('section', named('ASK STACY'), None))
+        rows.append(('ask', named('Ask Stacy · ') + (text if len(text) < 48 else text[:46] + '…'), ('Enter', lambda:self.host.shell2.ask(text))))
         rows.append(('keep', 'Keep as a note in Notes', ('', lambda:capture(self.host, text))))
         learned = call(self.host, 'matrix.examples', {'text': text[:600]}) or {}
         worked = learned.get('worked') or []
@@ -1142,7 +1150,7 @@ class OneBox(QLineEdit):
 
     def commands(self, query):
         needle = query.casefold();found = [];seen = set()
-        places = (('Jot it down', 'capture'), ('Go to Today', 'home'), ('Go to the Office', 'office'), ('Talk to Stacy', 'slate'), ('Open the Library', 'library:all'),
+        places = (('Jot it down', 'capture'), ('Go to Today', 'home'), ('Go to the Office', 'office'), (named('Talk to Stacy'), 'slate'), ('Open the Library', 'library:all'),
                   ('Project Desk', 'project_desk'), ('Changes', 'changes'), ('Continuing work', 'continuing'), ('Exchange & deployment', 'deployment'), ('Investigations', 'investigations'), ('New investigation', 'investigations'), ("Graphite's Agenda", 'agenda'), ('Files', 'files'), ('Trash', 'trash'), ('Egress', 'files:Egress'),
                   ('Night Shift', 'continuing'), ('Work on a copy of a file', 'work_copy'), ('Working copies', 'files:Working copies'),
                   ('Settings', 'settings'), ('All commands', 'commands'), ('Organizer', 'organizer'), ('Memory & staC', 'memory'))
@@ -1324,7 +1332,7 @@ def capture(host, text):
     return ident
 
 
-CAPTURE_HINT = 'Ctrl+Enter keeps it · Ctrl+Shift+N from anywhere'
+CAPTURE_HINT = 'Keep it, and it goes to Notes exactly as written'      # 0.8.0: no key is printed (the keys still work)
 
 
 class CaptureBox(QWidget):
@@ -1731,8 +1739,8 @@ class SlateFace(QWidget):
         from .boss_qt import PanelInk
         top = QHBoxLayout();top.setSpacing(12);names = QVBoxLayout();names.setSpacing(4)
         self.portrait = PanelInk(host, 'face');self.portrait.setParent(self);top.addWidget(self.portrait, 0, Qt.AlignTop)
-        self.signature = pleasantry(QLabel('Stacy'), host, 26);names.addWidget(self.signature)
-        self.model = QLabel('Stacy');self.model.setWordWrap(True);self.model.setStyleSheet('color:%s' % QUIET);names.addWidget(self.model)
+        self.signature = pleasantry(QLabel(named('Stacy')), host, 26);names.addWidget(self.signature)
+        self.model = QLabel(named('Stacy'));self.model.setWordWrap(True);self.model.setStyleSheet('color:%s' % QUIET);names.addWidget(self.model)
         # 0.6.0: her hand, in two words, under what she speaks with; a click changes it (stacy_hand: asks first, does and shows, a free hand).
         self.hand = QPushButton();self.hand.setProperty('arcButton', 'link');self.hand.setObjectName('StacyHand');self.hand.setCursor(Qt.PointingHandCursor)
         self.hand.clicked.connect(self.open_hand);names.addWidget(self.hand, 0, Qt.AlignLeft);self.show_hand()
@@ -1762,7 +1770,7 @@ class SlateFace(QWidget):
         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
         self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show in staC, so you can run it yourself.')
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
-        self.input.returnPressed.connect(self.send);self.input.setAccessibleName('Message Stacy');self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
+        self.input.returnPressed.connect(self.send);self.input.setAccessibleName(named('Message Stacy'));self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
         hint = role(QLabel('Enter sends · Shift Enter for a new line'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
         quiet_script(hint)  # a note you may skip: the Paper script (the quiet-script rule)
         self.input_hint = hint  # with the typing bar, both are hidden: you write to Slate at the foot of the window
@@ -1793,7 +1801,7 @@ class SlateFace(QWidget):
         if self.this.property('said') == said:return
         self.this.setProperty('said', said)
         sentence(said, {'more': ('more', lambda: shell.show_context_face() if shell is not None else None)}, self.this)
-        self.this.setToolTip('What “this” means to Stacy now: %s, %s. The word opens everything Graphite knows about it.' % (name, how))
+        self.this.setToolTip(named('What “this” means to Stacy now: %s, %s. The word opens everything Graphite knows about it.') % (name, how))
 
     def show_agenda(self):
         self.show_this()
@@ -1991,6 +1999,8 @@ class SlateFace(QWidget):
         card.ran = bool(r.get('ok'));card.run.setEnabled(False);card.run.setText('Approved' if card.ran else 'Refused')
         from .boss_qt import waits
         waits(card.run, self.host, False)        # it no longer waits
+        from .kasandra_art import note_outcome
+        note_outcome(self.host, card.ran)        # Kasandra puts her pencil down, or checks the cable
         if card.ran:
             result = r['result'] if isinstance(r['result'], dict) else {}
             if isinstance(result.get('document'), dict) and result['document'].get('title'):said = 'Done: “%s”.' % result['document']['title']
@@ -2041,6 +2051,8 @@ class SlateFace(QWidget):
         changed = self.changed_since(card.entry)
         r = {'ok': False, 'error': {'message': changed}} if changed else self.run_line(card.entry['undo'])
         card.undone = bool(r.get('ok'));card.back.setEnabled(False);card.back.setText('Undone' if card.undone else 'Not undone')
+        from .kasandra_art import note_outcome
+        note_outcome(self.host, card.undone)
         if card.undone:
             stacy_hand.taken_back(self.host.session.state, card.entry)
             result = r['result'] if isinstance(r.get('result'), dict) else {}
@@ -2080,8 +2092,8 @@ class SlateFace(QWidget):
         """Her hand, in two words under what she speaks with."""
         from . import stacy_hand
         place = stacy_hand.level(self.host)
-        self.hand.setText(stacy_hand.SAYS[place]);self.hand.setAccessibleName("Stacy's hand: " + dict(stacy_hand.LEVELS)[place])
-        self.hand.setToolTip('How far Stacy acts by herself: %s. Click to change it.' % dict(stacy_hand.LEVELS)[place])
+        self.hand.setText(stacy_hand.SAYS[place]);self.hand.setAccessibleName(named("Stacy's hand: ") + dict(stacy_hand.LEVELS)[place])
+        self.hand.setToolTip(named('How far Stacy acts by herself: %s. Click to change it.') % dict(stacy_hand.LEVELS)[place])
 
     def open_hand(self):
         menu = hand_menu(self.host, self)
@@ -2380,6 +2392,8 @@ class SlateFace(QWidget):
             if not ok:break
         went = sum(1 for _, ok, _ in card.results if ok)
         card.run.setText('Ran %d of %d' % (went, len(card.plan)))
+        from .kasandra_art import note_outcome
+        note_outcome(self.host, went == len(card.plan))
         if getattr(card, 'hers', False):
             try:self.host.session.save()
             except Exception:  # noqa: BLE001 - the changes are made and said
@@ -2572,6 +2586,8 @@ class SlateFace(QWidget):
         ident = self.job;self.job = None;self.timer.stop()
         if job['state'] != 'Completed':
             self.grounded = False
+            from .kasandra_art import note_outcome
+            note_outcome(self.host, False)
             self.pending.set_text('I stopped: ' + (job.get('error') or job['state']) + '. This is recorded so I learn from it.');return
         result = (call(self.host, 'brain.result', {'id': ident}) or {}).get('result') or {}
         proposal = result.get('proposal') or {}
@@ -2632,7 +2648,7 @@ class SlateFace(QWidget):
         if is_program:
             run.setObjectName('ProgramReviewRun')
             run.setStyleSheet('QPushButton {background:%s;color:%s;padding:4px 12px;font-weight:600;} '
-                              'QPushButton:disabled {background:%s;color:%s;}' % (AMBER_EDGE, GROUND, PANEL, QUIET))
+                              'QPushButton:disabled {background:%s;color:%s;}' % (bt.OWNER, bt.ON_OWNER, PANEL, QUIET))
             epoch = getattr(self, 'job_epoch', self.host._operation_epoch)
             run.clicked.connect(lambda:self.run_program_proposal(action, seed_id, epoch, run))
         else:
@@ -3370,12 +3386,12 @@ class Shell2(QObject):
         other = 'Activity' if current is getattr(self.host, 'operations_panel', None) else ('Sources' if preview is not None else 'Context') if current is getattr(self.host, 'arc_inspector', None) else ''
         # With a spreadsheet's worksheet open the pane has two faces of its own, her and the sheet's Preview: the title is
         # then the way from one to the other, so neither is ever out of reach.
-        pair = '' if preview is None or other else ('Preview  ›' if current is self.face else '‹ Stacy' if current is preview else '')
+        pair = '' if preview is None or other else ('Preview  ›' if current is self.face else named('‹ Stacy') if current is preview else '')
         home = not other and not pair
-        words = pair or ('Stacy' if home else '‹ Stacy  ·  %s' % other)
+        words = pair or (named('Stacy') if home else named('‹ Stacy  ·  %s') % other)
         if title.text() != words:
-            title.setText(words);title.setAccessibleName('Stacy' if home else ('The sheet’s Preview' if pair.startswith('Preview') else 'Back to Stacy' + (' from ' + other if other else '')))
-            title.setToolTip('' if home else ('The sheet’s Preview' if pair.startswith('Preview') else 'Back to Stacy'))
+            title.setText(words);title.setAccessibleName(named('Stacy') if home else ('The sheet’s Preview' if pair.startswith('Preview') else named('Back to Stacy') + (' from ' + other if other else '')))
+            title.setToolTip('' if home else ('The sheet’s Preview' if pair.startswith('Preview') else named('Back to Stacy')))
         tabs = self.face_tabs
         # 0.7.0 ("Probably don't even need the Stacy name tag taking up space"): at rest the pane has no title row at all;
         # her face is its top. The row comes back, as the way back, only while Activity or Context is up.

@@ -101,6 +101,7 @@ class Session:
             return
         if not isinstance(data, dict) or data.get('schema') != SCHEMA:
             return
+        if data.get('appearance') in ('graphite', 'kasandra'):self.state['appearance'] = data['appearance']     # the whole window's look (boss_theme.APPEARANCES): this computer's, not a project's
         # Documents belong to one project; a different project starts clean.
         if self.project and data.get('project') not in (None, self.project):
             return
