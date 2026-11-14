@@ -452,6 +452,20 @@ class LineTests(unittest.TestCase):
                 self.key(text);self.assertEqual(self.ran,[],text)
         self.assertEqual(self.asked,['files.list','@files:stock.csv | rows','show me the files'],'Enter gives the line to Graphite')
 
+    def test_the_results_go_when_the_line_is_left(self):
+        """0.8.2: a line put in the writing line (the right-click's Put it in the writing line) opened its results, and they
+        stayed over the Field after a click there. They go when the line is left for other work; the words stay. The line's
+        own right-click and the window losing the keyboard for a moment leave them open."""
+        from PySide6.QtCore import QEvent, Qt
+        from PySide6.QtGui import QFocusEvent
+        from PySide6.QtWidgets import QApplication
+        for reason, stays in ((Qt.MouseFocusReason, False), (Qt.TabFocusReason, False), (Qt.OtherFocusReason, False),
+                              (Qt.PopupFocusReason, True), (Qt.ActiveWindowFocusReason, True)):
+            self.box.setText('@files:stock.csv | rows');self.box.popup.show()
+            QApplication.sendEvent(self.box, QFocusEvent(QEvent.FocusOut, reason))
+            self.assertEqual(self.box.popup.isVisibleTo(self.host), stays, reason)
+            self.assertEqual(self.box.text(), '@files:stock.csv | rows', 'the words stay')
+
     def test_ctrl_enter_runs_typed_stac_through_the_stac_path(self):
         self.key('files.list',control=True);self.key('@files:stock.csv | rows',control=True)
         self.assertEqual(self.ran,[('stac','files.list'),('stac','@files:stock.csv | rows')]);self.assertEqual(self.asked,[])

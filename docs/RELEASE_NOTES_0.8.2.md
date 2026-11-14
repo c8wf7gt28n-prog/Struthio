@@ -109,6 +109,13 @@ Values stay in the clear face, so 1, l and I never blur. Up and Down move along 
 goes back to the Field. On After Hours 07 the cut shows Pulse duration going from 120 ms to 80 ms, and the pulse
 ceiling's condition from "Up to 120 ms" to "Up to 80 ms". The open question stays pink until the case answers it.
 
+## Also
+
+- **The writing line's results go when you leave the line.** After **Put it in the writing line**, the list of what the
+  line can do opened under it and stayed there, over the Field, after you clicked into the Field. It now goes as soon
+  as the line is left for other work; the words stay in the line, and the list comes back when you click the line
+  again. The playable scene found it.
+
 ## What is not done
 
 - Nothing later than 0.4.6 has run on the ThinkPad. The timings, the brightness and the catch were judged from frames

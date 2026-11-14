@@ -1015,6 +1015,13 @@ class OneBox(QLineEdit):
         super().focusInEvent(event)
         if self.text():self.update_results(self.text())
 
+    def focusOutEvent(self, event):
+        # 0.8.2: the results go when the line is left for other work (a click in the Field, Tab), so they never stay over it;
+        # the words stay, and the results come back with the focus. Its own right-click, or the window losing the
+        # keyboard for a moment, leaves them as they are. The list itself takes no focus, so choosing a row keeps it here.
+        super().focusOutEvent(event)
+        if event.reason() not in (Qt.PopupFocusReason, Qt.ActiveWindowFocusReason):self.popup.hide()
+
     def focusNextPrevChild(self, forward):
         if self.console_page(self.text()):return False  # Tab completes a console line; it does not leave the box
         return super().focusNextPrevChild(forward)

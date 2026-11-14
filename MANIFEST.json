@@ -1658,8 +1658,8 @@
       "sha256": "67ce9d396d0ca78e7a16ae1463acaf10ed25a31c5a34c05ac3c5ab15458f1f64"
     },
     "docs/RELEASE_NOTES_0.8.2.md": {
-      "bytes": 9013,
-      "sha256": "a5566a163e1be132c1aa66fcf1ed928a9f005cd28a1196e090dccab2516ae128"
+      "bytes": 9413,
+      "sha256": "d5a8c73aed1316290fce607ed5d85c707f4fe23aae982de5b66f336e1f8361dc"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -2179,7 +2179,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 1908812,
-      "sha256": "2bd26e5a95e95546532a99d7767f36fd4c1f9c0bf007b2d6ccfe573e82951790"
+      "sha256": "8bd2838603d02ee7e5320b8fbcda81ea7cf15cbcc82321d7b74a711a71f17cb1"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4358144,
@@ -2187,7 +2187,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "f3a83066393334916fa1149d843f531efa9c36612841e6aa5bd3a1e6fe2c3e5e"
+      "sha256": "550f9730e497c6dde4869ea0b2042e20ea3155391752a4165d62b49c64e54196"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2806,8 +2806,8 @@
       "sha256": "f7e7a8edfbe2dcc18669bdb020ad90e270ad1eb1245e14fa3db0d737a772af1c"
     },
     "tests_integrated/test_writing_line.py": {
-      "bytes": 42205,
-      "sha256": "026ad28a23ed41f8007ee6ed25f1e4203fff3618bae61f7a2e053168aa2e562b"
+      "bytes": 43296,
+      "sha256": "2ee578c1c1a94be6beb77d75cfd7ef5f4898657f65a19ac79b9fd63555d7a0d4"
     },
     "tools/build_project_spec.py": {
       "bytes": 8651,
@@ -4742,8 +4742,8 @@
       "sha256": "2e8a09417f536e8b4a1189dc0d7fdc966d8d54ef4cb5bb9a583cc0df4009610a"
     },
     "workbench/shell2.py": {
-      "bytes": 254227,
-      "sha256": "9d13a00df74b71bd322608711e122315f93015c417b277de507615ed641badb8"
+      "bytes": 254765,
+      "sha256": "3d802e0ebddf2969e6b7b78b5f86876761c8adcdef85d5705a2f0252654fd666"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,
