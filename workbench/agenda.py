@@ -219,7 +219,7 @@ def add(kernel, args, principal, origin='you', parent=None, why='', state=None):
                     due, every * 3600.0 if every else None, when.get('after'), int(bool(when.get('idle'))), when.get('timezone'), 0,
                     None, None, clock, clock, None, None, args.get('copy')))
         if args.get('watch'):  # a watch: asked now for a first answer, then again on its schedule; it tells you only about changes
-            if not args.get('program'):raise ValueError('AGENDA_WATCH_NEEDS_STAC: a watch keeps asking a staC question')
+            if not args.get('program'):raise ValueError('AGENDA_WATCH_NEEDS_STAC: a watch keeps asking a question written as a line')
             db.execute("UPDATE agenda_items SET watch=1, every=?, due=?, state='NEXT' WHERE id=?", ((every or WATCH_HOURS) * 3600.0, clock, ident))
         return item(owned(db, ident, principal.identity))
 

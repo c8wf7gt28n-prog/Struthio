@@ -254,7 +254,7 @@ def dispatch(kernel, op, args, principal):
             entry = next((e for e in patterns(db, owner, 100) if e['shape'] == args['shape']), None)
             if entry is None:raise ValueError('MATRIX_PATTERN_NOT_FOUND')
             if entry['success'] == 0:raise ValueError('MATRIX_PATTERN_HAS_NO_SUCCESS')
-            body = ('staC pattern: ' + entry['shape'] + '\nExample: ' + entry['example_program'] +
+            body = ('Pattern: ' + entry['shape'] + '\nExample: ' + entry['example_program'] +
                     ('\nFor: ' + entry['example_intent'] if entry['example_intent'] else '') +
                     '\nOutcomes: %d of %d succeeded.' % (entry['success'], entry['tries']) +
                     (' Known failures: ' + '; '.join(r['reason'] for r in entry['reasons']) if entry['reasons'] else ''))[:1500]

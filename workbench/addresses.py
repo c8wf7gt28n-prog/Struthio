@@ -19,7 +19,7 @@ SCOPES = {op: 'read' for op in FIELDS}
 # kind: (registered read operation, argument the identifier fills, what it shows)
 KINDS = {
     'work': ('work.get','id','Frozen work order, owner grant, budgets and continuing progress'),
-    'procedure': ('procedures.get','id','Owner-reviewed reusable staC call procedure'),
+    'procedure': ('procedures.get','id','Owner-reviewed reusable call procedure'),
     'worker': ('workers.run','id','Private protected-worker execution receipt'),
     'context': ('slate.context.get', 'id', 'Frozen ranked Slate context, locators and exclusions'),
     'document': ('documents.get', 'id', 'Saved document and its revision'),

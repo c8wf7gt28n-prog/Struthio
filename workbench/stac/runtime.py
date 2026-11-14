@@ -24,7 +24,7 @@ class RunError(ValueError):
 
 def _kernel_read(kernel, operation, arguments):
     if operation not in READ_OPS or CAPABILITIES.get(operation) != 'read':
-        raise RunError('staC read-only broker denied operation: ' + str(operation))
+        raise RunError('The read-only broker denied operation: ' + str(operation))
     caller = Principal('stac-readonly', frozenset({'read'}), mode='Tutor')
     envelope = kernel.dispatch(operation, arguments, caller)
     if not isinstance(envelope,dict) or not envelope.get('ok'):
@@ -198,9 +198,9 @@ def _gaps(value):
 def _validate_ir(ir):
     """Defense in depth: do not trust caller-provided type/effect declarations."""
     if not isinstance(ir,dict) or set(ir)!={'schema','version','digest_profile','context','binding','nodes','result_type','effects'}:
-        raise RunError('Invalid staC IR fields')
+        raise RunError('Invalid IR fields')
     if (ir['schema'], ir['version']) not in ((SCHEMA, 2), (SCHEMA_04, 4), (SCHEMA_05, 5), (SCHEMA_06, 6)) or ir['digest_profile']!=DIGEST_PROFILE:
-        raise RunError('Unrecognized staC IR schema/version/digest profile')
+        raise RunError('Unrecognized IR schema/version/digest profile')
     if ir['binding']!={'state':'SYMBOLIC_UNPINNED','source_generation':None}:
         raise RunError('Only compiled symbolic instructions may be executed')
     if ir['context'] not in ({'project':'ARC-1','board':'R10'}, {'project':'Ledger','board':'CURRENT'}):
@@ -345,7 +345,7 @@ def evaluate(ir:dict,kernel)->dict:
             value={'type':'ProvenanceReport','payload':_provenance(value)}
         elif operation=='stac.gaps':
             value={'type':'GapReport','payload':_gaps(value)}
-        else:raise RunError('Operation is not in the staC interpreter allowlist')
+        else:raise RunError('Operation is not in the interpreter allowlist')
         history.append({'op':operation,'state':'COMPLETED','type':value['type']})
     if any(n['op']=='stac.verify' for n in nodes) and resolved_fact is not None:
         checked_vendor=_kernel_read(kernel,'vendor.status',{})

@@ -32,7 +32,7 @@ class ReasoningPane(ServiceTab):
         self.addresses = QPlainTextEdit(); self.addresses.setFixedHeight(75); writing_prompt(self.addresses, 'Source addresses or namespace:ID, one per line'); form.addRow('Extra sources', self.addresses)
         self.budget = QSpinBox(); self.budget.setRange(512, 32000); self.budget.setValue(6000); self.budget.setSingleStep(512); form.addRow('Context characters', self.budget)
         self.task = QComboBox()
-        for label, value in [('Answer from sources', 'ANSWER'), ('Suggest staC reads', 'PLAN'), ('Draft exact text edit', 'EDIT'), ('Clarify the request', 'CLARIFY')]: self.task.addItem(label, value)
+        for label, value in [('Answer from sources', 'ANSWER'), ('Suggest reads', 'PLAN'), ('Draft exact text edit', 'EDIT'), ('Clarify the request', 'CLARIFY')]: self.task.addItem(label, value)
         form.addRow('Help with', self.task)
         self.target = QLineEdit(); writing_prompt(self.target, 'For an edit: files:NAME of an input already selected'); form.addRow('Edit target', self.target)
         self.task.currentIndexChanged.connect(lambda: form.setRowVisible(self.target, self.task.currentData() == 'EDIT'))
@@ -311,7 +311,7 @@ class ReasoningPane(ServiceTab):
     def use_interpretation(self):
         candidate = (self.record or {}).get('candidate', {})
         if not self.desk.assignment or not candidate.get('interpretation'):
-            self.notice.setText('Select an assignment and ask for a staC suggestion first.'); return
+            self.notice.setText('Select an assignment and ask for a suggestion first.'); return
         if not self.keep_reply(): return
         self.desk.interpretation.setPlainText(candidate['interpretation']); self.desk.questions.setPlainText('\n'.join(candidate.get('questions', [])))
         self.desk.tabs.setCurrentIndex(1)

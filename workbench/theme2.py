@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QWidget
 from .shell2 import (AMBER, AMBER_EDGE, AMBER_SOFT, CARD, ERASER, ERASER_DEEP, ERASER_MARK, GROUND, LINE, LINE_STRONG, PANEL, PENCIL_DEEP, QUIET, RAISED,
                      TEAL_EDGE, TEAL_SOFT, TEAL_TEXT, TEXT)
 from .boss_theme import LINE_MID
+from . import boss_theme as _bt
 
 PALETTE = (('Window', GROUND), ('Base', CARD), ('AlternateBase', GROUND), ('Button', CARD), ('WindowText', TEXT), ('Text', TEXT),
            ('ButtonText', TEXT), ('BrightText', TEXT), ('Light', CARD), ('Midlight', LINE), ('Dark', LINE_STRONG), ('Mid', LINE),
@@ -122,7 +123,7 @@ QLabel#KindChip { background: %(CARD)s; color: %(TEXT)s; border: 1px solid %(LIN
 QPushButton#AddressChip { background: %(TEAL_SOFT)s; color: %(TEAL_TEXT)s; border: 1px solid %(LINE)s; border-radius: 8px; padding: 4px 10px;
     font-family: "IBM Plex Mono", "DejaVu Sans Mono", monospace; }
 QPushButton#AddressChip:hover { background: %(TEAL_SOFT)s; }
-QFrame#SlateMine { background: %(AMBER_SOFT)s; border: 1px solid %(LINE)s; border-radius: 10px; }
+QFrame#SlateMine { background: %(VIOLET_SOFT)s; border: 1px solid %(VIOLET_DEEP)s; border-radius: 10px; }
 QFrame#SlateTheirs { background: %(CARD)s; border: 1px solid %(LINE)s; border-radius: 10px; }
 QFrame#StacCard { background: %(TEAL_SOFT)s; border: 1px solid %(LINE)s; border-radius: 10px; }
 /* Writable passages (companion line 65/69, DESKTOP-01 V-02): the New Idea sheet, the Slate composer and the New Project title are
@@ -134,7 +135,9 @@ QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capt
     padding: 10px 14px 8px 14px; }
 """ % dict(GROUND=GROUND, PANEL=PANEL, CARD=CARD, RAISED=RAISED, LINE=LINE, LINE_STRONG=LINE_STRONG, LINE_MID=LINE_MID, TEXT=TEXT, QUIET=QUIET,
            AMBER=AMBER, AMBER_SOFT=AMBER_SOFT, AMBER_EDGE=AMBER_EDGE, PENCIL_DEEP=PENCIL_DEEP, ERASER=ERASER, ERASER_DEEP=ERASER_DEEP, ERASER_MARK=ERASER_MARK,
-           TEAL_SOFT=TEAL_SOFT, TEAL_EDGE=TEAL_EDGE, TEAL_TEXT=TEAL_TEXT)
+           TEAL_SOFT=TEAL_SOFT, TEAL_EDGE=TEAL_EDGE, TEAL_TEXT=TEAL_TEXT, VIOLET_SOFT=_bt.VIOLET_SOFT, VIOLET_DEEP=_bt.VIOLET_DEEP)
+if _bt.APPEARANCE == 'kasandra':      # 0.8.0: her answers carry an edge of honey, the colour of her hair
+    QSS2 += 'QFrame#SlateTheirs { border-left: 3px solid %s; }\n' % _bt.HONEY
 
 
 HEX = re.compile(r'#([0-9a-fA-F]{6})\b')

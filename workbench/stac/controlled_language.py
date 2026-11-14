@@ -57,4 +57,4 @@ def translate(text: str) -> dict:
                 'executed':False,'model_invoked':False,
                 'source_binding':'SYMBOLIC_UNPINNED',
                 'notice':'Deterministic recognized form only. No general natural language understanding or source verification.'}
-    raise TranslationError('AMBIGUOUS_OR_UNSUPPORTED_ENGLISH: use strict staC or an explicitly listed controlled-English form')
+    raise TranslationError('AMBIGUOUS_OR_UNSUPPORTED_ENGLISH: use a strict line or an explicitly listed controlled-English form')

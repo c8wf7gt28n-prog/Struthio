@@ -36,7 +36,7 @@ In Kasandra:
 - **The Field** carries her wires and rooftops, faint, behind its heading.
 - **Her name is Kasandra**, wherever a sentence shows the assistant's name: the typing strip (Kasandra · Terminal ·
   Search · Web · Log), the menus ("Ask Kasandra about this…"), her pane's title, the meters' cards, and what the model is
-  told it is called. Her language is still staC. What is history keeps the name it was written with (the Agenda's stored
+  told it is called. What is history keeps the name it was written with (the Agenda's stored
   lines, her trail).
 - **Headings in a typewriter face.** The greeting, the Field's heading and the workspace's title are set in Special
   Elite, the worn typewriter face from your pack. Values, cells, receipts and controls stay in IBM Plex.
@@ -55,6 +55,36 @@ written (a suggestion is taken only if it names a still offered for that place a
 was asked for is still the view), but no model turn asks for one yet. No still changes with an animation: a change of
 state swaps the picture. The appearance cannot change in a running window: every page is built in its colours when
 Graphite starts.
+
+## Her monogram, her column, and two more colours
+
+"This could be the icon for the programs menu … Maybe icons in kasandra column if they look good and kool."
+
+- **Programs** wears your "kp" monogram in Kasandra, in its own colours (the k pale, the p violet, the trace teal), cut
+  from its dark ground so it sits on hers. Graphite keeps "[#] Programs".
+- **Her column** has two of Graphite's own glyphs, in her cyan: a framed square beside **This** (what is open) and a
+  play mark in a hexagon beside **Now** (what runs and waits). I tried a chip beside what she speaks with and sliders
+  beside her hand as well; beside her face the room is short and her hand's words were cut, so those two are not there.
+
+"Should we welcome more colors like a yellow that matches her hair and more shades of violet." Yes, each with one job,
+so that a colour still says something:
+
+- **Honey**, from her hair, is hers: the left edge of her answers in the conversation, and the mark under her name on
+  the typing strip when she is the one you are typing to.
+- **Violet**, from your monogram, is the desk's structure: section headings and the Field's column titles; the greeting
+  in a pale violet; your own messages on a deep violet with a violet edge; the equalizer's bars, which rise from violet
+  to cyan at their tops.
+
+Graphite keeps every colour it had.
+
+## A line is a line
+
+The language of the lines you can run is no longer named anywhere in the window. It is all still there and still
+growing; it is simply called a line: the arrow says **Run this line** and "· runs as a line", the Field's button is
+**Line**, the console's prompt is "line ›", what she shows under an answer is "the line that reads it", and her model's
+line says only which model she runs on. Her model is told to call a line a line. A sweep of the running window (every
+label, tip, placeholder, accessible name and menu line, on Home, in the Field and on the typing line, in both
+appearances) finds the name nowhere.
 
 ## Smaller
 

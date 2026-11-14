@@ -488,8 +488,8 @@ class LineTests(unittest.TestCase):
 
     def test_the_line_offers_stac_for_ctrl_enter_and_search_searches(self):
         with patch('workbench.shell2.call',return_value=None):
-            rows=self.box.results('files.list');self.assertEqual(rows[0],('section','STAC · THE ARROW RUNS IT',None));self.assertEqual(rows[2][0],'ask')
-            self.assertNotIn(('section','STAC · THE ARROW RUNS IT',None),self.box.results('show me the files'))
+            rows=self.box.results('files.list');self.assertEqual(rows[0],('section','A LINE · THE ARROW RUNS IT',None));self.assertEqual(rows[2][0],'ask')
+            self.assertNotIn(('section','A LINE · THE ARROW RUNS IT',None),self.box.results('show me the files'))
             self.host.type_target='find';self.host.type_bar.target='find'
             rows=self.box.results('Interface text');self.assertEqual(rows[1][0],'search');self.assertIn(('section','SETTINGS',None),rows)
             self.assertTrue(any(r[0]=='command' and 'reading.ui_pt' in r[1] for r in rows),rows)

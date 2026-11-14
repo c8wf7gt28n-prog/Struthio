@@ -28,7 +28,7 @@ class BrainTab(ServiceTab):
             row.addStretch(1);self.outer.addLayout(row);self.action_rows.append(row)
         control_content=QWidget();controls=QVBoxLayout(control_content);controls.setContentsMargins(6,6,6,6)
         self.launch_scroll=QScrollArea();self.launch_scroll.setWidgetResizable(True);self.launch_scroll.setWidget(control_content)
-        row=QHBoxLayout();trials=QPushButton('Run answer, staC, exact-edit and clarification trials');trials.clicked.connect(self.task_trials);row.addWidget(trials);row.addStretch(1);controls.addLayout(row)
+        row=QHBoxLayout();trials=QPushButton('Run answer, line, exact-edit and clarification trials');trials.clicked.connect(self.task_trials);row.addWidget(trials);row.addStretch(1);controls.addLayout(row)
         self.copy=QCheckBox('Copy into Graphite’s model store');self.copy.setToolTip('Copies stay outside the program ZIP. Otherwise Graphite references the selected files in their original location.');controls.addWidget(self.copy)
         options=QGridLayout();self.context=QSpinBox();self.context.setRange(512,8192);self.context.setSingleStep(512);self.context.setValue(2048)
         self.memory=QSpinBox();self.memory.setRange(0,262144);self.memory.setSingleStep(512);self.memory.setSpecialValueText('Auto');self.memory.setValue(0)

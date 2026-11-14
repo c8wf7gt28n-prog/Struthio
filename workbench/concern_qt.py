@@ -619,7 +619,7 @@ WORKSPACES = {
     'arc1': ('Open hardware workspace', lambda h: h.show_assembly()),
     'ledger': ('Open Graphite tools', lambda h: h.show_project_desk()),
     'slate': ('Open conversation', lambda h: h.show_clip_workspace()),
-    'stac': ('Open Memory & staC', lambda h: h.ledger_bridge.navigation()['memory']()),
+    'stac': ('Open Memory', lambda h: h.ledger_bridge.navigation()['memory']()),
     'orange_book': ('Read Orange Book', lambda h: h.show_orange_book()),
     'struthio': ('Open game workspace', lambda h: h.show_native_game()),
     'library': ('Open reference tools', lambda h: h.show_database_rom()),

@@ -197,7 +197,7 @@ class SlateSwitch(QToolButton):
         try:
             enabled = value(self.host.ledger_bridge.kernel, 'stacy.enabled')
             self.setChecked(enabled);self.setText('AI ON' if enabled else 'AI OFF');self.setEnabled(True)
-            self.setToolTip('Allow new Graphite AI requests. Files, tools and staC remain available when OFF. An already running request may finish. ON does not start or download a model.')
+            self.setToolTip('Allow new Graphite AI requests. Files, tools and lines remain available when OFF. An already running request may finish. ON does not start or download a model.')
         except Exception:
             self.setText('AI —');self.setEnabled(False);self.setToolTip('The Graphite AI setting is unavailable')
 

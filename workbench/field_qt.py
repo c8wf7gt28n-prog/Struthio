@@ -60,7 +60,7 @@ KEYS = (('h', 'Move'),
         ('k', 'T\ttrace it: where it comes from and what rests on it'),
         ('k', named('C\tcheck the whole desk: what waits, and what Stacy doubts')),
         ('k', 'B\tthe brief: the desk written up as one page, from the records'),
-        ('k', 'S\tthis sheet’s staC line, into the writing strip'),
+        ('k', 'S\tthis sheet’s line, into the writing strip'),
         ('k', 'Shift+Enter\trun that line; the answer opens in the working area'),
         ('k', 'what if …\tin the writing strip, with a sheet selected: “what if B4 were 100?” marks everything that would move'),
         ('h', 'Do'),
@@ -76,7 +76,7 @@ KEYS = (('h', 'Move'),
         ('k', 'every key\tshown on the surface is a place to click, and does what the key does'),
         ('k', 'F9\tthe Field, from anywhere in Graphite'),
         ('k', 'this\tin the writing strip: the selected sheet (this | count, then Ctrl+Enter)'),
-        ('k', 'word\tin the writing strip: word NAME = LINE keeps a staC line under a word of your own'))
+        ('k', 'word\tin the writing strip: word NAME = LINE keeps a line under a word of your own'))
 
 
 def ink(colour, alpha=1.0):
@@ -871,7 +871,7 @@ class FieldView(QWidget):
                 self._hot.append((spot, key, '', tip));at += wide
         self._keys_line(p, r.left() + pad, base, [item for item in read['foot'].split('      ') if item.strip()], t.QUIET, r.width() - 2 * pad - fm_foot.horizontalAdvance(more) - 16 * s)
         if code:
-            p.setPen(QColor(t.TEAL_EDGE));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('staC  ' + code, Qt.ElideRight, r.width() - 2 * pad))
+            p.setPen(QColor(t.TEAL_EDGE));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('line  ' + code, Qt.ElideRight, r.width() - 2 * pad))
         p.restore()
 
     def _kasandra(self, slot, state):
@@ -954,9 +954,9 @@ class FieldView(QWidget):
         box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
         p.setPen(QPen(ink(t.LINE_STRONG, 0.7), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.9));p.drawRect(box)
         x = box.left() + pad;y = box.top() + pad + head.ascent()
-        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.TEAL_TEXT));p.drawText(QPointF(x, y), 'staC')
+        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.TEAL_TEXT));p.drawText(QPointF(x, y), 'LINE')
         said = 'says how this is read';said_w = head.horizontalAdvance(said)
-        if inner_w > head.horizontalAdvance('staC') + said_w + 12 * s:
+        if inner_w > head.horizontalAdvance('LINE') + said_w + 12 * s:
             p.setPen(QColor(t.QUIET));p.setFont(self.mono(12));p.drawText(QPointF(box.right() - pad - said_w, y), said)
         y += 4 * s + head.descent()
         p.setFont(self.mono(12))
@@ -1112,7 +1112,7 @@ class FieldView(QWidget):
             if not ids or ids[0] not in self._placed:continue
             first = self._placed[ids[0]]
             x = body.left() + first.x - self.scroll_x;y = body.top() + (min(first.y - 6 * s, fm.ascent() + 6 * s / self.zoom) if far else 24 * s) - self.scroll_y
-            p.setPen(ink(t.QUIET, 0.95))
+            p.setPen(ink(t.VIOLET, 0.95))      # Graphite: quiet; Kasandra: the desk's violet
             p.drawText(QPointF(x, y), self.field.rank_title(rank))
             p.setPen(QPen(ink(t.LINE, 0.9), 1))
             start = x + fm.horizontalAdvance(self.field.rank_title(rank)) + 10 * s
@@ -1409,7 +1409,7 @@ class FieldView(QWidget):
         # a click on a sheet opens it, so there is no Open; the faces are at the head; the lamp at the head goes to what waits;
         # Z is on the strip above; the right button is the menu. Every key is still on the card that ? shows.
         legend = [(2, 'D  do'), (4, 'X  doubt'), (6, 'T  trace'), (5, 'C  check all'), (6.5, 'B  brief'), (10, 'R  look again'), (12, '⌫  where I was'), (0, 'Esc  back')]
-        if not self.rail():legend.insert(5, (7, 'S  staC'))       # where Stacy's rail is not shown, the line's key is offered here instead
+        if not self.rail():legend.insert(5, (7, 'S  line'))       # where Stacy's rail is not shown, the line's key is offered here instead
         p.setFont(self.mono(12));fm = QFontMetricsF(p.font())
         if obj is None:
             self._keys_line(p, x, top + h / 2 + fm.ascent() / 2, ['R  look again', 'Esc  back'], t.QUIET, self.width() - 2 * x);return
@@ -1444,7 +1444,7 @@ class FieldView(QWidget):
         marked = bool(self.would.get(obj.id))
         if marked:                           # a what-if marks this sheet: the foot says it whole, and has the line to itself
             said = 'WHAT IF      ' + self.would_said.replace('what if ', '', 1) + '      ' + self.would[obj.id];p.setPen(QColor(t.AMBER_TEXT))
-        code = '' if self.rail() or not obj.stac or marked else 'staC  ' + '  '.join(self.stac_lines(obj.stac))      # no rail: the line is said here
+        code = '' if self.rail() or not obj.stac or marked else 'line  ' + '  '.join(self.stac_lines(obj.stac))      # no rail: the line is said here
         if self.steps or self.go:            # the owner asked what can be done: the foot says the steps and the go, wherever the rail is
             # The go comes first, as a button: it is never the item that does not fit. Each step is a place to click, as a digit is a key.
             items = (['G  ' + self.go] if self.go else []) + ['%d  %s%s' % (n + 1, words, ' (asks first)' if kind == 'write' else '') for n, (words, kind) in enumerate(self.steps[:9])]

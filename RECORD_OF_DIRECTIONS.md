@@ -31,6 +31,14 @@ the method and keep your own version, pin it where you need it, and run it with 
 holds already for staC reads and is the one to keep: the same registered operation runs under the click and under her
 request. Its first experiment: one clearance method, one fixture, one menu entry.
 
+Also on 14 November 2026: "We will continue to use and develop staC but we will not mention its name … it will be our
+little super power secret." The language stays and grows; nothing the owner sees in the window names it. What was shown
+as its name is shown as "a line" (Run this line, the Field's Line, "· runs as a line"), and the model is told to call a
+line a line. Its name stays in the code, the operation names and the history. And: "Should we welcome more colors like a
+yellow that matches her hair and more shades of violet": yes, each with one job. Honey is hers (the edge of her answers,
+the mark under her name when she is the one typed to); the violets are the desk's structure (headings, the Field's
+column titles, your own messages, the equalizer). The "kp" monogram is the icon of Programs in Kasandra.
+
 One ThinkPad on minimal Debian runs it. The model is local. Nothing leaves the computer unless the owner turns a
 service on. Finished means installed and seen working on that ThinkPad, judged by real completed work.
 

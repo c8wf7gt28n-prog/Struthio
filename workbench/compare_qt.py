@@ -57,7 +57,7 @@ class CompareTab(QWidget):
         c = d.get('copy')
         if c:
             rows[:0] = [('Working copy of', c['source_words']), ('State', c['status']), ('Graphite may edit', 'Yes' if c['for_slate'] else 'No'),
-                        ('staC address', '@copies:' + c['id'])]
+                        ('Address', '@copies:' + c['id'])]
             if c.get('last_update'):rows.append(('Last update', 'revision applied · Undo is in Files'))
         return self.title(), rows
 

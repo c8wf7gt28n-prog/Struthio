@@ -45,7 +45,7 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 
 ## First work in the desk
 
-- Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the selected sheet's staC line in the writing strip and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
+- Press **F9** for the Field: the workshop's source, sheet, report and findings as sheets with the wires between them. Arrow keys follow a wire, **Enter** opens the real page, **Esc** comes back. **S** puts the line that reads the selected sheet in the writing strip and **Shift+Enter** runs it. **N** shows this computer's network the same way and **W** returns to the work.
 
 - From a worksheet, open **Full spreadsheet**, save in Calc, then choose **Return to sheet**.
 - In a reviewed PDF sheet, select a row and choose **Open source row** to view the original passage. Pin the sheet first if you want to keep it open beside the PDF. A changed working value can be rechecked in the report.
@@ -80,7 +80,7 @@ placeholders. Read on that day from the publisher's and the runtime's own pages,
 - Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
   this one (`docs/MODEL_TRIAL_03.md`). Stacy reads the records herself and asks the model only for the words, so a small
   model is useful from the first day.
-- Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in the writing strip. **Ctrl+Enter** runs the local staC read. Prefix it with `explain` to preview the plan.
+- Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in the writing strip. **Ctrl+Enter** runs the local read. Prefix it with `explain` to preview the plan.
 
 ## Background job admission
 

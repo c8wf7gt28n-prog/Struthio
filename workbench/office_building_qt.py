@@ -66,7 +66,7 @@ class OfficeBuildingTab(ServiceTab):
     """The Office room: receive files and read them as staC."""
     HEADING = 'Office'
     LEAD = 'Drop files anywhere here to receive them. Originals are never changed; nothing leaves this computer.'
-    PAGES = (('receiving_room', 'Receiving'), ('catalog_room', 'Catalog · staC'))
+    PAGES = (('receiving_room', 'Receiving'), ('catalog_room', 'Catalog · lines'))
 
     def __init__(self, host):
         super().__init__(host)
@@ -100,7 +100,7 @@ class OfficeBuildingTab(ServiceTab):
             item = self.card_list.currentItem() if page == 1 else None
             card = next((c for c in self.cards if item and c['address'] == item.data(0, Qt.UserRole)), None)
             if card:
-                sections += [('Selected file', card['name']), ('staC address', '@' + card['address']),
+                sections += [('Selected file', card['name']), ('Address', '@' + card['address']),
                              ('Programs', '\n'.join(p['program'] for p in card['programs'])), ('Summary', card['summary'] or '(no text)')]
             else:
                 d = next((x for x in self.deliveries if x['id'] == self.selected_delivery_id()), None)
@@ -115,7 +115,7 @@ class OfficeBuildingTab(ServiceTab):
         if self.has('matrix_state'):
             sections.append(('Instruction matrix', self.matrix_state.text().split('. ')[0]))
             item = self.row_tree.currentItem()
-            if item:sections.append(('Selected instruction', (item.text(2) or '(direct staC)') + '\n' + item.text(3) + '\n' + item.text(0) + (' · ' + item.text(4) if item.text(4) else '')))
+            if item:sections.append(('Selected instruction', (item.text(2) or '(a direct line)') + '\n' + item.text(3) + '\n' + item.text(0) + (' · ' + item.text(4) if item.text(4) else '')))
         sections.append(('Privacy', 'On this computer · cloud calls 0'))
         return self.HEADING, sections
 
@@ -153,24 +153,24 @@ class OfficeBuildingTab(ServiceTab):
     def catalog_room(self):
         page = QWidget();box = QVBoxLayout(page)
         row = QHBoxLayout();self.card_source = QComboBox();self.card_source.setAccessibleName('Delivery to read');row.addWidget(self.card_source, 1)
-        load = QPushButton('Show staC cards');load.clicked.connect(self.load_cards);row.addWidget(load)
+        load = QPushButton('Show reading cards');load.clicked.connect(self.load_cards);row.addWidget(load)
         view = QPushButton('View file');view.setToolTip('Open the selected file in the universal viewer');view.clicked.connect(self.view_card);row.addWidget(view)
         box.addLayout(row)
         split = QSplitter(Qt.Horizontal)
         self.card_list = QTreeWidget();self.card_list.setHeaderLabels(['File', 'Characters']);self.card_list.setColumnWidth(0, 230)
-        self.card_list.setAccessibleName('staC cards');self.card_list.itemSelectionChanged.connect(self.show_card);split.addWidget(self.card_list)
+        self.card_list.setAccessibleName('Reading cards');self.card_list.itemSelectionChanged.connect(self.show_card);split.addWidget(self.card_list)
         right = QWidget();rbox = QVBoxLayout(right);rbox.setContentsMargins(0, 0, 0, 0)
-        self.card_view = QPlainTextEdit();self.card_view.setReadOnly(True);self.card_view.setAccessibleName('staC card');rbox.addWidget(self.card_view, 1)
-        self.program = QLineEdit();writing_prompt(self.program, 'staC program, for example @intake:… | select text');self.program.setAccessibleName('staC program')
+        self.card_view = QPlainTextEdit();self.card_view.setReadOnly(True);self.card_view.setAccessibleName('Reading card');rbox.addWidget(self.card_view, 1)
+        self.program = QLineEdit();writing_prompt(self.program, 'A line, for example @intake:… | select text');self.program.setAccessibleName('Line')
         self.program.returnPressed.connect(self.run_program);rbox.addWidget(self.program)
         prow = QHBoxLayout()
         self.card_programs = QComboBox();self.card_programs.setAccessibleName('Programs on this card');self.card_programs.currentIndexChanged.connect(self.pick_program);prow.addWidget(self.card_programs, 1)
-        run = QPushButton('Run staC');run.clicked.connect(self.run_program);prow.addWidget(run);rbox.addLayout(prow)
+        run = QPushButton('Run the line');run.clicked.connect(self.run_program);prow.addWidget(run);rbox.addLayout(prow)
         mrow = QHBoxLayout()
         for label, mark in (('Result was right', 'GOOD'), ('Result was wrong', 'BAD')):
             button = QPushButton(label);button.clicked.connect(lambda checked=False, m=mark:self.mark_last(m));mrow.addWidget(button)
         rbox.addLayout(mrow)
-        self.run_view = QPlainTextEdit();self.run_view.setReadOnly(True);self.run_view.setAccessibleName('staC result');rbox.addWidget(self.run_view, 1)
+        self.run_view = QPlainTextEdit();self.run_view.setReadOnly(True);self.run_view.setAccessibleName('Result');rbox.addWidget(self.run_view, 1)
         split.addWidget(right);box.addWidget(split, 1)
         return page
 
@@ -183,7 +183,7 @@ class OfficeBuildingTab(ServiceTab):
         for label, fn in (('Choose model file…', self.pick_model), ('Restore previous', self.restore_brain), ('Stop brain', self.stop_brain), ('Open Brain panel', self.open_brain)):
             button = QPushButton(label);button.clicked.connect(fn);row.addWidget(button)
         box.addLayout(row)
-        ask = QLabel('Ask in plain words. Graphite proposes staC from what worked before; nothing runs until you choose Run proposal.');ask.setWordWrap(True);box.addWidget(ask)
+        ask = QLabel('Ask in plain words. Graphite proposes a line from what worked before; nothing runs until you choose Run proposal.');ask.setWordWrap(True);box.addWidget(ask)
         self.request = QLineEdit();writing_prompt(self.request, 'For example: show the text of the memo I received');self.request.setAccessibleName('Request for Graphite')
         self.request.returnPressed.connect(self.ask_plan);box.addWidget(self.request)
         arow = QHBoxLayout()
@@ -197,7 +197,7 @@ class OfficeBuildingTab(ServiceTab):
         page = QWidget();box = QVBoxLayout(page)
         self.matrix_state = QLabel();self.matrix_state.setWordWrap(True);box.addWidget(self.matrix_state)
         split = QSplitter(Qt.Vertical)
-        self.pattern_tree = QTreeWidget();self.pattern_tree.setHeaderLabels(['staC pattern', 'Tries', 'Worked', 'Empty', 'Failed', 'Rate', 'Main failure'])
+        self.pattern_tree = QTreeWidget();self.pattern_tree.setHeaderLabels(['Pattern', 'Tries', 'Worked', 'Empty', 'Failed', 'Rate', 'Main failure'])
         self.pattern_tree.setColumnWidth(0, 300);self.pattern_tree.setAccessibleName('Instruction patterns');split.addWidget(self.pattern_tree)
         self.row_tree = QTreeWidget();self.row_tree.setHeaderLabels(['Outcome', 'Mark', 'Instruction', 'Program', 'Reason'])
         self.row_tree.setColumnWidth(2, 220);self.row_tree.setColumnWidth(3, 260);self.row_tree.setAccessibleName('Recent instructions');split.addWidget(self.row_tree)
@@ -333,7 +333,7 @@ class OfficeBuildingTab(ServiceTab):
         for i, d in enumerate(self.deliveries):
             if d['id'] == value['id']:self.deliveries[i] = value
         self.show_deliveries({'deliveries': self.deliveries});self.show_delivery()
-        if value['stage'] == 'CATALOGED':self.status.setText(value['label'] + ' is cataloged · ' + str(len(value['accepted'])) + ' files have staC cards')
+        if value['stage'] == 'CATALOGED':self.status.setText(value['label'] + ' is cataloged · ' + str(len(value['accepted'])) + ' files have reading cards')
 
     # Catalog and staC ---------------------------------------------------
 
@@ -357,13 +357,13 @@ class OfficeBuildingTab(ServiceTab):
         self.cards = value['cards'];self.card_list.clear()
         for card in self.cards:
             item = QTreeWidgetItem([card['name'], str(card['characters'])]);item.setData(0, Qt.UserRole, card['address']);self.card_list.addTopLevelItem(item)
-        self.status.setText(str(len(self.cards)) + ' staC cards')
+        self.status.setText(str(len(self.cards)) + ' reading cards')
 
     def show_card(self):
         item = self.card_list.currentItem()
         card = next((c for c in self.cards if item and c['address'] == item.data(0, Qt.UserRole)), None)
         if not card:return
-        self.card_view.setPlainText('\n'.join(['@' + card['address'], card['name'] + ' · ' + str(card['profile']), 'sha256 ' + card['sha256'], '', card['summary'], '', 'staC:'] +
+        self.card_view.setPlainText('\n'.join(['@' + card['address'], card['name'] + ' · ' + str(card['profile']), 'sha256 ' + card['sha256'], '', card['summary'], '', 'Line:'] +
                                               ['  ' + p['program'] + '    # ' + p['purpose'] + ('' if p['valid'] else ' · ' + p.get('error', 'invalid')) for p in card['programs']]))
         self.card_programs.blockSignals(True);self.card_programs.clear()
         for p in card['programs']:self.card_programs.addItem(p['purpose'], p)
@@ -382,7 +382,7 @@ class OfficeBuildingTab(ServiceTab):
     def mark_last(self, mark):
         def marked(value):
             rows = value['rows']
-            if not rows:self.status.setText('Run a staC program first.');return
+            if not rows:self.status.setText('Run a line first.');return
             self.call('matrix.mark', {'id': rows[0]['id'], 'mark': mark}, lambda v:(self.status.setText('Marked ' + mark.lower() + ': ' + v['program'][:80]), self.refresh_matrix()))
         self.call('matrix.list', {'limit': 1}, marked)
 
@@ -501,10 +501,10 @@ class OfficeBuildingTab(ServiceTab):
     def promote(self):
         item = self.pattern_tree.currentItem()
         if not item:self.status.setText('Select a pattern first.');return
-        title, ok = QInputDialog.getText(self, 'Promote to lesson', 'Lesson title', text='staC: ' + item.text(0)[:60])
+        title, ok = QInputDialog.getText(self, 'Promote to lesson', 'Lesson title', text='Line: ' + item.text(0)[:60])
         if ok and title.strip():
             self.call('matrix.promote', {'shape': item.data(0, Qt.UserRole), 'title': title.strip()[:120]},
-                      lambda value:self.status.setText('Lesson proposed. Review it in Memory & staC before Graphite relies on it.'))
+                      lambda value:self.status.setText('Lesson proposed. Review it in Memory before Graphite relies on it.'))
 
     def export_matrix(self):
         path, _ = QFileDialog.getSaveFileName(self, 'Export training set', str(Path.home() / 'slate-instruction-matrix.jsonl'), 'JSON lines (*.jsonl)')
@@ -518,5 +518,5 @@ class OfficeBuildingTab(ServiceTab):
 class SlateRoomTab(OfficeBuildingTab):
     """The Slate room: the replaceable local brain, planning in staC, and the instruction matrix it learns from."""
     HEADING = 'Graphite'
-    LEAD = 'Drop a GGUF model here to change the brain. Graphite proposes staC; you run it; the matrix remembers what worked.'
+    LEAD = 'Drop a GGUF model here to change the brain. Graphite proposes a line; you run it; the matrix remembers what worked.'
     PAGES = (('brain_room', 'Brain · ask'), ('matrix_room', 'Instruction matrix'))

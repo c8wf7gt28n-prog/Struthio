@@ -14,7 +14,7 @@ from . import locations
 class MemoryTab(ServiceTab):
     def __init__(self,host):
         super().__init__(host);self.job=None;self.last_checkpoint=None;self.current_reference=None;self.pending_binding=None;self.profile_enabled=False;self.task_epoch=0
-        h=QLabel('GRAPHITE · MEMORY & staC');h.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(h)
+        h=QLabel('GRAPHITE · MEMORY');h.setStyleSheet('font-size:18px;color:#edaa69;font-weight:bold');self.outer.addWidget(h)
         self.note=QLabel('Teach through explicit feedback. Save and verify a checkpoint before starting a fresh working context.');self.note.setWordWrap(True);self.outer.addWidget(self.note)
         row=QHBoxLayout();self.context_label=QLabel('Interaction context');row.addWidget(self.context_label);self.context_choice=QComboBox();self.context_choice.addItems(CONTEXTS);self.context_choice.setCurrentText('engineering_execution');self.context_choice.currentTextChanged.connect(self.refresh_profile);row.addWidget(self.context_choice,1);self.outer.addLayout(row)
         self.pages=QTabWidget();self.learning_page=QWidget();learn=QVBoxLayout(self.learning_page);learn.setContentsMargins(0,0,0,0)
@@ -45,9 +45,9 @@ class MemoryTab(ServiceTab):
         lessons.addLayout(row);self.lesson_tree=QTreeWidget();self.lesson_tree.setHeaderLabels(['Procedure','Review','Sources']);self.lesson_tree.itemSelectionChanged.connect(self.select_lesson);lessons.addWidget(self.lesson_tree,1);self.task_pages.addTab(lesson_page,'Reviewed procedures');self.pages.addTab(self.task_page,'Tasks / memory')
         self.stac_page=QWidget();stac=QVBoxLayout(self.stac_page);stac.setContentsMargins(0,0,0,0);self.program=QPlainTextEdit('use ARC1@R10 | part U45 | fact tCEM | claim | witness | verify');self.program.setMaximumHeight(95);stac.addWidget(self.program)
         grid=QGridLayout()
-        for i,(label,fn) in enumerate([('Compile staC',lambda:self.stac('stac.compile')),('Run staC read',lambda:self.stac('stac.run')),('Record read observation',lambda:self.stac('stac.observe')),('Export staC result',self.export_stac),('Read observation history',lambda:self.call('stac.history',{},self.show_record)),('Use attached reference',self.stac_reference)]):self.add_button(grid,label,fn,i)
+        for i,(label,fn) in enumerate([('Compile the line',lambda:self.stac('stac.compile')),('Run the read',lambda:self.stac('stac.run')),('Record read observation',lambda:self.stac('stac.observe')),('Export the result',self.export_stac),('Read observation history',lambda:self.call('stac.history',{},self.show_record)),('Use attached reference',self.stac_reference)]):self.add_button(grid,label,fn,i)
         stac.addLayout(grid);self.english=QLineEdit();writing_prompt(self.english, 'Controlled English: What remains to prove U45 tCEM on ARC1 R10?');stac.addWidget(self.english);translate=QPushButton('Translate controlled English');translate.clicked.connect(lambda:self.call('stac.translate',{'text':self.english.text()},self.translated));stac.addWidget(translate)
-        info=QLabel('staC uses the existing Kernel and your permissions. Compile grants no authority. Missing native sources stay blocked. Internal file redirection needs the explicit owner export action here.');info.setWordWrap(True);stac.addWidget(info);stac.addStretch(1);self.pages.addTab(self.stac_page,'staC workbench')
+        info=QLabel('A line uses the existing Kernel and your permissions. Compile grants no authority. Missing native sources stay blocked. Internal file redirection needs the explicit owner export action here.');info.setWordWrap(True);stac.addWidget(info);stac.addStretch(1);self.pages.addTab(self.stac_page,'Lines')
         from .research_qt import ResearchTab
         self.research_page=ResearchTab(host,self);self.pages.addTab(self.research_page,'Research exchange')
         from .study_qt import StudyTab
@@ -66,8 +66,8 @@ class MemoryTab(ServiceTab):
         research=self.pages.currentWidget() in (self.research_page,self.study_page)
         self.details.setVisible(not research);self.context_choice.setVisible(not research);self.context_label.setVisible(not research)
         self.note.setText('One question, selected originals, a reviewed return.' if research else 'Teach through explicit feedback. Save and verify a checkpoint before starting a fresh working context.')
-    def title(self):return 'Graphite · Memory & staC'
-    def info(self):return 'Explicit teaching · verified checkpoints · Kernel-owned staC'
+    def title(self):return 'Graphite · Memory'
+    def info(self):return 'Explicit teaching · verified checkpoints · Kernel-owned lines'
     def add_button(self,grid,label,fn,index):
         b=QPushButton(label);b.setAccessibleName(label);b.clicked.connect(fn);grid.addWidget(b,index//2,index%2)
     def small_text(self,value=''):
@@ -209,7 +209,7 @@ class MemoryTab(ServiceTab):
         else:self.note.setText('Attach a selected reference using Keep in task memory in Exact references.')
     def translated(self,value):self.program.setPlainText(value['program']);self.show_record(value)
     def export_stac(self):
-        path,_=QFileDialog.getSaveFileName(self,'Export fresh staC result','','JSON (*.json)')
+        path,_=QFileDialog.getSaveFileName(self,'Export a fresh result','','JSON (*.json)')
         if path:self.call('stac.export',{'program':self.program.toPlainText().strip(),'destination':path},self.show_record)
     def export_memory(self):
         path,_=QFileDialog.getSaveFileName(self,'Export private memory and a separate recovery key','','ZIP (*.zip)')

@@ -49,5 +49,5 @@ def explain(value):
         if label in facts and len(said) < 9:said.append('%s: %s.' % (label, facts[label]))
     if not data and facts:ask.append('%s | facts' % address)
     elif facts and '%s | facts' % address not in ask:ask.append('%s | facts' % address)
-    said.append('Its staC address is %s.' % address)
+    said.append('Its address is %s.' % address)
     return {'text': ' '.join(said), 'suggestions': ask[:4]}

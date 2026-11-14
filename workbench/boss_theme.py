@@ -35,7 +35,8 @@ PALETTES = {
         TEAL='#c3ed74', TEAL_SOFT='#1b2817', TEAL_EDGE='#789654', TEAL_TEXT='#cbf08b', READY='#c3ed74', STOP='#ff9a36',
         OWNER='#ff9a36', ON_OWNER='#0b0e0d', RECHECK='#ff9a36',
         BAND=(12, 15, 14), ERASED='#efeae0', ERASED_QUIET='#b0bcb9', BAND_MARK='#dd854b', BAND_PENCIL='#f2a369',
-        DESK_LIGHT='#8c826b', VEIL='#000000', DISPLAY='IBM Plex Mono'),
+        DESK_LIGHT='#8c826b', VEIL='#000000', DISPLAY='IBM Plex Mono',
+        HONEY='#f2a369', VIOLET='#c8baa0', VIOLET_DEEP='#474436', VIOLET_PALE='#f4e8ce', VIOLET_SOFT='#4b2a14'),
     'kasandra': dict(
         GROUND='#171b3c', PANEL='#1b1f45', CARD='#1f234d', RAISED='#292d56', TERMINAL_GROUND='#11132c',
         LINE='#3b4479', LINE_STRONG='#8796cb', LINE_MID='#5969a1', TEXT='#e3e3ff', QUIET='#c1c6e8', FAINT='#9ca3d2',
@@ -44,8 +45,16 @@ PALETTES = {
         TEAL='#83eaff', TEAL_SOFT='#1f3560', TEAL_EDGE='#5a8fc4', TEAL_TEXT='#b9f4ff', READY='#83eaff', STOP='#fa507c',
         OWNER='#fa507c', ON_OWNER='#171b3c', RECHECK='#c3b6f4',
         BAND=(20, 23, 52), ERASED='#e3e3ff', ERASED_QUIET='#aeb4dc', BAND_MARK='#83eaff', BAND_PENCIL='#83eaff',
-        DESK_LIGHT='#8f97c9', VEIL='#11132c', DISPLAY='Special Elite'),
+        DESK_LIGHT='#8f97c9', VEIL='#11132c', DISPLAY='Special Elite',
+        HONEY='#e9b872', VIOLET='#ab8eda', VIOLET_DEEP='#5f4fa8', VIOLET_PALE='#d2c4f5', VIOLET_SOFT='#2b2660'),
 }
+
+
+# 0.8.0, the owner: "Should we welcome more colors like a yellow that matches her hair and more shades of violet". Each has
+# one job, so that a colour still says something: HONEY is hers (the edge of her answers, the mark under her name when
+# she is the one typed to); the violets are the desk's structure (section headings and the Field's column titles in
+# VIOLET, the greeting in VIOLET_PALE, your own messages on VIOLET_SOFT with a VIOLET_DEEP edge, the equalizer's bars).
+# In Graphite each of them is the colour that place already had (pencil, quiet, line, text, amber-soft): nothing moves.
 
 
 def chosen_appearance(environ=None, path=None):

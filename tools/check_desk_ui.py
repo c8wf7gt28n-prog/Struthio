@@ -903,15 +903,15 @@ record('Graphite_Desk_D3_01_Writing_Line_Modes_1920x1200.png','The lower band at
 # Assignment: words to Graphite on Enter; typed staC runs only on Ctrl+Enter, through the staC target's own path
 bar.set_target('slate');box.setFocus();QTest.keyClicks(box,'files.list');settle();bar.refresh_context()
 hint=dict(context=bar.context.text(),visible=bar.context.isVisible(),results=[box.popup.list.item(i).text() for i in range(min(3,box.popup.list.count()))])
-assert hint['visible'] and hint['context']=='· runs as staC' and hint['results'][0]=='STAC · THE ARROW RUNS IT',hint
+assert hint['visible'] and hint['context']=='· runs as a line' and hint['results'][0]=='A LINE · THE ARROW RUNS IT',hint
 with patch.object(sh,'ask') as asked,patch.object(type(console),'run_stac',autospec=True,side_effect=type(console).run_stac) as ran:
  QTest.keyClick(box,Qt.Key_Return);settle()
  assert [c.args for c in asked.call_args_list]==[('files.list',)],asked.call_args_list
  assert ran.call_count==0,'plain Enter never runs staC'
  console.output.clear();console.blocks=0;box.setText('desk');box.setFocus();QTest.keyClick(box,Qt.Key_Return,Qt.ControlModifier);settle(60)
  assert ran.call_count==1 and ran.call_args.args[1]=='desk' and asked.call_count==1,(ran.call_args_list,asked.call_args_list)
-answer=console.output.toPlainText();ran_part=answer[answer.find('stac › desk'):]
-assert 'stac › desk' in answer and 'refused' not in ran_part and console.size_level==1 and console.output.isVisible(),answer[-300:]
+answer=console.output.toPlainText();ran_part=answer[answer.find('line › desk'):]
+assert 'line › desk' in answer and 'refused' not in ran_part and console.size_level==1 and console.output.isVisible(),answer[-300:]
 box.setText('files.list');box.setFocus();settle();bar.refresh_context();align(2)
 record('Graphite_Desk_D3_02_Assignment_staC_1920x1200.png','Assignment at 1920 by 1200: above, at Half, the answer of the staC program desk run with Ctrl+Enter through the staC target\'s own path (stac.run through Kernel.dispatch, read only): a real command; in the line, files.list typed, which parses as staC, so the line\'s quiet word says staC on Ctrl+Enter and the results under it say Ctrl+Enter runs it, while Enter would give it to Graphite as an assignment.',
  w.grab().toImage(),'ACTUAL_QT_WINDOW_GRAB')

@@ -630,8 +630,8 @@ class Worksheet(QWidget):
                 for name, saved in retained:
                     history.addAction(name, lambda checked=False, m=saved:self.open_method_runs(m))
         menu.addAction('Preview selected rows', lambda:self.stage(binding))
-        menu.addAction('Preview staC plan', lambda:self.preview_plan(binding))
-        menu.addAction('Copy selection as staC', lambda:self.copy_program(binding))
+        menu.addAction('Preview the plan', lambda:self.preview_plan(binding))
+        menu.addAction('Copy the selection as a line', lambda:self.copy_program(binding))
         menu.addSeparator()
         menu.addAction('Inspect source', self.host.shell2.show_context_face)
         menu.addAction('Open full spreadsheet', self.open_external)

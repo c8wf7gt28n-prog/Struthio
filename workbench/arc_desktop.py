@@ -169,7 +169,7 @@ class ArcInspector(QWidget):
             cp=getattr(tab,'last_checkpoint',None)
             if cp:section('Checkpoint',esc(cp['id'][:16])+'<br>Readback verified.<br>Source availability is rechecked on resume.')
             section('Working context','Fresh context follows a verified save.<br>Old private history is retained.')
-            section('staC','Current caller permissions.<br>Read observations use the existing journal.')
+            section('Lines','Current caller permissions.<br>Read observations use the existing journal.')
             section('Qualification','A memory or source citation is not a board test.')
         elif type(tab).__name__=='ReferenceTab':
             self.heading.setText('Graphite · exact references')

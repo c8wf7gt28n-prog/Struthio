@@ -219,12 +219,12 @@ class InvestigationTab(QWidget):
         tool(again, 'Read the sources again and compare them with what was read before');tool(stop, 'Stop this investigation where it is; what it found is kept')
         next_page.addLayout(nxt);self.page.addWidget(next_panel);self.page.addWidget(self.status)
         self.section('[ SOURCES ]', [(r['address'], 'snapshot ' + r['digest'][:12] + ('' if r['state'] == 'CURRENT' else '  ·  ' + r['state'].lower()), True) for r in s['read']],
-                     'Nothing read yet. Add a staC address below, or press Investigate on an open file.')
+                     'Nothing read yet. Add an address below, or press Investigate on an open file.')
         self.section('[ ATTEMPTED ]', [('%d.  %s' % (r['seq'], r['purpose']), OUTCOME_WORDS.get(r['outcome'], r['outcome']) +
                                     ('  ·  repeat, adds no support' if r['duplicate_of'] else ''), False) for r in s['attempted']], 'No steps yet.')
         self.section('[ CHECKED ]', [(k['oracle'], 'for: ' + k['claim_text'][:80] + '  ·  ' + OUTCOME_WORDS.get(k['last_outcome'], k['last_outcome']) +
                                   ('  ·  ran with ' + k['last_authority'] if k.get('last_authority') else ''), False) for k in s['checked']],
-                     'No checks yet. A check binds a claim to a staC program and what counts as success.')
+                     'No checks yet. A check binds a claim to a line and what counts as success.')
         self.page.addWidget(plain(s['notice'], quiet=True))
         self.forms(s);self.page.addStretch(1)
 
@@ -280,7 +280,7 @@ class InvestigationTab(QWidget):
 
     def forms(self, s):
         self.page.addSpacing(10);self.page.addWidget(role(QLabel('WORK ON IT'), 'section'))
-        row = QHBoxLayout();address = QLineEdit();writing_prompt(address, '@intake:… or any staC address to read into this investigation')
+        row = QHBoxLayout();address = QLineEdit();writing_prompt(address, '@intake:… or any address to read into this investigation')
         address.setFont(mono_font(12));row.addWidget(address, 1)
         add = button('Read source', 'quiet');add.clicked.connect(lambda:address.text().strip() and self.act('investigation.add_source', {'id': s['id'], 'address': address.text().strip()}))
         row.addWidget(add);self.page.addLayout(row)
@@ -299,7 +299,7 @@ class InvestigationTab(QWidget):
             for c in claims:which.addItem(c['text'][:70], c['id'])
             which.setToolTip(which.currentText());which.currentTextChanged.connect(which.setToolTip)
             row.addWidget(QLabel('Check'));row.addWidget(which, 1);box.addLayout(row)
-            program = QLineEdit();program.setFont(mono_font(12));writing_prompt(program, 'staC that would show it, e.g. @intake:… | select text');box.addWidget(program)
+            program = QLineEdit();program.setFont(mono_font(12));writing_prompt(program, 'A line that would show it, e.g. @intake:… | select text');box.addWidget(program)
             oracle = QLineEdit();writing_prompt(oracle, 'What counts as success, in words');box.addWidget(oracle)
             row = QHBoxLayout()
             expect = QComboBox()
@@ -313,7 +313,7 @@ class InvestigationTab(QWidget):
                 'claim': which.currentData(), 'program': program.text().strip(), 'oracle': oracle.text().strip(), 'expect': expect.currentData(),
                 'value': value.text().strip(), 'refutes_on_fail': refutes.isChecked()}))
             box.addWidget(bind, 0, Qt.AlignLeft);self.page.addLayout(box)
-        row = QHBoxLayout();step = QLineEdit();step.setFont(mono_font(12));writing_prompt(step, 'staC to try now (it runs with your authority and is recorded)')
+        row = QHBoxLayout();step = QLineEdit();step.setFont(mono_font(12));writing_prompt(step, 'A line to try now (it runs with your authority and is recorded)')
         row.addWidget(step, 1);run = button('Run step', 'stac')
         run.clicked.connect(lambda:step.text().strip() and self.act('investigation.step', {'id': s['id'], 'program': step.text().strip(), 'purpose': 'Tried from the sheet'}))
         row.addWidget(run);self.page.addLayout(row)
@@ -362,7 +362,7 @@ def investigate(host, address, name):
     """Start an investigation from an open item: its address becomes the first source."""
     from PySide6.QtWidgets import QInputDialog, QMessageBox
     if not address:
-        QMessageBox.information(host, 'Investigate', 'Receive this file into the Office first, so it has a staC address an investigation can read.')
+        QMessageBox.information(host, 'Investigate', 'Receive this file into the Office first, so it has an address an investigation can read.')
         return None
     question, ok = QInputDialog.getText(host, 'Investigate ' + name, 'The question to keep going:', text='What does ' + name + ' establish?')
     if not ok or not question.strip():return None

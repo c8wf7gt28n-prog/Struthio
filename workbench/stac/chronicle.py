@@ -256,7 +256,7 @@ def observe(root, ir, result):
                'subject':_subject(ir),'ir':ir,
                'result_digest':record_io.digest(result),'result_summary':_meta(result),
                'source_dependencies':deps,
-               'provenance_note':'staC read observation; no executed test or physical qualification'}
+               'provenance_note':'read observation; no executed test or physical qualification'}
         encoded=record_io.canonical(event)
         if len(encoded)>65536:raise ChronicleError('CHRONICLE_EVENT_TOO_LARGE')
         event_hash=record_io.digest(event)
@@ -393,7 +393,7 @@ def known_at(root,recorded_as_of,component):
     if not candidates:
         return {'schema':RESULT_SCHEMA,'status':'UNKNOWN_NO_RECORDED_OBSERVATION',
                 'component':component,'recorded_as_of':recorded_as_of,
-                'notice':'No observation in the opt-in staC chronology; this does not prove no investigation occurred.'}
+                'notice':'No observation in the opt-in chronology; this does not prove no investigation occurred.'}
     r,h=candidates[-1]
     return {'schema':RESULT_SCHEMA,'status':'HISTORICAL_OBSERVATION','component':component,
             'recorded_as_of':recorded_as_of,'recorded_utc':r['recorded_utc'],'sequence':r['sequence'],

@@ -36,7 +36,7 @@ from .boss_theme import AMBER_TEXT, TERMINAL_GROUND
 from .stac_bridge import route_program
 
 MODES = (('log', 'Log', '', 'filter the Timeline'),
-         ('stac', 'staC', '@', '@files:parts.csv | rows | where Qty over 3'),
+         ('stac', 'Lines', '@', '@files:parts.csv | rows | where Qty over 3'),
          ('kernel', 'Kernel', '/', 'files.list path=Slate  ·  help copies.review  ·  ops agenda'),
          ('find', 'Find', '?', 'names and words in Files, received files, the cabinet, settings and commands'),
          ('shell', 'Shell', '$', 'a command in your Files folder'))
@@ -144,7 +144,7 @@ def inspection_html(value, continuation=''):
             source += ' · ' + json.dumps(context, ensure_ascii=False, sort_keys=True)
     else:
         source = 'Runtime source check required'
-    lines = ['<b>staC plan</b> · preview only']
+    lines = ['<b>Plan</b> · preview only']
     if continuation:
         lines.append(continuation)
     if value['operation']:
@@ -168,7 +168,7 @@ def inspection_html(value, continuation=''):
 class Prompt(QLineEdit):
     def __init__(self, console):
         super().__init__();self.console = console;self.setObjectName('ConsolePrompt');self.setFont(mono_font(15))
-        self.setAccessibleName('Console: Log, staC, Kernel, Find and Shell')
+        self.setAccessibleName('Console: Log, Lines, Kernel, Find and Shell')
 
     def keyPressEvent(self, event):
         c = self.console
@@ -206,13 +206,13 @@ class Console(QWidget):
         words = QHBoxLayout();words.setSpacing(0);self.chips = {}
         for key, label, prefix, _ in MODES:
             chip = button(label + ('  ' + prefix if prefix else ''), 'filter');chip.setCheckable(True);chip.clicked.connect(lambda checked=False, k=key:self.set_mode(k, focus=True))
-            chip.setToolTip({'log': 'The Timeline: what Graphite did, in words', 'stac': 'staC pipelines and programs', 'kernel': 'Kernel operations by name',
+            chip.setToolTip({'log': 'The Timeline: what Graphite did, in words', 'stac': 'Lines that read', 'kernel': 'Kernel operations by name',
                              'find': 'Find anything', 'shell': 'Your own shell commands'}[key])
             self.chips[key] = chip;words.addWidget(chip)
         self.sign = QLabel();self.sign.setFont(mono_font(15));self.sign.setStyleSheet('color:%s;padding-left:6px' % QUIET);words.addWidget(self.sign)
         self.prompt = Prompt(self);self.prompt.returnPressed.connect(self.enter);self.prompt.textEdited.connect(self.typed);words.addSpacing(8);words.addWidget(self.prompt, 1)
         self.prompt.hide();self.sign.hide()  # one place to type: the box at the top. This prompt only carries lines the box hands over.
-        hint = QLabel('type in the box above  ·  @ staC   / Kernel   ? find   $ shell');hint.setStyleSheet('color:%s;padding-left:10px' % QUIET);words.addWidget(hint, 1)
+        hint = QLabel('type in the box above  ·  @ a line   / Kernel   ? find   $ shell');hint.setStyleSheet('color:%s;padding-left:10px' % QUIET);words.addWidget(hint, 1)
         # The integration of the desk items: a status message shows here while it lasts (TypeBar.note). Unwrapped, a long one
         # (an unavailable row's whole reason on F1) made the workspace's least width its whole length, and the desk narrowed
         # both panes to the slots' floor for good; wrapped, it asks for its longest word and takes another line instead.
@@ -259,7 +259,7 @@ class Console(QWidget):
 
     def sign_text(self):
         if self.mode == 'shell':return self.short(self.working_dir()) + ' $'
-        return {'log': 'log ›', 'stac': 'stac ›', 'kernel': 'graphite ›', 'find': 'find ›'}[self.mode]
+        return {'log': 'log ›', 'stac': 'line ›', 'kernel': 'graphite ›', 'find': 'find ›'}[self.mode]
 
     def set_size(self, level):
         self.size_level = level
@@ -389,7 +389,7 @@ class Console(QWidget):
         from .shell2 import keyed_html
         # 0.7.0: no key is named here either (the owner: no shortcut printed anywhere); the keys work as they did.
         lines = ('Answers stay here; the name lit in the band says who the line goes to.',
-                 'staC you type is run by the arrow. Put explain before it to see the plan first.',
+                 'A line you type is run by the arrow. Put explain before it to see the plan first.',
                  'A leading / runs an operation by name.')
         self.say('<br>'.join(keyed_html(line, round(self.px * 1.3), self.px) for line in lines))  # short lines: the area never folds
 
@@ -456,9 +456,9 @@ class Console(QWidget):
         program = args.get('program', args.get('text'))
         inspecting = op == 'stac.inspect'
         if not program and not inspecting:return
-        echo = 'stac › ' + program
+        echo = 'line › ' + program
         if inspecting:
-            echo = 'stac › explain ' + (program if len(program) <= 32 else program[:31] + '…')
+            echo = 'line › explain ' + (program if len(program) <= 32 else program[:31] + '…')
             self.last_program = None
         started = time.monotonic();r = call_write(self.host, op, args);took = time.monotonic() - started
         if not r.get('ok'):self.say(self.refused((r.get('error') or {}).get('message', 'did not run')), echo=echo, wrap_output=inspecting);return

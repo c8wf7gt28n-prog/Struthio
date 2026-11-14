@@ -100,6 +100,14 @@ class CatalogTests(unittest.TestCase):
             self.assertIsNone(art.inside(PACK, bad), bad)
         self.assertEqual(art.inside(PACK, 'art/office_dusk.webp'), PACK / 'art' / 'office_dusk.webp')
 
+    def test_the_monogram_is_a_square_picture_on_no_ground(self):
+        from PySide6.QtGui import QGuiApplication, QImage
+        app = QGuiApplication.instance() or QGuiApplication([])
+        mark = QImage(str(PACK / 'kp_monogram.png'))
+        self.assertEqual((mark.width(), mark.height()), (256, 256));self.assertTrue(mark.hasAlphaChannel())
+        self.assertEqual(mark.pixelColor(2, 2).alpha(), 0, 'its corner is clear: it sits on any ground')
+        _ = app
+
     def test_a_changed_or_missing_still_gives_way_to_the_next(self):
         with tempfile.TemporaryDirectory() as folder:
             copy = Path(folder) / 'kasandra';shutil.copytree(PACK, copy)

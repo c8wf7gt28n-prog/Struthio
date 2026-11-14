@@ -72,7 +72,7 @@ def _named(name):
 def keep(kernel, principal, name, line):
     name = _named(name);line = ' '.join(str(line).replace('\u200b', '').split())
     if not 3 <= len(line) <= LINE['maxLength']:
-        raise ValueError('A word keeps one staC line, at most %d characters' % LINE['maxLength'])
+        raise ValueError('A word keeps one line, at most %d characters' % LINE['maxLength'])
     if _taken(name):
         raise ValueError('“%s” already means something at the start of a line; choose another word' % name)
     if LEAD.match(line) and LEAD.match(line).group(2) == name:
@@ -82,7 +82,7 @@ def keep(kernel, principal, name, line):
     if not written.lower().startswith(('this', 'explain this')):
         answer = kernel.dispatch('language.parse', {'text': written[len('explain '):] if written.lower().startswith('explain ') else written}, principal)
         if not answer.get('ok'):
-            raise ValueError('That is not a staC line I can keep: %s' % str((answer.get('error') or {}).get('message'))[:200])
+            raise ValueError('That is not a line I can keep: %s' % str((answer.get('error') or {}).get('message'))[:200])
     with kernel.db() as db:
         _ensure(db)
         if name not in known and len(known) >= LIMIT:

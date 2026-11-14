@@ -206,7 +206,7 @@ class StacyFoundationTab(QWidget):
             '• Selected setting, command and HDL profile descriptors.\n'
             '• Deterministic field claims checked against their evidence packet.\n\n'
             'PASS 16\n'
-            'The organizer and staC share task views. Package desk separates inspection, review copies and admission.\n\n'
+            'The organizer and the lines share task views. Package desk separates inspection, review copies and admission.\n\n'
             'NEXT PASS\n'
             'Pass 17 develops PDF evidence; SW-002 follows it with document views.\n\n'
             'PROGRESS\nCore campaign: 40.5%; windows: 20%; combined scope: 38.2%. Independent acceptance remains open.\n'

@@ -30,7 +30,7 @@ def living(text, run):
         program = ' '.join(line.strip() for line in match.group(1).splitlines() if line.strip())
         block = match.group(0)
         try:rows = run(program)
-        except ValueError as exc:return block + '\n\n*This staC did not run: %s*\n' % cell(exc)
+        except ValueError as exc:return block + '\n\n*This line did not run: %s*\n' % cell(exc)
         if not rows:return block + '\n\n*Live: no rows.*\n'
         columns = list(dict.fromkeys(k for row in rows[:LIVE_ROWS] if isinstance(row, dict) for k in row))[:8] or ['value']
         lines = ['| ' + ' | '.join(columns) + ' |', '|' + '---|' * len(columns)]
@@ -50,7 +50,7 @@ def living_html(text, run):
         marker = 'LIVESTAC%dMARK' % len(tables)
         try:rows = run(program)
         except ValueError as exc:
-            tables[marker] = '<p style="color:#6c675e;font-style:italic;">This staC did not run: %s</p>' % escape(str(exc)[:200]);return match.group(0) + '\n\n' + marker + '\n'
+            tables[marker] = '<p style="color:#6c675e;font-style:italic;">This line did not run: %s</p>' % escape(str(exc)[:200]);return match.group(0) + '\n\n' + marker + '\n'
         columns = list(dict.fromkeys(k for row in rows[:LIVE_ROWS] if isinstance(row, dict) for k in row))[:8] or ['value']
         head = ''.join('<th style="text-align:left;padding:4px 10px;border-bottom:1px solid #7d776d;">%s</th>' % escape(str(c)) for c in columns)
         body = ''.join('<tr>' + ''.join('<td style="padding:3px 10px;border-bottom:1px solid #dad4c8;">%s</td>' % escape(cell(r.get(c) if isinstance(r, dict) else r))

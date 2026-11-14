@@ -34,7 +34,7 @@ def blocked_reason(result):
     """A successful dispatch can carry a typed read that was blocked."""
     if (isinstance(result, dict) and result.get('schema') == 'arc.stac-kernel-result/1'
             and result.get('state') == 'BLOCKED'):
-        return result.get('reason') or 'The staC read was blocked.'
+        return result.get('reason') or 'The read was blocked.'
     return None
 
 
@@ -130,7 +130,7 @@ def inspect_program(kernel, principal, program):
 
     route, args = route_program(program, allow_inspection=True)
     if route == 'stac.inspect':
-        raise ValueError('Explain takes a staC program without another explain prefix')
+        raise ValueError('Explain takes a line without another explain prefix')
     if route == 'language.run':
         plan, steps = stacy_language.inspect_plan(kernel, args['text'], principal)
         operation = steps[0]['operation']
@@ -157,7 +157,7 @@ def inspect_program(kernel, principal, program):
     return {'schema': 'arc.stac-inspection/1', 'program': program, 'operation': operation,
             'steps': steps, 'required_scope': 'read', 'effects': effects, 'source_binding': source_binding,
             'executed': False, 'model_calls': 0,
-            'summary': 'Plan ready. Run the original staC command to read its results.'}
+            'summary': 'Plan ready. Run the line itself to read its results.'}
 
 
 def dispatch(kernel,op,args,principal):

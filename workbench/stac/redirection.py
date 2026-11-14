@@ -71,13 +71,13 @@ def _filename(name: str, extensions: set[str]) -> str:
 
 def _lex(line: str) -> list[str]:
     if not isinstance(line,str) or not line.strip() or len(line.encode('utf-8')) > MAX_PROGRAM_BYTES:
-        raise RedirectError('Expected a staC program of at most 4096 UTF-8 bytes')
+        raise RedirectError('Expected a line of at most 4096 UTF-8 bytes')
     if any(ch in line for ch in ('\x00','\r','\n')):
-        raise RedirectError('One line per staC program')
+        raise RedirectError('One line at a time')
     try:
         tokens = _lex_tokens(line)
     except ValueError as exc:
-        raise RedirectError('Malformed staC quoting: '+str(exc)) from exc
+        raise RedirectError('Malformed quoting: '+str(exc)) from exc
     if len(tokens)>90:
         raise RedirectError('Too many tokens')
     return tokens
@@ -120,7 +120,7 @@ def parse(line: str) -> IOPlan:
         script=_filename(toks[1],{'.stac'})
         toks=[]
     if not toks and script is None:
-        raise RedirectError('No staC program or input script')
+        raise RedirectError('No line or input script')
     # Keep canonical text for callers and the original tokens for typed compilation.
     program = shlex.join(toks) if script is None else None
     return IOPlan(program, script, outs.get(1), outs.get(2), tuple(toks) if script is None else None)
@@ -172,7 +172,7 @@ def script_text(root: Path, name: str) -> str:
     if program.endswith('\r\n'):program=program[:-2]
     elif program.endswith('\n'):program=program[:-1]
     if '\n' in program or '\r' in program:
-        raise RedirectError('Only single-line staC scripts are supported')
+        raise RedirectError('Only single-line scripts are supported')
     return program
 
 
@@ -184,7 +184,7 @@ def stdin_text(source) -> str:
     if program.endswith('\r\n'):program=program[:-2]
     elif program.endswith('\n'):program=program[:-1]
     if not program.strip() or any(c in program for c in ('\r','\n','\x00')):
-        raise RedirectError('Only a single staC program is permitted from stdin')
+        raise RedirectError('Only one line is permitted from stdin')
     return program
 
 

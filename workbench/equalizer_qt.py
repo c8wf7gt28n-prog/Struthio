@@ -344,12 +344,12 @@ class Equalizer(QWidget):
                 for row in range(ROWS):
                     y = foot - (row + 1) * tall - row * 2.0;box = QRectF(x, y, wide, tall)
                     if row < lit:
-                        colour = QColor(t.AMBER_EDGE if row >= ROWS - 2 else t.READY)       # the top of a bar is amber: near its limit
+                        colour = QColor(t.AMBER_EDGE if row >= ROWS - 2 else (t.VIOLET if t.APPEARANCE == 'kasandra' else t.READY))       # the top of a bar is amber: near its limit (Kasandra: violet rising to cyan)
                         if level > 0:
                             halo = QColor(colour);halo.setAlphaF(min(0.34, 0.085 * level));p.fillRect(box.adjusted(-2.0, -1.5, 2.0, 1.5), halo)
                         p.fillRect(box, colour)
                     else:
-                        rest = QColor(t.AMBER_EDGE if self.busy and row == 0 else t.TEAL_EDGE);rest.setAlphaF(0.75 if self.busy and row == 0 else 0.22)
+                        rest = QColor(t.AMBER_EDGE if self.busy and row == 0 else (t.VIOLET_DEEP if t.APPEARANCE == 'kasandra' else t.TEAL_EDGE));rest.setAlphaF(0.75 if self.busy and row == 0 else 0.22)
                         p.fillRect(box, rest)
                 high = round(self.peak[i] * ROWS) if i < len(self.peak) else 0
                 if high > lit and high > 0:                                                  # the peak it reached a moment ago, sinking

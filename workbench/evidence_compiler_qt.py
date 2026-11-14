@@ -24,7 +24,7 @@ class EvidenceCompilerTab(ServiceTab):
         self.excerpt=QPlainTextEdit();self.excerpt.setReadOnly(True);self.excerpt.setAccessibleName('Packet source text');box.addWidget(self.excerpt,1)
         b=QPushButton('Open selected original PDF page');b.clicked.connect(self.original);box.addWidget(b);self.pages.addTab(source,'Sources')
         self.gaps=QPlainTextEdit();self.gaps.setReadOnly(True);self.gaps.setAccessibleName('Packet uncertainties and contradictions');self.pages.addTab(self.gaps,'Uncertainties')
-        self.command=QLineEdit();self.command.setReadOnly(True);self.command.setAccessibleName('Equivalent packet staC read');self.outer.addWidget(self.command)
+        self.command=QLineEdit();self.command.setReadOnly(True);self.command.setAccessibleName('The same packet read, as a line');self.outer.addWidget(self.command)
         self.toggle=QCheckBox('Technical packet details');self.outer.addWidget(self.toggle);self.details=QPlainTextEdit();self.details.setReadOnly(True);self.details.setMaximumHeight(150);self.details.setAccessibleName('Canonical engineering packet details');self.details.hide();self.toggle.toggled.connect(self.details.setVisible);self.outer.addWidget(self.details)
         self.outer.addWidget(self.status);self.timer=QTimer(self);self.timer.setInterval(700);self.timer.timeout.connect(self.poll);QTimer.singleShot(0,self.refresh)
     def refresh(self,select=None):

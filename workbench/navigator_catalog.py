@@ -7,7 +7,7 @@ LEGACY_WORKSPACES = (
     ('Inquiries', 'discovery'), ('Algorithm & Theory Atlas', 'algorithms'), ('Tool Atlas', 'atlas'),
     ('Office', 'office'), ('Organizer', 'organizer'), ('Package desk', 'packages'), ('Commands', 'commands'),
     ('Work trail', 'trail'), ('Recent activity', 'activity'), ('Graphite Brain', 'brain'), ('Graphite intake', 'intake'),
-    ('Exact references', 'references'), ('Source connections', 'sources'), ('Memory & staC', 'memory'),
+    ('Exact references', 'references'), ('Source connections', 'sources'), ('Memory', 'memory'),
     ('Graphite awareness', 'stacy_awareness'), ('Graphite knowledge', 'stacy_knowledge'),
 )
 SECTION_ROLES = {'ARRIVE': 'ARRIVAL_VIEW', 'FILES': 'LOCATION_SHORTCUT', 'LIBRARY': 'TYPE_FILTER_VIEW',

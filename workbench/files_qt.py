@@ -56,7 +56,7 @@ class FilesTab(QWidget):
         self.icons = QListWidget();self.icons.setViewMode(QListWidget.IconMode);self.icons.setIconSize(QSize(ICON, ICON))
         self.icons.setGridSize(QSize(ICON + 44, ICON + 56));self.icons.setResizeMode(QListWidget.Adjust);self.icons.setMovement(QListWidget.Static)
         self.icons.setWordWrap(True);self.icons.setSelectionMode(QAbstractItemView.ExtendedSelection);self.icons.setAccessibleName('Files, as thumbnails')
-        self.table = QTreeWidget();self.table.setHeaderLabels(['Name', 'Kind', 'Changed', 'Size', 'staC address']);self.table.setRootIsDecorated(False)
+        self.table = QTreeWidget();self.table.setHeaderLabels(['Name', 'Kind', 'Changed', 'Size', 'Address']);self.table.setRootIsDecorated(False)
         self.table.setSelectionMode(QAbstractItemView.ExtendedSelection);self.table.setAccessibleName('Files, as a list')
         self.table.header().setSectionResizeMode(0, QHeaderView.Stretch)
         for column in (1, 2, 3):self.table.header().setSectionResizeMode(column, QHeaderView.ResizeToContents)
@@ -156,7 +156,7 @@ class FilesTab(QWidget):
             if label not in ('Size',):rows.append((str(label), str(text)))
         versions = value.get('versions') or []
         rows.append(('Versions', ('%d kept · last %s' % (len(versions), versions[0]['version'][:15])) if versions else 'None kept yet'))
-        rows.append(('staC address', e['address']))
+        rows.append(('Address', e['address']))
         story = (call(self.host, 'files.story', {'path': e['path']}) or {}).get('events', [])
         rows[2:2] = [('History' if i == 0 else '', when(event['at']) + ' · ' + event['what']) for i, event in enumerate(story[:6])]  # near the top: where it has been
         c = self.copy_for(e['path'])
@@ -411,7 +411,7 @@ class FilesTab(QWidget):
         from .explain import explain
         value = call(self.host, 'files.get', {'path': e['path']}) or {}
         options = (explain(value)['suggestions'] if value else []) + ['Look at ' + e['name'] + ' and tell me what needs attention']
-        choice, ok = QInputDialog.getItem(self, 'Add to the Agenda', 'What Graphite should do (staC runs as written; words wait for its brain):', options, 0, True)
+        choice, ok = QInputDialog.getItem(self, 'Add to the Agenda', 'What Graphite should do (a line runs as written; words wait for its brain):', options, 0, True)
         if ok and choice.strip():
             text = choice.strip()
             self.act('agenda.add', {'title': text[:400], **({'program': text} if text.startswith('@') else {})}, 'Added to the Agenda')

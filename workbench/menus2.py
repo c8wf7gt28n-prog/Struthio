@@ -159,7 +159,7 @@ def rebuild(host):
         for key, word, number in (('slate', 'Assistant', 1), ('shell', bar_words.get('shell', 'Terminal'), 5), ('find', 'Search', 4), ('log', 'Log', 6)):
             a = make('%s\tAlt+%d' % (word, number), lambda key=key:host.type_bar.set_target(key) if hasattr(host, 'type_bar') else None)
             a.setCheckable(True);a.setShortcut('Alt+%d' % number);host.addAction(a);talk.addAction(a);host.a_talk[key] = a
-        host.a_talk_stac = make('staC (Assignment)', lambda:host.type_bar.set_target('stac') if hasattr(host, 'type_bar') else None)
+        host.a_talk_stac = make('A line (Assignment)', lambda:host.type_bar.set_target('stac') if hasattr(host, 'type_bar') else None)
         host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate']
         host.a_run_operation = make('Run an operation…\tAlt+3', lambda:host.type_bar.run_operation() if hasattr(host, 'type_bar') else None)
         host.a_run_operation.setShortcut('Alt+3');host.addAction(host.a_run_operation);host.a_talk['kernel'] = host.a_run_operation

@@ -197,7 +197,7 @@ DESCRIPTIONS = {
     'work.query': ('Query selected working-copy text', 'Ledger query', 'query result'),
     'copies.get': ('Inspect a working copy', 'copy ID', 'copy metadata'),
     'language.parse': ('Inspect a proposed query', 'query text', 'parsed operation and transforms'),
-    'stac.compile': ('Compile a staC proposal', 'program text', 'typed IR or compile diagnostics'),
+    'stac.compile': ('Compile a proposal as a line', 'program text', 'typed IR or compile diagnostics'),
     'ledger.capabilities.catalog': ('Inspect the complete installed catalogue', 'optional search', 'declared, installed, available, permitted and qualified states'),
 }
 

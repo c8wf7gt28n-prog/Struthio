@@ -80,7 +80,7 @@ class AgendaTab(QWidget):
         lead.setWordWrap(True);lead.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);box.addWidget(lead)
         row = QHBoxLayout();row.setSpacing(16)
         old = getattr(self, 'entry', None)
-        self.entry = QLineEdit(old.text() if old is not None else '');writing_prompt(self.entry, 'Add something for Graphite to do next, in words or staC')
+        self.entry = QLineEdit(old.text() if old is not None else '');writing_prompt(self.entry, 'Add something for Graphite to do next, in words or as a line')
         self.entry.setAccessibleName('Add to Next');self.entry.returnPressed.connect(self.add);row.addWidget(self.entry, 1)
         row.addWidget(sentence('nice {nice}', {'nice': (self.nice, self.cycle_nice)}));box.addLayout(row)
         if not view['now'] and not view['next']:

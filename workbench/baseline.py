@@ -30,7 +30,7 @@ def reopened(root, profile, ident):
         if body is None or body[0] != IDEA: raise ValueError('Saved idea did not survive restart')
     response = Kernel(root).dispatch('language.run', {'text': '@files:stock.csv | rows | add Short = Need - Have | where Short over 0'}, operator())
     if not response['ok'] or response['result']['rows'] != [{'Part':'R1','Need':12,'Have':5,'Short':7}]:
-        raise ValueError('Saved files or staC reading did not survive restart')
+        raise ValueError('Saved files or reading did not survive restart')
     return {'state': 'PASSED', 'idea_exact': True, 'stac_rows': 1, 'model_calls': response['result']['model_calls']}
 
 

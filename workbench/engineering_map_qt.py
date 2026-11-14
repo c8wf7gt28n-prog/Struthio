@@ -20,7 +20,7 @@ class EngineeringMapTab(ServiceTab):
         self.outer.addLayout(row);row=QHBoxLayout();self.start=QLineEdit('U23');self.end=QLineEdit('J10');self.start.setAccessibleName('Trace start');self.end.setAccessibleName('Trace end');row.addWidget(self.start);row.addWidget(self.end);b=QPushButton('Trace native path');b.clicked.connect(self.trace);row.addWidget(b);self.outer.addLayout(row)
         self.net_prefix=QLineEdit();writing_prompt(self.net_prefix, 'Optional trace net prefix, for example PSRAM_SCLK');self.net_prefix.setAccessibleName('Trace net prefix');self.outer.addWidget(self.net_prefix)
         self.rows=QTreeWidget();self.rows.setHeaderLabels(['Relationship','Identity / locator','State']);self.rows.setAccessibleName('Source-linked engineering relationships');self.outer.addWidget(self.rows,1)
-        self.command=QLineEdit();self.command.setReadOnly(True);self.command.setAccessibleName('Equivalent staC read command');self.outer.addWidget(self.command)
+        self.command=QLineEdit();self.command.setReadOnly(True);self.command.setAccessibleName('The same read, as a line');self.outer.addWidget(self.command)
         self.details_toggle=QCheckBox('Technical map details');self.outer.addWidget(self.details_toggle);self.details=QPlainTextEdit();self.details.setReadOnly(True);self.details.setMaximumHeight(160);self.details.hide();self.details_toggle.toggled.connect(self.details.setVisible);self.outer.addWidget(self.details)
         self.outer.addWidget(self.status);self.timer=QTimer(self);self.timer.setInterval(600);self.timer.timeout.connect(self.poll);QTimer.singleShot(0,self.refresh)
     def refresh(self):

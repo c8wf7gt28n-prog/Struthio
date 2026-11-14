@@ -50,7 +50,7 @@ class PrivateTab(ServiceTab):
     def desktop(self):
         self.guard()
         if principal_key(self.principal)!=principal_key(operator()):
-            self.status.setText('This desktop opens workspaces for its local owner. Read-only staC views retain the current caller.');return False
+            self.status.setText('This desktop opens workspaces for its local owner. Read-only views retain the current caller.');return False
         return True
 
     def clear_private(self):
@@ -85,11 +85,11 @@ class OrganizerTab(PrivateTab):
         self.open_next_button.setEnabled(False);self.next.itemSelectionChanged.connect(lambda:self.open_next_button.setEnabled(bool(self.next.currentItem())))
         self.box.addWidget(self.open_next_button)
         self.grid=QGridLayout();self.grid.setSpacing(12);self.box.addLayout(self.grid)
-        self.box.addWidget(label('The same desk in staC',True))
-        self.stac=QLineEdit('desk');self.auto_program='desk';self.stac.setAccessibleName('Read-only organizer staC program');self.stac.setMinimumWidth(0)
+        self.box.addWidget(label('The same desk as a line',True))
+        self.stac=QLineEdit('desk');self.auto_program='desk';self.stac.setAccessibleName('Read-only organizer line');self.stac.setMinimumWidth(0)
         self.box.addWidget(self.stac)
-        self.read=QPushButton('Read with staC');self.read.clicked.connect(self.run_stac);self.box.addWidget(self.read)
-        self.stac_result=label('A staC read explains the same work. It does not open a workspace or run a job.');self.box.addWidget(self.stac_result)
+        self.read=QPushButton('Read it');self.read.clicked.connect(self.run_stac);self.box.addWidget(self.read)
+        self.stac_result=label('A read explains the same work. It does not open a workspace or run a job.');self.box.addWidget(self.stac_result)
         self.technical=QCheckBox('Technical detail');self.detail=QPlainTextEdit();self.detail.setReadOnly(True);self.detail.hide()
         self.technical.toggled.connect(self.detail.setVisible);self.box.addWidget(self.technical);self.box.addWidget(self.detail);self.box.addWidget(self.status)
         self.debounce=QTimer(self);self.debounce.setSingleShot(True);self.debounce.setInterval(220);self.debounce.timeout.connect(self.refresh)
@@ -178,13 +178,13 @@ class OrganizerTab(PrivateTab):
         self.detail.setPlainText(json.dumps(value,indent=2,ensure_ascii=False))
         result=value.get('result');kind=value.get('result_type','Read result')
         if not isinstance(result,dict):
-            self.stac_result.setText('staC read '+value.get('state','unavailable').lower()+' · '+value.get('reason','No result available.'));return
+            self.stac_result.setText('Read '+value.get('state','unavailable').lower()+' · '+value.get('reason','No result available.'));return
         if kind=='WorkbenchOverview':
             detail=str(len(result['tasks']))+' workspaces · '+str(result['next_total'])+' next items'
         elif kind=='PackageInventory':detail=str(result['total'])+' files · '+result['state'].lower()
         elif kind=='PackageGaps':detail=result['state'].lower()+' · '+str(len(result['issues']))+' reported issues'
         else:detail=value.get('state','Read completed')
-        self.stac_result.setText('staC · '+kind+' · '+detail+'. No action ran.')
+        self.stac_result.setText('Line · '+kind+' · '+detail+'. No action ran.')
 
 
 class PackageTab(PrivateTab):
@@ -211,7 +211,7 @@ class PackageTab(PrivateTab):
         self.copy_button=QPushButton('Copy / locate review batch');self.copy_button.setEnabled(False);self.copy_button.clicked.connect(self.copy_for_review);self.box.addWidget(self.copy_button)
         self.review_button=QPushButton('Open reference review');self.review_button.clicked.connect(self.open_review);self.box.addWidget(self.review_button)
         self.box.addWidget(label('No library yet? Open reference review and create one. Copying preserves originals and creates no admission.'))
-        self.stac=QLineEdit();self.stac.setReadOnly(True);self.stac.setAccessibleName('staC read of selected package');self.stac.setMinimumWidth(0);self.box.addWidget(self.stac)
+        self.stac=QLineEdit();self.stac.setReadOnly(True);self.stac.setAccessibleName('Read of the selected package');self.stac.setMinimumWidth(0);self.box.addWidget(self.stac)
         self.technical=QCheckBox('Technical detail');self.detail=QPlainTextEdit();self.detail.setReadOnly(True);self.detail.hide()
         self.technical.toggled.connect(self.detail.setVisible);self.box.addWidget(self.technical);self.box.addWidget(self.detail);self.box.addWidget(self.status)
         self.timer=QTimer(self);self.timer.setInterval(800);self.timer.timeout.connect(self.poll_job)

@@ -49,7 +49,7 @@ from .programs_qt import DeskMenu, MenuRow, Rule
 # The sections, in the order the menu shows them: the common way in first, then what the selected thing decides, the edit words
 # and the destructive ones last.
 SECTIONS = ('open', 'modify', 'state', 'command', 'capability', 'tree', 'edit', 'danger')
-SECTION_WORDS = {'open': 'open and show', 'modify': 'change it', 'state': 'its state', 'command': 'staC', 'capability': 'capabilities',
+SECTION_WORDS = {'open': 'open and show', 'modify': 'change it', 'state': 'its state', 'command': 'as a line', 'capability': 'capabilities',
                  'tree': 'the tree', 'edit': 'edit and copy', 'danger': 'remove'}
 CAPTION = 'what you can do right here'          # the menu's small caption, in the script (the quiet-script rule)
 HOVER_MS = 240                                  # a submenu opens after the pointer rests on its row this long
@@ -244,7 +244,7 @@ def run_stac(host, program):
     to_console(host, 'stac', program)
     if watched and console.last_program != program:
         console.last_program = before  # the output's right-click carries on from the last program that did run
-        raise Refused('Not run: %s · the working area shows the refusal' % (stac_refusal(console, program) or 'staC refused it'))
+        raise Refused('Not run: %s · the working area shows the refusal' % (stac_refusal(console, program) or 'the line was refused'))
     say(host, 'Ran in the working area: ' + short(program, 120))
     return program
 
@@ -253,7 +253,7 @@ def stac_refusal(console, program):
     """The Kernel's reason as the staC page wrote it under the program ("refused <reason>"), or '' when it cannot be read."""
     try:text = console.output.toPlainText()
     except (AttributeError, RuntimeError):return ''
-    echo = 'stac › ' + program;at = text.rfind(echo)
+    echo = 'line › ' + program;at = text.rfind(echo)      # the console's prompt (console_qt.Console.prompt)
     if at < 0:return ''
     for line in text[at + len(echo):].splitlines():
         line = line.strip()
@@ -540,7 +540,7 @@ def lenses_of(host, rel):
     out = [];program = '@files:' + rel
     _, refused = run(host, program)  # the file itself first: a refusal here (the address, the source binding) is said, not hidden
     if refused is not None:
-        return [Entry('extract:refused', 'Not readable now: ' + short(refused, 48), 'capability', enabled=False, reason='staC refused %s: %s' % (program, refused),
+        return [Entry('extract:refused', 'Not readable now: ' + short(refused, 48), 'capability', enabled=False, reason='the line refused %s: %s' % (program, refused),
                       operation='language.run')]
     sheets, _ = run(host, program + ' | pick data.sheets')
     if sheets and isinstance(sheets[0], dict):
@@ -551,7 +551,7 @@ def lenses_of(host, rel):
         p = program + ' | ' + lens;rows, error = run(host, p)
         if error is None and records(rows):out.append(Entry('extract:' + lens, lens, 'capability', lambda p=p:run_stac(host, p), caption=rows_words(rows), operation='language.run',
                                                           tip='Run %s in the working area' % p))
-    if not out:out.append(Entry('extract:none', 'Nothing to read as rows here', 'capability', enabled=False, reason='No staC lens gives rows for this file.'))
+    if not out:out.append(Entry('extract:none', 'Nothing to read as rows here', 'capability', enabled=False, reason='No reading gives rows for this file.'))
     return out
 
 
@@ -618,11 +618,11 @@ def file_entries(host, t):
         program = staC_for_file(rel)
         quoted = needs_quotes(rel)
         out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, program), icon='line', operation='language.run',
-                         enabled=not quoted, reason='A staC address is one word: this name has a space or a bar.', tip=program))
+                         enabled=not quoted, reason='An address is one word: this name has a space or a bar.', tip=program))
         out.append(Entry('run', 'Run', 'command', lambda:run_stac(host, program), icon='run', operation='language.run', enabled=not quoted,
-                         reason='A staC address is one word: this name has a space or a bar.', tip='Run %s; the answer shows in the working area' % program))
+                         reason='An address is one word: this name has a space or a bar.', tip='Run %s; the answer shows in the working area' % program))
         out.append(Entry('chain', 'Chain from here', 'command', qmenu=lambda:chain_qmenu(host, '@files:' + rel), icon='chain', enabled=not quoted,
-                         reason='A staC address is one word: this name has a space or a bar.', tip='The chain builder: each link a menu, each showing what it gives'))
+                         reason='An address is one word: this name has a space or a bar.', tip='The chain builder: each link a menu, each showing what it gives'))
         out.append(Entry('compare:with', 'Compare with…', 'capability', lambda:tab.compare_with(e), icon='compare', operation='files.compare'))
         found = versions_of(host, rel)
         def kept():
@@ -631,7 +631,7 @@ def file_entries(host, t):
         out.append(Entry('compare:version', 'Compare with a kept version', 'capability', submenu=kept, enabled=bool(found),
                          reason='No earlier versions are kept for %s yet.' % e['name']))
         out.append(Entry('extract', 'Extract', 'capability', submenu=lambda:lenses_of(host, rel), icon='extract', enabled=not quoted,
-                         reason='A staC address is one word: this name has a space or a bar.', tip='Read it as rows, headings, layers, texts, lines or facts'))
+                         reason='An address is one word: this name has a space or a bar.', tip='Read it as rows, headings, layers, texts, lines or facts'))
         out += adapter_entries(host, e['name'], rel)
         out.append(Entry('delivery:stage', 'Stage in Delivery', 'capability',
                          lambda:stage_for_delivery(host, [e]), icon='delivery',
@@ -659,7 +659,7 @@ def file_entries(host, t):
             out.append(Entry('copy:original', 'Show the original', 'open', lambda:tab.show_original(c)))
         out.append(Entry('copy:discard', 'Discard this draft…', 'danger', lambda:tab.discard_copy(c), operation='copies.discard'))
     out.append(Entry('copy:path', 'Copy path', 'edit', lambda:copy_text(host, str(root / rel), 'Copied the path'), icon='copy'))
-    out.append(Entry('copy:address', 'Copy the staC address', 'edit', lambda:copy_text(host, e.get('address') or '@files:' + rel, 'Copied the address')))
+    out.append(Entry('copy:address', 'Copy the address', 'edit', lambda:copy_text(host, e.get('address') or '@files:' + rel, 'Copied the address')))
     out.append(Entry('trash', 'Move to Trash', 'danger', lambda:trash_files(host, t), icon='trash', operation='files.trash', tip='Trash keeps it; Restore puts it back'))
     return out
 
@@ -1335,7 +1335,7 @@ def word_rows(host, manage=False):
             out.append(Entry('words:' + name, name, 'command', run, icon='line', operation='language.run', tip=line))
     if manage or not out:
         out.append(Entry('words:new', 'Keep a new word…', 'edit', lambda: inspect_in_line(host, 'word '), icon='line',
-                         tip='In the line: word NAME = a staC line. Ctrl+Enter keeps it; then the word is the line'))
+                         tip='In the line: word NAME = a line that reads. Keep it, and then the word is the line'))
     return out
 
 
@@ -1383,11 +1383,11 @@ def field_entries(host, t):
             lines = tuple(lines) + tuple(('Your word “%s”' % name, code) for name, code in sorted(known_to(host).items()))
         except Exception:  # noqa: BLE001 - the menu is never stopped because the words could not be read
             pass
-        out.append(Entry('field:stac', 'This face in staC', 'command', icon='line', tip='Read-only staC lines for what the Field shows; each goes to the writing strip',
+        out.append(Entry('field:stac', 'This face as lines', 'command', icon='line', tip='Read-only lines for what the Field shows; each goes to the writing strip',
                          submenu=lambda:[Entry('field:stac:%d' % n, label, 'command', lambda code=code:inspect_in_line(host, code), icon='line', tip=code)
                                          for n, (label, code) in enumerate(lines)]))
         out.append(Entry('field:words', 'Your words', 'command', icon='line', submenu=lambda:word_rows(host, manage=True),
-                         tip='staC lines you keep under words of your own: run one, put it in the line, forget it, or keep a new one'))
+                         tip='Lines you keep under words of your own: run one, put it in the line, forget it, or keep a new one'))
         return out
     target = obj.target if isinstance(obj.target, dict) else {}
     network = target.get('kind') == 'network'
@@ -1402,8 +1402,8 @@ def field_entries(host, t):
     out.append(Entry('field:feeds', 'What it %s' % verb_to, 'state', enabled=bool(feeds), reason='Nothing is recorded as coming from this', submenu=rows(feeds), caption='→'))
     if obj.stac:      # staC, said Stacy: the line that reads this object. In the line to read or change, or run as it is (a read).
         out.append(Entry('field:inspect', 'Inspect in the line', 'command', lambda:field_page.stac_in_line(host, obj), icon='line', caption='S',
-                         tip='Its staC line in the writing strip; nothing runs until Ctrl+Enter:\n' + obj.stac))
-        out.append(Entry('field:run', 'Run its staC', 'command', lambda:field_page.stac_run(host, obj), icon='line', caption='Shift+Enter',
+                         tip='Its line in the writing strip; nothing runs until you run it:\n' + obj.stac))
+        out.append(Entry('field:run', 'Run its line', 'command', lambda:field_page.stac_run(host, obj), icon='line', caption='Shift+Enter',
                          operation='language.run', tip='A read; the answer shows in the working area:\n' + obj.stac))
     work = view.face == 'work'
     if work and obj.kind in ('sheet', 'calculation'):      # the cascade for looking ahead: a number, then a value to try
@@ -1420,13 +1420,13 @@ def field_entries(host, t):
                      tip='The steps the records offer for this. A read runs at once; one that changes something is put up and waits for your go (D shows them in the Field)'))
     if work and obj.stac:
         out.append(Entry('field:words', 'Your words', 'command', icon='line', submenu=lambda:word_rows(host),
-                         tip='Run one of your own staC words here; a word whose line starts with `this` reads this sheet'))
+                         tip='Run one of your own words here; a word whose line starts with `this` reads this sheet'))
     if view.face == 'work':
         out.append(Entry('field:brief', 'The brief of the desk', 'command', view.brief_asked.emit, icon='line', caption='B',
                          tip=named('The whole desk written up as one page, from the records. Stacy shows every line; keeping it as a page asks first')))
     if not network:
         out.append(Entry('field:ask', named('Ask Stacy about this'), 'command', lambda:ask_about_sheet(host, obj),
-                         icon='ask', tip='Its name in the line for you to finish. Her answer is in Talk; with no model she answers from the records, in staC'))
+                         icon='ask', tip='Its name in the line for you to finish. Her answer is in Talk; with no model she answers from the records, with the line that reads them'))
     out.append(Entry('field:copy', 'Copy its name', 'edit', lambda:copy_text(host, obj.title), icon='copy'))
     return out
 
@@ -2298,7 +2298,7 @@ FOLDED = (
     ('Library: a received file', 'Open', 'library', 'open'), ('Library: a received file', 'Keep a copy in Files', 'library', 'keep'),
     ('Today (root chain menu)', 'Inquiries…', 'empty:today', 'inquiries'), ('Today', 'Algorithm & Theory Atlas…', 'empty:today', 'algorithms'),
     ('Today', 'Tool Atlas…', 'empty:today', 'atlas'), ('Today', 'your kept chains', 'empty:today', 'chains'), ('Today', 'start from ›', 'empty:today', 'start'),
-    ('Today', 'console › Log · staC · Kernel · Find · Shell', 'empty:today', 'line'), ('Today', 'writing line ›', 'empty:today', 'line'),
+    ('Today', 'console › Log · Lines · Kernel · Find · Shell', 'empty:today', 'line'), ('Today', 'writing line ›', 'empty:today', 'line'),
     ('Today › writing line', 'Shell', 'empty:today', 'line/line:shell'), ('Today', 'edit the Graphite menu…', 'empty:today', 'menu:edit'),
     ('Document page (Qt\'s text menu)', 'Undo', 'passage', 'edit:undo'), ('Document page', 'Redo', 'passage', 'edit:redo'), ('Document page', 'Cut', 'passage', 'edit:cut'),
     ('Document page', 'Copy', 'passage', 'edit:copy'), ('Document page', 'Paste', 'passage', 'edit:paste'), ('Document page', 'Delete', 'passage', 'edit:delete'),

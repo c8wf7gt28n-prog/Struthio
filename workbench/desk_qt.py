@@ -428,7 +428,8 @@ class InkWord:
         if widget.underMouse():
             from .boss_theme import READY
             return READY
-        if hasattr(widget, 'isChecked') and widget.isChecked():return PENCIL
+        if hasattr(widget, 'isChecked') and widget.isChecked():
+            return _bt.HONEY if widget.property('hers') and _bt.APPEARANCE == 'kasandra' else PENCIL      # Kasandra: her name, lit, in honey
         return None
 
     @staticmethod

@@ -144,7 +144,7 @@ def fill(menu, host, program):
     shell.aboutToShow.connect(lambda m=shell:m.isEmpty() and shell_endings(m, host, program))
     then_menu.addSeparator()
     then_menu.addAction('keep this chain…').triggered.connect(lambda checked=False:keep(host, program))
-    then_menu.addAction('copy the staC').triggered.connect(lambda checked=False:copy(host, program))
+    then_menu.addAction('copy the line').triggered.connect(lambda checked=False:copy(host, program))
     menu.addMenu(then_menu)
     from .chain_icons import dress
     dress(menu)  # a small picture for each link: what it does, at a glance
@@ -352,10 +352,10 @@ def keep(host, program, then_word='console', *, stock_unit=None, stock_basis=Non
 
 TEMPLATE = """# Your Graphite menu: chains you keep, shown at the top of the chain menu.
 # One chain per line; [submenu] (Name) … [end] groups them; [separator] draws a line.
-#   [chain] (Name) {staC pipeline} then console|sheet|watch|agenda
+#   [chain] (Name) {a line} then console|sheet|watch|agenda
 #   [stock] (Name) {"pcs"}   a shortage method for selected rows with this exact unit
 # Methods kept from a worksheet also record their original source revision and column bindings.
-# Graphite reads this file and never runs it: every chain must parse as staC, or it is shown greyed.
+# Graphite reads this file and never runs it: every chain must parse as a line, or it is shown greyed.
 #   [shell] (Name) {command}   your own command, offered under then › shell; the answer is a CSV file in $LEDGER_ANSWER
 """
 
@@ -370,7 +370,7 @@ def parse_menu(text):
         if not m:problems.append((number, 'not understood'));continue
         kind, name, program, how = m.groups()
         if kind == 'chain':
-            if not name or not program:problems.append((number, 'a chain needs (name) and {staC}'));continue
+            if not name or not program:problems.append((number, 'a chain needs (name) and {line}'));continue
             stack[-1].append(('chain', name.strip(), program.strip(), how if how in dict(THEN) else 'console'))
         elif kind == 'stock':
             try:

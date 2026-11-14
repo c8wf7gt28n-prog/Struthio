@@ -39,7 +39,7 @@ def exercise(root,profile,home,office=True):
     graph=invoke(kernel,'math.sweep',{'action':memory['id'],'variable':'workspace','start':'0','stop':'10','count':21},p)
     if graph['boundaries'][0]['input']['rational']!='4':raise ValueError('Exact What if boundary differs from the independent 16-6-6 calculation')
     stac=invoke(kernel,'stac.run',{'program':'math problem:'+problem['id']+' | calculate "voltage * assumed_typical_current" | unit W'},p)
-    if stac['result']['evaluation']['outputs'][0]['value']['rational']!='5/4':raise ValueError('staC did not use the shared evaluator')
+    if stac['result']['evaluation']['outputs'][0]['value']['rational']!='5/4':raise ValueError('The line did not use the shared evaluator')
     native=None
     if office:
         plan=invoke(kernel,'math.office.prepare',{'receipt':receipt['id']},p)

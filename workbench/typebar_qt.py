@@ -35,7 +35,7 @@ MAPPED = {'slate': 'slate', 'stac': 'slate', 'kernel': 'slate', 'shell': 'shell'
 CONSOLE_PAGE = {'slate': 'stac', 'shell': 'shell', 'find': 'find', 'log': 'log'}  # the working area's page for each mode
 JUMPS = {'@': 'stac', '/': 'kernel', '?': 'find', '$': 'shell'}  # a first character typed into an empty line
 # 0.5.3: the hints say what to type and name no key (the owner, 13 November 2026: no key printed anywhere; every key still works).
-HINTS = {'slate': 'ask in your own words, or type staC and the arrow runs it  ·  / runs an operation by name',
+HINTS = {'slate': 'ask in your own words, or type a line and the arrow runs it  ·  / runs an operation by name',
          'kernel': 'an operation by name: ' + 'files.list path=Slate  ·  help copies.review  ·  ops agenda',  # the example: an operation's real argument
          'find': 'files and their words, the cabinet, settings, commands and the Timeline',
          'shell': 'a command, in your Files folder',
@@ -43,7 +43,7 @@ HINTS = {'slate': 'ask in your own words, or type staC and the arrow runs it  ·
          'log': "words in Graphite's events"}
 SENDS = {'slate': named('Ask Stacy'), 'shell': 'Run it in the Terminal', 'find': 'Search the workspace', 'web': 'Open it in your browser', 'log': 'Filter the Log'}
 READS = ('stac', 'inspect', 'word')      # what the line can be read as that the arrow runs itself, instead of asking
-TIPS = {'slate': named('Stacy: ask in your own words, or type staC yourself'),
+TIPS = {'slate': named('Stacy: ask in your own words, or type a line yourself'),
         'shell': 'Terminal: type to Debian through your configured shell, in your Files folder',
         'find': 'Search: files and their words across the workspace',
         'web': 'Web: an address is opened, and words are searched for, in this computer’s own browser. Graphite itself fetches nothing.',
@@ -253,7 +253,7 @@ class TypeBar(QWidget):
             word = SHOWN.get(key, label)       # 0.5.3: names alone (they were "Assistant", "[>_] Terminal", "[=] Log")
             b = button(word, 'filter');b.setParent(self.right);b.setCheckable(True);b.clicked.connect(lambda checked=False, k=key:self.set_target(k))
             b.setToolTip(TIPS[key] + ('' if key != 'shell' else ' (%s)' % self.shell));self.targets[key] = b;self.words[b] = word;InkWord.install(b)
-            b.setAccessibleName('Writing line mode: ' + label);b.setProperty('arcPrimary', True)
+            b.setAccessibleName('Writing line mode: ' + label);b.setProperty('arcPrimary', True);b.setProperty('hers', key == 'slate')
         self.hatch.hide()
         for control in console.sizes.values():control.hide()
         for key, control in self.targets.items():
@@ -433,7 +433,7 @@ class TypeBar(QWidget):
     def send_says(self):
         """The arrow's tip and colour: green while the line reads as staC and the arrow would run it, amber otherwise."""
         reads = self.target == 'slate' and getattr(self, 'context_kind', None) in READS
-        tip = {'stac': 'Run this staC', 'inspect': 'Show this plan', 'word': 'Do this to your words'}[self.context_kind] if reads else SENDS.get(self.target, SENDS['slate'])
+        tip = {'stac': 'Run this line', 'inspect': 'Show this plan', 'word': 'Do this to your words'}[self.context_kind] if reads else SENDS.get(self.target, SENDS['slate'])
         if self.send.toolTip() != tip:self.send.setToolTip(tip);self.send.setAccessibleDescription(tip)
         if bool(self.send.property('reads')) != reads:
             self.send.setProperty('reads', reads);self.send.style().unpolish(self.send);self.send.style().polish(self.send);self.send.update()
@@ -665,7 +665,7 @@ class TypeBar(QWidget):
                 written = expand_this(self.host, command(written) or expand(known_to(self.host), written))
             except ValueError:pass
             kind = stac_hint_kind(written) or kind
-            words = {'stac': 'runs as staC', 'inspect': 'a plan to look at'}.get(kind)
+            words = {'stac': 'runs as a line', 'inspect': 'a plan to look at'}.get(kind)
             if written.startswith(('/words.keep ', '/words.forget ')):      # a line about the owner's own words: it changes them, and says so
                 kind, words = 'word', 'keeps this word' if written.startswith('/words.keep ') else 'forgets this word'
         elif getattr(self, 'target', None) == 'log' and view is not None:
@@ -674,11 +674,11 @@ class TypeBar(QWidget):
         if words is None:words = self.context_words()
         if (kind, words) != (getattr(self, 'context_kind', None), self.context_text):
             self.context_text = words;self.context_kind = kind
-            tip = {'stac': named('The line reads as staC: the arrow runs it. To ask Stacy about it instead, say it in your own words.'),
-                   'inspect': 'The arrow shows this staC plan without running it. Remove explain when you are ready to run it.',
+            tip = {'stac': named('This reads as a line: the arrow runs it. To ask Stacy about it instead, say it in your own words.'),
+                   'inspect': 'The arrow shows this plan without running it. Remove explain when you are ready to run it.',
                    'log': 'Log: ' + words + '\nThe stream above the line; Half or Tall shows it.' if words else 'Log'}.get(kind)
             self.context.setToolTip(tip or (('Active work context: ' + words + '\n' if words else '') + 'The selected cabinet record, else the current workspace.'))
-            self.context.setAccessibleName({'stac': 'Runs as staC', 'inspect': 'Shows a staC plan',
+            self.context.setAccessibleName({'stac': 'Runs as a line', 'inspect': 'Shows a plan',
                                             'log': 'Log summary'}.get(kind, 'Active work context'))
             self.context.setAccessibleDescription(words)
         self.send_says();self.place_context()

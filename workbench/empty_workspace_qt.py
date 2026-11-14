@@ -93,7 +93,7 @@ class HomeDashboard(QWidget):
         self.matrix = card('What Graphite has learned', 1, 1, [('Instruction matrix', self.open_matrix)])
         outer.addLayout(grid, 1)
         more = QHBoxLayout();more.addWidget(QLabel('More:'))
-        for label, destination in (('Organizer', 'organizer'), ('Memory && staC', 'memory'), ('Knowledge', 'stacy_knowledge'), ('References', 'references'),
+        for label, destination in (('Organizer', 'organizer'), ('Memory', 'memory'), ('Knowledge', 'stacy_knowledge'), ('References', 'references'),
                                    ('Awareness', 'stacy_awareness'), ('Commands', 'commands'), ('Settings', 'settings')):
             link = QPushButton(label);link.setFlat(True);link.setStyleSheet('color:#ffb05c;text-align:left');link.clicked.connect(nav(destination));more.addWidget(link)
         more.addStretch(1);outer.addLayout(more)
@@ -140,8 +140,8 @@ class HomeDashboard(QWidget):
         self.files.setText('\n'.join(recent) if recent else 'Nothing opened yet. Press Ctrl+Alt+V to view any file.')
         counts = (self.call('matrix.status') or {}).get('counts', {})
         total = sum(v for k, v in counts.items() if k != 'PROPOSED')
-        self.matrix.setText(('%d staC runs · %d worked · %d failed or blocked' % (total, counts.get('SUCCESS', 0), counts.get('FAILED', 0) + counts.get('BLOCKED', 0)))
-                            if total else named('Nothing yet. Run staC in the Office or ask Stacy to plan; every outcome teaches her.'))
+        self.matrix.setText(('%d lines run · %d worked · %d failed or blocked' % (total, counts.get('SUCCESS', 0), counts.get('FAILED', 0) + counts.get('BLOCKED', 0)))
+                            if total else named('Nothing yet. Run a line in the Office or ask Stacy to plan; every outcome teaches her.'))
 
     def receive_files(self):
         office = self.host.ledger_bridge.navigation()['office']();office.pick_files()

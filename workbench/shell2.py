@@ -255,7 +255,8 @@ def pleasantry(label, host, pixels):
         label.setIndent(0)  # the room is exactly the swash's (with a padding Qt would add half an x of its own)
     else:
         from .boss_theme import DISPLAY      # Plex Mono in Graphite; in Kasandra, the typewriter face her headings are set in
-        label.setStyleSheet('QLabel {font-family:\"%s\";font-size:%dpx;color:%s;font-weight:%d;}' % (DISPLAY, pixels, TEXT, 500 if DISPLAY == MONO else 400))
+        from .boss_theme import VIOLET_PALE      # Graphite: the text colour; Kasandra: pale violet
+        label.setStyleSheet('QLabel {font-family:\"%s\";font-size:%dpx;color:%s;font-weight:%d;}' % (DISPLAY, pixels, VIOLET_PALE, 500 if DISPLAY == MONO else 400))
     label.setProperty('pleasantry', True);label.setProperty('pleasantry_px', pixels)
     return label
 
@@ -309,7 +310,7 @@ def chrome_css(profile, assets):
         'QTreeWidget:focus, QListWidget:focus {border:0;}',  # a list shows focus by its current row, marked in graphite
         'QLabel[arcRole2="item"], QLabel#ItemTitle {font-size:%s;font-weight:600;}' % px(20),
         'QLabel[arcRole2="card"] {font-size:%s;font-weight:600;}' % px(20),
-        'QLabel[arcRole2="section"] {font-size:%s;letter-spacing:1px;color:%s;font-weight:500;}' % (px(13), QUIET),
+        'QLabel[arcRole2="section"] {font-size:%s;letter-spacing:1px;color:%s;font-weight:500;}' % (px(13), bt.VIOLET),      # Graphite: quiet; Kasandra: violet
         'QWidget#LibraryFoot QPushButton {border:0;border-bottom:3px solid %s;background:transparent;color:%s;text-align:left;padding:4px 2px;}' % (ERASER_MARK, TEXT),
         'QWidget#LibraryFoot QPushButton:hover {background:%s;border-bottom:3px solid %s;}' % (TEAL_SOFT, TEAL_EDGE),
         'QLabel[arcRole2="quiet"] {font-size:%s;color:%s;}' % (px(14), QUIET),
@@ -583,6 +584,16 @@ class TopBar(QWidget):
         self.more_menus.menu().aboutToShow.connect(self.fill_more_menus);self.more_menus.setParent(first);self.more_menus.show();self.folded_menus = []
         self.programs = QToolButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Programs ▾')
         self.programs.setAccessibleName('Programs');self.programs.setToolTip('Installed applications and capabilities')
+        from . import boss_theme as _bt
+        if _bt.APPEARANCE == 'kasandra':      # 0.8.0, the owner's monogram for Programs: "kp", kasandra protocol, in her colours
+            from PySide6.QtGui import QIcon
+            from .kasandra_art import folder as kasandra_folder
+            mark = QIcon(str(kasandra_folder(host.root) / 'kp_monogram.png'))
+            if not mark.isNull():
+                side = round(24 * scale_of(host))
+                self.programs.setIcon(mark);self.programs.setIconSize(QSize(side, side))
+                self.programs.setProperty('paperIcon', True)      # its own colours: menus2 makes other pictures one graphite colour
+                self.programs.setToolButtonStyle(Qt.ToolButtonTextBesideIcon);self.programs.setText('Programs ▾')
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
@@ -698,6 +709,7 @@ class TopBar(QWidget):
             self.nice.setGeometry(0, 0, 0, 0);self.nice.hide()
             for widget in (self.programs,):
                 width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4))
+                if not widget.icon().isNull():width += widget.iconSize().width() + round(8 * min(d.scale, 1.4))      # Kasandra's kp beside the word
                 x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
             # The familiar menus stand in the open from the left edge; the name of what is open follows them. In a window too
             # narrow for all of them and a name, the rightmost fold into ⋯, which lists every menu.
@@ -973,7 +985,7 @@ class KeyedWords(QuietWords):
 
 
 # 0.5.3: what the list under the line is, with no key named (the keys work as they did).
-CAPTIONS = {'slate': named('Your words go to Stacy · staC you type is run by the arrow · / an operation'),
+CAPTIONS = {'slate': named('Your words go to Stacy · a line you type is run by the arrow · / an operation'),
             'find': 'Choose a result, or search the whole workspace',
             'shell': 'Runs in your shell',
             'log': 'Filters the stream'}
@@ -986,7 +998,7 @@ class OneBox(QLineEdit):
 
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('OneBox')
-        writing_prompt(self, 'Ask staC, run a command, or search · @ / ? $')
+        writing_prompt(self, 'Run a line, a command, or search · @ / ? $')
         self.setToolTip(named('The one line you type on. The name lit at its left says who the words go to: Stacy, the Terminal, Search, the Web or the Log.'))
         self.setAccessibleName('Writing line: Assignment, Shell, Search and Log');self.setClearButtonEnabled(True);self.setMinimumWidth(220)
         self.popup = ResultsPopup(host, self);self.textEdited.connect(self.update_results);self.returnPressed.connect(self.popup.activate_current)
@@ -1089,7 +1101,7 @@ class OneBox(QLineEdit):
             rows.append(('stac', word + text, ('Enter', lambda:to_console(self.host, page, text))))
             return rows
         if page == 'stac' or parses_as_stac(text):
-            rows.append(('section', 'STAC · THE ARROW RUNS IT', None))
+            rows.append(('section', 'A LINE · THE ARROW RUNS IT', None))
             if preview and text.startswith('@'):rows += preview_rows(self.host, text)
         rows.append(('section', named('ASK STACY'), None))
         rows.append(('ask', named('Ask Stacy · ') + (text if len(text) < 48 else text[:46] + '…'), ('Enter', lambda:self.host.shell2.ask(text))))
@@ -1153,7 +1165,7 @@ class OneBox(QLineEdit):
         places = (('Jot it down', 'capture'), ('Go to Today', 'home'), ('Go to the Office', 'office'), (named('Talk to Stacy'), 'slate'), ('Open the Library', 'library:all'),
                   ('Project Desk', 'project_desk'), ('Changes', 'changes'), ('Continuing work', 'continuing'), ('Exchange & deployment', 'deployment'), ('Investigations', 'investigations'), ('New investigation', 'investigations'), ("Graphite's Agenda", 'agenda'), ('Files', 'files'), ('Trash', 'trash'), ('Egress', 'files:Egress'),
                   ('Night Shift', 'continuing'), ('Work on a copy of a file', 'work_copy'), ('Working copies', 'files:Working copies'),
-                  ('Settings', 'settings'), ('All commands', 'commands'), ('Organizer', 'organizer'), ('Memory & staC', 'memory'))
+                  ('Settings', 'settings'), ('All commands', 'commands'), ('Organizer', 'organizer'), ('Memory', 'memory'))
         for label, destination in places:
             if needle in label.casefold():found.append((label, '', lambda d=destination:open_destination(self.host, d)));seen.add(label)
         for action in self.host.actions():
@@ -1661,7 +1673,7 @@ class LibraryTab(QWidget):
             counts = {}
             for e in self.entries:counts[e['kind']] = counts.get(e['kind'], 0) + 1
             return 'Library', [('Cataloged', '%d files' % len(self.entries))] + [(l, str(counts.get(k, 0))) for k, l, _ in KINDS]
-        return 'Library · ' + Path(entry['name']).name, [('Delivery', entry['delivery']), ('staC address', '@' + entry['address']),
+        return 'Library · ' + Path(entry['name']).name, [('Delivery', entry['delivery']), ('Address', '@' + entry['address']),
                                                          ('Read it', '@' + entry['address'] + ' | select text'), ('Open', 'Double-click to open it in the viewer.')]
 
     def tell_inspector(self):
@@ -1726,6 +1738,26 @@ class Composer(QPlainTextEdit):
 POINTING = re.compile(r"\b(this|it|its|it's|that|here|these|those)\b", re.IGNORECASE)      # the words that point at the selected sheet
 
 
+def marked(layout, widget, host, glyph, align=None):
+    """Put a line of her column into its layout. In Kasandra (0.8.0, the owner: "maybe icons in kasandra column if they
+    look good and kool") the two lines under her face have one of Graphite's own glyphs at their left, in her cyan:
+    select for This (what is open), running for Now (what runs and waits). The lines beside her face carry none: the
+    face is their mark, and the room there is short. In Graphite the line stands alone, as before."""
+    from . import boss_theme as _bt
+    if _bt.APPEARANCE != 'kasandra':
+        layout.addWidget(widget, 0, align) if align is not None else layout.addWidget(widget);return None
+    from .tool_faces import icon
+    side = round(17 * scale_of(host))
+    mark = QLabel();mark.setObjectName('KasandraMark');mark.setFixedSize(side, side + 4);mark.setAttribute(Qt.WA_TransparentForMouseEvents)
+    mark.setPixmap(icon(glyph).pixmap(side, side));mark.setAlignment(Qt.AlignTop | Qt.AlignHCenter);mark.setContentsMargins(0, 3, 0, 0)
+    row = QHBoxLayout();row.setSpacing(round(7 * scale_of(host)));row.setContentsMargins(0, 0, 0, 0)
+    row.addWidget(mark, 0, Qt.AlignTop)
+    if align is not None:row.addWidget(widget, 0, align);row.addStretch(1)
+    else:row.addWidget(widget, 1)
+    layout.addLayout(row);widget.kasandra_mark = mark
+    return mark
+
+
 class SlateFace(QWidget):
     """The assistant in the right panel. Her face is Stacy (12 November 2026: "Stacy should be the face of the assistant as
     communicated through the language of Stacy") and her language is staC: ask about the open item, or about the selected
@@ -1754,9 +1786,9 @@ class SlateFace(QWidget):
         # two lines carry what the other two views were for. This: what is open or selected, which is what "this" means
         # to her; its word opens the whole of it (Context). Now: what she is doing and what waits for you; its words open
         # the whole of that (Activity, the Agenda). Then the conversation. The three tabs above are gone.
-        self.this = role(QLabel(), 'quiet');self.this.setWordWrap(True);outer.addWidget(self.this)
+        self.this = role(QLabel(), 'quiet');self.this.setWordWrap(True);marked(outer, self.this, host, 'select')
         # Her Agenda in one line: what she is doing now and what needs you; the words open it.
-        self.agenda = role(QLabel(), 'quiet');self.agenda.setWordWrap(True);outer.addWidget(self.agenda)
+        self.agenda = role(QLabel(), 'quiet');self.agenda.setWordWrap(True);marked(outer, self.agenda, host, 'running')
         self.agenda_timer = QTimer(self);self.agenda_timer.setInterval(4000);self.agenda_timer.timeout.connect(self.show_agenda);self.agenda_timer.start()
         QTimer.singleShot(0, self.show_agenda)
         # AGENT-01: under the agenda line, what Slate is working on (five lines; Stop and Pause are words there) and the
@@ -1768,7 +1800,7 @@ class SlateFace(QWidget):
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.thread = QWidget();self.lines = QVBoxLayout(self.thread);self.lines.setContentsMargins(0, 0, 14, 0);self.lines.setSpacing(10);self.lines.addStretch(1)
         self.scroll.setWidget(self.thread);outer.addWidget(self.scroll, 1)
-        self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show in staC, so you can run it yourself.')
+        self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show as a line you can run yourself.')
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
         self.input.returnPressed.connect(self.send);self.input.setAccessibleName(named('Message Stacy'));self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
         hint = role(QLabel('Enter sends · Shift Enter for a new line'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
@@ -1886,7 +1918,7 @@ class SlateFace(QWidget):
         code = QLabel(breakable(re.sub(r'([0-9a-f]{6})[0-9a-f]{20,}', '\\1…', line).replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))
         code.setToolTip(line)
         code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('staC: ' + line)
+        code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + line)
         answer_first = bool(thing.get('whole'))       # when the rows are the whole answer (a doubt, a what-if, a brief), they are read first and the line that read them comes after
         if not answer_first:card.box.addWidget(code)
         r = engineering(self.host.root).dispatch(operation, arguments, operator())
@@ -2506,7 +2538,7 @@ class SlateFace(QWidget):
         if thing and thing.get('refusal'):
             self.thing = None;self.mine(text);self.say(thing['refusal']);return
         thing = thing or self.thing_asked_about(text)
-        if thing and not about:about = '%s “%s”, read with the staC line: %s' % (thing['kind'], thing['title'], thing['stac'])
+        if thing and not about:about = '%s “%s”, read with the line: %s' % (thing['kind'], thing['title'], thing['stac'])
         about = about or self.current_item()
         self.mine(text)
         if self.job:self.say('I am still answering the last question. Stop it from the Brain room, or wait a moment.');return
@@ -2519,7 +2551,7 @@ class SlateFace(QWidget):
             self.answer_in_stac(thing, thing.get('intro') or 'What the records say about “%s”:' % thing['title'])
             return
         if brain.get('state') == 'READY' and thing:  # she reads first, exactly, then says it in her own words from what she read
-            card = self.answer_in_stac(thing, thing.get('intro') or 'The records about “%s”, and the staC that reads them:' % thing['title'])
+            card = self.answer_in_stac(thing, thing.get('intro') or 'The records about “%s”, and the line that reads them:' % thing['title'])
             if not card.answered:return
             from .engine import engineering
             from .engineering_kernel import operator
@@ -2539,7 +2571,7 @@ class SlateFace(QWidget):
             self.pending = self.say('In my words…');self.timer.start()
             return
         if brain.get('state') != 'READY' and thing:  # no model, but the records can answer about this thing, and she says how she read them
-            card = self.answer_in_stac(thing, thing.get('intro') or 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the staC that reads it:' % thing['title'])
+            card = self.answer_in_stac(thing, thing.get('intro') or 'No model is loaded, so this is not in my own words. This is what the records say about “%s”, and the line that reads it:' % thing['title'])
             if not thing.get('intro'):         # a trace or a what-if is whole without a model; an open question about a sheet is not
                 card.box.addWidget(sentence('{choose}', {'choose': ('Choose a model', lambda:open_destination(self.host, 'slate').pick_model())}))
             return
@@ -2611,7 +2643,7 @@ class SlateFace(QWidget):
             program_detail(self.pending.box, 'Local evidence · %d' % len(observations),
                            json.dumps(observations, ensure_ascii=False, indent=2))
         if not actions and not observations:
-            self.pending.box.addWidget(QLabel('No staC proposed this time. The matrix records that too.'))
+            self.pending.box.addWidget(QLabel('No line proposed this time. The matrix records that too.'))
         # AGENT-02 (D19): a documents.edit for the open page applies at once, visibly and undoably; every other action keeps Run/Edit.
         # The request recorded on the page is the owner's words (the job's message before the open-item context).
         message = str(((job.get('request_spec') or {}).get('brain') or {}).get('message') or '')
@@ -2629,7 +2661,7 @@ class SlateFace(QWidget):
         if page and page['applied']:return self.applied_card(action, program, page['words'], page['tab'])
         card = QFrame();card.setObjectName('StacCard');box = QVBoxLayout(card);box.setContentsMargins(10, 8, 10, 8);box.setSpacing(6)
         is_program = action['operation'].startswith('programs.')
-        label = QLabel('REVIEW ACTION' if is_program else 'PROPOSED STAC');label.setStyleSheet('color:%s;font-size:9pt;letter-spacing:1px' % TEAL);box.addWidget(label)
+        label = QLabel('REVIEW ACTION' if is_program else 'PROPOSED LINE');label.setStyleSheet('color:%s;font-size:9pt;letter-spacing:1px' % TEAL);box.addWidget(label)
         summary = program
         if is_program:
             from .stacy_control import program_operation_title
@@ -2850,7 +2882,7 @@ class SlateFace(QWidget):
         name = self.host.shell2.model_name(brain)
         counts = (call(self.host, 'matrix.status') or {}).get('counts', {})
         learned = sum(v for k, v in counts.items() if k != 'PROPOSED')
-        self.model.setText('speaks staC · ' + ((name or 'a model') if brain.get('state') == 'READY' else 'no model yet'))
+        self.model.setText(((name or 'a model') if brain.get('state') == 'READY' else 'no model yet'))      # 0.8.0: the language is never named
         self.model.setToolTip('Learning from %d outcomes you marked or ran' % learned)
         for block in (getattr(self, 'work', None), getattr(self, 'related', None)):
             if block is not None:block.refresh()
@@ -2949,7 +2981,7 @@ class TodayPage(QWidget):
             value = QLabel();value.setWordWrap(True);value.setStyleSheet('color:%s' % QUIET);col.addWidget(value);self.facts[key] = value
         col.addStretch(1)
         col.addWidget(role(QLabel('MORE'), 'section'))
-        for label, destination in (('Organizer', 'organizer'), ('Memory && staC', 'memory'), ('Knowledge', 'stacy_knowledge'), ('References', 'references'), ('Commands', 'commands'), ('Settings', 'settings')):
+        for label, destination in (('Organizer', 'organizer'), ('Memory', 'memory'), ('Knowledge', 'stacy_knowledge'), ('References', 'references'), ('Commands', 'commands'), ('Settings', 'settings')):
             link = QPushButton(label);link.setFlat(True);link.setProperty('arcButton', 'link');link.setCursor(Qt.PointingHandCursor);link.clicked.connect(lambda checked=False, d=destination:open_destination(host, d));col.addWidget(link)
         from .version import title as product
         foot = QLabel(product() + ' · Ctrl K to ask · F11 fullscreen');foot.setStyleSheet('color:%s' % FAINT);foot.setWordWrap(True);col.addWidget(foot)
@@ -3056,7 +3088,7 @@ class TodayPage(QWidget):
         learned = sum(v for k, v in counts.items() if k != 'PROPOSED')
         self.slate.note.setText('learning from %d outcomes' % learned if learned else '')
         if brain.get('state') == 'READY':
-            self.slate.line('Ask about what arrived. Graphite proposes staC; nothing runs until you say so.')
+            self.slate.line('Ask about what arrived. Graphite proposes a line; nothing runs until you say so.')
             asks = ('What arrived today?', 'Show the held files', 'Summarize the newest delivery')
             self.slate.say('Try: {a0} · {a1} · {a2}', **{'a%d' % i:(ask, lambda a=ask:self.host.shell2.ask(a)) for i, ask in enumerate(asks)})
         else:

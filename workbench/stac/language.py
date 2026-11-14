@@ -81,9 +81,9 @@ SIGNATURES = {
 
 def _check_text(text: str | None) -> None:
     if not isinstance(text, str) or not text.strip() or len(text) > 4096:
-        raise CompileError('Expected a staC command of 1–4096 characters')
+        raise CompileError('Expected a line of 1–4096 characters')
     if '\x00' in text or '\n' in text or '\r' in text:
-        raise CompileError('One line per staC program in version 0.2')
+        raise CompileError('One line at a time')
 
 
 def _lex_tokens(text: str) -> list[str]:
@@ -108,7 +108,7 @@ def _stages(toks: Sequence[str]) -> list[Stage]:
     # Angle operators are allowed ONLY inside an explicitly typed compare stage.
     # Other shell punctuation remains unavailable, including >> and <<.
     if any(tok in (';', '&&', '&', '>>', '<<', '<>', '`', '$', '(', ')', '||') for tok in toks):
-        raise CompileError('staC has no shell execution, redirection, variables or grouping')
+        raise CompileError('A line here has no shell execution, redirection, variables or grouping')
     parts = [[]]
     for t in toks:
         if t == '|':
@@ -192,7 +192,7 @@ def lower_surface(stages: list[Stage]) -> list[Stage]:
         else:
             expanded.append(stage)
     if len(expanded) > 20:
-        raise CompileError('Expanded staC pipeline exceeds 20 typed stages')
+        raise CompileError('The line, written out, has more than 20 stages')
     return expanded
 
 
@@ -285,7 +285,7 @@ def _compile_stages(stages: list[Stage], initial_context: Context | None) -> dic
           'nodes': nodes, 'result_type': typ,
           'effects': sorted(set(effect for node in nodes for effect in node['effects']))}
     if any(eff != 'read' for eff in ir['effects']):
-        raise CompileError('staC 0.2 only permits read effects')
+        raise CompileError('A line here only reads')
     return ir
 
 
