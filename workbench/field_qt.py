@@ -142,6 +142,10 @@ class FieldView(QWidget):
         self._fitted = False                # Z asked for the whole desk: it stays whole when the window or the desk changes, until the size is set by hand
         self.auto_fit = True                # 0.8.0, less scrolling: a desk that would fit whole a little smaller (AUTO_LEAST) is shown whole, until the size is set by hand
         self._placed = {};self._surface = (0.0, 0.0);self._gap = 34.0;self._labels = [];self._reveal_pending = False
+        self._route = None                  # the last Trace's wires, held as a fine line until the selection moves (surge)
+        from PySide6.QtCore import QTimer
+        self._surge_timer = QTimer(self);self._surge_timer.setInterval(16);self._surge_timer.timeout.connect(self._surge_tick)
+        self.trace_asked.connect(lambda obj:self.surge(obj.id) if obj is not None else None)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setAccessibleName('Field: the work in this workspace and what feeds what')
@@ -1157,6 +1161,11 @@ class FieldView(QWidget):
             pen = QPen(ink(colour, strength * (0.95 if link.stale or touching else 0.8)), 1.8 if touching or link.stale else 1.0)
             if link.stale:pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([5, 4])
             p.setBrush(Qt.NoBrush);p.setPen(pen);p.drawPath(path)
+            route = self._route
+            if route is not None and route['owner'] != self.field.selected:      # the selection moved: the trace gives way at once
+                self._route = route = None;self._surge_timer.stop()
+            if route is not None and (link.source, link.target) in route['links']:
+                self._surge_wire(p, path, route['links'][(link.source, link.target)], end, link.target in route['ends'])
             p.setPen(Qt.NoPen);p.setBrush(ink(colour, strength))
             for point in (start, end):p.drawEllipse(point, 2.6 * s, 2.6 * s)
             word = 'recheck' if link.stale and not link.label else link.label
@@ -1166,6 +1175,125 @@ class FieldView(QWidget):
                 want = start.x() + (gap if end.x() >= start.x() else -gap)
                 at = min((n / 40.0 for n in range(1, 40)), key=lambda f: abs(path.pointAtPercent(f).x() - want))
                 self._labels.append((path.pointAtPercent(at), word, link.stale))
+
+    # ---- the surge: Trace made visible ----------------------------------------------------------------------------
+    # 0.8.2, from the owner's "Graphite after hours": "Start with a white point so small that you almost miss it. It slips out
+    # of the source card and follows the curve that's already on screen. At the sheet it catches a corner … At the finding,
+    # the facets fan out and the blue bloom spills into the gap between cards." The shape (a thin core, small facets where a
+    # real wire meets a card) is kept apart from the light (the soft bloom), so the light can be bright and the cards stay
+    # readable: everything here is drawn under the sheets. One clock drives it: SURGE_TRAVEL along the route, farthest source
+    # first, every branch of a fork lit as the signal reaches it; SURGE_PEAK at the far end; SURGE_DECAY, the middle of each
+    # wire going dark before its ends; then a fine line along the route stays until the selection moves. With motion reduced,
+    # or on the Clean desk, the settled route is drawn at once. The route is redrawn from the wires of each painting, so the
+    # light stays on the wire through a zoom or a scroll, and a second Trace takes over from the first.
+    SURGE_TRAVEL, SURGE_PEAK, SURGE_DECAY = 0.70, 0.15, 0.50
+
+    def trace_route(self, ident):
+        """The wires of a trace of `ident`, each with its hop in the surge's order: from the farthest source in to `ident`, then
+        out to what rests on it. {(source, target): hop}, the number of hops, and the cards where the route ends."""
+        up = {ident: 0};frontier = [ident];links = {}
+        while frontier:
+            nxt = []
+            for node in frontier:
+                for link in self.field.fed_by(node):
+                    if link.source not in up:up[link.source] = up[node] + 1;nxt.append(link.source)
+                    links.setdefault((link.source, link.target), ('up', up[node] + 1))
+            frontier = nxt
+        down = {ident: 0};frontier = [ident]
+        while frontier:
+            nxt = []
+            for node in frontier:
+                for link in self.field.feeds(node):
+                    if link.target not in down:down[link.target] = down[node] + 1;nxt.append(link.target)
+                    links.setdefault((link.source, link.target), ('down', down[node] + 1))
+            frontier = nxt
+        far = max(up.values());route = {}
+        for key, (way, distance) in links.items():
+            route[key] = far - distance if way == 'up' else far + distance - 1
+        hops = max(route.values()) + 1 if route else 0
+        sources = {a for a, _ in route};ends = [b for _, b in route if b not in sources] or [ident]
+        return route, hops, ends
+
+    def surge(self, ident):
+        """Light the trace of `ident` along its wires (see above); a second call takes over from the first."""
+        import time
+        route, hops, ends = self.trace_route(ident)
+        self._route = dict(owner=ident, links=route, hops=hops, ends=ends, at=time.monotonic())
+        try:calm = bool(self.still()) if callable(self.still) else False
+        except Exception:calm = False  # noqa: BLE001 - motion is a nicety; a profile that cannot be read moves nothing
+        if calm or not self.texture:self._route['at'] = None          # straight to the settled route
+        else:self._surge_timer.start()
+        self.update()
+
+    def surge_elapsed(self):
+        import time
+        at = (self._route or {}).get('at')
+        return None if at is None else time.monotonic() - at
+
+    def _surge_tick(self):
+        left = self.surge_elapsed()
+        if self._route is None or left is None or left > self.SURGE_TRAVEL + self.SURGE_PEAK + self.SURGE_DECAY:
+            self._surge_timer.stop()
+            if self._route is not None:self._route['at'] = None
+        self.update()
+
+    @staticmethod
+    def _along(path, a, b, steps=24):
+        """The part of a path between fractions a and b of its length, as a path (for a lit stretch of a wire)."""
+        out = QPainterPath();length = path.length()
+        if length <= 0 or b <= a:return out
+        for n in range(steps + 1):
+            f = a + (b - a) * n / steps;point = path.pointAtPercent(path.percentAtLength(f * length))
+            if n == 0:out.moveTo(point)
+            else:out.lineTo(point)
+        return out
+
+    def _surge_wire(self, p, path, hop, end_point, final):
+        """One wire of the route: the fine settled line always; while the surge runs, its lit stretch, the travelling point
+        with its bloom, the facets where it meets the card, and at the route's end the wider fan and the bloom in the gap."""
+        s = self.scale();light = t.READY;level = min(max(t.glow(), 0.6), 2.6)
+        p.save();p.setBrush(Qt.NoBrush)
+        p.setPen(QPen(ink(light, 0.9), 1.3 * s));p.drawPath(path)                   # the route you can follow back to the source
+        elapsed = self.surge_elapsed()
+        if elapsed is None:p.restore();return
+        route = self._route;span = self.SURGE_TRAVEL / max(1, route['hops'])
+        local = (elapsed - hop * span) / span
+        if local <= 0:p.restore();return
+        travel_end = self.SURGE_TRAVEL;decay_at = travel_end + self.SURGE_PEAK
+        fade = 0.0 if elapsed <= decay_at else min(1.0, (elapsed - decay_at) / self.SURGE_DECAY)
+        lit = min(1.0, local);strength = (1.0 - fade) ** 0.7
+        # the lit stretch: whole as the signal passes, then the middle goes dark first and the ends last
+        half = 0.5 * (1.0 - fade)
+        parts = [self._along(path, 0.0, lit)] if fade == 0.0 else [self._along(path, 0.0, half), self._along(path, 1.0 - half, 1.0)]
+        for part in parts:
+            for width, alpha in ((9.0, 0.05), (5.0, 0.10), (2.4, 0.30)):
+                p.setPen(QPen(ink(light, min(1.0, alpha * level * strength)), width * s, Qt.SolidLine, Qt.RoundCap));p.drawPath(part)
+            p.setPen(QPen(ink('#ffffff', 0.85 * strength), 1.1 * s));p.drawPath(part)
+        if local < 1.0:                           # the point itself, and the light it throws
+            head = path.pointAtPercent(path.percentAtLength(local * path.length()))
+            glow = QRadialGradient(head, 14 * s);glow.setColorAt(0.0, ink(light, min(1.0, 0.55 * level)));glow.setColorAt(1.0, ink(light, 0.0))
+            p.setPen(Qt.NoPen);p.setBrush(glow);p.drawEllipse(head, 14 * s, 14 * s)
+            p.setBrush(ink('#ffffff', 0.95));p.drawEllipse(head, 1.7 * s, 1.7 * s)
+        else:                                     # arrived: the facets where the wire meets the card
+            since = elapsed - (hop + 1) * span
+            if final and elapsed >= travel_end:since = 0.0 if elapsed < decay_at else elapsed - decay_at
+            life = 0.35 if not final else self.SURGE_DECAY
+            if since < life:
+                bright = (1.0 - since / life) * (1.0 if not final or elapsed >= travel_end else 0.7)
+                size = (5.0 if not final else 9.0) * s;fan = 3 if not final else 5
+                if final:                         # the bloom spills into the gap before the finding, not over its face
+                    gap = QPointF(end_point.x() - 16 * s, end_point.y())
+                    bloom = QRadialGradient(gap, 34 * s);bloom.setColorAt(0.0, ink(light, min(1.0, 0.45 * level * bright)));bloom.setColorAt(1.0, ink(light, 0.0))
+                    p.setPen(Qt.NoPen);p.setBrush(bloom);p.drawEllipse(gap, 34 * s, 34 * s)
+                import math
+                for n in range(fan):              # three (or five) pencil strokes through bright glass, opening backwards along the wire
+                    angle = math.pi + (n - (fan - 1) / 2) * (0.42 if not final else 0.36)
+                    tip = QPointF(end_point.x() + math.cos(angle) * size * (1.6 if n % 2 else 1.0), end_point.y() + math.sin(angle) * size * (1.6 if n % 2 else 1.0))
+                    side = QPointF(math.cos(angle + math.pi / 2) * size * 0.28, math.sin(angle + math.pi / 2) * size * 0.28)
+                    p.setPen(Qt.NoPen);p.setBrush(ink(light, min(1.0, 0.35 * bright * level)))
+                    p.drawPolygon(QPolygonF([end_point, tip + side, tip - side]))
+                    p.setPen(QPen(ink('#ffffff', min(1.0, 0.8 * bright)), 0.9 * s));p.drawLine(end_point, tip)
+        p.restore()
 
     def _halo(self, p, rect, colour, strength=1.0):
         """A soft glow around a rectangle: three outlines, the widest the faintest. Still, like everything on this surface.

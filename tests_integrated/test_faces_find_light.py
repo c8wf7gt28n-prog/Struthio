@@ -4,7 +4,7 @@ the glyph set, and what the session keeps of them.
 Real offscreen widgets; no window of the program, no job, worker, model, provider or native program. Everything written
 goes to a temporary folder.
 """
-import os,tempfile,unittest
+import os,tempfile,unittest,unittest.mock
 from pathlib import Path
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 from PySide6.QtCore import QEvent,Qt
@@ -272,6 +272,72 @@ class GlowDialTests(unittest.TestCase):
         host.session.state['glow']='soft';self.assertEqual(boss_qt.set_glow(host),levels['soft'])
         host.session.state['glow']='nonsense';self.assertEqual(boss_qt.set_glow(host),levels['neon'])
         self.assertEqual(boss_qt.set_glow(object()),levels['neon'],'a host with no session gets what the desk opens with')
+
+
+class SurgeTests(unittest.TestCase):
+    """0.8.2, the owner's "Graphite after hours": Trace lights its route along the wires (farthest source first, every branch
+    of a fork as the signal reaches it), then leaves a fine line along it; with motion reduced it lands there at once."""
+    def view(self):
+        from workbench.field_model import Field, FieldLink, FieldObject
+        from workbench.field_qt import FieldView
+        objs=[FieldObject('pdf','source','Bench.pdf'),FieldObject('sheet','sheet','Bench readings'),FieldObject('calc','calculation','Settled power'),
+              FieldObject('find','finding','Settled draw'),FieldObject('other','source','Rev B.pdf'),FieldObject('alone','source','Rev A.pdf')]
+        links=[FieldLink('pdf','sheet'),FieldLink('sheet','calc'),FieldLink('pdf','find'),FieldLink('other','find')]
+        v=FieldView();v.set_field(Field(objects=objs,links=links));v.resize(1200,800);self.addCleanup(v.deleteLater);return v
+
+    def test_the_route_runs_from_the_farthest_source_in_and_then_out_and_a_fork_lights_together(self):
+        v=self.view()
+        route,hops,ends=v.trace_route('sheet')
+        self.assertEqual(route,{('pdf','sheet'):0,('sheet','calc'):1});self.assertEqual((hops,ends),(2,['calc']))
+        route,hops,ends=v.trace_route('pdf')
+        self.assertEqual(route,{('pdf','sheet'):0,('pdf','find'):0,('sheet','calc'):1},'both branches leave the source together')
+        self.assertEqual(sorted(set(ends)),['calc','find'])
+        route,hops,ends=v.trace_route('find')
+        self.assertEqual(route,{('pdf','find'):0,('other','find'):0},'two sources converge on the finding');self.assertNotIn('alone',str(route))
+        self.assertEqual(v.trace_route('alone'),({},0,['alone']),'nothing wired: no route')
+
+    def test_trace_lights_then_settles_a_selection_move_clears_it_and_reduced_motion_lands_at_once(self):
+        v=self.view();v.field.select('pdf');v.show();APP.processEvents()
+        v.trace_asked.emit(v.field.get('pdf'))
+        self.assertEqual(v._route['owner'],'pdf');self.assertTrue(v._surge_timer.isActive(),'it moves')
+        for at in (0.2,0.5,0.8,1.1,None):                    # every moment of the clock paints without error
+            v.surge_elapsed=(lambda at=at:at);image=v.grab().toImage();self.assertFalse(image.isNull())
+        del v.surge_elapsed
+        v.surge('pdf');self.assertEqual(v._route['owner'],'pdf','a second trace takes over')
+        v.field.select('other');v.grab();self.assertIsNone(v._route,'the selection moved: the trace gives way');self.assertFalse(v._surge_timer.isActive())
+        v.field.select('pdf');v.still=lambda:True;v.surge('pdf')
+        self.assertIsNone(v._route['at'],'reduced motion: the settled route at once');self.assertFalse(v._surge_timer.isActive())
+        v.still=None;v.texture=False;v.surge('pdf');self.assertIsNone(v._route['at'],'the Clean desk: no light, the route only')
+        v.hide()
+
+
+class MenuCatchTests(unittest.TestCase):
+    """0.8.2: a menu catches as it opens (a tracking band, a cyan ghost, the frame lit), as light only: the mouse goes through
+    it, it is gone after CATCH_MS, and with motion reduced or the glow off there is none."""
+    def test_the_catch_is_light_only_brief_and_absent_when_still(self):
+        import time
+        from PySide6.QtWidgets import QMenu
+        from workbench import menu_catch
+        menu=QMenu();menu.addAction('Open');menu.addAction('Then');menu.popup(menu.pos());APP.processEvents();self.addCleanup(menu.close)
+        with unittest.mock.patch.object(menu_catch,'calm',return_value=False):
+            c=menu_catch.catch(menu)
+        self.assertIsNotNone(c);self.assertTrue(c.testAttribute(Qt.WA_TransparentForMouseEvents),'clicks and keys reach the menu at once')
+        self.assertEqual(c.geometry(),menu.rect());self.assertFalse(c.grab().isNull())
+        deadline=time.monotonic()+2
+        while time.monotonic()<deadline and menu.findChild(menu_catch.Catch) is not None:APP.processEvents();time.sleep(0.01)
+        self.assertIsNone(menu.findChild(menu_catch.Catch),'gone once it has caught')
+        with unittest.mock.patch.object(menu_catch,'calm',return_value=True):
+            self.assertIsNone(menu_catch.catch(menu));self.assertIsNone(menu_catch.flash(menu))
+        self.assertLessEqual(menu_catch.CATCH_MS,200)
+
+    def test_a_child_catches_from_its_parents_side(self):
+        from workbench import menu_catch
+        class P:pass
+        parent=QWidget();parent.setGeometry(100,100,200,300);parent.show();child=QWidget();child.setGeometry(310,100,200,300);child.show()
+        self.addCleanup(parent.close);self.addCleanup(child.close)
+        child.parent_menu=parent;self.assertEqual(menu_catch.side_of(child),'left')
+        child.setGeometry(0,100,90,300);self.assertEqual(menu_catch.side_of(child),'right')
+        child.parent_menu=None;self.assertEqual(menu_catch.side_of(child),'down')
 
 
 if __name__=='__main__':

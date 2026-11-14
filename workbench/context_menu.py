@@ -228,6 +228,8 @@ def inspect_in_line(host, text, mode='slate'):
     bar = getattr(host, 'type_bar', None)
     if bar is None:return None
     bar.set_target(mode, focus=False);bar.box.setText(text);bar.box.setFocus(Qt.OtherFocusReason);bar.box.end(False)
+    from . import menu_catch
+    menu_catch.flash(bar.box)      # the line lands: the writing line's edge lights for a beat (the owner's "you'll feel where it went")
     if hasattr(bar, 'typed'):
         try:bar.typed(text)
         except Exception:pass
@@ -2888,6 +2890,8 @@ def install(host):
     router = Router(host);host.context_router = router
     app = QApplication.instance()
     if app is not None:app.installEventFilter(router)
+    from . import menu_catch
+    menu_catch.install(host)      # 0.8.2: every menu of this window catches as it opens (light only; it answers at once)
     keys = []
     for sequence in (QKeySequence(Qt.Key_Menu), QKeySequence('Shift+F10')):
         shortcut = QShortcut(sequence, host);shortcut.setContext(Qt.WindowShortcut);shortcut.activated.connect(lambda:open_at_focus(host));keys.append(shortcut)
