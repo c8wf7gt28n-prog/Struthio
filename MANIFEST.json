@@ -2830,8 +2830,8 @@
       "sha256": "d23c7e79d9f732b61849adf73a5cb42381931f363791eb65f38aae6bc753a692"
     },
     "tools/campaign_lib/cases_scene.py": {
-      "bytes": 7094,
-      "sha256": "149d9ed0c06a0a42b070d8c0af2e8b6802f2d05ad38299ab39d7a10177b657f8"
+      "bytes": 7187,
+      "sha256": "4733f8357c1ff3c64cdf68ce576f66b74a05c52a7be56da5b6a39f37c4f088a4"
     },
     "tools/campaign_lib/core.py": {
       "bytes": 11666,
@@ -2850,8 +2850,8 @@
       "sha256": "324cb0267d2297aaefc09a7f80c42ab0cc0b01f257a412b2f92a9abb4156d019"
     },
     "tools/campaign_lib/fixture.py": {
-      "bytes": 15129,
-      "sha256": "bfaf92aa803ec4d9094e09f0d12b5d7c0eaeca8bc160d4ab4b35129de0672df8"
+      "bytes": 15219,
+      "sha256": "3e8969e08a281d4fa8655ec46dedcc415d1e19f437602948f8260f9e294f5288"
     },
     "tools/campaign_lib/gguf_fixture.py": {
       "bytes": 10696,

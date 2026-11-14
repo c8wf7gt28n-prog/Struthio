@@ -33,7 +33,7 @@ AH07_IDS = {
     'pdf_item': 'c1d3fc85730d57bc35404c6065dbe1dc',
     'pdf_sha256': '2c60377d8dcf9c821c7d458d4ae944ddd84566c325114700c19ddcd76bbc375b',
 }
-KEEP_ENV = ('PATH', 'LANG', 'LC_ALL', 'TZ', 'TERM')
+KEEP_ENV = ('PATH', 'LANG', 'LC_ALL', 'TZ', 'TERM', 'GRAPHITE_APPEARANCE')      # the appearance a run starts in (0.8.2: a scene in Kasandra)
 
 
 class Blocked(Exception):

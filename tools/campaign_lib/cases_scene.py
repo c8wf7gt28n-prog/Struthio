@@ -106,6 +106,7 @@ def run_case(ctx):
         if out.get('blocked'):raise fixture.Blocked(out['blocked'])
         ctx.note('steps', [{k: s[k] for k in ('n', 'act', 'ok', 'by', 'seconds', 'words', 'result')} for s in out['steps']])
         ctx.note('passed', out['passed'])
+        ctx.note('appearance', boss_theme.APPEARANCE)      # the appearance it was played in
         try:w.close();settle()
         except RuntimeError:pass
     finally:
