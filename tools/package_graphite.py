@@ -36,12 +36,11 @@ EXCLUDED_PARTS = ('.ledger', '.venv', '__pycache__', '.pytest_cache', '.git', '.
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
 # Fields of earlier checkpoints' manifests that no reader uses any more (the release check reads graphite_release).
 RETIRED_FIELDS = ('hatch_checkpoint', 'integrated_pass', 'delivery_stage')
-NOTE = ('Graphite 0.8.0: Kasandra, a second appearance beside Graphite (Rules, Desk artwork, Appearance): indigo, her stills chosen by the '
-        'state of the work, the kasandra protocol wordmark and the kp monogram, a typewriter face for headings and her name. The lines you '
-        'can run are simply lines. The first deliverable of the 35B test campaign is tools/campaign.py (docs/CAMPAIGN.md). The desk does: in '
-        'the Field, D offers the steps the records have for a sheet, C checks the desk, and one go settles what needs no decision of the '
-        'owner. P shows every program as a shelf. Free software under the GNU GPL version 2 only (COPYING, RIGHTS.md). '
-        'Read docs/THINKPAD_FIRST_INSTALL.md.')
+NOTE = ('Graphite 0.8.1: the right-click is short and chains: the thing with its glyph, up to four usual actions, Then (the thing\'s '
+        'line read once, each step shown with what it gives) or Start from, and More in named groups; Stop asks first; nothing scrolls '
+        'and no key is printed. The model\'s memory rules are decided for the 35B (docs/CAMPAIGN.md). Kasandra is a second appearance '
+        'beside Graphite (Rules, Desk artwork, Appearance). Apps shows what is installed. Free software under the GNU GPL version 2 '
+        'only (COPYING, RIGHTS.md). Read docs/THINKPAD_FIRST_INSTALL.md.')
 
 
 
