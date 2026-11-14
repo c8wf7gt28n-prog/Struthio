@@ -53,6 +53,14 @@ class PaletteTests(unittest.TestCase):
         self.assertNotEqual(k['OWNER'], k['RECHECK']);self.assertNotEqual(k['OWNER'], k['AMBER_EDGE'])
         self.assertEqual(k['DISPLAY'], 'Special Elite')
 
+    def test_a_sheet_written_in_graphites_colours_takes_the_colours_of_their_roles(self):
+        css = 'QLineEdit {background:#493225;color:#eee9dd;border:1px solid #ff9a36;} QLabel {color:#123456;}'
+        with mock.patch.object(boss_theme, 'APPEARANCE', 'graphite'):
+            self.assertEqual(boss_theme.recolour(css), css, 'Graphite: unchanged')
+        with mock.patch.object(boss_theme, 'APPEARANCE', 'kasandra'):
+            k = boss_theme.PALETTES['kasandra'];lit = boss_theme.recolour(css)
+            self.assertEqual(lit, 'QLineEdit {background:%s;color:%s;border:1px solid %s;} QLabel {color:#123456;}' % (k['ERASER'], k['TEXT'], k['AMBER_EDGE']))
+
     def test_the_appearance_is_this_computers_and_survives_another_project(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'session-r10.json'

@@ -52,12 +52,13 @@ def explanation(spec):
 def menu(host,ident,parent=None,snapshot=None):
     value=snapshot if snapshot is not None else model(host,ident)
     popup=QMenu(parent);popup.setObjectName('CabinetActionMenu');popup.setToolTipsVisible(True)
-    popup.setStyleSheet(STYLE+'''
+    from .boss_theme import recolour
+    popup.setStyleSheet(STYLE+recolour('''
     QMenu {background:#22292c;color:#eee9dd;border:1px solid #394549;}
     QMenu::item {padding:8px 20px;}
     QMenu::item:selected {background:#493225;}
     QMenu::item:disabled {color:#b0bcb9;}
-    ''')
+    '''))
     popup.action_model=value
     # V-14: QMenu::addSection text does not render under the application stylesheet (explore_qt notes the same), so the
     # heading is a visible, italic, disabled row followed by a rule; its words say which record the actions belong to.

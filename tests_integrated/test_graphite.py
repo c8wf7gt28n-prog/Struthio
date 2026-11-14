@@ -169,7 +169,9 @@ class MarkAndTileTests(unittest.TestCase):
             self.assertFalse(words.scripted());self.assertEqual(words.text(),'No Agenda item passes.\nWaiting reasons appear with each item.')
             shell2.SCRIPT_ON[0]=True;words.restyle();self.assertTrue(words.scripted());self.assertIn('passes.</p><p style=',words.text(),'the lead its own line, the note under it')
             hint=shell2.QuietWords(host);hint.explain(shell2.CAPTURE_HINT);self.assertTrue(hint.scripted())
-            self.assertIn('Ctrl+Enter</span>',hint.text(),'the keys in a note stay print');self.assertIn('Ctrl+Shift+N</span>',hint.text())
+            self.assertNotIn('Ctrl',shell2.CAPTURE_HINT,'0.8.0: the jot box prints no key (the owner: no keyboard shortcut printed anywhere)')
+            keys=shell2.QuietWords(host);keys.explain('Ctrl+Enter keeps it · Ctrl+Shift+N from anywhere');self.assertTrue(keys.scripted())
+            self.assertIn('Ctrl+Enter</span>',keys.text(),'the keys in a note stay print');self.assertIn('Ctrl+Shift+N</span>',keys.text())
             self.assertEqual(shell2.quiet_html('Ctrl+P finds a file',20,13).count(shell2.SCRIPT),1,'the key printed, the words in the script')
             self.assertIn('<span style="font-size:13px;">Ctrl+P</span>',shell2.quiet_html('Ctrl+P finds a file',20,13))
         finally:shell2.SCRIPT_ON[0]=saved

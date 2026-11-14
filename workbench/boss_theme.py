@@ -99,6 +99,23 @@ if APPEARANCE != 'graphite':      # a Graphite colour written into some older sh
         if isinstance(_value, str) and _value.startswith('#') and _value not in TOKENS:LEGACY.setdefault(_value, PALETTES[APPEARANCE][_name])
 
 
+# Colours some older pages write by hand (settings, cabinet), by the role each one plays (0.8.0). In Graphite nothing is changed.
+NEAR = {'#eee9dd': 'TEXT', '#14191b': 'PANEL', '#22292c': 'RAISED', '#394549': 'LINE', '#b0bcb9': 'ERASED_QUIET',
+        '#cbf08b': 'TEAL_TEXT', '#493225': 'ERASER', '#593a29': 'ERASER_DEEP', '#ff9a32': 'AMBER_EDGE'}
+
+
+def recolour(css):
+    """A stylesheet written in Graphite's colours, in the colours of the appearance in force: each Graphite colour (and each
+    near one in NEAR) becomes the colour of the same role. Unchanged in Graphite."""
+    if APPEARANCE == 'graphite' or not isinstance(css, str):return css
+    graphite = PALETTES['graphite']
+    def one(found):
+        c = found.group().lower()
+        name = NEAR.get(c) or next((k for k, v in graphite.items() if v == c), None)
+        return PALETTES[APPEARANCE][name] if name else found.group()
+    return re.sub(r'#[0-9a-fA-F]{6}\b', one, css)
+
+
 def relight(css):
     """Translate old widget chrome by property, never by inverting a whole sheet.
 

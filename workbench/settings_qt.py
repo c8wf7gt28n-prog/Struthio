@@ -38,6 +38,8 @@ QPushButton[settingsAction="true"]:focus {border-bottom:2px solid #eee9dd;}
 QPushButton[settingsAction="true"]:disabled {color:#b0bcb9;text-decoration:none;}
 QTreeWidget#SettingsHistory,QPlainTextEdit#SettingsDetail {background:transparent;color:#eee9dd;border:0;}
 """
+from . import boss_theme as _bt      # 0.8.0: these sheets in the colours of the appearance in force (unchanged in Graphite)
+INK, ACTION_STYLE, CHECKED_RULE, PASSAGE_STYLE, STYLE = (_bt.recolour(s) for s in (INK, ACTION_STYLE, CHECKED_RULE, PASSAGE_STYLE, STYLE))
 
 
 def words(value):

@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QLineEdit,
 from . import cabinet
 from .engineering_kernel import operator,CAPABILITIES
 from .settings_qt import action,STYLE,INK
+from .boss_theme import recolour
 
 
 def plain(text=''):
@@ -20,11 +21,11 @@ class CabinetRecordTab(QWidget):
         super().__init__();self.host=host;self.current=None;self.data=None;self.loading=False
         self.setProperty('ledgerRoom',True);self.setProperty('paperFunctionalInk',True)
         # Selection is eraser pink (#593a29): the theme's AMBER_SOFT equals the passage's AMBER, so a selection was invisible (V-02).
-        self.setObjectName('CabinetRecord');self.setStyleSheet(STYLE+'''
+        self.setObjectName('CabinetRecord');self.setStyleSheet(STYLE+recolour('''
         QLineEdit#CabinetWriting,QPlainTextEdit#CabinetWriting {background:#493225;color:#eee9dd;border:0;padding:8px;border-radius:0;selection-background-color:#593a29;selection-color:#eee9dd;}
         QLineEdit#CabinetWriting:focus,QPlainTextEdit#CabinetWriting:focus {border-bottom:2px solid #eee9dd;}
         QPlainTextEdit#CabinetRead {background:transparent;color:#eee9dd;border:0;selection-background-color:#593a29;selection-color:#eee9dd;}
-        ''')
+        '''))
         if not hasattr(host.ledger_bridge,'cabinet_drafts'):host.ledger_bridge.cabinet_drafts={}
         self.drafts=host.ledger_bridge.cabinet_drafts
         outer=QVBoxLayout(self);scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setFrameShape(QScrollArea.NoFrame);outer.addWidget(scroll)
@@ -156,10 +157,10 @@ class CabinetPage(QWidget):
         super().__init__();self.host=host;self.footer_line=footer_line;self.model=None;self.items={};self.loading=False
         self.saved=host.session.state.get('cabinet_navigation',{});self.using_legacy=False
         self.setProperty('paperFunctionalInk',True)
-        self.setStyleSheet(STYLE+'''QLineEdit#CabinetQuery {background:#493225;color:#eee9dd;border:0;padding:7px;selection-background-color:#593a29;selection-color:#eee9dd;}
+        self.setStyleSheet(STYLE+recolour('''QLineEdit#CabinetQuery {background:#493225;color:#eee9dd;border:0;padding:7px;selection-background-color:#593a29;selection-color:#eee9dd;}
         QTreeWidget#LogicalCabinet {background:transparent;color:#eee9dd;border:0;}
         QTreeWidget#LogicalCabinet::item {padding:5px 2px;}
-        QTreeWidget#LogicalCabinet::item:selected {background:#493225;color:#eee9dd;}''')
+        QTreeWidget#LogicalCabinet::item:selected {background:#493225;color:#eee9dd;}'''))
         box=QVBoxLayout(self);box.setContentsMargins(8,6,8,0);box.setSpacing(8)
         row=QHBoxLayout();self.logical=action('Logical cabinet',lambda:self.set_legacy(False));self.legacy=action('Existing views',lambda:self.set_legacy(True))
         from .settings_qt import ACTION_STYLE
