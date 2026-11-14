@@ -80,26 +80,21 @@ SCRIPT_ON = [False]  # the owner's choice, for words drawn without a window at h
 
 
 def apps_mark(button, host):
-    """Kasandra's Apps button: the owner's kp emblem (0.8.3, "I attached a new kp icon/logo"), 58 x 38 at 14 pt, its thin
-    strokes thickened at 1x (kp_emblem_38, from the small cut) and the master's at 2x; the verified monogram at 36 x 36 if the
-    emblem's bytes are not the recorded ones; the words '[#] Apps ▾' if neither is. Its name stays Apps for readers."""
-    from .kasandra_art import folder, mark
-    base = folder(host.root);s = scale_of(host)
-    one, two = mark(base, 'kp_emblem_38.png'), mark(base, 'kp_emblem_76.png')
-    icon = QIcon()
-    if one is not None and two is not None:
-        icon.addFile(str(one), QSize(58, 38));icon.addFile(str(two), QSize(116, 76));size = QSize(round(58 * s), round(38 * s))
-    else:
-        monogram = mark(base, 'kp_monogram.png')
-        if monogram is not None:icon = QIcon(str(monogram));size = QSize(round(36 * s), round(36 * s))
-    if icon.isNull():
-        button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('[#] Apps ▾');return False
-    button.setIcon(icon);button.setIconSize(size)
-    # lifted 4 px in the head band (the same padding in all, moved from below to above): the violet trace at the emblem's
-    # foot then clears the band's teal light along its lower edge (0.8.3 review: about 2:1 against it)
-    button.setStyleSheet('QToolButton#BossPrograms {padding:1px 10px 9px 10px;}')
+    """Kasandra's Apps button: the owner's neon kp logo (0.8.3, "New logo for our upper right progman.exe menu ;)"), about
+    44 px tall and 74 wide at 14 pt, its neon drawn round it by kp_logo.AppsButton; the words '[#] Apps ▾' if its bytes are
+    not the recorded ones. Its name for readers stays Apps, and its tip."""
+    from . import kp_logo
+    image = kp_logo.logo(host.root)
+    button.logo = None;button.setStyleSheet('')
+    if image.isNull():
+        button.setIcon(QIcon());button.setToolButtonStyle(Qt.ToolButtonTextOnly);button.setText('[#] Apps ▾');button.update();return False
+    s = scale_of(host);size = kp_logo.size(s)
+    from PySide6.QtGui import QPixmap
+    button.scale = s;button.logo = image      # the button paints it, with its neon (kp_logo.AppsButton)
+    button.setIcon(QIcon(QPixmap.fromImage(image.scaled(size * 2, Qt.KeepAspectRatio, Qt.SmoothTransformation))));button.setIconSize(size)
     button.setProperty('paperIcon', True)      # its own colours: menus2 makes other pictures one graphite colour
     button.setToolButtonStyle(Qt.ToolButtonIconOnly);button.setText('')      # its name stays for readers (Apps)
+    button.update()
     return True
 
 
@@ -346,7 +341,8 @@ def chrome_css(profile, assets):
         'QLabel[arcRole2="title"], QLabel[arcRole2="hero"] {font-family:"%s";font-size:%s;font-weight:400;color:%s;}' % (SCRIPT, px(38), TEXT),
     ] if SCRIPT_ON[0] and SCRIPT in QFontDatabase.families() else []) + [
         'QLabel[arcRole2="lead"] {font-size:%s;color:%s;}' % (px(18), QUIET),
-        'QPushButton:focus, QToolButton:focus {border:0;border-bottom:3px solid %s;}' % TEXT,  # a word is focused by its underline, never a box
+        'QPushButton:focus, QToolButton:focus {border:0;border-bottom:3px solid %s;}' % (AMBER_EDGE if bt.APPEARANCE == 'kasandra' else TEXT),  # a word is focused by its
+        # underline, never a box (0.8.3, Kasandra: the keyboard's place is her burnt yellow)
         'QComboBox:focus {border:2px solid %s;}' % AMBER_EDGE,
         'QTreeWidget:focus, QListWidget:focus {border:0;}',  # a list shows focus by its current row, marked in graphite
         'QLabel[arcRole2="item"], QLabel#ItemTitle {font-size:%s;font-weight:600;}' % px(20),
@@ -426,7 +422,7 @@ class LibraryDelegate(QStyledItemDelegate):
         if index.data(BADGE_ROLE):
             width = metrics.horizontalAdvance(extra) + 14;from PySide6.QtCore import QRectF
             pill = QRectF(rect.right() - width, rect.center().y() - 10, width, 20)
-            painter.setRenderHint(QPainter.Antialiasing);painter.setPen(Qt.NoPen);painter.setBrush(QColor(AMBER));painter.drawRoundedRect(pill, 9, 9);painter.setPen(QPen(QColor(LINE), 1));painter.setBrush(Qt.NoBrush);painter.drawRoundedRect(pill, 9, 9)
+            painter.setRenderHint(QPainter.Antialiasing);painter.setPen(Qt.NoPen);painter.setBrush(QColor(bt.CUE));painter.drawRoundedRect(pill, 9, 9);painter.setPen(QPen(QColor(LINE), 1));painter.setBrush(Qt.NoBrush);painter.drawRoundedRect(pill, 9, 9)
             painter.setPen(QColor(TEXT));painter.drawText(pill, Qt.AlignCenter, extra)
         else:
             painter.setPen(QColor(FAINT));painter.drawText(rect, Qt.AlignRight | Qt.AlignVCenter, extra)
@@ -573,7 +569,7 @@ class Mark(QWidget):
     def paintEvent(self, event):
         from PySide6.QtCore import QPointF, QRectF
         p = QPainter(self);p.setRenderHint(QPainter.Antialiasing);s = self.width() / 28.0
-        p.setPen(QPen(QColor(LINE_STRONG), 1 * s));p.setBrush(QColor(AMBER));p.drawRoundedRect(QRectF(3.5 * s, 3.5 * s, 21 * s, 21 * s), 5 * s, 5 * s)
+        p.setPen(QPen(QColor(LINE_STRONG), 1 * s));p.setBrush(QColor(bt.CUE));p.drawRoundedRect(QRectF(3.5 * s, 3.5 * s, 21 * s, 21 * s), 5 * s, 5 * s)
         pen = QPen(QColor(TEXT), 1.75 * s);pen.setCapStyle(Qt.RoundCap);pen.setJoinStyle(Qt.RoundJoin);p.setPen(pen);p.setBrush(Qt.NoBrush)
         from PySide6.QtGui import QPolygonF
         p.drawPolygon(QPolygonF([QPointF(9 * s, 19 * s), QPointF(9.5 * s, 16.5 * s), QPointF(17 * s, 9 * s), QPointF(19 * s, 11 * s),
@@ -643,10 +639,11 @@ class TopBar(QWidget):
         self.more_menus = QToolButton();self.more_menus.setObjectName('MoreMenus');self.more_menus.setText('Work ▾');self.more_menus.setAccessibleName('Work commands')
         self.more_menus.setPopupMode(QToolButton.InstantPopup);self.more_menus.setToolButtonStyle(Qt.ToolButtonTextOnly);self.more_menus.setMenu(QMenu(self.more_menus))
         self.more_menus.menu().aboutToShow.connect(self.fill_more_menus);self.more_menus.setParent(first);self.more_menus.show();self.folded_menus = []
-        self.programs = QToolButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Apps ▾')      # 0.8.1: the owner, "We'll change the name programs to apps"
+        from .kp_logo import AppsButton      # 0.8.3: in Kasandra it wears the owner's neon kp logo and paints its neon (apps_mark)
+        self.programs = AppsButton(first);self.programs.setObjectName('BossPrograms');self.programs.setText('[#] Apps ▾')      # 0.8.1: the owner, "We'll change the name programs to apps"
         self.programs.setAccessibleName('Apps');self.programs.setToolTip('Installed apps and capabilities')
         from . import boss_theme as _bt
-        if _bt.APPEARANCE == 'kasandra':apps_mark(self.programs, host)      # her kp emblem, the Apps button's whole face
+        if _bt.APPEARANCE == 'kasandra':apps_mark(self.programs, host)      # the owner's neon kp logo, the Apps button's whole face
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
@@ -764,7 +761,7 @@ class TopBar(QWidget):
             self.nice.setGeometry(0, 0, 0, 0);self.nice.hide()
             for widget in (self.programs,):
                 width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4)) if widget.text() else round(18 * min(d.scale, 1.4))
-                if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)      # Kasandra's kp, now alone
+                if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)      # Kasandra's neon kp, alone
                 x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
             # The familiar menus stand in the open from the left edge; the name of what is open follows them. In a window too
             # narrow for all of them and a name, the rightmost fold into ⋯, which lists every menu.
@@ -860,7 +857,7 @@ class TopBar(QWidget):
         words = {'READY': 'ready', 'MODEL_STOPPED': 'stopped', 'NO_MODEL_SELECTED': 'no brain yet'}.get(brain.get('state'), 'unknown')
         status_words = {'READY': 'ready', 'MODEL_STOPPED': 'stopped', 'NO_MODEL_SELECTED': 'none yet'}.get(brain.get('state'), 'unknown')
         model = (self.host.shell2.model_name(brain) or 'Graphite') if brain.get('state') == 'READY' else 'Graphite'
-        dot = READY if brain.get('state') == 'READY' else (AMBER if brain.get('state') == 'MODEL_STOPPED' else FAINT)
+        dot = READY if brain.get('state') == 'READY' else (bt.CUE if brain.get('state') == 'MODEL_STOPPED' else FAINT)
         ready = brain.get('state') == 'READY'
         self.brain.setText(('●  ' + model) if ready else ('○  Graphite · ' + words))
         self.brain.setStyleSheet('QPushButton#BrainChip {color:%s;}' % (TEXT if ready else QUIET))
@@ -1343,7 +1340,7 @@ class ResultsPopup(QFrame):
                 hint, fn = extra
                 if hint and hint not in KEY_WORDS:item.setText(text + '      ' + hint)
                 if kind == 'stac':item.setFont(mono_font(16));item.setForeground(QColor(TEAL_TEXT))
-                if kind in ('ask', 'search'):item.setForeground(QColor(AMBER_TEXT))
+                if kind in ('ask', 'search'):item.setForeground(QColor(bt.CUE_TEXT))
                 self.actions[id(item)] = fn;item.setData(Qt.UserRole, id(item))
                 first = first or item
             self.list.addItem(item)
@@ -3342,9 +3339,9 @@ class StageBar(QWidget):
         f = QFont(self.font());f.setPixelSize(max(12, round(13 * SECTION_SCALE[0])));p.setFont(f);metrics = p.fontMetrics()  # metadata size, so the names never run together
         if self.height() != metrics.height() + 14:self.setFixedHeight(metrics.height() + 14)
         for i, name in enumerate(self.STEPS):
-            color = QColor(TEAL if i < self.done else (AMBER if i == self.done else LINE))
+            color = QColor(TEAL if i < self.done else (bt.CUE if i == self.done else LINE))
             p.setPen(Qt.NoPen);p.setBrush(color);p.drawRoundedRect(int(i * (w + 4)), 0, int(w), 6, 3, 3)
-            p.setPen(QColor(AMBER_TEXT if i == self.done else QUIET));p.drawText(int(i * (w + 4)), 10 + metrics.ascent(), metrics.elidedText(name, Qt.ElideRight, int(w) - 4))
+            p.setPen(QColor(bt.CUE_TEXT if i == self.done else QUIET));p.drawText(int(i * (w + 4)), 10 + metrics.ascent(), metrics.elidedText(name, Qt.ElideRight, int(w) - 4))
 
 
 # The controller -------------------------------------------------------------------
@@ -3640,7 +3637,7 @@ class Shell2(QObject):
             title.setFocusPolicy(Qt.TabFocus);title.clicked.connect(lambda checked=False:self.title_clicked())
             self.face.signature.hide()      # her name is said once: the pane's title says it, so the line beside her face need not
             title.setStyleSheet('QPushButton#PaneTitle {font-family:"%s";font-weight:%d;color:%s;background:transparent;border:0;border-bottom:2px solid %s;padding:0 2px;text-align:left;} '
-                                'QPushButton#PaneTitle:hover {color:%s;border-bottom:2px solid %s;}' % (bt.DISPLAY, 400 if bt.APPEARANCE == 'kasandra' else 600, TEXT, AMBER_EDGE, TEAL_TEXT, READY))
+                                'QPushButton#PaneTitle:hover {color:%s;border-bottom:2px solid %s;}' % (bt.DISPLAY, 400 if bt.APPEARANCE == 'kasandra' else 600, TEXT, bt.CUE_EDGE, TEAL_TEXT, READY))
         other = 'Activity' if current is getattr(self.host, 'operations_panel', None) else ('Sources' if preview is not None else 'Context') if current is getattr(self.host, 'arc_inspector', None) else ''
         # With a spreadsheet's worksheet open the pane has two faces of its own, her and the sheet's Preview: the title is
         # then the way from one to the other, so neither is ever out of reach.

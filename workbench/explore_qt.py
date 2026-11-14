@@ -234,7 +234,9 @@ class ExploreTab(QWidget):
     def __init__(self,host):
         super().__init__();self.host=host;self.model=None;self.context_id=None;self.offset=0;self.loading=False
         self.setObjectName('ExploreWorkspace');self.setProperty('ledgerRoom',True);self.setProperty('paperFunctionalInk',True)
-        from .shell2 import AMBER,TEXT,ERASER_DEEP  # the yellow writing passage: visible selection (AMBER_SOFT equals AMBER), no border, bottom rule on focus
+        from .shell2 import TEXT,ERASER_DEEP
+        from .boss_theme import CUE as AMBER  # the yellow writing passage: visible selection (AMBER_SOFT equals AMBER), no border, bottom rule on focus
+        # (0.8.3: its ground is CUE, Graphite's amber and Kasandra's blue as before: a place to write is not a highlight)
         self.setStyleSheet(STYLE+'''
             QLineEdit#ExploreQuery {background:%s;color:%s;border:0;padding:10px;min-height:26px;selection-background-color:%s;selection-color:%s;}
             QLineEdit#ExploreQuery:focus {border-bottom:2px solid %s;}'''%(AMBER,TEXT,ERASER_DEEP,TEXT,TEXT)+'''

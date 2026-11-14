@@ -241,19 +241,54 @@ def case_column(p):
         out['ground_round'] = [image.pixelColor(x, y).name() for x, y in ((10, pane.height() // 2), (pane.width() - 3, pane.height() // 2),
                                                                          (pane.width() // 2, pane.height() - 10), (pane.width() // 2, 3))]
     out['scroll'] = p.rect(face.scroll)
-    prog = w.shell2.top.programs
-    out['apps'] = dict(icon=[prog.iconSize().width(), prog.iconSize().height()], name=prog.accessibleName(), text=prog.text(), rect=p.rect(prog))
-    from workbench import kasandra_art
+    out.update(apps_measures(p))
+    return out
+
+
+def apps_measures(p):
+    """Apps in the head: the owner's neon kp logo (0.8.3), its size and place, its tip, the words when its bytes are not the
+    recorded ones, its neon by the Glow dial (none on the Clean desk), its catch as the list opens (none with Reduce motion),
+    and the window icon (Graphite's sharpened point in both appearances)."""
+    from unittest.mock import patch
+    from PySide6.QtCore import QRect
+    from workbench import boss_qt, boss_theme as bt, kasandra_art, kp_logo, shell2
+    from workbench.graphite_brand import mark_tile
+    w = p.w;out = {};prog = w.shell2.top.programs
+    out['apps'] = dict(icon=[prog.iconSize().width(), prog.iconSize().height()], name=prog.accessibleName(), text=prog.text(), rect=p.rect(prog),
+                       tip=prog.toolTip(), logo=prog.logo is not None, kind=type(prog).__name__, band=w.desk.band)
+    if prog.logo is not None:
+        r = prog.logo_rect();out['apps']['logo_rect'] = [r.x(), r.y(), r.width(), r.height()]
+
+        def outside(image):      # the light outside the drawing: summed luminance above the band's own, beside the logo
+            box = QRect(round(r.x()), round(r.y()), round(r.width()), round(r.height()))
+            total = 0.0
+            for y in range(image.height()):
+                for x in list(range(0, max(0, box.left() - 1))) + list(range(min(image.width(), box.right() + 2), image.width())):
+                    c = image.pixelColor(x, y);total += 0.2126 * c.red() + 0.7152 * c.green() + 0.0722 * c.blue()
+            return round(total, 1)
+        lit = {}
+        for key, level in (('neon', 3.0), ('bright', 1.9), ('soft', 1.0), ('zero', 0.0)):
+            bt.GLOW[0] = level;prog.repaint();lit[key] = outside(prog.grab().toImage())
+        bt.GLOW[0] = 3.0
+        boss_qt.choose_art(w, 'clean');p.settle(20, 2);prog.repaint();lit['clean'] = outside(prog.grab().toImage());out['clean_level'] = prog.level()
+        boss_qt.choose_art(w, 'illustrated');p.settle(20, 2)
+        out['apps_light'] = lit
+        hatch = w.type_bar.hatch
+        out['catch_anchor'] = hatch.programs.anchor is prog
+        hatch.open_list();p.settle(10, 1);out['catch_on_open'] = prog.caught_at is not None;hatch.programs.hide();p.settle(200, 2)
+        out['catch_settled'] = prog.caught_at is None
+        w.session.state.setdefault('reading_profile', {})['reduce_motion'] = True
+        out['catch_reduce_motion'] = prog.catch();w.session.state['reading_profile']['reduce_motion'] = False
     real = kasandra_art.mark
+
     def without(*names):
         return lambda base, name: None if name in names else real(base, name)
-    with patch.object(kasandra_art, 'mark', without('kp_emblem_38.png')):
-        shell2.apps_mark(prog, w);out['apps_monogram'] = [prog.iconSize().width(), prog.iconSize().height()]
-    with patch.object(kasandra_art, 'mark', without('kp_emblem_38.png', 'kp_monogram.png')):
-        shell2.apps_mark(prog, w);out['apps_words'] = prog.text()
-    shell2.apps_mark(prog, w)
-    from workbench.graphite_brand import window_icon_source
-    out['icon_source'] = window_icon_source(w.root)
+    with patch.object(kasandra_art, 'mark', without('kp_neon.png')):
+        shell2.apps_mark(prog, w);out['apps_words'] = prog.text();out['apps_words_logo'] = prog.logo is not None
+    if bt.APPEARANCE == 'kasandra':shell2.apps_mark(prog, w)
+    tile = mark_tile(256).toImage().convertToFormat(prog.grab().toImage().format())
+    shown = w.windowIcon().pixmap(256, 256).toImage().convertToFormat(tile.format())
+    out['window_icon_graphite'] = shown.size() == tile.size() and bytes(shown.constBits()) == bytes(tile.constBits())
     return out
 
 
@@ -374,7 +409,6 @@ def case_review(p):
 
 
 def case_graphite_column(p):
-    from workbench.graphite_brand import window_icon_source
     from PySide6.QtWidgets import QLabel
     w = p.w;face = w.shell2.face
     face.answer_in_stac({'stac': '@files | rows | count', 'title': 'files', 'kind': 'files'}, 'Reading it in a line.')
@@ -383,10 +417,10 @@ def case_graphite_column(p):
     slab = next((l for l in cards[-1].findChildren(QLabel) if l.toolTip().startswith('@files')), None)
     slab.ensurePolished()
     return dict(portrait=type(face.portrait).__name__, masthead=getattr(face, 'masthead', 'missing'), margin=face.lines.contentsMargins().right(),
-                hologram=getattr(w, 'hologram', 'missing'), icon_source=window_icon_source(w.root), slab=[slab.font().family(), slab.font().pixelSize()],
+                hologram=getattr(w, 'hologram', 'missing'), slab=[slab.font().family(), slab.font().pixelSize()],
                 delete=[w.trash_can.word_font.letterSpacing(), w.trash_can.word_font.family()],
                 tabs=sorted({b.font().family() for b in w.left_pane.tabs.buttons + w.right_pane.tabs.buttons}),
-                least=w.panes['least'], need=w.panes['need'])
+                least=w.panes['least'], need=w.panes['need'], apps=apps_measures(p))
 
 
 CASES = dict(delete=case_delete, wiring=case_wiring, hologram=case_hologram, hologram_absent=case_hologram_absent, column=case_column,

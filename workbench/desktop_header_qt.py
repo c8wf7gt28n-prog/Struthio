@@ -470,12 +470,13 @@ class NicePopup(QFrame):
                     action.triggered.connect(lambda checked=False,choice=choice:self.commit_priority(row['id'],choice))
                 menu.exec(label.mapToGlobal(position))
             label.customContextMenuRequested.connect(priorities)
-        from .shell2 import LINE, QUIET, ERASER_MARK, AMBER_EDGE
+        from .shell2 import LINE, QUIET, ERASER_MARK
+        from .boss_theme import CUE_EDGE
         reading = QLabel();reading.setTextFormat(Qt.PlainText);reading.setStyleSheet('font-size:%dpx;color:%s;' % (px(13), QUIET));col.addWidget(reading)
         slider = QSlider(Qt.Horizontal);slider.setMinimumWidth(110);slider.setFixedHeight(24);col.addWidget(slider)
         slider.setStyleSheet('QSlider::groove:horizontal {height:4px;background:%s;border-radius:2px;} '
             'QSlider::sub-page:horizontal {background:%s;border-radius:2px;} '
-            'QSlider::handle:horizontal {width:12px;background:%s;border:1px solid %s;border-radius:6px;margin:-5px 0;}' % (LINE,AMBER_EDGE,ERASER_MARK,QUIET))
+            'QSlider::handle:horizontal {width:12px;background:%s;border:1px solid %s;border-radius:6px;margin:-5px 0;}' % (LINE,CUE_EDGE,ERASER_MARK,QUIET))
         cpu = job;tiers = TIERS;caption = 'CPU nice · ' if cpu else 'Agenda tier · '
         def words(value):return caption + (cpu_nice_words(value, row.get('cpu_priority_basis')) if cpu else tier_words(tiers[value]))
         if cpu:

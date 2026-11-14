@@ -110,7 +110,8 @@ def folder(size, path=None):
     front flap with a lit edge, and a small graphite mark on the folders everyone knows (Trash, Egress, Ingress, Slate…)."""
     image = QImage(size, size, QImage.Format_ARGB32_Premultiplied);image.fill(Qt.transparent)
     p = QPainter(image);p.setRenderHint(QPainter.Antialiasing)
-    from .shell2 import AMBER, AMBER_EDGE, PENCIL_DEEP
+    from .shell2 import PENCIL_DEEP
+    from .boss_theme import CUE as AMBER, CUE_EDGE as AMBER_EDGE      # 0.8.3: a drawn icon, not a highlight
     u = size / 96.0;w, h = size * .80, size * .58;x, y = (size - w) / 2, size * .27
     edge = QPen(QColor(AMBER_EDGE), max(1.0, 1.3 * u))
     # the back, with its tab

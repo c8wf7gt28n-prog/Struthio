@@ -10,15 +10,24 @@ a scroll thumb are told from the ground by a plate a shade lighter and an edge a
 
 Amber is for what is selected, what has the keyboard, and what waits for the owner. Green is for what is live: readings,
 what is current, staC, the pointer, and whatever the pointer is over (13 November 2026: "the mouse pointer to be the systems
-green ... more green glowing")."""
+green ... more green glowing").
+
+In Kasandra (0.8.3, the owner: "I'm kinda thinking that highlighting should be in our burnt yellow??? Like especially in
+menus???") what is selected and what has the keyboard is burnt yellow: the row you are on in a menu is a solid bar (BAR,
+with ON_BAR the dark ink on it and BAR_EDGE its 2 px edge); every other highlight is an edge and words (AMBER_EDGE,
+AMBER_TEXT) on a fill (AMBER_SOFT). Every highlight fill is opaque, and yellow light is only ever added to what lies under
+it (lays_light), never mixed over her cyan: mixed, yellow and cyan make green. Her cyan keeps what it says there: the
+pointer, what is ready, the line, the bands' rule, and the cues that are not a selection (CUE, CUE_EDGE, CUE_TEXT, which
+are Graphite's amber and her old cyan)."""
 import json
 import os
 import re
 
 # Two appearances (0.8.0). Graphite is the desk as it was: warm ink on near-black glass, amber for what is selected and
 # what waits for the owner, green for what is live. Kasandra is the owner's second direction (13 November 2026, "I think
-# I really like the LAIN/kasandra idea"; the pack's palette.json): ink and pale blue on dark indigo, cyan for focus and
-# what is ready, raspberry for a decision that waits for the owner, lavender with a dashed edge for a recheck.
+# I really like the LAIN/kasandra idea"; the pack's palette.json): ink and pale blue on dark indigo, burnt yellow for
+# what is selected and has the keyboard (cyan until 0.8.3), cyan for what is ready, raspberry for a decision that waits for
+# the owner, lavender with a dashed edge for a recheck.
 #
 # The appearance is chosen once, when this module is first imported, which is inside qt_app.make_app before any window
 # exists, so every module that copies a colour at import sees the chosen one. A change (Rules ▸ Desk artwork ▸
@@ -37,19 +46,37 @@ PALETTES = {
         BAND=(12, 15, 14), ERASED='#efeae0', ERASED_QUIET='#b0bcb9', BAND_MARK='#dd854b', BAND_PENCIL='#f2a369',
         DESK_LIGHT='#8c826b', VEIL='#000000', DISPLAY='IBM Plex Mono', FACE='IBM Plex Sans', MONO='IBM Plex Mono',
         HONEY='#f2a369', VIOLET='#c8baa0', VIOLET_DEEP='#474436', VIOLET_PALE='#f4e8ce', VIOLET_SOFT='#4b2a14',
-        ROYAL='#cbf08b', ROYAL_SOFT='#1b2817', ROYAL_INK='#cbf08b', ROYAL_TEXT='#cbf08b', RED='#ff9a36', ON_RED='#0b0e0d'),
+        ROYAL='#cbf08b', ROYAL_SOFT='#1b2817', ROYAL_INK='#cbf08b', ROYAL_TEXT='#cbf08b', RED='#ff9a36', ON_RED='#0b0e0d',
+        CUE='#4b2a14', CUE_EDGE='#ff9a36', CUE_TEXT='#ffba72',
+        BAR='#4b2a14', ON_BAR='#f4e8ce', BAR_EDGE='#4b2a14', ON_BAR_QUIET='#c8baa0', ON_AMBER='#f4e8ce'),
     'kasandra': dict(
         GROUND='#171b3c', PANEL='#1b1f45', CARD='#1f234d', RAISED='#292d56', TERMINAL_GROUND='#11132c',
         LINE='#3b4479', LINE_STRONG='#8796cb', LINE_MID='#5969a1', TEXT='#e3e3ff', QUIET='#c1c6e8', FAINT='#9ca3d2',
-        AMBER='#1d3d63', AMBER_SOFT='#1d3d63', AMBER_EDGE='#83eaff', AMBER_TEXT='#b9f4ff',
+        AMBER='#5a3f0c', AMBER_SOFT='#5a3f0c', AMBER_EDGE='#e2a72e', AMBER_TEXT='#ffd27a',
         PENCIL_DEEP='#2b2f63', ERASER='#2e2a5c', ERASER_DEEP='#3b3474', ERASER_MARK='#a9b6ee',
         TEAL='#83eaff', TEAL_SOFT='#1f3560', TEAL_EDGE='#5a8fc4', TEAL_TEXT='#b9f4ff', READY='#83eaff', STOP='#fa507c',
         OWNER='#fa507c', ON_OWNER='#171b3c', RECHECK='#c3b6f4',
-        BAND=(20, 23, 52), ERASED='#e3e3ff', ERASED_QUIET='#aeb4dc', BAND_MARK='#83eaff', BAND_PENCIL='#83eaff',
+        BAND=(20, 23, 52), ERASED='#e3e3ff', ERASED_QUIET='#aeb4dc', BAND_MARK='#e2a72e', BAND_PENCIL='#ffd27a',
         DESK_LIGHT='#8f97c9', VEIL='#11132c', DISPLAY='Kasandra Elite', FACE='Kasandra Elite', MONO='Kasandra Elite Mono',
         HONEY='#e9b872', VIOLET='#ab8eda', VIOLET_DEEP='#5f4fa8', VIOLET_PALE='#d2c4f5', VIOLET_SOFT='#2b2660',
-        ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6', RED='#ff3b5c', ON_RED='#fff1f4'),
+        ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6', RED='#ff3b5c', ON_RED='#fff1f4',
+        CUE='#1d3d63', CUE_EDGE='#83eaff', CUE_TEXT='#b9f4ff',
+        BAR='#e2a72e', ON_BAR='#171b3c', BAR_EDGE='#ffd27a', ON_BAR_QUIET='#4a3d2a', ON_AMBER='#ffd27a'),
 }
+# 0.8.3, the owner: "I'm kinda thinking that highlighting should be in our burnt yellow??? Like especially in menus???",
+# "You measure what is visually pleasing", and "we have to be careful how that makes the graphite not look green". So, in
+# Kasandra only (Graphite keeps every colour it had):
+#   the row you are on in a menu   BAR #e2a72e, solid, with ON_BAR #171b3c (7.79:1) and a 2 px BAR_EDGE #ffd27a; ON_BAR_QUIET
+#                                  (4.9:1) for a row that says why it cannot act. In Graphite these are its menus' amber wash
+#                                  and their own inks, and the edge is the wash itself (no edge shows).
+#   every other highlight          AMBER_SOFT #5a3f0c with AMBER_EDGE #e2a72e and words in AMBER_TEXT #ffd27a (6.86:1);
+#                                  ON_AMBER is the words on a highlight (Graphite: its ink, as before).
+#   the bands' marks               BAND_MARK (the keyboard's place on a band word or a tab) #e2a72e, BAND_PENCIL (the chosen
+#                                  one) #ffd27a.
+#   cues that are not a selection  CUE, CUE_EDGE, CUE_TEXT: what a status word, a heading's rule, a primary button, a band's
+#                                  rule or a prompt was before, Graphite's amber and her old cyan.
+# Burnt yellow is laid on opaque fills, or added as light (lays_light), never mixed over cyan: measured, 30-50 % of it over
+# #83eaff or #1d3d63 gives hues of 86-156 degrees, green; over her indigo grounds even half of it stays warm (28-37).
 
 
 # 0.8.2, the owner, of Kasandra's typewriter face: "I want as much font in that LAIN font as what looks kool, but still
@@ -129,6 +156,17 @@ GLOW = [3.0]        # the level in force (boss_qt.set_glow keeps it in step with
 
 def glow():
     return GLOW[0]
+
+
+def lays_light(painter):
+    """Kasandra (0.8.3): what is drawn next is light added to what lies under it (Screen), never paint mixed over it. Her
+    burnt yellow mixed over her cyan is green (30-50 % of it over #83eaff is 86-156 degrees); added, it brightens cyan
+    toward white and warms her indigo. Used for a translucent highlight light and for anything translucent laid over a
+    highlight. Graphite: nothing changes (its painter keeps SourceOver). The caller saves and restores the painter."""
+    if APPEARANCE == 'kasandra':
+        from PySide6.QtGui import QPainter
+        painter.setCompositionMode(QPainter.CompositionMode_Screen)
+    return painter
 
 TOKENS = {v for k, v in tuple(globals().items()) if isinstance(v, str) and v.startswith('#') and k.isupper()}
 LEGACY = {
@@ -220,8 +258,8 @@ QLabel[arcRole2="title"], QLabel[arcRole2="section"],
 QHeaderView::section {font-family:"%(DISPLAY)s";}
 QLabel[arcRole2="hero"] {font-family:"%(DISPLAY)s";}
 QLineEdit#WorkspacePath, QLineEdit#WorkspacePath:focus {
-    background:transparent; color:%(AMBER_TEXT)s; border:0; border-radius:0;
-    padding:0; font-family:"%(MONO)s"; selection-background-color:%(AMBER_SOFT)s; selection-color:%(TEXT)s;
+    background:transparent; color:%(CUE_TEXT)s; border:0; border-radius:0;
+    padding:0; font-family:"%(MONO)s"; selection-background-color:%(AMBER_SOFT)s; selection-color:%(ON_AMBER)s;
 }
 QToolButton#MoreMenus, QToolButton#HeadMenu, QToolButton#BossPrograms, QToolButton#SystemMenu {
     font-family:"%(DISPLAY)s"; color:%(TEXT)s; background:transparent;
@@ -239,9 +277,25 @@ QLabel#MonitorReading {color:%(QUIET)s; font-family:"%(MONO)s";}
 QLabel#MonitorReading[liveReading="true"] {color:%(READY)s;}
 QPlainTextEdit#Capture {background:%(CARD)s; border-bottom:1px solid %(LINE)s;}
 QPlainTextEdit#Capture:focus {border-bottom:2px solid %(AMBER_EDGE)s;}
-QFrame#BossChainTray {background:%(PANEL)s; border-top:1px solid %(AMBER_EDGE)s;}
+QFrame#BossChainTray {background:%(PANEL)s; border-top:1px solid %(CUE_EDGE)s;}
 QLineEdit#ChainProgram {font-family:"%(MONO)s"; border:0; border-bottom:1px solid %(LINE)s;}
 QTableWidget#ChainPreview {background:%(CARD)s; border:0;}
 QLabel#BossArt {background:transparent; border:0;}
 QTabWidget#ConsolePages::pane {background:%(GROUND)s; border:0;}
 ''' % globals()
+
+# 0.8.3, Kasandra's highlights in the sheets (none in Graphite, whose sheet above is what it was): the row you are on in a
+# menu (the menus across the head and every menu dropped from them, and the writing line's results) is the solid bar;
+# a selected row, a selected tab, a checked choice and selected words are the edge and words on their fill. A menu with a
+# sheet of its own takes MENU_BAR_CSS after it.
+MENU_BAR_CSS = ('QMenu::item:selected {background:%(BAR)s; color:%(ON_BAR)s; border:0; border-left:2px solid %(BAR_EDGE)s; border-radius:0;} '
+                'QMenu::item:selected:disabled {color:%(ON_BAR_QUIET)s;} ' % globals()) if APPEARANCE == 'kasandra' else ''
+HIGHLIGHTS = (MENU_BAR_CSS + '''
+QListWidget#OneBoxList::item:selected {background:%(BAR)s; color:%(ON_BAR)s; border:0; border-left:2px solid %(BAR_EDGE)s; border-radius:0;}
+QTreeView::item:selected, QListView::item:selected {background:%(AMBER_SOFT)s; color:%(AMBER_TEXT)s; border-left:2px solid %(AMBER_EDGE)s;}
+QTabBar::tab:selected {background:%(AMBER_SOFT)s; color:%(AMBER_TEXT)s; border-bottom:2px solid %(AMBER_EDGE)s;}
+QTreeView, QTreeWidget, QListView, QListWidget, QTableView, QTableWidget, QComboBox QAbstractItemView, QLineEdit, QComboBox,
+QSpinBox, QDoubleSpinBox, QDateTimeEdit, QPlainTextEdit, QTextEdit, QTextBrowser {selection-background-color:%(AMBER_SOFT)s; selection-color:%(AMBER_TEXT)s;}
+QPushButton[arcButton="filter"]:checked, QPushButton[arcButton="segment"]:checked {color:%(AMBER_TEXT)s; border-bottom:2px solid %(AMBER_EDGE)s;}
+''' % globals()) if APPEARANCE == 'kasandra' else ''
+CHROME_OVERRIDES += HIGHLIGHTS

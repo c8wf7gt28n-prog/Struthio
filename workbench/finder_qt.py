@@ -35,7 +35,8 @@ from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QImageReader, QPai
 from PySide6.QtWidgets import (QAbstractItemView, QFrame, QHBoxLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QMenu,
                                QPlainTextEdit, QPushButton, QScrollArea, QSizePolicy, QSplitter, QStackedWidget, QStyle, QStyledItemDelegate,
                                QToolButton, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
-from .shell2 import AMBER, CARD, ERASER_MARK, FAINT, LINE, LINE_STRONG, QUIET, RAISED, TEXT, TodayPage, kind_of, mono_font, role, sentence
+from .boss_theme import CUE as AMBER      # 0.8.3: its drawn icons are not highlights
+from .shell2 import CARD, ERASER_MARK, FAINT, LINE, LINE_STRONG, QUIET, RAISED, TEXT, TodayPage, kind_of, mono_font, role, sentence
 from .engineering_kernel import operator
 from .files_qt import size_words, when
 from . import machine_overview

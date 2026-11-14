@@ -23,7 +23,7 @@ FILE_MARKS = {'csv': '[#]', 'spreadsheet': '[=]', 'pdf': '[P]', 'document': '[=]
 SURFACE = """
 QTableView#SheetRows, QTableWidget#ChainPreview {
     background: %(GROUND)s; color: %(TEXT)s; gridline-color: %(LINE)s;
-    selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s;
+    selection-background-color: %(AMBER_SOFT)s; selection-color: %(ON_AMBER)s;
     font-family: "%(MONO)s"; border: 1px solid %(LINE)s; border-radius: 0;
 }
 QTableView#SheetRows QHeaderView::section, QTableWidget#ChainPreview QHeaderView::section {
@@ -50,10 +50,11 @@ QPushButton#WorksheetChainStep, QPushButton#FullSpreadsheet, QPushButton#Workshe
 QPushButton#WorksheetChainStep {font-size:14px; padding:4px 6px;}
 QPushButton#WorksheetChainStep:hover, QPushButton#WorksheetChainStep:focus,
 QPushButton#FullSpreadsheet:hover, QPushButton#FullSpreadsheet:focus,
-QPushButton#WorksheetCommands:hover, QPushButton#WorksheetCommands:focus {border-color:%(AMBER_EDGE)s;}
-QPushButton#RunWorksheetChain {background: %(AMBER_EDGE)s; color: %(TERMINAL_GROUND)s;
-    border: 1px solid %(AMBER_EDGE)s; font-family: "%(MONO)s"; font-weight:600; border-radius: 0; padding: 5px 10px;}
-QPushButton#RunWorksheetChain:hover, QPushButton#RunWorksheetChain:focus {background: %(AMBER_TEXT)s;}
+QPushButton#WorksheetCommands:hover {border-color:%(CUE_EDGE)s;}
+QPushButton#WorksheetChainStep:focus, QPushButton#FullSpreadsheet:focus, QPushButton#WorksheetCommands:focus {border-color:%(AMBER_EDGE)s;}
+QPushButton#RunWorksheetChain {background: %(CUE_EDGE)s; color: %(TERMINAL_GROUND)s;
+    border: 1px solid %(CUE_EDGE)s; font-family: "%(MONO)s"; font-weight:600; border-radius: 0; padding: 5px 10px;}
+QPushButton#RunWorksheetChain:hover, QPushButton#RunWorksheetChain:focus {background: %(CUE_TEXT)s;}
 QPushButton#RunWorksheetChain:disabled {background: %(PANEL)s; color: %(QUIET)s; border-color: %(LINE)s;}
 """ % vars(ink)
 
@@ -198,7 +199,7 @@ class RowTrace(QWidget):
             end = self.mapFromGlobal(track.mapToGlobal(QPoint(round(track.width() * .48), track.track_y)))
             turn = self.mapFromGlobal(tray.mapToGlobal(QPoint())).y() - 14
         painter = QPainter(self)
-        colour = QColor(ink.AMBER_EDGE)
+        colour = QColor(ink.CUE_EDGE)
         painter.setPen(QPen(colour, 2, Qt.DashLine))
         bottom = max([*anchors, branch.y() if branch else 0, turn if track else 0])
         painter.drawLine(rail, min(anchors), rail, bottom)
@@ -585,7 +586,7 @@ class Worksheet(QWidget):
         desk_style(menu, self.host)
         menu.setStyleSheet(menu.styleSheet() + ('QMenu {border:1px solid %s;} '
             'QMenu::item {padding:6px 21px 6px 13px;} '
-            'QMenu::item:selected {border:1px solid %s;background:%s;}' % (ink.LINE_MID, ink.AMBER_EDGE, ink.AMBER_SOFT)))
+            'QMenu::item:selected {border:1px solid %s;background:%s;} ' % (ink.LINE_MID, ink.AMBER_EDGE, ink.AMBER_SOFT) + ink.MENU_BAR_CSS))
         menu.hovered.connect(self.trace.update)
         menu.aboutToHide.connect(lambda: QTimer.singleShot(0, self.trace.update))
         count = len(selected)
@@ -751,11 +752,11 @@ class Worksheet(QWidget):
                 mixed = True
         self.total.setText(total)
         self.total_caption.setVisible(not mixed)
-        self.total.setStyleSheet('color:%s;' % (ink.AMBER_TEXT if mixed else ink.READY))
+        self.total.setStyleSheet('color:%s;' % (ink.CUE_TEXT if mixed else ink.READY))
         self.total_bar.setVisible(bool(total))
         self.art.set_available(ready and self.tray.controls['sheet'].isEnabled())
         self.source_state.setText('[~] Source changed' if self.stale else '[+] Source current' if ready else 'Source · ' + self.path.name)
-        self.source_state.setStyleSheet('color:%s;' % (ink.AMBER_TEXT if self.stale else ink.READY if ready else ink.QUIET))
+        self.source_state.setStyleSheet('color:%s;' % (ink.CUE_TEXT if self.stale else ink.READY if ready else ink.QUIET))
         self.source_state.setToolTip(self.relative + (' · ' + self.active_sheet if self.active_sheet else ''))
         done = (not self.stale, not self.stale and bool(self.rows_selected()), ready, ready and bool(self.tray.saved_receipt))
         current = next((i for i, state in enumerate(done) if not state), len(done))
@@ -763,5 +764,5 @@ class Worksheet(QWidget):
                 'Reload workbook' if self.stale else 'Open workbook', 'Select rows', 'Preview result', 'Save sheet'))):
             mark = '[+]' if done[i] else '[>]' if i == current else '[ ]'
             label.setText(mark + ' ' + action)
-            label.setStyleSheet('color:%s;' % (ink.READY if done[i] else ink.AMBER_TEXT if i == current else ink.QUIET))
+            label.setStyleSheet('color:%s;' % (ink.READY if done[i] else ink.CUE_TEXT if i == current else ink.QUIET))
         self.trace.update()

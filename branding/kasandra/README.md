@@ -10,31 +10,20 @@ The owner's second appearance for Graphite (0.8.0): Rules ▸ Desk artwork ▸ A
 - `wordmark.webp`: the owner's wordmark, "kasandra protocol" in circuit traces (14 November 2026), trimmed and scaled to
   1400 px wide. SHA-256 0a8d44e549b4c9904df11496fb81106c918680c4c84a268098067dc919deb1e6.
 
-- `kp_monogram.png`: the owner's monogram, "kp" (kasandra protocol) with teal traces (14 November 2026), cut from its
-  dark ground to a clear one and set at 256 x 256. Since 0.8.3 the Apps button's fallback when the emblem's bytes do not
-  check. SHA-256 7c5b3c9c1f16e0d1eca1f881a0ece60bda777355fdc0fa634495deb77170a073.
-
 0.8.3 (14 November 2026). Each file below is shown only when its bytes match the SHA-256 given here
 (`workbench/kasandra_art.py` MARKS).
 
 - `hologram.webp`: the owner's hologram of Kasandra, 800 x 875, clear edges, violet, its glitch lines drawn in. It stands
   in the left pane's empty lower part (`workbench/hologram_qt.py`).
   SHA-256 b73f7108256ef7523b38bf6ba53478b62d90c8bcd3a3dec9d97b8d34913698ec.
-- `kp_emblem_source.png`: the owner's new kp emblem as given (1254 x 1254, on its flat navy ground): the source of every
-  cut below (`tools/cut_kp_emblem.py`). SHA-256 94d7bfb3932fd1cdb9c1f499fe4eee011d9e0404ff5cfa071d9a7dbb2eb3afaa.
-- `kp_emblem.png`: the emblem cut from its ground, 737 x 482, clear round it: the master.
-  SHA-256 5bfdf6e8dd1be97fe63f549f83a61285f37695ac52bbed07739e7d435ac879c5.
-- `kp_emblem_small.png`: the same with its thin pink and violet strokes thickened, for small sizes, the violet trace in a
-  lighter tint of its own violet (#9466ff, the same hue) so it stands 3:1 or more against the head band's lit lower edge.
-  SHA-256 ed2ec90a29505a09879a954521b6eca0608c66fd85d1c76570e22e1ea9d37aa4.
-- `kp_emblem_38.png`: the Apps button at 1x, 58 x 38, from the small cut.
-  SHA-256 fbb43393dfc559bc3c55c70088c1087182879bebc66890f7f5f476b73f5b3e32.
-- `kp_emblem_76.png`: the Apps button at 2x, 116 x 76, from the master.
-  SHA-256 ffccd3e3cc8f29de1f3bec325971afa4f1b78b3883a10a7e56aff224a3b9f32c.
-- `kp_tile.png`: the window icon in Kasandra, 256 x 256: the emblem on its navy in a rounded square.
-  SHA-256 bd1a274b69ad6b633c9c0d734a2e949626ebe78f4ca875ea83613268407e10f5.
-- `kp_tile_letters.png`: the window icon at 16 and 24 px, 64 x 64: the same tile with the letters kp only.
-  SHA-256 a99f936f1b0283c658f029e5ead98c1a0bc56c6f62265872ff2ca7c55dd0275f.
+- `kp_neon.png`: the owner's neon kp logo, the only kp mark ("New logo for our upper right progman.exe menu ;) ... Omg I
+  love it"; "Retire any other kp icon"). It is Apps in the head's upper right, about 44 px tall (`workbench/kp_logo.py`),
+  its neon drawn round it by Graphite at the strength of the Glow dial. The owner's file (1586 x 992, real alpha) stored its
+  neon fringe in pixels of alpha 1 to 9 carrying saturated colour, which cannot be shown as it was; this is its clean
+  drawing: every pixel of alpha 200 or more as given, every other pixel clear, trimmed to the drawing (x 102-1502, y 80-917
+  of the file), 1401 x 838, cut by `tools/cut_kp_neon.py`.
+  The owner's file: SHA-256 70efb67742cf2ccf4bf29e08621bac5e58ceb86bd8328b1fbdf58638dad1956e (not kept here).
+  The clean drawing: SHA-256 f3c6e5fb5cd0f2d61019187bae0d70771378fba5a6c7da27dd8d15d486fd2cc0.
 
 The art was made for this project from the owner's references; it contains no frames or official artwork from Serial
 Experiments Lain, whose atmosphere it borrows. Like all artwork under branding/, it is kept back by the owner (RIGHTS.md).

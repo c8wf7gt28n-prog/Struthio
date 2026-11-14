@@ -33,8 +33,9 @@ from textwrap import wrap
 from PySide6.QtCore import QProcess, QProcessEnvironment, Qt
 from PySide6.QtGui import QKeySequence, QShortcut, QTextCursor
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QTextBrowser, QTextEdit, QVBoxLayout, QWidget
-from .shell2 import AMBER, ERASER, ERASER_MARK, LINE, QUIET, TEXT, button, call, call_write, mono_font
-from .boss_theme import AMBER_TEXT, MONO, TERMINAL_GROUND
+from .shell2 import ERASER, ERASER_MARK, LINE, QUIET, TEXT, button, call, call_write, mono_font
+from .boss_theme import CUE_TEXT as AMBER_TEXT, MONO, TERMINAL_GROUND      # 0.8.3: its words are cues, not highlights
+from .boss_theme import CUE as AMBER      # (Graphite's amber; her cyan and blue, as before)
 from .stac_bridge import route_program
 
 MODES = (('log', 'Log', '', 'filter the Timeline'),

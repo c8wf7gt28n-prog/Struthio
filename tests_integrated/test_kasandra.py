@@ -114,12 +114,16 @@ class CatalogTests(unittest.TestCase):
             self.assertIsNone(art.inside(PACK, bad), bad)
         self.assertEqual(art.inside(PACK, 'art/office_dusk.webp'), PACK / 'art' / 'office_dusk.webp')
 
-    def test_the_monogram_is_a_square_picture_on_no_ground(self):
+    def test_the_neon_logo_is_the_clean_drawing_on_no_ground(self):
+        """0.8.3: the owner's neon kp logo, the only kp mark, kept as its clean drawing (tools/cut_kp_neon.py): every pixel
+        either clear or of the drawing (alpha 200 or more), trimmed to it, on no ground."""
         from PySide6.QtGui import QGuiApplication, QImage
         app = QGuiApplication.instance() or QGuiApplication([])
-        mark = QImage(str(PACK / 'kp_monogram.png'))
-        self.assertEqual((mark.width(), mark.height()), (256, 256));self.assertTrue(mark.hasAlphaChannel())
+        mark = QImage(str(PACK / 'kp_neon.png')).convertToFormat(QImage.Format_ARGB32)
+        self.assertEqual((mark.width(), mark.height()), (1401, 838));self.assertTrue(mark.hasAlphaChannel())
         self.assertEqual(mark.pixelColor(2, 2).alpha(), 0, 'its corner is clear: it sits on any ground')
+        alphas = bytes(mark.constBits())[3::4]
+        self.assertEqual({a for a in alphas if 0 < a < 200}, set(), 'none of the faint fringe is kept')
         _ = app
 
     def test_a_changed_or_missing_still_gives_way_to_the_next(self):

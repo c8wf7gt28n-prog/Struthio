@@ -193,7 +193,7 @@ class ArtPanel(QWidget):
                      '   / / /   a computer you can work beside   / / /',
                      '// your tools. your records. your machine.')
             for index, line in enumerate(lines):p.drawText(0, 22 + index * 22, line)
-            p.setPen(QColor(t.AMBER_EDGE));p.drawText(max(0, self.width()-52), 25, '[>_]')
+            p.setPen(QColor(t.CUE_EDGE));p.drawText(max(0, self.width()-52), 25, '[>_]')
         p.end()
 
 

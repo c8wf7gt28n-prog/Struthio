@@ -11,7 +11,8 @@ from html import escape
 from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QScrollArea, QTextBrowser, QVBoxLayout, QWidget
-from .shell2 import AMBER, ERASER, ERASER_MARK, AMBER_EDGE, MONO, QUIET, TEXT, call_write, escape_text, role, sentence
+from .shell2 import ERASER, ERASER_MARK, MONO, QUIET, TEXT, call_write, escape_text, role, sentence
+from .boss_theme import CUE as AMBER, CUE_EDGE as AMBER_EDGE      # 0.8.3: what was added is a change, not a highlight (Graphite's amber, her blue)
 
 MAX_SHOWN = 1500
 

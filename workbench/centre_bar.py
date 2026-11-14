@@ -86,10 +86,10 @@ class CentreBar(QWidget):
             'QWidget#CentreBar QPushButton#CentreField {background:%(TEAL_SOFT)s;border:1px solid %(TEAL_EDGE)s;color:%(TEAL_TEXT)s;} '
             'QWidget#CentreBar QLabel#CentreTitle {color:%(QUIET)s;background:transparent;} '
             'QWidget#CentreBar QLabel#CentreFindSays, QWidget#CentreBar QLabel#CentreFindCount {color:%(QUIET)s;background:transparent;} '
-            'QWidget#CentreBar QLabel#CentreFindCount[none="true"] {color:%(AMBER_TEXT)s;} '
+            'QWidget#CentreBar QLabel#CentreFindCount[none="true"] {color:%(CUE_TEXT)s;} '
             'QWidget#CentreBar QLineEdit#CentreFindWords {color:%(TEXT)s;background:%(TERMINAL_GROUND)s;border:1px solid %(LINE)s;border-radius:0;padding:3px 8px;} '
             'QWidget#CentreBar QLineEdit#CentreFindWords:focus {border:1px solid %(AMBER_EDGE)s;padding:3px 8px;}'
-            % {name: getattr(t, name) for name in ('GROUND', 'LINE', 'LINE_MID', 'RAISED', 'TEXT', 'TEAL_SOFT', 'TEAL_TEXT', 'AMBER_EDGE', 'AMBER_TEXT', 'TEAL_EDGE', 'QUIET', 'TERMINAL_GROUND')})
+            % {name: getattr(t, name) for name in ('GROUND', 'LINE', 'LINE_MID', 'RAISED', 'TEXT', 'TEAL_SOFT', 'TEAL_TEXT', 'AMBER_EDGE', 'CUE_TEXT', 'TEAL_EDGE', 'QUIET', 'TERMINAL_GROUND')})
 
     # ---- Find ----------------------------------------------------------------------------------------------------------
     def find_subject(self):

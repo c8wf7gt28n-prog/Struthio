@@ -18,7 +18,7 @@ from . import boss_theme as _bt
 
 PALETTE = (('Window', GROUND), ('Base', CARD), ('AlternateBase', GROUND), ('Button', CARD), ('WindowText', TEXT), ('Text', TEXT),
            ('ButtonText', TEXT), ('BrightText', TEXT), ('Light', CARD), ('Midlight', LINE), ('Dark', LINE_STRONG), ('Mid', LINE),
-           ('Shadow', LINE), ('Highlight', AMBER_SOFT), ('HighlightedText', TEXT), ('PlaceholderText', QUIET), ('ToolTipBase', CARD),
+           ('Shadow', LINE), ('Highlight', AMBER_SOFT), ('HighlightedText', _bt.ON_AMBER), ('PlaceholderText', QUIET), ('ToolTipBase', CARD),
            ('ToolTipText', TEXT), ('Link', TEXT), ('LinkVisited', TEXT))
 
 QSS2 = r"""
@@ -93,7 +93,7 @@ QCheckBox::indicator, QRadioButton::indicator { width: 16px; height: 16px; borde
 QCheckBox::indicator { border-radius: 4px; } QRadioButton::indicator { border-radius: 8px; }
 QCheckBox::indicator:checked, QRadioButton::indicator:checked { background: %(AMBER)s; border: 2px solid %(AMBER_EDGE)s; }
 QProgressBar { background: %(RAISED)s; border: 1px solid %(LINE)s; border-radius: 4px; text-align: center; color: %(TEXT)s; max-height: 8px; }
-QProgressBar::chunk { background: %(AMBER_EDGE)s; border-radius: 3px; }
+QProgressBar::chunk { background: %(CUE_EDGE)s; border-radius: 3px; }
 QSplitter::handle { background: %(LINE)s; }
 QSplitter::handle:hover { background: %(TEAL_EDGE)s; }
 QMainWindow::separator { background: %(LINE)s; width: 1px; height: 1px; }
@@ -128,14 +128,16 @@ QFrame#SlateTheirs { background: %(CARD)s; border: 1px solid %(LINE)s; border-ra
 QFrame#StacCard { background: %(TEAL_SOFT)s; border: 1px solid %(LINE)s; border-radius: 10px; }
 /* Writable passages (companion line 65/69, DESKTOP-01 V-02): the New Idea sheet, the Slate composer and the New Project title are
    yellow passages like the cabinet's writing, not bordered boxes. Focus is a bottom rule; the selection is eraser pink because
-   AMBER_SOFT equals AMBER and would be invisible on the passage. */
-QLineEdit#SlateInput, QPlainTextEdit#SlateInput, QPlainTextEdit#Capture, QLineEdit#ProjectTitle { background: %(AMBER)s; color: %(TEXT)s; border: 0; border-radius: 0;
+   AMBER_SOFT equals AMBER and would be invisible on the passage. 0.8.3: the passage's ground is CUE, Graphite's amber and
+   Kasandra's blue as before: a place to write is not a highlight. */
+QLineEdit#SlateInput, QPlainTextEdit#SlateInput, QPlainTextEdit#Capture, QLineEdit#ProjectTitle { background: %(CUE)s; color: %(TEXT)s; border: 0; border-radius: 0;
     padding: 10px 14px; selection-background-color: %(ERASER_DEEP)s; selection-color: %(TEXT)s; }
 QLineEdit#SlateInput:focus, QPlainTextEdit#SlateInput:focus, QPlainTextEdit#Capture:focus, QLineEdit#ProjectTitle:focus { border: 0; border-bottom: 2px solid %(TEXT)s;
     padding: 10px 14px 8px 14px; }
 """ % dict(GROUND=GROUND, PANEL=PANEL, CARD=CARD, RAISED=RAISED, LINE=LINE, LINE_STRONG=LINE_STRONG, LINE_MID=LINE_MID, TEXT=TEXT, QUIET=QUIET,
            AMBER=AMBER, AMBER_SOFT=AMBER_SOFT, AMBER_EDGE=AMBER_EDGE, PENCIL_DEEP=PENCIL_DEEP, ERASER=ERASER, ERASER_DEEP=ERASER_DEEP, ERASER_MARK=ERASER_MARK,
-           TEAL_SOFT=TEAL_SOFT, TEAL_EDGE=TEAL_EDGE, TEAL_TEXT=TEAL_TEXT, VIOLET_SOFT=_bt.VIOLET_SOFT, VIOLET_DEEP=_bt.VIOLET_DEEP, MONO=_bt.MONO)
+           TEAL_SOFT=TEAL_SOFT, TEAL_EDGE=TEAL_EDGE, TEAL_TEXT=TEAL_TEXT, VIOLET_SOFT=_bt.VIOLET_SOFT, VIOLET_DEEP=_bt.VIOLET_DEEP, MONO=_bt.MONO,
+           CUE=_bt.CUE, CUE_EDGE=_bt.CUE_EDGE)
 if _bt.APPEARANCE == 'kasandra':      # 0.8.0: her answers carry an edge of honey, the colour of her hair
     QSS2 += 'QFrame#SlateTheirs { border-left: 3px solid %s; }\n' % _bt.HONEY
 

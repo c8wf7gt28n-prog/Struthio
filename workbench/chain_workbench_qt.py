@@ -82,7 +82,7 @@ class ChainTrace(QWidget):
         run = self.tray.controls['sheet']
         anchors.append(self.mapFromGlobal(run.mapToGlobal(run.rect().center())).x())
         painter = QPainter(self)
-        colour = QColor(colours.AMBER_EDGE)
+        colour = QColor(colours.CUE_EDGE)
         painter.setPen(QPen(colour, 2, Qt.DashLine))
         painter.drawLine(min(anchors), self.track_y, anchors[-1], self.track_y)
         for x in anchors:
@@ -148,7 +148,7 @@ class ChainTray(QFrame):
         self.table.hide()
         self.setStyleSheet('QFrame#BossChainTray {background:%s;border-top:1px solid %s;} '
                           'QLabel {color:%s;} QTableWidget {background:%s;color:%s;}'
-                          % (colours.PANEL,colours.AMBER_EDGE,colours.TEXT,colours.CARD,colours.TEXT))
+                          % (colours.PANEL,colours.CUE_EDGE,colours.TEXT,colours.CARD,colours.TEXT))
         self.hide()
 
     def note(self, text, ready=False):

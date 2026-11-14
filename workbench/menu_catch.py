@@ -75,7 +75,9 @@ class Catch(QWidget):
             if f < 0.6:
                 ghost = (1.0 - f / 0.6) * 0.7
                 x = w - 4.5 if self.side != 'left' else 3.0
+                p.save();t.lays_light(p)      # Kasandra: the ghost crosses her burnt-yellow bar as light added, never cyan mixed over yellow
                 p.fillRect(QRectF(x, 2, 1.5, h - 4), ink(t.READY, ghost));p.fillRect(QRectF(x - 3.0 if self.side != 'left' else x + 3.0, 2, 1.0, h - 4), ink(t.READY, ghost * 0.35))
+                p.restore()
             # the tracking band: across the second and third rows for a top-level menu, in from the parent's side for a child
             if self.side == 'down':
                 band = max(10.0, min(26.0, h * 0.09));y = h * 0.10 + (h * 0.34) * f

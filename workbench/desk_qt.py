@@ -329,7 +329,7 @@ def paint_band(widget, painter):
     """Shade a band edge to edge with the grain, the tile starting at the band's own top-left (both bands start at the
     window's left edge, so their columns of grain line up and neither looks lighter)."""
     from PySide6.QtGui import QBrush, QColor
-    from .boss_theme import AMBER_EDGE
+    from .boss_theme import CUE_EDGE as AMBER_EDGE      # 0.8.3: the band's rule is a cue (Graphite's amber, her cyan line)
     painter.save();painter.setBrushOrigin(0, 0);painter.fillRect(widget.rect(), QBrush(grain_tile()))
     top = widget.objectName() == 'TopBar2'
     y = getattr(widget, 'command_band_height', widget.height()) - 2 if top else 0

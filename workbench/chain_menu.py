@@ -84,7 +84,8 @@ def desk_style(menu, host):
     children and take the same sheet."""
     try:
         from .programs_qt import metrics
-        from .shell2 import AMBER_EDGE, AMBER_SOFT, GROUND, LINE, MONO, QUIET, TEXT
+        from .shell2 import AMBER_SOFT, GROUND, LINE, MONO, QUIET, TEXT
+        from .boss_theme import CUE_EDGE, MENU_BAR_CSS
         m = metrics(host)
     except Exception:return menu
     top = max(0, (m.row - m.line) // 2);bottom = max(0, m.row - m.line - top)
@@ -92,7 +93,8 @@ def desk_style(menu, host):
                        'QMenu::item {padding:%dpx %dpx %dpx %dpx;color:%s;background:transparent;border:0;margin:0;} '
                        'QMenu::item:selected {background:%s;color:%s;} QMenu::item:disabled {color:%s;} '
                        'QMenu::separator {height:1px;background:%s;margin:%dpx %dpx;}'
-                       % (GROUND, AMBER_EDGE, m.margin, MONO, m.px, top, m.pad, bottom, m.pad + m.icon_col, TEXT, AMBER_SOFT, TEXT, QUIET, LINE, m.rule // 2, m.pad))
+                       % (GROUND, CUE_EDGE, m.margin, MONO, m.px, top, m.pad, bottom, m.pad + m.icon_col, TEXT, AMBER_SOFT, TEXT, QUIET, LINE, m.rule // 2, m.pad)
+                       + MENU_BAR_CSS)
     return menu
 
 

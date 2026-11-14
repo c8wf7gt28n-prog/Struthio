@@ -880,7 +880,7 @@ class FieldView(QWidget):
             if self.reading is not None:self._reading(p, body)
             if self.revisions is not None:self._revisions(p, body)
         except Exception as exc:  # noqa: BLE001 - say it on the surface instead of taking the program down
-            p.setClipping(False);p.setPen(QColor(t.AMBER_TEXT));p.setFont(self.mono(12))
+            p.setClipping(False);p.setPen(QColor(t.CUE_TEXT));p.setFont(self.mono(12))
             p.drawText(QRectF(28, self.head_height() + 12, self.width() - 56, 40), Qt.AlignLeft | Qt.AlignVCenter, 'The Field could not be drawn: %s' % str(exc)[:160])
         finally:
             p.end()
@@ -952,10 +952,10 @@ class FieldView(QWidget):
             if style == 'h':
                 calm = str(text).strip().lower().startswith(('holds', 'nothing'))
                 at += (16 * s if rows else 2 * s)
-                rows.append((at + fm_head.ascent(), 0.0, head_font, t.READY if calm else t.AMBER_TEXT, str(text).upper()));at += fm_head.height() + 6 * s
+                rows.append((at + fm_head.ascent(), 0.0, head_font, t.READY if calm else t.CUE_TEXT, str(text).upper()));at += fm_head.height() + 6 * s
             elif style == 'k':
                 keys, _, words = str(text).partition('\t');lines = self._flow(words, fm_text, inner.width() - key_w);began = at
-                rows.append((at + fm_text.ascent(), 0.0, key_font, t.AMBER_TEXT, keys))
+                rows.append((at + fm_text.ascent(), 0.0, key_font, t.CUE_TEXT, keys))
                 for line in lines:
                     rows.append((at + fm_text.ascent(), key_w, text_font, t.TEXT, line));at += fm_text.height()
                 spots.append((began, at, keys, words));at += 5 * s
@@ -963,7 +963,7 @@ class FieldView(QWidget):
                 font, fm, colour = (quiet_font, fm_quiet, t.QUIET) if style == 'q' else (text_font, fm_text, t.TEXT)
                 hang = fm.horizontalAdvance('·  ') if style == 'b' else 0.0
                 for index, line in enumerate(self._flow(text, fm, inner.width() - hang)):
-                    if style == 'b' and index == 0:rows.append((at + fm.ascent(), 0.0, font, t.READY if calm else t.AMBER_EDGE, '·'))
+                    if style == 'b' and index == 0:rows.append((at + fm.ascent(), 0.0, font, t.READY if calm else t.CUE_EDGE, '·'))
                     rows.append((at + fm.ascent(), hang, font, colour, line));at += fm.height()
                 at += 7 * s
         self._read_room = max(0.0, at - inner.height());self._read_at = max(0.0, min(self._read_room, self._read_at))
@@ -986,7 +986,7 @@ class FieldView(QWidget):
             for word, key, tip in (('↑ more   ', Qt.Key_PageUp, 'Read back'), ('more ↓', Qt.Key_PageDown, 'Read on')):
                 if word not in more:continue
                 wide = fm_foot.horizontalAdvance(word);spot = QRectF(at - 4 * s, base - fm_foot.ascent() - 5 * s, fm_foot.horizontalAdvance(word.strip()) + 8 * s, fm_foot.height() + 10 * s)
-                p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.AMBER_TEXT));p.drawText(QPointF(at, base), word)
+                p.setPen(QColor(t.READY if spot.contains(self._mouse) else t.CUE_TEXT));p.drawText(QPointF(at, base), word)
                 self._hot.append((spot, key, '', tip));at += wide
         self._keys_line(p, r.left() + pad, base, [item for item in read['foot'].split('      ') if item.strip()], t.QUIET, r.width() - 2 * pad - fm_foot.horizontalAdvance(more) - 16 * s)
         if code:
@@ -1110,9 +1110,9 @@ class FieldView(QWidget):
         if tall > body.height() - 24 * s:return           # no room under her: the foot still says them
         box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
         if self.go:self._halo(p, box, t.OWNER, 1.0)      # something in it waits for the owner's Approve
-        p.setPen(QPen(ink(t.OWNER if self.go else t.AMBER_EDGE, 0.8), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.92));p.drawRect(box)
+        p.setPen(QPen(ink(t.OWNER if self.go else t.CUE_EDGE, 0.8), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.92));p.drawRect(box)
         x = box.left() + pad;y = box.top() + pad + head.ascent()
-        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(x, y), 'DO')
+        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.CUE_TEXT));p.drawText(QPointF(x, y), 'DO')
         said = 'what can be done';said_w = head.horizontalAdvance(said)
         if inner_w > head.horizontalAdvance('DO') + said_w + 12 * s:
             p.setPen(QColor(t.QUIET));p.setFont(self.mono(12));p.drawText(QPointF(box.right() - pad - said_w, y), said)
@@ -1123,10 +1123,10 @@ class FieldView(QWidget):
                               'Take this step: %s' % ('it is put up for you to approve; nothing is changed yet' if self.steps[n][1] == 'write' else
                                                        named('it changes something: Stacy does it at once and shows it, with an Undo where there is one') if self.steps[n][1] == 'does' else 'a read, it runs at once')))
             if write:
-                p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(box.right() - pad - fm.horizontalAdvance(asks), y - fm.descent()), asks)
+                p.setPen(QColor(t.CUE_TEXT));p.drawText(QPointF(box.right() - pad - fm.horizontalAdvance(asks), y - fm.descent()), asks)
         if going:                            # what waits in Talk for the owner's go, and the key that gives it
             if rows:y += 4 * s
-            p.setPen(QColor(t.AMBER_TEXT))
+            p.setPen(QColor(t.CUE_TEXT))
             for at, line in enumerate(going):
                 y += fm.height();p.drawText(QPointF(x, y - fm.descent()), fm.elidedText(line if at == 0 else '   ' + line, Qt.ElideRight, inner_w))
                 self._hot.append((QRectF(x - 4 * s, y - fm.height(), inner_w + 8 * s, fm.height()), Qt.Key_G, 'g', 'Approve: %s. Nothing is changed until you do' % self.go))
@@ -1147,7 +1147,7 @@ class FieldView(QWidget):
         # are the room the sheets are in.
         s = self.scale();reach = min(body.height() * 0.42, 190 * s)
         floor = QLinearGradient(QPointF(0, body.bottom()), QPointF(0, body.bottom() - reach))
-        floor.setColorAt(0.0, ink(t.AMBER_EDGE, 0.075));floor.setColorAt(0.45, ink(t.AMBER_EDGE, 0.022));floor.setColorAt(1.0, ink(t.AMBER_EDGE, 0.0))
+        floor.setColorAt(0.0, ink(t.CUE_EDGE, 0.075));floor.setColorAt(0.45, ink(t.CUE_EDGE, 0.022));floor.setColorAt(1.0, ink(t.CUE_EDGE, 0.0))
         p.fillRect(QRectF(body.left(), body.bottom() - reach, body.width(), reach), floor)
         sky = QLinearGradient(QPointF(0, body.top()), QPointF(0, body.top() + reach * 0.7))
         sky.setColorAt(0.0, ink(t.READY, 0.04));sky.setColorAt(1.0, ink(t.READY, 0.0))
@@ -1183,7 +1183,7 @@ class FieldView(QWidget):
                     shade = QLinearGradient(0, 0, self.width(), 0);shade.setColorAt(0.0, ink(t.GROUND, 0.78));shade.setColorAt(0.55, ink(t.GROUND, 0.45));shade.setColorAt(1.0, ink(t.GROUND, 0.62))
                     p.fillRect(QRectF(0, 0, self.width(), h), shade)
         p.setPen(QPen(QColor(t.LINE), 1));p.drawLine(QPointF(0, h - 0.5), QPointF(self.width(), h - 0.5))
-        p.setFont(self.display(13));p.setPen(QColor(t.AMBER_EDGE))
+        p.setFont(self.display(13));p.setPen(QColor(t.CUE_EDGE))
         label = 'FIELD';fm = QFontMetricsF(p.font());base = h / 2 + fm.ascent() / 2 - 2
         p.drawText(QPointF(x, base), label);x += fm.horizontalAdvance(label) + 14 * s
         p.setFont(self.mono(13, QFont.Medium));fm = QFontMetricsF(p.font())      # the faces' words: the working face
@@ -1195,9 +1195,11 @@ class FieldView(QWidget):
             else:self._hot.append((spot, getattr(Qt, 'Key_' + letter.upper(), Qt.Key_unknown), letter, 'The %s face of the Field' % FACE_WORDS.get(name, name).lower()))
             p.setPen(QColor(t.AMBER_TEXT if on else t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(x, base), word)
             if on:
-                if self.texture:             # the chosen face's rule is lit from below
+                if self.texture:             # the chosen face's rule is lit from below (light added, in Kasandra: her art lies under it)
+                    p.save();t.lays_light(p)
                     for width, alpha in ((7.0, 0.07), (4.0, 0.14)):
                         p.setPen(QPen(ink(t.AMBER_EDGE, alpha), width * s, Qt.SolidLine, Qt.RoundCap));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
+                    p.restore()
                 p.setPen(QPen(QColor(t.AMBER_EDGE), 2));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
             self._face_boxes.append((QRectF(x - 4 * s, 0, w + 8 * s, h), name));x += w + 16 * s
         if self.faces:x += 4 * s
@@ -1220,7 +1222,7 @@ class FieldView(QWidget):
                 over = QRectF(lamp.left() - 6 * s, 0, census_w + mark + 22 * s, h)
                 self._mark(p, lamp, 'waiting', QColor(t.OWNER))
                 self._hot.append((over, Qt.Key_A, 'a', 'Go to the next thing that waits for you'))
-                p.setPen(QColor(t.READY if over.contains(self._mouse) else t.AMBER_TEXT))
+                p.setPen(QColor(t.READY if over.contains(self._mouse) else t.CUE_TEXT))
             p.drawText(QPointF(left, base), census)
 
     def _columns(self, p, body):
@@ -1400,6 +1402,7 @@ class FieldView(QWidget):
         The Clean desk has none."""
         if not self.texture:return
         s = self.scale();level = t.glow();strength = strength * level;p.save();p.setBrush(Qt.NoBrush)
+        if colour == t.AMBER_EDGE:t.lays_light(p)      # Kasandra: the keyboard's light is added to the wires under it, never mixed over them
         rings = ((7.0, 8.0, 0.05), (4.0, 5.0, 0.09), (1.5, 2.5, 0.17))
         if level >= 1.5:rings = ((13.0, 12.0, 0.022),) + rings        # a brighter desk throws its light further, not only harder
         if level >= 2.5:rings = ((20.0, 15.0, 0.014),) + rings
@@ -1413,6 +1416,7 @@ class FieldView(QWidget):
         that are lit (the sheet that has the keyboard, the chosen face), never for running text. The Clean desk has none."""
         if not self.texture:return
         s = self.scale();level = t.glow();p.save();p.setPen(ink(colour, min(1.0, 0.085 * strength * min(level, 2.4))))
+        if colour == t.AMBER_EDGE:t.lays_light(p)      # Kasandra: a lit word's light is added, never mixed over her cyan
         for reach in ((1.1 * s, 2.2 * s, 3.6 * s) if level >= 1.5 else (1.1 * s, 2.2 * s)):
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
                 p.drawText(QPointF(at.x() + dx * reach, at.y() + dy * reach), text)
@@ -1469,7 +1473,7 @@ class FieldView(QWidget):
                                    (r.left() - o, r.bottom() + o, 1, -1), (r.right() + o, r.bottom() + o, -1, -1)):
                 p.drawLine(QPointF(cx, cy), QPointF(cx + dx * k, cy));p.drawLine(QPointF(cx, cy), QPointF(cx, cy + dy * k))
         if obj.lately(self._now):            # its record changed in the last hours: a small turned corner, the mark of what was just worked on
-            fold = 9 * s;p.save();p.setPen(Qt.NoPen);p.setBrush(ink(t.AMBER_EDGE, 0.55 + 0.4 * keep))
+            fold = 9 * s;p.save();p.setPen(Qt.NoPen);p.setBrush(ink(t.CUE_EDGE, 0.55 + 0.4 * keep))
             p.drawPolygon(QPolygonF([QPointF(r.right() - fold, r.top()), QPointF(r.right(), r.top()), QPointF(r.right(), r.top() + fold)]));p.restore()
         pad = 12 * s;inner = r.adjusted(pad, pad - 2 * s, -pad, -pad + 2 * s);would = self.would.get(obj.id)
         if self.zoom < self.FAR:             # seen from far off: its glyph, its state's mark and its name, and nothing that cannot be read
@@ -1483,7 +1487,7 @@ class FieldView(QWidget):
         full = obj.tag or KIND_TAG.get(obj.kind, obj.kind.upper())
         worded = bool(state) and inner.width() >= fm.horizontalAdvance(full) + state_w + 8 * s
         if state and not worded:state_w = mark
-        kind_ink = t.AMBER_TEXT if obj.kind in ('question', 'condition') else t.QUIET;lead = 0.0
+        kind_ink = t.CUE_TEXT if obj.kind in ('question', 'condition') else t.QUIET;lead = 0.0
         if tool_faces.mode() == 'icons' and obj.kind in KIND_GLYPH and inner.width() > 90 * s:      # the owner chose icons: the kind's glyph leads its word
             side = fm.height() * 1.08;lead = side + 5 * s
             self._glyph(p, KIND_GLYPH[obj.kind], QRectF(inner.left(), y - fm.ascent() + (fm.height() - side) / 2 - 1, side, side), ink(kind_ink, keep), ink(t.FAINT, keep))
@@ -1509,7 +1513,7 @@ class FieldView(QWidget):
         facts = () if self.field.compact else (((would,) + tuple(obj.lines[:FACT_LINES - 1])) if would else obj.lines[:FACT_LINES])
         for at, fact in enumerate(facts):
             if y + fm.height() > inner.bottom() - where_h + 1:break
-            y += fm.height();p.setPen(ink(t.AMBER_TEXT, 1.0) if would and at == 0 else ink(t.QUIET, keep))
+            y += fm.height();p.setPen(ink(t.CUE_TEXT, 1.0) if would and at == 0 else ink(t.QUIET, keep))
             p.drawText(QPointF(inner.left(), y - fm.descent()), fm.elidedText(str(fact)[:LONGEST], Qt.ElideRight, inner.width()))
         self._would_edge(p, r, would, touched, selected and focus)
         if obj.where and not self.field.compact and inner.bottom() - fm_where.descent() > y + 2:
@@ -1521,8 +1525,8 @@ class FieldView(QWidget):
         if not would:return
         s = self.scale()
         if self.go and not touched and not lit:      # a change that waits for Approve would move this: lit, faintly. A what-if that only asks is not.
-            self._halo(p, r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s), t.AMBER_EDGE, 0.7)
-        pen = QPen(ink(t.AMBER_EDGE, 0.95), 1.6);pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 4])
+            self._halo(p, r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s), t.CUE_EDGE, 0.7)
+        pen = QPen(ink(t.CUE_EDGE, 0.95), 1.6);pen.setStyle(Qt.CustomDashLine);pen.setDashPattern([4, 4])
         p.setPen(pen);p.setBrush(Qt.NoBrush);p.drawRect(r.adjusted(-3 * s, -3 * s, 3 * s, 3 * s))
 
     @staticmethod
@@ -1538,7 +1542,7 @@ class FieldView(QWidget):
         that stay large enough to read however far away the desk is. Sizes here are in screen pixels, turned into the units
         the sheets are drawn in (one pixel is 1 / zoom of them)."""
         s = self.scale();px = 1.0 / self.zoom;pad = 6 * s * px
-        side = min(20 * s * px, r.height() - 2 * pad);kind_ink = t.AMBER_TEXT if obj.kind in ('question', 'condition') else t.QUIET
+        side = min(20 * s * px, r.height() - 2 * pad);kind_ink = t.CUE_TEXT if obj.kind in ('question', 'condition') else t.QUIET
         draw = KIND_GLYPH.get(obj.kind)
         if draw is not None:self._glyph(p, draw, QRectF(r.left() + pad, r.top() + pad, side, side), ink(kind_ink, max(keep, 0.75)), ink(t.FAINT, keep))
         mark = 7 * s * px;room = 0.0
@@ -1563,7 +1567,7 @@ class FieldView(QWidget):
             if w > self._gap - 6 * s:continue          # no room between the columns: the foot still names the link in words
             box = QRectF(point.x() - w / 2, point.y() - fm.height() / 2 - 1, w, fm.height() + 2)
             p.setPen(Qt.NoPen);p.setBrush(QColor(t.TERMINAL_GROUND));p.drawRect(box)
-            p.setPen(QColor(t.AMBER_TEXT if stale else t.QUIET));p.drawText(box, Qt.AlignCenter, word)
+            p.setPen(QColor(t.CUE_TEXT if stale else t.QUIET));p.drawText(box, Qt.AlignCenter, word)
 
     def _ghosts(self, p, r, depth):
         """The sheets behind a sheet: two outlines stepping back into the dark. Drawn before the wires so no wire starts under one."""
@@ -1628,13 +1632,13 @@ class FieldView(QWidget):
                     self._hot.append((spot, lambda step=step: self.set_zoom(round(self.zoom * 20 + step) / 20.0), '', tip))
                 tail = size_w + 10 * s + 2 * sign_w + 3 * fm.horizontalAdvance(' ');room -= tail
         if note or aside:
-            p.setPen(QColor(t.AMBER_TEXT if note else t.QUIET))
+            p.setPen(QColor(t.CUE_TEXT if note else t.QUIET))
             p.drawText(QRectF(body.left() + 28 * s, body.bottom() - 22 * s, room, 18 * s), Qt.AlignLeft | Qt.AlignVCenter, fm.elidedText(note or aside, Qt.ElideRight, room))
 
     def _empty(self, p, body):
         s = self.scale();p.setFont(self.mono(13));fm = QFontMetricsF(p.font())
         if self.problem:
-            p.setPen(QColor(t.AMBER_TEXT));lines = ('// the records could not be read', '', '   ' + self.problem + '.')
+            p.setPen(QColor(t.CUE_TEXT));lines = ('// the records could not be read', '', '   ' + self.problem + '.')
         else:
             p.setPen(QColor(t.QUIET));lines = ('// nothing in the field yet', '', '   bring material in through Ingress, or open a file;',
                                                '   what you work on appears here with what it came from.')
@@ -1657,7 +1661,7 @@ class FieldView(QWidget):
         if obj is None:
             self._keys_line(p, x, top + h / 2 + fm.ascent() / 2, ['R  look again', 'Esc  back'], t.QUIET, self.width() - 2 * x);return
         wide = self.width() - 2 * x;compact = h < 60 * s
-        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.AMBER_TEXT))
+        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.CUE_TEXT))
         tag = obj.tag or KIND_TAG.get(obj.kind, obj.kind.upper())
         if obj.state:tag += '  ·  ' + STATE_WORD.get(obj.state, obj.state).upper()
         if compact:                          # a short window at a large reading size: one line, the kind and the title
@@ -1667,7 +1671,7 @@ class FieldView(QWidget):
             p.setFont(self.mono(12))
             if self.go:                      # even on one line, what waits can be approved with a click
                 p.fillRect(QRectF(self.width() * 0.5, top + 2, self.width() * 0.5, h - 4), QColor(t.GROUND))
-                self._keys_line(p, self.width() * 0.5 + 8 * s, top + h / 2 + fm.ascent() / 2 - 1, ['G  ' + self.go], t.AMBER_TEXT, self.width() * 0.5 - x - 8 * s, obj.title)
+                self._keys_line(p, self.width() * 0.5 + 8 * s, top + h / 2 + fm.ascent() / 2 - 1, ['G  ' + self.go], t.CUE_TEXT, self.width() * 0.5 - x - 8 * s, obj.title)
             return
         p.drawText(QPointF(x, top + 24 * s), tag)
         room = wide - fm.horizontalAdvance(tag) - 40 * s
@@ -1686,13 +1690,13 @@ class FieldView(QWidget):
         p.setFont(self.mono(12.5));fm3 = QFontMetricsF(p.font());p.setPen(QColor(t.QUIET))
         marked = bool(self.would.get(obj.id))
         if marked:                           # a what-if marks this sheet: the foot says it whole, and has the line to itself
-            said = 'WHAT IF      ' + self.would_said.replace('what if ', '', 1) + '      ' + self.would[obj.id];p.setPen(QColor(t.AMBER_TEXT))
+            said = 'WHAT IF      ' + self.would_said.replace('what if ', '', 1) + '      ' + self.would[obj.id];p.setPen(QColor(t.CUE_TEXT))
         code = '' if self.rail() or not obj.stac or marked else 'line  ' + '  '.join(self.stac_lines(obj.stac))      # no rail: the line is said here
         if self.steps or self.go:            # the owner asked what can be done: the foot says the steps and the go, wherever the rail is
             # The go comes first, as a button: it is never the item that does not fit. Each step is a place to click, as a digit is a key.
             items = (['G  ' + self.go] if self.go else []) + ['%d  %s%s' % (n + 1, words, ' (asks first)' if kind == 'write' else '') for n, (words, kind) in enumerate(self.steps[:9])]
-            p.setPen(QColor(t.AMBER_TEXT));p.drawText(QPointF(x, top + h - 14 * s), 'DO')
-            self._keys_line(p, x + fm3.horizontalAdvance('DO      '), top + h - 14 * s, items, t.AMBER_TEXT, wide - fm3.horizontalAdvance('DO      '), obj.title)
+            p.setPen(QColor(t.CUE_TEXT));p.drawText(QPointF(x, top + h - 14 * s), 'DO')
+            self._keys_line(p, x + fm3.horizontalAdvance('DO      '), top + h - 14 * s, items, t.CUE_TEXT, wide - fm3.horizontalAdvance('DO      '), obj.title)
             return
         code_w = min(fm3.horizontalAdvance(code), wide * 0.5) if code else 0.0
         p.drawText(QPointF(x, top + h - 14 * s), fm3.elidedText(said, Qt.ElideRight, wide - (code_w + 28 * s if code else 0)))

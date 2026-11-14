@@ -34,10 +34,10 @@ class TrafficPanel(QFrame):
         self.setObjectName('TrafficCop')
         self.setAccessibleName('Shared-memory traffic cop')
         self.setStyleSheet('''
-            QFrame#TrafficCop {background:%(PANEL)s; border:1px solid %(LINE)s; border-top-color:%(AMBER_EDGE)s;}
+            QFrame#TrafficCop {background:%(PANEL)s; border:1px solid %(LINE)s; border-top-color:%(CUE_EDGE)s;}
             QFrame#CopMetric {background:%(TERMINAL_GROUND)s; border:1px solid %(LINE)s;}
             QLabel#CopTitle, QLabel#CopState, QLabel#CopMetricName, QLabel#CopMetricValue {font-family:"%(MONO)s";}
-            QLabel#CopTitle {color:%(AMBER_TEXT)s; font-weight:600;}
+            QLabel#CopTitle {color:%(CUE_TEXT)s; font-weight:600;}
             QLabel#CopMetricName, QLabel#CopCaption {color:%(QUIET)s;}
             QLabel#CopMetricValue {color:%(TEXT)s; font-weight:600;}
         ''' % vars(ink))
@@ -107,13 +107,13 @@ class TrafficPanel(QFrame):
         self.setToolTip('\n'.join(filter(None, (traffic.get('scope'), traffic.get('limits')))))
         state = traffic.get('state')
         if value['gate']['held']:
-            self.set_state('WORK HELD', ink.AMBER_TEXT)
+            self.set_state('WORK HELD', ink.CUE_TEXT)
             self.caption.setText('Resume work to reopen admission.')
         elif available is None or state is None:
             self.set_state('READBACK UNAVAILABLE', ink.QUIET)
             self.caption.setText('Admission is waiting for a memory observation.' if available is None else 'Awaiting the traffic policy readback.')
         else:
-            self.set_state(state.replace('_', ' '), ink.READY if state == 'ACCEPTING' else ink.AMBER_TEXT)
+            self.set_state(state.replace('_', ' '), ink.READY if state == 'ACCEPTING' else ink.CUE_TEXT)
             self.caption.setText('One model turn at a time. Foreground gets the next available turn.')
         lines = []
         for row in traffic.get('jobs', [])[:8]:

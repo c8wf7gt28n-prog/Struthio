@@ -17,6 +17,7 @@ from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QKeySequence, QPalette, QShortcut, QTextBlockFormat, QTextCharFormat, QTextCursor, QTextDocument, QTextFormat
 from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QLayout, QLineEdit, QListWidget, QListWidgetItem, QSplitter, QTextEdit, QVBoxLayout, QWidget
 from .shell2 import AMBER, CARD, ERASER_DEEP, PENCIL_DEEP, QUIET, TEXT, call, call_write, escape_text, role, sentence
+from .boss_theme import ON_AMBER      # 0.8.3: the words on a selected document (her burnt yellow; Graphite's ink)
 from .settings_qt import action
 from .text_prompts import writing_prompt
 from . import documents as store
@@ -29,7 +30,7 @@ PAGE_STYLE = ('QTextEdit#DocumentPage {background:%s;color:%s;border:0;padding:0
               'QLineEdit#DocumentTitle {background:%s;color:%s;border:0;border-radius:0;padding:8px 10px;selection-background-color:%s;selection-color:%s;}'
               'QLineEdit#DocumentTitle:focus {border-bottom:2px solid %s;}'
               'QListWidget#DocumentList {background:transparent;border:0;color:%s;} QListWidget#DocumentList::item {padding:6px 4px;}'
-              'QListWidget#DocumentList::item:selected {background:%s;color:%s;}' % (CARD, TEXT, PENCIL_DEEP, TEXT, AMBER, TEXT, ERASER_DEEP, TEXT, TEXT, TEXT, ERASER_DEEP, TEXT))
+              'QListWidget#DocumentList::item:selected {background:%s;color:%s;}' % (CARD, TEXT, PENCIL_DEEP, TEXT, AMBER, TEXT, ERASER_DEEP, TEXT, TEXT, TEXT, ERASER_DEEP, ON_AMBER))
 UNDO_WORDS = {'undo', 'undo that', 'undo it', 'take that back', 'revert that', 'go back'}
 REDO_WORDS = {'redo', 'redo that', 'redo it'}
 # AGENT-02 (D19): a model edit is shown by a pencil-yellow wash over the changed range that fades out over FLASH_MS in
@@ -361,14 +362,14 @@ class DocumentsTab(QWidget):
         self.report_bar.setVisible(bool(self.report_derivation))
         if not self.report_derivation:
             return
-        from .boss_theme import READY, AMBER_TEXT
+        from .boss_theme import READY, CUE_TEXT
         state = (value or {}).get('state')
         messages = {'CURRENT': 'Calculation bound to the current sheet.',
                     'RECHECK_SHEET_CHANGED': 'The sheet changed. Recheck the calculation.',
                     'PDF_SOURCE_REVIEW_REQUIRED': 'The source page needs review.',
                     'SHEET_UNAVAILABLE': 'The source sheet is unavailable.'}
         self.report_hint.setText(messages.get(state, 'Calculation from a saved sheet.'))
-        self.report_hint.setStyleSheet('color:' + (READY if state == 'CURRENT' else AMBER_TEXT))
+        self.report_hint.setStyleSheet('color:' + (READY if state == 'CURRENT' else CUE_TEXT))
 
     def open_report_sheet(self):
         if self.report_derivation:

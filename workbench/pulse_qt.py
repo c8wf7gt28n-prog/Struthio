@@ -15,7 +15,8 @@ from collections import deque
 from PySide6.QtCore import QPointF, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QMenu, QWidget
-from .shell2 import AMBER, AMBER_EDGE, CARD, ERASER, ERASER_MARK, LINE, QUIET, SANS, TEXT, call, call_write
+from .shell2 import CARD, ERASER, ERASER_MARK, LINE, QUIET, SANS, TEXT, call, call_write
+from .boss_theme import CUE as AMBER, CUE_EDGE as AMBER_EDGE      # 0.8.3: a chart's fill is a cue, not a highlight
 
 SAMPLES = 30  # one every two seconds: the last minute
 from .boss_theme import APPEARANCE as _APPEARANCE

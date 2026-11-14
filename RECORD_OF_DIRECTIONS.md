@@ -37,7 +37,7 @@ as its name is shown as "a line" (Run this line, the Field's Line, "· runs as a
 line a line. Its name stays in the code, the operation names and the history. And: "Should we welcome more colors like a
 yellow that matches her hair and more shades of violet": yes, each with one job. Honey is hers (the edge of her answers,
 the mark under her name when she is the one typed to); the violets are the desk's structure (headings, the Field's
-column titles, your own messages, the equalizer). The "kp" monogram is the icon of Programs in Kasandra.
+column titles, your own messages, the equalizer). In Kasandra, Apps is her neon kp logo.
 
 One ThinkPad on minimal Debian runs it. The model is local. Nothing leaves the computer unless the owner turns a
 service on. Finished means installed and seen working on that ThinkPad, judged by real completed work.
@@ -290,8 +290,15 @@ service on. Finished means installed and seen working on that ThinkPad, judged b
   (capitals, a name: "in DELETE"), sending a thing there is Delete, taking words out of a page is Erase; every face in
   Kasandra is the typewriter face (Kasandra Elite for words, Kasandra Elite Mono, on Plex Mono's line and pitch, for what
   must line up); her picture is a hologram standing in the left pane's empty lower part, with live static, never over a
-  row or DELETE, and still with Reduce motion; her column is her terminal, with a masthead and the room her picture had;
-  Apps is the owner's kp emblem.
+  row or DELETE, and still with Reduce motion; her column is her terminal, with a masthead and the room her picture had.
+- **Burnt yellow, and the neon kp** (14 November): "I'm kinda thinking that highlighting should be in our burnt
+  yellow??? Like especially in menus???", "You measure what is visually pleasing", "we have to be careful how that makes
+  the graphite not look green"; and "New logo for our upper right progman.exe menu ;) ... Omg I love it", "Retire any
+  other kp icon". So, in Kasandra only: the row you are on in a menu is a solid burnt-yellow bar with dark ink; every
+  other highlight (a selected row, a selected tab, a checked choice, focus, the keyboard's place) is burnt-yellow edge
+  and words on its fill; yellow is never mixed over her cyan, which stays for the pointer, what is ready, the line and the
+  bands. Graphite keeps its amber and its green. The owner's neon kp logo, drawn clean with its neon drawn round it by the
+  Glow dial, is Apps in the head's upper right and the only kp mark; the window keeps Graphite's sharpened point.
 - **Small things that stay.** `prompt` as the empty hint (it was `poem`; 14 November: "Let's lose the term poem …
   Maybe just prompt."). Ingress and Egress. The pinned DELETE (Trash until 0.8.3). Home as a file browser. Programs is called **Apps**
   (14 November: "We'll change the name programs to apps. APPS."). The game at the foot of Apps (STRUTHIO ARCADE; its source is the STRUTHIO repository's `arcade/`, changed there and

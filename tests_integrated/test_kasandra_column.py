@@ -6,8 +6,9 @@ because the picture will be gone." and "I attached a new kp icon/logo".
 Her column opens with a masthead whose rule is level with the left pane's tab rule (her name once, at the size of her words;
 the state of the work; what she speaks with, shortened in the middle; her hand); her words have the room the picture had,
 with room between their lines; a line on her card is drawn in the mono face it is measured in (in Graphite too: that was
-the bug); her ground is her terminal's. Apps is the owner's emblem, with the monogram and then the words as fallbacks; the
-window icon is the emblem's tile. Graphite's column is as it was.
+the bug); her ground is her terminal's. Apps is the owner's neon kp logo (0.8.3: "New logo for our upper right progman.exe
+menu"), its neon drawn round it by the Glow dial, with the words as its fallback; the window icon is Graphite's sharpened
+point in both appearances. Graphite's column is as it was.
 """
 import hashlib
 import os
@@ -57,12 +58,28 @@ class Column(unittest.TestCase):
                 got = tuple(int(ground[i:i + 2], 16) for i in (1, 3, 5))
                 self.assertTrue(all(abs(a - b) <= 2 for a, b in zip(got, want)), (ground, out['ground_round']))
 
-    def test_apps_is_the_emblem_then_the_monogram_then_words(self):
-        apps = self.wide['apps']
-        self.assertEqual(apps['icon'], [58, 38]);self.assertEqual(apps['name'], 'Apps');self.assertEqual(apps['text'], '')
-        self.assertEqual(apps['rect'][2:], [76, 60])
-        self.assertEqual(self.wide['apps_monogram'], [36, 36]);self.assertEqual(self.wide['apps_words'], '[#] Apps ▾')
-        self.assertEqual(self.wide['icon_source'], 'kasandra')
+    def test_apps_is_the_neon_logo_then_words(self):
+        for out, size in ((self.wide, 1920), (self.small, 1366)):
+            apps = out['apps']
+            self.assertEqual(apps['kind'], 'AppsButton');self.assertTrue(apps['logo'], size)
+            self.assertEqual(apps['icon'], [74, 44], 'about 44 px tall and 74 wide at 14 pt');self.assertEqual(apps['name'], 'Apps')
+            self.assertEqual(apps['text'], '');self.assertIn('apps', apps['tip'].lower())
+            x, y, w, h = apps['rect'];self.assertEqual((w, h), (92, apps['band']));self.assertEqual(y, 0)
+            self.assertLessEqual(x + w, size, 'in the head, at its right end');self.assertGreater(x + w, size - 40)
+            lx, ly, lw, lh = apps['logo_rect'];self.assertEqual((lw, lh), (74.0, 44.0));self.assertGreaterEqual(ly, 4, 'clear of the band\'s rule')
+            self.assertEqual(out['apps_words'], '[#] Apps \u25be');self.assertFalse(out['apps_words_logo'], 'a logo whose bytes differ is not shown')
+            self.assertTrue(out['window_icon_graphite'], 'the window keeps Graphite\'s sharpened point')
+
+    def test_its_neon_follows_the_glow_dial_and_is_none_on_the_clean_desk(self):
+        light = self.wide['apps_light']
+        self.assertGreater(light['neon'], light['bright']);self.assertGreater(light['bright'], light['soft']);self.assertGreater(light['soft'], 0)
+        self.assertEqual(light['zero'], 0.0, 'no glow at 0');self.assertEqual(light['clean'], 0.0, 'none on the Clean desk')
+        self.assertEqual(self.wide['clean_level'], 0.0)
+
+    def test_it_catches_as_apps_opens_and_is_still_with_reduce_motion(self):
+        out = self.wide
+        self.assertTrue(out['catch_anchor']);self.assertTrue(out['catch_on_open']);self.assertTrue(out['catch_settled'])
+        self.assertFalse(out['catch_reduce_motion'])
 
 
 class Review(unittest.TestCase):
@@ -122,12 +139,16 @@ class Graphite(unittest.TestCase):
         self.assertEqual(out['tabs'], ['IBM Plex Mono'], 'the tabs keep their face (0.8.3 review)')
         self.assertEqual((out['least'], out['need']), (61, 215))
         self.assertEqual(out['portrait'], 'PanelInk');self.assertIsNone(out['masthead']);self.assertEqual(out['margin'], 14)
-        self.assertIsNone(out['hologram']);self.assertEqual(out['icon_source'], 'graphite')
+        self.assertIsNone(out['hologram'])
+        apps = out['apps']      # 0.8.3: Graphite's Apps keeps its words; the window its sharpened point
+        self.assertFalse(apps['apps']['logo']);self.assertEqual(apps['apps']['text'], '[#] Apps \u25be');self.assertTrue(apps['window_icon_graphite'])
         self.assertEqual(out['slab'], ['IBM Plex Mono', 15], 'the line on her card in the mono face it was always meant to have')
         self.assertAlmostEqual(out['delete'][0], 0.8, delta=0.01)
 
 
-class Emblem(unittest.TestCase):
+class Logo(unittest.TestCase):
+    """The neon kp logo's file: verified, recorded, and the only kp mark."""
+
     @classmethod
     def setUpClass(cls):
         from PySide6.QtWidgets import QApplication
@@ -139,52 +160,16 @@ class Emblem(unittest.TestCase):
         for name, sha in kasandra_art.MARKS.items():
             self.assertEqual(hashlib.sha256((PACK / name).read_bytes()).hexdigest(), sha, name)
             self.assertIn(sha, readme, name)
+        self.assertIn('kp_neon.png', kasandra_art.MARKS)
+        self.assertIn('70efb67742cf2ccf4bf29e08621bac5e58ceb86bd8328b1fbdf58638dad1956e', readme, 'the owner\'s file, by its SHA-256')
 
-    def test_the_cut(self):
-        from PySide6.QtCore import QRect
-        from PySide6.QtGui import QColor, QImage, QPainter
-        master = QImage(str(PACK / 'kp_emblem.png'))
-        self.assertEqual((master.width(), master.height()), (737, 482));self.assertTrue(master.hasAlphaChannel())
-        self.assertEqual(master.pixelColor(2, 2).alpha(), 0);self.assertLess(abs(master.width() / master.height() - 1.529), 0.02)
-        ground = QImage(737, 482, QImage.Format_RGB32);ground.fill(QColor('#070221'))
-        p = QPainter(ground);p.drawImage(0, 0, master);p.end()
-        source = QImage(str(PACK / 'kp_emblem_source.png')).convertToFormat(QImage.Format_RGB32).copy(QRect(251, 409, 737, 482))
-        a, b = bytes(ground.constBits()), bytes(source.constBits())
-        errors = sorted(abs(a[i] - b[i]) for i in range(0, len(a)) if i % 4 != 3)
-        self.assertLessEqual(sum(errors) / len(errors), 2.5);self.assertLessEqual(errors[int(len(errors) * 0.99)], 16)
-        inks = [(254, 241, 227), (242, 62, 107), (253, 54, 108), (118, 53, 254)]
-        data = bytes(master.convertToFormat(QImage.Format_ARGB32).constBits())
-        for i in range(0, len(data), 4 * 7):      # every seventh pixel
-            alpha = data[i + 3]
-            if 0.1 * 255 < alpha < 0.9 * 255:
-                rgb = (data[i + 2], data[i + 1], data[i])
-                self.assertTrue(any(max(abs(x - y) for x, y in zip(rgb, ink)) <= 12 for ink in inks), rgb)
-
-    def test_the_sizes(self):
+    def test_the_drawing_is_trimmed_to_itself(self):
         from PySide6.QtGui import QImage
-        for name, size in (('kp_emblem_38.png', (58, 38)), ('kp_emblem_76.png', (116, 76)), ('kp_tile.png', (256, 256)), ('kp_tile_letters.png', (64, 64))):
-            image = QImage(str(PACK / name));self.assertEqual((image.width(), image.height()), size, name)
-        tile = QImage(str(PACK / 'kp_tile.png'))
-        self.assertEqual(tile.pixelColor(0, 0).alpha(), 0);self.assertEqual(tile.pixelColor(128, 128).alpha(), 255)
-
-
-    def test_the_small_trace_stands_against_the_band(self):
-        """0.8.3 review: the violet trace at 38 px stood about 2:1 against the head band's lit lower edge. Lifted 4 px and
-        drawn in a lighter tint of its own violet in the small cut, every solid pixel of it is 3:1 or more against the band
-        where it now lies (#1c2642 at its lowest row) and against the band's brightest row it ever reached (#253752)."""
-        from PySide6.QtGui import QImage
-
-        def lum(r, g, b):
-            ch = lambda v:v / 3294.6 if v <= 10.0164 else ((v / 255 + 0.055) / 1.055) ** 2.4
-            return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b)
-        image = QImage(str(PACK / 'kp_emblem_38.png')).convertToFormat(QImage.Format_ARGB32);data = bytes(image.constBits());violet = []
-        for i in range(0, len(data), 4):
-            b, g, r, alpha = data[i], data[i + 1], data[i + 2], data[i + 3]
-            if alpha >= 250 and b > 200 and b > r + 60 and r > g:violet.append((r, g, b))
-        self.assertGreater(len(violet), 5, 'the trace is there')
-        for band in ((0x1c, 0x26, 0x42), (0x25, 0x37, 0x52)):
-            worst = min((lum(*c) + 0.05) / (lum(*band) + 0.05) for c in violet)
-            self.assertGreaterEqual(worst, 3.0, band)
+        image = QImage(str(PACK / 'kp_neon.png')).convertToFormat(QImage.Format_ARGB32);w, h = image.width(), image.height()
+        alpha = bytes(image.constBits())[3::4]
+        rows = [any(alpha[y * w:(y + 1) * w]) for y in (0, h - 1)];cols = [any(alpha[x::w]) for x in (0, w - 1)]
+        self.assertEqual(rows + cols, [True] * 4, 'the drawing reaches every edge: nothing round it')
+        self.assertLess(abs(w / h - 1401 / 838), 0.001)
 
 
 if __name__ == '__main__':

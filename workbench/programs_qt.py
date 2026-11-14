@@ -260,12 +260,23 @@ def paint_icon(p, rect, key, colour):
     p.restore()
 
 
+def paint_bar(p, rect):
+    """The row you are on in a desk menu (this list, the right-click, the System menu): Graphite's amber wash, as it always
+    was; in Kasandra (0.8.3, "highlighting should be in our burnt yellow ... especially in menus") the solid burnt-yellow
+    bar with its 2 px edge at the left (boss_theme BAR, BAR_EDGE). Opaque: nothing under it shows through. Whatever is
+    drawn on it is in ON_BAR (ON_BAR_QUIET for a row that says why it cannot act), the glyph too."""
+    from . import boss_theme as t
+    p.fillRect(rect, QColor(t.BAR))
+    if t.BAR_EDGE != t.BAR:p.fillRect(QRect(rect.left(), rect.top(), 2, rect.height()), QColor(t.BAR_EDGE))
+
+
 # One row --------------------------------------------------------------------------------------------------------------------------
 
 class MenuRow(QAbstractButton):
     """One row of a desk menu: the icon in the icon column, the plain word, and a caption at the right end (print: a status or a
     scope; the script: a menu's small caption you may skip, by the quiet-script rule). The row under the pointer or with keyboard
-    focus is washed in the menus' pencil wash (the theme's QMenu highlight); a disabled row is quiet. When a QAction backs it,
+    focus is washed in the menus' pencil wash (the theme's QMenu highlight; Kasandra's solid bar, paint_bar); a disabled row
+    is quiet. When a QAction backs it,
     the row follows the action's words, tooltip and enabled state and triggers it."""
     def __init__(self, menu, word, icon='', caption='', script=False, action=None, callback=None):
         super().__init__(menu.page);self.menu = menu;self.icon_key = icon;self.word = word;self.caption = caption;self.script = bool(script)
@@ -360,14 +371,16 @@ class MenuRow(QAbstractButton):
         super().keyPressEvent(event)
 
     def paintEvent(self, event):
-        from .shell2 import AMBER_SOFT, QUIET, TEXT
+        from . import boss_theme as t
         m = self.m();p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
-        if self.active():p.fillRect(self.rect(), QColor(AMBER_SOFT))
-        ink = QColor(TEXT if self.isEnabled() and not self.unavailable else QUIET)
+        lit = self.active()
+        if lit:paint_bar(p, self.rect())
+        on = self.isEnabled() and not self.unavailable
+        ink = QColor((t.ON_BAR if on else t.ON_BAR_QUIET) if lit else (t.TEXT if on else t.QUIET))
         paint_icon(p, self.icon_rect(), self.icon_key or 'window', ink)
         p.setFont(self.font());p.setPen(ink);p.drawText(QRectF(self.word_x(), 0, self.width() - self.word_x() - m.pad, self.height()), Qt.AlignLeft | Qt.AlignVCenter, self.word)
         if self.caption:
-            p.setFont(caption_font(m, self.script));p.setPen(QColor(QUIET));p.drawText(self.caption_rect(), Qt.AlignRight | Qt.AlignVCenter, self.caption)
+            p.setFont(caption_font(m, self.script));p.setPen(QColor(t.ON_BAR_QUIET if lit else t.QUIET));p.drawText(self.caption_rect(), Qt.AlignRight | Qt.AlignVCenter, self.caption)
         p.end()
 
 
@@ -712,6 +725,8 @@ class ProgramsList(DeskMenu):
         self.game_row = MenuRow(self, 'Game', 'game', 'STRUTHIO', callback=self.open_game);self.game_row.setObjectName('GameRow')
         self.game_row.setToolTip('STRUTHIO in its offline desk mode, paused at tick zero');self.game_row.setAccessibleName('Game: STRUTHIO in its offline desk mode, paused at tick zero')
         self.box.addWidget(self.game_row);self.end_rows()
+        button = self.anchor      # the head's Apps button: Kasandra's neon kp catches as this list opens (kp_logo.AppsButton.catch)
+        if hasattr(button, 'catch'):self.shown.connect(lambda shown, button=button:shown and button.catch())
 
     def open_game(self):
         from .struthio_qt import show

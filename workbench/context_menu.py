@@ -2143,20 +2143,20 @@ class ContextRow(MenuRow):
 
     def paintEvent(self, event):
         from PySide6.QtGui import QIcon
-        from .shell2 import AMBER_EDGE, AMBER_SOFT, QUIET, TEXT
+        from . import boss_theme as t
         m = self.m();p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
         lit = self.active() or (self.sub() and self.menu.child is not None and self.menu.child_row is self)
-        if lit:p.fillRect(self.rect(), QColor(AMBER_SOFT))
-        ink = QColor(TEXT if self.isEnabled() else QUIET)
+        if lit:programs_qt.paint_bar(p, self.rect())      # Kasandra: the solid burnt-yellow bar, its glyph and words in its dark ink
+        ink = QColor((t.ON_BAR if self.isEnabled() else t.ON_BAR_QUIET) if lit else (t.TEXT if self.isEnabled() else t.QUIET))
         paint_glyph(p, self.icon_rect(), self.entry.glyph, self.entry.tone, QIcon.Disabled if not self.isEnabled() else (QIcon.Active if lit else QIcon.Normal))
         p.setFont(self.font());p.setPen(ink);x = self.word_x()
         p.drawText(QRectF(x, 0, self.width() - x - m.pad, self.height()), Qt.AlignLeft | Qt.AlignVCenter, self.word)
-        if self.entry.checked:  # the active choice: a short pencil-yellow mark under the word (the desk's sign for it)
+        if self.entry.checked:  # the active choice: a short pencil-yellow mark under the word (the desk's sign for it; on her bar, in its ink)
             width = min(self.fontMetrics().horizontalAdvance(self.word), max(12, round(m.px * 1.6)))
             base = (self.height() + self.fontMetrics().ascent() - self.fontMetrics().descent()) // 2
-            p.fillRect(QRect(int(x), int(min(self.height() - 3, base + 3)), int(width), 2), QColor(AMBER_EDGE))
+            p.fillRect(QRect(int(x), int(min(self.height() - 3, base + 3)), int(width), 2), QColor(t.ON_BAR if lit and t.APPEARANCE == 'kasandra' else t.AMBER_EDGE))
         if self.caption:
-            p.setFont(programs_qt.caption_font(m, self.script));p.setPen(QColor(QUIET));p.drawText(self.caption_rect(), Qt.AlignRight | Qt.AlignVCenter, self.caption)
+            p.setFont(programs_qt.caption_font(m, self.script));p.setPen(QColor(t.ON_BAR_QUIET if lit else t.QUIET));p.drawText(self.caption_rect(), Qt.AlignRight | Qt.AlignVCenter, self.caption)
         p.end()
 
 

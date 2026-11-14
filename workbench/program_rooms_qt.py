@@ -19,17 +19,17 @@ QWidget#ProgramRoom {
     background: %(GROUND)s; color: %(TEXT)s; font-family: "%(MONO)s";
 }
 QWidget#ProgramRoom QLabel { color: %(QUIET)s; background: transparent; }
-QWidget#ProgramRoom QWidget#ProgramHeader { border-bottom: 1px solid %(AMBER_EDGE)s; }
+QWidget#ProgramRoom QWidget#ProgramHeader { border-bottom: 1px solid %(CUE_EDGE)s; }
 QWidget#ProgramRoom QLabel#ProgramTitle {
     color: %(TEXT)s; font-size: 22px; font-weight: 700;
 }
-QWidget#ProgramRoom QLabel#ProgramStatus { color: %(AMBER_TEXT)s; }
+QWidget#ProgramRoom QLabel#ProgramStatus { color: %(CUE_TEXT)s; }
 QWidget#ProgramRoom QLabel#ProgramStatus[ready="true"] { color: %(READY)s; }
 QWidget#ProgramRoom QLineEdit, QWidget#ProgramRoom QPlainTextEdit,
 QWidget#ProgramRoom QComboBox, QWidget#ProgramRoom QDoubleSpinBox {
     color: %(TEXT)s; background: %(PANEL)s; border: 1px solid %(LINE)s;
     border-radius: 0; padding: 6px;
-    selection-background-color: %(AMBER_SOFT)s; selection-color: %(TEXT)s;
+    selection-background-color: %(AMBER_SOFT)s; selection-color: %(ON_AMBER)s;
 }
 QWidget#ProgramRoom QPlainTextEdit#ProgramDetails { border-color: %(LINE)s; }
 QWidget#ProgramRoom QLineEdit:focus, QWidget#ProgramRoom QComboBox:focus,
@@ -38,11 +38,14 @@ QWidget#ProgramRoom QPushButton {
     color: %(TEXT)s; background: %(RAISED)s; border: 1px solid %(LINE)s;
     border-radius: 0; padding: 6px 9px;
 }
-QWidget#ProgramRoom QPushButton:hover, QWidget#ProgramRoom QPushButton:focus {
+QWidget#ProgramRoom QPushButton:hover {
+    background: %(CUE)s; border-color: %(CUE_EDGE)s;
+}
+QWidget#ProgramRoom QPushButton:focus {
     background: %(AMBER_SOFT)s; border-color: %(AMBER_EDGE)s;
 }
 QWidget#ProgramRoom QPushButton#ProgramPrimary {
-    background: %(AMBER_EDGE)s; color: %(GROUND)s; border-color: %(AMBER_EDGE)s;
+    background: %(CUE_EDGE)s; color: %(GROUND)s; border-color: %(CUE_EDGE)s;
     font-weight: 700;
 }
 QWidget#ProgramRoom QPushButton:disabled, QWidget#ProgramRoom QPushButton#ProgramPrimary:disabled {

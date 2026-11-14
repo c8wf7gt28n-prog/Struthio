@@ -216,14 +216,8 @@ def picture(base, scene, width, height, dpr=1.0, zoom=1.0):
 # bytes are these, the way a still is shown only when its bytes match the catalog.
 MARKS = {
     'hologram.webp': 'b73f7108256ef7523b38bf6ba53478b62d90c8bcd3a3dec9d97b8d34913698ec',
-    'kp_emblem_source.png': '94d7bfb3932fd1cdb9c1f499fe4eee011d9e0404ff5cfa071d9a7dbb2eb3afaa',
-    'kp_emblem.png': '5bfdf6e8dd1be97fe63f549f83a61285f37695ac52bbed07739e7d435ac879c5',
-    'kp_emblem_small.png': 'ed2ec90a29505a09879a954521b6eca0608c66fd85d1c76570e22e1ea9d37aa4',
-    'kp_emblem_38.png': 'fbb43393dfc559bc3c55c70088c1087182879bebc66890f7f5f476b73f5b3e32',
-    'kp_emblem_76.png': 'ffccd3e3cc8f29de1f3bec325971afa4f1b78b3883a10a7e56aff224a3b9f32c',
-    'kp_tile.png': 'bd1a274b69ad6b633c9c0d734a2e949626ebe78f4ca875ea83613268407e10f5',
-    'kp_tile_letters.png': 'a99f936f1b0283c658f029e5ead98c1a0bc56c6f62265872ff2ca7c55dd0275f',
-    'kp_monogram.png': '7c5b3c9c1f16e0d1eca1f881a0ece60bda777355fdc0fa634495deb77170a073',
+    # the neon kp logo, the only kp mark (0.8.3): the owner's drawing, clean (tools/cut_kp_neon.py); Apps in the head
+    'kp_neon.png': 'f3c6e5fb5cd0f2d61019187bae0d70771378fba5a6c7da27dd8d15d486fd2cc0',
     'wordmark.webp': '0a8d44e549b4c9904df11496fb81106c918680c4c84a268098067dc919deb1e6',
 }
 CROP = (80, 15, 608, 822)       # the hologram's figure in its 800 x 875 picture: its ink, the faint glitch lines left out

@@ -42,9 +42,14 @@ RIGHT_WORDS = ('Talk', 'Activity', 'Context')
 from .boss_theme import TEXT, QUIET, LINE, LINE_STRONG as BRANCH, ERASER, GROUND, TEAL_EDGE as TRACE, READY as LIVE, glow as glow_level
 from .boss_theme import APPEARANCE, DISPLAY, MONO, TERMINAL_GROUND
 BREATH = 2.8        # the lit path's breath, seconds; her hologram's base breathes with it (hologram.BREATH)
-TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {padding:0 2px;border:0;} '
-              'QTreeWidget::item:selected {background:%s;color:%s;} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
-              % (TEXT, ERASER, TEXT))
+from .boss_theme import AMBER_SOFT, AMBER_EDGE, AMBER_TEXT, ON_AMBER
+# 0.8.3, Kasandra: a selected row is her burnt-yellow edge and words on its fill (each row keeps a clear edge of the same
+# width, so a row's words do not move when it is chosen); Graphite keeps its eraser wash.
+ROW, SELECTED = (('padding:0 2px 0 0;border:0;border-left:2px solid transparent;', 'background:%s;color:%s;border-left:2px solid %s;' % (AMBER_SOFT, AMBER_TEXT, AMBER_EDGE))
+                 if APPEARANCE == 'kasandra' else ('padding:0 2px;border:0;', 'background:%s;color:%s;' % (ERASER, TEXT)))
+TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {%s} '
+              'QTreeWidget::item:selected {%s} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
+              % (TEXT, ROW, SELECTED))
 
 
 def tab_row(pane, inset, gap, n, least):
@@ -177,7 +182,7 @@ class PaneTab(QPushButton):
     def paintEvent(self, event):
         p = QPainter(self);p.setRenderHint(QPainter.TextAntialiasing)
         font = QFont(self.font());font.setWeight(QFont.DemiBold if self.isChecked() and APPEARANCE != 'kasandra' else QFont.Normal)
-        p.setFont(font);p.setPen(QColor(TEXT if self.isChecked() else QUIET))
+        p.setFont(font);p.setPen(QColor(ON_AMBER if self.isChecked() else QUIET))      # the chosen tab's words: her burnt yellow (Graphite's ink)
         p.drawText(self.rect().adjusted(0, MARK, 0, -MARK), Qt.AlignCenter, self.text())
         colour = self.mark_colour()
         if colour is not None and self.mark[1]:p.fillRect(self.mark_rect(), QColor(colour))

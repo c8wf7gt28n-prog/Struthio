@@ -624,10 +624,13 @@ class TypeBar(QWidget):
             from .boss_theme import AMBER_EDGE
             if glows(self.host):
                 r = self.box.geometry();p.setRenderHint(QPainter.Antialiasing)
+                from .boss_theme import lays_light
+                p.save();lays_light(p)      # Kasandra: the light is added to the band's cyan, never mixed over it (that is green)
                 for away, width, alpha in ((5.0, 5.0, 0.07), (3.2, 3.2, 0.12), (1.6, 2.0, 0.2)):
                     ink = QColor(AMBER_EDGE);ink.setAlphaF(alpha);p.setPen(QPen(ink, width))
                     p.drawLine(QLineF(r.left() + 1, r.top() - away, r.right(), r.top() - away))
                     p.drawLine(QLineF(r.left() + 1, r.bottom() + 1 + away, r.right(), r.bottom() + 1 + away))
+                p.restore()
         p.end()
 
     def resizeEvent(self, event):

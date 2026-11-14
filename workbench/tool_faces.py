@@ -214,13 +214,17 @@ def icon(key, tone=None):
     draw = GLYPHS.get(key) or KIND.get(key);made = QIcon()
     if draw is None:return made
     # 0.5.2 (the owner: "the icons in the drop down menus could be neon green"): the desk's live green, with a little of
-    # its own light under it; brighter on the line the pointer is on; dim on a line that cannot be used.
+    # its own light under it; brighter on the line the pointer is on; dim on a line that cannot be used. In Kasandra the line
+    # the pointer is on is a solid burnt-yellow bar (0.8.3), and the glyph on it is drawn in the bar's dark ink, unlit: cyan
+    # light on yellow would read green.
     level = t.glow();own = tone_colours(tone)
     states = ((QIcon.Normal, t.READY, t.TEAL_EDGE, 0.10), (QIcon.Active, t.TEAL_TEXT, t.READY, 0.18),
               (QIcon.Selected, t.TEAL_TEXT, t.READY, 0.18), (QIcon.Disabled, t.LINE_MID, t.LINE, 0.0))
     if own is not None:
         states = ((QIcon.Normal, own[0], own[1], 0.10), (QIcon.Active, own[0], own[1], 0.18), (QIcon.Selected, own[0], own[1], 0.18),
                   (QIcon.Disabled, t.LINE_MID, t.LINE, 0.0))
+    if t.APPEARANCE == 'kasandra':      # 0.8.3: the line it is on is her solid burnt-yellow bar: the glyph in its dark ink, no light
+        states = (states[0], (QIcon.Active, t.ON_BAR, t.ON_BAR, 0.0), (QIcon.Selected, t.ON_BAR, t.ON_BAR, 0.0), states[3])
     for state, line, fill, lit in states:
         for ratio in (1, 2):
             image = QPixmap(SIDE * ratio, SIDE * ratio);image.fill(Qt.transparent)
