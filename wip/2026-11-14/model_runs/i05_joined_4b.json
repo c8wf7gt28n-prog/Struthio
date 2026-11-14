@@ -1,0 +1,2391 @@
+{
+  "state": "FAILED",
+  "profile": "ACTUAL_LOCAL_MODEL_I05_TRIAL",
+  "expected_cases": 3,
+  "model": {
+    "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+    "config": {
+      "context": 6144,
+      "threads": 4,
+      "memory_mb": 4480,
+      "backend": "CPU",
+      "weight_loading": "RESIDENT_COPY"
+    },
+    "runtime": {
+      "build": "b11669",
+      "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+      "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+      "platform": "linux-x64",
+      "backend": "CPU"
+    },
+    "template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+    "files": {
+      "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/models/Qwen3.5-4B-Q4_K_M.gguf": {
+        "bytes": 2740937888,
+        "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+        "stat": [
+          2740937888,
+          1794485584063962311,
+          1794485584063962311,
+          917550
+        ]
+      }
+    },
+    "thinking_enabled": false,
+    "temperature": 0,
+    "profile": "ledger.adaptive-investigation/1"
+  },
+  "executor_digest": "45cbe804ee88879d016346eec660acecce110077858844f885c21bfd5b5425fa",
+  "activation": {
+    "status": "ACTIVATED",
+    "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+    "qualification": {
+      "state": "CPU_CHAT_QUALIFIED",
+      "at": 1794637053.8163338,
+      "file_set_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+      "runtime": {
+        "build": "b11669",
+        "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+        "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+        "platform": "linux-x64",
+        "backend": "CPU"
+      },
+      "config": {
+        "context": 6144,
+        "threads": 4,
+        "weight_loading": "RESIDENT_COPY",
+        "memory_mb": 4480,
+        "estimated_peak_bytes": 4469188918,
+        "estimated_kv_bytes": 503316480,
+        "backend": "CPU",
+        "requested_backend": "AUTO",
+        "gpu_layers": -1,
+        "cpu_fallback": true,
+        "fallback_reason": "Auto selected CPU: no accessible amdgpu Radeon with a bundled Vulkan worker was found.",
+        "host": {
+          "schema": "arc.brain-host/1",
+          "os": "Linux",
+          "release": "6.18.44-fc-v470",
+          "architecture": "x86_64",
+          "cpu": "Intel(R) Xeon(R) Processor @ 2.30GHz",
+          "logical_cpus": 4,
+          "total_ram_bytes": 16869146624,
+          "available_ram_bytes": 15857696768,
+          "gpu": "NOT_DETECTED",
+          "backend": "CPU",
+          "hardware_profile": {
+            "schema": "graphite.inference-hardware/1",
+            "measured_on": "CURRENT_EXECUTION_HOST",
+            "machine": {
+              "vendor": null,
+              "product": null,
+              "version": null
+            },
+            "cpu": {
+              "name": "Intel(R) Xeon(R) Processor @ 2.30GHz",
+              "logical_cpus": 4,
+              "physical_cores": 4,
+              "features": [
+                "avx",
+                "avx2",
+                "avx512_vnni",
+                "avx512f",
+                "avx_vnni",
+                "f16c"
+              ]
+            },
+            "kernel": "6.18.44-fc-v470",
+            "architecture": "x86_64",
+            "graphics": [],
+            "installed_packages": {
+              "libc6": "2.39-0ubuntu8.9",
+              "libgcc-s1": "14.2.0-4ubuntu2~24.04.1",
+              "libgomp1": "14.2.0-4ubuntu2~24.04.1",
+              "libssl3t64": "3.0.13-0ubuntu3.16",
+              "libstdc++6": "14.2.0-4ubuntu2~24.04.1",
+              "libvulkan1": "1.3.275.0-1build1",
+              "libzstd1": "1.5.5+dfsg2-2build1.1",
+              "zlib1g": "1:1.3.dfsg-3.1ubuntu2.3"
+            },
+            "missing_runtime_packages": [
+              "mesa-vulkan-drivers",
+              "firmware-amd-graphics"
+            ],
+            "memory_note": "An integrated GPU shares system memory. DRM VRAM/GTT and Vulkan budgets are not extra RAM.",
+            "owner_host_qualification": "NOT_ESTABLISHED_BY_INVENTORY",
+            "fingerprint": "446a4359735b3219cc4d7029b78176048abb90e1cc8dd954a4c2d06cd973bd32"
+          },
+          "measured_on": "CURRENT_EXECUTION_HOST",
+          "backend_note": "CPU is the compatibility baseline here; the owned running worker reports its effective backend."
+        },
+        "reclaimable_private_bytes": 0,
+        "resource_guard": "ADDRESS_SPACE_RSS_AND_HOST_HEADROOM_GUARD",
+        "observed_gpu_layers": 0,
+        "offload_evidence": "CPU_WORKER_WITH_OFFLOAD_DISABLED"
+      },
+      "load_seconds": 3.6319523000001936,
+      "sample_usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 18,
+        "total_tokens": 20,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "memory": {
+        "rss_bytes": 3708600320,
+        "peak_rss_bytes": 3708600320,
+        "memory_scope": "OWNED_PROCESS_TREE_RSS_NOT_GPU_ALLOCATION"
+      },
+      "template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+      "limits": "Load, tokenizer/template and text generation qualification; engineering-answer accuracy is not inferred."
+    },
+    "cloud_calls": 0,
+    "schema": "arc.brain-job-result/1",
+    "created": 1794637053.8251448,
+    "job_id": "f3a9f7cd34874d608564dadec4f07ecf",
+    "class": "LOCAL_INFERENCE"
+  },
+  "qualifying_method": {
+    "accepted_by": "desktop-owner",
+    "actor": "desktop-owner",
+    "assignment": "435dca1968ea491e93d99c357016aa71",
+    "components": {
+      "LedgerOffice.java": "b1e89ee058211094f3745022468770b47b644cb9bd5900ccae013af6ec1e0671",
+      "LedgerSession.java": "af51bbd47e5dfe1435997e8a77829867a5a0b9abe701169ef8d24357d6f3d9a1",
+      "checked_methods.py": "274a2d5e17a9fd77adb96b85cd2e1a558317bb093e77cf23b0a335147bcd417f",
+      "engineering_cli.py": "bfa0cc7b12cea9ebe037fb011d0aa599fd679d457895bc570344dffbc36266b1",
+      "engineering_kernel.py": "6d3e37db7274f11c8da5a2b4223a58b9f12883c9f01d28cc599025a32d2cdc6a",
+      "experiment_runtime.py": "9329f94b4463fc3a78b5ac260643e042957bef78e189064542afe0631d54aaa9",
+      "joined_work.py": "00b45c8b088042c9a2e91f0ec7c741affc2ff235fa0d74ea36975762531106e7",
+      "math_service.py": "afa7a28f2cc2bebce7e6d64ae13d9697dba25bf6a5dd7e0761d6727da01be29e",
+      "native_sessions.py": "f86ad12c3b52349d010759391bbcc12620e794457ebe794c3fbda6b654f1a8f0",
+      "office_math_runtime.py": "2d35f9a5f19ca49f046c7e64274ad75abbf6511f20dea73a3162e70635b9d875",
+      "project_context.py": "81349dfab5f9eb2c4e06dfc6730477a7307d79c02003cc09c5681050fb5f3da1",
+      "schedule_math.py": "661800f5df7189deb2f5649e78cc58377d81be8ed56ea308000a637610301ba8",
+      "typed_artifacts.py": "b99633601211b4335483dc8872150341828b2031fad40f4868e95c292f056586"
+    },
+    "copy": "2fa09b0f92a2423fa921a853abed31e1",
+    "created": 1794637042.8980443,
+    "evidence_digest": "e0949f41f73b098307069e5a0ceb69e1c0d63ef5283561bb2c3f58aa7aca4e5c",
+    "expected_checks": [
+      "Exact half-open peak",
+      "Actual Calc recalculation and reopen",
+      "Protected Python agreement",
+      "Native Writer content and dependency bindings"
+    ],
+    "failure_cases": [
+      "Unknown or incompatible units",
+      "Closed lifetimes",
+      "Variable capacity",
+      "Nonadditive resources",
+      "Unmodeled overhead, fragmentation or indivisibility",
+      "Changed inputs or method"
+    ],
+    "id": "dab519e0314d492bbc26e8ebe538b0a4",
+    "kind": "checked_method",
+    "notes": [
+      {
+        "text": "Synthetic evaluator owner accepts the checked additive profile; the model inherits no authority.",
+        "actor": "desktop-owner",
+        "at": 1794637043.3407803
+      }
+    ],
+    "owner": "desktop-owner",
+    "preconditions": {
+      "additive": true,
+      "constant_capacity": true,
+      "fragmentation": "NOT_APPLICABLE",
+      "indivisibility": "NOT_APPLICABLE",
+      "interval_semantics": "HALF_OPEN",
+      "overhead": "NONE"
+    },
+    "profile": "ledger.additive-capacity-method/1",
+    "project": "c7736022bb2e4573b148f2861f8e456f",
+    "qualification": "DECLARED_ADDITIVE_MODEL_ONLY_NOT_A_PHYSICAL_GUARANTEE",
+    "revision": 2,
+    "schema": "ledger.checked-method/1",
+    "source_job": "8a6cc303530445028f8247c2a61bb963",
+    "state": "ACCEPTED",
+    "steps": [
+      {
+        "after": [],
+        "arguments": {
+          "allocations": [
+            {
+              "lifetime": "buffer_A_life",
+              "quantity": "buffer_A"
+            },
+            {
+              "lifetime": "buffer_B_life",
+              "quantity": "buffer_B"
+            },
+            {
+              "lifetime": "workspace_life",
+              "quantity": "workspace"
+            }
+          ],
+          "capacity": "memory_limit",
+          "expected_context_digest": "02d13ff14fad2313c180f47250a5d7ec67f88f6cc0448937303eb093077b554d",
+          "expected_revision": 1,
+          "id": "f287108c397243469e964d3b08fbc57b"
+        },
+        "key": "Capacity",
+        "operation": "math.schedule"
+      }
+    ],
+    "title": "Checked capacity over declared half-open lifetimes",
+    "typed_inputs": {
+      "allocations": "same quantity dimension as capacity",
+      "capacity": "nonnegative scalar quantity",
+      "lifetimes": "known nonnegative rational time intervals",
+      "units": "exact compatible conversions"
+    },
+    "updated": 1794637043.3407774
+  },
+  "qualifying_application_chain": {
+    "state": "AVAILABLE",
+    "reason": null,
+    "job": "8a6cc303530445028f8247c2a61bb963",
+    "receipt": {
+      "action": "d13b3c31e7164743abe722327334df29",
+      "actor": "desktop-owner",
+      "artifacts": [
+        {
+          "digest": "788d6b00460c9a96d858964019dcdff17e03b8573752c33a602a4b9867e9222d",
+          "id": "16f8a51952e54446bcf02ef10e226775",
+          "revision": 1,
+          "sha256": "146c7234a7af38ba5ddec505e954578b97ecf7b30707d6d4c7c987ae3e20a30e",
+          "type": "CALC_QUANTITY_TABLE"
+        },
+        {
+          "digest": "5490c7ce4dac7fd980209b4ba2868b03fb29f6e93ab4f93dc661ab46f7fcb2e5",
+          "id": "28ee96b82e58439087971b0fae83c510",
+          "revision": 1,
+          "sha256": "0531191e19de583fca7b86052f75153bd8326330e8f74029b92b9f658c2065c5",
+          "type": "PYTHON_QUANTITY_OBSERVATION"
+        },
+        {
+          "digest": "87035213408188705d52417afba91e4aeee16479e046be036bfbc1aa4635da18",
+          "id": "1f258ea3123c4c91b8b8b1778317da19",
+          "revision": 1,
+          "sha256": "89077b18cd6aae29d72f3e21f5d0b32bb359ca79907458c8012a66c0cfc67fb2",
+          "type": "WRITER_CHECKED_FINDINGS"
+        },
+        {
+          "digest": "cd3941940f85adb0100a1bbf6d717851648af8e95cb4e96dbccdc15d0d90b310",
+          "id": "92935e8efd8e4fb1bd3afe0608288959",
+          "revision": 1,
+          "sha256": "bf50121b8e021a5e1ca475314fb05e65b2e26d9b2715a47fa345e6a83f0166d1",
+          "type": "FINDINGS_PDF"
+        }
+      ],
+      "calc_runtime": {
+        "bridge_sha256": "3fffba67cef8ed5b18f853d05190ffbaa97a63202e4705a4b0fe278c17326766",
+        "elapsed_seconds": 1.7310050989999581,
+        "engine": {
+          "available": true,
+          "development_build": false,
+          "executable": "/usr/lib/libreoffice/program/soffice",
+          "font_assets": [],
+          "launcher_sha256": "eef555c71025262c67274dc6e98d00168c2a2ce0fcd16473c38609ff3ce2ace9",
+          "version": "LibreOffice 24.2.7.2 420(Build:2)"
+        },
+        "external_updates": "NO_UPDATE",
+        "helper_sha256": "b1e89ee058211094f3745022468770b47b644cb9bd5900ccae013af6ec1e0671",
+        "isolated_profile": true,
+        "java_version": "openjdk 21.0.12.1 2026-08-18",
+        "native_operation": "CALC",
+        "process_outcome": "COMPLETED",
+        "source_document_macros": "NEVER_EXECUTE"
+      },
+      "check_verdict": "CHECKED_APPLICATION_CHAIN",
+      "context_digest": "02d13ff14fad2313c180f47250a5d7ec67f88f6cc0448937303eb093077b554d",
+      "created": 1794637041.388747,
+      "id": "8a6cc303530445028f8247c2a61bb963",
+      "kind": "joined_result",
+      "method": null,
+      "owner": "desktop-owner",
+      "physical_qualification": false,
+      "problem": "f287108c397243469e964d3b08fbc57b",
+      "problem_revision": 1,
+      "process_outcome": "COMPLETED",
+      "revision": 1,
+      "schedule": "73795e1189a74c4a86069ce507dcdb0a",
+      "schema": "ledger.joined-result/1",
+      "snapshot": {
+        "assumptions": [
+          "Half-open [start, stop) lifetimes; releases at a boundary occur before allocations at that boundary.",
+          "Additive capacity; no fragmentation, alignment, allocator overhead or indivisibility is modeled."
+        ],
+        "capacity": {
+          "decimal": "16",
+          "decimal_exact": true,
+          "dimension": {
+            "memory": 1
+          },
+          "rational": "16",
+          "unit": "MiB"
+        },
+        "fits": true,
+        "inputs": [
+          {
+            "amount": {
+              "decimal": "6",
+              "decimal_exact": true,
+              "dimension": {
+                "memory": 1
+              },
+              "rational": "6",
+              "unit": "MiB"
+            },
+            "basis": "Declared synthetic resources.csv intervals",
+            "lifetime": "buffer_A_life",
+            "quantity": "buffer_A",
+            "start": "0",
+            "stop": "10",
+            "time_unit": "s"
+          },
+          {
+            "amount": {
+              "decimal": "6",
+              "decimal_exact": true,
+              "dimension": {
+                "memory": 1
+              },
+              "rational": "6",
+              "unit": "MiB"
+            },
+            "basis": "Declared synthetic resources.csv intervals",
+            "lifetime": "buffer_B_life",
+            "quantity": "buffer_B",
+            "start": "0",
+            "stop": "10",
+            "time_unit": "s"
+          },
+          {
+            "amount": {
+              "decimal": "5",
+              "decimal_exact": true,
+              "dimension": {
+                "memory": 1
+              },
+              "rational": "5",
+              "unit": "MiB"
+            },
+            "basis": "Declared synthetic resources.csv intervals",
+            "lifetime": "workspace_life",
+            "quantity": "workspace",
+            "start": "10",
+            "stop": "20",
+            "time_unit": "s"
+          }
+        ],
+        "missing": [],
+        "observed": true,
+        "peak": {
+          "decimal": "12",
+          "decimal_exact": true,
+          "dimension": {
+            "memory": 1
+          },
+          "rational": "12",
+          "unit": "MiB"
+        },
+        "physical_qualification": false,
+        "segments": [
+          {
+            "active": [
+              "buffer_A",
+              "buffer_B"
+            ],
+            "demand": {
+              "decimal": "12",
+              "decimal_exact": true,
+              "dimension": {
+                "memory": 1
+              },
+              "rational": "12",
+              "unit": "MiB"
+            },
+            "fits": true,
+            "start": "0",
+            "stop": "10",
+            "unit": "s"
+          },
+          {
+            "active": [
+              "workspace"
+            ],
+            "demand": {
+              "decimal": "5",
+              "decimal_exact": true,
+              "dimension": {
+                "memory": 1
+              },
+              "rational": "5",
+              "unit": "MiB"
+            },
+            "fits": true,
+            "start": "10",
+            "stop": "20",
+            "unit": "s"
+          }
+        ],
+        "state": "FEASIBLE"
+      },
+      "writer_runtime": {
+        "bridge_sha256": "3fffba67cef8ed5b18f853d05190ffbaa97a63202e4705a4b0fe278c17326766",
+        "elapsed_seconds": 2.2486426200002825,
+        "engine": {
+          "available": true,
+          "development_build": false,
+          "executable": "/usr/lib/libreoffice/program/soffice",
+          "font_assets": [],
+          "launcher_sha256": "eef555c71025262c67274dc6e98d00168c2a2ce0fcd16473c38609ff3ce2ace9",
+          "version": "LibreOffice 24.2.7.2 420(Build:2)"
+        },
+        "external_updates": "NO_UPDATE",
+        "helper_sha256": "b1e89ee058211094f3745022468770b47b644cb9bd5900ccae013af6ec1e0671",
+        "isolated_profile": true,
+        "java_version": "openjdk 21.0.12.1 2026-08-18",
+        "native_operation": "WRITER",
+        "process_outcome": "COMPLETED",
+        "source_document_macros": "NEVER_EXECUTE"
+      }
+    },
+    "snapshot": {
+      "assumptions": [
+        "Half-open [start, stop) lifetimes; releases at a boundary occur before allocations at that boundary.",
+        "Additive capacity; no fragmentation, alignment, allocator overhead or indivisibility is modeled."
+      ],
+      "capacity": {
+        "decimal": "16",
+        "decimal_exact": true,
+        "dimension": {
+          "memory": 1
+        },
+        "rational": "16",
+        "unit": "MiB"
+      },
+      "fits": true,
+      "inputs": [
+        {
+          "amount": {
+            "decimal": "6",
+            "decimal_exact": true,
+            "dimension": {
+              "memory": 1
+            },
+            "rational": "6",
+            "unit": "MiB"
+          },
+          "basis": "Declared synthetic resources.csv intervals",
+          "lifetime": "buffer_A_life",
+          "quantity": "buffer_A",
+          "start": "0",
+          "stop": "10",
+          "time_unit": "s"
+        },
+        {
+          "amount": {
+            "decimal": "6",
+            "decimal_exact": true,
+            "dimension": {
+              "memory": 1
+            },
+            "rational": "6",
+            "unit": "MiB"
+          },
+          "basis": "Declared synthetic resources.csv intervals",
+          "lifetime": "buffer_B_life",
+          "quantity": "buffer_B",
+          "start": "0",
+          "stop": "10",
+          "time_unit": "s"
+        },
+        {
+          "amount": {
+            "decimal": "5",
+            "decimal_exact": true,
+            "dimension": {
+              "memory": 1
+            },
+            "rational": "5",
+            "unit": "MiB"
+          },
+          "basis": "Declared synthetic resources.csv intervals",
+          "lifetime": "workspace_life",
+          "quantity": "workspace",
+          "start": "10",
+          "stop": "20",
+          "time_unit": "s"
+        }
+      ],
+      "missing": [],
+      "observed": true,
+      "peak": {
+        "decimal": "12",
+        "decimal_exact": true,
+        "dimension": {
+          "memory": 1
+        },
+        "rational": "12",
+        "unit": "MiB"
+      },
+      "physical_qualification": false,
+      "segments": [
+        {
+          "active": [
+            "buffer_A",
+            "buffer_B"
+          ],
+          "demand": {
+            "decimal": "12",
+            "decimal_exact": true,
+            "dimension": {
+              "memory": 1
+            },
+            "rational": "12",
+            "unit": "MiB"
+          },
+          "fits": true,
+          "start": "0",
+          "stop": "10",
+          "unit": "s"
+        },
+        {
+          "active": [
+            "workspace"
+          ],
+          "demand": {
+            "decimal": "5",
+            "decimal_exact": true,
+            "dimension": {
+              "memory": 1
+            },
+            "rational": "5",
+            "unit": "MiB"
+          },
+          "fits": true,
+          "start": "10",
+          "stop": "20",
+          "unit": "s"
+        }
+      ],
+      "state": "FEASIBLE"
+    },
+    "progress": {
+      "artifact": {
+        "digest": "87035213408188705d52417afba91e4aeee16479e046be036bfbc1aa4635da18",
+        "id": "1f258ea3123c4c91b8b8b1778317da19",
+        "revision": 1,
+        "sha256": "89077b18cd6aae29d72f3e21f5d0b32bb359ca79907458c8012a66c0cfc67fb2",
+        "type": "WRITER_CHECKED_FINDINGS"
+      },
+      "stage": "Checked findings ready"
+    },
+    "files": [
+      {
+        "name": "Working/Calculation.ods",
+        "sha256": "146c7234a7af38ba5ddec505e954578b97ecf7b30707d6d4c7c987ae3e20a30e",
+        "bytes": 16519,
+        "artifact": {
+          "digest": "788d6b00460c9a96d858964019dcdff17e03b8573752c33a602a4b9867e9222d",
+          "id": "16f8a51952e54446bcf02ef10e226775",
+          "revision": 1,
+          "sha256": "146c7234a7af38ba5ddec505e954578b97ecf7b30707d6d4c7c987ae3e20a30e",
+          "type": "CALC_QUANTITY_TABLE"
+        }
+      },
+      {
+        "name": "Python/result.json",
+        "sha256": "0531191e19de583fca7b86052f75153bd8326330e8f74029b92b9f658c2065c5",
+        "bytes": 395,
+        "artifact": {
+          "digest": "5490c7ce4dac7fd980209b4ba2868b03fb29f6e93ab4f93dc661ab46f7fcb2e5",
+          "id": "28ee96b82e58439087971b0fae83c510",
+          "revision": 1,
+          "sha256": "0531191e19de583fca7b86052f75153bd8326330e8f74029b92b9f658c2065c5",
+          "type": "PYTHON_QUANTITY_OBSERVATION"
+        }
+      },
+      {
+        "name": "Working/Findings.docx",
+        "sha256": "89077b18cd6aae29d72f3e21f5d0b32bb359ca79907458c8012a66c0cfc67fb2",
+        "bytes": 20734,
+        "artifact": {
+          "digest": "87035213408188705d52417afba91e4aeee16479e046be036bfbc1aa4635da18",
+          "id": "1f258ea3123c4c91b8b8b1778317da19",
+          "revision": 1,
+          "sha256": "89077b18cd6aae29d72f3e21f5d0b32bb359ca79907458c8012a66c0cfc67fb2",
+          "type": "WRITER_CHECKED_FINDINGS"
+        }
+      },
+      {
+        "name": "Working/Findings.pdf",
+        "sha256": "bf50121b8e021a5e1ca475314fb05e65b2e26d9b2715a47fa345e6a83f0166d1",
+        "bytes": 46765,
+        "artifact": {
+          "digest": "cd3941940f85adb0100a1bbf6d717851648af8e95cb4e96dbccdc15d0d90b310",
+          "id": "92935e8efd8e4fb1bd3afe0608288959",
+          "revision": 1,
+          "sha256": "bf50121b8e021a5e1ca475314fb05e65b2e26d9b2715a47fa345e6a83f0166d1",
+          "type": "FINDINGS_PDF"
+        }
+      }
+    ],
+    "directory": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/live4b/i05_run1/Office/.ledger/jobs/8a6cc303530445028f8247c2a61bb963"
+  },
+  "cases": [
+    {
+      "name": "Current_A",
+      "state": "FAILED",
+      "acceptance_failures": [
+        "No completed proposed finding: MODEL_DECISION_FAILED: Tool exited with status 1: Brain job failed: LOCAL_STREAM_TIME_BUDGET",
+        "No actual model-selected method execution",
+        "No actual model-selected joined application chain"
+      ],
+      "model_finding": null,
+      "work": {
+        "plan": {
+          "adaptive": {
+            "allow_direct": false,
+            "completion": "APPLICATION_CHAIN_OR_UNSUPPORTED_METHOD",
+            "limits": {
+              "decision_seconds": 180,
+              "decisions": 16,
+              "failures": 2,
+              "frontier": 6,
+              "max_tokens": 768
+            },
+            "model": {
+              "config": {
+                "backend": "CPU",
+                "context": 6144,
+                "memory_mb": 4480,
+                "threads": 4,
+                "weight_loading": "RESIDENT_COPY"
+              },
+              "files": {
+                "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/models/Qwen3.5-4B-Q4_K_M.gguf": {
+                  "bytes": 2740937888,
+                  "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+                  "stat": [
+                    2740937888,
+                    1794485584063962311,
+                    1794485584063962311,
+                    917550
+                  ]
+                }
+              },
+              "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+              "profile": "ledger.adaptive-investigation/1",
+              "runtime": {
+                "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+                "backend": "CPU",
+                "build": "b11669",
+                "platform": "linux-x64",
+                "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab"
+              },
+              "temperature": 0,
+              "template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+              "thinking_enabled": false
+            },
+            "operations": [
+              "work.read",
+              "methods.preview",
+              "methods.instantiate",
+              "methods.run",
+              "methods.result",
+              "joined.prepare",
+              "joined.run",
+              "joined.result"
+            ],
+            "problem": {
+              "expected_context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+              "expected_revision": 1,
+              "id": "d6b2b2296d104e2381344155ea48caac"
+            }
+          },
+          "assignment": "bc77b97348ca4378babe35098eee03d5",
+          "assignment_digest": "791420dc499d8cc7a75e9496cf5f1da4b2854d5023128469ccb492b9c23d4a0c",
+          "assignment_revision": 1,
+          "budget": {
+            "failures": 2,
+            "files": 12,
+            "memory_mb": 6144,
+            "output_bytes": 4194304,
+            "quiet": 2,
+            "seconds": 1800,
+            "steps": 32,
+            "tokens": 240000
+          },
+          "copies": [
+            "4359cb0e3eec45798aa84278eaa3be52"
+          ],
+          "created": 1794637055.9944687,
+          "effects": [
+            "execute",
+            "prepare",
+            "read"
+          ],
+          "executor_digest": "45cbe804ee88879d016346eec660acecce110077858844f885c21bfd5b5425fa",
+          "expires": 1794640654.0663872,
+          "id": "b2775ef6fe8d49109fc781b558fc6f9d",
+          "initial_copies": {
+            "4359cb0e3eec45798aa84278eaa3be52": {
+              "files": {
+                "resources.csv": {
+                  "mode": 420,
+                  "sha256": "df83d2cafdfb773cc433d560d31693be56397c7f9eee4648e0bd185190160a4a"
+                }
+              },
+              "profile": "ENGINEERING",
+              "work": "Working copies/Current_A-4359cb0e"
+            }
+          },
+          "network": false,
+          "operation_schemas": {
+            "joined.prepare": {
+              "additionalProperties": false,
+              "properties": {
+                "copy": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "method_job": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "receipt": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "receipt",
+                "copy"
+              ],
+              "type": "object"
+            },
+            "joined.result": {
+              "additionalProperties": false,
+              "properties": {
+                "job": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "job"
+              ],
+              "type": "object"
+            },
+            "joined.run": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "expected_digest": {
+                  "maxLength": 64,
+                  "minLength": 64,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action",
+                "expected_digest"
+              ],
+              "type": "object"
+            },
+            "methods.instantiate": {
+              "additionalProperties": false,
+              "properties": {
+                "allocations": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "lifetime": {
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "quantity": {
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "quantity",
+                      "lifetime"
+                    ],
+                    "type": "object"
+                  },
+                  "maxItems": 32,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "capacity": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "declarations": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "additive": {
+                      "type": "boolean"
+                    },
+                    "basis": {
+                      "maxLength": 16000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "constant_capacity": {
+                      "type": "boolean"
+                    },
+                    "fragmentation": {
+                      "enum": [
+                        "NOT_APPLICABLE",
+                        "REQUIRED",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    },
+                    "indivisibility": {
+                      "enum": [
+                        "NOT_APPLICABLE",
+                        "REQUIRED",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    },
+                    "interval_semantics": {
+                      "enum": [
+                        "HALF_OPEN",
+                        "CLOSED",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    },
+                    "overhead": {
+                      "enum": [
+                        "NONE",
+                        "PRESENT",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "additive",
+                    "constant_capacity",
+                    "interval_semantics",
+                    "overhead",
+                    "fragmentation",
+                    "indivisibility",
+                    "basis"
+                  ],
+                  "type": "object"
+                },
+                "expected_context_digest": {
+                  "maxLength": 64,
+                  "minLength": 64,
+                  "type": "string"
+                },
+                "expected_revision": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "id": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "method": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "method_revision": {
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "method",
+                "method_revision",
+                "id",
+                "expected_revision",
+                "expected_context_digest",
+                "capacity",
+                "allocations",
+                "declarations"
+              ],
+              "type": "object"
+            },
+            "methods.preview": {
+              "additionalProperties": false,
+              "properties": {
+                "allocations": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "lifetime": {
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "quantity": {
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "quantity",
+                      "lifetime"
+                    ],
+                    "type": "object"
+                  },
+                  "maxItems": 32,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "capacity": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "declarations": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "additive": {
+                      "type": "boolean"
+                    },
+                    "basis": {
+                      "maxLength": 16000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "constant_capacity": {
+                      "type": "boolean"
+                    },
+                    "fragmentation": {
+                      "enum": [
+                        "NOT_APPLICABLE",
+                        "REQUIRED",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    },
+                    "indivisibility": {
+                      "enum": [
+                        "NOT_APPLICABLE",
+                        "REQUIRED",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    },
+                    "interval_semantics": {
+                      "enum": [
+                        "HALF_OPEN",
+                        "CLOSED",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    },
+                    "overhead": {
+                      "enum": [
+                        "NONE",
+                        "PRESENT",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "additive",
+                    "constant_capacity",
+                    "interval_semantics",
+                    "overhead",
+                    "fragmentation",
+                    "indivisibility",
+                    "basis"
+                  ],
+                  "type": "object"
+                },
+                "expected_context_digest": {
+                  "maxLength": 64,
+                  "minLength": 64,
+                  "type": "string"
+                },
+                "expected_revision": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "id": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "method": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "method_revision": {
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "method",
+                "method_revision",
+                "id",
+                "expected_revision",
+                "expected_context_digest",
+                "capacity",
+                "allocations",
+                "declarations"
+              ],
+              "type": "object"
+            },
+            "methods.result": {
+              "additionalProperties": false,
+              "properties": {
+                "job": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "job"
+              ],
+              "type": "object"
+            },
+            "methods.run": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "expected_digest": {
+                  "maxLength": 64,
+                  "minLength": 64,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action",
+                "expected_digest"
+              ],
+              "type": "object"
+            },
+            "work.read": {
+              "additionalProperties": false,
+              "properties": {
+                "copy": {
+                  "maxLength": 32,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 1000,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "copy",
+                "path"
+              ],
+              "type": "object"
+            }
+          },
+          "operations": [
+            "joined.prepare",
+            "joined.result",
+            "joined.run",
+            "methods.instantiate",
+            "methods.preview",
+            "methods.result",
+            "methods.run",
+            "work.read"
+          ],
+          "original_request": "Apply the accepted capacity-over-time method to these scheduled current demands, if its preconditions apply. Carry the checked result through actual Calc, protected Python and Writer. Report a conditional finding with its evidence and limitations. Keep unsupported or unknown inputs explicit.",
+          "original_updates": false,
+          "owner": "desktop-owner",
+          "procedure": null,
+          "profile": "ledger.adaptive-investigation/1",
+          "project": "199c35bd62dc44a6aa2aa246b54a76aa",
+          "project_digest": "ce9e05b38fd5df3b696054ed2bc3e3ee423771a674fd216caaf8b122c6ebbbad",
+          "restart": "RECONCILE_THEN_EXPLICIT_RESUME",
+          "schema": "arc.work-order/1",
+          "sources": [
+            {
+              "actor": "desktop-owner",
+              "address": "files:Working copies/Current_A-4359cb0e/resources.csv",
+              "arguments": {
+                "address": "files:Working copies/Current_A-4359cb0e/resources.csv"
+              },
+              "captured": 1794637054.0395875,
+              "operation": "desk.sources.read",
+              "operation_schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "address": {
+                    "maxLength": 600,
+                    "minLength": 3,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "address"
+                ],
+                "type": "object"
+              },
+              "revision": "d1d7f61a699660a20b4749ff96e9bfd203132fa86bde2d05e6e63ae89e8d1273",
+              "snapshot": {
+                "address": "files:Working copies/Current_A-4359cb0e/resources.csv",
+                "availability": "FROZEN_BYTES",
+                "bytes": 642,
+                "content_revision": "d1d7f61a699660a20b4749ff96e9bfd203132fa86bde2d05e6e63ae89e8d1273",
+                "exact_bytes_base64": "bmFtZSx0eXBlLHZhbHVlLHVuaXQNCmN1cnJlbnRfbGltaXQscXVhbnRpdHksMTAsQQ0KcHVtcCxxdWFudGl0eSw0LEENCmhlYXRlcixxdWFudGl0eSwzLEENCmNvbnRyb2xsZXIscXVhbnRpdHksMixBDQpwdW1wX2xpZmUsaW50ZXJ2YWwsInsiInN0YXJ0IiI6IiIwIiIsIiJzdG9wIiI6IiI3MDAwIiIsIiJ1bml0IiI6IiJtcyIifSIsbXMNCmhlYXRlcl9saWZlLGludGVydmFsLCJ7IiJzdGFydCIiOiIiMCIiLCIic3RvcCIiOiIiNyIiLCIidW5pdCIiOiIicyIifSIscw0KY29udHJvbGxlcl9saWZlLGludGVydmFsLCJ7IiJzdGFydCIiOiIiNiIiLCIic3RvcCIiOiIiMTIiIiwiInVuaXQiIjoiInMiIn0iLHMNCmFzc3VtcHRpb24sdGV4dCxGaXhlZCBjdXJyZW50IGNhcGFjaXR5OyBjb25zdGFudCBhZGRpdGl2ZSByZXNvdXJjZSBkZW1hbmRzOyBoYWxmLW9wZW4gbGlmZXRpbWVzOyBmcmFnbWVudGF0aW9uIGFuZCBpbmRpdmlzaWJpbGl0eSBhcmUgbm90IHJlcXVpcmVkIGJ5IHRoaXMgcmVzb3VyY2UgbW9kZWwuLA0KYXNzdW1wdGlvbix0ZXh0LFRoZSBkZW1hbmRzIGFyZSB0b3RhbCBkZWNsYXJlZCBlbnZlbG9wZXMgaW5jbHVkaW5nIG1vZGVsZWQgb3ZlcmhlYWQ7IG5vIGFkZGl0aW9uYWwgb3ZlcmhlYWQgaXMgcmVxdWlyZWQuLA0K",
+                "gap": null,
+                "projection": {
+                  "address": "files:Working copies/Current_A-4359cb0e/resources.csv",
+                  "arguments": {
+                    "path": "Working copies/Current_A-4359cb0e/resources.csv"
+                  },
+                  "kind": "files",
+                  "object": {
+                    "address": "@files:Working copies/Current_A-4359cb0e/resources.csv",
+                    "data": {
+                      "rows": [
+                        {
+                          "name": "current_limit",
+                          "type": "quantity",
+                          "unit": "A",
+                          "value": 10
+                        },
+                        {
+                          "name": "pump",
+                          "type": "quantity",
+                          "unit": "A",
+                          "value": 4
+                        },
+                        {
+                          "name": "heater",
+                          "type": "quantity",
+                          "unit": "A",
+                          "value": 3
+                        },
+                        {
+                          "name": "controller",
+                          "type": "quantity",
+                          "unit": "A",
+                          "value": 2
+                        },
+                        {
+                          "name": "pump_life",
+                          "type": "interval",
+                          "unit": "ms",
+                          "value": "{\"start\":\"0\",\"stop\":\"7000\",\"unit\":\"ms\"}"
+                        },
+                        {
+                          "name": "heater_life",
+                          "type": "interval",
+                          "unit": "s",
+                          "value": "{\"start\":\"0\",\"stop\":\"7\",\"unit\":\"s\"}"
+                        },
+                        {
+                          "name": "controller_life",
+                          "type": "interval",
+                          "unit": "s",
+                          "value": "{\"start\":\"6\",\"stop\":\"12\",\"unit\":\"s\"}"
+                        },
+                        {
+                          "name": "assumption",
+                          "type": "text",
+                          "unit": "",
+                          "value": "Fixed current capacity; constant additive resource demands; half-open lifetimes; fragmentation and indivisibility are not required by this resource model."
+                        },
+                        {
+                          "name": "assumption",
+                          "type": "text",
+                          "unit": "",
+                          "value": "The demands are total declared envelopes including modeled overhead; no additional overhead is required."
+                        }
+                      ]
+                    },
+                    "facts": {
+                      "Columns": "4",
+                      "Encoding": "utf-8",
+                      "Line endings": "Windows (CRLF)",
+                      "Lines": "10",
+                      "Rows shown": "9",
+                      "Size": "642 bytes"
+                    },
+                    "in_slate_area": false,
+                    "kind": "csv",
+                    "kind_words": "Table",
+                    "machine": false,
+                    "modified": 1794637053.9987118,
+                    "name": "resources.csv",
+                    "path": "Working copies/Current_A-4359cb0e/resources.csv",
+                    "size": 642,
+                    "versions": [],
+                    "view": {
+                      "kind": "csv",
+                      "notice": null,
+                      "summary": [
+                        [
+                          "Size",
+                          "642 bytes"
+                        ],
+                        [
+                          "Encoding",
+                          "utf-8"
+                        ],
+                        [
+                          "Lines",
+                          "10"
+                        ],
+                        [
+                          "Line endings",
+                          "Windows (CRLF)"
+                        ],
+                        [
+                          "Columns",
+                          "4"
+                        ],
+                        [
+                          "Rows shown",
+                          "9"
+                        ]
+                      ]
+                    }
+                  },
+                  "operation": "files.get",
+                  "schema": "arc.ledger-address/1"
+                },
+                "schema": "arc.desk-file-source/1",
+                "sha256": "df83d2cafdfb773cc433d560d31693be56397c7f9eee4648e0bd185190160a4a"
+              }
+            }
+          ],
+          "steps": [],
+          "title": "Current_A real-model method transfer"
+        },
+        "content_digest": "e7fa9bce5147cd8a104b02aa5fac1e6cb927ad66cb7fa0096be953efdbe025b0",
+        "state": {
+          "copies": {
+            "4359cb0e3eec45798aa84278eaa3be52": {
+              "files": {
+                "resources.csv": {
+                  "mode": 420,
+                  "sha256": "df83d2cafdfb773cc433d560d31693be56397c7f9eee4648e0bd185190160a4a"
+                }
+              },
+              "profile": "ENGINEERING",
+              "work": "Working copies/Current_A-4359cb0e"
+            }
+          },
+          "current": null,
+          "decisions": [
+            "3745697ed13c5a14be4ce2ef206bbc1f"
+          ],
+          "epoch": 0,
+          "failures": 1,
+          "frontier": [
+            {
+              "assumptions": [],
+              "context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+              "hypothesis": "The specified resource schedule fits the declared capacity.",
+              "key": "b1",
+              "origin": "OWNER_PROBLEM_CANDIDATE",
+              "problem_revision": 1,
+              "status": "PROPOSED"
+            },
+            {
+              "assumptions": [],
+              "context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+              "hypothesis": "A precondition violation or an adverse resource result may require a conditional refusal.",
+              "key": "b2",
+              "origin": "OWNER_PROBLEM_CANDIDATE",
+              "problem_revision": 1,
+              "status": "PROPOSED"
+            }
+          ],
+          "last_progress": null,
+          "last_rationale": {
+            "decision": "3745697ed13c5a14be4ce2ef206bbc1f",
+            "expected": [
+              "precondition_satisfied",
+              "precondition_violation"
+            ],
+            "text": "The owner's request requires applying the 'Checked capacity over declared half-open lifetimes' method (id: dab519e0314d492bbc26e8ebe538b0a4) to the declared demands. The prelude in",
+            "uncertainty": "The preview tool checks preconditions without executing the full schedule check. It will confirm if the declared inputs (current_limit, pump, heater, controller"
+          },
+          "observations": [
+            "ee1ff06e27275177b51fddb0258b2359"
+          ],
+          "problem": {
+            "expected_context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+            "expected_revision": 1,
+            "id": "d6b2b2296d104e2381344155ea48caac"
+          },
+          "question": null,
+          "quiet": 0,
+          "reason": "MODEL_DECISION_FAILED: Tool exited with status 1: Brain job failed: LOCAL_STREAM_TIME_BUDGET",
+          "review": null,
+          "seen": [
+            "4e3deb21e5ccd106f611edacc753f5bfb107781066f08c78e2eb6c3a39c1cdca"
+          ],
+          "source_successors": {},
+          "state": "WAITING",
+          "steps": [
+            "Step1",
+            "Step2",
+            "Step3"
+          ],
+          "updated": 1794637388.4070444,
+          "used": {
+            "files": [],
+            "output_bytes": 4419,
+            "seconds": 328.6429995711178,
+            "steps": 3,
+            "tokens": 17858
+          }
+        },
+        "steps": [
+          {
+            "arguments": {},
+            "attempts": 1,
+            "finished": 1794637205.815134,
+            "key": "Step1",
+            "operation": "slate.action",
+            "proposal_id": "599f66fb4b3e594a8f65eaaf1652fc92",
+            "require": [],
+            "result": {
+              "actor": "desktop-owner",
+              "authority": "PROPOSAL_NOT_PERMISSION_OR_OBSERVATION",
+              "candidate": {
+                "alternatives": [],
+                "expected": [
+                  "precondition_satisfied",
+                  "precondition_violation"
+                ],
+                "next": {
+                  "arguments": {
+                    "allocations": [
+                      {
+                        "lifetime": "pump_life",
+                        "quantity": "pump"
+                      },
+                      {
+                        "lifetime": "heater_life",
+                        "quantity": "heater"
+                      },
+                      {
+                        "lifetime": "controller_life",
+                        "quantity": "controller"
+                      }
+                    ],
+                    "capacity": "current_limit",
+                    "declarations": {
+                      "additive": true,
+                      "basis": "resources.csv",
+                      "constant_capacity": true,
+                      "fragmentation": "NOT_APPLICABLE",
+                      "indivisibility": "NOT_APPLICABLE",
+                      "interval_semantics": "HALF_OPEN",
+                      "overhead": "NONE"
+                    },
+                    "method": "dab519e0314d492bbc26e8ebe538b0a4",
+                    "method_revision": 2
+                  },
+                  "candidate": "b1",
+                  "kind": "CALL",
+                  "operation": "methods.preview"
+                },
+                "text": "The owner's request requires applying the 'Checked capacity over declared half-open lifetimes' method (id: dab519e0314d492bbc26e8ebe538b0a4) to the declared demands. The prelude in",
+                "uncertainty": "The preview tool checks preconditions without executing the full schedule check. It will confirm if the declared inputs (current_limit, pump, heater, controller",
+                "updates": []
+              },
+              "cloud_calls": 0,
+              "created": 1794637205.4927006,
+              "frame_digest": "03d5fcfdbf7984c8aa00094f266a6b6bece6f4e6206ff1903fc02b1392fbd1c9",
+              "id": "3745697ed13c5a14be4ce2ef206bbc1f",
+              "kind": "adaptive_decision",
+              "metrics": {
+                "context_limit": 6144,
+                "elapsed_seconds": 148.1571242029995,
+                "finish_reason": "stop",
+                "first_token_seconds": 35.52962468900023,
+                "input_messages_digest": "ecacd90ebfdf6f70e2d1d9d8a0269be8dd5bc3e978d7a9104609ee19cf92a7de",
+                "memory": {
+                  "memory_scope": "OWNED_PROCESS_TREE_RSS_NOT_GPU_ALLOCATION",
+                  "peak_rss_bytes": 3868958720,
+                  "rss_bytes": 3868819456
+                },
+                "observed_reused_tokens": 0,
+                "prefix_reuse_requested": false,
+                "prompt_tokens_measured": 5191,
+                "proposal_phases": {
+                  "arguments": {
+                    "context_limit": 6144,
+                    "elapsed_seconds": 78.63658203999967,
+                    "finish_reason": "stop",
+                    "first_token_seconds": 35.52962468900023,
+                    "input_messages_digest": "ecacd90ebfdf6f70e2d1d9d8a0269be8dd5bc3e978d7a9104609ee19cf92a7de",
+                    "memory": {
+                      "memory_scope": "OWNED_PROCESS_TREE_RSS_NOT_GPU_ALLOCATION",
+                      "peak_rss_bytes": 3868958720,
+                      "rss_bytes": 3868819456
+                    },
+                    "observed_reused_tokens": 0,
+                    "prefix_reuse_requested": false,
+                    "prompt_tokens_measured": 2662,
+                    "stream_complete": true,
+                    "timings": {
+                      "cache_n": 0,
+                      "predicted_ms": 43140.121,
+                      "predicted_n": 241,
+                      "predicted_per_second": 5.563266732608376,
+                      "predicted_per_token_ms": 179.75050416666667,
+                      "prompt_ms": 35470.191,
+                      "prompt_n": 2662,
+                      "prompt_per_second": 75.04893334236627,
+                      "prompt_per_token_ms": 13.324639744552968
+                    },
+                    "transport": "AUTHENTICATED_LOOPBACK_SSE",
+                    "usage": {
+                      "completion_tokens": 241,
+                      "prompt_tokens": 2662,
+                      "prompt_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "total_tokens": 2903
+                    }
+                  },
+                  "select": {
+                    "context_limit": 6144,
+                    "elapsed_seconds": 69.41646943899923,
+                    "finish_reason": "stop",
+                    "first_token_seconds": 44.91630278899993,
+                    "input_messages_digest": "cddd69369f106bc2831891b7bd76812e98bce54b550e5ddc648190fb769bbbe9",
+                    "memory": {
+                      "memory_scope": "OWNED_PROCESS_TREE_RSS_NOT_GPU_ALLOCATION",
+                      "peak_rss_bytes": 3868467200,
+                      "rss_bytes": 3868467200
+                    },
+                    "observed_reused_tokens": 0,
+                    "prefix_reuse_requested": false,
+                    "prompt_tokens_measured": 2529,
+                    "stream_complete": true,
+                    "timings": {
+                      "cache_n": 0,
+                      "predicted_ms": 24489.342,
+                      "predicted_n": 138,
+                      "predicted_per_second": 5.594270356467724,
+                      "predicted_per_token_ms": 178.7543211678832,
+                      "prompt_ms": 44893.5,
+                      "prompt_n": 2529,
+                      "prompt_per_second": 56.33332219586354,
+                      "prompt_per_token_ms": 17.751482799525505
+                    },
+                    "transport": "AUTHENTICATED_LOOPBACK_SSE",
+                    "usage": {
+                      "completion_tokens": 138,
+                      "prompt_tokens": 2529,
+                      "prompt_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "total_tokens": 2667
+                    }
+                  }
+                },
+                "stream_complete": true,
+                "timings": {
+                  "cache_n": 0,
+                  "predicted_ms": 43140.121,
+                  "predicted_n": 241,
+                  "predicted_per_second": 5.563266732608376,
+                  "predicted_per_token_ms": 179.75050416666667,
+                  "prompt_ms": 35470.191,
+                  "prompt_n": 2662,
+                  "prompt_per_second": 75.04893334236627,
+                  "prompt_per_token_ms": 13.324639744552968
+                },
+                "transport": "AUTHENTICATED_LOOPBACK_SSE",
+                "usage": {
+                  "completion_tokens": 379
+                }
+              },
+              "model": {
+                "config": {
+                  "backend": "CPU",
+                  "context": 6144,
+                  "memory_mb": 4480,
+                  "threads": 4,
+                  "weight_loading": "RESIDENT_COPY"
+                },
+                "files": {
+                  "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/models/Qwen3.5-4B-Q4_K_M.gguf": {
+                    "bytes": 2740937888,
+                    "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+                    "stat": [
+                      2740937888,
+                      1794485584063962311,
+                      1794485584063962311,
+                      917550
+                    ]
+                  }
+                },
+                "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+                "profile": "ledger.adaptive-investigation/1",
+                "runtime": {
+                  "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+                  "backend": "CPU",
+                  "build": "b11669",
+                  "platform": "linux-x64",
+                  "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab"
+                },
+                "temperature": 0,
+                "template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+                "thinking_enabled": false
+              },
+              "owner": "desktop-owner",
+              "request": "3745697ed13c5a14be4ce2ef206bbc1f",
+              "revision": 1,
+              "schema": "arc.project-desk.adaptive_decision/1",
+              "status": "ACTION_PROPOSAL_VALIDATED",
+              "task": "ACTION",
+              "turn": "Step1",
+              "validation": {
+                "authority": "DRAFT_NOT_GRANT_OR_EXECUTION",
+                "model_self_checked": false,
+                "state": "ACTION_PROPOSAL_VALIDATED"
+              },
+              "work": "b2775ef6fe8d49109fc781b558fc6f9d"
+            },
+            "result_digest": "d0acc2d38e897a01f6bec60c1670e189695dbfdb1e6b93b964471725f307549a",
+            "started": 1794637056.1103115,
+            "state": "DONE"
+          },
+          {
+            "arguments": {
+              "allocations": [
+                {
+                  "lifetime": "pump_life",
+                  "quantity": "pump"
+                },
+                {
+                  "lifetime": "heater_life",
+                  "quantity": "heater"
+                },
+                {
+                  "lifetime": "controller_life",
+                  "quantity": "controller"
+                }
+              ],
+              "capacity": "current_limit",
+              "declarations": {
+                "additive": true,
+                "basis": "resources.csv",
+                "constant_capacity": true,
+                "fragmentation": "NOT_APPLICABLE",
+                "indivisibility": "NOT_APPLICABLE",
+                "interval_semantics": "HALF_OPEN",
+                "overhead": "NONE"
+              },
+              "expected_context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+              "expected_revision": 1,
+              "id": "d6b2b2296d104e2381344155ea48caac",
+              "method": "dab519e0314d492bbc26e8ebe538b0a4",
+              "method_revision": 2
+            },
+            "attempts": 1,
+            "candidate": "b1",
+            "finished": 1794637206.6045372,
+            "key": "Step2",
+            "observation": "ee1ff06e27275177b51fddb0258b2359",
+            "operation": "methods.preview",
+            "proposal_id": "36d96c596f325d5d9fdcabdc3290bac4",
+            "require": [],
+            "result": {
+              "allocations": [
+                {
+                  "lifetime": "pump_life",
+                  "quantity": "pump"
+                },
+                {
+                  "lifetime": "heater_life",
+                  "quantity": "heater"
+                },
+                {
+                  "lifetime": "controller_life",
+                  "quantity": "controller"
+                }
+              ],
+              "authority": "PREVIEW_NO_EXECUTION_PERMISSION",
+              "binding_current": true,
+              "capacity": "current_limit",
+              "context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+              "declarations": {
+                "additive": true,
+                "basis": "resources.csv",
+                "constant_capacity": true,
+                "fragmentation": "NOT_APPLICABLE",
+                "indivisibility": "NOT_APPLICABLE",
+                "interval_semantics": "HALF_OPEN",
+                "overhead": "NONE"
+              },
+              "execution_started": false,
+              "kind": "method_preview",
+              "method": {
+                "digest": "f91fa0c4c58095d1539ffb151325841e516def5a87a6b96e1faf42c8074cb6a4",
+                "id": "dab519e0314d492bbc26e8ebe538b0a4",
+                "revision": 2
+              },
+              "method_id": "dab519e0314d492bbc26e8ebe538b0a4",
+              "method_revision": 2,
+              "precondition_rejected": false,
+              "problem": "d6b2b2296d104e2381344155ea48caac",
+              "problem_revision": 1,
+              "schema": "ledger.method-preview/1",
+              "snapshot": {
+                "assumptions": [
+                  "Half-open [start, stop) lifetimes; releases at a boundary occur before allocations at that boundary.",
+                  "Additive capacity; no fragmentation, alignment, allocator overhead or indivisibility is modeled."
+                ],
+                "capacity": {
+                  "decimal": "10",
+                  "decimal_exact": true,
+                  "dimension": {
+                    "current": 1
+                  },
+                  "rational": "10",
+                  "unit": "A"
+                },
+                "fits": true,
+                "inputs": [
+                  {
+                    "amount": {
+                      "decimal": "4",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "4",
+                      "unit": "A"
+                    },
+                    "basis": "Declared synthetic resources.csv",
+                    "lifetime": "pump_life",
+                    "quantity": "pump",
+                    "start": "0",
+                    "stop": "7",
+                    "time_unit": "s"
+                  },
+                  {
+                    "amount": {
+                      "decimal": "3",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "3",
+                      "unit": "A"
+                    },
+                    "basis": "Declared synthetic resources.csv",
+                    "lifetime": "heater_life",
+                    "quantity": "heater",
+                    "start": "0",
+                    "stop": "7",
+                    "time_unit": "s"
+                  },
+                  {
+                    "amount": {
+                      "decimal": "2",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "2",
+                      "unit": "A"
+                    },
+                    "basis": "Declared synthetic resources.csv",
+                    "lifetime": "controller_life",
+                    "quantity": "controller",
+                    "start": "6",
+                    "stop": "12",
+                    "time_unit": "s"
+                  }
+                ],
+                "missing": [],
+                "observed": true,
+                "peak": {
+                  "decimal": "9",
+                  "decimal_exact": true,
+                  "dimension": {
+                    "current": 1
+                  },
+                  "rational": "9",
+                  "unit": "A"
+                },
+                "physical_qualification": false,
+                "segments": [
+                  {
+                    "active": [
+                      "heater",
+                      "pump"
+                    ],
+                    "demand": {
+                      "decimal": "7",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "7",
+                      "unit": "A"
+                    },
+                    "fits": true,
+                    "start": "0",
+                    "stop": "6",
+                    "unit": "s"
+                  },
+                  {
+                    "active": [
+                      "controller",
+                      "heater",
+                      "pump"
+                    ],
+                    "demand": {
+                      "decimal": "9",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "9",
+                      "unit": "A"
+                    },
+                    "fits": true,
+                    "start": "6",
+                    "stop": "7",
+                    "unit": "s"
+                  },
+                  {
+                    "active": [
+                      "controller"
+                    ],
+                    "demand": {
+                      "decimal": "2",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "2",
+                      "unit": "A"
+                    },
+                    "fits": true,
+                    "start": "7",
+                    "stop": "12",
+                    "unit": "s"
+                  }
+                ],
+                "state": "FEASIBLE"
+              },
+              "state": "SUPPORTED"
+            },
+            "result_digest": "f7cbc82c692f7abeca6545105ae6ddd15455fdf53aae8605d090bcd611aba272",
+            "started": 1794637206.1146326,
+            "state": "DONE"
+          },
+          {
+            "arguments": {},
+            "attempts": 1,
+            "key": "Step3",
+            "operation": "slate.action",
+            "proposal_id": "f28d3b0bc6e55c9c84279fb8719655af",
+            "reason": "Tool exited with status 1: Brain job failed: LOCAL_STREAM_TIME_BUDGET",
+            "require": [],
+            "started": 1794637206.8727508,
+            "state": "FAILED"
+          }
+        ],
+        "agenda": "397afe7a4abf4c828c450475d0069772",
+        "grant": {
+          "id": "092033b0a6ca4ea0a3a13de24d94c059",
+          "revoked": null
+        },
+        "events": [
+          {
+            "event": "PREPARED_NO_AUTHORITY",
+            "detail": {},
+            "at": 1794637056.0022597
+          },
+          {
+            "event": "OWNER_AUTHORIZED",
+            "detail": {
+              "grant": "092033b0a6ca4ea0a3a13de24d94c059"
+            },
+            "at": 1794637056.0508907
+          },
+          {
+            "event": "ADAPTIVE_INTENT",
+            "detail": {
+              "operation": "slate.action",
+              "step": "Step1"
+            },
+            "at": 1794637056.9190373
+          },
+          {
+            "event": "OWNED_JOB_BOUND",
+            "detail": {
+              "job": "ccd978062e2c4dffa19b403612875051",
+              "step": "Step1"
+            },
+            "at": 1794637057.013981
+          },
+          {
+            "event": "MODEL_DECISION_CONSUMED",
+            "detail": {
+              "decision": "3745697ed13c5a14be4ce2ef206bbc1f",
+              "frame_digest": "03d5fcfdbf7984c8aa00094f266a6b6bece6f4e6206ff1903fc02b1392fbd1c9",
+              "next": "CALL"
+            },
+            "at": 1794637205.819204
+          },
+          {
+            "event": "ADAPTIVE_INTENT",
+            "detail": {
+              "operation": "methods.preview",
+              "step": "Step2"
+            },
+            "at": 1794637206.1156492
+          },
+          {
+            "event": "ACTUAL_OBSERVATION_CONSUMED",
+            "detail": {
+              "outcome": "OBSERVED",
+              "receipt": "ee1ff06e27275177b51fddb0258b2359",
+              "step": "Step2"
+            },
+            "at": 1794637206.6056468
+          },
+          {
+            "event": "ADAPTIVE_INTENT",
+            "detail": {
+              "operation": "slate.action",
+              "step": "Step3"
+            },
+            "at": 1794637207.6497848
+          },
+          {
+            "event": "OWNED_JOB_BOUND",
+            "detail": {
+              "job": "1b7efdc0521943b2aa8db4d64a7d49c9",
+              "step": "Step3"
+            },
+            "at": 1794637207.700914
+          },
+          {
+            "event": "MODEL_RESPONSE_REJECTED",
+            "detail": {},
+            "at": 1794637388.4070942
+          }
+        ],
+        "authority": "Only an owner grant authorizes the exact frozen calls; originals and network are excluded.",
+        "observations": [
+          {
+            "actor": "desktop-owner",
+            "arguments": {
+              "allocations": [
+                {
+                  "lifetime": "pump_life",
+                  "quantity": "pump"
+                },
+                {
+                  "lifetime": "heater_life",
+                  "quantity": "heater"
+                },
+                {
+                  "lifetime": "controller_life",
+                  "quantity": "controller"
+                }
+              ],
+              "capacity": "current_limit",
+              "declarations": {
+                "additive": true,
+                "basis": "resources.csv",
+                "constant_capacity": true,
+                "fragmentation": "NOT_APPLICABLE",
+                "indivisibility": "NOT_APPLICABLE",
+                "interval_semantics": "HALF_OPEN",
+                "overhead": "NONE"
+              },
+              "expected_context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+              "expected_revision": 1,
+              "id": "d6b2b2296d104e2381344155ea48caac",
+              "method": "dab519e0314d492bbc26e8ebe538b0a4",
+              "method_revision": 2
+            },
+            "candidate": "b1",
+            "context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+            "created": 1794637206.6017177,
+            "id": "ee1ff06e27275177b51fddb0258b2359",
+            "kind": "adaptive_observation",
+            "model_self_attestation": false,
+            "operation": "methods.preview",
+            "outcome": "OBSERVED",
+            "owner": "desktop-owner",
+            "physical_qualification": false,
+            "problem": "d6b2b2296d104e2381344155ea48caac",
+            "problem_revision": 1,
+            "result": {
+              "allocations": [
+                {
+                  "lifetime": "pump_life",
+                  "quantity": "pump"
+                },
+                {
+                  "lifetime": "heater_life",
+                  "quantity": "heater"
+                },
+                {
+                  "lifetime": "controller_life",
+                  "quantity": "controller"
+                }
+              ],
+              "authority": "PREVIEW_NO_EXECUTION_PERMISSION",
+              "binding_current": true,
+              "capacity": "current_limit",
+              "context_digest": "91602715502c4073034e43936c88648f5a018629963eb6ee95dcb8ccd29a479a",
+              "declarations": {
+                "additive": true,
+                "basis": "resources.csv",
+                "constant_capacity": true,
+                "fragmentation": "NOT_APPLICABLE",
+                "indivisibility": "NOT_APPLICABLE",
+                "interval_semantics": "HALF_OPEN",
+                "overhead": "NONE"
+              },
+              "execution_started": false,
+              "kind": "method_preview",
+              "method": {
+                "digest": "f91fa0c4c58095d1539ffb151325841e516def5a87a6b96e1faf42c8074cb6a4",
+                "id": "dab519e0314d492bbc26e8ebe538b0a4",
+                "revision": 2
+              },
+              "method_id": "dab519e0314d492bbc26e8ebe538b0a4",
+              "method_revision": 2,
+              "precondition_rejected": false,
+              "problem": "d6b2b2296d104e2381344155ea48caac",
+              "problem_revision": 1,
+              "schema": "ledger.method-preview/1",
+              "snapshot": {
+                "assumptions": [
+                  "Half-open [start, stop) lifetimes; releases at a boundary occur before allocations at that boundary.",
+                  "Additive capacity; no fragmentation, alignment, allocator overhead or indivisibility is modeled."
+                ],
+                "capacity": {
+                  "decimal": "10",
+                  "decimal_exact": true,
+                  "dimension": {
+                    "current": 1
+                  },
+                  "rational": "10",
+                  "unit": "A"
+                },
+                "fits": true,
+                "inputs": [
+                  {
+                    "amount": {
+                      "decimal": "4",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "4",
+                      "unit": "A"
+                    },
+                    "basis": "Declared synthetic resources.csv",
+                    "lifetime": "pump_life",
+                    "quantity": "pump",
+                    "start": "0",
+                    "stop": "7",
+                    "time_unit": "s"
+                  },
+                  {
+                    "amount": {
+                      "decimal": "3",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "3",
+                      "unit": "A"
+                    },
+                    "basis": "Declared synthetic resources.csv",
+                    "lifetime": "heater_life",
+                    "quantity": "heater",
+                    "start": "0",
+                    "stop": "7",
+                    "time_unit": "s"
+                  },
+                  {
+                    "amount": {
+                      "decimal": "2",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "2",
+                      "unit": "A"
+                    },
+                    "basis": "Declared synthetic resources.csv",
+                    "lifetime": "controller_life",
+                    "quantity": "controller",
+                    "start": "6",
+                    "stop": "12",
+                    "time_unit": "s"
+                  }
+                ],
+                "missing": [],
+                "observed": true,
+                "peak": {
+                  "decimal": "9",
+                  "decimal_exact": true,
+                  "dimension": {
+                    "current": 1
+                  },
+                  "rational": "9",
+                  "unit": "A"
+                },
+                "physical_qualification": false,
+                "segments": [
+                  {
+                    "active": [
+                      "heater",
+                      "pump"
+                    ],
+                    "demand": {
+                      "decimal": "7",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "7",
+                      "unit": "A"
+                    },
+                    "fits": true,
+                    "start": "0",
+                    "stop": "6",
+                    "unit": "s"
+                  },
+                  {
+                    "active": [
+                      "controller",
+                      "heater",
+                      "pump"
+                    ],
+                    "demand": {
+                      "decimal": "9",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "9",
+                      "unit": "A"
+                    },
+                    "fits": true,
+                    "start": "6",
+                    "stop": "7",
+                    "unit": "s"
+                  },
+                  {
+                    "active": [
+                      "controller"
+                    ],
+                    "demand": {
+                      "decimal": "2",
+                      "decimal_exact": true,
+                      "dimension": {
+                        "current": 1
+                      },
+                      "rational": "2",
+                      "unit": "A"
+                    },
+                    "fits": true,
+                    "start": "7",
+                    "stop": "12",
+                    "unit": "s"
+                  }
+                ],
+                "state": "FEASIBLE"
+              },
+              "state": "SUPPORTED"
+            },
+            "result_digest": "f7cbc82c692f7abeca6545105ae6ddd15455fdf53aae8605d090bcd611aba272",
+            "revision": 1,
+            "schema": "arc.project-desk.adaptive_observation/1",
+            "step": "Step2",
+            "summary": {
+              "check_completed": true,
+              "check_scope": "METHOD_PRECONDITIONS",
+              "declarations": {
+                "additive": true,
+                "basis": "resources.csv",
+                "constant_capacity": true,
+                "fragmentation": "NOT_APPLICABLE",
+                "indivisibility": "NOT_APPLICABLE",
+                "interval_semantics": "HALF_OPEN",
+                "overhead": "NONE"
+              },
+              "kind": "method_preview",
+              "method_execution_started": false,
+              "method_id": "dab519e0314d492bbc26e8ebe538b0a4",
+              "method_revision": 2,
+              "precondition_rejected": false,
+              "state": "SUPPORTED"
+            },
+            "work": "b2775ef6fe8d49109fc781b558fc6f9d"
+          }
+        ],
+        "decisions": [
+          {
+            "actor": "desktop-owner",
+            "authority": "PROPOSAL_NOT_PERMISSION_OR_OBSERVATION",
+            "candidate": {
+              "alternatives": [],
+              "expected": [
+                "precondition_satisfied",
+                "precondition_violation"
+              ],
+              "next": {
+                "arguments": {
+                  "allocations": [
+                    {
+                      "lifetime": "pump_life",
+                      "quantity": "pump"
+                    },
+                    {
+                      "lifetime": "heater_life",
+                      "quantity": "heater"
+                    },
+                    {
+                      "lifetime": "controller_life",
+                      "quantity": "controller"
+                    }
+                  ],
+                  "capacity": "current_limit",
+                  "declarations": {
+                    "additive": true,
+                    "basis": "resources.csv",
+                    "constant_capacity": true,
+                    "fragmentation": "NOT_APPLICABLE",
+                    "indivisibility": "NOT_APPLICABLE",
+                    "interval_semantics": "HALF_OPEN",
+                    "overhead": "NONE"
+                  },
+                  "method": "dab519e0314d492bbc26e8ebe538b0a4",
+                  "method_revision": 2
+                },
+                "candidate": "b1",
+                "kind": "CALL",
+                "operation": "methods.preview"
+              },
+              "text": "The owner's request requires applying the 'Checked capacity over declared half-open lifetimes' method (id: dab519e0314d492bbc26e8ebe538b0a4) to the declared demands. The prelude in",
+              "uncertainty": "The preview tool checks preconditions without executing the full schedule check. It will confirm if the declared inputs (current_limit, pump, heater, controller",
+              "updates": []
+            },
+            "cloud_calls": 0,
+            "created": 1794637205.4927006,
+            "frame_digest": "03d5fcfdbf7984c8aa00094f266a6b6bece6f4e6206ff1903fc02b1392fbd1c9",
+            "id": "3745697ed13c5a14be4ce2ef206bbc1f",
+            "kind": "adaptive_decision",
+            "metrics": {
+              "context_limit": 6144,
+              "elapsed_seconds": 148.1571242029995,
+              "finish_reason": "stop",
+              "first_token_seconds": 35.52962468900023,
+              "input_messages_digest": "ecacd90ebfdf6f70e2d1d9d8a0269be8dd5bc3e978d7a9104609ee19cf92a7de",
+              "memory": {
+                "memory_scope": "OWNED_PROCESS_TREE_RSS_NOT_GPU_ALLOCATION",
+                "peak_rss_bytes": 3868958720,
+                "rss_bytes": 3868819456
+              },
+              "observed_reused_tokens": 0,
+              "prefix_reuse_requested": false,
+              "prompt_tokens_measured": 5191,
+              "proposal_phases": {
+                "arguments": {
+                  "context_limit": 6144,
+                  "elapsed_seconds": 78.63658203999967,
+                  "finish_reason": "stop",
+                  "first_token_seconds": 35.52962468900023,
+                  "input_messages_digest": "ecacd90ebfdf6f70e2d1d9d8a0269be8dd5bc3e978d7a9104609ee19cf92a7de",
+                  "memory": {
+                    "memory_scope": "OWNED_PROCESS_TREE_RSS_NOT_GPU_ALLOCATION",
+                    "peak_rss_bytes": 3868958720,
+                    "rss_bytes": 3868819456
+                  },
+                  "observed_reused_tokens": 0,
+                  "prefix_reuse_requested": false,
+                  "prompt_tokens_measured": 2662,
+                  "stream_complete": true,
+                  "timings": {
+                    "cache_n": 0,
+                    "predicted_ms": 43140.121,
+                    "predicted_n": 241,
+                    "predicted_per_second": 5.563266732608376,
+                    "predicted_per_token_ms": 179.75050416666667,
+                    "prompt_ms": 35470.191,
+                    "prompt_n": 2662,
+                    "prompt_per_second": 75.04893334236627,
+                    "prompt_per_token_ms": 13.324639744552968
+                  },
+                  "transport": "AUTHENTICATED_LOOPBACK_SSE",
+                  "usage": {
+                    "completion_tokens": 241,
+                    "prompt_tokens": 2662,
+                    "prompt_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "total_tokens": 2903
+                  }
+                },
+                "select": {
+                  "context_limit": 6144,
+                  "elapsed_seconds": 69.41646943899923,
+                  "finish_reason": "stop",
+                  "first_token_seconds": 44.91630278899993,
+                  "input_messages_digest": "cddd69369f106bc2831891b7bd76812e98bce54b550e5ddc648190fb769bbbe9",
+                  "memory": {
+                    "memory_scope": "OWNED_PROCESS_TREE_RSS_NOT_GPU_ALLOCATION",
+                    "peak_rss_bytes": 3868467200,
+                    "rss_bytes": 3868467200
+                  },
+                  "observed_reused_tokens": 0,
+                  "prefix_reuse_requested": false,
+                  "prompt_tokens_measured": 2529,
+                  "stream_complete": true,
+                  "timings": {
+                    "cache_n": 0,
+                    "predicted_ms": 24489.342,
+                    "predicted_n": 138,
+                    "predicted_per_second": 5.594270356467724,
+                    "predicted_per_token_ms": 178.7543211678832,
+                    "prompt_ms": 44893.5,
+                    "prompt_n": 2529,
+                    "prompt_per_second": 56.33332219586354,
+                    "prompt_per_token_ms": 17.751482799525505
+                  },
+                  "transport": "AUTHENTICATED_LOOPBACK_SSE",
+                  "usage": {
+                    "completion_tokens": 138,
+                    "prompt_tokens": 2529,
+                    "prompt_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "total_tokens": 2667
+                  }
+                }
+              },
+              "stream_complete": true,
+              "timings": {
+                "cache_n": 0,
+                "predicted_ms": 43140.121,
+                "predicted_n": 241,
+                "predicted_per_second": 5.563266732608376,
+                "predicted_per_token_ms": 179.75050416666667,
+                "prompt_ms": 35470.191,
+                "prompt_n": 2662,
+                "prompt_per_second": 75.04893334236627,
+                "prompt_per_token_ms": 13.324639744552968
+              },
+              "transport": "AUTHENTICATED_LOOPBACK_SSE",
+              "usage": {
+                "completion_tokens": 379
+              }
+            },
+            "model": {
+              "config": {
+                "backend": "CPU",
+                "context": 6144,
+                "memory_mb": 4480,
+                "threads": 4,
+                "weight_loading": "RESIDENT_COPY"
+              },
+              "files": {
+                "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/models/Qwen3.5-4B-Q4_K_M.gguf": {
+                  "bytes": 2740937888,
+                  "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+                  "stat": [
+                    2740937888,
+                    1794485584063962311,
+                    1794485584063962311,
+                    917550
+                  ]
+                }
+              },
+              "model_id": "7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421",
+              "profile": "ledger.adaptive-investigation/1",
+              "runtime": {
+                "archive_sha256": "cf07c1c112d709bd67e522017471de57ed0ec8bea031d732c5422351c07f65ac",
+                "backend": "CPU",
+                "build": "b11669",
+                "platform": "linux-x64",
+                "source_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab"
+              },
+              "temperature": 0,
+              "template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+              "thinking_enabled": false
+            },
+            "owner": "desktop-owner",
+            "request": "3745697ed13c5a14be4ce2ef206bbc1f",
+            "revision": 1,
+            "schema": "arc.project-desk.adaptive_decision/1",
+            "status": "ACTION_PROPOSAL_VALIDATED",
+            "task": "ACTION",
+            "turn": "Step1",
+            "validation": {
+              "authority": "DRAFT_NOT_GRANT_OR_EXECUTION",
+              "model_self_checked": false,
+              "state": "ACTION_PROPOSAL_VALIDATED"
+            },
+            "work": "b2775ef6fe8d49109fc781b558fc6f9d"
+          }
+        ]
+      },
+      "fresh_process_reopen": {
+        "state": "PASSED",
+        "work_state": "WAITING",
+        "automatic_execution": false,
+        "observations": [
+          "ee1ff06e27275177b51fddb0258b2359"
+        ]
+      },
+      "validated_model_generations": 2,
+      "semantic_review": "REQUIRED_SEPARATELY",
+      "source_original_unchanged": true
+    }
+  ],
+  "cloud_calls": 0,
+  "native_visible_takeover": "NOT_QUALIFIED_BY_THIS_TRIAL",
+  "target_thinkpad": "PENDING"
+}

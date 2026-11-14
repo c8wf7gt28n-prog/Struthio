@@ -1,0 +1,1 @@
+Repeat the pulse capture.

@@ -1,0 +1,6 @@
+f = d('field.read')
+print([(o['kind'], o['title'], o['state']) for o in f['objects']][:6])
+bench = next(o['id'] for o in f['objects'] if o['title'] == '07 Bench readings')
+print(d('field.ripple', {'id': bench, 'set': {'B3': '320'}})['would_move'], d('field.doubt')['doubts'], d('field.brief')['counts'])
+print(d('words.keep', {'name': 'waits', 'line': 'field.read | pick waiting | select kind,title,state'}).get('words'))
+print(d('language.run', {'text': 'field.read | pick waiting | count'}).get('rows'))

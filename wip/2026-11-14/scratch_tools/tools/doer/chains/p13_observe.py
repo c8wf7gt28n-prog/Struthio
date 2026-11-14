@@ -1,0 +1,10 @@
+exec(open('/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/doer/chains/common.py').read())
+L('stac.observe', {'program': 'documents.list | pick documents | count'}, 'a language.run pipeline through stac.observe')
+L('stac.observe', {'program': '@document:218f9efb3315412099761113f1ef2e5d'}, 'an address')
+o = L('stac.observe', {'program': 'desk | find sheet'}, quiet=True); print('   observation keys:', sorted(o), '| result_sha256', o['result_sha256'][:16])
+h = L('stac.history', {}, quiet=True); print('   history:', [(x['program'], x['id'][:8]) for x in h['observations']])
+L('stac.export', {'program': 'desk', 'destination': 'Egress/desk.json'}, n=300)
+L('stac.run', {'program': 'documents.list | pick documents | count'}, 'a pipeline given to stac.run')
+S('stac.run {"program":"desk | find sheet"} | pick result | select focus,project_attached', 'a start-word program used as a pipeline source')
+from workbench import stacy_foundation
+print('seed:', stacy_foundation.seed_status(k.root)['state'])

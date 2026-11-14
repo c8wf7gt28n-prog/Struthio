@@ -1,0 +1,29 @@
+ MANIFEST.json                            | 104 +++--
+ docs/GRAPHITE_0.1_REGISTRY.json          |   7 +-
+ project/stacy_seed/current/catalog.json  |   2 +-
+ project/stacy_seed/current/index.sqlite  | Bin 4362240 -> 4362240 bytes
+ project/stacy_seed/current/manifest.json |   2 +-
+ tests_integrated/test_desk_acts.py       |  10 +-
+ tests_integrated/test_desk_planner.py    | 240 +++++++++++
+ tests_integrated/test_her_hand.py        | 431 +++++++++++++++++++
+ tools/campaign_lib/cases_scene.py        |  27 +-
+ tools/campaign_lib/data/scenes/P02.json  |  31 ++
+ tools/campaign_lib/data/scenes/P03.json  |  30 ++
+ tools/check_hatch.py                     |   2 +
+ workbench/console_qt.py                  |   4 +-
+ workbench/desk_acts.py                   |  24 +-
+ workbench/desk_doers.py                  | 233 ++++++++--
+ workbench/desk_ops.py                    | 279 ++++++++++++
+ workbench/desk_scene.py                  |  98 ++++-
+ workbench/field_qt.py                    |   3 +
+ workbench/goals.py                       | 161 +++++++
+ workbench/hand_model_checks.py           | 135 ++++++
+ workbench/hand_words.py                  | 243 +++++++++++
+ workbench/her_hand_qt.py                 | 707 +++++++++++++++++++++++++++++++
+ workbench/kasandra_art.py                |   5 +-
+ workbench/local_brain.py                 |  36 +-
+ workbench/planner.py                     | 343 +++++++++++++++
+ workbench/qt_app.py                      |   4 +
+ workbench/shell2.py                      |  34 +-
+ workbench/stacy_hand.py                  |  31 +-
+ 28 files changed, 3108 insertions(+), 118 deletions(-)

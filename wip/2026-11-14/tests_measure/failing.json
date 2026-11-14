@@ -1,0 +1,793 @@
+{
+ "part": "failing",
+ "tree": "d1df337",
+ "runner": "work/testclean/failing/bin/at.sh (tests at any commit), bin/ui.sh (window checks: extracted copy, new empty HOME, offscreen, nice 19, private pid namespace)",
+ "summary": {
+  "tests": {
+   "total": 20,
+   "stale": 20,
+   "defect": 0,
+   "flaky": 0,
+   "environment": 0,
+   "port": 16,
+   "retire": 4,
+   "fix_code": 0,
+   "note": "All 20 fail with the same message at aa0ce07, the first commit (the 0.2a13 import); none ever started failing inside git history. RECORD_OF_DIRECTIONS.md:318 says they \"assert the earlier look, layout and version\": true for 15; the five model tests are stale fixtures of behaviour (0.2a2 backend fields, 0.2a5 resident verification and the cancel check), not look, and the behaviour is right.",
+   "after": "test_model_settings 13 OK, test_desk 27 OK, test_paper 17 OK (both appearances), test_graphite 29 OK, test_system_menu 31 OK"
+  },
+  "window_checks": {
+   "gate_failing_count": 10,
+   "unrun_count": 12,
+   "gate": {
+    "RETIRE": [
+     "check_desk_ui",
+     "check_head_ui",
+     "check_graphite_ui",
+     "check_rename_ui",
+     "check_paper_ui",
+     "check_frame_ui (fold two steps)",
+     "check_hatch_ui (fold into test_launcher/check_navigation_ui)"
+    ],
+    "FIX_tool": [
+     "check_finder_ui"
+    ],
+    "PORT": [
+     "check_machine_ui"
+    ],
+    "FIX_CODE_and_PORT": [
+     "check_continue_ui"
+    ]
+   },
+   "unrun": {
+    "passing_as_is": [
+     "check_explore_ui",
+     "check_operations_ui"
+    ],
+    "one_line_port": [
+     "check_cabinet_ui",
+     "check_cabinet_actions_ui",
+     "check_navigation_ui",
+     "check_presentation_settings_ui",
+     "check_return_thread_ui",
+     "check_memory_cabinet_ui",
+     "check_memory_settings_ui",
+     "check_model_settings_ui",
+     "check_settings_ui"
+    ],
+    "port_and_defect": [
+     "check_settings_02_ui"
+    ]
+   },
+   "after": "On the patched copy (tree_clean, manifest rebuilt): all 22 run pass (3 formerly failing gate checks, 12 on-demand, and the 7 gate checks that already passed); logs/ui/batch_clean2.txt"
+  },
+  "defects": [
+   "resource_control.background_reason and model_room read the hardware profile (dpkg-query) for memory-only decisions (resource_control.py:290,315); fix: host(profile=False)",
+   "tools/ui_fit.py mismeasures styled tool buttons (false clipping); fix: compare drawn ink",
+   "'Pleasantries in script' toggle does nothing (shell2.py:66-69 vs 3299-3312)"
+  ],
+  "procedure_note": "A source fix needs tools/package_graphite.py --manifest-only before the window checks: without it check_context_menu_ui fails at :335 (the Then panel's second read is refused against the stale seed bindings); after the rebuild it passes."
+ },
+ "tests": [
+  {
+   "id": "tests_integrated.test_model_settings.ModelSettingsTests.test_new_requests_freeze_defaults_auto_and_keep_idempotency_after_defaults_change",
+   "assertion": "tests_integrated/test_model_settings.py:87",
+   "failure": "config(frozen options) has backend, requested_backend, gpu_layers, cpu_fallback beside context/threads/memory_mb",
+   "code": "workbench/model_settings.py:64-77 (config() returns the backend fields since the Vulkan path); workbench/model_settings.py:29-44 (freeze_launch)",
+   "started": "Fails identically at aa0ce07 (the import of 0.2a13, first commit) and at 13ddfc5 (0.7.0) and d1df337; passed at HATCH AGENT-02 (docs/HATCH_AGENT_02.md:43 lists test_model_settings among 379 passing). Broke between Ledger & Slate 5.1/AGENT-02 and 0.2a13, outside git history. Cause: 0.2a2/P05 \"requested/effective backend readback\" (workbench/version.py:47) added backend fields to config(); the test compares the whole dict.",
+   "klass": "STALE",
+   "behaviour_right": true,
+   "reproduction": "Frozen context 6144, threads 6, memory 2048 are exactly the saved defaults at submission (the first three keys match; only the added backend keys differ). Ported assertion passes.",
+   "action": "PORT",
+   "port": "compare the three launch keys and the backend (AUTO, the saved default) instead of the whole dict",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_model_settings.diff"
+  },
+  {
+   "id": "tests_integrated.test_model_settings.ModelSettingsTests.test_explicit_request_and_restore_override_launch_defaults",
+   "assertion": "tests_integrated/test_model_settings.py:92 (then :96)",
+   "failure": "same whole-dict comparison as above; :96 also compares a restored selection to a 3-key config",
+   "code": "workbench/model_settings.py:64-77; workbench/local_brain.py:1046-1052 (brain.restore keeps the previous selection's backend, CPU for a pre-backend record)",
+   "started": "Fails identically at aa0ce07 (the import of 0.2a13, first commit) and at 13ddfc5 (0.7.0) and d1df337; passed at HATCH AGENT-02 (docs/HATCH_AGENT_02.md:43 lists test_model_settings among 379 passing). Broke between Ledger & Slate 5.1/AGENT-02 and 0.2a13, outside git history. Same cause (0.2a2 backend fields).",
+   "klass": "STALE",
+   "behaviour_right": true,
+   "reproduction": "Explicit options 2048/3/2048 override saved 6144/8/4096; restore relaunches the previous 1024/2/2048 with backend CPU (not the saved AUTO); qualify uses saved 6144. All hold in the port.",
+   "action": "PORT",
+   "port": "three launch keys + backend; restored backend asserted CPU (the old contract)",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_model_settings.diff",
+   "mutation": "removing options.update(supplied) in freeze_launch makes the ported test fail"
+  },
+  {
+   "id": "tests_integrated.test_model_settings.ModelSettingsTests.test_failed_activation_retains_original_restore_and_reports_owned_restored_worker",
+   "assertion": "tests_integrated/test_model_settings.py:157",
+   "failure": "NOBODY+92 not in alive: the restored worker was stopped again",
+   "code": "workbench/local_brain.py:583 (restore path calls verify_resident) -> :181-186 (no verified_files -> recheck) -> :160-170 file_stamps stats /not-a-model/fixture.gguf -> FileNotFoundError -> :586-588 rollback (PREVIOUS_MODEL_RELOAD_FAILED)",
+   "started": "Fails identically at aa0ce07 (the import of 0.2a13, first commit) and at 13ddfc5 (0.7.0) and d1df337; passed at HATCH AGENT-02 (docs/HATCH_AGENT_02.md:43 lists test_model_settings among 379 passing). Broke between Ledger & Slate 5.1/AGENT-02 and 0.2a13, outside git history. Cause: 0.2a5/P08 \"verified resident model\" (workbench/version.py:44; docs/BOSS_HALFWAY_P10.md P08: \"binds that check to the running worker\") added verify_resident to the restore; the fixture worker has no verified_files.",
+   "klass": "STALE (fixture)",
+   "behaviour_right": true,
+   "reproduction": "probe/why_restore.py: verify_resident raised FileNotFoundError for the fixture path on pid 4194396; activity PREVIOUS_MODEL_RELOAD_FAILED. With the fixture carrying verified_files (what start_server records) the restore is reported RESTORED_PREVIOUS with config 1024/2/2048 CPU.",
+   "action": "PORT",
+   "port": "fixture workers carry verified_files and file_stamps is held to the same stamps; worker_config compared by its three keys + backend CPU; plus one line in test_failed_restore_never_claims...: weights changed after load -> restored worker stopped, never Ready",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_model_settings.diff",
+   "mutation": "deleting verify_resident from the restore path makes the ported test_failed_restore... fail; deleting restored_after_job makes this one fail"
+  },
+  {
+   "id": "tests_integrated.test_model_settings.ModelSettingsTests.test_owner_cancellation_stays_stopped_and_never_automatically_restores",
+   "assertion": "tests_integrated/test_model_settings.py:168",
+   "failure": "calls == [] (expected ['b'*64]): the candidate never started",
+   "code": "workbench/local_brain.py:506 (run_model_job calls check_job first; a job saved with cancel=True raises MODEL_OPERATION_CANCELLED before control_claim, before the old worker is touched); :570-571 and :574 (no restore after a cancel)",
+   "started": "Fails identically at aa0ce07 (the import of 0.2a13, first commit) and at 13ddfc5 (0.7.0) and d1df337; passed at HATCH AGENT-02 (docs/HATCH_AGENT_02.md:43 lists test_model_settings among 379 passing). Broke between Ledger & Slate 5.1/AGENT-02 and 0.2a13, outside git history. Cause: 0.2a5/P08 \"invalidates old launch requests on Stop\" (docs/BOSS_IMPLEMENTATION_PLAN.md:118) added the check at entry; the test cancels before the job runs.",
+   "klass": "STALE (scenario)",
+   "behaviour_right": true,
+   "reproduction": "Cancelled before it runs: nothing starts and the running model keeps running (calls [], worker live). Cancelled while the candidate loads (set inside the mocked start): candidate tried once, old worker stopped, no restore attempted, snapshot worker_config None, last_operation Cancelled. Both are right.",
+   "action": "PORT",
+   "port": "transaction(cancel='during') sets cancel inside the candidate's start; plus cancel='before' asserts the running model is untouched",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_model_settings.diff",
+   "mutation": "removing check_job at the top of run_model_job makes the ported test fail; removing 'or cancelled()' from the restore guard does not (the restore's own check_job at local_brain.py:574 also stops it: two guards)"
+  },
+  {
+   "id": "tests_integrated.test_model_settings.ModelSettingsTests.test_worker_uses_frozen_options_even_after_saved_defaults_change",
+   "assertion": "tests_integrated/test_model_settings.py:185 (ERROR)",
+   "failure": "KeyError 'backend' at workbench/local_brain.py:540, then terminate() of the fixture worker cannot confirm (worker_live is mocked True)",
+   "code": "workbench/local_brain.py:540 receipt uses trial[\"backend\"]; _start_server always records backend (local_brain.py:412)",
+   "started": "Fails identically at aa0ce07 (the import of 0.2a13, first commit) and at 13ddfc5 (0.7.0) and d1df337; passed at HATCH AGENT-02 (docs/HATCH_AGENT_02.md:43 lists test_model_settings among 379 passing). Broke between Ledger & Slate 5.1/AGENT-02 and 0.2a13, outside git history. Cause: 0.2a2 backend fields in the worker record; the fixture worker lacks backend.",
+   "klass": "STALE (fixture)",
+   "behaviour_right": true,
+   "reproduction": "With backend=\"CPU\" in the fixture worker: ACTIVATED, worker started with the frozen 4096/6 although saved defaults changed to 6144/8; readback stored 6144, effective 4096.",
+   "action": "PORT",
+   "port": "fixture worker carries backend CPU",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_model_settings.diff",
+   "mutation": "making job_options ignore the frozen snapshot fails this and two other tests"
+  },
+  {
+   "id": "tests_integrated.test_desk.PaneWidthTests.test_the_default_follows_the_interface_size_under_the_ceiling",
+   "assertion": "tests_integrated/test_desk.py:26",
+   "failure": "268 != 360",
+   "code": "workbench/desk_qt.py:31 PANE = 268",
+   "started": "Fails with the same message at aa0ce07 (first commit, 0.2a13) and d1df337; test_desk.py unchanged since the import; the values it pins are 0.1's (HATCH DESK D1a). Changed in 0.2a1 (BOSS M1), before git history.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "why": "the BOSS desk narrowed both panes (default 360 -> 268); the scaling rule (x1.0..1.4, never smaller) still holds",
+   "action": "PORT",
+   "port": "expressed in desk.PANE: [P, round(P*18/14), round(P*1.4)], capped at 1.4, never below P",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_desk.diff",
+   "mutation": null
+  },
+  {
+   "id": "tests_integrated.test_desk.PaneWidthTests.test_the_owners_width_is_one_width_for_both",
+   "assertion": "tests_integrated/test_desk.py:48",
+   "failure": "268 != 360 (a stray boolean is not a width)",
+   "code": "workbench/desk_qt.py:162-170 pane_width",
+   "started": "Fails with the same message at aa0ce07 (first commit, 0.2a13) and d1df337; test_desk.py unchanged since the import; the values it pins are 0.1's (HATCH DESK D1a). Changed in 0.2a1 (BOSS M1), before git history.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "why": "same default; the rule (True and 5000 fall back to the default) holds",
+   "action": "PORT",
+   "port": "compare to desk.PANE",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_desk.diff",
+   "mutation": "dropping the room clamp in desk_qt.pane_width fails the ported width tests"
+  },
+  {
+   "id": "tests_integrated.test_desk.PaneWidthTests.test_the_workspace_keeps_the_floor_the_old_rules_protected",
+   "assertion": "tests_integrated/test_desk.py:37",
+   "failure": "674 != 600",
+   "code": "workbench/desk_qt.py:162-170",
+   "started": "Fails with the same message at aa0ce07 (first commit, 0.2a13) and d1df337; test_desk.py unchanged since the import; the values it pins are 0.1's (HATCH DESK D1a). Changed in 0.2a1 (BOSS M1), before git history.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "why": "with the narrower default the panes no longer press on a 600 px centre, so the example no longer exercises the floor",
+   "action": "PORT",
+   "port": "a centre chosen 40 px over what the default panes leave, so the floor binds whatever PANE is",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_desk.diff",
+   "mutation": "dropping the room clamp in desk_qt.pane_width fails the ported width tests"
+  },
+  {
+   "id": "tests_integrated.test_desk.GrainTests.test_the_grain_is_deterministic_quiet_and_centred_on_the_band_tone",
+   "assertion": "tests_integrated/test_desk.py:111",
+   "failure": "4 not greater than 6 (a grain, not a flat fill)",
+   "code": "workbench/desk_qt.py:247 GRAIN_AMPLITUDE = 2 (+-2 levels: at most 5 values)",
+   "started": "Fails with the same message at aa0ce07 (first commit, 0.2a13) and d1df337; test_desk.py unchanged since the import; the values it pins are 0.1's (HATCH DESK D1a). Changed in 0.2a1 (BOSS M1), before git history.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "why": "near-black glass bands: amplitude 2 cannot give 7 levels",
+   "action": "PORT",
+   "port": ">= 3 distinct levels; determinism, bounds and centring kept",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_desk.diff",
+   "mutation": null
+  },
+  {
+   "id": "tests_integrated.test_desk.GrainTests.test_the_lettering_reads_on_the_band",
+   "assertion": "tests_integrated/test_desk.py:116",
+   "failure": "'#0c0f0e' != '#4a4741'",
+   "code": "workbench/desk_qt.py:240, boss_theme.py:37,48 (BAND)",
+   "started": "Fails with the same message at aa0ce07 (first commit, 0.2a13) and d1df337; test_desk.py unchanged since the import; the values it pins are 0.1's (HATCH DESK D1a). Changed in 0.2a1 (BOSS M1), before git history.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "why": "the 0.1 graphite band tone; the band is near-black (Graphite) or indigo (Kasandra)",
+   "action": "PORT",
+   "port": "mean tone == BAND; WCAG 4.5:1 lettering and 3:1 marks asserted for BOTH appearances from boss_theme.PALETTES",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_desk.diff",
+   "mutation": null
+  },
+  {
+   "id": "tests_integrated.test_desk.GrainTests.test_the_band_colours_are_the_palettes",
+   "assertion": "tests_integrated/test_desk.py:124",
+   "failure": "desk.PENCIL '#f2a369' != shell2.AMBER_EDGE '#ff9a36'",
+   "code": "workbench/desk_qt.py:240-244 take BAND_MARK/BAND_PENCIL from boss_theme.py:37,48",
+   "started": "Fails with the same message at aa0ce07 (first commit, 0.2a13) and d1df337; test_desk.py unchanged since the import; the values it pins are 0.1's (HATCH DESK D1a). Changed in 0.2a1 (BOSS M1), before git history.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "why": "the BOSS palette gives the bands their own roles (BAND_MARK, BAND_PENCIL); in Kasandra BAND_MARK != ERASER_MARK too, so the 0.1 one-colour invariant holds in neither appearance; palettes are covered by test_kasandra (test_both_palettes_name_the_same_colours, test_graphite_keeps_its_colours_and_its_roles_are_amber)",
+   "action": "RETIRE",
+   "port": "the one live line (desk.CAT == typebar_qt.HATCH_ICON, the band height unit) moved into BandTests",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_desk.diff",
+   "mutation": null
+  },
+  {
+   "id": "tests_integrated.test_paper.MarkerWidgetTests.test_attach_adds_nothing_to_the_accessible_tree_and_marks_only_the_focused_passage",
+   "assertion": "tests_integrated/test_paper.py:197",
+   "failure": "0 not greater than 20/10: no dark ink found",
+   "code": "workbench/writing_marker.py:21,60-66 (INK = TEXT; draw_x)",
+   "started": "Same message at aa0ce07 (0.2a13) and d1df337. The marker ink is shell2.TEXT (workbench/writing_marker.py:21), cream on the BOSS desk since 0.2a1; the fixture page is 0.1 paper (#f6f3eb) and ink() counts dark pixels.",
+   "klass": "STALE (fixture)",
+   "superseded_by": {
+    "cite": "RECORD_OF_DIRECTIONS.md:144-147",
+    "quote": "\"Nothing on the desk is a white box ... a button or a field is a dark plate with a quiet edge\""
+   },
+   "behaviour_right": true,
+   "why": "cream X on a light fixture page; the marker itself works (margin form, no accessible child, blink timer, Reduce motion, narrow form all pass once ink is measured against the ground)",
+   "action": "PORT",
+   "port": "fixture page in the desk colours (GROUND, passages on ERASER); ink = pixels far from the ground toward writing_marker.INK; passes in Graphite and Kasandra",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_paper.diff",
+   "mutation": "a transparent pen in draw_x fails all four ported tests"
+  },
+  {
+   "id": "tests_integrated.test_paper.MarkerWidgetTests.test_reduce_motion_is_static_with_no_timer_and_the_setting_hides_the_mark",
+   "assertion": "tests_integrated/test_paper.py:218",
+   "failure": "0 not greater than 20/10: no dark ink found",
+   "code": "workbench/writing_marker.py:21,60-66 (INK = TEXT; draw_x)",
+   "started": "Same message at aa0ce07 (0.2a13) and d1df337. The marker ink is shell2.TEXT (workbench/writing_marker.py:21), cream on the BOSS desk since 0.2a1; the fixture page is 0.1 paper (#f6f3eb) and ink() counts dark pixels.",
+   "klass": "STALE (fixture)",
+   "superseded_by": {
+    "cite": "RECORD_OF_DIRECTIONS.md:144-147",
+    "quote": "\"Nothing on the desk is a white box ... a button or a field is a dark plate with a quiet edge\""
+   },
+   "behaviour_right": true,
+   "why": "cream X on a light fixture page; the marker itself works (margin form, no accessible child, blink timer, Reduce motion, narrow form all pass once ink is measured against the ground)",
+   "action": "PORT",
+   "port": "fixture page in the desk colours (GROUND, passages on ERASER); ink = pixels far from the ground toward writing_marker.INK; passes in Graphite and Kasandra",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_paper.diff",
+   "mutation": "a transparent pen in draw_x fails all four ported tests"
+  },
+  {
+   "id": "tests_integrated.test_paper.MarkerWidgetTests.test_source_editor_is_refused_and_a_narrow_margin_shrinks_the_x_instead_of_entering_the_passage",
+   "assertion": "tests_integrated/test_paper.py:245",
+   "failure": "0 not greater than 20/10: no dark ink found",
+   "code": "workbench/writing_marker.py:21,60-66 (INK = TEXT; draw_x)",
+   "started": "Same message at aa0ce07 (0.2a13) and d1df337. The marker ink is shell2.TEXT (workbench/writing_marker.py:21), cream on the BOSS desk since 0.2a1; the fixture page is 0.1 paper (#f6f3eb) and ink() counts dark pixels.",
+   "klass": "STALE (fixture)",
+   "superseded_by": {
+    "cite": "RECORD_OF_DIRECTIONS.md:144-147",
+    "quote": "\"Nothing on the desk is a white box ... a button or a field is a dark plate with a quiet edge\""
+   },
+   "behaviour_right": true,
+   "why": "cream X on a light fixture page; the marker itself works (margin form, no accessible child, blink timer, Reduce motion, narrow form all pass once ink is measured against the ground)",
+   "action": "PORT",
+   "port": "fixture page in the desk colours (GROUND, passages on ERASER); ink = pixels far from the ground toward writing_marker.INK; passes in Graphite and Kasandra",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_paper.diff",
+   "mutation": "a transparent pen in draw_x fails all four ported tests"
+  },
+  {
+   "id": "tests_integrated.test_paper.MarkerWidgetTests.test_the_page_is_never_an_ancestor_whose_margin_a_sibling_covers_nor_outside_the_scrolling_page",
+   "assertion": "tests_integrated/test_paper.py:265",
+   "failure": "0 not greater than 20/10: no dark ink found",
+   "code": "workbench/writing_marker.py:21,60-66 (INK = TEXT; draw_x)",
+   "started": "Same message at aa0ce07 (0.2a13) and d1df337. The marker ink is shell2.TEXT (workbench/writing_marker.py:21), cream on the BOSS desk since 0.2a1; the fixture page is 0.1 paper (#f6f3eb) and ink() counts dark pixels.",
+   "klass": "STALE (fixture)",
+   "superseded_by": {
+    "cite": "RECORD_OF_DIRECTIONS.md:144-147",
+    "quote": "\"Nothing on the desk is a white box ... a button or a field is a dark plate with a quiet edge\""
+   },
+   "behaviour_right": true,
+   "why": "cream X on a light fixture page; the marker itself works (margin form, no accessible child, blink timer, Reduce motion, narrow form all pass once ink is measured against the ground)",
+   "action": "PORT",
+   "port": "fixture page in the desk colours (GROUND, passages on ERASER); ink = pixels far from the ground toward writing_marker.INK; passes in Graphite and Kasandra",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_paper.diff",
+   "mutation": "a transparent pen in draw_x fails all four ported tests"
+  },
+  {
+   "id": "tests_integrated.test_graphite.MarkAndTileTests.test_palette_is_graphite_paper_eraser_and_pencil_only",
+   "assertion": "tests_integrated/test_graphite.py:75",
+   "failure": "(#504d46,#f6f3eb,#fffdf8,#cba5a4,#d4b56a) != shell2 (#f4e8ce,#0b0e0d,#151a17,#dd854b,#ff9a36)",
+   "code": "workbench/graphite_brand.py:29-36 (0.1 paper palette, still the mark's and the hidden cat's); workbench/boss_theme.py:28-50",
+   "started": "Same message at aa0ce07 and d1df337; the desk palette changed in 0.2a1 (BOSS).",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "action": "RETIRE",
+   "why": "asserts the 0.1 paper desk is the brand palette; desk colours live in boss_theme.PALETTES with two appearances, covered by test_kasandra; the cat colours belong to a cat never shown (typebar_qt.py:259,579)",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_graphite.diff"
+  },
+  {
+   "id": "tests_integrated.test_graphite.MarkAndTileTests.test_the_band_places_the_cat_by_its_pale_coat",
+   "assertion": "tests_integrated/test_graphite.py:242 (240 at aa0ce07)",
+   "failure": "15 != 16 at 14 pt",
+   "code": "workbench/graphite_brand.py:370 paint_cat on desk_qt.grain_report mean tone; the cat button is hidden: workbench/typebar_qt.py:259 and :579 self.hatch.hide()",
+   "started": "Same failure at aa0ce07; the cat left the window in 0.2a1 (BOSS_M1.md:18-19) and the band tone changed.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "action": "RETIRE",
+   "why": "measures where a never-shown cat would sit on a band tone that no longer exists"
+  },
+  {
+   "id": "tests_integrated.test_graphite.RenameGuardTests.test_public_name_and_internal_identities",
+   "assertion": "tests_integrated/test_graphite.py:331",
+   "failure": "('Graphite','0.8.2','Graphite 0.8.2') != ('Graphite','0.1','Graphite 0.1')",
+   "code": "workbench/version.py:11-13; workbench/typebar_qt.py TARGETS (slate, Assistant), SHOWN slate=Stacy",
+   "started": "Fails since the first version bump after 0.1 (0.2a1); at aa0ce07 it said 0.2a13 != 0.1.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "RECORD_OF_DIRECTIONS.md:72-74, 182-184, 286-287",
+    "quote": "\"Stacy is the assistant\"; 0.5.3 \"the line has five names to choose whom is typed to (Stacy, Terminal, Search, Web, Log)\"; \"Programs is called **Apps**\""
+   },
+   "behaviour_right": true,
+   "action": "PORT",
+   "port": "NAME == 'Graphite' and title() == 'Graphite ' + SHORT (the number is test_release_check's); the first mode's key stays 'slate' (its label is hers: Stacy/Kasandra)",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_graphite.diff"
+  },
+  {
+   "id": "tests_integrated.test_system_menu.CatColourTests.test_the_colours_are_named_constants_and_the_coat_is_warm_paper",
+   "assertion": "tests_integrated/test_system_menu.py:528",
+   "failure": "cat colours are the 0.1 paper palette, not shell2's",
+   "code": "workbench/graphite_brand.py:33-37; the cat is hidden (typebar_qt.py:259,579)",
+   "started": "Same message at aa0ce07; cat hidden since 0.2a1.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+    "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+   },
+   "behaviour_right": true,
+   "action": "RETIRE",
+   "why": "colours of a cat that is never shown",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_system_menu.diff"
+  },
+  {
+   "id": "tests_integrated.test_system_menu.MenuTests.test_the_two_menus_are_point_mirror_images",
+   "assertion": "tests_integrated/test_system_menu.py:503",
+   "failure": "319 != 236 (the panes' content column at 14 pt)",
+   "code": "workbench/programs_qt.py:88-129 (menu_width, place); 'lower-left' (the cat's list) and 'upper-right' (System menu) have no caller in the window: the System button is hidden (shell2.py:712) and the cat too; Apps opens 'upper-programs' (programs_qt.py:701-704)",
+   "started": "Same message at aa0ce07 (cat gone 0.2a1); the System menu itself went in 0.7.0.",
+   "klass": "STALE",
+   "superseded_by": {
+    "cite": "RECORD_OF_DIRECTIONS.md:192-202; docs/RELEASE_NOTES_0.7.0.md:6-12",
+    "quote": "\"## The System menu is gone ... All of it could move, so it is eliminated. The right end of the head now holds only **Programs**\" (0.7.0)"
+   },
+   "behaviour_right": true,
+   "action": "PORT",
+   "port": "test_the_apps_list_opens_under_its_control_inside_the_window_and_never_over_a_band: 'upper-programs' at the head's foot, under its control, an inset inside both window edges, never past the axis less an inset, never over either band (no other test covers this placement)",
+   "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches/test_system_menu.diff",
+   "mutation": "removing the x clamp for 'upper-programs' fails the ported test"
+  }
+ ],
+ "window_checks": {
+  "tools/check_desk_ui.py": {
+   "in_gate": true,
+   "lines": 1197,
+   "checks": "HATCH DESK D1a/D1b/D1-fix: every mirrored pair of the 0.1 desk at 0 px at nine sizes (cat at the left inset, the System symbol at the right, the lower band's words mirrored, the script word Graphite), the grain, drag, captures",
+   "stop": "tools/check_desk_ui.py:145 IndexError: the lower band's right slot has no words (b.rows() right empty)",
+   "why": "the mirrored band it measures is gone: the cat is hidden (typebar_qt.py:259,579), the System symbol is hidden (shell2.py:712), the line's five names sit on the left (0.5.3)",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+     "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+    },
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:192-202; docs/RELEASE_NOTES_0.7.0.md:6-12",
+     "quote": "\"## The System menu is gone ... All of it could move, so it is eliminated. The right end of the head now holds only **Programs**\" (0.7.0)"
+    },
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:72-74, 182-184, 286-287",
+     "quote": "\"Stacy is the assistant\"; 0.5.3 \"the line has five names to choose whom is typed to (Stacy, Terminal, Search, Web, Log)\"; \"Programs is called **Apps**\""
+    }
+   ],
+   "action": "RETIRE",
+   "fold_into": "test_desk (the pure grid, ported); words-whole and no sideways scroll at sizes: check_finder_ui (passing after the ui_fit fix)",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_frame_ui.py": {
+   "in_gate": true,
+   "lines": 334,
+   "checks": "HATCH DESKTOP-01 WI-1: five parts visible, side panes one width through 14->28 pt, drag/setting/saved width, Home, the strip's words, keyboard walk, head menus fold into a more-button before clipping (1040..1400 px), words whole",
+   "stop": "tools/check_frame_ui.py:173 the strip words == [Assignment, shell, Search, Log]",
+   "why": "0.5.3 five names (Stacy, Terminal, Search, Web, Log). Port iteration: 4 one-line edits moved the stop 173 -> 177 -> 180 -> 219 (pane widths at 28 pt from the 360 default), and :243 still walks Tab through the cat",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:72-74, 182-184, 286-287",
+     "quote": "\"Stacy is the assistant\"; 0.5.3 \"the line has five names to choose whom is typed to (Stacy, Terminal, Search, Web, Log)\"; \"Programs is called **Apps**\""
+    },
+    {
+     "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+     "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+    }
+   ],
+   "action": "RETIRE + FOLD-INTO",
+   "fold_into": "check_finder_ui (words whole at 1920/1366/18 pt) and test_desk (pane width rule); carry over two unique steps if wanted: head menus fold before clipping across 1040..1400 px, and one pane width through the size excursion/drag/saved width",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_hatch_ui.py": {
+   "in_gate": true,
+   "lines": 298,
+   "checks": "HATCH DESKTOP-01 WI-2 / D2: the cat's programs list as truthful doorway (rows' words from the catalogue, needs setup, rooms open without any process, keyboard AC15)",
+   "stop": "tools/check_hatch_ui.py:124 BrainTab not opened",
+   "why": "opening Local model builds BrainTab -> local_brain.acceleration -> brain_runtime.host() -> inference_hardware.snapshot -> dpkg-query (workbench/inference_hardware.py:46-58), which the check forbids; by design the Brain room reads the hardware profile (brain_runtime.py:11-13). Port iteration (hold _query_packages; 6 'needs setup' rows of now 18; Game row at the foot) moved 124 -> 136 -> 162 -> 221 (keyboard walk expectations)",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+     "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+    },
+    {
+     "cite": "docs/RELEASE_NOTES_0.7.0.md:21 (table row \"Game | the foot of **Programs**\"); RECORD_OF_DIRECTIONS.md:287",
+     "quote": "\"Game | the foot of Programs\""
+    },
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:72-74, 182-184, 286-287",
+     "quote": "\"Stacy is the assistant\"; 0.5.3 \"the line has five names to choose whom is typed to (Stacy, Terminal, Search, Web, Log)\"; \"Programs is called **Apps**\""
+    }
+   ],
+   "action": "RETIRE + FOLD-INTO",
+   "fold_into": "test_launcher (unit: needs setup without running anything, truthful words, presentation contract, flat sorted list, type-to-select, hidden rows on read failure) and check_navigation_ui (opens the Apps list, passing after a one-line port); the crawler presses every row",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_head_ui.py": {
+   "in_gate": true,
+   "lines": 228,
+   "checks": "HATCH AGENT-01 UI-03: four monitors in the head left of Nice; Nice popup with Stop everything first; agenda rows with niceness sliders",
+   "stop": "tools/check_head_ui.py:106 inside(head, monitors) fails: monitors at [1667,1140,237,60] (the lower band), Nice [0,0,0,0]",
+   "why": "0.7.0 moved the meters to the foot as doors and dissolved Nice/System",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:192-202; docs/RELEASE_NOTES_0.7.0.md:6-12",
+     "quote": "\"## The System menu is gone ... All of it could move, so it is eliminated. The right end of the head now holds only **Programs**\" (0.7.0)"
+    }
+   ],
+   "action": "RETIRE",
+   "fold_into": "test_faces_find_light.test_every_meter_is_a_door_and_says_what_it_opens, test_operations, test_system_menu (the CPU card is the System menu's process list: RELEASE_NOTES_0.7.0.md:29); field door_probe.py",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_graphite_ui.py": {
+   "in_gate": true,
+   "lines": 257,
+   "checks": "GRAPHITE-01 G-A: startup screen; the head's mark on a graphite tile opening STRUTHIO; the peeking cat opening the menu",
+   "stop": "tools/check_graphite_ui.py:99 'D1a: one mark, at the far right' (split: top.wordmark not visible)",
+   "why": "the head shows the menus across (0.5.1) and the equalizer; mark and cat hidden; System symbol gone (0.7.0); the game is at the foot of Apps",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+     "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+    },
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:192-202; docs/RELEASE_NOTES_0.7.0.md:6-12",
+     "quote": "\"## The System menu is gone ... All of it could move, so it is eliminated. The right end of the head now holds only **Programs**\" (0.7.0)"
+    },
+    {
+     "cite": "docs/RELEASE_NOTES_0.7.0.md:21 (table row \"Game | the foot of **Programs**\"); RECORD_OF_DIRECTIONS.md:287",
+     "quote": "\"Game | the foot of Programs\""
+    }
+   ],
+   "action": "RETIRE",
+   "fold_into": "test_graphite.test_the_startup_screen_never_stops_the_start (startup screen); step 01 (splash shown while building) passed and is the only live part",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_rename_ui.py": {
+   "in_gate": true,
+   "lines": 209,
+   "checks": "GRAPHITE-01 G-C: Graphite the one public name on screen; settings roots Workspace/Assistant; the menu is the menu",
+   "stop": "tools/check_rename_ui.py:136 bar.targets['slate'].text() == 'Assignment'",
+   "why": "0.5.3 names; port iteration moved 136 -> 154 (Game row at the foot) -> 163 (right pane title 'Stacy' vs tab list)",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:72-74, 182-184, 286-287",
+     "quote": "\"Stacy is the assistant\"; 0.5.3 \"the line has five names to choose whom is typed to (Stacy, Terminal, Search, Web, Log)\"; \"Programs is called **Apps**\""
+    },
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:182-183, 187-188",
+     "quote": "0.5.3: \"the right pane is one view (Stacy, This, Now, the conversation)\"; \"the right pane's three views made one (\\\"I don't think we need three options\\\")\""
+    }
+   ],
+   "action": "RETIRE",
+   "fold_into": "test_graphite RenameGuardTests (test_the_window_says_graphite_and_the_menu, test_settings_speak_graphite_and_show_workspace_and_assistant) and the external name sweep in both appearances",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_finder_ui.py": {
+   "in_gate": true,
+   "lines": 263,
+   "checks": "HATCH AGENT-01 UI-04: Home as a Finder (Today, storage rows via ledger.browse, three views, preview, Backspace, path bar), every word whole and nothing sideways at 1920/1366/18 pt",
+   "stop": "tools/check_finder_ui.py:112 ui_fit: Apps needs 96 px has 79; Work 38/36; Arrange 67/65",
+   "why": "a measuring fault in tools/ui_fit.py:81-85: a styled QToolButton's chrome is taken as sizeHint - text advance, which over-counts the head's buttons (laid out 1-2 px under the hint, no menu arrow drawn). Grabs show every word whole (shots/head_1366x768.png, apps_1920x1200_x3.png, apps_1366_18pt_x3.png; ink 11..48 of 60 px for Work)",
+   "klass": "DEFECT (tool)",
+   "action": "FIX",
+   "fix": "tools/ui_fit.py: when the hint says short, compare the button's drawn ink with the same words drawn alone (patches/fix_ui_fit_drawn_words.diff); still flags a word really cut (probe/uifit_sanity.py: cut flagged True, whole flagged False)",
+   "result": "PASSED 13 checks, 10 captures",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_paper_ui.py": {
+   "in_gate": true,
+   "lines": 279,
+   "checks": "HATCH DESKTOP-01 WI-3: yellow passages without borders, prose font, writing marker, editors",
+   "stop": "tools/check_paper_ui.py:110 ('cabinet_writing', '#493225', 0.967): passage is not AMBER",
+   "why": "passages are dark plates (ERASER #493225, CARD for the New Idea sheet, AMBER_SOFT for the Project Desk title); port iteration moved 110 -> 131 -> 114",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:144-147",
+     "quote": "\"Nothing on the desk is a white box ... a button or a field is a dark plate with a quiet edge\""
+    }
+   ],
+   "action": "RETIRE",
+   "fold_into": "test_paper (writing marker on the desk colours, ported) and the external boxes_probe (no white boxes)",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_machine_ui.py": {
+   "in_gate": true,
+   "lines": 176,
+   "checks": "DESKTOP-01 WI-4 / AC10: the left pane's tabs, the Machine row's tooltip and sampling, Import/Export homes",
+   "stop": "tools/check_machine_ui.py:75 tabs == ['Machine','Cabinet','Settings']",
+   "why": "the tabs are Files, Machine, Settings (BOSS M1)",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+     "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+    }
+   ],
+   "action": "PORT",
+   "port": "tabs == ['Files','Machine','Settings'] (one line)",
+   "result": "PASSED 8 checks, 4 captures",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button)."
+  },
+  "tools/check_continue_ui.py": {
+   "in_gate": true,
+   "lines": 224,
+   "checks": "HATCH AGENT-02 WI-A: work continues while Graphite is closed (lease, release on close, service pump steps, Today says so, adopt on reopen)",
+   "stop": "tools/check_continue_ui.py:142 agent_loop.pump(k) == [] after a new window opens",
+   "why": "two causes. (1) DEFECT: may_step -> resource_control.background_reason (resource_control.py:315) calls brain_runtime.host() with the hardware profile -> inference_hardware.snapshot -> dpkg-query; under the check's process hold the AssertionError is swallowed by may_step's except (agent_loop.py:781) and the service never steps. The same read is in model_room (resource_control.py:290). 13ddfc5 moved the other memory-only readers to host(profile=False) and missed these two; brain_runtime.py:11-13 states the rule. On the ThinkPad it means the 5 s service tick and every model launch read the package inventory (a dpkg-query every 15 min, PACKAGES_FOR=900) to learn free memory, and any exception there silently stops work continuing. (2) STALE: since 0.2a3 (P06, version.py:46) background work yields for an 8 s foreground lease (resource_control.py:74-84, 316); the check calls pump within 8 s of window activity.",
+   "klass": "DEFECT + STALE",
+   "action": "FIX-CODE + PORT",
+   "fix": "patches/fix_resource_control_memory_only.diff (host(profile=False) at resource_control.py:290 and :315); then rebuild the manifest (tools/package_graphite.py --manifest-only)",
+   "port": "before each pump, expire the window's foreground lease (the service's tick comes after it)",
+   "result": "PASSED 11 checks, 4 captures with both; with the port alone it still stops at the same line (pump [])",
+   "when": "Same stop line at aa0ce07, the first commit (the 0.2a13 import; rerun here: logs/ui/a13_*.err), at the 0.7.0 baseline (work/reports2/ui_070d.json) and 0.8.2 (ui_082.json); RELEASE_NOTES_0.3.md:54-55 already says \"ten older window checks still fail because they describe the earlier desk\". Edited since only by sweeps that left the stop lines (2ca282c poem->prompt, 94b0dee System button).",
+   "regression_check": "with the fix: test_agent_loop, test_conditions, test_continue_setting, test_resource_rules, test_related, test_continuing_work, test_network_watch pass; ported test_model_settings passes"
+  },
+  "tools/check_cabinet_ui.py": {
+   "in_gate": false,
+   "lines": 126,
+   "checks": "the logical cabinet and the prompt invitation",
+   "stop": "tools/check_cabinet_ui.py:116 [('CentreFindWords','words to find')] not 'prompt'",
+   "why": "Find's own line (0.5.0, Find on every page) has its own hint; the rule is the writing hint (RECORD_OF_DIRECTIONS.md:285)",
+   "klass": "STALE",
+   "action": "PORT",
+   "port": "exclude CentreFindWords (one line)",
+   "result": "PASSED 18 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Passed at aa0ce07; first fails at c748812 (0.5.0 Find on every page), bisected: logs/bisect_ui_2.txt"
+  },
+  "tools/check_cabinet_actions_ui.py": {
+   "in_gate": false,
+   "lines": 111,
+   "checks": "record actions: the shared ledger.cabinet.actions snapshot, prepare writing, the tree right-click model",
+   "stop": "tools/check_cabinet_actions_ui.py:70 the tree right-click popup carries no action_model",
+   "why": "the tree opens the desk's right-click (cabinet_qt.py:268-274, context_menu.open_at), reshaped in 0.8.1",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:262-266",
+     "quote": "\"One shape everywhere: the thing named with its glyph, up to four usual actions, Then › ... and More › in named groups\""
+    }
+   ],
+   "action": "PORT",
+   "port": "drop the right-click step (it is check_context_menu_ui's, in the gate and passing)",
+   "result": "PASSED 11 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Fails at aa0ce07 (the 0.2a13 import) at the same line: older than git history"
+  },
+  "tools/check_explore_ui.py": {
+   "in_gate": false,
+   "lines": 114,
+   "checks": "Explore, menu identity, draft preservation",
+   "stop": null,
+   "klass": "PASSES",
+   "action": "keep (candidate for the gate)",
+   "result": "PASSED 15 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Passes at aa0ce07 and d1df337"
+  },
+  "tools/check_navigation_ui.py": {
+   "in_gate": false,
+   "lines": 208,
+   "checks": "navigation across the cabinet and Settings, numbered captures",
+   "stop": "tools/check_navigation_ui.py:138 len(rows) == len(entries)+1",
+   "why": "the Apps list ends with Explore the workshop and Game (35 rows for 33 entries)",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "docs/RELEASE_NOTES_0.7.0.md:21 (table row \"Game | the foot of **Programs**\"); RECORD_OF_DIRECTIONS.md:287",
+     "quote": "\"Game | the foot of Programs\""
+    }
+   ],
+   "action": "PORT",
+   "port": "+2 (one line)",
+   "result": "PASSED 20 checks, 15 captures",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Passed at aa0ce07; first fails at a95732b (0.7.0, Game at the foot of Programs), bisected: logs/bisect_ui_1.txt"
+  },
+  "tools/check_operations_ui.py": {
+   "in_gate": false,
+   "lines": 123,
+   "checks": "right-column observations and queue controls",
+   "stop": null,
+   "klass": "PASSES",
+   "action": "keep (candidate for the gate)",
+   "result": "PASSED 15 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Passes at aa0ce07 and d1df337"
+  },
+  "tools/check_presentation_settings_ui.py": {
+   "in_gate": false,
+   "checks": "favorites and catalogue views",
+   "stop": "tools/check_presentation_settings_ui.py:118 frame visible: return_thread.footer not visible (trash, Apps, monitors are)",
+   "why": "the Return thread lives in the right pane's Activity view (pane_qt.py:611-612); the pane opens on Stacy since 0.5.3",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:182-183, 187-188",
+     "quote": "0.5.3: \"the right pane is one view (Stacy, This, Now, the conversation)\"; \"the right pane's three views made one (\\\"I don't think we need three options\\\")\""
+    }
+   ],
+   "action": "PORT",
+   "port": "open Activity (shell2.show_operations_face) before asking for the footer (one line)",
+   "result": "PASSED 11 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Stops in the last tenth of the script: every step before it passes. Passed at aa0ce07; first fails at 94244c2 (0.5.0 simple at rest), bisected: logs/bisect_ui_2.txt"
+  },
+  "tools/check_memory_cabinet_ui.py": {
+   "in_gate": false,
+   "checks": "owner memory in the cabinet",
+   "stop": "tools/check_memory_cabinet_ui.py:110 frame visible: return_thread.footer not visible (trash, Apps, monitors are)",
+   "why": "the Return thread lives in the right pane's Activity view (pane_qt.py:611-612); the pane opens on Stacy since 0.5.3",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:182-183, 187-188",
+     "quote": "0.5.3: \"the right pane is one view (Stacy, This, Now, the conversation)\"; \"the right pane's three views made one (\\\"I don't think we need three options\\\")\""
+    }
+   ],
+   "action": "PORT",
+   "port": "open Activity (shell2.show_operations_face) before asking for the footer (one line)",
+   "result": "PASSED 14 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Stops in the last tenth of the script: every step before it passes. Passed at aa0ce07; same assertion as check_presentation_settings_ui and check_return_thread_ui, which bisect to 94244c2 (0.5.0 simple at rest)"
+  },
+  "tools/check_memory_settings_ui.py": {
+   "in_gate": false,
+   "checks": "memory settings",
+   "stop": "tools/check_memory_settings_ui.py:98 frame visible: return_thread.footer not visible (trash, Apps, monitors are)",
+   "why": "the Return thread lives in the right pane's Activity view (pane_qt.py:611-612); the pane opens on Stacy since 0.5.3",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:182-183, 187-188",
+     "quote": "0.5.3: \"the right pane is one view (Stacy, This, Now, the conversation)\"; \"the right pane's three views made one (\\\"I don't think we need three options\\\")\""
+    }
+   ],
+   "action": "PORT",
+   "port": "open Activity (shell2.show_operations_face) before asking for the footer (one line)",
+   "result": "PASSED 13 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Stops in the last tenth of the script: every step before it passes. Passed at aa0ce07; same assertion as check_presentation_settings_ui and check_return_thread_ui, which bisect to 94244c2 (0.5.0 simple at rest)"
+  },
+  "tools/check_model_settings_ui.py": {
+   "in_gate": false,
+   "checks": "local model launch defaults",
+   "stop": "tools/check_model_settings_ui.py:104 frame visible: return_thread.footer not visible (trash, Apps, monitors are)",
+   "why": "the Return thread lives in the right pane's Activity view (pane_qt.py:611-612); the pane opens on Stacy since 0.5.3",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:182-183, 187-188",
+     "quote": "0.5.3: \"the right pane is one view (Stacy, This, Now, the conversation)\"; \"the right pane's three views made one (\\\"I don't think we need three options\\\")\""
+    }
+   ],
+   "action": "PORT",
+   "port": "open Activity (shell2.show_operations_face) before asking for the footer (one line)",
+   "result": "PASSED 11 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Stops in the last tenth of the script: every step before it passes. Passed at aa0ce07; same assertion as check_presentation_settings_ui and check_return_thread_ui, which bisect to 94244c2 (0.5.0 simple at rest)"
+  },
+  "tools/check_return_thread_ui.py": {
+   "in_gate": false,
+   "lines": 135,
+   "checks": "leaving and returning: the return thread",
+   "stop": "tools/check_return_thread_ui.py:36 thread.footer not visible",
+   "why": "same: in Activity since 0.5.3",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "RECORD_OF_DIRECTIONS.md:182-183, 187-188",
+     "quote": "0.5.3: \"the right pane is one view (Stacy, This, Now, the conversation)\"; \"the right pane's three views made one (\\\"I don't think we need three options\\\")\""
+    }
+   ],
+   "action": "PORT",
+   "port": "open Activity first (one line)",
+   "result": "PASSED 17 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Passed at aa0ce07; first fails at 94244c2 (0.5.0 simple at rest: Stacy first on the right), bisected: logs/bisect_ui_1.txt"
+  },
+  "tools/check_settings_ui.py": {
+   "in_gate": false,
+   "lines": 124,
+   "checks": "the settings editor: typed edits, Apply, drafts, consumer readback",
+   "stop": "tools/check_settings_ui.py:57 Apply text colour == '#885e64'",
+   "why": "a 0.1 paper colour; Apply's ink is the desk text (#eee9dd)",
+   "klass": "STALE",
+   "superseded_by": [
+    {
+     "cite": "docs/BOSS_M1.md:18-20; workbench/version.py:48; RECORD_OF_DIRECTIONS.md:80-81",
+     "quote": "0.2a1: \"Corner logos and the peeking cat no longer reserve desk space. The left trees are Files, Machine and Settings\" (BOSS_M1.md); \"The look. Near-black ground, cream reading text. Amber is what is selected, what has the keyboard and what waits for the owner\" (record)"
+    }
+   ],
+   "action": "PORT",
+   "port": "drop the colour line",
+   "result": "PASSED 14 checks",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Fails at aa0ce07 (the 0.2a13 import) at the same line: older than git history"
+  },
+  "tools/check_settings_02_ui.py": {
+   "in_gate": false,
+   "lines": 129,
+   "checks": "session batches, layout and provider preferences; the script menu and the registry share appearance.cursive and Undo",
+   "stop": "tools/check_settings_02_ui.py:52 read('appearance.cursive')['stored'] is False",
+   "why": "the 'Pleasantries in script' toggle starts unchecked because shell2.cursive_on always returns False (shell2.py:66-69, 'BOSS uses readable terminal lettering'), so setChecked(False) changes nothing; the toggle still sits in Tools > Engineering > More (probe/menus.py) and writes appearance.cursive, which nothing reads: a control that does nothing",
+   "klass": "STALE + DEFECT (dead control)",
+   "action": "PORT + FIX-CODE",
+   "port": "toggle on then off; assert the shared setting and its Undo; drop SCRIPT_ON",
+   "fix": "remove the 'Pleasantries in script' action (shell2.py:3299-3312) and '@pleasantries' (menus2.py:197), or make cursive_on honour the setting; owner rule RECORD_OF_DIRECTIONS.md:141 'a control is lit only when a press would do something'. Retiring appearance.cursive itself changes the registry record (regenerate it).",
+   "result": "PASSED 15 checks (port)",
+   "when": "Never run by the gate (tools/check_hatch.py:94-100 ON_DEMAND_CHECKS). Fails at aa0ce07 (the 0.2a13 import) at the same line: older than git history"
+  }
+ },
+ "files": {
+  "patches": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/patches",
+  "ported_tests_tree": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/tree",
+  "patched_copy": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/tree_clean",
+  "exploration_copy": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/tree_port",
+  "logs": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/logs",
+  "ui_logs": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/logs/ui",
+  "shots": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/shots",
+  "probes": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/failing/probe"
+ }
+}

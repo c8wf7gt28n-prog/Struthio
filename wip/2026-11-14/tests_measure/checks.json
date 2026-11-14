@@ -1,0 +1,1872 @@
+{
+ "source_commit": "d1df337",
+ "measured": {
+  "release_0.8.2_seconds": {
+   "suite": 489.7,
+   "scene_graphite": 70.9,
+   "scene_kasandra": 71.9,
+   "probes_1920x1200": 923.1,
+   "probes_1366x768": 922.8,
+   "crawl_graphite": 841.7,
+   "sweep_graphite": 12.2,
+   "crawl_kasandra": 841.7,
+   "sweep_kasandra": 11.5,
+   "gate": 191.0,
+   "total": 4376.5
+  },
+  "method": "sequential (checks_082.sh); start = birth time of the extracted trees"
+ },
+ "probes": {
+  "look_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/look_probe.py:6,17,20-21,29,31 (LOOK PROBE at :32)",
+   "checks": "a fresh workspace opens with icons and Stacy on the right; the head says a page's name, not its address, for four pages; a click shows the whole address selected, Esc puts the name back; Z glides through at least two zooms; with less motion Z is at once",
+   "suite": "test_desk_acts.py:356 sweeps point.zoom (whole/larger/smaller/reading) and :664 look.set motion, asserting only that the acts change nothing; no test names PathBar, friendly(), edit_location or the glide",
+   "unique": "the head's name-versus-address rule and the glide itself",
+   "record": "FAIL in the 0.6.1 run (a 22 ms sample saw too few steps under load; passed twice on the same commit, kit_START_HERE_061.md:255-256); FAIL in the 0.8.0 run because the Field now opens whole (probe rewritten, kit_START_HERE_080_sent2.md:119). No program fault found.",
+   "sizes": "size-sensitive by design (at 1920x1200 the Field opens whole, so Z goes the other way)",
+   "proposal": "repository",
+   "how": "the head rule as an assertion in an existing window module (test_desk_acts bench window); Z by point.zoom and look.set in a scene; drop the 22 ms sampling, which is what made it flaky",
+   "seconds_0_8_2": {
+    "1920x1200": 44.0,
+    "1366x768": 43.4
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.855,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "investigations_qt.py",
+    "office_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "head_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/head_probe.py (no ok flag; 3 pictures, 4 menu grabs)",
+   "checks": "the eight menus in the open, the fold button at 1000 wide, pictures of four menus",
+   "suite": "test_desk_acts.py menu_words once; the gate has tools/check_head_ui.py and tools/check_finder_ui.py on the same head (both stop early)",
+   "unique": "nothing judged; the pictures",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "on_demand",
+   "how": "a picture for the owner when the head changes; its one fact (at 1000 wide the rightmost menus fold into one button that lists all) can be one assertion",
+   "seconds_0_8_2": {
+    "1920x1200": 21.6,
+    "1366x768": 21.8
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.684,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "glow_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/glow_probe.py (no ok flag; 5 pictures)",
+   "checks": "the glow dial Soft/Bright/Neon is kept in the session; pictures at each level and the Clean desk",
+   "suite": "test_faces_find_light references boss_theme.GLOW 5 times",
+   "unique": "the pictures",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "on_demand",
+   "how": "pictures when the look is being changed; nothing to check per release",
+   "seconds_0_8_2": {
+    "1920x1200": 21.6,
+    "1366x768": 21.3
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.749,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "office_qt.py",
+    "page_light.py"
+   ]
+  },
+  "centre_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/centre_probe.py (no ok flag)",
+   "checks": "the bar above the work is shown over a page and hidden for the Field and Home; + and - change the table's letters; Save from the bar; \u2039 Field goes back",
+   "suite": "test_frame.py names bar.save 5 times (no live window)",
+   "unique": "shown/hidden by view, Save lit only with something to save (printed, not judged)",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "two assertions (shown over a page, hidden over the Field and Home; Save lit only when dirty) in the bench-window module; the rest retired",
+   "seconds_0_8_2": {
+    "1920x1200": 21.3,
+    "1366x768": 20.6
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.738,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "empty_workspace_qt.py",
+    "office_qt.py",
+    "page_light.py"
+   ]
+  },
+  "audit_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/audit_probe.py:5-8 prints booleans, never judges them",
+   "checks": "the 0.4.9 \"one home for each action\" facts: no Open button, no words that scroll, faces once, Z once; Save lit only with something to save; Desk artwork under Rules",
+   "suite": "test_desk.py names _hot once",
+   "unique": "the audit facts, printed only",
+   "record": "no failure on record; at 1366x768 the Field's click places lose Trace, Brief, Line and Look again (logs082 set_1366x768/audit_probe.log line 5), printed and never judged",
+   "sizes": "differs: the foot loses four places at 1366x768",
+   "proposal": "repository",
+   "how": "turn the five printed booleans into assertions in a repo test, or retire; as run they cannot fail",
+   "seconds_0_8_2": {
+    "1920x1200": 32.3,
+    "1366x768": 32.1
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.842,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "office_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "mouse_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/mouse_probe.py (no ok flag; 7 pictures)",
+   "checks": "the owner's mouse path (RECORD_OF_DIRECTIONS.md:228): open a tile by click, change a cell by double-click, Save, back to the Field, right-click, the key card's T, D do, Approve by click, X, Close; then the same through Stacy and G",
+   "suite": "test_desk_scenes.py:50-61 plays P01 by pointer (point.sheet, sheet.trace, sheet.compare, sheet.close) on the bench seed; test_desk_acts covers hand.approve",
+   "unique": "the cell edit by double-click and Save from the bar; Approve by a click on the Field's go",
+   "record": "0.5.3: failed in the probe, not the program (its drag began on the scroll bar, kit_START_HERE_053.md:207-208); rewritten for 0.6.0 (Ask first, mouse_probe.py:1-2). Dead steps: \"clicked ? keys -> card: None\" at both sizes in every run since 0.5.2 removed the ? keys button (mouse_probe.py:69; logs082 line 15), and the T row is None at 1366x768 in every run since 0.5.3 (mouse_probe.py:75; first None in logs049/mouse_1366_again.log 13 Nov 17:03)",
+   "sizes": "differs: T row not found at 1366x768",
+   "proposal": "repository",
+   "how": "a scene P02 \"the mouse path\" from existing acts (point.sheet, hand.cell, go.field, sheet.steps, hand.approve, sheet.doubt, sheet.close) played by test_desk_scenes and by the campaign; drop the ? keys steps",
+   "seconds_0_8_2": {
+    "1920x1200": 29.0,
+    "1366x768": 27.8
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.726,
+   "files_beyond_window_start": [
+    "command_context.py",
+    "config_lock.py",
+    "datasheet_qt.py",
+    "engineering_tabs.py",
+    "field_do.py",
+    "field_doubt.py",
+    "field_ripple.py",
+    "kasandra_art.py",
+    "native_struthio.py",
+    "office_building_qt.py",
+    "office_qt.py",
+    "page_light.py",
+    "stac/__init__.py",
+    "stac/evidence.py",
+    "stac/kernel_witness.py",
+    "stac/knowledge.py",
+    "stac/language.py",
+    "stac/obligations.py",
+    "stac/quantities.py",
+    "stac/runtime.py",
+    "stac/semantics.py",
+    "stac/source_facts.py",
+    "stac/witnesses.py",
+    "stacy_start.py"
+   ]
+  },
+  "mouse2_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/mouse2_probe.py (no ok flag)",
+   "checks": "faces by click, the scroll thumbs and track, - and +, the rail's line key, Read on, the double-click guard",
+   "suite": "none by identifier",
+   "unique": "the double-click guard (a click's second press never reaches the page under it)",
+   "record": "rewritten for 0.8.1 (kit_START_HERE_081_sent.md:113)",
+   "sizes": "differs (bars and read-on distances)",
+   "proposal": "repository",
+   "how": "the double-click guard as one regression test; the rest retired",
+   "seconds_0_8_2": {
+    "1920x1200": 16.6,
+    "1366x768": 13.7
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.675,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "office_qt.py",
+    "page_light.py"
+   ]
+  },
+  "pages_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/pages_probe.py (no ok flag; 4 pictures)",
+   "checks": "pictures of the sheet, PDF, writing and finding pages with the buttons in view and the More lists",
+   "suite": "none",
+   "unique": "the pictures",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "retire",
+   "how": "the crawler lists the same pages' controls; pictures on demand",
+   "seconds_0_8_2": {
+    "1920x1200": 39.0,
+    "1366x768": 39.0
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.855,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "investigations_qt.py",
+    "office_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "more_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/more_probe.py:30 ends in \"or True\", so the underline check is always True",
+   "checks": "More menu lines press the buttons they stand for; a dimmed line says why; a tool turns green under the pointer",
+   "suite": "none",
+   "unique": "More presses the hidden button",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "retire",
+   "how": "the press equivalence is one assertion if wanted; the underline check is a tautology",
+   "seconds_0_8_2": {
+    "1920x1200": 21.7,
+    "1366x768": 22.2
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.794,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "office_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "icons_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/icons_probe.py:21-71 (ICONS PROBE)",
+   "checks": "Words/Icons: the same buttons by their words, a bare glyph at most 34 px, + on the glyph steps the PDF, tips of bare glyphs, Buttons under Rules, widths restored, opens with icons",
+   "suite": "test_faces_find_light: icons_change_only_the_width_and_going_back_restores_it, a_workspace_that_never_chose_opens_with_icons_and_a_choice_is_kept, a_glyph_is_painted_only_when_icons_are_chosen (tool_faces named 42 times)",
+   "unique": "the 34 px limit and the tips on the real pages; the menu placement",
+   "record": "its first run caught \"More \u25be\" wider than 34 px (logs049/icons_fh.log, 0.4.9 development) and the icon work led to the 0.4.9 crash (4e7244c). Nothing since.",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "the 34 px and tip assertions into test_faces_find_light on a bench window; 2 minutes now, of which 92 % fixed waits",
+   "seconds_0_8_2": {
+    "1920x1200": 123.4,
+    "1366x768": 123.0
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.918,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "investigations_qt.py",
+    "office_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "crash_probe": {
+   "verdict": "process",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/crash_probe.py:13 prints PASS unconditionally; the verdict is the process not ending (\"terminate called\")",
+   "checks": "the 0.4.9 crash: the keyboard on \"Compare sources again\" while the finding re-renders, three times",
+   "suite": "none (centre_bar.focus_moved is named in no test)",
+   "unique": "the only regression check for the fault that ended the program (4e7244c)",
+   "record": "reproduced the crash before the fix (logs049/crash_before.log: std::bad_typeid); passed every run since",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "a regression test (needs a finding page: the After Hours 07 fixture or a bench seed with a finding)",
+   "seconds_0_8_2": {
+    "1920x1200": 28.9,
+    "1366x768": 28.5
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.827,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "investigations_qt.py"
+   ]
+  },
+  "boxes_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/boxes_probe.py (no ok flag; 5 pictures)",
+   "checks": "the PDF page in the desk's light and in its own, the Review table dialog, the menus, Machine/Settings/Talk pictures",
+   "suite": "test_faces_find_light: white_paper_comes_down_and_black_ink_stays_black..., the_choice_is_read_from_the_session...",
+   "unique": "the pictures",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "on_demand",
+   "how": "pictures when the look changes",
+   "seconds_0_8_2": {
+    "1920x1200": 24.0,
+    "1366x768": 23.3
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.725,
+   "files_beyond_window_start": [
+    "cabinet_actions_qt.py",
+    "config_lock.py",
+    "datasheet_qt.py",
+    "hardware_settings_qt.py",
+    "memory_cabinet_qt.py",
+    "model_settings_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "map_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/map_probe.py (no ok flag; 6 pictures)",
+   "checks": "Z far: the map, arrows while far, + +, the zoom written to the session file",
+   "suite": "test_faces_find_light: buttons_page_light_and_field_zoom_round_trip_and_nonsense_is_dropped",
+   "unique": "the pictures",
+   "record": "no failure on record",
+   "sizes": "differs (at 1920x1200 the Field already fits)",
+   "proposal": "on_demand",
+   "how": "pictures on demand; the session write is tested",
+   "seconds_0_8_2": {
+    "1920x1200": 16.1,
+    "1366x768": 15.2
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.671,
+   "files_beyond_window_start": [
+    "config_lock.py"
+   ]
+  },
+  "find_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/find_probe.py:15-37 (FIND PROBE)",
+   "checks": "Find on five page kinds: lit, the line takes the keys, counts, Enter and Shift+Enter step, \"not here\", Esc hides; Ctrl+F and F3; another page closes the line; a finding replaced while searching",
+   "suite": "test_faces_find_light has six search-logic tests (no live bar)",
+   "unique": "the live loop on each page kind",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "release_one_size",
+   "how": "until the After Hours 07 pages exist in the repo; 1.6 minutes, 92 % fixed waits",
+   "seconds_0_8_2": {
+    "1920x1200": 98.7,
+    "1366x768": 99.9
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.908,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "investigations_qt.py",
+    "office_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "zoom_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/zoom_probe.py (no ok flag)",
+   "checks": "Z fit, a click while zoomed opens the right sheet, arrows keep it in view, - and +, Ctrl+wheel keeps the sheet under the pointer, a drag moves by the hand over the zoom, Ctrl+0",
+   "suite": "test_desk_acts.py:356 point.zoom sweep (changes nothing)",
+   "unique": "the wheel-about-the-pointer and drag invariants (printed, not judged)",
+   "record": "no failure on record",
+   "sizes": "differs (fit at 1920x1200)",
+   "proposal": "repository",
+   "how": "the two invariants as assertions; the rest retired",
+   "seconds_0_8_2": {
+    "1920x1200": 11.8,
+    "1366x768": 10.7
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.467,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "office_qt.py",
+    "page_light.py"
+   ]
+  },
+  "amber_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/amber_probe.py:25 (no ok flag)",
+   "checks": "amber pictures: the sheet with the keyboard, a change that waits, after G, the lamp at the head",
+   "suite": "none",
+   "unique": "the pictures",
+   "record": "at 1366x768 \"a lamp at the head says something waits, and can be clicked: False\" in every stored run since 0.4.9 (logs049/set_e_1366x768, logs081, logs082), never judged",
+   "sizes": "differs: the lamp is not clickable at 1366x768",
+   "proposal": "on_demand",
+   "how": "pictures on demand; decide whether the lamp at 1366x768 is meant, then assert it",
+   "seconds_0_8_2": {
+    "1920x1200": 13.2,
+    "1366x768": 12.9
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.563,
+   "files_beyond_window_start": [
+    "field_do.py",
+    "field_doubt.py",
+    "field_ripple.py",
+    "kasandra_art.py",
+    "office_building_qt.py",
+    "stac/__init__.py",
+    "stac/evidence.py",
+    "stac/kernel_witness.py",
+    "stac/knowledge.py",
+    "stac/language.py",
+    "stac/obligations.py",
+    "stac/quantities.py",
+    "stac/runtime.py",
+    "stac/semantics.py",
+    "stac/source_facts.py",
+    "stac/witnesses.py",
+    "stacy_start.py"
+   ]
+  },
+  "green_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/green_probe.py (no ok flag)",
+   "checks": "the pointer sheet, who holds the green pointer, Clean has no glow, the live readings glow, menus green under the pointer",
+   "suite": "test_graphite pointer tests (the_pointer_is_drawn_crisp_with_the_click_at_the_tip)",
+   "unique": "pictures",
+   "record": "at 1366x768 its hover finds no sheet (green_probe.py:37; \"hover -> under the pointer: None\" in every 1366 run), never judged",
+   "sizes": "differs (hover misses at 1366x768)",
+   "proposal": "on_demand",
+   "how": "pictures when pointer.py or the theme changes",
+   "seconds_0_8_2": {
+    "1920x1200": 7.3,
+    "1366x768": 6.8
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.286,
+   "files_beyond_window_start": [
+    "config_lock.py"
+   ]
+  },
+  "cascade_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/cascade_probe.py (no ok flag)",
+   "checks": "the right-click on the Field: What if, Doubt it, Trace it, What can be done, Your words, the Field's own menu, the drill",
+   "suite": "test_context_menu (44 tests) and test_desk_acts (field:whatif, field:trace, field:do, field:words; menu.choose)",
+   "unique": "little: the Field's own menu, which at 1366x768 the probe never reaches (cascade_probe.py:41 points at x=6, a sheet there)",
+   "record": "rewritten for 0.8.1 (kit_START_HERE_081_sent.md:113)",
+   "sizes": "differs (probe artefact)",
+   "proposal": "retire",
+   "how": "covered by test_context_menu and the desk acts",
+   "seconds_0_8_2": {
+    "1920x1200": 13.7,
+    "1366x768": 13.2
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.496,
+   "files_beyond_window_start": [
+    "command_context.py",
+    "engineering_tabs.py",
+    "field_do.py",
+    "field_doubt.py",
+    "field_ripple.py",
+    "native_struthio.py",
+    "office_building_qt.py",
+    "stac/__init__.py",
+    "stac/evidence.py",
+    "stac/kernel_witness.py",
+    "stac/knowledge.py",
+    "stac/language.py",
+    "stac/obligations.py",
+    "stac/quantities.py",
+    "stac/runtime.py",
+    "stac/semantics.py",
+    "stac/source_facts.py",
+    "stac/witnesses.py",
+    "stacy_start.py"
+   ]
+  },
+  "ux044_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/ux044_probe.py (no ok flag)",
+   "checks": "? card, D ignored while open, X doubt page, arrows step aside, what-if rows, T, B brief as a page, Esc withdraws the go, G after Esc keeps nothing, B then G keeps the brief",
+   "suite": "test_desk_acts sheet.doubt, sheet.trace, sheet.steps acts",
+   "unique": "the brief's go withdrawn by Esc (printed)",
+   "record": "rewritten for 0.6.0 (Ask first)",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "the Esc-withdraws-the-go rule as one assertion; the rest via acts",
+   "seconds_0_8_2": {
+    "1920x1200": 21.7,
+    "1366x768": 19.8
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.568,
+   "files_beyond_window_start": [
+    "field_brief.py",
+    "field_do.py",
+    "field_doubt.py",
+    "field_ripple.py",
+    "kasandra_art.py",
+    "office_building_qt.py",
+    "stac/__init__.py",
+    "stac/evidence.py",
+    "stac/kernel_witness.py",
+    "stac/knowledge.py",
+    "stac/language.py",
+    "stac/obligations.py",
+    "stac/quantities.py",
+    "stac/runtime.py",
+    "stac/semantics.py",
+    "stac/source_facts.py",
+    "stac/witnesses.py",
+    "stacy_start.py"
+   ]
+  },
+  "first_probe": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/first_probe.py (3 lines); tools/field/nomodel.py:8 runs the empty workspace only with a 5th argument \"empty\", which checks_082.sh never passes",
+   "checks": "meant: Home and the Field of an empty workspace",
+   "suite": "none",
+   "unique": "nothing as run: it pictures After Hours 07 (\"empty field objects: 14\" in 28 stored runs; 0 only in the 8 runs of 0.4.6-0.4.8)",
+   "record": "has not looked at an empty workspace since 0.4.9",
+   "sizes": "same output at both sizes",
+   "proposal": "fix_or_retire",
+   "how": "pass \"empty\" or retire",
+   "seconds_0_8_2": {
+    "1920x1200": 6.6,
+    "1366x768": 6.0
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.333,
+   "files_beyond_window_start": []
+  },
+  "eq_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/eq_probe.py:5-27 (EQ PROBE)",
+   "checks": "the equalizer: 14 bars in 6 groups, a click opens a 7-line card, a busy thread raises a bar, the address only while typed (Ctrl+L), Esc, a click on the name",
+   "suite": "test_faces_find_light: six equalizer tests (threads, groups, scales)",
+   "unique": "the live swap of address and equalizer, the card",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes (readings differ)",
+   "proposal": "release_one_size",
+   "how": "the swap is cheap as a repo assertion; the busy-thread part needs a real machine",
+   "seconds_0_8_2": {
+    "1920x1200": 25.2,
+    "1366x768": 24.2
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.763,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "page_light.py",
+    "pdf_qt.py"
+   ]
+  },
+  "pane_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/pane_probe.py:7-21 (PANE PROBE)",
+   "checks": "the right pane at rest has no title row; \"more\" opens Context with the way back; the title returns; \"activity\" opens Activity",
+   "suite": "test_desk_acts.py:344 go.pane sweep (changes nothing)",
+   "unique": "the title row and the way back",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "a scene step with go.pane and read.desk",
+   "seconds_0_8_2": {
+    "1920x1200": 21.3,
+    "1366x768": 20.8
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.784,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "office_qt.py",
+    "page_light.py"
+   ]
+  },
+  "line_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/line_probe.py:6-42 (LINE PROBE)",
+   "checks": "five names whole and in order, the chosen one lit, an address goes to Web, no browser said, the arrow's words, a line runs, no tip names a key",
+   "suite": "test_writing_line: five_modes..., web_tells_an_address_from_words..., typing_never_changes_whom_the_words_go_to, the_arrow_runs_a_line_that_reads_as_stac_and_asks_with_any_other",
+   "unique": "names whole at the window's width; no tip names a key",
+   "record": "FAIL once in 0.7.0 development (the arrow ran nothing, logs049/line_probe_070d.log; passed 5 minutes later); FAIL in 0.8.0 during the rename to \"a line\" (logs080/sweep_line_probe.log, klr_1920.log), then rewritten",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "the two unique assertions into test_writing_line",
+   "seconds_0_8_2": {
+    "1920x1200": 21.7,
+    "1366x768": 21.7
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.744,
+   "files_beyond_window_start": [
+    "config_lock.py"
+   ]
+  },
+  "hand_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/hand_probe.py:12-108 (HAND PROBE, 28 conditions)",
+   "checks": "Stacy's hand in the window: Do and show with Undo, an Undo refused when not exact, Ask first, what the records mark, Free hand and noticing, the Terminal, artifacts at her word, the guards of 0.7.0, the trail and what always asks",
+   "suite": "test_stacy_hand (19 rule tests, no window); test_desk_acts hand.* on a live window (hand_write_never_writes_over_a_file, hand_approve_reports_what_it_approved, change_acts_follow_her_dial)",
+   "unique": "the cards' Undo words, noticing at Free hand, the Terminal routing in the window",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "a scene P03 from hand.dial, hand.cell, hand.write, hand.undo, hand.approve; one size at release until then (1.4 minutes, 83 % fixed waits)",
+   "seconds_0_8_2": {
+    "1920x1200": 84.8,
+    "1366x768": 83.0
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.834,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "field_do.py",
+    "field_doubt.py",
+    "field_ripple.py",
+    "kasandra_art.py",
+    "stac/__init__.py",
+    "stac/evidence.py",
+    "stac/kernel_witness.py",
+    "stac/knowledge.py",
+    "stac/language.py",
+    "stac/obligations.py",
+    "stac/quantities.py",
+    "stac/runtime.py",
+    "stac/semantics.py",
+    "stac/source_facts.py",
+    "stac/witnesses.py",
+    "stacy_start.py"
+   ]
+  },
+  "start_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/start_probe.py:17-61 (START PROBE)",
+   "checks": "\"start a Godot project called Lander\": files made, Undo, refused twice, reserved names, Approve with Godot stood in, Free hand starts it, Ask first",
+   "suite": "test_stacy_start (14 tests, including the files run in a real Godot)",
+   "unique": "the live cards",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "release_one_size",
+   "how": "one size; it reads a Godot script outside the repository (start_probe.py:24)",
+   "seconds_0_8_2": {
+    "1920x1200": 47.0,
+    "1366x768": 46.3
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.879,
+   "files_beyond_window_start": [
+    "chain_workbench_qt.py",
+    "config_lock.py",
+    "field_do.py",
+    "kasandra_art.py",
+    "sheet_workbench_qt.py",
+    "stacy_start.py",
+    "universal_viewer_qt.py"
+   ]
+  },
+  "door_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/door_probe.py:8-53 (DOOR PROBE)",
+   "checks": "each meter is a door (CPU/GPU/RAM/TXT cards inside the window with their words), Brain room, Machine, the way back, the Work menu ends, Apps ends with Game, the line's expand, a real echo in the Terminal",
+   "suite": "test_desk_acts.py:338 head.meter for CPU/GPU/RAM/TXT/equalizer (changes nothing)",
+   "unique": "the cards' words and that they stay inside the window",
+   "record": "FAIL during the 0.8.0 rename (logs080/sweep_door_probe.log), then passed",
+   "sizes": "same output at both sizes (numbers differ)",
+   "proposal": "repository",
+   "how": "a scene step per meter with read.desk; the Terminal echo stays a release step",
+   "seconds_0_8_2": {
+    "1920x1200": 45.4,
+    "1366x768": 66.6
+   },
+   "same_output_both_sizes": false,
+   "fixed_wait_share": 0.888,
+   "files_beyond_window_start": [
+    "cabinet_actions_qt.py",
+    "config_lock.py",
+    "desk_acts.py",
+    "memory_cabinet_qt.py",
+    "office_building_qt.py",
+    "system_menu_qt.py"
+   ]
+  },
+  "kasandra_probe": {
+   "verdict": "asserts",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/kasandra_probe.py:8-77 (KASANDRA PROBE OK/WRONG)",
+   "checks": "the Kasandra appearance in the window: palette, typewriter face, her name on the strip, her face follows the work (idle, awaiting_approval, completed, working, blocked), the Approve colour, Clean shows no art, Apps is the kp mark",
+   "suite": "test_kasandra (20 tests, no window)",
+   "unique": "her art following the live state, Clean, the Apps mark",
+   "record": "WRONG during 0.8.0 development (no glyphs in her column, no Programs icon: logs049/set_q_1366x768/kasandra_probe.log), fixed before release (48d889b); edited for 0.8.2",
+   "sizes": "same output at both sizes",
+   "proposal": "release_one_size",
+   "how": "the only window check of her appearance besides the scene; 20 s",
+   "seconds_0_8_2": {
+    "1920x1200": 21.3,
+    "1366x768": 19.3
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": 0.684,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "empty_workspace_qt.py",
+    "field_do.py",
+    "field_doubt.py",
+    "field_ripple.py",
+    "kasandra_art.py",
+    "stac/__init__.py",
+    "stac/evidence.py",
+    "stac/kernel_witness.py",
+    "stac/knowledge.py",
+    "stac/language.py",
+    "stac/obligations.py",
+    "stac/quantities.py",
+    "stac/runtime.py",
+    "stac/semantics.py",
+    "stac/source_facts.py",
+    "stac/witnesses.py",
+    "stacy_start.py"
+   ]
+  },
+  "window": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/window.py:58 (one assert: F9 is the Field's key)",
+   "checks": "0.3: the Field from Home, census, Shift+Enter runs a line, S, Enter opens pages, Esc",
+   "suite": "test_desk_acts go.field, go.open, point.sheet",
+   "unique": "the F9 shortcut assertion",
+   "record": "no failure on record (since 12 Nov)",
+   "sizes": "same output at both sizes",
+   "proposal": "retire",
+   "how": "its steps are desk acts now",
+   "seconds_0_8_2": {
+    "1920x1200": 13.2,
+    "1366x768": 12.3
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": null,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "datasheet_qt.py",
+    "empty_workspace_qt.py",
+    "office_qt.py",
+    "page_light.py"
+   ]
+  },
+  "stacy": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/stacy.py (no assertion)",
+   "checks": "0.3.1: her face in three art modes, a plain question, Ask Stacy from a calculation's menu, answered in a line",
+   "suite": "test_desk_acts field:ask; test_kasandra she_is_stacy_in_graphite_and_kasandra_in_kasandra",
+   "unique": "nothing judged",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "retire",
+   "how": "-",
+   "seconds_0_8_2": {
+    "1920x1200": 10.6,
+    "1366x768": 9.6
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": null,
+   "files_beyond_window_start": [
+    "config_lock.py",
+    "field_do.py",
+    "office_building_qt.py",
+    "stacy_start.py"
+   ]
+  },
+  "regress": {
+   "verdict": "prints",
+   "where": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/regress.py (one assert, setting the reading size)",
+   "checks": "0.3: S then Esc gives the keyboard back, the Menu key's target, Home, the dock state identical after F9 and Esc, sheets whole at 14/18/28 pt",
+   "suite": "none for saveState or the reading sizes",
+   "unique": "dock state unchanged by the Field; sheets whole at large reading sizes (printed)",
+   "record": "no failure on record",
+   "sizes": "same output at both sizes",
+   "proposal": "repository",
+   "how": "the two invariants as assertions; retire the script",
+   "seconds_0_8_2": {
+    "1920x1200": 20.2,
+    "1366x768": 17.6
+   },
+   "same_output_both_sizes": true,
+   "fixed_wait_share": null,
+   "files_beyond_window_start": [
+    "command_context.py",
+    "config_lock.py",
+    "empty_workspace_qt.py",
+    "engineering_tabs.py",
+    "native_struthio.py",
+    "session_settings.py"
+   ]
+  }
+ },
+ "crawler_sweep_scene": {
+  "crawler": {
+   "what": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/crawl_probe.py: presses every visible control and every More line on five pages (Sheet, PDF, Writing, Finding, Calc) and the bar above them, reopening the page before each press (crawl_probe.py:37-73); looks for tracebacks and the program ending",
+   "cost": "14.0 min per appearance, 28.1 min per release (0.8.2); 94.8 % of a run is fixed waits the script asks for (logs/crawl_timed.log: 836.9 s, 793.1 s of qWait)",
+   "record": "16 stored logs: the first (0.4.9 development, logs049/crawl_words.log) and 15 byte-identical ones (md5 d806cfe7) from 0.5.0 to 0.8.2, in Graphite and in Kasandra; CLEAN every time; my own run at 0.8.2 is the same digits aside. It has never found a fault; the crash it was built to hunt was found by the icons work (4e7244c) and is replayed by crash_probe.",
+   "overlap": "Kasandra crawl = Graphite crawl byte for byte (6 pairs). Its pages are the ones pages_probe, more_probe, icons_probe and find_probe open. It does not reach the head, the Field, Home, Talk, the right-click, Apps or the meters, where every release since 0.5.0 made its changes.",
+   "proposal": "on_change",
+   "how": "retire the Kasandra run now; run the Graphite run only when a page module it runs beyond the window start changes (touch/crawl_probe.json), and replace its fixed waits with waits for a condition",
+   "trigger_files": [
+    "centre_bar.py",
+    "command_context.py",
+    "config_lock.py",
+    "datasheet_qt.py",
+    "engineering_tabs.py",
+    "investigations_qt.py",
+    "native_struthio.py",
+    "office_qt.py",
+    "page_light.py",
+    "pdf_qt.py",
+    "stac/__init__.py",
+    "stac/evidence.py",
+    "stac/kernel_witness.py",
+    "stac/knowledge.py",
+    "stac/language.py",
+    "stac/obligations.py",
+    "stac/quantities.py",
+    "stac/runtime.py",
+    "stac/semantics.py",
+    "stac/source_facts.py",
+    "stac/witnesses.py",
+    "tool_faces.py",
+    "window_views_qt.py"
+   ],
+   "would_have_run": {
+    "0.5.0": [
+     "centre_bar.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "pdf_qt.py",
+     "tool_faces.py"
+    ],
+    "0.5.1": [
+     "centre_bar.py",
+     "tool_faces.py"
+    ],
+    "0.5.2": [
+     "centre_bar.py",
+     "tool_faces.py"
+    ],
+    "0.5.3": [
+     "centre_bar.py"
+    ],
+    "0.6.0": [],
+    "0.6.1": [],
+    "0.7.0": [],
+    "0.8.0": [
+     "investigations_qt.py",
+     "page_light.py",
+     "stac/language.py",
+     "stac/runtime.py"
+    ],
+    "0.8.1": [
+     "tool_faces.py"
+    ],
+    "0.8.2": []
+   },
+   "runs_skipped_of_10": 4
+  },
+  "name_sweep": {
+   "what": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/field/name_sweep.py: every widget's words and every menu line on start, Home, the Field and the line, for stac(?!y) (name_sweep.py:7)",
+   "cost": "12 s per appearance",
+   "record": "found 1 place in 0.8.0 development (\"stac \u203a\", logs080/sweep_graphite.log), 0 at the 0.8.0, 0.8.1 and 0.8.2 releases",
+   "overlap": "test_desk_acts.py:241 and test_context_menu (the_window_never_names_the_language...) check the acts' and the menu's words only",
+   "extra": "the same sweep with keys and \"Programs\" added (tools/wide_sweep.py, 11 s): 0 \"Programs\", 9 strings that print a key (Ctrl+Shift+P, Ctrl+Shift+F12 twice, F11, Ctrl+`, Ctrl+Shift+N, F9 ...) in tips, status tips, one menu line text and accessible descriptions (logs/wide_sweep_graphite.log); the sweep does not ask whether a widget is shown, so these are candidates, matching the 0.5.2 note that tips deep in older rooms may still name a key",
+   "proposal": "repository",
+   "how": "a test on the bench window (test_desk_acts builds one), widened to keys and \"Programs\", with a shown-to-the-owner filter"
+  },
+  "scene": {
+   "what": "tools/campaign.py run --set scenes: P01 on After Hours 07 by pointer, keys, and each with less motion (tools/campaign_lib/cases_scene.py:24), in both appearances",
+   "cost": "70.9 s Graphite + 71.9 s Kasandra (0.8.2)",
+   "record": "one release old. The playable scene found the writing line's results left over the Field (d1df337); the release run found that a Kasandra attempt was played in Graphite and still passed (02498ad)",
+   "overlap": "test_desk_scenes.py:50-83 plays the same P01 five ways (incl. 1366x768) on the bench seed inside the suite (62.7 s); the release run adds the After Hours 07 workspace and Kasandra",
+   "proposal": "release",
+   "how": "keep, both appearances (cheapest check with a real finding); new scenes replace probes"
+  }
+ },
+ "gate": {
+  "what": "tools/check_release.py --ui runs 17 of the 29 tools/check_*_ui.py (tools/check_hatch.py:72-75); 12 more are on demand",
+  "cost": "191 s at 0.8.2; from the capture folders' times about 74 s for the ten that stop early and 117 s for the seven that pass",
+  "passing": [
+   "check_agent_ui",
+   "check_context_menu_ui",
+   "check_document_ui",
+   "check_files_about_ui",
+   "check_hardware_settings_ui",
+   "check_model_turn_ui",
+   "check_service_integration_ui"
+  ],
+  "failing": {
+   "check_continue_ui.py:142": "agent_loop.pump returns [] (a RUNNING service step expected)",
+   "check_desk_ui.py:145": "IndexError in desk_pairs (b.rows() empty); 2 of 172 assertions before it",
+   "check_finder_ui.py:112": "head buttons narrower than their words at 1920 Today; the message changed twice while the line stayed (see hidden)",
+   "check_frame_ui.py:173": "typing strip names ['Assignment', shell, 'Search', 'Log'] (0.5.3 made them Stacy/Kasandra, Terminal, Search, Web, Log)",
+   "check_graphite_ui.py:99": "'D1a: one mark, at the far right' (the wordmark)",
+   "check_hatch_ui.py:124": "opening the Brain room runs dpkg-query (inference_hardware._query_packages) under the no-process hold; 13ddfc5 kept that read on purpose",
+   "check_head_ui.py:106": "head geometry; since 0.7.0 the right-hand widget it measures is [0,0,0,0] (the System button removed)",
+   "check_machine_ui.py:75": "left pane buttons ['Machine','Cabinet','Settings']",
+   "check_paper_ui.py:110": "passage colour '#493225', expected AMBER",
+   "check_rename_ui.py:136": "'Assignment' and 'Open apps' on the strip and the hatch"
+  },
+  "reached": "the ten failing scripts hold 740 assert statements; at most 122 stand before their stop lines, so at least 83 % never run",
+  "record": "34 stored gate results (reports2/ui_base.json to ui_082.json). The seven passing scripts failed together once, in ui_070.json, when 0.7.0 removed the System button on purpose (fixed by editing 16 scripts, 94b0dee). The ten failing scripts stop at the line they stopped at in the imported 0.2a13 tree (a15cdc8: \"7 of 17 window checks passing\"). One real finding: check_frame_ui.py:151 caught a process start (dpkg-query on opening the Work trail) in 6 of 34 runs from 0.4.8 on, reported as \"unsteady\" in the 0.5.1 to 0.6.1 kits and fixed in 0.7.0 (13ddfc5). Maintenance: 9 commits edited gate scripts after the import (94b0dee 16 files, 2ca282c 15, e13f6e0, 48d889b, 6a7ef43, 12f627d, ce16df3, e7d7a8c, a15cdc8), and 4873b67 undid captures a gate run wrote into the tree.",
+  "hidden": "compare_ui.py:9-10 compares a script by pass and stop line only. check_finder_ui.py:112 changed its message at 0.5.1 (\"Work menu needs 38 px, has 36; Arrange needs 67, has 65\" appear) and at 0.8.1 (\"Apps needs 96 px, has 79\"); check_head_ui.py:106 changed its reason at 0.7.0. Both read \"no difference from the baseline\".",
+  "proposal": "keep the seven passing scripts at release (and when a file they run changes); take the ten failing scripts out of the gate until each stop line is brought to the current directions or the script is retired (the failing-tests part); compare by the assertion message as well as the line"
+ },
+ "gate_history_file": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/gate_history.json",
+ "import_map": {
+  "workbench_modules": 445,
+  "run_when_the_window_starts": 295,
+  "finding": "every release from 0.5.1 to 0.8.2 changed at least 3 files the window runs at start (shell2.py in all 10), so a rule \"run a window check when a file it runs changes\" would have run every window check at every release; only files beyond the window start separate the checks",
+  "per_release": [
+   {
+    "release": "0.5.0",
+    "changed_workbench_files": 14,
+    "changed_in_window_start": [
+     "centre_bar.py",
+     "centre_find.py",
+     "field_page.py",
+     "field_qt.py",
+     "glyph_set.py",
+     "qt_app.py",
+     "session.py",
+     "shell2.py",
+     "tool_faces.py",
+     "version.py",
+     "workspace_tabs.py"
+    ],
+    "checks_whose_own_files_changed": {
+     "centre_probe": [
+      "office_qt.py"
+     ],
+     "head_probe": [
+      "pdf_qt.py"
+     ],
+     "mouse_probe": [
+      "office_qt.py"
+     ],
+     "crash_probe": [
+      "investigations_qt.py"
+     ],
+     "audit_probe": [
+      "office_qt.py",
+      "pdf_qt.py"
+     ],
+     "eq_probe": [
+      "pdf_qt.py"
+     ],
+     "boxes_probe": [
+      "pdf_qt.py"
+     ],
+     "look_probe": [
+      "investigations_qt.py",
+      "office_qt.py",
+      "pdf_qt.py"
+     ],
+     "icons_probe": [
+      "investigations_qt.py",
+      "office_qt.py",
+      "pdf_qt.py"
+     ],
+     "find_probe": [
+      "investigations_qt.py",
+      "office_qt.py",
+      "pdf_qt.py"
+     ],
+     "more_probe": [
+      "office_qt.py",
+      "pdf_qt.py"
+     ],
+     "zoom_probe": [
+      "office_qt.py"
+     ],
+     "pages_probe": [
+      "investigations_qt.py",
+      "office_qt.py",
+      "pdf_qt.py"
+     ],
+     "window": [
+      "office_qt.py"
+     ],
+     "mouse2_probe": [
+      "office_qt.py"
+     ],
+     "pane_probe": [
+      "office_qt.py"
+     ],
+     "glow_probe": [
+      "office_qt.py"
+     ],
+     "crawl_probe": [
+      "investigations_qt.py",
+      "office_qt.py",
+      "pdf_qt.py"
+     ]
+    }
+   },
+   {
+    "release": "0.5.1",
+    "changed_workbench_files": 14,
+    "changed_in_window_start": [
+     "boss_qt.py",
+     "boss_theme.py",
+     "centre_bar.py",
+     "concern_tree.py",
+     "desk_qt.py",
+     "desktop_header_qt.py",
+     "field_qt.py",
+     "glyph_set.py",
+     "pane_qt.py",
+     "pointer.py",
+     "session.py",
+     "shell2.py",
+     "tool_faces.py",
+     "version.py"
+    ],
+    "checks_whose_own_files_changed": {}
+   },
+   {
+    "release": "0.5.2",
+    "changed_workbench_files": 8,
+    "changed_in_window_start": [
+     "boss_theme.py",
+     "centre_bar.py",
+     "centre_find.py",
+     "document_qt.py",
+     "field_qt.py",
+     "shell2.py",
+     "tool_faces.py",
+     "version.py"
+    ],
+    "checks_whose_own_files_changed": {}
+   },
+   {
+    "release": "0.5.3",
+    "changed_workbench_files": 7,
+    "changed_in_window_start": [
+     "centre_bar.py",
+     "equalizer_qt.py",
+     "pane_qt.py",
+     "session.py",
+     "shell2.py",
+     "typebar_qt.py",
+     "version.py"
+    ],
+    "checks_whose_own_files_changed": {}
+   },
+   {
+    "release": "0.6.0",
+    "changed_workbench_files": 7,
+    "changed_in_window_start": [
+     "field_page.py",
+     "field_qt.py",
+     "menus2.py",
+     "session.py",
+     "shell2.py",
+     "stacy_hand.py",
+     "version.py"
+    ],
+    "checks_whose_own_files_changed": {}
+   },
+   {
+    "release": "0.6.1",
+    "changed_workbench_files": 4,
+    "changed_in_window_start": [
+     "program_build.py",
+     "shell2.py",
+     "version.py"
+    ],
+    "checks_whose_own_files_changed": {
+     "stacy": [
+      "stacy_start.py"
+     ],
+     "mouse_probe": [
+      "stacy_start.py"
+     ],
+     "kasandra_probe": [
+      "stacy_start.py"
+     ],
+     "start_probe": [
+      "stacy_start.py"
+     ],
+     "amber_probe": [
+      "stacy_start.py"
+     ],
+     "cascade_probe": [
+      "stacy_start.py"
+     ],
+     "ux044_probe": [
+      "stacy_start.py"
+     ],
+     "hand_probe": [
+      "stacy_start.py"
+     ]
+    }
+   },
+   {
+    "release": "0.7.0",
+    "changed_workbench_files": 18,
+    "changed_in_window_start": [
+     "brain_runtime.py",
+     "console_qt.py",
+     "desktop_header_qt.py",
+     "equalizer_qt.py",
+     "field_page.py",
+     "menus2.py",
+     "meter_cards.py",
+     "pane_qt.py",
+     "programs_qt.py",
+     "resource_control.py",
+     "shell2.py",
+     "stacy_hand.py",
+     "study_service.py",
+     "typebar_qt.py",
+     "version.py",
+     "work_trail.py"
+    ],
+    "checks_whose_own_files_changed": {
+     "stacy": [
+      "stacy_start.py"
+     ],
+     "mouse_probe": [
+      "stacy_start.py"
+     ],
+     "kasandra_probe": [
+      "stacy_start.py"
+     ],
+     "start_probe": [
+      "stacy_start.py"
+     ],
+     "amber_probe": [
+      "stacy_start.py"
+     ],
+     "cascade_probe": [
+      "stacy_start.py"
+     ],
+     "ux044_probe": [
+      "stacy_start.py"
+     ],
+     "hand_probe": [
+      "stacy_start.py"
+     ]
+    }
+   },
+   {
+    "release": "0.8.0",
+    "changed_workbench_files": 73,
+    "changed_in_window_start": [
+     "addresses.py",
+     "agenda.py",
+     "agenda_qt.py",
+     "arc_desktop.py",
+     "assistant_identity.py",
+     "boss_qt.py",
+     "boss_theme.py",
+     "cabinet_qt.py",
+     "chain_menu.py",
+     "concern_qt.py",
+     "conditions.py",
+     "console_qt.py",
+     "context_menu.py",
+     "desk_qt.py",
+     "desktop_header_qt.py",
+     "document_qt.py",
+     "equalizer_qt.py",
+     "field_page.py",
+     "field_qt.py",
+     "files_qt.py"
+    ],
+    "checks_whose_own_files_changed": {
+     "centre_probe": [
+      "empty_workspace_qt.py",
+      "page_light.py"
+     ],
+     "head_probe": [
+      "page_light.py"
+     ],
+     "stacy": [
+      "office_building_qt.py",
+      "stacy_start.py"
+     ],
+     "mouse_probe": [
+      "kasandra_art.py",
+      "office_building_qt.py",
+      "page_light.py",
+      "stac/language.py",
+      "stac/runtime.py",
+      "stacy_start.py"
+     ],
+     "regress": [
+      "empty_workspace_qt.py"
+     ],
+     "kasandra_probe": [
+      "empty_workspace_qt.py",
+      "kasandra_art.py",
+      "stac/language.py",
+      "stac/runtime.py",
+      "stacy_start.py"
+     ],
+     "crash_probe": [
+      "investigations_qt.py"
+     ],
+     "door_probe": [
+      "cabinet_actions_qt.py",
+      "office_building_qt.py"
+     ],
+     "audit_probe": [
+      "page_light.py"
+     ],
+     "start_probe": [
+      "kasandra_art.py",
+      "sheet_workbench_qt.py",
+      "stacy_start.py",
+      "universal_viewer_qt.py"
+     ],
+     "eq_probe": [
+      "page_light.py"
+     ],
+     "amber_probe": [
+      "kasandra_art.py",
+      "office_building_qt.py",
+      "stac/language.py",
+      "stac/runtime.py",
+      "stacy_start.py"
+     ],
+     "cascade_probe": [
+      "office_building_qt.py",
+      "stac/language.py",
+      "stac/runtime.py",
+      "stacy_start.py"
+     ],
+     "boxes_probe": [
+      "cabinet_actions_qt.py",
+      "page_light.py"
+     ],
+     "name_sweep": [
+      "empty_workspace_qt.py"
+     ],
+     "look_probe": [
+      "investigations_qt.py",
+      "page_light.py"
+     ],
+     "icons_probe": [
+      "investigations_qt.py",
+      "page_light.py"
+     ],
+     "find_probe": [
+      "investigations_qt.py",
+      "page_light.py"
+     ],
+     "more_probe": [
+      "page_light.py"
+     ],
+     "zoom_probe": [
+      "page_light.py"
+     ],
+     "pages_probe": [
+      "investigations_qt.py",
+      "page_light.py"
+     ],
+     "window": [
+      "empty_workspace_qt.py",
+      "page_light.py"
+     ],
+     "mouse2_probe": [
+      "page_light.py"
+     ],
+     "ux044_probe": [
+      "field_brief.py",
+      "kasandra_art.py",
+      "office_building_qt.py",
+      "stac/language.py",
+      "stac/runtime.py",
+      "stacy_start.py"
+     ],
+     "pane_probe": [
+      "page_light.py"
+     ],
+     "hand_probe": [
+      "kasandra_art.py",
+      "stac/language.py",
+      "stac/runtime.py",
+      "stacy_start.py"
+     ],
+     "glow_probe": [
+      "page_light.py"
+     ],
+     "crawl_probe": [
+      "investigations_qt.py",
+      "page_light.py",
+      "stac/language.py",
+      "stac/runtime.py"
+     ]
+    }
+   },
+   {
+    "release": "0.8.1",
+    "changed_workbench_files": 27,
+    "changed_in_window_start": [
+     "boss_theme.py",
+     "brain_runtime.py",
+     "context_menu.py",
+     "field_model.py",
+     "field_page.py",
+     "field_qt.py",
+     "glyph_set.py",
+     "hatch_qt.py",
+     "local_brain.py",
+     "model_settings.py",
+     "pane_qt.py",
+     "programs_qt.py",
+     "resource_control.py",
+     "shell2.py",
+     "text_prompts.py",
+     "tool_faces.py",
+     "trash_can_qt.py",
+     "typebar_qt.py",
+     "version.py",
+     "work_location.py"
+    ],
+    "checks_whose_own_files_changed": {
+     "stacy": [
+      "stacy_start.py"
+     ],
+     "mouse_probe": [
+      "stacy_start.py"
+     ],
+     "kasandra_probe": [
+      "stacy_start.py"
+     ],
+     "start_probe": [
+      "stacy_start.py"
+     ],
+     "amber_probe": [
+      "stacy_start.py"
+     ],
+     "cascade_probe": [
+      "stacy_start.py"
+     ],
+     "boxes_probe": [
+      "model_settings_qt.py"
+     ],
+     "ux044_probe": [
+      "stacy_start.py"
+     ],
+     "hand_probe": [
+      "stacy_start.py"
+     ]
+    }
+   },
+   {
+    "release": "0.8.2",
+    "changed_workbench_files": 12,
+    "changed_in_window_start": [
+     "boss_theme.py",
+     "console_qt.py",
+     "context_menu.py",
+     "field_page.py",
+     "field_qt.py",
+     "menu_catch.py",
+     "reading_preferences.py",
+     "shell2.py",
+     "version.py"
+    ],
+    "checks_whose_own_files_changed": {
+     "door_probe": [
+      "desk_acts.py"
+     ]
+    }
+   }
+  ],
+  "per_check": {
+   "line_probe": {
+    "files_run": 296,
+    "beyond_window_start": [
+     "config_lock.py"
+    ]
+   },
+   "centre_probe": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "empty_workspace_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "head_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "stacy": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "field_do.py",
+     "office_building_qt.py",
+     "stacy_start.py"
+    ]
+   },
+   "mouse_probe": {
+    "files_run": 319,
+    "beyond_window_start": [
+     "command_context.py",
+     "config_lock.py",
+     "datasheet_qt.py",
+     "engineering_tabs.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "native_struthio.py",
+     "office_building_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "regress": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "command_context.py",
+     "config_lock.py",
+     "empty_workspace_qt.py",
+     "engineering_tabs.py",
+     "native_struthio.py",
+     "session_settings.py"
+    ]
+   },
+   "map_probe": {
+    "files_run": 296,
+    "beyond_window_start": [
+     "config_lock.py"
+    ]
+   },
+   "kasandra_probe": {
+    "files_run": 313,
+    "beyond_window_start": [
+     "config_lock.py",
+     "empty_workspace_qt.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "crash_probe": {
+    "files_run": 297,
+    "beyond_window_start": [
+     "config_lock.py",
+     "investigations_qt.py"
+    ]
+   },
+   "first_probe": {
+    "files_run": 295,
+    "beyond_window_start": []
+   },
+   "door_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "cabinet_actions_qt.py",
+     "config_lock.py",
+     "desk_acts.py",
+     "memory_cabinet_qt.py",
+     "office_building_qt.py",
+     "system_menu_qt.py"
+    ]
+   },
+   "audit_probe": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "start_probe": {
+    "files_run": 302,
+    "beyond_window_start": [
+     "chain_workbench_qt.py",
+     "config_lock.py",
+     "field_do.py",
+     "kasandra_art.py",
+     "sheet_workbench_qt.py",
+     "stacy_start.py",
+     "universal_viewer_qt.py"
+    ]
+   },
+   "eq_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "amber_probe": {
+    "files_run": 312,
+    "beyond_window_start": [
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "office_building_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "cascade_probe": {
+    "files_run": 314,
+    "beyond_window_start": [
+     "command_context.py",
+     "engineering_tabs.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "native_struthio.py",
+     "office_building_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "boxes_probe": {
+    "files_run": 303,
+    "beyond_window_start": [
+     "cabinet_actions_qt.py",
+     "config_lock.py",
+     "datasheet_qt.py",
+     "hardware_settings_qt.py",
+     "memory_cabinet_qt.py",
+     "model_settings_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "name_sweep": {
+    "files_run": 297,
+    "beyond_window_start": [
+     "config_lock.py",
+     "empty_workspace_qt.py"
+    ]
+   },
+   "look_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "icons_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "find_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "more_probe": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "green_probe": {
+    "files_run": 296,
+    "beyond_window_start": [
+     "config_lock.py"
+    ]
+   },
+   "zoom_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "pages_probe": {
+    "files_run": 301,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "investigations_qt.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py"
+    ]
+   },
+   "window": {
+    "files_run": 300,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "empty_workspace_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "mouse2_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "ux044_probe": {
+    "files_run": 313,
+    "beyond_window_start": [
+     "field_brief.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "office_building_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "pane_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "hand_probe": {
+    "files_run": 312,
+    "beyond_window_start": [
+     "config_lock.py",
+     "field_do.py",
+     "field_doubt.py",
+     "field_ripple.py",
+     "kasandra_art.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "stacy_start.py"
+    ]
+   },
+   "glow_probe": {
+    "files_run": 299,
+    "beyond_window_start": [
+     "config_lock.py",
+     "datasheet_qt.py",
+     "office_qt.py",
+     "page_light.py"
+    ]
+   },
+   "crawl_probe": {
+    "files_run": 316,
+    "beyond_window_start": [
+     "command_context.py",
+     "config_lock.py",
+     "datasheet_qt.py",
+     "engineering_tabs.py",
+     "investigations_qt.py",
+     "native_struthio.py",
+     "office_qt.py",
+     "page_light.py",
+     "pdf_qt.py",
+     "stac/__init__.py",
+     "stac/evidence.py",
+     "stac/kernel_witness.py",
+     "stac/knowledge.py",
+     "stac/language.py",
+     "stac/obligations.py",
+     "stac/quantities.py",
+     "stac/runtime.py",
+     "stac/semantics.py",
+     "stac/source_facts.py",
+     "stac/witnesses.py",
+     "window_views_qt.py"
+    ]
+   }
+  }
+ },
+ "minutes": {
+  "now_seconds": {
+   "scene_both_appearances": 142.8,
+   "probes_1920x1200": 923.1,
+   "probes_1366x768": 922.8,
+   "crawler_graphite": 841.7,
+   "crawler_kasandra": 841.7,
+   "name_sweep_both": 23.7,
+   "gate": 191.0
+  },
+  "now_minutes_outside_suite": 64.8,
+  "suite_minutes": 8.2,
+  "now_minutes_all": 72.9,
+  "step1_seconds": {
+   "scene_both_appearances": 142.8,
+   "probes": 634.1,
+   "crawler": 0.0,
+   "name_sweep": 0.0,
+   "gate_seven_passing": 117.0
+  },
+  "step1_minutes": 14.9,
+  "step1_saved_minutes": 49.9,
+  "step1_detail": {
+   "crawler_kasandra_retired": 14.0,
+   "crawler_graphite_on_change_only": 14.0,
+   "probes_that_judge_nothing_off_the_release_both_sizes (18 scripts)": 10.8,
+   "second_size_of_the_12_kept_probes_except_look": 9.4,
+   "for_reference_second_size_of_all_19_probes_whose_output_is_the_same_at_both_sizes": 10.9,
+   "name_sweep_into_the_suite": 0.4,
+   "ten_failing_gate_scripts_out": 1.2
+  },
+  "step2_seconds": {
+   "scene_P01_both_appearances": 142.8,
+   "scenes_P02_to_P04_one_run_each_both_appearances_estimate": 108.0,
+   "probes_kept_one_size": 192.2,
+   "gate_seven_passing": 117.0
+  },
+  "step2_minutes": 9.3,
+  "step2_saved_minutes": 55.4,
+  "fixed_wait_share": {
+   "first_probe": 0.333,
+   "zoom_probe": 0.467,
+   "glow_probe": 0.749,
+   "name_sweep": 0.527,
+   "pages_probe": 0.855,
+   "mouse2_probe": 0.675,
+   "green_probe": 0.286,
+   "crawl_probe": 0.947,
+   "kasandra_probe": 0.684,
+   "boxes_probe": 0.725,
+   "more_probe": 0.794,
+   "crash_probe": 0.827,
+   "start_probe": 0.879,
+   "find_probe": 0.908,
+   "head_probe": 0.684,
+   "amber_probe": 0.563,
+   "cascade_probe": 0.496,
+   "ux044_probe": 0.568,
+   "audit_probe": 0.842,
+   "icons_probe": 0.918,
+   "pane_probe": 0.784,
+   "mouse_probe": 0.726,
+   "hand_probe": 0.834,
+   "eq_probe": 0.763,
+   "door_probe": 0.888,
+   "map_probe": 0.671,
+   "look_probe": 0.855,
+   "line_probe": 0.744,
+   "centre_probe": 0.738
+  },
+  "note": "step 2 counts each new scene as one case at the measured cost of a P01 case (about 18 s per appearance); the crawler, when its own files change, adds 14.0 min as written today; waits for a condition instead of fixed waits would cut what remains further: after the window is built, 80 % of the 28 traced probes' time (692 of 864 s; 29-92 % per probe, touch/set.out) and 94.8 % of the crawler's (793 of 837 s) is QTest.qWait the scripts ask for",
+  "suite_cost_of_the_moves": "the moves add assertions to existing modules on the window test_desk_acts already builds; a scene played by test_desk_scenes costs about 12 s each way (62.7 s for five plays of P01)"
+ },
+ "data_files": {
+  "measurements": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/measurements.json",
+  "timings": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/timings.json",
+  "gate_history": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/gate_history.json",
+  "census_identifiers": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/census_identifiers.json",
+  "release_changes": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/release_changes.json",
+  "touch_sets": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/touch/",
+  "timed_runs": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/logs/",
+  "tools": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/testclean/checks/tools/"
+ }
+}

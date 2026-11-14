@@ -1,0 +1,1 @@
+Repeat the pulse capture at the load on the 12 V rail.

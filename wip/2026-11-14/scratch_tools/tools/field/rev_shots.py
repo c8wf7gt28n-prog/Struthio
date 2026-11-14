@@ -1,0 +1,15 @@
+from workbench import context_menu as cm, field_page
+w.a_field.trigger(); settle(400, 5); v = w.field_page.view
+o = next(o for o in v.field.objects if o.title.startswith('07 Limits Rev B'))
+v.field.select(o.id); v._reveal(); v._describe(); v.update(); v.setFocus(); settle(150, 3)
+menu = cm.open_at_focus(w); settle(150, 3)
+e = menu.entry('field:revisions'); print('entry:', e.label if e else None, '| in more:', 'field:revisions' in [x.key for x in menu.more])
+menu.close_menu(restore=False); settle(60, 2)
+cm.perform(w, menu.target, e); settle(200, 3)
+print('rows:', [(r['parameter'], r['changed']) for r in v.revisions['rows']], '| sel', v.revisions['sel'])
+v.grab().save(str(OUT / ('Rev_01_Cut_%s.png' % tag)))
+QTest.keyClick(v, Qt.Key_Down); settle(80, 2); print('after Down sel', v.revisions['sel'])
+v.grab().save(str(OUT / ('Rev_02_Next_Row_%s.png' % tag)))
+QTest.keyClick(v, Qt.Key_Escape); settle(80, 2); print('after Esc:', v.revisions)
+o2 = next(o for o in v.field.objects if o.title.startswith('07 Bench readings')); print('bench has a sibling:', field_page.revision_sibling(v, o2))
+print('REV SHOTS DONE')

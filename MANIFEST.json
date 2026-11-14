@@ -3062,8 +3062,8 @@
       "sha256": "07fb02e804a821f260ed7b1f31688b5591a17d22d655f2f51c47abc1b8126d9b"
     },
     "tools/package_graphite.py": {
-      "bytes": 10512,
-      "sha256": "c1bbed772ad78ce93ee95a5b08befce99af433b9c1e431a793ec73a9949e0198"
+      "bytes": 10570,
+      "sha256": "cc46b7a57d5f16d8625005944ba86f6a7e316c191de36032f6ec7569472e8ab2"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,

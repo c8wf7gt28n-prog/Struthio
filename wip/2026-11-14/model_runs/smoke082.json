@@ -1,0 +1,70 @@
+{
+ "steps": [
+  {
+   "available_mib": 15307,
+   "total_mib": 16087,
+   "step": "host",
+   "t": 0.0
+  },
+  {
+   "state": "Completed",
+   "step": "added 4b",
+   "t": 3.8
+  },
+  {
+   "state": "Completed",
+   "step": "added 2b",
+   "t": 41.8
+  },
+  {
+   "memory_mb": 9938,
+   "auto_headroom_mb": 0,
+   "admission": {
+    "priority": "foreground",
+    "lane": "inference",
+    "memory_bytes": 10420748288,
+    "basis": "FROZEN_MODEL_MEMORY_BUDGET",
+    "model_handover": true
+   },
+   "step": "submitted 4b on Auto",
+   "t": 41.9
+  },
+  {
+   "job": "Completed",
+   "status": "READY",
+   "detail": "{'status': 'ACTIVATED', 'model_id': '7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421', 'qualification': {'state': 'CPU_CHAT_QUALIFIED', 'at': 1794648394.9819734, 'file_set_id': '7921d",
+   "step": "4b activated",
+   "t": 48.4
+  },
+  {
+   "job": "Completed",
+   "text": "ready",
+   "step": "4b reply",
+   "t": 58.8
+  },
+  {
+   "job": "Completed",
+   "seconds": 4.1,
+   "status": "READY",
+   "model": "9d15e12e04d7",
+   "detail": "{'status': 'ACTIVATED', 'model_id': '9d15e12e04d7b4ee0b78e05e67743f29c24992ec2a3404e5b01fb62bc39825b1', 'qualification': {'state': 'CPU_CHAT_QUALIFIED', 'at': 1794648409.3383327, 'file_set_id': '9d15e",
+   "step": "handover to 2b",
+   "t": 62.9
+  },
+  {
+   "job": "Completed",
+   "text": "ready",
+   "step": "2b reply",
+   "t": 67.9
+  },
+  {
+   "job": "Completed",
+   "seconds": 6.1,
+   "status": "READY",
+   "detail": "{'status': 'ACTIVATED', 'model_id': '7921d09c52ae7515fcd2517ebb007fef31215050a8ef6bb206a3cda6d4e30421', 'qualification': {'state': 'CPU_CHAT_QUALIFIED', 'at': 1794648420.6728022, 'file_set_id': '7921d",
+   "step": "handover back to 4b",
+   "t": 74.0
+  }
+ ],
+ "state": "PASSED"
+}

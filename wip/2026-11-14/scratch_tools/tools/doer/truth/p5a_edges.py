@@ -1,0 +1,58 @@
+exec(open('/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/tools/doer/truth/common.py').read())
+def path(claim, tag=''):
+    r = L('investigation.path', {'claim': claim}, tag)
+    print('   -> evidence_state=%s support=%s opposition=%s review=%s' % (r['evidence_state'], r['independent_support'], r['independent_opposition'], r['review']))
+    for s in r['path']: print('      step', {kk: (str(vv)[:60]) for kk, vv in s.items() if kk in ('kind', 'direction', 'address', 'program', 'outcome', 'counts', 'source_state')})
+    return r
+print('########## E0. staC forms for a check program')
+for text in ('@document:%s | pick source_state' % SETTLED, '@document:%s | pick source_state | select state' % SETTLED, '@document:%s | pick object.source_state' % SETTLED,
+             'documents.get {"id":"%s"} | select source_state.state' % SETTLED, '@office:%s | select source_state.state' % REVB, '@office:%s | pick source_state' % REVB,
+             '@office:%s | pick document.sheets' % REVB, '@office:%s | sheet 1 | select A,B,C,D' % REVB, '@office:%s | rows' % REVB,
+             'investigation.sheet {"id":"%s"} | pick checked | select oracle,expect,value,last_outcome' % INV,
+             'investigation.sheet {"id":"%s"} | pick read | where state=CHANGED | select address' % INV,
+             'office.list | pick documents | select id,title,version'):
+    r = L('language.run', {'text': text})
+    if r: print('   -> rows:', short(r.get('rows'), 420))
+print('\n########## E1. the existing check reads a sheet that is NOT a registered source: change that sheet so the check would fail')
+g = L('office.get', {'id': REVB}); cells = g['document']['sheets'][0]['cells']
+hit = [a for a, c in cells.items() if '80 ms' in str(c.get('value'))]; print('   -> cells holding "80 ms":', hit, [cells[a]['value'] for a in hit])
+doc = copy.deepcopy(g['document'])
+for a in hit: doc['sheets'][0]['cells'][a]['value'] = doc['sheets'][0]['cells'][a]['value'].replace('80 ms', '95 ms')
+L('office.save', {'id': REVB, 'expected_revision': g['revision'], 'document': doc}, 'the 80 ms condition now reads 95 ms', hide=('document',))
+r = L('investigation.refresh', {'id': INV}); print('   -> changed=%s next=%s' % (r['changed'], r['next']))
+r = L('investigation.continue', {'id': INV}); print('   -> ran=%s next=%s' % (r['ran'], r['next']))
+path(F_SHEET, 'the finding "The reviewed sheet keeps the 80 ms condition."'); f = field('after the Rev B sheet changed'); 
+print('   the direct read of what the check would say now:')
+r = L('language.run', {'text': '@office:' + REVB}); print('   -> contains "Up to 80 ms":', 'up to 80 ms' in json.dumps(r, sort_keys=True, default=str).casefold())
+print('   register the sheet as a source now (the snapshot is taken now, after the change):')
+a = L('investigation.add_source', {'id': INV, 'address': 'office:' + REVB}); print('   ->', a)
+r = L('investigation.refresh', {'id': INV}); print('   -> changed=%s' % r['changed'])
+print('   the only way to run that check again: a step with the same program (records, proves nothing) or a new check')
+c = L('investigation.check', {'claim': F_SHEET, 'program': '@office:' + REVB, 'oracle': 'The reviewed Rev B sheet still contains the 80 ms pulse condition (asked again).', 'expect': 'CONTAINS', 'value': 'Up to 80 ms', 'refutes_on_fail': True}); print('   ->', c)
+r = L('investigation.continue', {'id': INV}); print('   -> ran=%s state=%s next=%s' % (r['ran'], r['state'], r['next']))
+path(F_SHEET); inv_state(); field('after a refuting check failed')
+print('\n########## E2. a finding with only opposing evidence, and a check whose program cannot run')
+n = L('investigation.claim', {'id': INV, 'text': 'The bench sheet lists a 5 V rail.', 'role': 'CANDIDATE'}); print('   ->', n)
+c = L('investigation.check', {'claim': n['claim'], 'program': '@office:%s' % BENCH, 'oracle': 'The bench sheet names a 5 V rail.', 'expect': 'CONTAINS', 'value': '"value": "5"', 'refutes_on_fail': True})
+c2 = L('investigation.check', {'claim': n['claim'], 'program': '@office:owner:00000000000000000000000000000000', 'oracle': 'A sheet that does not exist.', 'expect': 'NONEMPTY'})
+r = L('investigation.continue', {'id': INV}); print('   -> ran=%s state=%s reason=%r next=%s' % (r['ran'], r['state'], r['reason'], r['next']))
+r = L('investigation.continue', {'id': INV}, 'again: does the failed check block the queue?'); print('   -> ran=%s state=%s reason=%r' % (r['ran'], r['state'], r['reason']))
+path(n['claim']); field('with a refuted candidate')
+print('\n########## E3. the open question: what a program can do')
+r = L('intake.search', {'namespace': NS, 'query': 'startup pulse'}); print('   -> keys', sorted(r), '| hits:', short(r.get('hits'), 600))
+r = L('references.search', {'namespace': NS, 'query': 'startup pulse'}); print('   ->', short(r, 500))
+r = L('references.status', {'namespace': NS}); print('   ->', short(r, 500))
+st = L('investigation.step', {'id': INV, 'program': 'intake.search {"namespace":"%s","query":"startup pulse"}' % NS, 'purpose': 'Search the admitted sources for the words of the open question.'}); print('   ->', short(st, 500))
+st = L('investigation.step', {'id': INV, 'program': 'intake.search {"namespace":"%s","query":"startup pulse"}' % NS, 'purpose': 'Search the admitted sources for the words of the open question.'}, 'the same step again'); print('   -> duplicate_of', st['duplicate_of'])
+s = L('investigation.sheet', {'id': INV}); print('   -> attempted:', [(x['seq'], x['purpose'][:50], x['outcome'], x['duplicate_of'] and x['duplicate_of'][:8], x['summary'][:80]) for x in s['attempted']])
+unread = L('language.run', {'text': 'intake.items {"namespace":"%s"} | pick items | select id,name,admission' % NS}); print('   -> sources here:', short(unread.get('rows'), 400))
+print('   -> addresses the investigation has read:', [x['address'] for x in s['read']])
+c = L('investigation.check', {'claim': QUESTION, 'program': '@intake:' + PDF_BENCH, 'oracle': 'x', 'expect': 'NONEMPTY'}, 'a question cannot carry a check')
+cand = L('investigation.claim', {'id': INV, 'text': 'The measured pulse (110 ms) is recorded in the bench readings; nothing in the sources says why it stretched.', 'role': 'FINDING'})
+src = next(x for x in s['read'] if x['address'] == 'intake:' + PDF_BENCH)
+e = L('investigation.evidence', {'claim': cand['claim'], 'direction': 'SUPPORTS', 'source': src['id'], 'note': 'Startup duration 110 ms, measured pulse.'}); print('   ->', e['evidence_state'])
+r = L('investigation.review', {'claim': QUESTION, 'decision': 'RETIRE'}, 'the owner closes the question'); print('   ->', short({kk: vv for kk, vv in r.items() if kk != 'path'}, 300))
+inv_state(); field('question retired')
+r = L('investigation.stop', {'id': INV, 'reason': 'Rehearsal.'}); print('   -> state', r['state'], r['reason'])
+r = L('investigation.continue', {'id': INV}); print('   -> state', r['state'], r['reason'], 'ran', r['ran'])
+print('\n########## THE SEQUENCE'); print('\n'.join(LINES))
