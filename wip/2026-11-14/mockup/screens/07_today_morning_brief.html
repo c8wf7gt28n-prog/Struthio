@@ -1,0 +1,205 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Graphite, finished: Today, the morning brief</title>
+<link rel="stylesheet" href="../canon.css">
+<style>
+/* 07 · Today, the home screen, Fri 15 Nov 07:42, the morning after the approved screen (Thu 23:41) and before the bench
+   session of 06 (opened 09:58). The night shift ran on mains only from 02:00 to 04:12; the page gives three lines from it,
+   each opening its evidence, then the shift's log, then the day: the Agenda and the latest receipts. One decision waits for
+   the owner (a tolerance for the startup current, or a new reading), so she waits for you; its buttons live in her card only. */
+
+/* her state: waits for you (pink base, held almost still), as 04 */
+:root{--pink2:#ffbccd}
+#holo img{opacity:.9;filter:drop-shadow(0 0 10px rgba(250,80,124,.28))}
+#tear{top:641px;height:2px;background:rgba(255,188,205,.20);box-shadow:0 0 4px rgba(250,80,124,.30)}
+#base{border-color:var(--pink);background:radial-gradient(ellipse at center,rgba(250,80,124,.50),rgba(250,80,124,.05) 70%);box-shadow:0 0 18px rgba(250,80,124,.55)}
+#beam{background:linear-gradient(transparent,rgba(250,80,124,.15))}
+#holocap{color:var(--pink2)}
+#who i{background:var(--pink);box-shadow:0 0 8px var(--pink)}
+#state{color:var(--pink)}
+
+/* the page: large and calm */
+#kick{left:30px;top:52px;width:1146px;display:flex;align-items:center;gap:14px;white-space:nowrap}
+#kick .d{font-family:EliteMono;font-size:13px;color:var(--violet);letter-spacing:1.2px}
+#kick .rule{flex:1;height:1px;background:var(--line)}
+#kick .cnt{font-size:15px;color:var(--text)}
+#kick .cnt .p{color:var(--pink)} #kick .cnt .z{color:var(--faint)}
+#greet{left:30px;top:80px;font-family:Display;font-size:44px;line-height:58px;color:var(--text);white-space:nowrap}
+#greet small{font-family:Elite;font-size:17px;color:var(--quiet);margin-left:18px;vertical-align:8px}
+
+#lines{left:30px;top:158px;width:1146px;border-bottom:1px solid var(--line)}
+.ln{display:grid;grid-template-columns:56px 1fr;padding:17px 0 16px;border-top:1px solid var(--line)}
+.ln .num{font-family:Display;font-size:30px;line-height:34px;color:var(--violet);padding-left:4px}
+.ln .say{font-size:23px;line-height:33px;color:var(--text);max-width:1010px}
+.ln .say .show{font-size:17px;color:var(--cyan2);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px;margin-left:12px;white-space:nowrap}
+.ln .say .wait{color:var(--pink)}
+.ln .ev{margin-top:9px;display:flex;gap:9px;align-items:center;font-family:EliteMono;font-size:13px;line-height:18px;color:var(--faint);white-space:nowrap}
+.ln .ev .q{color:var(--quiet)}
+.ln .ev .w{color:var(--pink)}
+
+/* the night shift's log, small and fixed-width */
+#log{left:30px;top:548px;width:1146px}
+.h5{display:flex;align-items:center;gap:12px;font-family:EliteMono;font-size:12.5px;color:var(--violet);letter-spacing:1px;white-space:nowrap}
+.h5 .rule{flex:1;height:1px;background:var(--line)}
+.h5 .x{color:var(--faint);letter-spacing:.3px}
+#log .rows{margin-top:10px;font-family:EliteMono;font-size:13.5px;line-height:23px;color:var(--quiet)}
+#log .r{display:grid;grid-template-columns:66px 372px 1fr 104px;white-space:nowrap}
+#log .r .t{color:var(--faint)}
+#log .r .o{color:var(--quiet)}
+#log .r .o .y{color:var(--cyan2)} #log .r .o .n{color:var(--pink)}
+#log .r .id{color:var(--faint);text-align:right}
+#log .r.end{color:var(--faint)}
+#same{margin-top:12px;font-size:16px;color:var(--text)}
+#same .ok{font-family:EliteMono;color:var(--cyan);margin-right:9px}
+#same .x{font-size:14px;color:var(--faint);margin-left:12px}
+
+/* the TODAY strip */
+#today{left:0;top:790px;width:1206px;height:286px;background:var(--panel);border-top:1px solid var(--line)}
+#today .lab{position:absolute;left:30px;top:16px;font-family:EliteMono;font-size:13px;letter-spacing:2px;color:var(--cyan2)}
+#today .lab span{color:var(--faint);letter-spacing:.5px;margin-left:10px}
+.tp{position:absolute;top:50px;width:548px}
+#agenda{left:30px} #rcpts{left:628px}
+.tp .it{display:grid;grid-template-columns:62px 1fr auto;column-gap:12px;align-items:baseline;padding:11px 0 10px;border-top:1px solid var(--line)}
+.tp .it .tm{font-family:EliteMono;font-size:14px;color:var(--quiet)}
+.tp .it .tt{font-size:17px;line-height:22px;color:var(--text)}
+.tp .it .nn{grid-column:2 / 4;font-family:EliteMono;font-size:12.5px;line-height:17px;color:var(--faint);margin-top:3px}
+.tp .it .id{font-family:EliteMono;font-size:12.5px;color:var(--faint)}
+.tp .more{position:absolute;top:170px;left:0;font-size:14px;color:var(--faint);text-decoration:underline;text-underline-offset:3px}
+
+/* her card: the same three lines, and the decision */
+#morning{top:76px;border-left:3px solid var(--honey)}
+#morning .g{display:flex;gap:9px;margin:5px 0}
+#morning .g .m{font-family:EliteMono;width:12px;flex:none;color:var(--violet)}
+#morning .g .wait{color:var(--pink)}
+#morning .dec{margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+#morning .dec .q{font-family:EliteMono;font-size:12px;letter-spacing:.6px;color:var(--pink)}
+#morning .dec .v{font-family:EliteMono;font-size:12.5px;line-height:17px;color:var(--quiet);margin-top:4px}
+#morning .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+#morning .btns em{font-style:normal;font-size:14px;color:var(--faint);align-self:center;margin-left:4px}
+#morning .btns span{border:1px solid var(--line2);background:var(--raised);padding:3px 9px;font-size:14px}
+#morning .rcpt{font-family:EliteMono;font-size:11.5px;color:var(--faint);margin-top:10px;line-height:16px}
+#each{top:482px;border-left:3px solid var(--honey)}
+#each .e{margin:5px 0 7px;color:var(--quiet)}
+#each .e b{font-weight:normal;color:var(--text)}
+#each .f{font-size:14px;color:var(--faint);margin-top:2px}
+</style></head><body>
+
+<!-- head -->
+<div id="head" class="abs">
+<div id="menus" class="abs"><span class="on">Work</span><span>Revise</span><span>Tools</span><span>Arrange</span><span>Commands</span><span>Rules</span><span>Properties</span><span>Guide</span></div>
+<div id="eq" class="abs"><i style="height:10px"></i><i style="height:14px"></i><i class="c" style="height:11px"></i><i style="height:12px"></i><i style="height:18px"></i><i class="c" style="height:10px"></i><i style="height:13px"></i><i style="height:16px"></i><i style="height:9px"></i><i style="height:11px"></i></div>
+<div id="status" class="abs">on mains · 07:42</div>
+<img id="logo" class="abs" src="../../../../branding/kasandra/kp_neon.png" alt="kp">
+
+</div>
+<!-- left column -->
+<div id="left" class="abs">
+<div id="ltabs" class="abs"><span class="on">Files</span><span>Machine</span><span>Settings</span></div>
+<div id="tree" class="abs">
+<div><span class="pole">┬ </span>Concern</div>
+<div><span class="pole">├─</span> Engineering</div>
+<div class="sel"><span class="pole">│ └─</span> Rail 12 V · After Hours 07</div>
+<div><span class="pole">├─</span> Graphite</div>
+<div><span class="pole">├─</span> Ideas</div>
+<div><span class="pole">├─</span> Notes</div>
+<div><span class="pole">├─</span> Projects</div>
+<div><span class="pole">├─</span> Bench log</div>
+<div><span class="pole">├─</span> Research &amp; references</div>
+<div><span class="pole">└─</span> Unassigned</div>
+<div style="margin-top:8px;color:var(--faint);font-size:14px">Ingress · 1 read as text at 02:20</div>
+</div>
+<div id="beam" class="abs"></div>
+<div id="holo" class="abs"><img src="../../../../branding/kasandra/hologram.webp" alt=""></div>
+<div id="scan" class="abs"></div>
+<div id="tear" class="abs"></div>
+<div id="base" class="abs"></div>
+<div id="holocap" class="abs">good morning · one thing waits for you</div>
+<div id="delete" class="abs"><b>🗑</b>DELETE</div>
+
+</div>
+<!-- centre: Today -->
+<div id="centre" class="abs">
+ <div id="ctabs" class="abs"><span class="on">Today</span><span>Field</span><span>Files</span><span>Bench</span><span class="room">KiCad · rail_12v</span><span class="room">Report draft</span></div>
+
+ <div id="kick" class="abs"><span class="d">FRIDAY 15 NOVEMBER · 07:42</span><span class="rule"></span><span class="cnt"><span class="p">■</span> 1 open question · <span class="z">0 recheck</span> · 1 does not hold · 1 cannot tell</span></div>
+ <div id="greet" class="abs">Good morning. Three lines from the night.<small>while you slept</small></div>
+
+ <div id="lines" class="abs">
+  <div class="ln"><div class="num">1</div><div>
+   <div class="say">Rev C made two findings recheck; both worked again: one holds, one does not hold (over by 5–15 ms).<span class="show">show</span></div>
+   <div class="ev"><span class="verdict yes">HOLDS</span><span class="q">settled draw 3.36 W under 6 W</span><span>·</span><span class="verdict no">DOES NOT HOLD</span><span class="q">startup pulse [105, 115] ms against Rev C's 100 ms</span><span>· receipt 9c0a…</span></div>
+  </div></div>
+  <div class="ln"><div class="num">2</div><div>
+   <div class="say">Last night's backup restored clean (04:06).<span class="show">show</span></div>
+   <div class="ev"><span class="verdict yes">HOLDS</span><span class="q">restored to the spare disk · 1286 files compared · 0 differ</span><span>· receipt b20e…</span></div>
+  </div></div>
+  <div class="ln"><div class="num">3</div><div>
+   <div class="say"><span class="wait">One decision for you:</span> record a tolerance for the startup current, or measure it again.<span class="show">show</span></div>
+   <div class="ev"><span class="verdict cant">CANNOT TELL</span><span class="q">startup power [7.57, 8.04] W against 8 W</span><span>· the current reading settles it most often (89%)</span><span class="w">· waits for you</span></div>
+  </div></div>
+ </div>
+
+ <div id="log" class="abs">
+  <div class="h5"><span>THE NIGHT SHIFT · 02:00 – 04:12 · ON MAINS ONLY</span><span class="rule"></span><span class="x">4 acts · 4 receipts</span></div>
+  <div class="rows">
+   <div class="r"><span class="t">02:00</span><span>recheck what rests on Rev C</span><span class="o">2 findings worked again · <span class="y">1 holds</span> · <span class="n">1 does not hold</span></span><span class="id">9c0a…</span></div>
+   <div class="r"><span class="t">02:20</span><span>read Ingress as text</span><span class="o">1 file · stays quarantined · nothing opened, nothing run</span><span class="id">e3f2…</span></div>
+   <div class="r"><span class="t">03:00</span><span>exam: 40 scenarios</span><span class="o"><span class="y">40 pass</span> · 0 fail · done 03:41</span><span class="id">5d17…</span></div>
+   <div class="r"><span class="t">04:00</span><span>backup test: last night's backup</span><span class="o">restored to the spare disk · 0 differ · <span class="y">clean 04:06</span></span><span class="id">b20e…</span></div>
+   <div class="r end"><span class="t">04:12</span><span>back to quiet</span><span class="o">the shift ended on its own; nobody touched the desk</span><span class="id"></span></div>
+  </div>
+  <div id="same"><span class="ok">✓</span>nothing changed your records<span class="x">sources, sheets and your tolerances are as you left them at 23:58</span></div>
+ </div>
+
+ <div id="today" class="abs">
+  <div class="lab">TODAY<span>Fri 15 Nov</span></div>
+  <div id="agenda" class="tp">
+   <div class="h5"><span>AGENDA · 2</span><span class="rule"></span></div>
+   <div style="margin-top:8px">
+    <div class="it"><span class="tm">10:00</span><span class="tt">Bench session · After Hours 07</span><span class="id">2 h</span><span class="nn">the rail on the bench · a new reading could be taken here</span></div>
+    <div class="it"><span class="tm">16:00</span><span class="tt">Report draft · the startup section</span><span class="id">1 h</span><span class="nn">rests on the startup power, which cannot tell yet</span></div>
+   </div>
+   <div class="more">the whole Agenda</div>
+  </div>
+  <div id="rcpts" class="tp">
+   <div class="h5"><span>RECENT RECEIPTS · 3</span><span class="rule"></span></div>
+   <div style="margin-top:8px">
+    <div class="it"><span class="tm">04:06</span><span class="tt">Backup test · restored clean</span><span class="id">b20e…</span></div>
+    <div class="it"><span class="tm">03:41</span><span class="tt">Exam · 40 scenarios, 40 pass</span><span class="id">5d17…</span></div>
+    <div class="it"><span class="tm">02:04</span><span class="tt">Recheck on Rev C · 1 holds, 1 does not</span><span class="id">9c0a…</span></div>
+   </div>
+   <div class="more">every receipt, in the Log</div>
+  </div>
+ </div>
+</div>
+
+<!-- right column: her -->
+<div id="right" class="abs">
+<div id="who" class="abs">Kasandra<i></i></div>
+<div id="state" class="abs">waits for you</div>
+<div id="model" class="abs">35B · local · on the Radeon · <u>does and shows</u></div>
+<div id="morning" class="rc"><h4>GOOD MORNING · FROM THE NIGHT</h4>
+ <div class="g"><span class="m">1</span><span>Rev C's two rechecks: one holds, one does not hold (over by 5–15 ms).</span></div>
+ <div class="g"><span class="m">2</span><span>Last night's backup restored clean (04:06).</span></div>
+ <div class="g"><span class="m">3</span><span><span class="wait">One decision for you:</span> a tolerance for the startup current, or a new reading.</span></div>
+ <div class="dec"><div class="q">WAITS FOR YOU · THE STARTUP CURRENT</div>
+  <div class="v">650 mA · no tolerance of yours yet<br>startup power against 8 W: cannot tell</div>
+  <div class="btns"><span>Record a tolerance</span><span>Measure again</span><span>Later</span><em>it stays on Today</em></div></div>
+ <div class="rcpt">written from the night's 4 receipts<br>no model words · nothing moved on the desk</div></div>
+<div id="each" class="rc"><h4>WHAT EACH DOES</h4>
+ <div class="e"><b>Record a tolerance</b>: yours to set, in mA or %. I work the startup power against 8 W again and show you.</div>
+ <div class="e"><b>Measure again</b>: at the bench session, 10:00. The new reading stands beside 650 mA; that one keeps its receipt.</div>
+ <div class="f">either way, the report's startup section waits on it</div></div>
+<div id="night" class="rc" style="top:760px"><h4>TONIGHT · ON MAINS ONLY</h4>
+ <div style="font-family:EliteMono;font-size:13px;line-height:19px;color:var(--quiet)">02:00 recheck anything new<br>02:20 read Ingress as text<br>03:00 exam: 40 scenarios<br>04:00 test the evening's backup</div>
+ <div style="margin-top:6px;font-size:14px;color:var(--faint)">nothing changes your records · stops when you touch</div></div>
+<div id="voice" class="abs"><b>((·))</b> listening · say "Kas" or type</div>
+
+</div>
+<!-- the writing line -->
+<div id="bottom" class="abs">
+<div id="who2" class="abs"><span class="on">Kasandra</span><span>Terminal</span><span>Search</span><span>Web</span><span>Log</span></div>
+<div id="lineb" class="abs">prompt<span class="hint">· runs as words to her</span></div>
+<div id="send" class="abs"></div>
+<div id="meters" class="abs"><div>CPU<b>6%</b></div><div>GPU<b>3%</b></div><div>RAM<b>38%</b></div><div class="kp">KP<b>1%</b></div><div>TXT<b>—</b></div></div>
+</div>
+</body></html>

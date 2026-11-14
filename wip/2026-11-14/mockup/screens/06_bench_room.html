@@ -1,0 +1,275 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Graphite, finished: the Bench room</title>
+<link rel="stylesheet" href="../canon.css">
+<style>
+/* 06 · The Bench room during a bench session, Fri 15 Nov 10:15, the morning after the approved screen.
+   Live instruments are sources; Scope 1's capture carries a proposal read from a picture; her NEXT MEASUREMENT ranks what
+   would settle the open verdict; the bench log runs at the bottom. She is at work and listening: the owner asked aloud
+   "Kas, margin on the settled draw?" and she answered from the 10:12 reading and Rev C, showing that reading in the log. */
+
+/* her state: at work (cyan base, the canon's own), with a listening sign beside her head */
+#ear{left:258px;top:556px;width:64px;height:84px}
+#ear path{fill:none;stroke:var(--cyan2);stroke-width:2;stroke-linecap:round}
+#voice{color:var(--cyan2);display:flex;align-items:center;gap:7px}
+#voice .lv{display:flex;gap:2px;align-items:flex-end;height:12px}
+#voice .lv i{display:block;width:3px;background:var(--cyan);box-shadow:0 0 4px rgba(131,234,255,.6)}
+
+/* the room's head: its layers and count */
+#fcount{left:auto;right:30px}
+#fcount .h{color:var(--pink)}
+
+/* instruments, live as sources */
+.inst{position:absolute;top:132px;width:256px;height:150px;background:var(--card);border:1px solid var(--line2);padding:9px 12px 8px;font-size:15px;line-height:19px}
+.inst .k{font-family:EliteMono;font-size:12px;color:var(--faint);letter-spacing:.5px;display:flex;justify-content:space-between}
+.inst .k .st{color:var(--pink)}
+.inst .t{color:var(--text);margin:4px 0 2px}
+.inst .rd{font-family:EliteMono;font-size:27px;line-height:36px;color:var(--cyan2);white-space:nowrap}
+.inst .rd small{font-size:13px;color:var(--quiet);margin-left:6px;vertical-align:4px}
+.inst .rd .gap{display:inline-block;width:18px}
+.inst .n{font-family:EliteMono;font-size:12.5px;line-height:17px;color:var(--quiet)}
+.inst .n.f{color:var(--faint)}
+
+/* Scope 1, capture 03 */
+#scope{left:30px;top:338px;width:556px;height:290px;background:var(--term);border:1px solid var(--line2)}
+#scope .sh{position:absolute;left:12px;right:12px;top:8px;display:flex;justify-content:space-between;font-family:EliteMono;font-size:12px;color:var(--faint)}
+#scope .sh .c2{color:var(--cyan2)}
+#scope svg{position:absolute;left:0;top:0}
+
+/* the proposal read from a picture: hers (honey), dashed because it is not yet a reading */
+#prop{left:606px;top:338px;width:240px;height:290px;background:var(--card);border:1px dashed var(--honey);border-left:3px solid var(--honey);padding:10px 12px;font-size:15px;line-height:19px}
+#prop .tag{font-size:13.5px;color:var(--honey);white-space:nowrap;letter-spacing:-.1px}
+#prop .what{color:var(--quiet);margin-top:6px}
+#prop .val{font-family:EliteMono;font-size:25px;line-height:32px;color:var(--honey);white-space:nowrap}
+#prop .val small{font-size:15px}
+#prop .n{font-family:EliteMono;font-size:12px;line-height:16px;color:var(--quiet);margin-top:6px}
+#prop .n.f{color:var(--faint)}
+#prop .btns{position:absolute;left:12px;bottom:12px;display:flex;flex-direction:column;align-items:flex-start;gap:7px}
+#prop .btns span{border:1px solid var(--line2);background:var(--raised);padding:3px 10px;font-size:14.5px}
+#prop .btns .go{border-color:var(--bar);color:var(--edge)}
+
+/* NEXT MEASUREMENT: hers (honey edge) */
+#next{left:870px;top:102px;width:306px;height:526px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--honey);padding:10px 13px 10px 14px;font-size:15px;line-height:19px}
+#next h4{font-family:EliteMono;font-weight:normal;font-size:12px;color:var(--violet);letter-spacing:1px;margin-bottom:5px}
+#next .lead{font-size:14px;color:var(--quiet);line-height:18px}
+#next .open{margin-top:9px;padding:7px 9px;border:1px dashed var(--violet);border-left:3px dashed var(--violet);background:rgba(95,79,168,.12)}
+#next .open .o1{display:flex;justify-content:space-between;align-items:center}
+#next .open .o1 b{font-weight:normal;font-family:EliteMono;font-size:12px;color:var(--faint);letter-spacing:.5px}
+#next .open .o2{margin-top:3px}
+#next .open .o3{font-family:EliteMono;font-size:12.5px;color:var(--cyan2)}
+#next .it{margin-top:12px;display:grid;grid-template-columns:22px 1fr auto;column-gap:8px;align-items:start}
+#next .it .rk{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line2);font-family:EliteMono;font-size:11.5px;line-height:17px;text-align:center;color:var(--quiet);margin-top:0}
+#next .it .nm{color:var(--text)}
+#next .it .pc{font-family:EliteMono;font-size:21px;line-height:22px;color:var(--cyan2)}
+#next .it .bar{grid-column:2 / 4;height:6px;background:var(--term);border:1px solid var(--line);margin-top:6px}
+#next .it .bar i{display:block;height:100%;background:var(--cyan);opacity:.8}
+#next .it .sub{grid-column:2 / 4;font-family:EliteMono;font-size:12px;line-height:16px;color:var(--quiet);margin-top:5px}
+#next .it .sub.p{color:var(--pink)}
+#next .it .act{grid-column:2 / 4;margin-top:7px}
+#next .it .act span{border:1px solid var(--line2);background:var(--raised);padding:3px 10px;font-size:14px}
+#next .it.off .rk{border-style:dotted;color:var(--faint)}
+#next .it.off .nm{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--faint)}
+#next .it.off .why{grid-column:2 / 4;color:var(--quiet);font-size:14px;margin-top:2px}
+#next .it.off .sub{color:var(--faint)}
+#next .rcpt{position:absolute;left:14px;right:13px;bottom:10px;font-family:EliteMono;font-size:11.5px;line-height:16px;color:var(--faint)}
+
+/* the bench log */
+#log{left:30px;top:688px;width:1146px;font-size:15px}
+#log .row{display:grid;grid-template-columns:96px 176px 168px 136px 200px 1fr;column-gap:10px;align-items:center;height:33px;border-bottom:1px solid rgba(59,68,121,.55);padding-left:10px;white-space:nowrap}
+#log .hd{height:24px;font-family:EliteMono;font-size:12px;color:var(--violet);letter-spacing:.8px;border-bottom:1px solid var(--line)}
+#log .tm{font-family:EliteMono;font-size:13px;color:var(--faint)}
+#log .vl{font-family:EliteMono;font-size:13.5px;color:var(--cyan2)}
+#log .tl{font-family:EliteMono;font-size:12.5px;color:var(--quiet)}
+#log .in{color:var(--quiet);font-size:14.5px}
+#log .into{font-size:14.5px;color:var(--quiet);display:flex;align-items:center;gap:8px}
+#log .row.sel{background:var(--soft);border-left:2px solid var(--bar);padding-left:8px}
+#log .row.sel .tm,#log .row.sel .rn{color:var(--edge)}
+#log .row.pic .vl{color:var(--honey)}
+#log .row.pic .into{color:var(--pink)}
+#log .row.old{opacity:.8}
+#log .lfoot{margin-top:9px;padding-left:10px;font-size:13.5px;color:var(--faint)}
+#log .shown{font-family:EliteMono;font-size:11.5px;color:var(--honey);margin-left:auto;padding-right:10px}
+
+/* her column: the spoken question, transcribed, and her answer */
+#brief div{margin-bottom:4px}
+#heard{left:58px;top:212px;width:284px;text-align:right;font-family:EliteMono;font-size:12px;color:var(--faint)}
+#heard b{font-weight:normal;color:var(--cyan2)}
+#ask{top:232px}
+#hand{top:300px}
+#hand .say{font-size:15.5px;line-height:21px;color:var(--text);white-space:nowrap}
+#hand .work{font-family:EliteMono;font-size:12.5px;line-height:19px;color:var(--quiet);margin-top:8px;padding:6px 8px;background:var(--term);border:1px solid var(--line)}
+#hand .work div{display:flex;justify-content:space-between}
+#hand .work .sum{border-top:1px solid var(--line);margin-top:3px;padding-top:2px;color:var(--cyan2)}
+#hand .g{align-items:center;margin-top:9px}
+#hand .shownote{font-size:14px;color:var(--quiet);margin-top:4px}
+</style></head><body>
+
+<!-- head -->
+<div id="head" class="abs">
+<div id="menus" class="abs"><span class="on">Work</span><span>Revise</span><span>Tools</span><span>Arrange</span><span>Commands</span><span>Rules</span><span>Properties</span><span>Guide</span></div>
+<div id="eq" class="abs"><i style="height:9px"></i><i class="c" style="height:16px"></i><i style="height:12px"></i><i class="c" style="height:26px"></i><i style="height:15px"></i><i class="c" style="height:21px"></i><i style="height:11px"></i><i style="height:18px"></i><i style="height:7px"></i><i style="height:13px"></i></div>
+<div id="status" class="abs">on mains · 10:15</div>
+<img id="logo" class="abs" src="../../../../branding/kasandra/kp_neon.png" alt="kp">
+
+</div>
+<!-- left column -->
+<div id="left" class="abs">
+<div id="ltabs" class="abs"><span class="on">Files</span><span>Machine</span><span>Settings</span></div>
+<div id="tree" class="abs">
+<div><span class="pole">┬ </span>Concern</div>
+<div><span class="pole">├─</span> Engineering</div>
+<div class="sel"><span class="pole">│ └─</span> Rail 12 V · After Hours 07</div>
+<div><span class="pole">├─</span> Graphite</div>
+<div><span class="pole">├─</span> Ideas</div>
+<div><span class="pole">├─</span> Notes</div>
+<div><span class="pole">├─</span> Projects</div>
+<div><span class="pole">├─</span> Bench log</div>
+<div><span class="pole">├─</span> Research &amp; references</div>
+<div><span class="pole">└─</span> Unassigned</div>
+<div style="margin-top:8px;color:var(--faint);font-size:14px">Ingress · nothing new</div>
+</div>
+<div id="beam" class="abs"></div>
+<div id="holo" class="abs"><img src="../../../../branding/kasandra/hologram.webp" alt=""></div>
+<div id="scan" class="abs"></div>
+<div id="tear" class="abs"></div>
+<div id="base" class="abs"></div>
+<svg id="ear" class="abs" viewBox="0 0 64 84"><path d="M8 30 Q 16 42, 8 54" opacity=".95"/><path d="M20 20 Q 34 42, 20 64" opacity=".7"/><path d="M33 10 Q 52 42, 33 74" opacity=".42"/></svg>
+<div id="holocap" class="abs">at work · listening at the bench</div>
+<div id="delete" class="abs"><b>🗑</b>DELETE</div>
+
+</div>
+<!-- centre: the Bench room -->
+<div id="centre" class="abs">
+ <div id="ctabs" class="abs"><span>Field</span><span>Files</span><span class="on">Bench</span><span class="room">KiCad · rail_12v</span><span class="room">Report draft</span></div>
+ <div id="fhead" class="abs"><span>BENCH</span><span class="work">LIVE</span><span>CAPTURES</span><span>SETUP</span><span class="title">After Hours 07 · on the bench</span></div>
+ <div id="fcount" class="abs"><span class="dot"></span>3 live · 3 readings taken · <span class="h">1 proposal waits for you</span></div>
+
+ <div class="colt abs" style="left:30px">INSTRUMENTS</div>
+
+ <div class="inst" style="left:30px"><div class="k"><span>INSTRUMENT</span><span class="st"><span class="dot"></span>LIVE</span></div>
+  <div class="t">Bench DMM 1</div>
+  <div class="rd">662 mA<small>±0.35%</small></div>
+  <div class="n">startup · peak hold</div>
+  <div class="n f">its own tolerance · not taken</div></div>
+
+ <div class="inst" style="left:310px"><div class="k"><span>INSTRUMENT</span><span class="st"><span class="dot"></span>LIVE</span></div>
+  <div class="t">Bench PSU</div>
+  <div class="rd">12.00 V<span class="gap"></span>0.28 A</div>
+  <div class="n">output on · limit 1.00 A</div>
+  <div class="n f">±10 mV, ±2 mA · its own</div></div>
+
+ <div class="inst" style="left:590px"><div class="k"><span>INSTRUMENT</span><span class="st"><span class="dot"></span>LIVE</span></div>
+  <div class="t">Scope 1</div>
+  <div class="rd" style="font-size:22px">armed · single</div>
+  <div class="n">CH2 current probe · CH1 free</div>
+  <div class="n f">capture 03 at 10:09, below</div></div>
+
+ <div class="colt abs" style="left:30px;top:308px">SCOPE 1 · CAPTURE 03 · 10:09</div>
+
+ <div id="scope" class="abs">
+  <div class="sh"><span><span class="c2">CH2 current</span> · 100 mA/div · 25 ms/div</span><span>CH1 not probed</span></div>
+  <svg width="556" height="290">
+   <defs><filter id="tg"><feGaussianBlur stdDeviation="2"/></filter></defs>
+   <!-- grid: 10 x 8 divisions -->
+   <g stroke="#3b4479" stroke-width="1" opacity=".55">
+    <path d="M44 36 V276 M94 36 V276 M144 36 V276 M194 36 V276 M244 36 V276 M344 36 V276 M394 36 V276 M444 36 V276 M494 36 V276 M544 36 V276"/>
+    <path d="M44 36 H544 M44 66 H544 M44 96 H544 M44 126 H544 M44 186 H544 M44 216 H544 M44 246 H544 M44 276 H544"/>
+   </g>
+   <g stroke="#5969a1" stroke-width="1" opacity=".8"><path d="M294 36 V276 M44 156 H544"/></g>
+   <g fill="#9ca3d2" font-family="EliteMono" font-size="10.5" text-anchor="end">
+    <text x="38" y="279">0</text><text x="38" y="219">200</text><text x="38" y="159">400</text><text x="38" y="99">600</text><text x="38" y="45">mA</text>
+   </g>
+   <!-- trigger mark -->
+   <path d="M80 30 L88 30 L84 36 Z" fill="#83eaff"/>
+   <!-- over Rev C: the part of the pulse past the limit -->
+   <rect x="284" y="79" width="16" height="197" fill="#fa507c" opacity=".2"/>
+   <text x="308" y="116" font-family="Elite" font-size="13" fill="#fa507c">over Rev C</text>
+   <!-- Rev C limit: 100 ms from the trigger -->
+   <path d="M284 36 V276" stroke="#ab8eda" stroke-width="1.6" stroke-dasharray="5 4"/>
+   <text x="278" y="268" font-family="EliteMono" font-size="11.5" fill="#ab8eda" text-anchor="end">Rev C ≤ 100 ms</text>
+   <!-- the trace -->
+   <path d="M44.0 276.2 L47.0 275.8 L50.0 276.1 L53.0 276.1 L56.0 275.9 L59.0 276.0 L62.0 276.1 L65.0 275.9 L68.0 275.9 L71.0 276.0 L74.0 275.9 L77.0 275.9 L80.0 275.9 L83.0 276.1 L84.0 276.0 L85.2 186.0 L86.4 96.0 L87.6 64.2 L89.2 70.8 L91.2 74.4 L94.0 76.8 L98.0 77.0 L102.0 76.6 L106.0 76.6 L110.0 77.6 L114.0 76.7 L118.0 77.1 L122.0 76.4 L126.0 76.6 L130.0 77.7 L134.0 77.1 L138.0 76.6 L142.0 76.9 L146.0 77.0 L150.0 77.2 L154.0 76.7 L158.0 76.8 L162.0 77.6 L166.0 77.7 L170.0 77.0 L174.0 77.8 L178.0 78.1 L182.0 77.9 L186.0 77.7 L190.0 78.0 L194.0 77.0 L198.0 77.6 L202.0 77.4 L206.0 77.2 L210.0 78.5 L214.0 78.2 L218.0 77.8 L222.0 77.9 L226.0 78.1 L230.0 78.5 L234.0 77.4 L238.0 78.8 L242.0 78.3 L246.0 78.4 L250.0 77.9 L254.0 77.6 L258.0 78.2 L262.0 78.8 L266.0 78.5 L270.0 78.7 L274.0 78.6 L278.0 78.6 L282.0 78.7 L286.0 78.5 L290.0 78.4 L294.0 79.0 L297.2 79.5 L298.8 96.0 L300.0 135.0 L301.2 174.0 L302.6 195.6 L304.4 197.4 L307.2 194.1 L310.0 190.8 L314.0 192.0 L318.0 191.5 L322.0 192.1 L326.0 191.6 L330.0 191.8 L334.0 191.8 L338.0 192.0 L342.0 192.0 L346.0 191.8 L350.0 191.5 L354.0 192.1 L358.0 191.8 L362.0 192.3 L366.0 191.9 L370.0 192.2 L374.0 192.2 L378.0 192.1 L382.0 191.6 L386.0 191.5 L390.0 192.5 L394.0 191.6 L398.0 192.5 L402.0 192.1 L406.0 192.4 L410.0 192.5 L414.0 191.4 L418.0 192.3 L422.0 191.8 L426.0 192.4 L430.0 192.1 L434.0 191.9 L438.0 192.4 L442.0 191.5 L446.0 191.5 L450.0 191.5 L454.0 191.5 L458.0 191.5 L462.0 191.7 L466.0 192.3 L470.0 192.6 L474.0 192.3 L478.0 192.5 L482.0 192.6 L486.0 191.9 L490.0 192.3 L494.0 191.7 L498.0 192.0 L502.0 191.8 L506.0 192.3 L510.0 191.5 L514.0 192.3 L518.0 192.2 L522.0 191.5 L526.0 192.5 L530.0 192.0 L534.0 192.6 L538.0 191.5 L542.0 191.8" fill="none" stroke="#83eaff" stroke-width="3" opacity=".55" filter="url(#tg)"/>
+   <path d="M44.0 276.2 L47.0 275.8 L50.0 276.1 L53.0 276.1 L56.0 275.9 L59.0 276.0 L62.0 276.1 L65.0 275.9 L68.0 275.9 L71.0 276.0 L74.0 275.9 L77.0 275.9 L80.0 275.9 L83.0 276.1 L84.0 276.0 L85.2 186.0 L86.4 96.0 L87.6 64.2 L89.2 70.8 L91.2 74.4 L94.0 76.8 L98.0 77.0 L102.0 76.6 L106.0 76.6 L110.0 77.6 L114.0 76.7 L118.0 77.1 L122.0 76.4 L126.0 76.6 L130.0 77.7 L134.0 77.1 L138.0 76.6 L142.0 76.9 L146.0 77.0 L150.0 77.2 L154.0 76.7 L158.0 76.8 L162.0 77.6 L166.0 77.7 L170.0 77.0 L174.0 77.8 L178.0 78.1 L182.0 77.9 L186.0 77.7 L190.0 78.0 L194.0 77.0 L198.0 77.6 L202.0 77.4 L206.0 77.2 L210.0 78.5 L214.0 78.2 L218.0 77.8 L222.0 77.9 L226.0 78.1 L230.0 78.5 L234.0 77.4 L238.0 78.8 L242.0 78.3 L246.0 78.4 L250.0 77.9 L254.0 77.6 L258.0 78.2 L262.0 78.8 L266.0 78.5 L270.0 78.7 L274.0 78.6 L278.0 78.6 L282.0 78.7 L286.0 78.5 L290.0 78.4 L294.0 79.0 L297.2 79.5 L298.8 96.0 L300.0 135.0 L301.2 174.0 L302.6 195.6 L304.4 197.4 L307.2 194.1 L310.0 190.8 L314.0 192.0 L318.0 191.5 L322.0 192.1 L326.0 191.6 L330.0 191.8 L334.0 191.8 L338.0 192.0 L342.0 192.0 L346.0 191.8 L350.0 191.5 L354.0 192.1 L358.0 191.8 L362.0 192.3 L366.0 191.9 L370.0 192.2 L374.0 192.2 L378.0 192.1 L382.0 191.6 L386.0 191.5 L390.0 192.5 L394.0 191.6 L398.0 192.5 L402.0 192.1 L406.0 192.4 L410.0 192.5 L414.0 191.4 L418.0 192.3 L422.0 191.8 L426.0 192.4 L430.0 192.1 L434.0 191.9 L438.0 192.4 L442.0 191.5 L446.0 191.5 L450.0 191.5 L454.0 191.5 L458.0 191.5 L462.0 191.7 L466.0 192.3 L470.0 192.6 L474.0 192.3 L478.0 192.5 L482.0 192.6 L486.0 191.9 L490.0 192.3 L494.0 191.7 L498.0 192.0 L502.0 191.8 L506.0 192.3 L510.0 191.5 L514.0 192.3 L518.0 192.2 L522.0 191.5 L526.0 192.5 L530.0 192.0 L534.0 192.6 L538.0 191.5 L542.0 191.8" fill="none" stroke="#e8fbff" stroke-width="1.5"/>
+   <!-- the proposal's cursors (hers: honey) -->
+   <g stroke="#e9b872" stroke-width="1.4" stroke-dasharray="3 3"><path d="M84 36 V276"/><path d="M300 36 V276"/></g>
+   <path d="M90 140 H294" stroke="#e9b872" stroke-width="1.4"/>
+   <path d="M90 135 L84 140 L90 145 Z M294 135 L300 140 L294 145 Z" fill="#e9b872"/>
+   <rect x="148" y="118" width="84" height="16" fill="#11132c"/>
+   <text x="190" y="131" font-family="EliteMono" font-size="13" fill="#e9b872" text-anchor="middle">≈ 108 ms</text>
+  </svg>
+ </div>
+
+ <div id="prop" class="abs">
+  <div class="tag">read from a picture · proposal</div>
+  <div class="what">pulse width</div>
+  <div class="val">≈ 108 ms <small>±3</small></div>
+  <div class="n">the vision model's reading, at the dashed cursors</div>
+  <div class="n f">±3 is the model's guess; yours stays ±5 ms</div>
+  <div class="n f">not in the record until a meter confirms it</div>
+  <div class="btns"><span class="go">Confirm with the meter</span><span>Not this</span></div>
+ </div>
+
+ <div id="next" class="abs"><h4>NEXT MEASUREMENT</h4>
+  <div class="lead">What you could measure next, by how often it settles the open verdict.</div>
+  <div class="open"><div class="o1"><b>OPEN</b><span class="verdict cant">CANNOT TELL</span></div>
+   <div class="o2">Startup power against 8 W</div><div class="o3">[7.57, 8.04] W</div></div>
+  <div class="it"><span class="rk">1</span><span class="nm">Startup current</span><span class="pc">89%</span>
+   <div class="bar"><i style="width:89%"></i></div>
+   <div class="sub">Bench DMM 1 · on the meter now</div>
+   <div class="act"><span>Take the reading</span></div></div>
+  <div class="it"><span class="rk">2</span><span class="nm">Rail voltage at the board, during startup</span><span class="pc">78%</span>
+   <div class="bar"><i style="width:78%"></i></div>
+   <div class="sub p">needs a probe on the board's 12 V input · Scope 1 CH1</div></div>
+  <div class="it off"><span class="rk">3</span><span class="nm">A finer pulse reading</span><span></span>
+   <div class="why">can't change the verdict</div>
+   <div class="sub">the pulse does not hold against Rev C whatever it reads within your ±5 ms</div></div>
+  <div class="rcpt">how often: over every value each reading could give · counted by a line, not the model</div>
+ </div>
+
+ <div class="colt abs" style="left:30px;top:656px">BENCH LOG · FRI 15 NOV</div>
+ <div id="log" class="abs">
+  <div class="row hd"><span>TIME</span><span>READING</span><span>VALUE</span><span>INSTRUMENT</span><span>TOLERANCE</span><span>INTO THE RECORD</span></div>
+  <div class="row sel"><span class="tm">10:12:41</span><span class="rn">settled current</span><span class="vl">280 mA</span><span class="in">Bench DMM 1</span><span class="tl">±0.35% · its own</span><span class="into">settled power 3.36 W <span class="verdict yes">HOLDS</span><span class="shown">shown by her</span></span></div>
+  <div class="row"><span class="tm">10:12:40</span><span>rail voltage</span><span class="vl">12.00 V</span><span class="in">Bench PSU</span><span class="tl">±10 mV · its own</span><span class="into">settled power 3.36 W</span></div>
+  <div class="row pic"><span class="tm">10:09:17</span><span>startup pulse</span><span class="vl">capture 03</span><span class="in">Scope 1</span><span class="tl">—</span><span class="into">a picture · its proposal waits for you</span></div>
+  <div class="row"><span class="tm">10:04:03</span><span>output on</span><span class="vl">12.00 V · 1.00 A</span><span class="in">Bench PSU</span><span class="tl">set by you</span><span class="into">—</span></div>
+  <div class="row"><span class="tm">10:02:30</span><span>zero</span><span class="vl">0.0 mA</span><span class="in">Bench DMM 1</span><span class="tl">±0.35% · its own</span><span class="into">offset taken</span></div>
+  <div class="row old"><span class="tm">09:58:12</span><span>session opened</span><span class="vl">—</span><span class="in">the bench</span><span class="tl">—</span><span class="into">Rail 12 V · After Hours 07</span></div>
+  <div class="lfoot">earlier sessions are in Bench log · each row keeps its instrument and its tolerance</div>
+ </div>
+
+ <div id="foot" class="abs"><div class="kind">READING · TAKEN 10:12:41 · BENCH DMM 1</div><div class="ft">Settled current 280 mA at 12.00 V</div>
+  <div class="btns"><span>Trace</span><span>Doubt</span><span>Range</span><span>Check</span><span>What if</span><span class="new">Share as receipt</span><span>Back</span></div>
+  <div class="line">power settled = psu.voltage × dmm1.current <b>|</b> check "settled.power &lt;= rev_c.continuous" <b>· receipt 51c8… · holds · 2.64 W to spare</b></div></div>
+</div>
+
+<!-- right column: her -->
+<div id="right" class="abs">
+<div id="who" class="abs">Kasandra<i></i></div>
+<div id="state" class="abs">at work</div>
+<div id="model" class="abs">35B · local · on the Radeon · <u>does and shows</u></div>
+<div id="brief" class="rc"><h4>THIS MORNING</h4>
+ <div>Overnight the recheck on Rev C finished: the startup pulse does not hold. The backup tested clean.</div>
+ <div>Bench session since 09:58.</div></div>
+<div id="heard" class="abs"><b>((·))</b> heard 10:14 · spoken</div>
+<div id="ask" class="abs">Kas, margin on the settled draw?</div>
+<div id="hand" class="rc"><h4>MY ANSWER · SAID ALOUD</h4>
+ <div class="say">2.64 W under the continuous limit<br>— from the 10:12 reading and Rev C.</div>
+ <div class="work"><div><span>12.00 V × 280 mA</span><span>3.36 W</span></div><div><span>continuous limit, Rev C</span><span>6 W</span></div><div class="sum"><span>6 − 3.36</span><span>2.64 W</span></div></div>
+ <div class="g"><span class="verdict yes">HOLDS</span><span>settled draw under 6 W</span></div>
+ <div class="shownote">I showed the 10:12 reading in the log.</div>
+ <div class="btns"><span>Trace</span><span>Put it on the Field</span></div>
+ <div class="rcpt">words: the model's · 2.64 W: a line's<br>heard and said here · 1 question, 2 s<br>sources: DMM 1, PSU at 10:12 · Rev C r1</div></div>
+<div id="night" class="rc" style="top:700px"><h4>WHILE YOU MEASURE</h4>
+ <div>I watch DMM 1, the PSU and Scope 1. A reading goes into the record only when you take it; a picture stays a proposal until a meter confirms it.</div>
+ <div style="margin-top:6px;font-size:14px;color:var(--faint)">your voice is heard on this machine only</div></div>
+<div id="voice" class="abs"><span class="lv"><i style="height:5px"></i><i style="height:10px"></i><i style="height:7px"></i><i style="height:12px"></i><i style="height:4px"></i></span><b>((·))</b> listening · say "Kas" or type</div>
+
+</div>
+<!-- the writing line -->
+<div id="bottom" class="abs">
+<div id="who2" class="abs"><span class="on">Kasandra</span><span>Terminal</span><span>Search</span><span>Web</span><span>Log</span></div>
+<div id="lineb" class="abs">prompt<span class="hint">· runs as words to her</span></div>
+<div id="send" class="abs"></div>
+<div id="meters" class="abs"><div>CPU<b>23%</b></div><div>GPU<b>47%</b></div><div>RAM<b>44%</b></div><div class="kp">KP<b>26%</b></div><div>TXT<b>—</b></div></div>
+</div>
+</body></html>
