@@ -53,6 +53,8 @@ FOCUSED_MODULES=(
  'test_campaign',
  # 0.8.1: the model's memory rules, each against Graphite's own code with simulated readings
  'test_resource_rules',
+ # 0.8.2: desk acts: the registry, her hand's rule, the typed door, the playable scene
+ 'test_desk_acts','test_desk_scenes',
  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
  # the network capability the agent can inspect (HATCH DESK D5)
  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',

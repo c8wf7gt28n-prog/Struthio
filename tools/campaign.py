@@ -39,7 +39,7 @@ def main(argv=None):
     listing.add_argument('--workspace', help='a workspace where the owner\'s model is registered')
     go = sub.add_parser('run', help='run a case or a set')
     go.add_argument('--case', action='append', help='case id (repeatable, or comma separated)')
-    go.add_argument('--set', default=None, help='resource, anchors, all, selftest or real')
+    go.add_argument('--set', default=None, help='resource, anchors, all, selftest, real or scenes')
     go.add_argument('--attempts', type=int, default=1)
     go.add_argument('--out', help='run folder (default: a new folder under the system temp folder)')
     go.add_argument('--fixtures', help='folder holding the After Hours 07 backup or zip, and the owner\'s data for a '

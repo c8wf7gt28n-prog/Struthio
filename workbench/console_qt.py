@@ -10,7 +10,8 @@ opens or closes the area; running a line opens it at Half (open), and Line close
           Result tables can be saved as a sheet, watched, or added to the Agenda.
   Kernel  Assistant's / lines (Commands > Run an operation…): files.list path=Slate, copies.review id=…, help files.find,
           ops copies. The same operations and the same permissions as the window; anything that needs your approval asks for
-          a second Enter.
+          a second Enter. Since 0.8.2 a desk act runs here by its name too (/go.field face=apps, /point.sheet title="…"):
+          something you can do in the window, done on the window itself (desk_acts, desk_doers); help acts lists them.
   Find    Search: names and words across Files, what the Office received, the cabinet, settings, commands and the Timeline.
   Shell   Shell: the configured shell (typebar_qt.configured_shell; Bash when it is bash) in your Files folder, for your own
           commands. Output is shown as plain text (terminal control sequences are removed), stdin is closed, Stop and Master
@@ -20,6 +21,7 @@ Up and Down walk each page's own history; Tab completes operation names, their a
 Ctrl+` opens it (and gives it room); Esc returns it to one line. The console sizes are one line, half, and tall.
 """
 from __future__ import annotations
+from .assistant_identity import named
 from .text_prompts import writing_prompt
 import json
 import re
@@ -349,12 +351,13 @@ class Console(QWidget):
         word = re.split(r'[\s|]', before)[-1]
         options = []
         if self.mode == 'kernel':
+            from . import desk_acts
             from .engineering_kernel import CAPABILITIES
             head = before.split(' ', 1)
-            if len(head) == 1:options = sorted(op for op in CAPABILITIES if op.startswith(word))
+            if len(head) == 1:options = sorted([op for op in CAPABILITIES if op.startswith(word)] + [act for act in desk_acts.ACTS if act.startswith(word)])
             else:
                 from .engineering_cli import schemas
-                definition = schemas().get(head[0]) or {}
+                definition = desk_acts.schema(head[0]) if desk_acts.is_act(head[0]) else (schemas().get(head[0]) or {})
                 options = [name + '=' for name in definition.get('properties', {}) if name.startswith(word)]
         elif self.mode == 'stac':
             if word.startswith('@files:'):
@@ -476,7 +479,24 @@ class Console(QWidget):
                  echo=echo)
 
     # -- Kernel ----------------------------------------------------------------------------
+    def argument_rows(self, definition):
+        required = set(definition.get('required', []))
+        return [{'argument': k, 'needed': 'yes' if k in required else '', 'kind': v.get('type', '') + (' · one of ' + ', '.join(map(str, v['enum'])) if v.get('enum') else ''),
+                 'limit': v.get('maxLength') or v.get('maximum') or ''} for k, v in definition.get('properties', {}).items()]
+
+    def help_act(self, name, text):
+        """help NAME for a desk act: what it is (it navigates; it changes, through her hand; or it is the owner's alone), its
+        words and its arguments. An act's name is printed only here, in ops, and in the echo of a line that ran one."""
+        from . import desk_acts
+        act = desk_acts.ACTS[name]
+        if act.owner_only:mark = 'yours only'
+        elif act.mark == 'changes':mark = named("changes, through Stacy's hand: %s") % (act.kernel or 'the step\'s own line')
+        else:mark = 'navigates'
+        rows = self.argument_rows(act.schema)
+        self.say('<b>%s</b> · %s<br>%s' % (escape(name), escape(mark), escape(act.words)) + (table_html(rows) if rows else '<br>No arguments.'), echo='graphite › ' + text)
+
     def run_kernel(self, text):
+        from . import desk_acts
         from .engineering_kernel import CAPABILITIES
         from .engineering_cli import schemas
         words = text.split()
@@ -484,18 +504,28 @@ class Console(QWidget):
             if words[0] == 'history':self.say(escape('\n'.join(self.history.get('kernel', [])[-30:])).replace('\n', '<br>'), echo='graphite › history');return
             if words[0] == 'ops':
                 needle = words[1] if len(words) > 1 else ''
+                acts = sorted(name for name in desk_acts.ACTS if needle in name)      # 0.8.2: the desk's acts first, then the operations
                 found = sorted(op for op in CAPABILITIES if needle in op)
-                self.say('%d operation%s' % (len(found), '' if len(found) == 1 else 's') +
+                head = ('%d act%s' % (len(acts), '' if len(acts) == 1 else 's') + table_html([{'act': name, 'mark': 'yours only' if desk_acts.ACTS[name].owner_only else desk_acts.ACTS[name].mark,
+                                                                                        'use': self.link('help', lambda n=name:self.run_kernel('help ' + n))} for name in acts], raw=('use',)) + '<br>') if acts else ''
+                self.say(head + '%d operation%s' % (len(found), '' if len(found) == 1 else 's') +
                          table_html([{'operation': op, 'scope': CAPABILITIES[op], 'use': self.link('help', lambda o=op:self.run_kernel('help ' + o))} for op in found[:400]], raw=('use',)),
                          echo='graphite › ' + text);return
+            if len(words) > 1 and words[1] == 'acts':
+                rows = [{'act': name, 'mark': 'yours only' if act.owner_only else act.mark, 'words': act.words} for name, act in desk_acts.ACTS.items()]
+                self.say('%d acts, each something you can do in the window; a line runs one by its name' % len(rows) + table_html(rows), echo='graphite › ' + text);return
+            if len(words) > 1 and desk_acts.is_act(words[1]):self.help_act(words[1], text);return
             if len(words) < 2 or words[1] not in CAPABILITIES:self.say(self.refused('help needs an operation name; try ops files'), echo='graphite › ' + text);return
-            op = words[1];d = schemas()[op];required = set(d.get('required', []))
-            rows = [{'argument': k, 'needed': 'yes' if k in required else '', 'kind': v.get('type', '') + (' · one of ' + ', '.join(map(str, v['enum'])) if v.get('enum') else ''),
-                     'limit': v.get('maxLength') or v.get('maximum') or ''} for k, v in d.get('properties', {}).items()]
+            op = words[1];d = schemas()[op]
+            rows = self.argument_rows(d)
             self.say('<b>%s</b> · scope %s%s' % (escape(op), CAPABILITIES[op], ' · asks for a second Enter' if CAPABILITIES[op] == 'approve' else '') + (table_html(rows) if rows else '<br>No arguments.'),
                      echo='graphite › ' + text);return
         try:op, args = parse_command(text)
         except (ValueError, json.JSONDecodeError) as exc:self.say(self.refused(exc), echo='graphite › ' + text);return
+        if desk_acts.is_act(op) or desk_acts.looks_like_act(op):      # 0.8.2: a desk act, by its name (desk_doers): the owner's door
+            from .desk_doers import run as run_act
+            done = run_act(self.host, op, args, door='owner', word='/' + text)
+            self.say(escape(desk_acts.said(done)) if done['ok'] else self.refused(desk_acts.said(done)), echo='graphite › ' + text);return
         if op not in CAPABILITIES:
             near = [o for o in CAPABILITIES if op.split('.')[0] in o][:8]
             self.say(self.refused('no operation named ' + op) + ('<br>Perhaps: ' + escape(', '.join(near)) if near else ''), echo='graphite › ' + text);return

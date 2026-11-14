@@ -32,11 +32,11 @@ import time
 import traceback
 from pathlib import Path
 
-from . import cases_anchor, cases_resource, fixture, gguf_fixture, needs
+from . import cases_anchor, cases_resource, cases_scene, fixture, gguf_fixture, needs
 from .core import Attempt, Case, _plain, library_digest, score
 
 CAMPAIGN = fixture.REPO / 'tools' / 'campaign.py'
-SETS = ('resource', 'anchors', 'selftest', 'real')
+SETS = ('resource', 'anchors', 'selftest', 'real', 'scenes')      # scenes: desk acts played on a live window (cases_scene)
 REAL_MIN_AVAILABLE = needs.REAL_MIN_AVAILABLE
 PREVIOUS = re.compile(r'previous-(\d+)')
 
@@ -83,7 +83,7 @@ REAL = [
 
 
 def registry():
-    cases = cases_resource.CASES + cases_anchor.CASES + SELFTEST + REAL
+    cases = cases_resource.CASES + cases_anchor.CASES + SELFTEST + REAL + cases_scene.CASES
     return {c.id: c for c in cases}
 
 
@@ -97,7 +97,7 @@ def select(set_name=None, ids=None):
     if set_name in (None, 'all'):
         return [c for c in every.values() if c.set in ('resource', 'anchors')]
     if set_name not in SETS:
-        raise SystemExit('Unknown set: %s (choose resource, anchors, all, selftest or real)' % set_name)
+        raise SystemExit('Unknown set: %s (choose resource, anchors, all, selftest, real or scenes)' % set_name)
     return [c for c in every.values() if c.set == set_name]
 
 

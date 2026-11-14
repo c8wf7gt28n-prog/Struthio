@@ -1099,7 +1099,10 @@ class OneBox(QLineEdit):
         if mode in ('log', 'web'):return rows      # Web has no list: Enter opens or searches in the browser, and the list must not offer another thing
         if page == 'find':return self.search_rows(text[1:].strip() if text.startswith('?') else text)
         if page in ('kernel', 'shell'):
-            word = {'kernel': 'Operation  ', 'shell': (getattr(getattr(self.host, 'type_bar', None), 'labels', {}).get('shell', 'Shell')) + '  '}[page]
+            from .desk_acts import is_act
+            name = text.strip()[1:].split(' ', 1)[0] if text.strip().startswith('/') else ''
+            kernel_word = 'Act  ' if is_act(name) else 'Operation  '      # 0.8.2: a desk act typed by its name, beside the operations
+            word = {'kernel': kernel_word, 'shell': (getattr(getattr(self.host, 'type_bar', None), 'labels', {}).get('shell', 'Shell')) + '  '}[page]
             rows.append(('section', 'IN THE WORKING AREA', None))
             rows.append(('stac', word + text, ('Enter', lambda:to_console(self.host, page, text))))
             return rows
@@ -1172,9 +1175,11 @@ class OneBox(QLineEdit):
         for label, destination in places:
             if needle in label.casefold():found.append((label, '', lambda d=destination:open_destination(self.host, d)));seen.add(label)
         for action in self.host.actions():
-            label = action.text().replace('&', '').strip()
+            # 0.8.2: a command's words alone. Its key was printed beside it here ("Field      F9", and "\tAlt+1" left in a label
+            # the menus had not yet dressed); no key is printed on screen, and every key still works.
+            label = action.text().replace('&', '').split('\t')[0].strip()
             if not label or label in seen or not action.isEnabled() or needle not in label.casefold():continue
-            seen.add(label);found.append((label, action.shortcut().toString(), action.trigger))
+            seen.add(label);found.append((label, '', action.trigger))
         return found
 
 
@@ -2042,6 +2047,7 @@ class SlateFace(QWidget):
             r = engineering(self.host.root).dispatch(operation, arguments, operator())
         except Exception as exc:  # noqa: BLE001 - a line that cannot be run is said as a refusal, never raised into the window
             r = {'ok': False, 'error': {'message': str(exc)[:300]}}
+        card.reply = r                           # the Kernel's answer, kept (a desk act's journal line carries its correlation id)
         card.ran = bool(r.get('ok'));card.run.setEnabled(False);card.run.setText('Approved' if card.ran else 'Refused')
         from .boss_qt import waits
         waits(card.run, self.host, False)        # it no longer waits
