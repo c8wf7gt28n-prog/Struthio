@@ -39,7 +39,7 @@ class FieldPage(QWidget):
         state = getattr(getattr(host, 'session', None), 'state', None)
         seen = state.get('field_zoom') if isinstance(state, dict) else None
         if seen:
-            self.view.zoom = max(FieldView.ZOOM[0], min(FieldView.ZOOM[1], float(seen['zoom'])));self.view._fitted = bool(seen['whole'])
+            self.view.zoom = max(FieldView.ZOOM[0], min(FieldView.ZOOM[1], float(seen['zoom'])));self.view._fitted = bool(seen['whole']);self.view.auto_fit = False
         self._keep = QTimer(self);self._keep.setSingleShot(True);self._keep.setInterval(900)       # one write after the wheel has stopped turning
         self._keep.timeout.connect(lambda: self.host.session.save())
 

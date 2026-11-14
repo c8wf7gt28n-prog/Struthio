@@ -133,6 +133,7 @@ class ArtPanel(QWidget):
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAccessibleName('Stacy in the After Midnight workshop' if t.APPEARANCE == 'graphite' else 'Kasandra in her office')
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        self.limit = None     # the most height Home can give the picture without scrolling (TodayPage.fit_art); None: no limit
         self.opened = 0       # Kasandra: the Office alternates its stills each time it is shown again, and keeps one while it is open
         self.refresh()
 
@@ -145,9 +146,12 @@ class ArtPanel(QWidget):
         self.setFixedHeight(self.plate_height())
         self.setVisible(self.mode != 'clean');self.update()
 
+    LEAST = 96       # the shortest the picture gives way to, so that Home fits its window (TodayPage.fit_art)
+
     def plate_height(self):
         if self.mode == 'illustrated':
-            return min(368, max(112, self.width() // 3))
+            full = min(368, max(112, self.width() // 3))
+            return full if getattr(self, 'limit', None) is None else max(self.LEAST, min(full, int(self.limit)))
         return 0 if self.mode == 'clean' else 112
 
     def resizeEvent(self, event):

@@ -342,10 +342,10 @@ class FinderPage(QWidget):
         outer = QVBoxLayout(self);outer.setContentsMargins(0, 0, 0, 0);outer.setSpacing(0)
         # Toolbar ----------------------------------------------------------------------------------------------------------
         bar = QWidget();bar.setObjectName('FinderBar');row = QHBoxLayout(bar);row.setContentsMargins(28, 12, 28, 6);row.setSpacing(10)
-        self.back_button = QToolButton();self.back_button.setText('‹');self.back_button.setAccessibleName('Back');self.back_button.setToolTip('Back (Alt Left)');self.back_button.clicked.connect(self.back)
-        self.forward_button = QToolButton();self.forward_button.setText('›');self.forward_button.setAccessibleName('Forward');self.forward_button.setToolTip('Forward (Alt Right)');self.forward_button.clicked.connect(self.forward)
+        self.back_button = QToolButton();self.back_button.setText('‹');self.back_button.setAccessibleName('Back');self.back_button.setToolTip('Back');self.back_button.clicked.connect(self.back)
+        self.forward_button = QToolButton();self.forward_button.setText('›');self.forward_button.setAccessibleName('Forward');self.forward_button.setToolTip('Forward');self.forward_button.clicked.connect(self.forward)
         for b in (self.back_button, self.forward_button):b.setCursor(Qt.PointingHandCursor);b.setMinimumWidth(30);row.addWidget(b)
-        self.up_button = QToolButton();self.up_button.setText('↑');self.up_button.setAccessibleName('Enclosing folder');self.up_button.setToolTip('Enclosing folder (Backspace or Alt Up)');self.up_button.clicked.connect(self.up);row.addWidget(self.up_button)
+        self.up_button = QToolButton();self.up_button.setText('↑');self.up_button.setAccessibleName('Enclosing folder');self.up_button.setToolTip('Enclosing folder');self.up_button.clicked.connect(self.up);row.addWidget(self.up_button)
         self.name = role(QLabel('Today'), 'item');self.name.setAccessibleName('Place');row.addWidget(self.name, 1);self.title = 'Today'
         self.name.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)  # the name takes the room left; fit_bar elides it last
         self.view_buttons = {}

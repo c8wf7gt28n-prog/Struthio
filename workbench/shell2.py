@@ -858,7 +858,7 @@ class PathBar(QLineEdit):
         self.setObjectName('WorkspacePath');self.setFrame(False);self.setMinimumWidth(0)
         self.setProperty('paperFunctionalInk', True)
         self.setAccessibleName('Active workspace path')
-        self.setAccessibleDescription('Full path. Ctrl L selects it, Enter opens it, Escape restores it.')
+        self.setAccessibleDescription('Full path. Type an address here and it opens; leave it and it is put back.')
         self.returnPressed.connect(self.navigate)
         self.timer = QTimer(self, interval=400);self.timer.timeout.connect(self.refresh);self.timer.start()
         self.refresh(force=True)
@@ -1803,7 +1803,7 @@ class SlateFace(QWidget):
         self.say('Ask about what is open. In the Field, say “this” and I take the selected sheet. What I read, I show as a line you can run yourself.')
         self.input = Composer();self.input.setObjectName('SlateInput');writing_prompt(self.input, 'Ask about the open item, or anything')
         self.input.returnPressed.connect(self.send);self.input.setAccessibleName(named('Message Stacy'));self.input.setMinimumHeight(round(112 * scale_of(host)));self.input.setMaximumHeight(round(144 * scale_of(host)));outer.addWidget(self.input)
-        hint = role(QLabel('Enter sends · Shift Enter for a new line'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
+        hint = role(QLabel('Write in your own words; finishing the line sends it'), 'quiet');hint.setWordWrap(True);outer.addWidget(hint)  # 4.1: Enter is the send; no button
         quiet_script(hint)  # a note you may skip: the Paper script (the quiet-script rule)
         self.input_hint = hint  # with the typing bar, both are hidden: you write to Slate at the foot of the window
         self.timer = QTimer(self);self.timer.setInterval(800);self.timer.timeout.connect(self.poll)
@@ -1858,6 +1858,7 @@ class SlateFace(QWidget):
 
     def add(self, widget):
         self.lines.insertWidget(self.lines.count() - 1, widget);self.fold_earlier()
+        QTimer.singleShot(0, self.fold_earlier);QTimer.singleShot(120, self.fold_earlier)      # again once the card has its rows
         QTimer.singleShot(30, lambda:self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
         return widget
 
@@ -1866,8 +1867,18 @@ class SlateFace(QWidget):
         fold = getattr(self, 'fold', None)
         items = [self.lines.itemAt(i).widget() for i in range(self.lines.count())]
         items = [w for w in items if w is not None and w is not fold]
-        if getattr(self, 'unfolded', False) or len(items) <= self.KEEP_BUBBLES:return
-        hidden = items[:-self.KEEP_BUBBLES]
+        if getattr(self, 'unfolded', False):return
+        # 0.8.0 (the owner: "if we can really try to eliminate or reduce [scrolling] as much as possible"): the latest
+        # exchanges that fit in the pane's height stay in view, at most KEEP_BUBBLES; the latest one always does.
+        room = max(160, self.scroll.viewport().height() - 24);width = max(120, self.thread.width() - 14);used = 0;kept = 0
+        for w in reversed(items):
+            if kept >= self.KEEP_BUBBLES:break
+            box = w.layout()
+            tall = box.totalHeightForWidth(width) if box is not None and box.hasHeightForWidth() else w.sizeHint().height()
+            if kept and used + tall > room:break
+            used += tall + self.lines.spacing();kept += 1
+        if kept >= len(items):return
+        hidden = items[:-kept]
         for w in hidden:w.hide()
         if fold is None:self.fold = fold = QLabel();self.lines.insertWidget(0, fold)
         sentence('{show}', {'show': ('%d earlier · show them' % len(hidden), self.unfold)}, fold);fold.show()
@@ -1917,7 +1928,7 @@ class SlateFace(QWidget):
         # The line itself stays exact: it is what runs, what "in the line" gives, and the label's tooltip.
         code = QLabel(breakable(re.sub(r'([0-9a-f]{6})[0-9a-f]{20,}', '\\1…', line).replace(' | ', '\n| ')));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))
         code.setToolTip(line)
-        code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        code.setStyleSheet(bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + line)
         answer_first = bool(thing.get('whole'))       # when the rows are the whole answer (a doubt, a what-if, a brief), they are read first and the line that read them comes after
         if not answer_first:card.box.addWidget(code)
@@ -2002,8 +2013,8 @@ class SlateFace(QWidget):
         if step.why:
             why = QLabel(breakable(step.why[:1].upper() + step.why[1:] + '.'));why.setWordWrap(True);why.setStyleSheet('color:%s' % QUIET)
             why.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(why)
-        code = QLabel(breakable(step.line));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15))
-        code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        code = QLabel(breakable(bt.eye(step.line)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(15));code.setToolTip(step.line)
+        code.setStyleSheet(bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + step.line);card.box.addWidget(code)
         row = QHBoxLayout();run = button('Approve', 'stac');run.setObjectName('StagedRun');row.addWidget(run)
         run.setToolTip('Apply this change. Nothing is changed until you do; in the Field, G does the same')
@@ -2387,8 +2398,8 @@ class SlateFace(QWidget):
             said = QLabel(breakable('%d  “%s”: %s' % (n + 1, obj.title, step.words[:1].lower() + step.words[1:])));said.setWordWrap(True)
             said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);card.box.addWidget(said)
             shown = step.line if not brief or len(step.line) <= 96 else step.line[:95] + '…'      # brief: a line that carries a whole file is shown by its start
-            code = QLabel(breakable(shown));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(14))
-            code.setStyleSheet('color:%s' % TEAL_TEXT);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            code = QLabel(breakable(bt.eye(shown)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setFont(mono_font(14));code.setToolTip(step.line)
+            code.setStyleSheet(bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
             card.box.addWidget(code);card.rows.append(said)
         row = QHBoxLayout();run = button('Approve all %d' % len(plan) if len(plan) > 1 else 'Approve', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
         run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do; in the Field, G does the same')
@@ -2672,7 +2683,7 @@ class SlateFace(QWidget):
             if 'entries' in arguments:lines.append('%d reviewed files' % len(arguments['entries']))
             if 'destination' in arguments:lines.append('Save to ' + arguments['destination'])
             summary = '\n'.join(lines)
-        code = QLabel(breakable(summary));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setFont(mono_font(16));code.setStyleSheet('color:%s' % TEAL_TEXT);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
+        code = QLabel(breakable(bt.eye(summary)));code.setTextFormat(Qt.PlainText);code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setFont(mono_font(16));code.setStyleSheet(bt.line_sheet());code.setToolTip(summary);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
         if page:  # a page edit that could not apply by itself says why, above the review words
             why = QLabel(breakable(page['words']));why.setWordWrap(True);why.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);why.setStyleSheet('color:%s' % QUIET);box.addWidget(why)
             card.setProperty('modelTurn', 'not_applied');card.words = why
@@ -2764,11 +2775,11 @@ class SlateFace(QWidget):
         the word undo (the page's one undo stack) and the owner's mark, which the instruction matrix keeps (as for a Run)."""
         card = QFrame();card.setObjectName('StacCard');card.setProperty('modelTurn', 'applied');box = QVBoxLayout(card);box.setContentsMargins(10, 8, 10, 8);box.setSpacing(6)
         label = QLabel('APPLIED ON THE PAGE');label.setStyleSheet('color:%s;font-size:9pt;letter-spacing:1px' % TEAL);box.addWidget(label)
-        code = QLabel(breakable(program));code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setFont(mono_font(16));code.setStyleSheet('color:%s' % TEAL_TEXT);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
+        code = QLabel(breakable(bt.eye(program)));code.setWordWrap(True);code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setFont(mono_font(16));code.setStyleSheet(bt.line_sheet());code.setToolTip(program);code.setTextInteractionFlags(Qt.TextSelectableByMouse);box.addWidget(code)
         said = QLabel(breakable(words));said.setWordWrap(True);said.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);box.addWidget(said)
         def undo():
             try:answer = tab.slate_request('undo')
-            except RuntimeError:answer = 'That page is closed; reopen it and use Ctrl Z there.'
+            except RuntimeError:answer = 'That page is closed; reopen it and use Undo there.'
             self.say(answer or 'Nothing to undo on this page.');return answer
         box.addWidget(sentence('{undo}', {'undo': ('undo', undo)}))   # the sentence above already says Ctrl Z or “undo” takes it back
         row = QHBoxLayout();ask = QLabel('Was this right?');ask.setStyleSheet('color:%s' % QUIET);row.addWidget(ask, 1)
@@ -2866,8 +2877,8 @@ class SlateFace(QWidget):
         found = explain(value)
         card = self.say((intro + '\n\n' if intro else '') + found['text'])
         for program in found['suggestions']:
-            code = QLabel(breakable(program));code.setWordWrap(True);code.setFont(mono_font(15));code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-            card.box.addWidget(code)
+            code = QLabel(breakable(bt.eye(program)));code.setWordWrap(True);code.setFont(mono_font(15));code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+            code.setStyleSheet(bt.line_sheet());code.setToolTip(program);card.box.addWidget(code)
             card.box.addWidget(sentence('{run}  ·  {watch}  ·  {keep}', {'run': ('run it', lambda p=program:self.run_stac(p)),
                                                                         'watch': ('watch it', lambda p=program:self.watch(p)),
                                                                         'keep': ('add to the Agenda', lambda p=program:self.keep_in_agenda(p))}))
@@ -2984,11 +2995,11 @@ class TodayPage(QWidget):
         for label, destination in (('Organizer', 'organizer'), ('Memory', 'memory'), ('Knowledge', 'stacy_knowledge'), ('References', 'references'), ('Commands', 'commands'), ('Settings', 'settings')):
             link = QPushButton(label);link.setFlat(True);link.setProperty('arcButton', 'link');link.setCursor(Qt.PointingHandCursor);link.clicked.connect(lambda checked=False, d=destination:open_destination(host, d));col.addWidget(link)
         from .version import title as product
-        foot = QLabel(product() + ' · Ctrl K to ask · F11 fullscreen');foot.setStyleSheet('color:%s' % FAINT);foot.setWordWrap(True);col.addWidget(foot)
+        foot = QLabel(product());foot.setStyleSheet('color:%s' % FAINT);foot.setWordWrap(True);col.addWidget(foot)
         outer.addWidget(side);side.hide()  # 3.0: the facts are one sentence under the greeting; the links live in the one box
         self.timer = QTimer(self);self.timer.setInterval(4000);self.timer.timeout.connect(self.fill);self._waiting = None
 
-    CARD_MIN = 320  # a card's narrowest comfortable width at 14 pt; under two of these Today's grid is one column (G-B)
+    CARD_MIN = 260  # a card's narrowest comfortable width at 14 pt; under two of these Today's grid is one column (G-B; 320 until 0.8.0, which made Home one column at 1366 x 768)
 
     def fit_columns(self):
         """Two columns of cards while two fit at their own width and CARD_MIN, otherwise one: Today never scrolls sideways."""
@@ -3002,7 +3013,22 @@ class TodayPage(QWidget):
         for i, card in enumerate(self.cards):self.grid.addWidget(card, i // columns, i % columns)
 
     def resizeEvent(self, event):
-        super().resizeEvent(event);self.fit_columns()
+        super().resizeEvent(event);self.fit_columns();QTimer.singleShot(0, self.fit_art)
+
+    def fit_art(self):
+        """0.8.0, less scrolling: Home fits its window. The picture at its head gives up height (to ArtPanel.LEAST) before
+        the page would scroll, and takes it back when there is room."""
+        art = self.art;holder = self.scroller.widget()
+        if holder is None or getattr(art, 'mode', '') != 'illustrated':return
+        view = self.scroller.viewport().height();box = holder.layout()
+        if view < 120 or box is None:return
+        tall = box.totalHeightForWidth(holder.width()) if box.hasHeightForWidth() else box.sizeHint().height()
+        limit = view - (tall - art.height())
+        if getattr(art, 'limit', None) is None or abs(art.limit - limit) > 2:
+            art.limit = limit;height = art.plate_height()
+            if art.height() != height:art.setFixedHeight(height)
+            # a short window: the jot box keeps three lines' room (it grows no taller than that until there is room again)
+            self.capture.text.setMaximumHeight(round((112 if limit < art.LEAST else 160) * scale_of(self.host)))
 
     def office(self):return self.host.ledger_bridge.navigation()['office']()
 
@@ -3027,7 +3053,7 @@ class TodayPage(QWidget):
         return out
 
     def showEvent(self, event):
-        super().showEvent(event);self.fill();self.timer.start();self.fit_columns()
+        super().showEvent(event);self.fill();self.timer.start();self.fit_columns();QTimer.singleShot(0, self.fit_art);QTimer.singleShot(150, self.fit_art)
 
     def hideEvent(self, event):super().hideEvent(event);self.timer.stop()
 

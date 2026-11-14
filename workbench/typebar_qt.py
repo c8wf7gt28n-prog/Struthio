@@ -10,6 +10,7 @@ open Search. The saved mode keys also preserve older targets and histories.
 The active mode supplies the field's accessible hint. `poem` is the placeholder.
 """
 from __future__ import annotations
+from . import boss_theme as _bt
 from .assistant_identity import named
 from .text_prompts import writing_prompt
 from PySide6.QtCore import Qt, QTimer, QEvent, QSize
@@ -476,7 +477,8 @@ class TypeBar(QWidget):
             'QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {background:%s;border:1px solid %s;} '      # the line reads as staC: the arrow is live
             'QWidget#TypeBar QLabel#TypeContext {font-size:%dpx;}'
             % (TEXT, px, TERMINAL_GROUND, TEXT, QUIET, LINE, MONO, px, AMBER_EDGE,
-               AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, READY, READY, READY, px))
+               AMBER_EDGE, TERMINAL_GROUND, AMBER_EDGE, AMBER_TEXT, READY, *((_bt.ROYAL, _bt.ROYAL) if _bt.APPEARANCE == 'kasandra' else (READY, READY)), px)
+            + ('QWidget#TypeBar QPushButton#WritingSubmit[reads="true"] {color:%s;}' % _bt.ROYAL_INK if _bt.APPEARANCE == 'kasandra' else ''))      # Kasandra: a line it will run, in royal purple
         for b in list(self.targets.values()) + [self.box, self.context]:
             b.style().unpolish(b);b.style().polish(b)
 

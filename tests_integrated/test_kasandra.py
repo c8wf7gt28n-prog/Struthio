@@ -61,6 +61,18 @@ class PaletteTests(unittest.TestCase):
             k = boss_theme.PALETTES['kasandra'];lit = boss_theme.recolour(css)
             self.assertEqual(lit, 'QLineEdit {background:%s;color:%s;border:1px solid %s;} QLabel {color:#123456;}' % (k['ERASER'], k['TEXT'], k['AMBER_EDGE']))
 
+    def test_a_line_you_can_run_stands_on_royal_purple_and_its_record_numbers_are_short(self):
+        with mock.patch.object(boss_theme, 'APPEARANCE', 'graphite'):
+            self.assertEqual(boss_theme.line_sheet(), 'color:%s' % boss_theme.TEAL_TEXT, 'Graphite: its green, as before')
+        with mock.patch.object(boss_theme, 'APPEARANCE', 'kasandra'), mock.patch.multiple(boss_theme, ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff'):
+            sheet = boss_theme.line_sheet()
+            self.assertIn('background:#271a58', sheet);self.assertIn('border-left:3px solid #7b4fd8', sheet);self.assertIn('color:#ebe2ff', sheet)
+        line = '/field.set {"id": "office:owner:db5f669f863d4c71b89fa7ba348957da", "cell": "B3", "expected_revision": "69dada6fef720000e4b538e9cc3a9518ecba564118661fc4b7a7e81372536a27"}'
+        self.assertEqual(boss_theme.eye(line), '/field.set {"id": "office:owner:db5f66…", "cell": "B3", "expected_revision": "69dada…"}')
+        self.assertEqual(boss_theme.eye('field.read | pick waiting'), 'field.read | pick waiting', 'nothing to shorten')
+        self.assertEqual(set(boss_theme.PALETTES['graphite']) >= {'ROYAL', 'ROYAL_SOFT', 'ROYAL_INK', 'ROYAL_TEXT', 'HONEY', 'VIOLET'}, True)
+        self.assertEqual(boss_theme.PALETTES['graphite']['ROYAL_TEXT'], boss_theme.PALETTES['graphite']['TEAL_TEXT'], 'Graphite keeps its green for lines')
+
     def test_the_appearance_is_this_computers_and_survives_another_project(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'session-r10.json'

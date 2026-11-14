@@ -464,7 +464,7 @@ class Console(QWidget):
         if not r.get('ok'):self.say(self.refused((r.get('error') or {}).get('message', 'did not run')), echo=echo, wrap_output=inspecting);return
         if inspecting:
             load = self.link('Load exact command', lambda: self.host.shell2.top.box.use_program(program))
-            self.say(inspection_html(r['result'], load + ' · Ctrl+Enter runs it from the writing line.'), echo=echo, wrap_output=True)
+            self.say(inspection_html(r['result'], load + ' · The arrow runs it from the writing line.'), echo=echo, wrap_output=True)
             return
         value = r['result'];rows = value.get('rows') if isinstance(value, dict) else None
         self.last_program = program  # a right-click on the output carries on from here, as a chain
@@ -566,7 +566,7 @@ class Console(QWidget):
         return '~' + text[len(home):] if text.startswith(home) else text
 
     def run_shell(self, text, extra_env=None):
-        if self.process is not None:self.say(self.refused('a command is still running; stop it first (Ctrl+C)'), echo=self.sign_text() + ' ' + text);return
+        if self.process is not None:self.say(self.refused('a command is still running; stop it first'), echo=self.sign_text() + ' ' + text);return
         if text == 'cd' or text.startswith('cd '):
             target = text[2:].strip() or '~'
             path = Path(target).expanduser();path = path if path.is_absolute() else self.working_dir() / path

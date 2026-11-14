@@ -228,7 +228,7 @@ def inspect_in_line(host, text, mode='slate'):
     if hasattr(bar, 'typed'):
         try:bar.typed(text)
         except Exception:pass
-    say(host, 'In the line for you to inspect: ' + short(text, 120) + ('  ·  Ctrl+Enter runs it' if not text.startswith('/') else '  ·  Enter runs it'))
+    say(host, 'In the line for you to inspect: ' + short(text, 120) + '  ·  the arrow runs it')
     return bar.box.text()
 
 
@@ -350,7 +350,7 @@ def edit_document(host, target, change, words):
         finally:tab.loading = False
         tab.reload_list()
     tab.describe(doc, prefix='Right-click');tab.refresh_conditions(result.get('conditions_stale'))
-    say(host, 'Done on the page: %s · revision %d · Ctrl Z takes it back.' % (result['applied']['words'], doc['revision']))
+    say(host, 'Done on the page: %s · revision %d · Undo takes it back.' % (result['applied']['words'], doc['revision']))
     return result
 
 
@@ -375,7 +375,7 @@ def move_to_notes(host, target):
     if page is not None:
         try:page.refresh(force=True)
         except Exception:pass
-    return say(host, 'Moved to notes: “%s” is kept as an idea in the cabinet (Ideas) and off the page · Ctrl Z puts it back on the page.' % short(text, 50))
+    return say(host, 'Moved to notes: “%s” is kept as an idea in the cabinet (Ideas) and off the page · Undo puts it back on the page.' % short(text, 50))
 
 
 def document_entries(host, t):
@@ -403,7 +403,7 @@ def document_entries(host, t):
         line = operation_line('documents.edit', {'id': t.ident, 'expected_revision': t.revision, 'selection': selection,
                                                   'change': {'bold': 'bold' not in marks}, 'origin': 'HUMAN'})
         out.append(Entry('inspect', 'Inspect in the line', 'command', lambda:inspect_in_line(host, line), icon='line', operation='documents.edit',
-                         tip='The equivalent command for Bold with this passage as its target, in the writing line to read or change; Enter runs it'))
+                         tip='The equivalent command for Bold with this passage as its target, in the writing line to read or change; the arrow runs it'))
         about = 'About this passage (“%s”, paragraph %d of “%s”, revision %s): ' % (short(selection['text'], 80), selection['block'] + 1, short(t.data.get('title'), 40), t.revision)
         out.append(Entry('ask', named('Ask Stacy about this'), 'capability', lambda:ask_graphite(host, about), icon='inquiries',
                          tip='An assignment in the line with this passage as its context'))
@@ -1330,7 +1330,7 @@ def word_rows(host, manage=False):
             out.append(Entry('words:' + name, name, 'command', icon='line', tip=line, submenu=lambda name=name, line=line, run=run: [
                 Entry('words:%s:run' % name, 'Run it', 'command', run, icon='line', operation='language.run', tip=line),
                 Entry('words:%s:line' % name, 'In the line', 'command', lambda: inspect_in_line(host, name), icon='line', tip='The word in the writing line, to go on from: ' + name + ' | …'),
-                Entry('words:%s:forget' % name, 'Forget it', 'edit', lambda: inspect_in_line(host, 'forget ' + name), icon='line', tip='Puts “forget %s” in the line; Ctrl+Enter lets the word go' % name)]))
+                Entry('words:%s:forget' % name, 'Forget it', 'edit', lambda: inspect_in_line(host, 'forget ' + name), icon='line', tip='Puts “forget %s” in the line; run it and the word goes' % name)]))
         else:
             out.append(Entry('words:' + name, name, 'command', run, icon='line', operation='language.run', tip=line))
     if manage or not out:

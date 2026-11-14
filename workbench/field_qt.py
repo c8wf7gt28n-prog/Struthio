@@ -139,6 +139,7 @@ class FieldView(QWidget):
         self.still = None                   # asked whether motion is to be reduced (the profile's setting); None: it may move
         self._gliding = None
         self._fitted = False                # Z asked for the whole desk: it stays whole when the window or the desk changes, until the size is set by hand
+        self.auto_fit = True                # 0.8.0, less scrolling: a desk that would fit whole a little smaller (AUTO_LEAST) is shown whole, until the size is set by hand
         self._placed = {};self._surface = (0.0, 0.0);self._gap = 34.0;self._labels = [];self._reveal_pending = False
         self.setFocusPolicy(Qt.StrongFocus)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -158,6 +159,7 @@ class FieldView(QWidget):
         self.reading = None                       # and so is a page shown over them
         self._reveal_pending = True
         if self._fitted:self.zoom = self.fit()    # the whole desk was asked for: a new reading is shown whole too
+        elif self.auto_fit:self.zoom = self.nearly()
         self._describe();self.update()
 
     def selected(self):
@@ -267,12 +269,12 @@ class FieldView(QWidget):
         else:
             self.zoom = zoom;self._layout();self._reveal();self._layout()
         self._rehover();self.update()
-        if said:self._zoom_said()
+        if said:self.auto_fit = False;self._zoom_said()
 
     def glide(self, zoom, whole):
         """Z: the desk draws back to show all of itself, or comes near again, in a short glide and not a cut, so the eye
         keeps its place on it. At once when the profile asks for less motion, or when the Field is not showing."""
-        zoom = max(self.ZOOM[0], min(self.ZOOM[1], float(zoom)))
+        zoom = max(self.ZOOM[0], min(self.ZOOM[1], float(zoom)));self.auto_fit = False      # the size is the owner's now
         if self._gliding is not None:
             moving = self._gliding;self._gliding = None;moving.stop()
         calm = False
@@ -295,6 +297,17 @@ class FieldView(QWidget):
             try:self.on_zoom(self.zoom, self._fitted)
             except Exception:  # noqa: BLE001 - remembering a size is never worth an error
                 pass
+
+    AUTO_LEAST = 0.8
+
+    def nearly(self):
+        """The owner: "I know sometimes scrolling is unavoidable, but if we can really try to eliminate or reduce it as much as
+        possible." When the whole desk fits a little smaller (down to AUTO_LEAST of the reading size), it is shown whole and
+        nothing scrolls; when it needs more than that, it keeps the reading size (Z still shows it whole)."""
+        try:fitted = self.fit()
+        except Exception:  # noqa: BLE001 - a desk not yet placed: the reading size
+            return 1.0
+        return fitted if self.AUTO_LEAST <= fitted < 1.0 else 1.0
 
     def fit(self):
         """The zoom at which the whole desk is in the window: the largest step at which nothing runs off either way."""
@@ -366,6 +379,7 @@ class FieldView(QWidget):
     def resizeEvent(self, event):
         self._reveal_pending = True
         if self._fitted:self.zoom = self.fit()      # the whole desk was asked for: it stays whole in the new window
+        elif self.auto_fit and self._gliding is None:self.zoom = self.nearly()
         super().resizeEvent(event)
 
     # ---- a page to read, over the work -----------------------------------------------------------------------------
@@ -871,7 +885,7 @@ class FieldView(QWidget):
                 self._hot.append((spot, key, '', tip));at += wide
         self._keys_line(p, r.left() + pad, base, [item for item in read['foot'].split('      ') if item.strip()], t.QUIET, r.width() - 2 * pad - fm_foot.horizontalAdvance(more) - 16 * s)
         if code:
-            p.setPen(QColor(t.TEAL_EDGE));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('line  ' + code, Qt.ElideRight, r.width() - 2 * pad))
+            p.setPen(QColor(t.ROYAL_TEXT if t.APPEARANCE == 'kasandra' else t.TEAL_EDGE));p.drawText(QPointF(r.left() + pad, base - fm_foot.height() - 6 * s), fm_foot.elidedText('line  ' + code, Qt.ElideRight, r.width() - 2 * pad))
         p.restore()
 
     def _kasandra(self, slot, state):
@@ -954,7 +968,7 @@ class FieldView(QWidget):
         box = QRectF(self.width() - w + 10 * s, body.bottom() - tall - 12 * s, w - 20 * s, tall)
         p.setPen(QPen(ink(t.LINE_STRONG, 0.7), 1));p.setBrush(ink(t.TERMINAL_GROUND, 0.9));p.drawRect(box)
         x = box.left() + pad;y = box.top() + pad + head.ascent()
-        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.TEAL_TEXT));p.drawText(QPointF(x, y), 'LINE')
+        p.setFont(self.mono(12, QFont.Medium));p.setPen(QColor(t.ROYAL_TEXT));p.drawText(QPointF(x, y), 'LINE')      # Graphite: its green; Kasandra: royal purple
         said = 'says how this is read';said_w = head.horizontalAdvance(said)
         if inner_w > head.horizontalAdvance('LINE') + said_w + 12 * s:
             p.setPen(QColor(t.QUIET));p.setFont(self.mono(12));p.drawText(QPointF(box.right() - pad - said_w, y), said)
@@ -1454,4 +1468,4 @@ class FieldView(QWidget):
         code_w = min(fm3.horizontalAdvance(code), wide * 0.5) if code else 0.0
         p.drawText(QPointF(x, top + h - 14 * s), fm3.elidedText(said, Qt.ElideRight, wide - (code_w + 28 * s if code else 0)))
         if code:
-            p.setPen(QColor(t.TEAL_TEXT));p.drawText(QPointF(self.width() - x - code_w, top + h - 14 * s), fm3.elidedText(code, Qt.ElideRight, code_w))
+            p.setPen(QColor(t.ROYAL_TEXT));p.drawText(QPointF(self.width() - x - code_w, top + h - 14 * s), fm3.elidedText(code, Qt.ElideRight, code_w))

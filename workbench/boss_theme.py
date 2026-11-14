@@ -36,7 +36,8 @@ PALETTES = {
         OWNER='#ff9a36', ON_OWNER='#0b0e0d', RECHECK='#ff9a36',
         BAND=(12, 15, 14), ERASED='#efeae0', ERASED_QUIET='#b0bcb9', BAND_MARK='#dd854b', BAND_PENCIL='#f2a369',
         DESK_LIGHT='#8c826b', VEIL='#000000', DISPLAY='IBM Plex Mono',
-        HONEY='#f2a369', VIOLET='#c8baa0', VIOLET_DEEP='#474436', VIOLET_PALE='#f4e8ce', VIOLET_SOFT='#4b2a14'),
+        HONEY='#f2a369', VIOLET='#c8baa0', VIOLET_DEEP='#474436', VIOLET_PALE='#f4e8ce', VIOLET_SOFT='#4b2a14',
+        ROYAL='#cbf08b', ROYAL_SOFT='#1b2817', ROYAL_INK='#cbf08b', ROYAL_TEXT='#cbf08b'),
     'kasandra': dict(
         GROUND='#171b3c', PANEL='#1b1f45', CARD='#1f234d', RAISED='#292d56', TERMINAL_GROUND='#11132c',
         LINE='#3b4479', LINE_STRONG='#8796cb', LINE_MID='#5969a1', TEXT='#e3e3ff', QUIET='#c1c6e8', FAINT='#9ca3d2',
@@ -46,7 +47,8 @@ PALETTES = {
         OWNER='#fa507c', ON_OWNER='#171b3c', RECHECK='#c3b6f4',
         BAND=(20, 23, 52), ERASED='#e3e3ff', ERASED_QUIET='#aeb4dc', BAND_MARK='#83eaff', BAND_PENCIL='#83eaff',
         DESK_LIGHT='#8f97c9', VEIL='#11132c', DISPLAY='Special Elite',
-        HONEY='#e9b872', VIOLET='#ab8eda', VIOLET_DEEP='#5f4fa8', VIOLET_PALE='#d2c4f5', VIOLET_SOFT='#2b2660'),
+        HONEY='#e9b872', VIOLET='#ab8eda', VIOLET_DEEP='#5f4fa8', VIOLET_PALE='#d2c4f5', VIOLET_SOFT='#2b2660',
+        ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6'),
 }
 
 
@@ -55,6 +57,21 @@ PALETTES = {
 # she is the one typed to); the violets are the desk's structure (section headings and the Field's column titles in
 # VIOLET, the greeting in VIOLET_PALE, your own messages on VIOLET_SOFT with a VIOLET_DEEP edge, the equalizer's bars).
 # In Graphite each of them is the colour that place already had (pencil, quiet, line, text, amber-soft): nothing moves.
+# And: "If royal purple could add anything valuable it might look nice." ROYAL is the line, the desk's quiet power: a line
+# you can run stands on a royal-purple slab (ROYAL_SOFT, with a ROYAL edge and ROYAL_INK letters) wherever she shows one,
+# the arrow turns royal purple when what you typed is a line it will run, and the Field's line is said in ROYAL_TEXT.
+# Graphite keeps its green for all of these.
+
+
+def line_sheet():
+    """The look of a line you can run, shown as words: Graphite's green letters; in Kasandra a royal-purple slab."""
+    if APPEARANCE == 'graphite':return 'color:%s' % TEAL_TEXT
+    return 'color:%s;background:%s;border:0;border-left:3px solid %s;padding:6px 8px' % (ROYAL_INK, ROYAL_SOFT, ROYAL)
+
+
+def eye(line):
+    """A line as it is shown: long record numbers shortened for the eye (the line itself stays exact, in its tip)."""
+    return re.sub(r'([0-9a-f]{6})[0-9a-f]{20,}', '\\1…', str(line))
 
 
 def chosen_appearance(environ=None, path=None):

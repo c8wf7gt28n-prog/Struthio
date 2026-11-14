@@ -77,6 +77,33 @@ so that a colour still says something:
 
 Graphite keeps every colour it had.
 
+"If royal purple could add anything valuable it might look nice." It has one job too: **royal purple is the line**, the
+quiet power under the desk. Wherever she shows a line you can run, it stands on a royal-purple slab with a royal edge
+and pale letters; the arrow at the end of the typing line turns royal purple when what you typed is a line it will run;
+and the Field says its line in a light royal purple. Long record numbers in a line she shows are cut to their first six
+characters for the eye ("db5f66…"); the line itself stays exact, in its tip and in "in the line".
+
+## Less scrolling
+
+"I know sometimes scrolling is unavoidable, but if we can really try to eliminate or reduce it as much as possible."
+A census now walks the main surfaces at 1920 × 1200 and 1366 × 768 and lists every area whose content is larger than
+its window, and by how much. Before this pass it found 7 places at 1920 × 1200 and 25 at 1366 × 768. What changed:
+
+- **The Field shows itself whole when a little smaller is enough.** If the whole desk fits at 80 per cent of the reading
+  size or more, it opens that way, and nothing scrolls; with more than that it keeps the reading size (Z still shows it
+  whole). Once you set the size yourself, yours is kept. On the After Hours 07 desk at 1920 × 1200 this takes away the
+  only scroll there was.
+- **Her pane keeps in view only the latest exchanges that fit its height**; earlier ones fold behind one word ("3 earlier
+  · show them"), as they already did after eight. Her welcome folds away once a conversation starts. With the record
+  numbers shortened, a change she proposes is about half as tall.
+- **Home fits its window.** Its cards take two columns down to a narrower width (they went to one column at 1366 × 768),
+  the picture at its head gives up height (to 96 px) before the page would scroll and takes it back when there is room,
+  and the jot box keeps three lines' room in a short window.
+
+After: 3 places at 1920 × 1200 (a finding's page, whose journal is long; the settings tree, 35 px over; her pane while a
+long answer is the latest) and fewer and smaller at 1366 × 768 (Home 195 px over instead of 488; her pane 199 instead of
+477; the Field at 1366 × 768 still needs about twice its room, and there it keeps the reading size).
+
 ## A line is a line
 
 The language of the lines you can run is no longer named anywhere in the window. It is all still there and still
@@ -88,7 +115,10 @@ appearances) finds the name nowhere.
 
 ## Smaller
 
-Two keys were still printed on the Office page, under the jot box ("Ctrl+Enter keeps it · Ctrl+Shift+N from anywhere")
+Keys printed on the main surfaces are gone: "Ctrl Z takes it back" after a change from the right-click (Undo takes it
+back), "Ctrl+Enter runs it" (the arrow runs it), "Ctrl K to ask · F11 fullscreen" at the foot of Home's links, "Enter
+sends · Shift Enter for a new line" under her composer, "(Alt Left)" and the like in Home's tips, and "(Ctrl+C)" in the
+Terminal's refusal. The key card that ? shows in the Field still lists every key. Also two keys were still printed on the Office page, under the jot box ("Ctrl+Enter keeps it · Ctrl+Shift+N from anywhere")
 and in the Continue card ("Ctrl Alt V"). They are gone; the keys still work.
 
 ## What was checked, and what was not
