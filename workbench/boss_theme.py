@@ -35,7 +35,7 @@ PALETTES = {
         TEAL='#c3ed74', TEAL_SOFT='#1b2817', TEAL_EDGE='#789654', TEAL_TEXT='#cbf08b', READY='#c3ed74', STOP='#ff9a36',
         OWNER='#ff9a36', ON_OWNER='#0b0e0d', RECHECK='#ff9a36',
         BAND=(12, 15, 14), ERASED='#efeae0', ERASED_QUIET='#b0bcb9', BAND_MARK='#dd854b', BAND_PENCIL='#f2a369',
-        DESK_LIGHT='#8c826b', VEIL='#000000', DISPLAY='IBM Plex Mono',
+        DESK_LIGHT='#8c826b', VEIL='#000000', DISPLAY='IBM Plex Mono', FACE='IBM Plex Sans',
         HONEY='#f2a369', VIOLET='#c8baa0', VIOLET_DEEP='#474436', VIOLET_PALE='#f4e8ce', VIOLET_SOFT='#4b2a14',
         ROYAL='#cbf08b', ROYAL_SOFT='#1b2817', ROYAL_INK='#cbf08b', ROYAL_TEXT='#cbf08b', RED='#ff9a36', ON_RED='#0b0e0d'),
     'kasandra': dict(
@@ -46,11 +46,18 @@ PALETTES = {
         TEAL='#83eaff', TEAL_SOFT='#1f3560', TEAL_EDGE='#5a8fc4', TEAL_TEXT='#b9f4ff', READY='#83eaff', STOP='#fa507c',
         OWNER='#fa507c', ON_OWNER='#171b3c', RECHECK='#c3b6f4',
         BAND=(20, 23, 52), ERASED='#e3e3ff', ERASED_QUIET='#aeb4dc', BAND_MARK='#83eaff', BAND_PENCIL='#83eaff',
-        DESK_LIGHT='#8f97c9', VEIL='#11132c', DISPLAY='Special Elite',
+        DESK_LIGHT='#8f97c9', VEIL='#11132c', DISPLAY='Special Elite', FACE='Special Elite',
         HONEY='#e9b872', VIOLET='#ab8eda', VIOLET_DEEP='#5f4fa8', VIOLET_PALE='#d2c4f5', VIOLET_SOFT='#2b2660',
         ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff', ROYAL_TEXT='#b9a1f6', RED='#ff3b5c', ON_RED='#fff1f4'),
 }
 
+
+# 0.8.2, the owner, of Kasandra's typewriter face: "I want as much font in that LAIN font as what looks kool, but still
+# readable, but I like that font … Try hard to make LAIN font work all over." FACE is the face of the window's words (the
+# reading profile's interface and prose families while the owner has not chosen others, every menu, tab, tree, button and
+# card title); DISPLAY is the face of headings. In Kasandra both are the typewriter face; in Graphite they are Plex as before.
+# What must be read exactly keeps the clear mono face in both: code and lines, the typing line, addresses, numbers in a
+# table, and the smallest tags, where a distressed face would blur.
 
 # 0.8.0, the owner: "Should we welcome more colors like a yellow that matches her hair and more shades of violet". Each has
 # one job, so that a colour still says something: HONEY is hers (the edge of her answers, the mark under her name when
@@ -202,14 +209,14 @@ QTreeView::item:selected, QListView::item:selected {border-left:2px solid %(AMBE
 QScrollBar::handle {background:%(LINE_MID)s;}
 QScrollBar::handle:hover {background:%(TEAL_EDGE)s;}
 QLabel[arcRole2="title"], QLabel[arcRole2="section"],
-QHeaderView::section {font-family:"IBM Plex Mono";}
+QHeaderView::section {font-family:"%(DISPLAY)s";}
 QLabel[arcRole2="hero"] {font-family:"%(DISPLAY)s";}
 QLineEdit#WorkspacePath, QLineEdit#WorkspacePath:focus {
     background:transparent; color:%(AMBER_TEXT)s; border:0; border-radius:0;
     padding:0; font-family:"IBM Plex Mono"; selection-background-color:%(AMBER_SOFT)s; selection-color:%(TEXT)s;
 }
 QToolButton#MoreMenus, QToolButton#HeadMenu, QToolButton#BossPrograms, QToolButton#SystemMenu {
-    font-family:"IBM Plex Mono"; color:%(TEXT)s; background:transparent;
+    font-family:"%(DISPLAY)s"; color:%(TEXT)s; background:transparent;
     border:0; border-bottom:2px solid transparent; border-radius:0; padding:5px 10px;
 }
 QToolButton#MoreMenus:focus, QToolButton#HeadMenu:focus, QToolButton#HeadMenu:pressed, QToolButton#BossPrograms:focus, QToolButton#SystemMenu:focus {

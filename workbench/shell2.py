@@ -23,7 +23,8 @@ from . import boss_theme as bt
 from .boss_theme import (GROUND, PANEL, CARD, RAISED, LINE, LINE_STRONG, TEXT, QUIET, FAINT,
     AMBER, AMBER_SOFT, AMBER_EDGE, AMBER_TEXT, PENCIL_DEEP, ERASER, ERASER_DEEP, ERASER_MARK,
     TEAL, TEAL_SOFT, TEAL_EDGE, TEAL_TEXT, READY, STOP)
-SANS, MONO = 'IBM Plex Sans', 'IBM Plex Mono'
+SANS, MONO = bt.PALETTES[bt.APPEARANCE]['FACE'] if hasattr(bt, 'PALETTES') else 'IBM Plex Sans', 'IBM Plex Mono'      # SANS: the window's words (boss_theme.FACE)
+PLEX_SANS = 'IBM Plex Sans'
 PLEX = ('IBMPlexSans-Regular.ttf', 'IBMPlexSans-Medium.ttf', 'IBMPlexSans-SemiBold.ttf', 'IBMPlexMono-Regular.ttf', 'IBMPlexMono-Medium.ttf')
 from .stac_bridge import route_program
 
@@ -56,7 +57,7 @@ def load_fonts(root):
     if script.is_file():QFontDatabase.addApplicationFont(str(script))
     typewriter = locations.program(root) / 'branding' / 'fonts' / 'typewriter' / 'SpecialElite-Regular.ttf'
     if typewriter.is_file():QFontDatabase.addApplicationFont(str(typewriter))      # Kasandra's headings (boss_theme.DISPLAY)
-    return SANS in QFontDatabase.families()
+    return PLEX_SANS in QFontDatabase.families()
 
 
 SCRIPT_ON = [False]  # the owner's choice, for words drawn without a window at hand (card notes)
@@ -590,10 +591,10 @@ class TopBar(QWidget):
             from .kasandra_art import folder as kasandra_folder
             mark = QIcon(str(kasandra_folder(host.root) / 'kp_monogram.png'))
             if not mark.isNull():
-                side = round(24 * scale_of(host))
+                side = round(36 * scale_of(host))      # 0.8.2, the owner: "Probably don't need to call it Apps menu, just a bigger kp icon"
                 self.programs.setIcon(mark);self.programs.setIconSize(QSize(side, side))
                 self.programs.setProperty('paperIcon', True)      # its own colours: menus2 makes other pictures one graphite colour
-                self.programs.setToolButtonStyle(Qt.ToolButtonTextBesideIcon);self.programs.setText('Apps ▾')
+                self.programs.setToolButtonStyle(Qt.ToolButtonIconOnly);self.programs.setText('')      # its name stays for readers (Apps)
         self.programs.clicked.connect(lambda checked=False:self.host.type_bar.hatch.open_list())
         # 0.5.3: the middle of the head. The owner: "Let's just leave it out in the middle. Free up the space ... an
         # equalizer, and make its style pulse up and down to represent something." The name and address of what is open
@@ -628,6 +629,8 @@ class TopBar(QWidget):
         self._style_key = key
         self.setStyleSheet(CHROME_OVERRIDES + 'QWidget#TopBar2 {background:transparent;border:0;}')
         font = mono_font(max(14, round(16 * scale)))
+        if bt.DISPLAY != MONO:      # Kasandra: the menus across the head in her typewriter face, a little larger to read as well
+            font = QFont(bt.DISPLAY);font.setPixelSize(max(15, round(18 * scale)))
         for widget in [self.path, self.more_menus, self.programs, self.nice] + list(getattr(self, 'bar_menus', [])):
             widget.setFont(font)
         self.pulse.restyle()
@@ -708,8 +711,8 @@ class TopBar(QWidget):
             # among the programs (the game). The button and its menu stay alive, out of sight, for what still calls them.
             self.nice.setGeometry(0, 0, 0, 0);self.nice.hide()
             for widget in (self.programs,):
-                width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4))
-                if not widget.icon().isNull():width += widget.iconSize().width() + round(8 * min(d.scale, 1.4))      # Kasandra's kp beside the word
+                width = widget.fontMetrics().horizontalAdvance(widget.text()) + round(26 * min(d.scale, 1.4)) if widget.text() else round(18 * min(d.scale, 1.4))
+                if not widget.icon().isNull():width += widget.iconSize().width() + (round(8 * min(d.scale, 1.4)) if widget.text() else 0)      # Kasandra's kp, now alone
                 x -= width;widget.setGeometry(x, 0, width, h);widget.show();x -= gap
             # The familiar menus stand in the open from the left edge; the name of what is open follows them. In a window too
             # narrow for all of them and a name, the rightmost fold into ⋯, which lists every menu.

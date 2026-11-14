@@ -104,6 +104,9 @@ def apply(host,profile=None,persist=False):
     from .reading_profile import OLD_DEFAULT_FAMILIES
     names=(profile['family'],profile['prose_family'],profile['code_family'])
     if names==OLD_DEFAULT_FAMILIES:names=('IBM Plex Sans','IBM Plex Sans','IBM Plex Mono')
+    from . import boss_theme as bt
+    if names[0]=='IBM Plex Sans' and bt.FACE!='IBM Plex Sans':names=(bt.FACE,)+names[1:]      # Kasandra's words, until the owner chooses others
+    if names[1]=='IBM Plex Sans' and bt.FACE!='IBM Plex Sans':names=names[:1]+(bt.FACE,)+names[2:]
     ui=family(names[0]);prose=family(names[1]);code=family(names[2],True)
     host.reading_profile=profile
     host.setStyleSheet(

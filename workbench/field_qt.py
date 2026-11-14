@@ -205,7 +205,10 @@ class FieldView(QWidget):
         f = QFont(t.DISPLAY);f.setPixelSize(max(12, round(px * 1.12 * self.scale())));return f
 
     def sans(self, px, weight=QFont.Medium):
-        f = QFont('IBM Plex Sans');f.setPixelSize(max(12, round(px * self.scale())));f.setWeight(weight);return f
+        """The face of the Field's words (boss_theme.FACE): Plex Sans in Graphite, the typewriter face in Kasandra."""
+        f = QFont(t.FACE);f.setPixelSize(max(12, round(px * (0.97 if t.FACE != 'IBM Plex Sans' else 1.0) * self.scale())));f.setWeight(weight if t.FACE == 'IBM Plex Sans' else QFont.Normal)
+        if t.FACE != 'IBM Plex Sans':f.setLetterSpacing(QFont.AbsoluteSpacing, -0.35)      # the typewriter face runs wide: a card's name keeps its words whole
+        return f
 
     def head_height(self):
         return round(min(58 * self.scale(), max(44.0, self.height() * 0.16)))
@@ -1214,7 +1217,7 @@ class FieldView(QWidget):
 
     def _columns(self, p, body):
         s = self.scale();far = self.zoom < self.FAR      # far off, a column's name keeps its reading size as the sheets' names do
-        p.setFont(self.mono(11 / self.zoom if far else 12, QFont.Medium));fm = QFontMetricsF(p.font())
+        p.setFont(self.mono(11 / self.zoom if far else 12, QFont.Medium) if t.DISPLAY == 'IBM Plex Mono' else self.display(11.5 / self.zoom if far else 12.5));fm = QFontMetricsF(p.font())
         for rank in self.field.ranks():
             ids = self.field.column(rank)
             if not ids or ids[0] not in self._placed:continue
