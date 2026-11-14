@@ -1,0 +1,342 @@
+[
+ {
+  "id": "S01",
+  "number": 1,
+  "title": "Engineering feasibility",
+  "applications": [],
+  "baseline_0_4_1": "Index local sources, trace values, run exact power and capacity checks, and invoke configured engineering tools.",
+  "finished_result": "Deliver a readiness report with calculations, unresolved conditions, and a specific physical test.",
+  "difficult_variation": "Use individually plausible parts whose interfaces disagree when assembled. Follow the conflict across the system."
+ },
+ {
+  "id": "S02",
+  "number": 2,
+  "title": "Foreign language datasheets",
+  "applications": [],
+  "baseline_0_4_1": "Review selected PDF tables into source-linked sheets. OCR supports English and Chinese with the appropriate language data.",
+  "finished_result": "Compare Chinese and English datasheets in an editable workbook with normalized units, rating types, conditions, and original passages.",
+  "difficult_variation": "Keep separate temperature conditions and a footnote that qualifies the advertised rating."
+ },
+ {
+  "id": "S03",
+  "number": 3,
+  "title": "Editable Blender model from a sketch",
+  "applications": [],
+  "baseline_0_4_1": "Inspect an existing blend file, check its scene with Blender, or open the editor.",
+  "finished_result": "Build an editable enclosure with dimensioned views, cable access, fit checks, and a manufacturing export.",
+  "difficult_variation": "Catch the blocked connector or thin wall in a visually plausible model."
+ },
+ {
+  "id": "S04",
+  "number": 4,
+  "title": "Printable letter from email and policy",
+  "applications": [],
+  "baseline_0_4_1": "Read saved messages and supplied policy text, retain attachments, and prepare a draft.",
+  "finished_result": "Find the applicable published policy and deliver a printable letter with signature space, editable text, and an evidence sheet.",
+  "difficult_variation": "Follow a promise through the later reply that amended it."
+ },
+ {
+  "id": "S05",
+  "number": 5,
+  "title": "Mailbox and commitments",
+  "applications": [],
+  "baseline_0_4_1": "Inspect saved EML messages, extract selected attachments, and save a reply draft.",
+  "finished_result": "Read an authorized mailbox, identify real commitments and recurring bills, retain useful attachments, and carry out approved filing.",
+  "difficult_variation": "Find a confirmation in an ordinary reply and a newer deadline inside quoted mail."
+ },
+ {
+  "id": "S06",
+  "number": 6,
+  "title": "Unexplained network activity",
+  "applications": [],
+  "baseline_0_4_1": "Read local connections and visible processes, inspect a bounded owner-started capture, and write a findings page.",
+  "finished_result": "Build an idle-time timeline with processes, destinations, supported explanations, and specific open questions.",
+  "difficult_variation": "Distinguish a legitimate updater from a connection with incomplete process evidence."
+ },
+ {
+  "id": "S07",
+  "number": 7,
+  "title": "Spreadsheet meaning and forecast",
+  "applications": [],
+  "baseline_0_4_1": "Inspect formulas, edit supported working copies, show changes, and recalculate with Calc.",
+  "finished_result": "Repair the meaning of the workbook and deliver a corrected forecast with explicit assumptions.",
+  "difficult_variation": "Catch a subtotal counted with its own rows or a refund classified as income."
+ },
+ {
+  "id": "S08",
+  "number": 8,
+  "title": "Missing payment or refund",
+  "applications": [],
+  "baseline_0_4_1": "Read supplied records, total selected amounts, and prepare a local draft inquiry.",
+  "finished_result": "Match charges, payments, and credits to the actual invoices and explain the documented balance.",
+  "difficult_variation": "Resolve a same-amount payment on another invoice and a refund split across dates."
+ },
+ {
+  "id": "S09",
+  "number": 9,
+  "title": "Photo evidence by content",
+  "applications": [],
+  "baseline_0_4_1": "Browse photos, inspect available JPEG metadata, and save cropped copies.",
+  "finished_result": "Find the requested connector across the collection, then produce an annotated contact sheet tied to originals.",
+  "difficult_variation": "Distinguish a lookalike part and a file with an export-altered date."
+ },
+ {
+  "id": "S10",
+  "number": 10,
+  "title": "Video from disordered sources",
+  "applications": [],
+  "baseline_0_4_1": "Inspect local media and export a selected excerpt of up to 30 seconds.",
+  "finished_result": "Deliver a coherent ten-minute film, captions, editable timeline, and a source list.",
+  "difficult_variation": "Check the surrounding interview when a striking quote appears to reverse the speaker’s meaning."
+ },
+ {
+  "id": "S11",
+  "number": 11,
+  "title": "Repair an unfamiliar application",
+  "applications": [],
+  "baseline_0_4_1": "Stage bounded source changes in a working copy, show diffs, and run registered checks.",
+  "finished_result": "Reproduce the import crash, repair it, and verify the relevant data and relationships survived.",
+  "difficult_variation": "Reject an apparent fix that silently drops imported records."
+ },
+ {
+  "id": "S12",
+  "number": 12,
+  "title": "Meeting with prerequisites and travel",
+  "applications": [],
+  "baseline_0_4_1": "Track prerequisites and schedule Graphite work in Agenda.",
+  "finished_result": "Find a feasible time around travel, drawing delivery and the supplier deadline, then track actual invitation and confirmation status.",
+  "difficult_variation": "Recalculate when the drawing date moves and participants cross a daylight-saving transition."
+ },
+ {
+  "id": "S13",
+  "number": 13,
+  "title": "Tax preparation records",
+  "applications": [],
+  "baseline_0_4_1": "Organize supplied records, extract reviewed rows, total entries, and package selected files.",
+  "finished_result": "Deliver a reconciled workbook, organized evidence, and specific classification questions for the preparer.",
+  "difficult_variation": "Link a receipt to its matching statement line and keep an ambiguous expense open."
+ },
+ {
+  "id": "S14",
+  "number": 14,
+  "title": "Complex online application",
+  "applications": [],
+  "baseline_0_4_1": "Read supplied instructions and records, prepare draft answers, and assemble files.",
+  "finished_result": "Work in the authorized site, fill supported fields, attach files, verify save status, and give me control for declarations.",
+  "difficult_variation": "Notice a later question that changes after an earlier answer and a value the site accepts in the wrong format."
+ },
+ {
+  "id": "S15",
+  "number": 15,
+  "title": "Recurring supplier workbook",
+  "applications": [],
+  "baseline_0_4_1": "Method Press can replay a reviewed shortage method and check the expected columns and units.",
+  "finished_result": "Produce the comparison workbook and retain a reusable mapping that learns from my corrections.",
+  "difficult_variation": "Handle changed units under familiar headings and a correction specific to one supplier."
+ },
+ {
+  "id": "S16",
+  "number": 16,
+  "title": "Product redesign after constraints change",
+  "applications": [],
+  "baseline_0_4_1": "Run what-ifs, compare BOMs, and mark supported calculations for recheck.",
+  "finished_result": "Update the design, drawings, power and cost calculations, firmware where needed, and the revision package.",
+  "difficult_variation": "Catch a replacement part that fits the footprint and uses a different voltage."
+ },
+ {
+  "id": "S17",
+  "number": 17,
+  "title": "Recovery from conflicting backups",
+  "applications": [],
+  "baseline_0_4_1": "Inspect archives and supported disk images, compare files, and restore a verified Graphite backup into fresh folders.",
+  "finished_result": "Recover the most complete working project and deliver a manifest of what was recovered, built, or remains missing.",
+  "difficult_variation": "Recover a critical asset from an older copy when the newest backup is incomplete."
+ },
+ {
+  "id": "S18",
+  "number": 18,
+  "title": "Prototype failure despite simulation",
+  "applications": [],
+  "baseline_0_4_1": "Retain hypotheses and evidence, run supported checks, and record results that contradict a candidate explanation.",
+  "finished_result": "Compare the real recordings, logs, schematics and measurements. Deliver a supported diagnosis or the next discriminating experiment.",
+  "difficult_variation": "Check a misleading correlation and a sensor channel with the wrong unit label."
+ },
+ {
+  "id": "S19",
+  "number": 19,
+  "title": "Migration between incompatible applications",
+  "applications": [],
+  "baseline_0_4_1": "Convert supported Office files with a loss report and export a selected FreeCAD shape to STEP.",
+  "finished_result": "Deliver an editable destination project and explain which dimensions, relationships, and useful history survived.",
+  "difficult_variation": "Detect a critical relationship flattened during an apparently successful import."
+ },
+ {
+  "id": "S20",
+  "number": 20,
+  "title": "Working in an unfamiliar graphical application",
+  "applications": [],
+  "baseline_0_4_1": "Open supported native apps on bound files. A limited Calc takeover path exists, with live-window acceptance open.",
+  "finished_result": "Work in the actual project, observe control and selection state, save the requested edit, and hand control back at the same place.",
+  "difficult_variation": "Reobserve the selection when I move a dialog or change the target during preparation."
+ },
+ {
+  "id": "S21",
+  "number": 21,
+  "title": "Reproduce research from older software",
+  "applications": [],
+  "baseline_0_4_1": "Retain sources and assumptions, run bounded protected Python, and compare supported outputs.",
+  "finished_result": "Rebuild the needed environment, reproduce the paper’s tables or figures where possible, and explain discrepancies with runnable files.",
+  "difficult_variation": "Find a code default that differs from the paper and a replacement dataset drawn from a different population."
+ },
+ {
+  "id": "S22",
+  "number": 22,
+  "title": "Overnight counterexample investigation",
+  "applications": [],
+  "baseline_0_4_1": "Night Shift can run a reviewed local plan and keep checkpoints. Bounded investigations can test declared alternatives.",
+  "finished_result": "Pursue the strongest objections over an extended assignment and return checked findings and the next useful experiment.",
+  "difficult_variation": "Revise the working explanation when a later counterexample defeats an early lead."
+ },
+ {
+  "id": "S23",
+  "number": 23,
+  "title": "Doubled energy bill",
+  "applications": [],
+  "baseline_0_4_1": "Extract figures from supplied records and calculate explicit comparisons in a sheet.",
+  "finished_result": "Separate usage, rates, billing periods, weather, and occupancy where evidence permits. Deliver an explanation with uncertainty and next actions.",
+  "difficult_variation": "Identify an estimated meter reading, a longer billing period, and a rate change in the same bill."
+ },
+ {
+  "id": "S24",
+  "number": 24,
+  "title": "Workshop schedule after a machine failure",
+  "applications": [],
+  "baseline_0_4_1": "Check a proposed schedule’s peak load against a declared capacity using known time intervals.",
+  "finished_result": "Generate a feasible revised schedule with machine limits, dependencies, material availability, and delivery tradeoffs.",
+  "difficult_variation": "Replan after a material shortage when one order needs two operations on the same constrained machine."
+ },
+ {
+  "id": "S25",
+  "number": 25,
+  "title": "Selective sharing from private knowledge",
+  "applications": [],
+  "baseline_0_4_1": "Select admitted passages or files, retain source identities, and build a verifiable package.",
+  "finished_result": "Produce evidence a collaborator can inspect independently, with only the approved material included.",
+  "difficult_variation": "Remove private material embedded under a calculation and personal data in a hidden sheet while preserving the calculation’s basis."
+ },
+ {
+  "id": "S26",
+  "number": 26,
+  "title": "Supplier packet with hostile instructions",
+  "applications": [],
+  "baseline_0_4_1": "Read admitted sources under existing tool scopes and stage changes for review.",
+  "finished_result": "Finish the legitimate comparison and paperwork, preserve useful evidence, and record any consequential attempt to redirect the work.",
+  "difficult_variation": "Keep working when a PDF footnote or quoted email asks Stacy to upload a local archive."
+ },
+ {
+  "id": "S27",
+  "number": 27,
+  "title": "Crash recovery with an uncertain external action",
+  "applications": [],
+  "baseline_0_4_1": "Resume recorded local work and recognize a completed local working-copy change after interruption.",
+  "finished_result": "Reconcile completed, pending, and uncertain actions against actual state before resuming. Preserve later owner edits.",
+  "difficult_variation": "Verify an invitation that may have succeeded during a timeout and detect an attachment changed after restart."
+ },
+ {
+  "id": "S28",
+  "number": 28,
+  "title": "Demanding work on a responsive ThinkPad",
+  "applications": [],
+  "baseline_0_4_1": "Reserve foreground RAM, queue background jobs, and yield at supported boundaries when the desk is active.",
+  "finished_result": "Keep the desk usable under sustained work, retain progress through pressure, and report resource choices and schedule risk.",
+  "difficult_variation": "Run a GPU render during inference under memory pressure and observe what pauses or continues."
+ },
+ {
+  "id": "S29",
+  "number": 29,
+  "title": "Technical product localization",
+  "applications": [],
+  "baseline_0_4_1": "Read source text, propose scoped edits, and export supported documents and proofs.",
+  "finished_result": "Ship editable translations, language resources, rendered manuals and labels, and an unresolved terminology record.",
+  "difficult_variation": "Preserve a configuration key and a plural placeholder, then repair a label that overflows."
+ },
+ {
+  "id": "S30",
+  "number": 30,
+  "title": "An application built for the assignment",
+  "applications": [],
+  "baseline_0_4_1": "Use existing catalog, file search, document and export tools for a basic local workflow.",
+  "finished_result": "Build and populate a usable offline parts catalog with photographs, specifications, substitutes, and printable labels. Verify a real cataloging task.",
+  "difficult_variation": "Handle a new supplier layout, a duplicate photo, and a later owner correction."
+ },
+ {
+  "id": "S31",
+  "number": 31,
+  "title": "Hardware revision and fabrication package",
+  "applications": [
+   "KiCad",
+   "FreeCAD",
+   "LibreOffice Calc",
+   "Scribus"
+  ],
+  "baseline_0_4_1": "Run configured KiCad and BOM checks, inspect FreeCAD geometry, calculate from a sheet, and verify a delivery ZIP.",
+  "finished_result": "Carry the board, fit check, cost and power sheet, and illustrated fabrication package on one revision. Retain editable files and physical check questions.",
+  "difficult_variation": "Move the connector after the draft and change one supplier unit price. Update the affected geometry, totals and pages."
+ },
+ {
+  "id": "S32",
+  "number": 32,
+  "title": "Interview film and printed companion",
+  "applications": [
+   "Audacity",
+   "GIMP",
+   "Kdenlive",
+   "LibreOffice Writer"
+  ],
+  "baseline_0_4_1": "Prepare selected media clips and photo crops, and edit supporting documents.",
+  "finished_result": "Deliver editable audio, film and print projects with captions, verified quotations, and matching speaker and event information.",
+  "difficult_variation": "Correct a speaker identity and remove a sentence after the first cut. Carry both edits into the film and companion."
+ },
+ {
+  "id": "S33",
+  "number": 33,
+  "title": "Purchasing comparison from web evidence",
+  "applications": [
+   "Firefox",
+   "Zotero",
+   "LibreOffice Calc",
+   "Scribus"
+  ],
+  "baseline_0_4_1": "Read saved HTML as source lines and turn reviewed PDF tables into editable, cited rows.",
+  "finished_result": "Open vendor URLs, retain dated evidence, and deliver an editable comparison and decision booklet. Bind each material value to its page, variant, units and conditions.",
+  "difficult_variation": "Refresh a changed price and expose a newly disqualifying requirement. Keep the earlier capture and show what changed in the decision."
+ },
+ {
+  "id": "S34",
+  "number": 34,
+  "title": "Animated explanation of a mechanism",
+  "applications": [
+   "FreeCAD",
+   "Blender",
+   "Inkscape",
+   "Kdenlive"
+  ],
+  "baseline_0_4_1": "Inspect existing models, export selected FreeCAD shapes, and render supported SVG proofs.",
+  "finished_result": "Deliver an accurate exploded animation, labels, a finished video, and editable projects tied to the same mechanical revision.",
+  "difficult_variation": "Detect a scale error during import and propagate a renamed moving part into the scene, labels and video."
+ },
+ {
+  "id": "S35",
+  "number": 35,
+  "title": "Reimbursement from messages and photos",
+  "applications": [
+   "Thunderbird",
+   "LibreOffice Calc",
+   "GIMP",
+   "LibreOffice Writer"
+  ],
+  "baseline_0_4_1": "Read saved messages and attachments, calculate from selected records, crop photo copies, and verify a package.",
+  "finished_result": "Reconcile the balance and deliver a printable letter with a numbered evidence packet and editable originals or derivatives as appropriate.",
+  "difficult_variation": "Recompute after a late partial credit and remove a photo tied to a different shipment from the evidence packet."
+ }
+]

@@ -11301,6 +11301,10 @@
       "bytes": 2750,
       "sha256": "7590cb862213f05429e6d7cc190eedbecca2a35a27f8e13f3b7ed7344933fc73"
     },
+    "docs/CAMPAIGN.md": {
+      "bytes": 8411,
+      "sha256": "f3b97c811eea83a882bb8583c79ba587459385978d468cbcaa0dbae0796e6b9a"
+    },
     "docs/CONTINUE_01.md": {
       "bytes": 10775,
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
@@ -11367,7 +11371,7 @@
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
       "bytes": 280113,
-      "sha256": "a1e9bdcab04f056d408848faa9025cadac3ddd644598252104160bff61288940"
+      "sha256": "4eb6fcc690271a47509af7485111be1be1e008db7cb78329d803ff480ad12c48"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12513,
@@ -12693,6 +12697,10 @@
       "bytes": 7822,
       "sha256": "ec57be3752697724d78b72189909290008abb5a0699c7f7559374cb64a8c0ef5"
     },
+    "tests_integrated/test_campaign.py": {
+      "bytes": 19789,
+      "sha256": "a49481ea2a43c035a2e2d127eee9da957b9b7901a7824814f326ad4c957d0718"
+    },
     "tests_integrated/test_change_sets.py": {
       "bytes": 23944,
       "sha256": "b21de665e2f7b56f8c6900aeb23b5787dd83cf5b1f848ece764194898f97897e"
@@ -12897,6 +12905,58 @@
       "bytes": 8651,
       "sha256": "f80529bc886802a0479797f69fd8885d9d15f1aa5f57b79119fa2d487d8ef64b"
     },
+    "tools/campaign.py": {
+      "bytes": 4512,
+      "sha256": "4fa9a6f0262ac8a9ab71fe3d3cf01b162287f2723fcbb2be123379afa2f512fe"
+    },
+    "tools/campaign_lib/__init__.py": {
+      "bytes": 175,
+      "sha256": "d179a9ae3d6b04f222c5a2aab45ce40ab088f1ff7b7c9cf0419725d3b3ab713a"
+    },
+    "tools/campaign_lib/cases_anchor.py": {
+      "bytes": 27530,
+      "sha256": "1fc5361635b252d893fd06b3677b9ec1d1ed9d8258778b535e6ab94c8fae2551"
+    },
+    "tools/campaign_lib/cases_resource.py": {
+      "bytes": 52840,
+      "sha256": "7b8b581441c1a3a8dfff8b5b0f08fbe4fa147d172fa7f5bcfb8d43c7730c5c6f"
+    },
+    "tools/campaign_lib/core.py": {
+      "bytes": 11666,
+      "sha256": "f523fb0952cb7eed488c42b34ed7f3eab2a9b1e19c8db1fc8d0033c96160877f"
+    },
+    "tools/campaign_lib/data/qwen35moe_header.json": {
+      "bytes": 102897,
+      "sha256": "cb288f68e99cdbdf9ba2ad2fa88557fc250080c69ace24b56bc9ac449521dec3"
+    },
+    "tools/campaign_lib/data/situations_35.json": {
+      "bytes": 17476,
+      "sha256": "324cb0267d2297aaefc09a7f80c42ab0cc0b01f257a412b2f92a9abb4156d019"
+    },
+    "tools/campaign_lib/fixture.py": {
+      "bytes": 14778,
+      "sha256": "ebbe5eb9a3dc2d631a6bb56d60400f4178703af9eaab4758608698efd46fe04f"
+    },
+    "tools/campaign_lib/gguf_fixture.py": {
+      "bytes": 10696,
+      "sha256": "61024d6abf14f54dccaecc00de8232ff18286e82592c2da299cb1845c4ff4f08"
+    },
+    "tools/campaign_lib/needs.py": {
+      "bytes": 10556,
+      "sha256": "ad9017ab0ff6ac77c24d1c270df95952e44138b68c121bbb74878be0d0ec7cb4"
+    },
+    "tools/campaign_lib/report.py": {
+      "bytes": 9330,
+      "sha256": "d12d0b7a58c51020a124154f8e6f5c23621a5bfa7445f6dcc8c54a466d939f09"
+    },
+    "tools/campaign_lib/runner.py": {
+      "bytes": 24381,
+      "sha256": "cc2f67571ea0dc4ffe7346d070c7db0b2b24eaf1d723f059a264070e438e604e"
+    },
+    "tools/campaign_lib/sim.py": {
+      "bytes": 14154,
+      "sha256": "0faf4eb7a81605fdea175c4aad4170a4555481e7df261d7512a7ad00fbeacfab"
+    },
     "tools/check_agent_ui.py": {
       "bytes": 22297,
       "sha256": "4e16044a4d90e7e79deee5a120937a7792116e431d084b0e249c30a4b9050a67"
@@ -12954,8 +13014,8 @@
       "sha256": "871cc8ecb2e66ff89bcc7fd8fd96d5458c2baa90fd9a339a0f6b6ccf86640f96"
     },
     "tools/check_hatch.py": {
-      "bytes": 28968,
-      "sha256": "a083440896c59b5bc1e6be1ab6e796372c6fba794b52848bc8a58dec10c87d07"
+      "bytes": 29098,
+      "sha256": "90eadd5622ab08862be13b7023a16324b586fe337501e44337af903717d5062e"
     },
     "tools/check_hatch_ui.py": {
       "bytes": 33283,

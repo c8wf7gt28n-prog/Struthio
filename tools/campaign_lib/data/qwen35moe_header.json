@@ -1,0 +1,6801 @@
+{
+ "schema": "graphite.campaign.gguf-header/1",
+ "source": {
+  "name": "Qwen3.6-35B-A3B-Q4_K_M.gguf",
+  "bytes": 20542732576,
+  "sha256": "f4ffe03c9139e6a905a5d346f77d9fabdd179367c3280dfd005d1e75ca5ed8c8",
+  "header_bytes_read": 33554432,
+  "origin": "first 32 MiB of the owner's file, read from the publisher"
+ },
+ "version": 3,
+ "alignment": 32,
+ "header_end": 10989318,
+ "data_offset": 10989344,
+ "declared_size": 20542732576,
+ "note": "Tokenizer arrays are dropped (count kept). Tensor offsets are relative to the data section.",
+ "metadata": [
+  {
+   "key": "general.architecture",
+   "type": 8,
+   "value": "qwen35moe"
+  },
+  {
+   "key": "general.type",
+   "type": 8,
+   "value": "model"
+  },
+  {
+   "key": "general.sampling.top_k",
+   "type": 5,
+   "value": 20
+  },
+  {
+   "key": "general.sampling.top_p",
+   "type": 6,
+   "value": 0.949999988079071
+  },
+  {
+   "key": "general.sampling.temp",
+   "type": 6,
+   "value": 1.0
+  },
+  {
+   "key": "general.name",
+   "type": 8,
+   "value": "Qwen3.6-35B-A3B"
+  },
+  {
+   "key": "general.size_label",
+   "type": 8,
+   "value": "256x2.6B"
+  },
+  {
+   "key": "general.license",
+   "type": 8,
+   "value": "apache-2.0"
+  },
+  {
+   "key": "general.license.link",
+   "type": 8,
+   "value": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/LICENSE"
+  },
+  {
+   "key": "general.tags",
+   "type": 9,
+   "array_type": 8,
+   "count": 1,
+   "values": [
+    "image-text-to-text"
+   ]
+  },
+  {
+   "key": "qwen35moe.block_count",
+   "type": 4,
+   "value": 40
+  },
+  {
+   "key": "qwen35moe.context_length",
+   "type": 4,
+   "value": 262144
+  },
+  {
+   "key": "qwen35moe.embedding_length",
+   "type": 4,
+   "value": 2048
+  },
+  {
+   "key": "qwen35moe.attention.head_count",
+   "type": 4,
+   "value": 16
+  },
+  {
+   "key": "qwen35moe.attention.head_count_kv",
+   "type": 4,
+   "value": 2
+  },
+  {
+   "key": "qwen35moe.rope.dimension_sections",
+   "type": 9,
+   "array_type": 5,
+   "count": 4,
+   "values": [
+    11,
+    11,
+    10,
+    0
+   ]
+  },
+  {
+   "key": "qwen35moe.rope.freq_base",
+   "type": 6,
+   "value": 10000000.0
+  },
+  {
+   "key": "qwen35moe.attention.layer_norm_rms_epsilon",
+   "type": 6,
+   "value": 9.999999974752427e-07
+  },
+  {
+   "key": "qwen35moe.expert_count",
+   "type": 4,
+   "value": 256
+  },
+  {
+   "key": "qwen35moe.expert_used_count",
+   "type": 4,
+   "value": 8
+  },
+  {
+   "key": "qwen35moe.attention.key_length",
+   "type": 4,
+   "value": 256
+  },
+  {
+   "key": "qwen35moe.attention.value_length",
+   "type": 4,
+   "value": 256
+  },
+  {
+   "key": "qwen35moe.expert_feed_forward_length",
+   "type": 4,
+   "value": 512
+  },
+  {
+   "key": "qwen35moe.expert_shared_feed_forward_length",
+   "type": 4,
+   "value": 512
+  },
+  {
+   "key": "qwen35moe.ssm.conv_kernel",
+   "type": 4,
+   "value": 4
+  },
+  {
+   "key": "qwen35moe.ssm.state_size",
+   "type": 4,
+   "value": 128
+  },
+  {
+   "key": "qwen35moe.ssm.group_count",
+   "type": 4,
+   "value": 16
+  },
+  {
+   "key": "qwen35moe.ssm.time_step_rank",
+   "type": 4,
+   "value": 32
+  },
+  {
+   "key": "qwen35moe.ssm.inner_size",
+   "type": 4,
+   "value": 4096
+  },
+  {
+   "key": "qwen35moe.attention.recurrent_layers",
+   "type": 9,
+   "array_type": 7,
+   "count": 40,
+   "values": [
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false
+   ]
+  },
+  {
+   "key": "qwen35moe.full_attention_interval",
+   "type": 4,
+   "value": 4
+  },
+  {
+   "key": "qwen35moe.rope.dimension_count",
+   "type": 4,
+   "value": 64
+  },
+  {
+   "key": "tokenizer.ggml.model",
+   "type": 8,
+   "value": "gpt2"
+  },
+  {
+   "key": "tokenizer.ggml.pre",
+   "type": 8,
+   "value": "qwen35"
+  },
+  {
+   "key": "tokenizer.ggml.tokens",
+   "type": 9,
+   "array_type": 8,
+   "count": 248320,
+   "dropped": true
+  },
+  {
+   "key": "tokenizer.ggml.token_type",
+   "type": 9,
+   "array_type": 5,
+   "count": 248320,
+   "dropped": true
+  },
+  {
+   "key": "tokenizer.ggml.merges",
+   "type": 9,
+   "array_type": 8,
+   "count": 247587,
+   "dropped": true
+  },
+  {
+   "key": "tokenizer.ggml.eos_token_id",
+   "type": 4,
+   "value": 248046
+  },
+  {
+   "key": "tokenizer.ggml.padding_token_id",
+   "type": 4,
+   "value": 248044
+  },
+  {
+   "key": "tokenizer.ggml.bos_token_id",
+   "type": 4,
+   "value": 248044
+  },
+  {
+   "key": "tokenizer.ggml.add_bos_token",
+   "type": 7,
+   "value": false
+  },
+  {
+   "key": "tokenizer.ggml.add_eos_token",
+   "type": 7,
+   "value": false
+  },
+  {
+   "key": "tokenizer.chat_template",
+   "type": 8,
+   "value": "{%- set image_count = namespace(value=0) %}\n{%- set video_count = namespace(value=0) %}\n{%- macro render_content(content, do_vision_count, is_system_content=false) %}\n    {%- if content is string %}\n        {{- content }}\n    {%- elif content is iterable and content is not mapping %}\n        {%- for item in content %}\n            {%- if 'image' in item or 'image_url' in item or item.type == 'image' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain images.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set image_count.value = image_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Picture ' ~ image_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|image_pad|><|vision_end|>' }}\n            {%- elif 'video' in item or item.type == 'video' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain videos.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set video_count.value = video_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Video ' ~ video_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|video_pad|><|vision_end|>' }}\n            {%- elif 'text' in item %}\n                {{- item.text }}\n            {%- else %}\n                {{- raise_exception('Unexpected item type in content.') }}\n            {%- endif %}\n        {%- endfor %}\n    {%- elif content is none or content is undefined %}\n        {{- '' }}\n    {%- else %}\n        {{- raise_exception('Unexpected content type.') }}\n    {%- endif %}\n{%- endmacro %}\n{%- if not messages %}\n    {{- raise_exception('No messages provided.') }}\n{%- endif %}\n{%- if tools and tools is iterable and tools is not mapping %}\n    {{- '<|im_start|>system\\n' }}\n    {{- \"# Tools\\n\\nYou have access to the following functions:\\n\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\" }}\n    {{- '\\n\\nIf you choose to call a function ONLY reply in the following format with NO suffix:\\n\\n<tool_call>\\n<function=example_function_name>\\n<parameter=example_parameter_1>\\nvalue_1\\n</parameter>\\n<parameter=example_parameter_2>\\nThis is the value for the second parameter\\nthat can span\\nmultiple lines\\n</parameter>\\n</function>\\n</tool_call>\\n\\n<IMPORTANT>\\nReminder:\\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\\n- Required parameters MUST be specified\\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\\n</IMPORTANT>' }}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {%- if content %}\n            {{- '\\n\\n' + content }}\n        {%- endif %}\n    {%- endif %}\n    {{- '<|im_end|>\\n' }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {{- '<|im_start|>system\\n' + content + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- if ns.multi_step_tool and message.role == \"user\" %}\n        {%- set content = render_content(message.content, false)|trim %}\n        {%- if not(content.startswith('<tool_response>') and content.endswith('</tool_response>')) %}\n            {%- set ns.multi_step_tool = false %}\n            {%- set ns.last_query_index = index %}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if ns.multi_step_tool %}\n    {{- raise_exception('No user query found in messages.') }}\n{%- endif %}\n{%- for message in messages %}\n    {%- set content = render_content(message.content, true)|trim %}\n    {%- if message.role == \"system\" %}\n        {%- if not loop.first %}\n            {{- raise_exception('System message must be at the beginning.') }}\n        {%- endif %}\n    {%- elif message.role == \"user\" %}\n        {{- '<|im_start|>' + message.role + '\\n' + content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is string %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- else %}\n            {%- if '</think>' in content %}\n                {%- set reasoning_content = content.split('</think>')[0].rstrip('\\n').split('<think>')[-1].lstrip('\\n') %}\n                {%- set content = content.split('</think>')[-1].lstrip('\\n') %}\n            {%- endif %}\n        {%- endif %}\n        {%- set reasoning_content = reasoning_content|trim %}\n        {{- '<|im_start|>' + message.role + '\\n' }}\n        {%- generation %}\n        {%- if (preserve_thinking is defined and preserve_thinking is true) or (loop.index0 > ns.last_query_index) %}\n            {{- '<think>\\n' + reasoning_content + '\\n</think>\\n\\n' + content }}\n        {%- else %}\n            {{- content }}\n        {%- endif %}\n        {%- if message.tool_calls and message.tool_calls is iterable and message.tool_calls is not mapping %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if tool_call.function is defined %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {%- if loop.first %}\n                    {%- if content|trim %}\n                        {{- '\\n\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- else %}\n                        {{- '<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- endif %}\n                {%- else %}\n                    {{- '\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                {%- endif %}\n                {%- if tool_call.arguments is defined %}\n                    {%- for args_name, args_value in tool_call.arguments|items %}\n                        {{- '<parameter=' + args_name + '>\\n' }}\n                        {%- set args_value = args_value | string if args_value is string else args_value | tojson | safe %}\n                        {{- args_value }}\n                        {{- '\\n</parameter>\\n' }}\n                    {%- endfor %}\n                {%- endif %}\n                {{- '</function>\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>' }}\n        {%- endgeneration %}\n        {{- '\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.previtem and loop.previtem.role != \"tool\" %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- content }}\n        {{- '\\n</tool_response>' }}\n        {%- if not loop.last and loop.nextitem.role != \"tool\" %}\n            {{- '<|im_end|>\\n' }}\n        {%- elif loop.last %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- else %}\n        {{- raise_exception('Unexpected message role.') }}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- else %}\n        {{- '<think>\\n' }}\n    {%- endif %}\n{%- endif %}"
+  },
+  {
+   "key": "tokenizer.ggml.normalizer.nfc",
+   "type": 7,
+   "value": true
+  },
+  {
+   "key": "tokenizer.ggml.clean_spaces",
+   "type": 7,
+   "value": false
+  },
+  {
+   "key": "general.quantization_version",
+   "type": 4,
+   "value": 2
+  },
+  {
+   "key": "general.file_type",
+   "type": 4,
+   "value": 15
+  }
+ ],
+ "tensors": [
+  {
+   "name": "output.weight",
+   "dims": [
+    2048,
+    248320
+   ],
+   "type": 8,
+   "offset": 0
+  },
+  {
+   "name": "output_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 540344320
+  },
+  {
+   "name": "token_embd.weight",
+   "dims": [
+    2048,
+    248320
+   ],
+   "type": 12,
+   "offset": 540352512
+  },
+  {
+   "name": "blk.0.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 826417152
+  },
+  {
+   "name": "blk.0.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 835330048
+  },
+  {
+   "name": "blk.0.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 835338240
+  },
+  {
+   "name": "blk.0.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 853164032
+  },
+  {
+   "name": "blk.0.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 1004158976
+  },
+  {
+   "name": "blk.0.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 1005273088
+  },
+  {
+   "name": "blk.0.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 1156268032
+  },
+  {
+   "name": "blk.0.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 1158365184
+  },
+  {
+   "name": "blk.0.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 1158373376
+  },
+  {
+   "name": "blk.0.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 1159487488
+  },
+  {
+   "name": "blk.0.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 1310482432
+  },
+  {
+   "name": "blk.0.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 1311596544
+  },
+  {
+   "name": "blk.0.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 1311604736
+  },
+  {
+   "name": "blk.0.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 1311604864
+  },
+  {
+   "name": "blk.0.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 1311674496
+  },
+  {
+   "name": "blk.0.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 1311744128
+  },
+  {
+   "name": "blk.0.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 1311875200
+  },
+  {
+   "name": "blk.0.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 1311875328
+  },
+  {
+   "name": "blk.0.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 1311875840
+  },
+  {
+   "name": "blk.1.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 1320788736
+  },
+  {
+   "name": "blk.1.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 1329701632
+  },
+  {
+   "name": "blk.1.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 1329709824
+  },
+  {
+   "name": "blk.1.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 1347535616
+  },
+  {
+   "name": "blk.1.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 1498530560
+  },
+  {
+   "name": "blk.1.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 1499644672
+  },
+  {
+   "name": "blk.1.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 1650639616
+  },
+  {
+   "name": "blk.1.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 1652736768
+  },
+  {
+   "name": "blk.1.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 1652744960
+  },
+  {
+   "name": "blk.1.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 1653859072
+  },
+  {
+   "name": "blk.1.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 1804854016
+  },
+  {
+   "name": "blk.1.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 1805968128
+  },
+  {
+   "name": "blk.1.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 1805976320
+  },
+  {
+   "name": "blk.1.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 1805976448
+  },
+  {
+   "name": "blk.1.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 1806046080
+  },
+  {
+   "name": "blk.1.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 1806115712
+  },
+  {
+   "name": "blk.1.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 1806246784
+  },
+  {
+   "name": "blk.1.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 1806246912
+  },
+  {
+   "name": "blk.1.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 1806247424
+  },
+  {
+   "name": "blk.2.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 1815160320
+  },
+  {
+   "name": "blk.2.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 1824073216
+  },
+  {
+   "name": "blk.2.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 1824081408
+  },
+  {
+   "name": "blk.2.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 1841907200
+  },
+  {
+   "name": "blk.2.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 1992902144
+  },
+  {
+   "name": "blk.2.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 1994016256
+  },
+  {
+   "name": "blk.2.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 2145011200
+  },
+  {
+   "name": "blk.2.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 2147108352
+  },
+  {
+   "name": "blk.2.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 2147116544
+  },
+  {
+   "name": "blk.2.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 2148230656
+  },
+  {
+   "name": "blk.2.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 2299225600
+  },
+  {
+   "name": "blk.2.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 2300339712
+  },
+  {
+   "name": "blk.2.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 2300347904
+  },
+  {
+   "name": "blk.2.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 2300348032
+  },
+  {
+   "name": "blk.2.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 2300417664
+  },
+  {
+   "name": "blk.2.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 2300487296
+  },
+  {
+   "name": "blk.2.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 2300618368
+  },
+  {
+   "name": "blk.2.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 2300618496
+  },
+  {
+   "name": "blk.2.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 2300619008
+  },
+  {
+   "name": "blk.3.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 2309531904
+  },
+  {
+   "name": "blk.3.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 2310646016
+  },
+  {
+   "name": "blk.3.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 2310647040
+  },
+  {
+   "name": "blk.3.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 2310655232
+  },
+  {
+   "name": "blk.3.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 2319568128
+  },
+  {
+   "name": "blk.3.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 2337393920
+  },
+  {
+   "name": "blk.3.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 2337394944
+  },
+  {
+   "name": "blk.3.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 2338509056
+  },
+  {
+   "name": "blk.3.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 2489504000
+  },
+  {
+   "name": "blk.3.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 2490618112
+  },
+  {
+   "name": "blk.3.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 2641613056
+  },
+  {
+   "name": "blk.3.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 2643710208
+  },
+  {
+   "name": "blk.3.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 2643718400
+  },
+  {
+   "name": "blk.3.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 2644832512
+  },
+  {
+   "name": "blk.3.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 2795827456
+  },
+  {
+   "name": "blk.3.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 2796941568
+  },
+  {
+   "name": "blk.4.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 2796949760
+  },
+  {
+   "name": "blk.4.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 2805862656
+  },
+  {
+   "name": "blk.4.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 2805870848
+  },
+  {
+   "name": "blk.4.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 2823696640
+  },
+  {
+   "name": "blk.4.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 2974691584
+  },
+  {
+   "name": "blk.4.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 2975805696
+  },
+  {
+   "name": "blk.4.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 3126800640
+  },
+  {
+   "name": "blk.4.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 3128897792
+  },
+  {
+   "name": "blk.4.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 3128905984
+  },
+  {
+   "name": "blk.4.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 3130020096
+  },
+  {
+   "name": "blk.4.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 3281015040
+  },
+  {
+   "name": "blk.4.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 3282129152
+  },
+  {
+   "name": "blk.4.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 3282137344
+  },
+  {
+   "name": "blk.4.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 3282137472
+  },
+  {
+   "name": "blk.4.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 3282207104
+  },
+  {
+   "name": "blk.4.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 3282276736
+  },
+  {
+   "name": "blk.4.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 3282407808
+  },
+  {
+   "name": "blk.4.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 3282407936
+  },
+  {
+   "name": "blk.4.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 3282408448
+  },
+  {
+   "name": "blk.5.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 3291321344
+  },
+  {
+   "name": "blk.5.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 3300234240
+  },
+  {
+   "name": "blk.5.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 3300242432
+  },
+  {
+   "name": "blk.5.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 3318068224
+  },
+  {
+   "name": "blk.5.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 3469063168
+  },
+  {
+   "name": "blk.5.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 3470177280
+  },
+  {
+   "name": "blk.5.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 3621172224
+  },
+  {
+   "name": "blk.5.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 3623269376
+  },
+  {
+   "name": "blk.5.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 3623277568
+  },
+  {
+   "name": "blk.5.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 3624391680
+  },
+  {
+   "name": "blk.5.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 3775386624
+  },
+  {
+   "name": "blk.5.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 3776500736
+  },
+  {
+   "name": "blk.5.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 3776508928
+  },
+  {
+   "name": "blk.5.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 3776509056
+  },
+  {
+   "name": "blk.5.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 3776578688
+  },
+  {
+   "name": "blk.5.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 3776648320
+  },
+  {
+   "name": "blk.5.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 3776779392
+  },
+  {
+   "name": "blk.5.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 3776779520
+  },
+  {
+   "name": "blk.5.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 3776780032
+  },
+  {
+   "name": "blk.6.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 3785692928
+  },
+  {
+   "name": "blk.6.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 3794605824
+  },
+  {
+   "name": "blk.6.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 3794614016
+  },
+  {
+   "name": "blk.6.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 3812439808
+  },
+  {
+   "name": "blk.6.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 3963434752
+  },
+  {
+   "name": "blk.6.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 3964548864
+  },
+  {
+   "name": "blk.6.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 4115543808
+  },
+  {
+   "name": "blk.6.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 4117640960
+  },
+  {
+   "name": "blk.6.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 4117649152
+  },
+  {
+   "name": "blk.6.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 4118763264
+  },
+  {
+   "name": "blk.6.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 4269758208
+  },
+  {
+   "name": "blk.6.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 4270872320
+  },
+  {
+   "name": "blk.6.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 4270880512
+  },
+  {
+   "name": "blk.6.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 4270880640
+  },
+  {
+   "name": "blk.6.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 4270950272
+  },
+  {
+   "name": "blk.6.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 4271019904
+  },
+  {
+   "name": "blk.6.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 4271150976
+  },
+  {
+   "name": "blk.6.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 4271151104
+  },
+  {
+   "name": "blk.6.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 4271151616
+  },
+  {
+   "name": "blk.7.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 4280064512
+  },
+  {
+   "name": "blk.7.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 4281178624
+  },
+  {
+   "name": "blk.7.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 4281179648
+  },
+  {
+   "name": "blk.7.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 4281187840
+  },
+  {
+   "name": "blk.7.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 4290100736
+  },
+  {
+   "name": "blk.7.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 4307926528
+  },
+  {
+   "name": "blk.7.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 4307927552
+  },
+  {
+   "name": "blk.7.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 4309041664
+  },
+  {
+   "name": "blk.7.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 4460036608
+  },
+  {
+   "name": "blk.7.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 4461150720
+  },
+  {
+   "name": "blk.7.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 4612145664
+  },
+  {
+   "name": "blk.7.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 4614242816
+  },
+  {
+   "name": "blk.7.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 4614251008
+  },
+  {
+   "name": "blk.7.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 4615365120
+  },
+  {
+   "name": "blk.7.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 4766360064
+  },
+  {
+   "name": "blk.7.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 4767474176
+  },
+  {
+   "name": "blk.8.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 4767482368
+  },
+  {
+   "name": "blk.8.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 4776395264
+  },
+  {
+   "name": "blk.8.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 4776403456
+  },
+  {
+   "name": "blk.8.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 4794229248
+  },
+  {
+   "name": "blk.8.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 4945224192
+  },
+  {
+   "name": "blk.8.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 4946338304
+  },
+  {
+   "name": "blk.8.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 5097333248
+  },
+  {
+   "name": "blk.8.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 5099430400
+  },
+  {
+   "name": "blk.8.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 5099438592
+  },
+  {
+   "name": "blk.8.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 5100552704
+  },
+  {
+   "name": "blk.8.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 5251547648
+  },
+  {
+   "name": "blk.8.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 5252661760
+  },
+  {
+   "name": "blk.8.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 5252669952
+  },
+  {
+   "name": "blk.8.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 5252670080
+  },
+  {
+   "name": "blk.8.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 5252739712
+  },
+  {
+   "name": "blk.8.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 5252809344
+  },
+  {
+   "name": "blk.8.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 5252940416
+  },
+  {
+   "name": "blk.8.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 5252940544
+  },
+  {
+   "name": "blk.8.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 5252941056
+  },
+  {
+   "name": "blk.9.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 5261853952
+  },
+  {
+   "name": "blk.9.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 5270766848
+  },
+  {
+   "name": "blk.9.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 5270775040
+  },
+  {
+   "name": "blk.9.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 5288600832
+  },
+  {
+   "name": "blk.9.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 5439595776
+  },
+  {
+   "name": "blk.9.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 5440709888
+  },
+  {
+   "name": "blk.9.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 5591704832
+  },
+  {
+   "name": "blk.9.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 5593801984
+  },
+  {
+   "name": "blk.9.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 5593810176
+  },
+  {
+   "name": "blk.9.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 5594924288
+  },
+  {
+   "name": "blk.9.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 5745919232
+  },
+  {
+   "name": "blk.9.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 5747033344
+  },
+  {
+   "name": "blk.9.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 5747041536
+  },
+  {
+   "name": "blk.9.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 5747041664
+  },
+  {
+   "name": "blk.9.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 5747111296
+  },
+  {
+   "name": "blk.9.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 5747180928
+  },
+  {
+   "name": "blk.9.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 5747312000
+  },
+  {
+   "name": "blk.9.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 5747312128
+  },
+  {
+   "name": "blk.9.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 5747312640
+  },
+  {
+   "name": "blk.10.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 5756225536
+  },
+  {
+   "name": "blk.10.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 5765138432
+  },
+  {
+   "name": "blk.10.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 5765146624
+  },
+  {
+   "name": "blk.10.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 5782972416
+  },
+  {
+   "name": "blk.10.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 5933967360
+  },
+  {
+   "name": "blk.10.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 5935081472
+  },
+  {
+   "name": "blk.10.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 6086076416
+  },
+  {
+   "name": "blk.10.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 6088173568
+  },
+  {
+   "name": "blk.10.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 6088181760
+  },
+  {
+   "name": "blk.10.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 6089295872
+  },
+  {
+   "name": "blk.10.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 6240290816
+  },
+  {
+   "name": "blk.10.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 6241404928
+  },
+  {
+   "name": "blk.10.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 6241413120
+  },
+  {
+   "name": "blk.10.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 6241413248
+  },
+  {
+   "name": "blk.10.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 6241482880
+  },
+  {
+   "name": "blk.10.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 6241552512
+  },
+  {
+   "name": "blk.10.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 6241683584
+  },
+  {
+   "name": "blk.10.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 6241683712
+  },
+  {
+   "name": "blk.10.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 6241684224
+  },
+  {
+   "name": "blk.11.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 6250597120
+  },
+  {
+   "name": "blk.11.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 6251711232
+  },
+  {
+   "name": "blk.11.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 6251712256
+  },
+  {
+   "name": "blk.11.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 6251720448
+  },
+  {
+   "name": "blk.11.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 6260633344
+  },
+  {
+   "name": "blk.11.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 6278459136
+  },
+  {
+   "name": "blk.11.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 6278460160
+  },
+  {
+   "name": "blk.11.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 6279574272
+  },
+  {
+   "name": "blk.11.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 6430569216
+  },
+  {
+   "name": "blk.11.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 6431683328
+  },
+  {
+   "name": "blk.11.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 6582678272
+  },
+  {
+   "name": "blk.11.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 6584775424
+  },
+  {
+   "name": "blk.11.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 6584783616
+  },
+  {
+   "name": "blk.11.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 6585897728
+  },
+  {
+   "name": "blk.11.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 6736892672
+  },
+  {
+   "name": "blk.11.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 6738006784
+  },
+  {
+   "name": "blk.12.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 6738014976
+  },
+  {
+   "name": "blk.12.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 6746927872
+  },
+  {
+   "name": "blk.12.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 6746936064
+  },
+  {
+   "name": "blk.12.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 6764761856
+  },
+  {
+   "name": "blk.12.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 6915756800
+  },
+  {
+   "name": "blk.12.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 6916870912
+  },
+  {
+   "name": "blk.12.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 7067865856
+  },
+  {
+   "name": "blk.12.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 7069963008
+  },
+  {
+   "name": "blk.12.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 7069971200
+  },
+  {
+   "name": "blk.12.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 7071085312
+  },
+  {
+   "name": "blk.12.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 7222080256
+  },
+  {
+   "name": "blk.12.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 7223194368
+  },
+  {
+   "name": "blk.12.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 7223202560
+  },
+  {
+   "name": "blk.12.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 7223202688
+  },
+  {
+   "name": "blk.12.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 7223272320
+  },
+  {
+   "name": "blk.12.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 7223341952
+  },
+  {
+   "name": "blk.12.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 7223473024
+  },
+  {
+   "name": "blk.12.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 7223473152
+  },
+  {
+   "name": "blk.12.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 7223473664
+  },
+  {
+   "name": "blk.13.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 7232386560
+  },
+  {
+   "name": "blk.13.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 7241299456
+  },
+  {
+   "name": "blk.13.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 7241307648
+  },
+  {
+   "name": "blk.13.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 7259133440
+  },
+  {
+   "name": "blk.13.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 7410128384
+  },
+  {
+   "name": "blk.13.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 7411242496
+  },
+  {
+   "name": "blk.13.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 7562237440
+  },
+  {
+   "name": "blk.13.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 7564334592
+  },
+  {
+   "name": "blk.13.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 7564342784
+  },
+  {
+   "name": "blk.13.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 7565456896
+  },
+  {
+   "name": "blk.13.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 7716451840
+  },
+  {
+   "name": "blk.13.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 7717565952
+  },
+  {
+   "name": "blk.13.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 7717574144
+  },
+  {
+   "name": "blk.13.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 7717574272
+  },
+  {
+   "name": "blk.13.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 7717643904
+  },
+  {
+   "name": "blk.13.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 7717713536
+  },
+  {
+   "name": "blk.13.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 7717844608
+  },
+  {
+   "name": "blk.13.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 7717844736
+  },
+  {
+   "name": "blk.13.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 7717845248
+  },
+  {
+   "name": "blk.14.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 7726758144
+  },
+  {
+   "name": "blk.14.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 7735671040
+  },
+  {
+   "name": "blk.14.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 7735679232
+  },
+  {
+   "name": "blk.14.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 7753505024
+  },
+  {
+   "name": "blk.14.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 7904499968
+  },
+  {
+   "name": "blk.14.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 7905614080
+  },
+  {
+   "name": "blk.14.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 8056609024
+  },
+  {
+   "name": "blk.14.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 8058706176
+  },
+  {
+   "name": "blk.14.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 8058714368
+  },
+  {
+   "name": "blk.14.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 8059828480
+  },
+  {
+   "name": "blk.14.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 8210823424
+  },
+  {
+   "name": "blk.14.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 8211937536
+  },
+  {
+   "name": "blk.14.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 8211945728
+  },
+  {
+   "name": "blk.14.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 8211945856
+  },
+  {
+   "name": "blk.14.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 8212015488
+  },
+  {
+   "name": "blk.14.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 8212085120
+  },
+  {
+   "name": "blk.14.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 8212216192
+  },
+  {
+   "name": "blk.14.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 8212216320
+  },
+  {
+   "name": "blk.14.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 8212216832
+  },
+  {
+   "name": "blk.15.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 8221129728
+  },
+  {
+   "name": "blk.15.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 8222243840
+  },
+  {
+   "name": "blk.15.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 8222244864
+  },
+  {
+   "name": "blk.15.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 8222253056
+  },
+  {
+   "name": "blk.15.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 8231165952
+  },
+  {
+   "name": "blk.15.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 8248991744
+  },
+  {
+   "name": "blk.15.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 8248992768
+  },
+  {
+   "name": "blk.15.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 8250106880
+  },
+  {
+   "name": "blk.15.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 8401101824
+  },
+  {
+   "name": "blk.15.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 8402215936
+  },
+  {
+   "name": "blk.15.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 8553210880
+  },
+  {
+   "name": "blk.15.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 8555308032
+  },
+  {
+   "name": "blk.15.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 8555316224
+  },
+  {
+   "name": "blk.15.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 8556430336
+  },
+  {
+   "name": "blk.15.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 8707425280
+  },
+  {
+   "name": "blk.15.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 8708539392
+  },
+  {
+   "name": "blk.16.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 8708547584
+  },
+  {
+   "name": "blk.16.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 8717460480
+  },
+  {
+   "name": "blk.16.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 8717468672
+  },
+  {
+   "name": "blk.16.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 8735294464
+  },
+  {
+   "name": "blk.16.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 8886289408
+  },
+  {
+   "name": "blk.16.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 8887403520
+  },
+  {
+   "name": "blk.16.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 9038398464
+  },
+  {
+   "name": "blk.16.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 9040495616
+  },
+  {
+   "name": "blk.16.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 9040503808
+  },
+  {
+   "name": "blk.16.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 9041617920
+  },
+  {
+   "name": "blk.16.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 9192612864
+  },
+  {
+   "name": "blk.16.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 9193726976
+  },
+  {
+   "name": "blk.16.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 9193735168
+  },
+  {
+   "name": "blk.16.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 9193735296
+  },
+  {
+   "name": "blk.16.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 9193804928
+  },
+  {
+   "name": "blk.16.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 9193874560
+  },
+  {
+   "name": "blk.16.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 9194005632
+  },
+  {
+   "name": "blk.16.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 9194005760
+  },
+  {
+   "name": "blk.16.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 9194006272
+  },
+  {
+   "name": "blk.17.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 9202919168
+  },
+  {
+   "name": "blk.17.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 9211832064
+  },
+  {
+   "name": "blk.17.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 9211840256
+  },
+  {
+   "name": "blk.17.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 9229666048
+  },
+  {
+   "name": "blk.17.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 9380660992
+  },
+  {
+   "name": "blk.17.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 9381775104
+  },
+  {
+   "name": "blk.17.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 9532770048
+  },
+  {
+   "name": "blk.17.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 9534867200
+  },
+  {
+   "name": "blk.17.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 9534875392
+  },
+  {
+   "name": "blk.17.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 9535989504
+  },
+  {
+   "name": "blk.17.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 9686984448
+  },
+  {
+   "name": "blk.17.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 9688098560
+  },
+  {
+   "name": "blk.17.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 9688106752
+  },
+  {
+   "name": "blk.17.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 9688106880
+  },
+  {
+   "name": "blk.17.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 9688176512
+  },
+  {
+   "name": "blk.17.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 9688246144
+  },
+  {
+   "name": "blk.17.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 9688377216
+  },
+  {
+   "name": "blk.17.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 9688377344
+  },
+  {
+   "name": "blk.17.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 9688377856
+  },
+  {
+   "name": "blk.18.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 9697290752
+  },
+  {
+   "name": "blk.18.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 9706203648
+  },
+  {
+   "name": "blk.18.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 9706211840
+  },
+  {
+   "name": "blk.18.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 9724037632
+  },
+  {
+   "name": "blk.18.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 9875032576
+  },
+  {
+   "name": "blk.18.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 9876146688
+  },
+  {
+   "name": "blk.18.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 10027141632
+  },
+  {
+   "name": "blk.18.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 10029238784
+  },
+  {
+   "name": "blk.18.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 10029246976
+  },
+  {
+   "name": "blk.18.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 10030361088
+  },
+  {
+   "name": "blk.18.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 10181356032
+  },
+  {
+   "name": "blk.18.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 10182470144
+  },
+  {
+   "name": "blk.18.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 10182478336
+  },
+  {
+   "name": "blk.18.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 10182478464
+  },
+  {
+   "name": "blk.18.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 10182548096
+  },
+  {
+   "name": "blk.18.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 10182617728
+  },
+  {
+   "name": "blk.18.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 10182748800
+  },
+  {
+   "name": "blk.18.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 10182748928
+  },
+  {
+   "name": "blk.18.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 10182749440
+  },
+  {
+   "name": "blk.19.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 10191662336
+  },
+  {
+   "name": "blk.19.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 10192776448
+  },
+  {
+   "name": "blk.19.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 10192777472
+  },
+  {
+   "name": "blk.19.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 10192785664
+  },
+  {
+   "name": "blk.19.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 10201698560
+  },
+  {
+   "name": "blk.19.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 10219524352
+  },
+  {
+   "name": "blk.19.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 10219525376
+  },
+  {
+   "name": "blk.19.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 10220639488
+  },
+  {
+   "name": "blk.19.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 10371634432
+  },
+  {
+   "name": "blk.19.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 10372748544
+  },
+  {
+   "name": "blk.19.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 10523743488
+  },
+  {
+   "name": "blk.19.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 10525840640
+  },
+  {
+   "name": "blk.19.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 10525848832
+  },
+  {
+   "name": "blk.19.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 10526962944
+  },
+  {
+   "name": "blk.19.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 10677957888
+  },
+  {
+   "name": "blk.19.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 10679072000
+  },
+  {
+   "name": "blk.20.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 10679080192
+  },
+  {
+   "name": "blk.20.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 10687993088
+  },
+  {
+   "name": "blk.20.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 10688001280
+  },
+  {
+   "name": "blk.20.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 10705827072
+  },
+  {
+   "name": "blk.20.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 10856822016
+  },
+  {
+   "name": "blk.20.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 10857936128
+  },
+  {
+   "name": "blk.20.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 11008931072
+  },
+  {
+   "name": "blk.20.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 11011028224
+  },
+  {
+   "name": "blk.20.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 11011036416
+  },
+  {
+   "name": "blk.20.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 11012150528
+  },
+  {
+   "name": "blk.20.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 11163145472
+  },
+  {
+   "name": "blk.20.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 11164259584
+  },
+  {
+   "name": "blk.20.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 11164267776
+  },
+  {
+   "name": "blk.20.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 11164267904
+  },
+  {
+   "name": "blk.20.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 11164337536
+  },
+  {
+   "name": "blk.20.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 11164407168
+  },
+  {
+   "name": "blk.20.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 11164538240
+  },
+  {
+   "name": "blk.20.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 11164538368
+  },
+  {
+   "name": "blk.20.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 11164538880
+  },
+  {
+   "name": "blk.21.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 11173451776
+  },
+  {
+   "name": "blk.21.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 11182364672
+  },
+  {
+   "name": "blk.21.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 11182372864
+  },
+  {
+   "name": "blk.21.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 11200198656
+  },
+  {
+   "name": "blk.21.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 11351193600
+  },
+  {
+   "name": "blk.21.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 11352307712
+  },
+  {
+   "name": "blk.21.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 11503302656
+  },
+  {
+   "name": "blk.21.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 11505399808
+  },
+  {
+   "name": "blk.21.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 11505408000
+  },
+  {
+   "name": "blk.21.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 11506522112
+  },
+  {
+   "name": "blk.21.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 11657517056
+  },
+  {
+   "name": "blk.21.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 11658631168
+  },
+  {
+   "name": "blk.21.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 11658639360
+  },
+  {
+   "name": "blk.21.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 11658639488
+  },
+  {
+   "name": "blk.21.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 11658709120
+  },
+  {
+   "name": "blk.21.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 11658778752
+  },
+  {
+   "name": "blk.21.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 11658909824
+  },
+  {
+   "name": "blk.21.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 11658909952
+  },
+  {
+   "name": "blk.21.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 11658910464
+  },
+  {
+   "name": "blk.22.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 11667823360
+  },
+  {
+   "name": "blk.22.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 11676736256
+  },
+  {
+   "name": "blk.22.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 11676744448
+  },
+  {
+   "name": "blk.22.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 11694570240
+  },
+  {
+   "name": "blk.22.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 11845565184
+  },
+  {
+   "name": "blk.22.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 11846679296
+  },
+  {
+   "name": "blk.22.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 11997674240
+  },
+  {
+   "name": "blk.22.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 11999771392
+  },
+  {
+   "name": "blk.22.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 11999779584
+  },
+  {
+   "name": "blk.22.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 12000893696
+  },
+  {
+   "name": "blk.22.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 12151888640
+  },
+  {
+   "name": "blk.22.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 12153002752
+  },
+  {
+   "name": "blk.22.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 12153010944
+  },
+  {
+   "name": "blk.22.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 12153011072
+  },
+  {
+   "name": "blk.22.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 12153080704
+  },
+  {
+   "name": "blk.22.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 12153150336
+  },
+  {
+   "name": "blk.22.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 12153281408
+  },
+  {
+   "name": "blk.22.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 12153281536
+  },
+  {
+   "name": "blk.22.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 12153282048
+  },
+  {
+   "name": "blk.23.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 12162194944
+  },
+  {
+   "name": "blk.23.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 12163309056
+  },
+  {
+   "name": "blk.23.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 12163310080
+  },
+  {
+   "name": "blk.23.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 12163318272
+  },
+  {
+   "name": "blk.23.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 12172231168
+  },
+  {
+   "name": "blk.23.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 12190056960
+  },
+  {
+   "name": "blk.23.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 12190057984
+  },
+  {
+   "name": "blk.23.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 12191172096
+  },
+  {
+   "name": "blk.23.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 12342167040
+  },
+  {
+   "name": "blk.23.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 12343281152
+  },
+  {
+   "name": "blk.23.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 12494276096
+  },
+  {
+   "name": "blk.23.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 12496373248
+  },
+  {
+   "name": "blk.23.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 12496381440
+  },
+  {
+   "name": "blk.23.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 12497495552
+  },
+  {
+   "name": "blk.23.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 12648490496
+  },
+  {
+   "name": "blk.23.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 12649604608
+  },
+  {
+   "name": "blk.24.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 12649612800
+  },
+  {
+   "name": "blk.24.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 12658525696
+  },
+  {
+   "name": "blk.24.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 12658533888
+  },
+  {
+   "name": "blk.24.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 12676359680
+  },
+  {
+   "name": "blk.24.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 12827354624
+  },
+  {
+   "name": "blk.24.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 12828468736
+  },
+  {
+   "name": "blk.24.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 12979463680
+  },
+  {
+   "name": "blk.24.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 12981560832
+  },
+  {
+   "name": "blk.24.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 12981569024
+  },
+  {
+   "name": "blk.24.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 12982683136
+  },
+  {
+   "name": "blk.24.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 13133678080
+  },
+  {
+   "name": "blk.24.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 13134792192
+  },
+  {
+   "name": "blk.24.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 13134800384
+  },
+  {
+   "name": "blk.24.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 13134800512
+  },
+  {
+   "name": "blk.24.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 13134870144
+  },
+  {
+   "name": "blk.24.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 13134939776
+  },
+  {
+   "name": "blk.24.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 13135070848
+  },
+  {
+   "name": "blk.24.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 13135070976
+  },
+  {
+   "name": "blk.24.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 13135071488
+  },
+  {
+   "name": "blk.25.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 13143984384
+  },
+  {
+   "name": "blk.25.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 13152897280
+  },
+  {
+   "name": "blk.25.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 13152905472
+  },
+  {
+   "name": "blk.25.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 13170731264
+  },
+  {
+   "name": "blk.25.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 13321726208
+  },
+  {
+   "name": "blk.25.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 13322840320
+  },
+  {
+   "name": "blk.25.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 13473835264
+  },
+  {
+   "name": "blk.25.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 13475932416
+  },
+  {
+   "name": "blk.25.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 13475940608
+  },
+  {
+   "name": "blk.25.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 13477054720
+  },
+  {
+   "name": "blk.25.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 13628049664
+  },
+  {
+   "name": "blk.25.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 13629163776
+  },
+  {
+   "name": "blk.25.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 13629171968
+  },
+  {
+   "name": "blk.25.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 13629172096
+  },
+  {
+   "name": "blk.25.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 13629241728
+  },
+  {
+   "name": "blk.25.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 13629311360
+  },
+  {
+   "name": "blk.25.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 13629442432
+  },
+  {
+   "name": "blk.25.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 13629442560
+  },
+  {
+   "name": "blk.25.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 13629443072
+  },
+  {
+   "name": "blk.26.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 13638355968
+  },
+  {
+   "name": "blk.26.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 13647268864
+  },
+  {
+   "name": "blk.26.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 13647277056
+  },
+  {
+   "name": "blk.26.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 13665102848
+  },
+  {
+   "name": "blk.26.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 13816097792
+  },
+  {
+   "name": "blk.26.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 13817211904
+  },
+  {
+   "name": "blk.26.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 13968206848
+  },
+  {
+   "name": "blk.26.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 13970304000
+  },
+  {
+   "name": "blk.26.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 13970312192
+  },
+  {
+   "name": "blk.26.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 13971426304
+  },
+  {
+   "name": "blk.26.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 14122421248
+  },
+  {
+   "name": "blk.26.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 14123535360
+  },
+  {
+   "name": "blk.26.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 14123543552
+  },
+  {
+   "name": "blk.26.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 14123543680
+  },
+  {
+   "name": "blk.26.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 14123613312
+  },
+  {
+   "name": "blk.26.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 14123682944
+  },
+  {
+   "name": "blk.26.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 14123814016
+  },
+  {
+   "name": "blk.26.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 14123814144
+  },
+  {
+   "name": "blk.26.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 14123814656
+  },
+  {
+   "name": "blk.27.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 14132727552
+  },
+  {
+   "name": "blk.27.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 14133841664
+  },
+  {
+   "name": "blk.27.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 14133842688
+  },
+  {
+   "name": "blk.27.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 14133850880
+  },
+  {
+   "name": "blk.27.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 14142763776
+  },
+  {
+   "name": "blk.27.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 14160589568
+  },
+  {
+   "name": "blk.27.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 14160590592
+  },
+  {
+   "name": "blk.27.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 14161704704
+  },
+  {
+   "name": "blk.27.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 14312699648
+  },
+  {
+   "name": "blk.27.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 14313813760
+  },
+  {
+   "name": "blk.27.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 14464808704
+  },
+  {
+   "name": "blk.27.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 14466905856
+  },
+  {
+   "name": "blk.27.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 14466914048
+  },
+  {
+   "name": "blk.27.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 14468028160
+  },
+  {
+   "name": "blk.27.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 14619023104
+  },
+  {
+   "name": "blk.27.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 14620137216
+  },
+  {
+   "name": "blk.28.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 14620145408
+  },
+  {
+   "name": "blk.28.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 14629058304
+  },
+  {
+   "name": "blk.28.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 14629066496
+  },
+  {
+   "name": "blk.28.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 14646892288
+  },
+  {
+   "name": "blk.28.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 14797887232
+  },
+  {
+   "name": "blk.28.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 14799001344
+  },
+  {
+   "name": "blk.28.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 14949996288
+  },
+  {
+   "name": "blk.28.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 14952093440
+  },
+  {
+   "name": "blk.28.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 14952101632
+  },
+  {
+   "name": "blk.28.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 14953215744
+  },
+  {
+   "name": "blk.28.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 15104210688
+  },
+  {
+   "name": "blk.28.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 15105324800
+  },
+  {
+   "name": "blk.28.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 15105332992
+  },
+  {
+   "name": "blk.28.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 15105333120
+  },
+  {
+   "name": "blk.28.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 15105402752
+  },
+  {
+   "name": "blk.28.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 15105472384
+  },
+  {
+   "name": "blk.28.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 15105603456
+  },
+  {
+   "name": "blk.28.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 15105603584
+  },
+  {
+   "name": "blk.28.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 15105604096
+  },
+  {
+   "name": "blk.29.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 15114516992
+  },
+  {
+   "name": "blk.29.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 15123429888
+  },
+  {
+   "name": "blk.29.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 15123438080
+  },
+  {
+   "name": "blk.29.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 15141263872
+  },
+  {
+   "name": "blk.29.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 15292258816
+  },
+  {
+   "name": "blk.29.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 15293372928
+  },
+  {
+   "name": "blk.29.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 15444367872
+  },
+  {
+   "name": "blk.29.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 15446465024
+  },
+  {
+   "name": "blk.29.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 15446473216
+  },
+  {
+   "name": "blk.29.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 15447587328
+  },
+  {
+   "name": "blk.29.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 15598582272
+  },
+  {
+   "name": "blk.29.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 15599696384
+  },
+  {
+   "name": "blk.29.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 15599704576
+  },
+  {
+   "name": "blk.29.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 15599704704
+  },
+  {
+   "name": "blk.29.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 15599774336
+  },
+  {
+   "name": "blk.29.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 15599843968
+  },
+  {
+   "name": "blk.29.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 15599975040
+  },
+  {
+   "name": "blk.29.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 15599975168
+  },
+  {
+   "name": "blk.29.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 15599975680
+  },
+  {
+   "name": "blk.30.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 15608888576
+  },
+  {
+   "name": "blk.30.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 15617801472
+  },
+  {
+   "name": "blk.30.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 15617809664
+  },
+  {
+   "name": "blk.30.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 15635635456
+  },
+  {
+   "name": "blk.30.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 15786630400
+  },
+  {
+   "name": "blk.30.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 15787744512
+  },
+  {
+   "name": "blk.30.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 15938739456
+  },
+  {
+   "name": "blk.30.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 15940836608
+  },
+  {
+   "name": "blk.30.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 15940844800
+  },
+  {
+   "name": "blk.30.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 15941958912
+  },
+  {
+   "name": "blk.30.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 16092953856
+  },
+  {
+   "name": "blk.30.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 16094067968
+  },
+  {
+   "name": "blk.30.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 16094076160
+  },
+  {
+   "name": "blk.30.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 16094076288
+  },
+  {
+   "name": "blk.30.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 16094145920
+  },
+  {
+   "name": "blk.30.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 16094215552
+  },
+  {
+   "name": "blk.30.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 16094346624
+  },
+  {
+   "name": "blk.30.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 16094346752
+  },
+  {
+   "name": "blk.30.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 16094347264
+  },
+  {
+   "name": "blk.31.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 16103260160
+  },
+  {
+   "name": "blk.31.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 16104374272
+  },
+  {
+   "name": "blk.31.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 16104375296
+  },
+  {
+   "name": "blk.31.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 16104383488
+  },
+  {
+   "name": "blk.31.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 16113296384
+  },
+  {
+   "name": "blk.31.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 16131122176
+  },
+  {
+   "name": "blk.31.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 16131123200
+  },
+  {
+   "name": "blk.31.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 16132237312
+  },
+  {
+   "name": "blk.31.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 16283232256
+  },
+  {
+   "name": "blk.31.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 16284346368
+  },
+  {
+   "name": "blk.31.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 16435341312
+  },
+  {
+   "name": "blk.31.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 16437438464
+  },
+  {
+   "name": "blk.31.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 16437446656
+  },
+  {
+   "name": "blk.31.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 16438560768
+  },
+  {
+   "name": "blk.31.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 16589555712
+  },
+  {
+   "name": "blk.31.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 16590669824
+  },
+  {
+   "name": "blk.32.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 16590678016
+  },
+  {
+   "name": "blk.32.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 16599590912
+  },
+  {
+   "name": "blk.32.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 16599599104
+  },
+  {
+   "name": "blk.32.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 16617424896
+  },
+  {
+   "name": "blk.32.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 16768419840
+  },
+  {
+   "name": "blk.32.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 16769533952
+  },
+  {
+   "name": "blk.32.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 16920528896
+  },
+  {
+   "name": "blk.32.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 16922626048
+  },
+  {
+   "name": "blk.32.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 16922634240
+  },
+  {
+   "name": "blk.32.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 16923748352
+  },
+  {
+   "name": "blk.32.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 17074743296
+  },
+  {
+   "name": "blk.32.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 17075857408
+  },
+  {
+   "name": "blk.32.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 17075865600
+  },
+  {
+   "name": "blk.32.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 17075865728
+  },
+  {
+   "name": "blk.32.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 17075935360
+  },
+  {
+   "name": "blk.32.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 17076004992
+  },
+  {
+   "name": "blk.32.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 17076136064
+  },
+  {
+   "name": "blk.32.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 17076136192
+  },
+  {
+   "name": "blk.32.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 17076136704
+  },
+  {
+   "name": "blk.33.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 17085049600
+  },
+  {
+   "name": "blk.33.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 17093962496
+  },
+  {
+   "name": "blk.33.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 17093970688
+  },
+  {
+   "name": "blk.33.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 17111796480
+  },
+  {
+   "name": "blk.33.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 17262791424
+  },
+  {
+   "name": "blk.33.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 17263905536
+  },
+  {
+   "name": "blk.33.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 17414900480
+  },
+  {
+   "name": "blk.33.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 17416997632
+  },
+  {
+   "name": "blk.33.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 17417005824
+  },
+  {
+   "name": "blk.33.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 17418119936
+  },
+  {
+   "name": "blk.33.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 17569114880
+  },
+  {
+   "name": "blk.33.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 17570228992
+  },
+  {
+   "name": "blk.33.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 17570237184
+  },
+  {
+   "name": "blk.33.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 17570237312
+  },
+  {
+   "name": "blk.33.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 17570306944
+  },
+  {
+   "name": "blk.33.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 17570376576
+  },
+  {
+   "name": "blk.33.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 17570507648
+  },
+  {
+   "name": "blk.33.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 17570507776
+  },
+  {
+   "name": "blk.33.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 17570508288
+  },
+  {
+   "name": "blk.34.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 17579421184
+  },
+  {
+   "name": "blk.34.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 17588334080
+  },
+  {
+   "name": "blk.34.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 17588342272
+  },
+  {
+   "name": "blk.34.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 17606168064
+  },
+  {
+   "name": "blk.34.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 17757163008
+  },
+  {
+   "name": "blk.34.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 17758277120
+  },
+  {
+   "name": "blk.34.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 17909272064
+  },
+  {
+   "name": "blk.34.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 17911369216
+  },
+  {
+   "name": "blk.34.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 17911377408
+  },
+  {
+   "name": "blk.34.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 17912491520
+  },
+  {
+   "name": "blk.34.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 18063486464
+  },
+  {
+   "name": "blk.34.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 18064600576
+  },
+  {
+   "name": "blk.34.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 18064608768
+  },
+  {
+   "name": "blk.34.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 18064608896
+  },
+  {
+   "name": "blk.34.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 18064678528
+  },
+  {
+   "name": "blk.34.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 18064748160
+  },
+  {
+   "name": "blk.34.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 18064879232
+  },
+  {
+   "name": "blk.34.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 18064879360
+  },
+  {
+   "name": "blk.34.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 18064879872
+  },
+  {
+   "name": "blk.35.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 18073792768
+  },
+  {
+   "name": "blk.35.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 18074906880
+  },
+  {
+   "name": "blk.35.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 18074907904
+  },
+  {
+   "name": "blk.35.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 18074916096
+  },
+  {
+   "name": "blk.35.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 18083828992
+  },
+  {
+   "name": "blk.35.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 18101654784
+  },
+  {
+   "name": "blk.35.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 18101655808
+  },
+  {
+   "name": "blk.35.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 18102769920
+  },
+  {
+   "name": "blk.35.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 18253764864
+  },
+  {
+   "name": "blk.35.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 18254878976
+  },
+  {
+   "name": "blk.35.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 18405873920
+  },
+  {
+   "name": "blk.35.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 18407971072
+  },
+  {
+   "name": "blk.35.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 18407979264
+  },
+  {
+   "name": "blk.35.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 18409093376
+  },
+  {
+   "name": "blk.35.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 18560088320
+  },
+  {
+   "name": "blk.35.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 18561202432
+  },
+  {
+   "name": "blk.36.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 18561210624
+  },
+  {
+   "name": "blk.36.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 18570123520
+  },
+  {
+   "name": "blk.36.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 18570131712
+  },
+  {
+   "name": "blk.36.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 18587957504
+  },
+  {
+   "name": "blk.36.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 18738952448
+  },
+  {
+   "name": "blk.36.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 18740066560
+  },
+  {
+   "name": "blk.36.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 18891061504
+  },
+  {
+   "name": "blk.36.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 18893158656
+  },
+  {
+   "name": "blk.36.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 18893166848
+  },
+  {
+   "name": "blk.36.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 18894280960
+  },
+  {
+   "name": "blk.36.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 19045275904
+  },
+  {
+   "name": "blk.36.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 19046390016
+  },
+  {
+   "name": "blk.36.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 19046398208
+  },
+  {
+   "name": "blk.36.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 19046398336
+  },
+  {
+   "name": "blk.36.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 19046467968
+  },
+  {
+   "name": "blk.36.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 19046537600
+  },
+  {
+   "name": "blk.36.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 19046668672
+  },
+  {
+   "name": "blk.36.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 19046668800
+  },
+  {
+   "name": "blk.36.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 19046669312
+  },
+  {
+   "name": "blk.37.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 19055582208
+  },
+  {
+   "name": "blk.37.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 19064495104
+  },
+  {
+   "name": "blk.37.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 19064503296
+  },
+  {
+   "name": "blk.37.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 19082329088
+  },
+  {
+   "name": "blk.37.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 19233324032
+  },
+  {
+   "name": "blk.37.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 19234438144
+  },
+  {
+   "name": "blk.37.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 19385433088
+  },
+  {
+   "name": "blk.37.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 19387530240
+  },
+  {
+   "name": "blk.37.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 19387538432
+  },
+  {
+   "name": "blk.37.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 19388652544
+  },
+  {
+   "name": "blk.37.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 19539647488
+  },
+  {
+   "name": "blk.37.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 19540761600
+  },
+  {
+   "name": "blk.37.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 19540769792
+  },
+  {
+   "name": "blk.37.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 19540769920
+  },
+  {
+   "name": "blk.37.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 19540839552
+  },
+  {
+   "name": "blk.37.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 19540909184
+  },
+  {
+   "name": "blk.37.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 19541040256
+  },
+  {
+   "name": "blk.37.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 19541040384
+  },
+  {
+   "name": "blk.37.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 19541040896
+  },
+  {
+   "name": "blk.38.attn_gate.weight",
+   "dims": [
+    2048,
+    4096
+   ],
+   "type": 8,
+   "offset": 19549953792
+  },
+  {
+   "name": "blk.38.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 19558866688
+  },
+  {
+   "name": "blk.38.attn_qkv.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 19558874880
+  },
+  {
+   "name": "blk.38.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 19576700672
+  },
+  {
+   "name": "blk.38.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 19727695616
+  },
+  {
+   "name": "blk.38.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 19728809728
+  },
+  {
+   "name": "blk.38.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 19879804672
+  },
+  {
+   "name": "blk.38.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 19881901824
+  },
+  {
+   "name": "blk.38.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 19881910016
+  },
+  {
+   "name": "blk.38.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 19883024128
+  },
+  {
+   "name": "blk.38.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 20034019072
+  },
+  {
+   "name": "blk.38.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 20035133184
+  },
+  {
+   "name": "blk.38.ssm_a",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 20035141376
+  },
+  {
+   "name": "blk.38.ssm_alpha.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 20035141504
+  },
+  {
+   "name": "blk.38.ssm_beta.weight",
+   "dims": [
+    2048,
+    32
+   ],
+   "type": 8,
+   "offset": 20035211136
+  },
+  {
+   "name": "blk.38.ssm_conv1d.weight",
+   "dims": [
+    4,
+    8192
+   ],
+   "type": 0,
+   "offset": 20035280768
+  },
+  {
+   "name": "blk.38.ssm_dt.bias",
+   "dims": [
+    32
+   ],
+   "type": 0,
+   "offset": 20035411840
+  },
+  {
+   "name": "blk.38.ssm_norm.weight",
+   "dims": [
+    128
+   ],
+   "type": 0,
+   "offset": 20035411968
+  },
+  {
+   "name": "blk.38.ssm_out.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 20035412480
+  },
+  {
+   "name": "blk.39.attn_k.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 20044325376
+  },
+  {
+   "name": "blk.39.attn_k_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 20045439488
+  },
+  {
+   "name": "blk.39.attn_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 20045440512
+  },
+  {
+   "name": "blk.39.attn_output.weight",
+   "dims": [
+    4096,
+    2048
+   ],
+   "type": 8,
+   "offset": 20045448704
+  },
+  {
+   "name": "blk.39.attn_q.weight",
+   "dims": [
+    2048,
+    8192
+   ],
+   "type": 8,
+   "offset": 20054361600
+  },
+  {
+   "name": "blk.39.attn_q_norm.weight",
+   "dims": [
+    256
+   ],
+   "type": 0,
+   "offset": 20072187392
+  },
+  {
+   "name": "blk.39.attn_v.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 20072188416
+  },
+  {
+   "name": "blk.39.ffn_down_exps.weight",
+   "dims": [
+    512,
+    2048,
+    256
+   ],
+   "type": 12,
+   "offset": 20073302528
+  },
+  {
+   "name": "blk.39.ffn_down_shexp.weight",
+   "dims": [
+    512,
+    2048
+   ],
+   "type": 8,
+   "offset": 20224297472
+  },
+  {
+   "name": "blk.39.ffn_gate_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 20225411584
+  },
+  {
+   "name": "blk.39.ffn_gate_inp.weight",
+   "dims": [
+    2048,
+    256
+   ],
+   "type": 0,
+   "offset": 20376406528
+  },
+  {
+   "name": "blk.39.ffn_gate_inp_shexp.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 20378503680
+  },
+  {
+   "name": "blk.39.ffn_gate_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 20378511872
+  },
+  {
+   "name": "blk.39.ffn_up_exps.weight",
+   "dims": [
+    2048,
+    512,
+    256
+   ],
+   "type": 12,
+   "offset": 20379625984
+  },
+  {
+   "name": "blk.39.ffn_up_shexp.weight",
+   "dims": [
+    2048,
+    512
+   ],
+   "type": 8,
+   "offset": 20530620928
+  },
+  {
+   "name": "blk.39.post_attention_norm.weight",
+   "dims": [
+    2048
+   ],
+   "type": 0,
+   "offset": 20531735040
+  }
+ ]
+}
