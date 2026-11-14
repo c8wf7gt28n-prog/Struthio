@@ -71,3 +71,18 @@ release-by-release plan is in `TALK_my_plans_long_chat.md`.
 ## The scratch tools
 `scratch_tools/` holds the orchestrator's probes, harnesses, kit cutter and test runner as they were (they expect the
 scratchpad paths of this session; adjust `S=` at their top).
+
+## What a new session needs (checked 14 Nov, before the pause)
+- **Everything in the repository is pushed** (`claude/epic-galileo-c7k11y`); nothing in the container is needed except below.
+- **Not in the repository on purpose, so bring it back:**
+  - the owner's After Hours 07 backup (`Graphite_After_Hours_07.zip`, about 1.1 MB): the campaign's scenes and the Field
+    probes need it; it was never put in this public repository;
+  - the 35B simulation spec (the .docx) if the campaign's anchor work continues.
+- **Rebuildable, with the record here:**
+  - the Python environment: `environment/venv_pip_freeze.txt` and `python_version.txt` (Python 3.13, PySide6 6.8.3);
+  - the small test models: `environment/models_sha256.txt` (Qwen3.5 2B and 4B, Q4_K_M; re-download and check the hashes);
+  - the kit cutter's install metadata: `kit_template/` (OFFLINE_FILES.json, DEBIAN_USB.sha256, INSTALL_GRAPHITE.sh), used
+    with `scratch_tools/tools/kit/cut.sh` (set S= and OLD= at its top);
+  - the workflows that built 0.8.2 and 0.8.3, and the paused ones: `workflow_scripts/`.
+- **The unfinished hand slice** is `hand_s1/hand_s1_unfinished.patch` (on bbf033b); the test fixes are in
+  `tests_measure/fix_patches/` (written against d1df337: re-run the five modules after applying).

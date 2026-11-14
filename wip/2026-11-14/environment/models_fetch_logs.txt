@@ -1,0 +1,5 @@
+aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223  Qwen3.5-2B-Q4_K_M.gguf
+-rw-r--r-- 1 root root 1280835840 Nov 12 12:06 Qwen3.5-2B-Q4_K_M.gguf
+exit 0
+00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4  Qwen3.5-4B-Q4_K_M.gguf
+exit 0
