@@ -113,6 +113,42 @@ line says only which model she runs on. Her model is told to call a line a line.
 label, tip, placeholder, accessible name and menu line, on Home, in the Field and on the typing line, in both
 appearances) finds the name nowhere.
 
+## The 35B test campaign: its first deliverable
+
+"Get me started as we test." Your simulation spec asked first for a runner, a fixture, a case list, a summary, resume
+and timeouts. They are `tools/campaign.py` (how to use it: `docs/CAMPAIGN.md`):
+
+- **A fixture workspace for every attempt**, built fresh in its own folder, with its own home and settings: nothing
+  reads or writes your real profile or the program's own records.
+- **22 resource cases** go through Graphite's own decisions about memory, models and jobs, with the machine's readings
+  injected at the places the code reads them. The model file they use is built from your model's real header (the
+  Qwen3.6-35B-A3B Q4_K_M: its 733 tensors and its chat template); it is 20.5 GB on paper and 56 KB on disk. Bad files
+  (wrong magic, cut short, an architecture or tensor type Graphite does not take, no chat template, changed after it
+  was registered) are refused where they should be.
+- **Your 35 situations are the anchor cases.** Five run here (the bench check and its trace to the PDF; After Hours 07
+  worked headless with every saved value read back by a second process; backup and restore; recovery after a crash;
+  a foreground turn with its reserve). They are labelled as the baseline slice of their situation, not the whole of it.
+  The other thirty say, from what the machine actually has, what they still need: the model, LibreOffice, a desktop,
+  your data. On the ThinkPad they will say what is there.
+- **Every attempt** keeps its checks, observed against expected; a case that runs past its time is stopped and keeps
+  what it had; an attempt can resume from its own checkpoint (a write is done once); each run has a manifest (the build,
+  the cases' revisions, the machine) and a summary.
+- **Real mode** checks for your model file and enough memory and says exactly what it would run. Here it refuses: the
+  file is not here and this machine has about 15 GB. On the ThinkPad it is the next step.
+
+The run here: 57 cases, 25 Pass, 2 Pass on current behaviour that the spec asks otherwise, 30 Blocked, none failed.
+"Pass" means the code did what it does today; the summary says so on its first line. What the campaign found in
+Graphite, for the next round: on Auto, Graphite refuses your model at 39 GiB free although it fits (its cap is 65 per
+cent of what is free, 55 MiB short of the estimate); admission lets a large model in at 34 GiB that the launch check
+then refuses; when the installed memory cannot be read, the foreground reserve drops to 128 MiB; a restored model is
+called ready even when its test reply is empty; a hold on background work cancels the queue instead of holding it.
+None of these was changed in this release: each is a case that will turn from "the spec asks otherwise" to Pass when
+the code is fixed.
+
+One reader built the runner, a second tried to break it and found eight things (results from earlier runs mixed
+into a summary, a reopen check that read one cell, a "Blocked" written in rather than checked, and more), and a third
+fixed them; each fix has a test.
+
 ## Smaller
 
 Keys printed on the main surfaces are gone: "Ctrl Z takes it back" after a change from the right-click (Undo takes it
