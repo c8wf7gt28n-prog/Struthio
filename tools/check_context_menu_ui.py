@@ -19,8 +19,14 @@ the window system sends on a right-click), so the router, the finders and the pr
       check's own loopback connection, the stream filtered to its port: Ask Stacy about this, Follow this conversation, Show
       the process, Copy address (TEST DATA, so named and labelled, only where the table cannot be read).
   08  the passage's menu at 1366 by 768: whole, inside the window.
-Measured at 14, 18 and 20 pt: the menu's row height, icon column and margin are the programs list's and the System menu's
-(programs_qt.metrics), every row one height, every word whole (tools/ui_fit), the menu inside the window.
+  09  (0.8.1) Then › on a table in Files: the line panel beside the menu, its line read once (language.parse and its one source
+      read); Keep rows where › unit › is mA counted from that read; Count; nothing more read while choosing.
+Measured at 14, 18 and 20 pt: the menu's row height, icon column and margin are the desk menu's with the glyphs at the size they
+were drawn for (context_menu.context_metrics), every row one height, every word whole (tools/ui_fit), no screen scrolls, the menu
+inside the window.
+
+0.8.1 (the owner: "right click was too complex. We need to make its power easy to use and chain/pipe. With right click icons
+too"): each menu is one short shape (up to four usual rows, Then or Start from, More); the captures show that shape.
 
 Captures go to build/graphite_desk (or ARC_LEDGER_CONTEXT_MENU_CAPTURE_DIR) at 1920 by 1200, with context-menu-ui.json beside
 them. Disposable profile and Concern; Kernel.launch, Kernel.submit and the provider request are held; every session and power
@@ -117,8 +123,8 @@ def recorder():
  def through(host,operation,arguments):dispatched.append((operation,{k_:v for k_,v in arguments.items() if k_!='selection'}));return real(host,operation,arguments)
  return patch.object(cm,'dispatch',through)
 def menu_rules(menu,name):
- """The desk's menu numbers (the programs list's and the System menu's), every row one height, every word whole, inside the window."""
- m=programs_qt.metrics(w);rows=list(menu.rows_by_key.values())
+ """The desk menu's numbers with the glyphs at their drawn size, every row one height, every word whole, no scroll, inside the window."""
+ m=cm.context_metrics(w);rows=list(menu.rows_by_key.values())
  heights={r.height() for r in rows}|({menu.heading.height()} if menu.heading is not None else set());columns={r.word_x() for r in rows}
  words=ui_fit.whole_words(menu)+ui_fit.side_scrolls(menu);area=menu.bounds()
  value=dict(row=m.row,icon_col=m.icon_col,margin=m.margin,menu=[menu.m.row,menu.m.icon_col,menu.m.margin],heights=sorted(heights),word_x=sorted(columns),
@@ -127,6 +133,7 @@ def menu_rules(menu,name):
  assert heights=={m.row} and columns=={m.pad+m.icon_col},(name,value)
  assert not words,(name,ui_fit.describe(words))
  assert value['inside'],(name,value,area)
+ assert menu.scroll.verticalScrollBar().maximum()==0,(name,'no screen scrolls')
  if menu.heading is not None:
   value['heading']=[menu.heading.shown_label(),menu.heading.shown_noun()]
   assert value['heading']==[menu.heading.label,menu.heading.noun],(name,'the target named whole',value['heading'],[menu.heading.label,menu.heading.noun])
@@ -149,12 +156,13 @@ c=doc.page.textCursor();c.setPosition(start);c.setPosition(end,QTextCursor.KeepA
 point=doc.page.cursorRect(c).center();seen=doc.revision
 menu=right_click(doc.page.viewport(),point);assert menu is not None
 t=menu.target;assert (t.kind,t.label,t.ident,t.revision)==('passage','“within a hair”',doc.document_id,seen),t
-assert (menu.heading.label,menu.heading.noun)==('“within a hair”','passage · Bench notes · revision %d'%seen),(menu.heading.label,menu.heading.noun)
-assert menu.words()[:6]==['Bold','Italic','Underline','Plain','Paragraph style','Move to notes'],menu.words()
+assert (menu.heading.label,menu.heading.noun)==('“within a hair”','passage · Bench notes'),(menu.heading.label,menu.heading.noun)
+assert menu.first_keys()==['mark:bold','mark:italic','notes','ask','then','more'],menu.first_keys()
+assert menu.words()[:3]==['Bold','Italic','Move to notes'],menu.words()
 for key in ('inspect','ask','search','edit:copy','edit:all'):assert key in menu.keys(),key
 measured['passage_1920']=menu_rules(menu,'passage 1920');measured['passage_words']=menu.words()
-record('Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png','Right-click on a selected passage ("within a hair") in a document at 1920 by 1200: the passage named at the top with its page and revision; Bold, Italic, Underline, Plain, Paragraph style and Move to notes first; Inspect in the line (the equivalent documents.edit command); Ask Stacy about this and Search; New document and Export; the text edits last. The caption at the foot is in the script.',with_popups(menu))
-check('01 a selected passage: the menu names "within a hair" (passage · Bench notes · revision %d) and offers %d entries, modifications first; the desk\'s menu numbers (row %d px, icon column %d px)'%(seen,len(menu.entries),measured['passage_1920']['row'],measured['passage_1920']['icon_col']))
+record('Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png','Right-click on a selected passage ("within a hair") in a document at 1920 by 1200: the passage named at the top with its page; its four usual rows, each with its glyph (Bold, Italic, Move to notes, Ask Stacy about this); Then › (the passage\'s page as a line) and More › (Underline, Plain, Paragraph style, Search, the text edits, New document, Export, in their groups).',with_popups(menu))
+check('01 a selected passage: the menu names "within a hair" (passage · Bench notes), four usual rows, Then and More, %d entries in all; the menu\'s numbers (row %d px, icon column %d px)'%(len(menu.entries),measured['passage_1920']['row'],measured['passage_1920']['icon_col']))
 
 # 02 Bold, through Kernel.dispatch with the page's id and revision --------------------------------------------------------------
 with recorder():menu.row('mark:bold').click();settle(80)
@@ -222,10 +230,11 @@ assert (menu.target.kind,menu.target.ident,menu.target.revision)==('job',job,'Ru
 state={e.key:e.enabled for e in menu.entries if e.key in ('job:output','job:pause','job:resume','job:stop')}
 assert state=={'job:output':True,'job:pause':True,'job:resume':False,'job:stop':True},state
 measured['job']=dict(words=menu.words(),state=state,rules=menu_rules(menu,'job'))
-record('Graphite_Desk_D4_05_Job_Right_Click_TEST_DATA_1920x1200.png',JOBS_DATA+' (labelled on the image). Right-click on the running job in the System menu\'s process list: the job named at the top with its state (Running); Inspect output, Pause and Stop available, Resume shown unavailable (it is running); Inspect in the line (@job:…), Copy the job id; Show in Jobs.',
+assert menu.row('job:stop').caption=='asks' and menu.row('job:resume') is None,(menu.first_keys(),'Stop asks first; Resume cannot act on a running job: not at rest')
+record('Graphite_Desk_D4_05_Job_Right_Click_TEST_DATA_1920x1200.png',JOBS_DATA+' (labelled on the image). Right-click on the running job in the System menu\'s process list: the job named at the top with its state (running); Inspect output, Pause, Stop (it asks first), Show in Jobs; Then › (its record as a line) and More › (Resume, dim: it is running; Copy the job id).',
        labelled(with_popups(sysmenu,menu),JOBS_DATA),'ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS_ON_TEST_DATA_LABELLED')
 supersede('Graphite_Desk_D4_05_Job_Right_Click_1920x1200.png')
-check('05 a running job: Inspect output, Pause, Stop available and Resume unavailable by its state')
+check('05 a running job: Inspect output, Pause, Stop (asks) and Show in Jobs at rest; Resume, which cannot act on it, under More')
 with recorder():menu.row('job:pause').click();settle()
 assert w._context_last['ok'] and call('jobs.get',{'id':job})['pause'] is True,w._context_last
 assert [op for op,_ in dispatched[-2:]]==['jobs.get','jobs.pause'],dispatched[-2:]
@@ -280,7 +289,7 @@ else:
  name='Graphite_Desk_D4_07_Network_Connection_Right_Click_TEST_DATA_1920x1200.png';other='Graphite_Desk_D4_07_Network_Connection_Right_Click_1920x1200.png'
  far='198.51.100.7:443';program='test-browser'
 menu=right_click(log.connections.viewport(),log.connections.visualItemRect(mine).center());assert menu is not None
-assert menu.target.kind=='connection' and menu.words()==['Ask Stacy about this','Follow this conversation','Show the process','—','Copy address'],menu.words()
+assert menu.target.kind=='connection' and menu.first_keys()==['ask','follow','process','copy:address','then'],menu.first_keys()
 assert menu.target.label=='%s → %s'%(program,far) and menu.row('process').isEnabled() and menu.row('copy:address').caption==far,(menu.target,menu.row('copy:address').caption)
 measured['connection']=dict(real=real,words=menu.words(),label=menu.target.label,noun=menu.target.noun,process=program,rules=menu_rules(menu,'connection'))
 if real:
@@ -309,7 +318,33 @@ close(menu);w.resize(1920,1200);settle(60);align(4)
 for points in (18,20):
  ui_pt(points);menu=passage_menu();assert menu is not None;measured['passage_%dpt'%points]=menu_rules(menu,'passage %d pt'%points);close(menu)
 ui_pt(14)
-check('08 at 14, 18 and 20 pt the menu\'s row height, icon column and margin are the programs list\'s (%s)'%', '.join('%s: %s'%(key,measured[key]['menu']) for key in ('passage_1920','passage_18pt','passage_20pt')))
+check('08 at 14, 18 and 20 pt the menu\'s row height, icon column and margin are the desk menu\'s with 20 px glyphs (%s)'%', '.join('%s: %s'%(key,measured[key]['menu']) for key in ('passage_1920','passage_18pt','passage_20pt')))
+
+# 09 Then ›: the line panel on a table in Files (0.8.1) ------------------------------------------------------------------------
+from workbench import boss_theme as bt
+tab=show_files(w);settle();tab.mode='list';tab.reload();settle()
+(files/'bench readings.csv').write_text('parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n')
+tab.reload();settle();view=tab.table
+item=next(view.topLevelItem(i) for i in range(view.topLevelItemCount()) if view.topLevelItem(i).data(0,Qt.UserRole)['name']=='bench readings.csv')
+menu=right_click(view.viewport(),view.visualItemRect(item).center());assert menu is not None
+assert menu.first_keys()==['open','ask','rename','trash','then','more'],menu.first_keys()
+before=len(dispatched)
+with recorder():
+ panel=menu.open_child(menu.row('then'));settle(80)
+ read=[op for op,_ in dispatched[before:]]
+ assert isinstance(panel,cm.LinePanel) and read==['language.parse','ledger.address.read'],read
+ assert panel.slab.styleSheet()==bt.line_sheet() and panel.count_words()=='4 rows · 6 steps left',panel.count_words()
+ panel.choose('step:where');panel.choose('field:unit');settle()
+ assert panel.row('where unit=mA').caption=='2 rows',panel.row('where unit=mA').caption
+ values=with_popups(menu,panel)
+ panel.choose('where unit=mA');panel.choose('step:count');settle()
+ assert panel.line=='@files:bench readings.csv | rows | where unit=mA | count' and panel.preview_rows()==[{'count':2}],(panel.line,panel.preview_rows())
+ assert [op for op,_ in dispatched[before:]]==['language.parse','ledger.address.read'],'nothing more read while choosing'
+measured['line_panel']=dict(line=panel.line,count=panel.count_words(),reads=read,rules=menu_rules(panel,'line panel'))
+record('Graphite_Desk_D4_09_Then_Line_Panel_Values_1920x1200.png','Then › on bench readings.csv in Files: the line panel beside the menu, the line on its slab (@files:bench readings.csv | rows), 4 rows and 6 steps left, the first rows; Keep rows where › unit open: is mA 2 rows, is V 1 row, is ms 1 row, and the ones to leave out, each counted from the one read.',values)
+record('Graphite_Desk_D4_09b_Then_Line_Panel_Counted_1920x1200.png','Two steps on: where unit=mA, then Count; the panel says 1 row (the count, 2) and 4 steps left. Two reads in all, both when the panel opened (language.parse and the file read); Show it would be the third.',with_popups(menu,panel))
+check('09 Then › on a table: the line read once (%s), "is mA" counted 2 rows from that read, the line carried to %s with nothing more read'%(', '.join(read),panel.line))
+close(menu)
 
 result=dict(state='PASSED',checks=checks,captures=captures,superseded=superseded,measured=measured,dispatched=[[op,{x:str(v)[:80] for x,v in a.items()}] for op,a in dispatched],
  providers=[name for name,_ in cm.PROVIDERS],finders=[f.__name__ for f in cm.FINDERS],sections=list(cm.SECTIONS),folded=len(cm.FOLDED),

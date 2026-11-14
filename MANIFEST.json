@@ -2866,8 +2866,8 @@
       "sha256": "42f48451a25be63cb27379781672a54add31a987c3da62751bc3482319de1561"
     },
     "tools/check_context_menu_ui.py": {
-      "bytes": 29809,
-      "sha256": "e73f06f6aac44fd87b07ad022d048ff057eaf1e153c46b4f17aad77668d12399"
+      "bytes": 33227,
+      "sha256": "98f56d1ed82d0e53b984bd6be833de41af365ea27585f3087665a3474fa6b687"
     },
     "tools/check_continue_service.py": {
       "bytes": 9646,
