@@ -2685,17 +2685,25 @@
       "bytes": 8651,
       "sha256": "f80529bc886802a0479797f69fd8885d9d15f1aa5f57b79119fa2d487d8ef64b"
     },
+    ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign.py": {
+      "bytes": 3376,
+      "sha256": "deed123a7bf6e563ef9b4f2dae0c9b45ca003946bf2764e8a939058eaaa9e400"
+    },
     ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/__init__.py": {
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/cases_anchor.py": {
+      "bytes": 22697,
+      "sha256": "a11bb93c6dd79d3a91a6a4b82ef235c3dfe61425c97d5b460166b199040c4849"
     },
     ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/cases_resource.py": {
       "bytes": 48664,
       "sha256": "18054492a23abca295affab2deee214a9865fe52e8b8f9478178746fdd6a917d"
     },
     ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/core.py": {
-      "bytes": 8020,
-      "sha256": "136909fd1631a514b366f0081d241e48c12e92557e551f5e7abb29742260d35e"
+      "bytes": 8047,
+      "sha256": "a467051db661792c13fa69a88f86fc2dc5b2c44a433ee04878824f5aaa69ffe8"
     },
     ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/data/qwen35moe_header.json": {
       "bytes": 102897,
@@ -2712,6 +2720,14 @@
     ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/gguf_fixture.py": {
       "bytes": 10461,
       "sha256": "428f19383cb4d1a9f6eecd96d9b518f8c00a89c7ca7836fa3026182a1cb80c5f"
+    },
+    ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/report.py": {
+      "bytes": 4855,
+      "sha256": "edf177a4a706cb3304abd32c9cbcbd5059579e66e93bed41d81d57764ba9a52d"
+    },
+    ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/runner.py": {
+      "bytes": 19628,
+      "sha256": "6ec3c905aa4c9eea5b0401b42b751f9ad1918b49c12d33b7bf737b7ee4009e6c"
     },
     ".claude/worktrees/wf_6f300cdb-acf-1/tools/campaign_lib/sim.py": {
       "bytes": 13939,
@@ -5046,8 +5062,8 @@
       "sha256": "081af67027cc63e9605acb245fc8ef1773e8f4102c9d4b5dbbf08025c7e6ad66"
     },
     "RECORD_OF_DIRECTIONS.md": {
-      "bytes": 32168,
-      "sha256": "34d6451031872776f39aedb5e860e0bb87ca57d657a6a90bf9eb7372f2b0706c"
+      "bytes": 33070,
+      "sha256": "3301a62c86d4ccd486c7c8e0fb83c8e717d3f32c7ace0c2f79fd6f5692c9b5ad"
     },
     "RIGHTS.md": {
       "bytes": 2421,
@@ -6166,8 +6182,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 32949,
-      "sha256": "c4f297e4db6ff3e3cab5c6382a5acbb296730c69d3751d2561c45a593f5e4ca2"
+      "bytes": 33739,
+      "sha256": "b8d8a66af01bda345c17b7e5be0c0e6b897cef2aa1b0c3277f634b4fbef13b48"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -7138,16 +7154,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1907065,
-      "sha256": "af09bcbc815ca5410529c95298bbb1f9b133e2cda5f017afe82920d908821c1a"
+      "bytes": 1907862,
+      "sha256": "07abc9be9e186109d5fd21edf6302910fdf059f15885a586e0253741fbc2419c"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4354048,
-      "sha256": "25360c2b2dfb3732abafa7f8955df75e76102799351cf786e74afbaca5e4b7a3"
+      "sha256": "a655023bf277eab214278bdea089a4196b7b9d7500aba416465018ddfa6c4553"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "4e6e68da98625e02d48ae01e9cc3f76960cbe297ba0fbf9730ed3760e610cd8a"
+      "sha256": "76c4d0974c2cb7d06672c8918f25a81d6826251ff38ac69263d4102e893853fb"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -8674,8 +8690,8 @@
       "sha256": "afa3c78bac106ddec044dc59d4774019a7c2d4921a1dd64a65783e650c0d1185"
     },
     "workbench/idle_display_art.py": {
-      "bytes": 10918,
-      "sha256": "fc6983492fc144e652dd39ee40718795da932927d596ae77312cb7c4b7ff6382"
+      "bytes": 11806,
+      "sha256": "580b0be6d2a276e9e138c9d1dce1f1df0bb91b3a6b311b73ec47c4c12cd4bf3a"
     },
     "workbench/idle_display_qt.py": {
       "bytes": 7255,

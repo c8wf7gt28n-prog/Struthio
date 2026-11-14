@@ -22,6 +22,15 @@ And on 12 November 2026: "My wish is like Lains computer from the awesome anime.
 picture to copy: a machine you sit down to at night that is already awake, where the work hangs in layers in the dark,
 the wires between things are visible, and you speak to it in one line. Everything drawn is original.
 
+On 13 and 14 November 2026 the owner sent a second direction for the look, with eight stills, a palette and a
+wordmark ("kasandra protocol"): "I think I really like the LAIN/kasandra idea." It is the Kasandra appearance (0.8.0),
+beside Graphite's own: indigo, her pictures chosen by the state of the work, her name, a typewriter face for headings.
+Lain stays the atmosphere's source and is not a name in the product. With it came a discussion of where the desk can go,
+"a computer you can take apart": open the operation behind anything she did, see its input, method and result, fork
+the method and keep your own version, pin it where you need it, and run it with the model off. The rule it asks for
+holds already for staC reads and is the one to keep: the same registered operation runs under the click and under her
+request. Its first experiment: one clearance method, one fixture, one menu entry.
+
 One ThinkPad on minimal Debian runs it. The model is local. Nothing leaves the computer unless the owner turns a
 service on. Finished means installed and seen working on that ThinkPad, judged by real completed work.
 
