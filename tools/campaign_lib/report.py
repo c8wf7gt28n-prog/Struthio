@@ -73,7 +73,7 @@ def summary(run_dir):
     first = [r for r in results if r['attempt'] == 1]
     line, counts, shown = headline(manifest, first, results)
     build = manifest['build']
-    changes = build.get('changed_paths', 0) + build.get('untracked_paths', 0)
+    changes = (build.get('changed_paths') or 0) + (build.get('untracked_paths') or 0)
     out = ['# Campaign run %s' % manifest['run'], '',
            '**What Pass means.** %s The expectations are what Graphite does today, so a Pass shows the current '
            'behaviour held, nothing more. A case whose checks record current behaviour that a quoted spec line '
@@ -82,7 +82,8 @@ def summary(run_dir):
            '- Build: Graphite %s, commit %s%s' % (
                build.get('version'), (build.get('git_commit') or '?')[:12],
                ' (with uncommitted changes: %d paths, %d of them untracked)' % (changes, build.get('untracked_paths', 0))
-               if build.get('tracked_changes') else ''),
+               if build.get('tracked_changes') else (' (whether it differs from a commit is unknown: no git history here)'
+                                                     if build.get('tracked_changes') is None else '')),
            '- Python %s, PySide6 %s; host %s, %s logical CPUs' % (
                manifest['runtime']['python'], manifest['runtime']['pyside6'], manifest['host']['cpu'],
                manifest['host']['logical_cpus']),

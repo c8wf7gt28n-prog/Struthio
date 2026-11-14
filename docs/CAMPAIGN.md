@@ -21,8 +21,9 @@ python3 tools/campaign.py summary ~/Graphite_Campaign/runs/today
 `--out` names the run folder. Without it the run goes to a new folder in the system's temporary folder, and the
 last line printed says where. Choose a folder outside the program folder.
 
-A run counts only itself. If the `--out` folder already holds a run, that run is moved aside, whole, into
-`previous-1/` (then `previous-2/`, and so on) before anything starts, so re-running one failing case into
+A run counts only itself. If the `--out` folder already holds a run, that run's own files are moved aside into
+`previous-1/` (then `previous-2/`, and so on) before anything starts; a folder that holds anything else is refused and
+nothing in it is moved, and so is a folder that holds the program, the fixtures, your home or the root, so re-running one failing case into
 today's folder gives a summary of that one case. The summary reads only the cases and attempts this run's
 `MANIFEST.json` lists. `campaign.py summary <folder>/previous-1` still reads the earlier run on its own.
 

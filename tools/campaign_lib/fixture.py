@@ -203,12 +203,16 @@ def build_identity(repo=None):
     version_py = repo / 'workbench/version.py'
     text = version_py.read_text() if version_py.is_file() else ''
     version = re.search(r"^VERSION\s*=\s*'([^']+)'", text, re.M)
-    status = (_git('status', '--porcelain', '--untracked-files=all', repo=repo) or '').splitlines()
-    untracked = [line for line in status if line.startswith('??')]
-    return {'git_commit': _git('rev-parse', 'HEAD', repo=repo),
-            'git_branch': _git('rev-parse', '--abbrev-ref', 'HEAD', repo=repo),
-            'tracked_changes': bool(status), 'changed_paths': len(status) - len(untracked),
-            'untracked_paths': len(untracked), 'version': version[1] if version else None,
+    commit = _git('rev-parse', 'HEAD', repo=repo)
+    raw = _git('status', '--porcelain', '--untracked-files=all', repo=repo) if commit else None
+    if not commit or raw is None:      # no git, a folder outside one, or git timed out: unknown, never "unchanged"
+        known = None;status = [];untracked = []
+    else:
+        status = raw.splitlines();untracked = [line for line in status if line.startswith('??')];known = bool(status)
+    return {'git_commit': commit or 'unknown (no git history here)',
+            'git_branch': _git('rev-parse', '--abbrev-ref', 'HEAD', repo=repo) if commit else None,
+            'tracked_changes': known, 'changed_paths': len(status) - len(untracked) if known is not None else None,
+            'untracked_paths': len(untracked) if known is not None else None, 'version': version[1] if version else None,
             'version_py_sha256': file_sha(version_py) if version_py.is_file() else None, 'program_folder': str(repo)}
 
 

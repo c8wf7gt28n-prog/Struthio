@@ -318,12 +318,22 @@ def manifest(run_dir, cases, attempts, backup, args, probe=None, library=None):
     }
 
 
+RUN_ENTRIES = ('MANIFEST.json', 'results.jsonl', 'SUMMARY.md', 'cases', 'fixtures')    # what a run writes in its folder
+
+
 def set_aside(run_dir):
-    """Move an earlier run in `run_dir` (everything but previous-<n>/ folders) into a new previous-<n>/."""
+    """Move an earlier run in `run_dir` into a new previous-<n>/: only a run's own entries, and only when the folder holds
+    a run (its MANIFEST.json). A folder that holds anything else is refused, never moved (a verifier found that the first
+    version moved whatever was there: with --out ~ it would have moved the home folder)."""
     run_dir = Path(run_dir)
-    earlier = sorted(p for p in run_dir.iterdir() if not PREVIOUS.fullmatch(p.name))
-    if not earlier:
+    present = [p for p in run_dir.iterdir() if not PREVIOUS.fullmatch(p.name)]
+    if not present:
         return None
+    others = sorted(p.name for p in present if p.name not in RUN_ENTRIES)
+    if not (run_dir / 'MANIFEST.json').is_file() or others:
+        raise SystemExit('%s is not an empty folder or an earlier run (it holds %s). Choose a new or empty --out folder; '
+                         'nothing was moved.' % (run_dir, ', '.join(others[:5]) or 'files that are not a run'))
+    earlier = sorted(p for p in present if p.name in RUN_ENTRIES)
     taken = [int(PREVIOUS.fullmatch(p.name)[1]) for p in run_dir.iterdir() if PREVIOUS.fullmatch(p.name)]
     target = run_dir / ('previous-%d' % (max(taken, default=0) + 1))
     target.mkdir()
@@ -341,11 +351,15 @@ def run(args):
     run_dir = Path(args.out).expanduser().absolute() if args.out else Path(tempfile.gettempdir()) / 'graphite-campaign' / stamp
     if fixture.REPO == run_dir or fixture.REPO in run_dir.parents:
         raise SystemExit('Choose an --out folder outside the program folder (%s).' % fixture.REPO)
+    if run_dir in fixture.REPO.parents or run_dir in (Path.home().absolute(), Path(run_dir.anchor)):
+        raise SystemExit('Choose an --out folder of its own: %s holds the program folder or is your home or the root.' % run_dir)
+    fixtures = fixture.fixtures_dir(args.fixtures)
+    if fixtures is not None and Path(fixtures).exists() and (Path(fixtures).absolute() == run_dir or run_dir in Path(fixtures).absolute().parents):
+        raise SystemExit('Choose an --out folder that does not hold the fixtures folder (%s).' % fixtures)
     run_dir.mkdir(parents=True, exist_ok=True)
     moved = set_aside(run_dir)
     if moved:
         print('An earlier run in %s was moved aside to %s; this run counts only itself.' % (run_dir, moved.name), flush=True)
-    fixtures = fixture.fixtures_dir(args.fixtures)
     backup = None
     if any('after_hours_07' in c.needs or c.seed == 'after_hours_07' for c in cases):
         backup = fixture.find_ah07(fixtures, run_dir / 'fixtures' / 'after_hours_07')

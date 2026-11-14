@@ -858,7 +858,7 @@ CASES = [
                        'line': 'Require a valid model reply for Ready. [...] Exercise ordinary failed handover and verify '
                                'restoration of the prior model when safe.',
                        'current': 'a restored previous model whose probe reply is empty is marked READY',
-                       'expects': {'handover_empty_restore:state': {'not': 'READY'},
+                       'expects': {'handover_empty_restore:state': {'in': ['MODEL_STOPPED', 'NO_MODEL_SELECTED']},
                                    'handover_empty_restore:restored_previous': {'in': [True, False]}}},
         spec_question='A worker that reports a 2,048-token context reaches Ready while the selection still says 4,096; '
                       'should a smaller worker context be refused, or recorded in the selection?'),
@@ -893,7 +893,7 @@ CASES = [
                                'from the correct step and verify that completed writes occur once.',
                        'current': 'a work hold cancels the queued background request at claim; on release nothing '
                                   'is replayed and the request stays Cancelled',
-                       'expects': {'hold:state': {'not': 'Cancelled'},
-                                   'hold:error': {'not': 'Owner work hold prevented execution'},
-                                   'release:jobs_replayed': {'gte': 0}, 'release:state': {'not': 'Cancelled'}}}),
+                       'expects': {'hold:state': {'in': ['Queued', 'Held', 'Waiting']},
+                                   'hold:error': {'in': [None, '']},
+                                   'release:state': {'in': ['Queued', 'Running', 'Completed']}}}),
 ]

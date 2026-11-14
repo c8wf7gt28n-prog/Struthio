@@ -146,8 +146,12 @@ None of these was changed in this release: each is a case that will turn from "t
 the code is fixed.
 
 One reader built the runner, a second tried to break it and found eight things (results from earlier runs mixed
-into a summary, a reopen check that read one cell, a "Blocked" written in rather than checked, and more), and a third
-fixed them; each fix has a test.
+into a summary, a reopen check that read one cell, a "Blocked" written in rather than checked, and more), a third
+fixed them, and a fourth repeated every attack against the fixes. It found that the fix for mixed results moved
+whatever was in the run folder aside, not only an earlier run (with `--out ~` it would have moved your home folder), and
+that two "spec asks otherwise" checks would have passed a different breakage. Both are fixed: a folder that is not an
+earlier run is refused and nothing in it moves, and so is one that holds the program, the fixtures, your home or the
+root. Each fix has a test.
 
 ## Smaller
 

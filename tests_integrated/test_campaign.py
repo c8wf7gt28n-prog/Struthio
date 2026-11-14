@@ -88,6 +88,36 @@ class CampaignTests(unittest.TestCase):
         manifest = json.loads((stale / 'MANIFEST.json').read_text())
         self.assertEqual(manifest['earlier_run_moved_to'], 'previous-1')
 
+    def test_a_folder_that_is_not_a_run_is_refused_and_nothing_is_moved(self):
+        mine = Path(self.temp.name) / 'mine';(mine / 'Photos').mkdir(parents=True)
+        (mine / 'notes.txt').write_text('keep me');(mine / 'Photos' / 'a.jpg').write_bytes(b'x')
+        with self.assertRaises(SystemExit) as refused:
+            runner.run(arguments(case=['R07'], out=str(mine), fixtures=str(Path(self.temp.name) / 'no-fixtures')))
+        self.assertIn('nothing was moved', str(refused.exception))
+        self.assertEqual(sorted(p.name for p in mine.iterdir()), ['Photos', 'notes.txt'])
+        mixed = Path(self.temp.name) / 'mixed';copy_run(self.out, mixed);(mixed / 'notes.txt').write_text('keep me')
+        with self.assertRaises(SystemExit):
+            runner.run(arguments(case=['R07'], out=str(mixed), fixtures=str(Path(self.temp.name) / 'no-fixtures')))
+        self.assertFalse((mixed / 'previous-1').exists());self.assertTrue((mixed / 'notes.txt').is_file())
+
+    def test_an_out_folder_that_holds_the_program_its_fixtures_home_or_root_is_refused(self):
+        from tools.campaign_lib import fixture
+        for out in (fixture.REPO.parent, Path.home(), Path('/')):
+            with self.assertRaises(SystemExit, msg=str(out)):
+                runner.run(arguments(case=['R07'], out=str(out), fixtures=str(Path(self.temp.name) / 'no-fixtures')))
+        holder = Path(self.temp.name) / 'holder';(holder / 'fixtures').mkdir(parents=True)
+        with self.assertRaises(SystemExit):
+            runner.run(arguments(case=['R07'], out=str(holder), fixtures=str(holder / 'fixtures')))
+        self.assertEqual([p.name for p in holder.iterdir()], ['fixtures'])
+
+    def test_the_spec_forms_name_what_the_spec_accepts_not_anything_else(self):
+        from tools.campaign_lib import cases_resource
+        forms = {c.id: c.spec_conflict['expects'] for c in cases_resource.CASES if getattr(c, 'spec_conflict', None)}
+        for case, expects in forms.items():
+            for name, form in expects.items():
+                self.assertNotIn('not', form, '%s %s: "anything but" also accepts a different breakage' % (case, name))
+        self.assertEqual(forms['R22']['hold:state'], {'in': ['Queued', 'Held', 'Waiting']})
+
     def test_summary_reads_only_the_attempts_its_manifest_lists(self):
         stray = Path(self.temp.name) / 'run_stray'
         copy_run(self.out, stray)
@@ -168,6 +198,11 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(len({first, second, third}), 3)
         self.assertNotEqual(case.revision(first), case.revision(second))
         self.assertEqual(case.revision(), case.revision(core.library_digest()))
+
+    def test_a_program_folder_without_git_is_unknown_not_unchanged(self):
+        with tempfile.TemporaryDirectory() as folder:
+            identity = fixture.build_identity(Path(folder))
+        self.assertIsNone(identity['tracked_changes']);self.assertTrue(identity['git_commit'].startswith('unknown'))
 
     def test_tracked_changes_counts_untracked_files_and_git_takes_no_lock(self):
         with tempfile.TemporaryDirectory() as folder:

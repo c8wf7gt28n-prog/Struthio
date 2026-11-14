@@ -11302,8 +11302,8 @@
       "sha256": "7590cb862213f05429e6d7cc190eedbecca2a35a27f8e13f3b7ed7344933fc73"
     },
     "docs/CAMPAIGN.md": {
-      "bytes": 8411,
-      "sha256": "f3b97c811eea83a882bb8583c79ba587459385978d468cbcaa0dbae0796e6b9a"
+      "bytes": 8569,
+      "sha256": "4ae4b36d1db16ede8445fa6758293b6dc20fb6d32c1b898f79f965a37c52a906"
     },
     "docs/CONTINUE_01.md": {
       "bytes": 10775,
@@ -11762,8 +11762,8 @@
       "sha256": "a7ecdd97d5829f791375ad5c447059e7c9caad0d3f9ac9938e10bd89a724182a"
     },
     "docs/RELEASE_NOTES_0.8.0.md": {
-      "bytes": 13536,
-      "sha256": "4dc0471845b72ff9d62b4e0dc48c8fef8f736abbedd68a6f2c46670600f097a7"
+      "bytes": 13994,
+      "sha256": "8849f630eba2a01355a9e4dd8ee0fcc5756261e47ca6c1a3b9e33c54f019e4c0"
     },
     "docs/RELEASE_NOTES_4.9.md": {
       "bytes": 25236,
@@ -12698,8 +12698,8 @@
       "sha256": "ec57be3752697724d78b72189909290008abb5a0699c7f7559374cb64a8c0ef5"
     },
     "tests_integrated/test_campaign.py": {
-      "bytes": 19789,
-      "sha256": "a49481ea2a43c035a2e2d127eee9da957b9b7901a7824814f326ad4c957d0718"
+      "bytes": 22320,
+      "sha256": "8968df811331f5fd058bff82f4e5ea08770a87414f204457415167d4301bbbef"
     },
     "tests_integrated/test_change_sets.py": {
       "bytes": 23944,
@@ -12918,8 +12918,8 @@
       "sha256": "1fc5361635b252d893fd06b3677b9ec1d1ed9d8258778b535e6ab94c8fae2551"
     },
     "tools/campaign_lib/cases_resource.py": {
-      "bytes": 52840,
-      "sha256": "7b8b581441c1a3a8dfff8b5b0f08fbe4fa147d172fa7f5bcfb8d43c7730c5c6f"
+      "bytes": 52844,
+      "sha256": "c7b74908467ab61f26c4519498f6d964bf77ec810d0af6666b1656edbfb0fb82"
     },
     "tools/campaign_lib/core.py": {
       "bytes": 11666,
@@ -12934,8 +12934,8 @@
       "sha256": "324cb0267d2297aaefc09a7f80c42ab0cc0b01f257a412b2f92a9abb4156d019"
     },
     "tools/campaign_lib/fixture.py": {
-      "bytes": 14778,
-      "sha256": "ebbe5eb9a3dc2d631a6bb56d60400f4178703af9eaab4758608698efd46fe04f"
+      "bytes": 15129,
+      "sha256": "bfaf92aa803ec4d9094e09f0d12b5d7c0eaeca8bc160d4ab4b35129de0672df8"
     },
     "tools/campaign_lib/gguf_fixture.py": {
       "bytes": 10696,
@@ -12946,12 +12946,12 @@
       "sha256": "ad9017ab0ff6ac77c24d1c270df95952e44138b68c121bbb74878be0d0ec7cb4"
     },
     "tools/campaign_lib/report.py": {
-      "bytes": 9330,
-      "sha256": "d12d0b7a58c51020a124154f8e6f5c23621a5bfa7445f6dcc8c54a466d939f09"
+      "bytes": 9508,
+      "sha256": "012a1a610880cf07d8c9296d7c60d507160b83faf7173b14bc9a57b1a95a9926"
     },
     "tools/campaign_lib/runner.py": {
-      "bytes": 24381,
-      "sha256": "cc2f67571ea0dc4ffe7346d070c7db0b2b24eaf1d723f059a264070e438e604e"
+      "bytes": 25648,
+      "sha256": "1863d946ad2a4870532b2e415d1744c19760e47f8c0e0f2cd0c9abe7d7ea8ddb"
     },
     "tools/campaign_lib/sim.py": {
       "bytes": 14154,
