@@ -3,6 +3,10 @@
 No second queue or model service. Reservations describe future headroom, not
 physical allocations. MemAvailable already includes resident work; only the
 unmaterialized portion of an owned budget is subtracted from it.
+
+One memory rule (budget_room) decides admission here, the model's configuration
+at submit and at run (local_brain.configuration) and the launch check
+(model_room), so a model admitted is never refused at launch for the same numbers.
 """
 import contextlib,contextvars,json,os,time
 from . import memory_forecast
@@ -13,6 +17,9 @@ PRIORITIES=('foreground','normal','background')
 _priority=contextvars.ContextVar('graphite_resource_priority',default='foreground')
 KEYS={'reserve_mb':2048,'compute_slots':1,'background_threads':2}
 FORECAST_KEY = 'resources.memory_forecast'
+UNMEASURED='Host memory could not be measured'
+UNMEASURED_WAIT_SECONDS=30  # a request whose memory reading is lost waits this long for it, then fails saying why
+HELD='Work is held: waiting for the owner to resume work'
 
 
 def current_priority():return _priority.get()
@@ -36,10 +43,32 @@ def policy(db,host):
     values={}
     for key,default in KEYS.items():
         value=read(db,'ledger.operations.'+key,default);validate('operations.'+key,value);values[key]=value
-    total=host.get('total_ram_bytes') or 0
-    values['reserve_bytes']=min(values['reserve_mb']*MIB,max(128*MIB,total//4))
+    values['reserve_bytes']=reserve_bytes(values['reserve_mb'],host.get('total_ram_bytes'))
     values['background_threads']=min(values['background_threads'],max(1,(host.get('logical_cpus') or 2)-1))
     return values
+
+
+def reserve_bytes(reserve_mb,total):
+    """The foreground reserve: the owner's setting, at most a quarter of installed RAM on a small machine (never under
+    128 MiB). When installed RAM cannot be read the whole setting stays: not knowing the machine is no reason to keep
+    less room for the desk."""
+    if not total:return reserve_mb*MIB
+    return min(reserve_mb*MIB,max(128*MIB,total//4))
+
+
+def reserve_setting(kernel,db=None):
+    """The owner's foreground reserve setting in MiB (ledger.operations.reserve_mb), for local_brain.configuration."""
+    if db is None:
+        with kernel.db() as connection:return reserve_setting(kernel,connection)
+    return policy(db,{})['reserve_mb']
+
+
+def budget_room(available,reserve,future=0,credit=0):
+    """The one memory rule. A budget fits when it is no larger than this: what is available, less the foreground
+    reserve and the unmaterialized budgets already admitted, plus what a sequential model handover frees. Admission
+    (decision), the model's configuration (local_brain.configuration) and the launch check (model_room) all compare
+    a budget against it the same way: more than the room waits or is refused."""
+    return max(0,(available or 0)-reserve-future)+max(0,credit)
 
 
 def touch(kernel,owner,db=None):
@@ -143,13 +172,13 @@ def _view(kernel,db,host,exclude=None,handover=False):
     available=host.get('available_ram_bytes')
     return dict(policy=settings,jobs=jobs,running=running,commitments=commitments,
                 reserved_future_bytes=future,available_bytes=available,total_bytes=host.get('total_ram_bytes'),
-                headroom_bytes=max(0,(available or 0)-settings['reserve_bytes']-future),foreground_active=foreground(db))
+                headroom_bytes=budget_room(available,settings['reserve_bytes'],future),foreground_active=foreground(db))
 
 
 def decision(kernel,job,db,host):
     demand=job.get('resource_request') or request(job,'normal')
     view=_view(kernel,db,host,job['id'],demand['model_handover']);reason=None
-    if view['available_bytes'] is None:reason='Host memory could not be measured'
+    if view['available_bytes'] is None:reason=UNMEASURED
     elif demand['priority']!='foreground' and view['foreground_active']:reason='Foreground interaction has the next turn'
     elif len(view['running'])>=4:reason='Four native job slots are occupied'
     elif demand['lane']=='inference' and any((j.get('resource_request') or request(j,'normal'))['lane']=='inference' for j in view['running']):reason='Another model turn or handover is in progress'
@@ -160,7 +189,7 @@ def decision(kernel,job,db,host):
         (j.get('resource_request') or request(j,'normal'))['lane']==demand['lane'] and rank(j)<rank(job) for j in view['jobs']):
         reason='An earlier eligible request has the next '+demand['lane']+' turn'
     credit=reclaimable(kernel,db) if demand['model_handover'] else 0
-    room=view['headroom_bytes']+credit
+    room=budget_room(view['available_bytes'],view['policy']['reserve_bytes'],view['reserved_future_bytes'],credit)
     if reason is None and demand['memory_bytes']>room:reason='Waiting for shared-memory headroom'
     return dict(allowed=reason is None,reason=reason,priority=demand['priority'],lane=demand['lane'],
                 requested_bytes=demand['memory_bytes'],available_bytes=view['available_bytes'],
@@ -203,7 +232,7 @@ def _forecast_sample(db, clock_origin):
 def claim(kernel,ident):
     """The existing queued worker waits here, before starting a tool or its deadline."""
     from . import brain_runtime,local_brain,work_trail,ledger_control
-    stamp=process_identity(os.getpid());last_reason=None;last_save=0
+    stamp=process_identity(os.getpid());last_reason=None;last_save=0;unmeasured_since=None
     while True:
         host=brain_runtime.host(profile=False)
         observed_at = time.monotonic()
@@ -214,7 +243,7 @@ def claim(kernel,ident):
             if job['state']!='Queued':return None
             other=job.get('pid')
             if other and other!=os.getpid() and job.get('worker_start') not in (None,UNKNOWN) and process_identity(other)==job['worker_start']:return None
-            reason='Owner work hold prevented execution' if job.get('cancel') or work_trail.work_status(kernel,db)['held'] or not ledger_control.value(kernel,'operations.services_enabled') else None
+            reason='Owner work hold prevented execution' if job.get('cancel') or not ledger_control.value(kernel,'operations.services_enabled') else None
             if not reason and job['tool'] in local_brain.JOB_TOOLS and job['tool']!='brain.inspect':
                 try:local_brain.require_enabled(kernel)
                 except ValueError as exc:reason=str(exc)
@@ -225,7 +254,20 @@ def claim(kernel,ident):
             job['pid']=os.getpid();job['worker_start']=stamp
             job.setdefault('resource_request',request(job,'normal'))
             admission=decision(kernel,job,db,host)
-            _forecast_admission(db,job,admission,observed_at,clock_origin)
+            if work_trail.work_status(kernel,db)['held']:
+                # A hold holds: queued work waits here, before it starts anything, and continues from this step when
+                # the owner resumes work (work_trail.resume). Cancel and Master Stop still end it.
+                admission.update(allowed=False,reason=HELD)
+            else:_forecast_admission(db,job,admission,observed_at,clock_origin)
+            if admission['reason']!=UNMEASURED:unmeasured_since=None
+            elif unmeasured_since is None:unmeasured_since=observed_at
+            elif observed_at-unmeasured_since>=UNMEASURED_WAIT_SECONDS:
+                # A reading lost after submit does not keep the request waiting for ever: it fails, saying why.
+                job.update(state='Failed',finished=time.time(),current_operation='not started',
+                           error='HOST_MEMORY_COULD_NOT_BE_MEASURED: available memory could not be read for %d s, so '
+                                 'this request was not started' % UNMEASURED_WAIT_SECONDS)
+                job.pop('resource_forecast_wait',None)
+                kernel.save('jobs',job,db);return None
             if admission['allowed']:
                 job.update(state='Running',started=time.time(),current_operation=job['tool'],resource_admission=admission)
                 job.pop('resource_wait',None)
@@ -242,7 +284,9 @@ def claim(kernel,ident):
 def model_room(kernel,config,ident):
     from .brain_runtime import host
     with kernel.db() as db:view=_view(kernel,db,host(),ident)
-    if view['available_bytes'] is None or config['memory_mb']*MIB>view['headroom_bytes']:
+    # budget_room, as at admission; the previous worker has stopped by now, so no handover credit is left to add.
+    if view['available_bytes'] is None or config['memory_mb']*MIB>budget_room(
+            view['available_bytes'],view['policy']['reserve_bytes'],view['reserved_future_bytes']):
         raise ValueError('GRAPHITE_HOST_MEMORY_LIMIT: model launch no longer has admitted shared-memory headroom')
     return view['policy']
 

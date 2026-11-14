@@ -101,9 +101,10 @@ The outcomes:
 
 - **Pass**: every check met.
 - **Pass (current code; the spec asks otherwise)**: every check met, but a check records behaviour that a line
-  of the spec plainly contradicts. The case quotes that line. R19 (a restored model marked Ready with an empty
-  reply) and R22 (a work hold that cancels queued work) are counted this way, apart from Pass. When the code
-  changes to what the spec asks, the same case becomes a plain Pass.
+  of the spec plainly contradicts. The case quotes that line and is counted apart from Pass. When the code
+  changes to what the spec asks, the same case becomes a plain Pass. R19 (a restored model marked Ready with an
+  empty reply) and R22 (a work hold that cancelled queued work) were counted this way until 0.8.1 fixed both;
+  no resource case is now.
 - **Partial**: some checks met.
 - **Blocked**: a need is not met here, or the steps are not written yet.
 - **Fail**: no check met, or the case raised an error. A case that breaks is a Fail whatever it met before.
@@ -111,8 +112,30 @@ The outcomes:
 
 The first attempt is the scored one; `--attempts 2` adds reruns.
 
-A **spec question** means the case passes on what Graphite does today, but the spec leaves the answer open (R07,
-R09, R15, R17, R19's smaller context, R20, A16). Those are decisions for you, not failures.
+A **spec question** means the case passes on what Graphite does today, but the spec leaves the answer open (A16).
+Those are decisions for you, not failures.
+
+The memory and model questions the resource cases raised were decided in 0.8.1, and the cases now check the new
+behaviour:
+
+- **Auto** (R05 to R08): Auto takes a model when its estimate, the foreground reserve and 4 GiB of headroom fit in
+  what is available, and budgets 65% of available, never below the estimate nor above 32,768 MiB. Your model at
+  4,096 context needs 26,013 + 2,048 + 4,096 = 32,157 MiB (31.40 GiB) available, so 60, 40 and 39 GiB are
+  accepted and 30 GiB is refused; a refusal says those numbers.
+- **One rule** (R15): admission, the model's configuration and the launch check all ask whether the budget fits in
+  what is available less the reserve and the growth already promised to other work, so a model admitted is not
+  refused at launch for the same numbers. A manual cap follows the same rule; the old limit of 80% of available
+  is gone.
+- **Unmeasured memory** (R09): when installed RAM cannot be read the full 2 GiB reserve stays, and a request whose
+  reading is lost after submit fails after 30 s, saying why.
+- **Ready** (R19): a restored model whose reply is empty is not Ready, and a worker that gives less context than
+  selected is refused (on Vulkan it is retried once on CPU); choose the smaller context explicitly if you want it.
+- **Memory stop** (R20): after a memory-guard stop during a handover, brain status keeps saying so until a model is
+  next Ready; admission and the guard read memory the same way, cgroup limit included.
+- **Offload** (R17): Graphite's own record says SIMULATED_WORKER_LOAD_LOG when the runtime is the campaign's
+  fixture; a real run records PINNED_WORKER_LOAD_LOG as before.
+- **Work hold** (R22): queued work waits during a hold and continues from that step on release; completed writes
+  are not repeated.
 
 A case's revision covers its data, its own steps and every file the runner is made of, so a changed helper or
 fixture shows up as a new revision. The runner reads git without taking its lock, so a run never writes inside

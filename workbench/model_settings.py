@@ -31,8 +31,8 @@ def freeze_launch(kernel,value,supplied,db=None):
     saved=preferences(kernel,db)
     options={key:value for key,value in saved.items() if key!='memory_mb' or value}
     options.update(copy.deepcopy(supplied or {}))
-    from .resource_control import reclaimable
-    config=brain.configuration(value,options,kernel.root,reclaimable(kernel,db))
+    from .resource_control import reclaimable,reserve_setting
+    config=brain.configuration(value,options,kernel.root,reclaimable(kernel,db),reserve_setting(kernel,db))
     resolved={**options,**{key:config[key] for key in ('context','threads','memory_mb')},'model_id':value['id']}
     return dict(schema='arc.brain-launch-settings/1',options=resolved,saved_defaults=saved,
                 basis='SAVED_DEFAULTS_WITH_EXPLICIT_REQUEST_OVERRIDES')

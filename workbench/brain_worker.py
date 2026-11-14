@@ -7,15 +7,22 @@ headroom instead. That observation is not a hard cap on GPU allocations.
 import argparse,os,signal,subprocess,sys
 from pathlib import Path
 
+# Where the memory reading comes from; module names so a test can point them at fixture files.
+MEMINFO=Path('/proc/meminfo');OWN_CGROUP=Path('/proc/self/cgroup');CGROUPS=Path('/sys/fs/cgroup')
 
-def memory_sample(pid):
-    values=dict(line.split(':',1) for line in Path('/proc/meminfo').read_text().splitlines())
+
+def host_memory():
+    """Installed and available RAM as this process may use them: /proc/meminfo, narrowed by the cgroup v2 limit (less
+    usage) of the process's own group and of the root. brain_runtime.host reads memory through this too, so admission
+    and this guard see the same number: under a systemd scope with MemoryMax, admission no longer admits what the guard
+    would stop at once."""
+    values=dict(line.split(':',1) for line in MEMINFO.read_text().splitlines())
     total=int(values['MemTotal'].split()[0])*1024;available=int(values['MemAvailable'].split()[0])*1024
     # The launch process inherits its service/container cgroup; do not create or relax one.
-    paths=[Path('/sys/fs/cgroup')]
+    paths=[CGROUPS]
     try:
-        group=next(line[3:] for line in Path('/proc/self/cgroup').read_text().splitlines() if line.startswith('0::'))
-        if '..' not in Path(group).parts:paths.insert(0,Path('/sys/fs/cgroup')/group.lstrip('/'))
+        group=next(line[3:] for line in OWN_CGROUP.read_text().splitlines() if line.startswith('0::'))
+        if '..' not in Path(group).parts:paths.insert(0,CGROUPS/group.lstrip('/'))
     except (OSError,StopIteration):pass
     for path in paths:
         try:
@@ -23,6 +30,11 @@ def memory_sample(pid):
             if maximum.isdigit():
                 total=min(total,int(maximum));available=min(available,max(0,int(maximum)-int((path/'memory.current').read_text())))
         except OSError:pass
+    return total,available
+
+
+def memory_sample(pid):
+    total,available=host_memory()
     rows=dict(line.split(':',1) for line in Path('/proc',str(pid),'status').read_text().splitlines() if ':' in line)
     return int(rows['VmRSS'].split()[0])*1024,total,available
 

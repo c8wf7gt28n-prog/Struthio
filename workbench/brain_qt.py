@@ -78,8 +78,8 @@ class BrainTab(ServiceTab):
         if self.memory.value():value['memory_mb']=self.memory.value()
         # Resolve a local Auto override explicitly, even when the saved cap is manual.
         model=local_brain.model(self.kernel,self._selected_id)
-        from .resource_control import reclaimable
-        config=local_brain.configuration(model,value,self.kernel.root,reclaimable(self.kernel))
+        from .resource_control import reclaimable,reserve_setting
+        config=local_brain.configuration(model,value,self.kernel.root,reclaimable(self.kernel),reserve_setting(self.kernel))
         return {**value,**{key:config[key] for key in ('context','threads','memory_mb')}}
 
     def field_value(self,widget):
@@ -210,9 +210,13 @@ class BrainTab(ServiceTab):
     def failed(self,error):
         self._last_error=error.get('message','Operation failed')
         advice={'MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM':'Choose Auto or a smaller memory cap; current available RAM is below this request.',
-                'MODEL_MEMORY_BUDGET_TOO_SMALL':'This model/context needs a larger cap. Increase it or reduce context tokens.',
+                'MODEL_MEMORY_BUDGET_TOO_SMALL':'This model/context needs more memory than this cap or Auto gives it. Free memory, raise the cap or reduce context tokens.',
                 'MODEL_CHAT_TEMPLATE_MISSING':'This file has no usable chat template. Choose a compatible instruction model.'}
-        self.note.setText('Not started · '+advice.get(self._last_error,self._last_error))
+        # A memory refusal carries its numbers after the code: show the advice and keep the numbers.
+        code,_,numbers=self._last_error.partition(': ')
+        text=advice.get(code,self._last_error)
+        if code in advice and numbers:text+=' '+numbers[:1].upper()+numbers[1:]+'.'
+        self.note.setText('Not started · '+text)
         self.progress.setRange(0,1);self.progress.setValue(0)
     def watch(self,job):
         self.job=job['id'];self.progress.setRange(0,0);self.note.setText('Working · '+job['tool']+' · Stop brain cancels through the shared Kernel.');self.refresh()

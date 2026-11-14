@@ -30,7 +30,7 @@ from workbench.version import SHORT
 RELEASE = SHORT
 ARCHIVE = 'Graphite_' + RELEASE + '_full.zip'
 # Never shipped: private state, environments and caches.
-EXCLUDED_PARTS = ('.ledger', '.venv', '__pycache__', '.pytest_cache', '.git')
+EXCLUDED_PARTS = ('.ledger', '.venv', '__pycache__', '.pytest_cache', '.git', '.claude')  # .claude: the session's worktrees and settings, never shipped
 # Ship the approved UI evidence and cited model-trial records. Other local
 # captures under build/ stay outside the release.
 BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')

@@ -104,6 +104,9 @@ def active_jobs(kernel):
 def worker_live(worker):
     return bool(worker and worker.get('start') not in (None,UNKNOWN) and process_identity(worker.get('pid'))==worker['start'])
 
+MEMORY_STOP='Stopped to preserve shared host memory; saved work is retained. Reload explicitly when there is headroom.'
+
+
 def status(kernel):
     active=get(kernel,'selection',{});worker=get(kernel,'worker',{})
     live=worker_live(worker);pending=get(kernel,'handover')
@@ -118,8 +121,11 @@ def status(kernel):
         try:
             with (Path(worker['key_file']).parent/'runtime.log').open('rb') as stream:
                 stream.seek(max(0,stream.seek(0,2)-65536));tail=stream.read().decode('utf-8','replace')
-            if 'GRAPHITE_HOST_MEMORY_LIMIT' in tail:resource_stop='Stopped to preserve shared host memory; saved work is retained. Reload explicitly when there is headroom.'
+            if 'GRAPHITE_HOST_MEMORY_LIMIT' in tail:resource_stop=MEMORY_STOP
         except OSError:pass
+    # A memory stop during a handover clears both worker slots, so its log is gone from here; run_model_job keeps a
+    # record until a model next becomes Ready.
+    if not live and resource_stop is None and get(kernel,'resource_stop'):resource_stop=MEMORY_STOP
     return {'schema':'arc.local-brain/1','state':'READY' if live and active.get('model_id')==worker.get('model_id') else 'MODEL_STOPPED' if active else 'NO_MODEL_SELECTED',
             'resource_stop':resource_stop,
             'selection':active,'worker':{k:worker.get(k) for k in ('model_id','pid','started','context','backend','requested_backend',
@@ -191,7 +197,20 @@ def prepared_context(kernel, worker):
 def resource_guard(backend):
     return 'RSS_AND_HOST_HEADROOM_GUARD' if backend=='VULKAN' else 'ADDRESS_SPACE_RSS_AND_HOST_HEADROOM_GUARD' if sys.platform.startswith('linux') else 'ADDRESS_SPACE_LIMIT' if os.name!='nt' else 'WINDOWS_NO_HARD_JOB_OBJECT_CAP'
 
-def configuration(value,options=None,root=None,reclaimable_bytes=0):
+AUTO_CEILING_MB=32768  # Auto never budgets more than this; a larger model needs a memory cap the owner sets
+# Auto takes a model only when its estimate, the foreground reserve and this headroom fit in what is available: room
+# for the desk to grow while the model runs, before the worker guard (brain_worker) stops it at the reserve.
+AUTO_HEADROOM_MB=4096
+
+
+def _mib(value):
+    return '{:,} MiB'.format(value)
+
+
+def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=None):
+    """The launch plan for a registered model, or a refusal that says which check failed and with what numbers.
+
+    reserve_mb is the owner's foreground reserve setting (resource_control.reserve_setting); None means the default."""
     options=options or {};host=brain_runtime.host();metadata=value['inspection']['metadata'];architecture=value['inspection']['architecture']
     if value['role']!='chat':raise ValueError('This release qualifies conversational models. Embedding/vision roles remain separately registered, unqualified profiles.')
     if value['inspection']['architecture_profile']!='SUPPORTED_FOR_TRIAL':raise ValueError('MODEL_ARCHITECTURE_NOT_IN_SUPPORTED_PROFILE')
@@ -206,10 +225,30 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0):
     estimate=int(value['total_bytes']*1.3+kv_bytes+384*1024*1024)
     available=host['available_ram_bytes']
     if not available:raise ValueError('HOST_MEMORY_COULD_NOT_BE_MEASURED')
-    available=min(host.get('total_ram_bytes') or available,available+max(0,int(reclaimable_bytes)))
-    memory_mb=options.get('memory_mb',min(32768,max(1024,int(available*.65/1024/1024))))
-    if memory_mb*1024*1024>available*.8:raise ValueError('MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM')
-    if estimate>memory_mb*1024*1024:raise ValueError('MODEL_MEMORY_BUDGET_TOO_SMALL')
+    from .resource_control import KEYS,MIB,budget_room,reserve_bytes
+    reserve=reserve_bytes(KEYS['reserve_mb'] if reserve_mb is None else reserve_mb,host.get('total_ram_bytes'))
+    credit=max(0,int(reclaimable_bytes));need=-(-estimate//MIB)  # the estimate in whole MiB, rounded up
+    # The same rule as admission and launch (resource_control.budget_room), so what is accepted here is admitted there.
+    room=budget_room(available,reserve,0,credit)
+    memory_mb=options.get('memory_mb')
+    if memory_mb is None:
+        if need>AUTO_CEILING_MB:
+            raise ValueError('MODEL_MEMORY_BUDGET_TOO_SMALL: this model at %s tokens needs %s, above the %s Auto '
+                             'gives at most; set a memory cap' % ('{:,}'.format(context),_mib(need),_mib(AUTO_CEILING_MB)))
+        if need+AUTO_HEADROOM_MB>room//MIB:
+            raise ValueError('MODEL_MEMORY_BUDGET_TOO_SMALL: Auto needs %s available for this model at %s tokens (its '
+                             '%s estimate, the %s foreground reserve and %s headroom); %s is available' % (
+                                 _mib(need+reserve//MIB+AUTO_HEADROOM_MB),'{:,}'.format(context),_mib(need),
+                                 _mib(reserve//MIB),_mib(AUTO_HEADROOM_MB),_mib((available+credit)//MIB)))
+        # 65% of what is available, as before, but never below the estimate, above the ceiling or past the room.
+        memory_mb=min(AUTO_CEILING_MB,room//MIB,max(1024,need,int((available+credit)*.65/MIB)))
+    if memory_mb*MIB>room:
+        raise ValueError('MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM: the %s cap and the %s foreground reserve need %s; '
+                         '%s is available' % (_mib(memory_mb),_mib(reserve//MIB),_mib(memory_mb+reserve//MIB),
+                                              _mib((available+credit)//MIB)))
+    if estimate>memory_mb*MIB:
+        raise ValueError('MODEL_MEMORY_BUDGET_TOO_SMALL: the %s cap is below this model\'s %s estimate at %s tokens' % (
+            _mib(memory_mb),_mib(need),'{:,}'.format(context)))
     requested=options.get('backend','CPU');layers=options.get('gpu_layers',-1);fallback=options.get('cpu_fallback',True)
     if requested not in ('AUTO','CPU','VULKAN') or type(layers) is not int or not -1<=layers<=512 or type(fallback) is not bool:
         raise ValueError('MODEL_ACCELERATION_OPTIONS_INVALID')
@@ -384,10 +423,17 @@ def _start_server(kernel,value,config,ident,slot,verified):
         try:
             props=request(worker,'/props',timeout=2)
             reported=props.get('default_generation_settings',{}).get('n_ctx')
-            if type(reported) is int and reported > 0:
-                worker.update(context=min(config['context'],reported),context_basis='WORKER_REPORTED_LIMIT')
         except (ValueError, OSError, TypeError, AttributeError):
-            pass
+            reported=None
+        if type(reported) is int and reported > 0:
+            # Ready means the worker runs what was selected. Graphite passes --ctx-size and --fit only fills unset
+            # arguments, so a smaller report means this worker cannot give the selected context: refuse it (a Vulkan
+            # worker retries once on CPU) rather than mark Ready a model whose replies would fail for prompts the
+            # selection allows. The owner can choose the smaller context explicitly.
+            if reported<config['context']:
+                raise ValueError('MODEL_CONTEXT_BELOW_SELECTION: the worker gives {:,} tokens; {:,} were selected'.format(
+                    reported,config['context']))
+            worker.update(context_basis='WORKER_REPORTED_LIMIT')
         verify_resident(value,worker)
         observed=0;evidence='CPU_WORKER_WITH_OFFLOAD_DISABLED'
         if backend=='VULKAN':
@@ -396,6 +442,9 @@ def _start_server(kernel,value,config,ident,slot,verified):
             matches=re.findall(r'offloaded\s+(\d+)/(\d+)\s+layers to GPU',text)
             if not matches or int(matches[-1][0])<=0:raise ValueError('VULKAN_GPU_OFFLOAD_NOT_OBSERVED')
             observed=int(matches[-1][0]);evidence='PINNED_WORKER_LOAD_LOG: offloaded %s/%s layers to GPU' % matches[-1]
+            # A fixture runtime (the test campaign's) says so in its runtime record; its count is no GPU's. A real
+            # pinned runtime has no such mark, so a real run records exactly what it did before.
+            if runtime.get('simulated'):evidence='SIMULATED_'+evidence.replace('PINNED_','',1)+' (fixture runtime, not a GPU)'
         worker.update(observed_gpu_layers=observed,offload_evidence=evidence)
         worker['config']={**config,'backend':backend,'observed_gpu_layers':observed,'offload_evidence':evidence}
         worker['load_seconds']=time.monotonic()-began;worker.update(usage(worker))
@@ -447,8 +496,8 @@ def checkpoint(kernel,ident,previous):
 def run_model_job(kernel,job):
     from .model_settings import job_options
     ident=job['id'];check_job(kernel,ident);options=job_options(job);value=model(kernel,options['model_id'])
-    from .resource_control import reclaimable
-    config=configuration(value,options,kernel.root,reclaimable(kernel));control_claim(kernel,ident)
+    from .resource_control import reclaimable,reserve_setting
+    config=configuration(value,options,kernel.root,reclaimable(kernel),reserve_setting(kernel));control_claim(kernel,ident)
     previous=get(kernel,'selection',{});old_worker=get(kernel,'worker',{});was_live=worker_live(old_worker)
     trial=None;allow_recovery=True
     try:
@@ -489,11 +538,15 @@ def run_model_job(kernel,job):
                 put(kernel,'previous',previous or None,db=db)
                 selection={'model_id':value['id'],'config':config,'qualification':receipt,'activated':time.time(),'owner':job['owner']}
                 put(kernel,'selection',selection,'ACTIVATED',db);put(kernel,'worker',trial,'READY',db);put(kernel,'trial_worker',{},db=db)
+                put(kernel,'resource_stop',None,db=db)
         result={'status':'ACTIVATED' if job['tool']=='brain.activate' else 'QUALIFIED','model_id':value['id'],'qualification':receipt,'cloud_calls':0}
         if job['tool']=='brain.activate':trial=None
         return result
     except BaseException as exc:
-        if 'GRAPHITE_HOST_MEMORY_LIMIT' in str(exc):allow_recovery=False
+        if 'GRAPHITE_HOST_MEMORY_LIMIT' in str(exc):
+            allow_recovery=False
+            # A failed handover clears both worker slots and with them the log status() reads; keep why it stopped.
+            put(kernel,'resource_stop',{'job_id':ident,'model_id':value['id'],'at':time.time()},'MEMORY_GUARD_STOP')
         raise
     finally:
         if trial:terminate(kernel,trial,'TRIAL_FINISHED')
@@ -506,13 +559,16 @@ def run_model_job(kernel,job):
             try:
                 check_job(kernel,ident)
                 restored=start_server(kernel,model(kernel,previous['model_id']),previous['config'],ident)
-                completion(restored,[{'role':'user','content':'Reply ready.'}],4)
+                reply=completion(restored,[{'role':'user','content':'Reply ready.'}],4)
+                # Ready means a valid reply, for a restored model as for a new one: an empty one is a failed restore.
+                if not reply['text'].strip():raise ValueError('MODEL_PROBE_RETURNED_NO_TEXT')
                 restored['restored_after_job']=ident
                 with kernel.db() as db:
                     db.execute('BEGIN IMMEDIATE')
                     check_job(kernel,ident,db)
                     verify_resident(model(kernel,previous['model_id']),restored)
                     put(kernel,'worker',restored,'RESTORED_PREVIOUS',db);put(kernel,'trial_worker',{},db=db)
+                    put(kernel,'resource_stop',None,db=db)
             except Exception:
                 if restored:terminate(kernel,restored,'ROLLBACK_PROBE_FAILED');put(kernel,'trial_worker',{})
                 activity.record(kernel.root,'STACY','brain.rollback','PREVIOUS_MODEL_RELOAD_FAILED')

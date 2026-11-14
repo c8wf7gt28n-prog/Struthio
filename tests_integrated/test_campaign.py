@@ -69,7 +69,10 @@ class CampaignTests(unittest.TestCase):
             result = self.results[ident]
             self.assertEqual(result['outcome'], 'Pass', (ident, result.get('reason')))
             self.assertEqual(result['checks_met'], result['checks_total'])
-        self.assertTrue(self.results['R07']['spec_question'])
+        # 0.8.1 decided R07's question in the code: Auto takes the owner's model at 39 GiB.
+        self.assertFalse(self.results['R07']['spec_question'])
+        checks = {c['check']: c['observed'] for c in self.results['R07']['checks']}
+        self.assertEqual((checks['auto_submit'], checks['auto_frozen_memory_mb']), ('ACCEPTED', 26013))
 
     # ---- 1. the summary counts only this run
     def test_run_into_an_existing_folder_moves_the_earlier_run_aside(self):
@@ -116,7 +119,9 @@ class CampaignTests(unittest.TestCase):
         for case, expects in forms.items():
             for name, form in expects.items():
                 self.assertNotIn('not', form, '%s %s: "anything but" also accepts a different breakage' % (case, name))
-        self.assertEqual(forms['R22']['hold:state'], {'in': ['Queued', 'Held', 'Waiting']})
+        # R19 and R22 met the spec in 0.8.1: their checks now say what the spec asks, with no conflict left to quote.
+        self.assertNotIn('R19', forms)
+        self.assertNotIn('R22', forms)
 
     def test_summary_reads_only_the_attempts_its_manifest_lists(self):
         stray = Path(self.temp.name) / 'run_stray'
@@ -128,26 +133,32 @@ class CampaignTests(unittest.TestCase):
         self.assertNotIn('reruns', report.summary(stray)[1])
 
     # ---- 2. honest outcomes
-    def test_spec_contradictions_are_counted_apart_from_pass(self):
-        for ident, check in (('R19', 'handover_empty_restore:state'), ('R22', 'hold:state')):
+    def test_r19_and_r22_meet_the_spec_and_are_plain_passes(self):
+        for ident in ('R19', 'R22'):
             result = self.results[ident]
-            self.assertEqual(result['outcome'], core.AGAINST_SPEC, (ident, result.get('reason')))
-            self.assertTrue(result['spec_conflict']['line'])
-            flagged = {c['check']: c for c in result['checks'] if 'meets_spec' in c}
-            self.assertFalse(flagged[check]['meets_spec'])
-        self.assertIn('Require a valid model reply for Ready.', self.results['R19']['spec_conflict']['line'])
-        self.assertIn('On release of the hold, continue from the correct step', self.results['R22']['spec_conflict']['line'])
-        self.assertIn('Pass (current code; the spec asks otherwise) 2', self.line)
+            self.assertEqual(result['outcome'], 'Pass', (ident, result.get('reason')))
+            self.assertFalse(result['spec_conflict'])
+        checks = {c['check']: c['observed'] for c in self.results['R19']['checks']}
+        self.assertEqual((checks['handover_empty_restore:state'], checks['small_context:reason']),
+                         ('MODEL_STOPPED', 'MODEL_CONTEXT_BELOW_SELECTION'))
+        checks = {c['check']: c['observed'] for c in self.results['R22']['checks']}
+        self.assertEqual((checks['hold:state'], checks['release:state'], checks['writes:held_load_activated']),
+                         ('Queued', 'Running', 1))
+        self.assertIn('Pass (current code; the spec asks otherwise) 0', self.line)
         self.assertIn('Pass means every check matched the current code, not that the spec is met', self.line)
-        text = (self.out / 'SUMMARY.md').read_text()
-        self.assertIn('**What Pass means.**', text)
-        self.assertIn('Require a valid model reply for Ready.', text)
+        self.assertIn('**What Pass means.**', (self.out / 'SUMMARY.md').read_text())
 
-    def test_a_case_that_follows_the_spec_is_a_plain_pass(self):
-        case = runner.registry()['R22']
-        observed = {c['check']: c['observed'] for c in self.results['R22']['checks']}
-        observed.update({'hold:state': 'Queued', 'hold:error': None, 'release:state': 'Running'})
-        self.assertEqual(core.score(case, observed)[0], 'Pass')
+    def test_spec_contradictions_are_counted_apart_from_pass(self):
+        # A case whose current behaviour a quoted spec line contradicts is not a plain Pass, and becomes one when the
+        # code does what the spec asks (R22 before and after 0.8.1, as data).
+        case = core.Case(id='X22', set='x', title='x', expect={'hold:state': 'Cancelled', 'release:jobs_replayed': 0},
+                         spec_conflict={'line': 'On release of the hold, continue from the correct step',
+                                        'expects': {'hold:state': {'in': ['Queued', 'Held', 'Waiting']}}})
+        outcome, checks = core.score(case, {'hold:state': 'Cancelled', 'release:jobs_replayed': 0})
+        self.assertEqual(outcome, core.AGAINST_SPEC)
+        self.assertFalse({c['check']: c for c in checks}['hold:state']['meets_spec'])
+        self.assertEqual(core.score(case, {'hold:state': 'Queued', 'release:jobs_replayed': 0})[0], 'Pass')
+        self.assertEqual(core.score(case, {'hold:state': 'Running', 'release:jobs_replayed': 0})[0], 'Partial')
 
     def test_r17_label_comes_from_graphites_record_and_llvmpipe_does_not_pass(self):
         label = {c['check']: c for c in self.results['R17']['checks']}['offload_label']

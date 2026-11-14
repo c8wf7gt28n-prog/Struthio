@@ -404,7 +404,8 @@ def draft(kernel,args,principal):
     if value.get('owner')!=principal.identity:raise ValueError('Model unavailable to this caller')
     seconds,memory=limits(args);context=args.get('context',2048)
     # This separately qualified protected profile has no GPU device grant.
-    config=brain.configuration(value,{'context':context,'memory_mb':memory,'backend':'CPU'},kernel.root)
+    from .resource_control import reserve_setting
+    config=brain.configuration(value,{'context':context,'memory_mb':memory,'backend':'CPU'},kernel.root,0,reserve_setting(kernel))
     brain.recheck(value);executable,runtime=brain_runtime.prepare(kernel.root)
     schema=slate_reasoning.object_schema({'text':slate_reasoning.string(4000,1),'changes':{'type':'array','minItems':1,'maxItems':8,'items':
         slate_reasoning.object_schema({'path':{'type':'string','enum':args['paths']},'base_sha256':change_sets.SHA,

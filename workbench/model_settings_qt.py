@@ -66,8 +66,8 @@ class ModelPanel(QWidget):
             if operation=='brain.model.use':
                 if not live['selection']:raise ValueError('Register and choose a model in the existing model controls first.')
                 ident=live['selection']['model_id'];options={k:v for k,v in live['saved_defaults'].items() if k!='memory_mb' or v}
-                from .resource_control import reclaimable
-                config=local_brain.configuration(local_brain.model(self.bridge.kernel,ident),options,self.bridge.kernel.root,reclaimable(self.bridge.kernel))
+                from .resource_control import reclaimable,reserve_setting
+                config=local_brain.configuration(local_brain.model(self.bridge.kernel,ident),options,self.bridge.kernel.root,reclaimable(self.bridge.kernel),reserve_setting(self.bridge.kernel))
                 args=dict(id=ident,options={**options,**{k:config[k] for k in ('context','threads','memory_mb')}})
             elif not live['previous']:raise ValueError('No previous model configuration is recorded.')
             tab=self.open_controls();tab.launch(operation,args)

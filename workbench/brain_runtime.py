@@ -22,16 +22,14 @@ def host(profile=True):
         try:
             total=os.sysconf('SC_PHYS_PAGES')*os.sysconf('SC_PAGE_SIZE')
             available=os.sysconf('SC_AVPHYS_PAGES')*os.sysconf('SC_PAGE_SIZE')
-            if Path('/proc/meminfo').is_file():
-                rows=dict(line.split(':',1) for line in Path('/proc/meminfo').read_text().splitlines())
-                available=int(rows['MemAvailable'].split()[0])*1024
             if Path('/proc/cpuinfo').is_file():
                 cpu=next((line.split(':',1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines() if line.startswith('model name')),cpu)
-            # Respect a container's memory ceiling when present.
-            limit=Path('/sys/fs/cgroup/memory.max');usage=Path('/sys/fs/cgroup/memory.current')
-            if limit.is_file() and limit.read_text().strip().isdigit():
-                maximum=int(limit.read_text());total=min(total,maximum)
-                available=min(available,max(0,maximum-int(usage.read_text())))
+        except (OSError,ValueError,KeyError):pass
+        try:
+            # The worker guard's own reading (MemAvailable, then this process's cgroup v2 limit less usage), so a model
+            # admitted here is not one the guard stops at once. Without /proc the sysconf figures above stand.
+            from .brain_worker import host_memory
+            total,available=host_memory()
         except (OSError,ValueError,KeyError):pass
     if not profile:
         return {'schema':'arc.brain-host/1','os':platform.system(),'release':platform.release(),'architecture':platform.machine(),

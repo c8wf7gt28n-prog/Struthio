@@ -180,15 +180,18 @@ def execution_held(kernel):
 def resume(kernel, principal):
     with kernel.db() as db:
         db.execute("BEGIN IMMEDIATE")
-        if db.execute("SELECT 1 FROM jobs WHERE state IN ('Running','Queued') LIMIT 1").fetchone():
+        # Queued work waited at its admission step during the hold (resource_control.claim) and continues from there;
+        # nothing is replayed. Work that was running must have stopped first.
+        if db.execute("SELECT 1 FROM jobs WHERE state='Running' LIMIT 1").fetchone():
             raise ValueError("WORK_STILL_ACTIVE_RECONCILE_FIRST")
         if db.execute("SELECT 1 FROM worker_runs WHERE state IN ('STARTING','RUNNING','CLEANUP_REQUIRED') LIMIT 1").fetchone():
             raise ValueError('PROTECTED_WORKER_RECONCILIATION_REQUIRED: inspect workers.runs and workers.stop first')
+        waiting = db.execute("SELECT count(*) FROM jobs WHERE state='Queued'").fetchone()[0]
         state = work_status(kernel, db)
         state = {"held": False, "epoch": state["epoch"] + 1}
         db.execute("INSERT OR REPLACE INTO settings VALUES('ledger.work_gate',?)", (json.dumps(state),))
         activity.append(db, activity.make_event(principal.identity, "ledger.work.resume", "ACCEPTING_NEW_WORK"))
-    return {**state, "jobs_replayed": 0, "idle_rearmed": False, "remote_reenabled": False}
+    return {**state, "jobs_replayed": 0, "jobs_continuing": waiting, "idle_rearmed": False, "remote_reenabled": False}
 
 
 def job_view(kernel, principal, ident, check_artifacts=False, budget=None):
