@@ -201,6 +201,9 @@ class Console(QWidget):
         self.last_program = None;self.output.setContextMenuPolicy(Qt.CustomContextMenu);self.output.customContextMenuRequested.connect(self.output_menu)
         self.output.setLineWrapMode(QTextEdit.NoWrap)  # a terminal scrolls sideways; it never folds a table into letters
         self.output.document().setDefaultFont(mono_font(14))
+        # a terminal's own line: the reading profile's prose face and its 1.4 line spacing never reach it (so a box drawn in
+        # lines meets down as well as across, and its default face stays the mono face); its size is set below
+        self.output.setProperty('arcReadingPreview', True)
         self.output.document().setDefaultStyleSheet('a {color:%s; text-decoration: underline; text-decoration-color:%s;}' % (TEXT, ERASER_MARK))
         self.at_end = True  # the output keeps to its end while the owner is there, as a terminal does; reading back stops it
         scroll = self.output.verticalScrollBar();scroll.actionTriggered.connect(self.moved);scroll.rangeChanged.connect(self.keep_end)

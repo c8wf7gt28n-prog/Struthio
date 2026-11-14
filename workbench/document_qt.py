@@ -44,9 +44,12 @@ def profile_of(host):
 
 
 def fonts_of(host):
-    from .reading_preferences import font
+    """The page's prose and code faces: those in force (reading_preferences.in_force: the appearance's own, the typewriter
+    faces in Kasandra, until the owner chooses others), at her reading sizes."""
+    from .reading_preferences import font, in_force
     profile = profile_of(host)
-    return font(profile['prose_family'], profile['prose_pt']), font(profile['code_family'], profile['code_pt'], True)
+    _, prose, code = in_force((profile['family'], profile['prose_family'], profile['code_family']))
+    return font(prose, profile['prose_pt']), font(code, profile['code_pt'], True)
 
 
 def char_format(on, prose, code, style='Normal'):

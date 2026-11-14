@@ -53,6 +53,15 @@ class UniversalViewerTab(QWidget):
         self.receive_button.clicked.connect(self.receive);top.addWidget(self.receive_button)
         self.save_button = QPushButton('Save a copy…');self.save_button.clicked.connect(self.save_copy);top.addWidget(self.save_button)
         self.native_button = QPushButton('Open in Graphite');self.native_button.clicked.connect(self.open_native);top.addWidget(self.native_button)
+        # 0.8.3 review: at 1366 the row's buttons were cut mid-word ("Ask about th", "Receive int") and its least width
+        # narrowed the whole desk (both panes, her hologram, the band's words). The row now never sets a least width: the
+        # actions that fit its width show, in their order, and the rest wait behind More… (fold_actions).
+        from PySide6.QtWidgets import QMenu, QSizePolicy
+        self.actions_row = (self.ask_button, self.investigate_button, self.receive_button, self.save_button, self.native_button)
+        for b in self.actions_row:b.setProperty('wanted', True)
+        self.more_button = QPushButton('More…');self.more_button.setAccessibleName('More actions for this file')
+        self.more_menu = QMenu(self.more_button);self.more_button.setMenu(self.more_menu);top.addWidget(self.more_button);self.more_button.hide()
+        self.item_toolbar.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);self.item_toolbar.installEventFilter(self)
         outer.addWidget(self.item_toolbar)
         self.notice = QLabel();self.notice.setWordWrap(True);self.notice.setStyleSheet('color:#504d46');outer.addWidget(self.notice)
         self.pages = QTabWidget();self.pages.setAccessibleName('Ways to view this file');outer.addWidget(self.pages, 1)
@@ -63,6 +72,29 @@ class UniversalViewerTab(QWidget):
         self.push(uv.Source.file(path), self.root_path.name)
 
     def title(self):return self.root_path.name
+
+    def eventFilter(self, watched, event):
+        from PySide6.QtCore import QEvent
+        if watched is getattr(self, 'item_toolbar', None) and event.type() == QEvent.Resize:self.fold_actions()
+        return super().eventFilter(watched, event)
+
+    def fold_actions(self):
+        """The header's actions that fit its width now, in their order; the rest behind More… (one menu line each)."""
+        bar = getattr(self, 'item_toolbar', None)
+        if bar is None:return
+        gap = bar.layout().spacing()
+        fixed = sum(w.sizeHint().width() + gap for w in (self.back, self.heading, self.kind_chip, self.address_chip) if not w.isHidden())
+        wanted = [b for b in self.actions_row if b.property('wanted')];widths = [b.sizeHint().width() + gap for b in wanted]
+        room = bar.width() - fixed;shown = len(wanted)
+        if sum(widths) > room:
+            room -= self.more_button.sizeHint().width() + gap;shown = used = 0
+            while shown < len(wanted) and used + widths[shown] <= room:used += widths[shown];shown += 1
+        for b in self.actions_row:
+            want = b in wanted and wanted.index(b) < shown
+            if b.isHidden() == want:b.setVisible(want)
+        self.more_menu.clear()
+        for b in wanted[shown:]:self.more_menu.addAction(b.text(), b.click)
+        if self.more_button.isHidden() == (shown < len(wanted)):self.more_button.setVisible(shown < len(wanted))
 
     def inspector(self):
         view = getattr(self, 'view', None) or {}
@@ -137,8 +169,8 @@ class UniversalViewerTab(QWidget):
         self.address_chip.setVisible(bool(self.address and top_level));self.address_chip.setText('@' + (self.address or '')[:22] + ('…' if self.address and len(self.address) > 22 else ''))
         self.notice.setText(view.get('notice') or '');self.notice.setVisible(bool(view.get('notice')))
         top = len(self.stack) == 1
-        self.receive_button.setVisible(top and not self.address);self.save_button.setVisible(not top)
-        self.native_button.setVisible(top and self.native_target() is not None)
+        self.receive_button.setProperty('wanted', top and not self.address);self.save_button.setProperty('wanted', not top)
+        self.native_button.setProperty('wanted', top and self.native_target() is not None);self.fold_actions()
         self.worksheet = None
         self.pages.blockSignals(True)
         self.active_page_changed()

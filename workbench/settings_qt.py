@@ -39,6 +39,21 @@ QPushButton[settingsAction="true"]:disabled {color:#b0bcb9;text-decoration:none;
 QTreeWidget#SettingsHistory,QPlainTextEdit#SettingsDetail {background:transparent;color:#eee9dd;border:0;}
 """
 from . import boss_theme as _bt      # 0.8.0: these sheets in the colours of the appearance in force (unchanged in Graphite)
+
+
+FACE_KEYS = {'reading.family': 'FACE', 'reading.prose_family': 'FACE', 'reading.code_family': 'MONO'}
+
+
+def state_words(row):
+    """How a setting stands, in words. A face the owner has not chosen is the appearance's own (reading_preferences.in_force:
+    the typewriter faces in Kasandra), which the ledger reads back as a fallback; it is said as what it is, her face, the
+    default (0.8.3 review: "applied with fallback" read like a failure)."""
+    words = str(row.get('application_state', '')).replace('_', ' ').lower()
+    own = getattr(_bt, FACE_KEYS.get(row.get('key'), ''), None)
+    if own and row.get('application_state') == 'APPLIED_WITH_FALLBACK' and row.get('effective') == own and row.get('stored') == row.get('default'):
+        from .assistant_identity import named
+        return named("Stacy's face (the default)")
+    return words
 INK, ACTION_STYLE, CHECKED_RULE, PASSAGE_STYLE, STYLE = (_bt.recolour(s) for s in (INK, ACTION_STYLE, CHECKED_RULE, PASSAGE_STYLE, STYLE))
 
 
@@ -167,7 +182,7 @@ class SettingsTab(QWidget):
         from .presentation_qt import display
         show=lambda value:display(self.bridge.host,fresh,value)
         self.state.setText('Saved: '+show(fresh['stored'])+'    Default: '+show(fresh['default'])+'\nEffective: '+show(fresh['effective'])+
-            ' · '+fresh['application_state'].replace('_',' ').lower()+'\nApplies: '+shown['effect']+'.')
+            ' · '+state_words(fresh)+'\nApplies: '+shown['effect']+'.')
         if not editable:self.editors.setCurrentWidget(self.string);self.string.clear()
         elif fresh.get('editor')=='favorite_slots':
             self.favorite_slots.configure(fresh['favorite_group'],value);self.editors.setCurrentWidget(self.favorite_slots)

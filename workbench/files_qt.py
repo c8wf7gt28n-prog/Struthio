@@ -507,7 +507,7 @@ class TrashTab(QWidget):
         lead = QLabel('Nothing is in DELETE.' if not rows else 'Everything here can go back where it came from.');lead.setStyleSheet('color:%s' % QUIET)
         self.box.addWidget(lead)
         for r in rows:
-            self.box.addWidget(sentence(escape_text(r['original']) + '  ·  moved ' + when(r['at']) + '  ·  {restore}',
+            self.box.addWidget(sentence(escape_text(r['original']) + '  ·  deleted ' + when(r['at']) + '  ·  {restore}',
                                         {'restore': ('restore', lambda r=r:(call_write(self.host, 'files.restore', {'id': r['id']}), self.reload()))}))
         self.box.addStretch(1)
 

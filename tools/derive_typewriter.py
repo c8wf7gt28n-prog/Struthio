@@ -1,10 +1,11 @@
 """Build Kasandra's two typewriter faces from Special Elite (Apache 2.0). Build time only: the program loads the files
 this writes and never runs this.
 
-    Kasandra Elite       the words face: Special Elite with a slashed zero, an l that stands on a right foot only (so
-                         l, 1 and I are told apart), and tabular figures (every digit 1254 units wide, no kerning between
-                         two digits, so a column of numbers lines up). Every other glyph, its hinting and its metrics are
-                         kept byte for byte.
+    Kasandra Elite       the words face: Special Elite with a slashed zero, a one with a long sloped flag on its full
+                         foot and an l with no foot that ends in a tail curving right (so l and 1 differ at both ends,
+                         and still under a link's underline), and tabular figures (every digit 1254 units wide, no
+                         kerning between two digits, so a column of numbers lines up). Every other glyph, its hinting
+                         and its metrics are kept byte for byte.
     Kasandra Elite Mono  the face for lines, numbers, addresses, Terminal and tags: the same outlines on a fixed 0.6 em
                          pitch, on IBM Plex Mono's line (ascent 2099, descent 563 per 2048 units), so a row measured in
                          Plex Mono keeps its height; no kerning or ligatures.
@@ -36,7 +37,7 @@ FIGURE = 1254                       # every digit's advance in the words face: t
 CELL = 1229                         # the mono face's pitch: 0.6 em of 2048 units, Plex Mono's 600 of 1000
 ROOM = CELL - 40                    # ink wider than this is narrowed about its centre, so neighbours never touch
 ASCENT, DESCENT = 2099, 563         # IBM Plex Mono's line (hhea 1025/-275 per 1000), in 2048 units
-WORDS_NOTE = 'Derived from Special Elite (Apache 2.0) for Graphite: slashed zero, l on a right foot, tabular figures'
+WORDS_NOTE = 'Derived from Special Elite (Apache 2.0) for Graphite: slashed zero, sloped one, tailed l, tabular figures'
 
 
 def outline(glyphset, name):
@@ -58,6 +59,30 @@ def bar(x0, y0, x1, y1, half):
     path = pathops.Path();pen = path.getPen()
     pen.moveTo((x0 + nx, y0 + ny));pen.lineTo((x1 + nx, y1 + ny));pen.lineTo((x1 - nx, y1 - ny));pen.lineTo((x0 - nx, y0 - ny));pen.closePath()
     return path
+
+
+def disc(cx, cy, r, sides=24):
+    """A round dot (a polygon of 24 sides: the glyph table takes no cubic curves), for the end of a stroke."""
+    path = pathops.Path();pen = path.getPen()
+    for i in range(sides):
+        point = (cx + r * math.cos(2 * math.pi * i / sides), cy + r * math.sin(2 * math.pi * i / sides))
+        if i:pen.lineTo(point)
+        else:pen.moveTo(point)
+    pen.closePath()
+    return path
+
+
+def arc(cx, cy, radius, half, start, end, steps=24):
+    """A stroke along a circle's arc from `start` to `end` degrees, `half` units either side of it, with a round end."""
+    outer = [(cx + (radius + half) * math.cos(math.radians(a)), cy + (radius + half) * math.sin(math.radians(a)))
+             for a in (start + (end - start) * i / steps for i in range(steps + 1))]
+    inner = [(cx + (radius - half) * math.cos(math.radians(a)), cy + (radius - half) * math.sin(math.radians(a)))
+             for a in (end - (end - start) * i / steps for i in range(steps + 1))]
+    path = pathops.Path();pen = path.getPen();pen.moveTo(outer[0])
+    for point in outer[1:] + inner:pen.lineTo(point)
+    pen.closePath()
+    tip = (cx + radius * math.cos(math.radians(end)), cy + radius * math.sin(math.radians(end)))
+    return pathops.op(path, disc(tip[0], tip[1], half), pathops.PathOp.UNION)
 
 
 def glyph_of(path, dx=0):
@@ -84,14 +109,22 @@ def words(source, out):
     assert [cmap[ord(c)] for c in '0123456789'] == DIGITS and cmap[ord('l')] == 'l'
     glyphset = font.getGlyphSet()
     shapes = {name: outline(glyphset, name) for name in DIGITS + ['l']}
-    # the zero takes a slash in the face's own weight across its counter; the l loses the left half of its foot
+    # the zero takes a slash in the face's own weight across its counter
     shapes['zero'] = pathops.op(shapes['zero'], bar(330, 330, 890, 1150, 62), pathops.PathOp.UNION)
-    shapes['l'] = pathops.op(shapes['l'], rect(-200, -200, 446, 132), pathops.PathOp.DIFFERENCE)
+    # the one: its short level flag becomes a long sloped one (down to two thirds of its height), on its full foot
+    one = pathops.op(shapes['one'], rect(-200, 1160, 512, 1700), pathops.PathOp.DIFFERENCE)
+    one = pathops.op(one, bar(566, 1418, 168, 1020, 72), pathops.PathOp.UNION)
+    shapes['one'] = pathops.op(one, disc(168, 1020, 72), pathops.PathOp.UNION)
+    # the l: its foot goes, and its stem ends in a tail curving right; its flag at the top stays. So the two differ at the
+    # top (level against sloped) and at the foot (a tail to the right against a foot both ways), which a small size or an
+    # underline does not hide together
+    l = pathops.op(shapes['l'], rect(-200, -200, 1300, 175), pathops.PathOp.DIFFERENCE)
+    shapes['l'] = pathops.op(l, arc(810, 340, 262, 80, 180, 300), pathops.PathOp.UNION)
     changed = {}
     for name, path in shapes.items():
         advance = FIGURE if name in DIGITS else hmtx[name][0]
         dx = math.floor((FIGURE - hmtx[name][0]) / 2 + 0.5) if name in DIGITS else 0
-        if name in DIGITS and name != 'zero':      # a digit only moves: its own contours, shifted, so its drawing is unchanged
+        if name in DIGITS and name not in ('zero', 'one'):      # a digit only moves: its own contours, shifted, so its drawing is unchanged
             glyph = glyf[name];glyph.coordinates.translate((dx, 0));glyph.program = ttProgram.Program();glyph.program.fromBytecode(b'')
         else:
             glyph = glyph_of(path, dx)

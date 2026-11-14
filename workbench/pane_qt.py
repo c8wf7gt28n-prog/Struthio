@@ -40,7 +40,7 @@ RIGHT_WORDS = ('Talk', 'Activity', 'Context')
 # Paper v1.1 (shell2's palette, repeated so this module needs no window code): graphite words, quieter graphite for the tabs
 # not chosen, a faint rule under each tab row, pencil-grey branch lines, eraser pink for a selected row.
 from .boss_theme import TEXT, QUIET, LINE, LINE_STRONG as BRANCH, ERASER, GROUND, TEAL_EDGE as TRACE, READY as LIVE, glow as glow_level
-from .boss_theme import APPEARANCE, FACE, MONO
+from .boss_theme import APPEARANCE, DISPLAY, MONO, TERMINAL_GROUND
 BREATH = 2.8        # the lit path's breath, seconds; her hologram's base breathes with it (hologram.BREATH)
 TREE_STYLE = ('QTreeWidget {border:0;background:transparent;color:%s;show-decoration-selected:0;} QTreeWidget::item {padding:0 2px;border:0;} '
               'QTreeWidget::item:selected {background:%s;color:%s;} QTreeWidget::branch, QTreeWidget::branch:selected {background:transparent;border:0;image:none;}'
@@ -123,10 +123,11 @@ from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton, QStyled
 
 
 def tab_font(scale, bold=False, px=None):
-    """The tab words: the bands' menu size (desk_qt.menu_px) or `px`, in the window's words face (boss_theme.FACE); the
-    chosen tab drawn semi-bold in Graphite. The typewriter face has one weight, so in Kasandra the chosen tab is told by
-    its colour and its mark, and is measured at the weight it is drawn in."""
-    font = QFont(FACE);font.setPixelSize(int(px) if px else desk_qt.menu_px(scale))
+    """The tab words: the bands' menu size (desk_qt.menu_px) or `px`, in the headings' face (boss_theme.DISPLAY: Plex Mono
+    in Graphite, as the tabs always were; the typewriter face in Kasandra); the chosen tab drawn semi-bold in Graphite. The
+    typewriter face has one weight, so in Kasandra the chosen tab is told by its colour and its mark, and is measured at
+    the weight it is drawn in."""
+    font = QFont(DISPLAY);font.setPixelSize(int(px) if px else desk_qt.menu_px(scale))
     if bold and APPEARANCE != 'kasandra':font.setWeight(QFont.DemiBold)
     return font
 
@@ -257,7 +258,10 @@ class PaneBody(QWidget):
         painter = QPainter(self)
         x = self.width() - 1 if self.foot.trash is not None else 0
         if APPEARANCE == 'kasandra' and self.foot.trash is None:
-            # 0.8.3, her column's inner edge: a teal line, at half strength, with a still light beside it on a desk that glows
+            # 0.8.3, her column is her terminal: its darker ground from the edge to the window's, the whole height (the
+            # faces on it are clear), and its inner edge a teal line at half strength, with a still light beside it on a
+            # desk that glows
+            painter.fillRect(self.rect(), QColor(TERMINAL_GROUND))
             try:
                 from .boss_qt import glows
                 lit = glows(self.window())

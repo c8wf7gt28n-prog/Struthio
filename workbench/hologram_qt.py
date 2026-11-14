@@ -11,10 +11,12 @@ colour of the state of the work, and her picture with the life of a projection l
 scan lines drifting down, a slow flicker, now and then a tear. In Kasandra only, with the Illustrated desk; the ASCII desk
 draws her once in characters; the Clean desk shows nothing. With Reduce motion, or the Clean glow, she is one still frame.
 
-Cost: the picture is decoded once; each size keeps its layers (the last two sizes) and her beam and base are drawn once a
-colour; a frame is a few composited images (measured about 0.5 to 2 ms at 281 x 380, about 1.3% of one core at 12 frames
-a second against her still frame, in the 0.8.3 frames). The timer runs at 12 frames a second only while she is shown, the window is active and not
-minimised, the idle display is not up, and nothing asked for less motion.
+Cost: the picture is decoded once (a picture that will not decode is never shown, and never decoded again); each size keeps
+its layers (the last two sizes); her figure with each of its six static patterns and its fringe is composed once a state,
+and her beam and base once a colour (only the part of the stage they light). A quiet frame is then the ground, her base,
+her composed figure and the scan lines over it: four fills, none composed again. A band (at work, done) or a tear is
+composed on a copy for the frames that show it. The timer runs at 12 frames a second only while she is shown, the window
+is active and not minimised, the idle display is not up, and nothing asked for less motion.
 """
 from __future__ import annotations
 
@@ -73,9 +75,20 @@ def noise_tiles():
     return _TILES
 
 
+_SCAN = []
+SCAN_ALPHA = 70             # each third row of her, a little of the ground (27%) laid over: her scan lines
+
+
 def scan_tile():
-    tile = QImage(1, 3, QImage.Format_ARGB32_Premultiplied);tile.fill(Qt.transparent);tile.setPixelColor(0, 0, QColor(0, 0, 0, 70))
-    return tile
+    """The scan lines' tile, built once: one row in three of the ground's colour at SCAN_ALPHA, laid over her each frame
+    (a brush repeats it; its origin moves with the drift). 256 px wide: a tile one pixel wide made Qt's tiled fill go a
+    pixel at a time (0.5 ms a frame at 281 x 380); this one fills a row in a few spans."""
+    if not _SCAN:
+        tile = QImage(256, 3, QImage.Format_ARGB32_Premultiplied);tile.fill(Qt.transparent)
+        ink = QColor(GROUND);ink.setAlpha(SCAN_ALPHA)
+        for x in range(256):tile.setPixelColor(x, 0, ink)
+        _SCAN.append(tile)
+    return _SCAN[0]
 
 
 def silhouette(figure, colour):
@@ -84,9 +97,13 @@ def silhouette(figure, colour):
     return out
 
 
+FRINGE = 0.10               # the projector's cyan fringe, a pixel to her right, under her
+
+
 def layers(cut, w, h):
     """Her figure at w x h device pixels, faded over its lowest 14% (she rises out of her beam), with its cyan and pink
-    silhouettes, a grey twin, and the frame buffer reused for every frame of this size."""
+    silhouettes, a grey twin, the frame buffer reused for every frame of this size that is composed again (one pixel wider
+    than her, for the fringe), and her composed figures (still_part)."""
     figure = cut.scaled(w, h, Qt.IgnoreAspectRatio, Qt.SmoothTransformation).convertToFormat(QImage.Format_ARGB32_Premultiplied)
     p = QPainter(figure);p.setCompositionMode(QPainter.CompositionMode_DestinationIn)
     fade = QLinearGradient(0, h * 0.86, 0, h);fade.setColorAt(0, QColor(0, 0, 0, 255));fade.setColorAt(1, QColor(0, 0, 0, 0))
@@ -94,34 +111,59 @@ def layers(cut, w, h):
     grey = figure.convertToFormat(QImage.Format_Grayscale8).convertToFormat(QImage.Format_ARGB32_Premultiplied)
     q = QPainter(grey);q.setCompositionMode(QPainter.CompositionMode_DestinationIn);q.drawImage(0, 0, figure);q.end()
     return dict(size=(w, h), figure=figure, cyan=silhouette(figure, CYAN), pink=silhouette(figure, PINK), grey=grey,
-                frame=QImage(w, h, QImage.Format_ARGB32_Premultiplied))
+                frame=QImage(w + 1, h, QImage.Format_ARGB32_Premultiplied), still={})
+
+
+def still_part(L, static, grey, noise_index, noise_offset, keep=True):
+    """Her figure, greyed when blocked, with one of the six static patterns on her only, over the projector's fringe: what
+    a frame shows before its scan lines (laid over at paint time), a band and a tear. One pixel wider than her. Composed
+    once and kept (six at most a size: the patterns a state cycles through); keep=False for the power-up's stronger static."""
+    key = (round(static, 3), round(grey, 3), noise_index, tuple(noise_offset))
+    kept = L['still']
+    if keep and key in kept:return kept[key]
+    w, h = L['size']
+    her = L['figure'].copy();p = QPainter(her)
+    if grey > 0:p.setOpacity(grey);p.drawImage(0, 0, L['grey']);p.setOpacity(1.0)
+    if static > 0:
+        p.setCompositionMode(QPainter.CompositionMode_SourceAtop);p.setOpacity(min(1.0, static))
+        ox, oy = noise_offset;p.setBrushOrigin(-ox, -oy)      # a moved origin keeps Qt's fast tiled fill
+        p.fillRect(QRect(0, 0, w, h), QBrush(noise_tiles()[noise_index]))
+    p.end()
+    image = QImage(w + 1, h, QImage.Format_ARGB32_Premultiplied);image.fill(Qt.transparent)
+    q = QPainter(image);q.setOpacity(FRINGE);q.drawImage(1, 0, L['cyan']);q.setOpacity(1.0);q.drawImage(0, 0, her);q.end()
+    if keep:
+        while len(kept) >= holo.NOISE_KEYS:kept.pop(next(iter(kept)))
+        kept[key] = image
+    return image
+
+
+def paint_scan(p, rect, offset):
+    """Her scan lines, over her rect (logical pixels): a tiled fill, its origin moved down by the drift."""
+    p.setBrushOrigin(QPointF(rect.x(), rect.y() + offset));p.fillRect(rect, QBrush(scan_tile()));p.setBrushOrigin(QPointF(0, 0))
 
 
 def compose(L, plan, s=1.0):
-    """One frame of her into L['frame'] (device pixels): the figure, greyed when blocked, static on her only, the scan
-    lines cut out of her, a sweep or a write band, and a tear. Returns the frame."""
-    frame = L['frame'];w, h = L['size'];frame.fill(Qt.transparent)
-    p = QPainter(frame);p.drawImage(0, 0, L['figure'])
-    if plan['grey'] > 0:p.setOpacity(plan['grey']);p.drawImage(0, 0, L['grey']);p.setOpacity(1.0)
-    static = plan['static'] * (3.0 - 2.0 * reveal(plan['power']) if plan['power'] is not None else 1.0)
-    if static > 0:
-        p.setCompositionMode(QPainter.CompositionMode_SourceAtop);p.setOpacity(min(1.0, static))
-        ox, oy = plan['noise_offset'];p.setBrushOrigin(-ox, -oy)      # a moved origin keeps Qt's fast tiled fill
-        p.fillRect(QRect(0, 0, w, h), QBrush(noise_tiles()[plan['noise_index']]));p.setOpacity(1.0)
-    p.setCompositionMode(QPainter.CompositionMode_DestinationOut)
-    p.setBrushOrigin(0, plan['scan_offset']);p.fillRect(QRect(0, 0, w, h), QBrush(L.setdefault('scan', scan_tile())));p.setBrushOrigin(0, 0)
+    """One frame of her (device pixels, one pixel wider than her): her composed figure (still_part), and, only in the frames
+    that show one, a write band (at work), the lock sweep (done) or a tear, composed on a copy in L['frame']. The scan lines
+    are laid over at paint time (paint_scan). Returns the frame."""
+    power = plan['power']
+    static = plan['static'] * (3.0 - 2.0 * reveal(power) if power is not None else 1.0)
+    base = still_part(L, static, plan['grey'], plan['noise_index'], plan['noise_offset'], keep=power is None)
+    tear = plan['tear']
+    if plan['write_y'] is None and plan['sweep_y'] is None and tear is None:return base
+    frame = L['frame'];w, h = L['size']
+    p = QPainter(frame);p.setCompositionMode(QPainter.CompositionMode_Source);p.drawImage(0, 0, base)
     p.setCompositionMode(QPainter.CompositionMode_SourceAtop)
     for y, alpha, band in ((plan['write_y'], 0.18, 20 * s), (plan['sweep_y'], 0.25, 14 * s)):
         if y is None:continue
         top = y * h - band / 2;g = QLinearGradient(0, top, 0, top + band)
         for at, a in ((0.0, 0.0), (0.5, alpha), (1.0, 0.0)):
             c = QColor(WRITE);c.setAlphaF(a);g.setColorAt(at, c)
-        p.fillRect(QRectF(0, top, w, band), g)
+        p.fillRect(QRectF(0, top, w + 1, band), g)
     p.end()
-    tear = plan['tear']
     if tear is not None:
         band_h = max(2, round(tear['h'] * s));y = int(max(0, min(h - band_h, tear['y'] * h)));dx = round(tear['dx'] * s)
-        strip = QRect(0, y, w, band_h);piece = frame.copy(strip)
+        strip = QRect(0, y, w + 1, band_h);piece = frame.copy(strip)
         p = QPainter(frame);p.setCompositionMode(QPainter.CompositionMode_Source);p.fillRect(strip, Qt.transparent)
         p.setCompositionMode(QPainter.CompositionMode_SourceOver);p.drawImage(dx, y, piece)
         p.setClipRect(strip);p.setOpacity(0.22)
@@ -190,8 +232,8 @@ class HologramStage(QWidget):
         stamp = time.monotonic()
         if not force and stamp - self._read_at < 0.25:return
         self._read_at = stamp
-        from .kasandra_art import current_state
-        try:state = current_state(self.host)
+        from .kasandra_art import column_state
+        try:state = column_state(self.host)
         except Exception:  # noqa: BLE001
             state = 'idle'
         if state == 'viewing':state = 'idle'
@@ -272,16 +314,19 @@ class HologramStage(QWidget):
     def wake_or_sleep(self, *_):
         """Run the frames only while they can be seen and are wanted; asleep she keeps her last frame."""
         window = self.window()
-        idle = getattr(getattr(self.host, 'idle_display', None), 'showing', None)
+        idle = getattr(getattr(self.host, 'idle_display', None), 'showing', False)      # a property (a bool); a function in a test
+        idle = idle() if callable(idle) else bool(idle)
         run = (t.APPEARANCE == 'kasandra' and self.desk() == 'illustrated' and not self.isHidden() and self.isVisible()
                and window is not None and not window.isMinimized()
                and app_active()
-               and not (callable(idle) and idle()) and not self.still())
+               and not idle and not self.still())
         pace = POWER_MS if self.power_at is not None and self.now() - self.power_at < holo.POWER else holo.FRAME_MS
         if run:
             if self._timer.interval() != pace:self._timer.setInterval(pace)
             if not self._timer.isActive():self._timer.start()
         elif self._timer.isActive():self._timer.stop()
+        mast = getattr(getattr(getattr(self.host, 'shell2', None), 'face', None), 'masthead', None)
+        if mast is not None:mast.cursor.wake_or_sleep()      # her cursor sleeps and wakes with her
         return run
 
     def tick(self):
@@ -292,7 +337,8 @@ class HologramStage(QWidget):
     def touch(self, point):
         """The pointer reached her (a point in the pane): one small tear and a little more light, at most every 1.5 s."""
         inside = self.isVisible() and self.geometry().contains(point) and self.figure.translated(self.pos()).contains(point)
-        if inside and not self._inside and not self.still() and self.state not in ('awaiting_approval', 'blocked'):
+        awake = self._timer.isActive()      # asleep (another program in front, minimised), no frame would follow to mend a tear
+        if inside and not self._inside and awake and not self.still() and self.state not in ('awaiting_approval', 'blocked'):
             stamp = time.monotonic()
             if stamp - self.touched_at >= TOUCH_GAP:
                 self.touched_at = stamp
@@ -335,20 +381,20 @@ class HologramStage(QWidget):
         now = self.now();plan = self.plan(now);s = float(getattr(getattr(self.host, 'desk', None), 'scale', 1.0) or 1.0)
         dpr = self.devicePixelRatioF();fig = self.figure;w, h = fig.width(), fig.height()
         L = self.size_layers(max(2, round(w * dpr)), max(2, round(h * dpr)))
-        frame = compose(L, plan, s * dpr)
+        frame = compose(L, plan, s * dpr);W, H = L['size']
         colour = self.base_rgb(plan, now);breath = plan['base_alpha']
         rim = 1.0;shown = 1.0
         if plan['power'] is not None:
             ms = plan['power'] * holo.POWER * 1000;rim = min(1.0, ms / 120.0);shown = reveal(plan['power'])
         # the beam and the base she stands on, drawn once for this size and colour and laid down at the breath's strength
-        p.setOpacity(min(1.0, breath * rim / BASE_HEADROOM));p.drawImage(QRectF(self.rect()), self.base_layer(colour, s, dpr));p.setOpacity(1.0)
+        lit, top = self.base_layer(colour, s, dpr)
+        p.setOpacity(min(1.0, breath * rim / BASE_HEADROOM));p.drawImage(QRectF(0, top, self.width(), self.height() - top), lit);p.setOpacity(1.0)
         # her, revealed from the bottom up while she powers up
         if shown < 1.0:
-            cut = fig.top() + round((1.0 - shown) * h);p.save();p.setClipRect(QRect(fig.left(), cut, w, fig.bottom() - cut + 1))
+            cut = fig.top() + round((1.0 - shown) * h);p.save();p.setClipRect(QRect(fig.left(), cut, w + 1, fig.bottom() - cut + 1))
         opacity = plan['opacity'] * plan['flicker'] * (1.06 if plan['tear'] is not None and plan['tear'].get('touch') else 1.0)
-        p.setOpacity(min(1.0, 0.08 * plan['opacity']));p.drawImage(QRectF(fig.x() + 1, fig.y(), w, h), L['cyan'])      # the projector's fringe
-        p.setOpacity(min(1.0, opacity));p.drawImage(QRectF(fig.x(), fig.y(), w, h), frame)
-        p.setOpacity(1.0)
+        p.setOpacity(min(1.0, opacity));p.drawImage(QRectF(fig.x(), fig.y(), (W + 1) / dpr, H / dpr), frame)      # her, with her fringe
+        p.setOpacity(1.0);paint_scan(p, QRectF(fig.x(), fig.y(), w + 1, h), plan['scan_offset'])
         if shown < 1.0:
             p.restore()
             if shown > 0:p.fillRect(QRectF(fig.left(), fig.top() + (1.0 - shown) * h - 1, w, 2), QColor(t.READY))      # the scan edge
@@ -357,16 +403,18 @@ class HologramStage(QWidget):
         if plan['power'] is None and self._timer.interval() != holo.FRAME_MS and self._timer.isActive():self._timer.setInterval(holo.FRAME_MS)
 
     def base_layer(self, colour, s, dpr):
-        """Her beam (from her base up through her, fading to nothing), the base's glow and its rim, on a clear image the size
-        of the stage, at BASE_HEADROOM times their strength so a breath above 1 still shows. Kept while the size and the colour
-        stay; a colour is kept to steps of 4, so a slow fade draws it again only now and then."""
+        """Her beam (from her base up through her, fading to nothing), the base's glow and its rim, on a clear image as wide as
+        the stage and as tall as the part they light (from the beam's top down), at BASE_HEADROOM times their strength so a
+        breath above 1 still shows. Returns (image, its top in the stage). Kept while the size and the colour stay; a colour
+        is kept to steps of 4, so a slow fade draws it again only now and then."""
         q = QColor(colour);colour = QColor((q.red() // 4) * 4, (q.green() // 4) * 4, (q.blue() // 4) * 4)
         key = (self.width(), self.height(), self.figure.getRect(), colour.rgb(), round(s * 100), dpr)
         if getattr(self, '_base_key', None) == key:return self._base
-        image = QImage(max(1, round(self.width() * dpr)), max(1, round(self.height() * dpr)), QImage.Format_ARGB32_Premultiplied)
-        image.setDevicePixelRatio(dpr);image.fill(Qt.transparent)
-        p = QPainter(image);p.setRenderHint(QPainter.Antialiasing)
         fig = self.figure;w, h = fig.width(), fig.height();cx = fig.center().x() + 0.5;base = fig.bottom() + 1;k = BASE_HEADROOM
+        lit = max(0, math.floor(base - 0.45 * h) - 1)      # nothing above the beam's top is lit
+        image = QImage(max(1, round(self.width() * dpr)), max(1, round((self.height() - lit) * dpr)), QImage.Format_ARGB32_Premultiplied)
+        image.setDevicePixelRatio(dpr);image.fill(Qt.transparent)
+        p = QPainter(image);p.setRenderHint(QPainter.Antialiasing);p.translate(0, -lit)
         beam = QPainterPath();top = base - 0.45 * h
         beam.moveTo(cx - 0.16 * w, base);beam.lineTo(cx + 0.16 * w, base);beam.lineTo(cx + 0.46 * w, top);beam.lineTo(cx - 0.46 * w, top);beam.closeSubpath()
         g = QLinearGradient(0, base, 0, top);c0 = QColor(colour);c0.setAlphaF(min(1.0, 0.10 * k));c1 = QColor(colour);c1.setAlphaF(0.0)
@@ -376,8 +424,8 @@ class HologramStage(QWidget):
         glow.setColorAt(0, inner);glow.setColorAt(1, outer)
         p.save();p.translate(centre);p.scale(1.0, ry / rx);p.translate(-centre);p.setPen(Qt.NoPen);p.setBrush(glow);p.drawEllipse(centre, rx, rx);p.restore()
         edge = QColor(colour);edge.setAlphaF(min(1.0, 0.55 * k));p.setPen(QPen(edge, 1.5 * s));p.setBrush(Qt.NoBrush);p.drawEllipse(centre, rx, ry)
-        p.end();self._base_key, self._base = key, image
-        return image
+        p.end();self._base_key, self._base = key, (image, lit)
+        return self._base
 
     def paint_ascii(self, p):
         """The ASCII desk: her figure once, in characters (the mono face, by light and cover), standing on a line in the
@@ -433,6 +481,7 @@ def install(host):
     from . import kasandra_art
     path = kasandra_art.mark(kasandra_art.folder(host.root), 'hologram.webp')
     if path is None:return None
+    if kasandra_art.cutout(path).isNull():return None      # its bytes are hers but it will not decode here (no WebP reader)
     stage = HologramStage(host, pane, path);host.hologram = stage
     for tree in (getattr(host, 'desk_trees', None) or [])[:3]:
         tree.itemExpanded.connect(stage.place_now);tree.itemCollapsed.connect(stage.place_now)

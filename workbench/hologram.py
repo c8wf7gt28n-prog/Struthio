@@ -11,8 +11,10 @@ HMIN, she is not shown at all.
 
 How she moves (frame_plan): the static, the scan lines and a slow flicker are her picture's own life; a tear now and then
 in her quiet states; her base breathes with the tree (pane_qt.BREATH). Each state of the work has its own word, colour and
-pace (STATE_LOOK, MOTION). With Reduce motion, or the Clean glow, every frame is the same still frame: no flicker, no
-drift, no tear; a change of state only changes the colour.
+pace (STATE_LOOK, MOTION). The scan lines move every frame; the static is drawn anew every third frame only, from six
+patterns (so it shimmers without sparkling in the corner of the eye over a long day, and each pattern is composed once);
+while something waits for the owner, or the work stopped, it is faint and held still. With Reduce motion, or the Clean
+glow, every frame is the same still frame: no flicker, no drift, no tear; a change of state only changes the colour.
 """
 import math
 
@@ -22,7 +24,8 @@ SIDE = 8                    # her stage's margin each side of her
 NEAR = 12                   # between her and DELETE, in the corner stance
 HMIN = 120                  # shorter than this she is not shown
 HMAX = 380                  # taller than this she is not drawn
-ROOM = 16                   # the room for her base below her
+ROOM = 24                   # on the stage: the room for her base below her (its ring ends about 10 px above DELETE)
+ROOM_CORNER = 16            # beside DELETE her ring is under her alone, and her stage ends at the pane's bottom inset
 FPS = 12                    # her frames a second (83 ms)
 FRAME_MS = round(1000 / FPS)
 BREATH = 2.8                # the tree's breath (pane_qt.breath): she breathes with it
@@ -41,15 +44,18 @@ STATE_LOOK = {
 HOLD = {'completed': 20.0, 'blocked': 45.0}       # kasandra_art.HOLD
 
 # opacity: her figure; static: the noise's opacity; drift: the scan lines, px a second downward; flicker: on or off;
-# tears: the mean gap between tears (None: never); period, depth: her base's breath (None: steady)
+# tears: the mean gap between tears (None: never); period, depth: her base's breath (None: steady); hold: the static stays
+# one pattern (a calm state: what waits for the owner, or what stopped)
 MOTION = {
     'idle': dict(opacity=0.80, static=0.30, drift=6.0, flicker=True, tears=11.0, period=BREATH, depth=0.15),
     'working': dict(opacity=0.84, static=0.39, drift=14.0, flicker=True, tears=8.0, period=BREATH / 2, depth=0.20),
-    'awaiting_approval': dict(opacity=0.86, static=0.19, drift=4.0, flicker=False, tears=None, period=BREATH, depth=0.25),
-    'completed': dict(opacity=0.82, static=0.28, drift=6.0, flicker=True, tears=None, period=BREATH, depth=0.10),
-    'blocked': dict(opacity=0.62, static=0.28, drift=3.0, flicker=False, tears=None, period=None, depth=0.0, grey=0.5),
+    'awaiting_approval': dict(opacity=0.86, static=0.10, drift=4.0, flicker=False, tears=None, period=BREATH, depth=0.25, hold=True),
+    'completed': dict(opacity=0.82, static=0.22, drift=6.0, flicker=True, tears=None, period=BREATH, depth=0.10),
+    'blocked': dict(opacity=0.62, static=0.10, drift=3.0, flicker=False, tears=None, period=None, depth=0.0, grey=0.5, hold=True),
 }
-FLICKER = (0.03, 0.02)      # the two parts of the flicker: never more than 5% either way
+FLICKER = (0.025, 0.012)    # the two parts of the flicker (0.7 and 1.3 a second): under 4% either way, under 2% a frame
+RENOISE = 3                 # the static is drawn anew every third frame (four times a second); the scan lines every frame
+NOISE_KEYS = 6              # the static's patterns: tile k at its own offset, so a frame's static is one of six
 WRITE_PERIOD = 2.4          # working: a write band rises through her every 2.4 s
 SWEEP = 0.6                 # completed: one lock sweep, top to bottom, in 0.6 s
 
@@ -77,7 +83,7 @@ def place(rows_end, foot_top, delete, P, I, s=1.0):
     figure is her picture's box, stage the box she paints (her and her base): it never meets a row or DELETE, and never
     passes the pane's bottom."""
     if rows_end is None:return None
-    gap, side, near, hmin, hmax, room = (round(v * float(s)) for v in (GAP, SIDE, NEAR, HMIN, HMAX, ROOM))
+    gap, side, near, hmin, hmax, room, low = (round(v * float(s)) for v in (GAP, SIDE, NEAR, HMIN, HMAX, ROOM, ROOM_CORNER))
     dx, dy, dw, dh = (int(v) for v in delete)
     top = int(rows_end) + gap
 
@@ -92,7 +98,7 @@ def place(rows_end, foot_top, delete, P, I, s=1.0):
     stance, (h, left, width, base) = ('stage', stage) if stage[0] >= corner[0] else ('corner', corner)
     if h < hmin:return None
     w = round(h * ASPECT);x = left + (width - w) // 2;y = base - h
-    return stance, (x, y, w, h), (x - side, y, w + 2 * side, h + room)
+    return stance, (x, y, w, h), (x - side, y, w + 2 * side, h + (room if stance == 'stage' else low))
 
 
 def mix(a, b, share):
@@ -113,7 +119,7 @@ def base_colour(state, palette, since_state=0.0):
 def flicker(state, t):
     if not motion(state)['flicker']:return 1.0
     a, b = FLICKER
-    return 1.0 + a * math.sin(2 * math.pi * 0.7 * t) + b * math.sin(2 * math.pi * 1.9 * t + 1.3) * math.sin(2 * math.pi * 0.23 * t)
+    return 1.0 + a * math.sin(2 * math.pi * 0.7 * t) + b * math.sin(2 * math.pi * 1.3 * t + 1.3) * math.sin(2 * math.pi * 0.23 * t)
 
 
 def breath(state, t):
@@ -126,8 +132,14 @@ def frame_number(t):
     return int(math.floor(float(t) * FPS))
 
 
+def noise_key(state, n):
+    """Which of the six static patterns frame n shows: a new one every RENOISE frames; always the first while held."""
+    if motion(state).get('hold'):return 0
+    return (int(n) // RENOISE) % NOISE_KEYS
+
+
 def noise_offset(n):
-    """Where the static's tile starts in frame n: a fixed shuffle of the frame's number, so a frame is drawn the same twice."""
+    """Where the static's tile starts for pattern n: a fixed shuffle of its number, so a pattern is drawn the same twice."""
     n = int(n) & 0xFFFFFFFF
     v = (n * 2654435761 + 40503) & 0xFFFFFFFF
     return (v >> 8) % 64, (v >> 20) % 64
@@ -156,8 +168,8 @@ def frame_plan(state, t, rng, still, since_state, since_show, memo=None, glitch_
                 tear=None, base_rgb=base_colour(state, palette, since_state), base_alpha=1.0, sweep_y=None, write_y=None,
                 power=None, grey=m.get('grey', 0.0), drift=m['drift'])
     if still:return plan
-    n = frame_number(t)
-    plan.update(flicker=flicker(state, t), noise_index=n % 6, noise_offset=noise_offset(n), scan_offset=int(m['drift'] * t) % 3,
+    n = frame_number(t);k = noise_key(state, n)
+    plan.update(flicker=flicker(state, t), noise_index=k, noise_offset=noise_offset(k), scan_offset=int(m['drift'] * t) % 3,
                 base_alpha=breath(state, t))
     if state == 'working':plan['write_y'] = 1.0 - (t % WRITE_PERIOD) / WRITE_PERIOD
     if state == 'completed' and since_state < SWEEP:plan['sweep_y'] = since_state / SWEEP

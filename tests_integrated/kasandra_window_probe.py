@@ -164,9 +164,9 @@ def case_hologram(p):
         return round(sum(deltas) / len(deltas), 3), round(swing, 4)
     out['motion'] = {state: motion(frames(state)) for state in ('idle', 'working', 'awaiting_approval')}
     out['motion']['still'] = motion(frames('idle', still=True))
-    # paint time at this size
+    # paint time at this size, into the format a window's backing store has (a plain ARGB32 image measures Qt's conversion)
     stage.clock = None;stage.memo = {};stage.paint_ms.clear()
-    image = QImage(stage.size(), QImage.Format_ARGB32)
+    image = QImage(stage.size(), QImage.Format_ARGB32_Premultiplied)
     started = time.perf_counter()
     for i in range(50):stage.render(image)
     out['paint_ms'] = round((time.perf_counter() - started) * 1000 / 50, 3);out['size'] = [stage.width(), stage.height()]
@@ -235,8 +235,11 @@ def case_column(p):
     slab = next((l for l in cards[-1].findChildren(QLabel) if l.toolTip().startswith('@files')), None)
     if slab is not None:
         slab.ensurePolished();out['slab'] = [slab.font().family(), slab.font().pixelSize(), slab.text()]
-    if mast is not None:      # a pixel of empty thread space: her terminal's ground
-        image = face.grab().toImage();out['ground'] = image.pixelColor(face.width() // 2, face.height() - 20).name()
+    if mast is not None:      # her terminal's ground: a pixel of empty thread space, and the whole column round it
+        pane = w.right_pane;image = pane.grab().toImage();inside = face.mapTo(pane, QPoint(face.width() // 2, face.height() - 20))
+        out['ground'] = image.pixelColor(inside.x(), inside.y()).name()
+        out['ground_round'] = [image.pixelColor(x, y).name() for x, y in ((10, pane.height() // 2), (pane.width() - 3, pane.height() // 2),
+                                                                         (pane.width() // 2, pane.height() - 10), (pane.width() // 2, 3))]
     out['scroll'] = p.rect(face.scroll)
     prog = w.shell2.top.programs
     out['apps'] = dict(icon=[prog.iconSize().width(), prog.iconSize().height()], name=prog.accessibleName(), text=prog.text(), rect=p.rect(prog))
@@ -254,6 +257,122 @@ def case_column(p):
     return out
 
 
+def case_review(p):
+    """The 0.8.3 review's findings, each measured in the real window (Kasandra): the faces of tooltips, the Documents page,
+    a Markdown note and the Terminal; the font report's words; her words folded only where a line must break; the Now
+    line's waiting link and the state above it; what she speaks with and what she learns from; a face and a size the owner
+    chooses reaching her masthead and a line's slab; her cursor asleep with Reduce motion and out of sight; her hologram
+    asleep under the idle display, a touch while asleep, a picture that will not decode; a note in the viewer at this size."""
+    from PySide6.QtCore import QPoint
+    from PySide6.QtGui import QFontInfo, QImage
+    from PySide6.QtWidgets import QLabel, QToolTip
+    from workbench import boss_theme as bt, document_qt, hologram_qt, kasandra_art, kasandra_column, reading_preferences, settings_qt, shell2
+    from workbench.view_modules import markdown_view
+    w = p.w;face = w.shell2.face;stage = w.hologram;out = {}
+    w.settings_navigator.cabinet.click();p.settle(40, 4)
+    tip = QToolTip.font();out['tooltip'] = [QFontInfo(tip).family(), tip.pixelSize()]
+    prose, code = document_qt.fonts_of(w);out['document'] = [QFontInfo(prose).family(), QFontInfo(code).family()]
+    css = markdown_view.css(w);out['markdown'] = dict(face=bt.FACE in css, mono=bt.MONO in css, plex='IBM Plex' in css)
+    from workbench.console_qt import Console
+    console = w.findChild(Console)
+    if console is not None:
+        reading_preferences.apply(w);p.settle(20, 2);doc = console.output.document()
+        block = doc.firstBlock().blockFormat()
+        out['console'] = dict(kept=bool(console.output.property('arcReadingPreview')), face=doc.defaultFont().family(),
+                              spacing=[block.lineHeightType(), block.lineHeight()])
+    from workbench import ledger_control
+    row = next(r for r in ledger_control.settings(w.ledger_bridge.kernel)['settings'] if r['key'] == 'reading.family')
+    out['font_report'] = [row['application_state'], settings_qt.state_words(row)]
+    # her words: a name that fits a line is never cut at a line's end, in her leaded words and in a plain row of a card
+    name, other = '07_Bench_Readings.pdf', '07_Rail_Limits_Rev_B.pdf'
+    said = lambda n:'\u2190 source \u00b7 %s (current) \u00b7 supports' % n
+    card = face.say(said(name) + '\n' + said(other));row_label = QLabel(shell2.breakable(said(other)));row_label.setWordWrap(True);card.box.addWidget(row_label)
+    long = 'path/to/a/very/long/folder/name/that/never/fits/one/line/of/her/column.csv'
+    far = QLabel(long);far.setWordWrap(True);card.box.addWidget(far);p.settle(40, 6)
+    out['fold'] = dict(leaded=name in card.text.text() and other in card.text.text(), plain=other in row_label.text(), room=card.text.property('lineRoom'),
+                       long_breaks=far.text().count('\u200b'), long_whole=far.text().replace('\u200b', '') == long)
+    # the Now line's waiting link, and the state above it
+    from unittest.mock import patch
+    from workbench import agenda_qt
+    with patch.object(agenda_qt, 'summary', return_value=('Nothing running  \u00b7  {waiting}  \u00b7  {open}', 1)):
+        face.agenda.setText('');face.show_agenda();p.settle(20, 2)
+    out['agenda_link'] = '1\u00a0waiting for you' in face.agenda.text()
+    probe_label = QLabel();probe_label.setFont(face.agenda.font())
+    html = 'Now: Nothing running  \u00b7  {waiting}  \u00b7  {open} \u00b7 {activity}';others = {'open': 'open', 'activity': 'activity'}
+    def kept(width):
+        probe_label.resize(width, 40);return '\u00a0' in shell2.together(probe_label, html, 'waiting', '1 waiting for you', others)
+    out['agenda_together'] = dict(wide=kept(600), early=kept(240), column=kept(face.agenda.width()), width=face.agenda.width())
+    out['column_state'] = kasandra_art.column_state(w);out['current_state'] = kasandra_art.current_state(w)
+    if stage is not None:stage.follow(force=True)
+    out['masthead_word'] = face.masthead.word.text()
+    face.agenda_waiting = 0
+    face.refresh();out['model_tip'] = face.model.toolTip()
+    # her cursor: it breathes only while something waits and it may move
+    cursor = face.masthead.cursor
+    with patch.object(kasandra_art, 'current_state', return_value='awaiting_approval'):
+        face.masthead.show_state('idle');face.masthead.show_state('awaiting_approval');p.settle(20, 2)
+        out['cursor_waiting'] = cursor._timer.isActive()
+        profile = dict(w.reading_profile);profile['reduce_motion'] = True
+        reading_preferences.apply(w, profile, True);p.settle(20, 2);out['cursor_reduce_motion'] = [cursor._timer.isActive(), cursor.alpha()]
+        profile['reduce_motion'] = False;reading_preferences.apply(w, profile, True);p.settle(20, 2);out['cursor_back'] = cursor._timer.isActive()
+        with patch.object(kasandra_column, 'app_active', return_value=False):
+            cursor.wake_or_sleep();out['cursor_inactive'] = cursor._timer.isActive()
+        cursor.wake_or_sleep()
+    face.masthead.show_state('idle')
+    # a face and a size the owner chose reach her masthead and the slab on a card already shown
+    face.answer_in_stac({'stac': '@files | rows | count', 'title': 'files', 'kind': 'files'}, 'Reading it in a line.');p.settle(30, 3)
+    cards = [c for c in (face.lines.itemAt(i).widget() for i in range(face.lines.count())) if c is not None]
+    slab = next((l for l in cards[-1].findChildren(QLabel) if l.toolTip().startswith('@files')), None)
+    def faces_now():
+        for widget in (face.masthead.name, face.model, slab):widget.ensurePolished()
+        return dict(name=QFontInfo(face.masthead.name.font()).family(), model=QFontInfo(face.model.font()).family(),
+                    slab=[QFontInfo(slab.font()).family(), slab.font().pixelSize()], word=face.masthead.word.styleSheet())
+    out['faces_default'] = faces_now()
+    own = dict(w.reading_profile, family='DejaVu Serif', prose_family='DejaVu Serif', code_family='DejaVu Sans Mono', ui_pt=18.0)
+    reading_preferences.apply(w, own, True);p.settle(30, 3);out['faces_own'] = faces_now()
+    reading_preferences.apply(w, dict(own, family='IBM Plex Sans', prose_family='IBM Plex Sans', code_family='IBM Plex Mono', ui_pt=14.0), True);p.settle(30, 3)
+    out['faces_back'] = faces_now()
+    # her hologram: asleep under the idle display, no tear left by a touch while asleep, none for a picture that will not decode
+    if stage is not None:
+        idle_type = type(w.idle_display)
+        with patch.object(idle_type, 'showing', new=property(lambda self:True)):
+            w.idle_display._hologram();out['idle_running'] = stage._timer.isActive()
+        w.idle_display._hologram();out['idle_back'] = stage._timer.isActive()
+        with patch.object(hologram_qt, 'app_active', return_value=False):
+            stage.wake_or_sleep();stage.memo = {};stage._inside = False
+            stage.touch(stage.figure.center() + stage.pos());out['touch_asleep'] = 'touch' in (stage.memo or {})
+        stage.wake_or_sleep()
+        from types import SimpleNamespace
+        fake = SimpleNamespace(left_pane=w.left_pane, root=w.root, hologram='before')
+        with patch.object(kasandra_art, 'cutout', return_value=QImage()):
+            out['undecodable'] = [hologram_qt.install(fake) is None, fake.hologram]
+    # a note in the viewer at this size: the panes keep their width and no action is cut
+    from workbench import files_service
+    note = files_service.root(w.ledger_bridge.kernel) / 'bench note.md'
+    note.write_text('# Bench note\n\nSettled draw is **3.36 W**.\n\n`office.get {"id":"x"}`\n')
+    pane_before = w.desk.pane;w.open_in_viewer(note);p.settle(60, 8)
+    tab = w.tabs.currentWidget()
+    actions = getattr(tab, 'actions_row', ())
+    shown = [b.text() for b in actions if b.isVisible()]
+    cut = [b.text() for b in actions if b.isVisible() and b.width() < b.sizeHint().width()]
+    behind = [a.text() for a in tab.more_menu.actions()] if hasattr(tab, 'more_menu') else []
+    wanted = [b.text() for b in actions if b.property('wanted')]
+    out['viewer'] = dict(pane=[pane_before, w.desk.pane, w.left_pane.width()], shown=shown, cut=cut, behind=behind, wanted=wanted)
+    from PySide6.QtWidgets import QTextBrowser
+    reading = next((b for b in tab.findChildren(QTextBrowser) if b.accessibleName() == 'Markdown, as it reads'), None)
+    if reading is not None:
+        doc = reading.document();code = set();block = doc.begin()
+        while block.isValid():
+            it = block.begin()
+            while not it.atEnd():
+                piece = it.fragment()
+                if piece.isValid() and 'office.get' in piece.text():code.update(piece.charFormat().fontFamilies() or [])
+                it += 1
+            block = block.next()
+        out['markdown_shown'] = dict(words=QFontInfo(doc.defaultFont()).family(), code=sorted(code))
+    return out
+
+
 def case_graphite_column(p):
     from workbench.graphite_brand import window_icon_source
     from PySide6.QtWidgets import QLabel
@@ -265,11 +384,13 @@ def case_graphite_column(p):
     slab.ensurePolished()
     return dict(portrait=type(face.portrait).__name__, masthead=getattr(face, 'masthead', 'missing'), margin=face.lines.contentsMargins().right(),
                 hologram=getattr(w, 'hologram', 'missing'), icon_source=window_icon_source(w.root), slab=[slab.font().family(), slab.font().pixelSize()],
-                delete=[w.trash_can.word_font.letterSpacing(), w.trash_can.word_font.family()])
+                delete=[w.trash_can.word_font.letterSpacing(), w.trash_can.word_font.family()],
+                tabs=sorted({b.font().family() for b in w.left_pane.tabs.buttons + w.right_pane.tabs.buttons}),
+                least=w.panes['least'], need=w.panes['need'])
 
 
 CASES = dict(delete=case_delete, wiring=case_wiring, hologram=case_hologram, hologram_absent=case_hologram_absent, column=case_column,
-             graphite_column=case_graphite_column)
+             graphite_column=case_graphite_column, review=case_review)
 
 
 def probe(appearance, width, height, case, extra_env=None, timeout=300):

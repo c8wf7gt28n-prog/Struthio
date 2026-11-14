@@ -2572,18 +2572,23 @@ class LinePanel(ContextMenu):
         from . import boss_theme as bt
         from .shell2 import MONO, QUIET
         m = self.m
-        slab = QLabel(bt.eye(self.line), self.page);slab.setObjectName('LineSlab');slab.setWordWrap(True);slab.setStyleSheet(bt.line_sheet())
+        from .shell2 import set_face
+        slab = QLabel(bt.eye(self.line), self.page);slab.setObjectName('LineSlab');slab.setWordWrap(True)
         slab.setToolTip(self.line);slab.setFocusPolicy(Qt.NoFocus);slab.setTextInteractionFlags(Qt.NoTextInteraction)
-        # a menu is a window of its own, outside the window's sheet, so its font holds; 12 px at least in either face
-        font = slab.font();font.setFamily(MONO);font.setPixelSize(max(12, m.caption_px));slab.setFont(font);self.slab = slab
+        # 0.8.3 review: the panel is a window whose parent is the main window, so the main window's sheet (every widget's
+        # face and size) reached its labels and a setFont lost to it: the line and its preview were drawn in the words face
+        # at the reading size, and the preview counted its letters in another face. The mono face, a point under the
+        # rows' size (12 px at least), is now held in each label's own sheet (shell2.set_face).
+        px = max(12, m.px - 1);set_face(slab, MONO, px, bt.line_sheet());self.slab = slab
         from PySide6.QtWidgets import QSizePolicy
         slab.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)      # it wraps to the panel; it never widens it
         counted = QLabel(self.count_words(), self.page);counted.setObjectName('LineCount');counted.setFont(programs_qt.caption_font(m))
         counted.setStyleSheet('color:%s;background:transparent;' % QUIET);counted.setContentsMargins(m.pad, 3, m.pad, 2);counted.setWordWrap(True)
         self.counted = counted;out = [slab, counted]
         if self.ready and not self.failed and not self.stack:
-            shown = QLabel(self.preview_text(), self.page);shown.setObjectName('LinePreview');shown.setFont(font)
-            shown.setStyleSheet('color:%s;background:transparent;' % QUIET);shown.setContentsMargins(m.pad, 2, m.pad, 4);shown.setTextFormat(Qt.PlainText)
+            shown = QLabel('', self.page);shown.setObjectName('LinePreview');set_face(shown, MONO, px, 'color:%s;background:transparent;' % QUIET)
+            shown.setContentsMargins(m.pad, 2, m.pad, 4);shown.setTextFormat(Qt.PlainText)
+            shown.ensurePolished();shown.setText(self.preview_text(shown.font()))      # polished: its font is its sheet's, not yet the parent's
             shown.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
             self.shown = shown;out.append(shown)
         out.append(Rule(self))
@@ -2599,21 +2604,30 @@ class LinePanel(ContextMenu):
     def preview_rows(self):
         return self.held.rows(self.line)[:3] if self.ready and not self.failed else []
 
-    def preview_text(self):
+    def preview_text(self, font=None):
+        """The first rows as a small table, in as many letters as the panel's width holds in the preview's own face (the
+        preview never widens the panel). Each column is as wide as its longest cell; the widest is narrowed first, and a
+        column is left out (from the right) only when even six letters each do not fit (0.8.3 review: "Rail volta…" with
+        room for forty letters)."""
         from . import line_steps
         try:rows = self.held.rows(self.line)
         except line_steps.Refusal as exc:return str(exc)
         if not rows:return 'nothing'
-        # as many columns as the panel's width holds, each at least 8 letters wide (the preview never widens the panel)
-        font = self.slab.font() if self.slab is not None else programs_qt.word_font(self.m)
+        font = font or (self.slab.font() if self.slab is not None else programs_qt.word_font(self.m))
+        # the panel's own width rule (what it is laid out to; while it is laid out again its width is not yet that)
         letters = max(20, int((self.width_rule() - 2 * self.m.pad - 8) / max(1.0, QFontMetricsF(font).horizontalAdvance('M'))))
-        most = 4
-        while most > 1 and (letters - 2 * (most - 1)) // most < 8:most -= 1
-        names, shown, more = line_steps.preview(rows, 3, most)
-        width = max(6, min(16, (letters - 2 * (max(1, len(names)) - 1)) // max(1, len(names))))
-        cut = lambda text:(text if len(text) <= width else text[:width - 1] + '…').ljust(width)
-        lines = ['  '.join(cut(n) for n in names)] if names else []
-        lines += ['  '.join(cut(v) for v in row) for row in shown]
+        names, shown, more = line_steps.preview(rows, 3, 4)
+        cut = lambda text, room:(text if len(text) <= room else text[:room - 1] + '…').ljust(room)
+        if not names:
+            lines = [cut(str(row[0]) if row else '', letters) for row in shown]
+        else:
+            cols = len(names)
+            natural = [max([len(str(names[i]))] + [len(str(row[i])) for row in shown if i < len(row)]) for i in range(cols)]
+            while cols > 1 and sum(min(n, 6) for n in natural[:cols]) + 2 * (cols - 1) > letters:cols -= 1
+            widths = natural[:cols]
+            while sum(widths) + 2 * (cols - 1) > letters and max(widths) > 6:widths[widths.index(max(widths))] -= 1
+            lines = ['  '.join(cut(str(n), widths[i]) for i, n in enumerate(names[:cols]))]
+            lines += ['  '.join(cut(str(v), widths[i]) for i, v in enumerate(row[:cols])) for row in shown]
         if more:lines.append('and %d more' % more)
         return '\n'.join(line.rstrip() for line in lines)
 

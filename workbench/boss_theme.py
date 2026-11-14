@@ -58,7 +58,7 @@ PALETTES = {
 # not chosen others, every menu, tab, tree, button and card title); DISPLAY is the face of headings; MONO is the face of what
 # must be read exactly and line up: code and lines, the typing line, Terminal, addresses, numbers in a table, small tags.
 # In Kasandra all three are the typewriter face, built from Special Elite (tools/derive_typewriter.py): Kasandra Elite for
-# words, with a slashed zero, an l on a right foot and figures of one width; Kasandra Elite Mono for MONO, the same letters
+# words, with a slashed zero, a sloped one, a tailed l and figures of one width; Kasandra Elite Mono for MONO, the same letters
 # on a fixed pitch and on Plex Mono's line, so every row measured in Plex Mono keeps its height. In Graphite they are Plex.
 
 # 0.8.0, the owner: "Should we welcome more colors like a yellow that matches her hair and more shades of violet". Each has

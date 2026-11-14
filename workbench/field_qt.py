@@ -456,7 +456,13 @@ class FieldView(QWidget):
         p.setFont(self.mono(11.5, QFont.Medium));fm = QFontMetricsF(p.font());p.setPen(ink(t.VIOLET, 0.95))
         for (cx, cw), word in zip(cols, ('PARAMETER', 'VALUE', 'UNIT', 'CONDITIONS')):p.drawText(QPointF(cx + 8 * s, y + fm.ascent()), word)
         y += fm.height() + 8 * s;top = y
-        value_font = self.mono(15);word_font = self.sans(15);row_h = max(QFontMetricsF(value_font).height(), QFontMetricsF(word_font).height()) * 2.1
+        value_font = self.mono(15);word_font = self.sans(15);line = max(QFontMetricsF(value_font).height(), QFontMetricsF(word_font).height())
+        def ghost_of(font):
+            ghost = QFont(font);ghost.setPixelSize(max(9, round(font.pixelSize() * 0.82)));return ghost
+        # 0.8.3 review: the afterimage sat on the pink edge and touched the value. A changed row keeps a line of its own for
+        # the afterimage above the edge, which closes round the current value only; a row is as tall as both need.
+        lifted = max(QFontMetricsF(ghost_of(value_font)).height(), QFontMetricsF(ghost_of(word_font)).height())
+        row_h = max(line * 2.1, lifted + line + 14 * s)
         for n, row in enumerate(rows):
             band = QRectF(rect.left(), y, rect.width(), row_h);self._rev_rows.append((band, n))
             if n == cmp.get('sel'):p.fillRect(band, ink(t.READY, 0.07))
@@ -464,14 +470,16 @@ class FieldView(QWidget):
             a, b = row.get('a') or {}, row.get('b') or {}
             for (cx, cw), field in zip(cols, ('parameter', 'value', 'unit', 'conditions')):
                 cell = QRectF(cx + 8 * s, y, cw - 16 * s, row_h);font = value_font if field in ('value', 'unit') else word_font
-                p.setFont(font);fmc = QFontMetricsF(font);base = y + (row_h + fmc.ascent() - fmc.descent()) / 2
+                p.setFont(font);fmc = QFontMetricsF(font)
+                if row.get('changed'):base = y + 8 * s + lifted + fmc.ascent()      # under the afterimage's line
+                else:base = y + (row_h + fmc.ascent() - fmc.descent()) / 2
                 now = str(row.get('parameter', '')) if field == 'parameter' else str(b.get(field, '') if b else '')
                 if field in (row.get('changed') or ()):
-                    before = str(a.get(field, ''))
-                    ghost = QFont(font);ghost.setPixelSize(max(9, round(font.pixelSize() * 0.82)));p.setFont(ghost)       # the afterimage: lifted, a few pixels off, smaller
-                    p.setPen(ink(t.VIOLET, 0.7));p.drawText(QPointF(cell.left() + 5 * s, base - fmc.ascent() * 0.95), QFontMetricsF(ghost).elidedText(before, Qt.ElideRight, cell.width()))
+                    before = str(a.get(field, ''));ghost = ghost_of(font);fmg = QFontMetricsF(ghost);p.setFont(ghost)       # the afterimage: lifted above the edge, a few pixels off, smaller
+                    p.setPen(ink(t.VIOLET, 0.7));p.drawText(QPointF(cell.left() + 5 * s, base - fmc.ascent() - 4 * s - fmg.descent()), fmg.elidedText(before, Qt.ElideRight, cell.width()))
                     p.setFont(font)
-                    p.setPen(QPen(ink(t.OWNER, 0.95), 1.2));p.setBrush(Qt.NoBrush);p.drawRect(cell.adjusted(-4 * s, 5 * s, 4 * s, -5 * s))   # the fine pink edge
+                    edge = QRectF(cell.left() - 4 * s, base - fmc.ascent() - 2 * s, cell.width() + 8 * s, fmc.ascent() + fmc.descent() + 4 * s)
+                    p.setPen(QPen(ink(t.OWNER, 0.95), 1.2));p.setBrush(Qt.NoBrush);p.drawRect(edge)   # the fine pink edge, round the current value
                 p.setPen(QColor(t.TEXT if field != 'parameter' else t.TEXT));p.drawText(QPointF(cell.left(), base), fmc.elidedText(now, Qt.ElideRight, cell.width()))
             y += row_h
         for cx, cw in cols[1:]:                                     # the column guides

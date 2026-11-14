@@ -16,7 +16,8 @@ byte for byte. They are distributed under the same Apache License 2.0, with its 
 their name tables (IDs 0, 13 and 14).
 
 - KasandraElite-Regular.ttf (family "Kasandra Elite"): changed are the glyphs zero to nine and l only. The zero carries a
-  slash across its counter; the l stands on a right foot only (the left half of its foot cut away); every digit is 1254
+  slash across its counter; the one's short level flag is replaced by a long sloped flag on its full foot; the l loses its
+  foot and its stem ends in a tail curving to the right (so l and 1 differ at the top and at the foot); every digit is 1254
   units wide with its drawing centred (tabular figures), and no kerning pair between two digits is kept (the kern table
   and GPOS pair kerning). The names (IDs 1, 3, 4, 6, 10, 16 and 17) are its own. Every other glyph, its metrics, the
   hinting programs and the layout tables are unchanged.
@@ -29,5 +30,5 @@ Source: the owner's Kasandra pack (Pass 02, fonts/), a copy of the Google Fonts 
 
 - SpecialElite-Regular.ttf · SHA-256 a776fcb4ceb8bdf03e2967688ebdad42680de5b91a7e62c17e718ae212d14bc4
 - SpecialElite-LICENSE.txt · SHA-256 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
-- KasandraElite-Regular.ttf · SHA-256 7cde3cea161199f2d2eaaf1ec9c0527d2bb048301fdebf48feb10c01d8391360
-- KasandraEliteMono-Regular.ttf · SHA-256 1fe883c0a281154dcaa42d2191a32702b0cf509c635e7eea4a4c3f250cd219a7
+- KasandraElite-Regular.ttf · SHA-256 6dd79f595ed2e6357cf9547850470bdab2400c2c3bde5c0dacc79f5b47b402b1
+- KasandraEliteMono-Regular.ttf · SHA-256 326b42ae80c0495e0ef95acb42df507781c13128c8652d4e92838787fce6df3b

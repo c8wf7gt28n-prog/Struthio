@@ -113,12 +113,22 @@ class IdleDisplay(QObject):
         profile = getattr(self.host, 'reading_profile', self.host.session.state.get('reading_profile', {}))
         self.screen.begin(bool(profile.get('reduce_motion', False)))
         self._listen()
+        self._hologram()
 
     def dismiss(self):
         if self.screen is not None:
             self.screen.hide()
         self._listen()
         self._arm()
+        self._hologram()
+
+    def _hologram(self):
+        # Kasandra's hologram (hologram_qt) runs no frames under the idle display, and runs again when it goes
+        stage = getattr(self.host, 'hologram', None)
+        if stage is not None:
+            try:stage.wake_or_sleep()
+            except RuntimeError:  # the window is closing
+                pass
 
     def _application_changed(self, state):
         if state == Qt.ApplicationActive:

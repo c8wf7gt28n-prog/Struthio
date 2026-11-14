@@ -22,15 +22,15 @@ DELETE = lambda foot_top: (218, foot_top + 8, 120, 29)
 
 
 class Place(unittest.TestCase):
-    TABLE = (      # rows_end, foot_top, result
-        (429, 1025, ('stage', (36, 637, 281, 380), (28, 637, 297, 396))),      # 1920 Files, 13 rows
-        (317, 1025, ('stage', (36, 637, 281, 380), (28, 637, 297, 396))),      # 1920 Machine, 9 rows
+    TABLE = (      # rows_end, foot_top, result (0.8.3 review: on the stage her base has 24 px, so its ring clears DELETE)
+        (429, 1025, ('stage', (36, 629, 281, 380), (28, 629, 297, 404))),      # 1920 Files, 13 rows
+        (317, 1025, ('stage', (36, 629, 281, 380), (28, 629, 297, 404))),      # 1920 Machine, 9 rows
         (821, 1025, ('corner', (32, 838, 166, 224), (24, 838, 182, 240))),     # 1920 Files, all 27 rows open
         (429, 593, ('corner', (47, 446, 136, 184), (39, 446, 152, 200))),      # 1366 Files, 13 rows
         (373, 593, ('corner', (26, 390, 178, 240), (18, 390, 194, 256))),      # 1366 Files, top level
         (485, 593, ('corner', (67, 502, 95, 128), (59, 502, 111, 144))),       # 1366 Files, 15 rows
         (513, 593, None),                                                     # 1366 Files, 16 rows
-        (317, 593, ('stage', (84, 333, 186, 252), (76, 333, 202, 268))),       # 1366 Machine, 9 rows
+        (317, 593, ('stage', (87, 333, 180, 244), (79, 333, 196, 268))),       # 1366 Machine, 9 rows
         (None, 593, None),                                                    # the tree scrolls, or Settings
     )
 
@@ -109,6 +109,20 @@ class Motion(unittest.TestCase):
         blocked = holo.tear_starts('blocked', 600, random.Random(7))
         self.assertEqual(len(blocked), 1);self.assertLessEqual(blocked[0], 0.2)
 
+    def test_the_static_is_calm(self):
+        """0.8.3 review: the static sparkled as much in the calm states as at rest. It is drawn anew every third frame, from
+        six patterns; while something waits for the owner, or the work stopped, it is faint and held still; and the flicker
+        changes by under 2% from one frame to the next."""
+        self.assertEqual([holo.noise_key('idle', n) for n in range(12)], [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3])
+        self.assertEqual({holo.noise_key('idle', n) for n in range(200)}, set(range(holo.NOISE_KEYS)))
+        for state in ('awaiting_approval', 'blocked'):
+            self.assertEqual({holo.noise_key(state, n) for n in range(200)}, {0}, state)
+            self.assertLessEqual(holo.MOTION[state]['static'], 0.10, state)
+            plans = [holo.frame_plan(state, 50 + i / holo.FPS, random.Random(1), False, 50 + i / holo.FPS, None) for i in range(36)]
+            self.assertEqual({(p['noise_index'], p['noise_offset']) for p in plans}, {(0, holo.noise_offset(0))}, state)
+        steps = [abs(holo.flicker('idle', (i + 1) / holo.FPS) - holo.flicker('idle', i / holo.FPS)) for i in range(holo.FPS * 120)]
+        self.assertLess(max(steps), 0.02)
+
     def test_a_frame_is_drawn_the_same_twice(self):
         a = holo.frame_plan('idle', 12.25, random.Random(3), False, 12.0, None)
         b = holo.frame_plan('idle', 12.25, random.Random(9), False, 12.0, None)
@@ -127,7 +141,7 @@ class Window(unittest.TestCase):
     def test_she_stands_in_files_and_her_clock_runs(self):
         files = self.out['files']
         self.assertTrue(files['visible']);self.assertEqual(files['stance'], 'stage');self.assertEqual(files['interval'], 83)
-        self.assertEqual(files['figure'], [36, 698, 281, 380])
+        self.assertEqual(files['figure'], [36, 690, 281, 380])
         if self.out['active']:self.assertTrue(files['running'])
         self.assertEqual(self.out['meets_rows'], 0);self.assertFalse(self.out['meets_delete'])
         self.assertFalse(self.out['inactive_running'], 'asleep while another program is in front')
@@ -144,16 +158,49 @@ class Window(unittest.TestCase):
     def test_her_motion_is_calm_and_follows_the_state(self):
         m = self.out['motion'];idle, working, waiting, still = m['idle'][0], m['working'][0], m['awaiting_approval'][0], m['still'][0]
         self.assertTrue(2.5 <= idle <= 8.0, m);self.assertTrue(4.0 <= working <= 10.0 and working > idle, m)
-        self.assertTrue(1.0 <= waiting <= idle, m);self.assertEqual(still, 0.0, m)
+        self.assertTrue(1.0 <= waiting <= 0.7 * idle, m);self.assertEqual(still, 0.0, m)      # waiting is calmer than at rest
         self.assertTrue(all(v[1] <= 0.02 for v in m.values()), 'the stage\'s brightness changes by 2 percent at most: ' + repr(m))
 
     def test_a_frame_costs_little(self):
-        self.assertEqual(self.out['size'], [297, 396]);self.assertLess(self.out['paint_ms'], 3.0)
+        self.assertEqual(self.out['size'], [297, 404]);self.assertLess(self.out['paint_ms'], 1.5, 'the plan\'s budget')
 
     def test_the_state_is_one_colour_on_her_base_and_her_cursor(self):
         for state, seen in self.out['states'].items():
             self.assertEqual(seen['word'], holo.look(state)[0], state)
             self.assertEqual(seen['cursor'], seen['role'], state);self.assertEqual(seen['base'], seen['role'], state)
+
+
+class Asleep(unittest.TestCase):
+    """0.8.3 review: her clock under the idle display, a touch while she is asleep, and a picture that will not decode."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.out = probe('kasandra', 1366, 768, 'review')
+
+    def test_the_idle_display_puts_her_to_sleep_and_wakes_her(self):
+        self.assertFalse(self.out['idle_running']);self.assertTrue(self.out['idle_back'])
+
+    def test_a_touch_while_asleep_leaves_no_tear(self):
+        self.assertFalse(self.out['touch_asleep'])
+
+    def test_a_picture_that_will_not_decode_is_not_stood_up(self):
+        self.assertEqual(self.out['undecodable'], [True, None])
+
+    def test_a_failed_decode_is_remembered(self):
+        import shutil, tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from PySide6.QtGui import QGuiApplication, QImage, QImageReader
+        from workbench import kasandra_art
+        QGuiApplication.instance() or QGuiApplication([])
+        pack = Path(__file__).resolve().parents[1] / 'branding' / 'kasandra'
+        with tempfile.TemporaryDirectory() as folder:
+            copy = Path(folder) / 'hologram.webp';shutil.copyfile(pack / 'hologram.webp', copy)
+            reads = []
+            with patch.object(QImageReader, 'read', lambda self:reads.append(1) or QImage()):
+                for _ in range(5):self.assertTrue(kasandra_art.cutout(copy).isNull())
+            self.assertEqual(len(reads), 1, 'read once, not for every frame')
+            kasandra_art.forget()
 
 
 class Absent(unittest.TestCase):

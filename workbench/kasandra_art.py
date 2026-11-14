@@ -218,8 +218,8 @@ MARKS = {
     'hologram.webp': 'b73f7108256ef7523b38bf6ba53478b62d90c8bcd3a3dec9d97b8d34913698ec',
     'kp_emblem_source.png': '94d7bfb3932fd1cdb9c1f499fe4eee011d9e0404ff5cfa071d9a7dbb2eb3afaa',
     'kp_emblem.png': '5bfdf6e8dd1be97fe63f549f83a61285f37695ac52bbed07739e7d435ac879c5',
-    'kp_emblem_small.png': 'd61a9330cfab1c36416193e8e87bdeaa8a3cc2615448449ea20385c835aaa50d',
-    'kp_emblem_38.png': '2c49aeb55bc2aa7ef5871bf2c3cbe307aef2d3c611529f4a3e98f0f0c3f6127e',
+    'kp_emblem_small.png': 'ed2ec90a29505a09879a954521b6eca0608c66fd85d1c76570e22e1ea9d37aa4',
+    'kp_emblem_38.png': 'fbb43393dfc559bc3c55c70088c1087182879bebc66890f7f5f476b73f5b3e32',
     'kp_emblem_76.png': 'ffccd3e3cc8f29de1f3bec325971afa4f1b78b3883a10a7e56aff224a3b9f32c',
     'kp_tile.png': 'bd1a274b69ad6b633c9c0d734a2e949626ebe78f4ca875ea83613268407e10f5',
     'kp_tile_letters.png': 'a99f936f1b0283c658f029e5ead98c1a0bc56c6f62265872ff2ca7c55dd0275f',
@@ -256,7 +256,8 @@ def _cut(path):
     started = time.perf_counter()
     reader = QImageReader(key);reader.setAutoTransform(False)
     whole = reader.read()
-    if whole.isNull():return QImage(), ()
+    if whole.isNull():      # kept too: a picture that will not decode here is not read again for every frame
+        _cutouts[key] = (QImage(), ());return _cutouts[key]
     whole = whole.convertToFormat(QImage.Format_ARGB32)
     _decodes.append(('hologram', round((time.perf_counter() - started) * 1000, 2), (whole.width(), whole.height())));del _decodes[:-64]
     x, y, w, h = CROP
@@ -361,6 +362,17 @@ def current_state(host, now=None):
     if fresh and kind == 'blocked':return 'blocked'
     if working(host):return 'working'
     return 'completed' if fresh else 'idle'
+
+
+def column_state(host, now=None):
+    """The state her masthead and her hologram show: current_state, and while it is quiet but her column's Now line counts
+    something waiting for the owner on the Agenda ("1 waiting for you"), awaiting_approval, so the word above it never says
+    "quiet" (0.8.3 review). The stills keep current_state: their waiting hand is for an Approve that waits."""
+    state = current_state(host, now)
+    if state == 'idle':
+        face = getattr(getattr(host, 'shell2', None), 'face', None)
+        if int(getattr(face, 'agenda_waiting', 0) or 0) > 0:return 'awaiting_approval'
+    return state
 
 
 def in_force():

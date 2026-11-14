@@ -381,10 +381,13 @@ def picture(p, ink, accent):
     facet(p, accent, (5.0, 6.5), (7.5, 6.5), (7.5, 9.0), (5.0, 9.0))
 
 
-def letters(text, weight=QFont.DemiBold, italic=False, under=False, family='IBM Plex Sans', size=13.0):
-    """A glyph that is type: the letter a writer already knows a style by."""
+def letters(text, weight=QFont.DemiBold, italic=False, under=False, family='words', size=13.0):
+    """A glyph that is type: the letter a writer already knows a style by, in the appearance's own face (boss_theme FACE for
+    'words', MONO for 'mono'; Plex in Graphite, the typewriter faces in Kasandra), read when it is drawn."""
     def draw(p, ink, accent):
-        font = QFont(family);font.setPixelSize(int(size));font.setWeight(weight);font.setItalic(italic)
+        from . import boss_theme as bt
+        font = QFont(bt.MONO if family == 'mono' else bt.FACE if family == 'words' else family)
+        font.setPixelSize(int(size));font.setWeight(weight);font.setItalic(italic)
         p.setFont(font);p.setPen(ink);p.drawText(QRectF(-4, 0, 28, 19 if under else 20), Qt.AlignCenter, text)
         if under:
             pen(p, ink, 1.4);line(p, (5.0, 17.5), (15.0, 17.5))
@@ -454,7 +457,7 @@ GLYPHS = {
     'bold': letters('B', QFont.Bold, size=14.0), 'italic': letters('I', QFont.DemiBold, italic=True, size=14.0),
     'underline': letters('U', QFont.DemiBold, under=True, size=12.0),
     'h1': letters('H1'), 'h2': letters('H2', QFont.Medium, size=12.0), 'h3': letters('H3', QFont.Normal, size=11.0),
-    'body': letters('¶', QFont.Normal, size=14.0), 'code': letters('{}', QFont.Medium, family='IBM Plex Mono', size=12.0),
+    'body': letters('¶', QFont.Normal, size=14.0), 'code': letters('{}', QFont.Medium, family='mono', size=12.0),
     'plain': letters('Aa', QFont.Normal, size=12.0),
 }
 

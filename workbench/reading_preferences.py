@@ -44,6 +44,19 @@ def in_force(names):
             bt.MONO if code=='IBM Plex Mono' else code)
 
 
+def faces_in_force(host):
+    """(words, lines): the face of the window's words and the face of lines and code now, as available here. The
+    appearance's own (boss_theme FACE and MONO) until the owner chooses others in Reading and layout, then hers; for the
+    parts that hold their own face (her masthead, a line's slab), which the window's sheet does not reach."""
+    from .reading_profile import DEFAULT
+    profile=getattr(host,'reading_profile',None) or DEFAULT
+    try:ui,_,code=in_force((profile['family'],profile['prose_family'],profile['code_family']))
+    except (KeyError,TypeError,ValueError):
+        from . import boss_theme as bt
+        ui,code=bt.FACE,bt.MONO
+    return family(ui),family(code,True)
+
+
 def font(name,size,fixed=False):
     result=QFont(family(name,fixed));result.setPointSizeF(size)
     if fixed:result.setStyleHint(QFont.Monospace);result.setFixedPitch(True)
@@ -54,8 +67,9 @@ def browser_spacing(browser,profile):
     if not isValid(browser):return
     document=browser.document();modified=document.isModified()
     scroll=browser.verticalScrollBar().value()
+    prose=in_force((profile['family'],profile['prose_family'],profile['code_family']))[1]      # the prose face in force, as style_widget's
     with QSignalBlocker(document):
-        document.setDefaultFont(font(profile['prose_family'],profile['prose_pt']))
+        document.setDefaultFont(font(prose,profile['prose_pt']))
         cursor=QTextCursor(document);cursor.select(QTextCursor.Document)
         block=QTextBlockFormat()
         block.setLineHeight(profile['line_height']*100,QTextBlockFormat.ProportionalHeight.value)
@@ -131,6 +145,7 @@ def apply(host,profile=None,persist=False):
         (ui,profile['ui_pt'],profile['navigation_pt'],code,profile['code_pt'],
          prose,profile['prose_pt'],profile['ui_pt']+3,profile['ui_pt']+8))
     host.nav.setObjectName('hardwareTree');host.nav.setFont(font(ui,profile['navigation_pt']))
+    tip_face(ui,profile)
     if not hasattr(host,'reading_watcher'):host.reading_watcher=ReadingWatcher(host)
     for widget in host.findChildren(QWidget):
         if isinstance(widget,(QPlainTextEdit,QTextBrowser)) or widget.property('arcReadingRole'):
@@ -146,6 +161,15 @@ def apply(host,profile=None,persist=False):
     return {'requested_family':profile['family'],'actual_family':ui,
             'actual_prose_family':prose,'actual_code_family':code,
             'bundled_families':families,'profile':profile}
+
+
+def tip_face(ui,profile):
+    """Kasandra: a tooltip is a window of its own, which the window's sheet does not reach, so its face is set here: the
+    words face in force at the menus' size (15 px at 14 pt). Graphite's tooltips keep the application's face."""
+    from . import boss_theme as bt
+    if bt.APPEARANCE!='kasandra':return
+    from PySide6.QtWidgets import QToolTip
+    tip=QFont(ui);tip.setPixelSize(max(12,round(15*float(profile.get('ui_pt',14.0))/14.0)));QToolTip.setFont(tip)
 
 
 def adjust_prose(host,delta):

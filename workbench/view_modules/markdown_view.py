@@ -9,9 +9,52 @@ from __future__ import annotations
 import re
 
 KINDS = ('markdown',)
-CSS = ("body{color:#504d46;font-family:'IBM Plex Sans';} h1,h2,h3{color:#504d46;font-weight:600;} "
-       "a{color:#504d46;text-decoration:underline;text-decoration-color:#cba5a4;} code,pre{font-family:'IBM Plex Mono';background:#eee9df;} "
-       "table{border-collapse:collapse;} td,th{border:1px solid #dad4c8;padding:4px 8px;} blockquote{color:#6c675e;}")
+STYLE = ("body{color:#504d46;font-family:'%(words)s';} h1,h2,h3{color:#504d46;font-weight:600;} "
+         "a{color:#504d46;text-decoration:underline;text-decoration-color:#cba5a4;} "
+         "code,pre{font-family:'%(code)s';font-size:%(code_pt).1fpt;background:#eee9df;} "
+         "table{border-collapse:collapse;} td,th{border:1px solid #dad4c8;padding:4px 8px;} blockquote{color:#6c675e;}")
+
+
+def css(host=None):
+    """The note's style in the faces in force (reading_preferences.faces_in_force: Plex in Graphite, the typewriter faces in
+    Kasandra, or the owner's own), its code at her code size: a face named here would otherwise win over them all."""
+    from .. import boss_theme as bt
+    words, code, code_pt = bt.FACE, bt.MONO, 13.0
+    if host is not None:
+        from ..reading_preferences import faces_in_force
+        words, code = faces_in_force(host)
+        code_pt = float((getattr(host, 'reading_profile', None) or {}).get('code_pt', code_pt))
+    return STYLE % dict(words=words, code=code, code_pt=code_pt)
+
+
+CSS = css()      # the appearance's own faces, for a note drawn without a window at hand (a thumbnail)
+
+
+def dress_code(document, host=None):
+    """Qt reads Markdown without a stylesheet and gives its code (a `span` or a fenced block) the system's fixed face at its
+    own small size; here each piece of code takes the code face in force at her code size (0.8.3 review: "a tiny generic
+    monospace"). Words keep the document's face (reading_preferences sets it to the prose face in force)."""
+    from PySide6.QtGui import QFontDatabase, QTextCharFormat, QTextCursor, QTextFormat
+    from .. import boss_theme as bt
+    code, code_pt = bt.MONO, 13.0
+    if host is not None:
+        from ..reading_preferences import faces_in_force
+        code = faces_in_force(host)[1];code_pt = float((getattr(host, 'reading_profile', None) or {}).get('code_pt', code_pt))
+    wear = QTextCharFormat();wear.setFontFamilies([code]);wear.setFontPointSize(code_pt);wear.setFontFixedPitch(True)
+    fixed = QFontDatabase.systemFont(QFontDatabase.FixedFont).family()      # the face Qt's Markdown reader gives code
+    block = document.begin()
+    while block.isValid():
+        fenced = block.blockFormat().hasProperty(QTextFormat.Property.BlockCodeFence)      # a fenced block
+        it = block.begin()
+        while not it.atEnd():
+            piece = it.fragment()
+            if piece.isValid():
+                fmt = piece.charFormat()
+                if fenced or fmt.fontFixedPitch() or fixed in (fmt.fontFamilies() or ()):
+                    cursor = QTextCursor(document);cursor.setPosition(piece.position());cursor.setPosition(piece.position() + piece.length(), QTextCursor.KeepAnchor)
+                    cursor.mergeCharFormat(wear)
+            it += 1
+        block = block.next()
 
 
 FENCE = re.compile(r'^```stac[ \t]*\n(.*?)\n```[ \t]*$', re.S | re.M)
@@ -79,12 +122,13 @@ def ReadingPage(tab):
     shown, tables = living_html(text, kernel_runner(tab.host)) if FENCE.search(text) and getattr(tab, 'host', None) is not None else (text, {})
     split = QSplitter(Qt.Horizontal)
     reading = QTextBrowser();reading.setOpenLinks(False);reading.setOpenExternalLinks(False);reading.setProperty('arcReadingRole', 'prose')
-    reading.document().setDefaultStyleSheet(CSS);reading.setMarkdown(shown);reading.setAccessibleName('Markdown, as it reads')
+    reading.document().setDefaultStyleSheet(css(getattr(tab, 'host', None)));reading.setMarkdown(shown);reading.setAccessibleName('Markdown, as it reads')
     from PySide6.QtGui import QTextCursor
     for marker, html in tables.items():  # each marker paragraph becomes its live table
         found = reading.document().find(marker)
         if not found.isNull():
             found.select(QTextCursor.BlockUnderCursor);found.removeSelectedText();found.insertBlock();found.insertHtml(html)
+    dress_code(reading.document(), getattr(tab, 'host', None))
     source = QPlainTextEdit(text);source.setReadOnly(True);source.setAccessibleName('Markdown source')
     split.addWidget(reading);split.addWidget(source);split.setSizes([620, 420])
     return split

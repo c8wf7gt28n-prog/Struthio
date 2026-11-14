@@ -10,7 +10,9 @@ opaque.
 
     kp_emblem.png         the cut, trimmed to the ink and 8 px round it (737 x 482): the master
     kp_emblem_small.png   the same with the thin pink and violet strokes thickened (a 9 x 9 dilation) and the letters
-                          laid back over them exactly: what a 38 px button can still show
+                          laid back over them exactly, the violet trace in a lighter tint of its own violet (#9466ff,
+                          the same hue): what a 38 px button can still show, the trace 3:1 or more against the head
+                          band's lit lower edge (0.8.3 review: about 2:1 in the owner's #7635fe)
     kp_emblem_38.png      the Apps button at 1x (58 x 38), from the small cut
     kp_emblem_76.png      the Apps button at 2x (116 x 76), from the master
     kp_tile.png           the window icon, 256 px: the master on its own navy in a rounded square
@@ -30,6 +32,7 @@ from PIL import Image, ImageDraw, ImageFilter
 SOURCE_SHA = '94d7bfb3932fd1cdb9c1f499fe4eee011d9e0404ff5cfa071d9a7dbb2eb3afaa'
 GROUND = np.array([7, 2, 33.0])
 CREAM, PINK, PINK_HOT, VIOLET = (254, 241, 227), (242, 62, 107), (253, 54, 108), (118, 53, 254)
+VIOLET_SMALL = (148, 102, 255)      # the small cut's trace: the owner's violet lightened, its hue kept (258 against 259 degrees)
 INKS = np.array([CREAM, PINK, PINK_HOT, VIOLET], dtype=np.float64)
 PAD = 8
 
@@ -80,7 +83,7 @@ def main(root):
     # kept mixes) laid back over them as they are
     small = Image.new('RGBA', master.size, (0, 0, 0, 0))
     crop = lambda a:a[box[1]:box[3], box[0]:box[2]]
-    for indexes, F in (((3,), VIOLET), ((1, 2), PINK)):
+    for indexes, F in (((3,), VIOLET_SMALL), ((1, 2), PINK)):
         alpha = Image.fromarray((crop(np.where(np.isin(ink, indexes), cover, 0.0)) * 255).round().astype(np.uint8), 'L')
         layer = Image.new('RGBA', master.size, F + (0,));layer.putalpha(alpha.filter(ImageFilter.MaxFilter(9)))
         small.alpha_composite(layer)

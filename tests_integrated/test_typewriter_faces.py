@@ -1,6 +1,6 @@
 """0.8.3, every face of Kasandra in the typewriter face (tools/derive_typewriter.py; boss_theme FACE, DISPLAY and MONO).
 
-Kasandra Elite, the words face, is Special Elite with a slashed zero, an l on a right foot and tabular figures, every other
+Kasandra Elite, the words face, is Special Elite with a slashed zero, a sloped one, a tailed l and tabular figures, every other
 letter as it was. Kasandra Elite Mono, the face of what must line up, has every character on Plex Mono's pitch and line, so
 a Terminal's columns, a table's figures and every row measured in Plex Mono keep their places; what it lacks (an arrow, a
 box-drawing line) comes from Plex Mono at the same width. Graphite keeps Plex.
@@ -57,6 +57,15 @@ class Files(unittest.TestCase):
             self.assertIn('%s · SHA-256 %s' % (name, sha), notice)
         self.assertIn('Not the Special Elite font; its name is not used for the derived faces.', notice)
 
+    def test_the_program_loads_only_the_recorded_bytes(self):
+        """shell2.load_fonts loads a typewriter face only when its SHA-256 is the recorded one (0.8.3 review: they were loaded
+        unchecked); the record there is the files' and NOTICE.md's."""
+        from workbench import shell2
+        notice = (FONTS / 'NOTICE.md').read_text(encoding='utf-8')
+        self.assertEqual(set(shell2.TYPEWRITER), {'KasandraElite-Regular.ttf', 'KasandraEliteMono-Regular.ttf', 'SpecialElite-Regular.ttf'})
+        for name, sha in shell2.TYPEWRITER.items():
+            self.assertEqual(hashlib.sha256((FONTS / name).read_bytes()).hexdigest(), sha, name);self.assertIn('%s · SHA-256 %s' % (name, sha), notice)
+
     def test_their_families(self):
         from PySide6.QtGui import QFontDatabase
         for name, family in (('KasandraElite-Regular.ttf', 'Kasandra Elite'), ('KasandraEliteMono-Regular.ttf', 'Kasandra Elite Mono')):
@@ -107,8 +116,29 @@ class Glyphs(unittest.TestCase):
                 pixels = ink(family, ch);xs = [x for x, _ in pixels];ys = [y for _, y in pixels]
                 cx, cy = (min(xs) + max(xs)) // 2, (min(ys) + max(ys)) // 2
                 return sum(1 for x, y in pixels if cx - 3 <= x < cx + 3 and cy - 3 <= y < cy + 3)
-            self.assertEqual(foot('l'), 0, family + ': the l stands on a right foot');self.assertGreaterEqual(foot('1'), 6, family)
+            self.assertEqual(foot('l'), 0, family + ': the l has no foot to its left');self.assertGreaterEqual(foot('1'), 6, family)
             self.assertGreaterEqual(middle('0'), 8, family + ': the zero is slashed');self.assertEqual(middle('O'), 0, family)
+
+    def test_l_and_one_differ_at_reading_sizes_as_much_as_in_plex_mono(self):
+        """0.8.3 review: at 13 to 18 px "A1" read as "Al". How far apart l and 1 are drawn (the grey of one against the
+        other, at the same pen position: 0 the same picture, 1 nothing shared) is at least Plex Mono's at 13, 15 and 18 px,
+        and with an underline (a link) too."""
+        from PySide6.QtGui import QColor, QImage, QPainter
+
+        def picture(family, px, ch, under):
+            image = QImage(4 * px, 2 * px, QImage.Format_Grayscale8);image.fill(0)
+            f = face(family, px);f.setUnderline(under)
+            p = QPainter(image);p.setFont(f);p.setPen(QColor(255, 255, 255));p.drawText(px, int(1.4 * px), ch);p.end()
+            return bytes(image.constBits())
+
+        def apart(family, px, under=False):
+            a, b = picture(family, px, 'l', under), picture(family, px, '1', under)
+            return sum(abs(x - y) for x, y in zip(a, b)) / max(1, sum(a) + sum(b))
+        for px in (13, 15, 18):
+            for under in (False, True):
+                plex = apart('IBM Plex Mono', px, under)
+                for family in ('Kasandra Elite', 'Kasandra Elite Mono'):
+                    self.assertGreaterEqual(apart(family, px, under), plex, '%s at %d px%s' % (family, px, ' underlined' if under else ''))
 
 
 class Wiring(unittest.TestCase):
