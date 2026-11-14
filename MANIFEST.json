@@ -19514,8 +19514,8 @@
       "sha256": "41782f6b81a14e915e011fa805e149b3d9d9ae4cc10293d1d22e9d2ebf1816d1"
     },
     "workbench/pane_qt.py": {
-      "bytes": 38403,
-      "sha256": "48dee3ed368db619eabad528dd98439e57583289ff6332b9ff5ff0d56c4a54e3"
+      "bytes": 44662,
+      "sha256": "c070c8cf31e7ed09f4bc4ea33077055791f959e1a6c4a3e225348658984c4a4f"
     },
     "workbench/pdf_qt.py": {
       "bytes": 31576,

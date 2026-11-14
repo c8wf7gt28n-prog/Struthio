@@ -310,6 +310,8 @@ def draw_branches(view, painter, rect, index):
     their own (a chevron, no trace). Until 0.5.1 these were one-pixel pencil-grey lines with square elbows."""
     step = view.indentation()
     if step <= 0 or rect.width() < step:return
+    from . import boss_theme as _bt
+    if _bt.APPEARANCE == 'kasandra':return draw_wires(view, painter, rect, index)
     model = view.model();own = rect.right() + 1 - step;mid = rect.top() + rect.height() // 2;cx = own + step // 2
     has = model.hasChildren(index);half = max(3, round(step * 0.18));cut = max(3, min(6, step // 4))
     path = lit_path(view);parent = index.parent();here = (parent, index.row()) in path
@@ -364,6 +366,82 @@ def draw_branches(view, painter, rect, index):
     painter.restore()
 
 
+def draw_wires(view, painter, rect, index):
+    """Kasandra's tree (0.8.1, the owner: "maybe the left-hand column tree, instead of being circuits, is kind of themed like
+    power lines or telephone pole lines, kind of in the Lain sense"). Each level is a line of poles; each row is a house fed
+    by its own drop: from a crossarm with two insulators on the pole, a wire hangs in a slight sag to the row, with a fainter
+    second strand beside it, and ends at an insulator (a row with nothing inside) or at its chevron. The wires on the way to
+    the current row are live: they carry the live colour and its light, and breathe with the tree. Graphite keeps its
+    circuit traces (draw_branches)."""
+    from PySide6.QtGui import QPainterPath
+    step = view.indentation();model = view.model();own = rect.right() + 1 - step;h = rect.height();mid = rect.top() + h // 2;cx = own + step // 2
+    has = model.hasChildren(index);half = max(3, round(step * 0.18));arm = max(3, min(6, step // 4))
+    path = lit_path(view);parent = index.parent();here = (parent, index.row()) in path
+    try:
+        from .boss_qt import glows
+        level = glow_level() if glows(view.window()) else 0.0
+    except Exception:  # noqa: BLE001 - a tree is drawn whatever else is the matter
+        level = 0.0
+    pulse = breath(view)
+    pole_ink = QColor('#4f5a92');wire_ink = QColor('#7d8ac6');wire_ink.setAlphaF(0.85)
+    painter.save();painter.setRenderHint(QPainter.Antialiasing, True)
+    painter.fillRect(rect, QColor(GROUND))
+
+    def glow(shape, lit, width):
+        if lit and level > 0:
+            for spread, alpha in ((4.5, 0.05), (2.5, 0.12)):
+                halo = QColor(LIVE);halo.setAlphaF(min(0.5, alpha * level * pulse * 1.2));pen = QPen(halo, width + spread)
+                pen.setCapStyle(Qt.RoundCap);pen.setJoinStyle(Qt.RoundJoin);painter.setPen(pen);painter.setBrush(Qt.NoBrush);painter.drawPath(shape)
+
+    def pole(x, top, bottom, lit):
+        """A run of pole: a dark upright, a little heavier than a wire; on the live path a thin live line rides beside it."""
+        line = QPainterPath(QPointF(x, top));line.lineTo(QPointF(x, bottom))
+        pen = QPen(pole_ink, 2.6);pen.setCapStyle(Qt.FlatCap);painter.setPen(pen);painter.drawPath(line)
+        if lit:      # the live wire rides beside the pole: thin, with a little light of its own
+            riser = QPainterPath(QPointF(x + 2.4, top));riser.lineTo(QPointF(x + 2.4, bottom))
+            glow(riser, True, 0.2)
+            painter.setPen(QPen(QColor(LIVE), 1.0));painter.drawPath(riser)
+
+    def lit_child_row(of):
+        return next((row for holder, row in path if holder == of), -1)
+
+    if parent.isValid() and own - step >= rect.left():
+        px = own - step + step // 2 + 0.5;goes = lit_child_row(parent);more = next_visible(view, index)
+        y_arm = mid - arm - 1.5
+        if more:pole(px, y_arm, rect.bottom() + 1, goes > index.row())
+        pole(px, rect.top(), y_arm, goes >= index.row())
+        # the crossarm, with an insulator at each end
+        painter.setPen(QPen(pole_ink, 2.0));painter.drawLine(QPointF(px - arm, y_arm), QPointF(px + arm, y_arm))
+        painter.setPen(Qt.NoPen);painter.setBrush(QColor(LIVE) if here else wire_ink)
+        for ix in (px - arm, px + arm):painter.drawEllipse(QPointF(ix, y_arm - 1.6), 1.3, 1.3)
+        # the drop: a wire hung from the arm's far insulator to the row, sagging a little; a fainter strand beside it
+        end = (cx - half - 3) if has else (rect.right() - 7)
+        start = QPointF(px + arm, y_arm - 1.0);finish = QPointF(end, mid + 0.5);sag = max(4.0, h * 0.34)
+        drop = QPainterPath(start);drop.quadTo(QPointF((start.x() + finish.x()) / 2, max(start.y(), finish.y()) + sag), finish)
+        glow(drop, here, 1.3)
+        pen = QPen(QColor(LIVE) if here else wire_ink, 1.4 if here else 1.15);pen.setCapStyle(Qt.RoundCap);painter.setPen(pen);painter.setBrush(Qt.NoBrush);painter.drawPath(drop)
+        strand = QPainterPath(QPointF(start.x(), start.y() - 2.2));strand.quadTo(QPointF((start.x() + finish.x()) / 2, max(start.y(), finish.y()) + sag - 3.0), QPointF(finish.x(), finish.y() - 2.6))
+        faint = QColor(LIVE if here else wire_ink);faint.setAlphaF(0.3 if here else 0.22);painter.setPen(QPen(faint, 0.8));painter.drawPath(strand)
+        if not has:      # the house end: an insulator where the wire stops
+            painter.setPen(QPen(QColor(LIVE) if here else wire_ink, 1.2));painter.setBrush(QColor(GROUND))
+            painter.drawRoundedRect(QRectF(end - 1.0, mid - 2.5, 4.2, 6.0), 1.2, 1.2)
+            if here and level > 0:
+                ring = QColor(LIVE);ring.setAlphaF(min(0.4, 0.12 * level * pulse));painter.setPen(Qt.NoPen);painter.setBrush(ring);painter.drawEllipse(QPointF(end + 1.1, mid + 0.5), 5.5, 5.5)
+        x = px - step;ancestor = parent
+        while ancestor.parent().isValid() and x >= rect.left():
+            if next_visible(view, ancestor):pole(x, rect.top(), rect.bottom() + 1, lit_child_row(ancestor.parent()) > ancestor.row())
+            ancestor = ancestor.parent();x -= step
+    if has:
+        if view.isExpanded(index):      # the row's own pole line begins under its chevron, for the rows inside it, with a cap
+            pole(cx + 0.5, mid + half + 3, rect.bottom() + 1, lit_child_row(index) >= 0)
+            painter.setPen(QPen(pole_ink, 2.0));painter.drawLine(QPointF(cx + 0.5 - arm, mid + half + 4), QPointF(cx + 0.5 + arm, mid + half + 4))
+        chevron = QPen(QColor(LIVE if here else TEXT), 1.5);chevron.setCapStyle(Qt.RoundCap);chevron.setJoinStyle(Qt.RoundJoin);painter.setPen(chevron);painter.setBrush(Qt.NoBrush)
+        if view.isExpanded(index):points = [QPointF(cx - half, mid - half / 2), QPointF(cx, mid + half / 2), QPointF(cx + half, mid - half / 2)]
+        else:points = [QPointF(cx - half / 2, mid - half), QPointF(cx + half / 2, mid), QPointF(cx - half / 2, mid + half)]
+        painter.drawPolyline(points)
+    painter.restore()
+
+
 class RowDelegate(QStyledItemDelegate):
     """Every row of a tree one height: the tree's row_height. On a desk that glows (0.8.1), its words carry a little of their
     own light: faint on every row, brighter in the live colour on the path to the current row and under the pointer."""
@@ -412,6 +490,8 @@ class BranchTree(QTreeWidget):
         self.breathing = True;self._breath = QTimer(self);self._breath.setInterval(140);self._breath.timeout.connect(self._breathe);self._breath.start()
 
     def set_metrics(self, row, indent):
+        from . import boss_theme as _bt
+        if _bt.APPEARANCE == 'kasandra':indent = round(int(indent) * 1.25)      # her pole lines want a little more span between levels
         if (self.row_height, self.indentation()) == (int(row), int(indent)):return
         self.row_height = int(row);self.setIndentation(int(indent));self.scheduleDelayedItemsLayout();self.viewport().update()
 
