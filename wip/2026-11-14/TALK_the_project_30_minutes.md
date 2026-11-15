@@ -70,8 +70,9 @@ What cannot be undone always asks, at every place on the dial. Her trail lists e
 has desk acts: forty named things a hand can do in the window, so she can be given a door to the window itself.
 
 **7. The model.** A local language model through a pinned llama.cpp (build b11669), started and stopped by Graphite's
-own service, with memory rules decided in 0.8.1. Auto starts your 35B when there are 39 GiB free: its 26,013 MiB
-estimate, a 2 GiB reserve and 4 GiB of headroom. A handover waits for the old model's memory. Ready means it actually
+own service, with memory rules decided in 0.8.1. Auto admits your 35B with 31.4 GiB free (32,157 MiB, so it now
+takes the 39 GiB case it used to refuse): its 26,013 MiB estimate, a 2 GiB reserve and 4 GiB of headroom. *(Corrected
+14 Nov after review: the talk first said "when there are 39 GiB free".)* A handover waits for the old model's memory. Ready means it actually
 answered.
 
 The principle across all seven: **the model proposes, the system disposes.** The model's words are marked as its own.

@@ -45,7 +45,6 @@
 #prop .n.f{color:var(--faint)}
 #prop .btns{position:absolute;left:12px;bottom:12px;display:flex;flex-direction:column;align-items:flex-start;gap:7px}
 #prop .btns span{border:1px solid var(--line2);background:var(--raised);padding:3px 10px;font-size:14.5px}
-#prop .btns .go{border-color:var(--bar);color:var(--edge)}
 
 /* NEXT MEASUREMENT: hers (honey edge) */
 #next{left:870px;top:102px;width:306px;height:526px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--honey);padding:10px 13px 10px 14px;font-size:15px;line-height:19px}
@@ -74,7 +73,7 @@
 
 /* the bench log */
 #log{left:30px;top:688px;width:1146px;font-size:15px}
-#log .row{display:grid;grid-template-columns:96px 176px 168px 136px 200px 1fr;column-gap:10px;align-items:center;height:33px;border-bottom:1px solid rgba(59,68,121,.55);padding-left:10px;white-space:nowrap}
+#log .row{display:grid;grid-template-columns:96px 158px 186px 136px 200px 1fr;column-gap:10px;align-items:center;height:33px;border-bottom:1px solid rgba(59,68,121,.55);padding-left:10px;white-space:nowrap}
 #log .hd{height:24px;font-family:EliteMono;font-size:12px;color:var(--violet);letter-spacing:.8px;border-bottom:1px solid var(--line)}
 #log .tm{font-family:EliteMono;font-size:13px;color:var(--faint)}
 #log .vl{font-family:EliteMono;font-size:13.5px;color:var(--cyan2)}
@@ -83,7 +82,6 @@
 #log .into{font-size:14.5px;color:var(--quiet);display:flex;align-items:center;gap:8px}
 #log .row.sel{background:var(--soft);border-left:2px solid var(--bar);padding-left:8px}
 #log .row.sel .tm,#log .row.sel .rn{color:var(--edge)}
-#log .row.pic .vl{color:var(--honey)}
 #log .row.pic .into{color:var(--pink)}
 #log .row.old{opacity:.8}
 #log .lfoot{margin-top:9px;padding-left:10px;font-size:13.5px;color:var(--faint)}
@@ -91,10 +89,10 @@
 
 /* her column: the spoken question, transcribed, and her answer */
 #brief div{margin-bottom:4px}
-#heard{left:58px;top:212px;width:284px;text-align:right;font-family:EliteMono;font-size:12px;color:var(--faint)}
+#heard{left:58px;top:218px;width:284px;text-align:right;font-family:EliteMono;font-size:12px;color:var(--faint)}
 #heard b{font-weight:normal;color:var(--cyan2)}
-#ask{top:232px}
-#hand{top:300px}
+#ask{top:240px}
+#hand{top:308px}
 #hand .say{font-size:15.5px;line-height:21px;color:var(--text);white-space:nowrap}
 #hand .work{font-family:EliteMono;font-size:12.5px;line-height:19px;color:var(--quiet);margin-top:8px;padding:6px 8px;background:var(--term);border:1px solid var(--line)}
 #hand .work div{display:flex;justify-content:space-between}
@@ -139,9 +137,9 @@
 </div>
 <!-- centre: the Bench room -->
 <div id="centre" class="abs">
- <div id="ctabs" class="abs"><span>Field</span><span>Files</span><span class="on">Bench</span><span class="room">KiCad · rail_12v</span><span class="room">Report draft</span></div>
- <div id="fhead" class="abs"><span>BENCH</span><span class="work">LIVE</span><span>CAPTURES</span><span>SETUP</span><span class="title">After Hours 07 · on the bench</span></div>
- <div id="fcount" class="abs"><span class="dot"></span>3 live · 3 readings taken · <span class="h">1 proposal waits for you</span></div>
+ <div id="ctabs" class="abs"><span>Today</span><span>Field</span><span>Files</span><span class="on">Bench</span><span class="room">KiCad · rail_12v</span><span class="room">Report draft</span></div>
+ <div id="fhead" class="abs"><span>BENCH</span><span class="work">LIVE</span><span>CAPTURES</span><span>SETUP</span><span class="title">After Hours 07 · bench</span></div>
+ <div id="fcount" class="abs"><span class="dot"></span>3 live · 2 readings taken · 1 capture · <span class="h">1 proposal waits for you</span></div>
 
  <div class="colt abs" style="left:30px">INSTRUMENTS</div>
 
@@ -204,8 +202,8 @@
   <div class="val">≈ 108 ms <small>±3</small></div>
   <div class="n">the vision model's reading, at the dashed cursors</div>
   <div class="n f">±3 is the model's guess; yours stays ±5 ms</div>
-  <div class="n f">not in the record until a meter confirms it</div>
-  <div class="btns"><span class="go">Confirm with the meter</span><span>Not this</span></div>
+  <div class="n f">not in the record until a reading confirms it</div>
+  <div class="btns"><span>Confirm with a reading</span><span>Not this</span></div>
  </div>
 
  <div id="next" class="abs"><h4>NEXT MEASUREMENT</h4>
@@ -231,7 +229,7 @@
   <div class="row sel"><span class="tm">10:12:41</span><span class="rn">settled current</span><span class="vl">280 mA</span><span class="in">Bench DMM 1</span><span class="tl">±0.35% · its own</span><span class="into">settled power 3.36 W <span class="verdict yes">HOLDS</span><span class="shown">shown by her</span></span></div>
   <div class="row"><span class="tm">10:12:40</span><span>rail voltage</span><span class="vl">12.00 V</span><span class="in">Bench PSU</span><span class="tl">±10 mV · its own</span><span class="into">settled power 3.36 W</span></div>
   <div class="row pic"><span class="tm">10:09:17</span><span>startup pulse</span><span class="vl">capture 03</span><span class="in">Scope 1</span><span class="tl">—</span><span class="into">a picture · its proposal waits for you</span></div>
-  <div class="row"><span class="tm">10:04:03</span><span>output on</span><span class="vl">12.00 V · 1.00 A</span><span class="in">Bench PSU</span><span class="tl">set by you</span><span class="into">—</span></div>
+  <div class="row"><span class="tm">10:04:03</span><span>output on</span><span class="vl">12.00 V · limit 1.00 A</span><span class="in">Bench PSU</span><span class="tl">set by you</span><span class="into">—</span></div>
   <div class="row"><span class="tm">10:02:30</span><span>zero</span><span class="vl">0.0 mA</span><span class="in">Bench DMM 1</span><span class="tl">±0.35% · its own</span><span class="into">offset taken</span></div>
   <div class="row old"><span class="tm">09:58:12</span><span>session opened</span><span class="vl">—</span><span class="in">the bench</span><span class="tl">—</span><span class="into">Rail 12 V · After Hours 07</span></div>
   <div class="lfoot">earlier sessions are in Bench log · each row keeps its instrument and its tolerance</div>
@@ -247,8 +245,8 @@
 <div id="who" class="abs">Kasandra<i></i></div>
 <div id="state" class="abs">at work</div>
 <div id="model" class="abs">35B · local · on the Radeon · <u>does and shows</u></div>
-<div id="brief" class="rc"><h4>THIS MORNING</h4>
- <div>Overnight the recheck on Rev C finished: the startup pulse does not hold. The backup tested clean.</div>
+<div id="brief" class="rc"><h4>WHILE YOU WERE AWAY</h4>
+ <div>Overnight the recheck on Rev C finished: the startup pulse does not hold. The backup restored clean.</div>
  <div>Bench session since 09:58.</div></div>
 <div id="heard" class="abs"><b>((·))</b> heard 10:14 · spoken</div>
 <div id="ask" class="abs">Kas, margin on the settled draw?</div>
@@ -257,10 +255,10 @@
  <div class="work"><div><span>12.00 V × 280 mA</span><span>3.36 W</span></div><div><span>continuous limit, Rev C</span><span>6 W</span></div><div class="sum"><span>6 − 3.36</span><span>2.64 W</span></div></div>
  <div class="g"><span class="verdict yes">HOLDS</span><span>settled draw under 6 W</span></div>
  <div class="shownote">I showed the 10:12 reading in the log.</div>
- <div class="btns"><span>Trace</span><span>Put it on the Field</span></div>
+ <div class="btns"><span>Put it on the Field</span></div>
  <div class="rcpt">words: the model's · 2.64 W: a line's<br>heard and said here · 1 question, 2 s<br>sources: DMM 1, PSU at 10:12 · Rev C r1</div></div>
 <div id="night" class="rc" style="top:700px"><h4>WHILE YOU MEASURE</h4>
- <div>I watch DMM 1, the PSU and Scope 1. A reading goes into the record only when you take it; a picture stays a proposal until a meter confirms it.</div>
+ <div>I watch DMM 1, the PSU and Scope 1. A reading goes into the record only when you take it; a picture stays a proposal until a reading confirms it.</div>
  <div style="margin-top:6px;font-size:14px;color:var(--faint)">your voice is heard on this machine only</div></div>
 <div id="voice" class="abs"><span class="lv"><i style="height:5px"></i><i style="height:10px"></i><i style="height:7px"></i><i style="height:12px"></i><i style="height:4px"></i></span><b>((·))</b> listening · say "Kas" or type</div>
 

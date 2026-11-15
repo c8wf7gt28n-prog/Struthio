@@ -38,12 +38,13 @@
 #fnote{left:30px;top:880px;width:660px;font-size:14px;line-height:20px;color:var(--faint)}
 
 /* a look inside the selected file */
-#peek{left:30px;top:342px;width:350px;background:var(--panel);border:1px solid var(--line);padding:10px 12px 11px}
+#peek{left:30px;top:382px;width:350px;background:var(--panel);border:1px solid var(--line);padding:10px 12px 11px}
 #peek h4{font-family:EliteMono;font-weight:normal;font-size:12px;color:var(--violet);letter-spacing:1px;margin-bottom:8px}
 #peek table{border-collapse:collapse;font-family:EliteMono;font-size:13.5px;width:100%}
 #peek th{font-weight:normal;color:var(--faint);text-align:left;padding:0 0 5px 8px;border-bottom:1px solid var(--line);font-size:12.5px}
 #peek td{padding:5px 0 4px 8px;color:var(--quiet)}
 #peek .r{text-align:right;padding-right:10px}
+#peek td.tol{color:var(--text)}
 #peek tr.kept td{background:rgba(123,79,216,.16);color:var(--text)}
 #peek tr.kept td:first-child{box-shadow:inset 3px 0 0 var(--royal)}
 #peek .says{margin-top:9px;font-family:EliteMono;font-size:12.5px;line-height:18px;color:#b9a1f6}
@@ -51,7 +52,7 @@
 
 /* the right-click: one popup and the one beside it (context_menu: never more than two) */
 .menu{position:absolute;z-index:20;background:var(--card);border:1px solid var(--line2);padding:6px 0;box-shadow:0 16px 36px rgba(6,7,22,.62),0 3px 8px rgba(6,7,22,.45)}
-.mi{position:relative;height:32px;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:16px;color:var(--text);white-space:nowrap}
+.mi{position:relative;height:34px;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:16px;color:var(--text);white-space:nowrap}
 .mi .cap{margin-left:auto;font-size:14px;color:var(--faint);padding-left:14px}
 .mi .ch{width:10px;height:14px;margin-left:auto;flex:none;fill:none;stroke:var(--faint);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .mi.bar{background:var(--bar);color:var(--onbar);box-shadow:inset 2px 0 0 var(--edge)}
@@ -63,8 +64,9 @@
 .grp{display:flex;align-items:center;gap:8px;height:22px;padding:0 12px;font-size:13px;color:var(--quiet)}
 .grp:after{content:"";flex:1;height:1px;background:var(--line)}
 #slab{margin:2px 8px 0;background:var(--rsoft);border-left:3px solid var(--royal);padding:6px 8px;font-family:EliteMono;font-size:15px;line-height:21px;color:var(--rink)}
-#counted{padding:7px 12px 3px;font-size:14px;color:var(--quiet)}
-#shown{margin:4px 12px 6px;border-collapse:collapse;font-family:EliteMono;font-size:14px}
+#res{display:flex;align-items:center;gap:14px;margin:8px 12px 6px}
+#counted{font-size:14px;color:var(--quiet)}
+#shown{border-collapse:collapse;font-family:EliteMono;font-size:14px}
 #shown th{font-weight:normal;color:var(--faint);text-align:left;padding:2px 10px 3px;border:1px solid var(--line);background:var(--panel);font-size:13px}
 #shown td{color:var(--cyan2);text-align:right;padding:2px 10px 3px;border:1px solid var(--line)}
 #pointer{z-index:30;width:15px;height:23px;filter:drop-shadow(0 1px 2px rgba(6,7,22,.6))}
@@ -133,9 +135,9 @@
 </div>
 <!-- centre: Files, as a list -->
 <div id="centre" class="abs">
- <div id="ctabs" class="abs"><span>Field</span><span class="on">Files</span><span>Bench</span><span class="room">KiCad · rail_12v</span><span class="room">Report draft</span></div>
+ <div id="ctabs" class="abs"><span>Field</span><span class="on">Files</span><span>Bench</span><span class="room">Report draft</span></div>
  <div id="fhead" class="abs"><span class="list">LIST</span><span>THUMBNAILS</span><span class="title">Files</span></div>
- <div id="fcount" class="abs" style="left:846px">2 folders · 2 files · <span class="p">■</span> 1 new</div>
+ <div id="fcount" class="abs" style="left:846px">2 folders · 3 files · <span class="p">■</span> 1 new</div>
  <div id="facts" class="abs">New folder<i>·</i>New smart folder…<i>·</i>Work on a copy…<i>·</i>Import…<i>·</i>Export…<i>·</i>Show all files</div>
 
  <div id="fl" class="abs">
@@ -143,15 +145,16 @@
   <div class="fr"><span class="nm"><svg class="gl"><use href="#g-folder"/></svg>Egress/</span><span class="k">folder · 3 items</span><span class="m">Wed 13 Nov 18:20</span><span class="m">—</span><span class="ad">@files:Egress</span></div>
   <div class="fr"><span class="nm"><svg class="gl"><use href="#g-folder"/></svg>Slate/</span><span class="k">folder · 6 items</span><span class="m">Thu 14 Nov 22:58</span><span class="m">—</span><span class="ad">@files:Slate</span></div>
   <div class="fr sel"><span class="nm"><svg class="gl sel"><use href="#g-table"/></svg>07 Bench readings.csv</span><span class="k">table · 4 rows</span><span class="m">Tue 12 Nov 21:47</span><span class="m">214 B</span><span class="ad">@files:07 Bench readings.csv</span></div>
+  <div class="fr"><span class="nm"><svg class="gl"><use href="#g-page"/></svg>07_Bench_Readings.pdf</span><span class="k">PDF · r4 · 1 page</span><span class="m">Tue 12 Nov 21:47</span><span class="m">118 KB</span><span class="ad">@files:07_Bench_Readings.pdf</span></div>
   <div class="fr"><span class="nm"><svg class="gl"><use href="#g-page"/></svg>07_Rail_Limits_Rev_C.pdf<span class="tag">NEW</span></span><span class="k">PDF · quarantined</span><span class="m">Thu 14 Nov 14:02</span><span class="m">86 KB</span><span class="ad">@files:07_Rail_Limits_Rev_C.pdf</span></div>
  </div>
 
  <div id="peek" class="abs"><h4>INSIDE · 07 BENCH READINGS.CSV</h4>
-  <table><tr><th>quantity</th><th class="r">value</th><th>unit</th></tr>
-   <tr><td>rail voltage</td><td class="r">12</td><td>V</td></tr>
-   <tr class="kept"><td>settled current</td><td class="r">280</td><td>mA</td></tr>
-   <tr class="kept"><td>startup current</td><td class="r">650</td><td>mA</td></tr>
-   <tr><td>startup duration</td><td class="r">110</td><td>ms</td></tr></table>
+  <table><tr><th>quantity</th><th class="r">value</th><th>unit</th><th>tolerance</th></tr>
+   <tr><td>rail voltage</td><td class="r">12</td><td>V</td><td>—</td></tr>
+   <tr class="kept"><td>settled current</td><td class="r">280</td><td>mA</td><td>—</td></tr>
+   <tr class="kept"><td>startup current</td><td class="r">650</td><td>mA</td><td>—</td></tr>
+   <tr><td>startup duration</td><td class="r">110</td><td>ms</td><td class="tol">±5 ms</td></tr></table>
   <div class="says">the line keeps 2 of 4 rows<br><b>r4 · reviewed · the ±5 ms is yours</b></div></div>
 
  <div id="fnote" class="abs">3 machine files hidden. An ordinary folder on this computer: any app can open it too. Deleting moves it to DELETE, and every change keeps the version before it.</div>
@@ -170,10 +173,9 @@
  </div>
 
  <!-- Then ›: the line panel beside it -->
- <div id="then" class="menu" style="left:730px;top:450px;width:400px">
+ <div id="then" class="menu" style="left:730px;top:458px;width:400px">
   <div id="slab">@files:07 Bench readings.csv | rows | where unit=mA | count</div>
-  <div id="counted">1 row · 4 steps left</div>
-  <table id="shown"><tr><th>count</th></tr><tr><td>2</td></tr></table>
+  <div id="res"><table id="shown"><tr><th>count</th></tr><tr><td>2</td></tr></table><div id="counted">count gives 1 row</div></div>
   <div class="sep"></div>
   <div class="mi"><svg class="gl line"><use href="#g-previous"/></svg><span>Back a step</span><span class="cap">count</span></div>
   <div class="mi"><svg class="gl line"><use href="#g-filter"/></svg><span>Keep rows where</span><svg class="ch" viewBox="0 0 10 14"><path d="M3 2.5 L7.5 7 L3 11.5"/></svg></div>
@@ -188,28 +190,29 @@
  </div>
 
  <!-- the pointer, on Then -->
- <svg id="pointer" class="abs" style="left:640px;top:463px" viewBox="0 0 15 23"><path d="M1 1 L1 18.5 L5.4 14.4 L8.6 21.6 L11.4 20.4 L8.3 13.3 L14 13.3 Z" fill="#f2f0ff" stroke="#11132c" stroke-width="1.3" stroke-linejoin="round"/></svg>
+ <svg id="pointer" class="abs" style="left:640px;top:473px" viewBox="0 0 15 23"><path d="M1 1 L1 18.5 L5.4 14.4 L8.6 21.6 L11.4 20.4 L8.3 13.3 L14 13.3 Z" fill="#f2f0ff" stroke="#11132c" stroke-width="1.3" stroke-linejoin="round"/></svg>
 
  <div id="foot" class="abs"><div class="kind">TABLE · REVIEWED · r4</div><div class="ft">07 Bench readings.csv</div>
   <div class="btns"><span>Open</span><span>Show on the Field</span><span>Versions</span><span>Work on a copy…</span></div>
-  <div class="line">@files:07 Bench readings.csv <b>· 4 rows · 4 columns · feeds the sheet 07 Bench readings · 4 versions kept</b></div></div>
+  <div class="line">@files:07 Bench readings.csv <b>· 4 rows · 4 columns · written out from the sheet 07 Bench readings · 4 versions kept</b></div></div>
 </div>
 
 <!-- right column: her -->
 <div id="right" class="abs">
 <div id="who" class="abs">Kasandra<i></i></div>
 <div id="state" class="abs">quiet</div>
-<div id="model" class="abs">35B · local · on the Radeon · <u>does and shows</u></div>
+<div id="model" class="abs">35B · local · on the Radeon · <u>asks first</u></div>
 <div id="brief" class="rc"><h4>WHILE YOU WERE AWAY</h4>
  <div>Rev C of the rail limits arrived at 14:02; two findings went to recheck.</div>
  <div>Last night's backup restored clean.</div></div>
 <div id="quietc" class="rc"><h4>QUIET · NOTHING OF MINE RUNS</h4>
  <div>Your hand is on 07 Bench readings.csv. I am not reading it.</div>
  <div class="sub">WHAT THE DESK KNOWS OF IT</div>
- <div class="g"><span class="m" style="color:var(--violet)">▦</span><span>4 rows; the sheet 07 Bench readings reads it</span></div>
+ <div class="g"><span class="m" style="color:var(--violet)">▦</span><span>4 rows, written out from the sheet 07 Bench readings</span></div>
+ <div class="g"><span class="m"><svg class="gl" style="width:15px;height:15px;margin-top:2px"><use href="#g-page"/></svg></span><span>that sheet reads 07_Bench_Readings.pdf, r4</span></div>
  <div class="g"><span class="m" style="color:var(--recheck)">↻</span><span>2 findings on that sheet to recheck since Rev C</span></div>
  <div class="g"><span class="m" style="color:var(--faint)">±</span><span>the 5 ms on its duration is yours</span></div>
- <div class="so">Ask me about it and I read it first, then do and show.</div>
+ <div class="so">Ask me about it and I read it first, then ask before I act.</div>
  <div class="rcpt">from the desk's records · no model words<br>last: 22:58, a draft into Slate/ only</div></div>
 <div id="night" class="rc" style="top:760px"><h4>TONIGHT · ON MAINS ONLY</h4>
  <div style="font-family:EliteMono;font-size:13px;line-height:19px;color:var(--quiet)">02:00 recheck what rests on Rev C<br>02:20 read Ingress as text<br>03:00 exam: 40 scenarios<br>04:00 test last night's backup</div>

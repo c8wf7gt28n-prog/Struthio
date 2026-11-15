@@ -4,6 +4,8 @@
 <style>
 /* 04 · Her hand at Ask first. Asked "trace the bench readings and put the limits side by side", she has planned and not acted:
    the Field is as the owner left it, her four planned clicks are faint numbered dotted rings, and her card offers the plan.
+   The Field is already in front, so the planner plans no move to it: the first click selects the sheet, the second is Trace in the foot.
+   Go ahead covers one segment (acts 1-2, up to the first goal); then she offers acts 3-4 again (judge_hand-plan.md).
    Thu 14 Nov 23:30, before the evening of the approved screen (23:41): the pulse finding still rests on Rev B, in recheck. */
 
 /* her state: waits for you (pink base, held almost still: the tear is faint and thin) */
@@ -20,7 +22,7 @@
 .card.sel{border:2px solid var(--bar);box-shadow:0 0 0 3px rgba(226,167,46,.18),0 0 16px rgba(226,167,46,.35)}
 
 /* her planned clicks: faint, dotted, numbered; none made */
-.plan{position:absolute;width:24px;height:24px;border-radius:50%;border:2px dotted rgba(131,234,255,.72);background:rgba(23,27,60,.92);
+.plan{position:absolute;z-index:3;width:24px;height:24px;border-radius:50%;border:2px dotted rgba(131,234,255,.72);background:rgba(23,27,60,.92);
  font-family:EliteMono;font-size:12px;line-height:20px;text-align:center;color:var(--cyan2);opacity:.9}
 #planlab{left:348px;top:548px;width:200px;text-align:center;font-size:13px;color:var(--cyan2);opacity:.85}
 
@@ -32,9 +34,10 @@
 #hand .acts .n{flex:none;width:18px;height:18px;border-radius:50%;border:1.5px dotted rgba(131,234,255,.72);font-style:normal;font-size:11px;line-height:15px;text-align:center;color:var(--cyan2)}
 #hand .acts .w{color:var(--quiet)}
 #hand .acts .o{margin-left:auto;color:var(--pink)}
+#hand .acts div.cut{height:0;margin:4px 0 4px 26px;border-top:1px dashed var(--line2)}
 #hand .btns{margin-top:12px}
 #hand .btns .go{border-color:var(--bar);color:var(--edge)}
-#hand .void{margin-top:7px;font-size:14px;color:var(--faint)}
+#hand .void{margin-top:7px;font-size:14px;line-height:19px;color:var(--faint)}
 </style></head><body>
 
 <!-- head -->
@@ -114,9 +117,9 @@
 
  <div class="card" style="left:982px;top:262px;width:190px;border-color:var(--pink)"><div class="k"><span style="color:var(--pink)">? OPEN</span><span></span></div><div class="t">What stretched the startup pulse?</div><div class="n">two hypotheses · a test separates them</div></div>
 
- <!-- her plan: four clicks, none made -->
- <div class="plan" style="left:61px;top:18px">1</div>
- <div class="plan" style="left:436px;top:235px">2</div>
+ <!-- her plan: four clicks, none made (1 the sheet, 2 Trace in the foot, 3 Rev B, 4 Rev C) -->
+ <div class="plan" style="left:436px;top:235px">1</div>
+ <div class="plan" style="left:545px;top:990px">2</div>
  <div class="plan" style="left:436px;top:356px">3</div>
  <div class="plan" style="left:436px;top:517px">4</div>
  <div id="planlab" class="abs">her plan · 4 clicks, none made</div>
@@ -142,13 +145,14 @@
  <div class="g"><span class="m"><i class="gr"></i></span><span>traced: 07 Bench readings</span></div>
  <div class="g"><span class="m"><i class="gr"></i></span><span>side by side: Rev B and Rev C</span></div>
  <div class="acts">
-  <div><i class="n">1</i><span class="w">bring the Field to the front</span><span class="o">offered</span></div>
-  <div><i class="n">2</i><span class="w">trace 07 Bench readings</span><span class="o">offered</span></div>
+  <div><i class="n">1</i><span class="w">select 07 Bench readings</span><span class="o">offered</span></div>
+  <div><i class="n">2</i><span class="w">trace it</span><span class="o">offered</span></div>
+  <div class="cut"></div>
   <div><i class="n">3</i><span class="w">select 07 Limits Rev B</span><span class="o">offered</span></div>
   <div><i class="n">4</i><span class="w">compare it with Rev C</span><span class="o">offered</span></div>
  </div>
  <div class="btns"><span class="go">Go ahead</span><span>Not now</span></div>
- <div class="void">touching the window voids this offer</div>
+ <div class="void">Go ahead · acts 1–2, then I ask again<br>touching the window voids this offer</div>
  <div class="rcpt">goals: the model's pick · 1 question, 3 s<br>acts: the planner's · nothing moved yet</div></div>
 <div id="night" class="rc" style="top:760px"><h4>TONIGHT · ON MAINS ONLY</h4>
  <div style="font-family:EliteMono;font-size:13px;line-height:19px;color:var(--quiet)">02:00 recheck what rests on Rev C<br>02:20 read Ingress as text<br>03:00 exam: 40 scenarios<br>04:00 test last night's backup</div>

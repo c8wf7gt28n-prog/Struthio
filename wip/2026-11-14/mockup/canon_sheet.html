@@ -1,0 +1,143 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Graphite canon sheet</title>
+<link rel="stylesheet" href="canon.css">
+<style>
+/* the ten canonical screens on one page, on her indigo (the ground); render: node render.js canon_sheet.html canon_sheet.png 1 */
+#top{left:40px;top:34px;right:40px;height:76px;border-bottom:1px solid var(--line)}
+#top h1{position:absolute;left:0;top:0;font-family:Display;font-weight:normal;font-size:36px;line-height:44px;color:var(--text)}
+#top .sub{position:absolute;left:2px;top:48px;font-size:16px;color:var(--quiet);white-space:nowrap}
+#top .where{position:absolute;right:0;top:14px;font-family:EliteMono;font-size:13px;color:var(--faint);text-align:right;line-height:19px}
+
+#grid{left:40px;top:138px;width:1840px;display:grid;grid-template-columns:repeat(5,352px);column-gap:20px;row-gap:30px}
+.tile{width:352px}
+.tile img{display:block;width:352px;height:220px;border:1px solid var(--line2);background:var(--panel)}
+.tile .fn{margin-top:9px;font-family:EliteMono;font-size:12.5px;line-height:16px;color:var(--faint);white-space:nowrap}
+.tile .tt{margin-top:3px;font-size:18px;line-height:23px;color:var(--text);white-space:nowrap}
+.tile .st{margin-top:2px;font-size:14px;line-height:18px;color:var(--quiet);white-space:nowrap;display:flex;align-items:center;gap:7px}
+.tile .st .tm{font-family:EliteMono;font-size:12.5px;color:var(--faint)}
+.pip{display:inline-block;width:18px;height:7px;border-radius:50%;border:1.5px solid currentColor}
+.q{color:var(--violet)} .w{color:var(--cyan)} .y{color:var(--pink)} .d{color:var(--honey)} .s{color:var(--red)}
+
+/* the story's order */
+#order{left:40px;top:802px;width:1840px;height:112px}
+.cap{font-family:EliteMono;font-size:12px;letter-spacing:1px;color:var(--violet);white-space:nowrap}
+#order .cap{position:absolute;left:0;top:0}
+#order .rail{position:absolute;left:0;right:0;top:47px;height:1px;background:var(--line2)}
+#order .slot{position:absolute;top:24px;width:150px;margin-left:-75px;text-align:center}
+#order .slot .n{font-family:EliteMono;font-size:12.5px;line-height:14px;color:var(--quiet)}
+#order .slot .dot2{width:12px;height:12px;border-radius:50%;margin:3px auto 0;background:currentColor;box-shadow:0 0 8px currentColor}
+#order .slot .t{margin-top:7px;font-family:EliteMono;font-size:12px;line-height:15px;color:var(--faint)}
+#order .slot .sw{font-size:14px;line-height:18px}
+#order .slot.night .dot2{background:var(--ground);border:1.5px solid var(--line2);box-shadow:none}
+#order .slot.night .sw{color:var(--faint)}
+#order .day{position:absolute;top:0;font-size:14px;color:var(--faint);white-space:nowrap}
+
+/* the key */
+#key{left:40px;top:934px;width:1840px;height:196px;border-top:1px solid var(--line)}
+#key .cap{position:absolute;top:18px}
+#colours{position:absolute;left:0;top:44px;width:1000px;display:grid;grid-template-columns:repeat(4,238px);column-gap:16px;row-gap:16px}
+.ck{display:flex;gap:11px;align-items:flex-start}
+.sw2{flex:none;width:44px;height:30px;margin-top:2px}
+.ck .nm{font-size:15px;line-height:19px;color:var(--text);white-space:nowrap}
+.ck .mn{font-size:13.5px;line-height:17px;color:var(--faint)}
+.ck .mn span{white-space:nowrap}
+#foot2{left:40px;top:1150px;width:1840px;border-top:1px solid var(--line);padding-top:12px;font-size:15px;line-height:20px;color:var(--faint);white-space:nowrap}
+.sw2.bar{background:var(--bar);color:var(--onbar);font-size:14px;line-height:30px;text-align:center}
+.sw2.cy{background:#1f234d;border:2px solid var(--cyan);box-shadow:0 0 8px rgba(131,234,255,.45)}
+.sw2.pk{background:#1f234d;border:1px solid var(--pink);border-left:4px solid var(--pink)}
+.sw2.vi{background:var(--vdeep);border:1px solid var(--violet)}
+.sw2.re{background:#1f234d;border:1px dashed var(--recheck)}
+.sw2.ho{background:#1f234d;border:1px solid var(--line);border-left:4px solid var(--honey)}
+.sw2.ro{background:var(--rsoft);border-left:3px solid var(--royal);font-family:EliteMono;font-size:12px;line-height:30px;color:var(--rink);padding-left:5px}
+.sw2.rd{background:var(--red);position:relative}
+.sw2.rd:after{content:"";position:absolute;left:17px;top:8px;border-left:12px solid #fff1f4;border-top:7px solid transparent;border-bottom:7px solid transparent}
+
+#states{position:absolute;left:1040px;top:44px;width:480px}
+#states .row{display:grid;grid-template-columns:repeat(5,96px)}
+#states .s1{text-align:center}
+#states .ring{width:64px;height:14px;margin:6px auto 0;border-radius:50%;border:2px solid currentColor;background:radial-gradient(ellipse at center,currentColor,transparent 72%);box-shadow:0 0 10px currentColor;opacity:.9}
+#states .w1{margin-top:9px;font-size:14px;line-height:18px}
+#states .note{margin-top:16px;font-size:13.5px;line-height:18px;color:var(--faint)}
+
+#faces{position:absolute;left:1560px;top:44px;width:320px}
+#faces div{white-space:nowrap}
+#faces .f1{font-size:17px;line-height:24px;color:var(--text)}
+#faces .f2{font-family:EliteMono;font-size:15px;line-height:24px;color:var(--cyan2);margin-top:4px}
+#faces .f3{font-family:Display;font-size:24px;line-height:32px;color:var(--text);margin-top:4px}
+#faces .lb{font-family:EliteMono;font-size:11.5px;color:var(--faint);letter-spacing:.5px}
+#faces .note{margin-top:12px;font-size:13.5px;line-height:18px;color:var(--faint);white-space:normal}
+</style></head><body>
+
+<div id="top" class="abs">
+ <h1>Graphite · the canonical direction</h1>
+ <div class="sub">Kasandra appearance · approved by the owner, 14 Nov 2026 · ten screens, one story: After Hours 07, the evening Rev C arrived and the morning after</div>
+ <div class="where">wip/2026-11-14/mockup<br>CANON.md · canon.css · render.js</div>
+</div>
+
+<div id="grid" class="abs">
+ <div class="tile"><img src="Graphite_finished_desktop_mockup.png" alt=""><div class="fn">Graphite_finished_desktop_mockup.png</div><div class="tt">The approved finished desk</div><div class="st"><span class="tm">Thu 23:41</span><span class="pip w"></span><span class="w">at work</span></div></div>
+ <div class="tile"><img src="screens/01_head_menu_rules.png" alt=""><div class="fn">screens/01_head_menu_rules.png</div><div class="tt">Rules menu, her hand</div><div class="st"><span class="tm">Thu 23:47</span><span class="pip q"></span><span class="q">quiet</span></div></div>
+ <div class="tile"><img src="screens/02_right_click_then.png" alt=""><div class="fn">screens/02_right_click_then.png</div><div class="tt">Right-click, then a line</div><div class="st"><span class="tm">Thu 23:12</span><span class="pip q"></span><span class="q">quiet</span></div></div>
+ <div class="tile"><img src="screens/03_apps_progman.png" alt=""><div class="fn">screens/03_apps_progman.png</div><div class="tt">Apps from the kp</div><div class="st"><span class="tm">Thu 23:20</span><span class="pip q"></span><span class="q">quiet</span></div></div>
+ <div class="tile"><img src="screens/04_ask_first_plan.png" alt=""><div class="fn">screens/04_ask_first_plan.png</div><div class="tt">Her plan, asking first</div><div class="st"><span class="tm">Thu 23:30</span><span class="pip y"></span><span class="y">waits for you</span></div></div>
+ <div class="tile"><img src="screens/05_time_slider_then.png" alt=""><div class="fn">screens/05_time_slider_then.png</div><div class="tt">The desk back then</div><div class="st"><span class="tm">Thu 23:50 · showing Tue 18:20</span><span class="pip q"></span><span class="q">quiet</span></div></div>
+ <div class="tile"><img src="screens/06_bench_room.png" alt=""><div class="fn">screens/06_bench_room.png</div><div class="tt">Live at the bench</div><div class="st"><span class="tm">Fri 10:15</span><span class="pip w"></span><span class="w">at work</span></div></div>
+ <div class="tile"><img src="screens/07_today_morning_brief.png" alt=""><div class="fn">screens/07_today_morning_brief.png</div><div class="tt">Today, the morning brief</div><div class="st"><span class="tm">Fri 07:42</span><span class="pip y"></span><span class="y">waits for you</span></div></div>
+ <div class="tile"><img src="screens/08_share_as_receipt.png" alt=""><div class="fn">screens/08_share_as_receipt.png</div><div class="tt">Sharing a signed receipt</div><div class="st"><span class="tm">Thu 23:45</span><span class="pip d"></span><span class="d">done</span></div></div>
+ <div class="tile"><img src="screens/09_quarantine_ingress.png" alt=""><div class="fn">screens/09_quarantine_ingress.png</div><div class="tt">A datasheet in quarantine</div><div class="st"><span class="tm">Fri 09:05</span><span class="pip y"></span><span class="y">waits for you</span></div></div>
+</div>
+
+<!-- the story's order: one slot per screen, evenly spaced, the night between -->
+<div id="order" class="abs">
+ <div class="cap">THE STORY'S ORDER · HER STATE AT EACH SCREEN</div>
+ <div class="rail"></div>
+ <div class="slot q" style="left:110px"><div class="n">02</div><div class="dot2"></div><div class="t">Thu 23:12</div><div class="sw">quiet</div></div>
+ <div class="slot q" style="left:272px"><div class="n">03</div><div class="dot2"></div><div class="t">Thu 23:20</div><div class="sw">quiet</div></div>
+ <div class="slot y" style="left:434px"><div class="n">04</div><div class="dot2"></div><div class="t">Thu 23:30</div><div class="sw">waits for you</div></div>
+ <div class="slot w" style="left:596px"><div class="n">00</div><div class="dot2"></div><div class="t">Thu 23:41</div><div class="sw">at work</div></div>
+ <div class="slot d" style="left:758px"><div class="n">08</div><div class="dot2"></div><div class="t">Thu 23:45</div><div class="sw">done</div></div>
+ <div class="slot q" style="left:920px"><div class="n">01</div><div class="dot2"></div><div class="t">Thu 23:47</div><div class="sw">quiet</div></div>
+ <div class="slot q" style="left:1082px"><div class="n">05</div><div class="dot2"></div><div class="t">Thu 23:50</div><div class="sw">quiet</div></div>
+ <div class="slot night" style="left:1244px"><div class="n">&nbsp;</div><div class="dot2"></div><div class="t">02:00–04:12</div><div class="sw">the night shift</div></div>
+ <div class="slot y" style="left:1406px"><div class="n">07</div><div class="dot2"></div><div class="t">Fri 07:42</div><div class="sw">waits for you</div></div>
+ <div class="slot y" style="left:1568px"><div class="n">09</div><div class="dot2"></div><div class="t">Fri 09:05</div><div class="sw">waits for you</div></div>
+ <div class="slot w" style="left:1730px"><div class="n">06</div><div class="dot2"></div><div class="t">Fri 10:15</div><div class="sw">at work</div></div>
+</div>
+
+<div id="key" class="abs">
+ <div class="cap" style="left:0">COLOURS MEAN ONE THING EACH</div>
+ <div id="colours">
+  <div class="ck"><div class="sw2 bar">Work</div><div><div class="nm">burnt yellow</div><div class="mn">where you are · selected</div></div></div>
+  <div class="ck"><div class="sw2 cy"></div><div><div class="nm">cyan</div><div class="mn"><span>ready · at work ·</span> <span>live wires · her ring</span></div></div></div>
+  <div class="ck"><div class="sw2 pk"></div><div><div class="nm">pink</div><div class="mn"><span>waits for you ·</span> <span>does not hold ·</span> <span>open question</span></div></div></div>
+  <div class="ck"><div class="sw2 vi"></div><div><div class="nm">violet</div><div class="mn"><span>the desk's structure ·</span> <span>cannot tell</span></div></div></div>
+  <div class="ck"><div class="sw2 re"></div><div><div class="nm">lavender, dashed</div><div class="mn">recheck</div></div></div>
+  <div class="ck"><div class="sw2 ho"></div><div><div class="nm">honey</div><div class="mn"><span>hers: the edge</span> <span>of her cards</span></div></div></div>
+  <div class="ck"><div class="sw2 ro">| …</div><div><div class="nm">royal purple</div><div class="mn">a line</div></div></div>
+  <div class="ck"><div class="sw2 rd"></div><div><div class="nm">red</div><div class="mn">DELETE · the send arrow</div></div></div>
+ </div>
+
+ <div class="cap" style="left:1040px">HER STATES · HER BASE AND HER WORD AGREE</div>
+ <div id="states">
+  <div class="row">
+   <div class="s1 q"><div class="ring"></div><div class="w1">quiet</div></div>
+   <div class="s1 w"><div class="ring"></div><div class="w1">at work</div></div>
+   <div class="s1 y"><div class="ring"></div><div class="w1">waits for you</div></div>
+   <div class="s1 d"><div class="ring"></div><div class="w1">done</div></div>
+   <div class="s1 s"><div class="ring"></div><div class="w1">stopped</div></div>
+  </div>
+  <div class="note">With Reduce motion she is one still frame; a change of state changes only the colour.</div>
+ </div>
+
+ <div class="cap" style="left:1560px">FACES</div>
+ <div id="faces">
+  <div class="f1">Elite, for words <span class="lb">· her typewriter</span></div>
+  <div class="f2">EliteMono 1 l I · 0 O · 3.36 W</div>
+  <div class="f3">Display, for headings</div>
+  <div class="note">Lines, numbers, addresses and receipts are fixed width.</div>
+ </div>
+</div>
+
+<div id="foot2" class="abs">Not every feature here exists yet: these screens are the direction. A build is judged against them, and a screen changes only with the owner's approval.</div>
+
+</body></html>

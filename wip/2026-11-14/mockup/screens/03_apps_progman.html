@@ -3,7 +3,8 @@
 <link rel="stylesheet" href="../canon.css">
 <style>
 /* 03 · Apps open from the neon kp (the owner's "upper right progman.exe menu"): the shelf of rooms, catching as it opens.
-   Thu 14 Nov 23:20, before she was asked about Rev C; her state quiet. */
+   Thu 14 Nov 23:20, before she was asked about Rev C; her state quiet, her dial at Ask first (as at 23:30, 04). The Field
+   is the one 04 shows ten minutes later: the pulse finding still rests on Rev B, in recheck, and is the owner's selection. */
 /* her state: quiet (violet base, violet cursor, still caption), as 01 */
 #holo img{opacity:.86;filter:drop-shadow(0 0 10px rgba(171,142,218,.38))}
 #tear{background:rgba(210,196,245,.30);box-shadow:0 0 6px rgba(171,142,218,.55)}
@@ -12,7 +13,7 @@
 #holocap{color:var(--vpale)}
 #who i{background:var(--violet);box-shadow:0 0 8px var(--violet)}
 #state{color:var(--violet)}
-#noticed{top:268px;border-left:3px solid var(--honey)}
+#noticed{top:208px;border-left:3px solid var(--honey)}      /* where 02's quiet card sits */
 #noticed .btns{display:flex;gap:8px;margin-top:10px}
 #noticed .btns span{border:1px solid var(--line2);padding:3px 9px;font-size:14px}
 #noticed .rcpt{font-family:EliteMono;font-size:11.5px;color:var(--faint);margin-top:9px;line-height:16px}
@@ -24,51 +25,52 @@
 #logo{filter:drop-shadow(0 0 8px rgba(0,229,255,.9)) drop-shadow(0 0 14px rgba(255,43,214,.65))}
 #kpedge{left:1784px;top:54px;width:100px;height:2px;background:var(--bar);z-index:5}
 
-/* the Apps panel: dropped from the head under the kp, its right edge 4 px in from the window's; its left edge falls between
-   two words of the Field's title, so nothing under it shows cut */
-#apps{left:829px;top:60px;width:1087px;height:606px;z-index:20;background:var(--card);border:1px solid var(--line2);
+/* the Apps panel: dropped from the kp, it opens over the Field and never over her column, so her name, her state and her
+   cards stay in sight; its right edge 7 px in from the centre's, its left edge between two words of the Field's title
+   (nothing under it shows cut), its foot below the cannot-tell card and above the lower recheck card (top 578, as in the base) */
+#apps{left:829px;top:60px;width:727px;height:568px;z-index:20;background:var(--card);border:1px solid var(--line2);
  box-shadow:0 18px 40px rgba(6,7,22,.66),0 3px 10px rgba(6,7,22,.48)}
-#apps .atitle{position:absolute;left:29px;top:16px;font-family:Display;font-size:28px;color:var(--text);line-height:40px}
-#apps .find{position:absolute;left:119px;top:16px;width:400px;height:40px;background:var(--term);border:1px solid var(--line2);font-size:16px;color:var(--faint);padding:9px 12px 0 42px}
-#apps .find svg{position:absolute;left:13px;top:10px;width:18px;height:18px;fill:none;stroke:var(--faint);stroke-width:1.5;stroke-linecap:round}
-#apps .desc{position:absolute;right:30px;top:28px;font-size:14px;color:var(--faint);white-space:nowrap}
-#apps .desc b{font-weight:normal;color:var(--quiet)}
-#shelf{position:absolute;left:29px;top:80px;width:1028px;display:grid;grid-template-columns:repeat(6,158px);column-gap:16px}
-.acol .lab{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--violet);letter-spacing:1px;height:20px;margin-bottom:10px;white-space:nowrap}
+#apps .atitle{position:absolute;left:22px;top:13px;font-family:Display;font-size:28px;color:var(--text);line-height:40px}
+#apps .find{position:absolute;left:98px;top:13px;width:290px;height:40px;background:var(--term);border:1px solid var(--line2);font-size:16px;color:var(--faint);padding:9px 12px 0 40px}
+#apps .find svg{position:absolute;left:12px;top:10px;width:18px;height:18px;fill:none;stroke:var(--faint);stroke-width:1.5;stroke-linecap:round}
+#apps .desc{position:absolute;right:22px;top:13px;font-size:13.5px;line-height:20px;color:var(--faint);white-space:nowrap;text-align:right}
+#apps .desc b{font-weight:normal;color:var(--edge)}
+#shelf{position:absolute;left:22px;top:72px;width:681px;display:grid;grid-template-columns:repeat(6,101px);column-gap:15px}
+.acol .lab{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--violet);letter-spacing:1px;height:20px;margin-bottom:8px;white-space:nowrap}
 .acol .lab:after{content:"";flex:1;height:1px;background:var(--line)}
 .tile{position:relative;height:104px;margin-bottom:12px;background:var(--panel);border:1px solid var(--line);text-align:center}
-.tile svg{position:absolute;left:59px;top:13px;width:40px;height:40px;fill:none;stroke:var(--violet);stroke-width:1.05;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.tile svg{position:absolute;left:31.5px;top:20px;width:36px;height:36px;fill:none;stroke:var(--violet);stroke-width:1.05;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
 .tile svg .f{fill:var(--violet);stroke:none}
-.tile .nm{position:absolute;left:0;right:0;top:62px;font-size:16.5px;color:var(--text);line-height:20px}
-.tile .by{position:absolute;left:0;right:0;top:82px;font-size:12.5px;color:var(--faint);line-height:15px}
-.tile.two svg{top:9px}
-.tile.two .nm{top:56px}
-.tile .open{position:absolute;right:7px;top:5px;font-family:EliteMono;font-size:11px;color:var(--cyan2);letter-spacing:.3px}
+.tile .nm{position:absolute;left:0;right:0;top:64px;font-size:15px;color:var(--text);line-height:19px}
+.tile .by{position:absolute;left:0;right:0;top:76px;font-size:12px;color:var(--faint);line-height:14px}
+.tile.two svg{top:14px}
+.tile.two .nm{top:57px}
+.tile.two .by{top:76px}
+.tile .open{position:absolute;right:5px;top:4px;font-family:EliteMono;font-size:10.5px;line-height:13px;color:var(--cyan2);letter-spacing:.3px}
 .tile .open:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);margin-right:4px;vertical-align:1px}
 .tile.on{border:2px solid var(--bar);box-shadow:0 0 0 3px rgba(226,167,46,.18),0 0 16px rgba(226,167,46,.32)}
-.tile.on svg{left:58px;top:12px;stroke:var(--edge)}
-.tile.on .nm{top:61px;color:var(--edge)}
-#arcade{position:absolute;left:29px;top:466px;width:1028px;height:90px;background:var(--term);border:1px solid var(--line)}
-#arcade .spr{position:absolute;top:9px;width:72px;height:72px;background:url(../../../../games/struthio/assets/art/jousters.webp) no-repeat;background-size:1152px 864px;background-position:0 -504px}
-#arcade .spr.l{left:16px}
-#arcade .spr.r{left:940px;transform:scaleX(-1)}
-#arcade .an{position:absolute;left:112px;top:17px;font-family:Display;font-size:27px;letter-spacing:3px;color:var(--text);line-height:30px}
-#arcade .as{position:absolute;left:113px;top:53px;font-size:14.5px;color:var(--faint)}
-#arcade .play{position:absolute;left:830px;top:27px;border:1px solid var(--line2);background:var(--raised);padding:6px 16px;font-size:16px;color:var(--text)}
-#apps .quietline{position:absolute;left:29px;top:572px;font-size:14px;color:var(--faint)}
-/* the catch, early in its 150 ms (f = 0.20, about 30 ms; menu_catch.py, side down): the band and its line, the frame lit,
-   the cyan ghost on the far edge */
+.tile.on svg{left:30.5px;top:19px;stroke:var(--edge)}
+.tile.on .nm{top:63px;color:var(--edge)}
+#arcade{position:absolute;left:22px;top:456px;width:681px;height:88px;background:var(--term);border:1px solid var(--line)}
+#arcade .spr{position:absolute;top:11px;width:64px;height:64px;background:url(../../../../games/struthio/assets/art/jousters.webp) no-repeat;background-size:1024px 768px;background-position:0 -448px}
+#arcade .spr.l{left:12px}
+#arcade .spr.r{left:603px;transform:scaleX(-1)}
+#arcade .an{position:absolute;left:92px;top:17px;font-family:Display;font-size:24px;letter-spacing:2.5px;color:var(--text);line-height:28px}
+#arcade .as{position:absolute;left:93px;top:51px;font-size:14px;color:var(--faint);white-space:nowrap}
+#arcade .play{position:absolute;left:508px;top:27px;border:1px solid var(--line2);background:var(--raised);padding:5px 15px;font-size:16px;line-height:20px;color:var(--text)}
+/* the catch, early in its 150 ms (f = 0.20, about 30 ms; menu_catch.py, side down, h = 568): the band (26 px, its heart at
+   0.10 h + 0.34 h f = 95.4 px) and its line, the frame lit, the cyan ghost on the far edge */
 #apps .catch{position:absolute;left:-1px;top:-1px;right:-1px;bottom:-1px;pointer-events:none}
 #apps .catch div{position:absolute}
 #apps .catch .frame{left:0;top:0;right:0;bottom:0;border:2px solid rgba(210,196,245,.73)}
-#apps .catch .band{left:0;right:0;top:88.8px;height:26px;background:linear-gradient(rgba(171,142,218,0),rgba(171,142,218,.37),rgba(171,142,218,0))}
-#apps .catch .bline{left:2px;right:2px;top:101.2px;height:1.4px;background:rgba(235,226,255,.44)}
+#apps .catch .band{left:0;right:0;top:82.4px;height:26px;background:linear-gradient(rgba(171,142,218,0),rgba(171,142,218,.37),rgba(171,142,218,0))}
+#apps .catch .bline{left:2px;right:2px;top:94.8px;height:1.4px;background:rgba(235,226,255,.44)}
 #apps .catch .ghost{right:3px;top:2px;bottom:2px;width:1.5px;background:rgba(131,234,255,.47);mix-blend-mode:plus-lighter;box-shadow:0 0 3px rgba(131,234,255,.35)}
 #apps .catch .ghost2{right:6.5px;top:2px;bottom:2px;width:1px;background:rgba(131,234,255,.16);mix-blend-mode:plus-lighter}
-/* the Rev C label sits clear under its tick */
-#time .ticklab{top:35px}
+/* the owner's own selection on the Field (the pulse finding in recheck), as 04 draws it; under the panel here */
+.card.sel{border:2px solid var(--bar);box-shadow:0 0 0 3px rgba(226,167,46,.18),0 0 16px rgba(226,167,46,.35)}
 /* the pointer, on KiCad */
-#pointer{left:1466px;top:195px;z-index:30;width:15px;height:23px;filter:drop-shadow(0 1px 2px rgba(6,7,22,.6))}
+#pointer{left:1254px;top:192px;z-index:30;width:15px;height:23px;filter:drop-shadow(0 1px 2px rgba(6,7,22,.6))}
 </style></head><body>
 
 <!-- head -->
@@ -109,19 +111,19 @@
 <div id="centre" class="abs">
  <div id="ctabs" class="abs"><span class="on">Field</span><span>Files</span><span>Bench</span><span class="room">Report draft</span></div>
  <div id="fhead" class="abs"><span>FIELD</span><span class="work">WORK</span><span>APPS</span><span>NETWORK</span><span class="title">After Hours 07 · Rev C arrived</span></div>
- <div id="fcount" class="abs"><span class="p">■</span> 1 open question · <span class="r">2 recheck</span></div>
+ <div id="fcount" class="abs"><span class="p">■</span> 1 open question · <span class="r">2 recheck</span> · 1 cannot tell</div>
 
+ <!-- the Field's wires as 04 draws them ten minutes later: nothing has moved in between -->
  <svg id="wires" class="abs" width="1206" height="900">
-  <defs><filter id="gl"><feGaussianBlur stdDeviation="2.4"/></filter></defs>
   <g fill="none" stroke="#5a8fc4" stroke-width="2" opacity=".7">
    <path d="M216 190 C 240 190, 240 190, 262 190"/>
-   <path d="M216 372 C 240 372, 236 470, 262 470"/>
+   <path d="M216 548 C 240 548, 238 475, 262 475"/>
    <path d="M448 190 C 475 190, 475 186, 502 186"/>
    <path d="M448 190 C 478 190, 470 330, 502 330"/>
+   <path d="M448 325 C 476 325, 474 255, 502 255 L 688 255 C 716 255, 714 315, 742 315"/>
    <path d="M688 186 C 715 186, 715 170, 742 170"/>
    <path d="M688 330 C 715 330, 715 470, 742 470"/>
-   <path d="M448 470 C 520 470, 520 330, 502 330"/>
-   <path d="M448 190 C 640 190, 610 690, 742 690"/>
+   <path d="M448 470 C 600 470, 600 610, 742 610"/>
   </g>
  </svg>
 
@@ -144,31 +146,31 @@
  <div class="card" style="left:502px;top:422px"><div class="k"><span>Σ SOLVE</span><span class="st">EXACT</span></div><div class="t">Settled current ceiling</div><div class="v">≤ 500 mA at 12 V</div></div>
 
  <div class="card yes" style="left:742px;top:122px;width:210px"><div class="k"><span>FINDING</span><span class="verdict yes">HOLDS</span></div><div class="t">Settled draw 3.36 W under the 6 W continuous limit</div></div>
- <div class="card re her" style="left:742px;top:262px;width:210px"><div class="k"><span>FINDING</span><span class="verdict re">RECHECK</span></div><div class="t">Startup pulse over Rev B by 25–35 ms</div><div class="n">its limit moved to Rev C</div></div>
+ <div class="card re sel" style="left:742px;top:262px;width:210px"><div class="k"><span>FINDING</span><span class="verdict re">RECHECK</span></div><div class="t">Startup pulse over Rev&nbsp;B by 25–35 ms</div><div class="n">rested on Rev B<br>archived at 14:02</div></div>
  <div class="card cant" style="left:742px;top:412px;width:210px"><div class="k"><span>FINDING</span><span class="verdict cant">CANNOT TELL</span></div><div class="t">Startup power against 8 W</div><div class="n">the current reading settles it most often (89%)</div></div>
- <div class="card re" style="left:742px;top:640px;width:210px"><div class="k"><span>FINDING</span><span class="verdict re">RECHECK</span></div><div class="t">The reviewed sheet keeps the 80 ms condition</div><div class="n">its source moved to Rev C</div></div>
+ <div class="card re" style="left:742px;top:578px;width:210px"><div class="k"><span>FINDING</span><span class="verdict re">RECHECK</span></div><div class="t">The reviewed sheet keeps the 80 ms condition</div><div class="n">its source moved to Rev C</div></div>
 
  <div class="card" style="left:982px;top:262px;width:190px;border-color:var(--pink)"><div class="k"><span style="color:var(--pink)">? OPEN</span><span></span></div><div class="t">What stretched the startup pulse?</div><div class="n">two hypotheses · a test separates them</div></div>
 
  <div id="time" class="abs"><span class="lab" style="left:0">Tue 12 Nov</span><div class="track"></div><div class="tick" style="left:760px"></div><span class="ticklab" style="left:712px">Rev C · 14:02</span><div class="knob"></div><span class="lab" style="left:996px">now · Thu 23:20</span></div>
 
  <div id="foot" class="abs"><div class="kind">FINDING · RECHECK</div><div class="ft">Startup pulse over Rev B by 25–35 ms</div>
-  <div class="btns"><span>Trace</span><span>Doubt</span><span>Range</span><span>Check</span><span>What if</span><span>Share as receipt</span><span>Back</span></div>
-  <div class="line">range startup.duration given ±5 ms <b>|</b> check "duration &lt;= rev_b.pulse" <b>· receipt 2b8e… · its limit moved to Rev C at 14:02</b></div></div>
+  <div class="btns"><span>Trace</span><span>Doubt</span><span>Range</span><span>Check</span><span>What if</span><span>Back</span></div>
+  <div class="line">range startup.duration given ±5 ms <b>|</b> check "duration &lt;= rev_b.pulse" <b>· receipt 2e91… · Tue 21:52 · Rev B archived Thu 14:02</b></div></div>
 </div>
 
-<!-- right column: her, quiet (the Apps panel lies over its top) -->
+<!-- right column: her, quiet, at Ask first (the Apps panel stays clear of it) -->
 <div id="right" class="abs">
 <div id="who" class="abs">Kasandra<i></i></div>
 <div id="state" class="abs">quiet</div>
-<div id="model" class="abs">35B · local · on the Radeon · <u>does and shows</u></div>
+<div id="model" class="abs">35B · local · on the Radeon · <u>asks first</u></div>
 <div id="brief" class="rc"><h4>WHILE YOU WERE AWAY</h4>
  <div>Rev C of the rail limits arrived at 14:02; two findings went to recheck.</div>
  <div>Last night's backup restored clean.</div></div>
 <div id="noticed" class="rc"><h4>NOTICED · NOT YET DONE</h4>
  <div>Rev C moves the pulse limit from 80 to 100 ms. The pulse finding still rests on Rev B; I have not rechecked it.</div>
  <div class="btns"><span>Recheck now</span><span>Leave it for tonight</span></div>
- <div class="rcpt">from Rev C r1 · Bench readings r4</div></div>
+ <div class="rcpt">from Rev C r1 · Bench readings r4<br>the desk's records · no model words</div></div>
 <div id="night" class="rc" style="top:760px"><h4>TONIGHT · ON MAINS ONLY</h4>
  <div style="font-family:EliteMono;font-size:13px;line-height:19px;color:var(--quiet)">02:00 recheck what rests on Rev C<br>02:20 read Ingress as text<br>03:00 exam: 40 scenarios<br>04:00 test last night's backup</div>
  <div style="margin-top:6px;font-size:14px;color:var(--faint)">nothing changes your records · stops when you touch</div></div>
@@ -187,7 +189,7 @@
 <div id="apps" class="abs">
  <div class="atitle">Apps</div>
  <div class="find"><svg viewBox="0 0 18 18"><circle cx="7.5" cy="7.5" r="5"/><path d="M11.2 11.2 L15.6 15.6"/></svg>find an app</div>
- <div class="desc"><b>KiCad</b> · schematics and boards · last: rail_12v, Tue 12 Nov</div>
+ <div class="desc"><b>KiCad</b> · schematics and boards<br>last: rail_12v · Tue 12 Nov</div>
 
  <div id="shelf">
   <div class="acol"><div class="lab">WORK</div>
@@ -223,11 +225,10 @@
  <div id="arcade">
   <div class="spr l"></div>
   <div class="an">STRUTHIO ARCADE</div>
-  <div class="as">the jousting game · plays offline on this desk · opens paused at tick zero</div>
+  <div class="as">the jousting game · offline · opens paused at tick zero</div>
   <div class="play">Play</div>
   <div class="spr r"></div>
  </div>
- <div class="quietline">rooms open in their full windows; your files come back to the desk</div>
 
  <div class="catch"><div class="frame"></div><div class="band"></div><div class="bline"></div><div class="ghost"></div><div class="ghost2"></div></div>
 </div>
