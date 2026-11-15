@@ -72,6 +72,12 @@ release-by-release plan is in `TALK_my_plans_long_chat.md`.
 `scratch_tools/` holds the orchestrator's probes, harnesses, kit cutter and test runner as they were (they expect the
 scratchpad paths of this session; adjust `S=` at their top).
 
+## The specification to 1.0 (15 Nov)
+`SPEC_0.8.3_to_1.0.md` is the plan from here to 1.0 ("the Kasandra Protocol"): direction, the seven releases to 0.9.0 with
+what each builds and how it is proven, the six gates, P11-P20, what 1.0 means, the rules of the work, open decisions.
+It is a copy of the owner's living Claude Doc, checked by two independent reviews against these notes and the designs.
+Read it after this file. The canon it points to is `mockup/CANON.md` (with eight points left open for the owner).
+
 ## What a new session needs (checked 14 Nov, before the pause)
 - **Everything in the repository is pushed** (`claude/epic-galileo-c7k11y`); nothing in the container is needed except below.
 - **Not in the repository on purpose, so bring it back:**
