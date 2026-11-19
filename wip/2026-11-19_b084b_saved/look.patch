@@ -1,0 +1,1605 @@
+diff --git a/GETTING_STARTED.md b/GETTING_STARTED.md
+index 38a412c..301debe 100644
+--- a/GETTING_STARTED.md
++++ b/GETTING_STARTED.md
+@@ -23,8 +23,8 @@ tour; the README says how to install, start, back up and check.
+ 2. With nothing open the centre is the Finder: choose Today, a disk under Machine or a project folder on the left and the
+    centre lists it. It looks and opens; it never changes files.
+ 3. Drop a few files into `~/Concern/Office/Ingress` (or onto the Office) and receive them; Today counts what arrived.
+-4. The cat at the lower left opens the programs list (Space or Enter on it too). Documents in the list opens a page: write, select
+-   words and ask Kasandra in the strip, `make these words bold`. Ctrl Z takes any change back.
++4. Apps, at the upper right, opens the list of apps. Documents in the list opens a page: write, select
++   words and ask Kasandra in the strip, `make these words bold`. Saying `undo` in the strip takes any change back.
+ 5. On a page with quantities ask `add up the numbers on this page`: Graphite works it as an assignment you can watch, pause,
+    resume and stop under its face.
+ 6. A local model is optional. Menu → Configuration → Local model opens the Brain room; the daily guide names the small file
+diff --git a/docs/WORKSHOP.md b/docs/WORKSHOP.md
+index 36b4bff..f3a7ddb 100644
+--- a/docs/WORKSHOP.md
++++ b/docs/WORKSHOP.md
+@@ -2,7 +2,7 @@
+ 
+ ARC Ledger is the local workshop for ARC-1: explore the hardware, edit source, build a native host game, run the console model and read the Orange Book.
+ 
+-The command bar combines File, Edit, View, Tools and Help with fifteen customizable icon shortcuts. Hover or focus an icon for its name and keyboard shortcut. Search commands with Ctrl+Shift+P or find a file with Ctrl+P.
++The command bar combines File, Edit, View, Tools and Help with fifteen customizable icon shortcuts. Hover or focus an icon for its name. Commands can be searched, and a file found by its name, from the search field.
+ 
+ Home preserves your current work. Use the five activity tabs to move between Home, Brain Link, Source, Simulator and the Orange Book. Pin up to five workspaces. The View menu controls Focus, the editor split and the Inspector. Tools follows the active target.
+ 
+diff --git a/tests_integrated/test_colour_vision.py b/tests_integrated/test_colour_vision.py
+new file mode 100644
+index 0000000..d8673f4
+--- /dev/null
++++ b/tests_integrated/test_colour_vision.py
+@@ -0,0 +1,110 @@
++"""0.8.4: the colour-vision check (tools/colour_vision.py).
++
++Every colour that carries a meaning also has a word or a shape. This asks it of every look's palette: each pair of meaning
++colours is taken as weak red (protan) and weak green (deutan) sight take it (Machado, Oliveira and Fernandes 2009, at
++severity 0.6 and 1.0), their difference is measured (CIEDE2000), and a pair under the threshold must be in the reviewed
++table of what tells the two apart on screen. No window is made: the palettes, the published matrices and arithmetic.
++"""
++import subprocess
++import sys
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'tools'))
++import colour_vision  # noqa: E402
++
++from workbench import boss_theme  # noqa: E402
++
++LOOKS = tuple(boss_theme.PALETTES)
++
++
++class TheMeasure(unittest.TestCase):
++    def test_ciede2000_gives_the_published_differences(self):
++        # Sharma, Wu and Dalal (2005), their test data: pairs 1, 2, 3 and 17 to 20 (CIELAB one, CIELAB two, the difference).
++        for one, two, said in (((50.0, 2.6772, -79.7751), (50.0, 0.0, -82.7485), 2.0425), ((50.0, 3.1571, -77.2803), (50.0, 0.0, -82.7485), 2.8615),
++                               ((50.0, -1.3802, -84.2814), (50.0, 0.0, -82.7485), 1.0000), ((50.0, 2.5, 0.0), (73.0, 25.0, -18.0), 27.1492),
++                               ((50.0, 2.5, 0.0), (61.0, -5.0, 29.0), 22.8977), ((50.0, 2.5, 0.0), (56.0, -27.0, -3.0), 31.9030), ((50.0, 2.5, 0.0), (58.0, 24.0, 15.0), 19.4535)):
++            self.assertAlmostEqual(colour_vision.ciede2000(one, two), said, places=4, msg=str((one, two)))
++            self.assertAlmostEqual(colour_vision.ciede2000(two, one), said, places=4, msg='the same either way round')
++        self.assertEqual(colour_vision.difference('#83eaff', '#83eaff'), 0.0)
++        white = colour_vision.lab('#ffffff');self.assertAlmostEqual(white[0], 100.0, places=3);self.assertLess(abs(white[1]) + abs(white[2]), 0.001)
++        self.assertAlmostEqual(colour_vision.lab('#000000')[0], 0.0, places=6)
++
++    def test_the_matrices_keep_white_and_grey_and_take_red_from_green_as_those_eyes_do(self):
++        self.assertEqual(sorted(colour_vision.MACHADO), [('deutan', 0.6), ('deutan', 1.0), ('protan', 0.6), ('protan', 1.0)])
++        for key, matrix in colour_vision.MACHADO.items():
++            for row in matrix:self.assertAlmostEqual(sum(row), 1.0, places=5, msg=str(key))      # white stays white
++            for grey in ('#ffffff', '#808080', '#202020', '#000000'):
++                seen = colour_vision.simulate(grey, *key);self.assertLessEqual(max(abs(int(seen[i:i + 2], 16) - int(grey[i:i + 2], 16)) for i in (1, 3, 5)), 1, (key, grey, seen))
++        self.assertEqual(colour_vision.simulate('#E2A72E'), '#e2a72e');self.assertEqual(colour_vision.simulate('#e2a72e', 'protan', 0), '#e2a72e')
++        red, green = '#e02020', '#20a020'      # a red and a green of like lightness: far apart to full sight
++        apart = lambda sight, severity: colour_vision.difference(colour_vision.simulate(red, sight, severity), colour_vision.simulate(green, sight, severity))
++        full = colour_vision.difference(red, green);self.assertGreater(full, 60)
++        for sight in ('protan', 'deutan'):
++            self.assertLess(apart(sight, 0.6), full, sight);self.assertLess(apart(sight, 1.0), apart(sight, 0.6), sight + ': the weaker the cone, the nearer they come')
++            self.assertLess(apart(sight, 1.0), full / 2, sight)
++        dark = colour_vision.lab(colour_vision.simulate('#ff0000', 'protan', 1.0))[0]
++        self.assertLess(dark, colour_vision.lab('#ff0000')[0] - 10, 'to weak red sight a red is dark')
++        self.assertGreater(colour_vision.lab(colour_vision.simulate('#ff0000', 'deutan', 1.0))[0], dark, 'to weak green sight it is not')
++
++
++class EveryLook(unittest.TestCase):
++    def test_every_meaning_has_a_colour_in_every_palette_and_a_sign_of_its_own(self):
++        self.assertEqual(set(colour_vision.MEANINGS), set(colour_vision.SIGNS));self.assertGreaterEqual(len(colour_vision.MEANINGS), 12)
++        for meaning, (name, says) in colour_vision.MEANINGS.items():
++            for look in LOOKS:self.assertRegex(boss_theme.PALETTES[look][name], r'^#[0-9a-f]{6}$', (look, meaning))
++            sign, where = colour_vision.SIGNS[meaning];self.assertGreater(len(sign), 20, meaning);self.assertGreater(len(where), 8, meaning);self.assertTrue(says)
++        signs = [sign for sign, _ in colour_vision.SIGNS.values()];self.assertEqual(len(set(signs)), len(signs), 'no two meanings share one sign')
++        for meaning in ('chosen', 'ready', 'waits', 'fails', 'recheck', 'stopped', 'held'):self.assertIn(meaning, colour_vision.MEANINGS)
++
++    def test_every_pair_under_the_threshold_is_told_apart_by_a_reviewed_word_or_shape(self):
++        self.assertEqual(colour_vision.THRESHOLD, 10.0);self.assertEqual(set(colour_vision.REVIEWED), set(LOOKS), 'every look is checked')
++        for look in LOOKS:
++            with self.subTest(look=look):
++                rows = colour_vision.table(look);self.assertEqual(len(rows), len(colour_vision.MEANINGS) * (len(colour_vision.MEANINGS) - 1) // 2)
++                for row in rows:self.assertEqual(set(row['seen']), {'full', 'weak red 0.6', 'weak red 1.0', 'weak green 0.6', 'weak green 1.0'})
++                left = ['%s / %s: %s and %s are %.1f apart in %s' % (*row['pair'], *row['colours'], row['least'], row['sight']) for row in colour_vision.unreviewed(look)]
++                self.assertEqual(left, [], 'give the pair a word or a shape on screen, then say so in tools/colour_vision.REVIEWED; do not move the colour to pass')
++                close = {frozenset(row['pair']) for row in rows if row['least'] < colour_vision.THRESHOLD}
++                listed = {frozenset(pair) for pair in colour_vision.REVIEWED[look]}
++                self.assertEqual(listed - close, set(), 'the table lists only pairs that are close today')
++                for pair, by in colour_vision.REVIEWED[look].items():
++                    self.assertEqual(len(set(pair)), 2);self.assertGreater(len(by), 40, pair)
++                    self.assertTrue(any(mark in by for mark in ('"', 'square', 'edge', 'curve', 'bar', 'cross', 'DELETE', 'capitals', 'name', 'words')), (pair, 'names a word or a shape'))
++
++    def test_what_the_two_looks_leave_to_the_sign(self):
++        # The findings, pinned: Graphite has one amber for five meanings; to weak red sight Kasandra's cyan is her plain ink.
++        close = lambda look: {row['pair']: row for row in colour_vision.table(look) if row['least'] < colour_vision.THRESHOLD}
++        g, k = close('graphite'), close('kasandra')
++        self.assertEqual(len(g), 25);self.assertEqual(len(k), 11)
++        self.assertEqual(sum(row['seen']['full'] == 0.0 for row in g.values()), 11, 'Graphite: ten pairs of its one amber, and its quiet ink')
++        ready = k[('ready', 'words')];self.assertGreater(ready['seen']['full'], 20);self.assertLess(ready['seen']['weak red 1.0'], 2.0);self.assertEqual(ready['sight'], 'weak red 1.0')
++        self.assertNotIn(('chosen', 'ready'), k, 'her yellow and her cyan stay apart in every sight');self.assertIn(('chosen', 'ready'), g)
++        self.assertNotIn(('chosen', 'waits'), k, 'and so do her yellow and her pink, which Graphite gives one amber');self.assertEqual(g[('chosen', 'waits')]['least'], 0.0)
++
++    def test_a_palette_that_moves_two_meanings_together_or_a_meaning_with_no_sign_fails(self):
++        hers = dict(boss_theme.PALETTES['kasandra']);self.assertEqual(colour_vision.unreviewed('kasandra', hers), [])
++        moved = dict(hers, HONEY=hers['RECHECK'])      # hers in the colour of a recheck: nobody has looked at that pair
++        self.assertEqual([row['pair'] for row in colour_vision.unreviewed('kasandra', moved) if row['least'] == 0.0], [('recheck', 'hers')])
++        near = dict(hers, RED='#f04a70')               # red a step from her pink: close in full sight too, and reviewed (their words differ)
++        self.assertNotIn(('waits', 'stopped'), [row['pair'] for row in colour_vision.unreviewed('kasandra', near)])
++        with patch.dict(colour_vision.SIGNS, clear=False) as signs:
++            del signs['waits']
++            self.assertIn(('waits', 'fails'), [row['pair'] for row in colour_vision.unreviewed('kasandra')], 'reviewed, but one of the two has no sign any more')
++        with patch.dict(colour_vision.SIGNS, {'fails': colour_vision.SIGNS['waits']}):
++            self.assertIn(('waits', 'fails'), [row['pair'] for row in colour_vision.unreviewed('kasandra')], 'one sign for both tells nothing apart')
++
++    def test_the_tool_prints_both_looks_and_says_when_a_pair_is_left(self):
++        done = subprocess.run([sys.executable, '-B', str(ROOT / 'tools' / 'colour_vision.py')], cwd=str(ROOT), capture_output=True, text=True, timeout=120)
++        self.assertEqual(done.returncode, 0, done.stdout[-2000:] + done.stderr[-2000:])
++        for words in ('graphite: 12 meanings, 66 pairs', 'kasandra: 12 meanings, 66 pairs', 'ready / words', 'told apart by:', 'COLOUR VISION: 0 pairs under 10 not reviewed'):
++            self.assertIn(words, done.stdout)
++        self.assertNotIn('NOT REVIEWED', done.stdout)
++        with patch.dict(colour_vision.REVIEWED, {'kasandra': {}}):
++            self.assertEqual(len(colour_vision.unreviewed('kasandra')), 11);self.assertIn('NOT REVIEWED', '\n'.join(colour_vision.printed('kasandra')))
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests_integrated/test_faces_find_light.py b/tests_integrated/test_faces_find_light.py
+index 897433c..a6cda66 100644
+--- a/tests_integrated/test_faces_find_light.py
++++ b/tests_integrated/test_faces_find_light.py
+@@ -162,7 +162,17 @@ class DeskLightTests(unittest.TestCase):
+         self.assertEqual(QColor(shown.pixel(6,4)).name(),page_light.DESK_LIGHT,'white times the tone is the tone')
+         self.assertEqual(QColor(shown.pixel(1,4)).name(),'#000000');self.assertEqual(QColor(kept.pixel(6,4)).name(),'#ffffff','the picture given is not changed')
+         self.assertIs(page_light.lit(page,True),page,'its own light is the page as it is')
+-        self.assertLess(QColor(page_light.DESK_LIGHT).lightness(),150,'the tone is well below white')
++        # How bright the tone is, as the eye takes it: its luminance, white being 1. 0.5.0 measured the mean of the largest
++        # and the smallest channel, which calls a blue brighter than it is: Kasandra's cool tone #8f97c9 read 172 of 255
++        # there and failed in her look, though it gives a third of white's light, as Graphite's warm tone gives a quarter.
++        # 0.8.4: the measure is the light, and it is asked of every look's tone whichever look the test runs in.
++        def light(colour):
++            c=QColor(colour);linear=[v/12.92 if v<=0.04045 else ((v+0.055)/1.055)**2.4 for v in (c.redF(),c.greenF(),c.blueF())]
++            return 0.2126*linear[0]+0.7152*linear[1]+0.0722*linear[2]
++        self.assertLess(light(page_light.DESK_LIGHT),0.4,'the tone is well below white')
++        for look,palette in boss_theme.PALETTES.items():
++            self.assertLess(light(palette['DESK_LIGHT']),0.4,look+': well below white')
++            self.assertGreater(light(palette['DESK_LIGHT']),4*light(palette['GROUND']),look+': and a page still stands clear of the desk')
+ 
+     def test_the_choice_is_read_from_the_session_and_defaults_to_the_desks_light(self):
+         host=type('Host',(),{})();self.assertFalse(page_light.own(host));host.session=type('S',(),{'state':{'page_own_light':True}})();self.assertTrue(page_light.own(host))
+diff --git a/tests_integrated/test_kasandra_highlight.py b/tests_integrated/test_kasandra_highlight.py
+index 678aecf..4c50802 100644
+--- a/tests_integrated/test_kasandra_highlight.py
++++ b/tests_integrated/test_kasandra_highlight.py
+@@ -195,15 +195,261 @@ class NeonLogo(unittest.TestCase):
+         soft, bright, neon = self.light(1.0)[0], self.light(1.9)[0], self.light(3.0)[0]
+         self.assertGreater(soft, 0);self.assertGreater(bright, soft);self.assertGreater(neon, bright)
+         self.assertGreater(self.light(3.0, surge=1.0)[0], neon, 'it surges as it catches')
+-        w, c, g = kp_logo.strengths(3.0);self.assertAlmostEqual(w, 3 * kp_logo.WIDE);self.assertAlmostEqual(c, 3 * kp_logo.CLOSE);self.assertAlmostEqual(g, 3 * kp_logo.GHOST)
++        w, c, g = kp_logo.strengths(3.0);self.assertAlmostEqual(w, 3 * kp_logo.WIDE);self.assertAlmostEqual(c, 3 * kp_logo.CLOSE);self.assertAlmostEqual(g, min(kp_logo.GHOST_SETTLED, 3 * kp_logo.GHOST))
+         self.assertEqual((kp_logo.size().width(), kp_logo.size().height()), (74, 44))
+ 
++    def ghost_light(self, level):
++        """The light the two ghosts alone lay beside the drawing at Glow `level`: the logo drawn on her band with them, less
++        the logo drawn without them, summed over the picture."""
++        from unittest.mock import patch
++        from PySide6.QtCore import QRectF
++        from PySide6.QtGui import QColor, QImage, QPainter
++        from workbench import kp_logo
++        def drawn():
++            image = QImage(110, 70, QImage.Format_ARGB32_Premultiplied);image.fill(QColor('#141734'))
++            p = QPainter(image);kp_logo.paint(p, QRectF(18, 13, 74, 44), kp_logo.logo(ROOT), level, 1.0, 0.0);p.end();return image
++        whole = drawn()
++        with patch.object(kp_logo, 'GHOSTS', ()):bare = drawn()
++        total = 0
++        for y in range(70):
++            for x in range(110):
++                a, b = whole.pixelColor(x, y), bare.pixelColor(x, y);total += max(0, a.red() - b.red()) + max(0, a.green() - b.green()) + max(0, a.blue() - b.blue())
++        return total
++
++    def test_settled_its_ghosts_leave_its_thin_strokes_single_and_the_catch_keeps_its_spread(self):
++        # 0.8.4. The review of 0.8.3: at Neon the ghosts (1.5 px away, 0.48) doubled the thin strokes; its edges a fifth softer.
++        from unittest.mock import patch
++        from workbench import kp_logo
++        self.assertEqual(kp_logo.away(), 1.0);self.assertAlmostEqual(kp_logo.away(1.0, 1.0), 3.9, msg='caught, they spread as far as they did (1.5 x 2.6)')
++        self.assertAlmostEqual(kp_logo.away(2.0), 2.0, msg='with the interface scale')
++        self.assertAlmostEqual(kp_logo.strengths(1.0)[2], 0.16, msg='Soft: as it was');self.assertAlmostEqual(kp_logo.strengths(3.0)[2], 0.3, msg='Neon, settled: 0.48 in 0.8.3')
++        self.assertAlmostEqual(kp_logo.strengths(3.0, 1.0)[2], 0.75, msg='caught, they surge as they did')
++        self.assertGreater(kp_logo.strengths(3.0, 0.5)[2], kp_logo.strengths(3.0)[2])
++        neon = self.ghost_light(3.0);self.assertGreater(neon, 0, 'they are still there');self.assertEqual(self.ghost_light(0.0), 0)
++        with patch.multiple(kp_logo, GHOST_AWAY=1.5, GHOST_SETTLED=0.48, SPREAD=2.6):before = self.ghost_light(3.0)      # as 0.8.3 drew them
++        self.assertLess(neon, 0.6 * before, 'beside its strokes the ghosts lay less than six tenths of the light they did at Neon: %s of %s' % (neon, before))
++
++    def test_the_drawing_is_kept_small_and_is_the_same_drawing(self):
++        # 0.8.4: the file is 1401 x 838, 4.7 MB decoded, for a button 74 x 44. One copy eight times the button's size is kept.
++        from PySide6.QtCore import Qt
++        from PySide6.QtGui import QImage
++        from workbench import kp_logo
++        kept = kp_logo.logo(ROOT);self.assertEqual((kept.width(), kept.height()), (588, 352));self.assertLess(kept.sizeInBytes(), 900_000)
++        self.assertEqual(kp_logo.logo(ROOT).cacheKey(), kept.cacheKey(), 'decoded once')
++        whole = QImage(str(PACK / kp_logo.NAME)).convertToFormat(QImage.Format_ARGB32_Premultiplied);self.assertGreater(whole.sizeInBytes(), 4_000_000)
++        a, b = (i.scaled(74, 44, Qt.IgnoreAspectRatio, Qt.SmoothTransformation) for i in (kept, whole));apart = 0
++        for y in range(44):
++            for x in range(74):
++                p, q = a.pixelColor(x, y), b.pixelColor(x, y);apart += abs(p.red() - q.red()) + abs(p.green() - q.green()) + abs(p.blue() - q.blue()) + abs(p.alpha() - q.alpha())
++        self.assertLess(apart / (74 * 44 * 4), 2.0, 'at its size in the head it is the file\'s drawing, to within two levels in 255 on average')
++
+     def test_its_ghosts_are_cyan_left_and_magenta_right(self):
+         from workbench import kp_logo
+         colours = dict((side, colour) for colour, side in kp_logo.GHOSTS)
+         self.assertLess(abs(hue(colours[-1.0]) - 191), 15, 'cyan to the left');self.assertTrue(290 <= hue(colours[1.0]) <= 330, 'magenta to the right')
+ 
+ 
++MARK = 'KASANDRA HIGHLIGHT '
++
++# One child for the small things of 0.8.4, in the look chosen for it: what each draws or says there.
++PROBE = r'''
++import colorsys, json, re
++from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
++from PySide6.QtWidgets import QApplication
++app = QApplication([])
++from workbench import boss_theme as b, chain_icons, datasheet_qt, document_qt, pointer, sheet_workbench_qt
++out = dict(look=b.APPEARANCE)
++def green(image):
++    n = 0
++    for y in range(image.height()):
++        for x in range(image.width()):
++            c = image.pixelColor(x, y);h, l, s = colorsys.rgb_to_hls(c.redF(), c.greenF(), c.blueF())
++            n += s >= 0.25 and 70 <= h * 360 <= 170
++    return n
++def over(pixmap, ground):
++    image = QImage(pixmap.size(), QImage.Format_RGB32);image.fill(QColor(ground));p = QPainter(image);p.drawPixmap(0, 0, pixmap);p.end();return image
++def pointers():
++    counts = {}
++    for level in (1.0, 1.9, 3.0):
++        b.GLOW[0] = level
++        for shape in pointer.SHAPES:
++            for ratio in (1.0, 2.0):
++                pixmap = pointer.drawn(shape, True, ratio)[0];pixmap.setDevicePixelRatio(1.0)
++                for name in ('BAR', 'BAR_EDGE', 'AMBER_SOFT'):counts[name] = counts.get(name, 0) + green(over(pixmap, getattr(b, name)))
++    b.GLOW[0] = 3.0
++    return counts
++out['pointer'] = pointers()
++kept = b.VIOLET_PALE;b.VIOLET_PALE = b.READY;out['pointer_haloed_in_ready'] = pointers();b.VIOLET_PALE = kept
++def inks(pixmap):
++    image = pixmap.toImage().convertToFormat(QImage.Format_ARGB32)
++    return sorted({image.pixelColor(x, y).name() for y in range(image.height()) for x in range(image.width()) if image.pixelColor(x, y).alpha() == 255})
++out['chain'] = {name: [inks(chain_icons.icon(name).pixmap(36, 36, mode)) for mode in (QIcon.Normal, QIcon.Active, QIcon.Selected)] for name in ('then', 'rows', 'keep')}
++page = QPixmap(200, 120);page.fill(QColor('#2aa8ff'))
++crop = datasheet_qt.SourceCrop(page, (0.0, 0.0, 1.0, 1.0), 200);crop.mark([{'rect': (0.2, 0.25, 0.5, 0.3)}])
++image = crop.grab().toImage();mark = crop.highlight
++out['pdf'] = dict(inside=image.pixelColor(int(mark.center().x()), int(mark.center().y())).name(), edge=image.pixelColor(int(mark.left()), int(mark.center().y())).name(),
++                  outside=image.pixelColor(4, 4).name())
++out['run'] = dict(re.findall(r'QPushButton#RunWorksheetChain:(hover|focus) \{([^}]*)\}', sheet_workbench_qt.SURFACE))
++out['run_rest'] = re.findall(r'QPushButton#RunWorksheetChain \{[^}]*border: 1px solid (#[0-9a-f]{6})', sheet_workbench_qt.SURFACE)
++out['legacy'] = {old: b.LEGACY.get(old) for old in ('#d4b56a', '#f2a369', '#f8edc9', '#4b2a14', '#ff9a36', '#ffba72')}
++yellow = {b.AMBER, b.AMBER_SOFT, b.AMBER_EDGE, b.AMBER_TEXT, b.BAR, b.BAR_EDGE, b.BAND_MARK, b.BAND_PENCIL}
++out['to_yellow'] = sorted(old for old, new in b.LEGACY.items() if new in yellow)
++out['relit'] = b.relight('QFrame {background:#f8edc9; border-left:3px solid #d4b56a; color:#504d46;}')
++out['documents'] = document_qt.PAGE_STYLE.split('QListWidget#DocumentList::item:selected ')[1]
++out['chosen_row'] = list(b.chosen_row('#111111', '#222222'))
++out['warm'] = [b.warm(share).name() for share in (0.0, 0.08, 0.3, 1.0)]
++print(json.dumps(out))
++'''
++
++
++def tally(pixels):
++    """Of these (r, g, b): how many there are, how many are warm (hue 25 to 45 degrees, saturation 0.25 or more) and how many
++    green (hue 70 to 170, saturation 0.25 or more), hue and saturation as the reviews of 0.8.3 measured them (HLS)."""
++    n = warm = green = 0
++    for r, g, b in pixels:
++        h, _, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255);n += 1
++        warm += s >= 0.25 and 25 <= h * 360 <= 45;green += s >= 0.25 and 70 <= h * 360 <= 170
++    return dict(n=n, warm=warm, green=green)
++
++
++def window_report():
++    """In the child: the real window on the bench seed, in the look chosen for it. Her keyboard light measured on rendered
++    frames (the writing line with the keyboard; the Field's selected sheet with it), and a selected row in the lists that
++    have a sheet of their own. The light is what the keyboard changes: each frame is taken with it and without it."""
++    from PySide6.QtCore import QRectF
++    from PySide6.QtGui import QImage
++    from PySide6.QtWidgets import QFrame, QToolButton, QWidget
++    from tests_integrated.test_desk_acts import act, build_window, close_window, settle
++    from workbench import desktop_header_qt, explore_qt, log_qt
++    store = {};build_window(store, 'graphite-highlight-');out = dict(look=boss_theme.APPEARANCE, glow=boss_theme.glow())
++    try:
++        w = store['w']
++        def frames(widget, holder):
++            taken = []
++            for held in (True, False):
++                holder.hasFocus = lambda held=held: held
++                widget.update();settle(store);taken.append(widget.grab().toImage().convertToFormat(QImage.Format_RGB32))
++            del holder.hasFocus
++            return taken
++        def lit(with_it, without, spots):
++            changed = []
++            for x, y in spots:
++                p, q = with_it.pixelColor(x, y), without.pixelColor(x, y)
++                if abs(p.red() - q.red()) + abs(p.green() - q.green()) + abs(p.blue() - q.blue()) > 24:changed.append((p.red(), p.green(), p.blue()))
++            return changed
++        act('type.to', {'who': 'her'}, store=store);bar = w.type_bar;r = bar.box.geometry()
++        with_it, without = frames(bar, bar.box)      # the eight rows above the line's box and the eight below, inside its columns
++        rows = [y for y in list(range(r.top() - 8, r.top())) + list(range(r.bottom() + 1, r.bottom() + 9)) if 0 <= y < bar.height()]
++        out['line'] = tally(lit(with_it, without, [(x, y) for x in range(r.left() + 4, r.right() - 3) for y in rows]))
++        act('go.field', {'face': 'work'}, store=store);view = w.field_page.view
++        act('point.sheet', {'title': next(o.title for o in view.field.objects if getattr(o, 'title', ''))}, store=store)
++        with_it, without = frames(view, view)       # round the selected sheet, from just outside its edge to where the light ends
++        body = view._layout();at = view._drawn_rect(view.field.selected, body);z = view.zoom
++        sheet = QRectF(body.left() + (at.left() - body.left()) * z, body.top() + (at.top() - body.top()) * z, at.width() * z, at.height() * z)
++        reach = int(30 * z * view.scale()) + 2;inner = sheet.adjusted(-3, -3, 3, 3)
++        spots = [(x, y) for x in range(max(0, int(sheet.left()) - reach), min(view.width(), int(sheet.right()) + reach + 1))
++                 for y in range(max(0, int(sheet.top()) - reach), min(view.height(), int(sheet.bottom()) + reach + 1)) if not inner.contains(x, y)]
++        out['field'] = tally(lit(with_it, without, spots));act('go.back', store=store)
++        act('type.to', {'who': 'log'}, store=store);act('type.room', {'size': 'half'}, store=store);logs = log_qt.view_of(w)
++        logs.choose('events', remember=False);settle(store);events = logs.events
++        events.setCurrentRow(0);events.scrollToItem(events.item(0));settle(store)
++        cell = events.visualItemRect(events.item(0));image = events.viewport().grab().toImage()
++        out['log_row'] = [image.pixelColor(cell.left(), cell.center().y()).name(), image.pixelColor(cell.right() - 2, cell.top() + 1).name()]
++        act('type.room', {'size': 'line'}, store=store)
++        sheets = {'LogView': [logs.styleSheet()]}
++        for name, kind, make in (('NicePopup', QFrame, lambda: desktop_header_qt.NicePopup(w, w, embedded=True)), ('SlateSwitch', QToolButton, lambda: desktop_header_qt.SlateSwitch(w))):
++            sheets[name] = sorted({x.styleSheet() for x in w.findChildren(kind, name)}) or [make().styleSheet()]
++        sheets['LogicalCabinet'] = [w.cabinet_page.styleSheet()]
++        explore_qt.show(w);settle(store)
++        sheets['ExploreWorkspace'] = sorted({x.styleSheet() for x in w.findChildren(QWidget, 'ExploreWorkspace')})
++        out['sheets'] = {name: [re.findall(r'[^{}]*:(?:selected|checked)[^{}]*\{[^{}]*\}', css) for css in found] for name, found in sheets.items()}
++    finally:close_window(store)
++    print(MARK + json.dumps(out), flush=True)
++
++
++class Leftovers(unittest.TestCase):
++    """0.8.4: what the two reviews of 0.8.3's burnt yellow left open. Each look is asked in a child of its own."""
++    probes, windows = {}, {}
++
++    def probe(self, look):
++        if look not in self.probes:self.probes[look] = in_appearance(look, PROBE)
++        self.assertEqual(self.probes[look]['look'], look);return self.probes[look]
++
++    def window(self, look):
++        if look not in self.windows:
++            import tempfile
++            with tempfile.TemporaryDirectory(prefix='graphite-highlight-home-') as home:
++                env = dict(os.environ, GRAPHITE_APPEARANCE=look, QT_QPA_PLATFORM='offscreen', HOME=home)
++                for key in ('ARC1_WORKBENCH_CONFIG_HOME', 'ARC_LEDGER_CONCERN', 'ARC_LEDGER_XSESSION'):env.pop(key, None)
++                done = subprocess.run([sys.executable, '-B', '-m', 'tests_integrated.test_kasandra_highlight', '--window'], cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=400)
++            line = next((l for l in reversed(done.stdout.splitlines()) if l.startswith(MARK)), None)
++            self.assertIsNotNone(line, 'no window in %s (exit %s): %s' % (look, done.returncode, (done.stderr or done.stdout)[-3000:]))
++            self.windows[look] = json.loads(line[len(MARK):])
++        self.assertEqual(self.windows[look]['look'], look);return self.windows[look]
++
++    def test_her_keyboard_light_is_warm_on_a_rendered_frame_and_never_green(self):
++        # The review: yellow added as light to her blue came out grey (the line's edge at saturation 0.07 to 0.17, the Field's
++        # outer rings at 0.08). Asked: ring pixels at saturation 0.25 or more and hue 25 to 45, and still no green.
++        k = self.window('kasandra');self.assertEqual(k['glow'], 3.0, 'at Neon, as the desk opens')
++        for where, least in (('line', 3000), ('field', 8000)):
++            seen = k[where];self.assertGreaterEqual(seen['n'], least, (where, 'the light is there'))
++            self.assertEqual(seen['green'], 0, where);self.assertGreaterEqual(seen['warm'] / seen['n'], 0.9, (where, seen))
++        g = self.window('graphite')
++        for where in ('line', 'field'):self.assertGreater(g[where]['n'], 1000, 'Graphite: its amber light is where it was')
++
++    def test_a_selected_row_is_her_highlight_in_the_lists_with_a_sheet_of_their_own(self):
++        k, g = self.window('kasandra'), self.window('graphite')
++        self.assertEqual(k['log_row'], ['#e2a72e', '#5a3f0c'], 'the Log, drawn: her edge, then her fill');self.assertEqual(g['log_row'][1], '#202520', 'Graphite: its raised row')
++        hers = 'background:#5a3f0c;color:#ffd27a;'
++        was = {'LogView': 'background:#202520;color:#f4e8ce;', 'NicePopup': 'background:#493225;color:#f4e8ce;', 'LogicalCabinet': 'background:#493225;color:#eee9dd;',
++               'ExploreWorkspace': 'background:#f3e3e2;', 'SlateSwitch': 'background:#4b2a14;'}
++        for name, before in was.items():
++            for look, value, said in (('kasandra', k, hers), ('graphite', g, before)):
++                found = [rule for rules in value['sheets'][name] for rule in rules];self.assertTrue(found, (look, name))
++                for rule in found:self.assertEqual(rule.split('{')[1].rstrip('}').strip().replace(' ', '')[:len(said)], said, (look, name, rule))
++        switch = k['sheets']['SlateSwitch'][0][0];self.assertIn('border:1px solid #e2a72e', switch, 'switched on: her highlight whole, its edge too')
++        p = self.probe('kasandra');self.assertEqual(p['documents'], '{background:#5a3f0c;color:#ffd27a;}');self.assertEqual(p['chosen_row'], ['#5a3f0c', '#ffd27a'])
++        p = self.probe('graphite');self.assertEqual(p['documents'], '{background:#593a29;color:#f4e8ce;}');self.assertEqual(p['chosen_row'], ['#111111', '#222222'])
++
++    def test_the_pointers_glow_is_never_green_over_her_yellow(self):
++        # The window system lays the pointer over the row it is on, and that row is her solid yellow bar: no window grab shows
++        # it. Laid over BAR, BAR_EDGE and AMBER_SOFT, every shape at every glow and at 1x and 2x: no pixel at hue 70 to 170
++        # with saturation 0.25 or more. Haloed in her cyan, as 0.8.3's first cut was, the same count finds the green.
++        p = self.probe('kasandra')
++        self.assertEqual(p['pointer'], {'BAR': 0, 'BAR_EDGE': 0, 'AMBER_SOFT': 0})
++        self.assertGreater(p['pointer_haloed_in_ready']['BAR'], 100, 'the count sees what the review saw')
++
++    def test_chain_menu_pictures_are_in_the_bars_ink_on_the_row_you_are_on(self):
++        k, g = self.probe('kasandra'), self.probe('graphite')
++        for name, (rest, on_bar, chosen) in k['chain'].items():
++            self.assertEqual((on_bar, chosen), (['#171b3c'], ['#171b3c']), name);self.assertNotIn('#171b3c', rest, name);self.assertTrue(rest, name)
++        for name, (rest, on_bar, chosen) in g['chain'].items():self.assertNotIn('#171b3c', on_bar + chosen, 'Graphite: as it drew them')
++
++    def test_the_pdf_evidence_mark_is_an_opaque_edge_with_nothing_seen_through(self):
++        k, g = self.probe('kasandra'), self.probe('graphite')
++        self.assertEqual((k['pdf']['inside'], k['pdf']['edge'], k['pdf']['outside']), ('#2aa8ff', '#e2a72e', '#2aa8ff'), 'the page as it is inside the mark, and her edge whole')
++        self.assertNotEqual(g['pdf']['inside'], '#2aa8ff', 'Graphite: its amber wash inside the mark, as before');self.assertEqual(g['pdf']['edge'], '#ff9a36')
++
++    def test_the_sheets_run_button_holds_the_keyboard_in_her_yellow(self):
++        k, g = self.probe('kasandra'), self.probe('graphite')
++        self.assertEqual(k['run'], {'hover': 'background: #b9f4ff;', 'focus': 'background: #ffd27a; border-color: #e2a72e;'}, 'the pointer in her cyan, the keyboard in her yellow')
++        self.assertEqual(g['run'], {'hover': 'background: #ffba72;', 'focus': 'background: #ffba72; border-color: #ff9a36;'});self.assertEqual(g['run_rest'], ['#ff9a36'], 'Graphite: the edge it had')
++
++    def test_the_old_colours_that_became_her_yellow_are_each_decided(self):
++        k, g = self.probe('kasandra'), self.probe('graphite')
++        self.assertEqual(k['legacy'], {'#d4b56a': '#e2a72e', '#f2a369': '#ffd27a', '#f8edc9': '#1d3d63', '#4b2a14': '#1d3d63', '#ff9a36': '#83eaff', '#ffba72': '#b9f4ff'})
++        self.assertEqual(k['to_yellow'], ['#d4b56a', '#f2a369'], 'the chosen one\'s marks, and no other: an old colour that is to be her yellow is decided in boss_theme')
++        self.assertEqual(k['relit'], 'QFrame {background:#1d3d63; border-left:3px solid #e2a72e; color:#e3e3ff;}')
++        self.assertEqual(g['relit'], 'QFrame {background:#4b2a14; border-left:3px solid #ff9a36; color:#f4e8ce;}', 'Graphite: what it always made of them')
++        self.assertEqual(g['legacy']['#4b2a14'], None, 'Graphite maps none of its own colours')
++
++    def test_her_light_is_a_warm_tone_at_every_strength(self):
++        tones = self.probe('kasandra')['warm'];self.assertEqual((tones[0], tones[-1]), ('#261c0e', '#e2a72e'))
++        for tone in tones:
++            h, _, s = colorsys.rgb_to_hls(*[int(tone[i:i + 2], 16) / 255 for i in (1, 3, 5)]);self.assertTrue(25 <= h * 360 <= 45 and s >= 0.25, tone)
++        self.assertLess(abs(lum(tones[0]) - lum('#171b3c')), 0.005, 'where it is almost gone it is as dark as her ground')
++
++
+ class Retired(unittest.TestCase):
+     """The neon logo is the only kp mark: no file of the marks it retires, and no word of them in the program, its tools, its
+     tests or its records of now (the release notes and the version's lineage are history and keep theirs)."""
+@@ -228,4 +474,5 @@ class Retired(unittest.TestCase):
+ 
+ 
+ if __name__ == '__main__':
+-    unittest.main()
++    if sys.argv[1:2] == ['--window']:window_report()
++    else:unittest.main()
+diff --git a/tests_integrated/test_one_name.py b/tests_integrated/test_one_name.py
+index c5c4d64..ff50b16 100644
+--- a/tests_integrated/test_one_name.py
++++ b/tests_integrated/test_one_name.py
+@@ -94,6 +94,48 @@ class TheSweepItself(unittest.TestCase):
+         for words in ('origin STACY','at 12:00:01   operation brain.worker   state READY   origin STACY','"detail": "STACY is ready"','Stacy · brain.worker'):
+             self.assertEqual(said(words),['stacy'],words)
+ 
++    def test_a_key_named_in_the_programs_own_words_is_found_and_programs_is(self):
++        # 0.8.4: no keyboard shortcut is printed on screen, and the list is "Apps". These were tips of 0.8.3.
++        said=name_sweep.named_in
++        for words in ('Build the target for the work in front of you (F7)','Click: confirm Stop all · Ctrl+Shift+F12','Console\tCtrl+`','Run an operation…\tAlt+3',
++                      "words in Graphite's events  ·  Enter filters",'words and Enter filter them','Tab completes, Enter runs','Enter opens one, Esc comes back',
++                      'Right or Enter opens the rows.','Move the pointer or press a key to return to work.','Select related files with Ctrl or Shift.','Ctrl Z takes it back',
++                      'Arrow keys navigate, Z selects','Fill the display; F11 returns to the previous window'):
++            for kind in ('toolTip','statusTip','accessibleDescription','whatsThis','text'):
++                self.assertEqual(said(words,kind),['key'],(kind,words))
++            self.assertEqual(said(words),['key'],words)
++            for kind in ('row','row tip','toPlainText'):self.assertEqual(said(words,kind),[],'a row and the text of a page are the owner\'s data')
++        for words in ('Enter one named quote per line.','Return to the files and rooms you had open','Close Tab','Open in a new tab','Shift the column left',
++                      'Type to filter the tree','the keys of a record','Alt text for a picture','F12a connector','Space for one more row','Keep it, and it goes to Notes exactly as written'):
++            self.assertEqual(said(words,'toolTip'),[],words)
++        self.assertEqual(said('Programs Graphite does not manage keep running','toolTip'),['programs']);self.assertEqual(said('Programs','row'),['programs'])
++        for words in ('Apps','the programs installed here','programs.mail.read','ProgramsList'):self.assertEqual(said(words),[],words)
++        for kept,why in name_sweep.KEYS_KEPT:      # reviewed: a key that must be pressed, with nothing to click in its place
++            self.assertTrue(name_sweep.KEYS.search(kept),kept);self.assertEqual(said('Open apps · '+kept,'accessibleDescription'),[],kept);self.assertGreater(len(why),20)
++
++    def test_the_sweep_finds_a_key_in_a_tip_a_status_tip_a_description_and_whats_this(self):
++        from PySide6.QtGui import QAction
++        from PySide6.QtWidgets import QApplication,QListWidget,QPushButton,QVBoxLayout,QWidget
++        app=QApplication.instance() or QApplication([])
++        window=QWidget();layout=QVBoxLayout(window)
++        save=QPushButton('Save');save.setToolTip('Save the page (Ctrl+S)');save.setStatusTip('Press Enter to save');layout.addWidget(save)
++        find=QPushButton('Find');find.setAccessibleDescription('Find in the page; F3 goes to the next');find.setWhatsThis('Esc closes it');layout.addWidget(find)
++        line=QAction('Output   (F10)',window);line.setWhatsThis('Shift+F10 opens it');window.addAction(line)
++        rows=QListWidget();rows.addItem('typed: press F5 to run, then Ctrl+C');layout.addWidget(rows)
++        found=name_sweep.sweep(window,'a test window')
++        self.assertEqual(sorted((f['widget'],f['kind'],f['words']) for f in found if f['name']=='key'),
++                         [('QAction','text','Output   (F10)'),('QAction','toolTip','Output   (F10)'),('QAction','whatsThis','Shift+F10 opens it'),
++                          ('QPushButton','accessibleDescription','Find in the page; F3 goes to the next'),('QPushButton','statusTip','Press Enter to save'),
++                          ('QPushButton','toolTip','Save the page (Ctrl+S)'),('QPushButton','whatsThis','Esc closes it')])
++        import shiboken6
++        shiboken6.delete(window);app.processEvents()      # gone now: the next sweep reads every window there is
++
++    def test_the_guide_pages_shown_in_the_program_name_no_key_and_say_apps(self):
++        self.assertEqual(name_sweep.in_guides(ROOT),[])
++        with tempfile.TemporaryDirectory() as temp:
++            (Path(temp)/'GUIDE.md').write_text('Open the Field.\nSearch commands with Ctrl+Shift+P.\nThe Programs list is at the upper right.\n'+name_sweep.KEYS_KEPT[-1][0]+'\n',encoding='utf-8')
++            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',))],[('GUIDE.md',2),('GUIDE.md',3)])
++
+     def test_the_code_sweep_reads_sentences_and_not_documentation(self):
+         with tempfile.TemporaryDirectory() as temp:
+             folder=Path(temp)/'workbench';folder.mkdir()
+@@ -133,6 +175,17 @@ class TheCode(unittest.TestCase):
+         for (file,start),why in name_sweep.CODE_KEPT.items():
+             self.assertTrue(any(f==file and words.startswith(start[:160]) for f,_,words in everything),(file,start));self.assertTrue(why.strip(),(file,start))
+ 
++    def test_tips_and_notes_the_walk_does_not_reach_name_no_key(self):
++        # 0.8.4: put right with the ones the walk reads. Each named a key where there is something to click in its place.
++        from workbench import log_qt,system_menu_qt
++        for words in list(log_qt.HINTS.values())+list(log_qt.NOTES.values())+[system_menu_qt.STOP_TIP]:
++            self.assertEqual(name_sweep.named_in(words,'toolTip'),[],words)
++        for file,mark in (('workbench/home_qt.py','self.startup.setToolTip('),('workbench/hardware_overview.py','items · double-click'),('workbench/spice_qt.py','exact native samples'),
++                          ('workbench/log_qt.py','No capture is running'),('workbench/arc_desktop.py','host.global_search.setToolTip('),('workbench/qt_app.py','self.global_search.setToolTip(')):
++            lines=[line for line in (ROOT/file).read_text(encoding='utf-8').splitlines() if mark in line]
++            self.assertTrue(lines,(file,mark))
++            for line in lines:self.assertEqual(name_sweep.named_in(line,'toolTip'),[],(file,line.strip()[:140]))
++
+     def test_the_phone_page_says_no_earlier_name(self):
+         # workbench/remote_pwa is served to the owner's phone as it stands; '/stacy.png' is a picture's address, not a word
+         pattern=name_sweep.NEVER['stacy'][0];said=[]
+diff --git a/tests_integrated/test_system_menu.py b/tests_integrated/test_system_menu.py
+index 5394e75..f06e959 100644
+--- a/tests_integrated/test_system_menu.py
++++ b/tests_integrated/test_system_menu.py
+@@ -383,7 +383,9 @@ class MenuTests(unittest.TestCase):
+         menu.fill()
+         self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Graphite services','—','Log out','Exit Graphite','Restart','Shut down'])
+         self.assertIs(menu.items()[0],menu.game,'Game first');self.assertIs(menu.items()[1],menu.kill,'Stop all jobs directly beneath')
+-        self.assertEqual(menu.kill.caption,'work Graphite manages');self.assertIn('Programs Graphite does not manage keep running',menu.kill.toolTip())
++        self.assertEqual(menu.kill.caption,'work Graphite manages');self.assertIn('What Graphite does not manage keeps running',menu.kill.toolTip())
++        self.assertNotIn('Programs',menu.kill.toolTip(),'0.8.4: on screen it is Apps, and what is not an app is not called Programs')
++        self.assertNotIn('Ctrl',menu.kill.toolTip(),'0.8.4: no key is named in a tip')
+         rows=menu.session_rows
+         self.assertEqual({k:r.caption for k,r in rows.items()},{'logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
+         self.assertEqual({k:r.unavailable for k,r in rows.items()},{'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index 2df02e9..4939909 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -64,6 +64,8 @@ FOCUSED_MODULES=(
+  'test_delete_words','test_typewriter_faces','test_hologram','test_kasandra_column',
+  # 0.8.3: Kasandra's highlight in burnt yellow (Graphite's colours kept), the neon kp logo as the only kp mark
+  'test_kasandra_highlight',
++ # 0.8.4: the colour-vision check: every pair of meaning colours as weak red and weak green sight take them (tools/colour_vision.py)
++ 'test_colour_vision',
+  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
+  # the network capability the agent can inspect (HATCH DESK D5)
+  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',
+diff --git a/tools/check_head_ui.py b/tools/check_head_ui.py
+index 4409af0..71f51ca 100644
+--- a/tools/check_head_ui.py
++++ b/tools/check_head_ui.py
+@@ -123,7 +123,7 @@ assert popup is not None and popup.isVisible() and popup.items()[0] is popup.gam
+ assert app.focusWidget() is popup.game and popup.game.hasFocus(),type(app.focusWidget()).__name__
+ QTest.keyClick(popup.game,Qt.Key_Down);settle();assert app.focusWidget() is popup.kill,'one Down reaches Stop all jobs'
+ assert popup.kill.text()==KILL_WORDS=='Stop all jobs' and popup.kill.width()>=popup.width()-30 and popup.kill.isEnabled() and popup.kill.caption=='work Graphite manages'
+-assert 'Ctrl+Shift+F12' in popup.kill.toolTip() and 'Stop advice' in popup.kill.toolTip(),popup.kill.toolTip()  # the controller's own detail
++assert 'Ctrl+Shift+F12' not in popup.kill.toolTip() and 'Stop advice' in popup.kill.toolTip(),popup.kill.toolTip()  # the controller's own detail
+ assert not hasattr(popup,'stop') or popup.stop is popup.kill,'one Stop, not two'
+ assert popup.running_label.words().startswith('ACTIVE JOBS') and 'as they started' in popup.running_label.words() and 'order they started' in popup.running_label.toolTip()  # QuietWords: its words as plain text (the note is the script)
+ observations['popup']=dict(position=[popup.x(),popup.y()],size=[popup.width(),popup.height()],kill=rect(popup.kill) if False else [popup.kill.x(),popup.kill.y(),popup.kill.width(),popup.kill.height()])
+diff --git a/tools/colour_vision.py b/tools/colour_vision.py
+new file mode 100644
+index 0000000..e51e6ce
+--- /dev/null
++++ b/tools/colour_vision.py
+@@ -0,0 +1,257 @@
++"""The colour-vision check: no colour on the desk carries its meaning alone for eyes with weak red or weak green sight.
++
++Every look's palette (workbench/boss_theme.PALETTES) gives each meaning a colour: what is chosen, what is ready, what
++waits for the owner, what does not hold, what must be worked again, what is stopped or deleted, what is hers, the desk's
++quiet structure, a line, a wire, plain words, what is held. Two of them can stand side by side anywhere on the desk (the
++Field's sheets beside her column, a menu over both), so every pair is taken.
++
++  simulate(colour, sight, severity)   the colour as weak red (protan) or weak green (deutan) sight takes it: the matrices
++                                      of Machado, Oliveira and Fernandes, "A Physiologically-based Model for Simulation
++                                      of Color Vision Deficiency", IEEE Transactions on Visualization and Computer
++                                      Graphics 15(6), 2009, as published by the authors for severities 0.6 and 1.0
++                                      (1.0 is the eye with that cone missing), applied to linear sRGB.
++  difference(a, b)                    how far apart two colours are: CIEDE2000 (Sharma, Wu and Dalal, "The CIEDE2000
++                                      Color-Difference Formula", Color Research and Application 30(1), 2005) between
++                                      their CIELAB values under D65. Not CIE76: plain distance in Lab overstates
++                                      differences between saturated colours, and these are saturated.
++  THRESHOLD                           10. Under it, two small marks seen apart from each other (a badge here, an edge
++                                      there) cannot be relied on to read as two colours. A just-noticeable difference
++                                      is about 1 side by side; 10 is the usual least for colours that name categories.
++  SIGHTS                              full sight, and each of the two at 0.6 and at 1.0
++  MEANINGS                            meaning -> (the palette's name for its colour, what it says)
++  SIGNS                               meaning -> (its word or its shape, where that is drawn): what tells it without colour
++  REVIEWED[look]                      the pairs under THRESHOLD in some sight that a person has looked at: for each, the
++                                      two signs tell the pair apart on screen. A pair under THRESHOLD that is not here
++                                      fails the check (tests_integrated/test_colour_vision.py), so a palette that moves
++                                      two meanings together is seen, and so is a meaning that has no sign.
++  table(look)                         every pair: its difference in each sight, the least of them, and what tells it apart
++  unreviewed(look)                    the pairs under THRESHOLD that are not in REVIEWED[look]
++
++  python3 tools/colour_vision.py           the pairs under THRESHOLD in both looks, with what tells each apart; exit 1 when one is unreviewed
++  python3 tools/colour_vision.py --all     every pair
++"""
++import math
++import sys
++from itertools import combinations
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++if str(ROOT) not in sys.path:sys.path.insert(0, str(ROOT))
++
++THRESHOLD = 10.0
++
++# Machado, Oliveira and Fernandes (2009), the authors' published matrices. Each row sums to 1: white stays white.
++MACHADO = {
++    ('protan', 0.6): ((0.385450, 0.769005, -0.154455), (0.100526, 0.829802, 0.069673), (-0.007442, -0.022190, 1.029632)),
++    ('protan', 1.0): ((0.152286, 1.052583, -0.204868), (0.114503, 0.786281, 0.099216), (-0.003882, -0.048116, 1.051998)),
++    ('deutan', 0.6): ((0.498864, 0.674741, -0.173604), (0.205199, 0.754872, 0.039929), (-0.011131, 0.030969, 0.980162)),
++    ('deutan', 1.0): ((0.367322, 0.860646, -0.227968), (0.280085, 0.672501, 0.047413), (-0.011820, 0.042940, 0.968881)),
++}
++SIGHTS = (('full', None, 0.0), ('weak red 0.6', 'protan', 0.6), ('weak red 1.0', 'protan', 1.0), ('weak green 0.6', 'deutan', 0.6), ('weak green 1.0', 'deutan', 1.0))
++
++# meaning -> (the palette's name for its colour, what it says). boss_theme's roles and mockup CANON.md's "each means one thing".
++MEANINGS = {
++    'chosen': ('AMBER_EDGE', 'selected, or holds the keyboard'),
++    'ready': ('READY', 'ready, at work, live; the pointer and what it is over'),
++    'waits': ('OWNER', 'waits for the owner'),
++    'fails': ('STOP', 'does not hold; an error'),
++    'recheck': ('RECHECK', 'must be worked again'),
++    'stopped': ('RED', 'DELETE, the send arrow, Forget, stopped'),
++    'hers': ('HONEY', 'hers: her cards, her proposals, done'),
++    'quiet': ('VIOLET', 'the desk\'s structure, her quiet, cannot tell'),
++    'line': ('ROYAL', 'a line that can be run'),
++    'wire': ('TEAL_EDGE', 'a wire: what feeds what'),
++    'words': ('TEXT', 'plain words: the colour says nothing'),
++    'held': ('QUIET', 'held, or not there to be read: quiet ink'),
++}
++
++# meaning -> (its word or its shape, where that is drawn). What says the meaning to an eye that cannot see the colour.
++SIGNS = {
++    'chosen': ('its own ground filled and a 2 px edge on the row, tab or word; corner ticks on the Field\'s selected sheet; in her menus a solid bar under the row',
++               'boss_theme.CHROME_OVERRIDES and HIGHLIGHTS; field_qt._sheet (the ticks)'),
++    'ready': ('the word "current" or "ready", and a filled square; her state word "at work"; under the pointer, the pointer itself',
++              'field_qt.STATE_WORD and _mark (settled); hologram.STATE_LOOK; pointer.drawn'),
++    'waits': ('the words "waits for you", and a square with a dot inside it',
++              'hologram.STATE_LOOK (her column\'s top and her caption); field_qt._mark (waiting)'),
++    'fails': ('the words "does not hold", and a cross (on a finding, a crossed square)',
++              'field_qt._mark (failed, refuted); the finding\'s own words on its sheet'),
++    'recheck': ('the word "recheck", a half-filled square, and in her look a dashed edge',
++                'field_qt.STATE_WORD, _mark (recheck) and _sheet (the dashed edge)'),
++    'stopped': ('the word DELETE beside the can, the arrow\'s own shape on the send button, the word Forget, her state word "stopped"',
++                'shell2 (DELETE and the send arrow); hologram.STATE_LOOK'),
++    'hers': ('her name over it, and a bar down the left edge of her cards; her state word "done"',
++             'shell2 (her cards\' left edge, the mark under her name); hologram.STATE_LOOK'),
++    'quiet': ('a heading in capitals with a rule after it; her state word "quiet"; the words "cannot tell"',
++              'field_qt._columns (the column\'s name and its rule); hologram.STATE_LOOK'),
++    'line': ('the line\'s own words in the fixed-pitch face; in her look on a slab with a bar down its left edge',
++             'boss_theme.line_sheet'),
++    'wire': ('a curve drawn from one sheet to another, never a mark or a word',
++             'field_qt._wires'),
++    'words': ('words, with no mark: nothing is said by their colour',
++              'every page'),
++    'held': ('the word "held", and a square crossed corner to corner',
++             'field_qt.STATE_WORD and _mark (held)'),
++}
++
++# The pairs under THRESHOLD in some sight, each looked at (0.8.4): pair -> what tells the two apart on screen, in words; where
++# each sign is drawn is in SIGNS. Graphite gives one amber to everything that asks for attention and one green to what is
++# live and to a line, so there the sign was always the only thing between them. Her look parts most of them by colour; what
++# it leaves is below, and the first of them is the reason this check exists: to weak red sight her cyan is her plain ink.
++ONE_AMBER = 'one amber for both in this look: '
++REVIEWED = {
++    'graphite': {
++        ('chosen', 'waits'): ONE_AMBER + 'an edge and a filled ground on what is chosen; the words "waits for you" and a dotted square on what waits',
++        ('chosen', 'fails'): ONE_AMBER + 'an edge and a filled ground on what is chosen; "does not hold" and a cross on what fails',
++        ('chosen', 'recheck'): ONE_AMBER + 'an edge and a filled ground on what is chosen; the word "recheck" and a half-filled square',
++        ('chosen', 'stopped'): ONE_AMBER + 'an edge and a filled ground on what is chosen; the word DELETE, Forget or "stopped", or the arrow\'s shape',
++        ('waits', 'fails'): ONE_AMBER + '"waits for you" and a dotted square; "does not hold" and a cross',
++        ('waits', 'recheck'): ONE_AMBER + '"waits for you" and a dotted square; "recheck" and a half-filled square',
++        ('waits', 'stopped'): ONE_AMBER + 'her state word says which ("waits for you", "stopped"); DELETE and Forget are words',
++        ('fails', 'recheck'): ONE_AMBER + 'a cross and "does not hold"; a half-filled square and "recheck"',
++        ('fails', 'stopped'): ONE_AMBER + 'a cross and "does not hold" on a finding; DELETE, Forget and "stopped" are words elsewhere',
++        ('recheck', 'stopped'): ONE_AMBER + 'a half-filled square and "recheck"; DELETE, Forget and "stopped" are words',
++        ('quiet', 'held'): 'one quiet ink for both in this look: a heading is in capitals with a rule after it; what is held says "held" and has a crossed square',
++        ('ready', 'line'): 'two greens three steps apart: what is ready has its word and a filled square; a line is its own words in the fixed-pitch face',
++        ('chosen', 'hers'): 'amber and her pencil: what is chosen has its ground filled and an edge; hers has her name over it and a bar on the card\'s left edge only',
++        ('waits', 'hers'): 'amber and her pencil: "waits for you" and a dotted square; her name over her card',
++        ('fails', 'hers'): 'amber and her pencil: "does not hold" and a cross; her name over her card',
++        ('recheck', 'hers'): 'amber and her pencil: "recheck" and a half-filled square; her name over her card',
++        ('stopped', 'hers'): 'amber and her pencil: her state word says "stopped" or "done"; DELETE and Forget are words',
++        ('ready', 'hers'): 'to weak green sight: "current" and a filled square, or her state word "at work"; her name over her card, or "done"',
++        ('hers', 'wire'): 'to weak red sight: a bar on a card in her column; a curve between sheets in the Field',
++        ('hers', 'line'): 'to weak green sight: her name over her card; a line is its own words in the fixed-pitch face',
++        ('chosen', 'ready'): 'to weak green sight: the keyboard\'s place has an edge and no pointer; what the pointer is over has the pointer on it, what is ready its word and a filled square',
++        ('ready', 'waits'): 'to weak green sight: "current" and a filled square; "waits for you" and a dotted square',
++        ('ready', 'fails'): 'to weak green sight: "current" and a filled square; "does not hold" and a cross',
++        ('ready', 'recheck'): 'to weak green sight: a filled square and "current"; a half-filled square and "recheck"',
++        ('ready', 'stopped'): 'to weak green sight: her state word says "at work" or "stopped"; DELETE and Forget are words',
++    },
++    'kasandra': {
++        ('waits', 'fails'): 'one pink for both: "waits for you" and a dotted square; "does not hold" and a cross',
++        ('ready', 'words'): 'to weak red sight her cyan is her plain ink (1.0 apart): what is ready says "current" or "at work" and has a filled square; plain words have no mark',
++        ('quiet', 'wire'): 'to weak red sight: a heading in capitals with a rule after it; a curve between sheets',
++        ('ready', 'held'): 'to weak green sight: "current" and a filled square; "held" and a crossed square',
++        ('recheck', 'held'): 'close in every sight: "recheck", a half-filled square and a dashed edge; "held" and a crossed square',
++        ('ready', 'recheck'): 'to weak green sight: a filled square and "current"; a half-filled square, "recheck" and a dashed edge',
++        ('waits', 'stopped'): 'pink and red, close in every sight: her state word says "waits for you" or "stopped"; DELETE and Forget are words',
++        ('fails', 'stopped'): 'pink and red, close in every sight: "does not hold" and a cross on a finding; DELETE, Forget and "stopped" are words',
++        ('words', 'held'): 'her ink and her quiet ink: what is held says "held" and has a crossed square',
++        ('chosen', 'hers'): 'her yellow and her honey: what is chosen has its ground filled (a solid bar in a menu) and corner ticks on a sheet; hers has her name over it and a bar on the card\'s left edge only',
++        ('recheck', 'quiet'): 'lavender and violet: what must be worked again says "recheck", with a half-filled square and a dashed edge; violet is a heading in capitals, her state word "quiet", or the words "cannot tell"',
++    },
++}
++
++
++def rgb(colour):
++    """'#rrggbb' -> (r, g, b), each 0 to 1."""
++    return tuple(int(colour[i:i + 2], 16) / 255 for i in (1, 3, 5))
++
++
++def _linear(v):
++    return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
++
++
++def _encoded(v):
++    v = min(1.0, max(0.0, v));return 12.92 * v if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055
++
++
++def simulate(colour, sight=None, severity=1.0):
++    """`colour` ('#rrggbb') as this sight takes it, as '#rrggbb'. sight None, or severity 0: as it is."""
++    if sight is None or not severity:return colour.lower()
++    matrix = MACHADO[(sight, severity)];linear = [_linear(v) for v in rgb(colour)]
++    seen = [_encoded(sum(m * v for m, v in zip(row, linear))) for row in matrix]
++    return '#%02x%02x%02x' % tuple(round(255 * v) for v in seen)
++
++
++def lab(colour):
++    """CIELAB (L*, a*, b*) of an sRGB colour under D65."""
++    r, g, b = (_linear(v) for v in rgb(colour))
++    x = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / 0.95047
++    y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
++    z = (0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / 1.08883
++    f = lambda t: t ** (1 / 3) if t > 216 / 24389 else (24389 / 27 * t + 16) / 116
++    return 116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))
++
++
++def ciede2000(one, two):
++    """CIEDE2000 between two CIELAB colours (kL = kC = kH = 1), as Sharma, Wu and Dalal give it."""
++    l1, a1, b1 = one;l2, a2, b2 = two
++    c_mean = (math.hypot(a1, b1) + math.hypot(a2, b2)) / 2
++    g = 0.5 * (1 - math.sqrt(c_mean ** 7 / (c_mean ** 7 + 25.0 ** 7)))
++    a1, a2 = (1 + g) * a1, (1 + g) * a2
++    c1, c2 = math.hypot(a1, b1), math.hypot(a2, b2)
++    h1 = math.degrees(math.atan2(b1, a1)) % 360 if c1 else 0.0
++    h2 = math.degrees(math.atan2(b2, a2)) % 360 if c2 else 0.0
++    dl, dc = l2 - l1, c2 - c1
++    if c1 * c2 == 0:dh = 0.0
++    elif abs(h2 - h1) <= 180:dh = h2 - h1
++    elif h2 - h1 > 180:dh = h2 - h1 - 360
++    else:dh = h2 - h1 + 360
++    dH = 2 * math.sqrt(c1 * c2) * math.sin(math.radians(dh / 2))
++    l_mean, c_mean = (l1 + l2) / 2, (c1 + c2) / 2
++    if c1 * c2 == 0:h_mean = h1 + h2
++    elif abs(h1 - h2) <= 180:h_mean = (h1 + h2) / 2
++    elif h1 + h2 < 360:h_mean = (h1 + h2 + 360) / 2
++    else:h_mean = (h1 + h2 - 360) / 2
++    t = (1 - 0.17 * math.cos(math.radians(h_mean - 30)) + 0.24 * math.cos(math.radians(2 * h_mean))
++         + 0.32 * math.cos(math.radians(3 * h_mean + 6)) - 0.20 * math.cos(math.radians(4 * h_mean - 63)))
++    spin = 30 * math.exp(-((h_mean - 275) / 25) ** 2)
++    rc = 2 * math.sqrt(c_mean ** 7 / (c_mean ** 7 + 25.0 ** 7))
++    sl = 1 + 0.015 * (l_mean - 50) ** 2 / math.sqrt(20 + (l_mean - 50) ** 2)
++    sc, sh = 1 + 0.045 * c_mean, 1 + 0.015 * c_mean * t
++    rt = -math.sin(math.radians(2 * spin)) * rc
++    return math.sqrt((dl / sl) ** 2 + (dc / sc) ** 2 + (dH / sh) ** 2 + rt * (dc / sc) * (dH / sh))
++
++
++def difference(a, b):
++    """CIEDE2000 between two '#rrggbb' colours."""
++    return ciede2000(lab(a), lab(b))
++
++
++def palette(look):
++    from workbench import boss_theme
++    return boss_theme.PALETTES[look]
++
++
++def table(look, colours=None):
++    """Every pair of meanings in `look`: [{pair, colours, seen: {sight: difference}, least, sight, reviewed, told_apart}]
++    with `least` the smallest difference over SIGHTS and `sight` where it is. `colours` stands in for the look's palette
++    (a check of the check: a palette that moves two meanings together)."""
++    colours = palette(look) if colours is None else colours;rows = []
++    reviewed = {frozenset(pair): by for pair, by in REVIEWED.get(look, {}).items()}
++    for one, two in combinations(MEANINGS, 2):
++        a, b = colours[MEANINGS[one][0]], colours[MEANINGS[two][0]]
++        seen = {name: difference(simulate(a, sight, severity), simulate(b, sight, severity)) for name, sight, severity in SIGHTS}
++        least = min(seen, key=seen.get);by = reviewed.get(frozenset((one, two)))
++        signed = one in SIGNS and two in SIGNS and SIGNS[one][0] != SIGNS[two][0]      # each has a sign of its own, and where it is drawn
++        rows.append(dict(pair=(one, two), colours=(a, b), seen=seen, least=seen[least], sight=least, reviewed=by is not None,
++                         told_apart=dict(by=by, signs=(SIGNS[one], SIGNS[two])) if by and signed else None))
++    return rows
++
++
++def unreviewed(look, colours=None):
++    """The pairs under THRESHOLD in some sight that nothing reviewed tells apart."""
++    return [row for row in table(look, colours) if row['least'] < THRESHOLD and row['told_apart'] is None]
++
++
++def printed(look, everything=False):
++    lines = ['%s: %d meanings, %d pairs, THRESHOLD %.0f (CIEDE2000)' % (look, len(MEANINGS), len(MEANINGS) * (len(MEANINGS) - 1) // 2, THRESHOLD),
++             '  %-18s %-17s %s   least' % ('pair', 'colours', '  '.join('%-7s' % name.replace('weak ', '') for name, _, _ in SIGHTS))]
++    for row in sorted(table(look), key=lambda r: r['least']):
++        if row['least'] >= THRESHOLD and not everything:continue
++        lines.append('  %-18s %s %s  %s   %5.1f in %s%s' % (' / '.join(row['pair']), row['colours'][0], row['colours'][1], '  '.join('%7.1f' % row['seen'][name] for name, _, _ in SIGHTS),
++                                                           row['least'], row['sight'], '' if row['least'] >= THRESHOLD else '   REVIEWED' if row['told_apart'] else '   NOT REVIEWED'))
++        if row['told_apart'] and row['least'] < THRESHOLD:
++            lines.append('      told apart by: ' + row['told_apart']['by'])
++            if everything:
++                for meaning, (sign, where) in zip(row['pair'], row['told_apart']['signs']):lines.append('      %-8s %s  [%s]' % (meaning + ':', sign, where))
++    return lines
++
++
++if __name__ == '__main__':
++    from workbench import boss_theme
++    left = 0
++    for look in boss_theme.PALETTES:
++        print('\n'.join(printed(look, '--all' in sys.argv[1:])));left += len(unreviewed(look))
++    print('COLOUR VISION: %d pair%s under %.0f not reviewed' % (left, '' if left == 1 else 's', THRESHOLD))
++    sys.exit(1 if left else 0)
+diff --git a/tools/name_sweep.py b/tools/name_sweep.py
+index 0343197..e8c3bad 100644
+--- a/tools/name_sweep.py
++++ b/tools/name_sweep.py
+@@ -3,7 +3,11 @@
+ Two names are held here (NEVER). The language's own name: on screen a pipeline is "a line" (0.8.0; until 0.8.4 this sweep
+ was kept outside the repository and run by hand at a release). And Stacy, the name the first look showed for the assistant
+ until 0.8.3: she is Kasandra in every look (workbench/assistant_identity.py; the owner, 19 November 2026: "Just kas.
+-Otherwise we have too many people").
++Otherwise we have too many people"). And two words more (0.8.4): "Programs", which on screen is "Apps"; and a key, since
++no keyboard shortcut is printed on screen (KEYS; in the program's own words, KEY_KINDS: its labels, tips, status tips,
++"what's this", names and descriptions for a reader, titles; KEYS_KEPT is the reviewed list of words that keep their key).
++
++  in_guides(root)        every line of the pages Guide opens in the program that names a key or says "Programs"
+ 
+   words_of(widget)       every word a widget carries: its text, tip, status tip, placeholder, accessible name and
+                          description, window title; a combo's rows, a tab bar's titles and tips, and the rows and tips of
+@@ -42,9 +46,38 @@ from pathlib import Path
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ 
++# 0.8.4: a key. No keyboard shortcut is printed on screen (0.5.2: the keys work as they did, the words do not name them).
++# A chord (Ctrl+P, Alt+3), a function key, Esc, "press Enter", "Enter runs", "Tab completes", "arrow keys". Not the verbs:
++# "Enter one quote per line", "Return to the files" and "Close Tab" name no key.
++KEYS = re.compile(r'''(?x)
++      \b(?:Ctrl|Shift|Alt|Meta|Super|Cmd)\s*\+\s*\S
++    | \bCtrl\s+(?:[A-Z0-9]\b|or\s+Shift\b)
++    | \bF(?:[1-9]|1[0-2])\b
++    | \bEsc(?:ape)?\b
++    | \b[Pp]ress(?:es|ed|ing)?\s+(?:the\s+)?(?:Enter|Return|Tab|Space|a\s+key|any\s+key|[A-Z]\b)
++    | \b(?:Enter|Tab|Space)\s+(?:opens|runs|searches|sends|returns|completes|filters?|captures|leaves)\b
++    | \b(?:or|and)\s+Enter\b
++    | \b[Aa]rrow\s+keys?\b
++''')
++# A key is looked for in the program's own words: a row of a list and the text of a page are the owner's data.
++KEY_KINDS = frozenset(('text', 'toolTip', 'statusTip', 'whatsThis', 'placeholderText', 'accessibleName', 'accessibleDescription',
++                       'windowTitle', 'title', 'tab', 'tab tip', 'header'))
++# Words that keep their key, each reviewed: a key that must really be pressed, with nothing to click in its place.
++KEYS_KEPT = (
++    ('F1 reads the highlighted row into the typing-bar note.',
++     'a description read to someone who has no pointer (it is on no tip): F1 is the only way to hear a row\'s note from the keyboard'),
++    ('press Enter to search everything', 'the tree search has no word to click: Enter is how it searches'),
++    ('Enter searches components, nets, files, commands and jobs', 'the tree search has no word to click: Enter is how it searches'),
++    ('Arrow keys move, Z selects, X returns, and Enter leaves a game.', 'a console game is played with keys: there is nothing to click in their place'),
++)
++# The pages Guide opens in the program (Getting Started, Installation Guide): what they say is read on screen.
++GUIDE_PAGES = ('GETTING_STARTED.md', 'docs/WORKSHOP.md')
++
+ # name -> (what must not be read, why). A word here is a whole word: 'stack' and 'Stacy' are not the language's name.
+ NEVER = {'language': (re.compile(r'\bstac\b', re.I), 'the language is never named on screen: a pipeline is "a line"'),
+-         'stacy': (re.compile(r'Stacy|STACY'), 'she is Kasandra in every look')}
++         'stacy': (re.compile(r'Stacy|STACY'), 'she is Kasandra in every look'),
++         'programs': (re.compile(r'\bPrograms\b'), 'on screen the list is "Apps", never "Programs" (0.8.1)'),
++         'key': (KEYS, 'no keyboard shortcut is printed on screen')}
+ KEPT = re.compile(r'\b[a-z0-9_]+(?:[.:/_-][a-z0-9_]+)+\b')      # an identity shown as it is stored
+ RECORD = re.compile(r'"origin": "STACY"')                        # her actor in an event printed whole, as it is stored
+ BRAIN_EVENT = 'name_sweep'      # the walk's own brain event: brain.name_sweep, state CHECKED
+@@ -73,7 +106,7 @@ def words_of(widget):
+     from PySide6.QtCore import Qt
+     from PySide6.QtWidgets import QAbstractItemView, QComboBox, QHeaderView, QTabBar, QTabWidget, QTreeView
+     out = []
+-    for get in ('text', 'toPlainText', 'toolTip', 'statusTip', 'placeholderText', 'accessibleName', 'accessibleDescription', 'windowTitle', 'title'):
++    for get in ('text', 'toPlainText', 'toolTip', 'statusTip', 'whatsThis', 'placeholderText', 'accessibleName', 'accessibleDescription', 'windowTitle', 'title'):
+         f = getattr(type(widget), get, None)      # the class's own reader: a page may keep a label under the same name
+         if not callable(f):continue
+         try:value = f(widget)
+@@ -101,10 +134,26 @@ def words_of(widget):
+     return [(kind, words) for kind, words in out if words]
+ 
+ 
+-def named_in(words):
+-    """Which of NEVER these words say, an identity shown as it is stored set aside."""
+-    rest = KEPT.sub(' ', RECORD.sub(' ', words))
+-    return [name for name, (pattern, _) in NEVER.items() if pattern.search(rest)]
++def named_in(words, kind=None):
++    """Which of NEVER these words say, an identity shown as it is stored set aside. A key is looked for when the words
++    are the program's own (`kind` in KEY_KINDS, or not given), with the words of KEYS_KEPT set aside."""
++    rest = KEPT.sub(' ', RECORD.sub(' ', words));out = []
++    for name, (pattern, _) in NEVER.items():
++        if name == 'key':
++            if kind is not None and kind not in KEY_KINDS:continue
++            rest = words      # the words as they stand: an identity joins no key, and KEYS_KEPT is written in whole words
++            for kept, _why in KEYS_KEPT:rest = rest.replace(kept, ' ')
++        if pattern.search(rest):out.append(name)
++    return out
++
++
++def in_guides(root=ROOT, pages=GUIDE_PAGES):
++    """Every line of the pages Guide opens in the program that names a key or says "Programs" -> [(page, line, words)]."""
++    out = []
++    for page in pages:
++        for number, line in enumerate((Path(root) / page).read_text(encoding='utf-8').splitlines(), 1):
++            if any(name in ('key', 'programs') for name in named_in(line, 'text')):out.append((page, number, line.strip()[:160]))
++    return out
+ 
+ 
+ def sweep(window, where, found=None, read=None):
+@@ -117,7 +166,7 @@ def sweep(window, where, found=None, read=None):
+     seen = {(f['name'], f['widget'], f['kind'], f['words']) for f in found}
+     def note(owner, kind, words):
+         if read is not None:read.add(words)
+-        for name in named_in(words):
++        for name in named_in(words, kind):
+             row = (name, owner, kind, words[:200])
+             if row not in seen:
+                 seen.add(row);found.append(dict(name=name, where=where, widget=owner, kind=kind, words=words[:200]))
+diff --git a/workbench/arc_desktop.py b/workbench/arc_desktop.py
+index 0729a70..2e71050 100644
+--- a/workbench/arc_desktop.py
++++ b/workbench/arc_desktop.py
+@@ -446,7 +446,7 @@ def install(host):
+     writing_prompt(host.tree_search, 'Search ARC…')
+     host.tree_search.setClearButtonEnabled(True)
+     host.tree_search.setAccessibleName('Search the project tree; press Enter to search everything')
+-    host.tree_search.setToolTip('Type to filter the tree · Enter searches components, nets, files, commands and jobs (Ctrl+Shift+P)')
++    host.tree_search.setToolTip('Type to filter the tree · Enter searches components, nets, files, commands and jobs')
+     host.tree_search.textChanged.connect(lambda text: filter_tree(host, text))
+     host.tree_search.returnPressed.connect(lambda: host.command_palette(host.tree_search.text()))
+     search_row.addWidget(host.tree_search, 1)
+@@ -455,7 +455,7 @@ def install(host):
+     host.global_search.setMinimumHeight(30)
+     host.global_search.removeAction(host.a_palette)  # the icon searches with the typed text
+     host.global_search.setIcon(host.nav_icon('search'))
+-    host.global_search.setToolTip('Search everything · Ctrl+Shift+P\nFind a file · Ctrl+P')
++    host.global_search.setToolTip('Search everything, or find a file')
+     host.global_search.setAccessibleName('Search everything')
+     host.global_search.clicked.connect(lambda: host.command_palette(host.tree_search.text()))
+     search_row.addWidget(host.global_search)
+diff --git a/workbench/boss_theme.py b/workbench/boss_theme.py
+index 4832a6a..c8762fe 100644
+--- a/workbench/boss_theme.py
++++ b/workbench/boss_theme.py
+@@ -15,8 +15,9 @@ green ... more green glowing").
+ In Kasandra (0.8.3, the owner: "I'm kinda thinking that highlighting should be in our burnt yellow??? Like especially in
+ menus???") what is selected and what has the keyboard is burnt yellow: the row you are on in a menu is a solid bar (BAR,
+ with ON_BAR the dark ink on it and BAR_EDGE its 2 px edge); every other highlight is an edge and words (AMBER_EDGE,
+-AMBER_TEXT) on a fill (AMBER_SOFT). Every highlight fill is opaque, and yellow light is only ever added to what lies under
+-it (lays_light), never mixed over her cyan: mixed, yellow and cyan make green. Her cyan keeps what it says there: the
++AMBER_TEXT) on a fill (AMBER_SOFT). Every highlight fill is opaque, and yellow is never mixed over her cyan: mixed, yellow
++and cyan make green. Where her yellow light lies on her ground it is a warm tone, darker as it falls off (warm, 0.8.4);
++where something of hers crosses a highlight it is added as light (lays_light). Her cyan keeps what it says there: the
+ pointer, what is ready, the line, the bands' rule, and the cues that are not a selection (CUE, CUE_EDGE, CUE_TEXT, which
+ are Graphite's amber and her old cyan)."""
+ import json
+@@ -174,14 +175,49 @@ def lays_light(painter):
+     return painter
+ 
+ TOKENS = {v for k, v in tuple(globals().items()) if isinstance(v, str) and v.startswith('#') and k.isupper()}
++
++# 0.8.4, Kasandra: her yellow light, warm. 0.8.3 added the yellow as light (lays_light): never green, but yellow light on
++# her blue grounds is grey until it is strong (the review measured the Field's outer rings at (58,49,52), saturation 0.08,
++# and the lit word washed out). Thin yellow paint over her indigo is grey too, until about 27 % of it. So her light does not
++# thin out as it falls off, it darkens: one opaque tone of the yellow's own hue for each strength, from LIGHT_FLOOR (that
++# hue at her ground's darkness) up to the edge itself. It is laid on the ground before anything cyan is drawn over it, and
++# nothing is mixed: every tone is 34 to 40 degrees, saturation 0.4 or more.
++LIGHT_FLOOR = '#261c0e'
++
++
++def warm(share):
++    """Kasandra: her burnt-yellow light at strength `share` (0 nearly gone, 1 the edge itself), as one opaque colour."""
++    from PySide6.QtGui import QColor
++    a = max(0.0, min(1.0, float(share)));low, high = QColor(LIGHT_FLOOR), QColor(AMBER_EDGE)
++    return QColor(round(low.red() + (high.red() - low.red()) * a), round(low.green() + (high.green() - low.green()) * a),
++                  round(low.blue() + (high.blue() - low.blue()) * a))
++
++
++def chosen_row(fill, words):
++    """(fill, words) of the selected row of a list that has a sheet of its own (0.8.4: the process list, the Log, Explore's
++    results, the cabinet, Documents). Kasandra: her highlight's fill and words, as every other selected row has (its edge
++    comes from the window's sheet). Graphite: what the list always gave."""
++    return (AMBER_SOFT, AMBER_TEXT) if APPEARANCE == 'kasandra' else (fill, words)
++
++
+ LEGACY = {
+     '#f6f3eb': GROUND, '#fffdf8': CARD, '#eee9df': RAISED,
+     '#dad4c8': LINE, '#7d776d': LINE_MID, '#504d46': TEXT,
+-    '#6c675e': QUIET, '#f8edc9': AMBER_SOFT, '#d4b56a': AMBER_EDGE,
++    '#6c675e': QUIET, '#f8edc9': CUE, '#d4b56a': AMBER_EDGE,
+     '#f3e3af': PENCIL_DEEP, '#f3e3e2': ERASER, '#ecd7d5': ERASER_DEEP,
+     '#cba5a4': ERASER_MARK, '#d9d2c4': LINE, '#885e64': TEXT,
+ }
++# 0.8.4: the old colours this map sent to her burnt yellow, each decided (0.8.3's review found them unlisted). A highlight
++# is asked for by name (AMBER_SOFT, AMBER_EDGE and AMBER_TEXT together); an old sheet's amber is not known to be one.
++#   #d4b56a  the paper desk's pencil yellow, the mark of the chosen one (the Log's pinned line)    AMBER_EDGE, kept: chosen
++#   #f2a369  Graphite's pencil on a band, the chosen band word                                      BAND_PENCIL, kept: chosen
++#   #f8edc9  the paper desk's writing passage                                                       CUE, changed: a place to
++#            write is not a highlight (as Explore's line, 0.8.3). Graphite's CUE is its amber wash: nothing moves there.
++#   #4b2a14, #ff9a36, #ffba72  Graphite's amber wash, edge and words, a selection and a cue alike   CUE, CUE_EDGE, CUE_TEXT,
++#            changed: what they were until 0.8.3 (her blue and cyan). No sheet in the program writes them by hand today.
++LEGACY_DECIDED = {'#4b2a14': 'CUE', '#ff9a36': 'CUE_EDGE', '#ffba72': 'CUE_TEXT', '#f2a369': 'BAND_PENCIL'}
+ if APPEARANCE != 'graphite':      # a Graphite colour written into some older sheet becomes its Kasandra counterpart
++    LEGACY.update((_value, PALETTES[APPEARANCE][_name]) for _value, _name in LEGACY_DECIDED.items())
+     for _name, _value in PALETTES['graphite'].items():
+         if isinstance(_value, str) and _value.startswith('#') and _value not in TOKENS:LEGACY.setdefault(_value, PALETTES[APPEARANCE][_name])
+ 
+diff --git a/workbench/cabinet_qt.py b/workbench/cabinet_qt.py
+index 02bd46e..f4e7875 100644
+--- a/workbench/cabinet_qt.py
++++ b/workbench/cabinet_qt.py
+@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QLineEdit,
+ from . import cabinet
+ from .engineering_kernel import operator,CAPABILITIES
+ from .settings_qt import action,STYLE,INK
+-from .boss_theme import recolour
++from .boss_theme import chosen_row, recolour
+ 
+ 
+ def plain(text=''):
+@@ -160,7 +160,7 @@ class CabinetPage(QWidget):
+         self.setStyleSheet(STYLE+recolour('''QLineEdit#CabinetQuery {background:#493225;color:#eee9dd;border:0;padding:7px;selection-background-color:#593a29;selection-color:#eee9dd;}
+         QTreeWidget#LogicalCabinet {background:transparent;color:#eee9dd;border:0;}
+         QTreeWidget#LogicalCabinet::item {padding:5px 2px;}
+-        QTreeWidget#LogicalCabinet::item:selected {background:#493225;color:#eee9dd;}'''))
++        QTreeWidget#LogicalCabinet::item:selected {background:%s;color:%s;}'''%chosen_row('#493225','#eee9dd')))      # 0.8.4: her highlight in Kasandra
+         box=QVBoxLayout(self);box.setContentsMargins(8,6,8,0);box.setSpacing(8)
+         row=QHBoxLayout();self.logical=action('Logical cabinet',lambda:self.set_legacy(False));self.legacy=action('Existing views',lambda:self.set_legacy(True))
+         from .settings_qt import ACTION_STYLE
+diff --git a/workbench/datasheet_qt.py b/workbench/datasheet_qt.py
+index c2e7b4b..e3b7a62 100644
+--- a/workbench/datasheet_qt.py
++++ b/workbench/datasheet_qt.py
+@@ -46,8 +46,9 @@ class SourceCrop(QLabel):
+         super().paintEvent(event)
+         if self.highlight.isEmpty():return
+         painter = QPainter(self)
+-        glow = QColor(ink.AMBER_EDGE);glow.setAlpha(50)
+-        painter.fillRect(self.highlight, glow)
++        if ink.APPEARANCE != 'kasandra':      # Kasandra (0.8.4): the opaque edge alone. Her yellow seen through over a page's blue or cyan ink is green
++            glow = QColor(ink.AMBER_EDGE);glow.setAlpha(50)
++            painter.fillRect(self.highlight, glow)
+         painter.setPen(QPen(QColor(ink.AMBER_EDGE), 2))
+         painter.drawRect(self.highlight)
+         painter.end()
+diff --git a/workbench/desktop_header_qt.py b/workbench/desktop_header_qt.py
+index a254d8d..8584c3f 100644
+--- a/workbench/desktop_header_qt.py
++++ b/workbench/desktop_header_qt.py
+@@ -187,8 +187,10 @@ class SlateSwitch(QToolButton):
+         self.setCheckable(True);self.setCursor(Qt.PointingHandCursor)
+         self.setAccessibleName('Enable or disable new Graphite AI activity')
+         from .shell2 import TEXT, ERASER, AMBER, LINE
++        from . import boss_theme as look      # 0.8.4, Kasandra: switched on is her highlight whole (fill, words and edge); Graphite: its amber, as before
++        on = 'background:%s;color:%s;border:1px solid %s;' % (look.AMBER_SOFT, look.AMBER_TEXT, look.AMBER_EDGE) if look.APPEARANCE == 'kasandra' else 'background:%s;' % AMBER
+         self.setStyleSheet('QToolButton#SlateSwitch {color:%s;background:%s;border:1px solid %s;border-radius:12px;padding:4px 9px;font-size:12px;} '
+-                           'QToolButton#SlateSwitch:checked {background:%s;}' % (TEXT, ERASER, LINE, AMBER))
++                           'QToolButton#SlateSwitch:checked {%s}' % (TEXT, ERASER, LINE, on))
+         self.clicked.connect(self.change)
+         self.timer = QTimer(self, interval=2000);self.timer.timeout.connect(self.refresh);self.timer.start();self.refresh()
+ 
+@@ -237,8 +239,9 @@ class NicePopup(QFrame):
+         self.setObjectName('NicePopup');self.setMinimumWidth(0 if (embedded or section) else 410);self.setMaximumWidth(16777215 if (embedded or section) else 540)
+         self._scale = None;self._data = None;self._width = None
+         from .shell2 import CARD, LINE, TEXT, ERASER
++        from .boss_theme import chosen_row      # 0.8.4: the selected process is her highlight in Kasandra, as any selected row
+         self.setStyleSheet('QFrame#NicePopup {background:%s;border:1px solid %s;} QListWidget {background:%s;color:%s;border:0;font-size:13px;} '
+-                           'QListWidget::item {padding:7px;} QListWidget::item:selected {background:%s;color:%s;}' % (CARD, LINE, CARD, TEXT, ERASER, TEXT))
++                           'QListWidget::item {padding:7px;} QListWidget::item:selected {background:%s;color:%s;}' % ((CARD, LINE, CARD, TEXT) + chosen_row(ERASER, TEXT)))
+         col = QVBoxLayout(self);col.setContentsMargins(12, 10, 12, 12);col.setSpacing(8);self.col = col
+         # UI-03: the very first row is the kill switch, full width, eraser pink: the existing Master Stop (its confirm dialog,
+         # its stop thread, its Ctrl+Shift+F12) and nothing else. The old secondary "■ Stop" did the same thing, so it is gone.
+@@ -353,7 +356,7 @@ class NicePopup(QFrame):
+         stuck = bool(controller is not None and controller.button.property('stuck')) if controller is not None and hasattr(controller, 'button') else False
+         if bool(self.kill.property('stuck')) != stuck:self.kill.setProperty('stuck', stuck);self.kill.style().unpolish(self.kill);self.kill.style().polish(self.kill)
+         detail = str(getattr(controller, 'detail', '') or '') if controller is not None else ''
+-        self.kill.setToolTip('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is stopped (Ctrl+Shift+F12). '
++        self.kill.setToolTip('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is stopped. '
+                              'Source files and unsaved editor buffers are kept.' + ('\n\n' + detail if detail else ''))
+ 
+     def open_agenda(self):
+@@ -571,7 +574,7 @@ class NiceButton(QToolButton):
+     def __init__(self, host):
+         super().__init__();self.host = host;self.setObjectName('NiceButton')
+         self.setText('Nice ▾');self.setAccessibleName('Nice · everything running, its order and niceness, and Stop')
+-        self.setToolTip('Everything running, its order and its niceness, and Stop all jobs: the Master Stop (Ctrl+Shift+F12).')
++        self.setToolTip('Everything running, its order and its niceness, and Stop all jobs: the Master Stop.')
+         self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.StrongFocus)
+         self.setMinimumHeight(34);self.popup = None;self.clicked.connect(self.open)
+ 
+@@ -602,7 +605,7 @@ class SystemButton(NiceButton):
+     def __init__(self, host):
+         super().__init__(host);self.setObjectName('SystemMenu');self.setText('System ▾');self.setToolButtonStyle(Qt.ToolButtonTextOnly)
+         self.setAccessibleName(self.NAME);self.setToolTip(self.NAME)
+-        self.setAccessibleDescription('Game; Stop all jobs (Ctrl+Shift+F12); the process list with its order and niceness; Graphite services On, Off, Restart; '
++        self.setAccessibleDescription('Game; Stop all jobs; the process list with its order and niceness; Graphite services On, Off, Restart; '
+                                       'Log out, Return to Debian or Exit Graphite, Restart, Shut down')
+         self.setProperty('paperIcon', True);self.setProperty('paperFunctionalInk', True);self.setMinimumHeight(0)
+         self.setStyleSheet('QToolButton#SystemMenu {background:transparent;border:0;padding:0;margin:0;}')
+diff --git a/workbench/document_qt.py b/workbench/document_qt.py
+index 3e55c97..39329a8 100644
+--- a/workbench/document_qt.py
++++ b/workbench/document_qt.py
+@@ -17,7 +17,7 @@ from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal
+ from PySide6.QtGui import QColor, QFont, QKeySequence, QPalette, QShortcut, QTextBlockFormat, QTextCharFormat, QTextCursor, QTextDocument, QTextFormat
+ from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QLayout, QLineEdit, QListWidget, QListWidgetItem, QSplitter, QTextEdit, QVBoxLayout, QWidget
+ from .shell2 import AMBER, CARD, ERASER_DEEP, PENCIL_DEEP, QUIET, TEXT, call, call_write, escape_text, role, sentence
+-from .boss_theme import ON_AMBER      # 0.8.3: the words on a selected document (her burnt yellow; Graphite's ink)
++from .boss_theme import ON_AMBER, chosen_row      # the words on a selected document (0.8.3: her burnt yellow; Graphite's ink) and, 0.8.4, its fill
+ from .settings_qt import action
+ from .text_prompts import writing_prompt
+ from . import documents as store
+@@ -30,7 +30,7 @@ PAGE_STYLE = ('QTextEdit#DocumentPage {background:%s;color:%s;border:0;padding:0
+               'QLineEdit#DocumentTitle {background:%s;color:%s;border:0;border-radius:0;padding:8px 10px;selection-background-color:%s;selection-color:%s;}'
+               'QLineEdit#DocumentTitle:focus {border-bottom:2px solid %s;}'
+               'QListWidget#DocumentList {background:transparent;border:0;color:%s;} QListWidget#DocumentList::item {padding:6px 4px;}'
+-              'QListWidget#DocumentList::item:selected {background:%s;color:%s;}' % (CARD, TEXT, PENCIL_DEEP, TEXT, AMBER, TEXT, ERASER_DEEP, TEXT, TEXT, TEXT, ERASER_DEEP, ON_AMBER))
++              'QListWidget#DocumentList::item:selected {background:%s;color:%s;}' % ((CARD, TEXT, PENCIL_DEEP, TEXT, AMBER, TEXT, ERASER_DEEP, TEXT, TEXT, TEXT) + chosen_row(ERASER_DEEP, ON_AMBER)))
+ UNDO_WORDS = {'undo', 'undo that', 'undo it', 'take that back', 'revert that', 'go back'}
+ REDO_WORDS = {'redo', 'redo that', 'redo it'}
+ # AGENT-02 (D19): a model edit is shown by a pencil-yellow wash over the changed range that fades out over FLASH_MS in
+diff --git a/workbench/explore_qt.py b/workbench/explore_qt.py
+index 52f6e6f..a4e031d 100644
+--- a/workbench/explore_qt.py
++++ b/workbench/explore_qt.py
+@@ -184,7 +184,7 @@ def group_menus(parent,prefix):
+     groups={}
+     for group in explore.GROUPS:
+         sub=QMenu(group,parent);sub.setToolTipsVisible(True);sub.setAccessibleName(prefix+': '+group);groups[group]=sub
+-        sub.menuAction().setToolTip(GROUP_NOTES.get(group,group)+'. Right or Enter opens the rows.')
++        sub.menuAction().setToolTip(GROUP_NOTES.get(group,group)+'.')
+     return groups
+ 
+ 
+@@ -237,12 +237,14 @@ class ExploreTab(QWidget):
+         from .shell2 import TEXT,ERASER_DEEP
+         from .boss_theme import CUE as AMBER  # the yellow writing passage: visible selection (AMBER_SOFT equals AMBER), no border, bottom rule on focus
+         # (0.8.3: its ground is CUE, Graphite's amber and Kasandra's blue as before: a place to write is not a highlight)
++        from . import boss_theme as look      # 0.8.4: a selected result is her highlight in Kasandra (fill and words; the window's sheet gives the edge)
++        chosen='background:%s;color:%s;'%(look.AMBER_SOFT,look.AMBER_TEXT) if look.APPEARANCE=='kasandra' else 'background:#f3e3e2;'
+         self.setStyleSheet(STYLE+'''
+             QLineEdit#ExploreQuery {background:%s;color:%s;border:0;padding:10px;min-height:26px;selection-background-color:%s;selection-color:%s;}
+             QLineEdit#ExploreQuery:focus {border-bottom:2px solid %s;}'''%(AMBER,TEXT,ERASER_DEEP,TEXT,TEXT)+'''
+             QTreeWidget#ExploreResults {background:transparent;color:#504d46;border:0;}
+             QTreeWidget#ExploreResults::item {padding:7px 4px;}
+-            QTreeWidget#ExploreResults::item:selected {background:#f3e3e2;}
++            QTreeWidget#ExploreResults::item:selected {'''+chosen+'''}
+             QComboBox#ExploreKind {background:transparent;color:#885e64;border:0;border-bottom:1px solid #dad4c8;padding:8px 4px;}
+             QComboBox#ExploreKind::drop-down {border:0;}
+             QPlainTextEdit {background:transparent;color:#504d46;border:0;}
+@@ -390,7 +392,7 @@ class ExploreButton(LauncherKeys,QToolButton):
+         super().__init__();self.host=host;self.setText('Explore');self.setAccessibleName('Explore capabilities launcher');self.snapshot=None
+         self.setCursor(Qt.PointingHandCursor);self.setMinimumHeight(34);self.setProperty('paperFunctionalInk',True)
+         self.setStyleSheet('QToolButton {background:transparent;color:#885e64;border:0;padding:5px 3px;text-decoration:underline;} QToolButton:focus {border-bottom:2px solid #504d46;}')
+-        self.setToolTip('Open the Explore workspace, or a suggested workspace for the selected record. The tool groups are in the menu. '+F1_NOTE)
++        self.setToolTip('Open the Explore workspace, or a suggested workspace for the selected record. The tool groups are in the menu.')
+         self.setAccessibleDescription('Explore the workshop, suggestions for the selected record, find saved work. '+F1_NOTE)
+         self.setPopupMode(QToolButton.InstantPopup);self.popup=QMenu(self);self.popup.setObjectName('ExploreMenu');self.popup.setAccessibleName('Explore menu')
+         self.popup.setToolTipsVisible(True);self.setMenu(self.popup);self.keys=DescriptorKeys(host,self.popup)
+diff --git a/workbench/field_qt.py b/workbench/field_qt.py
+index 39ac638..c69d79a 100644
+--- a/workbench/field_qt.py
++++ b/workbench/field_qt.py
+@@ -864,11 +864,18 @@ class FieldView(QWidget):
+                 p.save();p.setClipRect(body)
+                 if self.zoom != 1.0:         # the surface is seen from nearer or further: scaled about the body's corner
+                     p.translate(body.topLeft());p.scale(self.zoom, self.zoom);p.translate(-body.topLeft())
+-                depth = self.field.depth()
+-                self._columns(p, body)
++                depth = self.field.depth();hers = t.APPEARANCE == 'kasandra'
++                if not hers:self._columns(p, body)
+                 wide, high = self.room(body);seen = QRectF(body.left() - 40, body.top() - 40, wide + 80, high + 80)
+                 order = [i for i in sorted(self._placed, key=lambda i: -depth.get(i, 3)) if self._drawn_rect(i, body).intersects(seen)]
+                 for ident in order:self._ghosts(p, self._drawn_rect(ident, body), depth.get(ident, 3))
++                if hers:
++                    # Kasandra (0.8.4): the keyboard's light lies on the ground, under the columns' names, the wires and every
++                    # sheet. Her light is opaque warm tones (boss_theme.warm), so nothing cyan is under it to go green or
++                    # grey, and nothing drawn after it is hidden by it. Graphite's is laid over the sheet's neighbours (_sheet).
++                    chosen = self.field.selected
++                    if self.hasFocus() and chosen in order and depth.get(chosen, 3) == 0:self._halo(p, self._drawn_rect(chosen, body), t.AMBER_EDGE, 1.9)
++                    self._columns(p, body)
+                 self._labels = []
+                 self._wires(p, body, depth, seen)
+                 for ident in order:self._sheet(p, self.field.get(ident), self._drawn_rect(ident, body), depth.get(ident, 3))
+@@ -1195,10 +1202,11 @@ class FieldView(QWidget):
+             else:self._hot.append((spot, getattr(Qt, 'Key_' + letter.upper(), Qt.Key_unknown), letter, 'The %s face of the Field' % FACE_WORDS.get(name, name).lower()))
+             p.setPen(QColor(t.AMBER_TEXT if on else t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(x, base), word)
+             if on:
+-                if self.texture:             # the chosen face's rule is lit from below (light added, in Kasandra: her art lies under it)
+-                    p.save();t.lays_light(p)
++                if self.texture:             # the chosen face's rule is lit from below (Kasandra, 0.8.4: in warm tones; her art lies under it)
++                    hers = t.APPEARANCE == 'kasandra'
++                    p.save()
+                     for width, alpha in ((7.0, 0.07), (4.0, 0.14)):
+-                        p.setPen(QPen(ink(t.AMBER_EDGE, alpha), width * s, Qt.SolidLine, Qt.RoundCap));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
++                        p.setPen(QPen(t.warm(2 * alpha) if hers else ink(t.AMBER_EDGE, alpha), width * s, Qt.SolidLine, Qt.RoundCap));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
+                     p.restore()
+                 p.setPen(QPen(QColor(t.AMBER_EDGE), 2));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
+             self._face_boxes.append((QRectF(x - 4 * s, 0, w + 8 * s, h), name));x += w + 16 * s
+@@ -1402,12 +1410,14 @@ class FieldView(QWidget):
+         The Clean desk has none."""
+         if not self.texture:return
+         s = self.scale();level = t.glow();strength = strength * level;p.save();p.setBrush(Qt.NoBrush)
+-        if colour == t.AMBER_EDGE:t.lays_light(p)      # Kasandra: the keyboard's light is added to the wires under it, never mixed over them
++        # Kasandra (0.8.4): the keyboard's light is a warm tone for each ring, opaque, darker as it falls off. Yellow thinned
++        # over her blue, or added to it as light (0.8.3), is grey: the review measured the outer rings at saturation 0.08.
++        hers = colour == t.AMBER_EDGE and t.APPEARANCE == 'kasandra'
+         rings = ((7.0, 8.0, 0.05), (4.0, 5.0, 0.09), (1.5, 2.5, 0.17))
+         if level >= 1.5:rings = ((13.0, 12.0, 0.022),) + rings        # a brighter desk throws its light further, not only harder
+         if level >= 2.5:rings = ((20.0, 15.0, 0.014),) + rings
+         for grow, width, alpha in rings:
+-            p.setPen(QPen(ink(colour, min(1.0, alpha * strength)), width * s));p.drawRect(rect.adjusted(-grow * s, -grow * s, grow * s, grow * s))
++            p.setPen(QPen(t.warm(alpha * strength) if hers else ink(colour, min(1.0, alpha * strength)), width * s));p.drawRect(rect.adjusted(-grow * s, -grow * s, grow * s, grow * s))
+         p.restore()
+ 
+     def _bloom(self, p, at, text, colour, strength=1.0):
+@@ -1415,8 +1425,10 @@ class FieldView(QWidget):
+         the caller draws next. The letters stay as sharp as they were; only the dark around them warms. For the few words
+         that are lit (the sheet that has the keyboard, the chosen face), never for running text. The Clean desk has none."""
+         if not self.texture:return
+-        s = self.scale();level = t.glow();p.save();p.setPen(ink(colour, min(1.0, 0.085 * strength * min(level, 2.4))))
+-        if colour == t.AMBER_EDGE:t.lays_light(p)      # Kasandra: a lit word's light is added, never mixed over her cyan
++        s = self.scale();level = t.glow();share = min(1.0, 0.085 * strength * min(level, 2.4));p.save()
++        # Kasandra (0.8.4): a lit word's light is one deep warm tone laid nearly whole, so the dark round the letters warms
++        # and the letters keep their contrast. Added as light (0.8.3) it was as pale as the letters, and they washed out.
++        p.setPen(ink(t.warm(share), 0.8) if colour == t.AMBER_EDGE and t.APPEARANCE == 'kasandra' else ink(colour, share))
+         for reach in ((1.1 * s, 2.2 * s, 3.6 * s) if level >= 1.5 else (1.1 * s, 2.2 * s)):
+             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
+                 p.drawText(QPointF(at.x() + dx * reach, at.y() + dy * reach), text)
+@@ -1460,7 +1472,7 @@ class FieldView(QWidget):
+         # (one on the whole surface, and the strongest, because it is where a key will act). What a sheet's state is, is
+         # lit inside it, at its mark; so a sheet that waits can be under the pointer and say both.
+         if touched:self._halo(p, r, t.READY, 1.5)
+-        elif selected and focus:self._halo(p, r, t.AMBER_EDGE, 1.9)
++        elif selected and focus and t.APPEARANCE != 'kasandra':self._halo(p, r, t.AMBER_EDGE, 1.9)      # hers is already on the ground, under the wires (paintEvent)
+         p.setBrush(QColor((t.CARD, t.CARD, t.PANEL, t.GROUND)[depth]))       # a sheet recedes by its ground and its edge; its words stay readable
+         edge = t.AMBER_EDGE if selected and focus else t.READY if touched else (t.LINE_STRONG if depth <= 1 else t.LINE)
+         p.setPen(QPen(ink(edge, 1.0 if selected else 0.85 if touched else edge_keep + 0.1), 2 if selected else 1));p.drawRect(r)
+diff --git a/workbench/hardware_overview.py b/workbench/hardware_overview.py
+index e42096a..26ecdab 100644
+--- a/workbench/hardware_overview.py
++++ b/workbench/hardware_overview.py
+@@ -139,7 +139,7 @@ class HardwareGroupTab(QWidget):
+                 tile.setData(Qt.UserRole,r);tile.setToolTip(r['path']);self.tiles.addItem(tile)
+                 if index<32 and not r['is_dir']:
+                     QTimer.singleShot(index*20, self, lambda p=path,t=tile,f=icon,g=generation:self.load_thumbnail(p,t,f,g))
+-        self.count=len(rows);self.note.setText(f'{len(visible)} of {len(rows)} items · double-click or Enter to open · folders stay separate from files')
++        self.count=len(rows);self.note.setText(f'{len(visible)} of {len(rows)} items · double-click to open · folders stay separate from files')
+     def load_thumbnail(self,path,tile,fallback,generation):
+         if generation!=self.generation:return
+         try:
+diff --git a/workbench/home_qt.py b/workbench/home_qt.py
+index c18fb9e..92b04f4 100644
+--- a/workbench/home_qt.py
++++ b/workbench/home_qt.py
+@@ -192,7 +192,7 @@ class WorkshopHome(QWidget):
+         self.startup.addItem('Start: on the work', 'last')
+         self.startup.addItem('Start: always Home', 'home')
+         self.startup.setAccessibleName('Graphite startup preference')
+-        self.startup.setToolTip('On the work: the Field first when this workspace has work, and Esc goes to where you left off. Open documents and the saved layout are kept either way.')
++        self.startup.setToolTip('On the work: the Field first when this workspace has work, and Back there goes to where you left off. Open documents and the saved layout are kept either way.')
+         self.startup.currentIndexChanged.connect(self._startup_changed)
+         footer.addWidget(self.startup)
+         outer.addLayout(footer)
+diff --git a/workbench/kp_logo.py b/workbench/kp_logo.py
+index 56c4f47..901eaad 100644
+--- a/workbench/kp_logo.py
++++ b/workbench/kp_logo.py
+@@ -10,9 +10,10 @@ fringe was stored at alpha 1 of 255 and cannot be shown as it was). It is shown
+   wide     the drawing in its own colours, blurred wide and soft
+   close    the same blurred a little, close round each part
+   ghosts   a cyan copy a little to the left and a magenta one a little to the right, as a neon sign doubles on glass
+-each in proportion to the Glow dial (boss_theme.glow(): Soft 1, Bright 1.9, Neon 3), and none at all on the Clean desk or
+-at a glow of 0. When Apps opens, the logo catches with its menu (menu_catch.CATCH_MS): its ghosts spread and its light
+-surges, then it settles on the frame it had. With Reduce motion, or the glow off, it is still.
++each in proportion to the Glow dial (boss_theme.glow(): Soft 1, Bright 1.9, Neon 3; the ghosts, settled, no stronger than
++GHOST_SETTLED, so the thin strokes stay single), and none at all on the Clean desk or at a glow of 0. When Apps opens,
++the logo catches with its menu (menu_catch.CATCH_MS): its ghosts spread and its light surges, then it settles on the
++frame it had. With Reduce motion, or the glow off, it is still.
+ 
+ Under the pointer the button answers as the head's words do (the pointer's green under it); holding the keyboard or held
+ down, a burnt-yellow edge under it and no fill: the logo's cyan light is never laid over yellow, which would read green.
+@@ -26,25 +27,34 @@ from PySide6.QtWidgets import QToolButton
+ NAME = 'kp_neon.png'
+ HEIGHT, WIDTH = 44, 74            # the logo in the head at 14 pt (1401 x 838 drawn to 44 px tall is 73.6 wide)
+ GHOSTS = (('#83eaff', -1.0), ('#ff4fd8', 1.0))      # cyan to the left, magenta to the right
+-GHOST_AWAY = 1.5                  # px at 14 pt, settled; up to SPREAD times that as the logo catches
+-SPREAD = 2.6
++# 0.8.4: settled, the ghosts stand 1 px away and are never stronger than GHOST_SETTLED. At 1.5 px and 0.48 (Neon, 0.8.3) they
++# doubled the logo's thin strokes: the review measured its edges a fifth softer at Neon. The catch keeps its whole spread
++# (3.9 px) and its surge (0.75).
++GHOST_AWAY = 1.0                  # px at 14 pt, settled; up to SPREAD times that as the logo catches
++SPREAD = 3.9
+ WIDE, CLOSE = 0.2, 0.28           # the light's strength per step of the Glow dial (Neon 3: 0.6 and 0.84)
+-GHOST = 0.16                      # (Neon 3: 0.48)
++GHOST = 0.16                      # per step of the dial, settled no more than GHOST_SETTLED (Soft 0.16, Bright and Neon 0.3)
++GHOST_SETTLED, GHOST_CAUGHT = 0.3, 0.75
+ BLUR_WIDE, BLUR_CLOSE = 8, 3      # how far each light reaches, px at 14 pt
+ MARGIN = 12                       # room round the drawing for its light, px at 14 pt
++KEPT = 8                          # the drawing is kept at this many times its size in the head, no larger (0.8.4)
+ 
+-_images = {}                      # path -> the clean drawing, decoded once
++_images = {}                      # path -> the clean drawing, decoded once and kept small
+ _layers = {}                      # (image key, width, height, dpr) -> the drawing and its two lights and its mask, at that size
+ 
+ 
+ def logo(root):
+-    """The clean drawing as a premultiplied image when its bytes are the recorded ones (kasandra_art.mark), else null."""
++    """The clean drawing as a premultiplied image when its bytes are the recorded ones (kasandra_art.mark), else null.
++    The file is 1401 x 838 (4.7 MB decoded) for a button 74 x 44: what is kept is one copy KEPT times the button's size
++    (588 x 352, a sixth of that), enough for any interface scale and screen; the decoded file is let go (0.8.4)."""
+     from . import kasandra_art
+     path = kasandra_art.mark(kasandra_art.folder(root), NAME)
+     if path is None:return QImage()
+     key = str(path)
+     if key not in _images:
+         image = QImage(key)
++        if not image.isNull() and image.height() > HEIGHT * KEPT:
++            image = image.scaled(round(image.width() * HEIGHT * KEPT / image.height()), HEIGHT * KEPT, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+         _images[key] = image.convertToFormat(QImage.Format_ARGB32_Premultiplied) if not image.isNull() else QImage()
+     return _images[key]
+ 
+@@ -97,8 +107,15 @@ def tinted(mask, colour):
+ def strengths(level, surge=0.0):
+     """(wide, close, ghost) light at Glow `level` (0: none), `surge` 0 to 1 while it catches."""
+     if level <= 0:return 0.0, 0.0, 0.0
+-    boost = 1.0 + 0.6 * max(0.0, min(1.0, surge))
+-    return min(0.9, WIDE * level * boost), min(1.0, CLOSE * level * boost), min(0.75, GHOST * level * boost)
++    caught = max(0.0, min(1.0, surge));boost = 1.0 + 0.6 * caught
++    ghost = min(GHOST_SETTLED, GHOST * level)      # settled: quiet enough to leave the thin strokes single
++    ghost += (min(GHOST_CAUGHT, GHOST * level * 1.6) - ghost) * caught      # caught: what it always was
++    return min(0.9, WIDE * level * boost), min(1.0, CLOSE * level * boost), ghost
++
++
++def away(scale=1.0, surge=0.0):
++    """How far each ghost stands from the drawing, px: GHOST_AWAY settled, SPREAD times that at the catch's start."""
++    return GHOST_AWAY * scale * (1.0 + (SPREAD - 1.0) * max(0.0, min(1.0, surge)))
+ 
+ 
+ def paint(p, rect, image, level, scale=1.0, surge=0.0):
+@@ -112,9 +129,8 @@ def paint(p, rect, image, level, scale=1.0, surge=0.0):
+         p.save();p.setCompositionMode(QPainter.CompositionMode_Screen)      # light added to the band, never paint over it
+         for layer, alpha in ((wide, used[0]), (close, used[1])):
+             p.setOpacity(alpha);p.drawImage(at, layer)
+-        away = GHOST_AWAY * scale * (1.0 + (SPREAD - 1.0) * max(0.0, min(1.0, surge)))
+         p.setOpacity(used[2])
+-        for colour, side in GHOSTS:p.drawImage(at + QPointF(side * away, 0), tinted(mask, colour))
++        for colour, side in GHOSTS:p.drawImage(at + QPointF(side * away(scale, surge), 0), tinted(mask, colour))
+         p.restore()
+     p.drawImage(at, drawing)
+     return used
+diff --git a/workbench/log_qt.py b/workbench/log_qt.py
+index 88cc1ff..c9aeff3 100644
+--- a/workbench/log_qt.py
++++ b/workbench/log_qt.py
+@@ -59,10 +59,11 @@ from PySide6.QtWidgets import (QCheckBox, QFrame, QHBoxLayout, QLabel, QListWidg
+ NETWORK_OPERATIONS = ('network.observe', 'network.capture.start', 'network.capture.stop', 'network.capture.read')
+ EVENT_OPERATIONS = ('ledger.activity', 'ledger.journal.status')
+ STREAMS = (('events', 'Events'), ('network', 'Network'))
+-HINTS = {'events': "words in Graphite's events  ·  Enter filters",
+-         'network': 'host 10.0.0.5 · port 443 · firefox · tcp  ·  Enter filters  ·  Ctrl+Enter captures with it'}
+-NOTES = {'events': "Graphite's own events; words and Enter filter them, choose one to pin it.",
+-         'network': 'A host, a port, a process or a protocol and Enter filter it; Ctrl+Enter captures headers.'}
++# 0.8.4: no key is named (the keys work as they did): the arrow sends what is typed, and Capture… is a word to click.
++HINTS = {'events': "words in Graphite's events, to filter them",
++         'network': 'host 10.0.0.5 · port 443 · firefox · tcp, to filter  ·  Capture… captures with it'}
++NOTES = {'events': "Graphite's own events; words in the line filter them, choose one to pin it.",
++         'network': 'A host, a port, a process or a protocol in the line filters it; Capture… captures headers.'}
+ CAPTURE_SECONDS = 60      # a capture's bound, in the confirmation's words (D5 bounds it again)
+ CAPTURE_PACKETS = 2000    # and its packet bound
+ MAX_ROWS = 1000           # the most rows a stream keeps (the oldest go first)
+@@ -391,6 +392,8 @@ class LogView(QWidget):
+         """The view's look; the network rows in Plex Mono at 13 px at 14 pt, following the interface size (the window's sheet
+         sizes every list, so the face and size are set here, where they win)."""
+         from .shell2 import CARD, LINE, QUIET, RAISED, TEXT, MONO, scale_of
++        from .boss_theme import chosen_row
++        chosen = chosen_row(RAISED, TEXT)      # 0.8.4: a selected row is her highlight in Kasandra; Graphite's raised row, as before
+         mono = max(11, round(13 * scale_of(self.host))) if self.host is not None and hasattr(self.host, 'session') else 13
+         if getattr(self, '_mono_px', None) == mono:return
+         self._mono_px = mono
+@@ -400,14 +403,15 @@ class LogView(QWidget):
+             'QPushButton#LogStreamTab {padding:0 %(air)dpx;margin:0;border:0;background:transparent;min-width:0;min-height:0;} '
+             'QListWidget#LogEvents, QListWidget#LogConnections, QListWidget#LogPackets {background:%(card)s;border:1px solid %(line)s;border-radius:4px;color:%(text)s;} '
+             'QListWidget#LogEvents::item, QListWidget#LogConnections::item, QListWidget#LogPackets::item {padding:1px 6px;} '
+-            'QListWidget#LogEvents::item:selected, QListWidget#LogConnections::item:selected, QListWidget#LogPackets::item:selected {background:%(raised)s;color:%(text)s;} '
++            'QListWidget#LogEvents::item:selected, QListWidget#LogConnections::item:selected, QListWidget#LogPackets::item:selected {background:%(chosen)s;color:%(chosen_words)s;} '
+             'QFrame#LogPinned {background:%(raised)s;border:1px solid %(line)s;border-left:3px solid %(pencil)s;border-radius:4px;} '
+             'QLabel#LogPinnedLine {color:%(text)s;font-weight:600;} QLabel#LogPinnedDetails {color:%(quiet)s;} '
+             'QLabel#LogSection {color:%(quiet)s;letter-spacing:1px;} QLabel#LogFilter, QLabel#LogCaptureState {color:%(quiet)s;} '
+             'QLabel#LogInterfaces, QLabel#LogCaptureNote {color:%(text)s;} '
+             'QCheckBox#LogFollow {color:%(quiet)s;} '
+             "QListWidget#LogConnections, QListWidget#LogPackets, QLabel#LogPinnedDetails {font-family:'%(mono)s';font-size:%(px)dpx;}"
+-            % dict(card=CARD, line=LINE, text=TEXT, quiet=QUIET, raised=RAISED, pencil='#d4b56a', air=TAB_AIR, mono=MONO, px=mono))
++            % dict(card=CARD, line=LINE, text=TEXT, quiet=QUIET, raised=RAISED, pencil='#d4b56a', air=TAB_AIR, mono=MONO, px=mono,
++                   chosen=chosen[0], chosen_words=chosen[1]))
+ 
+     def eventFilter(self, obj, event):
+         if event.type() == QEvent.Wheel and event.angleDelta().y() > 0:self.follow.setChecked(False)  # reading back stops following
+@@ -612,7 +616,7 @@ class LogView(QWidget):
+         elif state == 'IDLE':
+             proposal = self.capture.get('proposal') if isinstance(self.capture.get('proposal'), dict) else None
+             words = 'Capture idle'
+-            note = str(proposal.get('words')) if proposal and proposal.get('words') else 'No capture is running. Ctrl+Enter in the line, or Capture…, captures packet headers with the filter.'
++            note = str(proposal.get('words')) if proposal and proposal.get('words') else 'No capture is running. Capture… captures packet headers with the filter in the line.'
+         else:words = '';note = self.problem or ''
+         self.capture_words.setText(words);self.capture_note.setText(note);self.capture_note.setVisible(bool(note))
+         # Where capture is unavailable and nothing was captured, no packet can come: the empty list gives its room to the reason
+diff --git a/workbench/menus2.py b/workbench/menus2.py
+index 994b0e7..7c17fab 100644
+--- a/workbench/menus2.py
++++ b/workbench/menus2.py
+@@ -96,7 +96,7 @@ def rebuild(host):
+         def make(text, fn):
+             a = QAction(text, host);a.triggered.connect(lambda checked=False:fn());return a
+         host.a_work_copy = make('Work on a Copy of a File…', lambda:open_destination(host, 'work_copy'))
+-        host.a_console = make('Console\tCtrl+`', lambda:host.console.open() if hasattr(host, 'console') else None)
++        host.a_console = make('Console', lambda:host.console.open() if hasattr(host, 'console') else None)
+         host.a_library = make('Library', lambda:open_destination(host, 'library:all'))
+         host.a_pills = make('Pills and Paired Computers…', lambda:__import__('workbench.pills_qt', fromlist=['show']).show(host))
+         host.a_computer = make('This Computer…', lambda:__import__('workbench.computer_qt', fromlist=['show']).show(host))
+@@ -163,7 +163,7 @@ def rebuild(host):
+         host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate']
+         host.a_run_operation = make('Run an operation…\tAlt+3', lambda:host.type_bar.run_operation() if hasattr(host, 'type_bar') else None)
+         host.a_run_operation.setShortcut('Alt+3');host.addAction(host.a_run_operation);host.a_talk['kernel'] = host.a_run_operation
+-        host.a_run_operation.setToolTip('An operation by name in the writing line (Kernel\'s home): Tab completes, Enter runs, help NAME and ops WORD answer')
++        host.a_run_operation.setToolTip('An operation by name in the writing line (Kernel\'s home): help NAME and ops WORD answer')
+         def sync():  # the checks say what is true now
+             console = getattr(host, 'console', None);target = getattr(host, 'type_target', 'slate')
+             if console is not None:host.a_sizes[console.size_level].setChecked(True)
+@@ -178,7 +178,7 @@ def rebuild(host):
+             tab = show(host)
+             if tab is not None and hasattr(tab, 'project_title'):tab.project_title.setFocus();tab.project_title.selectAll()
+         host.a_new_idea = QAction('New Idea…\tCtrl+Shift+N', host);host.a_new_idea.triggered.connect(lambda checked=False:capture_dialog(host))
+-        host.a_new_idea.setToolTip('Jot an idea into Notes, exactly as written (Ctrl+Shift+N)');host.a_new_idea.setStatusTip(host.a_new_idea.toolTip())
++        host.a_new_idea.setToolTip('Jot an idea into Notes, exactly as written');host.a_new_idea.setStatusTip(host.a_new_idea.toolTip())
+         host.a_new_project = QAction('New Project…', host);host.a_new_project.triggered.connect(lambda checked=False:new_project())
+         host.a_new_project.setToolTip('Open the Project Desk with a new title ready to type');host.a_new_project.setStatusTip(host.a_new_project.toolTip())
+     if not hasattr(host, 'a_field'):
+@@ -186,7 +186,7 @@ def rebuild(host):
+         # the writing line's command search all reach the same thing. Plain text and a real shortcut so typing "field" finds it.
+         host.a_field = QAction('Field', host);host.a_field.setShortcut('F9')
+         host.a_field.triggered.connect(lambda checked=False:host.show_field() if hasattr(host, 'show_field') else None)
+-        host.a_field.setToolTip('The work in this workspace as sheets, with what feeds what; Enter opens one, Esc comes back (F9)')
++        host.a_field.setToolTip('The work in this workspace as sheets, with what feeds what')
+         host.a_field.setStatusTip(host.a_field.toolTip());host.addAction(host.a_field)
+     service = next((a for a in before if a.text().replace('&', '').startswith('Background service')), None)
+     extras = {'@receive': host.a_receive, '@files': host.a_files, '@agenda': host.a_agenda, '@project_desk': host.a_project_desk, '@changes': host.a_changes, '@continuing':host.a_continuing, '@deployment':host.a_deployment, '@slate_panel': host.a_slate_panel,
+diff --git a/workbench/qt_app.py b/workbench/qt_app.py
+index 4811055..6f4ef0e 100644
+--- a/workbench/qt_app.py
++++ b/workbench/qt_app.py
+@@ -926,7 +926,7 @@ class SimulationTracePanel(QWidget):
+         self.timer.setInterval(33)  # playback rate only, NOT hardware timing
+         self.timer.timeout.connect(self.step)
+         self.scenario_divergent = False
+-        self.heading = QLabel('Run a game with F5 to populate simulated signals.')
++        self.heading = QLabel('Run a game to populate simulated signals.')
+         self.heading.setWordWrap(True)
+         self.plot = SimulationTracePlot()
+         self.channel = QComboBox()
+@@ -2553,7 +2553,7 @@ class WorkbenchWindow(QMainWindow):
+         self.debug_view.setReadOnly(True)
+         self.debug_view.setPlainText('No debugger is connected. There is no ARC-1 device transport; breakpoints, '
+                                      'registers and call stacks need a board that does not exist yet.\n'
+-                                     'Host simulation results appear here after Run (F5).')
++                                     'Host simulation results appear here after Run.')
+         self.agent_view = QPlainTextEdit()
+         self.agent_view.setObjectName('outputText')
+         self.agent_view.setReadOnly(True)
+@@ -2565,7 +2565,7 @@ class WorkbenchWindow(QMainWindow):
+             self.output_tabs.addTab(w, title)
+         self.output_tabs.currentChanged.connect(lambda _: self.session.set_layout(
+             output_tab=self.output_tabs.tabText(self.output_tabs.currentIndex())))
+-        self.output_dock = self._dock('Output   (F10)', 'OutputDock', self.output_tabs, Qt.BottomDockWidgetArea)
++        self.output_dock = self._dock('Output', 'OutputDock', self.output_tabs, Qt.BottomDockWidgetArea)
+ 
+         # Hardware Inspector: resource budgets and the host boot-diagnostic model. Hidden by default.
+         self.inspector_tabs = QTabWidget()
+@@ -2715,7 +2715,7 @@ class WorkbenchWindow(QMainWindow):
+         self.a_problems = A('Pro&blems', self.show_problems, 'Ctrl+Shift+M')
+         self.a_inspector = self.inspector_dock.toggleViewAction()
+         self.a_inspector.setText('&Inspector')
+-        self.a_fullscreen = A('&Full Screen', self.toggle_fullscreen, 'F11', 'Fill the display; F11 returns to the previous window')
++        self.a_fullscreen = A('&Full Screen', self.toggle_fullscreen, 'F11', 'Fill the display; the same line returns to the previous window')
+         self.a_fullscreen.setCheckable(True)
+         self.a_home = A('Workshop Home', self.show_start, 'Ctrl+Alt+1')
+         self.a_engineering_layout = A('Engineering layout', lambda: self.set_workspace_layout('engineering'), 'Ctrl+Alt+2')
+@@ -2757,7 +2757,7 @@ class WorkbenchWindow(QMainWindow):
+         self.a_newgame = A('&New Game Project…', self.new_game_project)
+         self.a_refresh = A('Re&fresh Navigator', self.refresh_navigator)
+         self.a_build = A('&Build', lambda: self.start('build'), ['F7', 'Ctrl+Shift+B'],
+-                         'Build the target for the work in front of you (F7)')
++                         'Build the target for the work in front of you')
+         self.a_build_all = A('Build All &Firmware Stages', self.build_all_firmware)
+         self.a_tests = A('Run &Tests', lambda: self.start('test'), 'Ctrl+T', 'Run the tests for this target')
+         self.a_stop = A('&Stop', self.stop_process, 'Ctrl+Break')
+@@ -2767,7 +2767,7 @@ class WorkbenchWindow(QMainWindow):
+         self.a_next = A('&Next Problem', lambda: self.step_problem(1), 'F8')
+         self.a_prev = A('&Previous Problem', lambda: self.step_problem(-1), 'Shift+F8')
+         self.a_run = A('&Run Current Game', lambda: self.start('run'), 'F5',
+-                       'Preview STRUTHIO Arcade in a browser or run a C host game (F5)')
++                       'Preview STRUTHIO Arcade in a browser or run a C host game')
+         self.a_boot = A('Host &Boot Diagnostics', lambda: self.show_budgets('Boot model'))
+         self.a_pkg = A('&Package Example Cartridge', self.package_example)
+         self.a_import = A('&Import Cartridge…', self.import_cartridge_dialog)
+@@ -2974,7 +2974,7 @@ class WorkbenchWindow(QMainWindow):
+         self.global_search.setIcon(self.nav_icon('search'))
+         self.global_search.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+         self.global_search.setIconSize(QSize(22,22));self.global_search.setMinimumHeight(38)
+-        self.global_search.setToolTip('Search commands · Ctrl+Shift+P\nFind a file · Ctrl+P')
++        self.global_search.setToolTip('Search commands, or find a file')
+         self.global_search.setAccessibleName('Search commands')
+         groups.addWidget(self.global_search)
+         from .qt_master_stop import StopButton,MasterStop
+diff --git a/workbench/qt_master_stop.py b/workbench/qt_master_stop.py
+index 95aef17..cc0598d 100644
+--- a/workbench/qt_master_stop.py
++++ b/workbench/qt_master_stop.py
+@@ -92,7 +92,7 @@ class MasterStop(QObject):
+             self.button.setProperty('stuck',stuck);self.button.style().unpolish(self.button);self.button.style().polish(self.button)
+         detail='Stop advice: '+value+'\n'+self.advice['meaning']+'\n\n'+'\n'.join(self.advice['reasons'])
+         if stuck and not self.running:detail='Looks stuck. '+' '.join(r for r in self.advice['reasons'] if 'exceeded' in r or 'exited' in r)+'\n\n'+detail
+-        detail+='\n\nClick: confirm Stop all · Ctrl+Shift+F12\nRight-click: score details\nSilence alone does not raise the score.'
++        detail+='\n\nClick: confirm Stop all\nRight-click: score details\nSilence alone does not raise the score.'
+         try:
+             from .work_trail import work_status
+             if work_status(self.kernel)['held']:
+diff --git a/workbench/sheet_workbench_qt.py b/workbench/sheet_workbench_qt.py
+index 5e73122..e7cab01 100644
+--- a/workbench/sheet_workbench_qt.py
++++ b/workbench/sheet_workbench_qt.py
+@@ -54,7 +54,8 @@ QPushButton#WorksheetCommands:hover {border-color:%(CUE_EDGE)s;}
+ QPushButton#WorksheetChainStep:focus, QPushButton#FullSpreadsheet:focus, QPushButton#WorksheetCommands:focus {border-color:%(AMBER_EDGE)s;}
+ QPushButton#RunWorksheetChain {background: %(CUE_EDGE)s; color: %(TERMINAL_GROUND)s;
+     border: 1px solid %(CUE_EDGE)s; font-family: "%(MONO)s"; font-weight:600; border-radius: 0; padding: 5px 10px;}
+-QPushButton#RunWorksheetChain:hover, QPushButton#RunWorksheetChain:focus {background: %(CUE_TEXT)s;}
++QPushButton#RunWorksheetChain:hover {background: %(CUE_TEXT)s;}
++QPushButton#RunWorksheetChain:focus {background: %(AMBER_TEXT)s; border-color: %(AMBER_EDGE)s;}
+ QPushButton#RunWorksheetChain:disabled {background: %(PANEL)s; color: %(QUIET)s; border-color: %(LINE)s;}
+ """ % vars(ink)
+ 
+diff --git a/workbench/spice_qt.py b/workbench/spice_qt.py
+index 22b74e4..1e6f90a 100644
+--- a/workbench/spice_qt.py
++++ b/workbench/spice_qt.py
+@@ -109,7 +109,7 @@ class SpiceTab(QWidget):
+         self.channels=QComboBox();self.channels.currentIndexChanged.connect(self.select_channel);layout.addWidget(self.channels)
+         self.plot=Waveform();layout.addWidget(self.plot,1)
+         self.legend=QLabel();self.legend.setWordWrap(True);layout.addWidget(self.legend)
+-        self.cursor=QLabel('Move over a curve or use the arrow keys for exact native samples.');self.cursor.setWordWrap(True)
++        self.cursor=QLabel('Move over a curve for exact native samples.');self.cursor.setWordWrap(True)
+         self.plot.value_changed.connect(self.cursor.setText);layout.addWidget(self.cursor)
+         scroller=QScrollArea();scroller.setWidgetResizable(True);scroller.setFrameShape(QFrame.NoFrame);scroller.setWidget(page)
+         self.pages.addTab(scroller,'Waveform')
+@@ -244,7 +244,7 @@ class SpiceTab(QWidget):
+         names=[self.result['waveform']['variables'][i]['name'] for i in self.plot.columns()]
+         self.legend.setText('   ·   '.join('<span style="color:'+self.plot.COLORS[(i-1)%len(self.plot.COLORS)]+'">'+self.result['waveform']['variables'][i]['name']+'</span>' for i in self.plot.columns())+
+                             ('   ·   Matching F45 / F12 curves overlap.' if self.result['operation']=='dividers' else ''))
+-        self.cursor.setText('Move over a curve or use the arrow keys for exact native samples.')
++        self.cursor.setText('Move over a curve for exact native samples.')
+ 
+     def select_file(self,*_):
+         path=self.file.currentData()
+diff --git a/workbench/system_menu_qt.py b/workbench/system_menu_qt.py
+index e9e5ec9..c31b7dc 100644
+--- a/workbench/system_menu_qt.py
++++ b/workbench/system_menu_qt.py
+@@ -39,7 +39,7 @@ STOP = 'Stop all jobs'
+ STOPPING = 'Stopping…'
+ STOP_SCOPE = 'work Graphite manages'            # the scope, in print: read before acting
+ STOP_TIP = ('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is '
+-            'stopped (Ctrl+Shift+F12). Programs Graphite does not manage keep running. Source files and unsaved editor buffers are kept.')
++            'stopped. What Graphite does not manage keeps running. Source files and unsaved editor buffers are kept.')      # 0.8.4: no key named, and no "Programs"
+ SERVICES = 'Graphite services'
+ CHOICES = (('On', 'On'), ('Off', 'Off'), ('Reboot', 'Restart'))  # (LedgerLifecycle's key, the word shown)
+ CHOICE_TIPS = {'On':'Enable new authorized work; no jobs replayed and no model or phone started.',
+diff --git a/workbench/typebar_qt.py b/workbench/typebar_qt.py
+index f09a765..221bac3 100644
+--- a/workbench/typebar_qt.py
++++ b/workbench/typebar_qt.py
+@@ -624,9 +624,17 @@ class TypeBar(QWidget):
+             from .boss_theme import AMBER_EDGE
+             if glows(self.host):
+                 r = self.box.geometry();p.setRenderHint(QPainter.Antialiasing)
+-                from .boss_theme import lays_light
+-                p.save();lays_light(p)      # Kasandra: the light is added to the band's cyan, never mixed over it (that is green)
+-                for away, width, alpha in ((5.0, 5.0, 0.07), (3.2, 3.2, 0.12), (1.6, 2.0, 0.2)):
++                # Kasandra (0.8.4): the light is opaque warm tones (boss_theme.warm), darker as it falls off, on whole rows:
++                # the band's cyan is covered inside the line's columns, not mixed with (that is green) nor lit by yellow
++                # (that is grey), and no row is half one and half the other. The band's own rule stays clear of it.
++                from .boss_theme import APPEARANCE, warm
++                p.save()
++                if APPEARANCE == 'kasandra':
++                    p.setRenderHint(QPainter.Antialiasing, False);p.setClipRect(0, 2, self.width(), self.height() - 2)
++                    for near, rows, share in ((6, 3, 0.14), (3, 3, 0.24), (1, 2, 0.4)):      # rows 6 to 8 from the box, 3 to 5, and the two beside it
++                        p.fillRect(r.left() + 1, r.top() - near - rows + 1, r.width() - 1, rows, warm(share))
++                        p.fillRect(r.left() + 1, r.bottom() + near, r.width() - 1, rows, warm(share))
++                for away, width, alpha in ((5.0, 5.0, 0.07), (3.2, 3.2, 0.12), (1.6, 2.0, 0.2)) if APPEARANCE != 'kasandra' else ():
+                     ink = QColor(AMBER_EDGE);ink.setAlphaF(alpha);p.setPen(QPen(ink, width))
+                     p.drawLine(QLineF(r.left() + 1, r.top() - away, r.right(), r.top() - away))
+                     p.drawLine(QLineF(r.left() + 1, r.bottom() + 1 + away, r.right(), r.bottom() + 1 + away))

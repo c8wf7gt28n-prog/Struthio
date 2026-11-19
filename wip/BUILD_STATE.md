@@ -31,7 +31,8 @@ next thing that can be built. Never claim a ThinkPad result.
 ## Rules that never bend (short form; the long form is NOTES.md and the spec's section 12)
 
 - Branch `claude/epic-galileo-c7k11y` only. No pull request. Commit and push after every step.
-- Commit trailer: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>` and
+- Commit trailer: the one the session gives at the time (since 19 Nov 18:20 UTC:
+  `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`), and
   `Claude-Session: https://claude.ai/code/session_01SSUMdyhHQH2idKFXpgDCV8`. No model name anywhere else.
 - The owner's name, email and workspace never enter the repository or any outside request. The After Hours 07 backup and
   the owner's theme pictures stay out of the repository.
@@ -101,8 +102,12 @@ and fixed; all four patches applied without conflict; seed current). The reviews
 - **The full suite on the merged tree (commit dd2c2db), 19 Nov 16:28 UTC: default look 70 modules, 1,115 tests, 0 failing;
   Kasandra look 70 modules, 1,115 tests, 1 failing** (`test_faces_find_light`, her desk light: "172 not less than 150";
   it failed the same way before part A; part B's look item settles it).
-- **Running now (started 16:30 UTC): workflow `graphite-084-part-b`, run id `wf_401c7b30-522`, task `w6t21kgt0`.**
-- **Part B** is `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js`, launched with the Workflow tool's `scriptPath`
+- **Running now (restarted 19 Nov 18:20 UTC): workflow `graphite-084-part-b`, run id `wf_401c7b30-522`, task `w3qzlz7fi`.**
+  The first run (16:30) stopped at about 17:30 on a weekly limit of the model it ran on (reset 26 Nov); the owner switched
+  the session to another model at 18:15 and said "Continue". At the stop, look and checks were built and nearly through
+  their own last runs (their notes say what was left); session, guards and tiers had not started. Copies of both patches
+  and notes: `wip/2026-11-19_b084b_saved/`. The relaunched builders find the notes and patches and carry on from them.
+
   (keys: look = step 9, checks = step 5, session, tiers = step 8, guards = step 7; two lanes, each finishing one item,
   build then review then fix, before starting the next). Hand-overs are files in scratch `work/b084b/`: `<key>.patch`,
   `<key>.progress.md`, `<key>.review.md`, `<key>.<role>.result.json`; an agent whose result file exists returns at once,
@@ -166,6 +171,8 @@ many; hand over through files; agents work in few large steps and never print wh
 
 ## Log (newest first)
 
+- 19 Nov 18:20 UTC: part B relaunched on the model the owner chose; look and checks resume from their saved work.
+- 19 Nov 17:30 UTC: a weekly model limit stopped part B (look and checks nearly built).
 - 19 Nov 16:30 UTC: suite on the merged tree: 0 failing in the default look, 1 known in the Kasandra look; part B started.
 - 19 Nov 16:20 UTC: part A merged in four commits after review and fixes; the full suite running in both looks.
 - 19 Nov 13:10 UTC: the usage limit stopped part A2 with one agent left (the line fix, which had in fact finished its
