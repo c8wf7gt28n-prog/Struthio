@@ -78,6 +78,9 @@ scratchpad paths of this session; adjust `S=` at their top).
   feature in the 'field' bulletin board that likes all connected files. That's helpful in engineering, legal reasoning,
   medicine, or just managing life and money". So: the desk is general, not engineering-only; the Field (a board that links
   every connected file) is the unique feature and must be domain-neutral; helping with installed programs is the headline.
+- **Why the hard domains:** "I figured if she can do hard things like engineering and civil legal research and reasoning,
+  she will also be a great agent for my basic needs as well :)". So the hard cases are her exam, and everyday needs are
+  the daily use. Test the everyday versions directly too (the handoff's "easy twin" of each hard case).
 - **One person:** "Just kas. Otherwise we have too many people." One agent, Kasandra (Kas for short), under one name in
   every look. "Mara" is not a second person. Read as also retiring "Stacy" as the name shown in the Graphite look
   (workbench/assistant_identity.py shows it there today); confirm with the owner before changing it.
