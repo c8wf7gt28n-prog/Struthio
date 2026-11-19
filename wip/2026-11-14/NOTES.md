@@ -122,6 +122,12 @@ scratchpad paths of this session; adjust `S=` at their top).
   a handwritten face, a pencil figure study lower left; "one leans into the art realm"). Both keep the canon's layout,
   words, states and buttons exactly. So a skin = palette, faces, figure, mark, and ornaments (how the head's meter, the
   wires, the card frames and the foot's meters are drawn); layout, words, states and behaviour never change with a skin.
+- **The Colored Pencil trial has NOT been run on the ThinkPad** (the owner, 19 Nov).
+- **The figures:** "All my figures are created by me, so nobody is them in real life. Nobody." Record this in RIGHTS and
+  beside any figure art when it is added.
+- **THE REVISED ROAD** the owner asked for ("Let's go ahead and make a plan on how we're going to go forward, and then we
+  start going forward") is `ROAD_REVISED_2026-11-19.md`. It replaces the release order in the specification. Read it
+  right after this file. Work resumes with 0.8.4.
 - **Why the hard domains:** "I figured if she can do hard things like engineering and civil legal research and reasoning,
   she will also be a great agent for my basic needs as well :)". So the hard cases are her exam, and everyday needs are
   the daily use. Test the everyday versions directly too (the handoff's "easy twin" of each hard case).
