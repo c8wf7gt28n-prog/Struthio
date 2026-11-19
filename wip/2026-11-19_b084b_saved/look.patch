@@ -1,5 +1,5 @@
 diff --git a/GETTING_STARTED.md b/GETTING_STARTED.md
-index 38a412c..301debe 100644
+index 38a412c..5dfb47e 100644
 --- a/GETTING_STARTED.md
 +++ b/GETTING_STARTED.md
 @@ -23,8 +23,8 @@ tour; the README says how to install, start, back up and check.
@@ -8,7 +8,7 @@ index 38a412c..301debe 100644
  3. Drop a few files into `~/Concern/Office/Ingress` (or onto the Office) and receive them; Today counts what arrived.
 -4. The cat at the lower left opens the programs list (Space or Enter on it too). Documents in the list opens a page: write, select
 -   words and ask Kasandra in the strip, `make these words bold`. Ctrl Z takes any change back.
-+4. Apps, at the upper right, opens the list of apps. Documents in the list opens a page: write, select
++4. Apps, at the upper right (in Kasandra's look, her kp logo there), opens the list of apps. Documents in the list opens a page: write, select
 +   words and ask Kasandra in the strip, `make these words bold`. Saying `undo` in the strip takes any change back.
  5. On a page with quantities ask `add up the numbers on this page`: Graphite works it as an assignment you can watch, pause,
     resume and stop under its face.
@@ -28,10 +28,10 @@ index 36b4bff..f3a7ddb 100644
  
 diff --git a/tests_integrated/test_colour_vision.py b/tests_integrated/test_colour_vision.py
 new file mode 100644
-index 0000000..d8673f4
+index 0000000..2228134
 --- /dev/null
 +++ b/tests_integrated/test_colour_vision.py
-@@ -0,0 +1,110 @@
+@@ -0,0 +1,122 @@
 +"""0.8.4: the colour-vision check (tools/colour_vision.py).
 +
 +Every colour that carries a meaning also has a word or a shape. This asks it of every look's palette: each pair of meaning
@@ -87,11 +87,18 @@ index 0000000..d8673f4
 +class EveryLook(unittest.TestCase):
 +    def test_every_meaning_has_a_colour_in_every_palette_and_a_sign_of_its_own(self):
 +        self.assertEqual(set(colour_vision.MEANINGS), set(colour_vision.SIGNS));self.assertGreaterEqual(len(colour_vision.MEANINGS), 12)
-+        for meaning, (name, says) in colour_vision.MEANINGS.items():
-+            for look in LOOKS:self.assertRegex(boss_theme.PALETTES[look][name], r'^#[0-9a-f]{6}$', (look, meaning))
++        for meaning, (names, says) in colour_vision.MEANINGS.items():
++            for look in LOOKS:
++                worn = colour_vision.colours_of(meaning, look, boss_theme.PALETTES[look]);self.assertEqual(len(worn), len(names), (look, meaning))
++                for colour in worn:self.assertRegex(colour, r'^#[0-9a-f]{6}$', (look, meaning))
 +            sign, where = colour_vision.SIGNS[meaning];self.assertGreater(len(sign), 20, meaning);self.assertGreater(len(where), 8, meaning);self.assertTrue(says)
 +        signs = [sign for sign, _ in colour_vision.SIGNS.values()];self.assertEqual(len(set(signs)), len(signs), 'no two meanings share one sign')
-+        for meaning in ('chosen', 'ready', 'waits', 'fails', 'recheck', 'stopped', 'held'):self.assertIn(meaning, colour_vision.MEANINGS)
++        for meaning in ('chosen', 'ready', 'waits', 'fails', 'recheck', 'stopped', 'held', 'cue'):self.assertIn(meaning, colour_vision.MEANINGS)
++        # 0.8.4's review: what is chosen is also the menu's bar, what is ready also the pointer's halo (pale violet in her look)
++        self.assertIn('BAR', colour_vision.MEANINGS['chosen'][0]);self.assertEqual(colour_vision.MEANINGS['cue'][0], ('CUE_EDGE',))
++        hers, his = boss_theme.PALETTES['kasandra'], boss_theme.PALETTES['graphite']
++        self.assertEqual(colour_vision.colours_of('ready', 'kasandra', hers), [hers['READY'], hers['VIOLET_PALE']])
++        self.assertEqual(colour_vision.colours_of('ready', 'graphite', his), [his['READY'], his['READY']])
 +
 +    def test_every_pair_under_the_threshold_is_told_apart_by_a_reviewed_word_or_shape(self):
 +        self.assertEqual(colour_vision.THRESHOLD, 10.0);self.assertEqual(set(colour_vision.REVIEWED), set(LOOKS), 'every look is checked')
@@ -112,9 +119,12 @@ index 0000000..d8673f4
 +        # The findings, pinned: Graphite has one amber for five meanings; to weak red sight Kasandra's cyan is her plain ink.
 +        close = lambda look: {row['pair']: row for row in colour_vision.table(look) if row['least'] < colour_vision.THRESHOLD}
 +        g, k = close('graphite'), close('kasandra')
-+        self.assertEqual(len(g), 25);self.assertEqual(len(k), 11)
-+        self.assertEqual(sum(row['seen']['full'] == 0.0 for row in g.values()), 11, 'Graphite: ten pairs of its one amber, and its quiet ink')
-+        ready = k[('ready', 'words')];self.assertGreater(ready['seen']['full'], 20);self.assertLess(ready['seen']['weak red 1.0'], 2.0);self.assertEqual(ready['sight'], 'weak red 1.0')
++        self.assertEqual(len(g), 32);self.assertEqual(len(k), 15)
++        self.assertEqual(sum(row['seen']['full'] == 0.0 for row in g.values()), 16, 'Graphite: fifteen pairs of its one amber (the cue too), and its quiet ink')
++        hers = boss_theme.PALETTES['kasandra'];self.assertGreater(colour_vision.difference(hers['READY'], hers['TEXT']), 20)
++        ready = k[('ready', 'words')];self.assertLess(ready['seen']['weak red 1.0'], 2.0);self.assertEqual(ready['sight'], 'weak red 1.0')
++        self.assertEqual(k[('ready', 'cue')]['least'], 0.0, 'her cue is her old cyan, the colour of what is ready')
++        self.assertEqual(k[('ready', 'recheck')]['colours'], (hers['VIOLET_PALE'], hers['RECHECK']), 'the pointer\'s halo is the nearer of her two')
 +        self.assertNotIn(('chosen', 'ready'), k, 'her yellow and her cyan stay apart in every sight');self.assertIn(('chosen', 'ready'), g)
 +        self.assertNotIn(('chosen', 'waits'), k, 'and so do her yellow and her pink, which Graphite gives one amber');self.assertEqual(g[('chosen', 'waits')]['least'], 0.0)
 +
@@ -123,6 +133,8 @@ index 0000000..d8673f4
 +        moved = dict(hers, HONEY=hers['RECHECK'])      # hers in the colour of a recheck: nobody has looked at that pair
 +        self.assertEqual([row['pair'] for row in colour_vision.unreviewed('kasandra', moved) if row['least'] == 0.0], [('recheck', 'hers')])
 +        near = dict(hers, RED='#f04a70')               # red a step from her pink: close in full sight too, and reviewed (their words differ)
++        barred = dict(hers, BAR=hers['RECHECK'])       # the menu's bar is what is chosen too: moved onto a recheck's colour, it is seen
++        self.assertEqual([row['pair'] for row in colour_vision.unreviewed('kasandra', barred) if row['least'] == 0.0], [('chosen', 'recheck')])
 +        self.assertNotIn(('waits', 'stopped'), [row['pair'] for row in colour_vision.unreviewed('kasandra', near)])
 +        with patch.dict(colour_vision.SIGNS, clear=False) as signs:
 +            del signs['waits']
@@ -133,34 +145,38 @@ index 0000000..d8673f4
 +    def test_the_tool_prints_both_looks_and_says_when_a_pair_is_left(self):
 +        done = subprocess.run([sys.executable, '-B', str(ROOT / 'tools' / 'colour_vision.py')], cwd=str(ROOT), capture_output=True, text=True, timeout=120)
 +        self.assertEqual(done.returncode, 0, done.stdout[-2000:] + done.stderr[-2000:])
-+        for words in ('graphite: 12 meanings, 66 pairs', 'kasandra: 12 meanings, 66 pairs', 'ready / words', 'told apart by:', 'COLOUR VISION: 0 pairs under 10 not reviewed'):
++        for words in ('graphite: 13 meanings, 78 pairs', 'kasandra: 13 meanings, 78 pairs', 'ready / words', 'told apart by:', 'COLOUR VISION: 0 pairs under 10 not reviewed'):
 +            self.assertIn(words, done.stdout)
 +        self.assertNotIn('NOT REVIEWED', done.stdout)
 +        with patch.dict(colour_vision.REVIEWED, {'kasandra': {}}):
-+            self.assertEqual(len(colour_vision.unreviewed('kasandra')), 11);self.assertIn('NOT REVIEWED', '\n'.join(colour_vision.printed('kasandra')))
++            self.assertEqual(len(colour_vision.unreviewed('kasandra')), 15);self.assertIn('NOT REVIEWED', '\n'.join(colour_vision.printed('kasandra')))
 +
 +
 +if __name__ == '__main__':
 +    unittest.main()
 diff --git a/tests_integrated/test_faces_find_light.py b/tests_integrated/test_faces_find_light.py
-index 897433c..a6cda66 100644
+index 897433c..4fd44f0 100644
 --- a/tests_integrated/test_faces_find_light.py
 +++ b/tests_integrated/test_faces_find_light.py
-@@ -162,7 +162,17 @@ class DeskLightTests(unittest.TestCase):
+@@ -162,7 +162,21 @@ class DeskLightTests(unittest.TestCase):
          self.assertEqual(QColor(shown.pixel(6,4)).name(),page_light.DESK_LIGHT,'white times the tone is the tone')
          self.assertEqual(QColor(shown.pixel(1,4)).name(),'#000000');self.assertEqual(QColor(kept.pixel(6,4)).name(),'#ffffff','the picture given is not changed')
          self.assertIs(page_light.lit(page,True),page,'its own light is the page as it is')
 -        self.assertLess(QColor(page_light.DESK_LIGHT).lightness(),150,'the tone is well below white')
-+        # How bright the tone is, as the eye takes it: its luminance, white being 1. 0.5.0 measured the mean of the largest
-+        # and the smallest channel, which calls a blue brighter than it is: Kasandra's cool tone #8f97c9 read 172 of 255
-+        # there and failed in her look, though it gives a third of white's light, as Graphite's warm tone gives a quarter.
-+        # 0.8.4: the measure is the light, and it is asked of every look's tone whichever look the test runs in.
++        # How bright the tone is, as the eye takes it: its luminance, white being 1, and its CIE lightness L*, white being 100.
++        # 0.5.0 measured the mean of the largest and the smallest channel, which calls a blue brighter than it is: Kasandra's
++        # cool tone #8f97c9 read 172 of 255 there and failed in her look, though it gives a third of white's light (0.322;
++        # Graphite's warm tone gives 0.226). 0.8.4: the measure is the light, asked of every look's tone whichever look runs.
++        # The limit moved, and this says so: 0.5.0's 150 of 255 is, for a grey, luminance 0.305 or L* 62; 0.8.4 asks for L*
++        # under 65 (luminance 0.34), which her tone of 0.8.3 meets at L* 63.5. It is still well below white.
 +        def light(colour):
 +            c=QColor(colour);linear=[v/12.92 if v<=0.04045 else ((v+0.055)/1.055)**2.4 for v in (c.redF(),c.greenF(),c.blueF())]
 +            return 0.2126*linear[0]+0.7152*linear[1]+0.0722*linear[2]
-+        self.assertLess(light(page_light.DESK_LIGHT),0.4,'the tone is well below white')
++        def lightness(colour):
++            y=light(colour);return 116*y**(1/3)-16 if y>216/24389 else y*24389/27
++        self.assertLess(lightness(page_light.DESK_LIGHT),65,'the tone is well below white')
 +        for look,palette in boss_theme.PALETTES.items():
-+            self.assertLess(light(palette['DESK_LIGHT']),0.4,look+': well below white')
++            self.assertLess(lightness(palette['DESK_LIGHT']),65,look+': well below white')
 +            self.assertGreater(light(palette['DESK_LIGHT']),4*light(palette['GROUND']),look+': and a page still stands clear of the desk')
  
      def test_the_choice_is_read_from_the_session_and_defaults_to_the_desks_light(self):
@@ -439,11 +455,48 @@ index 678aecf..4c50802 100644
 -    unittest.main()
 +    if sys.argv[1:2] == ['--window']:window_report()
 +    else:unittest.main()
+diff --git a/tests_integrated/test_model_turn.py b/tests_integrated/test_model_turn.py
+index acb04ef..e05b323 100644
+--- a/tests_integrated/test_model_turn.py
++++ b/tests_integrated/test_model_turn.py
+@@ -132,11 +132,11 @@ class Decide(unittest.TestCase):
+     def test_words_name_the_change_the_revision_undo_and_the_model(self):
+         result={'document':{'revision':3},'applied':{'words':'made “quick brown” bold','block':0,'start':4,'end':15}}
+         said=M.words(result,edit(),'bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae')
+-        self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Ctrl Z or “undo” takes it back · proposed by the model bd5b5532')
++        self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Undo takes it back · proposed by the model bd5b5532')
+         self.assertTrue(M.words(result).endswith('proposed by the model'))
+-        self.assertIn('so Ctrl Z does not reach it',M.words(result,undoable=False))
++        self.assertIn('so Undo does not reach it',M.words(result,undoable=False))
+         self.assertEqual(M.words(result,model_id='m',corrections=['one','two']),
+-                         'Changed on the page: made “quick brown” bold · revision 3 · Ctrl Z or “undo” takes it back · proposed by the model m · one; two')
++                         'Changed on the page: made “quick brown” bold · revision 3 · Undo takes it back · proposed by the model m · one; two')
+         self.assertEqual(M.model_short('Qwen2.5 1.5B Instruct'),'Qwen2.5 1.5B Instruct')
+         self.assertIn('Not applied by itself: it is stale.',M.not_applied_words({'reason':'it is stale'}))
+ 
+@@ -200,7 +200,7 @@ class Page(unittest.TestCase):
+         for change,selection in cases:
+             before=stored();revision=tab.revision
+             said=tab.apply_model_edit({'id':tab.document_id,'expected_revision':revision,'selection':selection,'change':change},'combined')
+-            self.assertTrue(tab.model_edit['applied'] and tab.model_edit['undoable'],(change,said));self.assertIn('Ctrl Z or “undo” takes it back',said)
++            self.assertTrue(tab.model_edit['applied'] and tab.model_edit['undoable'],(change,said));self.assertIn('Undo takes it back',said)
+             self.assertNotEqual(stored(),before,change);self.assertEqual(tab.revision,revision+1)
+             answer=tab.slate_request('undo');self.assertIn('Took the last change back (revision %d)'%(revision+2),answer)
+             self.assertEqual(stored(),before,change);self.assertEqual(tab.revision,revision+2)
+@@ -267,7 +267,7 @@ class Page(unittest.TestCase):
+             self.assertTrue(hint.startswith('To change this page use documents.edit with id %s, expected_revision 2'%ident),hint);self.assertLess(len(hint),200)
+             live={'id':ident,'expected_revision':2,'selection':{'block':4,'start':4,'end':15,'text':'quick brown'},'change':{'bold':True},'origin':'HUMAN'}
+             said=tab.apply_model_edit(live,'make the fox words bold','bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae')
+-            self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Ctrl Z or “undo” takes it back · proposed by the model bd5b5532'
++            self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Undo takes it back · proposed by the model bd5b5532'
+                                   ' · the model named paragraph 5, words 4–15, which do not hold “quick brown”; your selection in paragraph 1 is used; recorded as Graphite’s model, not HUMAN')
+             stored=kernel.dispatch('documents.get',{'id':ident},operator())['result']
+             self.assertEqual(stored['document']['blocks'][0]['marks'],[{'start':4,'end':15,'bold':True}])
 diff --git a/tests_integrated/test_one_name.py b/tests_integrated/test_one_name.py
-index c5c4d64..ff50b16 100644
+index c5c4d64..ddb4c06 100644
 --- a/tests_integrated/test_one_name.py
 +++ b/tests_integrated/test_one_name.py
-@@ -94,6 +94,48 @@ class TheSweepItself(unittest.TestCase):
+@@ -94,6 +94,54 @@ class TheSweepItself(unittest.TestCase):
          for words in ('origin STACY','at 12:00:01   operation brain.worker   state READY   origin STACY','"detail": "STACY is ready"','Stacy · brain.worker'):
              self.assertEqual(said(words),['stacy'],words)
  
@@ -453,13 +506,19 @@ index c5c4d64..ff50b16 100644
 +        for words in ('Build the target for the work in front of you (F7)','Click: confirm Stop all · Ctrl+Shift+F12','Console\tCtrl+`','Run an operation…\tAlt+3',
 +                      "words in Graphite's events  ·  Enter filters",'words and Enter filter them','Tab completes, Enter runs','Enter opens one, Esc comes back',
 +                      'Right or Enter opens the rows.','Move the pointer or press a key to return to work.','Select related files with Ctrl or Shift.','Ctrl Z takes it back',
-+                      'Arrow keys navigate, Z selects','Fill the display; F11 returns to the previous window'):
++                      'Arrow keys navigate, Z selects','Fill the display; F11 returns to the previous window',
++                      # the review of 0.8.4: a key in brackets, another verb, a hyphen, the Mac's sign, keys by their own names
++                      'Show or hide the preview (Space)','Hide Graphite  (Esc)','Select a row and hit Enter','Save the page with Ctrl-S','Save the page with ⌘S',
++                      'Backspace goes up a folder','PgUp scrolls the surface','Choose a row with the pointer or Return'):
 +            for kind in ('toolTip','statusTip','accessibleDescription','whatsThis','text'):
 +                self.assertEqual(said(words,kind),['key'],(kind,words))
 +            self.assertEqual(said(words),['key'],words)
 +            for kind in ('row','row tip','toPlainText'):self.assertEqual(said(words,kind),[],'a row and the text of a page are the owner\'s data')
 +        for words in ('Enter one named quote per line.','Return to the files and rooms you had open','Close Tab','Open in a new tab','Shift the column left',
-+                      'Type to filter the tree','the keys of a record','Alt text for a picture','F12a connector','Space for one more row','Keep it, and it goes to Notes exactly as written'):
++                      'Type to filter the tree','the keys of a record','Alt text for a picture','F12a connector','Space for one more row','Keep it, and it goes to Notes exactly as written',
++                      # names and words that are not keys (the review of 0.8.4 found the first two read as keys)
++                      'Matching F45 / F12 curves overlap.','Escape sequences are shown as typed.','net F3 / F4','the F7 net','Delete the row','Return to the list',
++                      'Hit rate 92 %','Tap water','Shift-register outputs','Space (2 TB free)'):
 +            self.assertEqual(said(words,'toolTip'),[],words)
 +        self.assertEqual(said('Programs Graphite does not manage keep running','toolTip'),['programs']);self.assertEqual(said('Programs','row'),['programs'])
 +        for words in ('Apps','the programs installed here','programs.mail.read','ProgramsList'):self.assertEqual(said(words),[],words)
@@ -492,17 +551,48 @@ index c5c4d64..ff50b16 100644
      def test_the_code_sweep_reads_sentences_and_not_documentation(self):
          with tempfile.TemporaryDirectory() as temp:
              folder=Path(temp)/'workbench';folder.mkdir()
-@@ -133,6 +175,17 @@ class TheCode(unittest.TestCase):
+@@ -106,6 +154,20 @@ class TheSweepItself(unittest.TestCase):
+             kept={('workbench/page.py','STACY'):'a record'}
+             self.assertEqual([words for _,_,words in name_sweep.in_code(temp,('workbench',),kept=kept)],['Ask Stacy to plan'],'what is kept is kept by its file and its first words')
+ 
++    def test_the_code_sweep_for_keys_reads_sentences_and_not_a_keys_own_name(self):
++        with tempfile.TemporaryDirectory() as temp:
++            folder=Path(temp)/'workbench';folder.mkdir()
++            (folder/'page.py').write_text('"""Esc closes the page."""\nfrom PySide6.QtGui import QKeySequence\n'
++                                          'def words(button, action):\n    """Ctrl+S saves it."""\n'
++                                          '    button.setToolTip(\'Show the preview (Space)\')      # Esc in a comment\n'
++                                          '    action.setShortcut(QKeySequence(\'Ctrl+Shift+N, Esc closes\'));A(\'New\', None, \'Ctrl+N\', shortcut=\'Esc closes it\')\n'
++                                          '    return [\'Run an operation…\\tAlt+3\', \'F7 or Ctrl+Shift+B\', \'PgUp  PgDn\', \'Saved · Ctrl Z takes it back\', \'Esc  close\']\n',encoding='utf-8')
++            found=name_sweep.keys_in_code(temp,kept={})
++            self.assertEqual([(line,words) for f,line,words in found],[(5,'Show the preview (Space)'),(7,'Saved · Ctrl Z takes it back'),(7,'Esc  close')])
++            kept={('workbench/page.py','Esc  close'):'a key label you click'}
++            self.assertEqual([words for _,_,words in name_sweep.keys_in_code(temp,kept=kept)],['Show the preview (Space)','Saved · Ctrl Z takes it back'])
++            self.assertEqual(name_sweep.keys_in_code(temp,kept={('workbench/page.py',''):'the whole file'}),[])
++
+     def test_the_sweep_reads_a_widget_that_is_hidden_and_a_menu_line(self):
+         from PySide6.QtWidgets import QApplication,QLabel,QMenu,QPushButton,QVBoxLayout,QWidget
+         app=QApplication.instance() or QApplication([])
+@@ -133,6 +195,27 @@ class TheCode(unittest.TestCase):
          for (file,start),why in name_sweep.CODE_KEPT.items():
              self.assertTrue(any(f==file and words.startswith(start[:160]) for f,_,words in everything),(file,start));self.assertTrue(why.strip(),(file,start))
  
++    def test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed(self):
++        # 0.8.4's review: a dozen shown words still named a key where the walk does not go (a status line, a note, a tip on a
++        # page no desk act opens). Every sentence that names one is gone or kept in name_sweep.KEYS_CODE_KEPT with its reason.
++        left=name_sweep.keys_in_code(ROOT)
++        self.assertEqual(left,[],'these words name a key on screen: say what to click instead, or say in tools/name_sweep.KEYS_CODE_KEPT why the key stays')
++        everything=name_sweep.keys_in_code(ROOT,kept={})
++        for (file,start),why in name_sweep.KEYS_CODE_KEPT.items():
++            self.assertTrue((ROOT/file).exists(),file);self.assertGreater(len(why),20,(file,start))
++            if start:self.assertTrue(any(f==file and words.startswith(start) for f,_,words in everything),(file,start))
++
 +    def test_tips_and_notes_the_walk_does_not_reach_name_no_key(self):
 +        # 0.8.4: put right with the ones the walk reads. Each named a key where there is something to click in its place.
 +        from workbench import log_qt,system_menu_qt
 +        for words in list(log_qt.HINTS.values())+list(log_qt.NOTES.values())+[system_menu_qt.STOP_TIP]:
 +            self.assertEqual(name_sweep.named_in(words,'toolTip'),[],words)
 +        for file,mark in (('workbench/home_qt.py','self.startup.setToolTip('),('workbench/hardware_overview.py','items · double-click'),('workbench/spice_qt.py','exact native samples'),
-+                          ('workbench/log_qt.py','No capture is running'),('workbench/arc_desktop.py','host.global_search.setToolTip('),('workbench/qt_app.py','self.global_search.setToolTip(')):
++                          ('workbench/log_qt.py','No capture is running'),('workbench/arc_desktop.py','host.global_search.setToolTip('),('workbench/arc_desktop.py','host.tree_search.setToolTip('),('workbench/qt_app.py','self.global_search.setToolTip(')):
 +            lines=[line for line in (ROOT/file).read_text(encoding='utf-8').splitlines() if mark in line]
 +            self.assertTrue(lines,(file,mark))
 +            for line in lines:self.assertEqual(name_sweep.named_in(line,'toolTip'),[],(file,line.strip()[:140]))
@@ -525,6 +615,19 @@ index 5394e75..f06e959 100644
          rows=menu.session_rows
          self.assertEqual({k:r.caption for k,r in rows.items()},{'logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
          self.assertEqual({k:r.unavailable for k,r in rows.items()},{'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})
+diff --git a/tests_integrated/test_writing_line.py b/tests_integrated/test_writing_line.py
+index 60aa898..32823c4 100644
+--- a/tests_integrated/test_writing_line.py
++++ b/tests_integrated/test_writing_line.py
+@@ -383,7 +383,7 @@ class LogViewTests(unittest.TestCase):
+     def test_a_proposed_capture_is_shown_for_the_owner(self):
+         """A capture Graphite proposed during an assignment (D5 keeps it; only the owner may start one) is shown while capture
+         is idle, in D5's words; nothing starts by itself."""
+-        words='Graphite proposes capturing packet headers with the filter “port 443” on every interface for 60 seconds (at most 2,000 packets). Only you can start it: Log, Network, type the filter “port 443”, then Capture… (or Ctrl+Enter in the line).'
++        words='Graphite proposes capturing packet headers with the filter “port 443” on every interface for 60 seconds (at most 2,000 packets). Only you can start it: Log, Network, type the filter “port 443”, then Capture… in the head row.'
+         fake,state=self.network_fake({'state':'IDLE','proposal':{'filter':'port 443','words':words}});view=log.LogView(host_with({'log_stream':'network'}),fake);view.refresh(force=True)
+         self.assertEqual(view.capture_note.text(),words);self.assertEqual(view.capture_words.text(),'Capture idle')
+         self.assertNotIn('network.capture.start',[op for op,_ in fake.calls])
 diff --git a/tools/check_hatch.py b/tools/check_hatch.py
 index 2df02e9..4939909 100644
 --- a/tools/check_hatch.py
@@ -538,25 +641,25 @@ index 2df02e9..4939909 100644
   # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
   # the network capability the agent can inspect (HATCH DESK D5)
   'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',
-diff --git a/tools/check_head_ui.py b/tools/check_head_ui.py
-index 4409af0..71f51ca 100644
---- a/tools/check_head_ui.py
-+++ b/tools/check_head_ui.py
-@@ -123,7 +123,7 @@ assert popup is not None and popup.isVisible() and popup.items()[0] is popup.gam
- assert app.focusWidget() is popup.game and popup.game.hasFocus(),type(app.focusWidget()).__name__
- QTest.keyClick(popup.game,Qt.Key_Down);settle();assert app.focusWidget() is popup.kill,'one Down reaches Stop all jobs'
- assert popup.kill.text()==KILL_WORDS=='Stop all jobs' and popup.kill.width()>=popup.width()-30 and popup.kill.isEnabled() and popup.kill.caption=='work Graphite manages'
--assert 'Ctrl+Shift+F12' in popup.kill.toolTip() and 'Stop advice' in popup.kill.toolTip(),popup.kill.toolTip()  # the controller's own detail
-+assert 'Ctrl+Shift+F12' not in popup.kill.toolTip() and 'Stop advice' in popup.kill.toolTip(),popup.kill.toolTip()  # the controller's own detail
- assert not hasattr(popup,'stop') or popup.stop is popup.kill,'one Stop, not two'
- assert popup.running_label.words().startswith('ACTIVE JOBS') and 'as they started' in popup.running_label.words() and 'order they started' in popup.running_label.toolTip()  # QuietWords: its words as plain text (the note is the script)
- observations['popup']=dict(position=[popup.x(),popup.y()],size=[popup.width(),popup.height()],kill=rect(popup.kill) if False else [popup.kill.x(),popup.kill.y(),popup.kill.width(),popup.kill.height()])
+diff --git a/tools/check_model_turn_ui.py b/tools/check_model_turn_ui.py
+index e66152f..66b46ba 100644
+--- a/tools/check_model_turn_ui.py
++++ b/tools/check_model_turn_ui.py
+@@ -135,7 +135,7 @@ assert from_qt(tab.page.document())[0]['marks']==[{'start':4,'end':15,'bold':Tru
+ probe=tab.page.textCursor();probe.setPosition(6);bold_weight=probe.charFormat().fontWeight();probe.setPosition(2);plain_weight=probe.charFormat().fontWeight()
+ assert bold_weight>=QFont.Bold>plain_weight
+ CORRECTIONS=['the model named paragraph 5, words 4–15, which do not hold “quick brown”; your selection in paragraph 1 is used','recorded as Graphite’s model, not HUMAN']
+-said='Changed on the page: made “quick brown” bold · revision %d · Ctrl Z or “undo” takes it back · proposed by the model bd5b5532 · %s'%(rev+1,'; '.join(CORRECTIONS))
++said='Changed on the page: made “quick brown” bold · revision %d · Undo takes it back · proposed by the model bd5b5532 · %s'%(rev+1,'; '.join(CORRECTIONS))
+ assert applied_card.property('modelTurn')=='applied' and applied_card.words.text().replace('​','')==said,applied_card.words.text()
+ labels=[l.text() for l in applied_card.findChildren(type(applied_card.words))]
+ assert 'APPLIED ON THE PAGE' in labels and any('undo' in t for t in labels) and 'Was this right?' in labels,labels
 diff --git a/tools/colour_vision.py b/tools/colour_vision.py
 new file mode 100644
-index 0000000..e51e6ce
+index 0000000..c526958
 --- /dev/null
 +++ b/tools/colour_vision.py
-@@ -0,0 +1,257 @@
+@@ -0,0 +1,292 @@
 +"""The colour-vision check: no colour on the desk carries its meaning alone for eyes with weak red or weak green sight.
 +
 +Every look's palette (workbench/boss_theme.PALETTES) gives each meaning a colour: what is chosen, what is ready, what
@@ -573,11 +676,16 @@ index 0000000..e51e6ce
 +                                      Color-Difference Formula", Color Research and Application 30(1), 2005) between
 +                                      their CIELAB values under D65. Not CIE76: plain distance in Lab overstates
 +                                      differences between saturated colours, and these are saturated.
-+  THRESHOLD                           10. Under it, two small marks seen apart from each other (a badge here, an edge
-+                                      there) cannot be relied on to read as two colours. A just-noticeable difference
-+                                      is about 1 side by side; 10 is the usual least for colours that name categories.
++  THRESHOLD                           10, this check's own choice and not a published constant. A just-noticeable
++                                      difference is about 1 in CIEDE2000 for two colours side by side (2.3 in CIE76:
++                                      Mahy, Van Eycken and Oosterlinck, Color Research and Application 19(2), 1994);
++                                      two small marks seen apart (a badge here, an edge there) need several times that
++                                      to be named as two colours at a glance, and 10 is taken as that margin.
 +  SIGHTS                              full sight, and each of the two at 0.6 and at 1.0
-+  MEANINGS                            meaning -> (the palette's name for its colour, what it says)
++  MEANINGS                            meaning -> (the palette's names for its colours, what it says): a meaning can
++                                      wear more than one colour (what is chosen is an edge and, in a menu, a bar), and a
++                                      pair of meanings is as close as its two closest colours
++  HALO                                the pointer's halo where it is not the pointer's own green (workbench/pointer.drawn)
 +  SIGNS                               meaning -> (its word or its shape, where that is drawn): what tells it without colour
 +  REVIEWED[look]                      the pairs under THRESHOLD in some sight that a person has looked at: for each, the
 +                                      two signs tell the pair apart on screen. A pair under THRESHOLD that is not here
@@ -608,24 +716,28 @@ index 0000000..e51e6ce
 +}
 +SIGHTS = (('full', None, 0.0), ('weak red 0.6', 'protan', 0.6), ('weak red 1.0', 'protan', 1.0), ('weak green 0.6', 'deutan', 0.6), ('weak green 1.0', 'deutan', 1.0))
 +
-+# meaning -> (the palette's name for its colour, what it says). boss_theme's roles and mockup CANON.md's "each means one thing".
++# meaning -> (the palette's names for its colours, what it says). boss_theme's roles and mockup CANON.md's "each means one
++# thing". 'halo' is the pointer's halo (HALO). 0.8.4's review: the menu's bar, the pointer's halo and the cue were missing.
 +MEANINGS = {
-+    'chosen': ('AMBER_EDGE', 'selected, or holds the keyboard'),
-+    'ready': ('READY', 'ready, at work, live; the pointer and what it is over'),
-+    'waits': ('OWNER', 'waits for the owner'),
-+    'fails': ('STOP', 'does not hold; an error'),
-+    'recheck': ('RECHECK', 'must be worked again'),
-+    'stopped': ('RED', 'DELETE, the send arrow, Forget, stopped'),
-+    'hers': ('HONEY', 'hers: her cards, her proposals, done'),
-+    'quiet': ('VIOLET', 'the desk\'s structure, her quiet, cannot tell'),
-+    'line': ('ROYAL', 'a line that can be run'),
-+    'wire': ('TEAL_EDGE', 'a wire: what feeds what'),
-+    'words': ('TEXT', 'plain words: the colour says nothing'),
-+    'held': ('QUIET', 'held, or not there to be read: quiet ink'),
++    'chosen': (('AMBER_EDGE', 'BAR'), 'selected, or holds the keyboard; the menu row under the pointer or the keyboard'),
++    'ready': (('READY', 'halo'), 'ready, at work, live; the pointer and what it is over'),
++    'cue': (('CUE_EDGE',), 'a cue that is not a selection: a status word, a heading\'s rule, a primary button, a band\'s rule, a prompt'),
++    'waits': (('OWNER',), 'waits for the owner'),
++    'fails': (('STOP',), 'does not hold; an error'),
++    'recheck': (('RECHECK',), 'must be worked again'),
++    'stopped': (('RED',), 'DELETE, the send arrow, Forget, stopped'),
++    'hers': (('HONEY',), 'hers: her cards, her proposals, done'),
++    'quiet': (('VIOLET',), 'the desk\'s structure, her quiet, cannot tell'),
++    'line': (('ROYAL',), 'a line that can be run'),
++    'wire': (('TEAL_EDGE',), 'a wire: what feeds what'),
++    'words': (('TEXT',), 'plain words: the colour says nothing'),
++    'held': (('QUIET',), 'held, or not there to be read: quiet ink'),
 +}
 +
 +# meaning -> (its word or its shape, where that is drawn). What says the meaning to an eye that cannot see the colour.
 +SIGNS = {
++    'cue': ('its own words or rule: a heading with its rule, a button with its word, a prompt in a box with its caret; it marks no state on a row or a sheet',
++            'boss_theme (CUE, CUE_EDGE, CUE_TEXT: what a status word, a heading\'s rule, a primary button, a band\'s rule or a prompt wears)'),
 +    'chosen': ('its own ground filled and a 2 px edge on the row, tab or word; corner ticks on the Field\'s selected sheet; in her menus a solid bar under the row',
 +               'boss_theme.CHROME_OVERRIDES and HIGHLIGHTS; field_qt._sheet (the ticks)'),
 +    'ready': ('the word "current" or "ready", and a filled square; her state word "at work"; under the pointer, the pointer itself',
@@ -657,6 +769,7 @@ index 0000000..e51e6ce
 +# live and to a line, so there the sign was always the only thing between them. Her look parts most of them by colour; what
 +# it leaves is below, and the first of them is the reason this check exists: to weak red sight her cyan is her plain ink.
 +ONE_AMBER = 'one amber for both in this look: '
++CUE_IS = 'a cue is a heading\'s rule, a button\'s word or a prompt, and marks no row or sheet'
 +REVIEWED = {
 +    'graphite': {
 +        ('chosen', 'waits'): ONE_AMBER + 'an edge and a filled ground on what is chosen; the words "waits for you" and a dotted square on what waits',
@@ -684,19 +797,32 @@ index 0000000..e51e6ce
 +        ('ready', 'fails'): 'to weak green sight: "current" and a filled square; "does not hold" and a cross',
 +        ('ready', 'recheck'): 'to weak green sight: a filled square and "current"; a half-filled square and "recheck"',
 +        ('ready', 'stopped'): 'to weak green sight: her state word says "at work" or "stopped"; DELETE and Forget are words',
++        # 0.8.4's review: the cue was not in the table. Graphite's cue is its one amber too.
++        ('chosen', 'cue'): ONE_AMBER + 'what is chosen has its ground filled and an edge on the row, tab or word; %s' % CUE_IS,
++        ('cue', 'waits'): ONE_AMBER + '%s; what waits says "waits for you" and has a dotted square' % CUE_IS,
++        ('cue', 'fails'): ONE_AMBER + '%s; what fails says "does not hold" and has a cross' % CUE_IS,
++        ('cue', 'recheck'): ONE_AMBER + '%s; a recheck says "recheck" and has a half-filled square' % CUE_IS,
++        ('cue', 'stopped'): ONE_AMBER + '%s; DELETE, Forget or "stopped" are words, the send arrow a shape' % CUE_IS,
++        ('cue', 'hers'): 'amber and her pencil, close to weak green sight: %s; hers has her name over it and a bar on the card\'s left edge' % CUE_IS,
++        ('ready', 'cue'): 'to weak green sight: what is ready has "current" and a filled square, the pointer its own shape; %s' % CUE_IS,
 +    },
 +    'kasandra': {
 +        ('waits', 'fails'): 'one pink for both: "waits for you" and a dotted square; "does not hold" and a cross',
 +        ('ready', 'words'): 'to weak red sight her cyan is her plain ink (1.0 apart): what is ready says "current" or "at work" and has a filled square; plain words have no mark',
 +        ('quiet', 'wire'): 'to weak red sight: a heading in capitals with a rule after it; a curve between sheets',
-+        ('ready', 'held'): 'to weak green sight: "current" and a filled square; "held" and a crossed square',
++        ('ready', 'held'): 'the pointer\'s pale violet halo and her quiet ink, close in every sight: the halo lies round the pointer\'s own shape; what is ready has "current" and a filled square; "held" and a crossed square',
 +        ('recheck', 'held'): 'close in every sight: "recheck", a half-filled square and a dashed edge; "held" and a crossed square',
-+        ('ready', 'recheck'): 'to weak green sight: a filled square and "current"; a half-filled square, "recheck" and a dashed edge',
++        ('ready', 'recheck'): 'the pointer\'s pale violet halo and lavender, close in every sight: the halo lies round the pointer\'s own shape; a filled square and "current"; a half-filled square, "recheck" and a dashed edge',
 +        ('waits', 'stopped'): 'pink and red, close in every sight: her state word says "waits for you" or "stopped"; DELETE and Forget are words',
 +        ('fails', 'stopped'): 'pink and red, close in every sight: "does not hold" and a cross on a finding; DELETE, Forget and "stopped" are words',
 +        ('words', 'held'): 'her ink and her quiet ink: what is held says "held" and has a crossed square',
 +        ('chosen', 'hers'): 'her yellow and her honey: what is chosen has its ground filled (a solid bar in a menu) and corner ticks on a sheet; hers has her name over it and a bar on the card\'s left edge only',
 +        ('recheck', 'quiet'): 'lavender and violet: what must be worked again says "recheck", with a half-filled square and a dashed edge; violet is a heading in capitals, her state word "quiet", or the words "cannot tell"',
++        # 0.8.4's review: the cue was not in the table. Her cue is her old cyan, the colour of what is ready.
++        ('ready', 'cue'): 'one cyan for both: what is ready says "current" or "at work" and has a filled square, the pointer its own shape; %s' % CUE_IS,
++        ('cue', 'words'): 'to weak red sight her cyan is her plain ink: %s; plain words have no rule, no button and no mark' % CUE_IS,
++        ('cue', 'held'): 'to weak green sight: %s; what is held says "held" and has a crossed square' % CUE_IS,
++        ('cue', 'recheck'): 'to weak green sight: %s; a recheck says "recheck" and has a half-filled square and a dashed edge' % CUE_IS,
 +    },
 +}
 +
@@ -772,6 +898,16 @@ index 0000000..e51e6ce
 +    return boss_theme.PALETTES[look]
 +
 +
++# The pointer's halo, as pointer.drawn draws it: pale violet in her look, where her cyan over her yellow bar read green
++# (0.8.3); elsewhere the halo is the pointer's own green, READY.
++HALO = {'kasandra': 'VIOLET_PALE'}
++
++
++def colours_of(meaning, look, colours):
++    """The colours `meaning` wears in `look`, read from `colours` (the look's palette, or a stand-in for it)."""
++    return [colours[HALO.get(look, 'READY') if name == 'halo' else name] for name in MEANINGS[meaning][0]]
++
++
 +def table(look, colours=None):
 +    """Every pair of meanings in `look`: [{pair, colours, seen: {sight: difference}, least, sight, reviewed, told_apart}]
 +    with `least` the smallest difference over SIGHTS and `sight` where it is. `colours` stands in for the look's palette
@@ -779,9 +915,11 @@ index 0000000..e51e6ce
 +    colours = palette(look) if colours is None else colours;rows = []
 +    reviewed = {frozenset(pair): by for pair, by in REVIEWED.get(look, {}).items()}
 +    for one, two in combinations(MEANINGS, 2):
-+        a, b = colours[MEANINGS[one][0]], colours[MEANINGS[two][0]]
-+        seen = {name: difference(simulate(a, sight, severity), simulate(b, sight, severity)) for name, sight, severity in SIGHTS}
-+        least = min(seen, key=seen.get);by = reviewed.get(frozenset((one, two)))
++        seen = {};worn = {}      # in each sight, the two meanings' closest colours
++        for name, sight, severity in SIGHTS:
++            seen[name], worn[name] = min((difference(simulate(a, sight, severity), simulate(b, sight, severity)), (a, b))
++                                         for a in colours_of(one, look, colours) for b in colours_of(two, look, colours))
++        least = min(seen, key=seen.get);by = reviewed.get(frozenset((one, two)));a, b = worn[least]
 +        signed = one in SIGNS and two in SIGNS and SIGNS[one][0] != SIGNS[two][0]      # each has a sign of its own, and where it is drawn
 +        rows.append(dict(pair=(one, two), colours=(a, b), seen=seen, least=seen[least], sight=least, reviewed=by is not None,
 +                         told_apart=dict(by=by, signs=(SIGNS[one], SIGNS[two])) if by and signed else None))
@@ -815,7 +953,7 @@ index 0000000..e51e6ce
 +    print('COLOUR VISION: %d pair%s under %.0f not reviewed' % (left, '' if left == 1 else 's', THRESHOLD))
 +    sys.exit(1 if left else 0)
 diff --git a/tools/name_sweep.py b/tools/name_sweep.py
-index 0343197..e8c3bad 100644
+index 0343197..cfbf5eb 100644
 --- a/tools/name_sweep.py
 +++ b/tools/name_sweep.py
 @@ -3,7 +3,11 @@
@@ -831,21 +969,46 @@ index 0343197..e8c3bad 100644
  
    words_of(widget)       every word a widget carries: its text, tip, status tip, placeholder, accessible name and
                           description, window title; a combo's rows, a tab bar's titles and tips, and the rows and tips of
-@@ -42,9 +46,38 @@ from pathlib import Path
+@@ -22,6 +26,8 @@ Otherwise we have too many people").
+                          the Rules menu opened in the viewer -> {found, places, words, named}
+   in_code(root)          every sentence in the program's code that carries her earlier name and does not go through
+                          assistant_identity.named() -> [(file, line, words)]
++  keys_in_code(root)     every sentence in the program's code that names a key, KEYS_CODE_KEPT set aside: the words the walk
++                         does not reach (a status line, a note, a tip on a page no desk act opens) -> [(file, line, words)]
+ 
+ KEPT is what may still be read on purpose. History keeps the name it was written with (a stored agenda row, her trail),
+ and so does an identity shown as it is stored, always lowercase and joined by . : / - or _ (an operation, a settings key,
+@@ -31,7 +37,8 @@ workbench/tail_words.shown_origin), so "origin STACY" there is a fault; an event
+ in the tip of a row of Activity's timeline) keeps it, as it keeps its operation and its state, and RECORD sets exactly
+ that pair aside. CODE_KEPT is the same for the code: each entry says why its words are not a shown name.
+ 
+-  python3 tools/name_sweep.py           the code alone (no window is made): prints what in_code finds; exit 1 when any
++  python3 tools/name_sweep.py           the code alone (no window is made): prints what in_code and keys_in_code find;
++                                        exit 1 when any
+ 
+ The window is swept by tests_integrated/test_one_name.py, in both looks, on the bench seed the desk acts' tests use.
+ """
+@@ -42,9 +49,44 @@ from pathlib import Path
  
  ROOT = Path(__file__).resolve().parents[1]
  
 +# 0.8.4: a key. No keyboard shortcut is printed on screen (0.5.2: the keys work as they did, the words do not name them).
-+# A chord (Ctrl+P, Alt+3), a function key, Esc, "press Enter", "Enter runs", "Tab completes", "arrow keys". Not the verbs:
-+# "Enter one quote per line", "Return to the files" and "Close Tab" name no key.
++# A chord (Ctrl+P, Ctrl-S, Alt+3, ⌘S), a function key, Esc, Backspace, PgUp, a key in brackets ("Preview (Space)"), "press
++# Enter", "hit Enter", "Enter runs", "Tab completes", "or Return", "arrow keys". Not the verbs: "Enter one quote per line",
++# "Return to the files", "Escape sequences" and "Close Tab" name no key; nor do names: "F45 / F12 curves" are two nets.
 +KEYS = re.compile(r'''(?x)
 +      \b(?:Ctrl|Shift|Alt|Meta|Super|Cmd)\s*\+\s*\S
++    | \b(?:Ctrl|Shift|Alt|Meta|Super|Cmd)-(?:[A-Za-z0-9]|F[0-9]+|Enter|Return|Tab|Space|Esc|Up|Down|Left|Right)\b
++    | [⌘⌥⌃⇧]\s*\S
 +    | \bCtrl\s+(?:[A-Z0-9]\b|or\s+Shift\b)
-+    | \bF(?:[1-9]|1[0-2])\b
-+    | \bEsc(?:ape)?\b
-+    | \b[Pp]ress(?:es|ed|ing)?\s+(?:the\s+)?(?:Enter|Return|Tab|Space|a\s+key|any\s+key|[A-Z]\b)
-+    | \b(?:Enter|Tab|Space)\s+(?:opens|runs|searches|sends|returns|completes|filters?|captures|leaves)\b
-+    | \b(?:or|and)\s+Enter\b
++    | (?<!/\s)(?<!/)\bF(?:[1-9]|1[0-2])\b(?!\s*/)(?!\s+(?:curves?|nets?|traces?|nodes?|pins?|signals?|wires?)\b)
++    | \bEsc\b
++    | \b(?:Backspace|PgUp|PgDn|PageUp|PageDown)\b
++    | \bPage\s+(?:Up|Down)\b
++    | \((?:Space|Enter|Return|Esc|Escape|Tab|Backspace|Delete|Del)\)
++    | \b(?:[Pp]ress(?:es|ed|ing)?|[Hh]it(?:s|ting)?|[Tt]ap(?:s|ped|ping)?)\s+(?:the\s+)?(?:Enter|Return|Tab|Space|Esc|Escape|Backspace|Delete|a\s+key|any\s+key|[A-Z]\b)
++    | \b(?:Enter|Return|Tab|Space|Esc|Escape|Backspace)\s+(?:opens|runs|searches|sends|returns|completes|filters?|captures|leaves|closes|cancels|hides|clears|goes|deletes|removes|stops)\b
++    | \b(?:or|and)\s+(?:Enter|Return|Esc|Escape)\b(?!\s+to\b)
 +    | \b[Aa]rrow\s+keys?\b
 +''')
 +# A key is looked for in the program's own words: a row of a list and the text of a page are the owner's data.
@@ -855,8 +1018,8 @@ index 0343197..e8c3bad 100644
 +KEYS_KEPT = (
 +    ('F1 reads the highlighted row into the typing-bar note.',
 +     'a description read to someone who has no pointer (it is on no tip): F1 is the only way to hear a row\'s note from the keyboard'),
-+    ('press Enter to search everything', 'the tree search has no word to click: Enter is how it searches'),
-+    ('Enter searches components, nets, files, commands and jobs', 'the tree search has no word to click: Enter is how it searches'),
++    ('press Enter to search everything',
++     'the tree search\'s name, read to someone who has no pointer (it is on no tip): Enter is how the keyboard searches everything (the tip names the search button beside it)'),
 +    ('Arrow keys move, Z selects, X returns, and Enter leaves a game.', 'a console game is played with keys: there is nothing to click in their place'),
 +)
 +# The pages Guide opens in the program (Getting Started, Installation Guide): what they say is read on screen.
@@ -871,7 +1034,41 @@ index 0343197..e8c3bad 100644
  KEPT = re.compile(r'\b[a-z0-9_]+(?:[.:/_-][a-z0-9_]+)+\b')      # an identity shown as it is stored
  RECORD = re.compile(r'"origin": "STACY"')                        # her actor in an event printed whole, as it is stored
  BRAIN_EVENT = 'name_sweep'      # the walk's own brain event: brain.name_sweep, state CHECKED
-@@ -73,7 +106,7 @@ def words_of(widget):
+@@ -66,6 +108,33 @@ CODE_KEPT = {
+     ('sdk/cli/arc1cli/typed_pipeline.py', 'Shell syntax and command substitution are not part of Stacy language'): 'the parser\'s own refusal; the window says it through line_steps.plain',
+ }
+ CODE_FOLDERS = ('workbench', 'sdk')
++# A key's name alone ('Ctrl+Shift+N', 'F9', 'PgUp  PgDn', 'F7 or Ctrl+Shift+B') is the machine's: a shortcut being set, or a
++# key that a key card pairs with its words. keys_in_code reads sentences.
++_KEY = r'(?:(?:Ctrl|Shift|Alt|Meta)[+ ])*(?:F\d{1,2}|Esc|Escape|Enter|Return|Tab|Space|Backspace|Delete|Del|Break|Home|End|PgUp|PgDn|Up|Down|Left|Right|Menu|%[sd]|[^\s+])'
++KEY_SPEC = re.compile(r'\s*%s(?:(?:\s*[/,]\s*|\s+or\s+|\s{2,})%s)*\s*' % (_KEY, _KEY))
++SHORTCUT_CALLS = frozenset(('QKeySequence', 'QShortcut', 'setShortcut', 'setShortcuts', 'compile'))      # a key given to Qt, a pattern
++# The code's sentences that name a key and are kept, each reviewed: (file, the words' start) -> why. An empty start is the
++# whole file. Most are a key the owner presses with nothing to click in its place: a finding for the owner, not deleted.
++FIELD_KEYS = ('the Field\'s key labels: each is also a place to click that does what its key does (field_qt.FieldView: "every key shown '
++              'on the surface is a place to click"), the Field\'s own design since 0.5; a finding for the owner')
++KEYS_CODE_KEPT = {
++    ('workbench/app.py', ''): 'the old Tk workbench (ARC-1 R09), kept in the kit; no module of Graphite imports it, so its words are never on Graphite\'s screen',
++    ('workbench/version.py', ''): 'the lineage: what each release was, in the words of its day',
++    ('workbench/arcos_tab.py', 'Click the screen for keyboard control.'): 'a console game is played with keys: there is nothing to click in their place',
++    ('workbench/console_tab.py', 'ARC-OS virtual television.'): 'a console game is played with keys: there is nothing to click in their place',
++    ('workbench/stacy_start.py', '# The words on the screen are the Label node'): 'the Godot project\'s own script, written into the owner\'s new project: its game moves with the arrow keys',
++    ('workbench/stacy_start.py', '- `main.gd`: the script on Main.'): 'the Godot project\'s own notes, written into the owner\'s new project: its game moves with the arrow keys',
++    ('workbench/stacy_start.py', '2. Press the Play button at the top right.'): 'the Godot project\'s own notes, written into the owner\'s new project: its game moves with the arrow keys',
++    ('workbench/console_qt.py', '<span style="background:%s;">%s acts with your approval.</span> Press Enter again'):
++        'the console is typed in: an operation that asks is approved by sending the same line again, and the console has no button for it; a finding for the owner',
++    ('workbench/explore_qt.py', 'a group of rows; Right or Enter opens it'): 'shown only after F1 on a highlighted row, to someone already on the keyboard; a pointer opens the group by pointing at it',
++    ('workbench/field_page.py', '1 – %d  take a step'): FIELD_KEYS,
++    ('workbench/field_page.py', '1  take the step'): FIELD_KEYS,
++    ('workbench/field_page.py', 'Esc  close'): FIELD_KEYS,
++    ('workbench/field_page.py', 'G  keep it as a page'): FIELD_KEYS,
++    ('workbench/field_qt.py', 'Esc  close'): FIELD_KEYS,
++    ('workbench/field_qt.py', 'Esc  back'): FIELD_KEYS,
++}
+ 
+ 
+ def words_of(widget):
+@@ -73,7 +142,7 @@ def words_of(widget):
      from PySide6.QtCore import Qt
      from PySide6.QtWidgets import QAbstractItemView, QComboBox, QHeaderView, QTabBar, QTabWidget, QTreeView
      out = []
@@ -880,7 +1077,7 @@ index 0343197..e8c3bad 100644
          f = getattr(type(widget), get, None)      # the class's own reader: a page may keep a label under the same name
          if not callable(f):continue
          try:value = f(widget)
-@@ -101,10 +134,26 @@ def words_of(widget):
+@@ -101,10 +170,25 @@ def words_of(widget):
      return [(kind, words) for kind, words in out if words]
  
  
@@ -892,12 +1089,11 @@ index 0343197..e8c3bad 100644
 +    """Which of NEVER these words say, an identity shown as it is stored set aside. A key is looked for when the words
 +    are the program's own (`kind` in KEY_KINDS, or not given), with the words of KEYS_KEPT set aside."""
 +    rest = KEPT.sub(' ', RECORD.sub(' ', words));out = []
++    keys = words      # for a key, the words as they stand: an identity joins no key, and KEYS_KEPT is written in whole words
++    for kept, _why in KEYS_KEPT:keys = keys.replace(kept, ' ')
 +    for name, (pattern, _) in NEVER.items():
-+        if name == 'key':
-+            if kind is not None and kind not in KEY_KINDS:continue
-+            rest = words      # the words as they stand: an identity joins no key, and KEYS_KEPT is written in whole words
-+            for kept, _why in KEYS_KEPT:rest = rest.replace(kept, ' ')
-+        if pattern.search(rest):out.append(name)
++        if name == 'key' and kind is not None and kind not in KEY_KINDS:continue
++        if pattern.search(keys if name == 'key' else rest):out.append(name)
 +    return out
 +
 +
@@ -911,7 +1107,7 @@ index 0343197..e8c3bad 100644
  
  
  def sweep(window, where, found=None, read=None):
-@@ -117,7 +166,7 @@ def sweep(window, where, found=None, read=None):
+@@ -117,7 +201,7 @@ def sweep(window, where, found=None, read=None):
      seen = {(f['name'], f['widget'], f['kind'], f['words']) for f in found}
      def note(owner, kind, words):
          if read is not None:read.add(words)
@@ -920,8 +1116,49 @@ index 0343197..e8c3bad 100644
              row = (name, owner, kind, words[:200])
              if row not in seen:
                  seen.add(row);found.append(dict(name=name, where=where, widget=owner, kind=kind, words=words[:200]))
+@@ -265,8 +349,39 @@ def in_code(root=ROOT, folders=CODE_FOLDERS, kept=None):
+     return out
+ 
+ 
++def keys_in_code(root=ROOT, folders=('workbench',), kept=None):
++    """Every sentence in the program's code that names a key (named_in, so KEYS_KEPT is set aside), KEYS_CODE_KEPT set
++    aside. Documentation strings and comments are the builder's words; a key given to Qt (SHORTCUT_CALLS, shortcut=), a
++    key's name alone (KEY_SPEC) and a menu line's key after its tab (tool_faces cuts it before the menu shows) are the
++    machine's."""
++    kept = KEYS_CODE_KEPT if kept is None else kept
++    out = []
++    for folder in folders:
++        for path in sorted((Path(root) / folder).rglob('*.py')):
++            file = path.relative_to(root).as_posix()
++            if (file, '') in kept:continue
++            tree = ast.parse(path.read_text(encoding='utf-8'));docs = set()
++            for node in ast.walk(tree):
++                if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and node.body:
++                    first = node.body[0]
++                    if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):docs.add(id(first.value))
++            def read(node, inside):
++                if isinstance(node, ast.Call):
++                    f = node.func
++                    if (f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else '') in SHORTCUT_CALLS:inside = True
++                if isinstance(node, ast.keyword) and node.arg in ('shortcut', 'shortcuts'):inside = True
++                if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs and not inside:
++                    words = node.value.split('\t')[0]
++                    if 'key' in named_in(words) and not KEY_SPEC.fullmatch(words) \
++                            and not any(f == file and start and words.startswith(start) for f, start in kept):
++                        out.append((file, node.lineno, words[:160]))
++                for child in ast.iter_child_nodes(node):read(child, inside)
++            read(tree, False)
++    return out
++
++
+ if __name__ == '__main__':
+-    left = in_code()
++    left = in_code() + keys_in_code()
+     for file, line, words in left:print('%s:%d: %r' % (file, line, words))
+     print('NAME SWEEP, the code: %d place%s' % (len(left), '' if len(left) == 1 else 's'))
+     sys.exit(1 if left else 0)
 diff --git a/workbench/arc_desktop.py b/workbench/arc_desktop.py
-index 0729a70..2e71050 100644
+index 0729a70..52d78f8 100644
 --- a/workbench/arc_desktop.py
 +++ b/workbench/arc_desktop.py
 @@ -446,7 +446,7 @@ def install(host):
@@ -929,7 +1166,7 @@ index 0729a70..2e71050 100644
      host.tree_search.setClearButtonEnabled(True)
      host.tree_search.setAccessibleName('Search the project tree; press Enter to search everything')
 -    host.tree_search.setToolTip('Type to filter the tree · Enter searches components, nets, files, commands and jobs (Ctrl+Shift+P)')
-+    host.tree_search.setToolTip('Type to filter the tree · Enter searches components, nets, files, commands and jobs')
++    host.tree_search.setToolTip('Type to filter the tree · the search button beside it searches components, nets, files, commands and jobs')
      host.tree_search.textChanged.connect(lambda text: filter_tree(host, text))
      host.tree_search.returnPressed.connect(lambda: host.command_palette(host.tree_search.text()))
      search_row.addWidget(host.tree_search, 1)
@@ -943,7 +1180,7 @@ index 0729a70..2e71050 100644
      host.global_search.clicked.connect(lambda: host.command_palette(host.tree_search.text()))
      search_row.addWidget(host.global_search)
 diff --git a/workbench/boss_theme.py b/workbench/boss_theme.py
-index 4832a6a..c8762fe 100644
+index 4832a6a..2bb529a 100644
 --- a/workbench/boss_theme.py
 +++ b/workbench/boss_theme.py
 @@ -15,8 +15,9 @@ green ... more green glowing").
@@ -958,7 +1195,7 @@ index 4832a6a..c8762fe 100644
  pointer, what is ready, the line, the bands' rule, and the cues that are not a selection (CUE, CUE_EDGE, CUE_TEXT, which
  are Graphite's amber and her old cyan)."""
  import json
-@@ -174,14 +175,49 @@ def lays_light(painter):
+@@ -174,14 +175,51 @@ def lays_light(painter):
      return painter
  
  TOKENS = {v for k, v in tuple(globals().items()) if isinstance(v, str) and v.startswith('#') and k.isupper()}
@@ -1001,6 +1238,8 @@ index 4832a6a..c8762fe 100644
 +#   #f2a369  Graphite's pencil on a band, the chosen band word                                      BAND_PENCIL, kept: chosen
 +#   #f8edc9  the paper desk's writing passage                                                       CUE, changed: a place to
 +#            write is not a highlight (as Explore's line, 0.8.3). Graphite's CUE is its amber wash: nothing moves there.
++#            Seen in Kasandra: the Return thread's writing box (return_thread_qt, ReturnWriting) was her yellow fill and is
++#            now her blue CUE, as Explore's writing line is.
 +#   #4b2a14, #ff9a36, #ffba72  Graphite's amber wash, edge and words, a selection and a cue alike   CUE, CUE_EDGE, CUE_TEXT,
 +#            changed: what they were until 0.8.3 (her blue and cyan). No sheet in the program writes them by hand today.
 +LEGACY_DECIDED = {'#4b2a14': 'CUE', '#ff9a36': 'CUE_EDGE', '#ffba72': 'CUE_TEXT', '#f2a369': 'BAND_PENCIL'}
@@ -1102,7 +1341,7 @@ index a254d8d..8584c3f 100644
          self.setProperty('paperIcon', True);self.setProperty('paperFunctionalInk', True);self.setMinimumHeight(0)
          self.setStyleSheet('QToolButton#SystemMenu {background:transparent;border:0;padding:0;margin:0;}')
 diff --git a/workbench/document_qt.py b/workbench/document_qt.py
-index 3e55c97..39329a8 100644
+index 3e55c97..f060c87 100644
 --- a/workbench/document_qt.py
 +++ b/workbench/document_qt.py
 @@ -17,7 +17,7 @@ from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal
@@ -1123,6 +1362,65 @@ index 3e55c97..39329a8 100644
  UNDO_WORDS = {'undo', 'undo that', 'undo it', 'take that back', 'revert that', 'go back'}
  REDO_WORDS = {'redo', 'redo that', 'redo it'}
  # AGENT-02 (D19): a model edit is shown by a pencil-yellow wash over the changed range that fades out over FLASH_MS in
+@@ -457,7 +457,7 @@ class DocumentsTab(QWidget):
+         words = ' '.join(text.casefold().split()).rstrip('.!')
+         if words in UNDO_WORDS:
+             if not self.page.document().isUndoAvailable(): return 'Nothing to undo on this page.'
+-            self.page.undo(); self.flush(); return 'Took the last change back (revision %d). Ctrl Y or “redo” brings it back.' % (self.revision or 0)
++            self.page.undo(); self.flush(); return 'Took the last change back (revision %d). Redo brings it back.' % (self.revision or 0)
+         if words in REDO_WORDS:
+             if not self.page.document().isRedoAvailable(): return 'Nothing to redo on this page.'
+             self.page.redo(); self.flush(); return 'Redid the change (revision %d).' % (self.revision or 0)
+@@ -491,7 +491,7 @@ class DocumentsTab(QWidget):
+             finally: self.loading = False
+             self.reload_list()
+         self.refresh_conditions(result.get('conditions_stale'))
+-        return 'Done: %s · revision %d · a direct edit, no model needed · Ctrl Z or “undo” takes it back.' % (result['applied']['words'], doc['revision'])
++        return 'Done: %s · revision %d · a direct edit, no model needed · Undo takes it back.' % (result['applied']['words'], doc['revision'])
+ 
+     def apply_locally(self, selection, change):
+         """The same change on the page, through its undo stack as ONE step; the selection stays where the owner left it.
+diff --git a/workbench/empty_workspace_qt.py b/workbench/empty_workspace_qt.py
+index b426bb4..2ea683e 100644
+--- a/workbench/empty_workspace_qt.py
++++ b/workbench/empty_workspace_qt.py
+@@ -98,7 +98,7 @@ class HomeDashboard(QWidget):
+             link = QPushButton(label);link.setFlat(True);link.setStyleSheet('color:#ffb05c;text-align:left');link.clicked.connect(nav(destination));more.addWidget(link)
+         more.addStretch(1);outer.addLayout(more)
+         from .version import title
+-        foot = QLabel(title() + ' · F11 fullscreen · Ctrl+Alt+= / − text size');foot.setStyleSheet('color:#7b8791');outer.addWidget(foot)
++        foot = QLabel(title());foot.setStyleSheet('color:#7b8791');outer.addWidget(foot)
+         self.timer = QTimer(self);self.timer.setInterval(4000);self.timer.timeout.connect(self.fill)
+ 
+     def showEvent(self, event):
+@@ -137,7 +137,7 @@ class HomeDashboard(QWidget):
+         self.slate.setText('Brain: ' + state + (' · ' + name if name else '') + '\n' + ('%d models registered' % len(models)) +
+                            ('' if brain.get('state') == 'READY' else '\nDrop a GGUF model on the Brain room to start it.') + '\nOn this computer · cloud calls 0')
+         recent = [Path(p).name + '  (viewed)' for p in getattr(self.host, '_viewer_recent', [])[:3]] + list(self.host.session.state.get('recent', []))[:5]
+-        self.files.setText('\n'.join(recent) if recent else 'Nothing opened yet. Press Ctrl+Alt+V to view any file.')
++        self.files.setText('\n'.join(recent) if recent else 'Nothing opened yet. Open in Universal Viewer…, in File, shows any file.')
+         counts = (self.call('matrix.status') or {}).get('counts', {})
+         total = sum(v for k, v in counts.items() if k != 'PROPOSED')
+         self.matrix.setText(('%d lines run · %d worked · %d failed or blocked' % (total, counts.get('SUCCESS', 0), counts.get('FAILED', 0) + counts.get('BLOCKED', 0)))
+diff --git a/workbench/engineering_tabs.py b/workbench/engineering_tabs.py
+index f08bc67..2b85af3 100644
+--- a/workbench/engineering_tabs.py
++++ b/workbench/engineering_tabs.py
+@@ -590,11 +590,11 @@ class NativeGameTab(QWidget):
+         body.addWidget(self.state, 1)
+         v.addLayout(body, 1)
+         controls = QHBoxLayout()
+-        self.left = QCheckBox("Left (A)")
+-        self.right = QCheckBox("Right (D)")
++        self.left = QCheckBox("Left")
++        self.right = QCheckBox("Right")
+         controls.addWidget(self.left)
+         controls.addWidget(self.right)
+-        b = QPushButton("Flap (Space)")
++        b = QPushButton("Flap")
+         b.clicked.connect(lambda: setattr(self, "flap", True))
+         controls.addWidget(b)
+         v.addLayout(controls)
 diff --git a/workbench/explore_qt.py b/workbench/explore_qt.py
 index 52f6e6f..a4e031d 100644
 --- a/workbench/explore_qt.py
@@ -1161,8 +1459,34 @@ index 52f6e6f..a4e031d 100644
          self.setAccessibleDescription('Explore the workshop, suggestions for the selected record, find saved work. '+F1_NOTE)
          self.setPopupMode(QToolButton.InstantPopup);self.popup=QMenu(self);self.popup.setObjectName('ExploreMenu');self.popup.setAccessibleName('Explore menu')
          self.popup.setToolTipsVisible(True);self.setMenu(self.popup);self.keys=DescriptorKeys(host,self.popup)
+diff --git a/workbench/field_brief.py b/workbench/field_brief.py
+index 3c369ec..f60a4cf 100644
+--- a/workbench/field_brief.py
++++ b/workbench/field_brief.py
+@@ -132,7 +132,7 @@ def compose(kernel, principal, field, now=None):
+         add('foot', 'Left out to keep this brief: %s. The Field has them all.' % ', '.join('%d more under %s' % (count, {
+             'stands': 'what stands', 'waits': 'what waits', 'doubt': 'what I doubt', 'cannot tell': 'what I cannot tell', 'number': 'the numbers', 'source': 'where it comes from'}.get(part, part))
+             for part, count in more.items()))
+-    add('foot', 'To see the evidence for any line: select the thing in the Field (F9), then X doubts it, T traces it, D says what can be done.')
++    add('foot', 'To see the evidence for any line: select the thing in the Field, then X doubts it, T traces it, D says what can be done.')
+     return {'title': '%s · brief' % desk, 'lines': lines, 'fingerprint': fingerprint(field),
+             'counts': {'things': len(things), 'stand': len(standing_now), 'wait': len(waiting), 'doubts': len(doubts), 'cannot_tell': len(unsure)}}
+ 
+diff --git a/workbench/field_page.py b/workbench/field_page.py
+index 1594a7d..48d71a0 100644
+--- a/workbench/field_page.py
++++ b/workbench/field_page.py
+@@ -543,7 +543,7 @@ def full_window(host, obj):
+     from .field_do import NATIVE
+     key = (obj.target or {}).get('key') if isinstance(obj.target, dict) else None
+     if key not in NATIVE:
+-        host.statusBar().showMessage('Field · %s is a room of Graphite’s own: Enter opens it' % obj.title, 7000);return None
++        host.statusBar().showMessage('Field · %s is a room of Graphite’s own: click it to open it' % obj.title, 7000);return None
+     steps = do(host, obj)
+     opens = [n for n, step in enumerate(steps) if step.kind == 'write' and step.words.startswith('Open ')]
+     if len(opens) == 1:return take(host, obj, opens[0])
 diff --git a/workbench/field_qt.py b/workbench/field_qt.py
-index 39ac638..c69d79a 100644
+index 39ac638..97ea643 100644
 --- a/workbench/field_qt.py
 +++ b/workbench/field_qt.py
 @@ -864,11 +864,18 @@ class FieldView(QWidget):
@@ -1186,6 +1510,15 @@ index 39ac638..c69d79a 100644
                  self._labels = []
                  self._wires(p, body, depth, seen)
                  for ident in order:self._sheet(p, self.field.get(ident), self._drawn_rect(ident, body), depth.get(ident, 3))
+@@ -930,7 +937,7 @@ class FieldView(QWidget):
+         title_font = self.sans(17 if tight else 19);fm_title = QFontMetricsF(title_font);y = r.top() + pad + fm_title.ascent()
+         close_font = self.mono(12);fm_close = QFontMetricsF(close_font);close = '✕  Close';close_w = fm_close.horizontalAdvance(close)
+         p.setFont(close_font);p.setPen(QColor(t.QUIET));p.drawText(QPointF(r.right() - pad - close_w, y), close)
+-        self._hot.append((QRectF(r.right() - pad - close_w - 8 * s, y - fm_close.ascent() - 6 * s, close_w + 16 * s, fm_close.height() + 12 * s), Qt.Key_Escape, '', 'Close this page (Esc)'))
++        self._hot.append((QRectF(r.right() - pad - close_w - 8 * s, y - fm_close.ascent() - 6 * s, close_w + 16 * s, fm_close.height() + 12 * s), Qt.Key_Escape, '', 'Close this page'))
+         p.setFont(title_font);p.setPen(QColor(t.TEXT))
+         heading = self._flow(read['title'], fm_title, r.width() - 2 * pad - close_w - 16 * s)       # a long name takes a second line before it is cut
+         if len(heading) > 2:heading = [heading[0], fm_title.elidedText(' '.join(heading[1:]), Qt.ElideRight, r.width() - 2 * pad - close_w - 16 * s)]
 @@ -1195,10 +1202,11 @@ class FieldView(QWidget):
              else:self._hot.append((spot, getattr(Qt, 'Key_' + letter.upper(), Qt.Key_unknown), letter, 'The %s face of the Field' % FACE_WORDS.get(name, name).lower()))
              p.setPen(QColor(t.AMBER_TEXT if on else t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(x, base), word)
@@ -1240,6 +1573,28 @@ index 39ac638..c69d79a 100644
          p.setBrush(QColor((t.CARD, t.CARD, t.PANEL, t.GROUND)[depth]))       # a sheet recedes by its ground and its edge; its words stay readable
          edge = t.AMBER_EDGE if selected and focus else t.READY if touched else (t.LINE_STRONG if depth <= 1 else t.LINE)
          p.setPen(QPen(ink(edge, 1.0 if selected else 0.85 if touched else edge_keep + 0.1), 2 if selected else 1));p.drawRect(r)
+diff --git a/workbench/finder_qt.py b/workbench/finder_qt.py
+index fc5302e..f6f479f 100644
+--- a/workbench/finder_qt.py
++++ b/workbench/finder_qt.py
+@@ -355,7 +355,7 @@ class FinderPage(QWidget):
+             b.clicked.connect(lambda checked=False, key=key:self.set_view(key));self.view_buttons[key] = b;row.addWidget(b)
+         self.hidden_button = QPushButton('Hidden');self.hidden_button.setCheckable(True);self.hidden_button.setProperty('arcButton', 'filter');self.hidden_button.setToolTip('Show the files whose names begin with a dot')
+         self.hidden_button.setAccessibleName('Show hidden files');self.hidden_button.clicked.connect(lambda checked:self.set_hidden(checked));row.addWidget(self.hidden_button)
+-        self.preview_button = QPushButton('Preview');self.preview_button.setCheckable(True);self.preview_button.setProperty('arcButton', 'filter');self.preview_button.setToolTip('Show or hide the preview (Space)')
++        self.preview_button = QPushButton('Preview');self.preview_button.setCheckable(True);self.preview_button.setProperty('arcButton', 'filter');self.preview_button.setToolTip('Show or hide the preview')
+         self.preview_button.setAccessibleName('Show preview');self.preview_button.clicked.connect(lambda checked:self.set_preview(checked));row.addWidget(self.preview_button)
+         self.places_button = QPushButton('Places ▾');self.places_button.setProperty('arcButton', 'quiet');self.places_button.setCursor(Qt.PointingHandCursor);self.places_button.setAccessibleName('Places')
+         self.places_button.setToolTip('Today · Files · Ingress · Egress · Workspace · Program · each storage mount');self.places_button.clicked.connect(self.places_menu);row.addWidget(self.places_button)
+@@ -599,7 +599,7 @@ class FinderPage(QWidget):
+                 action = menu.addAction('View as ' + VIEW_WORDS[key]);action.setCheckable(True);action.setChecked(self.view == key)
+                 action.setEnabled(self.view_buttons[key].isEnabled());action.triggered.connect(lambda checked=False, key=key:self.set_view(key))
+             menu.addSeparator()
+-        for key, words, on, act in (('hidden', 'Show hidden files', self.hidden, self.set_hidden), ('preview', 'Show preview (Space)', self.preview_visible, self.set_preview)):
++        for key, words, on, act in (('hidden', 'Show hidden files', self.hidden, self.set_hidden), ('preview', 'Show preview', self.preview_visible, self.set_preview)):
+             if key in self.folded:
+                 button = self.hidden_button if key == 'hidden' else self.preview_button
+                 action = menu.addAction(words);action.setCheckable(True);action.setChecked(bool(on));action.setEnabled(button.isEnabled())
 diff --git a/workbench/hardware_overview.py b/workbench/hardware_overview.py
 index e42096a..26ecdab 100644
 --- a/workbench/hardware_overview.py
@@ -1266,6 +1621,43 @@ index c18fb9e..92b04f4 100644
          self.startup.currentIndexChanged.connect(self._startup_changed)
          footer.addWidget(self.startup)
          outer.addLayout(footer)
+diff --git a/workbench/idle_display_art.py b/workbench/idle_display_art.py
+index 78ae4c5..09f10f7 100644
+--- a/workbench/idle_display_art.py
++++ b/workbench/idle_display_art.py
+@@ -260,5 +260,5 @@ class IdleDisplayArt:
+         painter.fillRect(QRectF(42, 850, 7, 7), _GREEN)
+         painter.setFont(self._small)
+         _text(painter, 59, 858, 'GRAPHITE   /   IDLE DISPLAY', _MUTED)
+-        _text(painter, 507, 858, 'Press a key or move the pointer to return', _PAPER)
++        _text(painter, 507, 858, 'Move the pointer to return', _PAPER)
+         _text(painter, 1213, 858, 'REEL LOOP   [A–B]', _AMBER)
+diff --git a/workbench/idle_display_qt.py b/workbench/idle_display_qt.py
+index ddf4814..7f84ad9 100644
+--- a/workbench/idle_display_qt.py
++++ b/workbench/idle_display_qt.py
+@@ -20,7 +20,7 @@ class IdleScreen(QWidget):
+ 
+         self.art = IdleDisplayArt(program(host.root) / 'branding' / 'boss')
+         self.setAccessibleName('Fast-forward screensaver')
+-        self.setAccessibleDescription('Simulated operations. Move the pointer or press a key to return to work.')
++        self.setAccessibleDescription('Simulated operations. Move the pointer to return to work.')
+         self.setAttribute(Qt.WA_OpaquePaintEvent)
+         self.setAttribute(Qt.WA_AcceptTouchEvents)
+         self.setMouseTracking(True)
+diff --git a/workbench/intake_qt.py b/workbench/intake_qt.py
+index 0336712..4e8075c 100644
+--- a/workbench/intake_qt.py
++++ b/workbench/intake_qt.py
+@@ -46,7 +46,7 @@ class IntakeTab(ServiceTab):
+         for i,(label,decision) in enumerate([('Admit as reference','ACCEPTED'),('Hold','HELD'),('Reject','REJECTED'),('Revoke admission','REVOKED')]):
+             button=QPushButton(label);button.setAccessibleName(label);button.clicked.connect(lambda checked=False,d=decision:self.decide(d));actions.addWidget(button,i//2,i%2);self.buttons[label]=button
+         self.outer.addLayout(actions)
+-        bundle=QPushButton('Admit selected bundle');bundle.setToolTip('Admit selected files as references. Select related unadmitted files with Ctrl or Shift. Every member and dependency must pass; the whole decision commits together.');bundle.clicked.connect(self.admit_bundle);self.outer.addWidget(bundle);self.buttons[bundle.text()]=bundle
++        bundle=QPushButton('Admit selected bundle');bundle.setToolTip('Admit selected files as references. Select the related unadmitted files too. Every member and dependency must pass; the whole decision commits together.');bundle.clicked.connect(self.admit_bundle);self.outer.addWidget(bundle);self.buttons[bundle.text()]=bundle
+         self.summary.setHtml('<p>Create a private reference library, then import a ZIP, file or folder.</p><p>Automatic admission starts disabled. Originals are copied without running imported content.</p>')
+         self.timer=QTimer(self);self.timer.setInterval(900);self.timer.timeout.connect(self.poll);self.timer.start();QTimer.singleShot(0,self.load_namespaces)
+     def title(self):return 'Graphite · Intake'
 diff --git a/workbench/kp_logo.py b/workbench/kp_logo.py
 index 56c4f47..901eaad 100644
 --- a/workbench/kp_logo.py
@@ -1449,10 +1841,45 @@ index 994b0e7..7c17fab 100644
          host.a_field.setStatusTip(host.a_field.toolTip());host.addAction(host.a_field)
      service = next((a for a in before if a.text().replace('&', '').startswith('Background service')), None)
      extras = {'@receive': host.a_receive, '@files': host.a_files, '@agenda': host.a_agenda, '@project_desk': host.a_project_desk, '@changes': host.a_changes, '@continuing':host.a_continuing, '@deployment':host.a_deployment, '@slate_panel': host.a_slate_panel,
+diff --git a/workbench/model_turn.py b/workbench/model_turn.py
+index 9e73649..5c2d1df 100644
+--- a/workbench/model_turn.py
++++ b/workbench/model_turn.py
+@@ -255,7 +255,7 @@ def words(result, action=None, model_id=None, undoable=True, corrections=()):
+     applied = (result or {}).get('applied') or {}; doc = (result or {}).get('document') or {}
+     said = applied.get('words') or 'the change'
+     short = model_short(model_id)
+-    back = 'Ctrl Z or “undo” takes it back' if undoable else 'the page reloaded the saved revision to show it, so Ctrl Z does not reach it'
++    back = 'Undo takes it back' if undoable else 'the page reloaded the saved revision to show it, so Undo does not reach it'
+     told = '; '.join(str(c) for c in corrections or () if c)
+     return 'Changed on the page: %s · revision %s · %s · proposed by the model%s%s' % (said, doc.get('revision', '?'), back, (' ' + short) if short else '',
+                                                                                     (' · ' + told) if told else '')
+diff --git a/workbench/network_capture.py b/workbench/network_capture.py
+index b28a97c..087f422 100644
+--- a/workbench/network_capture.py
++++ b/workbench/network_capture.py
+@@ -318,7 +318,7 @@ def selection_words(text):
+ 
+ def proposal_words(text, interface, seconds, packets):
+     return ('Graphite proposes capturing packet headers%s%s on %s for %d seconds (at most %s packets). Only you can start it: Log, '
+-            'Network, %sthen Capture… (or Ctrl+Enter in the line).' % (' with the filter “%s”' % text if text else '', selection_words(text),
++            'Network, %sthen Capture… in the head row.' % (' with the filter “%s”' % text if text else '', selection_words(text),
+                                                                       'every interface' if interface == 'any' else interface,
+                                                                       seconds, '{:,}'.format(packets), ('type the filter “%s”, ' % text) if text else ''))
+ 
 diff --git a/workbench/qt_app.py b/workbench/qt_app.py
-index 4811055..6f4ef0e 100644
+index 4811055..205c8c4 100644
 --- a/workbench/qt_app.py
 +++ b/workbench/qt_app.py
+@@ -353,7 +353,7 @@ class ManualTab(QWidget):
+             item.setToolTip(entry.path)
+             item.setSizeHint(QSize(0, 44))
+             self.results.addItem(item)
+-        self.count.setText('%d current R10 documents · Select a row and press Enter to open it' % len(entries))
++        self.count.setText('%d current R10 documents · Double-click a row to open it' % len(entries))
+ 
+     def open_entry(self, item):
+         path = item.data(Qt.UserRole)
 @@ -926,7 +926,7 @@ class SimulationTracePanel(QWidget):
          self.timer.setInterval(33)  # playback rate only, NOT hardware timing
          self.timer.timeout.connect(self.step)
@@ -1462,6 +1889,24 @@ index 4811055..6f4ef0e 100644
          self.heading.setWordWrap(True)
          self.plot = SimulationTracePlot()
          self.channel = QComboBox()
+@@ -1587,7 +1587,7 @@ class ClipOverlay(QWidget):
+         menu.addAction('Get a free key (opens Google AI Studio)', self.open_key_page)
+         menu.addAction('Forget my key', self.forget_key)
+         menu.addSeparator()
+-        menu.addAction('Hide Graphite  (Esc)', self.hide)
++        menu.addAction('Hide Graphite', self.hide)
+         more.setMenu(menu)
+         for w in (self.include, self.input, self.send_btn, more):
+             pl.addWidget(w, 1 if w is self.input else 0)
+@@ -1832,7 +1832,7 @@ class ClipOverlay(QWidget):
+                     'I answer with **Google Gemini**, free with any Google account. One-time setup:\n\n'
+                     '1. Press **Get a free key** (opens Google AI Studio).\n'
+                     '2. Sign in, press **Create API key**, then **Copy**.\n'
+-                    '3. Paste it in the box below and press Enter.', False,
++                    '3. Paste it in the box below and send it.', False,
+                     action=('Get a free key', self.open_key_page))
+         self.note("Free tier: Google may use what you send to improve its products, so don't paste passwords "
+                   'or secrets. Your key is stored ' + ('encrypted for your Windows account.' if os.name == 'nt'
 @@ -2553,7 +2553,7 @@ class WorkbenchWindow(QMainWindow):
          self.debug_view.setReadOnly(True)
          self.debug_view.setPlainText('No debugger is connected. There is no ARC-1 device transport; breakpoints, '
@@ -1485,7 +1930,7 @@ index 4811055..6f4ef0e 100644
          self.a_inspector = self.inspector_dock.toggleViewAction()
          self.a_inspector.setText('&Inspector')
 -        self.a_fullscreen = A('&Full Screen', self.toggle_fullscreen, 'F11', 'Fill the display; F11 returns to the previous window')
-+        self.a_fullscreen = A('&Full Screen', self.toggle_fullscreen, 'F11', 'Fill the display; the same line returns to the previous window')
++        self.a_fullscreen = A('&Full Screen', self.toggle_fullscreen, 'F11', 'Fill the display; choose it again to return to the previous window')
          self.a_fullscreen.setCheckable(True)
          self.a_home = A('Workshop Home', self.show_start, 'Ctrl+Alt+1')
          self.a_engineering_layout = A('Engineering layout', lambda: self.set_workspace_layout('engineering'), 'Ctrl+Alt+2')
@@ -1516,6 +1961,33 @@ index 4811055..6f4ef0e 100644
          self.global_search.setAccessibleName('Search commands')
          groups.addWidget(self.global_search)
          from .qt_master_stop import StopButton,MasterStop
+@@ -4363,7 +4363,7 @@ class WorkbenchWindow(QMainWindow):
+         """Build (F7), Tests (Ctrl+T) or Run (F5) for the work in front of you."""
+         if op == 'run' and self.project_required('Run Current Game'):return
+         if self.process.state() != QProcess.NotRunning:
+-            self.statusBar().showMessage('Wait for the current command to finish (Ctrl+Break stops it)', 5000)
++            self.statusBar().showMessage('Wait for the current command to finish (Stop ends it)', 5000)
+             return
+         active=self.active_path()
+         current=self.tabs.currentWidget()
+@@ -4528,7 +4528,7 @@ class WorkbenchWindow(QMainWindow):
+             self.after_build = None
+             self.show_output('Problems' if self.problems else 'Output')
+             if errors:
+-                summary += '   ·   F8 goes to the first error'
++                summary += '   ·   Next Problem goes to the first error'
+             self.statusBar().showMessage(summary)
+         else:
+             self.statusBar().showMessage(summary, 8000)
+@@ -4964,7 +4964,7 @@ class WorkbenchWindow(QMainWindow):
+             if self.problems:self.show_output('Problems')
+             else:self.output_dock.hide()
+         if self._launch_job(plan,completed):
+-            tab.state.setText('Running '+mode+' checks on saved source snapshots… Ctrl+Break stops the job.')
++            tab.state.setText('Running '+mode+' checks on saved source snapshots… Stop ends the job.')
+             for name in ('Run baseline','Run working copy','Compare both'):tab.buttons[name].setEnabled(False)
+ 
+     def show_hardware_ledger(self):
 diff --git a/workbench/qt_master_stop.py b/workbench/qt_master_stop.py
 index 95aef17..cc0598d 100644
 --- a/workbench/qt_master_stop.py
@@ -1529,6 +2001,45 @@ index 95aef17..cc0598d 100644
          try:
              from .work_trail import work_status
              if work_status(self.kernel)['held']:
+diff --git a/workbench/reading_preferences.py b/workbench/reading_preferences.py
+index b389ec4..5d2c799 100644
+--- a/workbench/reading_preferences.py
++++ b/workbench/reading_preferences.py
+@@ -218,7 +218,7 @@ class ReadingDialog(QDialog):
+         preset=QPushButton('Try larger reading text')
+         preset.clicked.connect(lambda:self.populate({**self.values(),'prose_pt':20,'ui_pt':15,'navigation_pt':16,'code_pt':15}))
+         v.addWidget(preset)
+-        note=QLabel('OpenDyslexic is bundled with its recorded source and licence. Code uses a separate fixed-pitch font. Ctrl+Alt+= / Ctrl+Alt+- adjusts prose. Apply saves locally; preview changes do not edit a document or its undo history.')
++        note=QLabel('OpenDyslexic is bundled with its recorded source and licence. Code uses a separate fixed-pitch font. Larger prose and Smaller prose, in View, adjust prose. Apply saves locally; preview changes do not edit a document or its undo history.')
+         note.setWordWrap(True);note.setProperty('arcReadingRole','prose');v.addWidget(note)
+         self.prose_preview=QTextBrowser();self.prose_preview.setAccessibleName('Prose reading preview')
+         self.prose_preview.setProperty('arcReadingPreview',True)
+diff --git a/workbench/rooms.py b/workbench/rooms.py
+index 9f2da41..6137be4 100644
+--- a/workbench/rooms.py
++++ b/workbench/rooms.py
+@@ -72,9 +72,9 @@ class FilesStart(QWidget):
+         from .shell2 import QuietWords  # the quiet-script rule (D1-fix): the room's explanation is a note you may skip
+         lead = QuietWords(host);lead.explain(FILES_NOTE);self.lead = lead;box.addWidget(lead)
+         row = QHBoxLayout()
+-        for label, tip, fn in (('Open in viewer…', 'Ctrl+Alt+V · any file, anywhere', lambda:host.open_in_viewer()),
+-                               ('Find a file…', 'Ctrl+P · files in this workspace', host.quick_open),
+-                               ('Open…', 'Ctrl+O · open to edit', host.open_dialog)):
++        for label, tip, fn in (('Open in viewer…', 'Any file, anywhere, read-only', lambda:host.open_in_viewer()),
++                               ('Find a file…', 'Files in this workspace', host.quick_open),
++                               ('Open…', 'Open a file to edit', host.open_dialog)):
+             button = QPushButton(label);button.setToolTip(tip);button.clicked.connect(fn);row.addWidget(button)
+         row.addStretch(1);box.addLayout(row)
+         recent = QLabel('Recent');recent.setStyleSheet('color:#b5bec8;font-weight:bold;margin-top:12px');box.addWidget(recent)
+@@ -99,7 +99,7 @@ class FilesStart(QWidget):
+     def inspector(self):
+         recent = len(self.host.session.state.get('recent', []))
+         from .shell2 import Note  # the two ways in are notes you may skip: the Paper script, the keys printed
+-        return 'Files', [('Open', Note('Ctrl+Alt+V opens any file read-only.\nCtrl+P finds a file in this workspace.')), ('Recent', '%d files' % recent),
++        return 'Files', [('Open', Note('Open in viewer… opens any file read-only.\nFind a file… finds one in this workspace.')), ('Recent', '%d files' % recent),
+                          ('Kinds', 'Code, PDF, images, Gerber, archives, disk images and more')]
+ 
+     def info(self):return 'Open a file · find a file · recent files'
 diff --git a/workbench/sheet_workbench_qt.py b/workbench/sheet_workbench_qt.py
 index 5e73122..e7cab01 100644
 --- a/workbench/sheet_workbench_qt.py
@@ -1543,6 +2054,28 @@ index 5e73122..e7cab01 100644
  QPushButton#RunWorksheetChain:disabled {background: %(PANEL)s; color: %(QUIET)s; border-color: %(LINE)s;}
  """ % vars(ink)
  
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index cb077a7..fa49168 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -1295,7 +1295,7 @@ def preview_rows(host, text, shown=4):
+         from .stac_words import command, expand, known_to
+         made = command(text)
+         if made is not None and made.startswith('/'):      # keeping or forgetting a word changes something: it is not previewed, it is said
+-            return [('section', 'PREVIEW', None), ('note', ('Ctrl+Enter keeps this word' if made.startswith('/words.keep') else 'Ctrl+Enter forgets this word'), None)]
++            return [('section', 'PREVIEW', None), ('note', ('The arrow at the line’s end keeps this word' if made.startswith('/words.keep') else 'The arrow at the line’s end forgets this word'), None)]
+         text = expand_this(host, made or expand(known_to(host), text))        # the owner's words, then `this`: the sheet selected in the Field
+     except ValueError as exc:
+         return [('section', 'PREVIEW', None), ('note', str(exc)[:110], None)]
+@@ -2970,7 +2970,7 @@ class SlateFace(QWidget):
+             try:answer = tab.slate_request('undo')
+             except RuntimeError:answer = 'That page is closed; reopen it and use Undo there.'
+             self.say(answer or 'Nothing to undo on this page.');return answer
+-        box.addWidget(sentence('{undo}', {'undo': ('undo', undo)}))   # the sentence above already says Ctrl Z or “undo” takes it back
++        box.addWidget(sentence('{undo}', {'undo': ('undo', undo)}))   # the sentence above already says Undo takes it back
+         row = QHBoxLayout();ask = QLabel('Was this right?');ask.setStyleSheet('color:%s' % QUIET);row.addWidget(ask, 1)
+         def marked(m):
+             self.mark(program, m, row)
 diff --git a/workbench/spice_qt.py b/workbench/spice_qt.py
 index 22b74e4..1e6f90a 100644
 --- a/workbench/spice_qt.py
@@ -1578,6 +2111,19 @@ index e9e5ec9..c31b7dc 100644
  SERVICES = 'Graphite services'
  CHOICES = (('On', 'On'), ('Off', 'Off'), ('Reboot', 'Restart'))  # (LedgerLifecycle's key, the word shown)
  CHOICE_TIPS = {'On':'Enable new authorized work; no jobs replayed and no model or phone started.',
+diff --git a/workbench/tool_atlas_qt.py b/workbench/tool_atlas_qt.py
+index 84cd234..a071381 100644
+--- a/workbench/tool_atlas_qt.py
++++ b/workbench/tool_atlas_qt.py
+@@ -14,7 +14,7 @@ class ToolAtlasTab(QWidget):
+         box = QVBoxLayout(self)
+         box.addWidget(QLabel('TOOL ATLAS · operation contracts and passports'))
+         row = QHBoxLayout(); self.search = QLineEdit()
+-        writing_prompt(self.search, 'Search Calc, Python, KiCad, ngspice or an operation ID; press Enter')
++        writing_prompt(self.search, 'Search Calc, Python, KiCad, ngspice or an operation ID')
+         self.kind = QComboBox(); self.kind.addItems(['All entries', 'Operations', 'Job tools'])
+         find = QPushButton('Find'); row.addWidget(self.search, 1); row.addWidget(self.kind); row.addWidget(find)
+         box.addLayout(row)
 diff --git a/workbench/typebar_qt.py b/workbench/typebar_qt.py
 index f09a765..221bac3 100644
 --- a/workbench/typebar_qt.py

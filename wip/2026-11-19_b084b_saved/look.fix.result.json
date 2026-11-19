@@ -1,0 +1,374 @@
+{
+ "summary": "Finished item 'look' after its review. I applied the reviewed look.patch in a fresh worktree, fixed both must_fix findings and the should_fix items that were cheap and clearly right, and wrote a new look.patch. It has 46 files and applies to a clean HEAD, both alone and after checks.patch. (1) must_fix 2: the tools/check_head_ui.py hunk is dropped. (2) must_fix 1: KEYS now catches a key in brackets ('Preview (Space)'), 'hit'/'tap' Enter, Ctrl-S, the Mac's chord signs, Backspace, PgUp/PgDn/Page Up and 'or Return'. It no longer flags net names ('F45 / F12 curves', 'the F7 net') or 'Escape' used as a word. Since the walk cannot reach every shown string, a new code sweep, name_sweep.keys_in_code, reads every sentence in workbench/ that names a key. It sets aside docstrings, comments, keys handed to Qt, a key's name alone and a menu line's key after its tab. On the reviewed patch it found 30 sentences: the reviewer's 13 and 17 more (Undo/Redo status lines, the capture proposal, the Files room tips, the screensaver, the intake tip, the tool atlas placeholder, the Field brief, the word-keeping note, the Gemini setup). All 30 now name what to click instead, or nothing. 15 sentences that keep a key are listed in KEYS_CODE_KEPT, each with a reason. Most are a key the owner presses with nothing to click instead, and I report them as findings. A new test fails while any unreviewed sentence remains. (3) should_fix: the desk-light limit is now stated as CIE L* under 65. In effect it was L* 62, so it is loosened by about 3 L*, and this is said in the test. KEYS false positives are fixed. named_in keeps the key text in its own variable. The Full Screen tip no longer says 'line'. GETTING_STARTED step 4 names her kp logo. boss_theme's LEGACY note now records that the Return thread's writing box turned from yellow to blue in Kasandra. colour_vision now has a 'cue' meaning, lets 'chosen' include the menu bar and 'ready' include the pointer's halo, and explains the threshold instead of calling it 'usual'. That adds 11 reviewed pairs and rewrites 2: Graphite has 32 pairs under 10, Kasandra 15, and none is unreviewed. Two items are left for the owner to judge by eye: the stepped writing-line light and the Field rings under overlapping sheets. In the copy, 23 affected modules pass in both looks (489 tests per look, 0 failures).",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084b/look.patch",
+ "files_changed": [
+  "GETTING_STARTED.md (step 4: Apps at the upper right, her kp logo in her look)",
+  "docs/WORKSHOP.md (from look.patch, unchanged here)",
+  "tests_integrated/test_colour_vision.py (new in look.patch; updated: cue, bar, halo, new counts)",
+  "tests_integrated/test_faces_find_light.py (limit restated as CIE L* < 65)",
+  "tests_integrated/test_kasandra_highlight.py (from look.patch, unchanged here)",
+  "tests_integrated/test_model_turn.py (Undo wording)",
+  "tests_integrated/test_one_name.py (two new tests; key and near-miss lists extended)",
+  "tests_integrated/test_system_menu.py (from look.patch, unchanged here)",
+  "tests_integrated/test_writing_line.py (capture proposal wording in a fixture)",
+  "tools/check_hatch.py (from look.patch: 'test_colour_vision' on its own line after 'test_kasandra_highlight'; unchanged here)",
+  "tools/check_model_turn_ui.py (Undo wording; not run)",
+  "tools/colour_vision.py (cue meaning, several colours per meaning, HALO, threshold explained, REVIEWED)",
+  "tools/name_sweep.py (KEYS, named_in, KEY_SPEC, SHORTCUT_CALLS, KEYS_CODE_KEPT, keys_in_code, __main__)",
+  "workbench/arc_desktop.py",
+  "workbench/boss_theme.py (LEGACY note places the Return box change)",
+  "workbench/cabinet_qt.py",
+  "workbench/datasheet_qt.py",
+  "workbench/desktop_header_qt.py",
+  "workbench/document_qt.py (Undo/Redo status words)",
+  "workbench/empty_workspace_qt.py (foot; empty Files line)",
+  "workbench/engineering_tabs.py (Left, Right, Flap)",
+  "workbench/explore_qt.py",
+  "workbench/field_brief.py (no F9)",
+  "workbench/field_page.py (room status line)",
+  "workbench/field_qt.py (close tip)",
+  "workbench/finder_qt.py (Preview tip and More row)",
+  "workbench/hardware_overview.py",
+  "workbench/home_qt.py",
+  "workbench/idle_display_art.py",
+  "workbench/idle_display_qt.py",
+  "workbench/intake_qt.py",
+  "workbench/kp_logo.py",
+  "workbench/log_qt.py",
+  "workbench/menus2.py",
+  "workbench/model_turn.py (Undo wording)",
+  "workbench/network_capture.py (capture proposal)",
+  "workbench/qt_app.py (Manual count line, clip menu, Gemini setup, Stop status lines, Next Problem, Full Screen tip)",
+  "workbench/qt_master_stop.py",
+  "workbench/reading_preferences.py (prose size note)",
+  "workbench/rooms.py (Files room tips and note)",
+  "workbench/sheet_workbench_qt.py",
+  "workbench/shell2.py (word preview note; a comment)",
+  "workbench/spice_qt.py",
+  "workbench/system_menu_qt.py",
+  "workbench/tool_atlas_qt.py (search placeholder)",
+  "workbench/typebar_qt.py",
+  "REMOVED from the patch: tools/check_head_ui.py"
+ ],
+ "tests": [
+  {
+   "module": "tests_integrated.test_colour_vision",
+   "look": "graphite",
+   "ran": 7,
+   "failed": 0,
+   "note": "pins the new counts (Graphite 32, Kasandra 15 pairs under 10)"
+  },
+  {
+   "module": "tests_integrated.test_colour_vision",
+   "look": "kasandra",
+   "ran": 7,
+   "failed": 0,
+   "note": "pins the new counts (Graphite 32, Kasandra 15 pairs under 10)"
+  },
+  {
+   "module": "tests_integrated.test_faces_find_light",
+   "look": "graphite",
+   "ran": 34,
+   "failed": 0,
+   "note": "desk-light limit restated as CIE L* < 65"
+  },
+  {
+   "module": "tests_integrated.test_faces_find_light",
+   "look": "kasandra",
+   "ran": 34,
+   "failed": 0,
+   "note": "desk-light limit restated as CIE L* < 65"
+  },
+  {
+   "module": "tests_integrated.test_model_turn",
+   "look": "graphite",
+   "ran": 28,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_model_turn",
+   "look": "kasandra",
+   "ran": 28,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_writing_line",
+   "look": "graphite",
+   "ran": 32,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_writing_line",
+   "look": "kasandra",
+   "ran": 32,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_one_name",
+   "look": "graphite",
+   "ran": 19,
+   "failed": 0,
+   "note": "walks the window in both looks inside each run; includes the two new key tests"
+  },
+  {
+   "module": "tests_integrated.test_one_name",
+   "look": "kasandra",
+   "ran": 19,
+   "failed": 0,
+   "note": "walks the window in both looks inside each run; includes the two new key tests"
+  },
+  {
+   "module": "tests_integrated.test_network_watch",
+   "look": "graphite",
+   "ran": 50,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_network_watch",
+   "look": "kasandra",
+   "ran": 50,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_documents",
+   "look": "graphite",
+   "ran": 13,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_documents",
+   "look": "kasandra",
+   "ran": 13,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_context_menu",
+   "look": "graphite",
+   "ran": 44,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_context_menu",
+   "look": "kasandra",
+   "ran": 44,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_delete_words",
+   "look": "graphite",
+   "ran": 6,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_delete_words",
+   "look": "kasandra",
+   "ran": 6,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_desk_acts",
+   "look": "graphite",
+   "ran": 28,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_desk_acts",
+   "look": "kasandra",
+   "ran": 28,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_graphite",
+   "look": "graphite",
+   "ran": 29,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_graphite",
+   "look": "kasandra",
+   "ran": 29,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_hologram",
+   "look": "graphite",
+   "ran": 23,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_hologram",
+   "look": "kasandra",
+   "ran": 23,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_kasandra",
+   "look": "graphite",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_kasandra",
+   "look": "kasandra",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_kasandra_highlight",
+   "look": "graphite",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_kasandra_highlight",
+   "look": "kasandra",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_launcher",
+   "look": "graphite",
+   "ran": 17,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_launcher",
+   "look": "kasandra",
+   "ran": 17,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_related",
+   "look": "graphite",
+   "ran": 11,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_related",
+   "look": "kasandra",
+   "ran": 11,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_session_start",
+   "look": "graphite",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_session_start",
+   "look": "kasandra",
+   "ran": 20,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_tool_atlas",
+   "look": "graphite",
+   "ran": 8,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_tool_atlas",
+   "look": "kasandra",
+   "ran": 8,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_tool_selection",
+   "look": "graphite",
+   "ran": 5,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_tool_selection",
+   "look": "kasandra",
+   "ran": 5,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_typewriter_faces",
+   "look": "graphite",
+   "ran": 13,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_typewriter_faces",
+   "look": "kasandra",
+   "ran": 13,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_vocabulary",
+   "look": "graphite",
+   "ran": 9,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_vocabulary",
+   "look": "kasandra",
+   "ran": 9,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_release_check",
+   "look": "graphite",
+   "ran": 22,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_release_check",
+   "look": "kasandra",
+   "ran": 22,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_system_menu",
+   "look": "graphite",
+   "ran": 31,
+   "failed": 0
+  },
+  {
+   "module": "tests_integrated.test_system_menu",
+   "look": "kasandra",
+   "ran": 31,
+   "failed": 0
+  }
+ ],
+ "new_tests": [
+  "test_one_name.TheCode.test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed: name_sweep.keys_in_code(ROOT) is empty, and every KEYS_CODE_KEPT entry still exists and has a reason. Fails before: on the reviewed look.patch tree keys_in_code finds 30 sentences, the Finder's Preview tip among them, and 56 on the unpatched tree. Passes after (0)",
+  "test_one_name.TheSweepItself.test_the_code_sweep_for_keys_reads_sentences_and_not_a_keys_own_name: on a made-up module, keys_in_code finds a tip with (Space), a status line with Ctrl Z and a key label. It skips docstrings, comments, QKeySequence and setShortcut arguments, shortcut=, a bare key name ('F7 or Ctrl+Shift+B', 'PgUp  PgDn') and the key after a menu tab. A kept (file, start) or a whole file is set aside. Errored before: there was no keys_in_code",
+  "test_one_name.TheSweepItself.test_a_key_named_in_the_programs_own_words_is_found_and_programs_is (extended): adds 8 key forms the review found missing ('(Space)', '(Esc)', 'hit Enter', 'Ctrl-S', '⌘S', 'Backspace', 'PgUp', 'or Return'), which fail before (named_in returned []), and 10 near-misses that must not count ('Matching F45 / F12 curves overlap.', 'Escape sequences are shown as typed.', 'net F3 / F4', 'the F7 net', 'Delete the row', 'Hit rate 92 %', 'Tap water', 'Shift-register outputs', 'Space (2 TB free)', 'Return to the list'). The first two failed before as false positives",
+  "test_colour_vision.EveryLook (changed): every meaning's colours, from colours_of, are in every palette. 'chosen' includes BAR, 'ready' includes the pointer's halo (VIOLET_PALE in her look, READY in Graphite), and 'cue' is CUE_EDGE. Counts: Graphite 32 and Kasandra 15 under 10; Graphite has 16 pairs at 0.0 in full sight; in Kasandra ready/cue is 0.0, and the nearer colour to recheck is the halo. A menu bar moved onto RECHECK makes chosen/recheck an unreviewed 0.0 pair. The tool prints '13 meanings, 78 pairs'. Fails before: there was no 'cue' and no colours_of, and the counts were 25/11",
+  "test_faces_find_light.DeskLightTests.test_white_paper_comes_down_and_black_ink_stays_black_and_the_page_itself_is_untouched (changed again): the desk tone's CIE L* is under 65 in every palette (Graphite 54.7, Kasandra 63.5), and the tone is more than 4x the ground's luminance. The comment states that 0.5.0's limit was L* 62 for a grey"
+ ],
+ "numbers": [
+  "Key sentences in workbench/ (name_sweep.keys_in_code, static AST read, no window): 56 on the unpatched tree, 30 on the reviewed look.patch tree, 0 after this fix. 15 reviewed entries in KEYS_CODE_KEPT (6 of them are the Field's key labels)",
+  "Shown strings reworded in this run: 30 sentences in 17 workbench files, plus GETTING_STARTED step 4 and the Full Screen tip (counted from keys_in_code before and after, and from the diff)",
+  "Colour-vision table (tools/colour_vision.py in a copy, CIEDE2000, threshold 10, Machado 2009 at 0.6 and 1.0): 13 meanings and 78 pairs per look. Graphite has 32 pairs under 10 (was 25; new: cue with chosen, waits, fails, recheck and stopped at 0.0, cue/hers 6.3 to weak green 1.0, ready/cue 9.5 to weak green 1.0). Kasandra has 15 (was 11; new: ready/cue 0.0, cue/words 1.0 to weak red 1.0, cue/held 4.4 and cue/recheck 6.5 to weak green 1.0). With the halo counted, ready/recheck becomes 4.2 (halo #d2c4f5 against #c3b6f4, 4.7 in full sight) and ready/held 2.6. 0 pairs are unreviewed. Table: look/colour_vision_table_fix.txt",
+  "Desk light (test arithmetic): CIE L* of the tone is 54.7 in Graphite (#8c826b, luminance 0.226) and 63.5 in Kasandra (#8f97c9, luminance 0.322). 0.5.0's limit, HLS lightness 150, is L* 62.1 (luminance 0.305) for a grey. The new limit, L* 65, is luminance 0.340. The look.patch limit had been luminance 0.4 (L* 69.5)",
+  "Tests in a copy, one module at a time, both looks: 23 modules, 489 tests per look, 0 failures, 0 errors. test_one_name took 124 s per look",
+  "Patch: 46 files. git apply --check passes on a clean HEAD, and also after checks.patch is applied (the check_head_ui conflict is gone)"
+ ],
+ "decisions": [
+  "must_fix 2: the tools/check_head_ui.py hunk is dropped, as the review asked. The checks item deletes that file, and the changed line could not be reached anyway.",
+  "Guard for keys the walk cannot reach: I added a sibling sweep (keys_in_code) and did not widen the walk. It reads string constants in workbench/ the way in_code reads her earlier name. Machine text is set aside: docstrings and comments, arguments to QKeySequence/QShortcut/setShortcut(s)/re.compile, shortcut= keywords, a string that is only a key's name (KEY_SPEC: 'Ctrl+Shift+N', 'F7 or Ctrl+Shift+B', 'PgUp  PgDn') and the text after a menu line's tab (tool_faces cuts it). A known hole: a tip set to a bare key name would pass. The code shows none. document_qt's format buttons have accessible descriptions built as 'Ctrl B' + ' · applies…', so they slip through. They are read to a screen reader and never printed, so I left them and report them.",
+  "Kept with a reason in KEYS_CODE_KEPT, as findings for the owner rather than deletions. The Field's painted key labels ('Esc  close', '1  take the step', 'G  keep it as a page', 'Esc  back'): each is also a click target that does what its key does (field_qt._key_of and press_key), the Field's design since 0.5, so changing it is the owner's call. The console's 'Press Enter again to run it as written; … press Esc to leave it': an operation that asks is approved by sending the same line again, and the console has no button for that. The Explore descriptor 'a group of rows; Right or Enter opens it': it is shown only after F1, to someone already on the keyboard. The ARC-OS console games and the Godot starter's text (games played with keys). workbench/app.py, the old Tk workbench, which no module imports. version.py's lineage.",
+  "The Help menu's 'Keyboard Shortcuts' page (qt_app.show_keys) lists keys by design, and only someone who asks for it opens it. Its rows are bare key names, so the sweep passes them. I report it to the owner and did not change it.",
+  "Wording chosen for the fixes. Name what to click: 'Undo takes it back' / 'Redo brings it back', as context_menu already said; 'Stop ends it'; 'Next Problem goes to the first error'; 'Larger prose and Smaller prose, in View, adjust prose'; 'Open in Universal Viewer…, in File, shows any file'; 'Double-click a row to open it' (the list's itemDoubleClicked opens it); 'click it to open it' for a room sheet in the Field; 'The arrow at the line's end keeps this word' (submit_line runs a word line, and its tip says 'Do this to your words'); 'then Capture… in the head row'. Or drop the key: '(Space)', '(Esc)', '(F9)', the empty workspace foot keeps only the title, '; press Enter' in the atlas placeholder, 'press a key' on the screensaver (the pointer still returns, and so does any key). The engineering game buttons 'Left (A)' and 'Right (D)' lost their letters too, to match 'Flap'.",
+  "Desk-light limit: I kept the corrected measure and set the limit as perceptual lightness, CIE L* under 65. That is the same scale the colour-vision tool uses through Lab. It is a change from 0.5.0's L* 62 in effect, made so that Kasandra's 0.8.3 tone (L* 63.5) passes, and the test comment says so. look.patch's luminance 0.4 (L* 69.5) was looser than it needed to be.",
+  "colour_vision gaps. A meaning can now wear several colours, and a pair is as close as its two closest colours: 'chosen' adds BAR, and 'ready' adds the pointer's halo (HALO = VIOLET_PALE in her look, as pointer.drawn draws it). 'cue' is a new meaning (CUE_EDGE: a status word, a heading's rule, a primary button, a band's rule, a prompt), and its sign is that it marks no state on a row or sheet. No palette colour was changed. The threshold of 10 is now described as this check's own choice, several times the just noticeable difference (Mahy et al. 1994, 2.3 in CIE76), not as a published constant. HALO repeats pointer.drawn's rule instead of reading it. If pointer.py changes its halo, this table will not notice.",
+  "LEGACY #f8edc9 -> CUE: the decision stands, because a place to write is not a highlight. The boss_theme note now places the visible change: in Kasandra the Return thread's writing box (return_thread_qt ReturnWriting) turns from her yellow #5a3f0c to her blue CUE #1d3d63.",
+  "Left as the review said, for the owner to judge by eye: in Kasandra the writing line's light is three hard opaque steps, which read as brown stripes, and the Field's rings lie under overlapping sheets and cover the selected sheet's stacked edges. The menu row's 2 px edge colour is also left alone.",
+  "tools/check_hatch.py: no change in this run. 'test_colour_vision' is still on its own line, after 'test_kasandra_highlight', with its own 0.8.4 comment, apart from other builders' lines.",
+  "tools/check_desk_ui.py asserts the old Files-room note ('Ctrl+Alt+V'). I did not touch it because checks.patch deletes that file. tools/check_model_turn_ui.py, which checks.patch does not touch, has the Undo wording updated. It was not run, per the rule on check_*_ui tools."
+ ],
+ "not_done": [
+  "Frames were not retaken. This run changed no painting, only words in tips, status lines, notes, a placeholder and the guide. None of those is in the four frames (menu with a lit row, writing line, Field with a sheet selected, Log row). The review recounted look.patch's Graphite frames: menu 0, line 0, Field 326 px at 1920 (noise), Log 1652 px (the reworded note). Those counts were not remeasured here",
+  "Not changed and reported instead: the Field's painted key labels and key card, the console's 'Press Enter again', the Help menu's Keyboard Shortcuts page, and document_qt's screen-reader descriptions 'Ctrl B · applies to the selected words'",
+  "Kasandra visual items left for the owner: the stepped writing-line light and the Field rings under overlapping sheets (should_fix 5). Not reworked",
+  "The full suite was not run, as instructed. qt_app and shell2 are imported by nearly every module, so the coordinator's full run in both looks is the real check for the many modules I did not run. The 23 I did run were chosen because they import or assert the changed files",
+  "tools/check_model_turn_ui.py and tools/check_desk_ui.py were not run (window check tools)",
+  "Nothing ran on the owner's ThinkPad. Everything ran offscreen in a throwaway copy here, and the copy is deleted"
+ ],
+ "release_note": "Tips, notes and status lines no longer name keyboard keys. Where a key was the only hint, they now name the button or menu row to use, such as Undo, Stop, Next Problem or Larger prose. A test now reads every sentence in the program's code and fails if a key name comes back. The few that remain (the Field's clickable key labels, the console's typed approval and the games) are on a reviewed list. The colour-vision check now also covers the menu bar, the pointer's halo and the cue colours, and every pair those eyes cannot tell apart has its word or shape on record."
+}

@@ -1,0 +1,223 @@
+{
+ "summary": "Fix round on item \"checks\" after review (accept_after_fixes). Both must_fix done: (1) the pane-width ratchet is fixed in the program (pane_qt.remeasure; pane_qt.place asks the window again when a pane's least width changes): one trip to 28 pt and back now leaves both panes 326 px (354 in Kasandra) instead of 415 (479); check_finder_ui step 14 goes through 28 pt again and folds in the F11 round trip; new tests_integrated/test_pane_width.py; (2) test_whole_words now pins FinderPage.scale_columns itself and fails on the review's revert. Cheap should_fix done: on-demand entries with arguments, run folders removed by the gate, ten-of-twelve figure everywhere, check_finder_ui docstring, \\u200b escapes, WINDOW_CHECKS.md says who runs the Kasandra pass and names frame step 05 as a gap. Every new test fails on the program before the fix and passes after, in both looks. 32 modules / 571 tests per look: default 0 failing, Kasandra 1 (the known test_faces_find_light). All 22 window checks pass in both looks (287 steps each). New module listed in tools/check_hatch.py FOCUSED_MODULES on the existing line of this item ('test_lit_controls','test_whole_words','test_pane_width'), away from other builders' lines. Patch rewritten (50 files) and applies clean to HEAD.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084b/checks.patch",
+ "files_changed": [
+  "README.md (changed)",
+  "docs/DAILY_GUIDE.md (changed)",
+  "docs/FINDER_01.md (changed)",
+  "docs/GRAPHITE_01.md (changed)",
+  "docs/GRAPHITE_DESK.md (changed)",
+  "docs/HATCH_AGENT_01.md (changed)",
+  "docs/IMPLEMENTATION_MAP.md (changed)",
+  "docs/SETTINGS_INVENTORY_07.md (changed)",
+  "docs/WINDOW_CHECKS.md (new), changed again in the fix round",
+  "tests_integrated/test_desk.py (changed)",
+  "tests_integrated/test_frame.py (changed)",
+  "tests_integrated/test_graphite.py (changed)",
+  "tests_integrated/test_lit_controls.py (new)",
+  "tests_integrated/test_pane_width.py (new), changed again in the fix round",
+  "tests_integrated/test_release_check.py (changed), changed again in the fix round",
+  "tests_integrated/test_system_menu.py (changed)",
+  "tests_integrated/test_whole_words.py (new), changed again in the fix round",
+  "tools/check_cabinet_actions_ui.py (changed)",
+  "tools/check_cabinet_ui.py (changed)",
+  "tools/check_context_menu_ui.py (changed)",
+  "tools/check_desk_ui.py (deleted)",
+  "tools/check_explore_ui.py (changed)",
+  "tools/check_finder_ui.py (changed), changed again in the fix round",
+  "tools/check_frame_ui.py (deleted)",
+  "tools/check_graphite_ui.py (deleted)",
+  "tools/check_hatch.py (changed), changed again in the fix round",
+  "tools/check_hatch_ui.py (deleted)",
+  "tools/check_head_ui.py (deleted)",
+  "tools/check_machine_ui.py (changed)",
+  "tools/check_memory_cabinet_ui.py (changed)",
+  "tools/check_memory_settings_ui.py (changed)",
+  "tools/check_model_settings_ui.py (changed)",
+  "tools/check_navigation_ui.py (changed)",
+  "tools/check_paper_ui.py (deleted)",
+  "tools/check_presentation_settings_ui.py (changed)",
+  "tools/check_rename_ui.py (deleted)",
+  "tools/check_return_thread_ui.py (changed)",
+  "tools/check_settings_02_ui.py (changed)",
+  "tools/check_settings_ui.py (changed)",
+  "tools/desk_review.py (changed)",
+  "tools/symmetry.py (deleted)",
+  "tools/ui_fit.py (changed)",
+  "workbench/control_qt.py (changed)",
+  "workbench/desk_qt.py (changed)",
+  "workbench/finder_qt.py (changed)",
+  "workbench/menus2.py (changed)",
+  "workbench/pane_qt.py (changed), changed again in the fix round",
+  "workbench/programs_qt.py (changed)",
+  "workbench/shell2.py (changed)",
+  "workbench/typebar_qt.py (changed)"
+ ],
+ "tests": [
+  {
+   "module": "tests_integrated.test_pane_width",
+   "look": "default",
+   "ran": 2,
+   "failed": 0,
+   "note": "new"
+  },
+  {
+   "module": "tests_integrated.test_pane_width",
+   "look": "kasandra",
+   "ran": 2,
+   "failed": 0,
+   "note": "new"
+  },
+  {
+   "module": "tests_integrated.test_whole_words",
+   "look": "default",
+   "ran": 6,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "tests_integrated.test_whole_words",
+   "look": "kasandra",
+   "ran": 6,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "tests_integrated.test_release_check",
+   "look": "default",
+   "ran": 23,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "tests_integrated.test_release_check",
+   "look": "kasandra",
+   "ran": 23,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "32 modules: the three above and every module that imports a changed file (test_lit_controls, test_desk, test_frame, test_context_menu, test_desk_acts, test_session_start, test_system_menu, test_graphite, test_hologram, test_kasandra_column, test_launcher, test_machine, test_settings_registry, test_typewriter_faces, test_delete_words, test_documents, test_explore, test_faces_find_light, test_kasandra, test_kasandra_highlight, test_model_turn, test_one_name, test_operations, test_paper, test_presentation_settings, test_readiness, test_settings_advanced, test_vocabulary, test_writing_line)",
+   "look": "default",
+   "ran": 571,
+   "failed": 0,
+   "note": "one module at a time under nice/unshare/fresh HOME/offscreen, two at a time, GRAPHITE_NOOP=1"
+  },
+  {
+   "module": "the same 32 modules",
+   "look": "kasandra",
+   "ran": 571,
+   "failed": 1,
+   "note": "the one failure is test_faces_find_light DeskLightTests (172 not less than 150), known before this work and the look item's (BUILD_STATE); not touched"
+  },
+  {
+   "module": "all 22 tools/check_*_ui.py through check_hatch.ui_checks (as the gate runs them)",
+   "look": "default",
+   "ran": 22,
+   "failed": 0,
+   "note": "287 steps, 371.4 s summed"
+  },
+  {
+   "module": "all 22 tools/check_*_ui.py through check_hatch.ui_checks (as the gate runs them)",
+   "look": "kasandra",
+   "ran": 22,
+   "failed": 0,
+   "note": "287 steps, 373.8 s summed"
+  },
+  {
+   "module": "BEFORE (copy with this round's program fixes reverted, new tests kept): test_pane_width",
+   "look": "default",
+   "ran": 2,
+   "failed": 2,
+   "note": "ERROR no pane_qt.remeasure; FAIL [415, 415] != [326, 326]"
+  },
+  {
+   "module": "BEFORE: test_pane_width",
+   "look": "kasandra",
+   "ran": 2,
+   "failed": 2,
+   "note": "ERROR no pane_qt.remeasure; FAIL [479, 479] != [354, 354]"
+  },
+  {
+   "module": "BEFORE: test_whole_words (scale_columns back to round(width*scale))",
+   "look": "default",
+   "ran": 6,
+   "failed": 1,
+   "note": "120 not greater than or equal to 150"
+  },
+  {
+   "module": "BEFORE: test_whole_words",
+   "look": "kasandra",
+   "ran": 6,
+   "failed": 1,
+   "note": "120 not greater than or equal to 150"
+  },
+  {
+   "module": "BEFORE: test_release_check (ui_check_lists without the argument split, ui_checks without the run-folder TMPDIR)",
+   "look": "default",
+   "ran": 23,
+   "failed": 2,
+   "note": "unlisted ['tools/check_two_ui.py']; a check's run folder goes when the check ends"
+  },
+  {
+   "module": "BEFORE: test_release_check",
+   "look": "kasandra",
+   "ran": 23,
+   "failed": 2,
+   "note": "the same two"
+  },
+  {
+   "module": "BEFORE: tools/check_finder_ui.py with HEAD's workbench/pane_qt.py",
+   "look": "default",
+   "ran": 1,
+   "failed": 1,
+   "note": "step 14: the panes did not come back, [415, 415] vs [326, 326]"
+  },
+  {
+   "module": "BEFORE: tools/check_finder_ui.py with HEAD's workbench/pane_qt.py",
+   "look": "kasandra",
+   "ran": 1,
+   "failed": 1,
+   "note": "step 14: [479, 479] vs [354, 354]"
+  }
+ ],
+ "new_tests": [
+  "tests_integrated.test_pane_width.FacesOutOfSight.test_a_face_out_of_sight_keeps_its_old_least_width_until_it_is_measured_again: bare widgets; a layout out of sight keeps the least width a larger font gave it until pane_qt.remeasure measures it again (fails before: no remeasure)",
+  "tests_integrated.test_pane_width.PanesAfterALargerSize.test_both_panes_come_back_to_their_width_from_28_pt: the real window at 1920x1200, 14 -> 28 -> 14 pt; both panes come back to the fresh width and each pane needs what it needed (fails before: [415, 415] != [326, 326]; Kasandra [479, 479] != [354, 354])",
+  "tests_integrated.test_whole_words.ColumnTitles.test_the_list_gives_a_wide_title_what_it_needs_and_a_dragged_column_keeps_the_owners_width: FinderPage.scale_columns itself (on a stub page with a bare list, 22 px header face) gives Date Modified at least title_need, re-measures on a new face, and keeps a dragged column (fails with the review's revert: '120 not greater than or equal to 150')",
+  "tests_integrated.test_release_check.UiGate.test_every_window_check_has_a_home_and_every_listed_name_is_there (extended): an on-demand entry that carries arguments ('tools/check_two_ui.py --live') counts as listing its file and is not 'missing' (fails before: unlisted ['tools/check_two_ui.py'])",
+  "tests_integrated.test_release_check.UiGate.test_every_check_writes_its_captures_where_the_gate_says (extended): the run folder a check makes with mkdtemp is gone when the gate's run of it ends (fails before)",
+  "tools/check_finder_ui.py step 14 (extended, a window check): full screen and back keeps both panes (the retired frame check's step 04); one width at 16, 18, 20 and 28 pt and back to the 14 pt width (fails with HEAD's pane_qt in both looks: 415 vs 326, 479 vs 354)"
+ ],
+ "numbers": [
+  "Pane width after one trip to 28 pt, fresh window 1920x1200, the reviewer's probe (checks/review/bin/ratchet.py) run as the gate runs a check: before the fix default 326 -> 415, Kasandra 354 -> 479 (as the review found); after: default 326 -> 326 (and 326 after 16,14,20,14,28,14), Kasandra 354 -> 354 (354).",
+  "Test modules (32, one at a time, two at a time on the machine): 571 tests per look; default 0 failing; Kasandra 1 failing (test_faces_find_light, known, the look item's).",
+  "Window checks, all 22 through check_hatch.ui_checks, one per process, two at a time: default 22 of 22 PASSED, 287 steps, 371.4 s summed; Kasandra 22 of 22 PASSED, 287 steps, 373.8 s summed.",
+  "Per script, seconds, default / Kasandra (all PASSED): agent 20.0/20.3, cabinet_actions 6.5/7.5, cabinet 21.8/21.7, context_menu 22.0/23.0, continue 33.6/34.2, document 7.9/8.0, explore 12.4/13.2, files_about 9.0/9.6, finder 67.7/67.7, hardware_settings 8.8/9.0, machine 7.6/7.8, memory_cabinet 13.3/13.6, memory_settings 13.8/13.9, model_settings 9.9/9.8, model_turn 14.5/14.8, navigation 19.6/18.8, operations 9.8/9.5, presentation_settings 9.9/9.5, return_thread 13.3/12.6, service_integration 8.3/8.3, settings_02 22.3/21.9, settings 19.4/19.1.",
+  "check_finder_ui at 28 pt in its own window (Finder open, 1920x1200): both panes 444 px default (459 at 20 pt) and 491 Kasandra (495 at 20 pt): the workspace floor holds them in, so step 14 asserts one width and wider than at 14 pt there, not wider than at 20 pt (the retired frame check asserted one width only at 28 pt).",
+  "Stale-check figure, from the builder's baseline logs/base.default.jsonl: of the 12 checks outside the gate at 0.8.3, 10 failed on the starting tree (only check_explore_ui and check_operations_ui passed). The tools/check_hatch.py comments, the test docstring and docs/WINDOW_CHECKS.md now all say ten of twelve.",
+  "Patch: 50 files, 704 insertions, 3046 deletions (git diff --stat); git apply --check on a clean archive of HEAD 42a7080: clean."
+ ],
+ "decisions": [
+  "The ratchet is fixed in workbench/pane_qt.py, where a pane counts every face shown or not (content_minimum): pane_qt.remeasure invalidates and activates the layout of every widget out of sight under a pane's content, innermost first, whenever the pane's size key changes (a new interface size); and the key that decides whether the pane asks the window again now carries the pane's least width, so a need that drops later is seen. Cause, measured: Context's object view (object_context_qt.View, a SetMinimumSize body inside a hidden face) kept 284 px at 14 pt after 28 pt (151 fresh), because Qt activates a layout only when its widget is visible. The first layout after a size change can still use the old need until the next align (the 500 ms tick or the align queued on the font change).",
+  "Step 14 of check_finder_ui asserts at 28 pt one width, equal to the desk's, wider than at 14 pt, and the five parts; not wider than at 20 pt, because in that window the workspace floor caps the panes at 28 pt (444 < 459). The first run of the corrected check failed on exactly that, so the assertion was narrowed to what the retired frame check asserted at 28 pt, and the return to 14 pt is asserted as before.",
+  "Frame step 04 (F11 round trip keeps both column widths) is folded into check_finder_ui step 14; frame step 05 (six tabs leave the tab strip at one height) is not folded: it is named in docs/WINDOW_CHECKS.md as a gap with its reason (its six tabs came from the retired journey through the cat; qt_app._steady_tab_strip unchanged since 0.4; nothing measures it now).",
+  "The Kasandra window-check pass is documented, not added to --ui: docs/WINDOW_CHECKS.md says whoever cuts a release runs --ui a second time with GRAPHITE_APPEARANCE=kasandra before cutting it, because both looks in --ui would double about six minutes against the road's 15-minute aim.",
+  "Run folders: rather than edit 21 scripts, tools/check_hatch.ui_checks gives each check a TMPDIR of its own (tempfile.TemporaryDirectory) and removes it when the check ends; mkdtemp in every script honours it. A script run by hand outside the gate still leaves its folder.",
+  "ui_check_lists takes an entry's file as its first word (for python -m, the module's file), so an on-demand entry may carry arguments.",
+  "Zero-width spaces in test_whole_words are written as \\u200b (6 occurrences).",
+  "Docs GRAPHITE_DESK.md and GRAPHITE_01.md keep their mentions of retired scripts as history under the note at their top (the earlier builder's reading, unchanged): the coordinator should confirm it."
+ ],
+ "not_done": [
+  "Settings still offers appearance.cursive (\"Script for incidental text\"), which changes nothing on screen: the same lit-control rule; it needs the owner's or coordinator's decision (remove the setting, or make it do something).",
+  "Keyboard shortcuts printed on screen, outside this patch: workbench/empty_workspace_qt.py:101 shows \"F11 fullscreen · Ctrl+Alt+= / − text size\", and finder_qt shows \"Show preview (Space)\" in the ⋯ menu and \"Show or hide the preview (Space)\" as a tooltip. Not touched here (outside this item; look.patch does not touch those files, so a later fix will not conflict).",
+  "Merge: look.patch edits tools/check_head_ui.py, which this patch deletes; the coordinator must drop that hunk (the rest of look.patch applied in the review).",
+  "Frame step 05 (tab strip height across six tabs) is not covered by any test or check; named as a gap in docs/WINDOW_CHECKS.md.",
+  "remeasure runs on a change of interface size; a font change of another kind made while a face is out of sight is caught only when it reaches a pane's measured least width.",
+  "The gate (--ui) still runs only the look in force.",
+  "Retired script names remain in docs/GRAPHITE_DESK.md (36) and docs/GRAPHITE_01.md (8), as pass records under a note.",
+  "Not run: the full suite, tools/check_release.py --ui end to end, anything on the owner's ThinkPad.",
+  "The earlier report's claim that a direct 14 -> 28 -> 14 trip came back was wrong and is withdrawn (correction written in checks.progress.md)."
+ ],
+ "release_note": "The window checks can be believed again. Seven that measured a desk Graphite no longer has were retired, each with its reason in docs/WINDOW_CHECKS.md; the twelve that had been left outside the release check were brought up to date; and all twenty-two now run in the release check and pass in both looks. Running them in the Kasandra look found two words cut by her wider letters (the Date Modified title in the List, a long folder name on a Today card), both fixed. Review found an older fault: after the interface size went up to 28 pt and back, both panes stayed wider until Graphite was restarted; they now come back to their width. The menu toggle \"Pleasantries in script\", which changed nothing on screen, is gone."
+}

@@ -107,20 +107,26 @@ index 202c7d4..c90801a 100644
  HATCH_INTEGRATION_01.md.
 diff --git a/docs/WINDOW_CHECKS.md b/docs/WINDOW_CHECKS.md
 new file mode 100644
-index 0000000..3c8c378
+index 0000000..0e1571a
 --- /dev/null
 +++ b/docs/WINDOW_CHECKS.md
-@@ -0,0 +1,95 @@
+@@ -0,0 +1,115 @@
 +# The window checks
 +
 +A window check is a script `tools/check_<name>_ui.py`. It builds the real Graphite window without a screen (Qt's offscreen
 +platform), on a new profile and a new workspace of its own, walks one area as the owner would with the mouse and the
 +keyboard, and asserts what the window then shows. Each one holds the calls that would start work: no job is submitted, no
-+worker or model is started, no provider is asked. Each writes its captures and a JSON report under the folder the gate gives it.
++worker or model is started, no provider is asked. Each writes its captures and a JSON report under the folder the gate gives it;
++the folder it makes for its own profile and workspace is under a temporary folder of the gate's, removed when the check ends.
 +
 +They are run by the release check: `python3 tools/check_release.py --ui` runs every script in `UI_CHECKS`
 +(`tools/check_hatch.py`), one after the other, each in its own process. The look is the one in force; set
 +`GRAPHITE_APPEARANCE=kasandra` to run them in the Kasandra look. Every script passes in both looks.
++
++The release check runs one look, because one pass of all twenty-two takes about six minutes on the four-core build machine
++(371.4 s in Graphite's look and 373.8 s in the Kasandra look, the scripts' times added up, on 19 November 2026), and both
++looks would double that. So whoever cuts a release runs `--ui` twice before cutting it: once as it is, once with
++`GRAPHITE_APPEARANCE=kasandra`. The Kasandra pass is not optional: it is where 0.8.4 found two of its three faults (below).
 +
 +## The rule: no window check without a home
 +
@@ -134,9 +140,10 @@ index 0000000..3c8c378
 +list of capture folders) names a file that is not there, when an on-demand entry has no reason, and when the program, its
 +tests or its tools still name a window check that no longer exists (`check_hatch.ui_check_lists`).
 +
-+Why the rule: by 0.8.3 ten of the seventeen checks in the gate failed, and twelve more stood outside it. Nine of those twelve
-+passed at the start of the program's history and broke later without anyone seeing, because nothing ran them. From 0.8.4 all
-+twenty-two that remain are in the gate. No window check is on demand now.
++Why the rule: by 0.8.3 ten of the seventeen checks in the gate failed, and twelve more stood outside it. On the tree 0.8.4
++started from, ten of those twelve failed too (only `check_explore_ui` and `check_operations_ui` passed): they had broken
++without anyone seeing, because nothing ran them. From 0.8.4 all twenty-two that remain are in the gate. No window check is
++on demand now.
 +
 +## The twenty-two in the gate
 +
@@ -175,7 +182,7 @@ index 0000000..3c8c378
 +| Retired | What it measured | Why it could not be kept | What checks it now |
 +| --- | --- | --- | --- |
 +| `check_desk_ui` (1,197 lines; with its helper `tools/symmetry.py`) | the mirrored desk of 0.1: every left and right pair at 0 px, the cat, the System menu's symbol, the mirrored band words | the desk is no longer a mirror: menus stand from the left of the head, the meters are at the foot, the cat and the symbol are out of sight | the desk's arithmetic in `test_desk`; the live window in `check_finder_ui`. Kept: the panes' one width and the drag (step 14), Line, Half and Tall (step 15) |
-+| `check_frame_ui` | the frame's five parts through a journey that went through the cat and the strip word "Assignment" | the strip's words and the cat are gone; four attempts to port it each stopped at the next line | `test_frame`, `check_finder_ui`. Kept: the head's menu words fold into ⋯ before they clip at every width from 1,040 to 1,400 px (step 13); one pane width through the sizes and under a drag (step 14) |
++| `check_frame_ui` | the frame's five parts through a journey that went through the cat and the strip word "Assignment" | the strip's words and the cat are gone; four attempts to port it each stopped at the next line | `test_frame`, `check_finder_ui`, `test_pane_width`. Kept: the head's menu words fold into ⋯ before they clip at every width from 1,040 to 1,400 px (step 13); full screen and back keeps both panes; one pane width through 14, 16, 18, 20 and 28 pt and back to 14 pt with no ratchet, and under a drag (step 14) |
 +| `check_hatch_ui` | the Apps list opened from the cat, the System menu's services and leaving rows | opening the Local model room reads the hardware, which the check forbade; the System menu is gone | the list's order, rows, words and routes in `test_launcher`; `check_explore_ui`. Kept in `check_navigation_ui`: the list stays between the two bands in one column; where its rows are taller than the room it takes the whole room and scrolls, and never covers a band |
 +| `check_head_ui` | the four meters in the head beside the System menu | the meters moved to the foot and the System menu left the head in 0.7.0 | `test_faces_find_light` (each meter is a door), `test_operations` (the queue and its slider), `test_system_menu` (Stop all jobs reaches the Master Stop), `check_operations_ui` |
 +| `check_graphite_ui` | the head's mark and the cat's four poses on the live window | both are out of sight | the pose machine, its timing and the startup screen in `test_graphite` |
@@ -184,6 +191,12 @@ index 0000000..3c8c378
 +
 +Steps that were not kept, because the thing they measured is gone: the mirrored pairs, the bands' grain compared pixel by
 +pixel, the cat's poses and its pointer events on the live window, the System menu's keyboard order, the yellow passages.
++
++One step was dropped although its subject is still there: `check_frame_ui`'s step 05, "switching among six tabs leaves the
++centre's tab strip at one height and keeps the unsaved draft". Its six tabs were opened along the retired journey, through
++the cat and the strip word, so it could not run without it, and it was not rebuilt. Nothing measures the strip's height
++now; the code that keeps it still (`qt_app._steady_tab_strip`, the rows under the work) is unchanged since 0.4. It is a gap,
++named here so that it is not mistaken for cover.
 +
 +## The others, ported
 +
@@ -196,7 +209,7 @@ index 0000000..3c8c378
 +`check_settings_02_ui` had pressed a menu toggle, "Pleasantries in script", that wrote a setting nothing reads. The toggle
 +is gone (`tests_integrated/test_lit_controls.py`); the check now edits the setting in Settings.
 +
-+## Found by running them in both looks
++## Faults found while doing this
 +
 +Until 0.8.4 the window checks were run in Graphite's look only. Run in the Kasandra look, `check_finder_ui` stopped twice,
 +both times on a word that the look's wider typewriter letters cut, and both were faults of the program, fixed in it
@@ -206,6 +219,13 @@ index 0000000..3c8c378
 +  force (`finder_qt.column_width`);
 +- a long folder name in a line on one of Today's cards: a plain line now has a break point every 18 characters inside a long
 +  name, as well as after each `/`, so the name folds instead of being cut (`shell2.breakable_path`).
++
++The review of this work found a third, older than 0.8.4. The retired frame check had gone up to 28 pt; its step, moved into
++`check_finder_ui`, at first stopped at 20 pt, because at 28 pt it failed. On a fresh window at 1920 by 1200, 28 pt and back to
++14 left both panes 415 px wide where a fresh window has 326 (479 where it has 354 in the Kasandra look). A pane counts every
++face's least width, shown or not, and Qt measures a layout again only when its widget shows, so a face out of sight kept
++the width 28 pt had given it. A pane now measures its faces out of sight again at each new size (`pane_qt.remeasure`), and
++step 14 goes through 28 pt again (`tests_integrated/test_pane_width.py`).
 diff --git a/tests_integrated/test_desk.py b/tests_integrated/test_desk.py
 index 605c7ff..a5c506e 100644
 --- a/tests_integrated/test_desk.py
@@ -353,15 +373,128 @@ index 0000000..e2d2744
 +
 +if __name__ == '__main__':
 +    unittest.main()
+diff --git a/tests_integrated/test_pane_width.py b/tests_integrated/test_pane_width.py
+new file mode 100644
+index 0000000..a03df86
+--- /dev/null
++++ b/tests_integrated/test_pane_width.py
+@@ -0,0 +1,102 @@
++"""0.8.4: both panes come back to their width after a larger interface size.
++
++At 0.8.3, on a fresh window at 1920 by 1200, the interface size raised to 28 pt and set back to 14 pt left both panes 415 px
++wide where a fresh window has 326 (479 where it has 354 in the Kasandra look), until Graphite was started again. A pane counts
++the least width of every face, shown or not (pane_qt.PaneBody.content_minimum), and Qt measures a layout again only when its
++widget shows: a face out of sight through the change kept the least width that 28 pt had given it. Now a pane measures its
++faces out of sight again at each new size (pane_qt.remeasure), and asks the window again whenever its least width changes.
++
++Found by the review of the window checks: the frame's window check, retired in 0.8.4, went up to 28 pt; its step in
++tools/check_finder_ui.py (14) goes there again.
++
++The real window, offscreen, on a new profile and workspace for each test; no provider request, worker launch, job, or
++session or power call.
++"""
++import os
++import platform
++import tempfile
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++from workbench.session import Session
++
++
++class FacesOutOfSight(unittest.TestCase):
++    """Bare widgets: what Qt does to a face out of sight, and what remeasure does about it."""
++
++    def test_a_face_out_of_sight_keeps_its_old_least_width_until_it_is_measured_again(self):
++        from PySide6.QtGui import QFont
++        from PySide6.QtWidgets import QApplication, QLayout, QPushButton, QStackedWidget, QVBoxLayout, QWidget
++        from workbench import pane_qt
++        app = QApplication.instance() or QApplication([])
++        stack = QStackedWidget();self.addCleanup(stack.deleteLater);stack.addWidget(QWidget())
++        face = QWidget();box = QVBoxLayout(face);box.setSizeConstraint(QLayout.SetMinimumSize)
++        button = QPushButton('A word the size of the interface');box.addWidget(button);stack.addWidget(face)
++        def size(px):
++            font = QFont(button.font());font.setPixelSize(px);button.setFont(font);app.processEvents()
++        stack.setCurrentWidget(face);stack.show();size(36);large = face.minimumWidth()
++        stack.setCurrentIndex(0);size(12);app.processEvents()
++        self.assertEqual(face.minimumWidth(), large, 'out of sight, the face keeps the width the larger size gave it (as at 0.8.3)')
++        pane_qt.remeasure(stack)
++        self.assertLess(face.minimumWidth(), large);self.assertEqual(face.minimumWidth(), box.minimumSize().width())
++
++
++class PanesAfterALargerSize(unittest.TestCase):
++    def setUp(self):
++        from PySide6.QtWidgets import QMessageBox
++        from workbench import clip, locations, session_power
++        from workbench.engineering_kernel import Kernel
++        from workbench.qt_app import make_app
++        temporary = tempfile.TemporaryDirectory(prefix='graphite-084-panes-');self.addCleanup(temporary.cleanup);run = Path(temporary.name)
++        env = patch.dict(os.environ, {'ARC_LEDGER_EMBEDDED': '1', 'ARC_LEDGER_DISABLE_BOOK_WATCHER': '1', 'ARC1_WORKBENCH_CONFIG_HOME': str(run / 'profile'),
++                                      'ARC_LEDGER_CONCERN': str(run / 'Concern')})
++        env.start();self.addCleanup(env.stop);os.environ.pop('ARC_LEDGER_XSESSION', None)
++        for hold in (patch.object(clip, '_request', side_effect=AssertionError('No provider request')), patch.object(Kernel, 'launch', side_effect=AssertionError('No worker launch')),
++                     patch.object(Kernel, 'submit', side_effect=AssertionError('No job submission')), patch.object(session_power, 'system', side_effect=OSError('no login session (held)')),
++                     patch.object(QMessageBox, 'question', return_value=QMessageBox.No)):
++            hold.start();self.addCleanup(hold.stop)
++        self.app = make_app([]);self.root = locations.office(run / 'workspace');self.path = run / 'profile' / 'session.json'
++
++    def settle(self, w, ms=30):
++        from PySide6.QtTest import QTest
++        for name in ('agenda_runner', 'study_idle', 'ledger_bridge'):
++            timer = getattr(getattr(w, name, None), 'timer', None)
++            if timer is not None:timer.stop()
++        try:w.type_bar.hatch.lifecycle.timer.stop()
++        except AttributeError:pass
++        for _ in range(3):self.app.processEvents();QTest.qWait(ms)
++
++    def align(self, w):
++        for _ in range(3):w.type_bar.align();self.settle(w)
++
++    def start(self):
++        from workbench.qt_app import WorkbenchWindow
++        w = WorkbenchWindow(self.root, Session(self.path, self.root), restore=False);platform.processor()
++        w.resize(1920, 1200);w.show();self.settle(w, 60);self.align(w)
++        def close():
++            w.close();self.settle(w);w.deleteLater();self.app.processEvents()
++        self.addCleanup(close);return w
++
++    def interface_size(self, w, points):
++        from workbench import ledger_control
++        from workbench.engineering_kernel import operator
++        row = next(r for r in ledger_control.settings(w.ledger_bridge.kernel)['settings'] if r['key'] == 'reading.ui_pt')
++        response = w.ledger_bridge.kernel.dispatch('ledger.settings.set', dict(key='reading.ui_pt', value=float(points), expected_revision=row['revision']), operator())
++        self.assertTrue(response['ok'], response);w.ledger_bridge.sync_profile(force=True);self.settle(w);self.align(w)
++
++    def panes(self, w):return [w.nav_dock.width(), w.sim_dock.width()]
++
++    def test_both_panes_come_back_to_their_width_from_28_pt(self):
++        w = self.start();fresh = self.panes(w);least = [w.left_pane.minimumSizeHint().width(), w.right_pane.minimumSizeHint().width()]
++        self.assertEqual(fresh[0], fresh[1]);self.assertEqual(fresh[0], w.desk.pane)
++        self.interface_size(w, 28);wide = self.panes(w)
++        self.assertEqual(wide[0], wide[1]);self.assertGreater(wide[0], fresh[0], 'at 28 pt both panes are wider')
++        self.interface_size(w, 14)
++        self.assertEqual(self.panes(w), fresh, 'back at 14 pt both panes are as a fresh window has them')      # 0.8.3: 415 where fresh is 326
++        self.assertEqual([w.left_pane.minimumSizeHint().width(), w.right_pane.minimumSizeHint().width()], least, 'and each pane needs what it needed')
++
++
++if __name__ == '__main__':
++    unittest.main()
 diff --git a/tests_integrated/test_release_check.py b/tests_integrated/test_release_check.py
-index bad387f..d0cc50a 100644
+index bad387f..500ef91 100644
 --- a/tests_integrated/test_release_check.py
 +++ b/tests_integrated/test_release_check.py
-@@ -261,12 +261,37 @@ class UiGate(unittest.TestCase):
+@@ -259,27 +259,57 @@ HOLDS={'Kernel.launch':re.compile(r"patch\.object\(\s*Kernel\s*,\s*'launch'\s*,\
+ class UiGate(unittest.TestCase):
+     def test_every_qt_check_is_in_the_gate_or_on_demand_and_holds_the_three_calls(self):
          checks={'tools/'+path.name for path in (ROOT/'tools').glob('check_*_ui.py')}
-         self.assertEqual(checks-set(checker.UI_CHECKS)-set(checker.ON_DEMAND_CHECKS),set(),'a Qt check nothing names')
-         self.assertEqual(set(checker.UI_CHECKS)-checks,set());self.assertFalse(set(checker.UI_CHECKS)&set(checker.ON_DEMAND_CHECKS))
+-        self.assertEqual(checks-set(checker.UI_CHECKS)-set(checker.ON_DEMAND_CHECKS),set(),'a Qt check nothing names')
+-        self.assertEqual(set(checker.UI_CHECKS)-checks,set());self.assertFalse(set(checker.UI_CHECKS)&set(checker.ON_DEMAND_CHECKS))
 -        for name in ('finder','head','agent','document','graphite','rename','frame','hatch','paper','machine'):self.assertIn('tools/check_'+name+'_ui.py',checker.UI_CHECKS)
++        asked={name.split()[0] for name in checker.ON_DEMAND_CHECKS}  # an on-demand entry may carry its arguments
++        self.assertEqual(checks-set(checker.UI_CHECKS)-asked,set(),'a Qt check nothing names')
++        self.assertEqual(set(checker.UI_CHECKS)-checks,set());self.assertFalse(set(checker.UI_CHECKS)&asked)
 +        for name in ('finder','agent','document','machine','context_menu'):self.assertIn('tools/check_'+name+'_ui.py',checker.UI_CHECKS)
          for script in sorted(checks):
              text=(ROOT/script).read_text()
@@ -369,7 +502,7 @@ index bad387f..d0cc50a 100644
              self.assertEqual(missing,[],script+' does not hold '+', '.join(missing))
  
 +    def test_every_window_check_has_a_home_and_every_listed_name_is_there(self):
-+        """0.8.4: by 0.8.3 ten checks of the gate failed and twelve stood outside it, where nine had gone stale unseen. A window
++        """0.8.4: by 0.8.3 ten checks of the gate failed and twelve stood outside it, where ten had gone stale unseen. A window
 +        check is in the gate or on demand with its one line of reason, never in neither; a list names only what is there; and
 +        nothing in the program, its tests or its tools still names a window check that has been retired."""
 +        clean={'unlisted':[],'listed_twice':[],'missing':[],'unexplained':[]}
@@ -381,6 +514,8 @@ index bad387f..d0cc50a 100644
 +                'python -m workbench.lab_checks':'needs KiCad'};captures={'tools/check_one_ui.py':'ONE_DIR','tools/check_two_ui.py':'TWO_DIR'}
 +            self.assertEqual(checker.ui_check_lists(root,gate,on_demand,captures),{**clean,'unlisted':['tools/check_stray_ui.py']})
 +            (root/'tools/check_stray_ui.py').unlink();self.assertEqual(checker.ui_check_lists(root,gate,on_demand,captures),clean)
++            with_arguments={'tools/check_two_ui.py --live' if name=='tools/check_two_ui.py' else name:reason for name,reason in on_demand.items()}
++            self.assertEqual(checker.ui_check_lists(root,gate,with_arguments,captures),clean,'an entry\'s arguments are not part of its file')
 +            found=checker.ui_check_lists(root,gate+('tools/check_gone_ui.py',),{**on_demand,'tools/check_one_ui.py':'','python -m workbench.no_checks':'two\nlines'},
 +                {**captures,'tools/check_old_ui.py':'OLD_DIR'})
 +            self.assertEqual(found,{'unlisted':[],'listed_twice':['tools/check_one_ui.py'],
@@ -396,8 +531,12 @@ index bad387f..d0cc50a 100644
      def test_every_check_writes_its_captures_where_the_gate_says(self):
          for script,variable in checker.UI_CAPTURE_ENV.items():
              self.assertTrue((ROOT/script).is_file(),script);self.assertIn("os.environ.get('"+variable+"'",(ROOT/script).read_text(),script)
-@@ -276,10 +301,10 @@ class UiGate(unittest.TestCase):
+         self.assertTrue(set(checker.UI_CHECKS)<=set(checker.UI_CAPTURE_ENV))
+         for script in checker.UI_CHECKS:self.assertNotRegex((ROOT/script).read_text(),r"build/(?:desktop|workshop|agent|integration)0\d_ui",script)
+-        seen=[];before=dict(os.environ)
++        seen=[];before=dict(os.environ);runs=[]
          def runner(command,timeout,json_output,env):
++            run=Path(tempfile.mkdtemp(prefix='a-check-',dir=env['TMPDIR']));(run/'profile').mkdir();runs.append(run)  # as each check makes its run folder
              seen.append((command[0],env.get(checker.UI_CAPTURE_ENV[command[0]])));return {'state':'PASSED','checks':['a','b'],'captures':[{'file':'x.png'}]}
          with tempfile.TemporaryDirectory() as temp:
 -            value=checker.ui_checks(scripts=('tools/check_frame_ui.py','tools/check_not_shipped_ui.py'),runner=runner,capture_root=Path(temp)/'rerun')
@@ -406,6 +545,7 @@ index bad387f..d0cc50a 100644
 -        self.assertEqual(value['scripts']['tools/check_frame_ui.py']['capture_variable'],'ARC_LEDGER_FRAME_CAPTURE_DIR')
 +            value=checker.ui_checks(scripts=('tools/check_finder_ui.py','tools/check_not_shipped_ui.py'),runner=runner,capture_root=Path(temp)/'rerun')
 +            self.assertEqual(seen,[('tools/check_finder_ui.py',str(Path(temp)/'rerun/check_finder_ui'))])
++        self.assertEqual(len(runs),1);self.assertFalse(runs[0].exists(),'a check\'s run folder goes when the check ends')      # 0.8.4: they were left in /tmp
 +        self.assertEqual((value['state'],value['absent'],value['scripts']['tools/check_finder_ui.py']['checks']),('FAILED',['tools/check_not_shipped_ui.py'],2))
 +        self.assertEqual(value['scripts']['tools/check_finder_ui.py']['capture_variable'],'ARC_LEDGER_FINDER_CAPTURE_DIR')
          self.assertEqual(dict(os.environ),before)  # each child gets its own environment; this process's is untouched
@@ -444,10 +584,10 @@ index 5394e75..7100f72 100644
          from PySide6.QtTest import QTest
 diff --git a/tests_integrated/test_whole_words.py b/tests_integrated/test_whole_words.py
 new file mode 100644
-index 0000000..3ec6a87
+index 0000000..9e08cf9
 --- /dev/null
 +++ b/tests_integrated/test_whole_words.py
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,101 @@
 +"""0.8.4: two words that were cut in the Kasandra look, found when the window checks were first run in it (19 November 2026).
 +
 +The look's typewriter letters are wider than Graphite's. Two places had been measured for Graphite's face only:
@@ -460,10 +600,12 @@ index 0000000..3ec6a87
 +   (33 letters, on the laptop's screen) was wider than its card and was cut. Now a run longer than 18 characters has a break
 +   point every 18, as the right pane's words and a line's slab already had (shell2.breakable_path): a long name folds.
 +
-+Bare widgets on an offscreen QApplication; tools/check_finder_ui.py asserts every word of the real window whole in both looks.
++Bare widgets on an offscreen QApplication (the List's own sizing, FinderPage.scale_columns, on a bare list); tools/check_finder_ui.py
++asserts every word of the real window whole in both looks.
 +"""
 +import os
 +import unittest
++from types import SimpleNamespace
 +
 +os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 +from PySide6.QtCore import QRect
@@ -500,6 +642,18 @@ index 0000000..3ec6a87
 +        self.assertGreater(need, words, 'the need counts what the style keeps round the title');self.assertEqual(width, need)
 +        tree.setColumnWidth(1, width);self.assertGreaterEqual(label_room(header, 1, header.sectionSize(1)), words)
 +
++    def test_the_list_gives_a_wide_title_what_it_needs_and_a_dragged_column_keeps_the_owners_width(self):
++        tree = self.listing(22);header = tree.header();header.setStretchLastSection(False)  # as the Finder's List
++        page = SimpleNamespace(scale=lambda:1.0, list=tree, dragged=set(), list_scale=None, list_widths={})
++        finder_qt.FinderPage.scale_columns(page);need = finder_qt.title_need(header, 1)
++        self.assertGreater(need, finder_qt.LIST_WIDTHS[1], 'these letters need more than the 14 pt width')
++        self.assertGreaterEqual(tree.columnWidth(1), need, 'the List gives Date Modified what its title needs')      # 0.8.3: 120, the title cut
++        self.assertEqual(page.list_widths[1], tree.columnWidth(1));self.assertGreaterEqual(label_room(header, 1, header.sectionSize(1)), header.fontMetrics().horizontalAdvance('Date Modified'))
++        tree.setColumnWidth(3, 77);page.list_widths[3] = 77;page.dragged.add(3)
++        font = QFont(header.font());font.setPixelSize(26);header.setFont(font);finder_qt.FinderPage.scale_columns(page)
++        self.assertGreaterEqual(tree.columnWidth(1), finder_qt.title_need(header, 1), 'a new face: the need is measured again')
++        self.assertEqual(tree.columnWidth(3), 77, 'a column the owner dragged keeps the owner\'s width')
++
 +    def test_a_title_that_fits_leaves_the_width_as_it_was(self):
 +        tree = self.listing(11);header = tree.header()
 +        for column, width in finder_qt.LIST_WIDTHS.items():
@@ -516,19 +670,19 @@ index 0000000..3ec6a87
 +
 +    def test_a_long_name_has_a_break_point_every_eighteen_characters_and_the_words_are_unchanged(self):
 +        shown = shell2.breakable_path(self.WORDS)
-+        self.assertEqual(shown.replace('​', ''), self.WORDS, 'only break points are added')
-+        self.assertLessEqual(max(len(piece) for words in shown.split() for piece in words.split('​')), 18)
-+        self.assertIn('/​workspace/​Ingress.', shown, 'a path still breaks after each /')
++        self.assertEqual(shown.replace('\u200b', ''), self.WORDS, 'only break points are added')
++        self.assertLessEqual(max(len(piece) for words in shown.split() for piece in words.split('\u200b')), 18)
++        self.assertIn('/\u200bworkspace/\u200bIngress.', shown, 'a path still breaks after each /')
 +        self.assertEqual(shell2.breakable_path('Nothing is waiting for you.'), 'Nothing is waiting for you.', 'short words are left alone')
 +        self.assertEqual(len(self.LONG), 33)
 +
 +    def test_a_cards_line_folds_a_long_folder_name_instead_of_needing_its_whole_width(self):
 +        card = shell2.Card('Arrived');self.addCleanup(card.deleteLater);card.line(self.WORDS);card.line('gate posts.md', right='Survey/' + self.LONG + '/north field')
-+        labels = [label for label in card.findChildren(QLabel) if self.LONG in label.text().replace('​', '')]
++        labels = [label for label in card.findChildren(QLabel) if self.LONG in label.text().replace('\u200b', '')]
 +        self.assertEqual(len(labels), 2, 'the line and the note beside a line')
 +        for label in labels:
 +            self.assertTrue(label.wordWrap());whole = label.fontMetrics().horizontalAdvance(self.LONG)
-+            pieces = [piece for words in label.text().split() for piece in words.split('​')]
++            pieces = [piece for words in label.text().split() for piece in words.split('\u200b')]
 +            self.assertLess(max(label.fontMetrics().horizontalAdvance(piece) for piece in pieces), whole, 'no piece between break points is the whole name')      # 0.8.3: the name was one piece
 +            self.assertLess(label.minimumSizeHint().width(), whole, 'the least width of the line is under the whole name: it folds')
 +
@@ -1843,10 +1997,24 @@ index 798765a..b5fc3b8 100644
  shortcuts={key:[s.toString() for s in action.shortcuts()] for key,action in favorites.items()}
  menus2.rebuild(w);menus2.rebuild(w);settle()
 diff --git a/tools/check_finder_ui.py b/tools/check_finder_ui.py
-index 7b3c25a..e57bd45 100644
+index 7b3c25a..e5c4e71 100644
 --- a/tools/check_finder_ui.py
 +++ b/tools/check_finder_ui.py
-@@ -219,6 +219,7 @@ check('10 With the editor open a storage row changed nothing in the centre; Home
+@@ -13,7 +13,12 @@ room the style gives them; outside the head and the centre only ui_fit.PENDING,
+ nothing in the centre scrolls sideways (the Columns view and a text preview's lines do by design) at 1920×1200, 1366×768
+ and 18 pt; under its width the toolbar folds Hidden, Places, Preview, then the views into ⋯, whose rows still work; the List
+ folds Kind, Date Modified, Size, and its widths grow with the interface; a deep path folds its leading folders into … and a
+-last folder too long for the foot elides in the middle; Today's Continue row keeps a deep document's name whole. Disposable
++last folder too long for the foot elides in the middle; Today's Continue row keeps a deep document's name whole. Kept from
++the desk's and the frame's window checks, retired in 0.8.4 (docs/WINDOW_CHECKS.md): at every window width from the least to
++1400 px, at 14 and 18 pt, the head's menu words fold into ⋯ before they clip (13); full screen and back keeps both panes, both
++panes are one width at 14, 16, 18, 20 and 28 pt and come back to their width at 14 pt with no ratchet, a drag of either
++edge moves both and outlasts a change of size, and Settings' Left column width applies to both (14); Line, Half and Tall grow
++the working area while the bands and the panes keep their measure (15). Disposable
+ profile and Concern; Kernel.launch, Kernel.submit and the provider request are held; no process may start; nothing on
+ disk is changed by the Finder. Nothing here is owner-host, live-model or physical acceptance.
+ """
+@@ -219,6 +224,7 @@ check('10 With the editor open a storage row changed nothing in the centre; Home
  w.session.state['recent']=[str((DEEP/'gate posts.md').relative_to(root))]
  page.go(TODAY);settle();continue_whole('1920 Today');page.go(str(DEMO));page.set_view('list');settle()
  wide=whole('1920 List');assert not wide['folded'] and not wide['list_hidden'] and page.more_button.isHidden(),wide
@@ -1854,7 +2022,7 @@ index 7b3c25a..e57bd45 100644
  w.resize(1366,768);settle(60);align();page.go(str(DEMO));page.set_view('list');settle();assert five_parts() and page.list.isVisible() and page.preview.isVisible()
  compact=whole('1366 List');assert compact['folded'] and page.more_button.isVisible() and page.more_button.toolTip().startswith('More: '),compact
  assert all(not b.isVisible() for key in compact['folded'] for b in {'hidden':[page.hidden_button],'preview':[page.preview_button],'places':[page.places_button],'views':list(page.view_buttons.values())}[key])
-@@ -242,12 +243,74 @@ capture('Ledger_Slate_GRAPHITE_01_Finder_08_Deep_Path_18pt_1366.png','18 pt at 1
+@@ -242,12 +248,79 @@ capture('Ledger_Slate_GRAPHITE_01_Finder_08_Deep_Path_18pt_1366.png','18 pt at 1
  page.go(TODAY);settle();continue_whole('1366 18pt Today');page.today.scroller.ensureWidgetVisible(page.today.continue_);settle();capture('Ledger_Slate_GRAPHITE_01_Finder_09_Today_18pt_1366.png','Today at 18 pt and 1366 by 768: one column of cards, nothing sideways, every word whole; the Continue row keeps the name gate posts.md whole beside its five folders, which wrap')
  w.resize(1920,1200);settle(60);align();page.go(str(DEMO));page.set_view('list');settle()
  wide18=whole('1920 18pt List');wide18['date_width']=page.list.columnWidth(1)
@@ -1908,9 +2076,14 @@ index 7b3c25a..e57bd45 100644
 +def set_pane(value):
 + call('ledger.settings.set',{'key':'layout.navigator_width','value':value,'expected_revision':pane_setting()['revision']});bridge.sync_profile(force=True);settle(40);align();bridge.tick();settle()
 +start_panes=panes();assert start_panes[0]==start_panes[1]==w.desk.pane and bar.pane_owner is None,(start_panes,w.desk.pane,bar.pane_owner)
++w.toggle_fullscreen();settle(60);assert w.isFullScreen() and five_parts(),'full screen keeps the five parts'
++w.toggle_fullscreen();settle(80);w.resize(1920,1200);settle(60);align(3);assert not w.isFullScreen() and five_parts() and panes()==start_panes,('full screen and back did not keep the panes',panes(),start_panes)
 +sizes={14:start_panes[0]}
 +for points in (16,18,20):
 + ui_pt(points);assert panes()[0]==panes()[1]==w.desk.pane>sizes[max(sizes)],(points,panes(),w.desk.pane,sizes);sizes[points]=panes()[0];assert five_parts(),points
++# and 28 pt, as the frame's check went (there the workspace's floor holds both panes in, so they may be narrower than at 20 pt):
++# at 0.8.3 a face out of sight kept the width 28 pt gave it, and both panes came back 415 px wide, not 326 (pane_qt.remeasure)
++ui_pt(28);assert panes()[0]==panes()[1]==w.desk.pane>start_panes[0] and five_parts(),(28,panes(),w.desk.pane,sizes);sizes[28]=panes()[0]
 +ui_pt(14);align(3);assert panes()==start_panes,('the panes did not come back from the larger sizes',panes(),start_panes)
 +give=120;drag(w.nav_dock,give);wider=panes();assert wider==[start_panes[0]+give]*2 and bar.pane_owner==wider[0],(wider,start_panes,bar.pane_owner)  # the left edge moved both
 +drag(w.sim_dock,give//3);owner=panes();assert owner==[wider[0]-give//3]*2 and bar.pane_owner==owner[0],(owner,wider,bar.pane_owner)  # the right edge moved both, the other way
@@ -1918,7 +2091,7 @@ index 7b3c25a..e57bd45 100644
 +drag(w.sim_dock,owner[1]);narrow=panes();assert narrow[0]==narrow[1]<=start_panes[0] and five_parts(),(narrow,start_panes)  # dragged as far in as it goes, both stop at what their words need
 +set_pane(420);readback=pane_setting();assert readback['stored']==readback['effective']==420 and readback['application_state']=='APPLIED' and panes()==[420,420],({key:readback[key] for key in ('stored','effective','application_state')},panes())
 +fits['panes']=dict(by_size=sizes,dragged=[wider[0],owner[0]],narrowest=narrow[0],setting=420)
-+check('14 Both panes are one width at 14, 16, 18 and 20 pt (%s px) and come back to %d; a drag of the left pane\'s edge by %d px widened both to %d and of the right pane\'s edge narrowed both to %d, which outlasts a change of size; dragged all the way in, both stop together at what their words need (%d); Settings\' Left column width set to 420 reads back APPLIED on both'%(', '.join(str(sizes[p]) for p in sorted(sizes)),start_panes[0],give,wider[0],owner[0],narrow[0]))
++check('14 Full screen and back keeps both panes; both panes are one width at 14, 16, 18, 20 and 28 pt (%s px) and come back to %d; a drag of the left pane\'s edge by %d px widened both to %d and of the right pane\'s edge narrowed both to %d, which outlasts a change of size; dragged all the way in, both stop together at what their words need (%d); Settings\' Left column width set to 420 reads back APPLIED on both'%(', '.join(str(sizes[p]) for p in sorted(sizes)),start_panes[0],give,wider[0],owner[0],narrow[0]))
 +# 15 · Line, Half and Tall: the working area above the lower band grows, and the band and the panes keep their measure (kept from
 +# the mirrored desk's window check, retired in 0.8.4)
 +console=w.console;heights={};bands={}
@@ -2537,20 +2710,30 @@ index f0d1046..0000000
 -print(json.dumps(dict(state=result['state'],checks=len(checks),captures=len(captures)),ensure_ascii=False),flush=True)
 -for guard in (question,detached,system,popen,submission,launcher,provider):guard.stop()
 diff --git a/tools/check_hatch.py b/tools/check_hatch.py
-index 2df02e9..d3d55aa 100644
+index 2df02e9..2de2117 100644
 --- a/tools/check_hatch.py
 +++ b/tools/check_hatch.py
-@@ -43,6 +43,9 @@ FOCUSED_MODULES=(
+@@ -17,7 +17,7 @@ Sections, each with its own state:
+ No job, model, provider or native activity. Nothing is written unless --output is given or --ui is passed. A passing check is
+ integrity, not readiness or acceptance.
+ """
+-import argparse,hashlib,json,os,re,subprocess,sys
++import argparse,hashlib,json,os,re,subprocess,sys,tempfile
+ from pathlib import Path, PurePosixPath
+ from zipfile import BadZipFile, ZipFile
+ 
+@@ -43,6 +43,10 @@ FOCUSED_MODULES=(
   'test_desk','test_frame','test_paper','test_machine','test_documents','test_graphite','test_writing_line','test_context_menu',
   # 0.4.9 and 0.5: the drawn glyphs, a tool's face (words or a glyph), Find in what is open, a page in the desk's light
   'test_faces_find_light',
 + # 0.8.4 (the window checks): a control is lit only when a press would do something (the menu toggle that wrote a setting nothing
-+ # reads is gone); two words that were cut in the Kasandra look's wider letters (a List column's title, a long folder name on a card)
-+ 'test_lit_controls','test_whole_words',
++ # reads is gone); two words that were cut in the Kasandra look's wider letters (a List column's title, a long folder name on a card);
++# both panes back to their width after a larger interface size
++ 'test_lit_controls','test_whole_words','test_pane_width',
   # 0.6: Stacy's hand: the dial, what always asks, what takes an act back, her trail
   'test_stacy_hand',
   # 0.6.1: the first journey: a starting project in another program (Godot)
-@@ -79,36 +82,35 @@ FOCUSED_MODULES=(
+@@ -79,36 +83,35 @@ FOCUSED_MODULES=(
  # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
  ON_DEMAND_MODULES={
   'test_exact_math_solvers':'the SymPy and Z3 solvers in a child worker; needs requirements-math.txt'}
@@ -2559,13 +2742,13 @@ index 2df02e9..d3d55aa 100644
 - 'tools/check_finder_ui.py','tools/check_paper_ui.py','tools/check_machine_ui.py','tools/check_document_ui.py','tools/check_agent_ui.py',
 +# The UI gate: offscreen Qt checks that hold Kernel.launch, Kernel.submit and clip._request and start nothing. Every
 +# tools/check_*_ui.py is named here or in ON_DEMAND_CHECKS with its reason (ui_check_lists below; tests_integrated/test_release_check.py
-+# UiGate): a window check that nothing runs goes stale unseen, as twelve had by 0.8.3. docs/WINDOW_CHECKS.md lists them all and
++# UiGate): a window check that nothing runs goes stale unseen, as ten of the twelve outside the gate had by 0.8.3. docs/WINDOW_CHECKS.md lists them all and
 +# says which were retired in 0.8.4 and why.
 +UI_CHECKS=('tools/check_context_menu_ui.py','tools/check_finder_ui.py','tools/check_machine_ui.py','tools/check_document_ui.py','tools/check_agent_ui.py',
   'tools/check_continue_ui.py','tools/check_model_turn_ui.py','tools/check_files_about_ui.py','tools/check_service_integration_ui.py',
 - 'tools/check_hardware_settings_ui.py')
 + 'tools/check_hardware_settings_ui.py',
-+ # 0.8.4: the twelve that stood outside the gate and had gone stale there. Ported, each passes in both looks in under a minute.
++ # 0.8.4: the twelve that stood outside the gate, ten of them failing there. Ported, each passes in both looks in under a minute.
 + 'tools/check_cabinet_ui.py','tools/check_cabinet_actions_ui.py','tools/check_explore_ui.py','tools/check_navigation_ui.py',
 + 'tools/check_operations_ui.py','tools/check_presentation_settings_ui.py','tools/check_return_thread_ui.py','tools/check_memory_cabinet_ui.py',
 + 'tools/check_memory_settings_ui.py','tools/check_model_settings_ui.py','tools/check_settings_ui.py','tools/check_settings_02_ui.py')
@@ -2602,7 +2785,7 @@ index 2df02e9..d3d55aa 100644
   'tools/check_continue_service.py':'the real Graphite service carrying work while the window is closed (starts the service)',
   'python -m workbench.database_checks':'Kernel database concurrency with two writer processes',
   'python -m workbench.adaptive_checks':'the investigation coordinator (--live runs named local weights)',
-@@ -333,6 +335,20 @@ def focused_tests(modules=FOCUSED_MODULES,runner=None,root=ROOT,timeout=600):
+@@ -333,6 +336,21 @@ def focused_tests(modules=FOCUSED_MODULES,runner=None,root=ROOT,timeout=600):
          'present':present,'absent':absent,'tests':tests,'failures':failures,'errors':errors,'on_demand':dict(ON_DEMAND_MODULES)}
  
  
@@ -2610,19 +2793,32 @@ index 2df02e9..d3d55aa 100644
 +    """Whether every window check has a home, and every listed name is there. The faults, each a sorted list (all empty: none):
 +    'unlisted', a tools/check_*_ui.py that neither the gate nor the on-demand list names; 'listed_twice', one in both; 'missing',
 +    a name in the gate, the on-demand list or the capture folders that is not a file of this tree (for 'python -m a.b', the
-+    module's file); 'unexplained', an on-demand entry without its one line."""
++    module's file; an entry's arguments aside); 'unexplained', an on-demand entry without its one line."""
 +    gate=UI_CHECKS if gate is None else gate;on_demand=ON_DEMAND_CHECKS if on_demand is None else on_demand
 +    captures=UI_CAPTURE_ENV if captures is None else captures;root=Path(root)
 +    shipped={'tools/'+path.name for path in (root/'tools').glob('check_*_ui.py')}
-+    def there(name):return (root/(name.split()[2].replace('.','/')+'.py' if name.startswith('python -m ') else name)).is_file()
-+    return {'unlisted':sorted(shipped-set(gate)-set(on_demand)),'listed_twice':sorted(set(gate)&set(on_demand)),
-+        'missing':sorted(name for name in {*gate,*on_demand,*captures} if not there(name)),
++    def file(name):return name.split()[2].replace('.','/')+'.py' if name.startswith('python -m ') else name.split()[0] if name.strip() else name  # its arguments aside
++    listed,asked={file(name) for name in gate},{file(name) for name in on_demand}
++    return {'unlisted':sorted(shipped-listed-asked),'listed_twice':sorted(listed&asked),
++        'missing':sorted(name for name in {*gate,*on_demand,*captures} if not (root/file(name)).is_file()),
 +        'unexplained':sorted(name for name,reason in on_demand.items() if not isinstance(reason,str) or not reason.strip() or '\n' in reason)}
 +
 +
  def ui_checks(scripts=UI_CHECKS,runner=None,root=ROOT,timeout=600,capture_root=None):
      """The UI gate, only when asked. Every check's capture folder variable points under capture_root (build/release_check_ui by default)."""
      capture_root=Path(capture_root) if capture_root else Path(root)/'build/release_check_ui'
+@@ -343,7 +361,10 @@ def ui_checks(scripts=UI_CHECKS,runner=None,root=ROOT,timeout=600,capture_root=N
+         if not (Path(root)/script).is_file():rows[script]={'state':'ABSENT'};continue
+         env=dict(os.environ);variable=UI_CAPTURE_ENV.get(script)
+         if variable:env[variable]=str(target)
+-        value=runner([script],timeout,True,env)
++        # 0.8.4: each check makes its profile and Concern in a folder of its own (tempfile.mkdtemp) and left it behind; under a
++        # temporary folder of the gate's, it goes when the check ends (its captures and report are under capture_root)
++        with tempfile.TemporaryDirectory(prefix='graphite-ui-check-',ignore_cleanup_errors=True) as scratch:
++            env['TMPDIR']=scratch;value=runner([script],timeout,True,env)
+         rows[script]={'state':value.get('state','FAILED'),'checks':len(value['checks']) if isinstance(value.get('checks'),list) else value.get('checks'),
+             'captures':[row.get('file',row) if isinstance(row,dict) else row for row in value['captures']] if isinstance(value.get('captures'),list) else None,
+             'capture_variable':variable,'capture_dir':str(target.relative_to(root)) if target.is_relative_to(root) else str(target),
 diff --git a/tools/check_hatch_ui.py b/tools/check_hatch_ui.py
 deleted file mode 100644
 index e4da4e3..0000000
@@ -4091,7 +4287,7 @@ index 994b0e7..a137734 100644
                '@new_idea': host.a_new_idea, '@new_project': host.a_new_project, '@field': host.a_field}
      placed = {service} if service is not None else set()
 diff --git a/workbench/pane_qt.py b/workbench/pane_qt.py
-index 9d489e1..7f7eeaf 100644
+index 9d489e1..6b6e271 100644
 --- a/workbench/pane_qt.py
 +++ b/workbench/pane_qt.py
 @@ -20,7 +20,7 @@ face's scrolled page (content_minimum), so no face is wider than its pane. The t
@@ -4103,6 +4299,32 @@ index 9d489e1..7f7eeaf 100644
  """
  from __future__ import annotations
  from . import desk_qt
+@@ -302,6 +302,16 @@ class PaneBody(QWidget):
+     def sizeHint(self):return self.minimumSizeHint()
+ 
+ 
++def remeasure(root):
++    """Measure again every layout under `root` whose widget is out of sight, the innermost first. Qt activates a layout when
++    its widget shows, not before, so a face out of sight through a change of interface size kept the least width its layout
++    gave it at the old size; the pane counts every face (content_minimum), so after 14, 28 and 14 pt both panes stayed as
++    wide as 28 pt had made them (415 px where a fresh window has 326; 0.8.4, the retired frame check's 'no ratchet')."""
++    for widget in reversed(root.findChildren(QWidget)):  # each widget after everything inside it
++        layout = widget.layout()
++        if layout is not None and not widget.isVisible():layout.invalidate();layout.activate()
++
++
+ # The trees ------------------------------------------------------------------------------------------------------------------
+ 
+ def next_visible(view, index):
+@@ -692,6 +702,8 @@ def place(host, d):
+         key = (need, I, gap, foot, trash.width())
+         pane.tabs.place(positions, I, tab_width, h, tab_underline, font, I, need);pane.inset = I;pane.gap = gap
+         if pane.foot.height() != foot:pane.foot.setFixedHeight(foot)
++        if getattr(pane, 'sized', None) != key:pane.sized = key;remeasure(pane.content)  # a new interface size: the faces out of sight too
++        key += (pane.minimumSizeHint().width(),)
+         if getattr(pane, 'measured', None) != key:  # the pane's least width changed: its layout item must ask again (a
+             pane.measured = key;pane.tabs.updateGeometry();pane.foot.updateGeometry();pane.updateGeometry()  # cached one kept a 28 pt need at 14 pt)
+     left.foot.slot = QRect(d.pane - I - trash.width(), gap, trash.width(), trash.height())
 diff --git a/workbench/programs_qt.py b/workbench/programs_qt.py
 index 53aa2cd..7d915c7 100644
 --- a/workbench/programs_qt.py
