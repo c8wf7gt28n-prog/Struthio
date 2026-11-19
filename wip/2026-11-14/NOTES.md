@@ -72,6 +72,20 @@ release-by-release plan is in `TALK_my_plans_long_chat.md`.
 `scratch_tools/` holds the orchestrator's probes, harnesses, kit cutter and test runner as they were (they expect the
 scratchpad paths of this session; adjust `S=` at their top).
 
+## Directions since the specification (19 Nov), not yet folded into it
+- **What the product is,** in the owner's words: "We're kinda working towards a half/full desktop environment in which the
+  Ai kasandra ... works alongside the user to enhance the users abilities to use all the installed programs. With a unique
+  feature in the 'field' bulletin board that likes all connected files. That's helpful in engineering, legal reasoning,
+  medicine, or just managing life and money". So: the desk is general, not engineering-only; the Field (a board that links
+  every connected file) is the unique feature and must be domain-neutral; helping with installed programs is the headline.
+- **One person:** "Just kas. Otherwise we have too many people." One agent, Kasandra (Kas for short), under one name in
+  every look. "Mara" is not a second person. Read as also retiring "Stacy" as the name shown in the Graphite look
+  (workbench/assistant_identity.py shows it there today); confirm with the owner before changing it.
+- **A handoff of ideas made elsewhere** (a third appearance "Colored Pencil" built as an overlay on 0.8.3, new figure art,
+  and a four-part amendment: the Field, the theme, a Character File, civil/medical/accounting casework) was brought on
+  19 Nov as "just ideas, even though they're presented with authority". It is being reviewed; nothing from it is installed
+  or committed. The owner likes the themed desktop.
+
 ## The specification to 1.0 (15 Nov)
 `SPEC_0.8.3_to_1.0.md` is the plan from here to 1.0 ("the Kasandra Protocol"): direction, the seven releases to 0.9.0 with
 what each builds and how it is proven, the six gates, P11-P20, what 1.0 means, the rules of the work, open decisions.
