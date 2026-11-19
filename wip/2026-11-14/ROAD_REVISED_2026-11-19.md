@@ -41,6 +41,24 @@ words behind every change are in `NOTES.md` under "Directions since the specific
 the owner's own draft, kept in the owner's workspace; the night shift, the time slider and shared receipts; her exam with
 hard cases from several fields, each with an easy everyday twin; then P11 to P20 as specified.
 
+## The builder's additions (19 Nov, at the owner's invitation)
+
+The owner: "use your own creativity to finish my vision and you add in your vision too. Make the desktop I've been
+dreaming about for 35 years." And earlier: "I could be a power user 30 years ago if I had a library of books and knew how
+to call upon them really quickly." These are mine, placed where they fit; the owner can strike any of them.
+
+1. **Show me how (with 0.8.7).** Whatever she does in a program is kept as a short lesson: the steps, named, in order.
+   The owner can replay it slowly, take over half way, or do it alone next time. Her help becomes the owner's skill.
+   That is the library of books, opened at the right page.
+2. **The version before (with 0.8.7).** Before she touches a file in another program, the desk keeps the version before,
+   so Undo always exists, even in programs that have none of their own.
+3. **Every file knows where it came from (begins with 0.8.7, full at P12).** A file made in any program appears on the
+   Field linked to what it was made from and what uses it. "Where did this come from?" always has an answer.
+4. **Her library on the shelf (with 0.8.9).** The manuals of the installed programs are kept on the machine and read like
+   any other source, so her answer comes with the page it rests on, and works offline. The web adds to it.
+5. **Projects that remember (after 0.9.0).** Opening a project brings back its programs, its files and its Field as they
+   were left. Picking up where you stopped takes one click.
+
 ## What this costs
 
 Two more releases before 0.9.0 (nine instead of seven). Each extra skin adds checking to every later pass that touches

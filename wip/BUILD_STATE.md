@@ -9,6 +9,11 @@ this file is newer.
 I want you to save your work so that way when my session times out ... you can just automatically resume ... and just
 continue going on your own until it's done. That way I don't have to wake up in the middle of the night to say continue."
 
+Later the same day: "I want you to use your own creativity to finish my vision and you add in your vision too. Make the
+desktop I've been dreaming about for 35 years." So: creative latitude inside the owner's vision. My own additions are
+listed in the revised road under "The builder's additions"; each is labelled as mine in the release notes so the owner
+can strike it. They never override an owner's direction or a rule below.
+
 - **The plan:** `wip/2026-11-14/ROAD_REVISED_2026-11-19.md` (the order of releases). Detail for each release:
   `wip/2026-11-14/SPEC_0.8.3_to_1.0.md` sections 8 to 15. Standing facts and the owner's directions:
   `wip/2026-11-14/NOTES.md`. The look: `wip/2026-11-14/mockup/CANON.md`.
@@ -113,5 +118,6 @@ steps above). Then steps 5, 7, 8, 9 and the release.
 
 ## Log (newest first)
 
+- 19 Nov 02:30 UTC: the owner gave creative latitude; the builder's additions written into the revised road.
 - 19 Nov 02:20 UTC: full suite green (1,005 tests, 0 failing); part A of 0.8.4 started as a workflow.
 - 19 Nov 02:12 UTC: mandate received; the wake-up scheduled; this file written; 0.8.4 step 1 applied and under test.
