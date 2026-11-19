@@ -81,7 +81,8 @@ scratchpad paths of this session; adjust `S=` at their top).
 - **0.8.3 HAS RUN ON THE THINKPAD** (the owner, 19 Nov): "I've used 0.8.3 for several days on the ThinkPad. I think it's
   beautiful and works wonderfully. I can't find any problems." This is the first real-machine evidence since 0.4.6, by
   the owner's use. Every "nothing later than 0.4.6 has run on the ThinkPad" in the spec and these notes is now out of
-  date. Still not known: which looks were used, whether the 35B answered there, and none of the measured numbers
+  date. No model has run there yet (the owner, 19 Nov: "I have not run a LLM yet. I will try to tonight"). Still not
+  known: which looks were used, and none of the measured numbers
   (the ThinkPad check does not exist yet), so no 0.9.0 gate is closed by this.
 - **Skins:** "there needed to be a daytime version ... a daytime Cassandra would be good. I also came up with some other
   themes ... the ability to switch the way the desktop kind of looks, or skinning the desktop, if you will, I think is a
