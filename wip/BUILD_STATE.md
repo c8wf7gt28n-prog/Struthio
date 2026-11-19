@@ -72,8 +72,8 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 
 ## 0.8.4 steps
 
-1. **The twenty stale tests: applied, commit 3f07341.** Full suite running on a copy (`$S/work/t084`, background task
-   `bg5w82bgx`); result not yet read. If scratch is gone, run the suite again.
+1. **DONE. The twenty stale tests fixed (commit 3f07341). Full suite on a copy, 19 Nov: 65 modules, 1,005 tests,
+   0 failing**, default look, in the container. The first green suite since the import.
 2. An invented workspace kept in the program (a 12 V rail: bench readings, two limit revisions, calculations, findings,
    an open question; invented numbers, the same shape as After Hours 07), and scene P01 able to run on it, so nothing
    needs the owner's backup. **Do this next: it protects every later step.**
@@ -90,6 +90,14 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 9. The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
 10. Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
 
+**Running now (started 19 Nov 02:16 UTC): workflow `graphite-084-part-a`, run id `wf_3b55597e-e8f`, task `w5vq3faag`.**
+It builds steps 2, 3, 4 and 6 (keys: fixture, faults, name, lines), each with an independent review and a fix pass, and
+leaves patches in scratch `work/b084/<key>.patch` (nothing is committed by it). When it reports: read each review, apply
+the patches to the main checkout one at a time (`git apply`), rebuild the seed, run the full suite on a copy
+(`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit each item, push. If scratch is gone and the patches
+with it, run the workflow again (its script is under `~/.claude/projects/.../workflows/scripts/`, or rewrite it from the
+steps above). Then steps 5, 7, 8, 9 and the release.
+
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
 - 19 Nov: "Just Kas" read as: the name shown is Kasandra in every look, the first look included. Stacy's portraits stay as
@@ -105,4 +113,5 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 
 ## Log (newest first)
 
+- 19 Nov 02:20 UTC: full suite green (1,005 tests, 0 failing); part A of 0.8.4 started as a workflow.
 - 19 Nov 02:12 UTC: mandate received; the wake-up scheduled; this file written; 0.8.4 step 1 applied and under test.
