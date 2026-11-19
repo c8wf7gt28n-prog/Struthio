@@ -78,6 +78,29 @@ scratchpad paths of this session; adjust `S=` at their top).
   feature in the 'field' bulletin board that likes all connected files. That's helpful in engineering, legal reasoning,
   medicine, or just managing life and money". So: the desk is general, not engineering-only; the Field (a board that links
   every connected file) is the unique feature and must be domain-neutral; helping with installed programs is the headline.
+- **0.8.3 HAS RUN ON THE THINKPAD** (the owner, 19 Nov): "I've used 0.8.3 for several days on the ThinkPad. I think it's
+  beautiful and works wonderfully. I can't find any problems." This is the first real-machine evidence since 0.4.6, by
+  the owner's use. Every "nothing later than 0.4.6 has run on the ThinkPad" in the spec and these notes is now out of
+  date. Still not known: which looks were used, whether the 35B answered there, and none of the measured numbers
+  (the ThinkPad check does not exist yet), so no 0.9.0 gate is closed by this.
+- **Skins:** "there needed to be a daytime version ... a daytime Cassandra would be good. I also came up with some other
+  themes ... the ability to switch the way the desktop kind of looks, or skinning the desktop, if you will, I think is a
+  good idea." The owner calls today's looks "the Stacy or Amber theme" and the Kasandra after-hours theme. So looks
+  become skins the owner switches between; a day look of Kas is the first new one; more are coming.
+- **She takes control of programs:** "my idea of her controlling a program would actually be taking control of it ...
+  kind of like how a remote user is able to control your desktop, and you actually watch the remote control session play
+  out on screen ... she's able to remote in to my programs as I'm using them. If I don't know how to do a certain thing in
+  GIMP, I want her to be able to help me. Or if I need help starting a project in Godot, she can get it started for me ...
+  I want her to be able to use the computer the same way I do." So: real control of other programs' windows, visible to
+  the owner, for help and for teaching. Our plan (P11) had only "programs that speak kp's acts can be driven; the rest
+  open and she watches their files"; this is more.
+- **The reference library:** "I dream of using the computer in a way that I fantasized about for 30 years ... being able
+  to do just about anything on the computer because I have the programs available, obviously, free and open, but also
+  because I have a reference library that instantly knows everything. That would be the AI ... and then she can take
+  control of my mouse and do stuff."
+- **Who it is for:** "I think that this program is for me, but if it's really good, I'd sure like to share it for free."
+- **Her character:** the owner likes the handoff's three references (Marie Curie, Elizabeth II, Eleanor Roosevelt):
+  "a good way for her to think and present herself, as a combination of all three."
 - **Why the hard domains:** "I figured if she can do hard things like engineering and civil legal research and reasoning,
   she will also be a great agent for my basic needs as well :)". So the hard cases are her exam, and everyday needs are
   the daily use. Test the everyday versions directly too (the handoff's "easy twin" of each hard case).
