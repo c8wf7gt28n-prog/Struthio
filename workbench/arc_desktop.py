@@ -446,7 +446,7 @@ def install(host):
     writing_prompt(host.tree_search, 'Search ARC…')
     host.tree_search.setClearButtonEnabled(True)
     host.tree_search.setAccessibleName('Search the project tree; press Enter to search everything')
-    host.tree_search.setToolTip('Type to filter the tree · Enter searches components, nets, files, commands and jobs (Ctrl+Shift+P)')
+    host.tree_search.setToolTip('Type to filter the tree · the search button beside it searches components, nets, files, commands and jobs')
     host.tree_search.textChanged.connect(lambda text: filter_tree(host, text))
     host.tree_search.returnPressed.connect(lambda: host.command_palette(host.tree_search.text()))
     search_row.addWidget(host.tree_search, 1)
@@ -455,7 +455,7 @@ def install(host):
     host.global_search.setMinimumHeight(30)
     host.global_search.removeAction(host.a_palette)  # the icon searches with the typed text
     host.global_search.setIcon(host.nav_icon('search'))
-    host.global_search.setToolTip('Search everything · Ctrl+Shift+P\nFind a file · Ctrl+P')
+    host.global_search.setToolTip('Search everything, or find a file')
     host.global_search.setAccessibleName('Search everything')
     host.global_search.clicked.connect(lambda: host.command_palette(host.tree_search.text()))
     search_row.addWidget(host.global_search)

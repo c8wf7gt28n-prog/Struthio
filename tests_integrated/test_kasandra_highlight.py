@@ -195,13 +195,259 @@ class NeonLogo(unittest.TestCase):
         soft, bright, neon = self.light(1.0)[0], self.light(1.9)[0], self.light(3.0)[0]
         self.assertGreater(soft, 0);self.assertGreater(bright, soft);self.assertGreater(neon, bright)
         self.assertGreater(self.light(3.0, surge=1.0)[0], neon, 'it surges as it catches')
-        w, c, g = kp_logo.strengths(3.0);self.assertAlmostEqual(w, 3 * kp_logo.WIDE);self.assertAlmostEqual(c, 3 * kp_logo.CLOSE);self.assertAlmostEqual(g, 3 * kp_logo.GHOST)
+        w, c, g = kp_logo.strengths(3.0);self.assertAlmostEqual(w, 3 * kp_logo.WIDE);self.assertAlmostEqual(c, 3 * kp_logo.CLOSE);self.assertAlmostEqual(g, min(kp_logo.GHOST_SETTLED, 3 * kp_logo.GHOST))
         self.assertEqual((kp_logo.size().width(), kp_logo.size().height()), (74, 44))
+
+    def ghost_light(self, level):
+        """The light the two ghosts alone lay beside the drawing at Glow `level`: the logo drawn on her band with them, less
+        the logo drawn without them, summed over the picture."""
+        from unittest.mock import patch
+        from PySide6.QtCore import QRectF
+        from PySide6.QtGui import QColor, QImage, QPainter
+        from workbench import kp_logo
+        def drawn():
+            image = QImage(110, 70, QImage.Format_ARGB32_Premultiplied);image.fill(QColor('#141734'))
+            p = QPainter(image);kp_logo.paint(p, QRectF(18, 13, 74, 44), kp_logo.logo(ROOT), level, 1.0, 0.0);p.end();return image
+        whole = drawn()
+        with patch.object(kp_logo, 'GHOSTS', ()):bare = drawn()
+        total = 0
+        for y in range(70):
+            for x in range(110):
+                a, b = whole.pixelColor(x, y), bare.pixelColor(x, y);total += max(0, a.red() - b.red()) + max(0, a.green() - b.green()) + max(0, a.blue() - b.blue())
+        return total
+
+    def test_settled_its_ghosts_leave_its_thin_strokes_single_and_the_catch_keeps_its_spread(self):
+        # 0.8.4. The review of 0.8.3: at Neon the ghosts (1.5 px away, 0.48) doubled the thin strokes; its edges a fifth softer.
+        from unittest.mock import patch
+        from workbench import kp_logo
+        self.assertEqual(kp_logo.away(), 1.0);self.assertAlmostEqual(kp_logo.away(1.0, 1.0), 3.9, msg='caught, they spread as far as they did (1.5 x 2.6)')
+        self.assertAlmostEqual(kp_logo.away(2.0), 2.0, msg='with the interface scale')
+        self.assertAlmostEqual(kp_logo.strengths(1.0)[2], 0.16, msg='Soft: as it was');self.assertAlmostEqual(kp_logo.strengths(3.0)[2], 0.3, msg='Neon, settled: 0.48 in 0.8.3')
+        self.assertAlmostEqual(kp_logo.strengths(3.0, 1.0)[2], 0.75, msg='caught, they surge as they did')
+        self.assertGreater(kp_logo.strengths(3.0, 0.5)[2], kp_logo.strengths(3.0)[2])
+        neon = self.ghost_light(3.0);self.assertGreater(neon, 0, 'they are still there');self.assertEqual(self.ghost_light(0.0), 0)
+        with patch.multiple(kp_logo, GHOST_AWAY=1.5, GHOST_SETTLED=0.48, SPREAD=2.6):before = self.ghost_light(3.0)      # as 0.8.3 drew them
+        self.assertLess(neon, 0.6 * before, 'beside its strokes the ghosts lay less than six tenths of the light they did at Neon: %s of %s' % (neon, before))
+
+    def test_the_drawing_is_kept_small_and_is_the_same_drawing(self):
+        # 0.8.4: the file is 1401 x 838, 4.7 MB decoded, for a button 74 x 44. One copy eight times the button's size is kept.
+        from PySide6.QtCore import Qt
+        from PySide6.QtGui import QImage
+        from workbench import kp_logo
+        kept = kp_logo.logo(ROOT);self.assertEqual((kept.width(), kept.height()), (588, 352));self.assertLess(kept.sizeInBytes(), 900_000)
+        self.assertEqual(kp_logo.logo(ROOT).cacheKey(), kept.cacheKey(), 'decoded once')
+        whole = QImage(str(PACK / kp_logo.NAME)).convertToFormat(QImage.Format_ARGB32_Premultiplied);self.assertGreater(whole.sizeInBytes(), 4_000_000)
+        a, b = (i.scaled(74, 44, Qt.IgnoreAspectRatio, Qt.SmoothTransformation) for i in (kept, whole));apart = 0
+        for y in range(44):
+            for x in range(74):
+                p, q = a.pixelColor(x, y), b.pixelColor(x, y);apart += abs(p.red() - q.red()) + abs(p.green() - q.green()) + abs(p.blue() - q.blue()) + abs(p.alpha() - q.alpha())
+        self.assertLess(apart / (74 * 44 * 4), 2.0, 'at its size in the head it is the file\'s drawing, to within two levels in 255 on average')
 
     def test_its_ghosts_are_cyan_left_and_magenta_right(self):
         from workbench import kp_logo
         colours = dict((side, colour) for colour, side in kp_logo.GHOSTS)
         self.assertLess(abs(hue(colours[-1.0]) - 191), 15, 'cyan to the left');self.assertTrue(290 <= hue(colours[1.0]) <= 330, 'magenta to the right')
+
+
+MARK = 'KASANDRA HIGHLIGHT '
+
+# One child for the small things of 0.8.4, in the look chosen for it: what each draws or says there.
+PROBE = r'''
+import colorsys, json, re
+from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
+from PySide6.QtWidgets import QApplication
+app = QApplication([])
+from workbench import boss_theme as b, chain_icons, datasheet_qt, document_qt, pointer, sheet_workbench_qt
+out = dict(look=b.APPEARANCE)
+def green(image):
+    n = 0
+    for y in range(image.height()):
+        for x in range(image.width()):
+            c = image.pixelColor(x, y);h, l, s = colorsys.rgb_to_hls(c.redF(), c.greenF(), c.blueF())
+            n += s >= 0.25 and 70 <= h * 360 <= 170
+    return n
+def over(pixmap, ground):
+    image = QImage(pixmap.size(), QImage.Format_RGB32);image.fill(QColor(ground));p = QPainter(image);p.drawPixmap(0, 0, pixmap);p.end();return image
+def pointers():
+    counts = {}
+    for level in (1.0, 1.9, 3.0):
+        b.GLOW[0] = level
+        for shape in pointer.SHAPES:
+            for ratio in (1.0, 2.0):
+                pixmap = pointer.drawn(shape, True, ratio)[0];pixmap.setDevicePixelRatio(1.0)
+                for name in ('BAR', 'BAR_EDGE', 'AMBER_SOFT'):counts[name] = counts.get(name, 0) + green(over(pixmap, getattr(b, name)))
+    b.GLOW[0] = 3.0
+    return counts
+out['pointer'] = pointers()
+kept = b.VIOLET_PALE;b.VIOLET_PALE = b.READY;out['pointer_haloed_in_ready'] = pointers();b.VIOLET_PALE = kept
+def inks(pixmap):
+    image = pixmap.toImage().convertToFormat(QImage.Format_ARGB32)
+    return sorted({image.pixelColor(x, y).name() for y in range(image.height()) for x in range(image.width()) if image.pixelColor(x, y).alpha() == 255})
+out['chain'] = {name: [inks(chain_icons.icon(name).pixmap(36, 36, mode)) for mode in (QIcon.Normal, QIcon.Active, QIcon.Selected)] for name in ('then', 'rows', 'keep')}
+page = QPixmap(200, 120);page.fill(QColor('#2aa8ff'))
+crop = datasheet_qt.SourceCrop(page, (0.0, 0.0, 1.0, 1.0), 200);crop.mark([{'rect': (0.2, 0.25, 0.5, 0.3)}])
+image = crop.grab().toImage();mark = crop.highlight
+out['pdf'] = dict(inside=image.pixelColor(int(mark.center().x()), int(mark.center().y())).name(), edge=image.pixelColor(int(mark.left()), int(mark.center().y())).name(),
+                  outside=image.pixelColor(4, 4).name())
+out['run'] = dict(re.findall(r'QPushButton#RunWorksheetChain:(hover|focus) \{([^}]*)\}', sheet_workbench_qt.SURFACE))
+out['run_rest'] = re.findall(r'QPushButton#RunWorksheetChain \{[^}]*border: 1px solid (#[0-9a-f]{6})', sheet_workbench_qt.SURFACE)
+out['legacy'] = {old: b.LEGACY.get(old) for old in ('#d4b56a', '#f2a369', '#f8edc9', '#4b2a14', '#ff9a36', '#ffba72')}
+yellow = {b.AMBER, b.AMBER_SOFT, b.AMBER_EDGE, b.AMBER_TEXT, b.BAR, b.BAR_EDGE, b.BAND_MARK, b.BAND_PENCIL}
+out['to_yellow'] = sorted(old for old, new in b.LEGACY.items() if new in yellow)
+out['relit'] = b.relight('QFrame {background:#f8edc9; border-left:3px solid #d4b56a; color:#504d46;}')
+out['documents'] = document_qt.PAGE_STYLE.split('QListWidget#DocumentList::item:selected ')[1]
+out['chosen_row'] = list(b.chosen_row('#111111', '#222222'))
+out['warm'] = [b.warm(share).name() for share in (0.0, 0.08, 0.3, 1.0)]
+print(json.dumps(out))
+'''
+
+
+def tally(pixels):
+    """Of these (r, g, b): how many there are, how many are warm (hue 25 to 45 degrees, saturation 0.25 or more) and how many
+    green (hue 70 to 170, saturation 0.25 or more), hue and saturation as the reviews of 0.8.3 measured them (HLS)."""
+    n = warm = green = 0
+    for r, g, b in pixels:
+        h, _, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255);n += 1
+        warm += s >= 0.25 and 25 <= h * 360 <= 45;green += s >= 0.25 and 70 <= h * 360 <= 170
+    return dict(n=n, warm=warm, green=green)
+
+
+def window_report():
+    """In the child: the real window on the bench seed, in the look chosen for it. Her keyboard light measured on rendered
+    frames (the writing line with the keyboard; the Field's selected sheet with it), and a selected row in the lists that
+    have a sheet of their own. The light is what the keyboard changes: each frame is taken with it and without it."""
+    from PySide6.QtCore import QRectF
+    from PySide6.QtGui import QImage
+    from PySide6.QtWidgets import QFrame, QToolButton, QWidget
+    from tests_integrated.test_desk_acts import act, build_window, close_window, settle
+    from workbench import desktop_header_qt, explore_qt, log_qt
+    store = {};build_window(store, 'graphite-highlight-');out = dict(look=boss_theme.APPEARANCE, glow=boss_theme.glow())
+    try:
+        w = store['w']
+        def frames(widget, holder):
+            taken = []
+            for held in (True, False):
+                holder.hasFocus = lambda held=held: held
+                widget.update();settle(store);taken.append(widget.grab().toImage().convertToFormat(QImage.Format_RGB32))
+            del holder.hasFocus
+            return taken
+        def lit(with_it, without, spots):
+            changed = []
+            for x, y in spots:
+                p, q = with_it.pixelColor(x, y), without.pixelColor(x, y)
+                if abs(p.red() - q.red()) + abs(p.green() - q.green()) + abs(p.blue() - q.blue()) > 24:changed.append((p.red(), p.green(), p.blue()))
+            return changed
+        act('type.to', {'who': 'her'}, store=store);bar = w.type_bar;r = bar.box.geometry()
+        with_it, without = frames(bar, bar.box)      # the eight rows above the line's box and the eight below, inside its columns
+        rows = [y for y in list(range(r.top() - 8, r.top())) + list(range(r.bottom() + 1, r.bottom() + 9)) if 0 <= y < bar.height()]
+        out['line'] = tally(lit(with_it, without, [(x, y) for x in range(r.left() + 4, r.right() - 3) for y in rows]))
+        act('go.field', {'face': 'work'}, store=store);view = w.field_page.view
+        act('point.sheet', {'title': next(o.title for o in view.field.objects if getattr(o, 'title', ''))}, store=store)
+        with_it, without = frames(view, view)       # round the selected sheet, from just outside its edge to where the light ends
+        body = view._layout();at = view._drawn_rect(view.field.selected, body);z = view.zoom
+        sheet = QRectF(body.left() + (at.left() - body.left()) * z, body.top() + (at.top() - body.top()) * z, at.width() * z, at.height() * z)
+        reach = int(30 * z * view.scale()) + 2;inner = sheet.adjusted(-3, -3, 3, 3)
+        spots = [(x, y) for x in range(max(0, int(sheet.left()) - reach), min(view.width(), int(sheet.right()) + reach + 1))
+                 for y in range(max(0, int(sheet.top()) - reach), min(view.height(), int(sheet.bottom()) + reach + 1)) if not inner.contains(x, y)]
+        out['field'] = tally(lit(with_it, without, spots));act('go.back', store=store)
+        act('type.to', {'who': 'log'}, store=store);act('type.room', {'size': 'half'}, store=store);logs = log_qt.view_of(w)
+        logs.choose('events', remember=False);settle(store);events = logs.events
+        events.setCurrentRow(0);events.scrollToItem(events.item(0));settle(store)
+        cell = events.visualItemRect(events.item(0));image = events.viewport().grab().toImage()
+        out['log_row'] = [image.pixelColor(cell.left(), cell.center().y()).name(), image.pixelColor(cell.right() - 2, cell.top() + 1).name()]
+        act('type.room', {'size': 'line'}, store=store)
+        sheets = {'LogView': [logs.styleSheet()]}
+        for name, kind, make in (('NicePopup', QFrame, lambda: desktop_header_qt.NicePopup(w, w, embedded=True)), ('SlateSwitch', QToolButton, lambda: desktop_header_qt.SlateSwitch(w))):
+            sheets[name] = sorted({x.styleSheet() for x in w.findChildren(kind, name)}) or [make().styleSheet()]
+        sheets['LogicalCabinet'] = [w.cabinet_page.styleSheet()]
+        explore_qt.show(w);settle(store)
+        sheets['ExploreWorkspace'] = sorted({x.styleSheet() for x in w.findChildren(QWidget, 'ExploreWorkspace')})
+        out['sheets'] = {name: [re.findall(r'[^{}]*:(?:selected|checked)[^{}]*\{[^{}]*\}', css) for css in found] for name, found in sheets.items()}
+    finally:close_window(store)
+    print(MARK + json.dumps(out), flush=True)
+
+
+class Leftovers(unittest.TestCase):
+    """0.8.4: what the two reviews of 0.8.3's burnt yellow left open. Each look is asked in a child of its own."""
+    probes, windows = {}, {}
+
+    def probe(self, look):
+        if look not in self.probes:self.probes[look] = in_appearance(look, PROBE)
+        self.assertEqual(self.probes[look]['look'], look);return self.probes[look]
+
+    def window(self, look):
+        if look not in self.windows:
+            import tempfile
+            with tempfile.TemporaryDirectory(prefix='graphite-highlight-home-') as home:
+                env = dict(os.environ, GRAPHITE_APPEARANCE=look, QT_QPA_PLATFORM='offscreen', HOME=home)
+                for key in ('ARC1_WORKBENCH_CONFIG_HOME', 'ARC_LEDGER_CONCERN', 'ARC_LEDGER_XSESSION'):env.pop(key, None)
+                done = subprocess.run([sys.executable, '-B', '-m', 'tests_integrated.test_kasandra_highlight', '--window'], cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=400)
+            line = next((l for l in reversed(done.stdout.splitlines()) if l.startswith(MARK)), None)
+            self.assertIsNotNone(line, 'no window in %s (exit %s): %s' % (look, done.returncode, (done.stderr or done.stdout)[-3000:]))
+            self.windows[look] = json.loads(line[len(MARK):])
+        self.assertEqual(self.windows[look]['look'], look);return self.windows[look]
+
+    def test_her_keyboard_light_is_warm_on_a_rendered_frame_and_never_green(self):
+        # The review: yellow added as light to her blue came out grey (the line's edge at saturation 0.07 to 0.17, the Field's
+        # outer rings at 0.08). Asked: ring pixels at saturation 0.25 or more and hue 25 to 45, and still no green.
+        k = self.window('kasandra');self.assertEqual(k['glow'], 3.0, 'at Neon, as the desk opens')
+        for where, least in (('line', 3000), ('field', 8000)):
+            seen = k[where];self.assertGreaterEqual(seen['n'], least, (where, 'the light is there'))
+            self.assertEqual(seen['green'], 0, where);self.assertGreaterEqual(seen['warm'] / seen['n'], 0.9, (where, seen))
+        g = self.window('graphite')
+        for where in ('line', 'field'):self.assertGreater(g[where]['n'], 1000, 'Graphite: its amber light is where it was')
+
+    def test_a_selected_row_is_her_highlight_in_the_lists_with_a_sheet_of_their_own(self):
+        k, g = self.window('kasandra'), self.window('graphite')
+        self.assertEqual(k['log_row'], ['#e2a72e', '#5a3f0c'], 'the Log, drawn: her edge, then her fill');self.assertEqual(g['log_row'][1], '#202520', 'Graphite: its raised row')
+        hers = 'background:#5a3f0c;color:#ffd27a;'
+        was = {'LogView': 'background:#202520;color:#f4e8ce;', 'NicePopup': 'background:#493225;color:#f4e8ce;', 'LogicalCabinet': 'background:#493225;color:#eee9dd;',
+               'ExploreWorkspace': 'background:#f3e3e2;', 'SlateSwitch': 'background:#4b2a14;'}
+        for name, before in was.items():
+            for look, value, said in (('kasandra', k, hers), ('graphite', g, before)):
+                found = [rule for rules in value['sheets'][name] for rule in rules];self.assertTrue(found, (look, name))
+                for rule in found:self.assertEqual(rule.split('{')[1].rstrip('}').strip().replace(' ', '')[:len(said)], said, (look, name, rule))
+        switch = k['sheets']['SlateSwitch'][0][0];self.assertIn('border:1px solid #e2a72e', switch, 'switched on: her highlight whole, its edge too')
+        p = self.probe('kasandra');self.assertEqual(p['documents'], '{background:#5a3f0c;color:#ffd27a;}');self.assertEqual(p['chosen_row'], ['#5a3f0c', '#ffd27a'])
+        p = self.probe('graphite');self.assertEqual(p['documents'], '{background:#593a29;color:#f4e8ce;}');self.assertEqual(p['chosen_row'], ['#111111', '#222222'])
+
+    def test_the_pointers_glow_is_never_green_over_her_yellow(self):
+        # The window system lays the pointer over the row it is on, and that row is her solid yellow bar: no window grab shows
+        # it. Laid over BAR, BAR_EDGE and AMBER_SOFT, every shape at every glow and at 1x and 2x: no pixel at hue 70 to 170
+        # with saturation 0.25 or more. Haloed in her cyan, as 0.8.3's first cut was, the same count finds the green.
+        p = self.probe('kasandra')
+        self.assertEqual(p['pointer'], {'BAR': 0, 'BAR_EDGE': 0, 'AMBER_SOFT': 0})
+        self.assertGreater(p['pointer_haloed_in_ready']['BAR'], 100, 'the count sees what the review saw')
+
+    def test_chain_menu_pictures_are_in_the_bars_ink_on_the_row_you_are_on(self):
+        k, g = self.probe('kasandra'), self.probe('graphite')
+        for name, (rest, on_bar, chosen) in k['chain'].items():
+            self.assertEqual((on_bar, chosen), (['#171b3c'], ['#171b3c']), name);self.assertNotIn('#171b3c', rest, name);self.assertTrue(rest, name)
+        for name, (rest, on_bar, chosen) in g['chain'].items():self.assertNotIn('#171b3c', on_bar + chosen, 'Graphite: as it drew them')
+
+    def test_the_pdf_evidence_mark_is_an_opaque_edge_with_nothing_seen_through(self):
+        k, g = self.probe('kasandra'), self.probe('graphite')
+        self.assertEqual((k['pdf']['inside'], k['pdf']['edge'], k['pdf']['outside']), ('#2aa8ff', '#e2a72e', '#2aa8ff'), 'the page as it is inside the mark, and her edge whole')
+        self.assertNotEqual(g['pdf']['inside'], '#2aa8ff', 'Graphite: its amber wash inside the mark, as before');self.assertEqual(g['pdf']['edge'], '#ff9a36')
+
+    def test_the_sheets_run_button_holds_the_keyboard_in_her_yellow(self):
+        k, g = self.probe('kasandra'), self.probe('graphite')
+        self.assertEqual(k['run'], {'hover': 'background: #b9f4ff;', 'focus': 'background: #ffd27a; border-color: #e2a72e;'}, 'the pointer in her cyan, the keyboard in her yellow')
+        self.assertEqual(g['run'], {'hover': 'background: #ffba72;', 'focus': 'background: #ffba72; border-color: #ff9a36;'});self.assertEqual(g['run_rest'], ['#ff9a36'], 'Graphite: the edge it had')
+
+    def test_the_old_colours_that_became_her_yellow_are_each_decided(self):
+        k, g = self.probe('kasandra'), self.probe('graphite')
+        self.assertEqual(k['legacy'], {'#d4b56a': '#e2a72e', '#f2a369': '#ffd27a', '#f8edc9': '#1d3d63', '#4b2a14': '#1d3d63', '#ff9a36': '#83eaff', '#ffba72': '#b9f4ff'})
+        self.assertEqual(k['to_yellow'], ['#d4b56a', '#f2a369'], 'the chosen one\'s marks, and no other: an old colour that is to be her yellow is decided in boss_theme')
+        self.assertEqual(k['relit'], 'QFrame {background:#1d3d63; border-left:3px solid #e2a72e; color:#e3e3ff;}')
+        self.assertEqual(g['relit'], 'QFrame {background:#4b2a14; border-left:3px solid #ff9a36; color:#f4e8ce;}', 'Graphite: what it always made of them')
+        self.assertEqual(g['legacy']['#4b2a14'], None, 'Graphite maps none of its own colours')
+
+    def test_her_light_is_a_warm_tone_at_every_strength(self):
+        tones = self.probe('kasandra')['warm'];self.assertEqual((tones[0], tones[-1]), ('#261c0e', '#e2a72e'))
+        for tone in tones:
+            h, _, s = colorsys.rgb_to_hls(*[int(tone[i:i + 2], 16) / 255 for i in (1, 3, 5)]);self.assertTrue(25 <= h * 360 <= 45 and s >= 0.25, tone)
+        self.assertLess(abs(lum(tones[0]) - lum('#171b3c')), 0.005, 'where it is almost gone it is as dark as her ground')
 
 
 class Retired(unittest.TestCase):
@@ -228,4 +474,5 @@ class Retired(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    if sys.argv[1:2] == ['--window']:window_report()
+    else:unittest.main()

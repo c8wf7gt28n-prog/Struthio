@@ -39,7 +39,7 @@ STOP = 'Stop all jobs'
 STOPPING = 'Stopping…'
 STOP_SCOPE = 'work Graphite manages'            # the scope, in print: read before acting
 STOP_TIP = ('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is '
-            'stopped (Ctrl+Shift+F12). Programs Graphite does not manage keep running. Source files and unsaved editor buffers are kept.')
+            'stopped. What Graphite does not manage keeps running. Source files and unsaved editor buffers are kept.')      # 0.8.4: no key named, and no "Programs"
 SERVICES = 'Graphite services'
 CHOICES = (('On', 'On'), ('Off', 'Off'), ('Reboot', 'Restart'))  # (LedgerLifecycle's key, the word shown)
 CHOICE_TIPS = {'On':'Enable new authorized work; no jobs replayed and no model or phone started.',

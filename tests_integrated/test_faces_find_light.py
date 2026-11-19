@@ -162,7 +162,21 @@ class DeskLightTests(unittest.TestCase):
         self.assertEqual(QColor(shown.pixel(6,4)).name(),page_light.DESK_LIGHT,'white times the tone is the tone')
         self.assertEqual(QColor(shown.pixel(1,4)).name(),'#000000');self.assertEqual(QColor(kept.pixel(6,4)).name(),'#ffffff','the picture given is not changed')
         self.assertIs(page_light.lit(page,True),page,'its own light is the page as it is')
-        self.assertLess(QColor(page_light.DESK_LIGHT).lightness(),150,'the tone is well below white')
+        # How bright the tone is, as the eye takes it: its luminance, white being 1, and its CIE lightness L*, white being 100.
+        # 0.5.0 measured the mean of the largest and the smallest channel, which calls a blue brighter than it is: Kasandra's
+        # cool tone #8f97c9 read 172 of 255 there and failed in her look, though it gives a third of white's light (0.322;
+        # Graphite's warm tone gives 0.226). 0.8.4: the measure is the light, asked of every look's tone whichever look runs.
+        # The limit moved, and this says so: 0.5.0's 150 of 255 is, for a grey, luminance 0.305 or L* 62; 0.8.4 asks for L*
+        # under 65 (luminance 0.34), which her tone of 0.8.3 meets at L* 63.5. It is still well below white.
+        def light(colour):
+            c=QColor(colour);linear=[v/12.92 if v<=0.04045 else ((v+0.055)/1.055)**2.4 for v in (c.redF(),c.greenF(),c.blueF())]
+            return 0.2126*linear[0]+0.7152*linear[1]+0.0722*linear[2]
+        def lightness(colour):
+            y=light(colour);return 116*y**(1/3)-16 if y>216/24389 else y*24389/27
+        self.assertLess(lightness(page_light.DESK_LIGHT),65,'the tone is well below white')
+        for look,palette in boss_theme.PALETTES.items():
+            self.assertLess(lightness(palette['DESK_LIGHT']),65,look+': well below white')
+            self.assertGreater(light(palette['DESK_LIGHT']),4*light(palette['GROUND']),look+': and a page still stands clear of the desk')
 
     def test_the_choice_is_read_from_the_session_and_defaults_to_the_desks_light(self):
         host=type('Host',(),{})();self.assertFalse(page_light.own(host));host.session=type('S',(),{'state':{'page_own_light':True}})();self.assertTrue(page_light.own(host))

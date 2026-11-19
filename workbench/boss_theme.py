@@ -15,8 +15,9 @@ green ... more green glowing").
 In Kasandra (0.8.3, the owner: "I'm kinda thinking that highlighting should be in our burnt yellow??? Like especially in
 menus???") what is selected and what has the keyboard is burnt yellow: the row you are on in a menu is a solid bar (BAR,
 with ON_BAR the dark ink on it and BAR_EDGE its 2 px edge); every other highlight is an edge and words (AMBER_EDGE,
-AMBER_TEXT) on a fill (AMBER_SOFT). Every highlight fill is opaque, and yellow light is only ever added to what lies under
-it (lays_light), never mixed over her cyan: mixed, yellow and cyan make green. Her cyan keeps what it says there: the
+AMBER_TEXT) on a fill (AMBER_SOFT). Every highlight fill is opaque, and yellow is never mixed over her cyan: mixed, yellow
+and cyan make green. Where her yellow light lies on her ground it is a warm tone, darker as it falls off (warm, 0.8.4);
+where something of hers crosses a highlight it is added as light (lays_light). Her cyan keeps what it says there: the
 pointer, what is ready, the line, the bands' rule, and the cues that are not a selection (CUE, CUE_EDGE, CUE_TEXT, which
 are Graphite's amber and her old cyan)."""
 import json
@@ -174,14 +175,51 @@ def lays_light(painter):
     return painter
 
 TOKENS = {v for k, v in tuple(globals().items()) if isinstance(v, str) and v.startswith('#') and k.isupper()}
+
+# 0.8.4, Kasandra: her yellow light, warm. 0.8.3 added the yellow as light (lays_light): never green, but yellow light on
+# her blue grounds is grey until it is strong (the review measured the Field's outer rings at (58,49,52), saturation 0.08,
+# and the lit word washed out). Thin yellow paint over her indigo is grey too, until about 27 % of it. So her light does not
+# thin out as it falls off, it darkens: one opaque tone of the yellow's own hue for each strength, from LIGHT_FLOOR (that
+# hue at her ground's darkness) up to the edge itself. It is laid on the ground before anything cyan is drawn over it, and
+# nothing is mixed: every tone is 34 to 40 degrees, saturation 0.4 or more.
+LIGHT_FLOOR = '#261c0e'
+
+
+def warm(share):
+    """Kasandra: her burnt-yellow light at strength `share` (0 nearly gone, 1 the edge itself), as one opaque colour."""
+    from PySide6.QtGui import QColor
+    a = max(0.0, min(1.0, float(share)));low, high = QColor(LIGHT_FLOOR), QColor(AMBER_EDGE)
+    return QColor(round(low.red() + (high.red() - low.red()) * a), round(low.green() + (high.green() - low.green()) * a),
+                  round(low.blue() + (high.blue() - low.blue()) * a))
+
+
+def chosen_row(fill, words):
+    """(fill, words) of the selected row of a list that has a sheet of its own (0.8.4: the process list, the Log, Explore's
+    results, the cabinet, Documents). Kasandra: her highlight's fill and words, as every other selected row has (its edge
+    comes from the window's sheet). Graphite: what the list always gave."""
+    return (AMBER_SOFT, AMBER_TEXT) if APPEARANCE == 'kasandra' else (fill, words)
+
+
 LEGACY = {
     '#f6f3eb': GROUND, '#fffdf8': CARD, '#eee9df': RAISED,
     '#dad4c8': LINE, '#7d776d': LINE_MID, '#504d46': TEXT,
-    '#6c675e': QUIET, '#f8edc9': AMBER_SOFT, '#d4b56a': AMBER_EDGE,
+    '#6c675e': QUIET, '#f8edc9': CUE, '#d4b56a': AMBER_EDGE,
     '#f3e3af': PENCIL_DEEP, '#f3e3e2': ERASER, '#ecd7d5': ERASER_DEEP,
     '#cba5a4': ERASER_MARK, '#d9d2c4': LINE, '#885e64': TEXT,
 }
+# 0.8.4: the old colours this map sent to her burnt yellow, each decided (0.8.3's review found them unlisted). A highlight
+# is asked for by name (AMBER_SOFT, AMBER_EDGE and AMBER_TEXT together); an old sheet's amber is not known to be one.
+#   #d4b56a  the paper desk's pencil yellow, the mark of the chosen one (the Log's pinned line)    AMBER_EDGE, kept: chosen
+#   #f2a369  Graphite's pencil on a band, the chosen band word                                      BAND_PENCIL, kept: chosen
+#   #f8edc9  the paper desk's writing passage                                                       CUE, changed: a place to
+#            write is not a highlight (as Explore's line, 0.8.3). Graphite's CUE is its amber wash: nothing moves there.
+#            Seen in Kasandra: the Return thread's writing box (return_thread_qt, ReturnWriting) was her yellow fill and is
+#            now her blue CUE, as Explore's writing line is.
+#   #4b2a14, #ff9a36, #ffba72  Graphite's amber wash, edge and words, a selection and a cue alike   CUE, CUE_EDGE, CUE_TEXT,
+#            changed: what they were until 0.8.3 (her blue and cyan). No sheet in the program writes them by hand today.
+LEGACY_DECIDED = {'#4b2a14': 'CUE', '#ff9a36': 'CUE_EDGE', '#ffba72': 'CUE_TEXT', '#f2a369': 'BAND_PENCIL'}
 if APPEARANCE != 'graphite':      # a Graphite colour written into some older sheet becomes its Kasandra counterpart
+    LEGACY.update((_value, PALETTES[APPEARANCE][_name]) for _value, _name in LEGACY_DECIDED.items())
     for _name, _value in PALETTES['graphite'].items():
         if isinstance(_value, str) and _value.startswith('#') and _value not in TOKENS:LEGACY.setdefault(_value, PALETTES[APPEARANCE][_name])
 

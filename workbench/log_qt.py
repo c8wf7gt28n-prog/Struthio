@@ -59,10 +59,11 @@ from PySide6.QtWidgets import (QCheckBox, QFrame, QHBoxLayout, QLabel, QListWidg
 NETWORK_OPERATIONS = ('network.observe', 'network.capture.start', 'network.capture.stop', 'network.capture.read')
 EVENT_OPERATIONS = ('ledger.activity', 'ledger.journal.status')
 STREAMS = (('events', 'Events'), ('network', 'Network'))
-HINTS = {'events': "words in Graphite's events  ·  Enter filters",
-         'network': 'host 10.0.0.5 · port 443 · firefox · tcp  ·  Enter filters  ·  Ctrl+Enter captures with it'}
-NOTES = {'events': "Graphite's own events; words and Enter filter them, choose one to pin it.",
-         'network': 'A host, a port, a process or a protocol and Enter filter it; Ctrl+Enter captures headers.'}
+# 0.8.4: no key is named (the keys work as they did): the arrow sends what is typed, and Capture… is a word to click.
+HINTS = {'events': "words in Graphite's events, to filter them",
+         'network': 'host 10.0.0.5 · port 443 · firefox · tcp, to filter  ·  Capture… captures with it'}
+NOTES = {'events': "Graphite's own events; words in the line filter them, choose one to pin it.",
+         'network': 'A host, a port, a process or a protocol in the line filters it; Capture… captures headers.'}
 CAPTURE_SECONDS = 60      # a capture's bound, in the confirmation's words (D5 bounds it again)
 CAPTURE_PACKETS = 2000    # and its packet bound
 MAX_ROWS = 1000           # the most rows a stream keeps (the oldest go first)
@@ -391,6 +392,8 @@ class LogView(QWidget):
         """The view's look; the network rows in Plex Mono at 13 px at 14 pt, following the interface size (the window's sheet
         sizes every list, so the face and size are set here, where they win)."""
         from .shell2 import CARD, LINE, QUIET, RAISED, TEXT, MONO, scale_of
+        from .boss_theme import chosen_row
+        chosen = chosen_row(RAISED, TEXT)      # 0.8.4: a selected row is her highlight in Kasandra; Graphite's raised row, as before
         mono = max(11, round(13 * scale_of(self.host))) if self.host is not None and hasattr(self.host, 'session') else 13
         if getattr(self, '_mono_px', None) == mono:return
         self._mono_px = mono
@@ -400,14 +403,15 @@ class LogView(QWidget):
             'QPushButton#LogStreamTab {padding:0 %(air)dpx;margin:0;border:0;background:transparent;min-width:0;min-height:0;} '
             'QListWidget#LogEvents, QListWidget#LogConnections, QListWidget#LogPackets {background:%(card)s;border:1px solid %(line)s;border-radius:4px;color:%(text)s;} '
             'QListWidget#LogEvents::item, QListWidget#LogConnections::item, QListWidget#LogPackets::item {padding:1px 6px;} '
-            'QListWidget#LogEvents::item:selected, QListWidget#LogConnections::item:selected, QListWidget#LogPackets::item:selected {background:%(raised)s;color:%(text)s;} '
+            'QListWidget#LogEvents::item:selected, QListWidget#LogConnections::item:selected, QListWidget#LogPackets::item:selected {background:%(chosen)s;color:%(chosen_words)s;} '
             'QFrame#LogPinned {background:%(raised)s;border:1px solid %(line)s;border-left:3px solid %(pencil)s;border-radius:4px;} '
             'QLabel#LogPinnedLine {color:%(text)s;font-weight:600;} QLabel#LogPinnedDetails {color:%(quiet)s;} '
             'QLabel#LogSection {color:%(quiet)s;letter-spacing:1px;} QLabel#LogFilter, QLabel#LogCaptureState {color:%(quiet)s;} '
             'QLabel#LogInterfaces, QLabel#LogCaptureNote {color:%(text)s;} '
             'QCheckBox#LogFollow {color:%(quiet)s;} '
             "QListWidget#LogConnections, QListWidget#LogPackets, QLabel#LogPinnedDetails {font-family:'%(mono)s';font-size:%(px)dpx;}"
-            % dict(card=CARD, line=LINE, text=TEXT, quiet=QUIET, raised=RAISED, pencil='#d4b56a', air=TAB_AIR, mono=MONO, px=mono))
+            % dict(card=CARD, line=LINE, text=TEXT, quiet=QUIET, raised=RAISED, pencil='#d4b56a', air=TAB_AIR, mono=MONO, px=mono,
+                   chosen=chosen[0], chosen_words=chosen[1]))
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Wheel and event.angleDelta().y() > 0:self.follow.setChecked(False)  # reading back stops following
@@ -612,7 +616,7 @@ class LogView(QWidget):
         elif state == 'IDLE':
             proposal = self.capture.get('proposal') if isinstance(self.capture.get('proposal'), dict) else None
             words = 'Capture idle'
-            note = str(proposal.get('words')) if proposal and proposal.get('words') else 'No capture is running. Ctrl+Enter in the line, or Capture…, captures packet headers with the filter.'
+            note = str(proposal.get('words')) if proposal and proposal.get('words') else 'No capture is running. Capture… captures packet headers with the filter in the line.'
         else:words = '';note = self.problem or ''
         self.capture_words.setText(words);self.capture_note.setText(note);self.capture_note.setVisible(bool(note))
         # Where capture is unavailable and nothing was captured, no packet can come: the empty list gives its room to the reason

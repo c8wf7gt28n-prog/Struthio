@@ -17,7 +17,7 @@ from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QKeySequence, QPalette, QShortcut, QTextBlockFormat, QTextCharFormat, QTextCursor, QTextDocument, QTextFormat
 from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QLayout, QLineEdit, QListWidget, QListWidgetItem, QSplitter, QTextEdit, QVBoxLayout, QWidget
 from .shell2 import AMBER, CARD, ERASER_DEEP, PENCIL_DEEP, QUIET, TEXT, call, call_write, escape_text, role, sentence
-from .boss_theme import ON_AMBER      # 0.8.3: the words on a selected document (her burnt yellow; Graphite's ink)
+from .boss_theme import ON_AMBER, chosen_row      # the words on a selected document (0.8.3: her burnt yellow; Graphite's ink) and, 0.8.4, its fill
 from .settings_qt import action
 from .text_prompts import writing_prompt
 from . import documents as store
@@ -30,7 +30,7 @@ PAGE_STYLE = ('QTextEdit#DocumentPage {background:%s;color:%s;border:0;padding:0
               'QLineEdit#DocumentTitle {background:%s;color:%s;border:0;border-radius:0;padding:8px 10px;selection-background-color:%s;selection-color:%s;}'
               'QLineEdit#DocumentTitle:focus {border-bottom:2px solid %s;}'
               'QListWidget#DocumentList {background:transparent;border:0;color:%s;} QListWidget#DocumentList::item {padding:6px 4px;}'
-              'QListWidget#DocumentList::item:selected {background:%s;color:%s;}' % (CARD, TEXT, PENCIL_DEEP, TEXT, AMBER, TEXT, ERASER_DEEP, TEXT, TEXT, TEXT, ERASER_DEEP, ON_AMBER))
+              'QListWidget#DocumentList::item:selected {background:%s;color:%s;}' % ((CARD, TEXT, PENCIL_DEEP, TEXT, AMBER, TEXT, ERASER_DEEP, TEXT, TEXT, TEXT) + chosen_row(ERASER_DEEP, ON_AMBER)))
 UNDO_WORDS = {'undo', 'undo that', 'undo it', 'take that back', 'revert that', 'go back'}
 REDO_WORDS = {'redo', 'redo that', 'redo it'}
 # AGENT-02 (D19): a model edit is shown by a pencil-yellow wash over the changed range that fades out over FLASH_MS in
@@ -457,7 +457,7 @@ class DocumentsTab(QWidget):
         words = ' '.join(text.casefold().split()).rstrip('.!')
         if words in UNDO_WORDS:
             if not self.page.document().isUndoAvailable(): return 'Nothing to undo on this page.'
-            self.page.undo(); self.flush(); return 'Took the last change back (revision %d). Ctrl Y or “redo” brings it back.' % (self.revision or 0)
+            self.page.undo(); self.flush(); return 'Took the last change back (revision %d). Redo brings it back.' % (self.revision or 0)
         if words in REDO_WORDS:
             if not self.page.document().isRedoAvailable(): return 'Nothing to redo on this page.'
             self.page.redo(); self.flush(); return 'Redid the change (revision %d).' % (self.revision or 0)
@@ -491,7 +491,7 @@ class DocumentsTab(QWidget):
             finally: self.loading = False
             self.reload_list()
         self.refresh_conditions(result.get('conditions_stale'))
-        return 'Done: %s · revision %d · a direct edit, no model needed · Ctrl Z or “undo” takes it back.' % (result['applied']['words'], doc['revision'])
+        return 'Done: %s · revision %d · a direct edit, no model needed · Undo takes it back.' % (result['applied']['words'], doc['revision'])
 
     def apply_locally(self, selection, change):
         """The same change on the page, through its undo stack as ONE step; the selection stays where the owner left it.

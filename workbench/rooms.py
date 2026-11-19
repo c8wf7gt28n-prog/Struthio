@@ -72,9 +72,9 @@ class FilesStart(QWidget):
         from .shell2 import QuietWords  # the quiet-script rule (D1-fix): the room's explanation is a note you may skip
         lead = QuietWords(host);lead.explain(FILES_NOTE);self.lead = lead;box.addWidget(lead)
         row = QHBoxLayout()
-        for label, tip, fn in (('Open in viewer…', 'Ctrl+Alt+V · any file, anywhere', lambda:host.open_in_viewer()),
-                               ('Find a file…', 'Ctrl+P · files in this workspace', host.quick_open),
-                               ('Open…', 'Ctrl+O · open to edit', host.open_dialog)):
+        for label, tip, fn in (('Open in viewer…', 'Any file, anywhere, read-only', lambda:host.open_in_viewer()),
+                               ('Find a file…', 'Files in this workspace', host.quick_open),
+                               ('Open…', 'Open a file to edit', host.open_dialog)):
             button = QPushButton(label);button.setToolTip(tip);button.clicked.connect(fn);row.addWidget(button)
         row.addStretch(1);box.addLayout(row)
         recent = QLabel('Recent');recent.setStyleSheet('color:#b5bec8;font-weight:bold;margin-top:12px');box.addWidget(recent)
@@ -99,7 +99,7 @@ class FilesStart(QWidget):
     def inspector(self):
         recent = len(self.host.session.state.get('recent', []))
         from .shell2 import Note  # the two ways in are notes you may skip: the Paper script, the keys printed
-        return 'Files', [('Open', Note('Ctrl+Alt+V opens any file read-only.\nCtrl+P finds a file in this workspace.')), ('Recent', '%d files' % recent),
+        return 'Files', [('Open', Note('Open in viewer… opens any file read-only.\nFind a file… finds one in this workspace.')), ('Recent', '%d files' % recent),
                          ('Kinds', 'Code, PDF, images, Gerber, archives, disk images and more')]
 
     def info(self):return 'Open a file · find a file · recent files'

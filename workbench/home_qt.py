@@ -192,7 +192,7 @@ class WorkshopHome(QWidget):
         self.startup.addItem('Start: on the work', 'last')
         self.startup.addItem('Start: always Home', 'home')
         self.startup.setAccessibleName('Graphite startup preference')
-        self.startup.setToolTip('On the work: the Field first when this workspace has work, and Esc goes to where you left off. Open documents and the saved layout are kept either way.')
+        self.startup.setToolTip('On the work: the Field first when this workspace has work, and Back there goes to where you left off. Open documents and the saved layout are kept either way.')
         self.startup.currentIndexChanged.connect(self._startup_changed)
         footer.addWidget(self.startup)
         outer.addLayout(footer)

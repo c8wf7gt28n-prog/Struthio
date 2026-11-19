@@ -98,7 +98,7 @@ class HomeDashboard(QWidget):
             link = QPushButton(label);link.setFlat(True);link.setStyleSheet('color:#ffb05c;text-align:left');link.clicked.connect(nav(destination));more.addWidget(link)
         more.addStretch(1);outer.addLayout(more)
         from .version import title
-        foot = QLabel(title() + ' · F11 fullscreen · Ctrl+Alt+= / − text size');foot.setStyleSheet('color:#7b8791');outer.addWidget(foot)
+        foot = QLabel(title());foot.setStyleSheet('color:#7b8791');outer.addWidget(foot)
         self.timer = QTimer(self);self.timer.setInterval(4000);self.timer.timeout.connect(self.fill)
 
     def showEvent(self, event):
@@ -137,7 +137,7 @@ class HomeDashboard(QWidget):
         self.slate.setText('Brain: ' + state + (' · ' + name if name else '') + '\n' + ('%d models registered' % len(models)) +
                            ('' if brain.get('state') == 'READY' else '\nDrop a GGUF model on the Brain room to start it.') + '\nOn this computer · cloud calls 0')
         recent = [Path(p).name + '  (viewed)' for p in getattr(self.host, '_viewer_recent', [])[:3]] + list(self.host.session.state.get('recent', []))[:5]
-        self.files.setText('\n'.join(recent) if recent else 'Nothing opened yet. Press Ctrl+Alt+V to view any file.')
+        self.files.setText('\n'.join(recent) if recent else 'Nothing opened yet. Open in Universal Viewer…, in File, shows any file.')
         counts = (self.call('matrix.status') or {}).get('counts', {})
         total = sum(v for k, v in counts.items() if k != 'PROPOSED')
         self.matrix.setText(('%d lines run · %d worked · %d failed or blocked' % (total, counts.get('SUCCESS', 0), counts.get('FAILED', 0) + counts.get('BLOCKED', 0)))

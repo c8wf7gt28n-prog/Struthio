@@ -46,8 +46,9 @@ class SourceCrop(QLabel):
         super().paintEvent(event)
         if self.highlight.isEmpty():return
         painter = QPainter(self)
-        glow = QColor(ink.AMBER_EDGE);glow.setAlpha(50)
-        painter.fillRect(self.highlight, glow)
+        if ink.APPEARANCE != 'kasandra':      # Kasandra (0.8.4): the opaque edge alone. Her yellow seen through over a page's blue or cyan ink is green
+            glow = QColor(ink.AMBER_EDGE);glow.setAlpha(50)
+            painter.fillRect(self.highlight, glow)
         painter.setPen(QPen(QColor(ink.AMBER_EDGE), 2))
         painter.drawRect(self.highlight)
         painter.end()

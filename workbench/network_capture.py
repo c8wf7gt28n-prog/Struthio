@@ -318,7 +318,7 @@ def selection_words(text):
 
 def proposal_words(text, interface, seconds, packets):
     return ('Graphite proposes capturing packet headers%s%s on %s for %d seconds (at most %s packets). Only you can start it: Log, '
-            'Network, %sthen Capture… (or Ctrl+Enter in the line).' % (' with the filter “%s”' % text if text else '', selection_words(text),
+            'Network, %sthen Capture… in the head row.' % (' with the filter “%s”' % text if text else '', selection_words(text),
                                                                       'every interface' if interface == 'any' else interface,
                                                                       seconds, '{:,}'.format(packets), ('type the filter “%s”, ' % text) if text else ''))
 

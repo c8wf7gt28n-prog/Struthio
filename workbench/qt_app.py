@@ -353,7 +353,7 @@ class ManualTab(QWidget):
             item.setToolTip(entry.path)
             item.setSizeHint(QSize(0, 44))
             self.results.addItem(item)
-        self.count.setText('%d current R10 documents · Select a row and press Enter to open it' % len(entries))
+        self.count.setText('%d current R10 documents · Double-click a row to open it' % len(entries))
 
     def open_entry(self, item):
         path = item.data(Qt.UserRole)
@@ -926,7 +926,7 @@ class SimulationTracePanel(QWidget):
         self.timer.setInterval(33)  # playback rate only, NOT hardware timing
         self.timer.timeout.connect(self.step)
         self.scenario_divergent = False
-        self.heading = QLabel('Run a game with F5 to populate simulated signals.')
+        self.heading = QLabel('Run a game to populate simulated signals.')
         self.heading.setWordWrap(True)
         self.plot = SimulationTracePlot()
         self.channel = QComboBox()
@@ -1587,7 +1587,7 @@ class ClipOverlay(QWidget):
         menu.addAction('Get a free key (opens Google AI Studio)', self.open_key_page)
         menu.addAction('Forget my key', self.forget_key)
         menu.addSeparator()
-        menu.addAction('Hide Graphite  (Esc)', self.hide)
+        menu.addAction('Hide Graphite', self.hide)
         more.setMenu(menu)
         for w in (self.include, self.input, self.send_btn, more):
             pl.addWidget(w, 1 if w is self.input else 0)
@@ -1832,7 +1832,7 @@ class ClipOverlay(QWidget):
                     'I answer with **Google Gemini**, free with any Google account. One-time setup:\n\n'
                     '1. Press **Get a free key** (opens Google AI Studio).\n'
                     '2. Sign in, press **Create API key**, then **Copy**.\n'
-                    '3. Paste it in the box below and press Enter.', False,
+                    '3. Paste it in the box below and send it.', False,
                     action=('Get a free key', self.open_key_page))
         self.note("Free tier: Google may use what you send to improve its products, so don't paste passwords "
                   'or secrets. Your key is stored ' + ('encrypted for your Windows account.' if os.name == 'nt'
@@ -2553,7 +2553,7 @@ class WorkbenchWindow(QMainWindow):
         self.debug_view.setReadOnly(True)
         self.debug_view.setPlainText('No debugger is connected. There is no ARC-1 device transport; breakpoints, '
                                      'registers and call stacks need a board that does not exist yet.\n'
-                                     'Host simulation results appear here after Run (F5).')
+                                     'Host simulation results appear here after Run.')
         self.agent_view = QPlainTextEdit()
         self.agent_view.setObjectName('outputText')
         self.agent_view.setReadOnly(True)
@@ -2565,7 +2565,7 @@ class WorkbenchWindow(QMainWindow):
             self.output_tabs.addTab(w, title)
         self.output_tabs.currentChanged.connect(lambda _: self.session.set_layout(
             output_tab=self.output_tabs.tabText(self.output_tabs.currentIndex())))
-        self.output_dock = self._dock('Output   (F10)', 'OutputDock', self.output_tabs, Qt.BottomDockWidgetArea)
+        self.output_dock = self._dock('Output', 'OutputDock', self.output_tabs, Qt.BottomDockWidgetArea)
 
         # Hardware Inspector: resource budgets and the host boot-diagnostic model. Hidden by default.
         self.inspector_tabs = QTabWidget()
@@ -2715,7 +2715,7 @@ class WorkbenchWindow(QMainWindow):
         self.a_problems = A('Pro&blems', self.show_problems, 'Ctrl+Shift+M')
         self.a_inspector = self.inspector_dock.toggleViewAction()
         self.a_inspector.setText('&Inspector')
-        self.a_fullscreen = A('&Full Screen', self.toggle_fullscreen, 'F11', 'Fill the display; F11 returns to the previous window')
+        self.a_fullscreen = A('&Full Screen', self.toggle_fullscreen, 'F11', 'Fill the display; choose it again to return to the previous window')
         self.a_fullscreen.setCheckable(True)
         self.a_home = A('Workshop Home', self.show_start, 'Ctrl+Alt+1')
         self.a_engineering_layout = A('Engineering layout', lambda: self.set_workspace_layout('engineering'), 'Ctrl+Alt+2')
@@ -2757,7 +2757,7 @@ class WorkbenchWindow(QMainWindow):
         self.a_newgame = A('&New Game Project…', self.new_game_project)
         self.a_refresh = A('Re&fresh Navigator', self.refresh_navigator)
         self.a_build = A('&Build', lambda: self.start('build'), ['F7', 'Ctrl+Shift+B'],
-                         'Build the target for the work in front of you (F7)')
+                         'Build the target for the work in front of you')
         self.a_build_all = A('Build All &Firmware Stages', self.build_all_firmware)
         self.a_tests = A('Run &Tests', lambda: self.start('test'), 'Ctrl+T', 'Run the tests for this target')
         self.a_stop = A('&Stop', self.stop_process, 'Ctrl+Break')
@@ -2767,7 +2767,7 @@ class WorkbenchWindow(QMainWindow):
         self.a_next = A('&Next Problem', lambda: self.step_problem(1), 'F8')
         self.a_prev = A('&Previous Problem', lambda: self.step_problem(-1), 'Shift+F8')
         self.a_run = A('&Run Current Game', lambda: self.start('run'), 'F5',
-                       'Preview STRUTHIO Arcade in a browser or run a C host game (F5)')
+                       'Preview STRUTHIO Arcade in a browser or run a C host game')
         self.a_boot = A('Host &Boot Diagnostics', lambda: self.show_budgets('Boot model'))
         self.a_pkg = A('&Package Example Cartridge', self.package_example)
         self.a_import = A('&Import Cartridge…', self.import_cartridge_dialog)
@@ -2974,7 +2974,7 @@ class WorkbenchWindow(QMainWindow):
         self.global_search.setIcon(self.nav_icon('search'))
         self.global_search.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.global_search.setIconSize(QSize(22,22));self.global_search.setMinimumHeight(38)
-        self.global_search.setToolTip('Search commands · Ctrl+Shift+P\nFind a file · Ctrl+P')
+        self.global_search.setToolTip('Search commands, or find a file')
         self.global_search.setAccessibleName('Search commands')
         groups.addWidget(self.global_search)
         from .qt_master_stop import StopButton,MasterStop
@@ -4363,7 +4363,7 @@ class WorkbenchWindow(QMainWindow):
         """Build (F7), Tests (Ctrl+T) or Run (F5) for the work in front of you."""
         if op == 'run' and self.project_required('Run Current Game'):return
         if self.process.state() != QProcess.NotRunning:
-            self.statusBar().showMessage('Wait for the current command to finish (Ctrl+Break stops it)', 5000)
+            self.statusBar().showMessage('Wait for the current command to finish (Stop ends it)', 5000)
             return
         active=self.active_path()
         current=self.tabs.currentWidget()
@@ -4528,7 +4528,7 @@ class WorkbenchWindow(QMainWindow):
             self.after_build = None
             self.show_output('Problems' if self.problems else 'Output')
             if errors:
-                summary += '   ·   F8 goes to the first error'
+                summary += '   ·   Next Problem goes to the first error'
             self.statusBar().showMessage(summary)
         else:
             self.statusBar().showMessage(summary, 8000)
@@ -4964,7 +4964,7 @@ class WorkbenchWindow(QMainWindow):
             if self.problems:self.show_output('Problems')
             else:self.output_dock.hide()
         if self._launch_job(plan,completed):
-            tab.state.setText('Running '+mode+' checks on saved source snapshots… Ctrl+Break stops the job.')
+            tab.state.setText('Running '+mode+' checks on saved source snapshots… Stop ends the job.')
             for name in ('Run baseline','Run working copy','Compare both'):tab.buttons[name].setEnabled(False)
 
     def show_hardware_ledger(self):

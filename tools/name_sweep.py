@@ -3,7 +3,11 @@
 Two names are held here (NEVER). The language's own name: on screen a pipeline is "a line" (0.8.0; until 0.8.4 this sweep
 was kept outside the repository and run by hand at a release). And Stacy, the name the first look showed for the assistant
 until 0.8.3: she is Kasandra in every look (workbench/assistant_identity.py; the owner, 19 November 2026: "Just kas.
-Otherwise we have too many people").
+Otherwise we have too many people"). And two words more (0.8.4): "Programs", which on screen is "Apps"; and a key, since
+no keyboard shortcut is printed on screen (KEYS; in the program's own words, KEY_KINDS: its labels, tips, status tips,
+"what's this", names and descriptions for a reader, titles; KEYS_KEPT is the reviewed list of words that keep their key).
+
+  in_guides(root)        every line of the pages Guide opens in the program that names a key or says "Programs"
 
   words_of(widget)       every word a widget carries: its text, tip, status tip, placeholder, accessible name and
                          description, window title; a combo's rows, a tab bar's titles and tips, and the rows and tips of
@@ -22,6 +26,8 @@ Otherwise we have too many people").
                          the Rules menu opened in the viewer -> {found, places, words, named}
   in_code(root)          every sentence in the program's code that carries her earlier name and does not go through
                          assistant_identity.named() -> [(file, line, words)]
+  keys_in_code(root)     every sentence in the program's code that names a key, KEYS_CODE_KEPT set aside: the words the walk
+                         does not reach (a status line, a note, a tip on a page no desk act opens) -> [(file, line, words)]
 
 KEPT is what may still be read on purpose. History keeps the name it was written with (a stored agenda row, her trail),
 and so does an identity shown as it is stored, always lowercase and joined by . : / - or _ (an operation, a settings key,
@@ -31,7 +37,8 @@ workbench/tail_words.shown_origin), so "origin STACY" there is a fault; an event
 in the tip of a row of Activity's timeline) keeps it, as it keeps its operation and its state, and RECORD sets exactly
 that pair aside. CODE_KEPT is the same for the code: each entry says why its words are not a shown name.
 
-  python3 tools/name_sweep.py           the code alone (no window is made): prints what in_code finds; exit 1 when any
+  python3 tools/name_sweep.py           the code alone (no window is made): prints what in_code and keys_in_code find;
+                                        exit 1 when any
 
 The window is swept by tests_integrated/test_one_name.py, in both looks, on the bench seed the desk acts' tests use.
 """
@@ -42,9 +49,44 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# 0.8.4: a key. No keyboard shortcut is printed on screen (0.5.2: the keys work as they did, the words do not name them).
+# A chord (Ctrl+P, Ctrl-S, Alt+3, ⌘S), a function key, Esc, Backspace, PgUp, a key in brackets ("Preview (Space)"), "press
+# Enter", "hit Enter", "Enter runs", "Tab completes", "or Return", "arrow keys". Not the verbs: "Enter one quote per line",
+# "Return to the files", "Escape sequences" and "Close Tab" name no key; nor do names: "F45 / F12 curves" are two nets.
+KEYS = re.compile(r'''(?x)
+      \b(?:Ctrl|Shift|Alt|Meta|Super|Cmd)\s*\+\s*\S
+    | \b(?:Ctrl|Shift|Alt|Meta|Super|Cmd)-(?:[A-Za-z0-9]|F[0-9]+|Enter|Return|Tab|Space|Esc|Up|Down|Left|Right)\b
+    | [⌘⌥⌃⇧]\s*\S
+    | \bCtrl\s+(?:[A-Z0-9]\b|or\s+Shift\b)
+    | (?<!/\s)(?<!/)\bF(?:[1-9]|1[0-2])\b(?!\s*/)(?!\s+(?:curves?|nets?|traces?|nodes?|pins?|signals?|wires?)\b)
+    | \bEsc\b
+    | \b(?:Backspace|PgUp|PgDn|PageUp|PageDown)\b
+    | \bPage\s+(?:Up|Down)\b
+    | \((?:Space|Enter|Return|Esc|Escape|Tab|Backspace|Delete|Del)\)
+    | \b(?:[Pp]ress(?:es|ed|ing)?|[Hh]it(?:s|ting)?|[Tt]ap(?:s|ped|ping)?)\s+(?:the\s+)?(?:Enter|Return|Tab|Space|Esc|Escape|Backspace|Delete|a\s+key|any\s+key|[A-Z]\b)
+    | \b(?:Enter|Return|Tab|Space|Esc|Escape|Backspace)\s+(?:opens|runs|searches|sends|returns|completes|filters?|captures|leaves|closes|cancels|hides|clears|goes|deletes|removes|stops)\b
+    | \b(?:or|and)\s+(?:Enter|Return|Esc|Escape)\b(?!\s+to\b)
+    | \b[Aa]rrow\s+keys?\b
+''')
+# A key is looked for in the program's own words: a row of a list and the text of a page are the owner's data.
+KEY_KINDS = frozenset(('text', 'toolTip', 'statusTip', 'whatsThis', 'placeholderText', 'accessibleName', 'accessibleDescription',
+                       'windowTitle', 'title', 'tab', 'tab tip', 'header'))
+# Words that keep their key, each reviewed: a key that must really be pressed, with nothing to click in its place.
+KEYS_KEPT = (
+    ('F1 reads the highlighted row into the typing-bar note.',
+     'a description read to someone who has no pointer (it is on no tip): F1 is the only way to hear a row\'s note from the keyboard'),
+    ('press Enter to search everything',
+     'the tree search\'s name, read to someone who has no pointer (it is on no tip): Enter is how the keyboard searches everything (the tip names the search button beside it)'),
+    ('Arrow keys move, Z selects, X returns, and Enter leaves a game.', 'a console game is played with keys: there is nothing to click in their place'),
+)
+# The pages Guide opens in the program (Getting Started, Installation Guide): what they say is read on screen.
+GUIDE_PAGES = ('GETTING_STARTED.md', 'docs/WORKSHOP.md')
+
 # name -> (what must not be read, why). A word here is a whole word: 'stack' and 'Stacy' are not the language's name.
 NEVER = {'language': (re.compile(r'\bstac\b', re.I), 'the language is never named on screen: a pipeline is "a line"'),
-         'stacy': (re.compile(r'Stacy|STACY'), 'she is Kasandra in every look')}
+         'stacy': (re.compile(r'Stacy|STACY'), 'she is Kasandra in every look'),
+         'programs': (re.compile(r'\bPrograms\b'), 'on screen the list is "Apps", never "Programs" (0.8.1)'),
+         'key': (KEYS, 'no keyboard shortcut is printed on screen')}
 KEPT = re.compile(r'\b[a-z0-9_]+(?:[.:/_-][a-z0-9_]+)+\b')      # an identity shown as it is stored
 RECORD = re.compile(r'"origin": "STACY"')                        # her actor in an event printed whole, as it is stored
 BRAIN_EVENT = 'name_sweep'      # the walk's own brain event: brain.name_sweep, state CHECKED
@@ -66,6 +108,33 @@ CODE_KEPT = {
     ('sdk/cli/arc1cli/typed_pipeline.py', 'Shell syntax and command substitution are not part of Stacy language'): 'the parser\'s own refusal; the window says it through line_steps.plain',
 }
 CODE_FOLDERS = ('workbench', 'sdk')
+# A key's name alone ('Ctrl+Shift+N', 'F9', 'PgUp  PgDn', 'F7 or Ctrl+Shift+B') is the machine's: a shortcut being set, or a
+# key that a key card pairs with its words. keys_in_code reads sentences.
+_KEY = r'(?:(?:Ctrl|Shift|Alt|Meta)[+ ])*(?:F\d{1,2}|Esc|Escape|Enter|Return|Tab|Space|Backspace|Delete|Del|Break|Home|End|PgUp|PgDn|Up|Down|Left|Right|Menu|%[sd]|[^\s+])'
+KEY_SPEC = re.compile(r'\s*%s(?:(?:\s*[/,]\s*|\s+or\s+|\s{2,})%s)*\s*' % (_KEY, _KEY))
+SHORTCUT_CALLS = frozenset(('QKeySequence', 'QShortcut', 'setShortcut', 'setShortcuts', 'compile'))      # a key given to Qt, a pattern
+# The code's sentences that name a key and are kept, each reviewed: (file, the words' start) -> why. An empty start is the
+# whole file. Most are a key the owner presses with nothing to click in its place: a finding for the owner, not deleted.
+FIELD_KEYS = ('the Field\'s key labels: each is also a place to click that does what its key does (field_qt.FieldView: "every key shown '
+              'on the surface is a place to click"), the Field\'s own design since 0.5; a finding for the owner')
+KEYS_CODE_KEPT = {
+    ('workbench/app.py', ''): 'the old Tk workbench (ARC-1 R09), kept in the kit; no module of Graphite imports it, so its words are never on Graphite\'s screen',
+    ('workbench/version.py', ''): 'the lineage: what each release was, in the words of its day',
+    ('workbench/arcos_tab.py', 'Click the screen for keyboard control.'): 'a console game is played with keys: there is nothing to click in their place',
+    ('workbench/console_tab.py', 'ARC-OS virtual television.'): 'a console game is played with keys: there is nothing to click in their place',
+    ('workbench/stacy_start.py', '# The words on the screen are the Label node'): 'the Godot project\'s own script, written into the owner\'s new project: its game moves with the arrow keys',
+    ('workbench/stacy_start.py', '- `main.gd`: the script on Main.'): 'the Godot project\'s own notes, written into the owner\'s new project: its game moves with the arrow keys',
+    ('workbench/stacy_start.py', '2. Press the Play button at the top right.'): 'the Godot project\'s own notes, written into the owner\'s new project: its game moves with the arrow keys',
+    ('workbench/console_qt.py', '<span style="background:%s;">%s acts with your approval.</span> Press Enter again'):
+        'the console is typed in: an operation that asks is approved by sending the same line again, and the console has no button for it; a finding for the owner',
+    ('workbench/explore_qt.py', 'a group of rows; Right or Enter opens it'): 'shown only after F1 on a highlighted row, to someone already on the keyboard; a pointer opens the group by pointing at it',
+    ('workbench/field_page.py', '1 – %d  take a step'): FIELD_KEYS,
+    ('workbench/field_page.py', '1  take the step'): FIELD_KEYS,
+    ('workbench/field_page.py', 'Esc  close'): FIELD_KEYS,
+    ('workbench/field_page.py', 'G  keep it as a page'): FIELD_KEYS,
+    ('workbench/field_qt.py', 'Esc  close'): FIELD_KEYS,
+    ('workbench/field_qt.py', 'Esc  back'): FIELD_KEYS,
+}
 
 
 def words_of(widget):
@@ -73,7 +142,7 @@ def words_of(widget):
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QAbstractItemView, QComboBox, QHeaderView, QTabBar, QTabWidget, QTreeView
     out = []
-    for get in ('text', 'toPlainText', 'toolTip', 'statusTip', 'placeholderText', 'accessibleName', 'accessibleDescription', 'windowTitle', 'title'):
+    for get in ('text', 'toPlainText', 'toolTip', 'statusTip', 'whatsThis', 'placeholderText', 'accessibleName', 'accessibleDescription', 'windowTitle', 'title'):
         f = getattr(type(widget), get, None)      # the class's own reader: a page may keep a label under the same name
         if not callable(f):continue
         try:value = f(widget)
@@ -101,10 +170,25 @@ def words_of(widget):
     return [(kind, words) for kind, words in out if words]
 
 
-def named_in(words):
-    """Which of NEVER these words say, an identity shown as it is stored set aside."""
-    rest = KEPT.sub(' ', RECORD.sub(' ', words))
-    return [name for name, (pattern, _) in NEVER.items() if pattern.search(rest)]
+def named_in(words, kind=None):
+    """Which of NEVER these words say, an identity shown as it is stored set aside. A key is looked for when the words
+    are the program's own (`kind` in KEY_KINDS, or not given), with the words of KEYS_KEPT set aside."""
+    rest = KEPT.sub(' ', RECORD.sub(' ', words));out = []
+    keys = words      # for a key, the words as they stand: an identity joins no key, and KEYS_KEPT is written in whole words
+    for kept, _why in KEYS_KEPT:keys = keys.replace(kept, ' ')
+    for name, (pattern, _) in NEVER.items():
+        if name == 'key' and kind is not None and kind not in KEY_KINDS:continue
+        if pattern.search(keys if name == 'key' else rest):out.append(name)
+    return out
+
+
+def in_guides(root=ROOT, pages=GUIDE_PAGES):
+    """Every line of the pages Guide opens in the program that names a key or says "Programs" -> [(page, line, words)]."""
+    out = []
+    for page in pages:
+        for number, line in enumerate((Path(root) / page).read_text(encoding='utf-8').splitlines(), 1):
+            if any(name in ('key', 'programs') for name in named_in(line, 'text')):out.append((page, number, line.strip()[:160]))
+    return out
 
 
 def sweep(window, where, found=None, read=None):
@@ -117,7 +201,7 @@ def sweep(window, where, found=None, read=None):
     seen = {(f['name'], f['widget'], f['kind'], f['words']) for f in found}
     def note(owner, kind, words):
         if read is not None:read.add(words)
-        for name in named_in(words):
+        for name in named_in(words, kind):
             row = (name, owner, kind, words[:200])
             if row not in seen:
                 seen.add(row);found.append(dict(name=name, where=where, widget=owner, kind=kind, words=words[:200]))
@@ -265,8 +349,39 @@ def in_code(root=ROOT, folders=CODE_FOLDERS, kept=None):
     return out
 
 
+def keys_in_code(root=ROOT, folders=('workbench',), kept=None):
+    """Every sentence in the program's code that names a key (named_in, so KEYS_KEPT is set aside), KEYS_CODE_KEPT set
+    aside. Documentation strings and comments are the builder's words; a key given to Qt (SHORTCUT_CALLS, shortcut=), a
+    key's name alone (KEY_SPEC) and a menu line's key after its tab (tool_faces cuts it before the menu shows) are the
+    machine's."""
+    kept = KEYS_CODE_KEPT if kept is None else kept
+    out = []
+    for folder in folders:
+        for path in sorted((Path(root) / folder).rglob('*.py')):
+            file = path.relative_to(root).as_posix()
+            if (file, '') in kept:continue
+            tree = ast.parse(path.read_text(encoding='utf-8'));docs = set()
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and node.body:
+                    first = node.body[0]
+                    if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):docs.add(id(first.value))
+            def read(node, inside):
+                if isinstance(node, ast.Call):
+                    f = node.func
+                    if (f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else '') in SHORTCUT_CALLS:inside = True
+                if isinstance(node, ast.keyword) and node.arg in ('shortcut', 'shortcuts'):inside = True
+                if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs and not inside:
+                    words = node.value.split('\t')[0]
+                    if 'key' in named_in(words) and not KEY_SPEC.fullmatch(words) \
+                            and not any(f == file and start and words.startswith(start) for f, start in kept):
+                        out.append((file, node.lineno, words[:160]))
+                for child in ast.iter_child_nodes(node):read(child, inside)
+            read(tree, False)
+    return out
+
+
 if __name__ == '__main__':
-    left = in_code()
+    left = in_code() + keys_in_code()
     for file, line, words in left:print('%s:%d: %r' % (file, line, words))
     print('NAME SWEEP, the code: %d place%s' % (len(left), '' if len(left) == 1 else 's'))
     sys.exit(1 if left else 0)

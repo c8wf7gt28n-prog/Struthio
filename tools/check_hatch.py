@@ -68,6 +68,8 @@ FOCUSED_MODULES=(
  'test_delete_words','test_typewriter_faces','test_hologram','test_kasandra_column',
  # 0.8.3: Kasandra's highlight in burnt yellow (Graphite's colours kept), the neon kp logo as the only kp mark
  'test_kasandra_highlight',
+ # 0.8.4: the colour-vision check: every pair of meaning colours as weak red and weak green sight take them (tools/colour_vision.py)
+ 'test_colour_vision',
  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
  # the network capability the agent can inspect (HATCH DESK D5)
  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',

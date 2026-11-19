@@ -10,9 +10,10 @@ fringe was stored at alpha 1 of 255 and cannot be shown as it was). It is shown 
   wide     the drawing in its own colours, blurred wide and soft
   close    the same blurred a little, close round each part
   ghosts   a cyan copy a little to the left and a magenta one a little to the right, as a neon sign doubles on glass
-each in proportion to the Glow dial (boss_theme.glow(): Soft 1, Bright 1.9, Neon 3), and none at all on the Clean desk or
-at a glow of 0. When Apps opens, the logo catches with its menu (menu_catch.CATCH_MS): its ghosts spread and its light
-surges, then it settles on the frame it had. With Reduce motion, or the glow off, it is still.
+each in proportion to the Glow dial (boss_theme.glow(): Soft 1, Bright 1.9, Neon 3; the ghosts, settled, no stronger than
+GHOST_SETTLED, so the thin strokes stay single), and none at all on the Clean desk or at a glow of 0. When Apps opens,
+the logo catches with its menu (menu_catch.CATCH_MS): its ghosts spread and its light surges, then it settles on the
+frame it had. With Reduce motion, or the glow off, it is still.
 
 Under the pointer the button answers as the head's words do (the pointer's green under it); holding the keyboard or held
 down, a burnt-yellow edge under it and no fill: the logo's cyan light is never laid over yellow, which would read green.
@@ -26,25 +27,34 @@ from PySide6.QtWidgets import QToolButton
 NAME = 'kp_neon.png'
 HEIGHT, WIDTH = 44, 74            # the logo in the head at 14 pt (1401 x 838 drawn to 44 px tall is 73.6 wide)
 GHOSTS = (('#83eaff', -1.0), ('#ff4fd8', 1.0))      # cyan to the left, magenta to the right
-GHOST_AWAY = 1.5                  # px at 14 pt, settled; up to SPREAD times that as the logo catches
-SPREAD = 2.6
+# 0.8.4: settled, the ghosts stand 1 px away and are never stronger than GHOST_SETTLED. At 1.5 px and 0.48 (Neon, 0.8.3) they
+# doubled the logo's thin strokes: the review measured its edges a fifth softer at Neon. The catch keeps its whole spread
+# (3.9 px) and its surge (0.75).
+GHOST_AWAY = 1.0                  # px at 14 pt, settled; up to SPREAD times that as the logo catches
+SPREAD = 3.9
 WIDE, CLOSE = 0.2, 0.28           # the light's strength per step of the Glow dial (Neon 3: 0.6 and 0.84)
-GHOST = 0.16                      # (Neon 3: 0.48)
+GHOST = 0.16                      # per step of the dial, settled no more than GHOST_SETTLED (Soft 0.16, Bright and Neon 0.3)
+GHOST_SETTLED, GHOST_CAUGHT = 0.3, 0.75
 BLUR_WIDE, BLUR_CLOSE = 8, 3      # how far each light reaches, px at 14 pt
 MARGIN = 12                       # room round the drawing for its light, px at 14 pt
+KEPT = 8                          # the drawing is kept at this many times its size in the head, no larger (0.8.4)
 
-_images = {}                      # path -> the clean drawing, decoded once
+_images = {}                      # path -> the clean drawing, decoded once and kept small
 _layers = {}                      # (image key, width, height, dpr) -> the drawing and its two lights and its mask, at that size
 
 
 def logo(root):
-    """The clean drawing as a premultiplied image when its bytes are the recorded ones (kasandra_art.mark), else null."""
+    """The clean drawing as a premultiplied image when its bytes are the recorded ones (kasandra_art.mark), else null.
+    The file is 1401 x 838 (4.7 MB decoded) for a button 74 x 44: what is kept is one copy KEPT times the button's size
+    (588 x 352, a sixth of that), enough for any interface scale and screen; the decoded file is let go (0.8.4)."""
     from . import kasandra_art
     path = kasandra_art.mark(kasandra_art.folder(root), NAME)
     if path is None:return QImage()
     key = str(path)
     if key not in _images:
         image = QImage(key)
+        if not image.isNull() and image.height() > HEIGHT * KEPT:
+            image = image.scaled(round(image.width() * HEIGHT * KEPT / image.height()), HEIGHT * KEPT, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
         _images[key] = image.convertToFormat(QImage.Format_ARGB32_Premultiplied) if not image.isNull() else QImage()
     return _images[key]
 
@@ -97,8 +107,15 @@ def tinted(mask, colour):
 def strengths(level, surge=0.0):
     """(wide, close, ghost) light at Glow `level` (0: none), `surge` 0 to 1 while it catches."""
     if level <= 0:return 0.0, 0.0, 0.0
-    boost = 1.0 + 0.6 * max(0.0, min(1.0, surge))
-    return min(0.9, WIDE * level * boost), min(1.0, CLOSE * level * boost), min(0.75, GHOST * level * boost)
+    caught = max(0.0, min(1.0, surge));boost = 1.0 + 0.6 * caught
+    ghost = min(GHOST_SETTLED, GHOST * level)      # settled: quiet enough to leave the thin strokes single
+    ghost += (min(GHOST_CAUGHT, GHOST * level * 1.6) - ghost) * caught      # caught: what it always was
+    return min(0.9, WIDE * level * boost), min(1.0, CLOSE * level * boost), ghost
+
+
+def away(scale=1.0, surge=0.0):
+    """How far each ghost stands from the drawing, px: GHOST_AWAY settled, SPREAD times that at the catch's start."""
+    return GHOST_AWAY * scale * (1.0 + (SPREAD - 1.0) * max(0.0, min(1.0, surge)))
 
 
 def paint(p, rect, image, level, scale=1.0, surge=0.0):
@@ -112,9 +129,8 @@ def paint(p, rect, image, level, scale=1.0, surge=0.0):
         p.save();p.setCompositionMode(QPainter.CompositionMode_Screen)      # light added to the band, never paint over it
         for layer, alpha in ((wide, used[0]), (close, used[1])):
             p.setOpacity(alpha);p.drawImage(at, layer)
-        away = GHOST_AWAY * scale * (1.0 + (SPREAD - 1.0) * max(0.0, min(1.0, surge)))
         p.setOpacity(used[2])
-        for colour, side in GHOSTS:p.drawImage(at + QPointF(side * away, 0), tinted(mask, colour))
+        for colour, side in GHOSTS:p.drawImage(at + QPointF(side * away(scale, surge), 0), tinted(mask, colour))
         p.restore()
     p.drawImage(at, drawing)
     return used

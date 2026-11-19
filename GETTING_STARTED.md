@@ -23,8 +23,8 @@ tour; the README says how to install, start, back up and check.
 2. With nothing open the centre is the Finder: choose Today, a disk under Machine or a project folder on the left and the
    centre lists it. It looks and opens; it never changes files.
 3. Drop a few files into `~/Concern/Office/Ingress` (or onto the Office) and receive them; Today counts what arrived.
-4. The cat at the lower left opens the programs list (Space or Enter on it too). Documents in the list opens a page: write, select
-   words and ask Kasandra in the strip, `make these words bold`. Ctrl Z takes any change back.
+4. Apps, at the upper right (in Kasandra's look, her kp logo there), opens the list of apps. Documents in the list opens a page: write, select
+   words and ask Kasandra in the strip, `make these words bold`. Saying `undo` in the strip takes any change back.
 5. On a page with quantities ask `add up the numbers on this page`: Graphite works it as an assignment you can watch, pause,
    resume and stop under its face.
 6. A local model is optional. Menu → Configuration → Local model opens the Brain room; the daily guide names the small file

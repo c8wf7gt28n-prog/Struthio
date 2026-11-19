@@ -96,7 +96,7 @@ def rebuild(host):
         def make(text, fn):
             a = QAction(text, host);a.triggered.connect(lambda checked=False:fn());return a
         host.a_work_copy = make('Work on a Copy of a File…', lambda:open_destination(host, 'work_copy'))
-        host.a_console = make('Console\tCtrl+`', lambda:host.console.open() if hasattr(host, 'console') else None)
+        host.a_console = make('Console', lambda:host.console.open() if hasattr(host, 'console') else None)
         host.a_library = make('Library', lambda:open_destination(host, 'library:all'))
         host.a_pills = make('Pills and Paired Computers…', lambda:__import__('workbench.pills_qt', fromlist=['show']).show(host))
         host.a_computer = make('This Computer…', lambda:__import__('workbench.computer_qt', fromlist=['show']).show(host))
@@ -163,7 +163,7 @@ def rebuild(host):
         host.a_talk_stac.setShortcut('Alt+2');host.addAction(host.a_talk_stac);host.a_talk['stac'] = host.a_talk['slate']
         host.a_run_operation = make('Run an operation…\tAlt+3', lambda:host.type_bar.run_operation() if hasattr(host, 'type_bar') else None)
         host.a_run_operation.setShortcut('Alt+3');host.addAction(host.a_run_operation);host.a_talk['kernel'] = host.a_run_operation
-        host.a_run_operation.setToolTip('An operation by name in the writing line (Kernel\'s home): Tab completes, Enter runs, help NAME and ops WORD answer')
+        host.a_run_operation.setToolTip('An operation by name in the writing line (Kernel\'s home): help NAME and ops WORD answer')
         def sync():  # the checks say what is true now
             console = getattr(host, 'console', None);target = getattr(host, 'type_target', 'slate')
             if console is not None:host.a_sizes[console.size_level].setChecked(True)
@@ -178,7 +178,7 @@ def rebuild(host):
             tab = show(host)
             if tab is not None and hasattr(tab, 'project_title'):tab.project_title.setFocus();tab.project_title.selectAll()
         host.a_new_idea = QAction('New Idea…\tCtrl+Shift+N', host);host.a_new_idea.triggered.connect(lambda checked=False:capture_dialog(host))
-        host.a_new_idea.setToolTip('Jot an idea into Notes, exactly as written (Ctrl+Shift+N)');host.a_new_idea.setStatusTip(host.a_new_idea.toolTip())
+        host.a_new_idea.setToolTip('Jot an idea into Notes, exactly as written');host.a_new_idea.setStatusTip(host.a_new_idea.toolTip())
         host.a_new_project = QAction('New Project…', host);host.a_new_project.triggered.connect(lambda checked=False:new_project())
         host.a_new_project.setToolTip('Open the Project Desk with a new title ready to type');host.a_new_project.setStatusTip(host.a_new_project.toolTip())
     if not hasattr(host, 'a_field'):
@@ -186,7 +186,7 @@ def rebuild(host):
         # the writing line's command search all reach the same thing. Plain text and a real shortcut so typing "field" finds it.
         host.a_field = QAction('Field', host);host.a_field.setShortcut('F9')
         host.a_field.triggered.connect(lambda checked=False:host.show_field() if hasattr(host, 'show_field') else None)
-        host.a_field.setToolTip('The work in this workspace as sheets, with what feeds what; Enter opens one, Esc comes back (F9)')
+        host.a_field.setToolTip('The work in this workspace as sheets, with what feeds what')
         host.a_field.setStatusTip(host.a_field.toolTip());host.addAction(host.a_field)
     service = next((a for a in before if a.text().replace('&', '').startswith('Background service')), None)
     extras = {'@receive': host.a_receive, '@files': host.a_files, '@agenda': host.a_agenda, '@project_desk': host.a_project_desk, '@changes': host.a_changes, '@continuing':host.a_continuing, '@deployment':host.a_deployment, '@slate_panel': host.a_slate_panel,

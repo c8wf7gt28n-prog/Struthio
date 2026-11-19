@@ -92,7 +92,7 @@ class MasterStop(QObject):
             self.button.setProperty('stuck',stuck);self.button.style().unpolish(self.button);self.button.style().polish(self.button)
         detail='Stop advice: '+value+'\n'+self.advice['meaning']+'\n\n'+'\n'.join(self.advice['reasons'])
         if stuck and not self.running:detail='Looks stuck. '+' '.join(r for r in self.advice['reasons'] if 'exceeded' in r or 'exited' in r)+'\n\n'+detail
-        detail+='\n\nClick: confirm Stop all · Ctrl+Shift+F12\nRight-click: score details\nSilence alone does not raise the score.'
+        detail+='\n\nClick: confirm Stop all\nRight-click: score details\nSilence alone does not raise the score.'
         try:
             from .work_trail import work_status
             if work_status(self.kernel)['held']:

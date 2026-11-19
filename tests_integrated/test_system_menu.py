@@ -383,7 +383,9 @@ class MenuTests(unittest.TestCase):
         menu.fill()
         self.assertEqual(menu.words(),['Game','Stop all jobs','—','processes','—','Graphite services','—','Log out','Exit Graphite','Restart','Shut down'])
         self.assertIs(menu.items()[0],menu.game,'Game first');self.assertIs(menu.items()[1],menu.kill,'Stop all jobs directly beneath')
-        self.assertEqual(menu.kill.caption,'work Graphite manages');self.assertIn('Programs Graphite does not manage keep running',menu.kill.toolTip())
+        self.assertEqual(menu.kill.caption,'work Graphite manages');self.assertIn('What Graphite does not manage keeps running',menu.kill.toolTip())
+        self.assertNotIn('Programs',menu.kill.toolTip(),'0.8.4: on screen it is Apps, and what is not an app is not called Programs')
+        self.assertNotIn('Ctrl',menu.kill.toolTip(),'0.8.4: no key is named in a tip')
         rows=menu.session_rows
         self.assertEqual({k:r.caption for k,r in rows.items()},{'logout':'this login session','leave':'this Graphite session','restart':'this computer','shutdown':'this computer · unavailable'})
         self.assertEqual({k:r.unavailable for k,r in rows.items()},{'logout':'','leave':'','restart':'','shutdown':'Shut down is unavailable: this computer does not offer it (logind: na).'})

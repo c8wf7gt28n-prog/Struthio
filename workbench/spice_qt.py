@@ -109,7 +109,7 @@ class SpiceTab(QWidget):
         self.channels=QComboBox();self.channels.currentIndexChanged.connect(self.select_channel);layout.addWidget(self.channels)
         self.plot=Waveform();layout.addWidget(self.plot,1)
         self.legend=QLabel();self.legend.setWordWrap(True);layout.addWidget(self.legend)
-        self.cursor=QLabel('Move over a curve or use the arrow keys for exact native samples.');self.cursor.setWordWrap(True)
+        self.cursor=QLabel('Move over a curve for exact native samples.');self.cursor.setWordWrap(True)
         self.plot.value_changed.connect(self.cursor.setText);layout.addWidget(self.cursor)
         scroller=QScrollArea();scroller.setWidgetResizable(True);scroller.setFrameShape(QFrame.NoFrame);scroller.setWidget(page)
         self.pages.addTab(scroller,'Waveform')
@@ -244,7 +244,7 @@ class SpiceTab(QWidget):
         names=[self.result['waveform']['variables'][i]['name'] for i in self.plot.columns()]
         self.legend.setText('   ·   '.join('<span style="color:'+self.plot.COLORS[(i-1)%len(self.plot.COLORS)]+'">'+self.result['waveform']['variables'][i]['name']+'</span>' for i in self.plot.columns())+
                             ('   ·   Matching F45 / F12 curves overlap.' if self.result['operation']=='dividers' else ''))
-        self.cursor.setText('Move over a curve or use the arrow keys for exact native samples.')
+        self.cursor.setText('Move over a curve for exact native samples.')
 
     def select_file(self,*_):
         path=self.file.currentData()

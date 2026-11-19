@@ -2,7 +2,7 @@
 
 ARC Ledger is the local workshop for ARC-1: explore the hardware, edit source, build a native host game, run the console model and read the Orange Book.
 
-The command bar combines File, Edit, View, Tools and Help with fifteen customizable icon shortcuts. Hover or focus an icon for its name and keyboard shortcut. Search commands with Ctrl+Shift+P or find a file with Ctrl+P.
+The command bar combines File, Edit, View, Tools and Help with fifteen customizable icon shortcuts. Hover or focus an icon for its name. Commands can be searched, and a file found by its name, from the search field.
 
 Home preserves your current work. Use the five activity tabs to move between Home, Brain Link, Source, Simulator and the Orange Book. Pin up to five workspaces. The View menu controls Focus, the editor split and the Inspector. Tools follows the active target.
 

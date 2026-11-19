@@ -624,9 +624,17 @@ class TypeBar(QWidget):
             from .boss_theme import AMBER_EDGE
             if glows(self.host):
                 r = self.box.geometry();p.setRenderHint(QPainter.Antialiasing)
-                from .boss_theme import lays_light
-                p.save();lays_light(p)      # Kasandra: the light is added to the band's cyan, never mixed over it (that is green)
-                for away, width, alpha in ((5.0, 5.0, 0.07), (3.2, 3.2, 0.12), (1.6, 2.0, 0.2)):
+                # Kasandra (0.8.4): the light is opaque warm tones (boss_theme.warm), darker as it falls off, on whole rows:
+                # the band's cyan is covered inside the line's columns, not mixed with (that is green) nor lit by yellow
+                # (that is grey), and no row is half one and half the other. The band's own rule stays clear of it.
+                from .boss_theme import APPEARANCE, warm
+                p.save()
+                if APPEARANCE == 'kasandra':
+                    p.setRenderHint(QPainter.Antialiasing, False);p.setClipRect(0, 2, self.width(), self.height() - 2)
+                    for near, rows, share in ((6, 3, 0.14), (3, 3, 0.24), (1, 2, 0.4)):      # rows 6 to 8 from the box, 3 to 5, and the two beside it
+                        p.fillRect(r.left() + 1, r.top() - near - rows + 1, r.width() - 1, rows, warm(share))
+                        p.fillRect(r.left() + 1, r.bottom() + near, r.width() - 1, rows, warm(share))
+                for away, width, alpha in ((5.0, 5.0, 0.07), (3.2, 3.2, 0.12), (1.6, 2.0, 0.2)) if APPEARANCE != 'kasandra' else ():
                     ink = QColor(AMBER_EDGE);ink.setAlphaF(alpha);p.setPen(QPen(ink, width))
                     p.drawLine(QLineF(r.left() + 1, r.top() - away, r.right(), r.top() - away))
                     p.drawLine(QLineF(r.left() + 1, r.bottom() + 1 + away, r.right(), r.bottom() + 1 + away))

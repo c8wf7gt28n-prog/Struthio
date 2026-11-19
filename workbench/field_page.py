@@ -543,7 +543,7 @@ def full_window(host, obj):
     from .field_do import NATIVE
     key = (obj.target or {}).get('key') if isinstance(obj.target, dict) else None
     if key not in NATIVE:
-        host.statusBar().showMessage('Field · %s is a room of Graphite’s own: Enter opens it' % obj.title, 7000);return None
+        host.statusBar().showMessage('Field · %s is a room of Graphite’s own: click it to open it' % obj.title, 7000);return None
     steps = do(host, obj)
     opens = [n for n, step in enumerate(steps) if step.kind == 'write' and step.words.startswith('Open ')]
     if len(opens) == 1:return take(host, obj, opens[0])

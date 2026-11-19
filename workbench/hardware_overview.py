@@ -139,7 +139,7 @@ class HardwareGroupTab(QWidget):
                 tile.setData(Qt.UserRole,r);tile.setToolTip(r['path']);self.tiles.addItem(tile)
                 if index<32 and not r['is_dir']:
                     QTimer.singleShot(index*20, self, lambda p=path,t=tile,f=icon,g=generation:self.load_thumbnail(p,t,f,g))
-        self.count=len(rows);self.note.setText(f'{len(visible)} of {len(rows)} items · double-click or Enter to open · folders stay separate from files')
+        self.count=len(rows);self.note.setText(f'{len(visible)} of {len(rows)} items · double-click to open · folders stay separate from files')
     def load_thumbnail(self,path,tile,fallback,generation):
         if generation!=self.generation:return
         try:

@@ -132,11 +132,11 @@ class Decide(unittest.TestCase):
     def test_words_name_the_change_the_revision_undo_and_the_model(self):
         result={'document':{'revision':3},'applied':{'words':'made “quick brown” bold','block':0,'start':4,'end':15}}
         said=M.words(result,edit(),'bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae')
-        self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Ctrl Z or “undo” takes it back · proposed by the model bd5b5532')
+        self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Undo takes it back · proposed by the model bd5b5532')
         self.assertTrue(M.words(result).endswith('proposed by the model'))
-        self.assertIn('so Ctrl Z does not reach it',M.words(result,undoable=False))
+        self.assertIn('so Undo does not reach it',M.words(result,undoable=False))
         self.assertEqual(M.words(result,model_id='m',corrections=['one','two']),
-                         'Changed on the page: made “quick brown” bold · revision 3 · Ctrl Z or “undo” takes it back · proposed by the model m · one; two')
+                         'Changed on the page: made “quick brown” bold · revision 3 · Undo takes it back · proposed by the model m · one; two')
         self.assertEqual(M.model_short('Qwen2.5 1.5B Instruct'),'Qwen2.5 1.5B Instruct')
         self.assertIn('Not applied by itself: it is stale.',M.not_applied_words({'reason':'it is stale'}))
 
@@ -200,7 +200,7 @@ class Page(unittest.TestCase):
         for change,selection in cases:
             before=stored();revision=tab.revision
             said=tab.apply_model_edit({'id':tab.document_id,'expected_revision':revision,'selection':selection,'change':change},'combined')
-            self.assertTrue(tab.model_edit['applied'] and tab.model_edit['undoable'],(change,said));self.assertIn('Ctrl Z or “undo” takes it back',said)
+            self.assertTrue(tab.model_edit['applied'] and tab.model_edit['undoable'],(change,said));self.assertIn('Undo takes it back',said)
             self.assertNotEqual(stored(),before,change);self.assertEqual(tab.revision,revision+1)
             answer=tab.slate_request('undo');self.assertIn('Took the last change back (revision %d)'%(revision+2),answer)
             self.assertEqual(stored(),before,change);self.assertEqual(tab.revision,revision+2)
@@ -267,7 +267,7 @@ class Page(unittest.TestCase):
             self.assertTrue(hint.startswith('To change this page use documents.edit with id %s, expected_revision 2'%ident),hint);self.assertLess(len(hint),200)
             live={'id':ident,'expected_revision':2,'selection':{'block':4,'start':4,'end':15,'text':'quick brown'},'change':{'bold':True},'origin':'HUMAN'}
             said=tab.apply_model_edit(live,'make the fox words bold','bd5b55329ac2cfbd86bef1915ddf599c5f6a1cca484c156e00f54094308b0dae')
-            self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Ctrl Z or “undo” takes it back · proposed by the model bd5b5532'
+            self.assertEqual(said,'Changed on the page: made “quick brown” bold · revision 3 · Undo takes it back · proposed by the model bd5b5532'
                                   ' · the model named paragraph 5, words 4–15, which do not hold “quick brown”; your selection in paragraph 1 is used; recorded as Graphite’s model, not HUMAN')
             stored=kernel.dispatch('documents.get',{'id':ident},operator())['result']
             self.assertEqual(stored['document']['blocks'][0]['marks'],[{'start':4,'end':15,'bold':True}])

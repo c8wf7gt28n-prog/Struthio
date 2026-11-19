@@ -132,7 +132,7 @@ def compose(kernel, principal, field, now=None):
         add('foot', 'Left out to keep this brief: %s. The Field has them all.' % ', '.join('%d more under %s' % (count, {
             'stands': 'what stands', 'waits': 'what waits', 'doubt': 'what I doubt', 'cannot tell': 'what I cannot tell', 'number': 'the numbers', 'source': 'where it comes from'}.get(part, part))
             for part, count in more.items()))
-    add('foot', 'To see the evidence for any line: select the thing in the Field (F9), then X doubts it, T traces it, D says what can be done.')
+    add('foot', 'To see the evidence for any line: select the thing in the Field, then X doubts it, T traces it, D says what can be done.')
     return {'title': '%s · brief' % desk, 'lines': lines, 'fingerprint': fingerprint(field),
             'counts': {'things': len(things), 'stand': len(standing_now), 'wait': len(waiting), 'doubts': len(doubts), 'cannot_tell': len(unsure)}}
 

@@ -184,7 +184,7 @@ def group_menus(parent,prefix):
     groups={}
     for group in explore.GROUPS:
         sub=QMenu(group,parent);sub.setToolTipsVisible(True);sub.setAccessibleName(prefix+': '+group);groups[group]=sub
-        sub.menuAction().setToolTip(GROUP_NOTES.get(group,group)+'. Right or Enter opens the rows.')
+        sub.menuAction().setToolTip(GROUP_NOTES.get(group,group)+'.')
     return groups
 
 
@@ -237,12 +237,14 @@ class ExploreTab(QWidget):
         from .shell2 import TEXT,ERASER_DEEP
         from .boss_theme import CUE as AMBER  # the yellow writing passage: visible selection (AMBER_SOFT equals AMBER), no border, bottom rule on focus
         # (0.8.3: its ground is CUE, Graphite's amber and Kasandra's blue as before: a place to write is not a highlight)
+        from . import boss_theme as look      # 0.8.4: a selected result is her highlight in Kasandra (fill and words; the window's sheet gives the edge)
+        chosen='background:%s;color:%s;'%(look.AMBER_SOFT,look.AMBER_TEXT) if look.APPEARANCE=='kasandra' else 'background:#f3e3e2;'
         self.setStyleSheet(STYLE+'''
             QLineEdit#ExploreQuery {background:%s;color:%s;border:0;padding:10px;min-height:26px;selection-background-color:%s;selection-color:%s;}
             QLineEdit#ExploreQuery:focus {border-bottom:2px solid %s;}'''%(AMBER,TEXT,ERASER_DEEP,TEXT,TEXT)+'''
             QTreeWidget#ExploreResults {background:transparent;color:#504d46;border:0;}
             QTreeWidget#ExploreResults::item {padding:7px 4px;}
-            QTreeWidget#ExploreResults::item:selected {background:#f3e3e2;}
+            QTreeWidget#ExploreResults::item:selected {'''+chosen+'''}
             QComboBox#ExploreKind {background:transparent;color:#885e64;border:0;border-bottom:1px solid #dad4c8;padding:8px 4px;}
             QComboBox#ExploreKind::drop-down {border:0;}
             QPlainTextEdit {background:transparent;color:#504d46;border:0;}
@@ -390,7 +392,7 @@ class ExploreButton(LauncherKeys,QToolButton):
         super().__init__();self.host=host;self.setText('Explore');self.setAccessibleName('Explore capabilities launcher');self.snapshot=None
         self.setCursor(Qt.PointingHandCursor);self.setMinimumHeight(34);self.setProperty('paperFunctionalInk',True)
         self.setStyleSheet('QToolButton {background:transparent;color:#885e64;border:0;padding:5px 3px;text-decoration:underline;} QToolButton:focus {border-bottom:2px solid #504d46;}')
-        self.setToolTip('Open the Explore workspace, or a suggested workspace for the selected record. The tool groups are in the menu. '+F1_NOTE)
+        self.setToolTip('Open the Explore workspace, or a suggested workspace for the selected record. The tool groups are in the menu.')
         self.setAccessibleDescription('Explore the workshop, suggestions for the selected record, find saved work. '+F1_NOTE)
         self.setPopupMode(QToolButton.InstantPopup);self.popup=QMenu(self);self.popup.setObjectName('ExploreMenu');self.popup.setAccessibleName('Explore menu')
         self.popup.setToolTipsVisible(True);self.setMenu(self.popup);self.keys=DescriptorKeys(host,self.popup)

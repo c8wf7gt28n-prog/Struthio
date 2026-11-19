@@ -94,6 +94,54 @@ class TheSweepItself(unittest.TestCase):
         for words in ('origin STACY','at 12:00:01   operation brain.worker   state READY   origin STACY','"detail": "STACY is ready"','Stacy · brain.worker'):
             self.assertEqual(said(words),['stacy'],words)
 
+    def test_a_key_named_in_the_programs_own_words_is_found_and_programs_is(self):
+        # 0.8.4: no keyboard shortcut is printed on screen, and the list is "Apps". These were tips of 0.8.3.
+        said=name_sweep.named_in
+        for words in ('Build the target for the work in front of you (F7)','Click: confirm Stop all · Ctrl+Shift+F12','Console\tCtrl+`','Run an operation…\tAlt+3',
+                      "words in Graphite's events  ·  Enter filters",'words and Enter filter them','Tab completes, Enter runs','Enter opens one, Esc comes back',
+                      'Right or Enter opens the rows.','Move the pointer or press a key to return to work.','Select related files with Ctrl or Shift.','Ctrl Z takes it back',
+                      'Arrow keys navigate, Z selects','Fill the display; F11 returns to the previous window',
+                      # the review of 0.8.4: a key in brackets, another verb, a hyphen, the Mac's sign, keys by their own names
+                      'Show or hide the preview (Space)','Hide Graphite  (Esc)','Select a row and hit Enter','Save the page with Ctrl-S','Save the page with ⌘S',
+                      'Backspace goes up a folder','PgUp scrolls the surface','Choose a row with the pointer or Return'):
+            for kind in ('toolTip','statusTip','accessibleDescription','whatsThis','text'):
+                self.assertEqual(said(words,kind),['key'],(kind,words))
+            self.assertEqual(said(words),['key'],words)
+            for kind in ('row','row tip','toPlainText'):self.assertEqual(said(words,kind),[],'a row and the text of a page are the owner\'s data')
+        for words in ('Enter one named quote per line.','Return to the files and rooms you had open','Close Tab','Open in a new tab','Shift the column left',
+                      'Type to filter the tree','the keys of a record','Alt text for a picture','F12a connector','Space for one more row','Keep it, and it goes to Notes exactly as written',
+                      # names and words that are not keys (the review of 0.8.4 found the first two read as keys)
+                      'Matching F45 / F12 curves overlap.','Escape sequences are shown as typed.','net F3 / F4','the F7 net','Delete the row','Return to the list',
+                      'Hit rate 92 %','Tap water','Shift-register outputs','Space (2 TB free)'):
+            self.assertEqual(said(words,'toolTip'),[],words)
+        self.assertEqual(said('Programs Graphite does not manage keep running','toolTip'),['programs']);self.assertEqual(said('Programs','row'),['programs'])
+        for words in ('Apps','the programs installed here','programs.mail.read','ProgramsList'):self.assertEqual(said(words),[],words)
+        for kept,why in name_sweep.KEYS_KEPT:      # reviewed: a key that must be pressed, with nothing to click in its place
+            self.assertTrue(name_sweep.KEYS.search(kept),kept);self.assertEqual(said('Open apps · '+kept,'accessibleDescription'),[],kept);self.assertGreater(len(why),20)
+
+    def test_the_sweep_finds_a_key_in_a_tip_a_status_tip_a_description_and_whats_this(self):
+        from PySide6.QtGui import QAction
+        from PySide6.QtWidgets import QApplication,QListWidget,QPushButton,QVBoxLayout,QWidget
+        app=QApplication.instance() or QApplication([])
+        window=QWidget();layout=QVBoxLayout(window)
+        save=QPushButton('Save');save.setToolTip('Save the page (Ctrl+S)');save.setStatusTip('Press Enter to save');layout.addWidget(save)
+        find=QPushButton('Find');find.setAccessibleDescription('Find in the page; F3 goes to the next');find.setWhatsThis('Esc closes it');layout.addWidget(find)
+        line=QAction('Output   (F10)',window);line.setWhatsThis('Shift+F10 opens it');window.addAction(line)
+        rows=QListWidget();rows.addItem('typed: press F5 to run, then Ctrl+C');layout.addWidget(rows)
+        found=name_sweep.sweep(window,'a test window')
+        self.assertEqual(sorted((f['widget'],f['kind'],f['words']) for f in found if f['name']=='key'),
+                         [('QAction','text','Output   (F10)'),('QAction','toolTip','Output   (F10)'),('QAction','whatsThis','Shift+F10 opens it'),
+                          ('QPushButton','accessibleDescription','Find in the page; F3 goes to the next'),('QPushButton','statusTip','Press Enter to save'),
+                          ('QPushButton','toolTip','Save the page (Ctrl+S)'),('QPushButton','whatsThis','Esc closes it')])
+        import shiboken6
+        shiboken6.delete(window);app.processEvents()      # gone now: the next sweep reads every window there is
+
+    def test_the_guide_pages_shown_in_the_program_name_no_key_and_say_apps(self):
+        self.assertEqual(name_sweep.in_guides(ROOT),[])
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp)/'GUIDE.md').write_text('Open the Field.\nSearch commands with Ctrl+Shift+P.\nThe Programs list is at the upper right.\n'+name_sweep.KEYS_KEPT[-1][0]+'\n',encoding='utf-8')
+            self.assertEqual([(page,number) for page,number,_ in name_sweep.in_guides(temp,('GUIDE.md',))],[('GUIDE.md',2),('GUIDE.md',3)])
+
     def test_the_code_sweep_reads_sentences_and_not_documentation(self):
         with tempfile.TemporaryDirectory() as temp:
             folder=Path(temp)/'workbench';folder.mkdir()
@@ -105,6 +153,20 @@ class TheSweepItself(unittest.TestCase):
             self.assertEqual([(f,line,words) for f,line,words in found],[('workbench/page.py',7,'Ask Stacy to plan'),('workbench/page.py',7,'STACY HOLDS'),('workbench/page.py',8,'STACY')])
             kept={('workbench/page.py','STACY'):'a record'}
             self.assertEqual([words for _,_,words in name_sweep.in_code(temp,('workbench',),kept=kept)],['Ask Stacy to plan'],'what is kept is kept by its file and its first words')
+
+    def test_the_code_sweep_for_keys_reads_sentences_and_not_a_keys_own_name(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder=Path(temp)/'workbench';folder.mkdir()
+            (folder/'page.py').write_text('"""Esc closes the page."""\nfrom PySide6.QtGui import QKeySequence\n'
+                                          'def words(button, action):\n    """Ctrl+S saves it."""\n'
+                                          '    button.setToolTip(\'Show the preview (Space)\')      # Esc in a comment\n'
+                                          '    action.setShortcut(QKeySequence(\'Ctrl+Shift+N, Esc closes\'));A(\'New\', None, \'Ctrl+N\', shortcut=\'Esc closes it\')\n'
+                                          '    return [\'Run an operation…\\tAlt+3\', \'F7 or Ctrl+Shift+B\', \'PgUp  PgDn\', \'Saved · Ctrl Z takes it back\', \'Esc  close\']\n',encoding='utf-8')
+            found=name_sweep.keys_in_code(temp,kept={})
+            self.assertEqual([(line,words) for f,line,words in found],[(5,'Show the preview (Space)'),(7,'Saved · Ctrl Z takes it back'),(7,'Esc  close')])
+            kept={('workbench/page.py','Esc  close'):'a key label you click'}
+            self.assertEqual([words for _,_,words in name_sweep.keys_in_code(temp,kept=kept)],['Show the preview (Space)','Saved · Ctrl Z takes it back'])
+            self.assertEqual(name_sweep.keys_in_code(temp,kept={('workbench/page.py',''):'the whole file'}),[])
 
     def test_the_sweep_reads_a_widget_that_is_hidden_and_a_menu_line(self):
         from PySide6.QtWidgets import QApplication,QLabel,QMenu,QPushButton,QVBoxLayout,QWidget
@@ -132,6 +194,27 @@ class TheCode(unittest.TestCase):
         everything=name_sweep.in_code(ROOT,kept={})
         for (file,start),why in name_sweep.CODE_KEPT.items():
             self.assertTrue(any(f==file and words.startswith(start[:160]) for f,_,words in everything),(file,start));self.assertTrue(why.strip(),(file,start))
+
+    def test_no_sentence_in_the_code_names_a_key_unless_it_is_reviewed(self):
+        # 0.8.4's review: a dozen shown words still named a key where the walk does not go (a status line, a note, a tip on a
+        # page no desk act opens). Every sentence that names one is gone or kept in name_sweep.KEYS_CODE_KEPT with its reason.
+        left=name_sweep.keys_in_code(ROOT)
+        self.assertEqual(left,[],'these words name a key on screen: say what to click instead, or say in tools/name_sweep.KEYS_CODE_KEPT why the key stays')
+        everything=name_sweep.keys_in_code(ROOT,kept={})
+        for (file,start),why in name_sweep.KEYS_CODE_KEPT.items():
+            self.assertTrue((ROOT/file).exists(),file);self.assertGreater(len(why),20,(file,start))
+            if start:self.assertTrue(any(f==file and words.startswith(start) for f,_,words in everything),(file,start))
+
+    def test_tips_and_notes_the_walk_does_not_reach_name_no_key(self):
+        # 0.8.4: put right with the ones the walk reads. Each named a key where there is something to click in its place.
+        from workbench import log_qt,system_menu_qt
+        for words in list(log_qt.HINTS.values())+list(log_qt.NOTES.values())+[system_menu_qt.STOP_TIP]:
+            self.assertEqual(name_sweep.named_in(words,'toolTip'),[],words)
+        for file,mark in (('workbench/home_qt.py','self.startup.setToolTip('),('workbench/hardware_overview.py','items · double-click'),('workbench/spice_qt.py','exact native samples'),
+                          ('workbench/log_qt.py','No capture is running'),('workbench/arc_desktop.py','host.global_search.setToolTip('),('workbench/arc_desktop.py','host.tree_search.setToolTip('),('workbench/qt_app.py','self.global_search.setToolTip(')):
+            lines=[line for line in (ROOT/file).read_text(encoding='utf-8').splitlines() if mark in line]
+            self.assertTrue(lines,(file,mark))
+            for line in lines:self.assertEqual(name_sweep.named_in(line,'toolTip'),[],(file,line.strip()[:140]))
 
     def test_the_phone_page_says_no_earlier_name(self):
         # workbench/remote_pwa is served to the owner's phone as it stands; '/stacy.png' is a picture's address, not a word

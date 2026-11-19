@@ -218,7 +218,7 @@ class ReadingDialog(QDialog):
         preset=QPushButton('Try larger reading text')
         preset.clicked.connect(lambda:self.populate({**self.values(),'prose_pt':20,'ui_pt':15,'navigation_pt':16,'code_pt':15}))
         v.addWidget(preset)
-        note=QLabel('OpenDyslexic is bundled with its recorded source and licence. Code uses a separate fixed-pitch font. Ctrl+Alt+= / Ctrl+Alt+- adjusts prose. Apply saves locally; preview changes do not edit a document or its undo history.')
+        note=QLabel('OpenDyslexic is bundled with its recorded source and licence. Code uses a separate fixed-pitch font. Larger prose and Smaller prose, in View, adjust prose. Apply saves locally; preview changes do not edit a document or its undo history.')
         note.setWordWrap(True);note.setProperty('arcReadingRole','prose');v.addWidget(note)
         self.prose_preview=QTextBrowser();self.prose_preview.setAccessibleName('Prose reading preview')
         self.prose_preview.setProperty('arcReadingPreview',True)

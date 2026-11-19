@@ -255,7 +255,7 @@ def words(result, action=None, model_id=None, undoable=True, corrections=()):
     applied = (result or {}).get('applied') or {}; doc = (result or {}).get('document') or {}
     said = applied.get('words') or 'the change'
     short = model_short(model_id)
-    back = 'Ctrl Z or “undo” takes it back' if undoable else 'the page reloaded the saved revision to show it, so Ctrl Z does not reach it'
+    back = 'Undo takes it back' if undoable else 'the page reloaded the saved revision to show it, so Undo does not reach it'
     told = '; '.join(str(c) for c in corrections or () if c)
     return 'Changed on the page: %s · revision %s · %s · proposed by the model%s%s' % (said, doc.get('revision', '?'), back, (' ' + short) if short else '',
                                                                                     (' · ' + told) if told else '')

@@ -383,7 +383,7 @@ class LogViewTests(unittest.TestCase):
     def test_a_proposed_capture_is_shown_for_the_owner(self):
         """A capture Graphite proposed during an assignment (D5 keeps it; only the owner may start one) is shown while capture
         is idle, in D5's words; nothing starts by itself."""
-        words='Graphite proposes capturing packet headers with the filter “port 443” on every interface for 60 seconds (at most 2,000 packets). Only you can start it: Log, Network, type the filter “port 443”, then Capture… (or Ctrl+Enter in the line).'
+        words='Graphite proposes capturing packet headers with the filter “port 443” on every interface for 60 seconds (at most 2,000 packets). Only you can start it: Log, Network, type the filter “port 443”, then Capture… in the head row.'
         fake,state=self.network_fake({'state':'IDLE','proposal':{'filter':'port 443','words':words}});view=log.LogView(host_with({'log_stream':'network'}),fake);view.refresh(force=True)
         self.assertEqual(view.capture_note.text(),words);self.assertEqual(view.capture_words.text(),'Capture idle')
         self.assertNotIn('network.capture.start',[op for op,_ in fake.calls])

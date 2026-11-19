@@ -187,8 +187,10 @@ class SlateSwitch(QToolButton):
         self.setCheckable(True);self.setCursor(Qt.PointingHandCursor)
         self.setAccessibleName('Enable or disable new Graphite AI activity')
         from .shell2 import TEXT, ERASER, AMBER, LINE
+        from . import boss_theme as look      # 0.8.4, Kasandra: switched on is her highlight whole (fill, words and edge); Graphite: its amber, as before
+        on = 'background:%s;color:%s;border:1px solid %s;' % (look.AMBER_SOFT, look.AMBER_TEXT, look.AMBER_EDGE) if look.APPEARANCE == 'kasandra' else 'background:%s;' % AMBER
         self.setStyleSheet('QToolButton#SlateSwitch {color:%s;background:%s;border:1px solid %s;border-radius:12px;padding:4px 9px;font-size:12px;} '
-                           'QToolButton#SlateSwitch:checked {background:%s;}' % (TEXT, ERASER, LINE, AMBER))
+                           'QToolButton#SlateSwitch:checked {%s}' % (TEXT, ERASER, LINE, on))
         self.clicked.connect(self.change)
         self.timer = QTimer(self, interval=2000);self.timer.timeout.connect(self.refresh);self.timer.start();self.refresh()
 
@@ -237,8 +239,9 @@ class NicePopup(QFrame):
         self.setObjectName('NicePopup');self.setMinimumWidth(0 if (embedded or section) else 410);self.setMaximumWidth(16777215 if (embedded or section) else 540)
         self._scale = None;self._data = None;self._width = None
         from .shell2 import CARD, LINE, TEXT, ERASER
+        from .boss_theme import chosen_row      # 0.8.4: the selected process is her highlight in Kasandra, as any selected row
         self.setStyleSheet('QFrame#NicePopup {background:%s;border:1px solid %s;} QListWidget {background:%s;color:%s;border:0;font-size:13px;} '
-                           'QListWidget::item {padding:7px;} QListWidget::item:selected {background:%s;color:%s;}' % (CARD, LINE, CARD, TEXT, ERASER, TEXT))
+                           'QListWidget::item {padding:7px;} QListWidget::item:selected {background:%s;color:%s;}' % ((CARD, LINE, CARD, TEXT) + chosen_row(ERASER, TEXT)))
         col = QVBoxLayout(self);col.setContentsMargins(12, 10, 12, 12);col.setSpacing(8);self.col = col
         # UI-03: the very first row is the kill switch, full width, eraser pink: the existing Master Stop (its confirm dialog,
         # its stop thread, its Ctrl+Shift+F12) and nothing else. The old secondary "■ Stop" did the same thing, so it is gone.
@@ -353,7 +356,7 @@ class NicePopup(QFrame):
         stuck = bool(controller is not None and controller.button.property('stuck')) if controller is not None and hasattr(controller, 'button') else False
         if bool(self.kill.property('stuck')) != stuck:self.kill.setProperty('stuck', stuck);self.kill.style().unpolish(self.kill);self.kill.style().polish(self.kill)
         detail = str(getattr(controller, 'detail', '') or '') if controller is not None else ''
-        self.kill.setToolTip('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is stopped (Ctrl+Shift+F12). '
+        self.kill.setToolTip('Stop all jobs Graphite manages: confirm, then every Graphite job, build, console, host tool and the phone link is stopped. '
                              'Source files and unsaved editor buffers are kept.' + ('\n\n' + detail if detail else ''))
 
     def open_agenda(self):
@@ -571,7 +574,7 @@ class NiceButton(QToolButton):
     def __init__(self, host):
         super().__init__();self.host = host;self.setObjectName('NiceButton')
         self.setText('Nice ▾');self.setAccessibleName('Nice · everything running, its order and niceness, and Stop')
-        self.setToolTip('Everything running, its order and its niceness, and Stop all jobs: the Master Stop (Ctrl+Shift+F12).')
+        self.setToolTip('Everything running, its order and its niceness, and Stop all jobs: the Master Stop.')
         self.setCursor(Qt.PointingHandCursor);self.setFocusPolicy(Qt.StrongFocus)
         self.setMinimumHeight(34);self.popup = None;self.clicked.connect(self.open)
 
@@ -602,7 +605,7 @@ class SystemButton(NiceButton):
     def __init__(self, host):
         super().__init__(host);self.setObjectName('SystemMenu');self.setText('System ▾');self.setToolButtonStyle(Qt.ToolButtonTextOnly)
         self.setAccessibleName(self.NAME);self.setToolTip(self.NAME)
-        self.setAccessibleDescription('Game; Stop all jobs (Ctrl+Shift+F12); the process list with its order and niceness; Graphite services On, Off, Restart; '
+        self.setAccessibleDescription('Game; Stop all jobs; the process list with its order and niceness; Graphite services On, Off, Restart; '
                                       'Log out, Return to Debian or Exit Graphite, Restart, Shut down')
         self.setProperty('paperIcon', True);self.setProperty('paperFunctionalInk', True);self.setMinimumHeight(0)
         self.setStyleSheet('QToolButton#SystemMenu {background:transparent;border:0;padding:0;margin:0;}')

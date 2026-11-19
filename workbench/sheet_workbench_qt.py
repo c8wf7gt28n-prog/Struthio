@@ -54,7 +54,8 @@ QPushButton#WorksheetCommands:hover {border-color:%(CUE_EDGE)s;}
 QPushButton#WorksheetChainStep:focus, QPushButton#FullSpreadsheet:focus, QPushButton#WorksheetCommands:focus {border-color:%(AMBER_EDGE)s;}
 QPushButton#RunWorksheetChain {background: %(CUE_EDGE)s; color: %(TERMINAL_GROUND)s;
     border: 1px solid %(CUE_EDGE)s; font-family: "%(MONO)s"; font-weight:600; border-radius: 0; padding: 5px 10px;}
-QPushButton#RunWorksheetChain:hover, QPushButton#RunWorksheetChain:focus {background: %(CUE_TEXT)s;}
+QPushButton#RunWorksheetChain:hover {background: %(CUE_TEXT)s;}
+QPushButton#RunWorksheetChain:focus {background: %(AMBER_TEXT)s; border-color: %(AMBER_EDGE)s;}
 QPushButton#RunWorksheetChain:disabled {background: %(PANEL)s; color: %(QUIET)s; border-color: %(LINE)s;}
 """ % vars(ink)
 

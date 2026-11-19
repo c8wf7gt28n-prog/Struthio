@@ -135,7 +135,7 @@ assert from_qt(tab.page.document())[0]['marks']==[{'start':4,'end':15,'bold':Tru
 probe=tab.page.textCursor();probe.setPosition(6);bold_weight=probe.charFormat().fontWeight();probe.setPosition(2);plain_weight=probe.charFormat().fontWeight()
 assert bold_weight>=QFont.Bold>plain_weight
 CORRECTIONS=['the model named paragraph 5, words 4–15, which do not hold “quick brown”; your selection in paragraph 1 is used','recorded as Graphite’s model, not HUMAN']
-said='Changed on the page: made “quick brown” bold · revision %d · Ctrl Z or “undo” takes it back · proposed by the model bd5b5532 · %s'%(rev+1,'; '.join(CORRECTIONS))
+said='Changed on the page: made “quick brown” bold · revision %d · Undo takes it back · proposed by the model bd5b5532 · %s'%(rev+1,'; '.join(CORRECTIONS))
 assert applied_card.property('modelTurn')=='applied' and applied_card.words.text().replace('​','')==said,applied_card.words.text()
 labels=[l.text() for l in applied_card.findChildren(type(applied_card.words))]
 assert 'APPLIED ON THE PAGE' in labels and any('undo' in t for t in labels) and 'Was this right?' in labels,labels

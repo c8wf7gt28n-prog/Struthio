@@ -864,11 +864,18 @@ class FieldView(QWidget):
                 p.save();p.setClipRect(body)
                 if self.zoom != 1.0:         # the surface is seen from nearer or further: scaled about the body's corner
                     p.translate(body.topLeft());p.scale(self.zoom, self.zoom);p.translate(-body.topLeft())
-                depth = self.field.depth()
-                self._columns(p, body)
+                depth = self.field.depth();hers = t.APPEARANCE == 'kasandra'
+                if not hers:self._columns(p, body)
                 wide, high = self.room(body);seen = QRectF(body.left() - 40, body.top() - 40, wide + 80, high + 80)
                 order = [i for i in sorted(self._placed, key=lambda i: -depth.get(i, 3)) if self._drawn_rect(i, body).intersects(seen)]
                 for ident in order:self._ghosts(p, self._drawn_rect(ident, body), depth.get(ident, 3))
+                if hers:
+                    # Kasandra (0.8.4): the keyboard's light lies on the ground, under the columns' names, the wires and every
+                    # sheet. Her light is opaque warm tones (boss_theme.warm), so nothing cyan is under it to go green or
+                    # grey, and nothing drawn after it is hidden by it. Graphite's is laid over the sheet's neighbours (_sheet).
+                    chosen = self.field.selected
+                    if self.hasFocus() and chosen in order and depth.get(chosen, 3) == 0:self._halo(p, self._drawn_rect(chosen, body), t.AMBER_EDGE, 1.9)
+                    self._columns(p, body)
                 self._labels = []
                 self._wires(p, body, depth, seen)
                 for ident in order:self._sheet(p, self.field.get(ident), self._drawn_rect(ident, body), depth.get(ident, 3))
@@ -930,7 +937,7 @@ class FieldView(QWidget):
         title_font = self.sans(17 if tight else 19);fm_title = QFontMetricsF(title_font);y = r.top() + pad + fm_title.ascent()
         close_font = self.mono(12);fm_close = QFontMetricsF(close_font);close = '✕  Close';close_w = fm_close.horizontalAdvance(close)
         p.setFont(close_font);p.setPen(QColor(t.QUIET));p.drawText(QPointF(r.right() - pad - close_w, y), close)
-        self._hot.append((QRectF(r.right() - pad - close_w - 8 * s, y - fm_close.ascent() - 6 * s, close_w + 16 * s, fm_close.height() + 12 * s), Qt.Key_Escape, '', 'Close this page (Esc)'))
+        self._hot.append((QRectF(r.right() - pad - close_w - 8 * s, y - fm_close.ascent() - 6 * s, close_w + 16 * s, fm_close.height() + 12 * s), Qt.Key_Escape, '', 'Close this page'))
         p.setFont(title_font);p.setPen(QColor(t.TEXT))
         heading = self._flow(read['title'], fm_title, r.width() - 2 * pad - close_w - 16 * s)       # a long name takes a second line before it is cut
         if len(heading) > 2:heading = [heading[0], fm_title.elidedText(' '.join(heading[1:]), Qt.ElideRight, r.width() - 2 * pad - close_w - 16 * s)]
@@ -1195,10 +1202,11 @@ class FieldView(QWidget):
             else:self._hot.append((spot, getattr(Qt, 'Key_' + letter.upper(), Qt.Key_unknown), letter, 'The %s face of the Field' % FACE_WORDS.get(name, name).lower()))
             p.setPen(QColor(t.AMBER_TEXT if on else t.READY if spot.contains(self._mouse) else t.QUIET));p.drawText(QPointF(x, base), word)
             if on:
-                if self.texture:             # the chosen face's rule is lit from below (light added, in Kasandra: her art lies under it)
-                    p.save();t.lays_light(p)
+                if self.texture:             # the chosen face's rule is lit from below (Kasandra, 0.8.4: in warm tones; her art lies under it)
+                    hers = t.APPEARANCE == 'kasandra'
+                    p.save()
                     for width, alpha in ((7.0, 0.07), (4.0, 0.14)):
-                        p.setPen(QPen(ink(t.AMBER_EDGE, alpha), width * s, Qt.SolidLine, Qt.RoundCap));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
+                        p.setPen(QPen(t.warm(2 * alpha) if hers else ink(t.AMBER_EDGE, alpha), width * s, Qt.SolidLine, Qt.RoundCap));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
                     p.restore()
                 p.setPen(QPen(QColor(t.AMBER_EDGE), 2));p.drawLine(QPointF(x, base + 6 * s), QPointF(x + w, base + 6 * s))
             self._face_boxes.append((QRectF(x - 4 * s, 0, w + 8 * s, h), name));x += w + 16 * s
@@ -1402,12 +1410,14 @@ class FieldView(QWidget):
         The Clean desk has none."""
         if not self.texture:return
         s = self.scale();level = t.glow();strength = strength * level;p.save();p.setBrush(Qt.NoBrush)
-        if colour == t.AMBER_EDGE:t.lays_light(p)      # Kasandra: the keyboard's light is added to the wires under it, never mixed over them
+        # Kasandra (0.8.4): the keyboard's light is a warm tone for each ring, opaque, darker as it falls off. Yellow thinned
+        # over her blue, or added to it as light (0.8.3), is grey: the review measured the outer rings at saturation 0.08.
+        hers = colour == t.AMBER_EDGE and t.APPEARANCE == 'kasandra'
         rings = ((7.0, 8.0, 0.05), (4.0, 5.0, 0.09), (1.5, 2.5, 0.17))
         if level >= 1.5:rings = ((13.0, 12.0, 0.022),) + rings        # a brighter desk throws its light further, not only harder
         if level >= 2.5:rings = ((20.0, 15.0, 0.014),) + rings
         for grow, width, alpha in rings:
-            p.setPen(QPen(ink(colour, min(1.0, alpha * strength)), width * s));p.drawRect(rect.adjusted(-grow * s, -grow * s, grow * s, grow * s))
+            p.setPen(QPen(t.warm(alpha * strength) if hers else ink(colour, min(1.0, alpha * strength)), width * s));p.drawRect(rect.adjusted(-grow * s, -grow * s, grow * s, grow * s))
         p.restore()
 
     def _bloom(self, p, at, text, colour, strength=1.0):
@@ -1415,8 +1425,10 @@ class FieldView(QWidget):
         the caller draws next. The letters stay as sharp as they were; only the dark around them warms. For the few words
         that are lit (the sheet that has the keyboard, the chosen face), never for running text. The Clean desk has none."""
         if not self.texture:return
-        s = self.scale();level = t.glow();p.save();p.setPen(ink(colour, min(1.0, 0.085 * strength * min(level, 2.4))))
-        if colour == t.AMBER_EDGE:t.lays_light(p)      # Kasandra: a lit word's light is added, never mixed over her cyan
+        s = self.scale();level = t.glow();share = min(1.0, 0.085 * strength * min(level, 2.4));p.save()
+        # Kasandra (0.8.4): a lit word's light is one deep warm tone laid nearly whole, so the dark round the letters warms
+        # and the letters keep their contrast. Added as light (0.8.3) it was as pale as the letters, and they washed out.
+        p.setPen(ink(t.warm(share), 0.8) if colour == t.AMBER_EDGE and t.APPEARANCE == 'kasandra' else ink(colour, share))
         for reach in ((1.1 * s, 2.2 * s, 3.6 * s) if level >= 1.5 else (1.1 * s, 2.2 * s)):
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
                 p.drawText(QPointF(at.x() + dx * reach, at.y() + dy * reach), text)
@@ -1460,7 +1472,7 @@ class FieldView(QWidget):
         # (one on the whole surface, and the strongest, because it is where a key will act). What a sheet's state is, is
         # lit inside it, at its mark; so a sheet that waits can be under the pointer and say both.
         if touched:self._halo(p, r, t.READY, 1.5)
-        elif selected and focus:self._halo(p, r, t.AMBER_EDGE, 1.9)
+        elif selected and focus and t.APPEARANCE != 'kasandra':self._halo(p, r, t.AMBER_EDGE, 1.9)      # hers is already on the ground, under the wires (paintEvent)
         p.setBrush(QColor((t.CARD, t.CARD, t.PANEL, t.GROUND)[depth]))       # a sheet recedes by its ground and its edge; its words stay readable
         edge = t.AMBER_EDGE if selected and focus else t.READY if touched else (t.LINE_STRONG if depth <= 1 else t.LINE)
         p.setPen(QPen(ink(edge, 1.0 if selected else 0.85 if touched else edge_keep + 0.1), 2 if selected else 1));p.drawRect(r)

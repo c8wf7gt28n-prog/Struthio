@@ -1295,7 +1295,7 @@ def preview_rows(host, text, shown=4):
         from .stac_words import command, expand, known_to
         made = command(text)
         if made is not None and made.startswith('/'):      # keeping or forgetting a word changes something: it is not previewed, it is said
-            return [('section', 'PREVIEW', None), ('note', ('Ctrl+Enter keeps this word' if made.startswith('/words.keep') else 'Ctrl+Enter forgets this word'), None)]
+            return [('section', 'PREVIEW', None), ('note', ('The arrow at the line’s end keeps this word' if made.startswith('/words.keep') else 'The arrow at the line’s end forgets this word'), None)]
         text = expand_this(host, made or expand(known_to(host), text))        # the owner's words, then `this`: the sheet selected in the Field
     except ValueError as exc:
         return [('section', 'PREVIEW', None), ('note', str(exc)[:110], None)]
@@ -2977,7 +2977,7 @@ class SlateFace(QWidget):
             try:answer = tab.slate_request('undo')
             except RuntimeError:answer = 'That page is closed; reopen it and use Undo there.'
             self.say(answer or 'Nothing to undo on this page.');return answer
-        box.addWidget(sentence('{undo}', {'undo': ('undo', undo)}))   # the sentence above already says Ctrl Z or “undo” takes it back
+        box.addWidget(sentence('{undo}', {'undo': ('undo', undo)}))   # the sentence above already says Undo takes it back
         row = QHBoxLayout();ask = QLabel('Was this right?');ask.setStyleSheet('color:%s' % QUIET);row.addWidget(ask, 1)
         def marked(m):
             self.mark(program, m, row)

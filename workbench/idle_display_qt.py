@@ -20,7 +20,7 @@ class IdleScreen(QWidget):
 
         self.art = IdleDisplayArt(program(host.root) / 'branding' / 'boss')
         self.setAccessibleName('Fast-forward screensaver')
-        self.setAccessibleDescription('Simulated operations. Move the pointer or press a key to return to work.')
+        self.setAccessibleDescription('Simulated operations. Move the pointer to return to work.')
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_AcceptTouchEvents)
         self.setMouseTracking(True)

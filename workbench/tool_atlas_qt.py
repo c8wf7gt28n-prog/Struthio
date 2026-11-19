@@ -14,7 +14,7 @@ class ToolAtlasTab(QWidget):
         box = QVBoxLayout(self)
         box.addWidget(QLabel('TOOL ATLAS · operation contracts and passports'))
         row = QHBoxLayout(); self.search = QLineEdit()
-        writing_prompt(self.search, 'Search Calc, Python, KiCad, ngspice or an operation ID; press Enter')
+        writing_prompt(self.search, 'Search Calc, Python, KiCad, ngspice or an operation ID')
         self.kind = QComboBox(); self.kind.addItems(['All entries', 'Operations', 'Job tools'])
         find = QPushButton('Find'); row.addWidget(self.search, 1); row.addWidget(self.kind); row.addWidget(find)
         box.addLayout(row)

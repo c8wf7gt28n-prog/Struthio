@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QLineEdit,
 from . import cabinet
 from .engineering_kernel import operator,CAPABILITIES
 from .settings_qt import action,STYLE,INK
-from .boss_theme import recolour
+from .boss_theme import chosen_row, recolour
 
 
 def plain(text=''):
@@ -160,7 +160,7 @@ class CabinetPage(QWidget):
         self.setStyleSheet(STYLE+recolour('''QLineEdit#CabinetQuery {background:#493225;color:#eee9dd;border:0;padding:7px;selection-background-color:#593a29;selection-color:#eee9dd;}
         QTreeWidget#LogicalCabinet {background:transparent;color:#eee9dd;border:0;}
         QTreeWidget#LogicalCabinet::item {padding:5px 2px;}
-        QTreeWidget#LogicalCabinet::item:selected {background:#493225;color:#eee9dd;}'''))
+        QTreeWidget#LogicalCabinet::item:selected {background:%s;color:%s;}'''%chosen_row('#493225','#eee9dd')))      # 0.8.4: her highlight in Kasandra
         box=QVBoxLayout(self);box.setContentsMargins(8,6,8,0);box.setSpacing(8)
         row=QHBoxLayout();self.logical=action('Logical cabinet',lambda:self.set_legacy(False));self.legacy=action('Existing views',lambda:self.set_legacy(True))
         from .settings_qt import ACTION_STYLE

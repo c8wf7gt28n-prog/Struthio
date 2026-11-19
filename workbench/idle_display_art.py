@@ -260,5 +260,5 @@ class IdleDisplayArt:
         painter.fillRect(QRectF(42, 850, 7, 7), _GREEN)
         painter.setFont(self._small)
         _text(painter, 59, 858, 'GRAPHITE   /   IDLE DISPLAY', _MUTED)
-        _text(painter, 507, 858, 'Press a key or move the pointer to return', _PAPER)
+        _text(painter, 507, 858, 'Move the pointer to return', _PAPER)
         _text(painter, 1213, 858, 'REEL LOOP   [A–B]', _AMBER)

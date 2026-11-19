@@ -369,7 +369,7 @@ class FinderPage(QWidget):
             b.clicked.connect(lambda checked=False, key=key:self.set_view(key));self.view_buttons[key] = b;row.addWidget(b)
         self.hidden_button = QPushButton('Hidden');self.hidden_button.setCheckable(True);self.hidden_button.setProperty('arcButton', 'filter');self.hidden_button.setToolTip('Show the files whose names begin with a dot')
         self.hidden_button.setAccessibleName('Show hidden files');self.hidden_button.clicked.connect(lambda checked:self.set_hidden(checked));row.addWidget(self.hidden_button)
-        self.preview_button = QPushButton('Preview');self.preview_button.setCheckable(True);self.preview_button.setProperty('arcButton', 'filter');self.preview_button.setToolTip('Show or hide the preview (Space)')
+        self.preview_button = QPushButton('Preview');self.preview_button.setCheckable(True);self.preview_button.setProperty('arcButton', 'filter');self.preview_button.setToolTip('Show or hide the preview')
         self.preview_button.setAccessibleName('Show preview');self.preview_button.clicked.connect(lambda checked:self.set_preview(checked));row.addWidget(self.preview_button)
         self.places_button = QPushButton('Places ▾');self.places_button.setProperty('arcButton', 'quiet');self.places_button.setCursor(Qt.PointingHandCursor);self.places_button.setAccessibleName('Places')
         self.places_button.setToolTip('Today · Files · Ingress · Egress · Workspace · Program · each storage mount');self.places_button.clicked.connect(self.places_menu);row.addWidget(self.places_button)
@@ -613,7 +613,7 @@ class FinderPage(QWidget):
                 action = menu.addAction('View as ' + VIEW_WORDS[key]);action.setCheckable(True);action.setChecked(self.view == key)
                 action.setEnabled(self.view_buttons[key].isEnabled());action.triggered.connect(lambda checked=False, key=key:self.set_view(key))
             menu.addSeparator()
-        for key, words, on, act in (('hidden', 'Show hidden files', self.hidden, self.set_hidden), ('preview', 'Show preview (Space)', self.preview_visible, self.set_preview)):
+        for key, words, on, act in (('hidden', 'Show hidden files', self.hidden, self.set_hidden), ('preview', 'Show preview', self.preview_visible, self.set_preview)):
             if key in self.folded:
                 button = self.hidden_button if key == 'hidden' else self.preview_button
                 action = menu.addAction(words);action.setCheckable(True);action.setChecked(bool(on));action.setEnabled(button.isEnabled())

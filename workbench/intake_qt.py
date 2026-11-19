@@ -46,7 +46,7 @@ class IntakeTab(ServiceTab):
         for i,(label,decision) in enumerate([('Admit as reference','ACCEPTED'),('Hold','HELD'),('Reject','REJECTED'),('Revoke admission','REVOKED')]):
             button=QPushButton(label);button.setAccessibleName(label);button.clicked.connect(lambda checked=False,d=decision:self.decide(d));actions.addWidget(button,i//2,i%2);self.buttons[label]=button
         self.outer.addLayout(actions)
-        bundle=QPushButton('Admit selected bundle');bundle.setToolTip('Admit selected files as references. Select related unadmitted files with Ctrl or Shift. Every member and dependency must pass; the whole decision commits together.');bundle.clicked.connect(self.admit_bundle);self.outer.addWidget(bundle);self.buttons[bundle.text()]=bundle
+        bundle=QPushButton('Admit selected bundle');bundle.setToolTip('Admit selected files as references. Select the related unadmitted files too. Every member and dependency must pass; the whole decision commits together.');bundle.clicked.connect(self.admit_bundle);self.outer.addWidget(bundle);self.buttons[bundle.text()]=bundle
         self.summary.setHtml('<p>Create a private reference library, then import a ZIP, file or folder.</p><p>Automatic admission starts disabled. Originals are copied without running imported content.</p>')
         self.timer=QTimer(self);self.timer.setInterval(900);self.timer.timeout.connect(self.poll);self.timer.start();QTimer.singleShot(0,self.load_namespaces)
     def title(self):return 'Graphite · Intake'
