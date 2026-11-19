@@ -95,13 +95,17 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 9. The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
 10. Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
 
-**Running now (started 19 Nov 02:16 UTC): workflow `graphite-084-part-a`, run id `wf_3b55597e-e8f`, task `w5vq3faag`.**
+**Running now (restarted 19 Nov 06:10 UTC): workflow `graphite-084-part-a`, run id `wf_16a59868-66f`, task `wzq4iz670`.**
+The first run (`wf_3b55597e-e8f`) was cut off by the 5-hour usage limit after twenty minutes; the hourly wake-up resumed
+the work when the limit lifted. The script is saved as `wip/2026-11-14/workflow_scripts/graphite-084-part-a.js`.
 It builds steps 2, 3, 4 and 6 (keys: fixture, faults, name, lines), each with an independent review and a fix pass, and
-leaves patches in scratch `work/b084/<key>.patch` (nothing is committed by it). When it reports: read each review, apply
-the patches to the main checkout one at a time (`git apply`), rebuild the seed, run the full suite on a copy
-(`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit each item, push. If scratch is gone and the patches
-with it, run the workflow again (its script is under `~/.claude/projects/.../workflows/scripts/`, or rewrite it from the
-steps above). Then steps 5, 7, 8, 9 and the release.
+leaves patches in scratch `work/b084/<key>.patch` with a progress note `work/b084/<key>.progress.md` (builders rewrite
+both after every milestone, so a cut-off run leaves usable work). Nothing is committed by it.
+- **When it reports:** read each review, apply the patches to the main checkout one at a time (`git apply`), rebuild the
+  seed, run the full suite on a copy (`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit each item, push.
+- **If it was cut off again:** resume it with the same script and `resumeFromRunId` (finished agents are reused), or, if
+  scratch is gone, run the script fresh. Unfinished patches in `work/b084/` are a starting point, never a result.
+- Then steps 5, 7, 8, 9 and the release.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
@@ -118,6 +122,9 @@ steps above). Then steps 5, 7, 8, 9 and the release.
 
 ## Log (newest first)
 
+- 19 Nov 06:10 UTC: the usage limit lifted at 06:00; the wake-up fired; partial work from two builders saved as patches;
+  1.3 GB of finished scratch trees deleted (disk 68%); part A restarted.
+- 19 Nov 02:38 UTC: the 5-hour usage limit stopped all four builders of part A.
 - 19 Nov 02:30 UTC: the owner gave creative latitude; the builder's additions written into the revised road.
 - 19 Nov 02:20 UTC: full suite green (1,005 tests, 0 failing); part A of 0.8.4 started as a workflow.
 - 19 Nov 02:12 UTC: mandate received; the wake-up scheduled; this file written; 0.8.4 step 1 applied and under test.
