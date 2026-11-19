@@ -1,0 +1,402 @@
+[
+ {
+  "pair": "TEXT on GROUND (body text on the window)",
+  "fore": "#293744",
+  "back": "#f8f7f3",
+  "ratio": 11.36,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "TEXT on PANEL (left pane rows)",
+  "fore": "#293744",
+  "back": "#f0f2f0",
+  "ratio": 10.82,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "TEXT on CARD (cards, sheets)",
+  "fore": "#293744",
+  "back": "#fffefa",
+  "ratio": 12.07,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "TEXT on RAISED (her answer bubble)",
+  "fore": "#293744",
+  "back": "#f3f5f3",
+  "ratio": 11.12,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "QUIET on GROUND (lead lines, unchosen tabs)",
+  "fore": "#4c606c",
+  "back": "#f8f7f3",
+  "ratio": 6.13,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "QUIET on PANEL",
+  "fore": "#4c606c",
+  "back": "#f0f2f0",
+  "ratio": 5.84,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "QUIET on CARD",
+  "fore": "#4c606c",
+  "back": "#fffefa",
+  "ratio": 6.51,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "FAINT on GROUND (faint text)",
+  "fore": "#586b74",
+  "back": "#f8f7f3",
+  "ratio": 5.2,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "FAINT on PANEL",
+  "fore": "#586b74",
+  "back": "#f0f2f0",
+  "ratio": 4.95,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "FAINT on CARD",
+  "fore": "#586b74",
+  "back": "#fffefa",
+  "ratio": 5.52,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "selection: AMBER_TEXT on AMBER_SOFT (selected row, tree and list)",
+  "fore": "#315f82",
+  "back": "#e9eff2",
+  "ratio": 5.86,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "selection: ON_BAR on BAR (highlighted menu row)",
+  "fore": "#294e69",
+  "back": "#e2edf3",
+  "ratio": 7.39,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "selection: ON_BAR_QUIET on BAR (highlighted disabled menu row)",
+  "fore": "#536872",
+  "back": "#e2edf3",
+  "ratio": 4.91,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "selection edge: AMBER_EDGE on GROUND (2 px edge, focus underline)",
+  "fore": "#547b96",
+  "back": "#f8f7f3",
+  "ratio": 4.21,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "selection fill vs ground: AMBER_SOFT on GROUND (is a selected row visible by fill alone)",
+  "fore": "#e9eff2",
+  "back": "#f8f7f3",
+  "ratio": 1.08,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "selection fill vs panel: AMBER_SOFT on PANEL (left tree selected row)",
+  "fore": "#e9eff2",
+  "back": "#f0f2f0",
+  "ratio": 1.03,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "Send: #fffefa on #315f82",
+  "fore": "#fffefa",
+  "back": "#315f82",
+  "ratio": 6.73,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "Send focused: #fffefa on #264d6b",
+  "fore": "#fffefa",
+  "back": "#264d6b",
+  "ratio": 8.83,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "Send button vs band (button edge against GROUND)",
+  "fore": "#315f82",
+  "back": "#f8f7f3",
+  "ratio": 6.34,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "Send hover edge #88b9d0 on the #315f82 fill",
+  "fore": "#88b9d0",
+  "back": "#315f82",
+  "ratio": 3.2,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "links: TEXT with ERASER_MARK underline; the word on GROUND",
+  "fore": "#293744",
+  "back": "#f8f7f3",
+  "ratio": 11.36,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "link underline ERASER_MARK on GROUND",
+  "fore": "#9c655f",
+  "back": "#f8f7f3",
+  "ratio": 4.41,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "link-coloured words: AMBER_TEXT on GROUND (chosen tab, lit words)",
+  "fore": "#315f82",
+  "back": "#f8f7f3",
+  "ratio": 6.34,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "link-coloured words: ROYAL_TEXT/CUE_TEXT on CUE",
+  "fore": "#315f82",
+  "back": "#e9eff2",
+  "ratio": 5.86,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "menu: TEXT on menu paper",
+  "fore": "#293744",
+  "back": "#fffdf8",
+  "ratio": 11.98,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "menu disabled: QUIET on menu paper",
+  "fore": "#4c606c",
+  "back": "#fffdf8",
+  "ratio": 6.46,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "menu edge on GROUND",
+  "fore": "#72838b",
+  "back": "#f8f7f3",
+  "ratio": 3.67,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "menu grain on paper (ornament)",
+  "fore": "#e7e2d7",
+  "back": "#fffdf8",
+  "ratio": 1.27,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "Approve: TEAL_TEXT on TEAL_SOFT",
+  "fore": "#42624e",
+  "back": "#edf3ed",
+  "ratio": 6.04,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "Approve hover: TEAL_TEXT on AMBER_SOFT",
+  "fore": "#42624e",
+  "back": "#e9eff2",
+  "ratio": 5.86,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "Approve edge TEAL_EDGE on CARD",
+  "fore": "#6f917c",
+  "back": "#fffefa",
+  "ratio": 3.46,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "waits-for-you pill: OWNER on #f3eddc",
+  "fore": "#806329",
+  "back": "#f3eddc",
+  "ratio": 4.81,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "OWNER on GROUND",
+  "fore": "#806329",
+  "back": "#f8f7f3",
+  "ratio": 5.25,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "STOP/RED on GROUND (Stop word)",
+  "fore": "#8c4643",
+  "back": "#f8f7f3",
+  "ratio": 6.38,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "ON_RED on RED",
+  "fore": "#fffefa",
+  "back": "#8c4643",
+  "ratio": 6.77,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "READY on GROUND (meter values, live marks)",
+  "fore": "#4d6e58",
+  "back": "#f8f7f3",
+  "ratio": 5.31,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "TEAL_TEXT on GROUND",
+  "fore": "#42624e",
+  "back": "#f8f7f3",
+  "ratio": 6.34,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "RECHECK on CARD",
+  "fore": "#606d90",
+  "back": "#fffefa",
+  "ratio": 5.09,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "HONEY on GROUND",
+  "fore": "#806329",
+  "back": "#f8f7f3",
+  "ratio": 5.25,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "VIOLET_PALE on PANEL (ASCII figure ink at 0.8)",
+  "fore": "#5a6979",
+  "back": "#f0f2f0",
+  "ratio": 5.0,
+  "kind": "text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "ERASER_MARK on ERASER (pink wash words mark)",
+  "fore": "#9c655f",
+  "back": "#f6eeeb",
+  "ratio": 4.13,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "LINE on GROUND (rules, card edges at LINE)",
+  "fore": "#d9dedc",
+  "back": "#f8f7f3",
+  "ratio": 1.27,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "LINE_STRONG on GROUND (card edges)",
+  "fore": "#bbc9cc",
+  "back": "#f8f7f3",
+  "ratio": 1.59,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "LINE_MID on GROUND",
+  "fore": "#98a9ab",
+  "back": "#f8f7f3",
+  "ratio": 2.28,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "Field wire at rest: LINE_STRONG at 0.72 over GROUND",
+  "fore": "#ccd6d7",
+  "back": "#f8f7f3",
+  "ratio": 1.38,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "Field wire touching selection: AMBER_EDGE at 0.95 over GROUND",
+  "fore": "#5c819b",
+  "back": "#f8f7f3",
+  "ratio": 3.87,
+  "kind": "non-text",
+  "verdict": "PASS"
+ },
+ {
+  "pair": "tree traces: AMBER_EDGE at 0.56 over PANEL",
+  "fore": "#99afbe",
+  "back": "#f0f2f0",
+  "ratio": 2.02,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "Field dot grid: LINE_MID at 0.35 over GROUND (ornament)",
+  "fore": "#d6dcda",
+  "back": "#f8f7f3",
+  "ratio": 1.3,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "card vs ground: CARD on GROUND (a sheet told from the desk by fill alone)",
+  "fore": "#fffefa",
+  "back": "#f8f7f3",
+  "ratio": 1.06,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ },
+ {
+  "pair": "pane vs ground: PANEL on GROUND",
+  "fore": "#f0f2f0",
+  "back": "#f8f7f3",
+  "ratio": 1.05,
+  "kind": "non-text",
+  "verdict": "BELOW 3.0"
+ }
+]

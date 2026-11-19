@@ -1,0 +1,587 @@
+[
+ {
+  "what": "Home: body sentence \"Office \u00b7 0 files in the library\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   355,
+   190,
+   575,
+   210
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#4c606c",
+  "ratio": 6.13
+ },
+ {
+  "what": "Home: greeting \"Good evening.\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   355,
+   142,
+   572,
+   180
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#34475b",
+  "ratio": 8.91
+ },
+ {
+  "what": "Home: \"JOT IT DOWN\" small caps",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   355,
+   232,
+   448,
+   245
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#5d6f87",
+  "ratio": 4.79
+ },
+ {
+  "what": "Home: Jot-it-down placeholder \"prompt\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   372,
+   272,
+   434,
+   292
+  ],
+  "ground": "#fffefa",
+  "ink": "#949b9f",
+  "ratio": 2.79
+ },
+ {
+  "what": "Home: \"Keep it, and it goes to Notes...\" note",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   355,
+   426,
+   644,
+   441
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#4d616d",
+  "ratio": 6.03
+ },
+ {
+  "what": "Home: card side word \"Nothing new\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   840,
+   480,
+   931,
+   497
+  ],
+  "ground": "#fffefa",
+  "ink": "#4d616d",
+  "ratio": 6.41
+ },
+ {
+  "what": "Home: card side word \"investigation\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1454,
+   514,
+   1546,
+   532
+  ],
+  "ground": "#fffefa",
+  "ink": "#586b74",
+  "ratio": 5.52
+ },
+ {
+  "what": "Head: menu word \"Work\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   341,
+   21,
+   380,
+   38
+  ],
+  "ground": "#f6f6f2",
+  "ink": "#4c606c",
+  "ratio": 6.06
+ },
+ {
+  "what": "Head: \"Apps\" word",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1840,
+   21,
+   1876,
+   38
+  ],
+  "ground": "#f6f6f2",
+  "ink": "#2b3945",
+  "ratio": 10.93
+ },
+ {
+  "what": "Left pane: unchosen tab \"Machine\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   134,
+   90,
+   192,
+   105
+  ],
+  "ground": "#f0f2f0",
+  "ink": "#4c606c",
+  "ratio": 5.84
+ },
+ {
+  "what": "Left pane: tree row \"Engineering\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   65,
+   166,
+   150,
+   183
+  ],
+  "ground": "#f0f2f0",
+  "ink": "#293744",
+  "ratio": 10.82
+ },
+ {
+  "what": "Left pane: DELETE",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   251,
+   1103,
+   311,
+   1118
+  ],
+  "ground": "#f0f2f0",
+  "ink": "#293744",
+  "ratio": 10.82
+ },
+ {
+  "what": "Right column: \"no model yet\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1610,
+   111,
+   1686,
+   124
+  ],
+  "ground": "#fffefa",
+  "ink": "#64767e",
+  "ratio": 4.69
+ },
+ {
+  "what": "Right column: \"waits for you\" pill",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1819,
+   85,
+   1896,
+   99
+  ],
+  "ground": "#f3eddc",
+  "ink": "#81652b",
+  "ratio": 4.69
+ },
+ {
+  "what": "Right column: \"This: nothing is open.\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1634,
+   147,
+   1806,
+   165
+  ],
+  "ground": "#fffefa",
+  "ink": "#4c606c",
+  "ratio": 6.51
+ },
+ {
+  "what": "Right column: her bubble text",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1623,
+   247,
+   1868,
+   267
+  ],
+  "ground": "#f3f5f3",
+  "ink": "#293744",
+  "ratio": 11.12
+ },
+ {
+  "what": "Lower band: unchosen target \"Terminal\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   100,
+   1162,
+   163,
+   1179
+  ],
+  "ground": "#f6f6f2",
+  "ink": "#293744",
+  "ratio": 11.24
+ },
+ {
+  "what": "Lower band: writing line placeholder \"prompt\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   394,
+   1162,
+   453,
+   1182
+  ],
+  "ground": "#f0f3f2",
+  "ink": "#4c606c",
+  "ratio": 5.88
+ },
+ {
+  "what": "Lower band: context word \"\u00b7 Home\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1483,
+   1162,
+   1536,
+   1179
+  ],
+  "ground": "#f0f3f2",
+  "ink": "#4d616d",
+  "ratio": 5.79
+ },
+ {
+  "what": "Lower band: Send",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1584,
+   1162,
+   1624,
+   1179
+  ],
+  "ground": "#315f82",
+  "ink": "#fffefa",
+  "ratio": 6.73
+ },
+ {
+  "what": "Lower band: meter label \"CPU\"",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1678,
+   1155,
+   1705,
+   1168
+  ],
+  "ground": "#f6f6f2",
+  "ink": "#5f717b",
+  "ratio": 4.69
+ },
+ {
+  "what": "Lower band: meter value",
+  "frame": "P01_home_pencil_1920x1200.png",
+  "box": [
+   1677,
+   1171,
+   1707,
+   1187
+  ],
+  "ground": "#eceeea",
+  "ink": "#52725c",
+  "ratio": 4.59
+ },
+ {
+  "what": "Field: column heading \"MATERIAL\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   353,
+   141,
+   419,
+   156
+  ],
+  "ground": "#f0f3f2",
+  "ink": "#64758c",
+  "ratio": 4.21
+ },
+ {
+  "what": "Field: face word \"FIELD\" (unchosen)",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   360,
+   88,
+   407,
+   104
+  ],
+  "ground": "#f0f3f2",
+  "ink": "#7696a9",
+  "ratio": 2.8
+ },
+ {
+  "what": "Field: card kind \"SOURCE\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   385,
+   341,
+   427,
+   353
+  ],
+  "ground": "#fffefa",
+  "ink": "#697a83",
+  "ratio": 4.42
+ },
+ {
+  "what": "Field: card state \"CURRENT\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   492,
+   341,
+   540,
+   353
+  ],
+  "ground": "#fffefa",
+  "ink": "#6a8572",
+  "ratio": 3.99
+ },
+ {
+  "what": "Field: card title",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   365,
+   358,
+   527,
+   375
+  ],
+  "ground": "#fffefa",
+  "ink": "#4b5761",
+  "ratio": 7.34
+ },
+ {
+  "what": "Field: card mono note \"reviewed from page 1\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   619,
+   380,
+   764,
+   394
+  ],
+  "ground": "#fffefa",
+  "ink": "#75858d",
+  "ratio": 3.79
+ },
+ {
+  "what": "Field: card foot \"After Hours 07 sources\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   365,
+   441,
+   513,
+   454
+  ],
+  "ground": "#fffefa",
+  "ink": "#7a8991",
+  "ratio": 3.58
+ },
+ {
+  "what": "Field: \"1 open question\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   1424,
+   89,
+   1560,
+   105
+  ],
+  "ground": "#f0f3f2",
+  "ink": "#315f82",
+  "ratio": 6.09
+ },
+ {
+  "what": "Field: zoom word \"Whole desk \u00b7 80%\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   1425,
+   1003,
+   1561,
+   1018
+  ],
+  "ground": "#f3f5f3",
+  "ink": "#536772",
+  "ratio": 5.4
+ },
+ {
+  "what": "Field: foot button \"Doubt\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   686,
+   1041,
+   730,
+   1057
+  ],
+  "ground": "#f3f5f3",
+  "ink": "#526570",
+  "ratio": 5.55
+ },
+ {
+  "what": "Field: foot mono \"from After Hours 07\"",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   360,
+   1109,
+   532,
+   1125
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#4c606c",
+  "ratio": 6.13
+ },
+ {
+  "what": "Field: foot line text",
+  "frame": "P02_field_pencil_1920x1200.png",
+  "box": [
+   960,
+   1109,
+   1340,
+   1125
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#315f82",
+  "ratio": 6.34
+ },
+ {
+  "what": "Right-click: row \"Rename...\"",
+  "frame": "P05_right_click_pencil_1920x1200.png",
+  "box": [
+   1003,
+   438,
+   1071,
+   454
+  ],
+  "ground": "#fffdf8",
+  "ink": "#2c3946",
+  "ratio": 11.6
+ },
+ {
+  "what": "Right-click: head side word \"table\"",
+  "frame": "P05_right_click_pencil_1920x1200.png",
+  "box": [
+   1208,
+   357,
+   1240,
+   372
+  ],
+  "ground": "#fffdf8",
+  "ink": "#596b76",
+  "ratio": 5.45
+ },
+ {
+  "what": "Files: column heading \"Name\"",
+  "frame": "P05_right_click_pencil_1920x1200.png",
+  "box": [
+   362,
+   236,
+   406,
+   252
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#4e626e",
+  "ratio": 5.94
+ },
+ {
+  "what": "Files: note under links",
+  "frame": "P05_right_click_pencil_1920x1200.png",
+  "box": [
+   355,
+   198,
+   900,
+   216
+  ],
+  "ground": "#f8f7f3",
+  "ink": "#4c606c",
+  "ratio": 6.13
+ },
+ {
+  "what": "Files: selected row words",
+  "frame": "P05_right_click_pencil_1920x1200.png",
+  "box": [
+   368,
+   336,
+   530,
+   353
+  ],
+  "ground": "#e9eff2",
+  "ink": "#315f82",
+  "ratio": 5.86
+ },
+ {
+  "what": "Apps: caption \"applications and capabilities\"",
+  "frame": "P08_apps_pencil_1920x1200.png",
+  "box": [
+   1636,
+   73,
+   1802,
+   88
+  ],
+  "ground": "#fffdf8",
+  "ink": "#546772",
+  "ratio": 5.8
+ },
+ {
+  "what": "Apps: side word \"needs setup\"",
+  "frame": "P08_apps_pencil_1920x1200.png",
+  "box": [
+   1818,
+   337,
+   1891,
+   352
+  ],
+  "ground": "#fffdf8",
+  "ink": "#516470",
+  "ratio": 6.06
+ },
+ {
+  "what": "Apps: row \"Blender\"",
+  "frame": "P08_apps_pencil_1920x1200.png",
+  "box": [
+   1636,
+   144,
+   1690,
+   161
+  ],
+  "ground": "#fffdf8",
+  "ink": "#2c3a47",
+  "ratio": 11.46
+ },
+ {
+  "what": "Writing line popup: heading \"ASK KASANDRA\"",
+  "frame": "P09_writing_line_pencil_1920x1200.png",
+  "box": [
+   404,
+   979,
+   513,
+   994
+  ],
+  "ground": "#fffefa",
+  "ink": "#586b74",
+  "ratio": 5.52
+ },
+ {
+  "what": "Writing line popup: hint line",
+  "frame": "P09_writing_line_pencil_1920x1200.png",
+  "box": [
+   387,
+   1121,
+   875,
+   1137
+  ],
+  "ground": "#fffefa",
+  "ink": "#2c3946",
+  "ratio": 11.69
+ },
+ {
+  "what": "Writing line popup: unselected row \"Ask Kasandra \u00b7 bench\"",
+  "frame": "P09_writing_line_pencil_1920x1200.png",
+  "box": [
+   404,
+   1015,
+   560,
+   1033
+  ],
+  "ground": "#fffefa",
+  "ink": "#315f82",
+  "ratio": 6.73
+ }
+]

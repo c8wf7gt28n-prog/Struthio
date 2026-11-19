@@ -1,0 +1,966 @@
+[
+ {
+  "module": "test_cabinet",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 14,
+   "overlay_default": 14,
+   "base_kasandra": 14,
+   "overlay_kasandra": 14,
+   "overlay_pencil": 14
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_cabinet_actions",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 9,
+   "overlay_default": 9,
+   "base_kasandra": 9,
+   "overlay_kasandra": 9,
+   "overlay_pencil": 9
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_context_menu",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [
+   "tests_integrated.test_context_menu.Window.test_a_passage_is_named_at_the_top_with_its_page_edits"
+  ],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 44,
+   "overlay_default": 44,
+   "base_kasandra": 44,
+   "overlay_kasandra": 44,
+   "overlay_pencil": 44
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 1,
+   "overlay_kasandra": 1,
+   "overlay_pencil": 1
+  },
+  "pencil_new_also_fails_in_base_kasandra": [
+   "tests_integrated.test_context_menu.Window.test_a_passage_is_named_at_the_top_with_its_page_edits"
+  ],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_continue_setting",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 2,
+   "overlay_default": 2,
+   "base_kasandra": 2,
+   "overlay_kasandra": 2,
+   "overlay_pencil": 2
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_delete_words",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 6,
+   "overlay_default": 6,
+   "base_kasandra": 6,
+   "overlay_kasandra": 6,
+   "overlay_pencil": 6
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_desk",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 28,
+   "overlay_default": 28,
+   "base_kasandra": 28,
+   "overlay_kasandra": 28,
+   "overlay_pencil": 28
+  },
+  "bad": {
+   "base_default": 6,
+   "overlay_default": 6,
+   "base_kasandra": 6,
+   "overlay_kasandra": 6,
+   "overlay_pencil": 6
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_desk_acts",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 28,
+   "overlay_default": 28,
+   "base_kasandra": 28,
+   "overlay_kasandra": 28,
+   "overlay_pencil": 28
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_desk_scenes",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 5,
+   "overlay_default": 5,
+   "base_kasandra": 5,
+   "overlay_kasandra": 5,
+   "overlay_pencil": 5
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_documents",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 13,
+   "overlay_default": 13,
+   "base_kasandra": 13,
+   "overlay_kasandra": 13,
+   "overlay_pencil": 13
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_explore",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 13,
+   "overlay_default": 13,
+   "base_kasandra": 13,
+   "overlay_kasandra": 13,
+   "overlay_pencil": 13
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_faces_find_light",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [
+   "tests_integrated.test_faces_find_light.GlowDialTests.test_the_dial_opens_on_neon_and_follows_the_session",
+   "tests_integrated.test_faces_find_light.SurgeTests.test_trace_lights_then_settles_a_selection_move_clears_it_and_reduced_motion_lands_at_once"
+  ],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 34,
+   "overlay_default": 34,
+   "base_kasandra": 34,
+   "overlay_kasandra": 34,
+   "overlay_pencil": 34
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 1,
+   "overlay_kasandra": 1,
+   "overlay_pencil": 2
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": [
+   "tests_integrated.test_faces_find_light.GlowDialTests.test_the_dial_opens_on_neon_and_follows_the_session",
+   "tests_integrated.test_faces_find_light.SurgeTests.test_trace_lights_then_settles_a_selection_move_clears_it_and_reduced_motion_lands_at_once"
+  ]
+ },
+ {
+  "module": "test_frame",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [
+   "tests_integrated.test_frame.ColumnArithmeticTests.test_the_strip_words_and_destination_hint"
+  ],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 11,
+   "overlay_default": 11,
+   "base_kasandra": 11,
+   "overlay_kasandra": 11,
+   "overlay_pencil": 11
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 1,
+   "overlay_kasandra": 1,
+   "overlay_pencil": 1
+  },
+  "pencil_new_also_fails_in_base_kasandra": [
+   "tests_integrated.test_frame.ColumnArithmeticTests.test_the_strip_words_and_destination_hint"
+  ],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_graphite",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [
+   "tests_integrated.test_graphite.MarkAndTileTests.test_the_word_graphite_is_drawn_by_its_ink_from_the_inset_and_centred"
+  ],
+  "pencil_fixed": [
+   "tests_integrated.test_graphite.CatTimingTests.test_a_change_moves_briefly_and_reduce_motion_switches_directly"
+  ],
+  "ran": {
+   "base_default": 31,
+   "overlay_default": 31,
+   "base_kasandra": 31,
+   "overlay_kasandra": 31,
+   "overlay_pencil": 31
+  },
+  "bad": {
+   "base_default": 4,
+   "overlay_default": 4,
+   "base_kasandra": 2,
+   "overlay_kasandra": 2,
+   "overlay_pencil": 4
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": [
+   "tests_integrated.test_graphite.MarkAndTileTests.test_the_word_graphite_is_drawn_by_its_ink_from_the_inset_and_centred"
+  ]
+ },
+ {
+  "module": "test_hardware_settings",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 8,
+   "overlay_default": 8,
+   "base_kasandra": 8,
+   "overlay_kasandra": 8,
+   "overlay_pencil": 8
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_hologram",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 23,
+   "overlay_default": 23,
+   "base_kasandra": 23,
+   "overlay_kasandra": 23,
+   "overlay_pencil": 23
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_kasandra",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 20,
+   "overlay_default": 20,
+   "base_kasandra": 20,
+   "overlay_kasandra": 20,
+   "overlay_pencil": 20
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_kasandra_column",
+  "default_new": [
+   "tests_integrated.test_kasandra_column.Logo.test_every_mark_is_recorded"
+  ],
+  "default_fixed": [],
+  "kasandra_new": [
+   "tests_integrated.test_kasandra_column.Logo.test_every_mark_is_recorded"
+  ],
+  "kasandra_fixed": [],
+  "pencil_new": [
+   "tests_integrated.test_kasandra_column.Logo.test_every_mark_is_recorded"
+  ],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 18,
+   "overlay_default": 18,
+   "base_kasandra": 18,
+   "overlay_kasandra": 18,
+   "overlay_pencil": 18
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 1,
+   "base_kasandra": 0,
+   "overlay_kasandra": 1,
+   "overlay_pencil": 1
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": [
+   "tests_integrated.test_kasandra_column.Logo.test_every_mark_is_recorded"
+  ]
+ },
+ {
+  "module": "test_kasandra_highlight",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 10,
+   "overlay_default": 10,
+   "base_kasandra": 10,
+   "overlay_kasandra": 10,
+   "overlay_pencil": 10
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_launcher",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 17,
+   "overlay_default": 17,
+   "base_kasandra": 17,
+   "overlay_kasandra": 17,
+   "overlay_pencil": 17
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_machine",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 6,
+   "overlay_default": 6,
+   "base_kasandra": 6,
+   "overlay_kasandra": 6,
+   "overlay_pencil": 6
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_memory_cabinet",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 9,
+   "overlay_default": 9,
+   "base_kasandra": 9,
+   "overlay_kasandra": 9,
+   "overlay_pencil": 9
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_memory_settings",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 9,
+   "overlay_default": 9,
+   "base_kasandra": 9,
+   "overlay_kasandra": 9,
+   "overlay_pencil": 9
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_model_settings",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 13,
+   "overlay_default": 13,
+   "base_kasandra": 13,
+   "overlay_kasandra": 13,
+   "overlay_pencil": 13
+  },
+  "bad": {
+   "base_default": 5,
+   "overlay_default": 5,
+   "base_kasandra": 5,
+   "overlay_kasandra": 5,
+   "overlay_pencil": 5
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_model_turn",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 28,
+   "overlay_default": 28,
+   "base_kasandra": 28,
+   "overlay_kasandra": 28,
+   "overlay_pencil": 28
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_operations",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 16,
+   "overlay_default": 16,
+   "base_kasandra": 16,
+   "overlay_kasandra": 16,
+   "overlay_pencil": 16
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_paper",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [
+   "tests_integrated.test_paper.MarkerWidgetTests.test_attach_adds_nothing_to_the_accessible_tree_and_marks_only_the_focused_passage",
+   "tests_integrated.test_paper.MarkerWidgetTests.test_reduce_motion_is_static_with_no_timer_and_the_setting_hides_the_mark",
+   "tests_integrated.test_paper.MarkerWidgetTests.test_source_editor_is_refused_and_a_narrow_margin_shrinks_the_x_instead_of_entering_the_passage",
+   "tests_integrated.test_paper.MarkerWidgetTests.test_the_page_is_never_an_ancestor_whose_margin_a_sibling_covers_nor_outside_the_scrolling_page"
+  ],
+  "ran": {
+   "base_default": 17,
+   "overlay_default": 17,
+   "base_kasandra": 17,
+   "overlay_kasandra": 17,
+   "overlay_pencil": 17
+  },
+  "bad": {
+   "base_default": 4,
+   "overlay_default": 4,
+   "base_kasandra": 4,
+   "overlay_kasandra": 4,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_presentation_settings",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 16,
+   "overlay_default": 16,
+   "base_kasandra": 16,
+   "overlay_kasandra": 16,
+   "overlay_pencil": 16
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_release_check",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 22,
+   "overlay_default": 22,
+   "base_kasandra": 22,
+   "overlay_kasandra": 22,
+   "overlay_pencil": 22
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_return_thread",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 9,
+   "overlay_default": 9,
+   "base_kasandra": 9,
+   "overlay_kasandra": 9,
+   "overlay_pencil": 9
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_service_lifecycle",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 23,
+   "overlay_default": 23,
+   "base_kasandra": 23,
+   "overlay_kasandra": 23,
+   "overlay_pencil": 23
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_settings_advanced",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 15,
+   "overlay_default": 15,
+   "base_kasandra": 15,
+   "overlay_kasandra": 15,
+   "overlay_pencil": 15
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_settings_registry",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 19,
+   "overlay_default": 19,
+   "base_kasandra": 19,
+   "overlay_kasandra": 19,
+   "overlay_pencil": 19
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_stacy_hand",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 19,
+   "overlay_default": 19,
+   "base_kasandra": 19,
+   "overlay_kasandra": 19,
+   "overlay_pencil": 19
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_system_menu",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 32,
+   "overlay_default": 32,
+   "base_kasandra": 32,
+   "overlay_kasandra": 32,
+   "overlay_pencil": 32
+  },
+  "bad": {
+   "base_default": 2,
+   "overlay_default": 2,
+   "base_kasandra": 2,
+   "overlay_kasandra": 2,
+   "overlay_pencil": 2
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_typewriter_faces",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 13,
+   "overlay_default": 13,
+   "base_kasandra": 13,
+   "overlay_kasandra": 13,
+   "overlay_pencil": 13
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_vocabulary",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 9,
+   "overlay_default": 9,
+   "base_kasandra": 9,
+   "overlay_kasandra": 9,
+   "overlay_pencil": 9
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 0,
+   "overlay_kasandra": 0,
+   "overlay_pencil": 0
+  },
+  "pencil_new_also_fails_in_base_kasandra": [],
+  "pencil_new_only_pencil": []
+ },
+ {
+  "module": "test_writing_line",
+  "default_new": [],
+  "default_fixed": [],
+  "kasandra_new": [],
+  "kasandra_fixed": [],
+  "pencil_new": [
+   "tests_integrated.test_writing_line.ModeTests.test_destination_hint_names_the_mode",
+   "tests_integrated.test_writing_line.ModeTests.test_five_modes_and_the_old_targets_mapping"
+  ],
+  "pencil_fixed": [],
+  "ran": {
+   "base_default": 32,
+   "overlay_default": 32,
+   "base_kasandra": 32,
+   "overlay_kasandra": 32,
+   "overlay_pencil": 32
+  },
+  "bad": {
+   "base_default": 0,
+   "overlay_default": 0,
+   "base_kasandra": 2,
+   "overlay_kasandra": 2,
+   "overlay_pencil": 2
+  },
+  "pencil_new_also_fails_in_base_kasandra": [
+   "tests_integrated.test_writing_line.ModeTests.test_destination_hint_names_the_mode",
+   "tests_integrated.test_writing_line.ModeTests.test_five_modes_and_the_old_targets_mapping"
+  ],
+  "pencil_new_only_pencil": []
+ }
+]

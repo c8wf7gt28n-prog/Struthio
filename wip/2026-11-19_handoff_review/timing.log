@@ -1,0 +1,51 @@
+## base graphite run 1
+TIMING appearance=graphite size=1920x1200 python_to_qt=0.121 imports=0.882 app=0.984 window_built=3.044 first_paint_event=3.639 first_grab=3.766 (seconds from the driver start)
+WINDOW repaint ms 12.73
+## overlay graphite run 1
+TIMING appearance=graphite size=1920x1200 python_to_qt=0.127 imports=0.774 app=0.841 window_built=2.861 first_paint_event=3.464 first_grab=3.591 (seconds from the driver start)
+WINDOW repaint ms 11.81
+## base kasandra run 1
+TIMING appearance=kasandra size=1920x1200 python_to_qt=0.101 imports=0.716 app=0.785 window_built=2.835 first_paint_event=3.448 first_grab=3.597 (seconds from the driver start)
+WINDOW repaint ms 13.20
+## overlay kasandra run 1
+TIMING appearance=kasandra size=1920x1200 python_to_qt=0.109 imports=0.778 app=0.850 window_built=3.015 first_paint_event=3.692 first_grab=3.844 (seconds from the driver start)
+WINDOW repaint ms 15.42
+## overlay pencil run 1
+TIMING appearance=pencil size=1920x1200 python_to_qt=0.134 imports=0.870 app=0.950 window_built=3.161 first_paint_event=3.799 first_grab=3.920 (seconds from the driver start)
+PENCIL_BIRD build seconds 0.0158 image 115x156
+PENCIL_FIGURE repaint ms 0.91
+WINDOW repaint ms 8.58
+## base graphite run 2
+TIMING appearance=graphite size=1920x1200 python_to_qt=0.099 imports=0.731 app=0.799 window_built=3.115 first_paint_event=3.807 first_grab=3.948 (seconds from the driver start)
+WINDOW repaint ms 12.29
+## overlay graphite run 2
+TIMING appearance=graphite size=1920x1200 python_to_qt=0.109 imports=0.801 app=0.879 window_built=3.023 first_paint_event=3.634 first_grab=3.797 (seconds from the driver start)
+WINDOW repaint ms 10.47
+## base kasandra run 2
+TIMING appearance=kasandra size=1920x1200 python_to_qt=0.105 imports=0.767 app=0.842 window_built=3.168 first_paint_event=4.020 first_grab=4.236 (seconds from the driver start)
+WINDOW repaint ms 18.25
+## overlay kasandra run 2
+TIMING appearance=kasandra size=1920x1200 python_to_qt=0.121 imports=0.874 app=0.956 window_built=3.164 first_paint_event=3.785 first_grab=3.928 (seconds from the driver start)
+WINDOW repaint ms 16.11
+## overlay pencil run 2
+TIMING appearance=pencil size=1920x1200 python_to_qt=0.124 imports=0.945 app=1.030 window_built=3.242 first_paint_event=3.878 first_grab=4.008 (seconds from the driver start)
+PENCIL_BIRD build seconds 0.0157 image 115x156
+PENCIL_FIGURE repaint ms 0.89
+WINDOW repaint ms 9.26
+## base graphite run 3
+TIMING appearance=graphite size=1920x1200 python_to_qt=0.099 imports=0.709 app=0.775 window_built=2.825 first_paint_event=3.482 first_grab=3.621 (seconds from the driver start)
+WINDOW repaint ms 11.34
+## overlay graphite run 3
+TIMING appearance=graphite size=1920x1200 python_to_qt=0.107 imports=0.765 app=0.842 window_built=3.004 first_paint_event=3.629 first_grab=3.805 (seconds from the driver start)
+WINDOW repaint ms 10.49
+## base kasandra run 3
+TIMING appearance=kasandra size=1920x1200 python_to_qt=0.099 imports=0.721 app=0.792 window_built=2.853 first_paint_event=3.616 first_grab=3.779 (seconds from the driver start)
+WINDOW repaint ms 12.96
+## overlay kasandra run 3
+TIMING appearance=kasandra size=1920x1200 python_to_qt=0.104 imports=0.741 app=0.813 window_built=2.879 first_paint_event=3.493 first_grab=3.637 (seconds from the driver start)
+WINDOW repaint ms 19.13
+## overlay pencil run 3
+TIMING appearance=pencil size=1920x1200 python_to_qt=0.100 imports=0.849 app=0.925 window_built=3.039 first_paint_event=3.688 first_grab=3.808 (seconds from the driver start)
+PENCIL_BIRD build seconds 0.0171 image 115x156
+PENCIL_FIGURE repaint ms 0.99
+WINDOW repaint ms 11.65
