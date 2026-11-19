@@ -95,23 +95,32 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 9. The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
 10. Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
 
-**Running now (restarted 19 Nov 06:10 UTC): workflow `graphite-084-part-a`, run id `wf_16a59868-66f`, task `wzq4iz670`.**
-The first run (`wf_3b55597e-e8f`) was cut off by the 5-hour usage limit after twenty minutes; the hourly wake-up resumed
-the work when the limit lifted. The script is saved as `wip/2026-11-14/workflow_scripts/graphite-084-part-a.js`.
-It builds steps 2, 3, 4 and 6 (keys: fixture, faults, name, lines), two agents at a time, each item with an independent
-review and a fix pass, and leaves patches in scratch `work/b084/<key>.patch` with a progress note
-`work/b084/<key>.progress.md` (builders rewrite both after every milestone). Nothing is committed by it.
-- **State at 07:20 UTC:** fixture and faults are built and wait for their reviews (their unreviewed patches and all four
-  progress notes are kept in `wip/2026-11-19_b084_saved/` in case scratch is lost); name and lines are building.
-- **When it reports:** read each review, apply the patches to the main checkout one at a time (`git apply -3`; both
-  fixture and faults add a line to `tools/check_hatch.py` FOCUSED_MODULES, so expect a small conflict there), rebuild the
-  seed, run the full suite on a copy in BOTH looks (`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit
-  each item, push.
-- **If it was cut off again:** resume it with the same script and `resumeFromRunId` (finished agents are reused), or, if
-  scratch is gone, run the script fresh. Unfinished patches in `work/b084/` are a starting point, never a result.
+**Running now (started 19 Nov 11:20 UTC): workflow `graphite-084-part-a2`, run id `wf_023c5420-966`, task `w20damyg9`.**
+Script: `wip/2026-11-14/workflow_scripts/graphite-084-part-a2.js`. It reviews (and fixes where the review demands) the
+three built items, fixture, faults and name, and finishes, reviews and fixes lines. Order on purpose: the reviews of the
+finished items first. Everything is handed over through files in scratch `work/b084/`: `<key>.patch`,
+`<key>.progress.md` (builder's notes), `<key>.review.md` (reviewer's findings), `<key>.build_report.json`.
+- **History:** run 1 (`wf_3b55597e-e8f`) was cut off by the usage limit at 02:38; run 2 (`wf_16a59868-66f`) built fixture
+  and faults and was cut off at about 07:18 with name nearly finished and lines half built. Copies of all four patches
+  and notes as they stood: `wip/2026-11-19_b084_saved/`.
+- **When it reports:** read `work/b084/<key>.review.md`; apply the patches to the main checkout one at a time
+  (`git apply -3`; fixture, faults, name and lines each add a line to `tools/check_hatch.py` FOCUSED_MODULES, so expect
+  small conflicts there), rebuild the seed, run the full suite on a copy in BOTH looks
+  (`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit each item, push.
+- **If it was cut off again:** relaunch with the same `scriptPath` and `resumeFromRunId: wf_023c5420-966` (finished
+  agents are reused; agents are told to pick up from their notes file). If scratch is gone, restore the patches from
+  `wip/2026-11-19_b084_saved/` into `work/b084/` first.
 - **Then part B**, already written: `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js` (keys: checks = step 5,
-  guards = step 7, tiers = step 8, look = step 9, session = the two session faults below). Start it from the merged
-  commit with the Workflow tool's `scriptPath`. Then the release (step 10).
+  guards = step 7, tiers = step 8, look = step 9, session = the two session faults below). Before launching it, add the
+  ECONOMY block from part-a2 to its RULES and run its items two at a time in priority order. Then the release (step 10).
+- **Waiting, not started again:** the design pass for 0.8.5 (one agent, cut off at once by the limit; it wrote nothing).
+  Start it only when 0.8.4 is out.
+
+**The pace, measured (19 Nov).** One 5-hour usage window carries about 75 minutes of two agents building (about 1.6
+million tokens of agent work). Window 06:00 to 11:00 UTC: two items built, two half built. So: finish items one after
+another rather than start many; hand over through files; agents work in few large steps and never print whole test
+output. Expect roughly two finished items per window; 0.8.4 has nine. Windows reset at 11:00, 16:00, 21:00, 02:00, 06:00
+UTC or so (the notice gives the time each time).
 
 **Found by part A's builders, to be closed in 0.8.4 (part B carries them):**
 - Rooms that restore does not know (Documents, Files and others) go to "Reopen deferred tabs" at every start and the list
@@ -138,6 +147,8 @@ review and a fix pass, and leaves patches in scratch `work/b084/<key>.patch` wit
 
 ## Log (newest first)
 
+- 19 Nov 11:20 UTC: the limit lifted at 11:00. Interrupted work saved; worktrees removed; part A2 started (reviews first).
+- 19 Nov 07:18 UTC: the usage limit stopped run 2 (name nearly finished, lines half built, no review yet).
 - 19 Nov 07:20 UTC: fixture and faults built (unreviewed patches saved under `wip/2026-11-19_b084_saved/`); name and lines
   building; the script for part B written.
 - 19 Nov 06:10 UTC: the usage limit lifted at 06:00; the wake-up fired; partial work from two builders saved as patches;

@@ -1,0 +1,190 @@
+{
+ "summary": "All three faults are reproduced for real on a copy of the unchanged tree, fixed for every look, and pinned by tests; nothing is committed. The patch applies to a clean export of d09c3b7 and reproduces the worktree's nine files.\n\nFAULT 2 IS REAL HERE. On the unchanged tree, through workbench.launch, with exactly what the dedicated session exports (ARC_LEDGER_EDITION=office ARC_LEDGER_OPEN=office ARC_LEDGER_FULLSCREEN=1 ARC_LEDGER_XSESSION=1) and a fresh HOME:\n- Start 1 exits 0. The start script opens the Office tab, and leaving saves it.\n- Starts 2 and 3 exit 1 with \"Graphite could not start: AttributeError: 'WorkbenchWindow' object has no attribute 'ledger_bridge'\".\n- The same happens with Documents and Files also open, with work in the workspace, in the Kasandra look, and from a hand-written session holding only OfficeBuildingTab or only SlateRoomTab.\n- A sweep of every tab kind found a third kind that stops the start the same way: ClipWorkspaceTab, the engineering conversation.\n- It does not occur when the Office tab is closed before leaving (the start script then opens it again), or on a plain start that opens no room.\n- Read from the code, not run: it also cannot occur if the session is never written at exit (Graphite killed or the machine powered off), or if the session file is over 128 KB or belongs to another workspace.\n- I cannot tell from here why the owner has not met it; what the ThinkPad's session file holds would settle it.\n\nTHE FIXES.\n- Fault 2: a saved tab that is made with the bridge now waits, and the rows after it wait in their order, until the window is whole. Home stays in front where it was, and nothing is recorded as the owner's view. Any other saved tab that cannot be opened is printed and kept in Reopen deferred tabs instead of stopping the start. After the fix, three starts in a row with the dedicated settings exit 0 with one Office tab and an empty deferred list; the profile 0.8.3 could no longer start on now starts.\n- Fault 1: reproduced through the launcher (\"Graphite could not start: TypeError: unhashable type: 'list'\"). There is now one list of looks in workbench/presentation_preferences.py; the theme and the session both read it, and the session still imports neither the theme nor Qt. Any value that is not a look as text is Graphite.\n- Fault 3: reproduced in the real window in both looks (\"Now: Now: Read the bench readings \u00b7 ...\"). The Agenda's summary no longer carries the line's name; the idle line is unchanged (\"Now: Nothing running \u00b7 open \u00b7 activity\").\n\nTESTS.\n- The new module tests_integrated/test_session_start.py has 13 tests: 13 pass in the default look and 13 with GRAPHITE_APPEARANCE=kasandra. All 13 fail on the unchanged tree.\n- Twelve single-piece removals of the fix are each caught by the module.\n- Full suite on the copy, default look: 66 modules, 1,018 tests, 1 failure. That was test_release_check, because the new module was not yet listed in tools/check_hatch.py; it is listed now and the rerun is 22 OK.\n- Full suite, Kasandra look: 66 modules, 1,018 tests, 7 failures. One is the same listing failure (rerun 22 OK). The other six fail identically on the unchanged tree: five assert the name Stacy (test_frame 1, test_context_menu 1, test_writing_line 2, test_conditions 1) and one is Kasandra's desk light (test_faces_find_light). I did not touch them, so those five modules do not meet the both-looks rule yet.\n- The suites ran on the final program files; only the new test module and tools/check_hatch.py changed afterwards, and both were rerun in both looks.\n\nTHE EARLIER PARTIAL PATCH covered fault 1 only, with no tests. Its idea was sound; I rewrote it rather than applying it.\n\nNothing here ran on the owner's ThinkPad. Progress note: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084/faults.progress.md. Scripts and logs: /tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084/faults/ (the reproductions' homes and the earlier 12-test log on the unchanged tree were deleted; the launcher logs in logs/ remain).",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084/faults.patch",
+ "files_changed": [
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/workbench/presentation_preferences.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/workbench/boss_theme.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/workbench/session.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/workbench/workspace_tabs.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/workbench/qt_app.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/workbench/agenda_qt.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/tests_integrated/test_session_start.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/tests_integrated/kasandra_window_probe.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-2/tools/check_hatch.py"
+ ],
+ "tests": [
+  {
+   "module": "test_session_start (new, final version)",
+   "look": "default",
+   "ran": 13,
+   "failed": 0,
+   "note": "On the unchanged tree with only the tests copied in: 13 of 13 fail."
+  },
+  {
+   "module": "test_session_start (new, final version)",
+   "look": "kasandra",
+   "ran": 13,
+   "failed": 0,
+   "note": "Run with GRAPHITE_APPEARANCE=kasandra."
+  },
+  {
+   "module": "ALL 66 modules, one at a time, on the copy",
+   "look": "default",
+   "ran": 1018,
+   "failed": 1,
+   "note": "The one failure was test_release_check ('a test module nothing runs'): the new module was not yet listed in tools/check_hatch.py. Listed since; rerun below. The other 65 modules passed."
+  },
+  {
+   "module": "ALL 66 modules, one at a time, on the copy",
+   "look": "kasandra",
+   "ran": 1018,
+   "failed": 7,
+   "note": "One is the same test_release_check listing failure (rerun below). The other six are in five modules and fail the same tests on the unchanged tree in this look; they are listed below."
+  },
+  {
+   "module": "test_release_check (rerun with the new module listed)",
+   "look": "default",
+   "ran": 22,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_release_check (rerun with the new module listed)",
+   "look": "kasandra",
+   "ran": 22,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_frame",
+   "look": "kasandra",
+   "ran": 11,
+   "failed": 1,
+   "note": "Not caused by this patch: test_the_strip_words_and_destination_hint asserts 'Stacy'. Same failure on the unchanged tree. Default look: 11 OK."
+  },
+  {
+   "module": "test_context_menu",
+   "look": "kasandra",
+   "ran": 44,
+   "failed": 1,
+   "note": "Not caused by this patch: test_a_passage_is_named_at_the_top_with_its_page_edits asserts 'Ask Stacy about this'. Same failure on the unchanged tree. Default look: 44 OK."
+  },
+  {
+   "module": "test_writing_line",
+   "look": "kasandra",
+   "ran": 32,
+   "failed": 2,
+   "note": "Not caused by this patch: both tests assert 'Stacy'. Same failures on the unchanged tree. Default look: 32 OK."
+  },
+  {
+   "module": "test_conditions",
+   "look": "kasandra",
+   "ran": 16,
+   "failed": 1,
+   "note": "Not caused by this patch: asserts 'ask Stacy for the total again'. Same failure on the unchanged tree. Default look: 16 OK."
+  },
+  {
+   "module": "test_faces_find_light",
+   "look": "kasandra",
+   "ran": 34,
+   "failed": 1,
+   "note": "Not caused by this patch: asserts the desk light's lightness is under 150; Kasandra's is 172. Same failure on the unchanged tree. Default look: 34 OK."
+  },
+  {
+   "module": "test_kasandra",
+   "look": "default and kasandra",
+   "ran": 20,
+   "failed": 0,
+   "note": "20 OK in each look. Covers the existing appearance tests."
+  },
+  {
+   "module": "test_kasandra_column",
+   "look": "default and kasandra",
+   "ran": 18,
+   "failed": 0,
+   "note": "18 OK in each look. Uses the probe file I added a case to."
+  },
+  {
+   "module": "test_hologram",
+   "look": "default and kasandra",
+   "ran": 23,
+   "failed": 0,
+   "note": "23 OK in each look."
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "default and kasandra",
+   "ran": 28,
+   "failed": 0,
+   "note": "28 OK in each look, about 182 s each."
+  },
+  {
+   "module": "test_launcher",
+   "look": "default and kasandra",
+   "ran": 17,
+   "failed": 0,
+   "note": "17 OK in each look."
+  },
+  {
+   "module": "test_system_menu",
+   "look": "default and kasandra",
+   "ran": 31,
+   "failed": 0,
+   "note": "31 OK in each look."
+  },
+  {
+   "module": "tools/check_continue_ui.py (window check, on the copy only)",
+   "look": "default and kasandra",
+   "ran": 11,
+   "failed": 0,
+   "note": "PASSED, 11 checks, in each look. It restarts the window on a saved session."
+  },
+  {
+   "module": "tools/check_frame_ui, check_return_thread_ui, check_memory_settings_ui, check_memory_cabinet_ui, check_desk_ui (on copies only)",
+   "look": "default",
+   "ran": 5,
+   "failed": 5,
+   "note": "Not caused by this patch: each stops at the same line on the unchanged tree and on the changed copy (lines 173, 36, 98, 110, 145). They are stale scripts."
+  }
+ ],
+ "new_tests": [
+  "test_session_start.SavedAppearance.test_a_saved_appearance_that_is_not_one_of_the_looks_as_text_is_graphite: fourteen bad values (lists, objects, numbers, true, null, a look this build lacks) give Graphite from the theme and are not kept by the session; each real look is kept; the environment still wins. Before: TypeError: unhashable type: 'list'.",
+  "test_session_start.SavedAppearance.test_graphite_starts_on_a_session_file_whose_appearance_is_a_list: a child process imports the theme on a profile whose appearance is a list or an object, and exits 0 in Graphite. Before: exit 1 with TypeError.",
+  "test_session_start.SavedAppearance.test_a_value_nested_past_reading_is_graphite_and_a_new_session: an appearance nested 30,000 deep gives Graphite from the theme and a fresh session. Before: RecursionError from both readers.",
+  "test_session_start.SavedAppearance.test_there_is_one_list_of_looks_and_the_session_does_not_import_the_theme: the theme's list is the one list; there is a palette for each look; the look.set act offers the same looks; a look added to the list is kept by the session with no other change; importing the session pulls in neither the theme nor Qt. Before: fails because there is no single list. The no-import and act-equality parts are pins, true before as well.",
+  "test_session_start.TabsThatWaitForTheBridge.test_a_room_is_not_opened_before_the_bridge_exists_and_is_opened_once_it_does: for the Office, the Graphite room and the engineering conversation, restore opens nothing while the host has no bridge, and restore_waiting opens the tab once it has. Before: AttributeError, no 'ledger_bridge'.",
+  "test_session_start.TabsThatWaitForTheBridge.test_every_row_keeps_its_turn_its_place_and_what_was_in_front: the pin has its turn first, the rooms and the Preview wait in order, each tab ends where it was saved, and the saved front tab is in front. Before: AttributeError.",
+  "test_session_start.TabsThatWaitForTheBridge.test_with_the_bridge_already_there_nothing_waits: a pin for the new code path. Before: errors only because the waiting list does not exist.",
+  "test_session_start.TabsThatWaitForTheBridge.test_a_saved_tab_that_cannot_be_opened_is_kept_and_does_not_stop_the_start: the damaged case. One row raises; the others open; the row is kept in Reopen deferred tabs; the traceback is printed; the status line says one tab was retained. Before: RuntimeError propagates.",
+  "test_session_start.TabsThatWaitForTheBridge.test_a_window_that_never_gets_a_bridge_keeps_the_room_for_later: with no bridge ever, the room row is kept in deferred and the rest open. Before: AttributeError.",
+  "test_session_start.SecondStart.test_a_session_left_with_rooms_open_starts_again_and_again: the real window, in the look of the run, started three times on one profile. Rooms opened and left; the second start restores them in place with the right one in front, nothing deferred, no view recorded as the owner's, no default tab opened in their place, and no second Office when the start script's opening runs; left with Home in front, the third start has the rooms back and Home in front. Before: AttributeError: 'WorkbenchWindow' object has no attribute 'ledger_bridge'.",
+  "test_session_start.SecondStart.test_the_window_opens_what_waited_as_part_of_being_built: restore_waiting_tabs alone on a stub: it runs while the window counts as being built, falls back to the first tab when nothing could be opened, brings Home back if opening closed it, and does nothing when nothing waits. Before: the method does not exist.",
+  "test_session_start.NowLine.test_the_summary_does_not_carry_the_lines_name: the Agenda's summary with something running, with nothing running, and with no view. Before: 'Now: Read the bench readings ...'.",
+  "test_session_start.NowLine.test_her_column_says_now_once_in_every_look: the real window through the probe in each look of the list. Running reads 'Now: Read the bench readings \u00b7 2 next \u00b7 1 waiting for you \u00b7 open \u00b7 activity'; idle reads 'Now: Nothing running \u00b7 open \u00b7 activity'. Before: 'Now: Now: Read ...' in both looks (seen by running the probe on the unchanged tree).",
+  "kasandra_window_probe.case_now_line: a new probe case, not a test by itself; it is used by the test above."
+ ],
+ "decisions": [
+  "Fault 2, shape of the fix: a saved row whose tab is made with the bridge waits, and the rows after it wait in their order, so every row keeps the turn and the slot rules it always had. Sessions with no such row are restored exactly as before. I did not move the whole restore later, because the code between the two points depends on the tabs being there.",
+  "Fault 2, when the waiting rows open: after the agent driver is installed, when the window is whole. That is the state in which the owner or the start script opens a room. It runs as part of the build, so no view is recorded as the owner's and the last surface is not changed; Home is shown again if opening the tabs closed it.",
+  "Fault 2, the cheap guard added as well, although the fault was reproduced and fixed at the cause: any other exception from opening one saved tab is printed and the row kept in Reopen deferred tabs. One tab should not leave the owner unable to start until a file is removed by hand.",
+  "The engineering conversation (ClipWorkspaceTab) is included with the Office and the Graphite room. The sweep showed it stops the start the same way, because its constructor connects to the bridge.",
+  "Fault 1, where the list lives: workbench/presentation_preferences.py, which is Qt-free, imports nothing and is already imported by the session. The theme's APPEARANCES is that same object, so the Appearance menu is unchanged.",
+  "Fault 1, RecursionError is now caught in both readers of the session file. An appearance nested past what json reads is a bad value too, and it stopped the start from the theme and then from the session.",
+  "The look.set act's two choices in workbench/desk_acts.py and the menu's check in workbench/boss_qt.py are not rewired to the list. Those lines sit beside strings the builder of 'one name' is likely to edit, and two patches there would collide. A test pins that the act offers exactly the list's looks.",
+  "Fault 3 is fixed where the doubled word was made (agenda_qt.summary carried the line's name), not by stripping it in the column. The column has named its two lines 'This:' and 'Now:' since 0.5.3. The idle wording 'Now: Nothing running' is unchanged.",
+  "The tests are in a new module, and the probe case is added on new lines, to keep clear of files other builders are editing. The new module is listed in tools/check_hatch.py with the 'install and start' group, because test_release_check requires every test module to be listed.",
+  "The earlier partial patch was not applied. I kept its idea for fault 1 and rewrote it."
+ ],
+ "not_done": [
+  "Why the owner has not met fault 2 on the ThinkPad: not established. Under the dedicated session's own settings it fails here at every second start.",
+  "Five modules that import what I touched still fail in the Kasandra look, the same way on the unchanged tree: test_frame (1), test_context_menu (1), test_writing_line (2) and test_conditions (1) assert the name Stacy, which is the 'one name' item; test_faces_find_light (1) asserts a desk-light tone that Kasandra's palette does not have. I did not touch them, so the both-looks rule is not met for those five modules by this patch.",
+  "A fault seen and not fixed (in 0.8.3 already): a room the restore does not know (Documents, Files and others) is not restored, and its row is added to Reopen deferred tabs at every start. Seen on the unchanged tree: 1 row after the second start, 2 after the third; the status line announces them each time. Logs: work/b084/faults/logs/repro_B_deferred_*.log and repro_fixE_*.log.",
+  "A fault seen and not fixed: with the Manual tab open, closing the window raises in workspace_tabs.descriptor (the tab's 'group' is a QComboBox with no .title), so the session is not saved. Seen in the sweep on the unchanged tree (work/b084/faults/logs/sweep_base.log); not run through the launcher.",
+  "The sweep of tab kinds ran on a workspace with no project attached, and was cut off by its time limit before the last four kinds (StartPage, ToolInventoryTab, VendorTab, VirtualConsoleTab). Kinds that only build their real tab in an attached ARC-1 project were not swept there; the guard keeps such a tab in Reopen deferred tabs if it cannot be opened.",
+  "The guard in the window's constructor that skips the default first tab while saved tabs wait is tested by a call count in an Office workspace. Its visible effect (no Assembly tab opened in a workspace with a project) was not run.",
+  "The window-check scripts were not run as a gate. The five that fail stop at the same line on the unchanged tree; only check_continue_ui passes.",
+  "wip/, the version number, release notes, MANIFEST.json and the seed are untouched in the patch. The seed must be rebuilt after applying, since source files changed.",
+  "Nothing was run on the owner's ThinkPad."
+ ],
+ "release_note": "Graphite now starts again after you leave it with the Office or the Graphite room open. In 0.8.3 the next start could stop with \"Graphite could not start\" until the session file was removed; here, with the dedicated session's own settings, every second start failed. The rooms you left open come back where they were, and one saved tab that cannot be reopened is kept under Reopen deferred tabs instead of stopping the start. A session file whose saved look is damaged no longer stops the start either: Graphite opens in the Graphite look. Her column says \"Now:\" once when something is running. All of this was checked here in both looks; none of it has been run on the ThinkPad."
+}

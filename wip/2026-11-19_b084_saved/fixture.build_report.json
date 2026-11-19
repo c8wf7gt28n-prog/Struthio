@@ -1,0 +1,313 @@
+{
+ "summary": "Rail Demo, an invented workspace kept in the program, is built and tested; the playable scene and the four After Hours 07 anchors now have twins that run on it anywhere. Nothing is committed; nothing was run on the ThinkPad.\n\nTHE EARLIER ATTEMPT. I read its partial patch, applied it and tested it. Its core was sound (the builder, the campaign seed, the twins all worked first time). It had no tests at all. I changed five things in it: (1) its name map restated the owner's CSV numbers as a key, so the CSV text moved to a new per-step \"args_by_seed\" and the map now holds names only; (2) unused variables and a stray blank line removed, the docstring corrected (it described a check that no longer exists); (3) build_window now cleans up when a seed cannot be made; (4) the demo request is built from a shared template instead of restating the owner's reading; (5) the scene's file on Rail Demo is named like its sheet, as in the original.\n\nWHAT IS BUILT.\n- /home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/workbench/rail_demo.py (new): build(kernel, principal), find(), set_settled_current(), and workspace(base), which gives tests a throwaway workspace with its own profile. A 12 V rail: three one-page PDFs written by the program (same bytes every time), admitted and reviewed into three sheets (12 V; 250 mA settled; 900 mA and 45 ms startup; Rev A 5 W / 60 ms, Rev B 4 W / 40 ms), two exact calculations (3 W, 10.8 W), four findings bound to their sources (one holds, one is refuted), a page, one open question. Every source prints \"Invented demonstration data. Nothing here was measured.\" and the desk is titled \"Rail Demo (invented data)\". Build measured here: about 7 seconds, no network, no model.\n- 250 mA to 300 mA gives 3.6 W exactly (18/5); the finding then reads \"says 3 W; now 3.6 W\" in state recheck, the startup calculation goes to recheck, the source keeps 250 mA.\n- Scene: P01.json gains a \"workspaces.rail_demo\" entry (six name pairs); desk_scene.for_workspace() gives the scene as played there and run_scene() switches by its seed. The scene as written is unchanged.\n- Campaign: seed \"rail_demo\"; DP01a..DP01d in the scenes set; a new \"demo\" set DA01, DA16, DA17, DA27 running the same functions as A01, A16, A17, A27 with Rail Demo's values; a \"rail_demo\" need (pypdf and Poppler); the manifest and summary record the builder's revision and SHA-256.\n- docs/CAMPAIGN.md has a Rail Demo section.\n\nTESTED (on a throwaway copy with the seed made current, each module isolated, at most two at once): 14 modules in the default look and in the kasandra look, 28 runs, 0 failing. Before the patch the two new modules fail (import error; unknown case ids). By hand, once, on the owner's backup read from scratch (nothing copied, run folder deleted): A01, A16, A17, A27, P01a, P01b all Pass with this patch, so the originals still run when the backup is present. The patch passes git apply --check on a clean copy of the starting commit.\n\nWHAT DEPENDED ON THE OWNER'S BACKUP.\nIn the shipped tree: (a) tools/campaign_lib/cases_anchor.py A01, A16, A17, A27: Blocked without the backup, and because tests_integrated/test_campaign.py says it does not run them, their step functions had no coverage in the suite at all; now run on Rail Demo by test_rail_demo_campaign. (b) tools/campaign_lib/cases_scene.py P01a..P01d: Blocked without it; now DP01a..DP01d. (c) tests_integrated/test_desk_scenes.py and test_desk_acts.py do not need the backup, but their bench seed has no calculations, so the scene's trace was only ever checked there at 0 hops; the 2-hop trace and the comparison of reviewed sheets were checked only with the backup. test_rail_demo now checks both. (d) KEEP_ENV passes GRAPHITE_APPEARANCE to a run; nothing depends on it silently, and the backup's saved session carries no look. tools/desk_review.py and tools/check_operations_ui.py do not use the backup.\nOutside the shipped tree, not switched: the probes under /home/user/Struthio/wip/2026-11-14/scratch_tools/tools/ (field/, edge/, objects/, verify-window/, verify-reader/, rules-lens/, review/kern.py, sidebundles/scan.py, doer/truth/p7_conditions.py), wip/2026-11-14/hand_s1/build_record/ (ah07_probe.py, live_probe.py, patch_cases.py, run_campaigns.sh), wip/2026-11-14/checks_082.sh and wip/2026-11-14/pal/probes/code_scripts/probe_engine.py. They copy a restored workspace and profile from scratch; rail_demo.workspace(folder) gives the same two folders.\n\nONE THING FOR THE OWNER TO DECIDE. The repository already held values taken from the owner's workspace before this work: the record ids and the PDF's SHA-256 in tools/campaign_lib/fixture.py, the settled current and powers in cases_anchor.py and docs/CAMPAIGN.md, the CSV text in P01.json, and the bench seed in tests_integrated/test_desk_acts.py. I added none and removed none.",
+ "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084/fixture.patch",
+ "files_changed": [
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/workbench/rail_demo.py (new)",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/workbench/desk_scene.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/data/scenes/P01.json",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/cases_scene.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/cases_anchor.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/fixture.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/needs.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/runner.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/report.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign_lib/core.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/campaign.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tools/check_hatch.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tests_integrated/test_rail_demo.py (new)",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tests_integrated/test_rail_demo_campaign.py (new)",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/tests_integrated/test_desk_acts.py",
+  "/home/user/Struthio/.claude/worktrees/wf_16a59868-66f-1/docs/CAMPAIGN.md"
+ ],
+ "tests": [
+  {
+   "module": "test_rail_demo",
+   "look": "default",
+   "ran": 26,
+   "failed": 0,
+   "note": "new; 79.6 s; final run on a fresh copy with the seed made current"
+  },
+  {
+   "module": "test_rail_demo",
+   "look": "kasandra",
+   "ran": 26,
+   "failed": 0,
+   "note": "new; 79.7 s"
+  },
+  {
+   "module": "test_rail_demo_campaign",
+   "look": "default",
+   "ran": 18,
+   "failed": 0,
+   "note": "new; 68.0 s; itself plays DP01a in the Graphite look and in the Kasandra look"
+  },
+  {
+   "module": "test_rail_demo_campaign",
+   "look": "kasandra",
+   "ran": 18,
+   "failed": 0,
+   "note": "new; 68.2 s"
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "default",
+   "ran": 28,
+   "failed": 0,
+   "note": "touched (build_window takes a seed); 183 s"
+  },
+  {
+   "module": "test_desk_acts",
+   "look": "kasandra",
+   "ran": 28,
+   "failed": 0,
+   "note": "184 s"
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "default",
+   "ran": 5,
+   "failed": 0,
+   "note": "imports build_window and plays P01 through the changed desk_scene on the bench seed"
+  },
+  {
+   "module": "test_desk_scenes",
+   "look": "kasandra",
+   "ran": 5,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_campaign",
+   "look": "default",
+   "ran": 23,
+   "failed": 0,
+   "note": "imports the changed campaign library"
+  },
+  {
+   "module": "test_campaign",
+   "look": "kasandra",
+   "ran": 23,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_resource_rules",
+   "look": "default",
+   "ran": 15,
+   "failed": 0,
+   "note": "imports tools.campaign_lib.fixture"
+  },
+  {
+   "module": "test_resource_rules",
+   "look": "kasandra",
+   "ran": 15,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_release_check",
+   "look": "default",
+   "ran": 22,
+   "failed": 0,
+   "note": "pins that every test module is listed in tools/check_hatch.py"
+  },
+  {
+   "module": "test_release_check",
+   "look": "kasandra",
+   "ran": 22,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_delete_words",
+   "look": "default",
+   "ran": 6,
+   "failed": 0,
+   "note": "scans every workbench source file, the new one included"
+  },
+  {
+   "module": "test_delete_words",
+   "look": "kasandra",
+   "ran": 6,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_graphite",
+   "look": "default",
+   "ran": 29,
+   "failed": 0,
+   "note": "scans workbench sources for words"
+  },
+  {
+   "module": "test_graphite",
+   "look": "kasandra",
+   "ran": 29,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_kasandra_highlight",
+   "look": "default",
+   "ran": 10,
+   "failed": 0,
+   "note": "scans sources"
+  },
+  {
+   "module": "test_kasandra_highlight",
+   "look": "kasandra",
+   "ran": 10,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_presentation_settings",
+   "look": "default",
+   "ran": 16,
+   "failed": 0,
+   "note": "scans sources"
+  },
+  {
+   "module": "test_presentation_settings",
+   "look": "kasandra",
+   "ran": 16,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_system_menu",
+   "look": "default",
+   "ran": 31,
+   "failed": 0,
+   "note": "scans sources"
+  },
+  {
+   "module": "test_system_menu",
+   "look": "kasandra",
+   "ran": 31,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_deployment",
+   "look": "default",
+   "ran": 16,
+   "failed": 0,
+   "note": "packaging with the new files"
+  },
+  {
+   "module": "test_deployment",
+   "look": "kasandra",
+   "ran": 16,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_workspace_backup",
+   "look": "default",
+   "ran": 7,
+   "failed": 0,
+   "note": "DA17 uses the backup code"
+  },
+  {
+   "module": "test_workspace_backup",
+   "look": "kasandra",
+   "ran": 7,
+   "failed": 0,
+   "note": ""
+  },
+  {
+   "module": "test_rail_demo (BEFORE the patch: starting commit plus only the two new test files)",
+   "look": "default",
+   "ran": 1,
+   "failed": 1,
+   "note": "ImportError: cannot import name 'rail_demo' from 'workbench'. Expected: this is the fails-before run."
+  },
+  {
+   "module": "test_rail_demo_campaign (BEFORE the patch)",
+   "look": "default",
+   "ran": 5,
+   "failed": 5,
+   "note": "The five TheCases tests: 4 errors and 1 failure; then the run stopped with 'Unknown case id: DA01, DA16, DA17, DA27, DP01a', so the other 13 never started. Expected."
+  },
+  {
+   "module": "campaign cases A01, A16, A17, A27, P01a, P01b on the owner's backup (by hand, read from scratch campaign_fixtures, not a suite test)",
+   "look": "default",
+   "ran": 6,
+   "failed": 0,
+   "note": "All Pass with the patch: A01 7/7 checks, A16 28/28, A17 4/4, A27 7/7, P01a 54/54, P01b 55/55. Nothing of the backup was copied; the run folder was deleted. P01c, P01d were not run."
+  }
+ ],
+ "new_tests": [
+  "test_rail_demo.TheSources.test_the_sources_are_the_same_bytes_every_time: the three PDFs are identical on every call and match three pinned SHA-256 values tied to REVISION 1",
+  "test_rail_demo.TheSources.test_every_source_says_it_is_invented_and_carries_the_rail_demo_name: the notice is in every source, the page and the note; names start Rail Demo; the desk title says invented data",
+  "test_rail_demo.TheSources.test_the_readings_are_the_ones_the_calculations_need: 12 V, 250 mA, 900 mA, 45 ms; Rev A 5 W, 60 ms, 12 W; Rev B 4 W, 40 ms, 12 W",
+  "test_rail_demo.TheSources.test_what_is_missing_is_said_in_a_sentence_and_nothing_is_built: without Poppler, available() names what is missing and build() raises that sentence before touching anything",
+  "test_rail_demo.TheSources.test_the_builder_reaches_the_workspace_through_the_kernels_operations_only: the builder's source has one dispatch call site, one run_job, and no direct database or file write",
+  "test_rail_demo.TheRecords.test_the_desk_holds_every_record_and_every_link: all 14 things on the desk (kind, title, state, role, facts, where) and all 12 links, none stale, counts, title, the one waiting question",
+  "test_rail_demo.TheRecords.test_it_was_built_through_the_kernels_operations_the_doors_a_person_uses: a watch on the Kernel during build: the exact count of each of 17 writing operations, their order, and no database open outside an operation or a job",
+  "test_rail_demo.TheRecords.test_everything_on_the_desk_is_named_as_rail_demo_or_stands_under_its_title: nothing on the desk carries another name",
+  "test_rail_demo.TheRecords.test_build_returns_what_find_reads_back: build() and find() agree, and every id they give is the id of the right thing on the desk",
+  "test_rail_demo.TheRecords.test_the_sources_were_put_in_files_brought_in_and_admitted_as_written: the three files in Files, their hashes on disk and in intake, admission ACCEPTED, one collection of three",
+  "test_rail_demo.TheRecords.test_the_readings_sheet_is_the_reviewed_table_of_its_source: cells, units and types; source state CURRENT_PDF_SOURCE with the source's hash; each reviewed row keeps its original cells",
+  "test_rail_demo.TheRecords.test_the_two_revisions_of_the_limits_are_sheets_of_their_own_sources: both limit sheets cell by cell, each bound to its own PDF; which rows differ between the revisions",
+  "test_rail_demo.TheRecords.test_the_calculations_are_exact_and_read_reviewed_rows: settled power is exactly 3 W, startup exactly 54/5 W; inputs are reviewed PDF rows; each traces to the sheet and the PDF",
+  "test_rail_demo.TheRecords.test_one_finding_holds_one_does_not_and_each_is_bound_to_what_it_rests_on: one check failed and refutes, one passed; each check reads the right sheet; every finding has a link; the open question is next",
+  "test_rail_demo.TheRecords.test_the_page_and_the_note_say_they_are_invented: the summary page carries the notice and is a plain page",
+  "test_rail_demo.TheRecords.test_nothing_of_it_is_outside_the_folder_it_was_given: the profile and the workspace are inside the given folder, so nothing reaches the user's own profile",
+  "test_rail_demo.TheRecords.test_a_second_build_in_the_same_workspace_is_refused: a second build is refused and changes nothing",
+  "test_rail_demo.TheRecords.test_find_says_when_rail_demo_is_not_there: find() on an empty workspace says so",
+  "test_rail_demo.TheChange.test_250_to_300_mA_gives_3_6_W_and_sends_what_rests_on_it_to_recheck: the what-if changes nothing; then 300 mA gives 18/5 W from 12 V reviewed and 300 mA edited, replaces the 3 W page, the finding reads 'says 3 W; now 3.6 W' in recheck, the startup calculation is in recheck and its link stale, the source row and PDF still say 250 mA, nothing else moved",
+  "test_rail_demo.ThePlayableSceneOnRailDemo.test_the_window_stands_on_rail_demo_and_the_scene_names_nothing_else: the window's workspace is Rail Demo and no name of the owner's workspace is in what is played",
+  "test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse: all 17 steps pass by pointer; the trace goes 2 hops to both calculations; the comparison names the three changed rows",
+  "test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_on_a_small_window: the same at 1366 by 768, still by pointer",
+  "test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys: all steps pass by keys",
+  "test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_keys_reduced_motion: by keys with less motion; the trace does not animate",
+  "test_rail_demo.ThePlayableSceneOnRailDemo.test_p01_by_mouse_reduced_motion: by pointer with less motion; the motion is put back afterwards",
+  "test_rail_demo.ThePlayableSceneOnRailDemo.test_the_scene_leaves_the_records_of_rail_demo_as_it_found_them: the desk's records and links are the same after a play as before",
+  "test_rail_demo_campaign.TheSceneOnAnotherWorkspace.test_the_same_acts_in_the_same_order_with_each_name_swapped: the Rail Demo scene has the same acts, keys and runs; each of six names is swapped in arguments and expectations",
+  "test_rail_demo_campaign.TheSceneOnAnotherWorkspace.test_what_is_played_on_rail_demo_names_nothing_of_the_owners_workspace: no swapped-out name remains in any run; the CSV it writes holds Rail Demo's readings, 4 rows, 2 in mA",
+  "test_rail_demo_campaign.TheSceneOnAnotherWorkspace.test_the_scene_as_written_is_untouched_and_is_what_its_own_seed_gives: the swap works on a copy; the scene's own seed gives it unchanged; an unknown workspace is refused",
+  "test_rail_demo_campaign.TheSceneOnAnotherWorkspace.test_the_runners_parent_and_the_program_give_the_same_scene: the two copies of for_workspace agree, and the flattened campaign checks equal the scene's expectations",
+  "test_rail_demo_campaign.TheSceneOnAnotherWorkspace.test_a_malformed_entry_is_said_in_words: check_scene reports a bad names map and bad args_by_seed, three problems exactly",
+  "test_rail_demo_campaign.TheSceneOnAnotherWorkspace.test_arguments_for_a_seed_add_to_or_replace_the_steps_own: args_by_seed applies to its seed only and leaves the step unchanged",
+  "test_rail_demo_campaign.TheCases.test_the_scene_has_a_case_for_each_run_on_each_workspace: eight scene cases; P01a..d still need the backup with unchanged expectations; DP01a..d need only rail_demo, with the same checks by place",
+  "test_rail_demo_campaign.TheCases.test_the_demo_set_is_the_four_anchors_steps_with_rail_demos_values: the demo set is four cases using the anchors' own functions, with Rail Demo's expected values, in the default batch",
+  "test_rail_demo_campaign.TheCases.test_the_anchors_on_the_owners_workspace_are_as_they_were: A01, A16, A17, A27 keep their seed, needs, request and expectations",
+  "test_rail_demo_campaign.TheCases.test_the_twins_need_only_what_a_pdf_source_needs_and_say_what_is_missing: the rail_demo need is met with pypdf and Poppler, and names the missing part otherwise; P01a still asks for the backup",
+  "test_rail_demo_campaign.TheCases.test_what_builds_rail_demo_is_part_of_every_twins_revision: the builder's SHA-256 and revision are in every twin's case data, so a changed builder is a new case revision",
+  "test_rail_demo_campaign.TheRuns.test_every_twin_passes_with_nothing_of_the_owners_here: DA01, DA16, DA17, DA27, DP01a pass in real child processes with no fixtures folder; five builds give one state picture; manifest and summary record the seed",
+  "test_rail_demo_campaign.TheRuns.test_the_trace_of_settled_power_and_the_exact_3_W: DA01's seven observations",
+  "test_rail_demo_campaign.TheRuns.test_250_to_300_mA_is_carried_to_3_6_W_and_read_back_by_a_fresh_process: DA16's 28 observations, including what a fresh process reads back and what the policy table says waits",
+  "test_rail_demo_campaign.TheRuns.test_a_backup_of_rail_demo_is_verified_restored_and_read_and_a_changed_copy_is_caught: DA17: create, verify, restore, the restored desk equals the saved one, replacement refused, one changed byte caught",
+  "test_rail_demo_campaign.TheRuns.test_killed_after_the_write_and_resumed_from_its_checkpoint: DA27 is killed at its checkpoint, resumed, the change recognised, a replay refused, 18/5 W",
+  "test_rail_demo_campaign.TheRuns.test_p01_is_played_on_rail_demo_in_the_graphite_look_and_in_the_kasandra_look: DP01a passes in both looks from one test run, whatever look the module started in, with a picture kept per step",
+  "test_rail_demo_campaign.TheRuns.test_the_same_scene_on_the_owners_workspace_is_blocked_here_not_failed: P01a without the backup is Blocked with the reason, and nothing is started"
+ ],
+ "decisions": [
+  "Twins, not replacements. The task said to switch what can run on the invented workspace without weakening what it checks. Replacing A01, A16, A17, A27 and P01a..d would drop the checks against the owner's real values, so the originals stay exactly as they were and each has a twin on Rail Demo (same function, Rail Demo's values).",
+  "The scene variant is a top-level \"workspaces\" entry in the scene, with the run's seed as the switch, rather than a switch inside \"given\". Reason: \"given\" describes the window (size, look, dial); the workspace is what the seed already names, and expect_by_seed already existed. The original scene's steps are unchanged.",
+  "A new per-step \"args_by_seed\" carries the one argument that is not a name (the CSV text). The earlier attempt put that text in the name map, which restated the owner's numbers as a key.",
+  "The sources are PDFs, so Rail Demo needs pypdf and Poppler, which INSTALL_DEBIAN.sh installs. The tests do not skip when these are missing; they fail with a sentence saying what to install. A silent skip would be the kind of hidden dependency this release removes.",
+  "Work that is a job (bringing files in, indexing, rendering a page) is submitted through its own operation and then run in this process with Kernel.run_job, the call the worker process makes. Reason: nothing is left running after the build, and it is quicker. A test watches that the database is never opened outside an operation or a job.",
+  "The demo set is added to the default batch (--set all), since it needs nothing of the owner's.",
+  "for_workspace exists twice, in workbench/desk_scene.py and in tools/campaign_lib/cases_scene.py, because the runner's parent never imports Graphite. This follows the existing precedent of matches(); a test pins that the two agree.",
+  "The two new test modules are listed in FOCUSED_MODULES in tools/check_hatch.py, which test_release_check requires. I placed the line after 'test_campaign', away from the 0.8.3 lines, to lower the chance of colliding with the other builders' patches.",
+  "rail_demo.workspace(base) sets the process's Graphite locations, as workbench.edit_checks.fixture does. Reason: reviewed sheets are kept in the profile, so a test that forgot to isolate it would write into the user's own profile.",
+  "The new tests do not restate the owner's names or numbers; they read them from the scene or the existing tables where a comparison is needed.",
+  "test_desk_scenes stays on its bench seed (fast, no Poppler). The Rail Demo plays are in test_rail_demo.",
+  "Mirroring the shape I looked at, Rail Demo also has one note on the readings PDF and one summary page. I looked only at kinds, counts and links of the restored workspace; no file, name or number was taken from it."
+ ],
+ "not_done": [
+  "The full suite (67 modules) was not run. I ran the two new modules, the modules I touched, every module that imports what I touched, and the modules that scan source files: 14 modules, both looks.",
+  "P01c and P01d on the owner's backup were not run by hand (P01a and P01b were).",
+  "The probes under /home/user/Struthio/wip/ that copy the owner's restored workspace were not switched to Rail Demo, because wip/ is out of bounds for a builder. They are listed in the summary.",
+  "Values from the owner's workspace that were already in the repository (ids and a hash in tools/campaign_lib/fixture.py, readings and powers in cases_anchor.py and docs/CAMPAIGN.md, the CSV text in P01.json, the bench seed in tests_integrated/test_desk_acts.py) were left as they are. Removing them changes what the original cases check, which is the owner's call.",
+  "Nothing was run on the ThinkPad. One risk there: the build reads its own PDF tables with the installed Poppler and stops with a sentence if a table is not read as written; that was only exercised with Poppler 24.02 in this container.",
+  "Rail Demo is not offered anywhere in the window. It is for tests, scenes and the campaign.",
+  "The version, release notes, MANIFEST.json and the seed are untouched, as instructed. The seed must be made current after the patch is applied.",
+  "docs and docstrings I touched still say 'Stacy's hand' where they did before; the name change is another builder's item.",
+  "The build takes about 7 seconds, most of it five job subprocesses. I did not try to make it faster."
+ ],
+ "release_note": "Graphite now carries a small workspace of invented data called Rail Demo: a 12 V rail on a bench, with its readings, two revisions of its limits, two calculations, four findings and one open question. Every number in it is made up, and it says so on each source and in the desk's title. The playable scene and the four After Hours 07 checks now also run on Rail Demo, so they run on any machine without your backup; when your backup is present, the originals run on it as before. On Rail Demo, changing the settled current from 250 mA to 300 mA gives 3.6 W and sends the finding and the startup calculation to recheck, and the tests now check that on every run. This was checked in the container in both looks; it has not been run on the ThinkPad."
+}
