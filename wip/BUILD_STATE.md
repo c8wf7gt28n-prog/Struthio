@@ -79,48 +79,64 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 
 1. **DONE. The twenty stale tests fixed (commit 3f07341). Full suite on a copy, 19 Nov: 65 modules, 1,005 tests,
    0 failing**, default look, in the container. The first green suite since the import.
-2. An invented workspace kept in the program (a 12 V rail: bench readings, two limit revisions, calculations, findings,
+2. **MERGED (c47a9ba), reviewed and fixed.** An invented workspace kept in the program, Rail Demo (a 12 V rail: bench readings, two limit revisions, calculations, findings,
    an open question; invented numbers, the same shape as After Hours 07), and scene P01 able to run on it, so nothing
    needs the owner's backup. **Do this next: it protects every later step.**
-3. Three faults found in 0.8.3 by the overlay review (`wip/2026-11-19_handoff_review/code_review.md`): a saved look
+3. **MERGED (90ee679), reviewed and fixed.** Three faults found in 0.8.3 by the overlay review (`wip/2026-11-19_handoff_review/code_review.md`): a saved look
    value that is not text stops the start (session.py); a saved Office or Slate tab may stop the start
    (workspace_tabs.py; reproduce first); "Now: Now:" in her column. A test for each.
-4. One name: Kasandra in every look (workbench/assistant_identity.py and the tests and words that assert Stacy on
+4. **MERGED (43f42cd), reviewed and fixed.** One name: Kasandra in every look (workbench/assistant_identity.py and the tests and words that assert Stacy on
    screen). History keeps the names it was written with.
 5. The window-check scripts: retire or fold 7, port the rest (`wip/2026-11-14/tests_measure/fix_patches/patches/`).
-6. The seven line bugs (NOTES.md "PAL P0"; `sdk/cli/arc1cli/typed_pipeline.py`), a test pinning each.
+6. **MERGED (dd2c2db), reviewed and fixed.** The seven line bugs (NOTES.md "PAL P0"; `sdk/cli/arc1cli/typed_pipeline.py`), a test pinning each.
 7. Tests for the blind spots in the guarding code (Kernel scopes, her hand's rules, memory rules, release check); run the
    planted bugs again; target 75% caught there (`wip/2026-11-14/tests_measure/mutants.md`).
 8. The tiered runner (tier 0 under a minute) and the slimmed release checks (`tests_measure/release-checks.md`).
 9. The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
 10. Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
 
-**Running now (started 19 Nov 11:20 UTC): workflow `graphite-084-part-a2`, run id `wf_023c5420-966`, task `w20damyg9`.**
-Script: `wip/2026-11-14/workflow_scripts/graphite-084-part-a2.js`. It reviews (and fixes where the review demands) the
-three built items, fixture, faults and name, and finishes, reviews and fixes lines. Order on purpose: the reviews of the
-finished items first. Everything is handed over through files in scratch `work/b084/`: `<key>.patch`,
-`<key>.progress.md` (builder's notes), `<key>.review.md` (reviewer's findings), `<key>.build_report.json`.
-- **History:** run 1 (`wf_3b55597e-e8f`) was cut off by the usage limit at 02:38; run 2 (`wf_16a59868-66f`) built fixture
-  and faults and was cut off at about 07:18 with name nearly finished and lines half built. Copies of all four patches
-  and notes as they stood: `wip/2026-11-19_b084_saved/`.
-- **When it reports:** read `work/b084/<key>.review.md`; apply the patches to the main checkout one at a time
-  (`git apply -3`; fixture, faults, name and lines each add a line to `tools/check_hatch.py` FOCUSED_MODULES, so expect
-  small conflicts there), rebuild the seed, run the full suite on a copy in BOTH looks
-  (`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit each item, push.
-- **If it was cut off again:** relaunch with the same `scriptPath` and `resumeFromRunId: wf_023c5420-966` (finished
-  agents are reused; agents are told to pick up from their notes file). If scratch is gone, restore the patches from
-  `wip/2026-11-19_b084_saved/` into `work/b084/` first.
-- **Then part B**, already written: `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js` (keys: checks = step 5,
-  guards = step 7, tiers = step 8, look = step 9, session = the two session faults below). Before launching it, add the
-  ECONOMY block from part-a2 to its RULES and run its items two at a time in priority order. Then the release (step 10).
+**State at 16:20 UTC, 19 Nov: part A is merged** (four commits, c47a9ba to dd2c2db, each built, independently reviewed
+and fixed; all four patches applied without conflict; seed current). The reviews and notes are kept in
+`wip/2026-11-19_b084_saved/` (`<key>.review.md`, `<key>.progress.md`, `<key>.fix.md`).
+- **Running now:** the full suite on a copy in both looks: `wip/2026-11-14/scratch_tools/run_suite_both_looks.sh`
+  (results in scratch `work/t084/summary.<look>.txt`). If it is not green, fix on the main checkout, rebuild the seed,
+  rerun, commit.
+- **Next: part B.** Launch `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js` with the Workflow tool's `scriptPath`
+  (keys: look = step 9, checks = step 5, session, tiers = step 8, guards = step 7; two lanes, each finishing one item,
+  build then review then fix, before starting the next). Hand-overs are files in scratch `work/b084b/`: `<key>.patch`,
+  `<key>.progress.md`, `<key>.review.md`, `<key>.<role>.result.json`; an agent whose result file exists returns at once,
+  so after a cut-off simply launch the same script again (with `resumeFromRunId` if the run id is known). After each
+  finished item: copy its files to `wip/2026-11-19_b084_saved/`, apply (`git apply -3`), rebuild the seed, commit; the
+  full suite in both looks before the release.
+- **Then the release (step 10).**
 - **Waiting, not started again:** the design pass for 0.8.5 (one agent, cut off at once by the limit; it wrote nothing).
   Start it only when 0.8.4 is out.
 
-**The pace, measured (19 Nov).** One 5-hour usage window carries about 75 minutes of two agents building (about 1.6
-million tokens of agent work). Window 06:00 to 11:00 UTC: two items built, two half built. So: finish items one after
-another rather than start many; hand over through files; agents work in few large steps and never print whole test
-output. Expect roughly two finished items per window; 0.8.4 has nine. Windows reset at 11:00, 16:00, 21:00, 02:00, 06:00
-UTC or so (the notice gives the time each time).
+**The pace, measured (19 Nov).** One 5-hour usage window carries about 75 to 110 minutes of two agents working (1.6 and
+2.3 million tokens of agent work in the two windows measured). So: finish items one after another rather than start
+many; hand over through files; agents work in few large steps and never print whole test output. Windows have reset at
+06:00, 11:00 and 16:00 UTC; the next should be 21:00.
+
+**Carried out of part A (from the builders' and reviewers' lists), with where each goes:**
+- Line evaluator, still silent or odd, none of them new: a line ending in `group FIELD` with nothing after it returns its
+  rows ungathered; `add NAME = ...` replaces an existing field without a word; a text starting with @ cannot be compared;
+  `has` searches Python's text of a value; `select` of a field no row has gives empty values; `select a, a` collapses;
+  over and under order text by characters while sort folds capitals; the sheet lens matches names in any case; the Then
+  menu's text offers still merge 1 with "1". **Goes to 0.8.8 (Maths in lines).**
+- A saved line can answer differently in 0.8.4 than in 0.8.3 (exact totals; numbers written as text counted). **Say so in
+  the release notes.**
+- Rail Demo: `--set all` of the campaign now also runs the four demo cases, `--set scenes` lists eight; a build that
+  waits 60 s for memory stops as a Fail saying why (the owner may prefer Blocked); only Poppler 24.02 was tried here:
+  **run `tools/campaign.py run --set demo` on the ThinkPad** (waits for the owner).
+- The repository already held values taken from After Hours 07 before this work (record ids and a PDF hash in
+  `tools/campaign_lib/fixture.py`, the settled current and powers in `cases_anchor.py` and `docs/CAMPAIGN.md`, the CSV
+  text in P01.json, a bench seed in `test_desk_acts.py`). Nothing added, nothing removed. **For the owner to decide**
+  whether they stay (listed under Waiting).
+- Her art plate's file is renamed (`branding/boss/plates/Kasandra after midnight.webp`), because the file's name shows
+  on screen; the picture is unchanged. At 1366x768 the longer name is shortened with an ellipsis in the head's crumb.
+- Seen on screen and not changed: Activity says "their order, niceness and Stop are in the System menu" (there is no
+  System menu since 0.7.0); About says "Graphite 2.0". **Goes to part B's look item or the release pass.**
+- `workbench/desk_acts.py` has its own literal list of looks; a test pins it equal to the one list. **0.8.5 removes it.**
 
 **Found by part A's builders, to be closed in 0.8.4 (part B carries them):**
 - Rooms that restore does not know (Documents, Files and others) go to "Reopen deferred tabs" at every start and the list
@@ -143,10 +159,15 @@ UTC or so (the notice gives the time each time).
 - The first model run on the ThinkPad (does the 35B load, on the Radeon or the processor, how fast).
 - The names of the skins on screen; whether she is recognisably one person across skins.
 - The eight look questions at the end of CANON.md; the spelling (Kasandra or Cassandra), asked as a comment in the doc.
+- Whether the values from After Hours 07 that the repository has held since 0.8.2 (ids, a hash, the settled current)
+  may stay in the public tree.
 - For later releases: real tolerances for After Hours 07, the dial's default for her changes, a 0.4.6 workspace.
 
 ## Log (newest first)
 
+- 19 Nov 16:20 UTC: part A merged in four commits after review and fixes; the full suite running in both looks.
+- 19 Nov 13:10 UTC: the usage limit stopped part A2 with one agent left (the line fix, which had in fact finished its
+  code and patch; its last test run completed on its own).
 - 19 Nov 11:20 UTC: the limit lifted at 11:00. Interrupted work saved; worktrees removed; part A2 started (reviews first).
 - 19 Nov 07:18 UTC: the usage limit stopped run 2 (name nearly finished, lines half built, no review yet).
 - 19 Nov 07:20 UTC: fixture and faults built (unreviewed patches saved under `wip/2026-11-19_b084_saved/`); name and lines
