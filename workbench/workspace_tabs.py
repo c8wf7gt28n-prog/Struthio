@@ -1,4 +1,6 @@
 """One central tab policy for every existing workspace factory."""
+import json
+from pathlib import PurePath
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTabWidget, QPushButton, QMessageBox, QInputDialog, QPlainTextEdit
 
@@ -6,15 +8,106 @@ from PySide6.QtWidgets import QTabWidget, QPushButton, QMessageBox, QInputDialog
 # conversation listens to it. The window installs the bridge after it has restored its session, so a saved row of one of
 # these kinds cannot be opened then; it waits until the window is whole (WorkspaceTabs.restore, restore_waiting).
 NEEDS_BRIDGE=('OfficeBuildingTab','SlateRoomTab','ClipWorkspaceTab')
+# The tabs the desk opens by a place (shell2.open_destination), by kind: its rooms, and the tabs the bridge opens from its
+# navigation. Until 0.8.4 restore knew none of them, nor the program rooms: each one left open was set aside at the next
+# start, and set aside again at every start the owner opened it once more, so Reopen deferred tabs grew by one per such
+# tab per start. They are reopened now, with what each needs of its row (descriptor: the folder Files was in, the kind the
+# Library was showing; destination below), once the window is whole, as the bridge's rooms are: the Library is opened by
+# the shell, the program rooms and the navigation's tabs by the bridge.
+DESK_ROOMS={'DocumentsTab':'documents','TrashTab':'trash','AgendaTab':'agenda','ChangesTab':'changes','DeploymentTab':'deployment',
+            'WorkTab':'continuing','InvestigationTab':'investigations'}
+NAVIGATION={'DiscoveryTab':'discovery','AlgorithmAtlasTab':'algorithms','ToolAtlasTab':'atlas','CommandsTab':'commands','WorkTrailTab':'trail',
+            'OrganizerTab':'organizer','PackageTab':'packages','View':'object_glass','BrainTab':'brain','IntakeTab':'intake','ReferenceTab':'references',
+            'KnowledgeTab':'sources','MemoryTab':'memory','AwarenessTab':'stacy_awareness','DeveloperToolsTab':'developer_tools','KiBotTab':'kibot',
+            'SpiceTab':'spice','YosysTab':'yosys','ImplementationTab':'implementation','HdlTab':'hdl','StacyFoundationTab':'stacy_knowledge'}
+# What the screen calls each kind the desk opens (its tab's title, the same in every look), for a saved row without its title:
+# 0.8.3 wrote none. A class name is not shown: StacyFoundationTab would read 'Stacy foundation' (0.8.4).
+SHOWN_AS={'DocumentsTab':'Documents','FilesTab':'Files','LibraryTab':'Library','TrashTab':'DELETE','AgendaTab':'Agenda','ChangesTab':'Changes',
+          'DeploymentTab':'Exchange & deployment','WorkTab':'Night Shift','InvestigationTab':'Investigations','ProjectDeskTab':'Project Desk',
+          'OfficeBuildingTab':'Office','SlateRoomTab':'Graphite','ReturnTab':'Return thread','HostPanel':'Service details','ComputerTab':'This computer',
+          'PillsTab':'Pills','CompareTab':'Compare','ExploreTab':'Explore','SettingsTab':'Settings','BlenderRoom':'Blender','CartridgeRoom':'Cartridge Bay',
+          'DeliveryRoom':'Delivery','FreeCADRoom':'FreeCAD','GodotRoom':'Godot','InkscapeRoom':'Inkscape','MailRoom':'Mail','MediaRoom':'Media Bench',
+          'PrintProofRoom':'Print Proof','TransferRoom':'Transfer','DiscoveryTab':'Inquiries','AlgorithmAtlasTab':'Algorithm & Theory Atlas',
+          'ToolAtlasTab':'Tool Atlas','CommandsTab':'Graphite commands','WorkTrailTab':'Work trail','OrganizerTab':'Organizer','PackageTab':'Package desk',
+          'View':'Object Glass','BrainTab':'Graphite · Brain','IntakeTab':'Graphite · Intake','ReferenceTab':'Graphite · References',
+          'KnowledgeTab':'Graphite · Source connections','MemoryTab':'Graphite · Memory','AwarenessTab':'Graphite awareness',
+          'DeveloperToolsTab':'Source assistance · Host debugger','KiBotTab':'KiBot · outputs','SpiceTab':'ngspice · circuits','YosysTab':'Yosys · synthesis',
+          'ImplementationTab':'FPGA · route / pack','HdlTab':'HDL · simulation / traces','StacyFoundationTab':'Graphite · knowledge',
+          'EngineeringTab':'Engineering · Jobs & Candidates','BrainLinkTab':'Brain Link','ClipWorkspaceTab':'Graphite · Engineering conversation',
+          'GenesisTab':'ARC Concern · Genesis','RegisterTab':'Engineering Register','VendorTab':'Vendor Vault','DevelopmentTab':'Development Lab',
+          'ManualTab':'R10 Manual','ReadinessTab':'Console Readiness','ToolInventoryTab':'Tool Inventory','ProjectSearchTab':'Project Search',
+          'BoardViewerTab':'R10 Board Layers','QTextBrowser':'Installation Guide','PdfDocumentTab':'A PDF'}
 # The saved kinds that are rooms: neither the Preview nor one of the five pins, so a Preview already open at a room's turn
-# (one dragged to the left of it) does not set the room aside.
-ROOMS=('OfficeBuildingTab','SlateRoomTab','ReturnTab')
+# (one dragged to the left of it) does not set the room aside. The navigation's tabs are not rooms: one of them is a pin or
+# the Preview, as it was when it was saved.
+ROOMS=('OfficeBuildingTab','SlateRoomTab','ReturnTab','FilesTab','LibraryTab','HostPanel','ComputerTab','PillsTab')+tuple(DESK_ROOMS)
+# Saved kinds with nothing to reopen: the legacy Start tab is the Home surface now, Files' start shows where to begin when
+# nothing is open (open_record never reopened it, so it only sat in Reopen deferred tabs), and "Needs a project" explains
+# why a project action did nothing; it is said again when the owner asks for project work and still has none attached.
+NOTHING_TO_REOPEN=('StartPage','FilesStart','EmptyWorkspaceTab')
+KEPT=20      # Reopen deferred tabs keeps the twenty newest; until 0.8.4 it had no bound
+WHERE='Arrange → Reopen deferred tabs'      # the menu the item is in (menus2: the View group, under the title Arrange)
+
+
+def destination(row):
+    """Where the desk goes to reopen a saved room (shell2.open_destination), or None for a row that is not one."""
+    kind=row.get('kind')
+    if kind=='FilesTab':return 'files:'+(row['folder'] if isinstance(row.get('folder'),str) else '')
+    if kind=='LibraryTab':
+        from .shell2 import KINDS
+        return 'library:'+(row['library'] if isinstance(row.get('library'),str) and row['library'] in {key for key,_,_ in KINDS} else 'all')      # a damaged session's list is not looked up (TypeError)
+    if kind in DESK_ROOMS:return DESK_ROOMS[kind]
+    if kind in NAVIGATION:return NAVIGATION[kind]
+    return program(kind)
+
+
+def program(kind):
+    """'program:<key>' for a program room's kind (program_rooms_qt.ROOMS), or None."""
+    from .program_rooms_qt import ROOMS as PROGRAMS
+    return next(('program:'+key for key,room in PROGRAMS.items() if room.__name__==kind),None)
+
+
+def waits(row):
+    """A row that is opened only once the window is whole (restore, restore_waiting)."""
+    return row.get('kind') in NEEDS_BRIDGE or destination(row) is not None
+
+
+def room(row):
+    return row.get('kind') in ROOMS or program(row.get('kind')) is not None
+
+
+def same(row):
+    """What makes two saved rows one tab: not whether it was pinned, where its cursor was or what it was called; and a
+    room is one room wherever it was looking."""
+    return json.dumps({k:v for k,v in row.items() if k not in ('pinned','line','column','pdf_page','title','folder','library')},sort_keys=True,default=str)
+
+
+def kept(rows,open_rows=()):
+    """What Reopen deferred tabs keeps: each tab once (its newest row), none that is open as well, the newest KEPT."""
+    taken={same(row) for row in open_rows};out=[]
+    for row in reversed(rows):
+        if not isinstance(row,dict) or row.get('kind') in NOTHING_TO_REOPEN or same(row) in taken:continue
+        taken.add(same(row));out.append(row)
+    return out[:KEPT][::-1]
+
+
+def name(row):
+    """A saved row as the owner reads it: the tab's title as it was shown, its file, what the screen calls its kind, or, for
+    a kind this Graphite no longer opens, its kind in words, with her name where the code's words have the internal one."""
+    if isinstance(row.get('title'),str) and row['title'].strip():return row['title'].strip()
+    if isinstance(row.get('path'),str) and row['path']:return row['path'].rsplit('/',1)[-1]
+    if row.get('kind') in SHOWN_AS:return SHOWN_AS[row['kind']]
+    kind=str(row.get('kind') or 'A tab');kind=kind[:-3] if kind.endswith('Tab') and len(kind)>3 else kind
+    words=''.join(' '+c.lower() if c.isupper() and i else c for i,c in enumerate(kind))
+    from .assistant_identity import named
+    return named(words[:1].upper()+words[1:])
 
 
 class WorkspaceTabs(QTabWidget):
     def __init__(self, host):
         super().__init__(); self.host=host; self.replacing=False;self.last_open_cancelled=False
         self.deferred=[];self.waiting=[];self.restored=[];self.restore_active=None  # a session being restored (restore, restore_waiting)
+        self.untold=[]      # (row, why) for each row this start set aside, said once at the end of the restore (tell)
         self.pin_button=QPushButton('Pin / Unpin')
         self.pin_button.setToolTip('Keep this workspace open · maximum five pins · workspaces opened from the menu or Explore are rooms and are not counted')
         self.pin_button.clicked.connect(self.toggle_pin)
@@ -106,10 +199,15 @@ class WorkspaceTabs(QTabWidget):
 
     def descriptor(self,widget):
         row={'kind':type(widget).__name__,'pinned':bool(widget.property('ledgerPinned'))}
+        if isinstance(widget.property('ledgerTitle'),str) and widget.property('ledgerTitle'):row['title']=widget.property('ledgerTitle')      # its name in what restoring says
+        if type(widget).__name__=='FilesTab' and isinstance(getattr(widget,'folder',None),str):row['folder']=widget.folder
+        if type(widget).__name__=='LibraryTab' and isinstance(getattr(widget,'kind',None),str):row['library']=widget.kind
         if type(widget).__name__=='PdfDocumentTab' and widget.source.get('source_sha256'):
             row.update(pdf_namespace=widget.source['namespace'],pdf_item=widget.source['item'],pdf_sha256=widget.source['source_sha256'],pdf_page=widget.page_index)
+        # A file's path. Only a path is one: Night Shift's 'path' is its chooser of a text path, and until 0.8.4 leaving
+        # with Night Shift open raised here, so that session was not saved (as with the Manual's group, below).
         path=getattr(widget,'path',None)
-        if path:
+        if isinstance(path,PurePath):
             try:row['path']=path.resolve().relative_to(self.host.root).as_posix()
             except ValueError:pass
         if widget.property('concern_id'):row['concern']=widget.property('concern_id')
@@ -124,8 +222,8 @@ class WorkspaceTabs(QTabWidget):
         return row
 
     def snapshot(self):
-        return dict(tabs=[self.descriptor(self.widget(i)) for i in range(self.count())],
-                    active=self.currentIndex(),deferred=getattr(self,'deferred',[]))
+        tabs=[self.descriptor(self.widget(i)) for i in range(self.count())]
+        return dict(tabs=tabs,active=self.currentIndex(),deferred=kept(getattr(self,'deferred',[]),tabs))
 
     def open_record(self,row):
         if row.get('kind')=='ReturnTab':
@@ -156,8 +254,16 @@ class WorkspaceTabs(QTabWidget):
         if row.get('kind')=='AssemblyTab':return self.host.show_assembly(row.get('case',False))
         if row.get('kind')=='OfficeBuildingTab':return self.host.show_office()
         if row.get('kind')=='SlateRoomTab':return self.host.show_slate()
-        if row.get('kind')=='FilesStart':return None
         if row.get('kind') in methods:return getattr(self.host,methods[row['kind']])()
+        if row.get('kind')=='HostPanel' and hasattr(self.host,'a_host_service'):      # Background service (host_qt)
+            self.host.a_host_service.trigger()
+            return next((self.widget(i) for i in range(self.count()) if type(self.widget(i)).__name__=='HostPanel'),None)
+        if row.get('kind') in ('ComputerTab','PillsTab'):      # This Computer, and Pills and Paired Computers (menus2)
+            from importlib import import_module
+            return import_module({'ComputerTab':'.computer_qt','PillsTab':'.pills_qt'}[row['kind']],__package__).show(self.host)
+        if destination(row):
+            from .shell2 import open_destination
+            return open_destination(self.host,destination(row))
         return None
 
     def restore(self,state):
@@ -165,7 +271,7 @@ class WorkspaceTabs(QTabWidget):
         the host has no bridge yet, and the rows after it wait with it, so every row still has its turn in the order it
         always had; restore_waiting opens them once the window is whole. 0.8.3 opened such a row at once, on a bridge
         that did not exist yet, and a session saved with the Office open stopped the next start (0.8.4)."""
-        self.deferred=list(state.get('deferred',[]));self.restore_active=state.get('active');self.restored=[]
+        self.deferred=kept(list(state.get('deferred',[])));self.restore_active=state.get('active');self.restored=[];self.untold=[]
         # Pins first: a Preview may have been dragged before a pin in the strip.
         # Restoring that visual order directly would replace the Preview.
         self.waiting=sorted(enumerate(state.get('tabs',[])),key=lambda pair:not pair[1].get('pinned'))
@@ -175,19 +281,24 @@ class WorkspaceTabs(QTabWidget):
         """The rows that waited for the bridge, in their turn. One that still cannot be opened is kept in Reopen deferred tabs."""
         self.restore_rows(wait=False)
 
+    def set_aside(self,row,why):
+        self.deferred.append(row);self.untold.append((row,why))
+
     def restore_rows(self,wait):
-        while self.waiting and not (wait and self.waiting[0][1].get('kind') in NEEDS_BRIDGE):
+        while self.waiting and not (wait and waits(self.waiting[0][1])):
             i,row=self.waiting.pop(0)
-            # Legacy Start tabs are now the separate Home surface, not a pin.
-            if row.get('kind')=='StartPage':continue
-            if (row.get('pinned') and len(self.pinned())>=5) or (not row.get('pinned') and row.get('kind') not in ROOMS and self.preview() is not None):
-                self.deferred.append(row);continue
+            if row.get('kind') in NOTHING_TO_REOPEN:continue
+            if row.get('pinned') and len(self.pinned())>=5:self.set_aside(row,'five pins were already open');continue
+            if not row.get('pinned') and not room(row) and self.preview() is not None:self.set_aside(row,'another tab was already in the Preview');continue
+            why=None
             try:tab=self.open_record(row)
-            except (KeyError,ValueError,OSError):tab=None
+            except (KeyError,ValueError,OSError):tab=None;why='it is no longer there'
             except Exception:  # noqa: BLE001 - a former tab that cannot be opened must not stop start-up (0.8.4): it is kept, and why is printed
                 import traceback
-                traceback.print_exc();tab=None
-            if tab is None or self.indexOf(tab)<0:self.deferred.append(row);continue
+                traceback.print_exc();tab=None;why='it failed to open'
+            if tab is None or self.indexOf(tab)<0:
+                gone=any(row.get(k) for k in ('path','pdf_item','concern','device'))
+                self.set_aside(row,why or ('it is no longer there' if gone else 'Graphite cannot reopen this kind of tab'));continue
             if isinstance(row.get('concern_context'),str):tab.setProperty('concern_context',row['concern_context'])
             if row.get('pinned'):self.pin(tab)
             self.restored.append((i,tab))
@@ -198,13 +309,28 @@ class WorkspaceTabs(QTabWidget):
         if selected:self.setCurrentWidget(selected)
         if self.waiting:return
         self.restored=[]
+        try:opened=[self.descriptor(self.widget(n)) for n in range(self.count())]
+        except Exception:  # noqa: BLE001 - a tab that cannot be written down is met at leaving; it must not stop the start
+            import traceback
+            traceback.print_exc();opened=[]
+        self.deferred=kept(self.deferred,opened)
+        told,self.untold=[(row,why) for row,why in self.untold if any(row is kept_row for kept_row in self.deferred)],[]
+        if told:self.tell(told)
         if self.deferred:
-            self.host.statusBar().showMessage('%d former tabs retained in View → Reopen deferred tabs'%len(self.deferred),15000)
+            self.host.statusBar().showMessage('%d former tabs retained in %s'%(len(self.deferred),WHERE),15000)
+
+    def tell(self,told):
+        """Say once, where the desk says what happened (the Activity, in every look), which saved tabs this start did not
+        reopen and why, in words. Until 0.8.4 a reason went to stderr only, which the owner never sees in the full-screen
+        session; the traceback still goes there, for whoever reads it."""
+        words=['%s (%s)'%(name(row),why) for row,why in told[:4]]+(['%d more'%(len(told)-4)] if len(told)>4 else [])
+        from . import activity
+        activity.record(self.host.root,'DESKTOP','ledger.restore','SET_ASIDE','; '.join(words)+'. Kept in '+WHERE)
 
     def reopen_deferred(self):
         rows=getattr(self,'deferred',[])
         if not rows:return
-        labels=[str(i+1)+'. '+str(r.get('path') or r.get('device') or r.get('kind')) for i,r in enumerate(rows)]
+        labels=[str(i+1)+'. '+name(r) for i,r in enumerate(rows)]
         label,ok=QInputDialog.getItem(self,'Retained workspace tabs','Open in Preview:',labels,0,False)
         if ok:
             row=rows[labels.index(label)];tab=self.open_record(row)

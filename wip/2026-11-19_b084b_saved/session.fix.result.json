@@ -1,0 +1,56 @@
+{
+  "summary": "Finished item 'session' after the review. Both must-fix findings are fixed and tested. (1) A damaged session row whose Library kind is a list or an object no longer stops the start: destination() looks the kind up only when it is text, and the Library opens on 'all'. The reviewer's probe, part B, now starts for library-list and library-dict in both looks. (2) A saved row with no title, which is every row 0.8.3 wrote, is now named by what the screen calls its kind. A new map, SHOWN_AS, holds each kind's tab title. I measured those titles in a real window for 102 openers, and they are the same in both looks. StacyFoundationTab now reads 'Graphite · knowledge' in the Activity line and in Arrange → Reopen deferred tabs. A kind this Graphite no longer opens still reads as words made from its class name, passed through assistant_identity.named, so the internal name never shows. I also did five of the should-fix items: the told filter has a test, the Activity line opens Reopen deferred tabs instead of Commands, the silent except now prints its trace, the dead FilesStart branch is removed, and the report count is corrected. test_session_start ran 28 tests, OK in both looks. Its importers are OK in both looks: test_delete_words 6, test_one_name 19, test_graphite 29, test_release_check 23. Each of the five fixed pieces, reverted on its own, turns its tests red. The patch is rewritten and applies to a clean HEAD tree.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b084b/session.patch",
+  "files_changed": [
+    "workbench/workspace_tabs.py",
+    "workbench/control_qt.py",
+    "workbench/tail_words.py",
+    "tools/name_sweep.py",
+    "tests_integrated/test_session_start.py"
+  ],
+  "tests": [
+    {"module": "test_session_start", "look": "default", "ran": 28, "failed": 0, "note": "copy of the worktree, seed made current, nice 19, unshare; 74 s"},
+    {"module": "test_session_start", "look": "kasandra", "ran": 28, "failed": 0, "note": "GRAPHITE_APPEARANCE=kasandra; 71 s"},
+    {"module": "test_delete_words", "look": "default", "ran": 6, "failed": 0, "note": "imports tail_words"},
+    {"module": "test_delete_words", "look": "kasandra", "ran": 6, "failed": 0, "note": "imports tail_words"},
+    {"module": "test_one_name", "look": "default", "ran": 19, "failed": 0, "note": "imports tail_words and tools/name_sweep"},
+    {"module": "test_one_name", "look": "kasandra", "ran": 19, "failed": 0, "note": "imports tail_words and tools/name_sweep"},
+    {"module": "test_graphite", "look": "default", "ran": 29, "failed": 0, "note": "imports control_qt"},
+    {"module": "test_graphite", "look": "kasandra", "ran": 29, "failed": 0, "note": "imports control_qt"},
+    {"module": "test_release_check", "look": "default", "ran": 23, "failed": 0, "note": "no new module, so no FOCUSED_MODULES line"},
+    {"module": "test_release_check", "look": "kasandra", "ran": 23, "failed": 0, "note": "no new module, so no FOCUSED_MODULES line"}
+  ],
+  "new_tests": [
+    "test_session_start.TabsThatWaitForTheBridge.test_a_room_whose_saved_place_is_not_text_waits_and_opens_where_it_would_by_default: a Library kind or a Files folder saved as a list, an object, a number, None or '' gives library:all and files:, and restore does not raise (the rows wait for the bridge). Before the fix: ERROR TypeError: unhashable type: 'list' (must-fix 1).",
+    "test_session_start.TabsThatWaitForTheBridge.test_a_row_without_its_title_is_named_as_the_screen_names_its_kind: rows with no title are named by the screen's title (StacyFoundationTab is 'Graphite · knowledge'; also TrashTab DELETE, WorkTab Night Shift, HostPanel Service details, ComputerTab This computer, QTextBrowser Installation Guide, View Object Glass, PdfDocumentTab A PDF). A retired kind is named with her name. A written title is said as it was. The Activity line and the labels in Reopen deferred tabs both say 'Graphite · knowledge'. Before: FAIL (must-fix 2).",
+    "test_session_start.SecondStart.test_the_desks_own_rooms_are_reopened_and_what_is_not_is_said_once (extended): for every tab open in the real window whose kind is in SHOWN_AS, name() of a row without a title equals the tab's title on screen. This ties the map to the screen. Before: FAIL ('Trash' against 'DELETE').",
+    "test_session_start.TabsThatWaitForTheBridge.test_a_tab_saved_twice_that_cannot_be_reopened_is_said_once: two identical rows that cannot be reopened, in one session, are said once in the Activity. This covers the told filter. Before (filter removed): FAIL, said twice.",
+    "test_session_start.TabsThatWaitForTheBridge.test_a_strip_that_cannot_be_written_down_at_the_end_of_a_restore_is_said_on_stderr_and_the_start_goes_on: when writing the strip down fails at the end of a restore, the trace goes to stderr and the strip and the deferred list stay as they are. Before: FAIL, nothing on stderr.",
+    "test_session_start.TabsThatWaitForTheBridge.test_the_activity_line_leads_to_the_list_it_names: opening a 'Not reopened at start' line in the Activity calls Reopen deferred tabs; an unknown line still opens Commands. Before: FAIL ['commands','commands'].",
+    "Updated, not new: four expected Activity strings now use the screen's names: 'R10 Manual', 'Console Readiness', 'Tool Inventory'."
+  ],
+  "numbers": [
+    "test_session_start: 28 tests (23 in the reviewed patch, plus 5 new), OK in both looks; 74 s default and 71 s kasandra, nice 19, on a shared 4-core machine.",
+    "Before-checks: I reverted one fixed piece at a time in the copy and ran its guarding tests in the default look. library: 1 error (TypeError). SHOWN_AS line removed: 3 failures. told filter: 1 failure. silent except: 1 failure. route: 1 failure. Logs are in session/fix/logs/before.*.log.",
+    "Title probe (session/fix/titles.py): 102 openers in one real window, offscreen. 62 distinct kinds and titles were recorded, and they are identical in the default and kasandra looks. The SHOWN_AS map is built from them.",
+    "Reviewer probe on the fixed copy, in both looks. Part B: library-list and library-dict start, with the Library on 'all' (before: START RAISED). Part C labels: 1. Service details, 2. This computer, 3. Installation Guide, 4. Object Glass, 5. KiBot · outputs, 6. A PDF, 7. Documents, 8. Files, 9. Graphite · knowledge, 10. Graphite awareness. Activity line: 'Not reopened at start · Graphite · knowledge (five pins were already open); Graphite awareness (five pins were already open). Kept in Arrange → Reopen deferred tabs'.",
+    "Start time, reviewer probe part A, one run per look (rough). Second start with 16 rooms open: 6.67 s default and 6.77 s kasandra. Second start with nothing open: 4.92 s and 4.76 s. That start launched 4 short 'python -I -c' subprocesses (the rooms' own reads). It made no worker launch, provider request or job.",
+    "Corrected count from the earlier report: 19 openers are not reopened by design. 17 of them make 'Needs a project' (EmptyWorkspaceTab), not 16, and 2 make the Files start."
+  ],
+  "decisions": [
+    "Must-fix 1 is fixed in destination() only. The Session cleaner (workbench/session.py) is not changed. The review allowed either ('and/or'). session.py is imported by about 30 test modules, and each would need a run in both looks. 'folder' and 'title' were already safe at every place they are read. The probe confirms all three keys, damaged, now start.",
+    "SHOWN_AS is a fixed map, not a live lookup. Most of these titles come from each tab's own title() method, which needs a built tab. The SecondStart test compares the map with the real window's titles for the rooms it opens, so a renamed title is caught there.",
+    "A kind not in the map (retired kinds, project-only tabs I could not open without a project, ConcernDossier, whose title is the concern's name) is still named by its class words, now passed through assistant_identity.named. Before this fix it was also class words, but without named(). None of the current ones holds the internal name. I did not invent a name for ConcernDossier.",
+    "The SHOWN_AS entry 'PdfDocumentTab': 'A PDF' is not a title from the screen. On screen a PDF tab shows its file name, but a saved PDF row has no path, only store ids.",
+    "The CODE_KEPT reason for 'StacyFoundationTab' in tools/name_sweep.py now says the kind is shown as its title (SHOWN_AS). The literal is a dictionary key and is never shown.",
+    "When the Activity line is opened, it calls the strip's reopen_deferred. If the list is already empty, nothing opens, as before for an empty list."
+  ],
+  "not_done": [
+    "No test measures start time. With 16 rooms open a start takes about 2 s longer, the same cost as opening those rooms by hand. I did not trace which room starts the 4 short subprocesses.",
+    "The Session cleaner does not check 'library', 'folder' or 'title' (see decisions).",
+    "I did not open the project-only tabs (Orange Book, NOR, Hardware review and others) with a project attached, so they are not in SHOWN_AS. Without a title they still read as their class words, which hold no internal name.",
+    "I did not rerun the full 102-opener sweep. The restore paths it covered are unchanged, apart from the dead FilesStart branch, which no row could reach.",
+    "Nothing was run on the owner's ThinkPad. Nothing was committed, and wip/, the version, MANIFEST.json and the seed are untouched."
+  ],
+  "release_note": "Graphite now reopens every tab you left open at your last session: Documents, Files in the folder you were in, the Library, the Agenda, DELETE, Changes, Night Shift, Investigations, the app rooms and the tool tabs, each in its place. Arrange → Reopen deferred tabs no longer grows at every start. It holds each tab once, and never more than twenty. When a start cannot reopen a tab, it says so once in the Activity, in plain words and by the tab's name as you see it on screen. Opening that line takes you to the list. A damaged session file, and leaving with Night Shift open, no longer stop Graphite or lose your session."
+}

@@ -119,6 +119,7 @@ class ActivityTail(QWidget):
                 if item.data(0,Qt.UserRole)==event['job_id']:
                     tab.jobs.setCurrentItem(item);tab.select_job();break
         elif event['operation'].startswith('ledger.settings'):self.bridge.show_settings()
+        elif event['operation']=='ledger.restore':self.bridge.host.tabs.reopen_deferred()      # the tabs a start set aside: the list that holds them
         else:self.bridge.show_commands()
 
 

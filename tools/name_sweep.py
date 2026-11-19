@@ -103,6 +103,7 @@ CODE_KEPT = {
     ('workbench/project_desk.py', 'List<StacyQueryRow>'): 'a result type in a stored plan, a record identifier',
     ('workbench/shell2.py', 'StacyHand'): 'an object name',
     ('workbench/stacy_presence.py', 'StacyReaction'): 'an object name',
+    ('workbench/workspace_tabs.py', 'StacyFoundationTab'): 'a class name: the kind a saved tab is written down with; it is shown as its title (SHOWN_AS)',
     ('workbench/stacy_foundation.py', 'docs/STACY_'): 'file names of her foundation\'s documents',
     ('workbench/version.py', ''): 'the lineage: what each release was, in the words of its day',
     ('sdk/cli/arc1cli/typed_pipeline.py', 'Shell syntax and command substitution are not part of Stacy language'): 'the parser\'s own refusal; the window says it through line_steps.plain',

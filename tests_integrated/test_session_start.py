@@ -27,6 +27,17 @@ every window the suite builds is built on a new profile and without restoring a 
 
 3. "Now: Now: ...". The Agenda's one-line summary began with "Now:" while something was running, and her column, which
    names that line "Now:", said it again. The summary no longer carries the line's name; in every look.
+
+4. The list of tabs set aside at start grew, and said why only on stderr (left open by 2 on purpose). Restore knew how to
+   reopen none of the rooms the desk opens by their place (Documents, Files, the Library, the Agenda, DELETE, Changes,
+   Night Shift, Investigations, Deployment, the program rooms), nor the tabs the bridge opens from its navigation
+   (Commands, Discovery, Brain, Memory...), nor Background service, This Computer or Pills: each one open at leaving was
+   set aside at the next start, and one more row of it was added at every start the owner had opened it again. A sweep
+   of every kind of tab the desk opens found them, and one more fault: leaving with Night Shift open raised while the
+   strip was written down (its 'path' is a chooser, not a file), so that session was not saved. Now each of them is
+   reopened where it was, Files in its folder and the Library on its kind; Reopen deferred tabs holds a tab once and no
+   more than twenty; what one start could not reopen is said once, in words, in the Activity, with where the list is
+   (the Arrange menu: the status bar said "View", a menu the window does not have).
 """
 import contextlib
 import io
@@ -129,6 +140,9 @@ def qt():
     return QApplication.instance() or QApplication([])
 
 
+STRIP_ROOT = tempfile.TemporaryDirectory(prefix='graphite-084-strip-')      # each strip host's workspace: what a restore says is written to its Activity
+
+
 def strip_host():
     """As much of the window as the tab strip asks of it while a session is restored. Its rooms are opened as the window
     opens them: by the bridge, which this host does not have until a test gives it one."""
@@ -138,7 +152,7 @@ def strip_host():
 
     class Host(QMainWindow):
         def __init__(self):
-            super().__init__();self.calls = [];self._nav_devices = {};self.root = Path('/nowhere')
+            super().__init__();self.calls = [];self._nav_devices = {};self.root = Path(tempfile.mkdtemp(dir=STRIP_ROOT.name)).resolve()
             self.tabs = WorkspaceTabs(self);self.setCentralWidget(self.tabs)
 
         def add(self, name, room=False):
@@ -170,6 +184,12 @@ def strip_host():
 
 def rows(*kinds, pinned=()):
     return [{'kind': kind, 'pinned': kind in pinned} for kind in kinds]
+
+
+def told(host):
+    """What restoring said in the host's Activity."""
+    from workbench import activity
+    return [e for e in activity.recent(host.root, 500) if e.get('operation') == 'ledger.restore']
 
 
 class TabsThatWaitForTheBridge(unittest.TestCase):
@@ -212,7 +232,10 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         self.assertEqual(host.strip(), ['office', 'readiness']);self.assertEqual(tabs.currentWidget().objectName(), 'office')
         self.assertEqual(tabs.deferred, rows('ManualTab', pinned=('ManualTab',)))
         self.assertIn('RuntimeError: this tab cannot be made', said.getvalue())
-        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')
+        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in Arrange → Reopen deferred tabs')      # 0.8.3: "View", a menu the window does not have
+        from workbench.tail_words import readable
+        self.assertEqual([readable(e) for e in told(host)], ['Not reopened at start · R10 Manual (it failed to open). Kept in Arrange → Reopen deferred tabs'],
+                         'and in the Activity, once, in words: until 0.8.4 the reason was on stderr only')
 
     def test_a_preview_left_of_a_room_does_not_set_the_room_aside(self):
         """A room is neither the Preview nor a pin: a Preview already open at a room's turn (dragged to the left of it
@@ -244,9 +267,98 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
             tabs.restore({'tabs': rows('ManualTab', 'OfficeBuildingTab', 'ReadinessTab', pinned=('ManualTab',)), 'active': 1, 'deferred': []})
         self.assertEqual((tabs.deferred, [row['kind'] for _, row in tabs.waiting]), (rows('ManualTab', pinned=('ManualTab',)), ['OfficeBuildingTab', 'ReadinessTab']))
         self.assertEqual(host.statusBar().currentMessage(), '', 'the restore is not over: what was set aside is said once, at its end')
+        self.assertEqual(told(host), [])
         host.bridge();tabs.restore_waiting()
         self.assertEqual(host.strip(), ['office', 'readiness']);self.assertEqual(tabs.currentWidget().objectName(), 'office', 'what was in front is still known at the second turn')
-        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')
+        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in Arrange → Reopen deferred tabs')
+        self.assertEqual([e['detail'] for e in told(host)], ['R10 Manual (it failed to open). Kept in Arrange → Reopen deferred tabs'])
+        tabs.restore_waiting();self.assertEqual(len(told(host)), 1, 'said once')
+
+    def test_what_a_start_sets_aside_is_said_once_with_each_reason_in_words(self):
+        host = strip_host();host.bridge();tabs = host.tabs
+        def gone():raise FileNotFoundError('the tools list is not there')
+        host.show_tools = gone
+        saved = rows(*['ReadinessTab'] * 6, pinned=('ReadinessTab',)) + rows('ToolInventoryTab', 'RetiredRoomTab', 'ReadinessTab', 'ManualTab', 'GoneRoomTab')
+        with contextlib.redirect_stderr(io.StringIO()) as stderr:tabs.restore({'tabs': saved, 'active': 0, 'deferred': []})
+        self.assertEqual((len(tabs.pinned()), tabs.preview().objectName()), (5, 'readiness'))
+        self.assertEqual([row['kind'] for row in tabs.deferred], ['ReadinessTab', 'ToolInventoryTab', 'RetiredRoomTab', 'ManualTab', 'GoneRoomTab'])
+        self.assertEqual([e['detail'] for e in told(host)], ['Console Readiness (five pins were already open); Tool Inventory (it is no longer there); Retired room (Graphite cannot '
+                                                             'reopen this kind of tab); R10 Manual (another tab was already in the Preview); 1 more. Kept in Arrange → Reopen deferred tabs'])
+        self.assertEqual(stderr.getvalue(), '', 'none of them failed: nothing for stderr')
+
+    def test_reopen_deferred_tabs_holds_each_tab_once_and_no_more_than_twenty(self):
+        """0.8.3 added a row to Reopen deferred tabs for every saved tab it could not reopen, at every start, beside the
+        same row from the start before: a room the owner opened each evening was in the list once per start."""
+        host = strip_host();host.bridge();tabs = host.tabs
+        unknown = {'kind': 'RetiredRoomTab', 'pinned': False}
+        state = {'tabs': [dict(unknown)], 'active': 0, 'deferred': [dict(unknown), dict(unknown)]}
+        tabs.restore(state)      # the third start of a session left with a room restore cannot reopen
+        self.assertEqual(tabs.deferred, [unknown], '0.8.3: three rows of it, and four at the next start')
+        self.assertEqual(tabs.snapshot()['deferred'], [unknown])
+        self.assertEqual(told(host)[0]['detail'], 'Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs')
+        many = [{'kind': 'RetiredRoomTab', 'pinned': False, 'device': 'bench-%d' % n} for n in range(27)]
+        host = strip_host();host.bridge();tabs = host.tabs
+        tabs.restore({'tabs': rows('ReadinessTab'), 'active': 0, 'deferred': many + [many[3]]})
+        self.assertEqual(tabs.deferred, many[8:] + [many[3]], 'the newest twenty, each once')
+        self.assertEqual(told(host), [], 'nothing new was set aside at this start: nothing is said')
+        tabs.deferred += [dict(many[-1], line=40), {'kind': 'QWidget', 'pinned': True}]      # a tab set aside again, and one that is open (the readiness page)
+        self.assertEqual(tabs.snapshot()['deferred'], many[8:-1] + [many[3], dict(many[-1], line=40)], 'when the session is written: its newest row, and none for a tab that is open')
+
+    def test_a_tab_saved_twice_that_cannot_be_reopened_is_said_once(self):
+        host = strip_host();host.bridge();tabs = host.tabs
+        tabs.restore({'tabs': rows('RetiredRoomTab', 'RetiredRoomTab'), 'active': 0, 'deferred': []})
+        self.assertEqual(tabs.deferred, rows('RetiredRoomTab'))
+        self.assertEqual([e['detail'] for e in told(host)], ['Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs'],
+                         'what the list keeps once is said once')
+
+    def test_a_row_without_its_title_is_named_as_the_screen_names_its_kind(self):
+        """0.8.3 wrote no titles, so this is how the owner's list reads at the first start of 0.8.4: by what the screen calls
+        each kind, never by words made from its class name. StacyFoundationTab read 'Stacy foundation', a name that never shows."""
+        from workbench.workspace_tabs import name
+        shown = {'StacyFoundationTab': 'Graphite · knowledge', 'AwarenessTab': 'Graphite awareness', 'TrashTab': 'DELETE', 'WorkTab': 'Night Shift',
+                 'HostPanel': 'Service details', 'ComputerTab': 'This computer', 'QTextBrowser': 'Installation Guide', 'View': 'Object Glass', 'PdfDocumentTab': 'A PDF'}
+        self.assertEqual({kind: name({'kind': kind, 'pinned': False}) for kind in shown}, shown)
+        self.assertEqual(name({'kind': 'StacyRetiredTab', 'pinned': False}), 'Kasandra retired', 'a kind this Graphite no longer opens: its words, with her name')
+        self.assertEqual(name({'kind': 'WorkTab', 'pinned': False, 'title': 'Night Shift · Rail Demo'}), 'Night Shift · Rail Demo', 'a title written down is said as it was')
+        host = strip_host();host.bridge();tabs = host.tabs
+        tabs.restore({'tabs': rows(*['ReadinessTab'] * 5, 'StacyFoundationTab', pinned=('ReadinessTab', 'StacyFoundationTab')), 'active': 0, 'deferred': []})
+        self.assertEqual([e['detail'] for e in told(host)], ['Graphite · knowledge (five pins were already open). Kept in Arrange → Reopen deferred tabs'])
+        offered = []
+        with patch('workbench.workspace_tabs.QInputDialog.getItem', side_effect=lambda *a:offered.extend(a[3]) or ('', False)):tabs.reopen_deferred()
+        self.assertEqual(offered, ['1. Graphite · knowledge'])
+
+    def test_a_room_whose_saved_place_is_not_text_waits_and_opens_where_it_would_by_default(self):
+        """A damaged session file: the kind the Library showed, or the folder Files was in, as a list, an object or a number.
+        A list looked up among the Library's kinds stopped the start (TypeError: unhashable type), the fault 0.8.4 fixed for
+        the target and the settings place."""
+        from workbench.workspace_tabs import destination
+        for value in (['code'], {'code': True}, 7, None, ''):
+            library, files = {'kind': 'LibraryTab', 'pinned': False, 'library': value}, {'kind': 'FilesTab', 'pinned': False, 'folder': value}
+            self.assertEqual((destination(library), destination(files)), ('library:all', 'files:'), value)
+            host = strip_host();host.tabs.restore({'tabs': [library, files], 'active': 0, 'deferred': []})
+            self.assertEqual([row for _, row in host.tabs.waiting], [library, files], 'they wait for the window to be whole, as any room')
+        self.assertEqual(destination({'kind': 'LibraryTab', 'library': 'code'}), 'library:code', 'a kind the Library has is kept, as before')
+
+    def test_a_strip_that_cannot_be_written_down_at_the_end_of_a_restore_is_said_on_stderr_and_the_start_goes_on(self):
+        from workbench.workspace_tabs import WorkspaceTabs
+        host = strip_host();host.bridge();tabs = host.tabs
+        with patch.object(WorkspaceTabs, 'descriptor', side_effect=RuntimeError('this tab cannot be written down')), contextlib.redirect_stderr(io.StringIO()) as said:
+            tabs.restore({'tabs': rows('ReadinessTab'), 'active': 0, 'deferred': rows('RetiredRoomTab')})
+        self.assertEqual((host.strip(), tabs.deferred), (['readiness'], rows('RetiredRoomTab')))
+        self.assertIn('RuntimeError: this tab cannot be written down', said.getvalue(), 'not swallowed')
+
+    def test_the_activity_line_leads_to_the_list_it_names(self):
+        """Opening the line in the Activity opens Reopen deferred tabs; any other line it does not know still leads to Commands."""
+        from PySide6.QtCore import Qt
+        from PySide6.QtWidgets import QListWidgetItem
+        from workbench.control_qt import ActivityTail
+        qt();went = []
+        bridge = SimpleNamespace(host=SimpleNamespace(tabs=SimpleNamespace(reopen_deferred=lambda:went.append('reopen deferred tabs'))),
+                                 show_commands=lambda:went.append('commands'), show_settings=lambda:went.append('settings'))
+        for operation in ('ledger.restore', 'ledger.open'):
+            item = QListWidgetItem('line');item.setData(Qt.UserRole, {'operation': operation, 'state': 'SET_ASIDE'})
+            ActivityTail.open_event(SimpleNamespace(bridge=bridge), item)
+        self.assertEqual(went, ['reopen deferred tabs', 'commands'])      # 0.8.4 before this: Commands for both
 
     def test_a_strip_that_was_never_restored_has_nothing_waiting(self):
         host = strip_host();tabs = host.tabs
@@ -263,6 +375,10 @@ class TabsThatWaitForTheBridge(unittest.TestCase):
         manual = QWidget();manual.group = QComboBox(manual);device = QWidget();device.group = SimpleNamespace(title='Power')
         self.assertEqual(tabs.descriptor(manual), {'kind': 'QWidget', 'pinned': False})      # 0.8.3: AttributeError: 'QComboBox' object has no attribute 'title'
         self.assertEqual(tabs.descriptor(device), {'kind': 'QWidget', 'pinned': False, 'group': 'Power'})
+        night = QWidget();night.path = QComboBox(night)      # Night Shift's chooser of a text path, which it calls 'path'
+        self.assertEqual(tabs.descriptor(night), {'kind': 'QWidget', 'pinned': False})      # 0.8.3: AttributeError: 'QComboBox' object has no attribute 'resolve'
+        note = QWidget();note.path = host.root / 'notes' / 'bench.txt'
+        self.assertEqual(tabs.descriptor(note), {'kind': 'QWidget', 'pinned': False, 'path': 'notes/bench.txt'}, 'a file is written down by its place in the workspace, as ever')
         tabs.addTab(manual, 'manual');json.dumps(tabs.snapshot())
 
     def test_a_window_that_never_gets_a_bridge_keeps_the_room_for_later(self):
@@ -307,16 +423,16 @@ class SecondStart(unittest.TestCase):
         except AttributeError:pass
         for _ in range(3):self.app.processEvents();QTest.qWait(ms)
 
-    def start(self):
+    def start(self, path=None):
         """One start: the session read from the profile and the window built on it, restoring, as workbench.launch does."""
         from workbench.qt_app import WorkbenchWindow
-        w = WorkbenchWindow(self.root, Session(self.path, self.root));platform.processor()
+        w = WorkbenchWindow(self.root, Session(path or self.path, self.root));platform.processor()
         w.resize(1366, 768);w.show();self.settle(w);return w
 
     def leave(self, w):
         self.assertTrue(w.close(), 'Graphite closes the ordinary way, which saves the session');self.settle(w)
         w.deleteLater();self.app.processEvents()
-        return json.loads(self.path.read_text(encoding='utf-8'))
+        return json.loads(w.session.path.read_text(encoding='utf-8'))
 
     def strip(self, w):return [type(w.tabs.widget(i)).__name__ for i in range(w.tabs.count())]
 
@@ -370,6 +486,60 @@ class SecondStart(unittest.TestCase):
         self.assertEqual(self.strip(fourth), rooms + ['ManualTab'], 'the Preview that was saved behind the rooms waited with them, and is back in its place')
         self.assertEqual((fourth.tabs.deferred, fourth.tabs.waiting), ([], []));self.assertTrue(fourth._home_active)
         self.leave(fourth)
+
+    def test_the_desks_own_rooms_are_reopened_and_what_is_not_is_said_once(self):
+        """0.8.3 knew how to reopen none of the rooms the desk opens by their place (Documents, Files, the Library, the
+        Agenda, DELETE, Changes, a program room...): each one open at leaving was set aside at the next start, and the
+        list grew by one per room per start. What could not be reopened was said on stderr only."""
+        from workbench import activity
+        from workbench.shell2 import open_destination
+        from workbench.tail_words import readable
+        path = self.path.with_name('rooms-session.json')
+        def said():return [e for e in activity.recent(self.root, 5000) if e.get('operation') == 'ledger.restore']
+        def rooms(w):      # each tab's kind, with the folder Files is in and the kind the Library shows
+            tabs = [w.tabs.widget(i) for i in range(w.tabs.count())]
+            return [(type(t).__name__, {'FilesTab': 'folder', 'LibraryTab': 'kind'}.get(type(t).__name__) and getattr(t, {'FilesTab': 'folder', 'LibraryTab': 'kind'}[type(t).__name__])) for t in tabs]
+        before = said();first = self.start(path)
+        for place in ('documents', 'files', 'library:code', 'agenda', 'trash', 'changes', 'continuing', 'program:godot', 'commands'):open_destination(first, place)
+        from workbench import computer_qt, pills_qt
+        first.a_host_service.trigger();computer_qt.show(first);pills_qt.show(first)      # Background service, This Computer, Pills
+        files = next(first.tabs.widget(i) for i in range(first.tabs.count()) if type(first.tabs.widget(i)).__name__ == 'FilesTab')
+        (files.root / 'Rail Demo').mkdir(exist_ok=True);files.go('Rail Demo');first.tabs.setCurrentWidget(files);self.settle(first)
+        strip = rooms(first);self.assertEqual(files.folder, 'Rail Demo')
+        from workbench.workspace_tabs import SHOWN_AS, name
+        named = [(type(t).__name__, t.property('ledgerTitle')) for t in (first.tabs.widget(i) for i in range(first.tabs.count())) if type(t).__name__ in SHOWN_AS]
+        self.assertEqual([(kind, name({'kind': kind, 'pinned': False})) for kind, _ in named], named, 'a row without its title is named as the screen names its kind')
+        self.assertTrue({'DocumentsTab', 'FilesTab', 'LibraryTab', 'AgendaTab', 'TrashTab', 'ChangesTab', 'WorkTab', 'GodotRoom', 'CommandsTab', 'HostPanel', 'ComputerTab', 'PillsTab'}
+                        <= {kind for kind, _ in strip}, strip)
+        self.assertEqual(type(first.tabs.preview()).__name__, 'CommandsTab', 'Commands, from the navigation, is the Preview')
+        left = self.leave(first)
+
+        second = self.start(path)      # 0.8.3: every one of them in Reopen deferred tabs
+        self.assertEqual(rooms(second), strip, 'each room back where it was, Files in its folder, the Library on its kind')
+        self.assertEqual(type(second.tabs.currentWidget()).__name__, 'FilesTab', 'and the one that was in front is in front')
+        self.assertEqual((second.tabs.deferred, second.tabs.waiting, said()), ([], [], before))
+        left = self.leave(second);self.assertEqual(left['workspace']['deferred'], [])
+
+        left['workspace']['tabs'][:0] = [{'kind': 'ManualTab', 'pinned': False}, {'kind': 'RetiredRoomTab', 'pinned': False}]
+        path.write_text(json.dumps(left), encoding='utf-8')      # a tab that fails to open this time, and one this Graphite cannot reopen
+        from workbench.qt_app import WorkbenchWindow
+        with patch.object(WorkbenchWindow, 'show_manual', side_effect=RuntimeError('the manual cannot be made')), contextlib.redirect_stderr(io.StringIO()) as stderr:
+            third = self.start(path)
+        self.assertIn('RuntimeError: the manual cannot be made', stderr.getvalue(), 'the trace is still there for whoever reads stderr')
+        self.assertEqual(rooms(third), strip);self.assertEqual([row['kind'] for row in third.tabs.deferred], ['ManualTab', 'RetiredRoomTab'])
+        new = said()[len(before):]
+        line = 'Not reopened at start · R10 Manual (it failed to open); Retired room (Graphite cannot reopen this kind of tab). Kept in Arrange → Reopen deferred tabs'
+        self.assertEqual([readable(e) for e in new], [line], 'said once, in words, where the desk says what happened')
+        tail = third.ledger_bridge.tail;tail.refresh(True)
+        self.assertTrue(any(tail.list.item(i).text().endswith(line) for i in range(tail.list.count())), 'in the Activity of the window, in this look')
+        arrange = [a.menu() for a in third.menuBar().actions() if a.menu() is not None and a.menu().title().replace('&', '') == 'Arrange']
+        self.assertTrue(arrange and third.a_reopen in arrange[0].actions(), 'the menu it names is the one that holds the list')
+        left = self.leave(third)
+
+        fourth = self.start(path)
+        self.assertEqual(rooms(fourth), strip);self.assertEqual(said()[len(before):], new, 'nothing new was set aside: nothing more is said')
+        self.assertEqual([row['kind'] for row in fourth.tabs.deferred], ['ManualTab', 'RetiredRoomTab'], 'each once, start after start')
+        self.assertEqual([row['kind'] for row in self.leave(fourth)['workspace']['deferred']], ['ManualTab', 'RetiredRoomTab'])
 
     def test_the_window_opens_what_waited_as_part_of_being_built(self):
         """restore_waiting_tabs by itself, on as much of a window as it touches: the tabs are opened while the window still
