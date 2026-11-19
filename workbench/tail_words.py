@@ -1,4 +1,5 @@
 """The activity tail in plain words. The full event stays in the line's tooltip."""
+from .assistant_identity import named
 
 WORDS = {
     'ledger.open': 'Graphite opened', 'ledger.view': 'Opened', 'ledger.navigate': 'Went to', 'ledger.settings.set': 'Changed a setting',
@@ -17,6 +18,12 @@ STATES = {'REQUEST_COMPLETED': '', 'COMPLETED': '', 'READY': '', 'FOCUSED': '', 
 QUIET_ORIGINS = {'GUI', 'DESKTOP', 'desktop-owner', 'owner', 'Kernel', 'KERNEL'}
 
 
+def shown_origin(origin):
+    """An event's origin as it is read. The record keeps the actor it was written with; hers ('STACY', as local_brain writes
+    every brain event) is read as her name."""
+    return named(str(origin or ''))
+
+
 def readable(event):
     operation = event.get('operation', '');state = event.get('state', '');detail = (event.get('detail') or '').strip()
     words = WORDS.get(operation) or WORDS.get(operation.rsplit('.', 1)[0]) or operation
@@ -25,7 +32,7 @@ def readable(event):
         if detail.lower().startswith('no active document'):return 'Nothing open'
     if operation == 'ledger.open' and state == 'READY':detail = ''
     origin = event.get('origin', '')
-    who = '' if origin in QUIET_ORIGINS else origin.title() + ' · '
+    who = '' if origin in QUIET_ORIGINS else shown_origin(origin).title() + ' · '
     tail = STATES.get(state, '· ' + state.replace('_', ' ').lower())
     return (who + words + (' ' + detail if detail and operation in ('ledger.view', 'ledger.navigate') else (' · ' + detail if detail else '')) + (' ' + tail if tail else '')).strip()
 

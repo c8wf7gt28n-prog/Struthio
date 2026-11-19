@@ -13,7 +13,7 @@ class ModeTests(unittest.TestCase):
         # 0.5.3: Web joined the four, and all five stand on the strip (the owner's "one master typing line that I select whom I'm typing to").
         self.assertEqual(bar.TARGETS,(('slate','Assistant'),('shell','Terminal'),('find','Search'),('web','Web'),('log','Log')))
         self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
-        self.assertEqual(bar.MAPPED['web'],'web');self.assertEqual(bar.SHOWN,{'slate':'Stacy'},'the strip says Stacy; the mode keeps its label')
+        self.assertEqual(bar.MAPPED['web'],'web');self.assertEqual(bar.SHOWN,{'slate':'Kasandra'},'the strip says her name, in every look; the mode keeps its label')
         self.assertNotIn('web',bar.CONSOLE_PAGE,'Web has no page above the line: what it opens is in the browser')
 
     def test_web_tells_an_address_from_words_to_search_for(self):
@@ -48,11 +48,11 @@ class ModeTests(unittest.TestCase):
 
     def test_destination_hint_names_the_mode(self):
         assistant = bar.destination_hint('slate')
-        self.assertTrue(assistant.startswith('Stacy · '));self.assertIn('the arrow runs it',assistant)
+        self.assertTrue(assistant.startswith('Kasandra · '));self.assertIn('the arrow runs it',assistant)
         for hint in bar.HINTS.values():
             for key in ('Enter','Ctrl+','Tab ','Esc'):self.assertNotIn(key,hint,'the line names no key')
         self.assertEqual(bar.destination_hint('stac'),assistant)
-        self.assertTrue(bar.destination_hint('kernel').startswith('Stacy · an operation by name'))
+        self.assertTrue(bar.destination_hint('kernel').startswith('Kasandra · an operation by name'))
         self.assertTrue(bar.destination_hint('find').startswith('Search · '));self.assertTrue(bar.destination_hint('log').startswith('Log · '))
         self.assertEqual(bar.destination_hint('shell'),'Terminal · ' + bar.HINTS['shell'])
         self.assertEqual(bar.destination_hint('shell','Terminal','Commands run in /bin/bash'),'Terminal · Commands run in /bin/bash')

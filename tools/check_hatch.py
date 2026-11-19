@@ -49,6 +49,8 @@ FOCUSED_MODULES=(
  'test_stacy_start',
  # 0.8.0: the Kasandra appearance: the palette at start, stills by the state of the work, her name
  'test_kasandra',
+ # 0.8.4: one name, Kasandra in every look: the name sweep over the code, the guide pages and the window (tools/name_sweep.py)
+ 'test_one_name',
  # 0.8.0: the 35B test campaign's runner (tools/campaign.py): its cases, outcomes, timeouts, resume and summary
  'test_campaign',
  # 0.8.4: Rail Demo, the workspace of invented data kept in the program: its records and links, the 250 to 300 mA change,

@@ -302,7 +302,7 @@ class RenameGuardTests(unittest.TestCase):
     def test_public_name_and_internal_identities(self):
         from workbench import version,hatch_qt,typebar_qt,desktop_header_qt
         self.assertEqual((version.NAME,version.title()),('Graphite','Graphite '+version.SHORT))  # the number is test_release_check's
-        self.assertEqual(typebar_qt.TARGETS[0][0],'slate','the first mode is hers (Stacy, or Kasandra in her appearance); its key stays slate')
+        self.assertEqual(typebar_qt.TARGETS[0][0],'slate','the first mode is hers (Kasandra, in every look); its key stays slate')
         self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open apps','Graphite services'))  # HATCH DESK D2: the cat opens the programs list
         self.assertEqual(desktop_header_qt.SlateSwitch.__name__,'SlateSwitch','class names are internal and stay')
 

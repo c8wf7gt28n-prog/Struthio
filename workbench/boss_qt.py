@@ -4,12 +4,13 @@ from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QActionGroup, QColor, QFont, QFontMetrics, QImage, QLinearGradient, QPainter, QPen
 from PySide6.QtWidgets import QMenu, QSizePolicy, QWidget
 from . import boss_theme as t
+from .assistant_identity import named
 from .locations import program
 
 ART_MODES = ('illustrated', 'ascii', 'clean')
 WORKSHOP_PLATE = 'Workshop in the rain.png'
 CHARCOAL_PLATE = 'Workshop in charcoal.webp'
-MIDNIGHT_PORTRAIT = 'Stacy after midnight.webp'
+MIDNIGHT_PORTRAIT = 'Kasandra after midnight.webp'
 FACE_MARK = ('+------+', '|  >_  |', '+------+')
 FACE = (0.262, 0.086, 0.488, 0.366)       # her face in that plate: left, top, width, height, as parts of the plate
 MIDNIGHT_WORKSHOP = 'Workshop after midnight.webp'
@@ -134,7 +135,7 @@ class ArtPanel(QWidget):
         self.art_folder = program(host.root) / 'branding' / 'boss'
         self.setObjectName('BossArt');self.setProperty('paperFunctionalInk', True)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.setAccessibleName('Stacy in the After Midnight workshop' if t.APPEARANCE == 'graphite' else 'Kasandra in her office')
+        self.setAccessibleName(named('Stacy in the After Midnight workshop') if t.APPEARANCE == 'graphite' else 'Kasandra in her office')
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.limit = None     # the most height Home can give the picture without scrolling (TodayPage.fit_art); None: no limit
         self.opened = 0       # Kasandra: the Office alternates its stills each time it is shown again, and keeps one while it is open
@@ -207,8 +208,8 @@ class PanelInk(QWidget):
         self.available = False
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setSizePolicy(QSizePolicy.Fixed if kind == 'face' else QSizePolicy.Ignored, QSizePolicy.Fixed)
-        self.setAccessibleName({'portrait': 'Stacy in the worksheet evidence rail', 'bracket': 'ASCII bracket illustration',
-                                'journal': 'Stacy in the research journal', 'face': 'Stacy, the assistant'}[kind]
+        self.setAccessibleName(named({'portrait': 'Stacy in the worksheet evidence rail', 'bracket': 'ASCII bracket illustration',
+                                      'journal': 'Stacy in the research journal', 'face': 'Stacy, the assistant'}[kind])
                                if t.APPEARANCE == 'graphite' else {'portrait': 'Kasandra beside the worksheet', 'bracket': 'ASCII bracket illustration',
                                 'journal': 'Kasandra in the research journal', 'face': 'Kasandra, the assistant'}[kind])
         if t.APPEARANCE == 'kasandra' and kind != 'bracket':      # her still follows the work: painted again when an act ends, and every two seconds

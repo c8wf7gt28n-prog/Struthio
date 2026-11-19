@@ -5102,9 +5102,10 @@ class WorkbenchWindow(QMainWindow):
         dialog.exec()
 
     def _refresh_activity(self):
+        from .tail_words import shown_origin
         events=activity.recent(self.root)
         self.agent_view.setPlainText('Recorded Graphite commands and job transitions. Live tail: Recent Activity.\n\n'+
-            '\n'.join(time.strftime('%H:%M:%S',time.localtime(e['at']))+'  '+e['origin']+'  '+e['operation']+'  '+e['state'] for e in events))
+            '\n'.join(time.strftime('%H:%M:%S',time.localtime(e['at']))+'  '+shown_origin(e['origin'])+'  '+e['operation']+'  '+e['state'] for e in events))
         for i in range(self.tabs.count()):
             tab=self.tabs.widget(i)
             if isinstance(tab,ProjectDeskTab):tab.refresh_activity()
@@ -5258,7 +5259,7 @@ class WorkbenchWindow(QMainWindow):
         from .editorial_art import about_dialog
         about_dialog(self,
                      'Graphite %s (Qt %s).\n\nFree software under the GNU General Public License, version 2 only (COPYING), with no '
-                     'warranty. Stacy\'s artwork, the names and the game are kept back (RIGHTS.md).\n\n'
+                     'warranty. The artwork, the names and the game are kept back (RIGHTS.md).\n\n'
                      'Host tools only: builds, tests and the game simulator run on this '
                      'PC. No ARC-1 board exists yet; nothing is flashed or deployed, and firmware stage images are '
                      'NOT BOOTABLE. Fabrication is on HOLD.\n\nAgents use the same engine through '

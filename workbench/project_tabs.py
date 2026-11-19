@@ -119,10 +119,11 @@ class ProjectDeskTab(QWidget):
             row=QTreeWidgetItem([task['title'],task['status'],task['closure']]);row.setToolTip(1,task['status']);row.setToolTip(2,task['closure']);row.setData(0,Qt.UserRole,task.get('path'));self.tasks.addTopLevelItem(row)
         self.refresh_activity()
     def refresh_activity(self):
+        from .tail_words import shown_origin
         events=activity.recent(self.window.root)
         self.events.clear()
         for event in events[-8:]:
-            self.events.addTopLevelItem(QTreeWidgetItem([time.strftime('%H:%M:%S',time.localtime(event['at'])),event['origin'],event['operation'],event['state']]))
+            self.events.addTopLevelItem(QTreeWidgetItem([time.strftime('%H:%M:%S',time.localtime(event['at'])),shown_origin(event['origin']),event['operation'],event['state']]))
         self.events.scrollToBottom()
         self.state.setText(getattr(self.window,'workflow_status','Workflow ready'))
         self.run_button.setEnabled(not getattr(self.window,'workflow_active',False))

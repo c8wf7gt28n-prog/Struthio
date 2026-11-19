@@ -209,9 +209,11 @@ class NameTests(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr[-2000:])
         return out.stdout.split('\n')[:4]
 
-    def test_she_is_stacy_in_graphite_and_kasandra_in_kasandra(self):
-        self.assertEqual(self.run_with('graphite'), ['Stacy', 'Stacy', 'Ask Stacy about this', 'TEXT · WHAT STACY HOLDS'])
-        self.assertEqual(self.run_with('kasandra'), ['Kasandra', 'Kasandra', 'Ask Kasandra about this', 'TEXT · WHAT KASANDRA HOLDS'])
+    def test_she_is_kasandra_in_both_appearances(self):
+        # 0.8.4, the owner: "Just kas. Otherwise we have too many people." Until 0.8.3 Graphite showed her as Stacy
+        # (the window and the code are held to the one name by tests_integrated/test_one_name.py).
+        for appearance in ('graphite', 'kasandra'):
+            self.assertEqual(self.run_with(appearance), ['Kasandra', 'Kasandra', 'Ask Kasandra about this', 'TEXT · WHAT KASANDRA HOLDS'], appearance)
 
     def test_history_keeps_the_name_it_was_written_with(self):
         source = (ROOT / 'workbench' / 'local_brain.py').read_text(encoding='utf-8')

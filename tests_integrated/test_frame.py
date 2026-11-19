@@ -45,7 +45,7 @@ class ColumnArithmeticTests(unittest.TestCase):
         self.assertEqual([key for key,_ in bar.TARGETS],['slate','shell','find','web','log'],'the earlier keys, prefixes and histories unchanged')
         self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
         self.assertTrue(bar.destination_hint('shell').startswith('Terminal · '));self.assertIn(bar.HINTS['shell'],bar.destination_hint('shell'))
-        self.assertTrue(bar.destination_hint('slate').startswith('Stacy · '))
+        self.assertTrue(bar.destination_hint('slate').startswith('Kasandra · '))
 
 
 class SessionLoaderTests(unittest.TestCase):

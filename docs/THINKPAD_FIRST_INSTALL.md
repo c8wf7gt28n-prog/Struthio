@@ -53,13 +53,13 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
 - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
 - When a local GGUF is available, open **Brain** to add the model and qualify its effective backend.
 - In the Field press **P** for every program and room as a shelf; **Enter** opens one.
-- In the Field press **X** on a sheet and Stacy doubts it: what does not hold, what she cannot tell, what holds.
+- In the Field press **X** on a sheet and Kasandra doubts it: what does not hold, what she cannot tell, what holds.
 - In the Field press **T** on a sheet to trace it back to its source, and with a calculation selected ask "what if B3 were 320?". In the writing strip `this` is the selected sheet: `this | count`, then **Ctrl+Enter**.
 - In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A digit chooses a step; a step that changes something waits for **G**, your go.
 
 ## The first model
 
-On 13 November 2026 the owner named the model Stacy is to run: **Qwen3.6-35B-A3B at Q4_K_M, as a GGUF file**. Read from
+On 13 November 2026 the owner named the model Kasandra is to run: **Qwen3.6-35B-A3B at Q4_K_M, as a GGUF file**. Read from
 search results that day, not from the publisher's page and not tried on this machine: the Q4_K_M file is about 21 to
 22 GB depending on who made it (one maker's "UD-Q4_K_M" is 22.1 GB, another's Q4_K_M 20.75 GB), and one comparison says
 it wants about 24 GB of memory at a 16k context. It is a mixture of experts: all 35B are held in memory, about 3B work
@@ -78,7 +78,7 @@ placeholders. Read on that day from the publisher's and the runtime's own pages,
 - Expect a few tokens a second from a 27B on this processor, with or without the Radeon. If loading on the Radeon fails
   with a device-lost or out-of-memory message, that is a known open fault on this graphics chip; the processor path works.
 - Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
-  this one (`docs/MODEL_TRIAL_03.md`). Stacy reads the records herself and asks the model only for the words, so a small
+  this one (`docs/MODEL_TRIAL_03.md`). Kasandra reads the records herself and asks the model only for the words, so a small
   model is useful from the first day.
 - Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in the writing strip. **Ctrl+Enter** runs the local read. Prefix it with `explain` to preview the plan.
 
@@ -88,7 +88,7 @@ Graphite checks current RAM headroom and the owner's foreground turn before appl
 
 ## Desk artwork
 
-After Midnight gives Stacy copper curls, green eyes, and an ink-and-screentone portrait under CRT light. The illustrated overview uses the wider workshop scene. The worksheet and journal show the still close portrait beside the work. Open **Work → Arrange → Desk artwork → Art plates** to view either image on its own. Illustrated, ASCII, and Clean modes remain available in the same menu.
+After Midnight gives Kasandra copper curls, green eyes, and an ink-and-screentone portrait under CRT light. The illustrated overview uses the wider workshop scene. The worksheet and journal show the still close portrait beside the work. Open **Work → Arrange → Desk artwork → Art plates** to view either image on its own. Illustrated, ASCII, and Clean modes remain available in the same menu.
 
 ## Fast-forward screensaver
 

@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Graphite",
   "short_name": "Graphite",
-  "description": "Graphite, your office satellite. staC is pronounced Stacy.",
+  "description": "Graphite, your office satellite.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

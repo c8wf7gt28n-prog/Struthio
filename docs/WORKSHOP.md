@@ -8,7 +8,7 @@ Home preserves your current work. Use the five activity tabs to move between Hom
 
 The editable Orange Book chapters are in docs/orange_book/chapters.json. Its live engineering section reads the current register; it does not infer physical acceptance from a host result.
 
-Stacy uses the same Engineering Kernel as the desktop and command line. Provider access, candidate execution and source acceptance keep their existing explicit gates. Credentials are configured locally.
+Kasandra uses the same Engineering Kernel as the desktop and command line. Provider access, candidate execution and source acceptance keep their existing explicit gates. Credentials are configured locally.
 
 For a first session, open the native C starter, create a new project, edit game.c, build and boot it. Arrow keys move, Z selects, X returns, and Enter leaves a game. A C compiler and Icarus Verilog are needed for the complete host model. These are trusted local host modules, not board executables.
 

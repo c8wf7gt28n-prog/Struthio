@@ -162,7 +162,7 @@ async function reviewCandidate(c){
 async function clip(view){
   const [overview,templates]=await Promise.all([call('clip.overview'),call('tasks.templates')]);
   const welcome=card(view,'What shall we build next?','Carry the same jobs, source and evidence from the ThinkPad to your phone.');welcome.classList.add('clip-welcome');const mascot=window.SlateDeck.bird('clip-mascot');welcome.prepend(mascot);
-  welcome.append(node('span','STACY · OWNER-HOSTED','eyebrow'),node('p','Your chosen AI agent proposes. Graphite isolates, tests and records. You review the change.','muted'));
+  welcome.append(node('span','KASANDRA · OWNER-HOSTED','eyebrow'),node('p','Your chosen AI agent proposes. Graphite isolates, tests and records. You review the change.','muted'));
   const task=card(view,'One bounded AI task','Prepare an ARC-OS source handoff for your authorized Claude, Codex or other external agent. Graphite does not invoke a model automatically.');
   const taskGoal=document.createElement('textarea');writingPrompt(taskGoal, 'Which observable defect should the agent investigate?');taskGoal.setAttribute('aria-label','Bounded task goal');task.append(taskGoal);
   const taskPath=document.createElement('input');taskPath.value='software/arcos/src/host.c';taskPath.setAttribute('aria-label','ARC-OS implementation file');task.append(taskPath);
@@ -175,7 +175,7 @@ async function clip(view){
   });
   const chooser=document.createElement('select');chooser.setAttribute('aria-label','Graphite task');
   for(const t of templates.templates){const opt=node('option',t.title);opt.value=t.id;chooser.append(opt);}welcome.append(chooser);
-  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Stacy the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
+  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Kasandra the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
   const planButton=button(welcome,'Plan with Graphite',()=>showPlan(chooser.value,goal.value));planButton.classList.add('primary');
   const follow=card(view,'Continue your work',overview.active_jobs.length+' active or paused jobs · '+overview.pending_candidates.length+' candidates awaiting review');
   for(const j of overview.active_jobs.slice(0,4)){const r=card(follow,j.goal||j.tool,j.current_operation);badge(r,j.state);button(r,'Follow job',()=>showJob(j.id));}
@@ -196,7 +196,7 @@ async function showPlan(template,goal){
   for(const path of plan.source_reads)button(v,'Read '+path.split('/').pop(),()=>openSource(path));
   if(template==='hardware-dependency')button(v,'Inspect source-linked hardware findings',inspectProof);
   if(template==='review-candidate')button(v,'Open candidates',async()=>{const rows=await call('candidates.list'),body=modal('Candidates');for(const c of rows){const r=card(body,c.goal,c.state);button(r,'Review source diff',()=>reviewCandidate(c));}if(!rows.length)body.append(node('p','No candidates yet.'));});
-  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Stacy for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
+  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Kasandra for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
   availability();
 }
 async function openSource(path){const f=await call('files.read',{path}),v=modal(path);v.append(node('p',f.sha256,'mono'),node('pre',f.content));}

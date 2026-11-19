@@ -332,7 +332,7 @@ class Window(unittest.TestCase):
         keys=menu.keys()
         for key in ('mark:bold','mark:italic','mark:underline','style','notes','inspect','ask','search','edit:undo','edit:copy','edit:all','doc:export'):self.assertIn(key,keys)
         self.assertEqual(menu.first_keys(),['mark:bold','mark:italic','notes','ask','then','more'],'four usual rows, Then, More')
-        self.assertEqual(menu.words()[:4],['Bold','Italic','Move to notes','Ask Stacy about this'])
+        self.assertEqual(menu.words()[:4],['Bold','Italic','Move to notes','Ask Kasandra about this'])
         self.assertFalse(menu.entry('mark:clear').enabled,'nothing to clear on plain words')
         self.assertIsNone(menu.row('mark:clear'),'a row that cannot act is not at rest')
         self.assertTrue(menu.isVisible());self.assertEqual(menu.accessibleName(),'Right-click menu: “pencil”')

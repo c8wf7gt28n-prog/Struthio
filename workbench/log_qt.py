@@ -183,8 +183,9 @@ def details(entry):
     """The pinned entry's details as (name, value) rows, in reading order."""
     kind = entry.get('kind')
     if kind == 'event':
+        from .tail_words import shown_origin
         e = entry.get('event') or {}
-        keys = (('at', stamp(e.get('at'))), ('operation', e.get('operation')), ('state', e.get('state')), ('origin', e.get('origin')),
+        keys = (('at', stamp(e.get('at'))), ('operation', e.get('operation')), ('state', e.get('state')), ('origin', shown_origin(e.get('origin'))),
                 ('detail', e.get('detail')), ('job', e.get('job_id')), ('event', e.get('id')), ('sequence', e.get('seq')))
     elif kind == 'connection':
         keys = (('protocol', entry.get('proto')), ('local', address(entry.get('local'), entry.get('lport'))), ('remote', address(entry.get('remote'), entry.get('rport'))),
