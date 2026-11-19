@@ -26,7 +26,8 @@ HARD RULES.
 - A new test module must be listed in tools/check_hatch.py FOCUSED_MODULES (tests_integrated/test_release_check.py checks that). Other builders add lines there too: add yours on its own line, away from the others, and say so in your report.
 - When done, write your patch: in your worktree run  git add -A -N . ; git diff HEAD -- . ':(exclude)MANIFEST.json' ':(exclude)project/stacy_seed/current' ':(exclude)wip' > ${OUT}/<key>.patch  and check it is not empty and applies to a clean checkout (git apply --check in a fresh copy).
 - SAVE EARLY AND OFTEN. This run can be cut off at any moment by a usage limit. After every milestone rewrite your patch file with the command above and update a short note ${OUT}/<key>.progress.md saying what is done, what is half done and what is next, so an interrupted run leaves usable work behind. If ${OUT}/<key>.progress.md and ${OUT}/<key>.patch already exist when you start, an earlier attempt was cut off: read the note, apply the patch in your worktree if it is sound, and carry on from there.
-- Be economical: read what you need, not everything; do not rerun what already passed unless its inputs changed.
+- ECONOMY (binding). The usage allowance is tight and this run can be cut off at any moment. Work in few, large steps: put a batch of commands in a script file and run it once, blocking, with a long timeout (up to 9 minutes; a longer batch runs with run_in_background and you wait for its completion notice). Never loop on sleep, never poll. Never print whole test output into your context: send it to a log file and print only the lines matching '^Ran |^OK|^FAILED|^ERROR:|^FAIL:' and, for a failure, the last 15 lines of its traceback. Read files in the ranges you need; read a patch once. Do not run the whole suite unless your task says so: the coordinator runs it in both looks at merge.
+- RESULT FILE. When you finish, before you return, write your whole return value as JSON to the result file named in your instructions. If that result file already exists when you start, your job was already done in an earlier run: check the patch file is there, then return the content of the result file at once, without redoing anything.
 - Report honestly: what you built, what you tested with exact results, what you did not do, and any decision you took where the plan was silent (give the reason). Do not claim anything ran on the owner's ThinkPad.`
 
 const BUILD = {
@@ -65,7 +66,7 @@ Read ${M}/the-failing.md (sections "The 10 failing gate scripts", "The 12 script
 2. PORT the others: check_machine_ui, check_cabinet_ui, check_navigation_ui, check_presentation_settings_ui, check_memory_cabinet_ui, check_memory_settings_ui, check_model_settings_ui, check_return_thread_ui, check_settings_ui, check_cabinet_actions_ui, check_settings_02_ui.
 3. THE DEAD TOGGLE: "Pleasantries in script" (workbench/shell2.py, menus2.py '@pleasantries') writes a setting nothing reads, which breaks the rule "a control is lit only when a press would do something". Remove the action and its menu entry; keep reading an old saved setting harmless; a test.
 4. THE GATE: every remaining check_*_ui.py is either in the gate's list (tools/check_hatch.py UI_CHECKS) or in a second, named list of checks run on demand, with a one-line reason. Add a test to tests_integrated/test_release_check.py that fails when a tools/check_*_ui.py file is in neither list, or a list names a file that does not exist.
-5. RUN every remaining check script on a copy, in the default look and with GRAPHITE_APPEARANCE=kasandra, the way the gate runs them (read tools/check_hatch.py for the environment it sets). Report a table: script, look, pass or fail, seconds. All must pass; a script that cannot pass in the Kasandra look for a reason that is not a defect says so in the on-demand list and in your report.`,
+5. RUN every remaining check script on a copy, in the default look and with GRAPHITE_APPEARANCE=kasandra, the way the gate runs them (read tools/check_hatch.py for the environment it sets). Report a table: script, look, pass or fail, seconds. All must pass; a script that cannot pass in the Kasandra look for a reason that is not a defect says so in the on-demand list and in your report. Known already: tools/check_context_menu_ui.py stops at its step 09 on the main tree (seen by part A's reviewer): find out whether the script or the program is wrong and fix the right one.`,
   },
   {
     key: 'guards',
@@ -97,60 +98,62 @@ Another builder (key "checks") is retiring seven window-check scripts and portin
   },
   {
     key: 'session',
-    task: `TWO SESSION FAULTS SEEN WHILE FIXING THE START-UP FAULTS (part A's builder reported them and left them): fix each at the cause, in every look, with a test that fails before and passes after. Part A's work is in workbench/session.py, workbench/workspace_tabs.py, workbench/qt_app.py and tests_integrated/test_session_start.py: read those first and build on them.
-1. THE DEFERRED LIST GROWS. Rooms that restore does not know how to reopen (DocumentsTab, FilesTab and others) are put under "Reopen deferred tabs" at every start, and the list grows by one per such room per start. First reproduce it for real on a copy (start through workbench.launch the way the launcher does, with those rooms open, leave, start again, three times; print the saved session each time). Decide what is right for the owner and do it: a room that can be reopened is reopened (find out why these are "not known": if a restore entry is simply missing, add it); a room that truly cannot be restored is listed once, never twice, and the list is bounded. Say what you found.
-2. THE MANUAL OPEN AT EXIT. With the Manual (ManualTab) open, closing Graphite raises in workspace_tabs.descriptor (widget.group is a QComboBox there, with no title()), and the session is then not saved at all. Reproduce, fix so the session is always saved (one tab that cannot describe itself must never cost the others their place: describe what can be described, skip and log the one that cannot), and sweep every tab class the same way: open each kind of tab the desk can open (the faults builder's sweep script may still be at ${S}/work/b084/faults/sweep_restore.py), close, start again, and report a table: tab kind, saved, restored, deferred, or raises.
-Keep both fixes small. Run test_session_start, and every module that imports the files you touched, in both looks.`,
+    task: `THE LIST OF TABS SET ASIDE AT START GROWS, AND SAYS WHY ONLY ON stderr. Part A fixed the start-up faults (workbench/session.py, workspace_tabs.py, qt_app.py; tests_integrated/test_session_start.py and its helper session_start_probe.py: read those first and build on them; the Manual open at leaving no longer raises). Left open by it, on purpose, for this item:
+1. Rooms that restore does not know how to reopen (Documents, Files and others) are put under "Reopen deferred tabs" at every start, and the list grows by one per such room per start. First reproduce it for real on a copy (three starts through the start-script probe, with those rooms open at leaving; print the saved session each time). Then do what is right for the owner: a room that can be reopened IS reopened at start (find out why these are not known: if a restore entry is simply missing, add it); a room that truly cannot be restored is listed once, never twice, and the list is bounded. Say what you found.
+2. A saved tab that cannot be reopened gives its reason only on stderr. The owner never sees stderr in the full-screen session. Say it once in the window where such things are said (find where the desk reports a start-up note: Activity or the Log), in plain words, without a key name, the same in every look; a test.
+3. Sweep every kind of tab the desk can open: open it, leave, start again (the faults builder's sweep script may still be at ${S}/work/b084/faults/sweep_restore.py). Report a table: tab kind; saved; restored, set aside, or raises. Fix what raises.
+Keep the changes small. Run test_session_start and every module that imports the files you touched, in both looks.`,
   },
 ]
 
+const F = (it, role) => `${OUT}/${it.key}.${role}.result.json`
+
 const buildPrompt = it => `${RULES}
 
-YOUR KEY: ${it.key}. Your throwaway area: ${OUT}/${it.key}/ . Your patch goes to ${OUT}/${it.key}.patch , your progress note to ${OUT}/${it.key}.progress.md .
+YOU ARE THE BUILDER of item "${it.key}". Your throwaway area: ${OUT}/${it.key}/ . Your patch goes to ${OUT}/${it.key}.patch , your notes to ${OUT}/${it.key}.progress.md , your result file is ${F(it, 'build')} .
 
 YOUR TASK.
 ${it.task}`
 
-const reviewPrompt = (it, b) => `${RULES}
+const reviewPrompt = it => `${RULES}
 
-YOU ARE THE INDEPENDENT REVIEWER of item "${it.key}". You did not build it and your job is to find what is wrong with it. You may not edit the worktree or ${REPO}; work in ${OUT}/${it.key}/review/ only (delete your copy when you are done).
+YOU ARE THE INDEPENDENT REVIEWER of item "${it.key}". You did not build it; your job is to find what is wrong with it before it is merged. You may not edit a worktree or ${REPO}; work in ${OUT}/${it.key}/review/ only (delete your copy when you are done). Your notes file is ${OUT}/${it.key}.review.md , your result file is ${F(it, 'review')} .
+THE PATCH: ${OUT}/${it.key}.patch . THE BUILDER'S NOTES AND REPORT: ${OUT}/${it.key}.progress.md and ${F(it, 'build')} (do not trust them; verify).
 
 THE TASK THE BUILDER WAS GIVEN:
 ${it.task}
 
-THE BUILDER'S REPORT (do not trust it; verify):
-${JSON.stringify(b, null, 1)}
-
 DO THIS:
-1. Make a fresh copy of the main checkout's tracked tree (cd ${REPO} && git ls-files -z | grep -z -v -E '^(wip/|\\.claude/)' | xargs -0 cp --parents -t ${OUT}/${it.key}/review/copy), apply ${OUT}/${it.key}.patch there with git apply or patch -p1, make the seed current, and run the modules the builder named plus every module that imports a changed file, in the default look and with GRAPHITE_APPEARANCE=kasandra. Report exact counts.
-2. Read the whole patch. Look for: behaviour that is asserted but not really tested (revert the fix in your copy and see the new tests fail); a number in the report that you cannot reproduce; house-rule breaks in any on-screen string; the owner's real data or name; silent fallbacks; anything that changes the existing looks without being asked; dead code; files that should not be in the patch; anything that would ship in the kit and should not.
+1. Make a fresh copy of the main checkout's tracked tree (cd ${REPO} && git ls-files -z | grep -z -v -E '^(wip/|\\.claude/)' | xargs -0 cp --parents -t ${OUT}/${it.key}/review/copy), apply the patch there (git apply or patch -p1), make the seed current, and run the new and changed test modules plus the modules that import a changed file, in the default look and with GRAPHITE_APPEARANCE=kasandra. Report exact counts.
+2. Read the whole patch once. Look for: behaviour asserted but not really tested (take two of the new tests, revert the piece each guards in your copy, see them fail); a number in the report that you cannot reproduce; house-rule breaks in any on-screen string; the owner's real data or name; silent fallbacks; anything that changes what the owner sees without being asked; dead code; files that should not be in the patch; anything that would ship in the kit and should not.
 3. Try to break it with inputs the builder did not think of.
 4. Think about what a picture or a test cannot show: timing, a slow disk, a damaged file, a restart in the middle.
-Be proportionate: spend your effort where a mistake would cost the owner most. Return must_fix only for real defects with a way to reproduce each; should_fix for the rest.`
+Be proportionate: spend your effort where a mistake would cost the owner most. Return must_fix only for real defects, each with a way to reproduce it; should_fix for the rest.`
 
-const fixPrompt = (it, b, r) => `${RULES}
+const fixPrompt = (it, r) => `${RULES}
 
-YOUR KEY: ${it.key}. You are finishing item "${it.key}" after an independent review. You are in a fresh worktree at the same starting commit: first apply the existing patch (git apply ${OUT}/${it.key}.patch; ignore the note about an earlier attempt, this is that work), then fix every must_fix finding below and as many should_fix as are cheap and clearly right, re-test as the rules say, and rewrite ${OUT}/${it.key}.patch from your worktree (same command as before). If you disagree with a finding, say why and leave the code; do not paper over it.
+YOU ARE FINISHING item "${it.key}" after an independent review. You are in a fresh worktree at the same starting commit: first apply the existing patch (git apply ${OUT}/${it.key}.patch), then fix every must_fix finding below and the should_fix findings that are cheap and clearly right, re-test the modules concerned in both looks, rewrite ${OUT}/${it.key}.patch from your worktree (same command as before) and append what you did to ${OUT}/${it.key}.progress.md . Your notes file while working is ${OUT}/${it.key}.fix.md , your result file is ${F(it, 'fix')} . If you disagree with a finding, say why and leave the code; do not paper over it.
 
 THE TASK:
 ${it.task}
 
-THE BUILDER'S REPORT:
-${JSON.stringify(b, null, 1)}
-
 THE REVIEW:
 ${JSON.stringify(r, null, 1)}`
 
-const results = await pipeline(
-  ITEMS,
-  it => agent(buildPrompt(it), { label: `build:${it.key}`, phase: 'Build', schema: BUILD, isolation: 'worktree' }),
-  (b, it) => b ? agent(reviewPrompt(it, b), { label: `review:${it.key}`, phase: 'Review', schema: REVIEW }).then(r => ({ b, r })) : null,
-  (br, it) => {
-    if (!br) return null
-    if (!br.r || !br.r.must_fix || br.r.must_fix.length === 0) return { key: it.key, build: br.b, review: br.r, fix: null }
-    return agent(fixPrompt(it, br.b, br.r), { label: `fix:${it.key}`, phase: 'Fix', schema: BUILD, isolation: 'worktree' }).then(f => ({ key: it.key, build: br.b, review: br.r, fix: f }))
-  },
-)
-const done = results.map((r, i) => r || { key: ITEMS[i].key, failed: true })
-log(`finished: ${done.map(d => d.key + (d.failed ? ' FAILED' : d.fix ? ' fixed' : ' clean')).join(', ')}`)
-return { items: done, patches: ITEMS.map(i => `${OUT}/${i.key}.patch`) }
+const chain = async it => {
+  const b = await agent(buildPrompt(it), { label: `build:${it.key}`, phase: 'Build', schema: BUILD, isolation: 'worktree' })
+  if (!b) return { key: it.key, failed: 'the build did not finish' }
+  const r = await agent(reviewPrompt(it), { label: `review:${it.key}`, phase: 'Review', schema: REVIEW })
+  if (!r) return { key: it.key, failed: 'the review did not finish' }
+  const base = { key: it.key, verdict: r.verdict, must_fix: r.must_fix.length, review: r.summary }
+  if (r.must_fix.length === 0) return { ...base, fix: null }
+  const f = await agent(fixPrompt(it, r), { label: `fix:${it.key}`, phase: 'Fix', schema: BUILD, isolation: 'worktree' })
+  return { ...base, fix: f ? f.summary : 'the fix did not finish' }
+}
+// Two lanes, each finishing one item (build, review, fix) before it starts the next, so a cut-off run leaves whole items.
+const by = k => ITEMS.find(i => i.key === k)
+const lane = async keys => { const out = []; for (const k of keys) out.push(await chain(by(k))); return out }
+const lanes = await parallel([() => lane(['look', 'session', 'guards']), () => lane(['checks', 'tiers'])])
+const done = lanes.filter(Boolean).flat()
+log(`finished: ${done.map(d => d.key + (d.failed ? ' NOT FINISHED' : d.fix ? ' fixed' : ' clean')).join(', ')}`)
+return { items: done, files: `${OUT}/<key>.patch, .progress.md, .review.md, .build.result.json, .review.result.json, .fix.result.json` }
