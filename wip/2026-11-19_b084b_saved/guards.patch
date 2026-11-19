@@ -1,0 +1,4039 @@
+diff --git a/tests_integrated/test_change_sets.py b/tests_integrated/test_change_sets.py
+index 2baa2f5..9bb9017 100644
+--- a/tests_integrated/test_change_sets.py
++++ b/tests_integrated/test_change_sets.py
+@@ -173,6 +173,24 @@ class Changes(unittest.TestCase):
+             self.assertFalse(self.kernel.dispatch('changes.apply', {'id': proposal['id'], 'expected_digest': proposal['content_digest']}, self.owner)['ok'])
+         self.assertFalse((outside / 'new.txt').exists())
+ 
++    def test_an_interrupted_change_two_folders_down_rolls_back_and_leaves_no_temporary(self):
++        """0.8.4: the recovery temporaries of a file two folders down, found where they are, and none left behind."""
++        self.assertEqual(self.apply(self.propose([{'op': 'CREATE', 'path': 'deep/er/note.txt', 'text': 'first\n'}]))['state'], 'DONE')
++        folder = self.work / 'deep' / 'er'; latest = lambda: self.call('changes.commits', {'copy': self.workspace['id']})['commits'][0]
++        write = lambda text: self.propose([{'op': 'WRITE', 'path': 'deep/er/note.txt', 'base_sha256': self.file('deep/er/note.txt')['sha256'], 'text': text}])
++        second = write('second\n')             # stopped after the exchange: the new bytes in place, the old kept beside them
++        with patch.object(change_sets, 'CRASH_AT', 'MUTATED'):
++            with self.assertRaises(change_sets.Crash): self.apply(second)
++        self.assertEqual([o['state'] for o in self.call('changes.commit', {'id': latest()['id']})['observed']], ['APPLIED'])
++        self.call('changes.recover', {'id': latest()['id'], 'action': 'ROLLBACK'})
++        self.assertEqual((folder / 'note.txt').read_text(), 'first\n'); self.assertEqual(sorted(p.name for p in folder.iterdir()), ['note.txt'])
++        third = write('third\n')               # stopped before the exchange: the staged bytes wait beside the file
++        with patch.object(change_sets.store, 'rename_linux', side_effect=OSError('interrupted')):
++            self.assertFalse(self.kernel.dispatch('changes.apply', {'id': third['id'], 'expected_digest': third['content_digest']}, self.owner)['ok'])
++        self.assertEqual(len(list(folder.iterdir())), 2)
++        self.call('changes.recover', {'id': latest()['id'], 'action': 'ROLLBACK'})
++        self.assertEqual((folder / 'note.txt').read_text(), 'first\n'); self.assertEqual(sorted(p.name for p in folder.iterdir()), ['note.txt'])
++
+     def test_exchange_retains_unexpected_displaced_bytes_instead_of_erasing_them(self):
+         proposal = self.propose([{'op': 'DELETE', 'path': 'note.txt', 'base_sha256': self.file('note.txt')['sha256']}])
+         original = edit_storage.rename_linux
+diff --git a/tests_integrated/test_context_menu.py b/tests_integrated/test_context_menu.py
+index 38e5aa4..42d9922 100644
+--- a/tests_integrated/test_context_menu.py
++++ b/tests_integrated/test_context_menu.py
+@@ -41,6 +41,18 @@ def no_logind(request):
+     raise AssertionError('No session or power call: %r'%(request,))
+ 
+ 
++def seed_bound():
++    """A hold that reads an edited, unpackaged seed (STALE, SOURCE_UNAVAILABLE) as bound, with its real seed_id, as the
++    Kernel's own modules do (test_project_desk): whether the seed shipped with the tree is current is test_project_desk's Seed
++    test and the release check's runtime section, never the reason a window test fails (0.8.4: before, a stale digest failed
++    whole window modules on any edit, a comment's too). An absent or broken seed still refuses."""
++    from workbench import stacy_foundation
++    real=stacy_foundation.seed_status
++    def bound(root):
++        value=real(root);return {**value,'state':'VERIFIED_SOURCE_BINDINGS'} if value.get('state') in ('STALE','SOURCE_UNAVAILABLE') else value
++    return patch.object(stacy_foundation,'seed_status',bound)
++
++
+ def setUpModule():
+     """One window for the module, every hold in place before it is built."""
+     temporary=tempfile.TemporaryDirectory(prefix='graphite-context-menu-');run=Path(temporary.name)
+@@ -55,7 +67,7 @@ def setUpModule():
+     from workbench.session import Session
+     holds=[patch.object(clip,'_request',side_effect=AssertionError('No provider request')),patch.object(Kernel,'launch',side_effect=AssertionError('No worker launch')),
+            patch.object(Kernel,'submit',side_effect=AssertionError('No job submission')),patch.object(session_power,'system',side_effect=no_logind),
+-           patch.object(QMessageBox,'question',return_value=QMessageBox.Yes)]
++           patch.object(QMessageBox,'question',return_value=QMessageBox.Yes),seed_bound()]
+     for h in holds:h.start()
+     app=make_app([]);root=locations.office(run/'workspace');session=Session(run/'profile/session.json',root)
+     w=WorkbenchWindow(root,session,restore=False);platform.processor()
+@@ -917,5 +929,16 @@ def key_literals(paths):
+     return found
+ 
+ 
++class CompareText(unittest.TestCase):
++    def test_a_compare_numbers_each_line_where_it_stands_on_its_own_side(self):
++        """0.8.4: Compare with Rev (files_service.text_diff): an added line carries its number in the newer text, a removed one
++        its number in the older, a line that stayed both."""
++        from workbench import files_service
++        diff=files_service.text_diff('a\nb\nc\nold\n','a\nnew\nb\nc\nend\n')
++        self.assertEqual([(r['op'],r.get('before'),r.get('after')) for r in diff['lines']],
++                         [('same',1,1),('added',None,2),('same',2,3),('same',3,4),('removed',4,None),('added',None,5)])
++        self.assertEqual((diff['added'],diff['removed']),(2,1))
++
++
+ if __name__=='__main__':
+     unittest.main()
+diff --git a/tests_integrated/test_continuing_work.py b/tests_integrated/test_continuing_work.py
+index 3b94434..8683a94 100644
+--- a/tests_integrated/test_continuing_work.py
++++ b/tests_integrated/test_continuing_work.py
+@@ -157,6 +157,20 @@ class Continuing(unittest.TestCase):
+         retry=self.get(w)['state']['retry_at']
+         with patch('time.time',return_value=retry+1):self.assertEqual(self.run_step(w)['reason'],'BUDGET_STEPS')
+ 
++    def test_a_new_order_has_all_its_rounds_and_a_failed_read_waits_10_then_20_seconds(self):
++        """0.8.4: a fresh order's Agenda row has used none of its twenty rounds; a failed read is tried again after 10 s, then 20 s."""
++        step=self.steps()[0];step['retries']=2
++        w=self.create([step],{'failures':5})
++        rows=[r for value in self.call('agenda.view').values() if isinstance(value,list) for r in value
++              if isinstance(r,dict) and r.get('title')=='Clock preparation' and 'rounds_used' in r]
++        self.assertEqual([(r['rounds'],r['rounds_used']) for r in rows],[(20,0)])
++        self.authorize(w);clock=[time.time()];waits=[]
++        with patch.object(flow,'read_file',side_effect=OSError('READ_FIXTURE_FAILURE')),patch('time.time',side_effect=lambda:clock[0]):
++            for _ in range(2):
++                self.assertEqual(self.run_step(w)['state'],'RETRY')
++                retry=self.get(w)['state']['retry_at'];waits.append(round(retry-clock[0],3));clock[0]=retry+0.5
++        self.assertEqual(waits,[10,20])
++
+     def test_model_protocol_fixture_freezes_only_complete_current_exact_patches(self):
+         from workbench import local_brain,brain_runtime
+         base=hashlib.sha256(b'blue\n').hexdigest()
+diff --git a/tests_integrated/test_desk_acts.py b/tests_integrated/test_desk_acts.py
+index e3162e1..e97832c 100644
+--- a/tests_integrated/test_desk_acts.py
++++ b/tests_integrated/test_desk_acts.py
+@@ -48,6 +48,18 @@ def no_logind(request):
+     raise AssertionError('No session or power call: %r'%(request,))
+ 
+ 
++def seed_bound():
++    """A hold that reads an edited, unpackaged seed (STALE, SOURCE_UNAVAILABLE) as bound, with its real seed_id, as the
++    Kernel's own modules do (test_project_desk): whether the seed shipped with the tree is current is test_project_desk's Seed
++    test and the release check's runtime section, never the reason a window test fails (0.8.4: before, a stale digest failed
++    whole window modules on any edit, a comment's too). An absent or broken seed still refuses."""
++    from workbench import stacy_foundation
++    real=stacy_foundation.seed_status
++    def bound(root):
++        value=real(root);return {**value,'state':'VERIFIED_SOURCE_BINDINGS'} if value.get('state') in ('STALE','SOURCE_UNAVAILABLE') else value
++    return patch.object(stacy_foundation,'seed_status',bound)
++
++
+ def bench_seed(k,p):
+     """The bench seed: the bench readings and two revisions of the limits, written and imported through Graphite's own operations."""
+     files_root=Path(k.dispatch('files.list',{},p)['result']['root'])
+@@ -75,7 +87,7 @@ def build_window(store,prefix,seed=bench_seed,early=False):
+     from workbench.session import Session
+     holds=[patch.object(clip,'_request',side_effect=AssertionError('No provider request')),patch.object(Kernel,'launch',side_effect=AssertionError('No worker launch')),
+            patch.object(Kernel,'submit',side_effect=AssertionError('No job submission')),patch.object(session_power,'system',side_effect=no_logind),
+-           patch.object(QMessageBox,'question',return_value=QMessageBox.No)]
++           patch.object(QMessageBox,'question',return_value=QMessageBox.No),seed_bound()]
+     held=[]
+ 
+     def seeded():
+@@ -247,6 +259,7 @@ class PureRules(unittest.TestCase):
+             offered={v['properties']['operation']['const'] for v in schema['properties']['actions']['items']['oneOf']}
+             self.assertTrue(offered.isdisjoint(set(ACTS)),message)
+         self.assertLessEqual({'ledger.navigate','ledger.open'},tool_selection.DENY)
++        self.assertEqual({v['properties']['act']['const'] for v in desk_acts.plan_variants()},exported,'each act she may use is one plan choice')
+         for variant in desk_acts.plan_variants():
+             self.assertIn('act',variant['properties']);self.assertNotIn('operation',variant['properties'])
+             self.assertNotIn('by',variant['properties']);self.assertNotIn('arguments',variant['properties'])
+@@ -679,6 +692,16 @@ class LiveActs(unittest.TestCase):
+         from workbench.files_qt import FilesTab
+         self.assertIsInstance(self.w.tabs.currentWidget(),FilesTab)
+         self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'field')
++        self.assertEqual(act('go.today',{})['result']['surface'],'home')
++        self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'home')
++        act('go.files',{});self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'workspace')
++
++    def test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys(self):
++        act('go.field',{});act('point.sheet',{'title':'07 Bench readings'})
++        keys=act('point.sheet',{'title':'07 Limits Rev B CURRENT','by':'keys'})
++        self.assertTrue(keys['ok'],keys['words']);self.assertGreater(keys['result']['presses'],0)
++        direct=act('point.sheet',{'title':'07 Bench readings'})
++        self.assertTrue(direct['ok'],direct['words']);self.assertEqual(direct['result']['presses'],0)
+ 
+     def test_look_set_motion(self):
+         from workbench import boss_theme,menu_catch
+diff --git a/tests_integrated/test_frame.py b/tests_integrated/test_frame.py
+index 281a27b..12c81c5 100644
+--- a/tests_integrated/test_frame.py
++++ b/tests_integrated/test_frame.py
+@@ -116,4 +116,17 @@ class HeldStateWordsTests(unittest.TestCase):
+         self.assertEqual(tool_words('unknown.tool'),'unknown.tool');self.assertEqual(tool_words(None,'Queued'),'Job · queued')
+ 
+ 
++class StatusLineTests(unittest.TestCase):
++    def test_the_status_line_names_the_workspace_and_says_what_arrived(self):
++        """0.8.4: the status line under the work: the workspace's name, the model's state when there is one, and how many
++        things wait in Ingress (rooms.status_text, for any place that is not an engineering target)."""
++        from types import SimpleNamespace
++        from workbench import locations,rooms
++        with tempfile.TemporaryDirectory() as temp:
++            host=SimpleNamespace(root=locations.office(Path(temp)/'Bench'),_home_active=True,_status_brain=None,_status_inbox=0)
++            self.assertEqual(rooms.status_text(host,None,'',''),'Office workspace')
++            host._status_inbox=3;self.assertEqual(rooms.status_text(host,None,'',''),'Office workspace · 3 arrived')
++            host._status_brain='ready';self.assertEqual(rooms.status_text(host,None,'',''),'Office workspace · Brain ready · 3 arrived')
++
++
+ if __name__=='__main__':unittest.main()
+diff --git a/tests_integrated/test_line_rules.py b/tests_integrated/test_line_rules.py
+index b833bc3..0e2a07e 100644
+--- a/tests_integrated/test_line_rules.py
++++ b/tests_integrated/test_line_rules.py
+@@ -430,6 +430,15 @@ class TheCallers(unittest.TestCase):
+         base = '@%s | pick origin.reviewed_rows' % address
+         return line_steps, line_steps.Held(dispatch).read(base), base
+ 
++    def test_a_files_cells_reach_a_line_as_numbers_by_the_same_rule(self):
++        """0.8.4: a file's cells as Files gives them to a line (files_service.number): a number written as text, with up to
++        three thousands commas, is that number; a word, a date and a fourth comma stay the text they are."""
++        from workbench import files_service
++        for cell, value in ((' 1,234 ', 1234), ('12', 12), ('-0.5', -0.5), (7, 7), (2.5, 2.5), ('1,234,567,890', 1234567890)):
++            self.assertEqual((files_service.number(cell), type(files_service.number(cell)) in (int, float)), (value, True), cell)
++        for cell in ('Rail voltage', '2026-11-19', '1,2,3,4,5', 'nan', ''):
++            self.assertEqual(files_service.number(cell), cell, cell)
++
+     def test_the_panel_counts_and_offers_by_the_evaluators_rule(self):
+         line_steps, held, base = self.held([{'part': 'R1; R2', 'value': '12', 'kind': 'null', 'size': '0805'}, {'part': 'C1', 'value': '110', 'kind': 'x', 'size': '0805'},
+                                             {'part': 'R1; R2', 'value': 9, 'kind': 'null', 'size': '805'}, {'part': 'U1', 'value': '1,000', 'kind': 'y', 'size': 805}])
+diff --git a/tests_integrated/test_memory_settings.py b/tests_integrated/test_memory_settings.py
+index 942ae82..86da60e 100644
+--- a/tests_integrated/test_memory_settings.py
++++ b/tests_integrated/test_memory_settings.py
+@@ -56,6 +56,14 @@ class MemorySettingsTests(unittest.TestCase):
+         self.assertFalse(self.kernel.dispatch('ledger.settings.undo',{'id':latest['id']},self.owner)['ok'])
+         self.assertFalse(self.kernel.dispatch('ledger.settings.undo',{'id':latest['id']},operator('other'))['ok'])
+ 
++    def test_an_undone_change_is_kept_in_history_as_undone(self):
++        """0.8.4: the history says which change an undo took back, and that change cannot be taken back twice."""
++        self.imported();key='memory.weight.owner_statement';change=self.set(key,3.5)
++        undo=self.call('ledger.settings.undo',{'id':change['id']})
++        rows={r['id']:r for r in self.call('ledger.settings.history',{'key':key})['changes']}
++        self.assertEqual((rows[change['id']]['undone'],rows[change['id']]['can_undo']),(True,False))
++        self.assertEqual((rows[undo['id']]['undone'],rows[undo['id']]['restores']),(False,change['id']))
++
+     def test_owner_modes_private_history_and_shared_activity_do_not_expose_new_profile_values(self):
+         self.imported();change=self.set('memory.soft_half_life_days',321)
+         other=self.row('memory.soft_half_life_days',operator('other'));self.assertIsNone(other['stored']);self.assertIsNone(other['latest_change'])
+diff --git a/tests_integrated/test_model_settings.py b/tests_integrated/test_model_settings.py
+index df5d3b0..033ebd5 100644
+--- a/tests_integrated/test_model_settings.py
++++ b/tests_integrated/test_model_settings.py
+@@ -92,6 +92,27 @@ class ModelSettingsTests(unittest.TestCase):
+         direct=self.call('jobs.submit',dict(tool='brain.activate',request_key='direct',brain={'model_id':'a'*64}))
+         self.assertEqual(self.launched(direct),(dict(context=6144,threads=6,memory_mb=2048),'AUTO'))
+ 
++    def test_the_lowest_choices_are_kept_and_a_one_character_request_key_is_one_request(self):
++        """0.8.4: one thread, 512 tokens and 512 MiB are choices the owner may make; a request key of one character is a key."""
++        self.set('brain.threads',1);self.assertEqual(self.row('brain.threads')['stored'],1)
++        job=self.request(key='k',options=dict(context=512,threads=1,memory_mb=512))
++        self.assertEqual(self.launched(job)[0],dict(context=512,threads=1,memory_mb=512))
++        self.assertEqual(self.request(key='k',options=dict(context=512,threads=1,memory_mb=512))['id'],job['id'])
++        self.assertFalse(self.k.dispatch('brain.model.use',dict(id='b'*64,request_key='k'*129),self.owner)['ok'])
++        self.assertFalse(self.k.dispatch('brain.model.use',dict(id='b'*64,request_key=''),self.owner)['ok'])
++
++    def test_a_request_and_its_state_are_written_in_the_activity_journal(self):
++        """0.8.4: the Log shows each request the Kernel keeps, with its state, by the job's own id."""
++        from workbench import activity
++        job=self.request()
++        events=[e for e in activity.tail(self.root,limit=500).get('events',[]) if e.get('job_id')==job['id']]
++        self.assertIn(('brain.activate','Queued'),[(e['operation'],e['state']) for e in events])
++
++    def test_the_history_a_row_promises_is_the_history_kept(self):
++        for i in range(105):self.set('brain.context',2048+(i%2)*1024)
++        with self.k.db() as db:kept=db.execute("SELECT count(*) FROM settings WHERE key LIKE 'ledger.change.%'").fetchone()[0]
++        self.assertEqual({self.row(key)['history_limit'] for key in ('brain.context','brain.threads','brain.memory_mb')},{kept})
++
+     def test_explicit_request_and_restore_override_launch_defaults(self):
+         self.set('brain.context',6144);self.set('brain.threads',8);self.set('brain.memory_mb',4096)
+         direct=self.request(options=dict(context=2048,threads=3,memory_mb=2048))
+diff --git a/tests_integrated/test_project_desk.py b/tests_integrated/test_project_desk.py
+index 73507cd..eb601e4 100644
+--- a/tests_integrated/test_project_desk.py
++++ b/tests_integrated/test_project_desk.py
+@@ -10,12 +10,13 @@ import unittest
+ from unittest.mock import patch
+ from workbench.baseline import environment
+ from workbench.engineering_kernel import Kernel, Principal, operator
+-from workbench import project_desk as desk
++from workbench import project_desk as desk, stacy_foundation as foundation
+ from workbench.project_desk_checks import fixture, invoke, plan_arguments, REQUEST
+ 
+ 
+ 
+ HOLDS=[]
++PACKAGED_SEED_STATUS = foundation.seed_status     # the real reading, kept before the module hold below replaces it
+ 
+ 
+ def setUpModule():
+@@ -189,4 +190,55 @@ class ProjectDesk(unittest.TestCase):
+         self.assertEqual(planned['plan']['permissions']['authority'], 'REQUEST_ONLY_NO_GRANT')
+ 
+ 
++
++class Seed(unittest.TestCase):
++    """0.8.4: the one test whose job is that the seed shipped with this tree is current (every other module reads an edited,
++    unpackaged seed as bound, so a stale digest never fails them), and the rules of a seed on a fixture of its own."""
++
++    def test_the_seed_of_this_tree_is_current(self):
++        status = PACKAGED_SEED_STATUS(foundation.locations.PACKAGE)
++        self.assertEqual(status['state'], 'VERIFIED_SOURCE_BINDINGS',
++                         'The packaged seed is not current (changed: %s; missing: %s). After any source edit run: python3 '
++                         'tools/package_graphite.py --manifest-only; python3 tools/record_registry.py; python3 '
++                         'tools/package_graphite.py --manifest-only; python3 tools/record_registry.py --check'
++                         % (status.get('changed_sources'), status.get('missing_sources') or status.get('reason')))
++
++    def tree(self, base):
++        """A program folder holding every seed input (a line of text each) and a seed built over exactly those bytes."""
++        inputs = {}
++        for name in foundation.SEED_INPUTS:
++            path = base / name; path.parent.mkdir(parents=True, exist_ok=True); raw = ('# ' + name + '\n').encode()
++            path.write_bytes(raw); inputs[name] = foundation.sha(raw)
++        seed = base / foundation.SEED_DIR; seed.mkdir(parents=True); files = {}
++        for member in ('catalog.json', 'index.sqlite'):
++            (seed / member).write_bytes(member.encode()); files[member] = foundation.sha(member.encode())
++        (seed / 'manifest.json').write_text(json.dumps(dict(schema=foundation.SCHEMA, inputs=inputs, files=files, records=0,
++                                                             seed_id=foundation.sha(foundation.canonical(inputs)))))
++        return base
++
++    def test_a_note_may_be_left_out_of_a_copy_and_a_program_file_never(self):
++        with tempfile.TemporaryDirectory(prefix='graphite-seed-') as temp:
++            root = self.tree(Path(temp))
++            self.assertEqual(PACKAGED_SEED_STATUS(root)['state'], 'VERIFIED_SOURCE_BINDINGS')
++            note = next(n for n in foundation.SEED_INPUTS if n.startswith('docs/') and n.endswith('.md'))
++            (root / note).unlink()
++            status = PACKAGED_SEED_STATUS(root)
++            self.assertEqual((status['state'], status['carried_in_seed'], status['missing_sources']), ('VERIFIED_SOURCE_BINDINGS', [note], []))
++            program = next(n for n in foundation.SEED_INPUTS if n.endswith('.py') and n != 'workbench/engineering_kernel.py')
++            (root / program).unlink()
++            status = PACKAGED_SEED_STATUS(root)
++            self.assertEqual((status['state'], status['missing_sources']), ('SOURCE_UNAVAILABLE', [program]))
++            with patch.object(foundation, 'seed_status', PACKAGED_SEED_STATUS):
++                with self.assertRaisesRegex(ValueError, 'SOURCE_UNAVAILABLE'):
++                    foundation._require_seed(root)
++
++    def test_a_prerequisite_over_32_000_000_bytes_is_missing(self):
++        with tempfile.TemporaryDirectory(prefix='graphite-prerequisite-') as temp:
++            from workbench.hardware_review import BASE
++            proof = Path(temp) / BASE / 'closure_p8/P8_VERIFICATION.json'; proof.parent.mkdir(parents=True)
++            for size, missing in ((32_000_000, []), (32_000_001, [proof.relative_to(temp).as_posix()])):
++                with proof.open('wb') as out:out.truncate(size)
++                self.assertEqual(foundation.prerequisites(temp, 'hardware.proof.inspect'), missing, size)
++
++
+ if __name__ == '__main__': unittest.main()
+diff --git a/tests_integrated/test_record_paths.py b/tests_integrated/test_record_paths.py
+new file mode 100644
+index 0000000..f998e9c
+--- /dev/null
++++ b/tests_integrated/test_record_paths.py
+@@ -0,0 +1,52 @@
++"""The record paths the Kernel's views and exchanges read and write (workbench/record_io.project_path): a name inside the
++project, never a hidden one, never through a link or out of the folder; Graphite's own state only under .ledger and only when
++the caller asks for it. 0.8.4: written for a planted bug that let a hidden folder under .ledger through. Run alone:
++
++  python -B -m unittest -v tests_integrated.test_record_paths
++"""
++import os
++import tempfile
++import unittest
++from pathlib import Path
++
++from workbench import record_io
++
++
++class RecordPaths(unittest.TestCase):
++    def setUp(self):
++        temp = tempfile.TemporaryDirectory(prefix='graphite-record-paths-')
++        self.addCleanup(temp.cleanup)
++        self.root = Path(temp.name).resolve()
++        (self.root / 'build').mkdir()
++        (self.root / 'build' / 'net.json').write_text('{}')
++
++    def refused(self, name, private=False, must_exist=False):
++        with self.assertRaises(ValueError) as caught:
++            record_io.project_path(self.root, name, must_exist, private)
++        return str(caught.exception).split(':')[0]
++
++    def test_a_project_name_is_read_where_it_is(self):
++        self.assertEqual(record_io.project_path(self.root, 'build/net.json'), self.root / 'build' / 'net.json')
++        self.assertEqual(self.refused('build/gone.json', must_exist=True), 'MISSING_SOURCE')
++
++    def test_graphites_own_state_is_reached_only_when_asked_and_never_a_hidden_name_in_it(self):
++        self.assertEqual(record_io.project_path(self.root, '.ledger/console/run/state.json', False, private=True),
++                         self.root / '.ledger' / 'console' / 'run' / 'state.json')
++        self.assertEqual(self.refused('.ledger/console/run/state.json'), 'PRIVATE_PATH')
++        for name in ('.ledger/.keys/x', '.ledger/console/.run/state.json', '.ledger/console/run/.state.json', '.git/config',
++                     'build/.secret', '.env'):
++            self.assertEqual(self.refused(name, private=True), 'PRIVATE_PATH', name)
++
++    def test_names_that_leave_the_folder_or_hide_in_it_are_refused(self):
++        for name in ('', '/etc/passwd', 'build/../../x', './build/net.json', 'build//net.json', 'build\\net.json', 'C:x', 'a\x00b', None):
++            self.assertEqual(self.refused(name), 'INVALID_PATH', name)
++        outside = tempfile.TemporaryDirectory(prefix='graphite-outside-')
++        self.addCleanup(outside.cleanup)
++        os.symlink(outside.name, self.root / 'linked')
++        self.assertEqual(self.refused('linked/x.json'), 'PATH_ESCAPE')
++        os.symlink(self.root / 'build', self.root / 'inside')
++        self.assertEqual(self.refused('inside/net.json'), 'SYMLINK_PATH')
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests_integrated/test_release_check.py b/tests_integrated/test_release_check.py
+index 500ef91..48c749f 100644
+--- a/tests_integrated/test_release_check.py
++++ b/tests_integrated/test_release_check.py
+@@ -162,6 +162,18 @@ class Runtime(unittest.TestCase):
+             self.assertEqual(verify(root)['problems'],['gone.txt: missing'])
+             (root/'gone.txt').write_bytes(b'two');self.assertEqual(verify(root)['problems'],['gone.txt: changed'])
+ 
++    def test_a_manifest_over_4_mib_is_refused_before_it_is_read(self):
++        """0.8.4: the verifier reads a manifest of 4 MiB at most; one byte more is refused, whatever it lists."""
++        from workbench.release_integrity import verify
++        with tempfile.TemporaryDirectory() as temp:
++            root=Path(temp);(root/'a.txt').write_bytes(b'one')
++            listed=json.dumps({'files':{'a.txt':{'bytes':3,'sha256':recorder.hashlib.sha256(b'one').hexdigest()}}})
++            for size,read in ((4*1024*1024,True),(4*1024*1024+1,False)):
++                (root/'MANIFEST.json').write_text(listed+' '*(size-len(listed)))
++                if read:self.assertEqual(verify(root)['problems'],[])
++                else:
++                    with self.assertRaisesRegex(ValueError,'Invalid package manifest'):verify(root)
++
+     def test_runtime_section_keeps_any_failure_failed_and_explains_unpackaged_edits(self):
+         edited={'state':'FAILED','errors':['payload','source foundation'],'payload':{'state':'DAMAGED','problems':['workbench/x.py: changed']},'foundation':'STALE'}
+         value=checker.runtime_section(runner=lambda:copy.deepcopy(edited))
+@@ -172,6 +184,15 @@ class Runtime(unittest.TestCase):
+         self.assertEqual(checker.runtime_section(runner=lambda:{'error':'child crashed'})['state'],'FAILED')
+ 
+ 
++class Kit(unittest.TestCase):
++    def test_the_planted_bug_tools_stay_out_of_the_kit(self):
++        """0.8.4: tools/planted_bugs measures the tests; it is kept in the tree and never shipped. The other tools ship."""
++        from tools import package_graphite
++        shipped={p.relative_to(ROOT).as_posix() for p in package_graphite.payload_paths(ROOT)}
++        self.assertTrue((ROOT/'tools/planted_bugs/run.py').is_file());self.assertIn('tools/check_release.py',shipped)
++        self.assertEqual(sorted(n for n in shipped if n.startswith('tools/planted_bugs/')),[])
++
++
+ class PayloadPrivacy(unittest.TestCase):
+     def tree(self,temp):
+         root=Path(temp);(root/'docs').mkdir();(root/'.git').mkdir()
+diff --git a/tests_integrated/test_resource_rules.py b/tests_integrated/test_resource_rules.py
+index f829095..733955c 100644
+--- a/tests_integrated/test_resource_rules.py
++++ b/tests_integrated/test_resource_rules.py
+@@ -7,6 +7,7 @@ stop staying visible, and the simulated offload mark. The readings come from the
+ 
+   python -B -m unittest -v tests_integrated.test_resource_rules
+ """
++import contextlib
+ import json
+ import os
+ import tempfile
+@@ -304,6 +305,57 @@ class Offload(Workspace):
+         self.assertEqual(worker['offload_evidence'], 'PINNED_WORKER_LOAD_LOG: offloaded 41/41 layers to GPU')
+ 
+ 
++class OwnersNumbers(Workspace):
++    """The owner's own reserve, a resident model's budget and the one-coordinator rule, each as admission and the model
++    start apply it (0.8.4: planted bugs in these rules went unnoticed in 0.8.2)."""
++
++    def job(self, ident, tool, lane, state='Queued', memory_mb=256):
++        return dict(id=ident * 32, owner=self.owner.identity, tool=tool, state=state, created=1.0, request_spec={},
++                    resource_request=dict(priority='foreground', lane=lane, memory_bytes=memory_mb * MiB, basis='FIXTURE',
++                                          model_handover=False))
++
++    def decide(self, job, host=None, rss=None):
++        used = patch.object(resource_control, 'process_memory', return_value=dict(rss_bytes=rss, private_bytes=0, observed=True)) \
++            if rss is not None else contextlib.nullcontext()
++        with used, self.kernel.db() as db:
++            return resource_control.decision(self.kernel, job, db, host or brain_runtime.host())
++
++    def test_the_owners_smaller_reserve_reaches_the_model_start(self):
++        with self.kernel.db() as db:
++            db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', ('ledger.operations.reserve_mb', json.dumps(1024)))
++        self.assertEqual(resource_control.reserve_setting(self.kernel), 1024)
++        self.host.available = 33         # the 32,768 MiB cap and the owner's 1,024 MiB reserve, exactly
++        self.assertIsNone(self.activate(self.model, 'owners-reserve', {'memory_mb': 32768, 'backend': 'CPU'}, [sim.Worker(n_ctx=4096)]))
++        self.assertEqual(local_brain.status(self.kernel)['state'], 'READY')
++
++    def test_a_resident_models_unused_budget_is_kept_from_other_work(self):
++        self.assertIsNone(self.activate(self.model, 'resident', {'memory_mb': 32768, 'backend': 'CPU'}, [sim.Worker(n_ctx=4096)]))
++        calculation = self.job('f', 'kicad.drc', 'compute', memory_mb=512)
++        host = dict(available_ram_bytes=(2048 + 512) * MiB, total_ram_bytes=64 * GiB, logical_cpus=16)   # the reserve and 512 MiB
++        part = self.decide(calculation, host, rss=(32768 - 1024) * MiB)      # 1,024 MiB of its budget not yet used
++        self.assertEqual((part['allowed'], part['reserved_future_bytes']), (False, 1024 * MiB))
++        for rss in (32768 * MiB, 40000 * MiB):                               # all of it used, or more: nothing more is kept
++            full = self.decide(calculation, host, rss=rss)
++            self.assertEqual((full['allowed'], full['reserved_future_bytes']), (True, 0), rss)
++        short = dict(host, available_ram_bytes=host['available_ram_bytes'] - 1)
++        self.assertFalse(self.decide(calculation, short, rss=32768 * MiB)['allowed'], 'one byte short of its room, it waits')
++
++    def test_a_second_coordinator_waits_and_other_work_is_not_held_by_one(self):
++        self.assertTrue(self.decide(self.job('d', 'clip.workshop', 'control'))['allowed'])
++        self.kernel.save('jobs', self.job('c', 'clip.loop', 'control', 'Running'))
++        second = self.decide(self.job('d', 'clip.workshop', 'control'))
++        self.assertFalse(second['allowed']);self.assertIn('coordinator', second['reason'])
++        calculation = self.decide(self.job('e', 'kicad.drc', 'compute'))
++        self.assertTrue(calculation['allowed'], calculation['reason'])
++
++    def test_a_layer_count_outside_minus_one_to_512_is_refused(self):
++        for layers in (-1, 0, 512):
++            self.assertEqual(self.configure({'gpu_layers': layers})['memory_mb'], 32768, layers)
++        for layers in (-2, 513):
++            with self.assertRaisesRegex(ValueError, '^MODEL_ACCELERATION_OPTIONS_INVALID'):
++                self.configure({'gpu_layers': layers})
++
++
+ class SharedReading(unittest.TestCase):
+     def test_admission_reads_memory_as_the_worker_guard_does(self):
+         with tempfile.TemporaryDirectory(prefix='graphite-cgroup-') as folder:
+diff --git a/tests_integrated/test_stacy_hand.py b/tests_integrated/test_stacy_hand.py
+index 6cefb42..d5aa886 100644
+--- a/tests_integrated/test_stacy_hand.py
++++ b/tests_integrated/test_stacy_hand.py
+@@ -92,6 +92,12 @@ class MadeTests(unittest.TestCase):
+         self.assertEqual(hand.made('make a folder called "Parts containing lead"'),('folder','Parts containing lead',''))
+         self.assertEqual(hand.made('make a folder called Parts containing lead'),('folder','Parts containing lead',''),'a folder holds no words: all of it is the name')
+ 
++    def test_words_in_quotes_are_written_without_the_quotes(self):
++        """0.8.4: the quote marks around what a file should say are the owner's punctuation, not its contents."""
++        for said in ('"cut the stock first"','“cut the stock first”','\'cut the stock first\'','‘cut the stock first’'):
++            self.assertEqual(hand.made('write a file called plan.txt saying '+said),('file','plan.txt','cut the stock first'),said)
++        self.assertEqual(hand.made('write a file called plan.txt saying "cut" the stock')[2],'"cut" the stock','only quotes around all of it go')
++
+     def test_what_she_made_new_goes_to_the_trash_and_what_was_written_over_does_not(self):
+         import json
+         line=hand.takes_back('files.write',{'path':'plan.txt','text':'x'},{'path':'plan.txt','kept_version':None})
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index 0abd107..6a2f44d 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -62,6 +62,8 @@ FOCUSED_MODULES=(
+  'test_rail_demo','test_rail_demo_campaign',
+  # 0.8.1: the model's memory rules, each against Graphite's own code with simulated readings
+  'test_resource_rules',
++ # 0.8.4: the record paths the Kernel's views read and write: never hidden, linked or outside the folder (tools/planted_bugs)
++ 'test_record_paths',
+  # 0.8.2: desk acts: the registry, her hand's rule, the typed door, the playable scene
+  'test_desk_acts','test_desk_scenes',
+  # 0.8.3: DELETE, the typewriter faces, her hologram, her column and Apps
+diff --git a/tools/package_graphite.py b/tools/package_graphite.py
+index 3377398..42d73dd 100644
+--- a/tools/package_graphite.py
++++ b/tools/package_graphite.py
+@@ -31,6 +31,8 @@ RELEASE = SHORT
+ ARCHIVE = 'Graphite_' + RELEASE + '_full.zip'
+ # Never shipped: private state, environments and caches.
+ EXCLUDED_PARTS = ('.ledger', '.venv', '__pycache__', '.pytest_cache', '.git', '.claude', 'wip')  # .claude: the session's worktrees and settings; wip: development notes and saved work in progress; never shipped
++# Development tools kept in the tree and never shipped: the planted-bug rerun (0.8.4) measures the tests, not the program.
++NOT_SHIPPED = ('tools/planted_bugs/',)
+ # Ship the approved UI evidence and cited model-trial records. Other local
+ # captures under build/ stay outside the release.
+ BUILD_SHIPPED = ('build/graphite01_ui/', 'build/graphite_desk/', 'build/agent01_ui/model_trial/', 'build/agent02_ui/model_trial/')
+@@ -110,6 +112,7 @@ def payload_paths(root=ROOT):
+         name = relative.as_posix()
+         if path.name.endswith('.partial'): continue
+         if name.startswith('build/') and not name.startswith(BUILD_SHIPPED): continue
++        if name.startswith(NOT_SHIPPED): continue
+         rows.append(path)
+     return rows
+ 
+@@ -149,7 +152,7 @@ def dry_run(root=ROOT):
+                 seed=dict(state=seed['state'], changed_sources=seed.get('changed_sources', []),
+                           missing_sources=seed.get('missing_sources', []),
+                           note='packaging rebuilds the seed first' if seed['state'] != 'VERIFIED_SOURCE_BINDINGS' else 'current'),
+-                excluded=dict(parts=list(EXCLUDED_PARTS), build_shipped=list(BUILD_SHIPPED)))
++                excluded=dict(parts=list(EXCLUDED_PARTS), build_shipped=list(BUILD_SHIPPED), not_shipped=list(NOT_SHIPPED)))
+ 
+ 
+ def package(folder, root=ROOT):
+diff --git a/tools/planted_bugs/README.md b/tools/planted_bugs/README.md
+new file mode 100644
+index 0000000..ec558a4
+--- /dev/null
++++ b/tools/planted_bugs/README.md
+@@ -0,0 +1,41 @@
++# Planted bugs: how many the tests catch
++
++A planted bug is one small wrong edit in one function: a comparison flipped, a condition negated, a return changed, a
++number moved by one, a call deleted. If no test fails, the tests do not guard that behaviour. The release notes report
++the share caught in the code that guards the owner (target: 75% or more, never falling after a test is retired).
++
++Kept in the tree for each release to rerun; never shipped (`tools/package_graphite.py`, `NOT_SHIPPED`).
++
++## Files
++
++- `bugs.json`: the 156 planted bugs of the 14 November 2026 measure, each with its file, function, kind, old and new
++  text, what the 0.8.2 suite did with it (`verdict_0_8_2`), its group (`guarding` or `other`) and the test modules to run.
++- `plant.py`: finds a bug in the current code by its file, function, kind and text (never by line number, since code
++  moves) and writes it into a copy of the tree. `python3 tools/planted_bugs/plant.py --where` lists where each lands now;
++  a bug the code no longer holds shows as `GONE`.
++- `run.py`: plants each named bug in a throwaway copy, makes the seed current (so that no test fails on the seed's
++  digest alone), runs the bug's modules until one fails, puts the file back, and writes one line per bug.
++
++## Running it
++
++Only in a throwaway copy of the tree, never in a checkout (both scripts refuse a folder with `.git`). Make the copy as
++the build rules say (the tracked files without `wip/` and `.claude/`) and make its seed current first. Two copies give
++two workers; never more than two test processes at once.
++
++    python3 tools/planted_bugs/run.py --tree /tmp/copy-a --tree /tmp/copy-b --group guarding --out guarding.jsonl
++    python3 tools/planted_bugs/run.py --report guarding.jsonl
++
++`--ids M007 M008` runs named bugs; `--before gap` only the ones the 0.8.2 suite missed; `--python` names the interpreter
++that has PySide6; `--plain` drops `nice` and `unshare` where `unshare` is not allowed. A run can be stopped and started
++again: bugs already in the output file are skipped.
++
++## Reading the result
++
++- `caught`: a test failed with the bug in place and a current seed. This is the only verdict that counts as caught.
++- `missed`: every listed module passed. The bug's `what` says what the owner would lose.
++- `timeout`: a module ran out of time; reported apart.
++- `refresh_failed`: packaging refused the planted tree (the seed could not be rebuilt); reported apart, not as a test's catch.
++- `gone`: the code no longer holds the bug (rewritten or removed); drop it or plant a new one where the code moved.
++
++Equivalent bugs (no behaviour can tell them apart, `verdict_0_8_2: equivalent`) are left out of every rate.
++When new code is written, add bugs to `bugs.json` in the same shape; keep the ids of the old ones so releases compare.
+diff --git a/tools/planted_bugs/bugs.json b/tools/planted_bugs/bugs.json
+new file mode 100644
+index 0000000..abb5d3a
+--- /dev/null
++++ b/tools/planted_bugs/bugs.json
+@@ -0,0 +1,3028 @@
++{
++ "about": "The planted bugs of the 14 November 2026 measure (seed 20261114; 156 sampled: 102 in 17 named files, 54 one per file elsewhere). Each is one minimal edit of one function: cmp, if, ret, num or call (plant.py). verdict_0_8_2 is what the 0.8.2 suite did with it: caught (a behaviour test failed), gap (no behaviour test failed; digest_only_0_8_2 marks those only the seed digest noticed), equivalent (no behaviour can tell it apart; left out of every rate), void (its run was spoiled by a full disk), not_run (the run was stopped first). group \"guarding\" is the code that protects the owner: the Kernel, record paths, her hand, the memory and resource rules, change sets, continuing work, the seed and release integrity. modules: the test modules to run, in order; a dotted name runs one class or one test; the first ones are where 0.8.4 put the test written for that bug.",
++ "guarding_files": [
++  "tools/check_hatch.py",
++  "tools/check_release.py",
++  "workbench/change_sets.py",
++  "workbench/continuing_work.py",
++  "workbench/desk_acts.py",
++  "workbench/desk_doers.py",
++  "workbench/engineering_kernel.py",
++  "workbench/local_brain.py",
++  "workbench/memory_settings.py",
++  "workbench/model_settings.py",
++  "workbench/record_io.py",
++  "workbench/release_integrity.py",
++  "workbench/resource_control.py",
++  "workbench/stacy_foundation.py",
++  "workbench/stacy_hand.py"
++ ],
++ "bugs": [
++  {
++   "id": "M001",
++   "file": "sdk/cli/arc1cli/typed_pipeline.py",
++   "func": "apply",
++   "kind": "ret",
++   "old": "rows",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 273,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_context_menu",
++    "test_continuing_work",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M002",
++   "file": "sdk/cli/arc1cli/typed_pipeline.py",
++   "func": "parse",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 1,
++   "line_0_8_2": 53,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "digest_only_0_8_2": true,
++   "what": "the line's 'take N' refuses take 1 (lower bound 2); only the seed digest notices the edit (sdk/cli/arc1cli/typed_pipeline.py:53)",
++   "modules": [
++    "test_line_rules",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M003",
++   "file": "sdk/cli/arc1cli/typed_pipeline.py",
++   "func": "apply",
++   "kind": "if",
++   "old": "len(rows)>limit",
++   "new": "not (len(rows)>limit)",
++   "nth": 0,
++   "line_0_8_2": 272,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_continuing_work",
++    "test_context_menu",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M004",
++   "file": "sdk/cli/arc1cli/typed_pipeline.py",
++   "func": "split",
++   "kind": "cmp",
++   "old": "==",
++   "new": "!=",
++   "nth": 0,
++   "line_0_8_2": 20,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_memory_settings",
++    "test_writing_line",
++    "test_project_desk",
++    "test_continuing_work",
++    "test_context_menu",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M005",
++   "file": "sdk/cli/arc1cli/typed_pipeline.py",
++   "func": "arithmetic",
++   "kind": "call",
++   "old": "ops.append(symbol)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 125,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the line's add expression loses every operator (ops.append deleted), so NAME = a + b is not computed as a sum; no test evaluates an add expression with an operator (sdk/cli/arc1cli/typed_pipeline.py:125)",
++   "modules": [
++    "test_line_rules",
++    "test_project_desk"
++   ]
++  },
++  {
++   "id": "M006",
++   "file": "sdk/cli/arc1cli/typed_pipeline.py",
++   "func": "arithmetic",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 0,
++   "line_0_8_2": 116,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "operator precedence in the line's add expression: '+' gets the precedence of * and /, so 'a + b * c' becomes (a + b) * c; only test_project_desk reaches arithmetic() and no test checks a mixed expression (sdk/cli/arc1cli/typed_pipeline.py:116)",
++   "modules": [
++    "test_line_rules",
++    "test_project_desk"
++   ]
++  },
++  {
++   "id": "M007",
++   "file": "workbench/change_sets.py",
++   "func": "entry_state",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 0,
++   "line_0_8_2": 269,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "entry_state for a file two or more folders deep: rsplit('/', 2)[0] looks for the temporary file in the wrong folder (same result for one-folder paths), so a staged change in a nested folder reads as PENDING/CONFLICT wrongly; tests use shallow paths only (change_sets.py:269)",
++   "modules": [
++    "test_change_sets",
++    "test_continuing_work",
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M008",
++   "file": "workbench/change_sets.py",
++   "func": "undo",
++   "kind": "if",
++   "old": "e in active or not e['after']",
++   "new": "not (e in active or not e['after'])",
++   "nth": 0,
++   "line_0_8_2": 444,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "undo after a partial apply: negated, the retained temporaries of the entries outside the active set are no longer checked and removed (and active entries are visited instead); test_change_sets never leaves a retained temporary for undo to clear (change_sets.py:444)",
++   "modules": [
++    "test_change_sets"
++   ]
++  },
++  {
++   "id": "M009",
++   "file": "workbench/change_sets.py",
++   "func": "apply_proposal",
++   "kind": "ret",
++   "old": "read_commit(kernel, prior[0], principal)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 413,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_change_sets",
++    "test_continuing_work",
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M010",
++   "file": "workbench/change_sets.py",
++   "func": "staged_file",
++   "kind": "call",
++   "old": "os.fsync(fd)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 317,
++   "group": "guarding",
++   "verdict_0_8_2": "equivalent",
++   "modules": [
++    "test_change_sets",
++    "test_continuing_work",
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M011",
++   "file": "workbench/change_sets.py",
++   "func": "entry_state",
++   "kind": "cmp",
++   "old": " == ",
++   "new": " != ",
++   "nth": 4,
++   "line_0_8_2": 274,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_change_sets"
++   ]
++  },
++  {
++   "id": "M012",
++   "file": "workbench/change_sets.py",
++   "func": "propose",
++   "kind": "call",
++   "old": "changes.append({'path': target, 'before': None, 'after': before, 'before_mode': None, 'after_mode': mode, 'operation': 'RENAME_TO', 'rename_from': rel})",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 239,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_change_sets"
++   ]
++  },
++  {
++   "id": "M013",
++   "file": "workbench/context_menu.py",
++   "func": "start_entry.children",
++   "kind": "if",
++   "old": "e.key == 'start'",
++   "new": "not (e.key == 'start')",
++   "nth": 0,
++   "line_0_8_2": 1952,
++   "group": "other",
++   "verdict_0_8_2": "void",
++   "modules": [
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M014",
++   "file": "workbench/context_menu.py",
++   "func": "ContextMenu.refit",
++   "kind": "call",
++   "old": "rect.setWidth(width)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 2267,
++   "group": "other",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M015",
++   "file": "workbench/context_menu.py",
++   "func": "field_entries",
++   "kind": "num",
++   "old": "0",
++   "new": "1",
++   "nth": 2,
++   "line_0_8_2": 1441,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the Field's right-click row 'Compare with Rev %s' names the wrong item of the revision pair (other[1], the object, instead of its letter); no test reads that row's words (context_menu.py:1441)",
++   "modules": [
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M016",
++   "file": "workbench/context_menu.py",
++   "func": "Router.eventFilter",
++   "kind": "cmp",
++   "old": " != ",
++   "new": " == ",
++   "nth": 0,
++   "line_0_8_2": 2880,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts",
++    "test_system_menu"
++   ]
++  },
++  {
++   "id": "M017",
++   "file": "workbench/context_menu.py",
++   "func": "Router.eventFilter",
++   "kind": "ret",
++   "old": "False",
++   "new": "not (False)",
++   "nth": 0,
++   "line_0_8_2": 2869,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M018",
++   "file": "workbench/context_menu.py",
++   "func": "queued_action",
++   "kind": "if",
++   "old": "not r.get('ok')",
++   "new": "not (not r.get('ok'))",
++   "nth": 0,
++   "line_0_8_2": 1040,
++   "group": "other",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M019",
++   "file": "workbench/continuing_work.py",
++   "func": "advance",
++   "kind": "num",
++   "old": "2",
++   "new": "3",
++   "nth": 0,
++   "line_0_8_2": 533,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the retry back-off of a failed read step becomes 5*3^n instead of 5*2^n seconds (capped at 60); no test checks retry_at (continuing_work.py:533)",
++   "modules": [
++    "test_continuing_work"
++   ]
++  },
++  {
++   "id": "M020",
++   "file": "workbench/continuing_work.py",
++   "func": "dispatch",
++   "kind": "cmp",
++   "old": " in ",
++   "new": " not in ",
++   "nth": 4,
++   "line_0_8_2": 724,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "pausing or revoking an adaptive investigation no longer stops its pending branches (stop_pending runs on every other operation instead); no test pauses/revokes a ledger.adaptive-investigation/1 plan and checks its branches (continuing_work.py:724)",
++   "modules": [
++    "test_continuing_work"
++   ]
++  },
++  {
++   "id": "M021",
++   "file": "workbench/continuing_work.py",
++   "func": "dispatch",
++   "kind": "call",
++   "old": "state.update(state='READY',reason=None,epoch=gate['epoch'])",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 708,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_continuing_work",
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M022",
++   "file": "workbench/continuing_work.py",
++   "func": "guard.inside",
++   "kind": "if",
++   "old": "state['state']!='RUNNING'",
++   "new": "not (state['state']!='RUNNING')",
++   "nth": 0,
++   "line_0_8_2": 254,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_continuing_work"
++   ]
++  },
++  {
++   "id": "M023",
++   "file": "workbench/continuing_work.py",
++   "func": "procedure_save",
++   "kind": "ret",
++   "old": "value",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 650,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_continuing_work"
++   ]
++  },
++  {
++   "id": "M024",
++   "file": "workbench/continuing_work.py",
++   "func": "create",
++   "kind": "num",
++   "old": "0",
++   "new": "1",
++   "nth": 9,
++   "line_0_8_2": 231,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "a new continuing-work order's agenda row starts with rounds_used=1 instead of 0 (one of its 20 rounds lost); no test reads the fresh row's rounds_used (continuing_work.py:231-232)",
++   "modules": [
++    "test_continuing_work",
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M025",
++   "file": "workbench/desk_acts.py",
++   "func": "desk_hers",
++   "kind": "if",
++   "old": "why",
++   "new": "not (why)",
++   "nth": 0,
++   "line_0_8_2": 323,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M026",
++   "file": "workbench/desk_acts.py",
++   "func": "unknown",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 0,
++   "line_0_8_2": 230,
++   "group": "guarding",
++   "verdict_0_8_2": "equivalent",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M027",
++   "file": "workbench/desk_acts.py",
++   "func": "_acts",
++   "kind": "ret",
++   "old": "{act.name: act for act in rows}",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 173,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_writing_line",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M028",
++   "file": "workbench/desk_acts.py",
++   "func": "plan_variants",
++   "kind": "call",
++   "old": "out.append({'type': 'object', 'properties': {'act': {'const': act.name}, **args['properties']}, 'required': ['act'] + args.get('required', []),\n                    'additionalProperties': False})",
++   "new": "(None\n)",
++   "nth": 0,
++   "line_0_8_2": 372,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "plan_variants returns an empty list (no act is offered as a plan choice); no test reads the plan choices built from the exported acts, though the docstring sets rules for them (keyed 'act', flat, within 9,000 bytes) (desk_acts.py:372)",
++   "modules": [
++    "test_desk_acts.PureRules",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M029",
++   "file": "workbench/desk_acts.py",
++   "func": "check",
++   "kind": "cmp",
++   "old": " == ",
++   "new": " != ",
++   "nth": 1,
++   "line_0_8_2": 274,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M030",
++   "file": "workbench/desk_acts.py",
++   "func": "_acts",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 3,
++   "line_0_8_2": 110,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts",
++    "test_writing_line",
++    "test_desk_scenes"
++   ]
++  },
++  {
++   "id": "M031",
++   "file": "workbench/desk_doers.py",
++   "func": "changing_row",
++   "kind": "cmp",
++   "old": " in ",
++   "new": " not in ",
++   "nth": 0,
++   "line_0_8_2": 432,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M032",
++   "file": "workbench/desk_doers.py",
++   "func": "surface",
++   "kind": "ret",
++   "old": "'home'",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 180,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "surface() returns None instead of 'home' while Home is in front; no test asserts that the desk reads 'home' (desk_doers.py:180; desk_acts and desk_scenes reach the line)",
++   "modules": [
++    "test_desk_acts.LiveActs.test_read_desk_reads_the_centre",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M033",
++   "file": "workbench/desk_doers.py",
++   "func": "by_search",
++   "kind": "call",
++   "old": "key(c, box, Q.Qt.Key_Return)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 381,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_scenes"
++   ]
++  },
++  {
++   "id": "M034",
++   "file": "workbench/desk_doers.py",
++   "func": "point_sheet",
++   "kind": "if",
++   "old": "by == 'keys'",
++   "new": "not (by == 'keys')",
++   "nth": 0,
++   "line_0_8_2": 829,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "point_sheet's route is unguarded: with the condition negated, by='keys' selects the sheet directly and the direct route presses keys; both end with the same selection, and no test checks that a sheet chosen 'by keys' was reached by key presses (or 'direct' without them) (desk_doers.py:829)",
++   "modules": [
++    "test_desk_acts.LiveActs.test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M035",
++   "file": "workbench/desk_doers.py",
++   "func": "outside",
++   "kind": "num",
++   "old": "6",
++   "new": "7",
++   "nth": 2,
++   "line_0_8_2": 1020,
++   "group": "guarding",
++   "verdict_0_8_2": "equivalent",
++   "modules": [
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M036",
++   "file": "workbench/desk_doers.py",
++   "func": "here_point",
++   "kind": "num",
++   "old": "0.5",
++   "new": "1.5",
++   "nth": 3,
++   "line_0_8_2": 972,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "here_point's fallback empty place in the Files view: the second probe point moves outside the viewport (x = 1.5 x width) and is used when the first probe hits an item; no test fills the lower-right corner so the fallback is never checked (desk_doers.py:972)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M037",
++   "file": "workbench/engineering_kernel.py",
++   "func": "Kernel._dispatch",
++   "kind": "cmp",
++   "old": " in ",
++   "new": " not in ",
++   "nth": 44,
++   "line_0_8_2": 595,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_continue_setting",
++    "test_browse",
++    "test_frame",
++    "test_cabinet_actions",
++    "test_machine",
++    "test_return_thread",
++    "test_related",
++    "test_documents",
++    "test_memory_cabinet",
++    "test_service_lifecycle",
++    "test_algorithm_atlas",
++    "test_model_settings",
++    "test_cabinet",
++    "test_hardware_settings",
++    "test_paper",
++    "test_operations",
++    "test_memory_settings",
++    "test_settings_advanced",
++    "test_conditions",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_resource_rules",
++    "test_profile_files",
++    "test_tool_atlas",
++    "test_explore",
++    "test_project_desk",
++    "test_network_watch",
++    "test_change_sets",
++    "test_discovery",
++    "test_model_turn",
++    "test_launcher",
++    "test_agent_loop",
++    "test_continuing_work",
++    "test_slate_reasoning",
++    "test_system_menu",
++    "test_context_menu",
++    "test_desk_acts",
++    "test_desk_scenes"
++   ]
++  },
++  {
++   "id": "M038",
++   "file": "workbench/engineering_kernel.py",
++   "func": "Kernel._dispatch",
++   "kind": "call",
++   "old": "db.execute(\"BEGIN IMMEDIATE\")",
++   "new": "None",
++   "nth": 2,
++   "line_0_8_2": 825,
++   "group": "guarding",
++   "verdict_0_8_2": "equivalent",
++   "modules": [
++    "test_resource_rules",
++    "test_network_watch",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M039",
++   "file": "workbench/engineering_kernel.py",
++   "func": "Kernel._dispatch",
++   "kind": "ret",
++   "old": "helpers.dispatch(self,op,a,p)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 622,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_conditions",
++    "test_browse",
++    "test_related",
++    "test_service_lifecycle",
++    "test_model_settings",
++    "test_resource_rules",
++    "test_profile_files",
++    "test_network_watch",
++    "test_agent_loop",
++    "test_slate_reasoning",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M040",
++   "file": "workbench/engineering_kernel.py",
++   "func": "Kernel.submit",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 0,
++   "line_0_8_2": 1241,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "what": "the idempotency key's lower bound moves from 1 to 2 characters (a one-character request key is refused); no test submits a one-character key (engineering_kernel.py:1241)",
++   "modules": [
++    "test_model_settings",
++    "test_resource_rules",
++    "test_network_watch",
++    "test_change_sets",
++    "test_slate_reasoning"
++   ]
++  },
++  {
++   "id": "M041",
++   "file": "workbench/engineering_kernel.py",
++   "func": "Kernel._dispatch",
++   "kind": "if",
++   "old": "op == \"candidates.diff\"",
++   "new": "not (op == \"candidates.diff\")",
++   "nth": 0,
++   "line_0_8_2": 786,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_service_lifecycle",
++    "test_model_settings",
++    "test_resource_rules",
++    "test_network_watch",
++    "test_slate_reasoning",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M042",
++   "file": "workbench/engineering_kernel.py",
++   "func": "Kernel.save.write",
++   "kind": "call",
++   "old": "activity.append(conn,event)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 463,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_model_settings",
++    "test_change_sets",
++    "test_service_lifecycle",
++    "test_operations",
++    "test_resource_rules",
++    "test_network_watch",
++    "test_slate_reasoning",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M043",
++   "file": "workbench/field_page.py",
++   "func": "FieldPage.__init__",
++   "kind": "call",
++   "old": "self.view.face_chosen.connect(self.show_face)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 57,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the Field view's face_chosen signal is no longer connected, so choosing a face on the Field itself changes nothing; the desk tests reach the line but change faces another way and never through that signal (field_page.py:57)",
++   "modules": [
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M044",
++   "file": "workbench/field_page.py",
++   "func": "revision_sibling",
++   "kind": "if",
++   "old": "theirs and theirs['stem'].strip().casefold() == mine['stem'].strip().casefold() and theirs['rev'].casefold() != mine['rev'].casefold()",
++   "new": "not (theirs and theirs['stem'].strip().casefold() == mine['stem'].strip().casefold() and theirs['rev'].casefold() != mine['rev'].casefold())",
++   "nth": 0,
++   "line_0_8_2": 703,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_faces_find_light",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M045",
++   "file": "workbench/field_page.py",
++   "func": "reviewed_rows",
++   "kind": "ret",
++   "old": "[]",
++   "new": "None",
++   "nth": 1,
++   "line_0_8_2": 715,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "reviewed_rows returns None instead of [] when office.get is refused, which its callers would iterate; no test opens a Field sheet whose office record cannot be read (field_page.py:715)",
++   "modules": [
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M046",
++   "file": "workbench/field_page.py",
++   "func": "open_object",
++   "kind": "cmp",
++   "old": " is not ",
++   "new": " is ",
++   "nth": 0,
++   "line_0_8_2": 684,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "opening an object from the Field no longer leaves the Field (leave_field is called only when nothing opened); no test checks what the centre shows after an open from the Field (field_page.py:684)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M047",
++   "file": "workbench/field_page.py",
++   "func": "do",
++   "kind": "num",
++   "old": "6000",
++   "new": "6001",
++   "nth": 0,
++   "line_0_8_2": 282,
++   "group": "other",
++   "verdict_0_8_2": "equivalent",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M048",
++   "file": "workbench/field_page.py",
++   "func": "compare_rows",
++   "kind": "cmp",
++   "old": " not in ",
++   "new": " in ",
++   "nth": 0,
++   "line_0_8_2": 739,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_faces_find_light",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M049",
++   "file": "workbench/field_ripple.py",
++   "func": "cells_named",
++   "kind": "ret",
++   "old": "sheet, names",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 81,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M050",
++   "file": "workbench/field_ripple.py",
++   "func": "cells_named",
++   "kind": "cmp",
++   "old": " != ",
++   "new": " == ",
++   "nth": 0,
++   "line_0_8_2": 75,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M051",
++   "file": "workbench/field_ripple.py",
++   "func": "cells_named",
++   "kind": "if",
++   "old": "obj.kind == 'calculation'",
++   "new": "not (obj.kind == 'calculation')",
++   "nth": 0,
++   "line_0_8_2": 65,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "cells_named on a calculation: negated, a calculation's input symbols are never collected and a sheet is read through documents.get; no test checks the names a calculation answers to (field_ripple.py:65; only test_desk_acts runs it, and only a crash on line 74 is caught)",
++   "modules": [
++    "test_rail_demo",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M052",
++   "file": "workbench/field_ripple.py",
++   "func": "cells_named",
++   "kind": "num",
++   "old": "0",
++   "new": "1",
++   "nth": 0,
++   "line_0_8_2": 74,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M053",
++   "file": "workbench/field_ripple.py",
++   "func": "cells_named",
++   "kind": "if",
++   "old": "obj.kind == 'sheet'",
++   "new": "not (obj.kind == 'sheet')",
++   "nth": 0,
++   "line_0_8_2": 71,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "cells_named on a sheet: negated, a Field sheet yields no cell names (and a non-sheet object is read as a sheet); no test checks the names field_ripple collects from a sheet (field_ripple.py:71; only test_desk_acts runs it)",
++   "modules": [
++    "test_rail_demo",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M054",
++   "file": "workbench/field_ripple.py",
++   "func": "_read",
++   "kind": "ret",
++   "old": "answer['result'] if answer.get('ok') else None",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 39,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "field_ripple._read always answers None, so no record is ever read for a ripple; with M051/M053 this shows that nothing asserts what field_ripple computes, only that it does not crash (field_ripple.py:39)",
++   "modules": [
++    "test_rail_demo",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M055",
++   "file": "workbench/files_service.py",
++   "func": "dispatch",
++   "kind": "call",
++   "old": "may_change(kernel, path, principal)",
++   "new": "None",
++   "nth": 2,
++   "line_0_8_2": 505,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts",
++    "test_desk_scenes"
++   ]
++  },
++  {
++   "id": "M056",
++   "file": "workbench/files_service.py",
++   "func": "entry",
++   "kind": "ret",
++   "old": "value",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 138,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_exact_math",
++    "test_problem",
++    "test_profile_files",
++    "test_project_desk",
++    "test_change_sets",
++    "test_discovery",
++    "test_continuing_work",
++    "test_deployment",
++    "test_slate_reasoning",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M057",
++   "file": "workbench/files_service.py",
++   "func": "number",
++   "kind": "if",
++   "old": "isinstance(text, (int, float))",
++   "new": "not (isinstance(text, (int, float)))",
++   "nth": 0,
++   "line_0_8_2": 259,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "number(): negated, a numeric cell is passed through only when it is NOT a number, so text cells such as '1,234' or '12' are no longer read as numbers (and bools become text); six modules reach it but none asserts a text cell read as a number (files_service.py:259)",
++   "modules": [
++    "test_line_rules",
++    "test_profile_files",
++    "test_project_desk",
++    "test_slate_reasoning",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M058",
++   "file": "workbench/files_service.py",
++   "func": "text_diff",
++   "kind": "cmp",
++   "old": " == ",
++   "new": " != ",
++   "nth": 2,
++   "line_0_8_2": 332,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M059",
++   "file": "workbench/files_service.py",
++   "func": "text_diff",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 3,
++   "line_0_8_2": 331,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the file diff numbers every added line one too high ('after': j + 2); test_context_menu shows a diff but never checks an added line's number (files_service.py:331)",
++   "modules": [
++    "test_context_menu.CompareText",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M060",
++   "file": "workbench/files_service.py",
++   "func": "number",
++   "kind": "ret",
++   "old": "text",
++   "new": "None",
++   "nth": 1,
++   "line_0_8_2": 265,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts",
++    "test_profile_files",
++    "test_project_desk",
++    "test_slate_reasoning"
++   ]
++  },
++  {
++   "id": "M061",
++   "file": "workbench/line_steps.py",
++   "func": "values",
++   "kind": "call",
++   "old": "out.append(Offer(step, words, 'filter', step, count, True, ''))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 206,
++   "group": "other",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M062",
++   "file": "workbench/line_steps.py",
++   "func": "steps_left",
++   "kind": "ret",
++   "old": "max(0, MOST_STAGES - len(stages(line)))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 58,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M063",
++   "file": "workbench/line_steps.py",
++   "func": "preview_columns.long",
++   "kind": "num",
++   "old": "24",
++   "new": "25",
++   "nth": 0,
++   "line_0_8_2": 242,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "what": "the line preview's 'long column' threshold moves from 24 to 25 characters on average; no test offers a column at the threshold (line_steps.py:242)",
++   "modules": [
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M064",
++   "file": "workbench/line_steps.py",
++   "func": "firsts",
++   "kind": "if",
++   "old": "count is not None and count > LIMIT",
++   "new": "not (count is not None and count > LIMIT)",
++   "nth": 0,
++   "line_0_8_2": 72,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M065",
++   "file": "workbench/line_steps.py",
++   "func": "ending_ready",
++   "kind": "cmp",
++   "old": " > ",
++   "new": " >= ",
++   "nth": 0,
++   "line_0_8_2": 64,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_context_menu",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M066",
++   "file": "workbench/line_steps.py",
++   "func": "Held.readings",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 0,
++   "line_0_8_2": 142,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "what": "the line's held readings are offered only from three entries instead of two (len(out) > 2); no test holds exactly two readings (line_steps.py:142)",
++   "modules": [
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M067",
++   "file": "workbench/local_brain.py",
++   "func": "status",
++   "kind": "if",
++   "old": "worker and not live and resource_stop is None and worker.get('key_file')",
++   "new": "not (worker and not live and resource_stop is None and worker.get('key_file'))",
++   "nth": 0,
++   "line_0_8_2": 120,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_frame",
++    "test_service_lifecycle",
++    "test_operations",
++    "test_resource_rules",
++    "test_launcher",
++    "test_agent_loop",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M068",
++   "file": "workbench/local_brain.py",
++   "func": "dispatch",
++   "kind": "ret",
++   "old": "result(kernel,args['id'],principal)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 1064,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_slate_reasoning"
++   ]
++  },
++  {
++   "id": "M069",
++   "file": "workbench/local_brain.py",
++   "func": "dispatch",
++   "kind": "cmp",
++   "old": "==",
++   "new": "!=",
++   "nth": 7,
++   "line_0_8_2": 1036,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_model_settings",
++    "test_resource_rules",
++    "test_slate_reasoning",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M070",
++   "file": "workbench/local_brain.py",
++   "func": "configuration",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 1,
++   "line_0_8_2": 260,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "what": "GPU layers accept -2 as well as -1..512; no test offers an out-of-range layer count (local_brain.py:260)",
++   "modules": [
++    "test_resource_rules",
++    "test_model_settings"
++   ]
++  },
++  {
++   "id": "M071",
++   "file": "workbench/local_brain.py",
++   "func": "_start_server",
++   "kind": "call",
++   "old": "process.kill()",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 463,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_resource_rules"
++   ]
++  },
++  {
++   "id": "M072",
++   "file": "workbench/local_brain.py",
++   "func": "dispatch",
++   "kind": "if",
++   "old": "op=='brain.ask'",
++   "new": "not (op=='brain.ask')",
++   "nth": 0,
++   "line_0_8_2": 1055,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_slate_reasoning"
++   ]
++  },
++  {
++   "id": "M073",
++   "file": "workbench/model_settings.py",
++   "func": "snapshot",
++   "kind": "ret",
++   "old": "value",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 130,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_model_settings",
++    "test_continue_setting",
++    "test_service_lifecycle",
++    "test_hardware_settings",
++    "test_paper",
++    "test_memory_settings",
++    "test_settings_advanced",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_agent_loop",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M074",
++   "file": "workbench/model_settings.py",
++   "func": "config",
++   "kind": "if",
++   "old": "backend not in ('AUTO','CPU','VULKAN') or requested not in ('AUTO','CPU','VULKAN')",
++   "new": "not (backend not in ('AUTO','CPU','VULKAN') or requested not in ('AUTO','CPU','VULKAN'))",
++   "nth": 0,
++   "line_0_8_2": 72,
++   "group": "guarding",
++   "verdict_0_8_2": "void",
++   "modules": [
++    "test_model_settings",
++    "test_resource_rules"
++   ]
++  },
++  {
++   "id": "M075",
++   "file": "workbench/model_settings.py",
++   "func": "snapshot",
++   "kind": "cmp",
++   "old": ">",
++   "new": ">=",
++   "nth": 0,
++   "line_0_8_2": 103,
++   "group": "guarding",
++   "verdict_0_8_2": "void",
++   "modules": [
++    "test_model_settings",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M076",
++   "file": "workbench/model_settings.py",
++   "func": "rows",
++   "kind": "num",
++   "old": "100",
++   "new": "101",
++   "nth": 0,
++   "line_0_8_2": 143,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "digest_only_0_8_2": true,
++   "what": "model settings report history_limit 101; nothing in the tree reads the field, and only the seed digest notices the edit (model_settings.py:143-145)",
++   "modules": [
++    "test_model_settings",
++    "test_continue_setting",
++    "test_service_lifecycle",
++    "test_hardware_settings",
++    "test_paper",
++    "test_memory_settings",
++    "test_settings_advanced",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_agent_loop",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M077",
++   "file": "workbench/model_settings.py",
++   "func": "preferences",
++   "kind": "call",
++   "old": "validate(key,value)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 23,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_model_settings",
++    "test_continue_setting",
++    "test_service_lifecycle",
++    "test_hardware_settings",
++    "test_paper",
++    "test_memory_settings",
++    "test_settings_advanced",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_resource_rules",
++    "test_agent_loop",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M078",
++   "file": "workbench/model_settings.py",
++   "func": "config",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 0,
++   "line_0_8_2": 66,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "what": "model settings accept threads from 2 instead of 1 (a saved one-thread setting would be refused); no test saves threads=1 (model_settings.py:66)",
++   "modules": [
++    "test_model_settings",
++    "test_resource_rules"
++   ]
++  },
++  {
++   "id": "M079",
++   "file": "workbench/release_integrity.py",
++   "func": "verify",
++   "kind": "num",
++   "old": "4",
++   "new": "5",
++   "nth": 0,
++   "line_0_8_2": 28,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "what": "the 4 MiB cap on MANIFEST.json becomes 5 MiB; no test offers an oversized manifest (release_integrity.py:28)",
++   "modules": [
++    "test_release_check",
++    "test_workspace_backup"
++   ]
++  },
++  {
++   "id": "M080",
++   "file": "workbench/release_integrity.py",
++   "func": "verify",
++   "kind": "call",
++   "old": "problems.append(name + ': changed')",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 42,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_release_check"
++   ]
++  },
++  {
++   "id": "M081",
++   "file": "workbench/release_integrity.py",
++   "func": "verify",
++   "kind": "cmp",
++   "old": " != ",
++   "new": " == ",
++   "nth": 1,
++   "line_0_8_2": 41,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_release_check",
++    "test_workspace_backup"
++   ]
++  },
++  {
++   "id": "M082",
++   "file": "workbench/release_integrity.py",
++   "func": "verify",
++   "kind": "ret",
++   "old": "{'state': 'VERIFIED' if not problems else 'DAMAGED', 'files': len(files),\n            'version': record.get('version'), 'problems': problems,\n            'meaning': 'Payload matches the local manifest; this does not authenticate its publisher.'}",
++   "new": "(None\n\n)",
++   "nth": 0,
++   "line_0_8_2": 43,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_workspace_backup",
++    "test_release_check"
++   ]
++  },
++  {
++   "id": "M083",
++   "file": "workbench/release_integrity.py",
++   "func": "relative",
++   "kind": "if",
++   "old": "not isinstance(name, str) or not name or any(x in name for x in ('\\\\', '\\x00', ':'))",
++   "new": "not (not isinstance(name, str) or not name or any(x in name for x in ('\\\\', '\\x00', ':')))",
++   "nth": 0,
++   "line_0_8_2": 17,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_workspace_backup",
++    "test_release_check",
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M084",
++   "file": "workbench/release_integrity.py",
++   "func": "verify",
++   "kind": "if",
++   "old": "any(p.is_symlink() for p in (path, *path.parents))",
++   "new": "not (any(p.is_symlink() for p in (path, *path.parents)))",
++   "nth": 0,
++   "line_0_8_2": 37,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_release_check",
++    "test_workspace_backup"
++   ]
++  },
++  {
++   "id": "M085",
++   "file": "workbench/resource_control.py",
++   "func": "_view",
++   "kind": "num",
++   "old": "0",
++   "new": "1",
++   "nth": 2,
++   "line_0_8_2": 172,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "what": "each resident-model commitment adds at least one byte to the reserved future (max(1, ...)); no test checks reserved_future_bytes exactly when budgets are fully used (resource_control.py:172)",
++   "modules": [
++    "test_resource_rules",
++    "test_model_settings",
++    "test_network_watch",
++    "test_agent_loop"
++   ]
++  },
++  {
++   "id": "M086",
++   "file": "workbench/resource_control.py",
++   "func": "reserve_setting",
++   "kind": "ret",
++   "old": "reserve_setting(kernel,connection)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 62,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "reserve_setting(kernel) without a connection returns None, so starting a model (local_brain.py:509, brain_qt.py:82, worker_boundary.py:408) silently uses the default foreground reserve instead of the owner's; tests keep the default reserve, so the owner's value is never checked on that path (resource_control.py:62)",
++   "modules": [
++    "test_resource_rules",
++    "test_model_settings",
++    "test_continuing_work"
++   ]
++  },
++  {
++   "id": "M087",
++   "file": "workbench/resource_control.py",
++   "func": "claim",
++   "kind": "call",
++   "old": "kernel.save('jobs',job,db)",
++   "new": "None",
++   "nth": 3,
++   "line_0_8_2": 281,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_resource_rules"
++   ]
++  },
++  {
++   "id": "M088",
++   "file": "workbench/resource_control.py",
++   "func": "decision",
++   "kind": "cmp",
++   "old": "==",
++   "new": "!=",
++   "nth": 5,
++   "line_0_8_2": 187,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the one-coordinator rule: with == flipped, a control job no longer waits for another control job, and inference/compute work waits while any control job runs; no test runs two control jobs or control beside other lanes (resource_control.py:187)",
++   "modules": [
++    "test_resource_rules",
++    "test_network_watch"
++   ]
++  },
++  {
++   "id": "M089",
++   "file": "workbench/resource_control.py",
++   "func": "_view",
++   "kind": "if",
++   "old": "worker.get('job_id') in loading or worker.get('job_id')==exclude",
++   "new": "not (worker.get('job_id') in loading or worker.get('job_id')==exclude)",
++   "nth": 0,
++   "line_0_8_2": 167,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "memory view: negated, a live resident model worker's reservation is dropped from the commitments (and a loading or excluded one is counted); test_resource_rules reaches the line with a live worker but never asserts the resident model's row or the 'future' total (resource_control.py:167)",
++   "modules": [
++    "test_resource_rules"
++   ]
++  },
++  {
++   "id": "M090",
++   "file": "workbench/resource_control.py",
++   "func": "decision",
++   "kind": "num",
++   "old": "0",
++   "new": "1",
++   "nth": 0,
++   "line_0_8_2": 192,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_resource_rules",
++    "test_network_watch"
++   ]
++  },
++  {
++   "id": "M091",
++   "file": "workbench/stacy_foundation.py",
++   "func": "prerequisites",
++   "kind": "num",
++   "old": "32_000_000",
++   "new": "32000001",
++   "nth": 0,
++   "line_0_8_2": 256,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "digest_only_0_8_2": true,
++   "what": "the 32,000,000-byte bound on a project prerequisite becomes 32,000,001; only the seed digest notices (stacy_foundation.py:256); re-run beside an unmutated control: the mutant fails test_every_navigation_changes_nothing again with 'offers no rows to keep', the control passes (recheck.json)",
++   "modules": [
++    "test_project_desk",
++    "test_tool_atlas",
++    "test_explore",
++    "test_launcher",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M092",
++   "file": "workbench/stacy_foundation.py",
++   "func": "handler_map",
++   "kind": "cmp",
++   "old": " in ",
++   "new": " not in ",
++   "nth": 0,
++   "line_0_8_2": 307,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_release_check",
++    "test_release_check",
++    "test_machine",
++    "test_tool_atlas",
++    "test_explore",
++    "test_network_watch",
++    "test_launcher",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M093",
++   "file": "workbench/stacy_foundation.py",
++   "func": "project_file",
++   "kind": "if",
++   "old": "not isinstance(name, str) or '\\\\' in name or ':' in name",
++   "new": "not (not isinstance(name, str) or '\\\\' in name or ':' in name)",
++   "nth": 0,
++   "line_0_8_2": 225,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_project_desk",
++    "test_release_check",
++    "test_cabinet_actions",
++    "test_algorithm_atlas",
++    "test_cabinet",
++    "test_explore",
++    "test_project_desk",
++    "test_change_sets",
++    "test_discovery",
++    "test_launcher",
++    "test_continuing_work",
++    "test_slate_reasoning",
++    "test_desk_acts",
++    "test_machine",
++    "test_workspace_backup",
++    "test_tool_atlas",
++    "test_desk_scenes",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M094",
++   "file": "workbench/stacy_foundation.py",
++   "func": "handler_map",
++   "kind": "ret",
++   "old": "handlers",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 310,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_project_desk",
++    "test_release_check",
++    "test_machine",
++    "test_tool_atlas",
++    "test_explore",
++    "test_network_watch",
++    "test_launcher",
++    "test_release_check",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M095",
++   "file": "workbench/stacy_foundation.py",
++   "func": "handler_map",
++   "kind": "call",
++   "old": "handlers.setdefault(literal.value, {'path': 'workbench/engineering_kernel.py',\n                                                                 'symbol': 'Kernel._dispatch', 'basis': 'LITERAL_DISPATCH_CASE'})",
++   "new": "(None\n)",
++   "nth": 0,
++   "line_0_8_2": 308,
++   "group": "guarding",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_release_check",
++    "test_machine",
++    "test_tool_atlas",
++    "test_explore",
++    "test_network_watch",
++    "test_launcher",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M096",
++   "file": "workbench/stacy_foundation.py",
++   "func": "carried",
++   "kind": "ret",
++   "old": "name.endswith(('.md', '.txt')) and (name.startswith('docs/') or name == 'AGENTS.md')",
++   "new": "not (name.endswith(('.md', '.txt')) and (name.startswith('docs/') or name == 'AGENTS.md'))",
++   "nth": 0,
++   "line_0_8_2": 359,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "carried(): negated, program files count as notes a verified seed may leave out and docs do not, so staC would run on a seed missing .py files; only the seed digest notices (stacy_foundation.py:359)",
++   "modules": [
++    "test_project_desk",
++    "test_workspace_backup",
++    "test_change_sets",
++    "test_continuing_work",
++    "test_release_check",
++    "test_slate_reasoning",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M097",
++   "file": "workbench/stacy_hand.py",
++   "func": "made",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 3,
++   "line_0_8_2": 185,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "Stacy's 'make a file ... containing \"words\"': with words[:2], quotes around the contents are no longer stripped, so the file gets the quote marks; no test makes a file with quoted contents (stacy_hand.py:185)",
++   "modules": [
++    "test_stacy_hand"
++   ]
++  },
++  {
++   "id": "M098",
++   "file": "workbench/stacy_hand.py",
++   "func": "undo_allowed",
++   "kind": "ret",
++   "old": "False",
++   "new": "not (False)",
++   "nth": 2,
++   "line_0_8_2": 227,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_stacy_hand",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M099",
++   "file": "workbench/stacy_hand.py",
++   "func": "undo_allowed",
++   "kind": "if",
++   "old": "name == 'field.set'",
++   "new": "not (name == 'field.set')",
++   "nth": 0,
++   "line_0_8_2": 228,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_stacy_hand",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M100",
++   "file": "workbench/stacy_hand.py",
++   "func": "hers",
++   "kind": "cmp",
++   "old": " in ",
++   "new": " not in ",
++   "nth": 1,
++   "line_0_8_2": 158,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_stacy_hand",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M101",
++   "file": "workbench/stacy_hand.py",
++   "func": "record",
++   "kind": "call",
++   "old": "trail.append(entry)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 248,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_stacy_hand",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M102",
++   "file": "workbench/stacy_hand.py",
++   "func": "undo_allowed",
++   "kind": "if",
++   "old": "not line.startswith('/')",
++   "new": "not (not line.startswith('/'))",
++   "nth": 0,
++   "line_0_8_2": 223,
++   "group": "guarding",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_stacy_hand",
++    "test_desk_scenes",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M103",
++   "file": "workbench/problem_checks.py",
++   "func": "invoke",
++   "kind": "if",
++   "old": "not result['ok']",
++   "new": "not (not result['ok'])",
++   "nth": 0,
++   "line_0_8_2": 21,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_exact_math",
++    "test_problem"
++   ]
++  },
++  {
++   "id": "M104",
++   "file": "workbench/typebar_qt.py",
++   "func": "TypeBar.typed",
++   "kind": "call",
++   "old": "self.mode_hint()",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 383,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "typing to the slate no longer refreshes the mode hint (self.mode_hint deleted); only the seed digest notices (typebar_qt.py:383)",
++   "modules": [
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M105",
++   "file": "workbench/network_watch.py",
++   "func": "parse_filter.host",
++   "kind": "if",
++   "old": "'%' in value and _host(value.split('%', 1)[0])[0] is not None",
++   "new": "not ('%' in value and _host(value.split('%', 1)[0])[0] is not None)",
++   "nth": 0,
++   "line_0_8_2": 430,
++   "group": "other",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_writing_line",
++    "test_network_watch",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M106",
++   "file": "workbench/stacy_start.py",
++   "func": "_answer",
++   "kind": "call",
++   "old": "os.killpg(process.pid, signal.SIGKILL)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 70,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_stacy_start"
++   ]
++  },
++  {
++   "id": "M107",
++   "file": "workbench/pane_qt.py",
++   "func": "draw_branches",
++   "kind": "if",
++   "old": "has",
++   "new": "not (has)",
++   "nth": 0,
++   "line_0_8_2": 359,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "what": "the tree's chevron and down-trace are painted for rows without children instead of rows with them; no test inspects the painted branches (pane_qt.py:359)",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M108",
++   "file": "workbench/boss_theme.py",
++   "func": "line_sheet",
++   "kind": "ret",
++   "old": "'color:%s' % TEAL_TEXT",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 78,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_kasandra",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M109",
++   "file": "workbench/release_updates.py",
++   "func": "verify_bundle",
++   "kind": "cmp",
++   "old": "!=",
++   "new": "==",
++   "nth": 6,
++   "line_0_8_2": 185,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M110",
++   "file": "workbench/field_model.py",
++   "func": "Field.place",
++   "kind": "num",
++   "old": "2",
++   "new": "3",
++   "nth": 1,
++   "line_0_8_2": 314,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "what": "the Field's narrow layout takes three margins instead of two, so sheets come out slightly narrower in a narrow window; no test measures the narrow-layout sheet width (field_model.py:314)",
++   "modules": [
++    "test_faces_find_light",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M111",
++   "file": "workbench/view_modules/images_plus.py",
++   "func": "claim",
++   "kind": "num",
++   "old": "4",
++   "new": "5",
++   "nth": 0,
++   "line_0_8_2": 21,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "HEIF/AVIF detection: head[5:8] can never equal b'ftyp', so .heic/.avif files are no longer claimed as images; 12 modules run claim() on ordinary files but none on a HEIF header (view_modules/images_plus.py:21)",
++   "modules": [
++    "test_exact_math",
++    "test_problem",
++    "test_profile_files",
++    "test_project_desk",
++    "test_change_sets",
++    "test_discovery",
++    "test_continuing_work",
++    "test_deployment",
++    "test_slate_reasoning",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M112",
++   "file": "workbench/catalog_settings.py",
++   "func": "read",
++   "kind": "ret",
++   "old": "view_preference(db)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 21,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_presentation_settings",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M113",
++   "file": "workbench/glyph_set.py",
++   "func": "trash",
++   "kind": "call",
++   "old": "line(p, (7.5, 4.5), (7.5, 2.5), (12.5, 2.5), (12.5, 4.5))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 399,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "what": "the Trash glyph loses its lid outline; the glyph tests check that every named glyph is drawn, not its strokes (glyph_set.py:399)",
++   "modules": [
++    "test_faces_find_light",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M114",
++   "file": "workbench/change_sets_qt.py",
++   "func": "ChangesTab.reload",
++   "kind": "cmp",
++   "old": " is ",
++   "new": " is not ",
++   "nth": 0,
++   "line_0_8_2": 208,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M115",
++   "file": "workbench/trash_can_qt.py",
++   "func": "TrashCan.paintEvent",
++   "kind": "cmp",
++   "old": " is not ",
++   "new": " is ",
++   "nth": 0,
++   "line_0_8_2": 121,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "what": "the Trash can no longer paints its item count; no test inspects the painted can (trash_can_qt.py:121)",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M116",
++   "file": "workbench/service_lifecycle.py",
++   "func": "start",
++   "kind": "if",
++   "old": "receipt",
++   "new": "not (receipt)",
++   "nth": 0,
++   "line_0_8_2": 168,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_service_lifecycle"
++   ]
++  },
++  {
++   "id": "M117",
++   "file": "workbench/cabinet.py",
++   "func": "snapshot",
++   "kind": "call",
++   "old": "add(ident,parent,'investigation',record['question'],'investigations',dict(kind='investigation',id=record['id']),\n            canonical=ident,owning=True,state=record['state'],canonical_home=unassigned,\n            description='Existing investigation, kept alongside saved inquiries without merging their records.')",
++   "new": "(None\n\n)",
++   "nth": 0,
++   "line_0_8_2": 185,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_cabinet"
++   ]
++  },
++  {
++   "id": "M118",
++   "file": "workbench/session.py",
++   "func": "Session.load",
++   "kind": "if",
++   "old": "lay.get('version') == LAYOUT_VERSION and _b64_ok(lay.get('dock_state'), 32768)",
++   "new": "not (lay.get('version') == LAYOUT_VERSION and _b64_ok(lay.get('dock_state'), 32768))",
++   "nth": 0,
++   "line_0_8_2": 262,
++   "group": "other",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_stacy_hand",
++    "test_faces_find_light",
++    "test_continue_setting",
++    "test_frame",
++    "test_kasandra",
++    "test_service_lifecycle",
++    "test_model_settings",
++    "test_cabinet",
++    "test_hardware_settings",
++    "test_paper",
++    "test_memory_settings",
++    "test_settings_advanced",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_writing_line",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M119",
++   "file": "workbench/tool_selection.py",
++   "func": "relevant",
++   "kind": "if",
++   "old": "not (by_name or by_family or on_program)",
++   "new": "not (not (by_name or by_family or on_program))",
++   "nth": 0,
++   "line_0_8_2": 113,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_tool_selection",
++    "test_network_watch",
++    "test_model_turn",
++    "test_change_sets",
++    "test_slate_reasoning",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M120",
++   "file": "workbench/knowledge_qt.py",
++   "func": "KnowledgeTab.shutdown_engineering",
++   "kind": "call",
++   "old": "super().shutdown_engineering()",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 147,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "the knowledge tab's shutdown skips the base shutdown (super().shutdown_engineering deleted), leaving its engineering timers/workers at close; only the seed digest notices (knowledge_qt.py:147)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M121",
++   "file": "workbench/program_rooms_qt.py",
++   "func": "ProgramRoom.sync_actions",
++   "kind": "call",
++   "old": "button.setEnabled(not self.busy and enabled())",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 161,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "a program room's action buttons are no longer disabled while it is busy; only the seed digest notices (program_rooms_qt.py:161)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M122",
++   "file": "workbench/memory_settings.py",
++   "func": "change",
++   "kind": "call",
++   "old": "db.execute('UPDATE settings SET value=? WHERE key=?',(json.dumps(previous),'ledger.change.'+undo_id))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 91,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "memory settings undo: the earlier ledger record is no longer marked undone=True in the database; no test reads the restored record's undone flag after an undo (memory_settings.py:91)",
++   "modules": [
++    "test_memory_settings"
++   ]
++  },
++  {
++   "id": "M123",
++   "file": "workbench/evidence_compiler.py",
++   "func": "ensure",
++   "kind": "call",
++   "old": "db.execute('CREATE TABLE IF NOT EXISTS ekp_receipts(id TEXT PRIMARY KEY,owner TEXT,sha256 TEXT,job TEXT)')",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 29,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "the ekp_receipts table is never created, so evidence_compiler.handles/receipts (lines 31, 139-141, 165) would fail; 53 modules run ensure() but none records or reads an evidence receipt; only the seed digest notices (evidence_compiler.py:29)",
++   "modules": [
++    "test_reasoning_graph",
++    "test_adaptive_contract",
++    "test_joined_work",
++    "test_tool_selection",
++    "test_desk",
++    "test_vocabulary",
++    "test_continue_setting",
++    "test_browse",
++    "test_frame",
++    "test_cabinet_actions",
++    "test_machine",
++    "test_return_thread",
++    "test_workspace_backup",
++    "test_related",
++    "test_documents",
++    "test_exact_math",
++    "test_memory_cabinet",
++    "test_service_lifecycle",
++    "test_algorithm_atlas",
++    "test_model_settings",
++    "test_cabinet",
++    "test_hardware_settings",
++    "test_paper",
++    "test_operations",
++    "test_memory_settings",
++    "test_problem",
++    "test_settings_advanced",
++    "test_conditions",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_writing_line",
++    "test_resource_rules",
++    "test_profile_files",
++    "test_tool_atlas",
++    "test_explore",
++    "test_project_desk",
++    "test_exact_math_solvers",
++    "test_network_watch",
++    "test_change_sets",
++    "test_discovery",
++    "test_model_turn",
++    "test_readiness",
++    "test_launcher",
++    "test_agent_loop",
++    "test_continuing_work",
++    "test_release_check",
++    "test_deployment",
++    "test_graphite",
++    "test_slate_reasoning",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M124",
++   "file": "workbench/project_desk_checks.py",
++   "func": "fixture",
++   "kind": "call",
++   "old": "locations.office(root)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 28,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_project_desk",
++    "test_slate_reasoning"
++   ]
++  },
++  {
++   "id": "M125",
++   "file": "workbench/cell_edits.py",
++   "func": "apply",
++   "kind": "if",
++   "old": "cached is not None",
++   "new": "not (cached is not None)",
++   "nth": 0,
++   "line_0_8_2": 216,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_change_sets"
++   ]
++  },
++  {
++   "id": "M126",
++   "file": "workbench/reading_preferences.py",
++   "func": "load_fonts",
++   "kind": "ret",
++   "old": "tuple(sorted(set(families)))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 22,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "load_fonts returns None instead of the loaded font families; only the seed digest notices (reading_preferences.py:22)",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M127",
++   "file": "workbench/record_io.py",
++   "func": "project_path",
++   "kind": "num",
++   "old": "1",
++   "new": "2",
++   "nth": 0,
++   "line_0_8_2": 61,
++   "group": "guarding",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "private-path check: parts[2:] skips the folder right under .ledger, so with private=True a path like '.ledger/.hidden/x' is accepted; no test offers a hidden name directly under .ledger (record_io.py:61)",
++   "modules": [
++    "test_record_paths",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M128",
++   "file": "workbench/programs_qt.py",
++   "func": "_icon_paths",
++   "kind": "num",
++   "old": "2.5",
++   "new": "3.5",
++   "nth": 11,
++   "line_0_8_2": 166,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "what": "the Office icon's tray outline moves one unit; no test compares icon geometry (programs_qt.py:166)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M129",
++   "file": "workbench/agenda.py",
++   "func": "dispatch",
++   "kind": "call",
++   "old": "db.execute('UPDATE agenda_items SET nice=?, updated=? WHERE id=?', (args['nice'], time.time(), row['id']))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 548,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_operations"
++   ]
++  },
++  {
++   "id": "M130",
++   "file": "workbench/explore_qt.py",
++   "func": "ExploreTab.refresh",
++   "kind": "cmp",
++   "old": "==",
++   "new": "!=",
++   "nth": 2,
++   "line_0_8_2": 313,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "the Explore list labels every non-instrument entry by the instrument words and vice versa (kind column); only the seed digest notices (explore_qt.py:313)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M131",
++   "file": "workbench/command_rows.py",
++   "func": "plain",
++   "kind": "ret",
++   "old": "text.replace('&&', '\\0').replace('&', '').replace('\\0', '&').strip()",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 11,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M132",
++   "file": "workbench/qt_app.py",
++   "func": "WorkbenchWindow.closeEvent",
++   "kind": "cmp",
++   "old": " is not ",
++   "new": " is ",
++   "nth": 2,
++   "line_0_8_2": 5284,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M133",
++   "file": "workbench/pdf_service.py",
++   "func": "ensure",
++   "kind": "call",
++   "old": "db.execute('CREATE TABLE IF NOT EXISTS ref_pdf_annotations(id TEXT PRIMARY KEY,ns TEXT,owner TEXT,item TEXT,version INTEGER,payload TEXT,sha256 TEXT)')",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 30,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_continue_setting",
++    "test_browse",
++    "test_frame",
++    "test_cabinet_actions",
++    "test_machine",
++    "test_return_thread",
++    "test_workspace_backup",
++    "test_related",
++    "test_documents",
++    "test_exact_math",
++    "test_memory_cabinet",
++    "test_service_lifecycle",
++    "test_algorithm_atlas",
++    "test_model_settings",
++    "test_cabinet",
++    "test_hardware_settings",
++    "test_paper",
++    "test_operations",
++    "test_memory_settings",
++    "test_problem",
++    "test_settings_advanced",
++    "test_conditions",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_resource_rules",
++    "test_profile_files",
++    "test_tool_atlas",
++    "test_explore",
++    "test_project_desk",
++    "test_network_watch",
++    "test_change_sets",
++    "test_discovery",
++    "test_model_turn",
++    "test_launcher",
++    "test_agent_loop",
++    "test_continuing_work",
++    "test_deployment",
++    "test_slate_reasoning",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M134",
++   "file": "workbench/browse.py",
++   "func": "listing",
++   "kind": "call",
++   "old": "rows.append((entry, kind_of(entry)))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 116,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_browse",
++    "test_profile_files",
++    "test_context_menu"
++   ]
++  },
++  {
++   "id": "M135",
++   "file": "workbench/stacy_control.py",
++   "func": "parse",
++   "kind": "if",
++   "old": "lower in ('/fabrication','generate fabrication candidates','generate gerbers')",
++   "new": "not (lower in ('/fabrication','generate fabrication candidates','generate gerbers'))",
++   "nth": 0,
++   "line_0_8_2": 81,
++   "group": "other",
++   "verdict_0_8_2": "void",
++   "modules": [
++    "test_settings_registry"
++   ]
++  },
++  {
++   "id": "M136",
++   "file": "workbench/memory_qt.py",
++   "func": "MemoryTab.refresh_profile.preferences",
++   "kind": "if",
++   "old": "self.context()!=context",
++   "new": "not (self.context()!=context)",
++   "nth": 0,
++   "line_0_8_2": 85,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "the Memory tab drops the preferences answer in the normal case (stale-context guard negated), so its feedback list is never filled; only the seed digest notices (memory_qt.py:85)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M137",
++   "file": "workbench/discovery_qt.py",
++   "func": "DiscoveryTab.load_list",
++   "kind": "if",
++   "old": "value is None",
++   "new": "not (value is None)",
++   "nth": 0,
++   "line_0_8_2": 64,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "the Discovery tab returns without listing when the list arrives (and reads None when it does not); only the seed digest notices (discovery_qt.py:64)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M138",
++   "file": "workbench/idle_display_qt.py",
++   "func": "IdleDisplay._listen",
++   "kind": "if",
++   "old": "needed != self.listening",
++   "new": "not (needed != self.listening)",
++   "nth": 0,
++   "line_0_8_2": 80,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the idle display's event filter: negated, it is never installed when it becomes needed, so the idle screen would not see input to wake or to restart its minutes; no test drives the idle display's wake by input (idle_display_qt.py:80)",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M139",
++   "file": "workbench/receiving.py",
++   "func": "Budget.__init__",
++   "kind": "num",
++   "old": "0",
++   "new": "1",
++   "nth": 1,
++   "line_0_8_2": 84,
++   "group": "other",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_reasoning_graph",
++    "test_adaptive_contract",
++    "test_joined_work",
++    "test_tool_selection",
++    "test_desk",
++    "test_vocabulary",
++    "test_continue_setting",
++    "test_browse",
++    "test_frame",
++    "test_cabinet_actions",
++    "test_machine",
++    "test_return_thread",
++    "test_workspace_backup",
++    "test_related",
++    "test_documents",
++    "test_exact_math",
++    "test_memory_cabinet",
++    "test_service_lifecycle",
++    "test_algorithm_atlas",
++    "test_model_settings",
++    "test_cabinet",
++    "test_hardware_settings",
++    "test_paper",
++    "test_operations",
++    "test_memory_settings",
++    "test_problem",
++    "test_settings_advanced",
++    "test_conditions",
++    "test_settings_registry",
++    "test_presentation_settings",
++    "test_writing_line",
++    "test_resource_rules",
++    "test_profile_files",
++    "test_tool_atlas",
++    "test_explore",
++    "test_project_desk",
++    "test_exact_math_solvers",
++    "test_network_watch",
++    "test_change_sets",
++    "test_discovery",
++    "test_model_turn",
++    "test_readiness",
++    "test_launcher",
++    "test_agent_loop",
++    "test_continuing_work",
++    "test_release_check",
++    "test_deployment",
++    "test_graphite",
++    "test_slate_reasoning",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M140",
++   "file": "workbench/writing_marker.py",
++   "func": "WritingMarker.__init__",
++   "kind": "call",
++   "old": "self.timer.setInterval(PERIOD_MS // 2)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 240,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "the writing marker's timer runs with interval 0 instead of PERIOD_MS/2 (a busy tick, wrong blink rate); test_paper/test_graphite reach it and pass; only the seed digest notices (writing_marker.py:240)",
++   "modules": [
++    "test_paper",
++    "test_graphite",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M141",
++   "file": "workbench/empty_workspace_qt.py",
++   "func": "show_home",
++   "kind": "cmp",
++   "old": " is not ",
++   "new": " is ",
++   "nth": 0,
++   "line_0_8_2": 49,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "show_home no longer removes the previous centre page from the stack (and calls removeWidget(None) when there is none); only the seed digest notices (empty_workspace_qt.py:49)",
++   "modules": [
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M142",
++   "file": "workbench/field_doubt.py",
++   "func": "doubts_for",
++   "kind": "ret",
++   "old": "sorted(found, key=lambda doubt: ORDER.get(doubt.verdict, 9))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 526,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the Field's doubts: doubts_for returns None, so field.doubts and desk() would raise TypeError (field_service.py:135-136, field_doubt.py:534); the desk_acts tests that reach it neither fail nor assert the doubt rows (field_doubt.py:526)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M143",
++   "file": "workbench/doctor.py",
++   "func": "database",
++   "kind": "ret",
++   "old": "{'state': 'NOT_CREATED'}",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 46,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_workspace_backup"
++   ]
++  },
++  {
++   "id": "M144",
++   "file": "workbench/arc_desktop.py",
++   "func": "ActivityRail.__init__",
++   "kind": "call",
++   "old": "self.setObjectName('ActivityRail')",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 363,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "low",
++   "digest_only_0_8_2": true,
++   "what": "the activity rail loses its object name, so the #ActivityRail style no longer applies; only the seed digest notices (arc_desktop.py:363)",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M145",
++   "file": "workbench/menu_catch.py",
++   "func": "Watcher.eventFilter",
++   "kind": "ret",
++   "old": "False",
++   "new": "not (False)",
++   "nth": 0,
++   "line_0_8_2": 128,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M146",
++   "file": "workbench/exchange.py",
++   "func": "dispatch",
++   "kind": "cmp",
++   "old": "==",
++   "new": "!=",
++   "nth": 0,
++   "line_0_8_2": 206,
++   "group": "other",
++   "verdict_0_8_2": "not_run",
++   "modules": [
++    "test_deployment"
++   ]
++  },
++  {
++   "id": "M147",
++   "file": "workbench/graphite_brand.py",
++   "func": "Cat.show",
++   "kind": "if",
++   "old": "self.reduce_motion()",
++   "new": "not (self.reduce_motion())",
++   "nth": 0,
++   "line_0_8_2": 448,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_graphite",
++    "test_launcher",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M148",
++   "file": "workbench/checked_methods.py",
++   "func": "dispatch",
++   "kind": "cmp",
++   "old": " == ",
++   "new": " != ",
++   "nth": 2,
++   "line_0_8_2": 188,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_joined_work"
++   ]
++  },
++  {
++   "id": "M149",
++   "file": "workbench/machine_overview.py",
++   "func": "tools",
++   "kind": "cmp",
++   "old": " in ",
++   "new": " not in ",
++   "nth": 0,
++   "line_0_8_2": 553,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "the machine overview marks found tools PARTIAL and missing-reason rows OBSERVED (state in -> not in); test_machine reaches it and passes; only the seed digest notices (machine_overview.py:553-556)",
++   "modules": [
++    "test_machine",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M150",
++   "file": "workbench/stac_bridge.py",
++   "func": "compile_program",
++   "kind": "num",
++   "old": "4096",
++   "new": "4097",
++   "nth": 1,
++   "line_0_8_2": 66,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "boundary",
++   "what": "the 4,096-byte bound on a STAC program becomes 4,097 bytes; no test offers a program at the bound (stac_bridge.py:66)",
++   "modules": [
++    "test_algorithm_atlas",
++    "test_writing_line",
++    "test_tool_atlas",
++    "test_project_desk",
++    "test_discovery"
++   ]
++  },
++  {
++   "id": "M151",
++   "file": "workbench/kibot_tools.py",
++   "func": "dispatch",
++   "kind": "cmp",
++   "old": "==",
++   "new": "!=",
++   "nth": 0,
++   "line_0_8_2": 320,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "kibot dispatch swaps kibot.report with the overview answer; no test calls the kibot operations; only the seed digest notices (kibot_tools.py:320)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M152",
++   "file": "workbench/explore.py",
++   "func": "snapshot",
++   "kind": "num",
++   "old": "0",
++   "new": "1",
++   "nth": 0,
++   "line_0_8_2": 149,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_explore",
++    "test_launcher",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M153",
++   "file": "workbench/field_do.py",
++   "func": "_sheet",
++   "kind": "call",
++   "old": "out.append(_watch(obj.title, obj.stac))",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 111,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M154",
++   "file": "workbench/office_qt.py",
++   "func": "OfficePanel.can_close_concern",
++   "kind": "cmp",
++   "old": "!=",
++   "new": "==",
++   "nth": 0,
++   "line_0_8_2": 348,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "digest_only_0_8_2": true,
++   "what": "closing an office workspace is refused when the candidate editor is NOT running and allowed while it runs; only the seed digest notices (office_qt.py:348)",
++   "modules": [
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M155",
++   "file": "workbench/rooms.py",
++   "func": "status_text",
++   "kind": "call",
++   "old": "parts.append('%d arrived' % waiting)",
++   "new": "None",
++   "nth": 0,
++   "line_0_8_2": 179,
++   "group": "other",
++   "verdict_0_8_2": "gap",
++   "severity_0_8_2": "real",
++   "what": "the status line drops 'N arrived' when things wait in the inbox; no test sets a waiting inbox and reads the status text (rooms.py:179)",
++   "modules": [
++    "test_frame",
++    "test_system_menu",
++    "test_desk_scenes",
++    "test_context_menu",
++    "test_desk_acts"
++   ]
++  },
++  {
++   "id": "M156",
++   "file": "workbench/host_service.py",
++   "func": "Coordinator.invoke",
++   "kind": "if",
++   "old": "method == 'hold' and not args",
++   "new": "not (method == 'hold' and not args)",
++   "nth": 0,
++   "line_0_8_2": 245,
++   "group": "other",
++   "verdict_0_8_2": "caught",
++   "modules": [
++    "test_service_lifecycle"
++   ]
++  }
++ ]
++}
+diff --git a/tools/planted_bugs/plant.py b/tools/planted_bugs/plant.py
+new file mode 100644
+index 0000000..0263b07
+--- /dev/null
++++ b/tools/planted_bugs/plant.py
+@@ -0,0 +1,213 @@
++#!/usr/bin/env python3
++"""Plant one named bug (a planted bug, or mutant) into a throwaway copy of the tree, or show where it would go.
++
++A planted bug is a minimal text edit on one node of one function, as the 14 November 2026 measure made them
++(wip notes: tests_measure/mutants.md). Kinds:
++  cmp     flip one comparison operator: < <=, > >=, == !=, is / is not, in / not in
++  if      negate the condition of an if / elif: `if X:` -> `if not (X):`
++  ret     `return X` -> `return not (X)` when X is boolean-valued, else `return None`
++  num     an int or float constant + 1
++  call    delete a call statement (it becomes the no-op expression `None`)
++The code moves between releases, so a bug is found by its file, its function, its kind and its old and new text, never by
++its line number. When the function holds the same edit more than once, `nth` (counted from 0, in source order) names which.
++
++    python3 tools/planted_bugs/plant.py --where                 every bug in bugs.json and where it lands in this tree
++    python3 tools/planted_bugs/plant.py TREE ID                  plant bug ID into the copy at TREE (refused in a git checkout)
++
++Not shipped: tools/package_graphite.py leaves tools/planted_bugs/ out of the kit.
++"""
++import ast
++import json
++import re
++import sys
++from pathlib import Path
++
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parents[1]
++BUGS = HERE / 'bugs.json'
++
++CMP_FLIP = {ast.Lt: ('<', '<='), ast.LtE: ('<=', '<'), ast.Gt: ('>', '>='), ast.GtE: ('>=', '>'), ast.Eq: ('==', '!='),
++            ast.NotEq: ('!=', '=='), ast.Is: ('is', 'is not'), ast.IsNot: ('is not', 'is'), ast.In: ('in', 'not in'),
++            ast.NotIn: ('not in', 'in')}
++CMP_RE = {'<': r'<(?!=)', '<=': r'<=', '>': r'>(?!=)', '>=': r'>=', '==': r'==', '!=': r'!=', 'is': r'\bis\b(?!\s+not\b)',
++          'is not': r'\bis\s+not\b', 'in': r'(?<!not )\bin\b', 'not in': r'\bnot\s+in\b'}
++BOOL_CALLS = {'isinstance', 'issubclass', 'hasattr', 'callable', 'bool', 'any', 'all', 'startswith', 'endswith', 'exists',
++              'is_file', 'is_dir', 'isdigit', 'isalpha', 'isalnum', 'isidentifier', 'is_absolute', 'match', 'fullmatch',
++              'isVisible', 'isEnabled', 'isChecked', 'isHidden', 'isinf', 'isnan', 'isfinite', 'is_relative_to'}
++QUIET = re.compile(r'^(print|(\w+\.)*(log|logger|logging|_log|LOG|_logger)\.\w+|warnings\.warn|traceback\.print_exc|'
++                   r'(\w+\.)*(debug|info|warning|exception)|sys\.stderr\.write|sys\.stdout\.write)$')
++SKIPPED_FIELDS = ('body', 'orelse', 'finalbody', 'handlers', 'cases', 'decorator_list', 'returns', 'annotation',
++                  'type_params', 'args')
++
++
++def dotted(node):
++    if isinstance(node, ast.Name): return node.id
++    if isinstance(node, ast.Attribute):
++        base = dotted(node.value)
++        return (base + '.' if base else '') + node.attr
++    return ''
++
++
++def boolish(node):
++    if isinstance(node, (ast.Compare, ast.BoolOp)): return True
++    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not): return True
++    if isinstance(node, ast.Constant) and isinstance(node.value, bool): return True
++    if isinstance(node, ast.Call): return dotted(node.func).rsplit('.', 1)[-1] in BOOL_CALLS
++    return False
++
++
++class Source:
++    def __init__(self, text):
++        self.lines = text.splitlines(keepends=True)
++        self.starts = [0]
++        for line in self.lines: self.starts.append(self.starts[-1] + len(line))
++
++    def offset(self, lineno, col):  # ast columns are UTF-8 byte offsets
++        line = self.lines[lineno - 1]
++        return self.starts[lineno - 1] + len(line.encode('utf-8')[:col].decode('utf-8', 'replace'))
++
++    def span(self, node):
++        return self.offset(node.lineno, node.col_offset), self.offset(node.end_lineno, node.end_col_offset)
++
++
++def own_expressions(stmt):
++    """The expressions of this statement itself, not of the statements nested in its body."""
++    out = []
++    for name, value in ast.iter_fields(stmt):
++        if name in SKIPPED_FIELDS: continue
++        if isinstance(value, ast.expr): out.append(value)
++        elif isinstance(value, list):
++            for item in value:
++                if isinstance(item, ast.expr): out.append(item)
++                elif isinstance(item, ast.withitem): out.append(item.context_expr)
++    return out
++
++
++def walk_expression(node):
++    """ast.walk over an expression, not entering lambdas or f-string format specs."""
++    todo = [node]
++    while todo:
++        item = todo.pop()
++        if isinstance(item, ast.Lambda): continue
++        yield item
++        for name, child in ast.iter_fields(item):
++            if isinstance(item, ast.FormattedValue) and name == 'format_spec': continue
++            if isinstance(child, ast.AST): todo.append(child)
++            elif isinstance(child, list): todo.extend(x for x in child if isinstance(x, ast.AST))
++
++
++def sites(text):
++    """Every edit the five kinds offer inside function bodies, in source order, each with its function and span."""
++    tree = ast.parse(text)
++    source = Source(text)
++    out = []
++
++    def add(kind, stmt, start, end, new, func):
++        old = text[start:end]
++        if old != new: out.append(dict(kind=kind, line=stmt.lineno, start=start, end=end, old=old, new=new, func=func))
++
++    def keep_lines(new, old):  # the replaced segment keeps its line count, so every other line keeps its number
++        count = old.count('\n')
++        return new if not count else '(' + new + '\n' * count + ')'
++
++    def body(stmts, func, in_func):
++        for stmt in stmts: statement(stmt, func, in_func)
++
++    def statement(stmt, func, in_func):
++        if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
++            return body(stmt.body, (func + '.' if func else '') + stmt.name, True)
++        if isinstance(stmt, ast.ClassDef):
++            return body(stmt.body, (func + '.' if func else '') + stmt.name, in_func)
++        if in_func: offers(stmt, func)
++        for name in ('body', 'orelse', 'finalbody'): body(getattr(stmt, name, []) or [], func, in_func)
++        for handler in getattr(stmt, 'handlers', []) or []: body(handler.body, func, in_func)
++        for case in getattr(stmt, 'cases', []) or []: body(case.body, func, in_func)
++
++    def offers(stmt, func):
++        if isinstance(stmt, ast.If):
++            a, b = source.span(stmt.test)
++            add('if', stmt, a, b, 'not (' + text[a:b] + ')', func)
++        if isinstance(stmt, ast.Return) and stmt.value is not None and not (isinstance(stmt.value, ast.Constant) and stmt.value.value is None):
++            a, b = source.span(stmt.value)
++            add('ret', stmt, a, b, 'not (' + text[a:b] + ')' if boolish(stmt.value) else keep_lines('None', text[a:b]), func)
++        if isinstance(stmt, ast.Expr):
++            value = stmt.value.value if isinstance(stmt.value, ast.Await) else stmt.value
++            if isinstance(value, ast.Call) and not QUIET.match(dotted(value.func) or '-'):
++                a, b = source.span(stmt)
++                add('call', stmt, a, b, keep_lines('None', text[a:b]), func)
++        for expression in own_expressions(stmt):
++            for node in walk_expression(expression):
++                if isinstance(node, ast.Compare):
++                    operands = [node.left] + node.comparators
++                    for i, op in enumerate(node.ops):
++                        a = source.offset(operands[i].end_lineno, operands[i].end_col_offset)
++                        b = source.offset(operands[i + 1].lineno, operands[i + 1].col_offset)
++                        gap = text[a:b]
++                        old, new = CMP_FLIP[type(op)]
++                        found = re.search(CMP_RE[old], gap)
++                        if found: add('cmp', stmt, a, b, gap[:found.start()] + new + gap[found.end():], func)
++                elif isinstance(node, ast.Constant) and type(node.value) in (int, float):
++                    a, b = source.span(node)
++                    add('num', stmt, a, b, repr(node.value + 1), func)
++
++    body(tree.body, None, False)
++    return out
++
++
++def load(path=BUGS):
++    return json.loads(Path(path).read_text(encoding='utf-8'))['bugs']
++
++
++def bug_named(name, bugs=None):
++    for bug in bugs if bugs is not None else load():
++        if bug['id'] == name: return bug
++    raise KeyError('no planted bug ' + name + ' in ' + str(BUGS))
++
++
++def locate(text, bug):
++    """The one site in `text` that is this bug, or None when the code no longer holds it (the bug is then 'gone')."""
++    same = [s for s in sites(text) if s['func'] == bug['func'] and s['kind'] == bug['kind'] and s['old'] == bug['old']
++            and s['new'] == bug['new']]
++    nth = bug.get('nth', 0)
++    return same[nth] if nth < len(same) else None
++
++
++def planted(text, site):
++    return text[:site['start']] + site['new'] + text[site['end']:]
++
++
++def refuse_checkout(tree):
++    """Bugs are planted only in a throwaway copy: never in a git checkout or worktree."""
++    if (Path(tree) / '.git').exists(): raise SystemExit('refused: %s is a git checkout; plant bugs only in a copy' % tree)
++
++
++def plant(tree, bug):
++    """Write the bug into TREE/file. Returns (path, original text, line) so the caller can put the file back."""
++    refuse_checkout(tree)
++    path = Path(tree) / bug['file']
++    text = path.read_text(encoding='utf-8')
++    site = locate(text, bug)
++    if site is None: return path, text, None
++    changed = planted(text, site)
++    compile(changed, str(path), 'exec')
++    path.write_text(changed, encoding='utf-8')
++    return path, text, site['line']
++
++
++def where(tree=ROOT):
++    rows = []
++    for bug in load():
++        path = Path(tree) / bug['file']
++        site = locate(path.read_text(encoding='utf-8'), bug) if path.is_file() else None
++        rows.append((bug['id'], bug['file'], site['line'] if site else 'GONE', bug['func'], bug['kind']))
++    return rows
++
++
++if __name__ == '__main__':
++    if sys.argv[1:2] == ['--where']:
++        for row in where(sys.argv[2] if len(sys.argv) > 2 else ROOT): print(*row)
++    elif len(sys.argv) == 3:
++        path, _, line = plant(sys.argv[1], bug_named(sys.argv[2]))
++        print('%s:%s' % (path, line) if line else 'GONE: the code no longer holds ' + sys.argv[2])
++    else:
++        print(__doc__); sys.exit(2)
+diff --git a/tools/planted_bugs/run.py b/tools/planted_bugs/run.py
+new file mode 100644
+index 0000000..cabfbf8
+--- /dev/null
++++ b/tools/planted_bugs/run.py
+@@ -0,0 +1,178 @@
++#!/usr/bin/env python3
++"""Run named planted bugs against the tests that cover them, and count how many the suite catches by behaviour.
++
++For each bug, in a throwaway copy of the tree (never a git checkout):
++  1. plant it (plant.py: found by file, function, kind and text, never by line number);
++  2. make the seed current the way packaging does (tools/package_graphite.py --manifest-only), so that no test can fail on
++     the seed's source digest alone: a bug counts as caught only when a test fails on what the bug does. The recorded
++     registry (docs/GRAPHITE_0.1_REGISTRY.json) is not written again: it records operations, settings and the code serving
++     each, not source bytes (a comment changes nothing in it), so a test that finds the live registry changed has found
++     behaviour. When packaging refuses the planted tree (a bug in the seed's own code), the modules run on the stale seed
++     and every failure counts except the one test whose job is the seed's digest (DIGEST_TESTS);
++  3. run the bug's test modules (bugs.json `modules`; a dotted name runs one class or one test), each in its own process at
++     nice 19 in a private pid namespace with a fresh HOME and offscreen Qt, failfast, in the order listed, until one fails;
++  4. put the file back and make the seed current again.
++Verdicts: caught (a module failed), missed (all passed), timeout (a module ran out of time: counted apart), gone (the code
++no longer holds the bug). A bug packaging refused carries refresh: the reason, beside its verdict; the report lists it apart
++with the failing tests, for a person to read (a module that needs a current seed would fail on it too).
++
++    python3 tools/planted_bugs/run.py --tree COPY [--tree COPY2] [--group guarding] [--ids M007 M008] [--out results.jsonl]
++    python3 tools/planted_bugs/run.py --report results.jsonl
++
++One worker per --tree (two copies: two processes at most). --python names the interpreter with PySide6 (default: this one).
++--all-modules runs every listed module even after a catch. --plain drops nice/unshare where unshare is not allowed.
++Bugs whose 0.8.2 verdict is `equivalent` (no behaviour can tell them apart) are left out unless named with --ids.
++The report gives, per group, the bugs caught of those run (equivalent ones excluded), beside the 0.8.2 verdicts in bugs.json.
++
++Not shipped: tools/package_graphite.py leaves tools/planted_bugs/ out of the kit.
++"""
++import argparse
++import json
++import os
++import queue
++import re
++import shutil
++import subprocess
++import sys
++import tempfile
++import threading
++import time
++from pathlib import Path
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++import plant  # noqa: E402
++
++REFRESH = (['tools/package_graphite.py', '--manifest-only'],)
++# The one test whose job is that the seed is current: on a stale seed it fails by design, so it never counts as a catch.
++DIGEST_TESTS = ('tests_integrated.test_project_desk.Seed.test_the_seed_of_this_tree_is_current',)
++FAILED_TEST = re.compile(r'^(FAIL|ERROR): (\S+) \((\S+)\)', re.M)
++
++
++def refresh(tree, python):
++    """Make the seed current. Returns None, or the step that failed."""
++    env = dict(os.environ, QT_QPA_PLATFORM='offscreen')
++    for step in REFRESH:
++        done = subprocess.run([python, *step], cwd=tree, env=env, capture_output=True, text=True, timeout=600)
++        if done.returncode != 0: return ' '.join(step) + ': ' + (done.stderr or done.stdout)[-400:]
++    return None
++
++
++def run_module(tree, module, python, timeout, plain=False, stale=False):
++    home = tempfile.mkdtemp(prefix='planted-home-')
++    env = dict(os.environ, HOME=home, QT_QPA_PLATFORM='offscreen', PYTHONDONTWRITEBYTECODE='1')
++    for name in ('PYTHONPATH', 'COVERAGE_PROCESS_START'): env.pop(name, None)
++    command = [python, '-B', '-m', 'unittest'] + ([] if stale else ['-f']) + ['tests_integrated.' + module]
++    if not plain: command = ['nice', '-n', '19', 'unshare', '--pid', '--fork', '--mount-proc', '--kill-child'] + command
++    began = time.time()
++    try:
++        done = subprocess.run(command, cwd=tree, env=env, capture_output=True, text=True, timeout=timeout)
++        failing = ['%s %s' % (kind, test) for kind, _, test in FAILED_TEST.findall(done.stderr)]
++        counted = [f for f in failing if f.split(' ', 1)[1] not in DIGEST_TESTS] if stale else failing
++        verdict = 'passed' if done.returncode == 0 or (stale and failing and not counted) else 'failed'
++        tail = done.stderr[-600:] if verdict == 'failed' else ''
++    except subprocess.TimeoutExpired:
++        verdict, failing, tail = 'timeout', [], ''
++    finally:
++        shutil.rmtree(home, ignore_errors=True)
++    return dict(verdict=verdict, sec=round(time.time() - began, 1), failing=failing[:5], tail=tail)
++
++
++def one(tree, bug, args):
++    row = dict(id=bug['id'], file=bug['file'], func=bug['func'], kind=bug['kind'], group=bug['group'],
++               before=bug.get('verdict_0_8_2'), modules={})
++    began = time.time()
++    path, original, line = plant.plant(tree, bug)
++    if line is None:
++        return dict(row, verdict='gone', sec=0)
++    row['line'] = line
++    try:
++        failed = refresh(tree, args.python)
++        if failed: row['refresh'] = failed
++        verdict = 'missed'
++        for module in bug['modules']:
++            result = run_module(tree, module, args.python, args.timeout, args.plain, stale=bool(failed))
++            row['modules'][module] = result
++            if result['verdict'] == 'failed':
++                verdict = 'caught'
++                if not args.all_modules: break
++            elif result['verdict'] == 'timeout' and verdict == 'missed':
++                verdict = 'timeout'
++        row['verdict'] = verdict
++    finally:
++        path.write_text(original, encoding='utf-8')
++        after = refresh(tree, args.python)
++        if after: raise SystemExit('the tree at %s could not be made current again after %s: %s' % (tree, bug['id'], after))
++    row['sec'] = round(time.time() - began, 1)
++    return row
++
++
++def chosen(args):
++    bugs = plant.load(args.bugs)
++    if args.ids: return [b for b in bugs if b['id'] in set(args.ids)]
++    return [b for b in bugs if (args.group == 'all' or b['group'] == args.group) and b.get('verdict_0_8_2') != 'equivalent'
++            and (not args.before or b.get('verdict_0_8_2') in args.before)]
++
++
++def report(path, bugs_path=plant.BUGS):
++    rows = {}
++    for line in Path(path).read_text().splitlines():
++        if line.strip():
++            row = json.loads(line); rows[row['id']] = row
++    bugs = {b['id']: b for b in plant.load(bugs_path)}
++    out = {}
++    for group in sorted({b['group'] for b in bugs.values()}):
++        ran = [r for r in rows.values() if r['group'] == group and r['verdict'] in ('caught', 'missed', 'timeout') and 'refresh' not in r]
++        before = [b for b in bugs.values() if b['group'] == group and b.get('verdict_0_8_2') in ('caught', 'gap', 'digest_only')]
++        out[group] = dict(
++            now=dict(caught=sum(r['verdict'] == 'caught' for r in ran), timeout=sum(r['verdict'] == 'timeout' for r in ran),
++                     run=len(ran), missed=sorted(r['id'] for r in ran if r['verdict'] == 'missed'),
++                     apart=sorted('%s %s%s' % (r['id'], r['verdict'], ' on a stale seed: ' + '; '.join(
++                         f for m in r['modules'].values() for f in m['failing'])[:300] if 'refresh' in r else '')
++                         for r in rows.values() if r['group'] == group and (r['verdict'] not in ('caught', 'missed', 'timeout') or 'refresh' in r))),
++            at_0_8_2=dict(caught=sum(b['verdict_0_8_2'] == 'caught' for b in before), valid=len(before)))
++    return out
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
++    parser.add_argument('--tree', action='append', default=[])
++    parser.add_argument('--bugs', default=str(plant.BUGS))
++    parser.add_argument('--ids', nargs='*')
++    parser.add_argument('--group', default='guarding', choices=('guarding', 'other', 'all'))
++    parser.add_argument('--before', nargs='*', help='only bugs with these 0.8.2 verdicts (caught, gap, not_run, void)')
++    parser.add_argument('--out', default='planted_bugs_results.jsonl')
++    parser.add_argument('--python', default=sys.executable)
++    parser.add_argument('--timeout', type=int, default=900)
++    parser.add_argument('--all-modules', action='store_true')
++    parser.add_argument('--plain', action='store_true')
++    parser.add_argument('--report')
++    args = parser.parse_args()
++    if args.report:
++        print(json.dumps(report(args.report, args.bugs), indent=1)); return
++    if not args.tree: parser.error('name at least one --tree: a throwaway copy of the tree')
++    for tree in args.tree: plant.refuse_checkout(tree)
++    out = Path(args.out)
++    done = {json.loads(l)['id'] for l in out.read_text().splitlines() if l.strip()} if out.exists() else set()
++    todo = queue.Queue()
++    for bug in chosen(args):
++        if bug['id'] not in done: todo.put(bug)
++    lock = threading.Lock()
++
++    def worker(tree):
++        while True:
++            try: bug = todo.get_nowait()
++            except queue.Empty: return
++            row = one(tree, bug, args)
++            with lock:
++                with out.open('a') as stream: stream.write(json.dumps(row) + '\n')
++                print(row['id'], row['file'].rsplit('/', 1)[-1], row.get('line'), row['verdict'],
++                      next((m for m, r in row['modules'].items() if r['verdict'] == 'failed'), ''), row['sec'], flush=True)
++
++    threads = [threading.Thread(target=worker, args=(tree,)) for tree in args.tree]
++    for thread in threads: thread.start()
++    for thread in threads: thread.join()
++    print(json.dumps(report(out, args.bugs), indent=1))
++
++
++if __name__ == '__main__':
++    main()

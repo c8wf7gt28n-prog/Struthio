@@ -1,0 +1,1318 @@
+diff --git a/README.md b/README.md
+index 8ca9709..c53c763 100644
+--- a/README.md
++++ b/README.md
+@@ -123,6 +123,7 @@ restore in full.
+ python3 tools/check_release.py               # payload, seed and syntax; the live program against docs/GRAPHITE_0.1_REGISTRY.json; the privacy scan
+ python3 tools/check_release.py --self-test   # adds the focused tests_integrated modules, one module per child process
+ python3 tools/check_release.py --ui          # adds the offscreen Qt checks of the UI gate (docs/WINDOW_CHECKS.md lists them)
++python3 tools/run_tiers.py 0                 # the checks in tiers: 0 at every change, 1 before a commit, 2 at a release (docs/CHECKS.md)
+ python3 -m workbench.slate_checks --runtime
+ python3 -m workbench.continuing_checks --workers
+ python3 -m workbench.deployment_checks --ui
+diff --git a/docs/CHECKS.md b/docs/CHECKS.md
+new file mode 100644
+index 0000000..bbd6da7
+--- /dev/null
++++ b/docs/CHECKS.md
+@@ -0,0 +1,130 @@
++# The checks, in tiers
++
++One command runs the checks at the size the moment needs:
++
++```
++python3 tools/run_tiers.py 0                      # at every change: under a minute
++python3 tools/run_tiers.py 1 [--changed REF]      # before a commit: tier 0 and what imports a changed file
++python3 tools/run_tiers.py 2                      # at a release: everything, in both looks
++```
++
++`--look graphite|kasandra|both` chooses the look (tiers 0 and 1: the look in force; tier 2: both). `--out DIR` is where
++the run writes `tier<N>.json` and every module's output (a new temporary folder by default; never inside the program
++folder). `--against EARLIER.json` says what changed since an earlier run of the same tier.
++
++| Tier | What it runs | When | Measured here |
++| --- | --- | --- | --- |
++| 0 | 25 fast modules (two of them in part) that guard the most: the owner's guards always, then the most planted bugs caught per second | every change | 39 s (budget: 1 minute) |
++| 1 | tier 0, and every test module and window check that imports a changed file | before a commit | 1 min 46 s for a one-line change in `workbench/agenda_qt.py` |
++| 2 | every test module, the 22 window checks, the playable scene on Rail Demo four ways, the name sweep, the release check's integrity sections | a release | 11 min 36 s per look (budget: 15 minutes) |
++| 3 | the ThinkPad: the check, the scenes on the real display, an evening of use | each release, by the owner | not run here |
++
++Each module, window check and scene runs in a process of its own, with an empty home folder and a temporary folder of its
++own, offscreen, at the lowest priority, in the look it is given: Kasandra's with `GRAPHITE_APPEARANCE=kasandra`,
++Graphite's with the variable unset, the default the owner starts with. None of the program's own variables passes from
++the shell that starts the run (`ARC_LEDGER_*` such as the workspace a switch chose, `ARC1_WORKBENCH_*`, `LEDGER_*`,
++`GRAPHITE_*`), nor the `XDG_*_HOME` folders or `PYTHONPATH`. It runs in a process namespace of its own where the machine
++allows one (as root, or with user namespaces), and elsewhere, as on the owner's machine as a normal user, in a process
++group of its own; either way, when it ends, by itself or at its limit, what it started ends with it. Two run at a time,
++the longest first. Each has a time limit (`tools/tiers.json`); a run stopped at its limit is a failure. Each child also
++carries its own limit (`timeout`, 30 s after the run's), so that even if the run itself is killed outright, no test goes
++on past it.
++
++The run prints one table (look, kind, name, tests run, failed, skipped, seconds, state), the failing tests with the words
++they failed with, and a last line: `0 failing`, or how many and where, and then the tests skipped and where (a module
++whose solver or rights are missing on this machine says so instead of passing quietly). It exits 0 only when nothing
++failed. A module that dies or ends in the middle of a test without unittest's last word is a failure.
++
++Ctrl-C (or SIGTERM, or the terminal closing) stops a run at once: nothing more is started, every module running is killed
++with what it started and its folders removed, and `tier<N>.json` is written with those marked `interrupted` (a failure)
++and the rest `not run`. The last line starts with `interrupted`, and the exit is 130. A second Ctrl-C changes nothing.
++
++## Tier 0: the guards first
++
++The list is in `tools/tiers.json`, each entry with why it is there. Always in it, whatever they cost: her hand's rules
++(`test_stacy_hand`, and the pure rules of `test_desk_acts`), the memory rules (`test_resource_rules`,
++`test_memory_settings`, `test_model_settings`), release integrity (`test_release_check`), the seed being current
++(`test_project_desk`), one name (`test_one_name`'s name, sweep and code classes; its window sweep takes two minutes and
++is left to tiers 1 and 2), and the Kernel's scopes (`test_conditions`, `test_network_watch`, `test_documents`,
++`test_cabinet_actions`), change sets, continuing work and backup. The rest were chosen from the planted bugs of
++14 November (`unique kills` per second of the module's time): every module that alone caught a planted bug in under
++seven seconds, the line's rules and the colour-vision check.
++
++## Tier 1: what the change touches
++
++A test module is chosen when it, or one of its own helpers in `tests_integrated/` or `tools/`, imports or names a changed
++file: an import anywhere in the file, a patch target such as `'workbench.x.y'`, a path such as `'tools/campaign.py'`. A
++changed file that is not Python is followed to the Python files that name it, by its file name as a whole word
++(`CHECKS.md` is not named by `WINDOW_CHECKS.md`). A file moved or renamed counts under both its names, so the tests that
++import the old name are chosen. The changed files are what `git` says differs from the commit (`--changed REF`, HEAD by
++default) and the files it does not know yet, so tier 1 needs a git checkout: in the installed kit, which is not one,
++run tier 0 or tier 2. The program's own imports are not followed:
++the window imports most of the program, so following them chooses 72 of the 74 modules for any change at all. What a
++change reaches only through the window is tier 2's. A window check is chosen the same way. `MANIFEST.json` and the seed
++follow the source and are read by tier 0; `wip/` is never run. The map of what each file imports is kept in the user's
++cache folder and read again only where a file changed (3 s to make, a fraction of a second to reuse).
++
++## Tier 2: the release
++
++Every module in `tools/check_hatch.py` (`FOCUSED_MODULES` and `ON_DEMAND_MODULES`, the list a new module must join), in
++each look; `test_one_name` and `test_rail_demo_campaign` once, because each already runs both looks itself. The window
++checks are `UI_CHECKS`, read when the run starts, in each look, their captures under the run's folder. The scene is P01 on
++Rail Demo, by pointer, by keys and each again with Reduce motion (`tools/campaign.py run --case DP01a,DP01b,DP01c,DP01d`),
++in each look. The name sweep reads the code (`tools/name_sweep.py`); the window is swept by `test_one_name` in both looks.
++The release check's own sections (`tools/check_release.py`: the payload, the seed, the registry record, the privacy scan)
++run once; a report left in the folder by an earlier run is removed first, so it is never read as this one's.
++
++## What the release no longer runs, and why
++
++At 0.8.2 the checks outside the suite took 64.8 minutes (72.9 with the suite) and, since 0.5.0, had caught one real fault
++(the frame check's process start, 0.7.0); the scene caught two more in its first release; the crawler and the probes caught
++none. What changed:
++
++- **The probes and the crawler are not part of the release.** The 30 probes (run at two sizes, 30.8 minutes) and the
++  crawler (in two looks, 28.1 minutes, 95% of it fixed waits) lived only in the build's scratch folder, never in the
++  program. Nineteen probes judged nothing (they printed and took pictures), and the crawler's 15 logs since 0.5.0 are the
++  same bytes. What they looked at that still matters is for the scenes and the desk acts' tests to check (below).
++- **The name sweep is in the suite** (`test_one_name`, 0.8.4), over the code, the guide pages and the live window in both
++  looks, and it now also finds a printed key and "Programs".
++- **The gate's failing scripts are gone:** seven retired, the rest ported; all 22 pass in both looks (docs/WINDOW_CHECKS.md).
++- **A changed failure shows.** The old comparison looked only at pass and the line a check stopped on, and twice hid a
++  message that changed. Each row of a tier's result keeps the failing tests and their words, and `--against` reports a
++  change of words as a change.
++
++Not done yet, from the same review: new scenes from existing desk acts (the owner's mouse path, her hand, the meters and
++the pane) and the probes' remaining checks as assertions in the modules that already build the window.
++
++## Fixed waits
++
++Measured on 19 November by timing every `QTest.qWait` and `time.sleep` in one run of each window check (Graphite's look):
++the 22 checks spent 115 of their 351 seconds waiting (33%). Tier 0 hardly waits at all (two pauses of 0.3 s in
++`test_network_watch`, the time a real capture thread needs). Two checks wait for more than half their time:
++
++- `check_model_turn_ui`, 8.8 of 14.5 s: almost all of it is already a wait for a condition (`wait_for` looks every 50 ms
++  until the turn has landed); its fixed part is about 1.7 s.
++- `check_finder_ui`, 37 of 67 s: its `settle()` (three rounds of events and 30 ms) runs about 400 times, inside the steps
++  that walk the window from 1,040 to 1,400 px wide and the reading size from 14 to 28 pt. What it waits for is the
++  window's own deferred work (layouts measured again, the head's words folding, a pane measuring its faces again), which
++  has no single condition to wait on, and a check whose waits are cut too fine fails under load for no fault (the look
++  probe did so in 0.6.1). It is left as it is. Halving it would save about 9 s of each look's tier 2.
++
++Not changed either, and listed here: `check_operations_ui` waits 0.4 s after each slider key and 2.1 s for the meters'
++timer (2.9 of its 8.8 s); `check_context_menu_ui` (9.4 of 21 s) and `check_agent_ui` (6.8 of 18 s) settle between steps
++the same way. The crawler, which waited for 95% of its time, is no longer run.
++
++## Measured here
++
++On 19 November 2026, on a copy of the tree (four cores, another build's two test processes running beside it, load 2 to
++3.5), each child at nice 19 in a process namespace of its own, two at a time:
++
++- **Tier 0:** 39.9 s, 39.4 s and 38.6 s in three runs; 25 runs, 412 tests, 0 failing.
++- **Tier 1** for a one-line change in `workbench/agenda_qt.py` (with the seed made current again): it chose
++  `test_delete_words`, `test_hologram`, `test_kasandra_column`, `test_session_start` and `test_typewriter_faces`; 30 runs,
++  492 tests, 1 min 46 s, 0 failing.
++- **Tier 2,** one look after the other: Graphite 11 min 36 s, Kasandra 11 min 35 s; each 100 runs, 1,160 tests, the 22
++  window checks (220 steps), the scene 4 of 4, 0 failing. In Graphite's look the children took 1,391 s between them: the
++  modules 920 s (the slowest `test_desk_acts`, 187 s), the window checks 372 s (`check_finder_ui` 68 s), the scene 90 s,
++  the name sweep 5 s and the release check's sections 4 s. Two at a time, the run takes half of that.
++
++Both looks in one run (`--look both`, the default for tier 2) share the two modules that run both looks themselves and
++the sweep, so they should take about 21 minutes; that was estimated from the two runs above, not measured.
+diff --git a/docs/WINDOW_CHECKS.md b/docs/WINDOW_CHECKS.md
+index 0e1571a..743457c 100644
+--- a/docs/WINDOW_CHECKS.md
++++ b/docs/WINDOW_CHECKS.md
+@@ -14,6 +14,8 @@ The release check runs one look, because one pass of all twenty-two takes about
+ (371.4 s in Graphite's look and 373.8 s in the Kasandra look, the scripts' times added up, on 19 November 2026), and both
+ looks would double that. So whoever cuts a release runs `--ui` twice before cutting it: once as it is, once with
+ `GRAPHITE_APPEARANCE=kasandra`. The Kasandra pass is not optional: it is where 0.8.4 found two of its three faults (below).
++The release tier does both: `python3 tools/run_tiers.py 2` runs every check in `UI_CHECKS` in each look, two at a time,
++with the suite and the scene (docs/CHECKS.md).
+ 
+ ## The rule: no window check without a home
+ 
+diff --git a/tests_integrated/test_run_tiers.py b/tests_integrated/test_run_tiers.py
+new file mode 100644
+index 0000000..a8da51a
+--- /dev/null
++++ b/tests_integrated/test_run_tiers.py
+@@ -0,0 +1,414 @@
++"""0.8.4: the checks in tiers (tools/run_tiers.py, its lists in tools/tiers.json; docs/CHECKS.md).
++
++The lists: every test module is in tier 2, in both looks, and tier 0 is a part of it, with the modules that guard the
++owner, each entry saying why; tier 2 runs the window checks the gate lists and the scene in each look. The import map on
++a tree of its own: a test is chosen by a file it imports or names, or that its own helpers import or name; a file that is
++not Python by the Python that names it as a whole word; a moved file under both its names; the map is kept, read again
++only where a file changed, and made again when damaged. The runner on a tree of its own: each module in a child with an
++empty home, the look given (Graphite's: nothing set) and none of the program's own variables from the shell; a failing
++module fails the run with its message, one that ends mid-test or crashes is a failure, skipped tests are counted and
++named; a module that outlives its time limit is stopped, with what it started, and is a failure, and what a module
++started is stopped at its end too; window checks, the scene, the release check's sections and the sweep are read from
++what they report; an interrupted run stops what runs at once and writes what it has; the result file and the last
++line. No window is made.
++"""
++import ast
++import contextlib
++import io
++import json
++import os
++import signal
++import subprocess
++import sys
++import tempfile
++import textwrap
++import time
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++from tools import check_hatch
++from tools import run_tiers as tiers
++
++ROOT = tiers.ROOT
++
++
++def write(root, files):
++    for name, text in files.items():
++        path = Path(root) / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_text(textwrap.dedent(text))
++
++
++class TheLists(unittest.TestCase):
++    def setUp(self):
++        self.cfg = tiers.config()
++
++    def test_every_test_module_is_in_tier_2_in_both_looks_and_tier_0_is_a_part_of_it(self):
++        shipped = {path.stem for path in (ROOT / 'tests_integrated').glob('test_*.py')}
++        units, _ = tiers.plan(2, tiers.LOOKS, self.cfg)
++        two = {u['name'] for u in units if u['kind'] == 'module'}
++        self.assertEqual(shipped - two, set(), 'a test module tier 2 does not run')
++        self.assertEqual(two - shipped, set(), 'tier 2 names a module that is not there')
++        once = self.cfg['2']['once']
++        for name in two:
++            self.assertEqual(sorted(u['look'] for u in units if u['kind'] == 'module' and u['name'] == name),
++                             [tiers.LOOKS[0]] if name in once else sorted(tiers.LOOKS), name)
++        zero = [row['module'] for row in self.cfg['0']['modules']]
++        self.assertEqual(len(zero), len(set(zero)), 'a module twice in tier 0'); self.assertLessEqual(set(zero), two)
++        for row in self.cfg['0']['modules']:
++            self.assertGreater(len(row.get('why', '')), 20, row['module'])
++            if row.get('classes'):        # a part of a module: the classes must be there, or tier 0 would run nothing of it
++                tree = ast.parse((ROOT / 'tests_integrated' / (row['module'] + '.py')).read_text())
++                self.assertLessEqual(set(row['classes']), {n.name for n in tree.body if isinstance(n, ast.ClassDef)}, row['module'])
++        for reason in once.values():
++            self.assertIn('both looks', reason)
++
++    def test_tier_0_always_holds_what_guards_the_owner(self):
++        zero = {row['module'] for row in self.cfg['0']['modules']}
++        # her hand's rules, the memory rules, release integrity, the seed being current, one name, the Kernel's scopes
++        for name in ('test_stacy_hand', 'test_resource_rules', 'test_release_check', 'test_project_desk', 'test_one_name', 'test_network_watch'):
++            self.assertIn(name, zero)
++
++    def test_tier_2_runs_the_gates_window_checks_and_the_scene_in_each_look_and_the_sweep_once(self):
++        units, _ = tiers.plan(2, tiers.LOOKS, self.cfg)
++        for look in tiers.LOOKS:
++            self.assertEqual([u['name'] for u in units if u['kind'] == 'check' and u['look'] == look], list(check_hatch.UI_CHECKS))
++            self.assertEqual([u['name'] for u in units if u['kind'] == 'scene' and u['look'] == look], ['DP01a,DP01b,DP01c,DP01d'])
++        self.assertEqual([(u['kind'], u['name']) for u in units if u['kind'] in ('sweep', 'integrity')],
++                         [('integrity', 'tools/check_release.py'), ('sweep', 'tools/name_sweep.py')])
++        one, _ = tiers.plan(2, ['kasandra'], self.cfg)
++        self.assertEqual({u['look'] for u in one}, {'kasandra'})
++        self.assertEqual(len([u for u in one if u['kind'] == 'module']), len({u['name'] for u in units if u['kind'] == 'module'}))
++
++    def test_tier_1_is_tier_0_when_nothing_changed_and_adds_what_imports_a_change(self):
++        zero, _ = tiers.plan(0, ['graphite'], self.cfg)
++        same, chosen = tiers.plan(1, ['graphite'], self.cfg, [], imports={})
++        self.assertEqual((same, chosen), (zero, {}))
++        imports = tiers.import_map(ROOT, cache=False)
++        units, chosen = tiers.plan(1, ['graphite'], self.cfg, ['tools/run_tiers.py', 'MANIFEST.json'], imports=imports)
++        self.assertEqual(chosen, {'tests_integrated/test_run_tiers.py': ['tools/run_tiers.py']}, 'MANIFEST.json follows the source: tier 0 reads it')
++        self.assertEqual(units[:len(zero)], zero); self.assertEqual(units[len(zero):], [{'kind': 'module', 'name': 'test_run_tiers', 'classes': [], 'look': 'graphite'}])
++        # a module tier 0 runs a part of runs whole when a change imports it
++        units, _ = tiers.plan(1, ['graphite'], self.cfg, ['tests_integrated/test_one_name.py'], imports=imports)
++        self.assertEqual([u for u in units if u['name'] == 'test_one_name'], [{'kind': 'module', 'name': 'test_one_name', 'classes': [], 'look': 'graphite'}])
++
++
++class TheImportMap(unittest.TestCase):
++    TREE = {
++        'workbench/__init__.py': '',
++        'workbench/alpha.py': 'from . import beta\nVALUE = beta.VALUE\n',
++        'workbench/beta.py': 'VALUE = 7\n',
++        'workbench/gamma.py': 'from pathlib import Path\nWORDS = Path(__file__).parent / "data" / "words.json"\n',
++        'workbench/data/words.json': '[]\n',
++        'tools/helper.py': 'from workbench import gamma\n',
++        'tests_integrated/test_a.py': 'import unittest\nfrom workbench import alpha\n',
++        'tests_integrated/test_b.py': 'import unittest\nfrom tools import helper\n',
++        'tests_integrated/test_c.py': 'import unittest\nfrom unittest.mock import patch\nPATCHED = patch("workbench.beta.VALUE", 8)\n',
++        'tests_integrated/test_d.py': 'import unittest\nimport subprocess\nRUN = ["python3", "workbench/beta.py"]\nGUIDE = "docs/WINDOW_CHECKS.md"\n',
++        'tests_integrated/test_e.py': 'def broken(:\n',
++        'docs/CHECKS.md': '', 'docs/WINDOW_CHECKS.md': '',
++        'wip/notes.md': 'workbench/alpha.py\n'}
++    UNITS = ['tests_integrated/test_%s.py' % x for x in 'abcde']
++
++    def setUp(self):
++        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup); self.root = Path(temp.name); write(self.root, self.TREE)
++        self.imports = tiers.import_map(self.root, cache=False)
++
++    def chosen(self, *changed, ignored=()):
++        return {Path(unit).stem: hit for unit, hit in tiers.dependents(list(changed), self.UNITS, self.root, self.imports, ignored).items()}
++
++    def test_a_test_is_chosen_by_what_it_imports_or_names_and_by_what_its_helpers_do(self):
++        self.assertEqual(tiers.direct('workbench/alpha.py', self.imports, set(self.imports)), {'workbench/__init__.py', 'workbench/beta.py'}, 'from . import beta')
++        self.assertEqual(self.chosen('workbench/alpha.py'), {'test_a': ['workbench/alpha.py']})
++        # beta is imported by alpha, a file of the program: following the program's own imports would choose every module
++        self.assertEqual(self.chosen('workbench/beta.py'), {'test_c': ['workbench/beta.py'], 'test_d': ['workbench/beta.py']})
++        self.assertEqual(self.chosen('workbench/gamma.py'), {'test_b': ['workbench/gamma.py']}, 'through its helper in tools/')
++        self.assertEqual(self.chosen('tools/helper.py'), {'test_b': ['tools/helper.py']})
++        self.assertEqual(self.chosen('tests_integrated/test_e.py'), {'test_e': ['tests_integrated/test_e.py']}, 'a file that does not parse still counts as itself')
++        self.assertEqual(self.chosen('workbench/__init__.py'), {'test_a': ['workbench/__init__.py'], 'test_b': ['workbench/__init__.py'], 'test_c': ['workbench/__init__.py']})
++
++    def test_a_file_that_is_not_python_is_followed_to_the_python_that_names_it_and_the_ignored_are_not(self):
++        self.assertEqual(self.chosen('workbench/data/words.json'), {'test_b': ['workbench/data/words.json']})
++        self.assertEqual(self.chosen('docs/WINDOW_CHECKS.md'), {'test_d': ['docs/WINDOW_CHECKS.md']})
++        self.assertEqual(self.chosen('docs/CHECKS.md'), {}, 'a name inside a longer name is not that name')
++        self.assertEqual(self.chosen('wip/notes.md', 'MANIFEST.json', ignored=('wip/', 'MANIFEST.json')), {})
++        self.assertEqual(self.chosen(), {})
++
++    def test_the_map_is_kept_and_read_again_only_where_a_file_changed(self):
++        cache = self.root.parent / (self.root.name + '-map.json'); self.addCleanup(lambda: cache.unlink(missing_ok=True))
++        first = tiers.import_map(self.root, cache=cache); self.assertEqual(first, self.imports)
++        self.assertEqual(json.loads(cache.read_text())['files']['tests_integrated/test_a.py']['names'], ['unittest', 'workbench', 'workbench.alpha'])
++        with patch.object(tiers, 'references', side_effect=AssertionError('read again')):
++            self.assertEqual(tiers.import_map(self.root, cache=cache), first, 'nothing changed: nothing is read again')
++        (self.root / 'tests_integrated/test_d.py').write_text('from workbench import gamma\n')
++        read = []; real = tiers.references
++        with patch.object(tiers, 'references', side_effect=lambda name, text: read.append(name) or real(name, text)):
++            again = tiers.import_map(self.root, cache=cache)
++        self.assertEqual(read, ['tests_integrated/test_d.py']); self.assertIn('workbench.gamma', again['tests_integrated/test_d.py']['names'])
++        stat = (self.root / 'tests_integrated/test_a.py').stat()
++        for damaged in ('not json', '[1, 2]', '{"format": 1, "files": []}', '{"format": 1, "files": "x"}',
++                        json.dumps({'format': 1, 'files': {'tests_integrated/test_a.py': {'stamp': [stat.st_mtime_ns, stat.st_size]}}})):
++            cache.write_text(damaged); self.assertEqual(tiers.import_map(self.root, cache=cache), again, 'a damaged map is made again: ' + damaged)
++
++    def test_the_changed_files_are_what_differs_from_the_commit_and_what_git_does_not_know(self):
++        git = ['git', '-C', str(self.root), '-c', 'user.name=tester', '-c', 'user.email=tester@example.invalid', '-c', 'commit.gpgsign=false']
++        for args in (['init', '-q'], ['add', '-A'], ['commit', '-q', '-m', 'tree']):
++            subprocess.run(git + args, check=True, capture_output=True)
++        (self.root / 'workbench/beta.py').write_text('VALUE = 8\n'); (self.root / 'workbench/delta.py').write_text('')
++        (self.root / 'tests_integrated/test_e.py').unlink()
++        self.assertEqual(tiers.changed_files('HEAD', self.root), ['tests_integrated/test_e.py', 'workbench/beta.py', 'workbench/delta.py'])
++        # a file moved counts under both names: the test that imports the old one is the one the move breaks
++        subprocess.run(git + ['mv', 'workbench/alpha.py', 'workbench/omega.py'], check=True, capture_output=True)
++        changed = tiers.changed_files('HEAD', self.root)
++        self.assertEqual(changed, ['tests_integrated/test_e.py', 'workbench/alpha.py', 'workbench/beta.py', 'workbench/delta.py', 'workbench/omega.py'])
++        self.assertIn('tests_integrated/test_a.py', tiers.dependents(changed, self.UNITS, self.root, tiers.import_map(self.root, cache=False)))
++        with self.assertRaises(SystemExit):
++            tiers.changed_files('no-such-commit', self.root)
++
++
++SLOW_CHILD = 'import sys, time\nfrom pathlib import Path\ntime.sleep(float(sys.argv[2]))\nPath(sys.argv[1]).parent.mkdir(parents=True, exist_ok=True)\nPath(sys.argv[1]).write_text("outlived")\n'
++FAKE = {
++    'tests_integrated/slow.py': '''
++        import os, subprocess, sys
++        from pathlib import Path
++        def start_slow(name):
++            """Start a process and leave it: it writes a mark if it outlives the delay it is given."""
++            marks = Path(os.environ.get('TIER_TEST_MARKS') or Path(__file__).parents[2] / 'marks')
++            subprocess.Popen([sys.executable, str(Path(__file__).with_name('slow_child.py')), str(marks / name), os.environ.get('TIER_TEST_DELAY', '4')])
++        ''',
++    'tests_integrated/test_pass.py': '''
++        import os, unittest
++        class Pass(unittest.TestCase):
++            def test_its_own_empty_home_offscreen(self):
++                self.assertEqual(os.listdir(os.environ['HOME']), []); self.assertEqual(os.environ['QT_QPA_PLATFORM'], 'offscreen')
++            def test_nothing_of_the_programs_own_passes_from_the_shell(self):
++                own = ('ARC_LEDGER_', 'ARC1_WORKBENCH_', 'LEDGER_', 'GRAPHITE_')
++                self.assertEqual([k for k in os.environ if k.startswith(own) and k != 'GRAPHITE_APPEARANCE'], [])
++        ''',
++    'tests_integrated/test_look.py': '''
++        import os, unittest
++        class Kasandra(unittest.TestCase):
++            def test_the_look_it_was_given(self):
++                self.assertEqual(os.environ.get('GRAPHITE_APPEARANCE'), 'kasandra')
++        class Default(unittest.TestCase):
++            def test_graphite_is_the_default_look_with_nothing_set(self):
++                self.assertNotIn('GRAPHITE_APPEARANCE', os.environ)
++        ''',
++    'tests_integrated/test_fail.py': '''
++        import unittest
++        class Fail(unittest.TestCase):
++            def test_one_passes(self):
++                pass
++            def test_seven(self):
++                """A docstring's first line is printed above the traceback."""
++                self.assertEqual(7, 6, 'seven is not six')
++        ''',
++    'tests_integrated/test_slow.py': '''
++        import time, unittest
++        from tests_integrated.slow import start_slow
++        class Slow(unittest.TestCase):
++            def test_waits_too_long(self):
++                start_slow('slow'); time.sleep(60)
++        ''',
++    'tests_integrated/test_sleep.py': '''
++        import time, unittest
++        class Sleep(unittest.TestCase):
++            def test_waits_too_long(self):
++                time.sleep(60)
++        ''',
++    'tests_integrated/test_leaves.py': '''
++        import unittest
++        from tests_integrated.slow import start_slow
++        class Leaves(unittest.TestCase):
++            def test_starts_a_process_and_ends(self):
++                start_slow('left')
++        ''',
++    'tests_integrated/test_exits.py': '''
++        import os, unittest
++        class Exits(unittest.TestCase):
++            def test_ends_the_process_mid_test(self):
++                os._exit(0)
++        ''',
++    'tests_integrated/test_nested.py': '''
++        import sys, unittest
++        class Nested(unittest.TestCase):
++            def test_prints_a_summary_of_its_own(self):
++                sys.stderr.write('\\nRan 99 tests in 0.001s\\n\\nOK\\n')
++        ''',
++    'tests_integrated/test_skips.py': '''
++        import unittest
++        class Skips(unittest.TestCase):
++            @unittest.skip('needs a solver this machine lacks')
++            def test_one(self):
++                pass
++            @unittest.skip('needs a solver this machine lacks')
++            def test_two(self):
++                pass
++        ''',
++    'tests_integrated/test_broken.py': 'import no_such_module_here\n',
++    # the other kinds of unit: window checks, the scene, the release check's sections and the sweep
++    # (named window_*, not as the gate's checks are: test_release_check holds every such name in the tests to a real check)
++    'tools/window_good.py': 'import json\nprint(json.dumps({"state": "PASSED", "checks": ["a", "b"]}))\n',
++    'tools/window_silent.py': 'print("the window opened")\n',
++    'tools/window_narrow.py': 'import json\nprint(json.dumps({"state": "FAILED", "error": "Apps needs 96 px, has 79", "checks": ["a"]}))\n',
++    'tools/campaign.py': '''
++        import json, sys
++        from pathlib import Path
++        cases = sys.argv[sys.argv.index('--case') + 1].split(','); out = Path(sys.argv[sys.argv.index('--out') + 1]); out.mkdir(parents=True, exist_ok=True)
++        rows = [{'case': cases[0], 'outcome': 'Pass'}, {'case': cases[1], 'outcome': 'Blocked', 'reason': 'the model is not there'}]
++        (out / 'results.jsonl').write_text(''.join(json.dumps(row) + '\\n' for row in rows))
++        ''',
++    'tools/check_release.py': 'raise SystemExit("the payload could not be read")\n',
++    'tools/name_sweep.py': 'import sys\nprint("an earlier name in workbench/x.py")\nsys.exit(1)\n'}
++# tools/run_tiers.py's own main() on the fake tree, in a process of its own, so that it can be interrupted
++INTERRUPTIBLE = '''
++import json, signal, sys
++from pathlib import Path
++signal.signal(signal.SIGINT, signal.default_int_handler)       # as at a terminal, whatever the test's own process ignores
++sys.path.insert(0, sys.argv[1])
++from tools import run_tiers as tiers
++tiers.ROOT = Path(sys.argv[2]); cfg = json.loads(sys.argv[3]); tiers.config = lambda root=None: cfg
++sys.exit(tiers.main(['0', '--look', 'kasandra', '--out', sys.argv[4]]))
++'''
++
++
++class TheRunner(unittest.TestCase):
++    def setUp(self):
++        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup); self.base = Path(temp.name)
++        self.root = self.base / 'tree'; self.out = self.base / 'out'; self.marks = self.base / 'marks'; write(self.root, FAKE)
++        (self.root / 'tests_integrated/slow_child.py').write_text(SLOW_CHILD)
++        self.cfg = {'timeout_seconds': {'module': 60}, 'seconds': {'test_slow': 90}}
++
++    def unit(self, name, look='kasandra', classes=()):
++        return {'kind': 'module', 'name': name, 'classes': list(classes), 'look': look}
++
++    def outlived(self):
++        return sorted(path.name for path in self.marks.glob('*'))
++
++    def test_each_module_in_a_child_of_its_own_a_failure_with_its_message_and_a_time_limit_is_a_failure(self):
++        units = [self.unit(n) for n in ('test_pass', 'test_fail', 'test_slow', 'test_broken', 'test_exits', 'test_nested', 'test_skips', 'test_leaves')]
++        units += [self.unit('test_look', 'kasandra', ['Kasandra']), self.unit('test_look', 'graphite', ['Default'])]
++        elsewhere = str(self.base / 'elsewhere')         # what the shell that starts a run may hold: none of it reaches a test
++        shell = {'GRAPHITE_APPEARANCE': 'kasandra', 'ARC_LEDGER_WORKSPACE': elsewhere, 'ARC1_WORKBENCH_CONFIG_HOME': elsewhere,
++                 'ARC_LEDGER_EDITION': 'service', 'LEDGER_QUALIFICATION_SECRET': 'not for tests', 'GRAPHITE_CAMPAIGN_FIXTURES': elsewhere}
++        began = time.monotonic()
++        with patch.dict(os.environ, shell):
++            rows = tiers.run_all(units, self.root, self.out, self.cfg, workers=2, timeout=3)
++        self.assertLess(time.monotonic() - began, 40)
++        self.assertEqual([(r['module'], r['look'], r['ran'], r['failed'], r['skipped'], r['state']) for r in rows],
++                         [('test_pass', 'kasandra', 2, 0, 0, 'PASSED'), ('test_fail', 'kasandra', 2, 1, 0, 'FAILED'),
++                          ('test_slow', 'kasandra', 0, 1, 0, 'TIMEOUT'), ('test_broken', 'kasandra', 1, 1, 0, 'FAILED'),
++                          ('test_exits', 'kasandra', 0, 1, 0, 'FAILED'),     # it ended mid-test, with exit 0 and no word of unittest's
++                          ('test_nested', 'kasandra', 1, 0, 0, 'PASSED'),    # the 'Ran 99 tests' it printed is not the count
++                          ('test_skips', 'kasandra', 2, 0, 2, 'PASSED'), ('test_leaves', 'kasandra', 1, 0, 0, 'PASSED'),
++                          ('test_look (Kasandra)', 'kasandra', 1, 0, 0, 'PASSED'), ('test_look (Default)', 'graphite', 1, 0, 0, 'PASSED')])
++        self.assertTrue(all(isinstance(r['seconds'], float) and (self.out / r['log']).is_file() for r in rows))
++        failure = rows[1]['failures']
++        self.assertEqual(len(failure), 1); self.assertIn('test_fail.Fail.test_seven', failure[0]['test'])
++        self.assertIn('AssertionError: 7 != 6 : seven is not six', failure[0]['message'])
++        self.assertLess(rows[2]['seconds'], 15); self.assertEqual(rows[2]['failures'][0]['message'], 'stopped at its time limit')
++        self.assertIn('no_such_module_here', rows[3]['failures'][0]['message'])
++        self.assertFalse((self.base / 'elsewhere').exists())
++        time.sleep(5)
++        self.assertEqual(self.outlived(), [], 'what a module started was stopped with it, at its time limit and at its end')
++        self.assertEqual(tiers.last_line(rows), '4 failing: kasandra test_fail; kasandra test_slow; kasandra test_broken; kasandra test_exits; '
++                                                '2 skipped: kasandra test_skips (2)')
++        self.assertEqual(tiers.last_line(rows[:1]), '0 failing')
++        self.assertIn(' skipped ', tiers.table(rows)[0])
++
++    def test_without_a_process_namespace_the_process_group_is_stopped_whole_at_the_limit_and_at_the_end(self):
++        # where unshare cannot make a namespace (a normal user on most machines), the child leads a process group of its own
++        with patch.dict(tiers._ISOLATION, {'prefix': [], 'kind': 'process group'}, clear=True):
++            rows = tiers.run_all([self.unit('test_slow'), self.unit('test_leaves')], self.root, self.out, self.cfg, workers=2, timeout=2)
++        self.assertEqual([(r['state'], r['failed']) for r in rows], [('TIMEOUT', 1), ('PASSED', 0)]); self.assertLess(rows[0]['seconds'], 12)
++        time.sleep(5)
++        self.assertEqual(self.outlived(), [], 'what a module started was stopped with it, at its time limit and at its end')
++
++    def test_the_window_checks_the_scene_the_release_sections_and_the_sweep_are_read_from_what_they_report(self):
++        self.out.mkdir(parents=True)        # an earlier run's report in the same folder, all passed: it is not this run's
++        (self.out / 'release_check.json').write_text(json.dumps({'state': 'PASSED', 'failed_sections': [], 'payload': {'state': 'PASSED'}}))
++        units = [{'kind': 'check', 'name': 'tools/window_%s.py' % name, 'look': 'kasandra'} for name in ('good', 'silent', 'narrow')]
++        units += [{'kind': 'scene', 'name': 'P01a,P01b,P01c', 'look': 'kasandra'}, {'kind': 'integrity', 'name': 'tools/check_release.py', 'look': 'kasandra'},
++                  {'kind': 'sweep', 'name': 'tools/name_sweep.py', 'look': 'kasandra'}]
++        rows = tiers.run_all(units, self.root, self.out, self.cfg, workers=2, timeout=60)
++        self.assertEqual([(r['ran'], r['failed'], r['state']) for r in rows],
++                         [(2, 0, 'PASSED'), (0, 1, 'FAILED'), (1, 1, 'FAILED'), (2, 2, 'FAILED'), (0, 1, 'FAILED'), (1, 1, 'FAILED')])
++        said = [[(f['test'], f['message']) for f in r['failures']] for r in rows]
++        self.assertEqual(said[1], [('tools/window_silent.py', 'no report: the window opened')])
++        self.assertEqual(said[2], [('tools/window_narrow.py', 'Apps needs 96 px, has 79')])
++        self.assertEqual(said[3][0], ('P01b', 'Blocked: the model is not there'), 'Blocked is not passed')
++        self.assertIn('2 of 3 cases reported', said[3][1][1])
++        self.assertEqual(said[4], [('tools/check_release.py', 'no report')]); self.assertFalse((self.out / 'release_check.json').exists())
++        self.assertEqual(said[5], [('tools/name_sweep.py', 'an earlier name in workbench/x.py')])
++        # the runner's own fault (a full disk, say) is a failing row that says so, not a lost one
++        with patch.object(tiers, 'read_result', side_effect=OSError(28, 'No space left on device')):
++            row, = tiers.run_all([self.unit('test_pass')], self.root, self.out, self.cfg, workers=1, timeout=60)
++        self.assertEqual((row['state'], row['failed']), ('FAILED', 1)); self.assertIn('No space left on device', row['failures'][0]['message'])
++
++    def test_an_interrupted_run_stops_what_runs_with_what_it_started_and_says_what_was_not_run(self):
++        zero = {'modules': [{'module': 'test_slow', 'why': ''}, {'module': 'test_sleep', 'why': ''}, {'module': 'test_pass', 'why': ''}]}
++        runs = []
++        # once and twice: Ctrl-C at a terminal; killed: the run itself killed outright, its children end at their limit anyway
++        for name, signals in (('once', [signal.SIGINT]), ('twice', [signal.SIGINT, signal.SIGINT]), ('killed', [signal.SIGKILL])):
++            cfg = {'0': zero, 'timeout_seconds': {'module': 2 if name == 'killed' else 60}, 'timeout_grace_seconds': 1}
++            folder = self.base / name; (folder / 'tmp').mkdir(parents=True)
++            env = {**os.environ, 'TMPDIR': str(folder / 'tmp'), 'TIER_TEST_MARKS': str(folder / 'marks'), 'TIER_TEST_DELAY': '5'}
++            child = subprocess.Popen([sys.executable, '-B', '-c', INTERRUPTIBLE, str(ROOT), str(self.root), json.dumps(cfg), str(folder / 'out')],
++                                     env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
++            self.addCleanup(lambda c=child: c.poll() is None and os.killpg(c.pid, signal.SIGKILL))
++            deadline = time.monotonic() + 30
++            while len(list((folder / 'tmp').glob('graphite-tier-*'))) < 2 and child.poll() is None and time.monotonic() < deadline:
++                time.sleep(0.05)        # each unit's own home folder is made just before it starts
++            time.sleep(0.4); began = time.monotonic()
++            for number in signals:
++                child.send_signal(number); time.sleep(0.3)
++            runs.append((name, folder, child, began))
++        for name, folder, child, began in runs:
++            if name == 'killed':
++                child.wait(timeout=30); continue
++            printed, said = child.communicate(timeout=30)
++            self.assertLess(time.monotonic() - began, 15, 'the run stops at once, not when its units end')
++            self.assertEqual(child.returncode, 130, said[-600:]); self.assertNotIn('Traceback', said)
++            result = json.loads((folder / 'out' / 'tier0.json').read_text())
++            self.assertEqual((result['state'], result['not_run']), ('INTERRUPTED', 1))
++            self.assertEqual([(r['module'], r['state'], r['failed']) for r in result['rows']],
++                             [('test_slow', 'INTERRUPTED', 1), ('test_sleep', 'INTERRUPTED', 1), ('test_pass', 'NOT RUN', 0)])
++            self.assertEqual(result['rows'][0]['failures'][0]['message'], 'stopped: the run was interrupted')
++            self.assertTrue(printed.splitlines()[-1].startswith('interrupted, 1 of 3 not run; 2 failing: '), printed[-300:])
++            self.assertEqual(list((folder / 'tmp').glob('graphite-tier-*')), [], 'each child\'s home and temporary folder is removed')
++        time.sleep(max(0.0, runs[-1][3] + 7 - time.monotonic()))
++        for name, folder, child, began in runs:
++            self.assertEqual(list((folder / 'marks').glob('*')), [], '%s: what a stopped module started was stopped with it' % name)
++
++    def test_the_run_writes_its_result_file_prints_one_table_and_fails_when_a_module_fails(self):
++        def run(names, out):
++            printed = io.StringIO()
++            with patch.object(tiers, 'ROOT', self.root), patch.object(tiers, 'config', return_value=self.cfg), \
++                    patch.object(tiers, 'plan', return_value=([self.unit(n) for n in names], {})), \
++                    contextlib.redirect_stdout(printed), contextlib.redirect_stderr(io.StringIO()):
++                code = tiers.main(['0', '--look', 'kasandra', '--out', str(out), '--timeout', '30'])
++            return code, printed.getvalue().splitlines(), json.loads((out / 'tier0.json').read_text())
++        code, lines, result = run(['test_pass', 'test_fail'], self.out / 'one')
++        self.assertEqual((code, lines[-1], result['state'], result['failing'], result['tests_run']), (1, '1 failing: kasandra test_fail', 'FAILED', 1, 4))
++        self.assertEqual([{k: r[k] for k in ('module', 'look', 'ran', 'failed')} for r in result['rows']],
++                         [{'module': 'test_pass', 'look': 'kasandra', 'ran': 2, 'failed': 0}, {'module': 'test_fail', 'look': 'kasandra', 'ran': 2, 'failed': 1}])
++        self.assertTrue(lines[0].startswith('look ')); self.assertTrue(any('seven is not six' in line for line in lines))
++        code, lines, result = run(['test_pass'], self.out / 'two')
++        self.assertEqual((code, lines[-1], result['state']), (0, '0 failing', 'PASSED'))
++        link = self.base / 'link'; link.symlink_to(self.root, target_is_directory=True)
++        for inside in (self.root / 'build' / 'run', self.base / 'other' / '..' / 'tree' / 'build', link / 'build'):
++            with patch.object(tiers, 'ROOT', self.root), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit, msg=str(inside)):
++                tiers.main(['0', '--out', str(inside)])
++        self.assertFalse((self.root / 'build').exists(), 'a run writes nothing into the program folder, by any way of naming it')
++
++    def test_a_change_of_message_is_a_difference_and_the_same_failure_is_not(self):
++        row = {'module': 'test_fail', 'look': 'graphite', 'ran': 2, 'failed': 1, 'state': 'FAILED', 'failures': [{'test': 'FAIL t', 'message': 'Apps needs 96 px, has 79'}]}
++        self.assertEqual(tiers.differences([row], [row]), [])
++        moved = {**row, 'failures': [{'test': 'FAIL t', 'message': 'Apps needs 96 px, has 60'}]}
++        self.assertEqual(tiers.differences([row], [moved]), ['graphite test_fail: FAIL t now says: Apps needs 96 px, has 60'])
++        fixed = {**row, 'failed': 0, 'state': 'PASSED', 'failures': []}
++        self.assertEqual(tiers.differences([row], [fixed]), ['graphite test_fail: passed, was failed'])
++        self.assertEqual(tiers.differences([], [fixed]), ['graphite test_fail: new, passed']); self.assertEqual(tiers.differences([row], []), ['graphite test_fail: not run this time'])
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index 0abd107..958047d 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -70,6 +70,10 @@ FOCUSED_MODULES=(
+  'test_kasandra_highlight',
+  # 0.8.4: the colour-vision check: every pair of meaning colours as weak red and weak green sight take them (tools/colour_vision.py)
+  'test_colour_vision',
++
++ # 0.8.4: the checks in tiers (tools/run_tiers.py, tools/tiers.json): the lists, the import map, the runner and its result file
++ 'test_run_tiers',
++
+  # the agent loop, condition cards, quiet connections, the Finder's listing, Ingress and Egress, the model turn, files about;
+  # the network capability the agent can inspect (HATCH DESK D5)
+  'test_tool_selection','test_agent_loop','test_conditions','test_related','test_browse','test_vocabulary','test_model_turn','test_profile_files',
+diff --git a/tools/run_tiers.py b/tools/run_tiers.py
+new file mode 100644
+index 0000000..2e820a4
+--- /dev/null
++++ b/tools/run_tiers.py
+@@ -0,0 +1,647 @@
++"""Graphite's checks in tiers: one command for a change, a commit and a release (docs/CHECKS.md).
++
++  python3 tools/run_tiers.py 0 [--look graphite|kasandra|both] [--out DIR]
++  python3 tools/run_tiers.py 1 [--changed REF] [--look ...] [--out DIR]
++  python3 tools/run_tiers.py 2 [--look ...] [--out DIR] [--against EARLIER.json]
++
++Tier 0, at every change, in under a minute: the fast modules that guard the most, and always the ones that guard the
++owner (the Kernel's scopes, her hand's rules, the memory rules, release integrity, the seed being current, one name).
++Tier 1, before a commit: tier 0, and every test module that imports a file changed since REF (default HEAD; files not
++yet added to git count as changed), with the window checks that do. Tier 2, at a release: every test module, the window
++checks (tools/check_hatch.py UI_CHECKS, read when the run starts), the playable scene on Rail Demo four ways
++(tools/campaign.py), the name sweep over the code and the release check's integrity sections, in both looks.
++
++The lists are in tools/tiers.json; tier 2's modules are tools/check_hatch.py's FOCUSED_MODULES and ON_DEMAND_MODULES,
++the list every new test module joins. Each module, check or scene runs in a process of its own with its own empty HOME
++and temporary folder, at the lowest priority and in a process namespace of its own where the machine allows one (so
++nothing it starts outlives it), two at a time, and is killed at its time limit; a limit reached is a failure. When a
++child ends, its process group is killed too. The run writes tier<N>.json (one row per module and look: ran, failed,
++skipped, seconds, state, the failing tests and their messages) and each one's output under --out (a new temporary folder
++by default; never inside the program folder), prints one table and a last line, "0 failing" or what failed (and what was
++skipped), and exits 0 only when nothing failed. Ctrl-C stops a run: what runs is killed with what it started, the
++result is written with what was stopped and what was not run, and the exit is 130.
++"""
++import argparse
++import ast
++import hashlib
++import json
++import os
++import re
++import shutil
++import signal
++import subprocess
++import sys
++import tempfile
++import threading
++import time
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++if str(ROOT) not in sys.path:
++    sys.path.insert(0, str(ROOT))
++sys.dont_write_bytecode = True
++TIERS = 'tools/tiers.json'
++LOOKS = ('graphite', 'kasandra')
++# Where the program's Python lives (wip/ is development notes, never run), and the folders a bare import is found in:
++# the program folder, tools/ (the tools put it on sys.path) and sdk/cli (the line's language, arc1cli).
++SOURCES = ('workbench', 'tools', 'tests_integrated', 'sdk', 'pillkit', 'examples')
++IMPORT_ROOTS = ('', 'tools/', 'sdk/cli/')
++NAMED = re.compile(r'\b(?:workbench|tools|tests_integrated|sdk|pillkit)(?:\.[A-Za-z_]\w*)+')
++PATHS = re.compile(r'\b(?:workbench|tools|tests_integrated|sdk|pillkit|docs|project|branding)/[\w./-]*\w')
++CACHE_FORMAT = 1
++
++
++# The import map --------------------------------------------------------------------------------------------------------
++
++def python_files(root=ROOT):
++    """Every Python file of the program, its tools and its tests, as paths relative to root."""
++    root = Path(root); found = [p.name for p in root.glob('*.py')]
++    for folder in SOURCES:
++        for dirpath, dirnames, filenames in os.walk(root / folder):
++            dirnames[:] = sorted(d for d in dirnames if d != '__pycache__' and not d.startswith('.'))
++            found += [Path(dirpath, name).relative_to(root).as_posix() for name in filenames if name.endswith('.py')]
++    return sorted(found)
++
++
++def _package(relative):
++    return relative[:-3].split('/')[:-1]      # workbench/x.py and workbench/__init__.py are both in the package workbench
++
++
++def references(relative, text):
++    """What one file names: the modules it imports (wherever the import stands, absolute names) and the modules and
++    files its strings name (a patch target 'workbench.x.y', a path 'tools/campaign.py' or 'docs/X.md')."""
++    names = set(); paths = set()
++    try:
++        tree = ast.parse(text)
++    except (SyntaxError, ValueError):
++        return {'names': [], 'paths': []}
++    package = _package(relative)
++    for node in ast.walk(tree):
++        if isinstance(node, ast.Import):
++            names.update(alias.name for alias in node.names)
++        elif isinstance(node, ast.ImportFrom):
++            if node.level:
++                base = package[:len(package) - node.level + 1] if node.level <= len(package) + 1 else []
++                module = '.'.join(base + ([node.module] if node.module else []))
++            else:
++                module = node.module or ''
++            if module:
++                names.add(module)
++            names.update((module + '.' + alias.name) if module else alias.name for alias in node.names if alias.name != '*')
++        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
++            names.update(NAMED.findall(node.value)); paths.update(PATHS.findall(node.value))
++    return {'names': sorted(names), 'paths': sorted(paths)}
++
++
++def _cache_file(root):
++    base = Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache')
++    return base / 'graphite-tiers' / (hashlib.sha256(str(Path(root).resolve()).encode()).hexdigest()[:16] + '.json')
++
++
++def import_map(root=ROOT, cache=None):
++    """{file: {'names': [...], 'paths': [...]}} for every Python file, read again only where a file's size or time
++    changed since the cached map (cache: a JSON file; None for the user's cache folder, False for none)."""
++    root = Path(root); cache = _cache_file(root) if cache is None else cache; kept = {}
++    if cache:
++        try:
++            stored = json.loads(Path(cache).read_text())
++            kept = stored.get('files') if isinstance(stored, dict) and stored.get('format') == CACHE_FORMAT else {}
++        except (OSError, ValueError):
++            kept = {}
++        kept = kept if isinstance(kept, dict) else {}           # a map of another shape is made again, never trusted
++    found = {}; fresh = False
++    for relative in python_files(root):
++        stat = (root / relative).stat(); stamp = [stat.st_mtime_ns, stat.st_size]; row = kept.get(relative)
++        if not (isinstance(row, dict) and row.get('stamp') == stamp and isinstance(row.get('names'), list) and isinstance(row.get('paths'), list)):
++            row = {'stamp': stamp, **references(relative, (root / relative).read_text(encoding='utf-8', errors='replace'))}; fresh = True
++        found[relative] = row
++    if cache and (fresh or set(found) != set(kept)):
++        try:
++            Path(cache).parent.mkdir(parents=True, exist_ok=True)
++            Path(cache).write_text(json.dumps({'format': CACHE_FORMAT, 'root': str(root), 'files': found}))
++        except OSError:
++            pass
++    return {relative: {'names': row['names'], 'paths': row['paths']} for relative, row in found.items()}
++
++
++def resolve(name, files):
++    """The file a dotted name is, the longest part of it that is a module ('workbench.x.CONSTANT' is workbench/x.py)."""
++    parts = name.split('.')
++    for end in range(len(parts), 0, -1):
++        stem = '/'.join(parts[:end])
++        for base in IMPORT_ROOTS:
++            for candidate in (base + stem + '.py', base + stem + '/__init__.py'):
++                if candidate in files:
++                    return candidate
++    return None
++
++
++def direct(relative, imports, files):
++    """The files one file imports or names, itself left out."""
++    row = imports.get(relative) or {'names': [], 'paths': []}
++    out = {resolve(name, files) for name in row['names']} | {path for path in row['paths'] if path in files}
++    for name in row['names']:          # importing workbench.x runs workbench/__init__.py first
++        parts = name.split('.')
++        for end in range(1, len(parts)):
++            package = resolve('.'.join(parts[:end]), files)
++            if package and package.endswith('__init__.py'):
++                out.add(package)
++    out.discard(None); out.discard(relative)
++    return out
++
++
++def changed_files(ref='HEAD', root=ROOT):
++    """The files that differ from REF in the working tree (staged or not, deleted ones too), and the files git does not
++    know yet. A file moved or renamed counts under both its names: git would give only the new one, and the tests that
++    import the old name are the ones the move breaks. Paths are relative to the program folder."""
++    def git(*args):
++        child = subprocess.run(['git', '-C', str(root), *args], capture_output=True, text=True)
++        if child.returncode:
++            raise SystemExit('tier 1 needs the program folder to be a git checkout and %s a commit: %s' % (ref, child.stderr.strip()[-300:]))
++        return [line for line in child.stdout.splitlines() if line]
++    return sorted(set(git('diff', '--name-only', '--no-renames', '--relative', ref, '--')) | set(git('ls-files', '--others', '--exclude-standard')))
++
++
++def dependents(changed, units, root=ROOT, imports=None, ignored=()):
++    """{unit file: [the changed files it depends on]} for each unit file (a test module or a window check). A unit depends on
++    itself, on what it imports or names, and on what its own helpers in tests_integrated/ and tools/ import or name; a
++    program file counts when a test or a helper names it (following every import of the program would choose every module,
++    as the window imports most of it). A changed file that is not Python is followed to the Python files that name it, by
++    its file name as a whole word ('CHECKS.md' is not named by 'WINDOW_CHECKS.md')."""
++    imports = import_map(root) if imports is None else imports; files = set(imports)
++    changed = [c for c in changed if not any(c == i or (i.endswith('/') and c.startswith(i)) for i in ignored)]
++    touched = {c: {c} for c in changed if c.endswith('.py')}
++    others = {c: re.compile(r'(?<![\w.-])%s(?![\w-])' % re.escape(Path(c).name)) for c in changed if not c.endswith('.py')}
++    if others:
++        for relative in sorted(files):
++            try:
++                text = (Path(root) / relative).read_text(encoding='utf-8', errors='replace')
++            except OSError:
++                continue
++            for other, named in others.items():
++                if named.search(text):
++                    touched.setdefault(relative, set()).add(other)
++    found = {}; known = files | set(changed)       # a deleted file is still a name a test imports
++    for unit in units:
++        seen = {unit}; todo = [unit]
++        while todo:
++            for dependency in direct(todo.pop(), imports, known):
++                if dependency not in seen:
++                    seen.add(dependency)
++                    if dependency.startswith(('tests_integrated/', 'tools/')):
++                        todo.append(dependency)
++        hit = sorted({c for f in seen & set(touched) for c in touched[f]})
++        if hit:
++            found[unit] = hit
++    return found
++
++
++# The tiers ---------------------------------------------------------------------------------------------------------------
++
++def config(root=ROOT):
++    return json.loads((Path(root) / TIERS).read_text(encoding='utf-8'))
++
++
++def every_module():
++    """Tier 2's modules: the focused set and the modules kept on demand (tools/check_hatch.py), read when the run starts."""
++    from tools import check_hatch
++    return list(check_hatch.FOCUSED_MODULES) + [m for m in check_hatch.ON_DEMAND_MODULES if m not in check_hatch.FOCUSED_MODULES]
++
++
++def window_checks():
++    """The window checks of the gate (tools/check_hatch.py UI_CHECKS) and the folder variable each writes its captures to."""
++    from tools import check_hatch
++    return list(check_hatch.UI_CHECKS), dict(check_hatch.UI_CAPTURE_ENV)
++
++
++def tier0_units(cfg):
++    return [{'kind': 'module', 'name': row['module'], 'classes': list(row.get('classes') or [])} for row in cfg['0']['modules']]
++
++
++def plan(tier, looks, cfg, changed=None, root=ROOT, modules=None, checks=None, imports=None):
++    """What a tier runs, as units ({kind, name, look, ...}), and for tier 1 why each chosen one is chosen."""
++    looks = list(looks); units = []; chosen = {}
++    def each_look(unit, only_first=False):
++        for look in looks[:1] if only_first else looks:
++            units.append({**unit, 'look': look})
++    if tier in (0, 1):
++        base = tier0_units(cfg)
++        if tier == 1:
++            modules = every_module() if modules is None else modules
++            checks = window_checks()[0] if checks is None else checks
++            files = ['tests_integrated/%s.py' % m for m in modules] + list(checks)
++            chosen = dependents(changed or [], files, root, imports, cfg['1'].get('ignored', {}))
++            whole = {Path(f).stem for f in chosen if f.startswith('tests_integrated/')}
++            base = [u for u in base if u['name'] not in whole] + [{'kind': 'module', 'name': m, 'classes': []} for m in modules if m in whole]
++            base += [{'kind': 'check', 'name': c} for c in checks if c in chosen]
++        for unit in base:
++            each_look(unit)
++        return units, chosen
++    two = cfg['2']; modules = every_module() if modules is None else modules
++    checks = window_checks()[0] if checks is None else checks; once = two.get('once', {})
++    units.append({'kind': 'integrity', 'name': 'tools/check_release.py', 'look': looks[0]})
++    units.append({'kind': 'sweep', 'name': 'tools/name_sweep.py', 'look': looks[0]})
++    for module in modules:
++        each_look({'kind': 'module', 'name': module, 'classes': [], **({'note': once[module]} if module in once else {})}, module in once)
++    for check in checks:
++        each_look({'kind': 'check', 'name': check})
++    each_look({'kind': 'scene', 'name': ','.join(two['scene'])})
++    return units, chosen
++
++
++# Running ------------------------------------------------------------------------------------------------------------------
++
++_ISOLATION = {}
++DROPPED = ('XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME', 'XDG_STATE_HOME', 'PYTHONPATH', 'GRAPHITE_APPEARANCE')
++# The program's own variables say where its state is and how it runs (the workspace a switch chose, the service's edition
++# and supervision, a capture folder, the campaign's fixtures): none passes from the shell that started the run.
++DROPPED_PREFIXES = ('ARC_LEDGER_', 'ARC1_WORKBENCH_', 'LEDGER_', 'GRAPHITE_')
++UNSHARE = ('--pid', '--fork', '--mount-proc', '--kill-child')
++STOPPED_AT_LIMIT = 'stopped at its time limit'
++STOPPED_BY_RUN = 'stopped: the run was interrupted'
++
++
++def isolation():
++    """The command put in front of each child: nice 19, and a process namespace of its own where unshare can make one (as
++    root, or where the machine allows it); otherwise a process group of its own, killed whole at the time limit."""
++    if not _ISOLATION:
++        prefix = ['nice', '-n', '19'] if shutil.which('nice') else []; kind = 'process group'
++        unshare = shutil.which('unshare')
++        if unshare and sys.platform.startswith('linux'):
++            try:
++                if subprocess.run([unshare, *UNSHARE, 'true'], capture_output=True, timeout=30).returncode == 0:
++                    prefix += [unshare, *UNSHARE]; kind = 'process namespace'
++            except (OSError, subprocess.SubprocessError):
++                pass
++        _ISOLATION.update(prefix=prefix, kind=kind + (', nice 19' if prefix[:1] == ['nice'] else ''))
++    return _ISOLATION['prefix'], _ISOLATION['kind']
++
++
++def backstop(limit, grace):
++    """`timeout` in front of the child, a little after the run's own limit: should the run itself be killed outright, each
++    child still ends, with its process group, at its limit and the grace."""
++    found = shutil.which('timeout')
++    return [found, '-s', 'KILL', '%g' % (limit + grace)] if found and limit else []
++
++
++def stop_group(child):
++    """Kill a child with its process group: what it started goes with it (a namespace's first process takes the rest)."""
++    try:
++        os.killpg(child.pid, signal.SIGKILL)
++    except (OSError, AttributeError):
++        try:
++            child.kill()
++        except OSError:
++            pass
++
++
++class Stop:
++    """How a run is stopped before its end: Ctrl-C, SIGTERM or SIGHUP (a second one changes nothing). Nothing more is
++    begun, every child running is killed with what it started, and its unit is a failure. A signal ignored by the shell
++    that started the run (nohup) stays ignored."""
++    SIGNALS = ('SIGINT', 'SIGTERM', 'SIGHUP')
++
++    def __init__(self):
++        self.lock = threading.RLock(); self.event = threading.Event(); self.children = {}; self.stopped = set(); self.signal = None
++
++    def is_set(self):
++        return self.event.is_set()
++
++    def now(self, signum=None, frame=None):
++        with self.lock:
++            if signum and self.signal is None:
++                self.signal = signum
++            self.event.set(); children = list(self.children.values()); self.stopped.update(child.pid for child in children)
++        for child in children:
++            stop_group(child)
++
++    def started(self, child):
++        with self.lock:
++            self.children[child.pid] = child
++            late = self.event.is_set()
++            if late:
++                self.stopped.add(child.pid)
++        if late:
++            stop_group(child)
++
++    def finished(self, child):
++        """True when the run's stop ended the child, not the child itself or its limit."""
++        with self.lock:
++            self.children.pop(child.pid, None)
++            return child.pid in self.stopped
++
++    def catch(self):
++        caught = {}
++        if threading.current_thread() is threading.main_thread():
++            for name in self.SIGNALS:
++                number = getattr(signal, name, None)
++                if number is not None and signal.getsignal(number) is not signal.SIG_IGN:
++                    caught[number] = signal.signal(number, self.now)
++        return caught
++
++    @staticmethod
++    def release(caught):
++        for number, handler in caught.items():
++            signal.signal(number, signal.SIG_DFL if handler is None else handler)
++
++
++def child_environment(look, scratch, extra=None):
++    """The child's variables: the shell's, without the program's own and the folders of its state; its own HOME and
++    temporary folder, offscreen. Graphite's look is the default one, the variable unset, as the owner starts it."""
++    env = {k: v for k, v in os.environ.items() if k not in DROPPED and not k.startswith(DROPPED_PREFIXES)}
++    env.update(HOME=str(Path(scratch) / 'home'), TMPDIR=str(Path(scratch) / 'tmp'), QT_QPA_PLATFORM='offscreen', PYTHONDONTWRITEBYTECODE='1',
++               **(extra or {}))
++    if look != LOOKS[0]:
++        env['GRAPHITE_APPEARANCE'] = look
++    return env
++
++
++def label(unit):
++    if unit['kind'] == 'module' and unit.get('classes'):
++        return '%s (%s)' % (unit['name'], ', '.join(unit['classes']))
++    return unit['name']
++
++
++def command(unit, out, capture_env=None):
++    """The child's arguments and any variables of its own."""
++    python = [sys.executable, '-B']
++    if unit['kind'] == 'module':
++        names = ['tests_integrated.%s.%s' % (unit['name'], c) for c in unit.get('classes') or []] or ['tests_integrated.' + unit['name']]
++        return python + ['-m', 'unittest', '-v', *names], {}
++    if unit['kind'] == 'check':
++        variable = (capture_env or {}).get(unit['name'])
++        return python + [unit['name']], ({variable: str(out / unit['look'] / 'window' / Path(unit['name']).stem)} if variable else {})
++    if unit['kind'] == 'scene':
++        return python + ['tools/campaign.py', 'run', '--case', unit['name'], '--out', str(out / unit['look'] / 'scene')], {}
++    if unit['kind'] == 'integrity':
++        return python + ['tools/check_release.py', '--output', str(out / 'release_check.json')], {}
++    return python + [unit['name']], {}
++
++
++FAILURE = re.compile(r'^(FAIL|ERROR): (\S+) \(([^)]*)\)(.*)$')
++RULE = re.compile(r'^(?:=|-){60,}$')
++
++
++def unittest_failures(stderr):
++    """Each failing or erroring test, and the last line of what it raised: the message is compared, not only the place."""
++    found = []; lines = stderr.splitlines(); index = 0
++    while index < len(lines):
++        match = FAILURE.match(lines[index]); index += 1
++        if not match:
++            continue
++        while index < len(lines) and not lines[index].startswith('-' * 60):      # the first line of the test's docstring, if it has one
++            index += 1
++        block = []; index += 1
++        while index < len(lines) and not lines[index].startswith(('=' * 60, '-' * 60)):
++            block.append(lines[index]); index += 1
++        frames = [n for n, line in enumerate(block) if line.startswith('  File ')]
++        tail = [line.strip() for line in block[(frames[-1] + 1 if frames else 0):] if line.strip() and not line.startswith(('    ', '  File ')) and not RULE.match(line)]
++        found.append({'test': '%s %s%s' % (match.group(1), match.group(3), match.group(4)), 'message': ' '.join(tail)[:400]})
++    return found
++
++
++def _last(text, rc):
++    lines = [line for line in text.strip().splitlines() if line.strip()]
++    return lines[-1][:400] if lines else 'exit %s' % rc
++
++
++def read_result(unit, rc, stopped, out_text, err_text, out):
++    """ran, failed, what failed and how many were skipped, from what the child printed or wrote. stopped: why the run
++    stopped the child (its time limit, or the run interrupted), or nothing."""
++    from tools import check_hatch
++    skipped = 0
++    if unit['kind'] == 'module':
++        summary = check_hatch.parse_unittest(err_text); counts = re.findall(r'^Ran (\d+) tests? in ', err_text, re.M)
++        ran = int(counts[-1]) if counts else 0              # the last: a test may print a summary of its own on the way
++        failures = unittest_failures(err_text); failed = summary['failures'] + summary['errors']; skipped = summary['skipped']
++        if (rc or summary['verdict'] != 'OK') and not failed:   # it died, or ended mid-test, without a word of unittest's
++            failed = 1; failures = failures or [{'test': 'the module', 'message': _last(err_text, rc)}]
++    elif unit['kind'] == 'check':
++        value = check_hatch.tail_json(out_text); value = value if isinstance(value, dict) else {}
++        ran = len(value['checks']) if isinstance(value.get('checks'), list) else 0
++        failed = 0 if (rc == 0 and value.get('state') == 'PASSED') else 1
++        said = _last(err_text, rc) if err_text.strip() else _last(out_text, rc)
++        message = _last(str(value['error']), rc) if value.get('error') else (said if value else 'no report: ' + said)
++        failures = [{'test': unit['name'], 'message': message}] if failed else []
++    elif unit['kind'] == 'scene':
++        rows = []; cases = unit['name'].split(',')
++        try:
++            rows = [json.loads(line) for line in (out / unit['look'] / 'scene' / 'results.jsonl').read_text().splitlines() if line.strip()]
++        except (OSError, ValueError):
++            pass
++        ran = len(rows)
++        failures = [{'test': str(row.get('case') or row.get('id') or '?'), 'message': '%s: %s' % (row.get('outcome'), str(row.get('reason') or '')[:300])}
++                    for row in rows if not str(row.get('outcome', '')).startswith('Pass')]
++        if rc or ran < len(cases):
++            failures.append({'test': 'the scene run', 'message': 'exit %s, %d of %d cases reported; %s' % (rc, ran, len(cases), _last(err_text, rc))})
++        failed = len(failures)
++    elif unit['kind'] == 'integrity':
++        value = {}
++        try:
++            value = json.loads((out / 'release_check.json').read_text())
++        except (OSError, ValueError):
++            pass
++        ran = sum(1 for v in value.values() if isinstance(v, dict) and 'state' in v); named = value.get('failed_sections') or []
++        failures = [{'test': name, 'message': '; '.join(str(x) for x in (value[name].get('differences') or value[name].get('problems') or value[name].get('errors') or [value[name].get('state')])[:3])[:400]}
++                    for name in named if isinstance(value.get(name), dict)]
++        if not value or rc and not failures:
++            failures.append({'test': unit['name'], 'message': 'no report' if not value else _last(err_text, rc)})
++        failed = len(failures)
++    else:
++        ran = 1; failures = [{'test': unit['name'], 'message': _last(out_text + '\n' + err_text, rc)}] if rc else []; failed = len(failures)
++    if stopped:
++        failed = max(failed, 1); failures = [{'test': label(unit), 'message': STOPPED_AT_LIMIT if stopped is True else stopped}] + failures
++    return ran, failed, failures, skipped
++
++
++def row_of(unit, state, ran=0, failed=0, skipped=0, seconds=0.0, rc=None, failures=(), log=None):
++    return {'module': label(unit), 'look': unit['look'], 'kind': unit['kind'], 'ran': ran, 'failed': failed, 'skipped': skipped,
++            'seconds': round(seconds, 1), 'state': state, 'exit': rc, 'failures': list(failures), 'log': log,
++            **({'note': unit['note']} if unit.get('note') else {})}
++
++
++def run_unit(unit, root, out, timeout, capture_env=None, stop=None, grace=30):
++    """One unit in a child of its own: its own empty HOME and temporary folder (removed after), the look given, offscreen.
++    When it ends, by itself, at its limit or by the run's stop, its process group is killed: nothing it started outlives it."""
++    prefix, _ = isolation(); argv, extra = command(unit, out, capture_env)
++    logs = out / 'logs' / unit['look']; logs.mkdir(parents=True, exist_ok=True)
++    stem = re.sub(r'[^\w.-]+', '_', label(unit).replace('tools/', '')).strip('_')
++    if unit['kind'] == 'integrity':          # an earlier run's report in the same folder is never read as this one's
++        (out / 'release_check.json').unlink(missing_ok=True)
++    scratch = Path(tempfile.mkdtemp(prefix='graphite-tier-')); (scratch / 'home').mkdir(); (scratch / 'tmp').mkdir()
++    env = child_environment(unit['look'], scratch, extra)
++    began = time.monotonic(); stopped = None
++    try:
++        with open(logs / (stem + '.out'), 'w') as stdout, open(logs / (stem + '.err'), 'w') as stderr:
++            child = subprocess.Popen(backstop(timeout, grace) + prefix + argv, cwd=str(root), env=env, stdout=stdout, stderr=stderr,
++                                     stdin=subprocess.DEVNULL, start_new_session=True)
++            if stop is not None:
++                stop.started(child)
++            try:
++                rc = child.wait(timeout=timeout)
++            except subprocess.TimeoutExpired:
++                stopped = STOPPED_AT_LIMIT; stop_group(child); rc = child.wait()
++            stop_group(child)               # what it started and left running when it ended
++            if stop is not None and stop.finished(child):
++                stopped = STOPPED_BY_RUN
++        seconds = time.monotonic() - began
++        out_text = (logs / (stem + '.out')).read_text(errors='replace'); err_text = (logs / (stem + '.err')).read_text(errors='replace')
++    finally:
++        shutil.rmtree(scratch, ignore_errors=True)
++    ran, failed, failures, skipped = read_result(unit, rc, stopped, out_text, err_text, out)
++    state = {STOPPED_AT_LIMIT: 'TIMEOUT', STOPPED_BY_RUN: 'INTERRUPTED'}.get(stopped) or ('FAILED' if failed else 'PASSED')
++    return row_of(unit, state, ran, failed, skipped, seconds, rc, failures, (logs / stem).relative_to(out).as_posix() + '.out')
++
++
++def expected(unit, cfg):
++    """Seconds a unit took when measured (tools/tiers.json), to start the longest first; a guess for the rest."""
++    known = cfg.get('seconds', {}); keys = (label(unit),) if unit.get('classes') else (unit['name'], Path(unit['name']).stem, unit['kind'])
++    return next((known[key] for key in keys if key in known), 5)
++
++
++def run_all(units, root, out, cfg, workers=2, timeout=None, report=None, stop=None):
++    """Every unit, `workers` at a time, the longest expected first; rows in the order the units were given. A unit the
++    runner itself could not run (a full disk, say) is a failure that says why. When the run is stopped (Ctrl-C, SIGTERM,
++    SIGHUP, or stop.now()), the units running are killed with what they started and are failures, and the rest are
++    'not run'."""
++    capture_env = window_checks()[1] if any(u['kind'] == 'check' for u in units) else {}
++    stop = Stop() if stop is None else stop; grace = cfg.get('timeout_grace_seconds', 30)
++    pending = sorted(range(len(units)), key=lambda i: -expected(units[i], cfg)); rows = [None] * len(units)
++    lock = threading.Lock(); done = [0]
++    def worker():
++        while True:
++            with lock:
++                if not pending or stop.is_set():
++                    return
++                index = pending.pop(0)
++            unit = units[index]; limit = timeout or cfg.get('timeout_seconds', {}).get(unit['kind'], 900)
++            try:
++                row = run_unit(unit, root, out, limit, capture_env, stop, grace)
++            except Exception as exc:
++                row = row_of(unit, 'FAILED', failed=1, failures=[{'test': label(unit), 'message': 'the runner could not run it: %s: %s' % (type(exc).__name__, exc)}])
++            with lock:
++                rows[index] = row; done[0] += 1
++                if report:
++                    report('[%d/%d] %-9s %-44s %6.1fs  %s' % (done[0], len(units), row['look'], row['module'][:44], row['seconds'], row['state'].lower()))
++    caught = stop.catch(); threads = [threading.Thread(target=worker, daemon=True) for _ in range(max(1, workers))]
++    try:
++        for thread in threads:
++            thread.start()
++        for thread in threads:
++            thread.join()
++    finally:
++        if any(thread.is_alive() for thread in threads):      # cut short by a fault of the run's own: stop what runs
++            stop.now()
++            for thread in threads:
++                thread.join()
++        stop.release(caught)
++    return [row or row_of(unit, 'NOT RUN') for unit, row in zip(units, rows)]
++
++
++# The report -----------------------------------------------------------------------------------------------------------------
++
++def failing(rows):
++    return [row for row in rows if row['failed']]
++
++
++def interrupted(rows):
++    return any(row['state'] in ('INTERRUPTED', 'NOT RUN') for row in rows)
++
++
++def table(rows):
++    lines = ['%-9s %-9s %-52s %5s %6s %7s %8s  %s' % ('look', 'kind', 'module, check or scene', 'ran', 'failed', 'skipped', 'seconds', 'state')]
++    for row in rows:
++        lines.append('%-9s %-9s %-52s %5d %6d %7d %8.1f  %s' % (row['look'], row['kind'], row['module'][:52], row['ran'], row['failed'],
++                                                                row.get('skipped', 0), row['seconds'], row['state'].lower()))
++    return lines
++
++
++def last_line(rows):
++    """'0 failing', or how many and where; the tests skipped, named, after it; 'interrupted' first when the run was."""
++    bad = failing(rows); skipped = [row for row in rows if row.get('skipped')]
++    line = '%d failing: %s' % (sum(row['failed'] for row in bad), '; '.join('%s %s' % (row['look'], row['module']) for row in bad)) if bad else '0 failing'
++    if skipped:
++        line += '; %d skipped: %s' % (sum(row['skipped'] for row in skipped), '; '.join('%s %s (%d)' % (row['look'], row['module'], row['skipped']) for row in skipped))
++    if interrupted(rows):
++        line = 'interrupted, %d of %d not run; %s' % (sum(1 for row in rows if row['state'] == 'NOT RUN'), len(rows), line)
++    return line
++
++
++def differences(before, after):
++    """What changed between two runs, unit by unit and look by look: the state, the number run, and each failing test with
++    its message (a failure whose words changed is a change, not 'the same failure')."""
++    def keyed(rows):
++        return {(row['look'], row['module']): row for row in rows}
++    then, now = keyed(before), keyed(after); lines = []
++    for key in sorted(set(then) | set(now)):
++        a, b = then.get(key), now.get(key)
++        if a is None:
++            lines.append('%s %s: new, %s' % (key[0], key[1], b['state'].lower())); continue
++        if b is None:
++            lines.append('%s %s: not run this time' % key); continue
++        if a['state'] != b['state']:
++            lines.append('%s %s: %s, was %s' % (key[0], key[1], b['state'].lower(), a['state'].lower()))
++        elif a['ran'] != b['ran']:
++            lines.append('%s %s: ran %d, was %d' % (key[0], key[1], b['ran'], a['ran']))
++        old = {(f['test'], f['message']) for f in a.get('failures') or []}
++        for f in b.get('failures') or []:
++            if (f['test'], f['message']) not in old:
++                lines.append('%s %s: %s now says: %s' % (key[0], key[1], f['test'], f['message']))
++    return lines
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(prog='run_tiers.py', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
++    parser.add_argument('tier', type=int, choices=(0, 1, 2), help='0 at every change, 1 before a commit, 2 at a release')
++    parser.add_argument('--look', choices=(*LOOKS, 'both'), help='the look the tests run in (tiers 0 and 1: the look in force; tier 2: both)')
++    parser.add_argument('--changed', metavar='REF', help='tier 1: the commit the change is measured from (default HEAD)')
++    parser.add_argument('--out', type=Path, help='the folder for tier<N>.json and the logs (default: a new temporary folder)')
++    parser.add_argument('--against', type=Path, metavar='EARLIER', help='an earlier tier<N>.json: say what changed since')
++    parser.add_argument('--timeout', type=float, help='seconds each module, check or scene may take (default: tools/tiers.json)')
++    parser.add_argument('--workers', type=int, default=2, help='how many run at once (default 2, for four cores)')
++    args = parser.parse_args(argv)
++    if args.changed and args.tier != 1:
++        parser.error('--changed belongs to tier 1')
++    out = (args.out or Path(tempfile.mkdtemp(prefix='graphite-tier%d-' % args.tier))).expanduser().resolve(); program = ROOT.resolve()
++    if out == program or program in out.parents:      # resolved: neither '..' nor a link leads a run into the program
++        parser.error('choose an --out folder outside the program folder (%s): a run writes nothing into the program' % ROOT)
++    out.mkdir(parents=True, exist_ok=True)
++    cfg = config(); in_force = os.environ.get('GRAPHITE_APPEARANCE', '').strip().lower()
++    look = args.look or ('both' if args.tier == 2 else (in_force if in_force in LOOKS else LOOKS[0]))
++    looks = list(LOOKS) if look == 'both' else [look]
++    changed = changed_files(args.changed or 'HEAD') if args.tier == 1 else None
++    units, chosen = plan(args.tier, looks, cfg, changed)
++    _, kind = isolation(); began = time.monotonic(); started = time.strftime('%Y-%m-%dT%H:%M:%S')
++    print('tier %d: %d runs in %s, %d at a time (%s); logs under %s' % (args.tier, len(units), ' and '.join(looks), args.workers, kind, out),
++          file=sys.stderr, flush=True)
++    stop = Stop()
++    rows = run_all(units, ROOT, out, cfg, args.workers, args.timeout, report=lambda line: print(line, file=sys.stderr, flush=True), stop=stop)
++    wall = round(time.monotonic() - began, 1); cut = interrupted(rows)
++    result = {'tier': args.tier, 'looks': looks, 'started': started, 'wall_seconds': wall, 'workers': args.workers, 'isolation': kind,
++              'state': 'INTERRUPTED' if cut else ('FAILED' if failing(rows) else 'PASSED'), 'failing': sum(row['failed'] for row in rows),
++              'not_run': sum(1 for row in rows if row['state'] == 'NOT RUN'), 'skipped': sum(row['skipped'] for row in rows),
++              'tests_run': sum(row['ran'] for row in rows if row['kind'] == 'module'), 'rows': rows}
++    lines = table(rows)
++    if args.tier == 1:
++        result.update(changed_since=args.changed or 'HEAD', changed=changed, chosen_by_change=chosen)
++        lines.append('changed since %s: %d files; chosen by them: %s' % (args.changed or 'HEAD', len(changed),
++                     ', '.join('%s (%s)' % (Path(f).stem, ', '.join(c)) for f, c in sorted(chosen.items())) or 'nothing beyond tier 0'))
++    if args.against:
++        try:
++            result['against'] = {'file': str(args.against), 'differences': differences(json.loads(args.against.read_text())['rows'], rows)}
++        except (OSError, ValueError, KeyError) as exc:
++            result['against'] = {'file': str(args.against), 'error': type(exc).__name__ + ': ' + str(exc)}
++        lines += ['since %s:' % args.against] + ['  ' + line for line in result['against'].get('differences') or [result['against'].get('error') or 'no difference']]
++    for row in failing(rows):
++        lines += ['%s %s:' % (row['look'], row['module'])] + ['  %s: %s' % (f['test'], f['message']) for f in row['failures'][:8]]
++    lines.append('tier %d: %d runs, %d tests, %dm %02ds wall, %s' % (args.tier, len(rows), result['tests_run'], *divmod(int(wall), 60), ' and '.join(looks)))
++    lines.append(last_line(rows))
++    (out / ('tier%d.json' % args.tier)).write_text(json.dumps(result, indent=1, ensure_ascii=False) + '\n')
++    print('\n'.join(lines))
++    if cut:
++        return 128 + (stop.signal or signal.SIGINT)
++    return 1 if failing(rows) else 0
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/tools/tiers.json b/tools/tiers.json
+new file mode 100644
+index 0000000..dabe4f9
+--- /dev/null
++++ b/tools/tiers.json
+@@ -0,0 +1,63 @@
++{
++ "about": "The checks in tiers (tools/run_tiers.py; docs/CHECKS.md). Tier 0 at every change, in under a minute; tier 1 before a commit: tier 0 and what imports a changed file; tier 2 at a release: everything, in both looks. tests_integrated/test_run_tiers.py holds every module to tier 2 and tier 0 to a part of it.",
++ "0": {
++  "budget_seconds": 60,
++  "modules": [
++   {"module": "test_stacy_hand", "why": "her hand's rules: the dial, what always asks, what takes an act back, her trail"},
++   {"module": "test_desk_acts", "classes": ["PureRules"], "why": "her hand's rule over the desk acts, without a window: what an act may do and what always asks"},
++   {"module": "test_resource_rules", "why": "the model's memory rules, each against the program's own code"},
++   {"module": "test_memory_settings", "why": "the memory settings: undo and default only on the current profile"},
++   {"module": "test_model_settings", "why": "the model's launch settings: restore and cancel, as a model swap needs"},
++   {"module": "test_release_check", "why": "release integrity: the registry record, the runtime section, the privacy scan, every module and window check listed"},
++   {"module": "test_project_desk", "why": "the seed is current (a plan refuses while it is not), and the owner's scope and privacy"},
++   {"module": "test_one_name", "classes": ["TheName", "TheSweepItself", "TheCode"], "why": "one name: Kasandra in every look, and the sweep of the code and the guides (the window's sweep, a minute more, is tier 1's and tier 2's)"},
++   {"module": "test_conditions", "why": "the Kernel's scopes: the registry's scopes and observers"},
++   {"module": "test_network_watch", "why": "the Kernel's scopes held through the one dispatcher; captures stop and keep what they took"},
++   {"module": "test_documents", "why": "the Kernel's scopes: the document operations, their scopes and privacy"},
++   {"module": "test_cabinet_actions", "why": "the Kernel's scopes: a read scope can look and cannot prepare writing"},
++   {"module": "test_change_sets", "why": "change sets and undo: the owner's review cannot be gone around"},
++   {"module": "test_continuing_work", "why": "work that continues while the window is closed, and its checks"},
++   {"module": "test_workspace_backup", "why": "the owner's data: backup and restore"},
++   {"module": "test_service_lifecycle", "why": "the service's cycle (two planted bugs only it caught)"},
++   {"module": "test_line_rules", "why": "what a line does with values (the seven evaluator faults of 14 November)"},
++   {"module": "test_faces_find_light", "why": "a planted bug only it caught, in under a second"},
++   {"module": "test_joined_work", "why": "a planted bug only it caught, in under a second"},
++   {"module": "test_kasandra", "why": "her look at start, a planted bug only it caught"},
++   {"module": "test_cabinet", "why": "the cabinet, a planted bug only it caught"},
++   {"module": "test_operations", "why": "the queue and its controls, a planted bug only it caught"},
++   {"module": "test_colour_vision", "why": "every colour that means something also reads for weak red and weak green sight"},
++   {"module": "test_stacy_start", "why": "her first journey (a project started in another program), a planted bug only it caught"},
++   {"module": "test_deployment", "why": "exchange and updates, a planted bug only it caught"}
++  ]
++ },
++ "1": {
++  "budget": "a few minutes",
++  "ignored": {
++   "MANIFEST.json": "follows the source; tier 0's release check and the seed test read it",
++   "project/stacy_seed/current/": "follows the source; tier 0's seed test reads it",
++   "wip/": "development notes, never run",
++   ".claude/": "the session's own folder, never run"
++  }
++ },
++ "2": {
++  "budget_seconds_per_look": 900,
++  "scene": ["DP01a", "DP01b", "DP01c", "DP01d"],
++  "once": {
++   "test_one_name": "sweeps the window in both looks itself, so it runs once",
++   "test_rail_demo_campaign": "plays the scene in both looks itself, so it runs once"
++  }
++ },
++ "timeout_seconds": {"module": 900, "check": 600, "scene": 900, "integrity": 600, "sweep": 300},
++ "timeout_grace_seconds": 30,
++ "seconds_measured": "19 November 2026, tier 2 in the Graphite look on the four-core build machine; only the order of the runs reads them (the longest first)",
++ "seconds": {
++  "test_desk_acts": 187, "test_one_name": 127, "test_rail_demo": 92, "test_rail_demo_campaign": 73, "test_desk_scenes": 62,
++  "test_context_menu": 60, "test_session_start": 46, "test_hologram": 29, "test_kasandra_column": 28, "test_kasandra_highlight": 22,
++  "test_system_menu": 18, "test_campaign": 16, "test_delete_words": 16, "test_lit_controls": 15, "test_slate_reasoning": 12,
++  "test_run_tiers": 28,"test_agent_loop": 10, "test_typewriter_faces": 9, "test_pane_width": 8, "test_graphite": 7, "test_exact_math_solvers": 7,
++  "test_one_name (TheName, TheSweepItself, TheCode)": 11, "test_desk_acts (PureRules)": 5,
++  "check_finder_ui": 68, "check_continue_ui": 33, "check_settings_02_ui": 23, "check_context_menu_ui": 22, "check_cabinet_ui": 21,
++  "check_agent_ui": 20, "check_settings_ui": 19, "check_navigation_ui": 19,
++  "check": 12, "scene": 90, "integrity": 5, "sweep": 5
++ }
++}
