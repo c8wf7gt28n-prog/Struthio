@@ -88,12 +88,12 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
    (workspace_tabs.py; reproduce first); "Now: Now:" in her column. A test for each.
 4. **MERGED (43f42cd), reviewed and fixed.** One name: Kasandra in every look (workbench/assistant_identity.py and the tests and words that assert Stacy on
    screen). History keeps the names it was written with.
-5. The window-check scripts: retire or fold 7, port the rest (`wip/2026-11-14/tests_measure/fix_patches/patches/`).
+5. **MERGED (0a4cc3b), reviewed and fixed.** The window-check scripts: retire or fold 7, port the rest (`wip/2026-11-14/tests_measure/fix_patches/patches/`).
 6. **MERGED (dd2c2db), reviewed and fixed.** The seven line bugs (NOTES.md "PAL P0"; `sdk/cli/arc1cli/typed_pipeline.py`), a test pinning each.
 7. Tests for the blind spots in the guarding code (Kernel scopes, her hand's rules, memory rules, release check); run the
    planted bugs again; target 75% caught there (`wip/2026-11-14/tests_measure/mutants.md`).
 8. The tiered runner (tier 0 under a minute) and the slimmed release checks (`tests_measure/release-checks.md`).
-9. The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
+9. **MERGED (a737d20), reviewed and fixed.** The yellow leftovers and the colour-vision check (`wip/2026-11-14/yellow_review/`, spec section 7).
 10. Release 0.8.4: version, notes, checks on the exact commit, kit, send to the owner.
 
 **State at 16:20 UTC, 19 Nov: part A is merged** (four commits, c47a9ba to dd2c2db, each built, independently reviewed
@@ -102,12 +102,14 @@ and fixed; all four patches applied without conflict; seed current). The reviews
 - **The full suite on the merged tree (commit dd2c2db), 19 Nov 16:28 UTC: default look 70 modules, 1,115 tests, 0 failing;
   Kasandra look 70 modules, 1,115 tests, 1 failing** (`test_faces_find_light`, her desk light: "172 not less than 150";
   it failed the same way before part A; part B's look item settles it).
-- **Running now (restarted 19 Nov 18:20 UTC): workflow `graphite-084-part-b`, run id `wf_401c7b30-522`, task `w3qzlz7fi`.**
-  The first run (16:30) stopped at about 17:30 on a weekly limit of the model it ran on (reset 26 Nov); the owner switched
-  the session to another model at 18:15 and said "Continue". At the stop, look and checks were built and nearly through
-  their own last runs (their notes say what was left); session, guards and tiers had not started. Copies of both patches
-  and notes: `wip/2026-11-19_b084b_saved/`. The relaunched builders find the notes and patches and carry on from them.
-
+- **Part B: workflow `graphite-084-part-b`, run id `wf_401c7b30-522`.** Run 1 (16:30) stopped at 17:30 on a weekly limit
+  of the model it ran on (reset 26 Nov); the owner switched the session to another model at 18:15 and said "Continue".
+  Run 2 (18:20) built, reviewed and fixed checks and look, then stopped at 19:25 on the 5-hour limit before session,
+  tiers and guards got far (session left a reproduction and a plan in its notes). **checks and look were merged at
+  21:30 UTC** (0a4cc3b, a737d20; no conflict; seed current). All files: `wip/2026-11-19_b084b_saved/`.
+- **Running now:** the full suite on the merged tree in both looks (`run_suite_both_looks.sh`). **Next:** relaunch part B
+  with `resumeFromRunId: wf_401c7b30-522`: look and checks come back from cache; session, tiers and guards run.
+- How part B works: `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js`
   (keys: look = step 9, checks = step 5, session, tiers = step 8, guards = step 7; two lanes, each finishing one item,
   build then review then fix, before starting the next). Hand-overs are files in scratch `work/b084b/`: `<key>.patch`,
   `<key>.progress.md`, `<key>.review.md`, `<key>.<role>.result.json`; an agent whose result file exists returns at once,
@@ -121,7 +123,21 @@ and fixed; all four patches applied without conflict; seed current). The reviews
 **The pace, measured (19 Nov).** One 5-hour usage window carries about 75 to 110 minutes of two agents working (1.6 and
 2.3 million tokens of agent work in the two windows measured). So: finish items one after another rather than start
 many; hand over through files; agents work in few large steps and never print whole test output. Windows have reset at
-06:00, 11:00 and 16:00 UTC; the next should be 21:00.
+06:00, 11:00, 16:00 and 21:10 UTC. On 19 Nov 17:30 a weekly limit of one model also stopped work until 26 Nov; the owner
+switched the session's model.
+
+**Carried out of part B so far, with where each goes:**
+- Left for the owner to judge by eye in the Kasandra look: the writing line's light now steps; the Field's rings show
+  under overlapping sheets; the Return thread's writing box turned from yellow to blue. **Release notes, "to look at".**
+- The setting "Script for incidental text" (appearance.cursive) is still in Settings and changes nothing on screen.
+  **Decision taken for the owner: remove it in the release pass** (the rule "a control is lit only when a press would do
+  something"); the menu toggle for the same setting is already gone.
+- Keys still named on purpose, on a reviewed list (`tools/name_sweep.py` KEYS_KEPT and KEYS_CODE_KEPT): the Field's
+  painted key labels and key card, the console's "Press Enter again", the Help menu's keyboard page, the document
+  editor's screen-reader descriptions, the games. Each is a key with nothing to click instead. **For the owner to judge.**
+- Frame step 05 of the retired frame check (the tab strip's height across six tabs) is covered by nothing; named in
+  `docs/WINDOW_CHECKS.md`. The release gate's window checks run in the look in force only.
+- The desk-light test in the Kasandra look was loosened by about 3 L* (stated in the test); it now passes.
 
 **Carried out of part A (from the builders' and reviewers' lists), with where each goes:**
 - Line evaluator, still silent or odd, none of them new: a line ending in `group FIELD` with nothing after it returns its
@@ -156,6 +172,9 @@ many; hand over through files; agents work in few large steps and never print wh
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 19 Nov: the setting "Script for incidental text", which changes nothing on screen, is removed (0.8.4 release pass).
+- 19 Nov: a Rail Demo build that waits 60 s for memory stops as a Fail with its reason (the owner may prefer Blocked).
+
 - 19 Nov: "Just Kas" read as: the name shown is Kasandra in every look, the first look included. Stacy's portraits stay as
   that look's art until the owner says otherwise.
 - 19 Nov: work committed as "in progress" before the suite finished, because the repository's stop hook requires a push.
@@ -171,6 +190,8 @@ many; hand over through files; agents work in few large steps and never print wh
 
 ## Log (newest first)
 
+- 19 Nov 21:30 UTC: checks and look merged; full suite running.
+- 19 Nov 19:25 UTC: the 5-hour limit stopped part B's second run after checks and look were finished.
 - 19 Nov 18:20 UTC: part B relaunched on the model the owner chose; look and checks resume from their saved work.
 - 19 Nov 17:30 UTC: a weekly model limit stopped part B (look and checks nearly built).
 - 19 Nov 16:30 UTC: suite on the merged tree: 0 failing in the default look, 1 known in the Kasandra look; part B started.
