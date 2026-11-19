@@ -141,9 +141,9 @@ At 1366 by 768 the AGENT-01 and AGENT-02 captures showed the toolbar clipping it
 the style gives them (less what an ancestor clips; a wrapped label needs only its longest word; a checked push button is
 measured bold; a word squeezed to no width or cut off wholly sideways counts; a List's column titles are measured against
 their sections), `regions(window, *parts)` splits the window's findings into the parts a check asserts and the rest, and
-`side_scrolls(root, allow)` lists what scrolls sideways. `check_finder_ui` and `check_frame_ui` assert the whole window at
-1920 by 1200, 1366 by 768 and 18 pt (captures and JSON in `build/graphite01_ui/fit/`); `check_frame_ui` also sweeps the
-head from 1040 to 1400 px. Checked words outside the Finder keep room for the same bold face (`finder_qt.keep_bold_room`,
+`side_scrolls(root, allow)` lists what scrolls sideways. `check_finder_ui` asserts the whole window at
+1920 by 1200, 1366 by 768 and 18 pt, and sweeps the head from 1040 to 1400 px (its step 13, kept from the frame's check when
+that was retired in 0.8.4: docs/WINDOW_CHECKS.md). Checked words outside the Finder keep room for the same bold face (`finder_qt.keep_bold_room`,
 which applies `bold_room` again after a restyle): the left column's "Cabinet", "Machine", "Settings", "Logical cabinet" and
 "Existing views", the right column's "Operations", the face row's words and the strip's selectors. `ui_fit.PENDING` (the
 words allowed to fall short, by at most `PENDING_SLACK` px) is empty, so any clipped word anywhere in the window fails these

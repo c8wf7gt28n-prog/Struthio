@@ -111,7 +111,7 @@ hatch=bar.hatch;lst=hatch.programs;sym=w.shell2.top.nice
 # 01 the desk, 02 the programs list, 07 the overlay ------------------------------------------------------------------------------
 def overlay():
  """The axis (eraser pink) and the mirrored guides (pencil yellow, dashed): the band insets, the pane edges, the workspace column's
- inset shared by the menus' ink and the writing line, the band edges (as tools/check_desk_ui.py draws its overlay)."""
+ inset shared by the menus' ink and the writing line, the band edges."""
  pix=w.grab();p=QPainter(pix);W=w.width();H=w.height();d=w.desk
  p.setPen(QPen(QColor('#c99a2e'),1,Qt.DashLine))
  for x in sorted({d.inset,d.pane-d.inset,d.pane,d.pane+d.line}):
@@ -128,7 +128,7 @@ def overlay():
 for wd,ht in SIZES:
  size(wd,ht);home()
  record('Graphite_Review_01_Desk_Menus_Closed_%dx%d.png'%(wd,ht),'The desk with both launch menus closed, %d by %d, 14 pt: the two graphite bands; Graphite in the script at the upper left and the erased Graphite symbol at the far right (the System menu); the eight menus across the workspace; CPU · GPU · RAM · TXT; the left pane (Machine · Cabinet · Settings, the active tree with its branch lines, Trash at its lower right) and the right pane (Conversation · Activity · Context), %d px each; the workspace (Today, the Finder) centred; the lower band: the cat, Line · Half · Tall, the writing line with its poem placeholder, and the four modes Assignment · Bash · Search · Log, Assignment marked.'%(wd,ht,w.desk.pane),grab())
- record('Graphite_Review_07_Symmetry_Overlay_%dx%d.png'%(wd,ht),'The same desk with the axis (pink) and the mirrored guides (dashed yellow): the bands\' insets, the pane edges, the workspace column\'s inset that the menus\' ink and the writing line share, and the band edges. tools/check_desk_ui.py measures every pair at 0 px at nine sizes and fonts.',overlay())
+ record('Graphite_Review_07_Symmetry_Overlay_%dx%d.png'%(wd,ht),'The same desk with the axis (pink) and the mirrored guides (dashed yellow): the bands\' insets, the pane edges, the workspace column\'s inset that the menus\' ink and the writing line share, and the band edges.',overlay())
  hatch.setFocus();settle();QTest.keyClick(hatch,Qt.Key_Return);settle(60);assert lst.isVisible()
  record('Graphite_Review_02_Cat_Programs_List_%dx%d.png'%(wd,ht),'The cat\'s programs list, %d by %d, opened with Return from the cat (one click opens it too): %d programs and capabilities, one plain name and one small graphite icon each, A to Z, then Explore the workshop; its small caption in the script at the top; the cat\'s paw raised and its eyes yellow while the list is open. It opens upward from the lower left, the System menu\'s point-mirror image.'%(wd,ht,len(lst.rows())-1),grab(lst),lst)
  lst.close_menu();settle()

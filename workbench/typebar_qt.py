@@ -519,7 +519,7 @@ class TypeBar(QWidget):
         return max(need, self.monitors.minimumSizeHint().width() + 2 * o)
 
     def row_need(self, primary, secondary):
-        """The width a row's items take at the band's size: their ink and air (recorded by check_head_ui)."""
+        """The width a row's items take at the band's size: their ink and air."""
         from . import desk_qt
         from .shell2 import scale_of
         a = desk_qt.ink_air(scale_of(self.host));px = getattr(self, 'px', None) or desk_qt.letter_px(scale_of(self.host))

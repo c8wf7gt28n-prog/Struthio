@@ -20,7 +20,7 @@ the script is sized by its capitals against the symbol (script_word_px); the sep
 
 The pure part (constants, pane_width, desk, band_height, menu_row, tight_row, spread, grain, contrast, letter sizes, fit_size)
 needs no QApplication and is tested by tests_integrated/test_desk.py; the Qt part (the grain tile, painting a band, ink_extent,
-InkWord, apply, the mirrored drag) is measured by tools/check_desk_ui.py with tools/symmetry.py. docs/GRAPHITE_DESK.md says
+InkWord, apply, the mirrored drag) is exercised on the live window by tools/check_finder_ui.py steps 13 to 15. docs/GRAPHITE_DESK.md says
 what was chosen and why.
 """
 from __future__ import annotations

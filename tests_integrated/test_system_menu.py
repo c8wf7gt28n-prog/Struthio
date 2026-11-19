@@ -115,7 +115,7 @@ class AvailabilityTests(unittest.TestCase):
 
 
 class ChecksHoldTheOneFunctionTests(unittest.TestCase):
-    """D2-fix (the review: check_desk_ui and check_head_ui opened the System menu with session_power.system unpatched, so they
+    """D2-fix (the review: two window checks opened the System menu with session_power.system unpatched, so they
     asked the real system bus; they passed only where there is none). Every Qt check that opens or builds the System menu holds
     the one function at its holds, for the whole run (module level, started), so no check asks the real logind or could start a
     session or power command, on any computer. A run of every check with a probe on session_power's real paths found eight
@@ -131,7 +131,7 @@ class ChecksHoldTheOneFunctionTests(unittest.TestCase):
             if self.OPENS.search(text):
                 openers.append(path.name)
                 if not self.HELD.search(text):unheld.append(path.name)
-        self.assertGreaterEqual(len(openers),9,openers)
+        self.assertGreaterEqual(len(openers),3,openers)  # nine until 0.8.4, when six were retired with the desk they measured (docs/WINDOW_CHECKS.md)
         self.assertEqual(unheld,[],'these checks open the System menu without holding session_power.system')
 
 
@@ -417,7 +417,7 @@ class MenuTests(unittest.TestCase):
         self.assertFalse(any(r[0]=='where' for r in self.fake.requests),'refused before anything else')
 
     def test_a_resting_pointer_takes_no_row_until_it_moves(self):
-        """D2-fix (found when the unavailable rows became reachable: check_desk_ui's pointer rested where Restart opens and took the
+        """D2-fix (found when the unavailable rows became reachable: a window check's pointer rested where Restart opens and took the
         keyboard's first row): as a QMenu does, a pointer resting where the menu opens takes no row; its first movement does."""
         from PySide6.QtCore import QPoint
         from PySide6.QtTest import QTest

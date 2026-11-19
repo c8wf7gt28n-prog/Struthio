@@ -107,6 +107,7 @@ room2=open_record(current,w2);ed2=room2.direction_editor
 assert ed2.writing.toPlainText()==pending and ed2.reason.text()=='Continue after returning.' and ed2.guard is None and not ed2.save.isEnabled()
 check('A fresh desktop recovers correction writing and requires history review instead of silently rebasing it')
 room2.scroll.ensureWidgetVisible(ed2.writing);settle(w2)
+w2.shell2.show_operations_face();settle(w2)  # 0.5.3: the return thread's link is in the right pane's Activity view
 assert w2.trash_can.isVisible() and w2.shell2.top.programs.isVisible() and w2.operations_monitors.isVisible() and w2.return_thread.footer.isVisible()
 capture('Ledger_Slate_HATCH_Memory_01_Compact.png',w2)
 check('Laptop layout retains typed memory filing, the correction passage, fixed Trash, Stop, host monitors and the return footer')

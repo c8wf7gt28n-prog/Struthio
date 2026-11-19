@@ -9,7 +9,6 @@ RUN=Path(tempfile.mkdtemp(prefix='ledger-settings-ui-'))
 os.environ.update(QT_QPA_PLATFORM='offscreen',ARC_LEDGER_EMBEDDED='1',ARC_LEDGER_DISABLE_BOOK_WATCHER='1',ARC1_WORKBENCH_CONFIG_HOME=str(RUN/'profile'),ARC_LEDGER_CONCERN=str(RUN/'Concern'))
 sys.path.insert(0,str(PROGRAM));sys.dont_write_bytecode=True
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPalette
 from PySide6.QtTest import QTest
 from workbench.qt_app import make_app,WorkbenchWindow
 from workbench.session import Session
@@ -54,7 +53,6 @@ w.resize(1920,1200);w.show();settle();nav=w.settings_navigator;cabinet=w.cabinet
 cabinet.select(cabinet.tree.topLevelItem(0).data(0,Qt.UserRole)['id'],reveal=True);settle();cabinet_selection=selected_id(cabinet);assert cabinet_selection
 bridge.show_settings();settle();assert nav.stack.currentIndex()==1
 tab=select('reading.code_pt');type_number(tab,18);QTest.mouseClick(tab.apply_button,Qt.LeftButton);settle()
-assert tab.apply_button.palette().color(QPalette.ButtonText).name()=='#885e64'
 assert row(tab.key)['stored']==18 and row(tab.key)['effective']==18;assert w.reading_profile['code_pt']==18
 record('Human keyboard entry and Apply reach the existing reading store and actual desktop profile')
 # The real code editor consumes that profile. Preview replacement is intentional.

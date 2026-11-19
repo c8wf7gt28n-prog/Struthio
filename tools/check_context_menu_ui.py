@@ -100,7 +100,7 @@ def supersede(*names):
   if old.exists():old.unlink();superseded.append(name)
 def labelled(image,words):
  """TEST DATA said on the image itself, on an eraser-pink band over the workspace's empty lower left, clear of the status line
- (as check_desk_ui labels Log's)."""
+ (as Log's captures are labelled)."""
  from PySide6.QtCore import QRectF
  from PySide6.QtGui import QColor,QFont
  from workbench import shell2
@@ -333,7 +333,7 @@ with recorder():
  panel=menu.open_child(menu.row('then'));settle(80)
  read=[op for op,_ in dispatched[before:]]
  assert isinstance(panel,cm.LinePanel) and read==['language.parse','ledger.address.read'],read
- assert panel.slab.styleSheet()==bt.line_sheet() and panel.count_words()=='4 rows · 6 steps left',panel.count_words()
+ assert panel.slab.styleSheet().endswith(bt.line_sheet()) and panel.count_words()=='4 rows · 6 steps left',(panel.slab.styleSheet(),panel.count_words())  # its face first (the 0.8.3 review: shell2.set_face), then the line's look
  panel.choose('step:where');panel.choose('field:unit');settle()
  assert panel.row('where unit=mA').caption=='2 rows',panel.row('where unit=mA').caption
  values=with_popups(menu,panel)

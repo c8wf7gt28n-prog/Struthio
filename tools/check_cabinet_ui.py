@@ -112,9 +112,22 @@ with tempfile.TemporaryDirectory(prefix='ledger-cabinet-master-',dir=Path.home()
   assert w.tabs.currentWidget().__class__.__name__==('OfficeBuildingTab' if transfer['direction']=='IMPORT' else 'FilesTab')
  record('Import and Export (Work menu entries) open the existing receiving and outgoing-file controls without performing a transfer')
  room=select('project:'+first['id']);capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Desktop.png')
- fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText()]
+ fields=[field for kind in (QLineEdit,QPlainTextEdit,QTextEdit) for field in w.findChildren(kind) if not field.isReadOnly() and field.placeholderText() and field.objectName()!='CentreFindWords']  # Find's own line (0.5.0) says what it finds
  assert fields and all(f.placeholderText()=='prompt' for f in fields),[(f.objectName(),f.placeholderText()) for f in fields if f.placeholderText()!='prompt']
  record('Every instantiated editable field with a placeholder says exactly poem')
+ # The written passages are in the prose family at the prose size and follow a change of it; the record's own data stays in the
+ # code face (kept from the paper theme's window check, retired in 0.8.4; docs/WINDOW_CHECKS.md says why)
+ from workbench import reading_preferences
+ profile=dict(w.reading_profile);_,prose_face,code_face=reading_preferences.in_force((profile['family'],profile['prose_family'],profile['code_family']))  # the look's own faces until the owner chooses others
+ prose_family=reading_preferences.family(prose_face);code_family=reading_preferences.family(code_face,True)
+ assert (room.writing.font().family(),round(room.writing.font().pointSizeF(),1))==(prose_family,profile['prose_pt']),(room.writing.font().family(),room.writing.font().pointSizeF(),prose_family,profile['prose_pt'])
+ assert (room.body.font().family(),round(room.body.font().pointSizeF(),1))==(prose_family,profile['prose_pt']),(room.body.font().family(),room.body.font().pointSizeF())
+ assert (room.detail.font().family(),round(room.detail.font().pointSizeF(),1))==(code_family,profile['code_pt']),(room.detail.font().family(),room.detail.font().pointSizeF(),code_family,profile['code_pt'])
+ reading_preferences.adjust_prose(w,2);settle()
+ assert round(room.writing.font().pointSizeF(),1)==round(room.body.font().pointSizeF(),1)==profile['prose_pt']+2,(room.writing.font().pointSizeF(),room.body.font().pointSizeF())
+ assert (room.detail.font().family(),round(room.detail.font().pointSizeF(),1))==(code_family,profile['code_pt'])
+ reading_preferences.adjust_prose(w,-2);settle();assert round(room.writing.font().pointSizeF(),1)==profile['prose_pt']
+ record('The cabinet\'s writing and the saved record body are in the prose family at the prose size and follow a change of it; the record\'s data stays in the code face')
  w.resize(1366,768);settle();assert w.trash_can.isVisible();capture('Ledger_Slate_HATCH_Cabinet_01_Poem_Compact.png')
  record('Affected UI resizes to 1366 by 768 with Trash fixed outside the scrolling cabinet')
  assert (master.read_bytes(),master.stat().st_mode)==before

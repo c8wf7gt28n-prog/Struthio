@@ -13,7 +13,12 @@ room the style gives them; outside the head and the centre only ui_fit.PENDING, 
 nothing in the centre scrolls sideways (the Columns view and a text preview's lines do by design) at 1920×1200, 1366×768
 and 18 pt; under its width the toolbar folds Hidden, Places, Preview, then the views into ⋯, whose rows still work; the List
 folds Kind, Date Modified, Size, and its widths grow with the interface; a deep path folds its leading folders into … and a
-last folder too long for the foot elides in the middle; Today's Continue row keeps a deep document's name whole. Disposable
+last folder too long for the foot elides in the middle; Today's Continue row keeps a deep document's name whole. Kept from
+the desk's and the frame's window checks, retired in 0.8.4 (docs/WINDOW_CHECKS.md): at every window width from the least to
+1400 px, at 14 and 18 pt, the head's menu words fold into ⋯ before they clip (13); full screen and back keeps both panes, both
+panes are one width at 14, 16, 18, 20 and 28 pt and come back to their width at 14 pt with no ratchet, a drag of either
+edge moves both and outlasts a change of size, and Settings' Left column width applies to both (14); Line, Half and Tall grow
+the working area while the bands and the panes keep their measure (15). Disposable
 profile and Concern; Kernel.launch, Kernel.submit and the provider request are held; no process may start; nothing on
 disk is changed by the Finder. Nothing here is owner-host, live-model or physical acceptance.
 """
@@ -219,6 +224,7 @@ check('10 With the editor open a storage row changed nothing in the centre; Home
 w.session.state['recent']=[str((DEEP/'gate posts.md').relative_to(root))]
 page.go(TODAY);settle();continue_whole('1920 Today');page.go(str(DEMO));page.set_view('list');settle()
 wide=whole('1920 List');assert not wide['folded'] and not wide['list_hidden'] and page.more_button.isHidden(),wide
+date14=page.list.columnWidth(1);assert date14>=LIST_WIDTHS[1],date14  # 120 px at 14 pt, or what its title needs in the look's face
 w.resize(1366,768);settle(60);align();page.go(str(DEMO));page.set_view('list');settle();assert five_parts() and page.list.isVisible() and page.preview.isVisible()
 compact=whole('1366 List');assert compact['folded'] and page.more_button.isVisible() and page.more_button.toolTip().startswith('More: '),compact
 assert all(not b.isVisible() for key in compact['folded'] for b in {'hidden':[page.hidden_button],'preview':[page.preview_button],'places':[page.places_button],'views':list(page.view_buttons.values())}[key])
@@ -242,12 +248,79 @@ capture('Ledger_Slate_GRAPHITE_01_Finder_08_Deep_Path_18pt_1366.png','18 pt at 1
 page.go(TODAY);settle();continue_whole('1366 18pt Today');page.today.scroller.ensureWidgetVisible(page.today.continue_);settle();capture('Ledger_Slate_GRAPHITE_01_Finder_09_Today_18pt_1366.png','Today at 18 pt and 1366 by 768: one column of cards, nothing sideways, every word whole; the Continue row keeps the name gate posts.md whole beside its five folders, which wrap')
 w.resize(1920,1200);settle(60);align();page.go(str(DEMO));page.set_view('list');settle()
 wide18=whole('1920 18pt List');wide18['date_width']=page.list.columnWidth(1)
-assert not wide18['list_hidden'] and wide18['date_width']>=round(LIST_WIDTHS[1]*18/14),wide18  # Date Modified grows with the interface
-capture('Ledger_Slate_GRAPHITE_01_Finder_10_List_18pt_1920.png','The List at 18 pt and 1920 by 1200: Date Modified %d px wide (120 at 14 pt, scaled with the interface), its title and the dates whole'%page.list.columnWidth(1))
+assert not wide18['list_hidden'] and wide18['date_width']>=round(LIST_WIDTHS[1]*18/14) and wide18['date_width']>date14,wide18  # Date Modified grows with the interface
+capture('Ledger_Slate_GRAPHITE_01_Finder_10_List_18pt_1920.png','The List at 18 pt and 1920 by 1200: Date Modified %d px wide (%d at 14 pt, scaled with the interface), its title and the dates whole'%(page.list.columnWidth(1),date14))
 ui_pt(14);w.resize(1920,1200);settle(60);align();page.go(str(DEMO));page.set_view('list');settle()
-assert page.list.columnWidth(1)==LIST_WIDTHS[1],page.list.columnWidth(1)
+assert page.list.columnWidth(1)==date14,(page.list.columnWidth(1),date14)
 back=whole('1920 back at 14pt');assert not back['folded'] and not back['list_hidden'],back
-check('11b 18 pt at 1366×768: every word whole with %s folded and a deep path showing %s after …; at 18 pt and 1920×1200 the List keeps all four columns with Date Modified %s px wide; back at 14 pt and 1920×1200 every word unfolds and Date Modified is %d px again'%(' · '.join(FOLD_WORDS[f] for f in large['folded']),' › '.join(shown),wide18['date_width'],LIST_WIDTHS[1]))
+check('11b 18 pt at 1366×768: every word whole with %s folded and a deep path showing %s after …; at 18 pt and 1920×1200 the List keeps all four columns with Date Modified %s px wide; back at 14 pt and 1920×1200 every word unfolds and Date Modified is %d px again'%(' · '.join(FOLD_WORDS[f] for f in large['folded']),' › '.join(shown),wide18['date_width'],date14))
+# 13 · the frame round the Finder: the head's menu words fold into ⋯ before they clip, at every width from the window's least to
+# 1400 px (kept from the frame's window check, retired in 0.8.4; docs/WINDOW_CHECKS.md says why)
+top=w.shell2.top
+def head_row(step):
+ """The head's menu words as they stand: (the words shown, the words folded). The shown ones are the first ones, each as wide
+ as its word or wider, side by side inside the band and left of Apps; ⋯ stands exactly when a word is folded; no word in the
+ head is cut (tools/ui_fit)."""
+ words=top.menu_words();shown=[b for b in words if b.isVisible()];folded=[b for b in words if not b.isVisible()];more=top.more_menus
+ assert words and shown==words[:len(shown)],(step,[b.text() for b in shown])
+ assert more.isVisible()==bool(folded) and (not folded or more.text()=='⋯'),(step,more.isVisible(),more.text(),[b.text() for b in folded])
+ row=shown+([more] if folded else [])
+ assert all(b.width()>=b.fontMetrics().horizontalAdvance(b.text()) and b.visibleRegion().boundingRect().width()==b.width() for b in row),(step,[(b.text(),b.width()) for b in row])
+ assert row[0].x()>=0 and all(a.geometry().right()<b.x() for a,b in zip(row,row[1:]+[top.programs])),(step,[(b.text(),b.x(),b.width()) for b in row],top.programs.x())
+ clipped=ui_fit.whole_words(w.ribbon_dock);assert not clipped,(step,ui_fit.describe(clipped))
+ return [b.text() for b in shown],[b.text() for b in folded]
+sweep={};least_width=w.minimumWidth()
+for points in (14,18):
+ ui_pt(points)
+ for width in range(least_width,1401,10):
+  w.resize(width,720);settle(20);align(2);sweep[(points,w.width())]=head_row('%d pt at %d px'%(points,w.width()))
+ kept=[len(sweep[(points,width)][0]) for width in range(least_width,1401,10)];assert kept==sorted(kept),(points,kept)  # a wider window never folds more
+folded_at=sorted(key for key,(shown,folded) in sweep.items() if folded);assert folded_at,'no width folded a word: the sweep proved nothing about the fold'
+points,width=folded_at[-1];ui_pt(points);w.resize(least_width,720);settle(40);align(2);kept_words,folded_words=head_row('the least width at %d pt'%points)
+top.more_menus.menu().aboutToShow.emit();assert folded_words and [a.menu() for a in top.more_menus.menu().actions()]==[h.menu() for h in top.headings()],folded_words  # ⋯ opens the same menus, every one
+capture('Ledger_Slate_GRAPHITE_01_Finder_11_Head_Folds_%dpt_%d.png'%(points,least_width),'The window at its least width (%d px) and %d pt: the head keeps %s whole and folds %s into ⋯, whose rows are the same menus; no word is cut.'%(least_width,points,' · '.join(kept_words) or 'no word',' · '.join(folded_words)))
+ui_pt(14);w.resize(1920,1200);settle(60);align(3);unfolded=head_row('1920 by 1200 at 14 pt');assert not unfolded[1],unfolded
+fits['head sweep']=dict(widths=len(sweep),least=least_width,folded_at={'%d pt %d px'%key:sweep[key][1] for key in folded_at})
+check('13 At each of %d window widths from %d to 1400 px, at 14 and at 18 pt, the head\'s menu words are whole, side by side and left of Apps: the ones that do not fit fold into ⋯ (first at %d pt and %d px and narrower), never cut and never scrolled, a wider window never folds more, and ⋯ lists every menu; at 1920 px every word is back'%((len(sweep)//2,least_width)+folded_at[-1]))
+# 14 · both panes are one width: through the interface sizes, and under the owner's hand on either edge (kept from the frame's check)
+bar=w.type_bar
+def panes():return [w.nav_dock.width(),w.sim_dock.width()]
+def drag(dock,dx):
+ """The owner's hand: press on the separator beside the pane, move, release (the desk reads the drag itself: desk_qt.MirroredDrag)."""
+ g=dock.geometry();y=g.center().y();edge=g.right()+1 if dock is w.nav_dock else g.left()-1;start=QPoint(edge,y);end=start+QPoint(dx,0)
+ QTest.mousePress(w,Qt.LeftButton,Qt.NoModifier,start);QTest.qWait(20);QTest.mouseMove(w,start+QPoint(dx//2,0));QTest.qWait(20)
+ QTest.mouseMove(w,end);QTest.qWait(20);QTest.mouseRelease(w,Qt.LeftButton,Qt.NoModifier,end);settle();align()
+def pane_setting():return next(r for r in ledger_control.settings(k,'Workspace')['settings'] if r['key']=='layout.navigator_width')
+def set_pane(value):
+ call('ledger.settings.set',{'key':'layout.navigator_width','value':value,'expected_revision':pane_setting()['revision']});bridge.sync_profile(force=True);settle(40);align();bridge.tick();settle()
+start_panes=panes();assert start_panes[0]==start_panes[1]==w.desk.pane and bar.pane_owner is None,(start_panes,w.desk.pane,bar.pane_owner)
+w.toggle_fullscreen();settle(60);assert w.isFullScreen() and five_parts(),'full screen keeps the five parts'
+w.toggle_fullscreen();settle(80);w.resize(1920,1200);settle(60);align(3);assert not w.isFullScreen() and five_parts() and panes()==start_panes,('full screen and back did not keep the panes',panes(),start_panes)
+sizes={14:start_panes[0]}
+for points in (16,18,20):
+ ui_pt(points);assert panes()[0]==panes()[1]==w.desk.pane>sizes[max(sizes)],(points,panes(),w.desk.pane,sizes);sizes[points]=panes()[0];assert five_parts(),points
+# and 28 pt, as the frame's check went (there the workspace's floor holds both panes in, so they may be narrower than at 20 pt):
+# at 0.8.3 a face out of sight kept the width 28 pt gave it, and both panes came back 415 px wide, not 326 (pane_qt.remeasure)
+ui_pt(28);assert panes()[0]==panes()[1]==w.desk.pane>start_panes[0] and five_parts(),(28,panes(),w.desk.pane,sizes);sizes[28]=panes()[0]
+ui_pt(14);align(3);assert panes()==start_panes,('the panes did not come back from the larger sizes',panes(),start_panes)
+give=120;drag(w.nav_dock,give);wider=panes();assert wider==[start_panes[0]+give]*2 and bar.pane_owner==wider[0],(wider,start_panes,bar.pane_owner)  # the left edge moved both
+drag(w.sim_dock,give//3);owner=panes();assert owner==[wider[0]-give//3]*2 and bar.pane_owner==owner[0],(owner,wider,bar.pane_owner)  # the right edge moved both, the other way
+assert owner[0]>sizes[16],(owner,sizes);ui_pt(16);assert panes()==owner,(panes(),owner);ui_pt(14);align();assert panes()==owner,(panes(),owner)  # the owner's width, wider than the words need at 16 pt, outlasts the change of size
+drag(w.sim_dock,owner[1]);narrow=panes();assert narrow[0]==narrow[1]<=start_panes[0] and five_parts(),(narrow,start_panes)  # dragged as far in as it goes, both stop at what their words need
+set_pane(420);readback=pane_setting();assert readback['stored']==readback['effective']==420 and readback['application_state']=='APPLIED' and panes()==[420,420],({key:readback[key] for key in ('stored','effective','application_state')},panes())
+fits['panes']=dict(by_size=sizes,dragged=[wider[0],owner[0]],narrowest=narrow[0],setting=420)
+check('14 Full screen and back keeps both panes; both panes are one width at 14, 16, 18, 20 and 28 pt (%s px) and come back to %d; a drag of the left pane\'s edge by %d px widened both to %d and of the right pane\'s edge narrowed both to %d, which outlasts a change of size; dragged all the way in, both stop together at what their words need (%d); Settings\' Left column width set to 420 reads back APPLIED on both'%(', '.join(str(sizes[p]) for p in sorted(sizes)),start_panes[0],give,wider[0],owner[0],narrow[0]))
+# 15 · Line, Half and Tall: the working area above the lower band grows, and the band and the panes keep their measure (kept from
+# the mirrored desk's window check, retired in 0.8.4)
+console=w.console;heights={};bands={}
+for level,word in ((0,'Line'),(1,'Half'),(2,'Tall'),(0,'Line again')):
+ console.sizes[level].click();settle();align(2)
+ heights[word]=console.tail.list.height() if console.mode=='log' else console.output.height();bands[word]=(w.type_dock.height(),w.ribbon_dock.height(),w.type_dock.geometry().bottom())
+ assert five_parts() and panes()==[420,420] and console.size_level==level,(word,panes(),console.size_level)
+assert heights['Line']<heights['Half']<heights['Tall'] and heights['Line again']==heights['Line'],heights
+assert len(set(bands.values()))==1,bands
+fits['console']=dict(heights=heights,lower_band=bands['Line'][0])
+check('15 Line, Half and Tall: the working area above the lower band is %d, %d and %d px high and comes back to %d; the lower band stays %d px high at the foot, the head band its height, and both panes their width'%(heights['Line'],heights['Half'],heights['Tall'],heights['Line again'],bands['Line'][0]))
 # 12 · nothing written, nothing started
 after_disk=snapshot(root);changed=[p for p in before_disk if before_disk[p]!=after_disk.get(p)]
 assert not changed,changed[:5]

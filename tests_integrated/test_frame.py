@@ -1,6 +1,7 @@
 """DESKTOP-01 frame: the strip's pure arithmetic (HATCH DESK D1a: the panes' one width is test_desk), the remembered widths, the held-state words.
 
-No QApplication is created here; the Qt behaviour (actual window bounds, focus, captures) is tools/check_frame_ui.py.
+No QApplication is created here; the window's own behaviour (the head's words folding before they clip, one pane width through
+the sizes and under a drag) is tools/check_finder_ui.py steps 13 and 14.
 """
 import json,os,tempfile,unittest
 from pathlib import Path

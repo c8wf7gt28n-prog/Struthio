@@ -122,7 +122,7 @@ restore in full.
 ```
 python3 tools/check_release.py               # payload, seed and syntax; the live program against docs/GRAPHITE_0.1_REGISTRY.json; the privacy scan
 python3 tools/check_release.py --self-test   # adds the focused tests_integrated modules, one module per child process
-python3 tools/check_release.py --ui          # adds the offscreen Qt checks of the UI gate
+python3 tools/check_release.py --ui          # adds the offscreen Qt checks of the UI gate (docs/WINDOW_CHECKS.md lists them)
 python3 -m workbench.slate_checks --runtime
 python3 -m workbench.continuing_checks --workers
 python3 -m workbench.deployment_checks --ui

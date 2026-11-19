@@ -13,8 +13,8 @@
     side_scrolls(root, allow) the scroll areas under `root` that scroll sideways, minus the ones that do by design.
     describe(findings)       the findings in one line each, for an assertion message.
 
-Reads only: it measures what is on screen and changes nothing. Used by check_finder_ui and check_frame_ui; any other check
-takes it the same way (sys.path.insert(0, str(PROGRAM / 'tools')); import ui_fit), e.g. check_graphite_ui and the rename's.
+Reads only: it measures what is on screen and changes nothing. Used by check_finder_ui (the window, and the head at every width);
+any other check takes it the same way (sys.path.insert(0, str(PROGRAM / 'tools')); import ui_fit).
 Checked push buttons are measured bold: theme2 draws every checked QPushButton at weight 600 but Qt sizes it at 400.
 """
 from PySide6.QtCore import QRect, Qt

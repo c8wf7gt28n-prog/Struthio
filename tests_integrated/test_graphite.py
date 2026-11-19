@@ -1,8 +1,8 @@
 """GRAPHITE-01 (the owner's design update of 2026-11-06): the cat's pose machine, pure; its timing and Reduce motion on an
 offscreen QApplication with a bare widget; the marks' palette and arithmetic; the startup screen never stops the start.
 
-The window-level behaviour (captures, real pointer and key events, the menu, the game from the mark) is
-tools/check_graphite_ui.py. Nothing here starts a process, a job or a model.
+The cat and the head's mark are out of sight since 0.7.0, so their window check was retired in 0.8.4 (docs/WINDOW_CHECKS.md).
+Nothing here starts a process, a job or a model.
 """
 import os,unittest
 from unittest.mock import patch

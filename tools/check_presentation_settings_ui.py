@@ -115,6 +115,7 @@ tab.choice.setCurrentIndex(tab.choice.findData('work'));w.concern.store.set_pref
 tab.poll();apply(tab);assert 'REVISION_CHANGED' in tab.note.text() and tab.editor_value()=='work'
 tab.reload_latest();check('A legacy catalogue change away and back invalidates a stale saved-view draft without replaying it')
 tab=show('favorites.options');w.resize(1366,768);settle();tab.scroll.ensureWidgetVisible(tab.apply_button);settle()
+w.shell2.show_operations_face();settle()  # 0.5.3: the return thread's link is in the right pane's Activity view
 assert w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible() and w.return_thread.footer.isVisible()
 assert w.settings_navigator.selected_key()=='favorites.options' and tab.favorite_slots.isVisible()
 capture('Ledger_Slate_HATCH_Presentation_01_Compact.png','Actual compact Settings editor: favorites slots scroll with the passage; fixed Trash, Stop, monitors and return thread remain reachable.')

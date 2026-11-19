@@ -72,7 +72,7 @@ with k.db() as db:jobs_before=db.execute('SELECT count(*) FROM jobs').fetchone()
 # Settings), the active tree and Trash; the strip's line moved into the Machine tab (the Machine row's tooltip), still sampled
 # every 2 s, and its facts are the Processor, Memory, Storage and Connections rows.
 assert nav.current_view()=='cabinet' and not strip.isVisible() and strip.timer.isActive() and strip.timer.interval()==2000
-assert [b.text() for b in nav.bar.buttons]==['Machine','Cabinet','Settings'] and nav.cabinet.isChecked() and not nav.machine.isChecked()
+assert [b.text() for b in nav.bar.buttons]==['Files','Machine','Settings'] and nav.cabinet.isChecked() and not nav.machine.isChecked()
 assert nav.cabinet.accessibleDescription()=='Current view' and 'processor' in nav.machine.accessibleDescription()
 match=STRIP.match(strip.label.full);assert match,strip.label.full;strip_samples.append(dict(view='cabinet',text=strip.label.full,sampled_at=strip.sample['sampled_at']))
 dock_before=w.nav_dock.width();strip.refresh();settle();assert w.nav_dock.width()==dock_before and strip.label.minimumSizeHint().width()==0

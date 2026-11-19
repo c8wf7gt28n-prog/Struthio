@@ -2,8 +2,8 @@
 panes' tab rows, marks, trees, Trash and feet (workbench/pane_qt.py), and the pointer's geometry (graphite_brand.pointer_shape).
 D1-fix: the lower band's word size, Trash's box as its drawing, the cat's poses inside its tile, Activity's work line.
 
-No QApplication is created here; the live window (every mirrored pair at zero pixels at nine sizes, the grain in both bands,
-the drag, the panes, the captures) is tools/check_desk_ui.py with tools/symmetry.py.
+No QApplication is created here; on the live window the panes' one width, the drag of either edge and Line, Half and Tall are
+tools/check_finder_ui.py steps 14 and 15 (the mirrored desk's own window check was retired in 0.8.4: docs/WINDOW_CHECKS.md).
 """
 import math,unittest
 from workbench import desk_qt as desk

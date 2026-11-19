@@ -32,7 +32,7 @@ def check(text):checks.append(text);print(text,flush=True)
 def capture(name,widget=None,window=w):
  window.operations_panel.refresh();settle(window);target=widget or window;p=OUT/name;assert target.grab().save(str(p),'PNG')
  captures.append(dict(file=name,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),resolution=[target.width(),target.height()]))
-w.resize(1920,1200);w.show();settle()
+w.resize(1920,1200);w.show();settle();w.shell2.show_operations_face();settle()  # 0.5.3: the link is in the right pane's Activity view
 assert thread.footer.isVisible();check('The return thread is reachable from the persistent activity footer')
 project=call('projects.create',{'title':'A supply worth returning to','intent':'Keep original assumptions distinct from the next experiment.'})
 pid='project:'+project['id'];w.cabinet_page.refresh(force=True);w.cabinet_page.select(pid,reveal=True)

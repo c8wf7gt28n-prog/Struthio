@@ -8,10 +8,8 @@ RUN=Path(tempfile.mkdtemp(prefix='ledger-actions01-ui-'))
 os.environ.update(QT_QPA_PLATFORM='offscreen',ARC_LEDGER_EMBEDDED='1',ARC_LEDGER_DISABLE_BOOK_WATCHER='1',
  ARC1_WORKBENCH_CONFIG_HOME=str(RUN/'profile'),ARC_LEDGER_CONCERN=str(RUN/'Concern'))
 sys.path.insert(0,str(PROGRAM));sys.dont_write_bytecode=True
-from PySide6.QtCore import Qt,QTimer
-from PySide6.QtGui import QContextMenuEvent
+from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication,QMenu
 from workbench.qt_app import make_app,WorkbenchWindow
 from workbench import locations,clip,cabinet_actions
 from workbench.cabinet_actions_qt import perform,menu,model
@@ -52,22 +50,8 @@ room.open(iid);w.cabinet_page.select(iid,reveal=True);settle()
 assert [r['id'] for r in room.action_shelf.snapshot['actions']][1:5]==['workspace:documents','workspace:inquiries','workspace:calculate','workspace:laboratory']  # WORKSHOP-01: the page comes first for an idea
 assert room.writing.isHidden();check('An idea offers related workspaces without presenting a project writing form')
 capture('Ledger_Slate_HATCH_Actions_01_Selection.png')
-# A real context-menu event follows the connected tree signal. Close it using
-# the Qt timer rather than blocking the offscreen runner.
-seen=[]
-def inspect_popup():
- popup=QApplication.activePopupWidget()
- if isinstance(popup,QMenu):
-  seen.append(popup.action_model)
-  # The menu is a separate offscreen window: retain its actual QWidget grab.
-  p=OUT/'Ledger_Slate_HATCH_Actions_01_Menu.png';assert popup.grab().save(str(p),'PNG')
-  captures.append(dict(file=p.name,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),resolution=[popup.width(),popup.height()]))
-  popup.close()
-item=w.cabinet_page.items[iid];point=w.cabinet_page.tree.visualItemRect(item).center()
-QTimer.singleShot(120,inspect_popup)
-event=QContextMenuEvent(QContextMenuEvent.Mouse,point,w.cabinet_page.tree.viewport().mapToGlobal(point))
-QApplication.sendEvent(w.cabinet_page.tree.viewport(),event);settle()
-assert seen and seen[0]==model(w,iid);check('Tree right-click opens the same ordered model and preserves the selected identity')
+# The tree's right-click is the desk's own menu since 0.8.1 (workbench/context_menu.py; tools/check_context_menu_ui.py step 06 and
+# tests_integrated/test_context_menu.py check it). This check keeps the cabinet's own action model: a captured model stays its record's.
 frozen=model(w,iid);w.cabinet_page.select(sid,reveal=True)
 perform(w,iid,'record',frozen['signature']);settle()
 assert room.current==iid and idea['text'] in room.result.toPlainText() and second['text'] not in room.result.toPlainText()

@@ -1,5 +1,8 @@
 # Graphite desk · the frame (HATCH DESK D1a), the panes and the pointer (D1b), the reviews' fixes (D1-fix), the cat, the programs list and the System menu (D2), the writing line and Log (D3), the right-click menu (D4), the network capability (D5, docs/NETWORK_01.md), the integration
 
+> 0.8.4: the window checks this page names that are no longer in `tools/` (`check_desk_ui` and its helper `tools/symmetry.py`, `check_frame_ui`, `check_head_ui`, `check_hatch_ui`, `check_graphite_ui`, `check_rename_ui`) were retired with the desk they measured.
+> docs/WINDOW_CHECKS.md says why, and what checks each thing now. The page below is the record of the pass as it was made.
+
 The owner's brief of 2026-11-06: "I want a quieter, symmetrical desk with a powerful Fluxbox-inspired right-click menu. Keep
 every useful capability reachable and put it where I would naturally look for it." Then: "Be obsessive in symmetry." This
 page is the desk as built: the one grid, the two graphite bands, the head and the lower band's slots (D1a); the two panes,

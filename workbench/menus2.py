@@ -194,7 +194,7 @@ def rebuild(host):
               **{'@size_' + w: host.a_sizes[l] for l, w in ((0, 'line'), (1, 'half'), (2, 'tall'))},
               **{'@talk_' + k: a for k, a in host.a_talk.items()}, '@run_operation': host.a_run_operation,
               '@computer': host.a_computer, '@pills': host.a_pills, '@work_copy': host.a_work_copy, '@console': host.a_console, '@library': host.a_library, '@chain': host.a_chain,
-              '@explore':host.a_explore,'@pleasantries': getattr(getattr(host, 'shell2', None), 'script_action', None), '@service': service,
+              '@explore':host.a_explore, '@service': service,
               '@import': host.a_import, '@export': host.a_export, '@machine_refresh': host.a_machine_refresh,
               '@new_idea': host.a_new_idea, '@new_project': host.a_new_project, '@field': host.a_field}
     placed = {service} if service is not None else set()

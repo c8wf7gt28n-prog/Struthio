@@ -135,8 +135,24 @@ capture(4,'Conflict','A newer profile preserves the draft','A direct legacy prof
 check('Navigation retains the original memory revision guard; a later legacy edit still refuses stale Apply and preserves writing')
 room=select_record('project:'+first['id']);settle()
 hatch=w.type_bar.hatch;hm=hatch.programs;assert hatch.prepare() and all(r.isVisible() or not hm.isVisible() for r in hm.rows())  # D2: the cat's programs list
-hatch.open_list(False);settle();assert hm.isVisible() and len(hm.rows())==len(hatch.entries)+1
-capture(5,'Menu','The programs list beside a selected project','The cat\'s programs list (HATCH DESK D2) renders as a real popup while a project is selected; its order and rows are checked by check_hatch_ui. Nothing is triggered.',hm);hm.close_menu();settle()
+hatch.open_list(False);settle();assert hm.isVisible() and len(hm.rows())==len(hatch.entries)+2  # 0.7.0: the list ends with Explore the workshop and Game
+capture(5,'Menu','The programs list beside a selected project','The cat\'s programs list (HATCH DESK D2) renders as a real popup while a project is selected; its order and rows are checked by tests_integrated/test_launcher.py. Nothing is triggered.',hm);hm.close_menu();settle()
+# The Apps list keeps between the two bands, in one column; where its rows are taller than the room it takes the whole room and
+# scrolls, and never covers a band (kept from the Apps list's own window check, retired in 0.8.4; docs/WINDOW_CHECKS.md says why)
+def list_fit(tag):
+ hatch.open_list(False);settle();assert hm.isVisible(),tag;pos=w.mapFromGlobal(hm.mapToGlobal(QPoint(0,0)));head,foot=w.ribbon_dock.height(),w.type_dock.height()
+ info=dict(tag=tag,window=[w.width(),w.height()],box=[pos.x(),pos.y(),hm.width(),hm.height()],bands=[head,foot],
+  scrolls=hm.scroll.verticalScrollBar().maximum()>0,one_column=len({r.x() for r in hm.rows()})==1,
+  between_the_bands=pos.y()>=head and pos.y()+hm.height()<=w.height()-foot and pos.x()>=0 and pos.x()+hm.width()<=w.width(),
+  fills_the_room=pos.y()==head and pos.y()+hm.height()==w.height()-foot)
+ hm.close_menu();settle();return info
+list_fits=[]
+for size,points in (((1366,768),14),((1280,720),14),((1366,768),18),((1920,1200),14)):
+ call('ledger.settings.set',{'key':'reading.ui_pt','value':float(points)});bridge.sync_profile(force=True);settle()
+ w.resize(*size);settle();fit=list_fit('%d pt at %d by %d'%((points,)+size));list_fits.append(fit)
+ assert fit['between_the_bands'] and fit['one_column'] and (fit['fills_the_room'] or not fit['scrolls']),fit  # it scrolls only once it has all the room
+assert list_fits[2]['scrolls'],list_fits[2]  # 18 pt on the laptop's screen: the rows are taller than the room
+check('The Apps list keeps in one column between the head band and the lower band at 1366 by 768 and 1280 by 720 at 14 pt, at 1366 by 768 at 18 pt and at 1920 by 1200; where its rows are taller than the room it takes the whole room and scrolls rather than cover a band (scrolling at %s)'%', '.join(fit['tag'] for fit in list_fits if fit['scrolls']))
 menu_capture(6,'Work_Menu','Work menu','Existing file, receiving, copy and recovery routes under the proposed Work heading.',w.menu_groups['File'],w.command_menus['File'])
 menu_capture(7,'Arrange_Menu','Arrange menu','Existing workspace, presentation and console choices under Arrange.',w.menu_groups['Options'],w.command_menus['Options'])
 menu_capture(8,'Rules_Menu','Rules menu','Shared Settings and retained configuration routes under Rules. The wording is ready for owner review.',w.menu_groups['Settings'],w.command_menus['Settings'])
@@ -178,6 +194,7 @@ w.resize(1440,900);settle();assert not fold.isExpanded()
 fold.setExpanded(True);w.resize(1366,768);settle()
 assert nav.stack.currentIndex()==0 and w.trash_can.isVisible() and w.shell2.top.programs.isVisible() and w.operations_monitors.isVisible()
 assert room.reveal_button.isVisible() and room.reveal_button.width()>=room.reveal_button.minimumSizeHint().width()
+w.shell2.show_operations_face();settle()  # 0.5.3: the return thread's link is in the right pane's Activity view
 assert w.return_thread.footer.isVisible() and room.writing.toPlainText().startswith('Keep the work')
 assert page.tree.viewport().rect().contains(page.tree.visualItemRect(page.tree.currentItem()).center())
 check('Resizing the left column keeps its expanded selected row in view without reopening the record or expanding a deliberately folded branch')

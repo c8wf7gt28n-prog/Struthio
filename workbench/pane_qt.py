@@ -20,7 +20,7 @@ face's scrolled page (content_minimum), so no face is wider than its pane. The t
 left trees are BranchTree: one row height, one indentation, the same connecting branch lines. desk_qt.apply calls place().
 
 The pure part (tab_row, tab_px, tab_mark, tree_metrics, trash_size, foot_height, pane_parts) needs no QApplication and is tested by
-tests_integrated/test_desk.py; the live panes are measured by tools/check_desk_ui.py with tools/symmetry.py.
+tests_integrated/test_desk.py; on the live window the panes' one width and the drag are tools/check_finder_ui.py step 14.
 """
 from __future__ import annotations
 from . import desk_qt
@@ -300,6 +300,16 @@ class PaneBody(QWidget):
         return QSize(width, self.tabs.height() + 2 * self.gap + self.foot.height() + 60)
 
     def sizeHint(self):return self.minimumSizeHint()
+
+
+def remeasure(root):
+    """Measure again every layout under `root` whose widget is out of sight, the innermost first. Qt activates a layout when
+    its widget shows, not before, so a face out of sight through a change of interface size kept the least width its layout
+    gave it at the old size; the pane counts every face (content_minimum), so after 14, 28 and 14 pt both panes stayed as
+    wide as 28 pt had made them (415 px where a fresh window has 326; 0.8.4, the retired frame check's 'no ratchet')."""
+    for widget in reversed(root.findChildren(QWidget)):  # each widget after everything inside it
+        layout = widget.layout()
+        if layout is not None and not widget.isVisible():layout.invalidate();layout.activate()
 
 
 # The trees ------------------------------------------------------------------------------------------------------------------
@@ -692,6 +702,8 @@ def place(host, d):
         key = (need, I, gap, foot, trash.width())
         pane.tabs.place(positions, I, tab_width, h, tab_underline, font, I, need);pane.inset = I;pane.gap = gap
         if pane.foot.height() != foot:pane.foot.setFixedHeight(foot)
+        if getattr(pane, 'sized', None) != key:pane.sized = key;remeasure(pane.content)  # a new interface size: the faces out of sight too
+        key += (pane.minimumSizeHint().width(),)
         if getattr(pane, 'measured', None) != key:  # the pane's least width changed: its layout item must ask again (a
             pane.measured = key;pane.tabs.updateGeometry();pane.foot.updateGeometry();pane.updateGeometry()  # cached one kept a 28 pt need at 14 pt)
     left.foot.slot = QRect(d.pane - I - trash.width(), gap, trash.width(), trash.height())

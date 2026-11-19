@@ -153,7 +153,7 @@ class QuietWords(QLabel):
     may skip (explain: the Paper script by the quiet-script rule). The desk's panes use it (HATCH DESK D1b; the owner,
     2026-11-06: "Don't we like cursive font for 'less necessary to read' text"). explain(note, lead) keeps a printed lead
     (a heading, a status) in print and sets only the note in script, after it on the same line (sep ' · ') or under it
-    (sep '\\n'). Numbers stay printed: a note with a digit is print. View ▸ Pleasantries in script off makes it all print.
+    (sep '\\n'). Numbers stay printed: a note with a digit is print. With the script off (cursive_on: off in every look) it is all print.
     The print size is the window's own (base None) or base px at 14 pt; the script is 1.3 times the print size, and never
     under quiet_script's 1.3 times 15 px (the script's x-height is small), both following the interface size. The words as
     plain text are `words()`."""
@@ -234,7 +234,7 @@ def quiet_html(text, px, print_px):
 class Wordmark(QLabel):
     """The word Graphite alone at the upper left of the head band (the owner, 2026-11-06: "upper left Graphite should be
     cursive"): the Paper script in the bands' erased paper, as if rubbed out of the shading, with a hairline of the same paper
-    round its outline so the thin strokes hold on the grain; Plex SemiBold when View ▸ Pleasantries in script is off or the
+    round its outline so the thin strokes hold on the grain; Plex SemiBold when the script is off (cursive_on) or the
     face is missing. It is drawn by its outline (QPainterPath), so the widget is the word's ink: the script's G reaches left of
     its origin and its descenders fall below the line, so the ink's left edge is put on the widget's left edge (the band's
     inset) and the ink is centred in the band's height, on the symbol's centre line; the pair measured on the boxes is the
@@ -1764,6 +1764,13 @@ def breakable_line(text):
     return re.sub(r'([^\s\u200b]{18})(?=[^\s\u200b])', '\\1\u200b', marked)
 
 
+def breakable_path(text):
+    """Plain words that may hold a path or a long name, with an invisible break point after each '/' and, in a run longer
+    than 18 characters, every 18: a narrow card folds a long folder or file name instead of cutting it (0.8.4: in the
+    Kasandra look's wider letters a 33-letter folder was wider than Today's card on the laptop's screen)."""
+    return re.sub(r'([^\s\u200b]{18})(?=[^\s\u200b])', '\\1\u200b', str(text).replace('/', '/\u200b'))
+
+
 JOINTS = '_./\\-,:'          # where a long name is broken first: after one of these, as a reader would break it
 LINE_GUESS = 280              # a line of her column before it is laid out (px); set again at its real width (kasandra_column.Folding)
 
@@ -3127,13 +3134,14 @@ class Card(QFrame):
         row = QHBoxLayout();row.setSpacing(10)
         if tag:
             t = QLabel(tag);t.setFixedWidth(44);t.setStyleSheet('color:%s;font-family:"%s";' % (FAINT, MONO));row.addWidget(t)
-        # G-B: a row never widens its card past its longest word: plain words wrap (a path may break after each '/'), a row you
+        # G-B: a row never widens its card past its longest word: plain words wrap (a path may break after each '/', a long name
+        # every 18 characters: breakable_path), a row you
         # can open is the same words as a wrapping link, and the note beside it (a folder) wraps the same way. Each keeps its
         # longest word as its least width, so a deep folder can no longer squeeze the name beside it to nothing.
-        label = sentence('{go}', {'go': (text, on_click)}) if on_click else QLabel(str(text).replace('/', '/\u200b'))
+        label = sentence('{go}', {'go': (text, on_click)}) if on_click else QLabel(breakable_path(text))
         label.setWordWrap(True);row.addWidget(label, 1)
         if right:
-            note = QLabel(str(right).replace('/', '/\u200b'));note.setWordWrap(True);note.setStyleSheet('color:%s' % FAINT);row.addWidget(note)
+            note = QLabel(breakable_path(right));note.setWordWrap(True);note.setStyleSheet('color:%s' % FAINT);row.addWidget(note)
         self.body.addLayout(row)
 
 
@@ -3473,20 +3481,6 @@ class Shell2(QObject):
         host.settings_navigator=SettingsNavigator(host,box,getattr(self,'view_line',None),settings if selector is not None and overview is not None else None)
         from .agenda_qt import install as install_agenda
         install_agenda(host)
-        view = getattr(host, 'menu_groups', {}).get('View')
-        if view is not None:  # the brief: script is an accent that yields to a plain-text preference
-            script = view.addAction('Pleasantries in script');script.setCheckable(True);script.setChecked(cursive_on(host))
-            def choose(on, host=host):
-                from . import ledger_control
-                from .engineering_kernel import operator
-                row=next(r for r in ledger_control.settings(host.ledger_bridge.kernel)['settings'] if r['key']=='appearance.cursive')
-                response=host.ledger_bridge.kernel.dispatch('ledger.settings.set',dict(key=row['key'],value=bool(on),expected_revision=row['revision']),operator())
-                if response['ok']:host.ledger_bridge.sync_profile(force=True)
-                else:
-                    from PySide6.QtCore import QSignalBlocker
-                    with QSignalBlocker(script):script.setChecked(row['value'])
-                    host.statusBar().showMessage(response['error']['message'],6000)
-            script.toggled.connect(choose);self.script_action = script  # works through Slate's Next quietly, one read-only item at a time
         # Desk tabs: names only, a quiet close mark.
         host.tabs.setIconSize(QSize(0, 0));host.tabs.setDocumentMode(True)
         # The Timeline: plain lines, the time in mono; its controls are quiet words.

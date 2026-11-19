@@ -1,5 +1,8 @@
 # HATCH GRAPHITE-01 · Graphite
 
+> 0.8.4: the window checks this page names that are no longer in `tools/` (`check_graphite_ui`, `check_rename_ui`, `check_hatch_ui`, `check_head_ui`, `check_frame_ui`, `check_paper_ui`) were retired with the desk they measured.
+> docs/WINDOW_CHECKS.md says why, and what checks each thing now. The page below is the record of the pass as it was made.
+
 The owner's design update of 2026-11-06 (decision D32): Graphite is the single public name for the workspace and its AI;
 GRAPHITE on the startup screen; the sharpened graphite point replaces the Struthio mark; the unlabeled peeking cat
 replaces the Hatch egg at the lower left and opens the existing menu. Internal identifiers, settings keys and project

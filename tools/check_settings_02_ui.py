@@ -12,7 +12,7 @@ from PySide6.QtTest import QTest
 from workbench.qt_app import make_app,WorkbenchWindow
 from workbench.session import Session
 from workbench.reading_preferences import ReadingDialog,adjust_prose
-from workbench import locations,ledger_control,clip,shell2
+from workbench import locations,ledger_control,clip
 from workbench.engineering_kernel import operator,Kernel
 offline=patch.object(clip,'_request',side_effect=AssertionError('This UI check must not make a provider request')).start()
 launcher=patch.object(Kernel,'launch',side_effect=AssertionError('No worker launch')).start()
@@ -47,13 +47,15 @@ w.resize(1920,1200);w.show();settle();bridge.tick();settle()
 assert {'settings:ledger','settings:slate'}<=set(w.settings_navigator.items)
 assert all('setting:'+spec['key'] in w.settings_navigator.items for spec in ledger_control.SPECS)
 record(str(len(ledger_control.SPECS))+' registered definitions project into separate Ledger and Slate settings roots')
-# Existing script menu and the registry share the same persisted setting and Undo.
-w.shell2.script_action.setChecked(False);settle();bridge.tick();settle()
-assert read('appearance.cursive')['stored'] is False and shell2.SCRIPT_ON[0] is False
-assert Session(session.path,root).state['cursive'] is False
+# The script setting is Settings' alone since 0.8.4: the menu toggle that wrote it changed nothing on screen and is gone
+# (tests_integrated/test_settings_advanced.py). Apply reaches the Session's stored field and the shared history; Undo restores it.
+assert not hasattr(w.shell2,'script_action')
+tab=select('appearance.cursive');tab.boolean.setCurrentIndex(0);apply(tab)
+assert read('appearance.cursive')['stored'] is False and Session(session.path,root).state['cursive'] is False
 cursive=read('appearance.cursive')['latest_change'];assert cursive['key']=='appearance.cursive'
-tab=select('appearance.cursive');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();assert shell2.SCRIPT_ON[0] is True
-record('Existing script menu writes shared history; saved preference reopens and registry Undo updates actual presentation')
+tab=select('appearance.cursive');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();bridge.tick();settle()
+assert read('appearance.cursive')['stored'] is True and Session(session.path,root).state['cursive'] is True
+record('The script setting is edited in Settings alone: Apply writes the Session field and the shared history, and registry Undo restores it')
 # Numeric settings preserve integer typing and read back actual dock dimensions.
 tab=select('layout.navigator_width');number(tab,420);apply(tab)
 actual=read(tab.key);assert type(actual['stored']) is int and actual['stored']==420

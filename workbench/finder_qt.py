@@ -33,7 +33,7 @@ from pathlib import Path
 from PySide6.QtCore import QEvent, QObject, QPointF, QSize, Qt, QRect, Signal
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QImageReader, QPainter, QPen, QPixmap, QPolygonF, QGuiApplication
 from PySide6.QtWidgets import (QAbstractItemView, QFrame, QHBoxLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QMenu,
-                               QPlainTextEdit, QPushButton, QScrollArea, QSizePolicy, QSplitter, QStackedWidget, QStyle, QStyledItemDelegate,
+                               QPlainTextEdit, QPushButton, QScrollArea, QSizePolicy, QSplitter, QStackedWidget, QStyle, QStyledItemDelegate, QStyleOptionHeader,
                                QToolButton, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 from .boss_theme import CUE as AMBER      # 0.8.3: its drawn icons are not highlights
 from .shell2 import CARD, ERASER_MARK, FAINT, LINE, LINE_STRONG, QUIET, RAISED, TEXT, TodayPage, kind_of, mono_font, role, sentence
@@ -67,6 +67,20 @@ KIND_WORDS = {'.txt': 'Plain text', '.md': 'Markdown text', '.markdown': 'Markdo
               '.kicad_sch': 'KiCad schematic', '.step': 'STEP model', '.stp': 'STEP model', '.stl': 'STL mesh', '.gguf': 'Model weights', '.pill': 'Pill'}
 FAMILY_WORDS = {'documents': 'Document', 'code': 'Source code', 'boards': 'Board or CAD file', 'images': 'Image', 'containers': 'Archive or disk image', 'other': 'File'}
 _GLYPHS = {}
+
+
+def title_need(header, column):
+    """The width a section needs for its title to be whole in the header's own face: the words, and what the style keeps
+    round a section's label (its padding, the sort arrow's room)."""
+    text = str(header.model().headerData(column, header.orientation(), Qt.DisplayRole) or '').strip()
+    option = QStyleOptionHeader();header.initStyleOptionForIndex(option, column);option.rect = QRect(0, 0, 400, max(1, header.height()))
+    return header.fontMetrics().horizontalAdvance(text) + 400 - header.style().subElementRect(QStyle.SE_HeaderLabel, option, header).width()
+
+
+def column_width(width, scale, need=0):
+    """A List column's default width: its 14 pt width scaled with the interface, and never under what its title needs (0.8.4:
+    in the Kasandra look the typewriter letters of 'Date Modified' need more than the 120 px they were given, and were cut)."""
+    return max(round(width * scale), int(need))
 
 
 def kind_word(entry):
@@ -618,13 +632,14 @@ class FinderPage(QWidget):
 
     def scale_columns(self):
         """The List's default widths follow the interface size (at 18 pt 'Date Modified' and '08 Aug 2026' need more than
-        120 px); a column the owner has dragged keeps the owner's width."""
-        scale = self.scale()
-        if scale == self.list_scale:return
-        self.list_scale = scale;self.sizing = True
+        120 px) and the face in force (a title is never cut: column_width); a column the owner has dragged keeps the owner's
+        width."""
+        scale = self.scale();header = self.list.header();needs = tuple(title_need(header, column) for column in LIST_WIDTHS)
+        if (scale, needs) == self.list_scale:return
+        self.list_scale = (scale, needs);self.sizing = True
         try:
-            for column, width in LIST_WIDTHS.items():
-                if column not in self.dragged:self.list_widths[column] = round(width * scale);self.list.setColumnWidth(column, self.list_widths[column])
+            for (column, width), need in zip(LIST_WIDTHS.items(), needs):
+                if column not in self.dragged:self.list_widths[column] = column_width(width, scale, need);self.list.setColumnWidth(column, self.list_widths[column])
         finally:self.sizing = False
 
     def column_resized(self, column, old, new):

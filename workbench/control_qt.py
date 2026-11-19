@@ -330,9 +330,6 @@ class LedgerBridge(QObject):
         if self._cursive_applied!=state['cursive'] and hasattr(self.host,'shell2'):
             from .shell2 import cursive_on,pleasantry,quiet_script
             self._cursive_applied=state['cursive'];cursive_on(self.host)
-            script=getattr(self.host.shell2,'script_action',None)
-            if script:
-                with QSignalBlocker(script):script.setChecked(self._cursive_applied)
             self.host.shell2.restyle(getattr(self.host,'reading_profile',None))
             for label in self.host.findChildren(QLabel):
                 if label.property('pleasantry'):pleasantry(label,self.host,int(label.property('pleasantry_px') or 26))

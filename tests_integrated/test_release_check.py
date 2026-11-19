@@ -259,27 +259,57 @@ HOLDS={'Kernel.launch':re.compile(r"patch\.object\(\s*Kernel\s*,\s*'launch'\s*,\
 class UiGate(unittest.TestCase):
     def test_every_qt_check_is_in_the_gate_or_on_demand_and_holds_the_three_calls(self):
         checks={'tools/'+path.name for path in (ROOT/'tools').glob('check_*_ui.py')}
-        self.assertEqual(checks-set(checker.UI_CHECKS)-set(checker.ON_DEMAND_CHECKS),set(),'a Qt check nothing names')
-        self.assertEqual(set(checker.UI_CHECKS)-checks,set());self.assertFalse(set(checker.UI_CHECKS)&set(checker.ON_DEMAND_CHECKS))
-        for name in ('finder','head','agent','document','graphite','rename','frame','hatch','paper','machine'):self.assertIn('tools/check_'+name+'_ui.py',checker.UI_CHECKS)
+        asked={name.split()[0] for name in checker.ON_DEMAND_CHECKS}  # an on-demand entry may carry its arguments
+        self.assertEqual(checks-set(checker.UI_CHECKS)-asked,set(),'a Qt check nothing names')
+        self.assertEqual(set(checker.UI_CHECKS)-checks,set());self.assertFalse(set(checker.UI_CHECKS)&asked)
+        for name in ('finder','agent','document','machine','context_menu'):self.assertIn('tools/check_'+name+'_ui.py',checker.UI_CHECKS)
         for script in sorted(checks):
             text=(ROOT/script).read_text()
             missing=[call for call,pattern in HOLDS.items() if not pattern.search(text)]
             self.assertEqual(missing,[],script+' does not hold '+', '.join(missing))
+
+    def test_every_window_check_has_a_home_and_every_listed_name_is_there(self):
+        """0.8.4: by 0.8.3 ten checks of the gate failed and twelve stood outside it, where ten had gone stale unseen. A window
+        check is in the gate or on demand with its one line of reason, never in neither; a list names only what is there; and
+        nothing in the program, its tests or its tools still names a window check that has been retired."""
+        clean={'unlisted':[],'listed_twice':[],'missing':[],'unexplained':[]}
+        self.assertEqual(checker.ui_check_lists(),clean)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'tools').mkdir();(root/'workbench').mkdir();(root/'workbench/lab_checks.py').write_text('')
+            for name in ('check_one_ui.py','check_two_ui.py','check_stray_ui.py','check_service.py'):(root/'tools'/name).write_text('')
+            gate=('tools/check_one_ui.py',);on_demand={'tools/check_two_ui.py':'the second window (needs a display)','tools/check_service.py':'starts the service',
+                'python -m workbench.lab_checks':'needs KiCad'};captures={'tools/check_one_ui.py':'ONE_DIR','tools/check_two_ui.py':'TWO_DIR'}
+            self.assertEqual(checker.ui_check_lists(root,gate,on_demand,captures),{**clean,'unlisted':['tools/check_stray_ui.py']})
+            (root/'tools/check_stray_ui.py').unlink();self.assertEqual(checker.ui_check_lists(root,gate,on_demand,captures),clean)
+            with_arguments={'tools/check_two_ui.py --live' if name=='tools/check_two_ui.py' else name:reason for name,reason in on_demand.items()}
+            self.assertEqual(checker.ui_check_lists(root,gate,with_arguments,captures),clean,'an entry\'s arguments are not part of its file')
+            found=checker.ui_check_lists(root,gate+('tools/check_gone_ui.py',),{**on_demand,'tools/check_one_ui.py':'','python -m workbench.no_checks':'two\nlines'},
+                {**captures,'tools/check_old_ui.py':'OLD_DIR'})
+            self.assertEqual(found,{'unlisted':[],'listed_twice':['tools/check_one_ui.py'],
+                'missing':['python -m workbench.no_checks','tools/check_gone_ui.py','tools/check_old_ui.py'],'unexplained':['python -m workbench.no_checks','tools/check_one_ui.py']})
+        named={}
+        for folder in ('workbench','tools','tests_integrated'):
+            for path in sorted((ROOT/folder).glob('*.py')):
+                if path.name=='test_release_check.py':continue  # this file plants names that are not there
+                for name in sorted(set(re.findall(r'\bcheck_[a-z0-9_]+_ui\b',path.read_text()))):
+                    if not (ROOT/'tools'/(name+'.py')).is_file():named.setdefault(name,[]).append(folder+'/'+path.name)
+        self.assertEqual(named,{},'a window check that is not in tools/ is still named here')
 
     def test_every_check_writes_its_captures_where_the_gate_says(self):
         for script,variable in checker.UI_CAPTURE_ENV.items():
             self.assertTrue((ROOT/script).is_file(),script);self.assertIn("os.environ.get('"+variable+"'",(ROOT/script).read_text(),script)
         self.assertTrue(set(checker.UI_CHECKS)<=set(checker.UI_CAPTURE_ENV))
         for script in checker.UI_CHECKS:self.assertNotRegex((ROOT/script).read_text(),r"build/(?:desktop|workshop|agent|integration)0\d_ui",script)
-        seen=[];before=dict(os.environ)
+        seen=[];before=dict(os.environ);runs=[]
         def runner(command,timeout,json_output,env):
+            run=Path(tempfile.mkdtemp(prefix='a-check-',dir=env['TMPDIR']));(run/'profile').mkdir();runs.append(run)  # as each check makes its run folder
             seen.append((command[0],env.get(checker.UI_CAPTURE_ENV[command[0]])));return {'state':'PASSED','checks':['a','b'],'captures':[{'file':'x.png'}]}
         with tempfile.TemporaryDirectory() as temp:
-            value=checker.ui_checks(scripts=('tools/check_frame_ui.py','tools/check_not_shipped_ui.py'),runner=runner,capture_root=Path(temp)/'rerun')
-            self.assertEqual(seen,[('tools/check_frame_ui.py',str(Path(temp)/'rerun/check_frame_ui'))])
-        self.assertEqual((value['state'],value['absent'],value['scripts']['tools/check_frame_ui.py']['checks']),('FAILED',['tools/check_not_shipped_ui.py'],2))
-        self.assertEqual(value['scripts']['tools/check_frame_ui.py']['capture_variable'],'ARC_LEDGER_FRAME_CAPTURE_DIR')
+            value=checker.ui_checks(scripts=('tools/check_finder_ui.py','tools/check_not_shipped_ui.py'),runner=runner,capture_root=Path(temp)/'rerun')
+            self.assertEqual(seen,[('tools/check_finder_ui.py',str(Path(temp)/'rerun/check_finder_ui'))])
+        self.assertEqual(len(runs),1);self.assertFalse(runs[0].exists(),'a check\'s run folder goes when the check ends')      # 0.8.4: they were left in /tmp
+        self.assertEqual((value['state'],value['absent'],value['scripts']['tools/check_finder_ui.py']['checks']),('FAILED',['tools/check_not_shipped_ui.py'],2))
+        self.assertEqual(value['scripts']['tools/check_finder_ui.py']['capture_variable'],'ARC_LEDGER_FINDER_CAPTURE_DIR')
         self.assertEqual(dict(os.environ),before)  # each child gets its own environment; this process's is untouched
 
 

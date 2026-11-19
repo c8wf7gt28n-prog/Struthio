@@ -96,6 +96,6 @@ Source sharing, rights, model qualification and engineering acceptance retain th
 memory preferences and three local-model defaults keep their privacy checks (owner only). Forty-three connected settings
 describes this audited registry; it does not close every settings, menu, launcher or owner-host review item. Evidence:
 `tests_integrated/test_settings_registry.py`, `test_settings_advanced.py`, `test_hardware_settings.py`, `test_paper.py`, the
-settings section of the release check, and `tools/check_hardware_settings_ui.py` and `tools/check_paper_ui.py`. How each
+settings section of the release check, and `tools/check_hardware_settings_ui.py` (the paper theme's own window check was retired in 0.8.4: docs/WINDOW_CHECKS.md). How each
 slice of settings came to be is in docs/HATCH_SETTINGS_01.md to _03.md, HATCH_MODEL_01.md, HATCH_PRESENTATION_01.md and
 HATCH_INTEGRATION_01.md.

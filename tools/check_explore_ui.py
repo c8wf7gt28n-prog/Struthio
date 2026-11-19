@@ -83,7 +83,7 @@ for _ in range(10):button.prepare()
 assert len(button.popup.findChildren(QMenu,options=Qt.FindDirectChildrenOnly))==before==0  # DESKTOP-01: the groups live in Hatch; Explore repeats none
 assert [a.text() for a in button.popup.actions() if not a.isSeparator()][0]=='Explore the workshop…' and button.popup.actions()[-1].text()=='Find saved work…'
 record('Ten Explore openings create no submenu: the Explore word keeps the workshop, the record suggestions and Find saved work; the tool groups are Hatch\'s')
-# The menu's order and routes are check_hatch_ui's.
+# The menu's order and routes are tests_integrated/test_launcher.py's.
 objects={key:w.menu_groups[key] for key in menus2.DISPLAY_TITLES};favorites={key:action for key,action in w.favorite_actions.items()}
 shortcuts={key:[s.toString() for s in action.shortcuts()] for key,action in favorites.items()}
 menus2.rebuild(w);menus2.rebuild(w);settle()

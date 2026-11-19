@@ -17,7 +17,7 @@ Sections, each with its own state:
 No job, model, provider or native activity. Nothing is written unless --output is given or --ui is passed. A passing check is
 integrity, not readiness or acceptance.
 """
-import argparse,hashlib,json,os,re,subprocess,sys
+import argparse,hashlib,json,os,re,subprocess,sys,tempfile
 from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZipFile
 
@@ -43,6 +43,10 @@ FOCUSED_MODULES=(
  'test_desk','test_frame','test_paper','test_machine','test_documents','test_graphite','test_writing_line','test_context_menu',
  # 0.4.9 and 0.5: the drawn glyphs, a tool's face (words or a glyph), Find in what is open, a page in the desk's light
  'test_faces_find_light',
+ # 0.8.4 (the window checks): a control is lit only when a press would do something (the menu toggle that wrote a setting nothing
+ # reads is gone); two words that were cut in the Kasandra look's wider letters (a List column's title, a long folder name on a card);
+# both panes back to their width after a larger interface size
+ 'test_lit_controls','test_whole_words','test_pane_width',
  # 0.6: Stacy's hand: the dial, what always asks, what takes an act back, her trail
  'test_stacy_hand',
  # 0.6.1: the first journey: a starting project in another program (Godot)
@@ -79,36 +83,35 @@ FOCUSED_MODULES=(
 # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
 ON_DEMAND_MODULES={
  'test_exact_math_solvers':'the SymPy and Z3 solvers in a child worker; needs requirements-math.txt'}
-# The UI gate: offscreen Qt checks that hold Kernel.launch, Kernel.submit and clip._request and start nothing.
-UI_CHECKS=('tools/check_desk_ui.py','tools/check_context_menu_ui.py','tools/check_frame_ui.py','tools/check_hatch_ui.py','tools/check_head_ui.py','tools/check_graphite_ui.py','tools/check_rename_ui.py',
- 'tools/check_finder_ui.py','tools/check_paper_ui.py','tools/check_machine_ui.py','tools/check_document_ui.py','tools/check_agent_ui.py',
+# The UI gate: offscreen Qt checks that hold Kernel.launch, Kernel.submit and clip._request and start nothing. Every
+# tools/check_*_ui.py is named here or in ON_DEMAND_CHECKS with its reason (ui_check_lists below; tests_integrated/test_release_check.py
+# UiGate): a window check that nothing runs goes stale unseen, as ten of the twelve outside the gate had by 0.8.3. docs/WINDOW_CHECKS.md lists them all and
+# says which were retired in 0.8.4 and why.
+UI_CHECKS=('tools/check_context_menu_ui.py','tools/check_finder_ui.py','tools/check_machine_ui.py','tools/check_document_ui.py','tools/check_agent_ui.py',
  'tools/check_continue_ui.py','tools/check_model_turn_ui.py','tools/check_files_about_ui.py','tools/check_service_integration_ui.py',
- 'tools/check_hardware_settings_ui.py')
+ 'tools/check_hardware_settings_ui.py',
+ # 0.8.4: the twelve that stood outside the gate, ten of them failing there. Ported, each passes in both looks in under a minute.
+ 'tools/check_cabinet_ui.py','tools/check_cabinet_actions_ui.py','tools/check_explore_ui.py','tools/check_navigation_ui.py',
+ 'tools/check_operations_ui.py','tools/check_presentation_settings_ui.py','tools/check_return_thread_ui.py','tools/check_memory_cabinet_ui.py',
+ 'tools/check_memory_settings_ui.py','tools/check_model_settings_ui.py','tools/check_settings_ui.py','tools/check_settings_02_ui.py')
 # Each Qt check's capture folder variable; the gate points every one of them under its own capture root.
 UI_CAPTURE_ENV={
- 'tools/check_desk_ui.py':'ARC_LEDGER_DESK_CAPTURE_DIR','tools/check_context_menu_ui.py':'ARC_LEDGER_CONTEXT_MENU_CAPTURE_DIR','tools/check_frame_ui.py':'ARC_LEDGER_FRAME_CAPTURE_DIR','tools/check_hatch_ui.py':'ARC_LEDGER_HATCH_CAPTURE_DIR',
- 'tools/check_head_ui.py':'ARC_LEDGER_HEAD_CAPTURE_DIR','tools/check_graphite_ui.py':'ARC_LEDGER_GRAPHITE_CAPTURE_DIR',
- 'tools/check_rename_ui.py':'ARC_LEDGER_RENAME_CAPTURE_DIR','tools/check_finder_ui.py':'ARC_LEDGER_FINDER_CAPTURE_DIR',
- 'tools/check_paper_ui.py':'ARC_LEDGER_PAPER_CAPTURE_DIR','tools/check_machine_ui.py':'ARC_LEDGER_MACHINE_CAPTURE_DIR',
+ 'tools/check_context_menu_ui.py':'ARC_LEDGER_CONTEXT_MENU_CAPTURE_DIR','tools/check_finder_ui.py':'ARC_LEDGER_FINDER_CAPTURE_DIR',
+ 'tools/check_machine_ui.py':'ARC_LEDGER_MACHINE_CAPTURE_DIR',
  'tools/check_document_ui.py':'ARC_LEDGER_DOCUMENT_CAPTURE_DIR','tools/check_agent_ui.py':'ARC_LEDGER_AGENT_CAPTURE_DIR',
  'tools/check_continue_ui.py':'ARC_LEDGER_CONTINUE_CAPTURE_DIR','tools/check_model_turn_ui.py':'ARC_LEDGER_MODEL_TURN_CAPTURE_DIR',
  'tools/check_files_about_ui.py':'ARC_LEDGER_FILES_ABOUT_CAPTURE_DIR','tools/check_service_integration_ui.py':'ARC_LEDGER_SERVICE_INTEGRATION_CAPTURE_DIR',
  'tools/check_hardware_settings_ui.py':'ARC_LEDGER_HARDWARE_CAPTURE_DIR',
- # on demand
  'tools/check_cabinet_ui.py':'ARC_LEDGER_CABINET_CAPTURE_DIR','tools/check_cabinet_actions_ui.py':'ARC_LEDGER_ACTIONS_CAPTURE_DIR',
  'tools/check_explore_ui.py':'ARC_LEDGER_EXPLORE_CAPTURE_DIR','tools/check_navigation_ui.py':'ARC_LEDGER_NAVIGATION_CAPTURE_DIR',
  'tools/check_operations_ui.py':'ARC_LEDGER_OPERATIONS_CAPTURE_DIR','tools/check_presentation_settings_ui.py':'ARC_LEDGER_PRESENTATION_CAPTURE_DIR',
  'tools/check_return_thread_ui.py':'ARC_LEDGER_RETURN_CAPTURE_DIR','tools/check_memory_cabinet_ui.py':'ARC_LEDGER_MEMORY_CAPTURE_DIR',
  'tools/check_memory_settings_ui.py':'ARC_LEDGER_SETTINGS03_CAPTURE_DIR','tools/check_model_settings_ui.py':'ARC_LEDGER_MODEL_CAPTURE_DIR',
  'tools/check_settings_ui.py':'ARC_LEDGER_SETTINGS_CAPTURE_DIR','tools/check_settings_02_ui.py':'ARC_LEDGER_SETTINGS_CAPTURE_DIR'}
-# Kept checks outside the gate, run by hand when their area changes (each holds the same three calls, except the process checks).
+# Kept checks the gate does not run, each with one line: what it checks and why it is run by hand (it starts real processes,
+# needs optional programs or loads a model). A window check (tools/check_*_ui.py) put here needs such a reason too; none is
+# here now.
 ON_DEMAND_CHECKS={
- 'tools/check_cabinet_ui.py':'the logical cabinet','tools/check_cabinet_actions_ui.py':'record actions',
- 'tools/check_explore_ui.py':'the Explore workspace','tools/check_navigation_ui.py':'navigation across the cabinet and Settings',
- 'tools/check_operations_ui.py':'the Operations panel','tools/check_presentation_settings_ui.py':'favorites and catalogue views',
- 'tools/check_return_thread_ui.py':'leaving and returning','tools/check_memory_cabinet_ui.py':'owner memory in the cabinet',
- 'tools/check_memory_settings_ui.py':'memory settings','tools/check_model_settings_ui.py':'local model launch defaults',
- 'tools/check_settings_ui.py':'the settings editor','tools/check_settings_02_ui.py':'session batches, layout and provider preferences',
  'tools/check_continue_service.py':'the real Graphite service carrying work while the window is closed (starts the service)',
  'python -m workbench.database_checks':'Kernel database concurrency with two writer processes',
  'python -m workbench.adaptive_checks':'the investigation coordinator (--live runs named local weights)',
@@ -333,6 +336,21 @@ def focused_tests(modules=FOCUSED_MODULES,runner=None,root=ROOT,timeout=600):
         'present':present,'absent':absent,'tests':tests,'failures':failures,'errors':errors,'on_demand':dict(ON_DEMAND_MODULES)}
 
 
+def ui_check_lists(root=ROOT,gate=None,on_demand=None,captures=None):
+    """Whether every window check has a home, and every listed name is there. The faults, each a sorted list (all empty: none):
+    'unlisted', a tools/check_*_ui.py that neither the gate nor the on-demand list names; 'listed_twice', one in both; 'missing',
+    a name in the gate, the on-demand list or the capture folders that is not a file of this tree (for 'python -m a.b', the
+    module's file; an entry's arguments aside); 'unexplained', an on-demand entry without its one line."""
+    gate=UI_CHECKS if gate is None else gate;on_demand=ON_DEMAND_CHECKS if on_demand is None else on_demand
+    captures=UI_CAPTURE_ENV if captures is None else captures;root=Path(root)
+    shipped={'tools/'+path.name for path in (root/'tools').glob('check_*_ui.py')}
+    def file(name):return name.split()[2].replace('.','/')+'.py' if name.startswith('python -m ') else name.split()[0] if name.strip() else name  # its arguments aside
+    listed,asked={file(name) for name in gate},{file(name) for name in on_demand}
+    return {'unlisted':sorted(shipped-listed-asked),'listed_twice':sorted(listed&asked),
+        'missing':sorted(name for name in {*gate,*on_demand,*captures} if not (root/file(name)).is_file()),
+        'unexplained':sorted(name for name,reason in on_demand.items() if not isinstance(reason,str) or not reason.strip() or '\n' in reason)}
+
+
 def ui_checks(scripts=UI_CHECKS,runner=None,root=ROOT,timeout=600,capture_root=None):
     """The UI gate, only when asked. Every check's capture folder variable points under capture_root (build/release_check_ui by default)."""
     capture_root=Path(capture_root) if capture_root else Path(root)/'build/release_check_ui'
@@ -343,7 +361,10 @@ def ui_checks(scripts=UI_CHECKS,runner=None,root=ROOT,timeout=600,capture_root=N
         if not (Path(root)/script).is_file():rows[script]={'state':'ABSENT'};continue
         env=dict(os.environ);variable=UI_CAPTURE_ENV.get(script)
         if variable:env[variable]=str(target)
-        value=runner([script],timeout,True,env)
+        # 0.8.4: each check makes its profile and Concern in a folder of its own (tempfile.mkdtemp) and left it behind; under a
+        # temporary folder of the gate's, it goes when the check ends (its captures and report are under capture_root)
+        with tempfile.TemporaryDirectory(prefix='graphite-ui-check-',ignore_cleanup_errors=True) as scratch:
+            env['TMPDIR']=scratch;value=runner([script],timeout,True,env)
         rows[script]={'state':value.get('state','FAILED'),'checks':len(value['checks']) if isinstance(value.get('checks'),list) else value.get('checks'),
             'captures':[row.get('file',row) if isinstance(row,dict) else row for row in value['captures']] if isinstance(value.get('captures'),list) else None,
             'capture_variable':variable,'capture_dir':str(target.relative_to(root)) if target.is_relative_to(root) else str(target),
