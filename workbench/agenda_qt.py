@@ -219,12 +219,14 @@ def show(host):
 
 
 def summary(host):
-    """One line for Slate's panel: what he is doing now, and what needs you."""
+    """One line for Slate's panel: what he is doing now, and what needs you. The line's name, "Now:", is the panel's to
+    say, once (shell2's show_agenda, since 0.5.3): until 0.8.4 this line began with it too while something was running,
+    and the panel read "Now: Now: ..."."""
     view = call(host, 'agenda.view')
     if not view:return None
     now = view['now'][0]['title'] if view['now'] else None
     counts = view.get('counts', {})
-    parts = ['Now: ' + escape_text(now[:80]) if now else 'Nothing running']
+    parts = [escape_text(now[:80]) if now else 'Nothing running']
     if counts.get('next'):parts.append('%d next' % counts['next'])
     if counts.get('waiting'):parts.append('{waiting}')
     return '  ·  '.join(parts) + '  ·  {open}', counts.get('waiting', 0)

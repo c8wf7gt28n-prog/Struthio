@@ -24,7 +24,7 @@ LAYOUT_VERSION = 2          # bump when the dock layout changes; old saved layou
 MAX_FILE = 128 * 1024
 MAX_DOCS = 20
 MAX_RECENT = 10
-from .presentation_preferences import DEFAULTS, OUTPUT_TABS, CURSIVE_DEFAULT
+from .presentation_preferences import DEFAULTS, OUTPUT_TABS, CURSIVE_DEFAULT, appearance as saved_appearance
 SELF_TREE_IDS = {'root', 'interface', 'source', 'clip', 'tools', 'simulator', 'tests', 'settings', 'recovery'}
 # Desktop fields restored with bounds since INTEGRATION-01 (they were written on every save but never read back).
 TYPE_TARGETS = ('slate', 'stac', 'kernel', 'find', 'shell', 'web', 'log')   # typebar_qt.MAPPED keys (D3: the four modes and the old targets); Qt-free
@@ -97,11 +97,11 @@ class Session:
             if self.path.stat().st_size > MAX_FILE:
                 return
             data = json.loads(self.path.read_text(encoding='utf-8'))
-        except (OSError, ValueError, TypeError):
+        except (OSError, ValueError, TypeError, RecursionError):      # RecursionError: a value nested past reading (0.8.4)
             return
         if not isinstance(data, dict) or data.get('schema') != SCHEMA:
             return
-        if data.get('appearance') in ('graphite', 'kasandra'):self.state['appearance'] = data['appearance']     # the whole window's look (boss_theme.APPEARANCES): this computer's, not a project's
+        if saved_appearance(data.get('appearance')):self.state['appearance'] = data['appearance']     # the whole window's look (presentation_preferences.APPEARANCES): this computer's, not a project's
         # Documents belong to one project; a different project starts clean.
         if self.project and data.get('project') not in (None, self.project):
             return
@@ -135,7 +135,7 @@ class Session:
         if isinstance(navigation,dict):
             from .settings_registry import nodes
             allowed={r['id'] for r in nodes()}
-            if (navigation.get('mode') in NAVIGATION_MODES and navigation.get('selected') in allowed
+            if (navigation.get('mode') in NAVIGATION_MODES and isinstance(navigation.get('selected'),str) and navigation['selected'] in allowed  # only text is looked up (0.8.4)
                     and isinstance(navigation.get('expanded'),list) and len(navigation['expanded'])<=len(allowed)
                     and all(isinstance(x,str) and x in allowed for x in navigation['expanded'])):
                 s['settings_navigation']={**navigation,'expanded':list(navigation['expanded'])}
@@ -224,7 +224,7 @@ class Session:
             s['pill_link'] = data['pill_link']
         if _relpath_ok(data.get('active')):
             s['active'] = data['active']
-        if data.get('target') in TARGETS:
+        if isinstance(data.get('target'), str) and data['target'] in TARGETS:      # only text is looked up: a list here stopped the start (0.8.4)
             s['target'] = data['target']
         if _relpath_ok(data.get('last_game')):
             s['last_game'] = data['last_game']

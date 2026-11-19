@@ -33,7 +33,9 @@ import re
 # exists, so every module that copies a colour at import sees the chosen one. A change (Rules ▸ Desk artwork ▸
 # Appearance) is kept in the session and takes effect at the next start. GRAPHITE_APPEARANCE in the environment wins,
 # so a check or a test can choose without touching anyone's profile.
-APPEARANCES = (('graphite', 'Graphite'), ('kasandra', 'Kasandra'))
+# The list of them is kept once, beside the session's other presentation defaults (0.8.4): the session, which keeps the
+# choice, reads the same list without importing the theme. Each of them has a palette here.
+from .presentation_preferences import APPEARANCES, APPEARANCE_DEFAULT, appearance as saved_appearance
 APPEARANCE_KEY = 'appearance'
 PALETTES = {
     'graphite': dict(
@@ -121,7 +123,10 @@ def eye(line):
 
 def chosen_appearance(environ=None, path=None):
     """'graphite' or 'kasandra': GRAPHITE_APPEARANCE in the environment, else the session file's 'appearance', else
-    Graphite. Reads the file with plain json (the session module imports far more than a colour needs)."""
+    Graphite. Reads the file with plain json (the session module imports far more than a colour needs). Whatever the file
+    holds, the answer is a look: a saved value that is not one of them as text (a list or an object, from a damaged or
+    hand-edited file) is Graphite. 0.8.3 looked such a value up among the palettes, a list cannot be looked up, and
+    Graphite could not start (0.8.4)."""
     environ = os.environ if environ is None else environ
     wanted = str(environ.get('GRAPHITE_APPEARANCE', '')).strip().lower()
     if wanted in PALETTES:return wanted
@@ -131,10 +136,10 @@ def chosen_appearance(environ=None, path=None):
             base = override if override else os.path.join(environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'arc1-workbench')
             path = os.path.join(base, 'session-r10.json')
         with open(path, encoding='utf-8') as stream:
-            value = json.load(stream).get(APPEARANCE_KEY)
-        return value if value in PALETTES else 'graphite'
-    except (OSError, ValueError, AttributeError):
-        return 'graphite'
+            value = saved_appearance(json.load(stream).get(APPEARANCE_KEY))
+        return value if value in PALETTES else APPEARANCE_DEFAULT
+    except (OSError, ValueError, AttributeError, RecursionError):      # no file, not JSON, not an object, nested past reading
+        return APPEARANCE_DEFAULT
 
 
 APPEARANCE = chosen_appearance()

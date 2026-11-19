@@ -2,10 +2,19 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTabWidget, QPushButton, QMessageBox, QInputDialog, QPlainTextEdit
 
+# Tabs that are made with the bridge (control_qt.LedgerBridge): it opens the Office and Graphite rooms, and the engineering
+# conversation listens to it. The window installs the bridge after it has restored its session, so a saved row of one of
+# these kinds cannot be opened then; it waits until the window is whole (WorkspaceTabs.restore, restore_waiting).
+NEEDS_BRIDGE=('OfficeBuildingTab','SlateRoomTab','ClipWorkspaceTab')
+# The saved kinds that are rooms: neither the Preview nor one of the five pins, so a Preview already open at a room's turn
+# (one dragged to the left of it) does not set the room aside.
+ROOMS=('OfficeBuildingTab','SlateRoomTab','ReturnTab')
+
 
 class WorkspaceTabs(QTabWidget):
     def __init__(self, host):
         super().__init__(); self.host=host; self.replacing=False;self.last_open_cancelled=False
+        self.deferred=[];self.waiting=[];self.restored=[];self.restore_active=None  # a session being restored (restore, restore_waiting)
         self.pin_button=QPushButton('Pin / Unpin')
         self.pin_button.setToolTip('Keep this workspace open · maximum five pins · workspaces opened from the menu or Explore are rooms and are not counted')
         self.pin_button.clicked.connect(self.toggle_pin)
@@ -106,7 +115,10 @@ class WorkspaceTabs(QTabWidget):
         if widget.property('concern_id'):row['concern']=widget.property('concern_id')
         if widget.property('concern_context'):row['concern_context']=widget.property('concern_context')
         if hasattr(widget,'device'):row['device']=widget.device.id
-        if hasattr(widget,'group'):row['group']=widget.group.title
+        # A device group's name. Only text is one: the Manual's 'group' is its chooser, which has no title, and until 0.8.4
+        # leaving with the Manual open raised here, so that session was not saved.
+        group=getattr(getattr(widget,'group',None),'title',None)
+        if isinstance(group,str):row['group']=group
         if hasattr(widget,'case'):row['case']=bool(widget.case)
         if hasattr(widget,'position'):row['line'],row['column']=widget.position()
         return row
@@ -149,25 +161,43 @@ class WorkspaceTabs(QTabWidget):
         return None
 
     def restore(self,state):
-        self.deferred=list(state.get('deferred',[]));selected=None;opened=[]
+        """Open the tabs the session was saved with. A row whose tab is made with the bridge (NEEDS_BRIDGE) waits while
+        the host has no bridge yet, and the rows after it wait with it, so every row still has its turn in the order it
+        always had; restore_waiting opens them once the window is whole. 0.8.3 opened such a row at once, on a bridge
+        that did not exist yet, and a session saved with the Office open stopped the next start (0.8.4)."""
+        self.deferred=list(state.get('deferred',[]));self.restore_active=state.get('active');self.restored=[]
         # Pins first: a Preview may have been dragged before a pin in the strip.
         # Restoring that visual order directly would replace the Preview.
-        records=list(enumerate(state.get('tabs',[])))
-        for i,row in sorted(records,key=lambda pair:not pair[1].get('pinned')):
+        self.waiting=sorted(enumerate(state.get('tabs',[])),key=lambda pair:not pair[1].get('pinned'))
+        self.restore_rows(wait=not hasattr(self.host,'ledger_bridge'))
+
+    def restore_waiting(self):
+        """The rows that waited for the bridge, in their turn. One that still cannot be opened is kept in Reopen deferred tabs."""
+        self.restore_rows(wait=False)
+
+    def restore_rows(self,wait):
+        while self.waiting and not (wait and self.waiting[0][1].get('kind') in NEEDS_BRIDGE):
+            i,row=self.waiting.pop(0)
             # Legacy Start tabs are now the separate Home surface, not a pin.
             if row.get('kind')=='StartPage':continue
-            if (row.get('pinned') and len(self.pinned())>=5) or (not row.get('pinned') and self.preview() is not None):
+            if (row.get('pinned') and len(self.pinned())>=5) or (not row.get('pinned') and row.get('kind') not in ROOMS and self.preview() is not None):
                 self.deferred.append(row);continue
             try:tab=self.open_record(row)
             except (KeyError,ValueError,OSError):tab=None
+            except Exception:  # noqa: BLE001 - a former tab that cannot be opened must not stop start-up (0.8.4): it is kept, and why is printed
+                import traceback
+                traceback.print_exc();tab=None
             if tab is None or self.indexOf(tab)<0:self.deferred.append(row);continue
             if isinstance(row.get('concern_context'),str):tab.setProperty('concern_context',row['concern_context'])
             if row.get('pinned'):self.pin(tab)
-            opened.append((i,tab))
-            if i==state.get('active'):selected=tab
-        for position,(_,tab) in enumerate(sorted(opened,key=lambda pair:pair[0])):
+            self.restored.append((i,tab))
+        self.restored=[(i,tab) for i,tab in self.restored if self.indexOf(tab)>=0]
+        for position,(_,tab) in enumerate(sorted(self.restored,key=lambda pair:pair[0])):
             self.tabBar().moveTab(self.indexOf(tab),position)
+        selected=next((tab for i,tab in self.restored if i==self.restore_active),None)
         if selected:self.setCurrentWidget(selected)
+        if self.waiting:return
+        self.restored=[]
         if self.deferred:
             self.host.statusBar().showMessage('%d former tabs retained in View → Reopen deferred tabs'%len(self.deferred),15000)
 

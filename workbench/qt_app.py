@@ -2378,9 +2378,7 @@ class WorkbenchWindow(QMainWindow):
                 if item.data(0,Qt.UserRole+3)==selection:
                     self.nav.setCurrentItem(item);break
         self.a_fullscreen.setChecked(self.isFullScreen())
-        if self.tabs.count() == 0:
-            from .project_context import detached
-            if not detached(self.root):self.show_assembly()  # with no project attached, Today is the start: no 'Needs a project' tab
+        if self.tabs.count() == 0 and not self.tabs.waiting:self._first_tab()  # a saved tab that waits for the bridge is still to come
         self.update_document_info()
         self.maintenance_timer = QTimer(self)
         self.maintenance_timer.timeout.connect(self._maintain_work)
@@ -2409,6 +2407,7 @@ class WorkbenchWindow(QMainWindow):
         install_shell2(self)  # Ledger & Slate 2: top bar, one box, Library, Context | Slate, Today
         from .agent_qt import install as install_agent_driver
         install_agent_driver(self)  # AGENT-01: the timer that steps a running assignment between events; closing pauses it
+        self.restore_waiting_tabs()
         self.refresh_navigator()
         if self._home_active or (restore and self.view_preferences.get('startup') == 'home'):
             self.show_start()
@@ -2417,6 +2416,22 @@ class WorkbenchWindow(QMainWindow):
             open_on_work(self)       # Graphite opens on the work: the Field when this workspace has any; "always Home" is still Home
         if self.recovery.entries():
             QTimer.singleShot(0, self.show_recovery)
+
+    def _first_tab(self):
+        from .project_context import detached
+        if not detached(self.root):self.show_assembly()  # with no project attached, Today is the start: no 'Needs a project' tab
+
+    def restore_waiting_tabs(self):
+        """0.8.4: the saved tabs that waited for the bridge (workspace_tabs.NEEDS_BRIDGE: the Office is a room it opens)
+        are opened now that the window is whole. They are opened as the others were when the session was restored: this
+        is not the owner bringing a tab forward, so nothing is recorded as that, and Home, which is already in front when
+        it was in front at leaving, is not left (_close_start)."""
+        if not self.tabs.waiting:return
+        self._initializing=True
+        try:
+            self.tabs.restore_waiting()
+            if self.tabs.count() == 0:self._first_tab()
+        finally:self._initializing=False
 
     def _steady_tab_strip(self):
         """UI02 / V-09 (DESKTOP-01): the per-tab header rows (the Working area strip and the source file's path row) sit under
@@ -3639,6 +3654,11 @@ class WorkbenchWindow(QMainWindow):
         return tab
 
     def _close_start(self):
+        # While the window restores its session, a tab that opens is not the owner asking to see it: the surface in front
+        # stays. Until 0.8.4 no tab was restored after Home was shown, so this was never asked; now the rooms that waited
+        # for the bridge are (restore_waiting_tabs), and leaving Home for each of them and showing it again before the
+        # window was on screen ended the next opening, the start script's, inside Qt: no message, at every start.
+        if self._initializing:return
         if self._field_active:  # every room opener calls this first, so opening anything leaves the Field
             from .field_page import leave_field
             leave_field(self)

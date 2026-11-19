@@ -427,6 +427,24 @@ CASES = dict(delete=case_delete, wiring=case_wiring, hologram=case_hologram, hol
              graphite_column=case_graphite_column, review=case_review)
 
 
+def case_now_line(p):
+    """0.8.4: her column's Now line as it is read (the links' marks taken off), with something running and with nothing:
+    the Agenda's own summary and the column's own sentence, only the Agenda's view given."""
+    import html
+    import re
+    from workbench import agenda_qt
+    face = p.w.shell2.face;face.agenda_timer.stop();out = {}
+    views = dict(running={'now': [{'title': 'Read the bench readings'}], 'counts': {'next': 2, 'waiting': 1}}, idle={'now': [], 'counts': {}})
+    for name, view in views.items():
+        with patch.object(agenda_qt, 'call', side_effect=lambda host, op, args=None, view=view:view if op == 'agenda.view' else None):
+            face.agenda.setText('');face.show_agenda();p.settle(20, 2)
+        out[name] = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', '', face.agenda.text())).replace(' ', ' ')).strip()
+    return out
+
+
+CASES['now_line'] = case_now_line
+
+
 def probe(appearance, width, height, case, extra_env=None, timeout=300):
     """Run one case in a subprocess; its JSON."""
     env = dict(os.environ);env.update(extra_env or {})
