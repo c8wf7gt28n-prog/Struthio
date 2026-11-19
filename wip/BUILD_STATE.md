@@ -178,6 +178,13 @@ switched the session's model.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 19 Nov 23:10, asked of the owner, my recommendation taken unless the owner answers before the release pass:
+  (a) replace the values from After Hours 07 that the shared files have held since 0.8.2 (record ids and a PDF hash in
+  `tools/campaign_lib/fixture.py`, the settled current and powers in `cases_anchor.py` and `docs/CAMPAIGN.md`, the CSV
+  text in P01.json, the bench seed in `test_desk_acts.py`) with Rail Demo's invented values, keeping the cases able to
+  run on the owner's backup when it is present; (b) if the planted-bug catch rate in the guarding code falls short of
+  75%, ship 0.8.4 with the real number in the release notes and carry the rest to 0.8.5.
+
 - 19 Nov: the setting "Script for incidental text", which changes nothing on screen, is removed (0.8.4 release pass).
 - 19 Nov: a Rail Demo build that waits 60 s for memory stops as a Fail with its reason (the owner may prefer Blocked).
 
@@ -196,6 +203,8 @@ switched the session's model.
 
 ## Log (newest first)
 
+- 19 Nov 23:10 UTC: talked 0.8.4 through with the owner; two questions asked (above). tiers in its fix; guards has
+  tests for about 25 guarding gaps written and is rerunning the planted bugs.
 - 19 Nov 23:05 UTC: session merged (d44d696): 72 of 102 room kinds now reopen at start (22 before), 3 set aside,
   19 not by design, 0 raise. tiers built and reviewed, its fix running; guards building (baseline: 56.6% of planted bugs
   caught by behaviour in the guarding code, target 75%).
