@@ -203,6 +203,9 @@ switched the session's model.
 
 ## Log (newest first)
 
+- 19 Nov 23:45 UTC: part B relaunched (task wdnhowczg, same run id) after a container restart at about 23:33 stopped it.
+  tiers was in its fix (patch saved 23:18), guards half built (patch saved 23:30); restart notes added at the top of
+  `work/b084b/tiers.fix.md` and `guards.progress.md`; both patches apply to HEAD.
 - 19 Nov 23:10 UTC: talked 0.8.4 through with the owner; two questions asked (above). tiers in its fix; guards has
   tests for about 25 guarding gaps written and is rerunning the planted bugs.
 - 19 Nov 23:05 UTC: session merged (d44d696): 72 of 102 room kinds now reopen at start (22 before), 3 set aside,
