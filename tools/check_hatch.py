@@ -51,6 +51,9 @@ FOCUSED_MODULES=(
  'test_kasandra',
  # 0.8.0: the 35B test campaign's runner (tools/campaign.py): its cases, outcomes, timeouts, resume and summary
  'test_campaign',
+ # 0.8.4: Rail Demo, the workspace of invented data kept in the program: its records and links, the 250 to 300 mA change,
+ # the playable scene on it; and the campaign's cases that run on it where the owner's backup is not
+ 'test_rail_demo','test_rail_demo_campaign',
  # 0.8.1: the model's memory rules, each against Graphite's own code with simulated readings
  'test_resource_rules',
  # 0.8.2: desk acts: the registry, her hand's rule, the typed door, the playable scene

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Graphite's test campaign: run a case or a batch in disposable workspaces and read the summary.
 
-  python3 tools/campaign.py list [--set resource|anchors|all|selftest|real]
+  python3 tools/campaign.py list [--set resource|anchors|demo|all|selftest|real|scenes]
   python3 tools/campaign.py run --case R07
   python3 tools/campaign.py run --set resource [--attempts 2] [--out <dir>] [--fixtures <dir>]
   python3 tools/campaign.py summary <run dir>
@@ -13,7 +13,8 @@ folder that already holds one moves the earlier run aside to previous-<n>/ first
 cases and attempts this run's manifest lists. What a case needs (the model, an application, the owner's data, a
 desktop session) is checked when the run starts; a case whose needs are not met is Blocked and says what is missing.
 The owner's After Hours 07 backup and other data are read from --fixtures (default ~/Graphite_Campaign/fixtures, or
-$GRAPHITE_CAMPAIGN_FIXTURES). See docs/CAMPAIGN.md.
+$GRAPHITE_CAMPAIGN_FIXTURES). The demo set and the D-cases of the scenes need none of it: they run on Rail Demo, the
+workspace of invented data the program builds itself. See docs/CAMPAIGN.md.
 """
 import argparse
 import json
@@ -39,7 +40,7 @@ def main(argv=None):
     listing.add_argument('--workspace', help='a workspace where the owner\'s model is registered')
     go = sub.add_parser('run', help='run a case or a set')
     go.add_argument('--case', action='append', help='case id (repeatable, or comma separated)')
-    go.add_argument('--set', default=None, help='resource, anchors, all, selftest, real or scenes')
+    go.add_argument('--set', default=None, help='resource, anchors, demo, all, selftest, real or scenes')
     go.add_argument('--attempts', type=int, default=1)
     go.add_argument('--out', help='run folder (default: a new folder under the system temp folder)')
     go.add_argument('--fixtures', help='folder holding the After Hours 07 backup or zip, and the owner\'s data for a '

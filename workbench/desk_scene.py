@@ -5,7 +5,15 @@ Stacy's hand), the runs it is played in (by pointer, by keys, either with less m
 with its arguments and what is expected after it: dotted paths into {"act": the act's envelope, "desk": read.desk all,
 taken after the step}, each with a value or a matcher (equal, contains, startswith, in, decimal, gte, lte, between, not;
 the same forms and the same answers as the campaign's core.matches). expect_by_run and expect_by_seed add or replace
-expectations for one run or one seed.
+expectations for one run or one seed; args_by_seed adds or replaces arguments for one seed.
+
+A scene is written for one workspace (its seed) and names what is there: a file, a sheet, a row. `workspaces` lets the
+same scene be played on another one: {workspace: {"names": {a name the scene uses: the name there}, "title", "intent"}}.
+for_workspace() gives the scene as it is played there: the same acts in the same order, each name swapped wherever it is
+said (an argument, an expectation), the seed set to that workspace. run_scene() does this itself when its seed is a
+workspace the scene has such an entry for. P01 is written for the owner's After Hours 07, which is never shipped; its
+"rail_demo" entry plays it on Rail Demo, the invented workspace kept in the program (workbench/rail_demo.py), so the
+scene plays anywhere.
 
 run_scene() plays one run: it checks the appearance (chosen at start, so a scene for another appearance is blocked, not
 failed), sizes the window, sets the dial and the motion, runs each step through desk_doers.run(door='script'), scores it,
@@ -14,9 +22,11 @@ a window that asks, fails unless the scene expects it: an ask the scene did not 
 
 Nothing here reaches into a widget: every step is an act, and every check reads what read.desk reads.
 """
+import copy
 import decimal
 import fractions
 import json
+import re
 import time
 from pathlib import Path
 
@@ -69,6 +79,36 @@ def lookup(tree, path):
     return at
 
 
+def for_workspace(scene, workspace):
+    """The scene as it is played on another workspace (scene['workspaces'][workspace]): a copy with the same steps, every
+    name of the scene swapped for the name there wherever a step says it, the longest name first and each place once; the
+    seed, and the title and intent when given, are that workspace's. The scene's own seed gives the scene as written."""
+    if workspace == scene.get('seed'):return copy.deepcopy(scene)
+    there = (scene.get('workspaces') or {}).get(workspace)
+    if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
+    if not _names(there.get('names', {})):raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
+    names = dict(there.get('names') or {})
+    said = re.compile('|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True))) if names else None
+
+    def swap(value):
+        if isinstance(value, str):return said.sub(lambda found: names[found.group(0)], value) if said else value
+        if isinstance(value, list):return [swap(v) for v in value]
+        if isinstance(value, dict):return {key: swap(v) for key, v in value.items()}
+        return value
+    out = copy.deepcopy(scene)
+    out['steps'] = swap(out.get('steps') or [])
+    out['seed'] = workspace
+    for key in ('title', 'intent'):
+        if there.get(key):out[key] = there[key]
+    return out
+
+
+def _names(names):
+    """Whether a workspace's names are what the swap can use: an object of name -> name, no name empty (an empty name
+    would be found between every two letters)."""
+    return isinstance(names, dict) and all(isinstance(k, str) and k and isinstance(v, str) for k, v in names.items())
+
+
 def check_scene(scene):
     """What is wrong with a scene, in words ([] when nothing): its schema, its runs, and each step's act and arguments."""
     problems = []
@@ -84,6 +124,11 @@ def check_scene(scene):
             if not isinstance(r, dict) or r.get('style') not in STYLES:problems.append('run %r has no style (pointer or keys)' % (r.get('name') if isinstance(r, dict) else r))
     given = scene.get('given', {})
     if not isinstance(given, dict):problems.append('given is not an object')
+    workspaces = scene.get('workspaces', {})
+    if not isinstance(workspaces, dict):problems.append('workspaces is not an object');workspaces = {}
+    for name, there in workspaces.items():
+        if not isinstance(there, dict) or not _names(there.get('names', {})):
+            problems.append('workspace %r: names is not an object of names' % name)
     steps = scene.get('steps')
     if not isinstance(steps, list) or not steps:problems.append('the scene has no steps');steps = []
     for n, step in enumerate(steps, 1):
@@ -94,12 +139,21 @@ def check_scene(scene):
         except desk_acts.Refusal as refusal:problems.append('step %d: %s' % (n, refusal.words))
         for key in ('expect',):
             if not isinstance(step.get(key, {}), dict):problems.append('step %d: %s is not an object' % (n, key))
-        for key in ('expect_by_run', 'expect_by_seed'):
+        for key in ('expect_by_run', 'expect_by_seed', 'args_by_seed'):
             value = step.get(key, {})
-            if not isinstance(value, dict) or not all(isinstance(v, dict) for v in value.values()):problems.append('step %d: %s is not an object of objects' % (n, key))
+            if not isinstance(value, dict) or not all(isinstance(v, dict) for v in value.values()):
+                problems.append('step %d: %s is not an object of objects' % (n, key));step = {**step, key: {}}
+        for seed in step.get('args_by_seed', {}):
+            try:desk_acts.check(act, arguments(step, seed))
+            except desk_acts.Refusal as refusal:problems.append('step %d, on %s: %s' % (n, seed, refusal.words))
         for path in list(step.get('expect', {})) + [p for v in step.get('expect_by_run', {}).values() for p in v] + [p for v in step.get('expect_by_seed', {}).values() for p in v]:
             if not str(path).startswith(('act.', 'desk.')):problems.append('step %d: %r reads neither act. nor desk.' % (n, path))
     return problems
+
+
+def arguments(step, seed):
+    """A step's arguments on one seed: its own, with what args_by_seed gives for that seed added or put in their place."""
+    return {**(step.get('args') or {}), **((step.get('args_by_seed') or {}).get(seed) or {})}
 
 
 def expected(step, run_name, seed):
@@ -110,9 +164,11 @@ def expected(step, run_name, seed):
 
 
 def run_scene(host, scene, run, *, seed, origin, after_step=None):
-    """Play one run of a scene on the live window. `run` is a run's name or the run itself. Returns {run, seed, steps: [{n,
-    act, ok, by, seconds, words, checks: [{path, want, got, ok}]}], passed} or {blocked: why}."""
+    """Play one run of a scene on the live window. `run` is a run's name or the run itself. A seed the scene has a
+    `workspaces` entry for is played as that workspace has it (for_workspace). Returns {run, seed, steps: [{n, act, ok, by,
+    seconds, words, checks: [{path, want, got, ok}]}], passed} or {blocked: why}."""
     from . import boss_theme, desk_doers
+    if seed != scene.get('seed') and seed in (scene.get('workspaces') or {}):scene = for_workspace(scene, seed)
     if isinstance(run, str):run = next((r for r in scene['runs'] if r['name'] == run), None)
     if run is None:return {'blocked': 'the scene has no such run'}
     given = scene.get('given') or {}
@@ -130,8 +186,9 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
     try:
         for n, step in enumerate(scene['steps'], 1):
             started = time.monotonic();checks = []
+            args = arguments(step, seed)          # worked out once: what the doer is given is what the row says it was given
             try:
-                envelope = desk_doers.run(host, step['act'], step.get('args', {}), door='script', by=style, origin=origin,
+                envelope = desk_doers.run(host, step['act'], args, door='script', by=style, origin=origin,
                                           word='scene %s step %d' % (scene.get('id', ''), n))
                 desk = desk_doers.read_desk(host, 'all')
                 tree = {'act': envelope, 'desk': desk}
@@ -146,7 +203,7 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
             except Exception as exc:  # noqa: BLE001 - a step that breaks is a failed step with its message, and the run goes on
                 envelope = {'ok': False, 'by': None, 'words': '%s: %s' % (type(exc).__name__, exc)}
                 checks.append({'path': 'step', 'want': 'no exception', 'got': envelope['words'], 'ok': False})
-            row = {'n': n, 'act': step['act'], 'args': step.get('args', {}), 'ok': all(c['ok'] for c in checks) if checks else bool(envelope.get('ok')),
+            row = {'n': n, 'act': step['act'], 'args': args, 'ok':all(c['ok'] for c in checks) if checks else bool(envelope.get('ok')),
                    'done': bool(envelope.get('ok')), 'by': envelope.get('by'), 'words': envelope.get('words'), 'seconds': round(time.monotonic() - started, 3), 'checks': checks,
                    'result': envelope.get('result')}
             out['steps'].append(row)

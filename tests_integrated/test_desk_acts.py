@@ -48,9 +48,21 @@ def no_logind(request):
     raise AssertionError('No session or power call: %r'%(request,))
 
 
-def build_window(store,prefix):
-    """One window for a module, every hold of the right-click's tests in place before it is built, on the bench seed: the
-    bench readings and two revisions of the limits, written and imported through Graphite's own operations."""
+def bench_seed(k,p):
+    """The bench seed: the bench readings and two revisions of the limits, written and imported through Graphite's own operations."""
+    files_root=Path(k.dispatch('files.list',{},p)['result']['root'])
+    for name,text in SEED:
+        assert k.dispatch('files.write',{'path':'seed/'+name,'text':text},p)['ok']
+        plan=k.dispatch('office.import.preview',{'path':str(files_root/'seed'/name)},p)['result']
+        assert k.dispatch('office.import.commit',{'plan':plan['id'],'expected_digest':plan['digest']},p)['ok']
+
+
+def build_window(store,prefix,seed=bench_seed,early=False):
+    """One window for a module, every hold of the right-click's tests in place before it is built, on a seed made through
+    Graphite's own operations before the window exists (seed(kernel, owner), kept as store['seeded']): the bench seed, made
+    under the holds like everything after it, or another. `early` makes the seed before the holds are in place, for the one
+    kind of seed that cannot be made under them: one that brings sources in, since reading a source in is a job. A seed
+    that cannot be made leaves nothing of this window behind."""
     temporary=tempfile.TemporaryDirectory(prefix=prefix);run=Path(temporary.name)
     env=patch.dict(os.environ,{'ARC_LEDGER_EMBEDDED':'1','ARC_LEDGER_DISABLE_BOOK_WATCHER':'1','ARC1_WORKBENCH_CONFIG_HOME':str(run/'profile'),
                                'ARC_LEDGER_CONCERN':str(run/'Concern')});env.start()
@@ -64,14 +76,21 @@ def build_window(store,prefix):
     holds=[patch.object(clip,'_request',side_effect=AssertionError('No provider request')),patch.object(Kernel,'launch',side_effect=AssertionError('No worker launch')),
            patch.object(Kernel,'submit',side_effect=AssertionError('No job submission')),patch.object(session_power,'system',side_effect=no_logind),
            patch.object(QMessageBox,'question',return_value=QMessageBox.No)]
-    for h in holds:h.start()
-    app=make_app([]);root=locations.office(run/'workspace');session=Session(run/'profile/session.json',root)
-    k=Kernel(root);p=operator()
+    held=[]
+
+    def seeded():
+        k=Kernel(root);p=operator()
+        try:store['seeded']=seed(k,p)
+        except BaseException:
+            for h in reversed(held):h.stop()
+            env.stop();temporary.cleanup();raise
+        return k,p
+    root=locations.office(run/'workspace')
+    if early:k,p=seeded()
+    for h in holds:h.start();held.append(h)
+    app=make_app([]);session=Session(run/'profile/session.json',root)
+    if not early:k,p=seeded()
     files_root=Path(k.dispatch('files.list',{},p)['result']['root'])
-    for name,text in SEED:
-        assert k.dispatch('files.write',{'path':'seed/'+name,'text':text},p)['ok']
-        plan=k.dispatch('office.import.preview',{'path':str(files_root/'seed'/name)},p)['result']
-        assert k.dispatch('office.import.commit',{'plan':plan['id'],'expected_digest':plan['digest']},p)['ok']
     w=WorkbenchWindow(root,session,restore=False);platform.processor()
     late=[patch.object(subprocess,'Popen',side_effect=AssertionError('No process start')),patch.object(os,'system',side_effect=AssertionError('No shell command')),
           patch.object(QProcess,'startDetached',side_effect=AssertionError('No detached program'))]

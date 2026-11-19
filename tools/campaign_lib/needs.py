@@ -16,9 +16,11 @@ is present. An anchor whose needs are all met but whose steps are not written ye
   ocr:<lang>        Tesseract with that language's trained data
   owner:<what>      the owner's own files for this situation, in <fixtures>/<situation>/ (at least one file)
   after_hours_07    the owner's After Hours 07 backup (zip or Graphite_Backup folder) under --fixtures
+  rail_demo         what Rail Demo's PDF sources need to be read: the pypdf package and Poppler (pdftotext, pdftoppm)
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import shutil
@@ -198,6 +200,14 @@ class Probe:
         if found:
             return True, what, str(found)
         return False, what, 'not found under %s' % self.fixtures
+
+    def _need_rail_demo(self, arg, situation):
+        what = 'what Rail Demo\'s PDF sources need (pypdf and Poppler)'
+        missing = [] if importlib.util.find_spec('pypdf') else ['the pypdf package']
+        missing += [name for name in ('pdftotext', 'pdftoppm') if not self.which(name)]
+        if missing:
+            return False, what, '%s not found (Debian: apt install poppler-utils; pip install -r requirements-qt.txt)' % _join(missing)
+        return True, what, 'pypdf and %s' % self.which('pdftotext')
 
 
 def decide(case, probe):

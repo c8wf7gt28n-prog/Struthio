@@ -5,8 +5,11 @@ Concern folder, workspace root and kernel database. The attempt's child process 
 environment (not the caller's), so nothing it does can reach the real user profile, the repository's .ledger or
 the main checkout. Reset is "delete and rebuild": a new attempt never reuses an earlier attempt's folders.
 
-Two seeds exist:
+Three seeds exist:
   base            an empty Office workspace built by Graphite itself (locations.office + Kernel + Session);
+  rail_demo       Rail Demo, a small workspace of invented data kept in the program (workbench/rail_demo.py): a 12 V rail,
+                  its bench readings, two revisions of its limits, calculations, findings and an open question, built in
+                  the base workspace through the Kernel's own operations. It needs nothing from the owner;
   after_hours_07  the owner's After Hours 07 backup, verified and restored with Graphite's own backup code.
 The After Hours 07 backup is owner data and is not shipped: it is found under --fixtures (or the
 GRAPHITE_CAMPAIGN_FIXTURES variable, or ~/Graphite_Campaign/fixtures), as a Graphite_Backup folder or the zip.
@@ -92,6 +95,30 @@ def base_workspace(attempt):
     session.save()
     ledger_control.bind(kernel, session)
     return kernel, operator()
+
+
+def rail_demo_workspace(attempt):
+    """Rail Demo built in the attempt's fresh workspace by Graphite's own operations; returns (kernel, owner, what it made).
+    Blocked only when what its PDF sources need is not here (rail_demo.available). A build that breaks after that (an
+    operation refused, a job that did not complete, a table not read as written) is not caught: it is a fault, and the
+    case is a Fail with the build's own sentence."""
+    from workbench import rail_demo
+    missing = rail_demo.available()
+    if missing:
+        raise Blocked(missing)
+    kernel, owner = base_workspace(attempt)
+    made = rail_demo.build(kernel, owner)
+    return kernel, owner, {'revision': made['revision'], 'notice': made['notice'],
+                           'sources_sha256': {key: source['sha256'] for key, source in made['sources'].items()}}
+
+
+def rail_demo_identity(repo=None):
+    """What builds Rail Demo, read without importing Graphite: its file's SHA-256 and the revision it declares."""
+    builder = Path(repo or REPO) / 'workbench' / 'rail_demo.py'
+    if not builder.is_file():
+        return {'builder': 'workbench/rail_demo.py', 'state': 'NOT_FOUND'}
+    declared = re.search(r'^REVISION\s*=\s*(\d+)', builder.read_text(encoding='utf-8'), re.M)
+    return {'builder': 'workbench/rail_demo.py', 'builder_sha256': file_sha(builder), 'revision': int(declared[1]) if declared else None}
 
 
 def ah07_workspace(attempt, backup):

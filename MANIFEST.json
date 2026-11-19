@@ -1202,8 +1202,8 @@
       "sha256": "7590cb862213f05429e6d7cc190eedbecca2a35a27f8e13f3b7ed7344933fc73"
     },
     "docs/CAMPAIGN.md": {
-      "bytes": 12413,
-      "sha256": "6ae7646aca96cec0580c3769623498189aaefa89a4a9259d3a5e9629ca1ad0c6"
+      "bytes": 17495,
+      "sha256": "0dcaf06ba63732be3bf3ec61f6ba0a7787e85bfe4316bbf76f17c27bc02c674a"
     },
     "docs/CONTINUE_01.md": {
       "bytes": 10775,
@@ -2650,8 +2650,8 @@
       "sha256": "51b145e21f908a1499dbb54a40ceb66e915312901fe890ca2fcacc9df7a05ed6"
     },
     "tests_integrated/test_desk_acts.py": {
-      "bytes": 46805,
-      "sha256": "e0363480fdcbfb1e698edb18f3a86b4b4f91c3364cdd32f700c0e30112899d66"
+      "bytes": 47672,
+      "sha256": "e234d526f47d6a343c457b405fa9693ec3f024ecc6ae9bf30f361816a44e607d"
     },
     "tests_integrated/test_desk_scenes.py": {
       "bytes": 4685,
@@ -2769,6 +2769,14 @@
       "bytes": 13507,
       "sha256": "e16e04775fda94a823cfa3021e456cc649ea0d0257c3ef205e8d27a70ff7630c"
     },
+    "tests_integrated/test_rail_demo.py": {
+      "bytes": 44003,
+      "sha256": "7c5636731bc339baa517d2753693f2d450d4787ca28d788c5e4e7d0e6d682eae"
+    },
+    "tests_integrated/test_rail_demo_campaign.py": {
+      "bytes": 30335,
+      "sha256": "1900804af3ae921ec1fef0608b383ff145d207f8d400831d38290f1518479664"
+    },
     "tests_integrated/test_readiness.py": {
       "bytes": 6918,
       "sha256": "ce5243c981328922df4ea7b1c3a907e76607e0f596782b3c9bfdb87dfdff26fa"
@@ -2854,60 +2862,60 @@
       "sha256": "f80529bc886802a0479797f69fd8885d9d15f1aa5f57b79119fa2d487d8ef64b"
     },
     "tools/campaign.py": {
-      "bytes": 4520,
-      "sha256": "5224bc04b14e08a336a30ae1ff3e57f55e7439cbc65479c7e0d8aae56f79f420"
+      "bytes": 4679,
+      "sha256": "5f15f2c04c6495cdf00bcf9b7ab2ec726f7ced24fb0c22a06bdc75c02a99e45b"
     },
     "tools/campaign_lib/__init__.py": {
       "bytes": 175,
       "sha256": "d179a9ae3d6b04f222c5a2aab45ce40ab088f1ff7b7c9cf0419725d3b3ab713a"
     },
     "tools/campaign_lib/cases_anchor.py": {
-      "bytes": 27530,
-      "sha256": "1fc5361635b252d893fd06b3677b9ec1d1ed9d8258778b535e6ab94c8fae2551"
+      "bytes": 34487,
+      "sha256": "7e9b9625e8e35d9b5b0aaeca22b1b5d6976a8c7b13319f2ea2221b51c5050fa3"
     },
     "tools/campaign_lib/cases_resource.py": {
       "bytes": 59426,
       "sha256": "d23c7e79d9f732b61849adf73a5cb42381931f363791eb65f38aae6bc753a692"
     },
     "tools/campaign_lib/cases_scene.py": {
-      "bytes": 7187,
-      "sha256": "4733f8357c1ff3c64cdf68ce576f66b74a05c52a7be56da5b6a39f37c4f088a4"
+      "bytes": 9638,
+      "sha256": "bcdc7780f0f7e9cf6be5b096cc8f2dad9c35d7fbc4d553fae40992f4403fd05b"
     },
     "tools/campaign_lib/core.py": {
-      "bytes": 11666,
-      "sha256": "f523fb0952cb7eed488c42b34ed7f3eab2a9b1e19c8db1fc8d0033c96160877f"
+      "bytes": 11678,
+      "sha256": "0f33eb042632c91ea918013ee55e38c69ca470c31a846f7491c02978d21bd615"
     },
     "tools/campaign_lib/data/qwen35moe_header.json": {
       "bytes": 102897,
       "sha256": "cb288f68e99cdbdf9ba2ad2fa88557fc250080c69ace24b56bc9ac449521dec3"
     },
     "tools/campaign_lib/data/scenes/P01.json": {
-      "bytes": 4232,
-      "sha256": "8bd76950505622443ef70b8b9d7e68398825344c84199646a8029ec5f6445da3"
+      "bytes": 5525,
+      "sha256": "9945549bbce33c3d51a031bf40f6e57ebdc3b25f942fca4f165b860616242535"
     },
     "tools/campaign_lib/data/situations_35.json": {
       "bytes": 17476,
       "sha256": "324cb0267d2297aaefc09a7f80c42ab0cc0b01f257a412b2f92a9abb4156d019"
     },
     "tools/campaign_lib/fixture.py": {
-      "bytes": 15219,
-      "sha256": "3e8969e08a281d4fa8655ec46dedcc415d1e19f437602948f8260f9e294f5288"
+      "bytes": 16977,
+      "sha256": "e13467f9d00f4af7a03ffa65b16202bf50eebdafb1d66603fa8e018060003ae0"
     },
     "tools/campaign_lib/gguf_fixture.py": {
       "bytes": 10696,
       "sha256": "61024d6abf14f54dccaecc00de8232ff18286e82592c2da299cb1845c4ff4f08"
     },
     "tools/campaign_lib/needs.py": {
-      "bytes": 10556,
-      "sha256": "ad9017ab0ff6ac77c24d1c270df95952e44138b68c121bbb74878be0d0ec7cb4"
+      "bytes": 11213,
+      "sha256": "8d74e077311bf47ae5e31a83c8b9ca0fd706787cc6743304adddd640abe50e44"
     },
     "tools/campaign_lib/report.py": {
-      "bytes": 9508,
-      "sha256": "012a1a610880cf07d8c9296d7c60d507160b83faf7173b14bc9a57b1a95a9926"
+      "bytes": 9837,
+      "sha256": "c913651e3d2bc20998aa1b745b5e8543ba4965b4c94739d01d310d9c0c0ff7e2"
     },
     "tools/campaign_lib/runner.py": {
-      "bytes": 25762,
-      "sha256": "c2a6a7ca8a6e1a6d3d1bddfce0df19bae8476c4505af27ae433fb1a23237543d"
+      "bytes": 26324,
+      "sha256": "8b2322a8098cd6eec8bb49b459c2392af7c54f43718be3217dcb41e4f529e537"
     },
     "tools/campaign_lib/sim.py": {
       "bytes": 14154,
@@ -2970,8 +2978,8 @@
       "sha256": "871cc8ecb2e66ff89bcc7fd8fd96d5458c2baa90fd9a339a0f6b6ccf86640f96"
     },
     "tools/check_hatch.py": {
-      "bytes": 29638,
-      "sha256": "d59a3104d64476df618999dec80df09e1d48b7100b6e65c295b4b08afe6c61c6"
+      "bytes": 29906,
+      "sha256": "a6f1866d29c6e4c75d10ccff441bd1ea84b2fe14f0198e154765e16a24812e35"
     },
     "tools/check_hatch_ui.py": {
       "bytes": 33279,
@@ -3538,8 +3546,8 @@
       "sha256": "711bb5649250518bbef47361386af12dd391299764da88a9a54a845a27e3f637"
     },
     "workbench/desk_scene.py": {
-      "bytes": 10049,
-      "sha256": "3a6f7134600ad67bd15c76ee335622207e5a065d30d1b27b8e02774ce9f3e0e5"
+      "bytes": 13853,
+      "sha256": "140114c5c82c2c4d8a690736475bdbf64aac98187aaf65f1b24bf681cc976aba"
     },
     "workbench/desktop_header_qt.py": {
       "bytes": 48473,
@@ -4584,6 +4592,10 @@
     "workbench/quantities.py": {
       "bytes": 17508,
       "sha256": "d9edf82bcef666ca06d8b3afad0b47175c3e99c00ad9c56154029171d22134f8"
+    },
+    "workbench/rail_demo.py": {
+      "bytes": 27979,
+      "sha256": "b59fe0a35ea59d4012db75a115490b89ed5fad71fe7eb3e300d9236ace9e3a48"
     },
     "workbench/readiness.py": {
       "bytes": 5726,

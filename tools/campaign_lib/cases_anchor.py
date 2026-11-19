@@ -20,6 +20,13 @@ known-good choice is scripted and every result says so ("driver": "scripted").
 Every anchor lists its needs (needs.py); the runner checks them when the run starts. An anchor whose needs are not
 met is Blocked with what is missing and what is present; one whose needs are all met but whose steps are not
 written yet is Blocked with "steps not written yet; its needs are here".
+
+The demo set (DA01, DA16, DA17, DA27): the After Hours 07 backup is the owner's and is never shipped, so A01, A16, A17 and
+A27 are Blocked wherever it is not, and their steps would then never run. Each has a twin here that runs the same steps
+(the same function) on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py, seed
+"rail_demo"): a 12 V rail whose settled current is 250 mA, so settled power is 3 W and becomes 3.6 W at 300 mA. The
+records are found by name in the workspace just built (records() below), the expected values are Rail Demo's own, and
+DA17 makes its backup with Graphite's own backup code first. A twin is not an anchor of a situation and claims no slice.
 """
 from __future__ import annotations
 
@@ -38,15 +45,28 @@ from .needs import MODEL
 
 DATA = Path(__file__).resolve().parent / 'data'
 SITUATIONS = {s['id']: s for s in json.loads((DATA / 'situations_35.json').read_text())}
-IDS = fixture.AH07_IDS
-REQUEST = ('On this working copy, change settled current from 280 mA to 300 mA, recalculate settled power, show me '
-           'which finding needs rechecking, and open the source for the original reading.')
+ASKED = ('On this working copy, change settled current from %s mA to 300 mA, recalculate settled power, show me '
+         'which finding needs rechecking, and open the source for the original reading.')
+REQUEST = ASKED % '280'
+DEMO_REQUEST = ASKED % '250'            # Rail Demo's own reading; the words are the same
 AH07_OPS = ['field.read', 'field.ripple', 'field.set', 'office.get', 'documents.get', 'office.datasheet.recheck',
             'field.trace']
 SCRIPTED = 'scripted: the real flow has the 35B model choose these operations; no model runs in a sim attempt'
 
 
-# ---------------------------------------------------------------- shared After Hours 07 reads
+# ---------------------------------------------------------------- shared reads: After Hours 07, or Rail Demo
+
+def records(ctx):
+    """The records a rail case works on, by what each is: After Hours 07's are the ids of the owner's backup; Rail Demo's
+    are found by name in the workspace the attempt built (the calculation is the one that stands now)."""
+    if ctx.case.seed != 'rail_demo':
+        return fixture.AH07_IDS
+    from workbench import rail_demo
+    made = rail_demo.find(ctx.kernel, ctx.owner)
+    return {'sheet': made['sheets']['readings'], 'calc_settled': made['calculations']['settled_power'],
+            'calc_startup': made['calculations']['startup_power'], 'claim_settled': made['findings']['settled_holds'],
+            'pdf_item': made['sources']['readings']['item'], 'pdf_sha256': made['sources']['readings']['sha256']}
+
 
 def _field(ctx):
     return {o['id']: o for o in ctx.call('field.read')['objects']}
@@ -77,7 +97,7 @@ def _vault_copy(sha256):
     return None
 
 
-def _reopen(ctx, new_calc):
+def _reopen(ctx, IDS, new_calc):
     """Save-and-reopen: a fresh interpreter opens the workspace and reads the saved records."""
     import os
     command = [sys.executable, '-B', str(fixture.REPO / 'tools' / 'campaign.py'), '--reopen', str(ctx.folder),
@@ -155,8 +175,9 @@ def policy_waits(kernel, owner, sheet_id, place='show'):
 
 # ---------------------------------------------------------------- A16: the first complete run, headless
 
-def ah07_flow(ctx):
+def rail_flow(ctx):
     from workbench import field_ripple, field_source, stacy_hand
+    IDS = records(ctx)
     guard = _guard_launch()
     try:
         ctx.note('driver', SCRIPTED)
@@ -220,7 +241,7 @@ def ah07_flow(ctx):
         ctx.observe('source_pdf_unchanged', vault is not None)
         trace = ctx.call('field.trace', {'id': 'document:' + new_id})
         ctx.observe('source_link', 'intake:' + IDS['pdf_item'] in json.dumps(trace))
-        reopened_observations(ctx, _reopen(ctx, new_id), after['revision'])
+        reopened_observations(ctx, _reopen(ctx, IDS, new_id), after['revision'])
         ctx.note('was_ma', was_ma)
     finally:
         guard.stop()
@@ -228,7 +249,8 @@ def ah07_flow(ctx):
 
 # ---------------------------------------------------------------- A01: trace and the exact power check
 
-def ah07_trace(ctx):
+def rail_trace(ctx):
+    IDS = records(ctx)
     guard = _guard_launch()
     try:
         ctx.note('driver', SCRIPTED)
@@ -245,6 +267,7 @@ def ah07_trace(ctx):
         ctx.observe('traces_to_pdf', 'intake:' + IDS['pdf_item'] in trace)
         sheet = ctx.call('office.get', {'id': IDS['sheet']})
         ctx.observe('pdf_source_sha', sheet['source_state'].get('source_sha256'))
+        ctx.observe('pdf_source_is_the_admitted_one', sheet['source_state'].get('source_sha256') == IDS['pdf_sha256'])
     finally:
         guard.stop()
 
@@ -252,15 +275,53 @@ def ah07_trace(ctx):
 # ---------------------------------------------------------------- A17: backup verify and restore
 
 def backup_restore(ctx):
-    from workbench import workspace_backup
     backup = Path(ctx.backup) if ctx.backup else None
     if backup is None:
         raise fixture.Blocked('The After Hours 07 backup was not found under --fixtures.')
+    _backup_checks(ctx, backup, ctx.folder / 'ws', ctx.folder / 'profile')
+
+
+def demo_backup_restore(ctx):
+    """A17's steps on a backup of Rail Demo, made here with Graphite's own backup code from the workspace the attempt built;
+    then the restored copy is opened with its own profile and read: the desk that comes back is the desk that was saved.
+    The profile the backup was made from is moved away while the restored copy is read (a reviewed sheet is kept in the
+    profile), so the sheets that come back can only be the restored profile's."""
+    import os
+    from workbench import workspace_backup
+    from workbench.engineering_kernel import Kernel, operator
+    before = ctx.call('field.read')
+    made = workspace_backup.create(ctx.kernel.root, ctx.folder / 'backup')
+    ctx.observe('create', made['state'])
+    restored, profile = ctx.folder / 'ws-restored', ctx.folder / 'profile-restored'
+    _backup_checks(ctx, Path(made['backup']), restored, profile)
+    kept = os.environ['ARC1_WORKBENCH_CONFIG_HOME'];aside = kept.rstrip('/') + '-set-aside'
+    os.rename(kept, aside)
+    os.environ['ARC1_WORKBENCH_CONFIG_HOME'] = str(profile)       # the restored workspace is read with the profile restored beside it
+    try:
+        after = Kernel(restored).dispatch('field.read', {}, operator())
+    finally:
+        os.environ['ARC1_WORKBENCH_CONFIG_HOME'] = kept
+        os.rename(aside, kept)       # refused if a profile was written at the old place meanwhile: then the case breaks, and says so
+    ctx.observe('restored_desk_reads', after['ok'])
+    if after['ok']:
+        ctx.observe('restored_desk_counts', [c for c in after['result']['counts'] if 'lately' not in c])
+        ctx.observe('restored_desk_is_the_saved_one', _desk_picture(after['result']) == _desk_picture(before))
+
+
+def _desk_picture(field):
+    """What a desk holds, without when: each thing's kind, title and state, and each wire."""
+    return (sorted((o['kind'], o['title'], o['state']) for o in field['objects']),
+            sorted((l['from'], l['to'], l['label'], l['stale']) for l in field['links']))
+
+
+def _backup_checks(ctx, backup, root, profile):
+    """Verify, restore into fresh folders, refuse a destination that exists, catch one changed byte in a copy."""
+    from workbench import workspace_backup
     ctx.observe('verify', workspace_backup.verify(backup)['state'])
-    first = workspace_backup.restore(backup, ctx.folder / 'ws', ctx.folder / 'profile')
+    first = workspace_backup.restore(backup, root, profile)
     ctx.observe('restore', first['state'])
     try:
-        workspace_backup.restore(backup, ctx.folder / 'ws', ctx.folder / 'profile-2')
+        workspace_backup.restore(backup, root, Path(str(profile) + '-2'))
         ctx.observe('existing_destination', 'REPLACED')
     except ValueError as error:
         ctx.observe('existing_destination', 'REFUSED')
@@ -281,7 +342,8 @@ def backup_restore(ctx):
 
 # ---------------------------------------------------------------- A27: crash after the write, resume
 
-def ah07_resume(ctx):
+def rail_resume(ctx):
+    IDS = records(ctx)
     guard = _guard_launch()
     try:
         ctx.note('driver', SCRIPTED)
@@ -310,7 +372,7 @@ def ah07_resume(ctx):
         field = _field(ctx)
         ctx.observe('sheet_versions', [f for f in field[sheet_id]['facts'] if f.startswith('version')])
         ctx.observe('settled_calculations', sorted(o['title'] for o in field.values()
-                                                    if o['kind'] == 'calculation' and 'Settled' in o['title']))
+                                                    if o['kind'] == 'calculation' and 'settled' in o['title'].lower()))
         ctx.observe('finding_state', field['claim:' + IDS['claim_settled']]['state'])
     finally:
         guard.stop()
@@ -373,14 +435,14 @@ NEEDS = {      # what each situation needs from the machine; needs.py checks eve
 }
 
 RUNNABLE = {
-    'S01': dict(fn=ah07_trace, seed='after_hours_07', budget_s=60, needs=['after_hours_07'],
+    'S01': dict(fn=rail_trace, seed='after_hours_07', budget_s=60, needs=['after_hours_07'],
                 title='After Hours 07: trace settled power to its source and check it exactly',
                 slice='the trace of settled power to its reviewed PDF row and the exact 84/25 W check, not the '
                       'readiness report with unresolved conditions and a physical test',
                 allowed=['documents.get', 'field.trace', 'office.get'],
                 expect={'power_w': '84/25', 'unit': 'W', 'exact_recomputed': '84/25', 'inputs_basis': ['REVIEWED_PDF_ROW'],
-                        'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_sha': IDS['pdf_sha256']}),
-    'S16': dict(fn=ah07_flow, seed='after_hours_07', budget_s=120, needs=['after_hours_07'],
+                        'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_sha': fixture.AH07_IDS['pdf_sha256']}),
+    'S16': dict(fn=rail_flow, seed='after_hours_07', budget_s=120, needs=['after_hours_07'],
                 title='After Hours 07: 280 mA -> 300 mA, recalculate, flag the finding, keep the source',
                 slice='one changed reading carried to its power calculation, the finding flag and the reopened '
                       'result, not the updated design, drawings, cost, firmware and revision package',
@@ -407,7 +469,7 @@ RUNNABLE = {
                 allowed=['workspace_backup.verify', 'workspace_backup.restore'],
                 expect={'verify': 'VERIFIED', 'restore': 'RESTORED', 'existing_destination': 'REFUSED',
                         'tampered': 'Changed backup member'}),
-    'S27': dict(fn=ah07_resume, seed='after_hours_07', budget_s=90, needs=['after_hours_07'],
+    'S27': dict(fn=rail_resume, seed='after_hours_07', budget_s=90, needs=['after_hours_07'],
                 title='After Hours 07: killed after the cell write, resumed from its checkpoint',
                 slice='resuming local work and recognising a completed working-copy change, not reconciling an '
                       'uncertain external action or preserving later owner edits',
@@ -446,3 +508,43 @@ def _anchor(sid):
 
 
 CASES = [_anchor('S%02d' % n) for n in range(1, 36)]
+
+
+# ---------------------------------------------------------------- the demo set: the same steps on Rail Demo
+
+DEMO_REOPENED = {**REOPENED, 'reopened:finding_says': 'says 3 W; now 3.6 W', 'reopened:source_row_3': ['250', 'mA']}
+DEMO_RUNNABLE = {
+    'A01': dict(fn=rail_trace, budget_s=60, allowed=['documents.get', 'field.trace', 'office.get'],
+                title='Rail Demo: trace settled power to its source and check it exactly',
+                expect={'power_w': '3', 'unit': 'W', 'exact_recomputed': '3', 'inputs_basis': ['REVIEWED_PDF_ROW'],
+                        'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_is_the_admitted_one': True}),
+    'A16': dict(fn=rail_flow, budget_s=120, allowed=AH07_OPS + ['intake.read'],
+                title='Rail Demo: 250 mA -> 300 mA, recalculate, flag the finding, keep the source',
+                inputs={'request': DEMO_REQUEST, 'approvals': ['office.datasheet.recheck'], 'driver': 'scripted'},
+                expect={**RUNNABLE['S16']['expect'], 'open_item': 'Rail Demo bench readings', 'was_power_w': '3',
+                        'preview_shows': ['250 mA', '300 mA'], 'finding_says': 'says 3 W; now 3.6 W',
+                        'source_row_3': ['250', 'mA'], **DEMO_REOPENED}),
+    'A17': dict(fn=demo_backup_restore, budget_s=90,
+                allowed=['workspace_backup.create', 'workspace_backup.verify', 'workspace_backup.restore', 'field.read'],
+                title='Rail Demo backup: create, verify, restore fresh, refuse replacement, catch tampering',
+                expect={**RUNNABLE['S17']['expect'], 'create': 'VERIFIED', 'restored_desk_reads': True,
+                        'restored_desk_counts': ['3 sources', '3 sheets', '2 calculations', '1 page', '4 findings', '1 open question'],
+                        'restored_desk_is_the_saved_one': True}),
+    'A27': dict(fn=rail_resume, budget_s=90, resume={'kill_after': 'set'}, faults=RUNNABLE['S27']['faults'],
+                allowed=RUNNABLE['S27']['allowed'],
+                title='Rail Demo: killed after the cell write, resumed from its checkpoint',
+                expect={**RUNNABLE['S27']['expect'], 'settled_calculations': ['Rail Demo settled power · 3.6 W']}),
+}
+
+
+def _demo(anchor):
+    """One anchor's steps on Rail Demo: the same function, Rail Demo's own expected values, nothing needed from the owner."""
+    spec = dict(DEMO_RUNNABLE[anchor])
+    return Case(id='D' + anchor, set='demo', seed='rail_demo', needs=['rail_demo'], mode='sim', source_case='%s on Rail Demo' % anchor,
+                intent='The steps of %s on Rail Demo, the workspace of invented data kept in the program, so that they run '
+                       'where the owner\'s After Hours 07 backup is not.' % anchor,
+                start={'workspace': 'Rail Demo, invented data', 'built_by': fixture.rail_demo_identity()},
+                title=spec.pop('title'), **spec)
+
+
+DEMO = [_demo(anchor) for anchor in DEMO_RUNNABLE]

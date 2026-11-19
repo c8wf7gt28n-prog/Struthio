@@ -44,6 +44,12 @@ def _cell(text, limit=110):
     return str(text if text is not None else '').replace('|', '/').replace('\n', ' ')[:limit]
 
 
+def _rail_demo(seed):
+    if not seed or not seed.get('builder_sha256'):
+        return 'not recorded'
+    return 'revision %s, builder SHA-256 %s' % (seed.get('revision'), seed['builder_sha256'][:16])
+
+
 def _outcome_cell(r):
     if r.get('slice') and passed(r['outcome']):
         return '%s (baseline slice of %s)' % (r['outcome'], r.get('situation'))
@@ -90,6 +96,7 @@ def summary(run_dir):
            '- Model identity: %s (%s bytes); simulation uses the fixture built from its real header' % (
                manifest['model']['owner_file']['name'], format(manifest['model']['owner_file']['bytes'], ',')),
            '- After Hours 07 seed: %s' % (manifest['fixtures']['after_hours_07'].get('backup_json_sha256') or 'not found'),
+           '- Rail Demo seed (invented data, built by the program): %s' % _rail_demo(manifest['fixtures'].get('rail_demo')),
            '- Repository .ledger untouched: %s' % manifest.get('repo_ledger_untouched', 'not yet known'),
            '- Runner files SHA-256: %s (part of every case revision)' % (manifest.get('runner_library_sha256') or '?')[:16]]
     if manifest.get('earlier_run_moved_to'):

@@ -36,7 +36,9 @@ from . import cases_anchor, cases_resource, cases_scene, fixture, gguf_fixture, 
 from .core import Attempt, Case, _plain, library_digest, score
 
 CAMPAIGN = fixture.REPO / 'tools' / 'campaign.py'
-SETS = ('resource', 'anchors', 'selftest', 'real', 'scenes')      # scenes: desk acts played on a live window (cases_scene)
+SETS = ('resource', 'anchors', 'demo', 'selftest', 'real', 'scenes')
+# demo: the After Hours 07 anchors' steps on Rail Demo, the invented workspace kept in the program (cases_anchor.DEMO);
+# scenes: desk acts played on a live window (cases_scene), on After Hours 07 and on Rail Demo
 REAL_MIN_AVAILABLE = needs.REAL_MIN_AVAILABLE
 PREVIOUS = re.compile(r'previous-(\d+)')
 
@@ -83,7 +85,7 @@ REAL = [
 
 
 def registry():
-    cases = cases_resource.CASES + cases_anchor.CASES + SELFTEST + REAL + cases_scene.CASES
+    cases = cases_resource.CASES + cases_anchor.CASES + cases_anchor.DEMO + SELFTEST + REAL + cases_scene.CASES
     return {c.id: c for c in cases}
 
 
@@ -95,9 +97,9 @@ def select(set_name=None, ids=None):
             raise SystemExit('Unknown case id: ' + ', '.join(missing))
         return [every[i] for i in ids]
     if set_name in (None, 'all'):
-        return [c for c in every.values() if c.set in ('resource', 'anchors')]
+        return [c for c in every.values() if c.set in ('resource', 'anchors', 'demo')]
     if set_name not in SETS:
-        raise SystemExit('Unknown set: %s (choose resource, anchors, all, selftest, real or scenes)' % set_name)
+        raise SystemExit('Unknown set: %s (choose resource, anchors, demo, all, selftest, real or scenes)' % set_name)
     return [c for c in every.values() if c.set == set_name]
 
 
@@ -127,6 +129,10 @@ def child_main(folder):
                 digest, picture = fixture.state_digest(ctx.kernel)
                 record = {'seed': 'base', 'revision': fixture.FIXTURE_REVISION, 'initial_state_sha256': digest,
                           'tables': len(picture['counts'])}
+            elif case.seed == 'rail_demo':
+                ctx.kernel, ctx.owner, info = fixture.rail_demo_workspace(folder)
+                digest, picture = fixture.state_digest(ctx.kernel)
+                record = {'seed': 'rail_demo', 'initial_state_sha256': digest, 'tables': len(picture['counts']), **info}
             elif case.seed == 'after_hours_07':
                 ctx.kernel, ctx.owner, info = fixture.ah07_workspace(folder, ctx.backup)
                 digest, picture = fixture.state_digest(ctx.kernel)
@@ -294,7 +300,8 @@ def manifest(run_dir, cases, attempts, backup, args, probe=None, library=None):
     header = gguf_fixture.HEADER_JSON
     library = library or library_digest()
     probe = probe or needs.Probe(backup=backup)
-    seeds = {'base': {'revision': fixture.FIXTURE_REVISION, 'builder_sha256': fixture.file_sha(Path(fixture.__file__))}}
+    seeds = {'base': {'revision': fixture.FIXTURE_REVISION, 'builder_sha256': fixture.file_sha(Path(fixture.__file__))},
+             'rail_demo': fixture.rail_demo_identity()}
     if backup:
         seeds['after_hours_07'] = {'backup': str(backup), 'backup_json_sha256': fixture.file_sha(Path(backup) / 'BACKUP.json'),
                                    'backup_tree_sha256': fixture.tree_hash(backup)}

@@ -5,6 +5,20 @@
  "intent": "The owner's playable scene: open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace 07 Bench readings; compare the two revisions of the limits. Every step is a desk act, played by pointer and by keys, and with less motion.",
  "seed": "after_hours_07",
  "given": {"size": [1920, 1200], "dial": "show"},
+ "workspaces": {
+  "rail_demo": {
+   "title": "Rail Demo, the playable scene",
+   "intent": "The playable scene on Rail Demo, the workspace of invented data kept in the program: the same acts in the same order as on After Hours 07, each name swapped for the one there. Open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace Rail Demo bench readings; compare the two revisions of the limits. Every step is a desk act, played by pointer and by keys, and with less motion.",
+   "names": {
+    "07 Bench readings.csv": "Rail Demo bench readings.csv",
+    "07 Bench readings": "Rail Demo bench readings",
+    "07 Limits Rev A ARCHIVED": "Rail Demo limits Rev A ARCHIVED",
+    "07 Limits Rev B CURRENT": "Rail Demo limits Rev B CURRENT",
+    "Pulse duration": "Startup duration limit",
+    "Pulse ceiling": "Startup power ceiling"
+   }
+  }
+ },
  "runs": [
   {"name": "mouse", "style": "pointer"},
   {"name": "keys", "style": "keys"},
@@ -18,6 +32,7 @@
   {"act": "menu.close", "args": {},
    "expect": {"desk.where.popups": []}},
   {"act": "hand.write", "args": {"path": "07 Bench readings.csv", "text": "parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n"},
+   "args_by_seed": {"rail_demo": {"text": "parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n"}},
    "expect": {"act.result.ran": true, "act.result.hers": true, "act.result.undo": "/files.trash {\"path\": \"07 Bench readings.csv\"}",
               "desk.talk.trail.line": {"startswith": "/files.write"}}},
   {"act": "go.files", "args": {"view": "list"},
@@ -43,6 +58,7 @@
   {"act": "sheet.trace", "args": {},
    "expect": {"desk.field.route.owner_title": "07 Bench readings"},
    "expect_by_seed": {"after_hours_07": {"desk.field.route.hops": 2, "desk.field.route.ends": {"contains": "07 Settled power"}, "desk.field.route.ends#startup": {"contains": "07 Startup power"}},
+                      "rail_demo": {"desk.field.route.hops": 2, "desk.field.route.ends": {"contains": "Rail Demo settled power"}, "desk.field.route.ends#startup": {"contains": "Rail Demo startup power"}},
                       "bench": {"desk.field.route.hops": 0}},
    "expect_by_run": {"mouse_still": {"desk.field.route.animating": false}, "keys_still": {"desk.field.route.animating": false}}},
   {"act": "point.sheet", "args": {"title": "07 Limits Rev B CURRENT"},

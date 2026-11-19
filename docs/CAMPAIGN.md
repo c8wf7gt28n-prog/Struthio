@@ -11,7 +11,7 @@ Run these from the Graphite program folder.
 
 ```bash
 python3 tools/campaign.py list                      # every case, its set, and what it needs, checked now
-python3 tools/campaign.py list --set resource       # just one set: resource, anchors, all, selftest, real, scenes
+python3 tools/campaign.py list --set resource       # just one set: resource, anchors, demo, all, selftest, real, scenes
 python3 tools/campaign.py run --case R07            # one case
 python3 tools/campaign.py run --set resource        # a batch
 python3 tools/campaign.py run --set all --attempts 2 --out ~/Graphite_Campaign/runs/today
@@ -39,6 +39,11 @@ today's folder gives a summary of that one case. The summary reads only the case
   and the summary labels it that way: A01, for example, traces settled power to its PDF row and checks it exactly,
   while S01 asks for a readiness report and a physical test. The other thirty list what they need and wait for
   their steps.
+- **demo** (DA01, DA16, DA17, DA27): the steps of A01, A16, A17 and A27 on Rail Demo, the workspace of invented
+  data that Graphite builds itself (see "Rail Demo" below). They need nothing of yours, so they run anywhere.
+  `--set all` runs resource, anchors and demo.
+- **scenes** (P01a to P01d, DP01a to DP01d): the playable scene on a live window, on your After Hours 07 backup
+  and on Rail Demo (see "The playable scene" below).
 - **selftest** (T01 to T03): checks of the runner itself. T01 overruns its time on purpose, to show that the runner
   stops it and keeps what it had done. T02 raises after meeting one check, to show that a case that breaks is a
   Fail. T03 runs R17's steps on a software-only Vulkan device, to show that R17's checks do not pass there.
@@ -59,6 +64,8 @@ marked Blocked in advance. The needs are:
 - **an application**, such as LibreOffice Calc, Blender or FreeCAD: found on `PATH`.
 - **your own files for a situation**: put them in `<fixtures>/S07/` for S07, and so on.
 - **the After Hours 07 backup**: see below.
+- **Rail Demo**: what a PDF source needs anywhere in Graphite, the pypdf package and Poppler (`pdftotext` and
+  `pdftoppm`; the installer puts both in). Nothing of yours.
 
 A case whose needs are not all met is Blocked, and its reason lists what is missing and what is present (for
 example "present here: LibreOffice Calc (/usr/bin/localc)"). A case whose needs are all met but whose steps are
@@ -83,15 +90,70 @@ here, so the operations the assistant would choose are scripted, and the result 
 for your approval is read from the assistant's policy table for the steps Graphite offers. No approval is pressed:
 in the window it is your Run, and the run grants it for you.
 
+## Rail Demo: the invented workspace kept in the program (0.8.4)
+
+Your After Hours 07 backup is yours and is never shipped, so wherever it is not, the cases above say Blocked and
+their steps never run. Rail Demo is a small workspace with the same shape that Graphite builds itself, so the same
+steps can run anywhere. **Every number in it is invented. Nothing in it was measured**, and it says so: each of
+its sources prints "Invented demonstration data. Nothing here was measured.", and its desk is titled
+"Rail Demo (invented data)".
+
+What it holds: a 12 V rail on a bench.
+
+- Three one-page PDF sources, written by the program (the same bytes every time), put in Files, brought in and
+  admitted: the bench readings and two revisions of the limits.
+- Three reviewed sheets, one from each source: **Rail Demo bench readings** (12 V; settled current 250 mA;
+  startup current 900 mA; startup duration 45 ms), **Rail Demo limits Rev A ARCHIVED** and
+  **Rail Demo limits Rev B CURRENT** (Rev B allows 4 W settled and 40 ms of startup; Rev A allowed 5 W and 60 ms;
+  the nominal voltage, 12 V, is the one row that is the same in both, so a comparison has something to leave out).
+- Two exact calculations: settled power, 12 V × 250 mA = 3 W; startup power, 12 V × 900 mA = 10.8 W.
+- Four findings, each bound to what it rests on. One holds (settled power is inside the Rev B limit). One does
+  not hold (startup is inside the Rev B limit of 40 ms: the reading is 45 ms, so its check does not hold).
+- A page with a short summary, and one open question.
+
+Changing the settled current to 300 mA gives 3.6 W exactly; the finding that still says 3 W then waits for a
+recheck, and so does the startup calculation, which reads the same sheet. The source keeps its 250 mA.
+
+It is built through Graphite's own operations, the same doors you use (Files, bring in, admit, review the table,
+calculate, investigate), in a few seconds, with no network and no model. The builder is
+`workbench/rail_demo.py`; a run's `MANIFEST.json` records its revision and its file's SHA-256, and both are part
+of the revision of every case that runs on it.
+
+A case on Rail Demo is Blocked only when what a PDF source needs is not on the machine (pypdf, Poppler). If the
+build itself breaks (an operation refused, a job that did not complete, a table not read as written) the case is
+a Fail and its reason is the build's own sentence. Graphite starts a job only when it admits it, by free memory;
+with a large model loaded a job of the build may not be started. The build waits 60 seconds for each job, then
+cancels it and stops, saying what the job was waiting for (that case is a Fail too: free the memory and run again).
+
+```bash
+python3 tools/campaign.py run --set demo --out ~/Graphite_Campaign/runs/demo
+```
+
+- **DA01** traces settled power to its reviewed PDF row and checks 12 V × 250 mA = 3 W exactly.
+- **DA16** changes 250 mA to 300 mA, recalculates, and reads back from the saved records, then from a fresh
+  process: 300 mA in the cell, 3.6 W, the finding flagged for recheck, the source still at 250 mA.
+- **DA17** makes a backup of Rail Demo with Graphite's own backup code, verifies it, restores it into fresh
+  folders, reads the restored desk with the restored profile (the profile the backup was made from is moved away
+  for that read), refuses an existing destination and catches one changed byte in a copy.
+- **DA27** is stopped after the cell write and resumed from its checkpoint; the completed change is recognised
+  and not repeated.
+
+These are the same steps as A01, A16, A17 and A27 (the same code), with Rail Demo's own values expected. A twin
+is not an anchor of a situation and is not counted as a baseline slice. When your backup is present, the four
+anchors run on it as before.
+
 ## The playable scene (0.8.2)
 
 ```bash
 python3 tools/campaign.py run --set scenes --out ~/Graphite_Campaign/runs/scene
+python3 tools/campaign.py run --case DP01a,DP01b,DP01c,DP01d      # on Rail Demo only: runs anywhere
 ```
 
-The `scenes` set plays P01 (`tools/campaign_lib/data/scenes/P01.json`) on a live Graphite window on your After
-Hours 07 backup, with no model. Every step is a desk act, the same acts you can type in the writing line
-(`/help acts` lists them):
+The `scenes` set plays P01 (`tools/campaign_lib/data/scenes/P01.json`) on a live Graphite window, with no model:
+P01a to P01d on your After Hours 07 backup, and DP01a to DP01d on Rail Demo. On Rail Demo it is the same scene,
+the same acts in the same order, with each name swapped for the one there (the scene's `workspaces` entry lists
+the pairs: `07 Bench readings` becomes `Rail Demo bench readings`, and so on). Every step is a desk act, the same
+acts you can type in the writing line (`/help acts` lists them). On After Hours 07:
 
 1. open Tools across the head, then close it;
 2. write `07 Bench readings.csv` through Stacy's hand (one card, one line in her trail, one Undo);
@@ -102,6 +164,9 @@ Hours 07 backup, with no model. Every step is a desk act, the same acts you can 
 5. select 07 Limits Rev B CURRENT, compare it with Rev A (Pulse ceiling and Pulse duration changed), and close the
    comparison;
 6. Undo, which takes the CSV back.
+
+On Rail Demo the trace also goes two hops, to Rail Demo settled power and Rail Demo startup power, and the
+comparison shows Settled power limit, Startup duration limit and Startup power ceiling changed.
 
 Each step's result is checked against what the window then reads back. The scene is played four times: by pointer
 (P01a), by keys (P01b), and each again with Reduce motion on (P01c, P01d). A step that would wait for your Approve,
@@ -174,7 +239,8 @@ the program folder.
 
 ## Here versus the ThinkPad
 
-The resource and anchor cases run anywhere, in seconds, with no model. The real-model cases need the ThinkPad:
+The resource cases, the demo set and the scene on Rail Demo run anywhere, in seconds, with no model. The anchors
+on After Hours 07 run wherever your backup is. The real-model cases need the ThinkPad:
 
 ```bash
 python3 tools/campaign.py run --mode real --case M01 --model ~/Models/Qwen3.6-35B-A3B-Q4_K_M.gguf

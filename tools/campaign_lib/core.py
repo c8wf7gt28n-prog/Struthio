@@ -63,7 +63,7 @@ class Case:
     title: str
     situation: str | None = None
     intent: str = ''
-    seed: str = 'base'                       # base | after_hours_07 | none
+    seed: str = 'base'                       # base | rail_demo | after_hours_07 | none
     start: dict = dataclasses.field(default_factory=dict)
     inputs: dict = dataclasses.field(default_factory=dict)
     allowed: list = dataclasses.field(default_factory=list)

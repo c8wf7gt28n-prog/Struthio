@@ -1,31 +1,63 @@
-"""The scenes set (P01a..P01d): the owner's playable scene, played on a live offscreen window by desk acts alone.
+"""The scenes set (P01a..P01d, DP01a..DP01d): the owner's playable scene, played on a live offscreen window by desk acts alone.
 
 P01 (data/scenes/P01.json) runs in the After Hours 07 workspace, restored with Graphite's own backup code: open a menu across
 the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace
 07 Bench readings; compare the two revisions of the limits; take back what Stacy's hand wrote. Four cases, one per run of
 the scene: by pointer (P01a), by keys (P01b), and each with less motion (P01c, P01d).
 
+The After Hours 07 backup is the owner's and is never shipped, so those four are Blocked wherever it is not. DP01a..DP01d
+are the same scene on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py): the
+same acts in the same order, each name swapped for the one there (the scene's "workspaces" entry; for_workspace below).
+They need nothing from the owner and play anywhere.
+
 The case builds the window behind the same holds as the right-click's tests (no provider request, no job, no worker, no
 session or power call, no process start), stops the window's own timers, and plays the run through
 workbench.desk_scene.run_scene with origin "desk-script:P01". Each step is reported as it ends (progress "act"), each check
 is an observation named "<step>:<path>", and a picture of the window is kept for each step under shots/. The expected
-values are the scene's own, flattened for the After Hours 07 seed and the run; every step also expects its act to be done.
+values are the scene's own, flattened for the case's seed and the run; every step also expects its act to be done.
 No model runs: the acts are the script.
 """
 from __future__ import annotations
 
+import copy
 import json
+import re
 from pathlib import Path
 
 from .core import Case
 
 SCENES = Path(__file__).resolve().parent / 'data' / 'scenes'
 SEED = 'after_hours_07'
+DEMO = 'rail_demo'
 RUNS = (('P01a', 'mouse'), ('P01b', 'keys'), ('P01c', 'mouse_still'), ('P01d', 'keys_still'))
 
 
 def load(scene_id):
     return json.loads((SCENES / ('%s.json' % scene_id)).read_text(encoding='utf-8'))
+
+
+def for_workspace(scene, workspace):
+    """The scene as it is played on another workspace: workbench.desk_scene.for_workspace, the same swap with the same answer
+    (the runner's parent decides what a case expects without importing Graphite)."""
+    if workspace == scene.get('seed'):return copy.deepcopy(scene)
+    there = (scene.get('workspaces') or {}).get(workspace)
+    if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
+    names = there.get('names', {})
+    if not isinstance(names, dict) or not all(isinstance(k, str) and k and isinstance(v, str) for k, v in names.items()):
+        raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
+    said = re.compile('|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True))) if names else None
+
+    def swap(value):
+        if isinstance(value, str):return said.sub(lambda found: names[found.group(0)], value) if said else value
+        if isinstance(value, list):return [swap(v) for v in value]
+        if isinstance(value, dict):return {key: swap(v) for key, v in value.items()}
+        return value
+    out = copy.deepcopy(scene)
+    out['steps'] = swap(out.get('steps') or [])
+    out['seed'] = workspace
+    for key in ('title', 'intent'):
+        if there.get(key):out[key] = there[key]
+    return out
 
 
 def flattened(scene, run_name, seed=SEED):
@@ -42,7 +74,7 @@ def flattened(scene, run_name, seed=SEED):
 
 
 def run_case(ctx):
-    """Build the window on the restored workspace, play the run, report every check."""
+    """Build the window on the case's workspace (restored, or built by the program), play the run, report every check."""
     import os
     import platform
     import subprocess
@@ -57,7 +89,7 @@ def run_case(ctx):
     from workbench.engineering_kernel import Kernel
     from workbench.qt_app import WorkbenchWindow, make_app
     from workbench.session import Session
-    scene = load(ctx.case.inputs['scene']);run_name = ctx.case.inputs['run']
+    scene = desk_scene.for_workspace(load(ctx.case.inputs['scene']), ctx.case.seed);run_name = ctx.case.inputs['run']
     if (scene.get('given') or {}).get('appearance', boss_theme.APPEARANCE) != boss_theme.APPEARANCE:
         raise fixture.Blocked('The scene is for the %s appearance, and the appearance is chosen when Graphite starts.' % scene['given']['appearance'])
 
@@ -102,7 +134,7 @@ def run_case(ctx):
             try:w.grab().save(str(shots / ('%02d.png' % n)))
             except Exception:  # noqa: BLE001 - a picture that cannot be kept is not a failed step
                 pass
-        out = desk_scene.run_scene(w, scene, run_name, seed=SEED, origin='desk-script:%s' % scene['id'], after_step=after)
+        out = desk_scene.run_scene(w, scene, run_name, seed=ctx.case.seed, origin='desk-script:%s' % scene['id'], after_step=after)
         if out.get('blocked'):raise fixture.Blocked(out['blocked'])
         ctx.note('steps', [{k: s[k] for k in ('n', 'act', 'ok', 'by', 'seconds', 'words', 'result')} for s in out['steps']])
         ctx.note('passed', out['passed'])
@@ -114,14 +146,19 @@ def run_case(ctx):
 
 
 def _cases():
-    scene = load('P01');out = []
-    for case_id, run_name in RUNS:
-        run = next(r for r in scene['runs'] if r['name'] == run_name)
-        words = {'mouse': 'by pointer', 'keys': 'by keys', 'mouse_still': 'by pointer, with less motion', 'keys_still': 'by keys, with less motion'}[run_name]
-        out.append(Case(id=case_id, set='scenes', title='P01, the playable scene in After Hours 07, %s' % words, seed=SEED,
-                        intent=scene.get('intent', scene['title']), needs=['after_hours_07'], budget_s=240,
-                        inputs={'scene': 'P01', 'run': run_name, 'style': run['style'], 'reduce_motion': bool(run.get('reduce_motion'))},
-                        expect=flattened(scene, run_name), fn=run_case))
+    from . import fixture
+    written = load('P01');out = []
+    for prefix, seed, where, need in (('', SEED, 'in After Hours 07', 'after_hours_07'), ('D', DEMO, 'on Rail Demo (invented data)', 'rail_demo')):
+        scene = for_workspace(written, seed)
+        start = {'workspace': 'Rail Demo, invented data', 'built_by': fixture.rail_demo_identity()} if seed == DEMO else {}
+        for case_id, run_name in RUNS:
+            run = next(r for r in scene['runs'] if r['name'] == run_name)
+            words = {'mouse': 'by pointer', 'keys': 'by keys', 'mouse_still': 'by pointer, with less motion', 'keys_still': 'by keys, with less motion'}[run_name]
+            out.append(Case(id=prefix + case_id, set='scenes', title='P01, the playable scene %s, %s' % (where, words), seed=seed,
+                            intent=scene.get('intent', scene['title']), needs=[need], budget_s=240, start=start,
+                            source_case=('%s on Rail Demo' % case_id) if seed == DEMO else None,
+                            inputs={'scene': 'P01', 'run': run_name, 'style': run['style'], 'reduce_motion': bool(run.get('reduce_motion'))},
+                            expect=flattened(scene, run_name, seed), fn=run_case))
     return out
 
 
