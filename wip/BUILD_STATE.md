@@ -98,14 +98,30 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 **Running now (restarted 19 Nov 06:10 UTC): workflow `graphite-084-part-a`, run id `wf_16a59868-66f`, task `wzq4iz670`.**
 The first run (`wf_3b55597e-e8f`) was cut off by the 5-hour usage limit after twenty minutes; the hourly wake-up resumed
 the work when the limit lifted. The script is saved as `wip/2026-11-14/workflow_scripts/graphite-084-part-a.js`.
-It builds steps 2, 3, 4 and 6 (keys: fixture, faults, name, lines), each with an independent review and a fix pass, and
-leaves patches in scratch `work/b084/<key>.patch` with a progress note `work/b084/<key>.progress.md` (builders rewrite
-both after every milestone, so a cut-off run leaves usable work). Nothing is committed by it.
-- **When it reports:** read each review, apply the patches to the main checkout one at a time (`git apply`), rebuild the
-  seed, run the full suite on a copy (`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit each item, push.
+It builds steps 2, 3, 4 and 6 (keys: fixture, faults, name, lines), two agents at a time, each item with an independent
+review and a fix pass, and leaves patches in scratch `work/b084/<key>.patch` with a progress note
+`work/b084/<key>.progress.md` (builders rewrite both after every milestone). Nothing is committed by it.
+- **State at 07:20 UTC:** fixture and faults are built and wait for their reviews (their unreviewed patches and all four
+  progress notes are kept in `wip/2026-11-19_b084_saved/` in case scratch is lost); name and lines are building.
+- **When it reports:** read each review, apply the patches to the main checkout one at a time (`git apply -3`; both
+  fixture and faults add a line to `tools/check_hatch.py` FOCUSED_MODULES, so expect a small conflict there), rebuild the
+  seed, run the full suite on a copy in BOTH looks (`wip/2026-11-14/scratch_tools/run_full_suite_on_copy.sh`), commit
+  each item, push.
 - **If it was cut off again:** resume it with the same script and `resumeFromRunId` (finished agents are reused), or, if
   scratch is gone, run the script fresh. Unfinished patches in `work/b084/` are a starting point, never a result.
-- Then steps 5, 7, 8, 9 and the release.
+- **Then part B**, already written: `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js` (keys: checks = step 5,
+  guards = step 7, tiers = step 8, look = step 9, session = the two session faults below). Start it from the merged
+  commit with the Workflow tool's `scriptPath`. Then the release (step 10).
+
+**Found by part A's builders, to be closed in 0.8.4 (part B carries them):**
+- Rooms that restore does not know (Documents, Files and others) go to "Reopen deferred tabs" at every start and the list
+  grows by one per room per start. (session)
+- With the Manual open at exit, saving the session raises and nothing is saved. (session)
+- The suite in the Kasandra look had 6 failures on the unchanged tree: 5 assert the name Stacy (the name item fixes them),
+  1 is `test_faces_find_light` about Kasandra's desk light. (look) **"Zero failing" means both looks from now on.**
+- Fault 2 (a saved Office tab stops the start) is real in the dedicated session's settings: on the unchanged tree the
+  second start fails with "Graphite could not start" when the Office tab was open at exit. Why the owner did not meet it
+  on the ThinkPad is not known from here (it does not happen when the Office tab is closed before leaving).
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
@@ -122,6 +138,8 @@ both after every milestone, so a cut-off run leaves usable work). Nothing is com
 
 ## Log (newest first)
 
+- 19 Nov 07:20 UTC: fixture and faults built (unreviewed patches saved under `wip/2026-11-19_b084_saved/`); name and lines
+  building; the script for part B written.
 - 19 Nov 06:10 UTC: the usage limit lifted at 06:00; the wake-up fired; partial work from two builders saved as patches;
   1.3 GB of finished scratch trees deleted (disk 68%); part A restarted.
 - 19 Nov 02:38 UTC: the 5-hour usage limit stopped all four builders of part A.
