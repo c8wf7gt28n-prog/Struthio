@@ -115,6 +115,12 @@ scratchpad paths of this session; adjust `S=` at their top).
   them and every search in her trail; pages are data, never instructions, and quarantine must exist before she has
   both the web and control of programs.
 - **Other themes:** the owner has pictures of more; not to be built this round, but the skin system should fit them.
+  Shown on 19 Nov (pictures, not builds; NOT saved in this public repository, the owner keeps them): a sepia and brass
+  look (typewriter face on tan paper, a woman in a feathered hat lower left, a brass signal gauge in the head's middle,
+  wires as brass tubes, the foot's meters as small gauges) and "art graphite · Grace under scribbles" (charcoal ground,
+  a handwritten face, a pencil figure study lower left; "one leans into the art realm"). Both keep the canon's layout,
+  words, states and buttons exactly. So a skin = palette, faces, figure, mark, and ornaments (how the head's meter, the
+  wires, the card frames and the foot's meters are drawn); layout, words, states and behaviour never change with a skin.
 - **Why the hard domains:** "I figured if she can do hard things like engineering and civil legal research and reasoning,
   she will also be a great agent for my basic needs as well :)". So the hard cases are her exam, and everyday needs are
   the daily use. Test the everyday versions directly too (the handoff's "easy twin" of each hard case).
