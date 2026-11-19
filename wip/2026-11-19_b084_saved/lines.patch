@@ -1,0 +1,1254 @@
+diff --git a/sdk/cli/arc1cli/typed_pipeline.py b/sdk/cli/arc1cli/typed_pipeline.py
+index 8bc1255..fac3455 100644
+--- a/sdk/cli/arc1cli/typed_pipeline.py
++++ b/sdk/cli/arc1cli/typed_pipeline.py
+@@ -1,5 +1,5 @@
+ """Stacy language 1: JSON values through a finite, typed pipeline; no shell/eval."""
+-import hashlib,json,math,re
++import decimal,fractions,hashlib,json,math,re,sys
+ 
+ def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False)
+ def digest(value):return hashlib.sha256(canonical(value).encode()).hexdigest()
+@@ -10,15 +10,49 @@ WORDS={'over':'>','under':'<','at least':'>=','at most':'<=','has':'~','is not':
+ JOIN=re.compile(r'(@[a-z][a-z0-9_]*:[^\s|]+)\s+(?:(rows|facts|layers|lines|headings|texts|sheet\s+\S+)\s+)?on\s+([A-Za-z_][A-Za-z0-9_.]{0,79})')
+ # Lenses select a view inside a source before the row transforms run.
+ LENSES={'sheet':'','rows':'data.rows','facts':'facts','layers':'data.layers','lines':'data.lines','headings':'data.headings','texts':'data.texts'}
++SHELL='Shell syntax and command substitution are not part of Stacy language'
++# One rule for values, held by every step that compares, gathers, joins, orders or adds them (number, same, compare below).
++# Exactly a number means JSON's own form (12, -0.5, 3e6) or whole thousands marked with commas (1,200), in at most 40
++# characters: no spaces, no plus sign, no leading zero (0805 is a part size, 007 a code), nothing before or after. A whole
++# number is held exactly at any length. A decimal is held as a float, so one written with more digits than a float keeps
++# (1234567890123456.78, 1e-400) is not exactly a number: it stays the text it is, and two such texts never count as one value.
++RULE=('Text that is exactly a number (12, -0.5, 3e6, 1,200) counts as that number; true and false never do; all other text is taken exactly as written. '
++      'A decimal too long to be held exactly (more than about 15 digits) stays text.')
++NUMBER=re.compile(r'-?(?:0|[1-9][0-9]*|[1-9][0-9]{0,2}(?:,[0-9]{3})+)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?')
++KEYS='Keys match exactly as written: capitals and spaces count, and text that is exactly a number is that number.'
++TOTAL='%s FIELD. Numbers are used, and text that is exactly a number; a row with nothing there is counted as blank; anything else stops the step, which says how many it could not use. '
++WORKED='The answer is worked out exactly from the numbers as written (0.1 and 0.2 make 0.3) and is never rounded: a whole number stays whole, anything else is given to the digits a number holds (about 15).'
++HELD='The answer is a number one of the rows holds, as it is.'
++# Each step's own help words: what it does with values. A step written wrongly answers with them.
++HELP={'where':'where FIELD=VALUE, or FIELD over|under|at least|at most|has|is not VALUE. '+RULE+' A number is never over or under a text. has finds the text anywhere, in any case. '
++              '@NAME as the VALUE is another field of the same row; in double quotes ("@NAME") it is that text. '
++              'A row without the FIELD has nothing there: is not keeps it, and so does =null.',
++      'select':'select FIELD[, FIELD…]: one to sixteen field names with commas between them; spaces beside a comma do not matter.',
++      'sort':'sort FIELD, or sort -FIELD for largest first. Numbers come first, by value, a number written as text among them; then other text; then rows without the field.',
++      'group':'group FIELD[, FIELD…] (one to four), then count, sum, avg, min or max. Equal numbers share a group however they are written (1, 1.0, "1"); true and 1 stay apart; other text gathers exactly as written.',
++      'sum':TOTAL%'sum'+WORKED,'avg':TOTAL%'avg'+WORKED,'min':TOTAL%'min'+HELD,'max':TOTAL%'max'+HELD,
++      'add':'add NAME = numbers, field names, + - * / and brackets; a minus may stand before a value (2*-3). A field counts when it is a number or text that is exactly a number; otherwise that row gets no value. '
++            'It is worked out exactly from the numbers as written (0.1*3 is 0.3) and never rounded. A division by zero gives no value, and so does an answer too large or too small for a number. '
++            'A field already named NAME is replaced.',
++      'join':'join @address [rows|sheet NAME|layers|lines|headings|texts|facts] on FIELD. '+KEYS+' A field both sides have keeps its name, and the other source\'s comes as other_NAME (then other_NAME_2, and so on): nothing is overwritten.',
++      'missing':'missing @address [rows|sheet NAME|layers|lines|headings|texts|facts] on FIELD keeps the rows whose key the other source does not have. '+KEYS}
++
++def form(step):
++    """The refusal of a step written wrongly: its own help words, once, with the form first."""
++    return ValueError('Write it as: '+HELP[step])
++
+ 
+ def split(source):
+     if not isinstance(source,str) or not 1<=len(source)<=8192:raise ValueError('Pipeline text is outside its bound')
+-    if any(word in source for word in ('`','$(','${',';','>','<','\n','\r','\x00')):raise ValueError('Shell syntax and command substitution are not part of Stacy language')
++    # A semicolon, like a bar, is data inside double quotes and refused outside them. The other signs are refused wherever
++    # they stand: ` $( and ${ run inside a shell's double quotes too, and < and > stay out of every line as before.
++    if any(word in source for word in ('`','$(','${','>','<','\n','\r','\x00')):raise ValueError(SHELL)
+     result=[];quote=False;escape=False;start=0
+     for index,char in enumerate(source):
+         if escape:escape=False;continue
+         if char=='\\' and quote:escape=True;continue
+         if char=='"':quote=not quote
++        if char==';' and not quote:raise ValueError(SHELL)
+         if char=='|' and not quote:result.append(source[start:index].strip());start=index+1
+     if quote:raise ValueError('Unterminated JSON string')
+     result.append(source[start:].strip())
+@@ -53,25 +87,30 @@ def parse(source):
+             if not value.isdigit() or not 1<=int(value)<=200:raise ValueError('take accepts 1 through 200')
+             transforms.append({'kind':'take','count':int(value)})
+         elif verb=='keep':
+-            match=re.fullmatch(r'rows ([1-9][0-9]{0,3}(?:,[1-9][0-9]{0,3}){0,199})',value)
++            match=re.fullmatch(r'rows\s+([1-9][0-9]{0,3}(?:\s*,\s*[1-9][0-9]{0,3}){0,199})',value.strip())
+             if not match:raise ValueError('keep rows accepts up to 200 comma-separated row numbers')
+-            indices=[int(number)-1 for number in match.group(1).split(',')]
++            indices=[int(row)-1 for row in match.group(1).split(',')]
+             if len(set(indices))!=len(indices):raise ValueError('Choose each row once')
+             transforms.append({'kind':'keep_rows','indices':sorted(indices)})
+         elif verb=='select':
+-            fields=value.split(',')
+-            if not 1<=len(fields)<=16 or any(not FIELD.fullmatch(name) for name in fields):raise ValueError('select requires comma-separated field names')
++            fields=[name.strip() for name in value.split(',')]
++            if not 1<=len(fields)<=16 or any(not FIELD.fullmatch(name) for name in fields):raise form('select')
+             transforms.append({'kind':'select','fields':fields})
+         elif verb=='where':
+-            # Equality preserves the JSON type. Named comparisons have their own coercion rules.
++            # = and the named comparisons hold one rule for a value (RULE): =1 keeps what over 0 and under 2 both keep.
+             match=COMPARE.fullmatch(value.strip())
+-            if not match:raise ValueError('where requires field=value, or: field over|under|at least|at most|has|is not value')
+-            field=match.group(1);operator=match.group(2) or WORDS[match.group(3)];literal=match.group(4).strip()
+-            if len(literal)>200:raise ValueError('where requires field=value')
+-            try:literal=json.loads(literal)
+-            except json.JSONDecodeError:pass
++            if not match:raise form('where')
++            field=match.group(1);operator=match.group(2) or WORDS[match.group(3)];raw=match.group(4).strip()
++            if len(raw)>200:raise ValueError('where requires field=value')
++            try:literal=json.loads(raw)
++            except json.JSONDecodeError:literal=raw
+             if isinstance(literal,(dict,list)) or isinstance(literal,float) and not math.isfinite(literal):raise ValueError('where compares one finite scalar')
+-            transforms.append({'kind':'where','field':field,'value':literal} if operator=='=' else {'kind':'compare','field':field,'op':operator,'value':literal})
++            # A decimal too long to be held exactly is compared as the text it is written as (RULE), never as the float nearest to it.
++            if isinstance(literal,float) and number(raw) is None:literal=raw
++            step={'kind':'where','field':field,'value':literal} if operator=='=' else {'kind':'compare','field':field,'op':operator,'value':literal}
++            # @NAME names another field of the same row (reference). Written in double quotes it is that text, and the plan says so.
++            if isinstance(literal,str) and literal!=raw and literal.startswith('@'):step['text']=True
++            transforms.append(step)
+         elif verb in LENSES or verb=='pick':
+             path=LENSES.get(verb) if verb!='pick' else value.strip()
+             if verb=='sheet':
+@@ -81,24 +120,24 @@ def parse(source):
+             transforms.append({'kind':'pick','path':path})
+         elif verb=='sort':
+             name=value.strip();descending=name.startswith('-');name=name.lstrip('-')
+-            if not FIELD.fullmatch(name):raise ValueError('sort requires a field name (prefix - for descending)')
++            if not FIELD.fullmatch(name):raise form('sort')
+             transforms.append({'kind':'sort','field':name,'descending':descending})
+         elif verb=='count' and not value.strip():transforms.append({'kind':'count'})
+         elif verb=='group':
+             fields=[f.strip() for f in value.split(',')]
+-            if not 1<=len(fields)<=4 or any(not FIELD.fullmatch(f) for f in fields):raise ValueError('group requires one to four field names')
++            if not 1<=len(fields)<=4 or any(not FIELD.fullmatch(f) for f in fields):raise form('group')
+             transforms.append({'kind':'group','fields':fields})
+         elif verb in AGGREGATES:
+-            if not FIELD.fullmatch(value.strip()):raise ValueError(verb+' requires a field name')
++            if not FIELD.fullmatch(value.strip()):raise form(verb)
+             transforms.append({'kind':'aggregate','how':verb,'field':value.strip()})
+         elif verb=='add':
+             name,separator,expression=value.partition('=')
+-            if not separator or not FIELD.fullmatch(name.strip()):raise ValueError('add requires NAME = expression')
++            if not separator or not FIELD.fullmatch(name.strip()):raise form('add')
+             transforms.append({'kind':'add','name':name.strip(),'expression':arithmetic(expression)})
+         elif verb in ('join','missing'):
+             # join @address [lens [name]] on FIELD: rows of another source, matched on one field (read-only, one level deep)
+             match=JOIN.fullmatch(value.strip())
+-            if not match:raise ValueError(verb+' requires: @address [rows|sheet NAME|layers|lines|headings|texts|facts] on FIELD')
++            if not match:raise form(verb)
+             address,lens,on=match.group(1),(match.group(2) or '').strip(),match.group(3)
+             if lens and lens.split()[0] not in LENSES:raise ValueError('Unknown lens '+lens.split()[0][:20])
+             transforms.append({'kind':verb,'source':address+(' | '+lens if lens else ''),'on':on})
+@@ -113,48 +152,85 @@ def arithmetic(text):
+     """NAME = EXPR for add: numbers, field names, + - * / and brackets, read into a small postfix list. Never evaluated as code."""
+     text=text.strip()
+     if not text or len(text)>200:raise ValueError('add needs a short expression')
+-    out,ops=[],[];prec={'+':1,'-':1,'*':2,'/':2};expect_value=True
+-    for number,name,symbol in TOKEN.findall(text):
+-        if (number or name or symbol=='(') and not expect_value:raise ValueError('add: two values need an operator between them')
+-        if number:out.append(('num',float(number)));expect_value=False
++    # 'neg' is a minus that stands before a value (2*-3, -(a+b), 2--3): it binds tighter than * and / and is written into
++    # the list as 0 value -, so the list keeps its three words (num, field, op) and its four operators.
++    out,ops=[],[];prec={'+':1,'-':1,'*':2,'/':2,'neg':3};expect_value=True
++    def emit():out.append(('op','-' if ops[-1]=='neg' else ops[-1]));ops.pop()
++    for digits,name,symbol in TOKEN.findall(text):
++        if (digits or name or symbol=='(') and not expect_value:raise ValueError('add: two values need an operator between them')
++        if digits:
++            # The plan holds a float, as it always has; a number written longer than a float keeps is refused, never shortened.
++            if not exactly(float(digits),digits):raise ValueError('add: %s has more digits than a number holds exactly (about 15); write it shorter'%digits[:40])
++            out.append(('num',float(digits)));expect_value=False
+         elif name:out.append(('field',name));expect_value=False
+-        elif symbol in prec:
+-            if expect_value and symbol=='-':out.append(('num',0.0))  # a leading minus
+-            elif expect_value:raise ValueError('add: an operator needs a value before it')
+-            while ops and ops[-1]!='(' and prec[ops[-1]]>=prec[symbol]:out.append(('op',ops.pop()))
++        elif symbol in ('+','-','*','/'):
++            if expect_value and symbol=='-':out.append(('num',0.0));ops.append('neg');continue
++            if expect_value:raise ValueError('add: an operator needs a value before it')
++            while ops and ops[-1]!='(' and prec[ops[-1]]>=prec[symbol]:emit()
+             ops.append(symbol);expect_value=True
+         elif symbol=='(':ops.append('(');expect_value=True
+         elif symbol==')':
+-            while ops and ops[-1]!='(':out.append(('op',ops.pop()))
++            if expect_value:raise ValueError('add: a bracket closes after a value')
++            while ops and ops[-1]!='(':emit()
+             if not ops:raise ValueError('add: unbalanced brackets')
+             ops.pop();expect_value=False
+         elif symbol.strip():raise ValueError('add: only numbers, field names, + - * / and brackets')
+     while ops:
+         if ops[-1]=='(':raise ValueError('add: unbalanced brackets')
+-        out.append(('op',ops.pop()))
++        emit()
+     if expect_value:raise ValueError('add: the expression ends with an operator')
+     return out
+ 
+ 
++WHOLE=2**53  # below this a float counts every whole number, so a whole answer is given as an integer
++
++
++def exactly(found,text):
++    """Whether the float found holds exactly what text says: writing it back gives the same number (0.1 does, 1e-400 does not)."""
++    return math.isfinite(found) and decimal.Decimal(repr(found))==decimal.Decimal(text)
++
++
++def written(value):
++    """A number as the decimal it is written as, for working out exactly: 0.1 is one tenth, not the binary fraction nearest
++    to it, so 0.1 and 0.2 make 0.3. A whole number is itself."""
++    if isinstance(value,int):return value
++    if value.is_integer() and abs(value)<WHOLE:return int(value)
++    return fractions.Fraction(decimal.Decimal(repr(value)))
++
++
++def given(result):
++    """An exact answer as a row holds it, never rounded to fewer digits than a number has: a whole number as an integer (at
++    any length when only whole numbers made it), anything else as the float nearest to it. OverflowError when no float can
++    say it: too large, or so small that it would be given as 0 or as another number."""
++    if isinstance(result,int):return result
++    if result.denominator==1 and abs(result.numerator)<WHOLE:return result.numerator
++    found=float(result)
++    if abs(found)<sys.float_info.min and written(found)!=result:raise OverflowError('too small')
++    return found
++
++
+ def calculate(program,row):
++    """The value the list gives for one row, or None where it has none: a field that is not a number (RULE), a division by
++    zero, an answer too large or too small to say. It is worked out exactly from the numbers as written (written, given):
++    only the operation asked for is done, and nothing is rounded."""
+     stack=[]
+-    for kind,value in program:
+-        if kind=='num':stack.append(value)
+-        elif kind=='field':
+-            v=field(row,value)
+-            if isinstance(v,str):
+-                try:v=float(v.replace(',',''))
+-                except ValueError:return None
+-            if not isinstance(v,(int,float)) or isinstance(v,bool):return None
+-            stack.append(v)
+-        else:
+-            if len(stack)<2:return None
+-            b,a=stack.pop(),stack.pop()
+-            if value=='/' and b==0:return None
+-            stack.append({'+':a+b,'-':a-b,'*':a*b,'/':a/b if b else 0}[value])
+-    if len(stack)!=1:return None
+-    result=stack[0]
+-    return int(result) if isinstance(result,float) and result.is_integer() else round(result,6)
++    try:
++        for kind,value in program:
++            if kind=='num':stack.append(written(value))
++            elif kind=='field':
++                v=number(field(row,value))
++                if v is None:return None
++                stack.append(written(v))
++            else:
++                if len(stack)<2:return None
++                b,a=stack.pop(),stack.pop()
++                if value=='+':stack.append(a+b)
++                elif value=='-':stack.append(a-b)
++                elif value=='*':stack.append(a*b)
++                elif b==0:return None
++                else:stack.append(a//b if isinstance(a,int) and isinstance(b,int) and a%b==0 else fractions.Fraction(a,b))
++        return given(stack[0]) if len(stack)==1 else None
++    except OverflowError:return None
+ 
+ 
+ def field(row,path,default=None):
+@@ -175,33 +251,97 @@ def pick(value,path):
+     return found
+ 
+ 
++def number(value):
++    """The number a value stands for, or None: a number itself (never true or false), or text that is exactly a number (RULE).
++    A whole number is held at any length; a decimal only when a float holds exactly what is written, so two different
++    texts never stand for one number."""
++    if isinstance(value,bool):return None
++    if isinstance(value,int):return value
++    if isinstance(value,float):return value if math.isfinite(value) else None
++    if not isinstance(value,str) or len(value)>40 or not NUMBER.fullmatch(value):return None
++    text=value.replace(',','')
++    if text.lstrip('-').isdigit():return int(text)
++    found=float(text)
++    return found if exactly(found,text) else None
++
++
++def identity(value):
++    """What makes two values the same value, for where, is not, group, join and missing: a number by its value however it is
++    written (1, 1.0, "1"); a list or an object by its JSON; anything else by its type and itself (true is not 1, "a" is not "A")."""
++    found=number(value)
++    if found is not None:return ('number',found)
++    if isinstance(value,(dict,list)):return ('json',canonical(value))
++    return (type(value).__name__,value)
++
++
++def same(a,b):return identity(a)==identity(b)
++
++
++def reference(transform):
++    """The other field a comparison names with @NAME, or None: where a=@b, a is not @b and a over @b all compare two fields
++    of the same row. Written in double quotes ("@b") it is that text, and the plan says text."""
++    value=transform['value']
++    if transform.get('text') or not isinstance(value,str) or not value.startswith('@') or not FIELD.fullmatch(value[1:]):return None
++    return value[1:]
++
++
+ def compare(actual,op,expected):
++    """One comparison of a where step, by RULE. has (~) finds the text anywhere, in any case. = and is not ask whether the two
++    are the same value. over, under, at least and at most order two numbers by value, or two texts that are not numbers by
++    their characters, and hold for nothing else: a number is never over or under a text, true, false or nothing."""
+     if op=='~':return actual is not None and str(expected).casefold() in str(actual).casefold()
+-    if op=='!=':return actual!=expected
+-    if isinstance(expected,(int,float)) and not isinstance(expected,bool):
+-        if isinstance(actual,str):
+-            try:actual=float(actual.replace(',',''))
+-            except ValueError:return False
+-        if not isinstance(actual,(int,float)) or isinstance(actual,bool):return False
+-    elif not isinstance(actual,str) or not isinstance(expected,str):return False
+-    return {'>':actual>expected,'>=':actual>=expected,'<':actual<expected,'<=':actual<=expected}[op]
++    if op=='=':return same(actual,expected)
++    if op=='!=':return not same(actual,expected)
++    a,b=number(actual),number(expected)
++    if a is None and b is None and isinstance(actual,str) and isinstance(expected,str):a,b=actual,expected
++    elif a is None or b is None:return False
++    return {'>':a>b,'>=':a>=b,'<':a<b,'<=':a<=b}[op]
+ 
+ 
+ def groups(rows,fields):
++    """The rows gathered by what fields hold, in the order first seen: [(the values as the first row wrote them, its rows)].
++    Two rows share a group when each field holds the same value (identity): 1 with "1.0", never true with 1."""
+     found={}
+-    for row in rows:found.setdefault(tuple(field(row,f) for f in fields),[]).append(row)
+-    return found
++    for row in rows:
++        values=tuple(field(row,f) for f in fields)
++        found.setdefault(tuple(identity(v) for v in values),(values,[]))[1].append(row)
++    return list(found.values())
++
++
++def own(grouping,names):
++    """A count or a total names its own fields. A group field of the same name would be overwritten, so it is refused."""
++    for name in names:
++        if name in (grouping or ()):
++            raise ValueError('group: a field named %s cannot be gathered by here: the answer has its own %s and would overwrite it. '
++                             'Give it another name first (for a number: add NAME = %s)'%(name,name,name))
++
++
++def join_names(rows,others,on):
++    """The name each field of a joined source takes. A field this side does not have keeps its name. One that both sides have
++    keeps its name on this side and comes from the other as other_NAME; where that is taken too, other_NAME_2, other_NAME_3
++    and so on. The names are settled once for the whole join, from every row of both sides, so a name means one thing in
++    every row and no field is ever overwritten."""
++    here={k for row in rows if isinstance(row,dict) for k in row}
++    theirs=list(dict.fromkeys(k for other in others if isinstance(other,dict) for k in other if k!=on))
++    names={k:k for k in theirs if k not in here};taken=here|set(names)
++    for k in theirs:
++        if k in names:continue
++        name,n='other_'+k,1
++        while name in taken:n+=1;name='other_%s_%d'%(k,n)
++        names[k]=name;taken.add(name)
++    return names
+ 
+ 
+ def _sort_rows(rows, name, reverse):
+-    """Sort numbers and text separately, keeping missing values last."""
++    """Sort numbers (a number written as text among them, by its value) and other text separately, keeping missing values last."""
+     numbers, texts, missing = [], [], []
+     for row in rows:
+         value = field(row, name)
++        found = number(value)
+         if value is None:
+             missing.append(row)
+-        elif isinstance(value, (int, float)) and not isinstance(value, bool):
+-            numbers.append((value, row))
++        elif found is not None:
++            numbers.append((found, row))
+         else:
+             texts.append((str(value).casefold(), row))
+     numbers.sort(key=lambda item: item[0], reverse=reverse)
+@@ -223,30 +363,26 @@ def apply(value,transforms,limit=200):
+         elif transform['kind']=='keep_rows':
+             if transform['indices'][-1]>=len(rows):raise ValueError('A selected row is outside this table')
+             rows=[rows[index] for index in transform['indices']]
+-        elif transform['kind']=='where':
+-            missing=object();expected=transform['value']
+-            rows=[row for row in rows if (actual:=field(row,transform['field'],missing)) is not missing
+-                  and type(actual) is type(expected) and actual==expected]
++        elif transform['kind'] in ('where','compare'):
++            # One step in two spellings (= is kept as where in the plan). @NAME compares with another field of the same row.
++            # A row without the field has nothing there, as group, sort and a total take it: is not keeps it, and so does =null.
++            op=transform.get('op','=');expected=transform['value'];other=reference(transform)
++            rows=[row for row in rows if compare(field(row,transform['field']),op,field(row,other) if other else expected)]
+         elif transform['kind']=='select':rows=[{name:field(row,name) for name in transform['fields']} for row in rows]
+-        elif transform['kind']=='compare':
+-            missing=object();other=transform['value'][1:] if isinstance(transform['value'],str) and transform['value'].startswith('@') and FIELD.fullmatch(transform['value'][1:]) else None
+-            rows=[row for row in rows if (actual:=field(row,transform['field'],missing)) is not missing
+-                  and compare(actual,transform['op'],field(row,other) if other else transform['value'])]  # @Field compares two columns of the same row
+         elif transform['kind'] in ('join','missing'):
+             if 'rows' not in transform:raise ValueError('A join needs its other source resolved by the Kernel')
+-            key=lambda v:str(v).strip().casefold()
+-            index={}
++            # Keys match as written (identity): no trimming, no folding of capitals; a row with no key matches nothing.
++            on=transform['on'];index={}
+             for other in transform['rows']:
+-                if isinstance(other,dict) and other.get(transform['on']) not in (None,''):index.setdefault(key(other[transform['on']]),[]).append(other)
+-            if transform['kind']=='missing':rows=[row for row in rows if key(field(row,transform['on'],'')) not in index]
++                if isinstance(other,dict) and field(other,on) not in (None,''):index.setdefault(identity(field(other,on)),[]).append(other)
++            if transform['kind']=='missing':rows=[row for row in rows if identity(field(row,on,'')) not in index]
+             else:
+-                joined=[]
++                names=join_names(rows,transform['rows'],on);joined=[]
+                 for row in rows:
+-                    for other in index.get(key(field(row,transform['on'],'')),[]):
++                    for other in index.get(identity(field(row,on,'')),[]):
+                         merged=dict(row)
+                         for k,v in other.items():
+-                            if k==transform['on']:continue
+-                            merged[k if k not in merged else 'other_'+k]=v
++                            if k!=on:merged[names[k]]=v
+                         joined.append(merged)
+                 rows=joined
+         elif transform['kind']=='pick':
+@@ -255,17 +391,37 @@ def apply(value,transforms,limit=200):
+         elif transform['kind']=='sort':
+             rows=_sort_rows(rows, transform['field'], transform['descending'])
+         elif transform['kind']=='count':
+-            rows=[dict(zip(grouping,key),count=len(members)) for key,members in groups(rows,grouping).items()] if grouping else [{'count':len(rows)}]
++            own(grouping,('count',))
++            rows=[dict(zip(grouping,key),count=len(members)) for key,members in groups(rows,grouping)] if grouping else [{'count':len(rows)}]
+             grouping=None
+         elif transform['kind']=='group':grouping=transform['fields']
+         elif transform['kind']=='aggregate':
+-            name=transform['how']+'_'+transform['field'].replace('.','_')
+-            def total(members,how=transform['how'],f=transform['field']):
+-                values=[v for v in (field(m,f) for m in members) if isinstance(v,(int,float)) and not isinstance(v,bool)]
+-                if not values:return None
+-                value={'sum':sum(values),'avg':sum(values)/len(values),'min':min(values),'max':max(values)}[how]
+-                return int(value) if isinstance(value,float) and value.is_integer() else (round(value,6) if isinstance(value,float) else value)
+-            rows=[dict(zip(grouping,key),**{name:total(members),'count':len(members)}) for key,members in groups(rows,grouping).items()] if grouping else [{name:total(rows),'count':len(rows)}]
++            # A total uses numbers and text that is exactly a number (RULE). A row with nothing there (no field, null, empty
++            # text) has nothing to use and is counted under blank. Anything else stops the step: no value is skipped in silence.
++            # min and max give a number a row holds; sum and avg are worked out exactly from the numbers as written (written,
++            # given) and never rounded. An answer no number can say stops the step too.
++            how,f=transform['how'],transform['field'];name=how+'_'+f.replace('.','_')
++            held=[field(row,f) for row in rows];refused=[v for v in held if v is not None and v!='' and number(v) is None]
++            if refused:
++                long=' A decimal of more than about 15 digits cannot be held exactly, so it is not used as a number.' if any(isinstance(v,str) and NUMBER.fullmatch(v) for v in refused) else ''
++                raise ValueError('%s %s refused: in %d of %d rows the value is not a number (the first is %s). Nothing is left out in silence: '
++                                 'take those rows out or correct them first.%s'%(how,f,len(refused),len(held),canonical(refused[0])[:60],long))
++            blank=any(v is None or v=='' for v in held)
++            def total(members):
++                values=[n for n in (number(field(m,f)) for m in members) if n is not None];made={name:None,'count':len(members)}
++                if blank:made['blank']=len(members)-len(values)
++                if not values:return made
++                if how in ('min','max'):
++                    value=min(values) if how=='min' else max(values)
++                    made[name]=int(value) if isinstance(value,float) and value.is_integer() and abs(value)<WHOLE else value
++                    return made
++                value=sum(map(written,values));n=len(values)
++                if how=='avg':value=value//n if isinstance(value,int) and value%n==0 else fractions.Fraction(value,n)
++                try:made[name]=given(value)
++                except OverflowError:raise ValueError('%s %s refused: the answer is too large or too small to give as a number here'%(how,f)) from None
++                return made
++            own(grouping,(name,'count','blank') if blank else (name,'count'))
++            rows=[dict(zip(grouping,key),**total(members)) for key,members in groups(rows,grouping)] if grouping else [total(rows)]
+             grouping=None
+         elif transform['kind']=='add':rows=[dict(row,**{transform['name']:calculate(transform['expression'],row)}) if isinstance(row,dict) else row for row in rows]
+         else:raise ValueError('Unregistered transform')
+diff --git a/tests_integrated/test_context_menu.py b/tests_integrated/test_context_menu.py
+index bc0f8de..5371a81 100644
+--- a/tests_integrated/test_context_menu.py
++++ b/tests_integrated/test_context_menu.py
+@@ -227,7 +227,8 @@ class Rules(unittest.TestCase):
+         self.assertEqual(held.rows(base+' | where unit=mA | count'),[{'count':2}])
+         self.assertEqual(held.rows(base+' | group unit | count'),[{'unit':'V','count':1},{'unit':'mA','count':2},{'unit':'ms','count':1}])
+         self.assertEqual((line_steps.steps_left(base),line_steps.steps_left(base+' | where unit=mA')),(6,5))
+-        self.assertNotIn('value',line_steps.sortable(held,base),'numbers written as text sort as text (110 before 12): not offered')
++        # 0.8.4: a number written as text sorts by its value (12 before 110; it sorted as text before, so was not offered)
++        self.assertIn('value',line_steps.sortable(held,base));self.assertEqual([r['value'] for r in held.rows(base+' | sort value')],['12','110','280','650'])
+         self.assertEqual(calls,['language.parse','ledger.address.read'],'two reads in all')
+ 
+     def test_the_window_never_names_the_language_and_says_the_200_limit(self):
+diff --git a/tests_integrated/test_line_rules.py b/tests_integrated/test_line_rules.py
+new file mode 100644
+index 0000000..b833bc3
+--- /dev/null
++++ b/tests_integrated/test_line_rules.py
+@@ -0,0 +1,567 @@
++"""0.8.4, what a line does with values (sdk/cli/arc1cli/typed_pipeline.py).
++
++Seven faults were verified in the line evaluator on 14 November. Each has one test here, named for what must hold:
++
++  1. a minus after an operator        add x = 2*-3 gave -3
++  2. a number written as text         where v=1 skipped the text "1", over 0 kept it
++  3. true is not 1                    group gathered true with 1
++  4. a total never skips in silence   sum left out numeric text that had just passed a comparison (8 became 3)
++  5. a space after a comma            select title, state was refused
++  6. a quoted semicolon is data       refused, while a quoted bar passed
++  7. a join's keys and names          keys were trimmed and case-folded; an existing other_* field was overwritten
++
++One rule settles 2, 3, 4 and 7 and is pinned first: text that is exactly a number is that number, wherever a line compares,
++gathers, joins, orders or adds values; true and false never are; all other text is taken exactly as written. The rest of the
++module holds the same rule against the other steps (sort, add), the faults of the same kind found beside the seven, the
++words each step gives, and the callers: the line panel's steps, the Then menu's values, and a line run through the Kernel.
++
++After the independent review: a total and an add are worked out exactly and never rounded (they rounded to six decimals in
++silence); a decimal too long for a float to hold stays the text it is (two different texts counted as one number); = reads
++@NAME as the other comparisons do; a row without the field is on one side of = and is not; the Then menu and the panel
++write a value with one function.
++"""
++import json
++import os
++import tempfile
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++from sdk.cli.arc1cli import typed_pipeline as lines
++
++HOLDS = []
++
++
++def setUpModule():
++    # Nothing here may start a worker, submit a job or send a provider request (Graphite's test rule). Whether the packaged
++    # seed is current is the release check's business: a stale one reads as bound here, as in the other behaviour tests.
++    from workbench import clip, stacy_foundation
++    from workbench.engineering_kernel import Kernel
++    real_seed = stacy_foundation.seed_status
++    def seed_status(root):
++        value = real_seed(root)
++        return {**value, 'state': 'VERIFIED_SOURCE_BINDINGS'} if value.get('state') in ('STALE', 'SOURCE_UNAVAILABLE') else value
++    for held in (patch.object(Kernel, 'launch', side_effect=AssertionError('No worker launch')),
++                 patch.object(Kernel, 'submit', side_effect=AssertionError('No job submission')),
++                 patch.object(clip, '_request', side_effect=AssertionError('No provider request')),
++                 patch.object(stacy_foundation, 'seed_status', seed_status)):
++        held.start();HOLDS.append(held)
++
++
++def tearDownModule():
++    while HOLDS:HOLDS.pop().stop()
++
++
++def run(rows, steps, other=None):
++    """The rows the steps give from `rows`, as the Kernel would apply them; `other` is a joined source's rows."""
++    plan = lines.parse('jobs | ' + steps)
++    transforms = [dict(step, rows=other) if step['kind'] in ('join', 'missing') else dict(step) for step in plan['transforms']]
++    return lines.apply(rows, transforms)
++
++
++def exact(value):
++    """A value with its types kept apart (Python holds True == 1; JSON does not), for comparing answers."""
++    return json.dumps(value, sort_keys=True)
++
++
++def column(rows, name='v'):
++    return [row[name] for row in rows]
++
++
++class TheRule(unittest.TestCase):
++    """Text that is exactly a number is that number; nothing else is."""
++
++    def test_which_values_are_numbers(self):
++        for value, number in ((12, 12), (-3, -3), (1.5, 1.5), ('12', 12), ('-12', -12), ('0', 0), ('-0', 0), ('1.0', 1.0), ('0.5', 0.5),
++                              ('-0.5', -0.5), ('3e6', 3000000.0), ('1E-3', 0.001), ('1,200', 1200), ('-1,000', -1000),
++                              ('12,345,678.5', 12345678.5), ('1' * 32, int('1' * 32)), ('1.10', 1.1), ('0.30000000000000004', 0.30000000000000004),
++                              ('1234567890123456.8', 1234567890123456.8), ('1e-320', 1e-320), ('12345678901234567890', 12345678901234567890)):
++            self.assertEqual(exact(lines.number(value)), exact(number), repr(value))
++        for value in (True, False, None, '', ' ', '01', '007', '0805', ' 12', '12 ', '+5', '.5', '5.', '1,2', '1,2,3', '12,34',
++                      '1,0000', '0,123', '1_000', 'inf', 'nan', 'Infinity', '0x10', '1e', 'e5', '1e999', '−3', '٣',
++                      '12abc', '1 000', '1.2.3', '--1', '1' * 41, 'true', 'null', [1], {'a': 1}, float('inf'), float('nan'),
++                      # a decimal a float cannot hold as written is not exactly a number: it stays text
++                      '1234567890123456.78', '1731500000.123456789', '1e-400', '0.1000000000000000055511151231257827',
++                      '12345678901234567890e0', '1,234,567,890,123,456.78', '1.1e-323'):
++            self.assertIsNone(lines.number(value), repr(value))
++
++    def test_which_values_are_the_same_value(self):
++        for a, b in ((1, '1'), (1, 1.0), ('1', '1.0'), ('1e2', 100), ('1,000', 1000), (0, '-0'), ('a', 'a'), (True, True), (None, None),
++                     ([1, 'a'], [1, 'a']), ({'a': 1}, {'a': 1})):
++            self.assertTrue(lines.same(a, b), (a, b));self.assertTrue(lines.same(b, a), (b, a))
++        for a, b in ((True, 1), (False, 0), (True, 'true'), (True, 'True'), (None, 'None'), (None, ''), (None, 0), ('', 0), ('a', 'A'),
++                     ('a', ' a'), ('a', 'a '), ('01', 1), ('0805', 805), ('1', '1 '), ([1], [True]), ([1], '[1]'), (1, 2), ('1', '2')):
++            self.assertFalse(lines.same(a, b), (a, b));self.assertFalse(lines.same(b, a), (b, a))
++
++    def test_the_steps_say_the_rule_in_their_own_help_words(self):
++        for step in ('where', 'group', 'sum', 'avg', 'min', 'max', 'add', 'join', 'missing', 'sort', 'select'):
++            self.assertIn(step, lines.HELP, step)
++        self.assertIn('exactly a number', lines.RULE);self.assertIn('exactly as written', lines.RULE)
++        self.assertIn(lines.RULE, lines.HELP['where'])
++        for step in ('group', 'sum', 'join', 'missing', 'sort', 'add'):self.assertIn('number', lines.HELP[step], step)
++        self.assertIn('other_NAME', lines.HELP['join']);self.assertIn('overwritten', lines.HELP['join'])
++        self.assertIn('exactly as written', lines.HELP['join']);self.assertIn('exactly as written', lines.HELP['missing'])
++        self.assertIn('true and 1 stay apart', lines.HELP['group'])
++        self.assertIn('how many', lines.HELP['sum']);self.assertIn('blank', lines.HELP['sum'])
++        # a step written wrongly answers with its own help words
++        for steps, step in (('where v', 'where'), ('group', 'group'), ('sum', 'sum'), ('select a b', 'select'), ('join nothing', 'join'),
++                            ('missing nothing', 'missing'), ('sort 1', 'sort'), ('add x', 'add')):
++            with self.assertRaises(ValueError) as refused:lines.parse('jobs | ' + steps)
++            self.assertEqual(str(refused.exception), 'Write it as: ' + lines.HELP[step], 'the form comes first and is said once')
++        self.assertIn('division by zero', lines.HELP['add']);self.assertIn('replaced', lines.HELP['add']);self.assertIn('never rounded', lines.HELP['add'])
++        self.assertIn('never rounded', lines.HELP['sum']);self.assertIn('never rounded', lines.HELP['avg'])
++        self.assertIn('a number one of the rows holds', lines.HELP['min']);self.assertIn('a number one of the rows holds', lines.HELP['max'])
++        self.assertIn('@NAME', lines.HELP['where']);self.assertIn('without the FIELD', lines.HELP['where']);self.assertIn('15 digits', lines.RULE)
++        # and no help word names the language, prints a key, or uses a word the window never shows
++        for words in list(lines.HELP.values()) + [lines.RULE]:
++            self.assertNotRegex(words, r'(?i)\bstac\b|pipeline|\bprograms?\b|\blain\b|ctrl|shift\+', words)
++
++
++class TheSevenFaults(unittest.TestCase):
++    def test_1_a_minus_after_an_operator(self):
++        for expression, value in (('2*-3', -6), ('2--3', 5), ('10/-(2+3)', -2), ('-2*3', -6), ('2*-3*4', -24), ('--3', 3), ('(-3)', -3),
++                                  ('2 * - 3', -6), ('2 -3', -1), ('-2-3', -5), ('2+-3', -1), ('6/-3', -2), ('-(-(2))', 2), ('1-2*-3', 7),
++                                  ('2*-a', 6), ('-a*-a', 9), ('b--b', 1), ('-b/b', -1)):
++            self.assertEqual(exact(run([{'a': -3, 'b': '0.5'}], 'add x = ' + expression)[0]['x']), exact(value), expression)
++        for expression in ('2*', '*2', '2 3', '-', '2*/3', '2-', '(2', '2)', '2*+3', '2;3'):
++            with self.assertRaises(ValueError, msg=expression):lines.parse('jobs | add x = ' + expression)
++        # the plan keeps its form (numbers, fields and the four operators), so a plan kept from before still means the same
++        program = lines.parse('jobs | add x = 2*-a')['transforms'][0]['expression']
++        self.assertEqual({kind for kind, _ in program}, {'num', 'field', 'op'})
++        self.assertLessEqual({value for kind, value in program if kind == 'op'}, {'+', '-', '*', '/'})
++
++    def test_2_where_and_the_comparisons_read_a_number_written_as_text_the_same_way(self):
++        rows = [{'v': v} for v in (1, '1', '1.0', 1.0, '1e0', True, 'x', '01', ' 1', '', None, 2, '2', -1, '-1', '1,000')]
++        ones = [1, '1', '1.0', 1.0, '1e0']
++        self.assertEqual(exact(column(run(rows, 'where v=1'))), exact(ones))
++        self.assertEqual(exact(column(run(rows, 'where v over 0'))), exact(ones + [2, '2', '1,000']))
++        self.assertEqual(exact(column(run(rows, 'where v at least 1 | where v at most 1'))), exact(ones), 'the same rows as v=1')
++        self.assertEqual(exact(column(run(rows, 'where v="1"'))), exact(ones), 'quotes do not make a number into another value')
++        self.assertEqual(exact(column(run(rows, 'where v=1.0'))), exact(ones))
++        self.assertEqual(exact(column(run(rows, 'where v is not 1'))), exact([True, 'x', '01', ' 1', '', None, 2, '2', -1, '-1', '1,000']))
++        self.assertEqual(exact(column(run(rows, 'where v != 1'))), exact(column(run(rows, 'where v is not 1'))))
++        self.assertEqual(exact(column(run(rows, 'where v under 0'))), exact([-1, '-1']), 'negative numbers, as numbers and as text')
++        self.assertEqual(exact(column(run(rows, 'where v=-1'))), exact([-1, '-1']))
++        self.assertEqual(exact(column(run(rows, 'where v=1000'))), exact(['1,000']))
++        # every row is on one side of = and is not, and = agrees with the two bounds, whatever the value
++        for value in ('1', '2', '-1', '0', '"x"', 'true', '""', 'null', '1000', '01'):
++            kept = column(run(rows, 'where v=' + value));left = column(run(rows, 'where v is not ' + value))
++            self.assertEqual(len(kept) + len(left), len(rows), value)
++            self.assertEqual(sorted(map(exact, kept + left)), sorted(map(exact, column(rows))), value)
++        # true, false and nothing are not numbers and not text
++        self.assertEqual(exact(column(run(rows, 'where v=true'))), exact([True]))
++        self.assertEqual(exact(column(run(rows + [{'v': 'true'}], 'where v="true"'))), exact(['true']))
++        self.assertEqual(exact(column(run(rows, 'where v=null'))), exact([None]))
++        self.assertEqual(exact(column(run(rows, 'where v=""'))), exact(['']), 'empty text is empty text, not 0 and not nothing')
++        self.assertEqual(exact(column(run(rows, 'where v=0'))), exact([]))
++        # text that is not exactly a number is compared as written
++        self.assertEqual(exact(column(run(rows, 'where v=01'))), exact(['01']))
++        self.assertEqual(exact(column(run(rows, 'where v=" 1"'))), exact([' 1']))
++        units = [{'v': v} for v in ('mA', 'MA', ' mA', 'mA ', 'ma')]
++        self.assertEqual(column(run(units, 'where v=mA')), ['mA']);self.assertEqual(column(run(units, 'where v is not mA')), ['MA', ' mA', 'mA ', 'ma'])
++        self.assertEqual(column(run(units, 'where v has MA')), ['mA', 'MA', ' mA', 'mA ', 'ma'], 'has looks anywhere, in any case')
++        # two columns of one row follow the same rule: 10 is over 9 when both are written as text
++        pairs = [{'a': '10', 'b': '9'}, {'a': 10, 'b': '9'}, {'a': '10', 'b': 9}, {'a': '9', 'b': '10'}, {'a': 'b', 'b': 'a'}, {'a': '10', 'b': 'x'}]
++        self.assertEqual(exact(run(pairs, 'where a over @b')), exact(pairs[:3] + [pairs[4]]))
++        # a number is never over or under a text; two texts that are not numbers stand in the order of their characters
++        mixed = [{'v': v} for v in (12, '12', 'M', 'Z', 'a', True, None, '')]
++        self.assertEqual(exact(column(run(mixed, 'where v over "M"'))), exact(['Z', 'a']))
++        self.assertEqual(exact(column(run(mixed, 'where v at most "M"'))), exact(['M', '']))
++        self.assertEqual(exact(column(run(mixed, 'where v at least 12'))), exact([12, '12']))
++
++    def test_3_group_keeps_true_apart_from_one(self):
++        rows = [{'v': v} for v in (True, 1, 1.0, '1', False, 0, 'true', None)]
++        self.assertEqual(exact(run(rows, 'group v | count')),
++                         exact([{'v': True, 'count': 1}, {'v': 1, 'count': 3}, {'v': False, 'count': 1}, {'v': 0, 'count': 1},
++                                {'v': 'true', 'count': 1}, {'v': None, 'count': 1}]))
++        # a group's count is the count where gives for the group's own value
++        for group in run(rows, 'group v | count'):
++            self.assertEqual(run(rows, 'where v=%s | count' % json.dumps(group['v'])), [{'count': group['count']}], group)
++        self.assertEqual(exact(run(rows + [{}], 'group v | count')[-1]), exact({'v': None, 'count': 2}), 'a row without the field gathers with nothing')
++        # text groups as written; "1.0" and "1" are one number; "01" is text
++        rows = [{'v': v} for v in ('a', 'A', 'a ', 'a', '1', '1.0', '01', '', '')]
++        self.assertEqual(exact(run(rows, 'group v | count')),
++                         exact([{'v': 'a', 'count': 2}, {'v': 'A', 'count': 1}, {'v': 'a ', 'count': 1}, {'v': '1', 'count': 2},
++                                {'v': '01', 'count': 1}, {'v': '', 'count': 2}]))
++        # two fields, and totals by group
++        rows = [{'u': 'mA', 'ok': True, 'q': 1}, {'u': 'mA', 'ok': 1, 'q': '2'}, {'u': 'mA', 'ok': True, 'q': 4}, {'u': 'V', 'ok': True, 'q': 8}]
++        self.assertEqual(exact(run(rows, 'group u, ok | sum q')),
++                         exact([{'u': 'mA', 'ok': True, 'sum_q': 5, 'count': 2}, {'u': 'mA', 'ok': 1, 'sum_q': 2, 'count': 1},
++                                {'u': 'V', 'ok': True, 'sum_q': 8, 'count': 1}]))
++
++    def test_4_a_total_adds_numbers_written_as_text_and_never_skips_in_silence(self):
++        rows = [{'q': 3}, {'q': '5'}]
++        self.assertEqual(exact(run(rows, 'where q over 0 | sum q')), exact([{'sum_q': 8, 'count': 2}]), 'what passed the comparison is added')
++        self.assertEqual(exact(run(rows, 'avg q')), exact([{'avg_q': 4, 'count': 2}]))
++        self.assertEqual(exact(run(rows, 'min q')), exact([{'min_q': 3, 'count': 2}]))
++        self.assertEqual(exact(run(rows, 'max q')), exact([{'max_q': 5, 'count': 2}]))
++        rows = [{'q': v} for v in (1, '1.0', '-2', '1,200', '2.5', '1e1')]
++        self.assertEqual(exact(run(rows, 'sum q')), exact([{'sum_q': 1212.5, 'count': 6}]))
++        self.assertEqual(exact(run(rows, 'min q')), exact([{'min_q': -2, 'count': 6}]))
++        # whatever a comparison with a number keeps, a total can add: the two steps hold one rule
++        values = [3, '5', 'n/a', True, None, '', '01', ' 7', '1,2', '0.5', -4, '-4', [1], '1e2']
++        kept = run([{'q': v} for v in values], 'where q at least -1000000')
++        self.assertEqual(exact(column(kept, 'q')), exact([3, '5', '0.5', -4, '-4', '1e2']))
++        self.assertEqual(exact(lines.apply(kept, lines.parse('jobs | sum q')['transforms'])), exact([{'sum_q': 100.5, 'count': 6}]))
++        # what cannot be added stops the step, with the count and the first of them: never a smaller total in silence
++        with self.assertRaises(ValueError) as refused:run([{'q': 3}, {'q': 'n/a'}, {'q': '5'}, {'q': True}], 'sum q')
++        self.assertRegex(str(refused.exception), r'^sum q refused: in 2 of 4 rows the value is not a number \(the first is "n/a"\)')
++        for value in ('n/a', True, False, '01', ' 5', '5 ', '1,2', [1], {'a': 1}, 'inf'):
++            for how in ('sum', 'avg', 'min', 'max'):
++                with self.assertRaises(ValueError, msg=(how, value)) as refused:run([{'q': 3}, {'q': value}], how + ' q')
++                self.assertIn('%s q refused: in 1 of 2 rows' % how, str(refused.exception))
++        # a row with nothing there has nothing to add: the answer says how many such rows there were
++        self.assertEqual(exact(run([{'q': 3}, {'q': None}, {'q': ''}, {}, {'q': '5'}], 'sum q')), exact([{'sum_q': 8, 'count': 5, 'blank': 3}]))
++        self.assertEqual(exact(run([{'q': 3}, {'q': None}], 'avg q')), exact([{'avg_q': 3, 'count': 2, 'blank': 1}]), 'the average of what is there')
++        self.assertEqual(exact(run([{'q': None}, {}], 'sum q')), exact([{'sum_q': None, 'count': 2, 'blank': 2}]))
++        self.assertEqual(exact(run([{'u': 'V', 'q': '2'}, {'u': 'mA', 'q': None}, {'u': 'V', 'q': 1}], 'group u | sum q')),
++                         exact([{'u': 'V', 'sum_q': 3, 'count': 2, 'blank': 0}, {'u': 'mA', 'sum_q': None, 'count': 1, 'blank': 1}]))
++        self.assertEqual(exact(run([{'q': 0}, {'q': '0'}, {'q': 0.0}], 'sum q')), exact([{'sum_q': 0, 'count': 3}]), 'zero is a number, not a blank')
++
++    def test_5_select_takes_a_space_after_the_comma(self):
++        rows = [{'title': 'a', 'state': 'b', 'z': 1}]
++        for steps in ('select title, state', 'select title,state', 'select title , state', 'select  title,  state '):
++            self.assertEqual(run(rows, steps), [{'title': 'a', 'state': 'b'}], steps)
++        self.assertEqual(lines.parse('jobs | select title, state')['transforms'], [{'kind': 'select', 'fields': ['title', 'state']}])
++        for steps in ('select title state', 'select title,,state', 'select ,', 'select', 'select title;state', 'select ' + ','.join('f%d' % n for n in range(17))):
++            with self.assertRaises(ValueError, msg=steps):lines.parse('jobs | ' + steps)
++        # the same fault in the other list of a line: the rows to keep
++        rows = [{'n': 1}, {'n': 2}, {'n': 3}]
++        self.assertEqual(run(rows, 'keep rows 1, 3'), [{'n': 1}, {'n': 3}]);self.assertEqual(run(rows, 'keep rows 3,1'), [{'n': 1}, {'n': 3}])
++        for steps in ('keep rows 1 3', 'keep rows 1,,3', 'keep rows 0, 1', 'keep rows 1, 1', 'keep rows'):
++            with self.assertRaises(ValueError, msg=steps):lines.parse('jobs | ' + steps)
++
++    def test_6_a_quoted_semicolon_is_data_like_a_quoted_bar(self):
++        rows = [{'t': 'a;b'}, {'t': 'a|b'}, {'t': 'say "a;b"'}, {'t': 'ab'}]
++        self.assertEqual(run(rows, 'where t="a;b"'), [{'t': 'a;b'}]);self.assertEqual(run(rows, 'where t="a|b"'), [{'t': 'a|b'}])
++        self.assertEqual(run(rows, 'where t has "a;b"'), [{'t': 'a;b'}, {'t': 'say "a;b"'}])
++        self.assertEqual(run(rows, r'where t="say \"a;b\""'), [{'t': 'say "a;b"'}], 'quotes inside quotes')
++        self.assertEqual(run(rows, 'where t has ";" | where t has "|" | count'), [{'count': 0}])
++        self.assertEqual(lines.split('jobs | where t="a;b|c" | count'), ['jobs', 'where t="a;b|c"', 'count'])
++        self.assertEqual(lines.parse('files.find {"text":"a;b"} | count')['call']['arguments'], {'text': 'a;b'})
++        # outside quotes it is still refused, and so is whatever a shell would run even inside them
++        for text in ('jobs; ls', 'jobs | where t=a;b', 'jobs | where t="a";', 'jobs | where t="a" ; count', 'jobs | where t=\'a;b\'',
++                     r'jobs | where t="a\";b', 'jobs | where t="`id`"', 'jobs | where t="$(id)"', 'jobs | where t="${HOME}"',
++                     'jobs | where t="a>b"', 'jobs | where t="a<b"', 'jobs | where t="a\nb"'):
++            with self.assertRaises(ValueError, msg=text):lines.parse(text)
++        with self.assertRaises(ValueError) as refused:lines.parse('jobs | where t=a;b')
++        self.assertIn('Shell syntax', str(refused.exception))
++        # an address is written without quotes, so a semicolon in it is still refused, where the line starts and in a join
++        from workbench.stacy_language import source
++        self.assertEqual(lines.parse(source('@files:stock.csv | rows | where t="a;b"')[0])['transforms'][1], {'kind': 'where', 'field': 't', 'value': 'a;b'})
++        for text in ('@files:a;b.csv | rows', '@files:stock.csv; ls | rows', '@files:stock.csv | rows | join @files:a;b.csv rows on t'):
++            with self.assertRaises(ValueError, msg=text):lines.parse(source(text)[0])
++
++    def test_7_a_join_matches_keys_as_written_and_overwrites_nothing(self):
++        left = [{'k': 'A1', 'name': 'left', 'other_name': 'kept'}, {'k': ' a1 ', 'name': 'padded'}, {'k': 'a1', 'name': 'small'}]
++        other = [{'k': 'a1', 'name': 'right small'}, {'k': 'A1', 'name': 'right capital'}]
++        self.assertEqual(run(left, 'join @files:x.csv rows on k', other),
++                         [{'k': 'A1', 'name': 'left', 'other_name': 'kept', 'other_name_2': 'right capital'},
++                          {'k': 'a1', 'name': 'small', 'other_name_2': 'right small'}])
++        self.assertEqual(run(left, 'missing @files:x.csv rows on k', other), [{'k': ' a1 ', 'name': 'padded'}])
++        self.assertEqual(run(left, 'missing @files:x.csv rows on k', [{'k': 'a1'}]), [left[0], left[1]], 'A1 and the padded key are not a1')
++        # numbers: 7 is "7" and "7.0"; "007" is text; true is not 1 or "true"; nothing is not the text None
++        keys = [7, '7', '7.0', '007', True, 'true', None, 'None', '', 1]
++        joined = run([{'k': k, 'n': n} for n, k in enumerate(keys)], 'join @files:x.csv rows on k',
++                     [{'k': '7', 'side': 'seven'}, {'k': True, 'side': 'yes'}, {'k': 'None', 'side': 'text None'}, {'k': None, 'side': 'nothing'}, {'k': '', 'side': 'empty'}])
++        self.assertEqual(exact([(row['k'], row['side']) for row in joined]),
++                         exact([(7, 'seven'), ('7', 'seven'), ('7.0', 'seven'), (True, 'yes'), ('None', 'text None')]))
++        self.assertEqual(exact(column(run([{'k': k} for k in keys], 'missing @files:x.csv rows on k', [{'k': 7.0}, {'k': 'true'}]), 'k')),
++                         exact(['007', True, None, 'None', '', 1]))
++        # a name means one thing in every row: it is settled once for the whole join, from every row of both sides
++        left = [{'k': 1}, {'k': 2, 'state': 'here'}]
++        self.assertEqual(run(left, 'join @files:x.csv rows on k', [{'k': 1, 'state': 'there'}, {'k': 2, 'state': 'there too'}]),
++                         [{'k': 1, 'other_state': 'there'}, {'k': 2, 'state': 'here', 'other_state': 'there too'}])
++        # the other source's own other_NAME keeps its name; the clash moves on to the next free one
++        self.assertEqual(run([{'k': 1, 'x': 'mine'}], 'join @files:x.csv rows on k', [{'k': 1, 'x': 'theirs', 'other_x': 'their other'}]),
++                         [{'k': 1, 'x': 'mine', 'other_x_2': 'theirs', 'other_x': 'their other'}])
++        self.assertEqual(run([{'k': 1, 'x': 0, 'other_x': 1, 'other_x_2': 2}], 'join @files:x.csv rows on k', [{'k': 1, 'x': 3}]),
++                         [{'k': 1, 'x': 0, 'other_x': 1, 'other_x_2': 2, 'other_x_3': 3}])
++        # every value of both rows is still there after a join, whatever the names
++        left = [{'k': 'p', 'a': 1, 'other_a': 2, 'b': 3}];other = [{'k': 'p', 'a': 4, 'other_a': 5, 'b': 6, 'c': 7}]
++        row = run(left, 'join @files:x.csv rows on k', other)[0]
++        self.assertEqual(sorted(v for v in row.values() if v != 'p'), [1, 2, 3, 4, 5, 6, 7]);self.assertEqual(len(row), 8)
++        self.assertEqual({k: row[k] for k in left[0]}, left[0], 'this side is as it was')
++        # the plan is as before: the Kernel resolves the other source
++        self.assertEqual(lines.parse('jobs | join @files:x.csv rows on k')['transforms'], [{'kind': 'join', 'source': '@files:x.csv | rows', 'on': 'k'}])
++        with self.assertRaises(ValueError):lines.apply(left, lines.parse('jobs | join @files:x.csv rows on k')['transforms'])
++
++
++class TheSameKindOfFault(unittest.TestCase):
++    """Found beside the seven: a silent coercion, skip or overwrite of the same kind, each fixed with the rule above."""
++
++    def test_sort_orders_a_number_written_as_text_as_that_number(self):
++        rows = [{'v': v} for v in ('110', '12', 9, 'b', None, 'A', '-3', 2.5, '1,000', '09')]
++        self.assertEqual(exact(column(run(rows, 'sort v'))), exact(['-3', 2.5, 9, '12', '110', '1,000', '09', 'A', 'b', None]))
++        self.assertEqual(exact(column(run(rows, 'sort -v'))), exact(['1,000', '110', '12', 9, 2.5, '-3', 'b', 'A', '09', None]))
++        # what where calls the larger, sort puts later
++        self.assertEqual(column(run(rows, 'where v over 10 | sort v')), ['12', '110', '1,000'])
++
++    def test_add_reads_a_field_by_the_same_rule(self):
++        rows = [{'a': '1,200', 'b': '0.5'}, {'a': '1,2', 'b': 1}, {'a': ' 5', 'b': 1}, {'a': True, 'b': 1}, {'a': '007', 'b': 1}, {'a': 4, 'b': 0},
++                {'a': '-4', 'b': '-2'}]
++        self.assertEqual(exact(column(run(rows, 'add x = a * b'), 'x')), exact([600, None, None, None, None, 0, 8]))
++        self.assertEqual(exact(column(run(rows, 'add x = a / b'), 'x')), exact([2400, None, None, None, None, None, 2]), 'no division by nothing')
++        self.assertEqual(exact(run([{'a': 1e308}], 'add x = a * 10')), exact([{'a': 1e308, 'x': None}]), 'too large to say: no value, never infinity')
++        # brackets that hold no value were read as a sum that gave nothing for every row
++        for expression in ('()', '2*(3+)', '2+()'):
++            with self.assertRaises(ValueError, msg=expression):lines.parse('jobs | add x = ' + expression)
++
++    def test_group_takes_a_list_and_refuses_to_overwrite_its_own_field(self):
++        self.assertEqual(exact(run([{'v': [1]}, {'v': [1]}, {'v': [True]}, {'v': {'a': 1}}], 'group v | count')),
++                         exact([{'v': [1], 'count': 2}, {'v': [True], 'count': 1}, {'v': {'a': 1}, 'count': 1}]))
++        # a count or a total names its own fields (count, sum_q, blank): gathering by a field of that name would lose it
++        rows = [{'count': 7, 'sum_q': 1, 'q': 1, 'blank': 0}, {'count': 7, 'sum_q': 1, 'q': 2, 'blank': 0}, {'count': 9, 'sum_q': 2, 'q': None, 'blank': 0}]
++        for steps, name in (('group count | count', 'count'), ('group count | sum q', 'count'), ('group q, count | avg q', 'count'),
++                            ('group sum_q | sum q', 'sum_q'), ('group blank | max q', 'blank')):
++            with self.assertRaises(ValueError, msg=steps) as refused:run(rows, steps)
++            self.assertIn('named ' + name, str(refused.exception), steps)
++        self.assertEqual(run(rows[:2], 'group blank | max q'), [{'blank': 0, 'max_q': 2, 'count': 2}], 'no row is blank: nothing to overwrite')
++        self.assertEqual(run(rows, 'group sum_q | count'), [{'sum_q': 1, 'count': 2}, {'sum_q': 2, 'count': 1}])
++
++    def test_a_total_and_an_add_are_worked_out_exactly_and_never_rounded(self):
++        # they rounded to six decimals in silence: max of 2.5e-6 and 1e-6 answered 3e-06, which no row holds, and small sums 0
++        small = [{'q': 2.5e-6}, {'q': 1e-6}]
++        self.assertEqual(exact(run(small, 'max q')), exact([{'max_q': 2.5e-06, 'count': 2}]))
++        self.assertEqual(exact(run(small, 'min q')), exact([{'min_q': 1e-06, 'count': 2}]))
++        self.assertEqual(exact(run(small, 'sum q')), exact([{'sum_q': 3.5e-06, 'count': 2}]))
++        self.assertEqual(exact(run(small, 'avg q')), exact([{'avg_q': 1.75e-06, 'count': 2}]))
++        self.assertEqual(exact(run([{'q': 1.5e-7}, {'q': '2.5e-7'}], 'sum q')), exact([{'sum_q': 4e-07, 'count': 2}]))
++        self.assertEqual(exact(run([{'q': 2.5e-7}], 'add x = q*2')), exact([{'q': 2.5e-07, 'x': 5e-07}]))
++        # min and max give a number one of the rows holds
++        values = [0.1234567891, '7.000000001', 3, '2.50', 1e-9, -1e-12]
++        for how in ('min', 'max'):
++            self.assertIn(run([{'q': v} for v in values], how + ' q')[0][how + '_q'], [lines.number(v) for v in values], how)
++        # worked out from the numbers as written, so 0.1 and 0.2 make 0.3 with nothing rounded away
++        self.assertEqual(exact(run([{'q': 0.1}, {'q': 0.2}], 'sum q')), exact([{'sum_q': 0.3, 'count': 2}]))
++        self.assertEqual(exact(run([{'q': '0.1'}, {'q': 0.2}, {'q': '0.7'}], 'sum q')), exact([{'sum_q': 1, 'count': 3}]))
++        self.assertEqual(exact(run([{'q': 0.1}] * 10, 'sum q')), exact([{'sum_q': 1, 'count': 10}]))
++        self.assertEqual(exact(run([{'q': 1}, {'q': 2}, {'q': 2}], 'avg q')), exact([{'avg_q': 5 / 3, 'count': 3}]))
++        row = {'a': 0.1, 'b': '0.2', 'c': 3}
++        for expression, value in (('a+b', 0.3), ('a*c', 0.3), ('b-a', 0.1), ('1/c', 1 / 3), ('a/b', 0.5), ('c*c/c', 3), ('a*10', 1), ('1.1*1.1', 1.21)):
++            self.assertEqual(exact(run([row], 'add x = ' + expression)[0]['x']), exact(value), expression)
++        # whole numbers stay whole and exact at any length; an add works out only the operation asked for (a + b gave no
++        # value above 1e308, because the division was tried too)
++        big = 10 ** 309
++        self.assertEqual(run([{'a': big, 'b': 1}], 'add x = a + b')[0]['x'], big + 1)
++        self.assertEqual(run([{'a': '9007199254740993', 'b': 2}], 'add x = a * b')[0]['x'], 18014398509481986)
++        self.assertEqual(run([{'a': big, 'b': 10}], 'add x = a / b')[0]['x'], 10 ** 308)
++        self.assertEqual(run([{'q': '9007199254740993'}, {'q': 1}], 'sum q'), [{'sum_q': 9007199254740994, 'count': 2}])
++        self.assertEqual(run([{'q': big}, {'q': big}], 'avg q'), [{'avg_q': big, 'count': 2}])
++        self.assertEqual(run([{'q': big}, {'q': big + 2}], 'max q'), [{'max_q': big + 2, 'count': 2}])
++        # an answer no number can say stops a total and gives an add no value: never infinity, never 0 for what is not 0
++        with self.assertRaises(ValueError) as refused:run([{'q': 1e308}, {'q': 1e308}], 'sum q')
++        self.assertEqual(str(refused.exception), 'sum q refused: the answer is too large or too small to give as a number here')
++        self.assertEqual(exact(run([{'q': 1e308}, {'q': 1e308}], 'avg q')), exact([{'avg_q': 1e308, 'count': 2}]), 'the average itself can be said')
++        with self.assertRaises(ValueError) as refused:run([{'q': 5e-324}, {'q': 0}], 'avg q')
++        self.assertIn('avg q refused: the answer is too large or too small', str(refused.exception))
++        self.assertEqual(exact(run([{'a': 1e-200}], 'add x = a * a')[0]['x']), exact(None), 'too small to say: no value, never 0')
++        self.assertEqual(exact(run([{'a': 1e-200}], 'add x = a * a * 0')[0]['x']), exact(0))
++
++    def test_a_decimal_too_long_to_hold_exactly_stays_the_text_it_is(self):
++        # two different numbers written as text counted as one value when a float could not tell them apart
++        a, b = '1234567890123456.78', '1234567890123456.79'
++        self.assertFalse(lines.same(a, b));self.assertFalse(lines.same(a, 1234567890123456.8));self.assertTrue(lines.same(a, a))
++        self.assertEqual(run([{'k': a, 'n': 1}], 'join @files:x.csv rows on k', [{'k': b, 'm': 2}]), [])
++        self.assertEqual(run([{'k': a, 'n': 1}], 'join @files:x.csv rows on k', [{'k': a, 'm': 2}]), [{'k': a, 'n': 1, 'm': 2}])
++        self.assertEqual(run([{'k': a}], 'missing @files:x.csv rows on k', [{'k': b}]), [{'k': a}])
++        stamps = [{'t': '1731500000.123456789'}, {'t': '1731500000.123456790'}]
++        self.assertEqual(run(stamps, 'group t | count'), [dict(row, count=1) for row in stamps])
++        rows = [{'v': '1e-400'}, {'v': 0}, {'v': a}, {'v': b}, {'v': 1234567890123456.8}, {'v': '1234567890123456.8'}]
++        self.assertEqual(exact(column(run(rows, 'where v=0'))), exact([0]))
++        self.assertEqual(exact(column(run(rows, 'where v=' + a))), exact([a]), 'written out in a where, it is that text')
++        self.assertEqual(exact(column(run(rows, 'where v=1234567890123456.8'))), exact([1234567890123456.8, '1234567890123456.8']))
++        self.assertEqual(exact(column(run(rows, 'where v over 1'))), exact([1234567890123456.8, '1234567890123456.8']), 'a text is never over a number')
++        self.assertEqual(exact(column(run(rows, 'sort v'))), exact([0, 1234567890123456.8, '1234567890123456.8', a, b, '1e-400']))
++        # a total refuses it with the count, and says why a text that looks like a number is not one; an add gives no value
++        with self.assertRaises(ValueError) as refused:run(rows, 'sum v')
++        self.assertIn('sum v refused: in 3 of 6 rows the value is not a number (the first is "1e-400")', str(refused.exception))
++        self.assertIn('more than about 15 digits', str(refused.exception))
++        with self.assertRaises(ValueError) as refused:run([{'v': 1}, {'v': 'n/a'}], 'sum v')
++        self.assertNotIn('15 digits', str(refused.exception))
++        self.assertEqual(exact(column(run(rows, 'add x = v * 1'), 'x')), exact([None, 0, None, None, 1234567890123456.8, 1234567890123456.8]))
++        # written into an add it is refused, never shortened; a number a float holds is taken as before
++        with self.assertRaises(ValueError) as refused:lines.parse('jobs | add x = v * 1234567890123456.78')
++        self.assertIn('more digits than a number holds exactly', str(refused.exception))
++        self.assertEqual(run([{'v': 2}], 'add x = v * 0.125 + 007')[0]['x'], 7.25)
++        # a whole number is held exactly at any length, as a number or as text
++        self.assertFalse(lines.same('12345678901234567890', '12345678901234567891'));self.assertTrue(lines.same(12345678901234567890, '12345678901234567890'))
++        self.assertFalse(lines.same(2 ** 53 + 1, float(2 ** 53)))
++        self.assertEqual(run([{'k': '12345678901234567890'}], 'join @files:x.csv rows on k', [{'k': 12345678901234567891, 'm': 1}]), [])
++
++    def test_a_comparison_with_another_field_and_a_row_without_the_field(self):
++        # = read @w as the text "@w" while is not, over and the rest read the field w, so a row could be on neither side
++        rows = [{'v': 1, 'w': 1}, {'v': 1, 'w': 2}, {'v': '2', 'w': 2.0}, {'v': 'a', 'w': 'A'}]
++        self.assertEqual(run(rows, 'where v=@w'), [rows[0], rows[2]]);self.assertEqual(run(rows, 'where v is not @w'), [rows[1], rows[3]])
++        self.assertEqual(run(rows, 'where v at least @w | where v at most @w'), [rows[0], rows[2]])
++        # in double quotes it is the text, for = and for the other comparisons; the plan says so
++        homes = [{'h': '@home', 'home': 'x'}, {'h': 'x', 'home': 'x'}]
++        self.assertEqual(run(homes, 'where h="@home"'), [homes[0]]);self.assertEqual(run(homes, 'where h is not "@home"'), [homes[1]])
++        self.assertEqual(run(homes, 'where h=@home'), [homes[1]]);self.assertEqual(run(homes, 'where h has "@ho"'), [homes[0]])
++        self.assertEqual(lines.parse('jobs | where h="@home"')['transforms'], [{'kind': 'where', 'field': 'h', 'value': '@home', 'text': True}])
++        self.assertEqual(lines.parse('jobs | where h=@home')['transforms'], [{'kind': 'where', 'field': 'h', 'value': '@home'}])
++        self.assertEqual(lines.apply(homes, [{'kind': 'compare', 'field': 'h', 'op': '!=', 'value': '@home'}]), [homes[0]], 'a plan kept from before means the same')
++        # a row without the field has nothing there: it is on one side of = and is not, as group gathers it
++        states = [{'state': 'done'}, {'state': 'open'}, {}, {'state': None}]
++        self.assertEqual(run(states, 'where state is not done'), states[1:]);self.assertEqual(run(states, 'where state=done'), states[:1])
++        self.assertEqual(run(states, 'where state=null'), states[2:])
++        for group in run(states, 'group state | count'):
++            self.assertEqual(run(states, 'where state=%s | count' % json.dumps(group['state'])), [{'count': group['count']}], group)
++        self.assertEqual(run(states, 'where state over a'), states[:2], 'nothing is never over or under anything')
++        self.assertEqual(run(states, 'where state has n'), states[:2])
++
++    def test_a_join_on_a_field_inside_a_field_finds_it_on_both_sides(self):
++        left = [{'part': {'id': 'R1'}, 'n': 1}, {'part': {'id': 'R2'}, 'n': 2}]
++        other = [{'part': {'id': 'R2'}, 'price': 3}]
++        self.assertEqual(run(left, 'join @files:x.csv rows on part.id', other), [{'part': {'id': 'R2'}, 'n': 2, 'other_part': {'id': 'R2'}, 'price': 3}])
++        self.assertEqual(run(left, 'missing @files:x.csv rows on part.id', other), [left[0]])
++
++
++class TheCallers(unittest.TestCase):
++    """The line panel's steps and the Then menu write lines that run, and count by the same rule."""
++
++    def held(self, rows):
++        from workbench import line_steps
++        address = 'office:owner:' + 'a' * 32
++        def dispatch(operation, arguments):
++            if operation == 'language.parse':
++                return {'ok': True, 'result': {'call': {'operation': 'ledger.address.read', 'arguments': {'address': address}}, 'address': address, 'seed_id': 's'}}
++            return {'ok': True, 'result': {'object': {'origin': {'reviewed_rows': rows}}}}
++        base = '@%s | pick origin.reviewed_rows' % address
++        return line_steps, line_steps.Held(dispatch).read(base), base
++
++    def test_the_panel_counts_and_offers_by_the_evaluators_rule(self):
++        line_steps, held, base = self.held([{'part': 'R1; R2', 'value': '12', 'kind': 'null', 'size': '0805'}, {'part': 'C1', 'value': '110', 'kind': 'x', 'size': '0805'},
++                                            {'part': 'R1; R2', 'value': 9, 'kind': 'null', 'size': '805'}, {'part': 'U1', 'value': '1,000', 'kind': 'y', 'size': 805}])
++        for value in (12, '12', '1,000', ' 12', '0805', True, None, 'x', '1,2'):
++            self.assertEqual(exact(line_steps.number(value)), exact(lines.number(value)), repr(value))
++        # a number column written as text is offered by value, and each offer keeps what it says
++        offers = line_steps.values(held, base, 'value')
++        self.assertEqual([(o.words, o.count) for o in offers], [('at least 12', 3), ('at least 110', 2), ('at least 1000', 1), ('at most 9', 1), ('at most 12', 2), ('at most 110', 3)])
++        for offer in offers:self.assertEqual(held.count(line_steps.with_step(base, offer.step)), offer.count, offer.step)
++        # a value with a semicolon is offered in quotes, and the line runs; the text "null" is offered as text
++        offers = {o.words: o for o in line_steps.values(held, base, 'part')}
++        self.assertEqual(offers['is R1; R2'].step, 'where part="R1; R2"');self.assertEqual(offers['is R1; R2'].count, 2)
++        self.assertEqual(held.rows(line_steps.with_step(base, offers['is not R1; R2'].step) + ' | select part'), [{'part': 'C1'}, {'part': 'U1'}])
++        self.assertEqual(line_steps.literal('null'), '"null"');self.assertEqual({o.words: o.count for o in line_steps.values(held, base, 'kind')}['is null'], 2)
++        self.assertEqual((line_steps.literal('mA'), line_steps.literal('a;b'), line_steps.literal('a|b'), line_steps.literal('12'), line_steps.literal(' a')),
++                         ('mA', '"a;b"', '"a|b"', '"12"', '" a"'))
++        self.assertEqual(line_steps.literal('@home'), '"@home"', 'bare, @home would name a field')
++        for text in ('mA', 'a;b', 'a|b', '12', ' a', 'null', 'true', 'R1; R2', '0805'):
++            self.assertEqual(exact(lines.parse('jobs | where f=' + line_steps.literal(text))['transforms'][0]['value']), exact(text), text)
++        # Sort by offers a number column however it is written (it now sorts by value), never a column of numbers and words
++        self.assertEqual(line_steps.sortable(held, base), ['part', 'value', 'kind'])
++        self.assertEqual(column(held.rows(base + ' | sort value'), 'value'), [9, '12', '110', '1,000'])
++        # Count by gathers as group does: 0805 twice, and 805 with "805"
++        self.assertIn('size', line_steps.groupable(held, base))
++        self.assertEqual(exact(held.rows(base + ' | group size | count')), exact([{'size': '0805', 'count': 2}, {'size': '805', 'count': 2}]))
++        line_steps, held, base = self.held([{'n': 1}, {'n': '1.0'}, {'n': True}, {'n': 2}])
++        self.assertEqual(line_steps.groupable(held, base), ['n'], '1 and "1.0" are one value: there is something to count by')
++        line_steps, held, base = self.held([{'n': 1}, {'n': True}, {'n': 'True'}])
++        self.assertEqual(line_steps.groupable(held, base), [], 'true, 1 and the text True are three values')
++        # a column named count is not offered to count by: the step would be refused (the answer has its own count)
++        line_steps, held, base = self.held([{'unit': 'V', 'count': 2}, {'unit': 'V', 'count': 2}, {'unit': 'mA', 'count': 1}])
++        self.assertEqual(line_steps.groupable(held, base), ['unit'])
++        with self.assertRaises(line_steps.Refusal) as refused:held.rows(base + ' | group count | count')
++        self.assertIn('named count', str(refused.exception))
++
++    def test_a_refused_total_reaches_the_panel_in_plain_words(self):
++        line_steps, held, base = self.held([{'q': 3}, {'q': 'n/a'}])
++        with self.assertRaises(line_steps.Refusal) as refused:held.rows(base + ' | sum q')
++        self.assertIn('1 of 2 rows', str(refused.exception));self.assertNotRegex(str(refused.exception), r'(?i)stac|pipeline|language')
++        # a sign that cannot stand in a line: the words say where a semicolon can
++        with self.assertRaises(line_steps.Refusal) as refused:held.rows(base + ' | where q=a;b')
++        self.assertEqual(str(refused.exception), 'Those signs cannot be part of a line; a bar or a semicolon is text only inside double quotes')
++        # a step written wrongly reaches the panel as its own help words, said once
++        with self.assertRaises(line_steps.Refusal) as refused:held.rows(base + ' | sum')
++        self.assertEqual(str(refused.exception), 'Write it as: ' + lines.HELP['sum'])
++
++    def test_the_then_menu_and_the_panel_write_a_value_with_one_function(self):
++        # the menu left true, null and NaN bare and took quote marks out, so "is true" kept none of the rows holding that text
++        os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++        from workbench import chain_menu, line_steps
++        for text in ('mA', 'a b', 'R1; R2', 'a;b', 'a|b', 'true', 'false', 'null', 'NaN', 'Infinity', '12', '1e3', '0805', 'say "x"', ' a', '@home',
++                     'back\\slash', ''):
++            self.assertEqual(chain_menu.word(text), line_steps.literal(text), text)
++            step = lines.parse('jobs | where part = %s' % chain_menu.word(text))['transforms'][0]
++            self.assertEqual(exact((step['field'], step['value'])), exact(('part', text)), text)
++            self.assertEqual(run([{'part': text}, {'part': 'other'}, {'part': True}, {'part': None}], 'where part = %s' % chain_menu.word(text)), [{'part': text}], text)
++        self.assertEqual((chain_menu.word('mA'), chain_menu.word('a;b'), chain_menu.word('true'), chain_menu.word(True), chain_menu.word(5)),
++                         ('mA', '"a;b"', '"true"', 'true', '5'))
++
++    def test_the_then_menu_reads_a_number_column_by_the_same_rule(self):
++        os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
++        from PySide6.QtWidgets import QApplication, QMenu
++        from workbench import chain_menu
++        app = QApplication.instance() or QApplication([]);self.assertIsNotNone(app)
++        for values, answer in ((['12', '110', 9], True), ([1, 2.5, None, ''], True), (['1,200', '3e2'], True), (['12', 'x'], False), ([True, 1], False),
++                               (['0805', '12'], False), ([' 12'], False), ([None, ''], False), ([], False)):
++            self.assertEqual(chain_menu.numeric(values), answer, values)
++        def runner(rows):
++            return lambda host, program:(lines.apply(rows, lines.parse(program)['transforms']), None)
++        # Keep rows where: a number column written as text is offered by value, and each offer says what it keeps
++        rows = [{'v': '12'}, {'v': '110'}, {'v': 9}, {'v': None}];made = [];menu = QMenu()
++        with patch.object(chain_menu, 'run', runner(rows)), \
++             patch.object(chain_menu, 'link', lambda menu, host, program, label, rows=None, error=None, leaf=False:made.append((program, label, len(rows)))):
++            chain_menu.where_values(menu, None, 'jobs', 'v', [row['v'] for row in rows])
++        self.assertEqual(made[:3], [('jobs | where v over 9', '9', 2), ('jobs | where v over 12', '12', 1), ('jobs | where v over 110', '110', 0)])
++        self.assertEqual(made[-3:], [('jobs | where v at most 9', '9', 1), ('jobs | where v at most 12', '12', 2), ('jobs | where v at most 110', '110', 3)])
++        # a text column: the text true and the value true are offered apart and each keeps its own rows; NaN is text, and runs
++        rows = [{'f': 'true'}, {'f': 'true'}, {'f': True}, {'f': 'NaN'}, {'f': None}];made = [];menu = QMenu()
++        with patch.object(chain_menu, 'run', runner(rows)), \
++             patch.object(chain_menu, 'link', lambda menu, host, program, label, rows=None, error=None, leaf=False:made.append((program, label, len(rows)))):
++            chain_menu.where_values(menu, None, 'jobs', 'f', [row['f'] for row in rows])
++        self.assertEqual(made[:3], [('jobs | where f = "true"', 'true', 2), ('jobs | where f = true', 'True', 1), ('jobs | where f = "NaN"', 'NaN', 1)])
++        self.assertEqual(made[3:6], [('jobs | where f is not "true"', 'true', 3), ('jobs | where f is not true', 'True', 4), ('jobs | where f is not "NaN"', 'NaN', 4)])
++        self.assertEqual(made[6:], [('jobs | where f has "true"', 'true', 3), ('jobs | where f has True', 'True', 3), ('jobs | where f has "NaN"', 'NaN', 1)])
++        # group by: totals are offered for it, a column named count is not gathered by, and every line the menu writes runs
++        rows = [{'u': 'V', 'q': '2', 'count': 1}, {'u': 'mA', 'q': 5, 'count': 1}, {'u': 'V', 'q': '1,000', 'count': 3}];made = [];run = runner(rows)
++        with patch.object(chain_menu, 'run', run), \
++             patch.object(chain_menu, 'link', lambda menu, host, program, label, rows=None, error=None, leaf=False:made.append(program)):
++            chain_menu.shape(menu, None, 'jobs', rows)
++        self.assertIn('jobs | group u | sum q', made);self.assertIn('jobs | group u | count', made);self.assertNotIn('jobs | group count | count', made)
++        for program in made:run(None, program)
++        self.assertEqual(run(None, 'jobs | group u | sum q')[0], [{'u': 'V', 'sum_q': 1002, 'count': 2}, {'u': 'mA', 'sum_q': 5, 'count': 1}])
++
++    def test_lines_run_through_the_kernel(self):
++        from workbench import locations
++        from workbench.baseline import environment
++        from workbench.engineering_kernel import Kernel, operator
++        temporary = tempfile.TemporaryDirectory(prefix='line-rules-test-');self.addCleanup(temporary.cleanup)
++        base = Path(temporary.name);root = base / 'Office'
++        env = patch.dict(os.environ, environment(os.environ, root, base / 'profile'));env.start();self.addCleanup(env.stop)
++        locations.office(root);kernel = Kernel(root);owner = operator('owner')
++        files = root / 'Files';files.mkdir(exist_ok=True)
++        (files / 'stock.csv').write_text('Part,Need,Have,Note\nR1,12,5,first; second\nr1,3,8,plain\nC1,2,2,plain\n')
++        (files / 'prices.csv').write_text('Part,Price,Note\nR1,2,theirs\nC1,3,theirs\n')
++        (files / 'readings.txt').write_text('12\n5\n-3\n')
++        def rows(text):
++            answer = kernel.dispatch('language.run', {'text': text}, owner)
++            if not answer['ok']:raise ValueError(answer['error']['message'])
++            return answer['result']['rows']
++        self.assertEqual(rows('@files:stock.csv | rows | add Twice = Need*-2 | select Part, Twice'),
++                         [{'Part': 'R1', 'Twice': -24}, {'Part': 'r1', 'Twice': -6}, {'Part': 'C1', 'Twice': -4}])
++        self.assertEqual(rows('@files:stock.csv | rows | where Note has "first; second" | select Part'), [{'Part': 'R1'}])
++        self.assertEqual(rows('@files:stock.csv | rows | join @files:prices.csv rows on Part | select Part, Note, other_Note, Price'),
++                         [{'Part': 'R1', 'Note': 'first; second', 'other_Note': 'theirs', 'Price': 2}, {'Part': 'C1', 'Note': 'plain', 'other_Note': 'theirs', 'Price': 3}])
++        self.assertEqual(rows('@files:stock.csv | rows | missing @files:prices.csv rows on Part | select Part'), [{'Part': 'r1'}], 'r1 is not R1')
++        # a text file's lines are text: the numbers written there compare, gather and add as numbers
++        self.assertEqual(rows('@files:readings.txt | lines | where text over 0 | sum text'), [{'sum_text': 17, 'count': 2}])
++        self.assertEqual(rows('@files:readings.txt | lines | where text=12 | select text'), [{'text': '12'}])
++        self.assertEqual(rows('@files:readings.txt | lines | sort text | select text'), [{'text': '-3'}, {'text': '5'}, {'text': '12'}])
++        # nothing is rounded on the way: the largest of four small readings is one of them, and their sum is their sum
++        (files / 'parts.csv').write_text('Part,Leak\nA,0.0000025\nB,0.0000015\nC,0.000001\nD,0.000001\n')
++        self.assertEqual(exact(rows('@files:parts.csv | rows | max Leak')), exact([{'max_Leak': 2.5e-06, 'count': 4}]))
++        self.assertEqual(exact(rows('@files:parts.csv | rows | sum Leak')), exact([{'sum_Leak': 6e-06, 'count': 4}]))
++        self.assertEqual(exact(rows('@files:parts.csv | rows | add Ten = Leak*10 | where Part=A | select Ten')), exact([{'Ten': 2.5e-05}]))
++        # a cell that says NaN or inf is a word, not a number no record can hold: the file's other rows still answer
++        (files / 'odd.csv').write_text('Part,Q\nA,NaN\nB,inf\nC,2\nD,-Infinity\n')
++        self.assertEqual(rows('@files:odd.csv | rows | where Q over 1 | select Part'), [{'Part': 'C'}])
++        self.assertEqual(rows('@files:odd.csv | rows | where Q is not 2 | select Q'), [{'Q': 'NaN'}, {'Q': 'inf'}, {'Q': '-Infinity'}])
++        (files / 'readings.txt').write_text('12\n5\nnot read\n')
++        answer = kernel.dispatch('language.run', {'text': '@files:readings.txt | lines | sum text'}, owner)
++        self.assertFalse(answer['ok']);self.assertIn('sum text refused: in 1 of 3 rows the value is not a number (the first is "not read")', answer['error']['message'])
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index f872d62..7579b80 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -67,6 +67,8 @@ FOCUSED_MODULES=(
+  'test_cabinet','test_cabinet_actions','test_memory_cabinet','test_return_thread','test_tool_atlas','test_algorithm_atlas','test_discovery',
+  # problems, exact maths, reasoning graphs, adaptive and joined work
+  'test_problem','test_exact_math','test_reasoning_graph','test_adaptive_contract','test_joined_work',
++ # 0.8.4: what a line does with values: one rule for a number written as text, and the seven evaluator faults of 14 November
++ 'test_line_rules',
+  # backup and restore, the Project Desk, slate reasoning, change sets, continuing work, exchange and updates
+  'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment')
+ # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.
+diff --git a/workbench/chain_menu.py b/workbench/chain_menu.py
+index 4aec85a..e075673 100644
+--- a/workbench/chain_menu.py
++++ b/workbench/chain_menu.py
+@@ -60,15 +60,23 @@ def fields_of(rows):
+     return list(dict.fromkeys(k for r in rows[:50] if isinstance(r, dict) for k in r))
+ 
+ 
++def number(value):
++    """The number a value stands for, or None, by the evaluator's own rule: text that is exactly a number is that number."""
++    from sdk.cli.arc1cli import typed_pipeline
++    return typed_pipeline.number(value)
++
++
+ def numeric(values):
++    """A number column: every value that is there is a number, however it is written (a comparison and a total read it so)."""
+     found = [v for v in values if v not in ('', None)]
+-    return bool(found) and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in found)
++    return bool(found) and all(number(v) is not None for v in found)
+ 
+ 
+ def word(value):
+-    """A value as staC reads it: words with spaces in quotes."""
+-    text = str(value)
+-    return '"%s"' % text.replace('"', '') if re.search(r'\s|\|', text) else text
++    """A text value as staC reads it back as the same text: the line panel's own function (line_steps.literal), so both write
++    the same step for the same value. A value that is not text (a number, true, false) is written as itself."""
++    from .line_steps import literal
++    return literal(value) if isinstance(value, str) else json.dumps(value)
+ 
+ 
+ def rows_words(rows, error=None):
+@@ -180,6 +188,7 @@ def shape(menu, host, program, rows):
+     group = QMenu('group by', menu);group.setTearOffEnabled(True);menu.addMenu(group)
+     numbers = [f for f in fields if numeric([r.get(f) for r in rows[:200] if isinstance(r, dict)])]
+     for f in fields[:24]:
++        if f == 'count':continue  # the answer has its own count: a line gathering by a field of that name is refused, so not offered
+         part = QMenu(f, group);base = program + ' | group ' + f
+         link(part, host, base + ' | count', 'count')
+         for n in numbers[:8]:
+@@ -208,7 +217,7 @@ def where_fields(menu, host, program, rows, fields):
+ def where_values(menu, host, program, field, values):
+     """Comparisons that fit the column, with values found in it. Each says how many rows it keeps."""
+     if numeric(values):
+-        found = sorted({v for v in values if isinstance(v, (int, float))})
++        found = sorted({n for n in map(number, values) if n is not None})
+         shown = min(VALUES, len(found))  # spread across the values found, smallest to largest
+         picks = sorted({found[round(i * (len(found) - 1) / max(1, shown - 1))] for i in range(shown)}) if found else []
+         for word_ in ('over', 'under', 'at least', 'at most'):
+@@ -217,15 +226,17 @@ def where_values(menu, host, program, field, values):
+                 p = '%s | where %s %s %s' % (program, field, word_, v);r, e = run(host, p);link(part, host, p, str(v), r, e)
+             menu.addMenu(part)
+         return
+-    counts = {}
++    counts = {};held = {}  # text and what is not text are counted apart: the text true is not true
+     for v in values:
+-        if v not in ('', None):counts[str(v)] = counts.get(str(v), 0) + 1
++        if v not in ('', None) and not isinstance(v, (dict, list)):
++            key = (isinstance(v, str), str(v));counts[key] = counts.get(key, 0) + 1;held[key] = v
+     common = sorted(counts, key=lambda k:-counts[k])[:VALUES]
+     for word_ in ('is', 'is not', 'has'):
+         part = QMenu(word_, menu)
+-        for v in common:
+-            text = v if word_ != 'has' else v[:12]
+-            p = '%s | where %s %s %s' % (program, field, '=' if word_ == 'is' else word_, word(text));r, e = run(host, p);link(part, host, p, text, r, e)
++        for key in common:
++            text = key[1] if word_ != 'has' else key[1][:12]
++            value = word(text if word_ == 'has' else held[key])
++            p = '%s | where %s %s %s' % (program, field, '=' if word_ == 'is' else word_, value);r, e = run(host, p);link(part, host, p, text, r, e)
+         menu.addMenu(part)
+ 
+ 
+diff --git a/workbench/files_service.py b/workbench/files_service.py
+index c771e43..42b234f 100644
+--- a/workbench/files_service.py
++++ b/workbench/files_service.py
+@@ -21,6 +21,7 @@ from __future__ import annotations
+ import contextlib
+ import hashlib
+ import json
++import math
+ import os
+ import shutil
+ import sqlite3
+@@ -260,6 +261,7 @@ def number(text):
+     s = str(text).strip().replace(',', '') if isinstance(text, str) and text.strip().count(',') <= 3 else str(text).strip()
+     try:
+         value = float(s)
++        if not math.isfinite(value):return text  # NaN and inf are words in a cell: no record can hold them as numbers, and a line would refuse the whole file
+         return int(value) if value.is_integer() and '.' not in s and 'e' not in s.lower() else value
+     except ValueError:
+         return text
+diff --git a/workbench/line_steps.py b/workbench/line_steps.py
+index 72b4291..501cc19 100644
+--- a/workbench/line_steps.py
++++ b/workbench/line_steps.py
+@@ -22,7 +22,7 @@ LIMIT = 200          # what a line gives at most (language.run); counting here g
+ READ_LIMIT = 2000    # what the source may hold (typed_pipeline.apply's row budget)
+ MOST_STAGES = 8      # one source and at most seven steps (typed_pipeline.split)
+ OFFERS = 6           # values offered for one column
+-UNSAFE = ('`', '$(', '${', ';', '>', '<', '\n', '\r', '\x00', '"', '\\')      # a value with these is typed by hand, not offered
++UNSAFE = ('`', '$(', '${', '>', '<', '\n', '\r', '\x00', '"', '\\')      # a value with these is typed by hand, not offered
+ LENS_ORDER = ('rows', 'headings', 'layers', 'texts', 'lines', 'facts')
+ 
+ Offer = namedtuple('Offer', 'key words glyph step count enabled reason')
+@@ -39,7 +39,7 @@ class Refusal(ValueError):
+ def plain(message):
+     """A refusal in the window's words: the language is never named; its terms become the panel's."""
+     text = str(message or 'It cannot be read now').strip()
+-    swaps = ((r'Shell syntax and command substitution are not part of Stacy language', 'Those signs cannot be part of a line'),
++    swaps = ((r'Shell syntax and command substitution are not part of Stacy language', 'Those signs cannot be part of a line; a bar or a semicolon is text only inside double quotes'),
+              (r'Pipeline source exceeds its row/byte budget; narrow the query', 'It is too big to read here; narrow it first'),
+              (r'Output exceeds (\d+) rows; add take', r'The answer is more than \1 rows · keep fewer first'),
+              (r'Use one source and at most seven transforms', 'A line reads one thing and takes at most seven steps'),
+@@ -153,14 +153,10 @@ def columns(rows):
+ 
+ 
+ def number(value):
+-    """The number a value stands for (numeric text too), or None."""
+-    if isinstance(value, bool):return None
+-    if isinstance(value, (int, float)):return value
+-    if isinstance(value, str) and value.strip():
+-        try:found = float(value.replace(',', ''))
+-        except ValueError:return None
+-        return int(found) if found.is_integer() else found
+-    return None
++    """The number a value stands for, or None: the evaluator's own rule (typed_pipeline.number), so an offer counts what the
++    step it writes will keep. Text that is exactly a number is that number; true and false never are."""
++    found = typed_pipeline.number(value)
++    return int(found) if isinstance(found, float) and found.is_integer() else found
+ 
+ 
+ def said(value):
+@@ -169,11 +165,13 @@ def said(value):
+ 
+ 
+ def literal(value):
+-    """A text value as a where step writes it: bare when the parser reads it back as the same text, quoted otherwise."""
++    """A text value as a where step writes it: bare when the parser reads it back as the same text, quoted otherwise (a
++    value that would read as a number, true, false or nothing; one with a bar, a semicolon, a quote mark or a space at an
++    end; one that starts with @, which bare would name a field). The panel and the Then menu both write values with this."""
+     text = str(value)
+-    try:back = json.loads(text)
+-    except json.JSONDecodeError:back = None
+-    if back is None and text and text == text.strip() and '|' not in text:return text
++    try:json.loads(text);bare = False
++    except json.JSONDecodeError:bare = True
++    if bare and text and text == text.strip() and not text.startswith('@') and not any(sign in text for sign in '|;"\\'):return text
+     return json.dumps(text, ensure_ascii=False)
+ 
+ 
+@@ -183,9 +181,9 @@ def spread(values, most):
+ 
+ 
+ def values(held, line, name):
+-    """Keep rows where › NAME ›: up to six offers, each with how many rows it keeps. A number column (numeric text too) offers
+-    at least and at most over values spread across it; a text column offers the most common values, then three to leave out.
+-    An offer that keeps every row or none is left out."""
++    """Keep rows where › NAME ›: up to six offers, each with how many rows it keeps. A number column (text that is exactly a
++    number too) offers at least and at most over values spread across it; a text column offers the most common values, then
++    three to leave out. An offer that keeps every row or none is left out."""
+     rows = held.rows(line);total = len(rows);seen = [r.get(name) for r in rows if isinstance(r, dict)]
+     present = [v for v in seen if v not in (None, '')]
+     out = [];steps = []
+@@ -208,22 +206,25 @@ def values(held, line, name):
+ 
+ 
+ def sortable(held, line):
+-    """The columns Sort by can honestly order: numbers that are numbers, or text that is not numbers written as text (that
+-    would sort 110 before 12)."""
++    """The columns Sort by can honestly order: all numbers, however they are written (a number written as text sorts by its
++    value, 12 before 110), or all text that is not a number. A column of numbers and words is not offered."""
+     rows = held.rows(line);out = []
+     for name in columns(rows):
+         present = [r.get(name) for r in rows if isinstance(r, dict) and r.get(name) not in (None, '')]
+         if not present:continue
+-        if all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in present):out.append(name)
++        if all(number(v) is not None for v in present):out.append(name)
+         elif all(isinstance(v, str) and number(v) is None for v in present):out.append(name)
+     return out
+ 
+ 
+ def groupable(held, line):
+-    """The columns Count by can gather: those with a few repeated values (not every row its own)."""
++    """The columns Count by can gather: those with a few repeated values (not every row its own), told apart as the group
++    step tells them (typed_pipeline.identity: 1 is "1.0"; true is not 1). A column named count is left out: the answer has
++    its own count, so the step would be refused rather than overwrite it (typed_pipeline.own)."""
+     rows = held.rows(line);out = []
+     for name in columns(rows):
+-        present = [str(r.get(name)) for r in rows if isinstance(r, dict) and r.get(name) not in (None, '')]
++        if name == 'count':continue
++        present = [typed_pipeline.identity(r.get(name)) for r in rows if isinstance(r, dict) and r.get(name) not in (None, '')]
+         if present and len(set(present)) < len(present):out.append(name)
+     return out
+ 
+diff --git a/workbench/stacy_language.py b/workbench/stacy_language.py
+index adfd584..3dc4d1c 100644
+--- a/workbench/stacy_language.py
++++ b/workbench/stacy_language.py
+@@ -40,6 +40,7 @@ def source(text):
+     if not isinstance(text,str) or not text.lstrip().startswith('@'):return text,None
+     from . import addresses
+     head,separator,rest=text.lstrip()[1:].partition('|');address=head.strip()
++    if ';' in address:raise ValueError(typed_pipeline.SHELL)  # the address is written without quotes: only a quoted ; is data
+     addresses.parse(address)
+     return 'ledger.address.read '+typed_pipeline.canonical({'address':address})+(' |'+rest if separator else ''),address
+ 

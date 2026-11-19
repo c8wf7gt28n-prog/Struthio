@@ -1,0 +1,1265 @@
+diff --git a/GETTING_STARTED.md b/GETTING_STARTED.md
+index 695abb4..38a412c 100644
+--- a/GETTING_STARTED.md
++++ b/GETTING_STARTED.md
+@@ -24,7 +24,7 @@ tour; the README says how to install, start, back up and check.
+    centre lists it. It looks and opens; it never changes files.
+ 3. Drop a few files into `~/Concern/Office/Ingress` (or onto the Office) and receive them; Today counts what arrived.
+ 4. The cat at the lower left opens the programs list (Space or Enter on it too). Documents in the list opens a page: write, select
+-   words and ask Stacy in the strip, `make these words bold`. Ctrl Z takes any change back.
++   words and ask Kasandra in the strip, `make these words bold`. Ctrl Z takes any change back.
+ 5. On a page with quantities ask `add up the numbers on this page`: Graphite works it as an assignment you can watch, pause,
+    resume and stop under its face.
+ 6. A local model is optional. Menu → Configuration → Local model opens the Brain room; the daily guide names the small file
+diff --git a/README.md b/README.md
+index 180d35e..c7411f0 100644
+--- a/README.md
++++ b/README.md
+@@ -2,16 +2,16 @@
+ 
+ Graphite is a quiet workspace for ideas, research, documents and engineering work, with its AI beside the work. It runs on
+ one minimal Debian computer (a phone is optional access) and keeps everything on that computer unless you turn a service
+-on. Graphite is the public name of the workspace; its assistant's face is Stacy (Kasandra in the Kasandra appearance); before November 6, 2026 the program was called Ledger &
++on. Graphite is the public name of the workspace; its assistant is Kasandra (Kas for short), under that one name in every look; before November 6, 2026 the program was called Ledger &
+ Slate, and folders, scripts, settings keys and internal names keep those earlier names for compatibility.
+ 
+ - **From the ThinkPad** · the eight menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand in the open across the head; one dial sets how strongly the desk glows (Rules ▸ Desk artwork ▸ Glow: Soft, Bright, Neon; it opens on Neon); no key is printed beside the thing it does; the left trees are green circuit traces with the path to the current row lit; the menus' lines carry glyphs.
+-- **No System menu** · the four meters at the foot are doors: click **CPU** for Graphite's work (what runs and waits, Stop all jobs), **GPU** for Stacy's model and Graphite's services, **RAM** for memory and Machine, **TXT** for the Full chat and what Stacy has in view. Leaving (Log out, Exit Graphite, Restart, Shut down) is at the foot of the **Work** menu; the game is at the foot of **Programs**. The equalizer in the head shows everything that moves (processor, kernel, memory, disks, network, graphics); click it for what each reads. A small control at the left end of the line opens the room above it: one chevron for more, two for taller, one down to close.
+-- **A start in another program** · say "start a Godot project called Lander" and Stacy makes a folder in Files with the smallest project that runs (project file, one scene, one script) and a page of first steps, written for the Godot on this computer; the Godot room reads it back, and opening it in Godot is a step that waits for you, or is hers with a free hand. One Undo deletes the folder (DELETE gives it back).
+-- **Stacy's hand** · two words under her face (in Kasandra, on her masthead, after what she speaks with) say how far she acts by herself; click them to change it. **Ask first**: every change waits for your Approve. **Do and show** (what it opens with): a change you ask her for is made at once and shown, with one **Undo** that puts back exactly what it took. **Free hand**: she also makes the changes the records mark for approval and, after a change, brings back to current what stood on it. Say "make a folder called Bracket" or "write a file called plan.txt saying …" and it is in Files as if you had saved it, with an Undo that deletes it (DELETE gives it back). What cannot be undone always asks. Her trail (**What she did…**) lists every act.
+-- **One line to type on** · five names stand at the left of the line at the bottom: Stacy, Terminal, Search, Web, Log. The lit one gets the words. Web opens an address, or searches for words, in this computer's own browser; with Stacy or Search lit, a line that is only an address (https://…, www.…, localhost) is opened there too, and anything else stays with whom it was typed to. The arrow at the line's end says what it will do, and turns green to run a line that reads.
+-- **The head and the right pane** · the middle of the head is an equalizer: each bar is one processor thread of this computer over the last second. The right pane is one view, Stacy: her face (in Kasandra, her masthead; her picture stands as a hologram in the left pane's lower part), **This** (what is open or selected), **Now** (what is running and what waits), and the conversation.
+-- **Simple at rest** · the bar above the work says the name of what is open (click it for its address); tools are drawn glyphs with no boxes; Stacy is the right pane; the name of a thing is said once.
++- **No System menu** · the four meters at the foot are doors: click **CPU** for Graphite's work (what runs and waits, Stop all jobs), **GPU** for Kasandra's model and Graphite's services, **RAM** for memory and Machine, **TXT** for the Full chat and what Kasandra has in view. Leaving (Log out, Exit Graphite, Restart, Shut down) is at the foot of the **Work** menu; the game is at the foot of **Programs**. The equalizer in the head shows everything that moves (processor, kernel, memory, disks, network, graphics); click it for what each reads. A small control at the left end of the line opens the room above it: one chevron for more, two for taller, one down to close.
++- **A start in another program** · say "start a Godot project called Lander" and Kasandra makes a folder in Files with the smallest project that runs (project file, one scene, one script) and a page of first steps, written for the Godot on this computer; the Godot room reads it back, and opening it in Godot is a step that waits for you, or is hers with a free hand. One Undo deletes the folder (DELETE gives it back).
++- **Kasandra's hand** · two words under her face (in the Kasandra look, on her masthead, after what she speaks with) say how far she acts by herself; click them to change it. **Ask first**: every change waits for your Approve. **Do and show** (what it opens with): a change you ask her for is made at once and shown, with one **Undo** that puts back exactly what it took. **Free hand**: she also makes the changes the records mark for approval and, after a change, brings back to current what stood on it. Say "make a folder called Bracket" or "write a file called plan.txt saying …" and it is in Files as if you had saved it, with an Undo that deletes it (DELETE gives it back). What cannot be undone always asks. Her trail (**What she did…**) lists every act.
++- **One line to type on** · five names stand at the left of the line at the bottom: Kasandra, Terminal, Search, Web, Log. The lit one gets the words. Web opens an address, or searches for words, in this computer's own browser; with Kasandra or Search lit, a line that is only an address (https://…, www.…, localhost) is opened there too, and anything else stays with whom it was typed to. The arrow at the line's end says what it will do, and turns green to run a line that reads.
++- **The head and the right pane** · the middle of the head is an equalizer: each bar is one processor thread of this computer over the last second. The right pane is one view, Kasandra: her face (in the Kasandra look, her masthead; her picture stands as a hologram in the left pane's lower part), **This** (what is open or selected), **Now** (what is running and what waits), and the conversation.
++- **Simple at rest** · the bar above the work says the name of what is open (click it for its address); tools are drawn glyphs with no boxes; Kasandra is the right pane; the name of a thing is said once.
+ - **The map** · **Z** glides back to show the whole desk, and from that far a sheet is the glyph of its kind, its name in letters that stay readable, and the mark of its state. The Field opens as it was last seen.
+ - **Find, everywhere** · Find (Ctrl+F) opens one line above the work on whatever is open: writing, the cells of a sheet, a list, the lines of a finding, the words of a PDF page. Enter for the next place, Shift+Enter for the one before, Esc to close.
+ - **Start here** · [ThinkPad first install](docs/THINKPAD_FIRST_INSTALL.md) covers USB setup, the model-free first launch and the observed hardware.
+@@ -21,17 +21,17 @@ Slate, and folders, scripts, settings keys and internal names keep those earlier
+ - **The mouse first** · above whatever is open in the centre: **‹ Field**, Find, **−** **+**, Undo, Redo, Save, always in the same place. In the Field **Z** shows the whole desk and the bars at the edges drag; the right button on a sheet shows what can be done with it.
+ - **Amber** · one amber halo marks where the keys go (the selected sheet, the page being read, or the writing line); what waits for you is lit at its mark, and Approve glows until it is pressed.
+ - **Green** · the pointer (the mark's two facets, aimed at 11 o'clock) is drawn in the desk's green and carries a little light over the Field; whatever it is over answers in green, and what is live glows. Amber stays for what is selected and what waits for you. The Clean desk keeps the green and drops the glow.
+-- **The mouse** · click a tile in the Field to open it in the centre; **‹ Field** above the centre comes back to the same tile; the buttons at the foot of the Field do what their keys do; a change that waits has an **Approve** button. Ask Stacy "set B3 to 300" and, with her hand at Do and show, it is done at once with an Undo; at Ask first it waits for your Approve with what it would move marked.
++- **The mouse** · click a tile in the Field to open it in the centre; **‹ Field** above the centre comes back to the same tile; the buttons at the foot of the Field do what their keys do; a change that waits has an **Approve** button. Ask Kasandra "set B3 to 300" and, with her hand at Do and show, it is done at once with an Undo; at Ask first it waits for your Approve with what it would move marked.
+ - **Every key** · press **?** in the Field for a card of every key. The doubt (X), the desk check (C) and the brief (B) open on a page over the work at your reading size; the doubt and the check step aside at the next key.
+ - **Look ahead** · with a sheet or a calculation selected in the Field, ask "what if B4 were 100?": the cell is set without changing anything, the wires are followed, and the Field marks everything that would move with what it would say (**Esc** clears).
+ - **The brief** · press **B** in the Field: the whole desk written up as one page, from the records and by no model; **G** keeps it as a page that knows when the desk has moved on.
+-- **Right-click** · on a sheet in the Field the menu cascades: What if › a number › a value to try; Doubt it › what Stacy finds, each row opening its evidence; Trace it › every step back and on; What can be done › the steps; Your words ›.
++- **Right-click** · on a sheet in the Field the menu cascades: What if › a number › a value to try; Doubt it › what Kasandra finds, each row opening its evidence; Trace it › every step back and on; What can be done › the steps; Your words ›.
+ - **Your own words** · `word waits = field.read | pick waiting | select kind,title,state`, then `waits`, `waits | count`, `words`, `forget waits`: a line kept under a word of yours.
+-- **Doubt** · press **X** on a sheet in the Field: Stacy cross-examines it for what a plausible result may hide (an edited input, mixed conditions, one source, a check that cannot fail, a number recorded nowhere) and **D** offers the step that removes the doubt.
++- **Doubt** · press **X** on a sheet in the Field: Kasandra cross-examines it for what a plausible result may hide (an edited input, mixed conditions, one source, a check that cannot fail, a number recorded nowhere) and **D** offers the step that removes the doubt.
+ - **A line reads the desk** · `field.read | pick waiting | select kind,title,state`; `this` is the sheet selected in the Field; **T** traces a thing to its source; ask "what if B3 were 320?" about a calculation and nothing is changed.
+-- **Doing** · press **D** on a sheet in the Field for the steps the records offer (a read runs; a change that waits is marked "asks first" and waits for **G**, your go; with Stacy's hand at Do and show or Free hand, the others are done when you take them); **C** checks the desk and offers to settle what needs no decision of yours.
++- **Doing** · press **D** on a sheet in the Field for the steps the records offer (a read runs; a change that waits is marked "asks first" and waits for **G**, your go; with Kasandra's hand at Do and show or Free hand, the others are done when you take them); **C** checks the desk and offers to settle what needs no decision of yours.
+ - **The shelf** · press **P** in the Field: every program and room in six fixed columns; Enter opens one.
+-- **The Field** · press **F9** (or Arrange → Field, or type `field` in the writing strip): the work in this workspace as sheets with the wires that say what feeds what. Arrow keys follow the wires, Enter opens the real page, Esc comes back. Stacy's rail shows the line that reads the selected sheet: **S** puts it in the writing strip, **Shift+Enter** runs it. **N** shows this computer's network the same way; **W** returns to the work. It is the first slice of the objects and instruments desktop (master specification, sections 70 to 72), new in 0.3. Right-click a sheet (or press the Menu key) for what can be done with it. Guide → What's New has the rest.
++- **The Field** · press **F9** (or Arrange → Field, or type `field` in the writing strip): the work in this workspace as sheets with the wires that say what feeds what. Arrow keys follow the wires, Enter opens the real page, Esc comes back. Kasandra's rail shows the line that reads the selected sheet: **S** puts it in the writing strip, **Shift+Enter** runs it. **N** shows this computer's network the same way; **W** returns to the work. It is the first slice of the objects and instruments desktop (master specification, sections 70 to 72), new in 0.3. Right-click a sheet (or press the Menu key) for what can be done with it. Guide → What's New has the rest.
+ - **Visual baseline** · [Visual Pass 1 reference review](docs/BOSS_VISUAL_PASS_01_REVISION.md) compares the five owner references with the revised worksheet, PDF evidence review and research journal.
+ - **Halfway release** · [P08–P10](docs/BOSS_HALFWAY_P10.md) covers resident model handling, project collections and reviewed PDF tables that become sheets and reports.
+ - **Evidence preparation** · [Intelligent data arrangement P07](docs/INTELLIGENT_DATA_P07.md) covers source preparation, exact calculations and follow-up passages.
+@@ -49,7 +49,7 @@ where the docs say so. The owner reports (13 November 2026) that 0.4.6 is instal
+ there is recorded yet, nothing later has run there, and the owner's model file has not been tried. Nothing here claims
+ any of it is accepted.
+ 
+-The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **References → Read technical PDF → Review table** to make a sheet from a reviewed source. Open **Project Desk → Ask Stacy → Prepare evidence** to see matching project passages and exact results before a model turn. Live model and owner-host Vulkan qualification remain pending. P11 covers full native programs.
++The BOSS upgrade implements P01–P10 of the twenty-pass campaign. Try **References → Read technical PDF → Review table** to make a sheet from a reviewed source. Open **Project Desk → Ask Kasandra → Prepare evidence** to see matching project passages and exact results before a model turn. Live model and owner-host Vulkan qualification remain pending. P11 covers full native programs.
+ 
+ ## Install
+ 
+diff --git a/branding/boss/plates/Stacy after midnight.webp b/branding/boss/plates/Kasandra after midnight.webp
+similarity index 100%
+rename from branding/boss/plates/Stacy after midnight.webp
+rename to branding/boss/plates/Kasandra after midnight.webp
+diff --git a/docs/DAILY_GUIDE.md b/docs/DAILY_GUIDE.md
+index 6f3537f..1e171f6 100644
+--- a/docs/DAILY_GUIDE.md
++++ b/docs/DAILY_GUIDE.md
+@@ -1,6 +1,6 @@
+ # Graphite · daily guide
+ 
+-November 7, 2026 · Graphite 0.1. Graphite is the public name of the workspace (earlier Ledger & Slate); its assistant is Stacy (Kasandra in the Kasandra appearance); folders, scripts and settings keys keep their earlier names. The owner's short guide for a working day: what the program does in this release. It does not claim owner-host acceptance: the ThinkPad, its display and inputs and the owner's model file are still to be tried. Installation is in the README and docs/MINIMAL_DEBIAN_INSTALL_01.md; how each part works is listed in RECORD_OF_DIRECTIONS.md, under Where the knowledge is.
++November 7, 2026 · Graphite 0.1. Graphite is the public name of the workspace (earlier Ledger & Slate); its assistant is Kasandra (Kas for short), under that one name in every look; folders, scripts and settings keys keep their earlier names. The owner's short guide for a working day: what the program does in this release. It does not claim owner-host acceptance: the ThinkPad, its display and inputs and the owner's model file are still to be tried. Installation is in the README and docs/MINIMAL_DEBIAN_INSTALL_01.md; how each part works is listed in RECORD_OF_DIRECTIONS.md, under Where the knowledge is.
+ 
+ ## Start and stop
+ 
+@@ -15,20 +15,20 @@ November 7, 2026 · Graphite 0.1. Graphite is the public name of the workspace (
+ 
+ Press **F9** for an overview of the work in this workspace: sources, reviewed sheets, calculations, pages, findings and open
+ questions as sheets, with wires that show what feeds what. Arrow keys follow the wires, Enter opens the real page, F9 comes
+-back to the same sheet, Esc leaves. Stacy's rail at the right shows the line that reads the selected sheet: S puts it in the
+-writing strip, Shift+Enter runs it. Ask Stacy about a sheet (its menu, or just type a question while it is selected) and she answers in
++back to the same sheet, Esc leaves. Kasandra's rail at the right shows the line that reads the selected sheet: S puts it in the
++writing strip, Shift+Enter runs it. Ask Kasandra about a sheet (its menu, or just type a question while it is selected) and she answers in
+ Talk: with no model she shows the line that reads it and what the records say. Right-click a sheet (or press the Menu key) for what can be done with it. **P** shows every program and room as a shelf in six fixed columns
+ (Work, Think, Make, Build, Move, Set up): Enter opens one. N shows this computer's network the same way; W returns to the
+-work. With a model loaded Stacy reads the sheet first and then says the answer in her own words under the rows; say "this"
++work. With a model loaded Kasandra reads the sheet first and then says the answer in her own words under the rows; say "this"
+ in your question and she takes the selected sheet. **D** asks the records what can be done about the selected sheet: the
+ steps show numbered, a digit takes one, a read runs at once and a change marked "asks first" waits for your go (**G**, or
+-Approve in Talk; a digit never approves a step that waits). How far Stacy acts by herself is the two words under her face (on her masthead in Kasandra)
++Approve in Talk; a digit never approves a step that waits). How far Kasandra acts by herself is the two words under her face (on her masthead in the Kasandra look)
+ (Ask first, Do and show, Free hand): with Do and show a change you ask for or take is made at once and has an Undo. **C** checks the desk and says what waits; **1** then puts up what needs no decision of yours and
+ **G** is one go for the listed changes; the desk checks itself again. On the shelf, **F** offers a program's full window on
+ one of its files. A turned corner marks what changed in the last twelve hours. **T** traces the selected sheet back to its source and on
+-to what rests on it. With a calculation selected, ask "what if B3 were 320?": Stacy works it exactly and changes nothing.
++to what rests on it. With a calculation selected, ask "what if B3 were 320?": Kasandra works it exactly and changes nothing.
+ In the writing strip `this` is the selected sheet (`this | count`, Ctrl+Enter), and `field.read` is the whole desk as
+-records (`field.read | pick waiting | select kind,title,state`). **X** doubts the selected sheet: Stacy puts exact questions to the records and shows what does not hold, what she cannot
++records (`field.read | pick waiting | select kind,title,state`). **X** doubts the selected sheet: Kasandra puts exact questions to the records and shows what does not hold, what she cannot
+ tell and what holds; **D** then offers the step that removes a doubt, and **C** lists what she doubts across the desk.
+ "What if" also works with a sheet selected, by cell or by the row's words ("what if the pulse duration were 100?"): the
+ change is followed along the wires, nothing is changed, and the Field marks what would move until **Esc**. **B** shows the
+@@ -41,7 +41,7 @@ change. **?** shows every key of the Field on a card. The doubt, the desk check
+ at your reading size; the doubt and the check step aside at the next key you press, and Esc closes any of them.
+ With the mouse: a click on a tile opens it in the centre, and **‹ Field** in the bar above the centre comes back to the same tile; the
+ right button shows a tile's menu; every key shown at the foot, on the key card and on a page can be clicked; a change that
+-waits has an **Approve** button. Ask Stacy "set B3 to 300" with a sheet selected: with her hand at Do and show it is done at once and has an Undo; at Ask first it waits for your Approve.
++waits has an **Approve** button. Ask Kasandra "set B3 to 300" with a sheet selected: with her hand at Do and show it is done at once and has an Undo; at Ask first it waits for your Approve.
+ The pointer is the desk's green, and whatever it is over answers in green; amber is what is selected and what waits for you.
+ Above whatever is open in the centre there is one row of controls: **‹ Field**, Find, **−** **+**, Undo, Redo, Save; one that
+ the open view cannot serve is dimmed and says why, and Save is lit only when there is something to save. In the Field **Z** shows the
+@@ -52,11 +52,11 @@ An action is a button, a dark plate with a quiet edge; a word that only goes som
+ **Find** (Ctrl+F) opens one line above the work and searches whatever is open: writing, the cells of a sheet, a list, the lines of a finding, the words of a PDF page; Enter goes to the next place, Shift+Enter to the one before, Esc closes it.
+ With the whole desk in the window (**Z**), each sheet is the glyph of its kind, its name and the mark of its state, all large enough to read; the Field opens as you last saw it.
+ The menus (Work, Revise, Tools, Arrange, Commands, Rules, Properties, Guide) stand across the head; after them, in the middle, is an equalizer: each bar is one processor thread of this computer over the last second (amber at the top of a bar near its limit, amber along the bottom while Graphite itself is working). The bar above the work says the name of what is open and whether it is saved; click the name for its address, which comes up at the head while you type it.
+-The right pane is one view, **Stacy**: her face (in Kasandra, her masthead: her name, the state of the work, what she speaks with and her hand; her picture stands as a hologram in the left pane's lower part), **This** (what is open, or the sheet selected in the Field; **more** opens everything about it), **Now** (what is running and what waits for you; **activity** opens the whole list), then the conversation. While the whole of either is up, the pane's title is the way back.
+-**Stacy's hand.** Under her face, beneath what she speaks with (in Kasandra, on her masthead, after it), two words say how far she acts by herself; click them (or **Rules ▸ Stacy's hand**) to change it. **Ask first**: every change waits for your Approve. **Do and show**: a change you ask her for is made at once; she says what she did, and its card has **Undo**, which puts back exactly what it took and is refused if the thing was changed again since. **Free hand**: she also makes the changes the records mark for approval, and after a change she checks the desk and brings back to current what stood on it. On every place, what cannot be undone asks first (sending to another computer, removing what cannot be brought back, emptying DELETE, ending the session, a Terminal command that is not a plain read). **What she did…** in the same menu is her trail. Say "make a folder called Bracket", "write a file called Bracket/plan.txt saying cut the stock first", "start a page called Bench plan" or "make a note called Rail idea that says try a ferrite" and the thing is where your own would be; a folder or file she made has an Undo that deletes it (DELETE gives it back), and she never writes over a file that is there. Say "run df -h" and she runs a command that only reads; any other command she puts in the line for you.
+-**A start in Godot.** Say "start a Godot project called Lander" (or "get me started in Godot"). Stacy makes the folder `Lander` in Files with `project.godot`, `main.tscn`, `main.gd` and `START_HERE.md` (the first five minutes in Godot), written for the Godot on this computer: Godot 3, which Debian installs as the package `godot3`, or Godot 4. She says what the Godot room reads it as; "Open it in Godot" waits for your Approve (with a free hand she opens it); the words on her card read the first steps, read the script, or open the Godot room, which inspects the project, opens it in Godot or plays a scene. Undo moves the folder to DELETE.
+-The line at the bottom is the one place you type. Five names stand at its left (**Stacy · Terminal · Search · Web · Log**) and the lit one gets the words. Web opens an address, or searches for words, in this computer's own browser (Graphite fetches nothing); with Stacy or Search lit, a line that is only an address (https://…, www.…, localhost) is opened there too, and anything else stays with whom it was typed to: typing never changes the name that is lit. The arrow at the end says what it will do; when the line reads as a line it turns green and runs it.
+-**Two appearances (0.8.0).** **Rules ▸ Desk artwork ▸ Appearance** chooses **Graphite** (pencil, paper and amber) or **Kasandra** (indigo; burnt yellow for what is selected or has the keyboard, the row you are on in a menu a solid burnt-yellow bar; cyan for what is ready and under the pointer; raspberry for what waits for your Approve, lavender with a dashed edge for a recheck). In Kasandra, Apps in the upper right is her neon kp logo. The choice is this computer's and is used from the next start; choosing it offers to start again now. In Kasandra the assistant is called Kasandra, headings are in a typewriter face, and her pictures follow the work: the quiet bench at rest, her hand by Enter while a change waits for you, notes while she answers or a job runs, the pencil down after an Approve, a loose cable after a refusal. The Office shows her office with the kasandra protocol wordmark. Clean shows no pictures in either.
++The right pane is one view, **Kasandra**: her face (in the Kasandra look, her masthead: her name, the state of the work, what she speaks with and her hand; her picture stands as a hologram in the left pane's lower part), **This** (what is open, or the sheet selected in the Field; **more** opens everything about it), **Now** (what is running and what waits for you; **activity** opens the whole list), then the conversation. While the whole of either is up, the pane's title is the way back.
++**Kasandra's hand.** Under her face, beneath what she speaks with (in the Kasandra look, on her masthead, after it), two words say how far she acts by herself; click them (or **Rules ▸ Kasandra's hand**) to change it. **Ask first**: every change waits for your Approve. **Do and show**: a change you ask her for is made at once; she says what she did, and its card has **Undo**, which puts back exactly what it took and is refused if the thing was changed again since. **Free hand**: she also makes the changes the records mark for approval, and after a change she checks the desk and brings back to current what stood on it. On every place, what cannot be undone asks first (sending to another computer, removing what cannot be brought back, emptying DELETE, ending the session, a Terminal command that is not a plain read). **What she did…** in the same menu is her trail. Say "make a folder called Bracket", "write a file called Bracket/plan.txt saying cut the stock first", "start a page called Bench plan" or "make a note called Rail idea that says try a ferrite" and the thing is where your own would be; a folder or file she made has an Undo that deletes it (DELETE gives it back), and she never writes over a file that is there. Say "run df -h" and she runs a command that only reads; any other command she puts in the line for you.
++**A start in Godot.** Say "start a Godot project called Lander" (or "get me started in Godot"). Kasandra makes the folder `Lander` in Files with `project.godot`, `main.tscn`, `main.gd` and `START_HERE.md` (the first five minutes in Godot), written for the Godot on this computer: Godot 3, which Debian installs as the package `godot3`, or Godot 4. She says what the Godot room reads it as; "Open it in Godot" waits for your Approve (with a free hand she opens it); the words on her card read the first steps, read the script, or open the Godot room, which inspects the project, opens it in Godot or plays a scene. Undo moves the folder to DELETE.
++The line at the bottom is the one place you type. Five names stand at its left (**Kasandra · Terminal · Search · Web · Log**) and the lit one gets the words. Web opens an address, or searches for words, in this computer's own browser (Graphite fetches nothing); with Kasandra or Search lit, a line that is only an address (https://…, www.…, localhost) is opened there too, and anything else stays with whom it was typed to: typing never changes the name that is lit. The arrow at the end says what it will do; when the line reads as a line it turns green and runs it.
++**Two appearances (0.8.0).** **Rules ▸ Desk artwork ▸ Appearance** chooses **Graphite** (pencil, paper and amber) or **Kasandra** (indigo; burnt yellow for what is selected or has the keyboard, the row you are on in a menu a solid burnt-yellow bar; cyan for what is ready and under the pointer; raspberry for what waits for your Approve, lavender with a dashed edge for a recheck). In Kasandra, Apps in the upper right is her neon kp logo. The choice is this computer's and is used from the next start; choosing it offers to start again now. The assistant is Kasandra in both. In Kasandra headings are in a typewriter face, and her pictures follow the work: the quiet bench at rest, her hand by Enter while a change waits for you, notes while she answers or a job runs, the pencil down after an Approve, a loose cable after a refusal. The Office shows her office with the kasandra protocol wordmark. Clean shows no pictures in either.
+ 
+ **Rules ▸ Desk artwork ▸ Glow** sets how strongly the desk glows: Soft, Bright or Neon (what it opens with). Keys work as they always did but are not printed beside what they do; the **?** key in the Field lists them. In the left tree the traces from the root to the row you are on are lit.
+ Every tool is one of Graphite's own glyphs with no box (a tool particular to a page keeps its words beside its glyph; a glyph alone says its name in its tip); **Work ▸ Rules ▸ Buttons ▸ Words** brings back worded plates.
+@@ -69,8 +69,8 @@ The window is one symmetrical desk: two graphite bands, the head at the top and
+ 1. **The head.** Work · Revise · Tools · Arrange · Commands · Rules · Properties · Guide stand at the left. In the middle is the equalizer: this computer at work in six groups (processor, kernel, memory, disks, network, graphics); click it for what each reads now. At the right, Programs. (There is no System menu since 0.7.0: see The four meters, and leaving, below.)
+ 2. **The left pane.** Three tabs, Machine · Cabinet · Settings, each a tree with connecting branch lines, and DELETE, larger, at the lower right (DELETE keeps what you delete; restore puts it back). Machine is this computer (processor, memory, storage, connections, devices, installed tools); every row's tooltip says where and when its reading was taken, and the Machine row's carries the one-line machine summary. Cabinet is your work by project: ideas, documents, assignments, questions, working copies. Settings is the shared registry Graphite reads too, under Workspace and Assistant. Nothing else sits in the pane: Import and Export are in Work, the cabinet's views and Refresh are under Arrange and on the tree's right-click, and Search finds records and settings by their words.
+ 3. **The centre.** The real work. Documents, source files, calculations and workspaces open here. One Preview tab reuses itself; up to five pins stay; workspaces opened from a menu are rooms beside your Preview and never replace it. With nothing open the centre is the Finder (below).
+-4. **The right pane.** Stacy. Her face, what she speaks with, and two words for her hand (how far she acts by herself; click them to change it). **This:** what is open or selected, with **more** for everything about it (Context). **Now:** what runs and what waits for you, with **activity** for the whole list. Then the conversation. While Context or Activity is up, a title at the top of the pane is the way back to her.
+-5. **The writing line.** The lower band, as tall as the head. At its left five names, Stacy · Terminal · Search · Web · Log: the lit one gets what you type. Then a small control that opens the room above the line (one chevron: more; two: taller; one down: close), one long line to write in (its empty hint is `poem`), and the arrow, which says what it will do. At the right the four meters, CPU · GPU · RAM · TXT, each a door (below).
++4. **The right pane.** Kasandra. Her face, what she speaks with, and two words for her hand (how far she acts by herself; click them to change it). **This:** what is open or selected, with **more** for everything about it (Context). **Now:** what runs and what waits for you, with **activity** for the whole list. Then the conversation. While Context or Activity is up, a title at the top of the pane is the way back to her.
++5. **The writing line.** The lower band, as tall as the head. At its left five names, Kasandra · Terminal · Search · Web · Log: the lit one gets what you type. Then a small control that opens the room above the line (one chevron: more; two: taller; one down: close), one long line to write in (its empty hint is `poem`), and the arrow, which says what it will do. At the right the four meters, CPU · GPU · RAM · TXT, each a door (below).
+ 
+ The pointer is the Graphite mark's two facets aimed at eleven o'clock, the click at its tip. Text fields keep their I-beam, and the pane edges show the resize pointer while you are over them.
+ 
+@@ -85,7 +85,7 @@ The list is like the Programs folder of a Start menu: every program and capabili
+ The System menu is gone since 0.7.0. Click a meter at the foot of the window and its card opens upward; a click elsewhere puts it away.
+ 
+ - **CPU**: Graphite's work. **Stop all jobs**, the one stop for every job, model, assignment and capture Graphite manages (also Tools → STOP / KILL); programs Graphite does not manage keep running. Then the process list: active jobs as they started, then the queue; each row's slider is its niceness, left more urgent and right nicer; the queue's order is a separate control (the place number at the left of a queued row, drag, Earlier and Later). Background CPU priority. Open Agenda and Work trail.
+-- **GPU**: Stacy's model (**Brain room**) and **Graphite services** On · Off · Restart: Graphite's own services, never the computer.
++- **GPU**: Kasandra's model (**Brain room**) and **Graphite services** On · Off · Restart: Graphite's own services, never the computer.
+ - **RAM**: memory in use, swapping, disks and network, and **Machine** (this computer, in the left pane).
+ - **TXT**: **Full chat**, and **What she has in view**.
+ - **Game** is the last row of **Programs**: STRUTHIO, in its own window, paused at tick zero (below, The game behind the mark).
+@@ -112,7 +112,7 @@ Choosing a mode never opens or closes the working area; running a line opens it
+ 
+ Ctrl+Enter in the Network stream (or Capture… above it) captures packet headers with the line's filter. The first capture after Graphite starts asks once, saying exactly what is captured: headers only (addresses, ports, protocol, length, TCP flags, never what packets carry), this computer's own interfaces, never in promiscuous mode, at most 60 seconds or 2,000 packets, nothing leaving the computer. Stop capture ends it, and so does Stop all jobs. Capture needs the system's own capture tool: when it is not installed or not allowed, the stream says so and lists the steps for the administrator (Debian's wireshark-common and its group; `bash INSTALL_DEBIAN.sh --network-capture` adds the package); Graphite never runs them and never asks for a password. Capture only networks you own or may monitor.
+ 
+-Click an entry in either stream to pin it at the top while the stream moves on. **Ask Stacy about this** puts it in the line as an assignment's subject; **Follow this conversation** filters the stream to it.
++Click an entry in either stream to pin it at the top while the stream moves on. **Ask Kasandra about this** puts it in the line as an assignment's subject; **Follow this conversation** filters the stream to it.
+ 
+ **What Graphite can inspect.** During an assignment Graphite may read what the Network stream shows: the interfaces, the connections and the packets of the latest capture. Ask in Assignment, for example `what is talking to the network?` or `what ports are open?`, and it writes a findings page saying who talks to whom and what listens. It never starts a capture: when one would help, it proposes it, the assignment waits, and the proposal shows in Log, Network for you to start (or not). docs/NETWORK_01.md has the details.
+ 
+@@ -121,7 +121,7 @@ Click an entry in either stream to pin it at the top while the stream moves on.
+ Right-click anything you are working on, or use the keyboard's menu key for what has the focus. Every menu has one short shape, and every row wears one of Graphite's drawn glyphs:
+ 
+ - **At the top, the thing itself**: its kind's glyph, its name and what it is (a passage and its page, a file, two files, a record, a job and its state, an event, a network connection).
+-- **Up to four usual actions** for that kind of thing: on a file Open, Ask Stacy about this, Rename, Delete; on selected words Bold, Italic, Move to notes, Ask; on a sheet in the Field Open, What can be done, Doubt it, Ask; on a job Inspect output, Pause or Resume (whichever applies), Stop, Show in Jobs. Only rows that can act now are here; one that cannot is under More, dim, and its tooltip says why.
++- **Up to four usual actions** for that kind of thing: on a file Open, Ask Kasandra about this, Rename, Delete; on selected words Bold, Italic, Move to notes, Ask; on a sheet in the Field Open, What can be done, Doubt it, Ask; on a job Inspect output, Pause or Resume (whichever applies), Stop, Show in Jobs. Only rows that can act now are here; one that cannot is under More, dim, and its tooltip says why.
+ - **Then ›** when the thing has a line, or **Start from ›** on an empty place (one of your kept chains or words, or a file in Files).
+ - **More ›** for everything else, in named groups: Open and show, Change it, Look into it, Send and keep, Edit and copy, This working copy, Make and arrange, As a line. Nothing was taken away to make the menu short.
+ 
+@@ -147,7 +147,7 @@ Files come in through Ingress (`~/Concern/Office/Ingress` for the Office): drop
+ 
+ ## Writing a document with Graphite
+ 
+-The programs list → Documents opens a page. Write; it saves itself a moment after you pause (and before anything else touches it). Select words, go to the writing line, in Assignment, and ask in plain words: `make these words bold`, `italic`, `underline`, `make it a heading`, `heading 2`, `body text`, `code`, `plain`, `replace fox with cat`. These are direct edits Graphite makes without a model; its answer names the change and the saved revision. With a model loaded, a request the rules do not know goes to the model, and the edit it proposes for the open page is applied at once: the changed words glow pencil-yellow for a moment, the face shows APPLIED ON THE PAGE with undo, and Ctrl Z takes it back. If the page changed while the model was thinking, nothing is applied and the card says why. Anything else the model proposes waits for your Run. Ctrl Z takes any change back, Stacy's included, and `undo` or `redo` typed to her does the same. Anything it does not recognise goes to the model when one is loaded; without one it says so. Reopen a page from the list on the left or from the cabinet's Documents folder; every page is a saved revision with its history. Export… writes Markdown, HTML or plain text to Egress (Files/Egress). Keys on the page: Ctrl B, Ctrl I, Ctrl U, Ctrl 1/2/3 headings, Ctrl 0 body, Ctrl ` code, Ctrl S save now.
++The programs list → Documents opens a page. Write; it saves itself a moment after you pause (and before anything else touches it). Select words, go to the writing line, in Assignment, and ask in plain words: `make these words bold`, `italic`, `underline`, `make it a heading`, `heading 2`, `body text`, `code`, `plain`, `replace fox with cat`. These are direct edits Graphite makes without a model; its answer names the change and the saved revision. With a model loaded, a request the rules do not know goes to the model, and the edit it proposes for the open page is applied at once: the changed words glow pencil-yellow for a moment, the face shows APPLIED ON THE PAGE with undo, and Ctrl Z takes it back. If the page changed while the model was thinking, nothing is applied and the card says why. Anything else the model proposes waits for your Run. Ctrl Z takes any change back, Kasandra's included, and `undo` or `redo` typed to her does the same. Anything it does not recognise goes to the model when one is loaded; without one it says so. Reopen a page from the list on the left or from the cabinet's Documents folder; every page is a saved revision with its history. Export… writes Markdown, HTML or plain text to Egress (Files/Egress). Keys on the page: Ctrl B, Ctrl I, Ctrl U, Ctrl 1/2/3 headings, Ctrl 0 body, Ctrl ` code, Ctrl S save now.
+ 
+ ## Giving Graphite an assignment
+ 
+diff --git a/docs/THINKPAD_FIRST_INSTALL.md b/docs/THINKPAD_FIRST_INSTALL.md
+index 3cda9c1..0d085ab 100644
+--- a/docs/THINKPAD_FIRST_INSTALL.md
++++ b/docs/THINKPAD_FIRST_INSTALL.md
+@@ -53,13 +53,13 @@ Change B3 to 280 mA in the working sheet and save. Recheck the report to produce
+ - In a stock sheet with Part, Required, Available, and Unit columns, select reviewed rows and use **Method Press** to retain or replay a shortage method. The method requires the reviewed unit on the new rows.
+ - When a local GGUF is available, open **Brain** to add the model and qualify its effective backend.
+ - In the Field press **P** for every program and room as a shelf; **Enter** opens one.
+-- In the Field press **X** on a sheet and Stacy doubts it: what does not hold, what she cannot tell, what holds.
++- In the Field press **X** on a sheet and Kasandra doubts it: what does not hold, what she cannot tell, what holds.
+ - In the Field press **T** on a sheet to trace it back to its source, and with a calculation selected ask "what if B3 were 320?". In the writing strip `this` is the selected sheet: `this | count`, then **Ctrl+Enter**.
+ - In the Field press **D** on a sheet for what can be done about it, and **C** to check the whole desk. A digit chooses a step; a step that changes something waits for **G**, your go.
+ 
+ ## The first model
+ 
+-On 13 November 2026 the owner named the model Stacy is to run: **Qwen3.6-35B-A3B at Q4_K_M, as a GGUF file**. Read from
++On 13 November 2026 the owner named the model Kasandra is to run: **Qwen3.6-35B-A3B at Q4_K_M, as a GGUF file**. Read from
+ search results that day, not from the publisher's page and not tried on this machine: the Q4_K_M file is about 21 to
+ 22 GB depending on who made it (one maker's "UD-Q4_K_M" is 22.1 GB, another's Q4_K_M 20.75 GB), and one comparison says
+ it wants about 24 GB of memory at a 16k context. It is a mixture of experts: all 35B are held in memory, about 3B work
+@@ -78,7 +78,7 @@ placeholders. Read on that day from the publisher's and the runtime's own pages,
+ - Expect a few tokens a second from a 27B on this processor, with or without the Radeon. If loading on the Radeon fails
+   with a device-lost or out-of-memory message, that is a known open fault on this graphics chip; the processor path works.
+ - Start small. A 2B and a 4B file of the same family answered in Graphite in 5 to 25 seconds on a slower processor than
+-  this one (`docs/MODEL_TRIAL_03.md`). Stacy reads the records herself and asks the model only for the words, so a small
++  this one (`docs/MODEL_TRIAL_03.md`). Kasandra reads the records herself and asks the model only for the words, so a small
+   model is useful from the first day.
+ - Type `ledger.resources.observation | select kind,memory.state,memory.headroom_bytes,gpu.state,forecast.state` in the writing strip. **Ctrl+Enter** runs the local read. Prefix it with `explain` to preview the plan.
+ 
+@@ -88,7 +88,7 @@ Graphite checks current RAM headroom and the owner's foreground turn before appl
+ 
+ ## Desk artwork
+ 
+-After Midnight gives Stacy copper curls, green eyes, and an ink-and-screentone portrait under CRT light. The illustrated overview uses the wider workshop scene. The worksheet and journal show the still close portrait beside the work. Open **Work → Arrange → Desk artwork → Art plates** to view either image on its own. Illustrated, ASCII, and Clean modes remain available in the same menu.
++After Midnight gives Kasandra copper curls, green eyes, and an ink-and-screentone portrait under CRT light. The illustrated overview uses the wider workshop scene. The worksheet and journal show the still close portrait beside the work. Open **Work → Arrange → Desk artwork → Art plates** to view either image on its own. Illustrated, ASCII, and Clean modes remain available in the same menu.
+ 
+ ## Fast-forward screensaver
+ 
+diff --git a/docs/WORKSHOP.md b/docs/WORKSHOP.md
+index 383d629..36b4bff 100644
+--- a/docs/WORKSHOP.md
++++ b/docs/WORKSHOP.md
+@@ -8,7 +8,7 @@ Home preserves your current work. Use the five activity tabs to move between Hom
+ 
+ The editable Orange Book chapters are in docs/orange_book/chapters.json. Its live engineering section reads the current register; it does not infer physical acceptance from a host result.
+ 
+-Stacy uses the same Engineering Kernel as the desktop and command line. Provider access, candidate execution and source acceptance keep their existing explicit gates. Credentials are configured locally.
++Kasandra uses the same Engineering Kernel as the desktop and command line. Provider access, candidate execution and source acceptance keep their existing explicit gates. Credentials are configured locally.
+ 
+ For a first session, open the native C starter, create a new project, edit game.c, build and boot it. Arrow keys move, Z selects, X returns, and Enter leaves a game. A C compiler and Icarus Verilog are needed for the complete host model. These are trusted local host modules, not board executables.
+ 
+diff --git a/tests_integrated/test_conditions.py b/tests_integrated/test_conditions.py
+index 006be9c..1fe71be 100644
+--- a/tests_integrated/test_conditions.py
++++ b/tests_integrated/test_conditions.py
+@@ -216,7 +216,7 @@ class Lifecycle(Fixture):
+         page=self.call('documents.get',{'id':doc['id']})['document'];without=page['blocks'][:4]
+         saved=self.call('documents.save',{'id':doc['id'],'expected_revision':2,'blocks':without});self.assertEqual(saved['conditions_stale'],[card_id])
+         card=self.call('conditions.get',{'id':card_id})['condition'];self.assertEqual((card['state'],card['reason']),('BROKEN','The result paragraph is no longer on the page.'))
+-        rechecked=self.call('conditions.recheck',{'id':card_id});self.assertEqual(rechecked['condition']['state'],'BROKEN');self.assertIn('ask Stacy for the total again',rechecked['words'])
++        rechecked=self.call('conditions.recheck',{'id':card_id});self.assertEqual(rechecked['condition']['state'],'BROKEN');self.assertIn('ask Kasandra for the total again',rechecked['words'])
+         self.assertEqual(self.call('documents.get',{'id':doc['id']})['document']['revision'],3)     # a broken card never writes the page
+         undone=self.call('documents.save',{'id':doc['id'],'expected_revision':3,'blocks':page['blocks']});self.assertEqual(undone['conditions_stale'],[])
+         self.assertEqual(self.call('conditions.get',{'id':card_id})['condition']['state'],'CURRENT')   # the paragraph came back with its id: current again
+diff --git a/tests_integrated/test_context_menu.py b/tests_integrated/test_context_menu.py
+index bc0f8de..4e36a19 100644
+--- a/tests_integrated/test_context_menu.py
++++ b/tests_integrated/test_context_menu.py
+@@ -332,7 +332,7 @@ class Window(unittest.TestCase):
+         keys=menu.keys()
+         for key in ('mark:bold','mark:italic','mark:underline','style','notes','inspect','ask','search','edit:undo','edit:copy','edit:all','doc:export'):self.assertIn(key,keys)
+         self.assertEqual(menu.first_keys(),['mark:bold','mark:italic','notes','ask','then','more'],'four usual rows, Then, More')
+-        self.assertEqual(menu.words()[:4],['Bold','Italic','Move to notes','Ask Stacy about this'])
++        self.assertEqual(menu.words()[:4],['Bold','Italic','Move to notes','Ask Kasandra about this'])
+         self.assertFalse(menu.entry('mark:clear').enabled,'nothing to clear on plain words')
+         self.assertIsNone(menu.row('mark:clear'),'a row that cannot act is not at rest')
+         self.assertTrue(menu.isVisible());self.assertEqual(menu.accessibleName(),'Right-click menu: “pencil”')
+diff --git a/tests_integrated/test_frame.py b/tests_integrated/test_frame.py
+index 0959095..a32a6d9 100644
+--- a/tests_integrated/test_frame.py
++++ b/tests_integrated/test_frame.py
+@@ -45,7 +45,7 @@ class ColumnArithmeticTests(unittest.TestCase):
+         self.assertEqual([key for key,_ in bar.TARGETS],['slate','shell','find','web','log'],'the earlier keys, prefixes and histories unchanged')
+         self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
+         self.assertTrue(bar.destination_hint('shell').startswith('Terminal · '));self.assertIn(bar.HINTS['shell'],bar.destination_hint('shell'))
+-        self.assertTrue(bar.destination_hint('slate').startswith('Stacy · '))
++        self.assertTrue(bar.destination_hint('slate').startswith('Kasandra · '))
+ 
+ 
+ class SessionLoaderTests(unittest.TestCase):
+diff --git a/tests_integrated/test_graphite.py b/tests_integrated/test_graphite.py
+index 1b1bd96..5a7f31e 100644
+--- a/tests_integrated/test_graphite.py
++++ b/tests_integrated/test_graphite.py
+@@ -302,7 +302,7 @@ class RenameGuardTests(unittest.TestCase):
+     def test_public_name_and_internal_identities(self):
+         from workbench import version,hatch_qt,typebar_qt,desktop_header_qt
+         self.assertEqual((version.NAME,version.title()),('Graphite','Graphite '+version.SHORT))  # the number is test_release_check's
+-        self.assertEqual(typebar_qt.TARGETS[0][0],'slate','the first mode is hers (Stacy, or Kasandra in her appearance); its key stays slate')
++        self.assertEqual(typebar_qt.TARGETS[0][0],'slate','the first mode is hers (Kasandra, in every look); its key stays slate')
+         self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open apps','Graphite services'))  # HATCH DESK D2: the cat opens the programs list
+         self.assertEqual(desktop_header_qt.SlateSwitch.__name__,'SlateSwitch','class names are internal and stay')
+ 
+diff --git a/tests_integrated/test_kasandra.py b/tests_integrated/test_kasandra.py
+index 6473ed7..a4f069e 100644
+--- a/tests_integrated/test_kasandra.py
++++ b/tests_integrated/test_kasandra.py
+@@ -209,9 +209,11 @@ class NameTests(unittest.TestCase):
+         self.assertEqual(out.returncode, 0, out.stderr[-2000:])
+         return out.stdout.split('\n')[:4]
+ 
+-    def test_she_is_stacy_in_graphite_and_kasandra_in_kasandra(self):
+-        self.assertEqual(self.run_with('graphite'), ['Stacy', 'Stacy', 'Ask Stacy about this', 'TEXT · WHAT STACY HOLDS'])
+-        self.assertEqual(self.run_with('kasandra'), ['Kasandra', 'Kasandra', 'Ask Kasandra about this', 'TEXT · WHAT KASANDRA HOLDS'])
++    def test_she_is_kasandra_in_both_appearances(self):
++        # 0.8.4, the owner: "Just kas. Otherwise we have too many people." Until 0.8.3 Graphite showed her as Stacy
++        # (the window and the code are held to the one name by tests_integrated/test_one_name.py).
++        for appearance in ('graphite', 'kasandra'):
++            self.assertEqual(self.run_with(appearance), ['Kasandra', 'Kasandra', 'Ask Kasandra about this', 'TEXT · WHAT KASANDRA HOLDS'], appearance)
+ 
+     def test_history_keeps_the_name_it_was_written_with(self):
+         source = (ROOT / 'workbench' / 'local_brain.py').read_text(encoding='utf-8')
+diff --git a/tests_integrated/test_one_name.py b/tests_integrated/test_one_name.py
+new file mode 100644
+index 0000000..c5c4d64
+--- /dev/null
++++ b/tests_integrated/test_one_name.py
+@@ -0,0 +1,251 @@
++"""0.8.4, one name: she is Kasandra in every look (the owner, 19 November 2026: "Just kas. Otherwise we have too many
++people"). Until 0.8.3 the first look showed her as Stacy.
++
++What is held here:
++  the name     assistant_identity.NAME and named() give Kasandra whatever the look.
++  the code     every sentence in the program's code that carries her earlier name goes through named(), or is on the short
++               list of what is not a shown name (tools/name_sweep.CODE_KEPT: records, object names, file names); the
++               phone page and the guide pages the program opens say no earlier name either.
++  the window   in each look a child process builds the window on the bench seed (test_desk_acts.build_window) and walks it
++               (tools/name_sweep.walk: the head's menus, the meters' cards, both panes, Files and the Field with their
++               right-clicks, the writing line, her hand; a brain event in Activity, pinned in the Log and in Search; About
++               Graphite; her art plate opened). No word read there, shown or waiting in a hidden widget, says Stacy or
++               names the language; her name is on the strip and in her column, whole, at 1920 by 1200 and at 1366 by 768.
++  history      an agenda row written under Stacy reads back as it was written, and a row written now says Kasandra. An
++               event keeps the actor it was written with ('STACY') and is read with her name.
++
++Run alone:  python3 -B -m unittest -v tests_integrated.test_one_name
++"""
++import json,os,subprocess,sys,tempfile,time,unittest
++from pathlib import Path
++from unittest.mock import patch
++os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
++from tools import name_sweep
++
++ROOT=Path(__file__).resolve().parents[1]
++LOOKS=('graphite','kasandra')
++MARK='ONE NAME '
++OLD_REASON="Waiting for Stacy's brain: choose a model in Brain, and she will take it up."      # as 0.6.0 to 0.8.3 wrote it
++
++
++def child(arguments,look,timeout=600):
++    """A fresh Python in one look, in the program's folder, with its own empty home."""
++    with tempfile.TemporaryDirectory(prefix='graphite-one-name-home-') as home:
++        env=dict(os.environ,GRAPHITE_APPEARANCE=look,QT_QPA_PLATFORM='offscreen',HOME=home)
++        for key in ('ARC1_WORKBENCH_CONFIG_HOME','ARC_LEDGER_CONCERN','ARC_LEDGER_XSESSION'):env.pop(key,None)
++        return subprocess.run([sys.executable,'-B',*arguments],cwd=str(ROOT),env=env,capture_output=True,text=True,timeout=timeout)
++
++
++def window_report():
++    """In the child: the window on the bench seed, swept on its walk, and how her name stands at two sizes."""
++    sys.path.insert(0,str(ROOT/'tools'))
++    import ui_fit
++    from PySide6.QtWidgets import QAbstractButton,QLabel
++    from tests_integrated.test_desk_acts import act,build_window,close_window,settle
++    from workbench import assistant_identity,boss_theme
++    store={};build_window(store,'graphite-one-name-')
++    try:
++        w=store['w'];out=name_sweep.walk(w,lambda:settle(store))
++        out.update(look=boss_theme.APPEARANCE,name=assistant_identity.NAME,sizes={})
++        for size in ((1920,1200),(1366,768)):
++            w.resize(*size);settle(store,60)
++            for name,args in (('menu.close',{}),('go.today',{}),('go.pane',{'right':'talk'})):act(name,args,store=store)
++            face=w.shell2.face;strip=w.type_bar.targets['slate']
++            named=lambda:[x for x in [w]+w.findChildren(QLabel)+w.findChildren(QAbstractButton) if x.isVisible() and assistant_identity.NAME in ui_fit.plain(x)]
++            cut=lambda:ui_fit.describe([f for f in ui_fit.whole_words(w) if assistant_identity.NAME in str(f.get('text',''))])
++            row={'window':[w.width(),w.height()],'strip':strip.text(),'strip_shown':strip.isVisible(),'said':len(named()),'clipped':cut()}
++            # her own look says her name on her masthead; the first look has her face there, and her name on the strip
++            row['column']=[face.masthead.name.text(),face.masthead.name.isVisible()] if face.masthead is not None else None
++            act('go.pane',{'right':'activity'},store=store)      # the pane's title is the way back to her, by her name, in both looks
++            title=getattr(w.shell2,'title_word',None)
++            row['back']=[ui_fit.plain(title),title.isVisible(),ui_fit.describe(ui_fit.whole_words(title))] if title is not None else None
++            row['clipped_back']=cut()
++            act('go.pane',{'right':'talk'},store=store)
++            out['sizes']['%dx%d'%size]=row
++    finally:close_window(store)
++    print(MARK+json.dumps(out,ensure_ascii=False),flush=True)
++
++
++class TheName(unittest.TestCase):
++    def test_she_is_kasandra_whatever_the_look(self):
++        code=('from workbench import assistant_identity as a,boss_theme as t,typebar_qt as bar;'
++              'print(t.APPEARANCE);print(a.NAME);print(bar.SHOWN["slate"]);print(a.named("Ask Stacy about this"));print(a.named("TEXT · WHAT STACY HOLDS"))')
++        for look in LOOKS:
++            with self.subTest(look=look):
++                out=child(['-c',code],look,120);self.assertEqual(out.returncode,0,out.stderr[-2000:])
++                self.assertEqual(out.stdout.split('\n')[:5],[look,'Kasandra','Kasandra','Ask Kasandra about this','TEXT · WHAT KASANDRA HOLDS'])
++
++    def test_named_leaves_what_is_not_text_alone(self):
++        from workbench.assistant_identity import named
++        self.assertIsNone(named(None));self.assertEqual(named(7),7);self.assertEqual(named('Terminal'),'Terminal')
++        self.assertEqual(named("Stacy's hand: STACY"),"Kasandra's hand: KASANDRA")
++
++
++class TheSweepItself(unittest.TestCase):
++    def test_what_counts_as_a_name(self):
++        said=name_sweep.named_in
++        self.assertEqual(said('Ask Stacy about this'),['stacy']);self.assertEqual(said('TEXT · WHAT STACY HOLDS'),['stacy'])
++        self.assertEqual(said('a staC line'),['language']);self.assertEqual(said('stac ›'),['language'])
++        for words in ('Ask Kasandra about this','the call stack','stacy.hand','stacy_hand','arc.stacy-trail/1','stac.compile','Files/Slate'):
++            self.assertEqual(said(words),[],words)
++        self.assertEqual(said('stacy.hand set by Stacy'),['stacy'],'an identity is set aside, a name beside it is not')
++        # an event printed whole as it is stored keeps its actor; words made from it for reading do not (name_sweep's note)
++        self.assertEqual(said(json.dumps({'origin':'STACY','operation':'brain.worker','state':'READY'},indent=2)),[])
++        for words in ('origin STACY','at 12:00:01   operation brain.worker   state READY   origin STACY','"detail": "STACY is ready"','Stacy · brain.worker'):
++            self.assertEqual(said(words),['stacy'],words)
++
++    def test_the_code_sweep_reads_sentences_and_not_documentation(self):
++        with tempfile.TemporaryDirectory() as temp:
++            folder=Path(temp)/'workbench';folder.mkdir()
++            (folder/'page.py').write_text('"""Stacy answers here."""\nfrom .assistant_identity import named\n'
++                                          'class Page:\n    """Stacy\'s page."""\n    def words(self):\n        """What Stacy says."""\n'
++                                          '        return [named(\'Ask Stacy\'), named(\'Tell %s\') % \'x\', \'Ask Stacy to plan\', self.tr("STACY HOLDS")]\n'
++                                          'ACTOR = \'STACY\'      # a record\n',encoding='utf-8')
++            found=name_sweep.in_code(temp,('workbench',),kept={})
++            self.assertEqual([(f,line,words) for f,line,words in found],[('workbench/page.py',7,'Ask Stacy to plan'),('workbench/page.py',7,'STACY HOLDS'),('workbench/page.py',8,'STACY')])
++            kept={('workbench/page.py','STACY'):'a record'}
++            self.assertEqual([words for _,_,words in name_sweep.in_code(temp,('workbench',),kept=kept)],['Ask Stacy to plan'],'what is kept is kept by its file and its first words')
++
++    def test_the_sweep_reads_a_widget_that_is_hidden_and_a_menu_line(self):
++        from PySide6.QtWidgets import QApplication,QLabel,QMenu,QPushButton,QVBoxLayout,QWidget
++        app=QApplication.instance() or QApplication([])
++        window=QWidget();layout=QVBoxLayout(window)
++        hidden=QLabel('Ask Stacy');layout.addWidget(hidden);hidden.hide()
++        button=QPushButton('Terminal');button.setToolTip('Stacy: ask in your own words');button.setAccessibleName('a staC line');layout.addWidget(button)
++        menu=QMenu('Rules',window);menu.addAction("Stacy's hand");layout.addWidget(QLabel('Kasandra'))
++        read=set();found=name_sweep.sweep(window,'a test window',read=read)
++        self.assertEqual(sorted((f['name'],f['widget'],f['kind'],f['words']) for f in found),
++                         [('language','QPushButton','accessibleName','a staC line'),('stacy','QAction','text',"Stacy's hand"),('stacy','QAction','toolTip',"Stacy's hand"),
++                          ('stacy','QLabel','text','Ask Stacy'),('stacy','QPushButton','toolTip','Stacy: ask in your own words')])
++        self.assertTrue({'Kasandra','Terminal','Rules'}<=read,read)
++        self.assertEqual({f['where'] for f in found},{'a test window'})
++        window.deleteLater();app.processEvents()
++
++
++class TheCode(unittest.TestCase):
++    def test_every_sentence_with_her_earlier_name_goes_through_named(self):
++        left=name_sweep.in_code(ROOT)
++        self.assertEqual(left,[],'these words would be read as Stacy; put them through assistant_identity.named(), or say in tools/name_sweep.CODE_KEPT why they are not a shown name')
++
++    def test_what_is_kept_is_still_in_the_code(self):
++        # an entry of CODE_KEPT whose words are gone would let the same words back in unseen
++        everything=name_sweep.in_code(ROOT,kept={})
++        for (file,start),why in name_sweep.CODE_KEPT.items():
++            self.assertTrue(any(f==file and words.startswith(start[:160]) for f,_,words in everything),(file,start));self.assertTrue(why.strip(),(file,start))
++
++    def test_the_phone_page_says_no_earlier_name(self):
++        # workbench/remote_pwa is served to the owner's phone as it stands; '/stacy.png' is a picture's address, not a word
++        pattern=name_sweep.NEVER['stacy'][0];said=[]
++        for path in sorted((ROOT/'workbench/remote_pwa').iterdir()):
++            if path.suffix in ('.js','.html','.css','.webmanifest','.json'):
++                said+=[(path.name,n,line.strip()[:160]) for n,line in enumerate(path.read_text(encoding='utf-8').splitlines(),1) if pattern.search(line)]
++        self.assertEqual(said,[])
++
++    def test_the_guide_pages_say_her_name(self):
++        # Guide ▸ Getting Started and Installation Guide open the first two in the program: they say no earlier name.
++        pattern=name_sweep.NEVER['stacy'][0]
++        for name in ('GETTING_STARTED.md','docs/WORKSHOP.md'):
++            self.assertEqual([line for line in (ROOT/name).read_text(encoding='utf-8').splitlines() if pattern.search(line)],[],name)
++        self.assertIn('ask Kasandra in the strip',(ROOT/'GETTING_STARTED.md').read_text(encoding='utf-8'))
++        # The owner's guides beside the program say what the window says. A line may still say Stacy where it says what
++        # changed (it then says Kasandra too) or points to the legal note (RIGHTS.md keeps Stacy as a name the owner holds).
++        for name in ('README.md','docs/DAILY_GUIDE.md','docs/THINKPAD_FIRST_INSTALL.md'):
++            lines=[line[:160] for line in (ROOT/name).read_text(encoding='utf-8').splitlines() if pattern.search(line) and 'Kasandra' not in line and 'RIGHTS.md' not in line]
++            self.assertEqual(lines,[],name)
++
++
++class TheWindow(unittest.TestCase):
++    def report(self,look):
++        out=child(['-m','tests_integrated.test_one_name','--window'],look)
++        line=next((l for l in reversed(out.stdout.splitlines()) if l.startswith(MARK)),None)
++        self.assertIsNotNone(line,'the window was not swept in %s (exit %s): %s'%(look,out.returncode,(out.stderr or out.stdout)[-3000:]))
++        return json.loads(line[len(MARK):])
++
++    def test_no_word_on_screen_says_stacy_in_either_look(self):
++        for look in LOOKS:
++            with self.subTest(look=look):
++                value=self.report(look)
++                self.assertEqual((value['look'],value['name']),(look,'Kasandra'))
++                self.assertEqual([p['where'] for p in value['places'] if not p['done']],[],'every place of the walk was reached')
++                self.assertGreaterEqual(len(value['places']),50);self.assertGreater(value['words'],800,'the sweep read the window')
++                for place in ('the right pane: activity','the Log: a brain event pinned','Search: a brain event in its timeline','Guide: About Graphite','Rules: her art plate opened'):
++                    self.assertIn(place,[p['where'] for p in value['places']])
++                self.assertGreater(value['named'],20,'her name is read on the desk')
++                self.assertEqual(['%s · %s · %s %s: %s'%(f['name'],f['where'],f['widget'],f['kind'],f['words']) for f in value['found']],[])
++                for size,row in value['sizes'].items():
++                    self.assertEqual(row['window'],[int(n) for n in size.split('x')])
++                    self.assertEqual((row['strip'],row['strip_shown']),('Kasandra',True),size)
++                    self.assertEqual((row['clipped'],row['clipped_back']),('',''),'%s: her name is whole wherever it is shown'%size)
++                    self.assertGreaterEqual(row['said'],1,size)
++                    self.assertEqual(row['back'],['‹ Kasandra  ·  Activity',True,''],size)
++                    self.assertEqual(row['column'],['Kasandra',True] if look=='kasandra' else None,size)
++
++
++class History(unittest.TestCase):
++    def setUp(self):
++        from workbench import ledger_control
++        from workbench.engineering_kernel import Kernel,operator
++        from workbench.session import Session
++        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup);base=Path(temporary.name)
++        root=base/'work';root.mkdir()
++        env=patch.dict(os.environ,{'ARC1_WORKBENCH_CONFIG_HOME':str(base/'profile'),'ARC_LEDGER_CONCERN':str(base/'Concern')})
++        env.start();self.addCleanup(env.stop);self.kernel=Kernel(root);self.owner=operator('owner')
++        self.session=Session(base/'profile/session.json',root);self.session.save();ledger_control.bind(self.kernel,self.session)
++
++    def call(self,op,args=None):
++        response=self.kernel.dispatch(op,args or {},self.owner);self.assertTrue(response['ok'],response);return response['result']
++
++    def reasons(self):
++        view=self.call('agenda.view');return {r['id']:r.get('reason') for part in ('now','next','later','done') for r in view[part] if r.get('id')}
++
++    def test_an_agenda_row_written_under_stacy_reads_back_with_that_name(self):
++        from workbench import agenda
++        old=self.call('agenda.add',{'title':'What should I check first?'})
++        with agenda.opened(self.kernel) as db:      # the row as 0.8.3 left it: waiting for her brain, due again in a while
++            db.execute('UPDATE agenda_items SET due=?, reason=? WHERE id=?',(time.time()+3600,OLD_REASON,old['id']))
++        self.assertEqual(self.reasons()[old['id']],OLD_REASON)
++        new=self.call('agenda.add',{'title':'And what after that?'})
++        ran=self.call('agenda.run_next')      # no model here: the item in words waits for her brain, and says so now
++        self.assertIsNone(ran.get('ran'),ran)
++        reasons=self.reasons()
++        self.assertEqual(reasons[new['id']],"Waiting for Kasandra's brain: choose a model in Brain, and she will take it up.")
++        self.assertEqual(reasons[old['id']],OLD_REASON,'what was written under Stacy keeps the name it was written with')
++
++    def test_a_brain_event_keeps_its_actor_and_is_read_with_her_name(self):
++        # 0.8.4 as first built still read "Stacy · brain.worker" in the Log, in Search's timeline and in Activity: the row's
++        # words were made from the stored actor. The record keeps it; the words say her name.
++        from workbench import activity,local_brain,log_qt,tail_words
++        local_brain.put(self.kernel,'worker',{'model_id':'bench-model'},'READY')      # as the program writes every brain event
++        events=[e for e in activity.tail(self.kernel.root)['events'] if e.get('operation')=='brain.worker']
++        self.assertEqual([(e['origin'],e['state']) for e in events],[('STACY','READY')],'the record keeps the actor it was written with')
++        event=events[0]
++        self.assertEqual(tail_words.readable(event),'Kasandra · brain.worker')
++        self.assertTrue(log_qt.event_line(event).endswith('  Kasandra · brain.worker'),log_qt.event_line(event))
++        rows=dict(log_qt.details({'kind':'event','stream':'events','event':event}))
++        self.assertEqual((rows['origin'],rows['operation'],rows['state']),('KASANDRA','brain.worker','READY'))
++        self.assertEqual(name_sweep.named_in(tail_words.readable(event)+' '+' '.join('%s %s'%row for row in rows.items())),[])
++        # whoever else acted is read as before, and the owner's own acts name nobody
++        self.assertEqual(tail_words.readable(activity.make_event('REMOTE','files.write','COMPLETED')),'Remote · Wrote a file')
++        self.assertEqual(tail_words.readable(activity.make_event('GUI','files.write','COMPLETED')),'Wrote a file')
++        self.assertEqual(tail_words.shown_origin(None),'')
++
++    def test_her_trail_and_the_activity_actor_keep_what_was_written(self):
++        # A guard, not a test of the change: it passed before 0.8.4 too. Her trail never carried her name (the row below is
++        # an invented shape), and the actor was never rewritten. It holds that nothing rewrites either from now on.
++        from workbench import activity,stacy_hand
++        from workbench.session import Session
++        entry={'at':'2026-11-13 21:04','words':'Stacy wrote “notes.txt” in Files','line':'/files.write {"path":"notes.txt","text":"x"}','undo':'','word':'write notes','state':'done','guard':[]}
++        self.session.state[stacy_hand.TRAIL]=[entry];self.session.save()
++        again=Session(self.session.path,self.kernel.root)
++        self.assertEqual([e['words'] for e in stacy_hand.trail(again.state)],['Stacy wrote “notes.txt” in Files'])
++        activity.record(self.kernel.root,'STACY','brain.load','LOADED','as 0.8.3 recorded it')
++        events=[e for e in activity.tail(self.kernel.root)['events'] if e.get('operation')=='brain.load']
++        self.assertEqual([(e['origin'],e['detail']) for e in events],[('STACY','as 0.8.3 recorded it')])
++        from workbench import local_brain
++        import inspect
++        self.assertIn("'STACY'",inspect.getsource(local_brain),'the actor is still written as it always was: a record, not a shown name')
++
++
++if __name__=='__main__':
++    if sys.argv[1:2]==['--window']:window_report()
++    else:unittest.main()
+diff --git a/tests_integrated/test_writing_line.py b/tests_integrated/test_writing_line.py
+index e66c6ef..60aa898 100644
+--- a/tests_integrated/test_writing_line.py
++++ b/tests_integrated/test_writing_line.py
+@@ -13,7 +13,7 @@ class ModeTests(unittest.TestCase):
+         # 0.5.3: Web joined the four, and all five stand on the strip (the owner's "one master typing line that I select whom I'm typing to").
+         self.assertEqual(bar.TARGETS,(('slate','Assistant'),('shell','Terminal'),('find','Search'),('web','Web'),('log','Log')))
+         self.assertEqual(bar.PRIMARY_TARGETS,('slate','shell','find','web','log'));self.assertEqual(bar.QUIET_TARGETS,())
+-        self.assertEqual(bar.MAPPED['web'],'web');self.assertEqual(bar.SHOWN,{'slate':'Stacy'},'the strip says Stacy; the mode keeps its label')
++        self.assertEqual(bar.MAPPED['web'],'web');self.assertEqual(bar.SHOWN,{'slate':'Kasandra'},'the strip says her name, in every look; the mode keeps its label')
+         self.assertNotIn('web',bar.CONSOLE_PAGE,'Web has no page above the line: what it opens is in the browser')
+ 
+     def test_web_tells_an_address_from_words_to_search_for(self):
+@@ -48,11 +48,11 @@ class ModeTests(unittest.TestCase):
+ 
+     def test_destination_hint_names_the_mode(self):
+         assistant = bar.destination_hint('slate')
+-        self.assertTrue(assistant.startswith('Stacy · '));self.assertIn('the arrow runs it',assistant)
++        self.assertTrue(assistant.startswith('Kasandra · '));self.assertIn('the arrow runs it',assistant)
+         for hint in bar.HINTS.values():
+             for key in ('Enter','Ctrl+','Tab ','Esc'):self.assertNotIn(key,hint,'the line names no key')
+         self.assertEqual(bar.destination_hint('stac'),assistant)
+-        self.assertTrue(bar.destination_hint('kernel').startswith('Stacy · an operation by name'))
++        self.assertTrue(bar.destination_hint('kernel').startswith('Kasandra · an operation by name'))
+         self.assertTrue(bar.destination_hint('find').startswith('Search · '));self.assertTrue(bar.destination_hint('log').startswith('Log · '))
+         self.assertEqual(bar.destination_hint('shell'),'Terminal · ' + bar.HINTS['shell'])
+         self.assertEqual(bar.destination_hint('shell','Terminal','Commands run in /bin/bash'),'Terminal · Commands run in /bin/bash')
+diff --git a/tools/check_context_menu_ui.py b/tools/check_context_menu_ui.py
+index 98e2a89..9549181 100644
+--- a/tools/check_context_menu_ui.py
++++ b/tools/check_context_menu_ui.py
+@@ -5,7 +5,7 @@ running against the selected object." Every menu here is opened by a real Contex
+ the window system sends on a right-click), so the router, the finders and the providers of workbench/context_menu.py all run:
+ 
+   01  a selected passage in a document: the passage named at the top with its page and revision; Bold, the other page edits and
+-      Move to notes first; the equivalent command to inspect in the line; Ask Stacy; the text edits last.
++      Move to notes first; the equivalent command to inspect in the line; Ask Kasandra; the text edits last.
+   02  Bold chosen: documents.edit through Kernel.dispatch with the page's id and the revision seen at the right-click; the page
+       shows the bold words and its foot the new revision (the result where it belongs); Ctrl Z takes it back.
+   03  two revisions of one file selected in Files: Compare revisions first (the two actual files passed to files.compare).
+@@ -16,7 +16,7 @@ the window system sends on a right-click), so the router, the finders and the pr
+   06  the cabinet tree's empty place: Refresh, View as (its submenu open, the current view marked yellow), New Idea, New Project,
+       Import, Export.
+   07  a real network connection in Log's Network stream, read by D5's network.observe from this computer's connection table: the
+-      check's own loopback connection, the stream filtered to its port: Ask Stacy about this, Follow this conversation, Show
++      check's own loopback connection, the stream filtered to its port: Ask Kasandra about this, Follow this conversation, Show
+       the process, Copy address (TEST DATA, so named and labelled, only where the table cannot be read).
+   08  the passage's menu at 1366 by 768: whole, inside the window.
+   09  (0.8.1) Then › on a table in Files: the line panel beside the menu, its line read once (language.parse and its one source
+@@ -161,7 +161,7 @@ assert menu.first_keys()==['mark:bold','mark:italic','notes','ask','then','more'
+ assert menu.words()[:3]==['Bold','Italic','Move to notes'],menu.words()
+ for key in ('inspect','ask','search','edit:copy','edit:all'):assert key in menu.keys(),key
+ measured['passage_1920']=menu_rules(menu,'passage 1920');measured['passage_words']=menu.words()
+-record('Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png','Right-click on a selected passage ("within a hair") in a document at 1920 by 1200: the passage named at the top with its page; its four usual rows, each with its glyph (Bold, Italic, Move to notes, Ask Stacy about this); Then › (the passage\'s page as a line) and More › (Underline, Plain, Paragraph style, Search, the text edits, New document, Export, in their groups).',with_popups(menu))
++record('Graphite_Desk_D4_01_Passage_Right_Click_1920x1200.png','Right-click on a selected passage ("within a hair") in a document at 1920 by 1200: the passage named at the top with its page; its four usual rows, each with its glyph (Bold, Italic, Move to notes, Ask Kasandra about this); Then › (the passage\'s page as a line) and More › (Underline, Plain, Paragraph style, Search, the text edits, New document, Export, in their groups).',with_popups(menu))
+ check('01 a selected passage: the menu names "within a hair" (passage · Bench notes), four usual rows, Then and More, %d entries in all; the menu\'s numbers (row %d px, icon column %d px)'%(len(menu.entries),measured['passage_1920']['row'],measured['passage_1920']['icon_col']))
+ 
+ # 02 Bold, through Kernel.dispatch with the page's id and revision --------------------------------------------------------------
+@@ -293,14 +293,14 @@ assert menu.target.kind=='connection' and menu.first_keys()==['ask','follow','pr
+ assert menu.target.label=='%s → %s'%(program,far) and menu.row('process').isEnabled() and menu.row('copy:address').caption==far,(menu.target,menu.row('copy:address').caption)
+ measured['connection']=dict(real=real,words=menu.words(),label=menu.target.label,noun=menu.target.noun,process=program,rules=menu_rules(menu,'connection'))
+ if real:
+- record(name,'A real connection, read by D5\'s network.observe from this computer\'s connection table: the check\'s own loopback connection (127.0.0.1, port %d; nothing leaves the computer), the stream filtered to its port in the line (port %d, Enter). Right-click on it: named by who talks to whom ("%s"); Ask Stacy about this (an assignment with the connection as its context), Follow this conversation (the stream filtered to the far host and port, the entry pinned), Show the process (%s, pid %d: this check), Copy address (%s). No notes: the owner replaced them with the network.'%(port,port,menu.target.label,program,os.getpid(),far),
++ record(name,'A real connection, read by D5\'s network.observe from this computer\'s connection table: the check\'s own loopback connection (127.0.0.1, port %d; nothing leaves the computer), the stream filtered to its port in the line (port %d, Enter). Right-click on it: named by who talks to whom ("%s"); Ask Kasandra about this (an assignment with the connection as its context), Follow this conversation (the stream filtered to the far host and port, the entry pinned), Show the process (%s, pid %d: this check), Copy address (%s). No notes: the owner replaced them with the network.'%(port,port,menu.target.label,program,os.getpid(),far),
+         with_popups(menu))
+ else:
+- record(name,'TEST DATA (this computer\'s connection table could not be read here, so the check shows its own entry, labelled on the image): right-click on a network connection in Log\'s Network stream: Ask Stacy about this, Follow this conversation, Show the process, Copy address.',
++ record(name,'TEST DATA (this computer\'s connection table could not be read here, so the check shows its own entry, labelled on the image): right-click on a network connection in Log\'s Network stream: Ask Kasandra about this, Follow this conversation, Show the process, Copy address.',
+         labelled(with_popups(menu),'TEST DATA: the check\'s own entry (the connection table could not be read here)'),'ACTUAL_QT_WINDOW_GRAB_WITH_POPUPS_ON_TEST_DATA_LABELLED')
+ supersede(other)
+ menu.row('follow').click();settle();assert bar.box.text()=='host %s port %s'%tuple(far.rsplit(':',1)) and log.pinned is not None,bar.box.text()
+-check('07 a %s network connection (%s): Ask Stacy about this, Follow this conversation (the filter in the line, the entry pinned), Show the process (%s), Copy address'
++check('07 a %s network connection (%s): Ask Kasandra about this, Follow this conversation (the filter in the line, the entry pinned), Show the process (%s), Copy address'
+       %('real' if real else 'TEST DATA',menu.target.label,program))
+ bar.box.clear();log.unpin();log.apply_filter('');log.choose('events',remember=False,read=False);bar.set_target('slate',focus=False);w.console.set_size(0);w.statusBar().clearMessage();settle()
+ for s in (client,accepted,server):s.close()
+diff --git a/tools/check_desk_ui.py b/tools/check_desk_ui.py
+index 83416a6..4fae1e2 100644
+--- a/tools/check_desk_ui.py
++++ b/tools/check_desk_ui.py
+@@ -39,7 +39,7 @@ word drawn as designed in Line and the working area's words whole in Half and Ta
+ line in Search; step 08 Half shows the mode's page; step 12 the modes' behaviour (Enter gives Assignment's words to Graphite and
+ never runs staC, Ctrl+Enter runs typed staC through the staC path, Commands ▸ Run an operation…, Search's results, Log's Events
+ following the journal with nothing to write, Log's Network on the check's fake capability, labelled TEST DATA: only D5's four
+-operations, the filter, the confirmation before the first capture, the pin held while packets arrive, Ask Stacy about this,
++operations, the filter, the confirmation before the first capture, the pin held while packets arrive, Ask Kasandra about this,
+ D4's entry_at and focus, Stop, the unavailable reason) and the owner's captures Graphite_Desk_D3_01 to 05. D3-fix (the review of
+ D3): the poem placeholder's drawn ink at least 4.5:1 on the line's paper; Up on Assignment's empty line recalls the typed staC
+ that ran (the staC target's history); the search answer's end in sight after Enter, and the whole answer in the owner's capture;
+@@ -1006,7 +1006,7 @@ assert entry['stream']=='network' and entry['kind']=='connection' and entry['rem
+ assert not ui_fit.whole_words(view) and not symmetry.worst(desk_pairs()),ui_fit.describe(ui_fit.whole_words(view))
+ grab=w.grab().toImage();p=QPainter(grab);font=QFont('IBM Plex Sans');font.setPixelSize(15);font.setWeight(QFont.DemiBold);p.setFont(font)
+ banner=QRectF(symmetry.box(view,w)[0]+symmetry.box(view,w)[2]-560,symmetry.box(view,w)[1]-30,560,26);p.fillRect(banner,QColor(shell2.ERASER));p.setPen(QColor(pane_qt.TEXT));p.drawText(banner,Qt.AlignCenter,TEST_DATA);p.end()
+-record('Graphite_Desk_D3_05_Log_Network_Half_TEST_DATA_1920x1200.png','Log at Half on Network, 1920 by 1200, on TEST DATA (the check\'s fake capability answering D5\'s four operations with documentation addresses; labelled on the image): the interfaces with their receive and send rates, the connections filtered by port 443 (typed in the line, Enter), and the packet stream of a capture started with Ctrl+Enter after the confirmation (headers only, this computer\'s interfaces, not promiscuous, %d seconds or %d packets, nothing leaves the computer), newest at the bottom; a packet is pinned at the top with its details and Ask Stacy about this, and stays while 27 more arrive.'%(log_qt.CAPTURE_SECONDS,log_qt.CAPTURE_PACKETS),
++record('Graphite_Desk_D3_05_Log_Network_Half_TEST_DATA_1920x1200.png','Log at Half on Network, 1920 by 1200, on TEST DATA (the check\'s fake capability answering D5\'s four operations with documentation addresses; labelled on the image): the interfaces with their receive and send rates, the connections filtered by port 443 (typed in the line, Enter), and the packet stream of a capture started with Ctrl+Enter after the confirmation (headers only, this computer\'s interfaces, not promiscuous, %d seconds or %d packets, nothing leaves the computer), newest at the bottom; a packet is pinned at the top with its details and Ask Kasandra about this, and stays while 27 more arrive.'%(log_qt.CAPTURE_SECONDS,log_qt.CAPTURE_PACKETS),
+  grab,'ACTUAL_QT_WINDOW_GRAB_ON_TEST_DATA_LABELLED')
+ # D3-fix: a capture that ends on its own bound between two reads: what it wrote last is read once it is seen ended (the review's
+ # probe lost the last packets)
+@@ -1015,7 +1015,7 @@ view.ticks+=log_qt.OBSERVE_EVERY-1-view.ticks%log_qt.OBSERVE_EVERY  # the next t
+ for _ in range(3):view.refresh();settle(1)
+ assert view.packets.count()==shown+2 and not view.following,(view.packets.count(),shown)
+ fake.capture=dict(state='RUNNING',tool='dumpcap (test data)',started=time.time()-20,packets=len(fake.packets),filter='port 443')
+-# Ask Stacy about this; D4's focus(); Stop capture; the unavailable reason
++# Ask Kasandra about this; D4's focus(); Stop capture; the unavailable reason
+ view.ask();settle();assert bar.target=='slate' and box.text().startswith('About this packet (') and '198.51.100.7:443' in box.text(),box.text()
+ box.clear();log_qt.focus(w,entry);settle()
+ assert bar.target=='log' and view.stream=='network' and view.pinned['remote']=='198.51.100.7' and view.filters['network']=='host 198.51.100.7 port 443' and box.text()=='host 198.51.100.7 port 443'
+diff --git a/tools/check_finder_ui.py b/tools/check_finder_ui.py
+index 487cd54..7b3c25a 100644
+--- a/tools/check_finder_ui.py
++++ b/tools/check_finder_ui.py
+@@ -191,15 +191,15 @@ page.limit=500
+ # 08 · the context menu's words: nothing that changes a file
+ page.go(str(DEMO));settle();notes=next(e for e in page.entries if e['name']=='notes.txt');menu=page.menu_for(notes)
+ words=[a.text() for a in menu.actions() if not a.isSeparator()]
+-assert words==['Open','Open in viewer','Copy path','Ask Stacy about this file','Nothing changes here · Files keeps its own changes'],words
++assert words==['Open','Open in viewer','Copy path','Ask Kasandra about this file','Nothing changes here · Files keeps its own changes'],words
+ forbidden=('New','Rename','Delete','Move','Trash','Duplicate','Paste','Cut')
+ assert not any(any(word.startswith(f) for f in forbidden) for word in words)
+ folder_words=[a.text() for a in page.menu_for(next(e for e in page.entries if e['name']=='drawings')).actions() if not a.isSeparator()]
+-assert folder_words[:1]==['Open'] and 'Open in viewer' not in folder_words and 'Ask Stacy about this folder' in folder_words
++assert folder_words[:1]==['Open'] and 'Open in viewer' not in folder_words and 'Ask Kasandra about this folder' in folder_words
+ page.go(str(FILES));settle();kept=next(e for e in page.entries if e['name']=='kept.txt');files_words=[a.text() for a in page.menu_for(kept).actions() if not a.isSeparator()]
+-assert files_words==['Open','Open in viewer','Show in Files','Copy path','Ask Stacy about this file','Change it in Files'],files_words
++assert files_words==['Open','Open in viewer','Show in Files','Copy path','Ask Kasandra about this file','Change it in Files'],files_words
+ page.copy_path(str(DEMO/'notes.txt'));from PySide6.QtGui import QGuiApplication;assert QGuiApplication.clipboard().text()==str(DEMO/'notes.txt')
+-check('08 The context menu reads Open · Open in viewer · Copy path · Ask Stacy about this file (and Show in Files · Change it in Files inside Files); none of its words creates, renames, moves or deletes')
++check('08 The context menu reads Open · Open in viewer · Copy path · Ask Kasandra about this file (and Show in Files · Change it in Files inside Files); none of its words creates, renames, moves or deletes')
+ # 09 · Enter on a text file opens it in the editor tab; Home closes
+ page.go(str(DEMO));settle();assert page.select_name('notes.txt');page.list.setFocus();settle()
+ QTest.keyClick(page.list,Qt.Key_Return);settle()
+diff --git a/tools/check_hatch.py b/tools/check_hatch.py
+index f872d62..68b7722 100644
+--- a/tools/check_hatch.py
++++ b/tools/check_hatch.py
+@@ -49,6 +49,8 @@ FOCUSED_MODULES=(
+  'test_stacy_start',
+  # 0.8.0: the Kasandra appearance: the palette at start, stills by the state of the work, her name
+  'test_kasandra',
++ # 0.8.4: one name, Kasandra in every look: the name sweep over the code, the guide pages and the window (tools/name_sweep.py)
++ 'test_one_name',
+  # 0.8.0: the 35B test campaign's runner (tools/campaign.py): its cases, outcomes, timeouts, resume and summary
+  'test_campaign',
+  # 0.8.1: the model's memory rules, each against Graphite's own code with simulated readings
+diff --git a/tools/check_rename_ui.py b/tools/check_rename_ui.py
+index 2b07fe7..5ac315c 100644
+--- a/tools/check_rename_ui.py
++++ b/tools/check_rename_ui.py
+@@ -160,10 +160,10 @@ for size,tag in (((1920,1200),'1920'),((1366,768),'1366')):
+  # 03 · the right column's face, titled Graphite -------------------------------------------------------------------------------------
+  w.shell2.show_slate_face();settle();align();face=w.shell2.face
+  tabs=w.console_pages;names=[tabs.tabText(i) for i in range(tabs.count())]
+- assert face.isVisible() and face.signature.text()=='Stacy' and 'Graphite' in names and 'Slate' not in names and w.shell2.slate_button.text()=='Conversation' and face.input.accessibleName()=='Message Stacy',(names,face.signature.text())
++ assert face.isVisible() and face.signature.text()=='Kasandra' and 'Graphite' in names and 'Slate' not in names and w.shell2.slate_button.text()=='Conversation' and face.input.accessibleName()=='Message Kasandra',(names,face.signature.text())
+  window_words('face_'+tag);fit('face_'+tag)
+- record('03_Face_%s.png'%tag,'%s: the right column\'s face: the assistant, signed Stacy (the page is still named Graphite), its message passage named Message Stacy; its tab is Conversation (HATCH DESK D1b).'%size[0],w.grab())
+- check('%s 03 The face in the right column is the assistant, signed Stacy (page “Graphite”, Message Stacy) under the Conversation tab (D1b); no visible word says Slate, Ledger or Hatch'%tag)
++ record('03_Face_%s.png'%tag,'%s: the right column\'s face: the assistant, signed Kasandra (the page is still named Graphite), its message passage named Message Kasandra; its tab is Conversation (HATCH DESK D1b).'%size[0],w.grab())
++ check('%s 03 The face in the right column is the assistant, signed Kasandra (page “Graphite”, Message Kasandra) under the Conversation tab (D1b); no visible word says Slate, Ledger or Hatch'%tag)
+  w.shell2.show_operations_face();settle()
+  # 04 · the settings roots: Workspace and Assistant ------------------------------------------------------------------------------------
+  tab=bridge.show_settings(key='stacy.enabled');settle();align();nav=w.settings_navigator
+diff --git a/tools/desk_review.py b/tools/desk_review.py
+index 2ce15d4..e26680e 100644
+--- a/tools/desk_review.py
++++ b/tools/desk_review.py
+@@ -154,7 +154,7 @@ def passage_menu():
+  r=doc.page.cursorRect(c);return right_click(doc.page.viewport(),QPoint(r.center().x()-40,r.bottom()-1))  # on the selected words, near their foot
+ for wd,ht in SIZES:
+  size(wd,ht);menu=passage_menu();assert menu.target.kind=='passage'
+- record('Graphite_Review_04_Right_Click_Selected_Passage_%dx%d.png'%(wd,ht),'Right-click on a selected passage in a document, %d by %d: the passage named at the top with its page and revision ("within a hair" · passage · Bench notes · revision %s); the changes first (Bold, Italic, Underline, Plain, Paragraph style, Move to notes); Inspect in the line (the equivalent staC command); Ask Stacy about this and Search; the text edits last.'%(wd,ht,menu.target.revision),grab(menu),menu)
++ record('Graphite_Review_04_Right_Click_Selected_Passage_%dx%d.png'%(wd,ht),'Right-click on a selected passage in a document, %d by %d: the passage named at the top with its page and revision ("within a hair" · passage · Bench notes · revision %s); the changes first (Bold, Italic, Underline, Plain, Paragraph style, Move to notes); Inspect in the line (the equivalent staC command); Ask Kasandra about this and Search; the text edits last.'%(wd,ht,menu.target.revision),grab(menu),menu)
+  menu.close_menu(restore=False);settle()
+ 
+ # 05 two revisions of one file in Files: a different kind of object --------------------------------------------------------------
+@@ -233,7 +233,7 @@ assert log.packets.count()>=len(packets)-1,log.packets.count()
+ log.chose(log.packets.item(2));settle()
+ FIXTURE='TEST DATA: the network capability\'s test fixture (tests_integrated/test_network_watch.py), not this computer'
+ image=grab();vx,vy=log.mapTo(w,QPoint(0,0)).x(),log.mapTo(w,QPoint(0,0)).y()
+-record('Graphite_Review_08b_Log_Network_Packets_TEST_DATA_1920x1200.png','TEST DATA, labelled on the image: the packet stream as Log shows it while a capture runs, from the network capability\'s test fixture only (its small computer\'s /proc, /sys and /etc read by network_watch.observe, and its frames decoded by network_watch.decode: headers only, never what a packet carries); one packet pinned at the top with Ask Stacy about this. This computer has no capture tool, so no real packet stream exists here.',
++record('Graphite_Review_08b_Log_Network_Packets_TEST_DATA_1920x1200.png','TEST DATA, labelled on the image: the packet stream as Log shows it while a capture runs, from the network capability\'s test fixture only (its small computer\'s /proc, /sys and /etc read by network_watch.observe, and its frames decoded by network_watch.decode: headers only, never what a packet carries); one packet pinned at the top with Ask Kasandra about this. This computer has no capture tool, so no real packet stream exists here.',
+        label(image,FIXTURE,vx+log.width(),vy-30),data='TEST DATA (the network capability\'s test fixture)')
+ log.unpin();log.dispatch=real_dispatch;bar.set_target('slate',focus=False);w.console.set_size(0);settle()
+ 
+diff --git a/tools/name_sweep.py b/tools/name_sweep.py
+new file mode 100644
+index 0000000..0343197
+--- /dev/null
++++ b/tools/name_sweep.py
+@@ -0,0 +1,272 @@
++"""The name sweep: no word a person reads or hears on the desk says a name that is never shown.
++
++Two names are held here (NEVER). The language's own name: on screen a pipeline is "a line" (0.8.0; until 0.8.4 this sweep
++was kept outside the repository and run by hand at a release). And Stacy, the name the first look showed for the assistant
++until 0.8.3: she is Kasandra in every look (workbench/assistant_identity.py; the owner, 19 November 2026: "Just kas.
++Otherwise we have too many people").
++
++  words_of(widget)       every word a widget carries: its text, tip, status tip, placeholder, accessible name and
++                         description, window title; a combo's rows, a tab bar's titles and tips, and the rows and tips of
++                         a tree or a list. Hidden or shown: a word that waits in a hidden widget is read when it shows.
++  sweep(window, where)   every widget, every menu and every menu line of the program against NEVER
++                         -> [{name, where, widget, kind, words}]
++  walk(window, settle)   the places a sweep visits, reached by desk acts (workbench/desk_doers.run, door 'script'): the
++                         start, Today, every menu across the head and the Apps list, the meters' cards, both panes in
++                         each of their views, Files and its right-click, the Field in its three faces with a sheet
++                         selected, its right-click and what is shown over the work, the writing line for each of its five
++                         names with a line typed and a line refused, and her hand at each place of its dial with an act
++                         of hers on its card. And the places no desk act reaches where the earlier name was last read
++                         (0.8.4's review): a brain event, written as the program writes every one of them, in
++                         Activity's timeline, in the listing of recorded commands, pinned in the Log and in Search's
++                         timeline; Guide's About Graphite (a dialog that waits: shown here instead); her art plate of
++                         the Rules menu opened in the viewer -> {found, places, words, named}
++  in_code(root)          every sentence in the program's code that carries her earlier name and does not go through
++                         assistant_identity.named() -> [(file, line, words)]
++
++KEPT is what may still be read on purpose. History keeps the name it was written with (a stored agenda row, her trail),
++and so does an identity shown as it is stored, always lowercase and joined by . : / - or _ (an operation, a settings key,
++a schema). An event keeps its actor 'STACY' in the record. Decided in 0.8.4: words made for reading say her name for it
++(a timeline's row, the Log's pinned line and its details, the listings of recorded events with a column for who acted:
++workbench/tail_words.shown_origin), so "origin STACY" there is a fault; an event printed whole as it is stored (the JSON
++in the tip of a row of Activity's timeline) keeps it, as it keeps its operation and its state, and RECORD sets exactly
++that pair aside. CODE_KEPT is the same for the code: each entry says why its words are not a shown name.
++
++  python3 tools/name_sweep.py           the code alone (no window is made): prints what in_code finds; exit 1 when any
++
++The window is swept by tests_integrated/test_one_name.py, in both looks, on the bench seed the desk acts' tests use.
++"""
++import ast
++import re
++import sys
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++
++# name -> (what must not be read, why). A word here is a whole word: 'stack' and 'Stacy' are not the language's name.
++NEVER = {'language': (re.compile(r'\bstac\b', re.I), 'the language is never named on screen: a pipeline is "a line"'),
++         'stacy': (re.compile(r'Stacy|STACY'), 'she is Kasandra in every look')}
++KEPT = re.compile(r'\b[a-z0-9_]+(?:[.:/_-][a-z0-9_]+)+\b')      # an identity shown as it is stored
++RECORD = re.compile(r'"origin": "STACY"')                        # her actor in an event printed whole, as it is stored
++BRAIN_EVENT = 'name_sweep'      # the walk's own brain event: brain.name_sweep, state CHECKED
++SHOWN_NAME = 'Kasandra'
++
++# The code's words that carry the earlier name and are not a sentence a person reads as her name: (file, the words' start) -> why.
++# An empty start is the whole file (the lineage grows by a release at its head, so its first words change).
++CODE_KEPT = {
++    ('workbench/assistant_identity.py', 'Stacy'): 'the one place that says what is shown for the name',
++    ('workbench/assistant_identity.py', 'STACY'): 'the one place that says what is shown for the name',
++    ('workbench/line_steps.py', 'Shell syntax and command substitution are not part of Stacy language'): 'a pattern: the parser\'s refusal is put in the window\'s words here',
++    ('workbench/line_steps.py', r'\bStacy language\b'): 'a pattern: the parser\'s refusal is put in the window\'s words here',
++    ('workbench/local_brain.py', 'STACY'): 'the activity actor, a record identifier; read as her name through tail_words.shown_origin',
++    ('workbench/project_desk.py', 'List<StacyQueryRow>'): 'a result type in a stored plan, a record identifier',
++    ('workbench/shell2.py', 'StacyHand'): 'an object name',
++    ('workbench/stacy_presence.py', 'StacyReaction'): 'an object name',
++    ('workbench/stacy_foundation.py', 'docs/STACY_'): 'file names of her foundation\'s documents',
++    ('workbench/version.py', ''): 'the lineage: what each release was, in the words of its day',
++    ('sdk/cli/arc1cli/typed_pipeline.py', 'Shell syntax and command substitution are not part of Stacy language'): 'the parser\'s own refusal; the window says it through line_steps.plain',
++}
++CODE_FOLDERS = ('workbench', 'sdk')
++
++
++def words_of(widget):
++    """Every word a widget carries, as (kind, words)."""
++    from PySide6.QtCore import Qt
++    from PySide6.QtWidgets import QAbstractItemView, QComboBox, QHeaderView, QTabBar, QTabWidget, QTreeView
++    out = []
++    for get in ('text', 'toPlainText', 'toolTip', 'statusTip', 'placeholderText', 'accessibleName', 'accessibleDescription', 'windowTitle', 'title'):
++        f = getattr(type(widget), get, None)      # the class's own reader: a page may keep a label under the same name
++        if not callable(f):continue
++        try:value = f(widget)
++        except (TypeError, RuntimeError):continue
++        if isinstance(value, str) and value:out.append((get, value))
++    if isinstance(widget, QComboBox):out += [('row', widget.itemText(i)) for i in range(widget.count())]
++    if isinstance(widget, (QTabBar, QTabWidget)):
++        for i in range(widget.count()):out += [('tab', widget.tabText(i)), ('tab tip', widget.tabToolTip(i))]
++    if isinstance(widget, QAbstractItemView) and not isinstance(widget, QHeaderView) and widget.model() is not None:
++        model = widget.model();seen = [0];tree = isinstance(widget, QTreeView)
++        try:columns = range(model.columnCount(widget.rootIndex()))
++        except TypeError:columns = range(1)      # a list model keeps columnCount private: one column
++        if tree:out += [('header', str(model.headerData(c, Qt.Horizontal) or '')) for c in columns]
++        def rows(parent, depth):
++            for r in range(model.rowCount(parent)):
++                seen[0] += 1
++                if seen[0] > 4000:return      # a long list says its names in its first rows
++                for c in columns:
++                    index = model.index(r, c, parent)
++                    out.extend(('row' if role == Qt.DisplayRole else 'row tip', v) for role in (Qt.DisplayRole, Qt.ToolTipRole)
++                               for v in (index.data(role),) if isinstance(v, str))
++                first = model.index(r, 0, parent)
++                if tree and depth < 6 and model.hasChildren(first):rows(first, depth + 1)
++        rows(widget.rootIndex(), 0)
++    return [(kind, words) for kind, words in out if words]
++
++
++def named_in(words):
++    """Which of NEVER these words say, an identity shown as it is stored set aside."""
++    rest = KEPT.sub(' ', RECORD.sub(' ', words))
++    return [name for name, (pattern, _) in NEVER.items() if pattern.search(rest)]
++
++
++def sweep(window, where, found=None, read=None):
++    """Read every widget of the program (the window's, and whatever stands beside it: a menu, a card, a page over the work)
++    and every menu line. `found` gathers what names a NEVER; `read` gathers every word read, so that a caller can tell a
++    sweep that found nothing from one that read nothing."""
++    from PySide6.QtGui import QAction
++    from PySide6.QtWidgets import QApplication, QWidget
++    found = [] if found is None else found
++    seen = {(f['name'], f['widget'], f['kind'], f['words']) for f in found}
++    def note(owner, kind, words):
++        if read is not None:read.add(words)
++        for name in named_in(words):
++            row = (name, owner, kind, words[:200])
++            if row not in seen:
++                seen.add(row);found.append(dict(name=name, where=where, widget=owner, kind=kind, words=words[:200]))
++    widgets, actions = {}, {}
++    for top in [window] + list(QApplication.topLevelWidgets()):
++        for widget in [top] + top.findChildren(QWidget):widgets[id(widget)] = widget
++        for action in top.findChildren(QAction):actions[id(action)] = action
++    for widget in widgets.values():
++        owner = type(widget).__name__
++        for kind, words in words_of(widget):note(owner, kind, words)
++        for action in QWidget.actions(widget):actions[id(action)] = action
++    for action in actions.values():
++        for kind in ('text', 'toolTip', 'statusTip', 'whatsThis'):
++            words = getattr(action, kind)()
++            if words:note('QAction', kind, words)
++    return found
++
++
++def open_menus(window):
++    """Have every menu fill its rows, as it does when it is about to show."""
++    from PySide6.QtWidgets import QMenu
++    for menu in window.findChildren(QMenu):
++        try:menu.aboutToShow.emit()
++        except Exception:pass      # noqa: BLE001 - a menu that cannot fill now is read as it stands
++
++
++def walk(window, settle, log=None):
++    """Visit the places and sweep each. `settle()` lets the window finish what an act began. Returns {found, places, words,
++    named}: what names a NEVER, every place visited with whether its act was done, how many different words were read, and
++    how many of them say her shown name. A place given `must` is done only when words read there hold it. Her hand is left
++    at Do and show, the place a workspace opens on; the workspace keeps one setting more, brain.name_sweep."""
++    from unittest.mock import patch
++    from PySide6.QtWidgets import QDialog, QMenu
++    from workbench import desk_acts, local_brain, log_qt
++    from workbench.desk_doers import run
++    found, places, read = [], [], set()
++    def look(where, done=True, must=None):
++        open_menus(window);settle();here = set()
++        sweep(window, where, found, here);read.update(here)
++        if must is not None and not any(must in words for words in here):done = False
++        places.append(dict(where=where, done=bool(done)))
++        if log:log('%s%s' % (where, '' if done else ' (the act was not done)'))
++    def act(act_name, **args):
++        out = run(window, act_name, args, door='script', origin='desk-script:name-sweep');settle()
++        return out
++    def visit(where, act_name, must=None, **args):
++        out = act(act_name, **args);look(where, out['ok'], must);return out
++    def listed():
++        return (act('read.desk', part='files').get('result') or {}).get('names') or []
++    # a brain event by the program's own writer, with the actor it gives every one of them; the row every timeline makes of it
++    bridge = window.ledger_bridge;brain_row = '%s · brain.%s' % (SHOWN_NAME, BRAIN_EVENT)
++    def brain_event():
++        local_brain.put(bridge.kernel, BRAIN_EVENT, {}, 'CHECKED')
++        bridge.tail.refresh();window._refresh_activity();settle()      # what the window's own tick and acts do: a test's window holds its clock
++    brain_event()
++    look('the start', must='%s  brain.%s  CHECKED' % (SHOWN_NAME.upper(), BRAIN_EVENT))      # the listing of recorded commands
++    visit('Today', 'go.today')
++    for menu in desk_acts.HEAD_MENUS + ('Apps',):
++        visit('the head: ' + menu, 'head.open', menu=menu);act('menu.close')
++    for which in ('CPU', 'GPU', 'RAM', 'TXT', 'equalizer'):
++        visit('the meter: ' + which, 'head.meter', which=which);act('menu.close')
++    for side, views in (('left', ('files', 'machine', 'settings')), ('right', ('activity', 'context', 'talk'))):
++        for view in views:
++            if view == 'activity':brain_event()      # among the last lines of its timeline
++            visit('the %s pane: %s' % (side, view), 'go.pane', brain_row if view == 'activity' else None, **{side: view})
++    visit('Files', 'go.files')
++    folders = listed();file = None
++    if folders:
++        visit('Files: the right-click on a folder', 'menu.open', on='file', name=folders[0])
++        visit('Files: the right-click on a folder, More', 'menu.choose', path='more');act('menu.close')
++    for folder in folders[:6]:      # the first file there is, in the folders at the top of Files
++        if act('go.files', folder=folder)['ok']:
++            file = next((name for name in listed() if '.' in name), None)
++            if file:break
++    out = act('menu.open', on='file', name=file) if file else {'ok': False}
++    look('Files: the right-click on a file', out['ok'])
++    visit('Files: the right-click on a file, More', 'menu.choose', path='more');act('menu.close')
++    visit('Files: the right-click here', 'menu.open', on='here');act('menu.close')
++    for face in ('apps', 'network', 'work'):visit('the Field: ' + face, 'go.field', face=face)
++    sheets = [o.title for o in window.field_page.view.field.objects if getattr(o, 'title', '')]
++    if sheets:
++        visit('the Field: a sheet selected', 'point.sheet', title=sheets[0])
++        visit('the Field: the right-click on a sheet', 'menu.open', on='sheet', name=sheets[0])
++        visit('the Field: the right-click on a sheet, More', 'menu.choose', path='more');act('menu.close')
++        for act_name, where in (('sheet.steps', 'what can be done'), ('sheet.doubt', 'the doubt'), ('sheet.trace', 'the trace')):
++            visit('the Field: ' + where, act_name);act('sheet.close')
++    else:look('the Field: a sheet selected', False)
++    act('go.back')
++    for who in ('terminal', 'search', 'web', 'log', 'her'):visit('the writing line: to ' + who, 'type.to', who=who)
++    act('type.room', size='half')
++    for text, where in (('files.list', 'a line'), ('explain files.list', 'a line explained'), ('files.list ; rm -rf x', 'a line refused')):
++        visit('the writing line: ' + where, 'type.put', text=text)
++    brain_event()      # again: the Log opens on its last events, and the walk's own acts are many
++    act('type.to', who='log');view = log_qt.view_of(window);row = None
++    if view is not None:
++        view.choose('events', remember=False);settle()
++        row = next((item for item in (view.events.item(i) for i in range(view.events.count())) if brain_row in item.text()), None)
++        if row is not None:view.chose(row)
++    look('the Log: a brain event pinned', row is not None and view.pin_frame.isVisible(), 'origin ' + SHOWN_NAME.upper())
++    if view is not None:view.unpin()
++    act('type.to', who='search');act('type.put', text=BRAIN_EVENT)
++    visit('Search: a brain event in its timeline', 'type.send', brain_row)
++    act('type.to', who='her');window.type_bar.box.clear();act('type.room', size='line')
++    for place in ('ask', 'free', 'show'):visit('her hand: ' + place, 'hand.dial', place=place)
++    wrote = visit('her hand: an act of hers on its card', 'hand.write', path='name sweep.txt', text='one name\n')
++    if wrote['ok']:visit('her hand: the act taken back', 'hand.undo')
++    opened = []      # About waits for its Close (QDialog.exec): it is shown instead, read, and closed
++    with patch.object(QDialog, 'exec', lambda dialog:(opened.append(dialog), dialog.show(), 0)[2]):
++        window.show_about();settle()
++    look('Guide: About Graphite', bool(opened), 'kept back (RIGHTS.md)')
++    for dialog in opened:dialog.close();dialog.deleteLater()
++    plates = next((menu for menu in window.findChildren(QMenu) if menu.title() == 'Art plates'), None);before = window.tabs.count()
++    for row in ([a for a in plates.actions() if a.isEnabled() and SHOWN_NAME in a.text()] if plates is not None else []):row.trigger();settle()
++    look('Rules: her art plate opened', window.tabs.count() > before, 'Preview · ' + SHOWN_NAME)      # the other plates' names are their rows
++    for index in range(window.tabs.count() - 1, before - 1, -1):window.close_tab(index)
++    settle()
++    visit('Today, at the end', 'go.today')
++    return dict(found=found, places=places, words=len(read), named=sum(SHOWN_NAME in words for words in read))
++
++
++def in_code(root=ROOT, folders=CODE_FOLDERS, kept=None):
++    """Every sentence in the code that carries her earlier name outside named(), CODE_KEPT set aside. Documentation strings
++    and comments are the builder's words, not the window's."""
++    kept = CODE_KEPT if kept is None else kept
++    out = []
++    for folder in folders:
++        for path in sorted((Path(root) / folder).rglob('*.py')):
++            file = path.relative_to(root).as_posix()
++            text = path.read_text(encoding='utf-8')
++            if not NEVER['stacy'][0].search(text):continue
++            tree = ast.parse(text);docs = set()
++            for node in ast.walk(tree):
++                if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and node.body:
++                    first = node.body[0]
++                    if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):docs.add(id(first.value))
++            def read(node, inside):
++                if isinstance(node, ast.Call):
++                    f = node.func
++                    if (f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else '') == 'named':inside = True
++                if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs and not inside \
++                        and NEVER['stacy'][0].search(node.value) and not any(f == file and node.value.startswith(start) for f, start in kept):
++                    out.append((file, node.lineno, node.value[:160]))
++                for child in ast.iter_child_nodes(node):read(child, inside)
++            read(tree, False)
++    return out
++
++
++if __name__ == '__main__':
++    left = in_code()
++    for file, line, words in left:print('%s:%d: %r' % (file, line, words))
++    print('NAME SWEEP, the code: %d place%s' % (len(left), '' if len(left) == 1 else 's'))
++    sys.exit(1 if left else 0)
+diff --git a/workbench/agenda.py b/workbench/agenda.py
+index 5150f3c..f0826a2 100644
+--- a/workbench/agenda.py
++++ b/workbench/agenda.py
+@@ -30,6 +30,7 @@ import sqlite3
+ import time
+ import uuid
+ from pathlib import Path
++from .assistant_identity import named
+ 
+ ID = {'type': 'string', 'pattern': '^[0-9a-f]{32}$', 'maxLength': 32}
+ TEXT = {'type': 'string', 'minLength': 1, 'maxLength': 400}
+@@ -375,7 +376,7 @@ def ask_slate(kernel, db, row, principal, clock):
+     brain = kernel.dispatch('brain.status', {}, principal)
+     if not brain.get('ok') or (brain.get('result') or {}).get('state') != 'READY':
+         db.execute("UPDATE agenda_items SET due=?, reason=?, updated=? WHERE id=?",
+-                   (clock + RETRY_AFTER, "Waiting for Stacy's brain: choose a model in Brain, and she will take it up.", clock, row['id']))
++                   (clock + RETRY_AFTER, named("Waiting for Stacy's brain: choose a model in Brain, and she will take it up."), clock, row['id']))
+         return {'ran': None, 'reason': 'Graphite has no brain running for a question in words.'}
+     asked = kernel.dispatch('brain.ask', {'message': row['title'], 'mode': 'plan'},
+                             Principal(principal.identity, frozenset({'read', 'execute'}), principal.paths, principal.tools, principal.mode))
+@@ -397,7 +398,7 @@ def work_on_copy(kernel, db, row, principal, clock):
+     brain = kernel.dispatch('brain.status', {}, principal)
+     if not brain.get('ok') or (brain.get('result') or {}).get('state') != 'READY':
+         db.execute("UPDATE agenda_items SET due=?, reason=?, updated=? WHERE id=?",
+-                   (clock + RETRY_AFTER, "Waiting for Stacy's brain: choose a model in Brain, and she will take it up.", clock, row['id']))
++                   (clock + RETRY_AFTER, named("Waiting for Stacy's brain: choose a model in Brain, and she will take it up."), clock, row['id']))
+         return {'ran': None, 'reason': 'Graphite has no brain running to work on the copy.'}
+     with working_copies.opened(kernel) as cdb:c = working_copies.the_copy(cdb, row['copy'])
+     data = (files_service.root(kernel) / c['work']).read_bytes()
+diff --git a/workbench/assistant_identity.py b/workbench/assistant_identity.py
+index 223ed66..4b8eda2 100644
+--- a/workbench/assistant_identity.py
++++ b/workbench/assistant_identity.py
+@@ -1,15 +1,19 @@
+-"""The assistant's name as shown (0.8.0). In the Graphite appearance she is Stacy; in the Kasandra appearance she is
+-Kasandra. Her language stays staC in both. The name is fixed when Graphite starts, with the appearance (boss_theme).
++"""The assistant's name as shown. She is Kasandra in every look (0.8.4; the owner, 19 November 2026: "Just kas. Otherwise
++we have too many people"). From 0.8.0 to 0.8.3 the Graphite appearance showed her as Stacy and the Kasandra appearance as
++Kasandra. Her language stays staC in every look.
+ 
+-`named(text)` gives a shown sentence with her name in it as this start shows it. What is history keeps the name it was
+-written with: stored agenda rows, her trail, the activity actor 'STACY', settings keys, object names, the legal note.
++`named(text)` gives a shown sentence with her name in it. The words in the code are still written with 'Stacy' (and
++'STACY'), the name they were first written with, and this is the one place that says what is shown for it: a sentence a
++person reads or hears goes through named(), and tools/name_sweep.py holds the window and the code to that. What is history
++keeps the name it was written with: stored agenda rows, her trail, settings keys, object names, the folder of her
++portraits (branding/stacy/). An event keeps its actor 'STACY' in the record, and the words made from it say her name
++(tail_words.shown_origin). The files RIGHTS.md and COPYING keep Stacy as a name the owner holds; the program's own
++sentences do not say it.
+ """
+-from . import boss_theme
+-
+-NAME = 'Kasandra' if boss_theme.APPEARANCE == 'kasandra' else 'Stacy'
++NAME = 'Kasandra'
+ 
+ 
+ def named(text):
+-    """The sentence with 'Stacy' (and 'STACY') as her name in this appearance."""
+-    if NAME == 'Stacy' or not isinstance(text, str):return text
++    """The sentence with her name where the code's words say 'Stacy' (and 'STACY')."""
++    if not isinstance(text, str):return text
+     return text.replace('Stacy', NAME).replace('STACY', NAME.upper())
+diff --git a/workbench/boss_qt.py b/workbench/boss_qt.py
+index f27a436..20b87e7 100644
+--- a/workbench/boss_qt.py
++++ b/workbench/boss_qt.py
+@@ -4,12 +4,13 @@ from PySide6.QtCore import QRectF, Qt
+ from PySide6.QtGui import QActionGroup, QColor, QFont, QFontMetrics, QImage, QLinearGradient, QPainter, QPen
+ from PySide6.QtWidgets import QMenu, QSizePolicy, QWidget
+ from . import boss_theme as t
++from .assistant_identity import named
+ from .locations import program
+ 
+ ART_MODES = ('illustrated', 'ascii', 'clean')
+ WORKSHOP_PLATE = 'Workshop in the rain.png'
+ CHARCOAL_PLATE = 'Workshop in charcoal.webp'
+-MIDNIGHT_PORTRAIT = 'Stacy after midnight.webp'
++MIDNIGHT_PORTRAIT = 'Kasandra after midnight.webp'
+ FACE_MARK = ('+------+', '|  >_  |', '+------+')
+ FACE = (0.262, 0.086, 0.488, 0.366)       # her face in that plate: left, top, width, height, as parts of the plate
+ MIDNIGHT_WORKSHOP = 'Workshop after midnight.webp'
+@@ -134,7 +135,7 @@ class ArtPanel(QWidget):
+         self.art_folder = program(host.root) / 'branding' / 'boss'
+         self.setObjectName('BossArt');self.setProperty('paperFunctionalInk', True)
+         self.setAttribute(Qt.WA_TransparentForMouseEvents)
+-        self.setAccessibleName('Stacy in the After Midnight workshop' if t.APPEARANCE == 'graphite' else 'Kasandra in her office')
++        self.setAccessibleName(named('Stacy in the After Midnight workshop') if t.APPEARANCE == 'graphite' else 'Kasandra in her office')
+         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+         self.limit = None     # the most height Home can give the picture without scrolling (TodayPage.fit_art); None: no limit
+         self.opened = 0       # Kasandra: the Office alternates its stills each time it is shown again, and keeps one while it is open
+@@ -207,8 +208,8 @@ class PanelInk(QWidget):
+         self.available = False
+         self.setAttribute(Qt.WA_TransparentForMouseEvents)
+         self.setSizePolicy(QSizePolicy.Fixed if kind == 'face' else QSizePolicy.Ignored, QSizePolicy.Fixed)
+-        self.setAccessibleName({'portrait': 'Stacy in the worksheet evidence rail', 'bracket': 'ASCII bracket illustration',
+-                                'journal': 'Stacy in the research journal', 'face': 'Stacy, the assistant'}[kind]
++        self.setAccessibleName(named({'portrait': 'Stacy in the worksheet evidence rail', 'bracket': 'ASCII bracket illustration',
++                                      'journal': 'Stacy in the research journal', 'face': 'Stacy, the assistant'}[kind])
+                                if t.APPEARANCE == 'graphite' else {'portrait': 'Kasandra beside the worksheet', 'bracket': 'ASCII bracket illustration',
+                                 'journal': 'Kasandra in the research journal', 'face': 'Kasandra, the assistant'}[kind])
+         if t.APPEARANCE == 'kasandra' and kind != 'bracket':      # her still follows the work: painted again when an act ends, and every two seconds
+diff --git a/workbench/log_qt.py b/workbench/log_qt.py
+index 1d1b2f5..88cc1ff 100644
+--- a/workbench/log_qt.py
++++ b/workbench/log_qt.py
+@@ -183,8 +183,9 @@ def details(entry):
+     """The pinned entry's details as (name, value) rows, in reading order."""
+     kind = entry.get('kind')
+     if kind == 'event':
++        from .tail_words import shown_origin
+         e = entry.get('event') or {}
+-        keys = (('at', stamp(e.get('at'))), ('operation', e.get('operation')), ('state', e.get('state')), ('origin', e.get('origin')),
++        keys = (('at', stamp(e.get('at'))), ('operation', e.get('operation')), ('state', e.get('state')), ('origin', shown_origin(e.get('origin'))),
+                 ('detail', e.get('detail')), ('job', e.get('job_id')), ('event', e.get('id')), ('sequence', e.get('seq')))
+     elif kind == 'connection':
+         keys = (('protocol', entry.get('proto')), ('local', address(entry.get('local'), entry.get('lport'))), ('remote', address(entry.get('remote'), entry.get('rport'))),
+diff --git a/workbench/project_tabs.py b/workbench/project_tabs.py
+index 436c577..b2634c6 100644
+--- a/workbench/project_tabs.py
++++ b/workbench/project_tabs.py
+@@ -119,10 +119,11 @@ class ProjectDeskTab(QWidget):
+             row=QTreeWidgetItem([task['title'],task['status'],task['closure']]);row.setToolTip(1,task['status']);row.setToolTip(2,task['closure']);row.setData(0,Qt.UserRole,task.get('path'));self.tasks.addTopLevelItem(row)
+         self.refresh_activity()
+     def refresh_activity(self):
++        from .tail_words import shown_origin
+         events=activity.recent(self.window.root)
+         self.events.clear()
+         for event in events[-8:]:
+-            self.events.addTopLevelItem(QTreeWidgetItem([time.strftime('%H:%M:%S',time.localtime(event['at'])),event['origin'],event['operation'],event['state']]))
++            self.events.addTopLevelItem(QTreeWidgetItem([time.strftime('%H:%M:%S',time.localtime(event['at'])),shown_origin(event['origin']),event['operation'],event['state']]))
+         self.events.scrollToBottom()
+         self.state.setText(getattr(self.window,'workflow_status','Workflow ready'))
+         self.run_button.setEnabled(not getattr(self.window,'workflow_active',False))
+diff --git a/workbench/qt_app.py b/workbench/qt_app.py
+index abace27..dce55cc 100644
+--- a/workbench/qt_app.py
++++ b/workbench/qt_app.py
+@@ -5082,9 +5082,10 @@ class WorkbenchWindow(QMainWindow):
+         dialog.exec()
+ 
+     def _refresh_activity(self):
++        from .tail_words import shown_origin
+         events=activity.recent(self.root)
+         self.agent_view.setPlainText('Recorded Graphite commands and job transitions. Live tail: Recent Activity.\n\n'+
+-            '\n'.join(time.strftime('%H:%M:%S',time.localtime(e['at']))+'  '+e['origin']+'  '+e['operation']+'  '+e['state'] for e in events))
++            '\n'.join(time.strftime('%H:%M:%S',time.localtime(e['at']))+'  '+shown_origin(e['origin'])+'  '+e['operation']+'  '+e['state'] for e in events))
+         for i in range(self.tabs.count()):
+             tab=self.tabs.widget(i)
+             if isinstance(tab,ProjectDeskTab):tab.refresh_activity()
+@@ -5238,7 +5239,7 @@ class WorkbenchWindow(QMainWindow):
+         from .editorial_art import about_dialog
+         about_dialog(self,
+                      'Graphite %s (Qt %s).\n\nFree software under the GNU General Public License, version 2 only (COPYING), with no '
+-                     'warranty. Stacy\'s artwork, the names and the game are kept back (RIGHTS.md).\n\n'
++                     'warranty. The artwork, the names and the game are kept back (RIGHTS.md).\n\n'
+                      'Host tools only: builds, tests and the game simulator run on this '
+                      'PC. No ARC-1 board exists yet; nothing is flashed or deployed, and firmware stage images are '
+                      'NOT BOOTABLE. Fabrication is on HOLD.\n\nAgents use the same engine through '
+diff --git a/workbench/remote_pwa/app.js b/workbench/remote_pwa/app.js
+index 6187127..0fb0aed 100644
+--- a/workbench/remote_pwa/app.js
++++ b/workbench/remote_pwa/app.js
+@@ -162,7 +162,7 @@ async function reviewCandidate(c){
+ async function clip(view){
+   const [overview,templates]=await Promise.all([call('clip.overview'),call('tasks.templates')]);
+   const welcome=card(view,'What shall we build next?','Carry the same jobs, source and evidence from the ThinkPad to your phone.');welcome.classList.add('clip-welcome');const mascot=window.SlateDeck.bird('clip-mascot');welcome.prepend(mascot);
+-  welcome.append(node('span','STACY · OWNER-HOSTED','eyebrow'),node('p','Your chosen AI agent proposes. Graphite isolates, tests and records. You review the change.','muted'));
++  welcome.append(node('span','KASANDRA · OWNER-HOSTED','eyebrow'),node('p','Your chosen AI agent proposes. Graphite isolates, tests and records. You review the change.','muted'));
+   const task=card(view,'One bounded AI task','Prepare an ARC-OS source handoff for your authorized Claude, Codex or other external agent. Graphite does not invoke a model automatically.');
+   const taskGoal=document.createElement('textarea');writingPrompt(taskGoal, 'Which observable defect should the agent investigate?');taskGoal.setAttribute('aria-label','Bounded task goal');task.append(taskGoal);
+   const taskPath=document.createElement('input');taskPath.value='software/arcos/src/host.c';taskPath.setAttribute('aria-label','ARC-OS implementation file');task.append(taskPath);
+@@ -175,7 +175,7 @@ async function clip(view){
+   });
+   const chooser=document.createElement('select');chooser.setAttribute('aria-label','Graphite task');
+   for(const t of templates.templates){const opt=node('option',t.title);opt.value=t.id;chooser.append(opt);}welcome.append(chooser);
+-  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Stacy the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
++  const goal=document.createElement('textarea');writingPrompt(goal, 'Tell Kasandra the specific problem');goal.setAttribute('aria-label','Task goal');goal.value=state.clipGoal;goal.oninput=()=>state.clipGoal=goal.value;const goalDetails=document.createElement('details');goalDetails.append(node('summary','Add a specific goal (optional)'),goal);welcome.append(goalDetails);
+   const planButton=button(welcome,'Plan with Graphite',()=>showPlan(chooser.value,goal.value));planButton.classList.add('primary');
+   const follow=card(view,'Continue your work',overview.active_jobs.length+' active or paused jobs · '+overview.pending_candidates.length+' candidates awaiting review');
+   for(const j of overview.active_jobs.slice(0,4)){const r=card(follow,j.goal||j.tool,j.current_operation);badge(r,j.state);button(r,'Follow job',()=>showJob(j.id));}
+@@ -196,7 +196,7 @@ async function showPlan(template,goal){
+   for(const path of plan.source_reads)button(v,'Read '+path.split('/').pop(),()=>openSource(path));
+   if(template==='hardware-dependency')button(v,'Inspect source-linked hardware findings',inspectProof);
+   if(template==='review-candidate')button(v,'Open candidates',async()=>{const rows=await call('candidates.list'),body=modal('Candidates');for(const c of rows){const r=card(body,c.goal,c.state);button(r,'Review source diff',()=>reviewCandidate(c));}if(!rows.length)body.append(node('p','No candidates yet.'));});
+-  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Stacy for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
++  if(plan.proposed_job){const b=button(v,'Run this baseline check',async()=>{const current=await call('project.inspect');if(current.revision!==plan.source_revision)throw Error('Source changed. Ask Kasandra for a fresh plan.');await submit(plan.proposed_job.params.tool);},'jobs.submit');if(plan.blockers.length){b.dataset.allowed='false';b.disabled=true;}}
+   availability();
+ }
+ async function openSource(path){const f=await call('files.read',{path}),v=modal(path);v.append(node('p',f.sha256,'mono'),node('pre',f.content));}
+diff --git a/workbench/remote_pwa/manifest.webmanifest b/workbench/remote_pwa/manifest.webmanifest
+index b0c2d3c..1131b49 100644
+--- a/workbench/remote_pwa/manifest.webmanifest
++++ b/workbench/remote_pwa/manifest.webmanifest
+@@ -2,7 +2,7 @@
+   "id": "/",
+   "name": "Graphite",
+   "short_name": "Graphite",
+-  "description": "Graphite, your office satellite. staC is pronounced Stacy.",
++  "description": "Graphite, your office satellite.",
+   "start_url": "/",
+   "scope": "/",
+   "display": "standalone",
+diff --git a/workbench/tail_words.py b/workbench/tail_words.py
+index f0c6781..adeafc8 100644
+--- a/workbench/tail_words.py
++++ b/workbench/tail_words.py
+@@ -1,4 +1,5 @@
+ """The activity tail in plain words. The full event stays in the line's tooltip."""
++from .assistant_identity import named
+ 
+ WORDS = {
+     'ledger.open': 'Graphite opened', 'ledger.view': 'Opened', 'ledger.navigate': 'Went to', 'ledger.settings.set': 'Changed a setting',
+@@ -17,6 +18,12 @@ STATES = {'REQUEST_COMPLETED': '', 'COMPLETED': '', 'READY': '', 'FOCUSED': '',
+ QUIET_ORIGINS = {'GUI', 'DESKTOP', 'desktop-owner', 'owner', 'Kernel', 'KERNEL'}
+ 
+ 
++def shown_origin(origin):
++    """An event's origin as it is read. The record keeps the actor it was written with; hers ('STACY', as local_brain writes
++    every brain event) is read as her name."""
++    return named(str(origin or ''))
++
++
+ def readable(event):
+     operation = event.get('operation', '');state = event.get('state', '');detail = (event.get('detail') or '').strip()
+     words = WORDS.get(operation) or WORDS.get(operation.rsplit('.', 1)[0]) or operation
+@@ -25,7 +32,7 @@ def readable(event):
+         if detail.lower().startswith('no active document'):return 'Nothing open'
+     if operation == 'ledger.open' and state == 'READY':detail = ''
+     origin = event.get('origin', '')
+-    who = '' if origin in QUIET_ORIGINS else origin.title() + ' · '
++    who = '' if origin in QUIET_ORIGINS else shown_origin(origin).title() + ' · '
+     tail = STATES.get(state, '· ' + state.replace('_', ' ').lower())
+     return (who + words + (' ' + detail if detail and operation in ('ledger.view', 'ledger.navigate') else (' · ' + detail if detail else '')) + (' ' + tail if tail else '')).strip()
+ 

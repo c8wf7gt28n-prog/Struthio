@@ -1,5 +1,5 @@
 diff --git a/docs/CAMPAIGN.md b/docs/CAMPAIGN.md
-index ef72df1..ef1c07a 100644
+index ef72df1..6c3e886 100644
 --- a/docs/CAMPAIGN.md
 +++ b/docs/CAMPAIGN.md
 @@ -11,7 +11,7 @@ Run these from the Graphite program folder.
@@ -32,7 +32,7 @@ index ef72df1..ef1c07a 100644
  
  A case whose needs are not all met is Blocked, and its reason lists what is missing and what is present (for
  example "present here: LibreOffice Calc (/usr/bin/localc)"). A case whose needs are all met but whose steps are
-@@ -83,15 +90,62 @@ here, so the operations the assistant would choose are scripted, and the result
+@@ -83,15 +90,70 @@ here, so the operations the assistant would choose are scripted, and the result
  for your approval is read from the assistant's policy table for the steps Graphite offers. No approval is pressed:
  in the window it is your Run, and the run grants it for you.
  
@@ -50,7 +50,8 @@ index ef72df1..ef1c07a 100644
 +  admitted: the bench readings and two revisions of the limits.
 +- Three reviewed sheets, one from each source: **Rail Demo bench readings** (12 V; settled current 250 mA;
 +  startup current 900 mA; startup duration 45 ms), **Rail Demo limits Rev A ARCHIVED** and
-+  **Rail Demo limits Rev B CURRENT** (Rev B allows 4 W settled and 40 ms of startup; Rev A allowed 5 W and 60 ms).
++  **Rail Demo limits Rev B CURRENT** (Rev B allows 4 W settled and 40 ms of startup; Rev A allowed 5 W and 60 ms;
++  the nominal voltage, 12 V, is the one row that is the same in both, so a comparison has something to leave out).
 +- Two exact calculations: settled power, 12 V × 250 mA = 3 W; startup power, 12 V × 900 mA = 10.8 W.
 +- Four findings, each bound to what it rests on. One holds (settled power is inside the Rev B limit). One does
 +  not hold (startup is inside the Rev B limit of 40 ms: the reading is 45 ms, so its check does not hold).
@@ -64,6 +65,12 @@ index ef72df1..ef1c07a 100644
 +`workbench/rail_demo.py`; a run's `MANIFEST.json` records its revision and its file's SHA-256, and both are part
 +of the revision of every case that runs on it.
 +
++A case on Rail Demo is Blocked only when what a PDF source needs is not on the machine (pypdf, Poppler). If the
++build itself breaks (an operation refused, a job that did not complete, a table not read as written) the case is
++a Fail and its reason is the build's own sentence. Graphite starts a job only when it admits it, by free memory;
++with a large model loaded a job of the build may not be started. The build waits 60 seconds for each job, then
++cancels it and stops, saying what the job was waiting for (that case is a Fail too: free the memory and run again).
++
 +```bash
 +python3 tools/campaign.py run --set demo --out ~/Graphite_Campaign/runs/demo
 +```
@@ -72,7 +79,8 @@ index ef72df1..ef1c07a 100644
 +- **DA16** changes 250 mA to 300 mA, recalculates, and reads back from the saved records, then from a fresh
 +  process: 300 mA in the cell, 3.6 W, the finding flagged for recheck, the source still at 250 mA.
 +- **DA17** makes a backup of Rail Demo with Graphite's own backup code, verifies it, restores it into fresh
-+  folders, reads the restored desk, refuses an existing destination and catches one changed byte in a copy.
++  folders, reads the restored desk with the restored profile (the profile the backup was made from is moved away
++  for that read), refuses an existing destination and catches one changed byte in a copy.
 +- **DA27** is stopped after the cell write and resumed from its checkpoint; the completed change is recognised
 +  and not repeated.
 +
@@ -98,7 +106,7 @@ index ef72df1..ef1c07a 100644
  
  1. open Tools across the head, then close it;
  2. write `07 Bench readings.csv` through Stacy's hand (one card, one line in her trail, one Undo);
-@@ -103,6 +157,9 @@ Hours 07 backup, with no model. Every step is a desk act, the same acts you can
+@@ -103,6 +165,9 @@ Hours 07 backup, with no model. Every step is a desk act, the same acts you can
     comparison;
  6. Undo, which takes the CSV back.
  
@@ -108,7 +116,7 @@ index ef72df1..ef1c07a 100644
  Each step's result is checked against what the window then reads back. The scene is played four times: by pointer
  (P01a), by keys (P01b), and each again with Reduce motion on (P01c, P01d). A step that would wait for your Approve,
  or open a window that asks, fails unless the scene says it should. The window is the size the scene gives
-@@ -174,7 +231,8 @@ the program folder.
+@@ -174,7 +239,8 @@ the program folder.
  
  ## Here versus the ThinkPad
  
@@ -119,10 +127,10 @@ index ef72df1..ef1c07a 100644
  ```bash
  python3 tools/campaign.py run --mode real --case M01 --model ~/Models/Qwen3.6-35B-A3B-Q4_K_M.gguf
 diff --git a/tests_integrated/test_desk_acts.py b/tests_integrated/test_desk_acts.py
-index fca3d8a..32a7b62 100644
+index fca3d8a..e3162e1 100644
 --- a/tests_integrated/test_desk_acts.py
 +++ b/tests_integrated/test_desk_acts.py
-@@ -48,9 +48,18 @@ def no_logind(request):
+@@ -48,9 +48,21 @@ def no_logind(request):
      raise AssertionError('No session or power call: %r'%(request,))
  
  
@@ -138,42 +146,50 @@ index fca3d8a..32a7b62 100644
 +        assert k.dispatch('office.import.commit',{'plan':plan['id'],'expected_digest':plan['digest']},p)['ok']
 +
 +
-+def build_window(store,prefix,seed=bench_seed):
++def build_window(store,prefix,seed=bench_seed,early=False):
 +    """One window for a module, every hold of the right-click's tests in place before it is built, on a seed made through
-+    Graphite's own operations before the window exists: the bench seed, or another (seed(kernel, owner), kept as store['seeded'])."""
++    Graphite's own operations before the window exists (seed(kernel, owner), kept as store['seeded']): the bench seed, made
++    under the holds like everything after it, or another. `early` makes the seed before the holds are in place, for the one
++    kind of seed that cannot be made under them: one that brings sources in, since reading a source in is a job. A seed
++    that cannot be made leaves nothing of this window behind."""
      temporary=tempfile.TemporaryDirectory(prefix=prefix);run=Path(temporary.name)
      env=patch.dict(os.environ,{'ARC_LEDGER_EMBEDDED':'1','ARC_LEDGER_DISABLE_BOOK_WATCHER':'1','ARC1_WORKBENCH_CONFIG_HOME':str(run/'profile'),
                                 'ARC_LEDGER_CONCERN':str(run/'Concern')});env.start()
-@@ -61,17 +70,16 @@ def build_window(store,prefix):
-     from workbench.engineering_kernel import Kernel,operator
-     from workbench.qt_app import WorkbenchWindow,make_app
-     from workbench.session import Session
-+    root=locations.office(run/'workspace');k=Kernel(root);p=operator()
-+    files_root=Path(k.dispatch('files.list',{},p)['result']['root'])
-+    try:store['seeded']=seed(k,p)                # before the holds: a seed may bring sources in, and reading a source in is a job
-+    except BaseException:
-+        env.stop();temporary.cleanup();raise     # a seed that cannot be made leaves nothing of this window behind
+@@ -64,14 +76,21 @@ def build_window(store,prefix):
      holds=[patch.object(clip,'_request',side_effect=AssertionError('No provider request')),patch.object(Kernel,'launch',side_effect=AssertionError('No worker launch')),
             patch.object(Kernel,'submit',side_effect=AssertionError('No job submission')),patch.object(session_power,'system',side_effect=no_logind),
             patch.object(QMessageBox,'question',return_value=QMessageBox.No)]
-     for h in holds:h.start()
+-    for h in holds:h.start()
 -    app=make_app([]);root=locations.office(run/'workspace');session=Session(run/'profile/session.json',root)
 -    k=Kernel(root);p=operator()
--    files_root=Path(k.dispatch('files.list',{},p)['result']['root'])
++    held=[]
++
++    def seeded():
++        k=Kernel(root);p=operator()
++        try:store['seeded']=seed(k,p)
++        except BaseException:
++            for h in reversed(held):h.stop()
++            env.stop();temporary.cleanup();raise
++        return k,p
++    root=locations.office(run/'workspace')
++    if early:k,p=seeded()
++    for h in holds:h.start();held.append(h)
++    app=make_app([]);session=Session(run/'profile/session.json',root)
++    if not early:k,p=seeded()
+     files_root=Path(k.dispatch('files.list',{},p)['result']['root'])
 -    for name,text in SEED:
 -        assert k.dispatch('files.write',{'path':'seed/'+name,'text':text},p)['ok']
 -        plan=k.dispatch('office.import.preview',{'path':str(files_root/'seed'/name)},p)['result']
 -        assert k.dispatch('office.import.commit',{'plan':plan['id'],'expected_digest':plan['digest']},p)['ok']
-+    app=make_app([]);session=Session(run/'profile/session.json',root)
      w=WorkbenchWindow(root,session,restore=False);platform.processor()
      late=[patch.object(subprocess,'Popen',side_effect=AssertionError('No process start')),patch.object(os,'system',side_effect=AssertionError('No shell command')),
            patch.object(QProcess,'startDetached',side_effect=AssertionError('No detached program'))]
 diff --git a/tests_integrated/test_rail_demo.py b/tests_integrated/test_rail_demo.py
 new file mode 100644
-index 0000000..55605c6
+index 0000000..df12c05
 --- /dev/null
 +++ b/tests_integrated/test_rail_demo.py
-@@ -0,0 +1,488 @@
+@@ -0,0 +1,624 @@
 +"""0.8.4: Rail Demo (workbench/rail_demo.py), the workspace of invented data kept in the program.
 +
 +Scenes, campaign cases and tests used to stand on the owner's own workspace, restored from a backup that is never shipped,
@@ -191,18 +207,18 @@ index 0000000..55605c6
 +
 +  python -B -m unittest -v tests_integrated.test_rail_demo
 +"""
-+import collections,hashlib,json,os,tempfile,traceback,unittest
++import collections,hashlib,json,os,tempfile,time,traceback,unittest
 +from pathlib import Path
-+from unittest.mock import patch
++from unittest.mock import NonCallableMock,patch
 +os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 +from tests_integrated.test_desk_acts import P01,build_window,close_window,settle
 +from workbench import rail_demo
 +
-+# The three sources as the program writes them (rail_demo.REVISION 1). A source changed on purpose changes its line here and
++# The three sources as the program writes them (rail_demo.REVISION 2). A source changed on purpose changes its line here and
 +# the revision with it; a line that changes by itself means the sources are no longer the same bytes every time.
 +SOURCE_SHA256={'readings':'883346624682ddd87b8779b8c0176689d6481c615a340108aa2c5859bb8356c1',
-+               'limits_a':'1ea86cef629bf76bebe94aec1f5ec231636e1ea3c6dfaa9cdcc5c4b177bdb24f',
-+               'limits_b':'159bc0f07ea59c3da9c9e09e1a516132aff65e7b8107cee6e0c43f5fc0dd7e6a'}
++               'limits_a':'34a9b7e3028c1945645664894ceab4e3d4202daac236b2dfbc54884ad3fb358e',
++               'limits_b':'53afd3d8d9beaa672b0ff41969dae647c43a1ff3c415776b1d4a2010c63cba1c'}
 +READINGS,REV_A,REV_B='Rail Demo bench readings','Rail Demo limits Rev A ARCHIVED','Rail Demo limits Rev B CURRENT'
 +PDF,PDF_A,PDF_B='Rail_Demo_Bench_Readings.pdf','Rail_Demo_Limits_Rev_A.pdf','Rail_Demo_Limits_Rev_B.pdf'
 +SETTLED,STARTUP='Rail Demo settled power · 3 W','Rail Demo startup power · 10.8 W'
@@ -236,6 +252,7 @@ index 0000000..55605c6
 +       (REV_B,KEEPS,'check passed')}
 +COUNTS=['3 sources','3 sheets','2 calculations','1 page','4 findings','1 open question']
 +CSV='Rail Demo bench readings.csv'      # what the scene writes in Files on Rail Demo, and takes back
++CSV_TEXT='parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n'
 +# What build() asks of the Kernel that changes the workspace, and how often: the doors a person uses, in the order a person
 +# would (put the sources in Files, bring them in, admit each, index them, open each page, review its table into a sheet,
 +# calculate twice and name the result, write a page, open the investigation, add its sources, findings, evidence and
@@ -315,7 +332,7 @@ index 0000000..55605c6
 +        for key,item in first.items():
 +            self.assertEqual(item['bytes'],second[key]['bytes'],key)
 +            self.assertEqual(item['sha256'],hashlib.sha256(item['bytes']).hexdigest(),key)
-+        self.assertEqual(rail_demo.REVISION,1,'a new revision: bring SOURCE_SHA256 up to date with it')
++        self.assertEqual(rail_demo.REVISION,2,'a new revision: bring SOURCE_SHA256 up to date with it')
 +        self.assertEqual({key:item['sha256'] for key,item in first.items()},SOURCE_SHA256)
 +
 +    def test_every_source_says_it_is_invented_and_carries_the_rail_demo_name(self):
@@ -332,8 +349,8 @@ index 0000000..55605c6
 +    def test_the_readings_are_the_ones_the_calculations_need(self):
 +        rows={row[0]:row[1:3] for row in rail_demo.READINGS}
 +        self.assertEqual(rows,{'Rail voltage':('12','V'),'Settled current':('250','mA'),'Startup current':('900','mA'),'Startup duration':('45','ms')})
-+        self.assertEqual({row[0]:row[1:3] for row in rail_demo.LIMITS_A},{'Settled power limit':('5','W'),'Startup duration limit':('60','ms'),'Startup power ceiling':('12','W')})
-+        self.assertEqual({row[0]:row[1:3] for row in rail_demo.LIMITS_B},{'Settled power limit':('4','W'),'Startup duration limit':('40','ms'),'Startup power ceiling':('12','W')})
++        self.assertEqual({row[0]:row[1:3] for row in rail_demo.LIMITS_A},{'Settled power limit':('5','W'),'Startup duration limit':('60','ms'),'Startup power ceiling':('12','W'),'Nominal voltage':('12','V')})
++        self.assertEqual({row[0]:row[1:3] for row in rail_demo.LIMITS_B},{'Settled power limit':('4','W'),'Startup duration limit':('40','ms'),'Startup power ceiling':('12','W'),'Nominal voltage':('12','V')})
 +
 +    def test_what_is_missing_is_said_in_a_sentence_and_nothing_is_built(self):
 +        self.assertEqual(rail_demo.available(),'')
@@ -348,6 +365,97 @@ index 0000000..55605c6
 +        for direct in ('.db(','.save(','sqlite','.execute(','write_bytes','write_text'):self.assertNotIn(direct,source,direct)
 +        self.assertEqual(source.count('.dispatch('),1,'one place calls the Kernel: _Desk.call')
 +        self.assertEqual(source.count('.run_job('),1,'and one runs a job the Kernel was given through its own operation')
++
++
++class StandIn:
++    """A Kernel as far as a job of the build knows one: an operation that queues a job and hands it to launch, the runner
++    (which waits while the job is not admitted, as the Kernel's does), jobs.get and jobs.cancel. Anything else is refused."""
++
++    def __init__(self,admitted=True):
++        self.admitted=admitted;self.jobs={};self.ran=[];self.asked=[]
++
++    def launch(self,ident):
++        raise AssertionError('No worker launch')
++
++    def dispatch(self,operation,arguments,principal):
++        self.asked.append(operation)
++        if operation=='work.start':
++            self.jobs['j1']={'id':'j1','tool':'work.tool','state':'Queued','current_operation':'Waiting for shared-memory headroom'}
++            self.launch('j1');return {'ok':True,'result':{'id':'j1'}}
++        if operation not in ('jobs.get','jobs.cancel'):return {'ok':False,'error':{'message':'no such thing here'}}
++        job=self.jobs[arguments['id']]
++        if operation=='jobs.cancel' and job['state']=='Queued':job['state']='Cancelled'
++        return {'ok':True,'result':dict(job)}
++
++    def run_job(self,ident):
++        self.ran.append(ident);job=self.jobs[ident]
++        while not self.admitted and job['state']=='Queued':time.sleep(.02)
++        if job['state']=='Queued':job['state']='Completed'
++
++
++class WhatStopsIt(unittest.TestCase):
++    """What a build, a read or a change says when it cannot go on, and what it leaves behind."""
++
++    def test_a_job_of_the_build_runs_here_and_puts_back_the_hold_it_found_on_the_kernel(self):
++        k=StandIn();hold=lambda ident:self.fail('the hold was asked to start %s'%ident);k.launch=hold
++        done=rail_demo._Desk(k,None).job('work.start',{})
++        self.assertEqual((done['state'],k.ran),('Completed',['j1']))
++        self.assertIs(vars(k).get('launch'),hold,'the hold the caller had put on this Kernel is still on it')
++        bare=StandIn();rail_demo._Desk(bare,None).job('work.start',{})
++        self.assertNotIn('launch',vars(bare),'and a Kernel that had none has none')
++
++    def test_a_job_that_is_not_started_in_time_is_cancelled_and_the_build_says_what_it_waited_for(self):
++        k=StandIn(admitted=False);started=time.monotonic()
++        with patch.object(rail_demo,'JOB_WAIT',.3),self.assertRaises(rail_demo.Unavailable) as stopped:rail_demo._Desk(k,None).job('work.start',{})
++        self.assertEqual(str(stopped.exception),'Rail Demo could not be built: the work.tool job was not started in 0.3 s (Waiting for shared-memory headroom).')
++        self.assertEqual(k.jobs['j1']['state'],'Cancelled','cancelled through its own operation: nothing is left waiting')
++        self.assertLess(time.monotonic()-started,10)
++        self.assertNotIn('launch',vars(k))
++
++    def test_a_build_that_graphite_does_not_admit_for_want_of_memory_stops_with_the_reason(self):
++        # the real Kernel, on a host that says 600 MiB is free (as with a large model loaded): its runner waits for memory
++        from workbench import brain_runtime
++        from workbench.engineering_kernel import operator
++        real=brain_runtime.host
++
++        def short(*a,**kw):
++            host=dict(real(*a,**kw))
++            for key in host:
++                if 'avail' in key and type(host[key]) is int:host[key]=600*1024*1024
++            return host
++        with tempfile.TemporaryDirectory(prefix='graphite-rail-demo-no-memory-') as folder,patch.dict(os.environ),patch.object(brain_runtime,'host',short),patch.object(rail_demo,'JOB_WAIT',2):
++            started=time.monotonic()
++            with self.assertRaisesRegex(rail_demo.Unavailable,r'^Rail Demo could not be built: the [a-z.]+ job was not started in 2 s \(Waiting for shared-memory headroom\)\.$'):
++                rail_demo.workspace(Path(folder))
++            self.assertLess(time.monotonic()-started,30)
++            from workbench.engineering_kernel import Kernel
++            from workbench.locations import office
++            jobs=Kernel(office(Path(folder)/'workspace')).dispatch('jobs.list',{},operator())['result']
++            rows=jobs if isinstance(jobs,list) else jobs.get('jobs') or []
++            self.assertTrue(rows);self.assertEqual({j['state'] for j in rows},{'Cancelled'},'nothing is left queued or running behind the build')
++
++    def test_a_refusal_says_what_was_being_done(self):
++        k=StandIn()
++        with self.assertRaises(rail_demo.Unavailable) as refused:rail_demo.find(k,None)
++        self.assertEqual(str(refused.exception),'Rail Demo could not be read: intake.namespaces was refused (no such thing here).')
++        with self.assertRaises(rail_demo.Unavailable) as refused:rail_demo._Desk(k,None).call('files.write')
++        self.assertEqual(str(refused.exception),'Rail Demo could not be built: files.write was refused (no such thing here).')
++
++    def test_a_window_whose_seed_cannot_be_made_leaves_nothing_behind(self):
++        from workbench.engineering_kernel import Kernel
++        before=dict(os.environ)
++        for early in (True,False):
++            store={};seen=[]
++
++            def broken(k,p):
++                seen.append(Path(k.dispatch('files.list',{},p)['result']['root']));self.assertTrue(seen[0].exists())
++                self.assertIs(isinstance(Kernel.submit,NonCallableMock),not early,'the holds are in place for a seed that is not early')
++                raise rail_demo.Unavailable('this seed cannot be made')
++            with self.assertRaisesRegex(rail_demo.Unavailable,'this seed cannot be made'):build_window(store,'graphite-rail-demo-no-seed-',seed=broken,early=early)
++            self.assertEqual(store,{},early);self.assertEqual(dict(os.environ),before,early)
++            self.assertFalse(seen[0].exists(),'the folder it was made in is gone')
++            self.assertNotIsInstance(Kernel.submit,NonCallableMock,'no hold is left in place')
++            self.assertNotIsInstance(Kernel.launch,NonCallableMock)
 +
 +
 +class TheRecords(unittest.TestCase):
@@ -394,7 +502,7 @@ index 0000000..55605c6
 +    def test_build_returns_what_find_reads_back(self):
 +        made=self.ws.made
 +        self.assertEqual(made,rail_demo.find(self.ws.k,self.ws.p))
-+        self.assertEqual((made['name'],made['notice'],made['revision']),('Rail Demo',rail_demo.NOTICE,1))
++        self.assertEqual((made['name'],made['notice'],made['revision']),('Rail Demo',rail_demo.NOTICE,rail_demo.REVISION))
 +        self.assertEqual({key:(source['name'],source['sha256']) for key,source in made['sources'].items()},
 +                         {'readings':(PDF,SOURCE_SHA256['readings']),'limits_a':(PDF_A,SOURCE_SHA256['limits_a']),'limits_b':(PDF_B,SOURCE_SHA256['limits_b'])})
 +        by_title=self.ws.desk()[0]
@@ -441,13 +549,15 @@ index 0000000..55605c6
 +            sheet=self.ws.call('office.get',{'id':made['sheets'][key]})
 +            self.assertEqual(sheet['document']['title'],title)
 +            cells=sheet['document']['sheets'][0]['cells']
-+            self.assertEqual([tuple(cells['%s%d'%(c,n)]['value'] for c in 'ABCD') for n in range(2,5)],[tuple(row) for row in rows],key)
++            self.assertEqual([tuple(cells['%s%d'%(c,n)]['value'] for c in 'ABCD') for n in range(2,2+len(rows))],[tuple(row) for row in rows],key)
++            self.assertEqual(len(rows),4,key)
 +            self.assertEqual(sheet['source_state'],{'state':'CURRENT_PDF_SOURCE','source_sha256':SOURCE_SHA256[key]})
 +            self.assertEqual((sheet['origin']['pdf']['item'],sheet['origin']['pdf']['name']),(made['sources'][key]['item'],name))
 +        # what the two revisions say differently, and what they say alike
 +        a,b={r[0]:r[1:] for r in rail_demo.LIMITS_A},{r[0]:r[1:] for r in rail_demo.LIMITS_B}
 +        self.assertEqual(sorted(a),sorted(b))
 +        self.assertEqual(sorted(name for name in a if a[name]!=b[name]),['Settled power limit','Startup duration limit','Startup power ceiling'])
++        self.assertEqual([name for name in a if a[name]==b[name]],['Nominal voltage'],'one row is the same in both: a comparison has something to leave out')
 +
 +    def test_the_calculations_are_exact_and_read_reviewed_rows(self):
 +        made=self.ws.made
@@ -456,13 +566,13 @@ index 0000000..55605c6
 +            page=got['document'];value=page['derivation']['calculation']['outputs'][0]
 +            self.assertEqual(page['title'],title)
 +            self.assertEqual((value['state'],value['value']['rational'],value['value']['decimal'],value['value']['unit']),('EXACT',rational,decimal,'W'),key)
++            self.assertEqual(value['value']['decimal'],{'settled_power':rail_demo.SETTLED_POWER,'startup_power':rail_demo.STARTUP_POWER}[key],'what the module says the result is, is what Graphite worked out')
 +            self.assertEqual([(i['cell'],i['basis']) for i in page['derivation']['inputs']],[(cell,'REVIEWED_PDF_ROW') for cell in cells],key)
 +            self.assertEqual(got['source_state']['state'],'CURRENT',key)
 +            trace=json.dumps(self.ws.call('field.trace',{'id':'document:'+made['calculations'][key]}))
 +            self.assertIn('office:'+made['sheets']['readings'],trace,key);self.assertIn('intake:'+made['sources']['readings']['item'],trace,key)
 +        settled=self.ws.call('documents.get',{'id':made['calculations']['settled_power']})['document']
 +        self.assertEqual([(i['parameter'],i['value'],i['unit']) for i in settled['derivation']['inputs']],[('Rail voltage','12','V'),('Settled current','250','mA')])
-+        self.assertEqual((rail_demo.SETTLED_POWER,rail_demo.STARTUP_POWER),('3','10.8'))
 +
 +    def test_one_finding_holds_one_does_not_and_each_is_bound_to_what_it_rests_on(self):
 +        made=self.ws.made;sheet=self.ws.call('investigation.sheet',{'id':made['investigation']})
@@ -506,7 +616,8 @@ index 0000000..55605c6
 +
 +
 +class TheChange(unittest.TestCase):
-+    """A workspace of its own: the one change Rail Demo is made for."""
++    """A workspace of its own: the one change Rail Demo is made for. The tests run in name order: the change from 250 mA
++    first, on the workspace as it was built; the others take the workspace as they find it."""
 +
 +    @classmethod
 +    def setUpClass(cls):
@@ -563,6 +674,40 @@ index 0000000..55605c6
 +        unchanged={o for o in OBJECTS if o[1] not in (HOLDS,SETTLED,STARTUP,READINGS)}
 +        self.assertEqual({o for o in objects if o[1] in {u[1] for u in unchanged}},unchanged)
 +
++    def test_310_mA_written_and_stopped_before_the_recheck_is_carried_on_by_asking_again(self):
++        ws=self.ws;made=rail_demo.find(ws.k,ws.p)
++        standing=ws.call('documents.get',{'id':made['calculations']['settled_power']})['document']
++        read=next(i['value'] for i in standing['derivation']['inputs'] if i['cell']=='B3')
++        sheet=ws.call('office.get',{'id':made['sheets']['readings']})
++        self.assertNotEqual(sheet['document']['sheets'][0]['cells']['B3']['value'],'310')
++        # the cell is written and nothing more: the stop
++        written=ws.call('field.set',{'id':'office:'+sheet['id'],'cell':'B3','value':'310','expected_revision':sheet['revision']})
++        self.assertEqual(rail_demo.find(ws.k,ws.p)['calculations'],made['calculations'],'nothing was worked again yet')
++        # asked again with the same value: the cell is left as it is, the power is worked from it
++        carried=rail_demo.set_settled_current(ws.k,ws.p,'310')
++        self.assertEqual({k:carried[k] for k in ('was','now','unit','sheet_revision','power','exact','power_unit')},
++                         {'was':read,'now':'310','unit':'mA','sheet_revision':written['revision'],'power':'3.72','exact':'93/25','power_unit':'W'})
++        self.assertEqual(ws.call('office.get',{'id':made['sheets']['readings']})['revision'],written['revision'],'the sheet was not saved a second time')
++        page=ws.call('documents.get',{'id':carried['calculation']})['document']
++        self.assertEqual((page['title'],page['derivation']['replaces']),('Rail Demo settled power · 3.72 W',made['calculations']['settled_power']))
++        # once it is whole, the same value again is refused in words, and it says what was being done
++        with self.assertRaises(rail_demo.Unavailable) as refused:rail_demo.set_settled_current(ws.k,ws.p,'310')
++        self.assertEqual(str(refused.exception),'The settled current of Rail Demo could not be changed: field.set was refused (B3 already says 310).')
++        self.assertEqual(rail_demo.find(ws.k,ws.p)['calculations']['settled_power'],carried['calculation'])
++
++    def test_a_value_that_is_not_a_number_is_refused_in_words_and_nothing_moves(self):
++        ws=self.ws;before=rail_demo.find(ws.k,ws.p)
++        for value in ('abc','300 mA',''):
++            with self.assertRaisesRegex(rail_demo.Unavailable,r'^The settled current of Rail Demo could not be changed: field\.set was refused \('):
++                rail_demo.set_settled_current(ws.k,ws.p,value)
++        self.assertEqual(rail_demo.find(ws.k,ws.p),before)
++
++    def test_rail_demo_is_found_among_more_pages_than_one_list_gives(self):
++        ws=self.ws;before=rail_demo.find(ws.k,ws.p)
++        for n in range(rail_demo.PAGE+1):ws.call('documents.create',{'title':'Another page %03d'%n,'text':'A page that is not of Rail Demo.','origin':'HUMAN'})
++        self.assertGreater(len(ws.call('documents.list',{'limit':rail_demo.PAGE,'offset':rail_demo.PAGE})['documents']),0,'more pages than one list gives')
++        self.assertEqual(rail_demo.find(ws.k,ws.p),before)
++
 +
 +class ThePlayableSceneOnRailDemo(unittest.TestCase):
 +    """P01 on the live window on Rail Demo: the same acts in the same order as on the owner's workspace, each name swapped.
@@ -571,7 +716,7 @@ index 0000000..55605c6
 +
 +    @classmethod
 +    def setUpClass(cls):
-+        build_window(WINDOW,'graphite-rail-demo-scene-',seed=rail_demo.build)
++        build_window(WINDOW,'graphite-rail-demo-scene-',seed=rail_demo.build,early=True)
 +
 +    @classmethod
 +    def tearDownClass(cls):
@@ -591,8 +736,15 @@ index 0000000..55605c6
 +        from workbench import desk_scene
 +        scene=desk_scene.load(P01)
 +        if size:scene['given']['size']=list(size)
-+        out=desk_scene.run_scene(WINDOW['w'],scene,run,seed='rail_demo',origin='desk-script:P01')      # the scene as it is written: the seed is the switch
++        wrote=[]
++
++        def after(n,step,row):
++            if step['act']=='hand.write':wrote.append((WINDOW['files']/CSV).read_text(encoding='utf-8'))      # read in Files, while it is there
++        out=desk_scene.run_scene(WINDOW['w'],scene,run,seed='rail_demo',origin='desk-script:P01',after_step=after)      # the scene as it is written: the seed is the switch
 +        self.assertNotIn('blocked',out)
++        # what the doer was given is this workspace's: the file it wrote holds Rail Demo's readings, not the ones the scene was written with
++        self.assertEqual(wrote,[CSV_TEXT])
++        self.assertEqual([s['args'] for s in out['steps'] if s['act']=='hand.write'],[{'path':CSV,'text':CSV_TEXT}],'and the row says what the doer was given')
 +        self.assertTrue(out['passed'],desk_scene.failures(out))
 +        self.assertEqual(len(out['steps']),len(scene['steps']))
 +        self.assertEqual([s['act'] for s in out['steps']],[s['act'] for s in scene['steps']],'the same acts in the same order')
@@ -664,10 +816,10 @@ index 0000000..55605c6
 +    unittest.main()
 diff --git a/tests_integrated/test_rail_demo_campaign.py b/tests_integrated/test_rail_demo_campaign.py
 new file mode 100644
-index 0000000..849f2b0
+index 0000000..ab72d75
 --- /dev/null
 +++ b/tests_integrated/test_rail_demo_campaign.py
-@@ -0,0 +1,360 @@
+@@ -0,0 +1,417 @@
 +"""0.8.4: the campaign on Rail Demo, the workspace of invented data kept in the program (workbench/rail_demo.py).
 +
 +The playable scene P01 and four anchors (A01, A16, A17, A27) were written for the owner's After Hours 07 backup, which is
@@ -684,7 +836,8 @@ index 0000000..849f2b0
 +the four anchors' steps pass on Rail Demo with its values (3 W, 3.6 W at 300 mA, the finding flagged, the source still at
 +250 mA, read back by a fresh process; a backup made, verified, restored and read; a kill after the write, resumed); P01
 +is played on Rail Demo by pointer in the Graphite look and in the Kasandra look, whatever look this module was started in;
-+and the same scene on the owner's workspace is Blocked, not failed, because the backup is not here.
++and the same scene on the owner's workspace is Blocked, not failed, because the backup is not here. A build of Rail
++Demo that breaks is a Fail, never Blocked: only what its PDF sources need, when it is missing, blocks a case.
 +
 +  python -B -m unittest -v tests_integrated.test_rail_demo_campaign
 +"""
@@ -716,11 +869,14 @@ index 0000000..849f2b0
 +    return argparse.Namespace(**base)
 +
 +
-+def run(out, cases, look=None):
-+    """One campaign run into `out` with no fixtures folder, started in the given look (None: the first look, Graphite)."""
++def run(out, cases, look=None, first_on_path=None):
++    """One campaign run into `out` with no fixtures folder, started in the given look (None: the first look, Graphite),
++    with a folder put first on the PATH when one is given."""
 +    environment = {k: v for k, v in os.environ.items() if k != 'GRAPHITE_APPEARANCE'}
 +    if look:
 +        environment['GRAPHITE_APPEARANCE'] = look
++    if first_on_path:
++        environment['PATH'] = '%s%s%s' % (first_on_path, os.pathsep, environment.get('PATH', ''))
 +    with mock.patch.dict(os.environ, environment, clear=True), contextlib.redirect_stdout(io.StringIO()):
 +        code = runner.run(arguments(case=list(cases), out=str(out), fixtures=str(Path(out).parent / 'no-fixtures')))
 +    results = {r['case_id']: r for r in map(json.loads, (Path(out) / 'results.jsonl').read_text().splitlines())}
@@ -807,6 +963,17 @@ index 0000000..849f2b0
 +        self.assertIn('step 4: args_by_seed is not an object of objects', problems)
 +        self.assertTrue([p for p in problems if p.startswith('step 3, on rail_demo: ')], problems)
 +        self.assertEqual(len(problems), 3, problems)
++
++    def test_names_the_swap_cannot_use_are_refused_in_words_and_nothing_is_swapped(self):
++        from workbench import desk_scene
++        for names in ({'': 'x'}, {'07 Bench readings': 7}, ['07 Bench readings'], None):
++            scene = copy.deepcopy(self.written)
++            scene['workspaces']['rail_demo']['names'] = names
++            for give in (desk_scene.for_workspace, cases_scene.for_workspace):
++                with self.assertRaises(ValueError, msg=(names, give.__module__)) as refused:
++                    give(scene, 'rail_demo')
++                self.assertEqual(str(refused.exception), "The scene P01, workspace 'rail_demo': names is not an object of names")
++            self.assertIn("workspace 'rail_demo': names is not an object of names", desk_scene.check_scene(scene))
 +
 +    def test_arguments_for_a_seed_add_to_or_replace_the_steps_own(self):
 +        from workbench import desk_scene
@@ -945,7 +1112,8 @@ index 0000000..849f2b0
 +            self.assertEqual(result['checks_met'], result['checks_total'], ident)
 +            self.assertEqual([(n['need'], n['met']) for n in result['needs']], [('rail_demo', True)], ident)
 +            seeded = result['fixture']
-+            self.assertEqual((seeded['seed'], seeded['revision'], seeded['notice']), ('rail_demo', 1, 'Invented demonstration data. Nothing here was measured.'), ident)
++            self.assertEqual((seeded['seed'], seeded['revision'], seeded['notice']),
++                             ('rail_demo', fixture.rail_demo_identity()['revision'], 'Invented demonstration data. Nothing here was measured.'), ident)
 +            self.assertEqual(sorted(seeded['sources_sha256']), ['limits_a', 'limits_b', 'readings'], ident)
 +        self.assertEqual(len({self.results[i]['fixture']['initial_state_sha256'] for i in ANCHORS + ['DP01a']}), 1,
 +                         'five builds, one picture: the same tables with the same number of rows')
@@ -955,7 +1123,10 @@ index 0000000..849f2b0
 +        self.assertEqual(manifest['fixtures']['after_hours_07']['state'], 'NOT_FOUND')
 +        self.assertTrue(manifest['repo_ledger_untouched'])
 +        text = report.summary(self.out)[0]
-+        self.assertIn('- Rail Demo seed (invented data, built by the program): revision 1, builder SHA-256 %s' % fixture.rail_demo_identity()['builder_sha256'][:16], text)
++        identity = fixture.rail_demo_identity()
++        self.assertIn('- Rail Demo seed (invented data, built by the program): revision %d, builder SHA-256 %s' % (identity['revision'], identity['builder_sha256'][:16]), text)
++        self.assertEqual((report._rail_demo(None), report._rail_demo({'builder': 'workbench/rail_demo.py', 'state': 'NOT_FOUND'})), ('not recorded', 'not recorded'),
++                         'a run made before Rail Demo, or without its builder, says so')
 +        self.assertIn('- demo: Pass 4', text)
 +
 +    def test_the_trace_of_settled_power_and_the_exact_3_W(self):
@@ -1026,6 +1197,44 @@ index 0000000..849f2b0
 +        self.assertEqual(result['phases'], [], 'nothing was started for it')
 +
 +
++class ABuildThatBreaks(unittest.TestCase):
++    """Blocked means a prerequisite is missing here. A build of Rail Demo that breaks once its prerequisites are met is a
++    fault of the program (or of a tool it was given), and a case that stands on it is a Fail."""
++
++    def test_only_what_the_sources_need_blocks_and_a_build_that_breaks_is_not_caught(self):
++        from workbench import rail_demo
++        with tempfile.TemporaryDirectory() as folder:
++            # what a PDF source needs is not here: Blocked, with the sentence, before anything is made
++            with mock.patch.object(rail_demo, 'available', return_value='Rail Demo needs Poppler.'), \
++                    mock.patch.object(fixture, 'base_workspace', side_effect=AssertionError('nothing is made')):
++                with self.assertRaises(fixture.Blocked) as blocked:
++                    fixture.rail_demo_workspace(folder)
++            self.assertEqual(str(blocked.exception), 'Rail Demo needs Poppler.')
++            # it is here, and the build breaks: the build's own exception, which the runner scores as a Fail
++            broke = rail_demo.Unavailable('Rail Demo could not be built: the references.pdf.page job ended Failed (x).')
++            with mock.patch.object(rail_demo, 'available', return_value=''), mock.patch.object(fixture, 'base_workspace', return_value=(None, None)), \
++                    mock.patch.object(rail_demo, 'build', side_effect=broke):
++                with self.assertRaises(rail_demo.Unavailable) as raised:
++                    fixture.rail_demo_workspace(folder)
++            self.assertIs(raised.exception, broke)
++            self.assertNotIsInstance(raised.exception, fixture.Blocked)
++
++    def test_a_run_with_a_poppler_that_does_not_work_is_a_fail_with_the_builds_own_sentence(self):
++        with tempfile.TemporaryDirectory(prefix='graphite-rail-demo-broken-') as folder:
++            tools = Path(folder) / 'tools'
++            tools.mkdir()
++            for name in ('pdftotext', 'pdftoppm'):          # present, so the need is met; and they do nothing but fail
++                (tools / name).write_text('#!/bin/sh\nexit 1\n')
++                (tools / name).chmod(0o755)
++            code, results = run(Path(folder) / 'run', ['DA01'], first_on_path=tools)
++            result = results['DA01']
++            self.assertEqual(result['outcome'], 'Fail', result.get('reason'))
++            self.assertEqual([(n['need'], n['met']) for n in result['needs']], [('rail_demo', True)])
++            self.assertIn('Unavailable: Rail Demo could not be built: ', result['reason'])
++            self.assertIn('case broke after 0 of 7 checks met', result['reason'])
++            self.assertIn('Fail 1', report.summary(Path(folder) / 'run')[0])
++
++
 +if __name__ == '__main__':
 +    unittest.main()
 diff --git a/tools/campaign.py b/tools/campaign.py
@@ -1061,7 +1270,7 @@ index a08bbbc..8b8977f 100644
      go.add_argument('--out', help='run folder (default: a new folder under the system temp folder)')
      go.add_argument('--fixtures', help='folder holding the After Hours 07 backup or zip, and the owner\'s data for a '
 diff --git a/tools/campaign_lib/cases_anchor.py b/tools/campaign_lib/cases_anchor.py
-index 0bcde99..1129bc3 100644
+index 0bcde99..5efa819 100644
 --- a/tools/campaign_lib/cases_anchor.py
 +++ b/tools/campaign_lib/cases_anchor.py
 @@ -20,6 +20,13 @@ known-good choice is scripted and every result says so ("driver": "scripted").
@@ -1158,7 +1367,7 @@ index 0bcde99..1129bc3 100644
      finally:
          guard.stop()
  
-@@ -252,15 +275,49 @@ def ah07_trace(ctx):
+@@ -252,15 +275,53 @@ def ah07_trace(ctx):
  # ---------------------------------------------------------------- A17: backup verify and restore
  
  def backup_restore(ctx):
@@ -1171,7 +1380,9 @@ index 0bcde99..1129bc3 100644
 +
 +def demo_backup_restore(ctx):
 +    """A17's steps on a backup of Rail Demo, made here with Graphite's own backup code from the workspace the attempt built;
-+    then the restored copy is opened with its own profile and read: the desk that comes back is the desk that was saved."""
++    then the restored copy is opened with its own profile and read: the desk that comes back is the desk that was saved.
++    The profile the backup was made from is moved away while the restored copy is read (a reviewed sheet is kept in the
++    profile), so the sheets that come back can only be the restored profile's."""
 +    import os
 +    from workbench import workspace_backup
 +    from workbench.engineering_kernel import Kernel, operator
@@ -1180,12 +1391,14 @@ index 0bcde99..1129bc3 100644
 +    ctx.observe('create', made['state'])
 +    restored, profile = ctx.folder / 'ws-restored', ctx.folder / 'profile-restored'
 +    _backup_checks(ctx, Path(made['backup']), restored, profile)
-+    kept = os.environ['ARC1_WORKBENCH_CONFIG_HOME']
++    kept = os.environ['ARC1_WORKBENCH_CONFIG_HOME'];aside = kept.rstrip('/') + '-set-aside'
++    os.rename(kept, aside)
 +    os.environ['ARC1_WORKBENCH_CONFIG_HOME'] = str(profile)       # the restored workspace is read with the profile restored beside it
 +    try:
 +        after = Kernel(restored).dispatch('field.read', {}, operator())
 +    finally:
 +        os.environ['ARC1_WORKBENCH_CONFIG_HOME'] = kept
++        os.rename(aside, kept)       # refused if a profile was written at the old place meanwhile: then the case breaks, and says so
 +    ctx.observe('restored_desk_reads', after['ok'])
 +    if after['ok']:
 +        ctx.observe('restored_desk_counts', [c for c in after['result']['counts'] if 'lately' not in c])
@@ -1211,7 +1424,7 @@ index 0bcde99..1129bc3 100644
          ctx.observe('existing_destination', 'REPLACED')
      except ValueError as error:
          ctx.observe('existing_destination', 'REFUSED')
-@@ -281,7 +338,8 @@ def backup_restore(ctx):
+@@ -281,7 +342,8 @@ def backup_restore(ctx):
  
  # ---------------------------------------------------------------- A27: crash after the write, resume
  
@@ -1221,7 +1434,7 @@ index 0bcde99..1129bc3 100644
      guard = _guard_launch()
      try:
          ctx.note('driver', SCRIPTED)
-@@ -310,7 +368,7 @@ def ah07_resume(ctx):
+@@ -310,7 +372,7 @@ def ah07_resume(ctx):
          field = _field(ctx)
          ctx.observe('sheet_versions', [f for f in field[sheet_id]['facts'] if f.startswith('version')])
          ctx.observe('settled_calculations', sorted(o['title'] for o in field.values()
@@ -1230,7 +1443,7 @@ index 0bcde99..1129bc3 100644
          ctx.observe('finding_state', field['claim:' + IDS['claim_settled']]['state'])
      finally:
          guard.stop()
-@@ -373,14 +431,14 @@ NEEDS = {      # what each situation needs from the machine; needs.py checks eve
+@@ -373,14 +435,14 @@ NEEDS = {      # what each situation needs from the machine; needs.py checks eve
  }
  
  RUNNABLE = {
@@ -1248,7 +1461,7 @@ index 0bcde99..1129bc3 100644
                  title='After Hours 07: 280 mA -> 300 mA, recalculate, flag the finding, keep the source',
                  slice='one changed reading carried to its power calculation, the finding flag and the reopened '
                        'result, not the updated design, drawings, cost, firmware and revision package',
-@@ -407,7 +465,7 @@ RUNNABLE = {
+@@ -407,7 +469,7 @@ RUNNABLE = {
                  allowed=['workspace_backup.verify', 'workspace_backup.restore'],
                  expect={'verify': 'VERIFIED', 'restore': 'RESTORED', 'existing_destination': 'REFUSED',
                          'tampered': 'Changed backup member'}),
@@ -1257,7 +1470,7 @@ index 0bcde99..1129bc3 100644
                  title='After Hours 07: killed after the cell write, resumed from its checkpoint',
                  slice='resuming local work and recognising a completed working-copy change, not reconciling an '
                        'uncertain external action or preserving later owner edits',
-@@ -446,3 +504,43 @@ def _anchor(sid):
+@@ -446,3 +508,43 @@ def _anchor(sid):
  
  
  CASES = [_anchor('S%02d' % n) for n in range(1, 36)]
@@ -1302,7 +1515,7 @@ index 0bcde99..1129bc3 100644
 +
 +DEMO = [_demo(anchor) for anchor in DEMO_RUNNABLE]
 diff --git a/tools/campaign_lib/cases_scene.py b/tools/campaign_lib/cases_scene.py
-index b49abed..0bd590a 100644
+index b49abed..b7c7432 100644
 --- a/tools/campaign_lib/cases_scene.py
 +++ b/tools/campaign_lib/cases_scene.py
 @@ -1,26 +1,34 @@
@@ -1342,7 +1555,7 @@ index b49abed..0bd590a 100644
  RUNS = (('P01a', 'mouse'), ('P01b', 'keys'), ('P01c', 'mouse_still'), ('P01d', 'keys_still'))
  
  
-@@ -28,6 +36,28 @@ def load(scene_id):
+@@ -28,6 +36,30 @@ def load(scene_id):
      return json.loads((SCENES / ('%s.json' % scene_id)).read_text(encoding='utf-8'))
  
  
@@ -1352,7 +1565,9 @@ index b49abed..0bd590a 100644
 +    if workspace == scene.get('seed'):return copy.deepcopy(scene)
 +    there = (scene.get('workspaces') or {}).get(workspace)
 +    if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
-+    names = dict(there.get('names') or {})
++    names = there.get('names', {})
++    if not isinstance(names, dict) or not all(isinstance(k, str) and k and isinstance(v, str) for k, v in names.items()):
++        raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
 +    said = re.compile('|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True))) if names else None
 +
 +    def swap(value):
@@ -1371,7 +1586,7 @@ index b49abed..0bd590a 100644
  def flattened(scene, run_name, seed=SEED):
      """The scene's expectations for one run and one seed, as campaign checks: '<n>:<path>' -> value; and '<n>:act.ok' True
      for each step that does not expect a refusal."""
-@@ -42,7 +72,7 @@ def flattened(scene, run_name, seed=SEED):
+@@ -42,7 +74,7 @@ def flattened(scene, run_name, seed=SEED):
  
  
  def run_case(ctx):
@@ -1380,7 +1595,7 @@ index b49abed..0bd590a 100644
      import os
      import platform
      import subprocess
-@@ -57,7 +87,7 @@ def run_case(ctx):
+@@ -57,7 +89,7 @@ def run_case(ctx):
      from workbench.engineering_kernel import Kernel
      from workbench.qt_app import WorkbenchWindow, make_app
      from workbench.session import Session
@@ -1389,7 +1604,7 @@ index b49abed..0bd590a 100644
      if (scene.get('given') or {}).get('appearance', boss_theme.APPEARANCE) != boss_theme.APPEARANCE:
          raise fixture.Blocked('The scene is for the %s appearance, and the appearance is chosen when Graphite starts.' % scene['given']['appearance'])
  
-@@ -102,7 +132,7 @@ def run_case(ctx):
+@@ -102,7 +134,7 @@ def run_case(ctx):
              try:w.grab().save(str(shots / ('%02d.png' % n)))
              except Exception:  # noqa: BLE001 - a picture that cannot be kept is not a failed step
                  pass
@@ -1398,7 +1613,7 @@ index b49abed..0bd590a 100644
          if out.get('blocked'):raise fixture.Blocked(out['blocked'])
          ctx.note('steps', [{k: s[k] for k in ('n', 'act', 'ok', 'by', 'seconds', 'words', 'result')} for s in out['steps']])
          ctx.note('passed', out['passed'])
-@@ -114,14 +144,19 @@ def run_case(ctx):
+@@ -114,14 +146,19 @@ def run_case(ctx):
  
  
  def _cases():
@@ -1481,7 +1696,7 @@ index 0be6372..3dc1a8e 100644
     "expect_by_run": {"mouse_still": {"desk.field.route.animating": false}, "keys_still": {"desk.field.route.animating": false}}},
    {"act": "point.sheet", "args": {"title": "07 Limits Rev B CURRENT"},
 diff --git a/tools/campaign_lib/fixture.py b/tools/campaign_lib/fixture.py
-index 156d82c..63c7ad0 100644
+index 156d82c..0c57ab4 100644
 --- a/tools/campaign_lib/fixture.py
 +++ b/tools/campaign_lib/fixture.py
 @@ -5,8 +5,11 @@ Concern folder, workspace root and kernel database. The attempt's child process
@@ -1497,18 +1712,21 @@ index 156d82c..63c7ad0 100644
    after_hours_07  the owner's After Hours 07 backup, verified and restored with Graphite's own backup code.
  The After Hours 07 backup is owner data and is not shipped: it is found under --fixtures (or the
  GRAPHITE_CAMPAIGN_FIXTURES variable, or ~/Graphite_Campaign/fixtures), as a Graphite_Backup folder or the zip.
-@@ -94,6 +97,27 @@ def base_workspace(attempt):
+@@ -94,6 +97,30 @@ def base_workspace(attempt):
      return kernel, operator()
  
  
 +def rail_demo_workspace(attempt):
-+    """Rail Demo built in the attempt's fresh workspace by Graphite's own operations; returns (kernel, owner, what it made)."""
++    """Rail Demo built in the attempt's fresh workspace by Graphite's own operations; returns (kernel, owner, what it made).
++    Blocked only when what its PDF sources need is not here (rail_demo.available). A build that breaks after that (an
++    operation refused, a job that did not complete, a table not read as written) is not caught: it is a fault, and the
++    case is a Fail with the build's own sentence."""
 +    from workbench import rail_demo
++    missing = rail_demo.available()
++    if missing:
++        raise Blocked(missing)
 +    kernel, owner = base_workspace(attempt)
-+    try:
-+        made = rail_demo.build(kernel, owner)
-+    except rail_demo.Unavailable as missing:
-+        raise Blocked(str(missing)) from None
++    made = rail_demo.build(kernel, owner)
 +    return kernel, owner, {'revision': made['revision'], 'notice': made['notice'],
 +                           'sources_sha256': {key: source['sha256'] for key, source in made['sources'].items()}}
 +
@@ -1653,7 +1871,7 @@ index f872d62..1b0b49f 100644
   'test_resource_rules',
   # 0.8.2: desk acts: the registry, her hand's rule, the typed door, the playable scene
 diff --git a/workbench/desk_scene.py b/workbench/desk_scene.py
-index 7b31d05..a0d2ee6 100644
+index 7b31d05..1efaf94 100644
 --- a/workbench/desk_scene.py
 +++ b/workbench/desk_scene.py
 @@ -5,7 +5,15 @@ Stacy's hand), the runs it is played in (by pointer, by keys, either with less m
@@ -1685,7 +1903,7 @@ index 7b31d05..a0d2ee6 100644
  import time
  from pathlib import Path
  
-@@ -69,6 +79,29 @@ def lookup(tree, path):
+@@ -69,6 +79,36 @@ def lookup(tree, path):
      return at
  
  
@@ -1696,6 +1914,7 @@ index 7b31d05..a0d2ee6 100644
 +    if workspace == scene.get('seed'):return copy.deepcopy(scene)
 +    there = (scene.get('workspaces') or {}).get(workspace)
 +    if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
++    if not _names(there.get('names', {})):raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
 +    names = dict(there.get('names') or {})
 +    said = re.compile('|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True))) if names else None
 +
@@ -1712,23 +1931,28 @@ index 7b31d05..a0d2ee6 100644
 +    return out
 +
 +
++def _names(names):
++    """Whether a workspace's names are what the swap can use: an object of name -> name, no name empty (an empty name
++    would be found between every two letters)."""
++    return isinstance(names, dict) and all(isinstance(k, str) and k and isinstance(v, str) for k, v in names.items())
++
++
  def check_scene(scene):
      """What is wrong with a scene, in words ([] when nothing): its schema, its runs, and each step's act and arguments."""
      problems = []
-@@ -84,6 +117,12 @@ def check_scene(scene):
+@@ -84,6 +124,11 @@ def check_scene(scene):
              if not isinstance(r, dict) or r.get('style') not in STYLES:problems.append('run %r has no style (pointer or keys)' % (r.get('name') if isinstance(r, dict) else r))
      given = scene.get('given', {})
      if not isinstance(given, dict):problems.append('given is not an object')
 +    workspaces = scene.get('workspaces', {})
 +    if not isinstance(workspaces, dict):problems.append('workspaces is not an object');workspaces = {}
 +    for name, there in workspaces.items():
-+        names = there.get('names', {}) if isinstance(there, dict) else None
-+        if not isinstance(names, dict) or not all(isinstance(k, str) and k and isinstance(v, str) for k, v in names.items()):
++        if not isinstance(there, dict) or not _names(there.get('names', {})):
 +            problems.append('workspace %r: names is not an object of names' % name)
      steps = scene.get('steps')
      if not isinstance(steps, list) or not steps:problems.append('the scene has no steps');steps = []
      for n, step in enumerate(steps, 1):
-@@ -94,14 +133,23 @@ def check_scene(scene):
+@@ -94,14 +139,23 @@ def check_scene(scene):
          except desk_acts.Refusal as refusal:problems.append('step %d: %s' % (n, refusal.words))
          for key in ('expect',):
              if not isinstance(step.get(key, {}), dict):problems.append('step %d: %s is not an object' % (n, key))
@@ -1754,7 +1978,7 @@ index 7b31d05..a0d2ee6 100644
  def expected(step, run_name, seed):
      want = dict(step.get('expect') or {})
      want.update((step.get('expect_by_run') or {}).get(run_name) or {})
-@@ -110,9 +158,11 @@ def expected(step, run_name, seed):
+@@ -110,9 +164,11 @@ def expected(step, run_name, seed):
  
  
  def run_scene(host, scene, run, *, seed, origin, after_step=None):
@@ -1768,30 +1992,32 @@ index 7b31d05..a0d2ee6 100644
      if isinstance(run, str):run = next((r for r in scene['runs'] if r['name'] == run), None)
      if run is None:return {'blocked': 'the scene has no such run'}
      given = scene.get('given') or {}
-@@ -131,7 +181,7 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
+@@ -130,8 +186,9 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
+     try:
          for n, step in enumerate(scene['steps'], 1):
              started = time.monotonic();checks = []
++            args = arguments(step, seed)          # worked out once: what the doer is given is what the row says it was given
              try:
 -                envelope = desk_doers.run(host, step['act'], step.get('args', {}), door='script', by=style, origin=origin,
-+                envelope = desk_doers.run(host, step['act'], arguments(step, seed), door='script', by=style, origin=origin,
++                envelope = desk_doers.run(host, step['act'], args, door='script', by=style, origin=origin,
                                            word='scene %s step %d' % (scene.get('id', ''), n))
                  desk = desk_doers.read_desk(host, 'all')
                  tree = {'act': envelope, 'desk': desk}
-@@ -146,7 +196,7 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
+@@ -146,7 +203,7 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
              except Exception as exc:  # noqa: BLE001 - a step that breaks is a failed step with its message, and the run goes on
                  envelope = {'ok': False, 'by': None, 'words': '%s: %s' % (type(exc).__name__, exc)}
                  checks.append({'path': 'step', 'want': 'no exception', 'got': envelope['words'], 'ok': False})
 -            row = {'n': n, 'act': step['act'], 'args': step.get('args', {}), 'ok': all(c['ok'] for c in checks) if checks else bool(envelope.get('ok')),
-+            row = {'n': n, 'act': step['act'], 'args': arguments(step, seed), 'ok':all(c['ok'] for c in checks) if checks else bool(envelope.get('ok')),
++            row = {'n': n, 'act': step['act'], 'args': args, 'ok':all(c['ok'] for c in checks) if checks else bool(envelope.get('ok')),
                     'done': bool(envelope.get('ok')), 'by': envelope.get('by'), 'words': envelope.get('words'), 'seconds': round(time.monotonic() - started, 3), 'checks': checks,
                     'result': envelope.get('result')}
              out['steps'].append(row)
 diff --git a/workbench/rail_demo.py b/workbench/rail_demo.py
 new file mode 100644
-index 0000000..d40018b
+index 0000000..53654b2
 --- /dev/null
 +++ b/workbench/rail_demo.py
-@@ -0,0 +1,352 @@
+@@ -0,0 +1,410 @@
 +"""Rail Demo: a small engineering workspace made entirely of invented data, built through the Kernel's own operations.
 +
 +Scenes, campaign cases and tests need a real desk to stand on: sources that were admitted, sheets that were reviewed from
@@ -1805,7 +2031,8 @@ index 0000000..d40018b
 +                   the limits. They are put in Files, brought in and admitted like any other source.
 +    sheets         each PDF's table reviewed into a sheet: "Rail Demo bench readings" (12 V; settled current 250 mA;
 +                   startup current 900 mA; startup duration 45 ms), "Rail Demo limits Rev A ARCHIVED" and
-+                   "Rail Demo limits Rev B CURRENT".
++                   "Rail Demo limits Rev B CURRENT" (three limits that differ between the two, and the nominal
++                   voltage, which is the same row in both).
 +    calculations   settled power = 12 V x 250 mA = 3 W exactly; startup power = 12 V x 900 mA = 10.8 W.
 +    findings       four, each bound to what it rests on: one that holds (settled power is inside the Rev B limit; the
 +                   readings and Rev B support it), one that does not hold (startup is inside the Rev B limit of 40 ms;
@@ -1823,7 +2050,9 @@ index 0000000..d40018b
 +this process (Kernel.run_job, what the worker process calls) so that nothing is left running behind it.
 +
 +It needs what a PDF source needs anywhere in Graphite: pypdf and Poppler's pdftotext and pdftoppm. No network, no model.
-+It takes a few seconds, most of them the five jobs.
++It takes a few seconds, most of them the five jobs. Graphite starts a job only when it admits it (free memory, work not
++held); a job of the build that is not started within JOB_WAIT seconds is cancelled and the build stops, saying what the
++job was waiting for.
 +
 +    from workbench import rail_demo
 +    kernel, owner, demo = rail_demo.workspace(folder)   # a workspace and a profile of its own under folder, Rail Demo in it
@@ -1836,11 +2065,15 @@ index 0000000..d40018b
 +import hashlib
 +import os
 +import shutil
++import threading
++from decimal import Decimal, InvalidOperation
 +from pathlib import Path
 +
 +NAME = 'Rail Demo'
 +NOTICE = 'Invented demonstration data. Nothing here was measured.'
-+REVISION = 1                 # bump when what build() makes changes: a campaign records it with each run
++REVISION = 2                 # bump when what build() makes changes: a campaign records it with each run
++JOB_WAIT = 60                # seconds a job of the build may wait to be started before the build gives up, saying why
++PAGE = 100                   # rows asked of a paged list at a time
 +QUESTION = 'Rail Demo (invented data)'           # the investigation's question: it is the desk's title, so the mark is always in sight
 +COLLECTION = 'Rail Demo sources'                 # the collection the sources are admitted to, and their folder in Files
 +HEADERS = ('Parameter', 'Value', 'Unit', 'Conditions')
@@ -1852,10 +2085,12 @@ index 0000000..d40018b
 +            ('Startup duration', '45', 'ms', 'Bench at 25 C'))
 +LIMITS_A = (('Settled power limit', '5', 'W', 'Continuous'),
 +            ('Startup duration limit', '60', 'ms', 'From switch-on'),
-+            ('Startup power ceiling', '12', 'W', 'Up to 60 ms'))
++            ('Startup power ceiling', '12', 'W', 'Up to 60 ms'),
++            ('Nominal voltage', '12', 'V', 'At the rail'))
 +LIMITS_B = (('Settled power limit', '4', 'W', 'Continuous'),
 +            ('Startup duration limit', '40', 'ms', 'From switch-on'),
-+            ('Startup power ceiling', '12', 'W', 'Up to 40 ms'))
++            ('Startup power ceiling', '12', 'W', 'Up to 40 ms'),
++            ('Nominal voltage', '12', 'V', 'At the rail'))          # the one row that is the same in both revisions
 +
 +# key: (file name in Files, the sheet's title, the PDF's heading, its rows)
 +SOURCES = {'readings': ('Rail_Demo_Bench_Readings.pdf', 'Rail Demo bench readings', 'Rail Demo: bench readings of the 12 V rail', READINGS),
@@ -1895,7 +2130,11 @@ index 0000000..d40018b
 +
 +
 +class Unavailable(RuntimeError):
-+    """The demonstration workspace cannot be built here; the message says what is missing, in one sentence."""
++    """Rail Demo cannot be built, read or changed here; the message says why, in one sentence. Only available() says that a
++    prerequisite is missing: anything else that stops a build is a fault."""
++
++
++_NONE = object()
 +
 +
 +# ---------------------------------------------------------------- the sources, written byte by byte
@@ -1966,35 +2205,60 @@ index 0000000..d40018b
 +# ---------------------------------------------------------------- building it, one Kernel operation at a time
 +
 +class _Desk:
-+    """The Kernel as build() uses it: every call is Kernel.dispatch with the owner's principal, and a refusal stops the
-+    build with the operation and Graphite's own reason."""
++    """The Kernel as Rail Demo uses it: every call is Kernel.dispatch with the owner's principal, and a refusal stops the
++    work with what was being done (`doing`), the operation and Graphite's own reason."""
 +
-+    def __init__(self, kernel, principal):
-+        self.kernel = kernel;self.principal = principal;self.operations = []
++    def __init__(self, kernel, principal, doing='Rail Demo could not be built'):
++        self.kernel = kernel;self.principal = principal;self.doing = doing;self.operations = []
 +
 +    def call(self, operation, arguments=None):
 +        answer = self.kernel.dispatch(operation, arguments or {}, self.principal)
 +        self.operations.append(operation)
 +        if not answer.get('ok'):
 +            error = answer.get('error') or {}
-+            raise Unavailable('Rail Demo could not be built: %s was refused (%s).' % (operation, str(error.get('message') or error.get('code') or error)[:300]))
++            raise Unavailable('%s: %s was refused (%s).' % (self.doing, operation, str(error.get('message') or error.get('code') or error)[:300]))
 +        return answer['result']
 +
 +    def job(self, operation, arguments):
 +        """An operation that is a job: submitted through its own operation, then run by the Kernel's job runner here, in this
 +        process, instead of by a worker process left behind. The job's record, evidence and result are the runner's own."""
-+        started = []
++        started = [];held = vars(self.kernel).get('launch', _NONE)
 +        self.kernel.launch = started.append          # the worker process's one call is run_job; it is made below instead
 +        try:
 +            job = self.call(operation, arguments)
-+        finally:
-+            del self.kernel.launch
-+        for ident in started:self.kernel.run_job(ident)
++        finally:                                     # a hold the caller had put on this Kernel is put back as it was
++            if held is _NONE:del self.kernel.launch
++            else:self.kernel.launch = held
++        for ident in started:self.run(ident)
 +        done = self.call('jobs.get', {'id': job['id']})
 +        if done.get('state') != 'Completed':
-+            raise Unavailable('Rail Demo could not be built: the %s job ended %s (%s).' % (
-+                operation, done.get('state'), str(done.get('error') or done.get('current_operation') or '')[:300]))
++            raise Unavailable('%s: the %s job ended %s (%s).' % (
++                self.doing, operation, done.get('state'), str(done.get('error') or done.get('current_operation') or '')[:300]))
 +        return done
++
++    def run(self, ident):
++        """The Kernel's job runner on one job, with a deadline on its wait to be started. The runner starts a job only when
++        Graphite admits it and waits until then, for as long as it takes; with a large model loaded that can be for ever.
++        A job still queued after JOB_WAIT seconds is cancelled through its own operation, which ends the runner's wait,
++        and the work stops with what the job was waiting for."""
++        waited = []
++
++        def give_up():
++            try:
++                job = self.call('jobs.get', {'id': ident})
++                if job.get('state') != 'Queued':return       # started meanwhile: it runs to its own end
++                waited.append('%s: the %s job was not started in %g s (%s).' % (
++                    self.doing, job.get('tool'), JOB_WAIT, str(job.get('current_operation') or 'no reason was given')[:200]))
++                self.call('jobs.cancel', {'id': ident})
++            except Unavailable as refused:
++                waited.append(str(refused))
++        watch = threading.Timer(JOB_WAIT, give_up);watch.daemon = True;watch.start()
++        try:
++            self.kernel.run_job(ident)
++        finally:
++            watch.cancel();watch.join()
++        if waited:
++            raise Unavailable(waited[0])
 +
 +
 +def build(kernel, principal):
@@ -2095,7 +2359,7 @@ index 0000000..d40018b
 +    """Rail Demo as the records of this workspace hold it now, found by its names: {'collection', 'sources': {key: {'item',
 +    'name', 'sha256'}}, 'sheets': {key: id}, 'calculations': {key: id of the one that stands now}, 'page', 'investigation',
 +    'findings': {key: claim id}, 'question'}. Raises Unavailable when it is not here, or not whole."""
-+    desk = _Desk(kernel, principal)
++    desk = _Desk(kernel, principal, 'Rail Demo could not be read')
 +    space = next((s for s in desk.call('intake.namespaces').get('namespaces', ()) if s.get('name') == COLLECTION), None)
 +    if space is None:
 +        raise Unavailable('Rail Demo is not in this workspace.')
@@ -2106,7 +2370,11 @@ index 0000000..d40018b
 +        if row.get('title') in {title for _, title, _, _ in SOURCES.values()}:
 +            origin = desk.call('office.get', {'id': row['id']}).get('origin') or {}
 +            if (origin.get('pdf') or {}).get('item') in here:sheets[row['title']] = row['id']
-+    pages = desk.call('documents.list', {'limit': 100}).get('documents', ())
++    pages = []
++    while True:                 # every page of the workspace: a page of the list at a time, until a short one comes back
++        some = list(desk.call('documents.list', {'limit': PAGE, 'offset': len(pages)}).get('documents', ()))
++        pages.extend(some)
++        if len(some) < PAGE:break
 +    replaced = set();derived = {}
 +    for row in pages:
 +        derivation = (desk.call('documents.get', {'id': row['id']}).get('document') or {}).get('derivation') or {}
@@ -2134,13 +2402,29 @@ index 0000000..d40018b
 +def set_settled_current(kernel, principal, value='300'):
 +    """The change Rail Demo is made for: the settled current set to another value on the working sheet (field.set), and the
 +    settled power worked again from it (office.datasheet.recheck). The reviewed source keeps its reading; the finding that
-+    still says the old result waits for a recheck, and so does the other calculation of the sheet.
++    still says the old result waits for a recheck, and so does the other calculation of the sheet. A change that was
++    stopped after the cell was written and before the power was worked again is carried on by asking for the same value
++    again: the cell is left as it is and the power is worked from it.
 +    Returns {'was', 'now', 'unit', 'sheet_revision', 'calculation': the new page's id, 'power', 'exact', 'power_unit'}."""
-+    desk = _Desk(kernel, principal);demo = find(kernel, principal)
++    desk = _Desk(kernel, principal, 'The settled current of Rail Demo could not be changed');demo = find(kernel, principal)
 +    sheet = desk.call('office.get', {'id': demo['sheets']['readings']})
-+    changed = desk.call('field.set', {'id': 'office:' + sheet['id'], 'cell': SETTLED_CELL, 'value': str(value), 'expected_revision': sheet['revision']})
 +    page = desk.call('documents.get', {'id': demo['calculations']['settled_power']})['document']
++    cell = ((sheet['document'].get('sheets') or [{}])[0].get('cells') or {}).get(SETTLED_CELL) or {}
++    read = next((i.get('value') for i in (page.get('derivation') or {}).get('inputs') or () if i.get('cell') == SETTLED_CELL), None)
++    if _same(cell.get('value'), value) and read is not None and not _same(read, value):
++        # the cell already says it and the settled power was worked from another value: carried on from the recheck
++        changed = {'was': str(read), 'now': str(cell.get('value')), 'unit': str(cell.get('unit') or '').strip(), 'revision': sheet['revision']}
++    else:
++        changed = desk.call('field.set', {'id': 'office:' + sheet['id'], 'cell': SETTLED_CELL, 'value': str(value), 'expected_revision': sheet['revision']})
 +    worked = desk.call('office.datasheet.recheck', {'id': page['id'], 'expected_revision': page['revision']})
 +    result = worked['calculation']['outputs'][0]['value']
 +    return {'was': changed['was'], 'now': changed['now'], 'unit': changed['unit'], 'sheet_revision': changed['revision'],
 +            'calculation': worked['document']['id'], 'power': result['decimal'], 'exact': result['rational'], 'power_unit': result['unit']}
++
++
++def _same(a, b):
++    """Whether two values written as text are the same number."""
++    try:
++        return Decimal(str(a).strip()) == Decimal(str(b).strip())
++    except InvalidOperation:
++        return False

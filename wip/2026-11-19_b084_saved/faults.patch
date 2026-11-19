@@ -27,12 +27,121 @@ index cc3e2d2..49b7d48 100644
  def probe(appearance, width, height, case, extra_env=None, timeout=300):
      """Run one case in a subprocess; its JSON."""
      env = dict(os.environ);env.update(extra_env or {})
+diff --git a/tests_integrated/session_start_probe.py b/tests_integrated/session_start_probe.py
+new file mode 100644
+index 0000000..d1e98f9
+--- /dev/null
++++ b/tests_integrated/session_start_probe.py
+@@ -0,0 +1,103 @@
++"""A helper for test_session_start, not a test module: one start of Graphite as the dedicated session's start script makes
++it, in a process of its own. A start that ends inside Qt takes its process with it, and it must not take the tests.
++
++    python -B tests_integrated/session_start_probe.py RUN [ACT ...]
++
++RUN is a folder kept from one start to the next: the profile (with the session file) and the workspace are in it. The
++start is workbench.qt_app.main itself, on what the start script sets (the Office edition, the whole screen, and the room
++named by ARC_LEDGER_OPEN when the caller set it): the window is built on the saved session and shown, and that room is
++opened at the first turn of the event loop. Then each ACT is done as the owner might do it (home: go Home), the window is
++closed the ordinary way, which saves the session, and what was seen is printed as JSON on the last line: 'built' (the
++window as it was built, before it was shown or anything was opened), 'opened' (after the script's opening), 'left' (after
++the acts) and 'saved' (the session file). Every hold of the right-click's tests is in place (no provider request, no
++worker launch, no job, no session or power call).
++"""
++import json
++import os
++import subprocess
++import sys
++import traceback
++from pathlib import Path
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parents[1]
++if str(ROOT) not in sys.path:sys.path.insert(0, str(ROOT))
++ACTS = {'home': lambda w:w.show_start()}
++TURNS = 12      # of the watch, 50 ms each, between the window coming up and the acts: the script's opening is at the first
++
++
++def seen(w):
++    """What is in the strip and what is in front."""
++    current = w.tabs.currentWidget()
++    return {'tabs': [type(w.tabs.widget(i)).__name__ for i in range(w.tabs.count())], 'current': type(current).__name__ if current is not None else None,
++            'home': bool(w._home_active), 'workspace_in_front': w.central_stack.currentWidget() is w.workspace_split,
++            'waiting': [row.get('kind') for _, row in w.tabs.waiting], 'deferred': [row.get('kind') for row in w.tabs.deferred],
++            'last_surface': w.view_preferences.get('last_surface')}
++
++
++def run(folder, acts):
++    run = Path(folder)
++    os.environ.update(QT_QPA_PLATFORM='offscreen', ARC_LEDGER_EMBEDDED='1', ARC_LEDGER_DISABLE_BOOK_WATCHER='1', ARC1_WORKBENCH_CONFIG_HOME=str(run / 'profile'),
++                      ARC_LEDGER_CONCERN=str(run / 'Concern'), HOME=str(run / 'home'), ARC_LEDGER_EDITION='office', ARC_LEDGER_FULLSCREEN='1')
++    for name in ('ARC_LEDGER_XSESSION', 'ARC_LEDGER_WORKSPACE'):os.environ.pop(name, None)
++    (run / 'home').mkdir(exist_ok=True)
++    from PySide6.QtCore import QTimer
++    from PySide6.QtWidgets import QMessageBox
++    from workbench import clip, qt_app, session_power
++    from workbench.engineering_kernel import Kernel
++    for hold in (patch.object(clip, '_request', side_effect=AssertionError('No provider request')),
++                 patch.object(Kernel, 'launch', side_effect=AssertionError('No worker launch')),
++                 patch.object(Kernel, 'submit', side_effect=AssertionError('No job submission')),
++                 patch.object(session_power, 'system', side_effect=OSError('no login session (held)')),
++                 patch.object(QMessageBox, 'question', return_value=QMessageBox.No)):hold.start()
++    app = qt_app.make_app([]);out = {};windows = [];turns = [0]
++    build = qt_app.WorkbenchWindow.__init__
++
++    def built(w, *args, **kwargs):
++        build(w, *args, **kwargs);windows.append(w);out['built'] = seen(w)
++
++    def watch():
++        if not windows or not windows[0].isVisible():return
++        w = windows[0];turns[0] += 1
++        if turns[0] == 1:      # nothing of the desk's own goes on working behind the start
++            for name in ('agenda_runner', 'study_idle', 'ledger_bridge'):
++                timer = getattr(getattr(w, name, None), 'timer', None)
++                if timer is not None:timer.stop()
++            try:w.type_bar.hatch.lifecycle.timer.stop()
++            except AttributeError:pass
++        if turns[0] != TURNS:return
++        try:
++            out['opened'] = seen(w)
++            for name in acts:ACTS[name](w);app.processEvents()
++            out['left'] = seen(w)
++            out['closed'] = bool(w.close())
++        except Exception:  # noqa: BLE001 - told to the test, and the start still ends
++            out['error'] = traceback.format_exc()
++        QTimer.singleShot(200, app.quit)
++
++    timer = QTimer();timer.setInterval(50);timer.timeout.connect(watch);timer.start()
++    with patch.object(qt_app.WorkbenchWindow, '__init__', built):out['code'] = qt_app.main()
++    try:
++        data = json.loads(windows[0].session.path.read_text(encoding='utf-8'));workspace = data.get('workspace') or {}
++        out['saved'] = {'tabs': [row.get('kind') for row in workspace.get('tabs', [])], 'deferred': [row.get('kind') for row in workspace.get('deferred', [])],
++                        'active': workspace.get('active'), 'last_surface': (data.get('view_preferences') or {}).get('last_surface')}
++    except (OSError, ValueError, IndexError) as error:out['saved'] = repr(error)
++    print(json.dumps(out, default=str))
++    sys.stdout.flush();os._exit(0)
++
++
++def probe(run, *acts, opening='office', timeout=300):
++    """One start in a subprocess, with the room the start script opens (None: no room); its JSON. A start that did not
++    end the ordinary way (a signal: -11 is a segmentation fault) is an AssertionError with what it left behind."""
++    env = dict(os.environ);env.update(QT_QPA_PLATFORM='offscreen', PYTHONFAULTHANDLER='1')
++    env.pop('ARC_LEDGER_OPEN', None)
++    if opening:env['ARC_LEDGER_OPEN'] = opening
++    done = subprocess.run([sys.executable, '-B', str(Path(__file__).resolve()), str(run)] + list(acts), cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=timeout)
++    lines = [line for line in done.stdout.splitlines() if line.startswith('{')]
++    if done.returncode or not lines:
++        raise AssertionError('the start ended with exit code %s and no report:\n%s\n%s' % (done.returncode, done.stdout[-2000:], done.stderr[-4000:]))
++    return json.loads(lines[-1])
++
++
++if __name__ == '__main__':
++    run(sys.argv[1], sys.argv[2:])
 diff --git a/tests_integrated/test_session_start.py b/tests_integrated/test_session_start.py
 new file mode 100644
-index 0000000..3d7b328
+index 0000000..de92931
 --- /dev/null
 +++ b/tests_integrated/test_session_start.py
-@@ -0,0 +1,324 @@
+@@ -0,0 +1,436 @@
 +"""0.8.4: Graphite starts on whatever its session file holds, and her column says "Now:" once.
 +
 +Three faults of 0.8.3, found on 19 November 2026 by a review of code that had been built on it. No test had met them:
@@ -49,7 +158,16 @@ index 0000000..3d7b328
 +   Office at every start) stopped the next start: "'WorkbenchWindow' object has no attribute 'ledger_bridge'". Now a saved
 +   tab that is made with the bridge waits, and the rows after it wait with it in their order, until the window is whole;
 +   and one saved tab that cannot be opened for any other reason is kept in Reopen deferred tabs instead of stopping the
-+   start.
++   start. Opening what waited is part of restoring the session: it does not leave Home, which is already in front by then
++   when it was in front at leaving. (The first form of this fix left Home for each room and showed it again; the start
++   script's opening of the Office, at the first turn of the event loop, then ended inside Qt with no message, at every
++   start after leaving with Home in front and a room open. StartScript below makes that start in a process of its own.)
++   A room is a room whatever sits beside it: a Preview dragged to its left no longer sets it aside.
++
++   Two more values of the session file were looked up without being text, as the appearance was: the build target and
++   the place last shown in the settings. A list in either stopped the start; now only text is looked up.
++
++   And leaving with the Manual open raised while the strip was written down, so that session was not saved at all.
 +
 +3. "Now: Now: ...". The Agenda's one-line summary began with "Now:" while something was running, and her column, which
 +   names that line "Now:", said it again. The summary no longer carries the line's name; in every look.
@@ -113,6 +231,25 @@ index 0000000..3d7b328
 +            self.assertEqual(boss_theme.chosen_appearance({}, path), 'graphite')      # 0.8.3: RecursionError, from both readers
 +            session = Session(path)
 +            self.assertNotIn('appearance', session.state);self.assertEqual(session.state['documents'], [])
++
++    def test_a_saved_target_or_settings_place_that_is_not_text_is_the_default(self):
++        """The same fault in two other places of the session file, in 0.8.3 already: a list looked up among the build
++        targets, or among the places of the settings."""
++        from workbench.engine import DEFAULT_TARGET, TARGETS
++        from workbench.settings_registry import nodes
++        other = next(key for key in sorted(TARGETS) if key != DEFAULT_TARGET);place = nodes()[0]['id']
++        def written(folder, target, selected):
++            path = Path(folder) / 'session-r10.json'
++            path.write_text(json.dumps({'schema': SCHEMA, 'target': target, 'settings_navigation': {'mode': 'settings', 'selected': selected, 'expanded': []}}), encoding='utf-8')
++            return Session(path).state
++        with tempfile.TemporaryDirectory() as folder:
++            new = Session(Path(folder) / 'none.json').state
++            for value in (['f133'], [other], [], {other: True}, {}, 7, 1.5, True, None, ''):
++                state = written(folder, value, value)      # 0.8.3: TypeError: unhashable type, for a list or an object
++                self.assertEqual(state['target'], DEFAULT_TARGET, value)
++                self.assertEqual(state.get('settings_navigation'), new.get('settings_navigation'), value)
++            state = written(folder, other, place)
++            self.assertEqual((state['target'], state['settings_navigation']['selected']), (other, place), 'text that is one of them is kept, as before')
 +
 +    def test_there_is_one_list_of_looks_and_the_session_does_not_import_the_theme(self):
 +        looks = [key for key, _ in presentation_preferences.APPEARANCES]
@@ -221,6 +358,57 @@ index 0000000..3d7b328
 +        self.assertIn('RuntimeError: this tab cannot be made', said.getvalue())
 +        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')
 +
++    def test_a_preview_left_of_a_room_does_not_set_the_room_aside(self):
++        """A room is neither the Preview nor a pin: a Preview already open at a room's turn (dragged to the left of it
++        before leaving) is nothing to the room. It used to set the room aside, at every start from then on."""
++        for bridge_first in (True, False):
++            host = strip_host();tabs = host.tabs
++            host.return_thread = SimpleNamespace(show=lambda host=host:host.add('return', True))      # the Return thread's room, the third room a session can hold
++            if bridge_first:host.bridge()
++            tabs.restore({'tabs': rows('ToolInventoryTab', 'OfficeBuildingTab', 'SlateRoomTab', 'ReturnTab'), 'active': 1, 'deferred': []})
++            if not bridge_first:host.bridge();tabs.restore_waiting()
++            self.assertEqual((host.strip(), tabs.deferred, tabs.waiting), (['tools', 'office', 'slate', 'return'], [], []), bridge_first)
++            self.assertEqual(tabs.currentWidget().objectName(), 'office');self.assertEqual(tabs.preview().objectName(), 'tools')
++            self.assertEqual(host.statusBar().currentMessage(), '', 'nothing was set aside')
++        host = strip_host();host.bridge();tabs = host.tabs      # the Preview's place is still one place: a second Preview row is kept for later
++        tabs.restore({'tabs': rows('ToolInventoryTab', 'OfficeBuildingTab', 'ReadinessTab'), 'active': 0, 'deferred': []})
++        self.assertEqual((host.strip(), tabs.deferred), (['tools', 'office'], rows('ReadinessTab')))
++
++    def test_a_tab_closed_between_the_two_turns_is_not_counted_among_the_restored(self):
++        host = strip_host();tabs = host.tabs
++        tabs.restore({'tabs': rows('ReadinessTab', 'SlateRoomTab', 'OfficeBuildingTab', pinned=('ReadinessTab',)), 'active': 0, 'deferred': []})
++        self.assertEqual(host.strip(), ['readiness']);host.close_tab(0)
++        host.bridge();tabs.restore_waiting()
++        self.assertEqual(host.strip(), ['slate', 'office'], 'the rooms where they were saved: the place of the closed tab is not kept for it')
++        self.assertEqual((tabs.deferred, tabs.waiting, tabs.restored), ([], [], []))
++
++    def test_nothing_is_said_of_a_row_set_aside_while_others_still_wait(self):
++        host = strip_host();tabs = host.tabs
++        with contextlib.redirect_stderr(io.StringIO()):
++            tabs.restore({'tabs': rows('ManualTab', 'OfficeBuildingTab', 'ReadinessTab', pinned=('ManualTab',)), 'active': 1, 'deferred': []})
++        self.assertEqual((tabs.deferred, [row['kind'] for _, row in tabs.waiting]), (rows('ManualTab', pinned=('ManualTab',)), ['OfficeBuildingTab', 'ReadinessTab']))
++        self.assertEqual(host.statusBar().currentMessage(), '', 'the restore is not over: what was set aside is said once, at its end')
++        host.bridge();tabs.restore_waiting()
++        self.assertEqual(host.strip(), ['office', 'readiness']);self.assertEqual(tabs.currentWidget().objectName(), 'office', 'what was in front is still known at the second turn')
++        self.assertEqual(host.statusBar().currentMessage(), '1 former tabs retained in View → Reopen deferred tabs')
++
++    def test_a_strip_that_was_never_restored_has_nothing_waiting(self):
++        host = strip_host();tabs = host.tabs
++        self.assertEqual((tabs.waiting, tabs.restored, tabs.deferred, tabs.restore_active), ([], [], [], None))
++        tabs.restore_waiting()      # was AttributeError: the strip only had these once a session had been restored
++        self.assertEqual((host.strip(), tabs.waiting, tabs.deferred, tabs.snapshot()['deferred']), ([], [], [], []))
++        self.assertEqual(host.statusBar().currentMessage(), '')
++
++    def test_a_tab_is_written_down_whatever_it_calls_its_group(self):
++        """Leaving writes every open tab down. A device group's tab has a group with a name; the Manual has a chooser
++        it calls 'group', which has none: 0.8.3 raised on it, and a session left with the Manual open was not saved."""
++        from PySide6.QtWidgets import QComboBox, QWidget
++        host = strip_host();tabs = host.tabs
++        manual = QWidget();manual.group = QComboBox(manual);device = QWidget();device.group = SimpleNamespace(title='Power')
++        self.assertEqual(tabs.descriptor(manual), {'kind': 'QWidget', 'pinned': False})      # 0.8.3: AttributeError: 'QComboBox' object has no attribute 'title'
++        self.assertEqual(tabs.descriptor(device), {'kind': 'QWidget', 'pinned': False, 'group': 'Power'})
++        tabs.addTab(manual, 'manual');json.dumps(tabs.snapshot())
++
 +    def test_a_window_that_never_gets_a_bridge_keeps_the_room_for_later(self):
 +        host = strip_host();tabs = host.tabs
 +        tabs.restore({'tabs': rows('OfficeBuildingTab', 'ReadinessTab'), 'active': 0, 'deferred': []})
@@ -306,33 +494,66 @@ index 0000000..3d7b328
 +        self.assertEqual(([row['kind'] for row in left['workspace']['tabs']], left['workspace']['deferred']), (rooms, []))
 +        self.assertEqual(left['view_preferences']['last_surface'], 'home')
 +
-+        third = self.start()
++        surfaces = [];set_view_preference = WorkbenchWindow.set_view_preference
++        def kept(w, **values):
++            surfaces.append(values.get('last_surface'));return set_view_preference(w, **values)
++        with patch.object(WorkbenchWindow, 'set_view_preference', kept):third = self.start()
 +        self.assertEqual(self.strip(third), rooms);self.assertEqual((third.tabs.deferred, third.tabs.waiting), ([], []))
 +        self.assertTrue(third._home_active, 'Home was in front when Graphite was left, and is in front again')
 +        self.assertIsNot(third.central_stack.currentWidget(), third.workspace_split)
 +        self.assertEqual(third.view_preferences['last_surface'], 'home')
-+        left = self.leave(third)
-+        self.assertEqual(([row['kind'] for row in left['workspace']['tabs']], left['workspace']['deferred']), (rooms, []), 'nothing piles up from one start to the next')
++        self.assertNotIn('workspace', surfaces, 'and it was never left on the way: restoring a room is not the owner opening it')
++        third.show_manual();self.settle(third)
++        self.assertFalse(third._home_active, 'the owner opening something leaves Home, as ever')
++        third.show_start();self.settle(third)
++        left = self.leave(third)      # 0.8.3: with the Manual open, writing the strip down raised and the session was not saved
++        self.assertEqual(([row['kind'] for row in left['workspace']['tabs']], left['workspace']['deferred']), (rooms + ['ManualTab'], []), 'nothing piles up from one start to the next')
 +        self.assertEqual(left['view_preferences']['last_surface'], 'home')
++
++        fourth = self.start()
++        self.assertEqual(self.strip(fourth), rooms + ['ManualTab'], 'the Preview that was saved behind the rooms waited with them, and is back in its place')
++        self.assertEqual((fourth.tabs.deferred, fourth.tabs.waiting), ([], []));self.assertTrue(fourth._home_active)
++        self.leave(fourth)
 +
 +    def test_the_window_opens_what_waited_as_part_of_being_built(self):
 +        """restore_waiting_tabs by itself, on as much of a window as it touches: the tabs are opened while the window still
-+        counts as being built; when none of them could be opened the first tab has its turn after all; Home comes back in
-+        front if opening them closed it; and with nothing waiting it does nothing."""
++        counts as being built, which is what keeps Home in front (an opener's _close_start does nothing then); when none
++        of them could be opened the first tab has its turn after all; and with nothing waiting it does nothing."""
 +        from workbench.qt_app import WorkbenchWindow
-+        def window(waiting, opens, closes_home):
++        def window(waiting, opens):
 +            said = []
 +            def restore_waiting():
-+                said.append(('restore', w._initializing));del tabs.waiting[:]
-+                if closes_home:w._home_active = False
++                said.append(('restore', w._initializing));WorkbenchWindow._close_start(w);del tabs.waiting[:]      # as each room's opener does
 +            tabs = SimpleNamespace(waiting=list(waiting), restore_waiting=restore_waiting, count=lambda:opens)
-+            w = SimpleNamespace(tabs=tabs, _home_active=True, _initializing=False, _first_tab=lambda:said.append('first tab'), show_start=lambda:said.append('home'))
-+            WorkbenchWindow.restore_waiting_tabs(w);self.assertFalse(w._initializing);return said
++            w = SimpleNamespace(tabs=tabs, _home_active=True, _field_active=False, _initializing=False, _first_tab=lambda:said.append('first tab'))
++            WorkbenchWindow.restore_waiting_tabs(w);self.assertFalse(w._initializing)
++            self.assertTrue(w._home_active, 'Home is not left for a restored tab');return said
 +        row = [(0, {'kind': 'OfficeBuildingTab'})]
-+        self.assertEqual(window(row, opens=1, closes_home=True), [('restore', True), 'home'])
-+        self.assertEqual(window(row, opens=1, closes_home=False), [('restore', True)])
-+        self.assertEqual(window(row, opens=0, closes_home=False), [('restore', True), 'first tab'])
-+        self.assertEqual(window([], opens=0, closes_home=True), [])
++        self.assertEqual(window(row, opens=1), [('restore', True)])
++        self.assertEqual(window(row, opens=0), [('restore', True), 'first tab'])
++        self.assertEqual(window([], opens=0), [])
++
++
++class StartScript(unittest.TestCase):
++    """The start the dedicated session's script makes, each in a process of its own (session_start_probe): the window is
++    built on the saved session and shown, and the Office is opened at the first turn of the event loop."""
++
++    def test_left_with_home_in_front_and_a_room_open_the_next_starts_open_the_office(self):
++        from tests_integrated.session_start_probe import probe
++        office = ['OfficeBuildingTab']
++        with tempfile.TemporaryDirectory(prefix='graphite-084-script-') as run:
++            first = probe(run, 'home')      # a new profile: the script opens the Office, the owner goes Home and leaves
++            self.assertEqual((first['opened']['tabs'], first['opened']['current'], first['left']['home']), (office, 'OfficeBuildingTab', True), first)
++            self.assertEqual((first['code'], first['closed'], first['saved']['tabs'], first['saved']['last_surface']), (0, True, office, 'home'), first)
++            for start in ('the second start', 'the third'):
++                again = probe(run, 'home')      # the first form of the fix: ended inside Qt (a segmentation fault) at the script's opening, at every start
++                built, opened = again['built'], again['opened']
++                self.assertEqual((built['tabs'], built['waiting'], built['deferred']), (office, [], []), start)
++                self.assertEqual((built['home'], built['workspace_in_front'], built['last_surface']), (True, False, 'home'), 'Home was in front at leaving, and is when the window is built')
++                self.assertEqual((opened['tabs'], opened['current'], opened['home'], opened['workspace_in_front']), (office, 'OfficeBuildingTab', False, True),
++                                 "the script's opening brings the restored Office forward")
++                self.assertEqual((again['code'], again['closed'], again.get('error')), (0, True, None), start)
++                self.assertEqual((again['saved']['tabs'], again['saved']['deferred'], again['saved']['last_surface']), (office, [], 'home'), start)
 +
 +
 +class NowLine(unittest.TestCase):
@@ -456,7 +677,7 @@ index d0240bb..ca3bcd1 100644
 +    among the palettes, which cannot be done, and Graphite could not start."""
 +    return value if isinstance(value, str) and value in dict(APPEARANCES) else None
 diff --git a/workbench/qt_app.py b/workbench/qt_app.py
-index abace27..5b76662 100644
+index abace27..bc947c0 100644
 --- a/workbench/qt_app.py
 +++ b/workbench/qt_app.py
 @@ -2378,9 +2378,7 @@ class WorkbenchWindow(QMainWindow):
@@ -466,7 +687,7 @@ index abace27..5b76662 100644
 -        if self.tabs.count() == 0:
 -            from .project_context import detached
 -            if not detached(self.root):self.show_assembly()  # with no project attached, Today is the start: no 'Needs a project' tab
-+        if self.tabs.count() == 0 and not getattr(self.tabs,'waiting',None):self._first_tab()  # a saved tab that waits for the bridge is still to come
++        if self.tabs.count() == 0 and not self.tabs.waiting:self._first_tab()  # a saved tab that waits for the bridge is still to come
          self.update_document_info()
          self.maintenance_timer = QTimer(self)
          self.maintenance_timer.timeout.connect(self._maintain_work)
@@ -489,20 +710,32 @@ index abace27..5b76662 100644
 +    def restore_waiting_tabs(self):
 +        """0.8.4: the saved tabs that waited for the bridge (workspace_tabs.NEEDS_BRIDGE: the Office is a room it opens)
 +        are opened now that the window is whole. They are opened as the others were when the session was restored: this
-+        is not the owner bringing a tab forward, so nothing is recorded as that, and Home stays in front where it was."""
-+        if not getattr(self.tabs,'waiting',None):return
-+        home=self._home_active;self._initializing=True
++        is not the owner bringing a tab forward, so nothing is recorded as that, and Home, which is already in front when
++        it was in front at leaving, is not left (_close_start)."""
++        if not self.tabs.waiting:return
++        self._initializing=True
 +        try:
 +            self.tabs.restore_waiting()
 +            if self.tabs.count() == 0:self._first_tab()
 +        finally:self._initializing=False
-+        if home and not self._home_active:self.show_start()
 +
      def _steady_tab_strip(self):
          """UI02 / V-09 (DESKTOP-01): the per-tab header rows (the Working area strip and the source file's path row) sit under
          the work instead of above it, so the tab strip and the page top never move with the current tab."""
+@@ -3639,6 +3654,11 @@ class WorkbenchWindow(QMainWindow):
+         return tab
+ 
+     def _close_start(self):
++        # While the window restores its session, a tab that opens is not the owner asking to see it: the surface in front
++        # stays. Until 0.8.4 no tab was restored after Home was shown, so this was never asked; now the rooms that waited
++        # for the bridge are (restore_waiting_tabs), and leaving Home for each of them and showing it again before the
++        # window was on screen ended the next opening, the start script's, inside Qt: no message, at every start.
++        if self._initializing:return
+         if self._field_active:  # every room opener calls this first, so opening anything leaves the Field
+             from .field_page import leave_field
+             leave_field(self)
 diff --git a/workbench/session.py b/workbench/session.py
-index d6608f5..7605d87 100644
+index d6608f5..0aad5d3 100644
 --- a/workbench/session.py
 +++ b/workbench/session.py
 @@ -24,7 +24,7 @@ LAYOUT_VERSION = 2          # bump when the dock layout changes; old saved layou
@@ -528,11 +761,29 @@ index d6608f5..7605d87 100644
          # Documents belong to one project; a different project starts clean.
          if self.project and data.get('project') not in (None, self.project):
              return
+@@ -135,7 +135,7 @@ class Session:
+         if isinstance(navigation,dict):
+             from .settings_registry import nodes
+             allowed={r['id'] for r in nodes()}
+-            if (navigation.get('mode') in NAVIGATION_MODES and navigation.get('selected') in allowed
++            if (navigation.get('mode') in NAVIGATION_MODES and isinstance(navigation.get('selected'),str) and navigation['selected'] in allowed  # only text is looked up (0.8.4)
+                     and isinstance(navigation.get('expanded'),list) and len(navigation['expanded'])<=len(allowed)
+                     and all(isinstance(x,str) and x in allowed for x in navigation['expanded'])):
+                 s['settings_navigation']={**navigation,'expanded':list(navigation['expanded'])}
+@@ -224,7 +224,7 @@ class Session:
+             s['pill_link'] = data['pill_link']
+         if _relpath_ok(data.get('active')):
+             s['active'] = data['active']
+-        if data.get('target') in TARGETS:
++        if isinstance(data.get('target'), str) and data['target'] in TARGETS:      # only text is looked up: a list here stopped the start (0.8.4)
+             s['target'] = data['target']
+         if _relpath_ok(data.get('last_game')):
+             s['last_game'] = data['last_game']
 diff --git a/workbench/workspace_tabs.py b/workbench/workspace_tabs.py
-index 8bbc1a7..5e00eb2 100644
+index 8bbc1a7..700e304 100644
 --- a/workbench/workspace_tabs.py
 +++ b/workbench/workspace_tabs.py
-@@ -2,6 +2,11 @@
+@@ -2,10 +2,19 @@
  from PySide6.QtCore import Qt
  from PySide6.QtWidgets import QTabWidget, QPushButton, QMessageBox, QInputDialog, QPlainTextEdit
  
@@ -540,11 +791,31 @@ index 8bbc1a7..5e00eb2 100644
 +# conversation listens to it. The window installs the bridge after it has restored its session, so a saved row of one of
 +# these kinds cannot be opened then; it waits until the window is whole (WorkspaceTabs.restore, restore_waiting).
 +NEEDS_BRIDGE=('OfficeBuildingTab','SlateRoomTab','ClipWorkspaceTab')
++# The saved kinds that are rooms: neither the Preview nor one of the five pins, so a Preview already open at a room's turn
++# (one dragged to the left of it) does not set the room aside.
++ROOMS=('OfficeBuildingTab','SlateRoomTab','ReturnTab')
 +
  
  class WorkspaceTabs(QTabWidget):
      def __init__(self, host):
-@@ -149,25 +154,43 @@ class WorkspaceTabs(QTabWidget):
+         super().__init__(); self.host=host; self.replacing=False;self.last_open_cancelled=False
++        self.deferred=[];self.waiting=[];self.restored=[];self.restore_active=None  # a session being restored (restore, restore_waiting)
+         self.pin_button=QPushButton('Pin / Unpin')
+         self.pin_button.setToolTip('Keep this workspace open · maximum five pins · workspaces opened from the menu or Explore are rooms and are not counted')
+         self.pin_button.clicked.connect(self.toggle_pin)
+@@ -106,7 +115,10 @@ class WorkspaceTabs(QTabWidget):
+         if widget.property('concern_id'):row['concern']=widget.property('concern_id')
+         if widget.property('concern_context'):row['concern_context']=widget.property('concern_context')
+         if hasattr(widget,'device'):row['device']=widget.device.id
+-        if hasattr(widget,'group'):row['group']=widget.group.title
++        # A device group's name. Only text is one: the Manual's 'group' is its chooser, which has no title, and until 0.8.4
++        # leaving with the Manual open raised here, so that session was not saved.
++        group=getattr(getattr(widget,'group',None),'title',None)
++        if isinstance(group,str):row['group']=group
+         if hasattr(widget,'case'):row['case']=bool(widget.case)
+         if hasattr(widget,'position'):row['line'],row['column']=widget.position()
+         return row
+@@ -149,25 +161,43 @@ class WorkspaceTabs(QTabWidget):
          return None
  
      def restore(self,state):
@@ -570,7 +841,8 @@ index 8bbc1a7..5e00eb2 100644
 +            i,row=self.waiting.pop(0)
              # Legacy Start tabs are now the separate Home surface, not a pin.
              if row.get('kind')=='StartPage':continue
-             if (row.get('pinned') and len(self.pinned())>=5) or (not row.get('pinned') and self.preview() is not None):
+-            if (row.get('pinned') and len(self.pinned())>=5) or (not row.get('pinned') and self.preview() is not None):
++            if (row.get('pinned') and len(self.pinned())>=5) or (not row.get('pinned') and row.get('kind') not in ROOMS and self.preview() is not None):
                  self.deferred.append(row);continue
              try:tab=self.open_record(row)
              except (KeyError,ValueError,OSError):tab=None

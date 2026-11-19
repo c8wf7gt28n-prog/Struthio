@@ -40,3 +40,51 @@ copied in), faults/copy (the final tree).
   in the sweep (logs/sweep_base.log); the session is then not saved.
 - The five Kasandra-look failures above.
 - Why the owner did not meet fault 2 on the ThinkPad cannot be told from here.
+
+# faults: after the independent review (fix pass, 19 Nov) — FINISHED
+
+Patch rewritten: work/b084/faults.patch (10 files; applies to a clean export of 155c24c and reproduces the fix worktree,
+`bash work/b084/faults/fix/savepatch.sh`). Nothing committed. Fix worktree: /home/user/Struthio/.claude/worktrees/wf_023c5420-966-6.
+Scripts and logs of this pass: work/b084/faults/fix/ (lib.sh, stage1..3.sh and .out, mutate.py, logs/, tests_default.txt,
+tests_kasandra.txt, builder/ = the builder's versions of the three files changed). The copy (faults/copy) is deleted.
+
+## Must fix: done
+Left with Home in front and a room open, every next start of the dedicated session ended inside Qt (exit 139, no message).
+- Cause: the second pass (the rooms that waited for the bridge) left Home for each room and showed it again before the window
+  was on screen; the start script's opening at the first turn then died in the main window's layout (gdb, fix/logs/gdb_second.log:
+  QWidgetPrivate::setVisible -> QLayout::activate -> QLayoutPrivate::doResize -> SIGSEGV in libQt6Widgets). Why Qt's layout
+  is left in that state by restoring the dock state once before and once after the first show was not traced further.
+- Fix (workbench/qt_app.py): _close_start does nothing while the window restores its session (_initializing), so the second
+  pass never leaves Home, as the first pass never did; the lines that closed Home and showed it again are gone.
+- Test: new helper tests_integrated/session_start_probe.py (one start = workbench.qt_app.main in a process of its own, with what
+  the start script sets) and StartScript in test_session_start.py: three starts on one profile. With the builder's qt_app.py
+  put back it fails "the start ended with exit code -11 ... Segmentation fault"; with the fix it passes. SecondStart also
+  checks, in the real window, that Home is never left on the way (no last_surface 'workspace' is written during the start).
+- The reviewer's own recipe on the fixed copy (builder's repro_start.py "3 home", dedicated settings, one HOME): starts 1, 2, 3
+  exit 0, Office back, nothing deferred; the real launcher on that HOME still running after 25 s; Kasandra look exit 0.
+
+## Should fix: done
+- A Preview left of a room no longer sets the room aside (workspace_tabs.ROOMS: Office, Slate, Return thread).
+- Session 'target' and settings_navigation.selected are looked up only when text (session.py), with a test.
+- WorkspaceTabs.waiting, restored, restore_active and deferred exist from __init__; qt_app reads tabs.waiting directly.
+- Tests for the two lines no test held: a tab closed between the two turns; nothing said while rows still wait.
+- Leaving with the Manual open no longer raises while the strip is written down (descriptor: a group's title only when it is
+  text), so the session is saved; checked in the real window (third and fourth start of SecondStart).
+- Mutants: 8 pieces of this pass taken out one at a time, each caught by the new tests (fix/stage2.out).
+
+## Should fix: not done, on purpose
+- desk_acts.py:167 keeps its literal list of looks until the 'name' item has landed (the reviewer's own advice; a test pins it equal).
+- A tab that cannot be reopened still explains itself only on stderr: launch-error.log means "the start failed", and writing
+  there after a start that succeeded is not clearly right. The status line still says how many tabs were set aside.
+- Rooms the restore does not know (Documents, Files) still go to Reopen deferred tabs at each start: 0.8.3 behaviour, a design choice.
+
+## Tests (fresh copy of the final tree, seed current; fix/tests_default.txt, fix/tests_kasandra.txt)
+- test_session_start: 20 tests OK in the default look and with GRAPHITE_APPEARANCE=kasandra (13 before this pass).
+- The reviewer's 41 modules (the new one and every module that imports a changed file): default look 703 tests, 0 failures;
+  Kasandra look 703 tests, 6 failures in 5 modules (test_context_menu 1, test_frame 1, test_faces_find_light 1,
+  test_writing_line 2, test_conditions 1): the same test names as in the reviewer's run of the unchanged tree.
+
+## Not checked
+- A real display (offscreen only, as the rules say). The owner's ThinkPad.
+- Whether Home closed before the window is first shown by the Field opening at start (open_on_work, 0.8.3 code, untouched)
+  can meet the same Qt fault later: no workspace with work was started here.
