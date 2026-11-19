@@ -196,6 +196,9 @@ switched the session's model.
 
 ## Log (newest first)
 
+- 19 Nov 23:05 UTC: session merged (d44d696): 72 of 102 room kinds now reopen at start (22 before), 3 set aside,
+  19 not by design, 0 raise. tiers built and reviewed, its fix running; guards building (baseline: 56.6% of planted bugs
+  caught by behaviour in the guarding code, target 75%).
 - 19 Nov 22:15 UTC: the owner asked for a discussion of the work once part B finishes.
 - 19 Nov 21:30 UTC: checks and look merged; full suite running.
 - 19 Nov 19:25 UTC: the 5-hour limit stopped part B's second run after checks and look were finished.
