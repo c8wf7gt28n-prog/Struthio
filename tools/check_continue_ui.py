@@ -113,6 +113,9 @@ def steps_by(investigation):
  with k.db() as db:rows=db.execute("SELECT inputs FROM inv_steps WHERE investigation=? AND kind='STEP' ORDER BY seq",(investigation,)).fetchall()
  return [json.loads(r[0]).get('driver','desktop') for r in rows]
 
+def foreground_passed():
+ """The service's next tick comes after the window's foreground lease (resource_control.touch, 8 s) has run out."""
+ with k.db() as db:db.execute("DELETE FROM settings WHERE key='resources.foreground'")
 w.resize(1920,1200);w.show();settle(w);w.ledger_bridge.timer.stop();w.type_bar.hatch.lifecycle.timer.stop()
 with k.db() as db:jobs_before=db.execute('SELECT count(*) FROM jobs').fetchone()[0]
 # 01 · the setting is listed under Slate ▸ Assignments, on by default, read by both consumers
@@ -127,7 +130,7 @@ doc=tab.document_id;tab.page.setFocus();settle(w);QTest.keyClicks(tab.page,PARAG
 first=type_request(w,REQUEST);w.agent_driver.tick();w.shell2.face.work.refresh();settle(w)
 row=status(first);assert (row['state'],row['driver'],row['lease_live'],row['steps_used'],row['service_steps'])==('RUNNING','desktop',True,1,0),row
 refused=k.dispatch('agent.step',{'id':first,'driver':'service'},operator());assert not refused['ok'] and 'ASSIGNMENT_DRIVEN_BY_DESKTOP' in refused['error']['message'],refused
-assert agent_loop.pump(k)==[] and status(first)['steps_used']==1
+assert (foreground_passed(),agent_loop.pump(k))[1]==[] and status(first)['steps_used']==1
 assert 'in the Graphite service' not in line(w.shell2.face,'doing_now') and 'running' in line(w.shell2.face,'working_on')
 check('02 “%s” typed to Slate became assignment %s; one desktop step took the lease (driver desktop, lease live); a service step was refused (%s) and pump skipped it'%(REQUEST,first[:8],refused['error']['message'].split(':')[0]))
 capture(w,'Ledger_Slate_AGENT_02_Continue_01_Desktop_1920.png','The assignment running under this window (one step), before Ledger closes')
@@ -139,7 +142,7 @@ check('03 Closing the window (attached to the Ledger service, setting on) releas
 # 04 · a new window; the service's pump takes one step: the Work block says it happens in the Ledger service
 w2=window(1920,1200);face2=w2.shell2.face
 assert agent_qt.hosted(w2) is False and w2.agent_driver.adopt()==[]   # an in-process window does not take work back (no service there)
-touched=agent_loop.pump(k);assert [(t['id'],t['state'],t['step']['driver']) for t in touched]==[(first,'RUNNING','service')],touched
+foreground_passed();touched=agent_loop.pump(k);assert [(t['id'],t['state'],t['step']['driver']) for t in touched]==[(first,'RUNNING','service')],touched
 row=status(first);assert (row['driver'],row['lease_live'],row['service_steps'],row['steps_used'])==('service',True,1,2),row
 open_destination(w2,'documents:'+doc);w2.shell2.show_slate_face();settle(w2);face2.work.refresh();settle(w2)
 assert w2.console_pages.currentWidget() is face2 and not face2.work.isHidden()
@@ -150,7 +153,7 @@ capture(w2,'Ledger_Slate_AGENT_02_Continue_02_InService_1920.png','The Work bloc
 # 05 · pump finishes it: DONE, the total on the page, the sheet's steps say driver service
 for _ in range(10):
  if status(first)['state']!='RUNNING':break
- agent_loop.pump(k)
+ (foreground_passed(),agent_loop.pump(k))[1]
 row=status(first);assert (row['state'],row['service_steps'],row['steps_used'],row['driver'])==('DONE',4,5,'service'),row
 page=stored(doc);assert page['blocks'][-1]['text'].startswith('Total of the 3 quantities on this page: 16 kg'),page['blocks']
 assert steps_by(row['investigation'])==['desktop','service','service','service','service']
@@ -180,19 +183,19 @@ open_destination(w2,'documents:'+doc);settle(w2);second=type_request(w2,REQUEST)
 assert status(second)['state']=='RUNNING'
 words=close_attached(w2);row=status(second)
 assert words=='pause' and (row['state'],row['paused_reason'],row['service_steps'])==('PAUSED','Graphite closed',0),row
-assert agent_loop.pump(k)==[]
+assert (foreground_passed(),agent_loop.pump(k))[1]==[]
 check('08 With the setting off, closing the attached window paused the assignment as in AGENT-01 (PAUSED “Graphite closed”); pump does nothing')
 # 09 · setting on again: a released assignment is taken back by a reopened window (the desktop has priority)
 set_setting(True)
 w3=window(1920,1200);open_destination(w3,'documents:'+doc);settle(w3);third=type_request(w3,REQUEST);w3.agent_driver.tick()
 assert close_attached(w3)=='release' and status(third)['driver'] is None
-agent_loop.pump(k);row=status(third);assert (row['driver'],row['service_steps'],row['steps_used'])==('service',1,2),row
+(foreground_passed(),agent_loop.pump(k))[1];row=status(third);assert (row['driver'],row['service_steps'],row['steps_used'])==('service',1,2),row
 w4=window(1366,768);face4=w4.shell2.face;driver4=w4.agent_driver
 with patch.object(w4.ledger_bridge.kernel,'is_host_client',True,create=True):taken=driver4.adopt()
 assert taken==[third] and driver4.running()==[third],(taken,driver4.running())
 driver4.timer.stop();driver4.tick();row=status(third)
 assert (row['driver'],row['lease_live'],row['steps_used'],row['service_steps'])==('desktop',True,3,1),row
-assert agent_loop.pump(k)==[] and status(third)['steps_used']==3   # the service leaves it to the window
+assert (foreground_passed(),agent_loop.pump(k))[1]==[] and status(third)['steps_used']==3   # the service leaves it to the window
 open_destination(w4,'documents:'+doc);w4.shell2.show_slate_face();settle(w4);face4.work.refresh();settle(w4)
 assert w4.console_pages.currentWidget() is face4 and face4.work.current['id']==third and 'running' in line(face4,'working_on')
 assert line(face4,'doing_now').startswith('Doing now · ') and 'in the Graphite service' not in line(face4,'doing_now') and five_parts(w4)

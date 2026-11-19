@@ -70,11 +70,6 @@ class CatTimingTests(unittest.TestCase):
 
 
 class MarkAndTileTests(unittest.TestCase):
-    def test_palette_is_graphite_paper_eraser_and_pencil_only(self):
-        from workbench import shell2
-        self.assertEqual((g.GRAPHITE,g.PAPER,g.PAPER_LIGHT,g.ERASER_MARK,g.PENCIL),(shell2.TEXT,shell2.GROUND,shell2.CARD,shell2.ERASER_MARK,shell2.AMBER_EDGE))
-        self.assertTrue({g.CAT_COAT,g.CAT_DETAIL,g.CAT_IRIS,g.CAT_NOSE,g.CAT_FOCUS}<={g.GRAPHITE,g.PAPER_LIGHT,g.ERASER_MARK,g.PENCIL},'HATCH DESK D2: the cat in the owner\'s colours')
-
     def test_the_point_converges_with_a_gap_and_a_stroke_past_the_tip(self):
         (a,b,tip_u),(c,d,tip_l)=g.UPPER,g.LOWER
         self.assertLess(b[1],c[1],'a gap between the wedges at their wide end');self.assertGreater(tip_u[0],tip_l[0])
@@ -220,28 +215,6 @@ class MarkAndTileTests(unittest.TestCase):
         self.assertEqual(bar.cat_tile(1.0),(round(44*g.CAT_RATIO),44));self.assertEqual(bar.cat_tile(2.0)[1],62)
         self.assertEqual(bar.cat_tile(0.64),bar.cat_tile(1.0),'a smaller interface never shrinks the cat')
 
-    def test_the_band_places_the_cat_by_its_pale_coat(self):
-        """The integration of D2 and D3 (the review of D3, finding 7): the cat is placed and paired by what the band shows, its pale
-        coat, as the words are by their ink. Drawn on the band's mean tone at the place the band gives it (cat_ink, outline=False,
-        at the inset), its first column at the words' ink level (desk_qt.INK_LEVEL of the way from the band to the lettering) is the
-        inset at 14, 18 and 20 pt; the paws' graphite outline beside it stays under that level (graphite on graphite). Placed by the
-        extent with the outline (before), the coat began a column later."""
-        from PySide6.QtWidgets import QApplication
-        from PySide6.QtCore import QRectF
-        from PySide6.QtGui import QColor,QImage,QPainter
-        from workbench import desk_qt
-        QApplication.instance() or QApplication([])
-        tone=QColor(desk_qt.grain_report()['mean_tone']);level=tone.lightness()+desk_qt.INK_LEVEL*(QColor(desk_qt.ERASED).lightness()-tone.lightness())
-        def first_pale(origin,w,h):
-            image=QImage(int(origin+w+8),h,QImage.Format_RGB32);image.fill(tone);p=QPainter(image);g.paint_cat(p,QRectF(origin,0,w,h),g.POSES['rest']);p.end()
-            return next(x for x in range(image.width()) if any(QColor(image.pixel(x,y)).lightness()>=level for y in range(h)))
-        for points in (14,18,20):
-            w,h=bar.cat_tile(points/14.0);inset=desk_qt.inset(points/14.0)
-            coat=g.cat_ink(QRectF(0,0,w,h),g.POSES['rest'],False);room=g.cat_ink(QRectF(0,0,w,h),g.POSES['rest'])
-            self.assertLess(room[0],coat[0],'the outline lies outside the coat');self.assertGreater(room[2],coat[2])
-            self.assertEqual(first_pale(inset-coat[0],w,h),inset,points)
-            self.assertEqual(first_pale(inset-room[0],w,h),inset+1,('placed by the outline the coat starts a column in',points))
-
     def test_the_startup_screen_never_stops_the_start(self):
         from workbench import launch
         with patch.object(g,'startup_screen',side_effect=RuntimeError('no screen')):self.assertIsNone(launch.startup_screen())
@@ -328,8 +301,8 @@ class RenameGuardTests(unittest.TestCase):
 
     def test_public_name_and_internal_identities(self):
         from workbench import version,hatch_qt,typebar_qt,desktop_header_qt
-        self.assertEqual((version.NAME,version.SHORT,version.title()),('Graphite','0.1','Graphite 0.1'))
-        self.assertEqual(typebar_qt.TARGETS[0],('slate','Assignment'),'the first mode is Assignment (D3; the one who answers stays Graphite); its key stays slate')
+        self.assertEqual((version.NAME,version.title()),('Graphite','Graphite '+version.SHORT))  # the number is test_release_check's
+        self.assertEqual(typebar_qt.TARGETS[0][0],'slate','the first mode is hers (Stacy, or Kasandra in her appearance); its key stays slate')
         self.assertEqual((hatch_qt.HatchButton.NAME,hatch_qt.SERVICES_MENU),('Open apps','Graphite services'))  # HATCH DESK D2: the cat opens the programs list
         self.assertEqual(desktop_header_qt.SlateSwitch.__name__,'SlateSwitch','class names are internal and stay')
 

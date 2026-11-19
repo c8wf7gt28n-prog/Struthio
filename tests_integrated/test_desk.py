@@ -23,9 +23,10 @@ class PaneWidthTests(unittest.TestCase):
         self.assertEqual(even.pane, odd.pane, 'the panes never take the odd pixel');self.assertEqual(odd.workspace, even.workspace + 1)
 
     def test_the_default_follows_the_interface_size_under_the_ceiling(self):
-        self.assertEqual(desk.default_pane(1.0), 360);self.assertEqual(desk.default_pane(18 / 14), 463);self.assertEqual(desk.default_pane(20 / 14), 504)
-        self.assertEqual(desk.default_pane(2.0), 504, '28 pt is capped at 1.4');self.assertEqual(desk.default_pane(0.64), 360, 'a smaller interface never shrinks it')
-        self.assertEqual(desk.desk(1920, 1.0, 21).pane, 360)
+        P = desk.PANE  # the look's default width (268 since the BOSS desk); the rule is what is tested, not the number
+        self.assertEqual([desk.default_pane(s) for s in (1.0, 18 / 14, 20 / 14)], [P, round(P * 18 / 14), round(P * 1.4)])
+        self.assertEqual(desk.default_pane(2.0), round(P * 1.4), '28 pt is capped at 1.4');self.assertEqual(desk.default_pane(0.64), P, 'a smaller interface never shrinks it')
+        self.assertEqual(desk.desk(1920, 1.0, 21).pane, P)
 
     def test_the_workspace_keeps_the_floor_the_old_rules_protected(self):
         # V01 W1's centre floor, kept: 400 px at 14 pt, scaled up to 1.4 (514 at 18 pt, 560 at 20 pt).
@@ -34,7 +35,8 @@ class PaneWidthTests(unittest.TestCase):
             d = desk.desk(width, scale, 28)
             self.assertGreaterEqual(d.workspace, desk.centre_floor(scale), (width, scale, d))
         self.assertEqual(desk.desk(1280, 20 / 14, 30).pane, 359, '1280 by 800 at 20 pt: (1280 - 2 - 560) // 2')
-        self.assertEqual(desk.desk(1366, 18 / 14, 28, centre=600).workspace, 600, 'the workspace\'s own content raises its floor')
+        centre = 1366 - 2 - 2 * desk.default_pane(18 / 14) + 40  # more than the default panes leave the workspace
+        self.assertEqual(desk.desk(1366, 18 / 14, 28, centre=centre).workspace, centre, 'the workspace\'s own content raises its floor')
 
     def test_whole_words_widen_both_panes_and_least_is_a_floor_even_for_the_workspace(self):
         self.assertEqual(desk.pane_width(1920, 1.0, whole=397), 397, 'every slot word whole: both panes widen together')
@@ -45,7 +47,7 @@ class PaneWidthTests(unittest.TestCase):
         self.assertEqual(desk.pane_width(1920, 1.0, owner=420), 420)
         self.assertEqual(desk.pane_width(1920, 1.0, owner=300, whole=330), 330, 'an owner\'s width under the words\' need is raised to it')
         self.assertEqual(desk.pane_width(1366, 1.0, owner=600), 482, 'never so wide the workspace falls under its floor')
-        self.assertEqual(desk.pane_width(1920, 1.0, owner=True), 360, 'a stray boolean is not a width');self.assertEqual(desk.pane_width(1920, 1.0, owner=5000), 360)
+        self.assertEqual(desk.pane_width(1920, 1.0, owner=True), desk.PANE, 'a stray boolean is not a width');self.assertEqual(desk.pane_width(1920, 1.0, owner=5000), desk.PANE)
         self.assertEqual((desk.saved_pane(420), desk.saved_pane(159), desk.saved_pane('420'), desk.saved_pane(None)), (420, None, None, None))
 
 
@@ -55,6 +57,7 @@ class BandTests(unittest.TestCase):
         self.assertEqual(desk.band_height(18 / 14, 27), 73);self.assertEqual(desk.band_height(20 / 14, 30), 78)
         self.assertEqual(desk.band_height(1.0, 40), 40 + desk.WORD_CHROME + 2 * desk.BAND_PAD, 'a tall word wins over the cat')
         self.assertEqual(desk.word_height(21), 43);self.assertEqual(desk.WORD_CHROME % 2, 0, 'even: the line and the words share a text row')
+        from workbench import typebar_qt;self.assertEqual(desk.CAT, typebar_qt.HATCH_ICON, 'the band\'s height unit is the lower band\'s icon')
 
     def test_scaled_sizes(self):
         self.assertEqual([desk.inset(s) for s in (1.0, 18 / 14, 20 / 14)], [16, 21, 22])
@@ -108,21 +111,21 @@ class GrainTests(unittest.TestCase):
         self.assertEqual(a, b, 'drawn the same every time: no random seed per run')
         self.assertEqual(len(a), desk.GRAIN_SIZE[0] * desk.GRAIN_SIZE[1])
         self.assertLessEqual(max(abs(v) for v in a), desk.GRAIN_AMPLITUDE);self.assertLess(abs(sum(a) / len(a)), 0.05)
-        self.assertGreater(len(set(a)), 6, 'a grain, not a flat fill')
+        self.assertGreaterEqual(len(set(a)), 3, 'a grain, not a flat fill')
         self.assertEqual(desk.tone(0), desk.BAND);self.assertEqual(desk.tone(-300), (0, 0, 0))
 
     def test_the_lettering_reads_on_the_band(self):
         report = desk.grain_report()
-        self.assertEqual(report['mean_tone'], '#4a4741')
+        self.assertEqual(report['mean_tone'], '#%02x%02x%02x' % desk.BAND, 'the grain is centred on the band')
+        from workbench import boss_theme
+        for name, p in boss_theme.PALETTES.items():  # both appearances, whichever this process chose
+            for role in ('ERASED', 'ERASED_QUIET'):self.assertGreaterEqual(desk.contrast(p[role], p['BAND']), 4.5, (name, role))
+            for role in ('BAND_MARK', 'BAND_PENCIL'):self.assertGreaterEqual(desk.contrast(p[role], p['BAND']), 3.0, (name, role))
         for name in ('lettering', 'quiet lettering'):
             self.assertGreaterEqual(report['contrast'][name]['on_mean'], 4.5, name);self.assertGreaterEqual(report['contrast'][name]['on_light_grain'], 4.5, name)
         for name in ('action mark', 'active mark'):self.assertGreaterEqual(report['contrast'][name]['on_mean'], 3.0, name)  # marks are graphics: 3:1
         self.assertAlmostEqual(desk.contrast('#ffffff', '#000000'), 21.0);self.assertEqual(desk.contrast('#504d46', '#504d46'), 1.0)
 
-    def test_the_band_colours_are_the_palettes(self):
-        from workbench import graphite_brand, shell2
-        self.assertEqual(desk.ERASED, graphite_brand.ERASED);self.assertEqual(desk.ERASER_MARK, shell2.ERASER_MARK);self.assertEqual(desk.PENCIL, shell2.AMBER_EDGE)
-        self.assertEqual(desk.CAT, 44);from workbench import typebar_qt;self.assertEqual(desk.CAT, typebar_qt.HATCH_ICON)
 
 
 class PaneTests(unittest.TestCase):

@@ -11,6 +11,9 @@ HOST=dict(logical_cpus=8,available_ram_bytes=8*1024**3,total_ram_bytes=16*1024**
 # Fixture process numbers no real process can have: they sit above the kernel's largest. A stop path a test does not hold
 # then finds nothing to signal. With small numbers one test signalled a real process and its children (12 November 2026).
 NOBODY=2**22
+# What start_server records as the files it verified at load (verify_resident compares them before Ready).
+STAMPS=[{'path':'/not-a-model/fixture.gguf','sha256':'e'*64,'stat':[0,0,1024*1024,0,0]}]
+LAUNCH=('context','threads','memory_mb')
 
 
 def fixture_model(ident='a'*64):
@@ -41,12 +44,15 @@ class ModelSettingsTests(unittest.TestCase):
         args=dict(id=ident,request_key=key)
         if options is not None:args['options']=options
         return self.call(operation,args)
+    def launched(self,job):
+        value=model_settings.config(job['brain_launch']['options']);return {k:value[k] for k in LAUNCH},value['backend']
     def selected(self):
         old=dict(model_id='a'*64,config=dict(context=1024,threads=2,memory_mb=2048),owner='owner')
         brain.put(self.k,'selection',old);return old
     def worker(self,selection,pid=NOBODY+91):
         return dict(owner='owner',model_id=selection['model_id'],config=copy.deepcopy(selection['config']),context=selection['config']['context'],
-                    pid=pid,start='fixture-start',job_id='c'*32,runtime={},started=1.0,key_file='/private/worker.key',port=12345)
+                    pid=pid,start='fixture-start',job_id='c'*32,runtime={},started=1.0,key_file='/private/worker.key',port=12345,
+                    backend='CPU',verified_files=copy.deepcopy(STAMPS))
 
     def test_saved_defaults_undo_default_revision_and_atomic_history(self):
         changed=self.set('brain.context',4096)
@@ -84,16 +90,17 @@ class ModelSettingsTests(unittest.TestCase):
         retry=self.request();self.assertEqual(retry['id'],job['id']);self.assertEqual(retry['brain_launch'],job['brain_launch'])
         self.assertEqual(self.launch_mock.call_count,1)
         direct=self.call('jobs.submit',dict(tool='brain.activate',request_key='direct',brain={'model_id':'a'*64}))
-        self.assertEqual(model_settings.config(direct['brain_launch']['options']),dict(context=6144,threads=6,memory_mb=2048))
+        self.assertEqual(self.launched(direct),(dict(context=6144,threads=6,memory_mb=2048),'AUTO'))
 
     def test_explicit_request_and_restore_override_launch_defaults(self):
         self.set('brain.context',6144);self.set('brain.threads',8);self.set('brain.memory_mb',4096)
         direct=self.request(options=dict(context=2048,threads=3,memory_mb=2048))
-        self.assertEqual(model_settings.config(direct['brain_launch']['options']),dict(context=2048,threads=3,memory_mb=2048))
+        self.assertEqual(self.launched(direct),(dict(context=2048,threads=3,memory_mb=2048),'AUTO'))
         previous=dict(model_id='a'*64,config=dict(context=1024,threads=2,memory_mb=2048),owner='owner')
         brain.put(self.k,'previous',previous)
         restored=self.call('brain.restore',{'request_key':'restore'})
-        self.assertEqual(model_settings.config(restored['brain_launch']['options']),previous['config'])
+        # A previous selection recorded before backends keeps the old CPU contract, not today's saved default.
+        self.assertEqual(self.launched(restored),(previous['config'],'CPU'))
         qualified=self.request(key='qualify',operation='brain.model.qualify')
         self.assertEqual(qualified['tool'],'brain.qualify');self.assertEqual(qualified['brain_launch']['options']['context'],6144)
 
@@ -132,41 +139,49 @@ class ModelSettingsTests(unittest.TestCase):
         with self.k.db() as db:self.assertEqual(db.execute('SELECT value FROM settings WHERE key=?',('ledger.brain.context',)).fetchone()[0],'"invalid fixture"')
         self.assertFalse(self.k.dispatch('brain.model.use',{'id':'b'*64},self.owner)['ok']);self.launch_mock.assert_not_called()
 
-    def transaction(self,mode='restore',cancel=False,reply=False):
+    def transaction(self,mode='restore',cancel=False,reply=False,key='load',on_disk=STAMPS):
         old=self.selected();worker=self.worker(old);brain.put(self.k,'worker',worker)
-        job=self.request();job['state']='Running';job['cancel']=cancel;self.k.save('jobs',job)
+        job=self.request(key=key);job['state']='Running';job['cancel']=cancel=='before';self.k.save('jobs',job)
         if reply:self.k.save('jobs',dict(id='e'*32,owner='owner',tool='brain.respond',state='Running'))
         alive={NOBODY+91};calls=[]
         def terminate(kernel,value,reason):alive.discard(value['pid'])
         def start(kernel,value,config,ident,*args,**kwargs):
             calls.append(value['id'])
+            if cancel=='during':self.k.save('jobs',{**self.k.record('jobs',ident),'cancel':True})
             if value['id']=='b'*64 or mode=='fail':raise ValueError('Controlled candidate load failure')
             restored=self.worker(dict(model_id=value['id'],config=config),pid=NOBODY+92);restored['job_id']=ident;alive.add(NOBODY+92);return restored
         with ExitStack() as stack:
+            stack.enter_context(patch.object(brain,'file_stamps',return_value=copy.deepcopy(on_disk)))
             stack.enter_context(patch.object(brain,'worker_live',side_effect=lambda value:bool(value and value.get('pid') in alive)))
             stack.enter_context(patch.object(brain,'terminate',side_effect=terminate))
             stack.enter_context(patch.object(brain,'start_server',side_effect=start))
             stack.enter_context(patch.object(brain,'completion',return_value={'text':'ready','usage':{},'memory':{}}))
             with self.assertRaises(ValueError):brain.run_model_job(self.k,job)
-            job.update(state='Cancelled' if cancel else 'Failed');self.k.save('jobs',job)
+            job.update(state='Cancelled' if cancel else 'Failed',cancel=bool(cancel));self.k.save('jobs',job)
             snap=model_settings.snapshot(self.k,'owner')
         self.assertEqual(brain.get(self.k,'selection'),old);self.assertIsNone(brain.get(self.k,'handover'));return snap,calls,alive
 
     def test_failed_activation_retains_original_restore_and_reports_owned_restored_worker(self):
         snap,calls,alive=self.transaction()
         self.assertEqual(calls,['b'*64,'a'*64]);self.assertIn(NOBODY+92,alive);self.assertEqual(snap['state'],'RESTORED_PREVIOUS')
-        self.assertEqual(snap['worker_config'],dict(context=1024,threads=2,memory_mb=2048))
+        running=snap['worker_config'];self.assertEqual(({k:running[k] for k in LAUNCH},running['backend']),(dict(context=1024,threads=2,memory_mb=2048),'CPU'))
         self.assertEqual(snap['last_operation']['state'],'Failed');self.assertTrue(snap['restored_after_job'])
 
     def test_failed_restore_never_claims_running_or_restored_values(self):
         snap,calls,alive=self.transaction(mode='fail')
         self.assertFalse(alive);self.assertIsNone(snap['worker_config']);self.assertIsNone(snap['restored_after_job'])
         self.assertEqual(snap['state'],'MODEL_STOPPED')
+        # The previous weights changed on disk after the restored worker loaded them: it is stopped, never Ready.
+        snap,calls,alive=self.transaction(key='changed',on_disk=[dict(STAMPS[0],sha256='f'*64)])
+        self.assertEqual(calls,['b'*64,'a'*64]);self.assertFalse(alive);self.assertIsNone(snap['restored_after_job'])
 
     def test_owner_cancellation_stays_stopped_and_never_automatically_restores(self):
-        snap,calls,alive=self.transaction(cancel=True)
+        snap,calls,alive=self.transaction(cancel='during')
         self.assertEqual(calls,['b'*64]);self.assertFalse(alive);self.assertIsNone(snap['worker_config'])
         self.assertEqual(snap['last_operation']['state'],'Cancelled')
+        # Cancelled before it ran: the running model is never stopped for it.
+        snap,calls,alive=self.transaction(cancel='before',key='before')
+        self.assertEqual(calls,[]);self.assertEqual(alive,{NOBODY+91});self.assertIsNotNone(snap['worker_config'])
 
     def test_running_reply_refuses_handover_without_stopping_the_original_worker(self):
         snap,calls,alive=self.transaction(reply=True)
@@ -179,7 +194,7 @@ class ModelSettingsTests(unittest.TestCase):
         observed=[]
         def start(kernel,value,config,ident,*args,**kwargs):
             observed.append(config)
-            return dict(owner='owner',model_id=value['id'],context=config['context'],config=config,
+            return dict(owner='owner',model_id=value['id'],context=config['context'],config=config,backend='CPU',
                         pid=NOBODY+93,start='fixture-start',runtime={},load_seconds=.01,job_id=ident)
         with patch.object(brain,'start_server',side_effect=start),patch.object(brain,'completion',return_value={'text':'ready','usage':{},'memory':{}}),patch.object(brain,'recheck'),patch.object(brain,'worker_live',side_effect=lambda w:bool(w and w.get('pid')==NOBODY+93)):
             result=brain.run_model_job(self.k,job);row=self.row('brain.context')

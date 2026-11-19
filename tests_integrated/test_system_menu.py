@@ -484,25 +484,24 @@ class MenuTests(unittest.TestCase):
         with patch.object(power,'tell',side_effect=lambda h,title,text:told.append(title)):menu.session_rows['shutdown'].click();self.settle()
         self.assertEqual(told,['Shut down is unavailable']);self.assertEqual(self.fake.runs,[],'an unavailable row only says why')
 
-    def test_the_two_menus_are_point_mirror_images(self):
-        """Symmetry rule 6 by numbers: the same inset from the side edge, the same band from the top or the bottom, one width,
-        one row height, one icon column."""
-        from PySide6.QtCore import QPoint
+    def test_the_apps_list_opens_under_its_control_inside_the_window_and_never_over_a_band(self):
+        """0.7.0: the System menu and the cat's corner list are gone; Apps opens from the head ('upper-programs'), under its
+        control, the band's inset inside the window's edges, the head's foot its top, never over either band."""
+        from PySide6.QtCore import QPoint,QSize
+        from PySide6.QtWidgets import QWidget
         from workbench import programs_qt,desk_qt
-        host=self.window();host.resize(1366,768)
+        host=self.window();host.resize(1366,768);host.show();self.addCleanup(host.close)
         host.desk=desk_qt.desk(1366,1.0,22);host.ribbon_dock=SimpleNamespace(height=lambda:host.desk.band,isVisible=lambda:True);host.type_dock=host.ribbon_dock
-        class Probe:
-            def sizeHint(self):from PySide6.QtCore import QSize;return QSize(10,500)
-        lower=programs_qt.place(host,Probe(),'lower-left');upper=programs_qt.place(host,Probe(),'upper-right');origin=host.mapToGlobal(QPoint(0,0))
-        d=host.desk
-        self.assertEqual(lower.x()-origin.x(),d.inset);self.assertEqual(origin.x()+1366-(upper.x()+upper.width()),d.inset)
-        self.assertEqual(origin.y()+768-(lower.y()+lower.height()),d.band);self.assertEqual(upper.y()-origin.y(),d.band)
-        self.assertEqual(lower.size(),upper.size());self.assertEqual(lower.width(),programs_qt.menu_width(host))
-        from workbench.system_menu_qt import words_need
-        m=programs_qt.metrics(host);self.assertEqual(programs_qt.menu_width(host),max(d.pane-2*d.inset,programs_qt.programs_need(m),words_need(m)))
-        self.assertEqual(programs_qt.menu_width(host),d.pane-2*d.inset,'the panes\' content column at 14 pt')
-        tall=SimpleNamespace(sizeHint=lambda:__import__('PySide6.QtCore',fromlist=['QSize']).QSize(10,5000))
-        self.assertEqual(programs_qt.place(host,tall,'lower-left').height(),768-2*d.band,'never over either band')
+        d=host.desk;origin=host.mapToGlobal(QPoint(0,0))
+        def probe(h):return SimpleNamespace(sizeHint=lambda:QSize(10,h))
+        for x in (400,5,1366-20):
+            control=QWidget(host);control.setGeometry(x,0,60,d.band);host.shell2=SimpleNamespace(top=SimpleNamespace(programs=control))
+            rect=programs_qt.place(host,probe(500),'upper-programs');width=programs_qt.menu_width(host)
+            self.assertEqual((rect.y()-origin.y(),rect.width()),(d.band,width),'the head\'s foot, the one menu width')
+            self.assertGreaterEqual(rect.x()-origin.x(),d.inset);self.assertLessEqual(rect.x()+rect.width()-origin.x(),1366-d.inset)
+            if d.inset<=x<=1366-d.inset-width:self.assertEqual(rect.x()-origin.x(),x,'under its control')
+        self.assertLessEqual(programs_qt.menu_width(host),1366//2-d.inset,'never past the axis less an inset')
+        self.assertEqual(programs_qt.place(host,probe(5000),'upper-programs').height(),768-2*d.band,'never over either band')
 
     def test_the_programs_list_and_the_system_menu_share_their_numbers(self):
         from workbench.hatch_qt import HatchButton
@@ -522,15 +521,6 @@ class MenuTests(unittest.TestCase):
 class CatColourTests(unittest.TestCase):
     """The owner's colours carry the cat's state; the coat is the band's brightest value, a step above its lettering."""
     def setUp(self):app()
-
-    def test_the_colours_are_named_constants_and_the_coat_is_warm_paper(self):
-        from workbench import graphite_brand as g,shell2,desk_qt
-        self.assertEqual((g.CAT_COAT,g.CAT_DETAIL,g.CAT_IRIS,g.CAT_NOSE,g.CAT_FOCUS),(shell2.CARD,shell2.TEXT,shell2.AMBER_EDGE,shell2.ERASER_MARK,shell2.ERASER_MARK))
-        self.assertNotEqual(g.CAT_COAT.lower(),'#ffffff','warm paper, never a cold white')
-        rgb=lambda c:tuple(int(c[i:i+2],16) for i in (1,3,5));mean=desk_qt.grain_report()['mean_tone']
-        coat=desk_qt.contrast(rgb(g.CAT_COAT),mean);letters=desk_qt.contrast(rgb(desk_qt.ERASED),mean)
-        self.assertGreaterEqual(coat,9.0);self.assertGreater(coat,letters)
-        self.assertGreater(sum(rgb(g.CAT_COAT)),sum(rgb(desk_qt.ERASED)),'brighter than the band\'s lettering')
 
     def test_yellow_irises_only_when_awake_to_you(self):
         from PySide6.QtCore import QRectF

@@ -79,11 +79,42 @@ def own_room(widget):
         if widget.menu() is not None:room -= widget.style().pixelMetric(QStyle.PM_MenuButtonIndicator, option, widget)
         return room - _icon_room(widget)
     if isinstance(widget, QToolButton):
-        # The tool button's own chrome (padding, border, a menu arrow) as the style measures it in the size hint.
+        # The tool button's own chrome (padding, border, a menu arrow) as the style measures it in the size hint. That over-
+        # counts a styled button (the head's menus: a stylesheet with no menu arrow, laid out a pixel or two under the hint),
+        # so when the hint says short, the words are measured as drawn: their ink in the button's own grab, the room being
+        # the ink when it is the whole advance and clear of both edges.
         natural = widget.fontMetrics().horizontalAdvance(plain(widget)) + _icon_room(widget)
         chrome = max(0, widget.sizeHint().width() - natural)
-        return widget.contentsRect().width() - chrome
+        room = widget.contentsRect().width() - chrome
+        if room < need_of(widget, plain(widget)) - TOLERANCE and widget.width() > 2:
+            drawn = _drawn_width(widget)
+            if drawn is not None:room = max(room, need_of(widget, plain(widget)))  # drawn whole: as much room as the words need
+        return room
     return widget.contentsRect().width()
+
+
+def _ink_columns(image, ground, rows):
+    return [x for x in range(image.width()) if any(abs(image.pixelColor(x, y).lightness() - ground) > 40 for y in rows)]
+
+
+def _drawn_width(button):
+    """The width of a button's drawn words when they are drawn whole, else None: the ink in the button's own grab against
+    the ink of the same words set alone in the same font (an unclipped reference), within a pixel."""
+    from PySide6.QtGui import QImage, QPainter, QColor
+    try:
+        image = button.grab().toImage()
+    except RuntimeError:
+        return None
+    if image.isNull() or image.width() < 3:return None
+    ground = image.pixelColor(0, image.height() // 2).lightness()
+    drawn = _ink_columns(image, ground, range(1, image.height() - 3))
+    text = plain(button);metrics = button.fontMetrics()
+    reference = QImage(metrics.horizontalAdvance(text) + 40, metrics.height() + 8, QImage.Format_RGB32);reference.fill(QColor('black'))
+    painter = QPainter(reference);painter.setFont(button.font());painter.setPen(QColor('white'));painter.drawText(20, 4 + metrics.ascent(), text);painter.end()
+    alone = _ink_columns(reference, 0, range(reference.height()))
+    if not drawn or not alone:return None
+    width, whole = drawn[-1] - drawn[0] + 1, alone[-1] - alone[0] + 1
+    return width if width >= whole - TOLERANCE and drawn[0] > 0 and drawn[-1] < image.width() - 1 else None
 
 
 def need_of(widget, text):

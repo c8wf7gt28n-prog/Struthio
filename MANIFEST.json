@@ -2195,7 +2195,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 1909486,
-      "sha256": "d80b102a2f3bcb0f38e513cb596c5abf0512d868bcf0f551462de4f813a93133"
+      "sha256": "3f706932659825f1c3ff3a2e76b752640fe633c746b52fa13234c99b28d18dd8"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4362240,
@@ -2203,7 +2203,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "9667c1e6577a0a340ad2070dedd5924b4ae44a7bd3181be20ed2936a77a0a478"
+      "sha256": "3ecaf883e680c9caf1b858fbb7e6c5545c8aab467c6cbdd37b00de1728624ae7"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2646,8 +2646,8 @@
       "sha256": "465df47dece69be27ebe120499c0de1ba2aff28f0af21a8916330db195a761ce"
     },
     "tests_integrated/test_desk.py": {
-      "bytes": 18587,
-      "sha256": "6495901075c500f3ae769f0b5ec33cb0ed51d4b5c5025b199a9604ae78189fad"
+      "bytes": 19028,
+      "sha256": "51b145e21f908a1499dbb54a40ceb66e915312901fe890ca2fcacc9df7a05ed6"
     },
     "tests_integrated/test_desk_acts.py": {
       "bytes": 46805,
@@ -2686,8 +2686,8 @@
       "sha256": "5bbe27ef62481f1968302f596a594cc2488c6ba8202c24735a6b8f089eb1e5da"
     },
     "tests_integrated/test_graphite.py": {
-      "bytes": 36241,
-      "sha256": "319c914c70f3eb606daa471cd84b0be53b410f666535e71bb70e9f199e0a15a5"
+      "bytes": 33873,
+      "sha256": "b2be51f54e890c23f05fd7edee6a9a7f0f43678b34301527ac4f01c79955377d"
     },
     "tests_integrated/test_hardware_settings.py": {
       "bytes": 13665,
@@ -2734,8 +2734,8 @@
       "sha256": "e8020e5846a3e8247210db4796476437391a312b12a831af41e71b92a9268cde"
     },
     "tests_integrated/test_model_settings.py": {
-      "bytes": 15278,
-      "sha256": "561e7ca86c0f6baca30cdc3028dbd4ba817797e7dc2f517e4b69bf68b6260d45"
+      "bytes": 16712,
+      "sha256": "b85d66d35cfe49179c51f994ce35de3f202a21e7f1f03d2393a7e77c1a6e2fd6"
     },
     "tests_integrated/test_model_turn.py": {
       "bytes": 40327,
@@ -2750,8 +2750,8 @@
       "sha256": "cbfbfcec0f468f4fdd73cbce2e678e719dd431f51e0cccd467e79cc24e3bc855"
     },
     "tests_integrated/test_paper.py": {
-      "bytes": 22800,
-      "sha256": "64f1d961ebd8247a67ecc0f07e2fb88e612701183dd4d6b1dea58e90dcd71b3c"
+      "bytes": 23204,
+      "sha256": "e2d8e19ecf59d4ffaddaccba77791493ea3ac618ee6c5867172e97cf1a216a10"
     },
     "tests_integrated/test_presentation_settings.py": {
       "bytes": 12978,
@@ -2822,8 +2822,8 @@
       "sha256": "3e5597ddbe971b09fe758f1d47bc33eb39c06adf18f71439800102f60f771bca"
     },
     "tests_integrated/test_system_menu.py": {
-      "bytes": 45191,
-      "sha256": "2f9b378be22bab5f9f5870420e96d0384f778c60ad1fc83ad9c327f03d27e8b3"
+      "bytes": 44423,
+      "sha256": "844fd4b651149dabeddebb1556c8f9f9baed294cd9b50a7ab3a9e55130069f6c"
     },
     "tests_integrated/test_tool_atlas.py": {
       "bytes": 6809,
@@ -2934,8 +2934,8 @@
       "sha256": "85f1cc37119c11665bf0cd30d35d5832cb999ef90e2b2185a7007b612ae7d70a"
     },
     "tools/check_continue_ui.py": {
-      "bytes": 19909,
-      "sha256": "712c01d31f040dedfb4fc06955d71263a86527bef242bb195a58020d0a7ff639"
+      "bytes": 20282,
+      "sha256": "0824c9b8f29a09b3da705e1a3d0de7959f7ae5e895fc812865d133db8dfe3c9f"
     },
     "tools/check_desk_ui.py": {
       "bytes": 134034,
@@ -3086,8 +3086,8 @@
       "sha256": "5502c60524911d2b80e5b545acaf02e6e7f876244f8c714f052f9d7b6f7cb13e"
     },
     "tools/ui_fit.py": {
-      "bytes": 12511,
-      "sha256": "3181c347a147234a841054c87579c0a4818c34ab35f1b910c7cb56873489eaa2"
+      "bytes": 14510,
+      "sha256": "447293fd5da8918cfe643fcdd21f05999cdf457aabcfb4bd1c439de60dc46750"
     },
     "tools/ultra_cop.py": {
       "bytes": 16113,
@@ -4738,8 +4738,8 @@
       "sha256": "96cda40ca3d4c3ea3d47f6b488c7d6f5d9ecf6deaf2e86b2303e9120e53142bf"
     },
     "workbench/resource_control.py": {
-      "bytes": 22189,
-      "sha256": "8a1bef72e94103b49434079ebe9b472f6d003959b5cbfeb2bde9f9a125013cac"
+      "bytes": 22215,
+      "sha256": "3d6010e157ad5a98edd0d11ace99cf0049353e469974386c481d0ce83b32b1aa"
     },
     "workbench/resources.py": {
       "bytes": 3319,

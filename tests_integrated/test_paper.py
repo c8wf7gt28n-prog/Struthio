@@ -155,7 +155,9 @@ class MarkerWidgetTests(unittest.TestCase):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QWidget,QVBoxLayout,QPlainTextEdit,QLineEdit,QLabel
         self.host=SimpleNamespace(reading_profile={'reduce_motion':False,'ui_pt':14.0},session=SimpleNamespace(state={}))
-        self.page=QWidget();self.page.setStyleSheet('QWidget {background:#f6f3eb;} QPlainTextEdit,QLineEdit {background:#f8edc9;border:0;padding:8px;}')
+        from workbench import shell2
+        # The desk the marker is drawn on: its ground, and a passage on the eraser plate (the paper page of 0.1 is gone).
+        self.page=QWidget();self.page.setStyleSheet('QWidget {background:%s;} QPlainTextEdit,QLineEdit {background:%s;border:0;padding:8px;}' % (shell2.GROUND,shell2.ERASER))
         box=QVBoxLayout(self.page);box.setContentsMargins(22,18,22,18);box.setSpacing(12);box.addWidget(QLabel('A record'))
         self.title=QLineEdit();self.title.setObjectName('CabinetWriting');box.addWidget(self.title)
         self.writing=QPlainTextEdit();self.writing.setObjectName('CabinetWriting');self.writing.setMaximumHeight(140);box.addWidget(self.writing)
@@ -167,13 +169,18 @@ class MarkerWidgetTests(unittest.TestCase):
     def pump(self):
         for _ in range(3):self.app.processEvents()
 
-    def ink(self,rect):
-        image=self.page.grab().toImage();count=0
+    @staticmethod
+    def inked(image,rect):
+        """Pixels of the marker's ink (writing_marker.INK) in rect: those far from the page's ground toward the ink."""
+        from PySide6.QtGui import QColor
+        from workbench import shell2
+        ground=QColor(shell2.GROUND).lightness();ink=QColor(writing_marker.INK).lightness();count=0
         for y in range(rect.top(),rect.bottom()+1):
             for x in range(rect.left(),rect.right()+1):
-                c=image.pixelColor(x,y)
-                if (c.red()+c.green()+c.blue())/3<150:count+=1
+                if abs(image.pixelColor(x,y).lightness()-ground)>abs(ink-ground)/3:count+=1
         return count
+
+    def ink(self,rect):return self.inked(self.page.grab().toImage(),rect)
 
     def children(self,widget):
         from PySide6.QtGui import QAccessible
@@ -252,7 +259,8 @@ class MarkerWidgetTests(unittest.TestCase):
         desk=QWidget();row=QHBoxLayout(desk);row.setContentsMargins(0,0,0,0);row.setSpacing(0)
         column=QLabel('cabinet');column.setFixedWidth(200);column.setStyleSheet('background:#eee9df');row.addWidget(column)
         scroll=QScrollArea();scroll.setWidgetResizable(True);row.addWidget(scroll,1)
-        page=QWidget();box=QVBoxLayout(page);box.setContentsMargins(22,18,22,18);scroll.setWidget(page)
+        from workbench import shell2
+        page=QWidget();page.setObjectName('Page');page.setStyleSheet('QWidget#Page {background:%s;}' % shell2.GROUND);box=QVBoxLayout(page);box.setContentsMargins(22,18,22,18);scroll.setWidget(page)
         box.addWidget(QLabel('heading'));writing=QPlainTextEdit();writing.setObjectName('CabinetWriting');writing.setMaximumHeight(140);box.addWidget(writing);box.addStretch(1)
         big=QFont(writing.font());big.setPointSizeF(28.0);writing.setFont(big)
         desk.resize(700,320);desk.show();self.pump();self.addCleanup(desk.close)
@@ -260,9 +268,7 @@ class MarkerWidgetTests(unittest.TestCase):
         self.assertIs(mark.page,page);self.assertEqual(mark.form,'narrow');rect=mark.mark_rect()
         self.assertLess(rect.right(),writing.x());self.assertGreaterEqual(rect.left(),0)
         self.assertFalse(writing_marker.MarginMark.free_margin(desk,scroll,36))  # the column covers what would be the outer margin
-        image=page.grab().toImage();dark=sum(1 for y in range(rect.top(),rect.bottom()+1) for x in range(rect.left(),rect.right()+1)
-                                             if (image.pixelColor(x,y).red()+image.pixelColor(x,y).green()+image.pixelColor(x,y).blue())/3<150)
-        self.assertGreater(dark,10)
+        self.assertGreater(self.inked(page.grab().toImage(),rect),10)
 
 
 if __name__=='__main__':unittest.main()
