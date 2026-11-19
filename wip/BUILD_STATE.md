@@ -170,6 +170,12 @@ switched the session's model.
   second start fails with "Graphite could not start" when the Office tab was open at exit. Why the owner did not meet it
   on the ThinkPad is not known from here (it does not happen when the Office tab is closed before leaving).
 
+## Asked by the owner, to do
+
+- 19 Nov 22:15 UTC: "Discussion on what we did after the stuff finishes". When part B has finished and is merged (before
+  cutting the 0.8.4 kit), stop and talk it through with the owner in plain words: what was built today and why, what the
+  reviews caught, what is still open, what needs the owner's eye or decision, and what comes next. Then go on.
+
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
 - 19 Nov: the setting "Script for incidental text", which changes nothing on screen, is removed (0.8.4 release pass).
@@ -190,6 +196,7 @@ switched the session's model.
 
 ## Log (newest first)
 
+- 19 Nov 22:15 UTC: the owner asked for a discussion of the work once part B finishes.
 - 19 Nov 21:30 UTC: checks and look merged; full suite running.
 - 19 Nov 19:25 UTC: the 5-hour limit stopped part B's second run after checks and look were finished.
 - 19 Nov 18:20 UTC: part B relaunched on the model the owner chose; look and checks resume from their saved work.
