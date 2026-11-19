@@ -72,6 +72,8 @@ FOCUSED_MODULES=(
  'test_cabinet','test_cabinet_actions','test_memory_cabinet','test_return_thread','test_tool_atlas','test_algorithm_atlas','test_discovery',
  # problems, exact maths, reasoning graphs, adaptive and joined work
  'test_problem','test_exact_math','test_reasoning_graph','test_adaptive_contract','test_joined_work',
+ # 0.8.4: what a line does with values: one rule for a number written as text, and the seven evaluator faults of 14 November
+ 'test_line_rules',
  # backup and restore, the Project Desk, slate reasoning, change sets, continuing work, exchange and updates
  'test_workspace_backup','test_project_desk','test_slate_reasoning','test_change_sets','test_continuing_work','test_deployment')
 # Kept and runnable by hand; outside the gate because they need optional dependencies, start real processes or load a model.

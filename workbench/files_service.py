@@ -21,6 +21,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
+import math
 import os
 import shutil
 import sqlite3
@@ -260,6 +261,7 @@ def number(text):
     s = str(text).strip().replace(',', '') if isinstance(text, str) and text.strip().count(',') <= 3 else str(text).strip()
     try:
         value = float(s)
+        if not math.isfinite(value):return text  # NaN and inf are words in a cell: no record can hold them as numbers, and a line would refuse the whole file
         return int(value) if value.is_integer() and '.' not in s and 'e' not in s.lower() else value
     except ValueError:
         return text

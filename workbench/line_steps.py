@@ -22,7 +22,7 @@ LIMIT = 200          # what a line gives at most (language.run); counting here g
 READ_LIMIT = 2000    # what the source may hold (typed_pipeline.apply's row budget)
 MOST_STAGES = 8      # one source and at most seven steps (typed_pipeline.split)
 OFFERS = 6           # values offered for one column
-UNSAFE = ('`', '$(', '${', ';', '>', '<', '\n', '\r', '\x00', '"', '\\')      # a value with these is typed by hand, not offered
+UNSAFE = ('`', '$(', '${', '>', '<', '\n', '\r', '\x00', '"', '\\')      # a value with these is typed by hand, not offered
 LENS_ORDER = ('rows', 'headings', 'layers', 'texts', 'lines', 'facts')
 
 Offer = namedtuple('Offer', 'key words glyph step count enabled reason')
@@ -39,7 +39,7 @@ class Refusal(ValueError):
 def plain(message):
     """A refusal in the window's words: the language is never named; its terms become the panel's."""
     text = str(message or 'It cannot be read now').strip()
-    swaps = ((r'Shell syntax and command substitution are not part of Stacy language', 'Those signs cannot be part of a line'),
+    swaps = ((r'Shell syntax and command substitution are not part of Stacy language', 'Those signs cannot be part of a line; a bar or a semicolon is text only inside double quotes'),
              (r'Pipeline source exceeds its row/byte budget; narrow the query', 'It is too big to read here; narrow it first'),
              (r'Output exceeds (\d+) rows; add take', r'The answer is more than \1 rows · keep fewer first'),
              (r'Use one source and at most seven transforms', 'A line reads one thing and takes at most seven steps'),
@@ -153,14 +153,10 @@ def columns(rows):
 
 
 def number(value):
-    """The number a value stands for (numeric text too), or None."""
-    if isinstance(value, bool):return None
-    if isinstance(value, (int, float)):return value
-    if isinstance(value, str) and value.strip():
-        try:found = float(value.replace(',', ''))
-        except ValueError:return None
-        return int(found) if found.is_integer() else found
-    return None
+    """The number a value stands for, or None: the evaluator's own rule (typed_pipeline.number), so an offer counts what the
+    step it writes will keep. Text that is exactly a number is that number; true and false never are."""
+    found = typed_pipeline.number(value)
+    return int(found) if isinstance(found, float) and found.is_integer() else found
 
 
 def said(value):
@@ -169,11 +165,13 @@ def said(value):
 
 
 def literal(value):
-    """A text value as a where step writes it: bare when the parser reads it back as the same text, quoted otherwise."""
+    """A text value as a where step writes it: bare when the parser reads it back as the same text, quoted otherwise (a
+    value that would read as a number, true, false or nothing; one with a bar, a semicolon, a quote mark or a space at an
+    end; one that starts with @, which bare would name a field). The panel and the Then menu both write values with this."""
     text = str(value)
-    try:back = json.loads(text)
-    except json.JSONDecodeError:back = None
-    if back is None and text and text == text.strip() and '|' not in text:return text
+    try:json.loads(text);bare = False
+    except json.JSONDecodeError:bare = True
+    if bare and text and text == text.strip() and not text.startswith('@') and not any(sign in text for sign in '|;"\\'):return text
     return json.dumps(text, ensure_ascii=False)
 
 
@@ -183,9 +181,9 @@ def spread(values, most):
 
 
 def values(held, line, name):
-    """Keep rows where › NAME ›: up to six offers, each with how many rows it keeps. A number column (numeric text too) offers
-    at least and at most over values spread across it; a text column offers the most common values, then three to leave out.
-    An offer that keeps every row or none is left out."""
+    """Keep rows where › NAME ›: up to six offers, each with how many rows it keeps. A number column (text that is exactly a
+    number too) offers at least and at most over values spread across it; a text column offers the most common values, then
+    three to leave out. An offer that keeps every row or none is left out."""
     rows = held.rows(line);total = len(rows);seen = [r.get(name) for r in rows if isinstance(r, dict)]
     present = [v for v in seen if v not in (None, '')]
     out = [];steps = []
@@ -208,22 +206,25 @@ def values(held, line, name):
 
 
 def sortable(held, line):
-    """The columns Sort by can honestly order: numbers that are numbers, or text that is not numbers written as text (that
-    would sort 110 before 12)."""
+    """The columns Sort by can honestly order: all numbers, however they are written (a number written as text sorts by its
+    value, 12 before 110), or all text that is not a number. A column of numbers and words is not offered."""
     rows = held.rows(line);out = []
     for name in columns(rows):
         present = [r.get(name) for r in rows if isinstance(r, dict) and r.get(name) not in (None, '')]
         if not present:continue
-        if all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in present):out.append(name)
+        if all(number(v) is not None for v in present):out.append(name)
         elif all(isinstance(v, str) and number(v) is None for v in present):out.append(name)
     return out
 
 
 def groupable(held, line):
-    """The columns Count by can gather: those with a few repeated values (not every row its own)."""
+    """The columns Count by can gather: those with a few repeated values (not every row its own), told apart as the group
+    step tells them (typed_pipeline.identity: 1 is "1.0"; true is not 1). A column named count is left out: the answer has
+    its own count, so the step would be refused rather than overwrite it (typed_pipeline.own)."""
     rows = held.rows(line);out = []
     for name in columns(rows):
-        present = [str(r.get(name)) for r in rows if isinstance(r, dict) and r.get(name) not in (None, '')]
+        if name == 'count':continue
+        present = [typed_pipeline.identity(r.get(name)) for r in rows if isinstance(r, dict) and r.get(name) not in (None, '')]
         if present and len(set(present)) < len(present):out.append(name)
     return out
 

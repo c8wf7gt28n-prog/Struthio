@@ -60,15 +60,23 @@ def fields_of(rows):
     return list(dict.fromkeys(k for r in rows[:50] if isinstance(r, dict) for k in r))
 
 
+def number(value):
+    """The number a value stands for, or None, by the evaluator's own rule: text that is exactly a number is that number."""
+    from sdk.cli.arc1cli import typed_pipeline
+    return typed_pipeline.number(value)
+
+
 def numeric(values):
+    """A number column: every value that is there is a number, however it is written (a comparison and a total read it so)."""
     found = [v for v in values if v not in ('', None)]
-    return bool(found) and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in found)
+    return bool(found) and all(number(v) is not None for v in found)
 
 
 def word(value):
-    """A value as staC reads it: words with spaces in quotes."""
-    text = str(value)
-    return '"%s"' % text.replace('"', '') if re.search(r'\s|\|', text) else text
+    """A text value as staC reads it back as the same text: the line panel's own function (line_steps.literal), so both write
+    the same step for the same value. A value that is not text (a number, true, false) is written as itself."""
+    from .line_steps import literal
+    return literal(value) if isinstance(value, str) else json.dumps(value)
 
 
 def rows_words(rows, error=None):
@@ -180,6 +188,7 @@ def shape(menu, host, program, rows):
     group = QMenu('group by', menu);group.setTearOffEnabled(True);menu.addMenu(group)
     numbers = [f for f in fields if numeric([r.get(f) for r in rows[:200] if isinstance(r, dict)])]
     for f in fields[:24]:
+        if f == 'count':continue  # the answer has its own count: a line gathering by a field of that name is refused, so not offered
         part = QMenu(f, group);base = program + ' | group ' + f
         link(part, host, base + ' | count', 'count')
         for n in numbers[:8]:
@@ -208,7 +217,7 @@ def where_fields(menu, host, program, rows, fields):
 def where_values(menu, host, program, field, values):
     """Comparisons that fit the column, with values found in it. Each says how many rows it keeps."""
     if numeric(values):
-        found = sorted({v for v in values if isinstance(v, (int, float))})
+        found = sorted({n for n in map(number, values) if n is not None})
         shown = min(VALUES, len(found))  # spread across the values found, smallest to largest
         picks = sorted({found[round(i * (len(found) - 1) / max(1, shown - 1))] for i in range(shown)}) if found else []
         for word_ in ('over', 'under', 'at least', 'at most'):
@@ -217,15 +226,17 @@ def where_values(menu, host, program, field, values):
                 p = '%s | where %s %s %s' % (program, field, word_, v);r, e = run(host, p);link(part, host, p, str(v), r, e)
             menu.addMenu(part)
         return
-    counts = {}
+    counts = {};held = {}  # text and what is not text are counted apart: the text true is not true
     for v in values:
-        if v not in ('', None):counts[str(v)] = counts.get(str(v), 0) + 1
+        if v not in ('', None) and not isinstance(v, (dict, list)):
+            key = (isinstance(v, str), str(v));counts[key] = counts.get(key, 0) + 1;held[key] = v
     common = sorted(counts, key=lambda k:-counts[k])[:VALUES]
     for word_ in ('is', 'is not', 'has'):
         part = QMenu(word_, menu)
-        for v in common:
-            text = v if word_ != 'has' else v[:12]
-            p = '%s | where %s %s %s' % (program, field, '=' if word_ == 'is' else word_, word(text));r, e = run(host, p);link(part, host, p, text, r, e)
+        for key in common:
+            text = key[1] if word_ != 'has' else key[1][:12]
+            value = word(text if word_ == 'has' else held[key])
+            p = '%s | where %s %s %s' % (program, field, '=' if word_ == 'is' else word_, value);r, e = run(host, p);link(part, host, p, text, r, e)
         menu.addMenu(part)
 
 

@@ -40,6 +40,7 @@ def source(text):
     if not isinstance(text,str) or not text.lstrip().startswith('@'):return text,None
     from . import addresses
     head,separator,rest=text.lstrip()[1:].partition('|');address=head.strip()
+    if ';' in address:raise ValueError(typed_pipeline.SHELL)  # the address is written without quotes: only a quoted ; is data
     addresses.parse(address)
     return 'ledger.address.read '+typed_pipeline.canonical({'address':address})+(' |'+rest if separator else ''),address
 

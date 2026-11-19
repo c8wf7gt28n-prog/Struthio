@@ -2195,7 +2195,7 @@
     },
     "project/stacy_seed/current/catalog.json": {
       "bytes": 1909656,
-      "sha256": "05f9c90314c2d60fc14ae68b179d9c919892876e71b7e4f959dee11485139ebb"
+      "sha256": "945d1e1f1ee6d232ee14335888bce368049e3d2bf6f8e5e6080b81904a2a5832"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4362240,
@@ -2203,7 +2203,7 @@
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "ea22829e552c6067f41f3d532b28748b0dc008dcbbb4b1494a0a8235ac345cc0"
+      "sha256": "062d212c5b6213b7ef70a11f1adb5ec3f4475fd142a8d23bc05b9d5c9a6fa0a9"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2526,8 +2526,8 @@
       "sha256": "2c44435fd5918f22d3cb38bb02ccd93623edc8b81f5509d23a759e4eb6e5f905"
     },
     "sdk/cli/arc1cli/typed_pipeline.py": {
-      "bytes": 16543,
-      "sha256": "2055fbc18fa47b39d9660221b2f610d4b3ef83ab139bfd5f504a9f6ab0fa03e2"
+      "bytes": 28047,
+      "sha256": "a63e4129342c086a5dcc56b8a53a6fc69bf5abb5f7cf95450cbce7b869c6989e"
     },
     "sdk/cli/arc1cli/ui.py": {
       "bytes": 30768,
@@ -2630,8 +2630,8 @@
       "sha256": "0aa2fc7027312f7d4f505d7870b65aff0b360331f8c403c37603795f7405ef3d"
     },
     "tests_integrated/test_context_menu.py": {
-      "bytes": 73319,
-      "sha256": "d8779d58d41344148f4499d9b2c36a3cf3c234d3c660d386e5643e026bdf94b6"
+      "bytes": 73468,
+      "sha256": "2e7ef582dfd20f71572fed05572fd8fa366e9de58b835001236ca2fc5af7fec9"
     },
     "tests_integrated/test_continue_setting.py": {
       "bytes": 3258,
@@ -2724,6 +2724,10 @@
     "tests_integrated/test_launcher.py": {
       "bytes": 30285,
       "sha256": "0c04631ed6554541aed522bd8aee2f264eba53f548e720a0e4ca1164c86ad41e"
+    },
+    "tests_integrated/test_line_rules.py": {
+      "bytes": 50500,
+      "sha256": "121f282c9b3a813eee9c54b7ff01fbe2f3fbbd5e64768592ede7ef2bb64162f7"
     },
     "tests_integrated/test_machine.py": {
       "bytes": 16366,
@@ -2990,8 +2994,8 @@
       "sha256": "871cc8ecb2e66ff89bcc7fd8fd96d5458c2baa90fd9a339a0f6b6ccf86640f96"
     },
     "tools/check_hatch.py": {
-      "bytes": 30169,
-      "sha256": "316682e6ed97a8e7857785851afa98c2844ac37942271c472caa4b9ba6b73cec"
+      "bytes": 30314,
+      "sha256": "db8933974d2da10cc65267be3fdee588298222df056e524ab50186ac197fde41"
     },
     "tools/check_hatch_ui.py": {
       "bytes": 33279,
@@ -3378,8 +3382,8 @@
       "sha256": "5448361ad207a736f99d397b2393482c0935f3188bff51c45599bfb240719159"
     },
     "workbench/chain_menu.py": {
-      "bytes": 27901,
-      "sha256": "ea2455f912eedf944e1491e490adecf8de5dda2c5576ee9661b563346247ee70"
+      "bytes": 28788,
+      "sha256": "a65b2fee3c26f300aa89a1de652cbc33deb6bbdf78acbe7d9a0057bafaa9b585"
     },
     "workbench/chain_workbench_qt.py": {
       "bytes": 20013,
@@ -3754,8 +3758,8 @@
       "sha256": "ed8cd178f5f463074f16aeace8f4c5ff7fff4a893c818abfa531af05b2dbeec6"
     },
     "workbench/files_service.py": {
-      "bytes": 38271,
-      "sha256": "54d59bb0d86b60efea4c177ad1997e5f503dd8881554d5ab5946faa4c4796d79"
+      "bytes": 38442,
+      "sha256": "19b467f20f7c748933a50479423661b613b22ff59fe1aebd3fcecb780e90985c"
     },
     "workbench/finder_qt.py": {
       "bytes": 63040,
@@ -4034,8 +4038,8 @@
       "sha256": "432d143b33715ddc633c0683325a64cbd71a3a00af2f20a843e9fc9e602aeedb"
     },
     "workbench/line_steps.py": {
-      "bytes": 13621,
-      "sha256": "aa037e4d1442bf0341373c613b724544544186da16164833a89f55ae53c53b48"
+      "bytes": 14308,
+      "sha256": "d0fa8a63dac6117aca0dd80e221681ed8edf93054d21183f3530e64dd6d21dd5"
     },
     "workbench/local_brain.py": {
       "bytes": 80172,
@@ -4986,8 +4990,8 @@
       "sha256": "2d9348f69f733ce218ff127337208adcc262e87c30b73f998c0b0c40ef26c55c"
     },
     "workbench/stacy_language.py": {
-      "bytes": 6436,
-      "sha256": "4a4a4f3c99f6533ce7fd13c080d2aa623eba61b6f04048b88dccdf11c9c7afe4"
+      "bytes": 6563,
+      "sha256": "144f882630d46b967b96d5554830bed5169df94fa6c220396c2fba7762405277"
     },
     "workbench/stacy_presence.py": {
       "bytes": 8385,

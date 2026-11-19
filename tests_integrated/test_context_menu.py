@@ -227,7 +227,8 @@ class Rules(unittest.TestCase):
         self.assertEqual(held.rows(base+' | where unit=mA | count'),[{'count':2}])
         self.assertEqual(held.rows(base+' | group unit | count'),[{'unit':'V','count':1},{'unit':'mA','count':2},{'unit':'ms','count':1}])
         self.assertEqual((line_steps.steps_left(base),line_steps.steps_left(base+' | where unit=mA')),(6,5))
-        self.assertNotIn('value',line_steps.sortable(held,base),'numbers written as text sort as text (110 before 12): not offered')
+        # 0.8.4: a number written as text sorts by its value (12 before 110; it sorted as text before, so was not offered)
+        self.assertIn('value',line_steps.sortable(held,base));self.assertEqual([r['value'] for r in held.rows(base+' | sort value')],['12','110','280','650'])
         self.assertEqual(calls,['language.parse','ledger.address.read'],'two reads in all')
 
     def test_the_window_never_names_the_language_and_says_the_200_limit(self):
