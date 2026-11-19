@@ -98,10 +98,11 @@ Scratch `S=/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a14
 **State at 16:20 UTC, 19 Nov: part A is merged** (four commits, c47a9ba to dd2c2db, each built, independently reviewed
 and fixed; all four patches applied without conflict; seed current). The reviews and notes are kept in
 `wip/2026-11-19_b084_saved/` (`<key>.review.md`, `<key>.progress.md`, `<key>.fix.md`).
-- **Running now:** the full suite on a copy in both looks: `wip/2026-11-14/scratch_tools/run_suite_both_looks.sh`
-  (results in scratch `work/t084/summary.<look>.txt`). If it is not green, fix on the main checkout, rebuild the seed,
-  rerun, commit.
-- **Next: part B.** Launch `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js` with the Workflow tool's `scriptPath`
+- **The full suite on the merged tree (commit dd2c2db), 19 Nov 16:28 UTC: default look 70 modules, 1,115 tests, 0 failing;
+  Kasandra look 70 modules, 1,115 tests, 1 failing** (`test_faces_find_light`, her desk light: "172 not less than 150";
+  it failed the same way before part A; part B's look item settles it).
+- **Running now (started 16:30 UTC): workflow `graphite-084-part-b`, run id `wf_401c7b30-522`, task `w6t21kgt0`.**
+- **Part B** is `wip/2026-11-14/workflow_scripts/graphite-084-part-b.js`, launched with the Workflow tool's `scriptPath`
   (keys: look = step 9, checks = step 5, session, tiers = step 8, guards = step 7; two lanes, each finishing one item,
   build then review then fix, before starting the next). Hand-overs are files in scratch `work/b084b/`: `<key>.patch`,
   `<key>.progress.md`, `<key>.review.md`, `<key>.<role>.result.json`; an agent whose result file exists returns at once,
@@ -165,6 +166,7 @@ many; hand over through files; agents work in few large steps and never print wh
 
 ## Log (newest first)
 
+- 19 Nov 16:30 UTC: suite on the merged tree: 0 failing in the default look, 1 known in the Kasandra look; part B started.
 - 19 Nov 16:20 UTC: part A merged in four commits after review and fixes; the full suite running in both looks.
 - 19 Nov 13:10 UTC: the usage limit stopped part A2 with one agent left (the line fix, which had in fact finished its
   code and patch; its last test run completed on its own).
