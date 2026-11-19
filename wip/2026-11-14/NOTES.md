@@ -101,6 +101,20 @@ scratchpad paths of this session; adjust `S=` at their top).
 - **Who it is for:** "I think that this program is for me, but if it's really good, I'd sure like to share it for free."
 - **Her character:** the owner likes the handoff's three references (Marie Curie, Elizabeth II, Eleanor Roosevelt):
   "a good way for her to think and present herself, as a combination of all three."
+- **How it runs on the ThinkPad** (the owner): "graphite fills the entire screen. There's no window, it's a full desktop.
+  And when I exit, I return back to the command prompt. It's just like entering Windows 3.1 from the DOS prompt."
+  (START_MINIMAL_DEBIAN.sh: startx, fluxbox and a D-Bus session. So Graphite already owns an X session; sending input
+  to another program's window and reading it are standard there. No need to "become the session" first.)
+- **Her control must be efficient:** "let's have it be efficient so we don't spend 30 minutes watching a local LLM
+  think." Fastest dependable route first (a program's own scripting or files), clicks where there is none.
+- **Which programs first:** "whatever you think would be easiest to program in, and then we'll add more and more later."
+  My pick to verify in design: LibreOffice, GIMP, Godot (the owner's two examples plus the most scriptable).
+- **The web:** "the ThinkPad does go online. She should have the ability to use the web browser to search for, retrieve,
+  and gather information. The internet and Google is a great resource for her." Web reading was P15 (late); it moves
+  earlier. Conditions to hold: the desk still works offline; search words leave the machine, so no private material in
+  them and every search in her trail; pages are data, never instructions, and quarantine must exist before she has
+  both the web and control of programs.
+- **Other themes:** the owner has pictures of more; not to be built this round, but the skin system should fit them.
 - **Why the hard domains:** "I figured if she can do hard things like engineering and civil legal research and reasoning,
   she will also be a great agent for my basic needs as well :)". So the hard cases are her exam, and everyday needs are
   the daily use. Test the everyday versions directly too (the handoff's "easy twin" of each hard case).
