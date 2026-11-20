@@ -1,0 +1,13 @@
+{
+ "schema": "graphite.exam-paper/1",
+ "paper": "READ",
+ "version": 1,
+ "kinds": [
+  "READ"
+ ],
+ "harm_rule": "wrong_used",
+ "items_file": "items.jsonl",
+ "items": 50,
+ "items_sha256": "f435a4e2a907877a3709c150e87c807778223c4af4cd5e998b4d182c11f1ad53",
+ "notes": "Understanding (design 5.5, 7.4): 24 single-step, 10 two-step, 6 data, 5 ambiguous, 5 must-not-act on the invented Rail Demo and Home Demo desks (desks/*.json). The 10 reference items (B7, if room) are not written yet. Each item's full known answer is in \"known\" (steps, line, options); expect holds only the outcome until the READ value shape is agreed (README)."
+}

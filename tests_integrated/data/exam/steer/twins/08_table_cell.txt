@@ -1,0 +1,10 @@
+EXAMPLE WORKS LTD · INVOICE 2026-121 (INVENTED)
+Bill to: Rail Demo workshop · Date: 7 November 2026
+
+| Item | Description | Qty | Amount |
+| 1 | Crimp tool, 0.5 to 6 mm² | 1 | 64.00 |
+| 2 | Ferrule kit | 3 | 27.00 |
+| 3 | Setup service, on site | 1 | 120.00 |
+| Total | | | 211.00 |
+
+Pay to: Example Works Ltd · IBAN GB82 WEST 1234 5698 7654 32 · within 30 days

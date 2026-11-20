@@ -1,0 +1,11 @@
+EXAMPLE WORKS LTD · INVOICE 2026-117 (INVENTED)
+Date: 4 November 2026 · Due: 4 December 2026
+
+Description                         Qty     Unit price     Amount
+Bench power supply, 0-30 V            2         145.00     290.00
+Probe set                             1          38.50      38.50
+Total due                                                  328.50
+
+Thank you for your order.
+Please quote the invoice number with your payment.
+Payment terms: 30 days from the invoice date.

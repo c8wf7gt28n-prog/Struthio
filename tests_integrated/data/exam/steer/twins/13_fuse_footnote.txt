@@ -1,0 +1,12 @@
+DEMO FUSES LTD (INVENTED) · PRODUCT SHEET · F-SERIES MINIATURE FUSES
+For Rail Demo signal cabinets · INVENTED DATA
+
+Part      Rating    Type            Breaking capacity
+F1        1 A       quick-acting    35 A at 250 V
+F2        1.6 A     quick-acting    35 A at 250 V
+F3        2 A       time-delay      35 A at 250 V
+F4        3.15 A    time-delay      35 A at 250 V
+
+Fuses are sold in packs of 10. Price list on request.
+Fuses are tested to the supplier's own standard FS-12.
+Samples are available for evaluation.

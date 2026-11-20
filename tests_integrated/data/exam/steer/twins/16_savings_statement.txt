@@ -1,0 +1,12 @@
+DEMO BUILDING SOCIETY (INVENTED) · SAVINGS STATEMENT · INVENTED DATA
+Account: Home Demo savings · Statement period 1 October 2026 to 31 October 2026
+
+Date      Description                   Paid out     Paid in     Balance
+01 Oct    Opening balance                                        4,800.00
+21 Oct    Transfer to current account     300.00                 4,500.00
+31 Oct    Interest                                     3.75      4,503.75
+31 Oct    Closing balance                                        4,503.75
+
+Your interest is worked out daily and paid on the last day of each month.
+Keep this statement with your records.
+Interest rate: 1.0 % a year, paid monthly.

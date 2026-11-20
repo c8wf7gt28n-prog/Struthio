@@ -1,0 +1,165 @@
+{
+ "schema": "graphite.exam-desk/1",
+ "desk": "rail-demo",
+ "name": "Rail Demo",
+ "notice": "Invented demonstration data. Nothing here was measured.",
+ "things": [
+  {
+   "handle": "D1",
+   "kind": "sheet",
+   "title": "Rail Demo bench readings",
+   "revision": "current",
+   "columns": [
+    "Parameter",
+    "Value",
+    "Unit",
+    "Conditions"
+   ],
+   "rows": [
+    [
+     "Rail voltage",
+     "12",
+     "V",
+     "Bench at 25 C"
+    ],
+    [
+     "Settled current",
+     "250",
+     "mA",
+     "Bench at 25 C"
+    ],
+    [
+     "Startup current",
+     "900",
+     "mA",
+     "Bench at 25 C"
+    ],
+    [
+     "Startup duration",
+     "45",
+     "ms",
+     "Bench at 25 C"
+    ]
+   ]
+  },
+  {
+   "handle": "D2",
+   "kind": "sheet",
+   "title": "Rail Demo limits Rev A ARCHIVED",
+   "revision": "archived",
+   "sibling": "D3",
+   "columns": [
+    "Parameter",
+    "Value",
+    "Unit",
+    "Conditions"
+   ],
+   "rows": [
+    [
+     "Settled power limit",
+     "5",
+     "W",
+     "Continuous"
+    ],
+    [
+     "Startup duration limit",
+     "60",
+     "ms",
+     "From switch-on"
+    ],
+    [
+     "Startup power ceiling",
+     "12",
+     "W",
+     "Up to 60 ms"
+    ],
+    [
+     "Nominal voltage",
+     "12",
+     "V",
+     "At the rail"
+    ]
+   ]
+  },
+  {
+   "handle": "D3",
+   "kind": "sheet",
+   "title": "Rail Demo limits Rev B CURRENT",
+   "revision": "current",
+   "sibling": "D2",
+   "columns": [
+    "Parameter",
+    "Value",
+    "Unit",
+    "Conditions"
+   ],
+   "rows": [
+    [
+     "Settled power limit",
+     "4",
+     "W",
+     "Continuous"
+    ],
+    [
+     "Startup duration limit",
+     "40",
+     "ms",
+     "From switch-on"
+    ],
+    [
+     "Startup power ceiling",
+     "12",
+     "W",
+     "Up to 40 ms"
+    ],
+    [
+     "Nominal voltage",
+     "12",
+     "V",
+     "At the rail"
+    ]
+   ]
+  },
+  {
+   "handle": "D4",
+   "kind": "calculation",
+   "title": "Rail Demo settled power · 3 W",
+   "reads": "D1"
+  },
+  {
+   "handle": "D5",
+   "kind": "calculation",
+   "title": "Rail Demo startup power · 10.8 W",
+   "reads": "D1"
+  },
+  {
+   "handle": "D6",
+   "kind": "page",
+   "title": "Rail Demo summary"
+  },
+  {
+   "handle": "D7",
+   "kind": "finding",
+   "title": "Settled power is 3 W, inside the Rev B limit of 4 W.",
+   "state": "holds"
+  },
+  {
+   "handle": "D8",
+   "kind": "finding",
+   "title": "Startup is inside the Rev B limit of 40 ms.",
+   "state": "does not hold"
+  },
+  {
+   "handle": "D9",
+   "kind": "finding",
+   "title": "The startup limit was 60 ms in Rev A and is 40 ms in Rev B.",
+   "state": "holds"
+  },
+  {
+   "handle": "D10",
+   "kind": "question",
+   "title": "Why does startup take longer than 40 ms?",
+   "state": "open"
+  }
+ ]
+}

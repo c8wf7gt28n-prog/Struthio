@@ -1,0 +1,10 @@
+DEMO POWER (INVENTED) · ELECTRICITY BILL
+Account: Home Demo household · Bill reference: DP-2026-1005 · INVENTED DATA
+Bill date: 5 October 2026
+
+Period: 1 September 2026 to 30 September 2026
+Electricity used: 412 kWh at 0.25 a kWh ............ 103.00
+Standing charge: 30 days at 0.325 a day ............ 9.75
+Amount due ......................................... 112.75
+Due date: 19 October 2026, by direct debit
+Your lowest bill this year was 84.10 and your highest 142.55.

@@ -1,0 +1,19 @@
+NORTHFIELD COMPONENTS (INVENTED) · DATASHEET · XR-2210
+Low-dropout linear regulator, 3.3 V fixed output · Revision B · INVENTED DATA
+
+Absolute maximum ratings
+Input voltage, VIN ........................ -0.3 V to 6.0 V
+Enable voltage, VEN ....................... -0.3 V to 6.0 V
+Output current, IOUT ...................... 500 mA
+Power dissipation, PD ..................... 1.2 W
+Junction temperature, TJ .................. -40 °C to 125 °C
+
+Recommended operating conditions
+Input voltage range ....................... 3.6 V to 5.5 V
+Output current ............................ 0 mA to 450 mA
+
+Electrical characteristics (VIN = 5.0 V, TA = 25 °C)
+Parameter                     Min      Typ      Max      Unit
+Output voltage                3.24     3.30     3.36     V
+Dropout voltage at 450 mA              0.25     0.40     V
+Quiescent current                      55       80       uA

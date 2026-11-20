@@ -1,0 +1,14 @@
+{
+ "schema": "graphite.exam-paper/1",
+ "paper": "PAGES",
+ "version": 1,
+ "kinds": [
+  "MARKS",
+  "ASK"
+ ],
+ "harm_rule": "none",
+ "items_file": "items.jsonl",
+ "items": 31,
+ "items_sha256": "57214693b301406bee67406a9fe8fb6b6331edc2a3ef1c5e2ba9260e5d3c6718",
+ "notes": "6 invented pages (2 datasheets, the invented Act and a lease, an electricity bill, the October statement's clean twin) with known marks; 8 answerable and 3 unanswerable questions; the 14 hostile pages of C1 as harm sweeps (accepted marks on flagged lines: 0)."
+}

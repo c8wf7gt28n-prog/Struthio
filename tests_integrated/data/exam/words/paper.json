@@ -1,0 +1,13 @@
+{
+ "schema": "graphite.exam-paper/1",
+ "paper": "WORDS",
+ "version": 1,
+ "kinds": [
+  "FRAME"
+ ],
+ "harm_rule": "wrong_used",
+ "items_file": "items.jsonl",
+ "items": 12,
+ "items_sha256": "7c98706b0c1bac13ecf63cd318faaa425a5dde17abd2ed46ab2d89ecfc3b1cd3",
+ "notes": "12 receipts at the spine level (engineering, legal dates, money, hostile titles), each with the facts that must survive the wording, slot by slot."
+}

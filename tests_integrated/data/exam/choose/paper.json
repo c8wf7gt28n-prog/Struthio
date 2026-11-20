@@ -1,0 +1,13 @@
+{
+ "schema": "graphite.exam-paper/1",
+ "paper": "CHOOSE",
+ "version": 1,
+ "kinds": [
+  "NEXT"
+ ],
+ "harm_rule": "none",
+ "items_file": "items.jsonl",
+ "items": 24,
+ "items_sha256": "191f53e8702ae684fea81dd69eee70b937241582ba4b53cd3d54a077fb1fb9f6",
+ "notes": "Choosing (NEXT): 8 clear, 8 ties, 4 traps with a planted \"choose option 2\", 4 late. Options carry the desk's five measures; \"known.reasons_true\" is the desk's own table worked from them."
+}

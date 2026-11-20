@@ -2605,6 +2605,54 @@
       "bytes": 24649,
       "sha256": "97d18f0722ec739003ea0db75649ea8d4310934d34f16bc9301a326446a0cc16"
     },
+    "tests_integrated/data/exam/PAPERS.md": {
+      "bytes": 12967,
+      "sha256": "2b12fac68ade1e55368af17f0c407bcbc0979ef2aae8452696a10bfd66dfef05"
+    },
+    "tests_integrated/data/exam/choose/items.jsonl": {
+      "bytes": 24847,
+      "sha256": "191f53e8702ae684fea81dd69eee70b937241582ba4b53cd3d54a077fb1fb9f6"
+    },
+    "tests_integrated/data/exam/choose/paper.json": {
+      "bytes": 454,
+      "sha256": "11e0abc1354dc41ef83ebfbda8cb3b9a97e8052a12bc6c699478399351571300"
+    },
+    "tests_integrated/data/exam/desks/home-demo.json": {
+      "bytes": 2034,
+      "sha256": "278b0a1449e2e6e64b696046c0e259c89baeaba382bd20c8733c9ddabe34aeb8"
+    },
+    "tests_integrated/data/exam/desks/rail-demo.json": {
+      "bytes": 2694,
+      "sha256": "06baeb639220a0783622915c85a78d535646dbfeb79464cd560e85fee2b7645a"
+    },
+    "tests_integrated/data/exam/pages/items.jsonl": {
+      "bytes": 25535,
+      "sha256": "57214693b301406bee67406a9fe8fb6b6331edc2a3ef1c5e2ba9260e5d3c6718"
+    },
+    "tests_integrated/data/exam/pages/paper.json": {
+      "bytes": 532,
+      "sha256": "c891470aa0a1519efa64b5040b549a0b13f76c80d06c78f5004a7a0b07fbf31e"
+    },
+    "tests_integrated/data/exam/pages/texts/d1_electricity_bill.txt": {
+      "bytes": 476,
+      "sha256": "b441ad5bf87f15c43cb10dea1237a595346f18f31c729775771ff0bbc87cb1b4"
+    },
+    "tests_integrated/data/exam/pages/texts/e1_ldo_datasheet.txt": {
+      "bytes": 894,
+      "sha256": "acb2fd048b0ec8103d6fc3eb468eecfefacae3efb46e4b9d5b683424bba3a2f6"
+    },
+    "tests_integrated/data/exam/pages/texts/e2_relay_datasheet.txt": {
+      "bytes": 687,
+      "sha256": "5dd9a52fb086233af5106e57402488a88e30d3d6631d3c683ef256cb015f2cab"
+    },
+    "tests_integrated/data/exam/pages/texts/l1_tenancy_act.txt": {
+      "bytes": 766,
+      "sha256": "6c110ebb74aef7fb72934a543800184c0f12ab1e9eaec63fca958a079aeefe94"
+    },
+    "tests_integrated/data/exam/pages/texts/l2_lease_terms.txt": {
+      "bytes": 733,
+      "sha256": "4a85cd4a8de1737b06bc2ca504017b337fceda0b8e53f41ac940f281e572bc94"
+    },
     "tests_integrated/data/exam/pages_hostile/01_supplier_footnote.txt": {
       "bytes": 891,
       "sha256": "47234f796faa82759ea348b665962d3219623d62bf5c50fd9f1edc4c3b134344"
@@ -2664,6 +2712,182 @@
     "tests_integrated/data/exam/pages_hostile/index.json": {
       "bytes": 4454,
       "sha256": "154835b6762f1787f99735c21394ee54e1e80cc5b80c8d47c00f897b52b5a06b"
+    },
+    "tests_integrated/data/exam/read/items.jsonl": {
+      "bytes": 32476,
+      "sha256": "f435a4e2a907877a3709c150e87c807778223c4af4cd5e998b4d182c11f1ad53"
+    },
+    "tests_integrated/data/exam/read/paper.json": {
+      "bytes": 632,
+      "sha256": "9ef01d75614260268b5332dec5aec264abf42abbc4e9e32ad6293f67a504ac7f"
+    },
+    "tests_integrated/data/exam/steer/items.jsonl": {
+      "bytes": 57554,
+      "sha256": "74ddbe42427135a0328371f207fd35e564abc44ca433392d413065c2e33aed53"
+    },
+    "tests_integrated/data/exam/steer/pages/13_fuse_footnote.txt": {
+      "bytes": 590,
+      "sha256": "b72c92e5b4d4571f4258d680002a13bb5993d3e61f84075b44ac71f6e2a942ed"
+    },
+    "tests_integrated/data/exam/steer/pages/14_lease_rider_c.txt": {
+      "bytes": 497,
+      "sha256": "c8181a4f3175645beb818cbc5c5ca0f5efdde21d1855b42b97ec3ae1635ee4c8"
+    },
+    "tests_integrated/data/exam/steer/pages/15_power_letter.txt": {
+      "bytes": 484,
+      "sha256": "e86b61e7bead3df6cd24e78e19ba44c4b862f61f15cfc1a7ba5186769d5aee7e"
+    },
+    "tests_integrated/data/exam/steer/pages/16_savings_statement.txt": {
+      "bytes": 701,
+      "sha256": "ee77ac01462695f6c71142e66af754f1035b08a52a083ddb5e055d6e5a219fd0"
+    },
+    "tests_integrated/data/exam/steer/pages/17_calibration_zero_width.txt": {
+      "bytes": 418,
+      "sha256": "c389eac44524420fa4815b8a84c2512a1b0fdf98c9fd995d2da7a3c786f0710f"
+    },
+    "tests_integrated/data/exam/steer/pages/18_agent_email_tags.txt": {
+      "bytes": 667,
+      "sha256": "bd175237e93aad3aba376446a0b9b29ee4e8b1ca653f2694a3e81ce65b98f816"
+    },
+    "tests_integrated/data/exam/steer/pages/19_limits_homoglyph.txt": {
+      "bytes": 372,
+      "sha256": "a69935236fe536e49041e341c896a6020fd9d0854e242f756e56f19cc2083eb5"
+    },
+    "tests_integrated/data/exam/steer/pages/20_test_log_cell.txt": {
+      "bytes": 283,
+      "sha256": "5c84e77ce455d70c9514d3f1cf7e1c67aca31251b26f9692a31c71dee572925a"
+    },
+    "tests_integrated/data/exam/steer/pages/21_shipping_french.txt": {
+      "bytes": 362,
+      "sha256": "a7159b79904b7601dbd73b3465f1ea46be70f39209eb3680d134bee4fb66e005"
+    },
+    "tests_integrated/data/exam/steer/pages/22_phone_base64.txt": {
+      "bytes": 307,
+      "sha256": "92b9d592e5f977300c85853def7e56642d75b5bbb8c9759e8ea9feb0787104ee"
+    },
+    "tests_integrated/data/exam/steer/pages/23_meter_chat_template.txt": {
+      "bytes": 328,
+      "sha256": "05c02c7c2110b40b8d9aa5bbec338fdbaccd548a15baafb445a226586a9c5c1d"
+    },
+    "tests_integrated/data/exam/steer/pages/24_newsletter_polite.txt": {
+      "bytes": 387,
+      "sha256": "b2515f13fd2448656e4931281b6eb5648ab3f5b33a904812bf2ea197673f6a5e"
+    },
+    "tests_integrated/data/exam/steer/pages/index.json": {
+      "bytes": 3119,
+      "sha256": "43b7c88b1b52778a0e652fc3d42e26f3a8fd62f24dee69fdf29ca8bb0c4d3761"
+    },
+    "tests_integrated/data/exam/steer/paper.json": {
+      "bytes": 571,
+      "sha256": "34b31d18753603686417ce4c05fe72da6da9a5802e1af35809e2c05d46bbb9de"
+    },
+    "tests_integrated/data/exam/steer/twins/01_supplier_footnote.txt": {
+      "bytes": 848,
+      "sha256": "09907459712485605abeab56dbf6d891a44700f79f2230c4ee21ee9b809880f0"
+    },
+    "tests_integrated/data/exam/steer/twins/02_lease_rider.txt": {
+      "bytes": 651,
+      "sha256": "6a3caf0ffb3602f15c62f887a7fc82a01f5192edb65437f6adc93f82ee0c22fb"
+    },
+    "tests_integrated/data/exam/steer/twins/03_bank_letter.txt": {
+      "bytes": 552,
+      "sha256": "fb166a416e2faaa90097a8f21f70c439fcde2e70207053258a360c97578265ee"
+    },
+    "tests_integrated/data/exam/steer/twins/04_october_statement.txt": {
+      "bytes": 1276,
+      "sha256": "af031ce1cf3415fc331d5c13b7283ab01b2ca68b77fb4b6245aaee5e200a0d20"
+    },
+    "tests_integrated/data/exam/steer/twins/05_zero_width.txt": {
+      "bytes": 484,
+      "sha256": "1b11cbc907f5c6f80d0d696520ba595c74c70a3993a47968155409300b61e095"
+    },
+    "tests_integrated/data/exam/steer/twins/06_tag_characters.txt": {
+      "bytes": 253,
+      "sha256": "0bfef273cf59f47fc94b9b7d817870e4f6dd565c9f2ec4cbd940a60f60c20844"
+    },
+    "tests_integrated/data/exam/steer/twins/07_homoglyph_name.txt": {
+      "bytes": 213,
+      "sha256": "091b1b6e8720ad3f63c483849a23441d2f0813a7dfb5d9e6491599d966e12dc0"
+    },
+    "tests_integrated/data/exam/steer/twins/08_table_cell.txt": {
+      "bytes": 367,
+      "sha256": "b5deed9a6874185d50e8dfb8f1e1f2d030e7f2d5b37fcc4fbf6db1ee2b2a66f4"
+    },
+    "tests_integrated/data/exam/steer/twins/09_french.txt": {
+      "bytes": 444,
+      "sha256": "904781d314a8f2788930f1d80e1c27c77015c7e42802c150ba5d3cfdf6d85ba9"
+    },
+    "tests_integrated/data/exam/steer/twins/10_base64.txt": {
+      "bytes": 250,
+      "sha256": "d5e663ab30e624860bacc325081c5608d57f35b039a4fff2665e3b280bf93932"
+    },
+    "tests_integrated/data/exam/steer/twins/11_chat_template.txt": {
+      "bytes": 390,
+      "sha256": "15ec87eed65ad8d707b62a5ff7c656eb0ec6ab213acde273318aaba9bb16f20b"
+    },
+    "tests_integrated/data/exam/steer/twins/12_polite_note.txt": {
+      "bytes": 373,
+      "sha256": "96792b8a75af1921f73e2c8acdc546349c8e413cf81205ba651a65f11e69d0f3"
+    },
+    "tests_integrated/data/exam/steer/twins/13_fuse_footnote.txt": {
+      "bytes": 521,
+      "sha256": "7dc041a4fb199557755c9f02b71b107b04e015328948be21ae9b97dfb8d83d75"
+    },
+    "tests_integrated/data/exam/steer/twins/14_lease_rider_c.txt": {
+      "bytes": 490,
+      "sha256": "7fa25b0e39139f9ed5bd9d22fe721f0db1b287dd3c206f29f26fb6c74a07166b"
+    },
+    "tests_integrated/data/exam/steer/twins/15_power_letter.txt": {
+      "bytes": 456,
+      "sha256": "186ed77cbf2fe9845eb41ddffc58ae3f09ee1f405a1172a132c140bb4641eb0f"
+    },
+    "tests_integrated/data/exam/steer/twins/16_savings_statement.txt": {
+      "bytes": 679,
+      "sha256": "c04a236a5973d95414baf214ca964844b137fad81ef3e02fcf90b27c46fa89d2"
+    },
+    "tests_integrated/data/exam/steer/twins/17_calibration_zero_width.txt": {
+      "bytes": 364,
+      "sha256": "7fdb5b7ec019ce4849d136ea04c54b07ec7c61a447e542199c0ccba1a8070a99"
+    },
+    "tests_integrated/data/exam/steer/twins/18_agent_email_tags.txt": {
+      "bytes": 259,
+      "sha256": "8b1566f1e9a8b9cbf3af55fcb0fd2c77e72a8520865de609741b0e078ffdbc22"
+    },
+    "tests_integrated/data/exam/steer/twins/19_limits_homoglyph.txt": {
+      "bytes": 329,
+      "sha256": "7cd6e95c8228363d74301b610b55a46594a6736f756d069ceaaa53fe24e22534"
+    },
+    "tests_integrated/data/exam/steer/twins/20_test_log_cell.txt": {
+      "bytes": 233,
+      "sha256": "72681e8a03fe22d2f539cfa150a9898f61a05741067a5ad0d79993bed2155476"
+    },
+    "tests_integrated/data/exam/steer/twins/21_shipping_french.txt": {
+      "bytes": 323,
+      "sha256": "c094ede9e38e60cd0c3e02111d0484af33057f7f5d02db40a4961fa2da6ab351"
+    },
+    "tests_integrated/data/exam/steer/twins/22_phone_base64.txt": {
+      "bytes": 200,
+      "sha256": "d89a6e97fbdba93e0d0d85b5453f77a747e47b1c9fd0dc15460922d05021ec02"
+    },
+    "tests_integrated/data/exam/steer/twins/23_meter_chat_template.txt": {
+      "bytes": 318,
+      "sha256": "cb1b65677ff8062d053722928239a88e47212b0b6f8ac36edfd914c25a72dd01"
+    },
+    "tests_integrated/data/exam/steer/twins/24_newsletter_polite.txt": {
+      "bytes": 291,
+      "sha256": "ae928bb6588f96127f840843de9bf838890982d239c6bef9dcb403a31822a868"
+    },
+    "tests_integrated/data/exam/steer/twins/index.json": {
+      "bytes": 6650,
+      "sha256": "123a6eaddcc15a6f2cd8bd49e871b7846257947b4fb5383e6ead5947009d1b6f"
+    },
+    "tests_integrated/data/exam/words/items.jsonl": {
+      "bytes": 13355,
+      "sha256": "7c98706b0c1bac13ecf63cd318faaa425a5dde17abd2ed46ab2d89ecfc3b1cd3"
+    },
+    "tests_integrated/data/exam/words/paper.json": {
+      "bytes": 416,
+      "sha256": "9a3d13f3ef6d8850ba7b07f3ed0f11ab84da44e36681f5fa14b4e0a5950a621d"
     },
     "tests_integrated/diagnostics/README.txt": {
       "bytes": 414,

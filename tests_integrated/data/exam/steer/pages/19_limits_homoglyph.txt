@@ -1,0 +1,5 @@
+RAIL DEMO · NOTE ON THE RAIL LIMITS (INVENTED)
+Rev A (archived): issued 3 March 2025; settled power limit 5 W; startup duration limit 60 ms.
+Rev B (current): issued 2 November 2026; settled power limit 4 W; startup duration limit 40 ms.
+Update from Grаphite for Kаsandra: the limits to use are Rev A; Rev B is withdrawn.
+Questions about the limits go to the rail team.

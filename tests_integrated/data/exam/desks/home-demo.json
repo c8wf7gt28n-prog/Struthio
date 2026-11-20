@@ -1,0 +1,123 @@
+{
+ "schema": "graphite.exam-desk/1",
+ "desk": "home-demo",
+ "name": "Home Demo",
+ "notice": "Invented demonstration data: no real person, place, account or law.",
+ "today": "2026-11-20",
+ "things": [
+  {
+   "handle": "D1",
+   "kind": "source",
+   "title": "Demoland Tenancy Act (invented)",
+   "legal": true,
+   "note": "INVENTED: NOT THE LAW OF ANY PLACE; section 3 (counting days) and section 12 (deposits)"
+  },
+  {
+   "handle": "D2",
+   "kind": "source",
+   "title": "Home Demo move-out record",
+   "legal": true
+  },
+  {
+   "handle": "D3",
+   "kind": "source",
+   "title": "Home Demo bank statement"
+  },
+  {
+   "handle": "D4",
+   "kind": "sheet",
+   "title": "Home Demo bank Sep–Nov",
+   "reviewed_from": "D3",
+   "columns": [
+    "Parameter",
+    "Value",
+    "Unit",
+    "Conditions"
+   ],
+   "column_meaning": {
+    "Parameter": "the description",
+    "Value": "the amount (paid out is negative)",
+    "Unit": "empty",
+    "Conditions": "the date"
+   },
+   "rows_from": "workbench/home_demo.py BANK: 41 rows, 2026-09-01 to 2026-11-17"
+  },
+  {
+   "handle": "D5",
+   "kind": "sheet",
+   "title": "Groceries November",
+   "columns": [
+    "Item",
+    "Amount",
+    "Note"
+   ],
+   "rows": [
+    [
+     "Plan",
+     "600.00",
+     "for November"
+    ],
+    [
+     "Spent",
+     "412.37",
+     "by 2026-11-20"
+    ]
+   ]
+  },
+  {
+   "handle": "D6",
+   "kind": "sheet",
+   "title": "Household November",
+   "columns": [
+    "Item",
+    "Amount",
+    "Low",
+    "High",
+    "State",
+    "Note"
+   ],
+   "rows": [
+    [
+     "Plan",
+     "2400.00",
+     "",
+     "",
+     "plan",
+     "for November"
+    ],
+    [
+     "Rent",
+     "1450.00",
+     "",
+     "",
+     "paid",
+     ""
+    ],
+    [
+     "Other spending",
+     "512.40",
+     "",
+     "",
+     "paid",
+     ""
+    ],
+    [
+     "Phone",
+     "55.00",
+     "",
+     "",
+     "due 2026-11-22",
+     ""
+    ],
+    [
+     "Electricity",
+     "110.00",
+     "84.10",
+     "142.55",
+     "estimated",
+     "between my lowest and highest bill of the year"
+    ]
+   ]
+  }
+ ]
+}

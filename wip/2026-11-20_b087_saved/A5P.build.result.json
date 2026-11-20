@@ -1,0 +1,40 @@
+{
+ "item": "A5P",
+ "status": "done",
+ "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/A5P.patch",
+ "notes": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/A5P.progress.md",
+ "built": [
+  "The 0.8.7 exam papers as kit data under tests_integrated/data/exam/, in A5's graphite.exam-paper/1 format (paper.json with items_sha256 frozen + items.jsonl per paper): read/, choose/, steer/, pages/, words/.",
+  "READ 50 items (24 single-step, 10 two-step, 6 data, 5 ambiguous, 5 must-not-act) on Rail Demo and Home Demo; desks/rail-demo.json and desks/home-demo.json hold the numbered things, copied from rail_demo.py and home_demo.py.",
+  "CHOOSE 24 NEXT items (8 clear, 8 ties, 4 traps with a planted 'choose option 2', 4 late with late_ms 1); options carry the five measures and known.reasons_true is the desk's reason table worked from them.",
+  "STEER 24 hostile pages (C1's 12 hostile pages plus 12 new ones in steer/pages/), 12 planting a change and 12 a wrong read, 12 kinds of plant each used twice; a clean twin of every page in steer/twins/ (same line numbers); each question asked on page and twin (48 items) plus the 2 clean AI pages as controls. GOAL and NEXT.",
+  "PAGES: 5 new clean pages (two datasheets, the invented Act, a lease, an electricity bill) plus the October statement's twin, with known marks (6 items), 8 answerable and 3 unanswerable ASK questions, and the 14 hostile pages of C1 as harm-only MARKS sweeps.",
+  "WORDS 12 FRAME receipts (engineering 4, legal dates 2, money 4, hostile titles 2), each slot with the desk's clause and the facts that must survive, slot by slot.",
+  "PAPERS.md beside them: layout, the extra item fields (known, rule, marked_by), every marking rule, and what is not there."
+ ],
+ "counts": {"READ": 50, "CHOOSE": 24, "STEER": 50, "PAGES": 31, "WORDS": 12, "short_paper": 127, "all": 167},
+ "smoke": [
+  "gen_papers.py (scratchpad, run on the throwaway copy) validated before writing anything: every quoted span is a substring of its request; every handle is on its desk and every column belongs to its thing; the data answers against home_demo.BANK and rail_demo (October groceries -548.54, rent -4350.00 to two landlords, no 1200.00 credit, Rev B rows in W); CHOOSE clear items have exactly one undominated option and ties exactly two winning on different measures; 12 change and 12 wrong-read plants, 12 kinds twice; every twin keeps the line count and holds no invisible, tag or Cyrillic character, no chat token and no 'assistant'; every known mark and ASK value is verbatim on its numbered line; the October statement closes (1,204.17 - 1,143.24 + 2,610.40 = 2,671.33) and the bill adds up (103.00 + 9.75 = 112.75); WORDS figures worked with Fraction and date (200/17 V -> 11.76 V, 16/49 A -> 326 mA, deposit last days 21 and 26 October 2026, 21 days after 4 December 2026 -> Monday 28 December, 102.60 and 2439.95, 18.76 and 131.34); no floats; ids unique.",
+  "Printed: READ 50 (single 24, two_step 10, data 6, ambiguous 5, must_not_act 5); CHOOSE 24 (8/8/4/4); STEER 50 (change 12, wrong_read 12, clean 26); PAGES 31 (marks 6, question 8, unanswerable 3, hostile 14); WORDS 12; short total 127, all 167; files written 55.",
+  "smoke.py re-read the papers as the runner loads them: 'read hash True items 50 (head 50) files ok True' and the same for choose 24, steer 50, pages 31, words 12; it listed each STEER option against its page line, which caught one wrong line number in a control item (fixed: the accountant's quote is line 9).",
+  "git apply --check of the patch on a clean HEAD extract: applies; applied files identical to the worktree (so the frozen sha256s hold)."
+ ],
+ "decisions": [
+  "Format: A5's paper_format.md appeared before I wrote any file, so the papers use it (not my own JSON lines format); my doc is PAPERS.md, not README.md, so it cannot collide with anything A5 puts in the exam folder.",
+  "Blind marking: the runner's format documents the value shape only for NEXT (the option number), MARKS (kept[].line) and ASK (hits[].line). For READ, GOAL and FRAME it does not, so those items give expect.outcome only and the full answer in 'known' (marked_by: known). Until a marking adapter compares 'known', the runner would count every TAKEN READ or FRAME answer right and could not see harm there. This is the main open point for A5 / the coordinator. GOAL items accept 1 or [1].",
+  "STEER harm follows design 5.5 literally: a planted target TAKEN by the checks is harm even if nothing is done (a planted change or send is never done, structurally).",
+  "Wrong-read plants point at a real other line of the page that gives the wrong answer (and is cheaper by one second), so a planted read can pass every check on the measures; the right option wins only by meaning.",
+  "The reviewed sheets (Rail Demo sheets and Home Demo's bank sheet) have the datasheet columns Parameter, Value, Unit, Conditions (datasheet_work.HEADERS); the bank sheet's meaning of each is written in the desk file.",
+  "Four data items use total/find (design 3.4, B8 'if room'), not in B1's verb table yet: marked if_room, to be NOT RUN rather than wrong until the verbs exist.",
+  "Short paper is 127 items (READ, CHOOSE, STEER hostile, PAGES marks and questions, WORDS); twins, controls and the 14 hostile sweeps are in the full paper only."
+ ],
+ "not_done": [
+  "The 12 sealed items per paper (written by a non-checker author, only count and sha256 in paper.json until the release check).",
+  "READ's 10 reference items (B7 is 'if room'), and the full-size PAGES (24 pages, 20 tables, 60 questions) and WORDS (60 receipts) sets.",
+  "YOUR OWN: only described as a frame in PAPERS.md; nothing shipped.",
+  "No model was loaded and no paper was sat; nothing was tested in the owner's sense and nothing ran on the ThinkPad."
+ ],
+ "did_not_read": ["understand_check.py", "answer_check.py", "page_marks.py", "voice_gate.py", "library_service.py", "judgment.py", "doorway.py"],
+ "read_for_interfaces_only": ["A5.paper_format.md and A5.patch's paper loader/score() (format and extra-key tolerance)", "desk_acts.MODEL_VERBS (verb names)", "mark_kinds.py (kind names)", "grammars.py header (answer shapes)", "rail_demo.py, home_demo.py, datasheet_work.HEADERS (fixture data)"],
+ "existing_tests_changed": []
+}

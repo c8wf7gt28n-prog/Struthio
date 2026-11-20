@@ -1,0 +1,17 @@
+DEMO RELAYS LTD (INVENTED) · RL-12 SIGNAL RELAY · DATASHEET REV 3
+For Rail Demo signal cabinets · INVENTED DATA
+
+Coil
+Nominal coil voltage ...................... 12 V
+Coil resistance ........................... 720 Ω
+Must-operate voltage ...................... 9.0 V
+Must-release voltage ...................... 1.2 V
+
+Contacts
+Switching current, maximum ................ 2 A
+Switching voltage, maximum ................ 30 V
+Contact resistance, initial ............... 50 mΩ maximum
+Operate time .............................. 8 ms maximum
+Release time .............................. 4 ms maximum
+
+Pin 1 and pin 16: coil. Pin 4: common. Pin 6: normally open. Pin 8: normally closed.
