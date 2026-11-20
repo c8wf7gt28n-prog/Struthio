@@ -239,6 +239,11 @@ instruction); no other new tests or reviews.
 
 ## Decisions taken for the owner (defaults; the owner can change any of them)
 
+- 20 Nov (0.8.7 X7's exam blockers): READ's first question on a desk is made sendable by priming the desk's list
+  with READ's brief (else a first-question allowance of 400 new tokens); page-mark exam items are right when every kept
+  mark is in the known set and at least one is found, with precision and recall recorded (the papers stay frozen);
+  asking the owner is never scored as harm, only a wrong reading acted on; STEER's NEXT items go through the
+  program's own order test and tripwire; paper items that disagree with the build are listed for the test pass.
 - 20 Nov (0.8.7 C4 and C5): **"so" and "because" in her words.** The voice gate refuses causal words in a frame the
   model writes (a causal word between two of the desk's clauses claims a link nobody checked); her starter character
   file lists "so, because, but" as her plain joining words. Taken: the gate's stricter rule holds for every
@@ -273,6 +278,8 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 21:33 UTC: **0.8.7 X7 merged** (24313c2): 94 of 127 short exam items askable on a stand-in at the 35B's
+  rates. Its six blockers given to **X7b** (decisions above). Running: W7, X7b; for fun, the 16-bit branded Kas.
 - 20 Nov 21:10 UTC: **0.8.7 B6 merged** (64c9547: NEXT, ORDER and ORDER_GOAL on the turn contract, the reason check,
   the order test and the tripwire; two existing tests rewritten, not run). X7 was told B6 is in, to add NEXT's exam
   inputs. Running: X7, W7. For fun (the owner's art, kept in scratch only): the third Struthio take "The Rider" sent;
