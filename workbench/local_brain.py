@@ -133,12 +133,21 @@ def status(kernel):
             'resource_stop':resource_stop,
             'selection':active,'worker':{k:worker.get(k) for k in ('model_id','pid','started','context','backend','requested_backend',
                 'device','observed_gpu_layers','offload_evidence','fallback_reason','resource_guard','runtime',
-                'context_basis','batch_size','microbatch_size','context_reuse','seal')} if live else None,
+                'context_basis','batch_size','microbatch_size','context_reuse','seal','reuse','memory_sum')} if live else None,
             'seal_words':brain_seal.words(worker.get('seal')) if live else None,
+            'kept_briefs':_kept_summary(kernel,worker) if live else None,
             'prepared_context':prepared_context(kernel,worker) if live else None,
             'previous':get(kernel,'previous'),'handover':pending,'registered_models':len(models(kernel)),
             'runtime':{k:v for k,v in brain_runtime.status(kernel.root).items() if k!='pin'},
             'cloud_calls':0,'notice':'Model-declared metadata and measured qualification are separate. The local model cannot execute Graphite commands.'}
+
+def _kept_summary(kernel,worker):
+    """0.8.7 A2: which kinds' briefs the live worker keeps ready, its reuse misses, and a restart Forget still waits for."""
+    try:
+        from . import brain_briefs
+        return brain_briefs.summary(kernel,worker)
+    except Exception:  # noqa: BLE001 - status never fails on the kept-brief summary
+        return None
 
 def add(kernel,args,principal):
     inspected=inspect_set(args['path'],args.get('role','chat'),args.get('projector'))
@@ -224,19 +233,25 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
     if any(name.startswith('UNSUPPORTED_TYPE_') for name in value['inspection']['quantization']):raise ValueError('MODEL_QUANTIZATION_NOT_IN_INSPECTION_PROFILE')
     context=options.get('context',2048);trained=metadata.get(architecture+'.context_length')
     if type(trained)==int and context>trained:raise ValueError('CONTEXT_EXCEEDS_MODEL_DECLARATION')
-    layers=metadata.get(architecture+'.block_count');embedding=metadata.get(architecture+'.embedding_length')
-    heads=metadata.get(architecture+'.attention.head_count');kv_heads=metadata.get(architecture+'.attention.head_count_kv',heads)
-    if not all(type(x)==int and x>0 for x in (layers,embedding,heads,kv_heads)):raise ValueError('MODEL_MEMORY_ESTIMATE_UNAVAILABLE')
-    kv_bytes=4*layers*context*embedding*kv_heads//heads
-    estimate=int(value['total_bytes']*1.3+kv_bytes+384*1024*1024)
+    # 0.8.7 A2: the memory sum (resource_control.memory_sum) from the GGUF metadata, exact for hybrid models, with the
+    # reuse ladder: six checkpoints and the RAM prompt cache, then two and 256 MiB, then reuse off; the first rung the
+    # rule admits is taken. A dense model has one rung, today's estimate to the byte.
+    from .resource_control import KEYS,MIB,budget_room,reserve_bytes,reuse_ladder
+    ladder=reuse_ladder(value['inspection'],value['total_bytes'],context)
     available=host['available_ram_bytes']
     if not available:raise ValueError('HOST_MEMORY_COULD_NOT_BE_MEASURED')
-    from .resource_control import KEYS,MIB,budget_room,reserve_bytes
     reserve=reserve_bytes(KEYS['reserve_mb'] if reserve_mb is None else reserve_mb,host.get('total_ram_bytes'))
-    credit=max(0,int(reclaimable_bytes));need=-(-estimate//MIB)  # the estimate in whole MiB, rounded up
+    credit=max(0,int(reclaimable_bytes))
     # The same rule as admission and launch (resource_control.budget_room), so what is accepted here is admitted there.
     room=budget_room(available,reserve,0,credit)
     memory_mb=options.get('memory_mb')
+    def fits(term):
+        need=-(-term['estimate']//MIB)
+        if memory_mb is None:return need<=AUTO_CEILING_MB and need+AUTO_HEADROOM_MB<=room//MIB
+        return term['estimate']<=memory_mb*MIB
+    chosen=next((term for term in ladder if fits(term)),ladder[-1])  # none fits: the last rung's numbers are refused below
+    kv_bytes=chosen['kv'];estimate=chosen['estimate']
+    need=-(-estimate//MIB)  # the estimate in whole MiB, rounded up
     if memory_mb is None:
         if need>AUTO_CEILING_MB:
             raise ValueError('MODEL_MEMORY_BUDGET_TOO_SMALL: this model at %s tokens needs %s, above the %s Auto '
@@ -272,7 +287,9 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
         backend='VULKAN' if ready else 'CPU'
         if not ready:reason='Auto selected CPU: no accessible amdgpu Radeon with a bundled Vulkan worker was found.'
     return {'context':context,'threads':options.get('threads',min(4,host['logical_cpus'] or 1)),'weight_loading':'RESIDENT_COPY',
-            'memory_mb':memory_mb,'estimated_peak_bytes':estimate,'estimated_kv_bytes':kv_bytes,'backend':backend,
+            'memory_mb':memory_mb,'estimated_peak_bytes':estimate,'estimated_kv_bytes':kv_bytes,
+            'checkpoints':chosen['checkpoints'],'prompt_cache_mb':chosen['cache_mb'],
+            'memory_sum':{k:v for k,v in chosen.items() if k!='estimate'},'backend':backend,
             'requested_backend':requested,'gpu_layers':layers,'cpu_fallback':fallback,'fallback_reason':reason,
             'host':host,'reclaimable_private_bytes':reclaimable_bytes,'resource_guard':resource_guard(backend),
             **({'headroom_mb':headroom_mb} if headroom_mb else {})}
@@ -408,6 +425,25 @@ def seal_check(worker,log,backend):
     campaign's simulated worker can answer it (tools/campaign_lib/sim.py); a real start always runs the real check."""
     return brain_seal.check(worker,log,backend)
 
+def launch_arguments(weights,sock,port,key_file,config,backend):
+    """The runtime's launch line (0.8.7 A2, design 4.2). One slot (--parallel 1); prompt reuse through context
+    checkpoints with no minimum step (the default 8,192 gives none for short prompts) and a bounded RAM prompt cache, both
+    chosen by the memory rule and counted in the budget (config['checkpoints'], config['prompt_cache_mb']; a selection
+    from before 0.8.7 has neither and launches as before, 0 and 0). --no-slots, --no-cache-idle-slots and the rest stay;
+    no --slot-save-path, no --log-prompts-dir: the worker writes nothing to disk (the seal's lint refuses both)."""
+    gpu_layers=config.get('gpu_layers',-1)
+    line=['--model',weights,'--host',sock or '127.0.0.1']+(['--port',str(port)] if port else [])+[
+          '--api-key-file',key_file,
+          '--ctx-size',str(config['context']),'--threads',str(config['threads']),'-ngl',
+          ('auto' if gpu_layers==-1 else str(gpu_layers)) if backend=='VULKAN' else '0','--parallel','1',
+          '--threads-http','2','--batch-size','256','--ubatch-size','64',
+          '--cache-ram',str(int(config.get('prompt_cache_mb') or 0)),'--ctx-checkpoints',str(int(config.get('checkpoints') or 0)),
+          '--checkpoint-min-step','0','--no-cache-idle-slots',
+          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
+          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
+    line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
+    return line
+
 def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
     from .locations import child_env
     from .resource_control import model_room
@@ -423,15 +459,7 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
     possible=brain_seal.network_seal_possible()
     network_seal=bool(network_seal and sock is not None and possible)
     weights=next(item['path'] for item in value['files'] if item['role']=='weights')
-    gpu_layers=config.get('gpu_layers',-1)
-    line=['--model',weights,'--host',str(sock) if sock else '127.0.0.1']+(['--port',str(port)] if port else [])+[
-          '--api-key-file',str(key),
-          '--ctx-size',str(config['context']),'--threads',str(config['threads']),'-ngl',
-          ('auto' if gpu_layers==-1 else str(gpu_layers)) if backend=='VULKAN' else '0','--parallel','1',
-          '--threads-http','2','--batch-size','256','--ubatch-size','64','--cache-ram','0','--ctx-checkpoints','0','--no-cache-idle-slots',
-          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
-          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
-    line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
+    line=launch_arguments(weights,str(sock) if sock else None,port,str(key),config,backend)
     try:launch_line=brain_seal.lint(line)
     except ValueError:
         key.unlink(missing_ok=True)
@@ -462,7 +490,10 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
                     'device':config.get('device'),'fallback_reason':config.get('fallback_reason'),
                     'resource_guard':config.get('resource_guard',resource_guard(backend)),
                     'verified_files':verified,'batch_size':256,'microbatch_size':64,
-                    'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT'}
+                    'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT',
+                    # 0.8.7 A2: kept briefs (brain_briefs) over one slot, its checkpoints and its RAM prompt cache
+                    'reuse':{'checkpoints':int(config.get('checkpoints') or 0),'prompt_cache_mb':int(config.get('prompt_cache_mb') or 0)},
+                    'memory_sum':config.get('memory_sum')}
             if worker['start'] in (None,UNKNOWN):raise ValueError('Model worker process ownership could not be verified')
             put(kernel,slot,worker,'STARTING',db)
         while time.monotonic()-began<90:
@@ -533,7 +564,9 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
         prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
         tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens'];prompt_tokens=len(tokens)
     if prompt_tokens+max_tokens+32>worker['context']:raise ValueError('CONTEXT_BUDGET_EXCEEDED: shorten this message or begin a new conversation; saved dialogue is preserved')
-    payload={'messages':messages,'max_tokens':max_tokens,'temperature':0,'stream':False,'cache_prompt':False,
+    # 0.8.7 A2: cache_prompt on. The slot keeps its prompt and its checkpoints, and the RAM cache the kinds before it, so a
+    # question re-reads only what changed after its kind's kept brief (brain_briefs). max_tokens 0 is a priming read.
+    payload={'messages':messages,'max_tokens':max_tokens,'temperature':0,'stream':False,'cache_prompt':True,
              'chat_template_kwargs':TEMPLATE_OPTIONS}
     if json_schema and grammar:raise ValueError('ANSWER_SHAPE_TWICE: a JSON schema or a grammar, not both')
     if json_schema:payload['response_format']={'type':'json_schema','json_schema':{'name':'ledger_plan','strict':True,'schema':json_schema}}
@@ -548,6 +581,7 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
                   'usage':got['usage'],'timings':got['timings']}
     else:response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
     text=response['choices'][0]['message'].get('content','')
+    if max_tokens==0 and text is None:text=''          # a priming read: the prompt is read into the cache, no answer
     if not isinstance(text,str) or len(text)>32000:raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
     return {'text':text,'usage':response.get('usage',{}),'timings':response.get('timings',{}),
             'input_messages_digest':record_io.digest(messages),
@@ -622,7 +656,11 @@ def run_model_job(kernel,job):
                 put(kernel,'selection',selection,'ACTIVATED',db);put(kernel,'worker',trial,'READY',db);put(kernel,'trial_worker',{},db=db)
                 put(kernel,'resource_stop',None,db=db)
         result={'status':'ACTIVATED' if job['tool']=='brain.activate' else 'QUALIFIED','model_id':value['id'],'qualification':receipt,'cloud_calls':0}
-        if job['tool']=='brain.activate':trial=None
+        if job['tool']=='brain.activate':
+            # 0.8.7 A2: Ready, then each kind's brief read once with no answer (never fails the activation)
+            from . import brain_briefs
+            result['kept_briefs']=brain_briefs.after_start(kernel,trial,cancelled=lambda:cancelled(kernel,ident))
+            trial=None
         return result
     except BaseException as exc:
         # A refusal before anything started (the launch check) leaves the previous model to be restored; restoring goes
@@ -654,6 +692,8 @@ def run_model_job(kernel,job):
                     verify_resident(model(kernel,previous['model_id']),restored)
                     put(kernel,'worker',restored,'RESTORED_PREVIOUS',db);put(kernel,'trial_worker',{},db=db)
                     put(kernel,'resource_stop',None,db=db)
+                from . import brain_briefs
+                brain_briefs.after_start(kernel,restored)   # 0.8.7 A2: never raises
             except Exception:
                 if restored:terminate(kernel,restored,'ROLLBACK_PROBE_FAILED');put(kernel,'trial_worker',{})
                 activity.record(kernel.root,'STACY','brain.rollback','PREVIOUS_MODEL_RELOAD_FAILED')
@@ -1098,6 +1138,20 @@ def result(kernel,ident,principal):
     if job['tool'] not in JOB_TOOLS:raise ValueError('Not a Brain job')
     path=kernel.root/'build/brain/runs'/ident/'result.json'
     return {'job_id':ident,'state':job['state'],'result':record_io.strict_json(path.read_bytes()) if path.is_file() else None,'error':job.get('error')}
+
+def forget_restart(kernel,principal,reason='FORGOTTEN'):
+    """0.8.7 A2, Forget: restart the live worker so nothing forgotten survives in its RAM cache or checkpoints. The same
+    selection is started again by a brain.activate job, so it runs once the worker is idle (the inference lane is
+    free), a hold holds it, and run_model_job's sequential handover stops the old worker first; the new one is primed
+    with briefs only. Returns the job, or None when no live worker of the selection holds anything."""
+    selection=get(kernel,'selection',{}) or {};worker=get(kernel,'worker',{}) or {}
+    if not worker_live(worker) or selection.get('model_id')!=worker.get('model_id'):return None
+    from .model_settings import LAUNCH_KEYS
+    config=selection['config'];options={k:config[k] for k in LAUNCH_KEYS if k in config}
+    options['backend']=config.get('requested_backend',config.get('backend','CPU'))
+    activity.record(kernel.root,'STACY','brain.forget_restart',reason)
+    return submit(kernel,'brain.activate',{'request_key':'brain-forget:'+uuid.uuid4().hex},principal,
+                  {**options,'model_id':selection['model_id']})
 
 def cancel_job(kernel,job):
     for key in ('trial_worker','worker'):

@@ -72,7 +72,8 @@ class CampaignTests(unittest.TestCase):
         # 0.8.1 decided R07's question in the code: Auto takes the owner's model at 39 GiB.
         self.assertFalse(self.results['R07']['spec_question'])
         checks = {c['check']: c['observed'] for c in self.results['R07']['checks']}
-        self.assertEqual((checks['auto_submit'], checks['auto_frozen_memory_mb']), ('ACCEPTED', 26013))
+        # 0.8.7 A2: the estimate is the memory sum (six checkpoints and the 1,024 MiB prompt cache fit at 39 GiB)
+        self.assertEqual((checks['auto_submit'], checks['auto_frozen_memory_mb']), ('ACCEPTED', 27397))
 
     # ---- 1. the summary counts only this run
     def test_run_into_an_existing_folder_moves_the_earlier_run_aside(self):

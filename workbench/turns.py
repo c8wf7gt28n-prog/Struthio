@@ -39,7 +39,8 @@ ask(kind, inputs, request) -> Answer
 Answer(value, by_model, outcome, fallback, why, verdict, turn, said, price_ms, deadline_ms, elapsed_ms, late_view)
     by_model   True when value is the checked model answer (TAKEN, TRIMMED, UNSETTLED); else value is the fallback's
     outcome    TAKEN TRIMMED REFUSED UNSETTLED TRIPPED LATE FAILED (a turn was sent and recorded), or NOT_SENT
-    why        for NOT_SENT: SWITCH_OFF, AI_OFF, NO_MODEL, STOPPED, CEILING_TURNS, CEILING_TIME, OVER_CAP, OVER_CONTEXT;
+    why        for NOT_SENT: SWITCH_OFF, AI_OFF, NO_MODEL, STOPPED, CEILING_TURNS, CEILING_TIME, OVER_CAP, OVER_CONTEXT,
+               FORGETTING (A2: the worker holds a forgotten turn until its restart);
                for a sent turn the first reason code of its verdict, or LATE, or the worker's error code
     late_view  a late answer's checked value (TAKEN or TRIMMED), offered beside hers, never taken
 TurnRequest(port=None, ledger=None, clock=None, switches=None, owner='', foreground_turns=3, budget_ms=25000,
@@ -53,6 +54,10 @@ The worker port (LocalPort here; fake_worker.FakeWorker for smoke scripts): live
 kept(messages), the attribute context (tokens, or None), complete(messages, *, answer_tokens, grammar, deadline_ms, odds,
 prompt_tokens, on_progress) -> dict(text, finish, timings, odds, elapsed_ms); raises Late past the deadline, PortError
 when the worker fails. on_progress(tokens_written, elapsed_ms), when given, is called as the answer streams (A3).
+Optional (A2, prompt reuse; a port without them is simply not watched): after_turn(kind, messages, kept, timings) -> the
+record's 'reuse' field ({expected, cache_n, miss, misses_in_a_row, reprime}), and reprime(kind). LocalPort keeps briefs
+through brain_briefs: kept() is what the worker holds of this question (its kind's primed brief, or messages 1 to 3 when
+they were the last of that kind), so a question is priced, and capped, on its new tokens only.
 Her clock (brain_clock.py, lane A's A3, when it exists; FixedClock until then): price_ms(key, kind, new_tokens,
 answer_tokens, desk_ms) and observe(key, kind, record).
 Added by A3 (backward compatible: new names only, nothing above changed meaning):
@@ -101,7 +106,8 @@ OUTCOMES = VERDICTS + ('LATE', 'FAILED')
 USED = ('TAKEN', 'TRIMMED', 'UNSETTLED')         # verdicts whose value the caller receives
 FALLBACKS = ('ASK_OWNER', 'DEFAULT_READ', 'PLAIN_WORDS', 'CANNOT_TELL', 'NOT_OFFERED', 'PATTERNS', 'PLACES')
 NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT',
-            'RECEIPT_FIRST')     # A3: a wording turn waits for her receipt sentence on screen
+            'RECEIPT_FIRST',     # A3: a wording turn waits for her receipt sentence on screen
+            'FORGETTING')        # A2: the worker holds something forgotten and waits for its restart
 RECEIPT_FIRST_SWITCHES = ('wording',)   # A3: kinds of these switches are sent only after request.receipt_on_screen()
 BASES = ('owner_words', 'owner_click', 'deduction', 'model_pick')
 FOREGROUND_TURNS = 3                     # at most 3 foreground model turns per request (design 4.4)
@@ -408,9 +414,12 @@ def request_for(kernel, principal, **options):
             if local_brain.worker_live(worker) and worker.get('model_id') == selection.get('model_id'):
                 try:
                     local_brain.verify_resident(local_brain.model(kernel, worker['model_id']), worker)
-                    port = LocalPort(worker)
+                    port = LocalPort(worker, kernel)
                 except (ValueError, OSError):
                     port = None
+                if port is not None:      # A2: a worker that holds a forgotten turn gets nothing until its restart
+                    from . import brain_briefs
+                    if brain_briefs.forget_pending(kernel, worker):port = None;off = 'FORGETTING'
     options.setdefault('clock', default_clock(kernel))
     return TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
                        **options)
@@ -418,16 +427,22 @@ def request_for(kernel, principal, **options):
 
 # -- the local worker port: the only caller of local_brain.completion -----------------------------------------------------------
 class LocalPort:
-    """Graphite's own local model worker (local_brain). Prompt reuse is off until A2 turns it on (cache_prompt false,
-    --cache-ram 0), so kept() is 0 and every token of a question is new."""
+    """Graphite's own local model worker (local_brain). Prompt reuse (A2): one slot with checkpoints and a RAM prompt cache,
+    cache_prompt on; the kept briefs are brain_briefs', in the Kernel's settings when a kernel is given (else in memory)."""
     GRACE_MS = 500
 
-    def __init__(self, worker):
-        self.worker = worker;self.context = worker.get('context')
+    def __init__(self, worker, kernel=None):
+        from . import brain_briefs
+        self.worker = worker;self.context = worker.get('context');self.kernel = kernel
+        self.store = brain_briefs.store_for(kernel);self._seen = (None, None)
 
     def live(self):
-        from . import local_brain
-        return local_brain.worker_live(self.worker)
+        from . import brain_briefs, local_brain
+        return local_brain.worker_live(self.worker) and not brain_briefs.forget_pending(self.kernel, self.worker)
+
+    def not_live_reason(self):
+        from . import brain_briefs
+        return 'FORGETTING' if brain_briefs.forget_pending(self.kernel, self.worker) else 'NO_MODEL'
 
     def model(self):return self.worker.get('model_id', '')
 
@@ -438,8 +453,11 @@ class LocalPort:
                                  'backend': self.worker.get('backend'), 'context': self.worker.get('context'),
                                  'template': local_brain.TEMPLATE_OPTIONS})
 
-    def count(self, messages):
+    def tokens(self, messages):
+        """The prompt's tokens as the worker renders and counts them (its own template and vocabulary)."""
         from . import local_brain
+        key = json.dumps(messages, ensure_ascii=False, sort_keys=True)
+        if self._seen[0] == key:return self._seen[1]
         try:
             prompt = local_brain.request(self.worker, '/apply-template', {'messages': messages, 'add_generation_prompt': True,
                                          'chat_template_kwargs': local_brain.TEMPLATE_OPTIONS}, timeout=10)['prompt']
@@ -447,10 +465,37 @@ class LocalPort:
         except (ValueError, OSError, KeyError, TypeError) as exc:
             raise PortError(_code(exc)) from None
         if not isinstance(tokens, list):raise PortError('LOCAL_TOKENIZER_RESPONSE_INVALID')
-        return len(tokens)
+        self._seen = (key, tokens)
+        return tokens
+
+    def count(self, messages):
+        return len(self.tokens(messages))
 
     def kept(self, messages):
-        return 0
+        from . import brain_briefs
+        try:
+            return brain_briefs.expected(self.store, self.worker, messages)
+        except Exception:  # noqa: BLE001 - nothing known: every token is new
+            return 0
+
+    def after_turn(self, kind, messages, kept, timings):
+        from . import brain_briefs
+        return brain_briefs.watch(self, kind, messages, kept, timings)
+
+    def reprime(self, kind):
+        from . import brain_briefs
+        return brain_briefs.reprime_later(self, kind)
+
+    def read_prime(self, messages, prompt_tokens=None):
+        """A priming read (brain_briefs): the brief read into the worker's cache with no answer (max_tokens 0). Its text,
+        if any, is dropped unseen: nothing was asked, and nothing is recorded as a turn."""
+        from . import local_brain
+        began = _monotonic_ms()
+        try:
+            got = local_brain.completion(self.worker, messages, 0, timeout=120, prompt_tokens=prompt_tokens)
+        except (ValueError, OSError, KeyError, TypeError) as exc:
+            raise PortError(_code(exc)) from None
+        return {'timings': got.get('timings') or {}, 'finish': got.get('finish_reason'), 'elapsed_ms': _monotonic_ms() - began}
 
     def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None,
                  cancelled=None):
@@ -503,7 +548,8 @@ def ask(kind, inputs, request):
     if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
     if kind.switch in RECEIPT_FIRST_SWITCHES and not request.receipt_shown:return _without(kind, inputs, 'RECEIPT_FIRST')
     port = request.port
-    if port is None or not port.live():return _without(kind, inputs, request.off_reason if port is None else 'NO_MODEL')
+    if port is None or not port.live():
+        return _without(kind, inputs, request.off_reason if port is None else getattr(port, 'not_live_reason', lambda: 'NO_MODEL')())
     if request.cancelled():return _without(kind, inputs, 'STOPPED')
     if caps.foreground and request.turns_used >= request.foreground_turns:return _without(kind, inputs, 'CEILING_TURNS')
     # 2 · the layout and the grammar
@@ -574,11 +620,24 @@ def ask(kind, inputs, request):
     fb = None if use else kind.fallback(inputs)
     if fb is not None and not isinstance(fb, Fallback):raise TypeError('TURN_FALLBACK: a kind returns a Fallback')
     why = failed or ('LATE' if late else (verdict.why[0] if verdict and verdict.why else ''))
+    # 5b · the reuse watchdog (A2): cache_n against what was expected kept; two misses in a row re-prime the kind
+    reuse = None
+    if failed is None and hasattr(port, 'after_turn'):
+        try:
+            reuse = port.after_turn(kind, messages, kept, timings)
+        except Exception:  # noqa: BLE001 - the watchdog is for speed only; it never stops an answer
+            reuse = None
     # 6 · one record
     value = record(kind=kind, request=request, messages=messages, grammar=grammar, said=said, finish=finish, odds=odds,
                    verdict=verdict, outcome=outcome, fallback=None if fb is None else fb.code, why=why, price=price,
-                   deadline=deadline, elapsed=elapsed, timings=timings, prompt=prompt, kept=kept, key=key, model=port.model())
+                   deadline=deadline, elapsed=elapsed, timings=timings, prompt=prompt, kept=kept, key=key, model=port.model(),
+                   reuse=reuse)
     ident = request.ledger.write(value)
+    if reuse and reuse.get('reprime') and hasattr(port, 'reprime'):
+        try:
+            port.reprime(kind)
+        except Exception:  # noqa: BLE001
+            pass
     try:
         request.clock.observe(key, kind.name, value)
     except Exception:  # noqa: BLE001 - her clock never stops an answer
@@ -615,7 +674,7 @@ def _timings(timings):
 
 
 def record(*, kind, request, messages, grammar, said, finish, odds, verdict, outcome, fallback, why, price, deadline,
-           elapsed, timings, prompt, kept, key, model):
+           elapsed, timings, prompt, kept, key, model, reuse=None):
     """One brain.turn/1 record (design 3.5)."""
     if outcome not in OUTCOMES:raise ValueError('TURN_OUTCOME: %s' % outcome)
     return {
@@ -635,6 +694,8 @@ def record(*, kind, request, messages, grammar, said, finish, odds, verdict, out
         'tokens': {'prompt': int(prompt), 'kept_expected': int(kept), 'new': int(prompt - kept),
                    'answer_cap': kind.caps.answer_tokens},
         'timings': _timings(timings), 'key': key, 'model': model,
+        # A2: the watchdog's view of this turn (None when the port keeps no briefs): a miss counts here, never as an error
+        'reuse': _jsonable(reuse) if reuse is not None else None,
     }
 
 
@@ -715,9 +776,10 @@ def get(kernel, owner, ident):
     return json.loads(row[0])
 
 
-def forget(kernel, owner, ident):
-    """Forget a turn: its record becomes a tombstone. (The operation brain.turn.forget, approve and always asked, and the
-    worker restart that clears its memory of the turn come with lane A's A2 and A4.)"""
+def forget(kernel, owner, ident, principal=None):
+    """Forget a turn: its record becomes a tombstone, and the worker's memory of it goes (A2): the live worker that may
+    hold it is marked so no question is sent to it, and is restarted once idle when `principal` may restart a model (the
+    operation brain.turn.forget, approve and always asked, is A4's and passes it); brain_briefs.forgotten decides."""
     value = get(kernel, owner, ident)
     if value['state'] == 'FORGOTTEN':return value
     stone = tombstone(value);raw = _canonical(stone)
@@ -725,6 +787,11 @@ def forget(kernel, owner, ident):
         db.execute('BEGIN IMMEDIATE')
         db.execute('UPDATE brain_turns SET state=?, payload=?, digest=? WHERE id=? AND owner=?',
                    ('FORGOTTEN', raw, hashlib.sha256(raw.encode('utf-8')).hexdigest(), ident, owner))
+    try:
+        from . import brain_briefs
+        brain_briefs.forgotten(kernel, value, principal)
+    except Exception:  # noqa: BLE001 - the tombstone stands; brain.status shows a worker that could not be marked
+        pass
     return stone
 
 

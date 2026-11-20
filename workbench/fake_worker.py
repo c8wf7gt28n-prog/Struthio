@@ -19,6 +19,9 @@ FakeServer(script, context=4096)
     A step may also carry 'sleep_ms' (real time, kept short) to make the client's timeout fire. (A3) A request with
     "stream": true is answered as llama-server streams: one SSE event per token, 'token_ms' (real time) apart, the
     timings in the last event, then [DONE]; `closed` counts streams the client closed before the end.
+    A2: `reuse=True` keeps prompts as the runtime does with one slot, checkpoints and a RAM cache, and answers cache_n
+    (streamed or not; a step's 'cache_n' scripts a miss); a request with max_tokens 0 is a priming read (no script step,
+    no answer); restart() forgets everything kept.
 
 FAKE, register_fake()
     A stand-in kind ("which of these numbered options"), the example lanes B and C can copy: options are (label, is_read)
@@ -133,8 +136,13 @@ class FakeWorker:
 
 # -- the HTTP stand-in ----------------------------------------------------------------------------------------------------------
 class FakeServer:
-    def __init__(self, script=(), *, context=4096, model_id='f' * 64, key='fake-worker-key'):
+    def __init__(self, script=(), *, context=4096, model_id='f' * 64, key='fake-worker-key', reuse=False, ram_entries=4):
         self.script = list(script);self.context = context;self.model_id = model_id;self.bodies = [];self.closed = 0
+        # A2: with reuse, it keeps prompts as the runtime does with one slot, checkpoints and a RAM cache: a prompt is kept
+        # with a checkpoint where its last user message starts, and a new prompt re-uses the longest kept prefix up to a
+        # checkpoint (or the whole kept prompt it extends). cache_n says how much. A step's 'cache_n' scripts a miss.
+        self.reuse = reuse;self.ram_entries = ram_entries;self._slot = None;self._ram = []
+        self.started = time.time()
         self._dir = tempfile.mkdtemp(prefix='fake-worker-');self.key_file = Path(self._dir) / 'key'
         self.key_file.write_text(key);self.key_file.chmod(0o600);self._key = key
         server = self
@@ -152,14 +160,14 @@ class FakeServer:
                     self._send(401, {'error': 'unauthorised'});return False
                 return True
 
-            def _stream(self, step, text, seen):
-                """A3: llama-server's streamed answer, one event per token, token_ms apart."""
+            def _stream(self, step, text, seen, kept=0):
+                """A3: llama-server's streamed answer, one event per token, token_ms apart (A2: cache_n is what was kept)."""
                 self.send_response(200);self.send_header('Content-Type', 'text/event-stream');self.end_headers()
                 pieces = tokens(text)
                 events = [{'choices': [{'index': 0, 'delta': {'content': p}, 'finish_reason': None}]} for p in pieces]
                 events.append({'choices': [{'index': 0, 'delta': {}, 'finish_reason': step.get('finish', 'stop')}],
                                'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(pieces)},
-                               'timings': {'prompt_n': len(seen), 'cache_n': 0, 'predicted_n': len(pieces),
+                               'timings': {'prompt_n': len(seen) - kept, 'cache_n': kept, 'predicted_n': len(pieces),
                                            'prompt_ms': 1.0, 'predicted_ms': 1.0}})
                 try:
                     for value in events:
@@ -184,17 +192,20 @@ class FakeServer:
                 if self.path == '/tokenize':
                     return self._send(200, {'tokens': [int(hashlib.sha256(t.encode()).hexdigest()[:6], 16) for t in tokens(body['content'])]})
                 if self.path == '/v1/chat/completions':
-                    if not server.script:return self._send(500, {'error': 'script empty'})
-                    step = _step(server.script.pop(0), body['messages'], body.get('grammar'))
+                    priming = body.get('max_tokens') == 0
+                    if not priming and not server.script:return self._send(500, {'error': 'script empty'})
+                    step = {'text': ''} if priming else _step(server.script.pop(0), body['messages'], body.get('grammar'))
                     if step.get('sleep_ms'):time.sleep(step['sleep_ms'] / 1000)
                     if step.get('fail'):return self._send(500, {'error': step['fail']})
                     text = step.get('text', '');seen = tokens(chatml(body['messages']))
-                    if body.get('stream'):return self._stream(step, text, seen)
+                    kept = server._reuse(body['messages'], body.get('cache_prompt'))
+                    if 'cache_n' in step:kept = int(step['cache_n'])          # a scripted miss
+                    if body.get('stream'):return self._stream(step, text, seen, kept)
                     return self._send(200, {'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': text},
-                                                         'finish_reason': step.get('finish', 'stop')}],
+                                                         'finish_reason': 'length' if priming else step.get('finish', 'stop')}],
                                             'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(tokens(text))},
-                                            'timings': {'prompt_n': len(seen), 'cache_n': 0, 'predicted_n': len(tokens(text)),
-                                                        'prompt_ms': 1.0, 'predicted_ms': 1.0}})
+                                            'timings': {'prompt_n': len(seen) - kept, 'cache_n': kept,
+                                                        'predicted_n': len(tokens(text)), 'prompt_ms': 1.0, 'predicted_ms': 1.0}})
                 self._send(404, {'error': 'not here'})
 
         self._server = ThreadingHTTPServer(('127.0.0.1', 0), Handler);self._server.daemon_threads = True
@@ -206,7 +217,27 @@ class FakeServer:
         from .operation_stop import process_identity
         return {'pid': os.getpid(), 'start': process_identity(os.getpid()), 'port': self.port, 'key_file': str(self.key_file),
                 'context': self.context, 'model_id': self.model_id, 'runtime': {'simulated': True, 'name': 'fake_worker'},
-                'backend': 'CPU'}
+                'backend': 'CPU', 'started': self.started}
+
+    def _reuse(self, messages, cache_prompt):
+        """cache_n for this prompt, and keep it (A2's stand-in for one slot, checkpoints and the RAM prompt cache)."""
+        if not self.reuse:return 0
+        parts = [tokens('<|im_start|>%s\n%s<|im_end|>\n' % (m['role'], m['content'])) for m in messages]
+        seen = [t for part in parts for t in part] + tokens('<|im_start|>assistant\n')
+        last_user = max((i for i, m in enumerate(messages) if m['role'] == 'user'), default=0)
+        checkpoint = sum(len(p) for p in parts[:last_user])
+        best = 0
+        if cache_prompt:
+            for held, mark in ([self._slot] if self._slot else []) + self._ram:
+                n = _shared(seen, held)
+                best = max(best, n if n >= len(held) else mark if mark <= n else 0)
+        if self._slot:self._ram = ([self._slot] + self._ram)[:self.ram_entries]
+        self._slot = (seen, checkpoint)
+        return min(best, len(seen) - 1)
+
+    def restart(self):
+        """What a worker restart does to its memory: nothing kept (A2's Forget)."""
+        self._slot = None;self._ram = [];self.started = time.time()
 
     def completions(self):
         """The chat request bodies as sent, in order."""

@@ -71,6 +71,78 @@ def budget_room(available,reserve,future=0,credit=0):
     return max(0,(available or 0)-reserve-future)+max(0,credit)
 
 
+# -- 0.8.7 A2 · the memory sum: exact terms for hybrid models, from the GGUF metadata gguf_inspect already reads ---------
+# budget = weights x 1.3 + 384 MiB                                     (unchanged)
+#        + KV over attention layers only x context
+#        + one recurrent state
+#        + checkpoints x one state
+#        + the RAM prompt cache
+# A model without full_attention_interval is dense: its estimate is today's, to the byte (the same expression), and it
+# keeps reuse without checkpoints or a RAM cache (a dense KV prefix is kept by the slot itself), so nothing is added.
+# Checked here against the server's log: one state is 50.251 MiB on the 4B and 19.266 MiB on the 2B; KV is 32 KiB a token
+# on the 4B (design 4.5). Integer arithmetic for every hybrid term.
+BASE_BYTES=384*MIB
+REUSE_LADDER_MB=((6,None),(2,256),(0,0))  # (checkpoints, RAM prompt cache MiB): the first rung the rule admits is taken
+PROMPT_CACHE_LARGE_MB=1024                # the cache on a large model (the 35B), 512 on a small one (the 4B here)
+PROMPT_CACHE_SMALL_MB=512
+LARGE_WEIGHTS_BYTES=8*1024*MIB
+
+
+def memory_shape(inspection):
+    """The memory shape of a model from its GGUF metadata (gguf_inspect.inspect's 'metadata' and 'architecture'):
+    DENSE (today's KV formula) or HYBRID (attention layers every full_attention_interval blocks, the rest recurrent).
+    Raises MODEL_MEMORY_ESTIMATE_UNAVAILABLE when a term it needs is missing or not a positive whole number."""
+    metadata=inspection['metadata'];architecture=inspection['architecture']
+    def whole(key,default=None):
+        value=metadata.get(architecture+'.'+key,default)
+        if type(value) is not int or value<=0:raise ValueError('MODEL_MEMORY_ESTIMATE_UNAVAILABLE')
+        return value
+    layers=whole('block_count');embedding=whole('embedding_length');heads=whole('attention.head_count')
+    kv_heads=whole('attention.head_count_kv',heads)
+    shape={'kind':'DENSE','layers':layers,'embedding':embedding,'heads':heads,'kv_heads':kv_heads}
+    if architecture+'.full_attention_interval' not in metadata:return shape
+    interval=whole('full_attention_interval')
+    head=embedding//heads
+    key_length=whole('attention.key_length',head);value_length=whole('attention.value_length',key_length)
+    inner=whole('ssm.inner_size');state=whole('ssm.state_size');groups=whole('ssm.group_count');conv=whole('ssm.conv_kernel')
+    attention=layers//interval;recurrent=layers-attention        # llama.cpp: block i is attention when (i+1) % interval == 0
+    shape.update(kind='HYBRID',interval=interval,attention_layers=attention,recurrent_layers=recurrent,
+                 key_length=key_length,value_length=value_length,inner=inner,state=state,groups=groups,conv_kernel=conv,
+                 # f16 K and V on the attention layers only
+                 kv_bytes_per_token=attention*kv_heads*(key_length+value_length)*2,
+                 # one recurrent state: the f32 SSM state and the f32 convolution window, on every recurrent layer
+                 state_bytes=recurrent*(inner*state*4+(conv-1)*(inner+2*groups*state)*4))
+    return shape
+
+
+def preferred_cache_mb(total_bytes):
+    return PROMPT_CACHE_LARGE_MB if total_bytes>LARGE_WEIGHTS_BYTES else PROMPT_CACHE_SMALL_MB
+
+
+def memory_sum(inspection,total_bytes,context,checkpoints=0,cache_mb=0):
+    """The model's budget estimate in bytes, term by term. A dense model ignores checkpoints and cache (it has neither)."""
+    shape=memory_shape(inspection)
+    if shape['kind']=='DENSE':
+        kv=4*shape['layers']*context*shape['embedding']*shape['kv_heads']//shape['heads']
+        return {'kind':'DENSE','estimate':int(total_bytes*1.3+kv+BASE_BYTES),'weights':total_bytes,'kv':kv,'state':0,
+                'checkpoints':0,'checkpoint_bytes':0,'cache_mb':0,'cache':0,'base':BASE_BYTES}
+    weights=-(-total_bytes*13//10)                                   # x 1.3, rounded up, in whole bytes
+    kv=shape['kv_bytes_per_token']*context;state=shape['state_bytes']
+    cache=cache_mb*MIB
+    return {'kind':'HYBRID','estimate':weights+BASE_BYTES+kv+state+checkpoints*state+cache,'weights':total_bytes,
+            'kv':kv,'kv_per_token':shape['kv_bytes_per_token'],'state':state,'checkpoints':checkpoints,
+            'checkpoint_bytes':checkpoints*state,'cache_mb':cache_mb,'cache':cache,'base':BASE_BYTES}
+
+
+def reuse_ladder(inspection,total_bytes,context):
+    """The rungs the memory rule tries, best first: six checkpoints and the model's RAM cache; two and 256 MiB; then
+    reuse off (today's launch). A dense model has the one rung, today's."""
+    if memory_shape(inspection)['kind']=='DENSE':return [memory_sum(inspection,total_bytes,context)]
+    return [memory_sum(inspection,total_bytes,context,checkpoints,preferred_cache_mb(total_bytes) if cache is None else cache)
+            for checkpoints,cache in REUSE_LADDER_MB]
+# -- end 0.8.7 A2 -------------------------------------------------------------------------------------------------------
+
+
 def touch(kernel,owner,db=None):
     """A short activity lease: no keystrokes, text, pointer positions or journal flood."""
     if db is None:

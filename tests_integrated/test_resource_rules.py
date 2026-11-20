@@ -86,22 +86,25 @@ class Workspace(unittest.TestCase):
 
 
 class AutoCap(Workspace):
-    def test_auto_takes_the_owners_model_from_32157_mib_and_says_its_numbers_below(self):
+    def test_auto_takes_the_owners_model_from_32140_mib_and_says_its_numbers_below(self):
+        # 0.8.7 A2: the memory sum, exact for this hybrid model, with the reuse rung the rule admits (six checkpoints and
+        # a 1,024 MiB prompt cache at 39 GiB; reuse off at the boundary, 17 MiB below 0.8.1's 32,157)
         self.host.available = 39
         config = self.configure()
-        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (27_275_977_692, 26013))
-        for available, budget in ((40, 26624), (60, 32768)):       # 65% of available, then the ceiling
+        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (28_726_879_197, 27397))
+        self.assertEqual((config['checkpoints'], config['prompt_cache_mb']), (6, 1024))
+        for available, budget in ((40, 27397), (60, 32768)):       # the estimate (above 65% of available), then the ceiling
             self.host.available = available
             self.assertEqual(self.configure()['memory_mb'], budget)
-        self.host.available = 32157 / 1024          # the estimate, the 2,048 MiB reserve and 4,096 MiB headroom
-        self.assertEqual(self.configure()['memory_mb'], 26013)
-        self.host.available = 32156 / 1024
+        self.host.available = 32140 / 1024          # the estimate, the 2,048 MiB reserve and 4,096 MiB headroom
+        self.assertEqual((self.configure()['memory_mb'], self.configure()['checkpoints']), (25996, 0))
+        self.host.available = 32139 / 1024
         with self.assertRaises(ValueError) as refused:
             self.configure()
         self.assertEqual(str(refused.exception),
-                         'MODEL_MEMORY_BUDGET_TOO_SMALL: Auto needs 32,157 MiB available for this model at 4,096 tokens '
-                         '(its 26,013 MiB estimate, the 2,048 MiB foreground reserve and 4,096 MiB headroom); '
-                         '32,156 MiB is available')
+                         'MODEL_MEMORY_BUDGET_TOO_SMALL: Auto needs 32,140 MiB available for this model at 4,096 tokens '
+                         '(its 25,996 MiB estimate, the 2,048 MiB foreground reserve and 4,096 MiB headroom); '
+                         '32,139 MiB is available')
 
     def test_auto_keeps_its_ceiling_and_a_manual_cap_follows_the_admission_rule(self):
         larger = dict(self.model, total_bytes=30 * GiB)
@@ -113,7 +116,7 @@ class AutoCap(Workspace):
         with self.assertRaisesRegex(ValueError, 'MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM: the 28,673 MiB cap and the '
                                                 '2,048 MiB foreground reserve need 30,721 MiB; 30,720 MiB is available'):
             self.configure({'memory_mb': 28673})
-        with self.assertRaisesRegex(ValueError, "the 16,384 MiB cap is below this model's 26,013 MiB estimate"):
+        with self.assertRaisesRegex(ValueError, "the 16,384 MiB cap is below this model's 25,996 MiB estimate"):
             self.configure({'memory_mb': 16384})
 
 
@@ -160,9 +163,9 @@ class Margins(Workspace):
         r = self.use(self.model, 'auto-39', {'backend': 'CPU'})
         self.assertTrue(r['ok'], r)
         job = r['result']
-        self.assertEqual((job['brain_launch']['options']['memory_mb'], job['brain_launch']['auto_headroom_mb']), (26013, 4096))
-        config = {'memory_mb': 26013, 'headroom_mb': 4096}
-        for available_mib, fits in ((32156, False), (32157, True)):      # 26,013 + 4,096 headroom + 2,048 reserve
+        self.assertEqual((job['brain_launch']['options']['memory_mb'], job['brain_launch']['auto_headroom_mb']), (27397, 4096))
+        config = {'memory_mb': 27397, 'headroom_mb': 4096}
+        for available_mib, fits in ((33540, False), (33541, True)):      # 27,397 + 4,096 headroom + 2,048 reserve (0.8.7 A2)
             self.host.available = available_mib / 1024
             with self.kernel.db() as db:
                 admitted = resource_control.decision(self.kernel, job, db, brain_runtime.host())['allowed']

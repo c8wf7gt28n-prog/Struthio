@@ -1,0 +1,1107 @@
+diff --git a/tests_integrated/test_campaign.py b/tests_integrated/test_campaign.py
+index 7e15b1e..38ed55b 100644
+--- a/tests_integrated/test_campaign.py
++++ b/tests_integrated/test_campaign.py
+@@ -72,7 +72,8 @@ class CampaignTests(unittest.TestCase):
+         # 0.8.1 decided R07's question in the code: Auto takes the owner's model at 39 GiB.
+         self.assertFalse(self.results['R07']['spec_question'])
+         checks = {c['check']: c['observed'] for c in self.results['R07']['checks']}
+-        self.assertEqual((checks['auto_submit'], checks['auto_frozen_memory_mb']), ('ACCEPTED', 26013))
++        # 0.8.7 A2: the estimate is the memory sum (six checkpoints and the 1,024 MiB prompt cache fit at 39 GiB)
++        self.assertEqual((checks['auto_submit'], checks['auto_frozen_memory_mb']), ('ACCEPTED', 27397))
+ 
+     # ---- 1. the summary counts only this run
+     def test_run_into_an_existing_folder_moves_the_earlier_run_aside(self):
+diff --git a/tests_integrated/test_resource_rules.py b/tests_integrated/test_resource_rules.py
+index 733955c..f1bf15e 100644
+--- a/tests_integrated/test_resource_rules.py
++++ b/tests_integrated/test_resource_rules.py
+@@ -86,22 +86,25 @@ class Workspace(unittest.TestCase):
+ 
+ 
+ class AutoCap(Workspace):
+-    def test_auto_takes_the_owners_model_from_32157_mib_and_says_its_numbers_below(self):
++    def test_auto_takes_the_owners_model_from_32140_mib_and_says_its_numbers_below(self):
++        # 0.8.7 A2: the memory sum, exact for this hybrid model, with the reuse rung the rule admits (six checkpoints and
++        # a 1,024 MiB prompt cache at 39 GiB; reuse off at the boundary, 17 MiB below 0.8.1's 32,157)
+         self.host.available = 39
+         config = self.configure()
+-        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (27_275_977_692, 26013))
+-        for available, budget in ((40, 26624), (60, 32768)):       # 65% of available, then the ceiling
++        self.assertEqual((config['estimated_peak_bytes'], config['memory_mb']), (28_726_879_197, 27397))
++        self.assertEqual((config['checkpoints'], config['prompt_cache_mb']), (6, 1024))
++        for available, budget in ((40, 27397), (60, 32768)):       # the estimate (above 65% of available), then the ceiling
+             self.host.available = available
+             self.assertEqual(self.configure()['memory_mb'], budget)
+-        self.host.available = 32157 / 1024          # the estimate, the 2,048 MiB reserve and 4,096 MiB headroom
+-        self.assertEqual(self.configure()['memory_mb'], 26013)
+-        self.host.available = 32156 / 1024
++        self.host.available = 32140 / 1024          # the estimate, the 2,048 MiB reserve and 4,096 MiB headroom
++        self.assertEqual((self.configure()['memory_mb'], self.configure()['checkpoints']), (25996, 0))
++        self.host.available = 32139 / 1024
+         with self.assertRaises(ValueError) as refused:
+             self.configure()
+         self.assertEqual(str(refused.exception),
+-                         'MODEL_MEMORY_BUDGET_TOO_SMALL: Auto needs 32,157 MiB available for this model at 4,096 tokens '
+-                         '(its 26,013 MiB estimate, the 2,048 MiB foreground reserve and 4,096 MiB headroom); '
+-                         '32,156 MiB is available')
++                         'MODEL_MEMORY_BUDGET_TOO_SMALL: Auto needs 32,140 MiB available for this model at 4,096 tokens '
++                         '(its 25,996 MiB estimate, the 2,048 MiB foreground reserve and 4,096 MiB headroom); '
++                         '32,139 MiB is available')
+ 
+     def test_auto_keeps_its_ceiling_and_a_manual_cap_follows_the_admission_rule(self):
+         larger = dict(self.model, total_bytes=30 * GiB)
+@@ -113,7 +116,7 @@ class AutoCap(Workspace):
+         with self.assertRaisesRegex(ValueError, 'MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM: the 28,673 MiB cap and the '
+                                                 '2,048 MiB foreground reserve need 30,721 MiB; 30,720 MiB is available'):
+             self.configure({'memory_mb': 28673})
+-        with self.assertRaisesRegex(ValueError, "the 16,384 MiB cap is below this model's 26,013 MiB estimate"):
++        with self.assertRaisesRegex(ValueError, "the 16,384 MiB cap is below this model's 25,996 MiB estimate"):
+             self.configure({'memory_mb': 16384})
+ 
+ 
+@@ -160,9 +163,9 @@ class Margins(Workspace):
+         r = self.use(self.model, 'auto-39', {'backend': 'CPU'})
+         self.assertTrue(r['ok'], r)
+         job = r['result']
+-        self.assertEqual((job['brain_launch']['options']['memory_mb'], job['brain_launch']['auto_headroom_mb']), (26013, 4096))
+-        config = {'memory_mb': 26013, 'headroom_mb': 4096}
+-        for available_mib, fits in ((32156, False), (32157, True)):      # 26,013 + 4,096 headroom + 2,048 reserve
++        self.assertEqual((job['brain_launch']['options']['memory_mb'], job['brain_launch']['auto_headroom_mb']), (27397, 4096))
++        config = {'memory_mb': 27397, 'headroom_mb': 4096}
++        for available_mib, fits in ((33540, False), (33541, True)):      # 27,397 + 4,096 headroom + 2,048 reserve (0.8.7 A2)
+             self.host.available = available_mib / 1024
+             with self.kernel.db() as db:
+                 admitted = resource_control.decision(self.kernel, job, db, brain_runtime.host())['allowed']
+diff --git a/tools/campaign_lib/cases_resource.py b/tools/campaign_lib/cases_resource.py
+index 40ce76f..31f6d8b 100644
+--- a/tools/campaign_lib/cases_resource.py
++++ b/tools/campaign_lib/cases_resource.py
+@@ -17,10 +17,14 @@ questions R07, R09, R15, R17, R19 and R20 raised were decided in the code:
+   R20  a memory-guard stop during a handover stays in brain.status until a model is next Ready.
+   R22  a work hold keeps queued work waiting at admission; on release it continues, and completed writes stay single.
+ 
+-Numbers used throughout: the owner's file is 20,542,732,576 bytes; at 4,096 context the code's estimate is
+-int(bytes*1.3 + KV 167,772,160 + 384 MiB) = 27,275,977,692 bytes (26,013 MiB, 25.40 GiB). Auto needs
+-26,013 + 2,048 reserve + 4,096 headroom = 32,157 MiB (31.40 GiB) available, and budgets 65% of available, never
+-below the estimate nor above 32,768 MiB; the foreground reserve with 64 GiB installed is 2 GiB.
++Numbers used throughout: the owner's file is 20,542,732,576 bytes; the foreground reserve with 64 GiB installed is
++2 GiB; Auto budgets 65% of available, never below the estimate nor above 32,768 MiB, and takes a model when its
++estimate, the reserve and 4,096 MiB headroom fit. Since 0.8.7 (slice A2) the estimate is the memory sum, exact for this
++hybrid model (10 attention layers of 40, read from its header): weights x 1.3 + 384 MiB + KV 83,886,080 (20 KiB a token
++at 4,096) + one recurrent state 65,863,680, plus the reuse rung the rule admits, best first: six checkpoints of one
++state and a 1,024 MiB RAM prompt cache, 28,726,879,197 bytes (27,397 MiB; admitted from 33,541 MiB available); two and
++256 MiB (26,378 MiB; from 32,522); reuse off, today's launch, 27,257,955,293 bytes (25,996 MiB; from 32,140 MiB, 17 MiB
++below the 32,157 of 0.8.1's estimate, which counted KV on all 40 layers).
+ """
+ from __future__ import annotations
+ 
+@@ -312,8 +316,8 @@ def r08(ctx):
+         auto = use(ctx, model, 'auto-30')
+         ctx.observe('auto_submit', 'ACCEPTED' if auto['ok'] else code_of(auto))
+         ctx.observe('auto_refusal', message_of(auto))
+-        # The smallest availability Auto accepts for this model at 4,096 tokens: 26,013 + 2,048 + 4,096 MiB.
+-        for mib in (32157, 32156):
++        # The smallest availability Auto accepts for this model at 4,096 tokens: 25,996 (reuse off) + 2,048 + 4,096 MiB.
++        for mib in (32140, 32139):
+             host.available = mib / 1024
+             r = use(ctx, model, 'auto-%d' % mib)
+             ctx.observe('auto_at_%d_mib' % mib, 'ACCEPTED' if r['ok'] else code_of(r))
+@@ -832,13 +836,13 @@ def _case(ident, number, title, fn, expect, spec_question=None, faults=(), input
+ SPEC = 'spec.txt (35B Simulation Specification, draft 0.2), Resource control'
+ 
+ 
+-ESTIMATE = 27_275_977_692
++ESTIMATE = 28_726_879_197          # 0.8.7 A2: the memory sum with six checkpoints and the 1,024 MiB prompt cache
+ CASES = [
+     _case('R01', 1, 'Valid qwen35moe fixture registers and is accepted', r01, {
+         'registered': True, 'architecture': 'qwen35moe', 'architecture_profile': 'SUPPORTED_FOR_TRIAL',
+         'tensor_types': ['F32', 'Q4_K', 'Q8_0'], 'tensor_count': 733, 'chat_template_chars': 7816,
+         'total_bytes': 20_542_732_576, 'fixture_disk_under_1_mib': True,
+-        'estimate_bytes': ESTIMATE, 'kv_bytes': 167_772_160, 'submit': 'ACCEPTED'},
++        'estimate_bytes': ESTIMATE, 'kv_bytes': 83_886_080, 'submit': 'ACCEPTED'},
+         inputs={'gguf': 'valid fixture from the real header', 'available_gib': 60}),
+     _case('R02', 2, 'Invalid files are rejected by the inspector', r02, {
+         'bad_magic:reason': 'GGUF_MAGIC_INVALID', 'bad_magic:rejected_by': 'gguf_inspect:inspect',
+@@ -860,26 +864,27 @@ CASES = [
+     _case('R05', 5, '60 GiB available: Auto cap 32,768 MiB (the ceiling), admitted', r05, {
+         'estimate_bytes': ESTIMATE, 'cap_mb': 32768, 'submit': 'ACCEPTED', 'frozen_memory_mb': 32768, 'admitted': True,
+         'headroom_gib': 58.0, 'requested_mib': 32768, 'reserve_mib': 2048}, inputs={'available_gib': 60}),
+-    _case('R06', 6, '40 GiB available: Auto cap 26,624 MiB (65% of available), admitted; admission asks for 30,109 MiB, '
+-                    'the estimate with Auto\'s 4,096 MiB headroom, which stays with the budget after submit', r06, {
+-        'estimate_bytes': ESTIMATE, 'cap_mb': 26624, 'submit': 'ACCEPTED', 'frozen_memory_mb': 26624, 'admitted': True,
+-        'headroom_gib': 38.0, 'requested_mib': 30109, 'reserve_mib': 2048}, inputs={'available_gib': 40}),
+-    _case('R07', 7, '39 GiB available: Auto accepts at the estimate (26,013 MiB), and a manual cap is admitted', r07, {
+-        'estimate_bytes': ESTIMATE, 'auto_cap_mb': 26013, 'auto_submit': 'ACCEPTED', 'auto_frozen_memory_mb': 26013,
++    _case('R06', 6, '40 GiB available: Auto cap 27,397 MiB (the estimate, above 65% of available), admitted; admission '
++                    'asks for 31,493 MiB, the estimate with Auto\'s 4,096 MiB headroom, which stays with the budget after '
++                    'submit', r06, {
++        'estimate_bytes': ESTIMATE, 'cap_mb': 27397, 'submit': 'ACCEPTED', 'frozen_memory_mb': 27397, 'admitted': True,
++        'headroom_gib': 38.0, 'requested_mib': 31493, 'reserve_mib': 2048}, inputs={'available_gib': 40}),
++    _case('R07', 7, '39 GiB available: Auto accepts at the estimate (27,397 MiB), and a manual cap is admitted', r07, {
++        'estimate_bytes': ESTIMATE, 'auto_cap_mb': 27397, 'auto_submit': 'ACCEPTED', 'auto_frozen_memory_mb': 27397,
+         'auto_admitted': True, 'auto_headroom_gib': 37.0,
+         'manual_26100_submit': 'ACCEPTED', 'manual_admitted': True, 'manual_headroom_gib': 37.0},
+         inputs={'available_gib': 39, 'manual_memory_mb': 26100}),
+-    _case('R08', 8, '30 GiB available: Auto refuses with its numbers (it needs 31.40 GiB); a manual cap that fits is '
+-                    'accepted, one that does not is refused', r08, {
++    _case('R08', 8, '30 GiB available: Auto refuses with its numbers (it needs 31.39 GiB, reuse off); a manual cap that '
++                    'fits is accepted, one that does not is refused', r08, {
+         'auto_submit': 'MODEL_MEMORY_BUDGET_TOO_SMALL',
+-        'auto_refusal': 'MODEL_MEMORY_BUDGET_TOO_SMALL: Auto needs 32,157 MiB available for this model at 4,096 tokens '
+-                        '(its 26,013 MiB estimate, the 2,048 MiB foreground reserve and 4,096 MiB headroom); '
++        'auto_refusal': 'MODEL_MEMORY_BUDGET_TOO_SMALL: Auto needs 32,140 MiB available for this model at 4,096 tokens '
++                        '(its 25,996 MiB estimate, the 2,048 MiB foreground reserve and 4,096 MiB headroom); '
+                         '30,720 MiB is available',
+-        'auto_at_32157_mib': 'ACCEPTED', 'auto_at_32156_mib': 'MODEL_MEMORY_BUDGET_TOO_SMALL',
++        'auto_at_32140_mib': 'ACCEPTED', 'auto_at_32139_mib': 'MODEL_MEMORY_BUDGET_TOO_SMALL',
+         'manual_26100_submit': 'ACCEPTED', 'manual_29000_submit': 'MEMORY_BUDGET_EXCEEDS_AVAILABLE_HOST_RAM',
+         'manual_29000_refusal': {'contains': 'the 29,000 MiB cap and the 2,048 MiB foreground reserve need 31,048 MiB; '
+                                              '30,720 MiB is available'}},
+-        inputs={'available_gib': 30, 'manual_memory_mb': [26100, 29000], 'auto_boundary_mib': [32157, 32156]}),
++        inputs={'available_gib': 30, 'manual_memory_mb': [26100, 29000], 'auto_boundary_mib': [32140, 32139]}),
+     _case('R09', 9, 'Unavailable RAM reading at submit and after submit: the full reserve, and a 30 s deadline', r09, {
+         'submit_unmeasured': 'HOST_MEMORY_COULD_NOT_BE_MEASURED', 'admitted_unmeasured': False,
+         'wait_reason': 'Host memory could not be measured', 'wait_saved': 'Host memory could not be measured',
+@@ -890,7 +895,7 @@ CASES = [
+         faults=[{'at': 'after submit', 'fault': 'available RAM reading becomes None'}]),
+     _case('R10', 10, 'Too-small manual cap at 60 GiB, refused with its numbers', r10, {
+         'submit': 'MODEL_MEMORY_BUDGET_TOO_SMALL',
+-        'refusal': 'MODEL_MEMORY_BUDGET_TOO_SMALL: the 16,384 MiB cap is below this model\'s 26,013 MiB estimate at '
++        'refusal': 'MODEL_MEMORY_BUDGET_TOO_SMALL: the 16,384 MiB cap is below this model\'s 25,996 MiB estimate at '
+                    '4,096 tokens',
+         'rejected_by': 'local_brain:configuration'},
+         inputs={'available_gib': 60, 'manual_memory_mb': 16384}),
+diff --git a/workbench/brain_briefs.py b/workbench/brain_briefs.py
+new file mode 100644
+index 0000000..ea5bd84
+--- /dev/null
++++ b/workbench/brain_briefs.py
+@@ -0,0 +1,341 @@
++"""Kept briefs: prompt reuse for the turn contract (0.8.7, "Kas's mind with the model, interwoven"; slice A2, lane A).
++
++Every question Kas puts to the model is laid out in four messages (turns.layout): the kind's fixed brief, the stable
++part, one fixed line 'Ready.', then the question. The worker runs one slot with context checkpoints and a bounded RAM
++prompt cache (local_brain.launch_arguments, sized and counted by the memory rule), and on these hybrid models the
++runtime resumes a kept prompt at the start of its last user message (measured by the speed lens). So:
++
++- Priming. After a model is Ready, each registered kind's brief is read once with no answer (max_tokens 0), laid out as
++  [brief, PRIME_LINE]: the checkpoint lands where that last user message starts, at the end of the brief, so the first
++  real question of the kind re-reads only from there. Nothing is recorded as a turn: nothing was asked.
++- Kept. Per worker and per brief (by its sha256): the brief's own tokens once primed, and messages 1 to 3 when the same
++  ones were the last asked of that kind. turns.ask prices a question on its new tokens only (LocalPort.kept).
++- The watchdog. Every turn compares the server's cache_n with what was expected kept; cache_n more than TOLERANCE short
++  is a miss. Two misses in a row re-prime that kind, in the background, and the turn record counts the miss. Misses are
++  never errors: they show in the turn record ('reuse') and in the account.
++- Forget. The RAM cache and the checkpoints hold the owner's words and pages in the worker's memory. Forgetting a turn
++  marks the worker that holds it: from then no question is sent to it (turns: NOT_SENT, FORGETTING), and it is restarted
++  once it is idle (local_brain.forget_restart: a brain.activate job of the same selection, so the queue keeps queued
++  work and a hold holds it). The new worker is primed with briefs only. Nothing forgotten is sent again: this store
++  keeps digests and counts, never text, and a brief is fixed text with no owner data.
++
++The worker writes nothing to disk (no --slot-save-path, no --log-prompts-dir: the seal refuses both); kept briefs are
++its memory, nothing else. Only turns.LocalPort calls local_brain.completion on behalf of this module (the turn
++contract's rule), through LocalPort.read_prime.
++"""
++from __future__ import annotations
++
++import copy
++import hashlib
++import json
++import queue
++import re
++import threading
++import time
++from fractions import Fraction
++from pathlib import Path
++
++SCHEMA = 'brain.kept/1'
++KEY = 'kept'                       # local_brain's settings row brain.kept: the live worker's kept briefs
++TOLERANCE = 4                      # cache_n this many tokens short of the expected kept prefix is still a hit
++MISSES = 2                         # misses in a row that re-prime a kind
++PRIME_LINE = 'The question follows.'            # message 2 of a priming read: fixed, no owner data
++PRIME_OTHER = 'Another question follows.'       # only tokenized, to find where the brief's shared prefix ends
++BACKGROUND = True                  # re-priming runs on one background thread; a smoke script may set False to run inline
++OFF_BY = Fraction(1, 10)           # a measured term off by more than this is flagged after a load (design 4.5)
++_MEMORY: dict = {}
++_LOCK = threading.Lock()
++
++
++def identity(worker):
++    return [worker.get('pid'), worker.get('start'), worker.get('model_id'), worker.get('started')]
++
++
++def empty(worker):
++    return {'schema': SCHEMA, 'worker': identity(worker), 'kinds': {}, 'forget': None, 'readback': None}
++
++
++def digest(text):
++    return hashlib.sha256(text.encode('utf-8')).hexdigest()
++
++
++def brief_sha(messages):
++    return digest(messages[0]['content'])
++
++
++def prefix_sha(messages):
++    return digest(json.dumps([[m['role'], m['content']] for m in messages[:3]], ensure_ascii=False, separators=(',', ':')))
++
++
++def shared(a, b):
++    n = 0
++    for x, y in zip(a, b):
++        if x != y:break
++        n += 1
++    return n
++
++
++def new_entry(kind):
++    return {'kind': kind.name if kind is not None else None, 'version': kind.version if kind is not None else None,
++            'primed': False, 'brief_tokens': 0, 'primed_at': None, 'primes': 0, 'prime_cache_n': None,
++            'last_prefix': None, 'prefix_tokens': 0, 'last_cache_n': None, 'misses': 0, 'missed': 0, 'reprimes': 0}
++
++
++# -- the store: the live worker's kept briefs ----------------------------------------------------------------------------------
++class MemoryStore:
++    """In this process only (a smoke script, a port with no Kernel)."""
++
++    def load(self, worker):
++        with _LOCK:
++            held = _MEMORY.get(json.dumps(identity(worker)))
++        return copy.deepcopy(held) if held else empty(worker)
++
++    def update(self, worker, change):
++        with _LOCK:
++            name = json.dumps(identity(worker))
++            value = copy.deepcopy(_MEMORY.get(name)) or empty(worker)
++            out = change(value)
++            _MEMORY.clear();_MEMORY[name] = value          # one worker at a time, as in the app
++        return out
++
++
++class SettingsStore:
++    """In the Kernel's settings (brain.kept), so the activation job, the app and the next request see the same thing."""
++
++    def __init__(self, kernel):
++        self.kernel = kernel
++
++    def load(self, worker):
++        from . import local_brain
++        held = local_brain.get(self.kernel, KEY, {}) or {}
++        return held if held.get('worker') == identity(worker) else empty(worker)
++
++    def update(self, worker, change):
++        from . import local_brain
++        with self.kernel.db() as db:
++            db.execute('BEGIN IMMEDIATE')
++            held = local_brain.get(self.kernel, KEY, {}, db) or {}
++            value = held if held.get('worker') == identity(worker) else empty(worker)
++            out = change(value)
++            local_brain.put(self.kernel, KEY, value, db=db)
++        return out
++
++
++def store_for(kernel):
++    return SettingsStore(kernel) if kernel is not None else MemoryStore()
++
++
++# -- kept: what a question can expect to re-use -------------------------------------------------------------------------------
++def expected(store, worker, messages):
++    """Tokens of this question the worker should already hold: messages 1 to 3 when they are the last its kind was asked
++    with, else the brief when the kind is primed, else 0."""
++    entry = store.load(worker)['kinds'].get(brief_sha(messages))
++    if not entry:return 0
++    if entry['last_prefix'] == prefix_sha(messages) and entry['prefix_tokens']:return int(entry['prefix_tokens'])
++    return int(entry['brief_tokens']) if entry['primed'] else 0
++
++
++def watch(port, kind, messages, kept, timings):
++    """The watchdog, after a turn: a miss when cache_n is more than TOLERANCE short of what was expected kept; two in a
++    row re-prime the kind. Returns the record's 'reuse' field."""
++    cache_n = timings.get('cache_n') if isinstance(timings, dict) else None
++    cache_n = int(cache_n) if isinstance(cache_n, (int, float)) and not isinstance(cache_n, bool) else None
++    bsha = brief_sha(messages);psha = prefix_sha(messages)
++
++    def change(value):
++        entry = value['kinds'].setdefault(bsha, new_entry(kind))
++        miss = bool(kept > 0 and cache_n is not None and cache_n < kept - TOLERANCE)
++        if kept > 0 and cache_n is not None:
++            entry['misses'] = entry['misses'] + 1 if miss else 0
++        if miss:entry['missed'] += 1
++        in_a_row = entry['misses'];reprime = in_a_row >= MISSES
++        if reprime:
++            entry['misses'] = 0;entry['primed'] = False;entry['reprimes'] += 1
++            entry['last_prefix'] = None;entry['prefix_tokens'] = 0
++        entry['last_cache_n'] = cache_n
++        return {'expected': int(kept), 'cache_n': cache_n, 'miss': miss, 'misses_in_a_row': in_a_row,
++                'reprime': reprime, 'known_prefix': entry['last_prefix'] == psha}
++
++    out = port.store.update(port.worker, change)
++    if not out.pop('known_prefix') and cache_n is not None:
++        # messages 1 to 3 are now the worker's last prompt of this kind (with a checkpoint where message 4 starts): count them
++        try:
++            whole = port.tokens(messages)
++            upto = port.tokens(list(messages[:3]) + [{'role': 'user', 'content': PRIME_LINE}])
++            n = shared(whole, upto)
++        except Exception:  # noqa: BLE001 - counting is for speed only; a failure leaves the kind priced cold
++            n = 0
++        if n:
++            def keep(value):
++                entry = value['kinds'].setdefault(bsha, new_entry(kind))
++                entry['last_prefix'] = psha;entry['prefix_tokens'] = n
++            port.store.update(port.worker, keep)
++    return out
++
++
++# -- priming ------------------------------------------------------------------------------------------------------------------
++def prime_messages(brief):
++    return [{'role': 'system', 'content': brief}, {'role': 'user', 'content': PRIME_LINE}]
++
++
++def prime(port, kind):
++    """Read one kind's brief with no answer. Returns what was kept, or raises turns.PortError."""
++    brief = kind.brief()
++    messages = prime_messages(brief)
++    a = port.tokens(messages)
++    b = port.tokens([messages[0], {'role': 'user', 'content': PRIME_OTHER}])
++    brief_tokens = shared(a, b)
++    got = port.read_prime(messages, prompt_tokens=len(a))
++    timings = got.get('timings') or {}
++    bsha = digest(brief)
++
++    def change(value):
++        entry = value['kinds'].setdefault(bsha, new_entry(kind))
++        entry.update(kind=kind.name, version=kind.version, primed=True, brief_tokens=brief_tokens, primed_at=time.time(),
++                     primes=entry['primes'] + 1, misses=0,
++                     prime_cache_n=timings.get('cache_n') if isinstance(timings.get('cache_n'), int) else None)
++        return {'kind': kind.name, 'brief_tokens': brief_tokens, 'prompt_n': timings.get('prompt_n'),
++                'cache_n': timings.get('cache_n'), 'elapsed_ms': got.get('elapsed_ms')}
++    return port.store.update(port.worker, change)
++
++
++def kinds_to_prime():
++    """Every registered kind, found the way the turn contract finds them (turns.discover)."""
++    from . import turns
++    try:
++        turns.discover()
++    except Exception:  # noqa: BLE001 - a module that fails to import primes nothing; the turn itself will say why
++        pass
++    return list(turns.KINDS.values())
++
++
++def prime_all(port, kinds=None, cancelled=None):
++    done = [];failed = []
++    for kind in (kinds_to_prime() if kinds is None else kinds):
++        if cancelled is not None and cancelled():break
++        try:
++            done.append(prime(port, kind))
++        except Exception as exc:  # noqa: BLE001 - priming is for speed; a failure leaves that kind cold
++            failed.append({'kind': kind.name, 'why': (str(exc) or type(exc).__name__).split(':', 1)[0][:80]})
++    return {'primed': done, 'failed': failed}
++
++
++_QUEUE: queue.Queue = queue.Queue()
++_THREAD = None
++
++
++def _run():
++    while True:
++        port, kind = _QUEUE.get()
++        try:
++            prime(port, kind)
++        except Exception:  # noqa: BLE001 - the next miss tries again
++            pass
++        finally:
++            _QUEUE.task_done()
++
++
++def reprime_later(port, kind):
++    """Re-prime one kind after two misses: on one background thread (one read at a time), or inline when BACKGROUND is
++    False."""
++    global _THREAD
++    if not BACKGROUND:
++        try:
++            return prime(port, kind)
++        except Exception:  # noqa: BLE001
++            return None
++    with _LOCK:
++        if _THREAD is None or not _THREAD.is_alive():
++            _THREAD = threading.Thread(target=_run, name='kept-briefs', daemon=True);_THREAD.start()
++    _QUEUE.put((port, kind))
++    return None
++
++
++# -- after a model starts: prime, and read back the memory sum ---------------------------------------------------------------------
++def after_start(kernel, worker, cancelled=None, kinds=None):
++    """Called by local_brain once a worker is Ready (activation and restore). Primes every registered kind and puts the
++    measured memory beside the computed terms. Never raises: priming and readback are for speed and for the record."""
++    try:
++        from . import turns
++        port = turns.LocalPort(worker, kernel)
++        primed = prime_all(port, kinds, cancelled)
++    except Exception as exc:  # noqa: BLE001
++        primed = {'primed': [], 'failed': [{'kind': '*', 'why': type(exc).__name__}]}
++    try:
++        back = readback(worker)
++        store_for(kernel).update(worker, lambda value: value.__setitem__('readback', back))
++    except Exception:  # noqa: BLE001
++        back = None
++    return {'primed': [p['kind'] for p in primed['primed']], 'failed': primed['failed'], 'readback': back}
++
++
++CHECKPOINT_LOG = re.compile(r'context checkpoint[^\n]*?size\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*MiB')
++
++
++def readback(worker, log_text=None):
++    """After a load (and its priming), the measured figures beside the computed terms (design 4.5): resident memory
++    against the estimate, and the runtime's logged checkpoint size against one recurrent state. A term off by more than
++    10 % is flagged; nothing changes the rule by itself."""
++    from . import local_brain
++    terms = worker.get('memory_sum') or (worker.get('config') or {}).get('memory_sum') or {}
++    if log_text is None:
++        try:
++            with (Path(worker['key_file']).parent / 'runtime.log').open('rb') as stream:
++                stream.seek(max(0, stream.seek(0, 2) - 1024 * 1024));log_text = stream.read().decode('utf-8', 'replace')
++        except (OSError, KeyError, TypeError):
++            log_text = ''
++    logged = CHECKPOINT_LOG.findall(log_text or '')
++    rss = local_brain.usage(worker).get('rss_bytes') if worker.get('pid') else None
++    estimate = (worker.get('config') or {}).get('estimated_peak_bytes')
++    flags = []
++    state = terms.get('state') or 0
++    logged_bytes = None
++    if logged:
++        logged_bytes = int(Fraction(logged[-1]) * 1024 * 1024)
++        if state and abs(Fraction(logged_bytes - state, state)) > OFF_BY:flags.append('STATE_TERM_OFF')
++    if isinstance(rss, int) and isinstance(estimate, int) and estimate and Fraction(rss - estimate, estimate) > OFF_BY:
++        flags.append('RESIDENT_OVER_ESTIMATE')
++    return {'at': time.time(), 'computed': terms, 'estimate_bytes': estimate, 'resident_bytes': rss,
++            'logged_checkpoint_bytes': logged_bytes, 'logged_checkpoint': 'LOGGED' if logged else 'NOT_LOGGED',
++            'flags': flags, 'scope': 'resident memory of the worker process tree; GPU memory is not in it'}
++
++
++# -- Forget ----------------------------------------------------------------------------------------------------------------------
++def forget_pending(kernel, worker):
++    """True while the live worker holds something forgotten and has not been restarted."""
++    if kernel is None or not worker:return False
++    try:
++        return bool(SettingsStore(kernel).load(worker).get('forget'))
++    except Exception:  # noqa: BLE001 - no settings to read: nothing marked
++        return False
++
++
++def forgotten(kernel, turn, principal=None, reason='TURN_FORGOTTEN'):
++    """A turn was forgotten. If the live worker may hold it (it was running when the turn was asked), mark it so no
++    question is sent to it, and ask for its restart once idle. Returns NOTHING_HELD, RESTART_QUEUED or RESTART_WAITS
++    (marked; the restart waits for the owner: no principal that may restart a model was given, or the queue refused)."""
++    from . import local_brain
++    worker = local_brain.get(kernel, 'worker', {}) or {}
++    if not local_brain.worker_live(worker) or (worker.get('started') or 0) > (turn.get('at') or 0):
++        return 'NOTHING_HELD'
++
++    def mark(value):
++        value['forget'] = {'at': time.time(), 'reason': reason}
++        for entry in value['kinds'].values():           # what was last asked is no longer counted as kept
++            entry['last_prefix'] = None;entry['prefix_tokens'] = 0
++    SettingsStore(kernel).update(worker, mark)
++    if principal is None:return 'RESTART_WAITS'
++    try:
++        queued = local_brain.forget_restart(kernel, principal, reason)
++    except (ValueError, KeyError, TypeError):
++        return 'RESTART_WAITS'
++    return 'RESTART_QUEUED' if queued else 'RESTART_WAITS'
++
++
++def summary(kernel, worker):
++    """The Brain room's line: which kinds are kept ready, misses, and a pending restart."""
++    value = store_for(kernel).load(worker)
++    kinds = sorted({e['kind'] for e in value['kinds'].values() if e.get('primed') and e.get('kind')})
++    return {'kept': kinds, 'missed': sum(e.get('missed', 0) for e in value['kinds'].values()),
++            'reprimes': sum(e.get('reprimes', 0) for e in value['kinds'].values()),
++            'forget_pending': bool(value.get('forget')), 'readback': value.get('readback')}
+diff --git a/workbench/fake_worker.py b/workbench/fake_worker.py
+index 94c3d8d..36f8d19 100644
+--- a/workbench/fake_worker.py
++++ b/workbench/fake_worker.py
+@@ -19,6 +19,9 @@ FakeServer(script, context=4096)
+     A step may also carry 'sleep_ms' (real time, kept short) to make the client's timeout fire. (A3) A request with
+     "stream": true is answered as llama-server streams: one SSE event per token, 'token_ms' (real time) apart, the
+     timings in the last event, then [DONE]; `closed` counts streams the client closed before the end.
++    A2: `reuse=True` keeps prompts as the runtime does with one slot, checkpoints and a RAM cache, and answers cache_n
++    (streamed or not; a step's 'cache_n' scripts a miss); a request with max_tokens 0 is a priming read (no script step,
++    no answer); restart() forgets everything kept.
+ 
+ FAKE, register_fake()
+     A stand-in kind ("which of these numbered options"), the example lanes B and C can copy: options are (label, is_read)
+@@ -133,8 +136,13 @@ class FakeWorker:
+ 
+ # -- the HTTP stand-in ----------------------------------------------------------------------------------------------------------
+ class FakeServer:
+-    def __init__(self, script=(), *, context=4096, model_id='f' * 64, key='fake-worker-key'):
++    def __init__(self, script=(), *, context=4096, model_id='f' * 64, key='fake-worker-key', reuse=False, ram_entries=4):
+         self.script = list(script);self.context = context;self.model_id = model_id;self.bodies = [];self.closed = 0
++        # A2: with reuse, it keeps prompts as the runtime does with one slot, checkpoints and a RAM cache: a prompt is kept
++        # with a checkpoint where its last user message starts, and a new prompt re-uses the longest kept prefix up to a
++        # checkpoint (or the whole kept prompt it extends). cache_n says how much. A step's 'cache_n' scripts a miss.
++        self.reuse = reuse;self.ram_entries = ram_entries;self._slot = None;self._ram = []
++        self.started = time.time()
+         self._dir = tempfile.mkdtemp(prefix='fake-worker-');self.key_file = Path(self._dir) / 'key'
+         self.key_file.write_text(key);self.key_file.chmod(0o600);self._key = key
+         server = self
+@@ -152,14 +160,14 @@ class FakeServer:
+                     self._send(401, {'error': 'unauthorised'});return False
+                 return True
+ 
+-            def _stream(self, step, text, seen):
+-                """A3: llama-server's streamed answer, one event per token, token_ms apart."""
++            def _stream(self, step, text, seen, kept=0):
++                """A3: llama-server's streamed answer, one event per token, token_ms apart (A2: cache_n is what was kept)."""
+                 self.send_response(200);self.send_header('Content-Type', 'text/event-stream');self.end_headers()
+                 pieces = tokens(text)
+                 events = [{'choices': [{'index': 0, 'delta': {'content': p}, 'finish_reason': None}]} for p in pieces]
+                 events.append({'choices': [{'index': 0, 'delta': {}, 'finish_reason': step.get('finish', 'stop')}],
+                                'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(pieces)},
+-                               'timings': {'prompt_n': len(seen), 'cache_n': 0, 'predicted_n': len(pieces),
++                               'timings': {'prompt_n': len(seen) - kept, 'cache_n': kept, 'predicted_n': len(pieces),
+                                            'prompt_ms': 1.0, 'predicted_ms': 1.0}})
+                 try:
+                     for value in events:
+@@ -184,17 +192,20 @@ class FakeServer:
+                 if self.path == '/tokenize':
+                     return self._send(200, {'tokens': [int(hashlib.sha256(t.encode()).hexdigest()[:6], 16) for t in tokens(body['content'])]})
+                 if self.path == '/v1/chat/completions':
+-                    if not server.script:return self._send(500, {'error': 'script empty'})
+-                    step = _step(server.script.pop(0), body['messages'], body.get('grammar'))
++                    priming = body.get('max_tokens') == 0
++                    if not priming and not server.script:return self._send(500, {'error': 'script empty'})
++                    step = {'text': ''} if priming else _step(server.script.pop(0), body['messages'], body.get('grammar'))
+                     if step.get('sleep_ms'):time.sleep(step['sleep_ms'] / 1000)
+                     if step.get('fail'):return self._send(500, {'error': step['fail']})
+                     text = step.get('text', '');seen = tokens(chatml(body['messages']))
+-                    if body.get('stream'):return self._stream(step, text, seen)
++                    kept = server._reuse(body['messages'], body.get('cache_prompt'))
++                    if 'cache_n' in step:kept = int(step['cache_n'])          # a scripted miss
++                    if body.get('stream'):return self._stream(step, text, seen, kept)
+                     return self._send(200, {'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': text},
+-                                                         'finish_reason': step.get('finish', 'stop')}],
++                                                         'finish_reason': 'length' if priming else step.get('finish', 'stop')}],
+                                             'usage': {'prompt_tokens': len(seen), 'completion_tokens': len(tokens(text))},
+-                                            'timings': {'prompt_n': len(seen), 'cache_n': 0, 'predicted_n': len(tokens(text)),
+-                                                        'prompt_ms': 1.0, 'predicted_ms': 1.0}})
++                                            'timings': {'prompt_n': len(seen) - kept, 'cache_n': kept,
++                                                        'predicted_n': len(tokens(text)), 'prompt_ms': 1.0, 'predicted_ms': 1.0}})
+                 self._send(404, {'error': 'not here'})
+ 
+         self._server = ThreadingHTTPServer(('127.0.0.1', 0), Handler);self._server.daemon_threads = True
+@@ -206,7 +217,27 @@ class FakeServer:
+         from .operation_stop import process_identity
+         return {'pid': os.getpid(), 'start': process_identity(os.getpid()), 'port': self.port, 'key_file': str(self.key_file),
+                 'context': self.context, 'model_id': self.model_id, 'runtime': {'simulated': True, 'name': 'fake_worker'},
+-                'backend': 'CPU'}
++                'backend': 'CPU', 'started': self.started}
++
++    def _reuse(self, messages, cache_prompt):
++        """cache_n for this prompt, and keep it (A2's stand-in for one slot, checkpoints and the RAM prompt cache)."""
++        if not self.reuse:return 0
++        parts = [tokens('<|im_start|>%s\n%s<|im_end|>\n' % (m['role'], m['content'])) for m in messages]
++        seen = [t for part in parts for t in part] + tokens('<|im_start|>assistant\n')
++        last_user = max((i for i, m in enumerate(messages) if m['role'] == 'user'), default=0)
++        checkpoint = sum(len(p) for p in parts[:last_user])
++        best = 0
++        if cache_prompt:
++            for held, mark in ([self._slot] if self._slot else []) + self._ram:
++                n = _shared(seen, held)
++                best = max(best, n if n >= len(held) else mark if mark <= n else 0)
++        if self._slot:self._ram = ([self._slot] + self._ram)[:self.ram_entries]
++        self._slot = (seen, checkpoint)
++        return min(best, len(seen) - 1)
++
++    def restart(self):
++        """What a worker restart does to its memory: nothing kept (A2's Forget)."""
++        self._slot = None;self._ram = [];self.started = time.time()
+ 
+     def completions(self):
+         """The chat request bodies as sent, in order."""
+diff --git a/workbench/local_brain.py b/workbench/local_brain.py
+index debce02..a575bf0 100644
+--- a/workbench/local_brain.py
++++ b/workbench/local_brain.py
+@@ -133,13 +133,22 @@ def status(kernel):
+             'resource_stop':resource_stop,
+             'selection':active,'worker':{k:worker.get(k) for k in ('model_id','pid','started','context','backend','requested_backend',
+                 'device','observed_gpu_layers','offload_evidence','fallback_reason','resource_guard','runtime',
+-                'context_basis','batch_size','microbatch_size','context_reuse','seal')} if live else None,
++                'context_basis','batch_size','microbatch_size','context_reuse','seal','reuse','memory_sum')} if live else None,
+             'seal_words':brain_seal.words(worker.get('seal')) if live else None,
++            'kept_briefs':_kept_summary(kernel,worker) if live else None,
+             'prepared_context':prepared_context(kernel,worker) if live else None,
+             'previous':get(kernel,'previous'),'handover':pending,'registered_models':len(models(kernel)),
+             'runtime':{k:v for k,v in brain_runtime.status(kernel.root).items() if k!='pin'},
+             'cloud_calls':0,'notice':'Model-declared metadata and measured qualification are separate. The local model cannot execute Graphite commands.'}
+ 
++def _kept_summary(kernel,worker):
++    """0.8.7 A2: which kinds' briefs the live worker keeps ready, its reuse misses, and a restart Forget still waits for."""
++    try:
++        from . import brain_briefs
++        return brain_briefs.summary(kernel,worker)
++    except Exception:  # noqa: BLE001 - status never fails on the kept-brief summary
++        return None
++
+ def add(kernel,args,principal):
+     inspected=inspect_set(args['path'],args.get('role','chat'),args.get('projector'))
+     inspected.update(owner=principal.identity,registered=time.time(),origin=args.get('origin','NOT_RECORDED'),
+@@ -224,19 +233,25 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
+     if any(name.startswith('UNSUPPORTED_TYPE_') for name in value['inspection']['quantization']):raise ValueError('MODEL_QUANTIZATION_NOT_IN_INSPECTION_PROFILE')
+     context=options.get('context',2048);trained=metadata.get(architecture+'.context_length')
+     if type(trained)==int and context>trained:raise ValueError('CONTEXT_EXCEEDS_MODEL_DECLARATION')
+-    layers=metadata.get(architecture+'.block_count');embedding=metadata.get(architecture+'.embedding_length')
+-    heads=metadata.get(architecture+'.attention.head_count');kv_heads=metadata.get(architecture+'.attention.head_count_kv',heads)
+-    if not all(type(x)==int and x>0 for x in (layers,embedding,heads,kv_heads)):raise ValueError('MODEL_MEMORY_ESTIMATE_UNAVAILABLE')
+-    kv_bytes=4*layers*context*embedding*kv_heads//heads
+-    estimate=int(value['total_bytes']*1.3+kv_bytes+384*1024*1024)
++    # 0.8.7 A2: the memory sum (resource_control.memory_sum) from the GGUF metadata, exact for hybrid models, with the
++    # reuse ladder: six checkpoints and the RAM prompt cache, then two and 256 MiB, then reuse off; the first rung the
++    # rule admits is taken. A dense model has one rung, today's estimate to the byte.
++    from .resource_control import KEYS,MIB,budget_room,reserve_bytes,reuse_ladder
++    ladder=reuse_ladder(value['inspection'],value['total_bytes'],context)
+     available=host['available_ram_bytes']
+     if not available:raise ValueError('HOST_MEMORY_COULD_NOT_BE_MEASURED')
+-    from .resource_control import KEYS,MIB,budget_room,reserve_bytes
+     reserve=reserve_bytes(KEYS['reserve_mb'] if reserve_mb is None else reserve_mb,host.get('total_ram_bytes'))
+-    credit=max(0,int(reclaimable_bytes));need=-(-estimate//MIB)  # the estimate in whole MiB, rounded up
++    credit=max(0,int(reclaimable_bytes))
+     # The same rule as admission and launch (resource_control.budget_room), so what is accepted here is admitted there.
+     room=budget_room(available,reserve,0,credit)
+     memory_mb=options.get('memory_mb')
++    def fits(term):
++        need=-(-term['estimate']//MIB)
++        if memory_mb is None:return need<=AUTO_CEILING_MB and need+AUTO_HEADROOM_MB<=room//MIB
++        return term['estimate']<=memory_mb*MIB
++    chosen=next((term for term in ladder if fits(term)),ladder[-1])  # none fits: the last rung's numbers are refused below
++    kv_bytes=chosen['kv'];estimate=chosen['estimate']
++    need=-(-estimate//MIB)  # the estimate in whole MiB, rounded up
+     if memory_mb is None:
+         if need>AUTO_CEILING_MB:
+             raise ValueError('MODEL_MEMORY_BUDGET_TOO_SMALL: this model at %s tokens needs %s, above the %s Auto '
+@@ -272,7 +287,9 @@ def configuration(value,options=None,root=None,reclaimable_bytes=0,reserve_mb=No
+         backend='VULKAN' if ready else 'CPU'
+         if not ready:reason='Auto selected CPU: no accessible amdgpu Radeon with a bundled Vulkan worker was found.'
+     return {'context':context,'threads':options.get('threads',min(4,host['logical_cpus'] or 1)),'weight_loading':'RESIDENT_COPY',
+-            'memory_mb':memory_mb,'estimated_peak_bytes':estimate,'estimated_kv_bytes':kv_bytes,'backend':backend,
++            'memory_mb':memory_mb,'estimated_peak_bytes':estimate,'estimated_kv_bytes':kv_bytes,
++            'checkpoints':chosen['checkpoints'],'prompt_cache_mb':chosen['cache_mb'],
++            'memory_sum':{k:v for k,v in chosen.items() if k!='estimate'},'backend':backend,
+             'requested_backend':requested,'gpu_layers':layers,'cpu_fallback':fallback,'fallback_reason':reason,
+             'host':host,'reclaimable_private_bytes':reclaimable_bytes,'resource_guard':resource_guard(backend),
+             **({'headroom_mb':headroom_mb} if headroom_mb else {})}
+@@ -408,6 +425,25 @@ def seal_check(worker,log,backend):
+     campaign's simulated worker can answer it (tools/campaign_lib/sim.py); a real start always runs the real check."""
+     return brain_seal.check(worker,log,backend)
+ 
++def launch_arguments(weights,sock,port,key_file,config,backend):
++    """The runtime's launch line (0.8.7 A2, design 4.2). One slot (--parallel 1); prompt reuse through context
++    checkpoints with no minimum step (the default 8,192 gives none for short prompts) and a bounded RAM prompt cache, both
++    chosen by the memory rule and counted in the budget (config['checkpoints'], config['prompt_cache_mb']; a selection
++    from before 0.8.7 has neither and launches as before, 0 and 0). --no-slots, --no-cache-idle-slots and the rest stay;
++    no --slot-save-path, no --log-prompts-dir: the worker writes nothing to disk (the seal's lint refuses both)."""
++    gpu_layers=config.get('gpu_layers',-1)
++    line=['--model',weights,'--host',sock or '127.0.0.1']+(['--port',str(port)] if port else [])+[
++          '--api-key-file',key_file,
++          '--ctx-size',str(config['context']),'--threads',str(config['threads']),'-ngl',
++          ('auto' if gpu_layers==-1 else str(gpu_layers)) if backend=='VULKAN' else '0','--parallel','1',
++          '--threads-http','2','--batch-size','256','--ubatch-size','64',
++          '--cache-ram',str(int(config.get('prompt_cache_mb') or 0)),'--ctx-checkpoints',str(int(config.get('checkpoints') or 0)),
++          '--checkpoint-min-step','0','--no-cache-idle-slots',
++          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
++          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
++    line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
++    return line
++
+ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+     from .locations import child_env
+     from .resource_control import model_room
+@@ -423,15 +459,7 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+     possible=brain_seal.network_seal_possible()
+     network_seal=bool(network_seal and sock is not None and possible)
+     weights=next(item['path'] for item in value['files'] if item['role']=='weights')
+-    gpu_layers=config.get('gpu_layers',-1)
+-    line=['--model',weights,'--host',str(sock) if sock else '127.0.0.1']+(['--port',str(port)] if port else [])+[
+-          '--api-key-file',str(key),
+-          '--ctx-size',str(config['context']),'--threads',str(config['threads']),'-ngl',
+-          ('auto' if gpu_layers==-1 else str(gpu_layers)) if backend=='VULKAN' else '0','--parallel','1',
+-          '--threads-http','2','--batch-size','256','--ubatch-size','64','--cache-ram','0','--ctx-checkpoints','0','--no-cache-idle-slots',
+-          '--fit','on' if backend=='VULKAN' and gpu_layers==-1 else 'off','--load-mode','none',
+-          '--no-webui','--no-ui-mcp-proxy','--no-slots','--no-context-shift','--no-warmup','--offline']
+-    line+=['--device',config['device']['id'] if backend=='VULKAN' else 'none']
++    line=launch_arguments(weights,str(sock) if sock else None,port,str(key),config,backend)
+     try:launch_line=brain_seal.lint(line)
+     except ValueError:
+         key.unlink(missing_ok=True)
+@@ -462,7 +490,10 @@ def _start_server(kernel,value,config,ident,slot,verified,network_seal=True):
+                     'device':config.get('device'),'fallback_reason':config.get('fallback_reason'),
+                     'resource_guard':config.get('resource_guard',resource_guard(backend)),
+                     'verified_files':verified,'batch_size':256,'microbatch_size':64,
+-                    'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT'}
++                    'context_basis':'REQUESTED_LIMIT','context_reuse':'PINNED_SINGLE_SLOT',
++                    # 0.8.7 A2: kept briefs (brain_briefs) over one slot, its checkpoints and its RAM prompt cache
++                    'reuse':{'checkpoints':int(config.get('checkpoints') or 0),'prompt_cache_mb':int(config.get('prompt_cache_mb') or 0)},
++                    'memory_sum':config.get('memory_sum')}
+             if worker['start'] in (None,UNKNOWN):raise ValueError('Model worker process ownership could not be verified')
+             put(kernel,slot,worker,'STARTING',db)
+         while time.monotonic()-began<90:
+@@ -533,7 +564,9 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
+         prompt=request(worker,'/apply-template',{'messages':messages,'add_generation_prompt':True,'chat_template_kwargs':TEMPLATE_OPTIONS},timeout=10)['prompt']
+         tokens=request(worker,'/tokenize',{'content':prompt,'add_special':False},timeout=10)['tokens'];prompt_tokens=len(tokens)
+     if prompt_tokens+max_tokens+32>worker['context']:raise ValueError('CONTEXT_BUDGET_EXCEEDED: shorten this message or begin a new conversation; saved dialogue is preserved')
+-    payload={'messages':messages,'max_tokens':max_tokens,'temperature':0,'stream':False,'cache_prompt':False,
++    # 0.8.7 A2: cache_prompt on. The slot keeps its prompt and its checkpoints, and the RAM cache the kinds before it, so a
++    # question re-reads only what changed after its kind's kept brief (brain_briefs). max_tokens 0 is a priming read.
++    payload={'messages':messages,'max_tokens':max_tokens,'temperature':0,'stream':False,'cache_prompt':True,
+              'chat_template_kwargs':TEMPLATE_OPTIONS}
+     if json_schema and grammar:raise ValueError('ANSWER_SHAPE_TWICE: a JSON schema or a grammar, not both')
+     if json_schema:payload['response_format']={'type':'json_schema','json_schema':{'name':'ledger_plan','strict':True,'schema':json_schema}}
+@@ -548,6 +581,7 @@ def completion(worker,messages,max_tokens=128,json_schema=None,*,grammar=None,ti
+                   'usage':got['usage'],'timings':got['timings']}
+     else:response=request(worker,'/v1/chat/completions',payload,timeout=timeout)
+     text=response['choices'][0]['message'].get('content','')
++    if max_tokens==0 and text is None:text=''          # a priming read: the prompt is read into the cache, no answer
+     if not isinstance(text,str) or len(text)>32000:raise ValueError('MODEL_OUTPUT_LIMIT_OR_TYPE')
+     return {'text':text,'usage':response.get('usage',{}),'timings':response.get('timings',{}),
+             'input_messages_digest':record_io.digest(messages),
+@@ -622,7 +656,11 @@ def run_model_job(kernel,job):
+                 put(kernel,'selection',selection,'ACTIVATED',db);put(kernel,'worker',trial,'READY',db);put(kernel,'trial_worker',{},db=db)
+                 put(kernel,'resource_stop',None,db=db)
+         result={'status':'ACTIVATED' if job['tool']=='brain.activate' else 'QUALIFIED','model_id':value['id'],'qualification':receipt,'cloud_calls':0}
+-        if job['tool']=='brain.activate':trial=None
++        if job['tool']=='brain.activate':
++            # 0.8.7 A2: Ready, then each kind's brief read once with no answer (never fails the activation)
++            from . import brain_briefs
++            result['kept_briefs']=brain_briefs.after_start(kernel,trial,cancelled=lambda:cancelled(kernel,ident))
++            trial=None
+         return result
+     except BaseException as exc:
+         # A refusal before anything started (the launch check) leaves the previous model to be restored; restoring goes
+@@ -654,6 +692,8 @@ def run_model_job(kernel,job):
+                     verify_resident(model(kernel,previous['model_id']),restored)
+                     put(kernel,'worker',restored,'RESTORED_PREVIOUS',db);put(kernel,'trial_worker',{},db=db)
+                     put(kernel,'resource_stop',None,db=db)
++                from . import brain_briefs
++                brain_briefs.after_start(kernel,restored)   # 0.8.7 A2: never raises
+             except Exception:
+                 if restored:terminate(kernel,restored,'ROLLBACK_PROBE_FAILED');put(kernel,'trial_worker',{})
+                 activity.record(kernel.root,'STACY','brain.rollback','PREVIOUS_MODEL_RELOAD_FAILED')
+@@ -1099,6 +1139,20 @@ def result(kernel,ident,principal):
+     path=kernel.root/'build/brain/runs'/ident/'result.json'
+     return {'job_id':ident,'state':job['state'],'result':record_io.strict_json(path.read_bytes()) if path.is_file() else None,'error':job.get('error')}
+ 
++def forget_restart(kernel,principal,reason='FORGOTTEN'):
++    """0.8.7 A2, Forget: restart the live worker so nothing forgotten survives in its RAM cache or checkpoints. The same
++    selection is started again by a brain.activate job, so it runs once the worker is idle (the inference lane is
++    free), a hold holds it, and run_model_job's sequential handover stops the old worker first; the new one is primed
++    with briefs only. Returns the job, or None when no live worker of the selection holds anything."""
++    selection=get(kernel,'selection',{}) or {};worker=get(kernel,'worker',{}) or {}
++    if not worker_live(worker) or selection.get('model_id')!=worker.get('model_id'):return None
++    from .model_settings import LAUNCH_KEYS
++    config=selection['config'];options={k:config[k] for k in LAUNCH_KEYS if k in config}
++    options['backend']=config.get('requested_backend',config.get('backend','CPU'))
++    activity.record(kernel.root,'STACY','brain.forget_restart',reason)
++    return submit(kernel,'brain.activate',{'request_key':'brain-forget:'+uuid.uuid4().hex},principal,
++                  {**options,'model_id':selection['model_id']})
++
+ def cancel_job(kernel,job):
+     for key in ('trial_worker','worker'):
+         value=get(kernel,key,{})
+diff --git a/workbench/resource_control.py b/workbench/resource_control.py
+index d7e99d9..ec87bc0 100644
+--- a/workbench/resource_control.py
++++ b/workbench/resource_control.py
+@@ -71,6 +71,78 @@ def budget_room(available,reserve,future=0,credit=0):
+     return max(0,(available or 0)-reserve-future)+max(0,credit)
+ 
+ 
++# -- 0.8.7 A2 · the memory sum: exact terms for hybrid models, from the GGUF metadata gguf_inspect already reads ---------
++# budget = weights x 1.3 + 384 MiB                                     (unchanged)
++#        + KV over attention layers only x context
++#        + one recurrent state
++#        + checkpoints x one state
++#        + the RAM prompt cache
++# A model without full_attention_interval is dense: its estimate is today's, to the byte (the same expression), and it
++# keeps reuse without checkpoints or a RAM cache (a dense KV prefix is kept by the slot itself), so nothing is added.
++# Checked here against the server's log: one state is 50.251 MiB on the 4B and 19.266 MiB on the 2B; KV is 32 KiB a token
++# on the 4B (design 4.5). Integer arithmetic for every hybrid term.
++BASE_BYTES=384*MIB
++REUSE_LADDER_MB=((6,None),(2,256),(0,0))  # (checkpoints, RAM prompt cache MiB): the first rung the rule admits is taken
++PROMPT_CACHE_LARGE_MB=1024                # the cache on a large model (the 35B), 512 on a small one (the 4B here)
++PROMPT_CACHE_SMALL_MB=512
++LARGE_WEIGHTS_BYTES=8*1024*MIB
++
++
++def memory_shape(inspection):
++    """The memory shape of a model from its GGUF metadata (gguf_inspect.inspect's 'metadata' and 'architecture'):
++    DENSE (today's KV formula) or HYBRID (attention layers every full_attention_interval blocks, the rest recurrent).
++    Raises MODEL_MEMORY_ESTIMATE_UNAVAILABLE when a term it needs is missing or not a positive whole number."""
++    metadata=inspection['metadata'];architecture=inspection['architecture']
++    def whole(key,default=None):
++        value=metadata.get(architecture+'.'+key,default)
++        if type(value) is not int or value<=0:raise ValueError('MODEL_MEMORY_ESTIMATE_UNAVAILABLE')
++        return value
++    layers=whole('block_count');embedding=whole('embedding_length');heads=whole('attention.head_count')
++    kv_heads=whole('attention.head_count_kv',heads)
++    shape={'kind':'DENSE','layers':layers,'embedding':embedding,'heads':heads,'kv_heads':kv_heads}
++    if architecture+'.full_attention_interval' not in metadata:return shape
++    interval=whole('full_attention_interval')
++    head=embedding//heads
++    key_length=whole('attention.key_length',head);value_length=whole('attention.value_length',key_length)
++    inner=whole('ssm.inner_size');state=whole('ssm.state_size');groups=whole('ssm.group_count');conv=whole('ssm.conv_kernel')
++    attention=layers//interval;recurrent=layers-attention        # llama.cpp: block i is attention when (i+1) % interval == 0
++    shape.update(kind='HYBRID',interval=interval,attention_layers=attention,recurrent_layers=recurrent,
++                 key_length=key_length,value_length=value_length,inner=inner,state=state,groups=groups,conv_kernel=conv,
++                 # f16 K and V on the attention layers only
++                 kv_bytes_per_token=attention*kv_heads*(key_length+value_length)*2,
++                 # one recurrent state: the f32 SSM state and the f32 convolution window, on every recurrent layer
++                 state_bytes=recurrent*(inner*state*4+(conv-1)*(inner+2*groups*state)*4))
++    return shape
++
++
++def preferred_cache_mb(total_bytes):
++    return PROMPT_CACHE_LARGE_MB if total_bytes>LARGE_WEIGHTS_BYTES else PROMPT_CACHE_SMALL_MB
++
++
++def memory_sum(inspection,total_bytes,context,checkpoints=0,cache_mb=0):
++    """The model's budget estimate in bytes, term by term. A dense model ignores checkpoints and cache (it has neither)."""
++    shape=memory_shape(inspection)
++    if shape['kind']=='DENSE':
++        kv=4*shape['layers']*context*shape['embedding']*shape['kv_heads']//shape['heads']
++        return {'kind':'DENSE','estimate':int(total_bytes*1.3+kv+BASE_BYTES),'weights':total_bytes,'kv':kv,'state':0,
++                'checkpoints':0,'checkpoint_bytes':0,'cache_mb':0,'cache':0,'base':BASE_BYTES}
++    weights=-(-total_bytes*13//10)                                   # x 1.3, rounded up, in whole bytes
++    kv=shape['kv_bytes_per_token']*context;state=shape['state_bytes']
++    cache=cache_mb*MIB
++    return {'kind':'HYBRID','estimate':weights+BASE_BYTES+kv+state+checkpoints*state+cache,'weights':total_bytes,
++            'kv':kv,'kv_per_token':shape['kv_bytes_per_token'],'state':state,'checkpoints':checkpoints,
++            'checkpoint_bytes':checkpoints*state,'cache_mb':cache_mb,'cache':cache,'base':BASE_BYTES}
++
++
++def reuse_ladder(inspection,total_bytes,context):
++    """The rungs the memory rule tries, best first: six checkpoints and the model's RAM cache; two and 256 MiB; then
++    reuse off (today's launch). A dense model has the one rung, today's."""
++    if memory_shape(inspection)['kind']=='DENSE':return [memory_sum(inspection,total_bytes,context)]
++    return [memory_sum(inspection,total_bytes,context,checkpoints,preferred_cache_mb(total_bytes) if cache is None else cache)
++            for checkpoints,cache in REUSE_LADDER_MB]
++# -- end 0.8.7 A2 -------------------------------------------------------------------------------------------------------
++
++
+ def touch(kernel,owner,db=None):
+     """A short activity lease: no keystrokes, text, pointer positions or journal flood."""
+     if db is None:
+diff --git a/workbench/turns.py b/workbench/turns.py
+index fce1f7f..17116d6 100644
+--- a/workbench/turns.py
++++ b/workbench/turns.py
+@@ -39,7 +39,8 @@ ask(kind, inputs, request) -> Answer
+ Answer(value, by_model, outcome, fallback, why, verdict, turn, said, price_ms, deadline_ms, elapsed_ms, late_view)
+     by_model   True when value is the checked model answer (TAKEN, TRIMMED, UNSETTLED); else value is the fallback's
+     outcome    TAKEN TRIMMED REFUSED UNSETTLED TRIPPED LATE FAILED (a turn was sent and recorded), or NOT_SENT
+-    why        for NOT_SENT: SWITCH_OFF, AI_OFF, NO_MODEL, STOPPED, CEILING_TURNS, CEILING_TIME, OVER_CAP, OVER_CONTEXT;
++    why        for NOT_SENT: SWITCH_OFF, AI_OFF, NO_MODEL, STOPPED, CEILING_TURNS, CEILING_TIME, OVER_CAP, OVER_CONTEXT,
++               FORGETTING (A2: the worker holds a forgotten turn until its restart);
+                for a sent turn the first reason code of its verdict, or LATE, or the worker's error code
+     late_view  a late answer's checked value (TAKEN or TRIMMED), offered beside hers, never taken
+ TurnRequest(port=None, ledger=None, clock=None, switches=None, owner='', foreground_turns=3, budget_ms=25000,
+@@ -53,6 +54,10 @@ The worker port (LocalPort here; fake_worker.FakeWorker for smoke scripts): live
+ kept(messages), the attribute context (tokens, or None), complete(messages, *, answer_tokens, grammar, deadline_ms, odds,
+ prompt_tokens, on_progress) -> dict(text, finish, timings, odds, elapsed_ms); raises Late past the deadline, PortError
+ when the worker fails. on_progress(tokens_written, elapsed_ms), when given, is called as the answer streams (A3).
++Optional (A2, prompt reuse; a port without them is simply not watched): after_turn(kind, messages, kept, timings) -> the
++record's 'reuse' field ({expected, cache_n, miss, misses_in_a_row, reprime}), and reprime(kind). LocalPort keeps briefs
++through brain_briefs: kept() is what the worker holds of this question (its kind's primed brief, or messages 1 to 3 when
++they were the last of that kind), so a question is priced, and capped, on its new tokens only.
+ Her clock (brain_clock.py, lane A's A3, when it exists; FixedClock until then): price_ms(key, kind, new_tokens,
+ answer_tokens, desk_ms) and observe(key, kind, record).
+ Added by A3 (backward compatible: new names only, nothing above changed meaning):
+@@ -101,7 +106,8 @@ OUTCOMES = VERDICTS + ('LATE', 'FAILED')
+ USED = ('TAKEN', 'TRIMMED', 'UNSETTLED')         # verdicts whose value the caller receives
+ FALLBACKS = ('ASK_OWNER', 'DEFAULT_READ', 'PLAIN_WORDS', 'CANNOT_TELL', 'NOT_OFFERED', 'PATTERNS', 'PLACES')
+ NOT_SENT = ('SWITCH_OFF', 'AI_OFF', 'NO_MODEL', 'STOPPED', 'CEILING_TURNS', 'CEILING_TIME', 'OVER_CAP', 'OVER_CONTEXT',
+-            'RECEIPT_FIRST')     # A3: a wording turn waits for her receipt sentence on screen
++            'RECEIPT_FIRST',     # A3: a wording turn waits for her receipt sentence on screen
++            'FORGETTING')        # A2: the worker holds something forgotten and waits for its restart
+ RECEIPT_FIRST_SWITCHES = ('wording',)   # A3: kinds of these switches are sent only after request.receipt_on_screen()
+ BASES = ('owner_words', 'owner_click', 'deduction', 'model_pick')
+ FOREGROUND_TURNS = 3                     # at most 3 foreground model turns per request (design 4.4)
+@@ -408,9 +414,12 @@ def request_for(kernel, principal, **options):
+             if local_brain.worker_live(worker) and worker.get('model_id') == selection.get('model_id'):
+                 try:
+                     local_brain.verify_resident(local_brain.model(kernel, worker['model_id']), worker)
+-                    port = LocalPort(worker)
++                    port = LocalPort(worker, kernel)
+                 except (ValueError, OSError):
+                     port = None
++                if port is not None:      # A2: a worker that holds a forgotten turn gets nothing until its restart
++                    from . import brain_briefs
++                    if brain_briefs.forget_pending(kernel, worker):port = None;off = 'FORGETTING'
+     options.setdefault('clock', default_clock(kernel))
+     return TurnRequest(port=port, ledger=KernelLedger(kernel, principal.identity), owner=principal.identity, off_reason=off,
+                        **options)
+@@ -418,16 +427,22 @@ def request_for(kernel, principal, **options):
+ 
+ # -- the local worker port: the only caller of local_brain.completion -----------------------------------------------------------
+ class LocalPort:
+-    """Graphite's own local model worker (local_brain). Prompt reuse is off until A2 turns it on (cache_prompt false,
+-    --cache-ram 0), so kept() is 0 and every token of a question is new."""
++    """Graphite's own local model worker (local_brain). Prompt reuse (A2): one slot with checkpoints and a RAM prompt cache,
++    cache_prompt on; the kept briefs are brain_briefs', in the Kernel's settings when a kernel is given (else in memory)."""
+     GRACE_MS = 500
+ 
+-    def __init__(self, worker):
+-        self.worker = worker;self.context = worker.get('context')
++    def __init__(self, worker, kernel=None):
++        from . import brain_briefs
++        self.worker = worker;self.context = worker.get('context');self.kernel = kernel
++        self.store = brain_briefs.store_for(kernel);self._seen = (None, None)
+ 
+     def live(self):
+-        from . import local_brain
+-        return local_brain.worker_live(self.worker)
++        from . import brain_briefs, local_brain
++        return local_brain.worker_live(self.worker) and not brain_briefs.forget_pending(self.kernel, self.worker)
++
++    def not_live_reason(self):
++        from . import brain_briefs
++        return 'FORGETTING' if brain_briefs.forget_pending(self.kernel, self.worker) else 'NO_MODEL'
+ 
+     def model(self):return self.worker.get('model_id', '')
+ 
+@@ -438,8 +453,11 @@ class LocalPort:
+                                  'backend': self.worker.get('backend'), 'context': self.worker.get('context'),
+                                  'template': local_brain.TEMPLATE_OPTIONS})
+ 
+-    def count(self, messages):
++    def tokens(self, messages):
++        """The prompt's tokens as the worker renders and counts them (its own template and vocabulary)."""
+         from . import local_brain
++        key = json.dumps(messages, ensure_ascii=False, sort_keys=True)
++        if self._seen[0] == key:return self._seen[1]
+         try:
+             prompt = local_brain.request(self.worker, '/apply-template', {'messages': messages, 'add_generation_prompt': True,
+                                          'chat_template_kwargs': local_brain.TEMPLATE_OPTIONS}, timeout=10)['prompt']
+@@ -447,10 +465,37 @@ class LocalPort:
+         except (ValueError, OSError, KeyError, TypeError) as exc:
+             raise PortError(_code(exc)) from None
+         if not isinstance(tokens, list):raise PortError('LOCAL_TOKENIZER_RESPONSE_INVALID')
+-        return len(tokens)
++        self._seen = (key, tokens)
++        return tokens
++
++    def count(self, messages):
++        return len(self.tokens(messages))
+ 
+     def kept(self, messages):
+-        return 0
++        from . import brain_briefs
++        try:
++            return brain_briefs.expected(self.store, self.worker, messages)
++        except Exception:  # noqa: BLE001 - nothing known: every token is new
++            return 0
++
++    def after_turn(self, kind, messages, kept, timings):
++        from . import brain_briefs
++        return brain_briefs.watch(self, kind, messages, kept, timings)
++
++    def reprime(self, kind):
++        from . import brain_briefs
++        return brain_briefs.reprime_later(self, kind)
++
++    def read_prime(self, messages, prompt_tokens=None):
++        """A priming read (brain_briefs): the brief read into the worker's cache with no answer (max_tokens 0). Its text,
++        if any, is dropped unseen: nothing was asked, and nothing is recorded as a turn."""
++        from . import local_brain
++        began = _monotonic_ms()
++        try:
++            got = local_brain.completion(self.worker, messages, 0, timeout=120, prompt_tokens=prompt_tokens)
++        except (ValueError, OSError, KeyError, TypeError) as exc:
++            raise PortError(_code(exc)) from None
++        return {'timings': got.get('timings') or {}, 'finish': got.get('finish_reason'), 'elapsed_ms': _monotonic_ms() - began}
+ 
+     def complete(self, messages, *, answer_tokens, grammar, deadline_ms, odds=0, prompt_tokens=None, on_progress=None,
+                  cancelled=None):
+@@ -503,7 +548,8 @@ def ask(kind, inputs, request):
+     if not request.switch_on(kind.switch):return _without(kind, inputs, 'SWITCH_OFF')
+     if kind.switch in RECEIPT_FIRST_SWITCHES and not request.receipt_shown:return _without(kind, inputs, 'RECEIPT_FIRST')
+     port = request.port
+-    if port is None or not port.live():return _without(kind, inputs, request.off_reason if port is None else 'NO_MODEL')
++    if port is None or not port.live():
++        return _without(kind, inputs, request.off_reason if port is None else getattr(port, 'not_live_reason', lambda: 'NO_MODEL')())
+     if request.cancelled():return _without(kind, inputs, 'STOPPED')
+     if caps.foreground and request.turns_used >= request.foreground_turns:return _without(kind, inputs, 'CEILING_TURNS')
+     # 2 · the layout and the grammar
+@@ -574,11 +620,24 @@ def ask(kind, inputs, request):
+     fb = None if use else kind.fallback(inputs)
+     if fb is not None and not isinstance(fb, Fallback):raise TypeError('TURN_FALLBACK: a kind returns a Fallback')
+     why = failed or ('LATE' if late else (verdict.why[0] if verdict and verdict.why else ''))
++    # 5b · the reuse watchdog (A2): cache_n against what was expected kept; two misses in a row re-prime the kind
++    reuse = None
++    if failed is None and hasattr(port, 'after_turn'):
++        try:
++            reuse = port.after_turn(kind, messages, kept, timings)
++        except Exception:  # noqa: BLE001 - the watchdog is for speed only; it never stops an answer
++            reuse = None
+     # 6 · one record
+     value = record(kind=kind, request=request, messages=messages, grammar=grammar, said=said, finish=finish, odds=odds,
+                    verdict=verdict, outcome=outcome, fallback=None if fb is None else fb.code, why=why, price=price,
+-                   deadline=deadline, elapsed=elapsed, timings=timings, prompt=prompt, kept=kept, key=key, model=port.model())
++                   deadline=deadline, elapsed=elapsed, timings=timings, prompt=prompt, kept=kept, key=key, model=port.model(),
++                   reuse=reuse)
+     ident = request.ledger.write(value)
++    if reuse and reuse.get('reprime') and hasattr(port, 'reprime'):
++        try:
++            port.reprime(kind)
++        except Exception:  # noqa: BLE001
++            pass
+     try:
+         request.clock.observe(key, kind.name, value)
+     except Exception:  # noqa: BLE001 - her clock never stops an answer
+@@ -615,7 +674,7 @@ def _timings(timings):
+ 
+ 
+ def record(*, kind, request, messages, grammar, said, finish, odds, verdict, outcome, fallback, why, price, deadline,
+-           elapsed, timings, prompt, kept, key, model):
++           elapsed, timings, prompt, kept, key, model, reuse=None):
+     """One brain.turn/1 record (design 3.5)."""
+     if outcome not in OUTCOMES:raise ValueError('TURN_OUTCOME: %s' % outcome)
+     return {
+@@ -635,6 +694,8 @@ def record(*, kind, request, messages, grammar, said, finish, odds, verdict, out
+         'tokens': {'prompt': int(prompt), 'kept_expected': int(kept), 'new': int(prompt - kept),
+                    'answer_cap': kind.caps.answer_tokens},
+         'timings': _timings(timings), 'key': key, 'model': model,
++        # A2: the watchdog's view of this turn (None when the port keeps no briefs): a miss counts here, never as an error
++        'reuse': _jsonable(reuse) if reuse is not None else None,
+     }
+ 
+ 
+@@ -715,9 +776,10 @@ def get(kernel, owner, ident):
+     return json.loads(row[0])
+ 
+ 
+-def forget(kernel, owner, ident):
+-    """Forget a turn: its record becomes a tombstone. (The operation brain.turn.forget, approve and always asked, and the
+-    worker restart that clears its memory of the turn come with lane A's A2 and A4.)"""
++def forget(kernel, owner, ident, principal=None):
++    """Forget a turn: its record becomes a tombstone, and the worker's memory of it goes (A2): the live worker that may
++    hold it is marked so no question is sent to it, and is restarted once idle when `principal` may restart a model (the
++    operation brain.turn.forget, approve and always asked, is A4's and passes it); brain_briefs.forgotten decides."""
+     value = get(kernel, owner, ident)
+     if value['state'] == 'FORGOTTEN':return value
+     stone = tombstone(value);raw = _canonical(stone)
+@@ -725,6 +787,11 @@ def forget(kernel, owner, ident):
+         db.execute('BEGIN IMMEDIATE')
+         db.execute('UPDATE brain_turns SET state=?, payload=?, digest=? WHERE id=? AND owner=?',
+                    ('FORGOTTEN', raw, hashlib.sha256(raw.encode('utf-8')).hexdigest(), ident, owner))
++    try:
++        from . import brain_briefs
++        brain_briefs.forgotten(kernel, value, principal)
++    except Exception:  # noqa: BLE001 - the tombstone stands; brain.status shows a worker that could not be marked
++        pass
+     return stone
+ 
+ 
