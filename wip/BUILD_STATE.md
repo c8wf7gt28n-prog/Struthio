@@ -273,6 +273,13 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 15:55 UTC: 0.8.7 merged since the 0.8.6 kit: C3 (1b45457), B4 (2542d7c), A4 (4bcabd3), B3 (117ef24), C6a
+  (262a1a9), B5 (7614cdc), the exam papers A5P (47b5805; 167 items, written blind to the checkers). **The papers found
+  that the runner cannot mark READ, GOAL and WORDS answers** (only outcomes): sent to the A5 builder, still running, to
+  add a marking adapter comparing each item's `known`. Running: A5 (exam, kit), B6 (NEXT and tripwire), C6b
+  (cross-references), B8 (BIND, total). Still to start: B7 (references, four steps), C6c (her phrasings), C6d (the
+  sitting), A6 (Check it in your Library). Then the 0.8.7 release: version, notes (untested; what the papers found;
+  the kit's first evening), kit cut and restored, screenshots, sent; then wait for the owner's model results.
 - 20 Nov 15:21 UTC: **0.8.6 released, not tested** (the owner's rule). All of 0.8.6 merged (S8 28caf03, W 8ba984e; W's
   union merge closed activity.py's list early again: repaired, and `work/merge_one.sh` now runs `work/fix_observers.py`).
   Release commit 87ca7e2 (version, notes with the four corrected promises), then d97127c (the notes' check words; Ask
