@@ -1282,8 +1282,8 @@
       "sha256": "2737b8806f988b188d7d921efabca5b8f021db7e7f2d070d525b22452ecafa67"
     },
     "docs/GRAPHITE_0.1_REGISTRY.json": {
-      "bytes": 297276,
-      "sha256": "2baec9833d5021af9073b2ccfc2be468c74519d923c46e876a4a9d967064dbb5"
+      "bytes": 297905,
+      "sha256": "c56da082b94eb80a81438daef69826dcccc4856538a0d3dab7b6edfae27cd3b2"
     },
     "docs/GRAPHITE_01.md": {
       "bytes": 12865,
@@ -2226,16 +2226,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1990059,
-      "sha256": "7089fd6134efca2c82308e651db4ae18d27da5e5a74f4d6d82908cf81bc88c66"
+      "bytes": 1992161,
+      "sha256": "175432e16c23315b3658533a85fed92fbac4de4c7c981633cc95c23d4b34d5f5"
     },
     "project/stacy_seed/current/index.sqlite": {
-      "bytes": 4550656,
-      "sha256": "496048a036235de438508ac09bffb7b891c4c103c119d0072bc5d2aff5e5864b"
+      "bytes": 4554752,
+      "sha256": "80adba16ea1af5f9b233ba48d2358a5abb1d195bf71ee7e3a5da557a5c01a3bd"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "5f6d403a928a583e96fb627fc065001c76638176dcf478fe51f7cfabb58d9893"
+      "sha256": "db5095bb242530dc838a3da5a976c8c32a8c37e1d340684a85222be47ffc76c8"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -4038,8 +4038,8 @@
       "sha256": "4aa7dc81d054e14e4c9ea1156645e3d89d6c2cee286017a69c20d5c9dfae2928"
     },
     "workbench/her_hand_qt.py": {
-      "bytes": 63955,
-      "sha256": "834be1fec67e77bdb6d6a69f286422c14f8bb7975c200a7c7217eee1e2e96b99"
+      "bytes": 70351,
+      "sha256": "814941886a339e1a1ee546ead5a78e35d1dbad82dd25d7390cb824b064f97488"
     },
     "workbench/hologram.py": {
       "bytes": 12467,
@@ -4718,8 +4718,8 @@
       "sha256": "8a353994d456693e056300d832d10522f0740d31074b75b36b0bd3997eaeed76"
     },
     "workbench/phrases.py": {
-      "bytes": 14220,
-      "sha256": "ab0f2eb74d4526dbd4711bd602000cd8a8602bb9962bc60e07fc538677d120bd"
+      "bytes": 32389,
+      "sha256": "8588f0680e269bce4c7174a0ee26a9c881e2714dff42550ee02359737858f930"
     },
     "workbench/pills.py": {
       "bytes": 12814,
@@ -5430,12 +5430,12 @@
       "sha256": "b99633601211b4335483dc8872150341828b2031fad40f4868e95c292f056586"
     },
     "workbench/understand.py": {
-      "bytes": 41272,
-      "sha256": "724b0e0d1f9f4746326da5bbf569981ad546411701757b1974a40de7bbe4d470"
+      "bytes": 51900,
+      "sha256": "36f4a615025848b27fed1f6afb37cf87737ee58b2cdeb2a68214933d918901da"
     },
     "workbench/understand_check.py": {
-      "bytes": 25769,
-      "sha256": "941fb35a01095339abad582095997c83cec04b3e994f76404174bbfbf1d41910"
+      "bytes": 26015,
+      "sha256": "b6edde91b59e919a06b7f24b94cd729d30e65643b77f5cdc5c1a6ef10b449a72"
     },
     "workbench/universal_view.py": {
       "bytes": 48107,

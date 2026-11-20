@@ -279,7 +279,10 @@ def check_step(step, i, ctx):
     # 5 · naming (only words that are yours, of a thing the verb fits)
     if out['state'] == OK:
         state, code, candidates, rule = naming(step, i)
-        if state == OK:out['rule'] = RULE_WORDS.get(rule, '') if rule in ('names', 'current', 'selected') else ''
+        if state == OK:
+            out['rule'] = RULE_WORDS.get(rule, '') if rule in ('names', 'current', 'selected') else ''
+            day = (getattr(i, 'agreed', None) or {}).get(reading.said_key(step.words)) if rule == 'names' else ''
+            if day:out['rule'] = '%s %s' % (RULE_WORDS['names'], day)          # 0.8.7 B5: 'your words, agreed 20 Nov'
         else:
             other = candidates[0].title if candidates else ''
             unsettle(code, candidates, other=other, others=' and '.join('“%s”' % c.title for c in candidates))

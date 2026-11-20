@@ -1,0 +1,780 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index 1620fc7..53b291d 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -541,9 +541,11 @@
+    "office.output.copy": "workbench/office_service.py#dispatch",
+    "office.save": "workbench/office_service.py#dispatch",
+    "pages.marks": "workbench/answer_check.py#dispatch",
++   "phrases.agree": "workbench/phrases.py#dispatch",
+    "phrases.forget": "workbench/phrases.py#dispatch",
+    "phrases.keep": "workbench/phrases.py#dispatch",
+    "phrases.list": "workbench/phrases.py#dispatch",
++   "phrases.not_that": "workbench/phrases.py#dispatch",
+    "phrases.strike": "workbench/phrases.py#dispatch",
+    "pills.accept": "workbench/pills.py#dispatch",
+    "pills.fetch": "workbench/pills.py#dispatch",
+@@ -1022,9 +1024,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 824,
++  "adapters": 826,
+   "job_tools": 113,
+-  "operations": 824,
++  "operations": 826,
+   "settings": 48
+  },
+  "formulas": {
+@@ -5809,6 +5811,16 @@
+    },
+    "scope": "read"
+   },
++  "phrases.agree": {
++   "arguments": "9f7df103427a691c25b4c6532692142c6e173a4a480fa0d18191c115c62bd857",
++   "properties": {
++    "model_key": "603c6e9671b08d8c",
++    "steps": "6e550521200b21e3",
++    "tally": "7cb541e84f226754",
++    "text": "d11c7080fc8c95d5"
++   },
++   "scope": "approve"
++  },
+   "phrases.forget": {
+    "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
+    "properties": {
+@@ -5831,6 +5843,14 @@
+    "properties": {},
+    "scope": "read"
+   },
++  "phrases.not_that": {
++   "arguments": "80f4cf0a02e53beb7ecd79e591afb9eaf82f205468c1ad72bedc6cdf38f94b64",
++   "properties": {
++    "model_key": "603c6e9671b08d8c",
++    "verbs": "9dc61af31cfeda0d"
++   },
++   "scope": "approve"
++  },
+   "phrases.strike": {
+    "arguments": "7692bd7a403eb8792fc6597f4e24c491dcd8e19d77d50a5b92b831ead7258cd1",
+    "properties": {
+@@ -8108,7 +8128,7 @@
+  },
+  "release": "Graphite 0.8.6",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "2e10135acc3a85a89def8df995602841e75f919abddeafb690933e581c630f35",
++ "schema_digest": "e8ce61f35a37f0aa9ba6d5f8d4648381688960763993e0f55d8e18f3418af23d",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/her_hand_qt.py b/workbench/her_hand_qt.py
+index b10361f..f02d67c 100644
+--- a/workbench/her_hand_qt.py
++++ b/workbench/her_hand_qt.py
+@@ -662,9 +662,16 @@ class HerHand(QObject):
+         except Exception:  # noqa: BLE001 - the desk's rows unreadable: the Field's titles alone
+             lex = reading.Lexicon.of(world=world)
+         _, state, _ = self.read()
+-        i = understand.inputs(text, lex, found=found, selected=state.sel or '', refused=tuple(self.not_that))
++        mine = understand.your_words(kernel, p, request)          # 0.8.7 B5: his agreed names and sayings, the dropped verbs
++        i = understand.inputs(text, lex, found=found, selected=state.sel or '', refused=tuple(self.not_that), names=mine['names'],
++                              dropped=mine['dropped'])
++        i.agreed = dict(mine['agreed'])
+         t = Turn(text, [], word);t.found = found;t.reading_inputs = i;t.model = {'asked': False, 'calls': 0, 'kind': 'READ'}
++        t.request = request;t.model_key = mine.get('model_key')    # 0.8.7 B5: one card per request; the key his tally counts under
+         self.turn = t;self.snapshot = None
++        said = understand.by_sayings(i, mine['sayings'])          # 0.8.7 B5: a saying of his: read with no model call
++        if said is not None:
++            t.model.update(saying=(said.get('saying') or {}).get('id', ''));return self._read_card(t, said)
+         if request.port is None or i.grammar is None:
+             return self._read_card(t, {**understand._empty(i), 'fallback': understand.without_model(i)})
+         holder = {}
+@@ -708,6 +715,11 @@ class HerHand(QObject):
+         t.understood = {k: got.get(k) for k in ('outcome', 'state', 'readings', 'question', 'refused', 'card')}
+         if got.get('talk'):self.say(got['talk']);t.state = 'idle';self.set_state('idle');return False
+         question = got.get('question')
++        if question:                                     # 0.8.7 B5: an UNSETTLED step asks through B4's one question card
++            try:one = understand_mod().as_one_question(got, t.text)
++            except Exception:  # noqa: BLE001 - a question that cannot be built: B3's buttons below
++                one = None
++            if one is not None:return self.ask_one(t.text, t.word, one, t=t)
+         if question:
+             card = self.say(question['words'])
+             for o in question['options']:
+@@ -725,9 +737,12 @@ class HerHand(QObject):
+                 # in the table run there, never a change); Not that puts the window back
+                 if card is not None:
+                     card.box.addWidget(sentence('{not}', {'not': ('Not that', lambda: (self.put_back(), self._read_not(t, got)))}))
++                    card.box.addWidget(self._words_buttons(t, got, remember=True))          # 0.8.7 B5: Remember (or Retire)
+                 return self._read_do(t, got, origin='HER') is not None
+             if card is not None:
+-                card.box.addWidget(sentence('{do} · {not}', {'do': ('Do', lambda: self._read_do(t, got)), 'not': ('Not that', lambda: self._read_not(t, got))}))
++                card.box.addWidget(sentence('{do} · {not}', {'do': ('Do', lambda: (self._read_do(t, got), self._agree(t, got))),  # 0.8.7 B5: Do agrees
++                                                             'not': ('Not that', lambda: self._read_not(t, got))}))
++                if got.get('saying'):card.box.addWidget(self._words_buttons(t, got))     # 0.8.7 B5: Retire
+         else:
+             fb = got.get('fallback') or {}
+             card = self._read_buttons(t, fb.get('lead') or '', fb.get('buttons') or ())
+@@ -754,8 +769,73 @@ class HerHand(QObject):
+         from . import reading
+         key = reading.said_key(t.text)
+         self.not_that += [(key, s['verb'], s['thing']) for s in got.get('steps') or () if s.get('state') == 'OK' and s.get('thing')]
+-        self.say('Not that: I will not read these words this way again.')
+-    # == end 0.8.7 B3 =========================================================================================================
++        if got.get('saying'):                       # 0.8.7 B5: a saying's reading: nothing counts against the model
++            self.say('Not that: I will not read these words this way again.');return
++        verbs = [s['verb'] for s in got.get('steps') or () if s.get('state') == 'OK']
++        try:                                        # 0.8.7 B5: no row; the verb's tally counts one correction
++            kernel, p = self._kernel()
++            done = kernel.dispatch('phrases.not_that', {'verbs': verbs, **({'model_key': t.model_key} if getattr(t, 'model_key', None) else {})}, p)
++            self.say(done['result']['words'] if done.get('ok') else 'Not that: I will not read these words this way again.')
++            for v in (done.get('result') or {}).get('dropped') or ():
++                if v in verbs:self.say(phrases.WORDS['dropped'].format(verb=v))
++        except Exception:  # noqa: BLE001 - the tally cannot be written: the session's Not that still holds
++            self.say('Not that: I will not read these words this way again.')
++
++    # -- 0.8.7 B5 · your words: Do, Remember or a click on her question agree; Retire takes a saying back ---------------------
++    def _agree(self, t, got, tally=True):
++        """His agreement (Do, Remember, his click on her question): phrases.agree makes one name row a step and one saying
++        row; she says 'Remembered: “pull up where … came from” means Trace.' A saying's own card counts nothing for the model."""
++        steps = got if isinstance(got, list) else understand_mod().agreed_steps(got.get('steps'))
++        if not steps:return None
++        tally = tally and not (isinstance(got, dict) and got.get('saying'))
++        try:
++            kernel, p = self._kernel()
++            args = {'text': t.text, 'steps': steps, 'tally': bool(tally)}
++            if getattr(t, 'model_key', None):args['model_key'] = t.model_key
++            done = kernel.dispatch('phrases.agree', args, p)
++        except Exception as exc:  # noqa: BLE001 - nothing remembered is better than a broken card
++            self.say('I did not remember it: %s' % str(exc)[:160]);return None
++        self.say(done['result']['words'] if done.get('ok') else 'I did not remember it: %s' % str((done.get('error') or {}).get('message'))[:160])
++        return done
++
++    def _retire(self, ident):
++        try:
++            kernel, p = self._kernel()
++            done = kernel.dispatch('phrases.strike', {'id': ident}, p)
++        except Exception as exc:  # noqa: BLE001
++            self.say('I did not retire it: %s' % str(exc)[:160]);return None
++        self.say(done['result']['words'] if done.get('ok') else 'I did not retire it: %s' % str((done.get('error') or {}).get('message'))[:160])
++        return done
++
++    def _words_buttons(self, t, got, remember=False):
++        from .shell2 import sentence
++        saying = (got.get('saying') or {}).get('id')
++        if saying:return sentence('{retire}', {'retire': ('Retire this saying', lambda: self._retire(saying))})
++        return sentence('{remember}', {'remember': ('Remember', lambda: self._agree(t, got))})
++
++    def _read_answered(self, t, q, c, placed):
++        """His answer to her one question about his words: the chosen reading runs beside the settled ones (his click:
++        his own; the model's placing: model_pick, never a change of hers). His click agrees: its rows are made, no tally."""
++        r = dict(c.reading);agree = r.pop('_agree', []);held = list(r.pop('_held', []));saying = r.pop('_saying', '');r.pop('_saying_words', None)
++        origin = 'HER' if placed.basis == 'model_pick' else 'OWNER'
++        if placed.words:self.say(placed.words)
++        nt = self._read_do(t, {'readings': held + [r]}, origin=origin)
++        if nt is not None:
++            nt.model = dict(t.model or {}, chosen=c.n, by=placed.by);nt.question = q;nt.request = getattr(t, 'request', None)
++        else:
++            t.state = 'finished';self.set_state('finished')
++        if origin == 'OWNER' and q.source == 'saying':
++            from .shell2 import sentence
++            others = [o.reading.get('_saying') for o in q.choices if o.n != c.n and o.reading.get('_saying')]
++            card = self.say(phrases.WORDS['conflict_after'].format(sayings=' and '.join('“%s”' % (o.reading.get('_saying_words') or o.words) for o in q.choices)))
++            if card is not None:
++                for ident in dict.fromkeys(others + ([saying] if saying else [])):
++                    words = next(('Retire “%s”' % (o.reading.get('_saying_words') or o.words) for o in q.choices if o.reading.get('_saying') == ident), 'Retire')
++                    card.box.addWidget(sentence('{go}', {'go': (words, lambda ident=ident: self._retire(ident))}))
++        elif origin == 'OWNER' and agree:
++            self._agree(t, agree, tally=False)
++        return nt
++    # == end 0.8.7 B3 and B5 ==================================================================================================
+ 
+     def ask_model(self, args):
+         """brain.ask through the Kernel, with the owner's principal (kept for the half-build's own check)."""
+@@ -964,6 +1044,7 @@ class HerHand(QObject):
+             left = Q.leave(q);t.model['left'] = left.as_record()
+             t.state = 'finished';t.closing = left.words;self.say(left.words);self.set_state('finished');return None
+         c = q.choice(placed.n)
++        if q.source in ('understand', 'saying'):return self._read_answered(t, q, c, placed)     # 0.8.7 B5: his words' question
+         if placed.words:self.say(placed.words)
+         if c.reading.get('revision_open'):          # a second question would be needed: never a second card
+             t.state = 'finished';self.say(Q.once_more('REVISION'));self.set_state('finished');return None
+@@ -1027,6 +1108,12 @@ class HerHand(QObject):
+             return False
+ 
+ 
++def understand_mod():
++    """0.8.7 B5: understand.py, imported when her hand first reads his words."""
++    from . import understand
++    return understand
++
++
+ def hand(host):
+     """host.her_hand, made the first time it is asked for."""
+     found = getattr(host, 'her_hand', None)
+diff --git a/workbench/phrases.py b/workbench/phrases.py
+index ca9c3a9..0474482 100644
+--- a/workbench/phrases.py
++++ b/workbench/phrases.py
+@@ -25,6 +25,28 @@ The rules, kept in the code:
+     ('THIS_REVISION'); he chooses which when he keeps it;
+   - a struck phrase is never used and never offered again; forget removes the row and leaves a tombstone (its date and a
+     digest, never its words).
++
++0.8.7 B5 (your words, widened to sayings with slots; design 2.3 and 3.6): a READ reading the owner AGREES to (his Do, his
++click on her question, or Remember) becomes rows here, in the same matrix, never a parallel store:
++
++    a name row     (shape phrase:name:<key>)    his words for a thing: “the bench numbers” is “Rail Demo bench readings”
++                                                 (fed to understand.inputs(names=...): rule 5's agreed name)
++    a saying row   (shape phrase:saying:<key>)  his request with each step's words made a slot: “pull up where … came
++                                                 from” means Trace. Next time the same saying, over the same thing or a new
++                                                 one, is read by the desk with no model call (understand.by_sayings)
++
++    phrases.agree(kernel, principal, text, steps, model_key=None)   his agreement: one name row a step, one saying row
++    phrases.not_that(kernel, principal, verbs, model_key=None)      his correction: no row; it counts against the verb
++    phrases.your_words(kernel, principal, model_key=None)          what READ is given: names, their dates, sayings, and
++                                                                    the verbs dropped from the model's table
++    phrases.fits(template, text)                                    where a saying's slots fall in a request (pure)
++    phrases.strike(...) retires a name or a saying too (on screen: Retire); phrases.forget leaves a tombstone, as before
++
++Rules: a reading he corrected or ignored makes no row; a saying never carries a change (a reading with a set step makes its
++name rows only, and a saying is read again through understand_check, where any change is a model_pick proposal that always
++asks); after five readings of a verb under one model key, more corrected than agreed drops that verb from the model's table
++until the model key changes (the tally lives in the Kernel's settings, not in the phrasebook: a correction makes no row);
++saying and name rows are phrase: rows, so the kit cutter (matrix.export) and the matrix's patterns leave them out.
+ """
+ from __future__ import annotations
+ 
+@@ -112,9 +134,12 @@ def listing(kernel, principal):
+     with kernel.db() as db:
+         rows = _rows(db, principal.identity)
+         tombs = M.rows(db, principal.identity, ' AND shape=?', (TOMBSTONE,), 5000)
++        words = _word_rows(db, principal.identity)                     # 0.8.7 B5: names and sayings
+     return {'schema': SCHEMA, 'phrases': [_view(r) for r in rows], 'tombstones': [{'id': t['id'], 'forgotten': t['created'],
+                                                                                    'digest': (t['payload'] or {}).get('digest')} for t in tombs],
+-            'kind': KIND, 'model_calls': 0}
++            'names': [_word_view(r) for r in words if r['payload'].get('kind') == 'name'],
++            'sayings': [_word_view(r) for r in words if r['payload'].get('kind') == 'saying'],
++            'dropped': list(dropped(kernel, principal)), 'kind': KIND, 'model_calls': 0}
+ 
+ 
+ def offer(kernel, principal, text, chosen, found=None):
+@@ -169,6 +194,9 @@ def keep(kernel, principal, text, chosen, follows='CURRENT', shown=''):
+ def strike(kernel, principal, ident):
+     with kernel.db() as db:
+         r = next((r for r in _rows(db, principal.identity) if r['id'] == ident), None)
++        if r is None:
++            w = next((w for w in _word_rows(db, principal.identity) if w['id'] == ident), None)      # 0.8.7 B5: Retire
++            if w is not None:return _retire(db, principal, w)
+         if r is None:raise ValueError('PHRASE_NOT_FOUND')
+         p = dict(r['phrase']);p['state'] = 'STRUCK'
+         db.execute('UPDATE instruction_matrix SET payload=?,updated=?,mark=? WHERE id=? AND owner=?',
+@@ -240,6 +268,261 @@ def digest(text):
+     return hashlib.sha256(str(text).encode('utf-8')).hexdigest()
+ 
+ 
++# == 0.8.7 B5 · your words: agreed READ readings become name and saying rows of this phrasebook ================================
++NAME_SHAPE = SHAPE + 'name:'
++SAYING_SHAPE = SHAPE + 'saying:'
++WORD_KINDS = ('name', 'saying')
++TALLY_KEY = 'phrases.read_tally.'     # the Kernel's settings: {model_key, verbs: {verb: {agreed, corrected}}}; no phrasebook row
++TALLY_MOST = 5                        # readings of a verb (agreed + corrected) before more corrected than agreed drops it
++SLOT_MOST = 8                         # words one slot of a saying may take
++SLOT = '…'
++MONTHS = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
++MEANS = {'show': 'Show', 'card': 'Open its card', 'trace': 'Trace', 'compare': 'Compare', 'doubt': 'Doubt', 'what if': 'What if',
++         'set': 'Set', 'count': 'Count', 'value': 'Read its value', 'within': 'Check it holds', 'tidy': 'Tidy the desk'}
++WORDS.update({
++    'remembered': 'Remembered: “{shown}” means {means}.',
++    'remembered_name': 'Remembered: “{words}” means “{title}”.',
++    'agreed_on': 'your words, agreed {day}',
++    'retired': 'Retired: I will not read “{shown}” that way again.',
++    'not_that': 'Not that: I will not read these words this way again, and I remember nothing of it.',
++    'dropped': 'My model read “{verb}” wrongly more often than rightly for you, so I no longer offer it that verb.',
++    'conflict': 'Two of your sayings read this differently, so which you meant is yours to say:',
++    'conflict_after': 'Your sayings {sayings} both fit these words. Retire the one you did not mean, or I will ask again.',
++})
++
++
++def _verbs():
++    from . import understand
++    return understand.VERBS
++
++
++def day_words(iso):
++    """'20 Nov' for '2026-11-20' (the card's 'your words, agreed 20 Nov')."""
++    try:
++        y, m, d = (int(x) for x in str(iso)[:10].split('-'))
++        return '%d %s' % (d, MONTHS[m - 1])
++    except (ValueError, IndexError):
++        return ''
++
++
++def _word_rows(db, owner):
++    """The name and saying rows (any state), newest change first."""
++    found = M.rows(db, owner, " AND (shape LIKE ? OR shape LIKE ?)", (NAME_SHAPE + '%', SAYING_SHAPE + '%'), 5000)
++    out = [r for r in found if (r['payload'] or {}).get('kind') in WORD_KINDS]
++    return sorted(out, key=lambda r: -(r['updated'] or 0))
++
++
++def _word_view(r):
++    p = r['payload']
++    view = {'id': r['id'], 'kind': p.get('kind'), 'state': p.get('state'), 'agreed': p.get('agreed'), 'changed': r['updated']}
++    if p.get('kind') == 'name':view.update(words=p.get('words'), thing=p.get('thing'), title=p.get('title'))
++    else:view.update(words=p.get('shown'), means=p.get('means'), steps=p.get('steps'))
++    return view
++
++
++def _template(text, steps):
++    """A saying from an agreed reading: (items, plan, shown), or None when it cannot be one. `items` are the request's words
++    in order, ['lit', stem] for his own fixed words and ['slot', j] where a step's words (or a value) stood; `plan` is each
++    step's verb with the slot its words fill (a back-reference step keeps its words as said). At least one fixed word that
++    carries meaning is needed: a saying of slots alone would fit every request."""
++    plan, spans = [], []
++    for s in steps:
++        row = {'verb': s['verb']}
++        if s['verb'] == 'tidy':plan.append(row);continue
++        if str(s.get('handle') or '').startswith('S'):
++            row.update(handle=s['handle'], words=s['words']);plan.append(row);continue
++        row['slot'] = len(spans);spans.append(tuple(s['at']))
++        if s.get('column'):row.update(column=s['column'], column_label=s.get('column_label') or '')
++        if s.get('value') and s.get('value_at'):row['value_slot'] = len(spans);spans.append(tuple(s['value_at']))
++        plan.append(row)
++    if any(a < d and c < b for n, (a, b) in enumerate(spans) for (c, d) in spans[n + 1:]):return None
++    items, seen, meaning = [], set(), False
++    for t in reading.tokens(text):
++        inside = next((j for j, (a, b) in enumerate(spans) if a <= t.at[0] and t.at[1] <= b), None)
++        if inside is None:
++            if any(a < t.at[1] and t.at[0] < b for a, b in spans):return None
++            items.append(['lit', t.stem]);meaning = meaning or t.low not in reading.STOP
++        elif inside not in seen:
++            seen.add(inside);items.append(['slot', inside])
++    if not meaning or len(seen) != len(spans):return None
++    shown, pos = [], 0
++    for a, b in sorted(spans):
++        shown.append(text[pos:a]);shown.append(SLOT);pos = b
++    shown.append(text[pos:])
++    return items, plan, reading.plain(''.join(shown))
++
++
++def fits(template, text, most=4):
++    """Where a saying's slots fall in `text`: [{slot: (start, end)}], every way it fits the whole request (at most `most`).
++    His fixed words must stand in order, by their stems; each slot takes one to SLOT_MOST words, one of which carries
++    meaning. Pure."""
++    toks = reading.tokens(reading.plain(text)[:reading.TEXT]);out = []
++
++    def go(k, p, slots):
++        if len(out) >= most:return
++        if k == len(template):
++            if p == len(toks):out.append({j: (toks[a].at[0], toks[b - 1].at[1]) for j, (a, b) in slots.items()})
++            return
++        kind, what = template[k]
++        if kind == 'lit':
++            if p < len(toks) and toks[p].stem == what:go(k + 1, p + 1, slots)
++            return
++        for q in range(p + 1, min(len(toks), p + SLOT_MOST) + 1):
++            if not any(t.low not in reading.STOP for t in toks[p:q]):continue
++            slots[what] = (p, q);go(k + 1, q, slots);del slots[what]
++    go(0, 0, {})
++    return out
++
++
++def _upsert(db, owner, shape, key, intent, payload, now):
++    old = db.execute('SELECT id FROM instruction_matrix WHERE owner=? AND shape=?', (owner, shape)).fetchone()
++    body = json.dumps(payload, ensure_ascii=False)
++    if old is not None:
++        db.execute('UPDATE instruction_matrix SET updated=?,intent=?,program=?,payload=?,mark=? WHERE id=? AND owner=?',
++                   (now, intent[:600], key, body, 'GOOD', old[0], owner))
++        return old[0]
++    ident = uuid.uuid4().hex
++    db.execute('INSERT INTO instruction_matrix VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
++               (ident, owner, now, now, intent[:600], key, shape, OPERATION, 'SUCCESS', 'agreed by the owner', 'GOOD', None, body))
++    return ident
++
++
++def _agreed_steps(text, steps):
++    """The steps of an agreed reading, checked again here: a verb of READ's table, his words where the reading says they
++    stood in his request, a thing. Raises on anything else."""
++    from . import understand_check
++    verbs = _verbs();out = []
++    for s in steps or ():
++        if not isinstance(s, dict) or s.get('verb') not in verbs:raise ValueError('WORDS_VERB: not a verb of the reading table')
++        if s['verb'] == 'tidy':out.append({'verb': 'tidy'});continue
++        words = str(s.get('words') or '');at = s.get('at')
++        if not words.strip() or not isinstance(at, (list, tuple)) or len(at) != 2:raise ValueError('WORDS_SHAPE: a step needs its words and where they stood')
++        if tuple(at) not in understand_check.places(text, words):raise ValueError('WORDS_NOT_SAID: “%s” is not where the reading says' % words[:60])
++        if s.get('value'):
++            vat = s.get('value_at')
++            if not isinstance(vat, (list, tuple)) or tuple(vat) not in understand_check.places(text, s['value']):raise ValueError('WORDS_NOT_SAID: the value')
++        if not str(s.get('thing') or ''):raise ValueError('WORDS_THING: a step names no thing')
++        out.append({k: s.get(k) for k in ('verb', 'handle', 'thing', 'title', 'words', 'at', 'column', 'column_label', 'value', 'value_at')})
++    if not out:raise ValueError('WORDS_NOTHING: no step to remember')
++    return out
++
++
++def agree(kernel, principal, text, steps, model_key=None, today=None, tally=True):
++    """His agreement to a reading (Do, a click on her question, Remember): one name row a step (his words for the thing)
++    and one saying row (his request with each step's words a slot), upserted by key; and one 'agreed' a verb on the tally.
++    A reading with a change in it makes its name rows only: a saying never carries a change."""
++    from datetime import date
++    text = reading.plain(text)[:reading.TEXT]
++    steps = _agreed_steps(text, steps)
++    day = (today or date.today()).isoformat() if not isinstance(today, str) else today
++    now = time.time();owner = principal.identity;names = [];saying = None
++    with kernel.db() as db:
++        M.ensure(db)
++        for s in steps:
++            if s['verb'] == 'tidy' or str(s.get('handle') or '').startswith('S'):continue
++            key = said_key(s['words'])
++            if not key:continue
++            payload = {'kind': 'name', 'schema': SCHEMA, 'words': s['words'], 'thing': s['thing'], 'title': s.get('title') or '',
++                       'state': 'KEPT', 'agreed': day}
++            names.append(_upsert(db, owner, NAME_SHAPE + key[:200], key, s['words'], payload, now))
++        made = None if any(s['verb'] == 'set' for s in steps) else _template(text, steps)
++        if made is not None:
++            items, plan, shown = made
++            key = ' '.join(SLOT if k == 'slot' else w for k, w in items)
++            means = ', then '.join(MEANS.get(s['verb'], s['verb']) for s in steps)
++            payload = {'kind': 'saying', 'schema': SCHEMA, 'template': items, 'steps': plan, 'shown': shown, 'means': means,
++                       'state': 'KEPT', 'agreed': day}
++            saying = _upsert(db, owner, SAYING_SHAPE + hashlib.sha256(key.encode('utf-8')).hexdigest()[:32], key, text, payload, now)
++            words = WORDS['remembered'].format(shown=shown, means=means)
++        else:
++            first = next((s for s in steps if s.get('words') and not str(s.get('handle') or '').startswith('S')), steps[0])
++            words = WORDS['remembered_name'].format(words=first.get('words') or '', title=first.get('title') or '')
++    if tally:_count(kernel, principal, [s['verb'] for s in steps], 'agreed', model_key)      # a click on her question is not counted
++    return {'schema': SCHEMA, 'state': 'AGREED', 'names': names, 'saying': saying, 'words': words, 'model_calls': 0}
++
++
++def not_that(kernel, principal, verbs, model_key=None):
++    """His correction of a model's reading: no row anywhere in the phrasebook; one 'corrected' a verb on the tally."""
++    known = _verbs()
++    verbs = [v for v in verbs or () if v in known]
++    _count(kernel, principal, verbs, 'corrected', model_key)
++    return {'schema': SCHEMA, 'state': 'NOT_THAT', 'rows': 0, 'words': WORDS['not_that'], 'dropped': list(dropped(kernel, principal, model_key))}
++
++
++def _retire(db, principal, w):
++    p = dict(w['payload']);p['state'] = 'STRUCK'
++    db.execute('UPDATE instruction_matrix SET payload=?,updated=?,mark=? WHERE id=? AND owner=?',
++               (json.dumps(p, ensure_ascii=False), time.time(), 'BAD', w['id'], principal.identity))
++    return {'schema': SCHEMA, 'state': 'STRUCK', 'id': w['id'], 'kind': p.get('kind'),
++            'words': WORDS['retired'].format(shown=p.get('shown') or p.get('words') or '')}
++
++
++def _model_key(kernel):
++    try:
++        from .agent_loop import model_key
++        return model_key(kernel)
++    except Exception:  # noqa: BLE001 - no model known: nothing to count against
++        return None
++
++
++def _tally_key(principal):
++    return TALLY_KEY + hashlib.sha256(str(principal.identity).encode('utf-8')).hexdigest()[:16]
++
++
++def _tally(db, principal):
++    row = db.execute('SELECT value FROM settings WHERE key=?', (_tally_key(principal),)).fetchone()
++    held = json.loads(row[0]) if row else {}
++    return held if isinstance(held, dict) else {}
++
++
++def _count(kernel, principal, verbs, which, model_key=None):
++    """One reading of each verb, agreed or corrected, under the model key (a new key starts the tally again)."""
++    key = model_key if model_key is not None else _model_key(kernel)
++    if not key or not verbs:return None
++    try:
++        with kernel.db() as db:
++            held = _tally(db, principal)
++            if held.get('model_key') != key:held = {'model_key': key, 'verbs': {}}
++            for v in dict.fromkeys(verbs):
++                c = held['verbs'].setdefault(v, {'agreed': 0, 'corrected': 0});c[which] += 1
++            db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (_tally_key(principal), json.dumps(held, sort_keys=True)))
++    except Exception:  # noqa: BLE001 - no settings table: nothing is counted, nothing is dropped
++        return None
++    return held
++
++
++def dropped(kernel, principal, model_key=None):
++    """The verbs taken out of the model's table for this owner and this model key: after TALLY_MOST readings of a verb,
++    more corrected than agreed. A new model key gives every verb back."""
++    key = model_key if model_key is not None else _model_key(kernel)
++    if not key:return ()
++    try:
++        with kernel.db() as db:held = _tally(db, principal)
++    except Exception:  # noqa: BLE001 - no settings table: nothing dropped
++        return ()
++    if held.get('model_key') != key:return ()
++    return tuple(sorted(v for v, c in (held.get('verbs') or {}).items()
++                        if int(c.get('agreed', 0)) + int(c.get('corrected', 0)) >= TALLY_MOST and int(c.get('corrected', 0)) > int(c.get('agreed', 0))))
++
++
++def your_words(kernel, principal, model_key=None):
++    """What READ is given from the phrasebook: {'names': {key: thing id}, 'agreed': {key: '20 Nov'}, 'sayings': [...] newest
++    first, 'dropped': verbs}. Retired rows are not in force."""
++    with kernel.db() as db:
++        rows = _word_rows(db, principal.identity)
++    names, agreed, sayings = {}, {}, []
++    for r in rows:
++        p = r['payload']
++        if p.get('state') != 'KEPT':continue
++        if p['kind'] == 'name' and r['program'] not in names:
++            names[r['program']] = p.get('thing');agreed[r['program']] = day_words(p.get('agreed'))
++        elif p['kind'] == 'saying' and p.get('template') and p.get('steps'):
++            sayings.append({'id': r['id'], 'template': p['template'], 'steps': p['steps'], 'shown': p.get('shown') or '',
++                            'means': p.get('means') or '', 'agreed': day_words(p.get('agreed'))})
++    return {'names': names, 'agreed': agreed, 'sayings': sayings, 'dropped': dropped(kernel, principal, model_key)}
++# == end 0.8.7 B5 ==============================================================================================================
++
++
+ ID = {'type': 'string', 'pattern': '^[0-9a-f]{32}$', 'maxLength': 32}
+ _READING = {'type': 'object'}
+ FIELDS = {
+@@ -250,11 +533,20 @@ FIELDS = {
+                       'follows': {'type': 'string', 'enum': list(FOLLOWS)}, 'shown': {'type': 'string', 'maxLength': 200}}, ['text', 'chosen']),
+     'phrases.strike': ({'id': ID}, ['id']),
+     'phrases.forget': ({'id': ID}, ['id']),
++    # 0.8.7 B5: his agreement to a READ reading (name and saying rows), and his correction (no row: the verb's tally only)
++    'phrases.agree': ({'text': {'type': 'string', 'minLength': 1, 'maxLength': 600},
++                       'steps': {'type': 'array', 'minItems': 1, 'maxItems': 4, 'items': {'type': 'object'}},
++                       'model_key': {'type': 'string', 'maxLength': 200}, 'tally': {'type': 'boolean'}}, ['text', 'steps']),
++    'phrases.not_that': ({'verbs': {'type': 'array', 'maxItems': 4, 'items': {'type': 'string', 'maxLength': 16}},
++                          'model_key': {'type': 'string', 'maxLength': 200}}, ['verbs']),
+ }
+-SCOPES = {'phrases.list': 'read', 'phrases.keep': 'approve', 'phrases.strike': 'approve', 'phrases.forget': 'approve'}
++SCOPES = {'phrases.list': 'read', 'phrases.keep': 'approve', 'phrases.strike': 'approve', 'phrases.forget': 'approve',
++          'phrases.agree': 'approve', 'phrases.not_that': 'approve'}       # 0.8.7 B5: agree and not_that are his presses only
+ 
+ 
+ def dispatch(kernel, op, args, principal):
++    if op == 'phrases.agree':return agree(kernel, principal, args['text'], args['steps'], args.get('model_key') or None, tally=args.get('tally', True) is not False)   # 0.8.7 B5
++    if op == 'phrases.not_that':return not_that(kernel, principal, args['verbs'], args.get('model_key') or None)         # 0.8.7 B5
+     if op == 'phrases.list':return listing(kernel, principal)
+     if op == 'phrases.keep':return keep(kernel, principal, args['text'], args['chosen'], args.get('follows', 'CURRENT'), args.get('shown', ''))
+     if op == 'phrases.strike':return strike(kernel, principal, args['id'])
+diff --git a/workbench/understand.py b/workbench/understand.py
+index c312678..e0ca2bc 100644
+--- a/workbench/understand.py
++++ b/workbench/understand.py
+@@ -267,6 +267,7 @@ class Inputs:
+     words: tuple = ()                  # your words the grammar admits (outside quotes, inside the target)
+     fresh: object = None               # callable() -> {thing id: version} as the desk stands now, or None
+     now: str = ''                      # the now line (what is selected)
++    agreed: dict = field(default_factory=dict)     # 0.8.7 B5: {said key of words: '20 Nov'}, the day each agreed name was agreed
+ 
+     def thing(self, handle):
+         return next((t for t in self.things if t.handle == handle), None)
+@@ -593,6 +594,7 @@ def result(i, answer):
+     if value.get('kind') == 'app':out['fallback'] = without_model(i, WORDS['app']);return out
+     out['readings'] = value.get('readings') or []
+     out['question'] = value.get('question')
++    out['held'] = value.get('held') or []           # 0.8.7 B5: the settled steps beside an unsettled one
+     if answer.by_model and out['readings'] and not out['question']:out['card'] = card(value, i)
+     if not out['readings'] and not out['question']:
+         why = ' '.join(r['words'] for r in out['refused'][:2]) or 'it did not fit your words.'
+@@ -682,7 +684,8 @@ def merge(found, understood):
+     out = dict(found)
+     out['readings'] = [{**r, 'origin': r.get('origin') or 'DICTIONARY'} for r in found.get('readings') or ()]
+     out['understood_by_model'] = {k: understood.get(k) for k in ('schema', 'asked', 'model_calls', 'outcome', 'why', 'state', 'kind',
+-                                                                  'readings', 'question', 'refused', 'card', 'fallback', 'turn', 'late', 'talk')
++                                                                  'readings', 'question', 'refused', 'card', 'fallback', 'turn', 'late', 'talk',
++                                                                  'held', 'saying')      # 0.8.7 B5
+                                   if k in understood}
+     return out
+ 
+@@ -693,5 +696,177 @@ def request(kernel, principal, found, lex, today=None, selected=''):
+     if not needed(found):return None
+     req = turns.request_for(kernel, principal)
+     if not req.switch_on('understanding'):return None
+-    i = inputs(found['text'], lex, found=found, selected=selected)
++    mine = your_words(kernel, principal, req)                 # 0.8.7 B5: agreed names, sayings, dropped verbs
++    i = inputs(found['text'], lex, found=found, selected=selected, names=mine['names'], dropped=mine['dropped'])
++    i.agreed = dict(mine['agreed'])
++    said = by_sayings(i, mine['sayings'])                     # 0.8.7 B5: a saying of his reads it with no model call
++    if said is not None:return said
+     return ask(i, req)
++
++
++# == 0.8.7 B5 · your words: sayings read with no model, and an unsettled step as her one question ===========================
++# A saying is a request the owner agreed to, with each step's words a slot (phrases.py: a saying row of the phrasebook). When
++# one fits his words, its steps are rebuilt over the desk (each slot's words name a thing by rule 5, his agreed names first)
++# and put through the very same checker (understand_check.check): no model is asked, and the card says 'your words, agreed
++# 20 Nov'. A reading from a saying carries basis model_pick like the model's, so any change in it is a proposal that asks at
++# every setting of her hand: a saying never authorises a change. Two sayings that read the words differently both stand
++# down, and she asks which. A saying whose slot names nothing on the desk stands down, and READ may read the words.
++YOUR_WORDS = 'YOUR_WORDS'
++WORDS_B5 = {'mark': 'From your words, agreed {day} · model calls: 0'}
++
++
++def your_words(kernel, principal, request=None):
++    """phrases.your_words for this owner and model key; nothing when the phrasebook cannot be read."""
++    from . import phrases
++    key = None
++    try:
++        port = getattr(request, 'port', None)
++        key = port.key() if port is not None else None
++    except Exception:  # noqa: BLE001 - no key: nothing dropped
++        key = None
++    try:
++        return {**phrases.your_words(kernel, principal, key), 'model_key': key}
++    except Exception:  # noqa: BLE001 - an unreadable phrasebook is an empty one
++        return {'names': {}, 'agreed': {}, 'sayings': [], 'dropped': (), 'model_key': key}
++
++
++def _thing_for(verb, words, i):
++    """The thing a slot's words name, by rule 5 (his agreed names first); a tie gives its first candidate (the checker then
++    makes it her question); None when they name nothing, or more than one thing outright."""
++    from . import understand_check as C
++    applies = VERBS[verb]['applies']
++    fit = [t for t in i.things if not applies or t.kind in applies]
++    if not fit:return None
++    ok = [t for t in fit if C.naming(Step(1, verb, t.handle, t, words), i)[0] == C.OK]
++    if len(ok) == 1:return ok[0]
++    if ok:return None
++    _, why, cands, _ = C.naming(Step(1, verb, fit[0].handle, fit[0], words), i)
++    cands = [c for c in cands if c in fit]
++    return cands[0] if why in ('TIE', 'NAMES_ANOTHER') and cands else None
++
++
++def _saying_steps(saying, slots, i):
++    steps = []
++    for row in saying.get('steps') or ():
++        verb = row.get('verb');n = len(steps) + 1
++        if verb not in VERBS:return None
++        if verb == 'tidy':steps.append(Step(n, 'tidy'));continue
++        handle = str(row.get('handle') or '')
++        if handle:
++            k = int(handle[1:]) if handle[1:].isdigit() else 0
++            if not 1 <= k < n or steps[k - 1].thing is None:return None
++            thing, words = steps[k - 1].thing, str(row.get('words') or '')
++        else:
++            span = slots.get(row.get('slot'))
++            if span is None:return None
++            words = i.text[span[0]:span[1]]
++            thing = _thing_for(verb, words, i)
++            if thing is None:return None
++            handle = thing.handle
++        col, value = None, ''
++        if row.get('column'):
++            col = thing.column(row['column']) or next((c for c in thing.columns if c.label == row.get('column_label')), None)
++            if col is None:return None
++        if row.get('value_slot') is not None:
++            vspan = slots.get(row['value_slot'])
++            if vspan is None:return None
++            value = i.text[vspan[0]:vspan[1]]
++        steps.append(Step(n, verb, handle, thing, words, col, value))
++    return steps or None
++
++
++def _dated(rule, day):
++    from . import phrases
++    mine = phrases.WORDS['agreed_on'].format(day=day) if day else 'your words, agreed'
++    return mine if not rule or rule.startswith('your words') else '%s; %s' % (mine, rule)
++
++
++def _plan(found):
++    return tuple((s.verb, s.thing.id if s.thing is not None else '', s.column.name if s.column is not None else '', s.value) for s in found.steps)
++
++
++def by_sayings(i, sayings):
++    """His sayings over this request: the checked reading of the one that fits (newest first), with model_calls 0 and the
++    card 'your words, agreed ...'; her question when two read it differently; None when none fits (READ may read it)."""
++    from . import understand_check as C, phrases
++    plans = []
++    for s in sayings or ():
++        for slots in phrases.fits(s['template'], i.text):
++            steps = _saying_steps(s, {int(k): v for k, v in slots.items()}, i)
++            if not steps:continue
++            found = Reading('desk', tuple(steps), '');found = replace(found, line=line_of(found))
++            verdict = C.check(found, i)
++            value = verdict.value if isinstance(verdict.value, dict) else {}
++            if not value.get('readings') and not value.get('question'):continue
++            if any(_plan(found) == _plan(f) for _, f, _ in plans):continue
++            plans.append((s, found, verdict))
++    if not plans:return None
++    out = _empty(i)
++    out.update(outcome=YOUR_WORDS, why='', asked=False, model_calls=0, kind='desk')
++    if len(plans) > 1:                                    # two sayings read it differently: both stand down, she asks
++        options = []
++        for s, found, verdict in plans:
++            value = verdict.value
++            ok = [st for st in value['steps'] if st['state'] == C.OK]
++            rs = value.get('readings') or []
++            if not rs or len(ok) != len(value['steps']):continue
++            options.append({'n': len(options) + 1, 'words': '; '.join(says(st) for st in ok), 'thing': ok[0].get('thing', ''),
++                            'reading': _one_reading(rs), 'steps': ok, 'saying': s['id'], 'saying_words': s['shown']})
++        if not options:return None
++        out.update(state='UNSETTLED', question={'step': 1, 'why': ['SAYINGS'], 'said': phrases.WORDS['conflict'], 'source': 'sayings',
++                                                'words': '%s %s?' % (phrases.WORDS['conflict'], ' or '.join(o['words'] for o in options)),
++                                                'options': options, 'sayings': [{'id': s['id'], 'words': s['shown']} for s, _, _ in plans]})
++        return out
++    s, found, verdict = plans[0];value = verdict.value
++    for st in value['steps']:
++        if st['state'] == C.OK:st['rule'] = _dated(st.get('rule'), s['agreed'])
++    readings = [{**r, 'origin': YOUR_WORDS} for r in value.get('readings') or ()]
++    out.update(state=verdict.state, steps=value['steps'], refused=value.get('refused') or [], readings=readings,
++               question=value.get('question'), held=value.get('held') or [], saying={'id': s['id'], 'shown': s['shown'], 'means': s['means'], 'agreed': s['agreed']})
++    if readings and not out['question']:
++        c = card(value, i);c.update(mark=WORDS_B5['mark'].format(day=s['agreed']), model_calls=0, saying=s['shown'])
++        out['card'] = c
++    return out
++
++
++def _one_reading(readings):
++    """Several readings as one choice: their desk goals in order when every one is a desk move, else the first."""
++    if len(readings) == 1:return dict(readings[0])
++    if all(r.get('frame') == 'DESK' for r in readings):
++        return {'frame': 'DESK', 'route': 'DESK', 'goals': [g for r in readings for g in r.get('goals') or ()], 'origin': readings[0].get('origin')}
++    return dict(readings[0])
++
++
++def agreed_steps(steps):
++    """The OK steps of a checked reading as phrases.agree takes them (his words, where they stood, the thing)."""
++    keys = ('verb', 'handle', 'thing', 'title', 'words', 'at', 'column', 'column_label', 'value', 'value_at')
++    return [{k: s.get(k) for k in keys if s.get(k) not in (None, '')} for s in steps or () if s.get('state') == 'OK']
++
++
++def as_one_question(got, text):
++    """B3's question of an UNSETTLED step (or two sayings at odds) as B4's one question (one_question.of_choices, source
++    'understand'), each choice's reading carrying what agreeing to it would remember ('_agree': the steps) and the readings
++    already settled beside it ('_held'). Which revision is an authority: such a question is never put to a model."""
++    from . import one_question as Q
++    question = got.get('question') or {}
++    steps = got.get('steps') or [];held = [r for r in got.get('held') or ()]
++    asked = next((s for s in steps if s.get('n') == question.get('step') and s.get('state') == 'UNSETTLED'), None)
++    settled = [s for s in steps if s.get('state') == 'OK']
++    rows = []
++    for o in question.get('options') or ():
++        r = dict(o.get('reading') or {})
++        if o.get('steps'):agree = agreed_steps(o['steps'])
++        elif asked is not None and o.get('thing'):
++            agree = agreed_steps(settled + [{**asked, 'state': 'OK', 'thing': o['thing'], 'title': str(o['words']).strip('“”')}])
++        else:agree = []
++        r['_agree'] = agree;r['_held'] = held;r['_saying'] = o.get('saying') or '';r['_saying_words'] = o.get('saying_words') or ''
++        acts = 'change' if r.get('verb') == 'set' else 'navigates'   # Leave it takes none of them: which he meant stays his
++        rows.append({'words': o['words'], 'value': r, 'acts': acts, 'title': str(o['words']).strip('“”')})
++    titles = [row['title'] for row in rows]
++    marks = [reading._mark(t) for t in titles]
++    revision = len(rows) > 1 and all(m[0] for m in marks) and len({m[2].casefold() for m in marks}) == 1
++    from .mind_types import AUTHORITY, MEANING
++    return Q.of_choices(question.get('words') or Q.WORDS['which'], rows, 'REVISION' if revision else 'UNSETTLED',
++                        AUTHORITY if revision else MEANING, request=text, about=('words:%s' % (asked or {}).get('words', ''),),
++                        source='saying' if question.get('source') == 'sayings' else 'understand')
++# == end 0.8.7 B5 ==========================================================================================================
+diff --git a/workbench/understand_check.py b/workbench/understand_check.py
+index 19dcc97..492c71d 100644
+--- a/workbench/understand_check.py
++++ b/workbench/understand_check.py
+@@ -279,7 +279,10 @@ def check_step(step, i, ctx):
+     # 5 · naming (only words that are yours, of a thing the verb fits)
+     if out['state'] == OK:
+         state, code, candidates, rule = naming(step, i)
+-        if state == OK:out['rule'] = RULE_WORDS.get(rule, '') if rule in ('names', 'current', 'selected') else ''
++        if state == OK:
++            out['rule'] = RULE_WORDS.get(rule, '') if rule in ('names', 'current', 'selected') else ''
++            day = (getattr(i, 'agreed', None) or {}).get(reading.said_key(step.words)) if rule == 'names' else ''
++            if day:out['rule'] = '%s %s' % (RULE_WORDS['names'], day)          # 0.8.7 B5: 'your words, agreed 20 Nov'
+         else:
+             other = candidates[0].title if candidates else ''
+             unsettle(code, candidates, other=other, others=' and '.join('“%s”' % c.title for c in candidates))

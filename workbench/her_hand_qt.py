@@ -662,9 +662,16 @@ class HerHand(QObject):
         except Exception:  # noqa: BLE001 - the desk's rows unreadable: the Field's titles alone
             lex = reading.Lexicon.of(world=world)
         _, state, _ = self.read()
-        i = understand.inputs(text, lex, found=found, selected=state.sel or '', refused=tuple(self.not_that))
+        mine = understand.your_words(kernel, p, request)          # 0.8.7 B5: his agreed names and sayings, the dropped verbs
+        i = understand.inputs(text, lex, found=found, selected=state.sel or '', refused=tuple(self.not_that), names=mine['names'],
+                              dropped=mine['dropped'])
+        i.agreed = dict(mine['agreed'])
         t = Turn(text, [], word);t.found = found;t.reading_inputs = i;t.model = {'asked': False, 'calls': 0, 'kind': 'READ'}
+        t.request = request;t.model_key = mine.get('model_key')    # 0.8.7 B5: one card per request; the key his tally counts under
         self.turn = t;self.snapshot = None
+        said = understand.by_sayings(i, mine['sayings'])          # 0.8.7 B5: a saying of his: read with no model call
+        if said is not None:
+            t.model.update(saying=(said.get('saying') or {}).get('id', ''));return self._read_card(t, said)
         if request.port is None or i.grammar is None:
             return self._read_card(t, {**understand._empty(i), 'fallback': understand.without_model(i)})
         holder = {}
@@ -708,6 +715,11 @@ class HerHand(QObject):
         t.understood = {k: got.get(k) for k in ('outcome', 'state', 'readings', 'question', 'refused', 'card')}
         if got.get('talk'):self.say(got['talk']);t.state = 'idle';self.set_state('idle');return False
         question = got.get('question')
+        if question:                                     # 0.8.7 B5: an UNSETTLED step asks through B4's one question card
+            try:one = understand_mod().as_one_question(got, t.text)
+            except Exception:  # noqa: BLE001 - a question that cannot be built: B3's buttons below
+                one = None
+            if one is not None:return self.ask_one(t.text, t.word, one, t=t)
         if question:
             card = self.say(question['words'])
             for o in question['options']:
@@ -725,9 +737,12 @@ class HerHand(QObject):
                 # in the table run there, never a change); Not that puts the window back
                 if card is not None:
                     card.box.addWidget(sentence('{not}', {'not': ('Not that', lambda: (self.put_back(), self._read_not(t, got)))}))
+                    card.box.addWidget(self._words_buttons(t, got, remember=True))          # 0.8.7 B5: Remember (or Retire)
                 return self._read_do(t, got, origin='HER') is not None
             if card is not None:
-                card.box.addWidget(sentence('{do} · {not}', {'do': ('Do', lambda: self._read_do(t, got)), 'not': ('Not that', lambda: self._read_not(t, got))}))
+                card.box.addWidget(sentence('{do} · {not}', {'do': ('Do', lambda: (self._read_do(t, got), self._agree(t, got))),  # 0.8.7 B5: Do agrees
+                                                             'not': ('Not that', lambda: self._read_not(t, got))}))
+                if got.get('saying'):card.box.addWidget(self._words_buttons(t, got))     # 0.8.7 B5: Retire
         else:
             fb = got.get('fallback') or {}
             card = self._read_buttons(t, fb.get('lead') or '', fb.get('buttons') or ())
@@ -754,8 +769,73 @@ class HerHand(QObject):
         from . import reading
         key = reading.said_key(t.text)
         self.not_that += [(key, s['verb'], s['thing']) for s in got.get('steps') or () if s.get('state') == 'OK' and s.get('thing')]
-        self.say('Not that: I will not read these words this way again.')
-    # == end 0.8.7 B3 =========================================================================================================
+        if got.get('saying'):                       # 0.8.7 B5: a saying's reading: nothing counts against the model
+            self.say('Not that: I will not read these words this way again.');return
+        verbs = [s['verb'] for s in got.get('steps') or () if s.get('state') == 'OK']
+        try:                                        # 0.8.7 B5: no row; the verb's tally counts one correction
+            kernel, p = self._kernel()
+            done = kernel.dispatch('phrases.not_that', {'verbs': verbs, **({'model_key': t.model_key} if getattr(t, 'model_key', None) else {})}, p)
+            self.say(done['result']['words'] if done.get('ok') else 'Not that: I will not read these words this way again.')
+            for v in (done.get('result') or {}).get('dropped') or ():
+                if v in verbs:self.say(phrases.WORDS['dropped'].format(verb=v))
+        except Exception:  # noqa: BLE001 - the tally cannot be written: the session's Not that still holds
+            self.say('Not that: I will not read these words this way again.')
+
+    # -- 0.8.7 B5 · your words: Do, Remember or a click on her question agree; Retire takes a saying back ---------------------
+    def _agree(self, t, got, tally=True):
+        """His agreement (Do, Remember, his click on her question): phrases.agree makes one name row a step and one saying
+        row; she says 'Remembered: “pull up where … came from” means Trace.' A saying's own card counts nothing for the model."""
+        steps = got if isinstance(got, list) else understand_mod().agreed_steps(got.get('steps'))
+        if not steps:return None
+        tally = tally and not (isinstance(got, dict) and got.get('saying'))
+        try:
+            kernel, p = self._kernel()
+            args = {'text': t.text, 'steps': steps, 'tally': bool(tally)}
+            if getattr(t, 'model_key', None):args['model_key'] = t.model_key
+            done = kernel.dispatch('phrases.agree', args, p)
+        except Exception as exc:  # noqa: BLE001 - nothing remembered is better than a broken card
+            self.say('I did not remember it: %s' % str(exc)[:160]);return None
+        self.say(done['result']['words'] if done.get('ok') else 'I did not remember it: %s' % str((done.get('error') or {}).get('message'))[:160])
+        return done
+
+    def _retire(self, ident):
+        try:
+            kernel, p = self._kernel()
+            done = kernel.dispatch('phrases.strike', {'id': ident}, p)
+        except Exception as exc:  # noqa: BLE001
+            self.say('I did not retire it: %s' % str(exc)[:160]);return None
+        self.say(done['result']['words'] if done.get('ok') else 'I did not retire it: %s' % str((done.get('error') or {}).get('message'))[:160])
+        return done
+
+    def _words_buttons(self, t, got, remember=False):
+        from .shell2 import sentence
+        saying = (got.get('saying') or {}).get('id')
+        if saying:return sentence('{retire}', {'retire': ('Retire this saying', lambda: self._retire(saying))})
+        return sentence('{remember}', {'remember': ('Remember', lambda: self._agree(t, got))})
+
+    def _read_answered(self, t, q, c, placed):
+        """His answer to her one question about his words: the chosen reading runs beside the settled ones (his click:
+        his own; the model's placing: model_pick, never a change of hers). His click agrees: its rows are made, no tally."""
+        r = dict(c.reading);agree = r.pop('_agree', []);held = list(r.pop('_held', []));saying = r.pop('_saying', '');r.pop('_saying_words', None)
+        origin = 'HER' if placed.basis == 'model_pick' else 'OWNER'
+        if placed.words:self.say(placed.words)
+        nt = self._read_do(t, {'readings': held + [r]}, origin=origin)
+        if nt is not None:
+            nt.model = dict(t.model or {}, chosen=c.n, by=placed.by);nt.question = q;nt.request = getattr(t, 'request', None)
+        else:
+            t.state = 'finished';self.set_state('finished')
+        if origin == 'OWNER' and q.source == 'saying':
+            from .shell2 import sentence
+            others = [o.reading.get('_saying') for o in q.choices if o.n != c.n and o.reading.get('_saying')]
+            card = self.say(phrases.WORDS['conflict_after'].format(sayings=' and '.join('“%s”' % (o.reading.get('_saying_words') or o.words) for o in q.choices)))
+            if card is not None:
+                for ident in dict.fromkeys(others + ([saying] if saying else [])):
+                    words = next(('Retire “%s”' % (o.reading.get('_saying_words') or o.words) for o in q.choices if o.reading.get('_saying') == ident), 'Retire')
+                    card.box.addWidget(sentence('{go}', {'go': (words, lambda ident=ident: self._retire(ident))}))
+        elif origin == 'OWNER' and agree:
+            self._agree(t, agree, tally=False)
+        return nt
+    # == end 0.8.7 B3 and B5 ==================================================================================================
 
     def ask_model(self, args):
         """brain.ask through the Kernel, with the owner's principal (kept for the half-build's own check)."""
@@ -964,6 +1044,7 @@ class HerHand(QObject):
             left = Q.leave(q);t.model['left'] = left.as_record()
             t.state = 'finished';t.closing = left.words;self.say(left.words);self.set_state('finished');return None
         c = q.choice(placed.n)
+        if q.source in ('understand', 'saying'):return self._read_answered(t, q, c, placed)     # 0.8.7 B5: his words' question
         if placed.words:self.say(placed.words)
         if c.reading.get('revision_open'):          # a second question would be needed: never a second card
             t.state = 'finished';self.say(Q.once_more('REVISION'));self.set_state('finished');return None
@@ -1025,6 +1106,12 @@ class HerHand(QObject):
             return focus is not None and (focus is card or card.isAncestorOf(focus))
         except RuntimeError:
             return False
+
+
+def understand_mod():
+    """0.8.7 B5: understand.py, imported when her hand first reads his words."""
+    from . import understand
+    return understand
 
 
 def hand(host):
