@@ -1,0 +1,895 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index c98ebb9..ab09319 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -186,6 +186,7 @@
+    "experiments.status": "workbench/lab_service.py#dispatch",
+    "field.brief": "workbench/field_service.py#dispatch",
+    "field.brief.keep": "workbench/field_service.py#dispatch",
++   "field.change": "workbench/recheck_order.py#dispatch",
+    "field.doubt": "workbench/field_service.py#dispatch",
+    "field.either": "workbench/either_way.py#dispatch",
+    "field.read": "workbench/field_service.py#dispatch",
+@@ -548,6 +549,7 @@
+    "pills.return": "workbench/pills.py#dispatch",
+    "pills.send": "workbench/pills.py#dispatch",
+    "pills.unpair": "workbench/pills.py#dispatch",
++   "places.find": "workbench/places.py#dispatch",
+    "plans.get": "workbench/project_desk.py#dispatch",
+    "problems.create": "workbench/problem_service.py#dispatch",
+    "problems.get": "workbench/problem_service.py#dispatch",
+@@ -1012,9 +1014,9 @@
+   }
+  },
+  "counts": {
+-  "adapters": 814,
++  "adapters": 816,
+   "job_tools": 113,
+-  "operations": 814,
++  "operations": 816,
+   "settings": 48
+  },
+  "formulas": {
+@@ -2921,6 +2923,14 @@
+    },
+    "scope": "execute"
+   },
++  "field.change": {
++   "arguments": "d849b623f9272d595c3d9b259b905e5abea7eb1b0327f16c16fc8b7191e0edf2",
++   "properties": {
++    "before": "a2c799262a3ce3c1",
++    "id": "52ba84a4bbf396ba"
++   },
++   "scope": "read"
++  },
+   "field.doubt": {
+    "arguments": "6531dae66d37b6a3733f4ca66a90055d8f8391c04e9e0cf0fe4b272505c29c33",
+    "properties": {
+@@ -5839,6 +5849,15 @@
+    },
+    "scope": "approve"
+   },
++  "places.find": {
++   "arguments": "21350d774004cf63e6fe72180ba2d841fa989c80c87ed0db68a1649a8010050c",
++   "properties": {
++    "limit": "049413350c4892f5",
++    "namespace": "423010dfd115daf3",
++    "query": "11033dea281281d3"
++   },
++   "scope": "read"
++  },
+   "plans.get": {
+    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
+    "properties": {
+@@ -8019,7 +8038,7 @@
+  },
+  "release": "Graphite 0.8.5",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "a0f3e9959e98eb4d74a536270a502c91c5279f704007d55ef51ff1851a282f25",
++ "schema_digest": "37bf8193ecf60e84b8de469bf846b5360cf23b00aa67b60d9df2de0b8af243d5",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+diff --git a/workbench/activity.py b/workbench/activity.py
+index 7bdfcd5..25a8691 100644
+--- a/workbench/activity.py
++++ b/workbench/activity.py
+@@ -36,7 +36,9 @@ OBSERVER_OPERATIONS=frozenset({
+  # 0.8.6 S6: pinned quotes and rule cards, read when a card is shown; reading is not an event
+  'quotes.list','quotes.get','quotes.check','rules.list','rules.get','rules.check',
+  # 0.8.6 S5: either way and what would settle it, read when a card is asked; asking is not an event
+- 'field.either','field.settle'})
++ 'field.either','field.settle',
++ # 0.8.6 if there is room, items 1 and 2: what this change did, where does my desk say it; asking is not an event
++ 'field.change','places.find'})
+ 
+ def folder(root):
+     """Legacy journal location, now used only for migration and failed delivery."""
+diff --git a/workbench/engineering_cli.py b/workbench/engineering_cli.py
+index 6350c49..a99b466 100644
+--- a/workbench/engineering_cli.py
++++ b/workbench/engineering_cli.py
+@@ -43,6 +43,8 @@ def schemas():
+     from .rules import FIELDS as RULE_FIELDS  # 0.8.6 S6: rule cards
+     from .either_way import FIELDS as EITHER_WAY_FIELDS  # 0.8.6 S5: either way
+     from .settle import FIELDS as SETTLE_FIELDS  # 0.8.6 S5: what would settle it
++    from .recheck_order import FIELDS as CHANGE_CARD_FIELDS  # 0.8.6 if there is room, item 1: what this change did
++    from .places import FIELDS as PLACE_FIELDS  # 0.8.6 if there is room, item 2: where does my desk say it
+     from .phrases import FIELDS as PHRASE_FIELDS  # 0.8.6 S7: the phrasebook
+     from .answer_check import FIELDS as PAGE_CHECK_FIELDS  # 0.8.6 S7: the page check
+     from .lab_service import FIELDS as LAB_FIELDS, OPTIONS as LAB_OPTIONS
+@@ -161,6 +163,7 @@ def schemas():
+         **TURN_FIELDS,  # 0.8.7 E0 (the turn contract)
+         **QUOTE_FIELDS, **RULE_FIELDS,  # 0.8.6 S6: pinned quotes and rule cards
+         **EITHER_WAY_FIELDS, **SETTLE_FIELDS,  # 0.8.6 S5: either way and what would settle it
++        **CHANGE_CARD_FIELDS, **PLACE_FIELDS,  # 0.8.6 if there is room, items 1 and 2: what this change did; where does my desk say it
+         **PHRASE_FIELDS, **PAGE_CHECK_FIELDS,  # 0.8.6 S7: the phrasebook and the page check
+         **REASON_FIELDS,
+         **SLATE_CONTEXT_FIELDS,
+diff --git a/workbench/engineering_kernel.py b/workbench/engineering_kernel.py
+index 96c9d41..cefbbcb 100644
+--- a/workbench/engineering_kernel.py
++++ b/workbench/engineering_kernel.py
+@@ -52,6 +52,8 @@ from . import turns  # 0.8.7 E0 (the turn contract): the turn ledger, brain.turn
+ from . import quotes, rules  # 0.8.6 S6 (pinned quotes and rule cards): ledger.quote/1: quotes.pin, quotes.list, quotes.get, quotes.check, quotes.rebind; ledger.rule/1: rules.list, rules.get, rules.check, rules.set (recorded additions)
+ from . import phrases, answer_check  # 0.8.6 S7 (the phrasebook and the checker): phrases.list, phrases.keep, phrases.strike, phrases.forget; pages.marks (recorded additions)
+ from . import either_way, settle  # 0.8.6 S5 (either way and what would settle it): field.either, field.settle, reads (recorded additions)
++from . import recheck_order  # 0.8.6 if there is room, item 1 (what this change did): field.change, a read (recorded addition)
++from . import places  # 0.8.6 if there is room, item 2 (where does my desk say it): places.find, a read over the FTS5 search (recorded addition)
+ from . import joined_work,typed_artifacts,checked_methods,native_sessions
+ from . import slate_context, slate_reasoning
+ from . import edit_storage, import_profiles, change_sets
+@@ -193,6 +195,8 @@ CAPABILITIES = {
+     **turns.SCOPES,  # 0.8.7 E0 (the turn contract)
+     **quotes.SCOPES, **rules.SCOPES,  # 0.8.6 S6: pinned quotes and rule cards (rules.set and quotes.rebind approve, ALWAYS_ASKS)
+     **either_way.SCOPES, **settle.SCOPES,  # 0.8.6 S5: either way and what would settle it (reads)
++    **recheck_order.SCOPES,  # 0.8.6 if there is room, item 1: what this change did (a read)
++    **places.SCOPES,  # 0.8.6 if there is room, item 2: where does my desk say it (a read)
+     **phrases.SCOPES, **answer_check.SCOPES,  # 0.8.6 S7: the phrasebook (keep, strike, forget: approve, the owner's press) and the page check (read)
+     **joined_work.SCOPES, **typed_artifacts.SCOPES, **checked_methods.SCOPES, **native_sessions.SCOPES,
+     **office_service.SCOPES,
+@@ -609,6 +613,8 @@ class Kernel:
+         if op in rules.FIELDS:return rules.dispatch(self,op,a,p)   # 0.8.6 S6: rule cards (ledger.rule/1)
+         if op in either_way.FIELDS:return either_way.dispatch(self,op,a,p)   # 0.8.6 S5: either way (a read)
+         if op in settle.FIELDS:return settle.dispatch(self,op,a,p)   # 0.8.6 S5: what would settle it (a read)
++        if op in recheck_order.FIELDS:return recheck_order.dispatch(self,op,a,p)   # 0.8.6 if there is room, item 1: what this change did (a read)
++        if op in places.FIELDS:return places.dispatch(self,op,a,p)   # 0.8.6 if there is room, item 2: where does my desk say it (a read)
+         if op in phrases.FIELDS:return phrases.dispatch(self,op,a,p)   # 0.8.6 S7: the phrasebook (rows of the instruction matrix)
+         if op in answer_check.FIELDS:return answer_check.dispatch(self,op,a,p)   # 0.8.6 S7: the page check (a read)
+         if op in lab_service.FIELDS:return lab_service.dispatch(self,op,a,p)
+diff --git a/workbench/places.py b/workbench/places.py
+new file mode 100644
+index 0000000..a3d5343
+--- /dev/null
++++ b/workbench/places.py
+@@ -0,0 +1,222 @@
++"""Where does my desk say it (0.8.6, "if there is room", lane C): a ranked list of places on your admitted pages.
++
++"How long does the landlord have?" gives, with no model:
++
++    1. Demoland_Tenancy_Act.pdf page 1, § 12(a) “Within 21 days after a tenancy ends, the landlord shall …”
++    2. Demoland_Tenancy_Act.pdf page 1, § 3(a) “A period of days after an event does not count …”
++
++It uses the search Graphite already has: references.search, the lexical FTS5 index over the admitted pages of each
++collection, finds the pages. Each page found is cut into places (a numbered paragraph such as § 12(a), or a paragraph
++between blank lines), and the places are ranked by the words of the question they carry, the rarer words on these pages
++weighing more. A question's shape adds the words that answer it ("how long" looks for days, periods, "within"), at half
++weight, from a fixed table (ASKS). One press pins a place as a quote (quotes.pin, the owner's press): each place carries
++the exact arguments for it, the region found on the page the way quotes.pin itself finds words.
++
++    places.find  {query, limit?, namespace?}   read   the ranked places (at most 12; 3 unless asked)
++
++The functions, for the Library that builds on this (0.8.7):
++    terms(text)                         the words of a text as they are matched: lower case, no stop words, a light stem
++    split(text)                         a page's text cut into places [{'label', 'mark', 'text', 'line'}]
++    rank(query, passages, limit)        pure: the places of these passages ranked for the query (no Kernel, no model)
++    passages(kernel, principal, query, namespaces=None)    the pages the FTS5 search finds, admitted and current
++    pin_args(kernel, principal, place)  the arguments quotes.pin takes for this place, or None when its words are not
++                                        found as one run on the page
++    find(kernel, principal, query, limit=3, namespace=None)   all of it: the card
++
++What always holds here: nothing is written (references.search and the page reads are reads), no model is asked
++(model_calls: 0) and none is imported. A page's words are data: they are shown and matched, never followed. Scores are
++exact Fractions.
++"""
++from __future__ import annotations
++
++import re
++from fractions import Fraction
++
++LIMIT = 3                     # places shown unless more are asked
++MOST = 12
++SEARCH_LIMIT = 40             # pages asked of references.search in each collection
++EXCERPT_WORDS = 9
++ASKED = Fraction(1, 2)        # the weight of a word a question's shape adds, against one of its own words
++
++FIELDS = {
++    'places.find': ({'query': {'type': 'string', 'minLength': 1, 'maxLength': 300}, 'limit': {'type': 'integer', 'minimum': 1, 'maximum': MOST},
++                     'namespace': {'type': 'string', 'pattern': '^[a-f0-9]{32}$'}}, ['query']),
++}
++SCOPES = {op: 'read' for op in FIELDS}
++OBSERVERS = tuple(FIELDS)
++
++STOP = frozenset('''a an and any are as at be been being but by can could did do does doing done for from had has have having he
++her here him his how i if in into is it its may me might must my no nor not of on or our ours she should so some such than that
++the their them then there these they this those to too up upon us was we were what when where which while who whom why will
++with would you your yours about also only own same very just shall'''.split())
++# A question's shape, and the words that answer it. Fixed, and short: a word that is not here is never guessed.
++ASKS = (
++    (r'\bhow\s+long\b|\bby\s+when\b|\bhow\s+many\s+days\b|\bdeadline\b|\btime\s+limit\b', ('day', 'week', 'month', 'year', 'hour', 'period', 'within', 'until', 'after')),
++    (r'\bwhen\b|\bwhat\s+date\b|\bwhich\s+day\b', ('day', 'date', 'within', 'after', 'before', 'until')),
++    (r'\bhow\s+much\b|\bwhat\s+amount\b|\bhow\s+many\b', ('amount', 'sum', 'total', 'equal')),
++    (r'\bwhat\s+if\s+not\b|\bexcept\b|\bunless\b|\bexception\b|\bdoes\s+not\s+apply\b', ('unless', 'except', 'apply')),
++    (r'\bliable\b|\bowe[sd]?\b|\bpenalt', ('liable', 'amount', 'equal', 'pay')),
++    (r'\bwhat\s+does\b.*\bmean\b|\bdefin', ('means', 'mean', 'defined', 'definition')),
++)
++MARK = re.compile(r'^\s*(§\s*\d+[A-Za-z]?\.?|\(\s*[a-z0-9]{1,4}\s*\)|\d{1,3}\.(?=\s)|[a-z]\)(?=\s))\s*')
++
++
++def _stem(word):
++    for end, keep in (('ings', 4), ('ing', 4), ('ied', 3), ('ies', 3), ('ed', 4), ('es', 5), ('s', 4)):
++        if word.endswith(end) and len(word) - len(end) >= keep:
++            word = word[:-len(end)] + ('y' if end in ('ied', 'ies') else '')
++            break
++    return word
++
++
++def words_of(text):
++    return re.findall(r'[a-z0-9]+', str(text).casefold())
++
++
++def terms(text):
++    """The words of a text as they are matched: lower case, no stop words, a light stem ('days' and 'day' are one word)."""
++    return [_stem(w) for w in words_of(text) if w not in STOP]
++
++
++def asked(query):
++    """The words a question's shape adds (ASKS), stemmed."""
++    found = []
++    for pattern, said in ASKS:
++        if re.search(pattern, str(query).casefold()):
++            found += [_stem(w) for w in said if _stem(w) not in found]
++    return found
++
++
++def split(text):
++    """A page's text cut into places: a numbered paragraph (§ 12, (a), 1.) runs until the next mark or a blank line; other
++    text is cut at blank lines. A section's mark is carried into its paragraphs' labels: § 12 then (a) is '§ 12(a)'.
++    A line that is only a section's heading ('§ 3. Counting periods of days.') is a heading, not a place.
++    Returns [{'label', 'mark', 'text', 'line' (where it starts, from 1)}]."""
++    places = [];section = '';current = None
++    def close():
++        if current and current['text'].strip():
++            current['text'] = re.sub(r'\s+', ' ', current['text']).strip();places.append(current)
++    for n, line in enumerate(str(text).splitlines(), 1):
++        if not line.strip():
++            close();current = None;continue
++        found = MARK.match(line)
++        if found:
++            close();mark = re.sub(r'\s+', '', found.group(1)).rstrip('.') if found.group(1).lstrip().startswith('§') else re.sub(r'\s+', '', found.group(1))
++            body = line[found.end():]
++            if mark.startswith('§'):
++                section = mark.replace('§', '§ ')
++                current = {'label': section, 'mark': mark, 'text': body, 'line': n, 'heading': True}
++            else:
++                current = {'label': (section + mark) if section else mark, 'mark': mark, 'text': body, 'line': n, 'heading': False}
++            continue
++        if current is None:current = {'label': '', 'mark': '', 'text': line, 'line': n, 'heading': False}
++        else:current['text'] += ' ' + line
++    close()
++    out = []
++    for place in places:            # a section's own line with nothing under it but its title is its heading, not a place
++        if place.pop('heading') and len(terms(place['text'])) <= 4 and any(p['label'].startswith(place['label'] + '(') for p in places):continue
++        out.append(place)
++    return out
++
++
++def excerpt(text, count=EXCERPT_WORDS):
++    words = str(text).split()
++    return ' '.join(words[:count]) + (' …' if len(words) > count else '')
++
++
++def rank(query, passages, limit=LIMIT):
++    """The places of these passages ranked for the query. passages: [{'text', and anything else, kept on each place}].
++    Each query word a place carries scores how rare it is among the places here (places / places that carry it); a word
++    the question's shape adds scores half that. Ties go to the place that carries more of the query's own words, then to
++    reading order. Pure: no Kernel, no model, no float. Returns [{'rank', 'label', 'text', 'score' (a Fraction as text),
++    'matched', **the passage's other fields}]."""
++    own = list(dict.fromkeys(terms(query)));extra = [w for w in asked(query) if w not in own]
++    places = []
++    for order, passage in enumerate(passages):
++        for place in split(passage.get('text') or ''):
++            places.append((order, place, set(terms(place['text']))))
++    if not places or not (own or extra):return []
++    count = len(places)
++    def weight(word):
++        df = sum(1 for _, _, have in places if word in have)
++        return Fraction(count, df) if df else Fraction(0)
++    weights = {w: weight(w) for w in own};weights.update({w: weight(w) * ASKED for w in extra})
++    scored = []
++    for order, place, have in places:
++        matched = [w for w in own + extra if w in have]
++        if not matched:continue
++        score = sum((weights[w] for w in matched), Fraction(0))
++        scored.append((-score, -sum(1 for w in matched if w in own), order, place['line'], place, matched, score))
++    scored.sort(key=lambda row: row[:4])
++    out = []
++    for n, (_, _, order, _, place, matched, score) in enumerate(scored[:limit], 1):
++        passage = {k: v for k, v in passages[order].items() if k != 'text'}
++        out.append({**passage, 'rank': n, 'label': place['label'], 'text': place['text'], 'score': str(score), 'matched': matched})
++    return out
++
++
++# ============================================================================================================ the desk
++
++def passages(kernel, principal, query, namespaces=None):
++    """The admitted, current pages the FTS5 search (references.search) finds for the query's words, in each collection
++    (or only those named): [{'text', 'namespace', 'item', 'name', 'source_sha256', 'page_index', 'page_label', 'passage'}]."""
++    def call(operation, arguments):
++        answer = kernel.dispatch(operation, arguments, principal)
++        if not answer.get('ok'):raise ValueError('%s could not be read: %s' % (operation, str((answer.get('error') or {}).get('message', ''))[:160]))
++        return answer['result']
++    words = list(dict.fromkeys(words_of(query) + asked(query) + terms(query)))
++    asked_for = ' '.join(w for w in words if w not in STOP)[:300] or str(query)[:300]
++    spaces = [ns['id'] for ns in call('intake.namespaces', {}).get('namespaces', ())]
++    if namespaces:spaces = [ns for ns in spaces if ns in set(namespaces)]
++    found = []
++    for space in spaces:
++        hits = call('references.search', {'namespace': space, 'query': asked_for, 'limit': SEARCH_LIMIT}).get('hits', ())
++        for hit in hits:
++            locator = hit.get('locator') or {}
++            found.append({'text': str(hit.get('text') or ''), 'namespace': space, 'item': hit.get('item'), 'name': hit.get('name') or '',
++                          'source_sha256': hit.get('source_sha256'), 'page_index': locator.get('page_index'),
++                          'page_label': str(locator.get('page_label') or (int(locator['page_index']) + 1 if isinstance(locator.get('page_index'), int) else '')),
++                          'passage': hit.get('id')})
++    return found
++
++
++def pin_args(kernel, principal, place):
++    """What quotes.pin takes to pin this place as a quote (the owner's press), the region found on the page as quotes.pin
++    finds it; None when the place is not on a PDF page or its words are not found there as one run."""
++    from . import quotes
++    if not isinstance(place.get('page_index'), int) or not place.get('item'):return None
++    words = quotes.norm(place['text'])
++    try:
++        found, _ = quotes.page(kernel, principal, place['namespace'], place['item'], place['source_sha256'], place['page_index'])
++    except (ValueError, OSError, KeyError):return None
++    rect = quotes.located(found, words)
++    if rect is None:return None
++    args = {'namespace': place['namespace'], 'item': place['item'], 'source_sha256': place['source_sha256'], 'page_index': place['page_index'],
++            'rect': rect, 'words': words}
++    if place.get('label'):args['label'] = place['label']
++    return args
++
++
++def said(place):
++    """One place as she says it: '1. Demoland_Tenancy_Act.pdf page 1, § 12(a) “Within 21 days after a tenancy ends, …”'."""
++    where = '%s page %s' % (place.get('name') or 'an admitted file', place.get('page_label') or '?')
++    return '%d. %s, %s“%s”' % (place['rank'], where, (place['label'] + ' ') if place.get('label') else '', excerpt(place['text']))
++
++
++def find(kernel, principal, query, limit=LIMIT, namespace=None):
++    """The card: {'query', 'terms', 'asked' (the words its shape added), 'places': rank() each with 'pin' (pin_args) and
++    'words' (said), 'searched' (pages read), 'lines', 'ranking', 'model_calls': 0}. Nothing is written."""
++    limit = max(1, min(int(limit or LIMIT), MOST))
++    pages = passages(kernel, principal, query, [namespace] if namespace else None)
++    places = rank(query, pages, limit)
++    for place in places:
++        place['pin'] = pin_args(kernel, principal, place);place['words'] = said(place)
++    lines = [place['words'] for place in places] or ['Nothing on your admitted pages carries these words.']
++    return {'query': str(query), 'terms': list(dict.fromkeys(terms(query))), 'asked': asked(query), 'places': places, 'searched': len(pages),
++            'lines': lines, 'ranking': 'FTS5 pages (references.search), places ranked by the rarity of the words they carry; no model',
++            'model_calls': 0}
++
++
++def dispatch(kernel, op, args, principal):
++    if op == 'places.find':return find(kernel, principal, args['query'], args.get('limit', LIMIT), args.get('namespace'))
++    raise ValueError('Unknown places operation')
+diff --git a/workbench/recheck_order.py b/workbench/recheck_order.py
+new file mode 100644
+index 0000000..65df265
+--- /dev/null
++++ b/workbench/recheck_order.py
+@@ -0,0 +1,522 @@
++"""What this change did (0.8.6, "if there is room", lane B; the read side only).
++
++After a sheet changes, one card sorts everything on the desk that stands on that sheet into three piles:
++
++  carried over   with its proof: what it reads did not change ("reads rows 2 and 4, which did not change"), or it reads
++                 nothing of the sheet and rests on sources that did not change
++  worked again   a calculation that reads a row that changed, worked again here exactly with its own recipe (reads only:
++                 whether its page on the desk already says the new result is said beside it, and nothing is written)
++  needs you      what no rule here can carry: a finding or a page whose words still carry a number that moved ("needs
++                 new words"), a check that reads a row that changed, a calculation that cannot be worked again
++
++It also says what each change did to the goals over the sheet (goals.candidates and the kept goals): each goal's state
++and its room at the worst case, before and now, and for each goal whose state changed, the cell that caused it, found by
++putting one changed cell back at a time.
++
++"Before" is the sheet as it was saved last time (the Office keeps every earlier version of a working copy), or the
++values the caller gives (`before`: {cell: value}). Both sides are worked the same way, in memory: math_answers over the
++cells, the owner's tolerances held against each side's own cells. The card is computed on read and never stored.
++
++    field.change   {id, before?}   read   the card for one sheet ('office:…', or a calculation 'document:…', which stands
++                                          for its sheet)
++
++    change(kernel, principal, ident, before=None) -> the card (a dict; see change())
++
++What always holds here: nothing writes a record (every read is a Kernel observer or a record's own read function), no
++model is asked (model_calls: 0) and none is imported, and every number is an exact Fraction; no float.
++"""
++from __future__ import annotations
++
++import copy
++import json
++import re
++from fractions import Fraction
++
++from .mind_types import FAILS, HOLDS, STATE_WORDS, UNDECIDED
++
++SCHEMA = 'ledger.change-card/1'
++CARRIED, WORKED, YOURS = 'CARRIED_OVER', 'WORKED_AGAIN', 'NEEDS_YOU'
++PILES = (WORKED, YOURS, CARRIED)
++PILE_WORDS = {CARRIED: 'carried over', WORKED: 'worked again', YOURS: 'needs you'}
++COLUMNS = ('A', 'B', 'C', 'D')              # parameter, value, unit, conditions: the reviewed sheet's four columns
++ROW_LIMIT = 999
++DEPENDS = 'DEPENDS'
++
++FIELDS = {
++    'field.change': ({'id': {'type': 'string', 'minLength': 1, 'maxLength': 200}, 'before': {'type': 'object'}}, ['id']),
++}
++SCOPES = {op: 'read' for op in FIELDS}
++OBSERVERS = tuple(FIELDS)
++
++# Her words here: fixed templates, a number always with its record (design 3.6: no sentence over 30 words).
++WORDS = {
++    'heading': 'What this change did to “{sheet}”',
++    'changed': 'Row {row} ({parameter}) changed from {was} to {now}.',
++    'nothing_changed': 'Nothing on “{sheet}” changed since it was saved last.',
++    'carried_reads': '“{title}” is carried over: it reads {rows}, which did not change.',
++    'carried_check': '“{title}” is carried over: its check reads {rows}, which did not change{rests}.',
++    'carried_rests': '“{title}” is carried over: it reads nothing of this sheet, and rests on {sources}, which did not change.',
++    'carried_none': '“{title}” is carried over: it reads nothing of this sheet.',
++    'rests_too': '; it rests on {sources}',
++    'worked': '“{title}” worked again: {was}, now {now}, because {rows} changed.',
++    'worked_same': '“{title}” worked again: still {now}, though {rows} changed.',
++    'worked_kept': 'Its page already says {now}.',
++    'worked_unkept': 'Its page still says {page}; Recheck keeps the new result.',
++    'new_words': '“{title}” needs new words: it says {was}; it is now {now}.',
++    'check_moved': '“{title}” needs you: its check reads {rows}, which changed. Run the check again.',
++    'check_unread': '“{title}” needs you: its check reads this sheet, and I cannot tell which rows.',
++    'source_moved': '“{title}” needs you: it rests on {sources}, which changed.',
++    'not_worked': '“{title}” needs you: it reads {rows}, which changed, and it cannot be worked again here: {why}',
++    'state_same': 'Nothing changes state.',
++    'state_moved': '“{statement}”: {was}, now {now}, because of {cause}.',
++    'cause_together': 'these rows together: {rows}',
++    'room': '“{statement}”: the room at the worst case {verb} from {was} to {now}.',
++    'room_note': 'Room left, not a safety factor; a share of the limit.',
++    'nothing_here': 'Nothing on the desk stands on this sheet.',
++}
++
++
++# ========================================================================================================== the sheet
++
++def _cells(document):
++    return ((document or {}).get('sheets') or [{}])[0].get('cells') or {}
++
++
++def _text(cells, key):
++    return str((cells.get(key) or {}).get('value') or '').strip()
++
++
++def _row_of(cell):
++    found = re.fullmatch(r'[A-Z]{1,3}([1-9][0-9]{0,4})', str(cell).strip().upper())
++    return int(found.group(1)) if found else None
++
++
++def rows_words(rows):
++    """'row 5', 'rows 2 and 4', 'rows 2, 3 and 4'."""
++    rows = sorted(set(rows))
++    if not rows:return 'no row'
++    if len(rows) == 1:return 'row %d' % rows[0]
++    return 'rows %s and %d' % (', '.join(str(r) for r in rows[:-1]), rows[-1])
++
++
++def changed_rows(before, now):
++    """The rows of a reviewed sheet that differ between two of its documents (any of parameter, value, unit, conditions):
++    [{'row', 'cell' (its Value cell), 'parameter', 'was', 'now', 'unit_was', 'unit'}], in row order."""
++    a, b = _cells(before), _cells(now);rows = set()
++    for key in set(a) | set(b):
++        row = _row_of(key)
++        if row is not None and 1 < row <= ROW_LIMIT and key.rstrip('0123456789') in COLUMNS and (a.get(key) or {}).get('value') != (b.get(key) or {}).get('value'):
++            rows.add(row)
++    return [{'row': row, 'cell': 'B%d' % row, 'parameter': _text(b, 'A%d' % row) or _text(a, 'A%d' % row),
++             'was': _text(a, 'B%d' % row), 'now': _text(b, 'B%d' % row), 'unit_was': _text(a, 'C%d' % row), 'unit': _text(b, 'C%d' % row)}
++            for row in sorted(rows)]
++
++
++def saved_versions(sheet, limit=256):
++    """The sheet's earlier documents, newest first: [(version, document)]. A read of the Office's own history of the
++    working copy (it keeps every earlier version, at most 256)."""
++    from .office_service import store
++    with store().catalog.db() as db:
++        rows = db.execute('SELECT version, payload FROM office_history WHERE id=? ORDER BY version DESC LIMIT ?', (sheet, int(limit))).fetchall()
++    return [(row[0], json.loads(row[1])) for row in rows]
++
++
++def last_saved(sheet):
++    """The sheet's document as it was saved last before now: (its version, the document), or (None, None) when it was
++    never changed."""
++    found = saved_versions(sheet, 1)
++    return found[0] if found else (None, None)
++
++
++def put_back(saved, changes, only=None):
++    """A copy of the saved sheet with the changed rows put back as they were (all of them, or only the cells in `only`).
++    In memory: nothing is saved."""
++    back = copy.deepcopy(saved);cells = _cells(back.get('document'))
++    for change in changes:
++        if only is not None and change['cell'] not in only:continue
++        for column, said in (('B', change['was']), ('C', change['unit_was'])):
++            key = '%s%d' % (column, change['row'])
++            if key in cells:cells[key] = {**cells[key], 'value': said}
++            elif said:cells[key] = {'value': said}
++    return back
++
++
++def _with_before(saved, before):
++    """The sheet with the values the caller gives in place (before: {cell: value}): the "before" side when it is given."""
++    changes = []
++    cells = _cells(saved.get('document'))
++    for cell, value in sorted((before or {}).items()):
++        cell = str(cell).strip().upper();row = _row_of(cell)
++        if row is None or not cell.startswith('B') or 'B%d' % row != cell or cell not in cells:
++            raise ValueError('CHANGE_CELL: %s is not a Value cell of this sheet' % str(cell)[:12])
++        changes.append({'row': row, 'cell': cell, 'parameter': _text(cells, 'A%d' % row), 'was': str(value).strip(), 'now': _text(cells, cell),
++                        'unit_was': _text(cells, 'C%d' % row), 'unit': _text(cells, 'C%d' % row)})
++    return [c for c in changes if c['was'] != c['now']]
++
++
++# ========================================================================================================== working out
++
++def _quantity_words(value, unit):
++    from .math_answers import figure
++    return figure(value, unit)
++
++
++def _amount(value, unit):
++    """An exact amount as she says it: '3.6 W', '0.9375 W (15/16 W)'."""
++    from .math_answers import figure
++    said = figure(value, unit)
++    if Fraction(value).denominator != 1 and '(exact' not in said:said += ' (%s %s)' % (Fraction(value), unit) if unit else ' (%s)' % Fraction(value)
++    return said
++
++
++def work(calculation, saved):
++    """A calculation worked exactly with its own recipe over the sheet as `saved` holds it: (Fraction, unit, '') or
++    (None, '', why it could not be)."""
++    from . import math_answers as answers, tolerances
++    from .math_ranges import RangeError
++    from .math_units import rational
++    cells = {}
++    for item in calculation['inputs']:
++        cell = tolerances.sheet_cell(saved, item['cell'])
++        if not cell:return None, '', '%s is no longer on the sheet' % item['cell']
++        cells[item['symbol']] = cell
++    try:ir, inputs = answers.bindings_from_cells(calculation['expression'], cells, None, stage='calculate')
++    except (RangeError, ValueError) as exc:return None, '', answers.plain(getattr(exc, 'code', 'UNSUPPORTED'), str(exc))
++    found = answers.answer('calculate', ir, inputs, {'expression': calculation['expression'], 'unit': calculation['unit'] or None})
++    value = (found.get('result') or {}).get('value')
++    if not value:return None, '', answers.plain(found.get('state'), found.get('reason'))
++    return rational(value['rational']), value['unit'], ''
++
++
++def _earlier_results(kernel, principal, ident, hops=50):
++    """The results the pages a calculation's standing page replaces said, newest first: [(Fraction, unit)]. How the desk
++    notices a finding that still quotes a result from before an earlier change, as the Field does."""
++    from .math_units import rational
++    out = [];seen = set()
++    answer = kernel.dispatch('documents.get', {'id': ident}, principal)
++    ident = (((answer.get('result') or {}).get('document') or {}).get('derivation') or {}).get('replaces') if answer.get('ok') else None
++    while ident and ident not in seen and len(seen) < hops:
++        seen.add(ident)
++        answer = kernel.dispatch('documents.get', {'id': ident}, principal)
++        if not answer.get('ok'):break
++        derivation = (answer['result'].get('document') or {}).get('derivation') or {}
++        value = (((derivation.get('calculation') or {}).get('outputs') or [{}])[0] or {}).get('value') or {}
++        try:out.append((rational(value['rational']), value.get('unit') or ''))
++        except (KeyError, ValueError):pass
++        ident = derivation.get('replaces')
++    return out
++
++
++def _page_result(kernel, principal, ident):
++    """What a calculation's page on the desk says: (Fraction, unit, the inputs it was worked from {cell: value}) or None."""
++    answer = kernel.dispatch('documents.get', {'id': ident}, principal)
++    if not answer.get('ok'):return None
++    from .math_units import rational
++    derivation = (answer['result'].get('document') or {}).get('derivation') or {}
++    value = (((derivation.get('calculation') or {}).get('outputs') or [{}])[0] or {}).get('value') or {}
++    try:said = rational(value['rational'])
++    except (KeyError, ValueError):return None
++    return said, value.get('unit') or '', {str(i.get('cell')): str(i.get('value')) for i in derivation.get('inputs') or ()}
++
++
++class _Said:
++    """The owner's tolerances on cells, held against one side's sheets (the side's own cells decide APPLIES or RECHECK)."""
++
++    def __init__(self, kernel, principal):
++        from . import tolerances
++        with kernel.db() as db:self.records = [t for t in tolerances._all(db, principal) if 'cell' in t['subject']]
++
++    def against(self, saved_of):
++        from . import tolerances
++        found = {}
++        for t in self.records:
++            saved = saved_of(t['subject']['sheet'])
++            found[(t['subject']['address'], t['subject']['cell'])] = {'id': t['id'], 'revision': t['revision'], 'state': tolerances.cell_state(t, saved),
++                                                                      'lo': t['lo'], 'hi': t['hi'], 'said': t['said'], 'unit': t['unit']}
++        return found
++
++
++def judge(goal, saved_of, said, fresh='CURRENT'):
++    """A relation goal judged under every way the desk knows (as goals.judge does), over the sheets `saved_of` gives:
++    {'state' (the ways' common state, or DEPENDS), 'ways': [{'choice', 'state', 'room': (lo, hi) or None}], 'worst': the
++    least room over the ways (a Fraction) or None, 'unit'}. In memory; the same code works both sides of a change."""
++    from . import goals, math_answers as answers, tolerances
++    from .math_ranges import RangeError
++    from .math_units import rational
++    ways, _ = goals._ways(goal);rows = []
++    for choice in ways:
++        bound = {**goal['cells'], **choice};cells = {};missing = False
++        for symbol, ref in bound.items():
++            saved = saved_of(ref['sheet'])
++            cell = tolerances.sheet_cell(saved, ref['cell']) if saved else None
++            if not cell or cell['parameter'] != ref['parameter']:missing = True;break
++            cells[symbol] = cell
++        state = 'MISSING_INPUT';room = None;unit = ''
++        if not missing:
++            try:ir, inputs = answers.bindings_from_cells(goal['expression'], cells, said, roles=goal.get('roles'))
++            except (RangeError, ValueError) as exc:state = getattr(exc, 'code', 'UNSUPPORTED')
++            else:
++                found = answers.answer('check', ir, inputs, {'expression': goal['expression']}, fresh)
++                state = found['state'];slack = (found.get('result') or {}).get('slack')
++                if slack:
++                    lo, hi = rational(slack[0]['rational']), rational(slack[1]['rational']);unit = slack[0]['unit']
++                    room = (lo, hi) if goal['relation'] in ('le', 'lt') else (-hi, -lo)
++        rows.append({'choice': {s: c['title'] for s, c in choice.items()}, 'state': state, 'room': room, 'unit': unit})
++    states = {row['state'] for row in rows}
++    rooms = [row['room'][0] for row in rows if row['room'] is not None]
++    return {'state': rows[0]['state'] if len(states) == 1 else DEPENDS, 'ways': rows, 'worst': min(rooms) if rooms else None,
++            'unit': next((row['unit'] for row in rows if row['unit']), '')}
++
++
++def _state_words(state):
++    if state == DEPENDS:return 'depends on which revision applies'
++    return STATE_WORDS.get(state, 'cannot tell')
++
++
++# ========================================================================================================== the card
++
++class _Desk:
++    """What one card reads, each once: the sheets, the calculations, the investigations, the pages and the goals."""
++
++    def __init__(self, kernel, principal):
++        self.kernel, self.principal = kernel, principal;self._saved = {}
++
++    def call(self, operation, arguments=None):
++        answer = self.kernel.dispatch(operation, arguments or {}, self.principal)
++        if not answer.get('ok'):raise ValueError('%s could not be read: %s' % (operation, str((answer.get('error') or {}).get('message', ''))[:160]))
++        return answer['result']
++
++    def saved(self, sheet):
++        if sheet not in self._saved:
++            from .office_service import store
++            try:self._saved[sheet] = store().get(sheet)
++            except (ValueError, OSError, KeyError):self._saved[sheet] = None
++        return self._saved[sheet]
++
++    def name(self, address):
++        """A source's name as the desk shows it: an admitted item's file name, a sheet's title; the address otherwise."""
++        kind, _, ident = str(address).partition(':')
++        try:
++            if kind == 'intake':return str(self.call('intake.item', {'id': ident}).get('name') or address)
++            if kind == 'office':return str((self.saved(ident) or {}).get('document', {}).get('title') or address)
++        except ValueError:pass
++        return str(address)
++
++    def claims(self):
++        """Every claim of every investigation with what it stands on: [(claim, its steps, investigation)]. The steps are its
++        evidence path (investigation.path) and its checks as the investigation holds them (each as a CHECK step with its
++        program), so a check counts whether or not it has run yet."""
++        found = []
++        for row in self.call('investigation.list').get('investigations', ()):
++            sheet = self.call('investigation.sheet', {'id': row['id']})
++            seen = {}
++            for claim in list(sheet.get('unresolved') or ()) + list(sheet.get('learned') or ()):
++                seen.setdefault(claim['id'], claim)
++            checks = {}
++            for check in sheet.get('checked') or ():
++                checks.setdefault(check.get('claim'), []).append({'kind': 'CHECK', 'program': str(check.get('program') or ''), 'outcome': check.get('last_outcome')})
++            for claim in seen.values():
++                path = (self.call('investigation.path', {'claim': claim['id']}) or {}).get('path') or ()
++                found.append((claim, list(path) + checks.get(claim['id'], []), row['id']))
++        return found
++
++    def pages(self):
++        """The plain pages of the desk (not calculations): [(id, title, text)]."""
++        from . import documents
++        out = [];offset = 0
++        while True:
++            some = list(self.call('documents.list', {'limit': 100, 'offset': offset}).get('documents', ()))
++            for row in some:
++                doc = self.call('documents.get', {'id': row['id']}).get('document') or {}
++                if doc.get('derivation'):continue
++                out.append((row['id'], doc.get('title') or row.get('title') or '', documents.plain_text(doc)))
++            offset += len(some)
++            if len(some) < 100:break
++        return out
++
++
++def _check_rows(program, sheet, cells):
++    """The rows of `sheet` a check's program reads, by the parameters it names; None when it reads the sheet and the rows
++    cannot be told."""
++    if ('@office:' + sheet) not in program and ('office:' + sheet) not in program:return set()
++    names = [m.group(2).strip().lower() for m in re.finditer(r'where\s+parameter\s*=\s*("?)([^|"]+)\1', program)]
++    if not names:return None
++    rows = set()
++    for name in names:
++        hit = [_row_of(key) for key, cell in cells.items() if key.startswith('A') and str(cell.get('value') or '').strip().lower() == name]
++        if not hit:return None
++        rows.update(hit)
++    return rows
++
++
++def _sources_words(titles):
++    titles = sorted(set(titles))
++    if not titles:return 'nothing'
++    return titles[0] if len(titles) == 1 else '%s and %s' % (', '.join(titles[:-1]), titles[-1])
++
++
++def _sheet_of(desk, ident):
++    ident = str(ident).strip()
++    if ident.startswith('document:'):
++        doc = desk.call('documents.get', {'id': ident.split(':', 1)[1]}).get('document') or {}
++        sheet = (doc.get('derivation') or {}).get('sheet')
++        if not sheet:raise ValueError('CHANGE_NOT_A_SHEET: that page was not worked from a sheet')
++        return sheet
++    return ident[len('office:'):] if ident.startswith('office:') else ident
++
++
++def change(kernel, principal, ident, before=None):
++    """The card "What this change did" for one sheet. Returns {'schema', 'sheet': {id, title, version}, 'since': 'last
++    save' or 'the values you gave', 'changes': changed_rows(), 'worked_again', 'needs_you', 'carried_over': [{'id',
++    'kind' (calculation, finding, page), 'title', 'pile', 'rows' (what it reads of the sheet), 'because' (the changed
++    rows that put it there), 'words', and for a calculation 'was', 'now', 'unit', 'kept'}], 'goals': [{'statement', 'key',
++    'was', 'now', 'changed', 'cause', 'room': {'was', 'now', 'unit'}, 'words'}], 'changed_state': n, 'lines': her words,
++    'writes': 0, 'model_calls': 0}. Nothing is written."""
++    from . import goals as goal_face
++    from .field_model import carries
++    desk = _Desk(kernel, principal);sheet = _sheet_of(desk, ident);now = desk.saved(sheet)
++    if now is None:raise ValueError('CHANGE_NOT_A_SHEET: no sheet of your Office has that id')
++    title = (now.get('document') or {}).get('title') or sheet
++    if before:
++        changes = _with_before(now, before);since = 'the values you gave'
++    else:
++        version, earlier = last_saved(sheet);since = 'last save'
++        changes = changed_rows(earlier, now.get('document')) if earlier else []
++    then = put_back(now, changes)
++    def side(saved):
++        return lambda s: saved if s == sheet else desk.saved(s)
++    moved_rows = {c['row'] for c in changes};by_row = {c['row']: c for c in changes}
++    cells = _cells(now.get('document'))
++    items = [];moved_words = []
++    earlier = saved_versions(sheet) if changes else []
++    for c in changes:                       # the changed cell itself, as a number with its unit, is words that moved: what it
++        now_words = ('%s %s' % (c['now'], c['unit'])).strip()    # said last time and in every earlier version of the sheet
++        for value, unit in [(c['was'], c['unit_was'])] + [(_text(_cells(doc), c['cell']), _text(_cells(doc), 'C%d' % c['row'])) for _, doc in earlier]:
++            said = ('%s %s' % (value, unit)).strip()
++            if value and c['now'] and said != now_words and (said, now_words) not in moved_words:moved_words.append((said, now_words))
++    # 1. the calculations of the sheet that stand now
++    for calc in goal_face._calculations(kernel, principal) if changes else ():
++        if calc['sheet'] != sheet:continue
++        reads = {_row_of(i['cell']) for i in calc['inputs']} - {None};hit = sorted(reads & moved_rows)
++        name = re.split(r'\s+·\s+', calc['title'])[0]
++        item = {'id': 'document:' + calc['id'], 'kind': 'calculation', 'title': name, 'rows': sorted(reads), 'because': hit}
++        if not hit:
++            item.update(pile=CARRIED, words=WORDS['carried_reads'].format(title=name, rows=rows_words(reads)))
++            items.append(item);continue
++        was, unit_was, why_was = work(calc, then)
++        is_, unit, why = work(calc, now)
++        if is_ is None:
++            item.update(pile=YOURS, words=WORDS['not_worked'].format(title=name, rows=rows_words(hit), why=why))
++            items.append(item);continue
++        page = _page_result(kernel, principal, calc['id'])
++        kept = page is not None and page[0] == is_ and page[1] == unit
++        said_now = _quantity_words(is_, unit);said_was = _quantity_words(was, unit_was) if was is not None else ''
++        words = (WORDS['worked'] if was is not None and (was, unit_was) != (is_, unit) else WORDS['worked_same']).format(
++            title=name, was=said_was, now=said_now, rows=rows_words(hit))
++        words += ' ' + (WORDS['worked_kept'].format(now=said_now) if kept else WORDS['worked_unkept'].format(
++            page=_quantity_words(page[0], page[1]) if page else 'nothing I can read'))
++        item.update(pile=WORKED, words=words, was=str(was) if was is not None else None, now=str(is_), unit=unit, kept=kept)
++        items.append(item)
++        if said_was and said_was != said_now:moved_words.append((said_was, said_now))
++        if page and not kept:moved_words.append((_quantity_words(page[0], page[1]), said_now))
++        for old, old_unit in _earlier_results(kernel, principal, calc['id']):      # what it said before an earlier change
++            if _quantity_words(old, old_unit) != said_now:moved_words.append((_quantity_words(old, old_unit), said_now))
++    # 2. the findings: those of an investigation that watches the sheet (a check or a source step reads it), and any
++    #    finding whose words carry a number that moved
++    claims = desk.claims() if changes else []
++    watching = {inv for claim, path, inv in claims for step in path
++                if ('office:' + sheet) in (str(step.get('address') or '') + ' ' + str(step.get('program') or '') + ' ' + ' '.join(map(str, step.get('inputs') or ())))}
++    for claim, path, inv in claims:
++        if str(claim.get('role', '')).upper() == 'QUESTION':continue
++        text = claim.get('text') or claim['id'];stale = [(w, n) for w, n in moved_words if carries(text, w) and not carries(text, n)]
++        if inv not in watching and not stale:continue
++        item = {'id': 'claim:' + claim['id'], 'kind': 'finding', 'title': text, 'rows': [], 'because': []}
++        if stale:
++            item.update(pile=YOURS, words=WORDS['new_words'].format(title=text, was=stale[0][0], now=stale[0][1]),
++                        says=stale[0][0], now_says=stale[0][1])
++            items.append(item);continue
++        read = set();unread = False;sources = [];moved_sources = []
++        for step in path:
++            if str(step.get('kind')).upper() == 'CHECK':
++                rows = _check_rows(' '.join([str(step.get('program') or '')] + ['@' + str(a).lstrip('@') for a in step.get('inputs') or ()]), sheet, cells)
++                if rows is None:unread = True
++                else:read |= rows
++            elif str(step.get('kind')).upper() == 'SOURCE' and step.get('address'):
++                address = str(step['address']).lstrip('@')
++                if address == 'office:' + sheet:unread = True;continue
++                label = desk.name(address)
++                from .field_source import source_word
++                from .field_model import STATE_RECHECK
++                (moved_sources if step.get('counts') is False or source_word(step.get('source_state')) == STATE_RECHECK else sources).append(str(label))
++        hit = sorted(read & moved_rows);item['rows'] = sorted(read);item['because'] = hit
++        if unread:item.update(pile=YOURS, words=WORDS['check_unread'].format(title=text))
++        elif hit:item.update(pile=YOURS, words=WORDS['check_moved'].format(title=text, rows=rows_words(hit)))
++        elif moved_sources:item.update(pile=YOURS, words=WORDS['source_moved'].format(title=text, sources=_sources_words(moved_sources)))
++        elif read:item.update(pile=CARRIED, words=WORDS['carried_check'].format(
++            title=text, rows=rows_words(read), rests=WORDS['rests_too'].format(sources=_sources_words(sources)) if sources else ''))
++        elif sources:item.update(pile=CARRIED, words=WORDS['carried_rests'].format(title=text, sources=_sources_words(sources)))
++        else:item.update(pile=CARRIED, words=WORDS['carried_none'].format(title=text))
++        items.append(item)
++    # 3. the plain pages whose words carry a number that moved
++    for ident_, page_title, text in desk.pages() if moved_words else ():
++        stale = [(w, n) for w, n in moved_words if carries(text, w) and not carries(text, n)]
++        if stale:
++            items.append({'id': 'document:' + ident_, 'kind': 'page', 'title': page_title, 'rows': [], 'because': [], 'pile': YOURS,
++                          'says': stale[0][0], 'now_says': stale[0][1],
++                          'words': WORDS['new_words'].format(title=page_title, was=', '.join(w for w, _ in stale), now=', '.join(n for _, n in stale))})
++    # 4. the goals over the sheet: state and room, before and now, and the cell that caused each change of state
++    said = _Said(kernel, principal);said_now = said.against(side(now));said_then = said.against(side(then))
++    kept = {g.get('key'): g for g in goal_face._records(kernel, principal) if g.get('state') == 'IN'}
++    goal_list = [dict(kept.get(c['key'], c)) for c in goal_face.candidates(kernel, principal)]
++    goal_list += [g for k, g in kept.items() if k not in {c['key'] for c in goal_list}]
++    fresh = goal_face._freshness(kernel, principal, now)
++    goal_rows = []
++    for goal in goal_list if changes else ():
++        refs = list(goal['cells'].values()) + [a for alts in (goal.get('alternatives') or {}).values() for a in alts]
++        if not any(ref['sheet'] == sheet for ref in refs):continue
++        reads = sorted({_row_of(ref['cell']) for ref in refs if ref['sheet'] == sheet} - {None})
++        a, b = judge(goal, side(then), said_then, fresh), judge(goal, side(now), said_now, fresh)
++        row = {'statement': goal['statement'], 'key': goal.get('key'), 'goal': goal.get('id'), 'rows': reads,
++               'was': a['state'], 'now': b['state'], 'changed': a['state'] != b['state'], 'cause': [],
++               'room': {'was': str(a['worst']) if a['worst'] is not None else None, 'now': str(b['worst']) if b['worst'] is not None else None,
++                        'unit': b['unit'] or a['unit']}, 'words': ''}
++        if row['changed']:
++            for c in changes:              # put one changed cell back: the one that brings the old state back is the cause
++                one = put_back(now, changes, only={c['cell']})
++                if judge(goal, side(one), said.against(side(one)), fresh)['state'] == a['state']:row['cause'].append(c['cell'])
++            cause = row['cause'] or [c['cell'] for c in changes if c['row'] in reads]
++            cause_words = ('row %d (%s)' % (by_row[_row_of(cause[0])]['row'], by_row[_row_of(cause[0])]['parameter'])) if len(cause) == 1 and _row_of(cause[0]) in by_row \
++                else WORDS['cause_together'].format(rows=rows_words([_row_of(x) for x in cause]))
++            row['cause'] = cause
++            row['words'] = WORDS['state_moved'].format(statement=goal['statement'], was=_state_words(a['state']), now=_state_words(b['state']), cause=cause_words)
++        elif a['worst'] is not None and b['worst'] is not None and a['worst'] != b['worst']:
++            row['words'] = WORDS['room'].format(statement=goal['statement'], verb='falls' if b['worst'] < a['worst'] else 'rises',
++                                                was=_amount(a['worst'], row['room']['unit']), now=_amount(b['worst'], row['room']['unit']))
++        goal_rows.append(row)
++    # her words: the change, the three piles, the states, the room
++    lines = [WORDS['heading'].format(sheet=title)]
++    lines += [WORDS['changed'].format(row=c['row'], parameter=c['parameter'] or 'a row', was=('%s %s' % (c['was'], c['unit_was'])).strip() or 'nothing',
++                                      now=('%s %s' % (c['now'], c['unit'])).strip() or 'nothing') for c in changes] or [WORDS['nothing_changed'].format(sheet=title)]
++    piles = {pile: [i for i in items if i['pile'] == pile] for pile in PILES}
++    for pile in PILES:
++        lines += [i['words'] for i in piles[pile]]
++    if changes and not items and not goal_rows:lines.append(WORDS['nothing_here'])
++    moved_states = [r for r in goal_rows if r['changed']]
++    if changes and goal_rows:
++        lines += [r['words'] for r in moved_states] or [WORDS['state_same']]
++        rooms = [r['words'] for r in goal_rows if not r['changed'] and r['words']]
++        lines += rooms + ([WORDS['room_note']] if rooms else [])
++    return {'schema': SCHEMA, 'sheet': {'id': sheet, 'title': title, 'revision': now.get('revision')}, 'since': since, 'changes': changes,
++            'worked_again': piles[WORKED], 'needs_you': piles[YOURS], 'carried_over': piles[CARRIED], 'goals': goal_rows,
++            'changed_state': len(moved_states), 'lines': lines, 'writes': 0, 'model_calls': 0}
++
++
++def dispatch(kernel, op, args, principal):
++    from .office_service import owner
++    owner(principal)                 # the sheets live in the owner's profile, as for office.get
++    if op == 'field.change':
++        before = args.get('before')
++        if before is not None and (not isinstance(before, dict) or len(before) > 64 or any(len(str(v)) > 40 for v in before.values())):
++            raise ValueError('CHANGE_BEFORE: give at most 64 cells, each with a value of at most 40 characters')
++        return change(kernel, principal, args['id'], before)
++    raise ValueError('Unknown change operation')

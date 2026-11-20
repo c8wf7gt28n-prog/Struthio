@@ -186,6 +186,7 @@
    "experiments.status": "workbench/lab_service.py#dispatch",
    "field.brief": "workbench/field_service.py#dispatch",
    "field.brief.keep": "workbench/field_service.py#dispatch",
+   "field.change": "workbench/recheck_order.py#dispatch",
    "field.doubt": "workbench/field_service.py#dispatch",
    "field.either": "workbench/either_way.py#dispatch",
    "field.read": "workbench/field_service.py#dispatch",
@@ -548,6 +549,7 @@
    "pills.return": "workbench/pills.py#dispatch",
    "pills.send": "workbench/pills.py#dispatch",
    "pills.unpair": "workbench/pills.py#dispatch",
+   "places.find": "workbench/places.py#dispatch",
    "plans.get": "workbench/project_desk.py#dispatch",
    "problems.create": "workbench/problem_service.py#dispatch",
    "problems.get": "workbench/problem_service.py#dispatch",
@@ -1015,9 +1017,9 @@
   }
  },
  "counts": {
-  "adapters": 817,
+  "adapters": 819,
   "job_tools": 113,
-  "operations": 817,
+  "operations": 819,
   "settings": 48
  },
  "formulas": {
@@ -2924,6 +2926,14 @@
     "shown": "7e3f7236ab75c8d7"
    },
    "scope": "execute"
+  },
+  "field.change": {
+   "arguments": "d849b623f9272d595c3d9b259b905e5abea7eb1b0327f16c16fc8b7191e0edf2",
+   "properties": {
+    "before": "a2c799262a3ce3c1",
+    "id": "52ba84a4bbf396ba"
+   },
+   "scope": "read"
   },
   "field.doubt": {
    "arguments": "6531dae66d37b6a3733f4ca66a90055d8f8391c04e9e0cf0fe4b272505c29c33",
@@ -5843,6 +5853,15 @@
    },
    "scope": "approve"
   },
+  "places.find": {
+   "arguments": "21350d774004cf63e6fe72180ba2d841fa989c80c87ed0db68a1649a8010050c",
+   "properties": {
+    "limit": "049413350c4892f5",
+    "namespace": "423010dfd115daf3",
+    "query": "11033dea281281d3"
+   },
+   "scope": "read"
+  },
   "plans.get": {
    "arguments": "ed18082609192bca7939d17cd8788a2ee998d8a00a0e6228d3c2e0a9b5b7b012",
    "properties": {
@@ -8041,7 +8060,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "85f9e799ab6009570e4445878a8cd4a811b307f4f2598c3a61ee29f337207410",
+ "schema_digest": "6c3e5a6ed158d2c7033c96bb038db467ed005069e3d0cfb978afcf0c9311a4eb",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
