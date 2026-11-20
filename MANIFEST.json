@@ -3218,8 +3218,8 @@
       "sha256": "bed980a41868db593459a0f9e7ff1e461bf29a2b035cba2d26b84eb5a57171f1"
     },
     "tools/package_graphite.py": {
-      "bytes": 10915,
-      "sha256": "3922a01720f1b31f3b62c998758c025505b89afabeda44bfd711a6cdd4f3a0ca"
+      "bytes": 11037,
+      "sha256": "10ac96e6b9e4e7d7bdd73f13f46d39c51d092f0cafbab97037715dd9a6602129"
     },
     "tools/package_release_parts.py": {
       "bytes": 5760,
@@ -4076,6 +4076,10 @@
     "workbench/host_support.py": {
       "bytes": 6726,
       "sha256": "afa3c78bac106ddec044dc59d4774019a7c2d4921a1dd64a65783e650c0d1185"
+    },
+    "workbench/i05_arms.py": {
+      "bytes": 61333,
+      "sha256": "e45ba1924c733ef12f4ec065bb7e946451c8a32437986ee4a88a01ffdb6b52c3"
     },
     "workbench/idle_display_art.py": {
       "bytes": 11784,

@@ -1,0 +1,35 @@
+{
+  "item": "S8",
+  "state": "DONE",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S8.patch",
+  "patch_applies_to_clean_checkout": true,
+  "files": {
+    "workbench/i05_arms.py": "new: the arm table (A, B1, B2, B2@4096 from the specification; B3 and N added by 0.8.6; one Arm row each, so 0.8.7's A+R, B3+RG and E are one row each plus a runner if they run differently), cases A-C as data (a --cases file takes the sealed D in the same form), source_case in data form (bytes equal joined_model_checks' for A-C), the I05 operations as a second operator table (desk_ops.Table) for planner.plan with K1/K2/K3/K3' and finish = K3 or K3', unique typed matching, the frozen phrase list (sha256 printed in every result), turn kinds ARM_NEXT / ARM_MAP (PROPOSE-2 JSON) / ARM_MAPB (B3: fenced line plus checker) registered only on first use, a TurnLog port wrapper (no prompt reuse: kept()=0, nothing primed), run_case's acceptance applied to the conditions arms, arm A = joined_model_checks.run_case unchanged with source_case patched, one command: --list, --dry, or a run that writes a result file",
+    "tools/i05_kit/run_kit.py": "new: every arm on every case, 3 repeats, interleaved (the arms' order turned each repeat), one process per run, resumable, Office removed after each run, summary.md/summary.json; --dry starts nothing",
+    "tools/i05_kit/README.md": "new: one page in plain words",
+    "tools/i05_kit/PREDICTIONS.md": "new: design section 6.4 copied word for word (extracted by script from the design file)",
+    "tools/i05_kit/cases.json": "new: cases A to C, written from the module's own CASES",
+    "tools/package_graphite.py": "NOT_SHIPPED gains 'tools/i05_kit/' (kept out like tools/planted_bugs); workbench/i05_arms.py ships"
+  },
+  "smoke": {
+    "no_model_script": "passed: --list and --dry for all 6 arms x 3 cases (plan FOUND, 9 acts: work.read, mapping, methods.preview, methods.instantiate, methods.run, methods.result, joined.prepare, joined.run, joined.result); source bytes equal to joined_model_checks' for A, B, C (642, 642, 666 bytes); N deduces capacity current_limit and pairs pump/heater/controller with their _life rows; on C it declares overhead PRESENT (so the preview refuses it: UNSUPPORTED) with no question; a negated clause ('Half-open lifetimes are not assumed') and unknown wording ('Fixed memory capacity') become questions, never licences; no ARM_ kind is registered at import; the ARM_MAP / ARM_MAPB / ARM_NEXT grammars pass grammars.check and fits (worst-case answers 107 and 52 tokens, caps 384 and 96), and each parser and checker takes the right answer; B3's checker REFUSES 'overhead none' on case C (DECLARATION_AGAINST_SOURCE:overhead); kit run_kit.py --dry exits 0; payload_paths holds no tools/i05_kit file",
+    "arm_N_case_A_real_run_here": "PASSED in the copy: verdict FEASIBLE, peak 9 (the frozen expectation), acceptance failures none, model turns 0, 9 steps all deduced, repeats blocked 0, no open condition at finish, no questions, K1 K2 K3 true. Took 33.5 s for the case (24.8 s of it joined.result: Calc, Python, Writer and the PDF) plus 34.7 s of setup; the process took 70 s in all. So on this machine the prediction 'under 10 s each' is not met by wall time, because of the native chain; the model's own time is 0."
+  },
+  "not_done": [
+    "No model was loaded and no model arm (A, B1, B2, B2@4096, B3) was run; only their command and dry plans were checked. The measurement is the owner's to run on his ThinkPad.",
+    "No everyday score harness, no sealed sets, no tests (the owner's rule).",
+    "Arms B1 and B2 did not exist in code before this slice; they are built here as the specification and the model-in-loop design (section 9, PROPOSE-2 and NEXT schemas in 6.2) describe them. That is my reading of the specification, not code it already had.",
+    "workbench.i05_arms is not added to tools/check_hatch.py's on-demand list (that file is shared; an entry is not required because the module is not named *_checks)."
+  ],
+  "decisions": [
+    "Conditions arms read the result with joined.result after joined.run; the acceptance checks that result (run_case checks the joined.run observation of today's loop, which holds the result in the adaptive record).",
+    "Model turns go through 0.8.7's turns.ask as background kinds with fixed deadlines of 60 s (NEXT) and 120 s (mapping), as the specification set them, because the foreground cap is 20 s and B1 asks more than 3 turns per case. The kinds are registered on first use so that her app's brief priming never picks them up.",
+    "'No prompt reuse' in B1/B2/B3: turns are priced as all new and nothing is primed. local_brain still always sends cache_prompt=True, so the server's single slot may reuse a shared prefix; I left local_brain alone and record cache_n per turn so a reader can see it. The README says so.",
+    "N asks one question card per stop (listing what it could not read), so 'questions to the owner' counts cards. A clause is read only if phrases from the frozen list cover all of it (joining words aside). That is strict on purpose: a negation or new wording asks the owner and is never taken as a licence.",
+    "B3's checker: the decoding, then the pairing unique typed matching settles, then any declaration a phrase licenses. Wording the desk cannot read is left to the model, and the method's own preview still checks it.",
+    "Model config defaults are the specification's (context 6144, 4 threads, 4480 MB). B2@4096 always runs at 4096. The kit takes --context, --memory-mb and --backend for the 35B.",
+    "Result files record the host only as OS and machine type, never its name."
+  ],
+  "existing_tests_changed": [],
+  "ran_on_thinkpad": false
+}

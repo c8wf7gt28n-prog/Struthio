@@ -1,0 +1,174 @@
+{
+  "cases": [
+    {
+      "key": "A",
+      "name": "Current_A",
+      "variables": [
+        {
+          "name": "current_limit",
+          "type": "quantity",
+          "unit": "A",
+          "value": "10"
+        },
+        {
+          "name": "pump",
+          "type": "quantity",
+          "unit": "A",
+          "value": "4"
+        },
+        {
+          "name": "heater",
+          "type": "quantity",
+          "unit": "A",
+          "value": "3"
+        },
+        {
+          "name": "controller",
+          "type": "quantity",
+          "unit": "A",
+          "value": "2"
+        },
+        {
+          "name": "pump_life",
+          "type": "interval",
+          "unit": "ms",
+          "start": "0",
+          "stop": "7000"
+        },
+        {
+          "name": "heater_life",
+          "type": "interval",
+          "unit": "s",
+          "start": "0",
+          "stop": "7"
+        },
+        {
+          "name": "controller_life",
+          "type": "interval",
+          "unit": "s",
+          "start": "6",
+          "stop": "12"
+        }
+      ],
+      "assumptions": [
+        "Fixed current capacity; constant additive resource demands; half-open lifetimes; fragmentation and indivisibility are not required by this resource model.",
+        "The demands are total declared envelopes including modeled overhead; no additional overhead is required."
+      ],
+      "expected_verdict": "FEASIBLE",
+      "expected_peak": "9"
+    },
+    {
+      "key": "B",
+      "name": "Current_B",
+      "variables": [
+        {
+          "name": "current_limit",
+          "type": "quantity",
+          "unit": "A",
+          "value": "10"
+        },
+        {
+          "name": "pump",
+          "type": "quantity",
+          "unit": "A",
+          "value": "6"
+        },
+        {
+          "name": "heater",
+          "type": "quantity",
+          "unit": "A",
+          "value": "3"
+        },
+        {
+          "name": "controller",
+          "type": "quantity",
+          "unit": "A",
+          "value": "2"
+        },
+        {
+          "name": "pump_life",
+          "type": "interval",
+          "unit": "ms",
+          "start": "0",
+          "stop": "7000"
+        },
+        {
+          "name": "heater_life",
+          "type": "interval",
+          "unit": "s",
+          "start": "0",
+          "stop": "7"
+        },
+        {
+          "name": "controller_life",
+          "type": "interval",
+          "unit": "s",
+          "start": "6",
+          "stop": "12"
+        }
+      ],
+      "assumptions": [
+        "Fixed current capacity; constant additive resource demands; half-open lifetimes; fragmentation and indivisibility are not required by this resource model.",
+        "The demands are total declared envelopes including modeled overhead; no additional overhead is required."
+      ],
+      "expected_verdict": "INFEASIBLE",
+      "expected_peak": "11"
+    },
+    {
+      "key": "C",
+      "name": "Overhead_unknown",
+      "variables": [
+        {
+          "name": "current_limit",
+          "type": "quantity",
+          "unit": "A",
+          "value": "10"
+        },
+        {
+          "name": "pump",
+          "type": "quantity",
+          "unit": "A",
+          "value": "4"
+        },
+        {
+          "name": "heater",
+          "type": "quantity",
+          "unit": "A",
+          "value": "3"
+        },
+        {
+          "name": "controller",
+          "type": "quantity",
+          "unit": "A",
+          "value": "2"
+        },
+        {
+          "name": "pump_life",
+          "type": "interval",
+          "unit": "ms",
+          "start": "0",
+          "stop": "7000"
+        },
+        {
+          "name": "heater_life",
+          "type": "interval",
+          "unit": "s",
+          "start": "0",
+          "stop": "7"
+        },
+        {
+          "name": "controller_life",
+          "type": "interval",
+          "unit": "s",
+          "start": "6",
+          "stop": "12"
+        }
+      ],
+      "assumptions": [
+        "Fixed current capacity; constant additive resource demands; half-open lifetimes; fragmentation and indivisibility are not required by this resource model.",
+        "Additional per-resource overhead is present and unbounded. The listed amounts exclude that overhead. No bound has been supplied."
+      ],
+      "expected_verdict": "UNSUPPORTED"
+    }
+  ]
+}
