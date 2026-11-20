@@ -1,0 +1,578 @@
+diff --git a/docs/GRAPHITE_0.1_REGISTRY.json b/docs/GRAPHITE_0.1_REGISTRY.json
+index a3bb033..009aab2 100644
+--- a/docs/GRAPHITE_0.1_REGISTRY.json
++++ b/docs/GRAPHITE_0.1_REGISTRY.json
+@@ -778,10 +778,6 @@
+     "adapter": null,
+     "store": "Kernel settings: ledger.agent.continue_when_closed"
+    },
+-   "appearance.cursive": {
+-    "adapter": null,
+-    "store": "Session cursive"
+-   },
+    "appearance.writing_marker": {
+     "adapter": null,
+     "store": "Session writing_marker"
+@@ -976,7 +972,7 @@
+   "adapters": 771,
+   "job_tools": 113,
+   "operations": 771,
+-  "settings": 49
++  "settings": 48
+  },
+  "formulas": {
+   "arguments": "sha256 of the operation argument schema, canonical JSON; properties: its first 16 hex digits per top-level property",
+@@ -4317,9 +4313,9 @@
+    "scope": "read"
+   },
+   "ledger.settings.apply": {
+-   "arguments": "4df2cbb37554351b242ae5ce77d808aa884ba111d9797d69e64e5208711c8dc9",
++   "arguments": "056df0d0b75b6f2f046aecc5665e4df87f41a2922847b51f66f12e7812102b16",
+    "properties": {
+-    "changes": "3ddde82a4b4661d1"
++    "changes": "0dd49a60a957d033"
+    },
+    "scope": "execute"
+   },
+@@ -7546,7 +7542,7 @@
+  },
+  "release": "Graphite 0.8.3",
+  "schema": "graphite.registry-record/1",
+- "schema_digest": "0204af3878423b62f1dc643ce3ec1a79b6edf62c2e1b627aeb62009bfd38d743",
++ "schema_digest": "4953a87c0827601b079e162395bd5c424ca9173101a7d6fa31f0e865282558a6",
+  "settings": {
+   "agent.continue_when_closed": {
+    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",
+@@ -7570,27 +7566,6 @@
+     "type": "a5b031ab62bc416d"
+    }
+   },
+-  "appearance.cursive": {
+-   "definition": "54145fbd45773e40fce1bcce72cb0f169e4066f86e659a08a49d34452dc05cfd",
+-   "fields": {
+-    "application": "60060042289e5269",
+-    "category": "b69fc1f8128958fc",
+-    "default": "b5bea41b6c623f7c",
+-    "dependencies": "4f53cda18c2baa0c",
+-    "description": "d21b1c359d81b3f3",
+-    "effect": "6e147f9faa0f77a3",
+-    "group": "b69fc1f8128958fc",
+-    "key": "f9334ea43872c3f6",
+-    "label": "c8206d25e4aaeaaa",
+-    "overrides": "4f53cda18c2baa0c",
+-    "root": "e41b7584e2350adb",
+-    "scope": "d018c242b62e9632",
+-    "scope_id": "42ade3e67c83e36d",
+-    "store": "9a9b692b00ea5203",
+-    "supported_scopes": "4a75b2b8e1edbccc",
+-    "type": "a5b031ab62bc416d"
+-   }
+-  },
+   "appearance.writing_marker": {
+    "definition": "f76f894c7da66437b96fcf1d9457f294530a602742d198a10c7263940f7b6d31",
+    "fields": {
+@@ -8694,7 +8669,7 @@
+    }
+   }
+  },
+- "settings_digest": "ced6bee1ff55370e326f3e005df57ac851f3624e74a63b5bd7868490e0b9565c",
++ "settings_digest": "78523519ff04114b580ed7a2cf8081487c93204733843f3ea935186c7408abdd",
+  "settings_order": [
+   "reading.family",
+   "reading.prose_family",
+@@ -8715,7 +8690,6 @@
+   "operations.priority",
+   "operations.services_enabled",
+   "cabinet.sort",
+-  "appearance.cursive",
+   "layout.navigator_width",
+   "layout.output_height",
+   "layout.output_visible",
+diff --git a/docs/SETTINGS_INVENTORY_07.md b/docs/SETTINGS_INVENTORY_07.md
+index c90801a..26d620c 100644
+--- a/docs/SETTINGS_INVENTORY_07.md
++++ b/docs/SETTINGS_INVENTORY_07.md
+@@ -18,7 +18,6 @@ records every definition's digest and the settings digest in `docs/GRAPHITE_0.1_
+ | Canonical key | Visible control (Settings → root → group → label) | Default | Actual scope | Backing store |
+ | --- | --- | --- | --- | --- |
+ | agent.continue_when_closed | Assistant → Assignments → Continue assignments while Graphite is closed | true | Project private (owner only) | Kernel settings: ledger.agent.continue_when_closed |
+-| appearance.cursive | Workspace → Appearance → Script for incidental text | true | Connected session profile | Session cursive |
+ | appearance.writing_marker | Workspace → Appearance → Writing marker | true | Connected session profile | Session writing_marker |
+ | brain.context | Assistant → Local model → Model context tokens | 2048 | Owner-controlled launch defaults in this workspace (owner only) | Kernel settings: ledger.brain.context |
+ | brain.memory_mb | Assistant → Local model → Model memory cap (MiB) | 0 | Owner-controlled launch defaults in this workspace (owner only) | Kernel settings: ledger.brain.memory_mb |
+@@ -78,6 +77,7 @@ options. `QSettings` is not used anywhere.
+ | Existing field or control | Classification and treatment |
+ | --- | --- |
+ | Session `writing_marker` (new in DESKTOP-01) | Genuine boolean presentation preference, adapted as `appearance.writing_marker` (above). It is the reversible, quiet-motion-aware form of the owner's decorative X; it never changes editing behaviour, so it is public presentation state in `ledger.context` and a cloud proposal may Set it like favorites. |
++| Session `cursive` (the setting appearance.cursive, "Script for incidental text") | Retired in 0.8.4: the script it named is off in every look, so a change to it changed nothing on screen (the rule "a control is lit only when a press would do something"; its menu toggle went first). It left the registry and the recorded registry; a Session file that holds the field loads without it and the next save leaves it out; journal rows of it are shown in the history, never undone. Evidence: `tests_integrated/test_lit_controls.py`. |
+ | Hardware category_views: Auto view, Details, Thumbnails | Adapted in INTEGRATION-01 as `hardware.category_views`; the editor now sizes its frame to its rows up to a cap that scales with the interface size, runs its Tab order pane by pane into Apply, and names each combo for assistive technology (DESKTOP-01, V-08 / ACC-06 / ACC-07 / ACC-10). |
+ | Orange Book `auto_refresh` (`.ledger/orange_book_enabled.json`, checkbox "Automatic updates", default from `docs/orange_book/bindings.json`, env override `ARC_LEDGER_DISABLE_BOOK_WATCHER`) | Genuine boolean preference, previously absent from this table. Retained in its original control (Orange Book panel checkbox); not adapted in INTEGRATION-01, reason: project-private boolean with an env override and a watcher consumer; candidate for a later slice. |
+ | Window geometry, dock state and engineering split state | Saved workspace arrangement, retained by the original restore paths. No scalar setting invented. |
+diff --git a/docs/WINDOW_CHECKS.md b/docs/WINDOW_CHECKS.md
+index 743457c..5421558 100644
+--- a/docs/WINDOW_CHECKS.md
++++ b/docs/WINDOW_CHECKS.md
+@@ -96,7 +96,8 @@ the workshop and Game; the cabinet tree's right-click is the desk's own menu; Ap
+ slab holds its face in its own sheet, before the line's colours. The script now reads the sheet that way; the program was right.
+ 
+ `check_settings_02_ui` had pressed a menu toggle, "Pleasantries in script", that wrote a setting nothing reads. The toggle
+-is gone (`tests_integrated/test_lit_controls.py`); the check now edits the setting in Settings.
++is gone (`tests_integrated/test_lit_controls.py`), and in the release pass the setting itself, "Script for incidental
++text" (appearance.cursive), was retired; the check now edits the writing marker in Settings, a boolean whose change shows.
+ 
+ ## Faults found while doing this
+ 
+diff --git a/tests_integrated/test_graphite.py b/tests_integrated/test_graphite.py
+index faa39fb..00714d7 100644
+--- a/tests_integrated/test_graphite.py
++++ b/tests_integrated/test_graphite.py
+@@ -369,7 +369,7 @@ class TodayWorkspaceWordsTests(unittest.TestCase):
+             root=locations.ensure_workspace(Path(tmp)/'north',name='North field')
+             host=SimpleNamespace(root=root,_viewer_recent=[],reading_profile={'ui_pt':14},resume_workspace=lambda:None,
+                                  open_in_viewer=lambda *a:None,open_document=lambda *a:None,
+-                                 session=SimpleNamespace(state={'recent':['Survey/second/gate posts.md'],'cursive':False}))
++                                 session=SimpleNamespace(state={'recent':['Survey/second/gate posts.md']}))
+             with patch.object(shell2,'call',return_value=None),patch.object(agent_qt,'today_rows',return_value=[]):
+                 today=shell2.TodayPage(host);self.addCleanup(today.deleteLater);today.fill()
+             rows=[l.text() for l in today.continue_.findChildren(QLabel)]
+diff --git a/tests_integrated/test_lit_controls.py b/tests_integrated/test_lit_controls.py
+index e2d2744..caff8b4 100644
+--- a/tests_integrated/test_lit_controls.py
++++ b/tests_integrated/test_lit_controls.py
+@@ -1,19 +1,25 @@
+ """0.8.4: a control is lit only when a press would do something.
+ 
+-The rule is the record's. Its case here is the menu toggle "Pleasantries in script", found on 14 November 2026 when the
+-window checks were measured. It stood ticked in the menus (last under Tools, Engineering, More) and wrote the setting
+-appearance.cursive; but the script it named is off in every look (shell2.cursive_on answers no, whatever is stored), so a
+-press changed a stored value and nothing on the screen. The toggle and its menu entry are gone.
+-
+-The setting itself stays where it was, in the registry and in the session file: a value saved by an earlier Graphite is read
+-as before, Settings can still change it, and neither changes anything on the screen.
++The rule is the record's. Its case here is the Paper script for the quieter words, which is off in every look
++(shell2.SCRIPT_ON). Two controls still offered it in 0.8.3, and each changed a stored value and nothing on the screen:
++the menu toggle "Pleasantries in script", found on 14 November 2026 when the window checks were measured (it stood ticked
++in the menus, last under Tools, Engineering, More), and the setting it wrote, appearance.cursive, offered in Settings as
++"Script for incidental text". The toggle went first; the setting followed in the release pass (the owner's default,
++19 November, in the build record).
++
++The setting is retired the way the code base retires one: its definition leaves the registry (and the recorded registry,
++tools/record_registry.py), the desktop's readback and the Session's adapters let it go, and a journal row of it is shown in
++the history, never undone (ledger_control.history). A Session file or a journal that still holds the old value loads
++without a word and without an error, and the value never comes back on screen.
+ 
+ The real window, offscreen, on a new profile and workspace for each test; no provider request, worker launch, job, or
+ session or power call.
+ """
++import json
+ import os
+ import platform
+ import tempfile
++import time
+ import unittest
+ from pathlib import Path
+ from unittest.mock import patch
+@@ -22,6 +28,8 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+ from workbench.session import Session
+ 
+ TOGGLE = 'Pleasantries in script'
++KEY = 'appearance.cursive'      # the retired setting
++LABEL = 'Script for incidental text'      # its words in Settings until 0.8.4
+ 
+ 
+ def menu_words(menu, seen=None):
+@@ -35,7 +43,32 @@ def menu_words(menu, seen=None):
+     return out
+ 
+ 
+-class TheScriptToggle(unittest.TestCase):
++def tree_words(tree):
++    """Every column's words of every row of a tree, through its branches."""
++    out = []
++    def visit(item):
++        out.extend(item.text(column) for column in range(item.columnCount()))
++        for index in range(item.childCount()):visit(item.child(index))
++    for index in range(tree.topLevelItemCount()):visit(tree.topLevelItem(index))
++    return out
++
++
++def shown_words(window):
++    """The words of every widget shown in the window: labels, buttons, fields, passages, lists and trees."""
++    from PySide6.QtWidgets import QAbstractButton, QLabel, QLineEdit, QListWidget, QPlainTextEdit, QTextEdit, QTreeWidget
++    out = []
++    for widget in window.findChildren(QLabel) + window.findChildren(QAbstractButton) + window.findChildren(QLineEdit):
++        if widget.isVisible():out.append(widget.text())
++    for widget in window.findChildren(QPlainTextEdit) + window.findChildren(QTextEdit):
++        if widget.isVisible():out.append(widget.toPlainText())
++    for widget in window.findChildren(QTreeWidget):
++        if widget.isVisible():out += tree_words(widget)
++    for widget in window.findChildren(QListWidget):
++        if widget.isVisible():out += [widget.item(index).text() for index in range(widget.count())]
++    return out
++
++
++class TheScriptControls(unittest.TestCase):
+     def setUp(self):
+         from PySide6.QtWidgets import QMessageBox
+         from workbench import clip, locations, session_power
+@@ -49,6 +82,10 @@ class TheScriptToggle(unittest.TestCase):
+                      patch.object(Kernel, 'submit', side_effect=AssertionError('No job submission')), patch.object(session_power, 'system', side_effect=OSError('no login session (held)')),
+                      patch.object(QMessageBox, 'question', return_value=QMessageBox.No)):
+             hold.start();self.addCleanup(hold.stop)
++        # "Without a word": the message boxes a start could raise are held and counted (none may be raised)
++        self.said = []
++        for name in ('warning', 'critical', 'information'):
++            hold = patch.object(QMessageBox, name, return_value=QMessageBox.Ok);self.said.append(hold.start());self.addCleanup(hold.stop)
+         self.app = make_app([]);self.root = locations.office(run / 'workspace');self.path = run / 'profile' / 'session.json'
+ 
+     def settle(self, w, ms=30):
+@@ -68,10 +105,6 @@ class TheScriptToggle(unittest.TestCase):
+             w.close();self.settle(w);w.deleteLater();self.app.processEvents()
+         self.addCleanup(close);return w
+ 
+-    def row(self, w):
+-        from workbench import ledger_control
+-        return next(r for r in ledger_control.settings(w.ledger_bridge.kernel)['settings'] if r['key'] == 'appearance.cursive')
+-
+     def test_no_menu_and_no_action_offers_the_script_toggle(self):
+         from PySide6.QtGui import QAction
+         w = self.start()
+@@ -80,18 +113,55 @@ class TheScriptToggle(unittest.TestCase):
+         self.assertNotIn(TOGGLE, [action.text().replace('&', '') for action in w.findChildren(QAction)])      # 0.8.3: there, ticked, under Engineering ▸ More
+         self.assertFalse(hasattr(w.shell2, 'script_action'))
+ 
+-    def test_a_saved_choice_is_read_as_before_and_changes_nothing_on_screen(self):
+-        from workbench import shell2
++    def test_settings_does_not_offer_the_script_setting(self):
++        from workbench import ledger_control, settings_registry
++        from workbench.engineering_kernel import operator
++        self.assertNotIn(KEY, settings_registry.BY_KEY);self.assertNotIn(KEY, [spec['key'] for spec in settings_registry.SPECS])
++        self.assertNotIn('setting:' + KEY, [node['id'] for node in settings_registry.nodes()])
++        w = self.start();kernel = w.ledger_bridge.kernel
++        tab = w.ledger_bridge.show_settings();self.settle(w)
++        self.assertNotIn(KEY, [row['key'] for row in ledger_control.settings(kernel)['settings']])
++        nav = w.settings_navigator
++        self.assertIn('setting:appearance.writing_marker', nav.items, 'the settings tree was read');self.assertNotIn('setting:' + KEY, nav.items)
++        self.assertIn('Writing marker', tree_words(nav.tree));self.assertNotIn(LABEL, tree_words(nav.tree))
++        self.assertNotEqual(tab.key, KEY);self.assertFalse(any(LABEL in words or KEY in words for words in shown_words(w)))
++        # Nor does any door set it: the shared Set refuses it as an unknown setting, and the Session file is left as it was
++        w.session.save();before = self.path.read_bytes()
++        response = kernel.dispatch('ledger.settings.set', dict(key=KEY, value=False), operator())
++        self.assertFalse(response['ok'], response);self.assertEqual(self.path.read_bytes(), before)
++        self.assertNotIn('cursive', json.loads(before))
++        # The desktop's readback carries no value for it
++        w.ledger_bridge.publish_settings_readback()
++        with kernel.db() as db:receipt = json.loads(db.execute('SELECT value FROM settings WHERE key=?', ('ledger.settings_runtime.' + w.ledger_bridge.desktop_id,)).fetchone()[0])
++        self.assertIn('appearance.writing_marker', receipt['values']);self.assertNotIn(KEY, receipt['values'])
++
++    def test_a_session_file_and_journal_that_hold_the_old_value_load_without_a_word_and_it_stays_off_screen(self):
++        from PySide6.QtCore import Qt
++        from workbench import ledger_control
+         from workbench.engineering_kernel import operator
+-        session = Session(self.path, self.root);session.state['cursive'] = False;session.save()      # as an earlier Graphite left it, the toggle off
+-        w = self.start();row = self.row(w)
+-        self.assertIs(w.session.state['cursive'], False);self.assertIs(row['stored'], False)
+-        self.assertIs(shell2.cursive_on(w), False);self.assertIs(shell2.SCRIPT_ON[0], False)
+-        # Settings still changes the stored value, and the window follows the change without the toggle it used to tick
+-        response = w.ledger_bridge.kernel.dispatch('ledger.settings.set', dict(key=row['key'], value=True, expected_revision=row['revision']), operator())
+-        self.assertTrue(response['ok'], response);w.ledger_bridge.sync_profile(force=True);self.settle(w)
+-        self.assertIs(self.row(w)['stored'], True);self.assertIs(Session(self.path, self.root).state['cursive'], True)
+-        self.assertIs(shell2.cursive_on(w), False);self.assertIs(shell2.SCRIPT_ON[0], False, 'the script is off in every look, whatever is stored')
++        # A profile as an earlier Graphite left it: the script switched off, and Settings left open on that setting
++        session = Session(self.path, self.root);session.save();data = json.loads(self.path.read_text(encoding='utf-8'))
++        data.update(cursive=False, settings_navigation=dict(mode='settings', selected='setting:' + KEY, expanded=['settings:ledger', 'settings:ledger:appearance']))
++        self.path.write_text(json.dumps(data), encoding='utf-8')
++        loaded = Session(self.path, self.root);self.assertNotIn('cursive', loaded.state)
++        self.assertNotEqual(loaded.state.get('settings_navigation', {}).get('selected'), 'setting:' + KEY)
++        w = self.start();kernel = w.ledger_bridge.kernel
++        self.assertNotIn('cursive', w.session.state);self.assertNotEqual(getattr(w.ledger_bridge.show_settings(), 'key', None), KEY)
++        # ... and a journal row of it, as Settings recorded a change of it before 0.8.4
++        change = dict(id='retiredscript1', key=KEY, before=True, after=False, actor='desktop-owner', at=time.time(), undone=False, scope='session_profile')
++        with kernel.db() as db:db.execute('INSERT INTO settings VALUES(?,?)', ('ledger.change.' + change['id'], json.dumps(change)))
++        w.ledger_bridge.sync_profile(force=True);tab = w.ledger_bridge.show_settings(key='appearance.writing_marker');self.settle(w)
++        self.assertEqual(tab.key, 'appearance.writing_marker')
++        self.assertNotIn(KEY, [row.data(0, Qt.UserRole)['key'] for row in (tab.history.topLevelItem(i) for i in range(tab.history.topLevelItemCount()))])
++        self.assertFalse(any(LABEL in words or KEY in words for words in shown_words(w)), 'the retired setting is nowhere on screen')
++        # The history shows the row and never undoes it; the old value does not come back
++        row = next(r for r in ledger_control.history(kernel)['changes'] if r['id'] == change['id'])
++        self.assertTrue(row['orphaned']);self.assertFalse(row['can_undo'])
++        self.assertFalse(kernel.dispatch('ledger.settings.undo', {'id': change['id']}, operator())['ok'])
++        self.assertFalse(kernel.dispatch('ledger.settings.history', {'key': KEY}, operator())['ok'], 'asked by its key, it is an unknown setting')
++        w.session.save();self.assertNotIn('cursive', json.loads(self.path.read_text(encoding='utf-8')), 'the next save leaves the old field out')
++        self.assertNotIn('cursive', w.session.state)
++        self.assertEqual([box.call_count for box in self.said], [0, 0, 0], 'no message box was raised')
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/tests_integrated/test_settings_advanced.py b/tests_integrated/test_settings_advanced.py
+index e7afa41..4ef0641 100644
+--- a/tests_integrated/test_settings_advanced.py
++++ b/tests_integrated/test_settings_advanced.py
+@@ -27,11 +27,12 @@ class AdvancedSettingsTests(unittest.TestCase):
+     def set(self,key,value,principal=None):return self.call('ledger.settings.set',dict(key=key,value=value,expected_revision=self.row(key)['revision']),principal)
+     def batch(self,values):return [dict(key=k,value=v,expected_revision=self.row(k)['revision']) for k,v in values.items()]
+ 
+-    def test_cursive_reopens_and_undo_restores_actual_existing_field(self):
+-        change=self.set('appearance.cursive',False,self.slate)
+-        self.assertFalse(Session(self.session.path,self.root).state['cursive'])
++    def test_session_field_reopens_and_undo_restores_actual_existing_field(self):
++        # 0.8.4: on the writing marker; the script setting (appearance.cursive) it used to take is retired (test_lit_controls)
++        change=self.set('appearance.writing_marker',False,self.slate)
++        self.assertFalse(Session(self.session.path,self.root).state['writing_marker'])
+         self.call('ledger.settings.undo',{'id':change['id']})
+-        self.assertTrue(Session(self.session.path,self.root).state['cursive'])
++        self.assertTrue(Session(self.session.path,self.root).state['writing_marker'])
+ 
+     def test_integer_layout_ranges_and_page_names_validate_without_writes(self):
+         original=self.session.path.read_bytes()
+diff --git a/tools/check_settings_02_ui.py b/tools/check_settings_02_ui.py
+index f107c85..dce872e 100644
+--- a/tools/check_settings_02_ui.py
++++ b/tools/check_settings_02_ui.py
+@@ -47,15 +47,19 @@ w.resize(1920,1200);w.show();settle();bridge.tick();settle()
+ assert {'settings:ledger','settings:slate'}<=set(w.settings_navigator.items)
+ assert all('setting:'+spec['key'] in w.settings_navigator.items for spec in ledger_control.SPECS)
+ record(str(len(ledger_control.SPECS))+' registered definitions project into separate Ledger and Slate settings roots')
+-# The script setting is Settings' alone since 0.8.4: the menu toggle that wrote it changed nothing on screen and is gone
+-# (tests_integrated/test_settings_advanced.py). Apply reaches the Session's stored field and the shared history; Undo restores it.
+-assert not hasattr(w.shell2,'script_action')
+-tab=select('appearance.cursive');tab.boolean.setCurrentIndex(0);apply(tab)
+-assert read('appearance.cursive')['stored'] is False and Session(session.path,root).state['cursive'] is False
+-cursive=read('appearance.cursive')['latest_change'];assert cursive['key']=='appearance.cursive'
+-tab=select('appearance.cursive');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();bridge.tick();settle()
+-assert read('appearance.cursive')['stored'] is True and Session(session.path,root).state['cursive'] is True
+-record('The script setting is edited in Settings alone: Apply writes the Session field and the shared history, and registry Undo restores it')
++# A Session boolean edited in Settings: the writing marker (0.8.4: this step took the script setting, appearance.cursive, which
++# changed nothing on screen and is retired with its menu toggle; tests_integrated/test_lit_controls.py). Apply reaches the
++# Session's stored field, the shared history and the window's marker; Undo restores all three.
++assert not hasattr(w.shell2,'script_action') and 'setting:appearance.cursive' not in w.settings_navigator.items
++assert bridge.marker.enabled is True
++tab=select('appearance.writing_marker');tab.boolean.setCurrentIndex(0);apply(tab)
++assert read('appearance.writing_marker')['stored'] is False and Session(session.path,root).state['writing_marker'] is False
++assert bridge.marker.enabled is False and read('appearance.writing_marker')['effective'] is False
++marker=read('appearance.writing_marker')['latest_change'];assert marker['key']=='appearance.writing_marker'
++tab=select('appearance.writing_marker');QTest.mouseClick(tab.undo_button,Qt.LeftButton);settle();bridge.tick();settle()
++assert read('appearance.writing_marker')['stored'] is True and Session(session.path,root).state['writing_marker'] is True
++assert bridge.marker.enabled is True
++record('The writing marker is edited in Settings: Apply writes the Session field and the shared history and turns the marker off, and registry Undo restores it')
+ # Numeric settings preserve integer typing and read back actual dock dimensions.
+ tab=select('layout.navigator_width');number(tab,420);apply(tab)
+ actual=read(tab.key);assert type(actual['stored']) is int and actual['stored']==420
+diff --git a/workbench/control_qt.py b/workbench/control_qt.py
+index 0a8fcfa..d9b2fb6 100644
+--- a/workbench/control_qt.py
++++ b/workbench/control_qt.py
+@@ -134,7 +134,7 @@ class LedgerBridge(QObject):
+         self.desktop_id=host.desktop_lease.stem
+         ledger_control.bind(self.kernel,host.session);self.last_profile_mtime=None
+         self.startup_at_launch=host.session.state['view_preferences']['startup']
+-        self._cursive_applied=host.session.state.get('cursive',True);self._provider_revision=None
++        self._provider_revision=None
+         self._views_applied=dict(host.session.state.get('category_views',{}))
+         from . import writing_marker
+         self.marker=writing_marker.install(host);self._marker_applied=self.marker.enabled
+@@ -296,7 +296,6 @@ class LedgerBridge(QObject):
+         for key in ('reading_profile','view_preferences'):
+             if key in fresh.state:state[key]=fresh.state[key]
+         state['layout']['stacy_reactions']=fresh.layout['stacy_reactions']
+-        state['cursive']=fresh.state['cursive']
+         for key in ('toolbar_favorites','toolbar_favorites_version'):state[key]=fresh.state[key]
+         views=dict(fresh.state.get('category_views',{}));state['category_views']=views
+         if views!=self._views_applied:
+@@ -328,18 +327,6 @@ class LedgerBridge(QObject):
+             self.host.set_workspace_layout(state['view_preferences']['mode'],persist=False)
+         self.host.view_preferences['startup']=state['view_preferences']['startup']
+         if not state['layout']['stacy_reactions']:self.host.clip.presence.dismiss()
+-        if self._cursive_applied!=state['cursive'] and hasattr(self.host,'shell2'):
+-            from .shell2 import cursive_on,pleasantry,quiet_script
+-            self._cursive_applied=state['cursive'];cursive_on(self.host)
+-            self.host.shell2.restyle(getattr(self.host,'reading_profile',None))
+-            for label in self.host.findChildren(QLabel):
+-                if label.property('pleasantry'):pleasantry(label,self.host,int(label.property('pleasantry_px') or 26))
+-                elif label.property('quiet_script'):quiet_script(label)
+-                elif label.property('quiet_words'):label.restyle()  # the panes' notes (shell2.QuietWords)
+-            top=getattr(self.host.shell2,'top',None)
+-            if top is not None:top.ledger_head()  # the word Graphite: the script, or print with the script off
+-            inspector=getattr(self.host,'arc_inspector',None)
+-            if inspector is not None:inspector.refresh()  # the Context face's notes (shell2.Note) in the script or print
+         for row in ledger_control.settings(self.kernel,'Workspace')['settings']:
+             key=row['key']
+             if key not in self._layout_revisions or self._layout_revisions[key]==row['revision']:continue
+@@ -404,9 +391,6 @@ class LedgerBridge(QObject):
+         values['workspace.startup']={'requested':self.startup_at_launch,'effective':self.startup_at_launch}
+         reactions=self.host.session.layout['stacy_reactions']
+         values['stacy.reactions']={'requested':reactions,'effective':reactions}
+-        if hasattr(self.host,'shell2'):
+-            from .shell2 import SCRIPT_ON
+-            values['appearance.cursive']={'requested':self._cursive_applied,'effective':SCRIPT_ON[0]}
+         values['layout.navigator_width']={'requested':self._layout_requested['layout.navigator_width'],'effective':self.host.nav_dock.width()}
+         visible=self.host.output_dock.isVisible()
+         values['layout.output_visible']={'requested':self._layout_requested['layout.output_visible'],'effective':visible}
+diff --git a/workbench/ledger_control.py b/workbench/ledger_control.py
+index d910ec9..5498d8a 100644
+--- a/workbench/ledger_control.py
++++ b/workbench/ledger_control.py
+@@ -84,7 +84,6 @@ def value(kernel, key, current_session=None):
+     if key.startswith('favorites.'):
+         from sdk.cli.arc1cli.command_bar import FAVORITE_KEYS, session_favorites
+         return session_favorites(s.state)[FAVORITE_KEYS[key]]
+-    if key=='appearance.cursive':return s.state.get('cursive',BY_KEY[key]['default'])
+     if key.startswith('layout.'):return s.layout[key.split('.',1)[1]]
+     if key.startswith('gemini.'):
+         from .clip import preferences
+diff --git a/workbench/presentation_preferences.py b/workbench/presentation_preferences.py
+index ca3bcd1..2d8c0e2 100644
+--- a/workbench/presentation_preferences.py
++++ b/workbench/presentation_preferences.py
+@@ -4,7 +4,6 @@ DEFAULTS = {'navigator_width':285, 'output_height':170, 'output_visible':False,
+             'self_tree_expanded':['root'], 'hardware_tree_expanded':['root'], 'stacy_reactions':True}
+ OUTPUT_TABS = ('Output','Problems','Debug','Agent Activity')
+ LAYOUT_RANGES = {'navigator_width':(160,600), 'output_height':(80,700)}
+-CURSIVE_DEFAULT = True
+ # The whole window's looks (0.8.0), each with the word it is chosen by: the one list of them (0.8.4). The theme draws
+ # them (boss_theme.APPEARANCES is this list, with a palette for each) and the session keeps one for the next start; the
+ # session reads the list here, so it never imports the theme.
+diff --git a/workbench/programs_qt.py b/workbench/programs_qt.py
+index 7d915c7..b936a7c 100644
+--- a/workbench/programs_qt.py
++++ b/workbench/programs_qt.py
+@@ -409,7 +409,7 @@ class Margin(QWidget):
+ 
+ 
+ class Caption(QWidget):
+-    """A menu's small caption you may skip, in the Paper script (print when the script is off, shell2.cursive_on), at the menu's
++    """A menu's small caption you may skip, in the Paper script (print when the script is off, shell2.SCRIPT_ON), at the menu's
+     far end from its anchor: the programs list's at its top, the System menu's at its foot (point-mirror images). One height
+     in both menus: the script's line."""
+     def __init__(self, menu, words):
+diff --git a/workbench/session.py b/workbench/session.py
+index 0aad5d3..c10f44e 100644
+--- a/workbench/session.py
++++ b/workbench/session.py
+@@ -24,7 +24,7 @@ LAYOUT_VERSION = 2          # bump when the dock layout changes; old saved layou
+ MAX_FILE = 128 * 1024
+ MAX_DOCS = 20
+ MAX_RECENT = 10
+-from .presentation_preferences import DEFAULTS, OUTPUT_TABS, CURSIVE_DEFAULT, appearance as saved_appearance
++from .presentation_preferences import DEFAULTS, OUTPUT_TABS, appearance as saved_appearance
+ SELF_TREE_IDS = {'root', 'interface', 'source', 'clip', 'tools', 'simulator', 'tests', 'settings', 'recovery'}
+ # Desktop fields restored with bounds since INTEGRATION-01 (they were written on every save but never read back).
+ TYPE_TARGETS = ('slate', 'stac', 'kernel', 'find', 'shell', 'web', 'log')   # typebar_qt.MAPPED keys (D3: the four modes and the old targets); Qt-free
+@@ -86,7 +86,7 @@ class Session:
+ 
+     def fresh(self):
+         return {'schema': SCHEMA, 'project': self.project, 'documents': [], 'active': None,
+-                'view_preferences': dict(VIEW_DEFAULT), 'cursive':CURSIVE_DEFAULT,
++                'view_preferences': dict(VIEW_DEFAULT),
+                 'target': DEFAULT_TARGET, 'last_game': None, 'recent': [], 'toolbar_favorites': {}, 'toolbar_favorites_version':2,
+                 'layout': dict(DEFAULTS, self_tree_expanded=['root'], hardware_tree_expanded=['root'], version=LAYOUT_VERSION,
+                                geometry=None, dock_state=None)}
+@@ -119,7 +119,8 @@ class Session:
+         idle_minutes = data.get('idle_display_minutes')
+         if type(idle_minutes) is int and idle_minutes in IDLE_DISPLAY_MINUTES:
+             s['idle_display_minutes'] = idle_minutes
+-        if type(data.get('cursive')) is bool:s['cursive']=data['cursive']
++        # 'cursive' (the setting appearance.cursive, retired in 0.8.4) is not read: a file that holds it loads as before, and
++        # the next save leaves it out.
+         seen=data.get('field_zoom')     # how the Field's desk was last seen: its size, and whether the whole desk was asked for
+         if (isinstance(seen,dict) and type(seen.get('whole')) is bool and type(seen.get('zoom')) in (int,float) and 0.3<=seen['zoom']<=2.0):
+             s['field_zoom']={'zoom':float(seen['zoom']),'whole':seen['whole']}
+diff --git a/workbench/session_settings.py b/workbench/session_settings.py
+index 9a37dc3..f70c135 100644
+--- a/workbench/session_settings.py
++++ b/workbench/session_settings.py
+@@ -18,7 +18,6 @@ def write_value(session,key,value):
+         from sdk.cli.arc1cli.command_bar import FAVORITE_KEYS, session_favorites
+         groups=session_favorites(session.state);groups[FAVORITE_KEYS[key]]=list(value)
+         session.state['toolbar_favorites']=groups;session.state['toolbar_favorites_version']=2
+-    elif key=='appearance.cursive':session.state['cursive']=value
+     elif key.startswith('layout.'):session.set_layout(**{key.split('.',1)[1]:value})
+     elif key=='stacy.reactions':session.set_layout(stacy_reactions=value)
+     elif key.startswith('workspace.'):session.state['view_preferences'][key.split('.',1)[1]]=value
+@@ -32,7 +31,6 @@ def refresh_session(session,kernel):
+     if not session.path.is_file():return
+     session.state['reading_profile']=reading_profile.clean(fresh.state.get('reading_profile',{}))
+     session.state['view_preferences']=fresh.state['view_preferences']
+-    session.state['cursive']=fresh.state['cursive']
+     for key in ('toolbar_favorites','toolbar_favorites_version'):session.state[key]=fresh.state[key]
+     # The whole map is shared state now; a bound desktop must not resurrect its stale copy over another writer's save.
+     session.state['category_views']=dict(fresh.state.get('category_views',{}))
+diff --git a/workbench/settings_registry.py b/workbench/settings_registry.py
+index 75c85c1..db80b8f 100644
+--- a/workbench/settings_registry.py
++++ b/workbench/settings_registry.py
+@@ -5,7 +5,7 @@ from cabinet records, and only scopes with real backing stores are advertised.
+ """
+ import re
+ from . import reading_profile
+-from .presentation_preferences import DEFAULTS, OUTPUT_TABS, LAYOUT_RANGES, CURSIVE_DEFAULT
++from .presentation_preferences import DEFAULTS, OUTPUT_TABS, LAYOUT_RANGES
+ 
+ 
+ def spec(key, label, category, default, kind, description, **extra):
+@@ -54,9 +54,9 @@ SPECS += [
+          'Case-insensitive natural order keeps Project 2 before Project 10. Alphabetical order compares the label as text. This changes presentation only.',
+          choices=['natural','alphabetical'],group='Cabinet',scope='Workspace private',scope_id='project_private',supported_scopes=['project_private'],
+          store='Kernel settings: ledger.cabinet.sort',application='next_use',effect='Next cabinet refresh'),
+-    spec('appearance.cursive','Script for incidental text','Appearance',CURSIVE_DEFAULT,'boolean',
+-         'Use the existing script accent for incidental text. Working text stays in the reading fonts.',
+-         application='immediate',effect='After desktop presentation readback',store='Session cursive'),
++    # appearance.cursive, "Script for incidental text", was retired in 0.8.4: the script it named is off in every look, so a
++    # change to it changed nothing on screen. A Session file that still holds its field loads without it (session.py), and
++    # a journal row of it is shown in the history, never undone (ledger_control.history; tests_integrated/test_lit_controls.py).
+     *[spec('layout.'+key,label,'Workspace',DEFAULTS[key],'integer',description,
+            group='Layout',application='immediate',effect='After desktop layout readback',
+            store='Session layout.'+key,minimum=LAYOUT_RANGES[key][0],maximum=LAYOUT_RANGES[key][1])
+diff --git a/workbench/shell2.py b/workbench/shell2.py
+index 2a8cb26..5f940c0 100644
+--- a/workbench/shell2.py
++++ b/workbench/shell2.py
+@@ -76,7 +76,7 @@ def load_fonts(root):
+     return PLEX_SANS in QFontDatabase.families()
+ 
+ 
+-SCRIPT_ON = [False]  # the owner's choice, for words drawn without a window at hand (card notes)
++SCRIPT_ON = [False]  # the Paper script's one switch: off in every look (readable lettering); tests turn it on to check the drawing
+ 
+ 
+ def apps_mark(button, host):
+@@ -98,12 +98,6 @@ def apps_mark(button, host):
+     return True
+ 
+ 
+-def cursive_on(host):
+-    # Preserve the stored paper-theme preference; BOSS uses readable terminal lettering.
+-    SCRIPT_ON[0] = False
+-    return False
+-
+-
+ def script_room(text, px):
+     """(left, right, bottom): how far the Paper script's ink reaches past its words' advance at px (D1-fix: Parisienne's G, S, E
+     and i reach left of their origin, a last letter's swash right of its advance, a descender below the line's descent),
+@@ -153,7 +147,7 @@ class QuietWords(QLabel):
+     may skip (explain: the Paper script by the quiet-script rule). The desk's panes use it (HATCH DESK D1b; the owner,
+     2026-11-06: "Don't we like cursive font for 'less necessary to read' text"). explain(note, lead) keeps a printed lead
+     (a heading, a status) in print and sets only the note in script, after it on the same line (sep ' · ') or under it
+-    (sep '\\n'). Numbers stay printed: a note with a digit is print. With the script off (cursive_on: off in every look) it is all print.
++    (sep '\\n'). Numbers stay printed: a note with a digit is print. With the script off (SCRIPT_ON: off in every look) it is all print.
+     The print size is the window's own (base None) or base px at 14 pt; the script is 1.3 times the print size, and never
+     under quiet_script's 1.3 times 15 px (the script's x-height is small), both following the interface size. The words as
+     plain text are `words()`."""
+@@ -234,7 +228,7 @@ def quiet_html(text, px, print_px):
+ class Wordmark(QLabel):
+     """The word Graphite alone at the upper left of the head band (the owner, 2026-11-06: "upper left Graphite should be
+     cursive"): the Paper script in the bands' erased paper, as if rubbed out of the shading, with a hairline of the same paper
+-    round its outline so the thin strokes hold on the grain; Plex SemiBold when the script is off (cursive_on) or the
++    round its outline so the thin strokes hold on the grain; Plex SemiBold when the script is off (SCRIPT_ON) or the
+     face is missing. It is drawn by its outline (QPainterPath), so the widget is the word's ink: the script's G reaches left of
+     its origin and its descenders fall below the line, so the ink's left edge is put on the widget's left edge (the band's
+     inset) and the ink is centred in the band's height, on the symbol's centre line; the pair measured on the boxes is the
+@@ -285,7 +279,7 @@ class Wordmark(QLabel):
+ def pleasantry(label, host, pixels):
+     """A short greeting or pleasantry in Paper's script, graphite; plain Plex italic when script is off or missing.
+     Only short words get this: menus, words to act on, file names, status and prose stay typeset."""
+-    if cursive_on(host) and SCRIPT in QFontDatabase.families():
++    if _script_ready():
+         size = round(pixels * 1.25);left, right, bottom = script_room(label.text(), size)  # D1-fix: room round its swashes
+         label.setStyleSheet('QLabel {font-family:\"%s\";font-size:%dpx;color:%s;font-weight:400;padding:0 %dpx %dpx %dpx;}' % (SCRIPT, size, TEXT, right, bottom, left))
+         label.setIndent(0)  # the room is exactly the swash's (with a padding Qt would add half an x of its own)
