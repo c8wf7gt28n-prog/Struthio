@@ -1,0 +1,58 @@
+{
+  "item": "C6a",
+  "status": "DONE",
+  "base_commit": "4bcabd35aea01f4b15744dd3fb1bd0b0bd2a8ff2",
+  "patch": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6a.patch",
+  "patch_applies_clean": true,
+  "notes": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6a.progress.md",
+  "files": {
+    "new": ["workbench/tables.py"],
+    "changed": [
+      "workbench/engineering_kernel.py (0.8.7 C6a block: import, CAPABILITIES entry, dispatch line for library.table)",
+      "workbench/engineering_cli.py (0.8.7 C6a: TABLE_FIELDS)",
+      "workbench/mind_words.py (one line: MODULES + workbench.tables, so her table words are swept by mind_words.check)",
+      "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in the throwaway copy with the three commands, copied back; the coordinator regenerates at merge)"
+    ]
+  },
+  "built": [
+    "tables.py cuts tables from a page after the doorway: runs of at least 3 lines with 2 or more cells and a number, no blank line inside, flagged lines never rows. The header line just above names the columns. Cells go to columns by span overlap, using a small ordered alignment so two cells never land in one column. Header-less tables cluster their cells. Tab and Markdown pipe tables are cut by index.",
+    "Three cards, each with a header dictionary, roles and needed roles. Statement: date, description, paid_out, paid_in, balance. Datasheet: parameter, symbol, conditions, min, typ, max, unit. Invoice: description, quantity, price, amount.",
+    "Role fits reuse page_marks' rules. Money roles take only decimal amounts (page_marks.AMOUNT on the whole cell). Units come from page_marks.unit_at (0.8.5's units table, time words and the known-unit list). Dates use page_marks.DATES and parse_date.",
+    "Exact closures, using Fraction from the decimal written (math_units.rational), with no float anywhere. Statement: opening − Σ out + Σ in = closing, written in column order, plus every running balance. Each running balance is checked against the printed balance before it, so only the misread row is named. Datasheet: min ≤ typ ≤ max on every row, and each row's numbers carry the unit of its own Unit cell, which must be a known unit. Invoice: quantity × price = amount on every row, the items add to the subtotal, and the subtotal (or the items) plus VAT, tax or delivery rows add to the total.",
+    "Naming order. 1: the header dictionary fixes a column when its cells fit the role. 2: if only one reading is left it stands, closing (CLOSES) or not (DISAGREES, naming the row). 3: if more than one reading is left, they are all tried against the closures; exactly one closing is taken by the desk with no model; more than one closing triggers the COLUMNS turn. 4: with no model, or a refused or late answer, she says cannot tell, lists the readings that close, and the owner picks (fallback ASK_OWNER).",
+    "COLUMNS turn, registered with turns.register (switch reading, caps: 30 answer tokens, 600 new tokens, 20 s; paper PAGES). Message 4 holds each column's header and two sample cells; message 2 is empty. The grammar is A3's grammars.columns(count, card.roles). Every column is asked when that fits the 30-token cap; otherwise only the columns the closing readings disagree on, renumbered. The model's roles are merged with the desk's and checked in order: every column once, role in card, role once, role fits the column (money on decimals), needed roles named, every closure exact, the header's own name kept, and the reading is among those that close. A refusal carries one reason and the failing closure's words.",
+    "Result shaped for her column: each table has its card, columns (role and named_by HEADER, CELLS, CLOSURES or MODEL), rows (datasheet rows carry a reading such as 'Current limit: 330 / 450 / 600 mA'), checks, state (CLOSES, DISAGREES, NO_CLOSURE, CANNOT_TELL or NO_CARD) and her lines. When the model named columns, 'model' holds {said as a ModelSaid record, mark CHECKED, turn}, and the top level has 'turns', so model_marks_qt.place shows the mark line and the fold.",
+    "Kernel op library.table {namespace, id, item?}: read scope. Its only effect is the COLUMNS turn record when a turn is sent (the same pattern as library.ask)."
+  ],
+  "smoke": {
+    "script": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6a/smoke.py",
+    "output": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b087/C6a/smoke.out",
+    "result": "21 PASS, 0 FAIL, run once on a throwaway copy (deleted after)",
+    "printed": [
+      "statement (the invented October page): CLOSES, all 5 columns named from headers, model_calls 0; 'rows close: 1,204.17 − 1,143.24 + 2,610.40 = 2,671.33, the closing balance.' and 'Each of the 7 running balances agrees.'",
+      "swapped reading through check_reading: CLOSURE_FAILS | '1,204.17 + 1,143.24 − 2,610.40 = −262.99, not 2,671.33, the closing balance; row of 01 Oct disagrees by 1,900.00: a cell may be misread'",
+      "the same swap as a COLUMNS answer on the fake worker (enforce_grammar on): outcome REFUSED, fallback ASK_OWNER, by_model False. The grammar sent equals grammars.columns(5, statement roles); worst estimate 30 tokens. The right answer is TAKEN.",
+      "88.10 misread as 88.70: DISAGREES; '1,204.17 − 1,143.84 + 2,610.40 = 2,670.73, not 2,671.33, the closing balance.' and 'row of 12 Oct disagrees by 0.60: a cell may be misread.' (only that row)",
+      "datasheet (the invented LDO-17 page 4): CLOSES; all 10 rows cut into the right columns; 'every row: min ≤ typ ≤ max.'; 'Current limit: 330 / 450 / 600 mA'. With typ changed to 650 it gives DISAGREES with 'row of Current limit: 330 ≤ 650 ≤ 600 is not in the order min ≤ typ ≤ max.'",
+      "invoice (invented): CLOSES; 'every row: quantity × price = amount.', 'the items add to the subtotal: 13.50 + 3.50 + 49.00 = 66.00.', 'the total closes: 66.00 + 13.20 = 79.20.' With 49.00 misprinted as 48.00: 'row of Terminal block: 4 × 12.25 = 49.00, not 48.00.'",
+      "invoice with headers the dictionary does not know (Dutch, invented): no model gives CANNOT_TELL with 2 readings ('The model was not asked (no model is loaded).'). A right fake answer is TAKEN, with the text columns named_by MODEL, the numeric ones CLOSURES, the mark CHECKED and the turn listed. Price and amount swapped is REFUSED ('row of Schroeven: 3 × 7.50 = 22.50, not 2.50') and nothing is shown as named. A late answer gives 'The model's reading was not used (it was late).'",
+      "Markdown pipe invoice: CLOSES. The hostile statement (tests_integrated/data/exam/pages_hostile/04): withheld lines 13 and 14 are outside the table, which CLOSES. A letter with no table gives 'No table on this page.'",
+      "mind_words.check(): no problems for module tables; no float in tables.py; library.table scope 'read' in engineering_kernel.CAPABILITIES; COLUMNS ident COLUMNS/1#66aa3116ac34; turns.checker_modules() has no clip or gemini import"
+    ]
+  },
+  "decisions_where_design_silent": [
+    "A table whose header dictionary leaves only one reading keeps that reading even when its sums do not close: state DISAGREES, with the first failing closure and every disagreeing row named. This is how a misread cell is located instead of the table being thrown away. The search filters by closures only when more than one reading is open, as design 2.7 and lib-4 say. With none closing, she says cannot tell and names the nearest reading's first failure.",
+    "The model is asked about every column when the answer fits the 30-token cap (as the design's example C1 to C5 shows), so a swapped numeric reading can be refused. Otherwise only the columns the closing readings disagree on are asked, renumbered, so a 7-column datasheet still fits. Columns the closures settled are attributed to CLOSURES, not to the model.",
+    "The model's reading must also keep the header dictionary's own name for a column (NOT_THE_HEADERS_NAME) and be one of the readings the desk found to close: 'pick, never write'.",
+    "The running-balance check compares each row with the printed balance before it, not with a carried computed total. One misread cell then names one row, and the closing closure reports the total difference separately.",
+    "Sums are written in the order the columns stand, so the right and swapped readings read exactly as design 2.7 writes them ('1,204.17 − 1,143.24 + 2,610.40' and '1,204.17 + 1,143.24 − 2,610.40'). The minus sign is '−' and thousands commas are kept as the page writes them.",
+    "The fallback code is ASK_OWNER, with the readings that close listed for the owner to pick. Message 2 is empty and everything goes in message 4, as design 3.3 places COLUMNS' input there."
+  ],
+  "not_done": [
+    "No on-screen 'Read this table' button: reference_qt.py and her column are other builders' files. The result is shaped for model_marks_qt.place ('turns', and 'model' with mark CHECKED), but no window calls library.table yet.",
+    "Keeping a sheet through office.datasheet.create or an everyday sheet kind is not built (the design's Keep door).",
+    "Cutting PDF tables from word positions (datasheet_work.lines_in_region) is not used: text, tab and pipe pages only. Results tables, price lists and the generic Total row card of design_reading lib-4 are not built: only the three cards the task names.",
+    "No real model was loaded. The fake worker only. No tests were written or run, nothing was tested in the owner's sense, and nothing ran on the owner's ThinkPad. The 20-table prediction set was not built."
+  ],
+  "existing_tests_changed": "none"
+}

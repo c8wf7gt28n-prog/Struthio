@@ -415,6 +415,7 @@
    "library.read": "workbench/page_marks.py#dispatch",
    "library.rubout": "workbench/page_marks.py#dispatch",
    "library.search": "workbench/library_service.py#dispatch",
+   "library.table": "workbench/tables.py#dispatch",
    "links.catalog": "workbench/brain_link.py#dispatch",
    "links.inspect": "workbench/brain_link.py#dispatch",
    "links.trace": "workbench/brain_link.py#dispatch",
@@ -1022,9 +1023,9 @@
   }
  },
  "counts": {
-  "adapters": 824,
+  "adapters": 825,
   "job_tools": 113,
-  "operations": 824,
+  "operations": 825,
   "settings": 48
  },
  "formulas": {
@@ -4752,6 +4753,15 @@
    },
    "scope": "read"
   },
+  "library.table": {
+   "arguments": "d26a687667e9f7dac3defddf39af717e68dd8966680e23642bcfd12243a104f4",
+   "properties": {
+    "id": "8d84283928a18afc",
+    "item": "423010dfd115daf3",
+    "namespace": "423010dfd115daf3"
+   },
+   "scope": "read"
+  },
   "links.catalog": {
    "arguments": "fba82810a14481f27f7525ff46a94435414fbcbeb1ad75abc17c64fbafeadf13",
    "properties": {
@@ -8108,7 +8118,7 @@
  },
  "release": "Graphite 0.8.6",
  "schema": "graphite.registry-record/1",
- "schema_digest": "2e10135acc3a85a89def8df995602841e75f919abddeafb690933e581c630f35",
+ "schema_digest": "9d6f9a006cdfd8c27264da3026719f7b1816cb65c15d461e830ffe762b387f37",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

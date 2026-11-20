@@ -195,6 +195,7 @@ register('mind_words', {'footer': FOOTER, 'intro': INTRO}, kind='footer')
 KINDS = KINDS + ('frame',)
 MODULES = MODULES + ('workbench.voice_lexicon', 'workbench.voice_facts')
 MODULES = MODULES + ('workbench.model_account', 'workbench.model_marks_qt')      # 0.8.7 A4: the account's and the fold's words
+MODULES = MODULES + ('workbench.tables',)      # 0.8.7 C6a: tables that check themselves
 
 
 def frames(module=None):
