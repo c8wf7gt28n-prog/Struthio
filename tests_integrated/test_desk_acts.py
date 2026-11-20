@@ -3,7 +3,7 @@
 The owner, 14 November 2026: "a pass that builds as much capabilities of Kasandra to control the graphite interface ...
 eventually we're going to do that, and that opens up more testing options and simulating options".
 
-Pure rules (no window): the forty acts and their marks (navigates or changes); no act is a Kernel operation or could be taken
+Pure rules (no window): the forty-two acts (the owner's Stop and Put my window back since Kasandra's hand) and their marks (navigates or changes); no act is a Kernel operation or could be taken
 for one; no argument reaches another computer; the arguments checked with words; her hand's rule for acts (a read never
 asks, a navigation is offered at Ask first and done otherwise, a change follows her hand on its Kernel operation, what
 always asks still asks, an owner's act is never hers); the export is there but nothing offers it to her model; no word
@@ -39,7 +39,7 @@ REV_A='parameter,value,unit,conditions\nStartup duration limit,60,ms,\nStartup p
 REV_B='parameter,value,unit,conditions\nStartup duration limit,40,ms,\nStartup power ceiling,,,Up to 40 ms\n'
 READINGS,LIMITS_A,LIMITS_B='Rail Demo bench readings','Rail Demo limits Rev A ARCHIVED','Rail Demo limits Rev B CURRENT'
 SEED=((READINGS+'.csv',BENCH),(LIMITS_A+'.csv',REV_A),(LIMITS_B+'.csv',REV_B))
-OWNER_ONLY={'hand.approve','hand.undo','hand.dial','look.set','type.send'}
+OWNER_ONLY={'hand.approve','hand.undo','hand.dial','look.set','type.send','hand.stop','hand.putback'}      # 0.8.6 S0, her door: Stop and Put my window back
 # The tables reading writes to: the journal's own (a read of the journal makes its bookkeeping), the Kernel's audit of
 # every request that is not an observer's, and the instruction matrix, which records every line that runs (a read line
 # too: Then, a trace, a doubt), as it does when the owner runs one by hand. Measured on runs of reads only; every other
@@ -152,8 +152,8 @@ def tearDownModule():
 class PureRules(unittest.TestCase):
     def test_forty_acts_and_their_marks(self):
         from workbench.engineering_kernel import CAPABILITIES
-        self.assertTrue(30<=len(ACTS)<=40,len(ACTS))
-        self.assertEqual(len(ACTS),40)
+        self.assertTrue(30<=len(ACTS)<=42,len(ACTS))
+        self.assertEqual(len(ACTS),42)      # 40 of 0.8.2, and the owner's hand.stop and hand.putback (Kasandra's hand, first slice)
         for name,a in ACTS.items():
             self.assertIn(a.mark,('navigates','changes'),name)
             self.assertEqual(a.schema['type'],'object',name);self.assertIs(a.schema['additionalProperties'],False,name)
@@ -568,7 +568,7 @@ class LiveActs(unittest.TestCase):
         self.assertIn('files.write',said('help hand.write'))
         self.assertIn('yours only',said('help hand.undo'))
         text=said('ops sheet.');self.assertIn('sheet.trace',text);self.assertIn('sheet.compare',text)
-        text=said('help acts');self.assertEqual(sum(1 for name in ACTS if re.search(r'(?m)^%s\b'%re.escape(name),text)),40)
+        text=said('help acts');self.assertEqual(sum(1 for name in ACTS if re.search(r'(?m)^%s\b'%re.escape(name),text)),42)
         console.prompt.setText('go.fi');console.mode='kernel';console.complete()
         self.assertIn(console.prompt.text(),('go.field','go.fi'))
 

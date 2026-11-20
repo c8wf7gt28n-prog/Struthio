@@ -22,7 +22,15 @@ failed), sizes the window, sets the dial and the motion, runs each step through 
 and puts the window back as it found it (menus closed, motion as it was). A step that waits for Approve, or that would open
 a window that asks, fails unless the scene expects it: an ask the scene did not declare is a finding, not a pass.
 
-Nothing here reaches into a widget: every step is an act, and every check reads what read.desk reads.
+A step may instead speak to her (Kasandra's hand, first slice): {say, dial?, until, seconds, touch_after?, expect}. The
+words are said in Talk as the owner types them there; the scene then waits until her hand's turn is done, waits for the
+owner, or stopped (`until`), at most `seconds`. `touch_after: n` sends one real press to the window, through the window
+system's own door (QTest's QWindow form), once n of her acts are done: the owner taking the window back. A step with
+`until` and no `say` waits on the turn already under way (after hand.approve). Its expectations read `turn.*` (her hand's
+record of the turn) and `desk.*`. `given.pace` sets the least time between two of her acts. A run may set its own `dial`,
+and a step its `only`: the runs it is played in (the Ask first run approves; the others do not wait).
+
+Nothing here reaches into a widget: every step is an act or words in Talk, and every check reads what read.desk reads.
 """
 import copy
 import decimal
@@ -35,6 +43,7 @@ from pathlib import Path
 from . import desk_acts
 
 SCHEMA = 'graphite.scene/1'
+UNTIL = {'done': ('finished',), 'waits': ('waits',), 'stopped': ('stopped',)}
 STYLES = ('pointer', 'keys')
 FORMS = ('contains', 'startswith', 'in', 'decimal', 'gte', 'lte', 'between', 'not')
 NOT_OBSERVED = '<not observed>'
@@ -209,12 +218,21 @@ def check_scene(scene):
             problems.extend('workspace %r: %s' % (name, problem) for problem in _find(there['find']))
     steps = scene.get('steps')
     if not isinstance(steps, list) or not steps:problems.append('the scene has no steps');steps = []
+    run_names = {r.get('name') for r in runs if isinstance(r, dict)} if isinstance(runs, list) else set()
     for n, step in enumerate(steps, 1):
         if not isinstance(step, dict):problems.append('step %d is not an object' % n);continue
+        if 'only' in step and (not isinstance(step['only'], list) or not set(step['only']) <= run_names):problems.append('step %d: only names runs the scene does not have' % n)
         act = step.get('act')
-        if act not in desk_acts.ACTS:problems.append('step %d: no act named %r' % (n, act));continue
-        try:desk_acts.check(act, step.get('args', {}))
-        except desk_acts.Refusal as refusal:problems.append('step %d: %s' % (n, refusal.words))
+        if 'act' not in step and ('say' in step or 'until' in step):
+            if step.get('until') not in UNTIL:problems.append('step %d: until is one of %s' % (n, ', '.join(UNTIL)))
+            if 'say' in step and (not isinstance(step['say'], str) or not step['say'].strip()):problems.append('step %d: say is words' % n)
+            if step.get('dial') not in (None, 'ask', 'show', 'free'):problems.append('step %d: dial is ask, show or free' % n)
+            if not isinstance(step.get('seconds', 30), (int, float)) or not 0 < step.get('seconds', 30) <= 300:problems.append('step %d: seconds is from 1 to 300' % n)
+            if 'touch_after' in step and (type(step['touch_after']) is not int or step['touch_after'] < 0):problems.append('step %d: touch_after is a whole number' % n)
+        elif act not in desk_acts.ACTS:problems.append('step %d: no act named %r' % (n, act));continue
+        else:
+            try:desk_acts.check(act, step.get('args', {}))
+            except desk_acts.Refusal as refusal:problems.append('step %d: %s' % (n, refusal.words))
         for key in ('expect',):
             if not isinstance(step.get(key, {}), dict):problems.append('step %d: %s is not an object' % (n, key))
         for key in ('expect_by_run', 'expect_by_seed', 'args_by_seed'):
@@ -225,7 +243,7 @@ def check_scene(scene):
             try:desk_acts.check(act, arguments(step, seed))
             except desk_acts.Refusal as refusal:problems.append('step %d, on %s: %s' % (n, seed, refusal.words))
         for path in list(step.get('expect', {})) + [p for v in step.get('expect_by_run', {}).values() for p in v] + [p for v in step.get('expect_by_seed', {}).values() for p in v]:
-            if not str(path).startswith(('act.', 'desk.')):problems.append('step %d: %r reads neither act. nor desk.' % (n, path))
+            if not str(path).startswith(('act.', 'desk.', 'turn.')):problems.append('step %d: %r reads neither act., desk. nor turn.' % (n, path))
     return problems
 
 
@@ -261,7 +279,11 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
     style = run['style']
     if given.get('size'):host.resize(*given['size'])
     host.show();host.raise_();host.activateWindow();desk_doers.settle(host, 40, 4)
-    if given.get('dial'):desk_doers.run(host, 'hand.dial', {'place': given['dial']}, door='script', origin=origin)
+    dial = run.get('dial', given.get('dial'))
+    if dial:desk_doers.run(host, 'hand.dial', {'place': dial}, door='script', origin=origin)
+    if given.get('pace') is not None:
+        from .her_hand_qt import hand
+        hand(host).pace_ms = max(0, int(given['pace']))
     before_motion = None
     if run.get('reduce_motion'):
         changed = desk_doers.run(host, 'look.set', {'motion': 'reduced'}, door='script', origin=origin)
@@ -269,13 +291,21 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
     out = {'run': run['name'], 'seed': seed, 'found': found, 'style': style, 'reduce_motion': bool(run.get('reduce_motion')), 'steps': []}
     try:
         for n, step in enumerate(scene['steps'], 1):
+            if 'only' in step and run['name'] not in step['only']:continue      # a step of another run
             started = time.monotonic();checks = []
             args = arguments(step, seed)          # worked out once: what the doer is given is what the row says it was given
             try:
-                envelope = desk_doers.run(host, step['act'], args, door='script', by=style, origin=origin,
-                                          word='scene %s step %d' % (scene.get('id', ''), n))
-                desk = desk_doers.read_desk(host, 'all')
-                tree = {'act': envelope, 'desk': desk}
+                if 'act' not in step and ('say' in step or 'until' in step):      # a step that speaks to her (0.8.6 S0)
+                    envelope, turn = say_step(host, step, origin)
+                    desk = desk_doers.read_desk(host, 'all')
+                    tree = {'act': envelope, 'desk': desk, 'turn': turn}
+                else:
+                    envelope = desk_doers.run(host, step['act'], args, door='script', by=style, origin=origin,
+                                              word='scene %s step %d' % (scene.get('id', ''), n))
+                    desk = desk_doers.read_desk(host, 'all')
+                    tree = {'act': envelope, 'desk': desk}
+                    from .her_hand_qt import hand
+                    if getattr(host, 'her_hand', None) is not None:tree['turn'] = hand(host).record()
                 want = expected(step, run['name'], seed)
                 for path, value in want.items():
                     got = lookup(tree, path);checks.append({'path': path, 'want': value, 'got': got, 'ok': matches(value, got)})
@@ -287,7 +317,9 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
             except Exception as exc:  # noqa: BLE001 - a step that breaks is a failed step with its message, and the run goes on
                 envelope = {'ok': False, 'by': None, 'words': '%s: %s' % (type(exc).__name__, exc)}
                 checks.append({'path': 'step', 'want': 'no exception', 'got': envelope['words'], 'ok': False})
-            row = {'n': n, 'act': step['act'], 'args': args, 'ok':all(c['ok'] for c in checks) if checks else bool(envelope.get('ok')),
+            row = {'n': n, 'act': step.get('act') or ('say' if 'say' in step else 'until'),
+                   'args': args if 'act' in step else ({'say': step['say']} if 'say' in step else {}),
+                   'ok': all(c['ok'] for c in checks) if checks else bool(envelope.get('ok')),
                    'done': bool(envelope.get('ok')), 'by': envelope.get('by'), 'words': envelope.get('words'), 'seconds': round(time.monotonic() - started, 3), 'checks': checks,
                    'result': envelope.get('result')}
             out['steps'].append(row)
@@ -296,6 +328,14 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
                 except Exception:  # noqa: BLE001 - a watcher's trouble is not the scene's
                     pass
     finally:
+        her = getattr(host, 'her_hand', None)
+        if her is not None:      # a turn the scene left moving is stopped, and her pace is her own again
+            try:
+                if her.active():her.stop('the scene ended');her.timer.stop();her.set_state('stopped')
+                from .her_hand_qt import PACE_MS
+                her.pace_ms = PACE_MS
+            except RuntimeError:
+                pass
         try:desk_doers.run(host, 'menu.close', {}, door='script', origin=origin)
         except Exception:  # noqa: BLE001
             pass
@@ -303,6 +343,44 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
             desk_doers.run(host, 'look.set', {'motion': before_motion}, door='script', origin=origin)
     out['passed'] = bool(out['steps']) and all(s['ok'] for s in out['steps'])
     return out
+
+
+def plays(step, run_name):
+    """Whether a step is played in this run."""
+    return 'only' not in step or run_name in step['only']
+
+
+def say_step(host, step, origin):
+    """Words said to her in Talk (or none), then wait on her hand's turn: (an envelope for the step, her record of the turn)."""
+    from . import desk_doers
+    from .her_hand_qt import hand
+    her = hand(host)
+    if step.get('dial'):desk_doers.run(host, 'hand.dial', {'place': step['dial']}, door='script', origin=origin)
+    if step.get('say'):host.shell2.face.ask(step['say'])
+    want = UNTIL[step.get('until', 'done')];end = time.monotonic() + float(step.get('seconds', 30))
+    touch = step.get('touch_after');touched = False
+    while time.monotonic() < end:
+        t = her.turn
+        if touch is not None and not touched and t is not None and t.done >= touch and t.state in ('thinking', 'acting'):
+            owner_press(host);touched = True
+        if t is not None and t.state in want and not (touch is not None and not touched and t.state != 'stopped'):break
+        desk_doers.settle(host, 20, 1)
+    record = her.record();record['touched'] = touched
+    ok = record.get('state') in want
+    return {'act': 'say', 'door': 'owner', 'ok': ok, 'by': 'talk', 'words': record.get('closing') or record.get('why') or '',
+            'result': {'state': record.get('state')}, 'error': None if ok else {'code': 'NOT_REACHED', 'words': 'her hand is %s' % record.get('state')},
+            'changed': record.get('changed') or []}, record
+
+
+def owner_press(host):
+    """One real press of the mouse on the window, as the window system delivers it (QTest's QWindow form): on the status
+    line at the foot, where a click changes nothing."""
+    from PySide6.QtCore import QPoint, Qt
+    from PySide6.QtTest import QTest
+    window = host.windowHandle()
+    bar = host.statusBar()
+    at = bar.mapTo(host, QPoint(bar.width() // 2, bar.height() // 2)) if bar is not None and bar.isVisible() else QPoint(host.width() // 2, host.height() - 4)
+    QTest.mouseClick(window, Qt.LeftButton, Qt.NoModifier, at)
 
 
 def failures(out):

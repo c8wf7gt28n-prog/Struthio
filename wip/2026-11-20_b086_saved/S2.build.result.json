@@ -1,0 +1,43 @@
+{
+  "summary": "S2 (lane C) built under the owner's 'No tests' rule. math_dates gains stage 'period': the last day of a period after an event, with the roll quoted from the owner's counting clause, listed and yearly holidays ('unless it is a public holiday; holidays not recorded' when none are recorded), an uncertain event (a set of days or a range, exact at both ends), the break-even by days (every reading / some reading, and 'on' for one day), and as_of with origin CLOCK from the Kernel's new engineering_kernel.today() (math_dates itself reads no clock and has no float); freshness() reads REVIEW_REQUIRED once the clock shows another day. workbench/home_demo.py builds Home Demo through the Kernel's own operations on rail_demo's desk: the invented Demoland Tenancy Act, the move-out record and the bank statement written byte for byte as PDFs, admitted, the statement reviewed into 'Home Demo bank Sep–Nov' (41 rows, 1 Sep to 17 Nov 2026, no credit of 1200.00), the typed sheets 'Groceries November' and 'Household November' imported from CSV, the agent's email admitted only by admit_email() (the scene's second step); INVENTED: NOT THE LAW OF ANY PLACE is on every page of the legal papers; money() works the figures out through math.money and math.dates. The earlier attempt's two test files and its check_hatch entry were dropped. One smoke run in a copy: 27 of 27 checks gave the design's numbers.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S2.patch",
+  "files_changed": [
+    "workbench/math_dates.py",
+    "workbench/home_demo.py (new)",
+    "workbench/engineering_kernel.py",
+    "docs/GRAPHITE_0.1_REGISTRY.json (regenerated in a copy with tools/record_registry.py; only the math.dates arguments and the schema digest changed)"
+  ],
+  "tests": [
+    {
+      "module": "S2 smoke script (scratch S2/smoke.py, not a test file; run once in a copy with the seed made current)",
+      "look": "default, offscreen, in its own pid namespace",
+      "ran": 27,
+      "failed": 0,
+      "note": "Under the owner's rule no test module was run. The smoke printed OK for: 30 Sep+21 = Wed 21 Oct no roll; 3 Oct+21 = Sat 24 Oct rolled to Mon 26 Oct; holiday on 26 Oct gives Tue 27 Oct; no holiday clause says 'Monday 2026-10-26, unless it is a public holiday; holidays not recorded'; events {30 Sep, 3 Oct} give {21 Oct, 26 Oct}; range gives [21 Oct, 26 Oct]; every/some break-even 21 Oct/26 Oct and 'on' over 30 days x 2 event forms with 0 mismatches; as_of {2026-11-20, CLOCK} through the Kernel, 30 and 25 days since, CURRENT then REVIEW_REQUIRED at 21 Nov; 10,000 random cases against datetime with 0 mismatches; AST scan: no float and no clock call in math_dates. Home Demo: 41 bank rows 2026-09-01 to 2026-11-17, no 1200.00 credit; groceries 18763/1000 (18.76) and 131341/1000 (131.34); household 4801/200 and 597/20, 24.00 whatever the bill, break-even 513/5, month at the 142.55 bill 48799/20 (state UNDECIDED over the range); private-data scan empty; law notice on every page of act, move-out record and email as Graphite reads the admitted pages; built twice, identical record digests."
+    }
+  ],
+  "new_tests": [],
+  "numbers": [
+    "Home Demo build: 6.2 s and 4.5 s for two builds in fresh workspaces (copy of the tree, offscreen, nice 19, this 4-core container; wall clock printed by the smoke script)",
+    "Dates property check: 10,000 random cases of md.last_day against Python's datetime as the oracle, 0 mismatches (smoke script, seed 86020)",
+    "Smoke: 27 checks, 27 OK, 0 DIFF"
+  ],
+  "decisions": [
+    "Owner's 'No tests': dropped the earlier attempt's tests_integrated/test_mind_dates.py and test_home_demo.py (kept aside in scratch only) and reverted its tools/check_hatch.py FOCUSED_MODULES lines that named them.",
+    "The clock is read in one place: engineering_kernel.today(), passed by the Kernel to math_dates.dispatch. A period answer carries as_of origin CLOCK only then; an as_of written in the request carries GIVEN_IN_LINE and never goes stale; a bare call claims nothing about today.",
+    "Where no counting rule is recorded and day N is a weekend, the unmoved day stands and the day a rule would move it to is shown beside it, earliest first (design section 5.5: 'not recorded' with every candidate, earliest first). Period words carry a fixed 'Not covered' line (time of day, service, court days, periods counted backwards) and none of section 5's never-words.",
+    "Home Demo rounds an allowance down to whole cents by the solve's own inward step (| step 0.01), so 24.005 a day shows 24.00 as the design says; half-away rounding would have given 24.01.",
+    "build() does not bring in the agent's email; admit_email() does, as the scene's second step (design 2: 'The scene admits it in its second step').",
+    "INVENTED: NOT THE LAW OF ANY PLACE is printed at the top and foot of every page of the legal papers (act, move-out record, email); every source page also carries the general invented-data notice.",
+    "Home Demo is not added to any menu: Rail Demo is reached only from code (scenes, campaign), and Home Demo follows its pattern exactly.",
+    "No new Kernel operation or CLI verb: the period is a new stage of the existing math.dates, so engineering_cli.py is unchanged; the registry entry for math.dates was regenerated."
+  ],
+  "not_done": [
+    "No test files and no test-suite, tier or window-check run (owner's rule). The coordinator should run at least test_math_money_dates, test_rail_demo and any registry or seed check, since math.dates's argument schema and the registry's schema digest changed.",
+    "No line form for the period stage (a 'math dates | period ...' line); it is reachable through the Kernel operation math.dates {stage: period}. The design's S2 does not ask for one.",
+    "The seed (project/stacy_seed/current) and MANIFEST.json are not in the patch, by rule; they were regenerated only in the throwaway copy.",
+    "One independent review of the dates delta (design 6.1, open question 2) is not done here.",
+    "Nothing was run on the owner's ThinkPad."
+  ],
+  "release_note": "Dates now work out the last day of a period after an event: the day of the event is not counted, a last day on a weekend or a recorded holiday moves on by the counting clause you quoted, and when no holidays are recorded the answer says so. An event that could have been on one of several days gives every last day, and a return date is shown as in time on every reading or only on some. Each answer shows the day it was worked out from this computer's clock and asks for review once the day changes. Home Demo, a second invented workspace, holds a household's money and a tenancy matter under the invented 'Demoland Tenancy Act', marked INVENTED: NOT THE LAW OF ANY PLACE on every page."
+}

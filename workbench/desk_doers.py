@@ -1,7 +1,7 @@
 """Desk acts on the live window: one doer per act of desk_acts.ACTS, the guard that keeps every act from opening a window
 that asks, the read-back of what the window shows, and the one record each act leaves.
 
-run(host, name, args, door=..., by, origin, word) is the one entry; the door is always named. It checks the arguments
+run(host, name, args, door=..., by, origin, word, turn) is the one entry; the door is always named. It checks the arguments
 (desk_acts.check), runs the act's doer inside no_dialogs() and watching(), lets the window settle (a row of a second popup
 acts on a zero timer), and answers with an envelope: {act, door, ok, by, words, result, error, changed, seconds}. Then it
 writes one line in Graphite's journal (activity.record), except for read.desk: reading is not an event.
@@ -16,6 +16,16 @@ is, and first checks that the keyboard is there. Where no keyboard route exists 
 says so (by: "pointer"). A change goes through Stacy's hand (shell2.SlateFace.stage, asked=True), so her dial decides as it
 does for "set B3 to 300" said to her: done at once with its card, its trail entry and its Undo, or a card that waits for
 Approve. What always asks still asks.
+
+Her door (Kasandra's hand, first slice): door 'her' runs only inside a turn the owner started (`turn`, her hand's own
+record of it); owner-only acts and a `by` are refused at the door; at Ask first an act that moves the window is offered,
+not done (journal OFFERED), unless the owner's Go ahead authorised exactly that act; a change is refused in this slice
+(NOT_OFFERED: "changes on the desk through my hand come next"). Her hand's stop flag is read before the act and between
+presses: in each press of `key`, each character of `type_text`, each segment of `walk`, each wait of `wait_until`; a stop
+refuses with STOPPED between presses, never halfway through a click (journal STOPPED). read.desk also says what a planner
+needs and the window did not say before: where the keyboard is, whether the line's words are an act's, whether an
+operation waits in the working area, how many cards wait, where the Field was entered from, which sheets are in sight, the
+Field's sheets with their other revisions; and a trace only while its sheet is selected (as the Field draws it).
 
 Qt is imported when an act runs, never when this module is imported.
 """
@@ -51,10 +61,30 @@ class DialogReached(Exception):
 
 
 class Ctx:
-    """One act as its doer sees it."""
-    def __init__(self, host, name, args, door, word, origin, by):
+    """One act as its doer sees it. `asked`: whether a change was asked for by the owner's words (her hand passes the
+    turn's); `expect_target`: what the menu an act walks must be open on (walk refuses another); `turn`: her hand's turn
+    when the door is hers."""
+    def __init__(self, host, name, args, door, word, origin, by, asked=True, turn=None):
         self.host = host;self.name = name;self.args = args;self.door = door;self.word = word;self.origin = origin;self.by = by
-        self.presses = 0;self.card = None
+        self.presses = 0;self.card = None;self.asked = asked;self.expect_target = None;self.turn = turn
+
+
+# The act running through her door now (one at a time: the window has one hand), so the press helpers can read her stop
+# flag between presses without every caller passing it.
+_HER = []
+
+
+def stopped(host):
+    """Whether her hand's stop flag is set on this window (Stop on her card, hand.stop, Master Stop, the owner's touch)."""
+    hand = getattr(host, 'her_hand', None)
+    try:return bool(hand is not None and hand.stop_flag)
+    except RuntimeError:  # the hand's QObject is gone with its window
+        return False
+
+
+def check_stop():
+    """Between two presses of an act through her door: refuse with STOPPED when the owner took the window back."""
+    if _HER and stopped(_HER[-1].host):raise Refusal('STOPPED', REFUSALS['STOPPED'])
 
 
 # -- settling and waiting -------------------------------------------------------------------------------------------------------
@@ -71,6 +101,7 @@ def wait_until(predicate, ms=2000, step=20):
     """Settle until `predicate()` holds or `ms` passes; whether it held."""
     end = time.monotonic() + ms / 1000.0
     while True:
+        check_stop()
         try:
             if predicate():return True
         except RuntimeError:return False
@@ -247,6 +278,7 @@ def current_entry(view):
 
 def mouse(widget, pos, button=None, release=True):
     """A press (and its release) of a mouse button at `pos` in `widget`, as the window system delivers it."""
+    check_stop()      # before the press, never between the press and its release
     button = button if button is not None else Q.Qt.LeftButton
     at = Q.QPointF(pos);gp = Q.QPointF(widget.mapToGlobal(at.toPoint()))
     Q.QApplication.sendEvent(widget, Q.QMouseEvent(Q.QEvent.MouseButtonPress, at, gp, button, button, Q.Qt.NoModifier))
@@ -255,6 +287,7 @@ def mouse(widget, pos, button=None, release=True):
 
 def right_click(widget, pos):
     """A right-click's ContextMenu event at `pos` in `widget` (the router opens Graphite's menu for what is there)."""
+    check_stop()
     at = Q.QPoint(int(round(pos.x())), int(round(pos.y())))
     Q.QApplication.sendEvent(widget, Q.QContextMenuEvent(Q.QContextMenuEvent.Mouse, at, widget.mapToGlobal(at)))
 
@@ -262,6 +295,7 @@ def right_click(widget, pos):
 def key(c, widget, code, modifiers=None, times=1):
     """Press a key on `widget` (where the keyboard is), `times` times; each press is counted."""
     for _ in range(times):
+        check_stop()
         Q.QTest.keyClick(widget, code, modifiers if modifiers is not None else Q.Qt.NoModifier);c.presses += 1;settle(None, 10, 1)
 
 
@@ -270,6 +304,7 @@ def type_text(c, widget, text):
     release carrying the character. Never QTest.keyClicks: with the pinned Qt it ends the whole window on any character
     outside Latin-1 (the curly quotes Graphite writes everywhere, Ω, ≥), and it reads a carriage return as Return."""
     for ch in str(text):
+        check_stop()
         for kind in (Q.QEvent.KeyPress, Q.QEvent.KeyRelease):
             Q.QApplication.sendEvent(widget, Q.QKeyEvent(kind, 0, Q.Qt.NoModifier, ch))
         c.presses += 1
@@ -471,7 +506,12 @@ def walk(c, segments, by, guard=True):
     checked first: a row that changes something is refused (and names the act that does it through her hand)."""
     from .context_menu import LinePanel
     host = c.host;chosen_row = None;outcome = None
+    if c.expect_target is not None:      # it walks the menu open on the thing it was asked about, never another
+        root = root_menu(host);on = root.target.label if root is not None and root.target is not None else ''
+        if root is not None and on.casefold().strip() != str(c.expect_target).casefold().strip():
+            raise Refusal('NOT_HERE', 'The menu that is open is for “%s”, not “%s”.' % (on, c.expect_target))
     for n, seg in enumerate(segments):
+        check_stop()
         menu = deepest(host)
         if menu is None:raise Refusal('NOT_HERE', 'No menu is open.')
         row, group = find_row(menu, seg)
@@ -541,8 +581,10 @@ def whole(view):
 
 
 def route_said(view):
+    """The trace drawn now, or None: the Field draws it only while its sheet is selected (field_qt paints it away the
+    moment the selection moves), so it is said only then too."""
     route = getattr(view, '_route', None)
-    if not route:return None
+    if not route or route.get('owner') != view.field.selected:return None
     title = lambda ident: getattr(view.field.get(ident), 'title', ident)
     return {'owner_title': title(route.get('owner')), 'hops': route.get('hops'), 'ends': [title(e) for e in route.get('ends') or []],
             'animating': view.surge_elapsed() is not None}
@@ -577,6 +619,55 @@ def popups(host):
     return out
 
 
+def keyboard_where(host):
+    """Where the keyboard is, in one word: field, line, talk, files, menu, console, or other (None when no widget has it)."""
+    focus = Q.QApplication.focusWidget()
+    if focus is None:return None
+    page = getattr(host, 'field_page', None);bar = getattr(host, 'type_bar', None)
+    face = getattr(getattr(host, 'shell2', None), 'face', None);console = getattr(host, 'console', None)
+    try:
+        if page is not None and focus is page.view:return 'field'
+        if bar is not None and focus is bar.box:return 'line'
+        if face is not None and (focus is getattr(face, 'input', None) or face.isAncestorOf(focus)):return 'talk'
+        root = root_menu(host)
+        if root is not None and (focus.window() is root or root.isAncestorOf(focus)):return 'menu'
+        if isinstance(Q.QApplication.activePopupWidget(), Q.QWidget) and focus.window() is Q.QApplication.activePopupWidget():return 'menu'
+        from .files_qt import FilesTab
+        tab = host.tabs.currentWidget() if getattr(host, 'tabs', None) is not None else None
+        if isinstance(tab, FilesTab) and tab.isAncestorOf(focus):return 'files'
+        if console is not None and console.isAncestorOf(focus):return 'console'
+    except RuntimeError:
+        return None
+    return 'other'
+
+
+MOST_OBJECTS = 60      # the Field's sheets read.desk lists (a desk of more is said by its count; the rest are read by name)
+
+
+def field_objects(page, view, most=MOST_OBJECTS):
+    """The sheets on the Field's face now, each with its other revision (field_page.revision_sibling), at most `most`
+    (read.desk says 60; her hand reads them all)."""
+    from .field_page import revision_sibling
+    out = []
+    for obj in view.field.objects[:most]:
+        pair = revision_sibling(view, obj) if page.face == 'work' else None
+        sibling = None;older = False
+        if pair:
+            (_, a), (_, b) = pair;sibling = (b if a.id == obj.id else a).title;older = a.id == obj.id
+        out.append({'id': obj.id, 'title': obj.title, 'kind': obj.kind, 'state': obj.state, 'sibling': sibling, 'older': older})
+    return out
+
+
+def in_sight(view, most=MOST_OBJECTS):
+    """The titles of the sheets a pointer can reach now (their middle is in the Field's room), at most `most`."""
+    try:
+        body = view._layout()
+        seen = [o.title for o in view.field.objects if (lambda r: r is not None and body.contains(r.center()))(view.sheet_rect(o.id, body))]
+    except Exception:  # noqa: BLE001 - a view that cannot be laid out shows nothing in sight
+        return []
+    return seen[:most]
+
+
 def read_desk(host, part='all'):
     """What the window shows now, read from the widgets themselves: where, the Field, the menu, Files, the line, Talk, the
     look and its motion, and the last act. `part` one of these, or 'all'."""
@@ -597,7 +688,7 @@ def read_desk(host, part='all'):
             left = None
         parts['where'] = {'surface': surface(host), 'title': host.windowTitle(),
                           'tab': {'type': type(tab).__name__, 'text': tabs.tabText(tabs.currentIndex()).replace('&', '')} if tab is not None else None,
-                          'address': address, 'left': left, 'right': right, 'popups': popups(host)}
+                          'address': address, 'left': left, 'right': right, 'popups': popups(host), 'keyboard': keyboard_where(host)}
     if want('field'):
         page = getattr(host, 'field_page', None)
         if page is None:parts['field'] = {'shown': False}
@@ -607,7 +698,9 @@ def read_desk(host, part='all'):
                               'count': len(v.field.objects), 'zoom': round(float(v.zoom), 3), 'whole': whole(v), 'gliding': v._gliding is not None,
                               'reading': (v.reading or {}).get('title'), 'steps': [{'words': w, 'kind': k} for w, k in (v.steps or ())],
                               'go': v.go, 'would': v.would_said, 'problem': v.problem, 'pending': page.pending is not None,
-                              'route': route_said(v), 'revisions': revisions_said(v)}
+                              'route': route_said(v), 'revisions': revisions_said(v),
+                              'came_from': 'today' if getattr(host, '_field_from_home', False) else 'work',
+                              'in_sight': in_sight(v), 'objects': field_objects(page, v)}
     if want('menu'):parts['menu'] = menu_said(host)
     if want('files'):
         from .files_qt import FilesTab
@@ -621,9 +714,12 @@ def read_desk(host, part='all'):
         bar = host.type_bar;popup = bar.box.popup
         results = [popup.list.item(i).text() for i in range(popup.list.count())] if popup.isVisible() else []
         console = getattr(host, 'console', None)
-        parts['line'] = {'target': WHO_OF.get(bar.target, bar.target), 'text': bar.box.text(), 'results': results,
+        text = bar.box.text()
+        parts['line'] = {'target': WHO_OF.get(bar.target, bar.target), 'text': text, 'results': results,
                          'room': ROOMS[getattr(console, 'size_level', 0)] if console is not None else None,
-                         'last_program': getattr(console, 'last_program', None)}
+                         'last_program': getattr(console, 'last_program', None),
+                         'ours': bool(text.strip()) and not unsent(host),      # the words an act put there, not the owner's
+                         'pending': bool(getattr(console, 'pending_approval', None))}
     if want('talk'):
         face = host.shell2.face;latest = (stacy_hand.trail(host.session.state) or [None])[0]
         cards = [face.lines.itemAt(i).widget() for i in range(face.lines.count())]
@@ -634,7 +730,8 @@ def read_desk(host, part='all'):
             said = lambda l:str(l.property('plain') or l.text())      # her words as given (a leaded card keeps them in 'plain')
             last = next((said(l) for l in labels if said(l).strip()), '').replace('\u200b', '')
         parts['talk'] = {'cards': len(cards), 'last': last[:300], 'hand': stacy_hand.level(host),
-                         'trail': {k: latest.get(k) for k in ('words', 'line', 'undo', 'state')} if latest else None}
+                         'trail': {k: latest.get(k) for k in ('words', 'line', 'undo', 'state')} if latest else None,
+                         'waiting': len(waiting_cards(host))}
     if want('look'):parts['look'] = look_now(host)
     if want('motion'):
         from . import menu_catch
@@ -1077,6 +1174,7 @@ def sheet_menu_walk(c, view, obj, path):
     if alive(root_menu(c.host)):root_menu(c.host).close_menu(restore=False);settle(c.host)
     right_click(view, sheet_point(view, obj.id));settle(c.host)
     if root_menu(c.host) is None:raise Refusal('FAILED', REFUSALS['FAILED'] % 'the sheet\'s menu did not open')
+    c.expect_target = obj.title
     return walk(c, path, 'pointer')
 
 
@@ -1318,8 +1416,23 @@ def go_card(page):
     return None
 
 
+def talk_place(host, widget):
+    """Where a card stands in Talk (its order there), or -1."""
+    face = host.shell2.face
+    order = {id(face.lines.itemAt(i).widget()): i for i in range(face.lines.count()) if face.lines.itemAt(i).widget() is not None}
+    w = widget
+    while w is not None and id(w) not in order:w = w.parentWidget()
+    return order.get(id(w), -1) if w is not None else -1
+
+
 def hand_approve(c):
     host = c.host;cards = waiting_cards(host)
+    hand = getattr(host, 'her_hand', None);offer = hand.offer_card() if hand is not None else None
+    # Her hand's offer is a card that waits too: the latest of it and the staged changes is the one approved.
+    if offer is not None and (not cards or talk_place(host, offer) >= talk_place(host, cards[-1])):
+        c.by = 'pointer'
+        said = hand.go_ahead(by_owner=True)
+        return 'Go ahead: ' + said, {'ran': True, 'said': said, 'offer': True}
     if not cards:raise Refusal('NOTHING_WAITS', REFUSALS['NOTHING_WAITS'])
     card = cards[-1]
     page = getattr(host, 'field_page', None)
@@ -1382,6 +1495,23 @@ def look_set(c):
         {'before': before, 'now': now, 'in_force': boss_theme.APPEARANCE, 'next': boss_qt.chosen_look(host)}
 
 
+def hand_stop(c):
+    """The owner's Stop for her hand: the same flag as Stop on her card, Master Stop and the owner's touch."""
+    host = c.host;c.by = 'direct';hand = getattr(host, 'her_hand', None)
+    if hand is None or not hand.active():return named('Stacy\'s hand is not moving; nothing to stop.'), {'stopped': False}
+    hand.stop('owner')
+    return named('Stacy\'s hand stops before her next press.'), {'stopped': True, 'turn': hand.turn_id}
+
+
+def hand_putback(c):
+    """Put the window back as her hand's last turn found it: a plan of navigation, run through her door."""
+    host = c.host;c.by = 'direct';hand = getattr(host, 'her_hand', None)
+    if hand is None or hand.snapshot is None:raise Refusal('NOT_HERE', named('Stacy\'s hand has not moved the window, so there is nothing to put back.'))
+    out = hand.put_back()
+    if not out.get('back'):raise Refusal('FAILED', REFUSALS['FAILED'] % (out.get('words') or 'the window is not as it was'))
+    return out.get('words') or 'The window is back as it was.', out
+
+
 def read_desk_act(c):
     c.by = 'direct'
     return 'What the window shows now.', read_desk(c.host, c.args.get('part', 'all'))
@@ -1396,7 +1526,8 @@ DOERS = {'go.field': go_field, 'go.today': go_today, 'go.files': go_files, 'go.o
          'sheet.whatif': sheet_whatif, 'sheet.steps': sheet_steps,
          'type.to': type_to, 'type.put': type_put, 'type.send': type_send, 'type.room': type_room,
          'hand.write': hand_write, 'hand.rename': hand_rename, 'hand.trash': hand_trash, 'hand.cell': hand_cell, 'hand.step': hand_step,
-         'hand.approve': hand_approve, 'hand.undo': hand_undo, 'hand.dial': hand_dial, 'look.set': look_set, 'read.desk': read_desk_act}
+         'hand.approve': hand_approve, 'hand.undo': hand_undo, 'hand.dial': hand_dial, 'look.set': look_set, 'read.desk': read_desk_act,
+         'hand.stop': hand_stop, 'hand.putback': hand_putback}
 
 
 # -- the one entry ----------------------------------------------------------------------------------------------------------------------
@@ -1413,31 +1544,58 @@ def form_for(act, args, style):
     return {'put': 'put', 'arrow': 'arrow'}.get(choices[0], 'pointer' if 'pointer' in choices else choices[0])
 
 
-def run(host, name, args=None, *, door, by=None, origin=None, word=''):
-    """Run one act on the live window. `door` is always named ('owner', 'script'; 'her' is refused): a caller that forgot it
-    must not get the owner's acts by default. Returns {act, door, ok, by, words, result, error: {code, words} or None,
-    changed, seconds, presses}; `changed` is what watching() saw done during the act (a changing operation, an open handed
-    to the computer, a program started)."""
+def her_door(host, name, args, turn):
+    """Her door's own rules, before the act's: the cleaned arguments, or a Refusal (OFFERED when the act is offered on her
+    card at Ask first and does not run)."""
+    hand = getattr(host, 'her_hand', None)
+    if turn is None or hand is None or not hand.in_turn(turn):raise Refusal('NOT_OFFERED', REFUSALS['NOT_OFFERED'])
+    if stopped(host):raise Refusal('STOPPED', REFUSALS['STOPPED'])
+    if name in ACTS and ACTS[name].owner_only:raise Refusal('NOT_OFFERED', REFUSALS['OWNERS'])
+    if isinstance(args, dict) and 'by' in args:raise Refusal('BAD_ARGUMENTS', REFUSALS['BY_YOURS'])
+    clean = desk_acts.check(name, args)
+    act = ACTS[name]
+    if act.mark == 'changes':raise Refusal('NOT_OFFERED', REFUSALS['NOT_YET'])      # this slice: navigation and reads only
+    place = stacy_hand.level(host)
+    hers, why = desk_acts.desk_hers(place, name, clean)
+    if not hers and not hand.authorised(turn, name, clean):
+        if act.mark == 'navigates' and place == 'ask' and why == 'it moves your window, and my hand is at Ask first':
+            raise Refusal('OFFERED', REFUSALS['OFFERED'])
+        raise Refusal('NOT_OFFERED', why[:1].upper() + why[1:] + '.')
+    return clean
+
+
+def run(host, name, args=None, *, door, by=None, origin=None, word='', turn=None):
+    """Run one act on the live window. `door` is always named ('owner', 'script', 'her'): a caller that forgot it must not
+    get the owner's acts by default; 'her' runs only inside her hand's turn (`turn`). Returns {act, door, ok, by, words,
+    result, error: {code, words} or None, changed, seconds, presses}; `changed` is what watching() saw done during the act
+    (a changing operation, an open handed to the computer, a program started)."""
     started = time.monotonic()
     envelope = {'act': str(name), 'door': door, 'ok': False, 'by': None, 'words': '', 'result': None, 'error': None, 'changed': []}
     c = None
-    origin = origin or ('desktop-owner' if door == 'owner' else 'desk-script:script')
+    origin = origin or ('desktop-owner' if door == 'owner' else ('stacy-hand:%s' % getattr(turn, 'id', turn)) if door == 'her' else 'desk-script:script')
     try:
-        if door == 'her':raise Refusal('NOT_OFFERED', REFUSALS['NOT_OFFERED'])
-        if door not in ('owner', 'script'):raise Refusal('NOT_OFFERED', 'Acts come through the writing line or a script.')
-        clean = desk_acts.check(name, args)
+        if door not in ('owner', 'script', 'her'):raise Refusal('NOT_OFFERED', 'Acts come through the writing line or a script.')
+        if door == 'her':
+            clean = her_door(host, name, args, turn)
+            by = 'pointer'          # her hand moves the pointer; she has no keys form
+        else:clean = desk_acts.check(name, args)
         act = ACTS[name]
-        c = Ctx(host, name, clean, door, word or ('the act %s' % name), origin, form_for(act, clean, by))
-        with watching() as seen, no_dialogs() as reached:
-            try:
-                try:words, result = DOERS[name](c)
-                except Exception:
+        c = Ctx(host, name, clean, door, word or ('the act %s' % name), origin, form_for(act, clean, by),
+                asked=getattr(turn, 'asked', True) if door == 'her' else True, turn=turn if door == 'her' else None)
+        if door == 'her':_HER.append(c)
+        try:
+            with watching() as seen, no_dialogs() as reached:
+                try:
+                    try:words, result = DOERS[name](c)
+                    except Exception:
+                        settle(host)
+                        if reached:words, result = None, None
+                        else:raise
                     settle(host)
-                    if reached:words, result = None, None
-                    else:raise
-                settle(host)
-            finally:
-                envelope['changed'] = list(seen)
+                finally:
+                    envelope['changed'] = list(seen)
+        finally:
+            if door == 'her':_HER.pop()
         if reached:      # stopped at the window that asks; what it did before that, if anything, is said, never denied
             raise Refusal('DIALOG', REFUSALS['DIALOG'] + (' Before that: %s.' % ', '.join(dict.fromkeys(seen)) if seen else ''))
         envelope.update(ok=True, words=words, result=_plain(result), by=c.by)
@@ -1449,18 +1607,25 @@ def run(host, name, args=None, *, door, by=None, origin=None, word=''):
     envelope['seconds'] = round(time.monotonic() - started, 3)
     envelope['presses'] = c.presses if c is not None else 0
     host._desk_last = {k: envelope.get(k) for k in ('act', 'door', 'by', 'ok', 'words', 'result')}
-    if name != 'read.desk':record(host, envelope, origin, c)
+    if name != 'read.desk':record(host, envelope, origin, c, turn if door == 'her' else None)
     return envelope
 
 
-def record(host, envelope, origin, c):
-    """One line in Graphite's journal per act (reading is not an event, so read.desk writes none)."""
+def record(host, envelope, origin, c, turn=None):
+    """One line in Graphite's journal per act (reading is not an event, so read.desk writes none). An act of her hand
+    that was offered and not done is OFFERED; one refused because the owner took the window back is STOPPED; its
+    correlation is the turn's and the act's number in it when the Kernel gives none."""
     from . import activity
-    if not envelope['ok']:state = 'REFUSED'
+    code = (envelope.get('error') or {}).get('code')
+    if code == 'OFFERED':state = 'OFFERED'
+    elif code == 'STOPPED':state = 'STOPPED'
+    elif not envelope['ok']:state = 'REFUSED'
     elif isinstance(envelope.get('result'), dict) and envelope['result'].get('waits'):state = 'WAITING'
     else:state = 'DONE'
     reply = getattr(getattr(c, 'card', None), 'reply', None) if c is not None else None
     correlation = reply.get('correlation_id') if isinstance(reply, dict) else None
+    if correlation is None and turn is not None:
+        correlation = '%s:%d' % (getattr(turn, 'id', turn), int(getattr(turn, 'count', 0) or 0))
     words = desk_acts.said(envelope)
     if envelope['act'] == 'type.put' and envelope['ok']:      # the line's words stay the owner's: the journal says only that some were put
         words = 'Words were put in the writing line (%d characters); nothing was sent.' % len(str((envelope.get('result') or {}).get('text') or ''))

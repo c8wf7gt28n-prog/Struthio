@@ -1,0 +1,52 @@
+{
+  "summary": "S0 (lane A) is done under the owner's 'No tests' rule. This run picked up the first run's patch with git apply -3. That patch already held the half-build rebased onto 0.8.5, with the owner's workspace names swapped for Rail Demo, the planner taking a desk_ops.Table, an optional `test` on goals.Goal, scenes P02 and P03 on Rail Demo and a regenerated registry. Following the no-tests rule, I dropped the three new test files (test_desk_planner.py, test_her_hand.py, test_planner_apps.py) and put tools/check_hatch.py back as it is at HEAD. I also put workbench/console_qt.py back as it is at HEAD. The half-build had reworded the console's 'Press Enter again'. 0.8.4's review deliberately keeps that sentence in name_sweep.KEYS_CODE_KEPT, and the first run's test_one_name failed on it. One smoke script ran once on a fresh copy, with the seed made current and the registry unchanged. 15 of its 16 lines printed as the design says. The one FAIL is a bug in my script, not in the code (see tests). The 4B GOAL check PASSED. The patch applies cleanly to a clean export of HEAD.",
+  "patch_path": "/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S0.patch",
+  "files_changed": [
+    "docs/GRAPHITE_0.1_REGISTRY.json",
+    "tests_integrated/test_desk_acts.py",
+    "tests_integrated/test_rail_demo_campaign.py",
+    "tools/campaign_lib/cases_scene.py",
+    "tools/campaign_lib/data/scenes/P02.json",
+    "tools/campaign_lib/data/scenes/P03.json",
+    "workbench/desk_acts.py",
+    "workbench/desk_doers.py",
+    "workbench/desk_ops.py",
+    "workbench/desk_scene.py",
+    "workbench/field_qt.py",
+    "workbench/goals.py",
+    "workbench/hand_model_checks.py",
+    "workbench/hand_words.py",
+    "workbench/her_hand_qt.py",
+    "workbench/kasandra_art.py",
+    "workbench/local_brain.py",
+    "workbench/planner.py",
+    "workbench/qt_app.py",
+    "workbench/shell2.py",
+    "workbench/stacy_hand.py"
+  ],
+  "tests": [
+    {"module": "smoke (/tmp/claude-0/-home-user-Struthio/62270cd8-8155-590e-b29e-91307882a142/scratchpad/work/b086/S0/smoke.py, run once on a fresh copy)", "look": "none (no window)", "ran": 16, "failed": 1, "note": "The 1 FAIL is a bug in the smoke script, not in the code. her_door returned the cleaned arguments {} for go.today at Do and show, which means the move was let through. The script's `and 'RUNS'` turns an empty dict into {}. The other 15 matched the design: the App table, the Field plan, her door's refusals, the code name sweep and the 4B GOAL check."},
+    {"module": "earlier run (stopped when the owner said 'No tests'), default look graphite", "look": "graphite", "ran": 44, "failed": 0, "note": "From the first run's logs, before this run's changes. 44 modules reported OK, including test_desk_acts, test_desk_scenes, test_rail_demo_campaign, test_stacy_hand and the three test files since dropped. test_one_name was cut off mid-run after two FAILs, with no failure messages kept. The key-sentence failure is explained and fixed here (console_qt reverted). The window-sweep failure in the graphite look is not explained. This run ran no tests."}
+  ],
+  "new_tests": [],
+  "numbers": [
+    "4B GOAL check (Qwen3.5-4B-Q4_K_M, 4096 context, 4 threads, nice 19, load average about 1.9 on 4 cores with another builder working): PASSED, all three exact. trace 9.98 s, 279 prompt tokens, 7 output tokens. trace_and_side 10.12 s, 286 prompt tokens, 10 output tokens. none 11.14 s, 275 prompt tokens, 7 output tokens. Model activation 16.9 s. The whole check took 66 s (from smoke.py calling workbench.hand_model_checks once).",
+    "The App table plans 'F is exported' in exactly 2 acts (app.open, app.export) and refuses 'F is printed' with 'I do not have a way to do that on the desk yet.' (planner.plan with table=APP, in smoke.py)",
+    "'trace Rail Demo bench readings and put Rev A beside Rev B', matched with no model, plans from Today in 5 acts: go.field, point.sheet, sheet.compare, point.sheet, sheet.trace (planner.plan over desk_ops.DESK, in smoke.py)",
+    "Making the copy with the seed current: 7 s, SEED_OK. tools/record_registry.py gave a registry identical to the one in the patch."
+  ],
+  "decisions": [
+    "workbench/console_qt.py is put back as it is at HEAD, which drops the half-build's two rewordings of 'Press Enter again' and 'asks for a second Enter'. 0.8.4's review is newer than the half-build and keeps 'Press Enter again' on purpose in tools/name_sweep.KEYS_CODE_KEPT, as a finding for the owner (RELEASE_NOTES_0.8.4). With the half-build's wording, test_one_name's check that every kept sentence still exists failed. The rule was to keep today's code where the half-build is older.",
+    "The shell2 tooltips' half-build edit (dropping 'in the Field, G does the same') is kept. It removes a key name from on-screen text, as the owner's rule asks, and no test or kept list depends on it.",
+    "Following the no-tests rule, the three new test files are dropped, including the half-build's own test_desk_planner.py and test_her_hand.py. Their FOCUSED_MODULES block in tools/check_hatch.py is removed (back to HEAD). No other file names them.",
+    "Two existing tests stay changed because the work makes their old assertions untrue. test_desk_acts: there are 42 acts, not 40, and OWNER_ONLY gains hand.stop and hand.putback. test_rail_demo_campaign: the scenes set now also lists DP02a-c and DP03a-b, written on Rail Demo only.",
+    "The 4B GOAL check was run once inside the single smoke script. It is S0's acceptance example and the task asked for it when the machine allowed. The load was about 1.9, so it ran."
+  ],
+  "not_done": [
+    "Scenes P01 to P03 were not run in either look in this run (no tests). The first run's test_desk_scenes and test_rail_demo_campaign passed in the graphite look only. The coordinator should run the scenes and both looks at merge.",
+    "test_one_name's window sweep (TheWindow, graphite look) failed in the first run, and its message was lost when the run was cut off. Reading the code, I found no word naming her earlier name, the line language, 'Programs' or a key in the window text the half-build adds, so the cause is not known. It may be a timeout on the loaded machine. The coordinator should check it at merge.",
+    "No test was written or run for the door's safety rules (touch stops her, Master Stop, what always asks, the trail, Undo). They are in the code as the half-build wrote them. Her door's refusals were checked only on a stand-in window in the smoke script.",
+    "Nothing was run in the kasandra look."
+  ],
+  "release_note": "Kasandra's hand now works on the Field through her own door. Say in Talk, for example, 'trace Rail Demo bench readings and put Rev A beside Rev B', and she plans the fewest moves and makes them one at a time, showing each one on her card. At Ask first she offers the moves and waits for your Go ahead. Touching the window, Stop or Master Stop stops her before her next press, and 'Put my window back' returns the window to how she found it. She only moves around the desk in this release and never changes your data. Her planner is no longer tied to the Field, so acts for other apps can be added later."
+}

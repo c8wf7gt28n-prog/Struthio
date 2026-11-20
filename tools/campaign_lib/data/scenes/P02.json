@@ -1,0 +1,31 @@
+{
+ "schema": "graphite.scene/1",
+ "id": "P02",
+ "title": "Her door on the Field",
+ "intent": "Kasandra's hand, first slice. From Today, the owner says in Talk: trace Rail Demo bench readings and put Rev A beside Rev B. Her hand finds the two goals, plans the fewest acts and makes them through her own door, by pointer, reading the window back after each act. At Do and show (by pointer, and again with less motion) she finishes with every goal shown, every act through her door and none changing anything, nothing left open over the window, nothing in the trail of her changes, and at most six acts. At Ask first she offers the moves once and the window does not move until the owner's Approve; then she finishes.",
+ "seed": "rail_demo",
+ "given": {"size": [1920, 1200], "dial": "show", "pace": 150},
+ "runs": [
+  {"name": "mouse", "style": "pointer"},
+  {"name": "mouse_still", "style": "pointer", "reduce_motion": true},
+  {"name": "ask", "style": "pointer", "dial": "ask"}
+ ],
+ "steps": [
+  {"act": "go.today", "args": {},
+   "expect": {"desk.where.surface": "home"}},
+  {"say": "trace Rail Demo bench readings and put Rev A beside Rev B", "until": "done", "seconds": 90, "only": ["mouse", "mouse_still"],
+   "expect": {"turn.state": "finished", "turn.all_shown": true, "turn.goals_open": 0, "turn.doors": ["her"], "turn.changed": [],
+              "turn.trail_added": 0, "turn.acts": {"lte": 6}, "turn.offers": 0, "desk.where.popups": [], "desk.where.surface": "field",
+              "desk.field.route.owner_title": "Rail Demo bench readings", "desk.field.revisions.a": "Rail Demo limits Rev A ARCHIVED",
+              "desk.field.revisions.b": "Rail Demo limits Rev B CURRENT"}},
+  {"say": "trace Rail Demo bench readings and put Rev A beside Rev B", "until": "waits", "seconds": 30, "only": ["ask"],
+   "expect": {"turn.state": "waits", "turn.offers": 1, "turn.acts": 0, "turn.desk_unchanged": true, "turn.changed": [],
+              "desk.where.surface": "home"}},
+  {"act": "hand.approve", "args": {}, "only": ["ask"],
+   "expect": {"act.result.offer": true}},
+  {"until": "done", "seconds": 90, "only": ["ask"],
+   "expect": {"turn.state": "finished", "turn.all_shown": true, "turn.goals_open": 0, "turn.doors": ["her"], "turn.changed": [],
+              "turn.trail_added": 0, "turn.acts": {"lte": 6}, "turn.offers": 1, "desk.where.popups": [], "desk.where.surface": "field",
+              "desk.field.route.owner_title": "Rail Demo bench readings", "desk.field.revisions.a": "Rail Demo limits Rev A ARCHIVED"}}
+ ]
+}

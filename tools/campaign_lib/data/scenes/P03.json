@@ -1,0 +1,30 @@
+{
+ "schema": "graphite.scene/1",
+ "id": "P03",
+ "title": "You take the window back",
+ "intent": "Kasandra's hand, first slice. With the Field in front, nothing over the work and Rail Demo bench readings selected, the owner says: trace Rail Demo bench readings and put Rev A beside Rev B. After two of her acts he presses the mouse on the window himself: she stops before her next press, and that act is journaled as STOPPED. Then Put my window back returns what is in front, the selection and what is over the work to what they were when she started.",
+ "seed": "rail_demo",
+ "given": {"size": [1920, 1200], "dial": "show", "pace": 150},
+ "runs": [
+  {"name": "mouse", "style": "pointer"},
+  {"name": "mouse_still", "style": "pointer", "reduce_motion": true}
+ ],
+ "steps": [
+  {"act": "go.field", "args": {"face": "work"},
+   "expect": {"desk.where.surface": "field", "desk.field.face": "work"}},
+  {"act": "point.zoom", "args": {"to": "whole"},
+   "expect": {"desk.field.whole": true}},
+  {"act": "sheet.close", "args": {},
+   "expect": {"desk.field.revisions": null}},
+  {"act": "point.sheet", "args": {"title": "Rail Demo limits Rev B CURRENT"},
+   "expect": {"desk.field.selected.title": "Rail Demo limits Rev B CURRENT"}},
+  {"act": "point.sheet", "args": {"title": "Rail Demo bench readings"},
+   "expect": {"desk.field.selected.title": "Rail Demo bench readings", "desk.field.route": null}},
+  {"say": "trace Rail Demo bench readings and put Rev A beside Rev B", "until": "stopped", "seconds": 60, "touch_after": 2,
+   "expect": {"turn.state": "stopped", "turn.acts": 2, "turn.stopped_after": 2, "turn.touched": true, "turn.journal_stopped": 1,
+              "turn.changed": [], "turn.doors": ["her"]}},
+  {"act": "hand.putback", "args": {},
+   "expect": {"act.result.back": true, "desk.where.surface": "field", "desk.field.selected.title": "Rail Demo bench readings",
+              "desk.field.revisions": null, "desk.where.popups": []}}
+ ]
+}

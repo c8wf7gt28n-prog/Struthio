@@ -32,6 +32,10 @@ KEY = 'stacy_hand'          # the session's key for the dial
 OPENS_WITH = 'show'         # a workspace that has never chosen: she does and shows (the owner asked for agency)
 TRAIL = 'stacy_trail'       # the session's key for her trail
 KEPT = 40                   # acts kept in the trail
+# Her hand's moves on the desk (Kasandra's hand, first slice) are kept apart from the trail of what she changed: a turn can
+# take a dozen moves, and forty data acts with an Undo must not be pushed out of reach by navigation.
+DESK_TRAIL = 'desk_trail'
+DESK_KEPT = 200
 SAYS = {'ask': 'asks before any change', 'show': 'does and shows', 'free': 'has a free hand'}
 
 # What she does by herself, by name. Do and show: what makes or sets something that can be put back or stands beside what
@@ -160,9 +164,12 @@ def hers(place, scope, operation, arguments=None):
 
 
 def why_waits(place, scope, operation, arguments=None):
-    """In words, why an operation that is not hers now waits for the owner."""
-    return (why_asks(operation, arguments) or ('the records mark it for your approval' if scope == 'approve' and str(operation or '') in HERS_FREE
-                                                else 'it is not among the things I do by myself'))
+    """In words, why an operation that is not hers now waits for the owner: what always asks, the records' approval, the
+    dial (at Ask first, an operation she does by herself at another place), or the lists."""
+    if why_asks(operation, arguments):return why_asks(operation, arguments)
+    if scope == 'approve' and str(operation or '') in HERS_FREE:return 'the records mark it for your approval'
+    if place == 'ask' and hers('free', scope, operation, arguments):return 'my hand is at Ask first'
+    return 'it is not among the things I do by myself'
 
 
 MAKE = re.compile(r'^\s*(?:please\s+)?(?:make|create|start|write|save|keep)\s+(?:me\s+)?(?:a|an)\s+(?:new\s+)?(?P<kind>folder|file|page|document|note)\s+(?:called|named)\s+'
@@ -253,6 +260,24 @@ def record(state, words, line, undo='', word='', ok=True, now=None, guards=None)
 def trail(state):
     """Her acts, the latest first."""
     return [e for e in reversed(state.get(TRAIL) or []) if isinstance(e, dict)]
+
+
+def record_desk(state, act, args, words, outcome, turn='', now=None):
+    """One move of her hand on the desk, in the desk trail (never the data trail): the act, its arguments (words put in the
+    writing line are kept by their length only, as the journal keeps them), what was said, and how it ended. No Undo: a
+    move is put back by a plan to the window as it was. Returns the entry."""
+    args = dict(args or {})
+    if 'text' in args:args = {**{k: v for k, v in args.items() if k != 'text'}, 'characters': len(str(args['text']))}
+    entry = {'at': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now)), 'act': str(act)[:40], 'args': args, 'words': str(words)[:200],
+             'state': str(outcome)[:12], 'turn': str(turn)[:40]}
+    rows = [e for e in (state.get(DESK_TRAIL) or []) if isinstance(e, dict)]
+    rows.append(entry);state[DESK_TRAIL] = rows[-DESK_KEPT:]
+    return entry
+
+
+def desk_trail(state):
+    """Her moves on the desk, the latest first."""
+    return [e for e in reversed(state.get(DESK_TRAIL) or []) if isinstance(e, dict)]
 
 
 def taken_back(state, entry):

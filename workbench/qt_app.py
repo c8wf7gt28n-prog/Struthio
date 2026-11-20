@@ -4602,6 +4602,10 @@ class WorkbenchWindow(QMainWindow):
             self.output.appendPlainText('Stopped by user.')
 
     def master_stop_all(self):
+        hand=getattr(self,'her_hand',None)      # Kasandra's hand: Master Stop stops her before her next press too
+        if hand is not None:
+            try:hand.stop('Master Stop')
+            except RuntimeError:pass
         return self.master_stop_controller.request()
 
     def _kill_command_tree(self):

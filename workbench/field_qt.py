@@ -175,6 +175,9 @@ class FieldView(QWidget):
     def _describe(self):
         obj = self.selected();self.steps = ();self.go = ''      # the steps and the go belong to the sheet they were asked for: another sheet, or a new reading, closes them
         now = self.field.selected
+        route = getattr(self, '_route', None)
+        if route is not None and route.get('owner') != now:      # the selection moved: the trace gives way at once, as its painting
+            self._route = None;self._surge_timer.stop()          # says, and on a desk with no wires to paint as well
         if self._last and now and now != self._last and (not self._trail or self._trail[-1] != self._last):
             self._trail.append(self._last);del self._trail[:-40]       # where the owner was: Backspace goes back along it
         if now:self._last = now

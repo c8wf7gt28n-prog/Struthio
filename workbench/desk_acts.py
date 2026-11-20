@@ -14,8 +14,10 @@ through Stacy's hand exactly as a Kernel operation asked of her does (shell2.Sla
 Undo; what always asks still asks). Every hand.* act and look.set changes; every other act navigates.
 
 Three doors over the one registry: the owner types an act in the writing line (/go.field face=apps); tests and the
-campaign run scripts of acts; and later her model. This pass does not offer acts to her model: tools() and plan_variants()
-only describe them, and desk_hers() is her hand's rule for them, written and tested, with nothing calling it yet.
+campaign run scripts of acts; and her hand (door 'her', since Kasandra's hand, first slice): inside a turn the owner started
+in Talk, her planner's acts go through desk_doers.run(door='her'), and desk_hers() is her hand's rule for them. Her model
+is still offered no act: tools() and plan_variants() only describe them, and the model's one question is which goals the
+owner meant (hand_words). Two acts are the owner's own way to take the window back: hand.stop and hand.putback.
 
 Every word here is shown to a person: no key is named, the line language is called "a line", and the list of programs is
 "Apps".
@@ -30,7 +32,7 @@ from .assistant_identity import named
 
 ACT_HEADS = ('go', 'point', 'head', 'menu', 'then', 'sheet', 'type', 'hand', 'look', 'read')
 MARKS = ('navigates', 'changes')
-OWNER_ONLY = ('hand.approve', 'hand.undo', 'hand.dial', 'look.set', 'type.send')
+OWNER_ONLY = ('hand.approve', 'hand.undo', 'hand.dial', 'look.set', 'type.send', 'hand.stop', 'hand.putback')
 HEAD_MENUS = ('Work', 'Revise', 'Tools', 'Arrange', 'Commands', 'Rules', 'Properties', 'Guide')
 # The head's rows an act may choose: each goes somewhere and changes nothing. A row that asks, leaves, stops work or opens a
 # window that asks stays the owner's (head.row refuses it). The words are the rows' own, as the menus print them.
@@ -160,9 +162,13 @@ def _acts():
         Act('hand.cell', named("Set a number of the selected sheet through Stacy's hand."), schema_of({'cell': S(2, 8), 'value': S(1, 40)}, ('cell', 'value')), kernel='field.set'),
         Act('hand.step', named("Take one of the steps offered for the selected sheet through Stacy's hand; the step's own line decides what it does."),
             schema_of({'n': I(1, 9)}, ('n',)), line_decides=True),
-        Act('hand.approve', 'Approve the latest change that waits for you.', schema_of({'by': BY}), forms='PK'),
+        Act('hand.approve', named("Approve the latest change that waits for you, or let Stacy's hand go ahead with the moves she offered."),
+            schema_of({'by': BY}), forms='PK'),
         Act('hand.undo', named("Take back the latest of Stacy's acts that can be taken back."), schema_of({})),
         Act('hand.dial', named("Set how far Stacy acts by herself: ask first, do and show, or a free hand."), schema_of({'place': E('ask', 'show', 'free')}, ('place',))),
+        Act('hand.stop', named("Stop Stacy's hand before her next press; the window stays as it is."), schema_of({})),
+        Act('hand.putback', named("Put the window back as it was when Stacy's hand started: what is in front, the selection, what is over the work."),
+            schema_of({})),
         Act('look.set', 'Choose the appearance (from the next start), the glow, the desk art, the buttons, or less motion.',
             schema_of({'appearance': E('graphite', 'kasandra'), 'glow': E('soft', 'bright', 'neon'), 'art': E('illustrated', 'ascii', 'clean'),
                        'buttons': E('words', 'icons'), 'motion': E('normal', 'reduced')}),
@@ -198,7 +204,12 @@ REFUSALS = {
     'LEAVES_OR_SHELL': 'The Web and the Terminal are yours to send to.',
     'NOTHING_WAITS': 'Nothing waits for your Approve.',
     'NOTHING_TO_UNDO': named("Nothing of Stacy's can be taken back now."),
-    'NOT_OFFERED': named('Acts are not offered to Stacy yet.'),
+    'NOT_OFFERED': named("Stacy's hand acts only inside a turn you started."),
+    'OWNERS': 'That one is yours: only you do it.',
+    'NOT_YET': 'Changes on the desk through my hand come next; ask me in words.',
+    'BY_YOURS': 'How the hand moves, by pointer or by keys, is yours to choose, never mine.',
+    'OFFERED': 'It moves your window, and my hand is at Ask first: it is offered on my card and waits for your Go ahead.',
+    'STOPPED': 'You took the window back, so I stopped before my next press.',
     'FAILED': 'It could not be done: %s',
 }
 
@@ -294,7 +305,7 @@ def said(envelope):
     return str((envelope.get('error') or {}).get('words') or envelope.get('words') or 'Refused.')
 
 
-# -- her hand's rule for acts (written and tested; nothing calls it in this pass) ------------------------------------------------
+# -- her hand's rule for acts (her door, desk_doers.run(door='her'), rules with it) ----------------------------------------
 
 def desk_hers(place, name, args=None, line=None):
     """(whether this act is hers to do now without asking, why not in words). A read never asks. An act that navigates moves
@@ -319,6 +330,7 @@ def desk_hers(place, name, args=None, line=None):
             in_menu = bool(segments) and all(listed(s, MENU_ROWS + SCREENS) for s in segments)
             in_panel = bool(segments) and not segments[0].startswith('field:') and all(listed(s, PANEL_ROWS) for s in segments)
             if not (in_menu or in_panel):return False, 'that row is not one I choose by myself'
+        if 'by' in args:return False, 'how the hand moves is yours to choose, never mine'      # pointer or keys: never hers
     why = stacy_hand.why_asks(name, args if isinstance(args, dict) else None)
     if why:return False, why
     if name == 'read.desk':return True, ''

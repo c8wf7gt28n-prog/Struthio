@@ -2206,7 +2206,7 @@ class SlateFace(QWidget):
         held_face(code, self.host, 15, bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         code.setTextInteractionFlags(Qt.TextSelectableByMouse);code.setAccessibleName('The line: ' + step.line);card.box.addWidget(code)
         row = QHBoxLayout();run = button('Approve', 'stac');run.setObjectName('StagedRun');row.addWidget(run)
-        run.setToolTip('Apply this change. Nothing is changed until you do; in the Field, G does the same')
+        run.setToolTip('Apply this change. Nothing is changed until you do')
         row.addWidget(sentence('{line}', {'line': ('in the line', lambda:inspect_in_line(self.host, step.line))}));row.addStretch(1);card.box.addLayout(row)
         card.step = step;card.run = run;card.ran = None;card.hers = mine;card.word = word;card.title = title;card.row = row;card.entry = None
         QTimer.singleShot(60, lambda:self.scroll.verticalScrollBar().setValue(max(0, card.y() - 8)))
@@ -2341,6 +2341,11 @@ class SlateFace(QWidget):
         """What she did by herself, the latest first, each with its Undo where one is left."""
         from . import stacy_hand
         acts = stacy_hand.trail(self.host.session.state)
+        # her hand's moves on the desk are kept in their own trail; both are said here, interleaved by time, and only what
+        # changed data has an Undo (a move is put back by "Put my window back")
+        moves = [{'at': e.get('at', ''), 'words': 'On the desk: ' + str(e.get('words') or e.get('act') or ''), 'line': '', 'undo': '', 'word': '',
+                  'state': 'done' if e.get('state') == 'done' else 'refused', 'move': True} for e in stacy_hand.desk_trail(self.host.session.state)]
+        acts = sorted(acts + moves, key=lambda e: str(e.get('at', '')), reverse=True)
         card = self.say('What I did by myself, the latest first:' if acts else 'I have not done anything by myself yet. With my hand at “Do and show”, a change you ask me for is done at once and listed here.')
         marks = {'done': '', 'undone': ' · taken back', 'refused': ' · refused, nothing changed'}
         for entry in acts[:12]:
@@ -2547,6 +2552,30 @@ class SlateFace(QWidget):
                  + ' it is yours to run: it is in the line, with Terminal chosen.')
         return True
 
+    def plan_asked(self, text):
+        """“trace Rail Demo bench readings and put Rev A beside Rev B”: a request for her hand on the desk (Kasandra's hand, first
+        slice). Every clause matched and every sheet found: her hand plans and moves the window, one act at a time, through
+        her door (her_hand_qt). Otherwise, when the words name a desk verb or a sheet in sight, her model is asked which of
+        her goals on the desk was meant (pick mode), or, with no model, the goals are shown as words to choose. Any other
+        request keeps the way it has always gone. True when the words were taken here."""
+        from . import hand_words
+        from .her_hand_qt import hand
+        if getattr(self.host, 'field_page', None) is None and not getattr(self.host, '_field_active', False):
+            if not re.search(r'\b(?:trace|beside|side by side|compare|where .+ comes? from)\b', text, re.IGNORECASE):return False
+        her = hand(self.host);world = her.world()
+        if not world.sheets:return False
+        found = hand_words.match(text, world)
+        if found.full:
+            self.thing = None;self.mine(text)
+            her.start(text, found.goals, word=text.strip());return True
+        _, state, _ = her.read()
+        sight = world.titles() if state.whole is True else tuple(state.in_sight)
+        if not hand_words.desk_request(text, world, sight if state.surface == 'field' else ()):return False
+        if not found.goals and not found.ambiguous and not any(hand_words.find(c, world.titles())[1] for c in found.unmatched):
+            if not re.search(r'\b(?:trace|beside|side by side|compare)\b', text, re.IGNORECASE):return False      # no sheet and no verb of the desk's own
+        self.thing = None;self.mine(text)
+        return her.ask_goal(text, word=text.strip())
+
     def say_desk(self, count, waiting, lines, go, plan=(), settle=None, doubts=(), look=None, hers=False):
         """The desk, checked: how many things were read, which wait for the owner and why, and the reads that were made.
         `go(object)` goes to one of them in the Field and says what can be done about it. `plan` is the changes that would
@@ -2592,7 +2621,7 @@ class SlateFace(QWidget):
             held_face(code, self.host, 14, bt.line_sheet());code.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred);code.setTextInteractionFlags(Qt.TextSelectableByMouse)
             card.box.addWidget(code);card.rows.append(said)
         row = QHBoxLayout();run = button('Approve all %d' % len(plan) if len(plan) > 1 else 'Approve', 'stac');run.setObjectName('PlanRun');row.addWidget(run);row.addStretch(1);card.box.addLayout(row)
-        run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do; in the Field, G does the same')
+        run.setToolTip('Apply these changes in the order listed, stopping at the first that is refused. Nothing is changed until you do')
         card.plan = plan;card.run = run;card.results = None;card.hers = bool(hers);card.word = word;card.row = row;card.one_entry = False
         if hers:run.hide()
         else:
@@ -2735,6 +2764,7 @@ class SlateFace(QWidget):
         if self.made_asked(text):return
         if self.set_asked(text):return
         if self.run_asked(text):return
+        if self.plan_asked(text):return
         thing = self.what_if(text)
         if thing and thing.get('refusal'):
             self.thing = None;self.mine(text);self.say(thing['refusal']);return

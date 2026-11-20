@@ -44,6 +44,7 @@ from tests_integrated import seed_hold
 ROOT = Path(__file__).resolve().parent.parent
 ANCHORS = ['DA01', 'DA16', 'DA17', 'DA27']
 SCENES = ['DP01a', 'DP01b', 'DP01c', 'DP01d']
+HER_SCENES = ['DP02a', 'DP02b', 'DP02c', 'DP03a', 'DP03b']      # 0.8.6 S0: her door's scenes, written on Rail Demo only
 # The names the scene says that its After Hours 07 entry finds there, in the order it lists them: three sheets, two
 # calculations, two rows of the Rev B sheet
 FOUND = ['Rail Demo bench readings', 'Rail Demo limits Rev A ARCHIVED', 'Rail Demo limits Rev B CURRENT', 'Rail Demo settled power',
@@ -308,7 +309,7 @@ class TheCases(unittest.TestCase):
     def test_the_scene_has_a_case_for_each_run_on_each_workspace(self):
         every = runner.registry()
         scenes = runner.select('scenes')
-        self.assertEqual([c.id for c in scenes], ['P01a', 'P01b', 'P01c', 'P01d'] + SCENES)
+        self.assertEqual([c.id for c in scenes], ['P01a', 'P01b', 'P01c', 'P01d'] + SCENES + HER_SCENES)
         written = cases_scene.load('P01')
         for case in scenes[:4]:
             self.assertEqual((case.seed, case.needs, case.start, case.source_case), ('after_hours_07', ['after_hours_07'], {}, None), case.id)
@@ -321,6 +322,10 @@ class TheCases(unittest.TestCase):
             self.assertEqual((case.budget_s, case.fn), (original.budget_s, original.fn), case.id)
             self.assertIn('Rail Demo (invented data)', case.title)
             self.assertIs(every[case.id], case)
+        for case in scenes[8:]:      # 0.8.6 S0: her door's scenes need nothing of the owner's
+            self.assertEqual((case.seed, case.needs, case.source_case), ('rail_demo', ['rail_demo'], None), case.id)
+            self.assertEqual(case.expect, cases_scene.flattened(cases_scene.load(case.inputs['scene']), case.inputs['run'], 'rail_demo'), case.id)
+            self.assertIn('Rail Demo (invented data)', case.title);self.assertIs(every[case.id], case)
         self.assertEqual(scenes[4].expect['13:desk.field.route.hops'], 2)
         self.assertEqual(scenes[4].expect['13:desk.field.route.ends'], {'contains': 'Rail Demo settled power'})
         self.assertEqual(re.findall(HEX_ID, json.dumps([[c.title, c.intent, c.expect, c.inputs] for c in scenes])), [])

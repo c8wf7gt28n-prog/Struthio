@@ -1849,14 +1849,15 @@
    "scope": "execute"
   },
   "brain.ask": {
-   "arguments": "3c3358825c79fee5dc2178bbd533aef5120cee256e571749cfdc0c063a2c4130",
+   "arguments": "3a7232612e20ebfb3620a9c34a726d8bb03295927e551eed1707e0a7f3e8c6b2",
    "properties": {
     "choices": "ca45f54c6c7dd590",
     "conversation": "d76a3cd568c70cee",
     "interaction_context": "a7d081a987262165",
     "memory_checkpoint": "d76a3cd568c70cee",
     "message": "3a204f1c25256ccd",
-    "mode": "90fc9ce13cf6b013",
+    "mode": "c83f09ea5325d6ce",
+    "picks": "7e4ea007937083ff",
     "program": "16dc61e5c206361d",
     "program_receipt": "c4fc7a75c4c1c69a",
     "reference_packet": "d76a3cd568c70cee",
@@ -7623,7 +7624,7 @@
  },
  "release": "Graphite 0.8.5",
  "schema": "graphite.registry-record/1",
- "schema_digest": "71ea5d325837ff35881949cf7b14d87dc8b4224db1abe796d0e48fd56e1f79ee",
+ "schema_digest": "34f754862b4425dd161fd6c6a1ca50df046d70be4b39a75d9ee75010960f717c",
  "settings": {
   "agent.continue_when_closed": {
    "definition": "b6f5bcc4e0bf094b7112cf200881518769fadd7d3ffe2bd3243ee41467595272",

@@ -322,7 +322,9 @@ def _alive(widget):
 
 
 def waiting(host):
-    """Something waits for the owner: an enabled Approve that waits (boss_qt.WAITS) in Stacy's pane, or the Field's Go."""
+    """Something waits for the owner: an enabled Approve that waits (boss_qt.WAITS) in Stacy's pane, the Field's Go, or her
+    hand's moves offered at Ask first (her_hand_qt: state_changed 'waits')."""
+    if getattr(host, '_her_hand_state', None) == 'waits':return True
     try:
         from PySide6.QtWidgets import QPushButton
         from .boss_qt import WAITS
@@ -336,6 +338,7 @@ def waiting(host):
 
 
 def working(host):
+    if getattr(host, '_her_hand_state', None) in ('thinking', 'acting'):return True      # her hand is planning or moving
     try:
         shell = getattr(host, 'shell2', None)
         face = getattr(shell, 'face', None)
