@@ -268,6 +268,15 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 08:05 UTC: **full suite on all of 0.8.5 (f9fffa8): 81 modules, 1,294 tests, 0 failing in BOTH looks.** Next: the
+  0.8.5 release (version, notes from `wip/2026-11-20_b085_saved/RELEASE_NOTES_0.8.5.draft.md`, tier 2 on the exact
+  commit, kit, screenshots with `work/shots085/shots.py`).
+- 20 Nov 08:00 UTC: **the 0.8.7 design is written**: `wip/2026-11-20_model_interwoven/DESIGN_0.8.7_model_interwoven.md`
+  (about 16,700 words) and its talk, sent to the owner. Measured here on the 4B: prompt reuse (today switched off in
+  local_brain.py) took a repeat question from 439 read tokens and 6.5 s to 43 and 1.1 s; a terse grammar-bound answer is
+  10 to 22 tokens against 102 for free JSON; a planted note in a page pulled the 4B toward "send it by email" whatever
+  the prompt said, so nothing may depend on the model behaving; a hole found: a key set in the shell for another tool
+  would also open her model's server. Its five questions and defaults are in its section 9.
 - 20 Nov 08:00 UTC: money and dates merged (f9fffa8), reviewed and fixed (the first fix run was cut by the limit and
   finished from its saved patch). Full suite on the whole of 0.8.5 running in both looks; then the 0.8.5 release.
 - 20 Nov 07:50 UTC: a goal for starting 0.8.8 was proposed to the owner (her mind finished and measured; the ThinkPad
