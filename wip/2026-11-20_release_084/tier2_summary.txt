@@ -1,0 +1,3 @@
+kasandra  scene     DP01a,DP01b,DP01c,DP01d                                  4      0       0    107.7  passed
+tier 2: 202 runs, 2368 tests, 26m 45s wall, graphite and kasandra
+0 failing; 10 skipped: graphite test_startup_scripts (5); kasandra test_startup_scripts (5)
