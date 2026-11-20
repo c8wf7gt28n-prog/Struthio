@@ -273,6 +273,10 @@ instruction); no other new tests or reviews.
 
 ## Log (newest first)
 
+- 20 Nov 21:10 UTC: **0.8.7 B6 merged** (64c9547: NEXT, ORDER and ORDER_GOAL on the turn contract, the reason check,
+  the order test and the tripwire; two existing tests rewritten, not run). X7 was told B6 is in, to add NEXT's exam
+  inputs. Running: X7, W7. For fun (the owner's art, kept in scratch only): the third Struthio take "The Rider" sent;
+  now the owner's new Kas portrait themed into all three takes with the rider logo as the Apps icon.
 - 20 Nov 20:58 UTC: The owner said "Continue", then asked for a detailed discussion of 0.8.7 (written:
   `wip/2026-11-20_TALK_087_where_we_are.md`). The resumed builders ran: **A5 merged** (96be9df: the exam, the model key,
   the kit "Check her model on this machine"; its 4B dry run passed S0 to S3 and S5, card kept in
