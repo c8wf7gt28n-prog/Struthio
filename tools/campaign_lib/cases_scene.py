@@ -1,14 +1,17 @@
 """The scenes set (P01a..P01d, DP01a..DP01d): the owner's playable scene, played on a live offscreen window by desk acts alone.
 
-P01 (data/scenes/P01.json) runs in the After Hours 07 workspace, restored with Graphite's own backup code: open a menu across
-the head; Then over a CSV in Files (keep rows where unit is mA, count, put it in the writing line); back to the Field; trace
-07 Bench readings; compare the two revisions of the limits; take back what Stacy's hand wrote. Four cases, one per run of
-the scene: by pointer (P01a), by keys (P01b), and each with less motion (P01c, P01d).
+P01 (data/scenes/P01.json): open a menu across the head; Then over a CSV in Files (keep rows where unit is mA, count, put it
+in the writing line); back to the Field; trace the bench readings; compare the two revisions of the limits; take back what
+Stacy's hand wrote. Four cases, one per run of the scene: by pointer (P01a), by keys (P01b), and each with less motion
+(P01c, P01d), in the After Hours 07 workspace, restored with Graphite's own backup code.
 
-The After Hours 07 backup is the owner's and is never shipped, so those four are Blocked wherever it is not. DP01a..DP01d
-are the same scene on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py): the
-same acts in the same order, each name swapped for the one there (the scene's "workspaces" entry; for_workspace below).
-They need nothing from the owner and play anywhere.
+0.8.5: the scene is written on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py),
+and names nothing of the owner's workspace. DP01a..DP01d play it as written: they need nothing from the owner and play
+anywhere. The After Hours 07 backup is the owner's and is never shipped, so P01a..P01d are Blocked wherever it is not;
+where it is, the scene's "after_hours_07" entry says how each name is found there (its kind and the words it says), and
+the case finds them in the restored workspace before the first step (desk_scene.find_names). The window's readings are
+then said back in the scene's own names (desk_scene.said_back), so each case is judged against the scene as written, by
+the same checks as its twin.
 
 The case builds the window behind the same holds as the right-click's tests (no provider request, no job, no worker, no
 session or power call, no process start), stops the window's own timers, and plays the run through
@@ -38,7 +41,8 @@ def load(scene_id):
 
 def for_workspace(scene, workspace):
     """The scene as it is played on another workspace: workbench.desk_scene.for_workspace, the same swap with the same answer
-    (the runner's parent decides what a case expects without importing Graphite)."""
+    (the runner's parent decides what a case expects without importing Graphite). The names an entry finds ("find") are
+    found only where the scene is played: here they stay as the scene says them, as the child says back what it read."""
     if workspace == scene.get('seed'):return copy.deepcopy(scene)
     there = (scene.get('workspaces') or {}).get(workspace)
     if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
@@ -86,10 +90,13 @@ def run_case(ctx):
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QMessageBox
     from workbench import boss_theme, clip, desk_scene, session_power
-    from workbench.engineering_kernel import Kernel
+    from workbench.engineering_kernel import Kernel, operator
     from workbench.qt_app import WorkbenchWindow, make_app
     from workbench.session import Session
-    scene = desk_scene.for_workspace(load(ctx.case.inputs['scene']), ctx.case.seed);run_name = ctx.case.inputs['run']
+    written = load(ctx.case.inputs['scene'])
+    found = desk_scene.find_names(ctx.kernel, operator(), written, ctx.case.seed) if ctx.case.seed != written.get('seed') else {}
+    ctx.note('found', sorted(found))          # which of the scene's names were found there (not what they are called there)
+    scene = desk_scene.for_workspace(written, ctx.case.seed, found);run_name = ctx.case.inputs['run']
     if (scene.get('given') or {}).get('appearance', boss_theme.APPEARANCE) != boss_theme.APPEARANCE:
         raise fixture.Blocked('The scene is for the %s appearance, and the appearance is chosen when Graphite starts.' % scene['given']['appearance'])
 
@@ -127,7 +134,7 @@ def run_case(ctx):
         def after(n, step, row):
             settle()
             ctx.progress('act', n=n, act=step['act'], ok=row['ok'], by=row['by'], seconds=row['seconds'])
-            for check in row['checks']:ctx.observe('%d:%s' % (n, check['path']), check['got'])
+            for check in row['checks']:ctx.observe('%d:%s' % (n, check['path']), desk_scene.said_back(check['got'], found))
             # done, and no ask or refusal the scene did not declare (run_scene adds those as checks of its own)
             unasked = [c for c in row['checks'] if c['path'] in ('act.ok', 'act.result.waits', 'step') and not c['ok']]
             ctx.observe('%d:act.ok' % n, bool(row['done']) and not unasked)

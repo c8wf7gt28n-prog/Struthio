@@ -1787,7 +1787,7 @@ def break_long(text, most, fits=None):
     """Invisible break points only inside a run of letters longer than a line holds (`most` of the widest letters, or, when
     `fits` is given, as it is drawn): after the last joint (_ . / \\ - , :) that keeps a piece within the line, else every
     `most` letters. A run that fits a line has none, so it moves to the next line whole and is never cut in two at a line's
-    end ("07_Bench_Readings.pdf", "07_Rail_Limits_Rev_B.pdf")."""
+    end ("Rail_Demo_Bench_Readings.pdf", "Rail_Demo_Limits_Rev_B.pdf")."""
     most = max(8, int(most))
 
     def cut(match):

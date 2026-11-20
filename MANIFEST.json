@@ -1202,8 +1202,8 @@
       "sha256": "7590cb862213f05429e6d7cc190eedbecca2a35a27f8e13f3b7ed7344933fc73"
     },
     "docs/CAMPAIGN.md": {
-      "bytes": 17495,
-      "sha256": "0dcaf06ba63732be3bf3ec61f6ba0a7787e85bfe4316bbf76f17c27bc02c674a"
+      "bytes": 19290,
+      "sha256": "972f8e7c93854ae7eabb5fa93891ddc0dacacb2a88b2878266554e213928674d"
     },
     "docs/CHECKS.md": {
       "bytes": 11421,
@@ -1214,8 +1214,8 @@
       "sha256": "6c0b5e0dffbca40f6b842c299ced5abb93f479c9ede8b7e2e98211da56909104"
     },
     "docs/DAILY_GUIDE.md": {
-      "bytes": 35196,
-      "sha256": "1b72b8399d56dd9ff4c77544668fa8fdbb3b7cdbf0ed2810e545f6a42ab50a13"
+      "bytes": 35197,
+      "sha256": "54c0ec4c9e4a0bdadefb44f5ff325da636b635456bf52c0bc894bae887c8bc56"
     },
     "docs/DECISION_REGISTER.json": {
       "bytes": 30533,
@@ -1478,8 +1478,8 @@
       "sha256": "8904084392a753147f7d35d771cda5e96091d6b7ee886367e00237aa4c3d6220"
     },
     "docs/MODEL_TRIAL_03.md": {
-      "bytes": 5554,
-      "sha256": "e07b2ac64072cd6eab374e6267152f4aeb332cf9b0498ec7e1be5d62a75e2b39"
+      "bytes": 5746,
+      "sha256": "0e61f03fa24c664bc6f6d9852a08bddf9409cb8332ba1835dc1d81c2e5cb02b1"
     },
     "docs/MODEL_TURN_01.md": {
       "bytes": 14134,
@@ -2206,16 +2206,16 @@
       "sha256": "8caa3e953a1621ad5e0c647e60f7b4886287cc3f19279890e7152d099c6bf283"
     },
     "project/stacy_seed/current/catalog.json": {
-      "bytes": 1918548,
-      "sha256": "6946f121e0bf39c959680bd51198fdfd1b04c15108661f19fc5e8f56965f0b85"
+      "bytes": 1918549,
+      "sha256": "ebb400faebd02a985e9471a7f57d83aa4d708eded585133009e39feaf25baa99"
     },
     "project/stacy_seed/current/index.sqlite": {
       "bytes": 4378624,
-      "sha256": "7b3cb6bda11e99964558de66dcae26d043f4e6268122fc94b797030ce803011a"
+      "sha256": "016e29087cbc88c7dc87b8334ad54e1e819ef53e6276ca74898384afe6e9ddeb"
     },
     "project/stacy_seed/current/manifest.json": {
       "bytes": 47196,
-      "sha256": "0d9cc34b2b6a5d6589f0ffea45c2ccf578bf1a57cbdae65b13d13fe6ff39ebd0"
+      "sha256": "a059d045452f97d6a37e6cc7cfc385f3fde7ce2c53f77d8babee1f1d1f66606b"
     },
     "requirements-experiments.txt": {
       "bytes": 70,
@@ -2594,8 +2594,8 @@
       "sha256": "a27d512b4352bb58f2c264e2c5c3c08b31a03c5bca8d3fe2ecdda3450d86f43e"
     },
     "tests_integrated/kasandra_window_probe.py": {
-      "bytes": 29648,
-      "sha256": "05ebaafeda61a7a01c9db0428ed380da2c16b270967bbf40ef254d8659577548"
+      "bytes": 29655,
+      "sha256": "68cdcc4397a35b796c5a7b0a73366618422c6c6fac1f02c7b52bed9bc0511cd9"
     },
     "tests_integrated/protocol_fixture.py": {
       "bytes": 5459,
@@ -2650,8 +2650,8 @@
       "sha256": "0aa2fc7027312f7d4f505d7870b65aff0b360331f8c403c37603795f7405ef3d"
     },
     "tests_integrated/test_context_menu.py": {
-      "bytes": 74237,
-      "sha256": "e545f3b64c3baf9f701f4e4bab16ad7b6ed92544c1461c267653ee99c674ec8a"
+      "bytes": 74341,
+      "sha256": "6a89b79c7227ebfcf2ae3246670d4392fbfb7745fdfa53175650a4ea79a4a73d"
     },
     "tests_integrated/test_continue_setting.py": {
       "bytes": 3258,
@@ -2674,12 +2674,12 @@
       "sha256": "04223a67a384015ccd72327334d83627feb018786d96f8806569b6496dec77b1"
     },
     "tests_integrated/test_desk_acts.py": {
-      "bytes": 49746,
-      "sha256": "2f808a223eaa52239e78a484ea3cd0c6045387a8450e6d7640e4926320fc8bb3"
+      "bytes": 49901,
+      "sha256": "8599c15f450a6eed1d5dc87ba402095bf503c119df654a6017a5cadbc2129ba4"
     },
     "tests_integrated/test_desk_scenes.py": {
-      "bytes": 4685,
-      "sha256": "4d80596dc2422379984aee91f969f186946e866728dea33c60c09642b6deaa73"
+      "bytes": 4798,
+      "sha256": "aaa93a6b4ee1d0cc46e9d7311c0e5258cd35fafa1ea4105f5c5eb18254b7efea"
     },
     "tests_integrated/test_discovery.py": {
       "bytes": 14831,
@@ -2702,8 +2702,8 @@
       "sha256": "33fab27813fc04d637216adb657f5be48073d49155ba4ad3924320148b3d5a2f"
     },
     "tests_integrated/test_faces_find_light.py": {
-      "bytes": 30823,
-      "sha256": "214f901ecae90ca519d46cfb604b056975574dfa55e22624f55b7f1651d66daa"
+      "bytes": 30925,
+      "sha256": "8a37d3d05248354e4072d060e7662f8d6c12c7048f7f968cb40350b7e9dfa0ea"
     },
     "tests_integrated/test_frame.py": {
       "bytes": 9989,
@@ -2731,7 +2731,7 @@
     },
     "tests_integrated/test_kasandra.py": {
       "bytes": 15164,
-      "sha256": "261830aa7f96fec166249ff28cf1e106df7049aa25daadf7198f2f17f3fe566e"
+      "sha256": "c6db77bb324338fd3822b03978321d07307dd5908f4b885e6ab42f94b451ce78"
     },
     "tests_integrated/test_kasandra_column.py": {
       "bytes": 11125,
@@ -2822,12 +2822,12 @@
       "sha256": "4dc7ca41bdeccf6eb254a95e02fd1235300cdb8d69d2448c8802be39ada9f1dc"
     },
     "tests_integrated/test_rail_demo.py": {
-      "bytes": 44119,
-      "sha256": "d3e118c60e9d1504e48328db99cb98730ff277488e54969daeb05336600f2946"
+      "bytes": 50891,
+      "sha256": "1186a12c46a6d07a7f31a0e165e114ec4a3ea2ee76e81ae43a3ead46989040da"
     },
     "tests_integrated/test_rail_demo_campaign.py": {
-      "bytes": 30466,
-      "sha256": "f81e7fcb71c3a5475ca116348b23e358521a0f0104d2ae6e8fcef3ba7584a747"
+      "bytes": 43915,
+      "sha256": "a6dc9a258e546fea8e4edd6dc6e761e4893f4d86c75b0ac5d0e82a2837bc2d2f"
     },
     "tests_integrated/test_readiness.py": {
       "bytes": 6918,
@@ -2942,16 +2942,16 @@
       "sha256": "d179a9ae3d6b04f222c5a2aab45ce40ab088f1ff7b7c9cf0419725d3b3ab713a"
     },
     "tools/campaign_lib/cases_anchor.py": {
-      "bytes": 34487,
-      "sha256": "7e9b9625e8e35d9b5b0aaeca22b1b5d6976a8c7b13319f2ea2221b51c5050fa3"
+      "bytes": 39187,
+      "sha256": "e81982d9942916ffb43f0b4a5bf9e351d3d1b0b8240a4e031ace5c22dfbf76dc"
     },
     "tools/campaign_lib/cases_resource.py": {
       "bytes": 59426,
       "sha256": "d23c7e79d9f732b61849adf73a5cb42381931f363791eb65f38aae6bc753a692"
     },
     "tools/campaign_lib/cases_scene.py": {
-      "bytes": 9638,
-      "sha256": "bcdc7780f0f7e9cf6be5b096cc8f2dad9c35d7fbc4d553fae40992f4403fd05b"
+      "bytes": 10451,
+      "sha256": "5a72303536d533b3eb2dd7b51bf3354abcdf4be9dfd5110ba61e49b7154fe67c"
     },
     "tools/campaign_lib/core.py": {
       "bytes": 11678,
@@ -2962,16 +2962,16 @@
       "sha256": "cb288f68e99cdbdf9ba2ad2fa88557fc250080c69ace24b56bc9ac449521dec3"
     },
     "tools/campaign_lib/data/scenes/P01.json": {
-      "bytes": 5525,
-      "sha256": "9945549bbce33c3d51a031bf40f6e57ebdc3b25f942fca4f165b860616242535"
+      "bytes": 5680,
+      "sha256": "f13f723de235ea32f834853e8469d2b7ac5b457356139f6a3c9ed4755f231f63"
     },
     "tools/campaign_lib/data/situations_35.json": {
       "bytes": 17476,
       "sha256": "324cb0267d2297aaefc09a7f80c42ab0cc0b01f257a412b2f92a9abb4156d019"
     },
     "tools/campaign_lib/fixture.py": {
-      "bytes": 16977,
-      "sha256": "e13467f9d00f4af7a03ffa65b16202bf50eebdafb1d66603fa8e018060003ae0"
+      "bytes": 17049,
+      "sha256": "ccc92869329454593a17e005ca9487c227a8b85e3841993c1a0a42f8ddc5f18c"
     },
     "tools/campaign_lib/gguf_fixture.py": {
       "bytes": 10696,
@@ -3006,8 +3006,8 @@
       "sha256": "3ff142d25654d5925b8a12650eb2e94a9b76fc8fb10239efc52d36702639b52d"
     },
     "tools/check_context_menu_ui.py": {
-      "bytes": 33350,
-      "sha256": "41bb3115c36fcd5beec368bc45b43667fb0b23c7bdc3ec4029b4cc297cb7c3e8"
+      "bytes": 33349,
+      "sha256": "0d8a9273707ab710d07469c57324fbf2552bc9b82efa452660365b50023be844"
     },
     "tools/check_continue_service.py": {
       "bytes": 9646,
@@ -3574,8 +3574,8 @@
       "sha256": "df35b336eb3af857a31d7396dc7368ce84afe83b8092289e9e85381e879766c0"
     },
     "workbench/datasheet_work.py": {
-      "bytes": 19982,
-      "sha256": "6ee59f932b49f227783295cb7b151ce7b64384e61f6435a7d0a99c84b6e24508"
+      "bytes": 19986,
+      "sha256": "e3dc9c4f8523d1858bacb24bfbafb8aa2d11fe7e6d823c9783369862ff5d8ebf"
     },
     "workbench/deployment.py": {
       "bytes": 4923,
@@ -3602,8 +3602,8 @@
       "sha256": "1238bf7e029135b191d51b602ac76ef73d206f8b6738437f48bad4c036386827"
     },
     "workbench/desk_scene.py": {
-      "bytes": 13853,
-      "sha256": "140114c5c82c2c4d8a690736475bdbf64aac98187aaf65f1b24bf681cc976aba"
+      "bytes": 19640,
+      "sha256": "bd835bfdc42632bf1ddf0dcd10b63bb6b7d03b60c1c8d3cb4cbc6085917f9acb"
     },
     "workbench/desktop_header_qt.py": {
       "bytes": 48881,
@@ -3762,8 +3762,8 @@
       "sha256": "0fa639e128bea0ba08c1768c9a1d08c5d50941c9bd52e6c307a4828e3ba8c631"
     },
     "workbench/field_page.py": {
-      "bytes": 47001,
-      "sha256": "33d7eae0a4a9b26c3b9087532a1421ff8724d49ee4125fab17f4de910ab50279"
+      "bytes": 47015,
+      "sha256": "9fd542365b14928cebf6c9d8122749fb66a2e32e3e930c74aa62316a36e10705"
     },
     "workbench/field_qt.py": {
       "bytes": 131924,
@@ -4010,8 +4010,8 @@
       "sha256": "da6ec7dbf7f225a247f3954799772b8a4be9c0a9fc68b580c26671b0b376f898"
     },
     "workbench/kasandra_column.py": {
-      "bytes": 16456,
-      "sha256": "5cd4cd770125bb28d06bc064a821c78d05e7291e550f8d3a7f5a584d65838b6c"
+      "bytes": 16463,
+      "sha256": "ffc139cdd9da32dbc3f11eb345b98a9df2b73f4d5798afdedb120e3fc0ff2d8b"
     },
     "workbench/kibot_qt.py": {
       "bytes": 12154,
@@ -4882,8 +4882,8 @@
       "sha256": "a67fadddb6c54b97e59033695cbe5e08ebe94f40c1476e77eb88655abc3baa29"
     },
     "workbench/shell2.py": {
-      "bytes": 266601,
-      "sha256": "3632610fb9ca2ee2d3ecf304f5b2102250819a3f6552aeca2e1e2e56a0c4c7c1"
+      "bytes": 266610,
+      "sha256": "2dbe6ad9491514c8de914bdd708fe081feae1055a754357a2518226dec0f7aae"
     },
     "workbench/simulation_tools.py": {
       "bytes": 7877,

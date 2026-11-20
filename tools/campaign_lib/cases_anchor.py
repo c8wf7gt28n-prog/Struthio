@@ -25,8 +25,14 @@ The demo set (DA01, DA16, DA17, DA27): the After Hours 07 backup is the owner's 
 A27 are Blocked wherever it is not, and their steps would then never run. Each has a twin here that runs the same steps
 (the same function) on Rail Demo, the workspace of invented data the program builds itself (workbench/rail_demo.py, seed
 "rail_demo"): a 12 V rail whose settled current is 250 mA, so settled power is 3 W and becomes 3.6 W at 300 mA. The
-records are found by name in the workspace just built (records() below), the expected values are Rail Demo's own, and
-DA17 makes its backup with Graphite's own backup code first. A twin is not an anchor of a situation and claims no slice.
+records are found the same way as on After Hours 07 (records() below), the expected values are Rail Demo's own, and DA17
+makes its backup with Graphite's own backup code first. A twin is not an anchor of a situation and claims no slice.
+
+0.8.5: nothing of the owner's workspace is written here: no record id, no hash, no title. The records a case works on are
+found when it runs, in the workspace it runs on, by what each is (found() below); a backup that does not hold them is not
+the one these cases are written for, and the case says which is missing. The numbers the anchors expect on After Hours 07
+(12 V, 280 mA, 3.36 W, then 3.6 W at 300 mA) are the program's own first-run workshop's (docs/THINKPAD_FIRST_INSTALL.md,
+"First-run workshop"), public already, and Rail Demo's 300 mA.
 """
 from __future__ import annotations
 
@@ -51,21 +57,82 @@ REQUEST = ASKED % '280'
 DEMO_REQUEST = ASKED % '250'            # Rail Demo's own reading; the words are the same
 AH07_OPS = ['field.read', 'field.ripple', 'field.set', 'office.get', 'documents.get', 'office.datasheet.recheck',
             'field.trace']
+FINDS = ['field.read', 'documents.get', 'office.get', 'intake.items']      # what found() reads, logged as the case's own calls
+PAGE = 100                  # rows asked of a paged list at a time
 SCRIPTED = 'scripted: the real flow has the 35B model choose these operations; no model runs in a sim attempt'
 
 
 # ---------------------------------------------------------------- shared reads: After Hours 07, or Rail Demo
 
 def records(ctx):
-    """The records a rail case works on, by what each is: After Hours 07's are the ids of the owner's backup; Rail Demo's
-    are found by name in the workspace the attempt built (the calculation is the one that stands now)."""
-    if ctx.case.seed != 'rail_demo':
-        return fixture.AH07_IDS
-    from workbench import rail_demo
-    made = rail_demo.find(ctx.kernel, ctx.owner)
-    return {'sheet': made['sheets']['readings'], 'calc_settled': made['calculations']['settled_power'],
-            'calc_startup': made['calculations']['startup_power'], 'claim_settled': made['findings']['settled_holds'],
-            'pdf_item': made['sources']['readings']['item'], 'pdf_sha256': made['sources']['readings']['sha256']}
+    """The records a rail case works on, found in the workspace it runs on by what each is (found()): the same way on After
+    Hours 07, whose records the program does not hold, and on Rail Demo, so a twin runs the very steps of its anchor. Each
+    read is logged as the case's own calls are (Attempt.call)."""
+    return found(ctx.kernel, ctx.owner, ctx.progress)
+
+
+def found(kernel, owner, progress=None):
+    """The records a rail case works on, found in a restored workspace by what each is, never by an id written here: the
+    reviewed sheet whose title says "bench readings"; the standing calculations that read its B2 with B3 (settled power)
+    and with B4 (startup power); the finding whose words carry settled power's result, as the Field matches a finding to a
+    result (field_model.carries); and the PDF the sheet was reviewed from, with the SHA-256 it was admitted with (its
+    intake row, not the sheet's own record of it). Reads only; `progress`, when given, logs each read as Attempt.call does.
+    A calculation that cannot be read is passed over, and named if what is looked for is then not found. Raises
+    LookupError, in words, when one of them is not there or is there more than once: the backup is then not the
+    workspace these cases are written for."""
+    from workbench.field_model import carries
+
+    def answer(op, args=None):
+        r = kernel.dispatch(op, args or {}, owner)
+        if progress:
+            progress('op', op=op, ok=r['ok'], code=None if r['ok'] else code_of(r))
+        return r
+
+    def call(op, args=None):
+        r = answer(op, args)
+        if not r['ok']:
+            raise LookupError('The restored workspace could not be read: %s refused: %s' % (op, code_of(r)))
+        return r['result']
+
+    def pages(op, key, args):
+        rows, offset = [], 0
+        while offset < 100000:
+            page = list(call(op, dict(args, limit=PAGE, offset=offset)).get(key) or ())
+            rows.extend(page)
+            offset += PAGE
+            if len(page) < PAGE:
+                break
+        return rows
+
+    def one(rows, what, unread=()):
+        if len(rows) != 1:
+            passed = (' (%d calculation%s could not be read: %s)' % (len(unread), 's' if len(unread) > 1 else '', ', '.join(unread))
+                      if unread and not rows else '')
+            raise LookupError('The restored workspace holds %s %s%s.' % (len(rows) or 'no', what, passed))
+        return rows[0]
+    objects = call('field.read')['objects']
+    sheet = one([o for o in objects if o['kind'] == 'sheet' and 'bench readings' in o['title'].casefold()],
+                'reviewed sheet whose title says "bench readings"')['id'].split(':', 1)[1]
+    reading, unread = {}, []
+    for o in objects:
+        if o['kind'] == 'calculation':
+            got = answer('documents.get', {'id': o['id'].split(':', 1)[1]})
+            if not got['ok']:
+                unread.append(o['title'])
+                continue
+            derivation = got['result']['document'].get('derivation') or {}
+            if derivation.get('sheet') == sheet:
+                reading.setdefault(tuple(sorted(str(i.get('cell')) for i in derivation.get('inputs') or ())), []).append(o)
+    settled = one(reading.get(('B2', 'B3'), []), 'standing calculation of that sheet\'s B2 and B3 (settled power)', unread)
+    startup = one(reading.get(('B2', 'B4'), []), 'standing calculation of that sheet\'s B2 and B4 (startup power)', unread)
+    result = settled['title'].rsplit(' · ', 1)[-1]          # the result as the desk says it: "<name> · 3.36 W"
+    claim = one([o for o in objects if o['kind'] == 'finding' and carries(o['title'], result)],
+                'finding that says settled power\'s result (%s)' % result)
+    pdf = (call('office.get', {'id': sheet}).get('origin') or {}).get('pdf') or {}
+    item = one([row for row in pages('intake.items', 'items', {'namespace': pdf.get('namespace')}) if row['id'] == pdf.get('item')],
+               'admitted PDF that sheet was reviewed from')
+    return {'sheet': sheet, 'calc_settled': settled['id'].split(':', 1)[1], 'calc_startup': startup['id'].split(':', 1)[1],
+            'claim_settled': claim['id'].split(':', 1)[1], 'pdf_item': item['id'], 'pdf_sha256': item['sha256']}
 
 
 def _field(ctx):
@@ -265,8 +332,7 @@ def rail_trace(ctx):
         trace = json.dumps(ctx.call('field.trace', {'id': 'document:' + IDS['calc_settled']}))
         ctx.observe('traces_to_sheet', 'office:' + IDS['sheet'] in trace)
         ctx.observe('traces_to_pdf', 'intake:' + IDS['pdf_item'] in trace)
-        sheet = ctx.call('office.get', {'id': IDS['sheet']})
-        ctx.observe('pdf_source_sha', sheet['source_state'].get('source_sha256'))
+        sheet = ctx.call('office.get', {'id': IDS['sheet']})      # its hash is compared, never kept: on the backup it is the owner's
         ctx.observe('pdf_source_is_the_admitted_one', sheet['source_state'].get('source_sha256') == IDS['pdf_sha256'])
     finally:
         guard.stop()
@@ -343,7 +409,9 @@ def _backup_checks(ctx, backup, root, profile):
 # ---------------------------------------------------------------- A27: crash after the write, resume
 
 def rail_resume(ctx):
-    IDS = records(ctx)
+    # the records are found once, before the write, and kept in the checkpoint: what a later phase finds could differ
+    saved = ctx.read_checkpoint() if ctx.phase != 'first' else None
+    IDS = (saved or {}).get('records') or records(ctx)
     guard = _guard_launch()
     try:
         ctx.note('driver', SCRIPTED)
@@ -352,11 +420,11 @@ def rail_resume(ctx):
             before = ctx.call('office.get', {'id': IDS['sheet']})
             changed = ctx.call('field.set', {'id': sheet_id, 'cell': 'B3', 'value': '300',
                                               'expected_revision': before['revision']})
-            ctx.checkpoint('set', revision=changed['revision'], before=before['revision'])
+            ctx.checkpoint('set', revision=changed['revision'], before=before['revision'],
+                           records={key: IDS[key] for key in ('sheet', 'calc_settled', 'claim_settled')})     # no hash kept
             ctx.progress('recheck', state='about to recalculate; simulated crash')
             time.sleep(600)
             return
-        saved = ctx.read_checkpoint()
         ctx.observe('resumed_from', saved and saved['step'])
         current = ctx.call('office.get', {'id': IDS['sheet']})
         done = current['revision'] == saved['revision'] and current['document']['sheets'][0]['cells']['B3']['value'] == '300'
@@ -371,8 +439,9 @@ def rail_resume(ctx):
         ctx.observe('power_now_w', str(power))
         field = _field(ctx)
         ctx.observe('sheet_versions', [f for f in field[sheet_id]['facts'] if f.startswith('version')])
-        ctx.observe('settled_calculations', sorted(o['title'] for o in field.values()
-                                                    if o['kind'] == 'calculation' and 'settled' in o['title'].lower()))
+        settled = sorted(o['title'] for o in field.values() if o['kind'] == 'calculation' and 'settled' in o['title'].lower())
+        ctx.observe('settled_calculations', settled)
+        ctx.observe('settled_results', [title.rsplit(' · ', 1)[-1] for title in settled])     # one stands, and what it says
         ctx.observe('finding_state', field['claim:' + IDS['claim_settled']]['state'])
     finally:
         guard.stop()
@@ -439,16 +508,16 @@ RUNNABLE = {
                 title='After Hours 07: trace settled power to its source and check it exactly',
                 slice='the trace of settled power to its reviewed PDF row and the exact 84/25 W check, not the '
                       'readiness report with unresolved conditions and a physical test',
-                allowed=['documents.get', 'field.trace', 'office.get'],
+                allowed=sorted(set(FINDS + ['documents.get', 'field.trace', 'office.get'])),
                 expect={'power_w': '84/25', 'unit': 'W', 'exact_recomputed': '84/25', 'inputs_basis': ['REVIEWED_PDF_ROW'],
-                        'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_sha': fixture.AH07_IDS['pdf_sha256']}),
+                        'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_is_the_admitted_one': True}),
     'S16': dict(fn=rail_flow, seed='after_hours_07', budget_s=120, needs=['after_hours_07'],
                 title='After Hours 07: 280 mA -> 300 mA, recalculate, flag the finding, keep the source',
                 slice='one changed reading carried to its power calculation, the finding flag and the reopened '
                       'result, not the updated design, drawings, cost, firmware and revision package',
-                allowed=AH07_OPS + ['intake.read'],
+                allowed=AH07_OPS + ['intake.read', 'intake.items'],
                 inputs={'request': REQUEST, 'approvals': ['office.datasheet.recheck'], 'driver': 'scripted'},
-                expect={'open_item': '07 Bench readings', 'target_cell': 'B3', 'was_power_w': '84/25',
+                expect={'target_cell': 'B3', 'was_power_w': '84/25',      # the sheet is found by its words: its title is not expected
                         'preview_shows': ['280 mA', '300 mA'],
                         'policy_table:set_waits_for_approval': False,
                         'policy_table:offered_steps_waiting_for_approval': ['office.datasheet.recheck'],
@@ -473,12 +542,12 @@ RUNNABLE = {
                 title='After Hours 07: killed after the cell write, resumed from its checkpoint',
                 slice='resuming local work and recognising a completed working-copy change, not reconciling an '
                       'uncertain external action or preserving later owner edits',
-                allowed=['office.get', 'field.set', 'documents.get', 'office.datasheet.recheck', 'field.read'],
+                allowed=['office.get', 'field.set', 'documents.get', 'office.datasheet.recheck', 'field.read', 'intake.items'],
                 resume={'kill_after': 'set'},
                 faults=[{'at': 'after checkpoint set', 'fault': 'attempt process killed (SIGKILL) before the recalculation'}],
                 expect={'resumed_from': 'set', 'completed_change_recognised': True, 'replay_with_old_revision': 'REFUSED',
-                        'power_now_w': '18/5', 'sheet_versions': ['version 2'],
-                        'settled_calculations': ['07 Settled power · 3.6 W'], 'finding_state': 'recheck'}),
+                        'power_now_w': '18/5', 'sheet_versions': ['version 2'], 'settled_results': ['3.6 W'],
+                        'finding_state': 'recheck'}),
     'S28': dict(fn=busy_desk, seed='base', budget_s=60, needs=[],
                 title='Busy desk: foreground turn first, background waits, reserve kept',
                 slice='the foreground turn and the reserve on simulated readings, not sustained work kept usable '
@@ -514,11 +583,11 @@ CASES = [_anchor('S%02d' % n) for n in range(1, 36)]
 
 DEMO_REOPENED = {**REOPENED, 'reopened:finding_says': 'says 3 W; now 3.6 W', 'reopened:source_row_3': ['250', 'mA']}
 DEMO_RUNNABLE = {
-    'A01': dict(fn=rail_trace, budget_s=60, allowed=['documents.get', 'field.trace', 'office.get'],
+    'A01': dict(fn=rail_trace, budget_s=60, allowed=RUNNABLE['S01']['allowed'],
                 title='Rail Demo: trace settled power to its source and check it exactly',
                 expect={'power_w': '3', 'unit': 'W', 'exact_recomputed': '3', 'inputs_basis': ['REVIEWED_PDF_ROW'],
                         'traces_to_sheet': True, 'traces_to_pdf': True, 'pdf_source_is_the_admitted_one': True}),
-    'A16': dict(fn=rail_flow, budget_s=120, allowed=AH07_OPS + ['intake.read'],
+    'A16': dict(fn=rail_flow, budget_s=120, allowed=RUNNABLE['S16']['allowed'],
                 title='Rail Demo: 250 mA -> 300 mA, recalculate, flag the finding, keep the source',
                 inputs={'request': DEMO_REQUEST, 'approvals': ['office.datasheet.recheck'], 'driver': 'scripted'},
                 expect={**RUNNABLE['S16']['expect'], 'open_item': 'Rail Demo bench readings', 'was_power_w': '3',

@@ -28,9 +28,10 @@ from tests_integrated.seed_hold import seed_bound
 
 WINDOW={}
 SHEET='office:owner:'+'a'*32
-BENCH=[{'parameter':'Rail voltage','value':'12','unit':'V'},{'parameter':'Settled current','value':'280','unit':'mA'},
-       {'parameter':'Startup current','value':'650','unit':'mA'},{'parameter':'Startup duration','value':'110','unit':'ms'}]
-BENCH_CSV='parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n'
+# Rail Demo's invented bench readings (workbench/rail_demo.py READINGS), as reviewed rows and as a CSV table
+BENCH=[{'parameter':'Rail voltage','value':'12','unit':'V'},{'parameter':'Settled current','value':'250','unit':'mA'},
+       {'parameter':'Startup current','value':'900','unit':'mA'},{'parameter':'Startup duration','value':'45','unit':'ms'}]
+BENCH_CSV='parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n'
 # A printed key: a whole caption that is one, or words that tell one (the judge's keys_scan patterns).
 KEY_CAPTION=r'^(?:(?:Ctrl|Shift|Alt|Meta)\b.*|Esc|Enter|Return|Space|Backspace|Tab|F\d{1,2}|[A-Z0-9`])$'
 KEY_TEXT=(r'\b(?:Ctrl|Shift|Alt|Meta)\s*[+ ]\s*\w|\buntil Esc\b|\b(?:Esc|Enter|Space|Backspace|F\d{1,2})\s+(?:asks|shows|takes|does|keeps|runs|closes)\b'
@@ -224,12 +225,12 @@ class Rules(unittest.TestCase):
         self.assertEqual([(o.words,o.count) for o in line_steps.values(held,base,'unit')],
                          [('is mA',2),('is V',1),('is ms',1),('is not mA',2),('is not V',3),('is not ms',3)])
         self.assertEqual([(o.words,o.count) for o in line_steps.values(held,base,'value')],
-                         [('at least 110',3),('at least 280',2),('at least 650',1),('at most 12',1),('at most 110',2),('at most 280',3)])
+                         [('at least 45',3),('at least 250',2),('at least 900',1),('at most 12',1),('at most 45',2),('at most 250',3)])
         self.assertEqual(held.rows(base+' | where unit=mA | count'),[{'count':2}])
         self.assertEqual(held.rows(base+' | group unit | count'),[{'unit':'V','count':1},{'unit':'mA','count':2},{'unit':'ms','count':1}])
         self.assertEqual((line_steps.steps_left(base),line_steps.steps_left(base+' | where unit=mA')),(6,5))
-        # 0.8.4: a number written as text sorts by its value (12 before 110; it sorted as text before, so was not offered)
-        self.assertIn('value',line_steps.sortable(held,base));self.assertEqual([r['value'] for r in held.rows(base+' | sort value')],['12','110','280','650'])
+        # 0.8.4: a number written as text sorts by its value (45 before 250; it sorted as text before, so was not offered)
+        self.assertIn('value',line_steps.sortable(held,base));self.assertEqual([r['value'] for r in held.rows(base+' | sort value')],['12','45','250','900'])
         self.assertEqual(calls,['language.parse','ledger.address.read'],'two reads in all')
 
     def test_the_window_never_names_the_language_and_says_the_200_limit(self):

@@ -8,12 +8,14 @@ the same forms and the same answers as the campaign's core.matches). expect_by_r
 expectations for one run or one seed; args_by_seed adds or replaces arguments for one seed.
 
 A scene is written for one workspace (its seed) and names what is there: a file, a sheet, a row. `workspaces` lets the
-same scene be played on another one: {workspace: {"names": {a name the scene uses: the name there}, "title", "intent"}}.
-for_workspace() gives the scene as it is played there: the same acts in the same order, each name swapped wherever it is
-said (an argument, an expectation), the seed set to that workspace. run_scene() does this itself when its seed is a
-workspace the scene has such an entry for. P01 is written for the owner's After Hours 07, which is never shipped; its
-"rail_demo" entry plays it on Rail Demo, the invented workspace kept in the program (workbench/rail_demo.py), so the
-scene plays anywhere.
+same scene be played on another one: {workspace: {"names": {a name the scene uses: the name there}, "find": {a name the
+scene uses: how to find the name there}, "title", "intent"}}. for_workspace() gives the scene as it is played there: the
+same acts in the same order, each name swapped wherever it is said (an argument, an expectation), the seed set to that
+workspace. "find" is for a workspace whose names the program must not hold: each name is found there when the scene is
+played, by its kind and the words it says (find_names()), and what the window reads there can be said back in the scene's
+own names (said_back()). run_scene() does all of this itself when its seed is a workspace the scene has an entry for.
+0.8.5: P01 is written on Rail Demo, the invented workspace kept in the program (workbench/rail_demo.py), so it plays
+anywhere; its "after_hours_07" entry finds its names in the owner's backup, which is never shipped, and names nothing of it.
 
 run_scene() plays one run: it checks the appearance (chosen at start, so a scene for another appearance is blocked, not
 failed), sizes the window, sets the dial and the motion, runs each step through desk_doers.run(door='script'), scores it,
@@ -79,34 +81,108 @@ def lookup(tree, path):
     return at
 
 
-def for_workspace(scene, workspace):
+def for_workspace(scene, workspace, found=None):
     """The scene as it is played on another workspace (scene['workspaces'][workspace]): a copy with the same steps, every
     name of the scene swapped for the name there wherever a step says it, the longest name first and each place once; the
-    seed, and the title and intent when given, are that workspace's. The scene's own seed gives the scene as written."""
+    seed, and the title and intent when given, are that workspace's. The scene's own seed gives the scene as written.
+    `found` is what find_names() found there for an entry that says how to find its names ("find"); without it those names
+    stay as the scene says them."""
     if workspace == scene.get('seed'):return copy.deepcopy(scene)
     there = (scene.get('workspaces') or {}).get(workspace)
     if not isinstance(there, dict):raise ValueError('The scene %s is not written for the workspace %r' % (scene.get('id', ''), workspace))
-    if not _names(there.get('names', {})):raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
-    names = dict(there.get('names') or {})
-    said = re.compile('|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True))) if names else None
-
-    def swap(value):
-        if isinstance(value, str):return said.sub(lambda found: names[found.group(0)], value) if said else value
-        if isinstance(value, list):return [swap(v) for v in value]
-        if isinstance(value, dict):return {key: swap(v) for key, v in value.items()}
-        return value
+    if not _names(there.get('names', {})) or not _names(found or {}):
+        raise ValueError('The scene %s, workspace %r: names is not an object of names' % (scene.get('id', ''), workspace))
+    names = {**dict(there.get('names') or {}), **dict(found or {})}
     out = copy.deepcopy(scene)
-    out['steps'] = swap(out.get('steps') or [])
+    out['steps'] = _swapped(out.get('steps') or [], names)
     out['seed'] = workspace
     for key in ('title', 'intent'):
         if there.get(key):out[key] = there[key]
     return out
 
 
+def said_back(value, found):
+    """A value read on the workspace whose names were found (find_names), with each name found there put back as the scene
+    says it: what the window read, in the scene's own words, so that a run is judged against the scene as written. A name
+    the window read that was not found stays as it is."""
+    return _swapped(value, {there: name for name, there in (found or {}).items()})
+
+
+def _swapped(value, names):
+    """The value with every name of `names` swapped for its own wherever a string says it, the longest name first and each
+    place once; lists and objects are swapped through, their keys kept."""
+    said = re.compile('|'.join(re.escape(name) for name in sorted(names, key=len, reverse=True))) if names else None
+
+    def swap(value):
+        if isinstance(value, str):return said.sub(lambda hit: names[hit.group(0)], value) if said else value
+        if isinstance(value, list):return [swap(v) for v in value]
+        if isinstance(value, dict):return {key: swap(v) for key, v in value.items()}
+        return value
+    return swap(value)
+
+
 def _names(names):
     """Whether a workspace's names are what the swap can use: an object of name -> name, no name empty (an empty name
     would be found between every two letters)."""
     return isinstance(names, dict) and all(isinstance(k, str) and k and isinstance(v, str) for k, v in names.items())
+
+
+FIND_KINDS = ('sheet', 'calculation', 'row')
+
+
+def _find(find):
+    """What is wrong with a workspace's "find" ([] when nothing): {a name the scene says: {"kind": sheet, calculation or row,
+    "says": the words to look for, and for a row "of": the name of a sheet found by the same entry}}."""
+    if not isinstance(find, dict):return ['find is not an object']
+    problems = []
+    for name, how in find.items():
+        if not isinstance(how, dict) or how.get('kind') not in FIND_KINDS or not isinstance(how.get('says'), str) or not how['says'].strip():
+            problems.append('%r is not found by a kind (%s) and the words it says' % (name, ', '.join(FIND_KINDS)));continue
+        if how['kind'] == 'row' and (find.get(how.get('of')) or {}).get('kind') != 'sheet':
+            problems.append('the row %r is not of a sheet the entry finds' % name)
+    return problems
+
+
+def find_names(kernel, principal, scene, workspace):
+    """The names the scene's entry for `workspace` says to find there ("find"), found in that workspace by kind and by the
+    words each says, capitals aside: {a name the scene says: the name there}, {} when the entry finds none. A sheet or a
+    calculation is one on the desk (field.read; a calculation's name is its title before its result, "<name> · 3 W"); a
+    row is a row of a sheet found here (its reviewed rows' parameter, office.get). Each must be found exactly once, or
+    ValueError says which, in words: a sheet as one record (the scene points at it by its title, and its rows are read
+    from it, so two sheets of one title are two), a calculation or a row as one name. Reads only. This is how a scene is played on a workspace whose names the program does
+    not hold: P01 on the owner's After Hours 07, which is never shipped."""
+    there = (scene.get('workspaces') or {}).get(workspace)
+    find = there.get('find') if isinstance(there, dict) else None
+    if not find:return {}
+    head = 'The scene %s, workspace %r: ' % (scene.get('id', ''), workspace)
+    problems = _find(find)
+    if problems:raise ValueError(head + problems[0])
+
+    def call(op, args):
+        r = kernel.dispatch(op, args, principal)
+        if not r.get('ok'):raise ValueError(head + 'the workspace could not be read (%s was refused)' % op)
+        return r['result']
+    objects = call('field.read', {}).get('objects') or []
+    out, offices = {}, {}
+    for name, how in sorted(find.items(), key=lambda item: item[1]['kind'] == 'row'):     # a row is found in a sheet found before it
+        says = how['says'].strip().casefold()
+        if how['kind'] == 'row':
+            rows = (call('office.get', {'id': offices[how['of']]}).get('origin') or {}).get('reviewed_rows') or []
+            there_names = sorted({str(row.get('parameter') or '') for row in rows if isinstance(row, dict) and says in str(row.get('parameter') or '').casefold()})
+            what, whats = 'row of %s' % out[how['of']], 'rows of %s' % out[how['of']]
+        else:
+            hits = [o for o in objects if o.get('kind') == how['kind'] and says in str(o.get('title') or '').casefold()]
+            if how['kind'] == 'sheet':there_names = [str(o['title']) for o in hits]       # one per record
+            else:there_names = sorted({str(o['title']).split(' · ')[0] for o in hits})     # a calculation's name, before its result
+            what, whats = how['kind'], how['kind'] + 's'
+        if len(there_names) != 1:
+            raise ValueError(head + ('no %s says "%s"' % (what, how['says']) if not there_names else
+                                     '%d %s say "%s"' % (len(there_names), whats, how['says'])) + ' (for %s)' % name)
+        if there_names[0] in out.values():      # two names found as one could not be told apart in what the window reads
+            raise ValueError(head + '%s and %s are found as the same %s' % (next(k for k, v in out.items() if v == there_names[0]), name, what))
+        if how['kind'] == 'sheet':offices[name] = str(hits[0]['id']).split(':', 1)[1]
+        out[name] = there_names[0]
+    return out
 
 
 def check_scene(scene):
@@ -129,6 +205,8 @@ def check_scene(scene):
     for name, there in workspaces.items():
         if not isinstance(there, dict) or not _names(there.get('names', {})):
             problems.append('workspace %r: names is not an object of names' % name)
+        elif 'find' in there:
+            problems.extend('workspace %r: %s' % (name, problem) for problem in _find(there['find']))
     steps = scene.get('steps')
     if not isinstance(steps, list) or not steps:problems.append('the scene has no steps');steps = []
     for n, step in enumerate(steps, 1):
@@ -165,10 +243,16 @@ def expected(step, run_name, seed):
 
 def run_scene(host, scene, run, *, seed, origin, after_step=None):
     """Play one run of a scene on the live window. `run` is a run's name or the run itself. A seed the scene has a
-    `workspaces` entry for is played as that workspace has it (for_workspace). Returns {run, seed, steps: [{n, act, ok, by,
-    seconds, words, checks: [{path, want, got, ok}]}], passed} or {blocked: why}."""
+    `workspaces` entry for is played as that workspace has it (for_workspace), its names to find found first in the window's
+    workspace (find_names; ValueError, in words, when one is not there). Returns {run, seed, found: {a name the scene says:
+    the name found there}, steps: [{n, act, ok, by, seconds, words, checks: [{path, want, got, ok}]}], passed} or
+    {blocked: why}."""
     from . import boss_theme, desk_doers
-    if seed != scene.get('seed') and seed in (scene.get('workspaces') or {}):scene = for_workspace(scene, seed)
+    found = {}
+    if seed != scene.get('seed') and seed in (scene.get('workspaces') or {}):
+        from .engineering_kernel import operator
+        found = find_names(host.ledger_bridge.kernel, operator(), scene, seed)
+        scene = for_workspace(scene, seed, found)
     if isinstance(run, str):run = next((r for r in scene['runs'] if r['name'] == run), None)
     if run is None:return {'blocked': 'the scene has no such run'}
     given = scene.get('given') or {}
@@ -182,7 +266,7 @@ def run_scene(host, scene, run, *, seed, origin, after_step=None):
     if run.get('reduce_motion'):
         changed = desk_doers.run(host, 'look.set', {'motion': 'reduced'}, door='script', origin=origin)
         before_motion = ((changed.get('result') or {}).get('before') or {}).get('motion', 'normal')
-    out = {'run': run['name'], 'seed': seed, 'style': style, 'reduce_motion': bool(run.get('reduce_motion')), 'steps': []}
+    out = {'run': run['name'], 'seed': seed, 'found': found, 'style': style, 'reduce_motion': bool(run.get('reduce_motion')), 'steps': []}
     try:
         for n, step in enumerate(scene['steps'], 1):
             started = time.monotonic();checks = []

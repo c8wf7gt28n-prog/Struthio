@@ -319,7 +319,7 @@ def case_review(p):
     row = next(r for r in ledger_control.settings(w.ledger_bridge.kernel)['settings'] if r['key'] == 'reading.family')
     out['font_report'] = [row['application_state'], settings_qt.state_words(row)]
     # her words: a name that fits a line is never cut at a line's end, in her leaded words and in a plain row of a card
-    name, other = '07_Bench_Readings.pdf', '07_Rail_Limits_Rev_B.pdf'
+    name, other = 'Rail_Demo_Bench_Readings.pdf', 'Rail_Demo_Limits_Rev_B.pdf'
     said = lambda n:'\u2190 source \u00b7 %s (current) \u00b7 supports' % n
     card = face.say(said(name) + '\n' + said(other));row_label = QLabel(shell2.breakable(said(other)));row_label.setWordWrap(True);card.box.addWidget(row_label)
     long = 'path/to/a/very/long/folder/name/that/never/fits/one/line/of/her/column.csv'
@@ -384,7 +384,7 @@ def case_review(p):
     # a note in the viewer at this size: the panes keep their width and no action is cut
     from workbench import files_service
     note = files_service.root(w.ledger_bridge.kernel) / 'bench note.md'
-    note.write_text('# Bench note\n\nSettled draw is **3.36 W**.\n\n`office.get {"id":"x"}`\n')
+    note.write_text('# Bench note\n\nSettled power is **3 W**.\n\n`office.get {"id":"x"}`\n')
     pane_before = w.desk.pane;w.open_in_viewer(note);p.settle(60, 8)
     tab = w.tabs.currentWidget()
     actions = getattr(tab, 'actions_row', ())

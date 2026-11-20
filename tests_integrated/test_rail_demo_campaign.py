@@ -5,10 +5,17 @@ never shipped: wherever it was not they were Blocked, and their steps never ran.
 steps on Rail Demo: DP01a..DP01d (the scene, its names swapped) and DA01, DA16, DA17, DA27 (the same functions, Rail
 Demo's own values).
 
-Without a run: the scene as it is played on Rail Demo names nothing of the owner's workspace and is the same scene (the
-same acts, in the same order, with the same expectations by place); the runner's parent, which never imports Graphite,
-and the program give the same scene; the scene as written is untouched and its cases still need the backup; the twins
-need only what a PDF source needs, and say which part is missing.
+Without a run: since 0.8.5 the scene is written on Rail Demo and names nothing of the owner's workspace; on After Hours 07
+each of its names is found there by kind and words (on a stand-in desk of invented names here), the same acts in the
+same order, and what the window reads there is said back in the scene's own names, so a run there is judged by the
+same checks; the runner's parent, which never imports Graphite, and the program give the same scene; the scene as
+written is untouched and its cases on the owner's workspace still need the backup; no anchor or scene case, and no
+module of the campaign, holds a record id or a hash of the owner's; the twins need only what a PDF source needs, and
+say which part is missing.
+
+The scene case itself, played once in this process as a child of the runner plays it: P01 said in invented names, with
+an entry that finds each of them on Rail Demo by the words its After Hours 07 entry uses, so the case finds Rail Demo's
+names before the first step, plays the scene in them and meets the scene's own checks with what it read said back.
 
 With a run, exactly as `tools/campaign.py run` makes it (one child per attempt, in its own folder, no fixtures folder):
 the four anchors' steps pass on Rail Demo with its values (3 W, 3.6 W at 300 mA, the finding flagged, the source still at
@@ -25,6 +32,7 @@ import copy
 import io
 import json
 import os
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -36,9 +44,15 @@ from tests_integrated import seed_hold
 ROOT = Path(__file__).resolve().parent.parent
 ANCHORS = ['DA01', 'DA16', 'DA17', 'DA27']
 SCENES = ['DP01a', 'DP01b', 'DP01c', 'DP01d']
-# what the scene's names become on Rail Demo, in the order the scene lists them: the file it writes, the three sheets, two rows
-THERE = ['Rail Demo bench readings.csv', 'Rail Demo bench readings', 'Rail Demo limits Rev A ARCHIVED', 'Rail Demo limits Rev B CURRENT',
-         'Startup duration limit', 'Startup power ceiling']
+# The names the scene says that its After Hours 07 entry finds there, in the order it lists them: three sheets, two
+# calculations, two rows of the Rev B sheet
+FOUND = ['Rail Demo bench readings', 'Rail Demo limits Rev A ARCHIVED', 'Rail Demo limits Rev B CURRENT', 'Rail Demo settled power',
+         'Rail Demo startup power', 'Startup duration limit', 'Startup power ceiling']
+# Invented names for a workspace whose names the program does not hold, as find_names would find them there
+ELSEWHERE = dict(zip(FOUND, ['Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night settled power',
+                             'Night startup power', 'Peak duration', 'Peak ceiling']))
+RAIL_CSV = 'parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n'
+HEX_ID = r'(?<![0-9a-f])(?:[0-9a-f]{32}|[0-9a-f]{64})(?![0-9a-f])'      # a record id or a SHA-256, as Graphite writes them
 
 
 def arguments(**values):
@@ -62,58 +76,115 @@ def run(out, cases, look=None, first_on_path=None):
     return code, results
 
 
+class Desk:
+    """A workspace's desk as find_names reads it (field.read; office.get of a sheet for its reviewed rows), with invented
+    names standing for a workspace the program does not hold."""
+
+    def __init__(self, sheets=None, calculations=None, rows=None):
+        self.sheets = sheets if sheets is not None else ['Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night notes']
+        self.calculations = calculations if calculations is not None else ['Night settled power · 4.2 W', 'Night startup power · 9 W']
+        self.rows = rows if rows is not None else ['Peak duration', 'Peak ceiling', 'Nominal voltage']
+        self.asked = []
+
+    def dispatch(self, op, args, principal):
+        self.asked.append(op)
+        if op == 'field.read':
+            return {'ok': True, 'result': {'objects': [{'id': 'office:owner:%d' % n, 'kind': 'sheet', 'title': t} for n, t in enumerate(self.sheets)]
+                                           + [{'id': 'document:%d' % n, 'kind': 'calculation', 'title': t} for n, t in enumerate(self.calculations)]
+                                           + [{'id': 'claim:1', 'kind': 'finding', 'title': 'Night settled power is 4.2 W.'}]}}
+        if op == 'office.get':
+            title = self.sheets[int(args['id'].rsplit(':', 1)[1])]
+            rows = self.rows if title.endswith('Rev B CURRENT') else ['Other']
+            return {'ok': True, 'result': {'origin': {'reviewed_rows': [{'parameter': p, 'value': '1'} for p in rows]}}}
+        return {'ok': False, 'error': {'code': 'NOT_ASKED'}}
+
+
 class TheSceneOnAnotherWorkspace(unittest.TestCase):
-    """No run: what the scene is on Rail Demo, and that the scene as written is untouched."""
+    """No run: the scene is written on Rail Demo and names nothing of the owner's workspace; on After Hours 07 each of its
+    names is found there by kind and words, and what the window reads there is said back in the scene's own names."""
 
     def setUp(self):
+        from workbench import desk_scene
         self.written = cases_scene.load('P01')
-        self.there = cases_scene.for_workspace(self.written, 'rail_demo')
-        self.names = self.written['workspaces']['rail_demo']['names']
+        self.find = self.written['workspaces']['after_hours_07']['find']
+        self.there = desk_scene.for_workspace(self.written, 'after_hours_07', ELSEWHERE)
 
-    def test_the_same_acts_in_the_same_order_with_each_name_swapped(self):
-        self.assertEqual(list(self.names.values()), THERE)
+    def test_the_scene_is_written_on_rail_demo_and_names_nothing_of_the_owners_workspace(self):
+        self.assertEqual((self.written['seed'], self.written['title']), ('rail_demo', 'Rail Demo, the playable scene'))
+        self.assertEqual(cases_scene.for_workspace(self.written, 'rail_demo'), self.written, 'the scene as written is what Rail Demo plays')
+        self.assertEqual(list(self.written['workspaces']), ['after_hours_07'])
+        self.assertNotIn('names', self.written['workspaces']['after_hours_07'], 'no name of the owner\'s workspace is written')
+        self.assertEqual(list(self.find), FOUND)
         said = json.dumps(self.written['steps'])
-        for name in self.names:
-            self.assertIn(json.dumps(name)[1:-1], said, 'a name the scene does not say')
+        for name in FOUND:
+            self.assertIn(name, said, 'a name the scene does not say')
+        named = {s['args'][k] for s in self.written['steps'] for k in ('title', 'name', 'path') if k in s.get('args', {}) and s['act'] != 'menu.choose'}
+        self.assertEqual(named, {'Rail Demo bench readings', 'Rail Demo bench readings.csv', 'Rail Demo limits Rev B CURRENT'})
+        self.assertEqual([s['args']['text'] for s in self.written['steps'] if s['act'] == 'hand.write'], [RAIL_CSV], 'Rail Demo\'s readings, invented')
+        self.assertEqual([s for s in self.written['steps'] if 'args_by_seed' in s], [], 'the same arguments on every workspace')
+        self.assertEqual(re.findall(HEX_ID, json.dumps(self.written)), [])
+
+    def test_on_another_workspace_the_same_acts_with_each_name_found_there(self):
         self.assertEqual([s['act'] for s in self.there['steps']], [s['act'] for s in self.written['steps']])
         self.assertEqual((self.there['seed'], self.there['id'], self.there['runs'], self.there['given']),
-                         ('rail_demo', 'P01', self.written['runs'], self.written['given']))
-        self.assertEqual(self.there['title'], 'Rail Demo, the playable scene')
-        self.assertIn('invented data', self.there['intent'])
+                         ('after_hours_07', 'P01', self.written['runs'], self.written['given']))
+        self.assertEqual(self.there['title'], 'After Hours 07, the playable scene')
         for was, now in zip(self.written['steps'], self.there['steps']):
-            self.assertEqual(sorted(was), sorted(now))
-            for key in ('args', 'expect', 'expect_by_run'):
+            for key in ('args', 'expect', 'expect_by_run', 'expect_by_seed'):
                 self.assertEqual(sorted(was.get(key, {})), sorted(now.get(key, {})), (was['act'], key))
         by_act = {s['act']: s for s in self.there['steps']}
-        self.assertEqual(by_act['hand.write']['args']['path'], 'Rail Demo bench readings.csv')
-        self.assertEqual(by_act['menu.open']['args'], {'on': 'file', 'name': 'Rail Demo bench readings.csv'})
-        self.assertEqual(by_act['then.end']['expect']['desk.line.text'], '@files:Rail Demo bench readings.csv | rows | where unit=mA | count')
+        self.assertEqual(by_act['hand.write']['args'], {'path': 'Night bench readings.csv', 'text': RAIL_CSV})
+        self.assertEqual(by_act['menu.open']['args'], {'on': 'file', 'name': 'Night bench readings.csv'})
+        self.assertEqual(by_act['then.end']['expect']['desk.line.text'], '@files:Night bench readings.csv | rows | where unit=mA | count')
         self.assertEqual(by_act['sheet.compare']['expect'],
-                         {'desk.field.revisions.a': 'Rail Demo limits Rev A ARCHIVED', 'desk.field.revisions.b': 'Rail Demo limits Rev B CURRENT',
-                          'desk.field.revisions.changed': {'contains': 'Startup duration limit'},
-                          'desk.field.revisions.changed#ceiling': {'contains': 'Startup power ceiling'}})
-        self.assertEqual(by_act['hand.undo']['expect']['act.result.trashed'], 'Rail Demo bench readings.csv')
+                         {'desk.field.revisions.a': 'Night limits Rev A ARCHIVED', 'desk.field.revisions.b': 'Night limits Rev B CURRENT',
+                          'desk.field.revisions.changed': {'contains': 'Peak duration'}, 'desk.field.revisions.changed#ceiling': {'contains': 'Peak ceiling'}})
+        self.assertEqual(by_act['sheet.trace']['expect_by_seed']['after_hours_07']['desk.field.route.ends'], {'contains': 'Night settled power'})
+        said = json.dumps(self.there['steps'])
+        for name in FOUND:
+            self.assertNotIn(name, said, name)
+        self.assertEqual(cases_scene.for_workspace(self.written, 'after_hours_07')['steps'], self.written['steps'],
+                         'where the names are not found yet (the runner\'s parent) they stay as the scene says them')
 
-    def test_what_is_played_on_rail_demo_names_nothing_of_the_owners_workspace(self):
-        for run_name in ('mouse', 'keys', 'mouse_still', 'keys_still'):
-            played = json.dumps([[{**s.get('args', {}), **s.get('args_by_seed', {}).get('rail_demo', {})}] for s in self.there['steps']]
-                                + [cases_scene.flattened(self.there, run_name, 'rail_demo')])
-            for name in self.names:
-                self.assertNotIn(name, played, (run_name, name))
-            self.assertNotIn('After Hours', played, run_name)
-        text = self.there['steps'][2]['args_by_seed']['rail_demo']['text']
-        self.assertEqual(text, 'parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n')
-        self.assertEqual((text.count('\n') - 1, text.count(',mA\n')), (4, 2), 'the four rows and the two in mA the scene counts')
+    def test_what_the_window_reads_there_is_said_back_in_the_scenes_own_names(self):
+        from workbench import desk_scene
+        self.assertEqual(desk_scene.said_back({'ends': ['Night settled power · 4.2 W', 'Night startup power · 9 W'], 'hops': 2, 'other': 'Night notes'}, ELSEWHERE),
+                         {'ends': ['Rail Demo settled power · 4.2 W', 'Rail Demo startup power · 9 W'], 'hops': 2, 'other': 'Night notes'})
+        self.assertEqual(desk_scene.said_back('Night bench readings.csv', {}), 'Night bench readings.csv')
+        for run_name in ('mouse', 'keys', 'mouse_still', 'keys_still'):     # every check, read there as expected, is the scene's own check
+            here = cases_scene.flattened(cases_scene.for_workspace(self.written, 'after_hours_07'), run_name, 'after_hours_07')
+            there = cases_scene.flattened(self.there, run_name, 'after_hours_07')
+            self.assertEqual(sorted(there), sorted(here))
+            for path, value in there.items():
+                self.assertEqual(desk_scene.said_back(value, ELSEWHERE), here[path], (run_name, path))
+
+    def test_each_name_is_found_once_by_its_kind_and_the_words_it_says(self):
+        from workbench import desk_scene
+        desk = Desk()
+        self.assertEqual(desk_scene.find_names(desk, None, self.written, 'after_hours_07'), ELSEWHERE)
+        self.assertEqual(desk.asked.count('field.read'), 1)
+        self.assertTrue(set(desk.asked) <= {'field.read', 'office.get'}, 'it only reads')
+        self.assertEqual(desk_scene.find_names(desk, None, self.written, 'rail_demo'), {}, 'the scene\'s own workspace: nothing to find')
+        for broken, words in ((Desk(sheets=['Night bench readings', 'Day bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT']),
+                               '2 sheets say "bench readings" (for Rail Demo bench readings)'),
+                              # a sheet is one record: two of one title are two, whether a row is found in it or not
+                              (Desk(sheets=['Night bench readings', 'Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT']),
+                               '2 sheets say "bench readings" (for Rail Demo bench readings)'),
+                              (Desk(sheets=['Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night limits Rev B CURRENT']),
+                               '2 sheets say "rev b current" (for Rail Demo limits Rev B CURRENT)'),
+                              (Desk(calculations=['Night settled power · 4.2 W']), 'no calculation says "startup power" (for Rail Demo startup power)'),
+                              (Desk(rows=['Peak duration ceiling', 'Nominal voltage']), 'Startup duration limit and Startup power ceiling are found as the same row of Night limits Rev B CURRENT'),
+                              (Desk(rows=['Nominal voltage']), 'no row of Night limits Rev B CURRENT says "duration" (for Startup duration limit)')):
+            with self.assertRaises(ValueError, msg=words) as refused:
+                desk_scene.find_names(broken, None, self.written, 'after_hours_07')
+            self.assertEqual(str(refused.exception), "The scene P01, workspace 'after_hours_07': " + words)
 
     def test_the_scene_as_written_is_untouched_and_is_what_its_own_seed_gives(self):
+        from workbench import desk_scene
         before = copy.deepcopy(self.written)
-        cases_scene.for_workspace(self.written, 'rail_demo')
+        desk_scene.for_workspace(self.written, 'after_hours_07', ELSEWHERE);cases_scene.for_workspace(self.written, 'after_hours_07')
         self.assertEqual(self.written, before, 'a copy is swapped, never the scene')
-        self.assertEqual(cases_scene.for_workspace(self.written, 'after_hours_07'), self.written)
-        self.assertEqual((self.written['seed'], self.written['title']), ('after_hours_07', 'After Hours 07, the playable scene'))
-        said = json.dumps(self.written['steps'])
-        self.assertNotIn('Rail Demo', said.replace(json.dumps(self.written['steps'][2]['args_by_seed'])[1:-1], '')
-                         .replace(json.dumps(self.written['steps'][12]['expect_by_seed']['rail_demo'])[1:-1], ''))
+        self.assertEqual(desk_scene.for_workspace(self.written, 'rail_demo', ELSEWHERE), self.written, 'its own seed: as written')
         with self.assertRaisesRegex(ValueError, "not written for the workspace 'bench'"):
             cases_scene.for_workspace(self.written, 'bench')
 
@@ -124,8 +195,8 @@ class TheSceneOnAnotherWorkspace(unittest.TestCase):
         with self.assertRaises(ValueError):
             desk_scene.for_workspace(self.written, 'bench')
         for run_name in ('mouse', 'keys', 'mouse_still', 'keys_still'):
-            flat = cases_scene.flattened(self.there, run_name, 'rail_demo')
-            for n, step in enumerate(self.there['steps'], 1):
+            flat = cases_scene.flattened(self.written, run_name, 'rail_demo')
+            for n, step in enumerate(self.written['steps'], 1):
                 for path, value in desk_scene.expected(step, run_name, 'rail_demo').items():
                     self.assertEqual(flat['%d:%s' % (n, path)], value, (run_name, n, path))
         self.assertEqual(desk_scene.check_scene(self.there), [])
@@ -134,25 +205,34 @@ class TheSceneOnAnotherWorkspace(unittest.TestCase):
     def test_a_malformed_entry_is_said_in_words(self):
         from workbench import desk_scene
         scene = copy.deepcopy(self.written)
-        scene['workspaces'] = {'rail_demo': {'names': {'a name the scene says': 7}}}
-        scene['steps'][2]['args_by_seed'] = {'rail_demo': {'path': ''}}
-        scene['steps'][3]['args_by_seed'] = ['rail_demo']
+        scene['workspaces'] = {'rail_demo': {'names': {'a name the scene says': 7}},
+                               'after_hours_07': {'find': {'Rail Demo bench readings': {'kind': 'page', 'says': 'bench'},
+                                                           'Startup power ceiling': {'kind': 'row', 'of': 'Rail Demo settled power', 'says': 'ceiling'},
+                                                           'Rail Demo settled power': {'kind': 'calculation', 'says': ' '}}}}
+        scene['steps'][2]['args_by_seed'] = {'after_hours_07': {'path': ''}}
+        scene['steps'][3]['args_by_seed'] = ['after_hours_07']
         problems = desk_scene.check_scene(scene)
         self.assertIn("workspace 'rail_demo': names is not an object of names", problems)
+        self.assertIn("workspace 'after_hours_07': 'Rail Demo bench readings' is not found by a kind (sheet, calculation, row) and the words it says", problems)
+        self.assertIn("workspace 'after_hours_07': the row 'Startup power ceiling' is not of a sheet the entry finds", problems)
+        self.assertIn("workspace 'after_hours_07': 'Rail Demo settled power' is not found by a kind (sheet, calculation, row) and the words it says", problems)
         self.assertIn('step 4: args_by_seed is not an object of objects', problems)
-        self.assertTrue([p for p in problems if p.startswith('step 3, on rail_demo: ')], problems)
-        self.assertEqual(len(problems), 3, problems)
+        self.assertTrue([p for p in problems if p.startswith('step 3, on after_hours_07: ')], problems)
+        self.assertEqual(len(problems), 6, problems)
 
     def test_names_the_swap_cannot_use_are_refused_in_words_and_nothing_is_swapped(self):
         from workbench import desk_scene
-        for names in ({'': 'x'}, {'07 Bench readings': 7}, ['07 Bench readings'], None):
+        for names in ({'': 'x'}, {'Rail Demo bench readings': 7}, ['Rail Demo bench readings'], None):
             scene = copy.deepcopy(self.written)
-            scene['workspaces']['rail_demo']['names'] = names
+            scene['workspaces']['after_hours_07']['names'] = names
             for give in (desk_scene.for_workspace, cases_scene.for_workspace):
                 with self.assertRaises(ValueError, msg=(names, give.__module__)) as refused:
-                    give(scene, 'rail_demo')
-                self.assertEqual(str(refused.exception), "The scene P01, workspace 'rail_demo': names is not an object of names")
-            self.assertIn("workspace 'rail_demo': names is not an object of names", desk_scene.check_scene(scene))
+                    give(scene, 'after_hours_07')
+                self.assertEqual(str(refused.exception), "The scene P01, workspace 'after_hours_07': names is not an object of names")
+            self.assertIn("workspace 'after_hours_07': names is not an object of names", desk_scene.check_scene(scene))
+            if isinstance(names, dict):
+                with self.assertRaises(ValueError, msg=names):
+                    desk_scene.for_workspace(self.written, 'after_hours_07', names)      # nor names found that it cannot use
 
     def test_arguments_for_a_seed_add_to_or_replace_the_steps_own(self):
         from workbench import desk_scene
@@ -161,6 +241,65 @@ class TheSceneOnAnotherWorkspace(unittest.TestCase):
         self.assertEqual(desk_scene.arguments(step, 'elsewhere'), {'path': 'a.csv', 'text': 'one'})
         self.assertEqual(desk_scene.arguments({'act': 'menu.close'}, 'there'), {})
         self.assertEqual(step['args'], {'path': 'a.csv', 'text': 'one'})
+
+
+class TheSceneCaseWhereItsNamesAreFound(unittest.TestCase):
+    """The scene case itself (cases_scene.run_case, as a child of the runner calls it) on a workspace whose names are not the
+    scene's, as P01a..P01d are on the owner's backup, which is not here: P01 said in invented names, with an entry that
+    finds each of them on Rail Demo by the words its After Hours 07 entry uses. The case finds Rail Demo's names before
+    the first step, plays the scene in them, and says what the window read back in the scene's own names, so the scene's
+    own checks are met. Played once, in this process, on Rail Demo built as the runner builds it for a child."""
+
+    @classmethod
+    def setUpClass(cls):
+        from workbench import desk_scene
+        written = cases_scene.load('P01')
+        find = written['workspaces']['after_hours_07']['find']
+        invented = desk_scene.for_workspace(written, 'after_hours_07', ELSEWHERE)      # the same scene, said in invented names
+        invented.update(seed='night', workspaces={'rail_demo': {'find': {
+            ELSEWHERE[name]: dict(how, **({'of': ELSEWHERE[how['of']]} if 'of' in how else {})) for name, how in find.items()}}})
+        cls.invented = invented
+        cls.case = core.Case(id='XP01d', set='scenes', title='P01 in invented names, played on Rail Demo', seed='rail_demo', needs=['rail_demo'],
+                             inputs={'scene': 'P01', 'run': 'keys_still'}, fn=cases_scene.run_case,
+                             expect=cases_scene.flattened(cases_scene.for_workspace(invented, 'rail_demo'), 'keys_still', 'rail_demo'))
+        cls.temp = tempfile.TemporaryDirectory(prefix='graphite-scene-case-', ignore_cleanup_errors=True)
+        folder = Path(cls.temp.name) / 'attempt'
+        fixture.make_folders(folder)
+        holds = [mock.patch.dict(os.environ, fixture.attempt_environment(folder)), seed_hold.seed_bound(),
+                 mock.patch.object(cases_scene, 'load', lambda scene_id: copy.deepcopy(invented))]
+        for hold in holds:hold.start()
+        try:
+            cls.ctx = core.Attempt(cls.case, folder, 1)
+            cls.ctx.kernel, cls.ctx.owner, _ = fixture.rail_demo_workspace(folder)
+            cls.case.fn(cls.ctx)
+        finally:
+            for hold in reversed(holds):hold.stop()
+        cls.outcome, cls.scored = core.score(cls.case, cls.ctx.observed)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+    def test_the_scene_in_invented_names_names_nothing_of_rail_demo_that_its_entry_finds(self):
+        said = json.dumps(self.invented['steps'])
+        for name in FOUND:
+            self.assertNotIn(name, said, name)
+        self.assertEqual(self.case.expect['12:desk.field.selected.title'], 'Night bench readings')
+
+    def test_the_case_finds_each_name_there_and_meets_the_scenes_own_checks(self):
+        self.assertEqual(self.outcome, 'Pass', [c for c in self.scored if not c['ok']])
+        self.assertEqual(len(self.scored), len(self.case.expect))
+        self.assertEqual(self.ctx.notes['found'], sorted(ELSEWHERE.values()), 'which of the scene\'s names were found there')
+        self.assertIs(self.ctx.notes['passed'], True)
+        self.assertEqual([s['act'] for s in self.ctx.notes['steps']], [s['act'] for s in self.invented['steps']])
+
+    def test_it_was_played_in_the_names_there_and_judged_in_the_scenes_own(self):
+        trace = next(s for s in self.ctx.notes['steps'] if s['act'] == 'sheet.trace')
+        self.assertEqual(trace['result']['route']['owner_title'], 'Rail Demo bench readings', 'what the window read, as it read it')
+        got = self.ctx.observed
+        self.assertEqual((got['12:desk.field.selected.title'], got['15:desk.field.revisions.a'], got['15:desk.field.revisions.b'], got['17:act.result.trashed']),
+                         ('Night bench readings', 'Night limits Rev A ARCHIVED', 'Night limits Rev B CURRENT', 'Night bench readings.csv'))
+        self.assertEqual([name for name in FOUND if name in json.dumps(got)], [], 'every name read there is said back')
 
 
 class TheCases(unittest.TestCase):
@@ -178,14 +317,13 @@ class TheCases(unittest.TestCase):
         for case, original in zip(scenes[4:], scenes[:4]):
             self.assertEqual((case.seed, case.needs, case.source_case), ('rail_demo', ['rail_demo'], original.id + ' on Rail Demo'), case.id)
             self.assertEqual(case.inputs, original.inputs, case.id)
-            self.assertEqual(sorted(case.expect), sorted(original.expect), 'the same checks, by place')
+            self.assertEqual(case.expect, original.expect, 'the same checks with the same values: the owner\'s run is judged in the scene\'s own names')
             self.assertEqual((case.budget_s, case.fn), (original.budget_s, original.fn), case.id)
             self.assertIn('Rail Demo (invented data)', case.title)
-            for name in written['workspaces']['rail_demo']['names']:
-                self.assertNotIn(name, json.dumps(case.expect), (case.id, name))
             self.assertIs(every[case.id], case)
         self.assertEqual(scenes[4].expect['13:desk.field.route.hops'], 2)
         self.assertEqual(scenes[4].expect['13:desk.field.route.ends'], {'contains': 'Rail Demo settled power'})
+        self.assertEqual(re.findall(HEX_ID, json.dumps([[c.title, c.intent, c.expect, c.inputs] for c in scenes])), [])
 
     def test_the_demo_set_is_the_four_anchors_steps_with_rail_demos_values(self):
         every = runner.registry()
@@ -198,7 +336,7 @@ class TheCases(unittest.TestCase):
             self.assertEqual((case.seed, case.needs, case.mode, case.slice, case.situation), ('rail_demo', ['rail_demo'], 'sim', None, None), case.id)
             self.assertEqual(case.source_case, case.id[1:] + ' on Rail Demo')
             self.assertTrue(case.title.startswith('Rail Demo'), case.title)
-            self.assertEqual(sorted(set(anchor.expect) - set(case.expect)), ['pdf_source_sha'] if case.id == 'DA01' else [], case.id)
+            self.assertEqual(sorted(set(anchor.expect) - set(case.expect)), [], case.id)
             said = json.dumps([case.title, case.inputs, case.expect, case.start])      # the intent alone says whose steps these are
             self.assertNotIn('After Hours', said, case.id)
             self.assertNotEqual(case.expect, anchor.expect, 'Rail Demo\'s own values, not the owner\'s')
@@ -214,13 +352,22 @@ class TheCases(unittest.TestCase):
         self.assertEqual(every['DA01'].expect['power_w'], '3')
         self.assertEqual(every['DA27'].expect['settled_calculations'], ['Rail Demo settled power · 3.6 W'])
 
-    def test_the_anchors_on_the_owners_workspace_are_as_they_were(self):
+    def test_the_anchors_on_the_owners_workspace_find_their_records_and_hold_nothing_of_it(self):
         every = runner.registry()
         for ident in ('A01', 'A16', 'A27'):
             self.assertEqual((every[ident].seed, every[ident].needs), ('after_hours_07', ['after_hours_07']), ident)
         self.assertEqual((every['A17'].seed, every['A17'].needs), ('none', ['after_hours_07']))
-        self.assertEqual(every['A01'].expect['pdf_source_sha'], fixture.AH07_IDS['pdf_sha256'])
-        self.assertNotIn('pdf_source_is_the_admitted_one', every['A01'].expect)
+        # 0.8.5: no record id, hash or title of the owner's is written; the records are found where the case runs (found())
+        self.assertFalse(hasattr(fixture, 'AH07_IDS'))
+        self.assertIs(every['A01'].expect['pdf_source_is_the_admitted_one'], True)
+        self.assertNotIn('pdf_source_sha', every['A01'].expect)
+        self.assertNotIn('open_item', every['A16'].expect, 'the sheet is found by its words: its title is not expected')
+        self.assertEqual((every['A16'].expect['was_power_w'], every['A27'].expect['settled_results']), ('84/25', ['3.6 W']))
+        for ident in ('A01', 'A16', 'A17', 'A27'):
+            said = json.dumps([every[ident].title, every[ident].expect, every[ident].inputs, every[ident].start])
+            self.assertEqual(re.findall(HEX_ID, said), [], ident)
+        for module in (fixture, cases_anchor, cases_scene):
+            self.assertEqual(re.findall(HEX_ID, Path(module.__file__).read_text(encoding='utf-8')), [], module.__name__)
         self.assertEqual(every['A16'].inputs['request'], cases_anchor.REQUEST)
         self.assertNotEqual(cases_anchor.REQUEST, cases_anchor.DEMO_REQUEST)
         for sid, ident in (('S01', 'A01'), ('S16', 'A16'), ('S17', 'A17'), ('S27', 'A27')):
@@ -347,10 +494,17 @@ class TheRuns(unittest.TestCase):
         self.assertEqual([p['phase'] for p in result['phases']], ['first', 'resume'])
         self.assertTrue(result['phases'][0]['killed_at_checkpoint'])
         self.assertEqual(self.checks('DA27'), {'resumed_from': 'set', 'completed_change_recognised': True, 'replay_with_old_revision': 'REFUSED',
-                                               'power_now_w': '18/5', 'sheet_versions': ['version 2'],
+                                               'power_now_w': '18/5', 'sheet_versions': ['version 2'], 'settled_results': ['3.6 W'],
                                                'settled_calculations': ['Rail Demo settled power · 3.6 W'], 'finding_state': 'recheck'})
         self.assertEqual(result['fixture']['seed'], 'rail_demo')
         self.assertIn('resumed', result['fixture'])
+        # 0.8.5: the records are found once, before the write, and the resumed phase works on the ones its checkpoint keeps
+        lines = [json.loads(line) for line in (Path(result['folder']) / 'progress.jsonl').read_text().splitlines()]
+        reads = {phase: [line['op'] for line in lines if line['step'] == 'op' and line['phase'] == phase] for phase in ('first', 'resume')}
+        self.assertIn('intake.items', reads['first'])
+        self.assertNotIn('intake.items', reads['resume'])
+        self.assertEqual(sorted(json.loads((Path(result['folder']) / 'checkpoint.json').read_text())['records']), ['calc_settled', 'claim_settled', 'sheet'])
+        self.assertEqual(set(reads['first'] + reads['resume']) - set(runner.registry()['DA27'].allowed), set(), 'every read is one the case allows')
 
     def test_p01_is_played_on_rail_demo_in_the_graphite_look_and_in_the_kasandra_look(self):
         self.assertEqual(self.kas_code, 0)

@@ -8,7 +8,9 @@ Every number in it is invented, and it says so.
 
 Here: the sources are the same bytes every time; a workspace built by rail_demo.workspace() holds every record and every
 link, each read back through Graphite's operations; nothing of it is outside the folder it was given; it is built through
-Kernel.dispatch alone; changing the settled current from 250 mA to 300 mA gives 3.6 W exactly and sends what rests on it to
+Kernel.dispatch alone; the campaign finds its records by what each is, past more intake rows than one list gives and past
+a calculation it cannot read, and A01 tells the sheet's own record of its source from the hash its PDF was admitted with;
+changing the settled current from 250 mA to 300 mA gives 3.6 W exactly and sends what rests on it to
 recheck while the reviewed source keeps its reading; and the playable scene P01 is played on it on the live window, by
 pointer and by keys, each again with less motion, in the look this module was started in (run it once more with
 GRAPHITE_APPEARANCE=kasandra for the other; tests_integrated.test_rail_demo_campaign plays it in both from one run).
@@ -125,6 +127,32 @@ class Workspace:
 
     def close(self):
         self.seed.stop();self.env.stop();self.temporary.cleanup()
+
+
+class Elsewhere:
+    """The workspace's kernel answering as a restored backup might: more intake rows than one list gives (invented, and
+    listed before the PDF), calculations on the desk that cannot be read (an invented one, or one of Rail Demo's), or the
+    sheet's own record of its source's SHA-256 other than the hash its PDF was admitted with. Reads only."""
+
+    def __init__(self,kernel,more_items=0,unreadable=(),sheet_sha=None):
+        self.kernel,self.more_items,self.unreadable,self.sheet_sha=kernel,more_items,set(unreadable),sheet_sha
+
+    def dispatch(self,operation,arguments,principal):
+        if operation=='documents.get' and 'document:'+arguments['id'] in self.unreadable:
+            return {'ok':False,'error':{'code':'DOCUMENT_NOT_READABLE','message':'DOCUMENT_NOT_READABLE'}}
+        if operation=='intake.items' and self.more_items:
+            real=self.kernel.dispatch(operation,dict(arguments,limit=200,offset=0),principal)['result']['items']
+            rows=[{'id':'invented-%03d'%n,'name':'A note %03d.txt'%n,'sha256':''} for n in range(self.more_items)]+real
+            offset=arguments.get('offset',0)
+            return {'ok':True,'result':{'total':len(rows),'items':rows[offset:offset+arguments.get('limit',100)]}}
+        answer=self.kernel.dispatch(operation,arguments,principal)
+        if operation=='field.read' and answer['ok']:
+            answer=json.loads(json.dumps(answer))
+            on_desk={o['id'] for o in answer['result']['objects']}
+            answer['result']['objects']+=[{'id':ident,'kind':'calculation','title':'Another calculation · 1 W'} for ident in sorted(self.unreadable-on_desk)]
+        if operation=='office.get' and answer['ok'] and self.sheet_sha:
+            answer=json.loads(json.dumps(answer));answer['result']['source_state']['source_sha256']=self.sheet_sha
+        return answer
 
 
 def pictured(field):
@@ -309,6 +337,45 @@ class TheRecords(unittest.TestCase):
             if kind in ('finding','question'):self.assertEqual(where,DESK,title)
             else:self.assertTrue(title.startswith(('Rail Demo ','Rail_Demo_')),title)
 
+    def test_the_campaign_finds_the_same_records_by_what_each_is(self):
+        # 0.8.5: the anchor cases write no record id of the owner's: they find what they work on by kind and words
+        # (cases_anchor.found), on the owner's backup as here; here it finds what build() made
+        from tools.campaign_lib import cases_anchor
+        made=self.ws.made
+        self.assertEqual(cases_anchor.found(self.ws.k,self.ws.p),
+                         {'sheet':made['sheets']['readings'],'calc_settled':made['calculations']['settled_power'],'calc_startup':made['calculations']['startup_power'],
+                          'claim_settled':made['findings']['settled_holds'],'pdf_item':made['sources']['readings']['item'],'pdf_sha256':made['sources']['readings']['sha256']})
+
+    def test_the_campaign_finds_them_past_one_list_and_past_a_calculation_it_cannot_read(self):
+        # 0.8.5: found() asks the intake rows a page at a time, and passes over a calculation it cannot read, naming it when
+        # what it looks for is then not there
+        from tools.campaign_lib import cases_anchor
+        want=cases_anchor.found(self.ws.k,self.ws.p)
+        for what,elsewhere in (('more intake rows than one list gives',Elsewhere(self.ws.k,more_items=101)),
+                               ('a calculation it cannot read',Elsewhere(self.ws.k,unreadable=['document:unread']))):
+            with self.subTest(what):
+                self.assertEqual(cases_anchor.found(elsewhere,self.ws.p),want)
+        with self.assertRaises(LookupError) as refused:
+            cases_anchor.found(Elsewhere(self.ws.k,unreadable=['document:'+want['calc_settled']]),self.ws.p)
+        self.assertEqual(str(refused.exception),'The restored workspace holds no standing calculation of that sheet\'s B2 and B3 (settled power) '
+                                                '(1 calculation could not be read: %s).'%SETTLED)
+
+    def test_a01_says_whether_the_sheets_source_is_the_admitted_pdf_and_keeps_no_hash(self):
+        # 0.8.5: the sheet's own record of its source is compared with the hash the PDF was admitted with (its intake row),
+        # never with itself; neither hash is kept as an observation; what found() reads is logged with the case's own calls
+        from tools.campaign_lib import cases_anchor,core,runner
+        case=runner.registry()['DA01']
+        for sheet_sha,admitted in ((None,True),('0'*64,False)):
+            with tempfile.TemporaryDirectory(prefix='graphite-rail-demo-a01-') as folder:
+                ctx=core.Attempt(case,folder,1);ctx.kernel,ctx.owner=Elsewhere(self.ws.k,sheet_sha=sheet_sha),self.ws.p
+                case.fn(ctx)
+                self.assertIs(ctx.observed['pdf_source_is_the_admitted_one'],admitted,sheet_sha)
+                self.assertEqual(sorted(ctx.observed),sorted(case.expect),'nothing observed beyond the checks')
+                ops=[line['op'] for line in map(json.loads,(Path(folder)/'progress.jsonl').read_text().splitlines()) if line['step']=='op']
+                self.assertTrue(set(cases_anchor.FINDS)<=set(ops),ops)
+                self.assertEqual(set(ops)-set(case.allowed),set(),'every read is one the case allows')
+        self.assertEqual(runner.registry()['A01'].allowed,case.allowed)
+
     def test_build_returns_what_find_reads_back(self):
         made=self.ws.made
         self.assertEqual(made,rail_demo.find(self.ws.k,self.ws.p))
@@ -421,8 +488,12 @@ class TheRecords(unittest.TestCase):
         from workbench import locations
         from workbench.engineering_kernel import Kernel,operator
         with tempfile.TemporaryDirectory(prefix='graphite-rail-demo-empty-') as folder,patch.dict(os.environ,{'ARC1_WORKBENCH_CONFIG_HOME':str(Path(folder)/'profile'),'ARC_LEDGER_CONCERN':str(Path(folder)/'Concern')}):
+            kernel=Kernel(locations.office(Path(folder)/'workspace'))
             with self.assertRaisesRegex(rail_demo.Unavailable,'Rail Demo is not in this workspace'):
-                rail_demo.find(Kernel(locations.office(Path(folder)/'workspace')),operator())
+                rail_demo.find(kernel,operator())
+            from tools.campaign_lib import cases_anchor          # 0.8.5: nor does the campaign find records that are not there
+            with self.assertRaisesRegex(LookupError,'The restored workspace holds no reviewed sheet whose title says "bench readings"'):
+                cases_anchor.found(kernel,operator())
 
 
 class TheChange(unittest.TestCase):
@@ -552,7 +623,7 @@ class ThePlayableSceneOnRailDemo(unittest.TestCase):
             if step['act']=='hand.write':wrote.append((WINDOW['files']/CSV).read_text(encoding='utf-8'))      # read in Files, while it is there
         out=desk_scene.run_scene(WINDOW['w'],scene,run,seed='rail_demo',origin='desk-script:P01',after_step=after)      # the scene as it is written: the seed is the switch
         self.assertNotIn('blocked',out)
-        # what the doer was given is this workspace's: the file it wrote holds Rail Demo's readings, not the ones the scene was written with
+        # what the doer was given is what the scene says: the file it wrote holds Rail Demo's readings (0.8.5: the scene is written with them)
         self.assertEqual(wrote,[CSV_TEXT])
         self.assertEqual([s['args'] for s in out['steps'] if s['act']=='hand.write'],[{'path':CSV,'text':CSV_TEXT}],'and the row says what the doer was given')
         self.assertTrue(out['passed'],desk_scene.failures(out))
@@ -569,10 +640,25 @@ class ThePlayableSceneOnRailDemo(unittest.TestCase):
         field=WINDOW['k'].dispatch('field.read',{},operator())['result']
         self.assertTrue(field['title'].startswith(DESK));self.assertEqual([c for c in field['counts'] if 'lately' not in c],COUNTS)
         written=desk_scene.load(P01);scene=desk_scene.for_workspace(written,'rail_demo')
+        self.assertEqual(scene,written,'0.8.5: the scene is written on Rail Demo')
         self.assertEqual(desk_scene.check_scene(scene),[])
         said=json.dumps([[desk_scene.arguments(step,'rail_demo'),desk_scene.expected(step,run['name'],'rail_demo')] for step in scene['steps'] for run in scene['runs']])
-        for name in written['workspaces']['rail_demo']['names']:self.assertNotIn(name,said,name)
         self.assertNotIn('After Hours',said)
+
+    def test_p01_as_played_on_the_owners_workspace_finds_each_name_here_and_passes(self):
+        # 0.8.5: the scene's After Hours 07 entry finds each name by its kind and the words it says. On Rail Demo they are
+        # Rail Demo's own, so the scene as it is played on the owner's workspace (find_names, the swap) is played here.
+        from workbench import desk_scene
+        from workbench.engineering_kernel import operator
+        written=desk_scene.load(P01)
+        found=desk_scene.find_names(WINDOW['k'],operator(),written,'after_hours_07')
+        self.assertEqual(found,{name:name for name in written['workspaces']['after_hours_07']['find']})
+        out=desk_scene.run_scene(WINDOW['w'],written,'keys_still',seed='after_hours_07',origin='desk-script:P01')
+        self.assertNotIn('blocked',out)
+        self.assertEqual((out['seed'],out['found']),('after_hours_07',found))
+        self.assertTrue(out['passed'],desk_scene.failures(out))
+        self.assertEqual(len(out['steps']),len(written['steps']))
+        self.assertFalse((WINDOW['files']/CSV).exists(),'the scene takes back what it wrote')
 
     def test_p01_by_mouse(self):
         out=self.play('mouse')

@@ -8,7 +8,8 @@ Graphite's own operations (`brain.model.add`, then `brain.model.use` with the pr
 context): `Qwen3.5-2B-Q4_K_M.gguf` (1.28 GB, sha256 aaf42c8b…699223) and `Qwen3.5-4B-Q4_K_M.gguf` (2.74 GB, sha256
 00fe7986…ef11a4), both Apache 2.0, thinking off. Inspecting a file took about 5 seconds and starting it 6 to 15. The window
 was the real one, offscreen, on the restored After Hours 07 case, with the Field in front and a sheet selected. No file
-ships with Graphite.
+ships with Graphite. (0.8.5: the answers below quoted names, texts and a size from the owner's own workspace; each is now
+given in brackets by what it was, as the owner may share Graphite one day. The answers are otherwise as the models gave them.)
 
 ## What the first try showed
 
@@ -31,11 +32,11 @@ the ordinary way.
 | Sheet | Question | Qwen3.5-2B | s | Qwen3.5-4B | s |
 | --- | --- | --- | --- | --- | --- |
 | calculation | what went into this? | The calculation uses the voltage from cell B2 and the settled current from cell B3. | 5 | The calculation uses the settled current from cell B3 and the rail voltage from cell B2. These values were recorded during both observations and after settling, respectively. | 13 |
-| finding | why do we believe this? | The finding is supported by two sources, both of which are marked as current. | 7 | The records show that the finding is supported by source "07_Bench_Readings.pdf" and source "07_Rail_Limits_Rev_B.pdf". These sources are marked as current… No further details explaining the reasoning are present in the provided rows. | 25 |
-| open question | what is still open here? | The question "What stretched the startup pulse?" is still open with a state of UNKNOWN and a review of CURRENT. | 5 | The question … is still open. Its evidence state is UNKNOWN and its review status is CURRENT. | 10 |
-| sheet | where did this table come from, and is it still good? | The sheet "07 Bench readings" comes from the current PDF source "07_Bench_Readings.pdf" and is still good. It was reviewed from page 1 and is currently in version 1. | 7 | The table comes from the source file "07_Bench_Readings.pdf" and is currently in good standing… | 18 |
-| source | what is this file? | The file … has a state of current. It feeds the finding "Settled draw is 3.36 W. Rev B allows 6 W." and the finding "Startup ran 30 ms past the Rev B limit." | 10 | The file … is currently in the ACCEPTED state. It contains 77439 bytes and feeds findings regarding settled draw and startup times. | 16 |
-| page | what is this page? | The document "07 Case conclusion · HOLD" is a record with revision 1 and contains 125 words. | 5 | This page is a document titled "07 Case conclusion · HOLD" with revision 1 and 125 words. | 10 |
+| finding | why do we believe this? | The finding is supported by two sources, both of which are marked as current. | 7 | The records show that the finding is supported by source "[the readings PDF]" and source "[the Rev B limits PDF]". These sources are marked as current… No further details explaining the reasoning are present in the provided rows. | 25 |
+| open question | what is still open here? | The question "[the case's open question]" is still open with a state of UNKNOWN and a review of CURRENT. | 5 | The question … is still open. Its evidence state is UNKNOWN and its review status is CURRENT. | 10 |
+| sheet | where did this table come from, and is it still good? | The sheet "[the bench readings sheet]" comes from the current PDF source "[the readings PDF]" and is still good. It was reviewed from page 1 and is currently in version 1. | 7 | The table comes from the source file "[the readings PDF]" and is currently in good standing… | 18 |
+| source | what is this file? | The file … has a state of current. It feeds the finding "[the settled power finding]" and the finding "[the startup finding]" | 10 | The file … is currently in the ACCEPTED state. It contains [its size] bytes and feeds findings regarding settled draw and startup times. | 16 |
+| page | what is this page? | The document "[the case conclusion page]" is a record with revision 1 and contains 125 words. | 5 | This page is a document titled "[the case conclusion page]" with revision 1 and 125 words. | 10 |
 
 Asked about something the rows do not hold while it still pointed at the sheet, the 2B model said the records do not contain
 it and said what they do show. "What is the capital of France?", which points at nothing, went the ordinary way and was

@@ -69,8 +69,8 @@ class PaletteTests(unittest.TestCase):
         with mock.patch.object(boss_theme, 'APPEARANCE', 'kasandra'), mock.patch.multiple(boss_theme, ROYAL='#7b4fd8', ROYAL_SOFT='#271a58', ROYAL_INK='#ebe2ff'):
             sheet = boss_theme.line_sheet()
             self.assertIn('background:#271a58', sheet);self.assertIn('border-left:3px solid #7b4fd8', sheet);self.assertIn('color:#ebe2ff', sheet)
-        line = '/field.set {"id": "office:owner:db5f669f863d4c71b89fa7ba348957da", "cell": "B3", "expected_revision": "69dada6fef720000e4b538e9cc3a9518ecba564118661fc4b7a7e81372536a27"}'
-        self.assertEqual(boss_theme.eye(line), '/field.set {"id": "office:owner:db5f66…", "cell": "B3", "expected_revision": "69dada…"}')
+        line = '/field.set {"id": "office:owner:3c9e0a51d2f84b7e96a0c4d18b2e7f53", "cell": "B3", "expected_revision": "8f41c2d07a9b3e6f15c84d2a90e7b3c6d51f08a2e94c7b36a0d8e5f1c27b94ae"}'
+        self.assertEqual(boss_theme.eye(line), '/field.set {"id": "office:owner:3c9e0a…", "cell": "B3", "expected_revision": "8f41c2…"}')
         self.assertEqual(boss_theme.eye('field.read | pick waiting'), 'field.read | pick waiting', 'nothing to shorten')
         self.assertEqual(set(boss_theme.PALETTES['graphite']) >= {'ROYAL', 'ROYAL_SOFT', 'ROYAL_INK', 'ROYAL_TEXT', 'HONEY', 'VIOLET'}, True)
         self.assertEqual(boss_theme.PALETTES['graphite']['ROYAL_TEXT'], boss_theme.PALETTES['graphite']['TEAL_TEXT'], 'Graphite keeps its green for lines')

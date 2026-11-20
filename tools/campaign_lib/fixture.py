@@ -12,7 +12,11 @@ Three seeds exist:
                   the base workspace through the Kernel's own operations. It needs nothing from the owner;
   after_hours_07  the owner's After Hours 07 backup, verified and restored with Graphite's own backup code.
 The After Hours 07 backup is owner data and is not shipped: it is found under --fixtures (or the
-GRAPHITE_CAMPAIGN_FIXTURES variable, or ~/Graphite_Campaign/fixtures), as a Graphite_Backup folder or the zip.
+GRAPHITE_CAMPAIGN_FIXTURES variable, or ~/Graphite_Campaign/fixtures), as a Graphite_Backup folder or the zip. Nothing of
+it is kept in the campaign (0.8.5): no record id, no hash, no name of the owner's, no number that is not public already
+(the release notes of earlier versions still quote some of it, left for the owner to decide). The
+cases find what they work on in the restored workspace when they run, by its kind and the words it says
+(cases_anchor.found, desk_scene.find_names); a backup that does not hold those is not the one they are written for.
 """
 from __future__ import annotations
 
@@ -28,14 +32,6 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 FIXTURE_REVISION = 1   # bump when the way a seed is built changes
-AH07_IDS = {
-    'sheet': 'owner:db5f669f863d4c71b89fa7ba348957da',
-    'calc_settled': '0e39bf65e24740a29a504a6be6e00885',
-    'calc_startup': '500cd60ebe49411bb9b9e5bbe0570214',
-    'claim_settled': 'f2a610f24ca84112a400e02d6ad04869',
-    'pdf_item': 'c1d3fc85730d57bc35404c6065dbe1dc',
-    'pdf_sha256': '2c60377d8dcf9c821c7d458d4ae944ddd84566c325114700c19ddcd76bbc375b',
-}
 KEEP_ENV = ('PATH', 'LANG', 'LC_ALL', 'TZ', 'TERM', 'GRAPHITE_APPEARANCE')      # the appearance a run starts in (0.8.2: a scene in Kasandra)
 
 

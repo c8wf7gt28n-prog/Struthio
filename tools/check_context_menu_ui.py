@@ -323,7 +323,7 @@ check('08 at 14, 18 and 20 pt the menu\'s row height, icon column and margin are
 # 09 Then ›: the line panel on a table in Files (0.8.1) ------------------------------------------------------------------------
 from workbench import boss_theme as bt
 tab=show_files(w);settle();tab.mode='list';tab.reload();settle()
-(files/'bench readings.csv').write_text('parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n')
+(files/'bench readings.csv').write_text('parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n')
 tab.reload();settle();view=tab.table
 item=next(view.topLevelItem(i) for i in range(view.topLevelItemCount()) if view.topLevelItem(i).data(0,Qt.UserRole)['name']=='bench readings.csv')
 menu=right_click(view.viewport(),view.visualItemRect(item).center());assert menu is not None

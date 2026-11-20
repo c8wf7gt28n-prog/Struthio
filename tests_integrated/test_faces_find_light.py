@@ -130,14 +130,14 @@ class FindTests(unittest.TestCase):
     def test_a_tree_and_a_list_are_searched_by_their_rows(self):
         tree=QTreeWidget();tree.setColumnCount(2);top=QTreeWidgetItem(tree,['Engineering','']);QTreeWidgetItem(top,['Rail limits','rev B']);QTreeWidgetItem(top,['Bench','rev A'])
         self.assertEqual([i.text(0) for i in centre_find.places(tree,'rev b')[0]],['Rail limits'])
-        rows=QListWidget();rows.addItems(['07 Case conclusion','07 Settled power','07 Startup power'])
-        self.assertEqual([i.text() for i in centre_find.places(rows,'power')[0]],['07 Settled power','07 Startup power'])
+        rows=QListWidget();rows.addItems(['Rail Demo summary','Rail Demo settled power','Rail Demo startup power'])
+        self.assertEqual([i.text() for i in centre_find.places(rows,'power')[0]],['Rail Demo settled power','Rail Demo startup power'])
 
     def test_a_page_of_words_is_searched_line_by_line_without_its_markup(self):
-        page=QWidget();box=QVBoxLayout(page);lines=[QLabel('<b>Settled</b> draw is 3.36 W.'),QLabel('Startup ran 30 ms past the limit.'),QLabel('')]
+        page=QWidget();box=QVBoxLayout(page);lines=[QLabel('<b>Settled</b> power is 3 W.'),QLabel('Startup ran 5 ms past the limit.'),QLabel('')]
         for line in lines:box.addWidget(line)
         page.show();APP.processEvents()
-        self.assertEqual(centre_find.places(page,'settled draw')[0],[lines[0]],'the words are found across the markup that shapes them')
+        self.assertEqual(centre_find.places(page,'settled power')[0],[lines[0]],'the words are found across the markup that shapes them')
         self.assertEqual(centre_find.places(page,'<b>')[0],[],'the markup itself is not words')
         self.assertIs(centre_find.subject(page),page);page.hide()
 
@@ -295,7 +295,7 @@ class SurgeTests(unittest.TestCase):
         from workbench.field_model import Field, FieldLink, FieldObject
         from workbench.field_qt import FieldView
         objs=[FieldObject('pdf','source','Bench.pdf'),FieldObject('sheet','sheet','Bench readings'),FieldObject('calc','calculation','Settled power'),
-              FieldObject('find','finding','Settled draw'),FieldObject('other','source','Rev B.pdf'),FieldObject('alone','source','Rev A.pdf')]
+              FieldObject('find','finding','Settled power holds'),FieldObject('other','source','Rev B.pdf'),FieldObject('alone','source','Rev A.pdf')]
         links=[FieldLink('pdf','sheet'),FieldLink('sheet','calc'),FieldLink('pdf','find'),FieldLink('other','find')]
         v=FieldView();v.set_field(Field(objects=objs,links=links));v.resize(1200,800);self.addCleanup(v.deleteLater);return v
 
@@ -359,18 +359,18 @@ class RevisionCutTests(unittest.TestCase):
     and after for the selected row; Esc or a click beside it closes it."""
     def test_rows_are_matched_and_the_change_is_said_in_words(self):
         from workbench import field_page
-        a=[{'parameter':'Continuous limit','value':'6','unit':'W','conditions':'Continuous'},{'parameter':'Pulse duration','value':'120','unit':'ms','conditions':'At up to 8 W'},
+        a=[{'parameter':'Settled power limit','value':'4','unit':'W','conditions':'Continuous'},{'parameter':'Startup duration limit','value':'60','unit':'ms','conditions':'From switch-on'},
            {'parameter':'Gone','value':'1','unit':'V'}]
-        b=[{'parameter':'Continuous limit','value':'6','unit':'W','conditions':'Continuous'},{'parameter':'Pulse duration','value':'80','unit':'ms','conditions':'At up to 8 W'},
+        b=[{'parameter':'Settled power limit','value':'4','unit':'W','conditions':'Continuous'},{'parameter':'Startup duration limit','value':'40','unit':'ms','conditions':'From switch-on'},
            {'parameter':'New','value':'2','unit':'V'}]
         rows=field_page.compare_rows(a,b)
-        self.assertEqual([(r['parameter'],r['changed']) for r in rows],[('Continuous limit',[]),('Pulse duration',['value']),('New',['value']),('Gone',['value'])])
+        self.assertEqual([(r['parameter'],r['changed']) for r in rows],[('Settled power limit',[]),('Startup duration limit',['value']),('New',['value']),('Gone',['value'])])
         from workbench.field_qt import FieldView
         v=FieldView();self.addCleanup(v.deleteLater);v.resize(1200,800)
         v.show_revisions(dict(a='Limits Rev A',b='Limits Rev B',a_rev='A',b_rev='B',rows=rows))
         self.assertEqual(v.revisions['sel'],1,'the first row that changed is selected')
-        self.assertEqual(v.revision_words(rows[1]),'value 120 ms in Rev A, 80 ms in Rev B')
-        self.assertIn('Pulse duration: value 120 ms in Rev A, 80 ms in Rev B',v.accessibleDescription())
+        self.assertEqual(v.revision_words(rows[1]),'value 60 ms in Rev A, 40 ms in Rev B')
+        self.assertIn('Startup duration limit: value 60 ms in Rev A, 40 ms in Rev B',v.accessibleDescription())
         self.assertFalse(v.grab().isNull())
         v.close_revisions();self.assertIsNone(v.revisions)
 
@@ -378,8 +378,8 @@ class RevisionCutTests(unittest.TestCase):
         from workbench import field_page
         from workbench.field_model import Field,FieldObject
         from workbench.field_qt import FieldView
-        objs=[FieldObject('a','sheet','07 Limits Rev A ARCHIVED'),FieldObject('b','sheet','07 Limits Rev B CURRENT'),FieldObject('c','sheet','07 Bench readings'),
-              FieldObject('d','source','07 Limits Rev C.pdf')]
+        objs=[FieldObject('a','sheet','Rail Demo limits Rev A ARCHIVED'),FieldObject('b','sheet','Rail Demo limits Rev B CURRENT'),FieldObject('c','sheet','Rail Demo bench readings'),
+              FieldObject('d','source','Rail Demo limits Rev C.pdf')]
         v=FieldView();self.addCleanup(v.deleteLater);v.set_field(Field(objects=objs))
         pair=field_page.revision_sibling(v,v.field.get('b'));self.assertEqual([(rev,o.id) for rev,o in pair],[('A','a'),('B','b')])
         self.assertIsNone(field_page.revision_sibling(v,v.field.get('c')),'no revision mark');self.assertIsNone(field_page.revision_sibling(v,v.field.get('d')),'a source is not a sheet')

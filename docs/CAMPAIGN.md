@@ -90,6 +90,20 @@ here, so the operations the assistant would choose are scripted, and the result 
 for your approval is read from the assistant's policy table for the steps Graphite offers. No approval is pressed:
 in the window it is your Run, and the run grants it for you.
 
+Since 0.8.5 the campaign's code, its cases and its scene keep nothing of your backup: no record id, no file hash, no
+title of yours. (The release notes of earlier versions, 0.4 to 0.8.2, still quote some of your titles, rows and
+numbers; they are left as they were written, for you to decide.) When a case runs, it finds what it works on in the
+restored workspace by what each thing is: the reviewed sheet whose title says "bench readings"; the two standing
+calculations that read its B2 with B3 (settled power) and with B4 (startup power); the finding that says settled
+power's result; and the PDF the sheet was reviewed from, with the SHA-256 it was admitted with. If one of them is
+missing, or there are two, the case stops and says which: the backup is then not the one these cases are written
+for. A calculation it cannot read is passed over, and named if what it looks for is then not found. No hash of your
+files is needed for that check, so there is no file to keep beside the backup. A01 compares the hash the sheet keeps
+of its source with the one its PDF was admitted with, and keeps neither. A27 finds its records once, before the
+write, and its resumed half works on the ones its checkpoint keeps. The numbers the cases expect (12 V, 280 mA, 3.36 W, then 3.6 W at 300 mA) are the ones the
+first-run workshop already prints (THINKPAD_FIRST_INSTALL.md) and Rail Demo's 300 mA. Older commits of the
+repository still hold the ids and names that were written here before 0.8.5; the history was not rewritten.
+
 ## Rail Demo: the invented workspace kept in the program (0.8.4)
 
 Your After Hours 07 backup is yours and is never shipped, so wherever it is not, the cases above say Blocked and
@@ -150,23 +164,24 @@ python3 tools/campaign.py run --case DP01a,DP01b,DP01c,DP01d      # on Rail Demo
 ```
 
 The `scenes` set plays P01 (`tools/campaign_lib/data/scenes/P01.json`) on a live Graphite window, with no model:
-P01a to P01d on your After Hours 07 backup, and DP01a to DP01d on Rail Demo. On Rail Demo it is the same scene,
-the same acts in the same order, with each name swapped for the one there (the scene's `workspaces` entry lists
-the pairs: `07 Bench readings` becomes `Rail Demo bench readings`, and so on). Every step is a desk act, the same
-acts you can type in the writing line (`/help acts` lists them). On After Hours 07:
+DP01a to DP01d on Rail Demo, and P01a to P01d on your After Hours 07 backup. Since 0.8.5 the scene is written on
+Rail Demo and names nothing of yours. On After Hours 07 it is the same scene, the same acts in the same order, with
+each name swapped for the one there: the scene's `workspaces` entry says how each is found (its kind and the words
+it says, such as the sheet that says "rev b current" or the row of that sheet that says "duration"), and the case
+finds them in the restored workspace before the first step. What the window reads is then said back in the scene's
+own names, so both are judged by the same checks. Every step is a desk act, the same acts you can type in the
+writing line (`/help acts` lists them):
 
 1. open Tools across the head, then close it;
-2. write `07 Bench readings.csv` through Stacy's hand (one card, one line in her trail, one Undo);
+2. write `Rail Demo bench readings.csv` (on After Hours 07, named after your bench readings sheet) through Stacy's
+   hand (one card, one line in her trail, one Undo);
 3. go to Files, right-click the CSV, choose Then, keep the rows where unit is mA, count them, and put the line in
    the writing line;
-4. go to the Field, see the whole desk, select 07 Bench readings and trace it (two hops, to 07 Settled power and
-   07 Startup power);
-5. select 07 Limits Rev B CURRENT, compare it with Rev A (Pulse ceiling and Pulse duration changed), and close the
-   comparison;
+4. go to the Field, see the whole desk, select the bench readings and trace them (two hops, to the settled power
+   and startup power calculations);
+5. select the Rev B limits, compare them with Rev A (on Rail Demo Settled power limit, Startup duration limit and
+   Startup power ceiling changed; the scene checks the duration and the ceiling rows), and close the comparison;
 6. Undo, which takes the CSV back.
-
-On Rail Demo the trace also goes two hops, to Rail Demo settled power and Rail Demo startup power, and the
-comparison shows Settled power limit, Startup duration limit and Startup power ceiling changed.
 
 Each step's result is checked against what the window then reads back. The scene is played four times: by pointer
 (P01a), by keys (P01b), and each again with Reduce motion on (P01c, P01d). A step that would wait for your Approve,

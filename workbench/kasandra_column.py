@@ -250,7 +250,7 @@ class Hug(QWidget):
 
 
 class Folding(QObject):
-    """Her column's words fold at its width (0.8.3 review: "07_Bench_Readings." above "pdf", though the name fits a line).
+    """Her column's words fold at its width (0.8.3 review: "Rail_Demo_Bench_Readings." above "pdf", though the name fits a line).
     Every label in her thread, as it is added and whenever its width changes: a long name gets break points only where a
     line must break (shell2.break_long, at the label's own width and face), so a name that fits a line has none and moves
     down whole. Her leaded words are set again (shell2.leaded); a plain label's words are set again from the words it was

@@ -32,10 +32,13 @@ from tests_integrated.seed_hold import seed_bound
 ROOT=Path(__file__).resolve().parent.parent
 P01=ROOT/'tools/campaign_lib/data/scenes/P01.json'
 WINDOW={}
-BENCH='parameter,value,unit\nRail voltage,12,V\nSettled current,280,mA\nStartup current,650,mA\nStartup duration,110,ms\n'
-REV_A='parameter,value,unit,conditions\nPulse duration,120,ms,\nPulse ceiling,,,Up to 120 ms\n'
-REV_B='parameter,value,unit,conditions\nPulse duration,80,ms,\nPulse ceiling,,,Up to 80 ms\n'
-SEED=(('07 Bench readings.csv',BENCH),('07 Limits Rev A ARCHIVED.csv',REV_A),('07 Limits Rev B CURRENT.csv',REV_B))
+# The bench seed (0.8.5): P01's names, which are Rail Demo's, and Rail Demo's invented readings and limits, as CSV tables
+# imported into sheets (not reviewed from a PDF, so a trace of them has no hops). Nothing of the owner's workspace.
+BENCH='parameter,value,unit\nRail voltage,12,V\nSettled current,250,mA\nStartup current,900,mA\nStartup duration,45,ms\n'
+REV_A='parameter,value,unit,conditions\nStartup duration limit,60,ms,\nStartup power ceiling,,,Up to 60 ms\n'
+REV_B='parameter,value,unit,conditions\nStartup duration limit,40,ms,\nStartup power ceiling,,,Up to 40 ms\n'
+READINGS,LIMITS_A,LIMITS_B='Rail Demo bench readings','Rail Demo limits Rev A ARCHIVED','Rail Demo limits Rev B CURRENT'
+SEED=((READINGS+'.csv',BENCH),(LIMITS_A+'.csv',REV_A),(LIMITS_B+'.csv',REV_B))
 OWNER_ONLY={'hand.approve','hand.undo','hand.dial','look.set','type.send'}
 # The tables reading writes to: the journal's own (a read of the journal makes its bookkeeping), the Kernel's audit of
 # every request that is not an observer's, and the instruction matrix, which records every line that runs (a read line
@@ -365,28 +368,28 @@ class LiveActs(unittest.TestCase):
             for left_pane,right_pane in (('machine','activity'),('settings','context'),('files','talk')):go('go.pane',{'left':left_pane,'right':right_pane})
             go('go.today',{});go('go.today',{'by':'keys'})
             go('go.files',{'folder':'seed','view':'icons'});go('go.files',{'folder':'seed','view':'list'})
-            go('go.open',{'path':'07 Bench readings.csv'});go('go.open',{'tab':0})
+            go('go.open',{'path':READINGS+'.csv'});go('go.open',{'tab':0})
             go('go.files',{'folder':'seed','view':'list'})
             for how in ('show','line','copy','rows'):
-                go('menu.open',{'on':'file','name':'07 Bench readings.csv'});go('menu.choose',{'path':'then'})
+                go('menu.open',{'on':'file','name':READINGS+'.csv'});go('menu.choose',{'path':'then'})
                 go('then.keep',{'column':'unit','words':'is mA'});go('then.count');go('then.back');go('then.end',{'how':how})
                 w.type_bar.box.clear();w._desk_put='';go('menu.close')
-            go('menu.open',{'on':'file','name':'07 Bench readings.csv','by':'keys'});go('menu.choose',{'path':'more/copy:path'});go('menu.close')
+            go('menu.open',{'on':'file','name':READINGS+'.csv','by':'keys'});go('menu.choose',{'path':'more/copy:path'});go('menu.close')
             go('menu.open',{'on':'here'});go('menu.close')
             go('go.field',{});go('go.field',{'by':'keys'})
             for to in ('whole','larger','smaller','reading','whole'):go('point.zoom',{'to':to})
-            go('point.sheet',{'title':'07 Bench readings','by':'pointer'});go('point.sheet',{'title':'07 Limits Rev B CURRENT','by':'keys'})
-            go('point.sheet',{'title':'07 Bench readings'})
+            go('point.sheet',{'title':READINGS,'by':'pointer'});go('point.sheet',{'title':LIMITS_B,'by':'keys'})
+            go('point.sheet',{'title':READINGS})
             for way in ('first','last','right','left'):go('point.move',{'way':way})
-            go('point.sheet',{'title':'07 Bench readings'})
+            go('point.sheet',{'title':READINGS})
             for by in ('pointer','keys'):
                 go('sheet.trace',{'by':by});go('sheet.close',{'by':by});go('sheet.doubt',{'by':by});go('sheet.close',{'by':by})
                 go('sheet.steps',{'by':by});go('menu.close');go('sheet.close',{'by':by})
-            go('menu.open',{'on':'sheet','name':'07 Bench readings'});go('menu.choose',{'path':'field:do/field:do:0'});go('menu.close');go('sheet.close')
+            go('menu.open',{'on':'sheet','name':READINGS});go('menu.choose',{'path':'field:do/field:do:0'});go('menu.close');go('sheet.close')
             go('sheet.whatif',{'cell':'B3','value':'300'},'NOT_HERE')      # the bench's sheets hold words, not numbers
-            go('point.sheet',{'title':'07 Limits Rev B CURRENT'})
+            go('point.sheet',{'title':LIMITS_B})
             for by in ('pointer','keys'):go('sheet.compare',{'by':by});go('sheet.close',{'by':by})
-            go('go.open',{'sheet':'07 Bench readings'});go('go.field',{'face':'apps'})
+            go('go.open',{'sheet':READINGS});go('go.field',{'face':'apps'})
             go('point.sheet',{'id':w.field_page.view.field.objects[0].id})
             go('sheet.whatif',{'cell':'B3','value':'300'},'NOT_HERE')
             go('go.field',{'face':'network'});go('go.field',{'face':'work'});go('go.back',{})
@@ -467,7 +470,7 @@ class LiveActs(unittest.TestCase):
         w=self.w;k=WINDOW['k'];page=w.field_page
         act('hand.dial',{'place':'ask'})
         self.assertTrue(act('hand.write',{'path':'approve a.txt','text':'a'})['result']['waits'])
-        act('go.field',{});act('point.sheet',{'title':'07 Bench readings'})
+        act('go.field',{});act('point.sheet',{'title':READINGS})
         steps=act('sheet.steps',{'by':'keys'})['result']['steps']
         n=next(i for i,s in enumerate(steps,1) if s['kind']=='write')
         self.assertTrue(act('hand.step',{'n':n})['result']['waits']);self.assertTrue(page.view.go)
@@ -481,7 +484,7 @@ class LiveActs(unittest.TestCase):
         self.assertIs(out['result']['ran'],True);self.assertIs(latest.ran,True);self.assertIsNone(watch.ran)
         self.assertTrue((WINDOW['files']/'approve b.txt').exists())
         # the go's card the latest: G is pressed, and the card read back is the one it approved
-        act('point.sheet',{'title':'07 Bench readings'});act('sheet.steps',{'by':'keys'})
+        act('point.sheet',{'title':READINGS});act('sheet.steps',{'by':'keys'})
         self.assertTrue(act('hand.step',{'n':n})['result']['waits'])
         again=go_card(page);self.assertIs(waiting_cards(w)[-1],again)
         page.view.setFocus();settle()
@@ -504,7 +507,7 @@ class LiveActs(unittest.TestCase):
             act('go.field',{'face':'apps'});act('point.sheet',{'id':w.field_page.view.field.objects[0].id})
             out=act('sheet.whatif',{'cell':'B3','value':'300'})
             self.assertEqual(out['error']['code'],'NOT_HERE');self.assertIn('is neither',out['words'])
-            act('go.field',{'face':'work'});act('point.sheet',{'title':'07 Bench readings'})
+            act('go.field',{'face':'work'});act('point.sheet',{'title':READINGS})
             out=act('sheet.whatif',{'cell':'B3','value':'300'})
             self.assertEqual(out['error']['code'],'NOT_HERE');self.assertEqual(out['changed'],[])
             self.assertEqual(act('sheet.whatif',{'cell':'B3','value':'please'})['error']['code'],'BAD_ARGUMENTS')
@@ -686,10 +689,10 @@ class LiveActs(unittest.TestCase):
         act('go.files',{});self.assertEqual(act('read.desk',{'part':'where'})['result']['surface'],'workspace')
 
     def test_a_sheet_is_reached_by_key_presses_only_when_asked_by_keys(self):
-        act('go.field',{});act('point.sheet',{'title':'07 Bench readings'})
-        keys=act('point.sheet',{'title':'07 Limits Rev B CURRENT','by':'keys'})
+        act('go.field',{});act('point.sheet',{'title':READINGS})
+        keys=act('point.sheet',{'title':LIMITS_B,'by':'keys'})
         self.assertTrue(keys['ok'],keys['words']);self.assertGreater(keys['result']['presses'],0)
-        direct=act('point.sheet',{'title':'07 Bench readings'})
+        direct=act('point.sheet',{'title':READINGS})
         self.assertTrue(direct['ok'],direct['words']);self.assertEqual(direct['result']['presses'],0)
 
     def test_the_empty_place_she_points_at_in_files_is_on_the_screen_when_the_list_is_full(self):
@@ -722,7 +725,7 @@ class LiveActs(unittest.TestCase):
 
     def test_one_record_per_act(self):
         before=len(journal(origin='desk-script:test'))
-        for name,args in (('go.field',{}),('point.zoom',{'to':'whole'}),('point.sheet',{'title':'07 Bench readings'}),('read.desk',{}),
+        for name,args in (('go.field',{}),('point.zoom',{'to':'whole'}),('point.sheet',{'title':READINGS}),('read.desk',{}),
                           ('point.move',{'way':'first'}),('go.files',{}),('head.open',{'menu':'Guide'}),('menu.close',{}),('go.today',{}),
                           ('go.open',{'tab':0})):
             out=act(name,args);self.assertTrue(out['ok'],(name,out['words']))

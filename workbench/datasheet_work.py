@@ -252,7 +252,7 @@ def report(kernel, args, principal, prior=None, replaces=None):
     title = saved['document']['title'] + ' · calculation'
     if replaces:
         # A recheck is the same calculation brought up to date, so the new page keeps the owner's name for it; where that
-        # name carried the old result ("07 Settled power · 3.36 W") it carries the new one. The page it replaces is named
+        # name carried the old result ("Rail Demo settled power · 3 W") it carries the new one. The page it replaces is named
         # in the derivation, so a reader shows the current one and does not leave the old one waiting for ever.
         derivation['replaces'] = replaces['id'];title = replaces['title'] or title
         was = ((prior or {}).get('calculation') or {}).get('outputs') or []

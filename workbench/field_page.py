@@ -692,7 +692,7 @@ REVISION_TITLE = re.compile(r'^(?P<stem>.*?)\s*\brev(?:ision)?\.?\s*(?P<rev>[A-Z
 
 
 def revision_sibling(view, obj):
-    """The other revision of a reviewed sheet on the desk ("07 Limits Rev A ARCHIVED" for "07 Limits Rev B CURRENT"), as
+    """The other revision of a reviewed sheet on the desk ("Rail Demo limits Rev A ARCHIVED" for "Rail Demo limits Rev B CURRENT"), as
     (older, newer), or None. Two sheets are revisions of one when their titles match once the revision mark is taken off."""
     if obj is None or obj.kind != 'sheet':return None
     mine = REVISION_TITLE.match(obj.title or '')
